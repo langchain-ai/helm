@@ -36,6 +36,10 @@ images:
     repository: "docker.io/redis"
     pullPolicy: IfNotPresent
     tag: "7"
+  clickhouseImage:
+    repository: "docker.io/clickhouse/clickhouse-server"
+    pullPolicy: Always
+    tag: "23.9"
 
 ingress:
   hostname: ""
@@ -113,6 +117,32 @@ backend:
   serviceAccount:
     create: true
     name: ""
+    labels: {}
+    annotations: {}
+
+clickhouse:
+  name: "clickhouse"
+  # External clickhouse is currently not supported.
+  external:
+    enabled: false
+  containerHttpPort: 8123
+  containerNativePort: 9000
+  statefulSet:
+    labels: {}
+    annotations: {}
+    podSecurityContext: {}
+    securityContext: {}
+    resources: {}
+    nodeSelector: {}
+    tolerations: []
+    affinity: {}
+    persistence:
+      size: 8Gi
+      storageClassName: ""
+  service:
+    type: ClusterIP
+    httpPort: 8123
+    nativePort: 9000
     labels: {}
     annotations: {}
 
