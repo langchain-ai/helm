@@ -1,0 +1,61 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}-migrations
+  labels:
+    {{- include "langsmith.labels" . | nindent 4 }}
+    {{- with.Values.backend.migrations.labels }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+  annotations:
+    "helm.sh/hook": post-install, post-upgrade
+    "helm.sh/hook-weight": "-1"
+    {{- include "langsmith.annotations" . | nindent 4 }}
+    {{- with.Values.backend.migrations.annotations }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  backoffLimit: 3
+  template:
+    metadata:
+      {{- with .Values.backend.migrations.annotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- with.Values.backend.migrations.labels }}
+            {{- toYaml . | nindent 8 }}
+        {{- end }}
+        {{- include "langsmith.labels" . | nindent 8 }}
+        app.kubernetes.io/name: {{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}
+    spec:
+      restartPolicy: Never
+      {{- with .Values.images.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.backend.migrations.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Values.backend.name }}
+          command: ["/bin/bash", "-c", "alembic upgrade head"]
+          env:
+            {{- include "langsmith.commonEnv" . | nindent 12 }}
+          image: "{{ .Values.images.backendImage.repository }}:{{ .Values.images.backendImage.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.images.backendImage.pullPolicy }}
+          resources:
+            {{- toYaml .Values.backend.migrations.resources | nindent 12 }}
+          securityContext:
+            {{- toYaml .Values.backend.migrations.securityContext | nindent 12 }}
+      {{- with .Values.backend.migrations.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.backend.migrations.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.backend.migrations.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

@@ -1,0 +1,26 @@
+{{- if .Values.config.oauth.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}-api
+  labels:
+    {{- include "langsmith.labels" . | nindent 4 }}
+    {{- with.Values.backend.service.labels }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+  annotations:
+    {{- include "langsmith.annotations" . | nindent 4 }}
+    {{- with.Values.backend.service.annotations }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  type: {{ .Values.backend.service.type }}
+  ports:
+    - name: backend
+      port: {{ .Values.backend.service.port }}
+      targetPort: backend
+      protocol: TCP
+  selector:
+    {{- include "langsmith.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/name: {{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}-api
+{{- end }}

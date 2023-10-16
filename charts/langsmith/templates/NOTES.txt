@@ -1,0 +1,1 @@
+This is the Langsmith application helm chart. All pods should be running!

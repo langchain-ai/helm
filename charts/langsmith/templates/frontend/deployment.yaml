@@ -1,0 +1,119 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "langsmith.fullname" . }}-{{ .Values.frontend.name }}
+  labels:
+    {{- include "langsmith.labels" . | nindent 4 }}
+    {{- with.Values.frontend.deployment.labels }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+  annotations:
+    {{- include "langsmith.annotations" . | nindent 4 }}
+    {{- with.Values.frontend.deployment.annotations }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  {{- if not .Values.frontend.autoscaling.enabled }}
+  replicas: {{ .Values.frontend.deployment.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "langsmith.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/name: {{ include "langsmith.fullname" . }}-{{ .Values.frontend.name }}
+  template:
+    metadata:
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/frontend/configmap.yaml") . | sha256sum }}
+      {{- with .Values.frontend.deployment.annotations }}
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- with.Values.frontend.deployment.labels }}
+            {{- toYaml . | nindent 8 }}
+        {{- end }}
+        {{- include "langsmith.labels" . | nindent 8 }}
+        app.kubernetes.io/name: {{ include "langsmith.fullname" . }}-{{ .Values.frontend.name }}
+    spec:
+      {{- with .Values.images.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.frontend.deployment.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Values.frontend.name }}
+          env:
+            - name: VITE_BACKEND_AUTH_TYPE
+            {{- if .Values.config.oauth.enabled }}
+              value: "oauth"
+            {{- else }}
+              value: "none"
+            {{- end }}
+            - name: VITE_BACKEND_URL
+              value: ""
+            - name: VITE_HUB_WEB_URL
+              value: ""
+            - name: VITE_OAUTH_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  key: oauth_client_id
+                  name: {{ include "langsmith.secretsName" .}}
+            - name: VITE_OAUTH_ISSUER_URL
+              valueFrom:
+                secretKeyRef:
+                  key: oauth_issuer_url
+                  name: {{ include "langsmith.secretsName" .}}
+          image: "{{ .Values.images.frontendImage.repository }}:{{ .Values.images.frontendImage.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.images.frontendImage.pullPolicy }}
+          ports:
+            - name: frontend
+              containerPort: {{ .Values.frontend.containerPort }}
+              protocol: TCP
+          startupProbe:
+            httpGet:
+              path: /
+              port: {{ .Values.frontend.containerPort }}
+            failureThreshold: 6
+            periodSeconds: 10
+            timeoutSeconds: 1
+          livenessProbe:
+            httpGet:
+              path: /
+              port: {{ .Values.frontend.containerPort }}
+            failureThreshold: 6
+            periodSeconds: 10
+            timeoutSeconds: 1
+          readinessProbe:
+            httpGet:
+              path: /
+              port: {{ .Values.frontend.containerPort }}
+            failureThreshold: 6
+            periodSeconds: 10
+            timeoutSeconds: 1
+          resources:
+            {{- toYaml .Values.frontend.deployment.resources | nindent 12 }}
+          securityContext:
+            {{- toYaml .Values.frontend.deployment.securityContext | nindent 12 }}
+          volumeMounts:
+            - mountPath: /etc/nginx/conf.d/default.conf
+              name: nginx-conf
+              subPath: nginx.conf
+      {{- with .Values.frontend.deployment.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.frontend.deployment.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.frontend.deployment.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      volumes:
+        - name: nginx-conf
+          configMap:
+            name: {{ include "langsmith.fullname" . }}-{{ .Values.frontend.name }}
+            items:
+              - key: nginx.conf
+                path: nginx.conf

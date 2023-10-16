@@ -1,0 +1,117 @@
+{{- if not .Values.redis.external.enabled }}
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "langsmith.fullname" . }}-{{ .Values.redis.name }}
+  labels:
+    {{- include "langsmith.labels" . | nindent 4 }}
+    {{- with.Values.redis.statefulSet.labels }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+  annotations:
+    {{- include "langsmith.annotations" . | nindent 4 }}
+    {{- with.Values.redis.statefulSet.annotations }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  serviceName: {{ include "langsmith.fullname" . }}-{{ .Values.redis.name }}
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "langsmith.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/name: {{ include "langsmith.fullname" . }}-{{ .Values.redis.name }}
+  template:
+    metadata:
+      {{- with .Values.redis.statefulSet.annotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- with.Values.redis.statefulSet.labels }}
+            {{- toYaml . | nindent 8 }}
+        {{- end }}
+        {{- include "langsmith.labels" . | nindent 8 }}
+        app.kubernetes.io/name: {{ include "langsmith.fullname" . }}-{{ .Values.redis.name }}
+    spec:
+      {{- with .Values.images.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.redis.statefulSet.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Values.redis.name }}
+          image: "{{ .Values.images.redisImage.repository }}:{{ .Values.images.redisImage.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.images.redisImage.pullPolicy }}
+          ports:
+            - name: redis
+              containerPort: {{ .Values.redis.containerPort }}
+              protocol: TCP
+          startupProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - exec redis-cli ping
+            failureThreshold: 6
+            periodSeconds: 10
+            timeoutSeconds: 1
+          readinessProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - exec redis-cli ping
+            failureThreshold: 6
+            periodSeconds: 10
+            timeoutSeconds: 1
+          livenessProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - exec redis-cli ping
+            failureThreshold: 6
+            periodSeconds: 10
+            timeoutSeconds: 1
+          resources:
+            {{- toYaml .Values.redis.statefulSet.resources | nindent 12 }}
+          securityContext:
+            {{- toYaml .Values.redis.statefulSet.securityContext | nindent 12 }}
+          {{- if .Values.redis.statefulSet.persistence.enabled }}
+          volumeMounts:
+            - mountPath: /data
+              name: data
+          {{- end }}
+      {{- with .Values.redis.statefulSet.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.redis.statefulSet.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.redis.statefulSet.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+  {{- if .Values.redis.statefulSet.persistence.enabled }}
+  volumeClaimTemplates:
+    - apiVersion: v1
+      kind: PersistentVolumeClaim
+      metadata:
+        name: data
+        labels:
+          {{- include "langsmith.labels" . | nindent 10 }}
+          app.kubernetes.io/name: {{ include "langsmith.fullname" . }}-{{ .Values.redis.name }}
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: {{ .Values.redis.statefulSet.persistence.size }}
+        {{- if .Values.redis.statefulSet.persistence.storageClassName }}
+        storageClassName: {{ .Values.redis.statefulSet.persistence.storageClassName }}
+        {{- end }}
+  {{- end }}
+{{- end }}

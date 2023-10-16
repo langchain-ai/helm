@@ -1,0 +1,65 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "langsmith.fullname" . }}-{{ .Values.playground.name }}
+  labels:
+    {{- include "langsmith.labels" . | nindent 4 }}
+    {{- with.Values.playground.deployment.labels }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+  annotations:
+    {{- include "langsmith.annotations" . | nindent 4 }}
+    {{- with.Values.playground.deployment.annotations }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  {{- if not .Values.playground.autoscaling.enabled }}
+  replicas: {{ .Values.playground.deployment.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "langsmith.labels" . | nindent 6 }}
+      app.kubernetes.io/name: {{ include "langsmith.fullname" . }}-{{ .Values.playground.name }}
+  template:
+    metadata:
+      {{- with .Values.playground.deployment.annotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- with.Values.playground.deployment.labels }}
+            {{- toYaml . | nindent 8 }}
+        {{- end }}
+        {{- include "langsmith.labels" . | nindent 8 }}
+        app.kubernetes.io/name: {{ include "langsmith.fullname" . }}-{{ .Values.playground.name }}
+    spec:
+      {{- with .Values.images.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.playground.deployment.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Values.playground.name }}
+          image: "{{ .Values.images.playgroundImage.repository }}:{{ .Values.images.playgroundImage.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.images.playgroundImage.pullPolicy }}
+          ports:
+            - name: playground
+              containerPort: {{ .Values.playground.containerPort }}
+              protocol: TCP
+          resources:
+            {{- toYaml .Values.playground.deployment.resources | nindent 12 }}
+          securityContext:
+            {{- toYaml .Values.playground.deployment.securityContext | nindent 12 }}
+      {{- with .Values.playground.deployment.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.playground.deployment.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.playground.deployment.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

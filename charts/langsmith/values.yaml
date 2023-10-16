@@ -1,0 +1,235 @@
+# Default values for the langsmith helm chart. Refer to documentation on individual values for help with configuration.
+# TODO: langchain-infra: add documentation for each parameter here
+nameOverride: ""
+fullnameOverride: ""
+commonAnnotations: {}
+commonLabels: {}
+
+images:
+  imagePullSecrets: []
+  backendImage:
+    repository: "docker.io/langchain/langchainplus-backend"
+    pullPolicy: Always
+    tag: "latest"
+  frontendImage:
+    repository: "docker.io/langchain/langchainplus-frontend-dynamic"
+    pullPolicy: Always
+    tag: "latest"
+  hubBackendImage:
+    repository: "docker.io/langchain/langchainhub-backend"
+    pullPolicy: Always
+    tag: "latest"
+  playgroundImage:
+    repository: "docker.io/langchain/langchainplus-playground"
+    pullPolicy: Always
+    tag: "latest"
+  postgresImage:
+    repository: "docker.io/postgres"
+    pullPolicy: Always
+    tag: "14.7"
+  redisImage:
+    repository: "docker.io/redis"
+    pullPolicy: Always
+    tag: "7"
+
+ingress:
+  hostname: ""
+  enabled: false
+  ingressClassName: ""
+  annotations: {}
+  labels: {}
+  tls: []
+
+config:
+  existingSecretName: ""
+  openaiApiKey: ""
+  langsmithLicenseKey: ""
+  oauth:
+    enabled: false
+    oauthClientId: ""
+    oauthIssuerUrl: ""
+
+backend:
+  name: "backend"
+  containerPort: 1984
+  deployment:
+    replicaCount: 1
+    labels: {}
+    annotations: {}
+    podSecurityContext: {}
+    securityContext: {}
+    resources: {}
+    nodeSelector: {}
+    tolerations: []
+    affinity: {}
+  migrations:
+    replicaCount: 1
+    labels: {}
+    annotations: {}
+    podSecurityContext: {}
+    securityContext: {}
+    resources: {}
+    nodeSelector: {}
+    tolerations: []
+    affinity: {}
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 5
+    targetCPUUtilizationPercentage: 80
+  service:
+    type: ClusterIP
+    port: 1984
+    labels: {}
+    annotations: {}
+
+frontend:
+  name: "frontend"
+  containerPort: 8080
+  deployment:
+    replicaCount: 1
+    labels: {}
+    annotations: {}
+    podSecurityContext: {}
+    securityContext: {}
+    resources: {}
+    nodeSelector: {}
+    tolerations: []
+    affinity: {}
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 5
+    targetCPUUtilizationPercentage: 80
+  service:
+    type: LoadBalancer
+    httpPort: 80
+    httpsPort: 443
+    labels: {}
+    annotations: {}
+
+hubBackend:
+  name: "hub-backend"
+  containerPort: 1985
+  deployment:
+    replicaCount: 1
+    labels: {}
+    annotations: {}
+    podSecurityContext: {}
+    securityContext: {}
+    resources: {}
+    nodeSelector: {}
+    tolerations: []
+    affinity: {}
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 5
+    targetCPUUtilizationPercentage: 80
+  service:
+    type: ClusterIP
+    port: 1985
+    labels: {}
+    annotations: {}
+
+playground:
+  name: "playground"
+  containerPort: 3001
+  deployment:
+    replicaCount: 1
+    labels: {}
+    annotations: {}
+    podSecurityContext: {}
+    securityContext: {}
+    resources: {}
+    nodeSelector: {}
+    tolerations: []
+    affinity: {}
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 5
+    targetCPUUtilizationPercentage: 80
+  service:
+    type: ClusterIP
+    port: 3001
+    labels: {}
+    annotations: {}
+
+postgres:
+  name: "postgres"
+  external:
+    # If enabled, use the following values to connect to an external database. This will also disable the
+    # creation of a postgres stateful-set and service.
+    enabled: false
+    host: ""
+    port: 5432
+    user: ""
+    password: ""
+    database: ""
+    existingSecretName: ""
+  containerPort: 5432
+  statefulSet:
+    labels: {}
+    annotations: {}
+    podSecurityContext: {}
+    securityContext: {}
+    resources: {}
+    nodeSelector: {}
+    tolerations: []
+    affinity: {}
+    persistence:
+      enabled: false
+      size: 8Gi
+      storageClassName: ""
+  service:
+    type: ClusterIP
+    port: 5432
+    labels: {}
+    annotations: {}
+
+queue:
+  name: "queue"
+  deployment:
+    replicaCount: 1
+    labels: {}
+    annotations: {}
+    podSecurityContext: {}
+    securityContext: {}
+    resources: {}
+    nodeSelector: {}
+    tolerations: []
+    affinity: {}
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 5
+    targetCPUUtilizationPercentage: 80
+
+redis:
+  name: "redis"
+  external:
+    # If enabled, use the following values to connect to an external redis instance. This will also disable the
+    # creation of a redis stateful-set and service.
+    enabled: false
+    connectionUrl: ""
+    existingSecretName: ""
+  containerPort: 6379
+  statefulSet:
+    labels: {}
+    annotations: {}
+    podSecurityContext: {}
+    securityContext: {}
+    resources: {}
+    nodeSelector: {}
+    tolerations: []
+    affinity: {}
+    persistence:
+      enabled: false
+      size: 8Gi
+      storageClassName: ""
+  service:
+    type: ClusterIP
+    port: 6379
+    labels: {}
+    annotations: {}

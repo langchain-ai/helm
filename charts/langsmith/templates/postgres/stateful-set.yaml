@@ -1,0 +1,129 @@
+{{- if not .Values.postgres.external.enabled }}
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "langsmith.fullname" . }}-{{ .Values.postgres.name }}
+  labels:
+    {{- include "langsmith.labels" . | nindent 4 }}
+    {{- with.Values.postgres.statefulSet.labels }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+  annotations:
+    {{- include "langsmith.annotations" . | nindent 4 }}
+    {{- with.Values.postgres.statefulSet.annotations }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  serviceName: {{ include "langsmith.fullname" . }}-{{ .Values.postgres.name }}
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "langsmith.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/name: {{ include "langsmith.fullname" . }}-{{ .Values.postgres.name }}
+  template:
+    metadata:
+      {{- with .Values.postgres.statefulSet.annotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- with.Values.postgres.statefulSet.labels }}
+            {{- toYaml . | nindent 8 }}
+        {{- end }}
+        {{- include "langsmith.labels" . | nindent 8 }}
+        app.kubernetes.io/name: {{ include "langsmith.fullname" . }}-{{ .Values.postgres.name }}
+    spec:
+      {{- with .Values.images.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.postgres.statefulSet.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Values.postgres.name }}
+          args:
+            - postgres
+            - -c
+            - log_min_messages=WARNING
+            - -c
+            - client_min_messages=WARNING
+          env:
+            - name: POSTGRES_DB
+              value: postgres
+            - name: POSTGRES_PASSWORD
+              value: postgres
+            - name: POSTGRES_USER
+              value: postgres
+            - name: PGDATA
+              value: /var/lib/postgresql/data/postgres
+          image: "{{ .Values.images.postgresImage.repository }}:{{ .Values.images.postgresImage.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.images.postgresImage.pullPolicy }}
+          ports:
+            - name: postgres
+              containerPort: {{ .Values.postgres.containerPort }}
+              protocol: TCP
+          startupProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - exec pg_isready -d postgres -U postgres
+            failureThreshold: 6
+            periodSeconds: 10
+            timeoutSeconds: 1
+          readinessProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - exec pg_isready -d postgres -U postgres
+            failureThreshold: 6
+            periodSeconds: 10
+            timeoutSeconds: 1
+          livenessProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - exec pg_isready -d postgres -U postgres
+            failureThreshold: 6
+            periodSeconds: 10
+            timeoutSeconds: 1
+          resources:
+            {{- toYaml .Values.postgres.statefulSet.resources | nindent 12 }}
+          securityContext:
+            {{- toYaml .Values.postgres.statefulSet.securityContext | nindent 12 }}
+          volumeMounts:
+            - mountPath: /var/lib/postgresql/data
+              name: data
+              subPath: postgres
+      {{- with .Values.postgres.statefulSet.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.postgres.statefulSet.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.postgres.statefulSet.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+  volumeClaimTemplates:
+    - apiVersion: v1
+      kind: PersistentVolumeClaim
+      metadata:
+        name: data
+        labels:
+          {{- include "langsmith.labels" . | nindent 10 }}
+          app.kubernetes.io/name: {{ include "langsmith.fullname" . }}-{{ .Values.postgres.name }}
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: {{ .Values.postgres.statefulSet.persistence.size }}
+        {{- if .Values.postgres.statefulSet.persistence.storageClassName }}
+        storageClassName: {{ .Values.postgres.statefulSet.persistence.storageClassName }}
+        {{- end }}
+ {{- end}}

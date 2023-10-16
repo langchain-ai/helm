@@ -1,0 +1,26 @@
+{{- if not .Values.redis.external.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "langsmith.fullname" . }}-{{ .Values.redis.name }}
+  labels:
+    {{- include "langsmith.labels" . | nindent 4 }}
+    {{- with.Values.redis.service.labels }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+  annotations:
+    {{- include "langsmith.annotations" . | nindent 4 }}
+    {{- with.Values.redis.service.annotations }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  type: {{ .Values.redis.service.type }}
+  ports:
+    - name: redis
+      port: {{ .Values.redis.service.port }}
+      targetPort: redis
+      protocol: TCP
+  selector:
+    {{- include "langsmith.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/name: {{ include "langsmith.fullname" . }}-{{ .Values.redis.name }}
+{{- end }}
