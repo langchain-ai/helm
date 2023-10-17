@@ -1,5 +1,6 @@
 # Default values for the langsmith helm chart. Refer to documentation on individual values for help with configuration.
-# TODO: langchain-infra: add documentation for each parameter here
+
+
 nameOverride: ""
 fullnameOverride: ""
 commonAnnotations: {}
