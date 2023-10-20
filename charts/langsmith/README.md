@@ -30,6 +30,7 @@ Ensure you have the following tools/items ready.
     1. You can configure oauth using the `values.yaml` file. You will need to provide a `client_id` and `client_issuer_url` for your oauth provider. We currently support anything that is OIDC compliant.
 6. External Postgres(optional).
     1. You can configure external postgres using the `values.yaml` file. You will need to provide connection parameters for your postgres instance.
+    2. Note: We do not support a schema other than public at this time.
 7. External Redis(optional).
     1. You can configure external redis using the `values.yaml` file. You will need to provide a connection url for your redis instance.
 
@@ -151,7 +152,7 @@ the same format as the secret in the corresponding `secrets.yaml` file.
 2. Curl the external ip of the `langsmith-frontend` service:
 
     ```bash
-    curl <external ip>/tenants
+    curl <external ip>/api/tenants
     [{"id":"00000000-0000-0000-0000-000000000000","has_waitlist_access":true,"created_at":"2023-09-13T18:25:10.488407","display_name":"Personal","config":{"is_personal":true,"max_identities":1},"tenant_handle":"default"}]%
     ```
 
@@ -198,9 +199,9 @@ We typically validate deployment using the following Jupyter notebook:
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| commonAnnotations | object | `{}` |  |
-| commonLabels | object | `{}` |  |
-| fullnameOverride | string | `""` |  |
+| commonAnnotations | object | `{}` | Annotations that will be applied to all resources created by the chart |
+| commonLabels | object | `{}` | Labels that will be applied to all resources created by the chart |
+| fullnameOverride | string | `""` | String to fully override `"langsmith.fullname"` |
 | images.backendImage.pullPolicy | string | `"Always"` |  |
 | images.backendImage.repository | string | `"docker.io/langchain/langchainplus-backend"` |  |
 | images.backendImage.tag | string | `"latest"` |  |
@@ -210,7 +211,7 @@ We typically validate deployment using the following Jupyter notebook:
 | images.hubBackendImage.pullPolicy | string | `"Always"` |  |
 | images.hubBackendImage.repository | string | `"docker.io/langchain/langchainhub-backend"` |  |
 | images.hubBackendImage.tag | string | `"latest"` |  |
-| images.imagePullSecrets | list | `[]` |  |
+| images.imagePullSecrets | list | `[]` | Secrets with credentials to pull images from a private registry. Specified as name: value. |
 | images.playgroundImage.pullPolicy | string | `"Always"` |  |
 | images.playgroundImage.repository | string | `"docker.io/langchain/langchainplus-playground"` |  |
 | images.playgroundImage.tag | string | `"latest"` |  |
@@ -226,7 +227,7 @@ We typically validate deployment using the following Jupyter notebook:
 | ingress.ingressClassName | string | `""` |  |
 | ingress.labels | object | `{}` |  |
 | ingress.tls | list | `[]` |  |
-| nameOverride | string | `""` |  |
+| nameOverride | string | `""` | Provide a name in place of `langsmith` |
 
 ## Configs
 
