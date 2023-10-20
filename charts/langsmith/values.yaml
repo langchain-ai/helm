@@ -70,6 +70,12 @@ backend:
     podSecurityContext: {}
     securityContext: {}
     resources: {}
+#      limits:
+#        cpu: 1000m
+#        memory: 1Gi
+#      requests:
+#        cpu: 200m
+#        memory: 500Mi
     nodeSelector: {}
     tolerations: []
     affinity: {}
@@ -94,6 +100,12 @@ frontend:
     podSecurityContext: {}
     securityContext: {}
     resources: {}
+#      limits:
+#        cpu: 1000m
+#        memory: 1Gi
+#      requests:
+#        cpu: 200m
+#        memory: 500Mi
     nodeSelector: {}
     tolerations: []
     affinity: {}
@@ -119,6 +131,12 @@ hubBackend:
     podSecurityContext: {}
     securityContext: {}
     resources: {}
+#      limits:
+#        cpu: 1000m
+#        memory: 1Gi
+#      requests:
+#        cpu: 200m
+#        memory: 500Mi
     nodeSelector: {}
     tolerations: []
     affinity: {}
@@ -143,6 +161,12 @@ playground:
     podSecurityContext: {}
     securityContext: {}
     resources: {}
+#      limits:
+#        cpu: 1000m
+#        memory: 1Gi
+#      requests:
+#        cpu: 200m
+#        memory: 500Mi
     nodeSelector: {}
     tolerations: []
     affinity: {}
@@ -176,6 +200,12 @@ postgres:
     podSecurityContext: {}
     securityContext: {}
     resources: {}
+#      limits:
+#        cpu: 4000m
+#        memory: 16Gi
+#      requests:
+#        cpu: 1000m
+#        memory: 4Gi
     nodeSelector: {}
     tolerations: []
     affinity: {}
@@ -198,6 +228,12 @@ queue:
     podSecurityContext: {}
     securityContext: {}
     resources: {}
+#      limits:
+#        cpu: 1000m
+#        memory: 1Gi
+#      requests:
+#        cpu: 200m
+#        memory: 500Mi
     nodeSelector: {}
     tolerations: []
     affinity: {}
@@ -222,6 +258,12 @@ redis:
     podSecurityContext: {}
     securityContext: {}
     resources: {}
+#      limits:
+#        cpu: 4000m
+#        memory: 16Gi
+#      requests:
+#        cpu: 1000m
+#        memory: 2Gi
     nodeSelector: {}
     tolerations: []
     affinity: {}
