@@ -1,12 +1,16 @@
 # Default values for the langsmith helm chart. Refer to documentation on individual values for help with configuration.
 
-
+# -- Provide a name in place of `langsmith`
 nameOverride: ""
+# -- String to fully override `"langsmith.fullname"`
 fullnameOverride: ""
+# -- Annotations that will be applied to all resources created by the chart
 commonAnnotations: {}
+# -- Labels that will be applied to all resources created by the chart
 commonLabels: {}
 
 images:
+   # -- Secrets with credentials to pull images from a private registry. Specified as name: value.
   imagePullSecrets: []
   backendImage:
     repository: "docker.io/langchain/langchainplus-backend"
