@@ -8,7 +8,7 @@ metadata:
     {{- with .Values.ingress.annotations }}
       {{- toYaml . | nindent 4 }}
     {{- end }}
-    external-dns.alpha.kubernetes.io/hostname: {{ .Values.hostname }}
+    external-dns.alpha.kubernetes.io/hostname: {{ .Values.ingress.hostname }}
   labels:
     {{- include "langsmith.labels" . | nindent 4 }}
     {{- with .Values.ingress.labels }}
@@ -21,7 +21,7 @@ spec:
     {{- toYaml . | nindent 4 }}
   {{- end }}
   rules:
-  - host: {{ .Values.hostname }}
+  - host: {{ .Values.ingress.hostname }}
     http:
       paths:
       - path: /

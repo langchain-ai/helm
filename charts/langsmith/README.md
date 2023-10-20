@@ -190,7 +190,52 @@ We typically validate deployment using the following Jupyter notebook:
     - We have some default resources set in our `values.yaml` file. You can override these values to tune resource usage for your organization.
     - If the metrics server is enabled in your cluster, we also recommend enabling autoscaling on all deployments.
 
-## Values
+## General parameters
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| commonAnnotations | object | `{}` |  |
+| commonLabels | object | `{}` |  |
+| fullnameOverride | string | `""` |  |
+| images.backendImage.pullPolicy | string | `"Always"` |  |
+| images.backendImage.repository | string | `"docker.io/langchain/langchainplus-backend"` |  |
+| images.backendImage.tag | string | `"latest"` |  |
+| images.frontendImage.pullPolicy | string | `"Always"` |  |
+| images.frontendImage.repository | string | `"docker.io/langchain/langchainplus-frontend-dynamic"` |  |
+| images.frontendImage.tag | string | `"latest"` |  |
+| images.hubBackendImage.pullPolicy | string | `"Always"` |  |
+| images.hubBackendImage.repository | string | `"docker.io/langchain/langchainhub-backend"` |  |
+| images.hubBackendImage.tag | string | `"latest"` |  |
+| images.imagePullSecrets | list | `[]` |  |
+| images.playgroundImage.pullPolicy | string | `"Always"` |  |
+| images.playgroundImage.repository | string | `"docker.io/langchain/langchainplus-playground"` |  |
+| images.playgroundImage.tag | string | `"latest"` |  |
+| images.postgresImage.pullPolicy | string | `"Always"` |  |
+| images.postgresImage.repository | string | `"docker.io/postgres"` |  |
+| images.postgresImage.tag | string | `"14.7"` |  |
+| images.redisImage.pullPolicy | string | `"Always"` |  |
+| images.redisImage.repository | string | `"docker.io/redis"` |  |
+| images.redisImage.tag | string | `"7"` |  |
+| ingress.annotations | object | `{}` |  |
+| ingress.enabled | bool | `false` |  |
+| ingress.hostname | string | `""` |  |
+| ingress.ingressClassName | string | `""` |  |
+| ingress.labels | object | `{}` |  |
+| ingress.tls | list | `[]` |  |
+| nameOverride | string | `""` |  |
+
+## Configs
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| config.existingSecretName | string | `""` |  |
+| config.langsmithLicenseKey | string | `""` |  |
+| config.oauth.enabled | bool | `false` |  |
+| config.oauth.oauthClientId | string | `""` |  |
+| config.oauth.oauthIssuerUrl | string | `""` |  |
+| config.openaiApiKey | string | `""` |  |
+
+## Backend
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
@@ -222,14 +267,11 @@ We typically validate deployment using the following Jupyter notebook:
 | backend.service.labels | object | `{}` |  |
 | backend.service.port | int | `1984` |  |
 | backend.service.type | string | `"ClusterIP"` |  |
-| commonAnnotations | object | `{}` |  |
-| commonLabels | object | `{}` |  |
-| config.existingSecretName | string | `""` |  |
-| config.langsmithLicenseKey | string | `""` |  |
-| config.oauth.enabled | bool | `false` |  |
-| config.oauth.oauthClientId | string | `""` |  |
-| config.oauth.oauthIssuerUrl | string | `""` |  |
-| config.openaiApiKey | string | `""` |  |
+
+## Frontend
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
 | frontend.autoscaling.enabled | bool | `false` |  |
 | frontend.autoscaling.maxReplicas | int | `5` |  |
 | frontend.autoscaling.minReplicas | int | `1` |  |
@@ -250,7 +292,11 @@ We typically validate deployment using the following Jupyter notebook:
 | frontend.service.httpsPort | int | `443` |  |
 | frontend.service.labels | object | `{}` |  |
 | frontend.service.type | string | `"LoadBalancer"` |  |
-| fullnameOverride | string | `""` |  |
+
+## Hub Backend
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
 | hubBackend.autoscaling.enabled | bool | `false` |  |
 | hubBackend.autoscaling.maxReplicas | int | `5` |  |
 | hubBackend.autoscaling.minReplicas | int | `1` |  |
@@ -270,51 +316,36 @@ We typically validate deployment using the following Jupyter notebook:
 | hubBackend.service.labels | object | `{}` |  |
 | hubBackend.service.port | int | `1985` |  |
 | hubBackend.service.type | string | `"ClusterIP"` |  |
-| images.backendImage.pullPolicy | string | `"Always"` |  |
-| images.backendImage.repository | string | `"docker.io/langchain/langchainplus-backend"` |  |
-| images.backendImage.tag | string | `"latest"` |  |
-| images.frontendImage.pullPolicy | string | `"Always"` |  |
-| images.frontendImage.repository | string | `"docker.io/langchain/langchainplus-frontend-dynamic"` |  |
-| images.frontendImage.tag | string | `"latest"` |  |
-| images.hubBackendImage.pullPolicy | string | `"Always"` |  |
-| images.hubBackendImage.repository | string | `"docker.io/langchain/langchainhub-backend"` |  |
-| images.hubBackendImage.tag | string | `"latest"` |  |
-| images.imagePullSecrets | list | `[]` |  |
-| images.playgroundImage.pullPolicy | string | `"Always"` |  |
-| images.playgroundImage.repository | string | `"docker.io/langchain/langchainplus-playground"` |  |
-| images.playgroundImage.tag | string | `"latest"` |  |
-| images.postgresImage.pullPolicy | string | `"Always"` |  |
-| images.postgresImage.repository | string | `"docker.io/postgres"` |  |
-| images.postgresImage.tag | string | `"14.7"` |  |
-| images.redisImage.pullPolicy | string | `"Always"` |  |
-| images.redisImage.repository | string | `"docker.io/redis"` |  |
-| images.redisImage.tag | string | `"7"` |  |
-| ingress.annotations | object | `{}` |  |
-| ingress.enabled | bool | `false` |  |
-| ingress.hostname | string | `""` |  |
-| ingress.ingressClassName | string | `""` |  |
-| ingress.labels | object | `{}` |  |
-| ingress.tls | list | `[]` |  |
-| nameOverride | string | `""` |  |
-| playground.autoscaling.enabled | bool | `false` |  |
-| playground.autoscaling.maxReplicas | int | `5` |  |
-| playground.autoscaling.minReplicas | int | `1` |  |
-| playground.autoscaling.targetCPUUtilizationPercentage | int | `80` |  |
-| playground.containerPort | int | `3001` |  |
-| playground.deployment.affinity | object | `{}` |  |
-| playground.deployment.annotations | object | `{}` |  |
-| playground.deployment.labels | object | `{}` |  |
-| playground.deployment.nodeSelector | object | `{}` |  |
-| playground.deployment.podSecurityContext | object | `{}` |  |
-| playground.deployment.replicaCount | int | `1` |  |
-| playground.deployment.resources | object | `{}` |  |
-| playground.deployment.securityContext | object | `{}` |  |
-| playground.deployment.tolerations | list | `[]` |  |
-| playground.name | string | `"playground"` |  |
-| playground.service.annotations | object | `{}` |  |
-| playground.service.labels | object | `{}` |  |
-| playground.service.port | int | `3001` |  |
-| playground.service.type | string | `"ClusterIP"` |  |
+
+## Playground
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| frontend.autoscaling.enabled | bool | `false` |  |
+| frontend.autoscaling.maxReplicas | int | `5` |  |
+| frontend.autoscaling.minReplicas | int | `1` |  |
+| frontend.autoscaling.targetCPUUtilizationPercentage | int | `80` |  |
+| frontend.containerPort | int | `8080` |  |
+| frontend.deployment.affinity | object | `{}` |  |
+| frontend.deployment.annotations | object | `{}` |  |
+| frontend.deployment.labels | object | `{}` |  |
+| frontend.deployment.nodeSelector | object | `{}` |  |
+| frontend.deployment.podSecurityContext | object | `{}` |  |
+| frontend.deployment.replicaCount | int | `1` |  |
+| frontend.deployment.resources | object | `{}` |  |
+| frontend.deployment.securityContext | object | `{}` |  |
+| frontend.deployment.tolerations | list | `[]` |  |
+| frontend.name | string | `"frontend"` |  |
+| frontend.service.annotations | object | `{}` |  |
+| frontend.service.httpPort | int | `80` |  |
+| frontend.service.httpsPort | int | `443` |  |
+| frontend.service.labels | object | `{}` |  |
+| frontend.service.type | string | `"LoadBalancer"` |  |
+
+## Postgres
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
 | postgres.containerPort | int | `5432` |  |
 | postgres.external.database | string | `""` |  |
 | postgres.external.enabled | bool | `false` |  |
@@ -339,6 +370,11 @@ We typically validate deployment using the following Jupyter notebook:
 | postgres.statefulSet.resources | object | `{}` |  |
 | postgres.statefulSet.securityContext | object | `{}` |  |
 | postgres.statefulSet.tolerations | list | `[]` |  |
+
+## Queue
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
 | queue.autoscaling.enabled | bool | `false` |  |
 | queue.autoscaling.maxReplicas | int | `5` |  |
 | queue.autoscaling.minReplicas | int | `1` |  |
@@ -353,6 +389,11 @@ We typically validate deployment using the following Jupyter notebook:
 | queue.deployment.securityContext | object | `{}` |  |
 | queue.deployment.tolerations | list | `[]` |  |
 | queue.name | string | `"queue"` |  |
+
+## Redis
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
 | redis.containerPort | int | `6379` |  |
 | redis.external.connectionUrl | string | `""` |  |
 | redis.external.enabled | bool | `false` |  |
