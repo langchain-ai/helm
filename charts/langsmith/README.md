@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.1.1](https://img.shields.io/badge/Version-0.1.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.1.0](https://img.shields.io/badge/AppVersion-0.1.0-informational?style=flat-square)
+![Version: 0.1.2](https://img.shields.io/badge/Version-0.1.2-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.1.0](https://img.shields.io/badge/AppVersion-0.1.0-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -202,23 +202,23 @@ We typically validate deployment using the following Jupyter notebook:
 | commonAnnotations | object | `{}` | Annotations that will be applied to all resources created by the chart |
 | commonLabels | object | `{}` | Labels that will be applied to all resources created by the chart |
 | fullnameOverride | string | `""` | String to fully override `"langsmith.fullname"` |
-| images.backendImage.pullPolicy | string | `"Always"` |  |
+| images.backendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.backendImage.repository | string | `"docker.io/langchain/langchainplus-backend"` |  |
-| images.backendImage.tag | string | `"latest"` |  |
-| images.frontendImage.pullPolicy | string | `"Always"` |  |
+| images.backendImage.tag | string | `"99d8f59"` |  |
+| images.frontendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.frontendImage.repository | string | `"docker.io/langchain/langchainplus-frontend-dynamic"` |  |
-| images.frontendImage.tag | string | `"latest"` |  |
-| images.hubBackendImage.pullPolicy | string | `"Always"` |  |
+| images.frontendImage.tag | string | `"99d8f59"` |  |
+| images.hubBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.hubBackendImage.repository | string | `"docker.io/langchain/langchainhub-backend"` |  |
-| images.hubBackendImage.tag | string | `"latest"` |  |
+| images.hubBackendImage.tag | string | `"99d8f59"` |  |
 | images.imagePullSecrets | list | `[]` | Secrets with credentials to pull images from a private registry. Specified as name: value. |
-| images.playgroundImage.pullPolicy | string | `"Always"` |  |
+| images.playgroundImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.playgroundImage.repository | string | `"docker.io/langchain/langchainplus-playground"` |  |
-| images.playgroundImage.tag | string | `"latest"` |  |
-| images.postgresImage.pullPolicy | string | `"Always"` |  |
+| images.playgroundImage.tag | string | `"99d8f59"` |  |
+| images.postgresImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.postgresImage.repository | string | `"docker.io/postgres"` |  |
 | images.postgresImage.tag | string | `"14.7"` |  |
-| images.redisImage.pullPolicy | string | `"Always"` |  |
+| images.redisImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.redisImage.repository | string | `"docker.io/redis"` |  |
 | images.redisImage.tag | string | `"7"` |  |
 | ingress.annotations | object | `{}` |  |
@@ -352,13 +352,14 @@ We typically validate deployment using the following Jupyter notebook:
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
 | postgres.containerPort | int | `5432` |  |
-| postgres.external.database | string | `""` |  |
+| postgres.external.connectionUrl | string | `""` |  |
+| postgres.external.database | string | `"postgres"` |  |
 | postgres.external.enabled | bool | `false` |  |
 | postgres.external.existingSecretName | string | `""` |  |
 | postgres.external.host | string | `""` |  |
-| postgres.external.password | string | `""` |  |
-| postgres.external.port | int | `5432` |  |
-| postgres.external.user | string | `""` |  |
+| postgres.external.password | string | `"postgres"` |  |
+| postgres.external.port | string | `"5432"` |  |
+| postgres.external.user | string | `"postgres"` |  |
 | postgres.name | string | `"postgres"` |  |
 | postgres.service.annotations | object | `{}` |  |
 | postgres.service.labels | object | `{}` |  |
