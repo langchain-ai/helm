@@ -18,7 +18,7 @@ spec:
   {{- end }}
   selector:
     matchLabels:
-      {{- include "langsmith.labels" . | nindent 6 }}
+      {{- include "langsmith.selectorLabels" . | nindent 6 }}
       app.kubernetes.io/name: {{ include "langsmith.fullname" . }}-{{ .Values.playground.name }}
   template:
     metadata:

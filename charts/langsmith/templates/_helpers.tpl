@@ -108,31 +108,11 @@ the user or some other secret provisioning mechanism
 Template containing common environment variables that are used by several services.
 */}}
 {{- define "langsmith.commonEnv" -}}
-- name: POSTGRES_PORT
+- name: POSTGRES_DATABASE_URI
   valueFrom:
     secretKeyRef:
       name: {{ include "langsmith.postgresSecretsName" . }}
-      key: port
-- name: POSTGRES_HOST
-  valueFrom:
-    secretKeyRef:
-      name: {{ include "langsmith.postgresSecretsName" . }}
-      key: host
-- name: POSTGRES_USER
-  valueFrom:
-    secretKeyRef:
-      name: {{ include "langsmith.postgresSecretsName" . }}
-      key: user
-- name: POSTGRES_PASSWORD
-  valueFrom:
-    secretKeyRef:
-      name: {{ include "langsmith.postgresSecretsName" . }}
-      key: password
-- name: POSTGRES_DB
-  valueFrom:
-    secretKeyRef:
-      name: {{ include "langsmith.postgresSecretsName" . }}
-      key: database
+      key: connection_url
 - name: REDIS_DATABASE_URI
   valueFrom:
     secretKeyRef:
