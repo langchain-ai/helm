@@ -14,27 +14,27 @@ images:
   imagePullSecrets: []
   backendImage:
     repository: "docker.io/langchain/langchainplus-backend"
-    pullPolicy: Always
-    tag: "latest"
+    pullPolicy: IfNotPresent
+    tag: "99d8f59"
   frontendImage:
     repository: "docker.io/langchain/langchainplus-frontend-dynamic"
-    pullPolicy: Always
-    tag: "latest"
+    pullPolicy: IfNotPresent
+    tag: "99d8f59"
   hubBackendImage:
     repository: "docker.io/langchain/langchainhub-backend"
-    pullPolicy: Always
-    tag: "latest"
+    pullPolicy: IfNotPresent
+    tag: "99d8f59"
   playgroundImage:
     repository: "docker.io/langchain/langchainplus-playground"
-    pullPolicy: Always
-    tag: "latest"
+    pullPolicy: IfNotPresent
+    tag: "99d8f59"
   postgresImage:
     repository: "docker.io/postgres"
-    pullPolicy: Always
+    pullPolicy: IfNotPresent
     tag: "14.7"
   redisImage:
     repository: "docker.io/redis"
-    pullPolicy: Always
+    pullPolicy: IfNotPresent
     tag: "7"
 
 ingress:
@@ -192,10 +192,13 @@ postgres:
     # creation of a postgres stateful-set and service.
     enabled: false
     host: ""
-    port: 5432
-    user: ""
-    password: ""
-    database: ""
+    port: "5432"
+    user: "postgres"
+    password: "postgres"
+    database: "postgres"
+    # If connection string is specified, we will ignore all above values and use the connection string instead.
+    # Do not include the driver name(something like "postgres://" in the connection string.
+    connectionUrl: ""
     existingSecretName: ""
   containerPort: 5432
   statefulSet:
