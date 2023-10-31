@@ -48,7 +48,7 @@ Ensure you have the following tools/items ready.
 Bare minimum config file `langsmith_config.yaml`:
 
 ```yaml
-secrets:
+config:
   langsmithLicenseKey: ""
 
 ```
@@ -56,7 +56,7 @@ secrets:
 Example `EKS` config file with certificates setup using ACM:
 
 ```jsx
-secrets:
+config:
   langsmithLicenseKey: ""
 
 frontend:
@@ -70,7 +70,7 @@ frontend:
 Example config file with oauth setup:
 
 ```jsx
-secrets:
+config:
   langsmithLicenseKey: ""
   oauth:
     enabled: true
@@ -83,7 +83,7 @@ This should be configured as a Single Page Application in your OIDC provider. Yo
 Example config file with external postgres and redis:
 
 ```jsx
-secrets:
+config:
   langsmithLicenseKey: ""
 postgres:
   external:
