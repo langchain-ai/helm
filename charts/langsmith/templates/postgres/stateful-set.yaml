@@ -56,6 +56,9 @@ spec:
               value: postgres
             - name: PGDATA
               value: /var/lib/postgresql/data/postgres
+            {{- with .Values.postgres.statefulSet.extraEnv }}
+              {{- toYaml . | nindent 12 }}
+            {{- end }}
           image: "{{ .Values.images.postgresImage.repository }}:{{ .Values.images.postgresImage.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.images.postgresImage.pullPolicy }}
           ports:

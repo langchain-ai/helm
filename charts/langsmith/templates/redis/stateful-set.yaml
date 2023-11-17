@@ -41,6 +41,10 @@ spec:
         {{- toYaml .Values.redis.statefulSet.podSecurityContext | nindent 8 }}
       containers:
         - name: {{ .Values.redis.name }}
+          {{- with .Values.redis.statefulSet.extraEnv }}
+          env:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           image: "{{ .Values.images.redisImage.repository }}:{{ .Values.images.redisImage.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.images.redisImage.pullPolicy }}
           ports:

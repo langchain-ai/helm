@@ -48,6 +48,9 @@ spec:
               value: {{ .Values.hubBackend.containerPort | quote }}
             - name: AUTH_TYPE
               value: 'api_key'
+            {{- with .Values.hubBackend.deployment.extraEnv }}
+              {{- toYaml . | nindent 12 }}
+            {{- end }}
           image: "{{ .Values.images.hubBackendImage.repository }}:{{ .Values.images.hubBackendImage.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.images.hubBackendImage.pullPolicy }}
           ports:

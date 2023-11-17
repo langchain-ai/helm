@@ -41,6 +41,10 @@ spec:
         {{- toYaml .Values.playground.deployment.podSecurityContext | nindent 8 }}
       containers:
         - name: {{ .Values.playground.name }}
+          {{- with .Values.playground.deployment.extraEnv }}
+          env:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           image: "{{ .Values.images.playgroundImage.repository }}:{{ .Values.images.playgroundImage.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.images.playgroundImage.pullPolicy }}
           ports:

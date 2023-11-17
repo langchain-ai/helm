@@ -63,6 +63,9 @@ spec:
                 secretKeyRef:
                   key: oauth_issuer_url
                   name: {{ include "langsmith.secretsName" .}}
+            {{- with .Values.frontend.deployment.extraEnv }}
+              {{- toYaml . | nindent 12 }}
+            {{- end }}
           image: "{{ .Values.images.frontendImage.repository }}:{{ .Values.images.frontendImage.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.images.frontendImage.pullPolicy }}
           ports:
