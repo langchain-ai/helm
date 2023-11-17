@@ -45,6 +45,9 @@ spec:
             {{- include "langsmith.commonEnv" . | nindent 12 }}
             - name: PORT
               value: {{ .Values.hubBackend.containerPort | quote }}
+            {{- with .Values.hubBackend.deployment.extraEnv }}
+              {{- toYaml . | nindent 12 }}
+            {{- end }}
           image: "{{ .Values.images.hubBackendImage.repository }}:{{ .Values.images.hubBackendImage.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.images.hubBackendImage.pullPolicy }}
           ports:
