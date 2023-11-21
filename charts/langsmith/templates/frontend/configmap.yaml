@@ -6,13 +6,6 @@ metadata:
     {{- include "langsmith.labels" . | nindent 4 }}
 data:
   nginx.conf: |
-    map $http_x_api_key $has_api_key {
-        default "";
-        "" "";
-        {{- if .Values.config.oauth.enabled }}
-        "~.*" "-api";
-        {{- end }}
-    }
     server {
         listen       {{ .Values.frontend.containerPort }};
         server_name  localhost;
@@ -30,7 +23,6 @@ data:
 
         location ~ /api/playground/ {
             rewrite /api/playground/(.*) /$1  break;
-            chunked_transfer_encoding off;
             proxy_set_header Connection '';
             proxy_http_version 1.1;
             proxy_buffering off;
@@ -40,7 +32,6 @@ data:
 
         location = /api/playground {
             rewrite /api/playground /  break;
-            chunked_transfer_encoding off;
             proxy_set_header Connection '';
             proxy_http_version 1.1;
             proxy_buffering off;
@@ -53,45 +44,24 @@ data:
             proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.hubBackend.name }}:{{ .Values.hubBackend.service.port }};
         }
 
-        {{- if .Values.config.oauth.enabled }}
-        # A dummy location. Resolve hub-backend api hostname
-        location = /api-hub-backend-dns {
-            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.hubBackend.name }}-api:{{ .Values.hubBackend.service.port }};
-        }
-        {{- end }}
-
          # Hub Backend Routes
          location ~ /api-hub {
             rewrite /api-hub/(.*) /$1  break;
-            chunked_transfer_encoding off;
             proxy_set_header Connection '';
             proxy_http_version 1.1;
             proxy_buffering off;
             proxy_cache off;
-            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.hubBackend.name }}$has_api_key:{{ .Values.hubBackend.service.port }};
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.hubBackend.name }}:{{ .Values.hubBackend.service.port }};
         }
-
-        # A dummy location. Resolve backend hostname
-        location = /backend-dns {
-            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}:{{ .Values.backend.service.port }};
-        }
-
-        {{- if .Values.config.oauth.enabled }}
-        # A dummy location. Resolve backend-api hostname
-        location = /api-backend-dns {
-            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}-api:{{ .Values.backend.service.port }};
-        }
-        {{- end }}
 
          # Backend Routes
          location ~ /api {
             rewrite /api/(.*) /$1  break;
-            chunked_transfer_encoding off;
             proxy_set_header Connection '';
             proxy_http_version 1.1;
             proxy_buffering off;
             proxy_cache off;
-            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}$has_api_key:{{ .Values.backend.service.port }};
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}:{{ .Values.backend.service.port }};
         }
 
     }
