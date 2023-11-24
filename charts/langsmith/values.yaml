@@ -75,6 +75,7 @@ backend:
     tolerations: []
     affinity: {}
   migrations:
+    enabled: true
     replicaCount: 1
     labels: {}
     annotations: {}
