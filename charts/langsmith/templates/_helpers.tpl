@@ -125,9 +125,6 @@ Template containing common environment variables that are used by several servic
 - name: AUTH_TYPE
 {{- if .Values.config.oauth.enabled }}
   value: "oauth"
-{{- else }}
-  value: "none"
-{{- end }}
 - name: OAUTH_CLIENT_ID
   valueFrom:
     secretKeyRef:
@@ -138,19 +135,14 @@ Template containing common environment variables that are used by several servic
     secretKeyRef:
       name: {{ include "langsmith.secretsName" . }}
       key: oauth_issuer_url
+{{- else }}
+  value: "none"
+{{- end }}
 - name: LANGSMITH_LICENSE_KEY
   valueFrom:
     secretKeyRef:
       name: {{ include "langsmith.secretsName" . }}
       key: langsmith_license_key
-- name: CLICKHOUSE_HOST
-  value: "clickhouse"
-- name: CLICKHOUSE_USER
-  value: clickhouse_admin
-- name: CLICKHOUSE_PASSWORD
-  value: password
-- name: CLICKHOUSE_DB
-  value: default
 - name: API_KEY_SALT
   valueFrom:
     secretKeyRef:
