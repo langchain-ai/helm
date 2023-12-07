@@ -150,3 +150,10 @@ Template containing common environment variables that are used by several servic
       key: api_key_salt
 {{- end }}
 
+{{- define "queue.serviceAccountName" -}}
+{{- if .Values.queue.serviceAccount.create -}}
+    {{ default (printf "%s-%s" (include "langsmith.fullname" .) .Values.queue.name) .Values.queue.serviceAccount.name | trunc 63 | trimSuffix "-" }}
+{{- else -}}
+    {{ default "default" .Values.queue.serviceAccount.name }}
+{{- end -}}
+{{- end -}}

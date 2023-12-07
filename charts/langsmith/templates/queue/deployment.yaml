@@ -39,6 +39,7 @@ spec:
       {{- end }}
       securityContext:
         {{- toYaml .Values.queue.deployment.podSecurityContext | nindent 8 }}
+      serviceAccountName: {{ include "queue.serviceAccountName" . }}
       containers:
         - name: {{ .Values.queue.name }}
           command:
