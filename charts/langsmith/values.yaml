@@ -263,6 +263,11 @@ queue:
     minReplicas: 1
     maxReplicas: 5
     targetCPUUtilizationPercentage: 80
+  serviceAccount:
+    create: true
+    name: ""
+    labels: {}
+    annotations: {}
 
 redis:
   name: "redis"
