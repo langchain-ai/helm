@@ -19,7 +19,7 @@ spec:
   selector:
     matchLabels:
       {{- include "langsmith.selectorLabels" . | nindent 6 }}
-      app.kubernetes.io/name: {{ include "langsmith.fullname" . }}-{{ .Values.playground.name }}
+      app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-{{ .Values.playground.name }}
   template:
     metadata:
       {{- with .Values.playground.deployment.annotations }}
@@ -31,7 +31,7 @@ spec:
             {{- toYaml . | nindent 8 }}
         {{- end }}
         {{- include "langsmith.labels" . | nindent 8 }}
-        app.kubernetes.io/name: {{ include "langsmith.fullname" . }}-{{ .Values.playground.name }}
+        app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-{{ .Values.playground.name }}
     spec:
       {{- with .Values.images.imagePullSecrets }}
       imagePullSecrets:
@@ -51,10 +51,34 @@ spec:
             - name: playground
               containerPort: {{ .Values.playground.containerPort }}
               protocol: TCP
+          startupProbe:
+            httpGet:
+              path: /ok
+              port: {{ .Values.playground.containerPort }}
+            failureThreshold: 6
+            periodSeconds: 10
+            timeoutSeconds: 1
+          livenessProbe:
+            httpGet:
+              path: /ok
+              port: {{ .Values.playground.containerPort }}
+            failureThreshold: 6
+            periodSeconds: 10
+            timeoutSeconds: 1
+          readinessProbe:
+            httpGet:
+              path: /ok
+              port: {{ .Values.playground.containerPort }}
+            failureThreshold: 6
+            periodSeconds: 10
+            timeoutSeconds: 1
           resources:
             {{- toYaml .Values.playground.deployment.resources | nindent 12 }}
           securityContext:
             {{- toYaml .Values.playground.deployment.securityContext | nindent 12 }}
+        {{- with .Values.playground.deployment.sidecars }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
       {{- with .Values.playground.deployment.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

@@ -22,5 +22,5 @@ spec:
       protocol: TCP
   selector:
     {{- include "langsmith.selectorLabels" . | nindent 4 }}
-    app.kubernetes.io/name: {{ include "langsmith.fullname" . }}-{{ .Values.redis.name }}
+    app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-{{ .Values.redis.name }}
 {{- end }}

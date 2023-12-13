@@ -46,7 +46,7 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{- end }}
 
 {{/*
-Common labels
+Common annotations
 */}}
 {{- define "langsmith.annotations" -}}
 {{- if .Values.commonAnnotations }}

@@ -19,7 +19,7 @@ spec:
   selector:
     matchLabels:
       {{- include "langsmith.selectorLabels" . | nindent 6 }}
-      app.kubernetes.io/name: {{ include "langsmith.fullname" . }}-{{ .Values.redis.name }}
+      app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-{{ .Values.redis.name }}
   template:
     metadata:
       {{- with .Values.redis.statefulSet.annotations }}
@@ -31,7 +31,7 @@ spec:
             {{- toYaml . | nindent 8 }}
         {{- end }}
         {{- include "langsmith.labels" . | nindent 8 }}
-        app.kubernetes.io/name: {{ include "langsmith.fullname" . }}-{{ .Values.redis.name }}
+        app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-{{ .Values.redis.name }}
     spec:
       {{- with .Values.images.imagePullSecrets }}
       imagePullSecrets:
@@ -87,6 +87,9 @@ spec:
             - mountPath: /data
               name: data
           {{- end }}
+        {{- with .Values.redis.statefulSet.sidecars }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
       {{- with .Values.redis.statefulSet.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

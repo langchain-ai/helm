@@ -19,7 +19,7 @@ spec:
   selector:
     matchLabels:
       {{- include "langsmith.selectorLabels" . | nindent 6 }}
-      app.kubernetes.io/name: {{ include "langsmith.fullname" . }}-{{ .Values.queue.name }}
+      app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-{{ .Values.queue.name }}
   template:
     metadata:
       {{- with .Values.queue.deployment.annotations }}
@@ -31,7 +31,7 @@ spec:
             {{- toYaml . | nindent 8 }}
         {{- end }}
         {{- include "langsmith.labels" . | nindent 8 }}
-        app.kubernetes.io/name: {{ include "langsmith.fullname" . }}-{{ .Values.queue.name }}
+        app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-{{ .Values.queue.name }}
     spec:
       {{- with .Values.images.imagePullSecrets }}
       imagePullSecrets:
@@ -65,6 +65,9 @@ spec:
             {{- toYaml .Values.queue.deployment.resources | nindent 12 }}
           securityContext:
             {{- toYaml .Values.queue.deployment.securityContext | nindent 12 }}
+        {{- with .Values.queue.deployment.sidecars }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
       {{- with .Values.queue.deployment.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
