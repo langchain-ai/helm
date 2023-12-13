@@ -3,6 +3,20 @@ entries:
   langsmith:
   - apiVersion: v2
     appVersion: 0.1.0
+    created: "2023-12-13T04:14:54.466063077Z"
+    description: Helm chart to deploy the langsmith application and all services it
+      depends on.
+    digest: c63760bcc152d49b45a8cb709032e87fe126d680928d247ccec73024dbf04f3a
+    maintainers:
+    - email: ankush@langchain.dev
+      name: Ankush
+    name: langsmith
+    type: application
+    urls:
+    - https://github.com/langchain-ai/helm/releases/download/langsmith-0.1.10/langsmith-0.1.10.tgz
+    version: 0.1.10
+  - apiVersion: v2
+    appVersion: 0.1.0
     created: "2023-12-12T19:52:49.52377936Z"
     description: Helm chart to deploy the langsmith application and all services it
       depends on.
@@ -127,4 +141,4 @@ entries:
     urls:
     - https://github.com/langchain-ai/helm/releases/download/langsmith-0.1.1/langsmith-0.1.1.tgz
     version: 0.1.1
-generated: "2023-12-12T19:52:49.523803926Z"
+generated: "2023-12-13T04:14:54.466121005Z"
