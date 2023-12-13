@@ -87,6 +87,9 @@ spec:
             - mountPath: /data
               name: data
           {{- end }}
+        {{- with .Values.redis.statefulSet.sidecars }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
       {{- with .Values.redis.statefulSet.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

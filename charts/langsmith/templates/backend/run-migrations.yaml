@@ -48,6 +48,9 @@ spec:
             {{- toYaml .Values.backend.migrations.resources | nindent 12 }}
           securityContext:
             {{- toYaml .Values.backend.migrations.securityContext | nindent 12 }}
+        {{- with .Values.backend.migrations.sidecars }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
       {{- with .Values.backend.migrations.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

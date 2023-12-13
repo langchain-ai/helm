@@ -51,10 +51,34 @@ spec:
             - name: playground
               containerPort: {{ .Values.playground.containerPort }}
               protocol: TCP
+          startupProbe:
+            httpGet:
+              path: /ok
+              port: {{ .Values.playground.containerPort }}
+            failureThreshold: 6
+            periodSeconds: 10
+            timeoutSeconds: 1
+          livenessProbe:
+            httpGet:
+              path: /ok
+              port: {{ .Values.playground.containerPort }}
+            failureThreshold: 6
+            periodSeconds: 10
+            timeoutSeconds: 1
+          readinessProbe:
+            httpGet:
+              path: /ok
+              port: {{ .Values.playground.containerPort }}
+            failureThreshold: 6
+            periodSeconds: 10
+            timeoutSeconds: 1
           resources:
             {{- toYaml .Values.playground.deployment.resources | nindent 12 }}
           securityContext:
             {{- toYaml .Values.playground.deployment.securityContext | nindent 12 }}
+        {{- with .Values.playground.deployment.sidecars }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
       {{- with .Values.playground.deployment.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

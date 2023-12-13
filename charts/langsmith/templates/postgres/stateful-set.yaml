@@ -100,6 +100,9 @@ spec:
             - mountPath: /var/lib/postgresql/data
               name: data
               subPath: postgres
+        {{- with .Values.postgres.statefulSet.sidecars }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
       {{- with .Values.postgres.statefulSet.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

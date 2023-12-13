@@ -65,6 +65,9 @@ spec:
             {{- toYaml .Values.queue.deployment.resources | nindent 12 }}
           securityContext:
             {{- toYaml .Values.queue.deployment.securityContext | nindent 12 }}
+        {{- with .Values.queue.deployment.sidecars }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
       {{- with .Values.queue.deployment.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

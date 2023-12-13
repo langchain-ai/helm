@@ -79,6 +79,9 @@ spec:
             {{- toYaml .Values.hubBackend.deployment.resources | nindent 12 }}
           securityContext:
             {{- toYaml .Values.hubBackend.deployment.securityContext | nindent 12 }}
+        {{- with .Values.hubBackend.deployment.sidecars }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
       {{- with .Values.hubBackend.deployment.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
