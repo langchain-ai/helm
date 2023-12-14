@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.1.3](https://img.shields.io/badge/Version-0.1.3-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.1.0](https://img.shields.io/badge/AppVersion-0.1.0-informational?style=flat-square)
+![Version: 0.1.10](https://img.shields.io/badge/Version-0.1.10-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.1.0](https://img.shields.io/badge/AppVersion-0.1.0-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -30,9 +30,12 @@ Ensure you have the following tools/items ready.
     1. You can configure oauth using the `values.yaml` file. You will need to provide a `client_id` and `client_issuer_url` for your oauth provider. We currently support anything that is OIDC compliant.
 6. External Postgres(optional).
     1. You can configure external postgres using the `values.yaml` file. You will need to provide connection parameters for your postgres instance.
-    2. Note: We do not support a schema other than public at this time.
+    2. If using a schema other than public, ensure that you do not have any other schemas with the pgcrypto extension enabled or you must include that in your search path.
+    3. Note: We do only officially support Postgres versions > 14.
 7. External Redis(optional).
     1. You can configure external redis using the `values.yaml` file. You will need to provide a connection url for your redis instance.
+    2. Currently, we do not support using Redis with TLS. We will be supporting this shortly.
+    3. We only official support Redis versions > 6.
 
 ### Configure your Helm Charts:
 
@@ -204,17 +207,17 @@ We typically validate deployment using the following Jupyter notebook:
 | fullnameOverride | string | `""` | String to fully override `"langsmith.fullname"` |
 | images.backendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.backendImage.repository | string | `"docker.io/langchain/langchainplus-backend"` |  |
-| images.backendImage.tag | string | `"99d8f59"` |  |
+| images.backendImage.tag | string | `"9fd3ed3"` |  |
 | images.frontendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.frontendImage.repository | string | `"docker.io/langchain/langchainplus-frontend-dynamic"` |  |
-| images.frontendImage.tag | string | `"99d8f59"` |  |
+| images.frontendImage.tag | string | `"9fd3ed3"` |  |
 | images.hubBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.hubBackendImage.repository | string | `"docker.io/langchain/langchainhub-backend"` |  |
-| images.hubBackendImage.tag | string | `"99d8f59"` |  |
+| images.hubBackendImage.tag | string | `"9fd3ed3"` |  |
 | images.imagePullSecrets | list | `[]` | Secrets with credentials to pull images from a private registry. Specified as name: value. |
 | images.playgroundImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.playgroundImage.repository | string | `"docker.io/langchain/langchainplus-playground"` |  |
-| images.playgroundImage.tag | string | `"99d8f59"` |  |
+| images.playgroundImage.tag | string | `"9fd3ed3"` |  |
 | images.postgresImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.postgresImage.repository | string | `"docker.io/postgres"` |  |
 | images.postgresImage.tag | string | `"14.7"` |  |
@@ -251,21 +254,26 @@ We typically validate deployment using the following Jupyter notebook:
 | backend.containerPort | int | `1984` |  |
 | backend.deployment.affinity | object | `{}` |  |
 | backend.deployment.annotations | object | `{}` |  |
+| backend.deployment.extraEnv | list | `[]` |  |
 | backend.deployment.labels | object | `{}` |  |
 | backend.deployment.nodeSelector | object | `{}` |  |
 | backend.deployment.podSecurityContext | object | `{}` |  |
 | backend.deployment.replicaCount | int | `1` |  |
 | backend.deployment.resources | object | `{}` |  |
 | backend.deployment.securityContext | object | `{}` |  |
+| backend.deployment.sidecars | list | `[]` |  |
 | backend.deployment.tolerations | list | `[]` |  |
 | backend.migrations.affinity | object | `{}` |  |
 | backend.migrations.annotations | object | `{}` |  |
+| backend.migrations.enabled | bool | `true` |  |
+| backend.migrations.extraEnv | list | `[]` |  |
 | backend.migrations.labels | object | `{}` |  |
 | backend.migrations.nodeSelector | object | `{}` |  |
 | backend.migrations.podSecurityContext | object | `{}` |  |
 | backend.migrations.replicaCount | int | `1` |  |
 | backend.migrations.resources | object | `{}` |  |
 | backend.migrations.securityContext | object | `{}` |  |
+| backend.migrations.sidecars | list | `[]` |  |
 | backend.migrations.tolerations | list | `[]` |  |
 | backend.name | string | `"backend"` |  |
 | backend.service.annotations | object | `{}` |  |
@@ -284,12 +292,14 @@ We typically validate deployment using the following Jupyter notebook:
 | frontend.containerPort | int | `8080` |  |
 | frontend.deployment.affinity | object | `{}` |  |
 | frontend.deployment.annotations | object | `{}` |  |
+| frontend.deployment.extraEnv | list | `[]` |  |
 | frontend.deployment.labels | object | `{}` |  |
 | frontend.deployment.nodeSelector | object | `{}` |  |
 | frontend.deployment.podSecurityContext | object | `{}` |  |
 | frontend.deployment.replicaCount | int | `1` |  |
 | frontend.deployment.resources | object | `{}` |  |
 | frontend.deployment.securityContext | object | `{}` |  |
+| frontend.deployment.sidecars | list | `[]` |  |
 | frontend.deployment.tolerations | list | `[]` |  |
 | frontend.name | string | `"frontend"` |  |
 | frontend.service.annotations | object | `{}` |  |
@@ -309,12 +319,14 @@ We typically validate deployment using the following Jupyter notebook:
 | hubBackend.containerPort | int | `1985` |  |
 | hubBackend.deployment.affinity | object | `{}` |  |
 | hubBackend.deployment.annotations | object | `{}` |  |
+| hubBackend.deployment.extraEnv | list | `[]` |  |
 | hubBackend.deployment.labels | object | `{}` |  |
 | hubBackend.deployment.nodeSelector | object | `{}` |  |
 | hubBackend.deployment.podSecurityContext | object | `{}` |  |
 | hubBackend.deployment.replicaCount | int | `1` |  |
 | hubBackend.deployment.resources | object | `{}` |  |
 | hubBackend.deployment.securityContext | object | `{}` |  |
+| hubBackend.deployment.sidecars | list | `[]` |  |
 | hubBackend.deployment.tolerations | list | `[]` |  |
 | hubBackend.name | string | `"hub-backend"` |  |
 | hubBackend.service.annotations | object | `{}` |  |
@@ -333,12 +345,14 @@ We typically validate deployment using the following Jupyter notebook:
 | frontend.containerPort | int | `8080` |  |
 | frontend.deployment.affinity | object | `{}` |  |
 | frontend.deployment.annotations | object | `{}` |  |
+| frontend.deployment.extraEnv | list | `[]` |  |
 | frontend.deployment.labels | object | `{}` |  |
 | frontend.deployment.nodeSelector | object | `{}` |  |
 | frontend.deployment.podSecurityContext | object | `{}` |  |
 | frontend.deployment.replicaCount | int | `1` |  |
 | frontend.deployment.resources | object | `{}` |  |
 | frontend.deployment.securityContext | object | `{}` |  |
+| frontend.deployment.sidecars | list | `[]` |  |
 | frontend.deployment.tolerations | list | `[]` |  |
 | frontend.name | string | `"frontend"` |  |
 | frontend.service.annotations | object | `{}` |  |
@@ -367,6 +381,7 @@ We typically validate deployment using the following Jupyter notebook:
 | postgres.service.type | string | `"ClusterIP"` |  |
 | postgres.statefulSet.affinity | object | `{}` |  |
 | postgres.statefulSet.annotations | object | `{}` |  |
+| postgres.statefulSet.extraEnv | list | `[]` |  |
 | postgres.statefulSet.labels | object | `{}` |  |
 | postgres.statefulSet.nodeSelector | object | `{}` |  |
 | postgres.statefulSet.persistence.enabled | bool | `false` |  |
@@ -375,6 +390,7 @@ We typically validate deployment using the following Jupyter notebook:
 | postgres.statefulSet.podSecurityContext | object | `{}` |  |
 | postgres.statefulSet.resources | object | `{}` |  |
 | postgres.statefulSet.securityContext | object | `{}` |  |
+| postgres.statefulSet.sidecars | list | `[]` |  |
 | postgres.statefulSet.tolerations | list | `[]` |  |
 
 ## Queue
@@ -387,14 +403,20 @@ We typically validate deployment using the following Jupyter notebook:
 | queue.autoscaling.targetCPUUtilizationPercentage | int | `80` |  |
 | queue.deployment.affinity | object | `{}` |  |
 | queue.deployment.annotations | object | `{}` |  |
+| queue.deployment.extraEnv | list | `[]` |  |
 | queue.deployment.labels | object | `{}` |  |
 | queue.deployment.nodeSelector | object | `{}` |  |
 | queue.deployment.podSecurityContext | object | `{}` |  |
 | queue.deployment.replicaCount | int | `1` |  |
 | queue.deployment.resources | object | `{}` |  |
 | queue.deployment.securityContext | object | `{}` |  |
+| queue.deployment.sidecars | list | `[]` |  |
 | queue.deployment.tolerations | list | `[]` |  |
 | queue.name | string | `"queue"` |  |
+| queue.serviceAccount.annotations | object | `{}` |  |
+| queue.serviceAccount.create | bool | `true` |  |
+| queue.serviceAccount.labels | object | `{}` |  |
+| queue.serviceAccount.name | string | `""` |  |
 
 ## Redis
 
@@ -411,6 +433,7 @@ We typically validate deployment using the following Jupyter notebook:
 | redis.service.type | string | `"ClusterIP"` |  |
 | redis.statefulSet.affinity | object | `{}` |  |
 | redis.statefulSet.annotations | object | `{}` |  |
+| redis.statefulSet.extraEnv | list | `[]` |  |
 | redis.statefulSet.labels | object | `{}` |  |
 | redis.statefulSet.nodeSelector | object | `{}` |  |
 | redis.statefulSet.persistence.enabled | bool | `false` |  |
@@ -419,6 +442,7 @@ We typically validate deployment using the following Jupyter notebook:
 | redis.statefulSet.podSecurityContext | object | `{}` |  |
 | redis.statefulSet.resources | object | `{}` |  |
 | redis.statefulSet.securityContext | object | `{}` |  |
+| redis.statefulSet.sidecars | list | `[]` |  |
 | redis.statefulSet.tolerations | list | `[]` |  |
 
 ## Maintainers
