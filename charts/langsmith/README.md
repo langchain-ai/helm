@@ -27,7 +27,8 @@ Ensure you have the following tools/items ready.
 4. OpenAI API Key(optional).
     1. Used for natural language search feature. Can specify OpenAI key in browser as well for the playground feature.
 5. Oauth Configuration(optional).
-    1. You can configure oauth using the `values.yaml` file. You will need to provide a `client_id` and `client_issuer_url` for your oauth provider. We currently support anything that is OIDC compliant.
+    1. You can configure oauth using the `values.yaml` file. You will need to provide a `client_id` and `client_issuer_url` for your oauth provider.
+    2. Note, we do rely on the OIDC Authorization Code with PKCE flow. We currently support almost anything that is OIDC compliant however Google does not support this flow.
 6. External Postgres(optional).
     1. You can configure external postgres using the `values.yaml` file. You will need to provide connection parameters for your postgres instance.
     2. If using a schema other than public, ensure that you do not have any other schemas with the pgcrypto extension enabled or you must include that in your search path.
