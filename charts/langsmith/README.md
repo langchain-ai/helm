@@ -31,11 +31,11 @@ Ensure you have the following tools/items ready.
 6. External Postgres(optional).
     1. You can configure external postgres using the `values.yaml` file. You will need to provide connection parameters for your postgres instance.
     2. If using a schema other than public, ensure that you do not have any other schemas with the pgcrypto extension enabled or you must include that in your search path.
-    3. Note: We do only officially support Postgres versions > 14.
+    3. Note: We do only officially support Postgres versions >= 14.
 7. External Redis(optional).
     1. You can configure external redis using the `values.yaml` file. You will need to provide a connection url for your redis instance.
     2. Currently, we do not support using Redis with TLS. We will be supporting this shortly.
-    3. We only official support Redis versions > 6.
+    3. We only official support Redis versions >= 6.
 
 ### Configure your Helm Charts:
 
