@@ -150,10 +150,58 @@ Template containing common environment variables that are used by several servic
       key: api_key_salt
 {{- end }}
 
+{{- define "backend.serviceAccountName" -}}
+{{- if .Values.backend.serviceAccount.create -}}
+    {{ default (printf "%s-%s" (include "langsmith.fullname" .) .Values.backend.name) .Values.backend.serviceAccount.name | trunc 63 | trimSuffix "-" }}
+{{- else -}}
+    {{ default "default" .Values.backend.serviceAccount.name }}
+{{- end -}}
+{{- end -}}
+
+{{- define "frontend.serviceAccountName" -}}
+{{- if .Values.frontend.serviceAccount.create -}}
+    {{ default (printf "%s-%s" (include "langsmith.fullname" .) .Values.frontend.name) .Values.frontend.serviceAccount.name | trunc 63 | trimSuffix "-" }}
+{{- else -}}
+    {{ default "default" .Values.frontend.serviceAccount.name }}
+{{- end -}}
+{{- end -}}
+
+{{- define "hubBackend.serviceAccountName" -}}
+{{- if .Values.hubBackend.serviceAccount.create -}}
+    {{ default (printf "%s-%s" (include "langsmith.fullname" .) .Values.hubBackend.name) .Values.hubBackend.serviceAccount.name | trunc 63 | trimSuffix "-" }}
+{{- else -}}
+    {{ default "default" .Values.hubBackend.serviceAccount.name }}
+{{- end -}}
+{{- end -}}
+
+{{- define "playground.serviceAccountName" -}}
+{{- if .Values.playground.serviceAccount.create -}}
+    {{ default (printf "%s-%s" (include "langsmith.fullname" .) .Values.playground.name) .Values.playground.serviceAccount.name | trunc 63 | trimSuffix "-" }}
+{{- else -}}
+    {{ default "default" .Values.playground.serviceAccount.name }}
+{{- end -}}
+{{- end -}}
+
+{{- define "postgres.serviceAccountName" -}}
+{{- if .Values.postgres.serviceAccount.create -}}
+    {{ default (printf "%s-%s" (include "langsmith.fullname" .) .Values.postgres.name) .Values.postgres.serviceAccount.name | trunc 63 | trimSuffix "-" }}
+{{- else -}}
+    {{ default "default" .Values.postgres.serviceAccount.name }}
+{{- end -}}
+{{- end -}}
+
 {{- define "queue.serviceAccountName" -}}
 {{- if .Values.queue.serviceAccount.create -}}
     {{ default (printf "%s-%s" (include "langsmith.fullname" .) .Values.queue.name) .Values.queue.serviceAccount.name | trunc 63 | trimSuffix "-" }}
 {{- else -}}
     {{ default "default" .Values.queue.serviceAccount.name }}
+{{- end -}}
+{{- end -}}
+
+{{- define "redis.serviceAccountName" -}}
+{{- if .Values.redis.serviceAccount.create -}}
+    {{ default (printf "%s-%s" (include "langsmith.fullname" .) .Values.redis.name) .Values.redis.serviceAccount.name | trunc 63 | trimSuffix "-" }}
+{{- else -}}
+    {{ default "default" .Values.redis.serviceAccount.name }}
 {{- end -}}
 {{- end -}}
