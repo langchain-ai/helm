@@ -23,7 +23,7 @@ spec:
   template:
     metadata:
       annotations:
-        checksum/config: {{ include (print $.Template.BasePath "/frontend/configmap.yaml") . | sha256sum }}
+        checksum/config: {{ include (print $.Template.BasePath "/frontend/config-map.yaml") . | sha256sum }}
       {{- with .Values.frontend.deployment.annotations }}
         {{- toYaml . | nindent 8 }}
       {{- end }}
@@ -44,9 +44,7 @@ spec:
       containers:
         - name: {{ .Values.frontend.name }}
           env:
-            - name: VITE_BACKEND_AUTH_TYPE
             {{- if .Values.config.oauth.enabled }}
-              value: "oauth"
             - name: VITE_OAUTH_CLIENT_ID
               valueFrom:
                 secretKeyRef:
@@ -57,13 +55,7 @@ spec:
                 secretKeyRef:
                   key: oauth_issuer_url
                   name: {{ include "langsmith.secretsName" .}}
-            {{- else }}
-              value: "none"
             {{- end }}
-            - name: VITE_BACKEND_URL
-              value: ""
-            - name: VITE_HUB_WEB_URL
-              value: ""
             {{- with .Values.frontend.deployment.extraEnv }}
               {{- toYaml . | nindent 12 }}
             {{- end }}

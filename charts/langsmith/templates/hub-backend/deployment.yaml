@@ -49,6 +49,9 @@ spec:
             {{- with .Values.hubBackend.deployment.extraEnv }}
               {{- toYaml . | nindent 12 }}
             {{- end }}
+          envFrom:
+            - configMapRef:
+                name: {{ include "langsmith.fullname" . }}-config
           image: "{{ .Values.images.hubBackendImage.repository }}:{{ .Values.images.hubBackendImage.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.images.hubBackendImage.pullPolicy }}
           ports:
