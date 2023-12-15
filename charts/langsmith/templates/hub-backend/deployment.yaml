@@ -39,6 +39,7 @@ spec:
       {{- end }}
       securityContext:
         {{- toYaml .Values.hubBackend.deployment.podSecurityContext | nindent 8 }}
+      serviceAccountName: {{ include "hubBackend.serviceAccountName" . }}
       containers:
         - name: {{ .Values.hubBackend.name }}
           env:

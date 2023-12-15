@@ -104,6 +104,11 @@ backend:
     port: 1984
     labels: {}
     annotations: {}
+  serviceAccount:
+    create: true
+    name: ""
+    labels: {}
+    annotations: {}
 
 frontend:
   name: "frontend"
@@ -135,6 +140,11 @@ frontend:
     type: LoadBalancer
     httpPort: 80
     httpsPort: 443
+    labels: {}
+    annotations: {}
+  serviceAccount:
+    create: true
+    name: ""
     labels: {}
     annotations: {}
 
@@ -169,6 +179,11 @@ hubBackend:
     port: 1985
     labels: {}
     annotations: {}
+  serviceAccount:
+    create: true
+    name: ""
+    labels: {}
+    annotations: {}
 
 playground:
   name: "playground"
@@ -199,6 +214,11 @@ playground:
   service:
     type: ClusterIP
     port: 3001
+    labels: {}
+    annotations: {}
+  serviceAccount:
+    create: true
+    name: ""
     labels: {}
     annotations: {}
 
@@ -242,6 +262,11 @@ postgres:
   service:
     type: ClusterIP
     port: 5432
+    labels: {}
+    annotations: {}
+  serviceAccount:
+    create: true
+    name: ""
     labels: {}
     annotations: {}
 
@@ -309,5 +334,10 @@ redis:
   service:
     type: ClusterIP
     port: 6379
+    labels: {}
+    annotations: {}
+  serviceAccount:
+    create: true
+    name: ""
     labels: {}
     annotations: {}

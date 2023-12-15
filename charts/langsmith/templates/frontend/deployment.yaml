@@ -40,6 +40,7 @@ spec:
       {{- end }}
       securityContext:
         {{- toYaml .Values.frontend.deployment.podSecurityContext | nindent 8 }}
+      serviceAccountName: {{ include "frontend.serviceAccountName" . }}
       containers:
         - name: {{ .Values.frontend.name }}
           env:
