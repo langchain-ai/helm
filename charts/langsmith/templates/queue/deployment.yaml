@@ -40,6 +40,7 @@ spec:
       securityContext:
         {{- toYaml .Values.queue.deployment.podSecurityContext | nindent 8 }}
       serviceAccountName: {{ include "queue.serviceAccountName" . }}
+      restartPolicy: Always
       containers:
         - name: {{ .Values.queue.name }}
           command:
