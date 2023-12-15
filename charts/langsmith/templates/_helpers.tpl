@@ -118,13 +118,9 @@ Template containing common environment variables that are used by several servic
     secretKeyRef:
       name: {{ include "langsmith.redisSecretsName" . }}
       key: connection_url
-- name: LANGCHAIN_ENV
-  value: local_kubernetes
 - name: LOG_LEVEL
   value: debug
-- name: AUTH_TYPE
 {{- if .Values.config.oauth.enabled }}
-  value: "oauth"
 - name: OAUTH_CLIENT_ID
   valueFrom:
     secretKeyRef:
@@ -135,8 +131,6 @@ Template containing common environment variables that are used by several servic
     secretKeyRef:
       name: {{ include "langsmith.secretsName" . }}
       key: oauth_issuer_url
-{{- else }}
-  value: "none"
 {{- end }}
 - name: LANGSMITH_LICENSE_KEY
   valueFrom:
