@@ -44,9 +44,7 @@ spec:
       containers:
         - name: {{ .Values.frontend.name }}
           env:
-            - name: VITE_BACKEND_AUTH_TYPE
             {{- if .Values.config.oauth.enabled }}
-              value: "oauth"
             - name: VITE_OAUTH_CLIENT_ID
               valueFrom:
                 secretKeyRef:
@@ -57,8 +55,6 @@ spec:
                 secretKeyRef:
                   key: oauth_issuer_url
                   name: {{ include "langsmith.secretsName" .}}
-            {{- else }}
-              value: "none"
             {{- end }}
             {{- with .Values.frontend.deployment.extraEnv }}
               {{- toYaml . | nindent 12 }}
