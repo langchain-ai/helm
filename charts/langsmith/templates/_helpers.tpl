@@ -113,6 +113,10 @@ Template containing common environment variables that are used by several servic
     secretKeyRef:
       name: {{ include "langsmith.postgresSecretsName" . }}
       key: connection_url
+{{- with.Values.postgres.external.schema }}
+- name: POSTGRES_SCHEMA
+  value: {{ . }}
+{{- end }}
 - name: REDIS_DATABASE_URI
   valueFrom:
     secretKeyRef:
