@@ -233,7 +233,7 @@ postgres:
     user: "postgres"
     password: "postgres"
     database: "postgres"
-    schema: ""
+    schema: "public"
     # If connection string is specified, we will ignore all above values and use the connection string instead.
     # Do not include the driver name(something like "postgres://" in the connection string.
     connectionUrl: ""
