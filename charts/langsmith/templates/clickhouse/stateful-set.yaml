@@ -19,7 +19,7 @@ spec:
   selector:
     matchLabels:
       {{- include "langsmith.selectorLabels" . | nindent 6 }}
-      app.kubernetes.io/name: {{ include "langsmith.fullname" . }}-{{ .Values.clickhouse.name }}
+      app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-{{ .Values.clickhouse.name }}
   template:
     metadata:
       {{- with .Values.clickhouse.statefulSet.annotations }}
@@ -31,7 +31,7 @@ spec:
             {{- toYaml . | nindent 8 }}
         {{- end }}
         {{- include "langsmith.labels" . | nindent 8 }}
-        app.kubernetes.io/name: {{ include "langsmith.fullname" . }}-{{ .Values.clickhouse.name }}
+        app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-{{ .Values.clickhouse.name }}
     spec:
       {{- with .Values.images.imagePullSecrets }}
       imagePullSecrets:
@@ -43,11 +43,18 @@ spec:
         - name: {{ .Values.clickhouse.name }}
           image: "{{ .Values.images.clickhouseImage.repository }}:{{ .Values.images.clickhouseImage.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.images.clickhouseImage.pullPolicy }}
+          env:
+            - name: CLICKHOUSE_DB
+              value: default
+            - name: CLICKHOUSE_USER
+              value: clickhouse_admin
+            - name: CLICKHOUSE_PASSWORD
+              value: password
           ports:
-            - name: clickhouse
+            - name: ch
               containerPort: {{ .Values.clickhouse.containerHttpPort }}
               protocol: TCP
-            - name: clickhouse-native
+            - name: ch-native
               containerPort: {{ .Values.clickhouse.containerNativePort }}
               protocol: TCP
           startupProbe:
@@ -78,8 +85,9 @@ spec:
           volumeMounts:
             - mountPath: /var/lib/clickhouse
               name: data
-            - mountPath: /var/lib/clickhouse
-              name: config
+            - mountPath: /etc/clickhouse-server/users.d/users.xml
+              name: clickhouse-conf
+              subPath: users.xml
       {{- with .Values.clickhouse.statefulSet.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
@@ -92,6 +100,13 @@ spec:
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      volumes:
+        - name: clickhouse-conf
+          configMap:
+            name: {{ include "langsmith.fullname" . }}-{{ .Values.clickhouse.name }}
+            items:
+              - key: users.xml
+                path: users.xml
   volumeClaimTemplates:
     - apiVersion: v1
       kind: PersistentVolumeClaim
@@ -99,7 +114,7 @@ spec:
         name: data
         labels:
           {{- include "langsmith.labels" . | nindent 10 }}
-          app.kubernetes.io/name: {{ include "langsmith.fullname" . }}-{{ .Values.clickhouse.name }}
+          app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-{{ .Values.clickhouse.name }}
       spec:
         accessModes:
           - ReadWriteOnce

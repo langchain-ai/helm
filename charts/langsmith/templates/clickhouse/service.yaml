@@ -16,11 +16,15 @@ metadata:
 spec:
   type: {{ .Values.clickhouse.service.type }}
   ports:
-    - name: clickhouse
-      port: {{ .Values.clickhouse.service.port }}
-      targetPort: clickhouse
+    - name: ch
+      port: {{ .Values.clickhouse.service.httpPort }}
+      targetPort: ch
+      protocol: TCP
+    - name: ch-native
+      port: {{ .Values.clickhouse.service.nativePort }}
+      targetPort: ch-native
       protocol: TCP
   selector:
     {{- include "langsmith.selectorLabels" . | nindent 4 }}
-    app.kubernetes.io/name: {{ include "langsmith.fullname" . }}-{{ .Values.clickhouse.name }}
+    app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-{{ .Values.clickhouse.name }}
 {{- end }}

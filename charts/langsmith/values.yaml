@@ -145,6 +145,11 @@ clickhouse:
     nativePort: 9000
     labels: {}
     annotations: {}
+  serviceAccount:
+    create: true
+    name: ""
+    labels: { }
+    annotations: { }
 
 frontend:
   name: "frontend"
