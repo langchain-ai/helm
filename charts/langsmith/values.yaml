@@ -148,8 +148,8 @@ clickhouse:
   serviceAccount:
     create: true
     name: ""
-    labels: { }
-    annotations: { }
+    labels: {}
+    annotations: {}
 
 frontend:
   name: "frontend"
