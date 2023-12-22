@@ -312,6 +312,7 @@ We typically validate deployment using the following Jupyter notebook:
 | frontend.deployment.tolerations | list | `[]` |  |
 | frontend.deployment.volumeMounts | list | `[]` |  |
 | frontend.deployment.volumes | list | `[]` |  |
+| frontend.existingConfigMapName | string | `""` |  |
 | frontend.name | string | `"frontend"` |  |
 | frontend.service.annotations | object | `{}` |  |
 | frontend.service.httpPort | int | `80` |  |
@@ -377,6 +378,7 @@ We typically validate deployment using the following Jupyter notebook:
 | frontend.deployment.tolerations | list | `[]` |  |
 | frontend.deployment.volumeMounts | list | `[]` |  |
 | frontend.deployment.volumes | list | `[]` |  |
+| frontend.existingConfigMapName | string | `""` |  |
 | frontend.name | string | `"frontend"` |  |
 | frontend.service.annotations | object | `{}` |  |
 | frontend.service.httpPort | int | `80` |  |

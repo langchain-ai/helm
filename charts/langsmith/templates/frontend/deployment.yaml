@@ -121,7 +121,11 @@ spec:
         {{- end }}
         - name: nginx-conf
           configMap:
+            {{- if .Values.frontend.existingConfigMapName }}
+            name: {{ .Values.frontend.existingConfigMapName }}
+            {{- else }}
             name: {{ include "langsmith.fullname" . }}-{{ .Values.frontend.name }}
+            {{- end }}
             items:
               - key: nginx.conf
                 path: nginx.conf

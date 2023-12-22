@@ -117,6 +117,7 @@ backend:
 frontend:
   name: "frontend"
   containerPort: 8080
+  existingConfigMapName: ""
   deployment:
     replicaCount: 1
     labels: {}
