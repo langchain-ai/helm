@@ -98,6 +98,9 @@ spec:
           securityContext:
             {{- toYaml .Values.postgres.statefulSet.securityContext | nindent 12 }}
           volumeMounts:
+            {{- with .Values.postgres.statefulSet.volumeMounts }}
+              {{- toYaml . | nindent 12 }}
+            {{- end }}
             - mountPath: /var/lib/postgresql/data
               name: data
               subPath: postgres
@@ -115,6 +118,10 @@ spec:
       {{- with .Values.postgres.statefulSet.tolerations }}
       tolerations:
         {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.postgres.statefulSet.volumes }}
+      volumes:
+          {{- toYaml . | nindent 8 }}
       {{- end }}
   volumeClaimTemplates:
     - apiVersion: v1

@@ -75,6 +75,8 @@ backend:
     nodeSelector: {}
     tolerations: []
     affinity: {}
+    volumes: []
+    volumeMounts: []
   migrations:
     enabled: true
     replicaCount: 1
@@ -94,6 +96,8 @@ backend:
     nodeSelector: {}
     tolerations: []
     affinity: {}
+    volumes: []
+    volumeMounts: []
   autoscaling:
     enabled: false
     minReplicas: 1
@@ -131,6 +135,8 @@ frontend:
     nodeSelector: {}
     tolerations: []
     affinity: {}
+    volumes: []
+    volumeMounts: []
   autoscaling:
     enabled: false
     minReplicas: 1
@@ -169,6 +175,8 @@ hubBackend:
     nodeSelector: {}
     tolerations: []
     affinity: {}
+    volumes: []
+    volumeMounts: []
   autoscaling:
     enabled: false
     minReplicas: 1
@@ -206,6 +214,8 @@ playground:
     nodeSelector: {}
     tolerations: []
     affinity: {}
+    volumes: []
+    volumeMounts: []
   autoscaling:
     enabled: false
     minReplicas: 1
@@ -256,6 +266,8 @@ postgres:
     nodeSelector: {}
     tolerations: []
     affinity: {}
+    volumes: []
+    volumeMounts: []
     persistence:
       enabled: false
       size: 8Gi
@@ -291,6 +303,8 @@ queue:
     nodeSelector: {}
     tolerations: []
     affinity: {}
+    volumes: []
+    volumeMounts: []
   autoscaling:
     enabled: false
     minReplicas: 1
@@ -328,6 +342,8 @@ redis:
     nodeSelector: {}
     tolerations: []
     affinity: {}
+    volumes: []
+    volumeMounts: []
     persistence:
       enabled: false
       size: 8Gi

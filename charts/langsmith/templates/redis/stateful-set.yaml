@@ -87,6 +87,14 @@ spec:
           volumeMounts:
             - mountPath: /data
               name: data
+            {{- with .Values.redis.statefulSet.volumeMounts }}
+              {{- toYaml . | nindent 12 }}
+            {{- end }}
+          {{- else }}
+          {{- with .Values.redis.statefulSet.volumeMounts }}
+          volumeMounts:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           {{- end }}
         {{- with .Values.redis.statefulSet.sidecars }}
           {{- toYaml . | nindent 8 }}
@@ -102,6 +110,10 @@ spec:
       {{- with .Values.redis.statefulSet.tolerations }}
       tolerations:
         {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.redis.statefulSet.volumes }}
+      volumes:
+          {{- toYaml . | nindent 8 }}
       {{- end }}
   {{- if .Values.redis.statefulSet.persistence.enabled }}
   volumeClaimTemplates:

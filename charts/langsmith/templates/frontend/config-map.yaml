@@ -4,6 +4,8 @@ metadata:
   name: {{ include "langsmith.fullname" . }}-{{ .Values.frontend.name }}
   labels:
     {{- include "langsmith.labels" . | nindent 4 }}
+  annotations:
+    {{- include "langsmith.annotations" . | nindent 4 }}
 data:
   nginx.conf: |
     server {

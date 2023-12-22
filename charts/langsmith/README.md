@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.1.14](https://img.shields.io/badge/Version-0.1.14-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.1.0](https://img.shields.io/badge/AppVersion-0.1.0-informational?style=flat-square)
+![Version: 0.1.15](https://img.shields.io/badge/Version-0.1.15-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.1.0](https://img.shields.io/badge/AppVersion-0.1.0-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -264,6 +264,8 @@ We typically validate deployment using the following Jupyter notebook:
 | backend.deployment.securityContext | object | `{}` |  |
 | backend.deployment.sidecars | list | `[]` |  |
 | backend.deployment.tolerations | list | `[]` |  |
+| backend.deployment.volumeMounts | list | `[]` |  |
+| backend.deployment.volumes | list | `[]` |  |
 | backend.migrations.affinity | object | `{}` |  |
 | backend.migrations.annotations | object | `{}` |  |
 | backend.migrations.enabled | bool | `true` |  |
@@ -276,6 +278,8 @@ We typically validate deployment using the following Jupyter notebook:
 | backend.migrations.securityContext | object | `{}` |  |
 | backend.migrations.sidecars | list | `[]` |  |
 | backend.migrations.tolerations | list | `[]` |  |
+| backend.migrations.volumeMounts | list | `[]` |  |
+| backend.migrations.volumes | list | `[]` |  |
 | backend.name | string | `"backend"` |  |
 | backend.service.annotations | object | `{}` |  |
 | backend.service.labels | object | `{}` |  |
@@ -306,6 +310,8 @@ We typically validate deployment using the following Jupyter notebook:
 | frontend.deployment.securityContext | object | `{}` |  |
 | frontend.deployment.sidecars | list | `[]` |  |
 | frontend.deployment.tolerations | list | `[]` |  |
+| frontend.deployment.volumeMounts | list | `[]` |  |
+| frontend.deployment.volumes | list | `[]` |  |
 | frontend.name | string | `"frontend"` |  |
 | frontend.service.annotations | object | `{}` |  |
 | frontend.service.httpPort | int | `80` |  |
@@ -337,6 +343,8 @@ We typically validate deployment using the following Jupyter notebook:
 | hubBackend.deployment.securityContext | object | `{}` |  |
 | hubBackend.deployment.sidecars | list | `[]` |  |
 | hubBackend.deployment.tolerations | list | `[]` |  |
+| hubBackend.deployment.volumeMounts | list | `[]` |  |
+| hubBackend.deployment.volumes | list | `[]` |  |
 | hubBackend.name | string | `"hub-backend"` |  |
 | hubBackend.service.annotations | object | `{}` |  |
 | hubBackend.service.labels | object | `{}` |  |
@@ -367,6 +375,8 @@ We typically validate deployment using the following Jupyter notebook:
 | frontend.deployment.securityContext | object | `{}` |  |
 | frontend.deployment.sidecars | list | `[]` |  |
 | frontend.deployment.tolerations | list | `[]` |  |
+| frontend.deployment.volumeMounts | list | `[]` |  |
+| frontend.deployment.volumes | list | `[]` |  |
 | frontend.name | string | `"frontend"` |  |
 | frontend.service.annotations | object | `{}` |  |
 | frontend.service.httpPort | int | `80` |  |
@@ -414,6 +424,8 @@ We typically validate deployment using the following Jupyter notebook:
 | postgres.statefulSet.securityContext | object | `{}` |  |
 | postgres.statefulSet.sidecars | list | `[]` |  |
 | postgres.statefulSet.tolerations | list | `[]` |  |
+| postgres.statefulSet.volumeMounts | list | `[]` |  |
+| postgres.statefulSet.volumes | list | `[]` |  |
 
 ## Queue
 
@@ -434,6 +446,8 @@ We typically validate deployment using the following Jupyter notebook:
 | queue.deployment.securityContext | object | `{}` |  |
 | queue.deployment.sidecars | list | `[]` |  |
 | queue.deployment.tolerations | list | `[]` |  |
+| queue.deployment.volumeMounts | list | `[]` |  |
+| queue.deployment.volumes | list | `[]` |  |
 | queue.name | string | `"queue"` |  |
 | queue.serviceAccount.annotations | object | `{}` |  |
 | queue.serviceAccount.create | bool | `true` |  |
@@ -470,6 +484,8 @@ We typically validate deployment using the following Jupyter notebook:
 | redis.statefulSet.securityContext | object | `{}` |  |
 | redis.statefulSet.sidecars | list | `[]` |  |
 | redis.statefulSet.tolerations | list | `[]` |  |
+| redis.statefulSet.volumeMounts | list | `[]` |  |
+| redis.statefulSet.volumes | list | `[]` |  |
 
 ## Maintainers
 

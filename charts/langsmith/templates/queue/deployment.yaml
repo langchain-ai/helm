@@ -71,6 +71,10 @@ spec:
             {{- toYaml .Values.queue.deployment.resources | nindent 12 }}
           securityContext:
             {{- toYaml .Values.queue.deployment.securityContext | nindent 12 }}
+          {{- with .Values.queue.deployment.volumeMounts }}
+          volumeMounts:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
         {{- with .Values.queue.deployment.sidecars }}
           {{- toYaml . | nindent 8 }}
         {{- end }}
@@ -85,4 +89,8 @@ spec:
       {{- with .Values.queue.deployment.tolerations }}
       tolerations:
         {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.queue.deployment.volumes }}
+      volumes:
+          {{- toYaml . | nindent 8 }}
       {{- end }}
