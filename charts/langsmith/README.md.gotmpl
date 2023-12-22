@@ -124,7 +124,7 @@ the same format as the secret in the corresponding `secrets.yaml` file.
         helm repo add langchain https://langchain-ai.github.io/helm/
         "langchain" has been added to your repositories
 
-3. Run `helm install langchain/langsmith . --values langsmith_config.yaml`
+3. Run `helm install langsmith langchain/langsmith --values langsmith_config.yaml`
 4. Run `kubectl get pods`
     1. Output should now look something like:
 

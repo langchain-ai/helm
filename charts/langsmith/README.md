@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.1.10](https://img.shields.io/badge/Version-0.1.10-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.1.0](https://img.shields.io/badge/AppVersion-0.1.0-informational?style=flat-square)
+![Version: 0.1.14](https://img.shields.io/badge/Version-0.1.14-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.1.0](https://img.shields.io/badge/AppVersion-0.1.0-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -123,7 +123,7 @@ the same format as the secret in the corresponding `secrets.yaml` file.
         helm repo add langchain https://langchain-ai.github.io/helm/
         "langchain" has been added to your repositories
 
-3. Run `helm install langchain/langsmith . --values langsmith_config.yaml`
+3. Run `helm install langsmith langchain/langsmith --values langsmith_config.yaml`
 4. Run `kubectl get pods`
     1. Output should now look something like:
 
@@ -281,6 +281,10 @@ We typically validate deployment using the following Jupyter notebook:
 | backend.service.labels | object | `{}` |  |
 | backend.service.port | int | `1984` |  |
 | backend.service.type | string | `"ClusterIP"` |  |
+| backend.serviceAccount.annotations | object | `{}` |  |
+| backend.serviceAccount.create | bool | `true` |  |
+| backend.serviceAccount.labels | object | `{}` |  |
+| backend.serviceAccount.name | string | `""` |  |
 
 ## Frontend
 
@@ -308,6 +312,10 @@ We typically validate deployment using the following Jupyter notebook:
 | frontend.service.httpsPort | int | `443` |  |
 | frontend.service.labels | object | `{}` |  |
 | frontend.service.type | string | `"LoadBalancer"` |  |
+| frontend.serviceAccount.annotations | object | `{}` |  |
+| frontend.serviceAccount.create | bool | `true` |  |
+| frontend.serviceAccount.labels | object | `{}` |  |
+| frontend.serviceAccount.name | string | `""` |  |
 
 ## Hub Backend
 
@@ -334,6 +342,10 @@ We typically validate deployment using the following Jupyter notebook:
 | hubBackend.service.labels | object | `{}` |  |
 | hubBackend.service.port | int | `1985` |  |
 | hubBackend.service.type | string | `"ClusterIP"` |  |
+| hubBackend.serviceAccount.annotations | object | `{}` |  |
+| hubBackend.serviceAccount.create | bool | `true` |  |
+| hubBackend.serviceAccount.labels | object | `{}` |  |
+| hubBackend.serviceAccount.name | string | `""` |  |
 
 ## Playground
 
@@ -361,6 +373,10 @@ We typically validate deployment using the following Jupyter notebook:
 | frontend.service.httpsPort | int | `443` |  |
 | frontend.service.labels | object | `{}` |  |
 | frontend.service.type | string | `"LoadBalancer"` |  |
+| frontend.serviceAccount.annotations | object | `{}` |  |
+| frontend.serviceAccount.create | bool | `true` |  |
+| frontend.serviceAccount.labels | object | `{}` |  |
+| frontend.serviceAccount.name | string | `""` |  |
 
 ## Postgres
 
@@ -374,12 +390,17 @@ We typically validate deployment using the following Jupyter notebook:
 | postgres.external.host | string | `""` |  |
 | postgres.external.password | string | `"postgres"` |  |
 | postgres.external.port | string | `"5432"` |  |
+| postgres.external.schema | string | `"public"` |  |
 | postgres.external.user | string | `"postgres"` |  |
 | postgres.name | string | `"postgres"` |  |
 | postgres.service.annotations | object | `{}` |  |
 | postgres.service.labels | object | `{}` |  |
 | postgres.service.port | int | `5432` |  |
 | postgres.service.type | string | `"ClusterIP"` |  |
+| postgres.serviceAccount.annotations | object | `{}` |  |
+| postgres.serviceAccount.create | bool | `true` |  |
+| postgres.serviceAccount.labels | object | `{}` |  |
+| postgres.serviceAccount.name | string | `""` |  |
 | postgres.statefulSet.affinity | object | `{}` |  |
 | postgres.statefulSet.annotations | object | `{}` |  |
 | postgres.statefulSet.extraEnv | list | `[]` |  |
@@ -432,6 +453,10 @@ We typically validate deployment using the following Jupyter notebook:
 | redis.service.labels | object | `{}` |  |
 | redis.service.port | int | `6379` |  |
 | redis.service.type | string | `"ClusterIP"` |  |
+| redis.serviceAccount.annotations | object | `{}` |  |
+| redis.serviceAccount.create | bool | `true` |  |
+| redis.serviceAccount.labels | object | `{}` |  |
+| redis.serviceAccount.name | string | `""` |  |
 | redis.statefulSet.affinity | object | `{}` |  |
 | redis.statefulSet.annotations | object | `{}` |  |
 | redis.statefulSet.extraEnv | list | `[]` |  |
