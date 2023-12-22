@@ -108,6 +108,7 @@ backend:
     port: 1984
     labels: {}
     annotations: {}
+    loadBalancerSourceRanges: []
   serviceAccount:
     create: true
     name: ""
@@ -149,6 +150,7 @@ frontend:
     httpsPort: 443
     labels: {}
     annotations: {}
+    loadBalancerSourceRanges: []
   serviceAccount:
     create: true
     name: ""
@@ -188,6 +190,7 @@ hubBackend:
     port: 1985
     labels: {}
     annotations: {}
+    loadBalancerSourceRanges: []
   serviceAccount:
     create: true
     name: ""
@@ -227,6 +230,7 @@ playground:
     port: 3001
     labels: {}
     annotations: {}
+    loadBalancerSourceRanges: []
   serviceAccount:
     create: true
     name: ""
@@ -278,6 +282,7 @@ postgres:
     port: 5432
     labels: {}
     annotations: {}
+    loadBalancerSourceRanges: []
   serviceAccount:
     create: true
     name: ""
@@ -354,6 +359,7 @@ redis:
     port: 6379
     labels: {}
     annotations: {}
+    loadBalancerSourceRanges: []
   serviceAccount:
     create: true
     name: ""

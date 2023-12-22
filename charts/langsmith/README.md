@@ -283,6 +283,7 @@ We typically validate deployment using the following Jupyter notebook:
 | backend.name | string | `"backend"` |  |
 | backend.service.annotations | object | `{}` |  |
 | backend.service.labels | object | `{}` |  |
+| backend.service.loadBalancerSourceRanges | list | `[]` |  |
 | backend.service.port | int | `1984` |  |
 | backend.service.type | string | `"ClusterIP"` |  |
 | backend.serviceAccount.annotations | object | `{}` |  |
@@ -318,6 +319,7 @@ We typically validate deployment using the following Jupyter notebook:
 | frontend.service.httpPort | int | `80` |  |
 | frontend.service.httpsPort | int | `443` |  |
 | frontend.service.labels | object | `{}` |  |
+| frontend.service.loadBalancerSourceRanges | list | `[]` |  |
 | frontend.service.type | string | `"LoadBalancer"` |  |
 | frontend.serviceAccount.annotations | object | `{}` |  |
 | frontend.serviceAccount.create | bool | `true` |  |
@@ -349,6 +351,7 @@ We typically validate deployment using the following Jupyter notebook:
 | hubBackend.name | string | `"hub-backend"` |  |
 | hubBackend.service.annotations | object | `{}` |  |
 | hubBackend.service.labels | object | `{}` |  |
+| hubBackend.service.loadBalancerSourceRanges | list | `[]` |  |
 | hubBackend.service.port | int | `1985` |  |
 | hubBackend.service.type | string | `"ClusterIP"` |  |
 | hubBackend.serviceAccount.annotations | object | `{}` |  |
@@ -384,6 +387,7 @@ We typically validate deployment using the following Jupyter notebook:
 | frontend.service.httpPort | int | `80` |  |
 | frontend.service.httpsPort | int | `443` |  |
 | frontend.service.labels | object | `{}` |  |
+| frontend.service.loadBalancerSourceRanges | list | `[]` |  |
 | frontend.service.type | string | `"LoadBalancer"` |  |
 | frontend.serviceAccount.annotations | object | `{}` |  |
 | frontend.serviceAccount.create | bool | `true` |  |
@@ -407,6 +411,7 @@ We typically validate deployment using the following Jupyter notebook:
 | postgres.name | string | `"postgres"` |  |
 | postgres.service.annotations | object | `{}` |  |
 | postgres.service.labels | object | `{}` |  |
+| postgres.service.loadBalancerSourceRanges | list | `[]` |  |
 | postgres.service.port | int | `5432` |  |
 | postgres.service.type | string | `"ClusterIP"` |  |
 | postgres.serviceAccount.annotations | object | `{}` |  |
@@ -467,6 +472,7 @@ We typically validate deployment using the following Jupyter notebook:
 | redis.name | string | `"redis"` |  |
 | redis.service.annotations | object | `{}` |  |
 | redis.service.labels | object | `{}` |  |
+| redis.service.loadBalancerSourceRanges | list | `[]` |  |
 | redis.service.port | int | `6379` |  |
 | redis.service.type | string | `"ClusterIP"` |  |
 | redis.serviceAccount.annotations | object | `{}` |  |
