@@ -75,6 +75,8 @@ backend:
     nodeSelector: {}
     tolerations: []
     affinity: {}
+    volumes: []
+    volumeMounts: []
   migrations:
     enabled: true
     replicaCount: 1
@@ -94,6 +96,8 @@ backend:
     nodeSelector: {}
     tolerations: []
     affinity: {}
+    volumes: []
+    volumeMounts: []
   autoscaling:
     enabled: false
     minReplicas: 1
@@ -104,6 +108,7 @@ backend:
     port: 1984
     labels: {}
     annotations: {}
+    loadBalancerSourceRanges: []
   serviceAccount:
     create: true
     name: ""
@@ -113,6 +118,7 @@ backend:
 frontend:
   name: "frontend"
   containerPort: 8080
+  existingConfigMapName: ""
   deployment:
     replicaCount: 1
     labels: {}
@@ -131,6 +137,8 @@ frontend:
     nodeSelector: {}
     tolerations: []
     affinity: {}
+    volumes: []
+    volumeMounts: []
   autoscaling:
     enabled: false
     minReplicas: 1
@@ -142,6 +150,7 @@ frontend:
     httpsPort: 443
     labels: {}
     annotations: {}
+    loadBalancerSourceRanges: []
   serviceAccount:
     create: true
     name: ""
@@ -169,6 +178,8 @@ hubBackend:
     nodeSelector: {}
     tolerations: []
     affinity: {}
+    volumes: []
+    volumeMounts: []
   autoscaling:
     enabled: false
     minReplicas: 1
@@ -179,6 +190,7 @@ hubBackend:
     port: 1985
     labels: {}
     annotations: {}
+    loadBalancerSourceRanges: []
   serviceAccount:
     create: true
     name: ""
@@ -206,6 +218,8 @@ playground:
     nodeSelector: {}
     tolerations: []
     affinity: {}
+    volumes: []
+    volumeMounts: []
   autoscaling:
     enabled: false
     minReplicas: 1
@@ -216,6 +230,7 @@ playground:
     port: 3001
     labels: {}
     annotations: {}
+    loadBalancerSourceRanges: []
   serviceAccount:
     create: true
     name: ""
@@ -256,6 +271,8 @@ postgres:
     nodeSelector: {}
     tolerations: []
     affinity: {}
+    volumes: []
+    volumeMounts: []
     persistence:
       enabled: false
       size: 8Gi
@@ -265,6 +282,7 @@ postgres:
     port: 5432
     labels: {}
     annotations: {}
+    loadBalancerSourceRanges: []
   serviceAccount:
     create: true
     name: ""
@@ -291,6 +309,8 @@ queue:
     nodeSelector: {}
     tolerations: []
     affinity: {}
+    volumes: []
+    volumeMounts: []
   autoscaling:
     enabled: false
     minReplicas: 1
@@ -328,6 +348,8 @@ redis:
     nodeSelector: {}
     tolerations: []
     affinity: {}
+    volumes: []
+    volumeMounts: []
     persistence:
       enabled: false
       size: 8Gi
@@ -337,6 +359,7 @@ redis:
     port: 6379
     labels: {}
     annotations: {}
+    loadBalancerSourceRanges: []
   serviceAccount:
     create: true
     name: ""

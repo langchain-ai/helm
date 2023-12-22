@@ -15,6 +15,10 @@ metadata:
     {{- end }}
 spec:
   type: {{ .Values.redis.service.type }}
+  {{- with .Values.redis.service.loadBalancerSourceRanges }}
+  loadBalancerSourceRanges:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
   ports:
     - name: redis
       port: {{ .Values.redis.service.port }}
