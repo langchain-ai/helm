@@ -7,24 +7,25 @@ metadata:
   annotations:
     {{- include "langsmith.annotations" . | nindent 4 }}
 data:
+{{- if .Values.ingress.subdomain }}
   nginx.conf: |
     server {
         listen       {{ .Values.frontend.containerPort }};
         server_name  localhost;
 
-        location / {
-            root   /usr/share/nginx/html;
-            index  index.html index.htm;
-            try_files $uri $uri/ /index.html;
-        }
-
         error_page   500 502 503 504  /50x.html;
         location = /50x.html {
-            root   /usr/share/nginx/html;
+            root   /usr/share/nginx/html/build;
         }
 
-        location ~ /api/playground/ {
-            rewrite /api/playground/(.*) /$1  break;
+        location = /health {
+                # health checks are frequent and boring, so we avoid logging them
+                access_log off;
+                return 200;
+         }
+
+        location ~ /{{ .Values.ingress.subdomain }}/api/playground/ {
+            rewrite /{{ .Values.ingress.subdomain }}/api/playground/(.*) /$1  break;
             proxy_set_header Connection '';
             proxy_http_version 1.1;
             proxy_buffering off;
@@ -32,23 +33,18 @@ data:
             proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.playground.name }}:{{ .Values.playground.service.port }};
         }
 
-        location = /api/playground {
-            rewrite /api/playground /  break;
+        location = /{{ .Values.ingress.subdomain }}/api/playground {
+            rewrite /{{ .Values.ingress.subdomain }}/api/playground /  break;
             proxy_set_header Connection '';
             proxy_http_version 1.1;
             proxy_buffering off;
             proxy_cache off;
             proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.playground.name }}:{{ .Values.playground.service.port }};
-        }
-
-        # A dummy location. Resolve hub-backend hostname
-        location = /hub-backend-dns {
-            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.hubBackend.name }}:{{ .Values.hubBackend.service.port }};
         }
 
          # Hub Backend Routes
-         location ~ /api-hub {
-            rewrite /api-hub/(.*) /$1  break;
+         location ~ /{{ .Values.ingress.subdomain }}/api-hub {
+            rewrite /{{ .Values.ingress.subdomain }}/api-hub/(.*) /$1  break;
             proxy_set_header Connection '';
             proxy_http_version 1.1;
             proxy_buffering off;
@@ -57,8 +53,8 @@ data:
         }
 
          # Backend Routes
-         location ~ /api {
-            rewrite /api/(.*) /$1  break;
+         location ~ /{{ .Values.ingress.subdomain }}/api {
+            rewrite /{{ .Values.ingress.subdomain }}/api/(.*) /$1  break;
             proxy_set_header Connection '';
             proxy_http_version 1.1;
             proxy_buffering off;
@@ -66,4 +62,77 @@ data:
             proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}:{{ .Values.backend.service.port }};
         }
 
+        location = /{{ .Values.ingress.subdomain }} {
+            absolute_redirect off;
+            rewrite ^ /{{ .Values.ingress.subdomain }}/ permanent;
+        }
+
+        location ~ /{{ .Values.ingress.subdomain }} {
+            root   /usr/share/nginx/html;
+            index  index.html index.htm;
+            try_files $uri $uri/ /{{ .Values.ingress.subdomain }}/index.html;
+        }
+
     }
+{{- else }}
+  nginx.conf: |
+    server {
+      listen       {{ .Values.frontend.containerPort }};
+      server_name  localhost;
+
+      location / {
+          root   /usr/share/nginx/html/build;
+          index  index.html index.htm;
+          try_files $uri $uri/ /index.html;
+      }
+
+      location = /health {
+                # health checks are frequent and boring, so we avoid logging them
+                access_log off;
+                return 200;
+      }
+
+      error_page   500 502 503 504  /50x.html;
+      location = /50x.html {
+          root   /usr/share/nginx/html/build;
+      }
+
+      location ~ /api/playground/ {
+          rewrite /api/playground/(.*) /$1  break;
+          proxy_set_header Connection '';
+          proxy_http_version 1.1;
+          proxy_buffering off;
+          proxy_cache off;
+          proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.playground.name }}:{{ .Values.playground.service.port }};
+      }
+
+      location = /api/playground {
+          rewrite /api/playground /  break;
+          proxy_set_header Connection '';
+          proxy_http_version 1.1;
+          proxy_buffering off;
+          proxy_cache off;
+          proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.playground.name }}:{{ .Values.playground.service.port }};
+      }
+
+       # Hub Backend Routes
+       location ~ /api-hub {
+          rewrite /api-hub/(.*) /$1  break;
+          proxy_set_header Connection '';
+          proxy_http_version 1.1;
+          proxy_buffering off;
+          proxy_cache off;
+          proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.hubBackend.name }}:{{ .Values.hubBackend.service.port }};
+      }
+
+     # Backend Routes
+       location ~ /api {
+          rewrite /api/(.*) /$1  break;
+          proxy_set_header Connection '';
+          proxy_http_version 1.1;
+          proxy_buffering off;
+          proxy_cache off;
+          proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}:{{ .Values.backend.service.port }};
+      }
+    }
+{{- end }}
