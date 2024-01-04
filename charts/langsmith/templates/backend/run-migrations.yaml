@@ -58,6 +58,32 @@ spec:
           volumeMounts:
               {{- toYaml . | nindent 12 }}
           {{- end }}
+        - name: {{ .Values.backend.name }}-clickhouse
+          command:
+          - migrate
+          - -source
+          - file://clickhouse/migrations
+          - -database
+          - "clickhouse://{{ include "langsmith.fullname" . }}-{{ .Values.clickhouse.name }}:{{ .Values.clickhouse.containerNativePort }}?username=clickhouse_admin&password=password&database=default&x-multi-statement=true&x-migrations-table-engine=MergeTree"
+          - up
+          env:
+            {{- include "langsmith.commonEnv" . | nindent 12 }}
+            {{- with .Values.backend.migrations.extraEnv }}
+              {{- toYaml . | nindent 12 }}
+            {{- end }}
+          envFrom:
+            - configMapRef:
+                name: {{ include "langsmith.fullname" . }}-config
+          image: "{{ .Values.images.backendImage.repository }}:{{ .Values.images.backendImage.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.images.backendImage.pullPolicy }}
+          resources:
+            {{- toYaml .Values.backend.migrations.resources | nindent 12 }}
+          securityContext:
+            {{- toYaml .Values.backend.migrations.securityContext | nindent 12 }}
+          {{- with .Values.backend.migrations.volumeMounts }}
+          volumeMounts:
+              {{- toYaml . | nindent 12 }}
+          {{- end }}
         {{- with .Values.backend.migrations.sidecars }}
           {{- toYaml . | nindent 8 }}
         {{- end }}

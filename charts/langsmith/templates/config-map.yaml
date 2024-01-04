@@ -16,3 +16,9 @@ data:
   AUTH_TYPE: "none"
   {{- end }}
   LANGCHAIN_ENV: "local_kubernetes"
+  FF_CLICKHOUSE_ENABLED: "true"
+  CLICKHOUSE_DB: "default"
+  CLICKHOUSE_HOST: {{ include "langsmith.fullname" . }}-{{ .Values.clickhouse.name }}
+  CLICKHOUSE_PORT: "8123"
+  CLICKHOUSE_USER: "clickhouse_admin"
+  CLICKHOUSE_PASSWORD: "password"

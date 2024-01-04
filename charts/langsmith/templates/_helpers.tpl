@@ -156,6 +156,14 @@ Template containing common environment variables that are used by several servic
 {{- end -}}
 {{- end -}}
 
+{{- define "clickhouse.serviceAccountName" -}}
+{{- if .Values.clickhouse.serviceAccount.create -}}
+    {{ default (printf "%s-%s" (include "langsmith.fullname" .) .Values.clickhouse.name) .Values.clickhouse.serviceAccount.name | trunc 63 | trimSuffix "-" }}
+{{- else -}}
+    {{ default "default" .Values.clickhouse.serviceAccount.name }}
+{{- end -}}
+{{- end -}}
+
 {{- define "frontend.serviceAccountName" -}}
 {{- if .Values.frontend.serviceAccount.create -}}
     {{ default (printf "%s-%s" (include "langsmith.fullname" .) .Values.frontend.name) .Values.frontend.serviceAccount.name | trunc 63 | trimSuffix "-" }}

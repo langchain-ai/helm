@@ -1,0 +1,127 @@
+{{- if not .Values.clickhouse.external.enabled }}
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "langsmith.fullname" . }}-{{ .Values.clickhouse.name }}
+  labels:
+    {{- include "langsmith.labels" . | nindent 4 }}
+    {{- with.Values.clickhouse.statefulSet.labels }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+  annotations:
+    {{- include "langsmith.annotations" . | nindent 4 }}
+    {{- with.Values.clickhouse.statefulSet.annotations }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  serviceName: {{ include "langsmith.fullname" . }}-{{ .Values.clickhouse.name }}
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "langsmith.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-{{ .Values.clickhouse.name }}
+  template:
+    metadata:
+      {{- with .Values.clickhouse.statefulSet.annotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- with.Values.clickhouse.statefulSet.labels }}
+            {{- toYaml . | nindent 8 }}
+        {{- end }}
+        {{- include "langsmith.labels" . | nindent 8 }}
+        app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-{{ .Values.clickhouse.name }}
+    spec:
+      {{- with .Values.images.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.clickhouse.statefulSet.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Values.clickhouse.name }}
+          image: "{{ .Values.images.clickhouseImage.repository }}:{{ .Values.images.clickhouseImage.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.images.clickhouseImage.pullPolicy }}
+          env:
+            - name: CLICKHOUSE_DB
+              value: default
+            - name: CLICKHOUSE_USER
+              value: clickhouse_admin
+            - name: CLICKHOUSE_PASSWORD
+              value: password
+          ports:
+            - name: ch
+              containerPort: {{ .Values.clickhouse.containerHttpPort }}
+              protocol: TCP
+            - name: ch-native
+              containerPort: {{ .Values.clickhouse.containerNativePort }}
+              protocol: TCP
+          startupProbe:
+            httpGet:
+              path: /ping
+              port: {{ .Values.clickhouse.containerHttpPort }}
+            failureThreshold: 6
+            periodSeconds: 10
+            timeoutSeconds: 1
+          readinessProbe:
+            httpGet:
+              path: /ping
+              port: {{ .Values.clickhouse.containerHttpPort }}
+            failureThreshold: 6
+            periodSeconds: 10
+            timeoutSeconds: 1
+          livenessProbe:
+            httpGet:
+              path: /ping
+              port: {{ .Values.clickhouse.containerHttpPort }}
+            failureThreshold: 6
+            periodSeconds: 10
+            timeoutSeconds: 1
+          resources:
+            {{- toYaml .Values.clickhouse.statefulSet.resources | nindent 12 }}
+          securityContext:
+            {{- toYaml .Values.clickhouse.statefulSet.securityContext | nindent 12 }}
+          volumeMounts:
+            - mountPath: /var/lib/clickhouse
+              name: data
+            - mountPath: /etc/clickhouse-server/users.d/users.xml
+              name: clickhouse-conf
+              subPath: users.xml
+      {{- with .Values.clickhouse.statefulSet.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.clickhouse.statefulSet.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.clickhouse.statefulSet.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      volumes:
+        - name: clickhouse-conf
+          configMap:
+            name: {{ include "langsmith.fullname" . }}-{{ .Values.clickhouse.name }}
+            items:
+              - key: users.xml
+                path: users.xml
+  volumeClaimTemplates:
+    - apiVersion: v1
+      kind: PersistentVolumeClaim
+      metadata:
+        name: data
+        labels:
+          {{- include "langsmith.labels" . | nindent 10 }}
+          app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-{{ .Values.clickhouse.name }}
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: {{ .Values.clickhouse.statefulSet.persistence.size }}
+        {{- if .Values.clickhouse.statefulSet.persistence.storageClassName }}
+        storageClassName: {{ .Values.clickhouse.statefulSet.persistence.storageClassName }}
+        {{- end }}
+{{- end }}
