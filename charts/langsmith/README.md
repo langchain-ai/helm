@@ -6,7 +6,7 @@ Helm chart to deploy the langsmith application and all services it depends on.
 
 ## Migrating from Langsmith 0.1.0 to 0.2.0
 
-Moving to Langsmith 0.2.0 will require a migration of your data as we have introduced a dependency on Clickhouse for our search backend. Please reach out to us if you need to migrate from 0.1.0 to 0.2.0 as we can provide a script to help you migrate your data.
+Moving to Langsmith 0.2.0 will require a migration of your data as we have introduced a dependency on Clickhouse for run storage. Please reach out to us if you need to migrate from 0.1.0 to 0.2.0 as we can provide a script to help you migrate your data.
 
 ## Deploying Langsmith with Helm
 
@@ -321,6 +321,34 @@ We typically validate deployment using the following Jupyter notebook:
 | backend.serviceAccount.create | bool | `true` |  |
 | backend.serviceAccount.labels | object | `{}` |  |
 | backend.serviceAccount.name | string | `""` |  |
+
+## Clickhouse
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| clickhouse.containerHttpPort | int | `8123` |  |
+| clickhouse.containerNativePort | int | `9000` |  |
+| clickhouse.external.enabled | bool | `false` |  |
+| clickhouse.name | string | `"clickhouse"` |  |
+| clickhouse.service.annotations | object | `{}` |  |
+| clickhouse.service.httpPort | int | `8123` |  |
+| clickhouse.service.labels | object | `{}` |  |
+| clickhouse.service.nativePort | int | `9000` |  |
+| clickhouse.service.type | string | `"ClusterIP"` |  |
+| clickhouse.serviceAccount.annotations | object | `{}` |  |
+| clickhouse.serviceAccount.create | bool | `true` |  |
+| clickhouse.serviceAccount.labels | object | `{}` |  |
+| clickhouse.serviceAccount.name | string | `""` |  |
+| clickhouse.statefulSet.affinity | object | `{}` |  |
+| clickhouse.statefulSet.annotations | object | `{}` |  |
+| clickhouse.statefulSet.labels | object | `{}` |  |
+| clickhouse.statefulSet.nodeSelector | object | `{}` |  |
+| clickhouse.statefulSet.persistence.size | string | `"8Gi"` |  |
+| clickhouse.statefulSet.persistence.storageClassName | string | `""` |  |
+| clickhouse.statefulSet.podSecurityContext | object | `{}` |  |
+| clickhouse.statefulSet.resources | object | `{}` |  |
+| clickhouse.statefulSet.securityContext | object | `{}` |  |
+| clickhouse.statefulSet.tolerations | list | `[]` |  |
 
 ## Frontend
 
