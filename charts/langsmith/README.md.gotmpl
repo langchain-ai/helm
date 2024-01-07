@@ -4,6 +4,10 @@
 
 {{ template "chart.description" . }}
 
+## Migrating from Langsmith 0.1.0 to 0.2.0
+
+Moving to Langsmith 0.2.0 will require a migration of your data as we have introduced a dependency on Clickhouse for run storage. Please reach out to us if you need to migrate from 0.1.0 to 0.2.0 as we can provide a script to help you migrate your data.
+
 ## Deploying Langsmith with Helm
 
 ### Prerequisites
@@ -232,6 +236,16 @@ We typically validate deployment using the following Jupyter notebook:
 |-----|------|---------|-------------|
 {{- range .Values }}
   {{- if hasPrefix "backend" .Key }}
+| {{ .Key }} | {{ .Type }} | {{ if .Default }}{{ .Default }}{{ else }}{{ .AutoDefault }}{{ end }} | {{ if .Description }}{{ .Description }}{{ else }}{{ .AutoDescription }}{{ end }} |
+  {{- end }}
+{{- end }}
+
+## Clickhouse
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+{{- range .Values }}
+  {{- if hasPrefix "clickhouse" .Key }}
 | {{ .Key }} | {{ .Type }} | {{ if .Default }}{{ .Default }}{{ else }}{{ .AutoDefault }}{{ end }} | {{ if .Description }}{{ .Description }}{{ else }}{{ .AutoDescription }}{{ end }} |
   {{- end }}
 {{- end }}

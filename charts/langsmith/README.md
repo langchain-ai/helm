@@ -1,8 +1,12 @@
 # langsmith
 
-![Version: 0.1.15](https://img.shields.io/badge/Version-0.1.15-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.1.0](https://img.shields.io/badge/AppVersion-0.1.0-informational?style=flat-square)
+![Version: 0.2.0](https://img.shields.io/badge/Version-0.2.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.1.0](https://img.shields.io/badge/AppVersion-0.1.0-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
+
+## Migrating from Langsmith 0.1.0 to 0.2.0
+
+Moving to Langsmith 0.2.0 will require a migration of your data as we have introduced a dependency on Clickhouse for our search backend. Please reach out to us if you need to migrate from 0.1.0 to 0.2.0 as we can provide a script to help you migrate your data.
 
 ## Deploying Langsmith with Helm
 
@@ -203,22 +207,48 @@ We typically validate deployment using the following Jupyter notebook:
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
+| clickhouse.containerHttpPort | int | `8123` |  |
+| clickhouse.containerNativePort | int | `9000` |  |
+| clickhouse.external.enabled | bool | `false` |  |
+| clickhouse.name | string | `"clickhouse"` |  |
+| clickhouse.service.annotations | object | `{}` |  |
+| clickhouse.service.httpPort | int | `8123` |  |
+| clickhouse.service.labels | object | `{}` |  |
+| clickhouse.service.nativePort | int | `9000` |  |
+| clickhouse.service.type | string | `"ClusterIP"` |  |
+| clickhouse.serviceAccount.annotations | object | `{}` |  |
+| clickhouse.serviceAccount.create | bool | `true` |  |
+| clickhouse.serviceAccount.labels | object | `{}` |  |
+| clickhouse.serviceAccount.name | string | `""` |  |
+| clickhouse.statefulSet.affinity | object | `{}` |  |
+| clickhouse.statefulSet.annotations | object | `{}` |  |
+| clickhouse.statefulSet.labels | object | `{}` |  |
+| clickhouse.statefulSet.nodeSelector | object | `{}` |  |
+| clickhouse.statefulSet.persistence.size | string | `"8Gi"` |  |
+| clickhouse.statefulSet.persistence.storageClassName | string | `""` |  |
+| clickhouse.statefulSet.podSecurityContext | object | `{}` |  |
+| clickhouse.statefulSet.resources | object | `{}` |  |
+| clickhouse.statefulSet.securityContext | object | `{}` |  |
+| clickhouse.statefulSet.tolerations | list | `[]` |  |
 | commonAnnotations | object | `{}` | Annotations that will be applied to all resources created by the chart |
 | commonLabels | object | `{}` | Labels that will be applied to all resources created by the chart |
 | fullnameOverride | string | `""` | String to fully override `"langsmith.fullname"` |
 | images.backendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.backendImage.repository | string | `"docker.io/langchain/langchainplus-backend"` |  |
-| images.backendImage.tag | string | `"9fd3ed3"` |  |
+| images.backendImage.tag | string | `"6b3a5a5"` |  |
+| images.clickhouseImage.pullPolicy | string | `"Always"` |  |
+| images.clickhouseImage.repository | string | `"docker.io/clickhouse/clickhouse-server"` |  |
+| images.clickhouseImage.tag | string | `"23.9"` |  |
 | images.frontendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.frontendImage.repository | string | `"docker.io/langchain/langchainplus-frontend-dynamic"` |  |
-| images.frontendImage.tag | string | `"9fd3ed3"` |  |
+| images.frontendImage.tag | string | `"d8abf62"` |  |
 | images.hubBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.hubBackendImage.repository | string | `"docker.io/langchain/langchainhub-backend"` |  |
-| images.hubBackendImage.tag | string | `"9fd3ed3"` |  |
+| images.hubBackendImage.tag | string | `"d8abf62"` |  |
 | images.imagePullSecrets | list | `[]` | Secrets with credentials to pull images from a private registry. Specified as name: value. |
 | images.playgroundImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.playgroundImage.repository | string | `"docker.io/langchain/langchainplus-playground"` |  |
-| images.playgroundImage.tag | string | `"9fd3ed3"` |  |
+| images.playgroundImage.tag | string | `"d8abf62"` |  |
 | images.postgresImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.postgresImage.repository | string | `"docker.io/postgres"` |  |
 | images.postgresImage.tag | string | `"14.7"` |  |
@@ -230,6 +260,7 @@ We typically validate deployment using the following Jupyter notebook:
 | ingress.hostname | string | `""` |  |
 | ingress.ingressClassName | string | `""` |  |
 | ingress.labels | object | `{}` |  |
+| ingress.subdomain | string | `""` |  |
 | ingress.tls | list | `[]` |  |
 | nameOverride | string | `""` | Provide a name in place of `langsmith` |
 
