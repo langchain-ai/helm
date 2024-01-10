@@ -15,19 +15,19 @@ images:
   backendImage:
     repository: "docker.io/langchain/langchainplus-backend"
     pullPolicy: IfNotPresent
-    tag: "6b3a5a5"
+    tag: "585e6e4"
   frontendImage:
     repository: "docker.io/langchain/langchainplus-frontend-dynamic"
     pullPolicy: IfNotPresent
-    tag: "d8abf62"
+    tag: "585e6e4"
   hubBackendImage:
     repository: "docker.io/langchain/langchainhub-backend"
     pullPolicy: IfNotPresent
-    tag: "d8abf62"
+    tag: "585e6e4"
   playgroundImage:
     repository: "docker.io/langchain/langchainplus-playground"
     pullPolicy: IfNotPresent
-    tag: "d8abf62"
+    tag: "585e6e4"
   postgresImage:
     repository: "docker.io/postgres"
     pullPolicy: IfNotPresent
@@ -122,9 +122,17 @@ backend:
 
 clickhouse:
   name: "clickhouse"
-  # External clickhouse is currently not supported.
   external:
+    # If enabled, use the following values to connect to an external database. This will also disable the
+    # creation of a clickhouse stateful-set and service.
     enabled: false
+    host: ""
+    port: "8123"
+    nativePort: "9000"
+    user: "default"
+    password: "password"
+    database: "default"
+    existingSecretName: ""
   containerHttpPort: 8123
   containerNativePort: 9000
   statefulSet:
@@ -136,6 +144,8 @@ clickhouse:
     nodeSelector: {}
     tolerations: []
     affinity: {}
+    volumes: []
+    volumeMounts: []
     persistence:
       size: 8Gi
       storageClassName: ""
