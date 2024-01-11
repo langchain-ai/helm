@@ -18,6 +18,7 @@ spec:
   loadBalancerSourceRanges:
     {{- toYaml . | nindent 4 }}
   {{- end }}
+  loadBalancerIP: {{ .Values.backend.service.loadBalancerIP }}
   ports:
     - name: backend
       port: {{ .Values.backend.service.port }}
