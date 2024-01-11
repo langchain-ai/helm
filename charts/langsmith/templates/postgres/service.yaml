@@ -19,6 +19,7 @@ spec:
   loadBalancerSourceRanges:
     {{- toYaml . | nindent 4 }}
   {{- end }}
+  loadBalancerIP: {{ .Values.postgres.service.loadBalancerIP }}
   ports:
     - name: postgres
       port: {{ .Values.postgres.service.port }}
