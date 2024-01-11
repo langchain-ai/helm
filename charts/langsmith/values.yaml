@@ -114,6 +114,7 @@ backend:
     labels: {}
     annotations: {}
     loadBalancerSourceRanges: []
+    loadBalancerIP: ""
   serviceAccount:
     create: true
     name: ""
@@ -145,6 +146,8 @@ clickhouse:
     nativePort: 9000
     labels: {}
     annotations: {}
+    loadBalancerSourceRanges: []
+    loadBalancerIP: ""
   serviceAccount:
     create: true
     name: ""
@@ -187,6 +190,7 @@ frontend:
     labels: {}
     annotations: {}
     loadBalancerSourceRanges: []
+    loadBalancerIP: ""
   serviceAccount:
     create: true
     name: ""
@@ -227,6 +231,7 @@ hubBackend:
     labels: {}
     annotations: {}
     loadBalancerSourceRanges: []
+    loadBalancerIP: ""
   serviceAccount:
     create: true
     name: ""
@@ -267,6 +272,7 @@ playground:
     labels: {}
     annotations: {}
     loadBalancerSourceRanges: []
+    loadBalancerIP: ""
   serviceAccount:
     create: true
     name: ""
@@ -319,6 +325,7 @@ postgres:
     labels: {}
     annotations: {}
     loadBalancerSourceRanges: []
+    loadBalancerIP: ""
   serviceAccount:
     create: true
     name: ""
@@ -396,6 +403,7 @@ redis:
     labels: {}
     annotations: {}
     loadBalancerSourceRanges: []
+    loadBalancerIP: ""
   serviceAccount:
     create: true
     name: ""
