@@ -105,6 +105,18 @@ the user or some other secret provisioning mechanism
 {{- end }}
 
 {{/*
+Name of the secret containing the secrets for clickhouse. This can be overriden by a secrets file created by
+the user or some other secret provisioning mechanism
+*/}}
+{{- define "langsmith.clickhouseSecretsName" -}}
+{{- if .Values.clickhouse.external.existingSecretName }}
+{{- .Values.clickhouse.external.existingSecretName }}
+{{- else }}
+{{- include "langsmith.fullname" . }}-clickhouse
+{{- end }}
+{{- end }}
+
+{{/*
 Template containing common environment variables that are used by several services.
 */}}
 {{- define "langsmith.commonEnv" -}}
@@ -122,6 +134,36 @@ Template containing common environment variables that are used by several servic
     secretKeyRef:
       name: {{ include "langsmith.redisSecretsName" . }}
       key: connection_url
+- name: CLICKHOUSE_DB
+  valueFrom:
+    secretKeyRef:
+      name: {{ include "langsmith.clickhouseSecretsName" . }}
+      key: clickhouse_db
+- name: CLICKHOUSE_HOST
+  valueFrom:
+    secretKeyRef:
+      name: {{ include "langsmith.clickhouseSecretsName" . }}
+      key: clickhouse_host
+- name: CLICKHOUSE_PORT
+  valueFrom:
+    secretKeyRef:
+      name: {{ include "langsmith.clickhouseSecretsName" . }}
+      key: clickhouse_port
+- name: CLICKHOUSE_NATIVE_PORT
+  valueFrom:
+    secretKeyRef:
+      name: {{ include "langsmith.clickhouseSecretsName" . }}
+      key: clickhouse_native_port
+- name: CLICKHOUSE_USER
+  valueFrom:
+    secretKeyRef:
+      name: {{ include "langsmith.clickhouseSecretsName" . }}
+      key: clickhouse_user
+- name: CLICKHOUSE_PASSWORD
+  valueFrom:
+    secretKeyRef:
+      name: {{ include "langsmith.clickhouseSecretsName" . }}
+      key: clickhouse_password
 - name: LOG_LEVEL
   value: debug
 {{- if .Values.config.oauth.enabled }}
