@@ -47,7 +47,7 @@ spec:
             - name: CLICKHOUSE_DB
               value: default
             - name: CLICKHOUSE_USER
-              value: clickhouse_admin
+              value: default
             - name: CLICKHOUSE_PASSWORD
               value: password
           ports:
@@ -83,6 +83,9 @@ spec:
           securityContext:
             {{- toYaml .Values.clickhouse.statefulSet.securityContext | nindent 12 }}
           volumeMounts:
+            {{- with .Values.clickhouse.statefulSet.volumeMounts }}
+              {{- toYaml . | nindent 12 }}
+            {{- end }}
             - mountPath: /var/lib/clickhouse
               name: data
             - mountPath: /etc/clickhouse-server/users.d/users.xml
@@ -107,6 +110,9 @@ spec:
             items:
               - key: users.xml
                 path: users.xml
+      {{- with .Values.clickhouse.statefulSet.volumes }}
+          {{- toYaml . | nindent 8 }}
+      {{- end }}
   volumeClaimTemplates:
     - apiVersion: v1
       kind: PersistentVolumeClaim
