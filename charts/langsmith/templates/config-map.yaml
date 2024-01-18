@@ -16,4 +16,3 @@ data:
   AUTH_TYPE: "none"
   {{- end }}
   LANGCHAIN_ENV: "local_kubernetes"
-  FF_CLICKHOUSE_ENABLED: "true"
