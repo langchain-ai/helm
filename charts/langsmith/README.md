@@ -6,7 +6,8 @@ Helm chart to deploy the langsmith application and all services it depends on.
 
 ## Migrating from Langsmith 0.1.0 to 0.2.0
 
-Moving to Langsmith 0.2.0 will require a migration of your data as we have introduced a dependency on Clickhouse for run storage. Please reach out to us if you need to migrate from 0.1.0 to 0.2.0 as we can provide a script to help you migrate your data.
+Moving to Langsmith 0.2.0 will require a migration of your data as we have introduced a dependency on Clickhouse for run storage.
+You can view the upgrade guide [here](https://github.com/langchain-ai/helm/blob/main/charts/langsmith/docs/UPGRADE-0.2.x.md) 
 
 ## Deploying Langsmith with Helm
 
