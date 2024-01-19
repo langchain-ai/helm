@@ -1,14 +1,16 @@
 # langsmith
 
-![Version: 0.2.0](https://img.shields.io/badge/Version-0.2.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.1.0](https://img.shields.io/badge/AppVersion-0.1.0-informational?style=flat-square)
+![Version: 0.2.2](https://img.shields.io/badge/Version-0.2.2-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.1.0](https://img.shields.io/badge/AppVersion-0.1.0-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
-## Migrating from Langsmith 0.1.0 to 0.2.0
+## Migrating from LangSmith 0.1.0 to 0.2.0
 
-Moving to Langsmith 0.2.0 will require a migration of your data as we have introduced a dependency on Clickhouse for run storage. Please reach out to us if you need to migrate from 0.1.0 to 0.2.0 as we can provide a script to help you migrate your data.
+LangSmith 0.2.0 introduces a new dependency on Clickhouse for run storage. If you wish to retain runs in LangSmith from versions of LangSmith prior to 0.2.0, you will need to complete a migration process.
+You can view the upgrade guide [here](https://github.com/langchain-ai/helm/blob/main/charts/langsmith/docs/UPGRADE-0.2.x.md).
+If you need assistance, please reach out to support@langchain.dev.
 
-## Deploying Langsmith with Helm
+## Deploying LangSmith with Helm
 
 ### Prerequisites
 
@@ -24,7 +26,7 @@ Ensure you have the following tools/items ready.
         ```
 2. `Helm`
     1. `brew install helm`
-3. Langsmith License Key
+3. LangSmith License Key
     1. You can get this from your Langchain representative. Contact us at support@langchain.dev for more information.
 3. SSL(optional)
     1. This should be attachable to a load balancer that
@@ -166,7 +168,7 @@ the same format as the secret in the corresponding `secrets.yaml` file.
 
 3. Visit the external ip for the `langsmith-frontend` service on your browser
 
-    The Langsmith UI should be visible/operational
+    The LangSmith UI should be visible/operational
 
     ![./langsmith_ui.png](langsmith_ui.png)
 
@@ -182,23 +184,24 @@ We typically validate deployment using the following Jupyter notebook:
 
 ## FAQ:
 
-1. How can we upgrade our application.
-    - We plan to release new minor versions of the Langsmith application every 6 weeks. This will include release notes and all changes should be backwards compatible. To upgrade, you will need to follow the upgrade instructions in the Helm README and run a `helm upgrade langsmith --values <values file>`
-2. Backups
+1. How can we upgrade our application?
+    - We plan to release new minor versions of the LangSmith application every 6 weeks. This will include release notes and all changes should be backwards compatible. To upgrade, you will need to follow the upgrade instructions in the Helm README and run a `helm upgrade langsmith --values <values file>`
+2. How can we backup our application?
     - Currently, we rely on PVCs/PV to power storage for our application. We strongly encourage setting up `Persistent Volume` backups or moving to a managed service for `Postgres` to support disaster recovery
-3. Load Balancers
+3. How does load balancing work/ingress work?
     - Currently, our application spins up one load balancer using a k8s service of type `LoadBalancer` for our frontend. If you do not want to setup a load balancer you can simply port-forward the frontend and use that as your external ip for the application.
-4. Authentication
+    - We also have an option for the chart to provision an ingress resource for the application.
+4. How can we authenticate to the application?
     - Currently, our self-hosted solution supports oauth as an authn solution.
     - Note, we do offer a no-auth solution but highly recommend setting up oauth before moving into production.
-5. Using External `Postgres` or `Redis`
+5. How can I use External `Postgres` or `Redis`?
     - You can configure external postgres or redis using the external sections in the `values.yaml` file. You will need to provide the connection url/params for the database/redis instance. Look at the configuration above example for more information.
-6. Networking
+6. What networking configuration is needed  for the application?
     - Our deployment only needs egress for a few things:
         - Fetching images (If mirroring your images, this may not be needed)
         - Talking to any LLMs
     - Your VPC can set up rules to limit any other access.
-7. Resource Usage
+7. What resources should we allocate to the application?
     - We recommend at least 4 vCPUs and 16GB of memory for our application.
     - We have some default resources set in our `values.yaml` file. You can override these values to tune resource usage for your organization.
     - If the metrics server is enabled in your cluster, we also recommend enabling autoscaling on all deployments.
@@ -209,11 +212,20 @@ We typically validate deployment using the following Jupyter notebook:
 |-----|------|---------|-------------|
 | clickhouse.containerHttpPort | int | `8123` |  |
 | clickhouse.containerNativePort | int | `9000` |  |
+| clickhouse.external.database | string | `"default"` |  |
 | clickhouse.external.enabled | bool | `false` |  |
+| clickhouse.external.existingSecretName | string | `""` |  |
+| clickhouse.external.host | string | `""` |  |
+| clickhouse.external.nativePort | string | `"9000"` |  |
+| clickhouse.external.password | string | `"password"` |  |
+| clickhouse.external.port | string | `"8123"` |  |
+| clickhouse.external.user | string | `"default"` |  |
 | clickhouse.name | string | `"clickhouse"` |  |
 | clickhouse.service.annotations | object | `{}` |  |
 | clickhouse.service.httpPort | int | `8123` |  |
 | clickhouse.service.labels | object | `{}` |  |
+| clickhouse.service.loadBalancerIP | string | `""` |  |
+| clickhouse.service.loadBalancerSourceRanges | list | `[]` |  |
 | clickhouse.service.nativePort | int | `9000` |  |
 | clickhouse.service.type | string | `"ClusterIP"` |  |
 | clickhouse.serviceAccount.annotations | object | `{}` |  |
@@ -230,25 +242,27 @@ We typically validate deployment using the following Jupyter notebook:
 | clickhouse.statefulSet.resources | object | `{}` |  |
 | clickhouse.statefulSet.securityContext | object | `{}` |  |
 | clickhouse.statefulSet.tolerations | list | `[]` |  |
+| clickhouse.statefulSet.volumeMounts | list | `[]` |  |
+| clickhouse.statefulSet.volumes | list | `[]` |  |
 | commonAnnotations | object | `{}` | Annotations that will be applied to all resources created by the chart |
 | commonLabels | object | `{}` | Labels that will be applied to all resources created by the chart |
 | fullnameOverride | string | `""` | String to fully override `"langsmith.fullname"` |
 | images.backendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.backendImage.repository | string | `"docker.io/langchain/langchainplus-backend"` |  |
-| images.backendImage.tag | string | `"6b3a5a5"` |  |
+| images.backendImage.tag | string | `"f65c152"` |  |
 | images.clickhouseImage.pullPolicy | string | `"Always"` |  |
 | images.clickhouseImage.repository | string | `"docker.io/clickhouse/clickhouse-server"` |  |
 | images.clickhouseImage.tag | string | `"23.9"` |  |
 | images.frontendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.frontendImage.repository | string | `"docker.io/langchain/langchainplus-frontend-dynamic"` |  |
-| images.frontendImage.tag | string | `"d8abf62"` |  |
+| images.frontendImage.tag | string | `"f65c152"` |  |
 | images.hubBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.hubBackendImage.repository | string | `"docker.io/langchain/langchainhub-backend"` |  |
-| images.hubBackendImage.tag | string | `"d8abf62"` |  |
+| images.hubBackendImage.tag | string | `"f65c152"` |  |
 | images.imagePullSecrets | list | `[]` | Secrets with credentials to pull images from a private registry. Specified as name: value. |
 | images.playgroundImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.playgroundImage.repository | string | `"docker.io/langchain/langchainplus-playground"` |  |
-| images.playgroundImage.tag | string | `"d8abf62"` |  |
+| images.playgroundImage.tag | string | `"f65c152"` |  |
 | images.postgresImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.postgresImage.repository | string | `"docker.io/postgres"` |  |
 | images.postgresImage.tag | string | `"14.7"` |  |
@@ -314,6 +328,7 @@ We typically validate deployment using the following Jupyter notebook:
 | backend.name | string | `"backend"` |  |
 | backend.service.annotations | object | `{}` |  |
 | backend.service.labels | object | `{}` |  |
+| backend.service.loadBalancerIP | string | `""` |  |
 | backend.service.loadBalancerSourceRanges | list | `[]` |  |
 | backend.service.port | int | `1984` |  |
 | backend.service.type | string | `"ClusterIP"` |  |
@@ -328,11 +343,20 @@ We typically validate deployment using the following Jupyter notebook:
 |-----|------|---------|-------------|
 | clickhouse.containerHttpPort | int | `8123` |  |
 | clickhouse.containerNativePort | int | `9000` |  |
+| clickhouse.external.database | string | `"default"` |  |
 | clickhouse.external.enabled | bool | `false` |  |
+| clickhouse.external.existingSecretName | string | `""` |  |
+| clickhouse.external.host | string | `""` |  |
+| clickhouse.external.nativePort | string | `"9000"` |  |
+| clickhouse.external.password | string | `"password"` |  |
+| clickhouse.external.port | string | `"8123"` |  |
+| clickhouse.external.user | string | `"default"` |  |
 | clickhouse.name | string | `"clickhouse"` |  |
 | clickhouse.service.annotations | object | `{}` |  |
 | clickhouse.service.httpPort | int | `8123` |  |
 | clickhouse.service.labels | object | `{}` |  |
+| clickhouse.service.loadBalancerIP | string | `""` |  |
+| clickhouse.service.loadBalancerSourceRanges | list | `[]` |  |
 | clickhouse.service.nativePort | int | `9000` |  |
 | clickhouse.service.type | string | `"ClusterIP"` |  |
 | clickhouse.serviceAccount.annotations | object | `{}` |  |
@@ -349,6 +373,8 @@ We typically validate deployment using the following Jupyter notebook:
 | clickhouse.statefulSet.resources | object | `{}` |  |
 | clickhouse.statefulSet.securityContext | object | `{}` |  |
 | clickhouse.statefulSet.tolerations | list | `[]` |  |
+| clickhouse.statefulSet.volumeMounts | list | `[]` |  |
+| clickhouse.statefulSet.volumes | list | `[]` |  |
 
 ## Frontend
 
@@ -378,6 +404,7 @@ We typically validate deployment using the following Jupyter notebook:
 | frontend.service.httpPort | int | `80` |  |
 | frontend.service.httpsPort | int | `443` |  |
 | frontend.service.labels | object | `{}` |  |
+| frontend.service.loadBalancerIP | string | `""` |  |
 | frontend.service.loadBalancerSourceRanges | list | `[]` |  |
 | frontend.service.type | string | `"LoadBalancer"` |  |
 | frontend.serviceAccount.annotations | object | `{}` |  |
@@ -410,6 +437,7 @@ We typically validate deployment using the following Jupyter notebook:
 | hubBackend.name | string | `"hub-backend"` |  |
 | hubBackend.service.annotations | object | `{}` |  |
 | hubBackend.service.labels | object | `{}` |  |
+| hubBackend.service.loadBalancerIP | string | `""` |  |
 | hubBackend.service.loadBalancerSourceRanges | list | `[]` |  |
 | hubBackend.service.port | int | `1985` |  |
 | hubBackend.service.type | string | `"ClusterIP"` |  |
@@ -446,6 +474,7 @@ We typically validate deployment using the following Jupyter notebook:
 | frontend.service.httpPort | int | `80` |  |
 | frontend.service.httpsPort | int | `443` |  |
 | frontend.service.labels | object | `{}` |  |
+| frontend.service.loadBalancerIP | string | `""` |  |
 | frontend.service.loadBalancerSourceRanges | list | `[]` |  |
 | frontend.service.type | string | `"LoadBalancer"` |  |
 | frontend.serviceAccount.annotations | object | `{}` |  |
@@ -470,6 +499,7 @@ We typically validate deployment using the following Jupyter notebook:
 | postgres.name | string | `"postgres"` |  |
 | postgres.service.annotations | object | `{}` |  |
 | postgres.service.labels | object | `{}` |  |
+| postgres.service.loadBalancerIP | string | `""` |  |
 | postgres.service.loadBalancerSourceRanges | list | `[]` |  |
 | postgres.service.port | int | `5432` |  |
 | postgres.service.type | string | `"ClusterIP"` |  |
@@ -531,6 +561,7 @@ We typically validate deployment using the following Jupyter notebook:
 | redis.name | string | `"redis"` |  |
 | redis.service.annotations | object | `{}` |  |
 | redis.service.labels | object | `{}` |  |
+| redis.service.loadBalancerIP | string | `""` |  |
 | redis.service.loadBalancerSourceRanges | list | `[]` |  |
 | redis.service.port | int | `6379` |  |
 | redis.service.type | string | `"ClusterIP"` |  |
