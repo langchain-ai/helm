@@ -60,7 +60,8 @@ langsmith-queue-d58cb64f7-87d68          1/1     Running     0          15h
 
     ![.langsmith_ui.png](../langsmith_ui.png)
 
-Note that old runs will not be visibile in the UI until you migrate them. See [Migrating old runs](#migrating-old-runs) for more information.
+Note that old runs will not be visibile in the UI unless you migrate them. See [Migrating old runs](#migrating-old-runs) for more information.
+This step is only required if you need access to run data from before the upgrade to Langsmith 0.2.x. If you are unsure or need assistance, please reach out to support@langchain.dev and we'd be happy to help.
 
 # Migrating old runs
 
