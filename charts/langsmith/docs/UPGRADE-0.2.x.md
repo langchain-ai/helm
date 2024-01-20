@@ -107,7 +107,7 @@ Ensure you have the following tools/items ready.
 Run the following command to run the migration script:
 
 ```bash
-sh scripts/migrate.sh <postgres connection url> <clickhouse connection url>
+sh backfill_clickhouse.sh <postgres connection url> <clickhouse connection url>
 ```
 
 For example, if you are using the bundled version with port-forwarding, the command would look like:
