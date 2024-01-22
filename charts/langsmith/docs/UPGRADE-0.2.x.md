@@ -2,12 +2,17 @@
 
 Langsmith now uses Clickhouse to power analytics/handle runs. This means that you will need to migrate your old runs to the new database. See the Clickhouse section in values.yaml for more information.
 
-Fetch the latest version of the charts 
+If you don't have the repo added, run the following command to add it:
 ```bash
 helm repo add langchain https://langchain-ai.github.io/helm/
 ```
 
-Run the following command to upgrade the chart:
+Update your local helm repo
+```bash
+helm repo update
+```
+
+Run the following command to upgrade the chart(replace x with latest patch version):
 ```bash
 help upgrade <release-name> langchain/langsmith --version 0.2.x --values <path-to-values-file>
 ```
@@ -79,21 +84,21 @@ Ensure you have the following tools/items ready.
     1. Host
     2. Port
     3. Username
-       4. If using the bundled version, this is `postgres`
+       1. If using the bundled version, this is `postgres`
     4. Password
-       5. If using the bundled version, this is `postgres`
+       1. If using the bundled version, this is `postgres`
     5. Database name
-       6. If using the bundled version, this is `postgres`
+       1. If using the bundled version, this is `postgres`
 
 4. Clickhouse database credentials
     1. Host
     2. Port
     3. Username
-       4. If using the bundled version, this is `default`
+       1. If using the bundled version, this is `default`
     4. Password
-       5. If using the bundled version, this is `password`
+       1. If using the bundled version, this is `password`
     5. Database name
-       6. If using the bundled version, this is `default`
+       1. If using the bundled version, this is `default`
     
 5. Connectivity to the PostgreSQL database from the machine you will be running the migration script on.
    1. If you are using the bundled version, you may need to port forward the postgresql service to your local machine.
