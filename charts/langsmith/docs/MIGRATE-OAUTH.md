@@ -20,8 +20,7 @@ Ensure you have the following tools/items ready.
 3. Connectivity to the PostgreSQL database from the machine you will be running the migration script on.
    1. If you are using the bundled version, you may need to port forward the postgresql service to your local machine.
    2. Run `kubectl port-forward svc/langsmith-postgres 5432:5432` to port forward the postgresql service to your local machine.
-4. A user email for the user that will be the owner of the new tenant.
-   1. This user will be created on first login after initializing oauth. 
+4. The script can only be run after oauth is added and someone has logged in with the desired "admin user" at least once.
 
 ### Running the migration script
 
