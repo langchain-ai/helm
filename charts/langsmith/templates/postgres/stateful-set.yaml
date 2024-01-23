@@ -130,7 +130,7 @@ spec:
         name: data
         labels:
           {{- include "langsmith.selectorLabels" . | nindent 10 }}
-          app.kubernetes.io/name: {{ include "langsmith.fullname" . }}-{{ .Values.postgres.name }}
+          app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-{{ .Values.postgres.name }}
       spec:
         accessModes:
           - ReadWriteOnce
