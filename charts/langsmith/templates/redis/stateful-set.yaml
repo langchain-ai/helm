@@ -123,7 +123,7 @@ spec:
         name: data
         labels:
           {{- include "langsmith.selectorLabels" . | nindent 10 }}
-          app.kubernetes.io/name: {{ include "langsmith.fullname" . }}-{{ .Values.redis.name }}
+          app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-{{ .Values.redis.name }}
       spec:
         accessModes:
           - ReadWriteOnce
