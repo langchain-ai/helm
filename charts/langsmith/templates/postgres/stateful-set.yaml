@@ -129,7 +129,7 @@ spec:
       metadata:
         name: data
         labels:
-          {{- include "langsmith.labels" . | nindent 10 }}
+          {{- include "langsmith.selectorLabels" . | nindent 10 }}
           app.kubernetes.io/name: {{ include "langsmith.fullname" . }}-{{ .Values.postgres.name }}
       spec:
         accessModes:
