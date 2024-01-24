@@ -40,7 +40,7 @@ SELECT
     r.prompt_tokens,
     r.completion_tokens,
     r.total_tokens,
-    r.first_token_time,
+    r.first_token_time::timestamp,
     input_blob.s3_urls as inputs_s3_urls,
     output_blob.s3_urls as outputs_s3_urls
 FROM
