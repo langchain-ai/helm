@@ -14,7 +14,7 @@ metadata:
     {{- end }}
 spec:
   {{- if not .Values.hubBackend.autoscaling.enabled }}
-  replicas: {{ .Values.hubBackend.deployment.replicaCount }}
+  replicas: {{ .Values.hubBackend.deployment.replicas }}
   {{- end }}
   selector:
     matchLabels:
