@@ -15,19 +15,19 @@ images:
   backendImage:
     repository: "docker.io/langchain/langchainplus-backend"
     pullPolicy: IfNotPresent
-    tag: "f65c152"
+    tag: "cd04682"
   frontendImage:
     repository: "docker.io/langchain/langchainplus-frontend-dynamic"
     pullPolicy: IfNotPresent
-    tag: "f65c152"
+    tag: "cd04682"
   hubBackendImage:
     repository: "docker.io/langchain/langchainhub-backend"
     pullPolicy: IfNotPresent
-    tag: "f65c152"
+    tag: "cd04682"
   playgroundImage:
     repository: "docker.io/langchain/langchainplus-playground"
     pullPolicy: IfNotPresent
-    tag: "f65c152"
+    tag: "cd04682"
   postgresImage:
     repository: "docker.io/postgres"
     pullPolicy: IfNotPresent
@@ -345,7 +345,7 @@ postgres:
 queue:
   name: "queue"
   deployment:
-    replicaCount: 1
+    replicaCount: 3
     labels: {}
     annotations: {}
     podSecurityContext: {}
@@ -366,8 +366,8 @@ queue:
     volumeMounts: []
   autoscaling:
     enabled: false
-    minReplicas: 1
-    maxReplicas: 5
+    minReplicas: 3
+    maxReplicas: 10
     targetCPUUtilizationPercentage: 80
   serviceAccount:
     create: true
