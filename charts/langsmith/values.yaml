@@ -63,7 +63,7 @@ backend:
   name: "backend"
   containerPort: 1984
   deployment:
-    replicaCount: 1
+    replicas: 1
     labels: {}
     annotations: {}
     podSecurityContext: {}
@@ -84,7 +84,6 @@ backend:
     volumeMounts: []
   migrations:
     enabled: true
-    replicaCount: 1
     labels: {}
     annotations: {}
     podSecurityContext: {}
@@ -169,7 +168,7 @@ frontend:
   containerPort: 8080
   existingConfigMapName: ""
   deployment:
-    replicaCount: 1
+    replicas: 1
     labels: {}
     annotations: {}
     podSecurityContext: {}
@@ -211,7 +210,7 @@ hubBackend:
   name: "hub-backend"
   containerPort: 1985
   deployment:
-    replicaCount: 1
+    replicas: 1
     labels: {}
     annotations: {}
     podSecurityContext: {}
@@ -252,7 +251,7 @@ playground:
   name: "playground"
   containerPort: 3001
   deployment:
-    replicaCount: 1
+    replicas: 1
     labels: {}
     annotations: {}
     podSecurityContext: {}
@@ -345,7 +344,7 @@ postgres:
 queue:
   name: "queue"
   deployment:
-    replicaCount: 3
+    replicas: 3
     labels: {}
     annotations: {}
     podSecurityContext: {}

@@ -14,7 +14,7 @@ metadata:
     {{- end }}
 spec:
   {{- if not .Values.playground.autoscaling.enabled }}
-  replicas: {{ .Values.playground.deployment.replicaCount }}
+  replicas: {{ .Values.playground.deployment.replicas }}
   {{- end }}
   selector:
     matchLabels:
