@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.2.2](https://img.shields.io/badge/Version-0.2.2-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.1.0](https://img.shields.io/badge/AppVersion-0.1.0-informational?style=flat-square)
+![Version: 0.2.7](https://img.shields.io/badge/Version-0.2.7-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.1.0](https://img.shields.io/badge/AppVersion-0.1.0-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -174,9 +174,9 @@ the same format as the secret in the corresponding `secrets.yaml` file.
 
 ### Using your deployment:
 
-We typically validate deployment using the following Jupyter notebook:
+We typically validate deployment using the following quickstart guide:
 
-1. [https://github.com/langchain-ai/langchain/blob/master/docs/docs/guides/langsmith/walkthrough.ipynb](https://github.com/langchain-ai/langchain/blob/master/docs/docs/guides/langsmith/walkthrough.ipynb)
+1. [https://docs.smith.langchain.com/#quick-start](https://docs.smith.langchain.com/#quick-start)
 2. For `"LANGCHAIN_ENDPOINT"` you will want to use `<external ip>/api`
 3. For `LANGCHAIN_HUB_API_URL` you will want to use `<external ip>/api-hub`
 4. For `"LANGCHAIN_API_KEY"` you will want to set an API key you generate. If not using oauth, you can set this to some random value `"foo"`
@@ -249,20 +249,20 @@ We typically validate deployment using the following Jupyter notebook:
 | fullnameOverride | string | `""` | String to fully override `"langsmith.fullname"` |
 | images.backendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.backendImage.repository | string | `"docker.io/langchain/langchainplus-backend"` |  |
-| images.backendImage.tag | string | `"f65c152"` |  |
+| images.backendImage.tag | string | `"c9cf130"` |  |
 | images.clickhouseImage.pullPolicy | string | `"Always"` |  |
 | images.clickhouseImage.repository | string | `"docker.io/clickhouse/clickhouse-server"` |  |
 | images.clickhouseImage.tag | string | `"23.9"` |  |
 | images.frontendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.frontendImage.repository | string | `"docker.io/langchain/langchainplus-frontend-dynamic"` |  |
-| images.frontendImage.tag | string | `"f65c152"` |  |
+| images.frontendImage.tag | string | `"c9cf130"` |  |
 | images.hubBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.hubBackendImage.repository | string | `"docker.io/langchain/langchainhub-backend"` |  |
-| images.hubBackendImage.tag | string | `"f65c152"` |  |
+| images.hubBackendImage.tag | string | `"c9cf130"` |  |
 | images.imagePullSecrets | list | `[]` | Secrets with credentials to pull images from a private registry. Specified as name: value. |
 | images.playgroundImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.playgroundImage.repository | string | `"docker.io/langchain/langchainplus-playground"` |  |
-| images.playgroundImage.tag | string | `"f65c152"` |  |
+| images.playgroundImage.tag | string | `"c9cf130"` |  |
 | images.postgresImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.postgresImage.repository | string | `"docker.io/postgres"` |  |
 | images.postgresImage.tag | string | `"14.7"` |  |
@@ -304,7 +304,7 @@ We typically validate deployment using the following Jupyter notebook:
 | backend.deployment.labels | object | `{}` |  |
 | backend.deployment.nodeSelector | object | `{}` |  |
 | backend.deployment.podSecurityContext | object | `{}` |  |
-| backend.deployment.replicaCount | int | `1` |  |
+| backend.deployment.replicas | int | `1` |  |
 | backend.deployment.resources | object | `{}` |  |
 | backend.deployment.securityContext | object | `{}` |  |
 | backend.deployment.sidecars | list | `[]` |  |
@@ -318,7 +318,6 @@ We typically validate deployment using the following Jupyter notebook:
 | backend.migrations.labels | object | `{}` |  |
 | backend.migrations.nodeSelector | object | `{}` |  |
 | backend.migrations.podSecurityContext | object | `{}` |  |
-| backend.migrations.replicaCount | int | `1` |  |
 | backend.migrations.resources | object | `{}` |  |
 | backend.migrations.securityContext | object | `{}` |  |
 | backend.migrations.sidecars | list | `[]` |  |
@@ -391,7 +390,7 @@ We typically validate deployment using the following Jupyter notebook:
 | frontend.deployment.labels | object | `{}` |  |
 | frontend.deployment.nodeSelector | object | `{}` |  |
 | frontend.deployment.podSecurityContext | object | `{}` |  |
-| frontend.deployment.replicaCount | int | `1` |  |
+| frontend.deployment.replicas | int | `1` |  |
 | frontend.deployment.resources | object | `{}` |  |
 | frontend.deployment.securityContext | object | `{}` |  |
 | frontend.deployment.sidecars | list | `[]` |  |
@@ -427,7 +426,7 @@ We typically validate deployment using the following Jupyter notebook:
 | hubBackend.deployment.labels | object | `{}` |  |
 | hubBackend.deployment.nodeSelector | object | `{}` |  |
 | hubBackend.deployment.podSecurityContext | object | `{}` |  |
-| hubBackend.deployment.replicaCount | int | `1` |  |
+| hubBackend.deployment.replicas | int | `1` |  |
 | hubBackend.deployment.resources | object | `{}` |  |
 | hubBackend.deployment.securityContext | object | `{}` |  |
 | hubBackend.deployment.sidecars | list | `[]` |  |
@@ -461,7 +460,7 @@ We typically validate deployment using the following Jupyter notebook:
 | frontend.deployment.labels | object | `{}` |  |
 | frontend.deployment.nodeSelector | object | `{}` |  |
 | frontend.deployment.podSecurityContext | object | `{}` |  |
-| frontend.deployment.replicaCount | int | `1` |  |
+| frontend.deployment.replicas | int | `1` |  |
 | frontend.deployment.resources | object | `{}` |  |
 | frontend.deployment.securityContext | object | `{}` |  |
 | frontend.deployment.sidecars | list | `[]` |  |
@@ -528,8 +527,8 @@ We typically validate deployment using the following Jupyter notebook:
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
 | queue.autoscaling.enabled | bool | `false` |  |
-| queue.autoscaling.maxReplicas | int | `5` |  |
-| queue.autoscaling.minReplicas | int | `1` |  |
+| queue.autoscaling.maxReplicas | int | `10` |  |
+| queue.autoscaling.minReplicas | int | `3` |  |
 | queue.autoscaling.targetCPUUtilizationPercentage | int | `80` |  |
 | queue.deployment.affinity | object | `{}` |  |
 | queue.deployment.annotations | object | `{}` |  |
@@ -537,7 +536,7 @@ We typically validate deployment using the following Jupyter notebook:
 | queue.deployment.labels | object | `{}` |  |
 | queue.deployment.nodeSelector | object | `{}` |  |
 | queue.deployment.podSecurityContext | object | `{}` |  |
-| queue.deployment.replicaCount | int | `1` |  |
+| queue.deployment.replicas | int | `3` |  |
 | queue.deployment.resources | object | `{}` |  |
 | queue.deployment.securityContext | object | `{}` |  |
 | queue.deployment.sidecars | list | `[]` |  |
