@@ -1,8 +1,8 @@
-# langsmith
+# open-gpts
 
-![Version: 0.2.7](https://img.shields.io/badge/Version-0.2.7-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.1.0](https://img.shields.io/badge/AppVersion-0.1.0-informational?style=flat-square)
+![Version: 0.1.0](https://img.shields.io/badge/Version-0.1.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.1.0](https://img.shields.io/badge/AppVersion-0.1.0-informational?style=flat-square)
 
-Helm chart to deploy the langsmith application and all services it depends on.
+Helm chart to deploy the open-gpts appplication and all services it depends on.
 
 ## Deploying OpenGPTs with Helm
 
@@ -159,65 +159,16 @@ the same format as the secret in the corresponding `secrets.yaml` file.
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| clickhouse.containerHttpPort | int | `8123` |  |
-| clickhouse.containerNativePort | int | `9000` |  |
-| clickhouse.external.database | string | `"default"` |  |
-| clickhouse.external.enabled | bool | `false` |  |
-| clickhouse.external.existingSecretName | string | `""` |  |
-| clickhouse.external.host | string | `""` |  |
-| clickhouse.external.nativePort | string | `"9000"` |  |
-| clickhouse.external.password | string | `"password"` |  |
-| clickhouse.external.port | string | `"8123"` |  |
-| clickhouse.external.user | string | `"default"` |  |
-| clickhouse.name | string | `"clickhouse"` |  |
-| clickhouse.service.annotations | object | `{}` |  |
-| clickhouse.service.httpPort | int | `8123` |  |
-| clickhouse.service.labels | object | `{}` |  |
-| clickhouse.service.loadBalancerIP | string | `""` |  |
-| clickhouse.service.loadBalancerSourceRanges | list | `[]` |  |
-| clickhouse.service.nativePort | int | `9000` |  |
-| clickhouse.service.type | string | `"ClusterIP"` |  |
-| clickhouse.serviceAccount.annotations | object | `{}` |  |
-| clickhouse.serviceAccount.create | bool | `true` |  |
-| clickhouse.serviceAccount.labels | object | `{}` |  |
-| clickhouse.serviceAccount.name | string | `""` |  |
-| clickhouse.statefulSet.affinity | object | `{}` |  |
-| clickhouse.statefulSet.annotations | object | `{}` |  |
-| clickhouse.statefulSet.labels | object | `{}` |  |
-| clickhouse.statefulSet.nodeSelector | object | `{}` |  |
-| clickhouse.statefulSet.persistence.size | string | `"8Gi"` |  |
-| clickhouse.statefulSet.persistence.storageClassName | string | `""` |  |
-| clickhouse.statefulSet.podSecurityContext | object | `{}` |  |
-| clickhouse.statefulSet.resources | object | `{}` |  |
-| clickhouse.statefulSet.securityContext | object | `{}` |  |
-| clickhouse.statefulSet.tolerations | list | `[]` |  |
-| clickhouse.statefulSet.volumeMounts | list | `[]` |  |
-| clickhouse.statefulSet.volumes | list | `[]` |  |
 | commonAnnotations | object | `{}` | Annotations that will be applied to all resources created by the chart |
 | commonLabels | object | `{}` | Labels that will be applied to all resources created by the chart |
-| fullnameOverride | string | `""` | String to fully override `"langsmith.fullname"` |
+| fullnameOverride | string | `""` | String to fully override `"openGPTs.fullname"` |
 | images.backendImage.pullPolicy | string | `"IfNotPresent"` |  |
-| images.backendImage.repository | string | `"docker.io/langchain/langchainplus-backend"` |  |
-| images.backendImage.tag | string | `"c9cf130"` |  |
-| images.clickhouseImage.pullPolicy | string | `"Always"` |  |
-| images.clickhouseImage.repository | string | `"docker.io/clickhouse/clickhouse-server"` |  |
-| images.clickhouseImage.tag | string | `"23.9"` |  |
-| images.frontendImage.pullPolicy | string | `"IfNotPresent"` |  |
-| images.frontendImage.repository | string | `"docker.io/langchain/langchainplus-frontend-dynamic"` |  |
-| images.frontendImage.tag | string | `"c9cf130"` |  |
-| images.hubBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
-| images.hubBackendImage.repository | string | `"docker.io/langchain/langchainhub-backend"` |  |
-| images.hubBackendImage.tag | string | `"c9cf130"` |  |
+| images.backendImage.repository | string | `"docker.io/langchain/open-gpts"` |  |
+| images.backendImage.tag | string | `"latest"` |  |
 | images.imagePullSecrets | list | `[]` | Secrets with credentials to pull images from a private registry. Specified as name: value. |
-| images.playgroundImage.pullPolicy | string | `"IfNotPresent"` |  |
-| images.playgroundImage.repository | string | `"docker.io/langchain/langchainplus-playground"` |  |
-| images.playgroundImage.tag | string | `"c9cf130"` |  |
-| images.postgresImage.pullPolicy | string | `"IfNotPresent"` |  |
-| images.postgresImage.repository | string | `"docker.io/postgres"` |  |
-| images.postgresImage.tag | string | `"14.7"` |  |
 | images.redisImage.pullPolicy | string | `"IfNotPresent"` |  |
-| images.redisImage.repository | string | `"docker.io/redis"` |  |
-| images.redisImage.tag | string | `"7"` |  |
+| images.redisImage.repository | string | `"docker.io/redis/redis-stack-server"` |  |
+| images.redisImage.tag | string | `"latest"` |  |
 | ingress.annotations | object | `{}` |  |
 | ingress.enabled | bool | `false` |  |
 | ingress.hostname | string | `""` |  |
@@ -225,18 +176,17 @@ the same format as the secret in the corresponding `secrets.yaml` file.
 | ingress.labels | object | `{}` |  |
 | ingress.subdomain | string | `""` |  |
 | ingress.tls | list | `[]` |  |
-| nameOverride | string | `""` | Provide a name in place of `langsmith` |
+| nameOverride | string | `""` | Provide a name in place of `open-gpts` |
 
 ## Configs
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
 | config.existingSecretName | string | `""` |  |
-| config.langsmithLicenseKey | string | `""` |  |
-| config.oauth.enabled | bool | `false` |  |
-| config.oauth.oauthClientId | string | `""` |  |
-| config.oauth.oauthIssuerUrl | string | `""` |  |
+| config.kayApiKey | string | `""` |  |
 | config.openaiApiKey | string | `""` |  |
+| config.tavilyApiKey | string | `""` |  |
+| config.ydcApiKey | string | `""` |  |
 
 ## Backend
 
@@ -246,14 +196,14 @@ the same format as the secret in the corresponding `secrets.yaml` file.
 | backend.autoscaling.maxReplicas | int | `5` |  |
 | backend.autoscaling.minReplicas | int | `1` |  |
 | backend.autoscaling.targetCPUUtilizationPercentage | int | `80` |  |
-| backend.containerPort | int | `1984` |  |
+| backend.containerPort | int | `8100` |  |
 | backend.deployment.affinity | object | `{}` |  |
 | backend.deployment.annotations | object | `{}` |  |
 | backend.deployment.extraEnv | list | `[]` |  |
 | backend.deployment.labels | object | `{}` |  |
 | backend.deployment.nodeSelector | object | `{}` |  |
 | backend.deployment.podSecurityContext | object | `{}` |  |
-| backend.deployment.replicas | int | `1` |  |
+| backend.deployment.replicaCount | int | `1` |  |
 | backend.deployment.resources | object | `{}` |  |
 | backend.deployment.securityContext | object | `{}` |  |
 | backend.deployment.sidecars | list | `[]` |  |
@@ -267,6 +217,7 @@ the same format as the secret in the corresponding `secrets.yaml` file.
 | backend.migrations.labels | object | `{}` |  |
 | backend.migrations.nodeSelector | object | `{}` |  |
 | backend.migrations.podSecurityContext | object | `{}` |  |
+| backend.migrations.replicaCount | int | `1` |  |
 | backend.migrations.resources | object | `{}` |  |
 | backend.migrations.securityContext | object | `{}` |  |
 | backend.migrations.sidecars | list | `[]` |  |
@@ -278,8 +229,8 @@ the same format as the secret in the corresponding `secrets.yaml` file.
 | backend.service.labels | object | `{}` |  |
 | backend.service.loadBalancerIP | string | `""` |  |
 | backend.service.loadBalancerSourceRanges | list | `[]` |  |
-| backend.service.port | int | `1984` |  |
-| backend.service.type | string | `"ClusterIP"` |  |
+| backend.service.port | int | `80` |  |
+| backend.service.type | string | `"LoadBalancer"` |  |
 | backend.serviceAccount.annotations | object | `{}` |  |
 | backend.serviceAccount.create | bool | `true` |  |
 | backend.serviceAccount.labels | object | `{}` |  |

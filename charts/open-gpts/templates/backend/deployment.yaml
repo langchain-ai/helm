@@ -1,0 +1,126 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "openGPTs.fullname" . }}-{{ .Values.backend.name }}
+  labels:
+    {{- include "openGPTs.labels" . | nindent 4 }}
+    {{- with.Values.backend.deployment.labels }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+  annotations:
+    {{- include "openGPTs.annotations" . | nindent 4 }}
+    {{- with.Values.backend.deployment.annotations }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  {{- if not .Values.backend.autoscaling.enabled }}
+  replicas: {{ .Values.backend.deployment.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "openGPTs.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: {{ include "openGPTs.fullname" . }}-{{ .Values.backend.name }}
+  template:
+    metadata:
+      {{- with .Values.backend.deployment.annotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- with.Values.backend.deployment.labels }}
+            {{- toYaml . | nindent 8 }}
+        {{- end }}
+        {{- include "openGPTs.labels" . | nindent 8 }}
+        app.kubernetes.io/component: {{ include "openGPTs.fullname" . }}-{{ .Values.backend.name }}
+    spec:
+      {{- with .Values.images.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.backend.deployment.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Values.backend.name }}
+          env:
+            - name: REDIS_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "openGPTs.redisSecretsName" . }}
+                  key: redis_connection_url
+            - name: OPENAI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "openGPTs.secretsName" . }}
+                  key: openai_api_key
+            - name: TAVILY_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "openGPTs.secretsName" . }}
+                  key: tavily_api_key
+            - name: KAY_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "openGPTs.secretsName" . }}
+                  key: kay_api_key
+            - name: YDC_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "openGPTs.secretsName" . }}
+                  key: ydc_api_key
+            {{- with .Values.backend.deployment.extraEnv }}
+              {{- toYaml . | nindent 12 }}
+            {{- end }}
+          image: "{{ .Values.images.backendImage.repository }}:{{ .Values.images.backendImage.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.images.backendImage.pullPolicy }}
+          ports:
+            - name: backend
+              containerPort: {{ .Values.backend.containerPort }}
+              protocol: TCP
+          startupProbe:
+            httpGet:
+              path: /ok
+              port: {{ .Values.backend.containerPort }}
+            failureThreshold: 6
+            periodSeconds: 10
+            timeoutSeconds: 1
+          livenessProbe:
+            httpGet:
+              path: /ok
+              port: {{ .Values.backend.containerPort }}
+            failureThreshold: 6
+            periodSeconds: 10
+            timeoutSeconds: 1
+          readinessProbe:
+            httpGet:
+              path: /ok
+              port: {{ .Values.backend.containerPort }}
+            failureThreshold: 6
+            periodSeconds: 10
+            timeoutSeconds: 1
+          resources:
+            {{- toYaml .Values.backend.deployment.resources | nindent 12 }}
+          securityContext:
+            {{- toYaml .Values.backend.deployment.securityContext | nindent 12 }}
+          {{- with .Values.backend.deployment.volumeMounts }}
+          volumeMounts:
+              {{- toYaml . | nindent 12 }}
+          {{- end }}
+        {{- with .Values.backend.deployment.sidecars }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- with .Values.backend.deployment.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.backend.deployment.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.backend.deployment.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.backend.deployment.volumes }}
+      volumes:
+          {{- toYaml . | nindent 8 }}
+      {{- end }}

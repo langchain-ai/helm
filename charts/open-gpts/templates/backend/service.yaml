@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "openGPTs.fullname" . }}-{{ .Values.backend.name }}
+  labels:
+    {{- include "openGPTs.labels" . | nindent 4 }}
+    {{- with.Values.backend.service.labels }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+  annotations:
+    {{- include "openGPTs.annotations" . | nindent 4 }}
+    {{- with.Values.backend.service.annotations }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  type: {{ .Values.backend.service.type }}
+  {{- with .Values.backend.service.loadBalancerSourceRanges }}
+  loadBalancerSourceRanges:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  loadBalancerIP: {{ .Values.backend.service.loadBalancerIP }}
+  ports:
+    - name: backend
+      port: {{ .Values.backend.service.port }}
+      targetPort: backend
+      protocol: TCP
+  selector:
+    {{- include "openGPTs.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: {{ include "openGPTs.fullname" . }}-{{ .Values.backend.name }}
