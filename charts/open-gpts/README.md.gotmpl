@@ -138,7 +138,7 @@ the same format as the secret in the corresponding `secrets.yaml` file.
 1. How can we upgrade our application?
     - To upgrade, you will need to follow the upgrade instructions in the Helm README and run a `helm upgrade open-gpts --values <values file>`
 2. How can we backup our application?
-    - Currently, we rely on PVCs/PV to power storage for our application. We strongly encourage setting up `Persistent Volume` backups or moving to a managed service for `Postgres` to support disaster recovery
+    - Currently, we rely on PVCs/PV to power storage for our application. We strongly encourage setting up `Persistent Volume` backups or moving to a managed service for `Redis` to support disaster recovery
 3. How does load balancing work/ingress work?
     - Currently, our application spins up one load balancer using a k8s service of type `LoadBalancer` for our frontend. If you do not want to setup a load balancer you can simply port-forward the frontend and use that as your external ip for the application.
     - We also have an option for the chart to provision an ingress resource for the application.
