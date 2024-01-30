@@ -129,7 +129,6 @@ redis:
     volumes: []
     volumeMounts: []
     persistence:
-      enabled: false
       size: 8Gi
       storageClassName: ""
   service:

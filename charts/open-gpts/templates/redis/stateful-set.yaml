@@ -115,7 +115,6 @@ spec:
       volumes:
           {{- toYaml . | nindent 8 }}
       {{- end }}
-  {{- if .Values.redis.statefulSet.persistence.enabled }}
   volumeClaimTemplates:
     - apiVersion: v1
       kind: PersistentVolumeClaim
@@ -133,5 +132,4 @@ spec:
         {{- if .Values.redis.statefulSet.persistence.storageClassName }}
         storageClassName: {{ .Values.redis.statefulSet.persistence.storageClassName }}
         {{- end }}
-  {{- end }}
 {{- end }}
