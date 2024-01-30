@@ -50,7 +50,6 @@ config:
   tavilyApiKey: "foo"
   kayApiKey: "foo"
   ydcApiKey: "foo"
-
 ```
 
 Example `EKS` config file with certificates setup using ACM:
@@ -130,7 +129,7 @@ the same format as the secret in the corresponding `secrets.yaml` file.
 
     The Open-GPTs UI should be visible/operational
 
-    ![./opengpts_ui.png](opengpts_ui.png)
+    ![./open_gpts_ui.png](open_gpts_ui.png)
 
 ## FAQ:
 
@@ -162,7 +161,7 @@ the same format as the secret in the corresponding `secrets.yaml` file.
 | commonAnnotations | object | `{}` | Annotations that will be applied to all resources created by the chart |
 | commonLabels | object | `{}` | Labels that will be applied to all resources created by the chart |
 | fullnameOverride | string | `""` | String to fully override `"openGPTs.fullname"` |
-| images.backendImage.pullPolicy | string | `"IfNotPresent"` |  |
+| images.backendImage.pullPolicy | string | `"Always"` |  |
 | images.backendImage.repository | string | `"docker.io/langchain/open-gpts"` |  |
 | images.backendImage.tag | string | `"latest"` |  |
 | images.imagePullSecrets | list | `[]` | Secrets with credentials to pull images from a private registry. Specified as name: value. |
@@ -174,7 +173,6 @@ the same format as the secret in the corresponding `secrets.yaml` file.
 | ingress.hostname | string | `""` |  |
 | ingress.ingressClassName | string | `""` |  |
 | ingress.labels | object | `{}` |  |
-| ingress.subdomain | string | `""` |  |
 | ingress.tls | list | `[]` |  |
 | nameOverride | string | `""` | Provide a name in place of `open-gpts` |
 
@@ -196,7 +194,7 @@ the same format as the secret in the corresponding `secrets.yaml` file.
 | backend.autoscaling.maxReplicas | int | `5` |  |
 | backend.autoscaling.minReplicas | int | `1` |  |
 | backend.autoscaling.targetCPUUtilizationPercentage | int | `80` |  |
-| backend.containerPort | int | `8100` |  |
+| backend.containerPort | int | `8000` |  |
 | backend.deployment.affinity | object | `{}` |  |
 | backend.deployment.annotations | object | `{}` |  |
 | backend.deployment.extraEnv | list | `[]` |  |
@@ -226,10 +224,11 @@ the same format as the secret in the corresponding `secrets.yaml` file.
 | backend.migrations.volumes | list | `[]` |  |
 | backend.name | string | `"backend"` |  |
 | backend.service.annotations | object | `{}` |  |
+| backend.service.httpPort | int | `80` |  |
+| backend.service.httpsPort | int | `443` |  |
 | backend.service.labels | object | `{}` |  |
 | backend.service.loadBalancerIP | string | `""` |  |
 | backend.service.loadBalancerSourceRanges | list | `[]` |  |
-| backend.service.port | int | `80` |  |
 | backend.service.type | string | `"LoadBalancer"` |  |
 | backend.serviceAccount.annotations | object | `{}` |  |
 | backend.serviceAccount.create | bool | `true` |  |

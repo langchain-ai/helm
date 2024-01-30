@@ -20,8 +20,12 @@ spec:
   {{- end }}
   loadBalancerIP: {{ .Values.backend.service.loadBalancerIP }}
   ports:
-    - name: backend
-      port: {{ .Values.backend.service.port }}
+    - name: http
+      port: {{ .Values.backend.service.httpPort }}
+      targetPort: backend
+      protocol: TCP
+    - name: https
+      port: {{ .Values.backend.service.httpsPort }}
       targetPort: backend
       protocol: TCP
   selector:

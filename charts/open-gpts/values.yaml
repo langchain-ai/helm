@@ -14,7 +14,7 @@ images:
   imagePullSecrets: []
   backendImage:
     repository: "docker.io/langchain/open-gpts"
-    pullPolicy: IfNotPresent
+    pullPolicy: Always
     tag: "latest"
   redisImage:
     repository: "docker.io/redis/redis-stack-server"
@@ -24,12 +24,12 @@ images:
 ingress:
   enabled: false
   hostname: ""
-  subdomain: ""
   ingressClassName: ""
   annotations: {}
   labels: {}
   tls: []
 
+# Note, you will need to refresh the pods for secret changes to take effect.
 config:
   existingSecretName: ""
   openaiApiKey: ""
@@ -39,7 +39,7 @@ config:
 
 backend:
   name: "backend"
-  containerPort: 8100
+  containerPort: 8000
   deployment:
     replicaCount: 1
     labels: {}
@@ -88,7 +88,8 @@ backend:
     targetCPUUtilizationPercentage: 80
   service:
     type: LoadBalancer
-    port: 80
+    httpPort: 80
+    httpsPort: 443
     labels: {}
     annotations: {}
     loadBalancerSourceRanges: []
