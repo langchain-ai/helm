@@ -165,7 +165,7 @@ Template containing common environment variables that are used by several servic
       name: {{ include "langsmith.clickhouseSecretsName" . }}
       key: clickhouse_password
 - name: LOG_LEVEL
-  value: debug
+  value: {{ .Values.config.logLevel }}
 {{- if .Values.config.oauth.enabled }}
 - name: OAUTH_CLIENT_ID
   valueFrom:
