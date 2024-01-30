@@ -67,6 +67,36 @@ spec:
                 secretKeyRef:
                   name: {{ include "openGPTs.secretsName" . }}
                   key: ydc_api_key
+            - name: AZURE_OPENAI_DEPLOYMENT_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "openGPTs.secretsName" . }}
+                  key: azure_openai_deployment_name
+            - name: AZURE_OPENAI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "openGPTs.secretsName" . }}
+                  key: azure_openai_api_key
+            - name: AZURE_OPENAI_API_BASE
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "openGPTs.secretsName" . }}
+                  key: azure_openai_api_base
+            - name: AZURE_OPENAI_API_VERSION
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "openGPTs.secretsName" . }}
+                  key: azure_openai_api_version
+            - name: ROBOCORP_ACTION_SERVER_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "openGPTs.secretsName" . }}
+                  key: robocorp_action_server_url
+            - name: ROBOCORP_ACTION_SERVER_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "openGPTs.secretsName" . }}
+                  key: robocorp_action_server_key
             {{- with .Values.backend.deployment.extraEnv }}
               {{- toYaml . | nindent 12 }}
             {{- end }}

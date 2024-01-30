@@ -5,5 +5,5 @@ maintainers:
     email: ankush@langchain.dev
 description: Helm chart to deploy the open-gpts appplication and all services it depends on.
 type: application
-version: 0.1.0
+version: 0.1.1
 appVersion: "0.1.0"
