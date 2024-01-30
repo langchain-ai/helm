@@ -33,9 +33,15 @@ ingress:
 config:
   existingSecretName: ""
   openaiApiKey: ""
-  tavilyApiKey: ""
-  kayApiKey: ""
-  ydcApiKey: ""
+  tavilyApiKey: "placeholder"
+  kayApiKey: "placeholder"
+  ydcApiKey: "placeholder"
+  azureOpenaiDeploymentName: "placeholder"
+  azureOpenaiApiKey: "placeholder"
+  azureOpenaiApiBase: "placeholder"
+  azureOpenaiApiVersion: "placeholder"
+  robocorpActionServerUrl: "https://dummy-action-server.robocorp.link"
+  robocorpActionServerKey: "dummy-api-key"
 
 backend:
   name: "backend"
