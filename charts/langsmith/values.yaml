@@ -54,6 +54,7 @@ config:
   existingSecretName: ""
   openaiApiKey: ""
   langsmithLicenseKey: ""
+  logLevel: "info"
   oauth:
     enabled: false
     oauthClientId: ""
