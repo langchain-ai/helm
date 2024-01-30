@@ -340,6 +340,20 @@ entries:
   open-gpts:
   - apiVersion: v2
     appVersion: 0.1.0
+    created: "2024-01-30T21:48:18.48289614Z"
+    description: Helm chart to deploy the open-gpts appplication and all services
+      it depends on.
+    digest: 17ff54f329380bf9ecbd3de68736303785acd37df1a81251e94588d81614ce1d
+    maintainers:
+    - email: ankush@langchain.dev
+      name: Ankush
+    name: open-gpts
+    type: application
+    urls:
+    - https://github.com/langchain-ai/helm/releases/download/open-gpts-0.1.1/open-gpts-0.1.1.tgz
+    version: 0.1.1
+  - apiVersion: v2
+    appVersion: 0.1.0
     created: "2024-01-30T05:03:20.850238999Z"
     description: Helm chart to deploy the open-gpts appplication and all services
       it depends on.
@@ -352,4 +366,4 @@ entries:
     urls:
     - https://github.com/langchain-ai/helm/releases/download/open-gpts-0.1.0/open-gpts-0.1.0.tgz
     version: 0.1.0
-generated: "2024-01-30T05:03:20.850285435Z"
+generated: "2024-01-30T21:48:18.482972082Z"
