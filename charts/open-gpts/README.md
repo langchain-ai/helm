@@ -1,6 +1,6 @@
 # open-gpts
 
-![Version: 0.1.0](https://img.shields.io/badge/Version-0.1.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.1.0](https://img.shields.io/badge/AppVersion-0.1.0-informational?style=flat-square)
+![Version: 0.1.1](https://img.shields.io/badge/Version-0.1.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.1.0](https://img.shields.io/badge/AppVersion-0.1.0-informational?style=flat-square)
 
 Helm chart to deploy the open-gpts appplication and all services it depends on.
 
@@ -136,7 +136,7 @@ the same format as the secret in the corresponding `secrets.yaml` file.
 1. How can we upgrade our application?
     - To upgrade, you will need to follow the upgrade instructions in the Helm README and run a `helm upgrade open-gpts --values <values file>`
 2. How can we backup our application?
-    - Currently, we rely on PVCs/PV to power storage for our application. We strongly encourage setting up `Persistent Volume` backups or moving to a managed service for `Postgres` to support disaster recovery
+    - Currently, we rely on PVCs/PV to power storage for our application. We strongly encourage setting up `Persistent Volume` backups or moving to a managed service for `Redis` to support disaster recovery
 3. How does load balancing work/ingress work?
     - Currently, our application spins up one load balancer using a k8s service of type `LoadBalancer` for our frontend. If you do not want to setup a load balancer you can simply port-forward the frontend and use that as your external ip for the application.
     - We also have an option for the chart to provision an ingress resource for the application.
@@ -180,11 +180,17 @@ the same format as the secret in the corresponding `secrets.yaml` file.
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
+| config.azureOpenaiApiBase | string | `"placeholder"` |  |
+| config.azureOpenaiApiKey | string | `"placeholder"` |  |
+| config.azureOpenaiApiVersion | string | `"placeholder"` |  |
+| config.azureOpenaiDeploymentName | string | `"placeholder"` |  |
 | config.existingSecretName | string | `""` |  |
-| config.kayApiKey | string | `""` |  |
+| config.kayApiKey | string | `"placeholder"` |  |
 | config.openaiApiKey | string | `""` |  |
-| config.tavilyApiKey | string | `""` |  |
-| config.ydcApiKey | string | `""` |  |
+| config.robocorpActionServerKey | string | `"dummy-api-key"` |  |
+| config.robocorpActionServerUrl | string | `"https://dummy-action-server.robocorp.link"` |  |
+| config.tavilyApiKey | string | `"placeholder"` |  |
+| config.ydcApiKey | string | `"placeholder"` |  |
 
 ## Backend
 
@@ -259,7 +265,6 @@ the same format as the secret in the corresponding `secrets.yaml` file.
 | redis.statefulSet.extraEnv | list | `[]` |  |
 | redis.statefulSet.labels | object | `{}` |  |
 | redis.statefulSet.nodeSelector | object | `{}` |  |
-| redis.statefulSet.persistence.enabled | bool | `false` |  |
 | redis.statefulSet.persistence.size | string | `"8Gi"` |  |
 | redis.statefulSet.persistence.storageClassName | string | `""` |  |
 | redis.statefulSet.podSecurityContext | object | `{}` |  |
