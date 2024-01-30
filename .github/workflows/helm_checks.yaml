@@ -38,4 +38,4 @@ jobs:
         env:
           LANGSMITH_LICENSE_KEY: ${{ secrets.LANGSMITH_LICENSE_KEY }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-        run: ct install --target-branch ${{ github.event.repository.default_branch }} --all --helm-extra-set-args "--set=frontend.service.type=ClusterIP --set=config.langsmithLicenseKey=$LANGSMITH_LICENSE_KEY --set=config.openaiApiKey=$OPENAI_API_KEY --set=config.tavilyApiKey=foo --set=config.kayApiKey=foo --set=config.ydcApiKey=foo"
+        run: ct install --target-branch ${{ github.event.repository.default_branch }} --all --helm-extra-set-args "--set=frontend.service.type=ClusterIP --set=config.langsmithLicenseKey=$LANGSMITH_LICENSE_KEY --set=config.openaiApiKey=$OPENAI_API_KEY --set=config.tavilyApiKey=foo --set=config.kayApiKey=foo --set=config.ydcApiKey=foo --set=backend.service.type=ClusterIP"
