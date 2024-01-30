@@ -1,0 +1,146 @@
+# Default values for the openGPTs helm chart. Refer to documentation on individual values for help with configuration.
+
+# -- Provide a name in place of `open-gpts`
+nameOverride: ""
+# -- String to fully override `"openGPTs.fullname"`
+fullnameOverride: ""
+# -- Annotations that will be applied to all resources created by the chart
+commonAnnotations: {}
+# -- Labels that will be applied to all resources created by the chart
+commonLabels: {}
+
+images:
+   # -- Secrets with credentials to pull images from a private registry. Specified as name: value.
+  imagePullSecrets: []
+  backendImage:
+    repository: "docker.io/langchain/open-gpts"
+    pullPolicy: Always
+    tag: "latest"
+  redisImage:
+    repository: "docker.io/redis/redis-stack-server"
+    pullPolicy: IfNotPresent
+    tag: "latest"
+
+ingress:
+  enabled: false
+  hostname: ""
+  ingressClassName: ""
+  annotations: {}
+  labels: {}
+  tls: []
+
+# Note, you will need to refresh the pods for secret changes to take effect.
+config:
+  existingSecretName: ""
+  openaiApiKey: ""
+  tavilyApiKey: ""
+  kayApiKey: ""
+  ydcApiKey: ""
+
+backend:
+  name: "backend"
+  containerPort: 8000
+  deployment:
+    replicaCount: 1
+    labels: {}
+    annotations: {}
+    podSecurityContext: {}
+    securityContext: {}
+    resources: {}
+#      limits:
+#        cpu: 1000m
+#        memory: 1Gi
+#      requests:
+#        cpu: 200m
+#        memory: 500Mi
+    extraEnv: []
+    sidecars: []
+    nodeSelector: {}
+    tolerations: []
+    affinity: {}
+    volumes: []
+    volumeMounts: []
+  migrations:
+    enabled: true
+    replicaCount: 1
+    labels: {}
+    annotations: {}
+    podSecurityContext: {}
+    securityContext: {}
+    resources: {}
+#      limits:
+#        cpu: 1000m
+#        memory: 1Gi
+#      requests:
+#        cpu: 200m
+#        memory: 500Mi
+    extraEnv: []
+    sidecars: []
+    nodeSelector: {}
+    tolerations: []
+    affinity: {}
+    volumes: []
+    volumeMounts: []
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 5
+    targetCPUUtilizationPercentage: 80
+  service:
+    type: LoadBalancer
+    httpPort: 80
+    httpsPort: 443
+    labels: {}
+    annotations: {}
+    loadBalancerSourceRanges: []
+    loadBalancerIP: ""
+  serviceAccount:
+    create: true
+    name: ""
+    labels: {}
+    annotations: {}
+
+redis:
+  name: "redis"
+  external:
+    # If enabled, use the following values to connect to an external redis instance. This will also disable the
+    # creation of a redis stateful-set and service.
+    enabled: false
+    connectionUrl: ""
+    existingSecretName: ""
+  containerPort: 6379
+  statefulSet:
+    labels: {}
+    annotations: {}
+    podSecurityContext: {}
+    securityContext: {}
+    resources: {}
+#      limits:
+#        cpu: 4000m
+#        memory: 16Gi
+#      requests:
+#        cpu: 1000m
+#        memory: 2Gi
+    extraEnv: []
+    sidecars: []
+    nodeSelector: {}
+    tolerations: []
+    affinity: {}
+    volumes: []
+    volumeMounts: []
+    persistence:
+      enabled: false
+      size: 8Gi
+      storageClassName: ""
+  service:
+    type: ClusterIP
+    port: 6379
+    labels: {}
+    annotations: {}
+    loadBalancerSourceRanges: []
+    loadBalancerIP: ""
+  serviceAccount:
+    create: true
+    name: ""
+    labels: {}
+    annotations: {}

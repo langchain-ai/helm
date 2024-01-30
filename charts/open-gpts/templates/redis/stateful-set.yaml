@@ -2,24 +2,24 @@
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: {{ include "langsmith.fullname" . }}-{{ .Values.redis.name }}
+  name: {{ include "openGPTs.fullname" . }}-{{ .Values.redis.name }}
   labels:
-    {{- include "langsmith.labels" . | nindent 4 }}
+    {{- include "openGPTs.labels" . | nindent 4 }}
     {{- with.Values.redis.statefulSet.labels }}
       {{- toYaml . | nindent 4 }}
     {{- end }}
   annotations:
-    {{- include "langsmith.annotations" . | nindent 4 }}
+    {{- include "openGPTs.annotations" . | nindent 4 }}
     {{- with.Values.redis.statefulSet.annotations }}
       {{- toYaml . | nindent 4 }}
     {{- end }}
 spec:
-  serviceName: {{ include "langsmith.fullname" . }}-{{ .Values.redis.name }}
+  serviceName: {{ include "openGPTs.fullname" . }}-{{ .Values.redis.name }}
   replicas: 1
   selector:
     matchLabels:
-      {{- include "langsmith.selectorLabels" . | nindent 6 }}
-      app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-{{ .Values.redis.name }}
+      {{- include "openGPTs.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: {{ include "openGPTs.fullname" . }}-{{ .Values.redis.name }}
   template:
     metadata:
       {{- with .Values.redis.statefulSet.annotations }}
@@ -30,8 +30,8 @@ spec:
         {{- with.Values.redis.statefulSet.labels }}
             {{- toYaml . | nindent 8 }}
         {{- end }}
-        {{- include "langsmith.labels" . | nindent 8 }}
-        app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-{{ .Values.redis.name }}
+        {{- include "openGPTs.labels" . | nindent 8 }}
+        app.kubernetes.io/component: {{ include "openGPTs.fullname" . }}-{{ .Values.redis.name }}
     spec:
       {{- with .Values.images.imagePullSecrets }}
       imagePullSecrets:
@@ -122,8 +122,8 @@ spec:
       metadata:
         name: data
         labels:
-          {{- include "langsmith.selectorLabels" . | nindent 10 }}
-          app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-{{ .Values.redis.name }}
+          {{- include "openGPTs.labels" . | nindent 10 }}
+          app.kubernetes.io/name: {{ include "openGPTs.fullname" . }}-{{ .Values.redis.name }}
       spec:
         accessModes:
           - ReadWriteOnce

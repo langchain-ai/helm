@@ -93,7 +93,7 @@ the user or some other secret provisioning mechanism
 {{- end }}
 
 {{/*
-Name of the secret containing the secrets for postgres. This can be overriden by a secrets file created by
+Name of the secret containing the secrets for redis. This can be overriden by a secrets file created by
 the user or some other secret provisioning mechanism
 */}}
 {{- define "langsmith.redisSecretsName" -}}

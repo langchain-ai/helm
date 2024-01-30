@@ -1,0 +1,1 @@
+This is the OpenGpts application helm chart. All pods should be running!
