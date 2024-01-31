@@ -39,6 +39,7 @@ spec:
       {{- end }}
       securityContext:
         {{- toYaml .Values.clickhouse.statefulSet.podSecurityContext | nindent 8 }}
+      serviceAccountName: {{ include "clickhouse.serviceAccountName" . }}
       containers:
         - name: {{ .Values.clickhouse.name }}
           image: "{{ .Values.images.clickhouseImage.repository }}:{{ .Values.images.clickhouseImage.tag | default .Chart.AppVersion }}"

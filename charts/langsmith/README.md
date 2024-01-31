@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.2.7](https://img.shields.io/badge/Version-0.2.7-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.1.0](https://img.shields.io/badge/AppVersion-0.1.0-informational?style=flat-square)
+![Version: 0.2.9](https://img.shields.io/badge/Version-0.2.9-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.1.0](https://img.shields.io/badge/AppVersion-0.1.0-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -284,6 +284,7 @@ We typically validate deployment using the following quickstart guide:
 |-----|------|---------|-------------|
 | config.existingSecretName | string | `""` |  |
 | config.langsmithLicenseKey | string | `""` |  |
+| config.logLevel | string | `"info"` |  |
 | config.oauth.enabled | bool | `false` |  |
 | config.oauth.oauthClientId | string | `""` |  |
 | config.oauth.oauthIssuerUrl | string | `""` |  |
