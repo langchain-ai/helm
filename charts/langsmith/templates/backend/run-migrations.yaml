@@ -37,6 +37,7 @@ spec:
       {{- end }}
       securityContext:
         {{- toYaml .Values.backend.migrations.podSecurityContext | nindent 8 }}
+      serviceAccountName: {{ include "backend.serviceAccountName" . }}
       containers:
         - name: {{ .Values.backend.name }}
           command: ["/bin/bash", "-c", "alembic upgrade head"]
