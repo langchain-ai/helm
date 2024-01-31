@@ -50,11 +50,20 @@ spec:
             - client_min_messages=WARNING
           env:
             - name: POSTGRES_DB
-              value: postgres
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "langsmith.postgresSecretsName" .}}
+                  key: postgres_db
             - name: POSTGRES_PASSWORD
-              value: postgres
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "langsmith.postgresSecretsName" .}}
+                  key: postgres_password
             - name: POSTGRES_USER
-              value: postgres
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "langsmith.postgresSecretsName" .}}
+                  key: postgres_user
             - name: PGDATA
               value: /var/lib/postgresql/data/postgres
             {{- with .Values.postgres.statefulSet.extraEnv }}
@@ -71,7 +80,7 @@ spec:
               command:
                 - /bin/sh
                 - -c
-                - exec pg_isready -d postgres -U postgres
+                - exec pg_isready -d {{ .Values.postgres.external.database }} -U {{ .Values.postgres.external.user }}
             failureThreshold: 6
             periodSeconds: 10
             timeoutSeconds: 1
@@ -80,7 +89,7 @@ spec:
               command:
                 - /bin/sh
                 - -c
-                - exec pg_isready -d postgres -U postgres
+                - exec pg_isready -d {{ .Values.postgres.external.database }} -U {{ .Values.postgres.external.user }}
             failureThreshold: 6
             periodSeconds: 10
             timeoutSeconds: 1
@@ -89,7 +98,7 @@ spec:
               command:
                 - /bin/sh
                 - -c
-                - exec pg_isready -d postgres -U postgres
+                - exec pg_isready -d {{ .Values.postgres.external.database }} -U {{ .Values.postgres.external.user }}
             failureThreshold: 6
             periodSeconds: 10
             timeoutSeconds: 1

@@ -46,11 +46,20 @@ spec:
           command: ["/bin/bash", "-c", "sed 's/id -g/id -gn/' /entrypoint.sh > /tmp/entrypoint.sh; exec bash /tmp/entrypoint.sh"]
           env:
             - name: CLICKHOUSE_DB
-              value: default
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "langsmith.clickhouseSecretsName" . }}
+                  key: clickhouse_db
             - name: CLICKHOUSE_USER
-              value: default
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "langsmith.clickhouseSecretsName" . }}
+                  key: clickhouse_user
             - name: CLICKHOUSE_PASSWORD
-              value: password
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "langsmith.clickhouseSecretsName" . }}
+                  key: clickhouse_password
           ports:
             - name: ch
               containerPort: {{ .Values.clickhouse.containerHttpPort }}
