@@ -42,6 +42,10 @@ spec:
       serviceAccountName: {{ include "backend.serviceAccountName" . }}
       containers:
         - name: {{ .Values.backend.name }}
+          {{- with.Values.backend.deployment.command }}
+          command:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           env:
             {{- include "langsmith.commonEnv" . | nindent 12 }}
             - name: OPENAI_API_KEY

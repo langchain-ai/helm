@@ -43,20 +43,10 @@ spec:
       restartPolicy: Always
       containers:
         - name: {{ .Values.queue.name }}
+          {{- with.Values.queue.deployment.command }}
           command:
-            - rq
-            - worker
-            - --with-scheduler
-            - -u
-            - $(REDIS_DATABASE_URI)
-            - --serializer
-            - lc_database.queue.serializer.ORJSONSerializer
-            - --worker-class
-            - lc_database.queue.worker.Worker
-            - --connection-class
-            - lc_database.queue.connection.RedisRetry
-            - --job-class
-            - lc_database.queue.job.AsyncJob
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           env:
             {{- include "langsmith.commonEnv" . | nindent 12 }}
             {{- with .Values.queue.deployment.extraEnv }}
