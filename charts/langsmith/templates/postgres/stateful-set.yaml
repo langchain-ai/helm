@@ -42,12 +42,10 @@ spec:
       serviceAccountName: {{ include "postgres.serviceAccountName" . }}
       containers:
         - name: {{ .Values.postgres.name }}
-          args:
-            - postgres
-            - -c
-            - log_min_messages=WARNING
-            - -c
-            - client_min_messages=WARNING
+          {{- with.Values.postgres.statefulSet.command }}
+          command:
+             {{ . }}
+          {{- end }}
           env:
             - name: POSTGRES_DB
               valueFrom:

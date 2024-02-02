@@ -40,7 +40,10 @@ spec:
       serviceAccountName: {{ include "backend.serviceAccountName" . }}
       containers:
         - name: {{ .Values.backend.name }}
-          command: ["/bin/bash", "-c", "alembic upgrade head"]
+          {{- with .Values.backend.migrations.postgresCommand }}
+          command:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           env:
             {{- include "langsmith.commonEnv" . | nindent 12 }}
             {{- with .Values.backend.migrations.extraEnv }}
@@ -60,13 +63,10 @@ spec:
               {{- toYaml . | nindent 12 }}
           {{- end }}
         - name: {{ .Values.backend.name }}-clickhouse
+          {{- with .Values.backend.migrations.clickhouseCommand }}
           command:
-          - migrate
-          - -source
-          - file://clickhouse/migrations
-          - -database
-          - "clickhouse://$(CLICKHOUSE_HOST):$(CLICKHOUSE_NATIVE_PORT)?username=$(CLICKHOUSE_USER)&password=$(CLICKHOUSE_PASSWORD)&database=$(CLICKHOUSE_DB)&x-multi-statement=true&x-migrations-table-engine=MergeTree"
-          - up
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           env:
             {{- include "langsmith.commonEnv" . | nindent 12 }}
             {{- with .Values.backend.migrations.extraEnv }}

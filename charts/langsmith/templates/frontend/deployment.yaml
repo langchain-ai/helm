@@ -43,6 +43,10 @@ spec:
       serviceAccountName: {{ include "frontend.serviceAccountName" . }}
       containers:
         - name: {{ .Values.frontend.name }}
+          {{- with.Values.frontend.deployment.command }}
+          command:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           env:
             {{- if .Values.config.oauth.enabled }}
             - name: VITE_OAUTH_CLIENT_ID
