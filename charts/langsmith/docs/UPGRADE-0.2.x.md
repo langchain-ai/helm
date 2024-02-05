@@ -12,9 +12,15 @@ Update your local helm repo
 helm repo update
 ```
 
+Certain versions of 0.1.x may require you to delete old deployments and statefulsets due to label changes. This will not delete any of your data
+```bash
+kubectl delete deployment langsmith-backend langsmith-frontend langsmith-hub-backend langsmith-playground langsmith-queue
+kubectl delete statefulset langsmith-postgres langsmith-redis
+```
+
 Run the following command to upgrade the chart(replace x with latest patch version):
 ```bash
-help upgrade <release-name> langchain/langsmith --version 0.2.x --values <path-to-values-file>
+helm upgrade <release-name> langchain/langsmith --version 0.2.x --values <path-to-values-file>
 ```
 
 Verify that the upgrade was successful:
