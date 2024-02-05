@@ -97,17 +97,37 @@ backend:
 #      requests:
 #        cpu: 200m
 #        memory: 500Mi
-    clickhouseCommand:
+    command:
+      - "/bin/bash"
+      - "-c"
+      - "alembic upgrade head"
+    extraEnv: []
+    sidecars: []
+    nodeSelector: {}
+    tolerations: []
+    affinity: {}
+    volumes: []
+    volumeMounts: []
+  clickhouseMigrations:
+    enabled: true
+    labels: {}
+    annotations: {}
+    podSecurityContext: {}
+    securityContext: {}
+    resources: {}
+#      limits:
+#        cpu: 1000m
+#        memory: 1Gi
+#      requests:
+#        cpu: 200m
+#        memory: 500Mi
+    command:
       - "migrate"
       - "-source"
       - "file://clickhouse/migrations"
       - "-database"
       - "clickhouse://$(CLICKHOUSE_HOST):$(CLICKHOUSE_NATIVE_PORT)?username=$(CLICKHOUSE_USER)&password=$(CLICKHOUSE_PASSWORD)&database=$(CLICKHOUSE_DB)&x-multi-statement=true&x-migrations-table-engine=MergeTree"
       - "up"
-    postgresCommand:
-      - "/bin/bash"
-      - "-c"
-      - "alembic upgrade head"
     extraEnv: []
     sidecars: []
     nodeSelector: {}
