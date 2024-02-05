@@ -77,6 +77,7 @@ backend:
 #        cpu: 200m
 #        memory: 500Mi
     command: []
+    extraContainerConfig: {}
     extraEnv: []
     sidecars: []
     nodeSelector: {}
@@ -101,6 +102,7 @@ backend:
       - "/bin/bash"
       - "-c"
       - "alembic upgrade head"
+    extraContainerConfig: {}
     extraEnv: []
     sidecars: []
     nodeSelector: {}
@@ -128,6 +130,7 @@ backend:
       - "-database"
       - "clickhouse://$(CLICKHOUSE_HOST):$(CLICKHOUSE_NATIVE_PORT)?username=$(CLICKHOUSE_USER)&password=$(CLICKHOUSE_PASSWORD)&database=$(CLICKHOUSE_DB)&x-multi-statement=true&x-migrations-table-engine=MergeTree"
       - "up"
+    extraContainerConfig: {}
     extraEnv: []
     sidecars: []
     nodeSelector: {}
@@ -187,6 +190,9 @@ clickhouse:
       - "/bin/bash"
       - "-c"
       - "sed 's/id -g/id -gn/' /entrypoint.sh > /tmp/entrypoint.sh; exec bash /tmp/entrypoint.sh"
+    extraContainerConfig: {}
+    extraEnv: []
+    sidecars: []
     nodeSelector: {}
     tolerations: []
     affinity: {}
@@ -227,6 +233,7 @@ frontend:
 #        cpu: 200m
 #        memory: 500Mi
     command: []
+    extraContainerConfig: {}
     extraEnv: []
     sidecars: []
     nodeSelector: {}
@@ -273,6 +280,7 @@ hubBackend:
 #        cpu: 200m
 #        memory: 500Mi
     command: []
+    extraContainerConfig: {}
     extraEnv: []
     sidecars: []
     nodeSelector: {}
@@ -318,6 +326,7 @@ playground:
 #        cpu: 200m
 #        memory: 500Mi
     command: []
+    extraContainerConfig: {}
     extraEnv: []
     sidecars: []
     nodeSelector: {}
@@ -376,6 +385,7 @@ postgres:
 #        cpu: 1000m
 #        memory: 4Gi
     command: []
+    extraContainerConfig: {}
     extraEnv: []
     sidecars: []
     nodeSelector: {}
@@ -416,19 +426,20 @@ queue:
 #        cpu: 200m
 #        memory: 500Mi
     command:
-      - rq
-      - worker
-      - --with-scheduler
-      - -u
-      - $(REDIS_DATABASE_URI)
-      - --serializer
-      - lc_database.queue.serializer.ORJSONSerializer
-      - --worker-class
-      - lc_database.queue.worker.Worker
-      - --connection-class
-      - lc_database.queue.connection.RedisRetry
-      - --job-class
-      - lc_database.queue.job.AsyncJob
+      - "rq"
+      - "worker"
+      - "--with-scheduler"
+      - "-u"
+      - "$(REDIS_DATABASE_URI)"
+      - "--serializer"
+      - "lc_database.queue.serializer.ORJSONSerializer"
+      - "--worker-class"
+      - "lc_database.queue.worker.Worker"
+      - "--connection-class"
+      - "lc_database.queue.connection.RedisRetry"
+      - "--job-class"
+      - "lc_database.queue.job.AsyncJob"
+    extraContainerConfig: {}
     extraEnv: []
     sidecars: []
     nodeSelector: {}
@@ -472,6 +483,7 @@ redis:
 #        cpu: 1000m
 #        memory: 2Gi
     command: []
+    extraContainerConfig: {}
     extraEnv: []
     sidecars: []
     nodeSelector: {}
