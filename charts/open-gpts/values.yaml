@@ -15,7 +15,7 @@ images:
   backendImage:
     repository: "docker.io/langchain/open-gpts"
     pullPolicy: Always
-    tag: "latest"
+    tag: "daf9aba"
   redisImage:
     repository: "docker.io/redis/redis-stack-server"
     pullPolicy: IfNotPresent
