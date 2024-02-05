@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.2.9](https://img.shields.io/badge/Version-0.2.9-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.1.0](https://img.shields.io/badge/AppVersion-0.1.0-informational?style=flat-square)
+![Version: 0.2.10](https://img.shields.io/badge/Version-0.2.10-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.1.0](https://img.shields.io/badge/AppVersion-0.1.0-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -234,6 +234,11 @@ We typically validate deployment using the following quickstart guide:
 | clickhouse.serviceAccount.name | string | `""` |  |
 | clickhouse.statefulSet.affinity | object | `{}` |  |
 | clickhouse.statefulSet.annotations | object | `{}` |  |
+| clickhouse.statefulSet.command[0] | string | `"/bin/bash"` |  |
+| clickhouse.statefulSet.command[1] | string | `"-c"` |  |
+| clickhouse.statefulSet.command[2] | string | `"sed 's/id -g/id -gn/' /entrypoint.sh > /tmp/entrypoint.sh; exec bash /tmp/entrypoint.sh"` |  |
+| clickhouse.statefulSet.extraContainerConfig | object | `{}` |  |
+| clickhouse.statefulSet.extraEnv | list | `[]` |  |
 | clickhouse.statefulSet.labels | object | `{}` |  |
 | clickhouse.statefulSet.nodeSelector | object | `{}` |  |
 | clickhouse.statefulSet.persistence.size | string | `"8Gi"` |  |
@@ -241,6 +246,7 @@ We typically validate deployment using the following quickstart guide:
 | clickhouse.statefulSet.podSecurityContext | object | `{}` |  |
 | clickhouse.statefulSet.resources | object | `{}` |  |
 | clickhouse.statefulSet.securityContext | object | `{}` |  |
+| clickhouse.statefulSet.sidecars | list | `[]` |  |
 | clickhouse.statefulSet.tolerations | list | `[]` |  |
 | clickhouse.statefulSet.volumeMounts | list | `[]` |  |
 | clickhouse.statefulSet.volumes | list | `[]` |  |
@@ -294,13 +300,36 @@ We typically validate deployment using the following quickstart guide:
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
+| backend.autoscaling.createHpa | bool | `true` |  |
 | backend.autoscaling.enabled | bool | `false` |  |
 | backend.autoscaling.maxReplicas | int | `5` |  |
 | backend.autoscaling.minReplicas | int | `1` |  |
 | backend.autoscaling.targetCPUUtilizationPercentage | int | `80` |  |
+| backend.clickhouseMigrations.affinity | object | `{}` |  |
+| backend.clickhouseMigrations.annotations | object | `{}` |  |
+| backend.clickhouseMigrations.command[0] | string | `"migrate"` |  |
+| backend.clickhouseMigrations.command[1] | string | `"-source"` |  |
+| backend.clickhouseMigrations.command[2] | string | `"file://clickhouse/migrations"` |  |
+| backend.clickhouseMigrations.command[3] | string | `"-database"` |  |
+| backend.clickhouseMigrations.command[4] | string | `"clickhouse://$(CLICKHOUSE_HOST):$(CLICKHOUSE_NATIVE_PORT)?username=$(CLICKHOUSE_USER)&password=$(CLICKHOUSE_PASSWORD)&database=$(CLICKHOUSE_DB)&x-multi-statement=true&x-migrations-table-engine=MergeTree"` |  |
+| backend.clickhouseMigrations.command[5] | string | `"up"` |  |
+| backend.clickhouseMigrations.enabled | bool | `true` |  |
+| backend.clickhouseMigrations.extraContainerConfig | object | `{}` |  |
+| backend.clickhouseMigrations.extraEnv | list | `[]` |  |
+| backend.clickhouseMigrations.labels | object | `{}` |  |
+| backend.clickhouseMigrations.nodeSelector | object | `{}` |  |
+| backend.clickhouseMigrations.podSecurityContext | object | `{}` |  |
+| backend.clickhouseMigrations.resources | object | `{}` |  |
+| backend.clickhouseMigrations.securityContext | object | `{}` |  |
+| backend.clickhouseMigrations.sidecars | list | `[]` |  |
+| backend.clickhouseMigrations.tolerations | list | `[]` |  |
+| backend.clickhouseMigrations.volumeMounts | list | `[]` |  |
+| backend.clickhouseMigrations.volumes | list | `[]` |  |
 | backend.containerPort | int | `1984` |  |
 | backend.deployment.affinity | object | `{}` |  |
 | backend.deployment.annotations | object | `{}` |  |
+| backend.deployment.command | list | `[]` |  |
+| backend.deployment.extraContainerConfig | object | `{}` |  |
 | backend.deployment.extraEnv | list | `[]` |  |
 | backend.deployment.labels | object | `{}` |  |
 | backend.deployment.nodeSelector | object | `{}` |  |
@@ -314,7 +343,11 @@ We typically validate deployment using the following quickstart guide:
 | backend.deployment.volumes | list | `[]` |  |
 | backend.migrations.affinity | object | `{}` |  |
 | backend.migrations.annotations | object | `{}` |  |
+| backend.migrations.command[0] | string | `"/bin/bash"` |  |
+| backend.migrations.command[1] | string | `"-c"` |  |
+| backend.migrations.command[2] | string | `"alembic upgrade head"` |  |
 | backend.migrations.enabled | bool | `true` |  |
+| backend.migrations.extraContainerConfig | object | `{}` |  |
 | backend.migrations.extraEnv | list | `[]` |  |
 | backend.migrations.labels | object | `{}` |  |
 | backend.migrations.nodeSelector | object | `{}` |  |
@@ -365,6 +398,11 @@ We typically validate deployment using the following quickstart guide:
 | clickhouse.serviceAccount.name | string | `""` |  |
 | clickhouse.statefulSet.affinity | object | `{}` |  |
 | clickhouse.statefulSet.annotations | object | `{}` |  |
+| clickhouse.statefulSet.command[0] | string | `"/bin/bash"` |  |
+| clickhouse.statefulSet.command[1] | string | `"-c"` |  |
+| clickhouse.statefulSet.command[2] | string | `"sed 's/id -g/id -gn/' /entrypoint.sh > /tmp/entrypoint.sh; exec bash /tmp/entrypoint.sh"` |  |
+| clickhouse.statefulSet.extraContainerConfig | object | `{}` |  |
+| clickhouse.statefulSet.extraEnv | list | `[]` |  |
 | clickhouse.statefulSet.labels | object | `{}` |  |
 | clickhouse.statefulSet.nodeSelector | object | `{}` |  |
 | clickhouse.statefulSet.persistence.size | string | `"8Gi"` |  |
@@ -372,6 +410,7 @@ We typically validate deployment using the following quickstart guide:
 | clickhouse.statefulSet.podSecurityContext | object | `{}` |  |
 | clickhouse.statefulSet.resources | object | `{}` |  |
 | clickhouse.statefulSet.securityContext | object | `{}` |  |
+| clickhouse.statefulSet.sidecars | list | `[]` |  |
 | clickhouse.statefulSet.tolerations | list | `[]` |  |
 | clickhouse.statefulSet.volumeMounts | list | `[]` |  |
 | clickhouse.statefulSet.volumes | list | `[]` |  |
@@ -380,6 +419,7 @@ We typically validate deployment using the following quickstart guide:
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
+| frontend.autoscaling.createHpa | bool | `true` |  |
 | frontend.autoscaling.enabled | bool | `false` |  |
 | frontend.autoscaling.maxReplicas | int | `5` |  |
 | frontend.autoscaling.minReplicas | int | `1` |  |
@@ -387,6 +427,8 @@ We typically validate deployment using the following quickstart guide:
 | frontend.containerPort | int | `8080` |  |
 | frontend.deployment.affinity | object | `{}` |  |
 | frontend.deployment.annotations | object | `{}` |  |
+| frontend.deployment.command | list | `[]` |  |
+| frontend.deployment.extraContainerConfig | object | `{}` |  |
 | frontend.deployment.extraEnv | list | `[]` |  |
 | frontend.deployment.labels | object | `{}` |  |
 | frontend.deployment.nodeSelector | object | `{}` |  |
@@ -416,6 +458,7 @@ We typically validate deployment using the following quickstart guide:
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
+| hubBackend.autoscaling.createHpa | bool | `true` |  |
 | hubBackend.autoscaling.enabled | bool | `false` |  |
 | hubBackend.autoscaling.maxReplicas | int | `5` |  |
 | hubBackend.autoscaling.minReplicas | int | `1` |  |
@@ -423,6 +466,8 @@ We typically validate deployment using the following quickstart guide:
 | hubBackend.containerPort | int | `1985` |  |
 | hubBackend.deployment.affinity | object | `{}` |  |
 | hubBackend.deployment.annotations | object | `{}` |  |
+| hubBackend.deployment.command | list | `[]` |  |
+| hubBackend.deployment.extraContainerConfig | object | `{}` |  |
 | hubBackend.deployment.extraEnv | list | `[]` |  |
 | hubBackend.deployment.labels | object | `{}` |  |
 | hubBackend.deployment.nodeSelector | object | `{}` |  |
@@ -450,6 +495,7 @@ We typically validate deployment using the following quickstart guide:
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
+| frontend.autoscaling.createHpa | bool | `true` |  |
 | frontend.autoscaling.enabled | bool | `false` |  |
 | frontend.autoscaling.maxReplicas | int | `5` |  |
 | frontend.autoscaling.minReplicas | int | `1` |  |
@@ -457,6 +503,8 @@ We typically validate deployment using the following quickstart guide:
 | frontend.containerPort | int | `8080` |  |
 | frontend.deployment.affinity | object | `{}` |  |
 | frontend.deployment.annotations | object | `{}` |  |
+| frontend.deployment.command | list | `[]` |  |
+| frontend.deployment.extraContainerConfig | object | `{}` |  |
 | frontend.deployment.extraEnv | list | `[]` |  |
 | frontend.deployment.labels | object | `{}` |  |
 | frontend.deployment.nodeSelector | object | `{}` |  |
@@ -509,6 +557,8 @@ We typically validate deployment using the following quickstart guide:
 | postgres.serviceAccount.name | string | `""` |  |
 | postgres.statefulSet.affinity | object | `{}` |  |
 | postgres.statefulSet.annotations | object | `{}` |  |
+| postgres.statefulSet.command | list | `[]` |  |
+| postgres.statefulSet.extraContainerConfig | object | `{}` |  |
 | postgres.statefulSet.extraEnv | list | `[]` |  |
 | postgres.statefulSet.labels | object | `{}` |  |
 | postgres.statefulSet.nodeSelector | object | `{}` |  |
@@ -527,12 +577,27 @@ We typically validate deployment using the following quickstart guide:
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
+| queue.autoscaling.createHpa | bool | `true` |  |
 | queue.autoscaling.enabled | bool | `false` |  |
 | queue.autoscaling.maxReplicas | int | `10` |  |
 | queue.autoscaling.minReplicas | int | `3` |  |
 | queue.autoscaling.targetCPUUtilizationPercentage | int | `80` |  |
 | queue.deployment.affinity | object | `{}` |  |
 | queue.deployment.annotations | object | `{}` |  |
+| queue.deployment.command[0] | string | `"rq"` |  |
+| queue.deployment.command[10] | string | `"lc_database.queue.connection.RedisRetry"` |  |
+| queue.deployment.command[11] | string | `"--job-class"` |  |
+| queue.deployment.command[12] | string | `"lc_database.queue.job.AsyncJob"` |  |
+| queue.deployment.command[1] | string | `"worker"` |  |
+| queue.deployment.command[2] | string | `"--with-scheduler"` |  |
+| queue.deployment.command[3] | string | `"-u"` |  |
+| queue.deployment.command[4] | string | `"$(REDIS_DATABASE_URI)"` |  |
+| queue.deployment.command[5] | string | `"--serializer"` |  |
+| queue.deployment.command[6] | string | `"lc_database.queue.serializer.ORJSONSerializer"` |  |
+| queue.deployment.command[7] | string | `"--worker-class"` |  |
+| queue.deployment.command[8] | string | `"lc_database.queue.worker.Worker"` |  |
+| queue.deployment.command[9] | string | `"--connection-class"` |  |
+| queue.deployment.extraContainerConfig | object | `{}` |  |
 | queue.deployment.extraEnv | list | `[]` |  |
 | queue.deployment.labels | object | `{}` |  |
 | queue.deployment.nodeSelector | object | `{}` |  |
@@ -571,6 +636,8 @@ We typically validate deployment using the following quickstart guide:
 | redis.serviceAccount.name | string | `""` |  |
 | redis.statefulSet.affinity | object | `{}` |  |
 | redis.statefulSet.annotations | object | `{}` |  |
+| redis.statefulSet.command | list | `[]` |  |
+| redis.statefulSet.extraContainerConfig | object | `{}` |  |
 | redis.statefulSet.extraEnv | list | `[]` |  |
 | redis.statefulSet.labels | object | `{}` |  |
 | redis.statefulSet.nodeSelector | object | `{}` |  |
