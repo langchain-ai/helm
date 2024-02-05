@@ -97,6 +97,16 @@ spec:
                 secretKeyRef:
                   name: {{ include "openGPTs.secretsName" . }}
                   key: robocorp_action_server_key
+            - name: CONNERY_RUNNER_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "openGPTs.secretsName" . }}
+                  key: connery_runner_url
+            - name: CONNERY_RUNNER_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "openGPTs.secretsName" . }}
+                  key: connery_runner_api_key
             {{- with .Values.backend.deployment.extraEnv }}
               {{- toYaml . | nindent 12 }}
             {{- end }}

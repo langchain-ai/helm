@@ -77,6 +77,7 @@ backend:
 #        cpu: 200m
 #        memory: 500Mi
     command: []
+    extraContainerConfig: {}
     extraEnv: []
     sidecars: []
     nodeSelector: {}
@@ -97,17 +98,39 @@ backend:
 #      requests:
 #        cpu: 200m
 #        memory: 500Mi
-    clickhouseCommand:
+    command:
+      - "/bin/bash"
+      - "-c"
+      - "alembic upgrade head"
+    extraContainerConfig: {}
+    extraEnv: []
+    sidecars: []
+    nodeSelector: {}
+    tolerations: []
+    affinity: {}
+    volumes: []
+    volumeMounts: []
+  clickhouseMigrations:
+    enabled: true
+    labels: {}
+    annotations: {}
+    podSecurityContext: {}
+    securityContext: {}
+    resources: {}
+#      limits:
+#        cpu: 1000m
+#        memory: 1Gi
+#      requests:
+#        cpu: 200m
+#        memory: 500Mi
+    command:
       - "migrate"
       - "-source"
       - "file://clickhouse/migrations"
       - "-database"
       - "clickhouse://$(CLICKHOUSE_HOST):$(CLICKHOUSE_NATIVE_PORT)?username=$(CLICKHOUSE_USER)&password=$(CLICKHOUSE_PASSWORD)&database=$(CLICKHOUSE_DB)&x-multi-statement=true&x-migrations-table-engine=MergeTree"
       - "up"
-    postgresCommand:
-      - "/bin/bash"
-      - "-c"
-      - "alembic upgrade head"
+    extraContainerConfig: {}
     extraEnv: []
     sidecars: []
     nodeSelector: {}
@@ -117,6 +140,9 @@ backend:
     volumeMounts: []
   autoscaling:
     enabled: false
+    # If enabled, use the following values to configure the HPA. You can also use your own HPA configuration by not creating an HPA.
+    # You may want to manage the HPA yourself if you have a custom autoscaling setup like KEDA.
+    createHpa: true
     minReplicas: 1
     maxReplicas: 5
     targetCPUUtilizationPercentage: 80
@@ -164,6 +190,9 @@ clickhouse:
       - "/bin/bash"
       - "-c"
       - "sed 's/id -g/id -gn/' /entrypoint.sh > /tmp/entrypoint.sh; exec bash /tmp/entrypoint.sh"
+    extraContainerConfig: {}
+    extraEnv: []
+    sidecars: []
     nodeSelector: {}
     tolerations: []
     affinity: {}
@@ -204,6 +233,7 @@ frontend:
 #        cpu: 200m
 #        memory: 500Mi
     command: []
+    extraContainerConfig: {}
     extraEnv: []
     sidecars: []
     nodeSelector: {}
@@ -213,6 +243,9 @@ frontend:
     volumeMounts: []
   autoscaling:
     enabled: false
+    # If enabled, use the following values to configure the HPA. You can also use your own HPA configuration by not creating an HPA.
+    # You may want to manage the HPA yourself if you have a custom autoscaling setup like KEDA.
+    createHpa: true
     minReplicas: 1
     maxReplicas: 5
     targetCPUUtilizationPercentage: 80
@@ -247,6 +280,7 @@ hubBackend:
 #        cpu: 200m
 #        memory: 500Mi
     command: []
+    extraContainerConfig: {}
     extraEnv: []
     sidecars: []
     nodeSelector: {}
@@ -256,6 +290,9 @@ hubBackend:
     volumeMounts: []
   autoscaling:
     enabled: false
+    # If enabled, use the following values to configure the HPA. You can also use your own HPA configuration by not creating an HPA.
+    # You may want to manage the HPA yourself if you have a custom autoscaling setup like KEDA.
+    createHpa: true
     minReplicas: 1
     maxReplicas: 5
     targetCPUUtilizationPercentage: 80
@@ -289,6 +326,7 @@ playground:
 #        cpu: 200m
 #        memory: 500Mi
     command: []
+    extraContainerConfig: {}
     extraEnv: []
     sidecars: []
     nodeSelector: {}
@@ -298,6 +336,9 @@ playground:
     volumeMounts: []
   autoscaling:
     enabled: false
+    # If enabled, use the following values to configure the HPA. You can also use your own HPA configuration by not creating an HPA.
+    # You may want to manage the HPA yourself if you have a custom autoscaling setup like KEDA.
+    createHpa: true
     minReplicas: 1
     maxReplicas: 5
     targetCPUUtilizationPercentage: 80
@@ -344,6 +385,7 @@ postgres:
 #        cpu: 1000m
 #        memory: 4Gi
     command: []
+    extraContainerConfig: {}
     extraEnv: []
     sidecars: []
     nodeSelector: {}
@@ -384,19 +426,20 @@ queue:
 #        cpu: 200m
 #        memory: 500Mi
     command:
-      - rq
-      - worker
-      - --with-scheduler
-      - -u
-      - $(REDIS_DATABASE_URI)
-      - --serializer
-      - lc_database.queue.serializer.ORJSONSerializer
-      - --worker-class
-      - lc_database.queue.worker.Worker
-      - --connection-class
-      - lc_database.queue.connection.RedisRetry
-      - --job-class
-      - lc_database.queue.job.AsyncJob
+      - "rq"
+      - "worker"
+      - "--with-scheduler"
+      - "-u"
+      - "$(REDIS_DATABASE_URI)"
+      - "--serializer"
+      - "lc_database.queue.serializer.ORJSONSerializer"
+      - "--worker-class"
+      - "lc_database.queue.worker.Worker"
+      - "--connection-class"
+      - "lc_database.queue.connection.RedisRetry"
+      - "--job-class"
+      - "lc_database.queue.job.AsyncJob"
+    extraContainerConfig: {}
     extraEnv: []
     sidecars: []
     nodeSelector: {}
@@ -406,6 +449,9 @@ queue:
     volumeMounts: []
   autoscaling:
     enabled: false
+    # If enabled, use the following values to configure the HPA. You can also use your own HPA configuration by not creating an HPA.
+    # You may want to manage the HPA yourself if you have a custom autoscaling setup like KEDA.
+    createHpa: true
     minReplicas: 3
     maxReplicas: 10
     targetCPUUtilizationPercentage: 80
@@ -437,6 +483,7 @@ redis:
 #        cpu: 1000m
 #        memory: 2Gi
     command: []
+    extraContainerConfig: {}
     extraEnv: []
     sidecars: []
     nodeSelector: {}

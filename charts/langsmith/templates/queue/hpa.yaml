@@ -1,4 +1,4 @@
-{{- if .Values.queue.autoscaling.enabled }}
+{{- if and .Values.queue.autoscaling.enabled .Values.queue.autoscaling.createHpa }}
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:

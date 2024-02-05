@@ -64,6 +64,9 @@ spec:
                 secretKeyRef:
                   name: {{ include "langsmith.clickhouseSecretsName" . }}
                   key: clickhouse_password
+            {{- with .Values.clickhouse.statefulSet.extraEnv }}
+               {{- toYaml . | nindent 12 }}
+             {{- end }}
           ports:
             - name: ch
               containerPort: {{ .Values.clickhouse.containerHttpPort }}
@@ -105,6 +108,12 @@ spec:
             - mountPath: /etc/clickhouse-server/users.d/users.xml
               name: clickhouse-conf
               subPath: users.xml
+          {{- with .Values.clickhouse.statefulSet.extraContainerConfig }}
+            {{- toYaml . | nindent 10 }}
+          {{- end }}
+        {{- with .Values.clickhouse.statefulSet.sidecars }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
       {{- with .Values.clickhouse.statefulSet.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
