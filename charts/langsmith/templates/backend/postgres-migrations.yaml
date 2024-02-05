@@ -62,6 +62,9 @@ spec:
           volumeMounts:
               {{- toYaml . | nindent 12 }}
           {{- end }}
+          {{- with .Values.backend.migrations.extraContainerConfig }}
+            {{- toYaml . | nindent 10 }}
+          {{- end }}
         {{- with .Values.backend.migrations.sidecars }}
           {{- toYaml . | nindent 8 }}
         {{- end }}

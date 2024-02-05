@@ -15,7 +15,7 @@ images:
   backendImage:
     repository: "docker.io/langchain/open-gpts"
     pullPolicy: Always
-    tag: "latest"
+    tag: "daf9aba"
   redisImage:
     repository: "docker.io/redis/redis-stack-server"
     pullPolicy: IfNotPresent
@@ -42,6 +42,8 @@ config:
   azureOpenaiApiVersion: "placeholder"
   robocorpActionServerUrl: "https://dummy-action-server.robocorp.link"
   robocorpActionServerKey: "dummy-api-key"
+  conneryRunnerUrl: "https://your-personal-connery-runner-url"
+  conneryRunnerApiKey: "placeholder"
 
 backend:
   name: "backend"
