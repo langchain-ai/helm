@@ -42,6 +42,8 @@ config:
   azureOpenaiApiVersion: "placeholder"
   robocorpActionServerUrl: "https://dummy-action-server.robocorp.link"
   robocorpActionServerKey: "dummy-api-key"
+  conneryRunnerUrl: "https://your-personal-connery-runner-url"
+  conneryRunnerApiKey: "placeholder"
 
 backend:
   name: "backend"
