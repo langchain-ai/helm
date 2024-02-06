@@ -71,12 +71,81 @@ langsmith-queue-d58cb64f7-87d68          1/1     Running     0          15h
 
     ![.langsmith_ui.png](../langsmith_ui.png)
 
-Note that old runs will not be visibile in the UI unless you migrate them. See [Migrating old runs](#migrating-old-runs) for more information.
+Note that old runs will not be visibile in the UI unless you migrate them. See [Migrating old runs](#migrating-old-runs-) for more information.
 This step is only required if you need access to run data from before the upgrade to Langsmith 0.2.x. If you are unsure or need assistance, please reach out to support@langchain.dev and we'd be happy to help.
 
-# Migrating old runs
+# Migrating old runs 
 
 We have provided a migration script to migrate old runs from the old database to the new database. The script is located in the `scripts` directory of this repository.
+There is also a docker image that has the script pre-installed. You can run the script using the docker image if you don't want to install the dependencies on your local machine/need to run in your cluster.
+We recommend running the migration script in docker unless you are comfortable with the prerequisites and have the required tools installed.
+
+## Migrating old runs using the docker image
+
+### Prerequisites
+
+Ensure you have the following tools/items ready.
+
+1. Kubectl 
+2. PostgreSQL database connection information:
+    1. Host
+    2. Port
+    3. Username
+       1. If using the bundled version, this is `postgres`
+    4. Password
+       1. If using the bundled version, this is `postgres`
+    5. Database name
+       1. If using the bundled version, this is `postgres`
+3. Clickhouse database credential information
+    1. Host
+    2. Port
+    3. Username
+       1. If using the bundled version, this is `default`
+    4. Password
+       1. If using the bundled version, this is `password`
+    5. Database name
+       1. If using the bundled version, this is `default`
+
+
+### Running the migration script
+
+Edit run_script_kubernetes.yaml and replace the command arguments with your database connection information.
+
+Then run the following command to run the migration script:
+
+```bash
+kubectl apply -f run_script_kubernetes.yaml
+```
+
+Verify that the migration script has completed by running the following command. The output should show the migration script pod in the `Completed` state.
+
+```bash
+kubectl get pods 
+NAME                                    READY   STATUS      RESTARTS        AGE
+langsmith-backend-5497cc488-lfc9g       1/1     Running     1 (82s ago)     2m22s
+langsmith-clickhouse-0                  1/1     Running     0               2m20s
+langsmith-frontend-5bd956c4b4-dsglq     1/1     Running     0               2m22s
+langsmith-hub-backend-6956c8c9f-r9cnv   1/1     Running     2 (2m4s ago)    2m22s
+langsmith-playground-77f9447db5-glf7q   1/1     Running     0               2m21s
+langsmith-postgres-0                    1/1     Running     0               2m20s
+langsmith-queue-96cbbbfdd-s4qb7         1/1     Running     1 (2m12s ago)   2m21s
+langsmith-queue-96cbbbfdd-w7kt9         1/1     Running     1 (2m10s ago)   2m21s
+langsmith-queue-96cbbbfdd-zp4sq         1/1     Running     1 (2m10s ago)   2m21s
+langsmith-redis-0                       1/1     Running     0               2m20s
+run-script-job-7bg6t                    0/1     Completed   0               47s
+````
+
+Verify that the logs of the migration script pod show that the migration was successful.
+
+```bash
+kubectl logs run-script-job-7bg6t  
+ClickHouse runs insertion completed.
+No feedback to migrate. No data inserted into ClickHouse.
+```
+
+If you visit the Langsmith UI, you should now see your old runs.
+
+## Migrating old runs locally
 
 ### Prerequisites
 
