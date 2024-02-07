@@ -114,7 +114,7 @@ SELECT
     0, -- is_deleted
     toString(c26), -- inputs_s3_urls
     toString(c27) -- outputs_s3_urls
-FROM input('c1 String, c2 String, c3 String, c4 DateTime64(6), c5 DateTime64(6), c6 String, c7 String, c8 bool, c9 String, c10 String, c11 String, c12 String, c13 String, c14 String, c15 String, c16 String, c17 String, c18 String, c19 String, c20 String, c21 String, c22 UInt64, c23 UInt64, c24 UInt64, c25 DateTime64(6), c26 String, c27 String')
+FROM input('c1 String, c2 String, c3 String, c4 DateTime64(6), c5 Nullable(DateTime64(6)), c6 String, c7 String, c8 bool, c9 String, c10 String, c11 String, c12 String, c13 String, c14 String, c15 String, c16 String, c17 String, c18 String, c19 String, c20 String, c21 String, c22 UInt64, c23 UInt64, c24 UInt64, c25 Nullable(DateTime64(6)), c26 String, c27 String')
 FORMAT CSV
 EOF
 )

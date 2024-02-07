@@ -1,0 +1,19 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: run-script-job
+spec:
+  template:
+    spec:
+      containers:
+      - name: script-runner
+        image:  docker.io/langchain/langsmith-scripts:latest
+        imagePullPolicy: Always
+        # This uses the default configurations for the bundled postgres and clickhouse services.
+        command:
+          - "/bin/bash"
+          - "backfill_clickhouse.sh"
+          - "postgres://postgres:postgres@langsmith-postgres:5432/postgres"
+          - "clickhouse://default:password@langsmith-clickhouse:9000/default"
+      restartPolicy: Never  # Ensure the job does not restart once completed
+  backoffLimit: 4
