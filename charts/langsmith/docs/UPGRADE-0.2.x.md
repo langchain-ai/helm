@@ -71,10 +71,10 @@ langsmith-queue-d58cb64f7-87d68          1/1     Running     0          15h
 
     ![.langsmith_ui.png](../langsmith_ui.png)
 
-Note that old runs will not be visibile in the UI unless you migrate them. See [Migrating old runs](#migrating-old-runs-) for more information.
+Note that old runs will not be visibile in the UI unless you migrate them. See [Migrating old runs](#migrating-old-runs) for more information.
 This step is only required if you need access to run data from before the upgrade to Langsmith 0.2.x. If you are unsure or need assistance, please reach out to support@langchain.dev and we'd be happy to help.
 
-# Migrating old runs 
+# Migrating old runs
 
 We have provided a migration script to migrate old runs from the old database to the new database. The script is located in the `scripts` directory of this repository.
 There is also a docker image that has the script pre-installed. You can run the script using the docker image if you don't want to install the dependencies on your local machine/need to run in your cluster.
