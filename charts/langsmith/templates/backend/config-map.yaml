@@ -1,0 +1,26 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}
+  labels:
+    {{- include "langsmith.labels" . | nindent 4 }}
+  annotations:
+    {{- include "langsmith.annotations" . | nindent 4 }}
+data:
+  nginx-unit-config.json: |
+    {
+      "listeners": {
+          "*:{{ .Values.frontend.containerPort }}": {
+              "pass": "applications/fastapi"
+          }
+      },
+
+      "applications": {
+          "fastapi": {
+              "type": "python 3.11",
+              "path": "/code/smith-backend",
+              "module": "app.main",
+              "callable": "app"
+          }
+      }
+    }
