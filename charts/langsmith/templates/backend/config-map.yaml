@@ -10,7 +10,7 @@ data:
   nginx-unit-config.json: |
     {
       "listeners": {
-          "*:{{ .Values.frontend.containerPort }}": {
+          "*:{{ .Values.backend.containerPort }}": {
               "pass": "applications/fastapi"
           }
       },
