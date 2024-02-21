@@ -6,13 +6,14 @@ Helm chart to deploy the langsmith application and all services it depends on.
 
 ## Migrating from LangSmith 0.2.0 to 0.3.0
 
-LangSmith 0.3.0 should be a drop-in replacement for LangSmith 0.2.0. You can follow the generic upgrade instructions [here](https://github.com/langchain-ai/helm/blob/main/charts/langsmith/docs/UPGRADE.md).
-Note: If you want to preserve old runs from 0.1.x, you will need to first upgrade to 0.2.0, migrate your runs, and then upgrade to 0.3.0.
+LangSmith 0.3.0 should be a drop-in replacement for LangSmith 0.2.0. You can follow the generic upgrade instructions [here](docs/UPGRADE.md).
+
+**Note: If you want to preserve old runs from 0.1.x, you will need to first upgrade to 0.2.0, migrate your runs, and then upgrade to 0.3.0.**
 
 ## Migrating from LangSmith 0.1.0 to 0.2.0
 
 LangSmith 0.2.0 introduces a new dependency on Clickhouse for run storage. If you wish to retain runs in LangSmith from versions of LangSmith prior to 0.2.0, you will need to complete a migration process.
-You can view the upgrade guide [here](https://github.com/langchain-ai/helm/blob/main/charts/langsmith/docs/UPGRADE-0.2.x.md).
+You can view the upgrade guide [here](docs/UPGRADE-0.2.x.md).
 If you need assistance, please reach out to support@langchain.dev.
 
 ## Deploying LangSmith with Helm
