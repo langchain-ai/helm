@@ -22,8 +22,9 @@ spec:
       app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}
   template:
     metadata:
-      {{- with .Values.backend.deployment.annotations }}
       annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/backend/config-map.yaml") . | sha256sum }}
+      {{- with .Values.backend.deployment.annotations }}
         {{- toYaml . | nindent 8 }}
       {{- end }}
       labels:
