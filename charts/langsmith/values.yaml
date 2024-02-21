@@ -15,19 +15,19 @@ images:
   backendImage:
     repository: "docker.io/langchain/langchainplus-backend"
     pullPolicy: IfNotPresent
-    tag: "c9cf130"
+    tag: "4e98e27"
   frontendImage:
     repository: "docker.io/langchain/langchainplus-frontend-dynamic"
     pullPolicy: IfNotPresent
-    tag: "c9cf130"
+    tag: "4e98e27"
   hubBackendImage:
     repository: "docker.io/langchain/langchainhub-backend"
     pullPolicy: IfNotPresent
-    tag: "c9cf130"
+    tag: "4e98e27"
   playgroundImage:
     repository: "docker.io/langchain/langchainplus-playground"
     pullPolicy: IfNotPresent
-    tag: "c9cf130"
+    tag: "4e98e27"
   postgresImage:
     repository: "docker.io/postgres"
     pullPolicy: IfNotPresent

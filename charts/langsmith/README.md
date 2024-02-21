@@ -1,13 +1,19 @@
 # langsmith
 
-![Version: 0.2.11](https://img.shields.io/badge/Version-0.2.11-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.1.0](https://img.shields.io/badge/AppVersion-0.1.0-informational?style=flat-square)
+![Version: 0.3.1](https://img.shields.io/badge/Version-0.3.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.1.0](https://img.shields.io/badge/AppVersion-0.1.0-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
+
+## Migrating from LangSmith 0.2.0 to 0.3.0
+
+LangSmith 0.3.0 should be a drop-in replacement for LangSmith 0.2.0. You can follow the generic upgrade instructions [here](docs/UPGRADE.md).
+
+**Note: If you want to preserve old runs from 0.1.x, you will need to first upgrade to 0.2.0, migrate your runs, and then upgrade to 0.3.0.**
 
 ## Migrating from LangSmith 0.1.0 to 0.2.0
 
 LangSmith 0.2.0 introduces a new dependency on Clickhouse for run storage. If you wish to retain runs in LangSmith from versions of LangSmith prior to 0.2.0, you will need to complete a migration process.
-You can view the upgrade guide [here](https://github.com/langchain-ai/helm/blob/main/charts/langsmith/docs/UPGRADE-0.2.x.md).
+You can view the upgrade guide [here](docs/UPGRADE-0.2.x.md).
 If you need assistance, please reach out to support@langchain.dev.
 
 ## Deploying LangSmith with Helm
@@ -255,20 +261,20 @@ We typically validate deployment using the following quickstart guide:
 | fullnameOverride | string | `""` | String to fully override `"langsmith.fullname"` |
 | images.backendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.backendImage.repository | string | `"docker.io/langchain/langchainplus-backend"` |  |
-| images.backendImage.tag | string | `"c9cf130"` |  |
+| images.backendImage.tag | string | `"4e98e27"` |  |
 | images.clickhouseImage.pullPolicy | string | `"Always"` |  |
 | images.clickhouseImage.repository | string | `"docker.io/clickhouse/clickhouse-server"` |  |
 | images.clickhouseImage.tag | string | `"23.9"` |  |
 | images.frontendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.frontendImage.repository | string | `"docker.io/langchain/langchainplus-frontend-dynamic"` |  |
-| images.frontendImage.tag | string | `"c9cf130"` |  |
+| images.frontendImage.tag | string | `"4e98e27"` |  |
 | images.hubBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.hubBackendImage.repository | string | `"docker.io/langchain/langchainhub-backend"` |  |
-| images.hubBackendImage.tag | string | `"c9cf130"` |  |
+| images.hubBackendImage.tag | string | `"4e98e27"` |  |
 | images.imagePullSecrets | list | `[]` | Secrets with credentials to pull images from a private registry. Specified as name: value. |
 | images.playgroundImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.playgroundImage.repository | string | `"docker.io/langchain/langchainplus-playground"` |  |
-| images.playgroundImage.tag | string | `"c9cf130"` |  |
+| images.playgroundImage.tag | string | `"4e98e27"` |  |
 | images.postgresImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.postgresImage.repository | string | `"docker.io/postgres"` |  |
 | images.postgresImage.tag | string | `"14.7"` |  |

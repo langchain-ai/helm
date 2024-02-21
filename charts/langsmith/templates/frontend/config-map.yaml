@@ -15,7 +15,7 @@ data:
 
         error_page   500 502 503 504  /50x.html;
         location = /50x.html {
-            root   /usr/share/nginx/html/build;
+            root   /tmp;
         }
 
         location = /health {
@@ -71,9 +71,9 @@ data:
         }
 
         location ~ /{{ .Values.ingress.subdomain }} {
-            root   /usr/share/nginx/html;
+            root   /tmp;
             index  index.html index.htm;
-            try_files $uri $uri/ /{{ .Values.ingress.subdomain }}/index.html;
+            try_files $uri $uri/ /index.html;
         }
 
     }
@@ -84,7 +84,7 @@ data:
       server_name  localhost;
 
       location / {
-          root   /usr/share/nginx/html/build;
+          root   /tmp/build;
           index  index.html index.htm;
           try_files $uri $uri/ /index.html;
       }
@@ -97,7 +97,7 @@ data:
 
       error_page   500 502 503 504  /50x.html;
       location = /50x.html {
-          root   /usr/share/nginx/html/build;
+          root   /tmp/build;
       }
 
       location ~ /api/playground/ {
