@@ -92,10 +92,12 @@ spec:
             {{- toYaml .Values.backend.deployment.resources | nindent 12 }}
           securityContext:
             {{- toYaml .Values.backend.deployment.securityContext | nindent 12 }}
-          {{- with .Values.backend.deployment.volumeMounts }}
           volumeMounts:
-              {{- toYaml . | nindent 12 }}
-          {{- end }}
+            {{- with .Values.backend.deployment.volumeMounts }}
+                {{- toYaml . | nindent 12 }}
+            {{- end }}
+            - mountPath: /docker-entrypoint.d
+              name: nginx-unit-conf
           {{- with .Values.backend.deployment.extraContainerConfig }}
             {{- toYaml . | nindent 10 }}
           {{- end }}
@@ -114,7 +116,13 @@ spec:
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.backend.deployment.volumes }}
       volumes:
-          {{- toYaml . | nindent 8 }}
-      {{- end }}
+        {{- with .Values.backend.deployment.volumes }}
+            {{- toYaml . | nindent 8 }}
+        {{- end }}
+        - name: nginx-unit-conf
+          configMap:
+            name: {{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}
+            items:
+              - key: nginx-unit-config.json
+                path: unit.json
