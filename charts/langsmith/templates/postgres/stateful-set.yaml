@@ -54,10 +54,6 @@ spec:
         {{- include "langsmith.labels" . | nindent 8 }}
         app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-{{ .Values.postgres.name }}
     spec:
-      {{- with .Values.images.imagePullSecrets }}
-      imagePullSecrets:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
       securityContext:
         {{- toYaml .Values.postgres.statefulSet.podSecurityContext | nindent 8 }}
       serviceAccountName: {{ include "postgres.serviceAccountName" . }}
@@ -71,8 +67,8 @@ spec:
             {{- with $envVars }}
              {{- toYaml . | nindent 12 }}
             {{- end }}
-          image: "{{ .Values.images.postgresImage.repository }}:{{ .Values.images.postgresImage.tag | default .Chart.AppVersion }}"
-          imagePullPolicy: {{ .Values.images.postgresImage.pullPolicy }}
+          image: "{{ .Values.global.azure.images.postgresImage.registry }}/{{ .Values.global.azure.images.postgresImage.image }}:{{ .Values.global.azure.images.postgresImage.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.global.azure.images.postgresImage.pullPolicy }}
           ports:
             - name: postgres
               containerPort: {{ .Values.postgres.containerPort }}

@@ -35,10 +35,6 @@ spec:
         app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}
     spec:
       restartPolicy: Never
-      {{- with .Values.images.imagePullSecrets }}
-      imagePullSecrets:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
       securityContext:
         {{- toYaml .Values.backend.clickhouseMigrations.podSecurityContext | nindent 8 }}
       serviceAccountName: {{ include "backend.serviceAccountName" . }}
@@ -55,8 +51,8 @@ spec:
           envFrom:
             - configMapRef:
                 name: {{ include "langsmith.fullname" . }}-config
-          image: "{{ .Values.images.backendImage.repository }}:{{ .Values.images.backendImage.tag | default .Chart.AppVersion }}"
-          imagePullPolicy: {{ .Values.images.backendImage.pullPolicy }}
+          image: "{{ .Values.global.azure.images.backendImage.registry }}/{{ .Values.global.azure.images.backendImage.image }}:{{ .Values.global.azure.images.backendImage.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.global.azure.images.backendImage.pullPolicy }}
           resources:
             {{- toYaml .Values.backend.clickhouseMigrations.resources | nindent 12 }}
           securityContext:

@@ -35,10 +35,6 @@ spec:
         {{- include "langsmith.labels" . | nindent 8 }}
         app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-{{ .Values.redis.name }}
     spec:
-      {{- with .Values.images.imagePullSecrets }}
-      imagePullSecrets:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
       securityContext:
         {{- toYaml .Values.redis.statefulSet.podSecurityContext | nindent 8 }}
       serviceAccountName: {{ include "redis.serviceAccountName" . }}
@@ -54,8 +50,8 @@ spec:
              {{- toYaml . | nindent 12 }}
             {{- end }}
            {{- end }}
-          image: "{{ .Values.images.redisImage.repository }}:{{ .Values.images.redisImage.tag | default .Chart.AppVersion }}"
-          imagePullPolicy: {{ .Values.images.redisImage.pullPolicy }}
+          image: "{{ .Values.global.azure.images.redisImage.registry }}/{{ .Values.global.azure.images.redisImage.image }}:{{ .Values.global.azure.images.redisImage.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.global.azure.images.redisImage.pullPolicy }}
           ports:
             - name: redis
               containerPort: {{ .Values.redis.containerPort }}

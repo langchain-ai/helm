@@ -52,17 +52,13 @@ spec:
         {{- include "langsmith.labels" . | nindent 8 }}
         app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-{{ .Values.clickhouse.name }}
     spec:
-      {{- with .Values.images.imagePullSecrets }}
-      imagePullSecrets:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
       securityContext:
         {{- toYaml .Values.clickhouse.statefulSet.podSecurityContext | nindent 8 }}
       serviceAccountName: {{ include "clickhouse.serviceAccountName" . }}
       containers:
         - name: {{ .Values.clickhouse.name }}
-          image: "{{ .Values.images.clickhouseImage.repository }}:{{ .Values.images.clickhouseImage.tag | default .Chart.AppVersion }}"
-          imagePullPolicy: {{ .Values.images.clickhouseImage.pullPolicy }}
+          image: "{{ .Values.global.azure.images.clickhouseImage.registry }}/{{ .Values.global.azure.images.clickhouseImage.image }}:{{ .Values.global.azure.images.clickhouseImage.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.global.azure.images.clickhouseImage.pullPolicy }}
           {{- with.Values.clickhouse.statefulSet.command }}
           command:
              {{- toYaml . | nindent 12 }}
