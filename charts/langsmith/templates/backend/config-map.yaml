@@ -7,6 +7,9 @@ metadata:
   annotations:
     {{- include "langsmith.annotations" . | nindent 4 }}
 data:
+  CLIENT_ID: "{{ .Values.global.azure.identity.clientId}}"
+  EXTENSION_RESOURCE_ID: "{{ .Values.global.azure.extension.resourceId }}"
+  PLAN_ID: "{{ .Values.global.azure.marketplace.planId }}"
   nginx-unit-config.json: |
     {
       "listeners": {

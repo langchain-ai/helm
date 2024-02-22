@@ -9,37 +9,55 @@ commonAnnotations: {}
 # -- Labels that will be applied to all resources created by the chart
 commonLabels: {}
 
-images:
-   # -- Secrets with credentials to pull images from a private registry. Specified as name: value.
-  imagePullSecrets: []
-  backendImage:
-    repository: "docker.io/langchain/langsmith-backend"
-    pullPolicy: IfNotPresent
-    tag: "0.1.19"
-  frontendImage:
-    repository: "docker.io/langchain/langsmith-frontend"
-    pullPolicy: IfNotPresent
-    tag: "0.1.19"
-  hubBackendImage:
-    repository: "docker.io/langchain/langhub-backend"
-    pullPolicy: IfNotPresent
-    tag: "0.1.19"
-  playgroundImage:
-    repository: "docker.io/langchain/langsmith-playground"
-    pullPolicy: IfNotPresent
-    tag: "0.1.19"
-  postgresImage:
-    repository: "docker.io/postgres"
-    pullPolicy: IfNotPresent
-    tag: "14.7"
-  redisImage:
-    repository: "docker.io/redis"
-    pullPolicy: IfNotPresent
-    tag: "7"
-  clickhouseImage:
-    repository: "docker.io/clickhouse/clickhouse-server"
-    pullPolicy: Always
-    tag: "23.9"
+global:
+  azure:
+    identity:
+      # Application's Managed Service Identity (MSI) Client ID. ClientID can be used to generate authentication token to communicate to external services like Microsoft Marketplace Metering API
+      clientId: "DONOTMODIFY" # Azure populates this value at deployment time
+    marketplace:
+      # id of the plan purchased for the Azure Marketplace Kubernetes application,to be used in usage event payload to metering api, for more information please refer: https://learn.microsoft.com/en-us/partner-center/marketplace/marketplace-metering-service-apis
+      planId: "DONOTMODIFY" # Azure populates this value at deployment time
+    extension:
+      # resource id of the Azure Marketplace Kubernetes application,to be used in usage event payload to metering api, for more information please refer: https://learn.microsoft.com/en-us/partner-center/marketplace/marketplace-metering-service-apis
+      resourceId: "DONOTMODIFY" # application's Azure Resource ID, Azure populates this value at deployment time
+    images:
+      imagePullSecrets: []
+      backendImage:
+        tag: "0.1.19"
+        image: "langsmith-backend"
+        registry: "langsmith.azurecr.io"
+        pullPolicy: IfNotPresent
+      frontendImage:
+        tag: "0.1.19"
+        image: "langsmith-frontend"
+        registry: "langsmith.azurecr.io"
+        pullPolicy: IfNotPresent
+      hubBackendImage:
+        tag: "0.1.19"
+        image: "langsmithhub-backend"
+        registry: "langsmith.azurecr.io"
+        pullPolicy: IfNotPresent
+      playgroundImage:
+        tag: "0.1.19"
+        image: "langsmith-playground"
+        registry: "langsmith.azurecr.io"
+        pullPolicy: IfNotPresent
+      postgresImage:
+        tag: "14.7"
+        image: "postgres"
+        registry: "langsmith.azurecr.io"
+        pullPolicy: IfNotPresent
+      redisImage:
+        tag: "7"
+        image: "redis"
+        registry: "langsmith.azurecr.io"
+        pullPolicy: IfNotPresent
+      clickhouseImage:
+        tag: "23.9"
+        image: "clickhouse-server"
+        registry: "langsmith.azurecr.io"
+        pullPolicy: IfNotPresent
+>>>>>>> b985928 (Add azure options to chart)
 
 ingress:
   enabled: false
