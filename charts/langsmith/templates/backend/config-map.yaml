@@ -21,5 +21,10 @@ data:
               "module": "app.main",
               "callable": "app"
           }
+      },
+      "settings": {
+          "http": {
+              "max_body_size": 26214400
+          }
       }
     }
