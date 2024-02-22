@@ -1,0 +1,29 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ include "langsmith.fullname" . }}-custom-meters-engine
+  annotations:
+    {{- include "langsmith.annotations" . | nindent 4 }}
+  labels:
+    {{- include "langsmith.labels" . | nindent 4 }}
+spec:
+  failedJobsHistoryLimit: 1
+  schedule: "0 * * * *"
+  successfulJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            {{- include "langsmith.labels" . | nindent 8 }}
+        spec:
+          containers:
+          - name: engine
+            image: "{{ .Values.global.azure.images.customMetersAcceleratorImage.registry }}/{{ .Values.global.azure.images.customMetersAcceleratorImage.image }}:{{ .Values.global.azure.images.customMetersAcceleratorImage.tag | default .Chart.AppVersion }}"
+            envFrom:
+            - configMapRef:
+                name: {{ include "langsmith.fullname" . }}-custom-meters-engine
+            env:
+            - name: SUBSCRIPTION_KEY
+              value: "{{ .Values.config.langsmithLicenseKey }}"
+          restartPolicy: Never

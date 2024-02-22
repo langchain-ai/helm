@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "langsmith.fullname" . }}-custom-meters-engine
+data:
+  CLIENT_ID: "{{ .Values.global.azure.identity.clientId }}"
+  EXTENSION_RESOURCE_ID: "{{ .Values.global.azure.extension.resourceId }}"
+  PLAN_ID: "{{ .Values.global.azure.marketplace.planId }}"
+  PRODUCT_ID: "{{ .Values.global.azure.productID }}"
+  WEBHOOK_URI: "{{ .Values.global.azure.webhookUri }}"
