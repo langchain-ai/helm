@@ -34,10 +34,6 @@ spec:
         {{- include "langsmith.labels" . | nindent 8 }}
         app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}
     spec:
-      {{- with .Values.images.imagePullSecrets }}
-      imagePullSecrets:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
       securityContext:
         {{- toYaml .Values.platformBackend.deployment.podSecurityContext | nindent 8 }}
       serviceAccountName: {{ include "platformBackend.serviceAccountName" . }}
@@ -57,8 +53,8 @@ spec:
           envFrom:
             - configMapRef:
                 name: {{ include "langsmith.fullname" . }}-config
-          image: "{{ .Values.images.platformBackendImage.repository }}:{{ .Values.images.platformBackendImage.tag | default .Chart.AppVersion }}"
-          imagePullPolicy: {{ .Values.images.platformBackendImage.pullPolicy }}
+          image: "{{ .Values.global.azure.images.platformBackendImage.registry }}/{{ .Values.global.azure.images.platformBackendImage.image }}:{{ .Values.global.azure.images.platformBackendImage.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.global.azure.images.platformBackendImage.pullPolicy }}
           ports:
             - name: platform
               containerPort: {{ .Values.platformBackend.containerPort }}

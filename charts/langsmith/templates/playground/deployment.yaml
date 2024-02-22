@@ -34,10 +34,6 @@ spec:
         {{- include "langsmith.labels" . | nindent 8 }}
         app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-{{ .Values.playground.name }}
     spec:
-      {{- with .Values.images.imagePullSecrets }}
-      imagePullSecrets:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
       securityContext:
         {{- toYaml .Values.playground.deployment.podSecurityContext | nindent 8 }}
       serviceAccountName: {{ include "playground.serviceAccountName" . }}
@@ -51,8 +47,8 @@ spec:
           env:
             {{- toYaml . | nindent 12 }}
           {{- end }}
-          image: "{{ .Values.images.playgroundImage.repository }}:{{ .Values.images.playgroundImage.tag | default .Chart.AppVersion }}"
-          imagePullPolicy: {{ .Values.images.playgroundImage.pullPolicy }}
+          image: "{{ .Values.global.azure.images.playgroundImage.registry }}/{{ .Values.global.azure.images.playgroundImage.image }}:{{ .Values.global.azure.images.playgroundImage.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.global.azure.images.playgroundImage.pullPolicy }}
           ports:
             - name: playground
               containerPort: {{ .Values.playground.containerPort }}
