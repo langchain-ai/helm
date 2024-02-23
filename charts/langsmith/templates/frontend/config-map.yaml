@@ -11,7 +11,9 @@ data:
   nginx.conf: |
     server {
         listen       {{ .Values.frontend.containerPort }};
+        listen  [::]:{{ .Values.frontend.containerPort }};
         server_name  localhost;
+        client_max_body_size 25M;
 
         error_page   500 502 503 504  /50x.html;
         location = /50x.html {
@@ -81,7 +83,9 @@ data:
   nginx.conf: |
     server {
       listen       {{ .Values.frontend.containerPort }};
+      listen  [::]:{{ .Values.frontend.containerPort }};
       server_name  localhost;
+      client_max_body_size 25M;
 
       location / {
           root   /tmp/build;
