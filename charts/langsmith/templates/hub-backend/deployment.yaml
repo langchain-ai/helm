@@ -34,10 +34,6 @@ spec:
         {{- include "langsmith.labels" . | nindent 8 }}
         app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-{{ .Values.hubBackend.name }}
     spec:
-      {{- with .Values.global.azure.images.imagePullSecrets }}
-      imagePullSecrets:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
       securityContext:
         {{- toYaml .Values.hubBackend.deployment.podSecurityContext | nindent 8 }}
       serviceAccountName: {{ include "hubBackend.serviceAccountName" . }}
