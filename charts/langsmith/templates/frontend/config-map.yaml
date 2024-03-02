@@ -9,8 +9,18 @@ metadata:
 data:
 {{- if .Values.ingress.subdomain }}
   nginx.conf: |
+    proxy_ssl_server_name on;
+
+    proxy_cache_path /tmp/server_cache levels=1:2 keys_zone=llm_cache:100m max_size=1g inactive=60 use_temp_path=off;
+
+    log_format cache_log '$remote_addr - $remote_user [$time_local] '
+    '"$request" $status $body_bytes_sent '
+    '"$http_referer" "$http_user_agent" '
+    'Cache: $upstream_cache_status';
+
     server {
         listen       {{ .Values.frontend.containerPort }};
+        listen  [::]:{{ .Values.frontend.containerPort }};
         server_name  localhost;
         client_max_body_size 25M;
 
@@ -77,68 +87,131 @@ data:
             try_files $uri $uri/ /{{ .Values.ingress.subdomain }}/index.html;
         }
 
+        {{- if .Values.frontend.cache.enabled }}
+        location ~ /{{ .Values.ingress.subdomain }}/proxy/openai {
+            rewrite /{{ .Values.ingress.subdomain }}/proxy/openai/(.*) /v1/$1  break;
+            proxy_pass {{ .Values.frontend.cache.config.openAIUrl }};
+            proxy_set_header Host api.openai.com;
+
+
+            proxy_set_header Connection '';
+            proxy_ignore_headers Cache-Control;
+            proxy_ignore_headers "Set-Cookie";
+
+            proxy_buffer_size   2k;
+
+            proxy_cache llm_cache;
+            proxy_cache_methods POST;
+            proxy_cache_key "{{ .Values.frontend.cache.config.openAIUrl }}|$request_method|$request_uri|$request_body";
+            proxy_cache_valid 200 302 10m;
+            proxy_cache_valid 404      1m;
+            proxy_cache_use_stale error timeout updating http_500 http_502 http_503 http_504;
+            proxy_cache_background_update on;
+
+            add_header X-Cache-Status $upstream_cache_status;
+            client_body_buffer_size 4m;
+            access_log /dev/stdout cache_log;
+        }
+        {{- end }}
     }
 {{- else }}
   nginx.conf: |
+    proxy_ssl_server_name on;
+
+    proxy_cache_path /tmp/server_cache levels=1:2 keys_zone=llm_cache:100m max_size=1g inactive=60 use_temp_path=off;
+
+    log_format cache_log '$remote_addr - $remote_user [$time_local] '
+    '"$request" $status $body_bytes_sent '
+    '"$http_referer" "$http_user_agent" '
+    'Cache: $upstream_cache_status';
+
+
     server {
-      listen       {{ .Values.frontend.containerPort }};
-      listen  [::]:{{ .Values.frontend.containerPort }};
-      server_name  localhost;
-      client_max_body_size 25M;
+        listen       {{ .Values.frontend.containerPort }};
+        listen  [::]:{{ .Values.frontend.containerPort }};
+        server_name  localhost;
+        client_max_body_size 25M;
 
-      location / {
-          root   /tmp/build;
-          index  index.html index.htm;
-          try_files $uri $uri/ /index.html;
-      }
+        location / {
+            root   /tmp/build;
+            index  index.html index.htm;
+            try_files $uri $uri/ /index.html;
+        }
 
-      location = /health {
-                # health checks are frequent and boring, so we avoid logging them
-                access_log off;
-                return 200;
-      }
+        location = /health {
+                  # health checks are frequent and boring, so we avoid logging them
+                  access_log off;
+                  return 200;
+        }
 
-      error_page   500 502 503 504  /50x.html;
-      location = /50x.html {
-          root   /tmp/build;
-      }
+        error_page   500 502 503 504  /50x.html;
+        location = /50x.html {
+            root   /tmp/build;
+        }
 
-      location ~ /api/playground/ {
-          rewrite /api/playground/(.*) /$1  break;
-          proxy_set_header Connection '';
-          proxy_http_version 1.1;
-          proxy_buffering off;
-          proxy_cache off;
-          proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.playground.name }}:{{ .Values.playground.service.port }};
-      }
+        location ~ /api/playground/ {
+            rewrite /api/playground/(.*) /$1  break;
+            proxy_set_header Connection '';
+            proxy_http_version 1.1;
+            proxy_buffering off;
+            proxy_cache off;
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.playground.name }}:{{ .Values.playground.service.port }};
+        }
 
-      location = /api/playground {
-          rewrite /api/playground /  break;
-          proxy_set_header Connection '';
-          proxy_http_version 1.1;
-          proxy_buffering off;
-          proxy_cache off;
-          proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.playground.name }}:{{ .Values.playground.service.port }};
-      }
+        location = /api/playground {
+            rewrite /api/playground /  break;
+            proxy_set_header Connection '';
+            proxy_http_version 1.1;
+            proxy_buffering off;
+            proxy_cache off;
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.playground.name }}:{{ .Values.playground.service.port }};
+        }
 
-       # Hub Backend Routes
-       location ~ /api-hub {
-          rewrite /api-hub/(.*) /$1  break;
-          proxy_set_header Connection '';
-          proxy_http_version 1.1;
-          proxy_buffering off;
-          proxy_cache off;
-          proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.hubBackend.name }}:{{ .Values.hubBackend.service.port }};
-      }
+         # Hub Backend Routes
+         location ~ /api-hub {
+            rewrite /api-hub/(.*) /$1  break;
+            proxy_set_header Connection '';
+            proxy_http_version 1.1;
+            proxy_buffering off;
+            proxy_cache off;
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.hubBackend.name }}:{{ .Values.hubBackend.service.port }};
+        }
 
-     # Backend Routes
-       location ~ /api {
-          rewrite /api/(.*) /$1  break;
-          proxy_set_header Connection '';
-          proxy_http_version 1.1;
-          proxy_buffering off;
-          proxy_cache off;
-          proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}:{{ .Values.backend.service.port }};
+        # Backend Routes
+        location ~ /api {
+            rewrite /api/(.*) /$1  break;
+            proxy_set_header Connection '';
+            proxy_http_version 1.1;
+            proxy_buffering off;
+            proxy_cache off;
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}:{{ .Values.backend.service.port }};
+       }
+
+        {{- if .Values.frontend.cache.enabled }}
+        location ~ /proxy/openai {
+            rewrite /proxy/openai/(.*) /v1/$1  break;
+            proxy_pass {{ .Values.frontend.cache.config.openAIUrl }};
+            proxy_set_header Host api.openai.com;
+
+
+            proxy_set_header Connection '';
+            proxy_ignore_headers Cache-Control;
+            proxy_ignore_headers "Set-Cookie";
+
+            proxy_buffer_size   2k;
+
+            proxy_cache llm_cache;
+            proxy_cache_methods POST;
+            proxy_cache_key "{{ .Values.frontend.cache.config.openAIUrl }}|$request_method|$request_uri|$request_body";
+            proxy_cache_valid 200 302 10m;
+            proxy_cache_valid 404      1m;
+            proxy_cache_use_stale error timeout updating http_500 http_502 http_503 http_504;
+            proxy_cache_background_update on;
+
+            add_header X-Cache-Status $upstream_cache_status;
+            client_body_buffer_size 4m;
+            access_log /dev/stdout cache_log;
+        }
+        {{- end }}
       }
-    }
 {{- end }}
