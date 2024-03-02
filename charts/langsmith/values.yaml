@@ -222,6 +222,8 @@ frontend:
   # Turn on LLM Proxy Cache
   cache:
     enabled: true
+    config:
+      openAIUrl: "https://api.openai.com"
   deployment:
     replicas: 1
     labels: {}

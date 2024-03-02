@@ -98,8 +98,7 @@ data:
             proxy_ignore_headers Cache-Control;
             proxy_ignore_headers "Set-Cookie";
 
-            proxy_buffers   4 512k;
-            proxy_buffer_size   256k;
+            proxy_buffering off;
 
             proxy_cache llm_cache;
             proxy_cache_methods POST;
@@ -115,7 +114,6 @@ data:
             access_log /dev/stdout cache_log;
         }
         {{- end }}
-
     }
 {{- else }}
   nginx.conf: |
@@ -193,7 +191,7 @@ data:
         {{- if .Values.frontend.cache.enabled }}
         location ~ /proxy/openai {
             rewrite /proxy/openai/(.*) /v1/$1  break;
-            proxy_pass https://api.openai.com;
+            proxy_pass {{ .Values.frontend.cache.config.openAIUrl }};
             proxy_set_header Host api.openai.com;
 
 
@@ -202,7 +200,7 @@ data:
             proxy_ignore_headers "Set-Cookie";
 
             proxy_buffers   4 512k;
-            proxy_buffer_size   256k;
+            proxy_buffer_size   4k;
 
             proxy_cache llm_cache;
             proxy_cache_methods POST;
