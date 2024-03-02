@@ -219,6 +219,9 @@ frontend:
   name: "frontend"
   containerPort: 8080
   existingConfigMapName: ""
+  # Turn on LLM Proxy Cache
+  cache:
+    enabled: true
   deployment:
     replicas: 1
     labels: {}
