@@ -42,12 +42,21 @@ images:
     tag: "23.9"
 
 ingress:
+  enabled: false
   hostname: ""
   subdomain: ""
-  enabled: false
   ingressClassName: ""
   annotations: {}
   labels: {}
+  tls: []
+
+apiIngress:
+  enabled: false
+  hostname: ""
+  subdomain: ""
+  ingressClassName: ""
+  annotations: { }
+  labels: { }
   tls: []
 
 config:
