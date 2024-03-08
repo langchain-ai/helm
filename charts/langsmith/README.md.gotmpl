@@ -104,11 +104,7 @@ config:
 postgres:
   external:
     enabled: true
-    host: <host>
-    port: 5432
-    user: <user>
-    password: <password>
-    database: <database>
+    connectionUrl: "postgresql://<username>:<password>@<url>:5432/<dbname>"
 redis:
   external:
     enabled: true
@@ -117,6 +113,8 @@ redis:
 
 You can also use existingSecretName to avoid checking in secrets. This secret will need to follow
 the same format as the secret in the corresponding `secrets.yaml` file.
+
+More examples can be found in the `examples` directory.
 
 
 ### Deploying to Kubernetes:
