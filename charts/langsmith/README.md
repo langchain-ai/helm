@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.3.2](https://img.shields.io/badge/Version-0.3.2-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.1.0](https://img.shields.io/badge/AppVersion-0.1.0-informational?style=flat-square)
+![Version: 0.3.5](https://img.shields.io/badge/Version-0.3.5-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.1.0](https://img.shields.io/badge/AppVersion-0.1.0-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -261,16 +261,16 @@ We typically validate deployment using the following quickstart guide:
 | fullnameOverride | string | `""` | String to fully override `"langsmith.fullname"` |
 | images.backendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.backendImage.repository | string | `"docker.io/langchain/langchainplus-backend"` |  |
-| images.backendImage.tag | string | `"d2c7513"` |  |
+| images.backendImage.tag | string | `"0.1.18"` |  |
 | images.clickhouseImage.pullPolicy | string | `"Always"` |  |
 | images.clickhouseImage.repository | string | `"docker.io/clickhouse/clickhouse-server"` |  |
 | images.clickhouseImage.tag | string | `"23.9"` |  |
 | images.frontendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.frontendImage.repository | string | `"docker.io/langchain/langchainplus-frontend-dynamic"` |  |
-| images.frontendImage.tag | string | `"d2c7513"` |  |
+| images.frontendImage.tag | string | `"0.1.18"` |  |
 | images.hubBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.hubBackendImage.repository | string | `"docker.io/langchain/langchainhub-backend"` |  |
-| images.hubBackendImage.tag | string | `"d2c7513"` |  |
+| images.hubBackendImage.tag | string | `"0.1.18"` |  |
 | images.imagePullSecrets | list | `[]` | Secrets with credentials to pull images from a private registry. Specified as name: value. |
 | images.playgroundImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.playgroundImage.repository | string | `"docker.io/langchain/langchainplus-playground"` |  |
@@ -590,19 +590,9 @@ We typically validate deployment using the following quickstart guide:
 | queue.autoscaling.targetCPUUtilizationPercentage | int | `80` |  |
 | queue.deployment.affinity | object | `{}` |  |
 | queue.deployment.annotations | object | `{}` |  |
-| queue.deployment.command[0] | string | `"rq"` |  |
-| queue.deployment.command[10] | string | `"lc_database.queue.connection.RedisRetry"` |  |
-| queue.deployment.command[11] | string | `"--job-class"` |  |
-| queue.deployment.command[12] | string | `"lc_database.queue.job.AsyncJob"` |  |
-| queue.deployment.command[1] | string | `"worker"` |  |
-| queue.deployment.command[2] | string | `"--with-scheduler"` |  |
-| queue.deployment.command[3] | string | `"-u"` |  |
-| queue.deployment.command[4] | string | `"$(REDIS_DATABASE_URI)"` |  |
-| queue.deployment.command[5] | string | `"--serializer"` |  |
-| queue.deployment.command[6] | string | `"lc_database.queue.serializer.ORJSONSerializer"` |  |
-| queue.deployment.command[7] | string | `"--worker-class"` |  |
-| queue.deployment.command[8] | string | `"lc_database.queue.worker.Worker"` |  |
-| queue.deployment.command[9] | string | `"--connection-class"` |  |
+| queue.deployment.command[0] | string | `"saq"` |  |
+| queue.deployment.command[1] | string | `"app.async_worker.settings"` |  |
+| queue.deployment.command[2] | string | `"--quiet"` |  |
 | queue.deployment.extraContainerConfig | object | `{}` |  |
 | queue.deployment.extraEnv | list | `[]` |  |
 | queue.deployment.labels | object | `{}` |  |

@@ -15,15 +15,15 @@ images:
   backendImage:
     repository: "docker.io/langchain/langchainplus-backend"
     pullPolicy: IfNotPresent
-    tag: "d2c7513"
+    tag: "0.1.18"
   frontendImage:
     repository: "docker.io/langchain/langchainplus-frontend-dynamic"
     pullPolicy: IfNotPresent
-    tag: "d2c7513"
+    tag: "0.1.18"
   hubBackendImage:
     repository: "docker.io/langchain/langchainhub-backend"
     pullPolicy: IfNotPresent
-    tag: "d2c7513"
+    tag: "0.1.18"
   playgroundImage:
     repository: "docker.io/langchain/langchainplus-playground"
     pullPolicy: IfNotPresent
@@ -198,6 +198,7 @@ clickhouse:
     affinity: {}
     volumes: []
     volumeMounts: []
+    # We recommend using a persistent volume and increasing the storage size to something like 50Gi when using in a persistent environment!
     persistence:
       size: 8Gi
       storageClassName: ""
@@ -219,11 +220,6 @@ frontend:
   name: "frontend"
   containerPort: 8080
   existingConfigMapName: ""
-  # Turn on LLM Proxy Cache
-  cache:
-    enabled: true
-    config:
-      openAIUrl: "https://api.openai.com"
   deployment:
     replicas: 1
     labels: {}
@@ -425,25 +421,15 @@ queue:
     securityContext: {}
     resources: {}
 #      limits:
-#        cpu: 1000m
-#        memory: 1Gi
+#        cpu: 2000m
+#        memory: 4Gi
 #      requests:
-#        cpu: 200m
-#        memory: 500Mi
+#        cpu: 1000m
+#        memory: 2000Mi
     command:
-      - "rq"
-      - "worker"
-      - "--with-scheduler"
-      - "-u"
-      - "$(REDIS_DATABASE_URI)"
-      - "--serializer"
-      - "lc_database.queue.serializer.ORJSONSerializer"
-      - "--worker-class"
-      - "lc_database.queue.worker.Worker"
-      - "--connection-class"
-      - "lc_database.queue.connection.RedisRetry"
-      - "--job-class"
-      - "lc_database.queue.job.AsyncJob"
+      - "saq"
+      - "app.async_worker.settings"
+      - "--quiet"
     extraContainerConfig: {}
     extraEnv: []
     sidecars: []
