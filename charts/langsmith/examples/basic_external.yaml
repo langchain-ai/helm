@@ -1,0 +1,14 @@
+config:
+  langsmithLicenseKey: "YOUR_LICENSE_KEY"
+
+postgres:
+  external:
+    enabled: true
+    connectionUrl: "default:foo@host:port/database?sslmode=require"
+    # existingSecretName: "postgres-secret" Can also put the above into a secret if you want to avoid putting the connection string in the values file.
+
+redis:
+  external:
+    enabled: true
+    connectionUrl: "redis://host:port"
+    # existingSecretName: "redis-secret" Can also put the above into a secret if you want to avoid putting the connection string in the values file.

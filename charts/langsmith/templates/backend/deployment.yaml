@@ -23,7 +23,7 @@ spec:
   template:
     metadata:
       annotations:
-        checksum/config: {{ include (print $.Template.BasePath "/backend/config-map.yaml") . | sha256sum }}
+        rollme: {{ randAlphaNum 5 | quote }}
       {{- with .Values.backend.deployment.annotations }}
         {{- toYaml . | nindent 8 }}
       {{- end }}
@@ -49,11 +49,6 @@ spec:
           {{- end }}
           env:
             {{- include "langsmith.commonEnv" . | nindent 12 }}
-            - name: OPENAI_API_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: {{ include "langsmith.secretsName" . }}
-                  key: openai_api_key
             - name: PORT
               value: {{ .Values.backend.containerPort | quote }}
             {{- with .Values.backend.deployment.extraEnv }}

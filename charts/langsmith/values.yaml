@@ -13,21 +13,21 @@ images:
    # -- Secrets with credentials to pull images from a private registry. Specified as name: value.
   imagePullSecrets: []
   backendImage:
-    repository: "docker.io/langchain/langchainplus-backend"
+    repository: "docker.io/langchain/langsmith-backend"
     pullPolicy: IfNotPresent
-    tag: "d2c7513"
+    tag: "0.1.19"
   frontendImage:
-    repository: "docker.io/langchain/langchainplus-frontend-dynamic"
+    repository: "docker.io/langchain/langsmith-frontend"
     pullPolicy: IfNotPresent
-    tag: "d2c7513"
+    tag: "0.1.19"
   hubBackendImage:
-    repository: "docker.io/langchain/langchainhub-backend"
+    repository: "docker.io/langchain/langhub-backend"
     pullPolicy: IfNotPresent
-    tag: "d2c7513"
+    tag: "0.1.19"
   playgroundImage:
-    repository: "docker.io/langchain/langchainplus-playground"
+    repository: "docker.io/langchain/langsmith-playground"
     pullPolicy: IfNotPresent
-    tag: "d2c7513"
+    tag: "0.1.19"
   postgresImage:
     repository: "docker.io/postgres"
     pullPolicy: IfNotPresent
@@ -42,9 +42,18 @@ images:
     tag: "23.9"
 
 ingress:
+  enabled: false
   hostname: ""
   subdomain: ""
+  ingressClassName: ""
+  annotations: {}
+  labels: {}
+  tls: []
+
+apiIngress:
   enabled: false
+  hostname: ""
+  subdomain: ""
   ingressClassName: ""
   annotations: {}
   labels: {}
@@ -181,11 +190,11 @@ clickhouse:
     securityContext: {}
     resources: {}
     #      limits:
-    #        cpu: 4000m
-    #        memory: 16Gi
+    #        cpu: 5000m
+    #        memory: 20Gi
     #      requests:
-    #        cpu: 1000m
-    #        memory: 4Gi
+    #        cpu: 3000m
+    #        memory: 12Gi
     command:
       - "/bin/bash"
       - "-c"
@@ -198,6 +207,7 @@ clickhouse:
     affinity: {}
     volumes: []
     volumeMounts: []
+    # We recommend using a persistent volume and increasing the storage size to something like 50Gi when using in a production environment!
     persistence:
       size: 8Gi
       storageClassName: ""
@@ -219,11 +229,6 @@ frontend:
   name: "frontend"
   containerPort: 8080
   existingConfigMapName: ""
-  # Turn on LLM Proxy Cache
-  cache:
-    enabled: true
-    config:
-      openAIUrl: "https://api.openai.com"
   deployment:
     replicas: 1
     labels: {}
@@ -399,7 +404,6 @@ postgres:
     volumes: []
     volumeMounts: []
     persistence:
-      enabled: false
       size: 8Gi
       storageClassName: ""
   service:
@@ -425,25 +429,15 @@ queue:
     securityContext: {}
     resources: {}
 #      limits:
-#        cpu: 1000m
-#        memory: 1Gi
+#        cpu: 2000m
+#        memory: 4Gi
 #      requests:
-#        cpu: 200m
-#        memory: 500Mi
+#        cpu: 1000m
+#        memory: 2000Mi
     command:
-      - "rq"
-      - "worker"
-      - "--with-scheduler"
-      - "-u"
-      - "$(REDIS_DATABASE_URI)"
-      - "--serializer"
-      - "lc_database.queue.serializer.ORJSONSerializer"
-      - "--worker-class"
-      - "lc_database.queue.worker.Worker"
-      - "--connection-class"
-      - "lc_database.queue.connection.RedisRetry"
-      - "--job-class"
-      - "lc_database.queue.job.AsyncJob"
+      - "saq"
+      - "app.async_worker.settings"
+      - "--quiet"
     extraContainerConfig: {}
     extraEnv: []
     sidecars: []

@@ -22,8 +22,9 @@ spec:
       app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-{{ .Values.playground.name }}
   template:
     metadata:
-      {{- with .Values.playground.deployment.annotations }}
       annotations:
+        rollme: {{ randAlphaNum 5 | quote }}
+      {{- with .Values.playground.deployment.annotations }}
         {{- toYaml . | nindent 8 }}
       {{- end }}
       labels:
