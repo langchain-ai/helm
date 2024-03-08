@@ -24,18 +24,18 @@ spec:
   - host: {{ .Values.apiIngress.hostname }}
     http:
       paths:
-      - path: /{{ .Values.apiIngress.subdomain }}
+      - path: /{{ .Values.apiIngress.subdomain }}/api/v1
         pathType: Prefix
         backend:
           service:
             name: {{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}
             port:
               number: {{ .Values.backend.service.port }}
-      - path: /{{ .Values.apiIngress.subdomain }}
+      - path: /{{ .Values.apiIngress.subdomain }}/api-hub/v1
         pathType: Prefix
         backend:
           service:
-            name: {{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}
+            name: {{ include "langsmith.fullname" . }}-{{ .Values.hubBackend.name }}
             port:
               number: {{ .Values.backend.service.port }}
 {{- end }}
