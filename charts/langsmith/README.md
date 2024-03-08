@@ -35,7 +35,7 @@ Ensure you have the following tools/items ready.
 3. LangSmith License Key
     1. You can get this from your Langchain representative. Contact us at support@langchain.dev for more information.
 3. SSL(optional)
-    1. This should be attachable to a load balancer that
+    1. This should be attachable to the load balancer that you will be provisioning.
 4. OpenAI API Key(optional).
     1. Used for natural language search feature. Can specify OpenAI key in browser as well for the playground feature.
 5. Oauth Configuration(optional).
@@ -104,11 +104,7 @@ config:
 postgres:
   external:
     enabled: true
-    host: <host>
-    port: 5432
-    user: <user>
-    password: <password>
-    database: <database>
+    connectionUrl: "postgresql://<username>:<password>@<url>:5432/<dbname>"
 redis:
   external:
     enabled: true
@@ -117,6 +113,8 @@ redis:
 
 You can also use existingSecretName to avoid checking in secrets. This secret will need to follow
 the same format as the secret in the corresponding `secrets.yaml` file.
+
+More examples can be found in the `examples` directory.
 
 ### Deploying to Kubernetes:
 
@@ -216,6 +214,13 @@ We typically validate deployment using the following quickstart guide:
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
+| apiIngress.annotations | object | `{}` |  |
+| apiIngress.enabled | bool | `false` |  |
+| apiIngress.hostname | string | `""` |  |
+| apiIngress.ingressClassName | string | `""` |  |
+| apiIngress.labels | object | `{}` |  |
+| apiIngress.subdomain | string | `""` |  |
+| apiIngress.tls | list | `[]` |  |
 | clickhouse.containerHttpPort | int | `8123` |  |
 | clickhouse.containerNativePort | int | `9000` |  |
 | clickhouse.external.database | string | `"default"` |  |
@@ -260,21 +265,21 @@ We typically validate deployment using the following quickstart guide:
 | commonLabels | object | `{}` | Labels that will be applied to all resources created by the chart |
 | fullnameOverride | string | `""` | String to fully override `"langsmith.fullname"` |
 | images.backendImage.pullPolicy | string | `"IfNotPresent"` |  |
-| images.backendImage.repository | string | `"docker.io/langchain/langchainplus-backend"` |  |
+| images.backendImage.repository | string | `"docker.io/langchain/langsmith-backend"` |  |
 | images.backendImage.tag | string | `"0.1.18"` |  |
 | images.clickhouseImage.pullPolicy | string | `"Always"` |  |
 | images.clickhouseImage.repository | string | `"docker.io/clickhouse/clickhouse-server"` |  |
 | images.clickhouseImage.tag | string | `"23.9"` |  |
 | images.frontendImage.pullPolicy | string | `"IfNotPresent"` |  |
-| images.frontendImage.repository | string | `"docker.io/langchain/langchainplus-frontend-dynamic"` |  |
+| images.frontendImage.repository | string | `"docker.io/langchain/langsmith-frontend"` |  |
 | images.frontendImage.tag | string | `"0.1.18"` |  |
 | images.hubBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
-| images.hubBackendImage.repository | string | `"docker.io/langchain/langchainhub-backend"` |  |
+| images.hubBackendImage.repository | string | `"docker.io/langchain/langhub-backend"` |  |
 | images.hubBackendImage.tag | string | `"0.1.18"` |  |
 | images.imagePullSecrets | list | `[]` | Secrets with credentials to pull images from a private registry. Specified as name: value. |
 | images.playgroundImage.pullPolicy | string | `"IfNotPresent"` |  |
-| images.playgroundImage.repository | string | `"docker.io/langchain/langchainplus-playground"` |  |
-| images.playgroundImage.tag | string | `"d2c7513"` |  |
+| images.playgroundImage.repository | string | `"docker.io/langchain/langsmith-playground"` |  |
+| images.playgroundImage.tag | string | `"0.1.18"` |  |
 | images.postgresImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.postgresImage.repository | string | `"docker.io/postgres"` |  |
 | images.postgresImage.tag | string | `"14.7"` |  |
@@ -568,7 +573,6 @@ We typically validate deployment using the following quickstart guide:
 | postgres.statefulSet.extraEnv | list | `[]` |  |
 | postgres.statefulSet.labels | object | `{}` |  |
 | postgres.statefulSet.nodeSelector | object | `{}` |  |
-| postgres.statefulSet.persistence.enabled | bool | `false` |  |
 | postgres.statefulSet.persistence.size | string | `"8Gi"` |  |
 | postgres.statefulSet.persistence.storageClassName | string | `""` |  |
 | postgres.statefulSet.podSecurityContext | object | `{}` |  |
