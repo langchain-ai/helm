@@ -26,7 +26,7 @@ data:
                           "Access-Control-Allow-Credentials": "true",
                           "Access-Control-Allow-Origin": "$header_origin",
                           "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, PATCH, OPTIONS, HEAD",
-                          "Access-Control-Allow-Headers": "authorization,x-tenant-id",
+                          "Access-Control-Allow-Headers": "$header_access_control_request_headers",
                           "Access-Control-Max-Age": "86400"
                       }
                   }
