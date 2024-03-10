@@ -33,7 +33,7 @@ global:
         pullPolicy: IfNotPresent
       hubBackendImage:
         tag: "0.1.19"
-        image: "langsmithhub-backend"
+        image: "langhub-backend"
         registry: "langsmith.azurecr.io"
         pullPolicy: IfNotPresent
       playgroundImage:
