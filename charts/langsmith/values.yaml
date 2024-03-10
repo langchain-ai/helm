@@ -56,7 +56,6 @@ global:
         image: "clickhouse-server"
         registry: "langsmith.azurecr.io"
         pullPolicy: IfNotPresent
->>>>>>> b985928 (Add azure options to chart)
 
 ingress:
   enabled: false
