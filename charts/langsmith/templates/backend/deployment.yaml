@@ -118,7 +118,11 @@ spec:
         {{- end }}
         - name: nginx-unit-conf
           configMap:
+            {{- if .Values.backend.existingConfigMapName }}
+            name: {{ .Values.backend.existingConfigMapName }}
+            {{- else }}
             name: {{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}
+            {{- end }}
             items:
               - key: nginx-unit-config.json
                 path: unit.json
