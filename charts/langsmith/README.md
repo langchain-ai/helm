@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.3.9](https://img.shields.io/badge/Version-0.3.9-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.1.19](https://img.shields.io/badge/AppVersion-0.1.19-informational?style=flat-square)
+![Version: 0.4.0](https://img.shields.io/badge/Version-0.4.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.1.37](https://img.shields.io/badge/AppVersion-0.1.37-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -278,7 +278,7 @@ We typically validate deployment using the following quickstart guide:
 | clickhouse.statefulSet.extraEnv | list | `[]` |  |
 | clickhouse.statefulSet.labels | object | `{}` |  |
 | clickhouse.statefulSet.nodeSelector | object | `{}` |  |
-| clickhouse.statefulSet.persistence.size | string | `"8Gi"` |  |
+| clickhouse.statefulSet.persistence.size | string | `"50Gi"` |  |
 | clickhouse.statefulSet.persistence.storageClassName | string | `""` |  |
 | clickhouse.statefulSet.podSecurityContext | object | `{}` |  |
 | clickhouse.statefulSet.resources | object | `{}` |  |
@@ -292,20 +292,20 @@ We typically validate deployment using the following quickstart guide:
 | fullnameOverride | string | `""` | String to fully override `"langsmith.fullname"` |
 | images.backendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.backendImage.repository | string | `"docker.io/langchain/langsmith-backend"` |  |
-| images.backendImage.tag | string | `"0.1.19"` |  |
+| images.backendImage.tag | string | `"0.1.37"` |  |
 | images.clickhouseImage.pullPolicy | string | `"Always"` |  |
 | images.clickhouseImage.repository | string | `"docker.io/clickhouse/clickhouse-server"` |  |
 | images.clickhouseImage.tag | string | `"23.9"` |  |
 | images.frontendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.frontendImage.repository | string | `"docker.io/langchain/langsmith-frontend"` |  |
-| images.frontendImage.tag | string | `"0.1.19"` |  |
+| images.frontendImage.tag | string | `"0.1.37"` |  |
 | images.hubBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.hubBackendImage.repository | string | `"docker.io/langchain/langhub-backend"` |  |
-| images.hubBackendImage.tag | string | `"0.1.19"` |  |
+| images.hubBackendImage.tag | string | `"0.1.37"` |  |
 | images.imagePullSecrets | list | `[]` | Secrets with credentials to pull images from a private registry. Specified as name: value. |
 | images.playgroundImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.playgroundImage.repository | string | `"docker.io/langchain/langsmith-playground"` |  |
-| images.playgroundImage.tag | string | `"0.1.19"` |  |
+| images.playgroundImage.tag | string | `"0.1.37"` |  |
 | images.postgresImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.postgresImage.repository | string | `"docker.io/postgres"` |  |
 | images.postgresImage.tag | string | `"14.7"` |  |
@@ -444,7 +444,7 @@ We typically validate deployment using the following quickstart guide:
 | clickhouse.statefulSet.extraEnv | list | `[]` |  |
 | clickhouse.statefulSet.labels | object | `{}` |  |
 | clickhouse.statefulSet.nodeSelector | object | `{}` |  |
-| clickhouse.statefulSet.persistence.size | string | `"8Gi"` |  |
+| clickhouse.statefulSet.persistence.size | string | `"50Gi"` |  |
 | clickhouse.statefulSet.persistence.storageClassName | string | `""` |  |
 | clickhouse.statefulSet.podSecurityContext | object | `{}` |  |
 | clickhouse.statefulSet.resources | object | `{}` |  |
