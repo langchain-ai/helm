@@ -15,19 +15,19 @@ images:
   backendImage:
     repository: "docker.io/langchain/langsmith-backend"
     pullPolicy: IfNotPresent
-    tag: "0.1.19"
+    tag: "0.1.37"
   frontendImage:
     repository: "docker.io/langchain/langsmith-frontend"
     pullPolicy: IfNotPresent
-    tag: "0.1.19"
+    tag: "0.1.37"
   hubBackendImage:
     repository: "docker.io/langchain/langhub-backend"
     pullPolicy: IfNotPresent
-    tag: "0.1.19"
+    tag: "0.1.37"
   playgroundImage:
     repository: "docker.io/langchain/langsmith-playground"
     pullPolicy: IfNotPresent
-    tag: "0.1.19"
+    tag: "0.1.37"
   postgresImage:
     repository: "docker.io/postgres"
     pullPolicy: IfNotPresent
@@ -210,7 +210,7 @@ clickhouse:
     volumeMounts: []
     # We recommend using a persistent volume and increasing the storage size to something like 50Gi when using in a production environment!
     persistence:
-      size: 8Gi
+      size: 50Gi
       storageClassName: ""
   service:
     type: ClusterIP
