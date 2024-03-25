@@ -63,6 +63,7 @@ config:
   existingSecretName: ""
   openaiApiKey: ""
   langsmithLicenseKey: ""
+  # -- Salt used to generate the API key. Should be a random string.
   apiKeySalt: ""
   logLevel: "info"
   oauth:
