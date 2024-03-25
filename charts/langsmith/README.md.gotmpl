@@ -11,11 +11,11 @@ LangSmith 0.3.0 should be a drop-in replacement for LangSmith 0.2.0. You can fol
 There are a few important changes when migrating from 0.3.0 to 0.4.0. The majority of these will require no action on your part. However, there are a few things to note:
 
 - OAuth Flow now relies on using Access Tokens instead of OIDC ID tokens. This shouldn't impact any of your application functionality.
-- A new asynchronous queue worker implementation has been added. This should improve the performance of the application trace ingestion.
+- Queue implementation is now asynchronous. This should improve the performance of the application trace ingestion.
 - Clickhouse persistence now uses 50Gi of storage by default. You can adjust this by changing the `clickhouse.statefulSet.persistence.size` value in your `values.yaml` file.
   - You may need to resize your existing storage class or set `clickhouse.statefulSet.persistence.size` to the old default value of `8Gi`.
-- Some our image repositories have been update. You can see the root repositories in our `values.yaml` file. You may need to update mirrors.
-- We now expose an api key salt parameter. This previously defaulted to your LangSmith License Key. You should set this param to your license key to avoid invalidating old api keys.
+- Some of our image repositories have been updated. You can see the root repositories in our `values.yaml` file. You may need to update mirrors.
+- We now expose an api key salt parameter. This previously defaulted to your LangSmith License Key. To ensure backwards compatibility, you should set this param to your license key to avoid invalidating old api keys.
 
 ** Note: Using a new api key salt will invalidate all old api keys. **
 
