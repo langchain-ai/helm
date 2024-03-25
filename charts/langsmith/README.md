@@ -1,8 +1,19 @@
 # langsmith
 
-![Version: 0.3.6](https://img.shields.io/badge/Version-0.3.6-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.1.19](https://img.shields.io/badge/AppVersion-0.1.19-informational?style=flat-square)
+![Version: 0.3.9](https://img.shields.io/badge/Version-0.3.9-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.1.19](https://img.shields.io/badge/AppVersion-0.1.19-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
+
+## Migrating from LangSmith 0.3.0 to 0.4.0
+
+LangSmith 0.3.0 should be a drop-in replacement for LangSmith 0.2.0. You can follow the generic upgrade instructions [here](docs/UPGRADE.md).
+
+There are a few important changes when migrating from 0.3.0 to 0.4.0:
+
+- OAuth Flow now relies on using Access Tokens instead of OIDC ID tokens. This shouldn't impact any of your application functionality.
+- Clickhouse persistence now uses 50Gi of storage by default. You can adjust this by changing the `clickhouse.statefulSet.persistence.size` value in your `values.yaml` file.
+  - You may need to resize your existing storage class or set `clickhouse.statefulSet.persistence.size` to the old default value of `8Gi`.
+- Some our image repositories have been update. You can see the root repositories in our `values.yaml` file. You may need to update mirrors.
 
 ## Migrating from LangSmith 0.2.0 to 0.3.0
 
@@ -352,6 +363,7 @@ We typically validate deployment using the following quickstart guide:
 | backend.deployment.tolerations | list | `[]` |  |
 | backend.deployment.volumeMounts | list | `[]` |  |
 | backend.deployment.volumes | list | `[]` |  |
+| backend.existingConfigMapName | string | `""` |  |
 | backend.migrations.affinity | object | `{}` |  |
 | backend.migrations.annotations | object | `{}` |  |
 | backend.migrations.command[0] | string | `"/bin/bash"` |  |
