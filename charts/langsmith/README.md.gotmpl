@@ -8,12 +8,16 @@
 
 LangSmith 0.3.0 should be a drop-in replacement for LangSmith 0.2.0. You can follow the generic upgrade instructions [here](docs/UPGRADE.md).
 
-There are a few important changes when migrating from 0.3.0 to 0.4.0:
+There are a few important changes when migrating from 0.3.0 to 0.4.0. The majority of these will require no action on your part. However, there are a few things to note:
 
 - OAuth Flow now relies on using Access Tokens instead of OIDC ID tokens. This shouldn't impact any of your application functionality.
+- A new asynchronous queue worker implementation has been added. This should improve the performance of the application trace ingestion.
 - Clickhouse persistence now uses 50Gi of storage by default. You can adjust this by changing the `clickhouse.statefulSet.persistence.size` value in your `values.yaml` file.
   - You may need to resize your existing storage class or set `clickhouse.statefulSet.persistence.size` to the old default value of `8Gi`.
 - Some our image repositories have been update. You can see the root repositories in our `values.yaml` file. You may need to update mirrors.
+- We now expose an api key salt parameter. This previously defaulted to your LangSmith License Key. You should set this param to your license key to avoid invalidating old api keys.
+
+** Note: Using a new api key salt will invalidate all old api keys. **
 
 ## Migrating from LangSmith 0.2.0 to 0.3.0
 
@@ -45,18 +49,24 @@ Ensure you have the following tools/items ready.
     1. `brew install helm`
 3. LangSmith License Key
     1. You can get this from your Langchain representative. Contact us at support@langchain.dev for more information.
-3. SSL(optional)
+4. Api Key Salt
+    1. This is a secret key that you can generate. It should be a random string of characters.
+    2. You can generate this using the following command:
+        ```bash
+        openssl rand -base64 32
+        ```
+5. SSL(optional)
     1. This should be attachable to the load balancer that you will be provisioning.
-4. OpenAI API Key(optional).
+6. OpenAI API Key(optional).
     1. Used for natural language search feature. Can specify OpenAI key in browser as well for the playground feature.
-5. Oauth Configuration(optional).
+7. Oauth Configuration(optional).
     1. You can configure oauth using the `values.yaml` file. You will need to provide a `client_id` and `client_issuer_url` for your oauth provider.
     2. Note, we do rely on the OIDC Authorization Code with PKCE flow. We currently support almost anything that is OIDC compliant however Google does not support this flow.
-6. External Postgres(optional).
+8. External Postgres(optional).
     1. You can configure external postgres using the `values.yaml` file. You will need to provide connection parameters for your postgres instance.
     2. If using a schema other than public, ensure that you do not have any other schemas with the pgcrypto extension enabled or you must include that in your search path.
     3. Note: We do only officially support Postgres versions >= 14.
-7. External Redis(optional).
+9. External Redis(optional).
     1. You can configure external redis using the `values.yaml` file. You will need to provide a connection url for your redis instance.
     2. Currently, we do not support using Redis with TLS. We will be supporting this shortly.
     3. We only official support Redis versions >= 6.
@@ -77,7 +87,7 @@ Bare minimum config file `langsmith_config.yaml`:
 ```yaml
 config:
   langsmithLicenseKey: ""
-
+  apiKeySalt: "foo"
 ```
 
 Example `EKS` config file with certificates setup using ACM:
@@ -85,6 +95,7 @@ Example `EKS` config file with certificates setup using ACM:
 ```jsx
 config:
   langsmithLicenseKey: ""
+  apiKeySalt: "foo"
 
 frontend:
   service:
@@ -99,6 +110,8 @@ Example config file with oauth setup:
 ```jsx
 config:
   langsmithLicenseKey: ""
+  apiKeySalt: "foo"
+
   oauth:
     enabled: true
     oauthClientId: "0oa805851lEvitA1i697"
@@ -112,6 +125,8 @@ Example config file with external postgres and redis:
 ```jsx
 config:
   langsmithLicenseKey: ""
+  apiKeySalt: "foo"
+
 postgres:
   external:
     enabled: true
