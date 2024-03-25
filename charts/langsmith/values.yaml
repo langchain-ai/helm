@@ -63,6 +63,7 @@ config:
   existingSecretName: ""
   openaiApiKey: ""
   langsmithLicenseKey: ""
+  apiKeySalt: ""
   logLevel: "info"
   oauth:
     enabled: false
