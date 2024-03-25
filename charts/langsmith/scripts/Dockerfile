@@ -18,6 +18,7 @@ RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 COPY --chmod=0755 ./backfill_clickhouse.sh ./backfill_clickhouse.sh
 COPY --chmod=0755 ./migrate_no_auth.sh ./migrate_no_auth.sh
+COPY --chmod=0755 ./add_feature_flag_to_tenant.sh ./add_feature_flag_to_tenant.sh
 
 # Set the default command for the container. This is optional and can be customized as needed.
 CMD ["bash"]
