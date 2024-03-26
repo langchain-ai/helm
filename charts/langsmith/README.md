@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.4.0](https://img.shields.io/badge/Version-0.4.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.1.37](https://img.shields.io/badge/AppVersion-0.1.37-informational?style=flat-square)
+![Version: 0.4.1](https://img.shields.io/badge/Version-0.4.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.2.0](https://img.shields.io/badge/AppVersion-0.2.0-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -16,6 +16,7 @@ There are a few important changes when migrating from 0.3.0 to 0.4.0. The majori
   - You may need to resize your existing storage class or set `clickhouse.statefulSet.persistence.size` to the old default value of `8Gi`.
 - Some of our image repositories have been updated. You can see the root repositories in our `values.yaml` file. You may need to update mirrors.
 - We now expose an api key salt parameter. This previously defaulted to your LangSmith License Key. To ensure backwards compatibility, you should set this param to your license key to avoid invalidating old api keys.
+- Consolidation of hubBackend and backend services. We now use one service to serve both of these endpoints. This should not impact your application.
 
 ** Note: Using a new api key salt will invalidate all old api keys. **
 
@@ -166,7 +167,6 @@ More examples can be found in the `examples` directory.
     ```bash
     langsmith-backend-6ff46c99c4-wz22d       1/1     Running   0          3h2m
     langsmith-frontend-6bbb94c5df-8xrlr      1/1     Running   0          3h2m
-    langsmith-hub-backend-5cc68c888c-vppjj   1/1     Running   0          3h2m
     langsmith-playground-6d95fd8dc6-x2d9b    1/1     Running   0          3h2m
     langsmith-postgres-0                     1/1     Running   0          9h
     langsmith-queue-5898b9d566-tv6q8         1/1     Running   0          3h2m
@@ -183,7 +183,6 @@ More examples can be found in the `examples` directory.
     NAME                    TYPE           CLUSTER-IP       EXTERNAL-IP                                                               PORT(S)        AGE
     langsmith-backend       ClusterIP      172.20.140.77    <none>                                                                    1984/TCP       35h
     langsmith-frontend      LoadBalancer   172.20.253.251   <external ip>   80:31591/TCP   35h
-    langsmith-hub-backend   ClusterIP      172.20.112.234   <none>                                                                    1985/TCP       35h
     langsmith-playground    ClusterIP      172.20.153.194   <none>                                                                    3001/TCP       9h
     langsmith-postgres      ClusterIP      172.20.244.82    <none>                                                                    5432/TCP       35h
     langsmith-redis         ClusterIP      172.20.81.217    <none>                                                                    6379/TCP       35h
@@ -292,20 +291,17 @@ We typically validate deployment using the following quickstart guide:
 | fullnameOverride | string | `""` | String to fully override `"langsmith.fullname"` |
 | images.backendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.backendImage.repository | string | `"docker.io/langchain/langsmith-backend"` |  |
-| images.backendImage.tag | string | `"0.1.37"` |  |
+| images.backendImage.tag | string | `"0.2.0"` |  |
 | images.clickhouseImage.pullPolicy | string | `"Always"` |  |
 | images.clickhouseImage.repository | string | `"docker.io/clickhouse/clickhouse-server"` |  |
 | images.clickhouseImage.tag | string | `"23.9"` |  |
 | images.frontendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.frontendImage.repository | string | `"docker.io/langchain/langsmith-frontend"` |  |
-| images.frontendImage.tag | string | `"0.1.37"` |  |
-| images.hubBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
-| images.hubBackendImage.repository | string | `"docker.io/langchain/langhub-backend"` |  |
-| images.hubBackendImage.tag | string | `"0.1.37"` |  |
+| images.frontendImage.tag | string | `"0.2.0"` |  |
 | images.imagePullSecrets | list | `[]` | Secrets with credentials to pull images from a private registry. Specified as name: value. |
 | images.playgroundImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.playgroundImage.repository | string | `"docker.io/langchain/langsmith-playground"` |  |
-| images.playgroundImage.tag | string | `"0.1.37"` |  |
+| images.playgroundImage.tag | string | `"0.2.0"` |  |
 | images.postgresImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.postgresImage.repository | string | `"docker.io/postgres"` |  |
 | images.postgresImage.tag | string | `"14.7"` |  |
@@ -492,43 +488,6 @@ We typically validate deployment using the following quickstart guide:
 | frontend.serviceAccount.create | bool | `true` |  |
 | frontend.serviceAccount.labels | object | `{}` |  |
 | frontend.serviceAccount.name | string | `""` |  |
-
-## Hub Backend
-
-| Key | Type | Default | Description |
-|-----|------|---------|-------------|
-| hubBackend.autoscaling.createHpa | bool | `true` |  |
-| hubBackend.autoscaling.enabled | bool | `false` |  |
-| hubBackend.autoscaling.maxReplicas | int | `5` |  |
-| hubBackend.autoscaling.minReplicas | int | `1` |  |
-| hubBackend.autoscaling.targetCPUUtilizationPercentage | int | `80` |  |
-| hubBackend.containerPort | int | `1985` |  |
-| hubBackend.deployment.affinity | object | `{}` |  |
-| hubBackend.deployment.annotations | object | `{}` |  |
-| hubBackend.deployment.command | list | `[]` |  |
-| hubBackend.deployment.extraContainerConfig | object | `{}` |  |
-| hubBackend.deployment.extraEnv | list | `[]` |  |
-| hubBackend.deployment.labels | object | `{}` |  |
-| hubBackend.deployment.nodeSelector | object | `{}` |  |
-| hubBackend.deployment.podSecurityContext | object | `{}` |  |
-| hubBackend.deployment.replicas | int | `1` |  |
-| hubBackend.deployment.resources | object | `{}` |  |
-| hubBackend.deployment.securityContext | object | `{}` |  |
-| hubBackend.deployment.sidecars | list | `[]` |  |
-| hubBackend.deployment.tolerations | list | `[]` |  |
-| hubBackend.deployment.volumeMounts | list | `[]` |  |
-| hubBackend.deployment.volumes | list | `[]` |  |
-| hubBackend.name | string | `"hub-backend"` |  |
-| hubBackend.service.annotations | object | `{}` |  |
-| hubBackend.service.labels | object | `{}` |  |
-| hubBackend.service.loadBalancerIP | string | `""` |  |
-| hubBackend.service.loadBalancerSourceRanges | list | `[]` |  |
-| hubBackend.service.port | int | `1985` |  |
-| hubBackend.service.type | string | `"ClusterIP"` |  |
-| hubBackend.serviceAccount.annotations | object | `{}` |  |
-| hubBackend.serviceAccount.create | bool | `true` |  |
-| hubBackend.serviceAccount.labels | object | `{}` |  |
-| hubBackend.serviceAccount.name | string | `""` |  |
 
 ## Playground
 
