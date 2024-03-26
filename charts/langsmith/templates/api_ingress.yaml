@@ -21,6 +21,7 @@ spec:
     {{- toYaml . | nindent 4 }}
   {{- end }}
   rules:
+  {{- if .Values.apiIngress.subdomain }}
   - host: {{ .Values.apiIngress.hostname }}
     http:
       paths:
@@ -31,11 +32,16 @@ spec:
             name: {{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}
             port:
               number: {{ .Values.backend.service.port }}
-      - path: /{{ .Values.apiIngress.subdomain }}/api-hub/v1
-        pathType: Prefix
-        backend:
-          service:
-            name: {{ include "langsmith.fullname" . }}-{{ .Values.hubBackend.name }}
-            port:
-              number: {{ .Values.backend.service.port }}
+    {{- else }}
+    - host: {{ .Values.apiIngress.hostname }}
+      http:
+        paths:
+        - path: /api/v1
+          pathType: Prefix
+          backend:
+            service:
+              name: {{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}
+              port:
+                number: {{ .Values.backend.service.port }}
+    {{- end }}
 {{- end }}

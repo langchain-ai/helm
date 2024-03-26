@@ -16,6 +16,7 @@ There are a few important changes when migrating from 0.3.0 to 0.4.0. The majori
   - You may need to resize your existing storage class or set `clickhouse.statefulSet.persistence.size` to the old default value of `8Gi`.
 - Some of our image repositories have been updated. You can see the root repositories in our `values.yaml` file. You may need to update mirrors.
 - We now expose an api key salt parameter. This previously defaulted to your LangSmith License Key. To ensure backwards compatibility, you should set this param to your license key to avoid invalidating old api keys.
+- Consolidation of hubBackend and backend services. We now use one service to serve both of these endpoints. This should not impact your application.
 
 ** Note: Using a new api key salt will invalidate all old api keys. **
 
@@ -167,7 +168,6 @@ More examples can be found in the `examples` directory.
     ```bash
     langsmith-backend-6ff46c99c4-wz22d       1/1     Running   0          3h2m
     langsmith-frontend-6bbb94c5df-8xrlr      1/1     Running   0          3h2m
-    langsmith-hub-backend-5cc68c888c-vppjj   1/1     Running   0          3h2m
     langsmith-playground-6d95fd8dc6-x2d9b    1/1     Running   0          3h2m
     langsmith-postgres-0                     1/1     Running   0          9h
     langsmith-queue-5898b9d566-tv6q8         1/1     Running   0          3h2m
@@ -185,7 +185,6 @@ More examples can be found in the `examples` directory.
     NAME                    TYPE           CLUSTER-IP       EXTERNAL-IP                                                               PORT(S)        AGE
     langsmith-backend       ClusterIP      172.20.140.77    <none>                                                                    1984/TCP       35h
     langsmith-frontend      LoadBalancer   172.20.253.251   <external ip>   80:31591/TCP   35h
-    langsmith-hub-backend   ClusterIP      172.20.112.234   <none>                                                                    1985/TCP       35h
     langsmith-playground    ClusterIP      172.20.153.194   <none>                                                                    3001/TCP       9h
     langsmith-postgres      ClusterIP      172.20.244.82    <none>                                                                    5432/TCP       35h
     langsmith-redis         ClusterIP      172.20.81.217    <none>                                                                    6379/TCP       35h
@@ -246,7 +245,7 @@ We typically validate deployment using the following quickstart guide:
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
 {{- range .Values }}
-  {{- if not (or (hasPrefix "config" .Key) (hasPrefix "backend" .Key) (hasPrefix "frontend" .Key) (hasPrefix "hubBackend" .Key) (hasPrefix "playground" .Key) (hasPrefix "postgres" .Key) (hasPrefix "queue" .Key) (hasPrefix "redis" .Key) ) }}
+  {{- if not (or (hasPrefix "config" .Key) (hasPrefix "backend" .Key) (hasPrefix "frontend" .Key) (hasPrefix "playground" .Key) (hasPrefix "postgres" .Key) (hasPrefix "queue" .Key) (hasPrefix "redis" .Key) ) }}
 | {{ .Key }} | {{ .Type }} | {{ if .Default }}{{ .Default }}{{ else }}{{ .AutoDefault }}{{ end }} | {{ if .Description }}{{ .Description }}{{ else }}{{ .AutoDescription }}{{ end }} |
   {{- end }}
 {{- end }}
@@ -289,16 +288,6 @@ We typically validate deployment using the following quickstart guide:
 |-----|------|---------|-------------|
 {{- range .Values }}
   {{- if hasPrefix "frontend" .Key }}
-| {{ .Key }} | {{ .Type }} | {{ if .Default }}{{ .Default }}{{ else }}{{ .AutoDefault }}{{ end }} | {{ if .Description }}{{ .Description }}{{ else }}{{ .AutoDescription }}{{ end }} |
-  {{- end }}
-{{- end }}
-
-## Hub Backend
-
-| Key | Type | Default | Description |
-|-----|------|---------|-------------|
-{{- range .Values }}
-  {{- if hasPrefix "hubBackend" .Key }}
 | {{ .Key }} | {{ .Type }} | {{ if .Default }}{{ .Default }}{{ else }}{{ .AutoDefault }}{{ end }} | {{ if .Description }}{{ .Description }}{{ else }}{{ .AutoDescription }}{{ end }} |
   {{- end }}
 {{- end }}

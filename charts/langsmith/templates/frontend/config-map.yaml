@@ -63,7 +63,7 @@ data:
             proxy_http_version 1.1;
             proxy_buffering off;
             proxy_cache off;
-            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.hubBackend.name }}:{{ .Values.hubBackend.service.port }};
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}:{{ .Values.backend.service.port }};
         }
 
          # Backend Routes
@@ -147,7 +147,7 @@ data:
             proxy_http_version 1.1;
             proxy_buffering off;
             proxy_cache off;
-            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.hubBackend.name }}:{{ .Values.hubBackend.service.port }};
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}:{{ .Values.backend.service.port }};
         }
 
         # Backend Routes
