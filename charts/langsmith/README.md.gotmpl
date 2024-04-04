@@ -69,7 +69,7 @@ Ensure you have the following tools/items ready.
     3. Note: We do only officially support Postgres versions >= 14.
 9. External Redis(optional).
     1. You can configure external redis using the `values.yaml` file. You will need to provide a connection url for your redis instance.
-    2. Currently, we do not support using Redis with TLS. We will be supporting this shortly.
+    2. If using TLS, ensure that you use `rediss://` instead of `redis://. E.g "rediss://langsmith-redis:6380/0?password=foo"
     3. We only official support Redis versions >= 6.
 
 ### Configure your Helm Charts:
@@ -131,7 +131,8 @@ config:
 postgres:
   external:
     enabled: true
-    connectionUrl: "postgresql://<username>:<password>@<url>:5432/<dbname>"
+    # Do not include protocol here.
+    connectionUrl: "<username>:<password>@<url>:5432/<dbname>"
 redis:
   external:
     enabled: true
@@ -142,7 +143,6 @@ You can also use existingSecretName to avoid checking in secrets. This secret wi
 the same format as the secret in the corresponding `secrets.yaml` file.
 
 More examples can be found in the `examples` directory.
-
 
 ### Deploying to Kubernetes:
 
