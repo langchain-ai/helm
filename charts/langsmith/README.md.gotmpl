@@ -6,7 +6,7 @@
 
 ## Migrating from LangSmith 0.3.0 to 0.4.0
 
-LangSmith 0.3.0 should be a drop-in replacement for LangSmith 0.2.0. You can follow the generic upgrade instructions [here](docs/UPGRADE.md).
+LangSmith 0.4.0 should be a drop-in replacement for LangSmith 0.3.0. You can follow the generic upgrade instructions [here](docs/UPGRADE.md).
 
 There are a few important changes when migrating from 0.3.0 to 0.4.0. The majority of these will require no action on your part. However, there are a few things to note:
 
@@ -59,7 +59,7 @@ Ensure you have the following tools/items ready.
 5. SSL(optional)
     1. This should be attachable to the load balancer that you will be provisioning.
 6. OpenAI API Key(optional).
-    1. Used for natural language search feature. Can specify OpenAI key in browser as well for the playground feature.
+    1. Used for natural language search feature/evaluators. Can specify OpenAI key in the application as well.
 7. Oauth Configuration(optional).
     1. You can configure oauth using the `values.yaml` file. You will need to provide a `client_id` and `client_issuer_url` for your oauth provider.
     2. Note, we do rely on the OIDC Authorization Code with PKCE flow. We currently support almost anything that is OIDC compliant however Google does not support this flow.
@@ -69,7 +69,7 @@ Ensure you have the following tools/items ready.
     3. Note: We do only officially support Postgres versions >= 14.
 9. External Redis(optional).
     1. You can configure external redis using the `values.yaml` file. You will need to provide a connection url for your redis instance.
-    2. Currently, we do not support using Redis with TLS. We will be supporting this shortly.
+    2. If using TLS, ensure that you use `rediss://` instead of `redis://. E.g "rediss://langsmith-redis:6380/0?password=foo"
     3. We only official support Redis versions >= 6.
 
 ### Configure your Helm Charts:
@@ -131,7 +131,8 @@ config:
 postgres:
   external:
     enabled: true
-    connectionUrl: "postgresql://<username>:<password>@<url>:5432/<dbname>"
+    # Do not include protocol here.
+    connectionUrl: "<username>:<password>@<url>:5432/<dbname>"
 redis:
   external:
     enabled: true
@@ -142,7 +143,6 @@ You can also use existingSecretName to avoid checking in secrets. This secret wi
 the same format as the secret in the corresponding `secrets.yaml` file.
 
 More examples can be found in the `examples` directory.
-
 
 ### Deploying to Kubernetes:
 
