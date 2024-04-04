@@ -6,7 +6,7 @@
 
 ## Migrating from LangSmith 0.3.0 to 0.4.0
 
-LangSmith 0.3.0 should be a drop-in replacement for LangSmith 0.2.0. You can follow the generic upgrade instructions [here](docs/UPGRADE.md).
+LangSmith 0.4.0 should be a drop-in replacement for LangSmith 0.3.0. You can follow the generic upgrade instructions [here](docs/UPGRADE.md).
 
 There are a few important changes when migrating from 0.3.0 to 0.4.0. The majority of these will require no action on your part. However, there are a few things to note:
 
@@ -59,7 +59,7 @@ Ensure you have the following tools/items ready.
 5. SSL(optional)
     1. This should be attachable to the load balancer that you will be provisioning.
 6. OpenAI API Key(optional).
-    1. Used for natural language search feature. Can specify OpenAI key in browser as well for the playground feature.
+    1. Used for natural language search feature/evaluators. Can specify OpenAI key in the application as well.
 7. Oauth Configuration(optional).
     1. You can configure oauth using the `values.yaml` file. You will need to provide a `client_id` and `client_issuer_url` for your oauth provider.
     2. Note, we do rely on the OIDC Authorization Code with PKCE flow. We currently support almost anything that is OIDC compliant however Google does not support this flow.

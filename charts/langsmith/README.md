@@ -1,12 +1,12 @@
 # langsmith
 
-![Version: 0.4.2](https://img.shields.io/badge/Version-0.4.2-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.2.5](https://img.shields.io/badge/AppVersion-0.2.5-informational?style=flat-square)
+![Version: 0.4.3](https://img.shields.io/badge/Version-0.4.3-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.2.11](https://img.shields.io/badge/AppVersion-0.2.11-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
 ## Migrating from LangSmith 0.3.0 to 0.4.0
 
-LangSmith 0.3.0 should be a drop-in replacement for LangSmith 0.2.0. You can follow the generic upgrade instructions [here](docs/UPGRADE.md).
+LangSmith 0.4.0 should be a drop-in replacement for LangSmith 0.3.0. You can follow the generic upgrade instructions [here](docs/UPGRADE.md).
 
 There are a few important changes when migrating from 0.3.0 to 0.4.0. The majority of these will require no action on your part. However, there are a few things to note:
 
@@ -59,7 +59,7 @@ Ensure you have the following tools/items ready.
 5. SSL(optional)
     1. This should be attachable to the load balancer that you will be provisioning.
 6. OpenAI API Key(optional).
-    1. Used for natural language search feature. Can specify OpenAI key in browser as well for the playground feature.
+    1. Used for natural language search feature/evaluators. Can specify OpenAI key in the application as well.
 7. Oauth Configuration(optional).
     1. You can configure oauth using the `values.yaml` file. You will need to provide a `client_id` and `client_issuer_url` for your oauth provider.
     2. Note, we do rely on the OIDC Authorization Code with PKCE flow. We currently support almost anything that is OIDC compliant however Google does not support this flow.
@@ -292,17 +292,17 @@ We typically validate deployment using the following quickstart guide:
 | fullnameOverride | string | `""` | String to fully override `"langsmith.fullname"` |
 | images.backendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.backendImage.repository | string | `"docker.io/langchain/langsmith-backend"` |  |
-| images.backendImage.tag | string | `"test"` |  |
+| images.backendImage.tag | string | `"0.2.11"` |  |
 | images.clickhouseImage.pullPolicy | string | `"Always"` |  |
 | images.clickhouseImage.repository | string | `"docker.io/clickhouse/clickhouse-server"` |  |
 | images.clickhouseImage.tag | string | `"23.9"` |  |
 | images.frontendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.frontendImage.repository | string | `"docker.io/langchain/langsmith-frontend"` |  |
-| images.frontendImage.tag | string | `"0.2.5"` |  |
+| images.frontendImage.tag | string | `"0.2.11"` |  |
 | images.imagePullSecrets | list | `[]` | Secrets with credentials to pull images from a private registry. Specified as name: value. |
 | images.playgroundImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.playgroundImage.repository | string | `"docker.io/langchain/langsmith-playground"` |  |
-| images.playgroundImage.tag | string | `"0.2.5"` |  |
+| images.playgroundImage.tag | string | `"0.2.11"` |  |
 | images.postgresImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.postgresImage.repository | string | `"docker.io/postgres"` |  |
 | images.postgresImage.tag | string | `"14.7"` |  |
