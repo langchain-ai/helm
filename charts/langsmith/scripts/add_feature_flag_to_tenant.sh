@@ -13,7 +13,7 @@ feature_flag=$3
 
 #PostgreSQL query
 update_query_string=$(cat <<EOF
-UPDATE public.tenants SET config = jsonb_set(config, '{flags}', coalesce(config->'flags', '{}'::jsonb) || '{"$feature_flag":"true"}'::jsonb) where id='$tenant_id';
+UPDATE public.tenants SET config = jsonb_set(config, '{flags}', coalesce(config->'flags', '{}'::jsonb) || '{"$feature_flag":true}'::jsonb) where id='$tenant_id';
 EOF
 )
 
