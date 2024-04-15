@@ -15,15 +15,15 @@ images:
   backendImage:
     repository: "docker.io/langchain/langsmith-backend"
     pullPolicy: IfNotPresent
-    tag: "0.2.11"
+    tag: "0.2.23"
   frontendImage:
     repository: "docker.io/langchain/langsmith-frontend"
     pullPolicy: IfNotPresent
-    tag: "0.2.11"
+    tag: "0.2.23"
   playgroundImage:
     repository: "docker.io/langchain/langsmith-playground"
     pullPolicy: IfNotPresent
-    tag: "0.2.11"
+    tag: "0.2.23"
   postgresImage:
     repository: "docker.io/postgres"
     pullPolicy: IfNotPresent
@@ -77,14 +77,27 @@ backend:
     annotations: {}
     podSecurityContext: {}
     securityContext: {}
-    resources: {}
+    resources:
 #      limits:
 #        cpu: 1000m
 #        memory: 1Gi
-#      requests:
-#        cpu: 200m
-#        memory: 500Mi
-    command: []
+      requests:
+        cpu: 200m
+        memory: 500Mi
+    command:
+      - "uvicorn"
+      - "app.main:app"
+      - "--host"
+      - "0.0.0.0"
+      - "--port"
+      - "$(PORT)"
+      - "--log-level"
+      - "$(LOG_LEVEL)"
+      - "--loop"
+      - "uvloop"
+      - "--http"
+      - "httptools"
+      - "--no-access-log"
     extraContainerConfig: {}
     extraEnv: []
     sidecars: []
@@ -187,13 +200,13 @@ clickhouse:
     annotations: {}
     podSecurityContext: {}
     securityContext: {}
-    resources: {}
+    resources:
     #      limits:
     #        cpu: 5000m
     #        memory: 20Gi
-    #      requests:
-    #        cpu: 3000m
-    #        memory: 12Gi
+      requests:
+        cpu: 3000m
+        memory: 12Gi
     command:
       - "/bin/bash"
       - "-c"
@@ -234,14 +247,12 @@ frontend:
     annotations: {}
     podSecurityContext: {}
     securityContext: {}
-    resources: {}
-#      limits:
-#        cpu: 1000m
-#        memory: 1Gi
-#      requests:
-#        cpu: 200m
-#        memory: 500Mi
-    command: []
+    resources:
+      requests:
+        cpu: 200m
+        memory: 500Mi
+    command:
+      - "/entrypoint.sh"
     extraContainerConfig: {}
     extraEnv: []
     sidecars: []
@@ -288,7 +299,9 @@ playground:
 #      requests:
 #        cpu: 200m
 #        memory: 500Mi
-    command: []
+    command:
+      - "node"
+      - "./scripts/run-playground-docker.mjs"
     extraContainerConfig: {}
     extraEnv: []
     sidecars: []
@@ -389,7 +402,7 @@ queue:
 #        memory: 2000Mi
     command:
       - "saq"
-      - "app.async_worker.settings"
+      - "app.workers.queues.single_queue_worker.settings"
       - "--quiet"
     extraContainerConfig: {}
     extraEnv: []
