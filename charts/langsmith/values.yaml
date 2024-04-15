@@ -77,13 +77,13 @@ backend:
     annotations: {}
     podSecurityContext: {}
     securityContext: {}
-    resources:
+    resources: {}
 #      limits:
 #        cpu: 1000m
 #        memory: 1Gi
-      requests:
-        cpu: 200m
-        memory: 500Mi
+#      requests:
+#        cpu: 200m
+#        memory: 500Mi
     command:
       - "uvicorn"
       - "app.main:app"
@@ -200,13 +200,13 @@ clickhouse:
     annotations: {}
     podSecurityContext: {}
     securityContext: {}
-    resources:
+    resources: {}
     #      limits:
     #        cpu: 5000m
     #        memory: 20Gi
-      requests:
-        cpu: 3000m
-        memory: 12Gi
+    #      requests:
+    #        cpu: 3000m
+    #        memory: 12Gi
     command:
       - "/bin/bash"
       - "-c"
@@ -247,10 +247,13 @@ frontend:
     annotations: {}
     podSecurityContext: {}
     securityContext: {}
-    resources:
-      requests:
-        cpu: 200m
-        memory: 500Mi
+    resources: {}
+#      limits:
+#        cpu: 1000m
+#        memory: 1Gi
+#      requests:
+#        cpu: 200m
+#        memory: 500Mi
     command:
       - "/entrypoint.sh"
     extraContainerConfig: {}
