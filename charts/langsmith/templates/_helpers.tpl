@@ -69,7 +69,7 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
 
 {{/*
-Name of the secret containing the secrets for this chart. This can be overriden by a secrets file created by
+Name of the secret containing the secrets for this chart. This can be overridden by a secrets file created by
 the user or some other secret provisioning mechanism
 */}}
 {{- define "langsmith.secretsName" -}}
@@ -81,7 +81,7 @@ the user or some other secret provisioning mechanism
 {{- end }}
 
 {{/*
-Name of the secret containing the secrets for postgres. This can be overriden by a secrets file created by
+Name of the secret containing the secrets for postgres. This can be overridden by a secrets file created by
 the user or some other secret provisioning mechanism
 */}}
 {{- define "langsmith.postgresSecretsName" -}}
@@ -93,7 +93,7 @@ the user or some other secret provisioning mechanism
 {{- end }}
 
 {{/*
-Name of the secret containing the secrets for redis. This can be overriden by a secrets file created by
+Name of the secret containing the secrets for redis. This can be overridden by a secrets file created by
 the user or some other secret provisioning mechanism
 */}}
 {{- define "langsmith.redisSecretsName" -}}
@@ -105,7 +105,7 @@ the user or some other secret provisioning mechanism
 {{- end }}
 
 {{/*
-Name of the secret containing the secrets for clickhouse. This can be overriden by a secrets file created by
+Name of the secret containing the secrets for clickhouse. This can be overridden by a secrets file created by
 the user or some other secret provisioning mechanism
 */}}
 {{- define "langsmith.clickhouseSecretsName" -}}

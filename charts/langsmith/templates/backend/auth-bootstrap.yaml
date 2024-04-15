@@ -1,0 +1,87 @@
+{{- if .Values.config.basicAuth.enabled }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}-basic-auth-bootstrap
+  labels:
+    {{- include "langsmith.labels" . | nindent 4 }}
+    {{- with.Values.backend.authBootstrap.labels }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+  annotations:
+    "helm.sh/hook": post-install
+    "helm.sh/hook-weight": "-1"
+    {{- include "langsmith.annotations" . | nindent 4 }}
+    {{- with.Values.backend.authBootstrap.annotations }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  backoffLimit: 3
+  template:
+    metadata:
+      {{- with .Values.backend.authBootstrap.annotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- with.Values.backend.authBootstrap.labels }}
+            {{- toYaml . | nindent 8 }}
+        {{- end }}
+        {{- include "langsmith.labels" . | nindent 8 }}
+        app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}
+    spec:
+      restartPolicy: Never
+      {{- with .Values.images.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.backend.authBootstrap.podSecurityContext | nindent 8 }}
+      serviceAccountName: {{ include "backend.serviceAccountName" . }}
+      containers:
+        - name: auth-bootstrap
+          {{- with .Values.backend.authBootstrap.command }}
+          command:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          env:
+            {{- include "langsmith.commonEnv" . | nindent 12 }}
+            {{- with .Values.backend.authBootstrap.extraEnv }}
+              {{- toYaml . | nindent 12 }}
+            {{- end }}
+          envFrom:
+            - configMapRef:
+                name: {{ include "langsmith.fullname" . }}-config
+          image: "{{ .Values.images.backendImage.repository }}:{{ .Values.images.backendImage.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.images.backendImage.pullPolicy }}
+          resources:
+            {{- toYaml .Values.backend.authBootstrap.resources | nindent 12 }}
+          securityContext:
+            {{- toYaml .Values.backend.authBootstrap.securityContext | nindent 12 }}
+          {{- with .Values.backend.authBootstrap.volumeMounts }}
+          volumeMounts:
+              {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.backend.authBootstrap.extraContainerConfig }}
+            {{- toYaml . | nindent 10 }}
+          {{- end }}
+        {{- with .Values.backend.authBootstrap.sidecars }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- with .Values.backend.authBootstrap.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.backend.authBootstrap.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.backend.authBootstrap.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.backend.authBootstrap.volumes }}
+      volumes:
+          {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}
