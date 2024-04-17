@@ -193,12 +193,6 @@ Template containing common environment variables that are used by several servic
     secretKeyRef:
       name: {{ include "langsmith.secretsName" . }}
       key: openai_api_key
-- name: INGESTION_QUEUE
-  value: default
-- name: ADHOC_QUEUE
-  value: default
-- name: RUN_RULES_QUEUE
-  value: default
 {{- end }}
 
 {{- define "backend.serviceAccountName" -}}
