@@ -15,15 +15,15 @@ images:
   backendImage:
     repository: "docker.io/langchain/langsmith-backend"
     pullPolicy: IfNotPresent
-    tag: "0.2.24"
+    tag: "0.2.25"
   frontendImage:
     repository: "docker.io/langchain/langsmith-frontend"
     pullPolicy: IfNotPresent
-    tag: "0.2.24"
+    tag: "0.2.25"
   playgroundImage:
     repository: "docker.io/langchain/langsmith-playground"
     pullPolicy: IfNotPresent
-    tag: "0.2.24"
+    tag: "0.2.25"
   postgresImage:
     repository: "docker.io/postgres"
     pullPolicy: IfNotPresent
