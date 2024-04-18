@@ -15,15 +15,15 @@ images:
   backendImage:
     repository: "docker.io/langchain/langsmith-backend"
     pullPolicy: IfNotPresent
-    tag: "0.2.11"
+    tag: "0.2.25"
   frontendImage:
     repository: "docker.io/langchain/langsmith-frontend"
     pullPolicy: IfNotPresent
-    tag: "0.2.11"
+    tag: "0.2.25"
   playgroundImage:
     repository: "docker.io/langchain/langsmith-playground"
     pullPolicy: IfNotPresent
-    tag: "0.2.11"
+    tag: "0.2.25"
   postgresImage:
     repository: "docker.io/postgres"
     pullPolicy: IfNotPresent
@@ -91,7 +91,20 @@ backend:
 #      requests:
 #        cpu: 200m
 #        memory: 500Mi
-    command: []
+    command:
+      - "uvicorn"
+      - "app.main:app"
+      - "--host"
+      - "0.0.0.0"
+      - "--port"
+      - "$(PORT)"
+      - "--log-level"
+      - "$(LOG_LEVEL)"
+      - "--loop"
+      - "uvloop"
+      - "--http"
+      - "httptools"
+      - "--no-access-log"
     extraContainerConfig: {}
     extraEnv: []
     sidecars: []
@@ -272,7 +285,8 @@ frontend:
 #      requests:
 #        cpu: 200m
 #        memory: 500Mi
-    command: []
+    command:
+      - "/entrypoint.sh"
     extraContainerConfig: {}
     extraEnv: []
     sidecars: []
@@ -319,7 +333,9 @@ playground:
 #      requests:
 #        cpu: 200m
 #        memory: 500Mi
-    command: []
+    command:
+      - "node"
+      - "./scripts/run-playground-docker.mjs"
     extraContainerConfig: {}
     extraEnv: []
     sidecars: []
@@ -420,7 +436,7 @@ queue:
 #        memory: 2000Mi
     command:
       - "saq"
-      - "app.async_worker.settings"
+      - "app.workers.queues.single_queue_worker.settings"
       - "--quiet"
     extraContainerConfig: {}
     extraEnv: []
