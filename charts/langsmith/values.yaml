@@ -15,15 +15,19 @@ images:
   backendImage:
     repository: "docker.io/langchain/langsmith-backend"
     pullPolicy: IfNotPresent
-    tag: "0.2.25"
+    tag: "0.2.30"
   frontendImage:
     repository: "docker.io/langchain/langsmith-frontend"
     pullPolicy: IfNotPresent
-    tag: "0.2.25"
+    tag: "0.2.30"
+  platformBackendImage:
+    repository: "docker.io/langchain/langsmith-go-backend"
+    pullPolicy: IfNotPresent
+    tag: "0.2.30"
   playgroundImage:
     repository: "docker.io/langchain/langsmith-playground"
     pullPolicy: IfNotPresent
-    tag: "0.2.25"
+    tag: "0.2.30"
   postgresImage:
     repository: "docker.io/postgres"
     pullPolicy: IfNotPresent
@@ -423,6 +427,54 @@ queue:
     minReplicas: 3
     maxReplicas: 10
     targetCPUUtilizationPercentage: 80
+  serviceAccount:
+    create: true
+    name: ""
+    labels: {}
+    annotations: {}
+
+platformBackend:
+  name: "platform-backend"
+  containerPort: 8080
+  existingConfigMapName: ""
+  deployment:
+    replicas: 1
+    labels: {}
+    annotations: {}
+    podSecurityContext: {}
+    securityContext: {}
+    resources: {}
+#      limits:
+#        cpu: 1000m
+#        memory: 1Gi
+#      requests:
+#        cpu: 200m
+#        memory: 500Mi
+    command:
+      - "./smith-go"
+    extraContainerConfig: {}
+    extraEnv: []
+    sidecars: []
+    nodeSelector: {}
+    tolerations: []
+    affinity: {}
+    volumes: []
+    volumeMounts: []
+  autoscaling:
+    enabled: false
+    # If enabled, use the following values to configure the HPA. You can also use your own HPA configuration by not creating an HPA.
+    # You may want to manage the HPA yourself if you have a custom autoscaling setup like KEDA.
+    createHpa: true
+    minReplicas: 1
+    maxReplicas: 5
+    targetCPUUtilizationPercentage: 80
+  service:
+    type: ClusterIP
+    port: 1985
+    labels: {}
+    annotations: {}
+    loadBalancerSourceRanges: []
+    loadBalancerIP: ""
   serviceAccount:
     create: true
     name: ""
