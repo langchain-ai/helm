@@ -451,7 +451,7 @@ platformBackend:
 #        cpu: 200m
 #        memory: 500Mi
     command:
-
+      - "./smith-go"
     extraContainerConfig: {}
     extraEnv: []
     sidecars: []
@@ -470,7 +470,7 @@ platformBackend:
     targetCPUUtilizationPercentage: 80
   service:
     type: ClusterIP
-    port: 1984
+    port: 1985
     labels: {}
     annotations: {}
     loadBalancerSourceRanges: []
