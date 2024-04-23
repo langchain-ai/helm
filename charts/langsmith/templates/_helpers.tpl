@@ -238,6 +238,14 @@ Template containing common environment variables that are used by several servic
 {{- end -}}
 {{- end -}}
 
+{{- define "platformBackend.serviceAccountName" -}}
+{{- if .Values.platformBackend.serviceAccount.create -}}
+    {{ default (printf "%s-%s" (include "langsmith.fullname" .) .Values.platformBackend.name) .Values.platformBackend.serviceAccount.name | trunc 63 | trimSuffix "-" }}
+{{- else -}}
+    {{ default "default" .Values.platformBackend.serviceAccount.name }}
+{{- end -}}
+{{- end -}}
+
 {{- define "playground.serviceAccountName" -}}
 {{- if .Values.playground.serviceAccount.create -}}
     {{ default (printf "%s-%s" (include "langsmith.fullname" .) .Values.playground.name) .Values.playground.serviceAccount.name | trunc 63 | trimSuffix "-" }}

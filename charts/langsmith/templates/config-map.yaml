@@ -19,3 +19,4 @@ data:
   INGESTION_QUEUE: "default"
   ADHOC_QUEUE: "default"
   RUN_RULES_QUEUE: "default"
+  GO_ENDPOINT: "http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}:{{ .Values.platformBackend.service.port }}"
