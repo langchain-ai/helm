@@ -205,7 +205,6 @@ Template containing common environment variables that are used by several servic
     secretKeyRef:
       name: {{ include "langsmith.secretsName" . }}
       key: openai_api_key
-{{- end }}
 {{- if .Values.config.basicAuth.enabled }}
 - name: BASIC_AUTH_JWT_SECRET
   valueFrom:
@@ -213,6 +212,8 @@ Template containing common environment variables that are used by several servic
       name: {{ include "langsmith.basicAuthSecretsName" . }}
       key: jwt_secret
 {{- end }}
+{{- end }}
+
 
 {{- define "backend.serviceAccountName" -}}
 {{- if .Values.backend.serviceAccount.create -}}

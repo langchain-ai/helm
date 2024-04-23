@@ -66,6 +66,7 @@ config:
   # -- Salt used to generate the API key. Should be a random string.
   apiKeySalt: ""
   logLevel: "info"
+  authType: ""
   basicAuth:
     enabled: false
     initialOrgAdminEmail: ""
