@@ -12,6 +12,7 @@ data:
   VITE_BACKEND_AUTH_TYPE: "oauth"
   AUTH_TYPE: "oauth"
   {{- else if and .Values.config.basicAuth.enabled (eq .Values.config.authType "mixed") }}
+  VITE_BACKEND_AUTH_TYPE: "mixed"
   AUTH_TYPE: "mixed"
   BASIC_AUTH_ENABLED: "true"
   {{- else }}
