@@ -135,7 +135,7 @@ backend:
     command:
       - "/bin/bash"
       - "-c"
-      - "alembic upgrade head"
+      - "alembic upgrade head && python hooks/auth_bootstrap.pyc"
     extraContainerConfig: {}
     extraEnv: []
     sidecars: []
