@@ -159,7 +159,7 @@ backend:
     #        memory: 500Mi
     command:
       - "python"
-      - "hooks/auth_bootstrap.py"
+      - "hooks/auth_bootstrap.pyc"
     extraContainerConfig: {}
     extraEnv: []
     sidecars: []
