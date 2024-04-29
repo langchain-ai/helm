@@ -46,15 +46,6 @@ spec:
           {{- end }}
           env:
             {{- include "langsmith.commonEnv" . | nindent 12 }}
-            - name: BASIC_AUTH_ENABLED
-              value: {{ .Values.config.basicAuth.enabled | quote }}
-            - name: INITIAL_ORG_ADMIN_EMAIL
-              value: {{ .Values.config.basicAuth.initialOrgAdminEmail }}
-            - name: INITIAL_ORG_ADMIN_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: {{ include "langsmith.basicAuthSecretsName" . }}
-                  key: initial_org_admin_password
             {{- with .Values.backend.migrations.extraEnv }}
               {{- toYaml . | nindent 12 }}
             {{- end }}

@@ -116,17 +116,6 @@ the user or some other secret provisioning mechanism
 {{- end }}
 {{- end }}
 
-{{/*
-Name of the secret containing the secrets for basic auth. This can be overridden by a secrets file created by
-the user or some other secret provisioning mechanism
-*/}}
-{{- define "langsmith.basicAuthSecretsName" -}}
-{{- if .Values.config.basicAuth.existingSecretName }}
-{{- .Values.config.basicAuth.existingSecretName }}
-{{- else }}
-{{- include "langsmith.fullname" . }}-basic-auth
-{{- end }}
-{{- end }}
 
 {{/*
 Template containing common environment variables that are used by several services.
@@ -205,11 +194,13 @@ Template containing common environment variables that are used by several servic
     secretKeyRef:
       name: {{ include "langsmith.secretsName" . }}
       key: openai_api_key
+- name: BASIC_AUTH_ENABLED
+  value: {{ .Values.config.basicAuth.enabled | quote }}
 {{- if .Values.config.basicAuth.enabled }}
 - name: BASIC_AUTH_JWT_SECRET
   valueFrom:
     secretKeyRef:
-      name: {{ include "langsmith.basicAuthSecretsName" . }}
+      name: {{ include "langsmith.secretsName" . }}
       key: jwt_secret
 {{- end }}
 {{- end }}
