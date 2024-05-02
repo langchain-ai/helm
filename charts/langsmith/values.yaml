@@ -66,6 +66,13 @@ config:
   # -- Salt used to generate the API key. Should be a random string.
   apiKeySalt: ""
   logLevel: "info"
+  authType: ""
+  basicAuth:
+    enabled: false
+    initialOrgAdminEmail: ""
+    # Either set the password and JWT secret in plaintext, or set in the existingSecretName above.
+    initialOrgAdminPassword: ""
+    jwtSecret: ""
   oauth:
     enabled: false
     oauthClientId: ""
@@ -127,6 +134,29 @@ backend:
       - "/bin/bash"
       - "-c"
       - "alembic upgrade head"
+    extraContainerConfig: {}
+    extraEnv: []
+    sidecars: []
+    nodeSelector: {}
+    tolerations: []
+    affinity: {}
+    volumes: []
+    volumeMounts: []
+  authBootstrap:
+    labels: {}
+    annotations: {}
+    podSecurityContext: {}
+    securityContext: {}
+    resources: {}
+    #      limits:
+    #        cpu: 1000m
+    #        memory: 1Gi
+    #      requests:
+    #        cpu: 200m
+    #        memory: 500Mi
+    command:
+      - "python"
+      - "hooks/auth_bootstrap.pyc"
     extraContainerConfig: {}
     extraEnv: []
     sidecars: []
