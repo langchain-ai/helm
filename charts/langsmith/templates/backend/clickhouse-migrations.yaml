@@ -16,7 +16,7 @@ metadata:
       {{- toYaml . | nindent 4 }}
     {{- end }}
 spec:
-  backoffLimit: 3
+  backoffLimit: 2
   template:
     metadata:
       {{- with .Values.backend.clickhouseMigrations.annotations }}

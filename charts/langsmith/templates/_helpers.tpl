@@ -164,6 +164,11 @@ Template containing common environment variables that are used by several servic
     secretKeyRef:
       name: {{ include "langsmith.clickhouseSecretsName" . }}
       key: clickhouse_password
+- name: CLICKHOUSE_TLS
+  valueFrom:
+    secretKeyRef:
+      name: {{ include "langsmith.clickhouseSecretsName" . }}
+      key: clickhouse_tls
 - name: LOG_LEVEL
   value: {{ .Values.config.logLevel }}
 {{- if .Values.config.oauth.enabled }}
@@ -193,6 +198,8 @@ Template containing common environment variables that are used by several servic
     secretKeyRef:
       name: {{ include "langsmith.secretsName" . }}
       key: openai_api_key
+- name: GO_ENDPOINT
+  value: http://{{- include "langsmith.fullname" . }}-{{.Values.platformBackend.name}}:{{ .Values.platformBackend.service.port }}
 {{- end }}
 
 {{- define "backend.serviceAccountName" -}}

@@ -15,19 +15,19 @@ images:
   backendImage:
     repository: "docker.io/langchain/langsmith-backend"
     pullPolicy: IfNotPresent
-    tag: "0.2.30"
+    tag: "0.3.4"
   frontendImage:
     repository: "docker.io/langchain/langsmith-frontend"
     pullPolicy: IfNotPresent
-    tag: "0.2.30"
+    tag: "0.3.4"
   platformBackendImage:
     repository: "docker.io/langchain/langsmith-go-backend"
     pullPolicy: IfNotPresent
-    tag: "0.2.30"
+    tag: "0.3.4"
   playgroundImage:
     repository: "docker.io/langchain/langsmith-playground"
     pullPolicy: IfNotPresent
-    tag: "0.2.30"
+    tag: "0.3.4"
   postgresImage:
     repository: "docker.io/postgres"
     pullPolicy: IfNotPresent
@@ -149,12 +149,9 @@ backend:
 #        cpu: 200m
 #        memory: 500Mi
     command:
-      - "migrate"
-      - "-source"
-      - "file://clickhouse/migrations"
-      - "-database"
-      - "clickhouse://$(CLICKHOUSE_HOST):$(CLICKHOUSE_NATIVE_PORT)?username=$(CLICKHOUSE_USER)&password=$(CLICKHOUSE_PASSWORD)&database=$(CLICKHOUSE_DB)&x-multi-statement=true&x-migrations-table-engine=MergeTree"
-      - "up"
+      - "/bin/bash"
+      - "-c"
+      - "sleep 20s; migrate -source file://clickhouse/migrations -database 'clickhouse://$(CLICKHOUSE_HOST):$(CLICKHOUSE_NATIVE_PORT)?username=$(CLICKHOUSE_USER)&password=$(CLICKHOUSE_PASSWORD)&database=$(CLICKHOUSE_DB)&x-multi-statement=true&x-migrations-table-engine=MergeTree' up"
     extraContainerConfig: {}
     extraEnv: []
     sidecars: []
@@ -196,6 +193,7 @@ clickhouse:
     user: "default"
     password: "password"
     database: "default"
+    tls: false
     existingSecretName: ""
   containerHttpPort: 8123
   containerNativePort: 9000
@@ -435,7 +433,7 @@ queue:
 
 platformBackend:
   name: "platform-backend"
-  containerPort: 8080
+  containerPort: 1986
   existingConfigMapName: ""
   deployment:
     replicas: 1
@@ -470,7 +468,7 @@ platformBackend:
     targetCPUUtilizationPercentage: 80
   service:
     type: ClusterIP
-    port: 1985
+    port: 1986
     labels: {}
     annotations: {}
     loadBalancerSourceRanges: []

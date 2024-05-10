@@ -1,8 +1,24 @@
 # langsmith
 
-![Version: 0.4.3](https://img.shields.io/badge/Version-0.4.3-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.2.11](https://img.shields.io/badge/AppVersion-0.2.11-informational?style=flat-square)
+![Version: 0.5.0](https://img.shields.io/badge/Version-0.5.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.3.4](https://img.shields.io/badge/AppVersion-0.3.4-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
+
+## Migrating from LangSmith 0.4.0 to 0.5.0
+
+LangSmith 0.5.0 should be a drop-in replacement for LangSmith 0.5.0 You can follow the generic upgrade instructions [here](docs/UPGRADE.md).
+
+There are a few important changes when migrating from 0.4.0 to 0.5.0 The majority of these will require no action on your part. However, there are a few things to note:
+
+- Small changes to the commands used to run the queue/clickhouseMigrations. If you were overriding this command you may have to update the override.
+- We have now added a new `platform-backend` service that is used internally.
+  - This service uses a new `images.platformBackendImage`.
+  - You can configure this service under the `platformBackend` section of your `values.yaml` file
+- Several feature improvements and bug fixes have been made to the application.
+
+You can view more release notes [here](https://docs.smith.langchain.com/self_hosting/release_notes)
+
+** Note: Using a new api key salt will invalidate all old api keys. **
 
 ## Migrating from LangSmith 0.3.0 to 0.4.0
 
@@ -66,11 +82,16 @@ Ensure you have the following tools/items ready.
 8. External Postgres(optional).
     1. You can configure external postgres using the `values.yaml` file. You will need to provide connection parameters for your postgres instance.
     2. If using a schema other than public, ensure that you do not have any other schemas with the pgcrypto extension enabled or you must include that in your search path.
-    3. Note: We do only officially support Postgres versions >= 14.
+    3. We use the following extensions: `pg_trgm`, `btree_gin`, `btree_gist`, `pgcrypto`, `citext`. You may need to whitelist these extensions in your database.
+    4. Note: We do only officially support Postgres versions >= 14.
 9. External Redis(optional).
     1. You can configure external redis using the `values.yaml` file. You will need to provide a connection url for your redis instance.
     2. If using TLS, ensure that you use `rediss://` instead of `redis://. E.g "rediss://langsmith-redis:6380/0?password=foo"
     3. We only official support Redis versions >= 6.
+10. External ClickHouse(optional).
+    1. You can configure external clickhouse using the `values.yaml` file. You will need to provide several connection parameters for your ClickHouse instance.
+    2, If using TLS, make sure to set `clickhouse.external.tls` to `true`.
+    3. We only officially support ClickHouse versions >= 23. We also only support standalone ClickHouse or ClickHouse Cloud(not clustered or replicated).
 
 ### Configure your Helm Charts:
 
@@ -121,27 +142,6 @@ config:
 This should be configured as a Single Page Application in your OIDC provider. You will also need to add
 <external ip>/oauth-callback as a redirect uri for your application.
 
-Example config file with external postgres and redis:
-
-```jsx
-config:
-  langsmithLicenseKey: ""
-  apiKeySalt: "foo"
-
-postgres:
-  external:
-    enabled: true
-    # Do not include protocol here.
-    connectionUrl: "<username>:<password>@<url>:5432/<dbname>"
-redis:
-  external:
-    enabled: true
-    connectionUrl: "redis://<url>:6379"
-```
-
-You can also use existingSecretName to avoid checking in secrets. This secret will need to follow
-the same format as the secret in the corresponding `secrets.yaml` file.
-
 More examples can be found in the `examples` directory.
 
 ### Deploying to Kubernetes:
@@ -166,12 +166,19 @@ More examples can be found in the `examples` directory.
     1. Output should now look something like:
 
     ```bash
-    langsmith-backend-6ff46c99c4-wz22d       1/1     Running   0          3h2m
-    langsmith-frontend-6bbb94c5df-8xrlr      1/1     Running   0          3h2m
-    langsmith-playground-6d95fd8dc6-x2d9b    1/1     Running   0          3h2m
-    langsmith-postgres-0                     1/1     Running   0          9h
-    langsmith-queue-5898b9d566-tv6q8         1/1     Running   0          3h2m
-    langsmith-redis-0                        1/1     Running   0          9h
+    langsmith-backend-7bbc58d7-792nb              1/1     Running     0          40m
+    langsmith-backend-ch-migrations-x92wh         0/1     Completed   0          40m
+    langsmith-backend-migrations-5ttkp            0/1     Completed   0          95d
+    langsmith-backend-pg-migrations-6r8gp         0/1     Completed   0          40m
+    langsmith-clickhouse-0                        1/1     Running     0          76m
+    langsmith-frontend-b8ff79c4f-5qgn6            1/1     Running     0          40m
+    langsmith-platform-backend-549d9d9f68-4cn2v   1/1     Running     0          40m
+    langsmith-playground-58cb7ff9c8-64r9t         1/1     Running     0          40m
+    langsmith-postgres-0                          1/1     Running     0          68m
+    langsmith-queue-6bcd7499-42jzh                1/1     Running     0          40m
+    langsmith-queue-6bcd7499-c8zp4                1/1     Running     0          40m
+    langsmith-queue-6bcd7499-nsrqw                1/1     Running     0          40m
+    langsmith-redis-0                             1/1     Running     0          76m
     ```
 
 ### Validate your deployment:
@@ -181,12 +188,14 @@ More examples can be found in the `examples` directory.
     Output should look something like:
 
     ```bash
-    NAME                    TYPE           CLUSTER-IP       EXTERNAL-IP                                                               PORT(S)        AGE
-    langsmith-backend       ClusterIP      172.20.140.77    <none>                                                                    1984/TCP       35h
-    langsmith-frontend      LoadBalancer   172.20.253.251   <external ip>   80:31591/TCP   35h
-    langsmith-playground    ClusterIP      172.20.153.194   <none>                                                                    3001/TCP       9h
-    langsmith-postgres      ClusterIP      172.20.244.82    <none>                                                                    5432/TCP       35h
-    langsmith-redis         ClusterIP      172.20.81.217    <none>                                                                    6379/TCP       35h
+    NAME                    TYPE           CLUSTER-IP       EXTERNAL-IP      PORT(S)                      AGE
+    langsmith-backend            ClusterIP      172.20.66.115    <none>          1984/TCP                     46d
+    langsmith-clickhouse         ClusterIP      172.20.134.49    <none>          8123/TCP,9000/TCP            46d
+    langsmith-frontend           LoadBalancer   172.20.130.135   <external ip>   80:30872/TCP,443:30929/TCP   46d
+    langsmith-platform-backend   ClusterIP      172.20.44.253    <none>          1986/TCP                     17d
+    langsmith-playground         ClusterIP      172.20.77.65     <none>          3001/TCP                     46d
+    langsmith-postgres           ClusterIP      172.20.76.70     <none>          5432/TCP                     75m
+    langsmith-redis              ClusterIP      172.20.113.4     <none>          6379/TCP                     39d                                                                  6379/TCP       35h
     ```
 
 2. Curl the external ip of the `langsmith-frontend` service:
@@ -224,7 +233,7 @@ We typically validate deployment using the following quickstart guide:
 4. How can we authenticate to the application?
     - Currently, our self-hosted solution supports oauth as an authn solution.
     - Note, we do offer a no-auth solution but highly recommend setting up oauth before moving into production.
-5. How can I use External `Postgres` or `Redis`?
+5. How can I use External `Postgres`, `Redis`, or `ClickHouse`?
     - You can configure external postgres or redis using the external sections in the `values.yaml` file. You will need to provide the connection url/params for the database/redis instance. Look at the configuration above example for more information.
 6. What networking configuration is needed  for the application?
     - Our deployment only needs egress for a few things:
@@ -256,6 +265,7 @@ We typically validate deployment using the following quickstart guide:
 | clickhouse.external.nativePort | string | `"9000"` |  |
 | clickhouse.external.password | string | `"password"` |  |
 | clickhouse.external.port | string | `"8123"` |  |
+| clickhouse.external.tls | bool | `false` |  |
 | clickhouse.external.user | string | `"default"` |  |
 | clickhouse.name | string | `"clickhouse"` |  |
 | clickhouse.service.annotations | object | `{}` |  |
@@ -292,17 +302,20 @@ We typically validate deployment using the following quickstart guide:
 | fullnameOverride | string | `""` | String to fully override `"langsmith.fullname"` |
 | images.backendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.backendImage.repository | string | `"docker.io/langchain/langsmith-backend"` |  |
-| images.backendImage.tag | string | `"0.2.11"` |  |
+| images.backendImage.tag | string | `"0.3.4"` |  |
 | images.clickhouseImage.pullPolicy | string | `"Always"` |  |
 | images.clickhouseImage.repository | string | `"docker.io/clickhouse/clickhouse-server"` |  |
 | images.clickhouseImage.tag | string | `"23.9"` |  |
 | images.frontendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.frontendImage.repository | string | `"docker.io/langchain/langsmith-frontend"` |  |
-| images.frontendImage.tag | string | `"0.2.11"` |  |
+| images.frontendImage.tag | string | `"0.3.4"` |  |
 | images.imagePullSecrets | list | `[]` | Secrets with credentials to pull images from a private registry. Specified as name: value. |
+| images.platformBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
+| images.platformBackendImage.repository | string | `"docker.io/langchain/langsmith-go-backend"` |  |
+| images.platformBackendImage.tag | string | `"0.3.4"` |  |
 | images.playgroundImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.playgroundImage.repository | string | `"docker.io/langchain/langsmith-playground"` |  |
-| images.playgroundImage.tag | string | `"0.2.11"` |  |
+| images.playgroundImage.tag | string | `"0.3.4"` |  |
 | images.postgresImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.postgresImage.repository | string | `"docker.io/postgres"` |  |
 | images.postgresImage.tag | string | `"14.7"` |  |
@@ -342,12 +355,9 @@ We typically validate deployment using the following quickstart guide:
 | backend.autoscaling.targetCPUUtilizationPercentage | int | `80` |  |
 | backend.clickhouseMigrations.affinity | object | `{}` |  |
 | backend.clickhouseMigrations.annotations | object | `{}` |  |
-| backend.clickhouseMigrations.command[0] | string | `"migrate"` |  |
-| backend.clickhouseMigrations.command[1] | string | `"-source"` |  |
-| backend.clickhouseMigrations.command[2] | string | `"file://clickhouse/migrations"` |  |
-| backend.clickhouseMigrations.command[3] | string | `"-database"` |  |
-| backend.clickhouseMigrations.command[4] | string | `"clickhouse://$(CLICKHOUSE_HOST):$(CLICKHOUSE_NATIVE_PORT)?username=$(CLICKHOUSE_USER)&password=$(CLICKHOUSE_PASSWORD)&database=$(CLICKHOUSE_DB)&x-multi-statement=true&x-migrations-table-engine=MergeTree"` |  |
-| backend.clickhouseMigrations.command[5] | string | `"up"` |  |
+| backend.clickhouseMigrations.command[0] | string | `"/bin/bash"` |  |
+| backend.clickhouseMigrations.command[1] | string | `"-c"` |  |
+| backend.clickhouseMigrations.command[2] | string | `"sleep 20s; migrate -source file://clickhouse/migrations -database 'clickhouse://$(CLICKHOUSE_HOST):$(CLICKHOUSE_NATIVE_PORT)?username=$(CLICKHOUSE_USER)&password=$(CLICKHOUSE_PASSWORD)&database=$(CLICKHOUSE_DB)&x-multi-statement=true&x-migrations-table-engine=MergeTree' up"` |  |
 | backend.clickhouseMigrations.enabled | bool | `true` |  |
 | backend.clickhouseMigrations.extraContainerConfig | object | `{}` |  |
 | backend.clickhouseMigrations.extraEnv | list | `[]` |  |
@@ -363,7 +373,19 @@ We typically validate deployment using the following quickstart guide:
 | backend.containerPort | int | `1984` |  |
 | backend.deployment.affinity | object | `{}` |  |
 | backend.deployment.annotations | object | `{}` |  |
-| backend.deployment.command | list | `[]` |  |
+| backend.deployment.command[0] | string | `"uvicorn"` |  |
+| backend.deployment.command[10] | string | `"--http"` |  |
+| backend.deployment.command[11] | string | `"httptools"` |  |
+| backend.deployment.command[12] | string | `"--no-access-log"` |  |
+| backend.deployment.command[1] | string | `"app.main:app"` |  |
+| backend.deployment.command[2] | string | `"--host"` |  |
+| backend.deployment.command[3] | string | `"0.0.0.0"` |  |
+| backend.deployment.command[4] | string | `"--port"` |  |
+| backend.deployment.command[5] | string | `"$(PORT)"` |  |
+| backend.deployment.command[6] | string | `"--log-level"` |  |
+| backend.deployment.command[7] | string | `"$(LOG_LEVEL)"` |  |
+| backend.deployment.command[8] | string | `"--loop"` |  |
+| backend.deployment.command[9] | string | `"uvloop"` |  |
 | backend.deployment.extraContainerConfig | object | `{}` |  |
 | backend.deployment.extraEnv | list | `[]` |  |
 | backend.deployment.labels | object | `{}` |  |
@@ -419,6 +441,7 @@ We typically validate deployment using the following quickstart guide:
 | clickhouse.external.nativePort | string | `"9000"` |  |
 | clickhouse.external.password | string | `"password"` |  |
 | clickhouse.external.port | string | `"8123"` |  |
+| clickhouse.external.tls | bool | `false` |  |
 | clickhouse.external.user | string | `"default"` |  |
 | clickhouse.name | string | `"clickhouse"` |  |
 | clickhouse.service.annotations | object | `{}` |  |
@@ -463,7 +486,7 @@ We typically validate deployment using the following quickstart guide:
 | frontend.containerPort | int | `8080` |  |
 | frontend.deployment.affinity | object | `{}` |  |
 | frontend.deployment.annotations | object | `{}` |  |
-| frontend.deployment.command | list | `[]` |  |
+| frontend.deployment.command[0] | string | `"/entrypoint.sh"` |  |
 | frontend.deployment.extraContainerConfig | object | `{}` |  |
 | frontend.deployment.extraEnv | list | `[]` |  |
 | frontend.deployment.labels | object | `{}` |  |
@@ -489,45 +512,82 @@ We typically validate deployment using the following quickstart guide:
 | frontend.serviceAccount.create | bool | `true` |  |
 | frontend.serviceAccount.labels | object | `{}` |  |
 | frontend.serviceAccount.name | string | `""` |  |
+
+## Platform Backend
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| platformBackend.autoscaling.createHpa | bool | `true` |  |
+| platformBackend.autoscaling.enabled | bool | `false` |  |
+| platformBackend.autoscaling.maxReplicas | int | `5` |  |
+| platformBackend.autoscaling.minReplicas | int | `1` |  |
+| platformBackend.autoscaling.targetCPUUtilizationPercentage | int | `80` |  |
+| platformBackend.containerPort | int | `1986` |  |
+| platformBackend.deployment.affinity | object | `{}` |  |
+| platformBackend.deployment.annotations | object | `{}` |  |
+| platformBackend.deployment.command[0] | string | `"./smith-go"` |  |
+| platformBackend.deployment.extraContainerConfig | object | `{}` |  |
+| platformBackend.deployment.extraEnv | list | `[]` |  |
+| platformBackend.deployment.labels | object | `{}` |  |
+| platformBackend.deployment.nodeSelector | object | `{}` |  |
+| platformBackend.deployment.podSecurityContext | object | `{}` |  |
+| platformBackend.deployment.replicas | int | `1` |  |
+| platformBackend.deployment.resources | object | `{}` |  |
+| platformBackend.deployment.securityContext | object | `{}` |  |
+| platformBackend.deployment.sidecars | list | `[]` |  |
+| platformBackend.deployment.tolerations | list | `[]` |  |
+| platformBackend.deployment.volumeMounts | list | `[]` |  |
+| platformBackend.deployment.volumes | list | `[]` |  |
+| platformBackend.existingConfigMapName | string | `""` |  |
+| platformBackend.name | string | `"platform-backend"` |  |
+| platformBackend.service.annotations | object | `{}` |  |
+| platformBackend.service.labels | object | `{}` |  |
+| platformBackend.service.loadBalancerIP | string | `""` |  |
+| platformBackend.service.loadBalancerSourceRanges | list | `[]` |  |
+| platformBackend.service.port | int | `1986` |  |
+| platformBackend.service.type | string | `"ClusterIP"` |  |
+| platformBackend.serviceAccount.annotations | object | `{}` |  |
+| platformBackend.serviceAccount.create | bool | `true` |  |
+| platformBackend.serviceAccount.labels | object | `{}` |  |
+| platformBackend.serviceAccount.name | string | `""` |  |
 
 ## Playground
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| frontend.autoscaling.createHpa | bool | `true` |  |
-| frontend.autoscaling.enabled | bool | `false` |  |
-| frontend.autoscaling.maxReplicas | int | `5` |  |
-| frontend.autoscaling.minReplicas | int | `1` |  |
-| frontend.autoscaling.targetCPUUtilizationPercentage | int | `80` |  |
-| frontend.containerPort | int | `8080` |  |
-| frontend.deployment.affinity | object | `{}` |  |
-| frontend.deployment.annotations | object | `{}` |  |
-| frontend.deployment.command | list | `[]` |  |
-| frontend.deployment.extraContainerConfig | object | `{}` |  |
-| frontend.deployment.extraEnv | list | `[]` |  |
-| frontend.deployment.labels | object | `{}` |  |
-| frontend.deployment.nodeSelector | object | `{}` |  |
-| frontend.deployment.podSecurityContext | object | `{}` |  |
-| frontend.deployment.replicas | int | `1` |  |
-| frontend.deployment.resources | object | `{}` |  |
-| frontend.deployment.securityContext | object | `{}` |  |
-| frontend.deployment.sidecars | list | `[]` |  |
-| frontend.deployment.tolerations | list | `[]` |  |
-| frontend.deployment.volumeMounts | list | `[]` |  |
-| frontend.deployment.volumes | list | `[]` |  |
-| frontend.existingConfigMapName | string | `""` |  |
-| frontend.name | string | `"frontend"` |  |
-| frontend.service.annotations | object | `{}` |  |
-| frontend.service.httpPort | int | `80` |  |
-| frontend.service.httpsPort | int | `443` |  |
-| frontend.service.labels | object | `{}` |  |
-| frontend.service.loadBalancerIP | string | `""` |  |
-| frontend.service.loadBalancerSourceRanges | list | `[]` |  |
-| frontend.service.type | string | `"LoadBalancer"` |  |
-| frontend.serviceAccount.annotations | object | `{}` |  |
-| frontend.serviceAccount.create | bool | `true` |  |
-| frontend.serviceAccount.labels | object | `{}` |  |
-| frontend.serviceAccount.name | string | `""` |  |
+| playground.autoscaling.createHpa | bool | `true` |  |
+| playground.autoscaling.enabled | bool | `false` |  |
+| playground.autoscaling.maxReplicas | int | `5` |  |
+| playground.autoscaling.minReplicas | int | `1` |  |
+| playground.autoscaling.targetCPUUtilizationPercentage | int | `80` |  |
+| playground.containerPort | int | `3001` |  |
+| playground.deployment.affinity | object | `{}` |  |
+| playground.deployment.annotations | object | `{}` |  |
+| playground.deployment.command[0] | string | `"node"` |  |
+| playground.deployment.command[1] | string | `"./scripts/run-playground-docker.mjs"` |  |
+| playground.deployment.extraContainerConfig | object | `{}` |  |
+| playground.deployment.extraEnv | list | `[]` |  |
+| playground.deployment.labels | object | `{}` |  |
+| playground.deployment.nodeSelector | object | `{}` |  |
+| playground.deployment.podSecurityContext | object | `{}` |  |
+| playground.deployment.replicas | int | `1` |  |
+| playground.deployment.resources | object | `{}` |  |
+| playground.deployment.securityContext | object | `{}` |  |
+| playground.deployment.sidecars | list | `[]` |  |
+| playground.deployment.tolerations | list | `[]` |  |
+| playground.deployment.volumeMounts | list | `[]` |  |
+| playground.deployment.volumes | list | `[]` |  |
+| playground.name | string | `"playground"` |  |
+| playground.service.annotations | object | `{}` |  |
+| playground.service.labels | object | `{}` |  |
+| playground.service.loadBalancerIP | string | `""` |  |
+| playground.service.loadBalancerSourceRanges | list | `[]` |  |
+| playground.service.port | int | `3001` |  |
+| playground.service.type | string | `"ClusterIP"` |  |
+| playground.serviceAccount.annotations | object | `{}` |  |
+| playground.serviceAccount.create | bool | `true` |  |
+| playground.serviceAccount.labels | object | `{}` |  |
+| playground.serviceAccount.name | string | `""` |  |
 
 ## Postgres
 
@@ -583,7 +643,7 @@ We typically validate deployment using the following quickstart guide:
 | queue.deployment.affinity | object | `{}` |  |
 | queue.deployment.annotations | object | `{}` |  |
 | queue.deployment.command[0] | string | `"saq"` |  |
-| queue.deployment.command[1] | string | `"app.async_worker.settings"` |  |
+| queue.deployment.command[1] | string | `"app.workers.queues.single_queue_worker.settings"` |  |
 | queue.deployment.command[2] | string | `"--quiet"` |  |
 | queue.deployment.extraContainerConfig | object | `{}` |  |
 | queue.deployment.extraEnv | list | `[]` |  |

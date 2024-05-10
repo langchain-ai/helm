@@ -13,3 +13,13 @@ redis:
     enabled: true
     connectionUrl: "redis://host:port"
     # existingSecretName: "redis-secret" Can also put the above into a secret if you want to avoid putting the connection string in the values file.
+
+clickhouse:
+  external:
+    enabled: true
+    user: "default"
+    password: "password"
+    host: "langsmith-clickhouse"
+    port: 8123
+    nativePort: 9000
+    database: "default"
