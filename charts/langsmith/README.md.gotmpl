@@ -4,11 +4,11 @@
 
 {{ template "chart.description" . }}
 
-## Migrating from LangSmith 0.4.0 to 0.5.0
+## Migrating from LangSmith 0.4.x to 0.5.0
 
-LangSmith 0.5.0 should be a drop-in replacement for LangSmith 0.5.0 You can follow the generic upgrade instructions [here](docs/UPGRADE.md).
+LangSmith 0.5.0 should be a drop-in replacement for LangSmith 0.4.x You can follow the generic upgrade instructions [here](docs/UPGRADE.md).
 
-There are a few important changes when migrating from 0.4.0 to 0.5.0 The majority of these will require no action on your part. However, there are a few things to note:
+There are a few important changes when migrating from 0.4.x to 0.5.0 The majority of these will require no action on your part. However, there are a few things to note:
 
 - Small changes to the commands used to run the queue/clickhouseMigrations. If you were overriding this command you may have to update the override.
 - We have now added a new `platform-backend` service that is used internally.
