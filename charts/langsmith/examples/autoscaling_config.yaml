@@ -27,6 +27,18 @@ frontend:
     maxReplicas: 10
     targetCPUUtilizationPercentage: 50
 
+platform-backend:
+  deployment:
+    resources:
+      requests:
+        cpu: 500m
+        memory: 1000Mi
+  autoscaling:
+    enabled: true
+    minReplicas: 1
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 50
+
 playground:
   deployment:
     resources:

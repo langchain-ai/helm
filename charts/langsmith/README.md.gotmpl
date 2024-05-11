@@ -4,6 +4,22 @@
 
 {{ template "chart.description" . }}
 
+## Migrating from LangSmith 0.4.x to 0.5.0
+
+LangSmith 0.5.0 should be a drop-in replacement for LangSmith 0.4.x You can follow the generic upgrade instructions [here](docs/UPGRADE.md).
+
+There are a few important changes when migrating from 0.4.x to 0.5.0 The majority of these will require no action on your part. However, there are a few things to note:
+
+- Small changes to the commands used to run the queue/clickhouseMigrations. If you were overriding this command you may have to update the override.
+- We have now added a new `platform-backend` service that is used internally.
+  - This service uses a new `images.platformBackendImage`.
+  - You can configure this service under the `platformBackend` section of your `values.yaml` file
+- Several feature improvements and bug fixes have been made to the application.
+
+You can view more release notes [here](https://docs.smith.langchain.com/self_hosting/release_notes)
+
+** Note: Using a new api key salt will invalidate all old api keys. **
+
 ## Migrating from LangSmith 0.3.0 to 0.4.0
 
 LangSmith 0.4.0 should be a drop-in replacement for LangSmith 0.3.0. You can follow the generic upgrade instructions [here](docs/UPGRADE.md).
@@ -66,11 +82,16 @@ Ensure you have the following tools/items ready.
 8. External Postgres(optional).
     1. You can configure external postgres using the `values.yaml` file. You will need to provide connection parameters for your postgres instance.
     2. If using a schema other than public, ensure that you do not have any other schemas with the pgcrypto extension enabled or you must include that in your search path.
-    3. Note: We do only officially support Postgres versions >= 14.
+    3. We use the following extensions: `pg_trgm`, `btree_gin`, `btree_gist`, `pgcrypto`, `citext`. You may need to whitelist these extensions in your database.
+    4. Note: We do only officially support Postgres versions >= 14.
 9. External Redis(optional).
     1. You can configure external redis using the `values.yaml` file. You will need to provide a connection url for your redis instance.
     2. If using TLS, ensure that you use `rediss://` instead of `redis://. E.g "rediss://langsmith-redis:6380/0?password=foo"
     3. We only official support Redis versions >= 6.
+10. External ClickHouse(optional).
+    1. You can configure external clickhouse using the `values.yaml` file. You will need to provide several connection parameters for your ClickHouse instance.
+    2, If using TLS, make sure to set `clickhouse.external.tls` to `true`.
+    3. We only officially support ClickHouse versions >= 23. We also only support standalone ClickHouse or ClickHouse Cloud(not clustered or replicated).
 
 ### Configure your Helm Charts:
 
@@ -121,27 +142,6 @@ config:
 This should be configured as a Single Page Application in your OIDC provider. You will also need to add
 <external ip>/oauth-callback as a redirect uri for your application.
 
-Example config file with external postgres and redis:
-
-```jsx
-config:
-  langsmithLicenseKey: ""
-  apiKeySalt: "foo"
-
-postgres:
-  external:
-    enabled: true
-    # Do not include protocol here.
-    connectionUrl: "<username>:<password>@<url>:5432/<dbname>"
-redis:
-  external:
-    enabled: true
-    connectionUrl: "redis://<url>:6379"
-```
-
-You can also use existingSecretName to avoid checking in secrets. This secret will need to follow
-the same format as the secret in the corresponding `secrets.yaml` file.
-
 More examples can be found in the `examples` directory.
 
 ### Deploying to Kubernetes:
@@ -166,12 +166,19 @@ More examples can be found in the `examples` directory.
     1. Output should now look something like:
 
     ```bash
-    langsmith-backend-6ff46c99c4-wz22d       1/1     Running   0          3h2m
-    langsmith-frontend-6bbb94c5df-8xrlr      1/1     Running   0          3h2m
-    langsmith-playground-6d95fd8dc6-x2d9b    1/1     Running   0          3h2m
-    langsmith-postgres-0                     1/1     Running   0          9h
-    langsmith-queue-5898b9d566-tv6q8         1/1     Running   0          3h2m
-    langsmith-redis-0                        1/1     Running   0          9h
+    langsmith-backend-7bbc58d7-792nb              1/1     Running     0          40m
+    langsmith-backend-ch-migrations-x92wh         0/1     Completed   0          40m
+    langsmith-backend-migrations-5ttkp            0/1     Completed   0          95d
+    langsmith-backend-pg-migrations-6r8gp         0/1     Completed   0          40m
+    langsmith-clickhouse-0                        1/1     Running     0          76m
+    langsmith-frontend-b8ff79c4f-5qgn6            1/1     Running     0          40m
+    langsmith-platform-backend-549d9d9f68-4cn2v   1/1     Running     0          40m
+    langsmith-playground-58cb7ff9c8-64r9t         1/1     Running     0          40m
+    langsmith-postgres-0                          1/1     Running     0          68m
+    langsmith-queue-6bcd7499-42jzh                1/1     Running     0          40m
+    langsmith-queue-6bcd7499-c8zp4                1/1     Running     0          40m
+    langsmith-queue-6bcd7499-nsrqw                1/1     Running     0          40m
+    langsmith-redis-0                             1/1     Running     0          76m
     ```
 
 
@@ -182,12 +189,14 @@ More examples can be found in the `examples` directory.
     Output should look something like:
 
     ```bash
-    NAME                    TYPE           CLUSTER-IP       EXTERNAL-IP                                                               PORT(S)        AGE
-    langsmith-backend       ClusterIP      172.20.140.77    <none>                                                                    1984/TCP       35h
-    langsmith-frontend      LoadBalancer   172.20.253.251   <external ip>   80:31591/TCP   35h
-    langsmith-playground    ClusterIP      172.20.153.194   <none>                                                                    3001/TCP       9h
-    langsmith-postgres      ClusterIP      172.20.244.82    <none>                                                                    5432/TCP       35h
-    langsmith-redis         ClusterIP      172.20.81.217    <none>                                                                    6379/TCP       35h
+    NAME                    TYPE           CLUSTER-IP       EXTERNAL-IP      PORT(S)                      AGE
+    langsmith-backend            ClusterIP      172.20.66.115    <none>          1984/TCP                     46d
+    langsmith-clickhouse         ClusterIP      172.20.134.49    <none>          8123/TCP,9000/TCP            46d
+    langsmith-frontend           LoadBalancer   172.20.130.135   <external ip>   80:30872/TCP,443:30929/TCP   46d
+    langsmith-platform-backend   ClusterIP      172.20.44.253    <none>          1986/TCP                     17d
+    langsmith-playground         ClusterIP      172.20.77.65     <none>          3001/TCP                     46d
+    langsmith-postgres           ClusterIP      172.20.76.70     <none>          5432/TCP                     75m
+    langsmith-redis              ClusterIP      172.20.113.4     <none>          6379/TCP                     39d                                                                  6379/TCP       35h
     ```
 
 2. Curl the external ip of the `langsmith-frontend` service:
@@ -225,7 +234,7 @@ We typically validate deployment using the following quickstart guide:
 4. How can we authenticate to the application?
     - Currently, our self-hosted solution supports oauth as an authn solution.
     - Note, we do offer a no-auth solution but highly recommend setting up oauth before moving into production.
-5. How can I use External `Postgres` or `Redis`?
+5. How can I use External `Postgres`, `Redis`, or `ClickHouse`?
     - You can configure external postgres or redis using the external sections in the `values.yaml` file. You will need to provide the connection url/params for the database/redis instance. Look at the configuration above example for more information.
 6. What networking configuration is needed  for the application?
     - Our deployment only needs egress for a few things:
@@ -245,7 +254,7 @@ We typically validate deployment using the following quickstart guide:
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
 {{- range .Values }}
-  {{- if not (or (hasPrefix "config" .Key) (hasPrefix "backend" .Key) (hasPrefix "frontend" .Key) (hasPrefix "playground" .Key) (hasPrefix "postgres" .Key) (hasPrefix "queue" .Key) (hasPrefix "redis" .Key) ) }}
+  {{- if not (or (hasPrefix "config" .Key) (hasPrefix "backend" .Key) (hasPrefix "frontend" .Key) (hasPrefix "platformBackend" .Key)  (hasPrefix "playground" .Key) (hasPrefix "postgres" .Key) (hasPrefix "queue" .Key) (hasPrefix "redis" .Key) ) }}
 | {{ .Key }} | {{ .Type }} | {{ if .Default }}{{ .Default }}{{ else }}{{ .AutoDefault }}{{ end }} | {{ if .Description }}{{ .Description }}{{ else }}{{ .AutoDescription }}{{ end }} |
   {{- end }}
 {{- end }}
@@ -292,12 +301,22 @@ We typically validate deployment using the following quickstart guide:
   {{- end }}
 {{- end }}
 
+## Platform Backend
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+{{- range .Values }}
+  {{- if hasPrefix "platformBackend" .Key }}
+| {{ .Key }} | {{ .Type }} | {{ if .Default }}{{ .Default }}{{ else }}{{ .AutoDefault }}{{ end }} | {{ if .Description }}{{ .Description }}{{ else }}{{ .AutoDescription }}{{ end }} |
+  {{- end }}
+{{- end }}
+
 ## Playground
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
 {{- range .Values }}
-  {{- if hasPrefix "frontend" .Key }}
+  {{- if hasPrefix "playground" .Key }}
 | {{ .Key }} | {{ .Type }} | {{ if .Default }}{{ .Default }}{{ else }}{{ .AutoDefault }}{{ end }} | {{ if .Description }}{{ .Description }}{{ else }}{{ .AutoDescription }}{{ end }} |
   {{- end }}
 {{- end }}
