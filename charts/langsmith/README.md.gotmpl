@@ -90,12 +90,12 @@ Ensure you have the following tools/items ready.
     3. We only official support Redis versions >= 6.
 10. External ClickHouse(optional).
     1. You can configure external clickhouse using the `values.yaml` file. You will need to provide several connection parameters for your ClickHouse instance.
-    2, If using TLS, make sure to set `clickhouse.external.tls` to `true`.
+    2. If using TLS, make sure to set `clickhouse.external.tls` to `true`.
     3. We only officially support ClickHouse versions >= 23. We also only support standalone ClickHouse or ClickHouse Cloud(not clustered or replicated).
 
 ### Configure your Helm Charts:
 
-1. Create a copy of `values.yaml`
+1. Create a new file called `langsmith_config.yaml`. This should have a similar structure to the `values.yaml` file in the LangSmith Helm Chart repository. Only include the values you want to override to avoid having to update the file every time the chart is updated.
 2. Override any values in the file. Refer to the `values.yaml` documentation below to see all configurable values. Some values we recommend tuning:
     1. Resources
     2. SSL(If on EKS or some other cloud provider)
