@@ -56,33 +56,15 @@ spec:
             - name: redis
               containerPort: {{ .Values.redis.containerPort }}
               protocol: TCP
-          startupProbe:
-            exec:
-              command:
-                - /bin/sh
-                - -c
-                - exec redis-cli ping
-            failureThreshold: 6
-            periodSeconds: 10
-            timeoutSeconds: 1
-          readinessProbe:
-            exec:
-              command:
-                - /bin/sh
-                - -c
-                - exec redis-cli ping
-            failureThreshold: 6
-            periodSeconds: 10
-            timeoutSeconds: 1
-          livenessProbe:
-            exec:
-              command:
-                - /bin/sh
-                - -c
-                - exec redis-cli ping
-            failureThreshold: 6
-            periodSeconds: 10
-            timeoutSeconds: 1
+          {{- with .Values.redis.statefulSet.startupProbe }}
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.redis.statefulSet.livenessProbe }}
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.redis.statefulSet.readinessProbe }}
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           resources:
             {{- toYaml .Values.redis.statefulSet.resources | nindent 12 }}
           securityContext:

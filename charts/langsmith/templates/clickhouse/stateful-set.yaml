@@ -74,27 +74,15 @@ spec:
             - name: ch-native
               containerPort: {{ .Values.clickhouse.containerNativePort }}
               protocol: TCP
-          startupProbe:
-            httpGet:
-              path: /ping
-              port: {{ .Values.clickhouse.containerHttpPort }}
-            failureThreshold: 6
-            periodSeconds: 10
-            timeoutSeconds: 1
-          readinessProbe:
-            httpGet:
-              path: /ping
-              port: {{ .Values.clickhouse.containerHttpPort }}
-            failureThreshold: 6
-            periodSeconds: 10
-            timeoutSeconds: 1
-          livenessProbe:
-            httpGet:
-              path: /ping
-              port: {{ .Values.clickhouse.containerHttpPort }}
-            failureThreshold: 6
-            periodSeconds: 10
-            timeoutSeconds: 1
+          {{- with .Values.clickhouse.statefulSet.startupProbe }}
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.clickhouse.statefulSet.livenessProbe }}
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.clickhouse.statefulSet.readinessProbe }}
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           resources:
             {{- toYaml .Values.clickhouse.statefulSet.resources | nindent 12 }}
           securityContext:

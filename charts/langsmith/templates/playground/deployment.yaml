@@ -57,27 +57,15 @@ spec:
             - name: playground
               containerPort: {{ .Values.playground.containerPort }}
               protocol: TCP
-          startupProbe:
-            httpGet:
-              path: /ok
-              port: {{ .Values.playground.containerPort }}
-            failureThreshold: 6
-            periodSeconds: 10
-            timeoutSeconds: 1
-          livenessProbe:
-            httpGet:
-              path: /ok
-              port: {{ .Values.playground.containerPort }}
-            failureThreshold: 6
-            periodSeconds: 10
-            timeoutSeconds: 1
-          readinessProbe:
-            httpGet:
-              path: /ok
-              port: {{ .Values.playground.containerPort }}
-            failureThreshold: 6
-            periodSeconds: 10
-            timeoutSeconds: 1
+          {{- with .Values.playground.deployment.startupProbe }}
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.playground.deployment.livenessProbe }}
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.playground.deployment.readinessProbe }}
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           resources:
             {{- toYaml .Values.playground.deployment.resources | nindent 12 }}
           securityContext:

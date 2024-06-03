@@ -104,6 +104,27 @@ backend:
       - "--http"
       - "httptools"
       - "--no-access-log"
+    startupProbe:
+      httpGet:
+        path: /ok
+        port: 1984
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 1
+    livenessProbe:
+      httpGet:
+        path: /ok
+        port: 1984
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 1
+    readinessProbe:
+      httpGet:
+        path: /ok
+        port: 1984
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 1
     extraContainerConfig: {}
     extraEnv: []
     sidecars: []
@@ -215,6 +236,27 @@ clickhouse:
       - "/bin/bash"
       - "-c"
       - "sed 's/id -g/id -gn/' /entrypoint.sh > /tmp/entrypoint.sh; exec bash /tmp/entrypoint.sh"
+    startupProbe:
+      httpGet:
+        path: /ping
+        port: 8123
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 1
+    readinessProbe:
+      httpGet:
+        path: /ping
+        port: 8123
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 1
+    livenessProbe:
+      httpGet:
+        path: /ping
+        port: 8123
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 1
     extraContainerConfig: {}
     extraEnv: []
     sidecars: []
@@ -260,6 +302,27 @@ frontend:
 #        memory: 500Mi
     command:
       - "/entrypoint.sh"
+    startupProbe:
+      httpGet:
+        path: /health
+        port: 8080
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 1
+    livenessProbe:
+      httpGet:
+        path: /health
+        port: 8080
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 1
+    readinessProbe:
+      httpGet:
+        path: /health
+        port: 8080
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 1
     extraContainerConfig: {}
     extraEnv: []
     sidecars: []
@@ -309,6 +372,27 @@ playground:
     command:
       - "yarn"
       - "start"
+    startupProbe:
+      httpGet:
+        path: /ok
+        port: 3001
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 1
+    livenessProbe:
+      httpGet:
+        path: /ok
+        port: 3001
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 1
+    readinessProbe:
+      httpGet:
+        path: /ok
+        port: 3001
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 1
     extraContainerConfig: {}
     extraEnv: []
     sidecars: []
@@ -368,6 +452,33 @@ postgres:
 #        cpu: 1000m
 #        memory: 4Gi
     command: []
+    startupProbe:
+      exec:
+        command:
+          - /bin/sh
+          - -c
+          - exec pg_isready -d postgres -U postgres
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 1
+    readinessProbe:
+      exec:
+        command:
+          - /bin/sh
+          - -c
+          - exec pg_isready -d postgres -U postgres
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 1
+    livenessProbe:
+      exec:
+        command:
+          - /bin/sh
+          - -c
+          - exec pg_isready -d postgres -U postgres
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 1
     extraContainerConfig: {}
     extraEnv: []
     sidecars: []
@@ -452,6 +563,27 @@ platformBackend:
 #        memory: 500Mi
     command:
       - "./smith-go"
+    startupProbe:
+      httpGet:
+        path: /ok
+        port: 1986
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 1
+    livenessProbe:
+      httpGet:
+        path: /ok
+        port: 1986
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 1
+    readinessProbe:
+      httpGet:
+        path: /ok
+        port: 1986
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 1
     extraContainerConfig: {}
     extraEnv: []
     sidecars: []
@@ -503,6 +635,33 @@ redis:
 #        cpu: 1000m
 #        memory: 2Gi
     command: []
+    startupProbe:
+      exec:
+        command:
+          - /bin/sh
+          - -c
+          - exec redis-cli ping
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 1
+    readinessProbe:
+      exec:
+        command:
+          - /bin/sh
+          - -c
+          - exec redis-cli ping
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 1
+    livenessProbe:
+      exec:
+        command:
+          - /bin/sh
+          - -c
+          - exec redis-cli ping
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 1
     extraContainerConfig: {}
     extraEnv: []
     sidecars: []
