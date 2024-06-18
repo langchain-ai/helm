@@ -39,7 +39,7 @@ images:
   clickhouseImage:
     repository: "docker.io/clickhouse/clickhouse-server"
     pullPolicy: Always
-    tag: "23.9"
+    tag: "24.2"
 
 ingress:
   enabled: false
