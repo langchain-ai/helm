@@ -65,7 +65,9 @@ config:
   # -- Salt used to generate the API key. Should be a random string.
   apiKeySalt: ""
   logLevel: "info"
-  orgCreationDisabled: false
+  # -- OpenAI API key. Optional. Only used to power natural language search feature.
+  openaiApiKey: ""
+  orgCreationDisabled: "false"
   oauth:
     enabled: false
     oauthClientId: ""
