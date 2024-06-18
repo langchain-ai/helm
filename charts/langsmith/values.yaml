@@ -15,19 +15,19 @@ images:
   backendImage:
     repository: "docker.io/langchain/langsmith-backend"
     pullPolicy: IfNotPresent
-    tag: "0.5.7"
+    tag: "0.6.6"
   frontendImage:
     repository: "docker.io/langchain/langsmith-frontend"
     pullPolicy: IfNotPresent
-    tag: "0.5.7"
+    tag: "0.6.6"
   platformBackendImage:
     repository: "docker.io/langchain/langsmith-go-backend"
     pullPolicy: IfNotPresent
-    tag: "0.5.7"
+    tag: "0.6.6"
   playgroundImage:
     repository: "docker.io/langchain/langsmith-playground"
     pullPolicy: IfNotPresent
-    tag: "0.5.7"
+    tag: "0.6.6"
   postgresImage:
     repository: "docker.io/postgres"
     pullPolicy: IfNotPresent
@@ -61,11 +61,13 @@ apiIngress:
 
 config:
   existingSecretName: ""
-  openaiApiKey: ""
   langsmithLicenseKey: ""
   # -- Salt used to generate the API key. Should be a random string.
   apiKeySalt: ""
   logLevel: "info"
+  # -- OpenAI API key. Optional. Only used to power natural language search feature.
+  openaiApiKey: ""
+  orgCreationDisabled: false
   oauth:
     enabled: false
     oauthClientId: ""
@@ -305,8 +307,8 @@ playground:
 #        cpu: 200m
 #        memory: 500Mi
     command:
-      - "node"
-      - "./scripts/run-playground-docker.mjs"
+      - "yarn"
+      - "start"
     extraContainerConfig: {}
     extraEnv: []
     sidecars: []
