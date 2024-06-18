@@ -193,11 +193,6 @@ Template containing common environment variables that are used by several servic
     secretKeyRef:
       name: {{ include "langsmith.secretsName" . }}
       key: api_key_salt
-- name: OPENAI_API_KEY
-  valueFrom:
-    secretKeyRef:
-      name: {{ include "langsmith.secretsName" . }}
-      key: openai_api_key
 - name: GO_ENDPOINT
   value: http://{{- include "langsmith.fullname" . }}-{{.Values.platformBackend.name}}:{{ .Values.platformBackend.service.port }}
 {{- end }}
