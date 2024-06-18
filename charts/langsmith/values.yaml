@@ -67,7 +67,7 @@ config:
   logLevel: "info"
   # -- OpenAI API key. Optional. Only used to power natural language search feature.
   openaiApiKey: ""
-  orgCreationDisabled: "false"
+  orgCreationDisabled: false
   oauth:
     enabled: false
     oauthClientId: ""

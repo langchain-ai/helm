@@ -46,7 +46,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | clickhouse.statefulSet.annotations | object | `{}` |  |
 | clickhouse.statefulSet.command[0] | string | `"/bin/bash"` |  |
 | clickhouse.statefulSet.command[1] | string | `"-c"` |  |
-| clickhouse.statefulSet.command[2] | string | `"sed 's/id -g/id -gn/' /entrypoint.sh > /tmp/entrypoint.sh; exec bash /entrypoint.sh"` |  |
+| clickhouse.statefulSet.command[2] | string | `"sed 's/id -g/id -gn/' /entrypoint.sh > /tmp/entrypoint.sh; exec bash /tmp/entrypoint.sh"` |  |
 | clickhouse.statefulSet.extraContainerConfig | object | `{}` |  |
 | clickhouse.statefulSet.extraEnv | list | `[]` |  |
 | clickhouse.statefulSet.labels | object | `{}` |  |
@@ -105,6 +105,8 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | config.oauth.enabled | bool | `false` |  |
 | config.oauth.oauthClientId | string | `""` |  |
 | config.oauth.oauthIssuerUrl | string | `""` |  |
+| config.openaiApiKey | string | `""` | OpenAI API key. Optional. Only used to power natural language search feature. |
+| config.orgCreationDisabled | string | `"false"` |  |
 
 ## Backend
 
@@ -221,7 +223,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | clickhouse.statefulSet.annotations | object | `{}` |  |
 | clickhouse.statefulSet.command[0] | string | `"/bin/bash"` |  |
 | clickhouse.statefulSet.command[1] | string | `"-c"` |  |
-| clickhouse.statefulSet.command[2] | string | `"sed 's/id -g/id -gn/' /entrypoint.sh > /tmp/entrypoint.sh; exec bash /entrypoint.sh"` |  |
+| clickhouse.statefulSet.command[2] | string | `"sed 's/id -g/id -gn/' /entrypoint.sh > /tmp/entrypoint.sh; exec bash /tmp/entrypoint.sh"` |  |
 | clickhouse.statefulSet.extraContainerConfig | object | `{}` |  |
 | clickhouse.statefulSet.extraEnv | list | `[]` |  |
 | clickhouse.statefulSet.labels | object | `{}` |  |
