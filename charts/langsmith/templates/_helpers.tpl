@@ -195,6 +195,8 @@ Template containing common environment variables that are used by several servic
       key: api_key_salt
 - name: GO_ENDPOINT
   value: http://{{- include "langsmith.fullname" . }}-{{.Values.platformBackend.name}}:{{ .Values.platformBackend.service.port }}
+- name: FF_ORG_CREATION_DISABLED
+  value: {{ .Values.config.orgCreationDisabled }}
 {{- end }}
 
 {{- define "backend.serviceAccountName" -}}
