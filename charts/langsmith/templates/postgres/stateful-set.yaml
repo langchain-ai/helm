@@ -74,12 +74,15 @@ spec:
               containerPort: {{ .Values.postgres.containerPort }}
               protocol: TCP
           {{- with .Values.postgres.statefulSet.startupProbe }}
+          startupProbe:
             {{- toYaml . | nindent 12 }}
           {{- end }}
           {{- with .Values.postgres.statefulSet.livenessProbe }}
+          livenessProbe:
             {{- toYaml . | nindent 12 }}
           {{- end }}
           {{- with .Values.postgres.statefulSet.readinessProbe }}
+          readinessProbe:
             {{- toYaml . | nindent 12 }}
           {{- end }}
           resources:

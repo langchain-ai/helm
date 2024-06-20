@@ -58,12 +58,15 @@ spec:
               containerPort: {{ .Values.playground.containerPort }}
               protocol: TCP
           {{- with .Values.playground.deployment.startupProbe }}
+          startupProbe:
             {{- toYaml . | nindent 12 }}
           {{- end }}
           {{- with .Values.playground.deployment.livenessProbe }}
+          livenessProbe:
             {{- toYaml . | nindent 12 }}
           {{- end }}
           {{- with .Values.playground.deployment.readinessProbe }}
+          readinessProbe:
             {{- toYaml . | nindent 12 }}
           {{- end }}
           resources:

@@ -77,12 +77,15 @@ spec:
               containerPort: {{ .Values.frontend.containerPort }}
               protocol: TCP
           {{- with .Values.frontend.deployment.startupProbe }}
+          startupProbe:
             {{- toYaml . | nindent 12 }}
           {{- end }}
           {{- with .Values.frontend.deployment.livenessProbe }}
+          livenessProbe:
             {{- toYaml . | nindent 12 }}
           {{- end }}
           {{- with .Values.frontend.deployment.readinessProbe }}
+          readinessProbe:
             {{- toYaml . | nindent 12 }}
           {{- end }}
           resources:

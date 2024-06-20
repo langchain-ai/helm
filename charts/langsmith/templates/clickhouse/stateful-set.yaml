@@ -75,12 +75,15 @@ spec:
               containerPort: {{ .Values.clickhouse.containerNativePort }}
               protocol: TCP
           {{- with .Values.clickhouse.statefulSet.startupProbe }}
+          startupProbe:
             {{- toYaml . | nindent 12 }}
           {{- end }}
           {{- with .Values.clickhouse.statefulSet.livenessProbe }}
+          livenessProbe:
             {{- toYaml . | nindent 12 }}
           {{- end }}
           {{- with .Values.clickhouse.statefulSet.readinessProbe }}
+          readinessProbe:
             {{- toYaml . | nindent 12 }}
           {{- end }}
           resources:

@@ -57,12 +57,15 @@ spec:
               containerPort: {{ .Values.redis.containerPort }}
               protocol: TCP
           {{- with .Values.redis.statefulSet.startupProbe }}
+          startupProbe:
             {{- toYaml . | nindent 12 }}
           {{- end }}
           {{- with .Values.redis.statefulSet.livenessProbe }}
+          livenessProbe:
             {{- toYaml . | nindent 12 }}
           {{- end }}
           {{- with .Values.redis.statefulSet.readinessProbe }}
+          readinessProbe:
             {{- toYaml . | nindent 12 }}
           {{- end }}
           resources:

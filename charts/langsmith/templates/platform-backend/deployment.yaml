@@ -64,12 +64,15 @@ spec:
               containerPort: {{ .Values.platformBackend.containerPort }}
               protocol: TCP
           {{- with .Values.platformBackend.deployment.startupProbe }}
+          startupProbe:
             {{- toYaml . | nindent 12 }}
           {{- end }}
           {{- with .Values.platformBackend.deployment.livenessProbe }}
+          livenessProbe:
             {{- toYaml . | nindent 12 }}
           {{- end }}
           {{- with .Values.platformBackend.deployment.readinessProbe }}
+          readinessProbe:
             {{- toYaml . | nindent 12 }}
           {{- end }}
           resources:
