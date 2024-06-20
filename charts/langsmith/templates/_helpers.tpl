@@ -203,7 +203,7 @@ Template containing common environment variables that are used by several servic
 - name: FF_TRACE_TIERS_ENABLED
   value: {{ .Values.config.ttl.enabled | quote }}
 - name: FF_UPGRADE_TRACE_TIER_ENABLED
-  value: {{ .Values.config.ttl.upgrade_enabled | quote}}
+  value: {{ .Values.config.ttl.upgrade_enabled | quote }}
 {{- if .Values.config.ttl.enabled }}
 - name: TRACE_TIER_TTL_DURATION_SEC_MAP
   value: "{ \"longlived\": {{ .Values.config.ttl.ttl_period_seconds.longlived }}, \"shortlived\": {{ .Values.config.ttl.ttl_period_seconds.shortlived }} }"
