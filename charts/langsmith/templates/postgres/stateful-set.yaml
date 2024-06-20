@@ -73,33 +73,18 @@ spec:
             - name: postgres
               containerPort: {{ .Values.postgres.containerPort }}
               protocol: TCP
+          {{- with .Values.postgres.statefulSet.startupProbe }}
           startupProbe:
-            exec:
-              command:
-                - /bin/sh
-                - -c
-                - exec pg_isready -d {{ .Values.postgres.external.database }} -U {{ .Values.postgres.external.user }}
-            failureThreshold: 6
-            periodSeconds: 10
-            timeoutSeconds: 1
-          readinessProbe:
-            exec:
-              command:
-                - /bin/sh
-                - -c
-                - exec pg_isready -d {{ .Values.postgres.external.database }} -U {{ .Values.postgres.external.user }}
-            failureThreshold: 6
-            periodSeconds: 10
-            timeoutSeconds: 1
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.postgres.statefulSet.livenessProbe }}
           livenessProbe:
-            exec:
-              command:
-                - /bin/sh
-                - -c
-                - exec pg_isready -d {{ .Values.postgres.external.database }} -U {{ .Values.postgres.external.user }}
-            failureThreshold: 6
-            periodSeconds: 10
-            timeoutSeconds: 1
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.postgres.statefulSet.readinessProbe }}
+          readinessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           resources:
             {{- toYaml .Values.postgres.statefulSet.resources | nindent 12 }}
           securityContext:

@@ -63,27 +63,18 @@ spec:
             - name: platform
               containerPort: {{ .Values.platformBackend.containerPort }}
               protocol: TCP
+          {{- with .Values.platformBackend.deployment.startupProbe }}
           startupProbe:
-            httpGet:
-              path: /ok
-              port: {{ .Values.platformBackend.containerPort }}
-            failureThreshold: 6
-            periodSeconds: 10
-            timeoutSeconds: 1
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.platformBackend.deployment.livenessProbe }}
           livenessProbe:
-            httpGet:
-              path: /ok
-              port: {{ .Values.platformBackend.containerPort }}
-            failureThreshold: 6
-            periodSeconds: 10
-            timeoutSeconds: 1
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.platformBackend.deployment.readinessProbe }}
           readinessProbe:
-            httpGet:
-              path: /ok
-              port: {{ .Values.platformBackend.containerPort }}
-            failureThreshold: 6
-            periodSeconds: 10
-            timeoutSeconds: 1
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           resources:
             {{- toYaml .Values.platformBackend.deployment.resources | nindent 12 }}
           securityContext:

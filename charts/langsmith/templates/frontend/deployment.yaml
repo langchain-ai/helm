@@ -76,27 +76,18 @@ spec:
             - name: frontend
               containerPort: {{ .Values.frontend.containerPort }}
               protocol: TCP
+          {{- with .Values.frontend.deployment.startupProbe }}
           startupProbe:
-            httpGet:
-              path: /health
-              port: {{ .Values.frontend.containerPort }}
-            failureThreshold: 6
-            periodSeconds: 10
-            timeoutSeconds: 1
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.frontend.deployment.livenessProbe }}
           livenessProbe:
-            httpGet:
-              path: /health
-              port: {{ .Values.frontend.containerPort }}
-            failureThreshold: 6
-            periodSeconds: 10
-            timeoutSeconds: 1
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.frontend.deployment.readinessProbe }}
           readinessProbe:
-            httpGet:
-              path: /health
-              port: {{ .Values.frontend.containerPort }}
-            failureThreshold: 6
-            periodSeconds: 10
-            timeoutSeconds: 1
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           resources:
             {{- toYaml .Values.frontend.deployment.resources | nindent 12 }}
           securityContext:
