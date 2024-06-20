@@ -200,19 +200,13 @@ Template containing common environment variables that are used by several servic
       key: openai_api_key
 - name: GO_ENDPOINT
   value: http://{{- include "langsmith.fullname" . }}-{{.Values.platformBackend.name}}:{{ .Values.platformBackend.service.port }}
-{{- if .Values.config.ttl }}
-{{- if .Values.config.ttl.enabled }}
 - name: FF_TRACE_TIERS_ENABLED
-  value: true
-{{- if .Values.config.ttl.upgrade_enabled }}
+  value: {{ .Values.config.ttl.enabled }}
 - name: FF_UPGRADE_TRACE_TIER_ENABLED
-  value: true
-{{- end }}
-{{- if .Values.config.ttl.ttl_period_seconds }}
+  value: {{ .Values.config.ttl.upgrade_enabled }}
+{{- if .Values.config.ttl.enabled }}
 - name: TRACE_TIER_TTL_DURATION_SEC_MAP
   value: "{ \"longlived\": {{ .Values.config.ttl.ttl_period_seconds.longlived }}, \"shortlived\": {{ .Values.config.ttl.ttl_period_seconds.shortlived }} }"
-{{- end }}
-{{- end }}
 {{- end }}
 - name: FF_ORG_CREATION_DISABLED
   value: {{ .Values.config.orgCreationDisabled | quote }}
