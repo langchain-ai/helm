@@ -203,10 +203,10 @@ Template containing common environment variables that are used by several servic
 {{- if .Values.config.ttl }}
 {{- if .Values.config.ttl.enabled }}
 - name: FF_TRACE_TIERS_ENABLED
-  value: "true"
+  value: true
 {{- if .Values.config.ttl.upgrade_enabled }}
 - name: FF_UPGRADE_TRACE_TIER_ENABLED
-  value: "true"
+  value: true
 {{- end }}
 {{- if .Values.config.ttl.ttl_period_seconds }}
 - name: TRACE_TIER_TTL_DURATION_SEC_MAP
