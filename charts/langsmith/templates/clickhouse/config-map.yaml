@@ -25,6 +25,8 @@ data:
                 <async_insert_max_data_size>2000000</async_insert_max_data_size>
                 <wait_for_async_insert>0</wait_for_async_insert>
                 <parallel_view_processing>1</parallel_view_processing>
+                <materialize_ttl_after_modify>0</materialize_ttl_after_modify>
+                <wait_for_async_insert_timeout>25</wait_for_async_insert_timeout>
             </default>
         </profiles>
     </clickhouse>
