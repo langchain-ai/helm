@@ -1,1 +1,1 @@
-This is the OpenGpts application helm chart. All pods should be running!
+This is the LangGraph Cloud application helm chart. All pods should be running!

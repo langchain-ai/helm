@@ -22,9 +22,11 @@ Ensure you have the following tools/items ready.
         ```
 2. `Helm`
     1. `brew install helm`
-3. SSL(optional)
+3. A LangGraph Cloud API image
+    1. You can use the [langgraph-cli](https://langchain-ai.github.io/langgraph/cloud/reference/cli/) to build your own image.
+4. SSL(optional)
     1. This should be attachable to a load balancer that the chart will provision
-4. External Postgres(optional).
+5. External Postgres(optional).
     1. You can configure external redis using the `values.yaml` file. You will need to provide a connection url for your postgres.
     2. We only official support Postgres versions >= 14.
 
@@ -38,11 +40,17 @@ Ensure you have the following tools/items ready.
         2. This will vary based on your cloud provider. Refer to their documentation for more information.
         3. To support the above, we e
     3. Api Keys
-    4. Images
+    4. A LangGraph Cloud API image. You can use the [langgraph-cli](https://langchain-ai.github.io/langgraph/cloud/reference/cli/) to build your own image.
 
 Bare minimum config file `langgraph_cloud_config.yaml`:
 
 ```yaml
+images:
+  apiServerImage:
+    pullPolicy: IfNotPresent
+    repository: docker.io/langchain/langgraph-api
+    tag: 3.11
+
 config:
   langgraphLicenseKey: ""
 ```
@@ -50,6 +58,12 @@ config:
 Example `EKS` config file with certificates setup using ACM:
 
 ```jsx
+images:
+  apiServerImage:
+    pullPolicy: IfNotPresent
+    repository: docker.io/langchain/langgraph-api
+    tag: 3.11
+
 config:
   langgraphLicenseKey: ""
 
@@ -64,6 +78,12 @@ apiServer:
 Example config file with external postgres:
 
 ```jsx
+images:
+  apiServerImage:
+    pullPolicy: IfNotPresent
+    repository: docker.io/langchain/langgraph-api
+    tag: 3.11
+
 config:
   langgraphLicenseKey: ""
 
@@ -99,8 +119,8 @@ the same format as the secret in the corresponding `secrets.yaml` file.
 
     ```bash
     NAME                                 READY   STATUS    RESTARTS      AGE
-    open-gpts-backend-849c5c49bd-5hrth   1/1     Running   0             3m17s
-    open-gpts-redis-0                    1/1     Running   0             3m17s
+    langgraph-cloud-api-server-666d79569d-k4wgk   1/1     Running   2 (26s ago)   31s
+    langgraph-cloud-postgres-0                    1/1     Running   0             31s
     ```
 
 ### Validate your deployment:
@@ -110,28 +130,28 @@ the same format as the secret in the corresponding `secrets.yaml` file.
     Output should look something like:
 
     ```bash
-    NAME                TYPE           CLUSTER-IP       EXTERNAL-IP                                                               PORT(S)        AGE
-    open-gpts-backend   LoadBalancer   172.20.158.106   <ip>                                                                      80:31767/TCP   7m22s
-    open-gpts-redis     ClusterIP      172.20.181.57    <none>                                                                    6379/TCP       7m22s
+    NAME                         TYPE           CLUSTER-IP       EXTERNAL-IP   PORT(S)                     AGE
+    langgraph-cloud-api-server   LoadBalancer   172.20.59.8      <ip>         80:30176/TCP,443:31693/TCP   67s
+    langgraph-cloud-postgres     ClusterIP      172.20.91.2      <none>       6379/TCP                     7m22s
     ```
 
-3. Visit the external ip for the `open-gpts-backend` service on your browser
+3. Visit the `ip/docs` for the `langgraph-cloud-api-server` service on your browser
 
-    The Open-GPTs UI should be visible/operational
+    The LangGraph Cloud docs UI should be visible/operational
 
-    ![./open_gpts_ui.png](open_gpts_ui.png)
+    ![./langgraph_cloud_ui.png](langgraph_cloud_ui.png)
 
 ## FAQ:
 
 1. How can we upgrade our application?
-    - To upgrade, you will need to follow the upgrade instructions in the Helm README and run a `helm upgrade open-gpts --values <values file>`
+    - To upgrade, you will need to follow the upgrade instructions in the Helm README and run a `helm upgrade langgraph-cloud --values <values file>`
 2. How can we backup our application?
     - Currently, we rely on PVCs/PV to power storage for our application. We strongly encourage setting up `Persistent Volume` backups or moving to a managed service for `Redis` to support disaster recovery
 3. How does load balancing work/ingress work?
     - Currently, our application spins up one load balancer using a k8s service of type `LoadBalancer` for our frontend. If you do not want to setup a load balancer you can simply port-forward the frontend and use that as your external ip for the application.
     - We also have an option for the chart to provision an ingress resource for the application.
 4. How can we authenticate to the application?
-    - Currently, we do not support auth.
+    - You can use LangSmith authentication to authenticate to the application. You can find more information on how to setup LangSmith in the LangSmith documentation.
 5. How can I use External `Postgres`?
     - You can configure external postgres using the external sections in the `values.yaml` file. You will need to provide the connection url/params for the postgres instance. Look at the configuration above example for more information.
 6. What networking configuration is needed  for the application?
@@ -193,4 +213,4 @@ the same format as the secret in the corresponding `secrets.yaml` file.
 
 {{ template "helm-docs.versionFooter" . }}
 ## Docs Generated by [helm-docs](https://github.com/norwoodj/helm-docs)
-`helm-docs -t ./charts/opengpts/README.md.gotmpl`
+`helm-docs -t ./charts/langgraph-cloud/README.md.gotmpl`

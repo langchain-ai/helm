@@ -47,13 +47,25 @@ spec:
                 secretKeyRef:
                   name: {{ include "langGraphCloud.postgresSecretsName" . }}
                   key: postgres_connection_url
+            - name: LANGGRAPH_CLOUD_LICENSE_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "langGraphCloud.secretsName" . }}
+                  key: langgraph_cloud_license_key
+            {{- if .Values.config.auth.enabled }}
+            - name: LANGGRAPH_AUTH_TYPE
+              value: "langsmith"
+            - name: LANGSMITH_AUTH_ENDPOINT
+              value: {{ .Values.config.auth.langSmithAuthEndpoint }}
+            - name: LANGSMITH_TENANT_ID
+              value: {{ .Values.config.auth.langSmithTenantId }}
             {{- with .Values.apiServer.deployment.extraEnv }}
               {{- toYaml . | nindent 12 }}
             {{- end }}
           image: "{{ .Values.images.apiServerImage.repository }}:{{ .Values.images.apiServerImage.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.images.apiServerImage.pullPolicy }}
           ports:
-            - name: apiServer
+            - name: api-server
               containerPort: {{ .Values.apiServer.containerPort }}
               protocol: TCP
           startupProbe:

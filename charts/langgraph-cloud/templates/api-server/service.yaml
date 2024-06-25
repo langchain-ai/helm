@@ -22,11 +22,11 @@ spec:
   ports:
     - name: http
       port: {{ .Values.apiServer.service.httpPort }}
-      targetPort: apiServer
+      targetPort: api-server
       protocol: TCP
     - name: https
       port: {{ .Values.apiServer.service.httpsPort }}
-      targetPort: apiServer
+      targetPort: api-server
       protocol: TCP
   selector:
     {{- include "langGraphCloud.selectorLabels" . | nindent 4 }}

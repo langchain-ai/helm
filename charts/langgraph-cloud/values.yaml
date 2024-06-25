@@ -12,7 +12,8 @@ commonLabels: {}
 images:
    # -- Secrets with credentials to pull images from a private registry. Specified as name: value.
   imagePullSecrets: []
-  backendImage:
+  # This should be the image you have built using the LangGraph Cli. Find more information here:
+  apiServerImage:
     repository: "docker.io/langchain/langgraph-api"
     pullPolicy: IfNotPresent
     tag: "3.11"
@@ -20,6 +21,14 @@ images:
     repository: "docker.io/postgres"
     pullPolicy: IfNotPresent
     tag: "16"
+
+config:
+  existingSecretName: ""
+  langGraphCloudLicenseKey: ""
+  auth:
+    enabled: false
+    langSmithAuthEndpoint: ""
+    langSmithTenantId: ""
 
 ingress:
   enabled: false
