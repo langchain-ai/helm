@@ -15,32 +15,33 @@ Ensure you have the following tools/items ready.
 1. A working Kubernetes cluster that you can access via `kubectl`
     1. Recommended: Atleast 1 vCPUs, 4GB Memory available
         1. You may need to tune resource requests/limits for all of our different services based off of organization size/usage
-    2. Valid Dynamic PV provisioner or PVs available on your cluster. You can verify this by running:
+    1. Valid Dynamic PV provisioner or PVs available on your cluster. You can verify this by running:
 
         ```jsx
         kubectl get storageclass
         ```
-2. `Helm`
+1. `Helm`
     1. `brew install helm`
-3. A LangGraph Cloud API image
+1. LangGraph Cloud License Key
+    1. You can get this from your Langchain representative. Contact us at sales@langchain.dev for more information.
+1. A LangGraph Cloud API image
     1. You can use the [langgraph-cli](https://langchain-ai.github.io/langgraph/cloud/reference/cli/) to build your own image.
-4. SSL(optional)
+1. SSL(optional)
     1. This should be attachable to a load balancer that the chart will provision
-5. External Postgres(optional).
-    1. You can configure external redis using the `values.yaml` file. You will need to provide a connection url for your postgres.
+1. External Postgres(optional).
+    1. You can configure external Postgres using the `values.yaml` file. You will need to provide a connection url for your postgres.
     2. We only official support Postgres versions >= 14.
 
 ### Configure your Helm Charts:
 
 1. Create a new of `langgraph_cloud_config.yaml` file to contain your configuration.
-2. Override any values in the file. Refer to the `values.yaml` documentation below to see all configurable values. Some values we recommend tuning:
+1. Override any values in the file. Refer to the `values.yaml` documentation below to see all configurable values. Some values we recommend tuning:
     1. Resources
-    2. SSL
+    1. SSL
         1. Add an annotation to the `apiServer.service` object to tell your cloud provider to provision a load balancer with said certificate attached.
         2. This will vary based on your cloud provider. Refer to their documentation for more information.
-        3. To support the above, we e
-    3. Api Keys
-    4. A LangGraph Cloud API image. You can use the [langgraph-cli](https://langchain-ai.github.io/langgraph/cloud/reference/cli/) to build your own image.
+    1. License Key
+    1. A LangGraph Cloud API image. You can use the [langgraph-cli](https://langchain-ai.github.io/langgraph/cloud/reference/cli/) to build your own image.
 
 Bare minimum config file `langgraph_cloud_config.yaml`:
 
@@ -149,7 +150,7 @@ the same format as the secret in the corresponding `secrets.yaml` file.
 1. How can we upgrade our application?
     - To upgrade, you will need to follow the upgrade instructions in the Helm README and run a `helm upgrade langgraph-cloud --values <values file>`
 2. How can we backup our application?
-    - Currently, we rely on PVCs/PV to power storage for our application. We strongly encourage setting up `Persistent Volume` backups or moving to a managed service for `Redis` to support disaster recovery
+    - Currently, we rely on PVCs/PV to power storage for our application. We strongly encourage setting up `Persistent Volume` backups or moving to a managed service for `Postgres` to support disaster recovery
 3. How does load balancing work/ingress work?
     - Currently, our application spins up one load balancer using a k8s service of type `LoadBalancer` for our frontend. If you do not want to setup a load balancer you can simply port-forward the frontend and use that as your external ip for the application.
     - We also have an option for the chart to provision an ingress resource for the application.

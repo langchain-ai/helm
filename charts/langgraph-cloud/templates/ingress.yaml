@@ -28,7 +28,7 @@ spec:
         pathType: Prefix
         backend:
           service:
-            name: {{ include "langGraphCloud.fullname" . }}-{{ .Values.backend.name }}
+            name: {{ include "langGraphCloud.fullname" . }}-{{ .Values.apiServer.name }}
             port:
-              number: {{ .Values.backend.service.port }}
+              number: {{ .Values.apiServer.service.httpPort }}
 {{- end }}
