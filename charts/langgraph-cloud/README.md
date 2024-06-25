@@ -1,10 +1,10 @@
-# open-gpts
+# langgraph-cloud
 
 ![Version: 0.1.2](https://img.shields.io/badge/Version-0.1.2-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.1.0](https://img.shields.io/badge/AppVersion-0.1.0-informational?style=flat-square)
 
-Helm chart to deploy the open-gpts appplication and all services it depends on.
+Helm chart to deploy the LangGraph Cloud application and all services it depends on.
 
-## Deploying OpenGPTs with Helm
+## Deploying LangGraph Cloud with Helm
 
 ### Prerequisites
 
@@ -22,46 +22,36 @@ Ensure you have the following tools/items ready.
     1. `brew install helm`
 3. SSL(optional)
     1. This should be attachable to a load balancer that the chart will provision
-4. API Keys(optional).
-    1. Used by various SDKS. Configure based on the tools you are using.
-5. External Redis(optional).
-    1. You can configure external redis using the `values.yaml` file. You will need to provide a connection url for your redis instance.
-    2. Currently, we do not support using Redis with TLS. We will be supporting this shortly.
-    3. We only official support Redis versions >= 6.
-    4. We rely on the vector store module for Redis. Ensure that your Redis instance has this module installed.
+4. External Postgres(optional).
+    1. You can configure external redis using the `values.yaml` file. You will need to provide a connection url for your postgres.
+    2. We only official support Postgres versions >= 14.
 
 ### Configure your Helm Charts:
 
-1. Create a copy of `values.yaml`
+1. Create a new of `langgraph_cloud_config.yaml` file to contain your configuration.
 2. Override any values in the file. Refer to the `values.yaml` documentation below to see all configurable values. Some values we recommend tuning:
     1. Resources
     2. SSL
-        1. Add an annotation to the `backend.service` object to tell your cloud provider to provision a load balancer with said certificate attached.
+        1. Add an annotation to the `apiServer.service` object to tell your cloud provider to provision a load balancer with said certificate attached.
         2. This will vary based on your cloud provider. Refer to their documentation for more information.
         3. To support the above, we e
     3. Api Keys
     4. Images
 
-Bare minimum config file `open_gpts_config.yaml`:
+Bare minimum config file `langgraph_cloud_config.yaml`:
 
 ```yaml
 config:
-  openaiApiKey: "foo"
-  tavilyApiKey: "foo"
-  kayApiKey: "foo"
-  ydcApiKey: "foo"
+  langgraphLicenseKey: ""
 ```
 
 Example `EKS` config file with certificates setup using ACM:
 
 ```jsx
 config:
-  openaiApiKey: "foo"
-  tavilyApiKey: "foo"
-  kayApiKey: "foo"
-  ydcApiKey: "foo"
+  langgraphLicenseKey: ""
 
-backend:
+apiServer:
   service:
     annotations:
       service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
@@ -69,18 +59,16 @@ backend:
       service.beta.kubernetes.io/aws-load-balancer-ssl-cert: "<certificate arn>"
 ```
 
-Example config file with external redis:
+Example config file with external postgres:
 
 ```jsx
 config:
-  openaiApiKey: "foo"
-  tavilyApiKey: "foo"
-  kayApiKey: "foo"
-  ydcApiKey: "foo"
-redis:
+  langgraphLicenseKey: ""
+
+postgres:
   external:
     enabled: true
-    connectionUrl: "redis://<url>:6379"
+    connectionUrl: "postgres://postgres:postgres@postgres-host.com:5432/postgres?sslmode=disable"
 ```
 
 You can also use existingSecretName to avoid checking in secrets. This secret will need to follow
@@ -103,7 +91,7 @@ the same format as the secret in the corresponding `secrets.yaml` file.
         helm repo add langchain https://langchain-ai.github.io/helm/
         "langchain" has been added to your repositories
 
-3. Run `helm install open-gpts langchain/open-gpts --values open_gpts_config.yaml`
+3. Run `helm install langgraph-cloud langchain/langgraph-cloud --values langgraph_cloud_config.yaml`
 4. Run `kubectl get pods`
     1. Output should now look something like:
 
@@ -142,15 +130,15 @@ the same format as the secret in the corresponding `secrets.yaml` file.
     - We also have an option for the chart to provision an ingress resource for the application.
 4. How can we authenticate to the application?
     - Currently, we do not support auth.
-5. How can I use External `Redis`?
-    - You can configure external redis using the external sections in the `values.yaml` file. You will need to provide the connection url/params for the redis instance. Look at the configuration above example for more information.
+5. How can I use External `Postgres`?
+    - You can configure external postgres using the external sections in the `values.yaml` file. You will need to provide the connection url/params for the postgres instance. Look at the configuration above example for more information.
 6. What networking configuration is needed  for the application?
     - Our deployment only needs egress for a few things:
         - Fetching images (If mirroring your images, this may not be needed)
         - Talking to any LLMs
     - Your VPC can set up rules to limit any other access.
 7. What resources should we allocate to the application?
-    - We recommend at least 4 vCPUs and 16GB of memory for our application.
+    - We recommend at least 1 vCPUs and 4GB of memory for our application.
     - We have some default resources set in our `values.yaml` file. You can override these values to tune resource usage for your organization.
     - If the metrics server is enabled in your cluster, we also recommend enabling autoscaling on all deployments.
 

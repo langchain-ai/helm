@@ -92,18 +92,18 @@ the user or some other secret provisioning mechanism
 {{- end }}
 {{- end }}
 
-{{- define "backend.serviceAccountName" -}}
-{{- if .Values.backend.serviceAccount.create -}}
-    {{ default (printf "%s-%s" (include "langGraphCloud.fullname" .) .Values.backend.name) .Values.backend.serviceAccount.name | trunc 63 | trimSuffix "-" }}
+{{- define "apiServer.serviceAccountName" -}}
+{{- if .Values.apiServer.serviceAccount.create -}}
+    {{ default (printf "%s-%s" (include "langGraphCloud.fullname" .) .Values.apiServer.name) .Values.apiServer.serviceAccount.name | trunc 63 | trimSuffix "-" }}
 {{- else -}}
-    {{ default "default" .Values.backend.serviceAccount.name }}
+    {{ default "default" .Values.apiServer.serviceAccount.name }}
 {{- end -}}
 {{- end -}}
 
-{{- define "redis.serviceAccountName" -}}
-{{- if .Values.redis.serviceAccount.create -}}
-    {{ default (printf "%s-%s" (include "langGraphCloud.fullname" .) .Values.redis.name) .Values.redis.serviceAccount.name | trunc 63 | trimSuffix "-" }}
+{{- define "postgres.serviceAccountName" -}}
+{{- if .Values.postgres.serviceAccount.create -}}
+    {{ default (printf "%s-%s" (include "langGraphCloud.fullname" .) .Values.postgres.name) .Values.postgres.serviceAccount.name | trunc 63 | trimSuffix "-" }}
 {{- else -}}
-    {{ default "default" .Values.redis.serviceAccount.name }}
+    {{ default "default" .Values.postgres.serviceAccount.name }}
 {{- end -}}
 {{- end -}}

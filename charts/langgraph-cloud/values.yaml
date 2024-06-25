@@ -1,8 +1,8 @@
-# Default values for the openGPTs helm chart. Refer to documentation on individual values for help with configuration.
+# Default values for the langGraph Cloud helm chart. Refer to documentation on individual values for help with configuration.
 
-# -- Provide a name in place of `open-gpts`
+# -- Provide a name in place of `langgraph-cloud` for the chart
 nameOverride: ""
-# -- String to fully override `"openGPTs.fullname"`
+# -- String to fully override `"langgraph-cloud.fullname"`
 fullnameOverride: ""
 # -- Annotations that will be applied to all resources created by the chart
 commonAnnotations: {}
@@ -13,13 +13,13 @@ images:
    # -- Secrets with credentials to pull images from a private registry. Specified as name: value.
   imagePullSecrets: []
   backendImage:
-    repository: "docker.io/langchain/open-gpts"
-    pullPolicy: Always
-    tag: "daf9aba"
-  postgresImage:
-    repository: "docker.io/postgres/postgres-stack-server"
+    repository: "docker.io/langchain/langgraph-api"
     pullPolicy: IfNotPresent
-    tag: "latest"
+    tag: "3.11"
+  postgresImage:
+    repository: "docker.io/postgres"
+    pullPolicy: IfNotPresent
+    tag: "16"
 
 ingress:
   enabled: false
@@ -29,24 +29,8 @@ ingress:
   labels: {}
   tls: []
 
-# Note, you will need to refresh the pods for secret changes to take effect.
-config:
-  existingSecretName: ""
-  openaiApiKey: ""
-  tavilyApiKey: "placeholder"
-  kayApiKey: "placeholder"
-  ydcApiKey: "placeholder"
-  azureOpenaiDeploymentName: "placeholder"
-  azureOpenaiApiKey: "placeholder"
-  azureOpenaiApiBase: "placeholder"
-  azureOpenaiApiVersion: "placeholder"
-  robocorpActionServerUrl: "https://dummy-action-server.robocorp.link"
-  robocorpActionServerKey: "dummy-api-key"
-  conneryRunnerUrl: "https://your-personal-connery-runner-url"
-  conneryRunnerApiKey: "placeholder"
-
-backend:
-  name: "backend"
+apiServer:
+  name: "api-server"
   containerPort: 8000
   deployment:
     replicaCount: 1
@@ -111,12 +95,20 @@ backend:
 postgres:
   name: "postgres"
   external:
-    # If enabled, use the following values to connect to an external postgres instance. This will also disable the
+    # If enabled, use the following values to connect to an external database. This will also disable the
     # creation of a postgres stateful-set and service.
     enabled: false
+    host: ""
+    port: "5432"
+    user: "postgres"
+    password: "postgres"
+    database: "postgres"
+    schema: "public"
+    # If connection string is specified, we will ignore all above values and use the connection string instead.
+    # Do not include the driver name(something like "postgres://" in the connection string.
     connectionUrl: ""
     existingSecretName: ""
-  containerPort: 6379
+  containerPort: 5432
   statefulSet:
     labels: {}
     annotations: {}
@@ -128,7 +120,9 @@ postgres:
 #        memory: 16Gi
 #      requests:
 #        cpu: 1000m
-#        memory: 2Gi
+#        memory: 4Gi
+    command: []
+    extraContainerConfig: {}
     extraEnv: []
     sidecars: []
     nodeSelector: {}
@@ -141,7 +135,7 @@ postgres:
       storageClassName: ""
   service:
     type: ClusterIP
-    port: 6379
+    port: 5432
     labels: {}
     annotations: {}
     loadBalancerSourceRanges: []

@@ -42,71 +42,11 @@ spec:
       containers:
         - name: {{ .Values.apiServer.name }}
           env:
-            - name: REDIS_URL
+            - name: POSTGRES_URI
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "langGraphCloud.redisSecretsName" . }}
-                  key: redis_connection_url
-            - name: OPENAI_API_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: {{ include "langGraphCloud.secretsName" . }}
-                  key: openai_api_key
-            - name: TAVILY_API_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: {{ include "langGraphCloud.secretsName" . }}
-                  key: tavily_api_key
-            - name: KAY_API_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: {{ include "langGraphCloud.secretsName" . }}
-                  key: kay_api_key
-            - name: YDC_API_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: {{ include "langGraphCloud.secretsName" . }}
-                  key: ydc_api_key
-            - name: AZURE_OPENAI_DEPLOYMENT_NAME
-              valueFrom:
-                secretKeyRef:
-                  name: {{ include "langGraphCloud.secretsName" . }}
-                  key: azure_openai_deployment_name
-            - name: AZURE_OPENAI_API_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: {{ include "langGraphCloud.secretsName" . }}
-                  key: azure_openai_api_key
-            - name: AZURE_OPENAI_API_BASE
-              valueFrom:
-                secretKeyRef:
-                  name: {{ include "langGraphCloud.secretsName" . }}
-                  key: azure_openai_api_base
-            - name: AZURE_OPENAI_API_VERSION
-              valueFrom:
-                secretKeyRef:
-                  name: {{ include "langGraphCloud.secretsName" . }}
-                  key: azure_openai_api_version
-            - name: ROBOCORP_ACTION_SERVER_URL
-              valueFrom:
-                secretKeyRef:
-                  name: {{ include "langGraphCloud.secretsName" . }}
-                  key: robocorp_action_server_url
-            - name: ROBOCORP_ACTION_SERVER_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: {{ include "langGraphCloud.secretsName" . }}
-                  key: robocorp_action_server_key
-            - name: CONNERY_RUNNER_URL
-              valueFrom:
-                secretKeyRef:
-                  name: {{ include "langGraphCloud.secretsName" . }}
-                  key: connery_runner_url
-            - name: CONNERY_RUNNER_API_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: {{ include "langGraphCloud.secretsName" . }}
-                  key: connery_runner_api_key
+                  name: {{ include "langGraphCloud.postgresSecretsName" . }}
+                  key: postgres_connection_url
             {{- with .Values.apiServer.deployment.extraEnv }}
               {{- toYaml . | nindent 12 }}
             {{- end }}
@@ -117,23 +57,29 @@ spec:
               containerPort: {{ .Values.apiServer.containerPort }}
               protocol: TCP
           startupProbe:
-            httpGet:
-              path: /ok
-              port: {{ .Values.apiServer.containerPort }}
-            failureThreshold: 6
-            periodSeconds: 10
-            timeoutSeconds: 1
-          livenessProbe:
-            httpGet:
-              path: /ok
-              port: {{ .Values.apiServer.containerPort }}
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - exec python /api/healthcheck.py
             failureThreshold: 6
             periodSeconds: 10
             timeoutSeconds: 1
           readinessProbe:
-            httpGet:
-              path: /ok
-              port: {{ .Values.apiServer.containerPort }}
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - exec python /api/healthcheck.py
+            failureThreshold: 6
+            periodSeconds: 10
+            timeoutSeconds: 1
+          livenessProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - exec python /api/healthcheck.py
             failureThreshold: 6
             periodSeconds: 10
             timeoutSeconds: 1
