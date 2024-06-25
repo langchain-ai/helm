@@ -74,8 +74,6 @@ config:
     oauthIssuerUrl: ""
   ttl:
     enabled: false
-    # -- If upgrade is enabled traces will be upgraded to longlived on certain actions
-    upgrade_enabled: false
     ttl_period_seconds:
       # -- 400 day longlived and 14 day shortlived
       longlived: "34560000"
