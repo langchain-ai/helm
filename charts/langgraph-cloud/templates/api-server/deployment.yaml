@@ -1,0 +1,166 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "langGraphCloud.fullname" . }}-{{ .Values.apiServer.name }}
+  labels:
+    {{- include "langGraphCloud.labels" . | nindent 4 }}
+    {{- with.Values.apiServer.deployment.labels }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+  annotations:
+    {{- include "langGraphCloud.annotations" . | nindent 4 }}
+    {{- with.Values.apiServer.deployment.annotations }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  {{- if not .Values.apiServer.autoscaling.enabled }}
+  replicas: {{ .Values.apiServer.deployment.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "langGraphCloud.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: {{ include "langGraphCloud.fullname" . }}-{{ .Values.apiServer.name }}
+  template:
+    metadata:
+      {{- with .Values.apiServer.deployment.annotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- with.Values.apiServer.deployment.labels }}
+            {{- toYaml . | nindent 8 }}
+        {{- end }}
+        {{- include "langGraphCloud.labels" . | nindent 8 }}
+        app.kubernetes.io/component: {{ include "langGraphCloud.fullname" . }}-{{ .Values.apiServer.name }}
+    spec:
+      {{- with .Values.images.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.apiServer.deployment.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Values.apiServer.name }}
+          env:
+            - name: REDIS_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "langGraphCloud.redisSecretsName" . }}
+                  key: redis_connection_url
+            - name: OPENAI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "langGraphCloud.secretsName" . }}
+                  key: openai_api_key
+            - name: TAVILY_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "langGraphCloud.secretsName" . }}
+                  key: tavily_api_key
+            - name: KAY_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "langGraphCloud.secretsName" . }}
+                  key: kay_api_key
+            - name: YDC_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "langGraphCloud.secretsName" . }}
+                  key: ydc_api_key
+            - name: AZURE_OPENAI_DEPLOYMENT_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "langGraphCloud.secretsName" . }}
+                  key: azure_openai_deployment_name
+            - name: AZURE_OPENAI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "langGraphCloud.secretsName" . }}
+                  key: azure_openai_api_key
+            - name: AZURE_OPENAI_API_BASE
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "langGraphCloud.secretsName" . }}
+                  key: azure_openai_api_base
+            - name: AZURE_OPENAI_API_VERSION
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "langGraphCloud.secretsName" . }}
+                  key: azure_openai_api_version
+            - name: ROBOCORP_ACTION_SERVER_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "langGraphCloud.secretsName" . }}
+                  key: robocorp_action_server_url
+            - name: ROBOCORP_ACTION_SERVER_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "langGraphCloud.secretsName" . }}
+                  key: robocorp_action_server_key
+            - name: CONNERY_RUNNER_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "langGraphCloud.secretsName" . }}
+                  key: connery_runner_url
+            - name: CONNERY_RUNNER_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "langGraphCloud.secretsName" . }}
+                  key: connery_runner_api_key
+            {{- with .Values.apiServer.deployment.extraEnv }}
+              {{- toYaml . | nindent 12 }}
+            {{- end }}
+          image: "{{ .Values.images.apiServerImage.repository }}:{{ .Values.images.apiServerImage.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.images.apiServerImage.pullPolicy }}
+          ports:
+            - name: apiServer
+              containerPort: {{ .Values.apiServer.containerPort }}
+              protocol: TCP
+          startupProbe:
+            httpGet:
+              path: /ok
+              port: {{ .Values.apiServer.containerPort }}
+            failureThreshold: 6
+            periodSeconds: 10
+            timeoutSeconds: 1
+          livenessProbe:
+            httpGet:
+              path: /ok
+              port: {{ .Values.apiServer.containerPort }}
+            failureThreshold: 6
+            periodSeconds: 10
+            timeoutSeconds: 1
+          readinessProbe:
+            httpGet:
+              path: /ok
+              port: {{ .Values.apiServer.containerPort }}
+            failureThreshold: 6
+            periodSeconds: 10
+            timeoutSeconds: 1
+          resources:
+            {{- toYaml .Values.apiServer.deployment.resources | nindent 12 }}
+          securityContext:
+            {{- toYaml .Values.apiServer.deployment.securityContext | nindent 12 }}
+          {{- with .Values.apiServer.deployment.volumeMounts }}
+          volumeMounts:
+              {{- toYaml . | nindent 12 }}
+          {{- end }}
+        {{- with .Values.apiServer.deployment.sidecars }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- with .Values.apiServer.deployment.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.apiServer.deployment.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.apiServer.deployment.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.apiServer.deployment.volumes }}
+      volumes:
+          {{- toYaml . | nindent 8 }}
+      {{- end }}
