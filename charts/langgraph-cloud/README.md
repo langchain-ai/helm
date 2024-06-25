@@ -1,6 +1,8 @@
 # langgraph-cloud
 
-![Version: 0.1.2](https://img.shields.io/badge/Version-0.1.2-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.1.0](https://img.shields.io/badge/AppVersion-0.1.0-informational?style=flat-square)
+![Version: 0.1.0](https://img.shields.io/badge/Version-0.1.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.1.0](https://img.shields.io/badge/AppVersion-0.1.0-informational?style=flat-square)
+
+Helm chart to deploy the open-gpts application and all services it depends on.
 
 Helm chart to deploy the LangGraph Cloud application and all services it depends on.
 
@@ -148,122 +150,117 @@ the same format as the secret in the corresponding `secrets.yaml` file.
 |-----|------|---------|-------------|
 | commonAnnotations | object | `{}` | Annotations that will be applied to all resources created by the chart |
 | commonLabels | object | `{}` | Labels that will be applied to all resources created by the chart |
-| fullnameOverride | string | `""` | String to fully override `"openGPTs.fullname"` |
-| images.backendImage.pullPolicy | string | `"Always"` |  |
-| images.backendImage.repository | string | `"docker.io/langchain/open-gpts"` |  |
-| images.backendImage.tag | string | `"latest"` |  |
+| fullnameOverride | string | `""` | String to fully override `"langgraph-cloud.fullname"` |
+| images.backendImage.pullPolicy | string | `"IfNotPresent"` |  |
+| images.backendImage.repository | string | `"docker.io/langchain/langgraph-api"` |  |
+| images.backendImage.tag | string | `"3.11"` |  |
 | images.imagePullSecrets | list | `[]` | Secrets with credentials to pull images from a private registry. Specified as name: value. |
-| images.redisImage.pullPolicy | string | `"IfNotPresent"` |  |
-| images.redisImage.repository | string | `"docker.io/redis/redis-stack-server"` |  |
-| images.redisImage.tag | string | `"latest"` |  |
+| images.postgresImage.pullPolicy | string | `"IfNotPresent"` |  |
+| images.postgresImage.repository | string | `"docker.io/postgres"` |  |
+| images.postgresImage.tag | string | `"16"` |  |
 | ingress.annotations | object | `{}` |  |
 | ingress.enabled | bool | `false` |  |
 | ingress.hostname | string | `""` |  |
 | ingress.ingressClassName | string | `""` |  |
 | ingress.labels | object | `{}` |  |
 | ingress.tls | list | `[]` |  |
-| nameOverride | string | `""` | Provide a name in place of `open-gpts` |
+| nameOverride | string | `""` | Provide a name in place of `langgraph-cloud` for the chart |
 
 ## Configs
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| config.azureOpenaiApiBase | string | `"placeholder"` |  |
-| config.azureOpenaiApiKey | string | `"placeholder"` |  |
-| config.azureOpenaiApiVersion | string | `"placeholder"` |  |
-| config.azureOpenaiDeploymentName | string | `"placeholder"` |  |
-| config.conneryRunnerApiKey | string | `"placeholder"` |  |
-| config.conneryRunnerUrl | string | `"https://your-personal-connery-runner-url"` |  |
-| config.existingSecretName | string | `""` |  |
-| config.kayApiKey | string | `"placeholder"` |  |
-| config.openaiApiKey | string | `""` |  |
-| config.robocorpActionServerKey | string | `"dummy-api-key"` |  |
-| config.robocorpActionServerUrl | string | `"https://dummy-action-server.robocorp.link"` |  |
-| config.tavilyApiKey | string | `"placeholder"` |  |
-| config.ydcApiKey | string | `"placeholder"` |  |
 
-## Backend
+## Api Server
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| backend.autoscaling.enabled | bool | `false` |  |
-| backend.autoscaling.maxReplicas | int | `5` |  |
-| backend.autoscaling.minReplicas | int | `1` |  |
-| backend.autoscaling.targetCPUUtilizationPercentage | int | `80` |  |
-| backend.containerPort | int | `8000` |  |
-| backend.deployment.affinity | object | `{}` |  |
-| backend.deployment.annotations | object | `{}` |  |
-| backend.deployment.extraEnv | list | `[]` |  |
-| backend.deployment.labels | object | `{}` |  |
-| backend.deployment.nodeSelector | object | `{}` |  |
-| backend.deployment.podSecurityContext | object | `{}` |  |
-| backend.deployment.replicaCount | int | `1` |  |
-| backend.deployment.resources | object | `{}` |  |
-| backend.deployment.securityContext | object | `{}` |  |
-| backend.deployment.sidecars | list | `[]` |  |
-| backend.deployment.tolerations | list | `[]` |  |
-| backend.deployment.volumeMounts | list | `[]` |  |
-| backend.deployment.volumes | list | `[]` |  |
-| backend.migrations.affinity | object | `{}` |  |
-| backend.migrations.annotations | object | `{}` |  |
-| backend.migrations.enabled | bool | `true` |  |
-| backend.migrations.extraEnv | list | `[]` |  |
-| backend.migrations.labels | object | `{}` |  |
-| backend.migrations.nodeSelector | object | `{}` |  |
-| backend.migrations.podSecurityContext | object | `{}` |  |
-| backend.migrations.replicaCount | int | `1` |  |
-| backend.migrations.resources | object | `{}` |  |
-| backend.migrations.securityContext | object | `{}` |  |
-| backend.migrations.sidecars | list | `[]` |  |
-| backend.migrations.tolerations | list | `[]` |  |
-| backend.migrations.volumeMounts | list | `[]` |  |
-| backend.migrations.volumes | list | `[]` |  |
-| backend.name | string | `"backend"` |  |
-| backend.service.annotations | object | `{}` |  |
-| backend.service.httpPort | int | `80` |  |
-| backend.service.httpsPort | int | `443` |  |
-| backend.service.labels | object | `{}` |  |
-| backend.service.loadBalancerIP | string | `""` |  |
-| backend.service.loadBalancerSourceRanges | list | `[]` |  |
-| backend.service.type | string | `"LoadBalancer"` |  |
-| backend.serviceAccount.annotations | object | `{}` |  |
-| backend.serviceAccount.create | bool | `true` |  |
-| backend.serviceAccount.labels | object | `{}` |  |
-| backend.serviceAccount.name | string | `""` |  |
+| apiServer.autoscaling.enabled | bool | `false` |  |
+| apiServer.autoscaling.maxReplicas | int | `5` |  |
+| apiServer.autoscaling.minReplicas | int | `1` |  |
+| apiServer.autoscaling.targetCPUUtilizationPercentage | int | `80` |  |
+| apiServer.containerPort | int | `8000` |  |
+| apiServer.deployment.affinity | object | `{}` |  |
+| apiServer.deployment.annotations | object | `{}` |  |
+| apiServer.deployment.extraEnv | list | `[]` |  |
+| apiServer.deployment.labels | object | `{}` |  |
+| apiServer.deployment.nodeSelector | object | `{}` |  |
+| apiServer.deployment.podSecurityContext | object | `{}` |  |
+| apiServer.deployment.replicaCount | int | `1` |  |
+| apiServer.deployment.resources | object | `{}` |  |
+| apiServer.deployment.securityContext | object | `{}` |  |
+| apiServer.deployment.sidecars | list | `[]` |  |
+| apiServer.deployment.tolerations | list | `[]` |  |
+| apiServer.deployment.volumeMounts | list | `[]` |  |
+| apiServer.deployment.volumes | list | `[]` |  |
+| apiServer.migrations.affinity | object | `{}` |  |
+| apiServer.migrations.annotations | object | `{}` |  |
+| apiServer.migrations.enabled | bool | `true` |  |
+| apiServer.migrations.extraEnv | list | `[]` |  |
+| apiServer.migrations.labels | object | `{}` |  |
+| apiServer.migrations.nodeSelector | object | `{}` |  |
+| apiServer.migrations.podSecurityContext | object | `{}` |  |
+| apiServer.migrations.replicaCount | int | `1` |  |
+| apiServer.migrations.resources | object | `{}` |  |
+| apiServer.migrations.securityContext | object | `{}` |  |
+| apiServer.migrations.sidecars | list | `[]` |  |
+| apiServer.migrations.tolerations | list | `[]` |  |
+| apiServer.migrations.volumeMounts | list | `[]` |  |
+| apiServer.migrations.volumes | list | `[]` |  |
+| apiServer.name | string | `"api-server"` |  |
+| apiServer.service.annotations | object | `{}` |  |
+| apiServer.service.httpPort | int | `80` |  |
+| apiServer.service.httpsPort | int | `443` |  |
+| apiServer.service.labels | object | `{}` |  |
+| apiServer.service.loadBalancerIP | string | `""` |  |
+| apiServer.service.loadBalancerSourceRanges | list | `[]` |  |
+| apiServer.service.type | string | `"LoadBalancer"` |  |
+| apiServer.serviceAccount.annotations | object | `{}` |  |
+| apiServer.serviceAccount.create | bool | `true` |  |
+| apiServer.serviceAccount.labels | object | `{}` |  |
+| apiServer.serviceAccount.name | string | `""` |  |
 
-## Redis
+## Postgres
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| redis.containerPort | int | `6379` |  |
-| redis.external.connectionUrl | string | `""` |  |
-| redis.external.enabled | bool | `false` |  |
-| redis.external.existingSecretName | string | `""` |  |
-| redis.name | string | `"redis"` |  |
-| redis.service.annotations | object | `{}` |  |
-| redis.service.labels | object | `{}` |  |
-| redis.service.loadBalancerIP | string | `""` |  |
-| redis.service.loadBalancerSourceRanges | list | `[]` |  |
-| redis.service.port | int | `6379` |  |
-| redis.service.type | string | `"ClusterIP"` |  |
-| redis.serviceAccount.annotations | object | `{}` |  |
-| redis.serviceAccount.create | bool | `true` |  |
-| redis.serviceAccount.labels | object | `{}` |  |
-| redis.serviceAccount.name | string | `""` |  |
-| redis.statefulSet.affinity | object | `{}` |  |
-| redis.statefulSet.annotations | object | `{}` |  |
-| redis.statefulSet.extraEnv | list | `[]` |  |
-| redis.statefulSet.labels | object | `{}` |  |
-| redis.statefulSet.nodeSelector | object | `{}` |  |
-| redis.statefulSet.persistence.size | string | `"8Gi"` |  |
-| redis.statefulSet.persistence.storageClassName | string | `""` |  |
-| redis.statefulSet.podSecurityContext | object | `{}` |  |
-| redis.statefulSet.resources | object | `{}` |  |
-| redis.statefulSet.securityContext | object | `{}` |  |
-| redis.statefulSet.sidecars | list | `[]` |  |
-| redis.statefulSet.tolerations | list | `[]` |  |
-| redis.statefulSet.volumeMounts | list | `[]` |  |
-| redis.statefulSet.volumes | list | `[]` |  |
+| postgres.containerPort | int | `5432` |  |
+| postgres.external.connectionUrl | string | `""` |  |
+| postgres.external.database | string | `"postgres"` |  |
+| postgres.external.enabled | bool | `false` |  |
+| postgres.external.existingSecretName | string | `""` |  |
+| postgres.external.host | string | `""` |  |
+| postgres.external.password | string | `"postgres"` |  |
+| postgres.external.port | string | `"5432"` |  |
+| postgres.external.schema | string | `"public"` |  |
+| postgres.external.user | string | `"postgres"` |  |
+| postgres.name | string | `"postgres"` |  |
+| postgres.service.annotations | object | `{}` |  |
+| postgres.service.labels | object | `{}` |  |
+| postgres.service.loadBalancerIP | string | `""` |  |
+| postgres.service.loadBalancerSourceRanges | list | `[]` |  |
+| postgres.service.port | int | `5432` |  |
+| postgres.service.type | string | `"ClusterIP"` |  |
+| postgres.serviceAccount.annotations | object | `{}` |  |
+| postgres.serviceAccount.create | bool | `true` |  |
+| postgres.serviceAccount.labels | object | `{}` |  |
+| postgres.serviceAccount.name | string | `""` |  |
+| postgres.statefulSet.affinity | object | `{}` |  |
+| postgres.statefulSet.annotations | object | `{}` |  |
+| postgres.statefulSet.command | list | `[]` |  |
+| postgres.statefulSet.extraContainerConfig | object | `{}` |  |
+| postgres.statefulSet.extraEnv | list | `[]` |  |
+| postgres.statefulSet.labels | object | `{}` |  |
+| postgres.statefulSet.nodeSelector | object | `{}` |  |
+| postgres.statefulSet.persistence.size | string | `"8Gi"` |  |
+| postgres.statefulSet.persistence.storageClassName | string | `""` |  |
+| postgres.statefulSet.podSecurityContext | object | `{}` |  |
+| postgres.statefulSet.resources | object | `{}` |  |
+| postgres.statefulSet.securityContext | object | `{}` |  |
+| postgres.statefulSet.sidecars | list | `[]` |  |
+| postgres.statefulSet.tolerations | list | `[]` |  |
+| postgres.statefulSet.volumeMounts | list | `[]` |  |
+| postgres.statefulSet.volumes | list | `[]` |  |
 
 ## Maintainers
 
