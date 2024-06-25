@@ -46,26 +46,28 @@ Bare minimum config file `langgraph_cloud_config.yaml`:
 
 ```yaml
 images:
+  # Make sure to replace this with your own LangGraph Cloud API image built with the cli.
   apiServerImage:
     pullPolicy: IfNotPresent
-    repository: docker.io/langchain/langgraph-api
-    tag: 3.11
+    repository: <your repository>
+    tag: <image tag>
 
 config:
-  langgraphLicenseKey: ""
+  langGraphCloudLicenseKey: ""
 ```
 
 Example `EKS` config file with certificates setup using ACM:
 
 ```jsx
 images:
+  # Make sure to replace this with your own LangGraph Cloud API image built with the cli.
   apiServerImage:
     pullPolicy: IfNotPresent
-    repository: docker.io/langchain/langgraph-api
-    tag: 3.11
+    repository: <your repository>
+    tag: <image tag>
 
 config:
-  langgraphLicenseKey: ""
+  langGraphCloudLicenseKey: ""
 
 apiServer:
   service:
@@ -79,13 +81,14 @@ Example config file with external postgres:
 
 ```jsx
 images:
+  # Make sure to replace this with your own LangGraph Cloud API image built with the cli.
   apiServerImage:
     pullPolicy: IfNotPresent
-    repository: docker.io/langchain/langgraph-api
-    tag: 3.11
+    repository: <your repository>
+    tag: <image tag>
 
 config:
-  langgraphLicenseKey: ""
+  langGraphCloudLicenseKey: ""
 
 postgres:
   external:
