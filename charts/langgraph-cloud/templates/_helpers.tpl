@@ -81,14 +81,14 @@ the user or some other secret provisioning mechanism
 {{- end }}
 
 {{/*
-Name of the secret containing the secrets for redis. This can be overriden by a secrets file created by
+Name of the secret containing the secrets for postgres. This can be overriden by a secrets file created by
 the user or some other secret provisioning mechanism
 */}}
-{{- define "langGraphCloud.redisSecretsName" -}}
-{{- if .Values.redis.external.existingSecretName }}
-{{- .Values.redis.external.existingSecretName }}
+{{- define "langGraphCloud.postgresSecretsName" -}}
+{{- if .Values.postgres.external.existingSecretName }}
+{{- .Values.postgres.external.existingSecretName }}
 {{- else }}
-{{- include "langGraphCloud.fullname" . }}-redis
+{{- include "langGraphCloud.fullname" . }}-postgres
 {{- end }}
 {{- end }}
 
