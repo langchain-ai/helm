@@ -59,6 +59,10 @@ spec:
               value: {{ .Values.config.auth.langSmithAuthEndpoint }}
             - name: LANGSMITH_TENANT_ID
               value: {{ .Values.config.auth.langSmithTenantId }}
+            {{- end }}
+            {{- with .Values.apiServer.deployment.extraEnv }}
+              {{- toYaml . | nindent 12 }}
+            {{- end }}
             {{- with .Values.apiServer.deployment.extraEnv }}
               {{- toYaml . | nindent 12 }}
             {{- end }}
