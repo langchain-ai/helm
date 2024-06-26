@@ -1,0 +1,31 @@
+{{- if not .Values.postgres.external.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "langGraphCloud.fullname" . }}-{{ .Values.postgres.name }}
+  labels:
+    {{- include "langGraphCloud.labels" . | nindent 4 }}
+    {{- with.Values.postgres.service.labels }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+  annotations:
+    {{- include "langGraphCloud.annotations" . | nindent 4 }}
+    {{- with.Values.postgres.service.annotations }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  type: {{ .Values.postgres.service.type }}
+  {{- with .Values.postgres.service.loadBalancerSourceRanges }}
+  loadBalancerSourceRanges:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  loadBalancerIP: {{ .Values.postgres.service.loadBalancerIP }}
+  ports:
+    - name: postgres
+      port: {{ .Values.postgres.service.port }}
+      targetPort: postgres
+      protocol: TCP
+  selector:
+    {{- include "langGraphCloud.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: {{ include "langGraphCloud.fullname" . }}-{{ .Values.postgres.name }}
+  {{- end }}

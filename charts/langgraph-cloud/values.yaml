@@ -1,0 +1,156 @@
+# Default values for the langGraph Cloud helm chart. Refer to documentation on individual values for help with configuration.
+
+# -- Provide a name in place of `langgraph-cloud` for the chart
+nameOverride: ""
+# -- String to fully override `"langgraph-cloud.fullname"`
+fullnameOverride: ""
+# -- Annotations that will be applied to all resources created by the chart
+commonAnnotations: {}
+# -- Labels that will be applied to all resources created by the chart
+commonLabels: {}
+
+images:
+   # -- Secrets with credentials to pull images from a private registry. Specified as name: value.
+  imagePullSecrets: []
+  # This should be the image you have built using the LangGraph Cli. Find more information here:
+  apiServerImage:
+    repository: "docker.io/langchain/langgraph-api"
+    pullPolicy: IfNotPresent
+    tag: "3.11"
+  postgresImage:
+    repository: "docker.io/postgres"
+    pullPolicy: IfNotPresent
+    tag: "16"
+
+config:
+  existingSecretName: ""
+  langGraphCloudLicenseKey: ""
+  auth:
+    enabled: false
+    langSmithAuthEndpoint: ""
+    langSmithTenantId: ""
+
+ingress:
+  enabled: false
+  hostname: ""
+  ingressClassName: ""
+  annotations: {}
+  labels: {}
+  tls: []
+
+apiServer:
+  name: "api-server"
+  containerPort: 8000
+  deployment:
+    replicaCount: 1
+    labels: {}
+    annotations: {}
+    podSecurityContext: {}
+    securityContext: {}
+    resources: {}
+#      limits:
+#        cpu: 1000m
+#        memory: 1Gi
+#      requests:
+#        cpu: 200m
+#        memory: 500Mi
+    extraEnv: []
+    sidecars: []
+    nodeSelector: {}
+    tolerations: []
+    affinity: {}
+    volumes: []
+    volumeMounts: []
+  migrations:
+    enabled: true
+    replicaCount: 1
+    labels: {}
+    annotations: {}
+    podSecurityContext: {}
+    securityContext: {}
+    resources: {}
+#      limits:
+#        cpu: 1000m
+#        memory: 1Gi
+#      requests:
+#        cpu: 200m
+#        memory: 500Mi
+    extraEnv: []
+    sidecars: []
+    nodeSelector: {}
+    tolerations: []
+    affinity: {}
+    volumes: []
+    volumeMounts: []
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 5
+    targetCPUUtilizationPercentage: 80
+  service:
+    type: LoadBalancer
+    httpPort: 80
+    httpsPort: 443
+    labels: {}
+    annotations: {}
+    loadBalancerSourceRanges: []
+    loadBalancerIP: ""
+  serviceAccount:
+    create: true
+    name: ""
+    labels: {}
+    annotations: {}
+
+postgres:
+  name: "postgres"
+  external:
+    # If enabled, use the following values to connect to an external database. This will also disable the
+    # creation of a postgres stateful-set and service.
+    enabled: false
+    host: ""
+    port: "5432"
+    user: "postgres"
+    password: "postgres"
+    database: "postgres"
+    schema: "public"
+    # If connection string is specified, we will ignore all above values and use the connection string instead.
+    # Do not include the driver name(something like "postgres://" in the connection string.
+    connectionUrl: ""
+    existingSecretName: ""
+  containerPort: 5432
+  statefulSet:
+    labels: {}
+    annotations: {}
+    podSecurityContext: {}
+    securityContext: {}
+    resources: {}
+#      limits:
+#        cpu: 4000m
+#        memory: 16Gi
+#      requests:
+#        cpu: 1000m
+#        memory: 4Gi
+    command: []
+    extraContainerConfig: {}
+    extraEnv: []
+    sidecars: []
+    nodeSelector: {}
+    tolerations: []
+    affinity: {}
+    volumes: []
+    volumeMounts: []
+    persistence:
+      size: 8Gi
+      storageClassName: ""
+  service:
+    type: ClusterIP
+    port: 5432
+    labels: {}
+    annotations: {}
+    loadBalancerSourceRanges: []
+    loadBalancerIP: ""
+  serviceAccount:
+    create: true
+    name: ""
+    labels: {}
+    annotations: {}
