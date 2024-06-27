@@ -42,6 +42,8 @@ spec:
       containers:
         - name: {{ .Values.apiServer.name }}
           env:
+            - name: PORT
+              value: {{ .Values.apiServer.containerPort | quote }}
             - name: POSTGRES_URI
               valueFrom:
                 secretKeyRef:
