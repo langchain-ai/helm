@@ -15,19 +15,19 @@ images:
   backendImage:
     repository: "docker.io/langchain/langsmith-backend"
     pullPolicy: IfNotPresent
-    tag: "0.6.16"
+    tag: "0.6.19"
   frontendImage:
     repository: "docker.io/langchain/langsmith-frontend"
     pullPolicy: IfNotPresent
-    tag: "0.6.16"
+    tag: "0.6.19"
   platformBackendImage:
     repository: "docker.io/langchain/langsmith-go-backend"
     pullPolicy: IfNotPresent
-    tag: "0.6.16"
+    tag: "0.6.19"
   playgroundImage:
     repository: "docker.io/langchain/langsmith-playground"
     pullPolicy: IfNotPresent
-    tag: "0.6.16"
+    tag: "0.6.19"
   postgresImage:
     repository: "docker.io/postgres"
     pullPolicy: IfNotPresent

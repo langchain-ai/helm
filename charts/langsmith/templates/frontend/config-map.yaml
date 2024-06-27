@@ -68,7 +68,6 @@ data:
 
          # Backend Routes
          location ~ /{{ .Values.ingress.subdomain }}/api {
-            rewrite /{{ .Values.ingress.subdomain }}/api/(.*) /$1  break;
             proxy_set_header Connection '';
             proxy_http_version 1.1;
             proxy_buffering off;
@@ -152,7 +151,6 @@ data:
 
         # Backend Routes
         location ~ /api {
-            rewrite /api/(.*) /$1  break;
             proxy_set_header Connection '';
             proxy_http_version 1.1;
             proxy_buffering off;
