@@ -15,7 +15,7 @@ images:
   # This should be the image you have built using the LangGraph Cli. Find more information here:
   apiServerImage:
     repository: "docker.io/langchain/langgraph-api"
-    pullPolicy: IfNotPresent
+    pullPolicy: Always
     tag: "3.11"
   postgresImage:
     repository: "docker.io/postgres"
