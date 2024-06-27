@@ -21,7 +21,7 @@ Ensure you have the following tools/items ready.
 1. `Helm`
     1. `brew install helm`
 1. LangGraph Cloud License Key
-    1. You can get this from your Langchain representative. Contact us at sales@langchain.dev for more information.
+    1. You can get this from your LangChain representative. Contact us at sales@langchain.dev for more information.
 1. A LangGraph Cloud API image
     1. You can use the [langgraph-cli](https://langchain-ai.github.io/langgraph/cloud/reference/cli/) to build your own image.
 1. SSL(optional)
@@ -53,6 +53,28 @@ images:
 
 config:
   langGraphCloudLicenseKey: ""
+```
+
+If your application reads from environment variables, specify `apiServer.deployment.extraEnv`:
+
+```yaml
+images:
+  # Make sure to replace this with your own LangGraph Cloud API image built with the cli.
+  apiServerImage:
+    pullPolicy: IfNotPresent
+    repository: <your repository>
+    tag: <image tag>
+
+config:
+  langGraphCloudLicenseKey: ""
+
+apiServer:
+  deployment:
+    extraEnv:
+      - name: ENV_VAR_1
+        value: "foo"
+      - name: ENV_VAR_2
+        value: "bar"
 ```
 
 Example `EKS` config file with certificates setup using ACM:
@@ -96,7 +118,7 @@ postgres:
 ```
 
 You can also use existingSecretName to avoid checking in secrets. This secret will need to follow
-the same format as the secret in the corresponding `secrets.yaml` file.
+the same format as the secret in the corresponding `secrets.yaml` file. Note: API keys such as `OPENAI_API_KEY` should not be specified as environment variables. These values should be stored as secrets (e.g. Kubernetes secrets).
 
 ### Deploying to Kubernetes:
 
@@ -110,7 +132,7 @@ the same format as the secret in the corresponding `secrets.yaml` file.
         No resources found in default namespace.
         ```
 
-2. Ensure you have the Langchain Helm repo added. (skip this step if you are using local charts)
+2. Ensure you have the LangChain Helm repo added. (skip this step if you are using local charts)
 
         helm repo add langchain https://langchain-ai.github.io/helm/
         "langchain" has been added to your repositories
