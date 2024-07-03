@@ -57,6 +57,15 @@ data:
         }
 
          # Hub Backend Routes
+
+         location ~ /{{.Values.ingress.subdomain}}/api-hub/ok {
+            rewrite /{{ .Values.ingress.subdomain }}/api-hub/(.*) /$1  break;
+            proxy_set_header Connection '';
+            proxy_http_version 1.1;
+            proxy_buffering off;
+            proxy_cache off;
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}:{{ .Values.backend.service.port }};
+         }
          location ~ /{{ .Values.ingress.subdomain }}/api-hub {
             rewrite /{{ .Values.ingress.subdomain }}/api-hub/(.*) /api/$1  break;
             proxy_set_header Connection '';
@@ -67,6 +76,16 @@ data:
         }
 
          # Backend Routes
+
+         location ~ /{{.Values.ingress.subdomain}}/api/ok {
+            rewrite /{{ .Values.ingress.subdomain }}/api/(.*) /$1  break;
+            proxy_set_header Connection '';
+            proxy_http_version 1.1;
+            proxy_buffering off;
+            proxy_cache off;
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}:{{ .Values.backend.service.port }};
+         }
+
          location ~ /{{ .Values.ingress.subdomain }}/api {
             rewrite /{{ .Values.ingress.subdomain }}/api/(.*) /api/$1  break;
             proxy_set_header Connection '';
@@ -141,6 +160,15 @@ data:
         }
 
          # Hub Backend Routes
+         location ~ /api-hub/ok {
+            rewrite /api-hub/(.*) /$1  break;
+            proxy_set_header Connection '';
+            proxy_http_version 1.1;
+            proxy_buffering off;
+            proxy_cache off;
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}:{{ .Values.backend.service.port }};
+         }
+
          location ~ /api-hub {
             rewrite /api-hub/(.*) /$1  break;
             proxy_set_header Connection '';
@@ -151,6 +179,15 @@ data:
         }
 
         # Backend Routes
+         location ~ /api/ok {
+            rewrite /api/(.*) /$1  break;
+            proxy_set_header Connection '';
+            proxy_http_version 1.1;
+            proxy_buffering off;
+            proxy_cache off;
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}:{{ .Values.backend.service.port }};
+         }
+
         location ~ /api {
             proxy_set_header Connection '';
             proxy_http_version 1.1;
