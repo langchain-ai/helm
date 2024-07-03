@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.6.1](https://img.shields.io/badge/Version-0.6.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.6.6](https://img.shields.io/badge/AppVersion-0.6.6-informational?style=flat-square)
+![Version: 0.6.10](https://img.shields.io/badge/Version-0.6.10-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.6.21](https://img.shields.io/badge/AppVersion-0.6.21-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -50,13 +50,28 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | clickhouse.statefulSet.extraContainerConfig | object | `{}` |  |
 | clickhouse.statefulSet.extraEnv | list | `[]` |  |
 | clickhouse.statefulSet.labels | object | `{}` |  |
+| clickhouse.statefulSet.livenessProbe.failureThreshold | int | `6` |  |
+| clickhouse.statefulSet.livenessProbe.httpGet.path | string | `"/ping"` |  |
+| clickhouse.statefulSet.livenessProbe.httpGet.port | int | `8123` |  |
+| clickhouse.statefulSet.livenessProbe.periodSeconds | int | `10` |  |
+| clickhouse.statefulSet.livenessProbe.timeoutSeconds | int | `1` |  |
 | clickhouse.statefulSet.nodeSelector | object | `{}` |  |
 | clickhouse.statefulSet.persistence.size | string | `"50Gi"` |  |
 | clickhouse.statefulSet.persistence.storageClassName | string | `""` |  |
 | clickhouse.statefulSet.podSecurityContext | object | `{}` |  |
+| clickhouse.statefulSet.readinessProbe.failureThreshold | int | `6` |  |
+| clickhouse.statefulSet.readinessProbe.httpGet.path | string | `"/ping"` |  |
+| clickhouse.statefulSet.readinessProbe.httpGet.port | int | `8123` |  |
+| clickhouse.statefulSet.readinessProbe.periodSeconds | int | `10` |  |
+| clickhouse.statefulSet.readinessProbe.timeoutSeconds | int | `1` |  |
 | clickhouse.statefulSet.resources | object | `{}` |  |
 | clickhouse.statefulSet.securityContext | object | `{}` |  |
 | clickhouse.statefulSet.sidecars | list | `[]` |  |
+| clickhouse.statefulSet.startupProbe.failureThreshold | int | `6` |  |
+| clickhouse.statefulSet.startupProbe.httpGet.path | string | `"/ping"` |  |
+| clickhouse.statefulSet.startupProbe.httpGet.port | int | `8123` |  |
+| clickhouse.statefulSet.startupProbe.periodSeconds | int | `10` |  |
+| clickhouse.statefulSet.startupProbe.timeoutSeconds | int | `1` |  |
 | clickhouse.statefulSet.tolerations | list | `[]` |  |
 | clickhouse.statefulSet.volumeMounts | list | `[]` |  |
 | clickhouse.statefulSet.volumes | list | `[]` |  |
@@ -65,20 +80,20 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | fullnameOverride | string | `""` | String to fully override `"langsmith.fullname"` |
 | images.backendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.backendImage.repository | string | `"docker.io/langchain/langsmith-backend"` |  |
-| images.backendImage.tag | string | `"0.6.6"` |  |
+| images.backendImage.tag | string | `"0.6.21"` |  |
 | images.clickhouseImage.pullPolicy | string | `"Always"` |  |
 | images.clickhouseImage.repository | string | `"docker.io/clickhouse/clickhouse-server"` |  |
-| images.clickhouseImage.tag | string | `"23.9"` |  |
+| images.clickhouseImage.tag | string | `"24.2"` |  |
 | images.frontendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.frontendImage.repository | string | `"docker.io/langchain/langsmith-frontend"` |  |
-| images.frontendImage.tag | string | `"0.6.6"` |  |
+| images.frontendImage.tag | string | `"0.6.21"` |  |
 | images.imagePullSecrets | list | `[]` | Secrets with credentials to pull images from a private registry. Specified as name: value. |
 | images.platformBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.platformBackendImage.repository | string | `"docker.io/langchain/langsmith-go-backend"` |  |
-| images.platformBackendImage.tag | string | `"0.6.6"` |  |
+| images.platformBackendImage.tag | string | `"0.6.21"` |  |
 | images.playgroundImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.playgroundImage.repository | string | `"docker.io/langchain/langsmith-playground"` |  |
-| images.playgroundImage.tag | string | `"0.6.6"` |  |
+| images.playgroundImage.tag | string | `"0.6.21"` |  |
 | images.postgresImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.postgresImage.repository | string | `"docker.io/postgres"` |  |
 | images.postgresImage.tag | string | `"14.7"` |  |
@@ -106,7 +121,11 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | config.oauth.oauthClientId | string | `""` |  |
 | config.oauth.oauthIssuerUrl | string | `""` |  |
 | config.openaiApiKey | string | `""` | OpenAI API key. Optional. Only used to power natural language search feature. |
-| config.orgCreationDisabled | string | `"false"` |  |
+| config.orgCreationDisabled | bool | `false` |  |
+| config.ttl.enabled | bool | `false` |  |
+| config.ttl.ttl_period_seconds.longlived | string | `"34560000"` | 400 day longlived and 14 day shortlived |
+| config.ttl.ttl_period_seconds.shortlived | string | `"1209600"` |  |
+| config.workspaceScopeOrgInvitesEnabled | bool | `false` |  |
 
 ## Backend
 
@@ -153,12 +172,27 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | backend.deployment.extraContainerConfig | object | `{}` |  |
 | backend.deployment.extraEnv | list | `[]` |  |
 | backend.deployment.labels | object | `{}` |  |
+| backend.deployment.livenessProbe.failureThreshold | int | `6` |  |
+| backend.deployment.livenessProbe.httpGet.path | string | `"/ok"` |  |
+| backend.deployment.livenessProbe.httpGet.port | int | `1984` |  |
+| backend.deployment.livenessProbe.periodSeconds | int | `10` |  |
+| backend.deployment.livenessProbe.timeoutSeconds | int | `1` |  |
 | backend.deployment.nodeSelector | object | `{}` |  |
 | backend.deployment.podSecurityContext | object | `{}` |  |
+| backend.deployment.readinessProbe.failureThreshold | int | `6` |  |
+| backend.deployment.readinessProbe.httpGet.path | string | `"/ok"` |  |
+| backend.deployment.readinessProbe.httpGet.port | int | `1984` |  |
+| backend.deployment.readinessProbe.periodSeconds | int | `10` |  |
+| backend.deployment.readinessProbe.timeoutSeconds | int | `1` |  |
 | backend.deployment.replicas | int | `1` |  |
 | backend.deployment.resources | object | `{}` |  |
 | backend.deployment.securityContext | object | `{}` |  |
 | backend.deployment.sidecars | list | `[]` |  |
+| backend.deployment.startupProbe.failureThreshold | int | `6` |  |
+| backend.deployment.startupProbe.httpGet.path | string | `"/ok"` |  |
+| backend.deployment.startupProbe.httpGet.port | int | `1984` |  |
+| backend.deployment.startupProbe.periodSeconds | int | `10` |  |
+| backend.deployment.startupProbe.timeoutSeconds | int | `1` |  |
 | backend.deployment.tolerations | list | `[]` |  |
 | backend.deployment.volumeMounts | list | `[]` |  |
 | backend.deployment.volumes | list | `[]` |  |
@@ -227,13 +261,28 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | clickhouse.statefulSet.extraContainerConfig | object | `{}` |  |
 | clickhouse.statefulSet.extraEnv | list | `[]` |  |
 | clickhouse.statefulSet.labels | object | `{}` |  |
+| clickhouse.statefulSet.livenessProbe.failureThreshold | int | `6` |  |
+| clickhouse.statefulSet.livenessProbe.httpGet.path | string | `"/ping"` |  |
+| clickhouse.statefulSet.livenessProbe.httpGet.port | int | `8123` |  |
+| clickhouse.statefulSet.livenessProbe.periodSeconds | int | `10` |  |
+| clickhouse.statefulSet.livenessProbe.timeoutSeconds | int | `1` |  |
 | clickhouse.statefulSet.nodeSelector | object | `{}` |  |
 | clickhouse.statefulSet.persistence.size | string | `"50Gi"` |  |
 | clickhouse.statefulSet.persistence.storageClassName | string | `""` |  |
 | clickhouse.statefulSet.podSecurityContext | object | `{}` |  |
+| clickhouse.statefulSet.readinessProbe.failureThreshold | int | `6` |  |
+| clickhouse.statefulSet.readinessProbe.httpGet.path | string | `"/ping"` |  |
+| clickhouse.statefulSet.readinessProbe.httpGet.port | int | `8123` |  |
+| clickhouse.statefulSet.readinessProbe.periodSeconds | int | `10` |  |
+| clickhouse.statefulSet.readinessProbe.timeoutSeconds | int | `1` |  |
 | clickhouse.statefulSet.resources | object | `{}` |  |
 | clickhouse.statefulSet.securityContext | object | `{}` |  |
 | clickhouse.statefulSet.sidecars | list | `[]` |  |
+| clickhouse.statefulSet.startupProbe.failureThreshold | int | `6` |  |
+| clickhouse.statefulSet.startupProbe.httpGet.path | string | `"/ping"` |  |
+| clickhouse.statefulSet.startupProbe.httpGet.port | int | `8123` |  |
+| clickhouse.statefulSet.startupProbe.periodSeconds | int | `10` |  |
+| clickhouse.statefulSet.startupProbe.timeoutSeconds | int | `1` |  |
 | clickhouse.statefulSet.tolerations | list | `[]` |  |
 | clickhouse.statefulSet.volumeMounts | list | `[]` |  |
 | clickhouse.statefulSet.volumes | list | `[]` |  |
@@ -254,12 +303,27 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | frontend.deployment.extraContainerConfig | object | `{}` |  |
 | frontend.deployment.extraEnv | list | `[]` |  |
 | frontend.deployment.labels | object | `{}` |  |
+| frontend.deployment.livenessProbe.failureThreshold | int | `6` |  |
+| frontend.deployment.livenessProbe.httpGet.path | string | `"/health"` |  |
+| frontend.deployment.livenessProbe.httpGet.port | int | `8080` |  |
+| frontend.deployment.livenessProbe.periodSeconds | int | `10` |  |
+| frontend.deployment.livenessProbe.timeoutSeconds | int | `1` |  |
 | frontend.deployment.nodeSelector | object | `{}` |  |
 | frontend.deployment.podSecurityContext | object | `{}` |  |
+| frontend.deployment.readinessProbe.failureThreshold | int | `6` |  |
+| frontend.deployment.readinessProbe.httpGet.path | string | `"/health"` |  |
+| frontend.deployment.readinessProbe.httpGet.port | int | `8080` |  |
+| frontend.deployment.readinessProbe.periodSeconds | int | `10` |  |
+| frontend.deployment.readinessProbe.timeoutSeconds | int | `1` |  |
 | frontend.deployment.replicas | int | `1` |  |
 | frontend.deployment.resources | object | `{}` |  |
 | frontend.deployment.securityContext | object | `{}` |  |
 | frontend.deployment.sidecars | list | `[]` |  |
+| frontend.deployment.startupProbe.failureThreshold | int | `6` |  |
+| frontend.deployment.startupProbe.httpGet.path | string | `"/health"` |  |
+| frontend.deployment.startupProbe.httpGet.port | int | `8080` |  |
+| frontend.deployment.startupProbe.periodSeconds | int | `10` |  |
+| frontend.deployment.startupProbe.timeoutSeconds | int | `1` |  |
 | frontend.deployment.tolerations | list | `[]` |  |
 | frontend.deployment.volumeMounts | list | `[]` |  |
 | frontend.deployment.volumes | list | `[]` |  |
@@ -293,12 +357,27 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | platformBackend.deployment.extraContainerConfig | object | `{}` |  |
 | platformBackend.deployment.extraEnv | list | `[]` |  |
 | platformBackend.deployment.labels | object | `{}` |  |
+| platformBackend.deployment.livenessProbe.failureThreshold | int | `6` |  |
+| platformBackend.deployment.livenessProbe.httpGet.path | string | `"/ok"` |  |
+| platformBackend.deployment.livenessProbe.httpGet.port | int | `1986` |  |
+| platformBackend.deployment.livenessProbe.periodSeconds | int | `10` |  |
+| platformBackend.deployment.livenessProbe.timeoutSeconds | int | `1` |  |
 | platformBackend.deployment.nodeSelector | object | `{}` |  |
 | platformBackend.deployment.podSecurityContext | object | `{}` |  |
+| platformBackend.deployment.readinessProbe.failureThreshold | int | `6` |  |
+| platformBackend.deployment.readinessProbe.httpGet.path | string | `"/ok"` |  |
+| platformBackend.deployment.readinessProbe.httpGet.port | int | `1986` |  |
+| platformBackend.deployment.readinessProbe.periodSeconds | int | `10` |  |
+| platformBackend.deployment.readinessProbe.timeoutSeconds | int | `1` |  |
 | platformBackend.deployment.replicas | int | `1` |  |
 | platformBackend.deployment.resources | object | `{}` |  |
 | platformBackend.deployment.securityContext | object | `{}` |  |
 | platformBackend.deployment.sidecars | list | `[]` |  |
+| platformBackend.deployment.startupProbe.failureThreshold | int | `6` |  |
+| platformBackend.deployment.startupProbe.httpGet.path | string | `"/ok"` |  |
+| platformBackend.deployment.startupProbe.httpGet.port | int | `1986` |  |
+| platformBackend.deployment.startupProbe.periodSeconds | int | `10` |  |
+| platformBackend.deployment.startupProbe.timeoutSeconds | int | `1` |  |
 | platformBackend.deployment.tolerations | list | `[]` |  |
 | platformBackend.deployment.volumeMounts | list | `[]` |  |
 | platformBackend.deployment.volumes | list | `[]` |  |
@@ -332,12 +411,27 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | playground.deployment.extraContainerConfig | object | `{}` |  |
 | playground.deployment.extraEnv | list | `[]` |  |
 | playground.deployment.labels | object | `{}` |  |
+| playground.deployment.livenessProbe.failureThreshold | int | `6` |  |
+| playground.deployment.livenessProbe.httpGet.path | string | `"/ok"` |  |
+| playground.deployment.livenessProbe.httpGet.port | int | `3001` |  |
+| playground.deployment.livenessProbe.periodSeconds | int | `10` |  |
+| playground.deployment.livenessProbe.timeoutSeconds | int | `1` |  |
 | playground.deployment.nodeSelector | object | `{}` |  |
 | playground.deployment.podSecurityContext | object | `{}` |  |
+| playground.deployment.readinessProbe.failureThreshold | int | `6` |  |
+| playground.deployment.readinessProbe.httpGet.path | string | `"/ok"` |  |
+| playground.deployment.readinessProbe.httpGet.port | int | `3001` |  |
+| playground.deployment.readinessProbe.periodSeconds | int | `10` |  |
+| playground.deployment.readinessProbe.timeoutSeconds | int | `1` |  |
 | playground.deployment.replicas | int | `1` |  |
 | playground.deployment.resources | object | `{}` |  |
 | playground.deployment.securityContext | object | `{}` |  |
 | playground.deployment.sidecars | list | `[]` |  |
+| playground.deployment.startupProbe.failureThreshold | int | `6` |  |
+| playground.deployment.startupProbe.httpGet.path | string | `"/ok"` |  |
+| playground.deployment.startupProbe.httpGet.port | int | `3001` |  |
+| playground.deployment.startupProbe.periodSeconds | int | `10` |  |
+| playground.deployment.startupProbe.timeoutSeconds | int | `1` |  |
 | playground.deployment.tolerations | list | `[]` |  |
 | playground.deployment.volumeMounts | list | `[]` |  |
 | playground.deployment.volumes | list | `[]` |  |
@@ -384,13 +478,31 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | postgres.statefulSet.extraContainerConfig | object | `{}` |  |
 | postgres.statefulSet.extraEnv | list | `[]` |  |
 | postgres.statefulSet.labels | object | `{}` |  |
+| postgres.statefulSet.livenessProbe.exec.command[0] | string | `"/bin/sh"` |  |
+| postgres.statefulSet.livenessProbe.exec.command[1] | string | `"-c"` |  |
+| postgres.statefulSet.livenessProbe.exec.command[2] | string | `"exec pg_isready -d postgres -U postgres"` |  |
+| postgres.statefulSet.livenessProbe.failureThreshold | int | `6` |  |
+| postgres.statefulSet.livenessProbe.periodSeconds | int | `10` |  |
+| postgres.statefulSet.livenessProbe.timeoutSeconds | int | `1` |  |
 | postgres.statefulSet.nodeSelector | object | `{}` |  |
 | postgres.statefulSet.persistence.size | string | `"8Gi"` |  |
 | postgres.statefulSet.persistence.storageClassName | string | `""` |  |
 | postgres.statefulSet.podSecurityContext | object | `{}` |  |
+| postgres.statefulSet.readinessProbe.exec.command[0] | string | `"/bin/sh"` |  |
+| postgres.statefulSet.readinessProbe.exec.command[1] | string | `"-c"` |  |
+| postgres.statefulSet.readinessProbe.exec.command[2] | string | `"exec pg_isready -d postgres -U postgres"` |  |
+| postgres.statefulSet.readinessProbe.failureThreshold | int | `6` |  |
+| postgres.statefulSet.readinessProbe.periodSeconds | int | `10` |  |
+| postgres.statefulSet.readinessProbe.timeoutSeconds | int | `1` |  |
 | postgres.statefulSet.resources | object | `{}` |  |
 | postgres.statefulSet.securityContext | object | `{}` |  |
 | postgres.statefulSet.sidecars | list | `[]` |  |
+| postgres.statefulSet.startupProbe.exec.command[0] | string | `"/bin/sh"` |  |
+| postgres.statefulSet.startupProbe.exec.command[1] | string | `"-c"` |  |
+| postgres.statefulSet.startupProbe.exec.command[2] | string | `"exec pg_isready -d postgres -U postgres"` |  |
+| postgres.statefulSet.startupProbe.failureThreshold | int | `6` |  |
+| postgres.statefulSet.startupProbe.periodSeconds | int | `10` |  |
+| postgres.statefulSet.startupProbe.timeoutSeconds | int | `1` |  |
 | postgres.statefulSet.tolerations | list | `[]` |  |
 | postgres.statefulSet.volumeMounts | list | `[]` |  |
 | postgres.statefulSet.volumes | list | `[]` |  |
@@ -452,14 +564,32 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | redis.statefulSet.extraContainerConfig | object | `{}` |  |
 | redis.statefulSet.extraEnv | list | `[]` |  |
 | redis.statefulSet.labels | object | `{}` |  |
+| redis.statefulSet.livenessProbe.exec.command[0] | string | `"/bin/sh"` |  |
+| redis.statefulSet.livenessProbe.exec.command[1] | string | `"-c"` |  |
+| redis.statefulSet.livenessProbe.exec.command[2] | string | `"exec redis-cli ping"` |  |
+| redis.statefulSet.livenessProbe.failureThreshold | int | `6` |  |
+| redis.statefulSet.livenessProbe.periodSeconds | int | `10` |  |
+| redis.statefulSet.livenessProbe.timeoutSeconds | int | `1` |  |
 | redis.statefulSet.nodeSelector | object | `{}` |  |
 | redis.statefulSet.persistence.enabled | bool | `false` |  |
 | redis.statefulSet.persistence.size | string | `"8Gi"` |  |
 | redis.statefulSet.persistence.storageClassName | string | `""` |  |
 | redis.statefulSet.podSecurityContext | object | `{}` |  |
+| redis.statefulSet.readinessProbe.exec.command[0] | string | `"/bin/sh"` |  |
+| redis.statefulSet.readinessProbe.exec.command[1] | string | `"-c"` |  |
+| redis.statefulSet.readinessProbe.exec.command[2] | string | `"exec redis-cli ping"` |  |
+| redis.statefulSet.readinessProbe.failureThreshold | int | `6` |  |
+| redis.statefulSet.readinessProbe.periodSeconds | int | `10` |  |
+| redis.statefulSet.readinessProbe.timeoutSeconds | int | `1` |  |
 | redis.statefulSet.resources | object | `{}` |  |
 | redis.statefulSet.securityContext | object | `{}` |  |
 | redis.statefulSet.sidecars | list | `[]` |  |
+| redis.statefulSet.startupProbe.exec.command[0] | string | `"/bin/sh"` |  |
+| redis.statefulSet.startupProbe.exec.command[1] | string | `"-c"` |  |
+| redis.statefulSet.startupProbe.exec.command[2] | string | `"exec redis-cli ping"` |  |
+| redis.statefulSet.startupProbe.failureThreshold | int | `6` |  |
+| redis.statefulSet.startupProbe.periodSeconds | int | `10` |  |
+| redis.statefulSet.startupProbe.timeoutSeconds | int | `1` |  |
 | redis.statefulSet.tolerations | list | `[]` |  |
 | redis.statefulSet.volumeMounts | list | `[]` |  |
 | redis.statefulSet.volumes | list | `[]` |  |
@@ -471,6 +601,6 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | Ankush | <ankush@langchain.dev> |  |
 
 ----------------------------------------------
-Autogenerated from chart metadata using [helm-docs v1.11.3](https://github.com/norwoodj/helm-docs/releases/v1.11.3)
+Autogenerated from chart metadata using [helm-docs v1.13.1](https://github.com/norwoodj/helm-docs/releases/v1.13.1)
 ## Docs Generated by [helm-docs](https://github.com/norwoodj/helm-docs)
 `helm-docs -t ./charts/langsmith/README.md.gotmpl`

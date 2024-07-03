@@ -210,6 +210,8 @@ Template containing common environment variables that are used by several servic
 {{- end }}
 - name: FF_ORG_CREATION_DISABLED
   value: {{ .Values.config.orgCreationDisabled | quote }}
+- name: FF_WORKSPACE_SCOPE_ORG_INVITES_ENABLED
+  value: {{ .Values.config.workspaceScopeOrgInvitesEnabled | quote }}
 {{- end }}
 
 {{- define "backend.serviceAccountName" -}}
