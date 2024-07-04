@@ -8,6 +8,8 @@ fullnameOverride: ""
 commonAnnotations: {}
 # -- Labels that will be applied to all resources created by the chart
 commonLabels: {}
+# -- Common environment variables that will be applied to all deployments/statefulsets created by the chart. Be careful not to override values already specified by the chart.
+commonEnv: []
 
 images:
    # -- Secrets with credentials to pull images from a private registry. Specified as name: value.
@@ -84,6 +86,7 @@ backend:
   containerPort: 1984
   existingConfigMapName: ""
   deployment:
+    autoRestart: true
     replicas: 1
     labels: {}
     annotations: {}
@@ -294,6 +297,7 @@ frontend:
   containerPort: 8080
   existingConfigMapName: ""
   deployment:
+    autoRestart: true
     replicas: 1
     labels: {}
     annotations: {}
@@ -363,6 +367,7 @@ playground:
   name: "playground"
   containerPort: 3001
   deployment:
+    autoRestart: true
     replicas: 1
     labels: {}
     annotations: {}
@@ -512,6 +517,7 @@ postgres:
 queue:
   name: "queue"
   deployment:
+    autoRestart: true
     replicas: 3
     labels: {}
     annotations: {}
@@ -555,6 +561,7 @@ platformBackend:
   containerPort: 1986
   existingConfigMapName: ""
   deployment:
+    autoRestart: true
     replicas: 1
     labels: {}
     annotations: {}

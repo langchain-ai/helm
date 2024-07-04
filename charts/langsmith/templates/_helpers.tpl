@@ -210,6 +210,9 @@ Template containing common environment variables that are used by several servic
 {{- end }}
 - name: FF_ORG_CREATION_DISABLED
   value: {{ .Values.config.orgCreationDisabled | quote }}
+{{- if .Values.commonEnv }}
+{{ toYaml .Values.commonEnv }}
+{{- end }}
 {{- end }}
 
 {{- define "backend.serviceAccountName" -}}
