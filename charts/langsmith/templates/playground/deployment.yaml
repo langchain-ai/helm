@@ -23,7 +23,7 @@ spec:
   template:
     metadata:
       annotations:
-      {{- if .Values.backend.deployment.autoRestart }}
+      {{- if .Values.playground.deployment.autoRestart }}
         rollme: {{ randAlphaNum 5 | quote }}
       {{- end }}
       {{- with .Values.playground.deployment.annotations }}
