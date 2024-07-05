@@ -49,8 +49,9 @@ spec:
           command:
             {{- toYaml . | nindent 12 }}
           {{- end }}
-          {{- with .Values.playground.deployment.extraEnv }}
           env:
+            {{- include "langsmith.commonEnv" . | nindent 12 }}
+          {{- with .Values.playground.deployment.extraEnv }}
             {{- toYaml . | nindent 12 }}
           {{- end }}
           image: "{{ .Values.images.playgroundImage.repository }}:{{ .Values.images.playgroundImage.tag | default .Chart.AppVersion }}"
