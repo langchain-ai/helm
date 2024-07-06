@@ -49,10 +49,15 @@ spec:
           command:
             {{- toYaml . | nindent 12 }}
           {{- end }}
-          {{- with .Values.playground.deployment.extraEnv }}
+          {{- if or .Values.playground.deployment.extraEnv .Values.commonEnv  }}
           env:
-            {{- toYaml . | nindent 12 }}
-          {{- end }}
+            {{- with .Values.playground.deployment.extraEnv}}
+             {{- toYaml . | nindent 12 }}
+            {{- end }}
+            {{- with .Values.commonEnv}}
+             {{- toYaml . | nindent 12 }}
+            {{- end }}
+           {{- end }}
           image: "{{ .Values.images.playgroundImage.repository }}:{{ .Values.images.playgroundImage.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.images.playgroundImage.pullPolicy }}
           ports:
