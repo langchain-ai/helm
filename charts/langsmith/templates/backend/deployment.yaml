@@ -23,7 +23,9 @@ spec:
   template:
     metadata:
       annotations:
+      {{- if .Values.backend.deployment.autoRestart }}
         rollme: {{ randAlphaNum 5 | quote }}
+      {{- end }}
       {{- with .Values.backend.deployment.annotations }}
         {{- toYaml . | nindent 8 }}
       {{- end }}
@@ -53,6 +55,9 @@ spec:
               value: {{ .Values.backend.containerPort | quote }}
             {{- with .Values.backend.deployment.extraEnv }}
               {{- toYaml . | nindent 12 }}
+            {{- end }}
+            {{- with .Values.commonEnv }}
+              {{ toYaml . | nindent 12 }}
             {{- end }}
           envFrom:
             - configMapRef:

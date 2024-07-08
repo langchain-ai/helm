@@ -46,10 +46,15 @@ spec:
           command:
             {{- toYaml . | nindent 12 }}
           {{- end }}
-          {{- with .Values.redis.statefulSet.extraEnv }}
+          {{- if or .Values.redis.statefulSet.extraEnv .Values.commonEnv  }}
           env:
-            {{- toYaml . | nindent 12 }}
-          {{- end }}
+            {{- with .Values.redis.statefulSet.extraEnv}}
+             {{- toYaml . | nindent 12 }}
+            {{- end }}
+            {{- with .Values.commonEnv}}
+             {{- toYaml . | nindent 12 }}
+            {{- end }}
+           {{- end }}
           image: "{{ .Values.images.redisImage.repository }}:{{ .Values.images.redisImage.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.images.redisImage.pullPolicy }}
           ports:

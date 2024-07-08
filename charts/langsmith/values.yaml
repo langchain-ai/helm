@@ -8,6 +8,8 @@ fullnameOverride: ""
 commonAnnotations: {}
 # -- Labels that will be applied to all resources created by the chart
 commonLabels: {}
+# -- Common environment variables that will be applied to all deployments/statefulsets created by the chart. Be careful not to override values already specified by the chart.
+commonEnv: []
 
 images:
    # -- Secrets with credentials to pull images from a private registry. Specified as name: value.
@@ -15,19 +17,19 @@ images:
   backendImage:
     repository: "docker.io/langchain/langsmith-backend"
     pullPolicy: IfNotPresent
-    tag: "0.6.21"
+    tag: "0.6.23"
   frontendImage:
     repository: "docker.io/langchain/langsmith-frontend"
     pullPolicy: IfNotPresent
-    tag: "0.6.21"
+    tag: "0.6.23"
   platformBackendImage:
     repository: "docker.io/langchain/langsmith-go-backend"
     pullPolicy: IfNotPresent
-    tag: "0.6.21"
+    tag: "0.6.23"
   playgroundImage:
     repository: "docker.io/langchain/langsmith-playground"
     pullPolicy: IfNotPresent
-    tag: "0.6.21"
+    tag: "0.6.23"
   postgresImage:
     repository: "docker.io/postgres"
     pullPolicy: IfNotPresent
@@ -85,6 +87,7 @@ backend:
   containerPort: 1984
   existingConfigMapName: ""
   deployment:
+    autoRestart: true
     replicas: 1
     labels: {}
     annotations: {}
@@ -295,6 +298,7 @@ frontend:
   containerPort: 8080
   existingConfigMapName: ""
   deployment:
+    autoRestart: true
     replicas: 1
     labels: {}
     annotations: {}
@@ -364,6 +368,7 @@ playground:
   name: "playground"
   containerPort: 3001
   deployment:
+    autoRestart: true
     replicas: 1
     labels: {}
     annotations: {}
@@ -513,6 +518,7 @@ postgres:
 queue:
   name: "queue"
   deployment:
+    autoRestart: true
     replicas: 3
     labels: {}
     annotations: {}
@@ -556,6 +562,7 @@ platformBackend:
   containerPort: 1986
   existingConfigMapName: ""
   deployment:
+    autoRestart: true
     replicas: 1
     labels: {}
     annotations: {}

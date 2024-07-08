@@ -67,6 +67,9 @@ spec:
             {{- with .Values.clickhouse.statefulSet.extraEnv }}
                {{- toYaml . | nindent 12 }}
              {{- end }}
+            {{- with .Values.commonEnv }}
+              {{ toYaml . | nindent 12 }}
+            {{- end }}
           ports:
             - name: ch
               containerPort: {{ .Values.clickhouse.containerHttpPort }}
