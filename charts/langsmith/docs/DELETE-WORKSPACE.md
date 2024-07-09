@@ -1,4 +1,4 @@
-# Deleting Traces
+# Deleting Workspaces
 
 The LangSmith does not currently support the deletion of an individual workspace from an organization.  This, however, can be accomplished by directly removing all traces from all materialized views in ClickHouse (except the runs_history views) and the runs table itself and then removing the Workspace from the Postgres tenants table.
 
@@ -42,7 +42,7 @@ Ensure you have the following tools/items ready.
      - Run `kubectl port-forward svc/langsmith-clickhouse 8123:8123` to port forward the clickhouse service to your local machine.
    - If you are using Clickhouse Cloud you will want to specify the --ssl flag and use port `8443`
 
-### Running the deletion script for a single trace
+### Running the deletion script for a single workspace
 
 Run the following command to run the workspace removal script:
 
