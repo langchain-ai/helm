@@ -1,6 +1,6 @@
 # Deleting Traces
 
-The LangSmith UI does not currently support the deletion of an invidual trace.  This, however, can be accomplished by directly removing the trace from all materialized views in ClickHouse (except the runs_history views) and the runs and feedback tables themselves.
+The LangSmith UI does not currently support the deletion of an invidual trace. This, however, can be accomplished by directly removing the trace from all materialized views in ClickHouse (except the runs_history views) and the runs and feedback tables themselves.
 
 This command can either be run using a trace ID as an argument or using a file that is a list of trace IDs.
 
@@ -8,18 +8,17 @@ This command can either be run using a trace ID as an argument or using a file t
 
 Ensure you have the following tools/items ready.
 
-1. Kubectl 
+1. Kubectl
 
 2. Clickhouse database credentials
-    - Host
-    - Port
-    - Username
-      - If using the bundled version, this is `default`
-    - Password
-      - If using the bundled version, this is `password`
-    - Database name
-       - If using the bundled version, this is `default`
-    
+   - Host
+   - Port
+   - Username
+     - If using the bundled version, this is `default`
+   - Password
+     - If using the bundled version, this is `password`
+   - Database name
+     - If using the bundled version, this is `default`
 3. Connectivity to the Clickhouse database from the machine you will be running the `delete_trace_by_id` script on.
    - If you are using the bundled version, you may need to port forward the clickhouse service to your local machine.
    - Run `kubectl port-forward svc/langsmith-clickhouse 8123:8123` to port forward the clickhouse service to your local machine.
@@ -29,7 +28,7 @@ Ensure you have the following tools/items ready.
 Run the following command to run the migration script:
 
 ```bash
-sh delete_trace_by_id.sh <clickhouse_url> --trace_id <trace_id> 
+sh delete_trace_by_id.sh <clickhouse_url> --trace_id <trace_id>
 ```
 
 For example, if you are using the bundled version with port-forwarding, the command would look like:
@@ -45,7 +44,7 @@ If you visit the Langsmith UI, you should now see trace ID is deleted.
 Run the following command to run the migration script:
 
 ```bash
-sh delete_trace_by_id.sh <clickhouse_url> --file <path/to/foo.txt> 
+sh delete_trace_by_id.sh <clickhouse_url> --file <path/to/foo.txt>
 ```
 
 For example, if you are using the bundled version with port-forwarding, the command would look like:
