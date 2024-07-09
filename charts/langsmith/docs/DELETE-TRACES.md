@@ -10,13 +10,7 @@ Ensure you have the following tools/items ready.
 
 1. Kubectl 
 
-## Migrating old runs locally
-
-### Prerequisites
-
-Ensure you have the following tools/items ready.
-
-1. Clickhouse database credentials
+2. Clickhouse database credentials
     - Host
     - Port
     - Username
@@ -26,7 +20,7 @@ Ensure you have the following tools/items ready.
     - Database name
        - If using the bundled version, this is `default`
     
-2. Connectivity to the Clickhouse database from the machine you will be running the `delete_trace_by_id` script on.
+3. Connectivity to the Clickhouse database from the machine you will be running the `delete_trace_by_id` script on.
    - If you are using the bundled version, you may need to port forward the clickhouse service to your local machine.
    - Run `kubectl port-forward svc/langsmith-clickhouse 8123:8123` to port forward the clickhouse service to your local machine.
 
