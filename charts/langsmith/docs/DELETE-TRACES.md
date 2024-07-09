@@ -1,6 +1,6 @@
 # Deleting Traces
 
-The LangSmith UI does not currently support the deletion of an invidual trace.  This, however, can be accomplished by directly removing the trace from all materialized views in ClickHouse (except the runs_history views) and the runs table itself.
+The LangSmith UI does not currently support the deletion of an invidual trace.  This, however, can be accomplished by directly removing the trace from all materialized views in ClickHouse (except the runs_history views) and the runs and feedback tables themselves.
 
 This command can either be run using a trace ID as an argument or using a file that is a list of trace IDs.
 
