@@ -1,6 +1,6 @@
 # Deleting Workspaces
 
-The LangSmith does not currently support the deletion of an individual workspace from an organization.  This, however, can be accomplished by directly removing all traces from all materialized views in ClickHouse (except the runs_history views) and the runs table itself and then removing the Workspace from the Postgres tenants table.
+The LangSmith does not currently support the deletion of an individual workspace from an organization.  This, however, can be accomplished by directly removing all traces from all materialized views in ClickHouse (except the runs_history views) and the runs and feedbacks tables and then removing the Workspace from the Postgres tenants table.
 
 This command using the Workspace ID as an argument.
 
