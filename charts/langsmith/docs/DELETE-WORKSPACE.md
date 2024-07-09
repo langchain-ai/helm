@@ -1,6 +1,6 @@
 # Deleting Workspaces
 
-The LangSmith does not currently support the deletion of an individual workspace from an organization.  This, however, can be accomplished by directly removing all traces from all materialized views in ClickHouse (except the runs_history views) and the runs and feedbacks tables and then removing the Workspace from the Postgres tenants table.
+The LangSmith does not currently support the deletion of an individual workspace from an organization. This, however, can be accomplished by directly removing all traces from all materialized views in ClickHouse (except the runs_history views) and the runs and feedbacks tables and then removing the Workspace from the Postgres tenants table.
 
 This command using the Workspace ID as an argument.
 
@@ -8,20 +8,22 @@ This command using the Workspace ID as an argument.
 
 Ensure you have the following tools/items ready.
 
-1. Kubectl 
+1. Kubectl
 
 2. PostgreSQL client
-    - https://www.postgresql.org/download/
+
+   - https://www.postgresql.org/download/
 
 3. PostgreSQL database connection:
-    - Host
-    - Port
-    - Username
-      - If using the bundled version, this is `postgres`
-    - Password
-      - If using the bundled version, this is `postgres`
-    - Database name
-      - If using the bundled version, this is `postgres`
+
+   - Host
+   - Port
+   - Username
+     - If using the bundled version, this is `postgres`
+   - Password
+     - If using the bundled version, this is `postgres`
+   - Database name
+     - If using the bundled version, this is `postgres`
 
 4. Clickhouse database credentials
    - Host
@@ -32,8 +34,8 @@ Ensure you have the following tools/items ready.
      - If using the bundled version, this is `password`
    - Database name
      - If using the bundled version, this is `default`
-    
 5. Connectivity to the PostgreSQL database from the machine you will be running the migration script on.
+
    - If you are using the bundled version, you may need to port forward the postgresql service to your local machine.
    - Run `kubectl port-forward svc/langsmith-postgres 5432:5432` to port forward the postgresql service to your local machine.
 
@@ -47,7 +49,7 @@ Ensure you have the following tools/items ready.
 Run the following command to run the workspace removal script:
 
 ```bash
-sh delete_workspace.sh <postgres_url> <clickhouse_url> --workspace_id <workspace_id> 
+sh delete_workspace.sh <postgres_url> <clickhouse_url> --workspace_id <workspace_id>
 ```
 
 For example, if you are using the bundled version with port-forwarding, the command would look like:
@@ -57,4 +59,3 @@ sh delete_workspace.sh "postgres://postgres:postgres@localhost:5432/postgres" "c
 ```
 
 If you visit the Langsmith UI, you should now see workspace is deleted.
-
