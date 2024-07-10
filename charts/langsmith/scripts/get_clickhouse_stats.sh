@@ -8,16 +8,6 @@ print_usage_and_exit() {
     exit 1
 }
 
-# Function to generate a fake UUID in lowercase
-generate_uuid() {
-    if command -v uuidgen >/dev/null 2>&1; then
-        uuidgen | tr '[:upper:]' '[:lower:]'
-    else
-        echo "uuidgen command not found. Exiting..."
-        exit 1
-    fi
-}
-
 # Argument Parsing
 clickhouse_url=""
 debug=""
