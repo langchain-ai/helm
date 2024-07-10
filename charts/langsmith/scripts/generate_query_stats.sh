@@ -1,5 +1,13 @@
 #!/bin/sh
 
+# Function to print usage information and exit with a nonzero status
+print_usage_and_exit() {
+    echo "Error: $1"
+    echo "Usage: $0 <clickhouse_url> [--debug] [--ssl] [--days <number_of_days>] [--interval <number_of_hours>] [--output <path/to/file.csv>] [--cluster]"
+    echo "Example: $0 clickhouse://username:password@host:port/database [--debug] [--ssl] [--days 14] [--interval 1] [--output path/to/file.csv] [--cluster]"
+    exit 1
+}
+
 # Function to generate a fake UUID in lowercase
 generate_uuid() {
     if command -v uuidgen >/dev/null 2>&1; then
@@ -52,20 +60,14 @@ while [ $# -gt 0 ]; do
                 clickhouse_url="$1"
                 shift
             else
-                echo "Unknown argument: $1"
-                echo "Usage: $0 <clickhouse_url> [--debug] [--ssl] [--days <number_of_days>] [--interval <number_of_hours>] [--output <path/to/file.csv>] [--cluster]"
-                echo "Example: $0 clickhouse://username:password@host:port/database [--debug] [--ssl] [--days 14] [--interval 1] [--output path/to/file.csv] [--cluster]"
-                exit 1
+                print_usage_and_exit "Unknown argument: $1"
             fi
             ;;
     esac
 done
 
 if [ -z "$clickhouse_url" ]; then
-    echo "ClickHouse URL is required."
-    echo "Usage: $0 <clickhouse_url> [--debug] [--ssl] [--days <number_of_days>] [--interval <number_of_hours>] [--output <path/to/file.csv>] [--cluster]"
-    echo "Example: $0 clickhouse://username:password@host:port/database [--debug] [--ssl] [--days 14] [--interval 1] [--output path/to/file.csv] [--cluster]"
-    exit 1
+    print_usage_and_exit "ClickHouse URL is required."
 fi
 
 # Enable debugging if the --debug flag is set
@@ -87,9 +89,7 @@ if [[ $clickhouse_url =~ ^clickhouse://([^:]+):([^@]+)@([^:]+):([0-9]+)/([^/]+)$
     ch_port="${BASH_REMATCH[4]}"
     ch_database="${BASH_REMATCH[5]}"
 else
-    echo "Invalid ClickHouse URL format. Exiting."
-    echo "Expected format: clickhouse://username:password@host:port/database"
-    exit 1
+    print_usage_and_exit "Invalid ClickHouse URL format. Expected format: clickhouse://username:password@host:port/database"
 fi
 
 # Set ClickHouse protocol based on --ssl flag
