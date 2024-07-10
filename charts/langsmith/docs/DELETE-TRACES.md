@@ -30,7 +30,7 @@ Ensure you have the following tools/items ready.
 
 ### Running the deletion script for a single trace
 
-Run the following command to run the migration script:
+Run the following command to run the trace deletion script using a single trace ID:
 
 ```bash
 sh delete_trace_by_id.sh <clickhouse_url> --trace_id <trace_id>
@@ -42,11 +42,11 @@ For example, if you are using the bundled version with port-forwarding, the comm
 sh delete_trace_by_id.sh "clickhouse://default:password@localhost:8123/default" --trace_id 4ec70ec7-0808-416a-b836-7100aeec934b
 ```
 
-If you visit the Langsmith UI, you should now see trace ID is deleted.
+If you visit the Langsmith UI, you should now see specified trace ID is deleted.
 
 ### Running the deletion script for a multiple traces from a file with one trace ID per line
 
-Run the following command to run the migration script:
+Run the following command to run the trace deletion script using a list of trace IDs:
 
 ```bash
 sh delete_trace_by_id.sh <clickhouse_url> --file <path/to/foo.txt>
