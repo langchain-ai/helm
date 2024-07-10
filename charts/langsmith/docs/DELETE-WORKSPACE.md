@@ -1,6 +1,6 @@
 # Deleting Workspaces
 
-The LangSmith does not currently support the deletion of an individual workspace from an organization. This, however, can be accomplished by directly removing all traces from all materialized views in ClickHouse (except the runs_history views) and the runs and feedbacks tables and then removing the Workspace from the Postgres tenants table.
+The LangSmith UI does not currently support the deletion of an individual workspace from an organization. This, however, can be accomplished by directly removing all traces from all materialized views in ClickHouse (except the runs_history views) and the runs and feedbacks tables and then removing the Workspace from the Postgres tenants table.
 
 This command using the Workspace ID as an argument.
 
@@ -8,7 +8,9 @@ This command using the Workspace ID as an argument.
 
 Ensure you have the following tools/items ready.
 
-1. Kubectl
+1. kubectl
+
+   - https://kubernetes.io/docs/tasks/tools/
 
 2. PostgreSQL client
 
@@ -26,6 +28,7 @@ Ensure you have the following tools/items ready.
      - If using the bundled version, this is `postgres`
 
 4. Clickhouse database credentials
+
    - Host
    - Port
    - Username
@@ -34,6 +37,7 @@ Ensure you have the following tools/items ready.
      - If using the bundled version, this is `password`
    - Database name
      - If using the bundled version, this is `default`
+
 5. Connectivity to the PostgreSQL database from the machine you will be running the migration script on.
 
    - If you are using the bundled version, you may need to port forward the postgresql service to your local machine.

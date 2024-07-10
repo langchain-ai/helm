@@ -8,9 +8,12 @@ This command can either be run using a trace ID as an argument or using a file t
 
 Ensure you have the following tools/items ready.
 
-1. Kubectl
+1. kubectl
+
+   - https://kubernetes.io/docs/tasks/tools/
 
 2. Clickhouse database credentials
+
    - Host
    - Port
    - Username
@@ -19,7 +22,9 @@ Ensure you have the following tools/items ready.
      - If using the bundled version, this is `password`
    - Database name
      - If using the bundled version, this is `default`
+
 3. Connectivity to the Clickhouse database from the machine you will be running the `delete_trace_by_id` script on.
+
    - If you are using the bundled version, you may need to port forward the clickhouse service to your local machine.
    - Run `kubectl port-forward svc/langsmith-clickhouse 8123:8123` to port forward the clickhouse service to your local machine.
 
