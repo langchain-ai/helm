@@ -83,6 +83,7 @@ config:
       shortlived: "1209600"
   s3Storage:
     enabled: false
+    chSearchEnabled: true
     accessKey: ""
     accessKeySecret: ""
     bucketName: ""

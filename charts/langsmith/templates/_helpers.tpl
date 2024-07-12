@@ -236,6 +236,8 @@ Template containing common environment variables that are used by several servic
     secretKeyRef:
       name: {{ include "langsmith.secretsName" . }}
       key: s3_access_key_secret
+- name: FF_CH_SEARCH_ENABLED
+  value: {{ .Values.config.s3Storage.chSearchEnabled | quote }}
 {{- end }}
 {{- end }}
 
