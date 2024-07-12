@@ -83,6 +83,8 @@ config:
       shortlived: "1209600"
   s3Storage:
     enabled: false
+    # If you are using langsmith-managed-clickhouse, you may not want inputs to be stored in clickhouse for search.
+    # Set this as false to ensure that inputs/outputs are not stored in clickhouse.
     chSearchEnabled: true
     accessKey: ""
     accessKeySecret: ""
