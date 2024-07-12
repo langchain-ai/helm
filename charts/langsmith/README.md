@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.6.10](https://img.shields.io/badge/Version-0.6.10-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.6.21](https://img.shields.io/badge/AppVersion-0.6.21-informational?style=flat-square)
+![Version: 0.6.14](https://img.shields.io/badge/Version-0.6.14-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.6.27](https://img.shields.io/badge/AppVersion-0.6.27-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -76,24 +76,25 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | clickhouse.statefulSet.volumeMounts | list | `[]` |  |
 | clickhouse.statefulSet.volumes | list | `[]` |  |
 | commonAnnotations | object | `{}` | Annotations that will be applied to all resources created by the chart |
+| commonEnv | list | `[]` | Common environment variables that will be applied to all deployments/statefulsets created by the chart. Be careful not to override values already specified by the chart. |
 | commonLabels | object | `{}` | Labels that will be applied to all resources created by the chart |
 | fullnameOverride | string | `""` | String to fully override `"langsmith.fullname"` |
 | images.backendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.backendImage.repository | string | `"docker.io/langchain/langsmith-backend"` |  |
-| images.backendImage.tag | string | `"0.6.21"` |  |
+| images.backendImage.tag | string | `"0.6.27"` |  |
 | images.clickhouseImage.pullPolicy | string | `"Always"` |  |
 | images.clickhouseImage.repository | string | `"docker.io/clickhouse/clickhouse-server"` |  |
 | images.clickhouseImage.tag | string | `"24.2"` |  |
 | images.frontendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.frontendImage.repository | string | `"docker.io/langchain/langsmith-frontend"` |  |
-| images.frontendImage.tag | string | `"0.6.21"` |  |
+| images.frontendImage.tag | string | `"0.6.27"` |  |
 | images.imagePullSecrets | list | `[]` | Secrets with credentials to pull images from a private registry. Specified as name: value. |
 | images.platformBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.platformBackendImage.repository | string | `"docker.io/langchain/langsmith-go-backend"` |  |
-| images.platformBackendImage.tag | string | `"0.6.21"` |  |
+| images.platformBackendImage.tag | string | `"0.6.27"` |  |
 | images.playgroundImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.playgroundImage.repository | string | `"docker.io/langchain/langsmith-playground"` |  |
-| images.playgroundImage.tag | string | `"0.6.21"` |  |
+| images.playgroundImage.tag | string | `"0.6.27"` |  |
 | images.postgresImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.postgresImage.repository | string | `"docker.io/postgres"` |  |
 | images.postgresImage.tag | string | `"14.7"` |  |
@@ -156,6 +157,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | backend.containerPort | int | `1984` |  |
 | backend.deployment.affinity | object | `{}` |  |
 | backend.deployment.annotations | object | `{}` |  |
+| backend.deployment.autoRestart | bool | `true` |  |
 | backend.deployment.command[0] | string | `"uvicorn"` |  |
 | backend.deployment.command[10] | string | `"--http"` |  |
 | backend.deployment.command[11] | string | `"httptools"` |  |
@@ -299,6 +301,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | frontend.containerPort | int | `8080` |  |
 | frontend.deployment.affinity | object | `{}` |  |
 | frontend.deployment.annotations | object | `{}` |  |
+| frontend.deployment.autoRestart | bool | `true` |  |
 | frontend.deployment.command[0] | string | `"/entrypoint.sh"` |  |
 | frontend.deployment.extraContainerConfig | object | `{}` |  |
 | frontend.deployment.extraEnv | list | `[]` |  |
@@ -353,6 +356,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | platformBackend.containerPort | int | `1986` |  |
 | platformBackend.deployment.affinity | object | `{}` |  |
 | platformBackend.deployment.annotations | object | `{}` |  |
+| platformBackend.deployment.autoRestart | bool | `true` |  |
 | platformBackend.deployment.command[0] | string | `"./smith-go"` |  |
 | platformBackend.deployment.extraContainerConfig | object | `{}` |  |
 | platformBackend.deployment.extraEnv | list | `[]` |  |
@@ -406,6 +410,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | playground.containerPort | int | `3001` |  |
 | playground.deployment.affinity | object | `{}` |  |
 | playground.deployment.annotations | object | `{}` |  |
+| playground.deployment.autoRestart | bool | `true` |  |
 | playground.deployment.command[0] | string | `"yarn"` |  |
 | playground.deployment.command[1] | string | `"start"` |  |
 | playground.deployment.extraContainerConfig | object | `{}` |  |
@@ -518,6 +523,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | queue.autoscaling.targetCPUUtilizationPercentage | int | `80` |  |
 | queue.deployment.affinity | object | `{}` |  |
 | queue.deployment.annotations | object | `{}` |  |
+| queue.deployment.autoRestart | bool | `true` |  |
 | queue.deployment.command[0] | string | `"saq"` |  |
 | queue.deployment.command[1] | string | `"app.workers.queues.single_queue_worker.settings"` |  |
 | queue.deployment.command[2] | string | `"--quiet"` |  |
@@ -601,6 +607,6 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | Ankush | <ankush@langchain.dev> |  |
 
 ----------------------------------------------
-Autogenerated from chart metadata using [helm-docs v1.13.1](https://github.com/norwoodj/helm-docs/releases/v1.13.1)
+Autogenerated from chart metadata using [helm-docs v1.11.3](https://github.com/norwoodj/helm-docs/releases/v1.11.3)
 ## Docs Generated by [helm-docs](https://github.com/norwoodj/helm-docs)
 `helm-docs -t ./charts/langsmith/README.md.gotmpl`

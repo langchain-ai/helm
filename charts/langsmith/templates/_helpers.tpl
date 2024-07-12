@@ -171,6 +171,8 @@ Template containing common environment variables that are used by several servic
       key: clickhouse_tls
 - name: LOG_LEVEL
   value: {{ .Values.config.logLevel }}
+- name: FF_WORKSPACE_SCOPE_ORG_INVITES_ENABLED
+  value: {{ .Values.config.workspaceScopeOrgInvitesEnabled | quote }}
 {{- if .Values.config.oauth.enabled }}
 - name: OAUTH_CLIENT_ID
   valueFrom:
@@ -211,8 +213,6 @@ Template containing common environment variables that are used by several servic
 {{- if .Values.config.orgCreationDisabled }}
 - name: FF_ORG_CREATION_DISABLED
   value: {{ .Values.config.orgCreationDisabled | quote }}
-- name: FF_WORKSPACE_SCOPE_ORG_INVITES_ENABLED
-  value: {{ .Values.config.workspaceScopeOrgInvitesEnabled | quote }}
 {{- end }}
 {{- end }}
 
