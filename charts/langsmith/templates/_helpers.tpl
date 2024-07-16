@@ -171,8 +171,6 @@ Template containing common environment variables that are used by several servic
       key: clickhouse_tls
 - name: LOG_LEVEL
   value: {{ .Values.config.logLevel }}
-- name: FF_WORKSPACE_SCOPE_ORG_INVITES_ENABLED
-  value: {{ .Values.config.workspaceScopeOrgInvitesEnabled | quote }}
 {{- if .Values.config.oauth.enabled }}
 - name: OAUTH_CLIENT_ID
   valueFrom:
@@ -200,6 +198,7 @@ Template containing common environment variables that are used by several servic
     secretKeyRef:
       name: {{ include "langsmith.secretsName" . }}
       key: openai_api_key
+      optional: true
 - name: GO_ENDPOINT
   value: http://{{- include "langsmith.fullname" . }}-{{.Values.platformBackend.name}}:{{ .Values.platformBackend.service.port }}
 {{- if .Values.config.ttl.enabled }}
@@ -210,9 +209,37 @@ Template containing common environment variables that are used by several servic
 - name: TRACE_TIER_TTL_DURATION_SEC_MAP
   value: "{ \"longlived\": {{ .Values.config.ttl.ttl_period_seconds.longlived }}, \"shortlived\": {{ .Values.config.ttl.ttl_period_seconds.shortlived }} }"
 {{- end }}
+{{- if .Values.config.workspaceScopeOrgInvitesEnabled }}
+- name: FF_WORKSPACE_SCOPE_ORG_INVITES_ENABLED
+  value: {{ .Values.config.workspaceScopeOrgInvitesEnabled | quote }}
+{{- end }}
 {{- if .Values.config.orgCreationDisabled }}
 - name: FF_ORG_CREATION_DISABLED
   value: {{ .Values.config.orgCreationDisabled | quote }}
+{{- end }}
+{{- if .Values.config.blobStorage.enabled }}
+- name: FF_S3_STORAGE_ENABLED
+  value: {{ .Values.config.blobStorage.enabled | quote }}
+- name: S3_BUCKET_NAME
+  value: {{ .Values.config.blobStorage.bucketName | quote }}
+- name: S3_RUN_MANIFEST_BUCKET_NAME
+  value: {{ .Values.config.blobStorage.bucketName | quote }}
+- name: S3_API_URL
+  value: {{ .Values.config.blobStorage.apiURL | quote }}
+- name: S3_ACCESS_KEY
+  valueFrom:
+    secretKeyRef:
+      name: {{ include "langsmith.secretsName" . }}
+      key: blob_storage_access_key
+      optional: true
+- name: S3_ACCESS_KEY_SECRET
+  valueFrom:
+    secretKeyRef:
+      name: {{ include "langsmith.secretsName" . }}
+      key: blob_storage_access_key_secret
+      optional: true
+- name: FF_CH_SEARCH_ENABLED
+  value: {{ .Values.config.blobStorage.chSearchEnabled | quote }}
 {{- end }}
 {{- end }}
 
