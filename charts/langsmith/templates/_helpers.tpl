@@ -215,29 +215,29 @@ Template containing common environment variables that are used by several servic
 - name: FF_ORG_CREATION_DISABLED
   value: {{ .Values.config.orgCreationDisabled | quote }}
 {{- end }}
-{{- if .Values.config.s3Storage.enabled }}
+{{- if .Values.config.blobStorage.enabled }}
 - name: FF_S3_STORAGE_ENABLED
-  value: {{ .Values.config.s3Storage.enabled | quote }}
+  value: {{ .Values.config.blobStorage.enabled | quote }}
 - name: S3_BUCKET_NAME
-  value: {{ .Values.config.s3Storage.bucketName | quote }}
+  value: {{ .Values.config.blobStorage.bucketName | quote }}
 - name: S3_RUN_MANIFEST_BUCKET_NAME
-  value: {{ .Values.config.s3Storage.bucketName | quote }}
+  value: {{ .Values.config.blobStorage.bucketName | quote }}
 - name: S3_API_URL
-  value: {{ .Values.config.s3Storage.apiURL | quote }}
+  value: {{ .Values.config.blobStorage.apiURL | quote }}
 - name: S3_ACCESS_KEY
   valueFrom:
     secretKeyRef:
       name: {{ include "langsmith.secretsName" . }}
-      key: s3_access_key
+      key: blob_storage_access_key
       optional: true
 - name: S3_ACCESS_KEY_SECRET
   valueFrom:
     secretKeyRef:
       name: {{ include "langsmith.secretsName" . }}
-      key: s3_access_key_secret
+      key: blob_storage_access_key_secret
       optional: true
 - name: FF_CH_SEARCH_ENABLED
-  value: {{ .Values.config.s3Storage.chSearchEnabled | quote }}
+  value: {{ .Values.config.blobStorage.chSearchEnabled | quote }}
 {{- end }}
 {{- end }}
 
