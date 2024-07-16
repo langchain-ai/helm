@@ -209,8 +209,10 @@ Template containing common environment variables that are used by several servic
 - name: TRACE_TIER_TTL_DURATION_SEC_MAP
   value: "{ \"longlived\": {{ .Values.config.ttl.ttl_period_seconds.longlived }}, \"shortlived\": {{ .Values.config.ttl.ttl_period_seconds.shortlived }} }"
 {{- end }}
+{{- if .Values.config.workspaceScopeOrgInvitesEnabled }}
 - name: FF_WORKSPACE_SCOPE_ORG_INVITES_ENABLED
   value: {{ .Values.config.workspaceScopeOrgInvitesEnabled | quote }}
+{{- end }}
 {{- if .Values.config.orgCreationDisabled }}
 - name: FF_ORG_CREATION_DISABLED
   value: {{ .Values.config.orgCreationDisabled | quote }}
