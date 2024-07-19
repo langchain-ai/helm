@@ -1,4 +1,5 @@
--- Define the range of months you are interested in
+-- Gets a monthly count of traces by workspace ID and organization ID
+
 with date_series as (
     select generate_series(
         (select date_trunc('month', min(upper(interval))) from trace_count_transactions),

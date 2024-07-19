@@ -1,4 +1,5 @@
--- Define the range of weeks you are interested in
+-- Gets a weekly count of traces by workspace ID and organization ID
+
 with date_series as (
     select generate_series(
         (select date_trunc('week', min(upper(interval))) from trace_count_transactions),
