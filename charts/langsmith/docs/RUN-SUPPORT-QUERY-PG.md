@@ -38,13 +38,13 @@ Ensure you have the following tools/items ready.
 Run the following command to run the desired query:
 
 ```bash
-sh delete_workspace.sh <postgres_url> --input path/to/query.sql
+sh run_support_query_pg.sh <postgres_url> --input path/to/query.sql
 ```
 
 For example, if you are using the bundled version with port-forwarding, the command might look like:
 
 ```bash
-sh delete_workspace.sh "postgres://postgres:postgres@localhost:5432/postgres" --input support_queries/pg_get_trace_counts_daily.sql 
+sh run_support_query_pg.sh "postgres://postgres:postgres@localhost:5432/postgres" --input support_queries/pg_get_trace_counts_daily.sql 
 ```
 
 which will output the count of daily traces by workspace ID and organization ID.  To extract this to a file add the flag `--output path/to/file.csv`
