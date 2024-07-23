@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.6.14](https://img.shields.io/badge/Version-0.6.14-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.6.27](https://img.shields.io/badge/AppVersion-0.6.27-informational?style=flat-square)
+![Version: 0.6.18](https://img.shields.io/badge/Version-0.6.18-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.6.32](https://img.shields.io/badge/AppVersion-0.6.32-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -81,20 +81,20 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | fullnameOverride | string | `""` | String to fully override `"langsmith.fullname"` |
 | images.backendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.backendImage.repository | string | `"docker.io/langchain/langsmith-backend"` |  |
-| images.backendImage.tag | string | `"0.6.27"` |  |
+| images.backendImage.tag | string | `"0.6.32"` |  |
 | images.clickhouseImage.pullPolicy | string | `"Always"` |  |
 | images.clickhouseImage.repository | string | `"docker.io/clickhouse/clickhouse-server"` |  |
 | images.clickhouseImage.tag | string | `"24.2"` |  |
 | images.frontendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.frontendImage.repository | string | `"docker.io/langchain/langsmith-frontend"` |  |
-| images.frontendImage.tag | string | `"0.6.27"` |  |
+| images.frontendImage.tag | string | `"0.6.32"` |  |
 | images.imagePullSecrets | list | `[]` | Secrets with credentials to pull images from a private registry. Specified as name: value. |
 | images.platformBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.platformBackendImage.repository | string | `"docker.io/langchain/langsmith-go-backend"` |  |
-| images.platformBackendImage.tag | string | `"0.6.27"` |  |
+| images.platformBackendImage.tag | string | `"0.6.32"` |  |
 | images.playgroundImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.playgroundImage.repository | string | `"docker.io/langchain/langsmith-playground"` |  |
-| images.playgroundImage.tag | string | `"0.6.27"` |  |
+| images.playgroundImage.tag | string | `"0.6.32"` |  |
 | images.postgresImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.postgresImage.repository | string | `"docker.io/postgres"` |  |
 | images.postgresImage.tag | string | `"14.7"` |  |
@@ -115,6 +115,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
 | config.apiKeySalt | string | `""` | Salt used to generate the API key. Should be a random string. |
+| config.blobStorage | object | `{"accessKey":"","accessKeySecret":"","apiURL":"https://s3.us-west-2.amazonaws.com","bucketName":"","chSearchEnabled":true,"enabled":false}` | Blob storage configuration Optional. Used to store inputs, outputs, and errors in Blob Storage. We currently support S3, GCS, and Minio as Blob Storage providers. |
 | config.existingSecretName | string | `""` |  |
 | config.langsmithLicenseKey | string | `""` |  |
 | config.logLevel | string | `"info"` |  |
@@ -123,9 +124,8 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | config.oauth.oauthIssuerUrl | string | `""` |  |
 | config.openaiApiKey | string | `""` | OpenAI API key. Optional. Only used to power natural language search feature. |
 | config.orgCreationDisabled | bool | `false` |  |
-| config.ttl.enabled | bool | `false` |  |
+| config.ttl | object | `{"enabled":false,"ttl_period_seconds":{"longlived":"34560000","shortlived":"1209600"}}` | TTL configuration Optional. Used to set TTLS for longlived and shortlived objects. |
 | config.ttl.ttl_period_seconds.longlived | string | `"34560000"` | 400 day longlived and 14 day shortlived |
-| config.ttl.ttl_period_seconds.shortlived | string | `"1209600"` |  |
 | config.workspaceScopeOrgInvitesEnabled | bool | `false` |  |
 
 ## Backend
@@ -141,7 +141,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | backend.clickhouseMigrations.annotations | object | `{}` |  |
 | backend.clickhouseMigrations.command[0] | string | `"/bin/bash"` |  |
 | backend.clickhouseMigrations.command[1] | string | `"-c"` |  |
-| backend.clickhouseMigrations.command[2] | string | `"sleep 20s; migrate -source file://clickhouse/migrations -database 'clickhouse://$(CLICKHOUSE_HOST):$(CLICKHOUSE_NATIVE_PORT)?username=$(CLICKHOUSE_USER)&password=$(CLICKHOUSE_PASSWORD)&database=$(CLICKHOUSE_DB)&x-multi-statement=true&x-migrations-table-engine=MergeTree' up"` |  |
+| backend.clickhouseMigrations.command[2] | string | `"sleep 20s; migrate -source file://clickhouse/migrations -database 'clickhouse://$(CLICKHOUSE_HOST):$(CLICKHOUSE_NATIVE_PORT)?username=$(CLICKHOUSE_USER)&password=$(CLICKHOUSE_PASSWORD)&database=$(CLICKHOUSE_DB)&x-multi-statement=true&x-migrations-table-engine=MergeTree&secure=$(CLICKHOUSE_TLS)' up"` |  |
 | backend.clickhouseMigrations.enabled | bool | `true` |  |
 | backend.clickhouseMigrations.extraContainerConfig | object | `{}` |  |
 | backend.clickhouseMigrations.extraEnv | list | `[]` |  |
@@ -331,6 +331,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | frontend.deployment.volumeMounts | list | `[]` |  |
 | frontend.deployment.volumes | list | `[]` |  |
 | frontend.existingConfigMapName | string | `""` |  |
+| frontend.maxBodySize | string | `"25M"` |  |
 | frontend.name | string | `"frontend"` |  |
 | frontend.service.annotations | object | `{}` |  |
 | frontend.service.httpPort | int | `80` |  |
