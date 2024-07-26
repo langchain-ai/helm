@@ -17,19 +17,19 @@ images:
   backendImage:
     repository: "docker.io/langchain/langsmith-backend"
     pullPolicy: IfNotPresent
-    tag: "0.6.32"
+    tag: "0.6.41"
   frontendImage:
     repository: "docker.io/langchain/langsmith-frontend"
     pullPolicy: IfNotPresent
-    tag: "0.6.32"
+    tag: "0.6.41"
   platformBackendImage:
     repository: "docker.io/langchain/langsmith-go-backend"
     pullPolicy: IfNotPresent
-    tag: "0.6.32"
+    tag: "0.6.41"
   playgroundImage:
     repository: "docker.io/langchain/langsmith-playground"
     pullPolicy: IfNotPresent
-    tag: "0.6.32"
+    tag: "0.6.41"
   postgresImage:
     repository: "docker.io/postgres"
     pullPolicy: IfNotPresent
@@ -553,6 +553,33 @@ queue:
       - "saq"
       - "app.workers.queues.single_queue_worker.settings"
       - "--quiet"
+    startupProbe:
+      exec:
+        command:
+          - "saq"
+          - "app.workers.queues.single_queue_worker.settings"
+          - "--check"
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 5
+    readinessProbe:
+      exec:
+        command:
+          - "saq"
+          - "app.workers.queues.single_queue_worker.settings"
+          - "--check"
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 5
+    livenessProbe:
+      exec:
+        command:
+          - "saq"
+          - "app.workers.queues.single_queue_worker.settings"
+          - "--check"
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 5
     extraContainerConfig: {}
     extraEnv: []
     sidecars: []
