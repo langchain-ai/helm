@@ -208,6 +208,10 @@ Template containing common environment variables that are used by several servic
     secretKeyRef:
       name: {{ include "langsmith.secretsName" . }}
       key: jwt_secret
+- name: FF_ORG_CREATION_DISABLED
+  value: "true"
+- name: FF_PERSONAL_ORGS_DISABLED
+  value: "true"
 {{- end }}
 - name: GO_ENDPOINT
   value: http://{{- include "langsmith.fullname" . }}-{{.Values.platformBackend.name}}:{{ .Values.platformBackend.service.port }}
