@@ -165,6 +165,11 @@ Template containing common environment variables that are used by several servic
     secretKeyRef:
       name: {{ include "langsmith.clickhouseSecretsName" . }}
       key: clickhouse_password
+- name: CLICKHOUSE_TLS
+  valueFrom:
+    secretKeyRef:
+      name: {{ include "langsmith.clickhouseSecretsName" . }}
+      key: clickhouse_tls
 - name: LOG_LEVEL
   value: {{ .Values.config.logLevel }}
 {{- if .Values.config.oauth.enabled }}
@@ -194,6 +199,7 @@ Template containing common environment variables that are used by several servic
     secretKeyRef:
       name: {{ include "langsmith.secretsName" . }}
       key: openai_api_key
+      optional: true
 - name: BASIC_AUTH_ENABLED
   value: {{ .Values.config.basicAuth.enabled | quote }}
 {{- if .Values.config.basicAuth.enabled }}
@@ -202,6 +208,56 @@ Template containing common environment variables that are used by several servic
     secretKeyRef:
       name: {{ include "langsmith.secretsName" . }}
       key: jwt_secret
+{{- end }}
+- name: GO_ENDPOINT
+  value: http://{{- include "langsmith.fullname" . }}-{{.Values.platformBackend.name}}:{{ .Values.platformBackend.service.port }}
+- name: SMITH_BACKEND_ENDPOINT
+  value: http://{{- include "langsmith.fullname" . }}-{{.Values.backend.name}}:{{ .Values.backend.service.port }}
+- name: X_SERVICE_AUTH_JWT_SECRET
+  valueFrom:
+    secretKeyRef:
+      name: {{ include "langsmith.secretsName" . }}
+      key: api_key_salt
+{{- if .Values.config.ttl.enabled }}
+- name: FF_TRACE_TIERS_ENABLED
+  value: {{ .Values.config.ttl.enabled | quote }}
+- name: FF_UPGRADE_TRACE_TIER_ENABLED
+  value: "true"
+- name: TRACE_TIER_TTL_DURATION_SEC_MAP
+  value: "{ \"longlived\": {{ .Values.config.ttl.ttl_period_seconds.longlived }}, \"shortlived\": {{ .Values.config.ttl.ttl_period_seconds.shortlived }} }"
+{{- end }}
+{{- if .Values.config.workspaceScopeOrgInvitesEnabled }}
+- name: FF_WORKSPACE_SCOPE_ORG_INVITES_ENABLED
+  value: {{ .Values.config.workspaceScopeOrgInvitesEnabled | quote }}
+{{- end }}
+{{- if .Values.config.orgCreationDisabled }}
+- name: FF_ORG_CREATION_DISABLED
+  value: {{ .Values.config.orgCreationDisabled | quote }}
+{{- end }}
+{{- if .Values.config.blobStorage.enabled }}
+- name: FF_S3_STORAGE_ENABLED
+  value: {{ .Values.config.blobStorage.enabled | quote }}
+- name: S3_BUCKET_NAME
+  value: {{ .Values.config.blobStorage.bucketName | quote }}
+- name: S3_RUN_MANIFEST_BUCKET_NAME
+  value: {{ .Values.config.blobStorage.bucketName | quote }}
+- name: S3_API_URL
+  value: {{ .Values.config.blobStorage.apiURL | quote }}
+- name: S3_ACCESS_KEY
+  valueFrom:
+    secretKeyRef:
+      name: {{ include "langsmith.secretsName" . }}
+      key: blob_storage_access_key
+      optional: true
+- name: S3_ACCESS_KEY_SECRET
+  valueFrom:
+    secretKeyRef:
+      name: {{ include "langsmith.secretsName" . }}
+      key: blob_storage_access_key_secret
+      optional: true
+- name: FF_CH_SEARCH_ENABLED
+  value: {{ .Values.config.blobStorage.chSearchEnabled | quote }}
+{{- end }}
 {{- end }}
 {{- end }}
 

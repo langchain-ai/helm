@@ -23,7 +23,9 @@ spec:
   template:
     metadata:
       annotations:
+      {{- if .Values.frontend.deployment.autoRestart }}
         rollme: {{ randAlphaNum 5 | quote }}
+      {{- end }}
       {{- with .Values.frontend.deployment.annotations }}
         {{- toYaml . | nindent 8 }}
       {{- end }}
@@ -67,6 +69,9 @@ spec:
             - name: VITE_SUBDOMAIN
               value: {{ .Values.ingress.subdomain }}
             {{- end }}
+            {{- with .Values.commonEnv }}
+              {{ toYaml . | nindent 12 }}
+            {{- end }}
           envFrom:
             - configMapRef:
                 name: {{ include "langsmith.fullname" . }}-config
@@ -76,27 +81,18 @@ spec:
             - name: frontend
               containerPort: {{ .Values.frontend.containerPort }}
               protocol: TCP
+          {{- with .Values.frontend.deployment.startupProbe }}
           startupProbe:
-            httpGet:
-              path: /health
-              port: {{ .Values.frontend.containerPort }}
-            failureThreshold: 6
-            periodSeconds: 10
-            timeoutSeconds: 1
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.frontend.deployment.livenessProbe }}
           livenessProbe:
-            httpGet:
-              path: /health
-              port: {{ .Values.frontend.containerPort }}
-            failureThreshold: 6
-            periodSeconds: 10
-            timeoutSeconds: 1
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.frontend.deployment.readinessProbe }}
           readinessProbe:
-            httpGet:
-              path: /health
-              port: {{ .Values.frontend.containerPort }}
-            failureThreshold: 6
-            periodSeconds: 10
-            timeoutSeconds: 1
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           resources:
             {{- toYaml .Values.frontend.deployment.resources | nindent 12 }}
           securityContext:

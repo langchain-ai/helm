@@ -23,7 +23,9 @@ spec:
   template:
     metadata:
       annotations:
+      {{- if .Values.playground.deployment.autoRestart }}
         rollme: {{ randAlphaNum 5 | quote }}
+      {{- end }}
       {{- with .Values.playground.deployment.annotations }}
         {{- toYaml . | nindent 8 }}
       {{- end }}
@@ -47,37 +49,33 @@ spec:
           command:
             {{- toYaml . | nindent 12 }}
           {{- end }}
-          {{- with .Values.playground.deployment.extraEnv }}
+          {{- if or .Values.playground.deployment.extraEnv .Values.commonEnv  }}
           env:
-            {{- toYaml . | nindent 12 }}
-          {{- end }}
+            {{- with .Values.playground.deployment.extraEnv}}
+             {{- toYaml . | nindent 12 }}
+            {{- end }}
+            {{- with .Values.commonEnv}}
+             {{- toYaml . | nindent 12 }}
+            {{- end }}
+           {{- end }}
           image: "{{ .Values.images.playgroundImage.repository }}:{{ .Values.images.playgroundImage.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.images.playgroundImage.pullPolicy }}
           ports:
             - name: playground
               containerPort: {{ .Values.playground.containerPort }}
               protocol: TCP
+          {{- with .Values.playground.deployment.startupProbe }}
           startupProbe:
-            httpGet:
-              path: /ok
-              port: {{ .Values.playground.containerPort }}
-            failureThreshold: 6
-            periodSeconds: 10
-            timeoutSeconds: 1
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.playground.deployment.livenessProbe }}
           livenessProbe:
-            httpGet:
-              path: /ok
-              port: {{ .Values.playground.containerPort }}
-            failureThreshold: 6
-            periodSeconds: 10
-            timeoutSeconds: 1
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.playground.deployment.readinessProbe }}
           readinessProbe:
-            httpGet:
-              path: /ok
-              port: {{ .Values.playground.containerPort }}
-            failureThreshold: 6
-            periodSeconds: 10
-            timeoutSeconds: 1
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           resources:
             {{- toYaml .Values.playground.deployment.resources | nindent 12 }}
           securityContext:

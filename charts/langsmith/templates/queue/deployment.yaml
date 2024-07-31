@@ -23,7 +23,9 @@ spec:
   template:
     metadata:
       annotations:
+      {{- if .Values.backend.deployment.autoRestart }}
         rollme: {{ randAlphaNum 5 | quote }}
+      {{- end }}
       {{- with .Values.queue.deployment.annotations }}
         {{- toYaml . | nindent 8 }}
       {{- end }}
@@ -57,11 +59,26 @@ spec:
             {{- with .Values.queue.deployment.extraEnv }}
               {{- toYaml . | nindent 12 }}
             {{- end }}
+            {{- with .Values.commonEnv }}
+             {{- toYaml . | nindent 12 }}
+            {{- end }}
           envFrom:
             - configMapRef:
                 name: {{ include "langsmith.fullname" . }}-config
           image: "{{ .Values.images.backendImage.repository }}:{{ .Values.images.backendImage.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.images.backendImage.pullPolicy }}
+          {{- with .Values.queue.deployment.startupProbe }}
+          startupProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.queue.deployment.livenessProbe }}
+          livenessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.queue.deployment.readinessProbe }}
+          readinessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           resources:
             {{- toYaml .Values.queue.deployment.resources | nindent 12 }}
           securityContext:

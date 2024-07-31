@@ -1,0 +1,33 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "langGraphCloud.fullname" . }}-{{ .Values.apiServer.name }}
+  labels:
+    {{- include "langGraphCloud.labels" . | nindent 4 }}
+    {{- with.Values.apiServer.service.labels }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+  annotations:
+    {{- include "langGraphCloud.annotations" . | nindent 4 }}
+    {{- with.Values.apiServer.service.annotations }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  type: {{ .Values.apiServer.service.type }}
+  {{- with .Values.apiServer.service.loadBalancerSourceRanges }}
+  loadBalancerSourceRanges:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  loadBalancerIP: {{ .Values.apiServer.service.loadBalancerIP }}
+  ports:
+    - name: http
+      port: {{ .Values.apiServer.service.httpPort }}
+      targetPort: api-server
+      protocol: TCP
+    - name: https
+      port: {{ .Values.apiServer.service.httpsPort }}
+      targetPort: api-server
+      protocol: TCP
+  selector:
+    {{- include "langGraphCloud.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: {{ include "langGraphCloud.fullname" . }}-{{ .Values.apiServer.name }}

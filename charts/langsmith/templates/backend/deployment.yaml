@@ -23,7 +23,9 @@ spec:
   template:
     metadata:
       annotations:
+      {{- if .Values.backend.deployment.autoRestart }}
         rollme: {{ randAlphaNum 5 | quote }}
+      {{- end }}
       {{- with .Values.backend.deployment.annotations }}
         {{- toYaml . | nindent 8 }}
       {{- end }}
@@ -54,6 +56,9 @@ spec:
             {{- with .Values.backend.deployment.extraEnv }}
               {{- toYaml . | nindent 12 }}
             {{- end }}
+            {{- with .Values.commonEnv }}
+              {{ toYaml . | nindent 12 }}
+            {{- end }}
           envFrom:
             - configMapRef:
                 name: {{ include "langsmith.fullname" . }}-config
@@ -63,27 +68,18 @@ spec:
             - name: backend
               containerPort: {{ .Values.backend.containerPort }}
               protocol: TCP
+          {{- with .Values.backend.deployment.startupProbe }}
           startupProbe:
-            httpGet:
-              path: /ok
-              port: {{ .Values.backend.containerPort }}
-            failureThreshold: 6
-            periodSeconds: 10
-            timeoutSeconds: 1
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.backend.deployment.livenessProbe }}
           livenessProbe:
-            httpGet:
-              path: /ok
-              port: {{ .Values.backend.containerPort }}
-            failureThreshold: 6
-            periodSeconds: 10
-            timeoutSeconds: 1
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.backend.deployment.readinessProbe }}
           readinessProbe:
-            httpGet:
-              path: /ok
-              port: {{ .Values.backend.containerPort }}
-            failureThreshold: 6
-            periodSeconds: 10
-            timeoutSeconds: 1
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           resources:
             {{- toYaml .Values.backend.deployment.resources | nindent 12 }}
           securityContext:

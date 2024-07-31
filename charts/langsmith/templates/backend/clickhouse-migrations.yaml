@@ -11,12 +11,13 @@ metadata:
   annotations:
     "helm.sh/hook": post-install, post-upgrade
     "helm.sh/hook-weight": "-1"
+    "argocd.argoproj.io/hook": "PostSync"
     {{- include "langsmith.annotations" . | nindent 4 }}
     {{- with.Values.backend.clickhouseMigrations.annotations }}
       {{- toYaml . | nindent 4 }}
     {{- end }}
 spec:
-  backoffLimit: 3
+  backoffLimit: 2
   template:
     metadata:
       {{- with .Values.backend.clickhouseMigrations.annotations }}

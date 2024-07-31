@@ -8,6 +8,8 @@ fullnameOverride: ""
 commonAnnotations: {}
 # -- Labels that will be applied to all resources created by the chart
 commonLabels: {}
+# -- Common environment variables that will be applied to all deployments/statefulsets created by the chart. Be careful not to override values already specified by the chart.
+commonEnv: []
 
 images:
    # -- Secrets with credentials to pull images from a private registry. Specified as name: value.
@@ -15,19 +17,19 @@ images:
   backendImage:
     repository: "docker.io/langchain/langsmith-backend"
     pullPolicy: IfNotPresent
-    tag: "0.2.30"
+    tag: "0.6.43"
   frontendImage:
     repository: "docker.io/langchain/langsmith-frontend"
     pullPolicy: IfNotPresent
-    tag: "0.2.30"
+    tag: "0.6.43"
   platformBackendImage:
     repository: "docker.io/langchain/langsmith-go-backend"
     pullPolicy: IfNotPresent
-    tag: "0.2.30"
+    tag: "0.6.43"
   playgroundImage:
     repository: "docker.io/langchain/langsmith-playground"
     pullPolicy: IfNotPresent
-    tag: "0.2.30"
+    tag: "0.6.43"
   postgresImage:
     repository: "docker.io/postgres"
     pullPolicy: IfNotPresent
@@ -39,7 +41,7 @@ images:
   clickhouseImage:
     repository: "docker.io/clickhouse/clickhouse-server"
     pullPolicy: Always
-    tag: "23.9"
+    tag: "24.2"
 
 ingress:
   enabled: false
@@ -61,7 +63,6 @@ apiIngress:
 
 config:
   existingSecretName: ""
-  openaiApiKey: ""
   langsmithLicenseKey: ""
   # -- Salt used to generate the API key. Should be a random string.
   apiKeySalt: ""
@@ -70,19 +71,46 @@ config:
   basicAuth:
     enabled: false
     initialOrgAdminEmail: ""
-    # Either set the password and JWT secret in plaintext, or set in the existingSecretName above.
+    # Either set the password and JWT secret in plaintext, or set in the secret specified by existingSecretName above.
     initialOrgAdminPassword: ""
     jwtSecret: ""
+  # -- OpenAI API key. Optional. Only used to power natural language search feature.
+  openaiApiKey: ""
+  orgCreationDisabled: false
+  workspaceScopeOrgInvitesEnabled: false
   oauth:
     enabled: false
     oauthClientId: ""
     oauthIssuerUrl: ""
+  # -- TTL configuration
+  # Optional. Used to set TTLS for longlived and shortlived objects.
+  ttl:
+    enabled: false
+    ttl_period_seconds:
+      # -- 400 day longlived and 14 day shortlived
+      longlived: "34560000"
+      shortlived: "1209600"
+  # -- Blob storage configuration
+  # Optional. Used to store inputs, outputs, and errors in Blob Storage.
+  # We currently support S3, GCS, and Minio as Blob Storage providers.
+  blobStorage:
+    enabled: false
+    # If you are using langsmith-managed-clickhouse, you may not want inputs to be stored in clickhouse for search.
+    # Set this as false to ensure that inputs/outputs/errors are not stored in clickhouse.
+    chSearchEnabled: true
+    # If you are using workload identity, you may not need to store the S3 credentials in the secrets.
+    # Instead, you will need to add the workload identity annotation to the backend and queue service accounts.
+    accessKey: ""
+    accessKeySecret: ""
+    bucketName: ""
+    apiURL: "https://s3.us-west-2.amazonaws.com"
 
 backend:
   name: "backend"
   containerPort: 1984
   existingConfigMapName: ""
   deployment:
+    autoRestart: true
     replicas: 1
     labels: {}
     annotations: {}
@@ -109,6 +137,27 @@ backend:
       - "--http"
       - "httptools"
       - "--no-access-log"
+    startupProbe:
+      httpGet:
+        path: /ok
+        port: 1984
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 1
+    livenessProbe:
+      httpGet:
+        path: /ok
+        port: 1984
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 1
+    readinessProbe:
+      httpGet:
+        path: /ok
+        port: 1984
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 1
     extraContainerConfig: {}
     extraEnv: []
     sidecars: []
@@ -179,12 +228,9 @@ backend:
 #        cpu: 200m
 #        memory: 500Mi
     command:
-      - "migrate"
-      - "-source"
-      - "file://clickhouse/migrations"
-      - "-database"
-      - "clickhouse://$(CLICKHOUSE_HOST):$(CLICKHOUSE_NATIVE_PORT)?username=$(CLICKHOUSE_USER)&password=$(CLICKHOUSE_PASSWORD)&database=$(CLICKHOUSE_DB)&x-multi-statement=true&x-migrations-table-engine=MergeTree"
-      - "up"
+      - "/bin/bash"
+      - "-c"
+      - "sleep 20s; migrate -source file://clickhouse/migrations -database 'clickhouse://$(CLICKHOUSE_HOST):$(CLICKHOUSE_NATIVE_PORT)?username=$(CLICKHOUSE_USER)&password=$(CLICKHOUSE_PASSWORD)&database=$(CLICKHOUSE_DB)&x-multi-statement=true&x-migrations-table-engine=MergeTree&secure=$(CLICKHOUSE_TLS)' up"
     extraContainerConfig: {}
     extraEnv: []
     sidecars: []
@@ -226,6 +272,7 @@ clickhouse:
     user: "default"
     password: "password"
     database: "default"
+    tls: false
     existingSecretName: ""
   containerHttpPort: 8123
   containerNativePort: 9000
@@ -245,6 +292,27 @@ clickhouse:
       - "/bin/bash"
       - "-c"
       - "sed 's/id -g/id -gn/' /entrypoint.sh > /tmp/entrypoint.sh; exec bash /tmp/entrypoint.sh"
+    startupProbe:
+      httpGet:
+        path: /ping
+        port: 8123
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 1
+    readinessProbe:
+      httpGet:
+        path: /ping
+        port: 8123
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 1
+    livenessProbe:
+      httpGet:
+        path: /ping
+        port: 8123
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 1
     extraContainerConfig: {}
     extraEnv: []
     sidecars: []
@@ -275,7 +343,10 @@ frontend:
   name: "frontend"
   containerPort: 8080
   existingConfigMapName: ""
+  # Nginx Max Body Size. Refer to https://nginx.org/en/docs/http/ngx_http_core_module.html#client_max_body_size for more information.
+  maxBodySize: "25M"
   deployment:
+    autoRestart: true
     replicas: 1
     labels: {}
     annotations: {}
@@ -290,6 +361,27 @@ frontend:
 #        memory: 500Mi
     command:
       - "/entrypoint.sh"
+    startupProbe:
+      httpGet:
+        path: /health
+        port: 8080
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 1
+    livenessProbe:
+      httpGet:
+        path: /health
+        port: 8080
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 1
+    readinessProbe:
+      httpGet:
+        path: /health
+        port: 8080
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 1
     extraContainerConfig: {}
     extraEnv: []
     sidecars: []
@@ -324,6 +416,7 @@ playground:
   name: "playground"
   containerPort: 3001
   deployment:
+    autoRestart: true
     replicas: 1
     labels: {}
     annotations: {}
@@ -337,8 +430,29 @@ playground:
 #        cpu: 200m
 #        memory: 500Mi
     command:
-      - "node"
-      - "./scripts/run-playground-docker.mjs"
+      - "yarn"
+      - "start"
+    startupProbe:
+      httpGet:
+        path: /ok
+        port: 3001
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 1
+    livenessProbe:
+      httpGet:
+        path: /ok
+        port: 3001
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 1
+    readinessProbe:
+      httpGet:
+        path: /ok
+        port: 3001
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 1
     extraContainerConfig: {}
     extraEnv: []
     sidecars: []
@@ -398,6 +512,33 @@ postgres:
 #        cpu: 1000m
 #        memory: 4Gi
     command: []
+    startupProbe:
+      exec:
+        command:
+          - /bin/sh
+          - -c
+          - exec pg_isready -d postgres -U postgres
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 1
+    readinessProbe:
+      exec:
+        command:
+          - /bin/sh
+          - -c
+          - exec pg_isready -d postgres -U postgres
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 1
+    livenessProbe:
+      exec:
+        command:
+          - /bin/sh
+          - -c
+          - exec pg_isready -d postgres -U postgres
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 1
     extraContainerConfig: {}
     extraEnv: []
     sidecars: []
@@ -425,6 +566,7 @@ postgres:
 queue:
   name: "queue"
   deployment:
+    autoRestart: true
     replicas: 3
     labels: {}
     annotations: {}
@@ -441,6 +583,33 @@ queue:
       - "saq"
       - "app.workers.queues.single_queue_worker.settings"
       - "--quiet"
+    startupProbe:
+      exec:
+        command:
+          - "saq"
+          - "app.workers.queues.single_queue_worker.settings"
+          - "--check"
+      failureThreshold: 6
+      periodSeconds: 30
+      timeoutSeconds: 15
+    readinessProbe:
+      exec:
+        command:
+          - "saq"
+          - "app.workers.queues.single_queue_worker.settings"
+          - "--check"
+      failureThreshold: 6
+      periodSeconds: 30
+      timeoutSeconds: 15
+    livenessProbe:
+      exec:
+        command:
+          - "saq"
+          - "app.workers.queues.single_queue_worker.settings"
+          - "--check"
+      failureThreshold: 6
+      periodSeconds: 30
+      timeoutSeconds: 15
     extraContainerConfig: {}
     extraEnv: []
     sidecars: []
@@ -465,9 +634,10 @@ queue:
 
 platformBackend:
   name: "platform-backend"
-  containerPort: 8080
+  containerPort: 1986
   existingConfigMapName: ""
   deployment:
+    autoRestart: true
     replicas: 1
     labels: {}
     annotations: {}
@@ -482,6 +652,27 @@ platformBackend:
 #        memory: 500Mi
     command:
       - "./smith-go"
+    startupProbe:
+      httpGet:
+        path: /ok
+        port: 1986
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 1
+    livenessProbe:
+      httpGet:
+        path: /ok
+        port: 1986
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 1
+    readinessProbe:
+      httpGet:
+        path: /ok
+        port: 1986
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 1
     extraContainerConfig: {}
     extraEnv: []
     sidecars: []
@@ -500,7 +691,7 @@ platformBackend:
     targetCPUUtilizationPercentage: 80
   service:
     type: ClusterIP
-    port: 1985
+    port: 1986
     labels: {}
     annotations: {}
     loadBalancerSourceRanges: []
@@ -533,6 +724,33 @@ redis:
 #        cpu: 1000m
 #        memory: 2Gi
     command: []
+    startupProbe:
+      exec:
+        command:
+          - /bin/sh
+          - -c
+          - exec redis-cli ping
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 1
+    readinessProbe:
+      exec:
+        command:
+          - /bin/sh
+          - -c
+          - exec redis-cli ping
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 1
+    livenessProbe:
+      exec:
+        command:
+          - /bin/sh
+          - -c
+          - exec redis-cli ping
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 1
     extraContainerConfig: {}
     extraEnv: []
     sidecars: []

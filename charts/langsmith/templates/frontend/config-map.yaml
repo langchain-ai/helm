@@ -22,7 +22,7 @@ data:
         listen       {{ .Values.frontend.containerPort }};
         listen  [::]:{{ .Values.frontend.containerPort }};
         server_name  localhost;
-        client_max_body_size 25M;
+        client_max_body_size {{ .Values.frontend.maxBodySize }};
 
         error_page   500 502 503 504  /50x.html;
         location = /50x.html {
@@ -57,8 +57,17 @@ data:
         }
 
          # Hub Backend Routes
-         location ~ /{{ .Values.ingress.subdomain }}/api-hub {
+
+         location ~ /{{.Values.ingress.subdomain}}/api-hub/ok {
             rewrite /{{ .Values.ingress.subdomain }}/api-hub/(.*) /$1  break;
+            proxy_set_header Connection '';
+            proxy_http_version 1.1;
+            proxy_buffering off;
+            proxy_cache off;
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}:{{ .Values.backend.service.port }};
+         }
+         location ~ /{{ .Values.ingress.subdomain }}/api-hub {
+            rewrite /{{ .Values.ingress.subdomain }}/api-hub/(.*) /api/$1  break;
             proxy_set_header Connection '';
             proxy_http_version 1.1;
             proxy_buffering off;
@@ -67,8 +76,18 @@ data:
         }
 
          # Backend Routes
-         location ~ /{{ .Values.ingress.subdomain }}/api {
+
+         location ~ /{{.Values.ingress.subdomain}}/api/ok {
             rewrite /{{ .Values.ingress.subdomain }}/api/(.*) /$1  break;
+            proxy_set_header Connection '';
+            proxy_http_version 1.1;
+            proxy_buffering off;
+            proxy_cache off;
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}:{{ .Values.backend.service.port }};
+         }
+
+         location ~ /{{ .Values.ingress.subdomain }}/api {
+            rewrite /{{ .Values.ingress.subdomain }}/api/(.*) /api/$1  break;
             proxy_set_header Connection '';
             proxy_http_version 1.1;
             proxy_buffering off;
@@ -103,7 +122,7 @@ data:
         listen       {{ .Values.frontend.containerPort }};
         listen  [::]:{{ .Values.frontend.containerPort }};
         server_name  localhost;
-        client_max_body_size 25M;
+        client_max_body_size {{ .Values.frontend.maxBodySize }};
 
         location / {
             root   /tmp/build;
@@ -141,6 +160,15 @@ data:
         }
 
          # Hub Backend Routes
+         location ~ /api-hub/ok {
+            rewrite /api-hub/(.*) /$1  break;
+            proxy_set_header Connection '';
+            proxy_http_version 1.1;
+            proxy_buffering off;
+            proxy_cache off;
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}:{{ .Values.backend.service.port }};
+         }
+
          location ~ /api-hub {
             rewrite /api-hub/(.*) /$1  break;
             proxy_set_header Connection '';
@@ -151,8 +179,16 @@ data:
         }
 
         # Backend Routes
-        location ~ /api {
+         location ~ /api/ok {
             rewrite /api/(.*) /$1  break;
+            proxy_set_header Connection '';
+            proxy_http_version 1.1;
+            proxy_buffering off;
+            proxy_cache off;
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}:{{ .Values.backend.service.port }};
+         }
+
+        location ~ /api {
             proxy_set_header Connection '';
             proxy_http_version 1.1;
             proxy_buffering off;

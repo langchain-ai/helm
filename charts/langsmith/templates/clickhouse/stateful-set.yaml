@@ -67,6 +67,9 @@ spec:
             {{- with .Values.clickhouse.statefulSet.extraEnv }}
                {{- toYaml . | nindent 12 }}
              {{- end }}
+            {{- with .Values.commonEnv }}
+              {{ toYaml . | nindent 12 }}
+            {{- end }}
           ports:
             - name: ch
               containerPort: {{ .Values.clickhouse.containerHttpPort }}
@@ -74,27 +77,18 @@ spec:
             - name: ch-native
               containerPort: {{ .Values.clickhouse.containerNativePort }}
               protocol: TCP
+          {{- with .Values.clickhouse.statefulSet.startupProbe }}
           startupProbe:
-            httpGet:
-              path: /ping
-              port: {{ .Values.clickhouse.containerHttpPort }}
-            failureThreshold: 6
-            periodSeconds: 10
-            timeoutSeconds: 1
-          readinessProbe:
-            httpGet:
-              path: /ping
-              port: {{ .Values.clickhouse.containerHttpPort }}
-            failureThreshold: 6
-            periodSeconds: 10
-            timeoutSeconds: 1
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.clickhouse.statefulSet.livenessProbe }}
           livenessProbe:
-            httpGet:
-              path: /ping
-              port: {{ .Values.clickhouse.containerHttpPort }}
-            failureThreshold: 6
-            periodSeconds: 10
-            timeoutSeconds: 1
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.clickhouse.statefulSet.readinessProbe }}
+          readinessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           resources:
             {{- toYaml .Values.clickhouse.statefulSet.resources | nindent 12 }}
           securityContext:
