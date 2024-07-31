@@ -1,0 +1,8 @@
+config:
+  langsmithLicenseKey: "YOUR_LICENSE_KEY"
+  apiKeySalt: "YOUR_API_KEY_SALT"
+  basicAuth:
+    enabled: true
+    initialOrgAdminEmail: "youremail@corp.dev"
+    initialOrgAdminPassword: "TestLangSmith123!"
+    jwtSecret: "YOUR_JWT_SECRET"
