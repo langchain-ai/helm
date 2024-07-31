@@ -259,7 +259,6 @@ Template containing common environment variables that are used by several servic
   value: {{ .Values.config.blobStorage.chSearchEnabled | quote }}
 {{- end }}
 {{- end }}
-{{- end }}
 
 
 {{- define "backend.serviceAccountName" -}}
