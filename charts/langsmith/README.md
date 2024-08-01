@@ -128,7 +128,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | config.oauth.oauthClientId | string | `""` |  |
 | config.oauth.oauthIssuerUrl | string | `""` |  |
 | config.openaiApiKey | string | `""` | OpenAI API key. Optional. Only used to power natural language search feature. |
-| config.orgCreationDisabled | bool | `false` |  |
+| config.orgCreationDisabled | bool | `false` | Prevent organization creation. If using basic auth, this is set to true by default. |
 | config.ttl | object | `{"enabled":false,"ttl_period_seconds":{"longlived":"34560000","shortlived":"1209600"}}` | TTL configuration Optional. Used to set TTLS for longlived and shortlived objects. |
 | config.ttl.ttl_period_seconds.longlived | string | `"34560000"` | 400 day longlived and 14 day shortlived |
 | config.workspaceScopeOrgInvitesEnabled | bool | `false` |  |

@@ -76,7 +76,7 @@ config:
     jwtSecret: ""
   # -- OpenAI API key. Optional. Only used to power natural language search feature.
   openaiApiKey: ""
-  # Prevent organization creation. If using basic auth, this is set to true by default.
+  # -- Prevent organization creation. If using basic auth, this is set to true by default.
   orgCreationDisabled: false
   workspaceScopeOrgInvitesEnabled: false
   oauth:
