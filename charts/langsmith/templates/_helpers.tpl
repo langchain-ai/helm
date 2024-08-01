@@ -234,7 +234,7 @@ Template containing common environment variables that are used by several servic
 - name: FF_WORKSPACE_SCOPE_ORG_INVITES_ENABLED
   value: {{ .Values.config.workspaceScopeOrgInvitesEnabled | quote }}
 {{- end }}
-{{- if .Values.config.orgCreationDisabled }}
+{{- if and .Values.config.orgCreationDisabled (not .Values.config.basicAuth.enabled) }}
 - name: FF_ORG_CREATION_DISABLED
   value: {{ .Values.config.orgCreationDisabled | quote }}
 {{- end }}
@@ -263,7 +263,6 @@ Template containing common environment variables that are used by several servic
   value: {{ .Values.config.blobStorage.chSearchEnabled | quote }}
 {{- end }}
 {{- end }}
-
 
 {{- define "backend.serviceAccountName" -}}
 {{- if .Values.backend.serviceAccount.create -}}
