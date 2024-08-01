@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.6.18](https://img.shields.io/badge/Version-0.6.18-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.6.32](https://img.shields.io/badge/AppVersion-0.6.32-informational?style=flat-square)
+![Version: 0.6.21](https://img.shields.io/badge/Version-0.6.21-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.6.49](https://img.shields.io/badge/AppVersion-0.6.49-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -81,20 +81,20 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | fullnameOverride | string | `""` | String to fully override `"langsmith.fullname"` |
 | images.backendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.backendImage.repository | string | `"docker.io/langchain/langsmith-backend"` |  |
-| images.backendImage.tag | string | `"0.6.32"` |  |
+| images.backendImage.tag | string | `"0.6.49"` |  |
 | images.clickhouseImage.pullPolicy | string | `"Always"` |  |
 | images.clickhouseImage.repository | string | `"docker.io/clickhouse/clickhouse-server"` |  |
 | images.clickhouseImage.tag | string | `"24.2"` |  |
 | images.frontendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.frontendImage.repository | string | `"docker.io/langchain/langsmith-frontend"` |  |
-| images.frontendImage.tag | string | `"0.6.32"` |  |
+| images.frontendImage.tag | string | `"0.6.49"` |  |
 | images.imagePullSecrets | list | `[]` | Secrets with credentials to pull images from a private registry. Specified as name: value. |
 | images.platformBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.platformBackendImage.repository | string | `"docker.io/langchain/langsmith-go-backend"` |  |
-| images.platformBackendImage.tag | string | `"0.6.32"` |  |
+| images.platformBackendImage.tag | string | `"0.6.49"` |  |
 | images.playgroundImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.playgroundImage.repository | string | `"docker.io/langchain/langsmith-playground"` |  |
-| images.playgroundImage.tag | string | `"0.6.32"` |  |
+| images.playgroundImage.tag | string | `"0.6.49"` |  |
 | images.postgresImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.postgresImage.repository | string | `"docker.io/postgres"` |  |
 | images.postgresImage.tag | string | `"14.7"` |  |
@@ -115,6 +115,11 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
 | config.apiKeySalt | string | `""` | Salt used to generate the API key. Should be a random string. |
+| config.authType | string | `""` |  |
+| config.basicAuth.enabled | bool | `false` |  |
+| config.basicAuth.initialOrgAdminEmail | string | `""` |  |
+| config.basicAuth.initialOrgAdminPassword | string | `""` |  |
+| config.basicAuth.jwtSecret | string | `""` |  |
 | config.blobStorage | object | `{"accessKey":"","accessKeySecret":"","apiURL":"https://s3.us-west-2.amazonaws.com","bucketName":"","chSearchEnabled":true,"enabled":false}` | Blob storage configuration Optional. Used to store inputs, outputs, and errors in Blob Storage. We currently support S3, GCS, and Minio as Blob Storage providers. |
 | config.existingSecretName | string | `""` |  |
 | config.langsmithLicenseKey | string | `""` |  |
@@ -123,7 +128,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | config.oauth.oauthClientId | string | `""` |  |
 | config.oauth.oauthIssuerUrl | string | `""` |  |
 | config.openaiApiKey | string | `""` | OpenAI API key. Optional. Only used to power natural language search feature. |
-| config.orgCreationDisabled | bool | `false` |  |
+| config.orgCreationDisabled | bool | `false` | Prevent organization creation. If using basic auth, this is set to true by default. |
 | config.ttl | object | `{"enabled":false,"ttl_period_seconds":{"longlived":"34560000","shortlived":"1209600"}}` | TTL configuration Optional. Used to set TTLS for longlived and shortlived objects. |
 | config.ttl.ttl_period_seconds.longlived | string | `"34560000"` | 400 day longlived and 14 day shortlived |
 | config.workspaceScopeOrgInvitesEnabled | bool | `false` |  |
@@ -132,6 +137,21 @@ For information on how to use this chart, up-to-date release notes, and other gu
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
+| backend.authBootstrap.affinity | object | `{}` |  |
+| backend.authBootstrap.annotations | object | `{}` |  |
+| backend.authBootstrap.command[0] | string | `"python"` |  |
+| backend.authBootstrap.command[1] | string | `"hooks/auth_bootstrap.pyc"` |  |
+| backend.authBootstrap.extraContainerConfig | object | `{}` |  |
+| backend.authBootstrap.extraEnv | list | `[]` |  |
+| backend.authBootstrap.labels | object | `{}` |  |
+| backend.authBootstrap.nodeSelector | object | `{}` |  |
+| backend.authBootstrap.podSecurityContext | object | `{}` |  |
+| backend.authBootstrap.resources | object | `{}` |  |
+| backend.authBootstrap.securityContext | object | `{}` |  |
+| backend.authBootstrap.sidecars | list | `[]` |  |
+| backend.authBootstrap.tolerations | list | `[]` |  |
+| backend.authBootstrap.volumeMounts | list | `[]` |  |
+| backend.authBootstrap.volumes | list | `[]` |  |
 | backend.autoscaling.createHpa | bool | `true` |  |
 | backend.autoscaling.enabled | bool | `false` |  |
 | backend.autoscaling.maxReplicas | int | `5` |  |
@@ -531,12 +551,30 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | queue.deployment.extraContainerConfig | object | `{}` |  |
 | queue.deployment.extraEnv | list | `[]` |  |
 | queue.deployment.labels | object | `{}` |  |
+| queue.deployment.livenessProbe.exec.command[0] | string | `"saq"` |  |
+| queue.deployment.livenessProbe.exec.command[1] | string | `"app.workers.queues.single_queue_worker.settings"` |  |
+| queue.deployment.livenessProbe.exec.command[2] | string | `"--check"` |  |
+| queue.deployment.livenessProbe.failureThreshold | int | `6` |  |
+| queue.deployment.livenessProbe.periodSeconds | int | `30` |  |
+| queue.deployment.livenessProbe.timeoutSeconds | int | `15` |  |
 | queue.deployment.nodeSelector | object | `{}` |  |
 | queue.deployment.podSecurityContext | object | `{}` |  |
+| queue.deployment.readinessProbe.exec.command[0] | string | `"saq"` |  |
+| queue.deployment.readinessProbe.exec.command[1] | string | `"app.workers.queues.single_queue_worker.settings"` |  |
+| queue.deployment.readinessProbe.exec.command[2] | string | `"--check"` |  |
+| queue.deployment.readinessProbe.failureThreshold | int | `6` |  |
+| queue.deployment.readinessProbe.periodSeconds | int | `30` |  |
+| queue.deployment.readinessProbe.timeoutSeconds | int | `15` |  |
 | queue.deployment.replicas | int | `3` |  |
 | queue.deployment.resources | object | `{}` |  |
 | queue.deployment.securityContext | object | `{}` |  |
 | queue.deployment.sidecars | list | `[]` |  |
+| queue.deployment.startupProbe.exec.command[0] | string | `"saq"` |  |
+| queue.deployment.startupProbe.exec.command[1] | string | `"app.workers.queues.single_queue_worker.settings"` |  |
+| queue.deployment.startupProbe.exec.command[2] | string | `"--check"` |  |
+| queue.deployment.startupProbe.failureThreshold | int | `6` |  |
+| queue.deployment.startupProbe.periodSeconds | int | `30` |  |
+| queue.deployment.startupProbe.timeoutSeconds | int | `15` |  |
 | queue.deployment.tolerations | list | `[]` |  |
 | queue.deployment.volumeMounts | list | `[]` |  |
 | queue.deployment.volumes | list | `[]` |  |
@@ -608,6 +646,6 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | Ankush | <ankush@langchain.dev> |  |
 
 ----------------------------------------------
-Autogenerated from chart metadata using [helm-docs v1.11.3](https://github.com/norwoodj/helm-docs/releases/v1.11.3)
+Autogenerated from chart metadata using [helm-docs v1.13.1](https://github.com/norwoodj/helm-docs/releases/v1.13.1)
 ## Docs Generated by [helm-docs](https://github.com/norwoodj/helm-docs)
 `helm-docs -t ./charts/langsmith/README.md.gotmpl`

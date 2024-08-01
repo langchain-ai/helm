@@ -69,7 +69,7 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
 
 {{/*
-Name of the secret containing the secrets for this chart. This can be overriden by a secrets file created by
+Name of the secret containing the secrets for this chart. This can be overridden by a secrets file created by
 the user or some other secret provisioning mechanism
 */}}
 {{- define "langsmith.secretsName" -}}
@@ -81,7 +81,7 @@ the user or some other secret provisioning mechanism
 {{- end }}
 
 {{/*
-Name of the secret containing the secrets for postgres. This can be overriden by a secrets file created by
+Name of the secret containing the secrets for postgres. This can be overridden by a secrets file created by
 the user or some other secret provisioning mechanism
 */}}
 {{- define "langsmith.postgresSecretsName" -}}
@@ -93,7 +93,7 @@ the user or some other secret provisioning mechanism
 {{- end }}
 
 {{/*
-Name of the secret containing the secrets for redis. This can be overriden by a secrets file created by
+Name of the secret containing the secrets for redis. This can be overridden by a secrets file created by
 the user or some other secret provisioning mechanism
 */}}
 {{- define "langsmith.redisSecretsName" -}}
@@ -105,7 +105,7 @@ the user or some other secret provisioning mechanism
 {{- end }}
 
 {{/*
-Name of the secret containing the secrets for clickhouse. This can be overriden by a secrets file created by
+Name of the secret containing the secrets for clickhouse. This can be overridden by a secrets file created by
 the user or some other secret provisioning mechanism
 */}}
 {{- define "langsmith.clickhouseSecretsName" -}}
@@ -115,6 +115,7 @@ the user or some other secret provisioning mechanism
 {{- include "langsmith.fullname" . }}-clickhouse
 {{- end }}
 {{- end }}
+
 
 {{/*
 Template containing common environment variables that are used by several services.
@@ -199,6 +200,19 @@ Template containing common environment variables that are used by several servic
       name: {{ include "langsmith.secretsName" . }}
       key: openai_api_key
       optional: true
+- name: BASIC_AUTH_ENABLED
+  value: {{ .Values.config.basicAuth.enabled | quote }}
+{{- if .Values.config.basicAuth.enabled }}
+- name: BASIC_AUTH_JWT_SECRET
+  valueFrom:
+    secretKeyRef:
+      name: {{ include "langsmith.secretsName" . }}
+      key: jwt_secret
+- name: FF_ORG_CREATION_DISABLED
+  value: "true"
+- name: FF_PERSONAL_ORGS_DISABLED
+  value: "true"
+{{- end }}
 - name: GO_ENDPOINT
   value: http://{{- include "langsmith.fullname" . }}-{{.Values.platformBackend.name}}:{{ .Values.platformBackend.service.port }}
 - name: SMITH_BACKEND_ENDPOINT
@@ -220,7 +234,7 @@ Template containing common environment variables that are used by several servic
 - name: FF_WORKSPACE_SCOPE_ORG_INVITES_ENABLED
   value: {{ .Values.config.workspaceScopeOrgInvitesEnabled | quote }}
 {{- end }}
-{{- if .Values.config.orgCreationDisabled }}
+{{- if and .Values.config.orgCreationDisabled (not .Values.config.basicAuth.enabled) }}
 - name: FF_ORG_CREATION_DISABLED
   value: {{ .Values.config.orgCreationDisabled | quote }}
 {{- end }}

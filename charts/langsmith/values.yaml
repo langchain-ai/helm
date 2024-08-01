@@ -17,19 +17,19 @@ images:
   backendImage:
     repository: "docker.io/langchain/langsmith-backend"
     pullPolicy: IfNotPresent
-    tag: "0.6.43"
+    tag: "0.6.49"
   frontendImage:
     repository: "docker.io/langchain/langsmith-frontend"
     pullPolicy: IfNotPresent
-    tag: "0.6.43"
+    tag: "0.6.49"
   platformBackendImage:
     repository: "docker.io/langchain/langsmith-go-backend"
     pullPolicy: IfNotPresent
-    tag: "0.6.43"
+    tag: "0.6.49"
   playgroundImage:
     repository: "docker.io/langchain/langsmith-playground"
     pullPolicy: IfNotPresent
-    tag: "0.6.43"
+    tag: "0.6.49"
   postgresImage:
     repository: "docker.io/postgres"
     pullPolicy: IfNotPresent
@@ -67,8 +67,16 @@ config:
   # -- Salt used to generate the API key. Should be a random string.
   apiKeySalt: ""
   logLevel: "info"
+  authType: ""
+  basicAuth:
+    enabled: false
+    initialOrgAdminEmail: ""
+    # Either set the password and JWT secret in plaintext, or set in the secret specified by existingSecretName above.
+    initialOrgAdminPassword: ""
+    jwtSecret: ""
   # -- OpenAI API key. Optional. Only used to power natural language search feature.
   openaiApiKey: ""
+  # -- Prevent organization creation. If using basic auth, this is set to true by default.
   orgCreationDisabled: false
   workspaceScopeOrgInvitesEnabled: false
   oauth:
@@ -176,6 +184,29 @@ backend:
       - "/bin/bash"
       - "-c"
       - "alembic upgrade head"
+    extraContainerConfig: {}
+    extraEnv: []
+    sidecars: []
+    nodeSelector: {}
+    tolerations: []
+    affinity: {}
+    volumes: []
+    volumeMounts: []
+  authBootstrap:
+    labels: {}
+    annotations: {}
+    podSecurityContext: {}
+    securityContext: {}
+    resources: {}
+    #      limits:
+    #        cpu: 1000m
+    #        memory: 1Gi
+    #      requests:
+    #        cpu: 200m
+    #        memory: 500Mi
+    command:
+      - "python"
+      - "hooks/auth_bootstrap.pyc"
     extraContainerConfig: {}
     extraEnv: []
     sidecars: []
