@@ -1,6 +1,7 @@
 config:
   langsmithLicenseKey: "YOUR_LICENSE_KEY"
   apiKeySalt: "YOUR_API_KEY_SALT"
+  authType: "mixed"
   basicAuth:
     enabled: true
     initialOrgAdminEmail: "youremail@corp.dev"
