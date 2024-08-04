@@ -27,13 +27,13 @@ Ensure you have the following tools/items ready.
 Run the following command to run feature flag script
 
 ```bash
-sh enable_feature_flag_in_organization.sh <postgres connection url> <organization id> <feature flag name>
+sh enable_feature_flag_for_organization.sh <postgres connection url> <organization id> <feature flag name>
 ```
 
 For example, if you are using the script directly with port-forwarding, the command would look like:
 
 ```bash
-sh enable_feature_flag_in_organization.sh "postgres://postgres:postgres@localhost:5432/postgres" "6a389372-6e79-5cd0-bf66-d70249fb676e" "conversation_view_enabled"   
+sh enable_feature_flag_for_organization.sh "postgres://postgres:postgres@localhost:5432/postgres" "6a389372-6e79-5cd0-bf66-d70249fb676e" "conversation_view_enabled"   
 ```
 
 If you visit the Langsmith UI, you should now see the feature flag enabled.
