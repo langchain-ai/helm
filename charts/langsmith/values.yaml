@@ -17,19 +17,19 @@ images:
   backendImage:
     repository: "docker.io/langchain/langsmith-backend"
     pullPolicy: IfNotPresent
-    tag: "0.6.49"
+    tag: "0.6.54"
   frontendImage:
     repository: "docker.io/langchain/langsmith-frontend"
     pullPolicy: IfNotPresent
-    tag: "0.6.49"
+    tag: "0.6.54"
   platformBackendImage:
     repository: "docker.io/langchain/langsmith-go-backend"
     pullPolicy: IfNotPresent
-    tag: "0.6.49"
+    tag: "0.6.54"
   playgroundImage:
     repository: "docker.io/langchain/langsmith-playground"
     pullPolicy: IfNotPresent
-    tag: "0.6.49"
+    tag: "0.6.54"
   postgresImage:
     repository: "docker.io/postgres"
     pullPolicy: IfNotPresent
@@ -366,21 +366,21 @@ frontend:
       httpGet:
         path: /health
         port: 8080
-      failureThreshold: 6
+      failureThreshold: 10
       periodSeconds: 10
       timeoutSeconds: 1
     livenessProbe:
       httpGet:
         path: /health
         port: 8080
-      failureThreshold: 6
+      failureThreshold: 10
       periodSeconds: 10
       timeoutSeconds: 1
     readinessProbe:
       httpGet:
         path: /health
         port: 8080
-      failureThreshold: 6
+      failureThreshold: 10
       periodSeconds: 10
       timeoutSeconds: 1
     extraContainerConfig: {}
@@ -591,8 +591,8 @@ queue:
           - "app.workers.queues.single_queue_worker.settings"
           - "--check"
       failureThreshold: 6
-      periodSeconds: 30
-      timeoutSeconds: 15
+      periodSeconds: 60
+      timeoutSeconds: 30
     readinessProbe:
       exec:
         command:
@@ -600,8 +600,8 @@ queue:
           - "app.workers.queues.single_queue_worker.settings"
           - "--check"
       failureThreshold: 6
-      periodSeconds: 30
-      timeoutSeconds: 15
+      periodSeconds: 60
+      timeoutSeconds: 30
     livenessProbe:
       exec:
         command:
@@ -609,8 +609,8 @@ queue:
           - "app.workers.queues.single_queue_worker.settings"
           - "--check"
       failureThreshold: 6
-      periodSeconds: 30
-      timeoutSeconds: 15
+      periodSeconds: 60
+      timeoutSeconds: 30
     extraContainerConfig: {}
     extraEnv: []
     sidecars: []
