@@ -101,6 +101,7 @@ config:
     chSearchEnabled: true
     # If you are using workload identity, you may not need to store the S3 credentials in the secrets.
     # Instead, you will need to add the workload identity annotation to the backend and queue service accounts.
+    useAccessKey: true
     accessKey: ""
     accessKeySecret: ""
     bucketName: ""

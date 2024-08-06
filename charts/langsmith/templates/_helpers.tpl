@@ -247,6 +247,7 @@ Template containing common environment variables that are used by several servic
   value: {{ .Values.config.blobStorage.bucketName | quote }}
 - name: S3_API_URL
   value: {{ .Values.config.blobStorage.apiURL | quote }}
+{{- if .Values.config.blobStorage.useAccessKey }}
 - name: S3_ACCESS_KEY
   valueFrom:
     secretKeyRef:
@@ -259,6 +260,7 @@ Template containing common environment variables that are used by several servic
       name: {{ include "langsmith.secretsName" . }}
       key: blob_storage_access_key_secret
       optional: true
+{{- end }}
 - name: FF_CH_SEARCH_ENABLED
   value: {{ .Values.config.blobStorage.chSearchEnabled | quote }}
 {{- end }}
