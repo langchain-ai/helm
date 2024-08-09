@@ -2,7 +2,7 @@
 
 This Helm repository contains queries to produce output that the LangSmith UI does not currently support directly (e.g. obtaining trace counts for multiple organizations in a single query). 
 
-This command takes a postgres connection string that contains an embedded name and password (which can be passed in from a call to a secrets manager) and executes a query from an input file.  In the example below, we are using the `pg_get_trace_counts_daily.sql` input file in the `support_queries/postgres` directory.
+This command takes a postgres connection string that contains an embedded name and password (which can be passed in from a call to a secrets manager) and executes a query from an input file.  In the example below, we are using the `pg_get_users_by_org.sql` input file in the `support_queries/postgres` directory.
 
 ### Prerequisites
 
@@ -44,7 +44,7 @@ sh run_support_query_pg.sh <postgres_url> --input path/to/query.sql
 For example, if you are using the bundled version with port-forwarding, the command might look like:
 
 ```bash
-sh run_support_query_pg.sh "postgres://postgres:postgres@localhost:5432/postgres" --input support_queries/postgres/pg_get_trace_counts_daily.sql 
+sh run_support_query_pg.sh "postgres://postgres:postgres@localhost:5432/postgres" --input support_queries/postgres/pg_get_users_by_org.sql 
 ```
 
 which will output the count of daily traces by workspace ID and organization ID.  To extract this to a file add the flag `--output path/to/file.csv`

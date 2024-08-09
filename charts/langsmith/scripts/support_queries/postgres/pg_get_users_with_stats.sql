@@ -1,4 +1,5 @@
--- This query retreives a list of users and the count of organizations and workspaces they are a member of
+-- This query retreives a list of users and the count of 
+-- organizations and workspaces they are a member of
 -- There will be one row per unique user
 
 select 
