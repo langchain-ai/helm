@@ -97,14 +97,14 @@ fi
 
 # Execute the query and output to the specified CSV file or stdout
 if [ -n "$output_file" ]; then
-    curl $curl_opts --user "$ch_user:$ch_passwd" --data-binary "$metrics_query_string" "$ch_protocol://$ch_host:$ch_port/?database=$ch_database" > "$output_file"
+    curl $curl_opts --user "$ch_user:$ch_passwd" -H "X-ClickHouse-Format: CSVWithNames" --data-binary "$metrics_query_string" "$ch_protocol://$ch_host:$ch_port/?database=$ch_database" > "$output_file"
     if [ $? -ne 0 ]; then
         echo "Error: Failed to connect to ClickHouse."
         exit 1
     fi
     echo "Query results have been successfully written to $output_file"
 else
-    curl $curl_opts --user "$ch_user:$ch_passwd" --data-binary "$metrics_query_string" "$ch_protocol://$ch_host:$ch_port/?database=$ch_database"
+    curl $curl_opts --user "$ch_user:$ch_passwd" -H "X-ClickHouse-Format: CSVWithNames" --data-binary "$metrics_query_string" "$ch_protocol://$ch_host:$ch_port/?database=$ch_database"
     if [ $? -ne 0 ]; then
         echo "Error: Failed to connect to ClickHouse."
         exit 1
