@@ -1,3 +1,6 @@
+-- This query retrieves the count of daily traces by workspace ID
+-- This count excludes deleted traces
+
 select toStartOfInterval(inserted_at, interval 1 day) as ts, 
     tenant_id as workspace_id, 
     count(distinct id) as trace_count
