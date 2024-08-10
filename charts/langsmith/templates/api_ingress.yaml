@@ -25,7 +25,7 @@ spec:
   - host: {{ .Values.apiIngress.hostname }}
     http:
       paths:
-      - path: /{{ .Values.apiIngress.subdomain }}/api/v1
+      - path: /{{ .Values.apiIngress.subdomain }}
         pathType: Prefix
         backend:
           service:
@@ -36,7 +36,7 @@ spec:
     - host: {{ .Values.apiIngress.hostname }}
       http:
         paths:
-        - path: /api/v1
+        - path: /
           pathType: Prefix
           backend:
             service:
