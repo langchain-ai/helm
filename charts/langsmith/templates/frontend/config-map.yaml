@@ -124,9 +124,9 @@ data:
         listen  [::]:{{ .Values.frontend.containerPort }};
         server_name  localhost;
         client_max_body_size {{ .Values.frontend.maxBodySize }};
-        proxy_read_timeout ${{ .Values.frontend.proxyReadTimeout }};
-        proxy_connect_timeout ${{ .Values.frontend.proxyConnectTimeout }};
-        proxy_send_timeout ${{ .Values.frontend.proxyWriteTimeout }};
+        proxy_read_timeout {{ .Values.frontend.proxyReadTimeout }};
+        proxy_connect_timeout {{ .Values.frontend.proxyConnectTimeout }};
+        proxy_send_timeout {{ .Values.frontend.proxyWriteTimeout }};
 
         location / {
             root   /tmp/build;
