@@ -1,3 +1,6 @@
+-- This query checks the amount of free disk space on the 
+-- volume(s) dedicated to Clickhouse.
+
 select 
     hostname(), 
     free_space,
