@@ -1,7 +1,7 @@
 # Generating Clickhouse Stats
 This Helm repository contains queries to produce output that the LangSmith UI does not currently support directly (e.g. obtaining trace counts for multiple workspaces by date in a single query). 
 
-This command takes a clickhouse connection string that contains an embedded name and password (which can be passed in from a call to a secrets manager) and executes a query from an input file.  In the example below, we are using the `ch_get_trace_counts_daily.sql` input file in the `support_queries` directory.
+This command takes a clickhouse connection string that contains an embedded name and password (which can be passed in from a call to a secrets manager) and executes a query from an input file.  In the example below, we are using the `ch_get_current_trace_counts_by_ws_daily` input file in the `support_queries` directory.
 
 ### Prerequisites
 
@@ -40,7 +40,7 @@ sh run_support_query_ch.sh <clickhouse_url> --input path/to/query.sql
 For example, if you are using the bundled version with port-forwarding, the command might look like:
 
 ```bash
-sh run_support_query_ch.sh "clickhouse://default:password@localhost:8123/default" --input support_queries/clickhouse/ch_get_trace_counts_daily.sql 
+sh run_support_query_ch.sh "clickhouse://default:password@localhost:8123/default" --input support_queries/clickhouse/ch_get_current_trace_counts_by_ws_daily
 ```
 
 which will output the count of daily traces by workspace ID and organization ID.  To extract this to a file add the flag `--output path/to/file.csv`

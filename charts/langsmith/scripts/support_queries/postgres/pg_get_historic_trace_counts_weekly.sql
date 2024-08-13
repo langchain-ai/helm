@@ -1,10 +1,12 @@
--- Gets a daily count of traces by workspace ID and organization ID
+-- Gets a weekly count of traces by workspace ID and organization ID
+-- This is done in PG so that we can join to get org names and workspace names
+-- This count includes since-deleted traces
 
 with date_series as (
     select generate_series(
-        (select date_trunc('day', min(upper(interval))) from trace_count_transactions),
-        (select date_trunc('day', max(upper(interval))) from trace_count_transactions),
-        interval '1 day'
+        (select date_trunc('week', min(upper(interval))) from trace_count_transactions),
+        (select date_trunc('week', max(upper(interval))) from trace_count_transactions),
+        interval '1 week'
     ) as ds
 ),
 transaction_types as (
@@ -24,7 +26,7 @@ periodic_data as (
     cross join transaction_types tt
     left join trace_count_transactions traces
         on traces.tenant_id = tenants.id 
-        and date_trunc('day', upper(interval) - interval '1 millisecond') = date_series.ds
+        and date_trunc('week', upper(interval) - interval '1 millisecond') = date_series.ds
         and traces.transaction_type = tt.transaction_type
     join organizations o
         on o.id = tenants.organization_id 
