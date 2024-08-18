@@ -1,0 +1,18 @@
+config:
+  langsmithLicenseKey: "YOUR_LICENSE_KEY"
+  apiKeySalt: "YOUR_API_KEY_SALT"
+  # existingSecretName: "langsmith-config" You can also put the above into a secret if you want to avoid putting the license key in the values file.
+
+ingress:
+  enabled: true
+  hostname: "smith.langchain.com"
+  ingressClassName: "alb"
+  tls:
+    - secretName: "langsmith-tls"
+      hosts:
+        - "smith.langchain.com"
+
+# By default, the frontend service is of type LoadBalancer.
+frontend:
+  service:
+    type: NodePort
