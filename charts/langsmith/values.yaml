@@ -17,19 +17,19 @@ images:
   backendImage:
     repository: "docker.io/langchain/langsmith-backend"
     pullPolicy: IfNotPresent
-    tag: "0.6.62"
+    tag: "0.7.5"
   frontendImage:
     repository: "docker.io/langchain/langsmith-frontend"
     pullPolicy: IfNotPresent
-    tag: "0.6.62"
+    tag: "0.7.5"
   platformBackendImage:
     repository: "docker.io/langchain/langsmith-go-backend"
     pullPolicy: IfNotPresent
-    tag: "0.6.62"
+    tag: "0.7.5"
   playgroundImage:
     repository: "docker.io/langchain/langsmith-playground"
     pullPolicy: IfNotPresent
-    tag: "0.6.62"
+    tag: "0.7.5"
   postgresImage:
     repository: "docker.io/postgres"
     pullPolicy: IfNotPresent
@@ -52,6 +52,8 @@ ingress:
   labels: {}
   tls: []
 
+# Only enable this ingress if you would like to expose the backend as a separate service.
+# By default, this is not needed as the frontend ingress will proxy requests to the backend.
 apiIngress:
   enabled: false
   hostname: ""
@@ -74,10 +76,9 @@ config:
     # Either set the password and JWT secret in plaintext, or set in the secret specified by existingSecretName above.
     initialOrgAdminPassword: ""
     jwtSecret: ""
-  # -- OpenAI API key. Optional. Only used to power natural language search feature.
-  openaiApiKey: ""
   # -- Prevent organization creation. If using basic auth, this is set to true by default.
   orgCreationDisabled: false
+  # -- Enable Workspace Admins to invite users to the org and workspace.
   workspaceScopeOrgInvitesEnabled: false
   oauth:
     enabled: false
@@ -86,7 +87,7 @@ config:
   # -- TTL configuration
   # Optional. Used to set TTLS for longlived and shortlived objects.
   ttl:
-    enabled: false
+    enabled: true
     ttl_period_seconds:
       # -- 400 day longlived and 14 day shortlived
       longlived: "34560000"
@@ -118,13 +119,13 @@ backend:
     annotations: {}
     podSecurityContext: {}
     securityContext: {}
-    resources: {}
+    resources:
 #      limits:
-#        cpu: 1000m
-#        memory: 1Gi
+#        cpu: 2000m
+#        memory: 4Gi
 #      requests:
-#        cpu: 200m
-#        memory: 500Mi
+#        cpu: 1000m
+#        memory: 2000Mi
     command:
       - "uvicorn"
       - "app.main:app"
@@ -231,8 +232,7 @@ backend:
 #        memory: 500Mi
     command:
       - "/bin/bash"
-      - "-c"
-      - "sleep 20s; migrate -source file://clickhouse/migrations -database 'clickhouse://$(CLICKHOUSE_HOST):$(CLICKHOUSE_NATIVE_PORT)?username=$(CLICKHOUSE_USER)&password=$(CLICKHOUSE_PASSWORD)&database=$(CLICKHOUSE_DB)&x-multi-statement=true&x-migrations-table-engine=MergeTree&secure=$(CLICKHOUSE_TLS)' up"
+      - "scripts/wait_for_clickhouse_and_migrate.sh"
     extraContainerConfig: {}
     extraEnv: []
     sidecars: []
@@ -248,7 +248,8 @@ backend:
     createHpa: true
     minReplicas: 1
     maxReplicas: 5
-    targetCPUUtilizationPercentage: 80
+    targetCPUUtilizationPercentage: 50
+    targetMemoryUtilizationPercentage: 50
   service:
     type: ClusterIP
     port: 1984
@@ -283,13 +284,13 @@ clickhouse:
     annotations: {}
     podSecurityContext: {}
     securityContext: {}
-    resources: {}
-    #      limits:
-    #        cpu: 5000m
-    #        memory: 20Gi
-    #      requests:
-    #        cpu: 3000m
-    #        memory: 12Gi
+    resources:
+#      limits:
+#        cpu: 16000m
+#        memory: 64Gi
+#      requests:
+#        cpu: 8000m
+#        memory: 32Gi
     command:
       - "/bin/bash"
       - "-c"
@@ -360,10 +361,10 @@ frontend:
     resources: {}
 #      limits:
 #        cpu: 1000m
-#        memory: 1Gi
+#        memory: 2Gi
 #      requests:
-#        cpu: 200m
-#        memory: 500Mi
+#        cpu: 500m
+#        memory: 1Gi
     command:
       - "/entrypoint.sh"
     startupProbe:
@@ -430,10 +431,10 @@ playground:
     resources: {}
 #      limits:
 #        cpu: 1000m
-#        memory: 1Gi
+#        memory: 2Gi
 #      requests:
-#        cpu: 200m
-#        memory: 500Mi
+#        cpu: 500m
+#        memory: 1Gi
     command:
       - "yarn"
       - "start"
@@ -509,13 +510,13 @@ postgres:
     annotations: {}
     podSecurityContext: {}
     securityContext: {}
-    resources: {}
+    resources:
 #      limits:
 #        cpu: 4000m
 #        memory: 16Gi
 #      requests:
-#        cpu: 1000m
-#        memory: 4Gi
+#        cpu: 2000m
+#        memory: 8Gi
     command: []
     startupProbe:
       exec:
@@ -630,7 +631,8 @@ queue:
     createHpa: true
     minReplicas: 3
     maxReplicas: 10
-    targetCPUUtilizationPercentage: 80
+    targetCPUUtilizationPercentage: 50
+    targetMemoryUtilizationPercentage: 50
   serviceAccount:
     create: true
     name: ""
@@ -651,10 +653,10 @@ platformBackend:
     resources: {}
 #      limits:
 #        cpu: 1000m
-#        memory: 1Gi
+#        memory: 2Gi
 #      requests:
-#        cpu: 200m
-#        memory: 500Mi
+#        cpu: 500m
+#        memory: 1Gi
     command:
       - "./smith-go"
     startupProbe:
@@ -693,7 +695,8 @@ platformBackend:
     createHpa: true
     minReplicas: 1
     maxReplicas: 5
-    targetCPUUtilizationPercentage: 80
+    targetCPUUtilizationPercentage: 50
+    targetMemoryUtilizationPercentage: 50
   service:
     type: ClusterIP
     port: 1986
@@ -724,10 +727,10 @@ redis:
     resources: {}
 #      limits:
 #        cpu: 4000m
-#        memory: 16Gi
+#        memory: 8Gi
 #      requests:
-#        cpu: 1000m
-#        memory: 2Gi
+#        cpu: 2000m
+#        memory: 4Gi
     command: []
     startupProbe:
       exec:
@@ -765,7 +768,7 @@ redis:
     volumes: []
     volumeMounts: []
     persistence:
-      enabled: false
+      enabled: true
       size: 8Gi
       storageClassName: ""
   service:

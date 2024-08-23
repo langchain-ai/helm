@@ -57,18 +57,9 @@ data:
             proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.playground.name }}:{{ .Values.playground.service.port }};
         }
 
-         # Hub Backend Routes
-
-         location ~ /{{.Values.ingress.subdomain}}/api-hub/ok {
-            rewrite /{{ .Values.ingress.subdomain }}/api-hub/(.*) /$1  break;
-            proxy_set_header Connection '';
-            proxy_http_version 1.1;
-            proxy_buffering off;
-            proxy_cache off;
-            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}:{{ .Values.backend.service.port }};
-         }
+         # Hub Backend Routes(Deprecated)
          location ~ /{{ .Values.ingress.subdomain }}/api-hub {
-            rewrite /{{ .Values.ingress.subdomain }}/api-hub/(.*) /api/$1  break;
+            rewrite /{{ .Values.ingress.subdomain }}/api-hub/(.*) /api/v1/$1  break;
             proxy_set_header Connection '';
             proxy_http_version 1.1;
             proxy_buffering off;
@@ -76,19 +67,28 @@ data:
             proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}:{{ .Values.backend.service.port }};
         }
 
-         # Backend Routes
-
-         location ~ /{{.Values.ingress.subdomain}}/api/ok {
-            rewrite /{{ .Values.ingress.subdomain }}/api/(.*) /$1  break;
+        # Backend Routes
+        location ~ /{{ .Values.ingress.subdomain }}/api/v1 {
+            rewrite /{{ .Values.ingress.subdomain }}/api/v1/(.*) /api/v1/$1  break;
             proxy_set_header Connection '';
             proxy_http_version 1.1;
             proxy_buffering off;
             proxy_cache off;
             proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}:{{ .Values.backend.service.port }};
-         }
+        }
 
-         location ~ /{{ .Values.ingress.subdomain }}/api {
-            rewrite /{{ .Values.ingress.subdomain }}/api/(.*) /api/$1  break;
+        # Deprecated Backend Routes
+        location ~ /{{ .Values.ingress.subdomain }}/api {
+            rewrite /{{ .Values.ingress.subdomain }}/api/(.*) /api/v1/$1  break;
+            proxy_set_header Connection '';
+            proxy_http_version 1.1;
+            proxy_buffering off;
+            proxy_cache off;
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}:{{ .Values.backend.service.port }};
+        }
+
+        location = /{{ .Values.ingress.subdomain }}/docs {
+            rewrite /{{ .Values.ingress.subdomain }}/docs /api/v1/docs  break;
             proxy_set_header Connection '';
             proxy_http_version 1.1;
             proxy_buffering off;
@@ -163,18 +163,9 @@ data:
             proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.playground.name }}:{{ .Values.playground.service.port }};
         }
 
-         # Hub Backend Routes
-         location ~ /api-hub/ok {
-            rewrite /api-hub/(.*) /$1  break;
-            proxy_set_header Connection '';
-            proxy_http_version 1.1;
-            proxy_buffering off;
-            proxy_cache off;
-            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}:{{ .Values.backend.service.port }};
-         }
-
+         # Hub Backend Routes(Deprecated). To be removed in v8
          location ~ /api-hub {
-            rewrite /api-hub/(.*) /$1  break;
+            rewrite /api-hub/(.*) /api/v1/$1  break;
             proxy_set_header Connection '';
             proxy_http_version 1.1;
             proxy_buffering off;
@@ -183,8 +174,7 @@ data:
         }
 
         # Backend Routes
-         location ~ /api/ok {
-            rewrite /api/(.*) /$1  break;
+         location ~ /api/v1 {
             proxy_set_header Connection '';
             proxy_http_version 1.1;
             proxy_buffering off;
@@ -192,12 +182,39 @@ data:
             proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}:{{ .Values.backend.service.port }};
          }
 
+
+        # Deprecated Backend Routes To be removed in v8
         location ~ /api {
+            rewrite /api/(.*) /api/v1/$1  break;
             proxy_set_header Connection '';
             proxy_http_version 1.1;
             proxy_buffering off;
             proxy_cache off;
             proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}:{{ .Values.backend.service.port }};
        }
+
+        location = /api/docs {
+            proxy_set_header Connection '';
+            proxy_http_version 1.1;
+            proxy_buffering off;
+            proxy_cache off;
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}:{{ .Values.backend.service.port }};
+        }
+
+        location = /api/redoc {
+            proxy_set_header Connection '';
+            proxy_http_version 1.1;
+            proxy_buffering off;
+            proxy_cache off;
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}:{{ .Values.backend.service.port }};
+        }
+
+        location = /api/openapi.json {
+            proxy_set_header Connection '';
+            proxy_http_version 1.1;
+            proxy_buffering off;
+            proxy_cache off;
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}:{{ .Values.backend.service.port }};
+        }
       }
 {{- end }}

@@ -2,7 +2,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: {{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}-basic-auth-bootstrap
+  name: {{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}-auth-bootstrap-{{ randAlphaNum 5 | lower}}
   labels:
     {{- include "langsmith.labels" . | nindent 4 }}
     {{- with.Values.backend.authBootstrap.labels }}
