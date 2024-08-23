@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.6.24](https://img.shields.io/badge/Version-0.6.24-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.6.62](https://img.shields.io/badge/AppVersion-0.6.62-informational?style=flat-square)
+![Version: 0.7.0](https://img.shields.io/badge/Version-0.7.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.7.5](https://img.shields.io/badge/AppVersion-0.7.5-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -64,7 +64,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | clickhouse.statefulSet.readinessProbe.httpGet.port | int | `8123` |  |
 | clickhouse.statefulSet.readinessProbe.periodSeconds | int | `10` |  |
 | clickhouse.statefulSet.readinessProbe.timeoutSeconds | int | `1` |  |
-| clickhouse.statefulSet.resources | object | `{}` |  |
+| clickhouse.statefulSet.resources | string | `nil` |  |
 | clickhouse.statefulSet.securityContext | object | `{}` |  |
 | clickhouse.statefulSet.sidecars | list | `[]` |  |
 | clickhouse.statefulSet.startupProbe.failureThreshold | int | `6` |  |
@@ -81,20 +81,20 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | fullnameOverride | string | `""` | String to fully override `"langsmith.fullname"` |
 | images.backendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.backendImage.repository | string | `"docker.io/langchain/langsmith-backend"` |  |
-| images.backendImage.tag | string | `"0.6.62"` |  |
+| images.backendImage.tag | string | `"0.7.5"` |  |
 | images.clickhouseImage.pullPolicy | string | `"Always"` |  |
 | images.clickhouseImage.repository | string | `"docker.io/clickhouse/clickhouse-server"` |  |
 | images.clickhouseImage.tag | string | `"24.2"` |  |
 | images.frontendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.frontendImage.repository | string | `"docker.io/langchain/langsmith-frontend"` |  |
-| images.frontendImage.tag | string | `"0.6.62"` |  |
+| images.frontendImage.tag | string | `"0.7.5"` |  |
 | images.imagePullSecrets | list | `[]` | Secrets with credentials to pull images from a private registry. Specified as name: value. |
 | images.platformBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.platformBackendImage.repository | string | `"docker.io/langchain/langsmith-go-backend"` |  |
-| images.platformBackendImage.tag | string | `"0.6.62"` |  |
+| images.platformBackendImage.tag | string | `"0.7.5"` |  |
 | images.playgroundImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.playgroundImage.repository | string | `"docker.io/langchain/langsmith-playground"` |  |
-| images.playgroundImage.tag | string | `"0.6.62"` |  |
+| images.playgroundImage.tag | string | `"0.7.5"` |  |
 | images.postgresImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.postgresImage.repository | string | `"docker.io/postgres"` |  |
 | images.postgresImage.tag | string | `"14.7"` |  |
@@ -127,11 +127,10 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | config.oauth.enabled | bool | `false` |  |
 | config.oauth.oauthClientId | string | `""` |  |
 | config.oauth.oauthIssuerUrl | string | `""` |  |
-| config.openaiApiKey | string | `""` | OpenAI API key. Optional. Only used to power natural language search feature. |
 | config.orgCreationDisabled | bool | `false` | Prevent organization creation. If using basic auth, this is set to true by default. |
-| config.ttl | object | `{"enabled":false,"ttl_period_seconds":{"longlived":"34560000","shortlived":"1209600"}}` | TTL configuration Optional. Used to set TTLS for longlived and shortlived objects. |
+| config.ttl | object | `{"enabled":true,"ttl_period_seconds":{"longlived":"34560000","shortlived":"1209600"}}` | TTL configuration Optional. Used to set TTLS for longlived and shortlived objects. |
 | config.ttl.ttl_period_seconds.longlived | string | `"34560000"` | 400 day longlived and 14 day shortlived |
-| config.workspaceScopeOrgInvitesEnabled | bool | `false` |  |
+| config.workspaceScopeOrgInvitesEnabled | bool | `false` | Enable Workspace Admins to invite users to the org and workspace. |
 
 ## Backend
 
@@ -156,12 +155,12 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | backend.autoscaling.enabled | bool | `false` |  |
 | backend.autoscaling.maxReplicas | int | `5` |  |
 | backend.autoscaling.minReplicas | int | `1` |  |
-| backend.autoscaling.targetCPUUtilizationPercentage | int | `80` |  |
+| backend.autoscaling.targetCPUUtilizationPercentage | int | `50` |  |
+| backend.autoscaling.targetMemoryUtilizationPercentage | int | `50` |  |
 | backend.clickhouseMigrations.affinity | object | `{}` |  |
 | backend.clickhouseMigrations.annotations | object | `{}` |  |
 | backend.clickhouseMigrations.command[0] | string | `"/bin/bash"` |  |
-| backend.clickhouseMigrations.command[1] | string | `"-c"` |  |
-| backend.clickhouseMigrations.command[2] | string | `"sleep 20s; migrate -source file://clickhouse/migrations -database 'clickhouse://$(CLICKHOUSE_HOST):$(CLICKHOUSE_NATIVE_PORT)?username=$(CLICKHOUSE_USER)&password=$(CLICKHOUSE_PASSWORD)&database=$(CLICKHOUSE_DB)&x-multi-statement=true&x-migrations-table-engine=MergeTree&secure=$(CLICKHOUSE_TLS)' up"` |  |
+| backend.clickhouseMigrations.command[1] | string | `"scripts/wait_for_clickhouse_and_migrate.sh"` |  |
 | backend.clickhouseMigrations.enabled | bool | `true` |  |
 | backend.clickhouseMigrations.extraContainerConfig | object | `{}` |  |
 | backend.clickhouseMigrations.extraEnv | list | `[]` |  |
@@ -207,7 +206,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | backend.deployment.readinessProbe.periodSeconds | int | `10` |  |
 | backend.deployment.readinessProbe.timeoutSeconds | int | `1` |  |
 | backend.deployment.replicas | int | `1` |  |
-| backend.deployment.resources | object | `{}` |  |
+| backend.deployment.resources | string | `nil` |  |
 | backend.deployment.securityContext | object | `{}` |  |
 | backend.deployment.sidecars | list | `[]` |  |
 | backend.deployment.startupProbe.failureThreshold | int | `6` |  |
@@ -297,7 +296,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | clickhouse.statefulSet.readinessProbe.httpGet.port | int | `8123` |  |
 | clickhouse.statefulSet.readinessProbe.periodSeconds | int | `10` |  |
 | clickhouse.statefulSet.readinessProbe.timeoutSeconds | int | `1` |  |
-| clickhouse.statefulSet.resources | object | `{}` |  |
+| clickhouse.statefulSet.resources | string | `nil` |  |
 | clickhouse.statefulSet.securityContext | object | `{}` |  |
 | clickhouse.statefulSet.sidecars | list | `[]` |  |
 | clickhouse.statefulSet.startupProbe.failureThreshold | int | `6` |  |
@@ -376,7 +375,8 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | platformBackend.autoscaling.enabled | bool | `false` |  |
 | platformBackend.autoscaling.maxReplicas | int | `5` |  |
 | platformBackend.autoscaling.minReplicas | int | `1` |  |
-| platformBackend.autoscaling.targetCPUUtilizationPercentage | int | `80` |  |
+| platformBackend.autoscaling.targetCPUUtilizationPercentage | int | `50` |  |
+| platformBackend.autoscaling.targetMemoryUtilizationPercentage | int | `50` |  |
 | platformBackend.containerPort | int | `1986` |  |
 | platformBackend.deployment.affinity | object | `{}` |  |
 | platformBackend.deployment.annotations | object | `{}` |  |
@@ -523,7 +523,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | postgres.statefulSet.readinessProbe.failureThreshold | int | `6` |  |
 | postgres.statefulSet.readinessProbe.periodSeconds | int | `10` |  |
 | postgres.statefulSet.readinessProbe.timeoutSeconds | int | `1` |  |
-| postgres.statefulSet.resources | object | `{}` |  |
+| postgres.statefulSet.resources | string | `nil` |  |
 | postgres.statefulSet.securityContext | object | `{}` |  |
 | postgres.statefulSet.sidecars | list | `[]` |  |
 | postgres.statefulSet.startupProbe.exec.command[0] | string | `"/bin/sh"` |  |
@@ -544,7 +544,8 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | queue.autoscaling.enabled | bool | `false` |  |
 | queue.autoscaling.maxReplicas | int | `10` |  |
 | queue.autoscaling.minReplicas | int | `3` |  |
-| queue.autoscaling.targetCPUUtilizationPercentage | int | `80` |  |
+| queue.autoscaling.targetCPUUtilizationPercentage | int | `50` |  |
+| queue.autoscaling.targetMemoryUtilizationPercentage | int | `50` |  |
 | queue.deployment.affinity | object | `{}` |  |
 | queue.deployment.annotations | object | `{}` |  |
 | queue.deployment.autoRestart | bool | `true` |  |
@@ -619,7 +620,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | redis.statefulSet.livenessProbe.periodSeconds | int | `10` |  |
 | redis.statefulSet.livenessProbe.timeoutSeconds | int | `1` |  |
 | redis.statefulSet.nodeSelector | object | `{}` |  |
-| redis.statefulSet.persistence.enabled | bool | `false` |  |
+| redis.statefulSet.persistence.enabled | bool | `true` |  |
 | redis.statefulSet.persistence.size | string | `"8Gi"` |  |
 | redis.statefulSet.persistence.storageClassName | string | `""` |  |
 | redis.statefulSet.podSecurityContext | object | `{}` |  |
