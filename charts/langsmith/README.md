@@ -64,7 +64,10 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | clickhouse.statefulSet.readinessProbe.httpGet.port | int | `8123` |  |
 | clickhouse.statefulSet.readinessProbe.periodSeconds | int | `10` |  |
 | clickhouse.statefulSet.readinessProbe.timeoutSeconds | int | `1` |  |
-| clickhouse.statefulSet.resources | string | `nil` |  |
+| clickhouse.statefulSet.resources.limits.cpu | string | `"8000m"` |  |
+| clickhouse.statefulSet.resources.limits.memory | string | `"32Gi"` |  |
+| clickhouse.statefulSet.resources.requests.cpu | string | `"3500m"` |  |
+| clickhouse.statefulSet.resources.requests.memory | string | `"15Gi"` |  |
 | clickhouse.statefulSet.securityContext | object | `{}` |  |
 | clickhouse.statefulSet.sidecars | list | `[]` |  |
 | clickhouse.statefulSet.startupProbe.failureThreshold | int | `6` |  |
@@ -81,20 +84,20 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | fullnameOverride | string | `""` | String to fully override `"langsmith.fullname"` |
 | images.backendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.backendImage.repository | string | `"docker.io/langchain/langsmith-backend"` |  |
-| images.backendImage.tag | string | `"0.7.5"` |  |
+| images.backendImage.tag | string | `"0.7.7"` |  |
 | images.clickhouseImage.pullPolicy | string | `"Always"` |  |
 | images.clickhouseImage.repository | string | `"docker.io/clickhouse/clickhouse-server"` |  |
 | images.clickhouseImage.tag | string | `"24.2"` |  |
 | images.frontendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.frontendImage.repository | string | `"docker.io/langchain/langsmith-frontend"` |  |
-| images.frontendImage.tag | string | `"0.7.5"` |  |
+| images.frontendImage.tag | string | `"0.7.7"` |  |
 | images.imagePullSecrets | list | `[]` | Secrets with credentials to pull images from a private registry. Specified as name: value. |
 | images.platformBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.platformBackendImage.repository | string | `"docker.io/langchain/langsmith-go-backend"` |  |
-| images.platformBackendImage.tag | string | `"0.7.5"` |  |
+| images.platformBackendImage.tag | string | `"0.7.7"` |  |
 | images.playgroundImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.playgroundImage.repository | string | `"docker.io/langchain/langsmith-playground"` |  |
-| images.playgroundImage.tag | string | `"0.7.5"` |  |
+| images.playgroundImage.tag | string | `"0.7.7"` |  |
 | images.postgresImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.postgresImage.repository | string | `"docker.io/postgres"` |  |
 | images.postgresImage.tag | string | `"14.7"` |  |
@@ -120,7 +123,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | config.basicAuth.initialOrgAdminEmail | string | `""` |  |
 | config.basicAuth.initialOrgAdminPassword | string | `""` |  |
 | config.basicAuth.jwtSecret | string | `""` |  |
-| config.blobStorage | object | `{"accessKey":"","accessKeySecret":"","apiURL":"https://s3.us-west-2.amazonaws.com","bucketName":"","chSearchEnabled":true,"enabled":false,"useAccessKey":true}` | Blob storage configuration Optional. Used to store inputs, outputs, and errors in Blob Storage. We currently support S3, GCS, and Minio as Blob Storage providers. |
+| config.blobStorage | object | `{"accessKey":"","accessKeySecret":"","apiURL":"https://s3.us-west-2.amazonaws.com","bucketName":"","chSearchEnabled":true,"enabled":false}` | Blob storage configuration Optional. Used to store inputs, outputs, and errors in Blob Storage. We currently support S3, GCS, and Minio as Blob Storage providers. |
 | config.existingSecretName | string | `""` |  |
 | config.langsmithLicenseKey | string | `""` |  |
 | config.logLevel | string | `"info"` |  |
@@ -128,6 +131,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | config.oauth.oauthClientId | string | `""` |  |
 | config.oauth.oauthIssuerUrl | string | `""` |  |
 | config.orgCreationDisabled | bool | `false` | Prevent organization creation. If using basic auth, this is set to true by default. |
+| config.personalOrgsDisabled | bool | `false` | Disable personal orgs. Users will need to be invited to an org manually. If using basic auth, this is set to true by default. |
 | config.ttl | object | `{"enabled":true,"ttl_period_seconds":{"longlived":"34560000","shortlived":"1209600"}}` | TTL configuration Optional. Used to set TTLS for longlived and shortlived objects. |
 | config.ttl.ttl_period_seconds.longlived | string | `"34560000"` | 400 day longlived and 14 day shortlived |
 | config.workspaceScopeOrgInvitesEnabled | bool | `false` | Enable Workspace Admins to invite users to the org and workspace. |
@@ -206,7 +210,10 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | backend.deployment.readinessProbe.periodSeconds | int | `10` |  |
 | backend.deployment.readinessProbe.timeoutSeconds | int | `1` |  |
 | backend.deployment.replicas | int | `1` |  |
-| backend.deployment.resources | string | `nil` |  |
+| backend.deployment.resources.limits.cpu | string | `"2000m"` |  |
+| backend.deployment.resources.limits.memory | string | `"4Gi"` |  |
+| backend.deployment.resources.requests.cpu | string | `"1000m"` |  |
+| backend.deployment.resources.requests.memory | string | `"2Gi"` |  |
 | backend.deployment.securityContext | object | `{}` |  |
 | backend.deployment.sidecars | list | `[]` |  |
 | backend.deployment.startupProbe.failureThreshold | int | `6` |  |
@@ -296,7 +303,10 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | clickhouse.statefulSet.readinessProbe.httpGet.port | int | `8123` |  |
 | clickhouse.statefulSet.readinessProbe.periodSeconds | int | `10` |  |
 | clickhouse.statefulSet.readinessProbe.timeoutSeconds | int | `1` |  |
-| clickhouse.statefulSet.resources | string | `nil` |  |
+| clickhouse.statefulSet.resources.limits.cpu | string | `"8000m"` |  |
+| clickhouse.statefulSet.resources.limits.memory | string | `"32Gi"` |  |
+| clickhouse.statefulSet.resources.requests.cpu | string | `"3500m"` |  |
+| clickhouse.statefulSet.resources.requests.memory | string | `"15Gi"` |  |
 | clickhouse.statefulSet.securityContext | object | `{}` |  |
 | clickhouse.statefulSet.sidecars | list | `[]` |  |
 | clickhouse.statefulSet.startupProbe.failureThreshold | int | `6` |  |
@@ -338,7 +348,10 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | frontend.deployment.readinessProbe.periodSeconds | int | `10` |  |
 | frontend.deployment.readinessProbe.timeoutSeconds | int | `1` |  |
 | frontend.deployment.replicas | int | `1` |  |
-| frontend.deployment.resources | object | `{}` |  |
+| frontend.deployment.resources.limits.cpu | string | `"1000m"` |  |
+| frontend.deployment.resources.limits.memory | string | `"2Gi"` |  |
+| frontend.deployment.resources.requests.cpu | string | `"500m"` |  |
+| frontend.deployment.resources.requests.memory | string | `"1Gi"` |  |
 | frontend.deployment.securityContext | object | `{}` |  |
 | frontend.deployment.sidecars | list | `[]` |  |
 | frontend.deployment.startupProbe.failureThreshold | int | `10` |  |
@@ -398,7 +411,10 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | platformBackend.deployment.readinessProbe.periodSeconds | int | `10` |  |
 | platformBackend.deployment.readinessProbe.timeoutSeconds | int | `1` |  |
 | platformBackend.deployment.replicas | int | `1` |  |
-| platformBackend.deployment.resources | object | `{}` |  |
+| platformBackend.deployment.resources.limits.cpu | string | `"1000m"` |  |
+| platformBackend.deployment.resources.limits.memory | string | `"2Gi"` |  |
+| platformBackend.deployment.resources.requests.cpu | string | `"500m"` |  |
+| platformBackend.deployment.resources.requests.memory | string | `"1Gi"` |  |
 | platformBackend.deployment.securityContext | object | `{}` |  |
 | platformBackend.deployment.sidecars | list | `[]` |  |
 | platformBackend.deployment.startupProbe.failureThreshold | int | `6` |  |
@@ -453,7 +469,10 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | playground.deployment.readinessProbe.periodSeconds | int | `10` |  |
 | playground.deployment.readinessProbe.timeoutSeconds | int | `1` |  |
 | playground.deployment.replicas | int | `1` |  |
-| playground.deployment.resources | object | `{}` |  |
+| playground.deployment.resources.limits.cpu | string | `"1000m"` |  |
+| playground.deployment.resources.limits.memory | string | `"2Gi"` |  |
+| playground.deployment.resources.requests.cpu | string | `"500m"` |  |
+| playground.deployment.resources.requests.memory | string | `"1Gi"` |  |
 | playground.deployment.securityContext | object | `{}` |  |
 | playground.deployment.sidecars | list | `[]` |  |
 | playground.deployment.startupProbe.failureThreshold | int | `6` |  |
@@ -523,7 +542,10 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | postgres.statefulSet.readinessProbe.failureThreshold | int | `6` |  |
 | postgres.statefulSet.readinessProbe.periodSeconds | int | `10` |  |
 | postgres.statefulSet.readinessProbe.timeoutSeconds | int | `1` |  |
-| postgres.statefulSet.resources | string | `nil` |  |
+| postgres.statefulSet.resources.limits.cpu | string | `"4000m"` |  |
+| postgres.statefulSet.resources.limits.memory | string | `"16Gi"` |  |
+| postgres.statefulSet.resources.requests.cpu | string | `"2000m"` |  |
+| postgres.statefulSet.resources.requests.memory | string | `"8Gi"` |  |
 | postgres.statefulSet.securityContext | object | `{}` |  |
 | postgres.statefulSet.sidecars | list | `[]` |  |
 | postgres.statefulSet.startupProbe.exec.command[0] | string | `"/bin/sh"` |  |
@@ -570,7 +592,10 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | queue.deployment.readinessProbe.periodSeconds | int | `60` |  |
 | queue.deployment.readinessProbe.timeoutSeconds | int | `30` |  |
 | queue.deployment.replicas | int | `3` |  |
-| queue.deployment.resources | object | `{}` |  |
+| queue.deployment.resources.limits.cpu | string | `"2000m"` |  |
+| queue.deployment.resources.limits.memory | string | `"4Gi"` |  |
+| queue.deployment.resources.requests.cpu | string | `"1000m"` |  |
+| queue.deployment.resources.requests.memory | string | `"2Gi"` |  |
 | queue.deployment.securityContext | object | `{}` |  |
 | queue.deployment.sidecars | list | `[]` |  |
 | queue.deployment.startupProbe.exec.command[0] | string | `"saq"` |  |
@@ -630,7 +655,10 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | redis.statefulSet.readinessProbe.failureThreshold | int | `6` |  |
 | redis.statefulSet.readinessProbe.periodSeconds | int | `10` |  |
 | redis.statefulSet.readinessProbe.timeoutSeconds | int | `1` |  |
-| redis.statefulSet.resources | object | `{}` |  |
+| redis.statefulSet.resources.limits.cpu | string | `"4000m"` |  |
+| redis.statefulSet.resources.limits.memory | string | `"8Gi"` |  |
+| redis.statefulSet.resources.requests.cpu | string | `"2000m"` |  |
+| redis.statefulSet.resources.requests.memory | string | `"4Gi"` |  |
 | redis.statefulSet.securityContext | object | `{}` |  |
 | redis.statefulSet.sidecars | list | `[]` |  |
 | redis.statefulSet.startupProbe.exec.command[0] | string | `"/bin/sh"` |  |

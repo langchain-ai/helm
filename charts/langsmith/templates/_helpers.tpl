@@ -209,6 +209,8 @@ Template containing common environment variables that are used by several servic
 {{- else }}
 - name: FF_ORG_CREATION_DISABLED
   value: {{ .Values.config.orgCreationDisabled | quote }}
+- name: FF_PERSONAL_ORGS_DISABLED
+  value: {{ .Values.config.personalOrgsDisabled | quote }}
 {{- end }}
 - name: GO_ENDPOINT
   value: http://{{- include "langsmith.fullname" . }}-{{.Values.platformBackend.name}}:{{ .Values.platformBackend.service.port }}
@@ -240,7 +242,6 @@ Template containing common environment variables that are used by several servic
   value: {{ .Values.config.blobStorage.bucketName | quote }}
 - name: S3_API_URL
   value: {{ .Values.config.blobStorage.apiURL | quote }}
-{{- if .Values.config.blobStorage.useAccessKey }}
 - name: S3_ACCESS_KEY
   valueFrom:
     secretKeyRef:
@@ -256,7 +257,6 @@ Template containing common environment variables that are used by several servic
 {{- end }}
 - name: FF_CH_SEARCH_ENABLED
   value: {{ .Values.config.blobStorage.chSearchEnabled | quote }}
-{{- end }}
 {{- end }}
 
 {{- define "backend.serviceAccountName" -}}

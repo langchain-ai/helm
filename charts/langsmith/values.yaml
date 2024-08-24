@@ -17,19 +17,19 @@ images:
   backendImage:
     repository: "docker.io/langchain/langsmith-backend"
     pullPolicy: IfNotPresent
-    tag: "0.7.5"
+    tag: "0.7.7"
   frontendImage:
     repository: "docker.io/langchain/langsmith-frontend"
     pullPolicy: IfNotPresent
-    tag: "0.7.5"
+    tag: "0.7.7"
   platformBackendImage:
     repository: "docker.io/langchain/langsmith-go-backend"
     pullPolicy: IfNotPresent
-    tag: "0.7.5"
+    tag: "0.7.7"
   playgroundImage:
     repository: "docker.io/langchain/langsmith-playground"
     pullPolicy: IfNotPresent
-    tag: "0.7.5"
+    tag: "0.7.7"
   postgresImage:
     repository: "docker.io/postgres"
     pullPolicy: IfNotPresent
@@ -78,6 +78,8 @@ config:
     jwtSecret: ""
   # -- Prevent organization creation. If using basic auth, this is set to true by default.
   orgCreationDisabled: false
+  # -- Disable personal orgs. Users will need to be invited to an org manually. If using basic auth, this is set to true by default.
+  personalOrgsDisabled: false
   # -- Enable Workspace Admins to invite users to the org and workspace.
   workspaceScopeOrgInvitesEnabled: false
   oauth:
@@ -102,7 +104,6 @@ config:
     chSearchEnabled: true
     # If you are using workload identity, you may not need to store the S3 credentials in the secrets.
     # Instead, you will need to add the workload identity annotation to the backend and queue service accounts.
-    useAccessKey: true
     accessKey: ""
     accessKeySecret: ""
     bucketName: ""
@@ -120,12 +121,12 @@ backend:
     podSecurityContext: {}
     securityContext: {}
     resources:
-#      limits:
-#        cpu: 2000m
-#        memory: 4Gi
-#      requests:
-#        cpu: 1000m
-#        memory: 2000Mi
+      limits:
+        cpu: 2000m
+        memory: 4Gi
+      requests:
+        cpu: 1000m
+        memory: 2Gi
     command:
       - "uvicorn"
       - "app.main:app"
@@ -285,12 +286,19 @@ clickhouse:
     podSecurityContext: {}
     securityContext: {}
     resources:
+# For a production environment, we recommend increasing the CPU and memory limits to something like 16 cores and 64Gi.
 #      limits:
 #        cpu: 16000m
 #        memory: 64Gi
 #      requests:
 #        cpu: 8000m
 #        memory: 32Gi
+      limits:
+        cpu: 8000m
+        memory: 32Gi
+      requests:
+        cpu: 3500m
+        memory: 15Gi
     command:
       - "/bin/bash"
       - "-c"
@@ -358,13 +366,13 @@ frontend:
     annotations: {}
     podSecurityContext: {}
     securityContext: {}
-    resources: {}
-#      limits:
-#        cpu: 1000m
-#        memory: 2Gi
-#      requests:
-#        cpu: 500m
-#        memory: 1Gi
+    resources:
+      limits:
+        cpu: 1000m
+        memory: 2Gi
+      requests:
+        cpu: 500m
+        memory: 1Gi
     command:
       - "/entrypoint.sh"
     startupProbe:
@@ -418,6 +426,77 @@ frontend:
     labels: {}
     annotations: {}
 
+platformBackend:
+  name: "platform-backend"
+  containerPort: 1986
+  existingConfigMapName: ""
+  deployment:
+    autoRestart: true
+    replicas: 1
+    labels: {}
+    annotations: {}
+    podSecurityContext: {}
+    securityContext: {}
+    resources:
+      limits:
+        cpu: 1000m
+        memory: 2Gi
+      requests:
+        cpu: 500m
+        memory: 1Gi
+    command:
+      - "./smith-go"
+    startupProbe:
+      httpGet:
+        path: /ok
+        port: 1986
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 1
+    livenessProbe:
+      httpGet:
+        path: /ok
+        port: 1986
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 1
+    readinessProbe:
+      httpGet:
+        path: /ok
+        port: 1986
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 1
+    extraContainerConfig: {}
+    extraEnv: []
+    sidecars: []
+    nodeSelector: {}
+    tolerations: []
+    affinity: {}
+    volumes: []
+    volumeMounts: []
+  autoscaling:
+    enabled: false
+    # If enabled, use the following values to configure the HPA. You can also use your own HPA configuration by not creating an HPA.
+    # You may want to manage the HPA yourself if you have a custom autoscaling setup like KEDA.
+    createHpa: true
+    minReplicas: 1
+    maxReplicas: 5
+    targetCPUUtilizationPercentage: 50
+    targetMemoryUtilizationPercentage: 50
+  service:
+    type: ClusterIP
+    port: 1986
+    labels: {}
+    annotations: {}
+    loadBalancerSourceRanges: []
+    loadBalancerIP: ""
+  serviceAccount:
+    create: true
+    name: ""
+    labels: {}
+    annotations: {}
+
 playground:
   name: "playground"
   containerPort: 3001
@@ -428,13 +507,13 @@ playground:
     annotations: {}
     podSecurityContext: {}
     securityContext: {}
-    resources: {}
-#      limits:
-#        cpu: 1000m
-#        memory: 2Gi
-#      requests:
-#        cpu: 500m
-#        memory: 1Gi
+    resources:
+      limits:
+        cpu: 1000m
+        memory: 2Gi
+      requests:
+        cpu: 500m
+        memory: 1Gi
     command:
       - "yarn"
       - "start"
@@ -511,12 +590,13 @@ postgres:
     podSecurityContext: {}
     securityContext: {}
     resources:
-#      limits:
-#        cpu: 4000m
-#        memory: 16Gi
-#      requests:
-#        cpu: 2000m
-#        memory: 8Gi
+      # In a production environment, we strongly recommend an external Postgres database.
+      limits:
+        cpu: 4000m
+        memory: 16Gi
+      requests:
+        cpu: 2000m
+        memory: 8Gi
     command: []
     startupProbe:
       exec:
@@ -578,13 +658,13 @@ queue:
     annotations: {}
     podSecurityContext: {}
     securityContext: {}
-    resources: {}
-#      limits:
-#        cpu: 2000m
-#        memory: 4Gi
-#      requests:
-#        cpu: 1000m
-#        memory: 2000Mi
+    resources:
+      limits:
+        cpu: 2000m
+        memory: 4Gi
+      requests:
+        cpu: 1000m
+        memory: 2Gi
     command:
       - "saq"
       - "app.workers.queues.single_queue_worker.settings"
@@ -639,77 +719,6 @@ queue:
     labels: {}
     annotations: {}
 
-platformBackend:
-  name: "platform-backend"
-  containerPort: 1986
-  existingConfigMapName: ""
-  deployment:
-    autoRestart: true
-    replicas: 1
-    labels: {}
-    annotations: {}
-    podSecurityContext: {}
-    securityContext: {}
-    resources: {}
-#      limits:
-#        cpu: 1000m
-#        memory: 2Gi
-#      requests:
-#        cpu: 500m
-#        memory: 1Gi
-    command:
-      - "./smith-go"
-    startupProbe:
-      httpGet:
-        path: /ok
-        port: 1986
-      failureThreshold: 6
-      periodSeconds: 10
-      timeoutSeconds: 1
-    livenessProbe:
-      httpGet:
-        path: /ok
-        port: 1986
-      failureThreshold: 6
-      periodSeconds: 10
-      timeoutSeconds: 1
-    readinessProbe:
-      httpGet:
-        path: /ok
-        port: 1986
-      failureThreshold: 6
-      periodSeconds: 10
-      timeoutSeconds: 1
-    extraContainerConfig: {}
-    extraEnv: []
-    sidecars: []
-    nodeSelector: {}
-    tolerations: []
-    affinity: {}
-    volumes: []
-    volumeMounts: []
-  autoscaling:
-    enabled: false
-    # If enabled, use the following values to configure the HPA. You can also use your own HPA configuration by not creating an HPA.
-    # You may want to manage the HPA yourself if you have a custom autoscaling setup like KEDA.
-    createHpa: true
-    minReplicas: 1
-    maxReplicas: 5
-    targetCPUUtilizationPercentage: 50
-    targetMemoryUtilizationPercentage: 50
-  service:
-    type: ClusterIP
-    port: 1986
-    labels: {}
-    annotations: {}
-    loadBalancerSourceRanges: []
-    loadBalancerIP: ""
-  serviceAccount:
-    create: true
-    name: ""
-    labels: {}
-    annotations: {}
-
 redis:
   name: "redis"
   external:
@@ -724,13 +733,14 @@ redis:
     annotations: {}
     podSecurityContext: {}
     securityContext: {}
-    resources: {}
-#      limits:
-#        cpu: 4000m
-#        memory: 8Gi
-#      requests:
-#        cpu: 2000m
-#        memory: 4Gi
+    # In a production environment, we strongly recommend an external Redis database.
+    resources:
+      limits:
+        cpu: 4000m
+        memory: 8Gi
+      requests:
+        cpu: 2000m
+        memory: 4Gi
     command: []
     startupProbe:
       exec:

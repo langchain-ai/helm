@@ -18,6 +18,7 @@ metadata:
     {{- end }}
 spec:
   backoffLimit: 3
+  ttlSecondsAfterFinished: 600
   template:
     metadata:
       {{- with .Values.backend.migrations.annotations }}
