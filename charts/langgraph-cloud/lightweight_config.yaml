@@ -1,0 +1,11 @@
+# Lightweight configuration. Only use this if you are running Langsmith in a development environment.
+config:
+  langGraphCloudLicenseKey: "YOUR_LICENSE_KEY"
+
+apiServer:
+  deployment:
+    resources: {}
+
+postgres:
+  statefulSet:
+    resources: {}
