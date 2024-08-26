@@ -194,12 +194,6 @@ Template containing common environment variables that are used by several servic
     secretKeyRef:
       name: {{ include "langsmith.secretsName" . }}
       key: api_key_salt
-- name: OPENAI_API_KEY
-  valueFrom:
-    secretKeyRef:
-      name: {{ include "langsmith.secretsName" . }}
-      key: openai_api_key
-      optional: true
 - name: BASIC_AUTH_ENABLED
   value: {{ .Values.config.basicAuth.enabled | quote }}
 {{- if .Values.config.basicAuth.enabled }}
@@ -212,6 +206,11 @@ Template containing common environment variables that are used by several servic
   value: "true"
 - name: FF_PERSONAL_ORGS_DISABLED
   value: "true"
+{{- else }}
+- name: FF_ORG_CREATION_DISABLED
+  value: {{ .Values.config.orgCreationDisabled | quote }}
+- name: FF_PERSONAL_ORGS_DISABLED
+  value: {{ .Values.config.personalOrgsDisabled | quote }}
 {{- end }}
 - name: GO_ENDPOINT
   value: http://{{- include "langsmith.fullname" . }}-{{.Values.platformBackend.name}}:{{ .Values.platformBackend.service.port }}
@@ -234,10 +233,6 @@ Template containing common environment variables that are used by several servic
 - name: FF_WORKSPACE_SCOPE_ORG_INVITES_ENABLED
   value: {{ .Values.config.workspaceScopeOrgInvitesEnabled | quote }}
 {{- end }}
-{{- if and .Values.config.orgCreationDisabled (not .Values.config.basicAuth.enabled) }}
-- name: FF_ORG_CREATION_DISABLED
-  value: {{ .Values.config.orgCreationDisabled | quote }}
-{{- end }}
 {{- if .Values.config.blobStorage.enabled }}
 - name: FF_S3_STORAGE_ENABLED
   value: {{ .Values.config.blobStorage.enabled | quote }}
@@ -247,7 +242,6 @@ Template containing common environment variables that are used by several servic
   value: {{ .Values.config.blobStorage.bucketName | quote }}
 - name: S3_API_URL
   value: {{ .Values.config.blobStorage.apiURL | quote }}
-{{- if .Values.config.blobStorage.useAccessKey }}
 - name: S3_ACCESS_KEY
   valueFrom:
     secretKeyRef:
@@ -263,7 +257,6 @@ Template containing common environment variables that are used by several servic
 {{- end }}
 - name: FF_CH_SEARCH_ENABLED
   value: {{ .Values.config.blobStorage.chSearchEnabled | quote }}
-{{- end }}
 {{- end }}
 
 {{- define "backend.serviceAccountName" -}}

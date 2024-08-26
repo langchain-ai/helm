@@ -1,7 +1,6 @@
 config:
   langsmithLicenseKey: "YOUR_LICENSE_KEY"
   apiKeySalt: "YOUR_API_KEY_SALT"
-  openaiApiKey: "YOUR OPENAI API KEY"
   oauth:
     enabled: true
     oauthClientId: "YOUR_CLIENT_ID"
@@ -11,62 +10,82 @@ config:
 backend:
   deployment:
     resources:
+      limits:
+        cpu: 2000m
+        memory: 4Gi
       requests:
-        cpu: "500m"
-        memory: "1000Mi"
+        cpu: 1000m
+        memory: 2000Mi
   autoscaling:
     enabled: true
-    minReplicas: 1
+    minReplicas: 3
     maxReplicas: 10
     targetCPUUtilizationPercentage: 50
+    targetMemoryUtilizationPercentage: 50
 
 frontend:
   deployment:
     resources:
+      limits:
+        cpu: 1000m
+        memory: 2Gi
       requests:
-        cpu: "500m"
-        memory: "1000Mi"
+        cpu: 500m
+        memory: 1Gi
   autoscaling:
     enabled: true
     minReplicas: 1
     maxReplicas: 10
     targetCPUUtilizationPercentage: 50
+    targetMemoryUtilizationPercentage: 50
 
 platformBackend:
   deployment:
     resources:
+      limits:
+        cpu: 1000m
+        memory: 2Gi
       requests:
-        cpu: "500m"
-        memory: "1000Mi"
+        cpu: 500m
+        memory: 1Gi
   autoscaling:
     enabled: true
     minReplicas: 1
     maxReplicas: 10
     targetCPUUtilizationPercentage: 50
+    targetMemoryUtilizationPercentage: 50
 
 playground:
   deployment:
     resources:
+      limits:
+        cpu: 1000m
+        memory: 2Gi
       requests:
-        cpu: "500m"
-        memory: "1000Mi"
+        cpu: 500m
+        memory: 1Gi
   autoscaling:
     enabled: true
     minReplicas: 1
     maxReplicas: 10
     targetCPUUtilizationPercentage: 50
+    targetMemoryUtilizationPercentage: 50
 
 queue:
   deployment:
     resources:
+      limits:
+        cpu: 2000m
+        memory: 4Gi
       requests:
-        cpu: "1000m"
-        memory: "4Gi"
+        cpu: 1000m
+        memory: 2Gi
   autoscaling:
       enabled: true
       minReplicas: 3
       maxReplicas: 10
       targetCPUUtilizationPercentage: 50
+      targetMemoryUtilizationPercentage: 50
 
 # We suggest using an external database for production use cases.
 postgres:
@@ -85,8 +104,11 @@ redis:
 clickhouse:
   statefulSet:
     resources:
+      limits:
+        cpu: 8000m
+        memory: 32Gi
       requests:
-        cpu: "2000m"
-        memory: "8Gi"
+        cpu: 3500m
+        memory: 15Gi
     persistence:
-      size: "50Gi"
+      size: "500Gi"

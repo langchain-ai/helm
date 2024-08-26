@@ -1,1 +1,26 @@
-This is the LangSmith application helm chart. All pods should be running!
+Thank you for installing LangSmith!
+
+This is the LangSmith application helm chart. All pods should be running! You can access the LangSmith UI by running the following command:
+
+  kubectl port-forward svc/langsmith-frontend 8080:80
+
+Then you can access the LangSmith UI at http://localhost:8080
+
+By default, LangSmith will also provision a LoadBalancer service for the LangSmith Frontend. You can access the LangSmith API by running the following command:
+
+  kubectl get svc langsmith-frontend
+
+Then you can access the LangSmith API at http://<EXTERNAL-IP>.
+
+Depending on your cloud provider, this LoadBalancer may be provisioned with a public IP address. Make sure to review your LoadBalancer configuration to ensure it meets your security requirements.
+
+{{- if not (or .Values.config.oauth.enabled .Values.config.basicAuth.enabled) }}
+Your LangSmith instance is now running but has not yet been secured.
+
+In this state, there is no authentication or concept of user accounts nor API keys and traces can be submitted directly without an API key so long as the hostname is passed to the LangChain tracer/LangSmith SDK.
+
+As a next step, it is strongly recommended you work with your infrastructure administrators to:
+- Setup DNS for your LangSmith instance to enable easier access.
+- Configure SSL to ensure in-transit encryption of traces submitted to LangSmith
+- Configure LangSmith for oauth authentication (link to doc) or basic authentication (link to doc) to secure your LangSmith instance
+{{- end }}
