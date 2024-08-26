@@ -239,7 +239,7 @@ the same format as the secret in the corresponding `secrets.yaml` file. Note: AP
 | apiServer.deployment.resources.limits.cpu | string | `"2000m"` |  |
 | apiServer.deployment.resources.limits.memory | string | `"4Gi"` |  |
 | apiServer.deployment.resources.requests.cpu | string | `"1000m"` |  |
-| apiServer.deployment.resources.requests.memory | string | `"2GI"` |  |
+| apiServer.deployment.resources.requests.memory | string | `"2Gi"` |  |
 | apiServer.deployment.securityContext | object | `{}` |  |
 | apiServer.deployment.sidecars | list | `[]` |  |
 | apiServer.deployment.tolerations | list | `[]` |  |

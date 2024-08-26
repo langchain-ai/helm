@@ -10,12 +10,6 @@ backend:
       requests:
         cpu: 100m
         memory: 500Mi
-  autoscaling:
-    enabled: true
-    minReplicas: 3
-    maxReplicas: 10
-    targetCPUUtilizationPercentage: 50
-    targetMemoryUtilizationPercentage: 50
 
 frontend:
   deployment:
@@ -23,12 +17,6 @@ frontend:
       requests:
         cpu: 100m
         memory: 500Mi
-  autoscaling:
-    enabled: true
-    minReplicas: 1
-    maxReplicas: 10
-    targetCPUUtilizationPercentage: 50
-    targetMemoryUtilizationPercentage: 50
 
 platformBackend:
   deployment:
@@ -36,12 +24,6 @@ platformBackend:
       requests:
         cpu: 100m
         memory: 500Mi
-  autoscaling:
-    enabled: true
-    minReplicas: 1
-    maxReplicas: 10
-    targetCPUUtilizationPercentage: 50
-    targetMemoryUtilizationPercentage: 50
 
 playground:
   deployment:
@@ -49,43 +31,32 @@ playground:
       requests:
         cpu: 100m
         memory: 500Mi
-  autoscaling:
-    enabled: true
-    minReplicas: 1
-    maxReplicas: 10
-    targetCPUUtilizationPercentage: 50
-    targetMemoryUtilizationPercentage: 50
 
 queue:
+  replicas: 1
   deployment:
     resources:
       requests:
         cpu: 100m
         memory: 500Mi
-  autoscaling:
-      enabled: true
-      minReplicas: 3
-      maxReplicas: 10
-      targetCPUUtilizationPercentage: 50
-      targetMemoryUtilizationPercentage: 50
 
 postgres:
   statefulSet:
     resources:
       requests:
-        cpu: 500m
-        memory: 1000Mi
+        cpu: 200m
+        memory: 500Mi
 
 redis:
   statefulSet:
     resources:
       requests:
-        cpu: 500m
-        memory: 1000Mi
+        cpu: 200m
+        memory: 500Mi
 
 clickhouse:
   statefulSet:
     resources:
       requests:
-        cpu: 500m
-        memory: 1000Mi
+        cpu: 200m
+        memory: 500Mi
