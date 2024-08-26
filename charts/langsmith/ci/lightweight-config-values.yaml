@@ -3,7 +3,7 @@ config:
   langsmithLicenseKey: "YOUR_LICENSE_KEY"
   apiKeySalt: "YOUR_API_KEY_SALT"
 
-# Note, you likely should tweak the values to match your needs
+# Note, you likely should tweak the values to match something that fits your local development environment.
 backend:
   deployment:
     resources:
