@@ -4,8 +4,14 @@ config:
 
 apiServer:
   deployment:
-    resources: {}
+    resources:
+      requests:
+        cpu: 100m
+        memory: 500Mi
 
 postgres:
   statefulSet:
-    resources: {}
+    resources:
+      requests:
+        cpu: 500m
+        memory: 1000Mi
