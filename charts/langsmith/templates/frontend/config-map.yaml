@@ -87,8 +87,24 @@ data:
             proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}:{{ .Values.backend.service.port }};
         }
 
-        location = /{{ .Values.ingress.subdomain }}/docs {
+        location = /{{ .Values.ingress.subdomain }}/api/docs {
             rewrite /{{ .Values.ingress.subdomain }}/docs /api/v1/docs  break;
+            proxy_set_header Connection '';
+            proxy_http_version 1.1;
+            proxy_buffering off;
+            proxy_cache off;
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}:{{ .Values.backend.service.port }};
+        }
+
+        location = /{{ .Values.ingress.subdomain }}/api/redoc {
+            proxy_set_header Connection '';
+            proxy_http_version 1.1;
+            proxy_buffering off;
+            proxy_cache off;
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}:{{ .Values.backend.service.port }};
+        }
+
+        location = /{{ .Values.ingress.subdomain }}/api/openapi.json {
             proxy_set_header Connection '';
             proxy_http_version 1.1;
             proxy_buffering off;
