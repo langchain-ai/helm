@@ -49,6 +49,11 @@ spec:
                 secretKeyRef:
                   name: {{ include "langGraphCloud.postgresSecretsName" . }}
                   key: postgres_connection_url
+            - name: REDIS_URI
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "langGraphCloud.redisSecretsName" . }}
+                  key: redis_connection_url
             - name: LANGGRAPH_CLOUD_LICENSE_KEY
               valueFrom:
                 secretKeyRef:

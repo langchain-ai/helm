@@ -1,0 +1,102 @@
+{{- if not .Values.redis.external.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "langGraphCloud.fullname" . }}-{{ .Values.redis.name }}
+  labels:
+    {{- include "langGraphCloud.labels" . | nindent 4 }}
+    {{- with.Values.redis.deployment.labels }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+  annotations:
+    {{- include "langGraphCloud.annotations" . | nindent 4 }}
+    {{- with.Values.redis.deployment.annotations }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "langGraphCloud.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: {{ include "langGraphCloud.fullname" . }}-{{ .Values.redis.name }}
+  template:
+    metadata:
+      {{- with .Values.redis.deployment.annotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- with.Values.redis.deployment.labels }}
+            {{- toYaml . | nindent 8 }}
+        {{- end }}
+        {{- include "langGraphCloud.labels" . | nindent 8 }}
+        app.kubernetes.io/component: {{ include "langGraphCloud.fullname" . }}-{{ .Values.redis.name }}
+    spec:
+      {{- with .Values.images.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.redis.deployment.podSecurityContext | nindent 8 }}
+      serviceAccountName: {{ include "redis.serviceAccountName" . }}
+      containers:
+        - name: {{ .Values.redis.name }}
+          {{- with.Values.redis.deployment.command }}
+          command:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- if .Values.redis.deployment.extraEnv }}
+          env:
+            {{- with .Values.redis.deployment.extraEnv}}
+             {{- toYaml . | nindent 12 }}
+            {{- end }}
+           {{- end }}
+          image: "{{ .Values.images.redisImage.repository }}:{{ .Values.images.redisImage.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.images.redisImage.pullPolicy }}
+          ports:
+            - name: redis
+              containerPort: {{ .Values.redis.containerPort }}
+              protocol: TCP
+          {{- with .Values.redis.deployment.startupProbe }}
+          startupProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.redis.deployment.livenessProbe }}
+          livenessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.redis.deployment.readinessProbe }}
+          readinessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          resources:
+            {{- toYaml .Values.redis.deployment.resources | nindent 12 }}
+          securityContext:
+            {{- toYaml .Values.redis.deployment.securityContext | nindent 12 }}
+          {{- with .Values.redis.deployment.volumeMounts }}
+          volumeMounts:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+        {{- with .Values.redis.deployment.extraContainerConfig }}
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+        {{- with .Values.redis.deployment.sidecars }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- with .Values.redis.deployment.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.redis.deployment.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.redis.deployment.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.redis.deployment.volumes }}
+      volumes:
+          {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}

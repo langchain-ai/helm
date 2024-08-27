@@ -21,6 +21,10 @@ images:
     repository: "docker.io/postgres"
     pullPolicy: IfNotPresent
     tag: "16"
+  redisImage:
+    repository: "docker.io/redis"
+    pullPolicy: IfNotPresent
+    tag: "6"
 
 config:
   existingSecretName: ""
@@ -122,6 +126,76 @@ postgres:
   service:
     type: ClusterIP
     port: 5432
+    labels: {}
+    annotations: {}
+    loadBalancerSourceRanges: []
+    loadBalancerIP: ""
+  serviceAccount:
+    create: true
+    name: ""
+    labels: {}
+    annotations: {}
+
+redis:
+  name: "redis"
+  external:
+    # If enabled, use the following values to connect to an external redis instance. This will also disable the
+    # creation of a redis stateful-set and service.
+    enabled: false
+    connectionUrl: ""
+    existingSecretName: ""
+  containerPort: 6379
+  deployment:
+    labels: {}
+    annotations: {}
+    podSecurityContext: {}
+    securityContext: {}
+    resources:
+      limits:
+        cpu: 2000m
+        memory: 4Gi
+      requests:
+        cpu: 1000m
+        memory: 2Gi
+    command: []
+    startupProbe:
+      exec:
+        command:
+          - /bin/sh
+          - -c
+          - exec redis-cli ping
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 1
+    readinessProbe:
+      exec:
+        command:
+          - /bin/sh
+          - -c
+          - exec redis-cli ping
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 1
+    livenessProbe:
+      exec:
+        command:
+          - /bin/sh
+          - -c
+          - exec redis-cli ping
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 1
+    extraContainerConfig: {}
+    extraEnv: []
+    sidecars: []
+    nodeSelector: {}
+    tolerations: []
+    affinity: {}
+    volumes: []
+    volumeMounts: []
+  service:
+    type: ClusterIP
+    port: 6379
     labels: {}
     annotations: {}
     loadBalancerSourceRanges: []
