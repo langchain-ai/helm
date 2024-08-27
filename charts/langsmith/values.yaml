@@ -205,7 +205,7 @@ backend:
     #        cpu: 1000m
     #        memory: 1Gi
     #      requests:
-    #        cpu: 200m.
+    #        cpu: 200m
     #        memory: 500Mi
     command:
       - "python"
