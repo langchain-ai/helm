@@ -213,6 +213,41 @@ the same format as the secret in the corresponding `secrets.yaml` file. Note: AP
 | ingress.tls | list | `[]` |  |
 | nameOverride | string | `""` | Provide a name in place of `langgraph-cloud` for the chart |
 | redis.containerPort | int | `6379` |  |
+| redis.deployment.affinity | object | `{}` |  |
+| redis.deployment.annotations | object | `{}` |  |
+| redis.deployment.command | list | `[]` |  |
+| redis.deployment.extraContainerConfig | object | `{}` |  |
+| redis.deployment.extraEnv | list | `[]` |  |
+| redis.deployment.labels | object | `{}` |  |
+| redis.deployment.livenessProbe.exec.command[0] | string | `"/bin/sh"` |  |
+| redis.deployment.livenessProbe.exec.command[1] | string | `"-c"` |  |
+| redis.deployment.livenessProbe.exec.command[2] | string | `"exec redis-cli ping"` |  |
+| redis.deployment.livenessProbe.failureThreshold | int | `6` |  |
+| redis.deployment.livenessProbe.periodSeconds | int | `10` |  |
+| redis.deployment.livenessProbe.timeoutSeconds | int | `1` |  |
+| redis.deployment.nodeSelector | object | `{}` |  |
+| redis.deployment.podSecurityContext | object | `{}` |  |
+| redis.deployment.readinessProbe.exec.command[0] | string | `"/bin/sh"` |  |
+| redis.deployment.readinessProbe.exec.command[1] | string | `"-c"` |  |
+| redis.deployment.readinessProbe.exec.command[2] | string | `"exec redis-cli ping"` |  |
+| redis.deployment.readinessProbe.failureThreshold | int | `6` |  |
+| redis.deployment.readinessProbe.periodSeconds | int | `10` |  |
+| redis.deployment.readinessProbe.timeoutSeconds | int | `1` |  |
+| redis.deployment.resources.limits.cpu | string | `"2000m"` |  |
+| redis.deployment.resources.limits.memory | string | `"4Gi"` |  |
+| redis.deployment.resources.requests.cpu | string | `"1000m"` |  |
+| redis.deployment.resources.requests.memory | string | `"2Gi"` |  |
+| redis.deployment.securityContext | object | `{}` |  |
+| redis.deployment.sidecars | list | `[]` |  |
+| redis.deployment.startupProbe.exec.command[0] | string | `"/bin/sh"` |  |
+| redis.deployment.startupProbe.exec.command[1] | string | `"-c"` |  |
+| redis.deployment.startupProbe.exec.command[2] | string | `"exec redis-cli ping"` |  |
+| redis.deployment.startupProbe.failureThreshold | int | `6` |  |
+| redis.deployment.startupProbe.periodSeconds | int | `10` |  |
+| redis.deployment.startupProbe.timeoutSeconds | int | `1` |  |
+| redis.deployment.tolerations | list | `[]` |  |
+| redis.deployment.volumeMounts | list | `[]` |  |
+| redis.deployment.volumes | list | `[]` |  |
 | redis.external.connectionUrl | string | `""` |  |
 | redis.external.enabled | bool | `false` |  |
 | redis.external.existingSecretName | string | `""` |  |
@@ -227,44 +262,6 @@ the same format as the secret in the corresponding `secrets.yaml` file. Note: AP
 | redis.serviceAccount.create | bool | `true` |  |
 | redis.serviceAccount.labels | object | `{}` |  |
 | redis.serviceAccount.name | string | `""` |  |
-| redis.statefulSet.affinity | object | `{}` |  |
-| redis.statefulSet.annotations | object | `{}` |  |
-| redis.statefulSet.command | list | `[]` |  |
-| redis.statefulSet.extraContainerConfig | object | `{}` |  |
-| redis.statefulSet.extraEnv | list | `[]` |  |
-| redis.statefulSet.labels | object | `{}` |  |
-| redis.statefulSet.livenessProbe.exec.command[0] | string | `"/bin/sh"` |  |
-| redis.statefulSet.livenessProbe.exec.command[1] | string | `"-c"` |  |
-| redis.statefulSet.livenessProbe.exec.command[2] | string | `"exec redis-cli ping"` |  |
-| redis.statefulSet.livenessProbe.failureThreshold | int | `6` |  |
-| redis.statefulSet.livenessProbe.periodSeconds | int | `10` |  |
-| redis.statefulSet.livenessProbe.timeoutSeconds | int | `1` |  |
-| redis.statefulSet.nodeSelector | object | `{}` |  |
-| redis.statefulSet.persistence.enabled | bool | `false` |  |
-| redis.statefulSet.persistence.size | string | `"8Gi"` |  |
-| redis.statefulSet.persistence.storageClassName | string | `""` |  |
-| redis.statefulSet.podSecurityContext | object | `{}` |  |
-| redis.statefulSet.readinessProbe.exec.command[0] | string | `"/bin/sh"` |  |
-| redis.statefulSet.readinessProbe.exec.command[1] | string | `"-c"` |  |
-| redis.statefulSet.readinessProbe.exec.command[2] | string | `"exec redis-cli ping"` |  |
-| redis.statefulSet.readinessProbe.failureThreshold | int | `6` |  |
-| redis.statefulSet.readinessProbe.periodSeconds | int | `10` |  |
-| redis.statefulSet.readinessProbe.timeoutSeconds | int | `1` |  |
-| redis.statefulSet.resources.limits.cpu | string | `"2000m"` |  |
-| redis.statefulSet.resources.limits.memory | string | `"4Gi"` |  |
-| redis.statefulSet.resources.requests.cpu | string | `"1000m"` |  |
-| redis.statefulSet.resources.requests.memory | string | `"2Gi"` |  |
-| redis.statefulSet.securityContext | object | `{}` |  |
-| redis.statefulSet.sidecars | list | `[]` |  |
-| redis.statefulSet.startupProbe.exec.command[0] | string | `"/bin/sh"` |  |
-| redis.statefulSet.startupProbe.exec.command[1] | string | `"-c"` |  |
-| redis.statefulSet.startupProbe.exec.command[2] | string | `"exec redis-cli ping"` |  |
-| redis.statefulSet.startupProbe.failureThreshold | int | `6` |  |
-| redis.statefulSet.startupProbe.periodSeconds | int | `10` |  |
-| redis.statefulSet.startupProbe.timeoutSeconds | int | `1` |  |
-| redis.statefulSet.tolerations | list | `[]` |  |
-| redis.statefulSet.volumeMounts | list | `[]` |  |
-| redis.statefulSet.volumes | list | `[]` |  |
 
 ## Configs
 

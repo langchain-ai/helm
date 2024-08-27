@@ -73,18 +73,9 @@ spec:
             {{- toYaml .Values.redis.deployment.resources | nindent 12 }}
           securityContext:
             {{- toYaml .Values.redis.deployment.securityContext | nindent 12 }}
-          {{- if .Values.redis.deployment.persistence.enabled }}
-          volumeMounts:
-            - mountPath: /data
-              name: data
-            {{- with .Values.redis.deployment.volumeMounts }}
-              {{- toYaml . | nindent 12 }}
-            {{- end }}
-          {{- else }}
           {{- with .Values.redis.deployment.volumeMounts }}
           volumeMounts:
             {{- toYaml . | nindent 12 }}
-          {{- end }}
           {{- end }}
         {{- with .Values.redis.deployment.extraContainerConfig }}
           {{- toYaml . | nindent 10 }}
