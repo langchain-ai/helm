@@ -22,5 +22,5 @@ In this state, there is no authentication or concept of user accounts nor API ke
 As a next step, it is strongly recommended you work with your infrastructure administrators to:
 - Setup DNS for your LangSmith instance to enable easier access.
 - Configure SSL to ensure in-transit encryption of traces submitted to LangSmith
-- Configure LangSmith for oauth authentication (link to doc) or basic authentication (link to doc) to secure your LangSmith instance
+- Configure LangSmith for oauth authentication (oauth authentication](https://docs.smith.langchain.com/self_hosting/configuration/sso) or basic authentication (https://docs.smith.langchain.com/self_hosting/configuration/sso) to secure your LangSmith instance
 {{- end }}
