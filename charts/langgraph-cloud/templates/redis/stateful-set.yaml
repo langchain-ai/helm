@@ -1,20 +1,19 @@
 {{- if not .Values.redis.external.enabled }}
 apiVersion: apps/v1
-kind: StatefulSet
+kind: Deployment
 metadata:
   name: {{ include "langGraphCloud.fullname" . }}-{{ .Values.redis.name }}
   labels:
     {{- include "langGraphCloud.labels" . | nindent 4 }}
-    {{- with.Values.redis.statefulSet.labels }}
+    {{- with.Values.redis.deployment.labels }}
       {{- toYaml . | nindent 4 }}
     {{- end }}
   annotations:
     {{- include "langGraphCloud.annotations" . | nindent 4 }}
-    {{- with.Values.redis.statefulSet.annotations }}
+    {{- with.Values.redis.deployment.annotations }}
       {{- toYaml . | nindent 4 }}
     {{- end }}
 spec:
-  serviceName: {{ include "langGraphCloud.fullname" . }}-{{ .Values.redis.name }}
   replicas: 1
   selector:
     matchLabels:
@@ -22,12 +21,12 @@ spec:
       app.kubernetes.io/component: {{ include "langGraphCloud.fullname" . }}-{{ .Values.redis.name }}
   template:
     metadata:
-      {{- with .Values.redis.statefulSet.annotations }}
+      {{- with .Values.redis.deployment.annotations }}
       annotations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       labels:
-        {{- with.Values.redis.statefulSet.labels }}
+        {{- with.Values.redis.deployment.labels }}
             {{- toYaml . | nindent 8 }}
         {{- end }}
         {{- include "langGraphCloud.labels" . | nindent 8 }}
@@ -38,17 +37,17 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       securityContext:
-        {{- toYaml .Values.redis.statefulSet.podSecurityContext | nindent 8 }}
+        {{- toYaml .Values.redis.deployment.podSecurityContext | nindent 8 }}
       serviceAccountName: {{ include "redis.serviceAccountName" . }}
       containers:
         - name: {{ .Values.redis.name }}
-          {{- with.Values.redis.statefulSet.command }}
+          {{- with.Values.redis.deployment.command }}
           command:
             {{- toYaml . | nindent 12 }}
           {{- end }}
-          {{- if .Values.redis.statefulSet.extraEnv }}
+          {{- if .Values.redis.deployment.extraEnv }}
           env:
-            {{- with .Values.redis.statefulSet.extraEnv}}
+            {{- with .Values.redis.deployment.extraEnv}}
              {{- toYaml . | nindent 12 }}
             {{- end }}
            {{- end }}
@@ -58,74 +57,55 @@ spec:
             - name: redis
               containerPort: {{ .Values.redis.containerPort }}
               protocol: TCP
-          {{- with .Values.redis.statefulSet.startupProbe }}
+          {{- with .Values.redis.deployment.startupProbe }}
           startupProbe:
             {{- toYaml . | nindent 12 }}
           {{- end }}
-          {{- with .Values.redis.statefulSet.livenessProbe }}
+          {{- with .Values.redis.deployment.livenessProbe }}
           livenessProbe:
             {{- toYaml . | nindent 12 }}
           {{- end }}
-          {{- with .Values.redis.statefulSet.readinessProbe }}
+          {{- with .Values.redis.deployment.readinessProbe }}
           readinessProbe:
             {{- toYaml . | nindent 12 }}
           {{- end }}
           resources:
-            {{- toYaml .Values.redis.statefulSet.resources | nindent 12 }}
+            {{- toYaml .Values.redis.deployment.resources | nindent 12 }}
           securityContext:
-            {{- toYaml .Values.redis.statefulSet.securityContext | nindent 12 }}
-          {{- if .Values.redis.statefulSet.persistence.enabled }}
+            {{- toYaml .Values.redis.deployment.securityContext | nindent 12 }}
+          {{- if .Values.redis.deployment.persistence.enabled }}
           volumeMounts:
             - mountPath: /data
               name: data
-            {{- with .Values.redis.statefulSet.volumeMounts }}
+            {{- with .Values.redis.deployment.volumeMounts }}
               {{- toYaml . | nindent 12 }}
             {{- end }}
           {{- else }}
-          {{- with .Values.redis.statefulSet.volumeMounts }}
+          {{- with .Values.redis.deployment.volumeMounts }}
           volumeMounts:
             {{- toYaml . | nindent 12 }}
           {{- end }}
           {{- end }}
-        {{- with .Values.redis.statefulSet.extraContainerConfig }}
+        {{- with .Values.redis.deployment.extraContainerConfig }}
           {{- toYaml . | nindent 10 }}
         {{- end }}
-        {{- with .Values.redis.statefulSet.sidecars }}
+        {{- with .Values.redis.deployment.sidecars }}
           {{- toYaml . | nindent 8 }}
         {{- end }}
-      {{- with .Values.redis.statefulSet.nodeSelector }}
+      {{- with .Values.redis.deployment.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.redis.statefulSet.affinity }}
+      {{- with .Values.redis.deployment.affinity }}
       affinity:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.redis.statefulSet.tolerations }}
+      {{- with .Values.redis.deployment.tolerations }}
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.redis.statefulSet.volumes }}
+      {{- with .Values.redis.deployment.volumes }}
       volumes:
           {{- toYaml . | nindent 8 }}
       {{- end }}
-  {{- if .Values.redis.statefulSet.persistence.enabled }}
-  volumeClaimTemplates:
-    - apiVersion: v1
-      kind: PersistentVolumeClaim
-      metadata:
-        name: data
-        labels:
-          {{- include "langGraphCloud.selectorLabels" . | nindent 10 }}
-          app.kubernetes.io/component: {{ include "langGraphCloud.fullname" . }}-{{ .Values.redis.name }}
-      spec:
-        accessModes:
-          - ReadWriteOnce
-        resources:
-          requests:
-            storage: {{ .Values.redis.statefulSet.persistence.size }}
-        {{- if .Values.redis.statefulSet.persistence.storageClassName }}
-        storageClassName: {{ .Values.redis.statefulSet.persistence.storageClassName }}
-        {{- end }}
-  {{- end }}
 {{- end }}

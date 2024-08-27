@@ -145,7 +145,7 @@ redis:
     connectionUrl: ""
     existingSecretName: ""
   containerPort: 6379
-  statefulSet:
+  deployment:
     labels: {}
     annotations: {}
     podSecurityContext: {}
@@ -193,10 +193,6 @@ redis:
     affinity: {}
     volumes: []
     volumeMounts: []
-    persistence:
-      enabled: false
-      size: 8Gi
-      storageClassName: ""
   service:
     type: ClusterIP
     port: 6379
