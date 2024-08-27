@@ -543,7 +543,7 @@ playground:
     sidecars: []
     nodeSelector: {}
     tolerations: []
-    affinity: {}
+    affinity: {}s
     volumes: []
     volumeMounts: []
   autoscaling:

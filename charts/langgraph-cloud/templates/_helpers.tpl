@@ -92,6 +92,18 @@ the user or some other secret provisioning mechanism
 {{- end }}
 {{- end }}
 
+{{/*
+Name of the secret containing the secrets for redis. This can be overriden by a secrets file created by
+the user or some other secret provisioning mechanism
+*/}}
+{{- define "langGraphCloud.redisSecretsName" -}}
+{{- if .Values.redis.external.existingSecretName }}
+{{- .Values.redis.external.existingSecretName }}
+{{- else }}
+{{- include "langGraphCloud.fullname" . }}-redis
+{{- end }}
+{{- end }}
+
 {{- define "apiServer.serviceAccountName" -}}
 {{- if .Values.apiServer.serviceAccount.create -}}
     {{ default (printf "%s-%s" (include "langGraphCloud.fullname" .) .Values.apiServer.name) .Values.apiServer.serviceAccount.name | trunc 63 | trimSuffix "-" }}
@@ -105,5 +117,13 @@ the user or some other secret provisioning mechanism
     {{ default (printf "%s-%s" (include "langGraphCloud.fullname" .) .Values.postgres.name) .Values.postgres.serviceAccount.name | trunc 63 | trimSuffix "-" }}
 {{- else -}}
     {{ default "default" .Values.postgres.serviceAccount.name }}
+{{- end -}}
+{{- end -}}
+
+{{- define "redis.serviceAccountName" -}}
+{{- if .Values.redis.serviceAccount.create -}}
+    {{ default (printf "%s-%s" (include "langGraphCloud.fullname" .) .Values.redis.name) .Values.redis.serviceAccount.name | trunc 63 | trimSuffix "-" }}
+{{- else -}}
+    {{ default "default" .Values.redis.serviceAccount.name }}
 {{- end -}}
 {{- end -}}
