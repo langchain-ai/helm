@@ -4,6 +4,6 @@
 select * 
 from clusterAllReplicas(default,system.query_log) 
 where exception != '' 
-    and event_time > now() - interval 7 day 
-    and event_date > now() - interval 7 day 
+    and event_time >= now() - interval 7 day
+    and event_date >= toDate(now() - interval 7 day)
     and query ilike '-- %' 
