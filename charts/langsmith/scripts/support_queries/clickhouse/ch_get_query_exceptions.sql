@@ -7,3 +7,4 @@ where exception != ''
     and event_time >= now() - interval 7 day
     and event_date >= toDate(now() - interval 7 day)
     and query ilike '-- %' 
+order by event_time desc 
