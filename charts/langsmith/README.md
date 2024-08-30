@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.7.0](https://img.shields.io/badge/Version-0.7.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.7.5](https://img.shields.io/badge/AppVersion-0.7.5-informational?style=flat-square)
+![Version: 0.7.3](https://img.shields.io/badge/Version-0.7.3-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.7.10](https://img.shields.io/badge/AppVersion-0.7.10-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -84,20 +84,20 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | fullnameOverride | string | `""` | String to fully override `"langsmith.fullname"` |
 | images.backendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.backendImage.repository | string | `"docker.io/langchain/langsmith-backend"` |  |
-| images.backendImage.tag | string | `"0.7.7"` |  |
+| images.backendImage.tag | string | `"0.7.10"` |  |
 | images.clickhouseImage.pullPolicy | string | `"Always"` |  |
 | images.clickhouseImage.repository | string | `"docker.io/clickhouse/clickhouse-server"` |  |
 | images.clickhouseImage.tag | string | `"24.2"` |  |
 | images.frontendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.frontendImage.repository | string | `"docker.io/langchain/langsmith-frontend"` |  |
-| images.frontendImage.tag | string | `"0.7.7"` |  |
+| images.frontendImage.tag | string | `"0.7.10"` |  |
 | images.imagePullSecrets | list | `[]` | Secrets with credentials to pull images from a private registry. Specified as name: value. |
 | images.platformBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.platformBackendImage.repository | string | `"docker.io/langchain/langsmith-go-backend"` |  |
-| images.platformBackendImage.tag | string | `"0.7.7"` |  |
+| images.platformBackendImage.tag | string | `"0.7.10"` |  |
 | images.playgroundImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.playgroundImage.repository | string | `"docker.io/langchain/langsmith-playground"` |  |
-| images.playgroundImage.tag | string | `"0.7.7"` |  |
+| images.playgroundImage.tag | string | `"0.7.10"` |  |
 | images.postgresImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.postgresImage.repository | string | `"docker.io/postgres"` |  |
 | images.postgresImage.tag | string | `"14.7"` |  |
@@ -160,7 +160,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | backend.autoscaling.maxReplicas | int | `5` |  |
 | backend.autoscaling.minReplicas | int | `1` |  |
 | backend.autoscaling.targetCPUUtilizationPercentage | int | `50` |  |
-| backend.autoscaling.targetMemoryUtilizationPercentage | int | `50` |  |
+| backend.autoscaling.targetMemoryUtilizationPercentage | int | `80` |  |
 | backend.clickhouseMigrations.affinity | object | `{}` |  |
 | backend.clickhouseMigrations.annotations | object | `{}` |  |
 | backend.clickhouseMigrations.command[0] | string | `"/bin/bash"` |  |
@@ -326,7 +326,8 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | frontend.autoscaling.enabled | bool | `false` |  |
 | frontend.autoscaling.maxReplicas | int | `5` |  |
 | frontend.autoscaling.minReplicas | int | `1` |  |
-| frontend.autoscaling.targetCPUUtilizationPercentage | int | `80` |  |
+| frontend.autoscaling.targetCPUUtilizationPercentage | int | `50` |  |
+| frontend.autoscaling.targetMemoryUtilizationPercentage | int | `80` |  |
 | frontend.containerPort | int | `8080` |  |
 | frontend.deployment.affinity | object | `{}` |  |
 | frontend.deployment.annotations | object | `{}` |  |
@@ -389,7 +390,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | platformBackend.autoscaling.maxReplicas | int | `5` |  |
 | platformBackend.autoscaling.minReplicas | int | `1` |  |
 | platformBackend.autoscaling.targetCPUUtilizationPercentage | int | `50` |  |
-| platformBackend.autoscaling.targetMemoryUtilizationPercentage | int | `50` |  |
+| platformBackend.autoscaling.targetMemoryUtilizationPercentage | int | `80` |  |
 | platformBackend.containerPort | int | `1986` |  |
 | platformBackend.deployment.affinity | object | `{}` |  |
 | platformBackend.deployment.annotations | object | `{}` |  |
@@ -446,7 +447,8 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | playground.autoscaling.enabled | bool | `false` |  |
 | playground.autoscaling.maxReplicas | int | `5` |  |
 | playground.autoscaling.minReplicas | int | `1` |  |
-| playground.autoscaling.targetCPUUtilizationPercentage | int | `80` |  |
+| playground.autoscaling.targetCPUUtilizationPercentage | int | `50` |  |
+| playground.autoscaling.targetMemoryUtilizationPercentage | int | `80` |  |
 | playground.containerPort | int | `3001` |  |
 | playground.deployment.affinity | object | `{}` |  |
 | playground.deployment.annotations | object | `{}` |  |
@@ -567,7 +569,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | queue.autoscaling.maxReplicas | int | `10` |  |
 | queue.autoscaling.minReplicas | int | `3` |  |
 | queue.autoscaling.targetCPUUtilizationPercentage | int | `50` |  |
-| queue.autoscaling.targetMemoryUtilizationPercentage | int | `50` |  |
+| queue.autoscaling.targetMemoryUtilizationPercentage | int | `80` |  |
 | queue.deployment.affinity | object | `{}` |  |
 | queue.deployment.annotations | object | `{}` |  |
 | queue.deployment.autoRestart | bool | `true` |  |

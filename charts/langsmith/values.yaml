@@ -250,7 +250,7 @@ backend:
     minReplicas: 1
     maxReplicas: 5
     targetCPUUtilizationPercentage: 50
-    targetMemoryUtilizationPercentage: 50
+    targetMemoryUtilizationPercentage: 80
   service:
     type: ClusterIP
     port: 1984
@@ -411,7 +411,8 @@ frontend:
     createHpa: true
     minReplicas: 1
     maxReplicas: 5
-    targetCPUUtilizationPercentage: 80
+    targetCPUUtilizationPercentage: 50
+    targetMemoryUtilizationPercentage: 80
   service:
     type: LoadBalancer
     httpPort: 80
@@ -483,7 +484,7 @@ platformBackend:
     minReplicas: 1
     maxReplicas: 5
     targetCPUUtilizationPercentage: 50
-    targetMemoryUtilizationPercentage: 50
+    targetMemoryUtilizationPercentage: 80
   service:
     type: ClusterIP
     port: 1986
@@ -553,7 +554,8 @@ playground:
     createHpa: true
     minReplicas: 1
     maxReplicas: 5
-    targetCPUUtilizationPercentage: 80
+    targetCPUUtilizationPercentage: 50
+    targetMemoryUtilizationPercentage: 80
   service:
     type: ClusterIP
     port: 3001
@@ -712,7 +714,7 @@ queue:
     minReplicas: 3
     maxReplicas: 10
     targetCPUUtilizationPercentage: 50
-    targetMemoryUtilizationPercentage: 50
+    targetMemoryUtilizationPercentage: 80
   serviceAccount:
     create: true
     name: ""
