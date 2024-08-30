@@ -17,7 +17,7 @@ backend:
     minReplicas: 3
     maxReplicas: 10
     targetCPUUtilizationPercentage: 50
-    targetMemoryUtilizationPercentage: 50
+    targetMemoryUtilizationPercentage: 80
 
 frontend:
   deployment:
@@ -33,7 +33,7 @@ frontend:
     minReplicas: 1
     maxReplicas: 10
     targetCPUUtilizationPercentage: 50
-    targetMemoryUtilizationPercentage: 50
+    targetMemoryUtilizationPercentage: 80
 
 platformBackend:
   deployment:
@@ -49,7 +49,7 @@ platformBackend:
     minReplicas: 1
     maxReplicas: 10
     targetCPUUtilizationPercentage: 50
-    targetMemoryUtilizationPercentage: 50
+    targetMemoryUtilizationPercentage: 80
 
 playground:
   deployment:
@@ -65,7 +65,7 @@ playground:
     minReplicas: 1
     maxReplicas: 10
     targetCPUUtilizationPercentage: 50
-    targetMemoryUtilizationPercentage: 50
+    targetMemoryUtilizationPercentage: 80
 
 queue:
   deployment:
@@ -81,7 +81,7 @@ queue:
       minReplicas: 3
       maxReplicas: 10
       targetCPUUtilizationPercentage: 50
-      targetMemoryUtilizationPercentage: 50
+      targetMemoryUtilizationPercentage: 80
 
 postgres:
   statefulSet:
