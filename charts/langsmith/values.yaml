@@ -266,6 +266,8 @@ backend:
 
 clickhouse:
   name: "clickhouse"
+  config:
+    allowSimdjson: true
   external:
     # If enabled, use the following values to connect to an external database. This will also disable the
     # creation of a clickhouse stateful-set and service.
