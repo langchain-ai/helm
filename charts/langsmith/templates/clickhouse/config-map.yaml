@@ -27,6 +27,9 @@ data:
                 <parallel_view_processing>1</parallel_view_processing>
                 <materialize_ttl_after_modify>0</materialize_ttl_after_modify>
                 <wait_for_async_insert_timeout>25</wait_for_async_insert_timeout>
+                {{- if not .Values.clickhouse.config.allowSimdjson }}
+                <allow_simdjson>0</allow_simdjson>
+                {{- end }}
             </default>
         </profiles>
     </clickhouse>

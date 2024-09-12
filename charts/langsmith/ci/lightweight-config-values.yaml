@@ -55,6 +55,8 @@ redis:
         memory: 500Mi
 
 clickhouse:
+  config:
+    allowSimdjson: false
   statefulSet:
     resources:
       requests:
