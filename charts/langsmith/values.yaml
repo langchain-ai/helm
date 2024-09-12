@@ -300,7 +300,7 @@ clickhouse:
         memory: 32Gi
       requests:
         cpu: 3500m
-        memory: 15Gi
+        memory: 12Gi
     command:
       - "/bin/bash"
       - "-c"

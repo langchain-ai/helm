@@ -68,7 +68,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | clickhouse.statefulSet.resources.limits.cpu | string | `"8000m"` |  |
 | clickhouse.statefulSet.resources.limits.memory | string | `"32Gi"` |  |
 | clickhouse.statefulSet.resources.requests.cpu | string | `"3500m"` |  |
-| clickhouse.statefulSet.resources.requests.memory | string | `"15Gi"` |  |
+| clickhouse.statefulSet.resources.requests.memory | string | `"12Gi"` |  |
 | clickhouse.statefulSet.securityContext | object | `{}` |  |
 | clickhouse.statefulSet.sidecars | list | `[]` |  |
 | clickhouse.statefulSet.startupProbe.failureThreshold | int | `6` |  |
@@ -308,7 +308,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | clickhouse.statefulSet.resources.limits.cpu | string | `"8000m"` |  |
 | clickhouse.statefulSet.resources.limits.memory | string | `"32Gi"` |  |
 | clickhouse.statefulSet.resources.requests.cpu | string | `"3500m"` |  |
-| clickhouse.statefulSet.resources.requests.memory | string | `"15Gi"` |  |
+| clickhouse.statefulSet.resources.requests.memory | string | `"12Gi"` |  |
 | clickhouse.statefulSet.securityContext | object | `{}` |  |
 | clickhouse.statefulSet.sidecars | list | `[]` |  |
 | clickhouse.statefulSet.startupProbe.failureThreshold | int | `6` |  |
