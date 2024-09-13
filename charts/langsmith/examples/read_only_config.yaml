@@ -1,0 +1,109 @@
+# Read-Only configuration. Use this if you are running in an environment where containers must run as read-only.
+config:
+  langsmithLicenseKey: "YOUR_LICENSE_KEY"
+  apiKeySalt: "YOUR_API_KEY_SALT"
+
+backend:
+  deployment:
+    resources:
+      requests:
+        cpu: 100m
+        memory: 500Mi
+    securityContext:
+      allowPrivilegeEscalation: false
+      readOnlyRootFilesystem: true
+
+frontend:
+  deployment:
+    resources:
+      requests:
+        cpu: 100m
+        memory: 500Mi
+    securityContext:
+      allowPrivilegeEscalation: false
+      readOnlyRootFilesystem: true
+    volumes:
+      - name: tmp
+        emptyDir: {}
+    volumeMounts:
+      - name: tmp
+        mountPath: /tmp
+
+platformBackend:
+  deployment:
+    resources:
+      requests:
+        cpu: 100m
+        memory: 500Mi
+    securityContext:
+      allowPrivilegeEscalation: false
+      readOnlyRootFilesystem: true
+
+playground:
+  deployment:
+    resources:
+      requests:
+        cpu: 100m
+        memory: 500Mi
+    command:
+      - "yarn"
+      - "start"
+      - "--cache-folder"
+      - "/tmp/.yarn"
+    securityContext:
+      allowPrivilegeEscalation: false
+      readOnlyRootFilesystem: true
+    volumes:
+      - name: tmp
+        emptyDir: {}
+    volumeMounts:
+      - name: tmp
+        mountPath: /tmp
+
+queue:
+  deployment:
+    securityContext:
+      allowPrivilegeEscalation: false
+      readOnlyRootFilesystem: true
+
+
+postgres:
+  statefulSet:
+    securityContext:
+      allowPrivilegeEscalation: false
+      readOnlyRootFilesystem: true
+    volumes:
+      - name: tmp
+        emptyDir: {}
+      - name: postgres
+        emptyDir: {}
+    volumeMounts:
+      - name: tmp
+        mountPath: /tmp
+      - name: postgres
+        mountPath: /run/postgresql
+
+redis:
+  statefulSet:
+    securityContext:
+      allowPrivilegeEscalation: false
+      readOnlyRootFilesystem: true
+
+clickhouse:
+    securityContext:
+      allowPrivilegeEscalation: false
+      readOnlyRootFilesystem: true
+    volumes:
+      - name: tmp
+        emptyDir: {}
+      - name: var
+        emptyDir: {}
+      - name: etc
+        emptyDir: {}
+    volumeMounts:
+      - name: tmp
+        mountPath: /tmp
+      - name: var
+        mountPath: /var
+      - name: etc
+        mountPath: /etc/clickhouse-server/users.d
