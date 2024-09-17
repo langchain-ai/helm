@@ -160,6 +160,7 @@ redis:
       readOnlyRootFilesystem: true
 
 clickhouse:
+  statefulSet:
     podSecurityContext:
       runAsNonRoot: true
       runAsUser: 1000
