@@ -9,7 +9,17 @@ backend:
       requests:
         cpu: 100m
         memory: 500Mi
+    podSecurityContext:
+      runAsNonRoot: true
+      runAsUser: 1000
+      runAsGroup: 1000
+      fsGroup: 1000
     securityContext:
+      capabilities:
+        drop:
+          - ALL
+      seccompProfile:
+        type: RuntimeDefault
       allowPrivilegeEscalation: false
       readOnlyRootFilesystem: true
 
@@ -19,7 +29,17 @@ frontend:
       requests:
         cpu: 100m
         memory: 500Mi
+    podSecurityContext:
+      runAsNonRoot: true
+      runAsUser: 1000
+      runAsGroup: 1000
+      fsGroup: 1000
     securityContext:
+      capabilities:
+        drop:
+          - ALL
+      seccompProfile:
+        type: RuntimeDefault
       allowPrivilegeEscalation: false
       readOnlyRootFilesystem: true
     volumes:
@@ -35,7 +55,17 @@ platformBackend:
       requests:
         cpu: 100m
         memory: 500Mi
+    podSecurityContext:
+      runAsNonRoot: true
+      runAsUser: 1000
+      runAsGroup: 1000
+      fsGroup: 1000
     securityContext:
+      capabilities:
+        drop:
+          - ALL
+      seccompProfile:
+        type: RuntimeDefault
       allowPrivilegeEscalation: false
       readOnlyRootFilesystem: true
 
@@ -50,7 +80,17 @@ playground:
       - "start"
       - "--cache-folder"
       - "/tmp/.yarn"
+    podSecurityContext:
+      runAsNonRoot: true
+      runAsUser: 1000
+      runAsGroup: 1000
+      fsGroup: 1000
     securityContext:
+      capabilities:
+        drop:
+          - ALL
+      seccompProfile:
+        type: RuntimeDefault
       allowPrivilegeEscalation: false
       readOnlyRootFilesystem: true
     volumes:
@@ -62,14 +102,34 @@ playground:
 
 queue:
   deployment:
+    podSecurityContext:
+      runAsNonRoot: true
+      runAsUser: 1000
+      runAsGroup: 1000
+      fsGroup: 1000
     securityContext:
+      capabilities:
+        drop:
+          - ALL
+      seccompProfile:
+        type: RuntimeDefault
       allowPrivilegeEscalation: false
       readOnlyRootFilesystem: true
 
 
 postgres:
   statefulSet:
+    podSecurityContext:
+      runAsNonRoot: true
+      runAsUser: 1000
+      runAsGroup: 1000
+      fsGroup: 1000
     securityContext:
+      capabilities:
+        drop:
+          - ALL
+      seccompProfile:
+        type: RuntimeDefault
       allowPrivilegeEscalation: false
       readOnlyRootFilesystem: true
     volumes:
@@ -85,12 +145,32 @@ postgres:
 
 redis:
   statefulSet:
+    podSecurityContext:
+      runAsNonRoot: true
+      runAsUser: 1000
+      runAsGroup: 1000
+      fsGroup: 1000
     securityContext:
+      capabilities:
+        drop:
+          - ALL
+      seccompProfile:
+        type: RuntimeDefault
       allowPrivilegeEscalation: false
       readOnlyRootFilesystem: true
 
 clickhouse:
+    podSecurityContext:
+      runAsNonRoot: true
+      runAsUser: 1000
+      runAsGroup: 1000
+      fsGroup: 1000
     securityContext:
+      capabilities:
+        drop:
+          - ALL
+      seccompProfile:
+        type: RuntimeDefault
       allowPrivilegeEscalation: false
       readOnlyRootFilesystem: true
     volumes:
