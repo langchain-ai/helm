@@ -17,19 +17,19 @@ images:
   backendImage:
     repository: "docker.io/langchain/langsmith-backend"
     pullPolicy: IfNotPresent
-    tag: "0.7.20"
+    tag: "0.7.29"
   frontendImage:
     repository: "docker.io/langchain/langsmith-frontend"
     pullPolicy: IfNotPresent
-    tag: "0.7.20"
+    tag: "0.7.29"
   platformBackendImage:
     repository: "docker.io/langchain/langsmith-go-backend"
     pullPolicy: IfNotPresent
-    tag: "0.7.20"
+    tag: "0.7.29"
   playgroundImage:
     repository: "docker.io/langchain/langsmith-playground"
     pullPolicy: IfNotPresent
-    tag: "0.7.20"
+    tag: "0.7.29"
   postgresImage:
     repository: "docker.io/postgres"
     pullPolicy: IfNotPresent
@@ -167,6 +167,7 @@ backend:
     sidecars: []
     nodeSelector: {}
     tolerations: []
+    topologySpreadConstraints: []
     affinity: {}
     volumes: []
     volumeMounts: []
@@ -192,6 +193,7 @@ backend:
     sidecars: []
     nodeSelector: {}
     tolerations: []
+    topologySpreadConstraints: []
     affinity: {}
     volumes: []
     volumeMounts: []
@@ -215,6 +217,7 @@ backend:
     sidecars: []
     nodeSelector: {}
     tolerations: []
+    topologySpreadConstraints: []
     affinity: {}
     volumes: []
     volumeMounts: []
@@ -239,6 +242,7 @@ backend:
     sidecars: []
     nodeSelector: {}
     tolerations: []
+    topologySpreadConstraints: []
     affinity: {}
     volumes: []
     volumeMounts: []
@@ -331,6 +335,7 @@ clickhouse:
     sidecars: []
     nodeSelector: {}
     tolerations: []
+    topologySpreadConstraints: []
     affinity: {}
     volumes: []
     volumeMounts: []
@@ -403,6 +408,7 @@ frontend:
     sidecars: []
     nodeSelector: {}
     tolerations: []
+    topologySpreadConstraints: []
     affinity: {}
     volumes: []
     volumeMounts: []
@@ -475,6 +481,7 @@ platformBackend:
     sidecars: []
     nodeSelector: {}
     tolerations: []
+    topologySpreadConstraints: []
     affinity: {}
     volumes: []
     volumeMounts: []
@@ -546,6 +553,7 @@ playground:
     sidecars: []
     nodeSelector: {}
     tolerations: []
+    topologySpreadConstraints: []
     affinity: {}
     volumes: []
     volumeMounts: []
@@ -634,6 +642,7 @@ postgres:
     sidecars: []
     nodeSelector: {}
     tolerations: []
+    topologySpreadConstraints: []
     affinity: {}
     volumes: []
     volumeMounts: []
@@ -705,6 +714,7 @@ queue:
     sidecars: []
     nodeSelector: {}
     tolerations: []
+    topologySpreadConstraints: []
     affinity: {}
     volumes: []
     volumeMounts: []
@@ -778,6 +788,7 @@ redis:
     sidecars: []
     nodeSelector: {}
     tolerations: []
+    topologySpreadConstraints: []
     affinity: {}
     volumes: []
     volumeMounts: []

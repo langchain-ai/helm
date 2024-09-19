@@ -89,6 +89,10 @@ spec:
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      {{- with .Values.backend.authBootstrap.topologySpreadConstraints }}
+      topologySpreadConstraints:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       {{- with .Values.backend.authBootstrap.volumes }}
       volumes:
           {{- toYaml . | nindent 8 }}
