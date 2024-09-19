@@ -119,7 +119,7 @@ spec:
       {{- end }}
       {{- with .Values.postgres.statefulSet.topologySpreadConstraints }}
       topologySpreadConstraints:
-        {{- toYaml . | nindent 6 }}
+        {{- toYaml . | nindent 8 }}
       {{- end }}
       {{- with .Values.postgres.statefulSet.volumes }}
       volumes:
