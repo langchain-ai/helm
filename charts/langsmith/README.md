@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.7.6](https://img.shields.io/badge/Version-0.7.6-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.7.20](https://img.shields.io/badge/AppVersion-0.7.20-informational?style=flat-square)
+![Version: 0.7.7](https://img.shields.io/badge/Version-0.7.7-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.7.29](https://img.shields.io/badge/AppVersion-0.7.29-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -77,6 +77,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | clickhouse.statefulSet.startupProbe.periodSeconds | int | `10` |  |
 | clickhouse.statefulSet.startupProbe.timeoutSeconds | int | `1` |  |
 | clickhouse.statefulSet.tolerations | list | `[]` |  |
+| clickhouse.statefulSet.topologySpreadConstraints | list | `[]` |  |
 | clickhouse.statefulSet.volumeMounts | list | `[]` |  |
 | clickhouse.statefulSet.volumes | list | `[]` |  |
 | commonAnnotations | object | `{}` | Annotations that will be applied to all resources created by the chart |
@@ -85,20 +86,20 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | fullnameOverride | string | `""` | String to fully override `"langsmith.fullname"` |
 | images.backendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.backendImage.repository | string | `"docker.io/langchain/langsmith-backend"` |  |
-| images.backendImage.tag | string | `"0.7.20"` |  |
+| images.backendImage.tag | string | `"0.7.29"` |  |
 | images.clickhouseImage.pullPolicy | string | `"Always"` |  |
 | images.clickhouseImage.repository | string | `"docker.io/clickhouse/clickhouse-server"` |  |
 | images.clickhouseImage.tag | string | `"24.2"` |  |
 | images.frontendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.frontendImage.repository | string | `"docker.io/langchain/langsmith-frontend"` |  |
-| images.frontendImage.tag | string | `"0.7.20"` |  |
+| images.frontendImage.tag | string | `"0.7.29"` |  |
 | images.imagePullSecrets | list | `[]` | Secrets with credentials to pull images from a private registry. Specified as name: value. |
 | images.platformBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.platformBackendImage.repository | string | `"docker.io/langchain/langsmith-go-backend"` |  |
-| images.platformBackendImage.tag | string | `"0.7.20"` |  |
+| images.platformBackendImage.tag | string | `"0.7.29"` |  |
 | images.playgroundImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.playgroundImage.repository | string | `"docker.io/langchain/langsmith-playground"` |  |
-| images.playgroundImage.tag | string | `"0.7.20"` |  |
+| images.playgroundImage.tag | string | `"0.7.29"` |  |
 | images.postgresImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.postgresImage.repository | string | `"docker.io/postgres"` |  |
 | images.postgresImage.tag | string | `"14.7"` |  |
@@ -154,6 +155,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | backend.authBootstrap.securityContext | object | `{}` |  |
 | backend.authBootstrap.sidecars | list | `[]` |  |
 | backend.authBootstrap.tolerations | list | `[]` |  |
+| backend.authBootstrap.topologySpreadConstraints | list | `[]` |  |
 | backend.authBootstrap.volumeMounts | list | `[]` |  |
 | backend.authBootstrap.volumes | list | `[]` |  |
 | backend.autoscaling.createHpa | bool | `true` |  |
@@ -176,6 +178,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | backend.clickhouseMigrations.securityContext | object | `{}` |  |
 | backend.clickhouseMigrations.sidecars | list | `[]` |  |
 | backend.clickhouseMigrations.tolerations | list | `[]` |  |
+| backend.clickhouseMigrations.topologySpreadConstraints | list | `[]` |  |
 | backend.clickhouseMigrations.volumeMounts | list | `[]` |  |
 | backend.clickhouseMigrations.volumes | list | `[]` |  |
 | backend.containerPort | int | `1984` |  |
@@ -223,6 +226,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | backend.deployment.startupProbe.periodSeconds | int | `10` |  |
 | backend.deployment.startupProbe.timeoutSeconds | int | `1` |  |
 | backend.deployment.tolerations | list | `[]` |  |
+| backend.deployment.topologySpreadConstraints | list | `[]` |  |
 | backend.deployment.volumeMounts | list | `[]` |  |
 | backend.deployment.volumes | list | `[]` |  |
 | backend.existingConfigMapName | string | `""` |  |
@@ -241,6 +245,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | backend.migrations.securityContext | object | `{}` |  |
 | backend.migrations.sidecars | list | `[]` |  |
 | backend.migrations.tolerations | list | `[]` |  |
+| backend.migrations.topologySpreadConstraints | list | `[]` |  |
 | backend.migrations.volumeMounts | list | `[]` |  |
 | backend.migrations.volumes | list | `[]` |  |
 | backend.name | string | `"backend"` |  |
@@ -317,6 +322,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | clickhouse.statefulSet.startupProbe.periodSeconds | int | `10` |  |
 | clickhouse.statefulSet.startupProbe.timeoutSeconds | int | `1` |  |
 | clickhouse.statefulSet.tolerations | list | `[]` |  |
+| clickhouse.statefulSet.topologySpreadConstraints | list | `[]` |  |
 | clickhouse.statefulSet.volumeMounts | list | `[]` |  |
 | clickhouse.statefulSet.volumes | list | `[]` |  |
 
@@ -363,6 +369,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | frontend.deployment.startupProbe.periodSeconds | int | `10` |  |
 | frontend.deployment.startupProbe.timeoutSeconds | int | `1` |  |
 | frontend.deployment.tolerations | list | `[]` |  |
+| frontend.deployment.topologySpreadConstraints | list | `[]` |  |
 | frontend.deployment.volumeMounts | list | `[]` |  |
 | frontend.deployment.volumes | list | `[]` |  |
 | frontend.existingConfigMapName | string | `""` |  |
@@ -426,6 +433,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | platformBackend.deployment.startupProbe.periodSeconds | int | `10` |  |
 | platformBackend.deployment.startupProbe.timeoutSeconds | int | `1` |  |
 | platformBackend.deployment.tolerations | list | `[]` |  |
+| platformBackend.deployment.topologySpreadConstraints | list | `[]` |  |
 | platformBackend.deployment.volumeMounts | list | `[]` |  |
 | platformBackend.deployment.volumes | list | `[]` |  |
 | platformBackend.existingConfigMapName | string | `""` |  |
@@ -485,6 +493,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | playground.deployment.startupProbe.periodSeconds | int | `10` |  |
 | playground.deployment.startupProbe.timeoutSeconds | int | `1` |  |
 | playground.deployment.tolerations | list | `[]` |  |
+| playground.deployment.topologySpreadConstraints | list | `[]` |  |
 | playground.deployment.volumeMounts | list | `[]` |  |
 | playground.deployment.volumes | list | `[]` |  |
 | playground.name | string | `"playground"` |  |
@@ -559,6 +568,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | postgres.statefulSet.startupProbe.periodSeconds | int | `10` |  |
 | postgres.statefulSet.startupProbe.timeoutSeconds | int | `1` |  |
 | postgres.statefulSet.tolerations | list | `[]` |  |
+| postgres.statefulSet.topologySpreadConstraints | list | `[]` |  |
 | postgres.statefulSet.volumeMounts | list | `[]` |  |
 | postgres.statefulSet.volumes | list | `[]` |  |
 
@@ -609,6 +619,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | queue.deployment.startupProbe.periodSeconds | int | `60` |  |
 | queue.deployment.startupProbe.timeoutSeconds | int | `30` |  |
 | queue.deployment.tolerations | list | `[]` |  |
+| queue.deployment.topologySpreadConstraints | list | `[]` |  |
 | queue.deployment.volumeMounts | list | `[]` |  |
 | queue.deployment.volumes | list | `[]` |  |
 | queue.name | string | `"queue"` |  |
@@ -672,6 +683,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | redis.statefulSet.startupProbe.periodSeconds | int | `10` |  |
 | redis.statefulSet.startupProbe.timeoutSeconds | int | `1` |  |
 | redis.statefulSet.tolerations | list | `[]` |  |
+| redis.statefulSet.topologySpreadConstraints | list | `[]` |  |
 | redis.statefulSet.volumeMounts | list | `[]` |  |
 | redis.statefulSet.volumes | list | `[]` |  |
 
