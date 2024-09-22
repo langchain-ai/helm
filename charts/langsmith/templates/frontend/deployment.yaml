@@ -122,6 +122,10 @@ spec:
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+    {{- with .Values.frontend.deployment.topologySpreadConstraints }}
+      topologySpreadConstraints:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       volumes:
         {{- with .Values.frontend.deployment.volumes }}
             {{- toYaml . | nindent 8 }}
