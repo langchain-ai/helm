@@ -30,22 +30,22 @@ global:
         pullPolicy: IfNotPresent
         tag: "0.8.38"
       backendImage:
-        tag: "0.7.32"
+        tag: "0.7.39"
         image: "langsmith-backend"
         registry: "langsmith.azurecr.io"
         pullPolicy: IfNotPresent
       frontendImage:
-        tag: "0.7.32"
+        tag: "0.7.39"
         image: "langsmith-frontend"
         registry: "langsmith.azurecr.io"
         pullPolicy: IfNotPresent
       platformBackendImage:
-        tag: "0.7.32"
+        tag: "0.7.39"
         image: "langsmith-go-backend"
         registry: "langsmith.azurecr.io"
         pullPolicy: IfNotPresent
       playgroundImage:
-        tag: "0.7.32"
+        tag: "0.7.39"
         image: "langsmith-playground"
         registry: "langsmith.azurecr.io"
         pullPolicy: IfNotPresent
