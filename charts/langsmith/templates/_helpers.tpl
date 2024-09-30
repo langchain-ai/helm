@@ -130,6 +130,10 @@ Template containing common environment variables that are used by several servic
 - name: POSTGRES_SCHEMA
   value: {{ .Values.postgres.external.schema }}
 {{- end }}
+{{- if .Values.config.baseUrl }}
+- name: LANGSMITH_URL
+  value: {{ .Values.config.baseUrl }}
+{{- end }}
 - name: REDIS_DATABASE_URI
   valueFrom:
     secretKeyRef:
@@ -183,6 +187,13 @@ Template containing common environment variables that are used by several servic
     secretKeyRef:
       name: {{ include "langsmith.secretsName" . }}
       key: oauth_issuer_url
+{{- if eq .Values.config.authType "mixed" }}
+- name: OAUTH_CLIENT_SECRET
+  valueFrom:
+    secretKeyRef:
+      name: {{ include "langsmith.secretsName" . }}
+      key: oauth_client_secret
+{{- end }}
 {{- end }}
 - name: LANGSMITH_LICENSE_KEY
   valueFrom:
