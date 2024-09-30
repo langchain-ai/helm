@@ -8,7 +8,10 @@ metadata:
   annotations:
     {{- include "langsmith.annotations" . | nindent 4 }}
 data:
-  {{- if .Values.config.oauth.enabled }}
+  {{- if and .Values.config.oauth.enabled (eq .Values.config.authType "mixed") }}
+  VITE_BACKEND_AUTH_TYPE: "mixed"
+  AUTH_TYPE: "mixed"
+  {{- else if .Values.config.oauth.enabled }}
   VITE_BACKEND_AUTH_TYPE: "oauth"
   AUTH_TYPE: "oauth"
   {{- else if and .Values.config.basicAuth.enabled (eq .Values.config.authType "mixed") }}

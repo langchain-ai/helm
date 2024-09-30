@@ -82,9 +82,14 @@ config:
   personalOrgsDisabled: false
   # -- Enable Workspace Admins to invite users to the org and workspace.
   workspaceScopeOrgInvitesEnabled: false
+
+  # -- Base URL of the LangSmith installation. Used for redirects.
+  baseUrl: ""
+
   oauth:
     enabled: false
     oauthClientId: ""
+    oauthClientSecret: ""
     oauthIssuerUrl: ""
   # -- TTL configuration
   # Optional. Used to set TTLS for longlived and shortlived objects.
