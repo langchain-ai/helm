@@ -90,7 +90,7 @@ config:
   oauth:
     enabled: false
     oauthClientId: ""
-    # -- Client secret requires authType to be 'mixed'
+    # -- Client secret requires authType to be 'mixed' and baseUrl to be present
     oauthClientSecret: ""
     oauthIssuerUrl: ""
   # -- TTL configuration

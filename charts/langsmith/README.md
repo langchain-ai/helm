@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.7.9](https://img.shields.io/badge/Version-0.7.9-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.7.39](https://img.shields.io/badge/AppVersion-0.7.39-informational?style=flat-square)
+![Version: 0.7.10](https://img.shields.io/badge/Version-0.7.10-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.7.44](https://img.shields.io/badge/AppVersion-0.7.44-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -132,7 +132,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | config.logLevel | string | `"info"` |  |
 | config.oauth.enabled | bool | `false` |  |
 | config.oauth.oauthClientId | string | `""` |  |
-| config.oauth.oauthClientSecret | string | `""` | Client secret requires authType to be 'mixed' |
+| config.oauth.oauthClientSecret | string | `""` | Client secret requires authType to be 'mixed' and baseUrl to be present |
 | config.oauth.oauthIssuerUrl | string | `""` |  |
 | config.orgCreationDisabled | bool | `false` | Prevent organization creation. If using basic auth, this is set to true by default. |
 | config.personalOrgsDisabled | bool | `false` | Disable personal orgs. Users will need to be invited to an org manually. If using basic auth, this is set to true by default. |
