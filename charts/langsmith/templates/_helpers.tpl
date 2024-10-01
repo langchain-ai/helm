@@ -130,9 +130,9 @@ Template containing common environment variables that are used by several servic
 - name: POSTGRES_SCHEMA
   value: {{ .Values.postgres.external.schema }}
 {{- end }}
-{{- if .Values.config.baseUrl }}
+{{- if .Values.config.langsmithUrl }}
 - name: LANGSMITH_URL
-  value: {{ .Values.config.baseUrl }}
+  value: {{ .Values.config.langsmithUrl }}
 {{- end }}
 - name: REDIS_DATABASE_URI
   valueFrom:

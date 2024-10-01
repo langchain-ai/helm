@@ -121,7 +121,6 @@ For information on how to use this chart, up-to-date release notes, and other gu
 |-----|------|---------|-------------|
 | config.apiKeySalt | string | `""` | Salt used to generate the API key. Should be a random string. |
 | config.authType | string | `""` | Must be 'oauth' for OAuth with PKCE, 'mixed' for basic auth or OAuth without PKCE |
-| config.baseUrl | string | `""` | Base URL of the LangSmith installation. Used for redirects. |
 | config.basicAuth.enabled | bool | `false` |  |
 | config.basicAuth.initialOrgAdminEmail | string | `""` |  |
 | config.basicAuth.initialOrgAdminPassword | string | `""` |  |
@@ -129,10 +128,11 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | config.blobStorage | object | `{"accessKey":"","accessKeySecret":"","apiURL":"https://s3.us-west-2.amazonaws.com","bucketName":"","chSearchEnabled":true,"enabled":false}` | Blob storage configuration Optional. Used to store inputs, outputs, and errors in Blob Storage. We currently support S3, GCS, and Minio as Blob Storage providers. |
 | config.existingSecretName | string | `""` |  |
 | config.langsmithLicenseKey | string | `""` |  |
+| config.langsmithUrl | string | `""` | Base URL of the LangSmith installation. Used for redirects. |
 | config.logLevel | string | `"info"` |  |
 | config.oauth.enabled | bool | `false` |  |
 | config.oauth.oauthClientId | string | `""` |  |
-| config.oauth.oauthClientSecret | string | `""` | Client secret requires authType to be 'mixed' and baseUrl to be present |
+| config.oauth.oauthClientSecret | string | `""` | Client secret requires authType to be 'mixed' and langsmithUrl to be present |
 | config.oauth.oauthIssuerUrl | string | `""` |  |
 | config.orgCreationDisabled | bool | `false` | Prevent organization creation. If using basic auth, this is set to true by default. |
 | config.personalOrgsDisabled | bool | `false` | Disable personal orgs. Users will need to be invited to an org manually. If using basic auth, this is set to true by default. |

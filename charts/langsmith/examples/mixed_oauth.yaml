@@ -2,7 +2,7 @@ config:
   langsmithLicenseKey: "YOUR_LICENSE_KEY"
   apiKeySalt: "YOUR_API_KEY_SALT"
   authType: "mixed"
-  baseUrl: "https://langsmith.example.com"
+  langsmithUrl: "https://langsmith.example.com"
   oauth:
     enabled: true
     oauthClientId: "YOUR_CLIENT_ID"
