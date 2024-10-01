@@ -85,12 +85,12 @@ config:
   workspaceScopeOrgInvitesEnabled: false
 
   # -- Base URL of the LangSmith installation. Used for redirects.
-  langsmithUrl: ""
+  hostname: ""
 
   oauth:
     enabled: false
     oauthClientId: ""
-    # -- Client secret requires authType to be 'mixed' and langsmithUrl to be present
+    # -- Client secret requires authType to be 'mixed' and hostname to be present
     oauthClientSecret: ""
     oauthIssuerUrl: ""
   # -- TTL configuration
