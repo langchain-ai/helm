@@ -1,0 +1,10 @@
+config:
+  langsmithLicenseKey: "YOUR_LICENSE_KEY"
+  apiKeySalt: "YOUR_API_KEY_SALT"
+  authType: "mixed"
+  hostname: "https://langsmith.example.com"
+  oauth:
+    enabled: true
+    oauthClientId: "YOUR_CLIENT_ID"
+    oauthClientSecret: "YOUR_CLIENT_SECRET"
+    oauthIssuerUrl: "YOUR_ISSUER_URL"

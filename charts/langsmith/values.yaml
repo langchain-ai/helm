@@ -17,19 +17,19 @@ images:
   backendImage:
     repository: "docker.io/langchain/langsmith-backend"
     pullPolicy: IfNotPresent
-    tag: "0.7.39"
+    tag: "0.7.45"
   frontendImage:
     repository: "docker.io/langchain/langsmith-frontend"
     pullPolicy: IfNotPresent
-    tag: "0.7.39"
+    tag: "0.7.45"
   platformBackendImage:
     repository: "docker.io/langchain/langsmith-go-backend"
     pullPolicy: IfNotPresent
-    tag: "0.7.39"
+    tag: "0.7.45"
   playgroundImage:
     repository: "docker.io/langchain/langsmith-playground"
     pullPolicy: IfNotPresent
-    tag: "0.7.39"
+    tag: "0.7.45"
   postgresImage:
     repository: "docker.io/postgres"
     pullPolicy: IfNotPresent
@@ -69,6 +69,7 @@ config:
   # -- Salt used to generate the API key. Should be a random string.
   apiKeySalt: ""
   logLevel: "info"
+  # -- Must be 'oauth' for OAuth with PKCE, 'mixed' for basic auth or OAuth without PKCE
   authType: ""
   basicAuth:
     enabled: false
@@ -82,9 +83,15 @@ config:
   personalOrgsDisabled: false
   # -- Enable Workspace Admins to invite users to the org and workspace.
   workspaceScopeOrgInvitesEnabled: false
+
+  # -- Base URL of the LangSmith installation. Used for redirects.
+  hostname: ""
+
   oauth:
     enabled: false
     oauthClientId: ""
+    # -- Client secret requires authType to be 'mixed' and hostname to be present
+    oauthClientSecret: ""
     oauthIssuerUrl: ""
   # -- TTL configuration
   # Optional. Used to set TTLS for longlived and shortlived objects.
