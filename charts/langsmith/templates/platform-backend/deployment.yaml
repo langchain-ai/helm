@@ -1,3 +1,19 @@
+{{- define "platformBackendEnvVars" -}}
+- name: PORT
+  value: {{ .Values.platformBackend.containerPort | quote }}
+{{- with .Values.ingress.subdomain }}
+- name: DOCS_PREFIX
+  value: /{{ . }}/api
+{{- end }}
+{{- end -}}
+{{- $envVars := concat .Values.commonEnv (include "langsmith.commonEnv" . | fromYamlArray) (include "platformBackendEnvVars" . | fromYamlArray) .Values.platformBackend.deployment.extraEnv -}}
+{{- $envKeys := list -}}
+{{- range $envVars }}
+  {{- $envKeys = append $envKeys .name -}}
+{{- end }}
+{{- if ne (uniq $envKeys | len) (len $envKeys) -}}
+  {{ fail "Environment variables cannot contain duplicate keys" }}
+{{- end -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -50,13 +66,7 @@ spec:
             {{- toYaml . | nindent 12 }}
           {{- end }}
           env:
-            {{- include "langsmith.commonEnv" . | nindent 12 }}
-            - name: PORT
-              value: {{ .Values.platformBackend.containerPort | quote }}
-            {{- with .Values.platformBackend.deployment.extraEnv }}
-              {{- toYaml . | nindent 12 }}
-            {{- end }}
-            {{- with .Values.commonEnv }}
+            {{- with $envVars }}
               {{ toYaml . | nindent 12 }}
             {{- end }}
           envFrom:

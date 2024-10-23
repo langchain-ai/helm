@@ -15,7 +15,7 @@
 - name: VITE_SUBDOMAIN
 value: {{ .Values.ingress.subdomain }}
 {{- end }}
-{{- end }}
+{{- end -}}
 {{- $envVars := concat .Values.commonEnv (include "frontendEnvVars" . | fromYamlArray) .Values.frontend.deployment.extraEnv -}}
 {{- $envKeys := list -}}
 {{- range $envVars }}
