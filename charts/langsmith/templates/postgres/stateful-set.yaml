@@ -16,7 +16,6 @@
       key: postgres_user
 - name: PGDATA
   value: /var/lib/postgresql/data/postgres
-{{- end }}
 {{- end -}}
 {{- if not .Values.postgres.external.enabled }}
 {{- $envVars := concat .Values.commonEnv (include "postgresEnvVars" . | fromYamlArray) .Values.postgres.statefulSet.extraEnv -}}

@@ -14,7 +14,6 @@
     secretKeyRef:
       name: {{ include "langsmith.clickhouseSecretsName" . }}
       key: clickhouse_password
-{{- end }}
 {{- end -}}
 {{- if not .Values.clickhouse.external.enabled }}
 {{- $envVars := concat .Values.commonEnv (include "clickhouseEnvVars" . | fromYamlArray) .Values.clickhouse.statefulSet.extraEnv -}}
