@@ -14,22 +14,26 @@ commonEnv: []
 images:
    # -- Secrets with credentials to pull images from a private registry. Specified as name: value.
   imagePullSecrets: []
+  aceBackendImage:
+    repository: "docker.io/langchain/langsmith-ace-backend"
+    pullPolicy: IfNotPresent
+    tag: "0.8.5"
   backendImage:
     repository: "docker.io/langchain/langsmith-backend"
     pullPolicy: IfNotPresent
-    tag: "0.7.45"
+    tag: "0.8.5"
   frontendImage:
     repository: "docker.io/langchain/langsmith-frontend"
     pullPolicy: IfNotPresent
-    tag: "0.7.45"
+    tag: "0.8.5"
   platformBackendImage:
     repository: "docker.io/langchain/langsmith-go-backend"
     pullPolicy: IfNotPresent
-    tag: "0.7.45"
+    tag: "0.8.5"
   playgroundImage:
     repository: "docker.io/langchain/langsmith-playground"
     pullPolicy: IfNotPresent
-    tag: "0.7.45"
+    tag: "0.8.5"
   postgresImage:
     repository: "docker.io/postgres"
     pullPolicy: IfNotPresent
@@ -115,6 +119,87 @@ config:
     accessKeySecret: ""
     bucketName: ""
     apiURL: "https://s3.us-west-2.amazonaws.com"
+
+aceBackend:
+  name: "ace-backend"
+  containerPort: 1987
+  deployment:
+    autoRestart: true
+    replicas: 1
+    labels: {}
+    annotations: {}
+    podSecurityContext: {}
+    securityContext: {}
+    resources:
+      limits:
+        cpu: 1000m
+        memory: 2Gi
+      requests:
+        cpu: 200m
+        memory: 1000Mi
+    command:
+      - "deno"
+      - "run"
+      - "--unstable-worker-options"
+      - "--allow-env"
+      - "--allow-net=0.0.0.0:$(PORT)"
+      - "--node-modules-dir"
+      - "-R"
+      - "src/main.ts"
+      - "-R"
+      - "src/python_worker.ts"
+    startupProbe:
+      httpGet:
+        path: /ok
+        port: 1987
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 1
+    livenessProbe:
+      httpGet:
+        path: /ok
+        port: 1987
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 1
+    readinessProbe:
+      httpGet:
+        path: /ok
+        port: 1987
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 1
+    extraContainerConfig: {}
+    extraEnv: []
+    sidecars: []
+    nodeSelector: {}
+    tolerations: []
+    topologySpreadConstraints: []
+    affinity: {}
+    volumes: []
+    volumeMounts: []
+  autoscaling:
+    enabled: false
+    # If enabled, use the following values to configure the HPA. You can also use your own HPA configuration by not creating an HPA.
+    # You may want to manage the HPA yourself if you have a custom autoscaling setup like KEDA.
+    createHpa: true
+    minReplicas: 1
+    maxReplicas: 5
+    targetCPUUtilizationPercentage: 50
+    targetMemoryUtilizationPercentage: 80
+  service:
+    type: ClusterIP
+    port: 1987
+    labels: {}
+    annotations: {}
+    loadBalancerSourceRanges: []
+    loadBalancerIP: ""
+  serviceAccount:
+    create: true
+    name: ""
+    labels: {}
+    annotations: {}
+
 
 backend:
   name: "backend"
@@ -532,8 +617,19 @@ playground:
         cpu: 500m
         memory: 1Gi
     command:
-      - "yarn"
-      - "start"
+      - "uvicorn"
+      - "playground.main:app"
+      - "--host"
+      - "0.0.0.0"
+      - "--port"
+      - "$(PORT)"
+      - "--log-level"
+      - "$(LOG_LEVEL)"
+      - "--loop"
+      - "uvloop"
+      - "--http"
+      - "httptools"
+      - "--no-access-log"
     startupProbe:
       httpGet:
         path: /ok

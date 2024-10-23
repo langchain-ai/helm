@@ -1,0 +1,115 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "langsmith.fullname" . }}-{{ .Values.aceBackend.name }}
+  labels:
+    {{- include "langsmith.labels" . | nindent 4 }}
+    {{- with.Values.aceBackend.deployment.labels }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+  annotations:
+    {{- include "langsmith.annotations" . | nindent 4 }}
+    {{- with.Values.aceBackend.deployment.annotations }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  {{- if not .Values.aceBackend.autoscaling.enabled }}
+  replicas: {{ .Values.aceBackend.deployment.replicas }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "langsmith.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-{{ .Values.aceBackend.name }}
+  template:
+    metadata:
+      annotations:
+      {{- if .Values.aceBackend.deployment.autoRestart }}
+        rollme: {{ randAlphaNum 5 | quote }}
+      {{- end }}
+      {{- with .Values.aceBackend.deployment.annotations }}
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- with.Values.aceBackend.deployment.labels }}
+            {{- toYaml . | nindent 8 }}
+        {{- end }}
+        {{- include "langsmith.labels" . | nindent 8 }}
+        app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-{{ .Values.aceBackend.name }}
+    spec:
+      {{- with .Values.images.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.aceBackend.deployment.podSecurityContext | nindent 8 }}
+      serviceAccountName: {{ include "aceBackend.serviceAccountName" . }}
+      containers:
+        - name: {{ .Values.aceBackend.name }}
+          {{- with.Values.aceBackend.deployment.command }}
+          command:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          env:
+            - name: PORT
+              value: {{ .Values.aceBackend.containerPort | quote }}
+            {{- with .Values.aceBackend.deployment.extraEnv }}
+              {{- toYaml . | nindent 12 }}
+            {{- end }}
+            {{- with .Values.commonEnv }}
+              {{ toYaml . | nindent 12 }}
+            {{- end }}
+          envFrom:
+            - configMapRef:
+                name: {{ include "langsmith.fullname" . }}-config
+          image: "{{ .Values.images.aceBackendImage.repository }}:{{ .Values.images.aceBackendImage.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.images.aceBackendImage.pullPolicy }}
+          ports:
+            - name: ace
+              containerPort: {{ .Values.aceBackend.containerPort }}
+              protocol: TCP
+          {{- with .Values.aceBackend.deployment.startupProbe }}
+          startupProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.aceBackend.deployment.livenessProbe }}
+          livenessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.aceBackend.deployment.readinessProbe }}
+          readinessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          resources:
+            {{- toYaml .Values.aceBackend.deployment.resources | nindent 12 }}
+          securityContext:
+            {{- toYaml .Values.aceBackend.deployment.securityContext | nindent 12 }}
+          {{- with .Values.aceBackend.deployment.volumeMounts }}
+          volumeMounts:
+              {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.aceBackend.deployment.extraContainerConfig }}
+            {{- toYaml . | nindent 10 }}
+          {{- end }}
+        {{- with .Values.aceBackend.deployment.sidecars }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- with .Values.aceBackend.deployment.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.aceBackend.deployment.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.aceBackend.deployment.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.aceBackend.deployment.topologySpreadConstraints }}
+      topologySpreadConstraints:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.aceBackend.deployment.volumes }}
+      volumes:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

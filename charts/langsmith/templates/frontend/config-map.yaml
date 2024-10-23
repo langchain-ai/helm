@@ -39,32 +39,13 @@ data:
                 return 200;
          }
 
-        location ~ /{{ .Values.ingress.subdomain }}/api/playground/ {
-            rewrite /{{ .Values.ingress.subdomain }}/api/playground/(.*) /$1  break;
+        location ~ /{{ .Values.ingress.subdomain }}/api/v1/playground/ {
+            rewrite /{{ .Values.ingress.subdomain }}/api/v1/playground/(.*) /playground/$1  break;
             proxy_set_header Connection '';
             proxy_http_version 1.1;
             proxy_buffering off;
             proxy_cache off;
             proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.playground.name }}:{{ .Values.playground.service.port }};
-        }
-
-        location = /{{ .Values.ingress.subdomain }}/api/playground {
-            rewrite /{{ .Values.ingress.subdomain }}/api/playground /  break;
-            proxy_set_header Connection '';
-            proxy_http_version 1.1;
-            proxy_buffering off;
-            proxy_cache off;
-            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.playground.name }}:{{ .Values.playground.service.port }};
-        }
-
-         # Hub Backend Routes(Deprecated)
-         location ~ /{{ .Values.ingress.subdomain }}/api-hub {
-            rewrite /{{ .Values.ingress.subdomain }}/api-hub/(.*) /api/v1/$1  break;
-            proxy_set_header Connection '';
-            proxy_http_version 1.1;
-            proxy_buffering off;
-            proxy_cache off;
-            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}:{{ .Values.backend.service.port }};
         }
 
         # Backend Routes
@@ -78,6 +59,15 @@ data:
         }
 
         # Backend Routes
+        location ~ /{{ .Values.ingress.subdomain }}/api/public/downloads {
+            rewrite /{{ .Values.ingress.subdomain }}/api/public/downloads /api/public/downloads  break;
+            proxy_set_header Connection '';
+            proxy_http_version 1.1;
+            proxy_buffering off;
+            proxy_cache off;
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}:{{ .Values.backend.service.port }};
+        }
+
         location ~ /{{ .Values.ingress.subdomain }}/api/v1 {
             rewrite /{{ .Values.ingress.subdomain }}/api/v1/(.*) /api/v1/$1  break;
             proxy_set_header Connection '';
@@ -170,32 +160,13 @@ data:
             root   /tmp/build;
         }
 
-        location ~ /api/playground/ {
-            rewrite /api/playground/(.*) /$1  break;
+        location ~ /api/v1/playground/ {
+            rewrite /api/v1/playground/(.*) /playground/$1  break;
             proxy_set_header Connection '';
             proxy_http_version 1.1;
             proxy_buffering off;
             proxy_cache off;
             proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.playground.name }}:{{ .Values.playground.service.port }};
-        }
-
-        location = /api/playground {
-            rewrite /api/playground /  break;
-            proxy_set_header Connection '';
-            proxy_http_version 1.1;
-            proxy_buffering off;
-            proxy_cache off;
-            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.playground.name }}:{{ .Values.playground.service.port }};
-        }
-
-         # Hub Backend Routes(Deprecated). To be removed in v8
-         location ~ /api-hub {
-            rewrite /api-hub/(.*) /api/v1/$1  break;
-            proxy_set_header Connection '';
-            proxy_http_version 1.1;
-            proxy_buffering off;
-            proxy_cache off;
-            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}:{{ .Values.backend.service.port }};
         }
 
         # Auth
@@ -209,6 +180,14 @@ data:
          }
 
         # Backend Routes
+          location ~ /api/public/download {
+            proxy_set_header Connection '';
+            proxy_http_version 1.1;
+            proxy_buffering off;
+            proxy_cache off;
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}:{{ .Values.platformBackend.service.port }};
+         }
+
          location ~ /api/v1 {
             proxy_set_header Connection '';
             proxy_http_version 1.1;
