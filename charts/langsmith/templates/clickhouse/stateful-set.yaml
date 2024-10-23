@@ -1,4 +1,30 @@
+{{- define "clickhouseEnvVars" -}}
+- name: CLICKHOUSE_DB
+  valueFrom:
+    secretKeyRef:
+      name: {{ include "langsmith.clickhouseSecretsName" . }}
+      key: clickhouse_db
+- name: CLICKHOUSE_USER
+  valueFrom:
+    secretKeyRef:
+      name: {{ include "langsmith.clickhouseSecretsName" . }}
+      key: clickhouse_user
+- name: CLICKHOUSE_PASSWORD
+  valueFrom:
+    secretKeyRef:
+      name: {{ include "langsmith.clickhouseSecretsName" . }}
+      key: clickhouse_password
+{{- end }}
+{{- end -}}
 {{- if not .Values.clickhouse.external.enabled }}
+{{- $envVars := concat .Values.commonEnv (include "clickhouseEnvVars" . | fromYamlArray) .Values.clickhouse.statefulSet.extraEnv -}}
+{{- $envKeys := list -}}
+{{- range $envVars }}
+  {{- $envKeys = append $envKeys .name -}}
+{{- end }}
+{{- if ne (uniq $envKeys | len) (len $envKeys) -}}
+  {{ fail "Environment variables cannot contain duplicate keys" }}
+{{- end -}}
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
@@ -49,26 +75,8 @@ spec:
              {{- toYaml . | nindent 12 }}
           {{- end }}
           env:
-            - name: CLICKHOUSE_DB
-              valueFrom:
-                secretKeyRef:
-                  name: {{ include "langsmith.clickhouseSecretsName" . }}
-                  key: clickhouse_db
-            - name: CLICKHOUSE_USER
-              valueFrom:
-                secretKeyRef:
-                  name: {{ include "langsmith.clickhouseSecretsName" . }}
-                  key: clickhouse_user
-            - name: CLICKHOUSE_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: {{ include "langsmith.clickhouseSecretsName" . }}
-                  key: clickhouse_password
-            {{- with .Values.clickhouse.statefulSet.extraEnv }}
-               {{- toYaml . | nindent 12 }}
-             {{- end }}
-            {{- with .Values.commonEnv }}
-              {{ toYaml . | nindent 12 }}
+            {{- with $envVars }}
+              {{- toYaml . | nindent 12 }}
             {{- end }}
           ports:
             - name: ch
