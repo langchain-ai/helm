@@ -1,4 +1,32 @@
+{{- define "postgresEnvVars" -}}
+- name: POSTGRES_DB
+  valueFrom:
+    secretKeyRef:
+      name: {{ include "langsmith.postgresSecretsName" .}}
+      key: postgres_db
+- name: POSTGRES_PASSWORD
+  valueFrom:
+    secretKeyRef:
+      name: {{ include "langsmith.postgresSecretsName" .}}
+      key: postgres_password
+- name: POSTGRES_USER
+  valueFrom:
+    secretKeyRef:
+      name: {{ include "langsmith.postgresSecretsName" .}}
+      key: postgres_user
+- name: PGDATA
+  value: /var/lib/postgresql/data/postgres
+{{- end }}
+{{- end -}}
 {{- if not .Values.postgres.external.enabled }}
+{{- $envVars := concat .Values.commonEnv (include "postgresEnvVars" . | fromYamlArray) .Values.postgres.statefulSet.extraEnv -}}
+{{- $envKeys := list -}}
+{{- range $envVars }}
+  {{- $envKeys = append $envKeys .name -}}
+{{- end }}
+{{- if ne (uniq $envKeys | len) (len $envKeys) -}}
+  {{ fail "Environment variables cannot contain duplicate keys" }}
+{{- end -}}
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
@@ -47,27 +75,7 @@ spec:
              {{ . }}
           {{- end }}
           env:
-            - name: POSTGRES_DB
-              valueFrom:
-                secretKeyRef:
-                  name: {{ include "langsmith.postgresSecretsName" .}}
-                  key: postgres_db
-            - name: POSTGRES_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: {{ include "langsmith.postgresSecretsName" .}}
-                  key: postgres_password
-            - name: POSTGRES_USER
-              valueFrom:
-                secretKeyRef:
-                  name: {{ include "langsmith.postgresSecretsName" .}}
-                  key: postgres_user
-            - name: PGDATA
-              value: /var/lib/postgresql/data/postgres
-            {{- with .Values.postgres.statefulSet.extraEnv }}
-              {{- toYaml . | nindent 12 }}
-            {{- end }}
-            {{- with .Values.commonEnv }}
+            {{- with $envVars }}
              {{- toYaml . | nindent 12 }}
             {{- end }}
           image: "{{ .Values.images.postgresImage.repository }}:{{ .Values.images.postgresImage.tag | default .Chart.AppVersion }}"
