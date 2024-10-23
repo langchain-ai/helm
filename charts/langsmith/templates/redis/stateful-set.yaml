@@ -1,4 +1,12 @@
 {{- if not .Values.redis.external.enabled }}
+{{- $envVars := concat .Values.commonEnv .Values.redis.statefulSet.extraEnv -}}
+{{- $envKeys := list -}}
+{{- range $envVars }}
+  {{- $envKeys = append $envKeys .name -}}
+{{- end }}
+{{- if ne (uniq $envKeys | len) (len $envKeys) -}}
+  {{ fail "Environment variables cannot contain duplicate keys" }}
+{{- end -}}
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
@@ -48,10 +56,7 @@ spec:
           {{- end }}
           {{- if or .Values.redis.statefulSet.extraEnv .Values.commonEnv  }}
           env:
-            {{- with .Values.redis.statefulSet.extraEnv}}
-             {{- toYaml . | nindent 12 }}
-            {{- end }}
-            {{- with .Values.commonEnv}}
+            {{- with $envVars }}
              {{- toYaml . | nindent 12 }}
             {{- end }}
            {{- end }}
