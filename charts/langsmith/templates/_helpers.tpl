@@ -336,19 +336,21 @@ Template containing common environment variables that are used by several servic
 
 {{/* Fail on duplicate keys in the inputted list */}}
 {{- define "langsmith.detectDuplicates" -}}
-{{- $inputList := . }}
+{{- $inputList := . -}}
+{{- $keyCounts := dict -}}
 {{- $duplicates := list -}}
+
 {{- range $key := $inputList }}
-  {{- $count := 0 -}}
-  {{- range $inputList }}
-    {{- if eq $key . }}
-      {{- $count = add $count 1 -}}
-    {{- end }}
+  {{- if hasKey $keyCounts $key }}
+    {{- $_ := set $keyCounts $key (add (get $keyCounts $key) 1) -}}
+  {{- else }}
+    {{- $_ := set $keyCounts $key 1 -}}
   {{- end }}
-  {{- if and (eq $count 2) (not (has $key $duplicates)) }}  # Add the key to duplicates if count is greater than 1
+  {{- if gt (get $keyCounts $key) 1 }}
     {{- $duplicates = append $duplicates $key -}}
   {{- end }}
 {{- end }}
+
 {{- if gt (len $duplicates) 0 }}
   {{ fail (printf "Duplicate keys detected: %v" $duplicates) }}
 {{- end }}
