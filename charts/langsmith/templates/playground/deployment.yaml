@@ -1,3 +1,5 @@
+{{- $envVars := concat .Values.commonEnv .Values.playground.deployment.extraEnv -}}
+{{- include "langsmith.detectDuplicates" $envVars -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -51,13 +53,7 @@ spec:
           {{- end }}
           {{- if or .Values.playground.deployment.extraEnv .Values.commonEnv  }}
           env:
-            {{- with .Values.playground.deployment.extraEnv}}
-             {{- toYaml . | nindent 12 }}
-            {{- end }}
-            {{- with .Values.commonEnv}}
-             {{- toYaml . | nindent 12 }}
-            {{- end }}
-           {{- end }}
+          {{- end }}
           image: "{{ .Values.images.playgroundImage.repository }}:{{ .Values.images.playgroundImage.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.images.playgroundImage.pullPolicy }}
           ports:

@@ -1,3 +1,23 @@
+{{- define "frontendEnvVars" -}}
+{{- if .Values.config.oauth.enabled }}
+- name: VITE_OAUTH_CLIENT_ID
+  valueFrom:
+    secretKeyRef:
+      key: oauth_client_id
+      name: {{ include "langsmith.secretsName" .}}
+- name: VITE_OAUTH_ISSUER_URL
+  valueFrom:
+    secretKeyRef:
+      key: oauth_issuer_url
+      name: {{ include "langsmith.secretsName" .}}
+{{- end }}
+{{- if .Values.ingress.subdomain }}
+- name: VITE_SUBDOMAIN
+value: {{ .Values.ingress.subdomain }}
+{{- end }}
+{{- end -}}
+{{- $envVars := concat .Values.commonEnv (include "frontendEnvVars" . | fromYamlArray) .Values.frontend.deployment.extraEnv -}}
+{{- include "langsmith.detectDuplicates" $envVars -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -50,26 +70,7 @@ spec:
             {{- toYaml . | nindent 12 }}
           {{- end }}
           env:
-            {{- if .Values.config.oauth.enabled }}
-            - name: VITE_OAUTH_CLIENT_ID
-              valueFrom:
-                secretKeyRef:
-                  key: oauth_client_id
-                  name: {{ include "langsmith.secretsName" .}}
-            - name: VITE_OAUTH_ISSUER_URL
-              valueFrom:
-                secretKeyRef:
-                  key: oauth_issuer_url
-                  name: {{ include "langsmith.secretsName" .}}
-            {{- end }}
-            {{- with .Values.frontend.deployment.extraEnv }}
-              {{- toYaml . | nindent 12 }}
-            {{- end }}
-            {{- if .Values.ingress.subdomain }}
-            - name: VITE_SUBDOMAIN
-              value: {{ .Values.ingress.subdomain }}
-            {{- end }}
-            {{- with .Values.commonEnv }}
+            {{- with $envVars }}
               {{ toYaml . | nindent 12 }}
             {{- end }}
           envFrom:

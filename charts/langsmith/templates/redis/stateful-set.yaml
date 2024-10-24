@@ -1,4 +1,6 @@
 {{- if not .Values.redis.external.enabled }}
+{{- $envVars := concat .Values.commonEnv .Values.redis.statefulSet.extraEnv -}}
+{{- include "langsmith.detectDuplicates" $envVars -}}
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
@@ -48,10 +50,7 @@ spec:
           {{- end }}
           {{- if or .Values.redis.statefulSet.extraEnv .Values.commonEnv  }}
           env:
-            {{- with .Values.redis.statefulSet.extraEnv}}
-             {{- toYaml . | nindent 12 }}
-            {{- end }}
-            {{- with .Values.commonEnv}}
+            {{- with $envVars }}
              {{- toYaml . | nindent 12 }}
             {{- end }}
            {{- end }}

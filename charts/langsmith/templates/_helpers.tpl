@@ -116,6 +116,32 @@ the user or some other secret provisioning mechanism
 {{- end }}
 {{- end }}
 
+{{/* Include these env vars if they aren't defined in .Values.commonEnv */}}
+{{- define "langsmith.conditionalEnvVars" -}}
+- name: X_SERVICE_AUTH_JWT_SECRET
+  valueFrom:
+    secretKeyRef:
+      name: {{ include "langsmith.secretsName" . }}
+      key: api_key_salt
+{{- end }}
+{{- define "langsmith.conditionalEnvVarsResolved" -}}
+  {{- $commonEnvKeys := list -}}
+  {{- range $i, $commonEnvVar := .Values.commonEnv -}}
+    {{- $commonEnvKeys = append $commonEnvKeys $commonEnvVar.name -}}
+  {{- end -}}
+
+  {{- $resolvedEnvVars := list -}}
+  {{- range $i, $envVar := include "langsmith.conditionalEnvVars" . | fromYamlArray }}
+    {{- if not (has $envVar.name $commonEnvKeys) }}
+      {{- $resolvedEnvVars = append $resolvedEnvVars $envVar -}}
+    {{- end }}
+  {{- end }}
+
+  {{- if gt (len $resolvedEnvVars) 0 -}}
+    {{ $resolvedEnvVars | toYaml }}
+  {{- end -}}
+{{- end }}
+
 
 {{/*
 Template containing common environment variables that are used by several services.
@@ -227,11 +253,6 @@ Template containing common environment variables that are used by several servic
   value: http://{{- include "langsmith.fullname" . }}-{{.Values.platformBackend.name}}:{{ .Values.platformBackend.service.port }}
 - name: SMITH_BACKEND_ENDPOINT
   value: http://{{- include "langsmith.fullname" . }}-{{.Values.backend.name}}:{{ .Values.backend.service.port }}
-- name: X_SERVICE_AUTH_JWT_SECRET
-  valueFrom:
-    secretKeyRef:
-      name: {{ include "langsmith.secretsName" . }}
-      key: api_key_salt
 {{- if .Values.config.ttl.enabled }}
 - name: FF_TRACE_TIERS_ENABLED
   value: {{ .Values.config.ttl.enabled | quote }}
@@ -268,6 +289,7 @@ Template containing common environment variables that are used by several servic
 {{- end }}
 - name: FF_CH_SEARCH_ENABLED
   value: {{ .Values.config.blobStorage.chSearchEnabled | quote }}
+{{ include "langsmith.conditionalEnvVarsResolved" . }}
 {{- end }}
 
 {{- define "backend.serviceAccountName" -}}
@@ -333,3 +355,27 @@ Template containing common environment variables that are used by several servic
     {{ default "default" .Values.redis.serviceAccount.name }}
 {{- end -}}
 {{- end -}}
+
+{{/* Fail on duplicate keys in the inputted list of environment variables */}}
+{{- define "langsmith.detectDuplicates" -}}
+{{- $inputList := . -}}
+{{- $keyCounts := dict -}}
+{{- $duplicates := list -}}
+
+{{- range $i, $val := $inputList }}
+  {{- $key := $val.name -}}
+  {{- if hasKey $keyCounts $key }}
+    {{- $_ := set $keyCounts $key (add (get $keyCounts $key) 1) -}}
+  {{- else }}
+    {{- $_ := set $keyCounts $key 1 -}}
+  {{- end }}
+  {{- if gt (get $keyCounts $key) 1 }}
+    {{- $duplicates = append $duplicates $key -}}
+  {{- end }}
+{{- end }}
+
+{{- if gt (len $duplicates) 0 }}
+  {{ fail (printf "Duplicate keys detected: %v" $duplicates) }}
+{{- end }}
+{{- end -}}
+
