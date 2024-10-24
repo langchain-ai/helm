@@ -227,19 +227,6 @@ Template containing common environment variables that are used by several servic
   value: http://{{- include "langsmith.fullname" . }}-{{.Values.platformBackend.name}}:{{ .Values.platformBackend.service.port }}
 - name: SMITH_BACKEND_ENDPOINT
   value: http://{{- include "langsmith.fullname" . }}-{{.Values.backend.name}}:{{ .Values.backend.service.port }}
-{{- $found := false -}}
-{{- range .Values.commonEnv }}
-  {{- if eq .name "X_SERVICE_AUTH_JWT_SECRET" }}
-    {{- $found = true -}}
-  {{- end }}
-{{- end }}
-{{- if not $found }}
-- name: X_SERVICE_AUTH_JWT_SECRET
-  valueFrom:
-    secretKeyRef:
-      name: {{ include "langsmith.secretsName" . }}
-      key: api_key_salt
-{{- end }}
 {{- if .Values.config.ttl.enabled }}
 - name: FF_TRACE_TIERS_ENABLED
   value: {{ .Values.config.ttl.enabled | quote }}
@@ -276,6 +263,7 @@ Template containing common environment variables that are used by several servic
 {{- end }}
 - name: FF_CH_SEARCH_ENABLED
   value: {{ .Values.config.blobStorage.chSearchEnabled | quote }}
+{{- include "langsmith.conditionalEnvVarsResolved" . -}}
 {{- end }}
 
 {{- define "backend.serviceAccountName" -}}
@@ -363,4 +351,32 @@ Template containing common environment variables that are used by several servic
 {{- if gt (len $duplicates) 0 }}
   {{ fail (printf "Duplicate keys detected: %v" $duplicates) }}
 {{- end }}
+{{- end -}}
+
+{{/* Include these env vars if they aren't defined in .Values.commonEnv */}}
+{{- define "langsmith.conditionalEnvVars" -}}
+- name: X_SERVICE_AUTH_JWT_SECRET
+  valueFrom:
+    secretKeyRef:
+      name: {{ include "langsmith.secretsName" . }}
+      key: api_key_salt
+{{- end -}}
+{{- define "langsmith.conditionalEnvVarsResolved" -}}
+  {{- $values := .Values -}}
+  {{- $envVars := include "langsmith.conditionalEnvVars" . | fromYamlArray -}}
+
+  {{- range $i, $envVar := $envVars }}
+    {{- $found := false -}}
+
+    {{- range $values.commonEnv }}
+      {{- if eq .name $envVar.name }}
+        {{- $found = true -}}
+      {{- end }}
+    {{- end }}
+
+    # If the variable is not found in .Values.commonEnv, render it
+    {{- if not $found }}
+      {{ $envVar | toYaml }}
+    {{- end }}
+  {{- end }}
 {{- end -}}
