@@ -335,7 +335,7 @@ Template containing common environment variables that are used by several servic
 {{- end -}}
 
 {{/* Fail on duplicate keys in the inputted list on environment variables */}}
-{{- define "langsmith-multitenant.detectDuplicates" -}}
+{{- define "langsmith.detectDuplicates" -}}
 {{- $inputList := . -}}
 {{- $keyCounts := dict -}}
 {{- $duplicates := list -}}
