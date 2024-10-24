@@ -227,6 +227,19 @@ Template containing common environment variables that are used by several servic
   value: http://{{- include "langsmith.fullname" . }}-{{.Values.platformBackend.name}}:{{ .Values.platformBackend.service.port }}
 - name: SMITH_BACKEND_ENDPOINT
   value: http://{{- include "langsmith.fullname" . }}-{{.Values.backend.name}}:{{ .Values.backend.service.port }}
+{{- $found := false -}}
+{{- range .Values.commonEnv }}
+  {{- if eq .name "X_SERVICE_AUTH_JWT_SECRET" }}
+    {{- $found = true -}}
+  {{- end }}
+{{- end }}
+{{- if not $found }}
+- name: X_SERVICE_AUTH_JWT_SECRET
+  valueFrom:
+    secretKeyRef:
+      name: {{ include "langsmith.secretsName" . }}
+      key: api_key_salt
+{{- end }}
 {{- if .Values.config.ttl.enabled }}
 - name: FF_TRACE_TIERS_ENABLED
   value: {{ .Values.config.ttl.enabled | quote }}

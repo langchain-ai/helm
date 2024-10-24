@@ -25,8 +25,3 @@ data:
   {{- end }}
   LANGCHAIN_ENV: "local_kubernetes"
   GO_ENDPOINT: "http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}:{{ .Values.platformBackend.service.port }}"
-  X_SERVICE_AUTH_JWT_SECRET:
-   valueFrom:
-     secretKeyRef:
-       name: {{ include "langsmith.secretsName" . }}
-       key: api_key_salt
