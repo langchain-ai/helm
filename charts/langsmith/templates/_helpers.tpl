@@ -263,7 +263,7 @@ Template containing common environment variables that are used by several servic
 {{- end }}
 - name: FF_CH_SEARCH_ENABLED
   value: {{ .Values.config.blobStorage.chSearchEnabled | quote }}
-{{- include "langsmith.conditionalEnvVarsResolved" . -}}
+{{ include "langsmith.conditionalEnvVarsResolved" . }}
 {{- end }}
 
 {{- define "backend.serviceAccountName" -}}
@@ -360,7 +360,7 @@ Template containing common environment variables that are used by several servic
     secretKeyRef:
       name: {{ include "langsmith.secretsName" . }}
       key: api_key_salt
-{{- end -}}
+{{- end }}
 {{- define "langsmith.conditionalEnvVarsResolved" -}}
   {{- $values := .Values -}}
   {{- $envVars := include "langsmith.conditionalEnvVars" . | fromYamlArray -}}
@@ -379,4 +379,4 @@ Template containing common environment variables that are used by several servic
       {{ $envVar | toYaml | nindent 2 }}
     {{- end }}
   {{- end }}
-{{- end -}}
+{{- end }}
