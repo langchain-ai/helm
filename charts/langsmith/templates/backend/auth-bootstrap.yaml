@@ -13,9 +13,7 @@
 {{- range $envVars }}
   {{- $envKeys = append $envKeys .name -}}
 {{- end }}
-{{- if ne (uniq $envKeys | len) (len $envKeys) -}}
-  {{ fail "Environment variables cannot contain duplicate keys" }}
-{{- end -}}
+{{- include "langsmith.detectDuplicates" $envKeys -}}
 apiVersion: batch/v1
 kind: Job
 metadata:

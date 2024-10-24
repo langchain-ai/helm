@@ -4,9 +4,21 @@
 {{- range $envVars }}
   {{- $envKeys = append $envKeys .name -}}
 {{- end }}
-{{- if ne (uniq $envKeys | len) (len $envKeys) -}}
-  {{ fail "Environment variables cannot contain duplicate keys" }}
-{{- end -}}
+{{- $duplicates := list -}}
+{{- range $key := $envKeys }}
+  {{- $count := 0 -}}
+  {{- range $envKeys }}
+    {{- if eq $key . }}
+      {{- $count = add $count 1 -}}
+    {{- end }}
+  {{- end }}
+  {{- if and (eq $count 2) (not (has $key $duplicates)) }}  # Add the key to duplicates if count is greater than 1
+    {{- $duplicates = append $duplicates $key -}}
+  {{- end }}
+{{- end }}
+{{- if gt (len $duplicates) 0 }}
+  {{ fail (printf "Environment variables contain duplicate keys: %v" $duplicates) }}
+{{- end }}
 apiVersion: batch/v1
 kind: Job
 metadata:

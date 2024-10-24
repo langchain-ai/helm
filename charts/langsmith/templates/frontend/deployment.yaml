@@ -21,9 +21,7 @@ value: {{ .Values.ingress.subdomain }}
 {{- range $envVars }}
   {{- $envKeys = append $envKeys .name -}}
 {{- end }}
-{{- if ne (uniq $envKeys | len) (len $envKeys) -}}
-  {{ fail "Environment variables cannot contain duplicate keys" }}
-{{- end -}}
+{{- include "langsmith.detectDuplicates" $envKeys -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:

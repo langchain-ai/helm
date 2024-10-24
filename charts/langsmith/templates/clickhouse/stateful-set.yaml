@@ -21,9 +21,9 @@
 {{- range $envVars }}
   {{- $envKeys = append $envKeys .name -}}
 {{- end }}
-{{- if ne (uniq $envKeys | len) (len $envKeys) -}}
-  {{ fail "Environment variables cannot contain duplicate keys" }}
-{{- end -}}
+{{- include "langsmith.detectDuplicates" $envKeys -}}
+  {{ fail (printf "Environment variables contain duplicate keys: %v" $duplicates) }}
+{{- end }}
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:

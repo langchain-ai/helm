@@ -333,3 +333,23 @@ Template containing common environment variables that are used by several servic
     {{ default "default" .Values.redis.serviceAccount.name }}
 {{- end -}}
 {{- end -}}
+
+{{/* Fail on duplicate keys in the inputted list */}}
+{{- define "langsmith.detectDuplicates" -}}
+{{- $inputList := . }}
+{{- $duplicates := list -}}
+{{- range $key := $inputList }}
+  {{- $count := 0 -}}
+  {{- range $inputList }}
+    {{- if eq $key . }}
+      {{- $count = add $count 1 -}}
+    {{- end }}
+  {{- end }}
+  {{- if and (eq $count 2) (not (has $key $duplicates)) }}  # Add the key to duplicates if count is greater than 1
+    {{- $duplicates = append $duplicates $key -}}
+  {{- end }}
+{{- end }}
+{{- if gt (len $duplicates) 0 }}
+  {{ fail (printf "Duplicate keys detected: %v" $duplicates) }}
+{{- end }}
+{{- end -}}
