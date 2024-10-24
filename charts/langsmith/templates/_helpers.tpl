@@ -116,6 +116,32 @@ the user or some other secret provisioning mechanism
 {{- end }}
 {{- end }}
 
+{{/* Include these env vars if they aren't defined in .Values.commonEnv */}}
+{{- define "langsmith.conditionalEnvVars" -}}
+- name: X_SERVICE_AUTH_JWT_SECRET
+  valueFrom:
+    secretKeyRef:
+      name: {{ include "langsmith.secretsName" . }}
+      key: api_key_salt
+{{- end }}
+{{- define "langsmith.conditionalEnvVarsResolved" -}}
+  {{- $commonEnvKeys := list -}}
+  {{- range $i, $commonEnvVar := .Values.commonEnv -}}
+    {{- $commonEnvKeys = append $commonEnvKeys $commonEnvVar.name -}}
+  {{- end -}}
+
+  {{- $resolvedEnvVars := list -}}
+  {{- range $i, $envVar := include "langsmith.conditionalEnvVars" . | fromYamlArray }}
+    {{- if not (has $envVar.name $commonEnvKeys) }}
+      {{- $resolvedEnvVars = append $resolvedEnvVars $envVar -}}
+    {{- end }}
+  {{- end }}
+
+  {{- if gt (len $resolvedEnvVars) 0 -}}
+    {{ $resolvedEnvVars | toYaml }}
+  {{- end -}}
+{{- end }}
+
 
 {{/*
 Template containing common environment variables that are used by several services.
@@ -353,23 +379,3 @@ Template containing common environment variables that are used by several servic
 {{- end }}
 {{- end -}}
 
-{{/* Include these env vars if they aren't defined in .Values.commonEnv */}}
-{{- define "langsmith.conditionalEnvVars" -}}
-- name: X_SERVICE_AUTH_JWT_SECRET
-  valueFrom:
-    secretKeyRef:
-      name: {{ include "langsmith.secretsName" . }}
-      key: api_key_salt
-{{- end }}
-{{- define "langsmith.conditionalEnvVarsResolved" -}}
-  {{- $commonEnvKeys := list -}}
-  {{- range $i, $commonEnvVar := .Values.commonEnv -}}
-    {{- $commonEnvKeys = append $commonEnvKeys $commonEnvVar.name -}}
-  {{- end -}}
-  {{- $envVars := include "langsmith.conditionalEnvVars" . | fromYamlArray -}}
-  {{- range $i, $envVar := $envVars }}
-    {{- if not (has $envVar.name $commonEnvKeys) }}
-      {{ $envVar | toYaml | nindent 2 }}
-    {{- end }}
-  {{- end }}
-{{- end }}
