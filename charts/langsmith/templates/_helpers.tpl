@@ -376,7 +376,7 @@ Template containing common environment variables that are used by several servic
 
     # If the variable is not found in .Values.commonEnv, render it
     {{- if not $found }}
-      {{ $envVar | toYaml }}
+      {{ $envVar | toYaml | nindent 2 }}
     {{- end }}
   {{- end }}
 {{- end -}}
