@@ -362,20 +362,13 @@ Template containing common environment variables that are used by several servic
       key: api_key_salt
 {{- end }}
 {{- define "langsmith.conditionalEnvVarsResolved" -}}
-  {{- $values := .Values -}}
+  {{- $commonEnvKeys := list -}}
+  {{- range $i, $commonEnvVar := .Values.commonEnv -}}
+    {{- $commonEnvKeys = append $commonEnvKeys $commonEnvVar.name -}}
+  {{- end -}}
   {{- $envVars := include "langsmith.conditionalEnvVars" . | fromYamlArray -}}
-
   {{- range $i, $envVar := $envVars }}
-    {{- $found := false -}}
-
-    {{- range $values.commonEnv }}
-      {{- if eq .name $envVar.name }}
-        {{- $found = true -}}
-      {{- end }}
-    {{- end }}
-
-    # If the variable is not found in .Values.commonEnv, render it
-    {{- if not $found }}
+    {{- if not (has $envVar.name $commonEnvKeys) }}
       {{ $envVar | toYaml | nindent 2 }}
     {{- end }}
   {{- end }}
