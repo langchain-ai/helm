@@ -1,5 +1,6 @@
 {{- if .Values.backend.clickhouseMigrations.enabled }}
-{{- $envVars := concat (include "langsmith.commonEnv" . | fromYamlArray) .Values.backend.clickhouseMigrations.extraEnv -}}{{- include "langsmith.detectDuplicates" $envVars -}}
+{{- $envVars := concat (include "langsmith.commonEnv" . | fromYamlArray) .Values.backend.clickhouseMigrations.extraEnv -}}
+{{- include "langsmith.detectDuplicates" $envVars -}}
 apiVersion: batch/v1
 kind: Job
 metadata:
