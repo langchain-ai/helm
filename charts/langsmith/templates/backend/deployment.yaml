@@ -6,12 +6,7 @@
   value: /{{ . }}/api
 {{- end }}
 {{- end -}}
-{{- $envVars := concat .Values.commonEnv (include "langsmith.commonEnv" . | fromYamlArray) (include "backendEnvVars" . | fromYamlArray) .Values.backend.deployment.extraEnv -}}
-{{- $envKeys := list -}}
-{{- range $envVars }}
-  {{- $envKeys = append $envKeys .name -}}
-{{- end }}
-{{- include "langsmith.detectDuplicates" $envKeys -}}
+{{- $envVars := concat .Values.commonEnv (include "langsmith.commonEnv" . | fromYamlArray) (include "backendEnvVars" . | fromYamlArray) .Values.backend.deployment.extraEnv -}}{{- include "langsmith.detectDuplicates" $envVars -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:

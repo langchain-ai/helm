@@ -5,11 +5,7 @@
   value: "3"
 {{- end -}}
 {{- $envVars := concat .Values.commonEnv (include "langsmith.commonEnv" . | fromYamlArray) (include "queueEnvVars" . | fromYamlArray) .Values.queue.deployment.extraEnv -}}
-{{- $envKeys := list -}}
-{{- range $envVars }}
-  {{- $envKeys = append $envKeys .name -}}
-{{- end }}
-{{- include "langsmith.detectDuplicates" $envKeys -}}
+{{- include "langsmith.detectDuplicates" $envVars -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:

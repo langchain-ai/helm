@@ -1,10 +1,6 @@
 {{- if not .Values.redis.external.enabled }}
 {{- $envVars := concat .Values.commonEnv .Values.redis.statefulSet.extraEnv -}}
-{{- $envKeys := list -}}
-{{- range $envVars }}
-  {{- $envKeys = append $envKeys .name -}}
-{{- end }}
-{{- include "langsmith.detectDuplicates" $envKeys -}}
+{{- include "langsmith.detectDuplicates" $envVars -}}
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
