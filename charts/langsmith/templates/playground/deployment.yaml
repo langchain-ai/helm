@@ -1,4 +1,10 @@
-{{- $envVars := concat .Values.commonEnv .Values.playground.deployment.extraEnv -}}
+{{- define "playgroundEnvVars" -}}
+- name: PORT
+  value: {{ .Values.playground.containerPort | quote }}
+- name: LOG_LEVEL
+  value: {{ .Values.config.logLevel | quote }}
+{{- end -}}
+{{- $envVars := concat .Values.commonEnv (include "playgroundEnvVars" . | fromYamlArray) .Values.playground.deployment.extraEnv -}}
 {{- include "langsmith.detectDuplicates" $envVars -}}
 apiVersion: apps/v1
 kind: Deployment
@@ -51,9 +57,13 @@ spec:
           command:
             {{- toYaml . | nindent 12 }}
           {{- end }}
-          {{- if or .Values.playground.deployment.extraEnv .Values.commonEnv  }}
           env:
-          {{- end }}
+            {{- with $envVars }}
+              {{- toYaml . | nindent 12 }}
+            {{- end }}
+          envFrom:
+            - configMapRef:
+                name: {{ include "langsmith.fullname" . }}-config
           image: "{{ .Values.images.playgroundImage.repository }}:{{ .Values.images.playgroundImage.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.images.playgroundImage.pullPolicy }}
           ports:

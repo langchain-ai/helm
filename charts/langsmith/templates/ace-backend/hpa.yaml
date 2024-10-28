@@ -1,0 +1,32 @@
+{{- if and .Values.aceBackend.autoscaling.enabled .Values.aceBackend.autoscaling.createHpa }}
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ include "langsmith.fullname" . }}-{{ .Values.aceBackend.name }}
+  labels:
+    {{- include "langsmith.labels" . | nindent 4 }}
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ include "langsmith.fullname" . }}-{{ .Values.aceBackend.name }}
+  minReplicas: {{ .Values.aceBackend.autoscaling.minReplicas }}
+  maxReplicas: {{ .Values.aceBackend.autoscaling.maxReplicas }}
+  metrics:
+    {{- if .Values.aceBackend.autoscaling.targetCPUUtilizationPercentage }}
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.aceBackend.autoscaling.targetCPUUtilizationPercentage }}
+    {{- end }}
+    {{- if .Values.aceBackend.autoscaling.targetMemoryUtilizationPercentage }}
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.aceBackend.autoscaling.targetMemoryUtilizationPercentage }}
+    {{- end }}
+{{- end }}

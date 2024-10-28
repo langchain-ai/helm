@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "langsmith.fullname" . }}-{{ .Values.aceBackend.name }}
+  labels:
+    {{- include "langsmith.labels" . | nindent 4 }}
+    {{- with.Values.aceBackend.service.labels }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+  annotations:
+    {{- include "langsmith.annotations" . | nindent 4 }}
+    {{- with.Values.aceBackend.service.annotations }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  type: {{ .Values.aceBackend.service.type }}
+  {{- with .Values.aceBackend.service.loadBalancerSourceRanges }}
+  loadBalancerSourceRanges:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  loadBalancerIP: {{ .Values.aceBackend.service.loadBalancerIP }}
+  ports:
+    - name: ace
+      port: {{ .Values.aceBackend.service.port }}
+      targetPort: ace
+      protocol: TCP
+  selector:
+    {{- include "langsmith.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-{{ .Values.aceBackend.name }}

@@ -75,11 +75,6 @@ playground:
       requests:
         cpu: 100m
         memory: 500Mi
-    command:
-      - "yarn"
-      - "start"
-      - "--cache-folder"
-      - "/tmp/.yarn"
     podSecurityContext:
       runAsNonRoot: true
       runAsUser: 1000

@@ -4,6 +4,13 @@ config:
   apiKeySalt: "YOUR_API_KEY_SALT"
 
 # Note, you likely should tweak the values to match something that fits your local development environment.
+aceBackend:
+  deployment:
+    resources:
+      requests:
+        cpu: 100m
+        memory: 500Mi
+
 backend:
   deployment:
     resources:

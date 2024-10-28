@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.7.11](https://img.shields.io/badge/Version-0.7.11-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.7.45](https://img.shields.io/badge/AppVersion-0.7.45-informational?style=flat-square)
+![Version: 0.8.0](https://img.shields.io/badge/Version-0.8.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.8.12](https://img.shields.io/badge/AppVersion-0.8.12-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -12,6 +12,68 @@ For information on how to use this chart, up-to-date release notes, and other gu
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
+| aceBackend.autoscaling.createHpa | bool | `true` |  |
+| aceBackend.autoscaling.enabled | bool | `false` |  |
+| aceBackend.autoscaling.maxReplicas | int | `5` |  |
+| aceBackend.autoscaling.minReplicas | int | `1` |  |
+| aceBackend.autoscaling.targetCPUUtilizationPercentage | int | `50` |  |
+| aceBackend.autoscaling.targetMemoryUtilizationPercentage | int | `80` |  |
+| aceBackend.containerPort | int | `1987` |  |
+| aceBackend.deployment.affinity | object | `{}` |  |
+| aceBackend.deployment.annotations | object | `{}` |  |
+| aceBackend.deployment.autoRestart | bool | `true` |  |
+| aceBackend.deployment.command[0] | string | `"deno"` |  |
+| aceBackend.deployment.command[1] | string | `"run"` |  |
+| aceBackend.deployment.command[2] | string | `"--unstable-worker-options"` |  |
+| aceBackend.deployment.command[3] | string | `"--allow-env"` |  |
+| aceBackend.deployment.command[4] | string | `"--allow-net=0.0.0.0:$(PORT)"` |  |
+| aceBackend.deployment.command[5] | string | `"--node-modules-dir"` |  |
+| aceBackend.deployment.command[6] | string | `"-R"` |  |
+| aceBackend.deployment.command[7] | string | `"src/main.ts"` |  |
+| aceBackend.deployment.command[8] | string | `"-R"` |  |
+| aceBackend.deployment.command[9] | string | `"src/python_worker.ts"` |  |
+| aceBackend.deployment.extraContainerConfig | object | `{}` |  |
+| aceBackend.deployment.extraEnv | list | `[]` |  |
+| aceBackend.deployment.labels | object | `{}` |  |
+| aceBackend.deployment.livenessProbe.failureThreshold | int | `6` |  |
+| aceBackend.deployment.livenessProbe.httpGet.path | string | `"/ok"` |  |
+| aceBackend.deployment.livenessProbe.httpGet.port | int | `1987` |  |
+| aceBackend.deployment.livenessProbe.periodSeconds | int | `10` |  |
+| aceBackend.deployment.livenessProbe.timeoutSeconds | int | `1` |  |
+| aceBackend.deployment.nodeSelector | object | `{}` |  |
+| aceBackend.deployment.podSecurityContext | object | `{}` |  |
+| aceBackend.deployment.readinessProbe.failureThreshold | int | `6` |  |
+| aceBackend.deployment.readinessProbe.httpGet.path | string | `"/ok"` |  |
+| aceBackend.deployment.readinessProbe.httpGet.port | int | `1987` |  |
+| aceBackend.deployment.readinessProbe.periodSeconds | int | `10` |  |
+| aceBackend.deployment.readinessProbe.timeoutSeconds | int | `1` |  |
+| aceBackend.deployment.replicas | int | `1` |  |
+| aceBackend.deployment.resources.limits.cpu | string | `"1000m"` |  |
+| aceBackend.deployment.resources.limits.memory | string | `"2Gi"` |  |
+| aceBackend.deployment.resources.requests.cpu | string | `"200m"` |  |
+| aceBackend.deployment.resources.requests.memory | string | `"1000Mi"` |  |
+| aceBackend.deployment.securityContext | object | `{}` |  |
+| aceBackend.deployment.sidecars | list | `[]` |  |
+| aceBackend.deployment.startupProbe.failureThreshold | int | `6` |  |
+| aceBackend.deployment.startupProbe.httpGet.path | string | `"/ok"` |  |
+| aceBackend.deployment.startupProbe.httpGet.port | int | `1987` |  |
+| aceBackend.deployment.startupProbe.periodSeconds | int | `10` |  |
+| aceBackend.deployment.startupProbe.timeoutSeconds | int | `1` |  |
+| aceBackend.deployment.tolerations | list | `[]` |  |
+| aceBackend.deployment.topologySpreadConstraints | list | `[]` |  |
+| aceBackend.deployment.volumeMounts | list | `[]` |  |
+| aceBackend.deployment.volumes | list | `[]` |  |
+| aceBackend.name | string | `"ace-backend"` |  |
+| aceBackend.service.annotations | object | `{}` |  |
+| aceBackend.service.labels | object | `{}` |  |
+| aceBackend.service.loadBalancerIP | string | `""` |  |
+| aceBackend.service.loadBalancerSourceRanges | list | `[]` |  |
+| aceBackend.service.port | int | `1987` |  |
+| aceBackend.service.type | string | `"ClusterIP"` |  |
+| aceBackend.serviceAccount.annotations | object | `{}` |  |
+| aceBackend.serviceAccount.create | bool | `true` |  |
+| aceBackend.serviceAccount.labels | object | `{}` |  |
+| aceBackend.serviceAccount.name | string | `""` |  |
 | apiIngress.annotations | object | `{}` |  |
 | apiIngress.enabled | bool | `false` |  |
 | apiIngress.hostname | string | `""` |  |
@@ -84,22 +146,25 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | commonEnv | list | `[]` | Common environment variables that will be applied to all deployments/statefulsets created by the chart. Be careful not to override values already specified by the chart. |
 | commonLabels | object | `{}` | Labels that will be applied to all resources created by the chart |
 | fullnameOverride | string | `""` | String to fully override `"langsmith.fullname"` |
+| images.aceBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
+| images.aceBackendImage.repository | string | `"docker.io/langchain/langsmith-ace-backend"` |  |
+| images.aceBackendImage.tag | string | `"0.8.12"` |  |
 | images.backendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.backendImage.repository | string | `"docker.io/langchain/langsmith-backend"` |  |
-| images.backendImage.tag | string | `"0.7.45"` |  |
+| images.backendImage.tag | string | `"0.8.12"` |  |
 | images.clickhouseImage.pullPolicy | string | `"Always"` |  |
 | images.clickhouseImage.repository | string | `"docker.io/clickhouse/clickhouse-server"` |  |
-| images.clickhouseImage.tag | string | `"24.2"` |  |
+| images.clickhouseImage.tag | string | `"24.5"` |  |
 | images.frontendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.frontendImage.repository | string | `"docker.io/langchain/langsmith-frontend"` |  |
-| images.frontendImage.tag | string | `"0.7.45"` |  |
+| images.frontendImage.tag | string | `"0.8.12"` |  |
 | images.imagePullSecrets | list | `[]` | Secrets with credentials to pull images from a private registry. Specified as name: value. |
 | images.platformBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.platformBackendImage.repository | string | `"docker.io/langchain/langsmith-go-backend"` |  |
-| images.platformBackendImage.tag | string | `"0.7.45"` |  |
+| images.platformBackendImage.tag | string | `"0.8.12"` |  |
 | images.playgroundImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.playgroundImage.repository | string | `"docker.io/langchain/langsmith-playground"` |  |
-| images.playgroundImage.tag | string | `"0.7.45"` |  |
+| images.playgroundImage.tag | string | `"0.8.12"` |  |
 | images.postgresImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.postgresImage.repository | string | `"docker.io/postgres"` |  |
 | images.postgresImage.tag | string | `"14.7"` |  |
@@ -204,14 +269,14 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | backend.deployment.extraEnv | list | `[]` |  |
 | backend.deployment.labels | object | `{}` |  |
 | backend.deployment.livenessProbe.failureThreshold | int | `6` |  |
-| backend.deployment.livenessProbe.httpGet.path | string | `"/ok"` |  |
+| backend.deployment.livenessProbe.httpGet.path | string | `"/health"` |  |
 | backend.deployment.livenessProbe.httpGet.port | int | `1984` |  |
 | backend.deployment.livenessProbe.periodSeconds | int | `10` |  |
 | backend.deployment.livenessProbe.timeoutSeconds | int | `1` |  |
 | backend.deployment.nodeSelector | object | `{}` |  |
 | backend.deployment.podSecurityContext | object | `{}` |  |
 | backend.deployment.readinessProbe.failureThreshold | int | `6` |  |
-| backend.deployment.readinessProbe.httpGet.path | string | `"/ok"` |  |
+| backend.deployment.readinessProbe.httpGet.path | string | `"/health"` |  |
 | backend.deployment.readinessProbe.httpGet.port | int | `1984` |  |
 | backend.deployment.readinessProbe.periodSeconds | int | `10` |  |
 | backend.deployment.readinessProbe.timeoutSeconds | int | `1` |  |
@@ -223,7 +288,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | backend.deployment.securityContext | object | `{}` |  |
 | backend.deployment.sidecars | list | `[]` |  |
 | backend.deployment.startupProbe.failureThreshold | int | `6` |  |
-| backend.deployment.startupProbe.httpGet.path | string | `"/ok"` |  |
+| backend.deployment.startupProbe.httpGet.path | string | `"/health"` |  |
 | backend.deployment.startupProbe.httpGet.port | int | `1984` |  |
 | backend.deployment.startupProbe.periodSeconds | int | `10` |  |
 | backend.deployment.startupProbe.timeoutSeconds | int | `1` |  |
@@ -423,10 +488,10 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | platformBackend.deployment.readinessProbe.periodSeconds | int | `10` |  |
 | platformBackend.deployment.readinessProbe.timeoutSeconds | int | `1` |  |
 | platformBackend.deployment.replicas | int | `1` |  |
-| platformBackend.deployment.resources.limits.cpu | string | `"1000m"` |  |
-| platformBackend.deployment.resources.limits.memory | string | `"2Gi"` |  |
-| platformBackend.deployment.resources.requests.cpu | string | `"500m"` |  |
-| platformBackend.deployment.resources.requests.memory | string | `"1Gi"` |  |
+| platformBackend.deployment.resources.limits.cpu | string | `"2000m"` |  |
+| platformBackend.deployment.resources.limits.memory | string | `"4Gi"` |  |
+| platformBackend.deployment.resources.requests.cpu | string | `"1000m"` |  |
+| platformBackend.deployment.resources.requests.memory | string | `"2Gi"` |  |
 | platformBackend.deployment.securityContext | object | `{}` |  |
 | platformBackend.deployment.sidecars | list | `[]` |  |
 | platformBackend.deployment.startupProbe.failureThreshold | int | `6` |  |
@@ -461,25 +526,36 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | playground.autoscaling.minReplicas | int | `1` |  |
 | playground.autoscaling.targetCPUUtilizationPercentage | int | `50` |  |
 | playground.autoscaling.targetMemoryUtilizationPercentage | int | `80` |  |
-| playground.containerPort | int | `3001` |  |
+| playground.containerPort | int | `1988` |  |
 | playground.deployment.affinity | object | `{}` |  |
 | playground.deployment.annotations | object | `{}` |  |
 | playground.deployment.autoRestart | bool | `true` |  |
-| playground.deployment.command[0] | string | `"yarn"` |  |
-| playground.deployment.command[1] | string | `"start"` |  |
+| playground.deployment.command[0] | string | `"uvicorn"` |  |
+| playground.deployment.command[10] | string | `"--http"` |  |
+| playground.deployment.command[11] | string | `"httptools"` |  |
+| playground.deployment.command[12] | string | `"--no-access-log"` |  |
+| playground.deployment.command[1] | string | `"playground.main:app"` |  |
+| playground.deployment.command[2] | string | `"--host"` |  |
+| playground.deployment.command[3] | string | `"0.0.0.0"` |  |
+| playground.deployment.command[4] | string | `"--port"` |  |
+| playground.deployment.command[5] | string | `"$(PORT)"` |  |
+| playground.deployment.command[6] | string | `"--log-level"` |  |
+| playground.deployment.command[7] | string | `"$(LOG_LEVEL)"` |  |
+| playground.deployment.command[8] | string | `"--loop"` |  |
+| playground.deployment.command[9] | string | `"uvloop"` |  |
 | playground.deployment.extraContainerConfig | object | `{}` |  |
 | playground.deployment.extraEnv | list | `[]` |  |
 | playground.deployment.labels | object | `{}` |  |
 | playground.deployment.livenessProbe.failureThreshold | int | `6` |  |
 | playground.deployment.livenessProbe.httpGet.path | string | `"/ok"` |  |
-| playground.deployment.livenessProbe.httpGet.port | int | `3001` |  |
+| playground.deployment.livenessProbe.httpGet.port | int | `1988` |  |
 | playground.deployment.livenessProbe.periodSeconds | int | `10` |  |
 | playground.deployment.livenessProbe.timeoutSeconds | int | `1` |  |
 | playground.deployment.nodeSelector | object | `{}` |  |
 | playground.deployment.podSecurityContext | object | `{}` |  |
 | playground.deployment.readinessProbe.failureThreshold | int | `6` |  |
 | playground.deployment.readinessProbe.httpGet.path | string | `"/ok"` |  |
-| playground.deployment.readinessProbe.httpGet.port | int | `3001` |  |
+| playground.deployment.readinessProbe.httpGet.port | int | `1988` |  |
 | playground.deployment.readinessProbe.periodSeconds | int | `10` |  |
 | playground.deployment.readinessProbe.timeoutSeconds | int | `1` |  |
 | playground.deployment.replicas | int | `1` |  |
@@ -491,7 +567,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | playground.deployment.sidecars | list | `[]` |  |
 | playground.deployment.startupProbe.failureThreshold | int | `6` |  |
 | playground.deployment.startupProbe.httpGet.path | string | `"/ok"` |  |
-| playground.deployment.startupProbe.httpGet.port | int | `3001` |  |
+| playground.deployment.startupProbe.httpGet.port | int | `1988` |  |
 | playground.deployment.startupProbe.periodSeconds | int | `10` |  |
 | playground.deployment.startupProbe.timeoutSeconds | int | `1` |  |
 | playground.deployment.tolerations | list | `[]` |  |
@@ -503,7 +579,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | playground.service.labels | object | `{}` |  |
 | playground.service.loadBalancerIP | string | `""` |  |
 | playground.service.loadBalancerSourceRanges | list | `[]` |  |
-| playground.service.port | int | `3001` |  |
+| playground.service.port | int | `1988` |  |
 | playground.service.type | string | `"ClusterIP"` |  |
 | playground.serviceAccount.annotations | object | `{}` |  |
 | playground.serviceAccount.create | bool | `true` |  |
@@ -696,6 +772,6 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | Ankush | <ankush@langchain.dev> |  |
 
 ----------------------------------------------
-Autogenerated from chart metadata using [helm-docs v1.13.1](https://github.com/norwoodj/helm-docs/releases/v1.13.1)
+Autogenerated from chart metadata using [helm-docs v1.11.3](https://github.com/norwoodj/helm-docs/releases/v1.11.3)
 ## Docs Generated by [helm-docs](https://github.com/norwoodj/helm-docs)
 `helm-docs -t ./charts/langsmith/README.md.gotmpl`
