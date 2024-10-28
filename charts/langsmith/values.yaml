@@ -601,7 +601,7 @@ platformBackend:
 
 playground:
   name: "playground"
-  containerPort: 3001
+  containerPort: 1988
   deployment:
     autoRestart: true
     replicas: 1
@@ -633,21 +633,21 @@ playground:
     startupProbe:
       httpGet:
         path: /ok
-        port: 3001
+        port: 1988
       failureThreshold: 6
       periodSeconds: 10
       timeoutSeconds: 1
     livenessProbe:
       httpGet:
         path: /ok
-        port: 3001
+        port: 1988
       failureThreshold: 6
       periodSeconds: 10
       timeoutSeconds: 1
     readinessProbe:
       httpGet:
         path: /ok
-        port: 3001
+        port: 1988
       failureThreshold: 6
       periodSeconds: 10
       timeoutSeconds: 1
@@ -671,7 +671,7 @@ playground:
     targetMemoryUtilizationPercentage: 80
   service:
     type: ClusterIP
-    port: 3001
+    port: 1988
     labels: {}
     annotations: {}
     loadBalancerSourceRanges: []

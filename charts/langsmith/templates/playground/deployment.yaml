@@ -1,6 +1,6 @@
 {{- define "playgroundEnvVars" -}}
 - name: PORT
-  value: {{ .Values.backend.containerPort | quote }}
+  value: {{ .Values.playground.containerPort | quote }}
 - name: LOG_LEVEL
   value: {{ .Values.config.logLevel | quote }}
 {{- end -}}
