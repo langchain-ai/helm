@@ -19,6 +19,7 @@ data:
   VITE_BACKEND_AUTH_TYPE: "mixed"
   AUTH_TYPE: "mixed"
   BASIC_AUTH_ENABLED: "true"
+  VITE_BASIC_AUTH_ENABLED: "true"
   {{- else }}
   VITE_BACKEND_AUTH_TYPE: "none"
   AUTH_TYPE: "none"
