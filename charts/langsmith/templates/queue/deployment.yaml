@@ -1,3 +1,11 @@
+{{- define "queueEnvVars" -}}
+- name: "REDIS_MAX_CONNECTIONS"
+  value: "250"
+- name: "ASYNCPG_POOL_MAX_SIZE"
+  value: "3"
+{{- end -}}
+{{- $envVars := concat .Values.commonEnv (include "langsmith.commonEnv" . | fromYamlArray) (include "queueEnvVars" . | fromYamlArray) .Values.queue.deployment.extraEnv -}}
+{{- include "langsmith.detectDuplicates" $envVars -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -51,16 +59,8 @@ spec:
             {{- toYaml . | nindent 12 }}
           {{- end }}
           env:
-            - name: "REDIS_MAX_CONNECTIONS"
-              value: "250"
-            - name: "ASYNCPG_POOL_MAX_SIZE"
-              value: "3"
-            {{- include "langsmith.commonEnv" . | nindent 12 }}
-            {{- with .Values.queue.deployment.extraEnv }}
+            {{- with $envVars }}
               {{- toYaml . | nindent 12 }}
-            {{- end }}
-            {{- with .Values.commonEnv }}
-             {{- toYaml . | nindent 12 }}
             {{- end }}
           envFrom:
             - configMapRef:

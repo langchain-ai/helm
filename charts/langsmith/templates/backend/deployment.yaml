@@ -1,3 +1,13 @@
+{{- define "backendEnvVars" -}}
+- name: PORT
+  value: {{ .Values.backend.containerPort | quote }}
+{{- with .Values.ingress.subdomain }}
+- name: DOCS_PREFIX
+  value: /{{ . }}/api
+{{- end }}
+{{- end -}}
+{{- $envVars := concat .Values.commonEnv (include "langsmith.commonEnv" . | fromYamlArray) (include "backendEnvVars" . | fromYamlArray) .Values.backend.deployment.extraEnv -}}
+{{- include "langsmith.detectDuplicates" $envVars -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -50,18 +60,8 @@ spec:
             {{- toYaml . | nindent 12 }}
           {{- end }}
           env:
-            {{- include "langsmith.commonEnv" . | nindent 12 }}
-            - name: PORT
-              value: {{ .Values.backend.containerPort | quote }}
-            {{- with .Values.ingress.subdomain }}
-            - name: DOCS_PREFIX
-              value: /{{ . }}/api
-            {{- end }}
-            {{- with .Values.backend.deployment.extraEnv }}
+            {{- with $envVars }}
               {{- toYaml . | nindent 12 }}
-            {{- end }}
-            {{- with .Values.commonEnv }}
-              {{ toYaml . | nindent 12 }}
             {{- end }}
           envFrom:
             - configMapRef:

@@ -1,4 +1,15 @@
+{{- define "authBootstrapEnvVars" -}}
+- name: INITIAL_ORG_ADMIN_EMAIL
+  value: {{ .Values.config.basicAuth.initialOrgAdminEmail }}
+- name: INITIAL_ORG_ADMIN_PASSWORD
+  valueFrom:
+    secretKeyRef:
+      name: {{ include "langsmith.secretsName" . }}
+      key: initial_org_admin_password
+{{- end -}}
 {{- if .Values.config.basicAuth.enabled }}
+{{- $envVars := concat (include "langsmith.commonEnv" . | fromYamlArray) (include "authBootstrapEnvVars" . | fromYamlArray) .Values.backend.authBootstrap.extraEnv -}}
+{{- include "langsmith.detectDuplicates" $envVars -}}
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -47,15 +58,7 @@ spec:
             {{- toYaml . | nindent 12 }}
           {{- end }}
           env:
-            {{- include "langsmith.commonEnv" . | nindent 12 }}
-            - name: INITIAL_ORG_ADMIN_EMAIL
-              value: {{ .Values.config.basicAuth.initialOrgAdminEmail }}
-            - name: INITIAL_ORG_ADMIN_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: {{ include "langsmith.secretsName" . }}
-                  key: initial_org_admin_password
-            {{- with .Values.backend.authBootstrap.extraEnv }}
+            {{- with $envVars }}
               {{- toYaml . | nindent 12 }}
             {{- end }}
           envFrom:
