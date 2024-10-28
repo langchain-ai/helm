@@ -526,7 +526,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | playground.autoscaling.minReplicas | int | `1` |  |
 | playground.autoscaling.targetCPUUtilizationPercentage | int | `50` |  |
 | playground.autoscaling.targetMemoryUtilizationPercentage | int | `80` |  |
-| playground.containerPort | int | `3001` |  |
+| playground.containerPort | int | `1988` |  |
 | playground.deployment.affinity | object | `{}` |  |
 | playground.deployment.annotations | object | `{}` |  |
 | playground.deployment.autoRestart | bool | `true` |  |
@@ -548,14 +548,14 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | playground.deployment.labels | object | `{}` |  |
 | playground.deployment.livenessProbe.failureThreshold | int | `6` |  |
 | playground.deployment.livenessProbe.httpGet.path | string | `"/ok"` |  |
-| playground.deployment.livenessProbe.httpGet.port | int | `3001` |  |
+| playground.deployment.livenessProbe.httpGet.port | int | `1988` |  |
 | playground.deployment.livenessProbe.periodSeconds | int | `10` |  |
 | playground.deployment.livenessProbe.timeoutSeconds | int | `1` |  |
 | playground.deployment.nodeSelector | object | `{}` |  |
 | playground.deployment.podSecurityContext | object | `{}` |  |
 | playground.deployment.readinessProbe.failureThreshold | int | `6` |  |
 | playground.deployment.readinessProbe.httpGet.path | string | `"/ok"` |  |
-| playground.deployment.readinessProbe.httpGet.port | int | `3001` |  |
+| playground.deployment.readinessProbe.httpGet.port | int | `1988` |  |
 | playground.deployment.readinessProbe.periodSeconds | int | `10` |  |
 | playground.deployment.readinessProbe.timeoutSeconds | int | `1` |  |
 | playground.deployment.replicas | int | `1` |  |
@@ -567,7 +567,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | playground.deployment.sidecars | list | `[]` |  |
 | playground.deployment.startupProbe.failureThreshold | int | `6` |  |
 | playground.deployment.startupProbe.httpGet.path | string | `"/ok"` |  |
-| playground.deployment.startupProbe.httpGet.port | int | `3001` |  |
+| playground.deployment.startupProbe.httpGet.port | int | `1988` |  |
 | playground.deployment.startupProbe.periodSeconds | int | `10` |  |
 | playground.deployment.startupProbe.timeoutSeconds | int | `1` |  |
 | playground.deployment.tolerations | list | `[]` |  |
@@ -579,7 +579,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | playground.service.labels | object | `{}` |  |
 | playground.service.loadBalancerIP | string | `""` |  |
 | playground.service.loadBalancerSourceRanges | list | `[]` |  |
-| playground.service.port | int | `3001` |  |
+| playground.service.port | int | `1988` |  |
 | playground.service.type | string | `"ClusterIP"` |  |
 | playground.serviceAccount.annotations | object | `{}` |  |
 | playground.serviceAccount.create | bool | `true` |  |
