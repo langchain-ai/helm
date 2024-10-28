@@ -58,9 +58,8 @@ data:
             proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}:{{ .Values.platformBackend.service.port }};
         }
 
-        # Backend Routes
-        location ~ /{{ .Values.ingress.subdomain }}/api/public/downloads {
-            rewrite /{{ .Values.ingress.subdomain }}/api/public/downloads /api/public/downloads  break;
+        location ~ /{{ .Values.ingress.subdomain }}/api/public {
+            rewrite /{{ .Values.ingress.subdomain }}/api/public/(.*) /public/$1 break;
             proxy_set_header Connection '';
             proxy_http_version 1.1;
             proxy_buffering off;
@@ -68,6 +67,7 @@ data:
             proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}:{{ .Values.backend.service.port }};
         }
 
+        # Backend Routes
         location ~ /{{ .Values.ingress.subdomain }}/api/v1 {
             rewrite /{{ .Values.ingress.subdomain }}/api/v1/(.*) /api/v1/$1  break;
             proxy_set_header Connection '';
@@ -169,7 +169,7 @@ data:
             proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.playground.name }}:{{ .Values.playground.service.port }};
         }
 
-        # Auth
+        # Platform Backend Routes
          location ~ /api/v1/auth {
             rewrite /api/v1/(.*) /$1  break;
             proxy_set_header Connection '';
@@ -179,14 +179,16 @@ data:
             proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}:{{ .Values.platformBackend.service.port }};
          }
 
-        # Backend Routes
-          location ~ /api/public/download {
+        location ~ /api/public {
+            rewrite /api/public/(.*) /public/$1  break;
             proxy_set_header Connection '';
             proxy_http_version 1.1;
             proxy_buffering off;
             proxy_cache off;
             proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}:{{ .Values.platformBackend.service.port }};
-         }
+        }
+
+        # Backend Routes
 
          location ~ /api/v1 {
             proxy_set_header Connection '';

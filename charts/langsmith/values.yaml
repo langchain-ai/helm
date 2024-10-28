@@ -17,23 +17,23 @@ images:
   aceBackendImage:
     repository: "docker.io/langchain/langsmith-ace-backend"
     pullPolicy: IfNotPresent
-    tag: "0.8.9"
+    tag: "0.8.12"
   backendImage:
     repository: "docker.io/langchain/langsmith-backend"
     pullPolicy: IfNotPresent
-    tag: "0.8.9"
+    tag: "0.8.12"
   frontendImage:
     repository: "docker.io/langchain/langsmith-frontend"
     pullPolicy: IfNotPresent
-    tag: "0.8.9"
+    tag: "0.8.12"
   platformBackendImage:
     repository: "docker.io/langchain/langsmith-go-backend"
     pullPolicy: IfNotPresent
-    tag: "0.8.9"
+    tag: "0.8.12"
   playgroundImage:
     repository: "docker.io/langchain/langsmith-playground"
     pullPolicy: IfNotPresent
-    tag: "0.8.9"
+    tag: "0.8.12"
   postgresImage:
     repository: "docker.io/postgres"
     pullPolicy: IfNotPresent
@@ -540,11 +540,11 @@ platformBackend:
     securityContext: {}
     resources:
       limits:
+        cpu: 2000m
+        memory: 4Gi
+      requests:
         cpu: 1000m
         memory: 2Gi
-      requests:
-        cpu: 500m
-        memory: 1Gi
     command:
       - "./smith-go"
     startupProbe:
