@@ -3,6 +3,9 @@ config:
   langsmithLicenseKey: "YOUR_LICENSE_KEY"
   apiKeySalt: "YOUR_API_KEY_SALT"
 
+ingress:
+  subdomain: "langsmith"
+
 # Note, you likely should tweak the values to match something that fits your local development environment.
 aceBackend:
   deployment:
