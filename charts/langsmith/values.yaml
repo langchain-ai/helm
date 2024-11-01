@@ -8,7 +8,7 @@ fullnameOverride: ""
 commonAnnotations: {}
 # -- Labels that will be applied to all resources created by the chart
 commonLabels: {}
-# -- Common environment variables that will be applied to all deployments/statefulsets created by the chart. Be careful not to override values already specified by the chart.
+# -- Common environment variables that will be applied to all deployments/statefulsets except for the playground/aceBackend services (which are sandboxed). Be careful not to override values already specified by the chart.
 commonEnv: []
 
 images:
@@ -17,23 +17,23 @@ images:
   aceBackendImage:
     repository: "docker.io/langchain/langsmith-ace-backend"
     pullPolicy: IfNotPresent
-    tag: "0.8.17"
+    tag: "0.8.18"
   backendImage:
     repository: "docker.io/langchain/langsmith-backend"
     pullPolicy: IfNotPresent
-    tag: "0.8.17"
+    tag: "0.8.18"
   frontendImage:
     repository: "docker.io/langchain/langsmith-frontend"
     pullPolicy: IfNotPresent
-    tag: "0.8.17"
+    tag: "0.8.18"
   platformBackendImage:
     repository: "docker.io/langchain/langsmith-go-backend"
     pullPolicy: IfNotPresent
-    tag: "0.8.17"
+    tag: "0.8.18"
   playgroundImage:
     repository: "docker.io/langchain/langsmith-playground"
     pullPolicy: IfNotPresent
-    tag: "0.8.17"
+    tag: "0.8.18"
   postgresImage:
     repository: "docker.io/postgres"
     pullPolicy: IfNotPresent

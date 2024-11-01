@@ -2,7 +2,7 @@
 - name: PORT
   value: {{ .Values.aceBackend.containerPort | quote }}
 {{- end -}}
-{{- $envVars := concat .Values.commonEnv (include "aceBackendEnvVars" . | fromYamlArray) .Values.aceBackend.deployment.extraEnv -}}
+{{- $envVars := concat (include "aceBackendEnvVars" . | fromYamlArray) .Values.aceBackend.deployment.extraEnv -}}
 {{- include "langsmith.detectDuplicates" $envVars -}}
 apiVersion: apps/v1
 kind: Deployment
