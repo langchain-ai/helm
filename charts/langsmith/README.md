@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.8.0](https://img.shields.io/badge/Version-0.8.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.8.12](https://img.shields.io/badge/AppVersion-0.8.12-informational?style=flat-square)
+![Version: 0.8.4](https://img.shields.io/badge/Version-0.8.4-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.8.17](https://img.shields.io/badge/AppVersion-0.8.17-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -143,28 +143,28 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | clickhouse.statefulSet.volumeMounts | list | `[]` |  |
 | clickhouse.statefulSet.volumes | list | `[]` |  |
 | commonAnnotations | object | `{}` | Annotations that will be applied to all resources created by the chart |
-| commonEnv | list | `[]` | Common environment variables that will be applied to all deployments/statefulsets created by the chart. Be careful not to override values already specified by the chart. |
+| commonEnv | list | `[]` | Common environment variables that will be applied to all deployments/statefulsets except for the playground/aceBackend services(which are sandboxed). Be careful not to override values already specified by the chart. |
 | commonLabels | object | `{}` | Labels that will be applied to all resources created by the chart |
 | fullnameOverride | string | `""` | String to fully override `"langsmith.fullname"` |
 | images.aceBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.aceBackendImage.repository | string | `"docker.io/langchain/langsmith-ace-backend"` |  |
-| images.aceBackendImage.tag | string | `"0.8.12"` |  |
+| images.aceBackendImage.tag | string | `"0.8.17"` |  |
 | images.backendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.backendImage.repository | string | `"docker.io/langchain/langsmith-backend"` |  |
-| images.backendImage.tag | string | `"0.8.12"` |  |
+| images.backendImage.tag | string | `"0.8.17"` |  |
 | images.clickhouseImage.pullPolicy | string | `"Always"` |  |
 | images.clickhouseImage.repository | string | `"docker.io/clickhouse/clickhouse-server"` |  |
 | images.clickhouseImage.tag | string | `"24.5"` |  |
 | images.frontendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.frontendImage.repository | string | `"docker.io/langchain/langsmith-frontend"` |  |
-| images.frontendImage.tag | string | `"0.8.12"` |  |
+| images.frontendImage.tag | string | `"0.8.17"` |  |
 | images.imagePullSecrets | list | `[]` | Secrets with credentials to pull images from a private registry. Specified as name: value. |
 | images.platformBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.platformBackendImage.repository | string | `"docker.io/langchain/langsmith-go-backend"` |  |
-| images.platformBackendImage.tag | string | `"0.8.12"` |  |
+| images.platformBackendImage.tag | string | `"0.8.17"` |  |
 | images.playgroundImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.playgroundImage.repository | string | `"docker.io/langchain/langsmith-playground"` |  |
-| images.playgroundImage.tag | string | `"0.8.12"` |  |
+| images.playgroundImage.tag | string | `"0.8.17"` |  |
 | images.postgresImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.postgresImage.repository | string | `"docker.io/postgres"` |  |
 | images.postgresImage.tag | string | `"14.7"` |  |
