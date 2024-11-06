@@ -289,6 +289,7 @@ backend:
     affinity: {}
     volumes: []
     volumeMounts: []
+    ttlSecondsAfterFinished: 600
   authBootstrap:
     labels: {}
     annotations: {}
@@ -313,6 +314,7 @@ backend:
     affinity: {}
     volumes: []
     volumeMounts: []
+    ttlSecondsAfterFinished: 600
   clickhouseMigrations:
     enabled: true
     labels: {}
@@ -338,6 +340,7 @@ backend:
     affinity: {}
     volumes: []
     volumeMounts: []
+    ttlSecondsAfterFinished: 600
   autoscaling:
     enabled: false
     # If enabled, use the following values to configure the HPA. You can also use your own HPA configuration by not creating an HPA.

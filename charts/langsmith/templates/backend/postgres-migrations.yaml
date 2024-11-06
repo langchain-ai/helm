@@ -20,7 +20,7 @@ metadata:
     {{- end }}
 spec:
   backoffLimit: 3
-  ttlSecondsAfterFinished: 600
+  ttlSecondsAfterFinished: {{ .Values.backend.migrations.ttlSecondsAfterFinished }}
   template:
     metadata:
       {{- with .Values.backend.migrations.annotations }}

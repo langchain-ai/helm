@@ -29,7 +29,7 @@ metadata:
     {{- end }}
 spec:
   backoffLimit: 3
-  ttlSecondsAfterFinished: 600
+  ttlSecondsAfterFinished: {{ .Values.backend.authBootstrap.ttlSecondsAfterFinished }}
   template:
     metadata:
       {{- with .Values.backend.authBootstrap.annotations }}

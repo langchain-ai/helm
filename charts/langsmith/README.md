@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.8.4](https://img.shields.io/badge/Version-0.8.4-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.8.18](https://img.shields.io/badge/AppVersion-0.8.18-informational?style=flat-square)
+![Version: 0.8.5](https://img.shields.io/badge/Version-0.8.5-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.8.18](https://img.shields.io/badge/AppVersion-0.8.18-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -223,6 +223,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | backend.authBootstrap.sidecars | list | `[]` |  |
 | backend.authBootstrap.tolerations | list | `[]` |  |
 | backend.authBootstrap.topologySpreadConstraints | list | `[]` |  |
+| backend.authBootstrap.ttlSecondsAfterFinished | int | `600` |  |
 | backend.authBootstrap.volumeMounts | list | `[]` |  |
 | backend.authBootstrap.volumes | list | `[]` |  |
 | backend.autoscaling.createHpa | bool | `true` |  |
@@ -246,6 +247,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | backend.clickhouseMigrations.sidecars | list | `[]` |  |
 | backend.clickhouseMigrations.tolerations | list | `[]` |  |
 | backend.clickhouseMigrations.topologySpreadConstraints | list | `[]` |  |
+| backend.clickhouseMigrations.ttlSecondsAfterFinished | int | `600` |  |
 | backend.clickhouseMigrations.volumeMounts | list | `[]` |  |
 | backend.clickhouseMigrations.volumes | list | `[]` |  |
 | backend.containerPort | int | `1984` |  |
@@ -313,6 +315,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | backend.migrations.sidecars | list | `[]` |  |
 | backend.migrations.tolerations | list | `[]` |  |
 | backend.migrations.topologySpreadConstraints | list | `[]` |  |
+| backend.migrations.ttlSecondsAfterFinished | int | `600` |  |
 | backend.migrations.volumeMounts | list | `[]` |  |
 | backend.migrations.volumes | list | `[]` |  |
 | backend.name | string | `"backend"` |  |
