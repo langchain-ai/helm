@@ -289,6 +289,8 @@ backend:
     affinity: {}
     volumes: []
     volumeMounts: []
+    # You can set this to null to disable the TTL for the migrations job. Useful for some deployment setups.
+    ttlSecondsAfterFinished: 600
   authBootstrap:
     labels: {}
     annotations: {}
@@ -313,6 +315,8 @@ backend:
     affinity: {}
     volumes: []
     volumeMounts: []
+    # You can set this to null to disable the TTL for the migrations job. Useful for some deployment setups.
+    ttlSecondsAfterFinished: 600
   clickhouseMigrations:
     enabled: true
     labels: {}
@@ -338,6 +342,8 @@ backend:
     affinity: {}
     volumes: []
     volumeMounts: []
+    # You can set this to null to disable the TTL for the migrations job. Useful for some deployment setups.
+    ttlSecondsAfterFinished: 600
   autoscaling:
     enabled: false
     # If enabled, use the following values to configure the HPA. You can also use your own HPA configuration by not creating an HPA.
