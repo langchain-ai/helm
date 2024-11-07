@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.8.5](https://img.shields.io/badge/Version-0.8.5-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.8.18](https://img.shields.io/badge/AppVersion-0.8.18-informational?style=flat-square)
+![Version: 0.8.6](https://img.shields.io/badge/Version-0.8.6-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.8.24](https://img.shields.io/badge/AppVersion-0.8.24-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -148,23 +148,23 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | fullnameOverride | string | `""` | String to fully override `"langsmith.fullname"` |
 | images.aceBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.aceBackendImage.repository | string | `"docker.io/langchain/langsmith-ace-backend"` |  |
-| images.aceBackendImage.tag | string | `"0.8.18"` |  |
+| images.aceBackendImage.tag | string | `"0.8.24"` |  |
 | images.backendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.backendImage.repository | string | `"docker.io/langchain/langsmith-backend"` |  |
-| images.backendImage.tag | string | `"0.8.18"` |  |
+| images.backendImage.tag | string | `"0.8.24"` |  |
 | images.clickhouseImage.pullPolicy | string | `"Always"` |  |
 | images.clickhouseImage.repository | string | `"docker.io/clickhouse/clickhouse-server"` |  |
 | images.clickhouseImage.tag | string | `"24.5"` |  |
 | images.frontendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.frontendImage.repository | string | `"docker.io/langchain/langsmith-frontend"` |  |
-| images.frontendImage.tag | string | `"0.8.18"` |  |
+| images.frontendImage.tag | string | `"0.8.24"` |  |
 | images.imagePullSecrets | list | `[]` | Secrets with credentials to pull images from a private registry. Specified as name: value. |
 | images.platformBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.platformBackendImage.repository | string | `"docker.io/langchain/langsmith-go-backend"` |  |
-| images.platformBackendImage.tag | string | `"0.8.18"` |  |
+| images.platformBackendImage.tag | string | `"0.8.24"` |  |
 | images.playgroundImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.playgroundImage.repository | string | `"docker.io/langchain/langsmith-playground"` |  |
-| images.playgroundImage.tag | string | `"0.8.18"` |  |
+| images.playgroundImage.tag | string | `"0.8.24"` |  |
 | images.postgresImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.postgresImage.repository | string | `"docker.io/postgres"` |  |
 | images.postgresImage.tag | string | `"14.7"` |  |
@@ -563,7 +563,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | playground.deployment.readinessProbe.timeoutSeconds | int | `1` |  |
 | playground.deployment.replicas | int | `1` |  |
 | playground.deployment.resources.limits.cpu | string | `"1000m"` |  |
-| playground.deployment.resources.limits.memory | string | `"2Gi"` |  |
+| playground.deployment.resources.limits.memory | string | `"8Gi"` |  |
 | playground.deployment.resources.requests.cpu | string | `"500m"` |  |
 | playground.deployment.resources.requests.memory | string | `"1Gi"` |  |
 | playground.deployment.securityContext | object | `{}` |  |
