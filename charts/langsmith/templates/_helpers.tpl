@@ -272,6 +272,13 @@ Template containing common environment variables that are used by several servic
 {{- if .Values.config.blobStorage.enabled }}
 - name: FF_S3_STORAGE_ENABLED
   value: {{ .Values.config.blobStorage.enabled | quote }}
+- name: FF_BLOB_STORAGE_ENABLED
+  value: {{ .Values.config.blobStorage.enabled | quote }}
+- name: BLOB_STORAGE_ENGINE
+  value: {{ .Values.config.blobStorage.engine | quote }}
+- name: MIN_BLOB_STORAGE_SIZE_KB
+  value: {{ .Values.config.blobStorage.minBlobStorageSizeKb | quote }}
+{{- if eq .Values.config.blobStorage.engine "S3" }}
 - name: S3_BUCKET_NAME
   value: {{ .Values.config.blobStorage.bucketName | quote }}
 - name: S3_RUN_MANIFEST_BUCKET_NAME
@@ -290,6 +297,33 @@ Template containing common environment variables that are used by several servic
       name: {{ include "langsmith.secretsName" . }}
       key: blob_storage_access_key_secret
       optional: true
+{{- end }}
+{{- if eq .Values.config.blobStorage.engine "Azure" }}
+- name: AZURE_STORAGE_ACCOUNT_NAME
+  value: {{ .Values.config.blobStorage.azureStorageAccountName | quote }}
+- name: AZURE_STORAGE_CONTAINER_NAME
+  value: {{ .Values.config.blobStorage.azureStorageContainerName | quote }}
+- name: AZURE_STORAGE_SERVICE_URL_OVERRIDE
+  value: {{ .Values.config.blobStorage.azureStorageServiceUrlOverride | quote }}
+- name: AZURE_STORAGE_ACCOUNT_KEY
+  valueFrom:
+    secretKeyRef:
+      name: {{ include "langsmith.secretsName" . }}
+      key: azure_storage_account_key
+      optional: true
+- name: AZURE_STORAGE_CONNECTION_STRING
+  valueFrom:
+    secretKeyRef:
+      name: {{ include "langsmith.secretsName" . }}
+      key: azure_storage_connection_string
+      optional: true
+- name: AZURE_STORAGE_SAS_TOKEN
+  valueFrom:
+    secretKeyRef:
+      name: {{ include "langsmith.secretsName" . }}
+      key: azure_storage_sas_token
+      optional: true
+{{- end }}
 {{- end }}
 - name: FF_CH_SEARCH_ENABLED
   value: {{ .Values.config.blobStorage.chSearchEnabled | quote }}

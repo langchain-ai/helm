@@ -107,18 +107,28 @@ config:
       shortlived: "1209600"
   # -- Blob storage configuration
   # Optional. Used to store inputs, outputs, and errors in Blob Storage.
-  # We currently support S3, GCS, and Minio as Blob Storage providers.
+  # We currently support S3, GCS, Minio, and Azure as Blob Storage providers.
   blobStorage:
     enabled: false
+    engine: "S3"
     # If you are using langsmith-managed-clickhouse, you may not want inputs to be stored in clickhouse for search.
     # Set this as false to ensure that inputs/outputs/errors are not stored in clickhouse.
     chSearchEnabled: true
+    # Set this to change the threshold for payloads to be stored in blob storage
+    minBlobStorageSizeKb: "20"
     # If you are using workload identity, you may not need to store the S3 credentials in the secrets.
     # Instead, you will need to add the workload identity annotation to the backend and queue service accounts.
     accessKey: ""
     accessKeySecret: ""
     bucketName: ""
     apiURL: "https://s3.us-west-2.amazonaws.com"
+    # The following blob storage configuration values are for Azure and require blobStorage.engine = "Azure"
+    azureStorageAccountName: ""
+    azureStorageAccountKey: ""
+    azureStorageContainerName: ""
+    azureStorageConnectionString: ""
+    azureStorageSASToken: ""
+    azureStorageServiceUrlOverride: ""
 
 aceBackend:
   name: "ace-backend"
