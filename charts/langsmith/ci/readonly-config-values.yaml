@@ -68,6 +68,13 @@ platformBackend:
         type: RuntimeDefault
       allowPrivilegeEscalation: false
       readOnlyRootFilesystem: true
+    # writeable tmp directory for spooling to disk
+    volumes:
+      - name: tmp
+        emptyDir:
+    volumeMounts:
+      - name: tmp
+        mountPath: /tmp
 
 playground:
   deployment:
