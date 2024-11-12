@@ -191,6 +191,10 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | config.basicAuth.initialOrgAdminPassword | string | `""` |  |
 | config.basicAuth.jwtSecret | string | `""` |  |
 | config.blobStorage | object | `{"accessKey":"","accessKeySecret":"","apiURL":"https://s3.us-west-2.amazonaws.com","azureStorageAccountKey":"","azureStorageAccountName":"","azureStorageConnectionString":"","azureStorageContainerName":"","azureStorageServiceUrlOverride":"","bucketName":"","chSearchEnabled":true,"enabled":false,"engine":"S3","minBlobStorageSizeKb":"20"}` | Blob storage configuration Optional. Used to store inputs, outputs, and errors in Blob Storage. We currently support S3, GCS, Minio, and Azure as Blob Storage providers. |
+| config.blobStorage.azureStorageAccountName | string | `""` | Optional. Set this along with azureStorageAccountKey to use a storage account and access key. Higher precedence than azureStorageConnectionString. |
+| config.blobStorage.azureStorageConnectionString | string | `""` | Optional. Use this to specify the full connection string including any authentication params. |
+| config.blobStorage.azureStorageContainerName | string | `""` | Required if using Azure blob storage |
+| config.blobStorage.azureStorageServiceUrlOverride | string | `""` | Optional. Use this to customize the service URL, which by default is 'https://<storage_account_name>.blob.core.windows.net/' |
 | config.existingSecretName | string | `""` |  |
 | config.hostname | string | `""` | Base URL of the LangSmith installation. Used for redirects. |
 | config.langsmithLicenseKey | string | `""` |  |

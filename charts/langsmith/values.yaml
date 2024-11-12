@@ -123,10 +123,14 @@ config:
     bucketName: ""
     apiURL: "https://s3.us-west-2.amazonaws.com"
     # The following blob storage configuration values are for Azure and require blobStorage.engine = "Azure"
+    # -- Optional. Set this along with azureStorageAccountKey to use a storage account and access key. Higher precedence than azureStorageConnectionString.
     azureStorageAccountName: ""
     azureStorageAccountKey: ""
+    # -- Required if using Azure blob storage
     azureStorageContainerName: ""
+    # -- Optional. Use this to specify the full connection string including any authentication params.
     azureStorageConnectionString: ""
+    # -- Optional. Use this to customize the service URL, which by default is 'https://<storage_account_name>.blob.core.windows.net/'
     azureStorageServiceUrlOverride: ""
 
 aceBackend:
