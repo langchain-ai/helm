@@ -317,12 +317,6 @@ Template containing common environment variables that are used by several servic
       name: {{ include "langsmith.secretsName" . }}
       key: azure_storage_connection_string
       optional: true
-- name: AZURE_STORAGE_SAS_TOKEN
-  valueFrom:
-    secretKeyRef:
-      name: {{ include "langsmith.secretsName" . }}
-      key: azure_storage_sas_token
-      optional: true
 {{- end }}
 {{- end }}
 - name: FF_CH_SEARCH_ENABLED
