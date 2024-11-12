@@ -17,23 +17,23 @@ images:
   aceBackendImage:
     repository: "docker.io/langchain/langsmith-ace-backend"
     pullPolicy: IfNotPresent
-    tag: "0.8.27"
+    tag: "0.8.29"
   backendImage:
     repository: "docker.io/langchain/langsmith-backend"
     pullPolicy: IfNotPresent
-    tag: "0.8.27"
+    tag: "0.8.29"
   frontendImage:
     repository: "docker.io/langchain/langsmith-frontend"
     pullPolicy: IfNotPresent
-    tag: "0.8.27"
+    tag: "0.8.29"
   platformBackendImage:
     repository: "docker.io/langchain/langsmith-go-backend"
     pullPolicy: IfNotPresent
-    tag: "0.8.27"
+    tag: "0.8.29"
   playgroundImage:
     repository: "docker.io/langchain/langsmith-playground"
     pullPolicy: IfNotPresent
-    tag: "0.8.27"
+    tag: "0.8.29"
   postgresImage:
     repository: "docker.io/postgres"
     pullPolicy: IfNotPresent
@@ -107,18 +107,31 @@ config:
       shortlived: "1209600"
   # -- Blob storage configuration
   # Optional. Used to store inputs, outputs, and errors in Blob Storage.
-  # We currently support S3, GCS, and Minio as Blob Storage providers.
+  # We currently support S3, GCS, Minio, and Azure as Blob Storage providers.
   blobStorage:
     enabled: false
+    engine: "S3"
     # If you are using langsmith-managed-clickhouse, you may not want inputs to be stored in clickhouse for search.
     # Set this as false to ensure that inputs/outputs/errors are not stored in clickhouse.
     chSearchEnabled: true
+    # Set this to change the threshold for payloads to be stored in blob storage
+    minBlobStorageSizeKb: "20"
     # If you are using workload identity, you may not need to store the S3 credentials in the secrets.
     # Instead, you will need to add the workload identity annotation to the backend and queue service accounts.
     accessKey: ""
     accessKeySecret: ""
     bucketName: ""
     apiURL: "https://s3.us-west-2.amazonaws.com"
+    # The following blob storage configuration values are for Azure and require blobStorage.engine = "Azure"
+    # -- Optional. Set this along with azureStorageAccountKey to use a storage account and access key. Higher precedence than azureStorageConnectionString.
+    azureStorageAccountName: ""
+    azureStorageAccountKey: ""
+    # -- Required if using Azure blob storage
+    azureStorageContainerName: ""
+    # -- Optional. Use this to specify the full connection string including any authentication params.
+    azureStorageConnectionString: ""
+    # -- Optional. Use this to customize the service URL, which by default is 'https://<storage_account_name>.blob.core.windows.net/'
+    azureStorageServiceUrlOverride: ""
 
 aceBackend:
   name: "ace-backend"
