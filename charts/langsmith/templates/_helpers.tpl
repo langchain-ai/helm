@@ -299,6 +299,9 @@ Template containing common environment variables that are used by several servic
       optional: true
 {{- end }}
 {{- if eq .Values.config.blobStorage.engine "Azure" }}
+{{/* TODO: remove S3_API_URL once not required by config checks */}}
+- name: S3_API_URL
+  value: {{ .Values.config.blobStorage.apiURL | quote }}
 - name: AZURE_STORAGE_ACCOUNT_NAME
   value: {{ .Values.config.blobStorage.azureStorageAccountName | quote }}
 - name: AZURE_STORAGE_CONTAINER_NAME
