@@ -387,7 +387,7 @@ clickhouse:
     # If enabled, use the following values to connect to an external database. This will also disable the
     # creation of a clickhouse stateful-set and service.
     enabled: true
-    host: "langsmith-clickhouse-replicated"
+    host: "langsmith-clickhouse-replicated.default.svc.cluster.local"
     port: "8123"
     nativePort: "9000"
     user: "default"
