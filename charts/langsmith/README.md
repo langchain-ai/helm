@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.8.9](https://img.shields.io/badge/Version-0.8.9-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.8.29](https://img.shields.io/badge/AppVersion-0.8.29-informational?style=flat-square)
+![Version: 0.8.10](https://img.shields.io/badge/Version-0.8.10-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.8.31](https://img.shields.io/badge/AppVersion-0.8.31-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -18,6 +18,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | aceBackend.autoscaling.minReplicas | int | `1` |  |
 | aceBackend.autoscaling.targetCPUUtilizationPercentage | int | `50` |  |
 | aceBackend.autoscaling.targetMemoryUtilizationPercentage | int | `80` |  |
+| aceBackend.bindAddress | string | `"0.0.0.0"` |  |
 | aceBackend.containerPort | int | `1987` |  |
 | aceBackend.deployment.affinity | object | `{}` |  |
 | aceBackend.deployment.annotations | object | `{}` |  |
@@ -26,7 +27,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | aceBackend.deployment.command[1] | string | `"run"` |  |
 | aceBackend.deployment.command[2] | string | `"--unstable-worker-options"` |  |
 | aceBackend.deployment.command[3] | string | `"--allow-env"` |  |
-| aceBackend.deployment.command[4] | string | `"--allow-net=0.0.0.0:$(PORT)"` |  |
+| aceBackend.deployment.command[4] | string | `"--allow-net=$(BIND_ADDRESS):$(PORT)"` |  |
 | aceBackend.deployment.command[5] | string | `"--node-modules-dir"` |  |
 | aceBackend.deployment.command[6] | string | `"-R"` |  |
 | aceBackend.deployment.command[7] | string | `"src/main.ts"` |  |
@@ -148,23 +149,23 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | fullnameOverride | string | `""` | String to fully override `"langsmith.fullname"` |
 | images.aceBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.aceBackendImage.repository | string | `"docker.io/langchain/langsmith-ace-backend"` |  |
-| images.aceBackendImage.tag | string | `"0.8.29"` |  |
+| images.aceBackendImage.tag | string | `"0.8.32"` |  |
 | images.backendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.backendImage.repository | string | `"docker.io/langchain/langsmith-backend"` |  |
-| images.backendImage.tag | string | `"0.8.29"` |  |
+| images.backendImage.tag | string | `"0.8.32"` |  |
 | images.clickhouseImage.pullPolicy | string | `"Always"` |  |
 | images.clickhouseImage.repository | string | `"docker.io/clickhouse/clickhouse-server"` |  |
 | images.clickhouseImage.tag | string | `"24.5"` |  |
 | images.frontendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.frontendImage.repository | string | `"docker.io/langchain/langsmith-frontend"` |  |
-| images.frontendImage.tag | string | `"0.8.29"` |  |
+| images.frontendImage.tag | string | `"0.8.32"` |  |
 | images.imagePullSecrets | list | `[]` | Secrets with credentials to pull images from a private registry. Specified as name: value. |
 | images.platformBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.platformBackendImage.repository | string | `"docker.io/langchain/langsmith-go-backend"` |  |
-| images.platformBackendImage.tag | string | `"0.8.29"` |  |
+| images.platformBackendImage.tag | string | `"0.8.32"` |  |
 | images.playgroundImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.playgroundImage.repository | string | `"docker.io/langchain/langsmith-playground"` |  |
-| images.playgroundImage.tag | string | `"0.8.29"` |  |
+| images.playgroundImage.tag | string | `"0.8.32"` |  |
 | images.postgresImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.postgresImage.repository | string | `"docker.io/postgres"` |  |
 | images.postgresImage.tag | string | `"14.7"` |  |
@@ -470,8 +471,8 @@ For information on how to use this chart, up-to-date release notes, and other gu
 |-----|------|---------|-------------|
 | platformBackend.autoscaling.createHpa | bool | `true` |  |
 | platformBackend.autoscaling.enabled | bool | `false` |  |
-| platformBackend.autoscaling.maxReplicas | int | `5` |  |
-| platformBackend.autoscaling.minReplicas | int | `1` |  |
+| platformBackend.autoscaling.maxReplicas | int | `10` |  |
+| platformBackend.autoscaling.minReplicas | int | `3` |  |
 | platformBackend.autoscaling.targetCPUUtilizationPercentage | int | `50` |  |
 | platformBackend.autoscaling.targetMemoryUtilizationPercentage | int | `80` |  |
 | platformBackend.containerPort | int | `1986` |  |
@@ -494,7 +495,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | platformBackend.deployment.readinessProbe.httpGet.port | int | `1986` |  |
 | platformBackend.deployment.readinessProbe.periodSeconds | int | `10` |  |
 | platformBackend.deployment.readinessProbe.timeoutSeconds | int | `1` |  |
-| platformBackend.deployment.replicas | int | `1` |  |
+| platformBackend.deployment.replicas | int | `3` |  |
 | platformBackend.deployment.resources.limits.cpu | string | `"2000m"` |  |
 | platformBackend.deployment.resources.limits.memory | string | `"4Gi"` |  |
 | platformBackend.deployment.resources.requests.cpu | string | `"1000m"` |  |
@@ -779,6 +780,6 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | Ankush | <ankush@langchain.dev> |  |
 
 ----------------------------------------------
-Autogenerated from chart metadata using [helm-docs v1.13.1](https://github.com/norwoodj/helm-docs/releases/v1.13.1)
+Autogenerated from chart metadata using [helm-docs v1.11.3](https://github.com/norwoodj/helm-docs/releases/v1.11.3)
 ## Docs Generated by [helm-docs](https://github.com/norwoodj/helm-docs)
 `helm-docs -t ./charts/langsmith/README.md.gotmpl`
