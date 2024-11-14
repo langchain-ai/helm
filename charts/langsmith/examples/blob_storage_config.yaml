@@ -3,14 +3,25 @@ config:
   apiKeySalt: "YOUR_API_KEY_SALT"
   blobStorage:
     enabled: true
+    # Set engine: "Azure" if using Azure blob storage
+    engine: "S3"
+    # Set hosting: "hybrid" if using managed ClickHouse
+    hosting: "self-hosted"
+
+    # S3-specific
     bucketName: "langsmith-s3-assets"
     apiUrl: "https://s3.us-west-2.amazonaws.com"
-    # Optional: If you are using IRSA(only for EKS), you can specify the service account annotations instead of an access key and secret.
+    # Optional: If you are using IRSA (only for EKS), you can specify the service account annotations instead of an access key and secret.
     # These can also be specified in your existingSecretName.
     accessKey: "YOUR_ACCESS_KEY"
     accessKeySecret: "YOUR_ACCESS_KEY_SECRET"
 
-# If using IRSA(only for EKS), you can specify the service account annotations here.
+    # Azure-specific
+    azureStorageAccountName: "your-storage-account-name"  # If constructing a service URL like https://<storage_account_name>.blob.core.windows.net/
+    azureStorageServiceUrlOverride: "https://your.service.override.net" # If constructing a service URL of a different format
+    azureStorageContainerName: "your-container"
+
+# If using IRSA (only for EKS), you can specify the service account annotations here.
 #backend:
 #  serviceAccount:
 #    annotations:
@@ -21,3 +32,27 @@ config:
 #    annotations:
 #      eks.amazonaws.com/role-arn: "arn:aws:iam::640174622193:role/langsmith-s3-admin-role"
 
+# If using workload identity on AKS, specify the required deployment label and service account annotation
+#backend:
+#  deployment:
+#    labels:
+#      azure.workload.identity/use: "true"
+#  serviceAccount:
+#    annotations:
+#      azure.workload.identity/client-id: "managed-identity-client-id"
+#
+#platformBackend:
+#  deployment:
+#    labels:
+#      azure.workload.identity/use: "true"
+#  serviceAccount:
+#    annotations:
+#      azure.workload.identity/client-id: "managed-identity-client-id"
+#
+#queue:
+#  deployment:
+#    labels:
+#      azure.workload.identity/use: "true"
+#  serviceAccount:
+#    annotations:
+#      azure.workload.identity/client-id: "managed-identity-client-id"
