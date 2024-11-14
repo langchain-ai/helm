@@ -111,10 +111,14 @@ config:
   blobStorage:
     enabled: false
     engine: "S3"
+    # -- Either "self-hosted" or "hybrid"
+    hosting: "self-hosted"
     # If you are using langsmith-managed-clickhouse, you may not want inputs to be stored in clickhouse for search.
     # Set this as false to ensure that inputs/outputs/errors are not stored in clickhouse.
+    # hosting: "hybrid" overrides this to false.
     chSearchEnabled: true
     # Set this to change the threshold for payloads to be stored in blob storage
+    # hosting: "hybrid" overrides this to 0
     minBlobStorageSizeKb: "20"
     # If you are using workload identity, you may not need to store the S3 credentials in the secrets.
     # Instead, you will need to add the workload identity annotation to the backend and queue service accounts.
