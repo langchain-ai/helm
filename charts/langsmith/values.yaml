@@ -17,23 +17,23 @@ images:
   aceBackendImage:
     repository: "docker.io/langchain/langsmith-ace-backend"
     pullPolicy: IfNotPresent
-    tag: "0.8.29"
+    tag: "0.8.31"
   backendImage:
     repository: "docker.io/langchain/langsmith-backend"
     pullPolicy: IfNotPresent
-    tag: "0.8.29"
+    tag: "0.8.31"
   frontendImage:
     repository: "docker.io/langchain/langsmith-frontend"
     pullPolicy: IfNotPresent
-    tag: "0.8.29"
+    tag: "0.8.31"
   platformBackendImage:
     repository: "docker.io/langchain/langsmith-go-backend"
     pullPolicy: IfNotPresent
-    tag: "0.8.29"
+    tag: "0.8.31"
   playgroundImage:
     repository: "docker.io/langchain/langsmith-playground"
     pullPolicy: IfNotPresent
-    tag: "0.8.29"
+    tag: "0.8.31"
   postgresImage:
     repository: "docker.io/postgres"
     pullPolicy: IfNotPresent
@@ -552,7 +552,7 @@ platformBackend:
   existingConfigMapName: ""
   deployment:
     autoRestart: true
-    replicas: 1
+    replicas: 3
     labels: {}
     annotations: {}
     podSecurityContext: {}
@@ -601,8 +601,8 @@ platformBackend:
     # If enabled, use the following values to configure the HPA. You can also use your own HPA configuration by not creating an HPA.
     # You may want to manage the HPA yourself if you have a custom autoscaling setup like KEDA.
     createHpa: true
-    minReplicas: 1
-    maxReplicas: 5
+    minReplicas: 3
+    maxReplicas: 10
     targetCPUUtilizationPercentage: 50
     targetMemoryUtilizationPercentage: 80
   service:
