@@ -111,8 +111,6 @@ config:
   blobStorage:
     enabled: false
     engine: "S3"
-    # -- Either "self-hosted" or "hybrid"
-    hosting: "self-hosted"
     # If you are using langsmith-managed-clickhouse, you may not want inputs to be stored in clickhouse for search.
     # Set this as false to ensure that inputs/outputs/errors are not stored in clickhouse.
     # hosting: "hybrid" overrides this to false.
@@ -392,6 +390,8 @@ clickhouse:
     # If enabled, use the following values to connect to an external database. This will also disable the
     # creation of a clickhouse stateful-set and service.
     enabled: false
+    # -- Either "self-hosted" or "hybrid"
+    hosting: "self-hosted"
     host: ""
     port: "8123"
     nativePort: "9000"

@@ -5,8 +5,6 @@ config:
     enabled: true
     # Set engine: "Azure" if using Azure blob storage
     engine: "S3"
-    # Set hosting: "hybrid" if using managed ClickHouse
-    hosting: "self-hosted"
 
     # S3-specific
     bucketName: "langsmith-s3-assets"
@@ -20,6 +18,12 @@ config:
     azureStorageAccountName: "your-storage-account-name"  # If constructing a service URL like https://<storage_account_name>.blob.core.windows.net/
     azureStorageServiceUrlOverride: "https://your.service.override.net" # If constructing a service URL of a different format
     azureStorageContainerName: "your-container"
+
+clickhouse:
+  external:
+    enabled: true
+    # Set hosting: "hybrid" if using managed ClickHouse
+    hosting: "self-hosted"
 
 # If using IRSA (only for EKS), you can specify the service account annotations here.
 #backend:
