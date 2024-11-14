@@ -394,8 +394,8 @@ clickhouse:
     password: "password"
     database: "default"
     tls: false
-    existingSecretName: ""
     clickhouseCluster: ""
+    existingSecretName: ""
   containerHttpPort: 8123
   containerNativePort: 9000
   statefulSet:
