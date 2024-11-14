@@ -322,7 +322,7 @@ Template containing common environment variables that are used by several servic
 {{- end }}
 {{- end }}
 - name: FF_CH_SEARCH_ENABLED
-  value: {{ ternary 0 .Values.config.blobStorage.chSearchEnabled (eq .Values.config.blobStorage.hosting "hybrid") | quote }}
+  value: {{ ternary "false" .Values.config.blobStorage.chSearchEnabled (eq .Values.config.blobStorage.hosting "hybrid") | quote }}
 {{ include "langsmith.conditionalEnvVarsResolved" . }}
 {{- end }}
 
