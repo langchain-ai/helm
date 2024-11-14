@@ -1,6 +1,8 @@
 {{- define "aceBackendEnvVars" -}}
 - name: PORT
   value: {{ .Values.aceBackend.containerPort | quote }}
+- name: BIND_ADDRESS
+  value: {{ .Values.aceBackend.bindAddress | quote }}
 {{- end -}}
 {{- $envVars := concat (include "aceBackendEnvVars" . | fromYamlArray) .Values.aceBackend.deployment.extraEnv -}}
 {{- include "langsmith.detectDuplicates" $envVars -}}

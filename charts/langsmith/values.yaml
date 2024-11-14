@@ -136,6 +136,7 @@ config:
 aceBackend:
   name: "ace-backend"
   containerPort: 1987
+  bindAddress: "0.0.0.0"
   deployment:
     autoRestart: true
     replicas: 1
@@ -155,7 +156,7 @@ aceBackend:
       - "run"
       - "--unstable-worker-options"
       - "--allow-env"
-      - "--allow-net=0.0.0.0:$(PORT)"
+      - "--allow-net=$(BIND_ADDRESS):$(PORT)"
       - "--node-modules-dir"
       - "-R"
       - "src/main.ts"

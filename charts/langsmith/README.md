@@ -18,6 +18,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | aceBackend.autoscaling.minReplicas | int | `1` |  |
 | aceBackend.autoscaling.targetCPUUtilizationPercentage | int | `50` |  |
 | aceBackend.autoscaling.targetMemoryUtilizationPercentage | int | `80` |  |
+| aceBackend.bindAddress | string | `"0.0.0.0"` |  |
 | aceBackend.containerPort | int | `1987` |  |
 | aceBackend.deployment.affinity | object | `{}` |  |
 | aceBackend.deployment.annotations | object | `{}` |  |
@@ -26,7 +27,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | aceBackend.deployment.command[1] | string | `"run"` |  |
 | aceBackend.deployment.command[2] | string | `"--unstable-worker-options"` |  |
 | aceBackend.deployment.command[3] | string | `"--allow-env"` |  |
-| aceBackend.deployment.command[4] | string | `"--allow-net=0.0.0.0:$(PORT)"` |  |
+| aceBackend.deployment.command[4] | string | `"--allow-net=$(BIND_ADDRESS):$(PORT)"` |  |
 | aceBackend.deployment.command[5] | string | `"--node-modules-dir"` |  |
 | aceBackend.deployment.command[6] | string | `"-R"` |  |
 | aceBackend.deployment.command[7] | string | `"src/main.ts"` |  |
