@@ -22,8 +22,8 @@ config:
 clickhouse:
   external:
     enabled: true
-    # Set hosting: "hybrid" if using managed ClickHouse
-    hosting: "self-hosted"
+    # Set hybrid: true if using managed ClickHouse
+    hybrid: false
 
 # If using IRSA (only for EKS), you can specify the service account annotations here.
 #backend:

@@ -90,7 +90,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | clickhouse.external.enabled | bool | `false` |  |
 | clickhouse.external.existingSecretName | string | `""` |  |
 | clickhouse.external.host | string | `""` |  |
-| clickhouse.external.hosting | string | `"self-hosted"` | Either "self-hosted" or "hybrid" |
+| clickhouse.external.hybrid | bool | `false` | Set to true if using managed ClickHouse |
 | clickhouse.external.nativePort | string | `"9000"` |  |
 | clickhouse.external.password | string | `"password"` |  |
 | clickhouse.external.port | string | `"8123"` |  |
@@ -349,7 +349,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | clickhouse.external.enabled | bool | `false` |  |
 | clickhouse.external.existingSecretName | string | `""` |  |
 | clickhouse.external.host | string | `""` |  |
-| clickhouse.external.hosting | string | `"self-hosted"` | Either "self-hosted" or "hybrid" |
+| clickhouse.external.hybrid | bool | `false` | Set to true if using managed ClickHouse |
 | clickhouse.external.nativePort | string | `"9000"` |  |
 | clickhouse.external.password | string | `"password"` |  |
 | clickhouse.external.port | string | `"8123"` |  |

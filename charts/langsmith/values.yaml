@@ -390,8 +390,8 @@ clickhouse:
     # If enabled, use the following values to connect to an external database. This will also disable the
     # creation of a clickhouse stateful-set and service.
     enabled: false
-    # -- Either "self-hosted" or "hybrid"
-    hosting: "self-hosted"
+    # -- Set to true if using managed ClickHouse
+    hybrid: false
     host: ""
     port: "8123"
     nativePort: "9000"
