@@ -2,7 +2,7 @@
 
 ![Version: 0.1.2](https://img.shields.io/badge/Version-0.1.2-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.1.0](https://img.shields.io/badge/AppVersion-0.1.0-informational?style=flat-square)
 
-Helm chart to deploy the open-gpts appplication and all services it depends on.
+Helm chart to deploy the open-gpts application and all services it depends on.
 
 ## Deploying OpenGPTs with Helm
 
@@ -163,7 +163,7 @@ the same format as the secret in the corresponding `secrets.yaml` file.
 | fullnameOverride | string | `""` | String to fully override `"openGPTs.fullname"` |
 | images.backendImage.pullPolicy | string | `"Always"` |  |
 | images.backendImage.repository | string | `"docker.io/langchain/open-gpts"` |  |
-| images.backendImage.tag | string | `"latest"` |  |
+| images.backendImage.tag | string | `"daf9aba"` |  |
 | images.imagePullSecrets | list | `[]` | Secrets with credentials to pull images from a private registry. Specified as name: value. |
 | images.redisImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.redisImage.repository | string | `"docker.io/redis/redis-stack-server"` |  |
