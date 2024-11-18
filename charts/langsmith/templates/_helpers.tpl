@@ -251,14 +251,6 @@ Template containing common environment variables that are used by several servic
 - name: FF_PERSONAL_ORGS_DISABLED
   value: {{ .Values.config.personalOrgsDisabled | quote }}
 {{- end }}
-- name: GO_ENDPOINT
-  value: http://{{- include "langsmith.fullname" . }}-{{.Values.platformBackend.name}}:{{ .Values.platformBackend.service.port }}
-- name: GO_ACE_ENDPOINT
-  value: http://{{- include "langsmith.fullname" . }}-{{.Values.aceBackend.name}}:{{ .Values.aceBackend.service.port }}
-- name: PLAYGROUND_ENDPOINT
-  value: http://{{- include "langsmith.fullname" . }}-{{.Values.playground.name}}:{{ .Values.playground.service.port }}
-- name: SMITH_BACKEND_ENDPOINT
-  value: http://{{- include "langsmith.fullname" . }}-{{.Values.backend.name}}:{{ .Values.backend.service.port }}
 {{- if .Values.config.ttl.enabled }}
 - name: FF_TRACE_TIERS_ENABLED
   value: {{ .Values.config.ttl.enabled | quote }}
@@ -279,7 +271,7 @@ Template containing common environment variables that are used by several servic
 - name: BLOB_STORAGE_ENGINE
   value: {{ .Values.config.blobStorage.engine | quote }}
 - name: MIN_BLOB_STORAGE_SIZE_KB
-  value: {{ .Values.config.blobStorage.minBlobStorageSizeKb | quote }}
+  value: {{ ternary 0 .Values.config.blobStorage.minBlobStorageSizeKb .Values.clickhouse.external.hybrid | quote }}
 {{- if eq .Values.config.blobStorage.engine "S3" }}
 - name: S3_BUCKET_NAME
   value: {{ .Values.config.blobStorage.bucketName | quote }}
@@ -322,7 +314,7 @@ Template containing common environment variables that are used by several servic
 {{- end }}
 {{- end }}
 - name: FF_CH_SEARCH_ENABLED
-  value: {{ .Values.config.blobStorage.chSearchEnabled | quote }}
+  value: {{ ternary "false" .Values.config.blobStorage.chSearchEnabled .Values.clickhouse.external.hybrid | quote }}
 {{ include "langsmith.conditionalEnvVarsResolved" . }}
 {{- end }}
 
