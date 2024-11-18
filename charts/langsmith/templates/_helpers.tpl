@@ -201,7 +201,7 @@ Template containing common environment variables that are used by several servic
       name: {{ include "langsmith.clickhouseSecretsName" . }}
       key: clickhouse_tls
 - name: CLICKHOUSE_CLUSTER
-  value: {{ .Values.clickhouse.external.clickhouseCluster }}
+  value: {{ .Values.clickhouse.external.cluster }}
 - name: LOG_LEVEL
   value: {{ .Values.config.logLevel }}
 {{- if .Values.config.oauth.enabled }}
