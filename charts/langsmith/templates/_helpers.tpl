@@ -251,14 +251,6 @@ Template containing common environment variables that are used by several servic
 - name: FF_PERSONAL_ORGS_DISABLED
   value: {{ .Values.config.personalOrgsDisabled | quote }}
 {{- end }}
-- name: GO_ENDPOINT
-  value: http://{{- include "langsmith.fullname" . }}-{{.Values.platformBackend.name}}:{{ .Values.platformBackend.service.port }}
-- name: GO_ACE_ENDPOINT
-  value: http://{{- include "langsmith.fullname" . }}-{{.Values.aceBackend.name}}:{{ .Values.aceBackend.service.port }}
-- name: PLAYGROUND_ENDPOINT
-  value: http://{{- include "langsmith.fullname" . }}-{{.Values.playground.name}}:{{ .Values.playground.service.port }}
-- name: SMITH_BACKEND_ENDPOINT
-  value: http://{{- include "langsmith.fullname" . }}-{{.Values.backend.name}}:{{ .Values.backend.service.port }}
 {{- if .Values.config.ttl.enabled }}
 - name: FF_TRACE_TIERS_ENABLED
   value: {{ .Values.config.ttl.enabled | quote }}

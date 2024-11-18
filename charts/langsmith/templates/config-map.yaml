@@ -26,3 +26,6 @@ data:
   {{- end }}
   LANGCHAIN_ENV: "local_kubernetes"
   GO_ENDPOINT: "http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}:{{ .Values.platformBackend.service.port }}"
+  GO_ACE_ENDPOINT: "http://{{ include "langsmith.fullname" . }}-{{.Values.aceBackend.name}}:{{ .Values.aceBackend.service.port }}"
+  PLAYGROUND_ENDPOINT: "http://{{ include "langsmith.fullname" . }}-{{.Values.playground.name}}:{{ .Values.playground.service.port }}"
+  SMITH_BACKEND_ENDPOINT: "http://{{ include "langsmith.fullname" . }}-{{.Values.backend.name}}:{{ .Values.backend.service.port }}"
