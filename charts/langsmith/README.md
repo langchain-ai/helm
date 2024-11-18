@@ -85,7 +85,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | clickhouse.config.allowSimdjson | bool | `true` |  |
 | clickhouse.containerHttpPort | int | `8123` |  |
 | clickhouse.containerNativePort | int | `9000` |  |
-| clickhouse.external.clickhouseCluster | string | `""` |  |
+| clickhouse.external.cluster | string | `""` |  |
 | clickhouse.external.database | string | `"default"` |  |
 | clickhouse.external.enabled | bool | `false` |  |
 | clickhouse.external.existingSecretName | string | `""` |  |
@@ -344,7 +344,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | clickhouse.config.allowSimdjson | bool | `true` |  |
 | clickhouse.containerHttpPort | int | `8123` |  |
 | clickhouse.containerNativePort | int | `9000` |  |
-| clickhouse.external.clickhouseCluster | string | `""` |  |
+| clickhouse.external.cluster | string | `""` |  |
 | clickhouse.external.database | string | `"default"` |  |
 | clickhouse.external.enabled | bool | `false` |  |
 | clickhouse.external.existingSecretName | string | `""` |  |

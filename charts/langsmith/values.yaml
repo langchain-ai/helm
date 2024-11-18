@@ -399,7 +399,7 @@ clickhouse:
     password: "password"
     database: "default"
     tls: false
-    clickhouseCluster: ""
+    cluster: ""
     existingSecretName: ""
   containerHttpPort: 8123
   containerNativePort: 9000
