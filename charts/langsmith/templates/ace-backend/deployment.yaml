@@ -44,10 +44,6 @@ spec:
         {{- include "langsmith.labels" . | nindent 8 }}
         app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-{{ .Values.aceBackend.name }}
     spec:
-      {{- with .Values.images.imagePullSecrets }}
-      imagePullSecrets:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
       securityContext:
         {{- toYaml .Values.aceBackend.deployment.podSecurityContext | nindent 8 }}
       serviceAccountName: {{ include "aceBackend.serviceAccountName" . }}
@@ -64,8 +60,8 @@ spec:
           envFrom:
             - configMapRef:
                 name: {{ include "langsmith.fullname" . }}-config
-          image: "{{ .Values.images.aceBackendImage.repository }}:{{ .Values.images.aceBackendImage.tag | default .Chart.AppVersion }}"
-          imagePullPolicy: {{ .Values.images.aceBackendImage.pullPolicy }}
+          image: "{{ .Values.global.azure.images.aceBackendImage.repository }}:{{ .Values.global.azure.images.aceBackendImage.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.global.azure.images.aceBackendImage.pullPolicy }}
           ports:
             - name: ace
               containerPort: {{ .Values.aceBackend.containerPort }}
