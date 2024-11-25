@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.8.13](https://img.shields.io/badge/Version-0.8.13-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.8.38](https://img.shields.io/badge/AppVersion-0.8.38-informational?style=flat-square)
+![Version: 0.8.14](https://img.shields.io/badge/Version-0.8.14-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.8.38](https://img.shields.io/badge/AppVersion-0.8.38-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -225,6 +225,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | backend.authBootstrap.labels | object | `{}` |  |
 | backend.authBootstrap.nodeSelector | object | `{}` |  |
 | backend.authBootstrap.podSecurityContext | object | `{}` |  |
+| backend.authBootstrap.randomizeName | bool | `true` |  |
 | backend.authBootstrap.resources | object | `{}` |  |
 | backend.authBootstrap.securityContext | object | `{}` |  |
 | backend.authBootstrap.sidecars | list | `[]` |  |
@@ -249,6 +250,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | backend.clickhouseMigrations.labels | object | `{}` |  |
 | backend.clickhouseMigrations.nodeSelector | object | `{}` |  |
 | backend.clickhouseMigrations.podSecurityContext | object | `{}` |  |
+| backend.clickhouseMigrations.randomizeName | bool | `true` |  |
 | backend.clickhouseMigrations.resources | object | `{}` |  |
 | backend.clickhouseMigrations.securityContext | object | `{}` |  |
 | backend.clickhouseMigrations.sidecars | list | `[]` |  |
@@ -317,6 +319,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | backend.migrations.labels | object | `{}` |  |
 | backend.migrations.nodeSelector | object | `{}` |  |
 | backend.migrations.podSecurityContext | object | `{}` |  |
+| backend.migrations.randomizeName | bool | `true` |  |
 | backend.migrations.resources | object | `{}` |  |
 | backend.migrations.securityContext | object | `{}` |  |
 | backend.migrations.sidecars | list | `[]` |  |
