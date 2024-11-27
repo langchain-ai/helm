@@ -165,6 +165,8 @@ Template containing common environment variables that are used by several servic
     secretKeyRef:
       name: {{ include "langsmith.redisSecretsName" . }}
       key: connection_url
+- name: CLICKHOUSE_HYBRID
+  value: {{ .Values.clickhouse.external.hybrid | quote }}
 - name: CLICKHOUSE_DB
   valueFrom:
     secretKeyRef:
