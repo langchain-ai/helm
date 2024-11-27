@@ -1,0 +1,46 @@
+suite: test hybrid environment variables
+values:
+  - ./values/blob-storage-defaults-enabled.yaml
+templates:
+  - backend/clickhouse-migrations.yaml
+  - backend/deployment.yaml
+  - backend/postgres-migrations.yaml
+  - platform-backend/deployment.yaml
+  - queue/deployment.yaml
+tests:
+  - it: should not have hybrid overrides set
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: CLICKHOUSE_HYBRID
+            value: "false"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: MIN_BLOB_STORAGE_SIZE_KB
+            value: "20"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: FF_CH_SEARCH_ENABLED
+            value: "true"
+  - it: should have hybrid overrides set
+    set:
+      clickhouse.external.hybrid: true
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: CLICKHOUSE_HYBRID
+            value: "true"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: MIN_BLOB_STORAGE_SIZE_KB
+            value: "0"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: FF_CH_SEARCH_ENABLED
+            value: "false"

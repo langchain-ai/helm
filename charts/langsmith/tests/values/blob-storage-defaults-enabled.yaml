@@ -1,0 +1,3 @@
+config:
+  blobStorage:
+    enabled: true
