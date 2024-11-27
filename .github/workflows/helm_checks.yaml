@@ -35,6 +35,12 @@ jobs:
       - name: Run chart-testing (lint)
         run: ct lint --target-branch ${{ github.event.repository.default_branch }} --charts charts/${{ matrix.chart-name }}
 
+      - name: Install Helm Unittest
+        run: helm plugin install https://github.com/helm-unittest/helm-unittest.git@0.7.0
+
+      - name: Run chart unittest
+        run: helm unittest charts/${{ matrix.chart-name }}
+
       - name: Create kind cluster
         uses: helm/kind-action@v1.7.0
 
