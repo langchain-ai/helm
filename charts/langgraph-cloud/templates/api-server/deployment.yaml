@@ -33,6 +33,7 @@ spec:
         {{- include "langGraphCloud.labels" . | nindent 8 }}
         app.kubernetes.io/component: {{ include "langGraphCloud.fullname" . }}-{{ .Values.apiServer.name }}
     spec:
+      serviceAccountName: {{ include "apiServer.serviceAccountName" . }}
       {{- with .Values.images.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
