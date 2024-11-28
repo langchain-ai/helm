@@ -17,23 +17,23 @@ images:
   aceBackendImage:
     repository: "docker.io/langchain/langsmith-ace-backend"
     pullPolicy: IfNotPresent
-    tag: "0.8.44"
+    tag: "0.8.47"
   backendImage:
     repository: "docker.io/langchain/langsmith-backend"
     pullPolicy: IfNotPresent
-    tag: "0.8.44"
+    tag: "0.8.47"
   frontendImage:
     repository: "docker.io/langchain/langsmith-frontend"
     pullPolicy: IfNotPresent
-    tag: "0.8.44"
+    tag: "0.8.47"
   platformBackendImage:
     repository: "docker.io/langchain/langsmith-go-backend"
     pullPolicy: IfNotPresent
-    tag: "0.8.44"
+    tag: "0.8.47"
   playgroundImage:
     repository: "docker.io/langchain/langsmith-playground"
     pullPolicy: IfNotPresent
-    tag: "0.8.44"
+    tag: "0.8.47"
   postgresImage:
     repository: "docker.io/postgres"
     pullPolicy: IfNotPresent
@@ -194,6 +194,7 @@ aceBackend:
     affinity: {}
     volumes: []
     volumeMounts: []
+    terminationGracePeriodSeconds: 30
   autoscaling:
     enabled: false
     # If enabled, use the following values to configure the HPA. You can also use your own HPA configuration by not creating an HPA.
@@ -279,6 +280,7 @@ backend:
     affinity: {}
     volumes: []
     volumeMounts: []
+    terminationGracePeriodSeconds: 30
   migrations:
     enabled: true
     # Helpful when running using helm template to avoid the job name conflict
@@ -535,6 +537,7 @@ frontend:
     affinity: {}
     volumes: []
     volumeMounts: []
+    terminationGracePeriodSeconds: 30
   autoscaling:
     enabled: false
     # If enabled, use the following values to configure the HPA. You can also use your own HPA configuration by not creating an HPA.
@@ -608,6 +611,7 @@ platformBackend:
     affinity: {}
     volumes: []
     volumeMounts: []
+    terminationGracePeriodSeconds: 30
   autoscaling:
     enabled: false
     # If enabled, use the following values to configure the HPA. You can also use your own HPA configuration by not creating an HPA.
@@ -691,6 +695,7 @@ playground:
     affinity: {}
     volumes: []
     volumeMounts: []
+    terminationGracePeriodSeconds: 30
   autoscaling:
     enabled: false
     # If enabled, use the following values to configure the HPA. You can also use your own HPA configuration by not creating an HPA.
@@ -852,6 +857,7 @@ queue:
     affinity: {}
     volumes: []
     volumeMounts: []
+    terminationGracePeriodSeconds: 30
   autoscaling:
     enabled: false
     # If enabled, use the following values to configure the HPA. You can also use your own HPA configuration by not creating an HPA.
