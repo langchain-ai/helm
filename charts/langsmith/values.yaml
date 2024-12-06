@@ -105,6 +105,7 @@ config:
       # -- 400 day longlived and 14 day shortlived
       longlived: "34560000"
       shortlived: "1209600"
+    #
   # -- Blob storage configuration
   # Optional. Used to store inputs, outputs, and errors in Blob Storage.
   # We currently support S3, GCS, Minio, and Azure as Blob Storage providers.
@@ -134,6 +135,10 @@ config:
     azureStorageConnectionString: ""
     # -- Optional. Use this to customize the service URL, which by default is 'https://<storage_account_name>.blob.core.windows.net/'
     azureStorageServiceUrlOverride: ""
+
+  settings:
+    # -- Optional. Be very careful when lowering this value as it can result in runs being lost if your queue is down/not processing items fast enough.
+    redisRunsExpirySeconds: "43200" # 12 hours
 
 aceBackend:
   name: "ace-backend"
