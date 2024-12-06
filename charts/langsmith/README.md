@@ -209,6 +209,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | config.oauth.oauthIssuerUrl | string | `""` |  |
 | config.orgCreationDisabled | bool | `false` | Prevent organization creation. If using basic auth, this is set to true by default. |
 | config.personalOrgsDisabled | bool | `false` | Disable personal orgs. Users will need to be invited to an org manually. If using basic auth, this is set to true by default. |
+| config.settings | object | `{"redisRunsExpirySeconds":"43200"}` | Application Settings. These are used to tune the application |
 | config.settings.redisRunsExpirySeconds | string | `"43200"` | Optional. Be very careful when lowering this value as it can result in runs being lost if your queue is down/not processing items fast enough. |
 | config.ttl | object | `{"enabled":true,"ttl_period_seconds":{"longlived":"34560000","shortlived":"1209600"}}` | TTL configuration Optional. Used to set TTLS for longlived and shortlived objects. |
 | config.ttl.ttl_period_seconds.longlived | string | `"34560000"` | 400 day longlived and 14 day shortlived |

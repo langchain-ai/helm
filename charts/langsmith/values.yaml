@@ -136,6 +136,7 @@ config:
     # -- Optional. Use this to customize the service URL, which by default is 'https://<storage_account_name>.blob.core.windows.net/'
     azureStorageServiceUrlOverride: ""
 
+  # -- Application Settings. These are used to tune the application
   settings:
     # -- Optional. Be very careful when lowering this value as it can result in runs being lost if your queue is down/not processing items fast enough.
     redisRunsExpirySeconds: "43200" # 12 hours
