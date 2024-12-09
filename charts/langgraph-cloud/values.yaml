@@ -18,9 +18,9 @@ images:
     pullPolicy: Always
     tag: "3.11"
   postgresImage:
-    repository: "docker.io/postgres"
+    repository: "pgvector/pgvector"
     pullPolicy: IfNotPresent
-    tag: "16"
+    tag: "pg16"
   redisImage:
     repository: "docker.io/redis"
     pullPolicy: IfNotPresent
