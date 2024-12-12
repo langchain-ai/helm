@@ -8,7 +8,7 @@
       key: initial_org_admin_password
 {{- end -}}
 {{- if .Values.config.basicAuth.enabled }}
-{{- $envVars := concat (include "langsmith.commonEnv" . | fromYamlArray) (include "authBootstrapEnvVars" . | fromYamlArray) .Values.backend.authBootstrap.extraEnv -}}
+{{- $envVars := concat .Values.commonEnv (include "langsmith.commonEnv" . | fromYamlArray) (include "authBootstrapEnvVars" . | fromYamlArray) .Values.backend.authBootstrap.extraEnv -}}
 {{- include "langsmith.detectDuplicates" $envVars -}}
 apiVersion: batch/v1
 kind: Job
