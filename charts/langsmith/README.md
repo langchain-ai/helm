@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.8.23](https://img.shields.io/badge/Version-0.8.23-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.8.64](https://img.shields.io/badge/AppVersion-0.8.64-informational?style=flat-square)
+![Version: 0.8.24](https://img.shields.io/badge/Version-0.8.24-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.8.64](https://img.shields.io/badge/AppVersion-0.8.64-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
