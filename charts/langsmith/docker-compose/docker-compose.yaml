@@ -1,6 +1,6 @@
 services:
   langchain-playground:
-    image: langchain/langsmith-playground:${_LANGSMITH_IMAGE_VERSION:-0.8.12}
+    image: langchain/langsmith-playground:${_LANGSMITH_IMAGE_VERSION:-0.9.3}
     ports:
       - 3001:3001
     environment:
@@ -8,7 +8,7 @@ services:
       - LANGCHAIN_ENV=local_docker
       - LOG_LEVEL=${LOG_LEVEL:-info}
   langchain-frontend:
-    image: langchain/langsmith-frontend:${_LANGSMITH_IMAGE_VERSION:-0.8.12}
+    image: langchain/langsmith-frontend:${_LANGSMITH_IMAGE_VERSION:-0.9.3}
     environment:
       - VITE_BACKEND_AUTH_TYPE=${AUTH_TYPE:-none}
       - VITE_BASIC_AUTH_ENABLED=${BASIC_AUTH_ENABLED:-false}
@@ -20,7 +20,7 @@ services:
       - langchain-backend
       - langchain-playground
   langchain-ace-backend:
-    image: langchain/langsmith-ace-backend:${_LANGSMITH_IMAGE_VERSION:-0.8.12}
+    image: langchain/langsmith-ace-backend:${_LANGSMITH_IMAGE_VERSION:-0.9.3}
     ports:
       - 1987:1987
     environment:
@@ -37,7 +37,7 @@ services:
       - "-R"
       - "src/python_worker.ts"
   langchain-backend:
-    image: langchain/langsmith-backend:${_LANGSMITH_IMAGE_VERSION:-0.8.12}
+    image: langchain/langsmith-backend:${_LANGSMITH_IMAGE_VERSION:-0.9.3}
     environment:
       - PORT=1984
       - LANGCHAIN_ENV=local_docker
@@ -60,7 +60,7 @@ services:
       - CLICKHOUSE_DB=${CLICKHOUSE_DB:-default}
       - CLICKHOUSE_PORT=${CLICKHOUSE_PORT:-8123}
       - CLICKHOUSE_TLS=${CLICKHOUSE_TLS:-false}
-      - CLICKHOUSE_CLUSTER=${CLICKHOUSE_CLUSTER:-none}
+      - CLICKHOUSE_CLUSTER=${CLICKHOUSE_CLUSTER}
       - FF_ORG_CREATION_DISABLED=${ORG_CREATION_DISABLED:-false}
       - FF_TRACE_TIERS_ENABLED=${TTL_ENABLED:-true}
       - FF_UPGRADE_TRACE_TIER_ENABLED=${TTL_ENABLED:-true}
@@ -88,7 +88,7 @@ services:
         condition: service_completed_successfully
     restart: always
   langchain-platform-backend:
-    image: langchain/langsmith-go-backend:${_LANGSMITH_IMAGE_VERSION:-0.8.12}
+    image: langchain/langsmith-go-backend:${_LANGSMITH_IMAGE_VERSION:-0.9.3}
     environment:
       - PORT=1986
       - LANGCHAIN_ENV=local_docker
@@ -120,7 +120,7 @@ services:
         condition: service_completed_successfully
     restart: always
   langchain-queue:
-    image: langchain/langsmith-backend:${_LANGSMITH_IMAGE_VERSION:-0.8.12}
+    image: langchain/langsmith-backend:${_LANGSMITH_IMAGE_VERSION:-0.9.3}
     environment:
       - LANGCHAIN_ENV=local_docker
       - GO_ENDPOINT=http://langchain-platform-backend:1986
@@ -140,7 +140,7 @@ services:
       - CLICKHOUSE_DB=${CLICKHOUSE_DB:-default}
       - CLICKHOUSE_PORT=${CLICKHOUSE_PORT:-8123}
       - CLICKHOUSE_TLS=${CLICKHOUSE_TLS:-false}
-      - CLICKHOUSE_CLUSTER=${CLICKHOUSE_CLUSTER:-none}
+      - CLICKHOUSE_CLUSTER=${CLICKHOUSE_CLUSTER}
       - FF_ORG_CREATION_DISABLED=${ORG_CREATION_DISABLED:-false}
       - FF_TRACE_TIERS_ENABLED=${TTL_ENABLED:-true}
       - FF_UPGRADE_TRACE_TIER_ENABLED=${TTL_ENABLED:-true}
@@ -202,7 +202,7 @@ services:
       timeout: 2s
       retries: 30
   langchain-clickhouse:
-    image: clickhouse/clickhouse-server:24.5
+    image: clickhouse/clickhouse-server:24.8
     user: "101:101"
     restart: always
     environment:
@@ -221,7 +221,7 @@ services:
       timeout: 2s
       retries: 30
   clickhouse-setup:
-    image: langchain/langsmith-backend:${_LANGSMITH_IMAGE_VERSION:-0.8.12}
+    image: langchain/langsmith-backend:${_LANGSMITH_IMAGE_VERSION:-0.9.3}
     depends_on:
       langchain-clickhouse:
         condition: service_healthy
@@ -234,14 +234,14 @@ services:
       - CLICKHOUSE_PORT=${CLICKHOUSE_PORT:-8123}
       - CLICKHOUSE_NATIVE_PORT=${CLICKHOUSE_NATIVE_PORT:-9000}
       - CLICKHOUSE_TLS=${CLICKHOUSE_TLS:-false}
-      - CLICKHOUSE_CLUSTER=${CLICKHOUSE_CLUSTER:-none}
+      - CLICKHOUSE_CLUSTER=${CLICKHOUSE_CLUSTER}
     command:
       [
         "bash",
         "scripts/wait_for_clickhouse_and_migrate.sh"
       ]
   postgres-setup:
-    image: langchain/langsmith-backend:${_LANGSMITH_IMAGE_VERSION:-0.8.12}
+    image: langchain/langsmith-backend:${_LANGSMITH_IMAGE_VERSION:-0.9.3}
     depends_on:
       langchain-db:
         condition: service_healthy
@@ -265,7 +265,7 @@ services:
       - CLICKHOUSE_PORT=${CLICKHOUSE_PORT:-8123}
       - CLICKHOUSE_NATIVE_PORT=${CLICKHOUSE_NATIVE_PORT:-9000}
       - CLICKHOUSE_TLS=${CLICKHOUSE_TLS:-false}
-      - CLICKHOUSE_CLUSTER=${CLICKHOUSE_CLUSTER:-none}
+      - CLICKHOUSE_CLUSTER=${CLICKHOUSE_CLUSTER}
     restart: "on-failure:10"
     command:
       [
