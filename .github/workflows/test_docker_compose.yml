@@ -34,7 +34,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Start containers
-      working-directory: python/langsmith/cli
+      working-directory: charts/langsmith/docker-compose
       run: docker compose up -d
 
     - name: sleep 30 seconds
