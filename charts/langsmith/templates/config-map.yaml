@@ -12,6 +12,8 @@ data:
   VITE_BACKEND_AUTH_TYPE: "mixed"
   AUTH_TYPE: "mixed"
   BASIC_AUTH_ENABLED: "false"
+  OAUTH_SCOPES: {{ .Values.config.oauth.oauthScopes }}
+  OAUTH_SESSION_MAX_SEC: {{ .Values.config.oauth.oauthSessionMaxSec | quote }}
   {{- else if .Values.config.oauth.enabled }}
   VITE_BACKEND_AUTH_TYPE: "oauth"
   AUTH_TYPE: "oauth"
