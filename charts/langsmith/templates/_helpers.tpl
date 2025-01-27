@@ -151,7 +151,7 @@ Template containing common environment variables that are used by several servic
   valueFrom:
     secretKeyRef:
       name: {{ include "langsmith.postgresSecretsName" . }}
-      key: connection_url
+      key: {{ .Values.postgres.external.connectionUrlSecretKey }}
 {{- if .Values.postgres.external.enabled }}
 - name: POSTGRES_SCHEMA
   value: {{ .Values.postgres.external.schema }}
@@ -164,44 +164,44 @@ Template containing common environment variables that are used by several servic
   valueFrom:
     secretKeyRef:
       name: {{ include "langsmith.redisSecretsName" . }}
-      key: connection_url
+      key: {{ .Values.redis.external.connectionUrlSecretKey }}
 - name: CLICKHOUSE_HYBRID
   value: {{ .Values.clickhouse.external.hybrid | quote }}
 - name: CLICKHOUSE_DB
   valueFrom:
     secretKeyRef:
       name: {{ include "langsmith.clickhouseSecretsName" . }}
-      key: clickhouse_db
+      key: {{ .Values.clickhouse.external.databaseSecretKey }}
 - name: CLICKHOUSE_HOST
   valueFrom:
     secretKeyRef:
       name: {{ include "langsmith.clickhouseSecretsName" . }}
-      key: clickhouse_host
+      key: {{ .Values.clickhouse.external.hostSecretKey }}
 - name: CLICKHOUSE_PORT
   valueFrom:
     secretKeyRef:
       name: {{ include "langsmith.clickhouseSecretsName" . }}
-      key: clickhouse_port
+      key: {{ .Values.clickhouse.external.portSecretKey }}
 - name: CLICKHOUSE_NATIVE_PORT
   valueFrom:
     secretKeyRef:
       name: {{ include "langsmith.clickhouseSecretsName" . }}
-      key: clickhouse_native_port
+      key: {{ .Values.clickhouse.external.nativePortSecretKey }}
 - name: CLICKHOUSE_USER
   valueFrom:
     secretKeyRef:
       name: {{ include "langsmith.clickhouseSecretsName" . }}
-      key: clickhouse_user
+      key: {{ .Values.clickhouse.external.userSecretKey }}
 - name: CLICKHOUSE_PASSWORD
   valueFrom:
     secretKeyRef:
       name: {{ include "langsmith.clickhouseSecretsName" . }}
-      key: clickhouse_password
+      key: {{ .Values.clickhouse.external.passwordSecretKey }}
 - name: CLICKHOUSE_TLS
   valueFrom:
     secretKeyRef:
       name: {{ include "langsmith.clickhouseSecretsName" . }}
-      key: clickhouse_tls
+      key: {{ .Values.clickhouse.external.tlsSecretKey }}
 - name: CLICKHOUSE_CLUSTER
   value: {{ .Values.clickhouse.external.cluster }}
 - name: LOG_LEVEL

@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.9.1](https://img.shields.io/badge/Version-0.9.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.9.7](https://img.shields.io/badge/AppVersion-0.9.7-informational?style=flat-square)
+![Version: 0.9.2](https://img.shields.io/badge/Version-0.9.2-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.9.7](https://img.shields.io/badge/AppVersion-0.9.7-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -88,15 +88,22 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | clickhouse.containerNativePort | int | `9000` |  |
 | clickhouse.external.cluster | string | `""` |  |
 | clickhouse.external.database | string | `"default"` |  |
+| clickhouse.external.databaseSecretKey | string | `"clickhouse_database"` |  |
 | clickhouse.external.enabled | bool | `false` |  |
 | clickhouse.external.existingSecretName | string | `""` |  |
 | clickhouse.external.host | string | `""` |  |
+| clickhouse.external.hostSecretKey | string | `"clickhouse_host"` |  |
 | clickhouse.external.hybrid | bool | `false` | Must be set to true if using managed ClickHouse |
 | clickhouse.external.nativePort | string | `"9000"` |  |
+| clickhouse.external.nativePortSecretKey | string | `"clickhouse_native_port"` |  |
 | clickhouse.external.password | string | `"password"` |  |
+| clickhouse.external.passwordSecretKey | string | `"clickhouse_password"` |  |
 | clickhouse.external.port | string | `"8123"` |  |
+| clickhouse.external.portSecretKey | string | `"clickhouse_port"` |  |
 | clickhouse.external.tls | bool | `false` |  |
+| clickhouse.external.tlsSecretKey | string | `"clickhouse_tls"` |  |
 | clickhouse.external.user | string | `"default"` |  |
+| clickhouse.external.userSecretKey | string | `"clickhouse_user"` |  |
 | clickhouse.name | string | `"clickhouse"` |  |
 | clickhouse.service.annotations | object | `{}` |  |
 | clickhouse.service.httpPort | int | `8123` |  |
@@ -355,15 +362,22 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | clickhouse.containerNativePort | int | `9000` |  |
 | clickhouse.external.cluster | string | `""` |  |
 | clickhouse.external.database | string | `"default"` |  |
+| clickhouse.external.databaseSecretKey | string | `"clickhouse_database"` |  |
 | clickhouse.external.enabled | bool | `false` |  |
 | clickhouse.external.existingSecretName | string | `""` |  |
 | clickhouse.external.host | string | `""` |  |
+| clickhouse.external.hostSecretKey | string | `"clickhouse_host"` |  |
 | clickhouse.external.hybrid | bool | `false` | Must be set to true if using managed ClickHouse |
 | clickhouse.external.nativePort | string | `"9000"` |  |
+| clickhouse.external.nativePortSecretKey | string | `"clickhouse_native_port"` |  |
 | clickhouse.external.password | string | `"password"` |  |
+| clickhouse.external.passwordSecretKey | string | `"clickhouse_password"` |  |
 | clickhouse.external.port | string | `"8123"` |  |
+| clickhouse.external.portSecretKey | string | `"clickhouse_port"` |  |
 | clickhouse.external.tls | bool | `false` |  |
+| clickhouse.external.tlsSecretKey | string | `"clickhouse_tls"` |  |
 | clickhouse.external.user | string | `"default"` |  |
+| clickhouse.external.userSecretKey | string | `"clickhouse_user"` |  |
 | clickhouse.name | string | `"clickhouse"` |  |
 | clickhouse.service.annotations | object | `{}` |  |
 | clickhouse.service.httpPort | int | `8123` |  |
@@ -616,6 +630,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 |-----|------|---------|-------------|
 | postgres.containerPort | int | `5432` |  |
 | postgres.external.connectionUrl | string | `""` |  |
+| postgres.external.connectionUrlSecretKey | string | `"connection_url"` |  |
 | postgres.external.database | string | `"postgres"` |  |
 | postgres.external.enabled | bool | `false` |  |
 | postgres.external.existingSecretName | string | `""` |  |
@@ -737,6 +752,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 |-----|------|---------|-------------|
 | redis.containerPort | int | `6379` |  |
 | redis.external.connectionUrl | string | `""` |  |
+| redis.external.connectionUrlSecretKey | string | `"connection_url"` |  |
 | redis.external.enabled | bool | `false` |  |
 | redis.external.existingSecretName | string | `""` |  |
 | redis.name | string | `"redis"` |  |
