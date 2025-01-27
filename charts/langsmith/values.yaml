@@ -419,7 +419,7 @@ clickhouse:
     password: "password"
     passwordSecretKey: "clickhouse_password"
     database: "default"
-    databaseSecretKey: "clickhouse_database"
+    databaseSecretKey: "clickhouse_db"
     tls: false
     tlsSecretKey: "clickhouse_tls"
     cluster: ""

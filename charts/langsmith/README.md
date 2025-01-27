@@ -88,7 +88,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | clickhouse.containerNativePort | int | `9000` |  |
 | clickhouse.external.cluster | string | `""` |  |
 | clickhouse.external.database | string | `"default"` |  |
-| clickhouse.external.databaseSecretKey | string | `"clickhouse_database"` |  |
+| clickhouse.external.databaseSecretKey | string | `"clickhouse_db"` |  |
 | clickhouse.external.enabled | bool | `false` |  |
 | clickhouse.external.existingSecretName | string | `""` |  |
 | clickhouse.external.host | string | `""` |  |
@@ -362,7 +362,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | clickhouse.containerNativePort | int | `9000` |  |
 | clickhouse.external.cluster | string | `""` |  |
 | clickhouse.external.database | string | `"default"` |  |
-| clickhouse.external.databaseSecretKey | string | `"clickhouse_database"` |  |
+| clickhouse.external.databaseSecretKey | string | `"clickhouse_db"` |  |
 | clickhouse.external.enabled | bool | `false` |  |
 | clickhouse.external.existingSecretName | string | `""` |  |
 | clickhouse.external.host | string | `""` |  |
