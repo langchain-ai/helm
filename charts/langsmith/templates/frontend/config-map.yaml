@@ -50,7 +50,7 @@ data:
 
         # Platform Backend Routes
         location ~ /{{ .Values.ingress.subdomain }}/api/v1/platform/ {
-            rewrite /{{ .Values.ingress.subdomain }}/api/v1/platform/(.*) /platform/$1  break;
+            rewrite /{{ .Values.ingress.subdomain }}/api/v1/platform/(.*) /v1/platform/$1  break;
             proxy_set_header Connection '';
             proxy_http_version 1.1;
             proxy_buffering off;
