@@ -1,0 +1,106 @@
+{{- if .Values.studio.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "langGraphCloud.fullname" . }}-{{ .Values.studio.name }}
+  labels:
+    {{- include "langGraphCloud.labels" . | nindent 4 }}
+    {{- with.Values.studio.deployment.labels }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+  annotations:
+    {{- include "langGraphCloud.annotations" . | nindent 4 }}
+    {{- with.Values.studio.deployment.annotations }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  {{- if not .Values.studio.autoscaling.enabled }}
+  replicas: {{ .Values.studio.deployment.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "langGraphCloud.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: {{ include "langGraphCloud.fullname" . }}-{{ .Values.studio.name }}
+  template:
+    metadata:
+      {{- with .Values.studio.deployment.annotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- with.Values.studio.deployment.labels }}
+            {{- toYaml . | nindent 8 }}
+        {{- end }}
+        {{- include "langGraphCloud.labels" . | nindent 8 }}
+        app.kubernetes.io/component: {{ include "langGraphCloud.fullname" . }}-{{ .Values.studio.name }}
+    spec:
+      serviceAccountName: {{ include "studio.serviceAccountName" . }}
+      {{- with .Values.images.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.studio.deployment.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Values.studio.name }}
+          env:
+            - name: VITE_STUDIO_LOCAL_GRAPH_URL
+              value: {{ .Values.ingress.hostname }}
+            {{- with .Values.studio.deployment.extraEnv }}
+              {{- toYaml . | nindent 12 }}
+            {{- end }}
+          image: "{{ .Values.images.studioImage.repository }}:{{ .Values.images.studioImage.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.images.studioImage.pullPolicy }}
+          ports:
+            - name: studio
+              containerPort: {{ .Values.studio.containerPort }}
+              protocol: TCP
+          startupProbe:
+            httpGet:
+              path: /health
+              port: {{ .Values.studio.containerPort }}
+            failureThreshold: 6
+            periodSeconds: 10
+            timeoutSeconds: 1
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: {{ .Values.studio.containerPort }}
+            failureThreshold: 3
+            periodSeconds: 10
+            timeoutSeconds: 1
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: {{ .Values.studio.containerPort }}
+            failureThreshold: 6
+            periodSeconds: 10
+            timeoutSeconds: 1
+          resources:
+            {{- toYaml .Values.studio.deployment.resources | nindent 12 }}
+          securityContext:
+            {{- toYaml .Values.studio.deployment.securityContext | nindent 12 }}
+          {{- with .Values.studio.deployment.volumeMounts }}
+          volumeMounts:
+              {{- toYaml . | nindent 12 }}
+          {{- end }}
+        {{- with .Values.studio.deployment.sidecars }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- with .Values.studio.deployment.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.studio.deployment.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.studio.deployment.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.studio.deployment.volumes }}
+      volumes:
+          {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}

@@ -31,4 +31,16 @@ spec:
             name: {{ include "langGraphCloud.fullname" . }}-{{ .Values.apiServer.name }}
             port:
               number: {{ .Values.apiServer.service.httpPort }}
+  {{- if .Values.studio.enabled }}
+  - host: {{ .Values.ingress.studioHostname }}
+    http:
+      paths:
+        - path: /
+          pathType: Prefix
+          backend:
+            service:
+              name: {{ include "langGraphCloud.fullname" . }}-{{ .Values.studio.name }}
+              port:
+                number: {{ .Values.studio.service.httpPort }}
+  {{- end }}
 {{- end }}

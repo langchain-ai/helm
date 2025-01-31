@@ -25,6 +25,10 @@ images:
     repository: "docker.io/redis"
     pullPolicy: IfNotPresent
     tag: "6"
+  studioImage:
+    repository: "docker.io/langchain/langgraph-debugger"
+    pullPolicy: Always
+    tag: "latest"
 
 config:
   existingSecretName: ""
@@ -36,7 +40,8 @@ config:
 
 ingress:
   enabled: false
-  hostname: ""
+  hostname: "" # Set this to the hostname you want to use for the ingress. Also used as the base URL for studio
+  studioHostname: "" # Set this to the hostname you want to use for the studio ingress
   ingressClassName: ""
   annotations: {}
   labels: {}
@@ -196,6 +201,49 @@ redis:
   service:
     type: ClusterIP
     port: 6379
+    labels: {}
+    annotations: {}
+    loadBalancerSourceRanges: []
+    loadBalancerIP: ""
+  serviceAccount:
+    create: true
+    name: ""
+    labels: {}
+    annotations: {}
+
+studio:
+  enabled: true
+  name: "studio"
+  containerPort: 3968
+  deployment:
+    replicaCount: 1
+    labels: {}
+    annotations: {}
+    podSecurityContext: {}
+    securityContext: {}
+    resources:
+      limits:
+        cpu: 1000m
+        memory: 2Gi
+      requests:
+        cpu: 500m
+        memory: 1Gi
+    extraEnv: []
+    sidecars: []
+    nodeSelector: {}
+    tolerations: []
+    affinity: {}
+    volumes: []
+    volumeMounts: []
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 5
+    targetCPUUtilizationPercentage: 80
+  service:
+    type: LoadBalancer
+    httpPort: 80
+    httpsPort: 443
     labels: {}
     annotations: {}
     loadBalancerSourceRanges: []

@@ -1,0 +1,35 @@
+{{- if .Values.studio.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "langGraphCloud.fullname" . }}-{{ .Values.studio.name }}
+  labels:
+    {{- include "langGraphCloud.labels" . | nindent 4 }}
+    {{- with.Values.studio.service.labels }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+  annotations:
+    {{- include "langGraphCloud.annotations" . | nindent 4 }}
+    {{- with.Values.studio.service.annotations }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  type: {{ .Values.studio.service.type }}
+  {{- with .Values.studio.service.loadBalancerSourceRanges }}
+  loadBalancerSourceRanges:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  loadBalancerIP: {{ .Values.studio.service.loadBalancerIP }}
+  ports:
+    - name: http
+      port: {{ .Values.studio.service.httpPort }}
+      targetPort: studio
+      protocol: TCP
+    - name: https
+      port: {{ .Values.studio.service.httpsPort }}
+      targetPort: studio
+      protocol: TCP
+  selector:
+    {{- include "langGraphCloud.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: {{ include "langGraphCloud.fullname" . }}-{{ .Values.studio.name }}
+  {{- end }}
