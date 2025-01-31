@@ -1,1 +1,25 @@
-This is the LangGraph Cloud application helm chart. All pods should be running!
+Thank you for installing LangGraph Cloud!
+
+This chart deploys a LangGraph Cloud instance. All pods should be running! You can access the docs for your API Server by running the following command:
+
+  kubectl port-forward svc/langgraph-api-server 8080:80
+
+Then you can access the LangGraph API Server Docs at http://localhost:8080/docs
+
+If you have configured a LoadBalancer service for the LangGraph API Server, you can access the LangGraph API Server by running the following command:
+
+  kubectl get svc langgraph-api-server
+
+Then you can access the LangGraph API Server at http://<EXTERNAL-IP>.
+
+If you have enabled the studio, you can access the LangGraph Studio by running the following command:
+
+  kubectl port-forward svc/langgraph-cloud-studio 8080:80
+
+Then you can access the LangGraph Studio at http://localhost:8080. Note that it will by default point to the ingress.hostname parameter. You can update this by changing the baseUrl parameter in the url.
+
+If you have configured a LoadBalancer service for the LangGraph Studio, you can access the LangGraph Studio by running the following command:
+
+  kubectl get svc langgraph-cloud-studio
+
+Then you can access the LangGraph Studio at http://<EXTERNAL-IP>.
