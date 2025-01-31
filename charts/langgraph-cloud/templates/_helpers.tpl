@@ -127,3 +127,11 @@ the user or some other secret provisioning mechanism
     {{ default "default" .Values.redis.serviceAccount.name }}
 {{- end -}}
 {{- end -}}
+
+{{- define "studio.serviceAccountName" -}}
+{{- if .Values.studio.serviceAccount.create -}}
+    {{ default (printf "%s-%s" (include "langGraphCloud.fullname" .) .Values.studio.name) .Values.studio.serviceAccount.name | trunc 63 | trimSuffix "-" }}
+{{- else -}}
+    {{ default "default" .Values.studio.serviceAccount.name }}
+{{- end -}}
+{{- end -}}

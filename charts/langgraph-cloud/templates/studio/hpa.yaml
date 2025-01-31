@@ -1,0 +1,32 @@
+{{- if and .Values.studio.autoscaling.enabled .Values.studio.enabled }}
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ include "langGraphCloud.fullname" . }}-{{ .Values.studio.name }}
+  labels:
+    {{- include "langGraphCloud.labels" . | nindent 4 }}
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ include "langGraphCloud.fullname" . }}-{{ .Values.studio.name }}
+  minReplicas: {{ .Values.studio.autoscaling.minReplicas }}
+  maxReplicas: {{ .Values.studio.autoscaling.maxReplicas }}
+  metrics:
+    {{- if .Values.studio.autoscaling.targetCPUUtilizationPercentage }}
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.studio.autoscaling.targetCPUUtilizationPercentage }}
+    {{- end }}
+    {{- if .Values.studio.autoscaling.targetMemoryUtilizationPercentage }}
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.studio.autoscaling.targetMemoryUtilizationPercentage }}
+    {{- end }}
+{{- end }}
