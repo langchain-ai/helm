@@ -40,8 +40,8 @@ config:
 
 ingress:
   enabled: false
-  hostname: "" # Set this to the hostname you want to use for the ingress. Also used as the base URL for studio
-  studioHostname: "" # Set this to the hostname you want to use for the studio ingress
+  hostname: "" #  Set this to the hostname you want to use for the ingress. Also used as the base URL for studio
+  studioHostname: ""  # Set this to the hostname you want to use for the studio ingress
   ingressClassName: ""
   annotations: {}
   labels: {}
