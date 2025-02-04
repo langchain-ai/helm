@@ -714,7 +714,11 @@ hostQueue:
       periodSeconds: 60
       timeoutSeconds: 30
     extraContainerConfig: {}
-    extraEnv: []
+    extraEnv:
+      - name: HOST_QUEUE
+        value: "host"
+      - name: HOST_WORKER_RECONCILIATION_CRON_ENABLED
+        value: "true"
     sidecars: []
     nodeSelector: {}
     tolerations: []
