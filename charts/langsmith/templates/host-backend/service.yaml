@@ -20,9 +20,9 @@ spec:
   {{- end }}
   loadBalancerIP: {{ .Values.hostBackend.service.loadBalancerIP }}
   ports:
-    - name: ace
+    - name: host-backend
       port: {{ .Values.hostBackend.service.port }}
-      targetPort: ace
+      targetPort: host-backend
       protocol: TCP
   selector:
     {{- include "langsmith.selectorLabels" . | nindent 4 }}
