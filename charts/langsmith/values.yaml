@@ -548,7 +548,9 @@ frontend:
       periodSeconds: 10
       timeoutSeconds: 1
     extraContainerConfig: {}
-    extraEnv: []
+    extraEnv:
+      - name: VITE_HOST_ENABLED
+        value: "1"
     sidecars: []
     nodeSelector: {}
     tolerations: []
