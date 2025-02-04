@@ -597,20 +597,20 @@ hostBackend:
       requests:
         cpu: 200m
         memory: 1000Mi
-      command:
-        - "uvicorn"
-        - "host.main:app"
-        - "--host"
-        - "0.0.0.0"
-        - "--port"
-        - "$(PORT)"
-        - "--log-level"
-        - "$(LOG_LEVEL)"
-        - "--loop"
-        - "uvloop"
-        - "--http"
-        - "httptools"
-        - "--no-access-log"
+    command:
+      - "uvicorn"
+      - "host.main:app"
+      - "--host"
+      - "0.0.0.0"
+      - "--port"
+      - "$(PORT)"
+      - "--log-level"
+      - "$(LOG_LEVEL)"
+      - "--loop"
+      - "uvloop"
+      - "--http"
+      - "httptools"
+      - "--no-access-log"
     startupProbe:
       httpGet:
         path: /ok
