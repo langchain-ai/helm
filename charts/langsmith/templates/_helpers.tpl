@@ -355,6 +355,22 @@ Template containing common environment variables that are used by several servic
 {{- end -}}
 {{- end -}}
 
+{{- define "hostBackend.serviceAccountName" -}}
+{{- if .Values.hostBackend.serviceAccount.create -}}
+    {{ default (printf "%s-%s" (include "langsmith.fullname" .) .Values.hostBackend.name) .Values.hostBackend.serviceAccount.name | trunc 63 | trimSuffix "-" }}
+{{- else -}}
+    {{ default "default" .Values.hostBackend.serviceAccount.name }}
+{{- end -}}
+{{- end -}}
+
+{{- define "hostQueue.serviceAccountName" -}}
+{{- if .Values.hostQueue.serviceAccount.create -}}
+    {{ default (printf "%s-%s" (include "langsmith.fullname" .) .Values.hostQueue.name) .Values.hostQueue.serviceAccount.name | trunc 63 | trimSuffix "-" }}
+{{- else -}}
+    {{ default "default" .Values.hostQueue.serviceAccount.name }}
+{{- end -}}
+{{- end -}}
+
 {{- define "platformBackend.serviceAccountName" -}}
 {{- if .Values.platformBackend.serviceAccount.create -}}
     {{ default (printf "%s-%s" (include "langsmith.fullname" .) .Values.platformBackend.name) .Values.platformBackend.serviceAccount.name | trunc 63 | trimSuffix "-" }}
