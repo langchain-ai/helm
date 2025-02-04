@@ -27,7 +27,7 @@ images:
     pullPolicy: IfNotPresent
     tag: "0.9.35"
   hostBackendImage:
-    repository: "docker.io/langchain/langsmith-host-backend"
+    repository: "docker.io/langchain/hosted-langserve-backend"
     pullPolicy: IfNotPresent
     tag: "0.9.35"
   platformBackendImage:
