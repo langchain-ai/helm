@@ -74,6 +74,7 @@ apiIngress:
 config:
   existingSecretName: ""
   langsmithLicenseKey: ""
+  langgraphCloudLicenseKey: ""
   # -- Salt used to generate the API key. Should be a random string.
   apiKeySalt: ""
   logLevel: "info"

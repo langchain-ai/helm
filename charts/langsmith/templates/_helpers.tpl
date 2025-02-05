@@ -230,6 +230,11 @@ Template containing common environment variables that are used by several servic
     secretKeyRef:
       name: {{ include "langsmith.secretsName" . }}
       key: langsmith_license_key
+- name: LANGGRAPH_CLOUD_LICENSE_KEY
+  valueFrom:
+    secretKeyRef:
+      name: {{ include "langsmith.secretsName" . }}
+      key: langgraph_cloud_license_key
 - name: API_KEY_SALT
   valueFrom:
     secretKeyRef:
