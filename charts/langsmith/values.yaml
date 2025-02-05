@@ -720,6 +720,8 @@ hostQueue:
         value: "host"
       - name: HOST_WORKER_RECONCILIATION_CRON_ENABLED
         value: "true"
+      - name: LANGCHAIN_ENDPOINT
+        value: "http://langsmith-frontend.andrew:80/api/v1"
     sidecars: []
     nodeSelector: {}
     tolerations: []
