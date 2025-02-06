@@ -1,0 +1,101 @@
+# Read-Only configuration. Use this if you are running in an environment where containers must run as read-only.
+config:
+  langGraphCloudLicenseKey: "YOUR_LICENSE_KEY"
+
+apiServer:
+  deployment:
+    resources:
+      requests:
+        cpu: 100m
+        memory: 500Mi
+    podSecurityContext:
+      runAsNonRoot: true
+      runAsUser: 1000
+      runAsGroup: 1000
+      fsGroup: 1000
+    securityContext:
+      capabilities:
+        drop:
+          - ALL
+      seccompProfile:
+        type: RuntimeDefault
+      allowPrivilegeEscalation: false
+      readOnlyRootFilesystem: true
+    # Note you may need to mount tmp directories if your graph writes to disk
+
+studio:
+  deployment:
+    resources:
+      requests:
+        cpu: 100m
+        memory: 500Mi
+    podSecurityContext:
+      runAsNonRoot: true
+      runAsUser: 1000
+      runAsGroup: 1000
+      fsGroup: 1000
+    securityContext:
+      capabilities:
+        drop:
+          - ALL
+      seccompProfile:
+        type: RuntimeDefault
+      allowPrivilegeEscalation: false
+      readOnlyRootFilesystem: true
+    volumes:
+      - name: tmp
+        emptyDir: {}
+    volumeMounts:
+      - name: tmp
+        mountPath: /tmp
+
+
+postgres:
+  statefulSet:
+    resources:
+      requests:
+        cpu: 500m
+        memory: 1000Mi
+    podSecurityContext:
+      runAsNonRoot: true
+      runAsUser: 1000
+      runAsGroup: 1000
+      fsGroup: 1000
+    securityContext:
+      capabilities:
+        drop:
+          - ALL
+      seccompProfile:
+        type: RuntimeDefault
+      allowPrivilegeEscalation: false
+      readOnlyRootFilesystem: true
+    volumes:
+      - name: tmp
+        emptyDir: {}
+      - name: postgres
+        emptyDir: {}
+    volumeMounts:
+      - name: tmp
+        mountPath: /tmp
+      - name: postgres
+        mountPath: /run/postgresql
+
+redis:
+  deployment:
+    resources:
+      requests:
+        cpu: 200m
+        memory: 500Mi
+    podSecurityContext:
+      runAsNonRoot: true
+      runAsUser: 1000
+      runAsGroup: 1000
+      fsGroup: 1000
+    securityContext:
+      capabilities:
+        drop:
+          - ALL
+      seccompProfile:
+        type: RuntimeDefault
+      allowPrivilegeEscalation: false
+      readOnlyRootFilesystem: true
