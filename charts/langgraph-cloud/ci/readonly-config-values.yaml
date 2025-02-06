@@ -45,9 +45,13 @@ studio:
     volumes:
       - name: tmp
         emptyDir: {}
+      - name: etc
+        emptyDir: {}
     volumeMounts:
       - name: tmp
         mountPath: /tmp
+      - name: etc
+        mountPath: /etc/nginx/conf.d
 
 
 postgres:
