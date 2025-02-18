@@ -15,6 +15,10 @@
 - name: VITE_SUBDOMAIN
   value: {{ .Values.ingress.subdomain }}
 {{- end }}
+{{- if .Values.config.langgraphPlatform.enabled }}
+- name: VITE_HOST_ENABLED
+  value: "1"
+{{- end }}
 {{- end -}}
 {{- $envVars := concat .Values.commonEnv (include "frontendEnvVars" . | fromYamlArray) .Values.frontend.deployment.extraEnv -}}
 {{- include "langsmith.detectDuplicates" $envVars -}}

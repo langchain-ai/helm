@@ -60,21 +60,12 @@ ingress:
   labels: {}
   tls: []
 
-# Only enable this ingress if you would like to expose the backend as a separate service.
-# By default, this is not needed as the frontend ingress will proxy requests to the backend.
-apiIngress:
-  enabled: false
-  hostname: ""
-  subdomain: ""
-  ingressClassName: ""
-  annotations: {}
-  labels: {}
-  tls: []
-
 config:
   existingSecretName: ""
   langsmithLicenseKey: ""
-  langgraphCloudLicenseKey: ""
+  langgraphPlatform:
+    enabled: false
+    langgraphPlatformLicenseKey: ""
   # -- Salt used to generate the API key. Should be a random string.
   apiKeySalt: ""
   logLevel: "info"
@@ -549,9 +540,7 @@ frontend:
       periodSeconds: 10
       timeoutSeconds: 1
     extraContainerConfig: {}
-    extraEnv:
-      - name: VITE_HOST_ENABLED
-        value: "1"
+    extraEnv: []
     sidecars: []
     nodeSelector: {}
     tolerations: []
@@ -715,13 +704,7 @@ hostQueue:
       periodSeconds: 60
       timeoutSeconds: 30
     extraContainerConfig: {}
-    extraEnv:
-      - name: HOST_QUEUE
-        value: "host"
-      - name: HOST_WORKER_RECONCILIATION_CRON_ENABLED
-        value: "true"
-      - name: LANGCHAIN_ENDPOINT
-        value: "http://langsmith-frontend.andrew:80/api/v1"
+    extraEnv: []
     sidecars: []
     nodeSelector: {}
     tolerations: []
