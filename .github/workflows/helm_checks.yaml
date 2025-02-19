@@ -48,4 +48,4 @@ jobs:
         env:
           LANGSMITH_LICENSE_KEY: ${{ secrets.LANGSMITH_LICENSE_KEY }}
           LANGGRAPH_CLOUD_LICENSE_KEY: ${{ secrets.LANGGRAPH_CLOUD_LICENSE_KEY }}
-        run: ct install --target-branch ${{ github.event.repository.default_branch }} --charts charts/${{ matrix.chart-name }} --helm-extra-set-args "--set=frontend.service.type=ClusterIP --set=config.langsmithLicenseKey=$LANGSMITH_LICENSE_KEY --set=config.langgraphPlatform.langgraphPlatformLicenseKey=$LANGGRAPH_CLOUD_LICENSE_KEY --set=apiServer.service.type=ClusterIP --set=studio.service.type=ClusterIP"
+        run: ct install --target-branch ${{ github.event.repository.default_branch }} --charts charts/${{ matrix.chart-name }} --helm-extra-set-args "--set=frontend.service.type=ClusterIP --set=config.langsmithLicenseKey=$LANGSMITH_LICENSE_KEY --set=config.langGraphCloudLicenseKey=$LANGGRAPH_CLOUD_LICENSE_KEY --set=apiServer.service.type=ClusterIP --set=studio.service.type=ClusterIP"
