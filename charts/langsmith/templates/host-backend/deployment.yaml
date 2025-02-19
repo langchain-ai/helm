@@ -4,6 +4,7 @@
 {{- end -}}
 {{- $envVars := concat (include "langsmith.commonEnv" . | fromYamlArray ) (include "hostBackendEnvVars" . | fromYamlArray) .Values.hostBackend.deployment.extraEnv -}}
 {{- include "langsmith.detectDuplicates" $envVars -}}
+{{- if .Values.config.langgraphPlatform.enabled }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -115,3 +116,4 @@ spec:
       volumes:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+{{- end }}

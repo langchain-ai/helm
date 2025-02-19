@@ -17,27 +17,27 @@ images:
   aceBackendImage:
     repository: "docker.io/langchain/langsmith-ace-backend"
     pullPolicy: IfNotPresent
-    tag: "0.9.35"
+    tag: "0.9.37"
   backendImage:
     repository: "docker.io/langchain/langsmith-backend"
     pullPolicy: IfNotPresent
-    tag: "0.9.35"
+    tag: "0.9.37"
   frontendImage:
     repository: "docker.io/langchain/langsmith-frontend"
     pullPolicy: IfNotPresent
-    tag: "0.9.35"
+    tag: "0.9.37"
   hostBackendImage:
     repository: "docker.io/langchain/hosted-langserve-backend"
     pullPolicy: IfNotPresent
-    tag: "0.9.35"
+    tag: "0.9.37"
   platformBackendImage:
     repository: "docker.io/langchain/langsmith-go-backend"
     pullPolicy: IfNotPresent
-    tag: "0.9.35"
+    tag: "0.9.37"
   playgroundImage:
     repository: "docker.io/langchain/langsmith-playground"
     pullPolicy: IfNotPresent
-    tag: "0.9.35"
+    tag: "0.9.37"
   postgresImage:
     repository: "docker.io/postgres"
     pullPolicy: IfNotPresent
@@ -63,9 +63,12 @@ ingress:
 config:
   existingSecretName: ""
   langsmithLicenseKey: ""
+
+  # -- Optional. Used to enable the Langgraph platform. If enabled, the license key must be provided.
   langgraphPlatform:
     enabled: false
     langgraphPlatformLicenseKey: ""
+
   # -- Salt used to generate the API key. Should be a random string.
   apiKeySalt: ""
   logLevel: "info"

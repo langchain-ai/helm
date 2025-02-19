@@ -130,6 +130,8 @@ data:
             proxy_cache off;
             proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}:{{ .Values.backend.service.port }};
         }
+
+    {{- if .Values.config.langgraphPlatform.enabled }}
         location ~ /{{ .Values.ingress.subdomain }}/api-host {
             rewrite /{{ .Values.ingress.subdomain }}/api-host/(.*) /$1  break;
             proxy_set_header Connection '';
@@ -138,6 +140,7 @@ data:
             proxy_cache off;
             proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.hostBackend.name }}:{{ .Values.hostBackend.service.port }};
         }
+    {{- end }}
 
         # Deprecated Backend Routes
         location ~ /{{ .Values.ingress.subdomain }}/api {
@@ -312,6 +315,8 @@ data:
             proxy_cache off;
             proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}:{{ .Values.backend.service.port }};
         }
+
+    {{- if .Values.config.langgraphPlatform.enabled }}
         location ~ /api-host {
             rewrite /api-host/(.*) /$1  break;
             proxy_set_header Connection '';
@@ -320,6 +325,7 @@ data:
             proxy_cache off;
             proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.hostBackend.name }}:{{ .Values.hostBackend.service.port }};
         }
+    {{- end }}
 
         # Deprecated Backend Routes To be removed in v8
         location ~ /api {
