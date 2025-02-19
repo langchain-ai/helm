@@ -1,0 +1,119 @@
+{{- define "hostBackendEnvVars" -}}
+- name: PORT
+  value: {{ .Values.hostBackend.containerPort | quote }}
+{{- end -}}
+{{- $envVars := concat (include "langsmith.commonEnv" . | fromYamlArray ) (include "hostBackendEnvVars" . | fromYamlArray) .Values.hostBackend.deployment.extraEnv -}}
+{{- include "langsmith.detectDuplicates" $envVars -}}
+{{- if .Values.config.langgraphPlatform.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "langsmith.fullname" . }}-{{ .Values.hostBackend.name }}
+  labels:
+    {{- include "langsmith.labels" . | nindent 4 }}
+    {{- with.Values.hostBackend.deployment.labels }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+  annotations:
+    {{- include "langsmith.annotations" . | nindent 4 }}
+    {{- with.Values.hostBackend.deployment.annotations }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  {{- if not .Values.hostBackend.autoscaling.enabled }}
+  replicas: {{ .Values.hostBackend.deployment.replicas }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "langsmith.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-{{ .Values.hostBackend.name }}
+  template:
+    metadata:
+      annotations:
+      {{- if .Values.hostBackend.deployment.autoRestart }}
+        rollme: {{ randAlphaNum 5 | quote }}
+      {{- end }}
+      {{- with .Values.hostBackend.deployment.annotations }}
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- with.Values.hostBackend.deployment.labels }}
+            {{- toYaml . | nindent 8 }}
+        {{- end }}
+        {{- include "langsmith.labels" . | nindent 8 }}
+        app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-{{ .Values.hostBackend.name }}
+    spec:
+      terminationGracePeriodSeconds: {{ .Values.hostBackend.deployment.terminationGracePeriodSeconds }}
+      {{- with .Values.images.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.hostBackend.deployment.podSecurityContext | nindent 8 }}
+      serviceAccountName: {{ include "hostBackend.serviceAccountName" . }}
+      containers:
+        - name: {{ .Values.hostBackend.name }}
+          {{- with.Values.hostBackend.deployment.command }}
+          command:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          env:
+            {{- with $envVars }}
+              {{- toYaml . | nindent 12 }}
+            {{- end }}
+          envFrom:
+            - configMapRef:
+                name: {{ include "langsmith.fullname" . }}-config
+          image: "{{ .Values.images.hostBackendImage.repository }}:{{ .Values.images.hostBackendImage.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.images.hostBackendImage.pullPolicy }}
+          ports:
+            - name: host-backend
+              containerPort: {{ .Values.hostBackend.containerPort }}
+              protocol: TCP
+          {{- with .Values.hostBackend.deployment.startupProbe }}
+          startupProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.hostBackend.deployment.livenessProbe }}
+          livenessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.hostBackend.deployment.readinessProbe }}
+          readinessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          resources:
+            {{- toYaml .Values.hostBackend.deployment.resources | nindent 12 }}
+          securityContext:
+            {{- toYaml .Values.hostBackend.deployment.securityContext | nindent 12 }}
+          {{- with .Values.hostBackend.deployment.volumeMounts }}
+          volumeMounts:
+              {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.hostBackend.deployment.extraContainerConfig }}
+            {{- toYaml . | nindent 10 }}
+          {{- end }}
+        {{- with .Values.hostBackend.deployment.sidecars }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- with .Values.hostBackend.deployment.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.hostBackend.deployment.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.hostBackend.deployment.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.hostBackend.deployment.topologySpreadConstraints }}
+      topologySpreadConstraints:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.hostBackend.deployment.volumes }}
+      volumes:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}

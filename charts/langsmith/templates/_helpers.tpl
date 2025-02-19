@@ -320,7 +320,21 @@ Template containing common environment variables that are used by several servic
 {{ include "langsmith.conditionalEnvVarsResolved" . }}
 - name: REDIS_RUNS_EXPIRY_SECONDS
   value: {{ .Values.config.settings.redisRunsExpirySeconds | quote }}
+{{- if .Values.config.langgraphPlatform.enabled }}
+- name: LANGGRAPH_CLOUD_LICENSE_KEY
+  valueFrom:
+    secretKeyRef:
+      name: {{ include "langsmith.secretsName" . }}
+      key: langgraph_cloud_license_key
+- name: HOST_QUEUE
+  value: "host"
+- name: HOST_WORKER_RECONCILIATION_CRON_ENABLED
+  value: "true"
+- name: LANGCHAIN_ENDPOINT
+  value: "http://{{ include "langsmith.fullname" . }}-{{ .Values.frontend.name }}.{{ .Release.Namespace }}:{{ .Values.frontend.service.httpPort }}/api/v1"
 {{- end }}
+{{- end }}
+
 
 {{- define "aceBackend.serviceAccountName" -}}
 {{- if .Values.aceBackend.serviceAccount.create -}}
@@ -352,6 +366,22 @@ Template containing common environment variables that are used by several servic
     {{ default (printf "%s-%s" (include "langsmith.fullname" .) .Values.frontend.name) .Values.frontend.serviceAccount.name | trunc 63 | trimSuffix "-" }}
 {{- else -}}
     {{ default "default" .Values.frontend.serviceAccount.name }}
+{{- end -}}
+{{- end -}}
+
+{{- define "hostBackend.serviceAccountName" -}}
+{{- if .Values.hostBackend.serviceAccount.create -}}
+    {{ default (printf "%s-%s" (include "langsmith.fullname" .) .Values.hostBackend.name) .Values.hostBackend.serviceAccount.name | trunc 63 | trimSuffix "-" }}
+{{- else -}}
+    {{ default "default" .Values.hostBackend.serviceAccount.name }}
+{{- end -}}
+{{- end -}}
+
+{{- define "hostQueue.serviceAccountName" -}}
+{{- if .Values.hostQueue.serviceAccount.create -}}
+    {{ default (printf "%s-%s" (include "langsmith.fullname" .) .Values.hostQueue.name) .Values.hostQueue.serviceAccount.name | trunc 63 | trimSuffix "-" }}
+{{- else -}}
+    {{ default "default" .Values.hostQueue.serviceAccount.name }}
 {{- end -}}
 {{- end -}}
 

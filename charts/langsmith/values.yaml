@@ -17,23 +17,27 @@ images:
   aceBackendImage:
     repository: "docker.io/langchain/langsmith-ace-backend"
     pullPolicy: IfNotPresent
-    tag: "0.9.35"
+    tag: "0.9.37"
   backendImage:
     repository: "docker.io/langchain/langsmith-backend"
     pullPolicy: IfNotPresent
-    tag: "0.9.35"
+    tag: "0.9.37"
   frontendImage:
     repository: "docker.io/langchain/langsmith-frontend"
     pullPolicy: IfNotPresent
-    tag: "0.9.35"
+    tag: "0.9.37"
+  hostBackendImage:
+    repository: "docker.io/langchain/hosted-langserve-backend"
+    pullPolicy: IfNotPresent
+    tag: "0.9.37"
   platformBackendImage:
     repository: "docker.io/langchain/langsmith-go-backend"
     pullPolicy: IfNotPresent
-    tag: "0.9.35"
+    tag: "0.9.37"
   playgroundImage:
     repository: "docker.io/langchain/langsmith-playground"
     pullPolicy: IfNotPresent
-    tag: "0.9.35"
+    tag: "0.9.37"
   postgresImage:
     repository: "docker.io/postgres"
     pullPolicy: IfNotPresent
@@ -56,20 +60,15 @@ ingress:
   labels: {}
   tls: []
 
-# Only enable this ingress if you would like to expose the backend as a separate service.
-# By default, this is not needed as the frontend ingress will proxy requests to the backend.
-apiIngress:
-  enabled: false
-  hostname: ""
-  subdomain: ""
-  ingressClassName: ""
-  annotations: {}
-  labels: {}
-  tls: []
-
 config:
   existingSecretName: ""
   langsmithLicenseKey: ""
+
+  # -- Optional. Used to enable the Langgraph platform. If enabled, the license key must be provided.
+  langgraphPlatform:
+    enabled: false
+    langgraphPlatformLicenseKey: ""
+
   # -- Salt used to generate the API key. Should be a random string.
   apiKeySalt: ""
   logLevel: "info"
@@ -570,6 +569,162 @@ frontend:
     annotations: {}
     loadBalancerSourceRanges: []
     loadBalancerIP: ""
+  serviceAccount:
+    create: true
+    name: ""
+    labels: {}
+    annotations: {}
+
+hostBackend:
+  name: "host-backend"
+  containerPort: 1985
+  deployment:
+    autoRestart: true
+    replicas: 1
+    labels: {}
+    annotations: {}
+    podSecurityContext: {}
+    securityContext: {}
+    resources:
+      limits:
+        cpu: 1000m
+        memory: 2Gi
+      requests:
+        cpu: 200m
+        memory: 1000Mi
+    command:
+      - "uvicorn"
+      - "host.main:app"
+      - "--host"
+      - "0.0.0.0"
+      - "--port"
+      - "$(PORT)"
+      - "--log-level"
+      - "$(LOG_LEVEL)"
+      - "--loop"
+      - "uvloop"
+      - "--http"
+      - "httptools"
+      - "--no-access-log"
+    startupProbe:
+      httpGet:
+        path: /ok
+        port: 1985
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 1
+    livenessProbe:
+      httpGet:
+        path: /ok
+        port: 1985
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 1
+    readinessProbe:
+      httpGet:
+        path: /ok
+        port: 1985
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 1
+    extraContainerConfig: {}
+    extraEnv: []
+    sidecars: []
+    nodeSelector: {}
+    tolerations: []
+    topologySpreadConstraints: []
+    affinity: {}
+    volumes: []
+    volumeMounts: []
+    terminationGracePeriodSeconds: 30
+  autoscaling:
+    enabled: false
+    # If enabled, use the following values to configure the HPA. You can also use your own HPA configuration by not creating an HPA.
+    # You may want to manage the HPA yourself if you have a custom autoscaling setup like KEDA.
+    createHpa: true
+    minReplicas: 1
+    maxReplicas: 5
+    targetCPUUtilizationPercentage: 50
+    targetMemoryUtilizationPercentage: 80
+  service:
+    type: ClusterIP
+    port: 1985
+    labels: {}
+    annotations: {}
+    loadBalancerSourceRanges: []
+    loadBalancerIP: ""
+  serviceAccount:
+    create: true
+    name: ""
+    labels: {}
+    annotations: {}
+
+hostQueue:
+  name: "host-queue"
+  deployment:
+    autoRestart: true
+    replicas: 3
+    labels: {}
+    annotations: {}
+    podSecurityContext: {}
+    securityContext: {}
+    resources:
+      limits:
+        cpu: 2000m
+        memory: 4Gi
+      requests:
+        cpu: 1000m
+        memory: 2Gi
+    command:
+      - "saq"
+      - "app.workers.queues.host_worker.settings"
+      - "--quiet"
+    startupProbe:
+      exec:
+        command:
+          - "saq"
+          - "app.workers.queues.host_worker.settings"
+          - "--check"
+      failureThreshold: 6
+      periodSeconds: 60
+      timeoutSeconds: 30
+    readinessProbe:
+      exec:
+        command:
+          - "saq"
+          - "app.workers.queues.host_worker.settings"
+          - "--check"
+      failureThreshold: 6
+      periodSeconds: 60
+      timeoutSeconds: 30
+    livenessProbe:
+      exec:
+        command:
+          - "saq"
+          - "app.workers.queues.host_worker.settings"
+          - "--check"
+      failureThreshold: 6
+      periodSeconds: 60
+      timeoutSeconds: 30
+    extraContainerConfig: {}
+    extraEnv: []
+    sidecars: []
+    nodeSelector: {}
+    tolerations: []
+    topologySpreadConstraints: []
+    affinity: {}
+    volumes: []
+    volumeMounts: []
+    terminationGracePeriodSeconds: 30
+  autoscaling:
+    enabled: false
+    # If enabled, use the following values to configure the HPA. You can also use your own HPA configuration by not creating an HPA.
+    # You may want to manage the HPA yourself if you have a custom autoscaling setup like KEDA.
+    createHpa: true
+    minReplicas: 3
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 50
+    targetMemoryUtilizationPercentage: 80
   serviceAccount:
     create: true
     name: ""
