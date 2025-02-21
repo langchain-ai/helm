@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.9.8](https://img.shields.io/badge/Version-0.9.8-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.9.40](https://img.shields.io/badge/AppVersion-0.9.40-informational?style=flat-square)
+![Version: 0.9.10](https://img.shields.io/badge/Version-0.9.10-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.9.42](https://img.shields.io/badge/AppVersion-0.9.42-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -123,6 +123,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | clickhouse.statefulSet.livenessProbe.periodSeconds | int | `10` |  |
 | clickhouse.statefulSet.livenessProbe.timeoutSeconds | int | `1` |  |
 | clickhouse.statefulSet.nodeSelector | object | `{}` |  |
+| clickhouse.statefulSet.persistence.enabled | bool | `true` |  |
 | clickhouse.statefulSet.persistence.size | string | `"50Gi"` |  |
 | clickhouse.statefulSet.persistence.storageClassName | string | `""` |  |
 | clickhouse.statefulSet.podSecurityContext | object | `{}` |  |
@@ -270,26 +271,26 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | hostQueue.serviceAccount.name | string | `""` |  |
 | images.aceBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.aceBackendImage.repository | string | `"docker.io/langchain/langsmith-ace-backend"` |  |
-| images.aceBackendImage.tag | string | `"0.9.40"` |  |
+| images.aceBackendImage.tag | string | `"0.9.42"` |  |
 | images.backendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.backendImage.repository | string | `"docker.io/langchain/langsmith-backend"` |  |
-| images.backendImage.tag | string | `"0.9.40"` |  |
+| images.backendImage.tag | string | `"0.9.42"` |  |
 | images.clickhouseImage.pullPolicy | string | `"Always"` |  |
 | images.clickhouseImage.repository | string | `"docker.io/clickhouse/clickhouse-server"` |  |
 | images.clickhouseImage.tag | string | `"24.8"` |  |
 | images.frontendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.frontendImage.repository | string | `"docker.io/langchain/langsmith-frontend"` |  |
-| images.frontendImage.tag | string | `"0.9.40"` |  |
+| images.frontendImage.tag | string | `"0.9.42"` |  |
 | images.hostBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.hostBackendImage.repository | string | `"docker.io/langchain/hosted-langserve-backend"` |  |
-| images.hostBackendImage.tag | string | `"0.9.40"` |  |
+| images.hostBackendImage.tag | string | `"0.9.42"` |  |
 | images.imagePullSecrets | list | `[]` | Secrets with credentials to pull images from a private registry. Specified as name: value. |
 | images.platformBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.platformBackendImage.repository | string | `"docker.io/langchain/langsmith-go-backend"` |  |
-| images.platformBackendImage.tag | string | `"0.9.40"` |  |
+| images.platformBackendImage.tag | string | `"0.9.42"` |  |
 | images.playgroundImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.playgroundImage.repository | string | `"docker.io/langchain/langsmith-playground"` |  |
-| images.playgroundImage.tag | string | `"0.9.40"` |  |
+| images.playgroundImage.tag | string | `"0.9.42"` |  |
 | images.postgresImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.postgresImage.repository | string | `"docker.io/postgres"` |  |
 | images.postgresImage.tag | string | `"14.7"` |  |
@@ -519,6 +520,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | clickhouse.statefulSet.livenessProbe.periodSeconds | int | `10` |  |
 | clickhouse.statefulSet.livenessProbe.timeoutSeconds | int | `1` |  |
 | clickhouse.statefulSet.nodeSelector | object | `{}` |  |
+| clickhouse.statefulSet.persistence.enabled | bool | `true` |  |
 | clickhouse.statefulSet.persistence.size | string | `"50Gi"` |  |
 | clickhouse.statefulSet.persistence.storageClassName | string | `""` |  |
 | clickhouse.statefulSet.podSecurityContext | object | `{}` |  |
@@ -778,6 +780,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | postgres.statefulSet.livenessProbe.periodSeconds | int | `10` |  |
 | postgres.statefulSet.livenessProbe.timeoutSeconds | int | `1` |  |
 | postgres.statefulSet.nodeSelector | object | `{}` |  |
+| postgres.statefulSet.persistence.enabled | bool | `true` |  |
 | postgres.statefulSet.persistence.size | string | `"8Gi"` |  |
 | postgres.statefulSet.persistence.storageClassName | string | `""` |  |
 | postgres.statefulSet.podSecurityContext | object | `{}` |  |
@@ -928,6 +931,6 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | Ankush | <ankush@langchain.dev> |  |
 
 ----------------------------------------------
-Autogenerated from chart metadata using [helm-docs v1.14.2](https://github.com/norwoodj/helm-docs/releases/v1.14.2)
+Autogenerated from chart metadata using [helm-docs v1.11.3](https://github.com/norwoodj/helm-docs/releases/v1.11.3)
 ## Docs Generated by [helm-docs](https://github.com/norwoodj/helm-docs)
 `helm-docs -t ./charts/langsmith/README.md.gotmpl`
