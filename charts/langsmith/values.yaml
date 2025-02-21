@@ -506,6 +506,7 @@ frontend:
   proxyReadTimeout: "300"
   proxyWriteTimeout: "300"
   proxyConnectTimeout: "60"
+  ipv6Enabled: true
   deployment:
     autoRestart: true
     replicas: 1
