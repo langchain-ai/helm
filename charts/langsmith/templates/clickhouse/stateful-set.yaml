@@ -135,7 +135,7 @@ spec:
       {{- with .Values.clickhouse.statefulSet.volumes }}
           {{- toYaml . | nindent 8 }}
       {{- end }}
-  {{- with .Values.clickhouse.statefulSet.persistence.enabled }}
+  {{- if .Values.clickhouse.statefulSet.persistence.enabled }}
   volumeClaimTemplates:
     - apiVersion: v1
       kind: PersistentVolumeClaim

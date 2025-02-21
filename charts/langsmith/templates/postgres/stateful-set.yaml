@@ -126,7 +126,7 @@ spec:
       volumes:
           {{- toYaml . | nindent 8 }}
       {{- end }}
- {{- with .Values.postgres.statefulSet.persistence.enabled }}
+ {{- if .Values.postgres.statefulSet.persistence.enabled }}
   volumeClaimTemplates:
     - apiVersion: v1
       kind: PersistentVolumeClaim
