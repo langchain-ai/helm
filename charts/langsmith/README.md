@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.9.10](https://img.shields.io/badge/Version-0.9.10-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.9.42](https://img.shields.io/badge/AppVersion-0.9.42-informational?style=flat-square)
+![Version: 0.9.11](https://img.shields.io/badge/Version-0.9.11-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.9.42](https://img.shields.io/badge/AppVersion-0.9.42-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -593,6 +593,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | frontend.deployment.volumeMounts | list | `[]` |  |
 | frontend.deployment.volumes | list | `[]` |  |
 | frontend.existingConfigMapName | string | `""` |  |
+| frontend.ipv6Enabled | bool | `true` |  |
 | frontend.maxBodySize | string | `"25M"` |  |
 | frontend.name | string | `"frontend"` |  |
 | frontend.proxyConnectTimeout | string | `"60"` |  |
