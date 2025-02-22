@@ -203,7 +203,9 @@ data:
 
     server {
         listen       {{ .Values.frontend.containerPort }};
+        {{- if .Values.frontend.ipv6Enabled }}
         listen  [::]:{{ .Values.frontend.containerPort }};
+        {{- end }}
         server_name  localhost;
         client_max_body_size {{ .Values.frontend.maxBodySize }};
         proxy_read_timeout {{ .Values.frontend.proxyReadTimeout }};
