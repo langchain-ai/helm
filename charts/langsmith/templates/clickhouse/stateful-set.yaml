@@ -98,8 +98,10 @@ spec:
             {{- with .Values.clickhouse.statefulSet.volumeMounts }}
               {{- toYaml . | nindent 12 }}
             {{- end }}
+            {{- if .Values.clickhouse.statefulSet.persistence.enabled }}
             - mountPath: /var/lib/clickhouse
               name: data
+            {{- end }}
             - mountPath: /etc/clickhouse-server/users.d/users.xml
               name: clickhouse-conf
               subPath: users.xml
