@@ -29,4 +29,7 @@ spec:
           type: Utilization
           averageUtilization: {{ .Values.playground.autoscaling.targetMemoryUtilizationPercentage }}
     {{- end }}
+    {{- if .Values.playground.autoscaling.additionalMetrics }}
+    {{- toYaml .Values.playground.autoscaling.additionalMetrics | nindent 4 }}
+    {{- end }}
 {{- end }}
