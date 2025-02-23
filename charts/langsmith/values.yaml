@@ -205,8 +205,6 @@ aceBackend:
     terminationGracePeriodSeconds: 30
   autoscaling:
     enabled: false
-    # If enabled, use the following values to configure the HPA. You can also use your own HPA configuration by not creating an HPA.
-    # You may want to manage the HPA yourself if you have a custom autoscaling setup like KEDA.
     createHpa: true
     minReplicas: 1
     maxReplicas: 5
@@ -217,14 +215,11 @@ aceBackend:
     port: 1987
     labels: {}
     annotations: {}
-    loadBalancerSourceRanges: []
-    loadBalancerIP: ""
   serviceAccount:
     create: true
     name: ""
     labels: {}
     annotations: {}
-
 
 backend:
   name: "backend"
@@ -390,8 +385,6 @@ backend:
     port: 1984
     labels: {}
     annotations: {}
-    loadBalancerSourceRanges: []
-    loadBalancerIP: ""
   serviceAccount:
     create: true
     name: ""
@@ -433,12 +426,12 @@ clickhouse:
     securityContext: {}
     resources:
 # For a production environment, we recommend increasing the CPU and memory limits to something like 16 cores and 64Gi.
-#      limits:
-#        cpu: 16000m
-#        memory: 64Gi
-#      requests:
-#        cpu: 8000m
-#        memory: 32Gi
+#       limits:
+#         cpu: 16000m
+#         memory: 64Gi
+#       requests:
+#         cpu: 8000m
+#         memory: 32Gi
       limits:
         cpu: 8000m
         memory: 32Gi
@@ -485,12 +478,15 @@ clickhouse:
       storageClassName: ""
   service:
     type: ClusterIP
-    httpPort: 8123
-    nativePort: 9000
-    labels: {}
-    annotations: {}
-    loadBalancerSourceRanges: []
-    loadBalancerIP: ""
+    ports:
+    - name: http
+      port: 8123
+      targetPort: 8123
+      protocol: TCP
+    - name: native
+      port: 9000
+      targetPort: 9000
+      protocol: TCP
   serviceAccount:
     create: true
     name: ""
@@ -564,10 +560,15 @@ frontend:
     targetMemoryUtilizationPercentage: 80
   service:
     type: LoadBalancer
-    httpPort: 80
-    httpsPort: 443
-    labels: {}
-    annotations: {}
+    ports:
+    - name: http
+      port: 80
+      targetPort: frontend
+      protocol: TCP
+    - name: https
+      port: 443
+      targetPort: frontend
+      protocol: TCP
     loadBalancerSourceRanges: []
     loadBalancerIP: ""
   serviceAccount:
