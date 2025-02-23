@@ -17,22 +17,24 @@
 - name: PGDATA
   value: /var/lib/postgresql/data/postgres
 {{- end -}}
+
 {{- if not .Values.postgres.external.enabled }}
 {{- $envVars := concat .Values.commonEnv (include "postgresEnvVars" . | fromYamlArray) .Values.postgres.statefulSet.extraEnv -}}
 {{- include "langsmith.detectDuplicates" $envVars -}}
+
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: {{ include "langsmith.fullname" . }}-{{ .Values.postgres.name }}
   labels:
     {{- include "langsmith.labels" . | nindent 4 }}
-    {{- with.Values.postgres.statefulSet.labels }}
-      {{- toYaml . | nindent 4 }}
+    {{- with .Values.postgres.statefulSet.labels }}
+    {{- toYaml . | nindent 4 }}
     {{- end }}
   annotations:
     {{- include "langsmith.annotations" . | nindent 4 }}
-    {{- with.Values.postgres.statefulSet.annotations }}
-      {{- toYaml . | nindent 4 }}
+    {{- with .Values.postgres.statefulSet.annotations }}
+    {{- toYaml . | nindent 4 }}
     {{- end }}
 spec:
   serviceName: {{ include "langsmith.fullname" . }}-{{ .Values.postgres.name }}
@@ -48,11 +50,11 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       labels:
-        {{- with.Values.postgres.statefulSet.labels }}
-            {{- toYaml . | nindent 8 }}
-        {{- end }}
         {{- include "langsmith.labels" . | nindent 8 }}
         app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-{{ .Values.postgres.name }}
+        {{- with .Values.postgres.statefulSet.labels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
     spec:
       {{- with .Values.images.imagePullSecrets }}
       imagePullSecrets:
@@ -63,14 +65,12 @@ spec:
       serviceAccountName: {{ include "postgres.serviceAccountName" . }}
       containers:
         - name: {{ .Values.postgres.name }}
-          {{- with.Values.postgres.statefulSet.command }}
+          {{- with .Values.postgres.statefulSet.command }}
           command:
-             {{ . }}
+            {{- toYaml . | nindent 12 }}
           {{- end }}
           env:
-            {{- with $envVars }}
-             {{- toYaml . | nindent 12 }}
-            {{- end }}
+            {{- toYaml $envVars | nindent 12 }}
           image: "{{ .Values.images.postgresImage.repository }}:{{ .Values.images.postgresImage.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.images.postgresImage.pullPolicy }}
           ports:
@@ -95,17 +95,19 @@ spec:
             {{- toYaml .Values.postgres.statefulSet.securityContext | nindent 12 }}
           volumeMounts:
             {{- with .Values.postgres.statefulSet.volumeMounts }}
-              {{- toYaml . | nindent 12 }}
+            {{- toYaml . | nindent 12 }}
             {{- end }}
+            {{- if .Values.postgres.statefulSet.persistence.enabled }}
             - mountPath: /var/lib/postgresql/data
               name: data
               subPath: postgres
+            {{- end }}
           {{- with .Values.postgres.statefulSet.extraContainerConfig }}
-            {{- toYaml . | nindent 10 }}
-          {{- end }}
-        {{- with .Values.postgres.statefulSet.sidecars }}
-          {{- toYaml . | nindent 8 }}
-        {{- end }}
+          {{- toYaml . | nindent 10 }}
+          {{- end }}  
+      {{- with .Values.postgres.statefulSet.sidecars }}
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       {{- with .Values.postgres.statefulSet.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
@@ -124,8 +126,9 @@ spec:
       {{- end }}
       {{- with .Values.postgres.statefulSet.volumes }}
       volumes:
-          {{- toYaml . | nindent 8 }}
+        {{- toYaml . | nindent 8 }}
       {{- end }}
+ {{- if .Values.postgres.statefulSet.persistence.enabled }}
   volumeClaimTemplates:
     - apiVersion: v1
       kind: PersistentVolumeClaim
@@ -143,4 +146,5 @@ spec:
         {{- if .Values.postgres.statefulSet.persistence.storageClassName }}
         storageClassName: {{ .Values.postgres.statefulSet.persistence.storageClassName }}
         {{- end }}
- {{- end}}
+  {{- end }}
+{{- end }}

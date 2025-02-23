@@ -6,21 +6,23 @@
   value: /{{ . }}/api
 {{- end }}
 {{- end -}}
+
 {{- $envVars := concat .Values.commonEnv (include "langsmith.commonEnv" . | fromYamlArray) (include "backendEnvVars" . | fromYamlArray) .Values.backend.deployment.extraEnv -}}
 {{- include "langsmith.detectDuplicates" $envVars -}}
+
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}
   labels:
     {{- include "langsmith.labels" . | nindent 4 }}
-    {{- with.Values.backend.deployment.labels }}
-      {{- toYaml . | nindent 4 }}
+    {{- with .Values.backend.deployment.labels }}
+    {{- toYaml . | nindent 4 }}
     {{- end }}
   annotations:
     {{- include "langsmith.annotations" . | nindent 4 }}
-    {{- with.Values.backend.deployment.annotations }}
-      {{- toYaml . | nindent 4 }}
+    {{- with .Values.backend.deployment.annotations }}
+    {{- toYaml . | nindent 4 }}
     {{- end }}
 spec:
   {{- if not .Values.backend.autoscaling.enabled }}
@@ -33,18 +35,18 @@ spec:
   template:
     metadata:
       annotations:
-      {{- if .Values.backend.deployment.autoRestart }}
+        {{- if .Values.backend.deployment.autoRestart }}
         rollme: {{ randAlphaNum 5 | quote }}
-      {{- end }}
-      {{- with .Values.backend.deployment.annotations }}
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      labels:
-        {{- with.Values.backend.deployment.labels }}
-            {{- toYaml . | nindent 8 }}
         {{- end }}
+        {{- with .Values.backend.deployment.annotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      labels:
         {{- include "langsmith.labels" . | nindent 8 }}
         app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}
+        {{- with .Values.backend.deployment.labels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
     spec:
       terminationGracePeriodSeconds: {{ .Values.backend.deployment.terminationGracePeriodSeconds }}
       {{- with .Values.images.imagePullSecrets }}
@@ -56,14 +58,12 @@ spec:
       serviceAccountName: {{ include "backend.serviceAccountName" . }}
       containers:
         - name: {{ .Values.backend.name }}
-          {{- with.Values.backend.deployment.command }}
+          {{- with .Values.backend.deployment.command }}
           command:
             {{- toYaml . | nindent 12 }}
           {{- end }}
           env:
-            {{- with $envVars }}
-              {{- toYaml . | nindent 12 }}
-            {{- end }}
+            {{- toYaml $envVars | nindent 12 }}
           envFrom:
             - configMapRef:
                 name: {{ include "langsmith.fullname" . }}-config
@@ -91,7 +91,7 @@ spec:
             {{- toYaml .Values.backend.deployment.securityContext | nindent 12 }}
           {{- with .Values.backend.deployment.volumeMounts }}
           volumeMounts:
-              {{- toYaml . | nindent 12 }}
+            {{- toYaml . | nindent 12 }}
           {{- end }}
           {{- with .Values.backend.deployment.extraContainerConfig }}
             {{- toYaml . | nindent 10 }}

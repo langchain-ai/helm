@@ -4,33 +4,35 @@
   valueFrom:
     secretKeyRef:
       key: oauth_client_id
-      name: {{ include "langsmith.secretsName" .}}
+      name: {{ include "langsmith.secretsName" . }}
 - name: VITE_OAUTH_ISSUER_URL
   valueFrom:
     secretKeyRef:
       key: oauth_issuer_url
-      name: {{ include "langsmith.secretsName" .}}
+      name: {{ include "langsmith.secretsName" . }}
 {{- end }}
 {{- if .Values.ingress.subdomain }}
 - name: VITE_SUBDOMAIN
   value: {{ .Values.ingress.subdomain }}
 {{- end }}
 {{- end -}}
+
 {{- $envVars := concat .Values.commonEnv (include "frontendEnvVars" . | fromYamlArray) .Values.frontend.deployment.extraEnv -}}
 {{- include "langsmith.detectDuplicates" $envVars -}}
+
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ include "langsmith.fullname" . }}-{{ .Values.frontend.name }}
   labels:
     {{- include "langsmith.labels" . | nindent 4 }}
-    {{- with.Values.frontend.deployment.labels }}
-      {{- toYaml . | nindent 4 }}
+    {{- with .Values.frontend.deployment.labels }}
+    {{- toYaml . | nindent 4 }}
     {{- end }}
   annotations:
     {{- include "langsmith.annotations" . | nindent 4 }}
-    {{- with.Values.frontend.deployment.annotations }}
-      {{- toYaml . | nindent 4 }}
+    {{- with .Values.frontend.deployment.annotations }}
+    {{- toYaml . | nindent 4 }}
     {{- end }}
 spec:
   {{- if not .Values.frontend.autoscaling.enabled }}
@@ -43,18 +45,18 @@ spec:
   template:
     metadata:
       annotations:
-      {{- if .Values.frontend.deployment.autoRestart }}
+        {{- if .Values.frontend.deployment.autoRestart }}
         rollme: {{ randAlphaNum 5 | quote }}
-      {{- end }}
-      {{- with .Values.frontend.deployment.annotations }}
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      labels:
-        {{- with.Values.frontend.deployment.labels }}
-            {{- toYaml . | nindent 8 }}
         {{- end }}
+        {{- with .Values.frontend.deployment.annotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      labels:
         {{- include "langsmith.labels" . | nindent 8 }}
         app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-{{ .Values.frontend.name }}
+        {{- with .Values.frontend.deployment.labels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
     spec:
       terminationGracePeriodSeconds: {{ .Values.frontend.deployment.terminationGracePeriodSeconds }}
       {{- with .Values.images.imagePullSecrets }}
@@ -66,14 +68,12 @@ spec:
       serviceAccountName: {{ include "frontend.serviceAccountName" . }}
       containers:
         - name: {{ .Values.frontend.name }}
-          {{- with.Values.frontend.deployment.command }}
+          {{- with .Values.frontend.deployment.command }}
           command:
             {{- toYaml . | nindent 12 }}
           {{- end }}
           env:
-            {{- with $envVars }}
-              {{ toYaml . | nindent 12 }}
-            {{- end }}
+            {{- toYaml $envVars | nindent 12 }}
           envFrom:
             - configMapRef:
                 name: {{ include "langsmith.fullname" . }}-config
@@ -101,7 +101,7 @@ spec:
             {{- toYaml .Values.frontend.deployment.securityContext | nindent 12 }}
           volumeMounts:
             {{- with .Values.frontend.deployment.volumeMounts }}
-              {{- toYaml . | nindent 12 }}
+            {{- toYaml . | nindent 12 }}
             {{- end }}
             - mountPath: /etc/nginx/conf.d/default.conf
               name: nginx-conf
@@ -110,7 +110,7 @@ spec:
             {{- toYaml . | nindent 10 }}
           {{- end }}
         {{- with .Values.frontend.deployment.sidecars }}
-          {{- toYaml . | nindent 8 }}
+        {{- toYaml . | nindent 8 }}
         {{- end }}
       {{- with .Values.frontend.deployment.nodeSelector }}
       nodeSelector:
@@ -124,13 +124,13 @@ spec:
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-    {{- with .Values.frontend.deployment.topologySpreadConstraints }}
+      {{- with .Values.frontend.deployment.topologySpreadConstraints }}
       topologySpreadConstraints:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       volumes:
         {{- with .Values.frontend.deployment.volumes }}
-            {{- toYaml . | nindent 8 }}
+        {{- toYaml . | nindent 8 }}
         {{- end }}
         - name: nginx-conf
           configMap:

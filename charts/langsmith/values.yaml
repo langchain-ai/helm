@@ -218,13 +218,11 @@ aceBackend:
     labels: {}
     annotations: {}
     loadBalancerSourceRanges: []
-    loadBalancerIP: ""
   serviceAccount:
     create: true
     name: ""
     labels: {}
     annotations: {}
-
 
 backend:
   name: "backend"
@@ -391,7 +389,6 @@ backend:
     labels: {}
     annotations: {}
     loadBalancerSourceRanges: []
-    loadBalancerIP: ""
   serviceAccount:
     create: true
     name: ""
@@ -433,12 +430,12 @@ clickhouse:
     securityContext: {}
     resources:
 # For a production environment, we recommend increasing the CPU and memory limits to something like 16 cores and 64Gi.
-#      limits:
-#        cpu: 16000m
-#        memory: 64Gi
-#      requests:
-#        cpu: 8000m
-#        memory: 32Gi
+#       limits:
+#         cpu: 16000m
+#         memory: 64Gi
+#       requests:
+#         cpu: 8000m
+#         memory: 32Gi
       limits:
         cpu: 8000m
         memory: 32Gi
@@ -487,10 +484,7 @@ clickhouse:
     type: ClusterIP
     httpPort: 8123
     nativePort: 9000
-    labels: {}
-    annotations: {}
     loadBalancerSourceRanges: []
-    loadBalancerIP: ""
   serviceAccount:
     create: true
     name: ""
@@ -566,10 +560,7 @@ frontend:
     type: LoadBalancer
     httpPort: 80
     httpsPort: 443
-    labels: {}
-    annotations: {}
     loadBalancerSourceRanges: []
-    loadBalancerIP: ""
   serviceAccount:
     create: true
     name: ""
@@ -642,7 +633,6 @@ platformBackend:
     labels: {}
     annotations: {}
     loadBalancerSourceRanges: []
-    loadBalancerIP: ""
   serviceAccount:
     create: true
     name: ""
@@ -726,7 +716,6 @@ playground:
     labels: {}
     annotations: {}
     loadBalancerSourceRanges: []
-    loadBalancerIP: ""
   serviceAccount:
     create: true
     name: ""
@@ -810,7 +799,6 @@ postgres:
     labels: {}
     annotations: {}
     loadBalancerSourceRanges: []
-    loadBalancerIP: ""
   serviceAccount:
     create: true
     name: ""
@@ -959,7 +947,6 @@ redis:
     labels: {}
     annotations: {}
     loadBalancerSourceRanges: []
-    loadBalancerIP: ""
   serviceAccount:
     create: true
     name: ""

@@ -29,4 +29,7 @@ spec:
           type: Utilization
           averageUtilization: {{ .Values.queue.autoscaling.targetMemoryUtilizationPercentage }}
     {{- end }}
+    {{- if .Values.queue.autoscaling.additionalMetrics }}
+    {{- toYaml .Values.queue.autoscaling.additionalMetrics | nindent 4 }}
+    {{- end }}
 {{- end }}
