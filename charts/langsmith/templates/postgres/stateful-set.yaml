@@ -97,7 +97,7 @@ spec:
             {{- with .Values.postgres.statefulSet.volumeMounts }}
               {{- toYaml . | nindent 12 }}
             {{- end }}
-            {{- if .Values.clickhouse.statefulSet.persistence.enabled }}
+            {{- if .Values.postgres.statefulSet.persistence.enabled }}
             - mountPath: /var/lib/postgresql/data
               name: data
               subPath: postgres
