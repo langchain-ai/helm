@@ -40,7 +40,7 @@ config:
 
 ingress:
   enabled: false
-  hostname: ""  #  Set this to the hostname you want to use for the ingress. Also used as the base URL for studio
+  hostname: ""  #  Set this to the hostname you want to use for the ingress.
   studioHostname: ""  # Set this to the hostname you want to use for the studio ingress
   ingressClassName: ""
   annotations: {}
@@ -213,6 +213,7 @@ redis:
 
 studio:
   enabled: true
+  localGraphUrl: "" # Set this to api-server base url you want studio to point to by default.
   name: "studio"
   containerPort: 3968
   deployment:
