@@ -213,7 +213,7 @@ redis:
 
 studio:
   enabled: true
-  localGraphUrl: "" #  Set this to api-server base url you want studio to point to by default.
+  localGraphUrl: ""  #  Set this to api-server base url you want studio to point to by default.
   name: "studio"
   containerPort: 3968
   deployment:
