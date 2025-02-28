@@ -45,7 +45,7 @@ spec:
         - name: {{ .Values.studio.name }}
           env:
             - name: VITE_STUDIO_LOCAL_GRAPH_URL
-              value: {{ .Values.ingress.hostname }}
+              value: {{ .Values.studio.localGraphUrl | quote }}
             {{- with .Values.studio.deployment.extraEnv }}
               {{- toYaml . | nindent 12 }}
             {{- end }}
