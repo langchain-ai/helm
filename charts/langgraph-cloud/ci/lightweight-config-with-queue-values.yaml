@@ -14,8 +14,8 @@ queue:
   deployment:
     resources:
       requests:
-          cpu: 100m
-          memory: 500Mi
+        cpu: 100m
+        memory: 500Mi
 
 postgres:
   statefulSet:
