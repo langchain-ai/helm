@@ -12,7 +12,7 @@ apiServer:
 queue:
   enabled: true
   deployment:
-      resources:
+    resources:
       requests:
           cpu: 100m
           memory: 500Mi
