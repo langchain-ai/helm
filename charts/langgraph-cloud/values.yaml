@@ -33,6 +33,7 @@ images:
 config:
   existingSecretName: ""
   langGraphCloudLicenseKey: ""
+  numberOfJobsPerWorker: 10  # Number of jobs per worker. Workers are bundled with the api server if queue is disabled."
   auth:
     enabled: false
     langSmithAuthEndpoint: ""
@@ -83,6 +84,41 @@ apiServer:
     annotations: {}
     loadBalancerSourceRanges: []
     loadBalancerIP: ""
+  serviceAccount:
+    create: true
+    name: ""
+    labels: {}
+    annotations: {}
+
+queue:
+  enabled: false
+  name: "queue"
+  containerPort: 8000
+  deployment:
+    replicaCount: 1
+    labels: {}
+    annotations: {}
+    podSecurityContext: {}
+    securityContext: {}
+    resources:
+      limits:
+        cpu: 2000m
+        memory: 4Gi
+      requests:
+        cpu: 1000m
+        memory: 2Gi
+    extraEnv: []
+    sidecars: []
+    nodeSelector: {}
+    tolerations: []
+    affinity: {}
+    volumes: []
+    volumeMounts: []
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 5
+    targetCPUUtilizationPercentage: 80
   serviceAccount:
     create: true
     name: ""

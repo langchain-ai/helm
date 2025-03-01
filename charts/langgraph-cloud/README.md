@@ -1,6 +1,6 @@
 # langgraph-cloud
 
-![Version: 0.1.8](https://img.shields.io/badge/Version-0.1.8-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.2.0](https://img.shields.io/badge/AppVersion-0.2.0-informational?style=flat-square)
+![Version: 0.1.9](https://img.shields.io/badge/Version-0.1.9-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.2.0](https://img.shields.io/badge/AppVersion-0.2.0-informational?style=flat-square)
 
 Helm chart to deploy the LangGraph Cloud application and all services it depends on.
 
@@ -216,6 +216,33 @@ the same format as the secret in the corresponding `secrets.yaml` file. Note: AP
 | ingress.studioHostname | string | `""` |  |
 | ingress.tls | list | `[]` |  |
 | nameOverride | string | `""` | Provide a name in place of `langgraph-cloud` for the chart |
+| queue.autoscaling.enabled | bool | `false` |  |
+| queue.autoscaling.maxReplicas | int | `5` |  |
+| queue.autoscaling.minReplicas | int | `1` |  |
+| queue.autoscaling.targetCPUUtilizationPercentage | int | `80` |  |
+| queue.containerPort | int | `8000` |  |
+| queue.deployment.affinity | object | `{}` |  |
+| queue.deployment.annotations | object | `{}` |  |
+| queue.deployment.extraEnv | list | `[]` |  |
+| queue.deployment.labels | object | `{}` |  |
+| queue.deployment.nodeSelector | object | `{}` |  |
+| queue.deployment.podSecurityContext | object | `{}` |  |
+| queue.deployment.replicaCount | int | `1` |  |
+| queue.deployment.resources.limits.cpu | string | `"2000m"` |  |
+| queue.deployment.resources.limits.memory | string | `"4Gi"` |  |
+| queue.deployment.resources.requests.cpu | string | `"1000m"` |  |
+| queue.deployment.resources.requests.memory | string | `"2Gi"` |  |
+| queue.deployment.securityContext | object | `{}` |  |
+| queue.deployment.sidecars | list | `[]` |  |
+| queue.deployment.tolerations | list | `[]` |  |
+| queue.deployment.volumeMounts | list | `[]` |  |
+| queue.deployment.volumes | list | `[]` |  |
+| queue.enabled | bool | `false` |  |
+| queue.name | string | `"queue"` |  |
+| queue.serviceAccount.annotations | object | `{}` |  |
+| queue.serviceAccount.create | bool | `true` |  |
+| queue.serviceAccount.labels | object | `{}` |  |
+| queue.serviceAccount.name | string | `""` |  |
 | redis.containerPort | int | `6379` |  |
 | redis.deployment.affinity | object | `{}` |  |
 | redis.deployment.annotations | object | `{}` |  |
@@ -311,6 +338,7 @@ the same format as the secret in the corresponding `secrets.yaml` file. Note: AP
 | config.auth.langSmithTenantId | string | `""` |  |
 | config.existingSecretName | string | `""` |  |
 | config.langGraphCloudLicenseKey | string | `""` |  |
+| config.numberOfJobsPerWorker | int | `10` |  |
 
 ## Api Server
 

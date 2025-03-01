@@ -63,7 +63,6 @@ ingress:
 config:
   existingSecretName: ""
   langsmithLicenseKey: ""
-
   # -- Optional. Used to enable the Langgraph platform. If enabled, the license key must be provided.
   langgraphPlatform:
     enabled: false

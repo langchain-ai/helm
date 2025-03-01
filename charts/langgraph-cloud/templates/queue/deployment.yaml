@@ -1,50 +1,55 @@
+{{- if .Values.queue.enabled -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "langGraphCloud.fullname" . }}-{{ .Values.apiServer.name }}
+  name: {{ include "langGraphCloud.fullname" . }}-{{ .Values.queue.name }}
   labels:
     {{- include "langGraphCloud.labels" . | nindent 4 }}
-    {{- with.Values.apiServer.deployment.labels }}
+    {{- with.Values.queue.deployment.labels }}
       {{- toYaml . | nindent 4 }}
     {{- end }}
   annotations:
     {{- include "langGraphCloud.annotations" . | nindent 4 }}
-    {{- with.Values.apiServer.deployment.annotations }}
+    {{- with.Values.queue.deployment.annotations }}
       {{- toYaml . | nindent 4 }}
     {{- end }}
 spec:
-  {{- if not .Values.apiServer.autoscaling.enabled }}
-  replicas: {{ .Values.apiServer.deployment.replicaCount }}
+  {{- if not .Values.queue.autoscaling.enabled }}
+  replicas: {{ .Values.queue.deployment.replicaCount }}
   {{- end }}
   selector:
     matchLabels:
       {{- include "langGraphCloud.selectorLabels" . | nindent 6 }}
-      app.kubernetes.io/component: {{ include "langGraphCloud.fullname" . }}-{{ .Values.apiServer.name }}
+      app.kubernetes.io/component: {{ include "langGraphCloud.fullname" . }}-{{ .Values.queue.name }}
   template:
     metadata:
-      {{- with .Values.apiServer.deployment.annotations }}
+      {{- with .Values.queue.deployment.annotations }}
       annotations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       labels:
-        {{- with.Values.apiServer.deployment.labels }}
+        {{- with.Values.queue.deployment.labels }}
             {{- toYaml . | nindent 8 }}
         {{- end }}
         {{- include "langGraphCloud.labels" . | nindent 8 }}
-        app.kubernetes.io/component: {{ include "langGraphCloud.fullname" . }}-{{ .Values.apiServer.name }}
+        app.kubernetes.io/component: {{ include "langGraphCloud.fullname" . }}-{{ .Values.queue.name }}
     spec:
-      serviceAccountName: {{ include "apiServer.serviceAccountName" . }}
+      serviceAccountName: {{ include "queue.serviceAccountName" . }}
       {{- with .Values.images.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       securityContext:
-        {{- toYaml .Values.apiServer.deployment.podSecurityContext | nindent 8 }}
+        {{- toYaml .Values.queue.deployment.podSecurityContext | nindent 8 }}
       containers:
-        - name: {{ .Values.apiServer.name }}
+        - name: {{ .Values.queue.name }}
+          command:
+            - "python"
+            - "-m"
+            - "langgraph_api.queue_entrypoint"
           env:
             - name: PORT
-              value: {{ .Values.apiServer.containerPort | quote }}
+              value: {{ .Values.queue.containerPort | quote }}
             - name: POSTGRES_URI
               valueFrom:
                 secretKeyRef:
@@ -60,13 +65,6 @@ spec:
                 secretKeyRef:
                   name: {{ include "langGraphCloud.secretsName" . }}
                   key: langgraph_cloud_license_key
-            {{- if .Values.queue.enabled }}
-            - name: N_JOBS_PER_WORKER
-              value: "0"
-            {{- else }}
-            - name: N_JOBS_PER_WORKER
-              value: {{ .Values.config.numberOfJobsPerWorker | quote }}
-            {{- end }}
             {{- if .Values.config.auth.enabled }}
             - name: LANGGRAPH_AUTH_TYPE
               value: "langsmith"
@@ -74,67 +72,64 @@ spec:
               value: {{ .Values.config.auth.langSmithAuthEndpoint }}
             - name: LANGSMITH_TENANT_ID
               value: {{ .Values.config.auth.langSmithTenantId }}
+            - name: N_JOBS_PER_WORKER
+              value: {{ .Values.config.numberOfJobsPerWorker | quote }}
             {{- end }}
-            {{- with .Values.apiServer.deployment.extraEnv }}
+            {{- with .Values.queue.deployment.extraEnv }}
               {{- toYaml . | nindent 12 }}
             {{- end }}
           image: "{{ .Values.images.apiServerImage.repository }}:{{ .Values.images.apiServerImage.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.images.apiServerImage.pullPolicy }}
           ports:
-            - name: api-server
-              containerPort: {{ .Values.apiServer.containerPort }}
+            - name: queue
+              containerPort: {{ .Values.queue.containerPort }}
               protocol: TCP
           startupProbe:
-            exec:
-              command:
-                - /bin/sh
-                - -c
-                - exec python /api/healthcheck.py
+            httpGet:
+              port: {{ .Values.queue.containerPort }}
+              path: "/ok"
             failureThreshold: 6
             periodSeconds: 10
             timeoutSeconds: 1
           readinessProbe:
-            exec:
-              command:
-                - /bin/sh
-                - -c
-                - exec python /api/healthcheck.py
+            httpGet:
+              port: {{ .Values.queue.containerPort }}
+              path: "/ok"
             failureThreshold: 6
             periodSeconds: 10
             timeoutSeconds: 1
           livenessProbe:
-            exec:
-              command:
-                - /bin/sh
-                - -c
-                - exec python /api/healthcheck.py
+            httpGet:
+              port: {{ .Values.queue.containerPort }}
+              path: "/ok"
             failureThreshold: 6
             periodSeconds: 10
             timeoutSeconds: 1
           resources:
-            {{- toYaml .Values.apiServer.deployment.resources | nindent 12 }}
+            {{- toYaml .Values.queue.deployment.resources | nindent 12 }}
           securityContext:
-            {{- toYaml .Values.apiServer.deployment.securityContext | nindent 12 }}
-          {{- with .Values.apiServer.deployment.volumeMounts }}
+            {{- toYaml .Values.queue.deployment.securityContext | nindent 12 }}
+          {{- with .Values.queue.deployment.volumeMounts }}
           volumeMounts:
               {{- toYaml . | nindent 12 }}
           {{- end }}
-        {{- with .Values.apiServer.deployment.sidecars }}
+        {{- with .Values.queue.deployment.sidecars }}
           {{- toYaml . | nindent 8 }}
         {{- end }}
-      {{- with .Values.apiServer.deployment.nodeSelector }}
+      {{- with .Values.queue.deployment.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.apiServer.deployment.affinity }}
+      {{- with .Values.queue.deployment.affinity }}
       affinity:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.apiServer.deployment.tolerations }}
+      {{- with .Values.queue.deployment.tolerations }}
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.apiServer.deployment.volumes }}
+      {{- with .Values.queue.deployment.volumes }}
       volumes:
           {{- toYaml . | nindent 8 }}
       {{- end }}
+{{- end}}
