@@ -29,6 +29,10 @@ data:
         proxy_connect_timeout {{ .Values.frontend.proxyConnectTimeout }};
         proxy_send_timeout {{ .Values.frontend.proxyWriteTimeout }};
 
+        add_header Content-Security-Policy "frame-ancestors 'self'; object-src 'none'" always;
+        add_header X-Frame-Options "SAMEORIGIN" always;
+        add_header X-Content-Type-Options "nosniff" always;
+        add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" always;
 
         error_page   500 502 503 504  /50x.html;
         location = /50x.html {
@@ -211,6 +215,11 @@ data:
         proxy_read_timeout {{ .Values.frontend.proxyReadTimeout }};
         proxy_connect_timeout {{ .Values.frontend.proxyConnectTimeout }};
         proxy_send_timeout {{ .Values.frontend.proxyWriteTimeout }};
+
+        add_header Content-Security-Policy "frame-ancestors 'self'; object-src 'none'" always;
+        add_header X-Frame-Options "SAMEORIGIN" always;
+        add_header X-Content-Type-Options "nosniff" always;
+        add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" always;
 
         location / {
             root   /tmp/build;
