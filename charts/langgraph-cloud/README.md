@@ -1,6 +1,6 @@
 # langgraph-cloud
 
-![Version: 0.1.9](https://img.shields.io/badge/Version-0.1.9-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.2.0](https://img.shields.io/badge/AppVersion-0.2.0-informational?style=flat-square)
+![Version: 0.1.10](https://img.shields.io/badge/Version-0.1.10-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.2.0](https://img.shields.io/badge/AppVersion-0.2.0-informational?style=flat-square)
 
 Helm chart to deploy the LangGraph Cloud application and all services it depends on.
 
@@ -217,6 +217,10 @@ the same format as the secret in the corresponding `secrets.yaml` file. Note: AP
 | ingress.tls | list | `[]` |  |
 | nameOverride | string | `""` | Provide a name in place of `langgraph-cloud` for the chart |
 | queue.autoscaling.enabled | bool | `false` |  |
+| queue.autoscaling.keda.cooldownPeriod | int | `300` |  |
+| queue.autoscaling.keda.enabled | bool | `false` |  |
+| queue.autoscaling.keda.pollingInterval | int | `30` |  |
+| queue.autoscaling.keda.scaleDownStabilizationWindowSeconds | int | `300` |  |
 | queue.autoscaling.maxReplicas | int | `5` |  |
 | queue.autoscaling.minReplicas | int | `1` |  |
 | queue.autoscaling.targetCPUUtilizationPercentage | int | `80` |  |
@@ -294,6 +298,10 @@ the same format as the secret in the corresponding `secrets.yaml` file. Note: AP
 | redis.serviceAccount.labels | object | `{}` |  |
 | redis.serviceAccount.name | string | `""` |  |
 | studio.autoscaling.enabled | bool | `false` |  |
+| studio.autoscaling.keda.cooldownPeriod | int | `300` |  |
+| studio.autoscaling.keda.enabled | bool | `false` |  |
+| studio.autoscaling.keda.pollingInterval | int | `30` |  |
+| studio.autoscaling.keda.scaleDownStabilizationWindowSeconds | int | `300` |  |
 | studio.autoscaling.maxReplicas | int | `5` |  |
 | studio.autoscaling.minReplicas | int | `1` |  |
 | studio.autoscaling.targetCPUUtilizationPercentage | int | `80` |  |
@@ -345,6 +353,10 @@ the same format as the secret in the corresponding `secrets.yaml` file. Note: AP
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
 | apiServer.autoscaling.enabled | bool | `false` |  |
+| apiServer.autoscaling.keda.cooldownPeriod | int | `300` |  |
+| apiServer.autoscaling.keda.enabled | bool | `false` |  |
+| apiServer.autoscaling.keda.pollingInterval | int | `30` |  |
+| apiServer.autoscaling.keda.scaleDownStabilizationWindowSeconds | int | `300` |  |
 | apiServer.autoscaling.maxReplicas | int | `5` |  |
 | apiServer.autoscaling.minReplicas | int | `1` |  |
 | apiServer.autoscaling.targetCPUUtilizationPercentage | int | `80` |  |
