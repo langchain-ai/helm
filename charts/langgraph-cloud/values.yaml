@@ -76,6 +76,11 @@ apiServer:
     minReplicas: 1
     maxReplicas: 5
     targetCPUUtilizationPercentage: 80
+    keda: #  KEDA autoscaling configuration. Recommended for autoscaling but only available if keda is installed in the cluster.
+      enabled: false
+      pollingInterval: 30
+      cooldownPeriod: 300
+      scaleDownStabilizationWindowSeconds: 300
   service:
     type: LoadBalancer
     httpPort: 80
@@ -119,6 +124,11 @@ queue:
     minReplicas: 1
     maxReplicas: 5
     targetCPUUtilizationPercentage: 80
+    keda: #  KEDA autoscaling configuration. Recommended for autoscaling but only available if keda is installed in the cluster.
+      enabled: false
+      pollingInterval: 30
+      cooldownPeriod: 300
+      scaleDownStabilizationWindowSeconds: 300
   serviceAccount:
     create: true
     name: ""
@@ -272,11 +282,16 @@ studio:
     affinity: {}
     volumes: []
     volumeMounts: []
-  autoscaling:
+  autoscaling:  #  Autoscaling configuration. Not generally needed for studio.
     enabled: false
     minReplicas: 1
     maxReplicas: 5
     targetCPUUtilizationPercentage: 80
+    keda:  #  KEDA autoscaling configuration. Recommended for autoscaling but only available if keda is installed in the cluster.
+      enabled: false
+      pollingInterval: 30
+      cooldownPeriod: 300
+      scaleDownStabilizationWindowSeconds: 300
   service:
     type: LoadBalancer
     httpPort: 80
