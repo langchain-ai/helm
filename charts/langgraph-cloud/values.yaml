@@ -76,7 +76,7 @@ apiServer:
     minReplicas: 1
     maxReplicas: 5
     targetCPUUtilizationPercentage: 80
-    keda: #  KEDA autoscaling configuration. Recommended for autoscaling but only available if keda is installed in the cluster.
+    keda:  #  KEDA autoscaling configuration. Recommended for autoscaling but only available if keda is installed in the cluster.
       enabled: false
       pollingInterval: 30
       cooldownPeriod: 300
@@ -124,7 +124,7 @@ queue:
     minReplicas: 1
     maxReplicas: 5
     targetCPUUtilizationPercentage: 80
-    keda: #  KEDA autoscaling configuration. Recommended for autoscaling but only available if keda is installed in the cluster.
+    keda:  #  KEDA autoscaling configuration. Recommended for autoscaling but only available if keda is installed in the cluster.
       enabled: false
       pollingInterval: 30
       cooldownPeriod: 300
