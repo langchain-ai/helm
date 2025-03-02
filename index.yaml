@@ -3,6 +3,20 @@ entries:
   langgraph-cloud:
   - apiVersion: v2
     appVersion: 0.2.0
+    created: "2025-03-02T03:05:15.628339281Z"
+    description: Helm chart to deploy the LangGraph Cloud application and all services
+      it depends on.
+    digest: c1e7c637bf79769259fe76957eb1708fd71d14f616a65f53d876a415e7500ef7
+    maintainers:
+    - email: ankush@langchain.dev
+      name: Ankush
+    name: langgraph-cloud
+    type: application
+    urls:
+    - https://github.com/langchain-ai/helm/releases/download/langgraph-cloud-0.1.10/langgraph-cloud-0.1.10.tgz
+    version: 0.1.10
+  - apiVersion: v2
+    appVersion: 0.2.0
     created: "2025-03-01T04:39:03.026988028Z"
     description: Helm chart to deploy the LangGraph Cloud application and all services
       it depends on.
@@ -2033,4 +2047,4 @@ entries:
     urls:
     - https://github.com/langchain-ai/helm/releases/download/open-gpts-0.1.0/open-gpts-0.1.0.tgz
     version: 0.1.0
-generated: "2025-03-01T04:39:03.16575536Z"
+generated: "2025-03-02T03:05:15.628630253Z"
