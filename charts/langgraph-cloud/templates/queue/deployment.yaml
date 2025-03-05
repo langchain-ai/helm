@@ -72,9 +72,9 @@ spec:
               value: {{ .Values.config.auth.langSmithAuthEndpoint }}
             - name: LANGSMITH_TENANT_ID
               value: {{ .Values.config.auth.langSmithTenantId }}
+            {{- end }}
             - name: N_JOBS_PER_WORKER
               value: {{ .Values.config.numberOfJobsPerWorker | quote }}
-            {{- end }}
             {{- with .Values.queue.deployment.extraEnv }}
               {{- toYaml . | nindent 12 }}
             {{- end }}
