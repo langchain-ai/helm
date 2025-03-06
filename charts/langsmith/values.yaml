@@ -17,27 +17,27 @@ images:
   aceBackendImage:
     repository: "docker.io/langchain/langsmith-ace-backend"
     pullPolicy: IfNotPresent
-    tag: "0.9.54"
+    tag: "0.9.56"
   backendImage:
     repository: "docker.io/langchain/langsmith-backend"
     pullPolicy: IfNotPresent
-    tag: "0.9.54"
+    tag: "0.9.56"
   frontendImage:
     repository: "docker.io/langchain/langsmith-frontend"
     pullPolicy: IfNotPresent
-    tag: "0.9.54"
+    tag: "0.9.56"
   hostBackendImage:
     repository: "docker.io/langchain/hosted-langserve-backend"
     pullPolicy: IfNotPresent
-    tag: "0.9.54"
+    tag: "0.9.56"
   platformBackendImage:
     repository: "docker.io/langchain/langsmith-go-backend"
     pullPolicy: IfNotPresent
-    tag: "0.9.54"
+    tag: "0.9.56"
   playgroundImage:
     repository: "docker.io/langchain/langsmith-playground"
     pullPolicy: IfNotPresent
-    tag: "0.9.54"
+    tag: "0.9.56"
   postgresImage:
     repository: "docker.io/postgres"
     pullPolicy: IfNotPresent
@@ -210,6 +210,9 @@ aceBackend:
     maxReplicas: 5
     targetCPUUtilizationPercentage: 50
     targetMemoryUtilizationPercentage: 80
+  pdb:
+    enabled: false
+    minAvailable: 1
   service:
     type: ClusterIP
     port: 1987
@@ -383,6 +386,9 @@ backend:
     maxReplicas: 5
     targetCPUUtilizationPercentage: 50
     targetMemoryUtilizationPercentage: 80
+  pdb:
+    enabled: false
+    minAvailable: 1
   service:
     type: ClusterIP
     port: 1984
@@ -482,6 +488,9 @@ clickhouse:
       enabled: true
       size: 50Gi
       storageClassName: ""
+  pdb:
+    enabled: true
+    minAvailable: 1
   service:
     type: ClusterIP
     httpPort: 8123
@@ -562,6 +571,9 @@ frontend:
     maxReplicas: 5
     targetCPUUtilizationPercentage: 50
     targetMemoryUtilizationPercentage: 80
+  pdb:
+    enabled: false
+    minAvailable: 1
   service:
     type: LoadBalancer
     httpPort: 80
@@ -647,6 +659,9 @@ hostBackend:
     maxReplicas: 5
     targetCPUUtilizationPercentage: 50
     targetMemoryUtilizationPercentage: 80
+  pdb:
+    enabled: false
+    minAvailable: 1
   service:
     type: ClusterIP
     port: 1985
@@ -726,6 +741,9 @@ hostQueue:
     maxReplicas: 10
     targetCPUUtilizationPercentage: 50
     targetMemoryUtilizationPercentage: 80
+  pdb:
+    enabled: false
+    minAvailable: 1
   serviceAccount:
     create: true
     name: ""
@@ -792,6 +810,9 @@ platformBackend:
     maxReplicas: 10
     targetCPUUtilizationPercentage: 50
     targetMemoryUtilizationPercentage: 80
+  pdb:
+    enabled: false
+    minAvailable: 1
   service:
     type: ClusterIP
     port: 1986
@@ -876,6 +897,9 @@ playground:
     maxReplicas: 5
     targetCPUUtilizationPercentage: 50
     targetMemoryUtilizationPercentage: 80
+  pdb:
+    enabled: false
+    minAvailable: 1
   service:
     type: ClusterIP
     port: 1988
@@ -961,6 +985,9 @@ postgres:
       enabled: true
       size: 8Gi
       storageClassName: ""
+  pdb:
+    enabled: false
+    minAvailable: 1
   service:
     type: ClusterIP
     port: 5432
@@ -1031,6 +1058,9 @@ queue:
     volumes: []
     volumeMounts: []
     terminationGracePeriodSeconds: 30
+  pdb:
+    enabled: false
+    minAvailable: 1
   autoscaling:
     enabled: false
     # If enabled, use the following values to configure the HPA. You can also use your own HPA configuration by not creating an HPA.
@@ -1110,6 +1140,9 @@ redis:
       enabled: true
       size: 8Gi
       storageClassName: ""
+  pdb:
+    enabled: false
+    minAvailable: 1
   service:
     type: ClusterIP
     port: 6379
