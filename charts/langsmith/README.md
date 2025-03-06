@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.9.20](https://img.shields.io/badge/Version-0.9.20-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.9.54](https://img.shields.io/badge/AppVersion-0.9.54-informational?style=flat-square)
+![Version: 0.9.21](https://img.shields.io/badge/Version-0.9.21-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.9.56](https://img.shields.io/badge/AppVersion-0.9.56-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -66,6 +66,8 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | aceBackend.deployment.volumeMounts | list | `[]` |  |
 | aceBackend.deployment.volumes | list | `[]` |  |
 | aceBackend.name | string | `"ace-backend"` |  |
+| aceBackend.pdb.enabled | bool | `false` |  |
+| aceBackend.pdb.minAvailable | int | `1` |  |
 | aceBackend.service.annotations | object | `{}` |  |
 | aceBackend.service.labels | object | `{}` |  |
 | aceBackend.service.loadBalancerIP | string | `""` |  |
@@ -98,6 +100,8 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | clickhouse.external.user | string | `"default"` |  |
 | clickhouse.external.userSecretKey | string | `"clickhouse_user"` |  |
 | clickhouse.name | string | `"clickhouse"` |  |
+| clickhouse.pdb.enabled | bool | `false` |  |
+| clickhouse.pdb.minAvailable | int | `1` |  |
 | clickhouse.service.annotations | object | `{}` |  |
 | clickhouse.service.httpPort | int | `8123` |  |
 | clickhouse.service.labels | object | `{}` |  |
@@ -207,6 +211,8 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | hostBackend.deployment.volumeMounts | list | `[]` |  |
 | hostBackend.deployment.volumes | list | `[]` |  |
 | hostBackend.name | string | `"host-backend"` |  |
+| hostBackend.pdb.enabled | bool | `false` |  |
+| hostBackend.pdb.minAvailable | int | `1` |  |
 | hostBackend.service.annotations | object | `{}` |  |
 | hostBackend.service.labels | object | `{}` |  |
 | hostBackend.service.loadBalancerIP | string | `""` |  |
@@ -265,32 +271,34 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | hostQueue.deployment.volumeMounts | list | `[]` |  |
 | hostQueue.deployment.volumes | list | `[]` |  |
 | hostQueue.name | string | `"host-queue"` |  |
+| hostQueue.pdb.enabled | bool | `false` |  |
+| hostQueue.pdb.minAvailable | int | `1` |  |
 | hostQueue.serviceAccount.annotations | object | `{}` |  |
 | hostQueue.serviceAccount.create | bool | `true` |  |
 | hostQueue.serviceAccount.labels | object | `{}` |  |
 | hostQueue.serviceAccount.name | string | `""` |  |
 | images.aceBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.aceBackendImage.repository | string | `"docker.io/langchain/langsmith-ace-backend"` |  |
-| images.aceBackendImage.tag | string | `"0.9.54"` |  |
+| images.aceBackendImage.tag | string | `"0.9.56"` |  |
 | images.backendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.backendImage.repository | string | `"docker.io/langchain/langsmith-backend"` |  |
-| images.backendImage.tag | string | `"0.9.54"` |  |
+| images.backendImage.tag | string | `"0.9.56"` |  |
 | images.clickhouseImage.pullPolicy | string | `"Always"` |  |
 | images.clickhouseImage.repository | string | `"docker.io/clickhouse/clickhouse-server"` |  |
 | images.clickhouseImage.tag | string | `"24.8"` |  |
 | images.frontendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.frontendImage.repository | string | `"docker.io/langchain/langsmith-frontend"` |  |
-| images.frontendImage.tag | string | `"0.9.54"` |  |
+| images.frontendImage.tag | string | `"0.9.56"` |  |
 | images.hostBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.hostBackendImage.repository | string | `"docker.io/langchain/hosted-langserve-backend"` |  |
-| images.hostBackendImage.tag | string | `"0.9.54"` |  |
+| images.hostBackendImage.tag | string | `"0.9.56"` |  |
 | images.imagePullSecrets | list | `[]` | Secrets with credentials to pull images from a private registry. Specified as name: value. |
 | images.platformBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.platformBackendImage.repository | string | `"docker.io/langchain/langsmith-go-backend"` |  |
-| images.platformBackendImage.tag | string | `"0.9.54"` |  |
+| images.platformBackendImage.tag | string | `"0.9.56"` |  |
 | images.playgroundImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.playgroundImage.repository | string | `"docker.io/langchain/langsmith-playground"` |  |
-| images.playgroundImage.tag | string | `"0.9.54"` |  |
+| images.playgroundImage.tag | string | `"0.9.56"` |  |
 | images.postgresImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.postgresImage.repository | string | `"docker.io/postgres"` |  |
 | images.postgresImage.tag | string | `"14.7"` |  |
@@ -458,6 +466,8 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | backend.migrations.volumeMounts | list | `[]` |  |
 | backend.migrations.volumes | list | `[]` |  |
 | backend.name | string | `"backend"` |  |
+| backend.pdb.enabled | bool | `false` |  |
+| backend.pdb.minAvailable | int | `1` |  |
 | backend.service.annotations | object | `{}` |  |
 | backend.service.labels | object | `{}` |  |
 | backend.service.loadBalancerIP | string | `""` |  |
@@ -495,6 +505,8 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | clickhouse.external.user | string | `"default"` |  |
 | clickhouse.external.userSecretKey | string | `"clickhouse_user"` |  |
 | clickhouse.name | string | `"clickhouse"` |  |
+| clickhouse.pdb.enabled | bool | `false` |  |
+| clickhouse.pdb.minAvailable | int | `1` |  |
 | clickhouse.service.annotations | object | `{}` |  |
 | clickhouse.service.httpPort | int | `8123` |  |
 | clickhouse.service.labels | object | `{}` |  |
@@ -596,6 +608,8 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | frontend.ipv6Enabled | bool | `true` |  |
 | frontend.maxBodySize | string | `"25M"` |  |
 | frontend.name | string | `"frontend"` |  |
+| frontend.pdb.enabled | bool | `false` |  |
+| frontend.pdb.minAvailable | int | `1` |  |
 | frontend.proxyConnectTimeout | string | `"60"` |  |
 | frontend.proxyReadTimeout | string | `"300"` |  |
 | frontend.proxyWriteTimeout | string | `"300"` |  |
@@ -660,6 +674,8 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | platformBackend.deployment.volumes | list | `[]` |  |
 | platformBackend.existingConfigMapName | string | `""` |  |
 | platformBackend.name | string | `"platform-backend"` |  |
+| platformBackend.pdb.enabled | bool | `false` |  |
+| platformBackend.pdb.minAvailable | int | `1` |  |
 | platformBackend.service.annotations | object | `{}` |  |
 | platformBackend.service.labels | object | `{}` |  |
 | platformBackend.service.loadBalancerIP | string | `""` |  |
@@ -731,6 +747,8 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | playground.deployment.volumeMounts | list | `[]` |  |
 | playground.deployment.volumes | list | `[]` |  |
 | playground.name | string | `"playground"` |  |
+| playground.pdb.enabled | bool | `false` |  |
+| playground.pdb.minAvailable | int | `1` |  |
 | playground.service.annotations | object | `{}` |  |
 | playground.service.labels | object | `{}` |  |
 | playground.service.loadBalancerIP | string | `""` |  |
@@ -758,6 +776,8 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | postgres.external.schema | string | `"public"` |  |
 | postgres.external.user | string | `"postgres"` |  |
 | postgres.name | string | `"postgres"` |  |
+| postgres.pdb.enabled | bool | `false` |  |
+| postgres.pdb.minAvailable | int | `1` |  |
 | postgres.service.annotations | object | `{}` |  |
 | postgres.service.labels | object | `{}` |  |
 | postgres.service.loadBalancerIP | string | `""` |  |
@@ -860,6 +880,8 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | queue.deployment.volumeMounts | list | `[]` |  |
 | queue.deployment.volumes | list | `[]` |  |
 | queue.name | string | `"queue"` |  |
+| queue.pdb.enabled | bool | `false` |  |
+| queue.pdb.minAvailable | int | `1` |  |
 | queue.serviceAccount.annotations | object | `{}` |  |
 | queue.serviceAccount.create | bool | `true` |  |
 | queue.serviceAccount.labels | object | `{}` |  |
@@ -875,6 +897,8 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | redis.external.enabled | bool | `false` |  |
 | redis.external.existingSecretName | string | `""` |  |
 | redis.name | string | `"redis"` |  |
+| redis.pdb.enabled | bool | `false` |  |
+| redis.pdb.minAvailable | int | `1` |  |
 | redis.service.annotations | object | `{}` |  |
 | redis.service.labels | object | `{}` |  |
 | redis.service.loadBalancerIP | string | `""` |  |

@@ -1,0 +1,20 @@
+{{- if .Values.hostBackend.pdb.enabled }}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "langsmith.fullname" . }}-{{ .Values.hostBackend.name }}
+  labels:
+    {{- include "langsmith.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "langsmith.name" . }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+      app.kubernetes.io/component: {{ .Values.hostBackend.name }}
+  {{- if .Values.hostBackend.pdb.minAvailable }}
+  minAvailable: {{ .Values.hostBackend.pdb.minAvailable }}
+  {{- end }}
+  {{- if .Values.hostBackend.pdb.maxUnavailable }}
+  maxUnavailable: {{ .Values.hostBackend.pdb.maxUnavailable }}
+  {{- end }}
+{{- end }}
