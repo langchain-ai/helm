@@ -100,7 +100,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | clickhouse.external.user | string | `"default"` |  |
 | clickhouse.external.userSecretKey | string | `"clickhouse_user"` |  |
 | clickhouse.name | string | `"clickhouse"` |  |
-| clickhouse.pdb.enabled | bool | `true` |  |
+| clickhouse.pdb.enabled | bool | `false` |  |
 | clickhouse.pdb.minAvailable | int | `1` |  |
 | clickhouse.service.annotations | object | `{}` |  |
 | clickhouse.service.httpPort | int | `8123` |  |
@@ -505,7 +505,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | clickhouse.external.user | string | `"default"` |  |
 | clickhouse.external.userSecretKey | string | `"clickhouse_user"` |  |
 | clickhouse.name | string | `"clickhouse"` |  |
-| clickhouse.pdb.enabled | bool | `true` |  |
+| clickhouse.pdb.enabled | bool | `false` |  |
 | clickhouse.pdb.minAvailable | int | `1` |  |
 | clickhouse.service.annotations | object | `{}` |  |
 | clickhouse.service.httpPort | int | `8123` |  |

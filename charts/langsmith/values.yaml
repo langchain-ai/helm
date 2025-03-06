@@ -489,7 +489,7 @@ clickhouse:
       size: 50Gi
       storageClassName: ""
   pdb:
-    enabled: true
+    enabled: false
     minAvailable: 1
   service:
     type: ClusterIP
