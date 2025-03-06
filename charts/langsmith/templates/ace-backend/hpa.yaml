@@ -29,4 +29,7 @@ spec:
           type: Utilization
           averageUtilization: {{ .Values.aceBackend.autoscaling.targetMemoryUtilizationPercentage }}
     {{- end }}
+    {{- if .Values.aceBackend.autoscaling.additionalMetrics }}
+    {{- toYaml .Values.aceBackend.autoscaling.additionalMetrics | nindent 4 }}
+    {{- end }}
 {{- end }}
