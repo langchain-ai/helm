@@ -1,0 +1,107 @@
+{{- $envVars := concat .Values.commonEnv (include "langgraph-dataplane.commonEnv" . | fromYamlArray) .Values.listener.deployment.extraEnv -}}
+{{- include "langgraph-dataplane.detectDuplicates" $envVars -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "langgraph-dataplane.fullname" . }}-{{ .Values.listener.name }}
+  labels:
+    {{- include "langgraph-dataplane.labels" . | nindent 4 }}
+    {{- with.Values.listener.deployment.labels }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+  annotations:
+    {{- include "langgraph-dataplane.annotations" . | nindent 4 }}
+    {{- with.Values.listener.deployment.annotations }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  {{- if not .Values.listener.autoscaling.enabled }}
+  replicas: {{ .Values.listener.deployment.replicas }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "langgraph-dataplane.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: {{ include "langgraph-dataplane.fullname" . }}-{{ .Values.listener.name }}
+  template:
+    metadata:
+      annotations:
+      {{- if .Values.listener.deployment.autoRestart }}
+        rollme: {{ randAlphaNum 5 | quote }}
+      {{- end }}
+      {{- with .Values.listener.deployment.annotations }}
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- with.Values.listener.deployment.labels }}
+            {{- toYaml . | nindent 8 }}
+        {{- end }}
+        {{- include "langgraph-dataplane.labels" . | nindent 8 }}
+        app.kubernetes.io/component: {{ include "langgraph-dataplane.fullname" . }}-{{ .Values.listener.name }}
+    spec:
+      terminationGracePeriodSeconds: {{ .Values.listener.deployment.terminationGracePeriodSeconds }}
+      {{- with .Values.images.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.listener.deployment.podSecurityContext | nindent 8 }}
+      serviceAccountName: {{ include "listener.serviceAccountName" . }}
+      restartPolicy: Always
+      containers:
+        - name: {{ .Values.listener.name }}
+          {{- with.Values.listener.deployment.command }}
+          command:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          env:
+            {{- with $envVars }}
+              {{- toYaml . | nindent 12 }}
+            {{- end }}
+          image: "{{ .Values.images.listenerImage.repository }}:{{ .Values.images.listenerImage.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.images.listenerImage.pullPolicy }}
+          {{- with .Values.listener.deployment.startupProbe }}
+          startupProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.listener.deployment.livenessProbe }}
+          livenessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.listener.deployment.readinessProbe }}
+          readinessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          resources:
+            {{- toYaml .Values.listener.deployment.resources | nindent 12 }}
+          securityContext:
+            {{- toYaml .Values.listener.deployment.securityContext | nindent 12 }}
+          {{- with .Values.listener.deployment.volumeMounts }}
+          volumeMounts:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.listener.deployment.extraContainerConfig }}
+            {{- toYaml . | nindent 10 }}
+          {{- end }}
+        {{- with .Values.listener.deployment.sidecars }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- with .Values.listener.deployment.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.listener.deployment.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.listener.deployment.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.listener.deployment.topologySpreadConstraints }}
+      topologySpreadConstraints:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.listener.deployment.volumes }}
+      volumes:
+          {{- toYaml . | nindent 8 }}
+      {{- end }}
