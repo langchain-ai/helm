@@ -279,7 +279,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | hostQueue.serviceAccount.name | string | `""` |  |
 | images.aceBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.aceBackendImage.repository | string | `"docker.io/langchain/langsmith-ace-backend"` |  |
-| images.aceBackendImage.tag | string | `"0.9."` |  |
+| images.aceBackendImage.tag | string | `"0.9.58"` |  |
 | images.backendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.backendImage.repository | string | `"docker.io/langchain/langsmith-backend"` |  |
 | images.backendImage.tag | string | `"0.9.58"` |  |
