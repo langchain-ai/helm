@@ -122,6 +122,8 @@ Template containing common environment variables that are used by several servic
   value: "true"
 - name: HOST_BACKEND_ENDPOINT
   value: {{ .Values.config.hostBackendUrl }}
+- name: LANGCHAIN_ENDPOINT
+  value: {{ .Values.config.smithBackendUrl }}
 - name: HOST_WORKER_TENANT_ID
   value: {{ .Values.config.langsmithWorkspaceId }}
 - name: X_SERVICE_AUTH_JWT_SECRET

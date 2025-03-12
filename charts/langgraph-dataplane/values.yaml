@@ -27,6 +27,7 @@ config:
   langgraphPlatformLicenseKey: ""
   langsmithApiKey: ""
   hostBackendUrl: ""
+  smithBackendUrl: ""
   langsmithWorkspaceId: ""
 
 listener:
