@@ -19,14 +19,14 @@ Helm chart to deploy the LangGraph Operator
 | images.imagePullSecrets | list | `[]` | Secrets with credentials to pull images from a private registry. Specified as name: value. |
 | images.managerImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.managerImage.repository | string | `"docker.io/langchain/langgraph-operator"` |  |
-| images.managerImage.tag | string | `"0.9.59"` |  |
+| images.managerImage.tag | string | `"2b504eb"` |  |
 | nameOverride | string | `""` | Provide a name in place of `langsmith` |
 
 ## Configs
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| config.createCRD | bool | `true` |  |
+| config.createCRDs | bool | `true` |  |
 
 ## Manager
 
