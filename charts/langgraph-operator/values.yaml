@@ -1,0 +1,58 @@
+# Default values for the langsmith helm chart. Refer to documentation on individual values for help with configuration.
+
+# -- Provide a name in place of `langsmith`
+nameOverride: ""
+# -- String to fully override `"langsmith.fullname"`
+fullnameOverride: ""
+# -- Annotations that will be applied to all resources created by the chart
+commonAnnotations: {}
+# -- Labels that will be applied to all resources created by the chart
+commonLabels: {}
+# -- Common environment variables that will be applied to all deployments/statefulsets except for the playground/aceBackend services (which are sandboxed). Be careful not to override values already specified by the chart.
+commonEnv: []
+
+images:
+   # -- Secrets with credentials to pull images from a private registry. Specified as name: value.
+  imagePullSecrets: []
+  managerImage:
+    repository: "docker.io/langchain/langgraph-operator"
+    pullPolicy: IfNotPresent
+    tag: "0.9.59"
+
+config:
+  createCRD: true
+
+manager:
+  name: "manager"
+  deployment:
+    autoRestart: true
+    replicas: 1
+    labels: {}
+    annotations: {}
+    podSecurityContext: {}
+    securityContext: {}
+    resources:
+      limits:
+        cpu: 2000m
+        memory: 4Gi
+      requests:
+        cpu: 1000m
+        memory: 2Gi
+    extraContainerConfig: {}
+    extraEnv: []
+    sidecars: []
+    nodeSelector: {}
+    tolerations: []
+    topologySpreadConstraints: []
+    affinity: {}
+    volumes: []
+    volumeMounts: []
+    terminationGracePeriodSeconds: 30
+  pdb:
+    enabled: false
+    minAvailable: 1
+  serviceAccount:
+    create: true
+    name: ""
+    labels: {}
+    annotations: {}
