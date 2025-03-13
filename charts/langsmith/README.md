@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.9.23](https://img.shields.io/badge/Version-0.9.23-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.9.58](https://img.shields.io/badge/AppVersion-0.9.58-informational?style=flat-square)
+![Version: 0.9.24](https://img.shields.io/badge/Version-0.9.24-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.9.58](https://img.shields.io/badge/AppVersion-0.9.58-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -66,7 +66,9 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | aceBackend.deployment.volumeMounts | list | `[]` |  |
 | aceBackend.deployment.volumes | list | `[]` |  |
 | aceBackend.name | string | `"ace-backend"` |  |
+| aceBackend.pdb.annotations | object | `{}` |  |
 | aceBackend.pdb.enabled | bool | `false` |  |
+| aceBackend.pdb.labels | object | `{}` |  |
 | aceBackend.pdb.minAvailable | int | `1` |  |
 | aceBackend.service.annotations | object | `{}` |  |
 | aceBackend.service.labels | object | `{}` |  |
@@ -100,7 +102,9 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | clickhouse.external.user | string | `"default"` |  |
 | clickhouse.external.userSecretKey | string | `"clickhouse_user"` |  |
 | clickhouse.name | string | `"clickhouse"` |  |
+| clickhouse.pdb.annotations | object | `{}` |  |
 | clickhouse.pdb.enabled | bool | `false` |  |
+| clickhouse.pdb.labels | object | `{}` |  |
 | clickhouse.pdb.minAvailable | int | `1` |  |
 | clickhouse.service.annotations | object | `{}` |  |
 | clickhouse.service.httpPort | int | `8123` |  |
@@ -211,7 +215,9 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | hostBackend.deployment.volumeMounts | list | `[]` |  |
 | hostBackend.deployment.volumes | list | `[]` |  |
 | hostBackend.name | string | `"host-backend"` |  |
+| hostBackend.pdb.annotations | object | `{}` |  |
 | hostBackend.pdb.enabled | bool | `false` |  |
+| hostBackend.pdb.labels | object | `{}` |  |
 | hostBackend.pdb.minAvailable | int | `1` |  |
 | hostBackend.service.annotations | object | `{}` |  |
 | hostBackend.service.labels | object | `{}` |  |
@@ -271,7 +277,9 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | hostQueue.deployment.volumeMounts | list | `[]` |  |
 | hostQueue.deployment.volumes | list | `[]` |  |
 | hostQueue.name | string | `"host-queue"` |  |
+| hostQueue.pdb.annotations | object | `{}` |  |
 | hostQueue.pdb.enabled | bool | `false` |  |
+| hostQueue.pdb.labels | object | `{}` |  |
 | hostQueue.pdb.minAvailable | int | `1` |  |
 | hostQueue.serviceAccount.annotations | object | `{}` |  |
 | hostQueue.serviceAccount.create | bool | `true` |  |
@@ -362,7 +370,10 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | backend.authBootstrap.nodeSelector | object | `{}` |  |
 | backend.authBootstrap.podSecurityContext | object | `{}` |  |
 | backend.authBootstrap.randomizeName | bool | `true` |  |
-| backend.authBootstrap.resources | object | `{}` |  |
+| backend.authBootstrap.resources.limits.cpu | string | `"1000m"` |  |
+| backend.authBootstrap.resources.limits.memory | string | `"1Gi"` |  |
+| backend.authBootstrap.resources.requests.cpu | string | `"200m"` |  |
+| backend.authBootstrap.resources.requests.memory | string | `"500Mi"` |  |
 | backend.authBootstrap.securityContext | object | `{}` |  |
 | backend.authBootstrap.sidecars | list | `[]` |  |
 | backend.authBootstrap.tolerations | list | `[]` |  |
@@ -387,7 +398,10 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | backend.clickhouseMigrations.nodeSelector | object | `{}` |  |
 | backend.clickhouseMigrations.podSecurityContext | object | `{}` |  |
 | backend.clickhouseMigrations.randomizeName | bool | `true` |  |
-| backend.clickhouseMigrations.resources | object | `{}` |  |
+| backend.clickhouseMigrations.resources.limits.cpu | string | `"1000m"` |  |
+| backend.clickhouseMigrations.resources.limits.memory | string | `"1Gi"` |  |
+| backend.clickhouseMigrations.resources.requests.cpu | string | `"200m"` |  |
+| backend.clickhouseMigrations.resources.requests.memory | string | `"500Mi"` |  |
 | backend.clickhouseMigrations.securityContext | object | `{}` |  |
 | backend.clickhouseMigrations.sidecars | list | `[]` |  |
 | backend.clickhouseMigrations.tolerations | list | `[]` |  |
@@ -457,7 +471,10 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | backend.migrations.nodeSelector | object | `{}` |  |
 | backend.migrations.podSecurityContext | object | `{}` |  |
 | backend.migrations.randomizeName | bool | `true` |  |
-| backend.migrations.resources | object | `{}` |  |
+| backend.migrations.resources.limits.cpu | string | `"1000m"` |  |
+| backend.migrations.resources.limits.memory | string | `"1Gi"` |  |
+| backend.migrations.resources.requests.cpu | string | `"200m"` |  |
+| backend.migrations.resources.requests.memory | string | `"500Mi"` |  |
 | backend.migrations.securityContext | object | `{}` |  |
 | backend.migrations.sidecars | list | `[]` |  |
 | backend.migrations.tolerations | list | `[]` |  |
@@ -466,7 +483,9 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | backend.migrations.volumeMounts | list | `[]` |  |
 | backend.migrations.volumes | list | `[]` |  |
 | backend.name | string | `"backend"` |  |
+| backend.pdb.annotations | object | `{}` |  |
 | backend.pdb.enabled | bool | `false` |  |
+| backend.pdb.labels | object | `{}` |  |
 | backend.pdb.minAvailable | int | `1` |  |
 | backend.service.annotations | object | `{}` |  |
 | backend.service.labels | object | `{}` |  |
@@ -505,7 +524,9 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | clickhouse.external.user | string | `"default"` |  |
 | clickhouse.external.userSecretKey | string | `"clickhouse_user"` |  |
 | clickhouse.name | string | `"clickhouse"` |  |
+| clickhouse.pdb.annotations | object | `{}` |  |
 | clickhouse.pdb.enabled | bool | `false` |  |
+| clickhouse.pdb.labels | object | `{}` |  |
 | clickhouse.pdb.minAvailable | int | `1` |  |
 | clickhouse.service.annotations | object | `{}` |  |
 | clickhouse.service.httpPort | int | `8123` |  |
@@ -608,7 +629,9 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | frontend.ipv6Enabled | bool | `true` |  |
 | frontend.maxBodySize | string | `"25M"` |  |
 | frontend.name | string | `"frontend"` |  |
+| frontend.pdb.annotations | object | `{}` |  |
 | frontend.pdb.enabled | bool | `false` |  |
+| frontend.pdb.labels | object | `{}` |  |
 | frontend.pdb.minAvailable | int | `1` |  |
 | frontend.proxyConnectTimeout | string | `"60"` |  |
 | frontend.proxyReadTimeout | string | `"300"` |  |
@@ -674,7 +697,9 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | platformBackend.deployment.volumes | list | `[]` |  |
 | platformBackend.existingConfigMapName | string | `""` |  |
 | platformBackend.name | string | `"platform-backend"` |  |
+| platformBackend.pdb.annotations | object | `{}` |  |
 | platformBackend.pdb.enabled | bool | `false` |  |
+| platformBackend.pdb.labels | object | `{}` |  |
 | platformBackend.pdb.minAvailable | int | `1` |  |
 | platformBackend.service.annotations | object | `{}` |  |
 | platformBackend.service.labels | object | `{}` |  |
@@ -747,7 +772,9 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | playground.deployment.volumeMounts | list | `[]` |  |
 | playground.deployment.volumes | list | `[]` |  |
 | playground.name | string | `"playground"` |  |
+| playground.pdb.annotations | object | `{}` |  |
 | playground.pdb.enabled | bool | `false` |  |
+| playground.pdb.labels | object | `{}` |  |
 | playground.pdb.minAvailable | int | `1` |  |
 | playground.service.annotations | object | `{}` |  |
 | playground.service.labels | object | `{}` |  |
@@ -776,7 +803,9 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | postgres.external.schema | string | `"public"` |  |
 | postgres.external.user | string | `"postgres"` |  |
 | postgres.name | string | `"postgres"` |  |
+| postgres.pdb.annotations | object | `{}` |  |
 | postgres.pdb.enabled | bool | `false` |  |
+| postgres.pdb.labels | object | `{}` |  |
 | postgres.pdb.minAvailable | int | `1` |  |
 | postgres.service.annotations | object | `{}` |  |
 | postgres.service.labels | object | `{}` |  |
@@ -880,7 +909,9 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | queue.deployment.volumeMounts | list | `[]` |  |
 | queue.deployment.volumes | list | `[]` |  |
 | queue.name | string | `"queue"` |  |
+| queue.pdb.annotations | object | `{}` |  |
 | queue.pdb.enabled | bool | `false` |  |
+| queue.pdb.labels | object | `{}` |  |
 | queue.pdb.minAvailable | int | `1` |  |
 | queue.serviceAccount.annotations | object | `{}` |  |
 | queue.serviceAccount.create | bool | `true` |  |
@@ -897,7 +928,9 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | redis.external.enabled | bool | `false` |  |
 | redis.external.existingSecretName | string | `""` |  |
 | redis.name | string | `"redis"` |  |
+| redis.pdb.annotations | object | `{}` |  |
 | redis.pdb.enabled | bool | `false` |  |
+| redis.pdb.labels | object | `{}` |  |
 | redis.pdb.minAvailable | int | `1` |  |
 | redis.service.annotations | object | `{}` |  |
 | redis.service.labels | object | `{}` |  |

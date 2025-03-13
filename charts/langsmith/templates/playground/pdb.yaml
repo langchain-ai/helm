@@ -5,6 +5,14 @@ metadata:
   name: {{ include "langsmith.fullname" . }}-{{ .Values.playground.name }}
   labels:
     {{- include "langsmith.labels" . | nindent 4 }}
+    {{- with .Values.playground.pdb.labels }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+  annotations:
+    {{- include "langsmith.annotations" . | nindent 4 }}
+    {{- with .Values.playground.pdb.annotations }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
 spec:
   selector:
     matchLabels:
