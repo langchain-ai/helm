@@ -213,6 +213,8 @@ aceBackend:
   pdb:
     enabled: false
     minAvailable: 1
+    labels: {}
+    annotations: {}
   service:
     type: ClusterIP
     port: 1987
@@ -298,13 +300,13 @@ backend:
     annotations: {}
     podSecurityContext: {}
     securityContext: {}
-    resources: {}
-#      limits:
-#        cpu: 1000m
-#        memory: 1Gi
-#      requests:
-#        cpu: 200m
-#        memory: 500Mi
+    resources:
+      limits:
+        cpu: 1000m
+        memory: 1Gi
+      requests:
+        cpu: 200m
+        memory: 500Mi
     command:
       - "/bin/bash"
       - "-c"
@@ -327,13 +329,13 @@ backend:
     annotations: {}
     podSecurityContext: {}
     securityContext: {}
-    resources: {}
-    #      limits:
-    #        cpu: 1000m
-    #        memory: 1Gi
-    #      requests:
-    #        cpu: 200m
-    #        memory: 500Mi
+    resources:
+      limits:
+        cpu: 1000m
+        memory: 1Gi
+      requests:
+        cpu: 200m
+        memory: 500Mi
     command:
       - "python"
       - "hooks/auth_bootstrap.pyc"
@@ -356,13 +358,13 @@ backend:
     annotations: {}
     podSecurityContext: {}
     securityContext: {}
-    resources: {}
-#      limits:
-#        cpu: 1000m
-#        memory: 1Gi
-#      requests:
-#        cpu: 200m
-#        memory: 500Mi
+    resources:
+      limits:
+        cpu: 1000m
+        memory: 1Gi
+      requests:
+        cpu: 200m
+        memory: 500Mi
     command:
       - "/bin/bash"
       - "scripts/wait_for_clickhouse_and_migrate.sh"
@@ -389,6 +391,8 @@ backend:
   pdb:
     enabled: false
     minAvailable: 1
+    labels: {}
+    annotations: {}
   service:
     type: ClusterIP
     port: 1984
@@ -491,6 +495,8 @@ clickhouse:
   pdb:
     enabled: false
     minAvailable: 1
+    labels: {}
+    annotations: {}
   service:
     type: ClusterIP
     httpPort: 8123
@@ -574,6 +580,8 @@ frontend:
   pdb:
     enabled: false
     minAvailable: 1
+    labels: {}
+    annotations: {}
   service:
     type: LoadBalancer
     httpPort: 80
@@ -662,6 +670,8 @@ hostBackend:
   pdb:
     enabled: false
     minAvailable: 1
+    labels: {}
+    annotations: {}
   service:
     type: ClusterIP
     port: 1985
@@ -744,6 +754,8 @@ hostQueue:
   pdb:
     enabled: false
     minAvailable: 1
+    labels: {}
+    annotations: {}
   serviceAccount:
     create: true
     name: ""
@@ -813,6 +825,8 @@ platformBackend:
   pdb:
     enabled: false
     minAvailable: 1
+    labels: {}
+    annotations: {}
   service:
     type: ClusterIP
     port: 1986
@@ -900,6 +914,8 @@ playground:
   pdb:
     enabled: false
     minAvailable: 1
+    labels: {}
+    annotations: {}
   service:
     type: ClusterIP
     port: 1988
@@ -988,6 +1004,8 @@ postgres:
   pdb:
     enabled: false
     minAvailable: 1
+    labels: {}
+    annotations: {}
   service:
     type: ClusterIP
     port: 5432
@@ -1061,6 +1079,8 @@ queue:
   pdb:
     enabled: false
     minAvailable: 1
+    labels: {}
+    annotations: {}
   autoscaling:
     enabled: false
     # If enabled, use the following values to configure the HPA. You can also use your own HPA configuration by not creating an HPA.
@@ -1143,6 +1163,8 @@ redis:
   pdb:
     enabled: false
     minAvailable: 1
+    labels: {}
+    annotations: {}
   service:
     type: ClusterIP
     port: 6379
