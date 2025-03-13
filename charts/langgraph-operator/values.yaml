@@ -1,14 +1,14 @@
-# Default values for the langsmith helm chart. Refer to documentation on individual values for help with configuration.
+# Default values for the langgraph-operator helm chart. Refer to documentation on individual values for help with configuration.
 
-# -- Provide a name in place of `langsmith`
+# -- Provide a name in place of `langgraphOperator`
 nameOverride: ""
-# -- String to fully override `"langsmith.fullname"`
+# -- String to fully override `"langgraphOperator.fullname"`
 fullnameOverride: ""
 # -- Annotations that will be applied to all resources created by the chart
 commonAnnotations: {}
 # -- Labels that will be applied to all resources created by the chart
 commonLabels: {}
-# -- Common environment variables that will be applied to all deployments/statefulsets except for the playground/aceBackend services (which are sandboxed). Be careful not to override values already specified by the chart.
+# -- Common environment variables that will be applied to all deployments
 commonEnv: []
 
 images:
