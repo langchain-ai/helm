@@ -1,0 +1,9 @@
+apiVersion: v2
+name: langgraph-dataplane
+maintainers:
+  - name: Ankush
+    email: ankush@langchain.dev
+description: Helm chart to deploy a langgraph dataplane on kubernetes.
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
