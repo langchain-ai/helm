@@ -30,10 +30,10 @@ Helm chart to deploy a langgraph dataplane on kubernetes.
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
 | config.existingSecretName | string | `""` |  |
-| config.hostBackendUrl | string | `""` |  |
+| config.hostBackendUrl | string | `"https://api.host.langchain.com"` |  |
 | config.langsmithApiKey | string | `""` |  |
 | config.langsmithWorkspaceId | string | `""` |  |
-| config.smithBackendUrl | string | `""` |  |
+| config.smithBackendUrl | string | `"https://api.smith.langchain.com"` |  |
 
 ## Listener
 
