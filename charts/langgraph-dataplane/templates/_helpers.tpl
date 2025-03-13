@@ -1,7 +1,7 @@
 {{/*
 Expand the name of the chart.
 */}}
-{{- define "langgraph-dataplane.name" -}}
+{{- define "langgraphDataplane.name" -}}
 {{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
@@ -10,7 +10,7 @@ Create a default fully qualified app name.
 We truncate at 63 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
 If release name contains chart name it will be used as a full name.
 */}}
-{{- define "langgraph-dataplane.fullname" -}}
+{{- define "langgraphDataplane.fullname" -}}
 {{- if .Values.fullnameOverride }}
 {{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" }}
 {{- else }}
@@ -26,19 +26,19 @@ If release name contains chart name it will be used as a full name.
 {{/*
 Create chart name and version as used by the chart label.
 */}}
-{{- define "langgraph-dataplane.chart" -}}
+{{- define "langgraphDataplane.chart" -}}
 {{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
 {{/*
 Common labels
 */}}
-{{- define "langgraph-dataplane.labels" -}}
+{{- define "langgraphDataplane.labels" -}}
 {{- if .Values.commonLabels }}
 {{ toYaml .Values.commonLabels }}
 {{- end }}
-helm.sh/chart: {{ include "langgraph-dataplane.chart" . }}
-{{ include "langgraph-dataplane.selectorLabels" . }}
+helm.sh/chart: {{ include "langgraphDataplane.chart" . }}
+{{ include "langgraphDataplane.selectorLabels" . }}
 {{- if .Chart.AppVersion }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 {{- end }}
@@ -48,12 +48,12 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{/*
 Common annotations
 */}}
-{{- define "langgraph-dataplane.annotations" -}}
+{{- define "langgraphDataplane.annotations" -}}
 {{- if .Values.commonAnnotations }}
 {{ toYaml .Values.commonAnnotations }}
 {{- end }}
-helm.sh/chart: {{ include "langgraph-dataplane.chart" . }}
-{{ include "langgraph-dataplane.selectorLabels" . }}
+helm.sh/chart: {{ include "langgraphDataplane.chart" . }}
+{{ include "langgraphDataplane.selectorLabels" . }}
 {{- if .Chart.AppVersion }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 {{- end }}
@@ -63,8 +63,8 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{/*
 Selector labels
 */}}
-{{- define "langgraph-dataplane.selectorLabels" -}}
-app.kubernetes.io/name: {{ include "langgraph-dataplane.name" . }}
+{{- define "langgraphDataplane.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "langgraphDataplane.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
 
@@ -72,11 +72,11 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 Name of the secret containing the secrets for this chart. This can be overridden by a secrets file created by
 the user or some other secret provisioning mechanism
 */}}
-{{- define "langgraph-dataplane.secretsName" -}}
+{{- define "langgraphDataplane.secretsName" -}}
 {{- if .Values.config.existingSecretName }}
 {{- .Values.config.existingSecretName }}
 {{- else }}
-{{- include "langgraph-dataplane.fullname" . }}-secrets
+{{- include "langgraphDataplane.fullname" . }}-secrets
 {{- end }}
 {{- end }}
 
@@ -84,11 +84,11 @@ the user or some other secret provisioning mechanism
 Name of the secret containing the secrets for redis. This can be overridden by a secrets file created by
 the user or some other secret provisioning mechanism
 */}}
-{{- define "langgraph-dataplane.redisSecretsName" -}}
+{{- define "langgraphDataplane.redisSecretsName" -}}
 {{- if .Values.redis.external.existingSecretName }}
 {{- .Values.redis.external.existingSecretName }}
 {{- else }}
-{{- include "langgraph-dataplane.fullname" . }}-redis
+{{- include "langgraphDataplane.fullname" . }}-redis
 {{- end }}
 {{- end }}
 
@@ -96,23 +96,18 @@ the user or some other secret provisioning mechanism
 {{/*
 Template containing common environment variables that are used by several services.
 */}}
-{{- define "langgraph-dataplane.commonEnv" -}}
+{{- define "langgraphDataplane.commonEnv" -}}
 - name: LANGCHAIN_ENV
   value: "local_kubernetes"
 - name: REDIS_DATABASE_URI
   valueFrom:
     secretKeyRef:
-      name: {{ include "langgraph-dataplane.redisSecretsName" . }}
+      name: {{ include "langgraphDataplane.redisSecretsName" . }}
       key: {{ .Values.redis.external.connectionUrlSecretKey }}
-- name: LANGGRAPH_CLOUD_LICENSE_KEY
-  valueFrom:
-    secretKeyRef:
-      name: {{ include "langgraph-dataplane.secretsName" . }}
-      key: langgraph_cloud_license_key
 - name: HOST_WORKER_LANGSMITH_API_KEY
   valueFrom:
     secretKeyRef:
-      name: {{ include "langgraph-dataplane.secretsName" . }}
+      name: {{ include "langgraphDataplane.secretsName" . }}
       key: langsmith_api_key
 - name: HOST_QUEUE
   value: "host"
@@ -133,7 +128,7 @@ Template containing common environment variables that are used by several servic
 
 {{- define "listener.serviceAccountName" -}}
 {{- if .Values.listener.serviceAccount.create -}}
-    {{ default (printf "%s-%s" (include "langgraph-dataplane.fullname" .) .Values.listener.name) .Values.listener.serviceAccount.name | trunc 63 | trimSuffix "-" }}
+    {{ default (printf "%s-%s" (include "langgraphDataplane.fullname" .) .Values.listener.name) .Values.listener.serviceAccount.name | trunc 63 | trimSuffix "-" }}
 {{- else -}}
     {{ default "default" .Values.listener.serviceAccount.name }}
 {{- end -}}
@@ -141,14 +136,14 @@ Template containing common environment variables that are used by several servic
 
 {{- define "redis.serviceAccountName" -}}
 {{- if .Values.redis.serviceAccount.create -}}
-    {{ default (printf "%s-%s" (include "langgraph-dataplane.fullname" .) .Values.redis.name) .Values.redis.serviceAccount.name | trunc 63 | trimSuffix "-" }}
+    {{ default (printf "%s-%s" (include "langgraphDataplane.fullname" .) .Values.redis.name) .Values.redis.serviceAccount.name | trunc 63 | trimSuffix "-" }}
 {{- else -}}
     {{ default "default" .Values.redis.serviceAccount.name }}
 {{- end -}}
 {{- end -}}
 
 {{/* Fail on duplicate keys in the inputted list of environment variables */}}
-{{- define "langgraph-dataplane.detectDuplicates" -}}
+{{- define "langgraphDataplane.detectDuplicates" -}}
 {{- $inputList := . -}}
 {{- $keyCounts := dict -}}
 {{- $duplicates := list -}}

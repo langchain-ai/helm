@@ -2,14 +2,14 @@
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
-  name: {{ include "langgraph-dataplane.fullname" . }}-{{ .Values.listener.name }}
+  name: {{ include "langgraphDataplane.fullname" . }}-{{ .Values.listener.name }}
   labels:
-    {{- include "langgraph-dataplane.labels" . | nindent 4 }}
+    {{- include "langgraphDataplane.labels" . | nindent 4 }}
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
-    name: {{ include "langgraph-dataplane.fullname" . }}-{{ .Values.listener.name }}
+    name: {{ include "langgraphDataplane.fullname" . }}-{{ .Values.listener.name }}
   minReplicas: {{ .Values.listener.autoscaling.minReplicas }}
   maxReplicas: {{ .Values.listener.autoscaling.maxReplicas }}
   metrics:

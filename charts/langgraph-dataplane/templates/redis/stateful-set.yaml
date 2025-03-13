@@ -1,27 +1,27 @@
 {{- if not .Values.redis.external.enabled }}
 {{- $envVars := concat .Values.commonEnv .Values.redis.statefulSet.extraEnv -}}
-{{- include "langgraph-dataplane.detectDuplicates" $envVars -}}
+{{- include "langgraphDataplane.detectDuplicates" $envVars -}}
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: {{ include "langgraph-dataplane.fullname" . }}-{{ .Values.redis.name }}
+  name: {{ include "langgraphDataplane.fullname" . }}-{{ .Values.redis.name }}
   labels:
-    {{- include "langgraph-dataplane.labels" . | nindent 4 }}
+    {{- include "langgraphDataplane.labels" . | nindent 4 }}
     {{- with.Values.redis.statefulSet.labels }}
       {{- toYaml . | nindent 4 }}
     {{- end }}
   annotations:
-    {{- include "langgraph-dataplane.annotations" . | nindent 4 }}
+    {{- include "langgraphDataplane.annotations" . | nindent 4 }}
     {{- with.Values.redis.statefulSet.annotations }}
       {{- toYaml . | nindent 4 }}
     {{- end }}
 spec:
-  serviceName: {{ include "langgraph-dataplane.fullname" . }}-{{ .Values.redis.name }}
+  serviceName: {{ include "langgraphDataplane.fullname" . }}-{{ .Values.redis.name }}
   replicas: 1
   selector:
     matchLabels:
-      {{- include "langgraph-dataplane.selectorLabels" . | nindent 6 }}
-      app.kubernetes.io/component: {{ include "langgraph-dataplane.fullname" . }}-{{ .Values.redis.name }}
+      {{- include "langgraphDataplane.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: {{ include "langgraphDataplane.fullname" . }}-{{ .Values.redis.name }}
   template:
     metadata:
       {{- with .Values.redis.statefulSet.annotations }}
@@ -32,8 +32,8 @@ spec:
         {{- with.Values.redis.statefulSet.labels }}
             {{- toYaml . | nindent 8 }}
         {{- end }}
-        {{- include "langgraph-dataplane.labels" . | nindent 8 }}
-        app.kubernetes.io/component: {{ include "langgraph-dataplane.fullname" . }}-{{ .Values.redis.name }}
+        {{- include "langgraphDataplane.labels" . | nindent 8 }}
+        app.kubernetes.io/component: {{ include "langgraphDataplane.fullname" . }}-{{ .Values.redis.name }}
     spec:
       {{- with .Values.images.imagePullSecrets }}
       imagePullSecrets:
@@ -122,8 +122,8 @@ spec:
       metadata:
         name: data
         labels:
-          {{- include "langgraph-dataplane.selectorLabels" . | nindent 10 }}
-          app.kubernetes.io/component: {{ include "langgraph-dataplane.fullname" . }}-{{ .Values.redis.name }}
+          {{- include "langgraphDataplane.selectorLabels" . | nindent 10 }}
+          app.kubernetes.io/component: {{ include "langgraphDataplane.fullname" . }}-{{ .Values.redis.name }}
       spec:
         accessModes:
           - ReadWriteOnce

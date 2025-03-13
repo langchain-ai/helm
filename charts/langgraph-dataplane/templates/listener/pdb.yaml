@@ -2,13 +2,13 @@
 apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
-  name: {{ include "langgraph-dataplane.fullname" . }}-{{ .Values.listener.name }}
+  name: {{ include "langgraphDataplane.fullname" . }}-{{ .Values.listener.name }}
   labels:
-    {{- include "langgraph-dataplane.labels" . | nindent 4 }}
+    {{- include "langgraphDataplane.labels" . | nindent 4 }}
 spec:
   selector:
     matchLabels:
-      app.kubernetes.io/name: {{ include "langgraph-dataplane.name" . }}
+      app.kubernetes.io/name: {{ include "langgraphDataplane.name" . }}
       app.kubernetes.io/instance: {{ .Release.Name }}
       app.kubernetes.io/component: {{ .Values.listener.name }}
   {{- if .Values.listener.pdb.minAvailable }}

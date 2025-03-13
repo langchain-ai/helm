@@ -1,16 +1,16 @@
-{{- $envVars := concat .Values.commonEnv (include "langgraph-dataplane.commonEnv" . | fromYamlArray) .Values.listener.deployment.extraEnv -}}
-{{- include "langgraph-dataplane.detectDuplicates" $envVars -}}
+{{- $envVars := concat .Values.commonEnv (include "langgraphDataplane.commonEnv" . | fromYamlArray) .Values.listener.deployment.extraEnv -}}
+{{- include "langgraphDataplane.detectDuplicates" $envVars -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "langgraph-dataplane.fullname" . }}-{{ .Values.listener.name }}
+  name: {{ include "langgraphDataplane.fullname" . }}-{{ .Values.listener.name }}
   labels:
-    {{- include "langgraph-dataplane.labels" . | nindent 4 }}
+    {{- include "langgraphDataplane.labels" . | nindent 4 }}
     {{- with.Values.listener.deployment.labels }}
       {{- toYaml . | nindent 4 }}
     {{- end }}
   annotations:
-    {{- include "langgraph-dataplane.annotations" . | nindent 4 }}
+    {{- include "langgraphDataplane.annotations" . | nindent 4 }}
     {{- with.Values.listener.deployment.annotations }}
       {{- toYaml . | nindent 4 }}
     {{- end }}
@@ -20,8 +20,8 @@ spec:
   {{- end }}
   selector:
     matchLabels:
-      {{- include "langgraph-dataplane.selectorLabels" . | nindent 6 }}
-      app.kubernetes.io/component: {{ include "langgraph-dataplane.fullname" . }}-{{ .Values.listener.name }}
+      {{- include "langgraphDataplane.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: {{ include "langgraphDataplane.fullname" . }}-{{ .Values.listener.name }}
   template:
     metadata:
       annotations:
@@ -35,8 +35,8 @@ spec:
         {{- with.Values.listener.deployment.labels }}
             {{- toYaml . | nindent 8 }}
         {{- end }}
-        {{- include "langgraph-dataplane.labels" . | nindent 8 }}
-        app.kubernetes.io/component: {{ include "langgraph-dataplane.fullname" . }}-{{ .Values.listener.name }}
+        {{- include "langgraphDataplane.labels" . | nindent 8 }}
+        app.kubernetes.io/component: {{ include "langgraphDataplane.fullname" . }}-{{ .Values.listener.name }}
     spec:
       terminationGracePeriodSeconds: {{ .Values.listener.deployment.terminationGracePeriodSeconds }}
       {{- with .Values.images.imagePullSecrets }}

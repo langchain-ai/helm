@@ -2,14 +2,14 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "langgraph-dataplane.fullname" . }}-{{ .Values.redis.name }}
+  name: {{ include "langgraphDataplane.fullname" . }}-{{ .Values.redis.name }}
   labels:
-    {{- include "langgraph-dataplane.labels" . | nindent 4 }}
+    {{- include "langgraphDataplane.labels" . | nindent 4 }}
     {{- with.Values.redis.service.labels }}
       {{- toYaml . | nindent 4 }}
     {{- end }}
   annotations:
-    {{- include "langgraph-dataplane.annotations" . | nindent 4 }}
+    {{- include "langgraphDataplane.annotations" . | nindent 4 }}
     {{- with.Values.redis.service.annotations }}
       {{- toYaml . | nindent 4 }}
     {{- end }}
@@ -26,6 +26,6 @@ spec:
       targetPort: redis
       protocol: TCP
   selector:
-    {{- include "langgraph-dataplane.selectorLabels" . | nindent 4 }}
-    app.kubernetes.io/component: {{ include "langgraph-dataplane.fullname" . }}-{{ .Values.redis.name }}
+    {{- include "langgraphDataplane.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: {{ include "langgraphDataplane.fullname" . }}-{{ .Values.redis.name }}
 {{- end }}
