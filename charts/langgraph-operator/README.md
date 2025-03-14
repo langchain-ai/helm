@@ -1,6 +1,6 @@
 # langgraph-operator
 
-![Version: 0.1.1](https://img.shields.io/badge/Version-0.1.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.1.0](https://img.shields.io/badge/AppVersion-0.1.0-informational?style=flat-square)
+![Version: 0.1.2](https://img.shields.io/badge/Version-0.1.2-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.1.0](https://img.shields.io/badge/AppVersion-0.1.0-informational?style=flat-square)
 
 Helm chart to deploy the LangGraph Operator
 
@@ -19,7 +19,7 @@ Helm chart to deploy the LangGraph Operator
 | images.imagePullSecrets | list | `[]` | Secrets with credentials to pull images from a private registry. Specified as name: value. |
 | images.managerImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.managerImage.repository | string | `"docker.io/langchain/langgraph-operator"` |  |
-| images.managerImage.tag | string | `"d611607"` |  |
+| images.managerImage.tag | string | `"d2c5661"` |  |
 | nameOverride | string | `""` | Provide a name in place of `langgraphOperator` |
 
 ## Configs
