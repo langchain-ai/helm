@@ -17,7 +17,7 @@ images:
   managerImage:
     repository: "docker.io/langchain/langgraph-operator"
     pullPolicy: IfNotPresent
-    tag: "d611607"
+    tag: "d2c5661"
 
 config:
   createCRDs: true
