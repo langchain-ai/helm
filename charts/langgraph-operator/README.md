@@ -1,6 +1,6 @@
 # langgraph-operator
 
-![Version: 0.1.0](https://img.shields.io/badge/Version-0.1.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.1.0](https://img.shields.io/badge/AppVersion-0.1.0-informational?style=flat-square)
+![Version: 0.1.1](https://img.shields.io/badge/Version-0.1.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.1.0](https://img.shields.io/badge/AppVersion-0.1.0-informational?style=flat-square)
 
 Helm chart to deploy the LangGraph Operator
 
@@ -13,14 +13,14 @@ Helm chart to deploy the LangGraph Operator
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
 | commonAnnotations | object | `{}` | Annotations that will be applied to all resources created by the chart |
-| commonEnv | list | `[]` | Common environment variables that will be applied to all deployments/statefulsets except for the playground/aceBackend services (which are sandboxed). Be careful not to override values already specified by the chart. |
+| commonEnv | list | `[]` | Common environment variables that will be applied to all deployments |
 | commonLabels | object | `{}` | Labels that will be applied to all resources created by the chart |
-| fullnameOverride | string | `""` | String to fully override `"langsmith.fullname"` |
+| fullnameOverride | string | `""` | String to fully override `"langgraphOperator.fullname"` |
 | images.imagePullSecrets | list | `[]` | Secrets with credentials to pull images from a private registry. Specified as name: value. |
 | images.managerImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.managerImage.repository | string | `"docker.io/langchain/langgraph-operator"` |  |
-| images.managerImage.tag | string | `"2b504eb"` |  |
-| nameOverride | string | `""` | Provide a name in place of `langsmith` |
+| images.managerImage.tag | string | `"d611607"` |  |
+| nameOverride | string | `""` | Provide a name in place of `langgraphOperator` |
 
 ## Configs
 
