@@ -17,27 +17,27 @@ images:
   aceBackendImage:
     repository: "docker.io/langchain/langsmith-ace-backend"
     pullPolicy: IfNotPresent
-    tag: "0.9.58"
+    tag: "0.9.68"
   backendImage:
     repository: "docker.io/langchain/langsmith-backend"
     pullPolicy: IfNotPresent
-    tag: "0.9.58"
+    tag: "0.9.68"
   frontendImage:
     repository: "docker.io/langchain/langsmith-frontend"
     pullPolicy: IfNotPresent
-    tag: "0.9.58"
+    tag: "0.9.68"
   hostBackendImage:
     repository: "docker.io/langchain/hosted-langserve-backend"
     pullPolicy: IfNotPresent
-    tag: "0.9.58"
+    tag: "0.9.68"
   platformBackendImage:
     repository: "docker.io/langchain/langsmith-go-backend"
     pullPolicy: IfNotPresent
-    tag: "0.9.58"
+    tag: "0.9.68"
   playgroundImage:
     repository: "docker.io/langchain/langsmith-playground"
     pullPolicy: IfNotPresent
-    tag: "0.9.58"
+    tag: "0.9.68"
   postgresImage:
     repository: "docker.io/postgres"
     pullPolicy: IfNotPresent
