@@ -423,9 +423,9 @@ spec:
                     format: int32
                     type: integer
                 type: object
-              lastSuccessfulDeployment:
-                description: LastSuccessfulDeployment stores the reference to the
-                  last successfully reconciled deployment
+              lastCreatedReplicaSet:
+                description: LastCreatedReplicaSet stores the reference to the most
+                  recently created replicaset
                 properties:
                   apiVersion:
                     description: API version of the referent.
