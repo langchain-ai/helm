@@ -5,16 +5,16 @@ metadata:
   labels:
     {{- include "langgraphOperator.labels" . | nindent 4 }}
     app.kubernetes.io/name: langgraph-operator
-    {{- with .Values.manager.deployment.labels }}
+    {{- with .Values.operator.deployment.labels }}
       {{- toYaml . | nindent 4 }}
     {{- end }}
   annotations:
     {{- include "langgraphOperator.annotations" . | nindent 4 }}
-    {{- with .Values.manager.deployment.annotations }}
+    {{- with .Values.operator.deployment.annotations }}
       {{- toYaml . | nindent 4 }}
     {{- end }}
 spec:
-  replicas: {{ .Values.manager.deployment.replicas }}
+  replicas: {{ .Values.operator.deployment.replicas }}
   selector:
     matchLabels:
       {{- include "langgraphOperator.selectorLabels" . | nindent 6 }}
@@ -22,13 +22,13 @@ spec:
   template:
     metadata:
       annotations:
-        {{- with .Values.manager.deployment.annotations }}
+        {{- with .Values.operator.deployment.annotations }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
       labels:
         {{- include "langgraphOperator.labels" . | nindent 8 }}
         app.kubernetes.io/component: {{ include "langgraphOperator.fullname" . }}-manager
-        {{- with .Values.manager.deployment.labels }}
+        {{- with .Values.operator.deployment.labels }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
     spec:
@@ -37,7 +37,7 @@ spec:
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.manager.deployment.podSecurityContext }}
+      {{- with .Values.operator.deployment.podSecurityContext }}
       securityContext:
         {{- toYaml . | nindent 8 }}
       {{- end }}

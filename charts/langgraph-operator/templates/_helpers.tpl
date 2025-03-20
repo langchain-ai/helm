@@ -69,7 +69,7 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
 
 
-{{- define "manager.serviceAccountName" -}}
+{{- define "operator.serviceAccountName" -}}
 {{- if .Values.operator.serviceAccount.create -}}
     {{ default (printf "%s-%s" (include "langgraphOperator.fullname" .) .Values.operator.name) .Values.operator.serviceAccount.name | trunc 63 | trimSuffix "-" }}
 {{- else -}}

@@ -6,7 +6,7 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
-  name: {{ include "manager.serviceAccountName" $ }}-role
+  name: {{ include "operator.serviceAccountName" $ }}-role
   namespace: {{ $ns | trim }}
   labels:
     {{- include "langgraphOperator.labels" . | nindent 4 }}
@@ -126,7 +126,7 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: {{ include "manager.serviceAccountName" $ }}-rolebinding
+  name: {{ include "operator.serviceAccountName" $ }}-rolebinding
   namespace: {{ $ns | trim }}
   labels:
     {{- include "langgraphOperator.labels" . | nindent 4 }}
@@ -140,11 +140,11 @@ metadata:
     {{- end }}
 subjects:
   - kind: ServiceAccount
-    name: {{ include "manager.serviceAccountName" $ }}
+    name: {{ include "operator.serviceAccountName" $ }}
     namespace: {{ $.Release.Namespace }}
 roleRef:
   kind: Role
-  name: {{ include "manager.serviceAccountName" $ }}-role
+  name: {{ include "operator.serviceAccountName" $ }}-role
   apiGroup: rbac.authorization.k8s.io
 {{- end }}
 
@@ -153,7 +153,7 @@ roleRef:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: {{ include "manager.serviceAccountName" . }}-role
+  name: {{ include "operator.serviceAccountName" . }}-role
   labels:
     {{- include "langgraphOperator.labels" . | nindent 4 }}
     {{- with.Values.operator.rbac.labels }}
@@ -272,7 +272,7 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: {{ include "manager.serviceAccountName" . }}-rolebinding
+  name: {{ include "operator.serviceAccountName" . }}-rolebinding
   labels:
     {{- include "langgraphOperator.labels" . | nindent 4 }}
     {{- with.Values.operator.rbac.labels }}
@@ -285,18 +285,18 @@ metadata:
     {{- end }}
 subjects:
   - kind: ServiceAccount
-    name: {{ include "manager.serviceAccountName" . }}
+    name: {{ include "operator.serviceAccountName" . }}
     namespace: {{ .Release.Namespace }}
 roleRef:
   kind: ClusterRole
-  name: {{ include "manager.serviceAccountName" . }}-role
+  name: {{ include "operator.serviceAccountName" . }}-role
   apiGroup: rbac.authorization.k8s.io
 {{- end }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
-  name: {{ include "manager.serviceAccountName" . }}-leader-election-role
+  name: {{ include "operator.serviceAccountName" . }}-leader-election-role
   namespace: {{ .Release.Namespace }}
   labels:
     {{- include "langgraphOperator.labels" . | nindent 4 }}
@@ -345,7 +345,7 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: {{ include "manager.serviceAccountName" . }}-leader-election-rolebinding
+  name: {{ include "operator.serviceAccountName" . }}-leader-election-rolebinding
   namespace: {{ .Release.Namespace }}
   labels:
     {{- include "langgraphOperator.labels" . | nindent 4 }}
@@ -359,10 +359,10 @@ metadata:
     {{- end }}
 subjects:
 - kind: ServiceAccount
-  name: {{ include "manager.serviceAccountName" . }}
+  name: {{ include "operator.serviceAccountName" . }}
   namespace: {{ .Release.Namespace }}
 roleRef:
   kind: Role
-  name: {{ include "manager.serviceAccountName" . }}-leader-election-role
+  name: {{ include "operator.serviceAccountName" . }}-leader-election-role
   apiGroup: rbac.authorization.k8s.io
 {{- end }}
