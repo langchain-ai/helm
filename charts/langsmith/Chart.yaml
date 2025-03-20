@@ -5,5 +5,19 @@ maintainers:
     email: ankush@langchain.dev
 description: Helm chart to deploy the langsmith application and all services it depends on.
 type: application
-version: 0.9.29
+version: 0.9.30
 appVersion: "0.9.77"
+dependencies:
+  - name: langgraph-operator
+    alias: operator
+    import-values:
+      - child: images
+        parent: images
+      - child: operator
+        parent: operator
+      - child: config
+        parent: operator.config
+    condition: operator.enabled
+#    repository: https://langchain-ai.github.io/helm/
+    repository: file://../langgraph-operator
+    version: 0.1.4

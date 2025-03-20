@@ -1,10 +1,10 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "langgraphOperator.fullname" . }}-manager
+  name: {{ include "langgraphOperator.fullname" . }}-{{ .Values.operator.name }}
   labels:
     {{- include "langgraphOperator.labels" . | nindent 4 }}
-    app.kubernetes.io/name: langgraph-operator
+    app.kubernetes.io/name: langgraph-{{ .Values.operator.name }}
     {{- with .Values.operator.deployment.labels }}
       {{- toYaml . | nindent 4 }}
     {{- end }}
@@ -18,7 +18,7 @@ spec:
   selector:
     matchLabels:
       {{- include "langgraphOperator.selectorLabels" . | nindent 6 }}
-      app.kubernetes.io/component: {{ include "langgraphOperator.fullname" . }}-manager
+      app.kubernetes.io/component: {{ include "langgraphOperator.fullname" . }}-operator
   template:
     metadata:
       annotations:
@@ -27,12 +27,12 @@ spec:
         {{- end }}
       labels:
         {{- include "langgraphOperator.labels" . | nindent 8 }}
-        app.kubernetes.io/component: {{ include "langgraphOperator.fullname" . }}-manager
+        app.kubernetes.io/component: {{ include "langgraphOperator.fullname" . }}-operator
         {{- with .Values.operator.deployment.labels }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
     spec:
-      serviceAccountName: {{ include "manager.serviceAccountName" . }}
+      serviceAccountName: {{ include "operator.serviceAccountName" . }}
       {{- with .Values.images.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
@@ -81,7 +81,7 @@ spec:
         volumeMounts:
           {{- toYaml . | nindent 12 }}
         {{- end }}
-        {{- with .Values.operator.deployment.env }}
+        {{- with .Values.operator.deployment.extraEnv }}
         env:
           {{- toYaml . | nindent 12 }}
         {{- end }}
