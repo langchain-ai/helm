@@ -1,6 +1,6 @@
 # langgraph-operator
 
-![Version: 0.1.3](https://img.shields.io/badge/Version-0.1.3-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.1.0](https://img.shields.io/badge/AppVersion-0.1.0-informational?style=flat-square)
+![Version: 0.1.4](https://img.shields.io/badge/Version-0.1.4-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.1.0](https://img.shields.io/badge/AppVersion-0.1.0-informational?style=flat-square)
 
 Helm chart to deploy the LangGraph Operator
 
@@ -17,9 +17,9 @@ Helm chart to deploy the LangGraph Operator
 | commonLabels | object | `{}` | Labels that will be applied to all resources created by the chart |
 | fullnameOverride | string | `""` | String to fully override `"langgraphOperator.fullname"` |
 | images.imagePullSecrets | list | `[]` | Secrets with credentials to pull images from a private registry. Specified as name: value. |
-| images.managerImage.pullPolicy | string | `"IfNotPresent"` |  |
-| images.managerImage.repository | string | `"docker.io/langchain/langgraph-operator"` |  |
-| images.managerImage.tag | string | `"7e66d68"` |  |
+| images.operatorImage.pullPolicy | string | `"IfNotPresent"` |  |
+| images.operatorImage.repository | string | `"docker.io/langchain/langgraph-operator"` |  |
+| images.operatorImage.tag | string | `"7e66d68"` |  |
 | nameOverride | string | `""` | Provide a name in place of `langgraphOperator` |
 
 ## Configs
@@ -27,11 +27,42 @@ Helm chart to deploy the LangGraph Operator
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
 | config.createCRDs | bool | `true` |  |
+| config.watchNamespaces | string | `""` |  |
 
-## Manager
+## Operator
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
+| operator.deployment.affinity | object | `{}` |  |
+| operator.deployment.annotations | object | `{}` |  |
+| operator.deployment.autoRestart | bool | `true` |  |
+| operator.deployment.extraContainerConfig | object | `{}` |  |
+| operator.deployment.extraEnv | list | `[]` |  |
+| operator.deployment.labels | object | `{}` |  |
+| operator.deployment.nodeSelector | object | `{}` |  |
+| operator.deployment.podSecurityContext | object | `{}` |  |
+| operator.deployment.replicas | int | `1` |  |
+| operator.deployment.resources.limits.cpu | string | `"2000m"` |  |
+| operator.deployment.resources.limits.memory | string | `"4Gi"` |  |
+| operator.deployment.resources.requests.cpu | string | `"1000m"` |  |
+| operator.deployment.resources.requests.memory | string | `"2Gi"` |  |
+| operator.deployment.securityContext | object | `{}` |  |
+| operator.deployment.sidecars | list | `[]` |  |
+| operator.deployment.terminationGracePeriodSeconds | int | `30` |  |
+| operator.deployment.tolerations | list | `[]` |  |
+| operator.deployment.topologySpreadConstraints | list | `[]` |  |
+| operator.deployment.volumeMounts | list | `[]` |  |
+| operator.deployment.volumes | list | `[]` |  |
+| operator.name | string | `"operator"` |  |
+| operator.pdb.enabled | bool | `false` |  |
+| operator.pdb.minAvailable | int | `1` |  |
+| operator.rbac.annotations | object | `{}` |  |
+| operator.rbac.create | bool | `true` |  |
+| operator.rbac.labels | object | `{}` |  |
+| operator.serviceAccount.annotations | object | `{}` |  |
+| operator.serviceAccount.create | bool | `true` |  |
+| operator.serviceAccount.labels | object | `{}` |  |
+| operator.serviceAccount.name | string | `""` |  |
 
 ## Maintainers
 

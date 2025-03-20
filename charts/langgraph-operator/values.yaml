@@ -14,16 +14,17 @@ commonEnv: []
 images:
    # -- Secrets with credentials to pull images from a private registry. Specified as name: value.
   imagePullSecrets: []
-  managerImage:
+  operatorImage:
     repository: "docker.io/langchain/langgraph-operator"
     pullPolicy: IfNotPresent
     tag: "7e66d68"
 
 config:
   createCRDs: true
+  watchNamespaces: ""
 
-manager:
-  name: "manager"
+operator:
+  name: "operator"
   deployment:
     autoRestart: true
     replicas: 1
@@ -54,5 +55,9 @@ manager:
   serviceAccount:
     create: true
     name: ""
+    labels: {}
+    annotations: {}
+  rbac:
+    create: true
     labels: {}
     annotations: {}
