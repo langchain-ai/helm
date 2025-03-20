@@ -1,4 +1,4 @@
-{{- if .Values.manager.rbac.create -}}
+{{- if .Values.operator.rbac.create -}}
 {{- if .Values.config.watchNamespaces }}
 {{- $watchNamespacesList := splitList "," .Values.config.watchNamespaces }}
 {{- range $ns := $watchNamespacesList }}
@@ -10,12 +10,12 @@ metadata:
   namespace: {{ $ns | trim }}
   labels:
     {{- include "langgraphOperator.labels" . | nindent 4 }}
-    {{- with.Values.manager.rbac.labels }}
+    {{- with.Values.operator.rbac.labels }}
       {{- toYaml . | nindent 4 }}
     {{- end }}
   annotations:
     {{- include "langgraphOperator.annotations" . | nindent 4 }}
-    {{- with.Values.manager.rbac.annotations }}
+    {{- with.Values.operator.rbac.annotations }}
       {{- toYaml . | nindent 4 }}
     {{- end }}
 rules:
@@ -130,12 +130,12 @@ metadata:
   namespace: {{ $ns | trim }}
   labels:
     {{- include "langgraphOperator.labels" . | nindent 4 }}
-    {{- with.Values.manager.rbac.labels }}
+    {{- with.Values.operator.rbac.labels }}
       {{- toYaml . | nindent 4 }}
     {{- end }}
   annotations:
     {{- include "langgraphOperator.annotations" . | nindent 4 }}
-    {{- with.Values.manager.rbac.annotations }}
+    {{- with.Values.operator.rbac.annotations }}
       {{- toYaml . | nindent 4 }}
     {{- end }}
 subjects:
@@ -156,12 +156,12 @@ metadata:
   name: {{ include "manager.serviceAccountName" . }}-role
   labels:
     {{- include "langgraphOperator.labels" . | nindent 4 }}
-    {{- with.Values.manager.rbac.labels }}
+    {{- with.Values.operator.rbac.labels }}
       {{- toYaml . | nindent 4 }}
     {{- end }}
   annotations:
     {{- include "langgraphOperator.annotations" . | nindent 4 }}
-    {{- with.Values.manager.rbac.annotations }}
+    {{- with.Values.operator.rbac.annotations }}
       {{- toYaml . | nindent 4 }}
     {{- end }}
 rules:
@@ -275,12 +275,12 @@ metadata:
   name: {{ include "manager.serviceAccountName" . }}-rolebinding
   labels:
     {{- include "langgraphOperator.labels" . | nindent 4 }}
-    {{- with.Values.manager.rbac.labels }}
+    {{- with.Values.operator.rbac.labels }}
       {{- toYaml . | nindent 4 }}
     {{- end }}
   annotations:
     {{- include "langgraphOperator.annotations" . | nindent 4 }}
-    {{- with.Values.manager.rbac.annotations }}
+    {{- with.Values.operator.rbac.annotations }}
       {{- toYaml . | nindent 4 }}
     {{- end }}
 subjects:
@@ -300,12 +300,12 @@ metadata:
   namespace: {{ .Release.Namespace }}
   labels:
     {{- include "langgraphOperator.labels" . | nindent 4 }}
-    {{- with.Values.manager.rbac.labels }}
+    {{- with.Values.operator.rbac.labels }}
       {{- toYaml . | nindent 4 }}
     {{- end }}
   annotations:
     {{- include "langgraphOperator.annotations" . | nindent 4 }}
-    {{- with.Values.manager.rbac.annotations }}
+    {{- with.Values.operator.rbac.annotations }}
       {{- toYaml . | nindent 4 }}
     {{- end }}
 rules:
@@ -349,12 +349,12 @@ metadata:
   namespace: {{ .Release.Namespace }}
   labels:
     {{- include "langgraphOperator.labels" . | nindent 4 }}
-    {{- with.Values.manager.rbac.labels }}
+    {{- with.Values.operator.rbac.labels }}
       {{- toYaml . | nindent 4 }}
     {{- end }}
   annotations:
     {{- include "langgraphOperator.annotations" . | nindent 4 }}
-    {{- with.Values.manager.rbac.annotations }}
+    {{- with.Values.operator.rbac.annotations }}
       {{- toYaml . | nindent 4 }}
     {{- end }}
 subjects:
