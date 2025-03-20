@@ -21,6 +21,7 @@ images:
 
 config:
   createCRDs: true
+  watchNamespaces: ""
 
 manager:
   name: "manager"
@@ -54,5 +55,9 @@ manager:
   serviceAccount:
     create: true
     name: ""
+    labels: {}
+    annotations: {}
+  rbac:
+    create: true
     labels: {}
     annotations: {}
