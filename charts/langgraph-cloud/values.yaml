@@ -172,6 +172,7 @@ postgres:
     volumes: []
     volumeMounts: []
     persistence:
+      enabled: true
       size: 8Gi
       storageClassName: ""
   service:
