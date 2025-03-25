@@ -1,4 +1,4 @@
-{{- if .Values.operator.rbac.create -}}
+{{- if .Values.manager.rbac.create -}}
 {{- if .Values.config.watchNamespaces }}
 {{- $watchNamespacesList := splitList "," .Values.config.watchNamespaces }}
 {{- range $ns := $watchNamespacesList }}
@@ -6,16 +6,16 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
-  name: {{ include "operator.serviceAccountName" $ }}-role
+  name: {{ include "manager.serviceAccountName" $ }}-role
   namespace: {{ $ns | trim }}
   labels:
-    {{- include "langgraphOperator.labels" . | nindent 4 }}
-    {{- with.Values.operator.rbac.labels }}
+    {{- include "langgraphOperator.labels" $ | nindent 4 }}
+    {{- with $.Values.manager.rbac.labels }}
       {{- toYaml . | nindent 4 }}
     {{- end }}
   annotations:
-    {{- include "langgraphOperator.annotations" . | nindent 4 }}
-    {{- with.Values.operator.rbac.annotations }}
+    {{- include "langgraphOperator.annotations" $ | nindent 4 }}
+    {{- with $.Values.manager.rbac.annotations }}
       {{- toYaml . | nindent 4 }}
     {{- end }}
 rules:
@@ -126,25 +126,25 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: {{ include "operator.serviceAccountName" $ }}-rolebinding
+  name: {{ include "manager.serviceAccountName" $ }}-rolebinding
   namespace: {{ $ns | trim }}
   labels:
-    {{- include "langgraphOperator.labels" . | nindent 4 }}
-    {{- with.Values.operator.rbac.labels }}
+    {{- include "langgraphOperator.labels" $ | nindent 4 }}
+    {{- with $.Values.manager.rbac.labels }}
       {{- toYaml . | nindent 4 }}
     {{- end }}
   annotations:
-    {{- include "langgraphOperator.annotations" . | nindent 4 }}
-    {{- with.Values.operator.rbac.annotations }}
+    {{- include "langgraphOperator.annotations" $ | nindent 4 }}
+    {{- with $.Values.manager.rbac.annotations }}
       {{- toYaml . | nindent 4 }}
     {{- end }}
 subjects:
   - kind: ServiceAccount
-    name: {{ include "operator.serviceAccountName" $ }}
+    name: {{ include "manager.serviceAccountName" $ }}
     namespace: {{ $.Release.Namespace }}
 roleRef:
   kind: Role
-  name: {{ include "operator.serviceAccountName" $ }}-role
+  name: {{ include "manager.serviceAccountName" $ }}-role
   apiGroup: rbac.authorization.k8s.io
 {{- end }}
 
@@ -153,15 +153,15 @@ roleRef:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: {{ include "operator.serviceAccountName" . }}-role
+  name: {{ include "manager.serviceAccountName" . }}-role
   labels:
     {{- include "langgraphOperator.labels" . | nindent 4 }}
-    {{- with.Values.operator.rbac.labels }}
+    {{- with.Values.manager.rbac.labels }}
       {{- toYaml . | nindent 4 }}
     {{- end }}
   annotations:
     {{- include "langgraphOperator.annotations" . | nindent 4 }}
-    {{- with.Values.operator.rbac.annotations }}
+    {{- with.Values.manager.rbac.annotations }}
       {{- toYaml . | nindent 4 }}
     {{- end }}
 rules:
@@ -272,40 +272,40 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: {{ include "operator.serviceAccountName" . }}-rolebinding
+  name: {{ include "manager.serviceAccountName" . }}-rolebinding
   labels:
     {{- include "langgraphOperator.labels" . | nindent 4 }}
-    {{- with.Values.operator.rbac.labels }}
+    {{- with.Values.manager.rbac.labels }}
       {{- toYaml . | nindent 4 }}
     {{- end }}
   annotations:
     {{- include "langgraphOperator.annotations" . | nindent 4 }}
-    {{- with.Values.operator.rbac.annotations }}
+    {{- with.Values.manager.rbac.annotations }}
       {{- toYaml . | nindent 4 }}
     {{- end }}
 subjects:
   - kind: ServiceAccount
-    name: {{ include "operator.serviceAccountName" . }}
+    name: {{ include "manager.serviceAccountName" . }}
     namespace: {{ .Release.Namespace }}
 roleRef:
   kind: ClusterRole
-  name: {{ include "operator.serviceAccountName" . }}-role
+  name: {{ include "manager.serviceAccountName" . }}-role
   apiGroup: rbac.authorization.k8s.io
 {{- end }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
-  name: {{ include "operator.serviceAccountName" . }}-leader-election-role
+  name: {{ include "manager.serviceAccountName" . }}-leader-election-role
   namespace: {{ .Release.Namespace }}
   labels:
     {{- include "langgraphOperator.labels" . | nindent 4 }}
-    {{- with.Values.operator.rbac.labels }}
+    {{- with.Values.manager.rbac.labels }}
       {{- toYaml . | nindent 4 }}
     {{- end }}
   annotations:
     {{- include "langgraphOperator.annotations" . | nindent 4 }}
-    {{- with.Values.operator.rbac.annotations }}
+    {{- with.Values.manager.rbac.annotations }}
       {{- toYaml . | nindent 4 }}
     {{- end }}
 rules:
@@ -345,24 +345,24 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: {{ include "operator.serviceAccountName" . }}-leader-election-rolebinding
+  name: {{ include "manager.serviceAccountName" . }}-leader-election-rolebinding
   namespace: {{ .Release.Namespace }}
   labels:
     {{- include "langgraphOperator.labels" . | nindent 4 }}
-    {{- with.Values.operator.rbac.labels }}
+    {{- with.Values.manager.rbac.labels }}
       {{- toYaml . | nindent 4 }}
     {{- end }}
   annotations:
     {{- include "langgraphOperator.annotations" . | nindent 4 }}
-    {{- with.Values.operator.rbac.annotations }}
+    {{- with.Values.manager.rbac.annotations }}
       {{- toYaml . | nindent 4 }}
     {{- end }}
 subjects:
 - kind: ServiceAccount
-  name: {{ include "operator.serviceAccountName" . }}
+  name: {{ include "manager.serviceAccountName" . }}
   namespace: {{ .Release.Namespace }}
 roleRef:
   kind: Role
-  name: {{ include "operator.serviceAccountName" . }}-leader-election-role
+  name: {{ include "manager.serviceAccountName" . }}-leader-election-role
   apiGroup: rbac.authorization.k8s.io
 {{- end }}

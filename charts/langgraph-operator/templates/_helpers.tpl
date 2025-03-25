@@ -69,10 +69,10 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
 
 
-{{- define "operator.serviceAccountName" -}}
-{{- if .Values.operator.serviceAccount.create -}}
-    {{ default (printf "%s-%s" (include "langgraphOperator.fullname" .) .Values.operator.name) .Values.operator.serviceAccount.name | trunc 63 | trimSuffix "-" }}
+{{- define "manager.serviceAccountName" -}}
+{{- if .Values.manager.serviceAccount.create -}}
+    {{ default (printf "%s-%s" (include "langgraphOperator.fullname" .) .Values.manager.name) .Values.manager.serviceAccount.name | trunc 63 | trimSuffix "-" }}
 {{- else -}}
-    {{ default "default" .Values.operator.serviceAccount.name }}
+    {{ default "default" .Values.manager.serviceAccount.name }}
 {{- end -}}
 {{- end -}}

@@ -17,14 +17,14 @@ images:
   operatorImage:
     repository: "docker.io/langchain/langgraph-operator"
     pullPolicy: IfNotPresent
-    tag: "7e66d68"
+    tag: "e39cfb8"
 
 config:
   createCRDs: true
   watchNamespaces: ""
 
-operator:
-  name: "operator"
+manager:
+  name: "manager"
   deployment:
     autoRestart: true
     replicas: 1
