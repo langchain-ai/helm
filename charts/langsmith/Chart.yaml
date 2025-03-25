@@ -13,11 +13,17 @@ dependencies:
     import-values:
       - child: images
         parent: images
-      - child: operator
-        parent: operator
+      - child: commonAnnotations
+        parent: commonAnnotations
+      - child: commonLabels
+        parent: commonLabels
+      - child: commonEnv
+        parent: commonEnv
       - child: config
         parent: operator.config
-    condition: operator.enabled
+      - child: manager
+        parent: operator.manager
+    condition: config.langgraphPlatform.enabled
 #    repository: https://langchain-ai.github.io/helm/
     repository: file://../langgraph-operator
     version: 0.1.4

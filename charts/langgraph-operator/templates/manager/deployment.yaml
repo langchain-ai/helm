@@ -1,20 +1,20 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "langgraphOperator.fullname" . }}-{{ .Values.operator.name }}
+  name: {{ include "langgraphOperator.fullname" . }}-{{ .Values.manager.name }}
   labels:
     {{- include "langgraphOperator.labels" . | nindent 4 }}
-    app.kubernetes.io/name: langgraph-{{ .Values.operator.name }}
-    {{- with .Values.operator.deployment.labels }}
+    app.kubernetes.io/name: langgraph-{{ .Values.manager.name }}
+    {{- with .Values.manager.deployment.labels }}
       {{- toYaml . | nindent 4 }}
     {{- end }}
   annotations:
     {{- include "langgraphOperator.annotations" . | nindent 4 }}
-    {{- with .Values.operator.deployment.annotations }}
+    {{- with .Values.manager.deployment.annotations }}
       {{- toYaml . | nindent 4 }}
     {{- end }}
 spec:
-  replicas: {{ .Values.operator.deployment.replicas }}
+  replicas: {{ .Values.manager.deployment.replicas }}
   selector:
     matchLabels:
       {{- include "langgraphOperator.selectorLabels" . | nindent 6 }}
@@ -22,22 +22,22 @@ spec:
   template:
     metadata:
       annotations:
-        {{- with .Values.operator.deployment.annotations }}
+        {{- with .Values.manager.deployment.annotations }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
       labels:
         {{- include "langgraphOperator.labels" . | nindent 8 }}
         app.kubernetes.io/component: {{ include "langgraphOperator.fullname" . }}-operator
-        {{- with .Values.operator.deployment.labels }}
+        {{- with .Values.manager.deployment.labels }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
     spec:
-      serviceAccountName: {{ include "operator.serviceAccountName" . }}
+      serviceAccountName: {{ include "manager.serviceAccountName" . }}
       {{- with .Values.images.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.operator.deployment.podSecurityContext }}
+      {{- with .Values.manager.deployment.podSecurityContext }}
       securityContext:
         {{- toYaml . | nindent 8 }}
       {{- end }}
@@ -49,8 +49,8 @@ spec:
           - --health-probe-bind-address=:8081
         image: "{{ .Values.images.operatorImage.repository }}:{{ .Values.images.operatorImage.tag | default "latest" }}"
         imagePullPolicy: {{ .Values.images.operatorImage.pullPolicy }}
-        name: {{ .Values.operator.name }}
-        {{- with .Values.operator.deployment.securityContext }}
+        name: {{ .Values.manager.name }}
+        {{- with .Values.manager.deployment.securityContext }}
         securityContext:
         {{- toYaml . | nindent 10 }}
         {{- end }}
@@ -67,8 +67,8 @@ spec:
           initialDelaySeconds: 5
           periodSeconds: 10
         resources:
-          {{- if .Values.operator.deployment.resources }}
-          {{- toYaml .Values.operator.deployment.resources | nindent 12 }}
+          {{- if .Values.manager.deployment.resources }}
+          {{- toYaml .Values.manager.deployment.resources | nindent 12 }}
           {{- else }}
           limits:
             cpu: 500m
@@ -77,31 +77,33 @@ spec:
             cpu: 10m
             memory: 64Mi
           {{- end }}
-        {{- with .Values.operator.deployment.volumeMounts }}
+        {{- with .Values.manager.deployment.volumeMounts }}
         volumeMounts:
           {{- toYaml . | nindent 12 }}
         {{- end }}
-        {{- with .Values.operator.deployment.extraEnv }}
         env:
+          - name: WATCH_NAMESPACE
+            value: {{ .Values.config.watchNamespaces | quote }}
+        {{- with .Values.manager.deployment.extraEnv }}
           {{- toYaml . | nindent 12 }}
         {{- end }}
-      {{- with .Values.operator.deployment.sidecars }}
+      {{- with .Values.manager.deployment.sidecars }}
       {{- toYaml . | nindent 8 }}
       {{- end }}
-      terminationGracePeriodSeconds: {{ .Values.operator.deployment.terminationGracePeriodSeconds | default 10 }}
-      {{- with .Values.operator.deployment.nodeSelector }}
+      terminationGracePeriodSeconds: {{ .Values.manager.deployment.terminationGracePeriodSeconds | default 10 }}
+      {{- with .Values.manager.deployment.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.operator.deployment.affinity }}
+      {{- with .Values.manager.deployment.affinity }}
       affinity:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.operator.deployment.tolerations }}
+      {{- with .Values.manager.deployment.tolerations }}
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.operator.deployment.volumes }}
+      {{- with .Values.manager.deployment.volumes }}
       volumes:
         {{- toYaml . | nindent 8 }}
       {{- end }}

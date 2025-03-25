@@ -1,24 +1,25 @@
-{{- if and .Values.config.langgraphPlatform.enabled .Values.hostBackend.rbac.create}}
+{{- if and .Values.config.langgraphPlatform.enabled .Values.listener.rbac.create}}
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
-  name: {{ include "hostBackend.serviceAccountName" $ }}-role
+  name: {{ include "listener.serviceAccountName" $ }}-role
   labels:
     {{- include "langsmith.labels" . | nindent 4 }}
-    {{- with.Values.hostBackend.rbac.labels }}
+    {{- with.Values.listener.rbac.labels }}
       {{- toYaml . | nindent 4 }}
     {{- end }}
   annotations:
     {{- include "langsmith.annotations" . | nindent 4 }}
-    {{- with.Values.hostBackend.rbac.annotations }}
+    {{- with.Values.listener.rbac.annotations }}
       {{- toYaml . | nindent 4 }}
     {{- end }}
 rules:
-# Create/Read/Delete statefulsets for dev dbs
+# Create/Read/Delete statefulsets/deployments for dbs
 - apiGroups:
   - apps
   resources:
   - statefulsets
+  - deployments
   verbs:
   - create
   - delete
@@ -27,12 +28,11 @@ rules:
   - patch
   - update
   - watch
-# Read ReplicaSets
+# Read ReplicaSets/Deployments to get statuses
 - apiGroups:
   - apps
   resources:
   - replicasets
-  - deployments
   verbs:
   - get
   - list
@@ -42,6 +42,19 @@ rules:
   - ""
   resources:
   - secrets
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+# Create/Read/Delete K8s services
+- apiGroups:
+  - ""
+  resources:
+  - services
   verbs:
   - create
   - delete
@@ -73,23 +86,23 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: {{ include "hostBackend.serviceAccountName" $ }}-rolebinding
+  name: {{ include "listener.serviceAccountName" $ }}-rolebinding
   labels:
     {{- include "langsmith.labels" . | nindent 4 }}
-    {{- with.Values.hostBackend.rbac.labels }}
+    {{- with.Values.listener.rbac.labels }}
       {{- toYaml . | nindent 4 }}
     {{- end }}
   annotations:
     {{- include "langsmith.annotations" . | nindent 4 }}
-    {{- with.Values.hostBackend.rbac.annotations }}
+    {{- with.Values.listener.rbac.annotations }}
       {{- toYaml . | nindent 4 }}
     {{- end }}
 subjects:
   - kind: ServiceAccount
-    name: {{ include "hostBackend.serviceAccountName" $ }}
+    name: {{ include "listener.serviceAccountName" $ }}
     namespace: {{ $.Release.Namespace }}
 roleRef:
   kind: Role
-  name: {{ include "hostBackend.serviceAccountName" $ }}-role
+  name: {{ include "listener.serviceAccountName" $ }}-role
   apiGroup: rbac.authorization.k8s.io
 {{- end }}
