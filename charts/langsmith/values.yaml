@@ -50,10 +50,6 @@ images:
     repository: "docker.io/clickhouse/clickhouse-server"
     pullPolicy: Always
     tag: "24.8"
-  operatorImage:
-    repository: "docker.io/langchain/langgraph-operator"
-    pullPolicy: IfNotPresent
-    tag: "e39cfb8"
 
 
 ingress:
@@ -855,6 +851,15 @@ platformBackend:
 
 # These values are all passed into the operator subChart.
 operator:
+  commonAnnotations: {}
+  commonLabels: {}
+  commonEnv: []
+  images:
+    imagePullSecrets: []
+    operatorImage:
+      repository: "docker.io/langchain/langgraph-operator"
+      pullPolicy: IfNotPresent
+      tag: "e39cfb8"
   enabled: true
   config:
     createCRDs: true
