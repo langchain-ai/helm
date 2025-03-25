@@ -1,4 +1,4 @@
-# Default values for the langsmith helm chart. Refer to documentation on individual values for help with configuration.
+# Default values for the langsmith ukm chart. Refer to documentation on individual values for help with configuration.
 
 # -- Provide a name in place of `langsmith`
 nameOverride: ""
@@ -50,6 +50,7 @@ images:
     repository: "docker.io/clickhouse/clickhouse-server"
     pullPolicy: Always
     tag: "24.8"
+
 
 ingress:
   enabled: false
@@ -684,12 +685,16 @@ hostBackend:
     name: ""
     labels: {}
     annotations: {}
+  rbac:
+    create: true
+    labels: {}
+    annotations: {}
 
-hostQueue:
-  name: "host-queue"
+listener:
+  name: "listener"
   deployment:
     autoRestart: true
-    replicas: 3
+    replicas: 1
     labels: {}
     annotations: {}
     podSecurityContext: {}
@@ -759,6 +764,10 @@ hostQueue:
   serviceAccount:
     create: true
     name: ""
+    labels: {}
+    annotations: {}
+  rbac:
+    create: true
     labels: {}
     annotations: {}
 
@@ -839,6 +848,60 @@ platformBackend:
     name: ""
     labels: {}
     annotations: {}
+
+# These values are all passed into the operator subChart.
+operator:
+  commonAnnotations: {}
+  commonLabels: {}
+  commonEnv: []
+  images:
+    imagePullSecrets: []
+    operatorImage:
+      repository: "docker.io/langchain/langgraph-operator"
+      pullPolicy: IfNotPresent
+      tag: "e39cfb8"
+  enabled: true
+  config:
+    createCRDs: true
+    watchNamespaces: ""
+  manager:
+    name: "manager"
+    deployment:
+      autoRestart: true
+      replicas: 1
+      labels: {}
+      annotations: {}
+      podSecurityContext: {}
+      securityContext: {}
+      resources:
+        limits:
+          cpu: 2000m
+          memory: 4Gi
+        requests:
+          cpu: 1000m
+          memory: 2Gi
+      extraContainerConfig: {}
+      extraEnv: []
+      sidecars: []
+      nodeSelector: {}
+      tolerations: []
+      topologySpreadConstraints: []
+      affinity: {}
+      volumes: []
+      volumeMounts: []
+      terminationGracePeriodSeconds: 30
+    pdb:
+      enabled: false
+      minAvailable: 1
+    serviceAccount:
+      create: true
+      name: ""
+      labels: {}
+      annotations: {}
+    rbac:
+      create: true
+      labels: {}
+      annotations: {}
 
 playground:
   name: "playground"

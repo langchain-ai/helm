@@ -32,6 +32,11 @@ jobs:
       - name: Set up chart-testing
         uses: helm/chart-testing-action@v2.6.0
 
+      - name: Add Helm Repositories
+        run: |
+          helm repo add langchain https://langchain-ai.github.io/helm/
+          helm repo update
+
       - name: Run chart-testing (lint)
         run: ct lint --target-branch ${{ github.event.repository.default_branch }} --charts charts/${{ matrix.chart-name }}
 
