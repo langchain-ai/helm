@@ -12,4 +12,4 @@ dependencies:
     alias: operator
     condition: config.langgraphPlatform.enabled and operator.enabled
     repository: https://langchain-ai.github.io/helm/
-    version: 0.1.4
+    version: 0.1.5
