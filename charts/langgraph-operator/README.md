@@ -20,6 +20,19 @@ Helm chart to deploy the LangGraph Operator
 | images.operatorImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.operatorImage.repository | string | `"docker.io/langchain/langgraph-operator"` |  |
 | images.operatorImage.tag | string | `"e39cfb8"` |  |
+| nameOverride | string | `""` | Provide a name in place of `langgraphOperator` |
+
+## Configs
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| config.createCRDs | bool | `true` |  |
+| config.watchNamespaces | string | `""` |  |
+
+## Operator
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
 | manager.deployment.affinity | object | `{}` |  |
 | manager.deployment.annotations | object | `{}` |  |
 | manager.deployment.autoRestart | bool | `true` |  |
@@ -50,19 +63,6 @@ Helm chart to deploy the LangGraph Operator
 | manager.serviceAccount.create | bool | `true` |  |
 | manager.serviceAccount.labels | object | `{}` |  |
 | manager.serviceAccount.name | string | `""` |  |
-| nameOverride | string | `""` | Provide a name in place of `langgraphOperator` |
-
-## Configs
-
-| Key | Type | Default | Description |
-|-----|------|---------|-------------|
-| config.createCRDs | bool | `true` |  |
-| config.watchNamespaces | string | `""` |  |
-
-## Operator
-
-| Key | Type | Default | Description |
-|-----|------|---------|-------------|
 
 ## Maintainers
 
