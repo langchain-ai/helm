@@ -7,3 +7,9 @@ description: Helm chart to deploy the langsmith application and all services it 
 type: application
 version: 0.9.29
 appVersion: "0.9.77"
+dependencies:
+  - name: langgraph-operator
+    alias: operator
+    condition: config.langgraphPlatform.enabled and operator.enabled
+    repository: https://langchain-ai.github.io/helm/
+    version: 0.1.4

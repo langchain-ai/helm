@@ -35,7 +35,7 @@ hostBackend:
         cpu: 100m
         memory: 500Mi
 
-hostQueue:
+listener:
   deployment:
     resources:
       requests:
@@ -83,4 +83,11 @@ clickhouse:
     resources:
       requests:
         cpu: 200m
+        memory: 500Mi
+
+operator:
+  deployment:
+    resources:
+      requests:
+        cpu: 100m
         memory: 500Mi
