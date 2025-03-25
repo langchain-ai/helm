@@ -1,0 +1,28 @@
+{{- if .Values.clickhouse.pdb.enabled }}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "langsmith.fullname" . }}-{{ .Values.clickhouse.name }}
+  labels:
+    {{- include "langsmith.labels" . | nindent 4 }}
+    {{- with .Values.clickhouse.pdb.labels }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+  annotations:
+    {{- include "langsmith.annotations" . | nindent 4 }}
+    {{- with .Values.clickhouse.pdb.annotations }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "langsmith.name" . }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+      app.kubernetes.io/component: {{ .Values.clickhouse.name }}
+  {{- if .Values.clickhouse.pdb.minAvailable }}
+  minAvailable: {{ .Values.clickhouse.pdb.minAvailable }}
+  {{- end }}
+  {{- if .Values.clickhouse.pdb.maxUnavailable }}
+  maxUnavailable: {{ .Values.clickhouse.pdb.maxUnavailable }}
+  {{- end }}
+{{- end }}

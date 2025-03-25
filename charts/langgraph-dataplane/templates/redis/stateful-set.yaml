@@ -1,0 +1,137 @@
+{{- if not .Values.redis.external.enabled }}
+{{- $envVars := concat .Values.commonEnv .Values.redis.statefulSet.extraEnv -}}
+{{- include "langgraphDataplane.detectDuplicates" $envVars -}}
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "langgraphDataplane.fullname" . }}-{{ .Values.redis.name }}
+  labels:
+    {{- include "langgraphDataplane.labels" . | nindent 4 }}
+    {{- with.Values.redis.statefulSet.labels }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+  annotations:
+    {{- include "langgraphDataplane.annotations" . | nindent 4 }}
+    {{- with.Values.redis.statefulSet.annotations }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  serviceName: {{ include "langgraphDataplane.fullname" . }}-{{ .Values.redis.name }}
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "langgraphDataplane.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: {{ include "langgraphDataplane.fullname" . }}-{{ .Values.redis.name }}
+  template:
+    metadata:
+      {{- with .Values.redis.statefulSet.annotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- with.Values.redis.statefulSet.labels }}
+            {{- toYaml . | nindent 8 }}
+        {{- end }}
+        {{- include "langgraphDataplane.labels" . | nindent 8 }}
+        app.kubernetes.io/component: {{ include "langgraphDataplane.fullname" . }}-{{ .Values.redis.name }}
+    spec:
+      {{- with .Values.images.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.redis.statefulSet.podSecurityContext | nindent 8 }}
+      serviceAccountName: {{ include "redis.serviceAccountName" . }}
+      containers:
+        - name: {{ .Values.redis.name }}
+          {{- with.Values.redis.statefulSet.command }}
+          command:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- if or .Values.redis.statefulSet.extraEnv .Values.commonEnv  }}
+          env:
+            {{- with $envVars }}
+             {{- toYaml . | nindent 12 }}
+            {{- end }}
+           {{- end }}
+          image: "{{ .Values.images.redisImage.repository }}:{{ .Values.images.redisImage.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.images.redisImage.pullPolicy }}
+          ports:
+            - name: redis
+              containerPort: {{ .Values.redis.containerPort }}
+              protocol: TCP
+          {{- with .Values.redis.statefulSet.startupProbe }}
+          startupProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.redis.statefulSet.livenessProbe }}
+          livenessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.redis.statefulSet.readinessProbe }}
+          readinessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          resources:
+            {{- toYaml .Values.redis.statefulSet.resources | nindent 12 }}
+          securityContext:
+            {{- toYaml .Values.redis.statefulSet.securityContext | nindent 12 }}
+          {{- if .Values.redis.statefulSet.persistence.enabled }}
+          volumeMounts:
+            - mountPath: /data
+              name: data
+            {{- with .Values.redis.statefulSet.volumeMounts }}
+              {{- toYaml . | nindent 12 }}
+            {{- end }}
+          {{- else }}
+          {{- with .Values.redis.statefulSet.volumeMounts }}
+          volumeMounts:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- end }}
+        {{- with .Values.redis.statefulSet.extraContainerConfig }}
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+        {{- with .Values.redis.statefulSet.sidecars }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- with .Values.redis.statefulSet.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.redis.statefulSet.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.redis.statefulSet.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.redis.statefulSet.topologySpreadConstraints }}
+      topologySpreadConstraints:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.redis.statefulSet.volumes }}
+      volumes:
+          {{- toYaml . | nindent 8 }}
+      {{- end }}
+  {{- if .Values.redis.statefulSet.persistence.enabled }}
+  volumeClaimTemplates:
+    - apiVersion: v1
+      kind: PersistentVolumeClaim
+      metadata:
+        name: data
+        labels:
+          {{- include "langgraphDataplane.selectorLabels" . | nindent 10 }}
+          app.kubernetes.io/component: {{ include "langgraphDataplane.fullname" . }}-{{ .Values.redis.name }}
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: {{ .Values.redis.statefulSet.persistence.size }}
+        {{- if .Values.redis.statefulSet.persistence.storageClassName }}
+        storageClassName: {{ .Values.redis.statefulSet.persistence.storageClassName }}
+        {{- end }}
+  {{- end }}
+{{- end }}

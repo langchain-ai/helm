@@ -25,6 +25,20 @@ frontend:
         cpu: 100m
         memory: 500Mi
 
+hostBackend:
+  deployment:
+    resources:
+      requests:
+        cpu: 100m
+        memory: 500Mi
+
+hostQueue:
+  deployment:
+    resources:
+      requests:
+        cpu: 100m
+        memory: 500Mi
+
 platformBackend:
   deployment:
     resources:

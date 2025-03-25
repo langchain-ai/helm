@@ -49,6 +49,20 @@ backend:
       allowPrivilegeEscalation: false
       readOnlyRootFilesystem: true
 
+hostBackend:
+  deployment:
+    resources:
+      requests:
+        cpu: 100m
+        memory: 500Mi
+
+hostQueue:
+  deployment:
+    resources:
+      requests:
+        cpu: 100m
+        memory: 500Mi
+
 frontend:
   deployment:
     resources:

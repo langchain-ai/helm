@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.9.6](https://img.shields.io/badge/Version-0.9.6-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.9.29](https://img.shields.io/badge/AppVersion-0.9.29-informational?style=flat-square)
+![Version: 0.9.29](https://img.shields.io/badge/Version-0.9.29-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.9.77](https://img.shields.io/badge/AppVersion-0.9.77-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -66,6 +66,10 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | aceBackend.deployment.volumeMounts | list | `[]` |  |
 | aceBackend.deployment.volumes | list | `[]` |  |
 | aceBackend.name | string | `"ace-backend"` |  |
+| aceBackend.pdb.annotations | object | `{}` |  |
+| aceBackend.pdb.enabled | bool | `false` |  |
+| aceBackend.pdb.labels | object | `{}` |  |
+| aceBackend.pdb.minAvailable | int | `1` |  |
 | aceBackend.service.annotations | object | `{}` |  |
 | aceBackend.service.labels | object | `{}` |  |
 | aceBackend.service.loadBalancerIP | string | `""` |  |
@@ -76,13 +80,6 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | aceBackend.serviceAccount.create | bool | `true` |  |
 | aceBackend.serviceAccount.labels | object | `{}` |  |
 | aceBackend.serviceAccount.name | string | `""` |  |
-| apiIngress.annotations | object | `{}` |  |
-| apiIngress.enabled | bool | `false` |  |
-| apiIngress.hostname | string | `""` |  |
-| apiIngress.ingressClassName | string | `""` |  |
-| apiIngress.labels | object | `{}` |  |
-| apiIngress.subdomain | string | `""` |  |
-| apiIngress.tls | list | `[]` |  |
 | clickhouse.config.allowSimdjson | bool | `true` |  |
 | clickhouse.containerHttpPort | int | `8123` |  |
 | clickhouse.containerNativePort | int | `9000` |  |
@@ -105,6 +102,10 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | clickhouse.external.user | string | `"default"` |  |
 | clickhouse.external.userSecretKey | string | `"clickhouse_user"` |  |
 | clickhouse.name | string | `"clickhouse"` |  |
+| clickhouse.pdb.annotations | object | `{}` |  |
+| clickhouse.pdb.enabled | bool | `false` |  |
+| clickhouse.pdb.labels | object | `{}` |  |
+| clickhouse.pdb.minAvailable | int | `1` |  |
 | clickhouse.service.annotations | object | `{}` |  |
 | clickhouse.service.httpPort | int | `8123` |  |
 | clickhouse.service.labels | object | `{}` |  |
@@ -130,6 +131,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | clickhouse.statefulSet.livenessProbe.periodSeconds | int | `10` |  |
 | clickhouse.statefulSet.livenessProbe.timeoutSeconds | int | `1` |  |
 | clickhouse.statefulSet.nodeSelector | object | `{}` |  |
+| clickhouse.statefulSet.persistence.enabled | bool | `true` |  |
 | clickhouse.statefulSet.persistence.size | string | `"50Gi"` |  |
 | clickhouse.statefulSet.persistence.storageClassName | string | `""` |  |
 | clickhouse.statefulSet.podSecurityContext | object | `{}` |  |
@@ -157,25 +159,154 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | commonEnv | list | `[]` | Common environment variables that will be applied to all deployments/statefulsets except for the playground/aceBackend services (which are sandboxed). Be careful not to override values already specified by the chart. |
 | commonLabels | object | `{}` | Labels that will be applied to all resources created by the chart |
 | fullnameOverride | string | `""` | String to fully override `"langsmith.fullname"` |
+| hostBackend.autoscaling.createHpa | bool | `true` |  |
+| hostBackend.autoscaling.enabled | bool | `false` |  |
+| hostBackend.autoscaling.maxReplicas | int | `5` |  |
+| hostBackend.autoscaling.minReplicas | int | `1` |  |
+| hostBackend.autoscaling.targetCPUUtilizationPercentage | int | `50` |  |
+| hostBackend.autoscaling.targetMemoryUtilizationPercentage | int | `80` |  |
+| hostBackend.containerPort | int | `1985` |  |
+| hostBackend.deployment.affinity | object | `{}` |  |
+| hostBackend.deployment.annotations | object | `{}` |  |
+| hostBackend.deployment.autoRestart | bool | `true` |  |
+| hostBackend.deployment.command[0] | string | `"uvicorn"` |  |
+| hostBackend.deployment.command[10] | string | `"--http"` |  |
+| hostBackend.deployment.command[11] | string | `"httptools"` |  |
+| hostBackend.deployment.command[12] | string | `"--no-access-log"` |  |
+| hostBackend.deployment.command[1] | string | `"host.main:app"` |  |
+| hostBackend.deployment.command[2] | string | `"--host"` |  |
+| hostBackend.deployment.command[3] | string | `"0.0.0.0"` |  |
+| hostBackend.deployment.command[4] | string | `"--port"` |  |
+| hostBackend.deployment.command[5] | string | `"$(PORT)"` |  |
+| hostBackend.deployment.command[6] | string | `"--log-level"` |  |
+| hostBackend.deployment.command[7] | string | `"$(LOG_LEVEL)"` |  |
+| hostBackend.deployment.command[8] | string | `"--loop"` |  |
+| hostBackend.deployment.command[9] | string | `"uvloop"` |  |
+| hostBackend.deployment.extraContainerConfig | object | `{}` |  |
+| hostBackend.deployment.extraEnv | list | `[]` |  |
+| hostBackend.deployment.labels | object | `{}` |  |
+| hostBackend.deployment.livenessProbe.failureThreshold | int | `6` |  |
+| hostBackend.deployment.livenessProbe.httpGet.path | string | `"/ok"` |  |
+| hostBackend.deployment.livenessProbe.httpGet.port | int | `1985` |  |
+| hostBackend.deployment.livenessProbe.periodSeconds | int | `10` |  |
+| hostBackend.deployment.livenessProbe.timeoutSeconds | int | `1` |  |
+| hostBackend.deployment.nodeSelector | object | `{}` |  |
+| hostBackend.deployment.podSecurityContext | object | `{}` |  |
+| hostBackend.deployment.readinessProbe.failureThreshold | int | `6` |  |
+| hostBackend.deployment.readinessProbe.httpGet.path | string | `"/ok"` |  |
+| hostBackend.deployment.readinessProbe.httpGet.port | int | `1985` |  |
+| hostBackend.deployment.readinessProbe.periodSeconds | int | `10` |  |
+| hostBackend.deployment.readinessProbe.timeoutSeconds | int | `1` |  |
+| hostBackend.deployment.replicas | int | `1` |  |
+| hostBackend.deployment.resources.limits.cpu | string | `"1000m"` |  |
+| hostBackend.deployment.resources.limits.memory | string | `"2Gi"` |  |
+| hostBackend.deployment.resources.requests.cpu | string | `"200m"` |  |
+| hostBackend.deployment.resources.requests.memory | string | `"1000Mi"` |  |
+| hostBackend.deployment.securityContext | object | `{}` |  |
+| hostBackend.deployment.sidecars | list | `[]` |  |
+| hostBackend.deployment.startupProbe.failureThreshold | int | `6` |  |
+| hostBackend.deployment.startupProbe.httpGet.path | string | `"/ok"` |  |
+| hostBackend.deployment.startupProbe.httpGet.port | int | `1985` |  |
+| hostBackend.deployment.startupProbe.periodSeconds | int | `10` |  |
+| hostBackend.deployment.startupProbe.timeoutSeconds | int | `1` |  |
+| hostBackend.deployment.terminationGracePeriodSeconds | int | `30` |  |
+| hostBackend.deployment.tolerations | list | `[]` |  |
+| hostBackend.deployment.topologySpreadConstraints | list | `[]` |  |
+| hostBackend.deployment.volumeMounts | list | `[]` |  |
+| hostBackend.deployment.volumes | list | `[]` |  |
+| hostBackend.name | string | `"host-backend"` |  |
+| hostBackend.pdb.annotations | object | `{}` |  |
+| hostBackend.pdb.enabled | bool | `false` |  |
+| hostBackend.pdb.labels | object | `{}` |  |
+| hostBackend.pdb.minAvailable | int | `1` |  |
+| hostBackend.service.annotations | object | `{}` |  |
+| hostBackend.service.labels | object | `{}` |  |
+| hostBackend.service.loadBalancerIP | string | `""` |  |
+| hostBackend.service.loadBalancerSourceRanges | list | `[]` |  |
+| hostBackend.service.port | int | `1985` |  |
+| hostBackend.service.type | string | `"ClusterIP"` |  |
+| hostBackend.serviceAccount.annotations | object | `{}` |  |
+| hostBackend.serviceAccount.create | bool | `true` |  |
+| hostBackend.serviceAccount.labels | object | `{}` |  |
+| hostBackend.serviceAccount.name | string | `""` |  |
+| hostQueue.autoscaling.createHpa | bool | `true` |  |
+| hostQueue.autoscaling.enabled | bool | `false` |  |
+| hostQueue.autoscaling.maxReplicas | int | `10` |  |
+| hostQueue.autoscaling.minReplicas | int | `3` |  |
+| hostQueue.autoscaling.targetCPUUtilizationPercentage | int | `50` |  |
+| hostQueue.autoscaling.targetMemoryUtilizationPercentage | int | `80` |  |
+| hostQueue.deployment.affinity | object | `{}` |  |
+| hostQueue.deployment.annotations | object | `{}` |  |
+| hostQueue.deployment.autoRestart | bool | `true` |  |
+| hostQueue.deployment.command[0] | string | `"saq"` |  |
+| hostQueue.deployment.command[1] | string | `"app.workers.queues.host_worker.settings"` |  |
+| hostQueue.deployment.command[2] | string | `"--quiet"` |  |
+| hostQueue.deployment.extraContainerConfig | object | `{}` |  |
+| hostQueue.deployment.extraEnv | list | `[]` |  |
+| hostQueue.deployment.labels | object | `{}` |  |
+| hostQueue.deployment.livenessProbe.exec.command[0] | string | `"saq"` |  |
+| hostQueue.deployment.livenessProbe.exec.command[1] | string | `"app.workers.queues.host_worker.settings"` |  |
+| hostQueue.deployment.livenessProbe.exec.command[2] | string | `"--check"` |  |
+| hostQueue.deployment.livenessProbe.failureThreshold | int | `6` |  |
+| hostQueue.deployment.livenessProbe.periodSeconds | int | `60` |  |
+| hostQueue.deployment.livenessProbe.timeoutSeconds | int | `30` |  |
+| hostQueue.deployment.nodeSelector | object | `{}` |  |
+| hostQueue.deployment.podSecurityContext | object | `{}` |  |
+| hostQueue.deployment.readinessProbe.exec.command[0] | string | `"saq"` |  |
+| hostQueue.deployment.readinessProbe.exec.command[1] | string | `"app.workers.queues.host_worker.settings"` |  |
+| hostQueue.deployment.readinessProbe.exec.command[2] | string | `"--check"` |  |
+| hostQueue.deployment.readinessProbe.failureThreshold | int | `6` |  |
+| hostQueue.deployment.readinessProbe.periodSeconds | int | `60` |  |
+| hostQueue.deployment.readinessProbe.timeoutSeconds | int | `30` |  |
+| hostQueue.deployment.replicas | int | `3` |  |
+| hostQueue.deployment.resources.limits.cpu | string | `"2000m"` |  |
+| hostQueue.deployment.resources.limits.memory | string | `"4Gi"` |  |
+| hostQueue.deployment.resources.requests.cpu | string | `"1000m"` |  |
+| hostQueue.deployment.resources.requests.memory | string | `"2Gi"` |  |
+| hostQueue.deployment.securityContext | object | `{}` |  |
+| hostQueue.deployment.sidecars | list | `[]` |  |
+| hostQueue.deployment.startupProbe.exec.command[0] | string | `"saq"` |  |
+| hostQueue.deployment.startupProbe.exec.command[1] | string | `"app.workers.queues.host_worker.settings"` |  |
+| hostQueue.deployment.startupProbe.exec.command[2] | string | `"--check"` |  |
+| hostQueue.deployment.startupProbe.failureThreshold | int | `6` |  |
+| hostQueue.deployment.startupProbe.periodSeconds | int | `60` |  |
+| hostQueue.deployment.startupProbe.timeoutSeconds | int | `30` |  |
+| hostQueue.deployment.terminationGracePeriodSeconds | int | `30` |  |
+| hostQueue.deployment.tolerations | list | `[]` |  |
+| hostQueue.deployment.topologySpreadConstraints | list | `[]` |  |
+| hostQueue.deployment.volumeMounts | list | `[]` |  |
+| hostQueue.deployment.volumes | list | `[]` |  |
+| hostQueue.name | string | `"host-queue"` |  |
+| hostQueue.pdb.annotations | object | `{}` |  |
+| hostQueue.pdb.enabled | bool | `false` |  |
+| hostQueue.pdb.labels | object | `{}` |  |
+| hostQueue.pdb.minAvailable | int | `1` |  |
+| hostQueue.serviceAccount.annotations | object | `{}` |  |
+| hostQueue.serviceAccount.create | bool | `true` |  |
+| hostQueue.serviceAccount.labels | object | `{}` |  |
+| hostQueue.serviceAccount.name | string | `""` |  |
 | images.aceBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.aceBackendImage.repository | string | `"docker.io/langchain/langsmith-ace-backend"` |  |
-| images.aceBackendImage.tag | string | `"0.9.29"` |  |
+| images.aceBackendImage.tag | string | `"0.9.77"` |  |
 | images.backendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.backendImage.repository | string | `"docker.io/langchain/langsmith-backend"` |  |
-| images.backendImage.tag | string | `"0.9.29"` |  |
+| images.backendImage.tag | string | `"0.9.77"` |  |
 | images.clickhouseImage.pullPolicy | string | `"Always"` |  |
 | images.clickhouseImage.repository | string | `"docker.io/clickhouse/clickhouse-server"` |  |
 | images.clickhouseImage.tag | string | `"24.8"` |  |
 | images.frontendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.frontendImage.repository | string | `"docker.io/langchain/langsmith-frontend"` |  |
-| images.frontendImage.tag | string | `"0.9.29"` |  |
+| images.frontendImage.tag | string | `"0.9.77"` |  |
+| images.hostBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
+| images.hostBackendImage.repository | string | `"docker.io/langchain/hosted-langserve-backend"` |  |
+| images.hostBackendImage.tag | string | `"0.9.77"` |  |
 | images.imagePullSecrets | list | `[]` | Secrets with credentials to pull images from a private registry. Specified as name: value. |
 | images.platformBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.platformBackendImage.repository | string | `"docker.io/langchain/langsmith-go-backend"` |  |
-| images.platformBackendImage.tag | string | `"0.9.29"` |  |
+| images.platformBackendImage.tag | string | `"0.9.77"` |  |
 | images.playgroundImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.playgroundImage.repository | string | `"docker.io/langchain/langsmith-playground"` |  |
-| images.playgroundImage.tag | string | `"0.9.29"` |  |
+| images.playgroundImage.tag | string | `"0.9.77"` |  |
 | images.postgresImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.postgresImage.repository | string | `"docker.io/postgres"` |  |
 | images.postgresImage.tag | string | `"14.7"` |  |
@@ -208,6 +339,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | config.blobStorage.azureStorageServiceUrlOverride | string | `""` | Optional. Use this to customize the service URL, which by default is 'https://<storage_account_name>.blob.core.windows.net/' |
 | config.existingSecretName | string | `""` |  |
 | config.hostname | string | `""` | Base URL of the LangSmith installation. Used for redirects. |
+| config.langgraphPlatform | object | `{"enabled":false,"langgraphPlatformLicenseKey":""}` | Optional. Used to enable the Langgraph platform. If enabled, the license key must be provided. |
 | config.langsmithLicenseKey | string | `""` |  |
 | config.logLevel | string | `"info"` |  |
 | config.oauth.enabled | bool | `false` |  |
@@ -238,7 +370,10 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | backend.authBootstrap.nodeSelector | object | `{}` |  |
 | backend.authBootstrap.podSecurityContext | object | `{}` |  |
 | backend.authBootstrap.randomizeName | bool | `true` |  |
-| backend.authBootstrap.resources | object | `{}` |  |
+| backend.authBootstrap.resources.limits.cpu | string | `"1000m"` |  |
+| backend.authBootstrap.resources.limits.memory | string | `"1Gi"` |  |
+| backend.authBootstrap.resources.requests.cpu | string | `"200m"` |  |
+| backend.authBootstrap.resources.requests.memory | string | `"500Mi"` |  |
 | backend.authBootstrap.securityContext | object | `{}` |  |
 | backend.authBootstrap.sidecars | list | `[]` |  |
 | backend.authBootstrap.tolerations | list | `[]` |  |
@@ -263,7 +398,10 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | backend.clickhouseMigrations.nodeSelector | object | `{}` |  |
 | backend.clickhouseMigrations.podSecurityContext | object | `{}` |  |
 | backend.clickhouseMigrations.randomizeName | bool | `true` |  |
-| backend.clickhouseMigrations.resources | object | `{}` |  |
+| backend.clickhouseMigrations.resources.limits.cpu | string | `"1000m"` |  |
+| backend.clickhouseMigrations.resources.limits.memory | string | `"1Gi"` |  |
+| backend.clickhouseMigrations.resources.requests.cpu | string | `"200m"` |  |
+| backend.clickhouseMigrations.resources.requests.memory | string | `"500Mi"` |  |
 | backend.clickhouseMigrations.securityContext | object | `{}` |  |
 | backend.clickhouseMigrations.sidecars | list | `[]` |  |
 | backend.clickhouseMigrations.tolerations | list | `[]` |  |
@@ -333,7 +471,10 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | backend.migrations.nodeSelector | object | `{}` |  |
 | backend.migrations.podSecurityContext | object | `{}` |  |
 | backend.migrations.randomizeName | bool | `true` |  |
-| backend.migrations.resources | object | `{}` |  |
+| backend.migrations.resources.limits.cpu | string | `"1000m"` |  |
+| backend.migrations.resources.limits.memory | string | `"1Gi"` |  |
+| backend.migrations.resources.requests.cpu | string | `"200m"` |  |
+| backend.migrations.resources.requests.memory | string | `"500Mi"` |  |
 | backend.migrations.securityContext | object | `{}` |  |
 | backend.migrations.sidecars | list | `[]` |  |
 | backend.migrations.tolerations | list | `[]` |  |
@@ -342,6 +483,10 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | backend.migrations.volumeMounts | list | `[]` |  |
 | backend.migrations.volumes | list | `[]` |  |
 | backend.name | string | `"backend"` |  |
+| backend.pdb.annotations | object | `{}` |  |
+| backend.pdb.enabled | bool | `false` |  |
+| backend.pdb.labels | object | `{}` |  |
+| backend.pdb.minAvailable | int | `1` |  |
 | backend.service.annotations | object | `{}` |  |
 | backend.service.labels | object | `{}` |  |
 | backend.service.loadBalancerIP | string | `""` |  |
@@ -379,6 +524,10 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | clickhouse.external.user | string | `"default"` |  |
 | clickhouse.external.userSecretKey | string | `"clickhouse_user"` |  |
 | clickhouse.name | string | `"clickhouse"` |  |
+| clickhouse.pdb.annotations | object | `{}` |  |
+| clickhouse.pdb.enabled | bool | `false` |  |
+| clickhouse.pdb.labels | object | `{}` |  |
+| clickhouse.pdb.minAvailable | int | `1` |  |
 | clickhouse.service.annotations | object | `{}` |  |
 | clickhouse.service.httpPort | int | `8123` |  |
 | clickhouse.service.labels | object | `{}` |  |
@@ -404,6 +553,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | clickhouse.statefulSet.livenessProbe.periodSeconds | int | `10` |  |
 | clickhouse.statefulSet.livenessProbe.timeoutSeconds | int | `1` |  |
 | clickhouse.statefulSet.nodeSelector | object | `{}` |  |
+| clickhouse.statefulSet.persistence.enabled | bool | `true` |  |
 | clickhouse.statefulSet.persistence.size | string | `"50Gi"` |  |
 | clickhouse.statefulSet.persistence.storageClassName | string | `""` |  |
 | clickhouse.statefulSet.podSecurityContext | object | `{}` |  |
@@ -476,8 +626,13 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | frontend.deployment.volumeMounts | list | `[]` |  |
 | frontend.deployment.volumes | list | `[]` |  |
 | frontend.existingConfigMapName | string | `""` |  |
+| frontend.ipv6Enabled | bool | `true` |  |
 | frontend.maxBodySize | string | `"25M"` |  |
 | frontend.name | string | `"frontend"` |  |
+| frontend.pdb.annotations | object | `{}` |  |
+| frontend.pdb.enabled | bool | `false` |  |
+| frontend.pdb.labels | object | `{}` |  |
+| frontend.pdb.minAvailable | int | `1` |  |
 | frontend.proxyConnectTimeout | string | `"60"` |  |
 | frontend.proxyReadTimeout | string | `"300"` |  |
 | frontend.proxyWriteTimeout | string | `"300"` |  |
@@ -542,6 +697,10 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | platformBackend.deployment.volumes | list | `[]` |  |
 | platformBackend.existingConfigMapName | string | `""` |  |
 | platformBackend.name | string | `"platform-backend"` |  |
+| platformBackend.pdb.annotations | object | `{}` |  |
+| platformBackend.pdb.enabled | bool | `false` |  |
+| platformBackend.pdb.labels | object | `{}` |  |
+| platformBackend.pdb.minAvailable | int | `1` |  |
 | platformBackend.service.annotations | object | `{}` |  |
 | platformBackend.service.labels | object | `{}` |  |
 | platformBackend.service.loadBalancerIP | string | `""` |  |
@@ -613,6 +772,10 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | playground.deployment.volumeMounts | list | `[]` |  |
 | playground.deployment.volumes | list | `[]` |  |
 | playground.name | string | `"playground"` |  |
+| playground.pdb.annotations | object | `{}` |  |
+| playground.pdb.enabled | bool | `false` |  |
+| playground.pdb.labels | object | `{}` |  |
+| playground.pdb.minAvailable | int | `1` |  |
 | playground.service.annotations | object | `{}` |  |
 | playground.service.labels | object | `{}` |  |
 | playground.service.loadBalancerIP | string | `""` |  |
@@ -640,6 +803,10 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | postgres.external.schema | string | `"public"` |  |
 | postgres.external.user | string | `"postgres"` |  |
 | postgres.name | string | `"postgres"` |  |
+| postgres.pdb.annotations | object | `{}` |  |
+| postgres.pdb.enabled | bool | `false` |  |
+| postgres.pdb.labels | object | `{}` |  |
+| postgres.pdb.minAvailable | int | `1` |  |
 | postgres.service.annotations | object | `{}` |  |
 | postgres.service.labels | object | `{}` |  |
 | postgres.service.loadBalancerIP | string | `""` |  |
@@ -663,6 +830,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | postgres.statefulSet.livenessProbe.periodSeconds | int | `10` |  |
 | postgres.statefulSet.livenessProbe.timeoutSeconds | int | `1` |  |
 | postgres.statefulSet.nodeSelector | object | `{}` |  |
+| postgres.statefulSet.persistence.enabled | bool | `true` |  |
 | postgres.statefulSet.persistence.size | string | `"8Gi"` |  |
 | postgres.statefulSet.persistence.storageClassName | string | `""` |  |
 | postgres.statefulSet.podSecurityContext | object | `{}` |  |
@@ -741,6 +909,10 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | queue.deployment.volumeMounts | list | `[]` |  |
 | queue.deployment.volumes | list | `[]` |  |
 | queue.name | string | `"queue"` |  |
+| queue.pdb.annotations | object | `{}` |  |
+| queue.pdb.enabled | bool | `false` |  |
+| queue.pdb.labels | object | `{}` |  |
+| queue.pdb.minAvailable | int | `1` |  |
 | queue.serviceAccount.annotations | object | `{}` |  |
 | queue.serviceAccount.create | bool | `true` |  |
 | queue.serviceAccount.labels | object | `{}` |  |
@@ -756,6 +928,10 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | redis.external.enabled | bool | `false` |  |
 | redis.external.existingSecretName | string | `""` |  |
 | redis.name | string | `"redis"` |  |
+| redis.pdb.annotations | object | `{}` |  |
+| redis.pdb.enabled | bool | `false` |  |
+| redis.pdb.labels | object | `{}` |  |
+| redis.pdb.minAvailable | int | `1` |  |
 | redis.service.annotations | object | `{}` |  |
 | redis.service.labels | object | `{}` |  |
 | redis.service.loadBalancerIP | string | `""` |  |
@@ -813,6 +989,6 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | Ankush | <ankush@langchain.dev> |  |
 
 ----------------------------------------------
-Autogenerated from chart metadata using [helm-docs v1.11.3](https://github.com/norwoodj/helm-docs/releases/v1.11.3)
+Autogenerated from chart metadata using [helm-docs v1.13.1](https://github.com/norwoodj/helm-docs/releases/v1.13.1)
 ## Docs Generated by [helm-docs](https://github.com/norwoodj/helm-docs)
 `helm-docs -t ./charts/langsmith/README.md.gotmpl`
