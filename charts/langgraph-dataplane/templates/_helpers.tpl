@@ -2,7 +2,7 @@
 Expand the name of the chart.
 */}}
 {{- define "langgraphDataplane.name" -}}
-{{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" }}
+{{- default .Chart.Name .Values.global.nameOverride | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
 {{/*
@@ -11,10 +11,10 @@ We truncate at 63 chars because some Kubernetes name fields are limited to this 
 If release name contains chart name it will be used as a full name.
 */}}
 {{- define "langgraphDataplane.fullname" -}}
-{{- if .Values.fullnameOverride }}
-{{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" }}
+{{- if .Values.global.fullnameOverride }}
+{{- .Values.global.fullnameOverride | trunc 63 | trimSuffix "-" }}
 {{- else }}
-{{- $name := default .Chart.Name .Values.nameOverride }}
+{{- $name := default .Chart.Name .Values.global.nameOverride }}
 {{- if contains $name .Release.Name }}
 {{- .Release.Name | trunc 63 | trimSuffix "-" }}
 {{- else }}
@@ -34,8 +34,8 @@ Create chart name and version as used by the chart label.
 Common labels
 */}}
 {{- define "langgraphDataplane.labels" -}}
-{{- if .Values.commonLabels }}
-{{ toYaml .Values.commonLabels }}
+{{- if .Values.global.commonLabels }}
+{{ toYaml .Values.global.commonLabels }}
 {{- end }}
 helm.sh/chart: {{ include "langgraphDataplane.chart" . }}
 {{ include "langgraphDataplane.selectorLabels" . }}
@@ -49,8 +49,8 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 Common annotations
 */}}
 {{- define "langgraphDataplane.annotations" -}}
-{{- if .Values.commonAnnotations }}
-{{ toYaml .Values.commonAnnotations }}
+{{- if .Values.global.commonAnnotations }}
+{{ toYaml .Values.global.commonAnnotations }}
 {{- end }}
 helm.sh/chart: {{ include "langgraphDataplane.chart" . }}
 {{ include "langgraphDataplane.selectorLabels" . }}
@@ -121,8 +121,6 @@ Template containing common environment variables that are used by several servic
   value: {{ .Values.config.smithBackendUrl }}
 - name: HOST_WORKER_TENANT_ID
   value: {{ .Values.config.langsmithWorkspaceId }}
-- name: X_SERVICE_AUTH_JWT_SECRET
-  value: "foo"
 {{- end }}
 
 

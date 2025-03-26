@@ -1,0 +1,6 @@
+dependencies:
+- name: langgraph-operator
+  repository: https://langchain-ai.github.io/helm/
+  version: 0.1.5
+digest: sha256:75f9d000ab4ef970795dc2a37fb8808415cc631e7c76131efa78c10745d28836
+generated: "2025-03-26T06:47:35.780564-04:00"
