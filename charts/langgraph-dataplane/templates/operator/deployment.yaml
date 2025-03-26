@@ -44,7 +44,7 @@ spec:
       {{- end }}
       containers:
       - command:
-        - /operator
+        - /manager
         args:
           - --leader-elect
           - --health-probe-bind-address=:8081
