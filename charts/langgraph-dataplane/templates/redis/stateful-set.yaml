@@ -1,5 +1,5 @@
 {{- if not .Values.redis.external.enabled }}
-{{- $envVars := concat .Values.global.commonEnv .Values.redis.statefulSet.extraEnv -}}
+{{- $envVars := concat .Values.commonEnv .Values.redis.statefulSet.extraEnv -}}
 {{- include "langgraphDataplane.detectDuplicates" $envVars -}}
 apiVersion: apps/v1
 kind: StatefulSet
@@ -35,7 +35,7 @@ spec:
         {{- include "langgraphDataplane.labels" . | nindent 8 }}
         app.kubernetes.io/component: {{ include "langgraphDataplane.fullname" . }}-{{ .Values.redis.name }}
     spec:
-      {{- with .Values.global.images.imagePullSecrets }}
+      {{- with .Values.images.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
@@ -48,14 +48,14 @@ spec:
           command:
             {{- toYaml . | nindent 12 }}
           {{- end }}
-          {{- if or .Values.redis.statefulSet.extraEnv .Values.global.commonEnv  }}
+          {{- if or .Values.redis.statefulSet.extraEnv .Values.commonEnv  }}
           env:
             {{- with $envVars }}
              {{- toYaml . | nindent 12 }}
             {{- end }}
            {{- end }}
-          image: "{{ .Values.global.images.redisImage.repository }}:{{ .Values.global.images.redisImage.tag | default .Chart.AppVersion }}"
-          imagePullPolicy: {{ .Values.global.images.redisImage.pullPolicy }}
+          image: "{{ .Values.images.redisImage.repository }}:{{ .Values.images.redisImage.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.images.redisImage.pullPolicy }}
           ports:
             - name: redis
               containerPort: {{ .Values.redis.containerPort }}

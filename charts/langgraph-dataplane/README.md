@@ -8,64 +8,58 @@ Helm chart to deploy a langgraph dataplane on kubernetes.
 
 ### TODO: ADD README for LangGraph Dataplane Chart
 
-## Requirements
-
-| Repository | Name | Version |
-|------------|------|---------|
-| https://langchain-ai.github.io/helm/ | operator(langgraph-operator) | 0.1.5 |
-
 ## General parameters
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| global.commonAnnotations | object | `{}` | Annotations that will be applied to all resources created by the chart |
-| global.commonEnv | list | `[]` | Common environment variables that will be applied to all deployments. |
-| global.commonLabels | object | `{}` | Labels that will be applied to all resources created by the chart |
-| global.fullnameOverride | string | `""` | String to fully override `"langgraphDataplane.fullname"` |
-| global.images.imagePullSecrets | list | `[]` | Secrets with credentials to pull images from a private registry. Specified as name: value. |
-| global.images.listenerImage.pullPolicy | string | `"IfNotPresent"` |  |
-| global.images.listenerImage.repository | string | `"docker.io/langchain/hosted-langserve-backend"` |  |
-| global.images.listenerImage.tag | string | `"0.9.77"` |  |
-| global.images.operatorImage.pullPolicy | string | `"IfNotPresent"` |  |
-| global.images.operatorImage.repository | string | `"docker.io/langchain/langgraph-operator"` |  |
-| global.images.operatorImage.tag | string | `"e39cfb8"` |  |
-| global.images.redisImage.pullPolicy | string | `"IfNotPresent"` |  |
-| global.images.redisImage.repository | string | `"docker.io/redis"` |  |
-| global.images.redisImage.tag | string | `"7"` |  |
-| global.nameOverride | string | `""` | Provide a name in place of `langgraphDataplane` |
-| operator.config.createCRDs | bool | `true` |  |
-| operator.config.watchNamespaces | string | `""` |  |
+| commonAnnotations | object | `{}` | Annotations that will be applied to all resources created by the chart |
+| commonEnv | list | `[]` | Common environment variables that will be applied to all deployments. |
+| commonLabels | object | `{}` | Labels that will be applied to all resources created by the chart |
+| fullnameOverride | string | `""` | String to fully override `"langgraphDataplane.fullname"` |
+| images.imagePullSecrets | list | `[]` | Secrets with credentials to pull images from a private registry. Specified as name: value. |
+| images.listenerImage.pullPolicy | string | `"IfNotPresent"` |  |
+| images.listenerImage.repository | string | `"docker.io/langchain/hosted-langserve-backend"` |  |
+| images.listenerImage.tag | string | `"0.9.77"` |  |
+| images.operatorImage.pullPolicy | string | `"IfNotPresent"` |  |
+| images.operatorImage.repository | string | `"docker.io/langchain/langgraph-operator"` |  |
+| images.operatorImage.tag | string | `"e39cfb8"` |  |
+| images.redisImage.pullPolicy | string | `"IfNotPresent"` |  |
+| images.redisImage.repository | string | `"docker.io/redis"` |  |
+| images.redisImage.tag | string | `"7"` |  |
+| nameOverride | string | `""` | Provide a name in place of `langgraphDataplane` |
+| operator.createCRDs | bool | `true` |  |
+| operator.deployment.affinity | object | `{}` |  |
+| operator.deployment.annotations | object | `{}` |  |
+| operator.deployment.autoRestart | bool | `true` |  |
+| operator.deployment.extraContainerConfig | object | `{}` |  |
+| operator.deployment.extraEnv | list | `[]` |  |
+| operator.deployment.labels | object | `{}` |  |
+| operator.deployment.nodeSelector | object | `{}` |  |
+| operator.deployment.podSecurityContext | object | `{}` |  |
+| operator.deployment.replicas | int | `1` |  |
+| operator.deployment.resources.limits.cpu | string | `"2000m"` |  |
+| operator.deployment.resources.limits.memory | string | `"4Gi"` |  |
+| operator.deployment.resources.requests.cpu | string | `"1000m"` |  |
+| operator.deployment.resources.requests.memory | string | `"2Gi"` |  |
+| operator.deployment.securityContext | object | `{}` |  |
+| operator.deployment.sidecars | list | `[]` |  |
+| operator.deployment.terminationGracePeriodSeconds | int | `30` |  |
+| operator.deployment.tolerations | list | `[]` |  |
+| operator.deployment.topologySpreadConstraints | list | `[]` |  |
+| operator.deployment.volumeMounts | list | `[]` |  |
+| operator.deployment.volumes | list | `[]` |  |
 | operator.enabled | bool | `true` |  |
-| operator.manager.deployment.affinity | object | `{}` |  |
-| operator.manager.deployment.annotations | object | `{}` |  |
-| operator.manager.deployment.autoRestart | bool | `true` |  |
-| operator.manager.deployment.extraContainerConfig | object | `{}` |  |
-| operator.manager.deployment.extraEnv | list | `[]` |  |
-| operator.manager.deployment.labels | object | `{}` |  |
-| operator.manager.deployment.nodeSelector | object | `{}` |  |
-| operator.manager.deployment.podSecurityContext | object | `{}` |  |
-| operator.manager.deployment.replicas | int | `1` |  |
-| operator.manager.deployment.resources.limits.cpu | string | `"2000m"` |  |
-| operator.manager.deployment.resources.limits.memory | string | `"4Gi"` |  |
-| operator.manager.deployment.resources.requests.cpu | string | `"1000m"` |  |
-| operator.manager.deployment.resources.requests.memory | string | `"2Gi"` |  |
-| operator.manager.deployment.securityContext | object | `{}` |  |
-| operator.manager.deployment.sidecars | list | `[]` |  |
-| operator.manager.deployment.terminationGracePeriodSeconds | int | `30` |  |
-| operator.manager.deployment.tolerations | list | `[]` |  |
-| operator.manager.deployment.topologySpreadConstraints | list | `[]` |  |
-| operator.manager.deployment.volumeMounts | list | `[]` |  |
-| operator.manager.deployment.volumes | list | `[]` |  |
-| operator.manager.name | string | `"manager"` |  |
-| operator.manager.pdb.enabled | bool | `false` |  |
-| operator.manager.pdb.minAvailable | int | `1` |  |
-| operator.manager.rbac.annotations | object | `{}` |  |
-| operator.manager.rbac.create | bool | `true` |  |
-| operator.manager.rbac.labels | object | `{}` |  |
-| operator.manager.serviceAccount.annotations | object | `{}` |  |
-| operator.manager.serviceAccount.create | bool | `true` |  |
-| operator.manager.serviceAccount.labels | object | `{}` |  |
-| operator.manager.serviceAccount.name | string | `""` |  |
+| operator.name | string | `"operator"` |  |
+| operator.pdb.enabled | bool | `false` |  |
+| operator.pdb.minAvailable | int | `1` |  |
+| operator.rbac.annotations | object | `{}` |  |
+| operator.rbac.create | bool | `true` |  |
+| operator.rbac.labels | object | `{}` |  |
+| operator.serviceAccount.annotations | object | `{}` |  |
+| operator.serviceAccount.create | bool | `true` |  |
+| operator.serviceAccount.labels | object | `{}` |  |
+| operator.serviceAccount.name | string | `""` |  |
+| operator.watchNamespaces | string | `""` |  |
 
 ## Configs
 
@@ -143,39 +137,39 @@ Helm chart to deploy a langgraph dataplane on kubernetes.
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| operator.config.createCRDs | bool | `true` |  |
-| operator.config.watchNamespaces | string | `""` |  |
+| operator.createCRDs | bool | `true` |  |
+| operator.deployment.affinity | object | `{}` |  |
+| operator.deployment.annotations | object | `{}` |  |
+| operator.deployment.autoRestart | bool | `true` |  |
+| operator.deployment.extraContainerConfig | object | `{}` |  |
+| operator.deployment.extraEnv | list | `[]` |  |
+| operator.deployment.labels | object | `{}` |  |
+| operator.deployment.nodeSelector | object | `{}` |  |
+| operator.deployment.podSecurityContext | object | `{}` |  |
+| operator.deployment.replicas | int | `1` |  |
+| operator.deployment.resources.limits.cpu | string | `"2000m"` |  |
+| operator.deployment.resources.limits.memory | string | `"4Gi"` |  |
+| operator.deployment.resources.requests.cpu | string | `"1000m"` |  |
+| operator.deployment.resources.requests.memory | string | `"2Gi"` |  |
+| operator.deployment.securityContext | object | `{}` |  |
+| operator.deployment.sidecars | list | `[]` |  |
+| operator.deployment.terminationGracePeriodSeconds | int | `30` |  |
+| operator.deployment.tolerations | list | `[]` |  |
+| operator.deployment.topologySpreadConstraints | list | `[]` |  |
+| operator.deployment.volumeMounts | list | `[]` |  |
+| operator.deployment.volumes | list | `[]` |  |
 | operator.enabled | bool | `true` |  |
-| operator.manager.deployment.affinity | object | `{}` |  |
-| operator.manager.deployment.annotations | object | `{}` |  |
-| operator.manager.deployment.autoRestart | bool | `true` |  |
-| operator.manager.deployment.extraContainerConfig | object | `{}` |  |
-| operator.manager.deployment.extraEnv | list | `[]` |  |
-| operator.manager.deployment.labels | object | `{}` |  |
-| operator.manager.deployment.nodeSelector | object | `{}` |  |
-| operator.manager.deployment.podSecurityContext | object | `{}` |  |
-| operator.manager.deployment.replicas | int | `1` |  |
-| operator.manager.deployment.resources.limits.cpu | string | `"2000m"` |  |
-| operator.manager.deployment.resources.limits.memory | string | `"4Gi"` |  |
-| operator.manager.deployment.resources.requests.cpu | string | `"1000m"` |  |
-| operator.manager.deployment.resources.requests.memory | string | `"2Gi"` |  |
-| operator.manager.deployment.securityContext | object | `{}` |  |
-| operator.manager.deployment.sidecars | list | `[]` |  |
-| operator.manager.deployment.terminationGracePeriodSeconds | int | `30` |  |
-| operator.manager.deployment.tolerations | list | `[]` |  |
-| operator.manager.deployment.topologySpreadConstraints | list | `[]` |  |
-| operator.manager.deployment.volumeMounts | list | `[]` |  |
-| operator.manager.deployment.volumes | list | `[]` |  |
-| operator.manager.name | string | `"manager"` |  |
-| operator.manager.pdb.enabled | bool | `false` |  |
-| operator.manager.pdb.minAvailable | int | `1` |  |
-| operator.manager.rbac.annotations | object | `{}` |  |
-| operator.manager.rbac.create | bool | `true` |  |
-| operator.manager.rbac.labels | object | `{}` |  |
-| operator.manager.serviceAccount.annotations | object | `{}` |  |
-| operator.manager.serviceAccount.create | bool | `true` |  |
-| operator.manager.serviceAccount.labels | object | `{}` |  |
-| operator.manager.serviceAccount.name | string | `""` |  |
+| operator.name | string | `"operator"` |  |
+| operator.pdb.enabled | bool | `false` |  |
+| operator.pdb.minAvailable | int | `1` |  |
+| operator.rbac.annotations | object | `{}` |  |
+| operator.rbac.create | bool | `true` |  |
+| operator.rbac.labels | object | `{}` |  |
+| operator.serviceAccount.annotations | object | `{}` |  |
+| operator.serviceAccount.create | bool | `true` |  |
+| operator.serviceAccount.labels | object | `{}` |  |
+| operator.serviceAccount.name | string | `""` |  |
+| operator.watchNamespaces | string | `""` |  |
 
 ## Redis
 
