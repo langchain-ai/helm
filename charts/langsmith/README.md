@@ -12,12 +12,6 @@ Helm chart to deploy the langsmith application and all services it depends on.
 
 For information on how to use this chart, up-to-date release notes, and other guides please check out the [documentation.](https://docs.smith.langchain.com/self_hosting)
 
-## Requirements
-
-| Repository | Name | Version |
-|------------|------|---------|
-| https://langchain-ai.github.io/helm/ | operator(langgraph-operator) | 0.1.5 |
-
 ## General parameters
 
 | Key | Type | Default | Description |
@@ -42,6 +36,9 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | images.hostBackendImage.repository | string | `"docker.io/langchain/hosted-langserve-backend"` |  |
 | images.hostBackendImage.tag | string | `"0.9.78"` |  |
 | images.imagePullSecrets | list | `[]` | Secrets with credentials to pull images from a private registry. Specified as name: value. |
+| images.operatorImage.pullPolicy | string | `"IfNotPresent"` |  |
+| images.operatorImage.repository | string | `"docker.io/langchain/langsmith-operator"` |  |
+| images.operatorImage.tag | string | `"e39cfb8"` |  |
 | images.platformBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.platformBackendImage.repository | string | `"docker.io/langchain/langsmith-go-backend"` |  |
 | images.platformBackendImage.tag | string | `"0.9.78"` |  |
@@ -608,46 +605,39 @@ For information on how to use this chart, up-to-date release notes, and other gu
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| operator.commonAnnotations | object | `{}` |  |
-| operator.commonEnv | list | `[]` |  |
-| operator.commonLabels | object | `{}` |  |
-| operator.config.createCRDs | bool | `true` |  |
-| operator.config.watchNamespaces | string | `""` |  |
+| operator.createCRDs | bool | `true` |  |
+| operator.deployment.affinity | object | `{}` |  |
+| operator.deployment.annotations | object | `{}` |  |
+| operator.deployment.autoRestart | bool | `true` |  |
+| operator.deployment.extraContainerConfig | object | `{}` |  |
+| operator.deployment.extraEnv | list | `[]` |  |
+| operator.deployment.labels | object | `{}` |  |
+| operator.deployment.nodeSelector | object | `{}` |  |
+| operator.deployment.podSecurityContext | object | `{}` |  |
+| operator.deployment.replicas | int | `1` |  |
+| operator.deployment.resources.limits.cpu | string | `"2000m"` |  |
+| operator.deployment.resources.limits.memory | string | `"4Gi"` |  |
+| operator.deployment.resources.requests.cpu | string | `"1000m"` |  |
+| operator.deployment.resources.requests.memory | string | `"2Gi"` |  |
+| operator.deployment.securityContext | object | `{}` |  |
+| operator.deployment.sidecars | list | `[]` |  |
+| operator.deployment.terminationGracePeriodSeconds | int | `30` |  |
+| operator.deployment.tolerations | list | `[]` |  |
+| operator.deployment.topologySpreadConstraints | list | `[]` |  |
+| operator.deployment.volumeMounts | list | `[]` |  |
+| operator.deployment.volumes | list | `[]` |  |
 | operator.enabled | bool | `true` |  |
-| operator.images.imagePullSecrets | list | `[]` |  |
-| operator.images.operatorImage.pullPolicy | string | `"IfNotPresent"` |  |
-| operator.images.operatorImage.repository | string | `"docker.io/langchain/langgraph-operator"` |  |
-| operator.images.operatorImage.tag | string | `"e39cfb8"` |  |
-| operator.manager.deployment.affinity | object | `{}` |  |
-| operator.manager.deployment.annotations | object | `{}` |  |
-| operator.manager.deployment.autoRestart | bool | `true` |  |
-| operator.manager.deployment.extraContainerConfig | object | `{}` |  |
-| operator.manager.deployment.extraEnv | list | `[]` |  |
-| operator.manager.deployment.labels | object | `{}` |  |
-| operator.manager.deployment.nodeSelector | object | `{}` |  |
-| operator.manager.deployment.podSecurityContext | object | `{}` |  |
-| operator.manager.deployment.replicas | int | `1` |  |
-| operator.manager.deployment.resources.limits.cpu | string | `"2000m"` |  |
-| operator.manager.deployment.resources.limits.memory | string | `"4Gi"` |  |
-| operator.manager.deployment.resources.requests.cpu | string | `"1000m"` |  |
-| operator.manager.deployment.resources.requests.memory | string | `"2Gi"` |  |
-| operator.manager.deployment.securityContext | object | `{}` |  |
-| operator.manager.deployment.sidecars | list | `[]` |  |
-| operator.manager.deployment.terminationGracePeriodSeconds | int | `30` |  |
-| operator.manager.deployment.tolerations | list | `[]` |  |
-| operator.manager.deployment.topologySpreadConstraints | list | `[]` |  |
-| operator.manager.deployment.volumeMounts | list | `[]` |  |
-| operator.manager.deployment.volumes | list | `[]` |  |
-| operator.manager.name | string | `"manager"` |  |
-| operator.manager.pdb.enabled | bool | `false` |  |
-| operator.manager.pdb.minAvailable | int | `1` |  |
-| operator.manager.rbac.annotations | object | `{}` |  |
-| operator.manager.rbac.create | bool | `true` |  |
-| operator.manager.rbac.labels | object | `{}` |  |
-| operator.manager.serviceAccount.annotations | object | `{}` |  |
-| operator.manager.serviceAccount.create | bool | `true` |  |
-| operator.manager.serviceAccount.labels | object | `{}` |  |
-| operator.manager.serviceAccount.name | string | `""` |  |
+| operator.name | string | `"operator"` |  |
+| operator.pdb.enabled | bool | `false` |  |
+| operator.pdb.minAvailable | int | `1` |  |
+| operator.rbac.annotations | object | `{}` |  |
+| operator.rbac.create | bool | `true` |  |
+| operator.rbac.labels | object | `{}` |  |
+| operator.serviceAccount.annotations | object | `{}` |  |
+| operator.serviceAccount.create | bool | `true` |  |
+| operator.serviceAccount.labels | object | `{}` |  |
+| operator.serviceAccount.name | string | `""` |  |
+| operator.watchNamespaces | string | `""` |  |
 
 ## Platform Backend
 

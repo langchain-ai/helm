@@ -8,6 +8,10 @@ config:
     initialOrgAdminEmail: "youremail@corp.dev"
     initialOrgAdminPassword: "TestLangSmith123!"
     jwtSecret: "YOUR_JWT_SECRET"
+  langgraphPlatform:
+    enabled: true
+    langgraphPlatformLicenseKey: "YOUR_LANGGRAPH_PLATFORM_LICENSE_KEY"
+
 
 aceBackend:
   deployment:
@@ -109,13 +113,59 @@ hostBackend:
       requests:
         cpu: 100m
         memory: 500Mi
+    podSecurityContext:
+      runAsNonRoot: true
+      runAsUser: 1000
+      runAsGroup: 1000
+      fsGroup: 1000
+    securityContext:
+      capabilities:
+        drop:
+          - ALL
+      seccompProfile:
+        type: RuntimeDefault
+      allowPrivilegeEscalation: false
+      readOnlyRootFilesystem: true
 
-hostQueue:
+listener:
   deployment:
     resources:
       requests:
         cpu: 100m
         memory: 500Mi
+    podSecurityContext:
+      runAsNonRoot: true
+      runAsUser: 1000
+      runAsGroup: 1000
+      fsGroup: 1000
+    securityContext:
+      capabilities:
+        drop:
+          - ALL
+      seccompProfile:
+        type: RuntimeDefault
+      allowPrivilegeEscalation: false
+      readOnlyRootFilesystem: true
+
+operator:
+  deployment:
+    resources:
+      requests:
+        cpu: 100m
+        memory: 500Mi
+    podSecurityContext:
+      runAsNonRoot: true
+      runAsUser: 1000
+      runAsGroup: 1000
+      fsGroup: 1000
+    securityContext:
+      capabilities:
+        drop:
+          - ALL
+      seccompProfile:
+        type: RuntimeDefault
+      allowPrivilegeEscalation: false
+      readOnlyRootFilesystem: true
 
 frontend:
   deployment:

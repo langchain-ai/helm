@@ -10,6 +10,7 @@ version: 0.9.30
 appVersion: "0.9.78"
 =======
 appVersion: "0.9.77"
+<<<<<<< HEAD
 >>>>>>> e6e0324 (docs)
 dependencies:
   - name: langgraph-operator
@@ -17,3 +18,5 @@ dependencies:
     condition: config.langgraphPlatform.enabled and operator.enabled
     repository: https://langchain-ai.github.io/helm/
     version: 0.1.5
+=======
+>>>>>>> 23fcb0a (use operator directly)

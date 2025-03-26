@@ -385,6 +385,14 @@ Template containing common environment variables that are used by several servic
 {{- end -}}
 {{- end -}}
 
+{{- define "operator.serviceAccountName" -}}
+{{- if .Values.operator.serviceAccount.create -}}
+    {{ default (printf "%s-%s" (include "langsmith.fullname" .) .Values.operator.name) .Values.operator.serviceAccount.name | trunc 63 | trimSuffix "-" }}
+{{- else -}}
+    {{ default "default" .Values.operator.serviceAccount.name }}
+{{- end -}}
+{{- end -}}
+
 {{- define "platformBackend.serviceAccountName" -}}
 {{- if .Values.platformBackend.serviceAccount.create -}}
     {{ default (printf "%s-%s" (include "langsmith.fullname" .) .Values.platformBackend.name) .Values.platformBackend.serviceAccount.name | trunc 63 | trimSuffix "-" }}
