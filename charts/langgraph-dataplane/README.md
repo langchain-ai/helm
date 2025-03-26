@@ -139,6 +139,44 @@ Helm chart to deploy a langgraph dataplane on kubernetes.
 | listener.serviceAccount.labels | object | `{}` |  |
 | listener.serviceAccount.name | string | `""` |  |
 
+## Operator (Optional, deployed as sub-chart)
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| operator.config.createCRDs | bool | `true` |  |
+| operator.config.watchNamespaces | string | `""` |  |
+| operator.enabled | bool | `true` |  |
+| operator.manager.deployment.affinity | object | `{}` |  |
+| operator.manager.deployment.annotations | object | `{}` |  |
+| operator.manager.deployment.autoRestart | bool | `true` |  |
+| operator.manager.deployment.extraContainerConfig | object | `{}` |  |
+| operator.manager.deployment.extraEnv | list | `[]` |  |
+| operator.manager.deployment.labels | object | `{}` |  |
+| operator.manager.deployment.nodeSelector | object | `{}` |  |
+| operator.manager.deployment.podSecurityContext | object | `{}` |  |
+| operator.manager.deployment.replicas | int | `1` |  |
+| operator.manager.deployment.resources.limits.cpu | string | `"2000m"` |  |
+| operator.manager.deployment.resources.limits.memory | string | `"4Gi"` |  |
+| operator.manager.deployment.resources.requests.cpu | string | `"1000m"` |  |
+| operator.manager.deployment.resources.requests.memory | string | `"2Gi"` |  |
+| operator.manager.deployment.securityContext | object | `{}` |  |
+| operator.manager.deployment.sidecars | list | `[]` |  |
+| operator.manager.deployment.terminationGracePeriodSeconds | int | `30` |  |
+| operator.manager.deployment.tolerations | list | `[]` |  |
+| operator.manager.deployment.topologySpreadConstraints | list | `[]` |  |
+| operator.manager.deployment.volumeMounts | list | `[]` |  |
+| operator.manager.deployment.volumes | list | `[]` |  |
+| operator.manager.name | string | `"manager"` |  |
+| operator.manager.pdb.enabled | bool | `false` |  |
+| operator.manager.pdb.minAvailable | int | `1` |  |
+| operator.manager.rbac.annotations | object | `{}` |  |
+| operator.manager.rbac.create | bool | `true` |  |
+| operator.manager.rbac.labels | object | `{}` |  |
+| operator.manager.serviceAccount.annotations | object | `{}` |  |
+| operator.manager.serviceAccount.create | bool | `true` |  |
+| operator.manager.serviceAccount.labels | object | `{}` |  |
+| operator.manager.serviceAccount.name | string | `""` |  |
+
 ## Redis
 
 | Key | Type | Default | Description |
