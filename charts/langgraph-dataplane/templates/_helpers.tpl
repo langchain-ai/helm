@@ -121,8 +121,6 @@ Template containing common environment variables that are used by several servic
   value: {{ .Values.config.smithBackendUrl }}
 - name: HOST_WORKER_TENANT_ID
   value: {{ .Values.config.langsmithWorkspaceId }}
-- name: X_SERVICE_AUTH_JWT_SECRET
-  value: "foo"
 {{- end }}
 
 
@@ -131,6 +129,14 @@ Template containing common environment variables that are used by several servic
     {{ default (printf "%s-%s" (include "langgraphDataplane.fullname" .) .Values.listener.name) .Values.listener.serviceAccount.name | trunc 63 | trimSuffix "-" }}
 {{- else -}}
     {{ default "default" .Values.listener.serviceAccount.name }}
+{{- end -}}
+{{- end -}}
+
+{{- define "operator.serviceAccountName" -}}
+{{- if .Values.operator.serviceAccount.create -}}
+    {{ default (printf "%s-%s" (include "langgraphDataplane.fullname" .) .Values.operator.name) .Values.operator.serviceAccount.name | trunc 63 | trimSuffix "-" }}
+{{- else -}}
+    {{ default "default" .Values.operator.serviceAccount.name }}
 {{- end -}}
 {{- end -}}
 

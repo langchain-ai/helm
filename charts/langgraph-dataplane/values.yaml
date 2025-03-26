@@ -17,11 +17,15 @@ images:
   listenerImage:
     repository: "docker.io/langchain/hosted-langserve-backend"
     pullPolicy: IfNotPresent
-    tag: "0.9.68"
+    tag: "0.9.77"
   redisImage:
     repository: "docker.io/redis"
     pullPolicy: IfNotPresent
     tag: "7"
+  operatorImage:
+    repository: "docker.io/langchain/langgraph-operator"
+    pullPolicy: IfNotPresent
+    tag: "e39cfb8"
 
 config:
   existingSecretName: ""
@@ -102,6 +106,53 @@ listener:
   serviceAccount:
     create: true
     name: ""
+    labels: {}
+    annotations: {}
+  rbac:
+    create: true
+    labels: {}
+    annotations: {}
+
+# These values are all passed into the operator subChart.
+operator:
+  name: "operator"
+  enabled: true
+  createCRDs: true
+  watchNamespaces: ""
+  deployment:
+    autoRestart: true
+    replicas: 1
+    labels: {}
+    annotations: {}
+    podSecurityContext: {}
+    securityContext: {}
+    resources:
+      limits:
+        cpu: 2000m
+        memory: 4Gi
+      requests:
+        cpu: 1000m
+        memory: 2Gi
+    extraContainerConfig: {}
+    extraEnv: []
+    sidecars: []
+    nodeSelector: {}
+    tolerations: []
+    topologySpreadConstraints: []
+    affinity: {}
+    volumes: []
+    volumeMounts: []
+    terminationGracePeriodSeconds: 30
+  pdb:
+    enabled: false
+    minAvailable: 1
+  serviceAccount:
+    create: true
+    name: ""
+    labels: {}
+    annotations: {}
+  rbac:
+    create: true
     labels: {}
     annotations: {}
 

@@ -1,6 +1,6 @@
 # langgraph-dataplane
 
-![Version: 0.1.0](https://img.shields.io/badge/Version-0.1.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.1.0](https://img.shields.io/badge/AppVersion-0.1.0-informational?style=flat-square)
+![Version: 0.1.1](https://img.shields.io/badge/Version-0.1.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.1.0](https://img.shields.io/badge/AppVersion-0.1.0-informational?style=flat-square)
 
 Helm chart to deploy a langgraph dataplane on kubernetes.
 
@@ -19,11 +19,47 @@ Helm chart to deploy a langgraph dataplane on kubernetes.
 | images.imagePullSecrets | list | `[]` | Secrets with credentials to pull images from a private registry. Specified as name: value. |
 | images.listenerImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.listenerImage.repository | string | `"docker.io/langchain/hosted-langserve-backend"` |  |
-| images.listenerImage.tag | string | `"0.9.68"` |  |
+| images.listenerImage.tag | string | `"0.9.77"` |  |
+| images.operatorImage.pullPolicy | string | `"IfNotPresent"` |  |
+| images.operatorImage.repository | string | `"docker.io/langchain/langgraph-operator"` |  |
+| images.operatorImage.tag | string | `"e39cfb8"` |  |
 | images.redisImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.redisImage.repository | string | `"docker.io/redis"` |  |
 | images.redisImage.tag | string | `"7"` |  |
 | nameOverride | string | `""` | Provide a name in place of `langgraphDataplane` |
+| operator.createCRDs | bool | `true` |  |
+| operator.deployment.affinity | object | `{}` |  |
+| operator.deployment.annotations | object | `{}` |  |
+| operator.deployment.autoRestart | bool | `true` |  |
+| operator.deployment.extraContainerConfig | object | `{}` |  |
+| operator.deployment.extraEnv | list | `[]` |  |
+| operator.deployment.labels | object | `{}` |  |
+| operator.deployment.nodeSelector | object | `{}` |  |
+| operator.deployment.podSecurityContext | object | `{}` |  |
+| operator.deployment.replicas | int | `1` |  |
+| operator.deployment.resources.limits.cpu | string | `"2000m"` |  |
+| operator.deployment.resources.limits.memory | string | `"4Gi"` |  |
+| operator.deployment.resources.requests.cpu | string | `"1000m"` |  |
+| operator.deployment.resources.requests.memory | string | `"2Gi"` |  |
+| operator.deployment.securityContext | object | `{}` |  |
+| operator.deployment.sidecars | list | `[]` |  |
+| operator.deployment.terminationGracePeriodSeconds | int | `30` |  |
+| operator.deployment.tolerations | list | `[]` |  |
+| operator.deployment.topologySpreadConstraints | list | `[]` |  |
+| operator.deployment.volumeMounts | list | `[]` |  |
+| operator.deployment.volumes | list | `[]` |  |
+| operator.enabled | bool | `true` |  |
+| operator.name | string | `"operator"` |  |
+| operator.pdb.enabled | bool | `false` |  |
+| operator.pdb.minAvailable | int | `1` |  |
+| operator.rbac.annotations | object | `{}` |  |
+| operator.rbac.create | bool | `true` |  |
+| operator.rbac.labels | object | `{}` |  |
+| operator.serviceAccount.annotations | object | `{}` |  |
+| operator.serviceAccount.create | bool | `true` |  |
+| operator.serviceAccount.labels | object | `{}` |  |
+| operator.serviceAccount.name | string | `""` |  |
+| operator.watchNamespaces | string | `""` |  |
 
 ## Configs
 
@@ -89,10 +125,51 @@ Helm chart to deploy a langgraph dataplane on kubernetes.
 | listener.name | string | `"listener"` |  |
 | listener.pdb.enabled | bool | `false` |  |
 | listener.pdb.minAvailable | int | `1` |  |
+| listener.rbac.annotations | object | `{}` |  |
+| listener.rbac.create | bool | `true` |  |
+| listener.rbac.labels | object | `{}` |  |
 | listener.serviceAccount.annotations | object | `{}` |  |
 | listener.serviceAccount.create | bool | `true` |  |
 | listener.serviceAccount.labels | object | `{}` |  |
 | listener.serviceAccount.name | string | `""` |  |
+
+## Operator (Optional, deployed as sub-chart)
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| operator.createCRDs | bool | `true` |  |
+| operator.deployment.affinity | object | `{}` |  |
+| operator.deployment.annotations | object | `{}` |  |
+| operator.deployment.autoRestart | bool | `true` |  |
+| operator.deployment.extraContainerConfig | object | `{}` |  |
+| operator.deployment.extraEnv | list | `[]` |  |
+| operator.deployment.labels | object | `{}` |  |
+| operator.deployment.nodeSelector | object | `{}` |  |
+| operator.deployment.podSecurityContext | object | `{}` |  |
+| operator.deployment.replicas | int | `1` |  |
+| operator.deployment.resources.limits.cpu | string | `"2000m"` |  |
+| operator.deployment.resources.limits.memory | string | `"4Gi"` |  |
+| operator.deployment.resources.requests.cpu | string | `"1000m"` |  |
+| operator.deployment.resources.requests.memory | string | `"2Gi"` |  |
+| operator.deployment.securityContext | object | `{}` |  |
+| operator.deployment.sidecars | list | `[]` |  |
+| operator.deployment.terminationGracePeriodSeconds | int | `30` |  |
+| operator.deployment.tolerations | list | `[]` |  |
+| operator.deployment.topologySpreadConstraints | list | `[]` |  |
+| operator.deployment.volumeMounts | list | `[]` |  |
+| operator.deployment.volumes | list | `[]` |  |
+| operator.enabled | bool | `true` |  |
+| operator.name | string | `"operator"` |  |
+| operator.pdb.enabled | bool | `false` |  |
+| operator.pdb.minAvailable | int | `1` |  |
+| operator.rbac.annotations | object | `{}` |  |
+| operator.rbac.create | bool | `true` |  |
+| operator.rbac.labels | object | `{}` |  |
+| operator.serviceAccount.annotations | object | `{}` |  |
+| operator.serviceAccount.create | bool | `true` |  |
+| operator.serviceAccount.labels | object | `{}` |  |
+| operator.serviceAccount.name | string | `""` |  |
+| operator.watchNamespaces | string | `""` |  |
 
 ## Redis
 
@@ -163,6 +240,6 @@ Helm chart to deploy a langgraph dataplane on kubernetes.
 | Ankush | <ankush@langchain.dev> |  |
 
 ----------------------------------------------
-Autogenerated from chart metadata using [helm-docs v1.14.2](https://github.com/norwoodj/helm-docs/releases/v1.14.2)
+Autogenerated from chart metadata using [helm-docs v1.11.3](https://github.com/norwoodj/helm-docs/releases/v1.11.3)
 ## Docs Generated by [helm-docs](https://github.com/norwoodj/helm-docs)
 `helm-docs -t ./charts/langgraph-cloud/README.md.gotmpl`
