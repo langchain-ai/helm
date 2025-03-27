@@ -78,8 +78,10 @@ spec:
             cpu: 10m
             memory: 64Mi
           {{- end }}
-        {{- with .Values.operator.deployment.volumeMounts }}
         volumeMounts:
+          - name: templates-volume
+            mountPath: /templates
+        {{- with .Values.operator.deployment.volumeMounts }}
           {{- toYaml . | nindent 12 }}
         {{- end }}
         env:
@@ -104,8 +106,18 @@ spec:
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.operator.deployment.volumes }}
       volumes:
+        - name: templates-volume
+          configMap:
+            name: {{ include "langsmith.fullname" . }}-operator-config
+            items:
+              - key: deployment.yaml
+                path: deployment.yaml
+              - key: service.yaml
+                path: service.yaml
+              - key: ingress.yaml
+                path: ingress.yaml
+      {{- with .Values.operator.deployment.volumes }}
         {{- toYaml . | nindent 8 }}
       {{- end }}
 {{- end }}

@@ -1,3 +1,4 @@
+{{- if .Values.operator.enabled }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -13,3 +14,4 @@ data:
 {{ .Values.operator.templates.service | indent 4 }}
   ingress.yaml: |
 {{ .Values.operator.templates.ingress | indent 4 }}
+{{- end }}
