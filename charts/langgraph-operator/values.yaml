@@ -17,13 +17,12 @@ images:
   operatorImage:
     repository: "docker.io/langchain/langgraph-operator"
     pullPolicy: IfNotPresent
-    tag: "e39cfb8"
+    tag: "0a69130"
 
 config:
   createCRDs: true
   watchNamespaces: ""
   templateConfigmapOverride: ""
-
 
 manager:
   name: "manager"
@@ -127,6 +126,8 @@ templates:
     metadata:
       name: ${name}
       namespace: ${namespace}
+      annotations:
+          nginx.ingress.kubernetes.io/rewrite-target: /
     spec:
       ingressClassName: ${ingress.ingressClassName}
       rules:

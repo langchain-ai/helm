@@ -25,6 +25,8 @@ spec:
         {{- with .Values.manager.deployment.annotations }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
+        # Roll the pod if the configmap changes
+        checksum/config: {{ include (print $.Template.BasePath "/template-config-map.yaml") . | sha256sum }}
       labels:
         {{- include "langgraphOperator.labels" . | nindent 8 }}
         app.kubernetes.io/component: {{ include "langgraphOperator.fullname" . }}-operator
@@ -108,8 +110,8 @@ spec:
       volumes:
         - name: templates-volume
           configMap:
-            {{- if .Values.config.deploymentTemplateConfigMapOverride }}
-            name: {{ .Values.config.deploymentTemplateConfigMapOverride }}
+            {{- if .Values.config.templateConfigMapOverride }}
+            name: {{ .Values.config.templateConfigMapOverride }}
             {{- else }}
             name: {{ include "langgraphOperator.fullname" . }}-config
             {{- end }}
