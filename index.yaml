@@ -226,6 +226,19 @@ entries:
   langgraph-operator:
   - apiVersion: v2
     appVersion: 0.1.0
+    created: "2025-03-27T15:59:46.982786592Z"
+    description: Helm chart to deploy the LangGraph Operator
+    digest: 63e810c44f8239af655752ceb6b395d8376367e907cbac19d34fce54546fb525
+    maintainers:
+    - email: ankush@langchain.dev
+      name: Ankush
+    name: langgraph-operator
+    type: application
+    urls:
+    - https://github.com/langchain-ai/helm/releases/download/langgraph-operator-0.1.7/langgraph-operator-0.1.7.tgz
+    version: 0.1.7
+  - apiVersion: v2
+    appVersion: 0.1.0
     created: "2025-03-27T14:53:13.316612545Z"
     description: Helm chart to deploy the LangGraph Operator
     digest: d4798a785a4f77bf2011d5f874c7be734b386554e27dbcfc3e4b04a49dd1331f
@@ -2347,4 +2360,4 @@ entries:
     urls:
     - https://github.com/langchain-ai/helm/releases/download/open-gpts-0.1.0/open-gpts-0.1.0.tgz
     version: 0.1.0
-generated: "2025-03-27T14:53:13.317170402Z"
+generated: "2025-03-27T15:59:46.983177247Z"
