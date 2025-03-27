@@ -18,7 +18,7 @@ spec:
   selector:
     matchLabels:
       {{- include "langgraphOperator.selectorLabels" . | nindent 6 }}
-      app.kubernetes.io/component: {{ include "langgraphOperator.fullname" . }}-operator
+      app.kubernetes.io/component: {{ include "langgraphOperator.fullname" . }}-{{ .Values.manager.name }}
   template:
     metadata:
       annotations:
@@ -29,7 +29,7 @@ spec:
         checksum/config: {{ include (print $.Template.BasePath "/manager/config-map.yaml") . | sha256sum }}
       labels:
         {{- include "langgraphOperator.labels" . | nindent 8 }}
-        app.kubernetes.io/component: {{ include "langgraphOperator.fullname" . }}-operator
+        app.kubernetes.io/component: {{ include "langgraphOperator.fullname" . }}-{{ .Values.manager.name }}
         {{- with .Values.manager.deployment.labels }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
