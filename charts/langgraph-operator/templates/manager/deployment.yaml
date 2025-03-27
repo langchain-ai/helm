@@ -77,10 +77,12 @@ spec:
             cpu: 10m
             memory: 64Mi
           {{- end }}
-        {{- with .Values.manager.deployment.volumeMounts }}
         volumeMounts:
-          {{- toYaml . | nindent 12 }}
-        {{- end }}
+          - name: templates-volume
+            mountPath: /templates
+          {{- with .Values.manager.deployment.volumeMounts }}
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
         env:
           - name: WATCH_NAMESPACE
             value: {{ .Values.config.watchNamespaces | quote }}
@@ -103,6 +105,21 @@ spec:
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      volumes:
+        - name: templates-volume
+          configMap:
+            {{- if .Values.config.deploymentTemplateConfigMapOverride }}
+            name: {{ .Values.config.deploymentTemplateConfigMapOverride }}
+            {{- else }}
+            name: {{ include "langgraphOperator.fullname" . }}-config
+            {{- end }}
+            items:
+              - key: deployment.yaml
+                path: deployment.yaml
+              - key: service.yaml
+                path: service.yaml
+              - key: ingress.yaml
+                path: ingress.yaml
       {{- with .Values.manager.deployment.volumes }}
       volumes:
         {{- toYaml . | nindent 8 }}
