@@ -8,8 +8,8 @@ metadata:
     {{- include "langgraphOperator.annotations" . | nindent 4 }}
 data:
   deployment.yaml: |
-{{ .Values.templates.deployment | indent 4 }}
+{{ .Values.manager.templates.deployment | indent 4 }}
   service.yaml: |
-{{ .Values.templates.service | indent 4 }}
+{{ .Values.manager.templates.service | indent 4 }}
   ingress.yaml: |
-{{ .Values.templates.ingress | indent 4 }}
+{{ .Values.manager.templates.ingress | indent 4 }}
