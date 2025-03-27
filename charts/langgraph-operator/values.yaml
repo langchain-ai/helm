@@ -17,7 +17,7 @@ images:
   operatorImage:
     repository: "docker.io/langchain/langgraph-operator"
     pullPolicy: IfNotPresent
-    tag: "e39cfb8"
+    tag: "aa9dff4"
 
 config:
   createCRDs: true
@@ -61,3 +61,77 @@ manager:
     create: true
     labels: {}
     annotations: {}
+  # These templates are used by the operator as the base spec for creating resources.
+  templates:
+    deployment: |
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: ${name}
+        namespace: ${namespace}
+      spec:
+        replicas: ${replicas}
+        selector:
+          matchLabels:
+            app: ${name}
+        template:
+          metadata:
+            labels:
+              app: ${name}
+          spec:
+            enableServiceLinks: false
+            containers:
+            - name: api-server
+              image: ${image}
+              ports:
+              - name: api-server
+                containerPort: 8000
+                protocol: TCP
+              livenessProbe:
+                httpGet:
+                  path: /ok?check_db=1
+                  port: 8000
+                initialDelaySeconds: 90
+                periodSeconds: 5
+                timeoutSeconds: 5
+              readinessProbe:
+                httpGet:
+                  path: /ok
+                  port: 8000
+                initialDelaySeconds: 90
+                periodSeconds: 5
+                timeoutSeconds: 5
+    service: |
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: ${name}
+        namespace: ${namespace}
+      spec:
+        type: ClusterIP
+        selector:
+          app: ${name}
+        ports:
+        - name: api-server
+          protocol: TCP
+          port: 8000
+          targetPort: 8000
+    ingress: |
+      apiVersion: networking.k8s.io/v1
+      kind: Ingress
+      metadata:
+        name: ${name}
+        namespace: ${namespace}
+      spec:
+        ingressClassName: ${ingress.ingressClassName}
+        rules:
+        - host: ${ingress.hostname}
+          http:
+            paths:
+            - path: /
+              pathType: Prefix
+              backend:
+                service:
+                  name: ${name}
+                  port:
+                    number: 8000

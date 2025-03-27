@@ -25,6 +25,8 @@ spec:
         {{- with .Values.manager.deployment.annotations }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
+        # Roll the pod if the configmap changes
+        checksum/config: {{ include (print $.Template.BasePath "/manager/config-map.yaml") . | sha256sum }}
       labels:
         {{- include "langgraphOperator.labels" . | nindent 8 }}
         app.kubernetes.io/component: {{ include "langgraphOperator.fullname" . }}-operator
@@ -77,10 +79,12 @@ spec:
             cpu: 10m
             memory: 64Mi
           {{- end }}
-        {{- with .Values.manager.deployment.volumeMounts }}
         volumeMounts:
-          {{- toYaml . | nindent 12 }}
-        {{- end }}
+          - name: templates-volume
+            mountPath: /templates
+          {{- with .Values.manager.deployment.volumeMounts }}
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
         env:
           - name: WATCH_NAMESPACE
             value: {{ .Values.config.watchNamespaces | quote }}
@@ -103,7 +107,17 @@ spec:
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.manager.deployment.volumes }}
       volumes:
+        - name: templates-volume
+          configMap:
+            name: {{ include "langgraphOperator.fullname" . }}-config
+            items:
+              - key: deployment.yaml
+                path: deployment.yaml
+              - key: service.yaml
+                path: service.yaml
+              - key: ingress.yaml
+                path: ingress.yaml
+      {{- with .Values.manager.deployment.volumes }}
         {{- toYaml . | nindent 8 }}
       {{- end }}
