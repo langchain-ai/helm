@@ -1,12 +1,12 @@
-{{- if .Values.operator.enabled }}
+{{- if and .Values.config.langgraphPlatform.enabled .Values.operator.enabled }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ include "langgraphDataplane.fullname" . }}-config
+  name: {{ include "langsmith.fullname" . }}-operator-config
   labels:
-    {{- include "langgraphDataplane.labels" . | nindent 4 }}
+    {{- include "langsmith.labels" . | nindent 4 }}
   annotations:
-    {{- include "langgraphDataplane.annotations" . | nindent 4 }}
+    {{- include "langsmith.annotations" . | nindent 4 }}
 data:
   deployment.yaml: |
 {{ .Values.operator.templates.deployment | indent 4 }}

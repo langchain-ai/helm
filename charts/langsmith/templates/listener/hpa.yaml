@@ -1,0 +1,32 @@
+{{- if and .Values.listener.autoscaling.enabled .Values.listener.autoscaling.createHpa .Values.config.langgraphPlatform.enabled }}
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ include "langsmith.fullname" . }}-{{ .Values.listener.name }}
+  labels:
+    {{- include "langsmith.labels" . | nindent 4 }}
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ include "langsmith.fullname" . }}-{{ .Values.listener.name }}
+  minReplicas: {{ .Values.listener.autoscaling.minReplicas }}
+  maxReplicas: {{ .Values.listener.autoscaling.maxReplicas }}
+  metrics:
+    {{- if .Values.listener.autoscaling.targetCPUUtilizationPercentage }}
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.listener.autoscaling.targetCPUUtilizationPercentage }}
+    {{- end }}
+    {{- if .Values.listener.autoscaling.targetMemoryUtilizationPercentage }}
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.listener.autoscaling.targetMemoryUtilizationPercentage }}
+    {{- end }}
+{{- end }}

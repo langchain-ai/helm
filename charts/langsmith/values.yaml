@@ -30,6 +30,10 @@ images:
     repository: "docker.io/langchain/hosted-langserve-backend"
     pullPolicy: IfNotPresent
     tag: "0.9.78"
+  operatorImage:
+    repository: "docker.io/langchain/langgraph-operator"
+    pullPolicy: IfNotPresent
+    tag: "aa9dff4"
   platformBackendImage:
     repository: "docker.io/langchain/langsmith-go-backend"
     pullPolicy: IfNotPresent
@@ -50,6 +54,7 @@ images:
     repository: "docker.io/clickhouse/clickhouse-server"
     pullPolicy: Always
     tag: "24.8"
+
 
 ingress:
   enabled: false
@@ -684,12 +689,16 @@ hostBackend:
     name: ""
     labels: {}
     annotations: {}
+  rbac:
+    create: true
+    labels: {}
+    annotations: {}
 
-hostQueue:
-  name: "host-queue"
+listener:
+  name: "listener"
   deployment:
     autoRestart: true
-    replicas: 3
+    replicas: 1
     labels: {}
     annotations: {}
     podSecurityContext: {}
@@ -759,6 +768,10 @@ hostQueue:
   serviceAccount:
     create: true
     name: ""
+    labels: {}
+    annotations: {}
+  rbac:
+    create: true
     labels: {}
     annotations: {}
 
@@ -839,6 +852,121 @@ platformBackend:
     name: ""
     labels: {}
     annotations: {}
+
+operator:
+  name: "operator"
+  enabled: true
+  createCRDs: true
+  watchNamespaces: ""
+  deployment:
+    autoRestart: true
+    replicas: 1
+    labels: {}
+    annotations: {}
+    podSecurityContext: {}
+    securityContext: {}
+    resources:
+      limits:
+        cpu: 2000m
+        memory: 4Gi
+      requests:
+        cpu: 1000m
+        memory: 2Gi
+    extraContainerConfig: {}
+    extraEnv: []
+    sidecars: []
+    nodeSelector: {}
+    tolerations: []
+    topologySpreadConstraints: []
+    affinity: {}
+    volumes: []
+    volumeMounts: []
+    terminationGracePeriodSeconds: 30
+  pdb:
+    enabled: false
+    minAvailable: 1
+  serviceAccount:
+    create: true
+    name: ""
+    labels: {}
+    annotations: {}
+  rbac:
+    create: true
+    labels: {}
+    annotations: {}
+  # These templates are used by the operator as the base spec for creating resources.
+  templates:
+    deployment: |
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: ${name}
+        namespace: ${namespace}
+      spec:
+        replicas: ${replicas}
+        selector:
+          matchLabels:
+            app: ${name}
+        template:
+          metadata:
+            labels:
+              app: ${name}
+          spec:
+            enableServiceLinks: false
+            containers:
+            - name: api-server
+              image: ${image}
+              ports:
+              - name: api-server
+                containerPort: 8000
+                protocol: TCP
+              livenessProbe:
+                httpGet:
+                  path: /ok?check_db=1
+                  port: 8000
+                initialDelaySeconds: 90
+                periodSeconds: 5
+                timeoutSeconds: 5
+              readinessProbe:
+                httpGet:
+                  path: /ok
+                  port: 8000
+                initialDelaySeconds: 90
+                periodSeconds: 5
+                timeoutSeconds: 5
+    service: |
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: ${name}
+        namespace: ${namespace}
+      spec:
+        type: ClusterIP
+        selector:
+          app: ${name}
+        ports:
+        - name: api-server
+          protocol: TCP
+          port: 8000
+          targetPort: 8000
+    ingress: |
+      apiVersion: networking.k8s.io/v1
+      kind: Ingress
+      metadata:
+        name: ${name}
+        namespace: ${namespace}
+      spec:
+        ingressClassName: ${ingress.ingressClassName}
+        rules:
+        - http:
+            paths:
+            - path: /
+              pathType: Prefix
+              backend:
+                service:
+                  name: ${name}
+                  port:
+                    number: 8000
 
 playground:
   name: "playground"

@@ -35,7 +35,14 @@ hostBackend:
         cpu: 100m
         memory: 500Mi
 
-hostQueue:
+listener:
+  deployment:
+    resources:
+      requests:
+        cpu: 100m
+        memory: 500Mi
+
+operator:
   deployment:
     resources:
       requests:

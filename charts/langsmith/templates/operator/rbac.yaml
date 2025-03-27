@@ -1,4 +1,4 @@
-{{- if and .Values.operator.enabled .Values.operator.rbac.create -}}
+{{- if and .Values.config.langgraphPlatform.enabled .Values.operator.enabled .Values.operator.rbac.create -}}
 {{- if .Values.operator.watchNamespaces }}
 {{- $watchNamespacesList := splitList "," .Values.operator.watchNamespaces }}
 {{- range $ns := $watchNamespacesList }}
@@ -9,12 +9,12 @@ metadata:
   name: {{ include "operator.serviceAccountName" $ }}-role
   namespace: {{ $ns | trim }}
   labels:
-    {{- include "langgraphDataplane.labels" $ | nindent 4 }}
+    {{- include "langsmith.labels" $ | nindent 4 }}
     {{- with $.Values.operator.rbac.labels }}
       {{- toYaml . | nindent 4 }}
     {{- end }}
   annotations:
-    {{- include "langgraphDataplane.annotations" $ | nindent 4 }}
+    {{- include "langsmith.annotations" $ | nindent 4 }}
     {{- with $.Values.operator.rbac.annotations }}
       {{- toYaml . | nindent 4 }}
     {{- end }}
@@ -129,12 +129,12 @@ metadata:
   name: {{ include "operator.serviceAccountName" $ }}-rolebinding
   namespace: {{ $ns | trim }}
   labels:
-    {{- include "langgraphDataplane.labels" $ | nindent 4 }}
+    {{- include "langsmith.labels" $ | nindent 4 }}
     {{- with $.Values.operator.rbac.labels }}
       {{- toYaml . | nindent 4 }}
     {{- end }}
   annotations:
-    {{- include "langgraphDataplane.annotations" $ | nindent 4 }}
+    {{- include "langsmith.annotations" $ | nindent 4 }}
     {{- with $.Values.operator.rbac.annotations }}
       {{- toYaml . | nindent 4 }}
     {{- end }}
@@ -155,12 +155,12 @@ kind: ClusterRole
 metadata:
   name: {{ include "operator.serviceAccountName" . }}-role
   labels:
-    {{- include "langgraphDataplane.labels" . | nindent 4 }}
+    {{- include "langsmith.labels" . | nindent 4 }}
     {{- with.Values.operator.rbac.labels }}
       {{- toYaml . | nindent 4 }}
     {{- end }}
   annotations:
-    {{- include "langgraphDataplane.annotations" . | nindent 4 }}
+    {{- include "langsmith.annotations" . | nindent 4 }}
     {{- with.Values.operator.rbac.annotations }}
       {{- toYaml . | nindent 4 }}
     {{- end }}
@@ -274,12 +274,12 @@ kind: ClusterRoleBinding
 metadata:
   name: {{ include "operator.serviceAccountName" . }}-rolebinding
   labels:
-    {{- include "langgraphDataplane.labels" . | nindent 4 }}
+    {{- include "langsmith.labels" . | nindent 4 }}
     {{- with.Values.operator.rbac.labels }}
       {{- toYaml . | nindent 4 }}
     {{- end }}
   annotations:
-    {{- include "langgraphDataplane.annotations" . | nindent 4 }}
+    {{- include "langsmith.annotations" . | nindent 4 }}
     {{- with.Values.operator.rbac.annotations }}
       {{- toYaml . | nindent 4 }}
     {{- end }}
@@ -299,12 +299,12 @@ metadata:
   name: {{ include "operator.serviceAccountName" . }}-leader-election-role
   namespace: {{ .Release.Namespace }}
   labels:
-    {{- include "langgraphDataplane.labels" . | nindent 4 }}
+    {{- include "langsmith.labels" . | nindent 4 }}
     {{- with.Values.operator.rbac.labels }}
       {{- toYaml . | nindent 4 }}
     {{- end }}
   annotations:
-    {{- include "langgraphDataplane.annotations" . | nindent 4 }}
+    {{- include "langsmith.annotations" . | nindent 4 }}
     {{- with.Values.operator.rbac.annotations }}
       {{- toYaml . | nindent 4 }}
     {{- end }}
@@ -348,12 +348,12 @@ metadata:
   name: {{ include "operator.serviceAccountName" . }}-leader-election-rolebinding
   namespace: {{ .Release.Namespace }}
   labels:
-    {{- include "langgraphDataplane.labels" . | nindent 4 }}
+    {{- include "langsmith.labels" . | nindent 4 }}
     {{- with.Values.operator.rbac.labels }}
       {{- toYaml . | nindent 4 }}
     {{- end }}
   annotations:
-    {{- include "langgraphDataplane.annotations" . | nindent 4 }}
+    {{- include "langsmith.annotations" . | nindent 4 }}
     {{- with.Values.operator.rbac.annotations }}
       {{- toYaml . | nindent 4 }}
     {{- end }}

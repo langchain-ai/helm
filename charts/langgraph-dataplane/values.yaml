@@ -217,10 +217,9 @@ operator:
         name: ${name}
         namespace: ${namespace}
       spec:
-        ingressClassName: ${ingress.ingressClassName}
+        ingressClassName: ${ingress.ingressClassName} 
         rules:
-        - host: ${ingress.hostname}
-          http:
+        - http:
             paths:
             - path: /
               pathType: Prefix
