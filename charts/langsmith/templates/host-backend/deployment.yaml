@@ -1,8 +1,6 @@
 {{- define "hostBackendEnvVars" -}}
 - name: PORT
   value: {{ .Values.hostBackend.containerPort | quote }}
-- name: "HOST_COMPUTE_PLATFORM"
-  value: "k8s_operator"
 {{- end -}}
 {{- $envVars := concat (include "langsmith.commonEnv" . | fromYamlArray ) (include "hostBackendEnvVars" . | fromYamlArray) .Values.hostBackend.deployment.extraEnv -}}
 {{- include "langsmith.detectDuplicates" $envVars -}}

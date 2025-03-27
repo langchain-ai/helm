@@ -1,4 +1,4 @@
-# Default values for the langsmith ukm chart. Refer to documentation on individual values for help with configuration.
+# Default values for the langsmith helm chart. Refer to documentation on individual values for help with configuration.
 
 # -- Provide a name in place of `langsmith`
 nameOverride: ""
