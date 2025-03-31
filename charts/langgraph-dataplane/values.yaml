@@ -33,6 +33,8 @@ config:
   hostBackendUrl: "https://api.host.langchain.com"
   smithBackendUrl: "https://api.smith.langchain.com"
   langsmithWorkspaceId: ""
+  rootDomain: ""  # e.g. "langgraph.example.com" - this is used as the root domain for all deployments. If this is not set, we will default to using internal kubernetes urls.
+
 
 listener:
   name: "listener"

@@ -72,6 +72,7 @@ config:
   langgraphPlatform:
     enabled: false
     langgraphPlatformLicenseKey: ""
+    rootDomain: ""  # e.g. "langgraph.example.com" - this is used as the root domain for all deployments. If this is not set, we will default to using internal kubernetes urls.
 
   # -- Salt used to generate the API key. Should be a random string.
   apiKeySalt: ""
