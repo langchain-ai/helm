@@ -332,6 +332,8 @@ Template containing common environment variables that are used by several servic
   value: "true"
 - name: LANGCHAIN_ENDPOINT
   value: "http://{{ include "langsmith.fullname" . }}-{{ .Values.frontend.name }}.{{ .Release.Namespace }}:{{ .Values.frontend.service.httpPort }}/api/v1"
+- name: HOSTED_K8S_ROOT_DOMAIN
+  value: {{ .Values.config.langgraphPlatform.rootDomain | quote }}
 {{- end }}
 {{- end }}
 

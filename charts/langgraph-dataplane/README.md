@@ -1,6 +1,6 @@
 # langgraph-dataplane
 
-![Version: 0.1.3](https://img.shields.io/badge/Version-0.1.3-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.1.0](https://img.shields.io/badge/AppVersion-0.1.0-informational?style=flat-square)
+![Version: 0.1.4](https://img.shields.io/badge/Version-0.1.4-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.1.0](https://img.shields.io/badge/AppVersion-0.1.0-informational?style=flat-square)
 
 Helm chart to deploy a langgraph dataplane on kubernetes.
 
@@ -72,6 +72,7 @@ Helm chart to deploy a langgraph dataplane on kubernetes.
 | config.hostBackendUrl | string | `"https://api.host.langchain.com"` |  |
 | config.langsmithApiKey | string | `""` |  |
 | config.langsmithWorkspaceId | string | `""` |  |
+| config.rootDomain | string | `""` |  |
 | config.smithBackendUrl | string | `"https://api.smith.langchain.com"` |  |
 
 ## Listener

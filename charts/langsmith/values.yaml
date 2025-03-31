@@ -68,10 +68,11 @@ ingress:
 config:
   existingSecretName: ""
   langsmithLicenseKey: ""
-  # -- Optional. Used to enable the Langgraph platform. If enabled, the license key must be provided.
   langgraphPlatform:
+      # -- Optional. Used to enable the Langgraph platform control plane. If enabled, the license key must be provided.
     enabled: false
     langgraphPlatformLicenseKey: ""
+    rootDomain: ""  # e.g. "langgraph.example.com" - this is used as the root domain for all deployments. If this is not set, we will default to using internal kubernetes urls.
 
   # -- Salt used to generate the API key. Should be a random string.
   apiKeySalt: ""
