@@ -73,7 +73,9 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | config.blobStorage.azureStorageServiceUrlOverride | string | `""` | Optional. Use this to customize the service URL, which by default is 'https://<storage_account_name>.blob.core.windows.net/' |
 | config.existingSecretName | string | `""` |  |
 | config.hostname | string | `""` | Base URL of the LangSmith installation. Used for redirects. |
-| config.langgraphPlatform | object | `{"enabled":false,"langgraphPlatformLicenseKey":"","rootDomain":""}` | Optional. Used to enable the Langgraph platform. If enabled, the license key must be provided. |
+| config.langgraphPlatform.enabled | bool | `false` | Optional. Used to enable the Langgraph platform control plane. If enabled, the license key must be provided. |
+| config.langgraphPlatform.langgraphPlatformLicenseKey | string | `""` |  |
+| config.langgraphPlatform.rootDomain | string | `""` |  |
 | config.langsmithLicenseKey | string | `""` |  |
 | config.logLevel | string | `"info"` |  |
 | config.oauth.enabled | bool | `false` |  |
