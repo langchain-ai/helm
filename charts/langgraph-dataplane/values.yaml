@@ -25,7 +25,7 @@ images:
   operatorImage:
     repository: "docker.io/langchain/langgraph-operator"
     pullPolicy: IfNotPresent
-    tag: "aa9dff4"
+    tag: "c5bebbc"
 
 config:
   existingSecretName: ""
@@ -121,6 +121,7 @@ operator:
   enabled: true
   createCRDs: true
   watchNamespaces: ""
+  kedaEnabled: true
   deployment:
     autoRestart: true
     replicas: 1

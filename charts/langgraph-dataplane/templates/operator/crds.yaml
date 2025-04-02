@@ -55,22 +55,12 @@ spec:
                     - HPA
                     - KEDA
                     type: string
-                  cpuUtilization:
-                    description: CPUUtilization is the target average utilization
-                      for CPU
-                    format: int32
-                    type: integer
                   enabled:
                     description: Enabled indicates if autoscaling should be enabled.
                       If not enabled you must set replicas on the deployment
                     type: boolean
                   maxReplicas:
                     description: MaxReplicas is the maximum number of replicas
-                    format: int32
-                    type: integer
-                  memoryTargetAverageUtilization:
-                    description: MemoryTargetAverageUtilization is the target average
-                      utilization for memory
                     format: int32
                     type: integer
                   minReplicas:

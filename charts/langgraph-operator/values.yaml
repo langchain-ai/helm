@@ -17,11 +17,12 @@ images:
   operatorImage:
     repository: "docker.io/langchain/langgraph-operator"
     pullPolicy: IfNotPresent
-    tag: "aa9dff4"
+    tag: "c5bebbc"
 
 config:
   createCRDs: true
   watchNamespaces: ""
+  kedaEnabled: true
 
 manager:
   name: "manager"
