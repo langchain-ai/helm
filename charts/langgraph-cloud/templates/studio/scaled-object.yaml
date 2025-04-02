@@ -1,0 +1,36 @@
+{{- if and .Values.studio.autoscaling.enabled .Values.studio.autoscaling.keda.enabled }}
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: {{ include "langGraphCloud.fullname" . }}-{{ .Values.studio.name }}
+  labels:
+    {{- include "langGraphCloud.labels" . | nindent 4 }}
+spec:
+  scaleTargetRef:
+    name: {{ include "langGraphCloud.fullname" . }}-{{ .Values.studio.name }}
+  minReplicaCount: {{ .Values.studio.autoscaling.minReplicas | default 1 }}
+  maxReplicaCount: {{ .Values.studio.autoscaling.maxReplicas | default 10 }}
+  pollingInterval: {{ .Values.studio.autoscaling.keda.pollingInterval | default 30 }}
+  cooldownPeriod: {{ .Values.studio.autoscaling.keda.cooldownPeriod | default 300 }}
+  advanced:
+    horizontalPodAutoscalerConfig:
+      behavior:
+        scaleDown:
+          stabilizationWindowSeconds: {{ .Values.studio.autoscaling.keda.scaleDownStabilizationWindowSeconds | default 300 }}
+  triggers:
+    {{- if .Values.studio.autoscaling.targetCPUUtilizationPercentage }}
+    - type: cpu
+      metricType: Utilization
+      metadata:
+        value: "{{ .Values.studio.autoscaling.targetCPUUtilizationPercentage }}"
+    {{- end }}
+    {{- if .Values.studio.autoscaling.targetMemoryUtilizationPercentage }}
+    - type: memory
+      metricType: Utilization
+      metadata:
+        value: "{{ .Values.studio.autoscaling.targetMemoryUtilizationPercentage }}"
+    {{- end }}
+    {{- with .Values.studio.autoscaling.keda.additionalTriggers }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+{{- end }}

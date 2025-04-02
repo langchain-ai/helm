@@ -1,0 +1,20 @@
+{{- if .Values.manager.pdb.enabled }}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "langgraphOperator.fullname" . }}-{{ .Values.manager.name }}
+  labels:
+    {{- include "langgraphOperator.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "langgraphOperator.name" . }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+      app.kubernetes.io/component: {{ .Values.manager.name }}
+  {{- if .Values.manager.pdb.minAvailable }}
+  minAvailable: {{ .Values.manager.pdb.minAvailable }}
+  {{- end }}
+  {{- if .Values.manager.pdb.maxUnavailable }}
+  maxUnavailable: {{ .Values.manager.pdb.maxUnavailable }}
+  {{- end }}
+{{- end }}

@@ -1,6 +1,12 @@
 config:
   langsmithLicenseKey: "YOUR_LICENSE_KEY"
   apiKeySalt: "YOUR_API_KEY_SALT"
+  authType: "mixed"
+  basicAuth:
+    enabled: true
+    initialOrgAdminEmail: "youremail@corp.dev"
+    initialOrgAdminPassword: "TestLangSmith123!"
+    jwtSecret: "YOUR_JWT_SECRET"
   # existingSecretName: "langsmith-config" You can also put the above into a secret if you want to avoid putting the license key in the values file.
 
 ingress:

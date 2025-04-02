@@ -1,0 +1,28 @@
+{{- if .Values.postgres.pdb.enabled }}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "langsmith.fullname" . }}-{{ .Values.postgres.name }}
+  labels:
+    {{- include "langsmith.labels" . | nindent 4 }}
+    {{- with .Values.postgres.pdb.labels }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+  annotations:
+    {{- include "langsmith.annotations" . | nindent 4 }}
+    {{- with .Values.postgres.pdb.annotations }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "langsmith.name" . }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+      app.kubernetes.io/component: {{ .Values.postgres.name }}
+  {{- if .Values.postgres.pdb.minAvailable }}
+  minAvailable: {{ .Values.postgres.pdb.minAvailable }}
+  {{- end }}
+  {{- if .Values.postgres.pdb.maxUnavailable }}
+  maxUnavailable: {{ .Values.postgres.pdb.maxUnavailable }}
+  {{- end }}
+{{- end }}

@@ -112,6 +112,14 @@ the user or some other secret provisioning mechanism
 {{- end -}}
 {{- end -}}
 
+{{- define "queue.serviceAccountName" -}}
+{{- if .Values.queue.serviceAccount.create -}}
+    {{ default (printf "%s-%s" (include "langGraphCloud.fullname" .) .Values.queue.name) .Values.queue.serviceAccount.name | trunc 63 | trimSuffix "-" }}
+{{- else -}}
+    {{ default "default" .Values.queue.serviceAccount.name }}
+{{- end -}}
+{{- end -}}
+
 {{- define "postgres.serviceAccountName" -}}
 {{- if .Values.postgres.serviceAccount.create -}}
     {{ default (printf "%s-%s" (include "langGraphCloud.fullname" .) .Values.postgres.name) .Values.postgres.serviceAccount.name | trunc 63 | trimSuffix "-" }}
