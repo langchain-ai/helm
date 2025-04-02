@@ -87,6 +87,8 @@ spec:
         env:
           - name: WATCH_NAMESPACE
             value: {{ .Values.operator.watchNamespaces | quote }}
+          - name: KEDA_ENABLED
+            value: {{ .Values.operator.kedaEnabled | quote }}
         {{- with .Values.operator.deployment.extraEnv }}
           {{- toYaml . | nindent 12 }}
         {{- end }}

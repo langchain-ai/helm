@@ -88,6 +88,8 @@ spec:
         env:
           - name: WATCH_NAMESPACE
             value: {{ .Values.config.watchNamespaces | quote }}
+          - name: KEDA_ENABLED
+            value: {{ .Values.config.kedaEnabled | quote }}
         {{- with .Values.manager.deployment.extraEnv }}
           {{- toYaml . | nindent 12 }}
         {{- end }}

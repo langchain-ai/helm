@@ -1,6 +1,6 @@
 # langgraph-dataplane
 
-![Version: 0.1.4](https://img.shields.io/badge/Version-0.1.4-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.1.0](https://img.shields.io/badge/AppVersion-0.1.0-informational?style=flat-square)
+![Version: 0.1.5](https://img.shields.io/badge/Version-0.1.5-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.1.0](https://img.shields.io/badge/AppVersion-0.1.0-informational?style=flat-square)
 
 Helm chart to deploy a langgraph dataplane on kubernetes.
 
@@ -22,7 +22,7 @@ Helm chart to deploy a langgraph dataplane on kubernetes.
 | images.listenerImage.tag | string | `"0.9.77"` |  |
 | images.operatorImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.operatorImage.repository | string | `"docker.io/langchain/langgraph-operator"` |  |
-| images.operatorImage.tag | string | `"aa9dff4"` |  |
+| images.operatorImage.tag | string | `"c5bebbc"` |  |
 | images.redisImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.redisImage.repository | string | `"docker.io/redis"` |  |
 | images.redisImage.tag | string | `"7"` |  |
@@ -49,6 +49,7 @@ Helm chart to deploy a langgraph dataplane on kubernetes.
 | operator.deployment.volumeMounts | list | `[]` |  |
 | operator.deployment.volumes | list | `[]` |  |
 | operator.enabled | bool | `true` |  |
+| operator.kedaEnabled | bool | `true` |  |
 | operator.name | string | `"operator"` |  |
 | operator.pdb.enabled | bool | `false` |  |
 | operator.pdb.minAvailable | int | `1` |  |
@@ -163,6 +164,7 @@ Helm chart to deploy a langgraph dataplane on kubernetes.
 | operator.deployment.volumeMounts | list | `[]` |  |
 | operator.deployment.volumes | list | `[]` |  |
 | operator.enabled | bool | `true` |  |
+| operator.kedaEnabled | bool | `true` |  |
 | operator.name | string | `"operator"` |  |
 | operator.pdb.enabled | bool | `false` |  |
 | operator.pdb.minAvailable | int | `1` |  |
