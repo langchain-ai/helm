@@ -1,0 +1,42 @@
+{{- if and .Values.queue.enabled .Values.queue.autoscaling.enabled .Values.queue.autoscaling.keda.enabled }}
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: {{ include "langGraphCloud.fullname" . }}-{{ .Values.queue.name }}
+  labels:
+    {{- include "langGraphCloud.labels" . | nindent 4 }}
+spec:
+  scaleTargetRef:
+    name: {{ include "langGraphCloud.fullname" . }}-{{ .Values.queue.name }}
+  minReplicaCount: {{ .Values.queue.autoscaling.minReplicas | default 1 }}
+  maxReplicaCount: {{ .Values.queue.autoscaling.maxReplicas | default 10 }}
+  pollingInterval: {{ .Values.queue.autoscaling.keda.pollingInterval | default 30 }}
+  cooldownPeriod: {{ .Values.queue.autoscaling.keda.cooldownPeriod | default 300 }}
+  advanced:
+    horizontalPodAutoscalerConfig:
+      behavior:
+        scaleDown:
+          stabilizationWindowSeconds: {{ .Values.queue.autoscaling.keda.scaleDownStabilizationWindowSeconds | default 300 }}
+  triggers:
+    {{- if .Values.queue.autoscaling.targetCPUUtilizationPercentage }}
+    - type: cpu
+      metricType: Utilization
+      metadata:
+        value: "{{ .Values.queue.autoscaling.targetCPUUtilizationPercentage }}"
+    {{- end }}
+    {{- if .Values.queue.autoscaling.targetMemoryUtilizationPercentage }}
+    - type: memory
+      metricType: Utilization
+      metadata:
+        value: "{{ .Values.queue.autoscaling.targetMemoryUtilizationPercentage }}"
+    {{- end }}
+    - type: postgresql
+      metadata:
+        connectionFromEnv: "POSTGRES_URI"
+        query: "SELECT COUNT(*) FROM run WHERE status = 'pending'"
+        targetQueryValue: {{ .Values.config.numberOfJobsPerWorker | quote }}
+        activationTargetQueryValue: {{ .Values.config.numberOfJobsPerWorker | quote }}
+    {{- with .Values.queue.autoscaling.keda.additionalTriggers }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+{{- end }}

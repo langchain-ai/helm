@@ -1,7 +1,0 @@
-config:
-  langsmithLicenseKey: "YOUR_LICENSE_KEY"
-  apiKeySalt: "YOUR_API_KEY_SALT"
-  oauth:
-    enabled: true
-    oauthClientId: "YOUR_CLIENT_ID"
-    oauthIssuerUrl: "YOUR_ISSUER_URL"

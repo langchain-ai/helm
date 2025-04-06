@@ -108,9 +108,11 @@ spec:
             {{- with .Values.postgres.statefulSet.volumeMounts }}
               {{- toYaml . | nindent 12 }}
             {{- end }}
+            {{- if .Values.postgres.statefulSet.persistence.enabled }}
             - mountPath: /var/lib/postgresql/data
               name: data
               subPath: postgres
+            {{- end }}
           {{- with .Values.postgres.statefulSet.extraContainerConfig }}
             {{- toYaml . | nindent 10 }}
           {{- end }}
@@ -133,6 +135,7 @@ spec:
       volumes:
           {{- toYaml . | nindent 8 }}
       {{- end }}
+ {{- if .Values.postgres.statefulSet.persistence.enabled }}
   volumeClaimTemplates:
     - apiVersion: v1
       kind: PersistentVolumeClaim
@@ -150,4 +153,5 @@ spec:
         {{- if .Values.postgres.statefulSet.persistence.storageClassName }}
         storageClassName: {{ .Values.postgres.statefulSet.persistence.storageClassName }}
         {{- end }}
- {{- end}}
+  {{- end }}
+{{- end}}

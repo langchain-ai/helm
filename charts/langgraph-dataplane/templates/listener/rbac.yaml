@@ -1,0 +1,108 @@
+{{- if .Values.listener.rbac.create }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ include "listener.serviceAccountName" $ }}-role
+  labels:
+    {{- include "langgraphDataplane.labels" . | nindent 4 }}
+    {{- with.Values.listener.rbac.labels }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+  annotations:
+    {{- include "langgraphDataplane.annotations" . | nindent 4 }}
+    {{- with.Values.listener.rbac.annotations }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+rules:
+# Create/Read/Delete statefulsets/deployments for dbs
+- apiGroups:
+  - apps
+  resources:
+  - statefulsets
+  - deployments
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+# Read ReplicaSets/Deployments to get statuses
+- apiGroups:
+  - apps
+  resources:
+  - replicasets
+  verbs:
+  - get
+  - list
+  - watch
+# Create/Read/Delete K8s secrets
+- apiGroups:
+  - ""
+  resources:
+  - secrets
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+# Create/Read/Delete K8s services
+- apiGroups:
+  - ""
+  resources:
+  - services
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+# LGP permissions
+- apiGroups:
+  - apps.langchain.ai
+  resources:
+  - lgps
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - apps.langchain.ai
+  resources:
+  - lgps/status
+  verbs:
+  - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ include "listener.serviceAccountName" $ }}-rolebinding
+  labels:
+    {{- include "langgraphDataplane.labels" . | nindent 4 }}
+    {{- with.Values.listener.rbac.labels }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+  annotations:
+    {{- include "langgraphDataplane.annotations" . | nindent 4 }}
+    {{- with.Values.listener.rbac.annotations }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "listener.serviceAccountName" $ }}
+    namespace: {{ $.Release.Namespace }}
+roleRef:
+  kind: Role
+  name: {{ include "listener.serviceAccountName" $ }}-role
+  apiGroup: rbac.authorization.k8s.io
+{{- end }}

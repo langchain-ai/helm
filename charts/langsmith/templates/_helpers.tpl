@@ -320,7 +320,23 @@ Template containing common environment variables that are used by several servic
 {{ include "langsmith.conditionalEnvVarsResolved" . }}
 - name: REDIS_RUNS_EXPIRY_SECONDS
   value: {{ .Values.config.settings.redisRunsExpirySeconds | quote }}
+{{- if .Values.config.langgraphPlatform.enabled }}
+- name: LANGGRAPH_CLOUD_LICENSE_KEY
+  valueFrom:
+    secretKeyRef:
+      name: {{ include "langsmith.secretsName" . }}
+      key: langgraph_cloud_license_key
+- name: HOST_QUEUE
+  value: "host"
+- name: HOST_WORKER_RECONCILIATION_CRON_ENABLED
+  value: "true"
+- name: LANGCHAIN_ENDPOINT
+  value: "http://{{ include "langsmith.fullname" . }}-{{ .Values.frontend.name }}.{{ .Release.Namespace }}:{{ .Values.frontend.service.httpPort }}/api/v1"
+- name: HOSTED_K8S_ROOT_DOMAIN
+  value: {{ .Values.config.langgraphPlatform.rootDomain | quote }}
 {{- end }}
+{{- end }}
+
 
 {{- define "aceBackend.serviceAccountName" -}}
 {{- if .Values.aceBackend.serviceAccount.create -}}
@@ -352,6 +368,30 @@ Template containing common environment variables that are used by several servic
     {{ default (printf "%s-%s" (include "langsmith.fullname" .) .Values.frontend.name) .Values.frontend.serviceAccount.name | trunc 63 | trimSuffix "-" }}
 {{- else -}}
     {{ default "default" .Values.frontend.serviceAccount.name }}
+{{- end -}}
+{{- end -}}
+
+{{- define "hostBackend.serviceAccountName" -}}
+{{- if .Values.hostBackend.serviceAccount.create -}}
+    {{ default (printf "%s-%s" (include "langsmith.fullname" .) .Values.hostBackend.name) .Values.hostBackend.serviceAccount.name | trunc 63 | trimSuffix "-" }}
+{{- else -}}
+    {{ default "default" .Values.hostBackend.serviceAccount.name }}
+{{- end -}}
+{{- end -}}
+
+{{- define "listener.serviceAccountName" -}}
+{{- if .Values.listener.serviceAccount.create -}}
+    {{ default (printf "%s-%s" (include "langsmith.fullname" .) .Values.listener.name) .Values.listener.serviceAccount.name | trunc 63 | trimSuffix "-" }}
+{{- else -}}
+    {{ default "default" .Values.listener.serviceAccount.name }}
+{{- end -}}
+{{- end -}}
+
+{{- define "operator.serviceAccountName" -}}
+{{- if .Values.operator.serviceAccount.create -}}
+    {{ default (printf "%s-%s" (include "langsmith.fullname" .) .Values.operator.name) .Values.operator.serviceAccount.name | trunc 63 | trimSuffix "-" }}
+{{- else -}}
+    {{ default "default" .Values.operator.serviceAccount.name }}
 {{- end -}}
 {{- end -}}
 

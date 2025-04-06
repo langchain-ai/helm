@@ -33,6 +33,7 @@ images:
 config:
   existingSecretName: ""
   langGraphCloudLicenseKey: ""
+  numberOfJobsPerWorker: 10  # Number of jobs per worker. Workers are bundled with the api server if queue is disabled."
   auth:
     enabled: false
     langSmithAuthEndpoint: ""
@@ -40,7 +41,7 @@ config:
 
 ingress:
   enabled: false
-  hostname: ""  #  Set this to the hostname you want to use for the ingress. Also used as the base URL for studio
+  hostname: ""  #  Set this to the hostname you want to use for the ingress.
   studioHostname: ""  # Set this to the hostname you want to use for the studio ingress
   ingressClassName: ""
   annotations: {}
@@ -75,6 +76,11 @@ apiServer:
     minReplicas: 1
     maxReplicas: 5
     targetCPUUtilizationPercentage: 80
+    keda:  #  KEDA autoscaling configuration. Recommended for autoscaling but only available if keda is installed in the cluster.
+      enabled: false
+      pollingInterval: 30
+      cooldownPeriod: 300
+      scaleDownStabilizationWindowSeconds: 300
   service:
     type: LoadBalancer
     httpPort: 80
@@ -83,6 +89,46 @@ apiServer:
     annotations: {}
     loadBalancerSourceRanges: []
     loadBalancerIP: ""
+  serviceAccount:
+    create: true
+    name: ""
+    labels: {}
+    annotations: {}
+
+queue:
+  enabled: false
+  name: "queue"
+  containerPort: 8000
+  deployment:
+    replicaCount: 1
+    labels: {}
+    annotations: {}
+    podSecurityContext: {}
+    securityContext: {}
+    resources:
+      limits:
+        cpu: 2000m
+        memory: 4Gi
+      requests:
+        cpu: 1000m
+        memory: 2Gi
+    extraEnv: []
+    sidecars: []
+    nodeSelector: {}
+    tolerations: []
+    affinity: {}
+    volumes: []
+    volumeMounts: []
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 5
+    targetCPUUtilizationPercentage: 80
+    keda:  #  KEDA autoscaling configuration. Recommended for autoscaling but only available if keda is installed in the cluster.
+      enabled: false
+      pollingInterval: 30
+      cooldownPeriod: 300
+      scaleDownStabilizationWindowSeconds: 300
   serviceAccount:
     create: true
     name: ""
@@ -126,6 +172,7 @@ postgres:
     volumes: []
     volumeMounts: []
     persistence:
+      enabled: true
       size: 8Gi
       storageClassName: ""
   service:
@@ -213,6 +260,7 @@ redis:
 
 studio:
   enabled: true
+  localGraphUrl: ""  #  Set this to api-server base url you want studio to point to by default.
   name: "studio"
   containerPort: 3968
   deployment:
@@ -235,11 +283,16 @@ studio:
     affinity: {}
     volumes: []
     volumeMounts: []
-  autoscaling:
+  autoscaling:  #  Autoscaling configuration. Not generally needed for studio.
     enabled: false
     minReplicas: 1
     maxReplicas: 5
     targetCPUUtilizationPercentage: 80
+    keda:  #  KEDA autoscaling configuration. Recommended for autoscaling but only available if keda is installed in the cluster.
+      enabled: false
+      pollingInterval: 30
+      cooldownPeriod: 300
+      scaleDownStabilizationWindowSeconds: 300
   service:
     type: LoadBalancer
     httpPort: 80

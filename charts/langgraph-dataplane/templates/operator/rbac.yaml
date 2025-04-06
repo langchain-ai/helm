@@ -1,0 +1,368 @@
+{{- if and .Values.operator.enabled .Values.operator.rbac.create -}}
+{{- if .Values.operator.watchNamespaces }}
+{{- $watchNamespacesList := splitList "," .Values.operator.watchNamespaces }}
+{{- range $ns := $watchNamespacesList }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ include "operator.serviceAccountName" $ }}-role
+  namespace: {{ $ns | trim }}
+  labels:
+    {{- include "langgraphDataplane.labels" $ | nindent 4 }}
+    {{- with $.Values.operator.rbac.labels }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+  annotations:
+    {{- include "langgraphDataplane.annotations" $ | nindent 4 }}
+    {{- with $.Values.operator.rbac.annotations }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+rules:
+- apiGroups:
+  - apps
+  resources:
+  - deployments
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - apps
+  resources:
+  - replicasets
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - apps.langchain.ai
+  resources:
+  - lgps
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - apps.langchain.ai
+  resources:
+  - lgps/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - apps.langchain.ai
+  resources:
+  - lgps/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - autoscaling
+  resources:
+  - horizontalpodautoscalers
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - pods
+  - services
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - pods/log
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - keda.sh
+  resources:
+  - scaledobjects
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - networking.k8s.io
+  resources:
+  - ingresses
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ include "operator.serviceAccountName" $ }}-rolebinding
+  namespace: {{ $ns | trim }}
+  labels:
+    {{- include "langgraphDataplane.labels" $ | nindent 4 }}
+    {{- with $.Values.operator.rbac.labels }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+  annotations:
+    {{- include "langgraphDataplane.annotations" $ | nindent 4 }}
+    {{- with $.Values.operator.rbac.annotations }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "operator.serviceAccountName" $ }}
+    namespace: {{ $.Release.Namespace }}
+roleRef:
+  kind: Role
+  name: {{ include "operator.serviceAccountName" $ }}-role
+  apiGroup: rbac.authorization.k8s.io
+{{- end }}
+
+{{- else }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "operator.serviceAccountName" . }}-role
+  labels:
+    {{- include "langgraphDataplane.labels" . | nindent 4 }}
+    {{- with.Values.operator.rbac.labels }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+  annotations:
+    {{- include "langgraphDataplane.annotations" . | nindent 4 }}
+    {{- with.Values.operator.rbac.annotations }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+rules:
+- apiGroups:
+  - apps
+  resources:
+  - deployments
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - apps
+  resources:
+  - replicasets
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - apps.langchain.ai
+  resources:
+  - lgps
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - apps.langchain.ai
+  resources:
+  - lgps/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - apps.langchain.ai
+  resources:
+  - lgps/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - autoscaling
+  resources:
+  - horizontalpodautoscalers
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - pods
+  - services
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - pods/log
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - keda.sh
+  resources:
+  - scaledobjects
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - networking.k8s.io
+  resources:
+  - ingresses
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ include "operator.serviceAccountName" . }}-rolebinding
+  labels:
+    {{- include "langgraphDataplane.labels" . | nindent 4 }}
+    {{- with.Values.operator.rbac.labels }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+  annotations:
+    {{- include "langgraphDataplane.annotations" . | nindent 4 }}
+    {{- with.Values.operator.rbac.annotations }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "operator.serviceAccountName" . }}
+    namespace: {{ .Release.Namespace }}
+roleRef:
+  kind: ClusterRole
+  name: {{ include "operator.serviceAccountName" . }}-role
+  apiGroup: rbac.authorization.k8s.io
+{{- end }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ include "operator.serviceAccountName" . }}-leader-election-role
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "langgraphDataplane.labels" . | nindent 4 }}
+    {{- with.Values.operator.rbac.labels }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+  annotations:
+    {{- include "langgraphDataplane.annotations" . | nindent 4 }}
+    {{- with.Values.operator.rbac.annotations }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - configmaps
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+  - delete
+- apiGroups:
+  - coordination.k8s.io
+  resources:
+  - leases
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+  - delete
+- apiGroups:
+  - ""
+  resources:
+  - events
+  verbs:
+  - create
+  - patch
+---
+# Leader election role binding
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ include "operator.serviceAccountName" . }}-leader-election-rolebinding
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "langgraphDataplane.labels" . | nindent 4 }}
+    {{- with.Values.operator.rbac.labels }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+  annotations:
+    {{- include "langgraphDataplane.annotations" . | nindent 4 }}
+    {{- with.Values.operator.rbac.annotations }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+subjects:
+- kind: ServiceAccount
+  name: {{ include "operator.serviceAccountName" . }}
+  namespace: {{ .Release.Namespace }}
+roleRef:
+  kind: Role
+  name: {{ include "operator.serviceAccountName" . }}-leader-election-role
+  apiGroup: rbac.authorization.k8s.io
+{{- end }}

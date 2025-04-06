@@ -1,0 +1,95 @@
+{{- if and .Values.config.langgraphPlatform.enabled .Values.hostBackend.rbac.create}}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ include "hostBackend.serviceAccountName" $ }}-role
+  labels:
+    {{- include "langsmith.labels" . | nindent 4 }}
+    {{- with.Values.hostBackend.rbac.labels }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+  annotations:
+    {{- include "langsmith.annotations" . | nindent 4 }}
+    {{- with.Values.hostBackend.rbac.annotations }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+rules:
+# Create/Read/Delete statefulsets for dev dbs
+- apiGroups:
+  - apps
+  resources:
+  - statefulsets
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+# Read ReplicaSets
+- apiGroups:
+  - apps
+  resources:
+  - replicasets
+  - deployments
+  verbs:
+  - get
+  - list
+  - watch
+# Create/Read/Delete K8s secrets
+- apiGroups:
+  - ""
+  resources:
+  - secrets
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+# LGP permissions
+- apiGroups:
+  - apps.langchain.ai
+  resources:
+  - lgps
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - apps.langchain.ai
+  resources:
+  - lgps/status
+  verbs:
+  - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ include "hostBackend.serviceAccountName" $ }}-rolebinding
+  labels:
+    {{- include "langsmith.labels" . | nindent 4 }}
+    {{- with.Values.hostBackend.rbac.labels }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+  annotations:
+    {{- include "langsmith.annotations" . | nindent 4 }}
+    {{- with.Values.hostBackend.rbac.annotations }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "hostBackend.serviceAccountName" $ }}
+    namespace: {{ $.Release.Namespace }}
+roleRef:
+  kind: Role
+  name: {{ include "hostBackend.serviceAccountName" $ }}-role
+  apiGroup: rbac.authorization.k8s.io
+{{- end }}

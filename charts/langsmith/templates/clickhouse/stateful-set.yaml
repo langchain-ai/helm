@@ -98,8 +98,10 @@ spec:
             {{- with .Values.clickhouse.statefulSet.volumeMounts }}
               {{- toYaml . | nindent 12 }}
             {{- end }}
+            {{- if .Values.clickhouse.statefulSet.persistence.enabled }}
             - mountPath: /var/lib/clickhouse
               name: data
+            {{- end }}
             - mountPath: /etc/clickhouse-server/users.d/users.xml
               name: clickhouse-conf
               subPath: users.xml
@@ -135,6 +137,7 @@ spec:
       {{- with .Values.clickhouse.statefulSet.volumes }}
           {{- toYaml . | nindent 8 }}
       {{- end }}
+  {{- if .Values.clickhouse.statefulSet.persistence.enabled }}
   volumeClaimTemplates:
     - apiVersion: v1
       kind: PersistentVolumeClaim
@@ -152,4 +155,5 @@ spec:
         {{- if .Values.clickhouse.statefulSet.persistence.storageClassName }}
         storageClassName: {{ .Values.clickhouse.statefulSet.persistence.storageClassName }}
         {{- end }}
+  {{- end }}
 {{- end }}
