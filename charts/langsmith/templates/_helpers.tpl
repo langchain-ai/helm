@@ -337,6 +337,14 @@ Template containing common environment variables that are used by several servic
 - name: HOSTED_K8S_SHARED_INGRESS
   value: "true"
 {{- end }}
+{{- if .Values.config.fullTextSearch.enabled }}
+- name: QUICKWIT_INDEXING_ENABLED_ALL
+  value: "true"
+- name: QUICKWIT_INDEXING_URL
+  value: {{ include "langsmith.quickwit-indexing-endpoint" . }}
+- name: QUICKWIT_SEARCH_ENABLED
+  value: "true"
+{{- end }}
 {{- end }}
 
 
@@ -459,4 +467,20 @@ Template containing common environment variables that are used by several servic
   {{ fail (printf "Duplicate keys detected: %v" $duplicates) }}
 {{- end }}
 {{- end -}}
+
+{{- define "langsmith.quickwit-runs-index" -}}
+{{- $.Files.Get "resources/quickwit-index-runs.yaml" -}}
+{{- end -}}
+
+{{- define "langsmith.quickwit-cluster-endpoint" -}}
+{{- printf "http://%s-quickwit-metastore.%s.svc.%s:7280" (include "langsmith.fullname" .) $.Release.Namespace  $.Values.quickwit.clusterDomain -}}
+{{- end }}
+
+{{- define "langsmith.quickwit-indexing-endpoint" -}}
+{{- printf "http://%s-quickwit-indexer.%s.svc.%s:7280" (include "langsmith.fullname" .) $.Release.Namespace  $.Values.quickwit.clusterDomain -}}
+{{- end }}
+
+{{- define "langsmith.quickwit-search-endpoint" -}}
+{{- printf "http://%s-quickwit-indexer.%s.svc.%s:7280" (include "langsmith.fullname" .) $.Release.Namespace  $.Values.quickwit.clusterDomain -}}
+{{- end }}
 

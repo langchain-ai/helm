@@ -1,0 +1,88 @@
+version: 0.8
+index_id: runs
+doc_mapping:
+  # Using lenient mode to prevent ingesting unmapped fields - https://quickwit.io/docs/configuration/index-config#mode
+  mode: lenient
+  store_source: false
+  # Follows JSON definition for run in https://docs.smith.langchain.com/reference/data_formats/run_data_format
+  # Deprecated fields are omitted
+  field_mappings:
+    - name: id
+      type: text
+      tokenizer: raw
+      fast: true
+    - name: id_sort
+      type: u64
+      fast: true
+    - name: tenant_id
+      type: text
+      tokenizer: raw
+    - name: session_id
+      type: text
+      tokenizer: raw
+    - name: is_root
+      type: bool
+    - name: name
+      type: text
+      tokenizer: raw
+    - name: start_time
+      type: datetime
+      fast: true
+      input_formats: ["rfc3339", "unix_timestamp", "%Y-%m-%d %H:%M:%S.%f"]
+    - name: start_time_micros
+      type: u64
+      fast: true
+    - name: end_time
+      type: datetime
+      fast: true
+      input_formats: ["rfc3339", "unix_timestamp", "%Y-%m-%d %H:%M:%S.%f"]
+    - name: extra
+      type: json
+      tokenizer: default
+      stored: false
+      record: basic
+    - name: error
+      type: text
+      tokenizer: default
+    - name: run_type
+      type: text
+      tokenizer: raw
+    - name: inputs
+      type: json
+      tokenizer: default
+      stored: false
+      record: basic
+    - name: inputs_flat
+      type: concatenate
+      tokenizer: default
+      concatenate_fields: [inputs]
+      record: basic
+    - name: outputs
+      type: json
+      tokenizer: default
+      record: basic
+      stored: false
+    - name: outputs_flat
+      type: concatenate
+      tokenizer: default
+      concatenate_fields: [outputs]
+      record: basic
+    - name: parent_run_id
+      type: text
+      tokenizer: raw
+    - name: tags
+      type: array<text>
+      tokenizer: default
+    - name: status
+      type: text
+      tokenizer: raw
+    - name: trace_id
+      type: text
+      tokenizer: raw
+    - name: thread_id
+      type: text
+      tokenizer: raw
+  timestamp_field: start_time
+  partition_key: hash_mod(tenant_id, 100)
+indexing_settings:
+  commit_timeout_secs: 30

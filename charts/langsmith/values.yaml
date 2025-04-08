@@ -154,6 +154,9 @@ config:
     # -- Optional. Be very careful when lowering this value as it can result in runs being lost if your queue is down/not processing items fast enough.
     redisRunsExpirySeconds: "43200"  # 12 hours
 
+  fullTextSearch:
+    enabled: false
+
 aceBackend:
   name: "ace-backend"
   containerPort: 1987
@@ -1397,3 +1400,677 @@ redis:
     name: ""
     labels: {}
     annotations: {}
+
+quickwit:
+  enabled: false
+
+  # Default values for quickwit.
+  # This is a YAML-formatted file.
+  # Declare variables to be passed into your templates.
+
+  image:
+    repository: quickwit/quickwit
+    pullPolicy: IfNotPresent
+    # Overrides the image tag whose default is the chart appVersion.
+    # tag: v0.8.2
+
+  imagePullSecrets: []
+  nameOverride: ""
+  fullnameOverride: ""
+
+  # Set the Kuberentes cluster domain if not default. It's used to build URLs for the services.
+  clusterDomain: cluster.local
+
+  # -- Additional labels to add to all resources
+  additionalLabels: {}
+    # app: quickwit
+
+  serviceAccount:
+    # Specifies whether a service account should be created
+    create: true
+    # Annotations to add to the service account
+    annotations: {}
+    # The name of the service account to use.
+    # If not set and create is true, a name is generated using the fullname template
+    name: ""
+
+  annotations: {}
+
+  podAnnotations: {}
+
+  podSecurityContext:
+    fsGroup: 1005
+
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 1005
+
+  # Additional global env
+  environment: {}
+    # KEY: VALUE
+  environmentFrom: []
+    # - secretRef:
+    #     name: quickwit
+    # - configMapRef:
+    #     name: quickwit
+
+  configMaps: []
+    # - name: configmap1
+    #   mountPath: /quickwit/configmaps/
+
+  # Global tolerations applied to all deployments
+  tolerations: []
+
+  # Global affinity settings applied to all deployments
+  affinity: {}
+
+  searcher:
+    replicaCount: 3
+
+    # Extra env for searcher
+    extraEnv: {}
+      # KEY: VALUE
+    extraEnvFrom: []
+      # - secretRef:
+      #     name: quickwit-searcher
+      # - configMapRef:
+      #     name: quickwit-searcher
+
+    # extraVolumes -- Additional volumes to use with Pods.
+    extraVolumes: []
+
+    # extraVolumeMounts -- Additional volumes to mount into Quickwit containers.
+    extraVolumeMounts: []
+
+    resources: {}
+      # limits:
+      #   cpu: 100m
+      #   memory: 128Mi
+      # requests:
+      #   cpu: 100m
+      #   memory: 128Mi
+
+    ## Pod distruption budget
+    podDisruptionBudget: {}
+      # maxUnavailable: 1
+      # minAvailable: 2
+
+    persistentVolume:
+      enabled: false
+      # storage: "1Gi"
+      # storageClass: ""
+
+    updateStrategy: {}
+      # type: RollingUpdate
+
+    startupProbe:
+      httpGet:
+        path: /health/livez
+        port: rest
+      failureThreshold: 12
+      periodSeconds: 5
+
+    livenessProbe:
+      httpGet:
+        path: /health/livez
+        port: rest
+
+    readinessProbe:
+      httpGet:
+        path: /health/readyz
+        port: rest
+
+    # StatefulSet allows you to relax its ordering guarantees
+    #   - OrderedReady
+    #   - Parallel
+    podManagementPolicy: OrderedReady
+
+    lifecycleHooks: {}
+      # preStop:
+      #   exec:
+      #     command:
+      #       - /bin/sh
+      #       - -c
+      #       - sleep 30
+
+    # Override args for starting container
+    args: []
+
+    # initContainers -- Init containers to be added to the pods
+    initContainers: []
+
+    annotations: {}
+
+    podAnnotations: {}
+
+    serviceAnnotations: {}
+
+    # serviceType: ClusterIP
+
+    nodeSelector: {}
+
+    tolerations: []
+
+    affinity: {}
+
+    runtimeClassName: ""
+
+  indexer:
+    enabled: true
+
+    replicaCount: 1
+
+    # Extra env for indexer
+    extraEnv: {}
+      # KEY: VALUE
+    extraEnvFrom: []
+      # - secretRef:
+      #     name: quickwit-indexer
+      # - configMapRef:
+      #     name: quickwit-indexer
+
+    # extraVolumes -- Additional volumes to use with Pods.
+    extraVolumes: []
+
+    # extraVolumeMounts -- Additional volumes to mount into Quickwit containers.
+    extraVolumeMounts: []
+
+    resources: {}
+      # limits:
+      #   cpu: 100m
+      #   memory: 128Mi
+      # requests:
+      #   cpu: 100m
+      #   memory: 128Mi
+
+    ## Pod distruption budget
+    podDisruptionBudget: {}
+      # maxUnavailable: 1
+      # minAvailable: 2
+
+    updateStrategy: {}
+      # type: RollingUpdate
+
+    startupProbe:
+      httpGet:
+        path: /health/livez
+        port: rest
+      failureThreshold: 12
+      periodSeconds: 5
+
+    livenessProbe:
+      httpGet:
+        path: /health/livez
+        port: rest
+
+    readinessProbe:
+      httpGet:
+        path: /health/readyz
+        port: rest
+
+    # StatefulSet allows you to relax its ordering guarantees
+    #   - OrderedReady
+    #   - Parallel
+    podManagementPolicy: OrderedReady
+
+    # Override args for starting container
+    args: []
+
+    # initContainers -- Init containers to be added to the pods
+    initContainers: []
+
+    annotations: {}
+
+    podAnnotations: {}
+
+    serviceAnnotations: {}
+
+    # serviceType: ClusterIP
+
+    nodeSelector: {}
+
+    tolerations: []
+
+    affinity: {}
+
+    lifecycleHooks: {}
+      # preStop:
+      #   exec:
+      #     command:
+      #       - /bin/sh
+      #       - -c
+      #       - sleep 30
+
+    # Long grace period is recommended to wait for all index commit_timeout_secs and splits to be published
+    # See https://quickwit.io/docs/configuration/index-config#indexing-settings
+    terminationGracePeriodSeconds: 120
+
+    runtimeClassName: ""
+
+    persistentVolume:
+      enabled: false
+      # storage: "1Gi"
+      # storageClass: ""
+
+  metastore:
+    replicaCount: 1
+
+    # Extra env for metastore
+    extraEnv: {}
+      # KEY: VALUE
+    # This is the recommended way to inject `QW_METASTORE_URI` when using the postgres metastore (see https://quickwit.io/docs/configuration/metastore-config)
+    extraEnvFrom: []
+      # - secretRef:
+      #     name: quickwit-metastore
+      # - configMapRef:
+      #     name: quickwit-metastore
+
+    # extraVolumes -- Additional volumes to use with Pods.
+    extraVolumes: []
+
+    # extraVolumeMounts -- Additional volumes to mount into Quickwit containers.
+    extraVolumeMounts: []
+
+    resources: {}
+      # limits:
+      #   cpu: 100m
+      #   memory: 128Mi
+      # requests:
+      #   cpu: 100m
+      #   memory: 128Mi
+
+    updateStrategy: {}
+      # type: RollingUpdate
+
+    startupProbe:
+      httpGet:
+        path: /health/livez
+        port: rest
+      failureThreshold: 12
+      periodSeconds: 5
+
+    livenessProbe:
+      httpGet:
+        path: /health/livez
+        port: rest
+
+    readinessProbe:
+      httpGet:
+        path: /health/readyz
+        port: rest
+
+    # Override args for starting container
+    args: []
+
+    # initContainers -- Init containers to be added to the pods
+    initContainers: []
+
+    annotations: {}
+
+    podAnnotations: {}
+
+    serviceAnnotations: {}
+
+    # serviceType: ClusterIP
+
+    nodeSelector: {}
+
+    tolerations: []
+
+    affinity: {}
+
+    runtimeClassName: ""
+
+  control_plane:
+    enabled: true
+
+    # Extra env for control plane
+    extraEnv: {}
+      # KEY: VALUE
+    extraEnvFrom: []
+      # - secretRef:
+      #     name: quickwit-control-plane
+      # - configMapRef:
+      #     name: quickwit-control-plane
+
+    # extraVolumes -- Additional volumes to use with Pods.
+    extraVolumes: []
+
+    # extraVolumeMounts -- Additional volumes to mount into Quickwit containers.
+    extraVolumeMounts: []
+
+    resources: {}
+      # limits:
+      #   cpu: 100m
+      #   memory: 128Mi
+      # requests:
+      #   cpu: 100m
+      #   memory: 128Mi
+
+    startupProbe:
+      httpGet:
+        path: /health/livez
+        port: rest
+      failureThreshold: 12
+      periodSeconds: 5
+
+    livenessProbe:
+      httpGet:
+        path: /health/livez
+        port: rest
+
+    readinessProbe:
+      httpGet:
+        path: /health/readyz
+        port: rest
+
+    # Override args for starting container
+    args: []
+
+    # initContainers -- Init containers to be added to the pods
+    initContainers: []
+
+    annotations: {}
+
+    podAnnotations: {}
+
+    serviceAnnotations: {}
+
+    # serviceType: ClusterIP
+
+    nodeSelector: {}
+
+    tolerations: []
+
+    affinity: {}
+
+    runtimeClassName: ""
+
+  janitor:
+    # Enable Janitor service
+    enabled: true
+
+    # Extra env for janitor
+    extraEnv: {}
+      # KEY: VALUE
+    extraEnvFrom: []
+      # - secretRef:
+      #     name: quickwit-janitor
+      # - configMapRef:
+      #     name: quickwit-janitor
+
+    # extraVolumes -- Additional volumes to use with Pods.
+    extraVolumes: []
+
+    # extraVolumeMounts -- Additional volumes to mount into Quickwit containers.
+    extraVolumeMounts: []
+
+    resources: {}
+      # limits:
+      #   cpu: 100m
+      #   memory: 128Mi
+      # requests:
+      #   cpu: 100m
+      #   memory: 128Mi
+
+    startupProbe:
+      httpGet:
+        path: /health/livez
+        port: rest
+      failureThreshold: 12
+      periodSeconds: 5
+
+    livenessProbe:
+      httpGet:
+        path: /health/livez
+        port: rest
+
+    readinessProbe:
+      httpGet:
+        path: /health/readyz
+        port: rest
+
+    # Override args for starting container
+    args: []
+
+    # initContainers -- Init containers to be added to the pods
+    initContainers: []
+
+    annotations: {}
+
+    podAnnotations: {}
+
+    serviceAnnotations: {}
+
+    # serviceType: ClusterIP
+
+    nodeSelector: {}
+
+    tolerations: []
+
+    affinity: {}
+
+    runtimeClassName: ""
+
+  # Deploy jobs to bootstrap creation of indexes and sources for quickwit clusters
+  bootstrap:
+    # Enable bootstrap jobs
+    enabled: false
+
+    # Extra env for bootstrap jobs
+    extraEnv: {}
+      # KEY: VALUE
+    extraEnvFrom: []
+      # - secretRef:
+      #     name: quickwit-bootstrap
+      # - configMapRef:
+      #     name: quickwit-bootstrap
+
+    resources: {}
+      # limits:
+      #   cpu: 100m
+      #   memory: 128Mi
+      # requests:
+      #   cpu: 100m
+      #   memory: 128Mi
+
+    nodeSelector: {}
+
+    tolerations: []
+
+    affinity: {}
+
+    runtimeClassName: ""
+
+    sources:
+      # Override command for starting container
+      command: []
+
+      # initContainers -- Init containers to be executed before the source creation.
+      initContainers: []
+
+      # extraVolumes -- Additional volumes to use with bootstrap Pods.
+      extraVolumes: []
+
+      # extraVolumeMounts -- Additional volumes to mount into bootstrap containers (not the init containers).
+      extraVolumeMounts: []
+
+    indexes:
+      # initContainers -- Init containers to be executed before the index creation.
+      initContainers: []
+
+      # extraVolumes -- Additional volumes to use with bootstrap Pods.
+      extraVolumes: []
+
+      # extraVolumeMounts -- Additional volumes to mount into bootstrap containers (not the init containers).
+      extraVolumeMounts: []
+
+  # Quickwit configuration
+  # Warning: This config is writed directly into a configMap
+  # to avoid passing sensitive value you can pass environment variables.
+  # https://quickwit.io/docs/configuration/node-config#using-environment-variables-in-the-configuration
+  configLocation: /quickwit/node.yaml
+
+  config:
+    version: 0.8
+    listen_address: 0.0.0.0
+    gossip_listen_port: 7282
+    data_dir: /quickwit/qwdata
+    default_index_root_uri: s3://quickwit/indexes
+
+    # postgres:
+    #   max_num_connections: 50
+
+    # storage:
+      # s3:
+        # endpoint: "http://custom-s3-endpoint"
+        # region: eu-east-1
+        # We recommend using IAM roles and permissions to access Amazon S3 resources,
+        # but you can specify a pair of access and secret keys if necessary.
+        # access_key_id: <my access key>
+        # secret_access_key: ${AWS_ACCESS_KEY_ID}
+      # azure:
+        # account: "<my account name>"
+        # access_key: ${QW_AZURE_STORAGE_ACCESS_KEY}
+
+    # Indexer settings
+    # indexer:
+    #   split_store_max_num_bytes: 200G
+    #   split_store_max_num_splits: 10000
+    # Ingest API settings
+    # ingest_api:
+    #   max_queue_memory_usage: 2GiB
+    #   max_queue_disk_usage: 4GiB
+    # Searcher settings
+    # searcher:
+    #   fast_field_cache_capacity: 10G
+    #   split_footer_cache_capacity: 1G
+    #   max_num_concurrent_split_streams: 100
+
+  # Seed configuration
+  seed:
+    indexes: []
+      # - version: 0.8
+      #   index_id: my-index
+      #   doc_mapping:
+      #     field_mappings:
+      #       - name: timestamp
+      #         type: datetime
+      #         fast: true
+      #         input_formats:
+      #           - unix_timestamp
+      #         output_format: unix_timestamp_secs
+      #       - name: body
+      #         type: text
+      #     timestamp_field: timestamp
+      #   search_settings:
+      #     default_search_fields: [body]
+      #   indexing_settings:
+      #     merge_policy:
+      #       type: limit_merge
+      #       max_merge_ops: 3
+      #       merge_factor: 10
+      #       max_merge_factor: 12
+
+    sources: []
+      # - index: my-index
+      #   source:
+      #     version: 0.8
+      #     source_id: my-source
+      #     source_type: kafka
+      #     num_pipelines: 1
+      #     params:
+      #       topic: quickwit-topic
+      #       client_params:
+      #         bootstrap.servers: kafka-server-endpoint1:9092,kafka-server-endpoint2:9092
+
+  # Prometheus metrics
+  serviceMonitor:
+    enabled: false
+    # -- Additional labels to add to monitoring resources
+    additionalLabels: {}
+    interval: 60s
+    scrapeTimeout: 10s
+    metricRelabelings: []
+    #  - action: replace
+    #    regex: quickwit-(.*)
+    #    replacement: $1
+    #    sourceLabels: [cluster]
+    #    targetLabel: qw_cluster
+    #  - action: labeldrop
+    #    regex: (endpoint|cluster)
+    relabelings: []
+    #  - sourceLabels: [__meta_kubernetes_pod_node_name]
+    #    targetLabel: instance
+
+  # Prometheus Operator alertmanager alerts
+  prometheusRule:
+    enabled: false
+    # -- Additional labels to add to PrometheusRule resources
+    additionalLabels: {}
+    rules: []
+    #  - alert: Example
+    #    expr: metric == 1
+    #    for: 1m
+    #    labels:
+    #      severity: warning
+
+  service:
+    # Service type configuration default for all Quickwit services
+    type: ClusterIP
+
+    # -- Set the ip family policy to configure dual-stack see [Configure dual-stack](https://kubernetes.io/docs/concepts/services-networking/dual-stack/#services)
+    ipFamilyPolicy: ""
+    # -- Sets the families that should be supported and the order in which they should be applied to ClusterIP as well. Can be IPv4 and/or IPv6.
+    ipFamilies: []
+
+    annotations: {}
+
+  ingress:
+    enabled: false
+    className: nginx
+    annotations:
+      nginx.ingress.kubernetes.io/proxy-body-size: 10m
+      nginx.ingress.kubernetes.io/use-regex: "true"
+    hosts:
+      - host: "*"
+        paths:
+          # Ingest and ES bulk endpoints to quickwit-indexer
+          - path: /api/v1/.*/ingest
+            pathType: ImplementationSpecific
+            service: indexer
+            port: rest
+          - path: /api/v1/_elastic/bulk
+            pathType: ImplementationSpecific
+            service: indexer
+            port: rest
+          - path: /api/v1/_elastic/.*/_bulk
+            pathType: ImplementationSpecific
+            service: indexer
+            port: rest
+          # Indexes API endpoints to quickwit-metastore
+          - path: /api/v1/indexes
+            pathType: Prefix
+            service: metastore
+            port: rest
+          # Everything else to quickwit-searcher
+          - path: /
+            pathType: ImplementationSpecific
+            service: searcher
+            port: rest
+    tls: []
+    #  - secretName: chart-example-tls
+    #    hosts:
+    #      - chart-example.local
+
+  resources: {}
+    # We usually recommend not to specify default resources and to leave this as a conscious
+    # choice for the user. This also increases chances charts run on environments with little
+    # resources, such as Minikube. If you do want to specify resources, uncomment the following
+    # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+    # limits:
+    #   cpu: 100m
+    #   memory: 128Mi
+    # requests:
+    #   cpu: 100m
+    #   memory: 128Mi

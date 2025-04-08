@@ -1,0 +1,64 @@
+{{- if .Values.config.fullTextSearch.enabled -}}
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "langsmith.fullname" . }}-quickwit-update-index
+  labels:
+    {{- include "langsmith.labels" . | nindent 4 }}
+    app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-quickwit-update-index
+  annotations:
+    {{- include "langsmith.annotations" . | nindent 4 }}
+    helm.sh/hook: post-install,post-upgrade
+    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
+    helm.sh/hook-weight: "3"
+spec:
+  template:
+    metadata:
+      name: {{ include "langsmith.fullname" . }}-quickwit-update-index
+      labels:
+        {{- include "langsmith.labels" . | nindent 8 }}
+        app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-quickwit-update-index
+    spec:
+      serviceAccountName: {{ include "langsmith.fullname" . }}-quickwit
+      restartPolicy: Never
+      containers:
+      - name: quickwit
+        image: "{{ $.Values.quickwit.image.repository }}:{{ $.Values.quickwit.image.tag }}"
+        imagePullPolicy: {{ $.Values.quickwit.image.pullPolicy }}
+        command: ["/bin/bash"]
+
+        # Logic here - "describe" && "update" || "create"
+        args:
+          - "-c"
+          - |
+            quickwit index describe --index runs --endpoint ${QW_CLUSTER_ENDPOINT} && \
+            quickwit index update --index runs --index-config index-runs.yaml --yes --endpoint ${QW_CLUSTER_ENDPOINT} || \
+            quickwit index create --index-config index-runs.yaml --endpoint ${QW_CLUSTER_ENDPOINT}
+
+        env:
+        - name: QW_CLUSTER_ENDPOINT
+          value: {{ include "langsmith.quickwit-cluster-endpoint" . }}
+        volumeMounts:
+          - name: config
+            mountPath: /quickwit/node.yaml
+            subPath: node.yaml
+        volumeMounts:
+          - name: index
+            mountPath: /quickwit/index-runs.yaml
+            subPath: index-runs.yaml
+      volumes:
+        # Quickwit chart provisions this ConfigMap
+        - name: config
+          configMap:
+            name: {{ include "langsmith.fullname" . }}-quickwit
+            items:
+              - key: node.yaml
+                path: node.yaml
+        - name: index
+          configMap:
+            name: {{ include "langsmith.fullname" . }}-quickwit-index
+            items:
+              - key: index-runs.yaml
+                path: index-runs.yaml
+{{- end }}
