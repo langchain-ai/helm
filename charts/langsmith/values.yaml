@@ -1505,23 +1505,6 @@ quickwit:
     updateStrategy: {}
       # type: RollingUpdate
 
-    startupProbe:
-      httpGet:
-        path: /health/livez
-        port: rest
-      failureThreshold: 12
-      periodSeconds: 5
-
-    livenessProbe:
-      httpGet:
-        path: /health/livez
-        port: rest
-
-    readinessProbe:
-      httpGet:
-        path: /health/readyz
-        port: rest
-
     annotations: {}
 
     podAnnotations: {}
@@ -1569,23 +1552,6 @@ quickwit:
 
     updateStrategy: {}
       # type: RollingUpdate
-
-    startupProbe:
-      httpGet:
-        path: /health/livez
-        port: rest
-      failureThreshold: 12
-      periodSeconds: 5
-
-    livenessProbe:
-      httpGet:
-        path: /health/livez
-        port: rest
-
-    readinessProbe:
-      httpGet:
-        path: /health/readyz
-        port: rest
 
     annotations: {}
 
@@ -1640,23 +1606,6 @@ quickwit:
     updateStrategy: {}
       # type: RollingUpdate
 
-    startupProbe:
-      httpGet:
-        path: /health/livez
-        port: rest
-      failureThreshold: 12
-      periodSeconds: 5
-
-    livenessProbe:
-      httpGet:
-        path: /health/livez
-        port: rest
-
-    readinessProbe:
-      httpGet:
-        path: /health/readyz
-        port: rest
-
     annotations: {}
 
     podAnnotations: {}
@@ -1695,23 +1644,6 @@ quickwit:
       #   cpu: 100m
       #   memory: 128Mi
 
-    startupProbe:
-      httpGet:
-        path: /health/livez
-        port: rest
-      failureThreshold: 12
-      periodSeconds: 5
-
-    livenessProbe:
-      httpGet:
-        path: /health/livez
-        port: rest
-
-    readinessProbe:
-      httpGet:
-        path: /health/readyz
-        port: rest
-
     annotations: {}
 
     podAnnotations: {}
@@ -1749,23 +1681,6 @@ quickwit:
       # requests:
       #   cpu: 100m
       #   memory: 128Mi
-
-    startupProbe:
-      httpGet:
-        path: /health/livez
-        port: rest
-      failureThreshold: 12
-      periodSeconds: 5
-
-    livenessProbe:
-      httpGet:
-        path: /health/livez
-        port: rest
-
-    readinessProbe:
-      httpGet:
-        path: /health/readyz
-        port: rest
 
     annotations: {}
 
