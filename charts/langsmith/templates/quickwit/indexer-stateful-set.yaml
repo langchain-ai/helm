@@ -1,0 +1,143 @@
+{{- if .Values.config.fullTextSearch.enabled -}}
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "quickwit.fullname" . }}-indexer
+  labels:
+    {{- include "quickwit.labels" . | nindent 4 }}
+  annotations:
+    {{- with .Values.quickwit.annotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+    {{- with .Values.quickwit.indexer.annotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  {{- if hasKey .Values.quickwit.indexer "replicaCount" }}
+  replicas: {{ .Values.quickwit.indexer.replicaCount }}
+  {{- end }}
+  serviceName: {{ include "quickwit.fullname" . }}-headless
+  {{- if .Values.quickwit.indexer.podManagementPolicy }}
+  podManagementPolicy: {{ .Values.quickwit.indexer.podManagementPolicy }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "quickwit.indexer.selectorLabels" . | nindent 6 }}
+  updateStrategy:
+    {{- toYaml .Values.quickwit.indexer.updateStrategy | nindent 4 }}
+  template:
+    metadata:
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/config-map.yaml") . | sha256sum }}
+      {{- with .Values.quickwit.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.quickwit.indexer.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "quickwit.additionalLabels" . | nindent 8 }}
+        {{- include "quickwit.indexer.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.quickwit.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "quickwit.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.quickwit.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ include "quickwit.name" . }}
+          securityContext:
+            {{- toYaml .Values.quickwit.securityContext | nindent 12 }}
+          image: "{{ .Values.quickwit.image.repository }}:{{ .Values.quickwit.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.quickwit.image.pullPolicy }}
+          {{- if $.Values.quickwit.indexer.args }}
+          args: {{- toYaml $.Values.quickwit.indexer.args | nindent 10 }}
+          {{- else }}
+          args: ["run", "--service", "indexer"]
+          {{- end }}
+          env:
+            {{- include "quickwit.environment" . | nindent 12 }}
+            {{- range $key, $value := .Values.quickwit.indexer.extraEnv }}
+            - name: "{{ $key }}"
+              value: "{{ $value }}"
+            {{- end }}
+          {{- if or (.Values.quickwit.environmentFrom) (.Values.quickwit.indexer.extraEnvFrom) }}
+          envFrom:
+          {{- with .Values.quickwit.environmentFrom }}
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.quickwit.indexer.extraEnvFrom }}
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- end }}
+          ports:
+            {{- include "quickwit.ports" . | nindent 12 }}
+          startupProbe:
+            {{- toYaml .Values.quickwit.indexer.startupProbe | nindent 12 }}
+          livenessProbe:
+            {{- toYaml .Values.quickwit.indexer.livenessProbe | nindent 12 }}
+          readinessProbe:
+            {{- toYaml .Values.quickwit.indexer.readinessProbe | nindent 12 }}
+          volumeMounts:
+            - name: config
+              mountPath: /quickwit/node.yaml
+              subPath: node.yaml
+            - name: data
+              mountPath: /quickwit/qwdata
+            {{- with .Values.quickwit.indexer.extraVolumeMounts }}
+              {{- toYaml . | nindent 12 }}
+            {{- end }}
+          resources:
+            {{- toYaml .Values.quickwit.indexer.resources | nindent 12 }}
+          {{- if .Values.quickwit.indexer.lifecycleHooks }}
+          lifecycle:
+            {{- toYaml .Values.quickwit.indexer.lifecycleHooks | nindent 12 }}
+          {{- end }}
+      terminationGracePeriodSeconds: {{ .Values.quickwit.indexer.terminationGracePeriodSeconds }}
+      volumes:
+        - name: config
+          configMap:
+            name: {{ template "quickwit.fullname" . }}
+            items:
+              - key: node.yaml
+                path: node.yaml
+        {{- if ne .Values.quickwit.indexer.persistentVolume.enabled true }}
+        - name: data
+          emptyDir: {}
+        {{- end }}
+        {{- with .Values.quickwit.indexer.extraVolumes }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- with .Values.quickwit.indexer.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with merge .Values.quickwit.affinity .Values.quickwit.indexer.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.quickwit.indexer.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if .Values.quickwit.indexer.runtimeClassName }}
+      runtimeClassName: {{ .Values.quickwit.indexer.runtimeClassName | quote }}
+      {{- end }}
+  {{- if .Values.quickwit.indexer.persistentVolume.enabled }}
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: "{{ .Values.quickwit.indexer.persistentVolume.storage }}"
+      {{- if .Values.quickwit.indexer.persistentVolume.storageClass }}
+        storageClassName: "{{ .Values.quickwit.indexer.persistentVolume.storageClass }}"
+      {{- end }}
+  {{- end }}
+{{- end }}

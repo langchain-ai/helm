@@ -3,7 +3,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: {{ include "langsmith.fullname" . }}-quickwit-update-index
+  name: {{ include "langsmith.fullname" . }}-quickwit-update-runs-index
   labels:
     {{- include "langsmith.labels" . | nindent 4 }}
     app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-quickwit-update-index
@@ -18,12 +18,12 @@ spec:
       name: {{ include "langsmith.fullname" . }}-quickwit-update-index
       labels:
         {{- include "langsmith.labels" . | nindent 8 }}
-        app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-quickwit-update-index
+        app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-quickwit-update-runs-index
     spec:
       serviceAccountName: {{ include "langsmith.fullname" . }}-quickwit
       restartPolicy: Never
       containers:
-      - name: quickwit
+      - name: {{ include "quickwit.name" . }}
         image: "{{ $.Values.quickwit.image.repository }}:{{ $.Values.quickwit.image.tag }}"
         imagePullPolicy: {{ $.Values.quickwit.image.pullPolicy }}
         command: ["/bin/bash"]
@@ -57,7 +57,7 @@ spec:
                 path: node.yaml
         - name: index
           configMap:
-            name: {{ include "langsmith.fullname" . }}-quickwit-index
+            name: {{ include "langsmith.fullname" . }}-quickwit-runs-index
             items:
               - key: index-runs.yaml
                 path: index-runs.yaml

@@ -468,6 +468,147 @@ Template containing common environment variables that are used by several servic
 {{- end }}
 {{- end -}}
 
+{{/*
+Quickwit name
+*/}}
+{{- define "quickwit.name" -}}
+{{ include "langsmith.name" . }}-{{ .Values.quickwit.name }}
+{{- end }}
+
+{{/*
+Fully qualified Quickwit name
+*/}}
+{{- define "quickwit.fullname" -}}
+{{ include "langsmith.fullname" . }}-{{ .Values.quickwit.name }}
+{{- end }}
+
+{{/*
+Custom labels
+*/}}
+{{- define "quickwit.additionalLabels" -}}
+{{- if .Values.quickwit.additionalLabels }}
+{{ toYaml .Values.quickwit.additionalLabels }}
+{{- end }}
+{{- end }}
+
+{{/*
+Common labels
+*/}}
+{{- define "quickwit.labels" -}}
+{{ include "langsmith.labels" . }}
+{{ include "quickwit.selectorLabels" . }}
+{{- include "quickwit.additionalLabels" . }}
+{{- end }}
+
+{{/*
+Selector labels
+*/}}
+{{- define "quickwit.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "quickwit.name" . }}
+app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end }}
+
+{{/*
+Searcher Selector labels
+*/}}
+{{- define "quickwit.searcher.selectorLabels" -}}
+{{ include "quickwit.selectorLabels" . }}
+app.kubernetes.io/component: searcher
+{{- end }}
+
+{{/*
+Janitor Selector labels
+*/}}
+{{- define "quickwit.janitor.selectorLabels" -}}
+{{ include "quickwit.selectorLabels" . }}
+app.kubernetes.io/component: janitor
+{{- end }}
+
+{{/*
+Metastore Selector labels
+*/}}
+{{- define "quickwit.metastore.selectorLabels" -}}
+{{ include "quickwit.selectorLabels" . }}
+app.kubernetes.io/component: metastore
+{{- end }}
+
+{{/*
+Control Plane Selector labels
+*/}}
+{{- define "quickwit.control_plane.selectorLabels" -}}
+{{ include "quickwit.selectorLabels" . }}
+app.kubernetes.io/component: control-plane
+{{- end }}
+
+{{/*
+Indexer Selector labels
+*/}}
+{{- define "quickwit.indexer.selectorLabels" -}}
+{{ include "quickwit.selectorLabels" . }}
+app.kubernetes.io/component: indexer
+{{- end }}
+
+{{/*
+Create the name of the service account to use
+*/}}
+{{- define "quickwit.serviceAccountName" -}}
+{{- if .Values.quickwit.serviceAccount.create }}
+{{- default (include "quickwit.fullname" .) .Values.quickwit.serviceAccount.name }}
+{{- else }}
+{{- default "default" .Values.quickwit.serviceAccount.name }}
+{{- end }}
+{{- end }}
+
+{{/*
+Quickwit ports
+*/}}
+{{- define "quickwit.ports" -}}
+- name: rest
+  containerPort: 7280
+  protocol: TCP
+- name: grpc
+  containerPort: 7281
+  protocol: TCP
+- name: discovery
+  containerPort: 7282
+  protocol: UDP
+{{- end }}
+
+
+{{/*
+Quickwit environment
+*/}}
+{{- define "quickwit.environment" -}}
+- name: NAMESPACE
+  valueFrom:
+    fieldRef:
+      fieldPath: metadata.namespace
+- name: POD_NAME
+  valueFrom:
+    fieldRef:
+      fieldPath: metadata.name
+- name: POD_IP
+  valueFrom:
+    fieldRef:
+      fieldPath: status.podIP
+- name: QW_CONFIG
+  value: {{ .Values.quickwit.configLocation }}
+- name: QW_CLUSTER_ID
+  value: {{ .Release.Namespace }}-{{ include "quickwit.fullname" . }}
+- name: QW_NODE_ID
+  value: "$(POD_NAME)"
+- name: QW_PEER_SEEDS
+  value: {{ include "quickwit.fullname" . }}-headless
+- name: QW_ADVERTISE_ADDRESS
+  value: "$(POD_IP)"
+- name: QW_CLUSTER_ENDPOINT
+  value: http://{{ include "quickwit.fullname" $ }}-metastore.{{ $.Release.Namespace }}.svc.{{ .Values.quickwit.clusterDomain }}:7280
+{{- range $key, $value := .Values.quickwit.environment }}
+- name: "{{ $key }}"
+  value: "{{ $value }}"
+{{- end }}
+{{- end }}
+
 {{- define "langsmith.quickwit-runs-index" -}}
 {{- $.Files.Get "resources/quickwit-index-runs.yaml" -}}
 {{- end -}}
