@@ -47,11 +47,7 @@ spec:
             {{- toYaml .Values.quickwit.securityContext | nindent 12 }}
           image: "{{ .Values.quickwit.image.repository }}:{{ .Values.quickwit.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.quickwit.image.pullPolicy }}
-          {{- if $.Values.quickwit.control_plane.args }}
-          args: {{- toYaml $.Values.quickwit.control_plane.args | nindent 10 }}
-          {{- else }}
           args: ["run", "--service", "control_plane"]
-          {{- end }}
           env:
             {{- include "quickwit.environment" . | nindent 12 }}
             {{- range $key, $value := .Values.quickwit.control_plane.extraEnv }}
