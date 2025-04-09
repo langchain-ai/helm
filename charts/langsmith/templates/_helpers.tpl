@@ -342,6 +342,8 @@ Template containing common environment variables that are used by several servic
   value: "true"
 - name: QUICKWIT_INDEXING_URL
   value: {{ include "langsmith.quickwit-indexing-endpoint" . }}
+- name: QUICKWIT_SEARCH_URL
+  value: {{ include "langsmith.quickwit-search-endpoint" . }}
 - name: QUICKWIT_SEARCH_ENABLED
   value: "true"
 {{- end }}
