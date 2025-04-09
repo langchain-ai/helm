@@ -92,16 +92,16 @@ manager:
                 httpGet:
                   path: /ok?check_db=1
                   port: 8000
-                initialDelaySeconds: 90
-                periodSeconds: 5
+                periodSeconds: 15
                 timeoutSeconds: 5
+                failureThreshold: 9
               readinessProbe:
                 httpGet:
                   path: /ok
                   port: 8000
-                initialDelaySeconds: 90
-                periodSeconds: 5
+                periodSeconds: 15
                 timeoutSeconds: 5
+                failureThreshold: 6
     service: |
       apiVersion: v1
       kind: Service

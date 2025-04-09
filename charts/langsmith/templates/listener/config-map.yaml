@@ -1,0 +1,15 @@
+{{- if and .Values.config.langgraphPlatform.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "langsmith.fullname" . }}-listener-config
+  labels:
+    {{- include "langsmith.labels" . | nindent 4 }}
+  annotations:
+    {{- include "langsmith.annotations" . | nindent 4 }}
+data:
+  db-statefulset.yaml.tmpl: |
+{{ .Values.listener.templates.db | indent 4 }}
+  redis-deployment.yaml.tmpl: |
+{{ .Values.listener.templates.redis | indent 4 }}
+{{- end }}
