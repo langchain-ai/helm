@@ -1,6 +1,6 @@
 # langgraph-operator
 
-![Version: 0.1.9](https://img.shields.io/badge/Version-0.1.9-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.1.0](https://img.shields.io/badge/AppVersion-0.1.0-informational?style=flat-square)
+![Version: 0.1.10](https://img.shields.io/badge/Version-0.1.10-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.1.0](https://img.shields.io/badge/AppVersion-0.1.0-informational?style=flat-square)
 
 Helm chart to deploy the LangGraph Operator
 
@@ -19,7 +19,7 @@ Helm chart to deploy the LangGraph Operator
 | images.imagePullSecrets | list | `[]` | Secrets with credentials to pull images from a private registry. Specified as name: value. |
 | images.operatorImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.operatorImage.repository | string | `"docker.io/langchain/langgraph-operator"` |  |
-| images.operatorImage.tag | string | `"c5bebbc"` |  |
+| images.operatorImage.tag | string | `"fb9e98d"` |  |
 | nameOverride | string | `""` | Provide a name in place of `langgraphOperator` |
 
 ## Configs
@@ -64,8 +64,12 @@ Helm chart to deploy the LangGraph Operator
 | manager.serviceAccount.create | bool | `true` |  |
 | manager.serviceAccount.labels | object | `{}` |  |
 | manager.serviceAccount.name | string | `""` |  |
+| manager.templates.databaseService | string | `"apiVersion: v1\nkind: Service\nmetadata:\n  name: ${database.name}\n  namespace: ${namespace}\nspec:\n  selector:\n    app: ${database.name}\n  ports:\n    - port: 5432\n      targetPort: 5432\n  clusterIP: None\n"` |  |
+| manager.templates.databaseStatefulSet | string | `"apiVersion: apps/v1\nkind: StatefulSet\nmetadata:\n  name: ${database.name}\n  namespace: ${namespace}\nspec:\n  serviceName: ${database.name}\n  selector:\n    matchLabels:\n      app: ${database.name}\n  template:\n    metadata:\n      labels:\n        app: ${database.name}\n    spec:\n      enableServiceLinks: false\n      containers:\n        - name: postgres\n          image: docker.io/pgvector/pgvector:pg15\n          ports:\n            - containerPort: 5432\n          command: [\"docker-entrypoint.sh\"]\n          args:\n            - postgres\n            - -c\n            - max_connections=${database.maxConnections}\n          env:\n            - name: POSTGRES_USER\n              value: postgres\n            - name: POSTGRES_DB\n              value: postgres\n            - name: POSTGRES_PASSWORD\n              valueFrom:\n                secretKeyRef:\n                  name: ${database.secretName}\n                  key: POSTGRES_PASSWORD\n          volumeMounts:\n            - name: postgres-data\n              mountPath: /var/lib/postgresql/data\n  volumeClaimTemplates:\n    - metadata:\n        name: postgres-data\n      spec:\n        accessModes: [\"ReadWriteOnce\"]\n        resources:\n          requests:\n            storage: \"${database.storageSizeGi}Gi\"\n"` |  |
 | manager.templates.deployment | string | `"apiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: ${name}\n  namespace: ${namespace}\nspec:\n  replicas: ${replicas}\n  selector:\n    matchLabels:\n      app: ${name}\n  template:\n    metadata:\n      labels:\n        app: ${name}\n    spec:\n      enableServiceLinks: false\n      containers:\n      - name: api-server\n        image: ${image}\n        ports:\n        - name: api-server\n          containerPort: 8000\n          protocol: TCP\n        livenessProbe:\n          httpGet:\n            path: /ok?check_db=1\n            port: 8000\n          initialDelaySeconds: 90\n          periodSeconds: 5\n          timeoutSeconds: 5\n        readinessProbe:\n          httpGet:\n            path: /ok\n            port: 8000\n          initialDelaySeconds: 90\n          periodSeconds: 5\n          timeoutSeconds: 5\n"` |  |
 | manager.templates.ingress | string | `"apiVersion: networking.k8s.io/v1\nkind: Ingress\nmetadata:\n  name: ${name}\n  namespace: ${namespace}\nspec:\n  ingressClassName: ${ingress.ingressClassName}\n  rules:\n  - host: ${ingress.hostname}\n    http:\n      paths:\n      - path: /\n        pathType: Prefix\n        backend:\n          service:\n            name: ${name}\n            port:\n              number: 8000\n"` |  |
+| manager.templates.redisDeployment | string | `"apiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: ${redis.name}\n  namespace: ${namespace}\nspec:\n  replicas: 1\n  selector:\n    matchLabels:\n      app: ${redis.name}\n  template:\n    metadata:\n      labels:\n        app: ${redis.name}\n    spec:\n      enableServiceLinks: false\n      containers:\n      - name: redis\n        image: docker.io/redis:7\n        ports:\n        - containerPort: 6379\n          name: redis\n        livenessProbe:\n          exec:\n            command:\n            - redis-cli\n            - ping\n          initialDelaySeconds: 30\n          periodSeconds: 10\n        readinessProbe:\n          tcpSocket:\n            port: 6379\n          initialDelaySeconds: 10\n          periodSeconds: 5\n"` |  |
+| manager.templates.redisService | string | `"apiVersion: v1\nkind: Service\nmetadata:\n  name: ${redis.name}\n  namespace: ${namespace}\n  labels:\n    app: ${redis.name}\nspec:\n  ports:\n  - port: 6379\n    targetPort: 6379\n    protocol: TCP\n    name: redis\n  selector:\n    app: ${redis.name}\n  type: ClusterIP\n"` |  |
 | manager.templates.service | string | `"apiVersion: v1\nkind: Service\nmetadata:\n  name: ${name}\n  namespace: ${namespace}\nspec:\n  type: ClusterIP\n  selector:\n    app: ${name}\n  ports:\n  - name: api-server\n    protocol: TCP\n    port: 8000\n    targetPort: 8000\n"` |  |
 
 ## Maintainers
