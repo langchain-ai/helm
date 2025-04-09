@@ -611,6 +611,25 @@ Quickwit environment
 {{- end }}
 {{- end }}
 
+{{- define "quickwit.probes" -}}
+startupProbe:
+  httpGet:
+    path: /health/livez
+    port: rest
+  failureThreshold: 12
+  periodSeconds: 5
+livenessProbe:
+  httpGet:
+    path: /health/livez
+    port: rest
+readinessProbe:
+  httpGet:
+    path: /health/readyz
+    port: rest
+{{- end }}
+
+# {{- include "quickwit.liveness-probe" . }}
+# {{- include "quickwit.readiness-probe" . }}
 {{- define "langsmith.quickwit-runs-index" -}}
 {{- $.Files.Get "resources/quickwit-index-runs.yaml" -}}
 {{- end -}}
