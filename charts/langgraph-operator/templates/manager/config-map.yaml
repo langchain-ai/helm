@@ -7,9 +7,17 @@ metadata:
   annotations:
     {{- include "langgraphOperator.annotations" . | nindent 4 }}
 data:
-  deployment.yaml: |
+  deployment.yaml.tmpl: |
 {{ .Values.manager.templates.deployment | indent 4 }}
-  service.yaml: |
+  service.yaml.tmpl: |
 {{ .Values.manager.templates.service | indent 4 }}
-  ingress.yaml: |
+  ingress.yaml.tmpl: |
 {{ .Values.manager.templates.ingress | indent 4 }}
+  database-statefulset.yaml.tmpl: |
+{{ .Values.manager.templates.databaseStatefulSet | indent 4 }}
+  database-service.yaml.tmpl: |
+{{ .Values.manager.templates.databaseService | indent 4 }}
+  redis-deployment.yaml.tmpl: |
+{{ .Values.manager.templates.redisDeployment | indent 4 }}
+  redis-service.yaml.tmpl: |
+{{ .Values.manager.templates.redisService | indent 4 }}

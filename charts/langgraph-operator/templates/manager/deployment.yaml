@@ -114,12 +114,20 @@ spec:
           configMap:
             name: {{ include "langgraphOperator.fullname" . }}-config
             items:
-              - key: deployment.yaml
-                path: deployment.yaml
-              - key: service.yaml
-                path: service.yaml
-              - key: ingress.yaml
-                path: ingress.yaml
+              - key: deployment.yaml.tmpl
+                path: deployment.yaml.tmpl
+              - key: database-service.yaml.tmpl
+                path: service.yaml.tmpl
+              - key: ingress.yaml.tmpl
+                path: ingress.yaml.tmpl
+              - key: database-statefulset.yaml.tmpl
+                path: database-statefulset.yaml.tmpl
+              - key: database-service.yaml.tmpl
+                path: database-service.yaml.tmpl
+              - key: redis-deployment.yaml.tmpl
+                path: redis-deployment.yaml.tmpl
+              - key: redis-service.yaml.tmpl
+                path: redis-service.yaml.tmpl
       {{- with .Values.manager.deployment.volumes }}
         {{- toYaml . | nindent 8 }}
       {{- end }}

@@ -17,7 +17,7 @@ images:
   operatorImage:
     repository: "docker.io/langchain/langgraph-operator"
     pullPolicy: IfNotPresent
-    tag: "c5bebbc"
+    tag: "fb9e98d"
 
 config:
   createCRDs: true
@@ -136,3 +136,120 @@ manager:
                   name: ${name}
                   port:
                     number: 8000
+    databaseStatefulSet: |
+      apiVersion: apps/v1
+      kind: StatefulSet
+      metadata:
+        name: ${database.name}
+        namespace: ${namespace}
+      spec:
+        serviceName: ${database.name}
+        selector:
+          matchLabels:
+            app: ${database.name}
+        template:
+          metadata:
+            labels:
+              app: ${database.name}
+          spec:
+            enableServiceLinks: false
+            containers:
+              - name: postgres
+                image: docker.io/pgvector/pgvector:pg15
+                ports:
+                  - containerPort: 5432
+                command: ["docker-entrypoint.sh"]
+                args:
+                  - postgres
+                  - -c
+                  - max_connections=${database.maxConnections}
+                env:
+                  - name: POSTGRES_USER
+                    value: postgres
+                  - name: POSTGRES_DB
+                    value: postgres
+                  - name: POSTGRES_PASSWORD
+                    valueFrom:
+                      secretKeyRef:
+                        name: ${database.secretName}
+                        key: POSTGRES_PASSWORD
+                volumeMounts:
+                  - name: postgres-data
+                    mountPath: /var/lib/postgresql/data
+        volumeClaimTemplates:
+          - metadata:
+              name: postgres-data
+            spec:
+              accessModes: ["ReadWriteOnce"]
+              resources:
+                requests:
+                  storage: "${database.storageSizeGi}Gi"
+    databaseService: |
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: ${database.name}
+        namespace: ${namespace}
+      spec:
+        selector:
+          app: ${database.name}
+        ports:
+          - port: 5432
+            targetPort: 5432
+        clusterIP: None
+    redisDeployment: |
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: ${redis.name}
+        namespace: ${namespace}
+      spec:
+        replicas: 1
+        selector:
+          matchLabels:
+            app: ${redis.name}
+        template:
+          metadata:
+            labels:
+              app: ${redis.name}
+          spec:
+            enableServiceLinks: false
+            containers:
+            - name: redis
+              image: docker.io/redis:7
+              ports:
+              - containerPort: 6379
+                name: redis
+              livenessProbe:
+                exec:
+                  command:
+                  - redis-cli
+                  - ping
+                initialDelaySeconds: 30
+                periodSeconds: 10
+              readinessProbe:
+                tcpSocket:
+                  port: 6379
+                initialDelaySeconds: 10
+                periodSeconds: 5
+    redisService: |
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: ${redis.name}
+        namespace: ${namespace}
+        labels:
+          app: ${redis.name}
+      spec:
+        ports:
+        - port: 6379
+          targetPort: 6379
+          protocol: TCP
+          name: redis
+        selector:
+          app: ${redis.name}
+        type: ClusterIP
+
+
+
+
