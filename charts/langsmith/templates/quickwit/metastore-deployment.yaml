@@ -109,7 +109,4 @@ spec:
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- if .Values.quickwit.metastore.runtimeClassName }}
-      runtimeClassName: {{ .Values.quickwit.metastore.runtimeClassName | quote }}
-      {{- end }}
 {{- end }}

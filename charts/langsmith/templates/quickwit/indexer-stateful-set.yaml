@@ -18,9 +18,7 @@ spec:
   replicas: {{ .Values.quickwit.indexer.replicaCount }}
   {{- end }}
   serviceName: {{ include "quickwit.fullname" . }}-headless
-  {{- if .Values.quickwit.indexer.podManagementPolicy }}
-  podManagementPolicy: {{ .Values.quickwit.indexer.podManagementPolicy }}
-  {{- end }}
+  podManagementPolicy: OrderedReady
   selector:
     matchLabels:
       {{- include "quickwit.indexer.selectorLabels" . | nindent 6 }}
@@ -92,10 +90,6 @@ spec:
             {{- end }}
           resources:
             {{- toYaml .Values.quickwit.indexer.resources | nindent 12 }}
-          {{- if .Values.quickwit.indexer.lifecycleHooks }}
-          lifecycle:
-            {{- toYaml .Values.quickwit.indexer.lifecycleHooks | nindent 12 }}
-          {{- end }}
       terminationGracePeriodSeconds: {{ .Values.quickwit.indexer.terminationGracePeriodSeconds }}
       volumes:
         - name: config
@@ -122,9 +116,6 @@ spec:
       {{- with .Values.quickwit.indexer.tolerations }}
       tolerations:
         {{- toYaml . | nindent 8 }}
-      {{- end }}
-      {{- if .Values.quickwit.indexer.runtimeClassName }}
-      runtimeClassName: {{ .Values.quickwit.indexer.runtimeClassName | quote }}
       {{- end }}
   {{- if .Values.quickwit.indexer.persistentVolume.enabled }}
   volumeClaimTemplates:

@@ -10,7 +10,7 @@ metadata:
 spec:
   selector:
     matchLabels:
-      {{- include "quickwit.quickwit.searcher.selectorLabels" . | nindent 6 }}
-  {{- toYaml .Values.searcher.podDisruptionBudget | nindent 2 }}
+      {{- include "quickwit.searcher.selectorLabels" . | nindent 6 }}
+  {{- toYaml .Values.quickwit.searcher.podDisruptionBudget | nindent 2 }}
 {{- end -}}
 {{- end -}}

@@ -18,9 +18,7 @@ spec:
   replicas: {{ .Values.quickwit.searcher.replicaCount }}
   {{- end }}
   serviceName: {{ include "quickwit.fullname" . }}-headless
-  {{- if .Values.quickwit.searcher.podManagementPolicy }}
-  podManagementPolicy: {{ .Values.quickwit.searcher.podManagementPolicy }}
-  {{- end }}
+  podManagementPolicy: OrderedReady
   selector:
     matchLabels:
       {{- include "quickwit.searcher.selectorLabels" . | nindent 6 }}
@@ -92,10 +90,6 @@ spec:
             {{- end }}
           resources:
             {{- toYaml .Values.quickwit.searcher.resources | nindent 14 }}
-          {{- if .Values.quickwit.searcher.lifecycleHooks }}
-          lifecycle:
-            {{- toYaml .Values.quickwit.searcher.lifecycleHooks | nindent 14 }}
-          {{- end }}
       {{- if .Values.quickwit.searcher.terminationGracePeriodSeconds }}
       terminationGracePeriodSeconds: {{ .Values.quickwit.searcher.terminationGracePeriodSeconds }}
       {{- end }}
@@ -124,9 +118,6 @@ spec:
       {{- with .Values.quickwit.searcher.tolerations }}
       tolerations:
         {{- toYaml . | nindent 8 }}
-      {{- end }}
-      {{- if .Values.quickwit.searcher.runtimeClassName }}
-      runtimeClassName: {{ .Values.quickwit.searcher.runtimeClassName | quote }}
       {{- end }}
   {{- if .Values.quickwit.searcher.persistentVolume.enabled }}
   volumeClaimTemplates:

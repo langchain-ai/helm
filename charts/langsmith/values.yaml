@@ -1481,9 +1481,9 @@ quickwit:
       #   cpu: 100m
       #   memory: 128Mi
 
-    ## Pod distruption budget
-    podDisruptionBudget: {}
-      # maxUnavailable: 1
+    # Pod disruption budget (either maxUnavailable or minAvailable can be set, not both)
+    podDisruptionBudget:
+      maxUnavailable: 1
       # minAvailable: 2
 
     persistentVolume:
@@ -1511,19 +1511,6 @@ quickwit:
         path: /health/readyz
         port: rest
 
-    # StatefulSet allows you to relax its ordering guarantees
-    #   - OrderedReady
-    #   - Parallel
-    podManagementPolicy: OrderedReady
-
-    lifecycleHooks: {}
-      # preStop:
-      #   exec:
-      #     command:
-      #       - /bin/sh
-      #       - -c
-      #       - sleep 30
-
     # Override args for starting container
     args: []
 
@@ -1540,8 +1527,6 @@ quickwit:
     tolerations: []
 
     affinity: {}
-
-    runtimeClassName: ""
 
   indexer:
     replicaCount: 1
@@ -1569,9 +1554,9 @@ quickwit:
       #   cpu: 100m
       #   memory: 128Mi
 
-    ## Pod distruption budget
-    podDisruptionBudget: {}
-      # maxUnavailable: 1
+    # Pod disruption budget (either maxUnavailable or minAvailable can be set, not both)
+    podDisruptionBudget:
+      maxUnavailable: 1
       # minAvailable: 2
 
     updateStrategy: {}
@@ -1594,11 +1579,6 @@ quickwit:
         path: /health/readyz
         port: rest
 
-    # StatefulSet allows you to relax its ordering guarantees
-    #   - OrderedReady
-    #   - Parallel
-    podManagementPolicy: OrderedReady
-
     # Override args for starting container
     args: []
 
@@ -1616,19 +1596,9 @@ quickwit:
 
     affinity: {}
 
-    lifecycleHooks: {}
-      # preStop:
-      #   exec:
-      #     command:
-      #       - /bin/sh
-      #       - -c
-      #       - sleep 30
-
     # Long grace period is recommended to wait for all index commit_timeout_secs and splits to be published
     # See https://quickwit.io/docs/configuration/index-config#indexing-settings
     terminationGracePeriodSeconds: 120
-
-    runtimeClassName: ""
 
     persistentVolume:
       enabled: false
@@ -1699,8 +1669,6 @@ quickwit:
 
     affinity: {}
 
-    runtimeClassName: ""
-
   control_plane:
     # Extra env for control plane
     extraEnv: {}
@@ -1758,8 +1726,6 @@ quickwit:
     tolerations: []
 
     affinity: {}
-
-    runtimeClassName: ""
 
   janitor:
     # Extra env for janitor
@@ -1819,8 +1785,6 @@ quickwit:
 
     affinity: {}
 
-    runtimeClassName: ""
-
   # Quickwit configuration
   # Warning: This config is writed directly into a configMap
   # to avoid passing sensitive value you can pass environment variables.
@@ -1828,11 +1792,11 @@ quickwit:
   configLocation: /quickwit/node.yaml
 
   config:
-    version: 0.8
+    version: 0.9
     listen_address: 0.0.0.0
     gossip_listen_port: 7282
-    data_dir: /quickwit/qwdata
-    default_index_root_uri: s3://quickwit/indexes
+    # data_dir: /quickwit/qwdata
+    # default_index_root_uri: s3://quickwit/indexes
 
     # postgres:
     #   max_num_connections: 50
