@@ -17,19 +17,19 @@ images:
   aceBackendImage:
     repository: "docker.io/langchain/langsmith-ace-backend"
     pullPolicy: IfNotPresent
-    tag: "0.9.92"
+    tag: "0.10.4"
   backendImage:
     repository: "docker.io/langchain/langsmith-backend"
     pullPolicy: IfNotPresent
-    tag: "0.9.92"
+    tag: "0.10.4"
   frontendImage:
     repository: "docker.io/langchain/langsmith-frontend"
     pullPolicy: IfNotPresent
-    tag: "0.9.92"
+    tag: "0.10.4"
   hostBackendImage:
     repository: "docker.io/langchain/hosted-langserve-backend"
     pullPolicy: IfNotPresent
-    tag: "0.9.92"
+    tag: "0.10.4"
   operatorImage:
     repository: "docker.io/langchain/langgraph-operator"
     pullPolicy: IfNotPresent
@@ -37,11 +37,11 @@ images:
   platformBackendImage:
     repository: "docker.io/langchain/langsmith-go-backend"
     pullPolicy: IfNotPresent
-    tag: "0.9.92"
+    tag: "0.10.4"
   playgroundImage:
     repository: "docker.io/langchain/langsmith-playground"
     pullPolicy: IfNotPresent
-    tag: "0.9.92"
+    tag: "0.10.4"
   postgresImage:
     repository: "docker.io/postgres"
     pullPolicy: IfNotPresent
@@ -775,6 +775,107 @@ listener:
     create: true
     labels: {}
     annotations: {}
+  templates:
+    db: |
+      apiVersion: apps/v1
+      kind: StatefulSet
+      metadata:
+        name: ${service_name}
+      spec:
+        serviceName: ${service_name}
+        replicas: ${replicas}
+        selector:
+          matchLabels:
+            app: ${service_name}
+        persistentVolumeClaimRetentionPolicy:
+          whenDeleted: Delete
+          whenScaled: Retain
+        template:
+          metadata:
+            labels:
+              app: ${service_name}
+          spec:
+            containers:
+            - name: postgres
+              image: pgvector/pgvector:pg15
+              ports:
+              - containerPort: 5432
+              command: ["docker-entrypoint.sh"]
+              args:
+                - postgres
+                - -c
+                - max_connections=${max_connections}
+              env:
+              - name: POSTGRES_PASSWORD
+                valueFrom:
+                  secretKeyRef:
+                    name: ${secret_name}
+                    key: POSTGRES_PASSWORD
+              - name: POSTGRES_USER
+                value: ${postgres_user}
+              - name: POSTGRES_DB
+                value: ${postgres_db}
+              - name: PGDATA
+                value: /var/lib/postgresql/data/pgdata
+              volumeMounts:
+              - name: postgres-data
+                mountPath: /var/lib/postgresql/data
+              resources:
+                requests:
+                  cpu: "${cpu}"
+                  memory: "${memory_mb}Mi"
+                limits:
+                  cpu: "${cpu_limit}"
+                  memory: "${memory_limit}Mi"
+            enableServiceLinks: false
+        volumeClaimTemplates:
+        - metadata:
+            name: postgres-data
+          spec:
+            accessModes: ["ReadWriteOnce"]
+            resources:
+              requests:
+                storage: "${storage_gi}Gi"
+    redis: |
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: ${service_name}
+      spec:
+        replicas: 1
+        selector:
+          matchLabels:
+            app: ${service_name}
+        template:
+          metadata:
+            labels:
+              app: ${service_name}
+          spec:
+            containers:
+            - name: redis
+              image: redis:6
+              ports:
+              - containerPort: 6379
+              livenessProbe:
+                exec:
+                  command:
+                  - redis-cli
+                  - ping
+                initialDelaySeconds: 30
+                periodSeconds: 10
+              readinessProbe:
+                tcpSocket:
+                  port: 6379
+                initialDelaySeconds: 10
+                periodSeconds: 5
+              resources:
+                requests:
+                  cpu: "1"
+                  memory: "2048Mi"
+                limits:
+                  cpu: "1"
+                  memory: "2048Mi"
+            enableServiceLinks: false
 
 platformBackend:
   name: "platform-backend"

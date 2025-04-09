@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.9.36](https://img.shields.io/badge/Version-0.9.36-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.9.92](https://img.shields.io/badge/AppVersion-0.9.92-informational?style=flat-square)
+![Version: 0.9.37](https://img.shields.io/badge/Version-0.9.37-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.10.4](https://img.shields.io/badge/AppVersion-0.10.4-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -18,29 +18,29 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | fullnameOverride | string | `""` | String to fully override `"langsmith.fullname"` |
 | images.aceBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.aceBackendImage.repository | string | `"docker.io/langchain/langsmith-ace-backend"` |  |
-| images.aceBackendImage.tag | string | `"0.9.92"` |  |
+| images.aceBackendImage.tag | string | `"0.10.4"` |  |
 | images.backendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.backendImage.repository | string | `"docker.io/langchain/langsmith-backend"` |  |
-| images.backendImage.tag | string | `"0.9.92"` |  |
+| images.backendImage.tag | string | `"0.10.4"` |  |
 | images.clickhouseImage.pullPolicy | string | `"Always"` |  |
 | images.clickhouseImage.repository | string | `"docker.io/clickhouse/clickhouse-server"` |  |
 | images.clickhouseImage.tag | string | `"24.8"` |  |
 | images.frontendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.frontendImage.repository | string | `"docker.io/langchain/langsmith-frontend"` |  |
-| images.frontendImage.tag | string | `"0.9.92"` |  |
+| images.frontendImage.tag | string | `"0.10.4"` |  |
 | images.hostBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.hostBackendImage.repository | string | `"docker.io/langchain/hosted-langserve-backend"` |  |
-| images.hostBackendImage.tag | string | `"0.9.92"` |  |
+| images.hostBackendImage.tag | string | `"0.10.4"` |  |
 | images.imagePullSecrets | list | `[]` | Secrets with credentials to pull images from a private registry. Specified as name: value. |
 | images.operatorImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.operatorImage.repository | string | `"docker.io/langchain/langgraph-operator"` |  |
 | images.operatorImage.tag | string | `"c5bebbc"` |  |
 | images.platformBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.platformBackendImage.repository | string | `"docker.io/langchain/langsmith-go-backend"` |  |
-| images.platformBackendImage.tag | string | `"0.9.92"` |  |
+| images.platformBackendImage.tag | string | `"0.10.4"` |  |
 | images.playgroundImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.playgroundImage.repository | string | `"docker.io/langchain/langsmith-playground"` |  |
-| images.playgroundImage.tag | string | `"0.9.92"` |  |
+| images.playgroundImage.tag | string | `"0.10.4"` |  |
 | images.postgresImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.postgresImage.repository | string | `"docker.io/postgres"` |  |
 | images.postgresImage.tag | string | `"14.7"` |  |
@@ -598,6 +598,8 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | listener.serviceAccount.create | bool | `true` |  |
 | listener.serviceAccount.labels | object | `{}` |  |
 | listener.serviceAccount.name | string | `""` |  |
+| listener.templates.db | string | `"apiVersion: apps/v1\nkind: StatefulSet\nmetadata:\n  name: ${service_name}\nspec:\n  serviceName: ${service_name}\n  replicas: ${replicas}\n  selector:\n    matchLabels:\n      app: ${service_name}\n  persistentVolumeClaimRetentionPolicy:\n    whenDeleted: Delete\n    whenScaled: Retain\n  template:\n    metadata:\n      labels:\n        app: ${service_name}\n    spec:\n      containers:\n      - name: postgres\n        image: pgvector/pgvector:pg15\n        ports:\n        - containerPort: 5432\n        command: [\"docker-entrypoint.sh\"]\n        args:\n          - postgres\n          - -c\n          - max_connections=${max_connections}\n        env:\n        - name: POSTGRES_PASSWORD\n          valueFrom:\n            secretKeyRef:\n              name: ${secret_name}\n              key: POSTGRES_PASSWORD\n        - name: POSTGRES_USER\n          value: ${postgres_user}\n        - name: POSTGRES_DB\n          value: ${postgres_db}\n        - name: PGDATA\n          value: /var/lib/postgresql/data/pgdata\n        volumeMounts:\n        - name: postgres-data\n          mountPath: /var/lib/postgresql/data\n        resources:\n          requests:\n            cpu: \"${cpu}\"\n            memory: \"${memory_mb}Mi\"\n          limits:\n            cpu: \"${cpu_limit}\"\n            memory: \"${memory_limit}Mi\"\n      enableServiceLinks: false\n  volumeClaimTemplates:\n  - metadata:\n      name: postgres-data\n    spec:\n      accessModes: [\"ReadWriteOnce\"]\n      resources:\n        requests:\n          storage: \"${storage_gi}Gi\"\n"` |  |
+| listener.templates.redis | string | `"apiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: ${service_name}\nspec:\n  replicas: 1\n  selector:\n    matchLabels:\n      app: ${service_name}\n  template:\n    metadata:\n      labels:\n        app: ${service_name}\n    spec:\n      containers:\n      - name: redis\n        image: redis:6\n        ports:\n        - containerPort: 6379\n        livenessProbe:\n          exec:\n            command:\n            - redis-cli\n            - ping\n          initialDelaySeconds: 30\n          periodSeconds: 10\n        readinessProbe:\n          tcpSocket:\n            port: 6379\n          initialDelaySeconds: 10\n          periodSeconds: 5\n        resources:\n          requests:\n            cpu: \"1\"\n            memory: \"2048Mi\"\n          limits:\n            cpu: \"1\"\n            memory: \"2048Mi\"\n      enableServiceLinks: false\n"` |  |
 
 ## Operator (Optional)
 
@@ -982,6 +984,6 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | Ankush | <ankush@langchain.dev> |  |
 
 ----------------------------------------------
-Autogenerated from chart metadata using [helm-docs v1.13.1](https://github.com/norwoodj/helm-docs/releases/v1.13.1)
+Autogenerated from chart metadata using [helm-docs v1.11.3](https://github.com/norwoodj/helm-docs/releases/v1.11.3)
 ## Docs Generated by [helm-docs](https://github.com/norwoodj/helm-docs)
 `helm-docs -t ./charts/langsmith/README.md.gotmpl`
