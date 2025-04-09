@@ -1,0 +1,16 @@
+{{- if .Values.config.fullTextSearch.enabled -}}
+{{- if .Values.quickwit.indexer.podDisruptionBudget -}}
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "quickwit.fullname" . }}-indexer
+  labels:
+    {{- include "quickwit.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "quickwit.indexer.selectorLabels" . | nindent 6 }}
+  {{- toYaml .Values.quickwit.indexer.podDisruptionBudget | nindent 2 }}
+{{- end -}}
+{{- end }}

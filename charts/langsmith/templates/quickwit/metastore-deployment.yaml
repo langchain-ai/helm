@@ -1,0 +1,115 @@
+{{- if .Values.config.fullTextSearch.enabled -}}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "quickwit.fullname" . }}-metastore
+  labels:
+    {{- include "quickwit.labels" . | nindent 4 }}
+  annotations:
+    {{- with .Values.quickwit.annotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+    {{- with .Values.quickwit.metastore.annotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  replicas: {{ .Values.quickwit.metastore.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "quickwit.metastore.selectorLabels" . | nindent 6 }}
+  strategy: {{- toYaml .Values.quickwit.metastore.strategy | nindent 4 }}
+  template:
+    metadata:
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/config-map.yaml") . | sha256sum }}
+      {{- with .Values.quickwit.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.quickwit.metastore.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "quickwit.additionalLabels" . | nindent 8 }}
+        {{- include "quickwit.metastore.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.quickwit.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "quickwit.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.quickwit.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ include "quickwit.name" . }}
+          securityContext:
+            {{- toYaml .Values.quickwit.securityContext | nindent 12 }}
+          image: "{{ .Values.quickwit.image.repository }}:{{ .Values.quickwit.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.quickwit.image.pullPolicy }}
+          {{- if $.Values.quickwit.metastore.args }}
+          args: {{- toYaml $.Values.quickwit.metastore.args | nindent 10 }}
+          {{- else }}
+          args: ["run", "--service", "metastore"]
+          {{- end }}
+          env:
+            {{- include "quickwit.environment" . | nindent 12 }}
+            {{- range $key, $value := .Values.quickwit.metastore.extraEnv }}
+            - name: "{{ $key }}"
+              value: "{{ $value }}"
+            {{- end }}
+          {{- if or (.Values.quickwit.environmentFrom) (.Values.quickwit.metastore.extraEnvFrom) }}
+          envFrom:
+          {{- with .Values.quickwit.environmentFrom }}
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.quickwit.metastore.extraEnvFrom }}
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- end }}
+          ports:
+            {{- include "quickwit.ports" . | nindent 12 }}
+          startupProbe:
+            {{- toYaml .Values.quickwit.metastore.startupProbe | nindent 12 }}
+          livenessProbe:
+            {{- toYaml .Values.quickwit.metastore.livenessProbe | nindent 12 }}
+          readinessProbe:
+            {{- toYaml .Values.quickwit.metastore.readinessProbe | nindent 12 }}
+          volumeMounts:
+            - name: config
+              mountPath: /quickwit/node.yaml
+              subPath: node.yaml
+            - name: data
+              mountPath: /quickwit/qwdata
+            {{- with .Values.quickwit.metastore.extraVolumeMounts }}
+              {{- toYaml . | nindent 12 }}
+            {{- end }}
+          resources:
+            {{- toYaml .Values.quickwit.metastore.resources | nindent 14 }}
+      volumes:
+        - name: config
+          configMap:
+            name: {{ template "quickwit.fullname" . }}
+            items:
+              - key: node.yaml
+                path: node.yaml
+        - name: data
+          emptyDir: {}
+        {{- with .Values.quickwit.metastore.extraVolumes }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- with .Values.quickwit.metastore.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with  merge .Values.quickwit.affinity .Values.quickwit.metastore.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.quickwit.metastore.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if .Values.quickwit.metastore.runtimeClassName }}
+      runtimeClassName: {{ .Values.quickwit.metastore.runtimeClassName | quote }}
+      {{- end }}
+{{- end }}
