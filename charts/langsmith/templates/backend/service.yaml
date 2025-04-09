@@ -14,16 +14,14 @@ metadata:
     {{- end }}
 spec:
   type: {{ .Values.backend.service.type }}
-  {{- with .Values.backend.service.loadBalancerSourceRanges }}
-  loadBalancerSourceRanges:
-    {{- toYaml . | nindent 4 }}
-  {{- end }}
-  loadBalancerIP: {{ .Values.backend.service.loadBalancerIP }}
   ports:
-    - name: backend
-      port: {{ .Values.backend.service.port }}
-      targetPort: backend
-      protocol: TCP
+  - name: backend
+    port: {{ .Values.backend.service.port }}
+    targetPort: backend
+    protocol: TCP
+  {{- if .Values.backend.service.additionalSpec }}
+  {{- toYaml .Values.backend.service.additionalSpec | nindent 2 }}
+  {{- end }}
   selector:
     {{- include "langsmith.selectorLabels" . | nindent 4 }}
-    app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}
+    app.kubernetes.io/component: "{{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}"
