@@ -230,7 +230,7 @@ operator:
                 service:
                   name: ${name}
                   port:
-                    number: 8000  
+                    number: 8000
 
 
 redis:
