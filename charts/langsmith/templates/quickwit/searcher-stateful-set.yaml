@@ -51,11 +51,7 @@ spec:
             {{- toYaml .Values.quickwit.securityContext | nindent 12 }}
           image: "{{ .Values.quickwit.image.repository }}:{{ .Values.quickwit.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.quickwit.image.pullPolicy }}
-          {{- if $.Values.quickwit.searcher.args }}
-          args: {{- toYaml $.Values.quickwit.searcher.args | nindent 10 }}
-          {{- else }}
           args: ["run", "--service", "searcher"]
-          {{- end }}
           env:
             {{- include "quickwit.environment" . | nindent 12 }}
             {{- range $key, $value := .Values.quickwit.searcher.extraEnv }}

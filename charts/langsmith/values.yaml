@@ -1511,9 +1511,6 @@ quickwit:
         path: /health/readyz
         port: rest
 
-    # Override args for starting container
-    args: []
-
     annotations: {}
 
     podAnnotations: {}
@@ -1578,9 +1575,6 @@ quickwit:
       httpGet:
         path: /health/readyz
         port: rest
-
-    # Override args for starting container
-    args: []
 
     annotations: {}
 
@@ -1652,9 +1646,6 @@ quickwit:
         path: /health/readyz
         port: rest
 
-    # Override args for starting container
-    args: []
-
     annotations: {}
 
     podAnnotations: {}
@@ -1710,9 +1701,6 @@ quickwit:
         path: /health/readyz
         port: rest
 
-    # Override args for starting container
-    args: []
-
     annotations: {}
 
     podAnnotations: {}
@@ -1767,9 +1755,6 @@ quickwit:
       httpGet:
         path: /health/readyz
         port: rest
-
-    # Override args for starting container
-    args: []
 
     annotations: {}
 
