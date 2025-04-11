@@ -1,16 +1,16 @@
-{{- if .Values.config.fullTextSearch.enabled -}}
+{{- if .Values.config.fullTextSearch.deletes.enabled -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ include "langsmith.fullname" . }}-{{ .Values.quickwit.janitor.name }}
   labels:
     {{- include "quickwit.labels" . | nindent 4 }}
-    {{- with .Values.quickwit.janitor.labels }}
+    {{- with .Values.quickwit.janitor.deployment.labels }}
     {{- toYaml . | nindent 4 }}
     {{- end }}
   annotations:
     {{- include "langsmith.annotations" . | nindent 4 }}
-    {{- with .Values.quickwit.janitor.annotations }}
+    {{- with .Values.quickwit.janitor.deployment.annotations }}
     {{- toYaml . | nindent 4 }}
     {{- end }}
 spec:
@@ -28,7 +28,7 @@ spec:
       {{- with .Values.quickwit.podAnnotations }}
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.quickwit.janitor.podAnnotations }}
+      {{- with .Values.quickwit.janitor.deployment.podAnnotations }}
         {{- toYaml . | nindent 8 }}
       {{- end }}
       labels:
@@ -51,16 +51,16 @@ spec:
           args: ["run", "--service", "janitor"]
           env:
             {{- include "quickwit.environment" . | nindent 12 }}
-            {{- range $key, $value := .Values.quickwit.janitor.extraEnv }}
+            {{- range $key, $value := .Values.quickwit.janitor.deployment.extraEnv }}
             - name: "{{ $key }}"
               value: "{{ $value }}"
             {{- end }}
-          {{- if or (.Values.quickwit.environmentFrom) (.Values.quickwit.janitor.extraEnvFrom) }}
+          {{- if or (.Values.quickwit.environmentFrom) (.Values.quickwit.janitor.deployment.extraEnvFrom) }}
           envFrom:
           {{- with .Values.quickwit.environmentFrom }}
             {{- toYaml . | nindent 12 }}
           {{- end }}
-          {{- with .Values.quickwit.janitor.extraEnvFrom }}
+          {{- with .Values.quickwit.janitor.deployment.extraEnvFrom }}
             {{- toYaml . | nindent 12 }}
           {{- end }}
           {{- end }}
@@ -77,11 +77,11 @@ spec:
             - name: {{ .name }}
               mountPath: {{ .mountPath }}
             {{- end }}
-            {{- with .Values.quickwit.indexer.extraVolumeMounts }}
+            {{- with .Values.quickwit.indexer.statefulSet.extraVolumeMounts }}
               {{- toYaml . | nindent 12 }}
             {{- end }}
           resources:
-            {{- toYaml .Values.quickwit.janitor.resources | nindent 14 }}
+            {{- toYaml .Values.quickwit.janitor.deployment.resources | nindent 14 }}
       volumes:
         - name: config
           configMap:
@@ -91,18 +91,18 @@ spec:
                 path: node.yaml
         - name: data
           emptyDir: {}
-        {{- with .Values.quickwit.indexer.extraVolumes }}
+        {{- with .Values.quickwit.indexer.statefulSet.extraVolumes }}
           {{- toYaml . | nindent 8 }}
         {{- end }}
-      {{- with .Values.quickwit.janitor.nodeSelector }}
+      {{- with .Values.quickwit.janitor.deployment.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with  merge .Values.quickwit.affinity .Values.quickwit.janitor.affinity }}
+      {{- with  merge .Values.quickwit.affinity .Values.quickwit.janitor.deployment.affinity }}
       affinity:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.quickwit.janitor.tolerations }}
+      {{- with .Values.quickwit.janitor.deployment.tolerations }}
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
