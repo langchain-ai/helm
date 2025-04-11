@@ -1,0 +1,14 @@
+{{- if .Values.config.fullTextSearch.indexing.enabled -}}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "quickwit.configMapName" . }}
+  labels:
+    {{- include "langsmith.labels" . | nindent 4 }}
+  annotations:
+    {{- include "langsmith.annotations" . | nindent 4 }}
+data:
+  node.yaml: |-
+    {{- toYaml .Values.quickwit.config | nindent 4 }}
+{{- end }}
