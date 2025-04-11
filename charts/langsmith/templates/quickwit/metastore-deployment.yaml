@@ -1,4 +1,4 @@
-{{- if .Values.config.fullTextSearch.enabled -}}
+{{- if .Values.config.fullTextSearch.indexing.enabled -}}
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -6,21 +6,21 @@ metadata:
   name: {{ include "langsmith.fullname" . }}-{{ .Values.quickwit.metastore.name }}
   labels:
     {{- include "quickwit.labels" . | nindent 4 }}
-    {{- with .Values.quickwit.metastore.labels }}
+    {{- with .Values.quickwit.metastore.deployment.labels }}
     {{- toYaml . | nindent 4 }}
     {{- end }}
   annotations:
     {{- include "langsmith.annotations" . | nindent 4 }}
-    {{- with .Values.quickwit.metastore.annotations }}
+    {{- with .Values.quickwit.metastore.deployment.annotations }}
     {{- toYaml . | nindent 4 }}
     {{- end }}
 spec:
-  replicas: {{ .Values.quickwit.metastore.replicaCount }}
+  replicas: {{ .Values.quickwit.metastore.deployment.replicaCount }}
   selector:
     matchLabels:
       {{- include "quickwit.selectorLabels" . | nindent 6 }}
       app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-{{ .Values.quickwit.metastore.name }}
-  strategy: {{- toYaml .Values.quickwit.metastore.strategy | nindent 4 }}
+  strategy: {{- toYaml .Values.quickwit.metastore.deployment.strategy | nindent 4 }}
   template:
     metadata:
       annotations:
@@ -28,7 +28,7 @@ spec:
       {{- with .Values.quickwit.podAnnotations }}
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.quickwit.metastore.podAnnotations }}
+      {{- with .Values.quickwit.metastore.deployment.podAnnotations }}
         {{- toYaml . | nindent 8 }}
       {{- end }}
       labels:
@@ -51,16 +51,16 @@ spec:
           args: ["run", "--service", "metastore"]
           env:
             {{- include "quickwit.environment" . | nindent 12 }}
-            {{- range $key, $value := .Values.quickwit.metastore.extraEnv }}
+            {{- range $key, $value := .Values.quickwit.metastore.deployment.extraEnv }}
             - name: "{{ $key }}"
               value: "{{ $value }}"
             {{- end }}
-          {{- if or (.Values.quickwit.environmentFrom) (.Values.quickwit.metastore.extraEnvFrom) }}
+          {{- if or (.Values.quickwit.environmentFrom) (.Values.quickwit.metastore.deployment.extraEnvFrom) }}
           envFrom:
           {{- with .Values.quickwit.environmentFrom }}
             {{- toYaml . | nindent 12 }}
           {{- end }}
-          {{- with .Values.quickwit.metastore.extraEnvFrom }}
+          {{- with .Values.quickwit.metastore.deployment.extraEnvFrom }}
             {{- toYaml . | nindent 12 }}
           {{- end }}
           {{- end }}
@@ -73,11 +73,11 @@ spec:
               subPath: node.yaml
             - name: data
               mountPath: /quickwit/qwdata
-            {{- with .Values.quickwit.metastore.extraVolumeMounts }}
+            {{- with .Values.quickwit.metastore.deployment.extraVolumeMounts }}
               {{- toYaml . | nindent 12 }}
             {{- end }}
           resources:
-            {{- toYaml .Values.quickwit.metastore.resources | nindent 14 }}
+            {{- toYaml .Values.quickwit.metastore.deployment.resources | nindent 14 }}
       volumes:
         - name: config
           configMap:
@@ -87,18 +87,18 @@ spec:
                 path: node.yaml
         - name: data
           emptyDir: {}
-        {{- with .Values.quickwit.metastore.extraVolumes }}
+        {{- with .Values.quickwit.metastore.deployment.extraVolumes }}
           {{- toYaml . | nindent 8 }}
         {{- end }}
-      {{- with .Values.quickwit.metastore.nodeSelector }}
+      {{- with .Values.quickwit.metastore.deployment.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with  merge .Values.quickwit.affinity .Values.quickwit.metastore.affinity }}
+      {{- with  merge .Values.quickwit.affinity .Values.quickwit.metastore.deployment.affinity }}
       affinity:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.quickwit.metastore.tolerations }}
+      {{- with .Values.quickwit.metastore.deployment.tolerations }}
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}

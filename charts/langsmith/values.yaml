@@ -158,7 +158,12 @@ config:
     redisRunsExpirySeconds: "43200"  # 12 hours
 
   fullTextSearch:
-    enabled: false
+    indexing:
+      # Enables Experimental Search support
+      enabled: false
+    deletes:
+      # Enables deletes for Experimental Search
+      enabled: false
 
 aceBackend:
   name: "ace-backend"
@@ -1446,6 +1451,17 @@ quickwit:
   # Global affinity settings applied to all deployments
   affinity: {}
 
+  service:
+    # Service type configuration default for all Quickwit services
+    type: ClusterIP
+
+    # -- Set the ip family policy to configure dual-stack see [Configure dual-stack](https://kubernetes.io/docs/concepts/services-networking/dual-stack/#services)
+    ipFamilyPolicy: ""
+    # -- Sets the families that should be supported and the order in which they should be applied to ClusterIP as well. Can be IPv4 and/or IPv6.
+    ipFamilies: []
+
+    annotations: {}
+
   ports:
   - name: rest
     containerPort: 7280
@@ -1475,238 +1491,239 @@ quickwit:
 
   searcher:
     name: quickwit-searcher
-    replicaCount: 1
-
-    # Extra env for searcher
-    extraEnv: {}
-      # KEY: VALUE
-    extraEnvFrom: []
-      # - secretRef:
-      #     name: quickwit-searcher
-      # - configMapRef:
-      #     name: quickwit-searcher
-
-    # extraVolumes -- Additional volumes to use with Pods.
-    extraVolumes: []
-
-    # extraVolumeMounts -- Additional volumes to mount into Quickwit containers.
-    extraVolumeMounts: []
-
-    resources: {}
-      # limits:
-      #   cpu: 100m
-      #   memory: 128Mi
-      # requests:
-      #   cpu: 100m
-      #   memory: 128Mi
-
-    # Pod disruption budget (either maxUnavailable or minAvailable can be set, not both)
-    podDisruptionBudget:
-      maxUnavailable: 1
-      # minAvailable: 2
-
-    persistentVolume:
-      enabled: false
-      # storage: "1Gi"
-      # storageClass: ""
-
-    updateStrategy: {}
-      # type: RollingUpdate
-
-    annotations: {}
-
-    podAnnotations: {}
-
     serviceAnnotations: {}
-
     # serviceType: ClusterIP
 
-    nodeSelector: {}
+    statefulSet:
+      replicaCount: 1
 
-    tolerations: []
+      # Extra env for searcher
+      extraEnv: {}
+        # KEY: VALUE
+      extraEnvFrom: []
+        # - secretRef:
+        #     name: quickwit-searcher
+        # - configMapRef:
+        #     name: quickwit-searcher
 
-    affinity: {}
+      # extraVolumes -- Additional volumes to use with Pods.
+      extraVolumes: []
+
+      # extraVolumeMounts -- Additional volumes to mount into Quickwit containers.
+      extraVolumeMounts: []
+
+      resources: {}
+        # limits:
+        #   cpu: 100m
+        #   memory: 128Mi
+        # requests:
+        #   cpu: 100m
+        #   memory: 128Mi
+
+      # Pod disruption budget (either maxUnavailable or minAvailable can be set, not both)
+      podDisruptionBudget:
+        maxUnavailable: 1
+        # minAvailable: 2
+
+      persistentVolume:
+        enabled: false
+        # storage: "1Gi"
+        # storageClass: ""
+
+      updateStrategy: {}
+        # type: RollingUpdate
+
+      annotations: {}
+
+      podAnnotations: {}
+
+
+      nodeSelector: {}
+
+      tolerations: []
+
+      affinity: {}
 
   indexer:
     name: quickwit-indexer
-    replicaCount: 1
-
-    # Extra env for indexer
-    extraEnv: {}
-      # KEY: VALUE
-    extraEnvFrom: []
-      # - secretRef:
-      #     name: quickwit-indexer
-      # - configMapRef:
-      #     name: quickwit-indexer
-
-    # extraVolumes -- Additional volumes to use with Pods.
-    extraVolumes: []
-
-    # extraVolumeMounts -- Additional volumes to mount into Quickwit containers.
-    extraVolumeMounts: []
-
-    resources: {}
-      # limits:
-      #   cpu: 100m
-      #   memory: 128Mi
-      # requests:
-      #   cpu: 100m
-      #   memory: 128Mi
-
-    # Pod disruption budget (either maxUnavailable or minAvailable can be set, not both)
-    podDisruptionBudget:
-      maxUnavailable: 1
-      # minAvailable: 2
-
-    updateStrategy: {}
-      # type: RollingUpdate
-
-    annotations: {}
-
-    podAnnotations: {}
-
     serviceAnnotations: {}
-
     # serviceType: ClusterIP
 
-    nodeSelector: {}
+    statefulSet:
+      replicaCount: 1
 
-    tolerations: []
+    # Extra env for indexer
+      extraEnv: {}
+        # KEY: VALUE
+      extraEnvFrom: []
+        # - secretRef:
+        #     name: quickwit-indexer
+        # - configMapRef:
+        #     name: quickwit-indexer
 
-    affinity: {}
+      # extraVolumes -- Additional volumes to use with Pods.
+      extraVolumes: []
 
-    # Long grace period is recommended to wait for all index commit_timeout_secs and splits to be published
-    # See https://quickwit.io/docs/configuration/index-config#indexing-settings
-    terminationGracePeriodSeconds: 120
+      # extraVolumeMounts -- Additional volumes to mount into Quickwit containers.
+      extraVolumeMounts: []
 
-    persistentVolume:
-      enabled: false
-      # storage: "1Gi"
-      # storageClass: ""
+      resources: {}
+        # limits:
+        #   cpu: 100m
+        #   memory: 128Mi
+        # requests:
+        #   cpu: 100m
+        #   memory: 128Mi
+
+      # Pod disruption budget (either maxUnavailable or minAvailable can be set, not both)
+      podDisruptionBudget:
+        maxUnavailable: 1
+        # minAvailable: 2
+
+      updateStrategy: {}
+        # type: RollingUpdate
+
+      annotations: {}
+
+      podAnnotations: {}
+
+      nodeSelector: {}
+
+      tolerations: []
+
+      affinity: {}
+
+      # Long grace period is recommended to wait for all index commit_timeout_secs and splits to be published
+      # See https://quickwit.io/docs/configuration/index-config#indexing-settings
+      terminationGracePeriodSeconds: 120
+
+      persistentVolume:
+        enabled: false
+        # storage: "1Gi"
+        # storageClass: ""
 
   metastore:
     name: quickwit-metastore
-    replicaCount: 1
-
-    # Extra env for metastore
-    extraEnv: {}
-      # KEY: VALUE
-    # This is the recommended way to inject `QW_METASTORE_URI` when using the postgres metastore (see https://quickwit.io/docs/configuration/metastore-config)
-    extraEnvFrom: []
-      # - secretRef:
-      #     name: quickwit-metastore
-      # - configMapRef:
-      #     name: quickwit-metastore
-
-    # extraVolumes -- Additional volumes to use with Pods.
-    extraVolumes: []
-
-    # extraVolumeMounts -- Additional volumes to mount into Quickwit containers.
-    extraVolumeMounts: []
-
-    resources: {}
-      # limits:
-      #   cpu: 100m
-      #   memory: 128Mi
-      # requests:
-      #   cpu: 100m
-      #   memory: 128Mi
-
-    updateStrategy: {}
-      # type: RollingUpdate
-
-    annotations: {}
-
-    podAnnotations: {}
-
     serviceAnnotations: {}
-
     # serviceType: ClusterIP
 
-    nodeSelector: {}
+    deployment:
+      replicaCount: 1
 
-    tolerations: []
+      # Extra env for metastore
+      extraEnv: {}
+        # KEY: VALUE
+      # This is the recommended way to inject `QW_METASTORE_URI` when using the postgres metastore (see https://quickwit.io/docs/configuration/metastore-config)
+      extraEnvFrom: []
+        # - secretRef:
+        #     name: quickwit-metastore
+        # - configMapRef:
+        #     name: quickwit-metastore
 
-    affinity: {}
+      # extraVolumes -- Additional volumes to use with Pods.
+      extraVolumes: []
+
+      # extraVolumeMounts -- Additional volumes to mount into Quickwit containers.
+      extraVolumeMounts: []
+
+      resources: {}
+        # limits:
+        #   cpu: 100m
+        #   memory: 128Mi
+        # requests:
+        #   cpu: 100m
+        #   memory: 128Mi
+
+      updateStrategy: {}
+        # type: RollingUpdate
+
+      annotations: {}
+
+      podAnnotations: {}
+
+      nodeSelector: {}
+
+      tolerations: []
+
+      affinity: {}
 
   controlPlane:
     name: quickwit-control-plane
-    # Extra env for control plane
-    extraEnv: {}
-      # KEY: VALUE
-    extraEnvFrom: []
-      # - secretRef:
-      #     name: quickwit-control-plane
-      # - configMapRef:
-      #     name: quickwit-control-plane
-
-    # extraVolumes -- Additional volumes to use with Pods.
-    extraVolumes: []
-
-    # extraVolumeMounts -- Additional volumes to mount into Quickwit containers.
-    extraVolumeMounts: []
-
-    resources: {}
-      # limits:
-      #   cpu: 100m
-      #   memory: 128Mi
-      # requests:
-      #   cpu: 100m
-      #   memory: 128Mi
-
-    annotations: {}
-
-    podAnnotations: {}
-
     serviceAnnotations: {}
-
     # serviceType: ClusterIP
 
-    nodeSelector: {}
+    deployment:
+      # Extra env for control plane
+      extraEnv: {}
+        # KEY: VALUE
+      extraEnvFrom: []
+        # - secretRef:
+        #     name: quickwit-control-plane
+        # - configMapRef:
+        #     name: quickwit-control-plane
 
-    tolerations: []
+      # extraVolumes -- Additional volumes to use with Pods.
+      extraVolumes: []
 
-    affinity: {}
+      # extraVolumeMounts -- Additional volumes to mount into Quickwit containers.
+      extraVolumeMounts: []
+
+      resources: {}
+        # limits:
+        #   cpu: 100m
+        #   memory: 128Mi
+        # requests:
+        #   cpu: 100m
+        #   memory: 128Mi
+
+      annotations: {}
+
+      podAnnotations: {}
+
+      nodeSelector: {}
+
+      tolerations: []
+
+      affinity: {}
 
   janitor:
     name: quickwit-janitor
-    # Extra env for janitor
-    extraEnv: {}
-      # KEY: VALUE
-    extraEnvFrom: []
-      # - secretRef:
-      #     name: quickwit-janitor
-      # - configMapRef:
-      #     name: quickwit-janitor
-
-    # extraVolumes -- Additional volumes to use with Pods.
-    extraVolumes: []
-
-    # extraVolumeMounts -- Additional volumes to mount into Quickwit containers.
-    extraVolumeMounts: []
-
-    resources: {}
-      # limits:
-      #   cpu: 100m
-      #   memory: 128Mi
-      # requests:
-      #   cpu: 100m
-      #   memory: 128Mi
-
-    annotations: {}
-
-    podAnnotations: {}
-
     serviceAnnotations: {}
-
     # serviceType: ClusterIP
 
-    nodeSelector: {}
+    deployment:
+      # Extra env for janitor
+      extraEnv: {}
+        # KEY: VALUE
+      extraEnvFrom: []
+        # - secretRef:
+        #     name: quickwit-janitor
+        # - configMapRef:
+        #     name: quickwit-janitor
 
-    tolerations: []
+      # extraVolumes -- Additional volumes to use with Pods.
+      extraVolumes: []
 
-    affinity: {}
+      # extraVolumeMounts -- Additional volumes to mount into Quickwit containers.
+      extraVolumeMounts: []
+
+      resources: {}
+        # limits:
+        #   cpu: 100m
+        #   memory: 128Mi
+        # requests:
+        #   cpu: 100m
+        #   memory: 128Mi
+
+      annotations: {}
+
+      podAnnotations: {}
+
+      nodeSelector: {}
+
+      tolerations: []
+
+      affinity: {}
 
   updateRunsIndex:
     name: quickwit-update-runs-index
@@ -1753,13 +1770,3 @@ quickwit:
     #   split_footer_cache_capacity: 1G
     #   max_num_concurrent_split_streams: 100
 
-  service:
-    # Service type configuration default for all Quickwit services
-    type: ClusterIP
-
-    # -- Set the ip family policy to configure dual-stack see [Configure dual-stack](https://kubernetes.io/docs/concepts/services-networking/dual-stack/#services)
-    ipFamilyPolicy: ""
-    # -- Sets the families that should be supported and the order in which they should be applied to ClusterIP as well. Can be IPv4 and/or IPv6.
-    ipFamilies: []
-
-    annotations: {}

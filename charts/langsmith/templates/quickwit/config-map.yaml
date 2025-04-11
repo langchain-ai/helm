@@ -1,4 +1,4 @@
-{{- if .Values.config.fullTextSearch.enabled -}}
+{{- if .Values.config.fullTextSearch.indexing.enabled -}}
 ---
 apiVersion: v1
 kind: ConfigMap

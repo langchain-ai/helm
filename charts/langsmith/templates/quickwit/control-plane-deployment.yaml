@@ -1,4 +1,4 @@
-{{- if .Values.config.fullTextSearch.enabled -}}
+{{- if .Values.config.fullTextSearch.indexing.enabled -}}
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -6,12 +6,12 @@ metadata:
   name: {{ include "langsmith.fullname" . }}-{{ .Values.quickwit.controlPlane.name }}
   labels:
     {{- include "quickwit.labels" . | nindent 4 }}
-    {{- with .Values.quickwit.controlPlane.labels }}
+    {{- with .Values.quickwit.controlPlane.deployment.labels }}
     {{- toYaml . | nindent 4 }}
     {{- end }}
   annotations:
     {{- include "langsmith.annotations" . | nindent 4 }}
-    {{- with .Values.quickwit.controlPlane.annotations }}
+    {{- with .Values.quickwit.controlPlane.deployment.annotations }}
     {{- toYaml . | nindent 4 }}
     {{- end }}
 spec:
@@ -30,7 +30,7 @@ spec:
       {{- with .Values.quickwit.podAnnotations }}
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.quickwit.controlPlane.podAnnotations }}
+      {{- with .Values.quickwit.controlPlane.deployment.podAnnotations }}
         {{- toYaml . | nindent 8 }}
       {{- end }}
       labels:
@@ -53,16 +53,16 @@ spec:
           args: ["run", "--service", "control_plane"]
           env:
             {{- include "quickwit.environment" . | nindent 12 }}
-            {{- range $key, $value := .Values.quickwit.controlPlane.extraEnv }}
+            {{- range $key, $value := .Values.quickwit.controlPlane.deployment.extraEnv }}
             - name: "{{ $key }}"
               value: "{{ $value }}"
             {{- end }}
-          {{- if or (.Values.quickwit.environmentFrom) (.Values.quickwit.controlPlane.extraEnvFrom) }}
+          {{- if or (.Values.quickwit.environmentFrom) (.Values.quickwit.controlPlane.deployment.extraEnvFrom) }}
           envFrom:
           {{- with .Values.quickwit.environmentFrom }}
             {{- toYaml . | nindent 12 }}
           {{- end }}
-          {{- with .Values.quickwit.controlPlane.extraEnvFrom }}
+          {{- with .Values.quickwit.controlPlane.deployment.extraEnvFrom }}
             {{- toYaml . | nindent 12 }}
           {{- end }}
           {{- end }}
@@ -75,11 +75,11 @@ spec:
               subPath: node.yaml
             - name: data
               mountPath: /quickwit/qwdata
-            {{- with .Values.quickwit.indexer.extraVolumeMounts }}
+            {{- with .Values.quickwit.indexer.statefulSet.extraVolumeMounts }}
               {{- toYaml . | nindent 12 }}
             {{- end }}
           resources:
-            {{- toYaml .Values.quickwit.controlPlane.resources | nindent 14 }}
+            {{- toYaml .Values.quickwit.controlPlane.deployment.resources | nindent 14 }}
       volumes:
         - name: config
           configMap:
@@ -89,18 +89,18 @@ spec:
                 path: node.yaml
         - name: data
           emptyDir: {}
-        {{- with .Values.quickwit.indexer.extraVolumes }}
+        {{- with .Values.quickwit.indexer.statefulSet.extraVolumes }}
           {{- toYaml . | nindent 8 }}
         {{- end }}
-      {{- with .Values.quickwit.controlPlane.nodeSelector }}
+      {{- with .Values.quickwit.controlPlane.deployment.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with merge .Values.quickwit.affinity .Values.quickwit.controlPlane.affinity }}
+      {{- with merge .Values.quickwit.affinity .Values.quickwit.controlPlane.deployment.affinity }}
       affinity:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.quickwit.controlPlane.tolerations }}
+      {{- with .Values.quickwit.controlPlane.deployment.tolerations }}
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}

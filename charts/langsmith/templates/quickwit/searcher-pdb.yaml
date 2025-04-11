@@ -1,5 +1,5 @@
-{{- if .Values.config.fullTextSearch.enabled -}}
-{{- if .Values.quickwit.searcher.podDisruptionBudget -}}
+{{- if .Values.config.fullTextSearch.indexing.enabled -}}
+{{- if .Values.quickwit.searcher.statefulSet.podDisruptionBudget -}}
 ---
 apiVersion: policy/v1
 kind: PodDisruptionBudget
@@ -14,6 +14,6 @@ spec:
     matchLabels:
       {{- include "quickwit.selectorLabels" . | nindent 6 }}
       app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-{{ .Values.quickwit.searcher.name }}
-  {{- toYaml .Values.quickwit.searcher.podDisruptionBudget | nindent 2 }}
+  {{- toYaml .Values.quickwit.searcher.statefulSet.podDisruptionBudget | nindent 2 }}
 {{- end -}}
 {{- end -}}

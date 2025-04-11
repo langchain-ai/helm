@@ -1,4 +1,4 @@
-{{- if .Values.config.fullTextSearch.enabled -}}
+{{- if .Values.config.fullTextSearch.indexing.enabled -}}
 ---
 apiVersion: apps/v1
 kind: StatefulSet
@@ -6,18 +6,16 @@ metadata:
   name: {{ include "langsmith.fullname" . }}-{{ .Values.quickwit.searcher.name }}
   labels:
     {{- include "quickwit.labels" . | nindent 4 }}
-    {{- with .Values.quickwit.searcher.labels }}
+    {{- with .Values.quickwit.searcher.statefulSet.labels }}
     {{- toYaml . | nindent 4 }}
     {{- end }}
   annotations:
     {{- include "langsmith.annotations" . | nindent 4 }}
-    {{- with .Values.quickwit.searcher.annotations }}
+    {{- with .Values.quickwit.searcher.statefulSet.annotations }}
     {{- toYaml . | nindent 4 }}
     {{- end }}
 spec:
-  {{- if hasKey .Values.quickwit.searcher "replicaCount" }}
-  replicas: {{ .Values.quickwit.searcher.replicaCount }}
-  {{- end }}
+  replicas: {{ .Values.quickwit.searcher.statefulSet.replicaCount }}
   serviceName: {{ include "langsmith.fullname" . }}-{{ .Values.quickwit.name }}-headless
   podManagementPolicy: OrderedReady
   selector:
@@ -25,7 +23,7 @@ spec:
       {{- include "quickwit.selectorLabels" . | nindent 6 }}
       app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-{{ .Values.quickwit.searcher.name }}
   updateStrategy:
-    {{- toYaml .Values.quickwit.searcher.updateStrategy | nindent 4 }}
+    {{- toYaml .Values.quickwit.searcher.statefulSet.updateStrategy | nindent 4 }}
   template:
     metadata:
       annotations:
@@ -33,7 +31,7 @@ spec:
       {{- with .Values.quickwit.podAnnotations }}
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.quickwit.searcher.podAnnotations }}
+      {{- with .Values.quickwit.searcher.statefulSet.podAnnotations }}
         {{- toYaml . | nindent 8 }}
       {{- end }}
       labels:
@@ -56,16 +54,16 @@ spec:
           args: ["run", "--service", "searcher"]
           env:
             {{- include "quickwit.environment" . | nindent 12 }}
-            {{- range $key, $value := .Values.quickwit.searcher.extraEnv }}
+            {{- range $key, $value := .Values.quickwit.searcher.statefulSet.extraEnv }}
             - name: "{{ $key }}"
               value: "{{ $value }}"
             {{- end }}
-          {{- if or (.Values.quickwit.environmentFrom) (.Values.quickwit.searcher.extraEnvFrom) }}
+          {{- if or (.Values.quickwit.environmentFrom) (.Values.quickwit.searcher.statefulSet.extraEnvFrom) }}
           envFrom:
           {{- with .Values.quickwit.environmentFrom }}
             {{- toYaml . | nindent 12 }}
           {{- end }}
-          {{- with .Values.quickwit.searcher.extraEnvFrom }}
+          {{- with .Values.quickwit.searcher.statefulSet.extraEnvFrom }}
             {{- toYaml . | nindent 12 }}
           {{- end }}
           {{- end }}
@@ -78,13 +76,13 @@ spec:
               subPath: node.yaml
             - name: data
               mountPath: /quickwit/qwdata
-            {{- with .Values.quickwit.searcher.extraVolumeMounts }}
+            {{- with .Values.quickwit.searcher.statefulSet.extraVolumeMounts }}
               {{- toYaml . | nindent 12 }}
             {{- end }}
           resources:
-            {{- toYaml .Values.quickwit.searcher.resources | nindent 14 }}
-      {{- if .Values.quickwit.searcher.terminationGracePeriodSeconds }}
-      terminationGracePeriodSeconds: {{ .Values.quickwit.searcher.terminationGracePeriodSeconds }}
+            {{- toYaml .Values.quickwit.searcher.statefulSet.resources | nindent 14 }}
+      {{- if .Values.quickwit.searcher.statefulSet.terminationGracePeriodSeconds }}
+      terminationGracePeriodSeconds: {{ .Values.quickwit.searcher.statefulSet.terminationGracePeriodSeconds }}
       {{- end }}
       volumes:
         - name: config
@@ -93,26 +91,26 @@ spec:
             items:
               - key: node.yaml
                 path: node.yaml
-        {{- if not .Values.quickwit.searcher.persistentVolume.enabled }}
+        {{- if not .Values.quickwit.searcher.statefulSet.persistentVolume.enabled }}
         - name: data
           emptyDir: {}
         {{- end }}
-        {{- with .Values.quickwit.searcher.extraVolumes }}
+        {{- with .Values.quickwit.searcher.statefulSet.extraVolumes }}
           {{- toYaml . | nindent 8 }}
         {{- end }}
-      {{- with .Values.quickwit.searcher.nodeSelector }}
+      {{- with .Values.quickwit.searcher.statefulSet.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with  merge .Values.quickwit.affinity .Values.quickwit.searcher.affinity }}
+      {{- with  merge .Values.quickwit.affinity .Values.quickwit.searcher.statefulSet.affinity }}
       affinity:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.quickwit.searcher.tolerations }}
+      {{- with .Values.quickwit.searcher.statefulSet.tolerations }}
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-  {{- if .Values.quickwit.searcher.persistentVolume.enabled }}
+  {{- if .Values.quickwit.searcher.statefulSet.persistentVolume.enabled }}
   volumeClaimTemplates:
     - metadata:
         name: data
@@ -121,9 +119,9 @@ spec:
           - ReadWriteOnce
         resources:
           requests:
-            storage: "{{ .Values.quickwit.searcher.persistentVolume.storage }}"
-      {{- if .Values.quickwit.searcher.persistentVolume.storageClass }}
-        storageClassName: "{{ .Values.quickwit.searcher.persistentVolume.storageClass }}"
+            storage: "{{ .Values.quickwit.searcher.statefulSet.persistentVolume.storage }}"
+      {{- if .Values.quickwit.searcher.statefulSet.persistentVolume.storageClass }}
+        storageClassName: "{{ .Values.quickwit.searcher.statefulSet.persistentVolume.storageClass }}"
       {{- end }}
   {{- end }}
 {{- end }}

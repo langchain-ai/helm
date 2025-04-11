@@ -1,4 +1,4 @@
-{{- if .Values.config.fullTextSearch.enabled -}}
+{{- if .Values.config.fullTextSearch.deletes.enabled -}}
 ---
 apiVersion: v1
 kind: Service
