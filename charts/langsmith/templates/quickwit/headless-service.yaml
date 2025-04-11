@@ -1,0 +1,39 @@
+{{- if .Values.config.fullTextSearch.enabled -}}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "langsmith.fullname" . }}-{{ .Values.quickwit.name }}-headless
+  labels:
+    {{- include "quickwit.labels" . | nindent 4 }}
+  annotations:
+    {{- include "langsmith.annotations" . | nindent 4 }}
+    {{- with .Values.quickwit.service.annotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  type: ClusterIP
+  {{- if .Values.quickwit.service.ipFamilyPolicy }}
+  ipFamilyPolicy: {{ .Values.quickwit.service.ipFamilyPolicy }}
+  {{- end }}
+  {{- if .Values.quickwit.service.ipFamilies }}
+  ipFamilies: {{ .Values.quickwit.service.ipFamilies | toYaml | nindent 2 }}
+  {{- end }}
+  clusterIP: None
+  publishNotReadyAddresses: true
+  ports:
+    # Needed by istio with mTLS mode set to STRICT.
+    # The port names must starts with "tcp-" or "udp-" to work...
+    # See https://istio.io/latest/docs/ops/common-problems/network-issues/#503-error-while-accessing-headless-services
+    - name: udp
+      port: 7282
+      protocol: UDP
+    - name: tcp-http
+      port: 7280
+      protocol: TCP
+    - name: tcp-grpc
+      port: 7281
+      protocol: TCP
+  selector:
+    {{- include "quickwit.selectorLabels" . | nindent 4 }}
+{{- end }}
