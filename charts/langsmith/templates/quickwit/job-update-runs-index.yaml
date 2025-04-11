@@ -24,8 +24,8 @@ spec:
       restartPolicy: Never
       containers:
       - name: {{ include "quickwit.name" . }}
-        image: "{{ $.Values.quickwit.image.repository }}:{{ $.Values.quickwit.image.tag }}"
-        imagePullPolicy: {{ $.Values.quickwit.image.pullPolicy }}
+        image: "{{ $.Values.images.quickwitImage.repository }}:{{ $.Values.images.quickwitImage.tag }}"
+        imagePullPolicy: {{ $.Values.images.quickwitImage.pullPolicy }}
         command: ["/bin/bash"]
 
         # Logic here - "describe" && "update" || "create"

@@ -54,7 +54,10 @@ images:
     repository: "docker.io/clickhouse/clickhouse-server"
     pullPolicy: Always
     tag: "24.8"
-
+  quickwitImage:
+    repository: quickwit/quickwit
+    pullPolicy: IfNotPresent
+    tag: edge
 
 ingress:
   enabled: false
@@ -1404,18 +1407,6 @@ redis:
 quickwit:
   name: quickwit
 
-  image:
-    repository: quickwit/quickwit
-    pullPolicy: IfNotPresent
-    tag: edge
-
-  imagePullSecrets: []
-  nameOverride: ""
-  fullnameOverride: ""
-
-  # Set the Kuberentes cluster domain if not default. It's used to build URLs for the services.
-  clusterDomain: cluster.local
-
   # -- Additional labels to add to all resources
   additionalLabels: {}
 
@@ -1454,6 +1445,33 @@ quickwit:
 
   # Global affinity settings applied to all deployments
   affinity: {}
+
+  ports:
+  - name: rest
+    containerPort: 7280
+    protocol: TCP
+  - name: grpc
+    containerPort: 7281
+    protocol: TCP
+  - name: discovery
+    containerPort: 7282
+    protocol: UDP
+
+  probes:
+    startupProbe:
+      httpGet:
+        path: /health/livez
+        port: rest
+      failureThreshold: 12
+      periodSeconds: 5
+    livenessProbe:
+      httpGet:
+        path: /health/livez
+        port: rest
+    readinessProbe:
+      httpGet:
+        path: /health/readyz
+        port: rest
 
   searcher:
     replicaCount: 3
@@ -1609,7 +1627,7 @@ quickwit:
 
     affinity: {}
 
-  control_plane:
+  controlPlane:
     # Extra env for control plane
     extraEnv: {}
       # KEY: VALUE
@@ -1692,7 +1710,7 @@ quickwit:
   configLocation: /quickwit/node.yaml
 
   config:
-    version: 0.9
+    version: 0.8
     listen_address: 0.0.0.0
     gossip_listen_port: 7282
     # data_dir: /quickwit/qwdata
@@ -1737,15 +1755,3 @@ quickwit:
     ipFamilies: []
 
     annotations: {}
-
-  resources: {}
-    # We usually recommend not to specify default resources and to leave this as a conscious
-    # choice for the user. This also increases chances charts run on environments with little
-    # resources, such as Minikube. If you do want to specify resources, uncomment the following
-    # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
-    # limits:
-    #   cpu: 100m
-    #   memory: 128Mi
-    # requests:
-    #   cpu: 100m
-    #   memory: 128Mi

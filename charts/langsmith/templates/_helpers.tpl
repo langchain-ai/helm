@@ -537,7 +537,7 @@ app.kubernetes.io/component: metastore
 {{/*
 Control Plane Selector labels
 */}}
-{{- define "quickwit.control_plane.selectorLabels" -}}
+{{- define "quickwit.controlPlane.selectorLabels" -}}
 {{ include "quickwit.selectorLabels" . }}
 app.kubernetes.io/component: control-plane
 {{- end }}
@@ -561,20 +561,6 @@ Create the name of the service account to use
 {{- end }}
 {{- end }}
 
-{{/*
-Quickwit ports
-*/}}
-{{- define "quickwit.ports" -}}
-- name: rest
-  containerPort: 7280
-  protocol: TCP
-- name: grpc
-  containerPort: 7281
-  protocol: TCP
-- name: discovery
-  containerPort: 7282
-  protocol: UDP
-{{- end }}
 
 
 {{/*
@@ -611,38 +597,19 @@ Quickwit environment
 {{- end }}
 {{- end }}
 
-{{- define "quickwit.probes" -}}
-startupProbe:
-  httpGet:
-    path: /health/livez
-    port: rest
-  failureThreshold: 12
-  periodSeconds: 5
-livenessProbe:
-  httpGet:
-    path: /health/livez
-    port: rest
-readinessProbe:
-  httpGet:
-    path: /health/readyz
-    port: rest
-{{- end }}
-
-# {{- include "quickwit.liveness-probe" . }}
-# {{- include "quickwit.readiness-probe" . }}
 {{- define "langsmith.quickwit-runs-index" -}}
 {{- $.Files.Get "resources/quickwit-index-runs.yaml" -}}
 {{- end -}}
 
 {{- define "langsmith.quickwit-cluster-endpoint" -}}
-{{- printf "http://%s-quickwit-metastore.%s.svc.%s:7280" (include "langsmith.fullname" .) $.Release.Namespace  $.Values.quickwit.clusterDomain -}}
+{{- printf "http://%s-quickwit-metastore:7280" (include "langsmith.fullname" .) -}}
 {{- end }}
 
 {{- define "langsmith.quickwit-indexing-endpoint" -}}
-{{- printf "http://%s-quickwit-indexer.%s.svc.%s:7280" (include "langsmith.fullname" .) $.Release.Namespace  $.Values.quickwit.clusterDomain -}}
+{{- printf "http://%s-quickwit-indexer:7280" (include "langsmith.fullname" .) -}}
 {{- end }}
 
 {{- define "langsmith.quickwit-search-endpoint" -}}
-{{- printf "http://%s-quickwit-indexer.%s.svc.%s:7280" (include "langsmith.fullname" .) $.Release.Namespace  $.Values.quickwit.clusterDomain -}}
+{{- printf "http://%s-quickwit-searcher:7280" (include "langsmith.fullname" .) -}}
 {{- end }}
 

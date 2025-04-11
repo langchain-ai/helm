@@ -136,11 +136,11 @@ metadata:
     {{- with .Values.quickwit.service.annotations }}
     {{- toYaml . | nindent 4 }}
     {{- end }}
-    {{- with .Values.quickwit.control_plane.serviceAnnotations }}
+    {{- with .Values.quickwit.controlPlane.serviceAnnotations }}
     {{- toYaml . | nindent 4 }}
     {{- end }}
 spec:
-  type: {{ .Values.quickwit.control_plane.serviceType | default .Values.quickwit.service.type }}
+  type: {{ .Values.quickwit.controlPlane.serviceType | default .Values.quickwit.service.type }}
   {{- if .Values.quickwit.service.ipFamilyPolicy }}
   ipFamilyPolicy: {{ .Values.quickwit.service.ipFamilyPolicy }}
   {{- end }}
@@ -156,7 +156,7 @@ spec:
       targetPort: grpc
       name: grpc
   selector:
-    {{- include "quickwit.control_plane.selectorLabels" . | nindent 4 }}
+    {{- include "quickwit.controlPlane.selectorLabels" . | nindent 4 }}
 
 ---
 apiVersion: v1
