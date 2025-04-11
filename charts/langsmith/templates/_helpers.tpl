@@ -471,83 +471,34 @@ Template containing common environment variables that are used by several servic
 {{- end -}}
 
 {{/*
-Quickwit name
-*/}}
-{{- define "quickwit.name" -}}
-{{ include "langsmith.name" . }}-{{ .Values.quickwit.name }}
-{{- end }}
-
-{{/*
-Fully qualified Quickwit name
-*/}}
-{{- define "quickwit.fullname" -}}
-{{ include "langsmith.fullname" . }}-{{ .Values.quickwit.name }}
-{{- end }}
-
-{{/*
-Custom labels
-*/}}
-{{- define "quickwit.additionalLabels" -}}
-{{- if .Values.quickwit.additionalLabels }}
-{{ toYaml .Values.quickwit.additionalLabels }}
-{{- end }}
-{{- end }}
-
-{{/*
-Common labels
-*/}}
-{{- define "quickwit.labels" -}}
-{{ include "langsmith.labels" . }}
-{{ include "quickwit.selectorLabels" . }}
-{{- include "quickwit.additionalLabels" . }}
-{{- end }}
-
-{{/*
-Selector labels
+Quickwit selector labels, different from langsmith.selectorLabels, needed for headless service
 */}}
 {{- define "quickwit.selectorLabels" -}}
-app.kubernetes.io/name: {{ include "quickwit.name" . }}
+app.kubernetes.io/name: {{ include "langsmith.name" . }}-{{ .Values.quickwit.name }}
 app.kubernetes.io/instance: {{ .Release.Name }}
+app.kubernetes.io/part-of: {{ include "langsmith.name" . }}
 {{- end }}
 
 {{/*
-Searcher Selector labels
+Quickwit common labels
 */}}
-{{- define "quickwit.searcher.selectorLabels" -}}
+{{- define "quickwit.labels" -}}
+{{- if .Values.commonLabels }}
+{{ toYaml .Values.commonLabels }}
+{{- end }}
+helm.sh/chart: {{ include "langsmith.chart" . }}
 {{ include "quickwit.selectorLabels" . }}
-app.kubernetes.io/component: searcher
+{{- if .Chart.AppVersion }}
+app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+{{- end }}
+app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{- end }}
 
 {{/*
-Janitor Selector labels
+Quickwit cluster name
 */}}
-{{- define "quickwit.janitor.selectorLabels" -}}
-{{ include "quickwit.selectorLabels" . }}
-app.kubernetes.io/component: janitor
-{{- end }}
-
-{{/*
-Metastore Selector labels
-*/}}
-{{- define "quickwit.metastore.selectorLabels" -}}
-{{ include "quickwit.selectorLabels" . }}
-app.kubernetes.io/component: metastore
-{{- end }}
-
-{{/*
-Control Plane Selector labels
-*/}}
-{{- define "quickwit.controlPlane.selectorLabels" -}}
-{{ include "quickwit.selectorLabels" . }}
-app.kubernetes.io/component: control-plane
-{{- end }}
-
-{{/*
-Indexer Selector labels
-*/}}
-{{- define "quickwit.indexer.selectorLabels" -}}
-{{ include "quickwit.selectorLabels" . }}
-app.kubernetes.io/component: indexer
+{{- define "quickwit.clusterName" -}}
+{{ include "langsmith.fullname" . }}-{{ .Values.quickwit.name }}
 {{- end }}
 
 {{/*
@@ -555,12 +506,18 @@ Create the name of the service account to use
 */}}
 {{- define "quickwit.serviceAccountName" -}}
 {{- if .Values.quickwit.serviceAccount.create }}
-{{- default (include "quickwit.fullname" .) .Values.quickwit.serviceAccount.name }}
+{{- default (include "quickwit.clusterName" . ) .Values.quickwit.serviceAccount.name }}
 {{- else }}
 {{- default "default" .Values.quickwit.serviceAccount.name }}
 {{- end }}
 {{- end }}
 
+{{/*
+Quickwit ConfigMap name
+*/}}
+{{- define "quickwit.configMapName" -}}
+{{ include "quickwit.clusterName" . }}
+{{- end }}
 
 
 {{/*
@@ -582,15 +539,15 @@ Quickwit environment
 - name: QW_CONFIG
   value: {{ .Values.quickwit.configLocation }}
 - name: QW_CLUSTER_ID
-  value: {{ .Release.Namespace }}-{{ include "quickwit.fullname" . }}
+  value: {{ include "quickwit.clusterName" . }}
 - name: QW_NODE_ID
   value: "$(POD_NAME)"
 - name: QW_PEER_SEEDS
-  value: {{ include "quickwit.fullname" . }}-headless
+  value: {{ include "quickwit.clusterName" . }}-headless
 - name: QW_ADVERTISE_ADDRESS
   value: "$(POD_IP)"
 - name: QW_CLUSTER_ENDPOINT
-  value: http://{{ include "quickwit.fullname" $ }}-metastore.{{ $.Release.Namespace }}.svc.{{ .Values.quickwit.clusterDomain }}:7280
+  value: {{ include "langsmith.quickwit-cluster-endpoint" . }}
 {{- range $key, $value := .Values.quickwit.environment }}
 - name: "{{ $key }}"
   value: "{{ $value }}"
@@ -602,14 +559,14 @@ Quickwit environment
 {{- end -}}
 
 {{- define "langsmith.quickwit-cluster-endpoint" -}}
-{{- printf "http://%s-quickwit-metastore:7280" (include "langsmith.fullname" .) -}}
+{{- printf "http://%s-%s:7280" (include "langsmith.fullname" .) (.Values.quickwit.metastore.name) -}}
 {{- end }}
 
 {{- define "langsmith.quickwit-indexing-endpoint" -}}
-{{- printf "http://%s-quickwit-indexer:7280" (include "langsmith.fullname" .) -}}
+{{- printf "http://%s-%s:7280" (include "langsmith.fullname" .) (.Values.quickwit.indexer.name) -}}
 {{- end }}
 
 {{- define "langsmith.quickwit-search-endpoint" -}}
-{{- printf "http://%s-quickwit-searcher:7280" (include "langsmith.fullname" .) -}}
+{{- printf "http://%s-%s:7280" (include "langsmith.fullname" .) (.Values.quickwit.searcher.name) -}}
 {{- end }}
 

@@ -2,13 +2,14 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "quickwit.fullname" . }}-janitor
+  name: {{ include "langsmith.fullname" . }}-{{ .Values.quickwit.janitor.name }}
   labels:
     {{- include "quickwit.labels" . | nindent 4 }}
-  annotations:
-    {{- with .Values.quickwit.annotations }}
+    {{- with .Values.quickwit.janitor.labels }}
     {{- toYaml . | nindent 4 }}
     {{- end }}
+  annotations:
+    {{- include "langsmith.annotations" . | nindent 4 }}
     {{- with .Values.quickwit.janitor.annotations }}
     {{- toYaml . | nindent 4 }}
     {{- end }}
@@ -16,7 +17,8 @@ spec:
   replicas: 1
   selector:
     matchLabels:
-      {{- include "quickwit.janitor.selectorLabels" . | nindent 6 }}
+      {{- include "quickwit.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-{{ .Values.quickwit.janitor.name }}
   strategy:
     type: Recreate
   template:
@@ -30,8 +32,8 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       labels:
-        {{- include "quickwit.additionalLabels" . | nindent 8 }}
-        {{- include "quickwit.janitor.selectorLabels" . | nindent 8 }}
+        {{- include "quickwit.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-{{ .Values.quickwit.janitor.name }}
     spec:
       {{- with .Values.images.imagePullSecrets }}
       imagePullSecrets:
@@ -41,7 +43,7 @@ spec:
       securityContext:
         {{- toYaml .Values.quickwit.podSecurityContext | nindent 8 }}
       containers:
-        - name: {{ include "quickwit.name" . }}
+        - name: {{ .Values.quickwit.name }}
           securityContext:
             {{- toYaml .Values.quickwit.securityContext | nindent 12 }}
           image: "{{ .Values.images.quickwitImage.repository }}:{{ .Values.images.quickwitImage.tag }}"
@@ -83,7 +85,7 @@ spec:
       volumes:
         - name: config
           configMap:
-            name: {{ template "quickwit.fullname" . }}
+            name: {{ include "quickwit.configMapName" . }}
             items:
               - key: node.yaml
                 path: node.yaml

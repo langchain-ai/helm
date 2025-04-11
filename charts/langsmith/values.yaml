@@ -1474,7 +1474,8 @@ quickwit:
         port: rest
 
   searcher:
-    replicaCount: 3
+    name: quickwit-searcher
+    replicaCount: 1
 
     # Extra env for searcher
     extraEnv: {}
@@ -1527,6 +1528,7 @@ quickwit:
     affinity: {}
 
   indexer:
+    name: quickwit-indexer
     replicaCount: 1
 
     # Extra env for indexer
@@ -1584,6 +1586,7 @@ quickwit:
       # storageClass: ""
 
   metastore:
+    name: quickwit-metastore
     replicaCount: 1
 
     # Extra env for metastore
@@ -1628,6 +1631,7 @@ quickwit:
     affinity: {}
 
   controlPlane:
+    name: quickwit-control-plane
     # Extra env for control plane
     extraEnv: {}
       # KEY: VALUE
@@ -1666,6 +1670,7 @@ quickwit:
     affinity: {}
 
   janitor:
+    name: quickwit-janitor
     # Extra env for janitor
     extraEnv: {}
       # KEY: VALUE
@@ -1702,6 +1707,9 @@ quickwit:
     tolerations: []
 
     affinity: {}
+
+  updateRunsIndex:
+    name: quickwit-update-runs-index
 
   # Quickwit configuration
   # Warning: This config is writed directly into a configMap
