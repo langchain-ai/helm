@@ -10,14 +10,14 @@ metadata:
     {{- with .Values.quickwit.annotations }}
     {{- toYaml . | nindent 4 }}
     {{- end }}
-    {{- with .Values.quickwit.control_plane.annotations }}
+    {{- with .Values.quickwit.controlPlane.annotations }}
     {{- toYaml . | nindent 4 }}
     {{- end }}
 spec:
   replicas: 1
   selector:
     matchLabels:
-      {{- include "quickwit.control_plane.selectorLabels" . | nindent 6 }}
+      {{- include "quickwit.controlPlane.selectorLabels" . | nindent 6 }}
   strategy:
     type: Recreate
   template:
@@ -27,14 +27,14 @@ spec:
       {{- with .Values.quickwit.podAnnotations }}
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.quickwit.control_plane.podAnnotations }}
+      {{- with .Values.quickwit.controlPlane.podAnnotations }}
         {{- toYaml . | nindent 8 }}
       {{- end }}
       labels:
         {{- include "quickwit.additionalLabels" . | nindent 8 }}
-        {{- include "quickwit.control_plane.selectorLabels" . | nindent 8 }}
+        {{- include "quickwit.controlPlane.selectorLabels" . | nindent 8 }}
     spec:
-      {{- with .Values.quickwit.imagePullSecrets }}
+      {{- with .Values.images.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
@@ -45,27 +45,27 @@ spec:
         - name: {{ include "quickwit.name" . }}
           securityContext:
             {{- toYaml .Values.quickwit.securityContext | nindent 12 }}
-          image: "{{ .Values.quickwit.image.repository }}:{{ .Values.quickwit.image.tag | default .Chart.AppVersion }}"
-          imagePullPolicy: {{ .Values.quickwit.image.pullPolicy }}
+          image: "{{ .Values.images.quickwitImage.repository }}:{{ .Values.images.quickwitImage.tag }}"
+          imagePullPolicy: {{ .Values.images.quickwitImage.pullPolicy }}
           args: ["run", "--service", "control_plane"]
           env:
             {{- include "quickwit.environment" . | nindent 12 }}
-            {{- range $key, $value := .Values.quickwit.control_plane.extraEnv }}
+            {{- range $key, $value := .Values.quickwit.controlPlane.extraEnv }}
             - name: "{{ $key }}"
               value: "{{ $value }}"
             {{- end }}
-          {{- if or (.Values.quickwit.environmentFrom) (.Values.quickwit.control_plane.extraEnvFrom) }}
+          {{- if or (.Values.quickwit.environmentFrom) (.Values.quickwit.controlPlane.extraEnvFrom) }}
           envFrom:
           {{- with .Values.quickwit.environmentFrom }}
             {{- toYaml . | nindent 12 }}
           {{- end }}
-          {{- with .Values.quickwit.control_plane.extraEnvFrom }}
+          {{- with .Values.quickwit.controlPlane.extraEnvFrom }}
             {{- toYaml . | nindent 12 }}
           {{- end }}
           {{- end }}
           ports:
-            {{- include "quickwit.ports" . | nindent 12 }}
-          {{- include "quickwit.probes" . | nindent 10 }}
+            {{- toYaml .Values.quickwit.ports | nindent 12 }}
+          {{- toYaml .Values.quickwit.probes | nindent 10 }}
           volumeMounts:
             - name: config
               mountPath: /quickwit/node.yaml
@@ -76,7 +76,7 @@ spec:
               {{- toYaml . | nindent 12 }}
             {{- end }}
           resources:
-            {{- toYaml .Values.quickwit.control_plane.resources | nindent 14 }}
+            {{- toYaml .Values.quickwit.controlPlane.resources | nindent 14 }}
       volumes:
         - name: config
           configMap:
@@ -89,15 +89,15 @@ spec:
         {{- with .Values.quickwit.indexer.extraVolumes }}
           {{- toYaml . | nindent 8 }}
         {{- end }}
-      {{- with .Values.quickwit.control_plane.nodeSelector }}
+      {{- with .Values.quickwit.controlPlane.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with merge .Values.quickwit.affinity .Values.quickwit.control_plane.affinity }}
+      {{- with merge .Values.quickwit.affinity .Values.quickwit.controlPlane.affinity }}
       affinity:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.quickwit.control_plane.tolerations }}
+      {{- with .Values.quickwit.controlPlane.tolerations }}
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
