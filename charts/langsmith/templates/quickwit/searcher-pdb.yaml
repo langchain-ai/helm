@@ -4,13 +4,16 @@
 apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
-  name: {{ include "quickwit.fullname" . }}-searcher
+  name: {{ include "langsmith.fullname" . }}-{{ .Values.quickwit.searcher.name }}
   labels:
     {{- include "quickwit.labels" . | nindent 4 }}
+  annotations:
+    {{- include "langsmith.annotations" . | nindent 4 }}
 spec:
   selector:
     matchLabels:
-      {{- include "quickwit.searcher.selectorLabels" . | nindent 6 }}
+      {{- include "quickwit.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-{{ .Values.quickwit.searcher.name }}
   {{- toYaml .Values.quickwit.searcher.podDisruptionBudget | nindent 2 }}
 {{- end -}}
 {{- end -}}

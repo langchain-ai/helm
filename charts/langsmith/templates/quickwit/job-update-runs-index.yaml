@@ -3,10 +3,10 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: {{ include "langsmith.fullname" . }}-quickwit-update-runs-index
+  name: {{ include "langsmith.fullname" . }}-{{.Values.quickwit.updateRunsIndex.name }}
   labels:
-    {{- include "langsmith.labels" . | nindent 4 }}
-    app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-quickwit-update-index
+    {{- include "quickwit.labels" . | nindent 4 }}
+    app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-{{.Values.quickwit.updateRunsIndex.name }}
   annotations:
     {{- include "langsmith.annotations" . | nindent 4 }}
     helm.sh/hook: post-install,post-upgrade
@@ -15,15 +15,15 @@ metadata:
 spec:
   template:
     metadata:
-      name: {{ include "langsmith.fullname" . }}-quickwit-update-index
+      name: {{ include "langsmith.fullname" . }}-{{.Values.quickwit.updateRunsIndex.name }}
       labels:
-        {{- include "langsmith.labels" . | nindent 8 }}
-        app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-quickwit-update-runs-index
+        {{- include "quickwit.labels" . | nindent 8 }}
+        app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-{{.Values.quickwit.updateRunsIndex.name }}
     spec:
-      serviceAccountName: {{ include "langsmith.fullname" . }}-quickwit
+      serviceAccountName: {{ include "quickwit.serviceAccountName" . }}
       restartPolicy: Never
       containers:
-      - name: {{ include "quickwit.name" . }}
+      - name: {{ .Values.quickwit.name }}
         image: "{{ $.Values.images.quickwitImage.repository }}:{{ $.Values.images.quickwitImage.tag }}"
         imagePullPolicy: {{ $.Values.images.quickwitImage.pullPolicy }}
         command: ["/bin/bash"]
@@ -51,13 +51,13 @@ spec:
         # Quickwit chart provisions this ConfigMap
         - name: config
           configMap:
-            name: {{ include "langsmith.fullname" . }}-quickwit
+            name: {{ include "quickwit.configMapName" . }}
             items:
               - key: node.yaml
                 path: node.yaml
         - name: index
           configMap:
-            name: {{ include "langsmith.fullname" . }}-quickwit-runs-index
+            name: {{ include "langsmith.fullname" . }}-{{ .Values.quickwit.updateRunsIndex.name }}
             items:
               - key: index-runs.yaml
                 path: index-runs.yaml
