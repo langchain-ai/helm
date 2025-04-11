@@ -53,11 +53,10 @@ spec:
           imagePullPolicy: {{ .Values.images.quickwitImage.pullPolicy }}
           args: ["run", "--service", "searcher"]
           env:
-            {{- include "quickwit.environment" . | nindent 12 }}
-            {{- range $key, $value := .Values.quickwit.searcher.statefulSet.extraEnv }}
-            - name: "{{ $key }}"
-              value: "{{ $value }}"
-            {{- end }}
+          {{- include "quickwit.environment" . | nindent 12 }}
+          {{- with .Values.quickwit.searcher.statefulSet.extraEnv }}
+          {{- toYaml . | nindent 12 }}
+          {{- end }}
           {{- if or (.Values.quickwit.environmentFrom) (.Values.quickwit.searcher.statefulSet.extraEnvFrom) }}
           envFrom:
           {{- with .Values.quickwit.environmentFrom }}

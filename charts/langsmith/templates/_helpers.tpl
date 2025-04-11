@@ -337,7 +337,7 @@ Template containing common environment variables that are used by several servic
 - name: HOSTED_K8S_SHARED_INGRESS
   value: "true"
 {{- end }}
-{{- if .Values.config.fullTextSearch.enabled }}
+{{- if .Values.config.fullTextSearch.indexing.enabled }}
 - name: QUICKWIT_INDEXING_ENABLED_ALL
   value: "true"
 - name: QUICKWIT_INDEXING_URL

@@ -1498,8 +1498,7 @@ quickwit:
       replicaCount: 1
 
       # Extra env for searcher
-      extraEnv: {}
-        # KEY: VALUE
+      extraEnv: []
       extraEnvFrom: []
         # - secretRef:
         #     name: quickwit-searcher
@@ -1552,9 +1551,8 @@ quickwit:
     statefulSet:
       replicaCount: 1
 
-    # Extra env for indexer
-      extraEnv: {}
-        # KEY: VALUE
+      # Extra env for indexer
+      extraEnv: []
       extraEnvFrom: []
         # - secretRef:
         #     name: quickwit-indexer
@@ -1611,8 +1609,7 @@ quickwit:
       replicaCount: 1
 
       # Extra env for metastore
-      extraEnv: {}
-        # KEY: VALUE
+      extraEnv: []
       # This is the recommended way to inject `QW_METASTORE_URI` when using the postgres metastore (see https://quickwit.io/docs/configuration/metastore-config)
       extraEnvFrom: []
         # - secretRef:
@@ -1654,8 +1651,7 @@ quickwit:
 
     deployment:
       # Extra env for control plane
-      extraEnv: {}
-        # KEY: VALUE
+      extraEnv: []
       extraEnvFrom: []
         # - secretRef:
         #     name: quickwit-control-plane
@@ -1693,8 +1689,7 @@ quickwit:
 
     deployment:
       # Extra env for janitor
-      extraEnv: {}
-        # KEY: VALUE
+      extraEnv: []
       extraEnvFrom: []
         # - secretRef:
         #     name: quickwit-janitor
@@ -1769,4 +1764,3 @@ quickwit:
     #   fast_field_cache_capacity: 10G
     #   split_footer_cache_capacity: 1G
     #   max_num_concurrent_split_streams: 100
-
