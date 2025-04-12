@@ -11,7 +11,7 @@ metadata:
       {{- toYaml . | nindent 4 }}
     {{- end }}
   annotations:
-    {{- include "langsmith.annotations" . | nindent 4 }}
+    {{- include "quickwit.annotations" . | nindent 4 }}
     {{- with .Values.quickwit.searcher.pdb.annotations }}
       {{- toYaml . | nindent 4 }}
     {{- end }}

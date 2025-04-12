@@ -8,7 +8,7 @@ metadata:
     {{- include "quickwit.labels" . | nindent 4 }}
     app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-{{.Values.quickwit.updateRunsIndex.name }}
   annotations:
-    {{- include "langsmith.annotations" . | nindent 4 }}
+    {{- include "quickwit.annotations" . | nindent 4 }}
     helm.sh/hook: post-install,post-upgrade
     helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
     helm.sh/hook-weight: "3"

@@ -480,11 +480,26 @@ app.kubernetes.io/part-of: {{ include "langsmith.name" . }}
 {{- end }}
 
 {{/*
-Quickwit common labels
+Quickwit component labels
 */}}
 {{- define "quickwit.labels" -}}
 {{- if .Values.commonLabels }}
 {{ toYaml .Values.commonLabels }}
+{{- end }}
+helm.sh/chart: {{ include "langsmith.chart" . }}
+{{ include "quickwit.selectorLabels" . }}
+{{- if .Chart.AppVersion }}
+app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+{{- end }}
+app.kubernetes.io/managed-by: {{ .Release.Service }}
+{{- end }}
+
+{{/*
+Quickwit component annotations
+*/}}
+{{- define "quickwit.annotations" -}}
+{{- if .Values.commonAnnotations }}
+{{ toYaml .Values.commonAnnotations }}
 {{- end }}
 helm.sh/chart: {{ include "langsmith.chart" . }}
 {{ include "quickwit.selectorLabels" . }}
