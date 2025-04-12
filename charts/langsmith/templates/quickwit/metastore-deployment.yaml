@@ -15,7 +15,7 @@ metadata:
     {{- toYaml . | nindent 4 }}
     {{- end }}
 spec:
-  replicas: {{ .Values.quickwit.metastore.deployment.replicaCount }}
+  replicas: {{ .Values.quickwit.metastore.deployment.replicas }}
   selector:
     matchLabels:
       {{- include "quickwit.selectorLabels" . | nindent 6 }}

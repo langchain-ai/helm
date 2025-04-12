@@ -15,7 +15,7 @@ metadata:
     {{- toYaml . | nindent 4 }}
     {{- end }}
 spec:
-  replicas: {{ .Values.quickwit.searcher.statefulSet.replicaCount }}
+  replicas: {{ .Values.quickwit.searcher.statefulSet.replicas }}
   serviceName: {{ include "langsmith.fullname" . }}-{{ .Values.quickwit.name }}-headless
   podManagementPolicy: OrderedReady
   selector:

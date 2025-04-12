@@ -1495,7 +1495,7 @@ quickwit:
     # serviceType: ClusterIP
 
     statefulSet:
-      replicaCount: 1
+      replicas: 1
 
       # Extra env for searcher
       extraEnv: []
@@ -1519,11 +1519,6 @@ quickwit:
         #   cpu: 100m
         #   memory: 128Mi
 
-      # Pod disruption budget (either maxUnavailable or minAvailable can be set, not both)
-      podDisruptionBudget:
-        maxUnavailable: 1
-        # minAvailable: 2
-
       persistentVolume:
         enabled: false
         # storage: "1Gi"
@@ -1543,13 +1538,21 @@ quickwit:
 
       affinity: {}
 
+    # Pod disruption budget (either maxUnavailable or minAvailable can be set, not both)
+    pdb:
+      enabled: false
+      maxUnavailable: 1
+      # minAvailable: 2
+      labels: {}
+      annotations: {}
+
   indexer:
     name: quickwit-indexer
     serviceAnnotations: {}
     # serviceType: ClusterIP
 
     statefulSet:
-      replicaCount: 1
+      replicas: 1
 
       # Extra env for indexer
       extraEnv: []
@@ -1573,11 +1576,6 @@ quickwit:
         #   cpu: 100m
         #   memory: 128Mi
 
-      # Pod disruption budget (either maxUnavailable or minAvailable can be set, not both)
-      podDisruptionBudget:
-        maxUnavailable: 1
-        # minAvailable: 2
-
       updateStrategy: {}
         # type: RollingUpdate
 
@@ -1600,13 +1598,21 @@ quickwit:
         # storage: "1Gi"
         # storageClass: ""
 
+    # Pod disruption budget (either maxUnavailable or minAvailable can be set, not both)
+    pdb:
+      enabled: false
+      maxUnavailable: 1
+      # minAvailable: 2
+      labels: {}
+      annotations: {}
+
   metastore:
     name: quickwit-metastore
     serviceAnnotations: {}
     # serviceType: ClusterIP
 
     deployment:
-      replicaCount: 1
+      replicas: 1
 
       # Extra env for metastore
       extraEnv: []
