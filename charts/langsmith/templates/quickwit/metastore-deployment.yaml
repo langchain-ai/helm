@@ -54,6 +54,16 @@ spec:
           {{- with .Values.quickwit.metastore.deployment.extraEnv }}
           {{- toYaml . | nindent 12 }}
           {{- end }}
+            - name: QW_METASTORE_URI
+              valueFrom:
+                secretKeyRef:
+                  {{- if .Values.quickwit.metastore.postgres.shareWithLangSmith }}
+                  name: {{ include "langsmith.postgresSecretsName" . }}
+                  key: metastore_connection_url
+                  {{- else }}
+                  name: {{ .Values.quickwit.metastore.postgres.existingSecretName }}
+                  key: {{ .Values.quickwit.metastore.postgres.connectionUrlSecretKey }}
+                  {{- end }}
           {{- if or (.Values.quickwit.environmentFrom) (.Values.quickwit.metastore.deployment.extraEnvFrom) }}
           envFrom:
           {{- with .Values.quickwit.environmentFrom }}

@@ -1611,6 +1611,13 @@ quickwit:
     serviceAnnotations: {}
     # serviceType: ClusterIP
 
+    postgres:
+      # If set to true, the metastore will use the same Postgres DB instance as Langsmith services
+      shareWithLangSmith: false
+      # Existing secret with metastore postgres
+      existingSecretName: ""
+      connectionUrlSecretKey: "metastore_connection_url"
+
     deployment:
       replicas: 1
 
