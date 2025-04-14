@@ -117,12 +117,14 @@ Template containing common environment variables that are used by several servic
   value: "true"
 - name: HOST_BACKEND_ENDPOINT
   value: {{ .Values.config.hostBackendUrl }}
-- name: LANGCHAIN_ENDPOINT
+- name: HOST_LANGCHAIN_API_ENDPOINT
   value: {{ .Values.config.smithBackendUrl }}
 - name: HOST_WORKER_TENANT_ID
   value: {{ .Values.config.langsmithWorkspaceId }}
 - name: HOSTED_K8S_ROOT_DOMAIN
   value: {{ .Values.config.rootDomain | quote }}
+- name: HOSTED_K8S_SHARED_INGRESS
+  value: "true"
 {{- end }}
 
 

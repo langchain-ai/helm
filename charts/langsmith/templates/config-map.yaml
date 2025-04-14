@@ -31,3 +31,4 @@ data:
   GO_ACE_ENDPOINT: "http://{{ include "langsmith.fullname" . }}-{{.Values.aceBackend.name}}:{{ .Values.aceBackend.service.port }}"
   PLAYGROUND_ENDPOINT: "http://{{ include "langsmith.fullname" . }}-{{.Values.playground.name}}:{{ .Values.playground.service.port }}"
   SMITH_BACKEND_ENDPOINT: "http://{{ include "langsmith.fullname" . }}-{{.Values.backend.name}}:{{ .Values.backend.service.port }}"
+  HOST_BACKEND_ENDPOINT: "http://{{ include "langsmith.fullname" . }}-{{.Values.hostBackend.name}}:{{ .Values.hostBackend.service.port }}"

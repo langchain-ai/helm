@@ -17,7 +17,7 @@ images:
   listenerImage:
     repository: "docker.io/langchain/hosted-langserve-backend"
     pullPolicy: IfNotPresent
-    tag: "0.9.85"
+    tag: "0.10.7"
   redisImage:
     repository: "docker.io/redis"
     pullPolicy: IfNotPresent
@@ -25,7 +25,14 @@ images:
   operatorImage:
     repository: "docker.io/langchain/langgraph-operator"
     pullPolicy: IfNotPresent
-    tag: "c5bebbc"
+    tag: "3e80459"
+
+ingress:
+  hostname: ""
+  ingressClassName: ""
+  annotations: {}
+  labels: {}
+  tls: []
 
 config:
   existingSecretName: ""
@@ -186,14 +193,14 @@ operator:
                 protocol: TCP
               livenessProbe:
                 httpGet:
-                  path: /ok?check_db=1
+                  path: /${name}/ok?check_db=1
                   port: 8000
                 initialDelaySeconds: 90
                 periodSeconds: 5
                 timeoutSeconds: 5
               readinessProbe:
                 httpGet:
-                  path: /ok
+                  path: /${name}/ok
                   port: 8000
                 initialDelaySeconds: 90
                 periodSeconds: 5
@@ -213,24 +220,6 @@ operator:
           protocol: TCP
           port: 8000
           targetPort: 8000
-    ingress: |
-      apiVersion: networking.k8s.io/v1
-      kind: Ingress
-      metadata:
-        name: ${name}
-        namespace: ${namespace}
-      spec:
-        ingressClassName: ${ingress.ingressClassName} 
-        rules:
-        - http:
-            paths:
-            - path: /
-              pathType: Prefix
-              backend:
-                service:
-                  name: ${name}
-                  port:
-                    number: 8000
 
 
 redis:

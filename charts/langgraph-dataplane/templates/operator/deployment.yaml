@@ -90,6 +90,10 @@ spec:
             value: {{ .Values.operator.watchNamespaces | quote }}
           - name: KEDA_ENABLED
             value: {{ .Values.operator.kedaEnabled | quote }}
+          - name: SHARED_INGRESS_NAME
+            value: {{ include "langgraphDataplane.fullname" . }}-ingress
+          - name: SHARED_INGRESS_NAMESPACE
+            value: {{ .Release.Namespace }}
         {{- with .Values.operator.deployment.extraEnv }}
           {{- toYaml . | nindent 12 }}
         {{- end }}
@@ -118,8 +122,6 @@ spec:
                 path: deployment.yaml
               - key: service.yaml
                 path: service.yaml
-              - key: ingress.yaml
-                path: ingress.yaml
       {{- with .Values.operator.deployment.volumes }}
         {{- toYaml . | nindent 8 }}
       {{- end }}
