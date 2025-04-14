@@ -17,31 +17,31 @@ images:
   aceBackendImage:
     repository: "docker.io/langchain/langsmith-ace-backend"
     pullPolicy: IfNotPresent
-    tag: "0.10.4"
+    tag: "0.10.7"
   backendImage:
     repository: "docker.io/langchain/langsmith-backend"
     pullPolicy: IfNotPresent
-    tag: "0.10.4"
+    tag: "0.10.7"
   frontendImage:
     repository: "docker.io/langchain/langsmith-frontend"
     pullPolicy: IfNotPresent
-    tag: "0.10.4"
+    tag: "0.10.7"
   hostBackendImage:
     repository: "docker.io/langchain/hosted-langserve-backend"
     pullPolicy: IfNotPresent
-    tag: "0.10.4"
+    tag: "0.10.7"
   operatorImage:
     repository: "docker.io/langchain/langgraph-operator"
     pullPolicy: IfNotPresent
-    tag: "c5bebbc"
+    tag: "3e80459"
   platformBackendImage:
     repository: "docker.io/langchain/langsmith-go-backend"
     pullPolicy: IfNotPresent
-    tag: "0.10.4"
+    tag: "0.10.7"
   playgroundImage:
     repository: "docker.io/langchain/langsmith-playground"
     pullPolicy: IfNotPresent
-    tag: "0.10.4"
+    tag: "0.10.7"
   postgresImage:
     repository: "docker.io/postgres"
     pullPolicy: IfNotPresent
@@ -60,6 +60,13 @@ ingress:
   enabled: false
   hostname: ""
   subdomain: ""
+  ingressClassName: ""
+  annotations: {}
+  labels: {}
+  tls: []
+
+platformIngress:
+  hostname: ""
   ingressClassName: ""
   annotations: {}
   labels: {}
@@ -1025,14 +1032,14 @@ operator:
                 protocol: TCP
               livenessProbe:
                 httpGet:
-                  path: /ok?check_db=1
+                  path: /${name}/ok?check_db=1
                   port: 8000
                 initialDelaySeconds: 90
                 periodSeconds: 5
                 timeoutSeconds: 5
               readinessProbe:
                 httpGet:
-                  path: /ok
+                  path: /${name}/ok
                   port: 8000
                 initialDelaySeconds: 90
                 periodSeconds: 5
@@ -1052,24 +1059,6 @@ operator:
           protocol: TCP
           port: 8000
           targetPort: 8000
-    ingress: |
-      apiVersion: networking.k8s.io/v1
-      kind: Ingress
-      metadata:
-        name: ${name}
-        namespace: ${namespace}
-      spec:
-        ingressClassName: ${ingress.ingressClassName}
-        rules:
-        - http:
-            paths:
-            - path: /
-              pathType: Prefix
-              backend:
-                service:
-                  name: ${name}
-                  port:
-                    number: 8000
 
 playground:
   name: "playground"

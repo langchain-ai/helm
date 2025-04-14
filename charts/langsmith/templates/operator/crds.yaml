@@ -93,6 +93,11 @@ spec:
                       type: string
                     description: Specific Labels to be added to the ingress
                     type: object
+                  subPath:
+                    description: SubPath is the subpath to use for the ingress. If
+                      subpath is not set, it will default to / and hostname should
+                      be set for routing.
+                    type: string
                   tls:
                     description: TLS configuration for the ingress
                     items:

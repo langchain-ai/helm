@@ -1,0 +1,32 @@
+{{- if .Values.config.langgraphPlatform.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "langsmith.fullname" . }}-platform-ingress
+  annotations:
+    {{- include "langsmith.annotations" . | nindent 4 }}
+    {{- with .Values.platformIngress.annotations }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+    {{- if .Values.platformIngress.hostname }}
+    external-dns.alpha.kubernetes.io/hostname: {{ .Values.platformIngress.hostname }}
+    {{- end }}
+    lgp-operator.io/shared-ingress: "true"
+  labels:
+    {{- include "langsmith.labels" . | nindent 4 }}
+    {{- with .Values.platformIngress.labels }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  ingressClassName: {{ .Values.platformIngress.ingressClassName }}
+  {{- with .Values.platformIngress.tls }}
+  tls:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  defaultBackend:
+    service:
+      name: some-placeholder-service  # or something that returns 404
+      port:
+        number: 80
+  rules: [] # These will be managed by the operator
+{{- end }}

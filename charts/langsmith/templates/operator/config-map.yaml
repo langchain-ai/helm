@@ -12,6 +12,4 @@ data:
 {{ .Values.operator.templates.deployment | indent 4 }}
   service.yaml: |
 {{ .Values.operator.templates.service | indent 4 }}
-  ingress.yaml: |
-{{ .Values.operator.templates.ingress | indent 4 }}
 {{- end }}
