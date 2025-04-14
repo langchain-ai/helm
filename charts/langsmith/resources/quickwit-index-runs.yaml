@@ -84,5 +84,7 @@ doc_mapping:
       tokenizer: raw
   timestamp_field: start_time
   partition_key: hash_mod(tenant_id, 100)
+  tag_fields: ["tenant_id", "session_id"]
+  index_field_presence: true
 indexing_settings:
   commit_timeout_secs: 30
