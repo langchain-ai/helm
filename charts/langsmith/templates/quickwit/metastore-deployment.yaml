@@ -95,6 +95,8 @@ spec:
               - key: node.yaml
                 path: node.yaml
         - name: data
+          emptyDir:
+            {{- toYaml .Values.quickwit.metastore.deployment.emptyDir | nindent 12 }}
           emptyDir: {}
         {{- with .Values.quickwit.metastore.deployment.extraVolumes }}
           {{- toYaml . | nindent 8 }}

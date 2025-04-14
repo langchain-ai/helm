@@ -90,7 +90,8 @@ spec:
                 path: node.yaml
         {{- if ne .Values.quickwit.indexer.statefulSet.persistentVolume.enabled true }}
         - name: data
-          emptyDir: {}
+          emptyDir:
+            {{- toYaml .Values.quickwit.indexer.statefulSet.emptyDir | nindent 12 }}
         {{- end }}
         {{- with .Values.quickwit.indexer.statefulSet.extraVolumes }}
           {{- toYaml . | nindent 8 }}

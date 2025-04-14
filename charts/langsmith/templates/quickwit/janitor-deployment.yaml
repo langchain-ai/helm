@@ -89,7 +89,8 @@ spec:
               - key: node.yaml
                 path: node.yaml
         - name: data
-          emptyDir: {}
+          emptyDir:
+            {{- toYaml .Values.quickwit.janitor.deployment.emptyDir | nindent 12 }}
         {{- with .Values.quickwit.indexer.statefulSet.extraVolumes }}
           {{- toYaml . | nindent 8 }}
         {{- end }}

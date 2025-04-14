@@ -1524,6 +1524,10 @@ quickwit:
         # storage: "1Gi"
         # storageClass: ""
 
+      # Configure size limit of the emptyDir (only when using ephemeral volume)
+      emptyDir: {}
+        # sizeLimit: 20Gi
+
       updateStrategy: {}
         # type: RollingUpdate
 
@@ -1593,6 +1597,10 @@ quickwit:
       # See https://quickwit.io/docs/configuration/index-config#indexing-settings
       terminationGracePeriodSeconds: 120
 
+      # Configure size limit of the emptyDir (only when using ephemeral volume)
+      emptyDir: {}
+        # sizeLimit: 20Gi
+
       persistentVolume:
         enabled: false
         # storage: "1Gi"
@@ -1629,6 +1637,8 @@ quickwit:
         #     name: quickwit-metastore
         # - configMapRef:
         #     name: quickwit-metastore
+
+      emptyDir: {}
 
       # extraVolumes -- Additional volumes to use with Pods.
       extraVolumes: []
@@ -1671,6 +1681,8 @@ quickwit:
         # - configMapRef:
         #     name: quickwit-control-plane
 
+      emptyDir: {}
+
       # extraVolumes -- Additional volumes to use with Pods.
       extraVolumes: []
 
@@ -1708,6 +1720,8 @@ quickwit:
         #     name: quickwit-janitor
         # - configMapRef:
         #     name: quickwit-janitor
+
+      emptyDir: {}
 
       # extraVolumes -- Additional volumes to use with Pods.
       extraVolumes: []
