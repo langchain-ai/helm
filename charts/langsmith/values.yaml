@@ -1511,13 +1511,13 @@ quickwit:
       # extraVolumeMounts -- Additional volumes to mount into Quickwit containers.
       extraVolumeMounts: []
 
-      resources: {}
-        # limits:
-        #   cpu: 100m
-        #   memory: 128Mi
-        # requests:
-        #   cpu: 100m
-        #   memory: 128Mi
+      resources:
+        limits:
+          cpu: 2000m
+          memory: 8Gi
+        requests:
+          cpu: 1000m
+          memory: 4Gi
 
       persistentVolume:
         enabled: false
@@ -1568,13 +1568,13 @@ quickwit:
       # extraVolumeMounts -- Additional volumes to mount into Quickwit containers.
       extraVolumeMounts: []
 
-      resources: {}
-        # limits:
-        #   cpu: 100m
-        #   memory: 128Mi
-        # requests:
-        #   cpu: 100m
-        #   memory: 128Mi
+      resources:
+        limits:
+          cpu: 2000m
+          memory: 8Gi
+        requests:
+          cpu: 1000m
+          memory: 4Gi
 
       updateStrategy: {}
         # type: RollingUpdate
@@ -1629,13 +1629,13 @@ quickwit:
       # extraVolumeMounts -- Additional volumes to mount into Quickwit containers.
       extraVolumeMounts: []
 
-      resources: {}
-        # limits:
-        #   cpu: 100m
-        #   memory: 128Mi
-        # requests:
-        #   cpu: 100m
-        #   memory: 128Mi
+      resources:
+        limits:
+          cpu: 1000m
+          memory: 2Gi
+        requests:
+          cpu: 200m
+          memory: 1Gi
 
       updateStrategy: {}
         # type: RollingUpdate
@@ -1670,13 +1670,13 @@ quickwit:
       # extraVolumeMounts -- Additional volumes to mount into Quickwit containers.
       extraVolumeMounts: []
 
-      resources: {}
-        # limits:
-        #   cpu: 100m
-        #   memory: 128Mi
-        # requests:
-        #   cpu: 100m
-        #   memory: 128Mi
+      resources:
+        limits:
+          cpu: 1000m
+          memory: 2Gi
+        requests:
+          cpu: 200m
+          memory: 1Gi
 
       annotations: {}
 
@@ -1708,13 +1708,13 @@ quickwit:
       # extraVolumeMounts -- Additional volumes to mount into Quickwit containers.
       extraVolumeMounts: []
 
-      resources: {}
-        # limits:
-        #   cpu: 100m
-        #   memory: 128Mi
-        # requests:
-        #   cpu: 100m
-        #   memory: 128Mi
+      resources:
+        limits:
+          cpu: 1000m
+          memory: 2Gi
+        requests:
+          cpu: 200m
+          memory: 1Gi
 
       annotations: {}
 
