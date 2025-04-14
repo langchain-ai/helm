@@ -2,7 +2,7 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: {{ include "langsmith.fullname" . }}-platform-ingress
+  name: {{ include "langsmith.fullname" . }}-lg-platform-ingress
   annotations:
     {{- include "langsmith.annotations" . | nindent 4 }}
     {{- with .Values.platformIngress.annotations }}
