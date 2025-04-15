@@ -26,6 +26,7 @@ spec:
         {{- with .Values.operator.deployment.annotations }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
+        checksum/config: {{ include (print $.Template.BasePath "/operator/config-map.yaml") . | sha256sum }}
       labels:
         {{- include "langsmith.labels" . | nindent 8 }}
         app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-operator
@@ -90,9 +91,13 @@ spec:
           - name: KEDA_ENABLED
             value: {{ .Values.operator.kedaEnabled | quote }}
           - name: SHARED_INGRESS_NAME
-            value: {{ include "langsmith.fullname" . }}-lg-platform-ingress
+            value: {{ include "langsmith.fullname" . }}-ingress
           - name: SHARED_INGRESS_NAMESPACE
             value: {{ .Release.Namespace }}
+          - name: ROOT_DOMAIN
+            value: {{ .Values.config.langgraphPlatform.rootDomain | default .Values.ingress.hostname | quote }}
+          - name: TLS_ENABLED
+            value: {{ .Values.config.langgraphPlatform.tlsEnabled | quote }}
         {{- with .Values.operator.deployment.extraEnv }}
           {{- toYaml . | nindent 12 }}
         {{- end }}
