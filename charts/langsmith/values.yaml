@@ -17,31 +17,31 @@ images:
   aceBackendImage:
     repository: "docker.io/langchain/langsmith-ace-backend"
     pullPolicy: IfNotPresent
-    tag: "0.10.7"
+    tag: "0.10.9"
   backendImage:
     repository: "docker.io/langchain/langsmith-backend"
     pullPolicy: IfNotPresent
-    tag: "0.10.8"
+    tag: "0.10.9"
   frontendImage:
     repository: "docker.io/langchain/langsmith-frontend"
     pullPolicy: IfNotPresent
-    tag: "0.10.8"
+    tag: "0.10.9"
   hostBackendImage:
     repository: "docker.io/langchain/hosted-langserve-backend"
     pullPolicy: IfNotPresent
-    tag: "0.10.8"
+    tag: "0.10.9"
   operatorImage:
     repository: "docker.io/langchain/langgraph-operator"
     pullPolicy: IfNotPresent
-    tag: "3e80459"
+    tag: "3b0048a"
   platformBackendImage:
     repository: "docker.io/langchain/langsmith-go-backend"
     pullPolicy: IfNotPresent
-    tag: "0.10.8"
+    tag: "0.10.9"
   playgroundImage:
     repository: "docker.io/langchain/langsmith-playground"
     pullPolicy: IfNotPresent
-    tag: "0.10.8"
+    tag: "0.10.9"
   postgresImage:
     repository: "docker.io/postgres"
     pullPolicy: IfNotPresent
@@ -60,16 +60,10 @@ images:
     tag: edge
 
 ingress:
+  # -- Set to true if langgraph platform enabled.
   enabled: false
   hostname: ""
   subdomain: ""
-  ingressClassName: ""
-  annotations: {}
-  labels: {}
-  tls: []
-
-platformIngress:
-  hostname: ""
   ingressClassName: ""
   annotations: {}
   labels: {}
@@ -82,7 +76,9 @@ config:
       # -- Optional. Used to enable the Langgraph platform control plane. If enabled, the license key must be provided.
     enabled: false
     langgraphPlatformLicenseKey: ""
-    rootDomain: ""  # e.g. "langgraph.example.com" - this is used as the root domain for all deployments. If this is not set, we will default to using internal kubernetes urls.
+    #  Defaults to ingress.hostname
+    rootDomain: ""
+    tlsEnabled: true
 
   # -- Salt used to generate the API key. Should be a random string.
   apiKeySalt: ""
@@ -1043,18 +1039,18 @@ operator:
                 protocol: TCP
               livenessProbe:
                 httpGet:
-                  path: /${name}/ok?check_db=1
+                  path: /lgp/${name}/ok?check_db=1
                   port: 8000
-                initialDelaySeconds: 90
-                periodSeconds: 5
+                periodSeconds: 15
                 timeoutSeconds: 5
+                failureThreshold: 6
               readinessProbe:
                 httpGet:
-                  path: /${name}/ok
+                  path: /lgp/${name}/ok
                   port: 8000
-                initialDelaySeconds: 90
-                periodSeconds: 5
+                periodSeconds: 15
                 timeoutSeconds: 5
+                failureThreshold: 6
     service: |
       apiVersion: v1
       kind: Service
