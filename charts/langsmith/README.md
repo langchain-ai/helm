@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.9.6](https://img.shields.io/badge/Version-0.9.6-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.9.29](https://img.shields.io/badge/AppVersion-0.9.29-informational?style=flat-square)
+![Version: 0.10.0](https://img.shields.io/badge/Version-0.10.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.10.8](https://img.shields.io/badge/AppVersion-0.10.8-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -9,6 +9,240 @@ Helm chart to deploy the langsmith application and all services it depends on.
 For information on how to use this chart, up-to-date release notes, and other guides please check out the [documentation.](https://docs.smith.langchain.com/self_hosting)
 
 ## General parameters
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| commonAnnotations | object | `{}` | Annotations that will be applied to all resources created by the chart |
+| commonEnv | list | `[]` | Common environment variables that will be applied to all deployments/statefulsets except for the playground/aceBackend services (which are sandboxed). Be careful not to override values already specified by the chart. |
+| commonLabels | object | `{}` | Labels that will be applied to all resources created by the chart |
+| fullnameOverride | string | `""` | String to fully override `"langsmith.fullname"` |
+| images.aceBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
+| images.aceBackendImage.repository | string | `"docker.io/langchain/langsmith-ace-backend"` |  |
+| images.aceBackendImage.tag | string | `"0.10.7"` |  |
+| images.backendImage.pullPolicy | string | `"IfNotPresent"` |  |
+| images.backendImage.repository | string | `"docker.io/langchain/langsmith-backend"` |  |
+| images.backendImage.tag | string | `"0.10.8"` |  |
+| images.clickhouseImage.pullPolicy | string | `"Always"` |  |
+| images.clickhouseImage.repository | string | `"docker.io/clickhouse/clickhouse-server"` |  |
+| images.clickhouseImage.tag | string | `"24.8"` |  |
+| images.frontendImage.pullPolicy | string | `"IfNotPresent"` |  |
+| images.frontendImage.repository | string | `"docker.io/langchain/langsmith-frontend"` |  |
+| images.frontendImage.tag | string | `"0.10.8"` |  |
+| images.hostBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
+| images.hostBackendImage.repository | string | `"docker.io/langchain/hosted-langserve-backend"` |  |
+| images.hostBackendImage.tag | string | `"0.10.8"` |  |
+| images.imagePullSecrets | list | `[]` | Secrets with credentials to pull images from a private registry. Specified as name: value. |
+| images.operatorImage.pullPolicy | string | `"IfNotPresent"` |  |
+| images.operatorImage.repository | string | `"docker.io/langchain/langgraph-operator"` |  |
+| images.operatorImage.tag | string | `"3e80459"` |  |
+| images.platformBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
+| images.platformBackendImage.repository | string | `"docker.io/langchain/langsmith-go-backend"` |  |
+| images.platformBackendImage.tag | string | `"0.10.8"` |  |
+| images.playgroundImage.pullPolicy | string | `"IfNotPresent"` |  |
+| images.playgroundImage.repository | string | `"docker.io/langchain/langsmith-playground"` |  |
+| images.playgroundImage.tag | string | `"0.10.8"` |  |
+| images.postgresImage.pullPolicy | string | `"IfNotPresent"` |  |
+| images.postgresImage.repository | string | `"docker.io/postgres"` |  |
+| images.postgresImage.tag | string | `"14.7"` |  |
+| images.quickwitImage.pullPolicy | string | `"IfNotPresent"` |  |
+| images.quickwitImage.repository | string | `"quickwit/quickwit"` |  |
+| images.quickwitImage.tag | string | `"edge"` |  |
+| images.redisImage.pullPolicy | string | `"IfNotPresent"` |  |
+| images.redisImage.repository | string | `"docker.io/redis"` |  |
+| images.redisImage.tag | string | `"7"` |  |
+| ingress.annotations | object | `{}` |  |
+| ingress.enabled | bool | `false` |  |
+| ingress.hostname | string | `""` |  |
+| ingress.ingressClassName | string | `""` |  |
+| ingress.labels | object | `{}` |  |
+| ingress.subdomain | string | `""` |  |
+| ingress.tls | list | `[]` |  |
+| nameOverride | string | `""` | Provide a name in place of `langsmith` |
+| platformIngress.annotations | object | `{}` |  |
+| platformIngress.hostname | string | `""` |  |
+| platformIngress.ingressClassName | string | `""` |  |
+| platformIngress.labels | object | `{}` |  |
+| platformIngress.tls | list | `[]` |  |
+| quickwit.additionalLabels | object | `{}` | Additional labels to add to all resources |
+| quickwit.affinity | object | `{}` |  |
+| quickwit.annotations | object | `{}` |  |
+| quickwit.config.gossip_listen_port | int | `7282` |  |
+| quickwit.config.listen_address | string | `"0.0.0.0"` |  |
+| quickwit.config.version | float | `0.8` |  |
+| quickwit.configLocation | string | `"/quickwit/node.yaml"` |  |
+| quickwit.configMaps | list | `[]` |  |
+| quickwit.controlPlane.deployment.affinity | object | `{}` |  |
+| quickwit.controlPlane.deployment.annotations | object | `{}` |  |
+| quickwit.controlPlane.deployment.emptyDir | object | `{}` |  |
+| quickwit.controlPlane.deployment.extraEnv | list | `[]` |  |
+| quickwit.controlPlane.deployment.extraEnvFrom | list | `[]` |  |
+| quickwit.controlPlane.deployment.extraVolumeMounts | list | `[]` |  |
+| quickwit.controlPlane.deployment.extraVolumes | list | `[]` |  |
+| quickwit.controlPlane.deployment.nodeSelector | object | `{}` |  |
+| quickwit.controlPlane.deployment.podAnnotations | object | `{}` |  |
+| quickwit.controlPlane.deployment.resources.limits.cpu | string | `"1000m"` |  |
+| quickwit.controlPlane.deployment.resources.limits.memory | string | `"2Gi"` |  |
+| quickwit.controlPlane.deployment.resources.requests.cpu | string | `"200m"` |  |
+| quickwit.controlPlane.deployment.resources.requests.memory | string | `"1Gi"` |  |
+| quickwit.controlPlane.deployment.tolerations | list | `[]` |  |
+| quickwit.controlPlane.name | string | `"quickwit-control-plane"` |  |
+| quickwit.controlPlane.serviceAnnotations | object | `{}` |  |
+| quickwit.environment | object | `{}` |  |
+| quickwit.environmentFrom | list | `[]` |  |
+| quickwit.indexer.name | string | `"quickwit-indexer"` |  |
+| quickwit.indexer.pdb.annotations | object | `{}` |  |
+| quickwit.indexer.pdb.enabled | bool | `false` |  |
+| quickwit.indexer.pdb.labels | object | `{}` |  |
+| quickwit.indexer.pdb.maxUnavailable | int | `1` |  |
+| quickwit.indexer.serviceAnnotations | object | `{}` |  |
+| quickwit.indexer.statefulSet.affinity | object | `{}` |  |
+| quickwit.indexer.statefulSet.annotations | object | `{}` |  |
+| quickwit.indexer.statefulSet.emptyDir | object | `{}` |  |
+| quickwit.indexer.statefulSet.extraEnv | list | `[]` |  |
+| quickwit.indexer.statefulSet.extraEnvFrom | list | `[]` |  |
+| quickwit.indexer.statefulSet.extraVolumeMounts | list | `[]` |  |
+| quickwit.indexer.statefulSet.extraVolumes | list | `[]` |  |
+| quickwit.indexer.statefulSet.nodeSelector | object | `{}` |  |
+| quickwit.indexer.statefulSet.persistentVolume.enabled | bool | `false` |  |
+| quickwit.indexer.statefulSet.podAnnotations | object | `{}` |  |
+| quickwit.indexer.statefulSet.replicas | int | `1` |  |
+| quickwit.indexer.statefulSet.resources.limits.cpu | string | `"2000m"` |  |
+| quickwit.indexer.statefulSet.resources.limits.memory | string | `"8Gi"` |  |
+| quickwit.indexer.statefulSet.resources.requests.cpu | string | `"1000m"` |  |
+| quickwit.indexer.statefulSet.resources.requests.memory | string | `"4Gi"` |  |
+| quickwit.indexer.statefulSet.terminationGracePeriodSeconds | int | `120` |  |
+| quickwit.indexer.statefulSet.tolerations | list | `[]` |  |
+| quickwit.indexer.statefulSet.updateStrategy | object | `{}` |  |
+| quickwit.janitor.deployment.affinity | object | `{}` |  |
+| quickwit.janitor.deployment.annotations | object | `{}` |  |
+| quickwit.janitor.deployment.emptyDir | object | `{}` |  |
+| quickwit.janitor.deployment.extraEnv | list | `[]` |  |
+| quickwit.janitor.deployment.extraEnvFrom | list | `[]` |  |
+| quickwit.janitor.deployment.extraVolumeMounts | list | `[]` |  |
+| quickwit.janitor.deployment.extraVolumes | list | `[]` |  |
+| quickwit.janitor.deployment.nodeSelector | object | `{}` |  |
+| quickwit.janitor.deployment.podAnnotations | object | `{}` |  |
+| quickwit.janitor.deployment.resources.limits.cpu | string | `"1000m"` |  |
+| quickwit.janitor.deployment.resources.limits.memory | string | `"2Gi"` |  |
+| quickwit.janitor.deployment.resources.requests.cpu | string | `"200m"` |  |
+| quickwit.janitor.deployment.resources.requests.memory | string | `"1Gi"` |  |
+| quickwit.janitor.deployment.tolerations | list | `[]` |  |
+| quickwit.janitor.name | string | `"quickwit-janitor"` |  |
+| quickwit.janitor.serviceAnnotations | object | `{}` |  |
+| quickwit.metastore.deployment.affinity | object | `{}` |  |
+| quickwit.metastore.deployment.annotations | object | `{}` |  |
+| quickwit.metastore.deployment.emptyDir | object | `{}` |  |
+| quickwit.metastore.deployment.extraEnv | list | `[]` |  |
+| quickwit.metastore.deployment.extraEnvFrom | list | `[]` |  |
+| quickwit.metastore.deployment.extraVolumeMounts | list | `[]` |  |
+| quickwit.metastore.deployment.extraVolumes | list | `[]` |  |
+| quickwit.metastore.deployment.nodeSelector | object | `{}` |  |
+| quickwit.metastore.deployment.podAnnotations | object | `{}` |  |
+| quickwit.metastore.deployment.replicas | int | `1` |  |
+| quickwit.metastore.deployment.resources.limits.cpu | string | `"1000m"` |  |
+| quickwit.metastore.deployment.resources.limits.memory | string | `"2Gi"` |  |
+| quickwit.metastore.deployment.resources.requests.cpu | string | `"200m"` |  |
+| quickwit.metastore.deployment.resources.requests.memory | string | `"1Gi"` |  |
+| quickwit.metastore.deployment.tolerations | list | `[]` |  |
+| quickwit.metastore.deployment.updateStrategy | object | `{}` |  |
+| quickwit.metastore.name | string | `"quickwit-metastore"` |  |
+| quickwit.metastore.postgres.connectionUrlSecretKey | string | `"metastore_connection_url"` |  |
+| quickwit.metastore.postgres.existingSecretName | string | `""` |  |
+| quickwit.metastore.postgres.shareWithLangSmith | bool | `false` |  |
+| quickwit.metastore.serviceAnnotations | object | `{}` |  |
+| quickwit.name | string | `"quickwit"` |  |
+| quickwit.podAnnotations | object | `{}` |  |
+| quickwit.podSecurityContext.fsGroup | int | `1005` |  |
+| quickwit.ports[0].containerPort | int | `7280` |  |
+| quickwit.ports[0].name | string | `"rest"` |  |
+| quickwit.ports[0].protocol | string | `"TCP"` |  |
+| quickwit.ports[1].containerPort | int | `7281` |  |
+| quickwit.ports[1].name | string | `"grpc"` |  |
+| quickwit.ports[1].protocol | string | `"TCP"` |  |
+| quickwit.ports[2].containerPort | int | `7282` |  |
+| quickwit.ports[2].name | string | `"discovery"` |  |
+| quickwit.ports[2].protocol | string | `"UDP"` |  |
+| quickwit.probes.livenessProbe.httpGet.path | string | `"/health/livez"` |  |
+| quickwit.probes.livenessProbe.httpGet.port | string | `"rest"` |  |
+| quickwit.probes.readinessProbe.httpGet.path | string | `"/health/readyz"` |  |
+| quickwit.probes.readinessProbe.httpGet.port | string | `"rest"` |  |
+| quickwit.probes.startupProbe.failureThreshold | int | `12` |  |
+| quickwit.probes.startupProbe.httpGet.path | string | `"/health/livez"` |  |
+| quickwit.probes.startupProbe.httpGet.port | string | `"rest"` |  |
+| quickwit.probes.startupProbe.periodSeconds | int | `5` |  |
+| quickwit.searcher.name | string | `"quickwit-searcher"` |  |
+| quickwit.searcher.pdb.annotations | object | `{}` |  |
+| quickwit.searcher.pdb.enabled | bool | `false` |  |
+| quickwit.searcher.pdb.labels | object | `{}` |  |
+| quickwit.searcher.pdb.maxUnavailable | int | `1` |  |
+| quickwit.searcher.serviceAnnotations | object | `{}` |  |
+| quickwit.searcher.statefulSet.affinity | object | `{}` |  |
+| quickwit.searcher.statefulSet.annotations | object | `{}` |  |
+| quickwit.searcher.statefulSet.emptyDir | object | `{}` |  |
+| quickwit.searcher.statefulSet.extraEnv | list | `[]` |  |
+| quickwit.searcher.statefulSet.extraEnvFrom | list | `[]` |  |
+| quickwit.searcher.statefulSet.extraVolumeMounts | list | `[]` |  |
+| quickwit.searcher.statefulSet.extraVolumes | list | `[]` |  |
+| quickwit.searcher.statefulSet.nodeSelector | object | `{}` |  |
+| quickwit.searcher.statefulSet.persistentVolume.enabled | bool | `false` |  |
+| quickwit.searcher.statefulSet.podAnnotations | object | `{}` |  |
+| quickwit.searcher.statefulSet.replicas | int | `1` |  |
+| quickwit.searcher.statefulSet.resources.limits.cpu | string | `"2000m"` |  |
+| quickwit.searcher.statefulSet.resources.limits.memory | string | `"8Gi"` |  |
+| quickwit.searcher.statefulSet.resources.requests.cpu | string | `"1000m"` |  |
+| quickwit.searcher.statefulSet.resources.requests.memory | string | `"4Gi"` |  |
+| quickwit.searcher.statefulSet.tolerations | list | `[]` |  |
+| quickwit.searcher.statefulSet.updateStrategy | object | `{}` |  |
+| quickwit.securityContext.runAsNonRoot | bool | `true` |  |
+| quickwit.securityContext.runAsUser | int | `1005` |  |
+| quickwit.service.annotations | object | `{}` |  |
+| quickwit.service.ipFamilies | list | `[]` | Sets the families that should be supported and the order in which they should be applied to ClusterIP as well. Can be IPv4 and/or IPv6. |
+| quickwit.service.ipFamilyPolicy | string | `""` | Set the ip family policy to configure dual-stack see [Configure dual-stack](https://kubernetes.io/docs/concepts/services-networking/dual-stack/#services) |
+| quickwit.service.type | string | `"ClusterIP"` |  |
+| quickwit.serviceAccount.annotations | object | `{}` |  |
+| quickwit.serviceAccount.create | bool | `true` |  |
+| quickwit.serviceAccount.name | string | `""` |  |
+| quickwit.updateRunsIndex.name | string | `"quickwit-update-runs-index"` |  |
+
+## Configs
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| config.apiKeySalt | string | `""` | Salt used to generate the API key. Should be a random string. |
+| config.authType | string | `""` | Must be 'oauth' for OAuth with PKCE, 'mixed' for basic auth or OAuth without PKCE |
+| config.basicAuth.enabled | bool | `false` |  |
+| config.basicAuth.initialOrgAdminEmail | string | `""` |  |
+| config.basicAuth.initialOrgAdminPassword | string | `""` |  |
+| config.basicAuth.jwtSecret | string | `""` |  |
+| config.blobStorage | object | `{"accessKey":"","accessKeySecret":"","apiURL":"https://s3.us-west-2.amazonaws.com","azureStorageAccountKey":"","azureStorageAccountName":"","azureStorageConnectionString":"","azureStorageContainerName":"","azureStorageServiceUrlOverride":"","bucketName":"","chSearchEnabled":true,"enabled":false,"engine":"S3","minBlobStorageSizeKb":"20"}` | Blob storage configuration Optional. Used to store inputs, outputs, and errors in Blob Storage. We currently support S3, GCS, Minio, and Azure as Blob Storage providers. |
+| config.blobStorage.azureStorageAccountName | string | `""` | Optional. Set this along with azureStorageAccountKey to use a storage account and access key. Higher precedence than azureStorageConnectionString. |
+| config.blobStorage.azureStorageConnectionString | string | `""` | Optional. Use this to specify the full connection string including any authentication params. |
+| config.blobStorage.azureStorageContainerName | string | `""` | Required if using Azure blob storage |
+| config.blobStorage.azureStorageServiceUrlOverride | string | `""` | Optional. Use this to customize the service URL, which by default is 'https://<storage_account_name>.blob.core.windows.net/' |
+| config.existingSecretName | string | `""` |  |
+| config.fullTextSearch.deletes.enabled | bool | `false` |  |
+| config.fullTextSearch.indexing.enabled | bool | `false` |  |
+| config.hostname | string | `""` | Base URL of the LangSmith installation. Used for redirects. |
+| config.langgraphPlatform.enabled | bool | `false` | Optional. Used to enable the Langgraph platform control plane. If enabled, the license key must be provided. |
+| config.langgraphPlatform.langgraphPlatformLicenseKey | string | `""` |  |
+| config.langgraphPlatform.rootDomain | string | `""` |  |
+| config.langsmithLicenseKey | string | `""` |  |
+| config.logLevel | string | `"info"` |  |
+| config.oauth.enabled | bool | `false` |  |
+| config.oauth.oauthClientId | string | `""` |  |
+| config.oauth.oauthClientSecret | string | `""` | Client secret requires authType to be 'mixed' and hostname to be present |
+| config.oauth.oauthIssuerUrl | string | `""` |  |
+| config.oauth.oauthScopes | string | `"email,profile,openid"` |  |
+| config.oauth.oauthSessionMaxSec | string | `"86400"` |  |
+| config.orgCreationDisabled | bool | `false` | Prevent organization creation. If using basic auth, this is set to true by default. |
+| config.personalOrgsDisabled | bool | `false` | Disable personal orgs. Users will need to be invited to an org manually. If using basic auth, this is set to true by default. |
+| config.settings | object | `{"redisRunsExpirySeconds":"43200"}` | Application Settings. These are used to tune the application |
+| config.settings.redisRunsExpirySeconds | string | `"43200"` | Optional. Be very careful when lowering this value as it can result in runs being lost if your queue is down/not processing items fast enough. |
+| config.ttl | object | `{"enabled":true,"ttl_period_seconds":{"longlived":"34560000","shortlived":"1209600"}}` | TTL configuration Optional. Used to set TTLS for longlived and shortlived objects. |
+| config.ttl.ttl_period_seconds.longlived | string | `"34560000"` | 400 day longlived and 14 day shortlived |
+| config.workspaceScopeOrgInvitesEnabled | bool | `false` | Enable Workspace Admins to invite users to the org and workspace. |
+
+## Ace Backend
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
@@ -66,6 +300,10 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | aceBackend.deployment.volumeMounts | list | `[]` |  |
 | aceBackend.deployment.volumes | list | `[]` |  |
 | aceBackend.name | string | `"ace-backend"` |  |
+| aceBackend.pdb.annotations | object | `{}` |  |
+| aceBackend.pdb.enabled | bool | `false` |  |
+| aceBackend.pdb.labels | object | `{}` |  |
+| aceBackend.pdb.minAvailable | int | `1` |  |
 | aceBackend.service.annotations | object | `{}` |  |
 | aceBackend.service.labels | object | `{}` |  |
 | aceBackend.service.loadBalancerIP | string | `""` |  |
@@ -76,153 +314,6 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | aceBackend.serviceAccount.create | bool | `true` |  |
 | aceBackend.serviceAccount.labels | object | `{}` |  |
 | aceBackend.serviceAccount.name | string | `""` |  |
-| apiIngress.annotations | object | `{}` |  |
-| apiIngress.enabled | bool | `false` |  |
-| apiIngress.hostname | string | `""` |  |
-| apiIngress.ingressClassName | string | `""` |  |
-| apiIngress.labels | object | `{}` |  |
-| apiIngress.subdomain | string | `""` |  |
-| apiIngress.tls | list | `[]` |  |
-| clickhouse.config.allowSimdjson | bool | `true` |  |
-| clickhouse.containerHttpPort | int | `8123` |  |
-| clickhouse.containerNativePort | int | `9000` |  |
-| clickhouse.external.cluster | string | `""` |  |
-| clickhouse.external.database | string | `"default"` |  |
-| clickhouse.external.databaseSecretKey | string | `"clickhouse_db"` |  |
-| clickhouse.external.enabled | bool | `false` |  |
-| clickhouse.external.existingSecretName | string | `""` |  |
-| clickhouse.external.host | string | `""` |  |
-| clickhouse.external.hostSecretKey | string | `"clickhouse_host"` |  |
-| clickhouse.external.hybrid | bool | `false` | Must be set to true if using managed ClickHouse |
-| clickhouse.external.nativePort | string | `"9000"` |  |
-| clickhouse.external.nativePortSecretKey | string | `"clickhouse_native_port"` |  |
-| clickhouse.external.password | string | `"password"` |  |
-| clickhouse.external.passwordSecretKey | string | `"clickhouse_password"` |  |
-| clickhouse.external.port | string | `"8123"` |  |
-| clickhouse.external.portSecretKey | string | `"clickhouse_port"` |  |
-| clickhouse.external.tls | bool | `false` |  |
-| clickhouse.external.tlsSecretKey | string | `"clickhouse_tls"` |  |
-| clickhouse.external.user | string | `"default"` |  |
-| clickhouse.external.userSecretKey | string | `"clickhouse_user"` |  |
-| clickhouse.name | string | `"clickhouse"` |  |
-| clickhouse.service.annotations | object | `{}` |  |
-| clickhouse.service.httpPort | int | `8123` |  |
-| clickhouse.service.labels | object | `{}` |  |
-| clickhouse.service.loadBalancerIP | string | `""` |  |
-| clickhouse.service.loadBalancerSourceRanges | list | `[]` |  |
-| clickhouse.service.nativePort | int | `9000` |  |
-| clickhouse.service.type | string | `"ClusterIP"` |  |
-| clickhouse.serviceAccount.annotations | object | `{}` |  |
-| clickhouse.serviceAccount.create | bool | `true` |  |
-| clickhouse.serviceAccount.labels | object | `{}` |  |
-| clickhouse.serviceAccount.name | string | `""` |  |
-| clickhouse.statefulSet.affinity | object | `{}` |  |
-| clickhouse.statefulSet.annotations | object | `{}` |  |
-| clickhouse.statefulSet.command[0] | string | `"/bin/bash"` |  |
-| clickhouse.statefulSet.command[1] | string | `"-c"` |  |
-| clickhouse.statefulSet.command[2] | string | `"sed 's/id -g/id -gn/' /entrypoint.sh > /tmp/entrypoint.sh; exec bash /tmp/entrypoint.sh"` |  |
-| clickhouse.statefulSet.extraContainerConfig | object | `{}` |  |
-| clickhouse.statefulSet.extraEnv | list | `[]` |  |
-| clickhouse.statefulSet.labels | object | `{}` |  |
-| clickhouse.statefulSet.livenessProbe.failureThreshold | int | `6` |  |
-| clickhouse.statefulSet.livenessProbe.httpGet.path | string | `"/ping"` |  |
-| clickhouse.statefulSet.livenessProbe.httpGet.port | int | `8123` |  |
-| clickhouse.statefulSet.livenessProbe.periodSeconds | int | `10` |  |
-| clickhouse.statefulSet.livenessProbe.timeoutSeconds | int | `1` |  |
-| clickhouse.statefulSet.nodeSelector | object | `{}` |  |
-| clickhouse.statefulSet.persistence.size | string | `"50Gi"` |  |
-| clickhouse.statefulSet.persistence.storageClassName | string | `""` |  |
-| clickhouse.statefulSet.podSecurityContext | object | `{}` |  |
-| clickhouse.statefulSet.readinessProbe.failureThreshold | int | `6` |  |
-| clickhouse.statefulSet.readinessProbe.httpGet.path | string | `"/ping"` |  |
-| clickhouse.statefulSet.readinessProbe.httpGet.port | int | `8123` |  |
-| clickhouse.statefulSet.readinessProbe.periodSeconds | int | `10` |  |
-| clickhouse.statefulSet.readinessProbe.timeoutSeconds | int | `1` |  |
-| clickhouse.statefulSet.resources.limits.cpu | string | `"8000m"` |  |
-| clickhouse.statefulSet.resources.limits.memory | string | `"32Gi"` |  |
-| clickhouse.statefulSet.resources.requests.cpu | string | `"3500m"` |  |
-| clickhouse.statefulSet.resources.requests.memory | string | `"12Gi"` |  |
-| clickhouse.statefulSet.securityContext | object | `{}` |  |
-| clickhouse.statefulSet.sidecars | list | `[]` |  |
-| clickhouse.statefulSet.startupProbe.failureThreshold | int | `6` |  |
-| clickhouse.statefulSet.startupProbe.httpGet.path | string | `"/ping"` |  |
-| clickhouse.statefulSet.startupProbe.httpGet.port | int | `8123` |  |
-| clickhouse.statefulSet.startupProbe.periodSeconds | int | `10` |  |
-| clickhouse.statefulSet.startupProbe.timeoutSeconds | int | `1` |  |
-| clickhouse.statefulSet.tolerations | list | `[]` |  |
-| clickhouse.statefulSet.topologySpreadConstraints | list | `[]` |  |
-| clickhouse.statefulSet.volumeMounts | list | `[]` |  |
-| clickhouse.statefulSet.volumes | list | `[]` |  |
-| commonAnnotations | object | `{}` | Annotations that will be applied to all resources created by the chart |
-| commonEnv | list | `[]` | Common environment variables that will be applied to all deployments/statefulsets except for the playground/aceBackend services (which are sandboxed). Be careful not to override values already specified by the chart. |
-| commonLabels | object | `{}` | Labels that will be applied to all resources created by the chart |
-| fullnameOverride | string | `""` | String to fully override `"langsmith.fullname"` |
-| images.aceBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
-| images.aceBackendImage.repository | string | `"docker.io/langchain/langsmith-ace-backend"` |  |
-| images.aceBackendImage.tag | string | `"0.9.29"` |  |
-| images.backendImage.pullPolicy | string | `"IfNotPresent"` |  |
-| images.backendImage.repository | string | `"docker.io/langchain/langsmith-backend"` |  |
-| images.backendImage.tag | string | `"0.9.29"` |  |
-| images.clickhouseImage.pullPolicy | string | `"Always"` |  |
-| images.clickhouseImage.repository | string | `"docker.io/clickhouse/clickhouse-server"` |  |
-| images.clickhouseImage.tag | string | `"24.8"` |  |
-| images.frontendImage.pullPolicy | string | `"IfNotPresent"` |  |
-| images.frontendImage.repository | string | `"docker.io/langchain/langsmith-frontend"` |  |
-| images.frontendImage.tag | string | `"0.9.29"` |  |
-| images.imagePullSecrets | list | `[]` | Secrets with credentials to pull images from a private registry. Specified as name: value. |
-| images.platformBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
-| images.platformBackendImage.repository | string | `"docker.io/langchain/langsmith-go-backend"` |  |
-| images.platformBackendImage.tag | string | `"0.9.29"` |  |
-| images.playgroundImage.pullPolicy | string | `"IfNotPresent"` |  |
-| images.playgroundImage.repository | string | `"docker.io/langchain/langsmith-playground"` |  |
-| images.playgroundImage.tag | string | `"0.9.29"` |  |
-| images.postgresImage.pullPolicy | string | `"IfNotPresent"` |  |
-| images.postgresImage.repository | string | `"docker.io/postgres"` |  |
-| images.postgresImage.tag | string | `"14.7"` |  |
-| images.redisImage.pullPolicy | string | `"IfNotPresent"` |  |
-| images.redisImage.repository | string | `"docker.io/redis"` |  |
-| images.redisImage.tag | string | `"7"` |  |
-| ingress.annotations | object | `{}` |  |
-| ingress.enabled | bool | `false` |  |
-| ingress.hostname | string | `""` |  |
-| ingress.ingressClassName | string | `""` |  |
-| ingress.labels | object | `{}` |  |
-| ingress.subdomain | string | `""` |  |
-| ingress.tls | list | `[]` |  |
-| nameOverride | string | `""` | Provide a name in place of `langsmith` |
-
-## Configs
-
-| Key | Type | Default | Description |
-|-----|------|---------|-------------|
-| config.apiKeySalt | string | `""` | Salt used to generate the API key. Should be a random string. |
-| config.authType | string | `""` | Must be 'oauth' for OAuth with PKCE, 'mixed' for basic auth or OAuth without PKCE |
-| config.basicAuth.enabled | bool | `false` |  |
-| config.basicAuth.initialOrgAdminEmail | string | `""` |  |
-| config.basicAuth.initialOrgAdminPassword | string | `""` |  |
-| config.basicAuth.jwtSecret | string | `""` |  |
-| config.blobStorage | object | `{"accessKey":"","accessKeySecret":"","apiURL":"https://s3.us-west-2.amazonaws.com","azureStorageAccountKey":"","azureStorageAccountName":"","azureStorageConnectionString":"","azureStorageContainerName":"","azureStorageServiceUrlOverride":"","bucketName":"","chSearchEnabled":true,"enabled":false,"engine":"S3","minBlobStorageSizeKb":"20"}` | Blob storage configuration Optional. Used to store inputs, outputs, and errors in Blob Storage. We currently support S3, GCS, Minio, and Azure as Blob Storage providers. |
-| config.blobStorage.azureStorageAccountName | string | `""` | Optional. Set this along with azureStorageAccountKey to use a storage account and access key. Higher precedence than azureStorageConnectionString. |
-| config.blobStorage.azureStorageConnectionString | string | `""` | Optional. Use this to specify the full connection string including any authentication params. |
-| config.blobStorage.azureStorageContainerName | string | `""` | Required if using Azure blob storage |
-| config.blobStorage.azureStorageServiceUrlOverride | string | `""` | Optional. Use this to customize the service URL, which by default is 'https://<storage_account_name>.blob.core.windows.net/' |
-| config.existingSecretName | string | `""` |  |
-| config.hostname | string | `""` | Base URL of the LangSmith installation. Used for redirects. |
-| config.langsmithLicenseKey | string | `""` |  |
-| config.logLevel | string | `"info"` |  |
-| config.oauth.enabled | bool | `false` |  |
-| config.oauth.oauthClientId | string | `""` |  |
-| config.oauth.oauthClientSecret | string | `""` | Client secret requires authType to be 'mixed' and hostname to be present |
-| config.oauth.oauthIssuerUrl | string | `""` |  |
-| config.oauth.oauthScopes | string | `"email,profile,openid"` |  |
-| config.oauth.oauthSessionMaxSec | string | `"86400"` |  |
-| config.orgCreationDisabled | bool | `false` | Prevent organization creation. If using basic auth, this is set to true by default. |
-| config.personalOrgsDisabled | bool | `false` | Disable personal orgs. Users will need to be invited to an org manually. If using basic auth, this is set to true by default. |
-| config.settings | object | `{"redisRunsExpirySeconds":"43200"}` | Application Settings. These are used to tune the application |
-| config.settings.redisRunsExpirySeconds | string | `"43200"` | Optional. Be very careful when lowering this value as it can result in runs being lost if your queue is down/not processing items fast enough. |
-| config.ttl | object | `{"enabled":true,"ttl_period_seconds":{"longlived":"34560000","shortlived":"1209600"}}` | TTL configuration Optional. Used to set TTLS for longlived and shortlived objects. |
-| config.ttl.ttl_period_seconds.longlived | string | `"34560000"` | 400 day longlived and 14 day shortlived |
-| config.workspaceScopeOrgInvitesEnabled | bool | `false` | Enable Workspace Admins to invite users to the org and workspace. |
 
 ## Backend
 
@@ -238,7 +329,10 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | backend.authBootstrap.nodeSelector | object | `{}` |  |
 | backend.authBootstrap.podSecurityContext | object | `{}` |  |
 | backend.authBootstrap.randomizeName | bool | `true` |  |
-| backend.authBootstrap.resources | object | `{}` |  |
+| backend.authBootstrap.resources.limits.cpu | string | `"1000m"` |  |
+| backend.authBootstrap.resources.limits.memory | string | `"1Gi"` |  |
+| backend.authBootstrap.resources.requests.cpu | string | `"200m"` |  |
+| backend.authBootstrap.resources.requests.memory | string | `"500Mi"` |  |
 | backend.authBootstrap.securityContext | object | `{}` |  |
 | backend.authBootstrap.sidecars | list | `[]` |  |
 | backend.authBootstrap.tolerations | list | `[]` |  |
@@ -263,7 +357,10 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | backend.clickhouseMigrations.nodeSelector | object | `{}` |  |
 | backend.clickhouseMigrations.podSecurityContext | object | `{}` |  |
 | backend.clickhouseMigrations.randomizeName | bool | `true` |  |
-| backend.clickhouseMigrations.resources | object | `{}` |  |
+| backend.clickhouseMigrations.resources.limits.cpu | string | `"1000m"` |  |
+| backend.clickhouseMigrations.resources.limits.memory | string | `"1Gi"` |  |
+| backend.clickhouseMigrations.resources.requests.cpu | string | `"200m"` |  |
+| backend.clickhouseMigrations.resources.requests.memory | string | `"500Mi"` |  |
 | backend.clickhouseMigrations.securityContext | object | `{}` |  |
 | backend.clickhouseMigrations.sidecars | list | `[]` |  |
 | backend.clickhouseMigrations.tolerations | list | `[]` |  |
@@ -333,7 +430,10 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | backend.migrations.nodeSelector | object | `{}` |  |
 | backend.migrations.podSecurityContext | object | `{}` |  |
 | backend.migrations.randomizeName | bool | `true` |  |
-| backend.migrations.resources | object | `{}` |  |
+| backend.migrations.resources.limits.cpu | string | `"1000m"` |  |
+| backend.migrations.resources.limits.memory | string | `"1Gi"` |  |
+| backend.migrations.resources.requests.cpu | string | `"200m"` |  |
+| backend.migrations.resources.requests.memory | string | `"500Mi"` |  |
 | backend.migrations.securityContext | object | `{}` |  |
 | backend.migrations.sidecars | list | `[]` |  |
 | backend.migrations.tolerations | list | `[]` |  |
@@ -342,6 +442,10 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | backend.migrations.volumeMounts | list | `[]` |  |
 | backend.migrations.volumes | list | `[]` |  |
 | backend.name | string | `"backend"` |  |
+| backend.pdb.annotations | object | `{}` |  |
+| backend.pdb.enabled | bool | `false` |  |
+| backend.pdb.labels | object | `{}` |  |
+| backend.pdb.minAvailable | int | `1` |  |
 | backend.service.annotations | object | `{}` |  |
 | backend.service.labels | object | `{}` |  |
 | backend.service.loadBalancerIP | string | `""` |  |
@@ -379,6 +483,10 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | clickhouse.external.user | string | `"default"` |  |
 | clickhouse.external.userSecretKey | string | `"clickhouse_user"` |  |
 | clickhouse.name | string | `"clickhouse"` |  |
+| clickhouse.pdb.annotations | object | `{}` |  |
+| clickhouse.pdb.enabled | bool | `false` |  |
+| clickhouse.pdb.labels | object | `{}` |  |
+| clickhouse.pdb.minAvailable | int | `1` |  |
 | clickhouse.service.annotations | object | `{}` |  |
 | clickhouse.service.httpPort | int | `8123` |  |
 | clickhouse.service.labels | object | `{}` |  |
@@ -404,6 +512,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | clickhouse.statefulSet.livenessProbe.periodSeconds | int | `10` |  |
 | clickhouse.statefulSet.livenessProbe.timeoutSeconds | int | `1` |  |
 | clickhouse.statefulSet.nodeSelector | object | `{}` |  |
+| clickhouse.statefulSet.persistence.enabled | bool | `true` |  |
 | clickhouse.statefulSet.persistence.size | string | `"50Gi"` |  |
 | clickhouse.statefulSet.persistence.storageClassName | string | `""` |  |
 | clickhouse.statefulSet.podSecurityContext | object | `{}` |  |
@@ -427,6 +536,84 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | clickhouse.statefulSet.topologySpreadConstraints | list | `[]` |  |
 | clickhouse.statefulSet.volumeMounts | list | `[]` |  |
 | clickhouse.statefulSet.volumes | list | `[]` |  |
+
+## Host Backend (Optional)
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| hostBackend.autoscaling.createHpa | bool | `true` |  |
+| hostBackend.autoscaling.enabled | bool | `false` |  |
+| hostBackend.autoscaling.maxReplicas | int | `5` |  |
+| hostBackend.autoscaling.minReplicas | int | `1` |  |
+| hostBackend.autoscaling.targetCPUUtilizationPercentage | int | `50` |  |
+| hostBackend.autoscaling.targetMemoryUtilizationPercentage | int | `80` |  |
+| hostBackend.containerPort | int | `1985` |  |
+| hostBackend.deployment.affinity | object | `{}` |  |
+| hostBackend.deployment.annotations | object | `{}` |  |
+| hostBackend.deployment.autoRestart | bool | `true` |  |
+| hostBackend.deployment.command[0] | string | `"uvicorn"` |  |
+| hostBackend.deployment.command[10] | string | `"--http"` |  |
+| hostBackend.deployment.command[11] | string | `"httptools"` |  |
+| hostBackend.deployment.command[12] | string | `"--no-access-log"` |  |
+| hostBackend.deployment.command[1] | string | `"host.main:app"` |  |
+| hostBackend.deployment.command[2] | string | `"--host"` |  |
+| hostBackend.deployment.command[3] | string | `"0.0.0.0"` |  |
+| hostBackend.deployment.command[4] | string | `"--port"` |  |
+| hostBackend.deployment.command[5] | string | `"$(PORT)"` |  |
+| hostBackend.deployment.command[6] | string | `"--log-level"` |  |
+| hostBackend.deployment.command[7] | string | `"$(LOG_LEVEL)"` |  |
+| hostBackend.deployment.command[8] | string | `"--loop"` |  |
+| hostBackend.deployment.command[9] | string | `"uvloop"` |  |
+| hostBackend.deployment.extraContainerConfig | object | `{}` |  |
+| hostBackend.deployment.extraEnv | list | `[]` |  |
+| hostBackend.deployment.labels | object | `{}` |  |
+| hostBackend.deployment.livenessProbe.failureThreshold | int | `6` |  |
+| hostBackend.deployment.livenessProbe.httpGet.path | string | `"/ok"` |  |
+| hostBackend.deployment.livenessProbe.httpGet.port | int | `1985` |  |
+| hostBackend.deployment.livenessProbe.periodSeconds | int | `10` |  |
+| hostBackend.deployment.livenessProbe.timeoutSeconds | int | `1` |  |
+| hostBackend.deployment.nodeSelector | object | `{}` |  |
+| hostBackend.deployment.podSecurityContext | object | `{}` |  |
+| hostBackend.deployment.readinessProbe.failureThreshold | int | `6` |  |
+| hostBackend.deployment.readinessProbe.httpGet.path | string | `"/ok"` |  |
+| hostBackend.deployment.readinessProbe.httpGet.port | int | `1985` |  |
+| hostBackend.deployment.readinessProbe.periodSeconds | int | `10` |  |
+| hostBackend.deployment.readinessProbe.timeoutSeconds | int | `1` |  |
+| hostBackend.deployment.replicas | int | `1` |  |
+| hostBackend.deployment.resources.limits.cpu | string | `"1000m"` |  |
+| hostBackend.deployment.resources.limits.memory | string | `"2Gi"` |  |
+| hostBackend.deployment.resources.requests.cpu | string | `"200m"` |  |
+| hostBackend.deployment.resources.requests.memory | string | `"1000Mi"` |  |
+| hostBackend.deployment.securityContext | object | `{}` |  |
+| hostBackend.deployment.sidecars | list | `[]` |  |
+| hostBackend.deployment.startupProbe.failureThreshold | int | `6` |  |
+| hostBackend.deployment.startupProbe.httpGet.path | string | `"/ok"` |  |
+| hostBackend.deployment.startupProbe.httpGet.port | int | `1985` |  |
+| hostBackend.deployment.startupProbe.periodSeconds | int | `10` |  |
+| hostBackend.deployment.startupProbe.timeoutSeconds | int | `1` |  |
+| hostBackend.deployment.terminationGracePeriodSeconds | int | `30` |  |
+| hostBackend.deployment.tolerations | list | `[]` |  |
+| hostBackend.deployment.topologySpreadConstraints | list | `[]` |  |
+| hostBackend.deployment.volumeMounts | list | `[]` |  |
+| hostBackend.deployment.volumes | list | `[]` |  |
+| hostBackend.name | string | `"host-backend"` |  |
+| hostBackend.pdb.annotations | object | `{}` |  |
+| hostBackend.pdb.enabled | bool | `false` |  |
+| hostBackend.pdb.labels | object | `{}` |  |
+| hostBackend.pdb.minAvailable | int | `1` |  |
+| hostBackend.rbac.annotations | object | `{}` |  |
+| hostBackend.rbac.create | bool | `true` |  |
+| hostBackend.rbac.labels | object | `{}` |  |
+| hostBackend.service.annotations | object | `{}` |  |
+| hostBackend.service.labels | object | `{}` |  |
+| hostBackend.service.loadBalancerIP | string | `""` |  |
+| hostBackend.service.loadBalancerSourceRanges | list | `[]` |  |
+| hostBackend.service.port | int | `1985` |  |
+| hostBackend.service.type | string | `"ClusterIP"` |  |
+| hostBackend.serviceAccount.annotations | object | `{}` |  |
+| hostBackend.serviceAccount.create | bool | `true` |  |
+| hostBackend.serviceAccount.labels | object | `{}` |  |
+| hostBackend.serviceAccount.name | string | `""` |  |
 
 ## Frontend
 
@@ -476,8 +663,13 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | frontend.deployment.volumeMounts | list | `[]` |  |
 | frontend.deployment.volumes | list | `[]` |  |
 | frontend.existingConfigMapName | string | `""` |  |
+| frontend.ipv6Enabled | bool | `true` |  |
 | frontend.maxBodySize | string | `"25M"` |  |
 | frontend.name | string | `"frontend"` |  |
+| frontend.pdb.annotations | object | `{}` |  |
+| frontend.pdb.enabled | bool | `false` |  |
+| frontend.pdb.labels | object | `{}` |  |
+| frontend.pdb.minAvailable | int | `1` |  |
 | frontend.proxyConnectTimeout | string | `"60"` |  |
 | frontend.proxyReadTimeout | string | `"300"` |  |
 | frontend.proxyWriteTimeout | string | `"300"` |  |
@@ -492,6 +684,113 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | frontend.serviceAccount.create | bool | `true` |  |
 | frontend.serviceAccount.labels | object | `{}` |  |
 | frontend.serviceAccount.name | string | `""` |  |
+
+## Listener (Optional)
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| listener.autoscaling.createHpa | bool | `true` |  |
+| listener.autoscaling.enabled | bool | `false` |  |
+| listener.autoscaling.maxReplicas | int | `10` |  |
+| listener.autoscaling.minReplicas | int | `3` |  |
+| listener.autoscaling.targetCPUUtilizationPercentage | int | `50` |  |
+| listener.autoscaling.targetMemoryUtilizationPercentage | int | `80` |  |
+| listener.deployment.affinity | object | `{}` |  |
+| listener.deployment.annotations | object | `{}` |  |
+| listener.deployment.autoRestart | bool | `true` |  |
+| listener.deployment.command[0] | string | `"saq"` |  |
+| listener.deployment.command[1] | string | `"app.workers.queues.host_worker.settings"` |  |
+| listener.deployment.command[2] | string | `"--quiet"` |  |
+| listener.deployment.extraContainerConfig | object | `{}` |  |
+| listener.deployment.extraEnv | list | `[]` |  |
+| listener.deployment.labels | object | `{}` |  |
+| listener.deployment.livenessProbe.exec.command[0] | string | `"saq"` |  |
+| listener.deployment.livenessProbe.exec.command[1] | string | `"app.workers.queues.host_worker.settings"` |  |
+| listener.deployment.livenessProbe.exec.command[2] | string | `"--check"` |  |
+| listener.deployment.livenessProbe.failureThreshold | int | `6` |  |
+| listener.deployment.livenessProbe.periodSeconds | int | `60` |  |
+| listener.deployment.livenessProbe.timeoutSeconds | int | `30` |  |
+| listener.deployment.nodeSelector | object | `{}` |  |
+| listener.deployment.podSecurityContext | object | `{}` |  |
+| listener.deployment.readinessProbe.exec.command[0] | string | `"saq"` |  |
+| listener.deployment.readinessProbe.exec.command[1] | string | `"app.workers.queues.host_worker.settings"` |  |
+| listener.deployment.readinessProbe.exec.command[2] | string | `"--check"` |  |
+| listener.deployment.readinessProbe.failureThreshold | int | `6` |  |
+| listener.deployment.readinessProbe.periodSeconds | int | `60` |  |
+| listener.deployment.readinessProbe.timeoutSeconds | int | `30` |  |
+| listener.deployment.replicas | int | `1` |  |
+| listener.deployment.resources.limits.cpu | string | `"2000m"` |  |
+| listener.deployment.resources.limits.memory | string | `"4Gi"` |  |
+| listener.deployment.resources.requests.cpu | string | `"1000m"` |  |
+| listener.deployment.resources.requests.memory | string | `"2Gi"` |  |
+| listener.deployment.securityContext | object | `{}` |  |
+| listener.deployment.sidecars | list | `[]` |  |
+| listener.deployment.startupProbe.exec.command[0] | string | `"saq"` |  |
+| listener.deployment.startupProbe.exec.command[1] | string | `"app.workers.queues.host_worker.settings"` |  |
+| listener.deployment.startupProbe.exec.command[2] | string | `"--check"` |  |
+| listener.deployment.startupProbe.failureThreshold | int | `6` |  |
+| listener.deployment.startupProbe.periodSeconds | int | `60` |  |
+| listener.deployment.startupProbe.timeoutSeconds | int | `30` |  |
+| listener.deployment.terminationGracePeriodSeconds | int | `30` |  |
+| listener.deployment.tolerations | list | `[]` |  |
+| listener.deployment.topologySpreadConstraints | list | `[]` |  |
+| listener.deployment.volumeMounts | list | `[]` |  |
+| listener.deployment.volumes | list | `[]` |  |
+| listener.name | string | `"listener"` |  |
+| listener.pdb.annotations | object | `{}` |  |
+| listener.pdb.enabled | bool | `false` |  |
+| listener.pdb.labels | object | `{}` |  |
+| listener.pdb.minAvailable | int | `1` |  |
+| listener.rbac.annotations | object | `{}` |  |
+| listener.rbac.create | bool | `true` |  |
+| listener.rbac.labels | object | `{}` |  |
+| listener.serviceAccount.annotations | object | `{}` |  |
+| listener.serviceAccount.create | bool | `true` |  |
+| listener.serviceAccount.labels | object | `{}` |  |
+| listener.serviceAccount.name | string | `""` |  |
+| listener.templates.db | string | `"apiVersion: apps/v1\nkind: StatefulSet\nmetadata:\n  name: ${service_name}\nspec:\n  serviceName: ${service_name}\n  replicas: ${replicas}\n  selector:\n    matchLabels:\n      app: ${service_name}\n  persistentVolumeClaimRetentionPolicy:\n    whenDeleted: Delete\n    whenScaled: Retain\n  template:\n    metadata:\n      labels:\n        app: ${service_name}\n    spec:\n      containers:\n      - name: postgres\n        image: pgvector/pgvector:pg15\n        ports:\n        - containerPort: 5432\n        command: [\"docker-entrypoint.sh\"]\n        args:\n          - postgres\n          - -c\n          - max_connections=${max_connections}\n        env:\n        - name: POSTGRES_PASSWORD\n          valueFrom:\n            secretKeyRef:\n              name: ${secret_name}\n              key: POSTGRES_PASSWORD\n        - name: POSTGRES_USER\n          value: ${postgres_user}\n        - name: POSTGRES_DB\n          value: ${postgres_db}\n        - name: PGDATA\n          value: /var/lib/postgresql/data/pgdata\n        volumeMounts:\n        - name: postgres-data\n          mountPath: /var/lib/postgresql/data\n        resources:\n          requests:\n            cpu: \"${cpu}\"\n            memory: \"${memory_mb}Mi\"\n          limits:\n            cpu: \"${cpu_limit}\"\n            memory: \"${memory_limit}Mi\"\n      enableServiceLinks: false\n  volumeClaimTemplates:\n  - metadata:\n      name: postgres-data\n    spec:\n      accessModes: [\"ReadWriteOnce\"]\n      resources:\n        requests:\n          storage: \"${storage_gi}Gi\"\n"` |  |
+| listener.templates.redis | string | `"apiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: ${service_name}\nspec:\n  replicas: 1\n  selector:\n    matchLabels:\n      app: ${service_name}\n  template:\n    metadata:\n      labels:\n        app: ${service_name}\n    spec:\n      containers:\n      - name: redis\n        image: redis:6\n        ports:\n        - containerPort: 6379\n        livenessProbe:\n          exec:\n            command:\n            - redis-cli\n            - ping\n          initialDelaySeconds: 30\n          periodSeconds: 10\n        readinessProbe:\n          tcpSocket:\n            port: 6379\n          initialDelaySeconds: 10\n          periodSeconds: 5\n        resources:\n          requests:\n            cpu: \"1\"\n            memory: \"2048Mi\"\n          limits:\n            cpu: \"1\"\n            memory: \"2048Mi\"\n      enableServiceLinks: false\n"` |  |
+
+## Operator (Optional)
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| operator.createCRDs | bool | `true` |  |
+| operator.deployment.affinity | object | `{}` |  |
+| operator.deployment.annotations | object | `{}` |  |
+| operator.deployment.autoRestart | bool | `true` |  |
+| operator.deployment.extraContainerConfig | object | `{}` |  |
+| operator.deployment.extraEnv | list | `[]` |  |
+| operator.deployment.labels | object | `{}` |  |
+| operator.deployment.nodeSelector | object | `{}` |  |
+| operator.deployment.podSecurityContext | object | `{}` |  |
+| operator.deployment.replicas | int | `1` |  |
+| operator.deployment.resources.limits.cpu | string | `"2000m"` |  |
+| operator.deployment.resources.limits.memory | string | `"4Gi"` |  |
+| operator.deployment.resources.requests.cpu | string | `"1000m"` |  |
+| operator.deployment.resources.requests.memory | string | `"2Gi"` |  |
+| operator.deployment.securityContext | object | `{}` |  |
+| operator.deployment.sidecars | list | `[]` |  |
+| operator.deployment.terminationGracePeriodSeconds | int | `30` |  |
+| operator.deployment.tolerations | list | `[]` |  |
+| operator.deployment.topologySpreadConstraints | list | `[]` |  |
+| operator.deployment.volumeMounts | list | `[]` |  |
+| operator.deployment.volumes | list | `[]` |  |
+| operator.enabled | bool | `true` |  |
+| operator.kedaEnabled | bool | `true` |  |
+| operator.name | string | `"operator"` |  |
+| operator.pdb.enabled | bool | `false` |  |
+| operator.pdb.minAvailable | int | `1` |  |
+| operator.rbac.annotations | object | `{}` |  |
+| operator.rbac.create | bool | `true` |  |
+| operator.rbac.labels | object | `{}` |  |
+| operator.serviceAccount.annotations | object | `{}` |  |
+| operator.serviceAccount.create | bool | `true` |  |
+| operator.serviceAccount.labels | object | `{}` |  |
+| operator.serviceAccount.name | string | `""` |  |
+| operator.templates.deployment | string | `"apiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: ${name}\n  namespace: ${namespace}\nspec:\n  replicas: ${replicas}\n  selector:\n    matchLabels:\n      app: ${name}\n  template:\n    metadata:\n      labels:\n        app: ${name}\n    spec:\n      enableServiceLinks: false\n      containers:\n      - name: api-server\n        image: ${image}\n        ports:\n        - name: api-server\n          containerPort: 8000\n          protocol: TCP\n        livenessProbe:\n          httpGet:\n            path: /${name}/ok?check_db=1\n            port: 8000\n          initialDelaySeconds: 90\n          periodSeconds: 5\n          timeoutSeconds: 5\n        readinessProbe:\n          httpGet:\n            path: /${name}/ok\n            port: 8000\n          initialDelaySeconds: 90\n          periodSeconds: 5\n          timeoutSeconds: 5\n"` |  |
+| operator.templates.service | string | `"apiVersion: v1\nkind: Service\nmetadata:\n  name: ${name}\n  namespace: ${namespace}\nspec:\n  type: ClusterIP\n  selector:\n    app: ${name}\n  ports:\n  - name: api-server\n    protocol: TCP\n    port: 8000\n    targetPort: 8000\n"` |  |
+| operator.watchNamespaces | string | `""` |  |
 
 ## Platform Backend
 
@@ -542,6 +841,10 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | platformBackend.deployment.volumes | list | `[]` |  |
 | platformBackend.existingConfigMapName | string | `""` |  |
 | platformBackend.name | string | `"platform-backend"` |  |
+| platformBackend.pdb.annotations | object | `{}` |  |
+| platformBackend.pdb.enabled | bool | `false` |  |
+| platformBackend.pdb.labels | object | `{}` |  |
+| platformBackend.pdb.minAvailable | int | `1` |  |
 | platformBackend.service.annotations | object | `{}` |  |
 | platformBackend.service.labels | object | `{}` |  |
 | platformBackend.service.loadBalancerIP | string | `""` |  |
@@ -613,6 +916,10 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | playground.deployment.volumeMounts | list | `[]` |  |
 | playground.deployment.volumes | list | `[]` |  |
 | playground.name | string | `"playground"` |  |
+| playground.pdb.annotations | object | `{}` |  |
+| playground.pdb.enabled | bool | `false` |  |
+| playground.pdb.labels | object | `{}` |  |
+| playground.pdb.minAvailable | int | `1` |  |
 | playground.service.annotations | object | `{}` |  |
 | playground.service.labels | object | `{}` |  |
 | playground.service.loadBalancerIP | string | `""` |  |
@@ -640,6 +947,10 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | postgres.external.schema | string | `"public"` |  |
 | postgres.external.user | string | `"postgres"` |  |
 | postgres.name | string | `"postgres"` |  |
+| postgres.pdb.annotations | object | `{}` |  |
+| postgres.pdb.enabled | bool | `false` |  |
+| postgres.pdb.labels | object | `{}` |  |
+| postgres.pdb.minAvailable | int | `1` |  |
 | postgres.service.annotations | object | `{}` |  |
 | postgres.service.labels | object | `{}` |  |
 | postgres.service.loadBalancerIP | string | `""` |  |
@@ -663,6 +974,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | postgres.statefulSet.livenessProbe.periodSeconds | int | `10` |  |
 | postgres.statefulSet.livenessProbe.timeoutSeconds | int | `1` |  |
 | postgres.statefulSet.nodeSelector | object | `{}` |  |
+| postgres.statefulSet.persistence.enabled | bool | `true` |  |
 | postgres.statefulSet.persistence.size | string | `"8Gi"` |  |
 | postgres.statefulSet.persistence.storageClassName | string | `""` |  |
 | postgres.statefulSet.podSecurityContext | object | `{}` |  |
@@ -741,6 +1053,10 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | queue.deployment.volumeMounts | list | `[]` |  |
 | queue.deployment.volumes | list | `[]` |  |
 | queue.name | string | `"queue"` |  |
+| queue.pdb.annotations | object | `{}` |  |
+| queue.pdb.enabled | bool | `false` |  |
+| queue.pdb.labels | object | `{}` |  |
+| queue.pdb.minAvailable | int | `1` |  |
 | queue.serviceAccount.annotations | object | `{}` |  |
 | queue.serviceAccount.create | bool | `true` |  |
 | queue.serviceAccount.labels | object | `{}` |  |
@@ -756,6 +1072,10 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | redis.external.enabled | bool | `false` |  |
 | redis.external.existingSecretName | string | `""` |  |
 | redis.name | string | `"redis"` |  |
+| redis.pdb.annotations | object | `{}` |  |
+| redis.pdb.enabled | bool | `false` |  |
+| redis.pdb.labels | object | `{}` |  |
+| redis.pdb.minAvailable | int | `1` |  |
 | redis.service.annotations | object | `{}` |  |
 | redis.service.labels | object | `{}` |  |
 | redis.service.loadBalancerIP | string | `""` |  |
@@ -813,6 +1133,6 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | Ankush | <ankush@langchain.dev> |  |
 
 ----------------------------------------------
-Autogenerated from chart metadata using [helm-docs v1.11.3](https://github.com/norwoodj/helm-docs/releases/v1.11.3)
+Autogenerated from chart metadata using [helm-docs v1.14.2](https://github.com/norwoodj/helm-docs/releases/v1.14.2)
 ## Docs Generated by [helm-docs](https://github.com/norwoodj/helm-docs)
 `helm-docs -t ./charts/langsmith/README.md.gotmpl`

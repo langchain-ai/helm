@@ -20,13 +20,19 @@ data:
 
     server {
         listen       {{ .Values.frontend.containerPort }};
+        {{- if .Values.frontend.ipv6Enabled }}
         listen  [::]:{{ .Values.frontend.containerPort }};
+        {{- end }}
         server_name  localhost;
         client_max_body_size {{ .Values.frontend.maxBodySize }};
         proxy_read_timeout {{ .Values.frontend.proxyReadTimeout }};
         proxy_connect_timeout {{ .Values.frontend.proxyConnectTimeout }};
         proxy_send_timeout {{ .Values.frontend.proxyWriteTimeout }};
 
+        add_header Content-Security-Policy "frame-ancestors 'self'; object-src 'none default-src 'self'; base-uri 'self'; '" always;
+        add_header X-Frame-Options "SAMEORIGIN" always;
+        add_header X-Content-Type-Options "nosniff" always;
+        add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" always;
 
         error_page   500 502 503 504  /50x.html;
         location = /50x.html {
@@ -60,6 +66,33 @@ data:
 
         location ~ /{{ .Values.ingress.subdomain }}/api/v1/otel/ {
             rewrite /{{ .Values.ingress.subdomain }}/api/v1/otel/(.*) /otel/$1  break;
+            proxy_set_header Connection '';
+            proxy_http_version 1.1;
+            proxy_buffering off;
+            proxy_cache off;
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}:{{ .Values.platformBackend.service.port }};
+        }
+
+        location = /{{ .Values.ingress.subdomain }}/api/v1/runs/multipart {
+            rewrite /{{ .Values.ingress.subdomain }}/api/v1/runs/multipart /runs/multipart  break;
+            proxy_set_header Connection '';
+            proxy_http_version 1.1;
+            proxy_buffering off;
+            proxy_cache off;
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}:{{ .Values.platformBackend.service.port }};
+        }
+
+        location = /{{ .Values.ingress.subdomain }}/api/v1/runs/batch {
+            rewrite /{{ .Values.ingress.subdomain }}/api/v1/runs/batch /runs/batch  break;
+            proxy_set_header Connection '';
+            proxy_http_version 1.1;
+            proxy_buffering off;
+            proxy_cache off;
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}:{{ .Values.platformBackend.service.port }};
+        }
+
+        location = /{{ .Values.ingress.subdomain }}/api/v1/runs {
+            rewrite /{{ .Values.ingress.subdomain }}/api/v1/runs /runs  break;
             proxy_set_header Connection '';
             proxy_http_version 1.1;
             proxy_buffering off;
@@ -103,6 +136,17 @@ data:
             proxy_cache off;
             proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}:{{ .Values.backend.service.port }};
         }
+
+    {{- if .Values.config.langgraphPlatform.enabled }}
+        location ~ /{{ .Values.ingress.subdomain }}/api-host {
+            rewrite /{{ .Values.ingress.subdomain }}/api-host/(.*) /$1  break;
+            proxy_set_header Connection '';
+            proxy_http_version 1.1;
+            proxy_buffering off;
+            proxy_cache off;
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.hostBackend.name }}:{{ .Values.hostBackend.service.port }};
+        }
+    {{- end }}
 
         # Deprecated Backend Routes
         location ~ /{{ .Values.ingress.subdomain }}/api {
@@ -163,12 +207,19 @@ data:
 
     server {
         listen       {{ .Values.frontend.containerPort }};
+        {{- if .Values.frontend.ipv6Enabled }}
         listen  [::]:{{ .Values.frontend.containerPort }};
+        {{- end }}
         server_name  localhost;
         client_max_body_size {{ .Values.frontend.maxBodySize }};
         proxy_read_timeout {{ .Values.frontend.proxyReadTimeout }};
         proxy_connect_timeout {{ .Values.frontend.proxyConnectTimeout }};
         proxy_send_timeout {{ .Values.frontend.proxyWriteTimeout }};
+
+        add_header Content-Security-Policy "frame-ancestors 'self'; object-src 'none'" always;
+        add_header X-Frame-Options "SAMEORIGIN" always;
+        add_header X-Content-Type-Options "nosniff" always;
+        add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" always;
 
         location / {
             root   /tmp/build;
@@ -215,6 +266,33 @@ data:
             proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}:{{ .Values.platformBackend.service.port }};
          }
 
+        location = /api/v1/runs/multipart {
+            rewrite /api/v1/runs/multipart /runs/multipart  break;
+            proxy_set_header Connection '';
+            proxy_http_version 1.1;
+            proxy_buffering off;
+            proxy_cache off;
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}:{{ .Values.platformBackend.service.port }};
+        }
+
+        location = /api/v1/runs/batch {
+            rewrite /api/v1/runs/batch /runs/batch  break;
+            proxy_set_header Connection '';
+            proxy_http_version 1.1;
+            proxy_buffering off;
+            proxy_cache off;
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}:{{ .Values.platformBackend.service.port }};
+        }
+
+        location = /api/v1/runs {
+            rewrite /api/v1/runs /runs  break;
+            proxy_set_header Connection '';
+            proxy_http_version 1.1;
+            proxy_buffering off;
+            proxy_cache off;
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}:{{ .Values.platformBackend.service.port }};
+        }
+
         location = /api/v1/info {
             rewrite /api/v1/info /info  break;
             proxy_set_header Connection '';
@@ -243,14 +321,24 @@ data:
         }
 
         # Backend Routes
-         location ~ /api/v1 {
+        location ~ /api/v1 {
             proxy_set_header Connection '';
             proxy_http_version 1.1;
             proxy_buffering off;
             proxy_cache off;
             proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}:{{ .Values.backend.service.port }};
-         }
+        }
 
+    {{- if .Values.config.langgraphPlatform.enabled }}
+        location ~ /api-host {
+            rewrite /api-host/(.*) /$1  break;
+            proxy_set_header Connection '';
+            proxy_http_version 1.1;
+            proxy_buffering off;
+            proxy_cache off;
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.hostBackend.name }}:{{ .Values.hostBackend.service.port }};
+        }
+    {{- end }}
 
         # Deprecated Backend Routes To be removed in v8
         location ~ /api {

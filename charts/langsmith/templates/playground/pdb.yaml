@@ -1,0 +1,28 @@
+{{- if .Values.playground.pdb.enabled }}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "langsmith.fullname" . }}-{{ .Values.playground.name }}
+  labels:
+    {{- include "langsmith.labels" . | nindent 4 }}
+    {{- with .Values.playground.pdb.labels }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+  annotations:
+    {{- include "langsmith.annotations" . | nindent 4 }}
+    {{- with .Values.playground.pdb.annotations }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "langsmith.name" . }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+      app.kubernetes.io/component: {{ .Values.playground.name }}
+  {{- if .Values.playground.pdb.minAvailable }}
+  minAvailable: {{ .Values.playground.pdb.minAvailable }}
+  {{- end }}
+  {{- if .Values.playground.pdb.maxUnavailable }}
+  maxUnavailable: {{ .Values.playground.pdb.maxUnavailable }}
+  {{- end }}
+{{- end }}

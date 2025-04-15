@@ -1,0 +1,36 @@
+{{- if .Values.config.fullTextSearch.indexing.enabled -}}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "langsmith.fullname" . }}-{{ .Values.quickwit.controlPlane.name }}
+  labels:
+    {{- include "quickwit.labels" . | nindent 4 }}
+  annotations:
+    {{- include "quickwit.annotations" . | nindent 4 }}
+    {{- with .Values.quickwit.service.annotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+    {{- with .Values.quickwit.controlPlane.serviceAnnotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  type: {{ .Values.quickwit.controlPlane.serviceType | default .Values.quickwit.service.type }}
+  {{- if .Values.quickwit.service.ipFamilyPolicy }}
+  ipFamilyPolicy: {{ .Values.quickwit.service.ipFamilyPolicy }}
+  {{- end }}
+  {{- if .Values.quickwit.service.ipFamilies }}
+  ipFamilies: {{ .Values.quickwit.service.ipFamilies | toYaml | nindent 2 }}
+  {{- end }}
+  ports:
+    - port: 7280
+      targetPort: rest
+      protocol: TCP
+      name: rest
+    - port: 7281
+      targetPort: grpc
+      name: grpc
+  selector:
+    {{- include "quickwit.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-{{ .Values.quickwit.controlPlane.name }}
+{{- end }}

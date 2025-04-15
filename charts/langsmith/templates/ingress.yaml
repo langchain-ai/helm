@@ -8,7 +8,9 @@ metadata:
     {{- with .Values.ingress.annotations }}
       {{- toYaml . | nindent 4 }}
     {{- end }}
+    {{- if .Values.ingress.hostname }}
     external-dns.alpha.kubernetes.io/hostname: {{ .Values.ingress.hostname }}
+    {{- end }}
   labels:
     {{- include "langsmith.labels" . | nindent 4 }}
     {{- with .Values.ingress.labels }}

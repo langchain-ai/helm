@@ -320,7 +320,35 @@ Template containing common environment variables that are used by several servic
 {{ include "langsmith.conditionalEnvVarsResolved" . }}
 - name: REDIS_RUNS_EXPIRY_SECONDS
   value: {{ .Values.config.settings.redisRunsExpirySeconds | quote }}
+{{- if .Values.config.langgraphPlatform.enabled }}
+- name: LANGGRAPH_CLOUD_LICENSE_KEY
+  valueFrom:
+    secretKeyRef:
+      name: {{ include "langsmith.secretsName" . }}
+      key: langgraph_cloud_license_key
+- name: HOST_QUEUE
+  value: "host"
+- name: HOST_WORKER_RECONCILIATION_CRON_ENABLED
+  value: "true"
+- name: HOST_LANGCHAIN_API_ENDPOINT
+  value: "http://{{ include "langsmith.fullname" . }}-{{ .Values.frontend.name }}.{{ .Release.Namespace }}:{{ .Values.frontend.service.httpPort }}/api/v1"
+- name: HOSTED_K8S_ROOT_DOMAIN
+  value: {{ .Values.config.langgraphPlatform.rootDomain | quote }}
+- name: HOSTED_K8S_SHARED_INGRESS
+  value: "true"
 {{- end }}
+{{- if .Values.config.fullTextSearch.indexing.enabled }}
+- name: QUICKWIT_INDEXING_ENABLED_ALL
+  value: "true"
+- name: QUICKWIT_INDEXING_URL
+  value: {{ include "langsmith.quickwit-indexing-endpoint" . }}
+- name: QUICKWIT_SEARCH_URL
+  value: {{ include "langsmith.quickwit-search-endpoint" . }}
+- name: QUICKWIT_SEARCH_ENABLED
+  value: "true"
+{{- end }}
+{{- end }}
+
 
 {{- define "aceBackend.serviceAccountName" -}}
 {{- if .Values.aceBackend.serviceAccount.create -}}
@@ -352,6 +380,30 @@ Template containing common environment variables that are used by several servic
     {{ default (printf "%s-%s" (include "langsmith.fullname" .) .Values.frontend.name) .Values.frontend.serviceAccount.name | trunc 63 | trimSuffix "-" }}
 {{- else -}}
     {{ default "default" .Values.frontend.serviceAccount.name }}
+{{- end -}}
+{{- end -}}
+
+{{- define "hostBackend.serviceAccountName" -}}
+{{- if .Values.hostBackend.serviceAccount.create -}}
+    {{ default (printf "%s-%s" (include "langsmith.fullname" .) .Values.hostBackend.name) .Values.hostBackend.serviceAccount.name | trunc 63 | trimSuffix "-" }}
+{{- else -}}
+    {{ default "default" .Values.hostBackend.serviceAccount.name }}
+{{- end -}}
+{{- end -}}
+
+{{- define "listener.serviceAccountName" -}}
+{{- if .Values.listener.serviceAccount.create -}}
+    {{ default (printf "%s-%s" (include "langsmith.fullname" .) .Values.listener.name) .Values.listener.serviceAccount.name | trunc 63 | trimSuffix "-" }}
+{{- else -}}
+    {{ default "default" .Values.listener.serviceAccount.name }}
+{{- end -}}
+{{- end -}}
+
+{{- define "operator.serviceAccountName" -}}
+{{- if .Values.operator.serviceAccount.create -}}
+    {{ default (printf "%s-%s" (include "langsmith.fullname" .) .Values.operator.name) .Values.operator.serviceAccount.name | trunc 63 | trimSuffix "-" }}
+{{- else -}}
+    {{ default "default" .Values.operator.serviceAccount.name }}
 {{- end -}}
 {{- end -}}
 
@@ -417,4 +469,119 @@ Template containing common environment variables that are used by several servic
   {{ fail (printf "Duplicate keys detected: %v" $duplicates) }}
 {{- end }}
 {{- end -}}
+
+{{/*
+Quickwit selector labels, different from langsmith.selectorLabels, needed for headless service
+*/}}
+{{- define "quickwit.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "langsmith.name" . }}-{{ .Values.quickwit.name }}
+app.kubernetes.io/instance: {{ .Release.Name }}
+app.kubernetes.io/part-of: {{ include "langsmith.name" . }}
+{{- end }}
+
+{{/*
+Quickwit component labels
+*/}}
+{{- define "quickwit.labels" -}}
+{{- if .Values.commonLabels }}
+{{ toYaml .Values.commonLabels }}
+{{- end }}
+helm.sh/chart: {{ include "langsmith.chart" . }}
+{{ include "quickwit.selectorLabels" . }}
+{{- if .Chart.AppVersion }}
+app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+{{- end }}
+app.kubernetes.io/managed-by: {{ .Release.Service }}
+{{- end }}
+
+{{/*
+Quickwit component annotations
+*/}}
+{{- define "quickwit.annotations" -}}
+{{- if .Values.commonAnnotations }}
+{{ toYaml .Values.commonAnnotations }}
+{{- end }}
+helm.sh/chart: {{ include "langsmith.chart" . }}
+{{ include "quickwit.selectorLabels" . }}
+{{- if .Chart.AppVersion }}
+app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+{{- end }}
+app.kubernetes.io/managed-by: {{ .Release.Service }}
+{{- end }}
+
+{{/*
+Quickwit cluster name
+*/}}
+{{- define "quickwit.clusterName" -}}
+{{ include "langsmith.fullname" . }}-{{ .Values.quickwit.name }}
+{{- end }}
+
+{{/*
+Create the name of the service account to use
+*/}}
+{{- define "quickwit.serviceAccountName" -}}
+{{- if .Values.quickwit.serviceAccount.create }}
+{{- default (include "quickwit.clusterName" . ) .Values.quickwit.serviceAccount.name }}
+{{- else }}
+{{- default "default" .Values.quickwit.serviceAccount.name }}
+{{- end }}
+{{- end }}
+
+{{/*
+Quickwit ConfigMap name
+*/}}
+{{- define "quickwit.configMapName" -}}
+{{ include "quickwit.clusterName" . }}
+{{- end }}
+
+
+{{/*
+Quickwit environment
+*/}}
+{{- define "quickwit.environment" -}}
+- name: NAMESPACE
+  valueFrom:
+    fieldRef:
+      fieldPath: metadata.namespace
+- name: POD_NAME
+  valueFrom:
+    fieldRef:
+      fieldPath: metadata.name
+- name: POD_IP
+  valueFrom:
+    fieldRef:
+      fieldPath: status.podIP
+- name: QW_CONFIG
+  value: {{ .Values.quickwit.configLocation }}
+- name: QW_CLUSTER_ID
+  value: {{ include "quickwit.clusterName" . }}
+- name: QW_NODE_ID
+  value: "$(POD_NAME)"
+- name: QW_PEER_SEEDS
+  value: {{ include "quickwit.clusterName" . }}-headless
+- name: QW_ADVERTISE_ADDRESS
+  value: "$(POD_IP)"
+- name: QW_CLUSTER_ENDPOINT
+  value: {{ include "langsmith.quickwit-cluster-endpoint" . }}
+{{- range $key, $value := .Values.quickwit.environment }}
+- name: "{{ $key }}"
+  value: "{{ $value }}"
+{{- end }}
+{{- end }}
+
+{{- define "langsmith.quickwit-runs-index" -}}
+{{- $.Files.Get "resources/quickwit-index-runs.yaml" -}}
+{{- end -}}
+
+{{- define "langsmith.quickwit-cluster-endpoint" -}}
+{{- printf "http://%s-%s:7280" (include "langsmith.fullname" .) (.Values.quickwit.metastore.name) -}}
+{{- end }}
+
+{{- define "langsmith.quickwit-indexing-endpoint" -}}
+{{- printf "http://%s-%s:7280" (include "langsmith.fullname" .) (.Values.quickwit.indexer.name) -}}
+{{- end }}
+
+{{- define "langsmith.quickwit-search-endpoint" -}}
+{{- printf "http://%s-%s:7280" (include "langsmith.fullname" .) (.Values.quickwit.searcher.name) -}}
+{{- end }}
 

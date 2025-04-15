@@ -60,6 +60,13 @@ spec:
                 secretKeyRef:
                   name: {{ include "langGraphCloud.secretsName" . }}
                   key: langgraph_cloud_license_key
+            {{- if .Values.queue.enabled }}
+            - name: N_JOBS_PER_WORKER
+              value: "0"
+            {{- else }}
+            - name: N_JOBS_PER_WORKER
+              value: {{ .Values.config.numberOfJobsPerWorker | quote }}
+            {{- end }}
             {{- if .Values.config.auth.enabled }}
             - name: LANGGRAPH_AUTH_TYPE
               value: "langsmith"

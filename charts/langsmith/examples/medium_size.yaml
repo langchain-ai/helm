@@ -1,10 +1,12 @@
 config:
   langsmithLicenseKey: "YOUR_LICENSE_KEY"
   apiKeySalt: "YOUR_API_KEY_SALT"
-  oauth:
+  authType: "mixed"
+  basicAuth:
     enabled: true
-    oauthClientId: "YOUR_CLIENT_ID"
-    oauthIssuerUrl: "YOUR_ISSUER_URL"
+    initialOrgAdminEmail: "youremail@corp.dev"
+    initialOrgAdminPassword: "TestLangSmith123!"
+    jwtSecret: "YOUR_JWT_SECRET"
 
 # Note, you likely should tweak the values to match your needs
 backend:

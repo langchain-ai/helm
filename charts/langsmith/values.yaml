@@ -17,23 +17,31 @@ images:
   aceBackendImage:
     repository: "docker.io/langchain/langsmith-ace-backend"
     pullPolicy: IfNotPresent
-    tag: "0.9.29"
+    tag: "0.10.7"
   backendImage:
     repository: "docker.io/langchain/langsmith-backend"
     pullPolicy: IfNotPresent
-    tag: "0.9.29"
+    tag: "0.10.8"
   frontendImage:
     repository: "docker.io/langchain/langsmith-frontend"
     pullPolicy: IfNotPresent
-    tag: "0.9.29"
+    tag: "0.10.8"
+  hostBackendImage:
+    repository: "docker.io/langchain/hosted-langserve-backend"
+    pullPolicy: IfNotPresent
+    tag: "0.10.8"
+  operatorImage:
+    repository: "docker.io/langchain/langgraph-operator"
+    pullPolicy: IfNotPresent
+    tag: "3e80459"
   platformBackendImage:
     repository: "docker.io/langchain/langsmith-go-backend"
     pullPolicy: IfNotPresent
-    tag: "0.9.29"
+    tag: "0.10.8"
   playgroundImage:
     repository: "docker.io/langchain/langsmith-playground"
     pullPolicy: IfNotPresent
-    tag: "0.9.29"
+    tag: "0.10.8"
   postgresImage:
     repository: "docker.io/postgres"
     pullPolicy: IfNotPresent
@@ -46,6 +54,10 @@ images:
     repository: "docker.io/clickhouse/clickhouse-server"
     pullPolicy: Always
     tag: "24.8"
+  quickwitImage:
+    repository: quickwit/quickwit
+    pullPolicy: IfNotPresent
+    tag: edge
 
 ingress:
   enabled: false
@@ -56,12 +68,8 @@ ingress:
   labels: {}
   tls: []
 
-# Only enable this ingress if you would like to expose the backend as a separate service.
-# By default, this is not needed as the frontend ingress will proxy requests to the backend.
-apiIngress:
-  enabled: false
+platformIngress:
   hostname: ""
-  subdomain: ""
   ingressClassName: ""
   annotations: {}
   labels: {}
@@ -70,6 +78,12 @@ apiIngress:
 config:
   existingSecretName: ""
   langsmithLicenseKey: ""
+  langgraphPlatform:
+      # -- Optional. Used to enable the Langgraph platform control plane. If enabled, the license key must be provided.
+    enabled: false
+    langgraphPlatformLicenseKey: ""
+    rootDomain: ""  # e.g. "langgraph.example.com" - this is used as the root domain for all deployments. If this is not set, we will default to using internal kubernetes urls.
+
   # -- Salt used to generate the API key. Should be a random string.
   apiKeySalt: ""
   logLevel: "info"
@@ -143,6 +157,14 @@ config:
     # -- Optional. Be very careful when lowering this value as it can result in runs being lost if your queue is down/not processing items fast enough.
     redisRunsExpirySeconds: "43200"  # 12 hours
 
+  fullTextSearch:
+    indexing:
+      # Enables Experimental Search support
+      enabled: false
+    deletes:
+      # Enables deletes for Experimental Search
+      enabled: false
+
 aceBackend:
   name: "ace-backend"
   containerPort: 1987
@@ -212,6 +234,11 @@ aceBackend:
     maxReplicas: 5
     targetCPUUtilizationPercentage: 50
     targetMemoryUtilizationPercentage: 80
+  pdb:
+    enabled: false
+    minAvailable: 1
+    labels: {}
+    annotations: {}
   service:
     type: ClusterIP
     port: 1987
@@ -295,13 +322,13 @@ backend:
     annotations: {}
     podSecurityContext: {}
     securityContext: {}
-    resources: {}
-#      limits:
-#        cpu: 1000m
-#        memory: 1Gi
-#      requests:
-#        cpu: 200m
-#        memory: 500Mi
+    resources:
+      limits:
+        cpu: 1000m
+        memory: 1Gi
+      requests:
+        cpu: 200m
+        memory: 500Mi
     command:
       - "/bin/bash"
       - "-c"
@@ -324,13 +351,13 @@ backend:
     annotations: {}
     podSecurityContext: {}
     securityContext: {}
-    resources: {}
-    #      limits:
-    #        cpu: 1000m
-    #        memory: 1Gi
-    #      requests:
-    #        cpu: 200m
-    #        memory: 500Mi
+    resources:
+      limits:
+        cpu: 1000m
+        memory: 1Gi
+      requests:
+        cpu: 200m
+        memory: 500Mi
     command:
       - "python"
       - "hooks/auth_bootstrap.pyc"
@@ -353,13 +380,13 @@ backend:
     annotations: {}
     podSecurityContext: {}
     securityContext: {}
-    resources: {}
-#      limits:
-#        cpu: 1000m
-#        memory: 1Gi
-#      requests:
-#        cpu: 200m
-#        memory: 500Mi
+    resources:
+      limits:
+        cpu: 1000m
+        memory: 1Gi
+      requests:
+        cpu: 200m
+        memory: 500Mi
     command:
       - "/bin/bash"
       - "scripts/wait_for_clickhouse_and_migrate.sh"
@@ -383,6 +410,11 @@ backend:
     maxReplicas: 5
     targetCPUUtilizationPercentage: 50
     targetMemoryUtilizationPercentage: 80
+  pdb:
+    enabled: false
+    minAvailable: 1
+    labels: {}
+    annotations: {}
   service:
     type: ClusterIP
     port: 1984
@@ -478,8 +510,14 @@ clickhouse:
     volumeMounts: []
     # We recommend using a persistent volume and increasing the storage size to something like 50Gi when using in a production environment!
     persistence:
+      enabled: true
       size: 50Gi
       storageClassName: ""
+  pdb:
+    enabled: false
+    minAvailable: 1
+    labels: {}
+    annotations: {}
   service:
     type: ClusterIP
     httpPort: 8123
@@ -500,6 +538,7 @@ frontend:
   proxyReadTimeout: "300"
   proxyWriteTimeout: "300"
   proxyConnectTimeout: "60"
+  ipv6Enabled: true
   deployment:
     autoRestart: true
     replicas: 1
@@ -556,6 +595,11 @@ frontend:
     maxReplicas: 5
     targetCPUUtilizationPercentage: 50
     targetMemoryUtilizationPercentage: 80
+  pdb:
+    enabled: false
+    minAvailable: 1
+    labels: {}
+    annotations: {}
   service:
     type: LoadBalancer
     httpPort: 80
@@ -566,6 +610,281 @@ frontend:
     name: ""
     labels: {}
     annotations: {}
+
+hostBackend:
+  name: "host-backend"
+  containerPort: 1985
+  deployment:
+    autoRestart: true
+    replicas: 1
+    labels: {}
+    annotations: {}
+    podSecurityContext: {}
+    securityContext: {}
+    resources:
+      limits:
+        cpu: 1000m
+        memory: 2Gi
+      requests:
+        cpu: 200m
+        memory: 1000Mi
+    command:
+      - "uvicorn"
+      - "host.main:app"
+      - "--host"
+      - "0.0.0.0"
+      - "--port"
+      - "$(PORT)"
+      - "--log-level"
+      - "$(LOG_LEVEL)"
+      - "--loop"
+      - "uvloop"
+      - "--http"
+      - "httptools"
+      - "--no-access-log"
+    startupProbe:
+      httpGet:
+        path: /ok
+        port: 1985
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 1
+    livenessProbe:
+      httpGet:
+        path: /ok
+        port: 1985
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 1
+    readinessProbe:
+      httpGet:
+        path: /ok
+        port: 1985
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 1
+    extraContainerConfig: {}
+    extraEnv: []
+    sidecars: []
+    nodeSelector: {}
+    tolerations: []
+    topologySpreadConstraints: []
+    affinity: {}
+    volumes: []
+    volumeMounts: []
+    terminationGracePeriodSeconds: 30
+  autoscaling:
+    enabled: false
+    # If enabled, use the following values to configure the HPA. You can also use your own HPA configuration by not creating an HPA.
+    # You may want to manage the HPA yourself if you have a custom autoscaling setup like KEDA.
+    createHpa: true
+    minReplicas: 1
+    maxReplicas: 5
+    targetCPUUtilizationPercentage: 50
+    targetMemoryUtilizationPercentage: 80
+  pdb:
+    enabled: false
+    minAvailable: 1
+    labels: {}
+    annotations: {}
+  service:
+    type: ClusterIP
+    port: 1985
+    labels: {}
+    annotations: {}
+    loadBalancerSourceRanges: []
+    loadBalancerIP: ""
+  serviceAccount:
+    create: true
+    name: ""
+    labels: {}
+    annotations: {}
+  rbac:
+    create: true
+    labels: {}
+    annotations: {}
+
+listener:
+  name: "listener"
+  deployment:
+    autoRestart: true
+    replicas: 1
+    labels: {}
+    annotations: {}
+    podSecurityContext: {}
+    securityContext: {}
+    resources:
+      limits:
+        cpu: 2000m
+        memory: 4Gi
+      requests:
+        cpu: 1000m
+        memory: 2Gi
+    command:
+      - "saq"
+      - "app.workers.queues.host_worker.settings"
+      - "--quiet"
+    startupProbe:
+      exec:
+        command:
+          - "saq"
+          - "app.workers.queues.host_worker.settings"
+          - "--check"
+      failureThreshold: 6
+      periodSeconds: 60
+      timeoutSeconds: 30
+    readinessProbe:
+      exec:
+        command:
+          - "saq"
+          - "app.workers.queues.host_worker.settings"
+          - "--check"
+      failureThreshold: 6
+      periodSeconds: 60
+      timeoutSeconds: 30
+    livenessProbe:
+      exec:
+        command:
+          - "saq"
+          - "app.workers.queues.host_worker.settings"
+          - "--check"
+      failureThreshold: 6
+      periodSeconds: 60
+      timeoutSeconds: 30
+    extraContainerConfig: {}
+    extraEnv: []
+    sidecars: []
+    nodeSelector: {}
+    tolerations: []
+    topologySpreadConstraints: []
+    affinity: {}
+    volumes: []
+    volumeMounts: []
+    terminationGracePeriodSeconds: 30
+  autoscaling:
+    enabled: false
+    # If enabled, use the following values to configure the HPA. You can also use your own HPA configuration by not creating an HPA.
+    # You may want to manage the HPA yourself if you have a custom autoscaling setup like KEDA.
+    createHpa: true
+    minReplicas: 3
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 50
+    targetMemoryUtilizationPercentage: 80
+  pdb:
+    enabled: false
+    minAvailable: 1
+    labels: {}
+    annotations: {}
+  serviceAccount:
+    create: true
+    name: ""
+    labels: {}
+    annotations: {}
+  rbac:
+    create: true
+    labels: {}
+    annotations: {}
+  templates:
+    db: |
+      apiVersion: apps/v1
+      kind: StatefulSet
+      metadata:
+        name: ${service_name}
+      spec:
+        serviceName: ${service_name}
+        replicas: ${replicas}
+        selector:
+          matchLabels:
+            app: ${service_name}
+        persistentVolumeClaimRetentionPolicy:
+          whenDeleted: Delete
+          whenScaled: Retain
+        template:
+          metadata:
+            labels:
+              app: ${service_name}
+          spec:
+            containers:
+            - name: postgres
+              image: pgvector/pgvector:pg15
+              ports:
+              - containerPort: 5432
+              command: ["docker-entrypoint.sh"]
+              args:
+                - postgres
+                - -c
+                - max_connections=${max_connections}
+              env:
+              - name: POSTGRES_PASSWORD
+                valueFrom:
+                  secretKeyRef:
+                    name: ${secret_name}
+                    key: POSTGRES_PASSWORD
+              - name: POSTGRES_USER
+                value: ${postgres_user}
+              - name: POSTGRES_DB
+                value: ${postgres_db}
+              - name: PGDATA
+                value: /var/lib/postgresql/data/pgdata
+              volumeMounts:
+              - name: postgres-data
+                mountPath: /var/lib/postgresql/data
+              resources:
+                requests:
+                  cpu: "${cpu}"
+                  memory: "${memory_mb}Mi"
+                limits:
+                  cpu: "${cpu_limit}"
+                  memory: "${memory_limit}Mi"
+            enableServiceLinks: false
+        volumeClaimTemplates:
+        - metadata:
+            name: postgres-data
+          spec:
+            accessModes: ["ReadWriteOnce"]
+            resources:
+              requests:
+                storage: "${storage_gi}Gi"
+    redis: |
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: ${service_name}
+      spec:
+        replicas: 1
+        selector:
+          matchLabels:
+            app: ${service_name}
+        template:
+          metadata:
+            labels:
+              app: ${service_name}
+          spec:
+            containers:
+            - name: redis
+              image: redis:6
+              ports:
+              - containerPort: 6379
+              livenessProbe:
+                exec:
+                  command:
+                  - redis-cli
+                  - ping
+                initialDelaySeconds: 30
+                periodSeconds: 10
+              readinessProbe:
+                tcpSocket:
+                  port: 6379
+                initialDelaySeconds: 10
+                periodSeconds: 5
+              resources:
+                requests:
+                  cpu: "1"
+                  memory: "2048Mi"
+                limits:
+                  cpu: "1"
+                  memory: "2048Mi"
+            enableServiceLinks: false
 
 platformBackend:
   name: "platform-backend"
@@ -627,6 +946,11 @@ platformBackend:
     maxReplicas: 10
     targetCPUUtilizationPercentage: 50
     targetMemoryUtilizationPercentage: 80
+  pdb:
+    enabled: false
+    minAvailable: 1
+    labels: {}
+    annotations: {}
   service:
     type: ClusterIP
     port: 1986
@@ -638,6 +962,104 @@ platformBackend:
     name: ""
     labels: {}
     annotations: {}
+
+operator:
+  name: "operator"
+  enabled: true
+  createCRDs: true
+  watchNamespaces: ""
+  kedaEnabled: true
+  deployment:
+    autoRestart: true
+    replicas: 1
+    labels: {}
+    annotations: {}
+    podSecurityContext: {}
+    securityContext: {}
+    resources:
+      limits:
+        cpu: 2000m
+        memory: 4Gi
+      requests:
+        cpu: 1000m
+        memory: 2Gi
+    extraContainerConfig: {}
+    extraEnv: []
+    sidecars: []
+    nodeSelector: {}
+    tolerations: []
+    topologySpreadConstraints: []
+    affinity: {}
+    volumes: []
+    volumeMounts: []
+    terminationGracePeriodSeconds: 30
+  pdb:
+    enabled: false
+    minAvailable: 1
+  serviceAccount:
+    create: true
+    name: ""
+    labels: {}
+    annotations: {}
+  rbac:
+    create: true
+    labels: {}
+    annotations: {}
+  # These templates are used by the operator as the base spec for creating resources.
+  templates:
+    deployment: |
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: ${name}
+        namespace: ${namespace}
+      spec:
+        replicas: ${replicas}
+        selector:
+          matchLabels:
+            app: ${name}
+        template:
+          metadata:
+            labels:
+              app: ${name}
+          spec:
+            enableServiceLinks: false
+            containers:
+            - name: api-server
+              image: ${image}
+              ports:
+              - name: api-server
+                containerPort: 8000
+                protocol: TCP
+              livenessProbe:
+                httpGet:
+                  path: /${name}/ok?check_db=1
+                  port: 8000
+                initialDelaySeconds: 90
+                periodSeconds: 5
+                timeoutSeconds: 5
+              readinessProbe:
+                httpGet:
+                  path: /${name}/ok
+                  port: 8000
+                initialDelaySeconds: 90
+                periodSeconds: 5
+                timeoutSeconds: 5
+    service: |
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: ${name}
+        namespace: ${namespace}
+      spec:
+        type: ClusterIP
+        selector:
+          app: ${name}
+        ports:
+        - name: api-server
+          protocol: TCP
+          port: 8000
+          targetPort: 8000
 
 playground:
   name: "playground"
@@ -710,6 +1132,11 @@ playground:
     maxReplicas: 5
     targetCPUUtilizationPercentage: 50
     targetMemoryUtilizationPercentage: 80
+  pdb:
+    enabled: false
+    minAvailable: 1
+    labels: {}
+    annotations: {}
   service:
     type: ClusterIP
     port: 1988
@@ -791,8 +1218,14 @@ postgres:
     volumes: []
     volumeMounts: []
     persistence:
+      enabled: true
       size: 8Gi
       storageClassName: ""
+  pdb:
+    enabled: false
+    minAvailable: 1
+    labels: {}
+    annotations: {}
   service:
     type: ClusterIP
     port: 5432
@@ -862,6 +1295,11 @@ queue:
     volumes: []
     volumeMounts: []
     terminationGracePeriodSeconds: 30
+  pdb:
+    enabled: false
+    minAvailable: 1
+    labels: {}
+    annotations: {}
   autoscaling:
     enabled: false
     # If enabled, use the following values to configure the HPA. You can also use your own HPA configuration by not creating an HPA.
@@ -941,6 +1379,11 @@ redis:
       enabled: true
       size: 8Gi
       storageClassName: ""
+  pdb:
+    enabled: false
+    minAvailable: 1
+    labels: {}
+    annotations: {}
   service:
     type: ClusterIP
     port: 6379
@@ -952,3 +1395,386 @@ redis:
     name: ""
     labels: {}
     annotations: {}
+
+quickwit:
+  name: quickwit
+
+  # -- Additional labels to add to all resources
+  additionalLabels: {}
+
+  serviceAccount:
+    # Specifies whether a service account should be created
+    create: true
+    # Annotations to add to the service account
+    annotations: {}
+    # The name of the service account to use.
+    # If not set and create is true, a name is generated using the fullname template
+    name: ""
+
+  annotations: {}
+
+  podAnnotations: {}
+
+  podSecurityContext:
+    fsGroup: 1005
+
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 1005
+
+  # Additional global env
+  environment: {}
+    # KEY: VALUE
+  environmentFrom: []
+    # - secretRef:
+    #     name: quickwit
+    # - configMapRef:
+    #     name: quickwit
+
+  configMaps: []
+    # - name: configmap1
+    #   mountPath: /quickwit/configmaps/
+
+  # Global affinity settings applied to all deployments
+  affinity: {}
+
+  service:
+    # Service type configuration default for all Quickwit services
+    type: ClusterIP
+
+    # -- Set the ip family policy to configure dual-stack see [Configure dual-stack](https://kubernetes.io/docs/concepts/services-networking/dual-stack/#services)
+    ipFamilyPolicy: ""
+    # -- Sets the families that should be supported and the order in which they should be applied to ClusterIP as well. Can be IPv4 and/or IPv6.
+    ipFamilies: []
+
+    annotations: {}
+
+  ports:
+  - name: rest
+    containerPort: 7280
+    protocol: TCP
+  - name: grpc
+    containerPort: 7281
+    protocol: TCP
+  - name: discovery
+    containerPort: 7282
+    protocol: UDP
+
+  probes:
+    startupProbe:
+      httpGet:
+        path: /health/livez
+        port: rest
+      failureThreshold: 12
+      periodSeconds: 5
+    livenessProbe:
+      httpGet:
+        path: /health/livez
+        port: rest
+    readinessProbe:
+      httpGet:
+        path: /health/readyz
+        port: rest
+
+  searcher:
+    name: quickwit-searcher
+    serviceAnnotations: {}
+    # serviceType: ClusterIP
+
+    statefulSet:
+      replicas: 1
+
+      # Extra env for searcher
+      extraEnv: []
+      extraEnvFrom: []
+        # - secretRef:
+        #     name: quickwit-searcher
+        # - configMapRef:
+        #     name: quickwit-searcher
+
+      # extraVolumes -- Additional volumes to use with Pods.
+      extraVolumes: []
+
+      # extraVolumeMounts -- Additional volumes to mount into Quickwit containers.
+      extraVolumeMounts: []
+
+      resources:
+        limits:
+          cpu: 2000m
+          memory: 8Gi
+        requests:
+          cpu: 1000m
+          memory: 4Gi
+
+      persistentVolume:
+        enabled: false
+        # storage: "1Gi"
+        # storageClass: ""
+
+      # Configure size limit of the emptyDir (only when using ephemeral volume)
+      emptyDir: {}
+        # sizeLimit: 20Gi
+
+      updateStrategy: {}
+        # type: RollingUpdate
+
+      annotations: {}
+
+      podAnnotations: {}
+
+
+      nodeSelector: {}
+
+      tolerations: []
+
+      affinity: {}
+
+    # Pod disruption budget (either maxUnavailable or minAvailable can be set, not both)
+    pdb:
+      enabled: false
+      maxUnavailable: 1
+      # minAvailable: 2
+      labels: {}
+      annotations: {}
+
+  indexer:
+    name: quickwit-indexer
+    serviceAnnotations: {}
+    # serviceType: ClusterIP
+
+    statefulSet:
+      replicas: 1
+
+      # Extra env for indexer
+      extraEnv: []
+      extraEnvFrom: []
+        # - secretRef:
+        #     name: quickwit-indexer
+        # - configMapRef:
+        #     name: quickwit-indexer
+
+      # extraVolumes -- Additional volumes to use with Pods.
+      extraVolumes: []
+
+      # extraVolumeMounts -- Additional volumes to mount into Quickwit containers.
+      extraVolumeMounts: []
+
+      resources:
+        limits:
+          cpu: 2000m
+          memory: 8Gi
+        requests:
+          cpu: 1000m
+          memory: 4Gi
+
+      updateStrategy: {}
+        # type: RollingUpdate
+
+      annotations: {}
+
+      podAnnotations: {}
+
+      nodeSelector: {}
+
+      tolerations: []
+
+      affinity: {}
+
+      # Long grace period is recommended to wait for all index commit_timeout_secs and splits to be published
+      # See https://quickwit.io/docs/configuration/index-config#indexing-settings
+      terminationGracePeriodSeconds: 120
+
+      # Configure size limit of the emptyDir (only when using ephemeral volume)
+      emptyDir: {}
+        # sizeLimit: 20Gi
+
+      persistentVolume:
+        enabled: false
+        # storage: "1Gi"
+        # storageClass: ""
+
+    # Pod disruption budget (either maxUnavailable or minAvailable can be set, not both)
+    pdb:
+      enabled: false
+      maxUnavailable: 1
+      # minAvailable: 2
+      labels: {}
+      annotations: {}
+
+  metastore:
+    name: quickwit-metastore
+    serviceAnnotations: {}
+    # serviceType: ClusterIP
+
+    postgres:
+      # If set to true, the metastore will use the same Postgres DB instance as Langsmith services
+      shareWithLangSmith: false
+      # Existing secret with metastore postgres
+      existingSecretName: ""
+      connectionUrlSecretKey: "metastore_connection_url"
+
+    deployment:
+      replicas: 1
+
+      # Extra env for metastore
+      extraEnv: []
+      # This is the recommended way to inject `QW_METASTORE_URI` when using the postgres metastore (see https://quickwit.io/docs/configuration/metastore-config)
+      extraEnvFrom: []
+        # - secretRef:
+        #     name: quickwit-metastore
+        # - configMapRef:
+        #     name: quickwit-metastore
+
+      emptyDir: {}
+
+      # extraVolumes -- Additional volumes to use with Pods.
+      extraVolumes: []
+
+      # extraVolumeMounts -- Additional volumes to mount into Quickwit containers.
+      extraVolumeMounts: []
+
+      resources:
+        limits:
+          cpu: 1000m
+          memory: 2Gi
+        requests:
+          cpu: 200m
+          memory: 1Gi
+
+      updateStrategy: {}
+        # type: RollingUpdate
+
+      annotations: {}
+
+      podAnnotations: {}
+
+      nodeSelector: {}
+
+      tolerations: []
+
+      affinity: {}
+
+  controlPlane:
+    name: quickwit-control-plane
+    serviceAnnotations: {}
+    # serviceType: ClusterIP
+
+    deployment:
+      # Extra env for control plane
+      extraEnv: []
+      extraEnvFrom: []
+        # - secretRef:
+        #     name: quickwit-control-plane
+        # - configMapRef:
+        #     name: quickwit-control-plane
+
+      emptyDir: {}
+
+      # extraVolumes -- Additional volumes to use with Pods.
+      extraVolumes: []
+
+      # extraVolumeMounts -- Additional volumes to mount into Quickwit containers.
+      extraVolumeMounts: []
+
+      resources:
+        limits:
+          cpu: 1000m
+          memory: 2Gi
+        requests:
+          cpu: 200m
+          memory: 1Gi
+
+      annotations: {}
+
+      podAnnotations: {}
+
+      nodeSelector: {}
+
+      tolerations: []
+
+      affinity: {}
+
+  janitor:
+    name: quickwit-janitor
+    serviceAnnotations: {}
+    # serviceType: ClusterIP
+
+    deployment:
+      # Extra env for janitor
+      extraEnv: []
+      extraEnvFrom: []
+        # - secretRef:
+        #     name: quickwit-janitor
+        # - configMapRef:
+        #     name: quickwit-janitor
+
+      emptyDir: {}
+
+      # extraVolumes -- Additional volumes to use with Pods.
+      extraVolumes: []
+
+      # extraVolumeMounts -- Additional volumes to mount into Quickwit containers.
+      extraVolumeMounts: []
+
+      resources:
+        limits:
+          cpu: 1000m
+          memory: 2Gi
+        requests:
+          cpu: 200m
+          memory: 1Gi
+
+      annotations: {}
+
+      podAnnotations: {}
+
+      nodeSelector: {}
+
+      tolerations: []
+
+      affinity: {}
+
+  updateRunsIndex:
+    name: quickwit-update-runs-index
+
+  # Quickwit configuration
+  # Warning: This config is writed directly into a configMap
+  # to avoid passing sensitive value you can pass environment variables.
+  # https://quickwit.io/docs/configuration/node-config#using-environment-variables-in-the-configuration
+  configLocation: /quickwit/node.yaml
+
+  config:
+    version: 0.8
+    listen_address: 0.0.0.0
+    gossip_listen_port: 7282
+    # data_dir: /quickwit/qwdata
+    # default_index_root_uri: s3://quickwit/indexes
+
+    # postgres:
+    #   max_num_connections: 50
+
+    # storage:
+      # s3:
+        # endpoint: "http://custom-s3-endpoint"
+        # region: eu-east-1
+        # We recommend using IAM roles and permissions to access Amazon S3 resources,
+        # but you can specify a pair of access and secret keys if necessary.
+        # access_key_id: <my access key>
+        # secret_access_key: ${AWS_ACCESS_KEY_ID}
+      # azure:
+        # account: "<my account name>"
+        # access_key: ${QW_AZURE_STORAGE_ACCESS_KEY}
+
+    # Indexer settings
+    # indexer:
+    #   split_store_max_num_bytes: 200G
+    #   split_store_max_num_splits: 10000
+    # Ingest API settings
+    # ingest_api:
+    #   max_queue_memory_usage: 2GiB
+    #   max_queue_disk_usage: 4GiB
+    # Searcher settings
+    # searcher:
+    #   fast_field_cache_capacity: 10G
+    #   split_footer_cache_capacity: 1G
+    #   max_num_concurrent_split_streams: 100

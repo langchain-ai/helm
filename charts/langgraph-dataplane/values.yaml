@@ -1,0 +1,303 @@
+# Default values for the langgraph-dataplane helm chart. Refer to documentation on individual values for help with configuration.
+
+# -- Provide a name in place of `langgraphDataplane`
+nameOverride: ""
+# -- String to fully override `"langgraphDataplane.fullname"`
+fullnameOverride: ""
+# -- Annotations that will be applied to all resources created by the chart
+commonAnnotations: {}
+# -- Labels that will be applied to all resources created by the chart
+commonLabels: {}
+# -- Common environment variables that will be applied to all deployments.
+commonEnv: []
+
+images:
+   # -- Secrets with credentials to pull images from a private registry. Specified as name: value.
+  imagePullSecrets: []
+  listenerImage:
+    repository: "docker.io/langchain/hosted-langserve-backend"
+    pullPolicy: IfNotPresent
+    tag: "0.10.7"
+  redisImage:
+    repository: "docker.io/redis"
+    pullPolicy: IfNotPresent
+    tag: "7"
+  operatorImage:
+    repository: "docker.io/langchain/langgraph-operator"
+    pullPolicy: IfNotPresent
+    tag: "3e80459"
+
+ingress:
+  hostname: ""
+  ingressClassName: ""
+  annotations: {}
+  labels: {}
+  tls: []
+
+config:
+  existingSecretName: ""
+  langsmithApiKey: ""
+  hostBackendUrl: "https://api.host.langchain.com"
+  smithBackendUrl: "https://api.smith.langchain.com"
+  langsmithWorkspaceId: ""
+  rootDomain: ""  # e.g. "langgraph.example.com" - this is used as the root domain for all deployments. If this is not set, we will default to using internal kubernetes urls.
+
+
+listener:
+  name: "listener"
+  deployment:
+    autoRestart: true
+    replicas: 1
+    labels: {}
+    annotations: {}
+    podSecurityContext: {}
+    securityContext: {}
+    resources:
+      limits:
+        cpu: 2000m
+        memory: 4Gi
+      requests:
+        cpu: 1000m
+        memory: 2Gi
+    command:
+      - "saq"
+      - "app.workers.queues.host_worker.settings"
+      - "--quiet"
+    startupProbe:
+      exec:
+        command:
+          - "saq"
+          - "app.workers.queues.host_worker.settings"
+          - "--check"
+      failureThreshold: 6
+      periodSeconds: 60
+      timeoutSeconds: 30
+    readinessProbe:
+      exec:
+        command:
+          - "saq"
+          - "app.workers.queues.host_worker.settings"
+          - "--check"
+      failureThreshold: 6
+      periodSeconds: 60
+      timeoutSeconds: 30
+    livenessProbe:
+      exec:
+        command:
+          - "saq"
+          - "app.workers.queues.host_worker.settings"
+          - "--check"
+      failureThreshold: 6
+      periodSeconds: 60
+      timeoutSeconds: 30
+    extraContainerConfig: {}
+    extraEnv: []
+    sidecars: []
+    nodeSelector: {}
+    tolerations: []
+    topologySpreadConstraints: []
+    affinity: {}
+    volumes: []
+    volumeMounts: []
+    terminationGracePeriodSeconds: 30
+  autoscaling:
+    enabled: false
+    # If enabled, use the following values to configure the HPA. You can also use your own HPA configuration by not creating an HPA.
+    # You may want to manage the HPA yourself if you have a custom autoscaling setup like KEDA.
+    createHpa: true
+    minReplicas: 3
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 50
+    targetMemoryUtilizationPercentage: 80
+  pdb:
+    enabled: false
+    minAvailable: 1
+  serviceAccount:
+    create: true
+    name: ""
+    labels: {}
+    annotations: {}
+  rbac:
+    create: true
+    labels: {}
+    annotations: {}
+
+# These values are all passed into the operator subChart.
+operator:
+  name: "operator"
+  enabled: true
+  createCRDs: true
+  watchNamespaces: ""
+  kedaEnabled: true
+  deployment:
+    autoRestart: true
+    replicas: 1
+    labels: {}
+    annotations: {}
+    podSecurityContext: {}
+    securityContext: {}
+    resources:
+      limits:
+        cpu: 2000m
+        memory: 4Gi
+      requests:
+        cpu: 1000m
+        memory: 2Gi
+    extraContainerConfig: {}
+    extraEnv: []
+    sidecars: []
+    nodeSelector: {}
+    tolerations: []
+    topologySpreadConstraints: []
+    affinity: {}
+    volumes: []
+    volumeMounts: []
+    terminationGracePeriodSeconds: 30
+  pdb:
+    enabled: false
+    minAvailable: 1
+  serviceAccount:
+    create: true
+    name: ""
+    labels: {}
+    annotations: {}
+  rbac:
+    create: true
+    labels: {}
+    annotations: {}
+  # These templates are used by the operator as the base spec for creating resources.
+  templates:
+    deployment: |
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: ${name}
+        namespace: ${namespace}
+      spec:
+        replicas: ${replicas}
+        selector:
+          matchLabels:
+            app: ${name}
+        template:
+          metadata:
+            labels:
+              app: ${name}
+          spec:
+            enableServiceLinks: false
+            containers:
+            - name: api-server
+              image: ${image}
+              ports:
+              - name: api-server
+                containerPort: 8000
+                protocol: TCP
+              livenessProbe:
+                httpGet:
+                  path: /${name}/ok?check_db=1
+                  port: 8000
+                initialDelaySeconds: 90
+                periodSeconds: 5
+                timeoutSeconds: 5
+              readinessProbe:
+                httpGet:
+                  path: /${name}/ok
+                  port: 8000
+                initialDelaySeconds: 90
+                periodSeconds: 5
+                timeoutSeconds: 5
+    service: |
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: ${name}
+        namespace: ${namespace}
+      spec:
+        type: ClusterIP
+        selector:
+          app: ${name}
+        ports:
+        - name: api-server
+          protocol: TCP
+          port: 8000
+          targetPort: 8000
+
+
+redis:
+  name: "redis"
+  external:
+    # If enabled, use the following values to connect to an external redis instance. This will also disable the
+    # creation of a redis stateful-set and service.
+    enabled: false
+    connectionUrl: ""
+    connectionUrlSecretKey: "connection_url"
+    existingSecretName: ""
+  containerPort: 6379
+  statefulSet:
+    labels: {}
+    annotations: {}
+    podSecurityContext: {}
+    securityContext: {}
+    # In a production environment, we strongly recommend an external Redis database.
+    resources:
+      limits:
+        cpu: 4000m
+        memory: 8Gi
+      requests:
+        cpu: 2000m
+        memory: 4Gi
+    command: []
+    startupProbe:
+      exec:
+        command:
+          - /bin/sh
+          - -c
+          - exec redis-cli ping
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 1
+    readinessProbe:
+      exec:
+        command:
+          - /bin/sh
+          - -c
+          - exec redis-cli ping
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 1
+    livenessProbe:
+      exec:
+        command:
+          - /bin/sh
+          - -c
+          - exec redis-cli ping
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 1
+    extraContainerConfig: {}
+    extraEnv: []
+    sidecars: []
+    nodeSelector: {}
+    tolerations: []
+    topologySpreadConstraints: []
+    affinity: {}
+    volumes: []
+    volumeMounts: []
+    persistence:
+      enabled: true
+      size: 8Gi
+      storageClassName: ""
+  pdb:
+    enabled: false
+    minAvailable: 1
+  service:
+    type: ClusterIP
+    port: 6379
+    labels: {}
+    annotations: {}
+    loadBalancerSourceRanges: []
+    loadBalancerIP: ""
+  serviceAccount:
+    create: true
+    name: ""
+    labels: {}
+    annotations: {}

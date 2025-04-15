@@ -1,0 +1,9 @@
+apiVersion: v2
+name: langgraph-operator
+maintainers:
+  - name: Ankush
+    email: ankush@langchain.dev
+description: Helm chart to deploy the LangGraph Operator
+type: application
+version: 0.1.10
+appVersion: "0.1.0"
