@@ -1,0 +1,31 @@
+{{- if .Values.operator.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "langgraphDataplane.fullname" . }}-{{ .Values.operator.name }}
+  labels:
+    {{- include "langgraphDataplane.labels" . | nindent 4 }}
+    {{- with.Values.operator.service.labels }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+  annotations:
+    {{- include "langgraphDataplane.annotations" . | nindent 4 }}
+    {{- with.Values.operator.service.annotations }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  type: {{ .Values.operator.service.type }}
+  {{- with .Values.operator.service.loadBalancerSourceRanges }}
+  loadBalancerSourceRanges:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  loadBalancerIP: {{ .Values.operator.service.loadBalancerIP }}
+  ports:
+    - name: health
+      port: 8081
+      targetPort: 8081
+      protocol: TCP
+  selector:
+    {{- include "langgraphDataplane.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: {{ include "langgraphDataplane.fullname" . }}-{{ .Values.operator.name }}
+  {{- end }}

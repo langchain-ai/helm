@@ -94,6 +94,10 @@ spec:
             value: {{ include "langgraphDataplane.fullname" . }}-ingress
           - name: SHARED_INGRESS_NAMESPACE
             value: {{ .Release.Namespace }}
+          - name: ROOT_DOMAIN
+            value: {{ .Values.ingress.hostname | quote }}
+          - name: TLS_ENABLED
+            value: {{ .Values.ingress.tlsEnabled | quote }}
         {{- with .Values.operator.deployment.extraEnv }}
           {{- toYaml . | nindent 12 }}
         {{- end }}

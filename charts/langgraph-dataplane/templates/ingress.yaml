@@ -22,9 +22,14 @@ spec:
   tls:
     {{- toYaml . | nindent 4 }}
   {{- end }}
-  defaultBackend:
-    service:
-      name: some-placeholder-service  # or something that returns 404
-      port:
-        number: 80
-  rules: [] # These will be managed by the operator
+  rules:
+  - host: {{ .Values.ingress.hostname }}
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: {{ include "langgraphDataplane.fullname" . }}-operator
+            port:
+              number: 8081
