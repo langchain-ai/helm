@@ -17,7 +17,7 @@ images:
   listenerImage:
     repository: "docker.io/langchain/hosted-langserve-backend"
     pullPolicy: IfNotPresent
-    tag: "0.10.7"
+    tag: "0.10.9"
   redisImage:
     repository: "docker.io/redis"
     pullPolicy: IfNotPresent
@@ -25,7 +25,7 @@ images:
   operatorImage:
     repository: "docker.io/langchain/langgraph-operator"
     pullPolicy: IfNotPresent
-    tag: "3e80459"
+    tag: "3b0048a"
 
 ingress:
   hostname: ""
@@ -33,6 +33,7 @@ ingress:
   annotations: {}
   labels: {}
   tls: []
+  tlsEnabled: true
 
 config:
   existingSecretName: ""
@@ -40,7 +41,6 @@ config:
   hostBackendUrl: "https://api.host.langchain.com"
   smithBackendUrl: "https://api.smith.langchain.com"
   langsmithWorkspaceId: ""
-  rootDomain: ""  # e.g. "langgraph.example.com" - this is used as the root domain for all deployments. If this is not set, we will default to using internal kubernetes urls.
 
 
 listener:
@@ -156,6 +156,12 @@ operator:
   pdb:
     enabled: false
     minAvailable: 1
+  service:
+    type: ClusterIP
+    labels: {}
+    annotations: {}
+    loadBalancerSourceRanges: []
+    loadBalancerIP: ""
   serviceAccount:
     create: true
     name: ""
@@ -193,14 +199,14 @@ operator:
                 protocol: TCP
               livenessProbe:
                 httpGet:
-                  path: /${name}/ok?check_db=1
+                  path: /lgp/${name}/ok?check_db=1
                   port: 8000
                 initialDelaySeconds: 90
                 periodSeconds: 5
                 timeoutSeconds: 5
               readinessProbe:
                 httpGet:
-                  path: /${name}/ok
+                  path: /lgp/${name}/ok
                   port: 8000
                 initialDelaySeconds: 90
                 periodSeconds: 5
