@@ -78,6 +78,10 @@ spec:
             {{- with .Values.apiServer.deployment.extraEnv }}
               {{- toYaml . | nindent 12 }}
             {{- end }}
+          {{- with .Values.apiServer.deployment.envFrom }}
+          envFrom:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           image: "{{ .Values.images.apiServerImage.repository }}:{{ .Values.images.apiServerImage.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.images.apiServerImage.pullPolicy }}
           ports:

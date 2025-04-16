@@ -363,6 +363,7 @@ the same format as the secret in the corresponding `secrets.yaml` file. Note: AP
 | apiServer.containerPort | int | `8000` |  |
 | apiServer.deployment.affinity | object | `{}` |  |
 | apiServer.deployment.annotations | object | `{}` |  |
+| apiServer.deployment.envFrom | list | `[]` | List of ConfigMap or Secret references to load environment variables from. Each item can be either a ConfigMap or Secret reference. Example: `- configMapRef: {name: my-configmap}` or `- secretRef: {name: my-secret}` |
 | apiServer.deployment.extraEnv | list | `[]` |  |
 | apiServer.deployment.labels | object | `{}` |  |
 | apiServer.deployment.nodeSelector | object | `{}` |  |

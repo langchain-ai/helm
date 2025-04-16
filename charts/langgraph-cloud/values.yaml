@@ -65,6 +65,7 @@ apiServer:
         cpu: 1000m
         memory: 2Gi
     extraEnv: []
+    envFrom: []  # List of ConfigMap or Secret references to load environment variables from
     sidecars: []
     nodeSelector: {}
     tolerations: []
