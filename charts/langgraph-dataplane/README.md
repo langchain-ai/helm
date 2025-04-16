@@ -66,7 +66,6 @@ Helm chart to deploy a langgraph dataplane on kubernetes.
 | operator.service.labels | object | `{}` |  |
 | operator.service.loadBalancerIP | string | `""` |  |
 | operator.service.loadBalancerSourceRanges | list | `[]` |  |
-| operator.service.port | int | `8` |  |
 | operator.service.type | string | `"ClusterIP"` |  |
 | operator.serviceAccount.annotations | object | `{}` |  |
 | operator.serviceAccount.create | bool | `true` |  |
@@ -185,7 +184,6 @@ Helm chart to deploy a langgraph dataplane on kubernetes.
 | operator.service.labels | object | `{}` |  |
 | operator.service.loadBalancerIP | string | `""` |  |
 | operator.service.loadBalancerSourceRanges | list | `[]` |  |
-| operator.service.port | int | `8` |  |
 | operator.service.type | string | `"ClusterIP"` |  |
 | operator.serviceAccount.annotations | object | `{}` |  |
 | operator.serviceAccount.create | bool | `true` |  |

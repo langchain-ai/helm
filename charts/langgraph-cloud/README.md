@@ -1,6 +1,6 @@
 # langgraph-cloud
 
-![Version: 0.1.12](https://img.shields.io/badge/Version-0.1.12-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.2.0](https://img.shields.io/badge/AppVersion-0.2.0-informational?style=flat-square)
+![Version: 0.1.13](https://img.shields.io/badge/Version-0.1.13-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.2.0](https://img.shields.io/badge/AppVersion-0.2.0-informational?style=flat-square)
 
 Helm chart to deploy the LangGraph Cloud application and all services it depends on.
 
@@ -363,7 +363,7 @@ the same format as the secret in the corresponding `secrets.yaml` file. Note: AP
 | apiServer.containerPort | int | `8000` |  |
 | apiServer.deployment.affinity | object | `{}` |  |
 | apiServer.deployment.annotations | object | `{}` |  |
-| apiServer.deployment.envFrom | list | `[]` | List of ConfigMap or Secret references to load environment variables from. Each item can be either a ConfigMap or Secret reference. Example: `- configMapRef: {name: my-configmap}` or `- secretRef: {name: my-secret}` |
+| apiServer.deployment.envFrom | list | `[]` |  |
 | apiServer.deployment.extraEnv | list | `[]` |  |
 | apiServer.deployment.labels | object | `{}` |  |
 | apiServer.deployment.nodeSelector | object | `{}` |  |
