@@ -158,7 +158,6 @@ operator:
     minAvailable: 1
   service:
     type: ClusterIP
-    port: 8
     labels: {}
     annotations: {}
     loadBalancerSourceRanges: []
