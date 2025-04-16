@@ -12,13 +12,13 @@ metadata:
   name: {{ include "langsmith.fullname" . }}-{{ .Values.aceBackend.name }}
   labels:
     {{- include "langsmith.labels" . | nindent 4 }}
-    {{- with.Values.aceBackend.deployment.labels }}
-      {{- toYaml . | nindent 4 }}
+    {{- with .Values.aceBackend.deployment.labels }}
+    {{- toYaml . | nindent 4 }}
     {{- end }}
   annotations:
     {{- include "langsmith.annotations" . | nindent 4 }}
-    {{- with.Values.aceBackend.deployment.annotations }}
-      {{- toYaml . | nindent 4 }}
+    {{- with .Values.aceBackend.deployment.annotations }}
+    {{- toYaml . | nindent 4 }}
     {{- end }}
 spec:
   {{- if not .Values.aceBackend.autoscaling.enabled }}
@@ -30,19 +30,19 @@ spec:
       app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-{{ .Values.aceBackend.name }}
   template:
     metadata:
-      annotations:
       {{- if .Values.aceBackend.deployment.autoRestart }}
+      annotations:
         rollme: {{ randAlphaNum 5 | quote }}
       {{- end }}
       {{- with .Values.aceBackend.deployment.annotations }}
         {{- toYaml . | nindent 8 }}
       {{- end }}
       labels:
-        {{- with.Values.aceBackend.deployment.labels }}
-            {{- toYaml . | nindent 8 }}
-        {{- end }}
         {{- include "langsmith.labels" . | nindent 8 }}
         app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-{{ .Values.aceBackend.name }}
+        {{- with .Values.aceBackend.deployment.labels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
     spec:
       terminationGracePeriodSeconds: {{ .Values.aceBackend.deployment.terminationGracePeriodSeconds }}
       {{- with .Values.images.imagePullSecrets }}
@@ -54,13 +54,13 @@ spec:
       serviceAccountName: {{ include "aceBackend.serviceAccountName" . }}
       containers:
         - name: {{ .Values.aceBackend.name }}
-          {{- with.Values.aceBackend.deployment.command }}
+          {{- with .Values.aceBackend.deployment.command }}
           command:
             {{- toYaml . | nindent 12 }}
           {{- end }}
           env:
             {{- with $envVars }}
-              {{- toYaml . | nindent 12 }}
+            {{- toYaml . | nindent 12 }}
             {{- end }}
           envFrom:
             - configMapRef:
@@ -89,14 +89,14 @@ spec:
             {{- toYaml .Values.aceBackend.deployment.securityContext | nindent 12 }}
           {{- with .Values.aceBackend.deployment.volumeMounts }}
           volumeMounts:
-              {{- toYaml . | nindent 12 }}
+            {{- toYaml . | nindent 12 }}
           {{- end }}
           {{- with .Values.aceBackend.deployment.extraContainerConfig }}
-            {{- toYaml . | nindent 10 }}
+          {{- toYaml . | nindent 10 }}
           {{- end }}
-        {{- with .Values.aceBackend.deployment.sidecars }}
-          {{- toYaml . | nindent 8 }}
-        {{- end }}
+      {{- with .Values.aceBackend.deployment.sidecars }}
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       {{- with .Values.aceBackend.deployment.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

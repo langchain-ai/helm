@@ -18,12 +18,14 @@ spec:
   loadBalancerSourceRanges:
     {{- toYaml . | nindent 4 }}
   {{- end }}
-  loadBalancerIP: {{ .Values.playground.service.loadBalancerIP }}
   ports:
-    - name: playground
-      port: {{ .Values.playground.service.port }}
-      targetPort: playground
-      protocol: TCP
+  - name: playground
+    port: {{ .Values.playground.service.port }}
+    targetPort: playground
+    protocol: TCP
+  {{- if .Values.playground.service.additionalSpec }}
+  {{- toYaml .Values.playground.service.additionalSpec | nindent 2 }}
+  {{- end }}
   selector:
     {{- include "langsmith.selectorLabels" . | nindent 4 }}
-    app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-{{ .Values.playground.name }}
+    app.kubernetes.io/component: "{{ include "langsmith.fullname" . }}-{{ .Values.playground.name }}"
