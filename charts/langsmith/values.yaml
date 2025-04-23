@@ -84,9 +84,9 @@ config:
   apiKeySalt: ""
   logLevel: "info"
   # -- Must be 'oauth' for OAuth with PKCE, 'mixed' for basic auth or OAuth without PKCE
-  authType: "mixed"
+  authType: ""
   basicAuth:
-    enabled: true
+    enabled: false
     initialOrgAdminEmail: ""
     # Either set the password and JWT secret in plaintext, or set in the secret specified by existingSecretName above.
     initialOrgAdminPassword: ""
