@@ -10,7 +10,7 @@ spec:
     matchLabels:
       app.kubernetes.io/name: {{ include "langgraphDataplane.name" . }}
       app.kubernetes.io/instance: {{ .Release.Name }}
-      app.kubernetes.io/component: {{ .Values.listener.name }}
+      app.kubernetes.io/component: {{ include "langgraphDataplane.fullname" . }}-{{ .Values.listener.name }}
   {{- if .Values.listener.pdb.minAvailable }}
   minAvailable: {{ .Values.listener.pdb.minAvailable }}
   {{- end }}
