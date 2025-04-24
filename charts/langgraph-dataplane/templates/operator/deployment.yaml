@@ -5,7 +5,7 @@ metadata:
   name: {{ include "langgraphDataplane.fullname" . }}-{{ .Values.operator.name }}
   labels:
     {{- include "langgraphDataplane.labels" . | nindent 4 }}
-    app.kubernetes.io/name: langgraph-{{ .Values.operator.name }}
+    app.kubernetes.io/component: langgraph-{{ .Values.operator.name }}
     {{- with .Values.operator.deployment.labels }}
       {{- toYaml . | nindent 4 }}
     {{- end }}
@@ -19,7 +19,7 @@ spec:
   selector:
     matchLabels:
       {{- include "langgraphDataplane.selectorLabels" . | nindent 6 }}
-      app.kubernetes.io/component: {{ include "langgraphDataplane.fullname" . }}-operator
+      app.kubernetes.io/component: {{ include "langgraphDataplane.fullname" . }}-{{ .Values.operator.name }}
   template:
     metadata:
       annotations:
@@ -29,7 +29,7 @@ spec:
         checksum/config: {{ include (print $.Template.BasePath "/operator/config-map.yaml") . | sha256sum }}
       labels:
         {{- include "langgraphDataplane.labels" . | nindent 8 }}
-        app.kubernetes.io/component: {{ include "langgraphDataplane.fullname" . }}-operator
+        app.kubernetes.io/component: {{ include "langgraphDataplane.fullname" . }}-{{ .Values.operator.name }}
         {{- with .Values.operator.deployment.labels }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
