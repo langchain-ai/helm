@@ -569,10 +569,6 @@ Quickwit environment
 {{- end }}
 {{- end }}
 
-{{- define "langsmith.quickwit-runs-index" -}}
-{{- $.Files.Get "resources/quickwit-index-runs.yaml" -}}
-{{- end -}}
-
 {{- define "langsmith.quickwit-cluster-endpoint" -}}
 {{- printf "http://%s-%s:7280" (include "langsmith.fullname" .) (.Values.quickwit.metastore.name) -}}
 {{- end }}
