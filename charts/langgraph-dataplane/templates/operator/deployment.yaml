@@ -5,7 +5,7 @@ metadata:
   name: {{ include "langgraphDataplane.fullname" . }}-{{ .Values.operator.name }}
   labels:
     {{- include "langgraphDataplane.labels" . | nindent 4 }}
-    app.kubernetes.io/component: langgraph-{{ .Values.operator.name }}
+    app.kubernetes.io/component: {{ include "langgraphDataplane.fullname" . }}-{{ .Values.operator.name }}
     {{- with .Values.operator.deployment.labels }}
       {{- toYaml . | nindent 4 }}
     {{- end }}
