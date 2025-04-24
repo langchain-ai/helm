@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.10.3](https://img.shields.io/badge/Version-0.10.3-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.10.20](https://img.shields.io/badge/AppVersion-0.10.20-informational?style=flat-square)
+![Version: 0.10.4](https://img.shields.io/badge/Version-0.10.4-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.10.20](https://img.shields.io/badge/AppVersion-0.10.20-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -204,8 +204,8 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
 | config.apiKeySalt | string | `""` | Salt used to generate the API key. Should be a random string. |
-| config.authType | string | `"mixed"` | Must be 'oauth' for OAuth with PKCE, 'mixed' for basic auth or OAuth without PKCE |
-| config.basicAuth.enabled | bool | `true` |  |
+| config.authType | string | `""` | Must be 'oauth' for OAuth with PKCE, 'mixed' for basic auth or OAuth without PKCE |
+| config.basicAuth.enabled | bool | `false` |  |
 | config.basicAuth.initialOrgAdminEmail | string | `""` |  |
 | config.basicAuth.initialOrgAdminPassword | string | `""` |  |
 | config.basicAuth.jwtSecret | string | `""` |  |
