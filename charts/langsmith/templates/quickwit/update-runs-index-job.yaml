@@ -29,11 +29,19 @@ spec:
         args:
           - "-c"
           - |
-            cat /code/smith-backend/quickwit/runs-index-default.yaml | \
-            sed 's/\(period:\s*\)[^\n]*/\1'"{{ .Values.config.ttl.ttl_period_seconds.shortlived | replace "\"" "" }}"' seconds/' > /quickwit/runs-index-default.yaml
+            process_mapping() {
+              local mapping_file="$1"
+              local retention_period="$2"
+              local partition_key="{{ .Values.quickwit.partitionKey }}"
 
-            cat /code/smith-backend/quickwit/runs-index-long-ttl.yaml | \
-            sed 's/\(period:\s*\)[^\n]*/\1'"{{ .Values.config.ttl.ttl_period_seconds.longlived | replace "\"" "" }}"' seconds/' > /quickwit/runs-index-long-ttl.yaml
+              echo "Processing mapping file: ${mapping_file}"
+              cat /code/smith-backend/quickwit/${mapping_file} | \
+              yq ".retention.period = \"${retention_period}\" | .doc_mapping.partition_key = \"${partition_key}\"" > /quickwit/${mapping_file}
+            }
+
+            set -e
+            process_mapping "runs-index-default.yaml" "{{- include "langsmith.quickwit-short-ttl" . -}}"
+            process_mapping "runs-index-long-ttl.yaml" "{{- include "langsmith.quickwit-long-ttl" . -}}"
 
         volumeMounts:
         - name: index-data

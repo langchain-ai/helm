@@ -581,3 +581,10 @@ Quickwit environment
 {{- printf "http://%s-%s:7280" (include "langsmith.fullname" .) (.Values.quickwit.searcher.name) -}}
 {{- end }}
 
+{{- define "langsmith.quickwit-short-ttl" -}}
+{{- printf "%s seconds" (.Values.config.ttl.ttl_period_seconds.shortlived | replace "\"" "") -}}
+{{- end }}
+
+{{- define "langsmith.quickwit-long-ttl" -}}
+{{- printf "%s seconds" (.Values.config.ttl.ttl_period_seconds.longlived | replace "\"" "") -}}
+{{- end }}
