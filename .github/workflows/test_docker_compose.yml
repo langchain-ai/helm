@@ -35,7 +35,7 @@ jobs:
 
     - name: Start containers
       working-directory: charts/langsmith/docker-compose
-      run: docker compose up -d
+      run: docker compose up
 
     - name: sleep 60 seconds
       run: sleep 60
