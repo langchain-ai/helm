@@ -37,8 +37,8 @@ jobs:
       working-directory: charts/langsmith/docker-compose
       run: docker compose up -d
 
-    - name: sleep 30 seconds
-      run: sleep 30
+    - name: sleep 60 seconds
+      run: sleep 60
 
     - name: Check backend health
       run: curl localhost:1980/api/v1/info
