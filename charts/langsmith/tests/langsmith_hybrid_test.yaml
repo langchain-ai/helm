@@ -14,9 +14,7 @@ templates:
   - clickhouse/secrets.yaml
 tests:
   - it: should not have hybrid overrides set
-    documentSelector:            # run this test only on these Kinds
-      path: kind
-      content: ^(Deployment|Job)$
+    template: backend/deployment.yaml
     asserts:
       - contains:
           path: spec.template.spec.containers[0].env
@@ -34,9 +32,159 @@ tests:
             name: FF_CH_SEARCH_ENABLED
             value: "true"
   - it: should have hybrid overrides set
-    documentSelector:            # run this test only on these Kinds
-      path: kind
-      content: ^(Deployment|Job)$
+    template: backend/deployment.yaml
+    set:
+      clickhouse.external.hybrid: true
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: CLICKHOUSE_HYBRID
+            value: "true"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: MIN_BLOB_STORAGE_SIZE_KB
+            value: "0"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: FF_CH_SEARCH_ENABLED
+            value: "false"
+  - it: should not have hybrid overrides set
+    template: backend/postgres-migrations.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: CLICKHOUSE_HYBRID
+            value: "false"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: MIN_BLOB_STORAGE_SIZE_KB
+            value: "20"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: FF_CH_SEARCH_ENABLED
+            value: "true"
+  - it: should have hybrid overrides set
+    template: backend/postgres-migrations.yaml
+    set:
+      clickhouse.external.hybrid: true
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: CLICKHOUSE_HYBRID
+            value: "true"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: MIN_BLOB_STORAGE_SIZE_KB
+            value: "0"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: FF_CH_SEARCH_ENABLED
+            value: "false"
+  - it: should not have hybrid overrides set
+    template: backend/clickhouse-migrations.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: CLICKHOUSE_HYBRID
+            value: "false"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: MIN_BLOB_STORAGE_SIZE_KB
+            value: "20"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: FF_CH_SEARCH_ENABLED
+            value: "true"
+  - it: should have hybrid overrides set
+    template: backend/clickhouse-migrations.yaml
+    set:
+      clickhouse.external.hybrid: true
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: CLICKHOUSE_HYBRID
+            value: "true"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: MIN_BLOB_STORAGE_SIZE_KB
+            value: "0"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: FF_CH_SEARCH_ENABLED
+            value: "false"
+  - it: should not have hybrid overrides set
+    template: queue/deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: CLICKHOUSE_HYBRID
+            value: "false"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: MIN_BLOB_STORAGE_SIZE_KB
+            value: "20"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: FF_CH_SEARCH_ENABLED
+            value: "true"
+  - it: should have hybrid overrides set
+    template: queue/deployment.yaml
+    set:
+      clickhouse.external.hybrid: true
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: CLICKHOUSE_HYBRID
+            value: "true"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: MIN_BLOB_STORAGE_SIZE_KB
+            value: "0"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: FF_CH_SEARCH_ENABLED
+            value: "false"
+  - it: should not have hybrid overrides set
+    template: platform-backend/deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: CLICKHOUSE_HYBRID
+            value: "false"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: MIN_BLOB_STORAGE_SIZE_KB
+            value: "20"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: FF_CH_SEARCH_ENABLED
+            value: "true"
+  - it: should have hybrid overrides set
+    template: platform-backend/deployment.yaml
     set:
       clickhouse.external.hybrid: true
     asserts:
