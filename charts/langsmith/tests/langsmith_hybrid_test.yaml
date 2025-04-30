@@ -14,9 +14,9 @@ templates:
   - clickhouse/secrets.yaml
 tests:
   - it: should not have hybrid overrides set
-    documentSelector:
-      path: spec.template.spec.containers[0].env
-      exists: true
+    documentSelector:            # run this test only on these Kinds
+      path: kind
+      content: ^(Deployment|Job)$
     asserts:
       - contains:
           path: spec.template.spec.containers[0].env
@@ -34,9 +34,9 @@ tests:
             name: FF_CH_SEARCH_ENABLED
             value: "true"
   - it: should have hybrid overrides set
-    documentSelector: # ← only run on docs that HAVE env
-      path: spec.template.spec.containers[0].env
-      exists: true
+    documentSelector:            # run this test only on these Kinds
+      path: kind
+      content: ^(Deployment|Job)$
     set:
       clickhouse.external.hybrid: true
     asserts:
