@@ -7,6 +7,10 @@ templates:
   - backend/postgres-migrations.yaml
   - platform-backend/deployment.yaml
   - queue/deployment.yaml
+  - config-map.yaml
+  - redis/secrets.yaml
+  - postgres/secrets.yaml
+  - clickhouse/secrets.yaml
 tests:
   - it: should not have hybrid overrides set
     asserts:
