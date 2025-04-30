@@ -597,10 +597,10 @@ checksum/secrets: {{ include (print $.Template.BasePath "/secrets.yaml") . | sha
 {{- if not .Values.redis.external.existingSecretName }}
 checksum/redis: {{ include (print $.Template.BasePath "/redis/secrets.yaml") . | sha256sum }}
 {{- end }}
-{{- if .Values.postgres.external.existingSecretName }}
+{{- if not .Values.postgres.external.existingSecretName }}
 checksum/postgres: {{ include (print $.Template.BasePath "/postgres/secrets.yaml") . | sha256sum }}
 {{- end }}
-{{- if .Values.clickhouse.external.existingSecretName }}
+{{- if not .Values.clickhouse.external.existingSecretName }}
 checksum/clickhouse: {{ include (print $.Template.BasePath "/clickhouse/secrets.yaml") . | sha256sum }}
 {{- end }}
 {{- end }}
