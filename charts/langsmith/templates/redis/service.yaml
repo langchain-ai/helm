@@ -19,13 +19,15 @@ spec:
   loadBalancerSourceRanges:
     {{- toYaml . | nindent 4 }}
   {{- end }}
-  loadBalancerIP: {{ .Values.redis.service.loadBalancerIP }}
   ports:
-    - name: redis
-      port: {{ .Values.redis.service.port }}
-      targetPort: redis
-      protocol: TCP
+  - name: redis
+    port: {{ .Values.redis.service.port }}
+    targetPort: redis
+    protocol: TCP
+  {{- if .Values.redis.service.additionalSpec }}
+  {{- toYaml .Values.redis.service.additionalSpec | nindent 2 }}
+  {{- end }}
   selector:
     {{- include "langsmith.selectorLabels" . | nindent 4 }}
-    app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-{{ .Values.redis.name }}
+    app.kubernetes.io/component: "{{ include "langsmith.fullname" . }}-{{ .Values.redis.name }}"
 {{- end }}

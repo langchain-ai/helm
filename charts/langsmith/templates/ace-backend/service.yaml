@@ -4,12 +4,12 @@ metadata:
   name: {{ include "langsmith.fullname" . }}-{{ .Values.aceBackend.name }}
   labels:
     {{- include "langsmith.labels" . | nindent 4 }}
-    {{- with.Values.aceBackend.service.labels }}
+    {{- with .Values.aceBackend.service.labels }}
       {{- toYaml . | nindent 4 }}
     {{- end }}
   annotations:
     {{- include "langsmith.annotations" . | nindent 4 }}
-    {{- with.Values.aceBackend.service.annotations }}
+    {{- with .Values.aceBackend.service.annotations }}
       {{- toYaml . | nindent 4 }}
     {{- end }}
 spec:
@@ -18,12 +18,14 @@ spec:
   loadBalancerSourceRanges:
     {{- toYaml . | nindent 4 }}
   {{- end }}
-  loadBalancerIP: {{ .Values.aceBackend.service.loadBalancerIP }}
   ports:
-    - name: ace
-      port: {{ .Values.aceBackend.service.port }}
-      targetPort: ace
-      protocol: TCP
+  - name: ace
+    port: {{ .Values.aceBackend.service.port }}
+    targetPort: ace
+    protocol: TCP
+  {{- if .Values.aceBackend.service.additionalSpec }}
+  {{- toYaml .Values.aceBackend.service.additionalSpec | nindent 2 }}
+  {{- end }}
   selector:
     {{- include "langsmith.selectorLabels" . | nindent 4 }}
-    app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-{{ .Values.aceBackend.name }}
+    app.kubernetes.io/component: "{{ include "langsmith.fullname" . }}-{{ .Values.aceBackend.name }}"
