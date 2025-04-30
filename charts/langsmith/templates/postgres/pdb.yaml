@@ -16,9 +16,8 @@ metadata:
 spec:
   selector:
     matchLabels:
-      app.kubernetes.io/name: {{ include "langsmith.name" . }}
-      app.kubernetes.io/instance: {{ .Release.Name }}
-      app.kubernetes.io/component: {{ .Values.postgres.name }}
+      {{- include "langsmith.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-{{ .Values.postgres.name }}
   {{- if .Values.postgres.pdb.minAvailable }}
   minAvailable: {{ .Values.postgres.pdb.minAvailable }}
   {{- end }}

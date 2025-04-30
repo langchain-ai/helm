@@ -166,7 +166,6 @@ aceBackend:
   containerPort: 1987
   bindAddress: "0.0.0.0"
   deployment:
-    autoRestart: true
     replicas: 1
     labels: {}
     annotations: {}
@@ -254,7 +253,6 @@ backend:
   containerPort: 1984
   existingConfigMapName: ""
   deployment:
-    autoRestart: true
     replicas: 1
     labels: {}
     annotations: {}
@@ -542,7 +540,6 @@ frontend:
   proxyConnectTimeout: "60"
   ipv6Enabled: true
   deployment:
-    autoRestart: true
     replicas: 1
     labels: {}
     annotations: {}
@@ -620,7 +617,6 @@ hostBackend:
   name: "host-backend"
   containerPort: 1985
   deployment:
-    autoRestart: true
     replicas: 1
     labels: {}
     annotations: {}
@@ -712,7 +708,6 @@ hostBackend:
 listener:
   name: "listener"
   deployment:
-    autoRestart: true
     replicas: 1
     labels: {}
     annotations: {}
@@ -896,7 +891,6 @@ platformBackend:
   containerPort: 1986
   existingConfigMapName: ""
   deployment:
-    autoRestart: true
     replicas: 3
     labels: {}
     annotations: {}
@@ -976,7 +970,6 @@ operator:
   watchNamespaces: ""
   kedaEnabled: true
   deployment:
-    autoRestart: true
     replicas: 1
     labels: {}
     annotations: {}
@@ -1071,7 +1064,6 @@ playground:
   name: "playground"
   containerPort: 1988
   deployment:
-    autoRestart: true
     replicas: 1
     labels: {}
     annotations: {}
@@ -1249,7 +1241,6 @@ postgres:
 queue:
   name: "queue"
   deployment:
-    autoRestart: true
     replicas: 3
     labels: {}
     annotations: {}
