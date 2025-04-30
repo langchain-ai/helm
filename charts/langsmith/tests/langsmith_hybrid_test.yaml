@@ -8,6 +8,7 @@ templates:
   - platform-backend/deployment.yaml
   - queue/deployment.yaml
   - config-map.yaml
+  - secrets.yaml
   - redis/secrets.yaml
   - postgres/secrets.yaml
   - clickhouse/secrets.yaml
