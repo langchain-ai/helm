@@ -47,9 +47,7 @@ spec:
   template:
     metadata:
       annotations:
-      {{- if .Values.frontend.deployment.autoRestart }}
-        rollme: {{ randAlphaNum 5 | quote }}
-      {{- end }}
+      {{- include "langsmith.checksumAnnotations" . | nindent 8 }}
       {{- with .Values.frontend.deployment.annotations }}
         {{- toYaml . | nindent 8 }}
       {{- end }}

@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.10.8](https://img.shields.io/badge/Version-0.10.8-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.10.29](https://img.shields.io/badge/AppVersion-0.10.29-informational?style=flat-square)
+![Version: 0.10.9](https://img.shields.io/badge/Version-0.10.9-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.10.29](https://img.shields.io/badge/AppVersion-0.10.29-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -253,7 +253,6 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | aceBackend.containerPort | int | `1987` |  |
 | aceBackend.deployment.affinity | object | `{}` |  |
 | aceBackend.deployment.annotations | object | `{}` |  |
-| aceBackend.deployment.autoRestart | bool | `true` |  |
 | aceBackend.deployment.command[0] | string | `"deno"` |  |
 | aceBackend.deployment.command[1] | string | `"run"` |  |
 | aceBackend.deployment.command[2] | string | `"--unstable-worker-options"` |  |
@@ -368,7 +367,6 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | backend.containerPort | int | `1984` |  |
 | backend.deployment.affinity | object | `{}` |  |
 | backend.deployment.annotations | object | `{}` |  |
-| backend.deployment.autoRestart | bool | `true` |  |
 | backend.deployment.command[0] | string | `"uvicorn"` |  |
 | backend.deployment.command[10] | string | `"--http"` |  |
 | backend.deployment.command[11] | string | `"httptools"` |  |
@@ -547,7 +545,6 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | hostBackend.containerPort | int | `1985` |  |
 | hostBackend.deployment.affinity | object | `{}` |  |
 | hostBackend.deployment.annotations | object | `{}` |  |
-| hostBackend.deployment.autoRestart | bool | `true` |  |
 | hostBackend.deployment.command[0] | string | `"uvicorn"` |  |
 | hostBackend.deployment.command[10] | string | `"--http"` |  |
 | hostBackend.deployment.command[11] | string | `"httptools"` |  |
@@ -625,7 +622,6 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | frontend.containerPort | int | `8080` |  |
 | frontend.deployment.affinity | object | `{}` |  |
 | frontend.deployment.annotations | object | `{}` |  |
-| frontend.deployment.autoRestart | bool | `true` |  |
 | frontend.deployment.command[0] | string | `"/entrypoint.sh"` |  |
 | frontend.deployment.extraContainerConfig | object | `{}` |  |
 | frontend.deployment.extraEnv | list | `[]` |  |
@@ -694,7 +690,6 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | listener.autoscaling.targetMemoryUtilizationPercentage | int | `80` |  |
 | listener.deployment.affinity | object | `{}` |  |
 | listener.deployment.annotations | object | `{}` |  |
-| listener.deployment.autoRestart | bool | `true` |  |
 | listener.deployment.command[0] | string | `"saq"` |  |
 | listener.deployment.command[1] | string | `"app.workers.queues.host_worker.settings"` |  |
 | listener.deployment.command[2] | string | `"--quiet"` |  |
@@ -755,7 +750,6 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | operator.createCRDs | bool | `true` |  |
 | operator.deployment.affinity | object | `{}` |  |
 | operator.deployment.annotations | object | `{}` |  |
-| operator.deployment.autoRestart | bool | `true` |  |
 | operator.deployment.extraContainerConfig | object | `{}` |  |
 | operator.deployment.extraEnv | list | `[]` |  |
 | operator.deployment.labels | object | `{}` |  |
@@ -802,7 +796,6 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | platformBackend.containerPort | int | `1986` |  |
 | platformBackend.deployment.affinity | object | `{}` |  |
 | platformBackend.deployment.annotations | object | `{}` |  |
-| platformBackend.deployment.autoRestart | bool | `true` |  |
 | platformBackend.deployment.command[0] | string | `"./smith-go"` |  |
 | platformBackend.deployment.extraContainerConfig | object | `{}` |  |
 | platformBackend.deployment.extraEnv | list | `[]` |  |
@@ -866,7 +859,6 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | playground.containerPort | int | `1988` |  |
 | playground.deployment.affinity | object | `{}` |  |
 | playground.deployment.annotations | object | `{}` |  |
-| playground.deployment.autoRestart | bool | `true` |  |
 | playground.deployment.command[0] | string | `"uvicorn"` |  |
 | playground.deployment.command[10] | string | `"--http"` |  |
 | playground.deployment.command[11] | string | `"httptools"` |  |
@@ -1010,7 +1002,6 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | queue.autoscaling.targetMemoryUtilizationPercentage | int | `80` |  |
 | queue.deployment.affinity | object | `{}` |  |
 | queue.deployment.annotations | object | `{}` |  |
-| queue.deployment.autoRestart | bool | `true` |  |
 | queue.deployment.command[0] | string | `"saq"` |  |
 | queue.deployment.command[1] | string | `"app.workers.queues.single_queue_worker.settings"` |  |
 | queue.deployment.command[2] | string | `"--quiet"` |  |
@@ -1130,6 +1121,6 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | Ankush | <ankush@langchain.dev> |  |
 
 ----------------------------------------------
-Autogenerated from chart metadata using [helm-docs v1.14.2](https://github.com/norwoodj/helm-docs/releases/v1.14.2)
+Autogenerated from chart metadata using [helm-docs v1.11.3](https://github.com/norwoodj/helm-docs/releases/v1.11.3)
 ## Docs Generated by [helm-docs](https://github.com/norwoodj/helm-docs)
 `helm-docs -t ./charts/langsmith/README.md.gotmpl`
