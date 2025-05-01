@@ -569,10 +569,6 @@ Quickwit environment
 {{- end }}
 {{- end }}
 
-{{- define "langsmith.quickwit-runs-index" -}}
-{{- $.Files.Get "resources/quickwit-index-runs.yaml" -}}
-{{- end -}}
-
 {{- define "langsmith.quickwit-cluster-endpoint" -}}
 {{- printf "http://%s-%s:7280" (include "langsmith.fullname" .) (.Values.quickwit.metastore.name) -}}
 {{- end }}
@@ -585,3 +581,26 @@ Quickwit environment
 {{- printf "http://%s-%s:7280" (include "langsmith.fullname" .) (.Values.quickwit.searcher.name) -}}
 {{- end }}
 
+{{- define "langsmith.quickwit-short-ttl" -}}
+{{- printf "%s seconds" (.Values.config.ttl.ttl_period_seconds.shortlived | replace "\"" "") -}}
+{{- end }}
+
+{{- define "langsmith.quickwit-long-ttl" -}}
+{{- printf "%s seconds" (.Values.config.ttl.ttl_period_seconds.longlived | replace "\"" "") -}}
+{{- end }}
+
+{{- define "langsmith.checksumAnnotations"}}
+checksum/config: {{ include (print $.Template.BasePath "/config-map.yaml") . | sha256sum }}
+{{- if not .Values.config.existingSecretName }}
+checksum/secrets: {{ include (print $.Template.BasePath "/secrets.yaml") . | sha256sum }}
+{{- end }}
+{{- if not .Values.redis.external.existingSecretName }}
+checksum/redis: {{ include (print $.Template.BasePath "/redis/secrets.yaml") . | sha256sum }}
+{{- end }}
+{{- if not .Values.postgres.external.existingSecretName }}
+checksum/postgres: {{ include (print $.Template.BasePath "/postgres/secrets.yaml") . | sha256sum }}
+{{- end }}
+{{- if not .Values.clickhouse.external.existingSecretName }}
+checksum/clickhouse: {{ include (print $.Template.BasePath "/clickhouse/secrets.yaml") . | sha256sum }}
+{{- end }}
+{{- end }}

@@ -22,9 +22,33 @@ spec:
     spec:
       serviceAccountName: {{ include "quickwit.serviceAccountName" . }}
       restartPolicy: Never
+      initContainers:
+      - name: backend
+        image: "{{ .Values.images.backendImage.repository }}:{{ .Values.images.backendImage.tag | default .Chart.AppVersion }}"
+        command: ["/bin/sh"]
+        args:
+          - "-c"
+          - |
+            process_mapping() {
+              local mapping_file="$1"
+              local retention_period="$2"
+              local partition_key="{{ .Values.quickwit.partitionKey }}"
+
+              echo "Processing mapping file: ${mapping_file}"
+              cat /code/smith-backend/quickwit/${mapping_file} | \
+              yq ".retention.period = \"${retention_period}\" | .doc_mapping.partition_key = \"${partition_key}\"" > /quickwit/${mapping_file}
+            }
+
+            set -e
+            process_mapping "runs-index-default.yaml" "{{- include "langsmith.quickwit-short-ttl" . -}}"
+            process_mapping "runs-index-long-ttl.yaml" "{{- include "langsmith.quickwit-long-ttl" . -}}"
+
+        volumeMounts:
+        - name: index-data
+          mountPath: /quickwit
       containers:
       - name: {{ .Values.quickwit.name }}
-        image: "{{ $.Values.images.quickwitImage.repository }}:{{ $.Values.images.quickwitImage.tag }}"
+        image: "{{ .Values.images.quickwitImage.repository }}:{{ .Values.images.quickwitImage.tag }}"
         imagePullPolicy: {{ $.Values.images.quickwitImage.pullPolicy }}
         command: ["/bin/bash"]
 
@@ -32,9 +56,24 @@ spec:
         args:
           - "-c"
           - |
-            quickwit index describe --index runs --endpoint ${QW_CLUSTER_ENDPOINT} && \
-            quickwit index update --index runs --index-config index-runs.yaml --yes --endpoint ${QW_CLUSTER_ENDPOINT} || \
-            quickwit index create --index-config index-runs.yaml --endpoint ${QW_CLUSTER_ENDPOINT}
+            process_index() {
+              local index_name="$1"
+              local config_file="$2"
+              echo "Processing index: ${index_name} with config: ${config_file}"
+
+              if quickwit index describe --index ${index_name} --endpoint ${QW_CLUSTER_ENDPOINT} > /dev/null 2>&1; then
+                echo "Index ${index_name} exists, updating..."
+                quickwit index update --index ${index_name} --index-config ${config_file} --yes --endpoint ${QW_CLUSTER_ENDPOINT}
+              else
+                echo "Index ${index_name} does not exist, creating..."
+                quickwit index create --index-config ${config_file} --endpoint ${QW_CLUSTER_ENDPOINT}
+              fi
+              echo "Successfully processed index: ${index_name}"
+            }
+
+            set -e
+            process_index runs           runs-index-default.yaml
+            process_index runs-long-ttl  runs-index-long-ttl.yaml
 
         env:
         - name: QW_CLUSTER_ENDPOINT
@@ -44,21 +83,15 @@ spec:
             mountPath: /quickwit/node.yaml
             subPath: node.yaml
         volumeMounts:
-          - name: index
-            mountPath: /quickwit/index-runs.yaml
-            subPath: index-runs.yaml
+          - name: index-data
+            mountPath: /quickwit
       volumes:
-        # Quickwit chart provisions this ConfigMap
         - name: config
           configMap:
             name: {{ include "quickwit.configMapName" . }}
             items:
               - key: node.yaml
                 path: node.yaml
-        - name: index
-          configMap:
-            name: {{ include "langsmith.fullname" . }}-{{ .Values.quickwit.updateRunsIndex.name }}
-            items:
-              - key: index-runs.yaml
-                path: index-runs.yaml
+        - name: index-data
+          emptyDir: {}
 {{- end }}
