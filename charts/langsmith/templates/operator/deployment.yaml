@@ -5,7 +5,6 @@ metadata:
   name: {{ include "langsmith.fullname" . }}-{{ .Values.operator.name }}
   labels:
     {{- include "langsmith.labels" . | nindent 4 }}
-    app.kubernetes.io/name: langgraph-{{ .Values.operator.name }}
     {{- with .Values.operator.deployment.labels }}
       {{- toYaml . | nindent 4 }}
     {{- end }}
@@ -83,7 +82,7 @@ spec:
           - name: templates-volume
             mountPath: /templates
         {{- with .Values.operator.deployment.volumeMounts }}
-          {{- toYaml . | nindent 12 }}
+          {{- toYaml . | nindent 10 }}
         {{- end }}
         env:
           - name: WATCH_NAMESPACE
