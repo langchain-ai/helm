@@ -22,10 +22,10 @@ spec:
   template:
     metadata:
       annotations:
-        {{- with .Values.operator.deployment.annotations }}
+      {{- include "langsmith.checksumAnnotations" . | nindent 8 }}
+      {{- with .Values.operator.deployment.annotations }}
         {{- toYaml . | nindent 8 }}
-        {{- end }}
-        checksum/config: {{ include (print $.Template.BasePath "/operator/config-map.yaml") . | sha256sum }}
+      {{- end }}
       labels:
         {{- include "langsmith.labels" . | nindent 8 }}
         app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-operator
