@@ -215,7 +215,7 @@ platformBackend:
     # writeable tmp directory for spooling to disk
     volumes:
       - name: tmp
-        emptyDir:
+        emptyDir: {}
     volumeMounts:
       - name: tmp
         mountPath: /tmp
