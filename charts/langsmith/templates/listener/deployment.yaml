@@ -36,7 +36,7 @@ spec:
       {{- with .Values.listener.deployment.annotations }}
         {{- toYaml . | nindent 8 }}
       {{- end }}
-        checksum/config: {{ include (print $.Template.BasePath "/listener/config-map.yaml") . | sha256sum }}
+        checksum/listener-config: {{ include (print $.Template.BasePath "/listener/config-map.yaml") . | sha256sum }}
       labels:
         {{- with.Values.listener.deployment.labels }}
             {{- toYaml . | nindent 8 }}
