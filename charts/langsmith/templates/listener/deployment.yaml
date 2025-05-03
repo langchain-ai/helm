@@ -88,7 +88,7 @@ spec:
             - name: templates-volume
               mountPath: /code/host-backend/host/k8s_templates
           {{- with .Values.listener.deployment.volumeMounts }}
-            {{- toYaml . | nindent 12 }}
+            {{- toYaml . | nindent 10 }}
           {{- end }}
           {{- with .Values.listener.deployment.extraContainerConfig }}
             {{- toYaml . | nindent 10 }}
