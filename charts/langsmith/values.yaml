@@ -995,6 +995,8 @@ operator:
   pdb:
     enabled: false
     minAvailable: 1
+    labels: {}
+    annotations: {}
   serviceAccount:
     create: true
     name: ""
