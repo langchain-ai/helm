@@ -1,6 +1,6 @@
 # langgraph-cloud
 
-![Version: 0.1.13](https://img.shields.io/badge/Version-0.1.13-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.2.0](https://img.shields.io/badge/AppVersion-0.2.0-informational?style=flat-square)
+![Version: 0.1.14](https://img.shields.io/badge/Version-0.1.14-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.2.0](https://img.shields.io/badge/AppVersion-0.2.0-informational?style=flat-square)
 
 Helm chart to deploy the LangGraph Cloud application and all services it depends on.
 
@@ -243,6 +243,8 @@ the same format as the secret in the corresponding `secrets.yaml` file. Note: AP
 | queue.deployment.volumes | list | `[]` |  |
 | queue.enabled | bool | `false` |  |
 | queue.name | string | `"queue"` |  |
+| queue.pdb.enabled | bool | `false` |  |
+| queue.pdb.minAvailable | int | `1` |  |
 | queue.serviceAccount.annotations | object | `{}` |  |
 | queue.serviceAccount.create | bool | `true` |  |
 | queue.serviceAccount.labels | object | `{}` |  |
@@ -287,6 +289,8 @@ the same format as the secret in the corresponding `secrets.yaml` file. Note: AP
 | redis.external.enabled | bool | `false` |  |
 | redis.external.existingSecretName | string | `""` |  |
 | redis.name | string | `"redis"` |  |
+| redis.pdb.enabled | bool | `false` |  |
+| redis.pdb.minAvailable | int | `1` |  |
 | redis.service.annotations | object | `{}` |  |
 | redis.service.labels | object | `{}` |  |
 | redis.service.loadBalancerIP | string | `""` |  |
@@ -325,6 +329,8 @@ the same format as the secret in the corresponding `secrets.yaml` file. Note: AP
 | studio.enabled | bool | `true` |  |
 | studio.localGraphUrl | string | `""` |  |
 | studio.name | string | `"studio"` |  |
+| studio.pdb.enabled | bool | `false` |  |
+| studio.pdb.minAvailable | int | `1` |  |
 | studio.service.annotations | object | `{}` |  |
 | studio.service.httpPort | int | `80` |  |
 | studio.service.httpsPort | int | `443` |  |
@@ -379,6 +385,8 @@ the same format as the secret in the corresponding `secrets.yaml` file. Note: AP
 | apiServer.deployment.volumeMounts | list | `[]` |  |
 | apiServer.deployment.volumes | list | `[]` |  |
 | apiServer.name | string | `"api-server"` |  |
+| apiServer.pdb.enabled | bool | `false` |  |
+| apiServer.pdb.minAvailable | int | `1` |  |
 | apiServer.service.annotations | object | `{}` |  |
 | apiServer.service.httpPort | int | `80` |  |
 | apiServer.service.httpsPort | int | `443` |  |
@@ -406,6 +414,8 @@ the same format as the secret in the corresponding `secrets.yaml` file. Note: AP
 | postgres.external.schema | string | `"public"` |  |
 | postgres.external.user | string | `"postgres"` |  |
 | postgres.name | string | `"postgres"` |  |
+| postgres.pdb.enabled | bool | `false` |  |
+| postgres.pdb.minAvailable | int | `1` |  |
 | postgres.service.annotations | object | `{}` |  |
 | postgres.service.labels | object | `{}` |  |
 | postgres.service.loadBalancerIP | string | `""` |  |

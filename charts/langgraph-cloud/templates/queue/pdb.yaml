@@ -1,0 +1,19 @@
+{{- if .Values.queue.pdb.enabled }}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "langGraphCloud.fullname" . }}-{{ .Values.queue.name }}
+  labels:
+    {{- include "langGraphCloud.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "langGraphCloud.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: {{ include "langGraphCloud.fullname" . }}-{{ .Values.queue.name }}
+  {{- if .Values.queue.pdb.minAvailable }}
+  minAvailable: {{ .Values.queue.pdb.minAvailable }}
+  {{- end }}
+  {{- if .Values.queue.pdb.maxUnavailable }}
+  maxUnavailable: {{ .Values.queue.pdb.maxUnavailable }}
+  {{- end }}
+{{- end }}

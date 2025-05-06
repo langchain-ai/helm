@@ -95,6 +95,9 @@ apiServer:
     name: ""
     labels: {}
     annotations: {}
+  pdb:
+    enabled: false
+    minAvailable: 1
 
 queue:
   enabled: false
@@ -135,6 +138,9 @@ queue:
     name: ""
     labels: {}
     annotations: {}
+  pdb:
+    enabled: false
+    minAvailable: 1
 
 postgres:
   name: "postgres"
@@ -188,6 +194,9 @@ postgres:
     name: ""
     labels: {}
     annotations: {}
+  pdb:
+    enabled: false
+    minAvailable: 1
 
 redis:
   name: "redis"
@@ -258,6 +267,9 @@ redis:
     name: ""
     labels: {}
     annotations: {}
+  pdb:
+    enabled: false
+    minAvailable: 1
 
 studio:
   enabled: true
@@ -307,3 +319,6 @@ studio:
     name: ""
     labels: {}
     annotations: {}
+  pdb:
+    enabled: false
+    minAvailable: 1
