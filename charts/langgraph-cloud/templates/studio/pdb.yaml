@@ -1,0 +1,19 @@
+{{- if .Values.studio.pdb.enabled }}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "langGraphCloud.fullname" . }}-{{ .Values.studio.name }}
+  labels:
+    {{- include "langGraphCloud.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "langGraphCloud.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: {{ include "langGraphCloud.fullname" . }}-{{ .Values.studio.name }}
+  {{- if .Values.studio.pdb.minAvailable }}
+  minAvailable: {{ .Values.studio.pdb.minAvailable }}
+  {{- end }}
+  {{- if .Values.studio.pdb.maxUnavailable }}
+  maxUnavailable: {{ .Values.studio.pdb.maxUnavailable }}
+  {{- end }}
+{{- end }}
