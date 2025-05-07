@@ -81,7 +81,17 @@ spec:
           {{- end }}
         volumeMounts:
           - name: templates-volume
-            mountPath: /templates
+            mountPath: /templates/deployment.yaml.tmpl
+            subPath: deployment.yaml.tmpl
+            readOnly: true
+          - name: templates-volume
+            mountPath: /templates/service.yaml.tmpl
+            subPath: service.yaml.tmpl
+            readOnly: true
+          - name: templates-volume
+            mountPath: /templates/ingress.yaml.tmpl
+            subPath: ingress.yaml.tmpl
+            readOnly: true
         {{- with .Values.operator.deployment.volumeMounts }}
           {{- toYaml . | nindent 12 }}
         {{- end }}
@@ -90,10 +100,12 @@ spec:
             value: {{ .Values.operator.watchNamespaces | quote }}
           - name: KEDA_ENABLED
             value: {{ .Values.operator.kedaEnabled | quote }}
+          {{- if .Values.ingress.enabled }}
           - name: SHARED_INGRESS_NAME
             value: {{ include "langgraphDataplane.fullname" . }}-ingress
           - name: SHARED_INGRESS_NAMESPACE
             value: {{ .Release.Namespace }}
+          {{- end }}
           - name: ROOT_DOMAIN
             value: {{ .Values.ingress.hostname | quote }}
           - name: TLS_ENABLED
@@ -123,9 +135,11 @@ spec:
             name: {{ include "langgraphDataplane.fullname" . }}-config
             items:
               - key: deployment.yaml
-                path: deployment.yaml
+                path: deployment.yaml.tmpl
               - key: service.yaml
-                path: service.yaml
+                path: service.yaml.tmpl
+              - key: ingress.yaml
+                path: ingress.yaml.tmpl
       {{- with .Values.operator.deployment.volumes }}
         {{- toYaml . | nindent 8 }}
       {{- end }}
