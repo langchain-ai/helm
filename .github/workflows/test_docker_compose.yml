@@ -35,7 +35,7 @@ jobs:
 
     - name: Start containers
       working-directory: charts/langsmith/docker-compose
-      run: docker compose up -d
+      run: docker compose up -d -e TRACE_TIER_TTL_DURATION_SEC_MAP='{"longlived":34560000,"shortlived":2209600}'
 
     - name: sleep 90 seconds
       run: sleep 90
