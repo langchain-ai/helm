@@ -24,6 +24,7 @@ jobs:
     env:
       LANGSMITH_LICENSE_KEY: ${{ secrets.LANGSMITH_LICENSE_KEY }}
       API_KEY_SALT: test
+      TRACE_TIER_TTL_DURATION_SEC_MAP: '{"longlived":34560000,"shortlived":2209600}'
 
     steps:
     - name: Checkout
