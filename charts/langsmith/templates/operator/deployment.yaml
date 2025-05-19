@@ -121,10 +121,10 @@ spec:
           configMap:
             name: {{ include "langsmith.fullname" . }}-operator-config
             items:
-              - key: deployment.yaml
-                path: deployment.yaml
-              - key: service.yaml
-                path: service.yaml
+              - key: deployment.yaml.tmpl
+                path: deployment.yaml.tmpl
+              - key: service.yaml.tmpl
+                path: service.yaml.tmpl
       {{- with .Values.operator.deployment.volumes }}
         {{- toYaml . | nindent 8 }}
       {{- end }}

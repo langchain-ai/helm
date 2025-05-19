@@ -8,8 +8,8 @@ metadata:
   annotations:
     {{- include "langsmith.annotations" . | nindent 4 }}
 data:
-  deployment.yaml: |
+  deployment.yaml.tmpl: |
 {{ .Values.operator.templates.deployment | indent 4 }}
-  service.yaml: |
+  service.yaml.tmpl: |
 {{ .Values.operator.templates.service | indent 4 }}
 {{- end }}
