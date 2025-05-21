@@ -83,6 +83,7 @@ rules:
   resources:
   - pods
   - services
+  - serviceaccounts
   verbs:
   - create
   - delete
@@ -230,6 +231,7 @@ rules:
   resources:
   - pods
   - services
+  - serviceaccounts
   verbs:
   - create
   - delete

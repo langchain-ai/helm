@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.10.16](https://img.shields.io/badge/Version-0.10.16-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.10.52](https://img.shields.io/badge/AppVersion-0.10.52-informational?style=flat-square)
+![Version: 0.10.17](https://img.shields.io/badge/Version-0.10.17-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.10.52](https://img.shields.io/badge/AppVersion-0.10.52-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -34,7 +34,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | images.imagePullSecrets | list | `[]` | Secrets with credentials to pull images from a private registry. Specified as name: value. |
 | images.operatorImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.operatorImage.repository | string | `"docker.io/langchain/langgraph-operator"` |  |
-| images.operatorImage.tag | string | `"a3b4739"` |  |
+| images.operatorImage.tag | string | `"6cc83a8"` |  |
 | images.platformBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.platformBackendImage.repository | string | `"docker.io/langchain/langsmith-go-backend"` |  |
 | images.platformBackendImage.tag | string | `"0.10.52"` |  |
