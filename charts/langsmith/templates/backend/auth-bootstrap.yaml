@@ -1,17 +1,16 @@
 {{- define "validatePassword" -}}
 {{- $password := .Values.config.basicAuth.initialOrgAdminPassword -}}
-{{- $symbols := "!#$%()+,-./:?@[]^_{~}" -}}
 {{- if lt (len $password) 12 -}}
-  {{- fail "Error: Password must be at least 12 characters long" -}}
+  {{- fail "Error: Admin password must be at least 12 characters long" -}}
 {{- end -}}
 {{- if not (regexMatch "[a-z]" $password) -}}
-  {{- fail "Error: Password must contain at least one lowercase letter" -}}
+  {{- fail "Error: Admin password must contain at least one lowercase letter" -}}
 {{- end -}}
 {{- if not (regexMatch "[A-Z]" $password) -}}
-  {{- fail "Error: Password must contain at least one uppercase letter" -}}
+  {{- fail "Error: Admin password must contain at least one uppercase letter" -}}
 {{- end -}}
 {{- if not (regexMatch `[!#$%()+,./:?@\[\]\\^_{~}-]` $password) -}}
-  {{- fail "Error: Password must contain at least one symbol from: !#$%()+,-./:?@[\\]^_{~}" -}}
+  {{- fail "Error: Admin password must contain at least one symbol from: !#$%()+,-./:?@[\\]^_{~}" -}}
 {{- end -}}
 {{- end -}}
 
