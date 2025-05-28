@@ -148,6 +148,33 @@ data:
         }
     {{- end }}
 
+        location = /{{ .Values.ingress.subdomain }}/api/runs/multipart {
+            rewrite /{{ .Values.ingress.subdomain }}/api/runs/multipart /runs/multipart  break;
+            proxy_set_header Connection '';
+            proxy_http_version 1.1;
+            proxy_buffering off;
+            proxy_cache off;
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}:{{ .Values.platformBackend.service.port }};
+        }
+
+        location = /{{ .Values.ingress.subdomain }}/api/runs/batch {
+            rewrite /{{ .Values.ingress.subdomain }}/api/runs/batch /runs/batch  break;
+            proxy_set_header Connection '';
+            proxy_http_version 1.1;
+            proxy_buffering off;
+            proxy_cache off;
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}:{{ .Values.platformBackend.service.port }};
+        }
+
+        location = /{{ .Values.ingress.subdomain }}/api/v1/runs {
+            rewrite /{{ .Values.ingress.subdomain }}/api/runs /runs  break;
+            proxy_set_header Connection '';
+            proxy_http_version 1.1;
+            proxy_buffering off;
+            proxy_cache off;
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}:{{ .Values.platformBackend.service.port }};
+        }
+
         # Deprecated Backend Routes
         location ~ /{{ .Values.ingress.subdomain }}/api {
             rewrite /{{ .Values.ingress.subdomain }}/api/(.*) /api/v1/$1  break;
@@ -339,6 +366,33 @@ data:
             proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.hostBackend.name }}:{{ .Values.hostBackend.service.port }};
         }
     {{- end }}
+
+        location = /api/runs/multipart {
+            rewrite /api/runs/multipart /runs/multipart  break;
+            proxy_set_header Connection '';
+            proxy_http_version 1.1;
+            proxy_buffering off;
+            proxy_cache off;
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}:{{ .Values.platformBackend.service.port }};
+        }
+
+        location = /api/runs/batch {
+            rewrite /api/runs/batch /runs/batch  break;
+            proxy_set_header Connection '';
+            proxy_http_version 1.1;
+            proxy_buffering off;
+            proxy_cache off;
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}:{{ .Values.platformBackend.service.port }};
+        }
+
+        location = /api/runs {
+            rewrite /api/runs /runs  break;
+            proxy_set_header Connection '';
+            proxy_http_version 1.1;
+            proxy_buffering off;
+            proxy_cache off;
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}:{{ .Values.platformBackend.service.port }};
+        }
 
         # Deprecated Backend Routes To be removed in v8
         location ~ /api {
