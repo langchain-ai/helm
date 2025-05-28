@@ -168,6 +168,7 @@ the same format as the secret in the corresponding `secrets.yaml` file.
 | images.redisImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.redisImage.repository | string | `"docker.io/redis/redis-stack-server"` |  |
 | images.redisImage.tag | string | `"latest"` |  |
+| images.registry | string | "" | If supplied, all children <image_name>.repository values will be prepended with this registry name + `/`
 | ingress.annotations | object | `{}` |  |
 | ingress.enabled | bool | `false` |  |
 | ingress.hostname | string | `""` |  |

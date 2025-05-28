@@ -12,6 +12,8 @@ commonLabels: {}
 commonEnv: []
 
 images:
+   # -- If supplied, all children <image_name>.repository values will be prepended with this registry name + `/`
+  registry: ""
    # -- Secrets with credentials to pull images from a private registry. Specified as name: value.
   imagePullSecrets: []
   listenerImage:

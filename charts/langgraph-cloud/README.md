@@ -205,6 +205,7 @@ the same format as the secret in the corresponding `secrets.yaml` file. Note: AP
 | images.redisImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.redisImage.repository | string | `"docker.io/redis"` |  |
 | images.redisImage.tag | string | `"6"` |  |
+| images.registry | string | "" | If supplied, all children <image_name>.repository values will be prepended with this registry name + `/`
 | images.studioImage.pullPolicy | string | `"Always"` |  |
 | images.studioImage.repository | string | `"docker.io/langchain/langgraph-debugger"` |  |
 | images.studioImage.tag | string | `"latest"` |  |

@@ -611,12 +611,12 @@ checksum/clickhouse: {{ include (print $.Template.BasePath "/clickhouse/secrets.
 {{- end }}
 
 {{/*
-Creates the image reference used for langsmith deployments. If defaultRegistry is specified, concatenate with a '/'.
+Creates the image reference used for Langsmith deployments. If registry is specified, concatenate it, along with a '/'.
 */}}
 {{- define "langsmith.image" -}}
 {{- $imageConfig := index .Values.images .component -}}
-{{- if .Values.images.defaultRegistry -}}
-{{ .Values.images.defaultRegistry }}/{{ $imageConfig.repository }}:{{ $imageConfig.tag | default .Chart.AppVersion }}
+{{- if .Values.images.registry -}}
+{{ .Values.images.registry }}/{{ $imageConfig.repository }}:{{ $imageConfig.tag | default .Chart.AppVersion }}
 {{- else -}}
 {{ $imageConfig.repository }}:{{ $imageConfig.tag | default .Chart.AppVersion }}
 {{- end -}}

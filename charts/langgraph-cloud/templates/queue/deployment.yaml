@@ -78,7 +78,7 @@ spec:
             {{- with .Values.queue.deployment.extraEnv }}
               {{- toYaml . | nindent 12 }}
             {{- end }}
-          image: "{{ .Values.images.apiServerImage.repository }}:{{ .Values.images.apiServerImage.tag | default .Chart.AppVersion }}"
+          image: {{ include "langGraphCloud.image" (dict "Values" .Values "Chart" .Chart "component" "apiServerImage") | quote }}
           imagePullPolicy: {{ .Values.images.apiServerImage.pullPolicy }}
           ports:
             - name: queue

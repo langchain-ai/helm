@@ -25,7 +25,6 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | images.clickhouseImage.pullPolicy | string | `"Always"` |  |
 | images.clickhouseImage.repository | string | `"docker.io/clickhouse/clickhouse-server"` |  |
 | images.clickhouseImage.tag | string | `"24.8"` |  |
-| images.defaultRegistry | string | "" | If supplied, all children <image_name>.repository values will be prepended with this registry name + `/`
 | images.frontendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.frontendImage.repository | string | `"docker.io/langchain/langsmith-frontend"` |  |
 | images.frontendImage.tag | string | `"0.10.60"` |  |
@@ -51,6 +50,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | images.redisImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.redisImage.repository | string | `"docker.io/redis"` |  |
 | images.redisImage.tag | string | `"7"` |  |
+| images.registry | string | "" | If supplied, all children <image_name>.repository values will be prepended with this registry name + `/`
 | ingress.annotations | object | `{}` |  |
 | ingress.enabled | bool | `false` | Set to true if langgraph platform enabled. |
 | ingress.hostname | string | `""` |  |

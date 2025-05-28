@@ -46,7 +46,7 @@ spec:
           env:
             {{- toYaml . | nindent 12 }}
           {{- end }}
-          image: "{{ .Values.images.redisImage.repository }}:{{ .Values.images.redisImage.tag | default .Chart.AppVersion }}"
+          image: {{ include "openGPTs.image" (dict "Values" .Values "Chart" .Chart "component" "redisImage") | quote }}
           imagePullPolicy: {{ .Values.images.redisImage.pullPolicy }}
           ports:
             - name: redis
