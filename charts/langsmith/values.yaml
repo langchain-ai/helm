@@ -73,7 +73,7 @@ ingress:
 
 config:
   existingSecretName: ""
-  langsmithLicenseKey: ""
+  langsmithLicenseKey: "lcl_4b5a9a94e5e941ccb6df1ecc2bc2f800_f92e987b18"
   langgraphPlatform:
       # -- Optional. Used to enable the Langgraph platform control plane. If enabled, the license key must be provided.
     enabled: false
@@ -83,7 +83,7 @@ config:
     tlsEnabled: true
 
   # -- Salt used to generate the API key. Should be a random string.
-  apiKeySalt: ""
+  apiKeySalt: "1234567890"
   logLevel: "info"
   # -- Must be 'oauth' for OAuth with PKCE, 'mixed' for basic auth or OAuth without PKCE
   authType: ""
