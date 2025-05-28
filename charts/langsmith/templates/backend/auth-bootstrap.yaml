@@ -10,8 +10,8 @@
 {{- if not (regexMatch "[A-Z]" $password) -}}
   {{- fail "Error: Password must contain at least one uppercase letter" -}}
 {{- end -}}
-{{- if not (regexMatch "[!#$%()+,\-./:?@\[\\\]^_{~}]" $password) -}}
-  {{- fail "Error: Password must contain at least one symbol from: !#$%()+,-./:?@[]^_{~}" -}}
+{{- if not (regexMatch `[!#$%()+,./:?@\[\]\\^_{~}-]` $password) -}}
+  {{- fail "Error: Password must contain at least one symbol from: !#$%()+,-./:?@[\\]^_{~}" -}}
 {{- end -}}
 {{- end -}}
 
