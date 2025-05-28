@@ -1,3 +1,20 @@
+{{- define "validatePassword" -}}
+{{- $password := .Values.config.basicAuth.initialOrgAdminPassword -}}
+{{- $symbols := "!#$%()+,-./:?@[]^_{~}" -}}
+{{- if lt (len $password) 12 -}}
+  {{- fail "Error: Password must be at least 12 characters long" -}}
+{{- end -}}
+{{- if not (regexMatch "[a-z]" $password) -}}
+  {{- fail "Error: Password must contain at least one lowercase letter" -}}
+{{- end -}}
+{{- if not (regexMatch "[A-Z]" $password) -}}
+  {{- fail "Error: Password must contain at least one uppercase letter" -}}
+{{- end -}}
+{{- if not (regexMatch "[!#$%()+,-./:?@[]^_{~}]" $password) -}}
+  {{- fail "Error: Password must contain at least one symbol from: !#$%()+,-./:?@[]^_{~}" -}}
+{{- end -}}
+{{- end -}}
+
 {{- define "authBootstrapEnvVars" -}}
 - name: INITIAL_ORG_ADMIN_EMAIL
   value: {{ .Values.config.basicAuth.initialOrgAdminEmail }}
@@ -8,6 +25,7 @@
       key: initial_org_admin_password
 {{- end -}}
 {{- if .Values.config.basicAuth.enabled }}
+{{- template "validatePassword" . -}}
 {{- $envVars := concat .Values.commonEnv (include "langsmith.commonEnv" . | fromYamlArray) (include "authBootstrapEnvVars" . | fromYamlArray) .Values.backend.authBootstrap.extraEnv -}}
 {{- include "langsmith.detectDuplicates" $envVars -}}
 apiVersion: batch/v1
