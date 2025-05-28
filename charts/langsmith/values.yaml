@@ -12,6 +12,7 @@ commonLabels: {}
 commonEnv: []
 
 images:
+  defaultRegistry: ""
    # -- Secrets with credentials to pull images from a private registry. Specified as name: value.
   imagePullSecrets: []
   aceBackendImage:
@@ -55,7 +56,7 @@ images:
     pullPolicy: Always
     tag: "24.8"
   quickwitImage:
-    repository: quickwit/quickwit
+    repository: "quickwit/quickwit"
     pullPolicy: IfNotPresent
     tag: edge
 

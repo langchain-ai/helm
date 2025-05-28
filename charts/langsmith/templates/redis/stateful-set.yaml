@@ -54,7 +54,7 @@ spec:
              {{- toYaml . | nindent 12 }}
             {{- end }}
            {{- end }}
-          image: "{{ .Values.images.redisImage.repository }}:{{ .Values.images.redisImage.tag | default .Chart.AppVersion }}"
+          image: {{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "redisImage") | quote }}
           imagePullPolicy: {{ .Values.images.redisImage.pullPolicy }}
           ports:
             - name: redis
