@@ -611,7 +611,7 @@ checksum/clickhouse: {{ include (print $.Template.BasePath "/clickhouse/secrets.
 {{- end }}
 
 {{/*
-Create image reference with registry handling. If defaultRegistry is specified, concatenate with a '/'.
+Creates the image reference used for langsmith deployments. If defaultRegistry is specified, concatenate with a '/'.
 */}}
 {{- define "langsmith.image" -}}
 {{- $imageConfig := index .Values.images .component -}}
