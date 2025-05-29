@@ -66,7 +66,6 @@ def test_langsmith_e2e_trace():
     try:
         # Create parent run - Chat Pipeline
         parent_run_id = uuid4()
-        print(f"Parent run ID: {parent_run_id}", flush=True)
         post_run(
             parent_run_id, 
             "Chat Pipeline", 
@@ -74,11 +73,9 @@ def test_langsmith_e2e_trace():
             {"question": "What is a LangSmith trace?"}, 
             headers
         )
-        print(f"INFO: Created parent run", flush=True)
         
         # Create child run - LLM Call
         child_run_id = uuid4()
-        print(f"Child run ID: {child_run_id}", flush=True)
         post_run(
             child_run_id, 
             "OpenAI Call", 
@@ -91,7 +88,7 @@ def test_langsmith_e2e_trace():
             headers,
             parent_run_id
         )
-        print(f"INFO: Created child run", flush=True)   
+        print(f"INFO: Created parent and child runs", flush=True)   
 
         # Simulate LLM response
         llm_response = {
@@ -118,7 +115,6 @@ def test_langsmith_e2e_trace():
             llm_response,
             headers
         )
-        print(f"INFO: Patched child run with LLM response", flush=True)
 
         # Patch parent run with final response
         patch_run(
@@ -129,11 +125,10 @@ def test_langsmith_e2e_trace():
             },
             headers
         )
-        print(f"INFO: Patched parent run with final response", flush=True)
+        print(f"INFO: Patched parent and child runs", flush=True)
 
         parent_run = get_run(parent_run_id, headers)
         child_run = get_run(child_run_id, headers)
-
 
         if not validate_trace(parent_run, child_run, str(child_run_id)):
             print("ERROR: Failed to validate trace", flush=True)
@@ -302,7 +297,7 @@ def get_run(run_id, headers, max_retries=15, retry_delay=2):
         elif response.status_code == 404:
             attempt += 1
             if attempt < max_retries:
-                print(f"WARN: Run not found (attempt {attempt}/{max_retries}), retrying in {retry_delay} seconds...", flush=True)
+                print(f"INFO: Run not found (attempt {attempt}/{max_retries}), retrying in {retry_delay} seconds...", flush=True)
                 time.sleep(retry_delay)
             continue
         else:
