@@ -1,0 +1,64 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: "{{ include "langsmith.fullname" . }}-e2e-trace-test"
+  labels:
+    {{- include "langsmith.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": post-install,test
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded,hook-failed
+    "helm.sh/hook-weight": "-5"
+    "helm.sh/fail-hook-policy": fail
+spec:
+  backoffLimit: 0
+  template:
+    metadata:
+      labels:
+        {{- include "langsmith.labels" . | nindent 8 }}
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: e2e-trace-test
+          image: python:3.11-slim
+          command: ["/bin/bash", "-c"]
+          args:
+            - |              
+              echo "=== Installing System Dependencies ==="
+              apt-get update
+              apt-get install -y libpq-dev gcc python3-dev
+              
+              echo "=== Installing Requirements ==="
+              pip install -r /trace-test/requirements.txt
+
+              echo "=== Running Test ==="
+              python -u /trace-test/test_e2e_trace.py              
+          env:
+            - name: PYTHONUNBUFFERED
+              value: "1"
+            - name: BACKEND_URL
+              value: "http://{{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}:{{ .Values.backend.containerPort }}"
+            - name: PLATFORM_BACKEND_URL
+              value: "http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}:{{ .Values.platformBackend.containerPort }}"
+            - name: BACKEND_NUM_REPLICAS
+              value: "{{ .Values.backend.deployment.replicas }}"
+            - name: PLATFORM_BACKEND_NUM_REPLICAS
+              value: "{{ .Values.platformBackend.deployment.replicas }}"
+            - name: POSTGRES_HOST
+              value: "{{ include "langsmith.fullname" . }}-{{ .Values.postgres.name }}"
+            - name: POSTGRES_PORT
+              value: "{{ .Values.postgres.external.port }}"
+            - name: POSTGRES_DB
+              value: "{{ .Values.postgres.external.database }}"
+            - name: POSTGRES_USER
+              value: "{{ .Values.postgres.external.user }}"
+            - name: POSTGRES_PASSWORD
+              value: "{{ .Values.postgres.external.password }}"
+            - name: JWT_SECRET
+              value: "{{ .Values.config.basicAuth.jwtSecret }}"
+          volumeMounts:
+            - name: e2e-tests
+              mountPath: /trace-test
+      volumes:
+        - name: e2e-tests
+          configMap:
+            name: "{{ include "langsmith.fullname" . }}-test-files"
