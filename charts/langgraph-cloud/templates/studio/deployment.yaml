@@ -49,7 +49,7 @@ spec:
             {{- with .Values.studio.deployment.extraEnv }}
               {{- toYaml . | nindent 12 }}
             {{- end }}
-          image: "{{ .Values.images.studioImage.repository }}:{{ .Values.images.studioImage.tag | default .Chart.AppVersion }}"
+          image: {{ include "langGraphCloud.image" (dict "Values" .Values "Chart" .Chart "component" "studioImage") | quote }}
           imagePullPolicy: {{ .Values.images.studioImage.pullPolicy }}
           ports:
             - name: studio

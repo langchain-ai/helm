@@ -174,3 +174,16 @@ Template containing common environment variables that are used by several servic
   {{ fail (printf "Duplicate keys detected: %v" $duplicates) }}
 {{- end }}
 {{- end -}}
+
+
+{{/*
+Creates the image reference used for LangGraph DataPlane deployments. If registry is specified, concatenate it, along with a '/'.
+*/}}
+{{- define "langgraphDataplane.image" -}}
+{{- $imageConfig := index .Values.images .component -}}
+{{- if .Values.images.registry -}}
+{{ .Values.images.registry }}/{{ $imageConfig.repository }}:{{ $imageConfig.tag | default .Chart.AppVersion }}
+{{- else -}}
+{{ $imageConfig.repository }}:{{ $imageConfig.tag | default .Chart.AppVersion }}
+{{- end -}}
+{{- end -}}

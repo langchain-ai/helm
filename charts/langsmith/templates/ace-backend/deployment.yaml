@@ -63,7 +63,7 @@ spec:
           envFrom:
             - configMapRef:
                 name: {{ include "langsmith.fullname" . }}-config
-          image: "{{ .Values.images.aceBackendImage.repository }}:{{ .Values.images.aceBackendImage.tag | default .Chart.AppVersion }}"
+          image: {{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "aceBackendImage") | quote }}
           imagePullPolicy: {{ .Values.images.aceBackendImage.pullPolicy }}
           ports:
             - name: ace

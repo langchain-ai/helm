@@ -143,3 +143,15 @@ the user or some other secret provisioning mechanism
     {{ default "default" .Values.studio.serviceAccount.name }}
 {{- end -}}
 {{- end -}}
+
+{{/*
+Creates the image reference used for LangGraph Cloud deployments. If registry is specified, concatenate it, along with a '/'.
+*/}}
+{{- define "langGraphCloud.image" -}}
+{{- $imageConfig := index .Values.images .component -}}
+{{- if .Values.images.registry -}}
+{{ .Values.images.registry }}/{{ $imageConfig.repository }}:{{ $imageConfig.tag | default .Chart.AppVersion }}
+{{- else -}}
+{{ $imageConfig.repository }}:{{ $imageConfig.tag | default .Chart.AppVersion }}
+{{- end -}}
+{{- end -}}

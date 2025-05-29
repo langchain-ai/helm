@@ -79,7 +79,7 @@ spec:
           envFrom:
             - configMapRef:
                 name: {{ include "langsmith.fullname" . }}-config
-          image: "{{ .Values.images.frontendImage.repository }}:{{ .Values.images.frontendImage.tag | default .Chart.AppVersion }}"
+          image: {{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "frontendImage") | quote }}
           imagePullPolicy: {{ .Values.images.frontendImage.pullPolicy }}
           ports:
             - name: frontend

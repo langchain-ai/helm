@@ -46,7 +46,7 @@ spec:
         - name: {{ .Values.quickwit.name }}
           securityContext:
             {{- toYaml .Values.quickwit.securityContext | nindent 12 }}
-          image: "{{ .Values.images.quickwitImage.repository }}:{{ .Values.images.quickwitImage.tag }}"
+          image: {{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "quickwitImage") | quote }}
           imagePullPolicy: {{ .Values.images.quickwitImage.pullPolicy }}
           args: ["run", "--service", "janitor"]
           env:

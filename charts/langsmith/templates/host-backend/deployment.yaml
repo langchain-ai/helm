@@ -62,7 +62,7 @@ spec:
           envFrom:
             - configMapRef:
                 name: {{ include "langsmith.fullname" . }}-config
-          image: "{{ .Values.images.hostBackendImage.repository }}:{{ .Values.images.hostBackendImage.tag | default .Chart.AppVersion }}"
+          image: {{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "hostBackendImage") | quote }}
           imagePullPolicy: {{ .Values.images.hostBackendImage.pullPolicy }}
           ports:
             - name: host-backend

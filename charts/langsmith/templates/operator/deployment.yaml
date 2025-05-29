@@ -48,7 +48,7 @@ spec:
         args:
           - --leader-elect
           - --health-probe-bind-address=:8081
-        image: "{{ .Values.images.operatorImage.repository }}:{{ .Values.images.operatorImage.tag | default "latest" }}"
+        image: {{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "operatorImage") | quote }} 
         imagePullPolicy: {{ .Values.images.operatorImage.pullPolicy }}
         name: {{ .Values.operator.name }}
         {{- with .Values.operator.deployment.securityContext }}

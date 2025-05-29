@@ -63,7 +63,7 @@ spec:
           envFrom:
             - configMapRef:
                 name: {{ include "langsmith.fullname" . }}-config
-          image: "{{ .Values.images.playgroundImage.repository }}:{{ .Values.images.playgroundImage.tag | default .Chart.AppVersion }}"
+          image: {{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "playgroundImage") | quote }}
           imagePullPolicy: {{ .Values.images.playgroundImage.pullPolicy }}
           ports:
             - name: playground

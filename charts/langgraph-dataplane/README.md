@@ -26,6 +26,7 @@ Helm chart to deploy a langgraph dataplane on kubernetes.
 | images.redisImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.redisImage.repository | string | `"docker.io/redis"` |  |
 | images.redisImage.tag | string | `"7"` |  |
+| images.registry | string | "" | If supplied, all children <image_name>.repository values will be prepended with this registry name + `/`
 | ingress.annotations | object | `{}` |  |
 | ingress.enabled | bool | `true` |  |
 | ingress.hostname | string | `""` |  |

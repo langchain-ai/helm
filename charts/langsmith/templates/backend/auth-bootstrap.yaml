@@ -83,7 +83,7 @@ spec:
           envFrom:
             - configMapRef:
                 name: {{ include "langsmith.fullname" . }}-config
-          image: "{{ .Values.images.backendImage.repository }}:{{ .Values.images.backendImage.tag | default .Chart.AppVersion }}"
+          image: {{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "backendImage") | quote }}
           imagePullPolicy: {{ .Values.images.backendImage.pullPolicy }}
           resources:
             {{- toYaml .Values.backend.authBootstrap.resources | nindent 12 }}

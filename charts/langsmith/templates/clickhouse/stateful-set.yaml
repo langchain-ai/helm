@@ -61,7 +61,7 @@ spec:
       serviceAccountName: {{ include "clickhouse.serviceAccountName" . }}
       containers:
         - name: {{ .Values.clickhouse.name }}
-          image: "{{ .Values.images.clickhouseImage.repository }}:{{ .Values.images.clickhouseImage.tag | default .Chart.AppVersion }}"
+          image: {{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "clickhouseImage") | quote }}
           imagePullPolicy: {{ .Values.images.clickhouseImage.pullPolicy }}
           {{- with.Values.clickhouse.statefulSet.command }}
           command:
