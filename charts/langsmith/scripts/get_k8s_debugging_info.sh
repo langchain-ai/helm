@@ -32,18 +32,19 @@ echo "Pulling resource usage for all pods..."
 kubectl top pods -n "$NS" --containers > "$DIR/pod-resource-usage.txt"
 
 echo "Pulling container logs for all pods. Also pulling previous logs from restarted containers..."
-PODS=$(kubectl get pods -n "$NS" -l app="$NS" -o jsonpath='{.items[*].metadata.name}')
+mkdir -p "$DIR/logs"
+PODS=$(kubectl get pods -n "$NS" -o jsonpath='{.items[*].metadata.name}')
 
 for POD in $PODS; do
   CONTAINERS=$(kubectl get pod "$POD" -n "$NS" -o jsonpath='{.spec.containers[*].name}')
   for CONTAINER in $CONTAINERS; do
-    echo "Pulling current container logs (last 24h)..."
-    kubectl logs -n "$NS" "$POD" -c "$CONTAINER" --since=24h > "$DIR/${POD}_${CONTAINER}_current.log" 2>/dev/null
+    echo "Pulling current container logs (last 24h) for $POD/$CONTAINER..."
+    kubectl logs -n "$NS" "$POD" -c "$CONTAINER" --since=24h > "$DIR/logs/${POD}_${CONTAINER}_current.log" 2>/dev/null
 
     RESTART_COUNT=$(kubectl get pod "$POD" -n "$NS" -o json | jq ".status.containerStatuses[] | select(.name==\"$CONTAINER\") | .restartCount // 0")
     if [[ "$RESTART_COUNT" -gt 0 ]]; then
       echo "  $POD/$CONTAINER restarted ($RESTART_COUNT times) — grabbing previous logs..."
-      kubectl logs -n "$NS" "$POD" -c "$CONTAINER" --previous > "$DIR/${POD}_${CONTAINER}_previous.log" 2>/dev/null
+      kubectl logs -n "$NS" "$POD" -c "$CONTAINER" --previous > "$DIR/logs/${POD}_${CONTAINER}_previous.log" 2>/dev/null
     fi
   done
 done
