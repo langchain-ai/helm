@@ -1,3 +1,4 @@
 .idea/
 test*.yaml
 .DS_Store
+.cursor/
