@@ -13,49 +13,49 @@ commonEnv: []
 
 images:
    # -- If supplied, all children <image_name>.repository values will be prepended with this registry name + `/`
-  registry: ""
+  registry: "709825985650.dkr.ecr.us-east-1.amazonaws.com/langchain"
    # -- Secrets with credentials to pull images from a private registry. Specified as name: value.
   imagePullSecrets: []
   aceBackendImage:
-    repository: "docker.io/langchain/langsmith-ace-backend"
+    repository: "langchain_repository"
     pullPolicy: IfNotPresent
-    tag: "0.10.60"
+    tag: "langsmith-ace-backend-0.10.66"
   backendImage:
-    repository: "docker.io/langchain/langsmith-backend"
+    repository: "langchain_repository"
     pullPolicy: IfNotPresent
-    tag: "0.10.60"
+    tag: "langsmith-backend-0.10.66"
   frontendImage:
-    repository: "docker.io/langchain/langsmith-frontend"
+    repository: "langchain_repository"
     pullPolicy: IfNotPresent
-    tag: "0.10.60"
+    tag: "langsmith-frontend-0.10.66"
   hostBackendImage:
-    repository: "docker.io/langchain/hosted-langserve-backend"
+    repository: "langchain_repository"
     pullPolicy: IfNotPresent
-    tag: "0.10.60"
+    tag: "hosted-langserve-backend-0.10.66"
   operatorImage:
-    repository: "docker.io/langchain/langgraph-operator"
+    repository: "langchain_repository"
     pullPolicy: IfNotPresent
-    tag: "6cc83a8"
+    tag: "langgraph-operator-6cc83a8"
   platformBackendImage:
-    repository: "docker.io/langchain/langsmith-go-backend"
+    repository: "langchain_repository"
     pullPolicy: IfNotPresent
-    tag: "0.10.60"
+    tag: "langsmith-go-backend-0.10.66"
   playgroundImage:
-    repository: "docker.io/langchain/langsmith-playground"
+    repository: "langchain_repository"
     pullPolicy: IfNotPresent
-    tag: "0.10.60"
+    tag: "langsmith-playground-0.10.66"
   postgresImage:
-    repository: "docker.io/postgres"
+    repository: "langchain_repository"
     pullPolicy: IfNotPresent
-    tag: "14.7"
+    tag: "postgres-14.7"
   redisImage:
-    repository: "docker.io/redis"
+    repository: "langchain_repository"
     pullPolicy: IfNotPresent
-    tag: "7"
+    tag: "redis-7"
   clickhouseImage:
-    repository: "docker.io/clickhouse/clickhouse-server"
+    repository: "langchain_repository"
     pullPolicy: Always
-    tag: "24.8"
+    tag: "clickhouse-server-24.8"
   quickwitImage:
     repository: "quickwit/quickwit"
     pullPolicy: IfNotPresent
