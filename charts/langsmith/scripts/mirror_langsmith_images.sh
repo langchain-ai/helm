@@ -2,6 +2,7 @@
 # mirror_langsmith_images.sh
 # Pull each image, retag it with <REGISTRY>/<original-repo>:<tag>, push.
 #
+# Ensure that you have logged into the source destination registry if credentials are required.
 # Example:
 #   ./mirror_langsmith_images.sh --registry myregistry --platform linux/arm64
 #   ./mirror_langsmith_images.sh --registry 709825985650.dkr.ecr.us-east-1.amazonaws.com \
