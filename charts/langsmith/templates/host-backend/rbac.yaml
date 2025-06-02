@@ -50,6 +50,7 @@ rules:
   - patch
   - update
   - watch
+# List pods for reading pod logs
 - apiGroups:
   - ""
   resources:
@@ -57,6 +58,7 @@ rules:
   verbs:
   - get
   - list
+# Read pod logs
 - apiGroups:
   - ""
   resources:
