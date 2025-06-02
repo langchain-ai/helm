@@ -17,6 +17,10 @@ extraScrapeConfigs: |
     metrics_path: /metrics
     static_configs:
       - targets: ['redis-exporter-prometheus-redis-exporter.romain.svc.cluster.local:9121']
+  - job_name: 'clickhouse'
+    metrics_path: /metrics
+    static_configs:
+      - targets: ['langsmith-clickhouse.romain.svc.cluster.local:9363']
 
 # Enable if you want to use Alertmanager
 alertmanager:
