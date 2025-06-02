@@ -1,6 +1,6 @@
 services:
   langchain-playground:
-    image: langchain/langsmith-playground:${_LANGSMITH_IMAGE_VERSION:-0.10.25}
+    image: ${_REGISTRY:-docker.io}/langchain/langsmith-playground:${_LANGSMITH_IMAGE_VERSION:-0.10.25}
     ports:
       - 3001:3001
     environment:
@@ -22,7 +22,7 @@ services:
       - langchain-backend
       - langchain-playground
   langchain-ace-backend:
-    image: langchain/langsmith-ace-backend:${_LANGSMITH_IMAGE_VERSION:-0.10.25}
+    image: ${_REGISTRY:-docker.io}/langchain/langsmith-ace-backend:${_LANGSMITH_IMAGE_VERSION:-0.10.25}
     ports:
       - 1987:1987
     environment:
@@ -39,7 +39,7 @@ services:
       - "-R"
       - "src/python_worker.ts"
   langchain-backend:
-    image: langchain/langsmith-backend:${_LANGSMITH_IMAGE_VERSION:-0.10.25}
+    image: ${_REGISTRY:-docker.io}/langchain/langsmith-backend:${_LANGSMITH_IMAGE_VERSION:-0.10.25}
     environment:
       - PORT=1984
       - LANGCHAIN_ENV=local_docker
@@ -90,7 +90,7 @@ services:
         condition: service_completed_successfully
     restart: always
   langchain-platform-backend:
-    image: langchain/langsmith-go-backend:${_LANGSMITH_IMAGE_VERSION:-0.10.25}
+    image: ${_REGISTRY:-docker.io}/langchain/langsmith-go-backend:${_LANGSMITH_IMAGE_VERSION:-0.10.25}
     environment:
       - PORT=1986
       - LANGCHAIN_ENV=local_docker
@@ -139,7 +139,7 @@ services:
         condition: service_completed_successfully
     restart: always
   langchain-queue:
-    image: langchain/langsmith-backend:${_LANGSMITH_IMAGE_VERSION:-0.10.25}
+    image: ${_REGISTRY:-docker.io}/langchain/langsmith-backend:${_LANGSMITH_IMAGE_VERSION:-0.10.25}
     environment:
       - LANGCHAIN_ENV=local_docker
       - GO_ENDPOINT=http://langchain-platform-backend:1986
@@ -187,7 +187,7 @@ services:
         condition: service_completed_successfully
     restart: always
   langchain-db:
-    image: postgres:14.7
+    image: ${_REGISTRY:-docker.io}/postgres:14.7
     command:
       [
         "postgres",
@@ -210,7 +210,7 @@ services:
       timeout: 2s
       retries: 30
   langchain-redis:
-    image: redis:7
+    image: ${_REGISTRY:-docker.io}/redis:7
     ports:
       - 63791:6379
     volumes:
@@ -221,7 +221,7 @@ services:
       timeout: 2s
       retries: 30
   langchain-clickhouse:
-    image: clickhouse/clickhouse-server:24.8
+    image: ${_REGISTRY:-docker.io}/clickhouse/clickhouse-server:24.8
     user: "101:101"
     restart: always
     environment:
@@ -240,7 +240,7 @@ services:
       timeout: 2s
       retries: 30
   clickhouse-setup:
-    image: langchain/langsmith-backend:${_LANGSMITH_IMAGE_VERSION:-0.10.25}
+    image: ${_REGISTRY:-docker.io}/langchain/langsmith-backend:${_LANGSMITH_IMAGE_VERSION:-0.10.25}
     depends_on:
       langchain-clickhouse:
         condition: service_healthy
@@ -259,7 +259,7 @@ services:
         "scripts/wait_for_clickhouse_and_migrate.sh"
       ]
   postgres-setup:
-    image: langchain/langsmith-backend:${_LANGSMITH_IMAGE_VERSION:-0.10.25}
+    image: ${_REGISTRY:-docker.io}/langchain/langsmith-backend:${_LANGSMITH_IMAGE_VERSION:-0.10.25}
     depends_on:
       langchain-db:
         condition: service_healthy
