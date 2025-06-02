@@ -1,0 +1,33 @@
+server:
+  # Enable Prometheus web UI access if needed
+  service:
+    type: ClusterIP
+
+  # Scrape configuration
+  global:
+    scrape_interval: 15s
+    evaluation_interval: 15s
+
+extraScrapeConfigs: |
+  - job_name: 'postgres-exporter'
+    metrics_path: /metrics
+    static_configs:
+      - targets: ['postgres-exporter-prometheus-postgres-exporter.romain.svc.cluster.local:80']
+  - job_name: 'redis-exporter'
+    metrics_path: /metrics
+    static_configs:
+      - targets: ['redis-exporter-prometheus-redis-exporter.romain.svc.cluster.local:9121']
+
+# Enable if you want to use Alertmanager
+alertmanager:
+  enabled: false
+# Enable if you want to push metrics to a pushgateway
+prometheus-pushgateway:
+  enabled: false
+
+kube-state-metrics:
+  enabled: false
+
+# Enable if you want to use Node Exporter
+prometheus-node-exporter:
+  enabled: false

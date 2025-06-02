@@ -73,7 +73,7 @@ ingress:
 
 config:
   existingSecretName: ""
-  langsmithLicenseKey: ""
+  langsmithLicenseKey: "lcl_4b5a9a94e5e941ccb6df1ecc2bc2f800_f92e987b18"
   langgraphPlatform:
       # -- Optional. Used to enable the Langgraph platform control plane. If enabled, the license key must be provided.
     enabled: false
@@ -83,16 +83,16 @@ config:
     tlsEnabled: true
 
   # -- Salt used to generate the API key. Should be a random string.
-  apiKeySalt: ""
-  logLevel: "info"
+  apiKeySalt: "1234567890"
+  logLevel: "info"  
   # -- Must be 'oauth' for OAuth with PKCE, 'mixed' for basic auth or OAuth without PKCE
-  authType: ""
+  authType: "mixed"
   basicAuth:
-    enabled: false
-    initialOrgAdminEmail: ""
+    enabled: true
+    initialOrgAdminEmail: "romain@langchain.com"
     # Either set the password and JWT secret in plaintext, or set in the secret specified by existingSecretName above.
-    initialOrgAdminPassword: ""
-    jwtSecret: ""
+    initialOrgAdminPassword: "setupPassword!"
+    jwtSecret: "1234567890"
   # -- Prevent organization creation. If using basic auth, this is set to true by default.
   orgCreationDisabled: false
   # -- Disable personal orgs. Users will need to be invited to an org manually. If using basic auth, this is set to true by default.

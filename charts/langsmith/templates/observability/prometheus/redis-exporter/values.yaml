@@ -1,0 +1,3 @@
+redisAddress: redis://langsmith-redis.romain.svc.cluster.local:6379
+auth:
+  enabled: false

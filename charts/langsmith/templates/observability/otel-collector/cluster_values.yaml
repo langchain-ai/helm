@@ -1,0 +1,24 @@
+mode: deployment
+
+image:
+  repository: otel/opentelemetry-collector-k8s
+
+# We only want one of these collectors - any more and we'd produce duplicate data
+replicaCount: 1
+
+presets:
+  # enables the k8sclusterreceiver and adds it to the metrics pipelines
+  clusterMetrics:
+    enabled: true
+  # enables the k8sobjectsreceiver to collect events only and adds it to the logs pipelines
+  kubernetesEvents:
+    enabled: true
+
+config:
+  receivers:
+    otlp:
+      protocols:
+        grpc:
+          endpoint: http://
+        http:
+          endpoint: HTTP_ENDPOINT_HERE

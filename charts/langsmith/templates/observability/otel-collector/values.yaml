@@ -1,0 +1,59 @@
+mode: daemonset
+
+image:
+  repository: "otel/opentelemetry-collector-k8s"
+
+presets:
+  # enables the k8sattributesprocessor and adds it to the traces, metrics, and logs pipelines
+  kubernetesAttributes:
+    enabled: true
+  # enables the kubeletstatsreceiver and adds it to the metrics pipelines
+  kubeletMetrics:
+    enabled: true
+  # Enables the filelogreceiver and adds it to the logs pipelines
+  logsCollection:
+    enabled: true
+
+config:
+  receivers:
+    otlp/logs:
+      protocols:
+        grpc:
+          endpoint: 0.0.0.0:4317
+        http:
+          endpoint: 0.0.0.0:4318
+
+  processors:
+    batch: {}
+
+    k8sattributes:
+      extract:
+        metadata:
+          - k8s.namespace.name
+          - k8s.pod.name
+        labels:
+          - tag_name: "k8s.app.name"
+            key: app.kubernetes.io/name
+            from: pod
+    filter:
+      error_mode: ignore
+      logs:
+        log_record:
+          - 'resource.attributes["k8s.namespace.name"] != "romain"'
+          - 'resource.attributes["k8s.app.name"] != "langsmith"'
+
+  exporters:
+    otlphttp/logs:
+      endpoint: http://loki:3100/otlp
+      tls:
+        insecure: true
+      
+  service:
+    pipelines:
+      logs:
+        receivers: [otlp]
+        processors: [k8sattributes, filter, batch]
+        exporters: [otlphttp/logs]
+      metrics:
+        
+  
