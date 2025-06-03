@@ -41,10 +41,11 @@ spec:
       app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-{{ .Values.clickhouse.name }}
   template:
     metadata:
-      {{- with .Values.clickhouse.statefulSet.annotations }}
       annotations:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
+        {{- with .Values.clickhouse.statefulSet.annotations }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+        checksum/config: '{{ include (print $.Template.BasePath "/clickhouse/config-map.yaml") . | sha256sum }}'
       labels:
         {{- with.Values.clickhouse.statefulSet.labels }}
             {{- toYaml . | nindent 8 }}
@@ -105,6 +106,9 @@ spec:
             - mountPath: /etc/clickhouse-server/users.d/users.xml
               name: clickhouse-conf
               subPath: users.xml
+            - mountPath: /etc/clickhouse-server/config.d/config.xml
+              name: clickhouse-conf
+              subPath: config.xml
           {{- with .Values.clickhouse.statefulSet.extraContainerConfig }}
             {{- toYaml . | nindent 10 }}
           {{- end }}
@@ -134,6 +138,8 @@ spec:
             items:
               - key: users.xml
                 path: users.xml
+              - key: config.xml
+                path: config.xml
       {{- with .Values.clickhouse.statefulSet.volumes }}
           {{- toYaml . | nindent 8 }}
       {{- end }}
