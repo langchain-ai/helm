@@ -458,6 +458,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
 | clickhouse.config.allowSimdjson | bool | `true` |  |
+| clickhouse.config.logLevel | string | `warning` | The log level. Must be one of `fatal`, `critical`, `error`, `warning`, `notice`, `information`. `debug`, `trace`, `test` or `none`|
 | clickhouse.containerHttpPort | int | `8123` |  |
 | clickhouse.containerNativePort | int | `9000` |  |
 | clickhouse.external.cluster | string | `""` |  |
