@@ -1,3 +1,4 @@
+{{- if .Values.config.basicAuth.enabled }}
 {{- $envVars := concat .Values.commonEnv (include "langsmith.commonEnv" . | fromYamlArray) (include "backendEnvVars" . | fromYamlArray) .Values.backend.deployment.extraEnv -}}
 apiVersion: batch/v1
 kind: Job
@@ -30,3 +31,4 @@ spec:
           envFrom:
             - configMapRef:
                 name: {{ include "langsmith.fullname" . }}-config
+{{- end }}
