@@ -41,10 +41,11 @@ spec:
       app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-{{ .Values.clickhouse.name }}
   template:
     metadata:
-      {{- with .Values.clickhouse.statefulSet.annotations }}
       annotations:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
+        {{- with .Values.clickhouse.statefulSet.annotations }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+        checksum/config: '{{ include (print $.Template.BasePath "/clickhouse/config-map.yaml") . | sha256sum }}'
       labels:
         {{- with.Values.clickhouse.statefulSet.labels }}
             {{- toYaml . | nindent 8 }}

@@ -38,7 +38,7 @@ data:
   config.xml: |
     <clickhouse>
         <logger>
-          <level>{{ .Values.clickhouse.config.logging.level }}</level>
+          <level>{{ .Values.clickhouse.config.logLevel }}</level>
 
           <!-- This logs to files -->
           <log>/var/log/clickhouse-server/clickhouse.log</log>

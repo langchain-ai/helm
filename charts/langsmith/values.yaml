@@ -430,8 +430,7 @@ clickhouse:
   name: "clickhouse"
   config:
     allowSimdjson: true
-    logging:
-      level: "information"
+    logLevel: "warning"
   external:
     # If enabled, use the following values to connect to an external database. This will also disable the
     # creation of a clickhouse stateful-set and service.
@@ -509,8 +508,6 @@ clickhouse:
     affinity: {}
     volumes: []
     volumeMounts: []
-    podAnnotations:
-      checksum/config: '{{ include (print $.Template.BasePath "/clickhouse/config-map.yaml") . | sha256sum }}'
     # We recommend using a persistent volume and increasing the storage size to something like 50Gi when using in a production environment!
     persistence:
       enabled: true
