@@ -1,0 +1,32 @@
+{{- $envVars := concat .Values.commonEnv (include "langsmith.commonEnv" . | fromYamlArray) (include "backendEnvVars" . | fromYamlArray) .Values.backend.deployment.extraEnv -}}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: "{{ include "langsmith.fullname" . }}-e2e-trace-test"
+  labels:
+    {{- include "langsmith.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": post-install,test
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded,hook-failed
+    "helm.sh/hook-weight": "9999"
+    "helm.sh/fail-hook-policy": fail
+spec:
+  backoffLimit: 5
+  ttlSecondsAfterFinished: 5
+  template:
+    metadata:
+      labels:
+        {{- include "langsmith.labels" . | nindent 8 }}
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: e2e-trace-test
+          image: "{{ .Values.images.backendImage.repository }}:{{ .Values.images.backendImage.tag | default .Chart.AppVersion }}"
+          command: ["python", "scripts/test_e2e_trace.pyc"]
+          env:
+            {{- with $envVars }}
+              {{- toYaml . | nindent 12 }}
+            {{- end }}
+          envFrom:
+            - configMapRef:
+                name: {{ include "langsmith.fullname" . }}-config
