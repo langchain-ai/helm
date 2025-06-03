@@ -105,6 +105,9 @@ spec:
             - mountPath: /etc/clickhouse-server/users.d/users.xml
               name: clickhouse-conf
               subPath: users.xml
+            - mountPath: /etc/clickhouse-server/config.d/config.xml
+              name: clickhouse-conf
+              subPath: config.xml
           {{- with .Values.clickhouse.statefulSet.extraContainerConfig }}
             {{- toYaml . | nindent 10 }}
           {{- end }}
@@ -134,6 +137,8 @@ spec:
             items:
               - key: users.xml
                 path: users.xml
+              - key: config.xml
+                path: config.xml
       {{- with .Values.clickhouse.statefulSet.volumes }}
           {{- toYaml . | nindent 8 }}
       {{- end }}

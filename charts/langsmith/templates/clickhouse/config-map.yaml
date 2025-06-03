@@ -34,4 +34,22 @@ data:
             </default>
         </profiles>
     </clickhouse>
+
+  config.xml: |
+    <clickhouse>
+        <logger>
+          <level>{{ .Values.clickhouse.config.logging.level }}</level>
+
+          <!-- This logs to files -->
+          <log>/var/log/clickhouse-server/clickhouse.log</log>
+          <errorlog>/var/log/clickhouse-server/clickhouse.err.log</errorlog>
+          
+          <!-- This logs to stdout/stderr -->
+          <console>true</console>
+
+          <!-- This rotates the log file every 1000M and keeps up to 10 files -->
+          <size>1000M</size>
+          <count>10</count>
+      </logger>
+    </clickhouse>
 {{- end }}
