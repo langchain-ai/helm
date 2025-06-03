@@ -8,10 +8,11 @@ metadata:
   annotations:
     "helm.sh/hook": post-install,test
     "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded,hook-failed
-    "helm.sh/hook-weight": "-5"
+    "helm.sh/hook-weight": "9999"
     "helm.sh/fail-hook-policy": fail
 spec:
   backoffLimit: 5
+  ttlSecondsAfterFinished: 5
   template:
     metadata:
       labels:
