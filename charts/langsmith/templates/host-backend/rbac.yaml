@@ -50,6 +50,23 @@ rules:
   - patch
   - update
   - watch
+# List pods for reading pod logs
+- apiGroups:
+  - ""
+  resources:
+  - pods
+  verbs:
+  - get
+  - list
+# Read pod logs
+- apiGroups:
+  - ""
+  resources:
+  - pods/log
+  verbs:
+  - get
+  - list
+  - watch
 # LGP permissions
 - apiGroups:
   - apps.langchain.ai
