@@ -19,7 +19,7 @@ images:
   listenerImage:
     repository: "docker.io/langchain/hosted-langserve-backend"
     pullPolicy: IfNotPresent
-    tag: "0.10.34"
+    tag: "0.10.66"
   redisImage:
     repository: "docker.io/redis"
     pullPolicy: IfNotPresent
@@ -27,7 +27,7 @@ images:
   operatorImage:
     repository: "docker.io/langchain/langgraph-operator"
     pullPolicy: IfNotPresent
-    tag: "c99f000"
+    tag: "6cc83a8"
 
 ingress:
   enabled: true
