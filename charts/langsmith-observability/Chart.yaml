@@ -19,3 +19,22 @@ dependencies:
     repository: https://grafana.github.io/helm-charts
     condition: observability.logs.backend == "local"
     alias: logs_backend
+  - name: mimir-distributed
+    version: 5.7.0
+    repository: https://grafana.github.io/helm-charts
+    condition: observability.metrics.backend == "local"
+    alias: metrics_backend
+  - name: kube-state-metrics
+    version: 5.36.0 
+    repository: https://prometheus-community.github.io/helm-charts
+    condition: observability.metrics.kubeStateMetrics.enabled
+  - name: prometheus-postgres-exporter
+    version: 6.10.2
+    repository: https://prometheus-community.github.io/helm-charts
+    condition: observability.metrics.postgres.enabled
+    alias: postgresexporter
+  - name: prometheus-redis-exporter
+    version: 6.11.0
+    repository: https://prometheus-community.github.io/helm-charts
+    condition: observability.metrics.redis.enabled
+    alias: redisexporter

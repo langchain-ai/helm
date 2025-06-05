@@ -455,6 +455,7 @@ clickhouse:
     existingSecretName: ""
   containerHttpPort: 8123
   containerNativePort: 9000
+  containerMetricsPort: 9363
   statefulSet:
     labels: {}
     annotations: {}
@@ -522,6 +523,7 @@ clickhouse:
     type: ClusterIP
     httpPort: 8123
     nativePort: 9000
+    metricsPort: 9363
     labels: {}
     annotations: {}
     loadBalancerSourceRanges: []

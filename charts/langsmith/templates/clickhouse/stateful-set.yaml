@@ -79,6 +79,9 @@ spec:
             - name: ch-native
               containerPort: {{ .Values.clickhouse.containerNativePort }}
               protocol: TCP
+            - name: ch-metrics
+              containerPort: {{ .Values.clickhouse.containerMetricsPort }}
+              protocol: TCP
           {{- with .Values.clickhouse.statefulSet.startupProbe }}
           startupProbe:
             {{- toYaml . | nindent 12 }}

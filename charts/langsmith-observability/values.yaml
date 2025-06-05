@@ -1,15 +1,24 @@
-
 global:
   envOverrides: []
-  langsmithNamespace: langsmith
+  langsmithNamespace: romain
   installCRDs: true
 
 observability:
   logs:
     enabled: true
     backend: "local"
+    
   metrics:
-    enabled: false
+    enabled: true
+    backend: "local"
+    kubeStateMetrics:
+      enabled: true
+    hostMetrics:
+      enabled: true
+    clickhouse:
+      mode: "cluster" # cluster or external
+      enabled: true
+
   traces:
     enabled: false
 
@@ -41,7 +50,13 @@ grafana:
         - name: Loki
           uid: loki
           type: loki
-          url: http://langsmith-observability-loki-gateway
+          url: http://{{ .Release.Name }}-loki-gateway
+          isDefault: false
+        # https://grafana.com/docs/grafana/latest/datasources/prometheus/#provision-the-data-source
+        - name: Mimir
+          uid: prom
+          type: prometheus
+          url: http://{{ .Release.Name }}-mimir-nginx/prometheus
           isDefault: false
 
 logs_backend:
@@ -74,24 +89,24 @@ logs_backend:
     enabled: true
 
   ingester:
-    replicas: 1 # To ensure data durability with replication
+    replicas: 3 # To ensure data durability with replication
     zoneAwareReplication:
       enabled: false
   querier:
-    replicas: 1 # Improve query performance via parallelism
-    maxUnavailable: 1
+    replicas: 3 # Improve query performance via parallelism
+    maxUnavailable: 2
   queryFrontend:
-    replicas: 1
+    replicas: 2
     maxUnavailable: 1
   queryScheduler:
-    replicas: 1
+    replicas: 2
   distributor:
-    replicas: 1 
-    maxUnavailable: 1
+    replicas: 3 
+    maxUnavailable: 2
   compactor:
     replicas: 1
   indexGateway:
-    replicas: 1
+    replicas: 2
     maxUnavailable: 1
 
   bloomPlanner:
@@ -110,3 +125,23 @@ logs_backend:
 
   singleBinary:
     replicas: 0
+
+metrics_backend:
+  minio:
+    enabled: true
+
+postgresexporter:
+  config:
+    datasource:
+      host: langsmith-postgres.romain.svc.cluster.local
+      port: "5432"
+      user: postgres
+      password: postgres
+      database: ''
+  serviceAccount:
+    name: langsmith-observability-postgres-exporter
+
+redisexporter:
+  redisAddress: "redis://langsmith-redis.romain.svc.cluster.local:6379"
+  serviceAccount:
+    name: langsmith-observability-redis-exporter

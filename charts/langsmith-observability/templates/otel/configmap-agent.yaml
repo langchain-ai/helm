@@ -13,12 +13,7 @@ data:
         endpoint: ${env:MY_POD_IP}:13133
 
     receivers:
-      otlp:
-        protocols:
-          grpc:
-            endpoint: ${env:MY_POD_IP}:4317
-          http:
-            endpoint: ${env:MY_POD_IP}:4318
+      {{- if .Values.observability.logs.enabled }}
       filelog:
         exclude: []
         include:
@@ -32,7 +27,45 @@ data:
         retry_on_failure:
           enabled: true
         start_at: end
-    
+      {{- end }}
+      {{- if .Values.observability.metrics.enabled }}
+      prometheus:
+        config:
+          scrape_configs:
+            - job_name: 'postgres-exporter'
+              metrics_path: /metrics
+              static_configs:
+                - targets: ['langsmith-observability-postgresexporter.romain-observability.svc.cluster.local:80']
+            - job_name: 'redis-exporter'
+              metrics_path: /metrics
+              static_configs:
+                - targets: ['langsmith-observability-redisexporter.romain-observability.svc.cluster.local:9121']
+            - job_name: 'kube_state_metrics'
+              metrics_path: /metrics
+              static_configs:
+                - targets: ['langsmith-observability-kube-state-metrics.romain-observability.svc.cluster.local:8080']
+            - job_name: 'clickhouse'
+              metrics_path: /metrics
+              static_configs:
+                - targets: ['langsmith-clickhouse.romain.svc.cluster.local:9363']
+      {{- end }}
+      {{- if .Values.observability.metrics.hostMetrics.enabled }}
+      hostmetrics:
+        collection_interval: 30s
+        scrapers:
+          cpu:
+          memory:
+          load:
+          network:
+          paging:
+          system:
+      hostmetrics/disk:
+        collection_interval: 1m
+        scrapers:
+          disk:
+          filesystem:
+      {{- end }}
+
     processors:
       batch: {}
       filter:
@@ -69,6 +102,12 @@ data:
         tls:
           insecure: true
       {{- end }}
+      {{- if eq .Values.observability.metrics.backend "local" }}
+      otlphttp/metrics:
+        endpoint: http://langsmith-observability-mimir-nginx.romain-observability.svc.cluster.local:80/otlp
+        tls:
+          insecure: true
+      {{- end }}
     
     service:
       extensions:
@@ -84,5 +123,18 @@ data:
             - batch
           exporters:
             - otlphttp/logs
+        {{- end }}
+        {{- if .Values.observability.metrics.enabled }}
+        metrics/langsmith_backend:
+          receivers:
+            - prometheus
+            {{- if .Values.observability.metrics.hostMetrics.enabled }}
+            - hostmetrics
+            - hostmetrics/disk
+            {{- end }}
+          processors:
+            - batch
+          exporters:
+            - otlphttp/metrics
         {{- end }}
 {{ end }}
