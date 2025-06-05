@@ -235,6 +235,7 @@ Helm chart to deploy a langgraph dataplane on kubernetes.
 | redis.statefulSet.persistence.enabled | bool | `true` |  |
 | redis.statefulSet.persistence.size | string | `"8Gi"` |  |
 | redis.statefulSet.persistence.storageClassName | string | `""` |  |
+| redis.statefulSet.persistentVolumeClaimRetentionPolicy | object | `{}` |  |
 | redis.statefulSet.podSecurityContext | object | `{}` |  |
 | redis.statefulSet.readinessProbe.exec.command[0] | string | `"/bin/sh"` |  |
 | redis.statefulSet.readinessProbe.exec.command[1] | string | `"-c"` |  |

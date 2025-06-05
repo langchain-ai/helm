@@ -180,6 +180,7 @@ postgres:
     affinity: {}
     volumes: []
     volumeMounts: []
+    persistentVolumeClaimRetentionPolicy: {}
     persistence:
       enabled: true
       size: 8Gi

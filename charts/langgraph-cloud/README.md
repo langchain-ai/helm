@@ -1,6 +1,6 @@
 # langgraph-cloud
 
-![Version: 0.1.14](https://img.shields.io/badge/Version-0.1.14-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.2.0](https://img.shields.io/badge/AppVersion-0.2.0-informational?style=flat-square)
+![Version: 0.1.15](https://img.shields.io/badge/Version-0.1.15-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.2.0](https://img.shields.io/badge/AppVersion-0.2.0-informational?style=flat-square)
 
 Helm chart to deploy the LangGraph Cloud application and all services it depends on.
 
@@ -437,6 +437,7 @@ the same format as the secret in the corresponding `secrets.yaml` file. Note: AP
 | postgres.statefulSet.persistence.enabled | bool | `true` |  |
 | postgres.statefulSet.persistence.size | string | `"8Gi"` |  |
 | postgres.statefulSet.persistence.storageClassName | string | `""` |  |
+| postgres.statefulSet.persistentVolumeClaimRetentionPolicy | object | `{}` |  |
 | postgres.statefulSet.podSecurityContext | object | `{}` |  |
 | postgres.statefulSet.resources.limits.cpu | string | `"4000m"` |  |
 | postgres.statefulSet.resources.limits.memory | string | `"16Gi"` |  |

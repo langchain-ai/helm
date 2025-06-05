@@ -129,6 +129,10 @@ spec:
           {{- toYaml . | nindent 8 }}
       {{- end }}
  {{- if .Values.postgres.statefulSet.persistence.enabled }}
+  {{- with .Values.postgres.statefulSet.persistentVolumeClaimRetentionPolicy }}
+  persistentVolumeClaimRetentionPolicy:
+        {{- toYaml . | nindent 4 }}
+  {{- end }}
   volumeClaimTemplates:
     - apiVersion: v1
       kind: PersistentVolumeClaim
