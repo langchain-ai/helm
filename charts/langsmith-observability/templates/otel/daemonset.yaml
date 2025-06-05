@@ -1,0 +1,86 @@
+{{- if eq .Values.observability.logs.enabled true -}}
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: {{ include "opentelemetry-collector.fullname" . }}-agent
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "opentelemetry-collector.labels" . | nindent 4 }}
+  {{- if .Values.otelcollector.daemonset.annotations }}
+  annotations:
+    {{- range $key, $value := .Values.otelcollector.daemonset.annotations }}
+    {{- printf "%s: %s" $key (tpl $value $ | quote) | nindent 4 }}
+    {{- end }}
+  {{- end }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "opentelemetry-collector.selectorLabels" . | nindent 6 }}
+      {{- include "opentelemetry-collector.component" . | nindent 6 }}
+  updateStrategy:
+    rollingUpdate:
+      maxSurge: 0
+      maxUnavailable: 1
+    type: RollingUpdate
+  template:
+    metadata:
+      annotations:
+        {{- include "opentelemetry-collector.configTemplateChecksumAnnotation" . | nindent 8 }}
+        {{- include "opentelemetry-collector.podAnnotations" . | nindent 8 }}
+      labels:
+        {{- include "opentelemetry-collector.selectorLabels" . | nindent 8 }}
+        {{- include "opentelemetry-collector.component" . | nindent 8 }}
+        {{- include "opentelemetry-collector.podLabels" . | nindent 8 }}
+    spec:
+      containers:
+        - name: {{ .Values.otelcollector.name }}
+          image: {{ .Values.otelcollector.image.registry }}:{{ .Values.otelcollector.image.tag }}
+          imagePullPolicy: IfNotPresent
+          args:
+            - --config=/conf/relay.yaml
+          ports:
+            - name: otlp
+              containerPort: 4317
+              protocol: TCP
+            - name: otlp-http
+              containerPort: 4318
+              protocol: TCP
+          env:
+            - name: MY_POD_IP
+              valueFrom:
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: status.podIP
+            - name: K8S_NODE_NAME
+              valueFrom:
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: spec.nodeName
+            - name: K8S_NODE_IP
+              valueFrom:
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: status.hostIP
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 13133
+            successThreshold: 1
+            periodSeconds: 10
+            timeoutSeconds: 1
+          volumeMounts:
+            - mountPath: /conf
+              name: {{ include "opentelemetry-collector.fullname" . }}-configmap
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      serviceAccount: {{ include "opentelemetry-collector.serviceAccountName" . }}
+      serviceAccountName: {{ include "opentelemetry-collector.serviceAccountName" . }}
+      terminationGracePeriodSeconds: 30
+      volumes:
+        - configMap:
+            items:
+              - key: relay
+                path: relay.yaml
+            name: {{ include "opentelemetry-collector.fullname" . }}-agent
+          name: {{ include "opentelemetry-collector.fullname" . }}-configmap
+{{- end }}

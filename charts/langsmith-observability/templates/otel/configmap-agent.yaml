@@ -1,0 +1,75 @@
+{{- if or .Values.observability.logs.enabled .Values.observability.metrics.enabled .Values.observability.traces.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "opentelemetry-collector.fullname" . }}-agent
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "opentelemetry-collector.labels" . | nindent 4 }}
+data:
+  relay: |
+    extensions:
+      health_check:
+        endpoint: ${env:MY_POD_IP}:13133
+
+    receivers:
+      otlp:
+        protocols:
+          grpc:
+            endpoint: 0.0.0.0:4317
+          http:
+            endpoint: 0.0.0.0:4318
+    
+    processors:
+      batch: {}
+      memory_limiter:
+        check_interval: 5s
+        limit_percentage: 80
+        spike_limit_percentage: 25
+      filter:
+        error_mode: ignore
+        logs:
+          log_record:
+          - resource.attributes["k8s.namespace.name"] != "{{ .Values.global.langsmithNamespace }}"
+          - resource.attributes["k8s.app.name"] != "{{ .Values.global.langsmithNamespace }}"
+      k8sattributes:
+        extract:
+          labels:
+          - from: pod
+            key: app.kubernetes.io/name
+            tag_name: k8s.app.name
+          metadata:
+          - k8s.namespace.name
+        filter:
+          node_from_env_var: K8S_NODE_NAME
+        passthrough: false
+        pod_association:
+        - sources:
+          - from: resource_attribute
+            name: k8s.pod.ip
+        - sources:
+          - from: resource_attribute
+            name: k8s.pod.uid
+        - sources:
+          - from: connection
+
+    exporters:
+      debug: {}
+    
+    service:
+      extensions:
+        - health_check
+      pipelines:
+        {{- if .Values.observability.logs.enabled }}
+        logs:
+          receivers:
+            - otlp
+          processors:
+            - batch
+            - memory_limiter
+            - filter
+            - k8sattributes
+          exporters:
+            - debug
+        {{- end }}
+{{ end }}

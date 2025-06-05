@@ -1,0 +1,43 @@
+
+global:
+  envOverrides: []
+  langsmithNamespace: langsmith
+
+observability:
+
+  logs:
+    enabled: true
+    internal:
+      enabled: true
+      storage:
+        type: filesystem
+        path: /tmp/otel-collector-logs
+  
+  metrics:
+    enabled: false
+
+  traces:
+    enabled: false
+
+otelcollector:
+  name: langsmith-observability-otel-collector
+  image:
+    registry: otel/opentelemetry-collector-k8s
+    tag: "0.127.0"
+  
+  serviceAccount:
+    annotations: {}
+    labels: {}
+
+  clusterRoleBinding:
+    annotations: {}
+
+  clusterRole:
+    annotations: {}
+    rules: []
+  
+  daemonset:
+    annotations: {}
+
+  pod:
+    annotations: {}
