@@ -42,9 +42,11 @@ spec:
             - name: otlp
               containerPort: 4317
               protocol: TCP
+              hostPort: 4317
             - name: otlp-http
               containerPort: 4318
               protocol: TCP
+              hostPort: 4318
           env:
             - name: MY_POD_IP
               valueFrom:
@@ -65,12 +67,22 @@ spec:
             httpGet:
               path: /
               port: 13133
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 13133
             successThreshold: 1
             periodSeconds: 10
             timeoutSeconds: 1
           volumeMounts:
             - mountPath: /conf
               name: {{ include "opentelemetry-collector.fullname" . }}-configmap
+            - name: varlogpods
+              mountPath: /var/log/pods
+              readOnly: true
+            - name: varlibdockercontainers
+              mountPath: /var/lib/docker/containers
+              readOnly: true
       dnsPolicy: ClusterFirst
       restartPolicy: Always
       serviceAccount: {{ include "opentelemetry-collector.serviceAccountName" . }}
@@ -83,4 +95,10 @@ spec:
                 path: relay.yaml
             name: {{ include "opentelemetry-collector.fullname" . }}-agent
           name: {{ include "opentelemetry-collector.fullname" . }}-configmap
+        - name: varlogpods
+          hostPath:
+            path: /var/log/pods
+        - name: varlibdockercontainers
+          hostPath:
+            path: /var/lib/docker/containers
 {{- end }}

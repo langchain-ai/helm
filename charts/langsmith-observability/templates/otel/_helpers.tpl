@@ -204,11 +204,5 @@ Get ConfigMap name if existingName is defined, otherwise use default name for ge
 Create ConfigMap checksum annotation if configMap.existingPath is defined, otherwise use default templates
 */}}
 {{- define "opentelemetry-collector.configTemplateChecksumAnnotation" -}}
-  {{- if eq .Values.mode "daemonset" -}}
-  checksum/config: {{ include (print $.Template.BasePath "/configmap-agent.yaml") . | sha256sum }}
-  {{- else if eq .Values.mode "deployment" -}}
-  checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
-  {{- else if eq .Values.mode "statefulset" -}}
-  checksum/config: {{ include (print $.Template.BasePath "/configmap-statefulset.yaml") . | sha256sum }}
-  {{- end -}}
+  checksum/config: {{ include (print $.Template.BasePath "/otel/configmap-agent.yaml") . | sha256sum }}
 {{- end }}

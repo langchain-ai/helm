@@ -7,3 +7,15 @@ description: Helm chart to deploy the observability stack for LangSmith.
 type: application
 version: 0.1.0
 appVersion: "0.1.0"
+
+dependencies:
+  - name: grafana
+    version: 9.2.2
+    repository: https://grafana.github.io/helm-charts
+    condition: observability.logs.backend == "local"
+    alias: grafana
+  - name: loki
+    version: 6.30.1
+    repository: https://grafana.github.io/helm-charts
+    condition: observability.logs.backend == "local"
+    alias: logs_backend
