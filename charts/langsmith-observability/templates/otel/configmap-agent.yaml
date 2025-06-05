@@ -35,16 +35,12 @@ data:
     
     processors:
       batch: {}
-      memory_limiter:
-        check_interval: 5s
-        limit_percentage: 80
-        spike_limit_percentage: 25
       filter:
         error_mode: ignore
         logs:
           log_record:
-          - resource.attributes["k8s.namespace.name"] != "romain"
-          - resource.attributes["k8s.app.name"] != "{{ .Values.global.langsmithNamespace }}"
+          - 'resource.attributes["k8s.namespace.name"] != "{{ .Values.global.langsmithNamespace }}"'
+          - 'resource.attributes["k8s.app.name"] != "langsmith"'
       k8sattributes:
         extract:
           labels:
@@ -79,15 +75,13 @@ data:
         - health_check
       pipelines:
         {{- if .Values.observability.logs.enabled }}
-        logs:
+        logs/langsmith_backend:
           receivers:
-            - otlp
             - filelog
           processors:
-            - batch
-            - filter
             - k8sattributes
-            - memory_limiter
+            - filter
+            - batch
           exporters:
             - otlphttp/logs
         {{- end }}
