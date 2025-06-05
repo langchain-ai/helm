@@ -231,6 +231,7 @@ rules:
   resources:
   - pods
   - services
+  - serviceaccounts
   verbs:
   - create
   - delete
