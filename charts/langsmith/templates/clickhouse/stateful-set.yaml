@@ -144,6 +144,10 @@ spec:
           {{- toYaml . | nindent 8 }}
       {{- end }}
   {{- if .Values.clickhouse.statefulSet.persistence.enabled }}
+  {{- with .Values.clickhouse.statefulSet.persistentVolumeClaimRetentionPolicy }}
+  persistentVolumeClaimRetentionPolicy:
+        {{- toYaml . | nindent 4 }}
+  {{- end }}
   volumeClaimTemplates:
     - apiVersion: v1
       kind: PersistentVolumeClaim

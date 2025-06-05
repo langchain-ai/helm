@@ -512,6 +512,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | clickhouse.statefulSet.persistence.enabled | bool | `true` |  |
 | clickhouse.statefulSet.persistence.size | string | `"50Gi"` |  |
 | clickhouse.statefulSet.persistence.storageClassName | string | `""` |  |
+| clickhouse.statefulSet.persistentVolumeClaimRetentionPolicy | object | `{}` |  |
 | clickhouse.statefulSet.podSecurityContext | object | `{}` |  |
 | clickhouse.statefulSet.readinessProbe.failureThreshold | int | `6` |  |
 | clickhouse.statefulSet.readinessProbe.httpGet.path | string | `"/ping"` |  |
@@ -970,6 +971,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | postgres.statefulSet.persistence.enabled | bool | `true` |  |
 | postgres.statefulSet.persistence.size | string | `"8Gi"` |  |
 | postgres.statefulSet.persistence.storageClassName | string | `""` |  |
+| postgres.statefulSet.persistentVolumeClaimRetentionPolicy | object | `{}` |  |
 | postgres.statefulSet.podSecurityContext | object | `{}` |  |
 | postgres.statefulSet.readinessProbe.exec.command[0] | string | `"/bin/sh"` |  |
 | postgres.statefulSet.readinessProbe.exec.command[1] | string | `"-c"` |  |
@@ -1094,6 +1096,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | redis.statefulSet.persistence.enabled | bool | `true` |  |
 | redis.statefulSet.persistence.size | string | `"8Gi"` |  |
 | redis.statefulSet.persistence.storageClassName | string | `""` |  |
+| redis.statefulSet.persistentVolumeClaimRetentionPolicy | object | `{}` |  |
 | redis.statefulSet.podSecurityContext | object | `{}` |  |
 | redis.statefulSet.readinessProbe.exec.command[0] | string | `"/bin/sh"` |  |
 | redis.statefulSet.readinessProbe.exec.command[1] | string | `"-c"` |  |

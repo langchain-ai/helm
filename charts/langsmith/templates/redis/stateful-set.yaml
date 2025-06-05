@@ -116,6 +116,10 @@ spec:
           {{- toYaml . | nindent 8 }}
       {{- end }}
   {{- if .Values.redis.statefulSet.persistence.enabled }}
+  {{- with .Values.redis.statefulSet.persistentVolumeClaimRetentionPolicy }}
+  persistentVolumeClaimRetentionPolicy:
+        {{- toYaml . | nindent 4 }}
+  {{- end }}
   volumeClaimTemplates:
     - apiVersion: v1
       kind: PersistentVolumeClaim
