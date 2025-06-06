@@ -59,6 +59,7 @@ apiServer:
     annotations: {}
     podSecurityContext: {}
     securityContext: {}
+    priorityClassName: ""
     resources:
       limits:
         cpu: 2000m
@@ -111,6 +112,7 @@ queue:
     annotations: {}
     podSecurityContext: {}
     securityContext: {}
+    priorityClassName: ""
     resources:
       limits:
         cpu: 2000m
@@ -164,6 +166,7 @@ postgres:
     annotations: {}
     podSecurityContext: {}
     securityContext: {}
+    priorityClassName: ""
     resources:
       limits:
         cpu: 4000m
@@ -215,6 +218,7 @@ redis:
     annotations: {}
     podSecurityContext: {}
     securityContext: {}
+    priorityClassName: ""
     resources:
       limits:
         cpu: 2000m
@@ -285,6 +289,7 @@ studio:
     annotations: {}
     podSecurityContext: {}
     securityContext: {}
+    priorityClassName: ""
     resources:
       limits:
         cpu: 1000m
