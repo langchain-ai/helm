@@ -542,6 +542,9 @@ frontend:
   proxyReadTimeout: "300"
   proxyWriteTimeout: "300"
   proxyConnectTimeout: "60"
+  # Keep-Alive timeout in seconds. Depending on load balancer used for ingress, this may need to be increased to reduce intermittent connection issues.
+  # For example for GCP Classic ALB, this should be set to between 600 and 610 (exclusive). https://cloud.google.com/load-balancing/docs/https#timeouts_and_retries
+  keepAliveTimeout: "75"
   ipv6Enabled: true
   deployment:
     replicas: 1
