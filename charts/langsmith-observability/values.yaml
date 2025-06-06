@@ -1,26 +1,51 @@
 global:
   envOverrides: []
   langsmithNamespace: romain
-  installCRDs: true
 
 observability:
+  grafana:
+    enabled: true
   logs:
     enabled: true
-    backend: "local"
+    local_backend: false # local or external
+    local_persistence: false # local or s3
     
   metrics:
     enabled: true
-    backend: "local"
+    local_backend: true # local or external
+    local_persistence: false # local or s3
+    
+    postgres:
+      enabled: false
+    redis:
+      enabled: false
+    langsmith:
+      enabled: true
     kubeStateMetrics:
-      enabled: true
+      enabled: false
     hostMetrics:
-      enabled: true
+      enabled: false
     clickhouse:
       mode: "cluster" # cluster or external
-      enabled: true
+      enabled: false
 
   traces:
+    enabled: true
+    local_backend: false # local or external
+    local_persistence: false # local or s3
+
+minio:
+  mode: standalone
+  replicas: 1
+  persistence:
+    enabled: true
+    size: 10Gi
+  readinessProbe:
     enabled: false
+  auth:
+    rootUser: admin
+    rootPassword: admin_password
+  defaultBuckets: "loki, mimir-blocks, mimir-ruler, mimir-alertmanager, tempo"
 
 otelcollector:
   name: langsmith-observability-otel-collector
@@ -84,10 +109,6 @@ logs_backend:
 
   deploymentMode: Distributed
 
-  # Enable minio for storage locally on cluster
-  minio:
-    enabled: true
-
   ingester:
     replicas: 3 # To ensure data durability with replication
     zoneAwareReplication:
@@ -128,7 +149,55 @@ logs_backend:
 
 metrics_backend:
   minio:
-    enabled: true
+    enabled: false
+  mimir:
+    common:
+      storage:
+        backend: s3
+        s3:
+          endpoint: langsmith-observability-minio.romain-observability.svc.cluster.local:9000
+          region: us-east-1
+          secret_access_key: admin_password
+          access_key_id: admin
+          insecure: true
+
+    blocks_storage:
+      s3:
+        bucket_name: mimir-blocks
+
+    alertmanager_storage:
+      s3:
+        bucket_name: mimir-alertmanager
+
+    ruler_storage:
+      s3:
+        bucket_name: mimir-ruler
+
+
+traces_backend:
+  storage:
+    trace:
+      backend: s3
+      s3:
+        access_key: 'grafana-tempo'
+        secret_key: 'supersecret'
+        bucket: 'tempo-traces'
+        endpoint: 'tempo-minio:9000'
+        insecure: true
+  # Specifies which trace protocols to accept by the gateway.
+  traces:
+    otlp:
+      grpc:
+        enabled: true
+      http:
+        enabled: true
+    zipkin:
+      enabled: false
+    jaeger:
+      thriftHttp:
+        enabled: false
+    opencensus:
+      enabled: false
 
 postgresexporter:
   config:

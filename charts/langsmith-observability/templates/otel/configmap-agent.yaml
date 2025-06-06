@@ -32,22 +32,36 @@ data:
       prometheus:
         config:
           scrape_configs:
+            {{- if .Values.observability.metrics.postgres.enabled }}
             - job_name: 'postgres-exporter'
               metrics_path: /metrics
               static_configs:
                 - targets: ['langsmith-observability-postgresexporter.romain-observability.svc.cluster.local:80']
+            {{- end }}
+            {{- if .Values.observability.metrics.redis.enabled }}
             - job_name: 'redis-exporter'
               metrics_path: /metrics
               static_configs:
                 - targets: ['langsmith-observability-redisexporter.romain-observability.svc.cluster.local:9121']
+            {{- end }}
+            {{- if .Values.observability.metrics.kubeStateMetrics.enabled }}
             - job_name: 'kube_state_metrics'
               metrics_path: /metrics
               static_configs:
                 - targets: ['langsmith-observability-kube-state-metrics.romain-observability.svc.cluster.local:8080']
+            {{- end }}
+            {{- if .Values.observability.metrics.clickhouse.enabled }}
             - job_name: 'clickhouse'
               metrics_path: /metrics
               static_configs:
                 - targets: ['langsmith-clickhouse.romain.svc.cluster.local:9363']
+            {{- end }}
+            {{- if .Values.observability.metrics.langsmith.enabled }}
+            - job_name: 'langsmith_services'
+              metrics_path: /metrics
+              static_configs:
+                - targets: ['langsmith-backend.romain.svc.cluster.local:1984', 'langsmith-playground.romain.svc.cluster.local:1988']
+            {{- end }}
       {{- end }}
       {{- if .Values.observability.metrics.hostMetrics.enabled }}
       hostmetrics:
@@ -96,13 +110,14 @@ data:
           - from: connection
 
     exporters:
-      {{- if eq .Values.observability.logs.backend "local" }}
+      debug: {}
+      {{- if .Values.observability.logs.local_backend }}
       otlphttp/logs:
         endpoint: http://langsmith-observability-loki-gateway.romain-observability.svc.cluster.local:80/otlp
         tls:
           insecure: true
       {{- end }}
-      {{- if eq .Values.observability.metrics.backend "local" }}
+      {{- if .Values.observability.metrics.local_backend }}
       otlphttp/metrics:
         endpoint: http://langsmith-observability-mimir-nginx.romain-observability.svc.cluster.local:80/otlp
         tls:
@@ -122,7 +137,10 @@ data:
             - filter
             - batch
           exporters:
+            - debug
+            {{- if .Values.observability.logs.local_backend }}
             - otlphttp/logs
+            {{- end }}
         {{- end }}
         {{- if .Values.observability.metrics.enabled }}
         metrics/langsmith_backend:
@@ -135,6 +153,9 @@ data:
           processors:
             - batch
           exporters:
+            - debug
+            {{- if .Values.observability.metrics.local_backend }}
             - otlphttp/metrics
+            {{- end }}
         {{- end }}
 {{ end }}

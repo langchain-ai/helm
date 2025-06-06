@@ -8,6 +8,12 @@ dependencies:
 - name: mimir-distributed
   repository: https://grafana.github.io/helm-charts
   version: 5.7.0
+- name: tempo-distributed
+  repository: https://grafana.github.io/helm-charts
+  version: 1.41.1
+- name: minio
+  repository: https://charts.bitnami.com/bitnami
+  version: 16.0.10
 - name: kube-state-metrics
   repository: https://prometheus-community.github.io/helm-charts
   version: 5.36.0
@@ -17,5 +23,5 @@ dependencies:
 - name: prometheus-redis-exporter
   repository: https://prometheus-community.github.io/helm-charts
   version: 6.11.0
-digest: sha256:c4ac11ea590953868a32a85ca4c7a8070ec1aec9929a325a0f943b577d12da9c
-generated: "2025-06-05T13:35:00.436406-07:00"
+digest: sha256:a4f89c4b60f92af5e290bd0faf6d38eb3069c20a1c41847aeda7b7ebb8e53d7f
+generated: "2025-06-05T16:41:33.723027-07:00"

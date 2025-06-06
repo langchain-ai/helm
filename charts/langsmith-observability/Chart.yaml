@@ -12,18 +12,28 @@ dependencies:
   - name: grafana
     version: 9.2.2
     repository: https://grafana.github.io/helm-charts
-    condition: observability.logs.backend == "local"
+    condition: observability.grafana.enabled
     alias: grafana
   - name: loki
     version: 6.30.1
     repository: https://grafana.github.io/helm-charts
-    condition: observability.logs.backend == "local"
+    condition: observability.logs.local_backend
     alias: logs_backend
   - name: mimir-distributed
     version: 5.7.0
     repository: https://grafana.github.io/helm-charts
-    condition: observability.metrics.backend == "local"
+    condition: observability.metrics.local_backend
     alias: metrics_backend
+  - name: tempo-distributed
+    version: 1.41.1
+    repository: https://grafana.github.io/helm-charts
+    condition: observability.traces.local_backend
+    alias: traces_backend
+  - name: minio
+    version: 16.0.10
+    repository: https://charts.bitnami.com/bitnami
+    condition: observability.minio.enabled
+    alias: minio
   - name: kube-state-metrics
     version: 5.36.0 
     repository: https://prometheus-community.github.io/helm-charts
