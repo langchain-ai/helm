@@ -151,27 +151,28 @@ metrics_backend:
   minio:
     enabled: false
   mimir:
-    common:
-      storage:
-        backend: s3
+    structuredConfig:
+      common:
+        storage:
+          backend: s3
+          s3:
+            endpoint: langsmith-observability-minio.romain-observability.svc.cluster.local:9000
+            region: us-east-1
+            secret_access_key: admin_password
+            access_key_id: admin
+            insecure: true
+
+      blocks_storage:
         s3:
-          endpoint: langsmith-observability-minio.romain-observability.svc.cluster.local:9000
-          region: us-east-1
-          secret_access_key: admin_password
-          access_key_id: admin
-          insecure: true
+          bucket_name: mimir-blocks
 
-    blocks_storage:
-      s3:
-        bucket_name: mimir-blocks
+      alertmanager_storage:
+        s3:
+          bucket_name: mimir-alertmanager
 
-    alertmanager_storage:
-      s3:
-        bucket_name: mimir-alertmanager
-
-    ruler_storage:
-      s3:
-        bucket_name: mimir-ruler
+      ruler_storage:
+        s3:
+          bucket_name: mimir-ruler
 
 
 traces_backend:
