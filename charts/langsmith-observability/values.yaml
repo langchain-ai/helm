@@ -7,7 +7,7 @@ observability:
     enabled: true
   logs:
     enabled: true
-    local_backend: false # local or external
+    local_backend: true # local or external
     local_persistence: false # local or s3
     
   metrics:
@@ -16,18 +16,18 @@ observability:
     local_persistence: false # local or s3
     
     postgres:
-      enabled: false
+      enabled: true
     redis:
-      enabled: false
+      enabled: true
     langsmith:
       enabled: true
     kubeStateMetrics:
-      enabled: false
+      enabled: true 
     hostMetrics:
-      enabled: false
+      enabled: true
     clickhouse:
       mode: "cluster" # cluster or external
-      enabled: false
+      enabled: true
 
   traces:
     enabled: true
@@ -45,7 +45,7 @@ minio:
   auth:
     rootUser: admin
     rootPassword: admin_password
-  defaultBuckets: "loki, mimir-blocks, mimir-ruler, mimir-alertmanager, tempo"
+  defaultBuckets: "loki-chunks, loki-ruler, loki-admin, mimir-blocks, mimir-ruler, mimir-alertmanager, tempo"
 
 otelcollector:
   name: langsmith-observability-otel-collector
@@ -83,6 +83,20 @@ grafana:
           type: prometheus
           url: http://{{ .Release.Name }}-mimir-nginx/prometheus
           isDefault: false
+        - name: Tempo
+          uid: tempo
+          type: tempo
+          url: http://{{ .Release.Name }}-tempo-query-frontend:3100
+          isDefault: false
+          jsonData:
+            tracesToLogsV2:
+              datasourceUid: loki
+            lokiSearch:
+              datasourceUid: loki
+            tracesToMetrics:
+              datasourceUid: prom
+            serviceMap:
+              datasourceUid: prom
 
 logs_backend:
   loki:
@@ -96,6 +110,27 @@ logs_backend:
           index:
             prefix: loki_index_
             period: 24h
+    
+    storage_config:
+      aws:
+        region: us-east-1
+        bucketnames: loki-chunks
+        s3forcepathstyle: true
+
+    storage:
+      type: s3
+      bucketNames:
+        chunks: loki-chunks
+        ruler: loki-ruler
+        admin: loki-admin
+      s3:
+        endpoint: langsmith-observability-minio.romain-observability.svc.cluster.local:9000
+        region: us-east-1
+        secretAccessKey: admin_password
+        accessKeyId: admin
+        insecure: true
+        s3ForcePathStyle: true
+
     ingester:
       chunk_encoding: snappy
     querier:
