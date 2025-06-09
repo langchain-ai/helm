@@ -19,7 +19,7 @@
 - name: VITE_CUSTOM_LOGO_URL
   value: {{ .Values.frontend.customLogo.logoUrl | quote }}
 - name: VITE_CO_BRANDING_ENABLED
-  value: {{ .Values.frontend.customLogo.coBrandingEnabled | default "true" | quote }}
+  value: {{ .Values.frontend.customLogo.coBrandingEnabled | quote }}
 {{- end }}
 {{- if .Values.config.langgraphPlatform.enabled }}
 - name: VITE_HOST_ENABLED
