@@ -1019,7 +1019,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | queue.deployment.livenessProbe.exec.command[2] | string | `"--check"` |  |
 | queue.deployment.livenessProbe.failureThreshold | int | `6` |  |
 | queue.deployment.livenessProbe.periodSeconds | int | `60` |  |
-| queue.deployment.livenessProbe.timeoutSeconds | int | `30` |  |
+| queue.deployment.livenessProbe.timeoutSeconds | int | `60` |  |
 | queue.deployment.nodeSelector | object | `{}` |  |
 | queue.deployment.podSecurityContext | object | `{}` |  |
 | queue.deployment.readinessProbe.exec.command[0] | string | `"saq"` |  |
@@ -1027,7 +1027,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | queue.deployment.readinessProbe.exec.command[2] | string | `"--check"` |  |
 | queue.deployment.readinessProbe.failureThreshold | int | `6` |  |
 | queue.deployment.readinessProbe.periodSeconds | int | `60` |  |
-| queue.deployment.readinessProbe.timeoutSeconds | int | `30` |  |
+| queue.deployment.readinessProbe.timeoutSeconds | int | `60` |  |
 | queue.deployment.replicas | int | `3` |  |
 | queue.deployment.resources.limits.cpu | string | `"2000m"` |  |
 | queue.deployment.resources.limits.memory | string | `"4Gi"` |  |

@@ -37,6 +37,7 @@ ingress:
   labels: {}
   tls: []
   tlsEnabled: true
+  additionalPaths: []
 
 config:
   existingSecretName: ""
