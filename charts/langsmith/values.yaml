@@ -619,6 +619,10 @@ frontend:
     name: ""
     labels: {}
     annotations: {}
+  customLogo:
+    enabled: false
+    logoUrl: ""
+    coBrandingEnabled: true
 
 hostBackend:
   name: "host-backend"
