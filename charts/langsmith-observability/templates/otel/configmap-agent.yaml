@@ -1,4 +1,4 @@
-{{- if or .Values.observability.logs.enabled .Values.observability.metrics.enabled .Values.observability.traces.enabled }}
+{{- if or .Values.observability.logs.enabled (or .Values.observability.metrics.enabled .Values.observability.traces.enabled) }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -79,9 +79,20 @@ data:
           disk:
           filesystem:
       {{- end }}
-
+      {{- if .Values.observability.traces.enabled }}
+      otlp:
+        protocols:
+          grpc: 
+            endpoint: 0.0.0.0:4317
+          http: 
+            endpoint: 0.0.0.0:4318
+      {{- end}}
     processors:
       batch: {}
+      memory_limiter:
+        check_interval: 1m
+        limit_percentage: 75
+        spike_limit_percentage: 25
       filter:
         error_mode: ignore
         logs:
@@ -110,7 +121,8 @@ data:
           - from: connection
 
     exporters:
-      debug: {}
+      debug:
+        verbosity: detailed
       {{- if .Values.observability.logs.local_backend }}
       otlphttp/logs:
         endpoint: http://langsmith-observability-loki-gateway.romain-observability.svc.cluster.local:80/otlp
@@ -123,8 +135,17 @@ data:
         tls:
           insecure: true
       {{- end }}
+      {{- if .Values.observability.traces.local_backend }}
+      otlp/traces:
+        endpoint: langsmith-observability-tempo-distributor-discovery.romain-observability.svc.cluster.local:4317
+        tls:
+          insecure: true
+      {{- end }}
     
     service:
+      telemetry:
+        logs:
+          level: "debug"
       extensions:
         - health_check
       pipelines:
@@ -158,4 +179,14 @@ data:
             - otlphttp/metrics
             {{- end }}
         {{- end }}
-{{ end }}
+        {{- if .Values.observability.traces.enabled }}
+        traces/langsmith_backend:
+          receivers:
+            - otlp
+          processors:
+            - memory_limiter
+            - batch
+          exporters:
+            - debug
+        {{- end }}
+{{- end }}

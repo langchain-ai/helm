@@ -1,4 +1,4 @@
-{{- if eq .Values.observability.logs.enabled true -}}
+{{- if or .Values.observability.logs.enabled (or .Values.observability.metrics.enabled .Values.observability.traces.enabled) }}
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
@@ -101,4 +101,5 @@ spec:
         - name: varlibdockercontainers
           hostPath:
             path: /var/lib/docker/containers
+      hostNetwork: true
 {{- end }}

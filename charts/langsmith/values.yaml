@@ -932,7 +932,15 @@ platformBackend:
       periodSeconds: 10
       timeoutSeconds: 1
     extraContainerConfig: {}
-    extraEnv: []
+    extraEnv:
+      - name: OTEL_TRACE_EXPORTER_ENDPOINT
+        value: "$(HOST_IP):4317"
+      - name: OTEL_API_TRACING_ENABLED
+        value: "true"
+      - name: OTEL_IGNORE_ROUTES
+        value: "/ok,/health"
+      - name: OTEL_EXPORTER_OTLP_PROTOCOL
+        value: "grpc"
     sidecars: []
     nodeSelector: {}
     tolerations: []
