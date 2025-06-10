@@ -32,3 +32,4 @@ data:
   PLAYGROUND_ENDPOINT: "http://{{ include "langsmith.fullname" . }}-{{.Values.playground.name}}.{{ .Release.Namespace }}.svc.cluster.local:{{ .Values.playground.service.port }}"
   SMITH_BACKEND_ENDPOINT: "http://{{ include "langsmith.fullname" . }}-{{.Values.backend.name}}.{{ .Release.Namespace }}.svc.cluster.local:{{ .Values.backend.service.port }}"
   HOST_BACKEND_ENDPOINT: "http://{{ include "langsmith.fullname" . }}-{{.Values.hostBackend.name}}.{{ .Release.Namespace }}.svc.cluster.local:{{ .Values.hostBackend.service.port }}"
+  FF_RUN_STATS_GROUP_BY_ENABLED_ALL: "true"
