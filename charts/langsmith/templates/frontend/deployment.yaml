@@ -15,7 +15,7 @@
 - name: VITE_SUBDOMAIN
   value: {{ .Values.ingress.subdomain }}
 {{- end }}
-{{- if and .Values.frontend .Values.frontend.customLogo .Values.frontend.customLogo.enabled }}
+{{- if .Values.frontend.customLogo.enabled }}
 - name: VITE_CUSTOM_LOGO_URL
   value: {{ .Values.frontend.customLogo.logoUrl | quote }}
 - name: VITE_CO_BRANDING_ENABLED
