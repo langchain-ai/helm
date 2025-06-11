@@ -216,6 +216,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | config.blobStorage.azureStorageConnectionString | string | `""` | Optional. Use this to specify the full connection string including any authentication params. |
 | config.blobStorage.azureStorageContainerName | string | `""` | Required if using Azure blob storage |
 | config.blobStorage.azureStorageServiceUrlOverride | string | `""` | Optional. Use this to customize the service URL, which by default is 'https://<storage_account_name>.blob.core.windows.net/' |
+| config.customLogo | object | `{"coBrandingEnabled":true,"enabled":false,"logoUrl":""}` | Custom logo configuration. If enabled, the logoUrl and coBrandingEnabled values must be provided. The logoUrl must be a valid URL to an image like png, jpg, or svg. Co-branding will show LangSmith and customer logos side by side. |
 | config.existingSecretName | string | `""` |  |
 | config.fullTextSearch.deletes.enabled | bool | `false` |  |
 | config.fullTextSearch.indexing.enabled | bool | `false` |  |
@@ -623,9 +624,6 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | frontend.autoscaling.targetCPUUtilizationPercentage | int | `50` |  |
 | frontend.autoscaling.targetMemoryUtilizationPercentage | int | `80` |  |
 | frontend.containerPort | int | `8080` |  |
-| frontend.customLogo.coBrandingEnabled | bool | `true` |  |
-| frontend.customLogo.enabled | bool | `false` |  |
-| frontend.customLogo.logoUrl | string | `""` |  |
 | frontend.deployment.affinity | object | `{}` |  |
 | frontend.deployment.annotations | object | `{}` |  |
 | frontend.deployment.command[0] | string | `"/entrypoint.sh"` |  |
