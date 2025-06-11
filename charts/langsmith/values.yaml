@@ -163,6 +163,14 @@ config:
       # Enables deletes for Experimental Search
       enabled: false
 
+  # -- Custom logo configuration.
+  # If enabled, the logoUrl and coBrandingEnabled values must be provided.
+  # The logoUrl must be a valid URL to an image like png, jpg, or svg. Co-branding will show LangSmith and customer logos side by side.
+  customLogo:
+    enabled: false
+    logoUrl: ""
+    coBrandingEnabled: true
+
 aceBackend:
   name: "ace-backend"
   containerPort: 1987

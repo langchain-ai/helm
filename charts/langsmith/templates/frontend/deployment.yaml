@@ -15,6 +15,12 @@
 - name: VITE_SUBDOMAIN
   value: {{ .Values.ingress.subdomain }}
 {{- end }}
+{{- if .Values.config.customLogo.enabled }}
+- name: VITE_CUSTOM_LOGO_URL
+  value: {{ .Values.config.customLogo.logoUrl | quote }}
+- name: VITE_CO_BRANDING_ENABLED
+  value: {{ .Values.config.customLogo.coBrandingEnabled | quote }}
+{{- end }}
 {{- if .Values.config.langgraphPlatform.enabled }}
 - name: VITE_HOST_ENABLED
   value: "1"
