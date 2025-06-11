@@ -39,6 +39,9 @@ spec:
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      {{- if .Values.studio.deployment.priorityClassName }}
+      priorityClassName: {{ .Values.studio.deployment.priorityClassName }}
+      {{- end }}
       securityContext:
         {{- toYaml .Values.studio.deployment.podSecurityContext | nindent 8 }}
       containers:
