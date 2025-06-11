@@ -97,7 +97,6 @@ services:
       - LANGSMITH_URL=${LANGSMITH_URL:-http://langchain-frontend:1980}
       - SMITH_BACKEND_ENDPOINT=${SMITH_BACKEND_ENDPOINT:-http://langchain-backend:1984}
       - LANGSMITH_LICENSE_KEY=${LANGSMITH_LICENSE_KEY}
-      - OPENAI_API_KEY=${OPENAI_API_KEY}
       - LOG_LEVEL=${LOG_LEVEL:-warning}
       - AUTH_TYPE=${AUTH_TYPE:-none}
       - OAUTH_CLIENT_ID=${OAUTH_CLIENT_ID}
@@ -266,7 +265,6 @@ services:
     environment:
       - LANGCHAIN_ENV=local_docker
       - LANGSMITH_LICENSE_KEY=${LANGSMITH_LICENSE_KEY}
-      - OPENAI_API_KEY=${OPENAI_API_KEY}
       - LOG_LEVEL=${LOG_LEVEL:-warning}
       - AUTH_TYPE=${AUTH_TYPE:-none}
       - OAUTH_CLIENT_ID=${OAUTH_CLIENT_ID}
