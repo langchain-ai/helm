@@ -340,6 +340,41 @@ backend:
     volumeMounts: []
     # You can set this to null to disable the TTL for the migrations job. Useful for some deployment setups.
     ttlSecondsAfterFinished: 600
+  feedbackMigration:
+    configMigration:
+      enabled: false
+      annotations: {}
+      podAnnotations: {}
+      podSecurityContext: {}
+      securityContext: {}
+      resources:
+        limits:
+          cpu: 2000m
+          memory: 4Gi
+        requests:
+          cpu: 1000m
+          memory: 2Gi
+      extraEnv: []
+      nodeSelector: {}
+      tolerations: []
+      affinity: {}
+    dataMigration:
+      enabled: false
+      annotations: {}
+      podAnnotations: {}
+      podSecurityContext: {}
+      securityContext: {}
+      resources:
+        limits:
+          cpu: 4000m
+          memory: 8Gi
+        requests:
+          cpu: 2000m
+          memory: 4Gi
+      extraEnv: []
+      nodeSelector: {}
+      tolerations: []
+      affinity: {}
   authBootstrap:
     # Helpful when running using helm template to avoid the job name conflict
     randomizeName: true
