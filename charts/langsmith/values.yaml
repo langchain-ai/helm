@@ -341,6 +341,7 @@ backend:
       - "/bin/bash"
       - "-c"
       - "alembic upgrade head"
+    connectionString: ""
     extraContainerConfig: {}
     extraEnv: []
     sidecars: []
@@ -353,6 +354,11 @@ backend:
     volumeMounts: []
     # You can set this to null to disable the TTL for the migrations job. Useful for some deployment setups.
     ttlSecondsAfterFinished: 600
+    serviceAccount:
+      create: false
+      name: ""
+      labels: {}
+      annotations: {}
   authBootstrap:
     # Helpful when running using helm template to avoid the job name conflict
     randomizeName: true
@@ -370,6 +376,7 @@ backend:
     command:
       - "python"
       - "hooks/auth_bootstrap.pyc"
+    connectionString: ""
     extraContainerConfig: {}
     extraEnv: []
     sidecars: []
@@ -546,6 +553,39 @@ clickhouse:
     name: ""
     labels: {}
     annotations: {}
+
+e2eTest:
+  name: "e2e-test"
+  enabled: true
+  labels: {}
+  annotations: {}
+  podSecurityContext: {}
+  securityContext: {}
+  resources:
+    limits:
+      cpu: 500m
+      memory: 1Gi
+    requests:
+      cpu: 200m
+      memory: 500Mi
+  command:
+    - "python"
+    - "scripts/test_e2e_trace.pyc"
+  serviceAccount:
+    create: false
+    name: ""
+    labels: {}
+    annotations: {}
+  extraContainerConfig: {}
+  sidecars: []
+  initContainers: []
+  nodeSelector: {}
+  tolerations: []
+  topologySpreadConstraints: []
+  affinity: {}
+  volumes: []
+  volumeMounts: []
+  ttlSecondsAfterFinished: 10
 
 frontend:
   name: "frontend"

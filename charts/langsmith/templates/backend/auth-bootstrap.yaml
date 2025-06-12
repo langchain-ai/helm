@@ -84,6 +84,10 @@ spec:
             {{- with $envVars }}
               {{- toYaml . | nindent 12 }}
             {{- end }}
+            {{- with .Values.backend.authBootstrap.connectionString }}
+            - name: ASYNCPG_DATABASE_URI
+              value: {{ . | quote }}
+            {{- end }}
           envFrom:
             - configMapRef:
                 name: {{ include "langsmith.fullname" . }}-config

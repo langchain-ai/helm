@@ -15,6 +15,32 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | commonAnnotations | object | `{}` | Annotations that will be applied to all resources created by the chart |
 | commonEnv | list | `[]` | Common environment variables that will be applied to all deployments/statefulsets except for the playground/aceBackend services (which are sandboxed). Be careful not to override values already specified by the chart. |
 | commonLabels | object | `{}` | Labels that will be applied to all resources created by the chart |
+| e2eTest.affinity | object | `{}` |  |
+| e2eTest.annotations | object | `{}` |  |
+| e2eTest.command[0] | string | `"python"` |  |
+| e2eTest.command[1] | string | `"scripts/test_e2e_trace.pyc"` |  |
+| e2eTest.enabled | bool | `true` |  |
+| e2eTest.extraContainerConfig | object | `{}` |  |
+| e2eTest.initContainers | list | `[]` |  |
+| e2eTest.labels | object | `{}` |  |
+| e2eTest.name | string | `"e2e-test"` |  |
+| e2eTest.nodeSelector | object | `{}` |  |
+| e2eTest.podSecurityContext | object | `{}` |  |
+| e2eTest.resources.limits.cpu | string | `"500m"` |  |
+| e2eTest.resources.limits.memory | string | `"1Gi"` |  |
+| e2eTest.resources.requests.cpu | string | `"200m"` |  |
+| e2eTest.resources.requests.memory | string | `"500Mi"` |  |
+| e2eTest.securityContext | object | `{}` |  |
+| e2eTest.serviceAccount.annotations | object | `{}` |  |
+| e2eTest.serviceAccount.create | bool | `false` |  |
+| e2eTest.serviceAccount.labels | object | `{}` |  |
+| e2eTest.serviceAccount.name | string | `""` |  |
+| e2eTest.sidecars | list | `[]` |  |
+| e2eTest.tolerations | list | `[]` |  |
+| e2eTest.topologySpreadConstraints | list | `[]` |  |
+| e2eTest.ttlSecondsAfterFinished | int | `10` |  |
+| e2eTest.volumeMounts | list | `[]` |  |
+| e2eTest.volumes | list | `[]` |  |
 | fullnameOverride | string | `""` | String to fully override `"langsmith.fullname"` |
 | images.aceBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.aceBackendImage.repository | string | `"docker.io/langchain/langsmith-ace-backend"` |  |
@@ -205,12 +231,12 @@ For information on how to use this chart, up-to-date release notes, and other gu
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| config.apiKeySalt | string | `""` | Salt used to generate the API key. Should be a random string. |
-| config.authType | string | `""` | Must be 'oauth' for OAuth with PKCE, 'mixed' for basic auth or OAuth without PKCE |
-| config.basicAuth.enabled | bool | `false` |  |
-| config.basicAuth.initialOrgAdminEmail | string | `""` |  |
-| config.basicAuth.initialOrgAdminPassword | string | `""` |  |
-| config.basicAuth.jwtSecret | string | `""` |  |
+| config.apiKeySalt | string | `"1234567890"` | Salt used to generate the API key. Should be a random string. |
+| config.authType | string | `"mixed"` | Must be 'oauth' for OAuth with PKCE, 'mixed' for basic auth or OAuth without PKCE |
+| config.basicAuth.enabled | bool | `true` |  |
+| config.basicAuth.initialOrgAdminEmail | string | `"romain@langchain.dev"` |  |
+| config.basicAuth.initialOrgAdminPassword | string | `"securePassword!"` |  |
+| config.basicAuth.jwtSecret | string | `"1234567890"` |  |
 | config.blobStorage | object | `{"accessKey":"","accessKeySecret":"","apiURL":"https://s3.us-west-2.amazonaws.com","azureStorageAccountKey":"","azureStorageAccountName":"","azureStorageConnectionString":"","azureStorageContainerName":"","azureStorageServiceUrlOverride":"","bucketName":"","chSearchEnabled":true,"enabled":false,"engine":"S3","minBlobStorageSizeKb":"20"}` | Blob storage configuration Optional. Used to store inputs, outputs, and errors in Blob Storage. We currently support S3, GCS, Minio, and Azure as Blob Storage providers. |
 | config.blobStorage.azureStorageAccountName | string | `""` | Optional. Set this along with azureStorageAccountKey to use a storage account and access key. Higher precedence than azureStorageConnectionString. |
 | config.blobStorage.azureStorageConnectionString | string | `""` | Optional. Use this to specify the full connection string including any authentication params. |
@@ -225,7 +251,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | config.langgraphPlatform.langgraphPlatformLicenseKey | string | `""` |  |
 | config.langgraphPlatform.rootDomain | string | `""` |  |
 | config.langgraphPlatform.tlsEnabled | bool | `true` |  |
-| config.langsmithLicenseKey | string | `""` |  |
+| config.langsmithLicenseKey | string | `"lcl_4b5a9a94e5e941ccb6df1ecc2bc2f800_f92e987b18"` |  |
 | config.logLevel | string | `"info"` |  |
 | config.oauth.enabled | bool | `false` |  |
 | config.oauth.oauthClientId | string | `""` |  |
@@ -322,6 +348,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | backend.authBootstrap.annotations | object | `{}` |  |
 | backend.authBootstrap.command[0] | string | `"python"` |  |
 | backend.authBootstrap.command[1] | string | `"hooks/auth_bootstrap.pyc"` |  |
+| backend.authBootstrap.connectionString | string | `""` |  |
 | backend.authBootstrap.extraContainerConfig | object | `{}` |  |
 | backend.authBootstrap.extraEnv | list | `[]` |  |
 | backend.authBootstrap.initContainers | list | `[]` |  |
@@ -424,6 +451,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | backend.migrations.command[0] | string | `"/bin/bash"` |  |
 | backend.migrations.command[1] | string | `"-c"` |  |
 | backend.migrations.command[2] | string | `"alembic upgrade head"` |  |
+| backend.migrations.connectionString | string | `""` |  |
 | backend.migrations.enabled | bool | `true` |  |
 | backend.migrations.extraContainerConfig | object | `{}` |  |
 | backend.migrations.extraEnv | list | `[]` |  |
@@ -437,6 +465,10 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | backend.migrations.resources.requests.cpu | string | `"200m"` |  |
 | backend.migrations.resources.requests.memory | string | `"500Mi"` |  |
 | backend.migrations.securityContext | object | `{}` |  |
+| backend.migrations.serviceAccount.annotations | object | `{}` |  |
+| backend.migrations.serviceAccount.create | bool | `false` |  |
+| backend.migrations.serviceAccount.labels | object | `{}` |  |
+| backend.migrations.serviceAccount.name | string | `""` |  |
 | backend.migrations.sidecars | list | `[]` |  |
 | backend.migrations.tolerations | list | `[]` |  |
 | backend.migrations.topologySpreadConstraints | list | `[]` |  |

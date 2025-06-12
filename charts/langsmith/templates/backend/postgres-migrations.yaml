@@ -41,7 +41,7 @@ spec:
       {{- end }}
       securityContext:
         {{- toYaml .Values.backend.migrations.podSecurityContext | nindent 8 }}
-      serviceAccountName: {{ include "backend.serviceAccountName" . }}
+      serviceAccountName: {{ include "migrations.serviceAccountName" . }}
       {{- with .Values.backend.migrations.initContainers }}
       initContainers:
         {{- toYaml . | nindent 8 }}
@@ -55,6 +55,10 @@ spec:
           env:
             {{- with $envVars }}
               {{- toYaml . | nindent 12 }}
+            {{- end }}
+            {{- with .Values.backend.migrations.connectionString }}
+            - name: SQLALCHEMY_DATABASE_URI
+              value: {{ . | quote }}
             {{- end }}
           envFrom:
             - configMapRef:

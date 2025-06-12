@@ -380,6 +380,14 @@ Template containing common environment variables that are used by several servic
 {{- end -}}
 {{- end -}}
 
+{{- define "e2eTest.serviceAccountName" -}}
+{{- if .Values.e2eTest.serviceAccount.create -}}
+    {{ default (printf "%s-%s" (include "langsmith.fullname" .) .Values.e2eTest.name) .Values.e2eTest.serviceAccount.name | trunc 63 | trimSuffix "-" }}
+{{- else -}}
+    {{ include "backend.serviceAccountName" . }}
+{{- end -}}
+{{- end -}}
+
 {{- define "frontend.serviceAccountName" -}}
 {{- if .Values.frontend.serviceAccount.create -}}
     {{ default (printf "%s-%s" (include "langsmith.fullname" .) .Values.frontend.name) .Values.frontend.serviceAccount.name | trunc 63 | trimSuffix "-" }}
@@ -401,6 +409,14 @@ Template containing common environment variables that are used by several servic
     {{ default (printf "%s-%s" (include "langsmith.fullname" .) .Values.listener.name) .Values.listener.serviceAccount.name | trunc 63 | trimSuffix "-" }}
 {{- else -}}
     {{ default "default" .Values.listener.serviceAccount.name }}
+{{- end -}}
+{{- end -}}
+
+{{- define "migrations.serviceAccountName" -}}
+{{- if .Values.backend.migrations.serviceAccount.create -}}
+    {{ default (printf "%s-%s-migrations" (include "langsmith.fullname" .) .Values.backend.name) .Values.backend.migrations.serviceAccount.name | trunc 63 | trimSuffix "-" }}
+{{- else -}}
+    {{ include "backend.serviceAccountName" . }}
 {{- end -}}
 {{- end -}}
 
