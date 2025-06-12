@@ -15,32 +15,6 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | commonAnnotations | object | `{}` | Annotations that will be applied to all resources created by the chart |
 | commonEnv | list | `[]` | Common environment variables that will be applied to all deployments/statefulsets except for the playground/aceBackend services (which are sandboxed). Be careful not to override values already specified by the chart. |
 | commonLabels | object | `{}` | Labels that will be applied to all resources created by the chart |
-| e2eTest.affinity | object | `{}` |  |
-| e2eTest.annotations | object | `{}` |  |
-| e2eTest.command[0] | string | `"python"` |  |
-| e2eTest.command[1] | string | `"scripts/test_e2e_trace.pyc"` |  |
-| e2eTest.enabled | bool | `true` |  |
-| e2eTest.extraContainerConfig | object | `{}` |  |
-| e2eTest.initContainers | list | `[]` |  |
-| e2eTest.labels | object | `{}` |  |
-| e2eTest.name | string | `"e2e-test"` |  |
-| e2eTest.nodeSelector | object | `{}` |  |
-| e2eTest.podSecurityContext | object | `{}` |  |
-| e2eTest.resources.limits.cpu | string | `"500m"` |  |
-| e2eTest.resources.limits.memory | string | `"1Gi"` |  |
-| e2eTest.resources.requests.cpu | string | `"200m"` |  |
-| e2eTest.resources.requests.memory | string | `"500Mi"` |  |
-| e2eTest.securityContext | object | `{}` |  |
-| e2eTest.serviceAccount.annotations | object | `{}` |  |
-| e2eTest.serviceAccount.create | bool | `false` |  |
-| e2eTest.serviceAccount.labels | object | `{}` |  |
-| e2eTest.serviceAccount.name | string | `""` |  |
-| e2eTest.sidecars | list | `[]` |  |
-| e2eTest.tolerations | list | `[]` |  |
-| e2eTest.topologySpreadConstraints | list | `[]` |  |
-| e2eTest.ttlSecondsAfterFinished | int | `10` |  |
-| e2eTest.volumeMounts | list | `[]` |  |
-| e2eTest.volumes | list | `[]` |  |
 | fullnameOverride | string | `""` | String to fully override `"langsmith.fullname"` |
 | images.aceBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.aceBackendImage.repository | string | `"docker.io/langchain/langsmith-ace-backend"` |  |
@@ -231,12 +205,12 @@ For information on how to use this chart, up-to-date release notes, and other gu
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| config.apiKeySalt | string | `"1234567890"` | Salt used to generate the API key. Should be a random string. |
-| config.authType | string | `"mixed"` | Must be 'oauth' for OAuth with PKCE, 'mixed' for basic auth or OAuth without PKCE |
-| config.basicAuth.enabled | bool | `true` |  |
-| config.basicAuth.initialOrgAdminEmail | string | `"romain@langchain.dev"` |  |
-| config.basicAuth.initialOrgAdminPassword | string | `"securePassword!"` |  |
-| config.basicAuth.jwtSecret | string | `"1234567890"` |  |
+| config.apiKeySalt | string | `""` | Salt used to generate the API key. Should be a random string. |
+| config.authType | string | `""` | Must be 'oauth' for OAuth with PKCE, 'mixed' for basic auth or OAuth without PKCE |
+| config.basicAuth.enabled | bool | `false` |  |
+| config.basicAuth.initialOrgAdminEmail | string | `""` |  |
+| config.basicAuth.initialOrgAdminPassword | string | `""` |  |
+| config.basicAuth.jwtSecret | string | `""` |  |
 | config.blobStorage | object | `{"accessKey":"","accessKeySecret":"","apiURL":"https://s3.us-west-2.amazonaws.com","azureStorageAccountKey":"","azureStorageAccountName":"","azureStorageConnectionString":"","azureStorageContainerName":"","azureStorageServiceUrlOverride":"","bucketName":"","chSearchEnabled":true,"enabled":false,"engine":"S3","minBlobStorageSizeKb":"20"}` | Blob storage configuration Optional. Used to store inputs, outputs, and errors in Blob Storage. We currently support S3, GCS, Minio, and Azure as Blob Storage providers. |
 | config.blobStorage.azureStorageAccountName | string | `""` | Optional. Set this along with azureStorageAccountKey to use a storage account and access key. Higher precedence than azureStorageConnectionString. |
 | config.blobStorage.azureStorageConnectionString | string | `""` | Optional. Use this to specify the full connection string including any authentication params. |
@@ -251,7 +225,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | config.langgraphPlatform.langgraphPlatformLicenseKey | string | `""` |  |
 | config.langgraphPlatform.rootDomain | string | `""` |  |
 | config.langgraphPlatform.tlsEnabled | bool | `true` |  |
-| config.langsmithLicenseKey | string | `"lcl_4b5a9a94e5e941ccb6df1ecc2bc2f800_f92e987b18"` |  |
+| config.langsmithLicenseKey | string | `""` |  |
 | config.logLevel | string | `"info"` |  |
 | config.oauth.enabled | bool | `false` |  |
 | config.oauth.oauthClientId | string | `""` |  |
@@ -293,7 +267,6 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | aceBackend.deployment.command[9] | string | `"src/python_worker.ts"` |  |
 | aceBackend.deployment.extraContainerConfig | object | `{}` |  |
 | aceBackend.deployment.extraEnv | list | `[]` |  |
-| aceBackend.deployment.initContainers | list | `[]` |  |
 | aceBackend.deployment.labels | object | `{}` |  |
 | aceBackend.deployment.livenessProbe.failureThreshold | int | `6` |  |
 | aceBackend.deployment.livenessProbe.httpGet.path | string | `"/ok"` |  |
@@ -348,10 +321,8 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | backend.authBootstrap.annotations | object | `{}` |  |
 | backend.authBootstrap.command[0] | string | `"python"` |  |
 | backend.authBootstrap.command[1] | string | `"hooks/auth_bootstrap.pyc"` |  |
-| backend.authBootstrap.connectionString | string | `""` |  |
 | backend.authBootstrap.extraContainerConfig | object | `{}` |  |
 | backend.authBootstrap.extraEnv | list | `[]` |  |
-| backend.authBootstrap.initContainers | list | `[]` |  |
 | backend.authBootstrap.labels | object | `{}` |  |
 | backend.authBootstrap.nodeSelector | object | `{}` |  |
 | backend.authBootstrap.podSecurityContext | object | `{}` |  |
@@ -380,7 +351,6 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | backend.clickhouseMigrations.enabled | bool | `true` |  |
 | backend.clickhouseMigrations.extraContainerConfig | object | `{}` |  |
 | backend.clickhouseMigrations.extraEnv | list | `[]` |  |
-| backend.clickhouseMigrations.initContainers | list | `[]` |  |
 | backend.clickhouseMigrations.labels | object | `{}` |  |
 | backend.clickhouseMigrations.nodeSelector | object | `{}` |  |
 | backend.clickhouseMigrations.podSecurityContext | object | `{}` |  |
@@ -414,7 +384,6 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | backend.deployment.command[9] | string | `"uvloop"` |  |
 | backend.deployment.extraContainerConfig | object | `{}` |  |
 | backend.deployment.extraEnv | list | `[]` |  |
-| backend.deployment.initContainers | list | `[]` |  |
 | backend.deployment.labels | object | `{}` |  |
 | backend.deployment.livenessProbe.failureThreshold | int | `6` |  |
 | backend.deployment.livenessProbe.httpGet.path | string | `"/health"` |  |
@@ -451,11 +420,9 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | backend.migrations.command[0] | string | `"/bin/bash"` |  |
 | backend.migrations.command[1] | string | `"-c"` |  |
 | backend.migrations.command[2] | string | `"alembic upgrade head"` |  |
-| backend.migrations.connectionString | string | `""` |  |
 | backend.migrations.enabled | bool | `true` |  |
 | backend.migrations.extraContainerConfig | object | `{}` |  |
 | backend.migrations.extraEnv | list | `[]` |  |
-| backend.migrations.initContainers | list | `[]` |  |
 | backend.migrations.labels | object | `{}` |  |
 | backend.migrations.nodeSelector | object | `{}` |  |
 | backend.migrations.podSecurityContext | object | `{}` |  |
@@ -465,10 +432,6 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | backend.migrations.resources.requests.cpu | string | `"200m"` |  |
 | backend.migrations.resources.requests.memory | string | `"500Mi"` |  |
 | backend.migrations.securityContext | object | `{}` |  |
-| backend.migrations.serviceAccount.annotations | object | `{}` |  |
-| backend.migrations.serviceAccount.create | bool | `false` |  |
-| backend.migrations.serviceAccount.labels | object | `{}` |  |
-| backend.migrations.serviceAccount.name | string | `""` |  |
 | backend.migrations.sidecars | list | `[]` |  |
 | backend.migrations.tolerations | list | `[]` |  |
 | backend.migrations.topologySpreadConstraints | list | `[]` |  |
@@ -540,7 +503,6 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | clickhouse.statefulSet.command[2] | string | `"sed 's/id -g/id -gn/' /entrypoint.sh > /tmp/entrypoint.sh; exec bash /tmp/entrypoint.sh"` |  |
 | clickhouse.statefulSet.extraContainerConfig | object | `{}` |  |
 | clickhouse.statefulSet.extraEnv | list | `[]` |  |
-| clickhouse.statefulSet.initContainers | list | `[]` |  |
 | clickhouse.statefulSet.labels | object | `{}` |  |
 | clickhouse.statefulSet.livenessProbe.failureThreshold | int | `6` |  |
 | clickhouse.statefulSet.livenessProbe.httpGet.path | string | `"/ping"` |  |
@@ -602,7 +564,6 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | hostBackend.deployment.command[9] | string | `"uvloop"` |  |
 | hostBackend.deployment.extraContainerConfig | object | `{}` |  |
 | hostBackend.deployment.extraEnv | list | `[]` |  |
-| hostBackend.deployment.initContainers | list | `[]` |  |
 | hostBackend.deployment.labels | object | `{}` |  |
 | hostBackend.deployment.livenessProbe.failureThreshold | int | `6` |  |
 | hostBackend.deployment.livenessProbe.httpGet.path | string | `"/ok"` |  |
@@ -668,7 +629,6 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | frontend.deployment.command[0] | string | `"/entrypoint.sh"` |  |
 | frontend.deployment.extraContainerConfig | object | `{}` |  |
 | frontend.deployment.extraEnv | list | `[]` |  |
-| frontend.deployment.initContainers | list | `[]` |  |
 | frontend.deployment.labels | object | `{}` |  |
 | frontend.deployment.livenessProbe.failureThreshold | int | `10` |  |
 | frontend.deployment.livenessProbe.httpGet.path | string | `"/health"` |  |
@@ -740,7 +700,6 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | listener.deployment.command[2] | string | `"--quiet"` |  |
 | listener.deployment.extraContainerConfig | object | `{}` |  |
 | listener.deployment.extraEnv | list | `[]` |  |
-| listener.deployment.initContainers | list | `[]` |  |
 | listener.deployment.labels | object | `{}` |  |
 | listener.deployment.livenessProbe.exec.command[0] | string | `"saq"` |  |
 | listener.deployment.livenessProbe.exec.command[1] | string | `"app.workers.queues.host_worker.settings"` |  |
@@ -798,7 +757,6 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | operator.deployment.annotations | object | `{}` |  |
 | operator.deployment.extraContainerConfig | object | `{}` |  |
 | operator.deployment.extraEnv | list | `[]` |  |
-| operator.deployment.initContainers | list | `[]` |  |
 | operator.deployment.labels | object | `{}` |  |
 | operator.deployment.nodeSelector | object | `{}` |  |
 | operator.deployment.podSecurityContext | object | `{}` |  |
@@ -848,7 +806,6 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | platformBackend.deployment.command[0] | string | `"./smith-go"` |  |
 | platformBackend.deployment.extraContainerConfig | object | `{}` |  |
 | platformBackend.deployment.extraEnv | list | `[]` |  |
-| platformBackend.deployment.initContainers | list | `[]` |  |
 | platformBackend.deployment.labels | object | `{}` |  |
 | platformBackend.deployment.livenessProbe.failureThreshold | int | `6` |  |
 | platformBackend.deployment.livenessProbe.httpGet.path | string | `"/ok"` |  |
@@ -924,7 +881,6 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | playground.deployment.command[9] | string | `"uvloop"` |  |
 | playground.deployment.extraContainerConfig | object | `{}` |  |
 | playground.deployment.extraEnv | list | `[]` |  |
-| playground.deployment.initContainers | list | `[]` |  |
 | playground.deployment.labels | object | `{}` |  |
 | playground.deployment.livenessProbe.failureThreshold | int | `6` |  |
 | playground.deployment.livenessProbe.httpGet.path | string | `"/ok"` |  |
@@ -1006,7 +962,6 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | postgres.statefulSet.command | list | `[]` |  |
 | postgres.statefulSet.extraContainerConfig | object | `{}` |  |
 | postgres.statefulSet.extraEnv | list | `[]` |  |
-| postgres.statefulSet.initContainers | list | `[]` |  |
 | postgres.statefulSet.labels | object | `{}` |  |
 | postgres.statefulSet.livenessProbe.exec.command[0] | string | `"/bin/sh"` |  |
 | postgres.statefulSet.livenessProbe.exec.command[1] | string | `"-c"` |  |
@@ -1060,7 +1015,6 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | queue.deployment.command[2] | string | `"--quiet"` |  |
 | queue.deployment.extraContainerConfig | object | `{}` |  |
 | queue.deployment.extraEnv | list | `[]` |  |
-| queue.deployment.initcontainers | list | `[]` |  |
 | queue.deployment.labels | object | `{}` |  |
 | queue.deployment.livenessProbe.exec.command[0] | string | `"saq"` |  |
 | queue.deployment.livenessProbe.exec.command[1] | string | `"app.workers.queues.single_queue_worker.settings"` |  |
@@ -1133,7 +1087,6 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | redis.statefulSet.command | list | `[]` |  |
 | redis.statefulSet.extraContainerConfig | object | `{}` |  |
 | redis.statefulSet.extraEnv | list | `[]` |  |
-| redis.statefulSet.initContainers | list | `[]` |  |
 | redis.statefulSet.labels | object | `{}` |  |
 | redis.statefulSet.livenessProbe.exec.command[0] | string | `"/bin/sh"` |  |
 | redis.statefulSet.livenessProbe.exec.command[1] | string | `"-c"` |  |
