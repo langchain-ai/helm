@@ -119,6 +119,9 @@ data:
             name: k8s.pod.uid
         - sources:
           - from: connection
+      
+    connectors:
+      datadog/connector:
 
     exporters:
       debug:
@@ -141,6 +144,10 @@ data:
         tls:
           insecure: true
       {{- end }}
+      datadog/exporter:
+        api:
+          site: us5.datadoghq.com
+          key: fc092e5ae3f0c7c476b2c5071442eeee
     
     service:
       telemetry:
@@ -187,6 +194,6 @@ data:
             - memory_limiter
             - batch
           exporters:
-            - debug
+            - datadog/exporter
         {{- end }}
 {{- end }}

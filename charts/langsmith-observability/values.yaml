@@ -30,7 +30,7 @@ observability:
       enabled: false
 
   traces:
-    enabled: true
+    enabled: false
     local_backend: true # local or external
     local_persistence: false # local or s3
 
@@ -51,7 +51,7 @@ minio:
 otelcollector:
   name: langsmith-observability-otel-collector
   image:
-    registry: otel/opentelemetry-collector-k8s
+    registry: otel/opentelemetry-collector-contrib
     tag: "0.127.0"
   serviceAccount:
     annotations: {}
