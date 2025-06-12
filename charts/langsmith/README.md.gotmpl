@@ -15,7 +15,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
 {{- range .Values }}
-  {{- if not (or (hasPrefix "config" .Key) (hasPrefix "backend" .Key) (hasPrefix "frontend" .Key) (hasPrefix "platformBackend" .Key)  (hasPrefix "playground" .Key) (hasPrefix "postgres" .Key) (hasPrefix "queue" .Key) (hasPrefix "redis" .Key) (hasPrefix "aceBackend" .Key) (hasPrefix "operator" .Key) (hasPrefix "listener" .Key) (hasPrefix "hostBackend" .Key) (hasPrefix "clickhouse" .Key)) }}
+  {{- if not (or (hasPrefix "config" .Key) (hasPrefix "backend" .Key) (hasPrefix "e2eTest" .Key) (hasPrefix "frontend" .Key) (hasPrefix "platformBackend" .Key)  (hasPrefix "playground" .Key) (hasPrefix "postgres" .Key) (hasPrefix "queue" .Key) (hasPrefix "redis" .Key) (hasPrefix "aceBackend" .Key) (hasPrefix "operator" .Key) (hasPrefix "listener" .Key) (hasPrefix "hostBackend" .Key) (hasPrefix "clickhouse" .Key)) }}
 | {{ .Key }} | {{ .Type }} | {{ if .Default }}{{ .Default }}{{ else }}{{ .AutoDefault }}{{ end }} | {{ if .Description }}{{ .Description }}{{ else }}{{ .AutoDescription }}{{ end }} |
   {{- end }}
 {{- end }}
@@ -58,6 +58,16 @@ For information on how to use this chart, up-to-date release notes, and other gu
 |-----|------|---------|-------------|
 {{- range .Values }}
   {{- if hasPrefix "clickhouse" .Key }}
+| {{ .Key }} | {{ .Type }} | {{ if .Default }}{{ .Default }}{{ else }}{{ .AutoDefault }}{{ end }} | {{ if .Description }}{{ .Description }}{{ else }}{{ .AutoDescription }}{{ end }} |
+  {{- end }}
+{{- end }}
+
+## E2E Test
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+{{- range .Values }}
+  {{- if hasPrefix "e2eTest" .Key }}
 | {{ .Key }} | {{ .Type }} | {{ if .Default }}{{ .Default }}{{ else }}{{ .AutoDefault }}{{ end }} | {{ if .Description }}{{ .Description }}{{ else }}{{ .AutoDescription }}{{ end }} |
   {{- end }}
 {{- end }}

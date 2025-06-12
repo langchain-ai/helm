@@ -37,7 +37,7 @@ spec:
       restartPolicy: Never
       securityContext:
         {{- toYaml .Values.e2eTest.podSecurityContext | nindent 8 }}
-      serviceAccountName: {{ .Values.e2eTest.serviceAccountName | default (include "backend.serviceAccountName" .) }}
+      serviceAccountName: {{ include "e2eTest.serviceAccountName" . }}
       {{- with .Values.e2eTest.initContainers }}
       initContainers:
         {{- toYaml . | nindent 8 }}

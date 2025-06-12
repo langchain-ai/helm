@@ -1358,7 +1358,7 @@ queue:
     extraContainerConfig: {}
     extraEnv: []
     sidecars: []
-    initcontainers: []
+    initContainers: []
     nodeSelector: {}
     tolerations: []
     topologySpreadConstraints: []
