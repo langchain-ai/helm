@@ -223,6 +223,7 @@ aceBackend:
     extraContainerConfig: {}
     extraEnv: []
     sidecars: []
+    initContainers: []
     nodeSelector: {}
     tolerations: []
     topologySpreadConstraints: []
@@ -313,6 +314,7 @@ backend:
     extraContainerConfig: {}
     extraEnv: []
     sidecars: []
+    initContainers: []
     nodeSelector: {}
     tolerations: []
     topologySpreadConstraints: []
@@ -342,6 +344,7 @@ backend:
     extraContainerConfig: {}
     extraEnv: []
     sidecars: []
+    initContainers: []
     nodeSelector: {}
     tolerations: []
     topologySpreadConstraints: []
@@ -370,6 +373,7 @@ backend:
     extraContainerConfig: {}
     extraEnv: []
     sidecars: []
+    initContainers: []
     nodeSelector: {}
     tolerations: []
     topologySpreadConstraints: []
@@ -399,6 +403,7 @@ backend:
     extraContainerConfig: {}
     extraEnv: []
     sidecars: []
+    initContainers: []
     nodeSelector: {}
     tolerations: []
     topologySpreadConstraints: []
@@ -510,6 +515,7 @@ clickhouse:
     extraContainerConfig: {}
     extraEnv: []
     sidecars: []
+    initContainers: []
     nodeSelector: {}
     tolerations: []
     topologySpreadConstraints: []
@@ -593,6 +599,7 @@ frontend:
     extraContainerConfig: {}
     extraEnv: []
     sidecars: []
+    initContainers: []
     nodeSelector: {}
     tolerations: []
     topologySpreadConstraints: []
@@ -682,6 +689,7 @@ hostBackend:
     extraContainerConfig: {}
     extraEnv: []
     sidecars: []
+    initContainers: []
     nodeSelector: {}
     tolerations: []
     topologySpreadConstraints: []
@@ -769,6 +777,7 @@ listener:
     extraContainerConfig: {}
     extraEnv: []
     sidecars: []
+    initContainers: []
     nodeSelector: {}
     tolerations: []
     topologySpreadConstraints: []
@@ -944,6 +953,7 @@ platformBackend:
     extraContainerConfig: {}
     extraEnv: []
     sidecars: []
+    initContainers: []
     nodeSelector: {}
     tolerations: []
     topologySpreadConstraints: []
@@ -1000,6 +1010,7 @@ operator:
     extraContainerConfig: {}
     extraEnv: []
     sidecars: []
+    initContainers: []
     nodeSelector: {}
     tolerations: []
     topologySpreadConstraints: []
@@ -1131,6 +1142,7 @@ playground:
     extraContainerConfig: {}
     extraEnv: []
     sidecars: []
+    initContainers: []
     nodeSelector: {}
     tolerations: []
     topologySpreadConstraints: []
@@ -1227,6 +1239,7 @@ postgres:
     extraContainerConfig: {}
     extraEnv: []
     sidecars: []
+    initContainers: []
     nodeSelector: {}
     tolerations: []
     topologySpreadConstraints: []
@@ -1305,6 +1318,7 @@ queue:
     extraContainerConfig: {}
     extraEnv: []
     sidecars: []
+    initcontainers: []
     nodeSelector: {}
     tolerations: []
     topologySpreadConstraints: []
@@ -1386,6 +1400,7 @@ redis:
     extraContainerConfig: {}
     extraEnv: []
     sidecars: []
+    initContainers: []
     nodeSelector: {}
     tolerations: []
     topologySpreadConstraints: []

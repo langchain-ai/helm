@@ -60,6 +60,10 @@ spec:
       securityContext:
         {{- toYaml .Values.clickhouse.statefulSet.podSecurityContext | nindent 8 }}
       serviceAccountName: {{ include "clickhouse.serviceAccountName" . }}
+      {{- with .Values.clickhouse.statefulSet.initContainers }}
+      initContainers:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       containers:
         - name: {{ .Values.clickhouse.name }}
           image: {{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "clickhouseImage") | quote }}

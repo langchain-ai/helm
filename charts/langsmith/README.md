@@ -267,6 +267,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | aceBackend.deployment.command[9] | string | `"src/python_worker.ts"` |  |
 | aceBackend.deployment.extraContainerConfig | object | `{}` |  |
 | aceBackend.deployment.extraEnv | list | `[]` |  |
+| aceBackend.deployment.initContainers | list | `[]` |  |
 | aceBackend.deployment.labels | object | `{}` |  |
 | aceBackend.deployment.livenessProbe.failureThreshold | int | `6` |  |
 | aceBackend.deployment.livenessProbe.httpGet.path | string | `"/ok"` |  |
@@ -323,6 +324,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | backend.authBootstrap.command[1] | string | `"hooks/auth_bootstrap.pyc"` |  |
 | backend.authBootstrap.extraContainerConfig | object | `{}` |  |
 | backend.authBootstrap.extraEnv | list | `[]` |  |
+| backend.authBootstrap.initContainers | list | `[]` |  |
 | backend.authBootstrap.labels | object | `{}` |  |
 | backend.authBootstrap.nodeSelector | object | `{}` |  |
 | backend.authBootstrap.podSecurityContext | object | `{}` |  |
@@ -351,6 +353,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | backend.clickhouseMigrations.enabled | bool | `true` |  |
 | backend.clickhouseMigrations.extraContainerConfig | object | `{}` |  |
 | backend.clickhouseMigrations.extraEnv | list | `[]` |  |
+| backend.clickhouseMigrations.initContainers | list | `[]` |  |
 | backend.clickhouseMigrations.labels | object | `{}` |  |
 | backend.clickhouseMigrations.nodeSelector | object | `{}` |  |
 | backend.clickhouseMigrations.podSecurityContext | object | `{}` |  |
@@ -384,6 +387,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | backend.deployment.command[9] | string | `"uvloop"` |  |
 | backend.deployment.extraContainerConfig | object | `{}` |  |
 | backend.deployment.extraEnv | list | `[]` |  |
+| backend.deployment.initContainers | list | `[]` |  |
 | backend.deployment.labels | object | `{}` |  |
 | backend.deployment.livenessProbe.failureThreshold | int | `6` |  |
 | backend.deployment.livenessProbe.httpGet.path | string | `"/health"` |  |
@@ -423,6 +427,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | backend.migrations.enabled | bool | `true` |  |
 | backend.migrations.extraContainerConfig | object | `{}` |  |
 | backend.migrations.extraEnv | list | `[]` |  |
+| backend.migrations.initContainers | list | `[]` |  |
 | backend.migrations.labels | object | `{}` |  |
 | backend.migrations.nodeSelector | object | `{}` |  |
 | backend.migrations.podSecurityContext | object | `{}` |  |
@@ -503,6 +508,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | clickhouse.statefulSet.command[2] | string | `"sed 's/id -g/id -gn/' /entrypoint.sh > /tmp/entrypoint.sh; exec bash /tmp/entrypoint.sh"` |  |
 | clickhouse.statefulSet.extraContainerConfig | object | `{}` |  |
 | clickhouse.statefulSet.extraEnv | list | `[]` |  |
+| clickhouse.statefulSet.initContainers | list | `[]` |  |
 | clickhouse.statefulSet.labels | object | `{}` |  |
 | clickhouse.statefulSet.livenessProbe.failureThreshold | int | `6` |  |
 | clickhouse.statefulSet.livenessProbe.httpGet.path | string | `"/ping"` |  |
@@ -564,6 +570,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | hostBackend.deployment.command[9] | string | `"uvloop"` |  |
 | hostBackend.deployment.extraContainerConfig | object | `{}` |  |
 | hostBackend.deployment.extraEnv | list | `[]` |  |
+| hostBackend.deployment.initContainers | list | `[]` |  |
 | hostBackend.deployment.labels | object | `{}` |  |
 | hostBackend.deployment.livenessProbe.failureThreshold | int | `6` |  |
 | hostBackend.deployment.livenessProbe.httpGet.path | string | `"/ok"` |  |
@@ -629,6 +636,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | frontend.deployment.command[0] | string | `"/entrypoint.sh"` |  |
 | frontend.deployment.extraContainerConfig | object | `{}` |  |
 | frontend.deployment.extraEnv | list | `[]` |  |
+| frontend.deployment.initContainers | list | `[]` |  |
 | frontend.deployment.labels | object | `{}` |  |
 | frontend.deployment.livenessProbe.failureThreshold | int | `10` |  |
 | frontend.deployment.livenessProbe.httpGet.path | string | `"/health"` |  |
@@ -700,6 +708,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | listener.deployment.command[2] | string | `"--quiet"` |  |
 | listener.deployment.extraContainerConfig | object | `{}` |  |
 | listener.deployment.extraEnv | list | `[]` |  |
+| listener.deployment.initContainers | list | `[]` |  |
 | listener.deployment.labels | object | `{}` |  |
 | listener.deployment.livenessProbe.exec.command[0] | string | `"saq"` |  |
 | listener.deployment.livenessProbe.exec.command[1] | string | `"app.workers.queues.host_worker.settings"` |  |
@@ -757,6 +766,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | operator.deployment.annotations | object | `{}` |  |
 | operator.deployment.extraContainerConfig | object | `{}` |  |
 | operator.deployment.extraEnv | list | `[]` |  |
+| operator.deployment.initContainers | list | `[]` |  |
 | operator.deployment.labels | object | `{}` |  |
 | operator.deployment.nodeSelector | object | `{}` |  |
 | operator.deployment.podSecurityContext | object | `{}` |  |
@@ -806,6 +816,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | platformBackend.deployment.command[0] | string | `"./smith-go"` |  |
 | platformBackend.deployment.extraContainerConfig | object | `{}` |  |
 | platformBackend.deployment.extraEnv | list | `[]` |  |
+| platformBackend.deployment.initContainers | list | `[]` |  |
 | platformBackend.deployment.labels | object | `{}` |  |
 | platformBackend.deployment.livenessProbe.failureThreshold | int | `6` |  |
 | platformBackend.deployment.livenessProbe.httpGet.path | string | `"/ok"` |  |
@@ -881,6 +892,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | playground.deployment.command[9] | string | `"uvloop"` |  |
 | playground.deployment.extraContainerConfig | object | `{}` |  |
 | playground.deployment.extraEnv | list | `[]` |  |
+| playground.deployment.initContainers | list | `[]` |  |
 | playground.deployment.labels | object | `{}` |  |
 | playground.deployment.livenessProbe.failureThreshold | int | `6` |  |
 | playground.deployment.livenessProbe.httpGet.path | string | `"/ok"` |  |
@@ -962,6 +974,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | postgres.statefulSet.command | list | `[]` |  |
 | postgres.statefulSet.extraContainerConfig | object | `{}` |  |
 | postgres.statefulSet.extraEnv | list | `[]` |  |
+| postgres.statefulSet.initContainers | list | `[]` |  |
 | postgres.statefulSet.labels | object | `{}` |  |
 | postgres.statefulSet.livenessProbe.exec.command[0] | string | `"/bin/sh"` |  |
 | postgres.statefulSet.livenessProbe.exec.command[1] | string | `"-c"` |  |
@@ -1015,6 +1028,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | queue.deployment.command[2] | string | `"--quiet"` |  |
 | queue.deployment.extraContainerConfig | object | `{}` |  |
 | queue.deployment.extraEnv | list | `[]` |  |
+| queue.deployment.initcontainers | list | `[]` |  |
 | queue.deployment.labels | object | `{}` |  |
 | queue.deployment.livenessProbe.exec.command[0] | string | `"saq"` |  |
 | queue.deployment.livenessProbe.exec.command[1] | string | `"app.workers.queues.single_queue_worker.settings"` |  |
@@ -1087,6 +1101,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | redis.statefulSet.command | list | `[]` |  |
 | redis.statefulSet.extraContainerConfig | object | `{}` |  |
 | redis.statefulSet.extraEnv | list | `[]` |  |
+| redis.statefulSet.initContainers | list | `[]` |  |
 | redis.statefulSet.labels | object | `{}` |  |
 | redis.statefulSet.livenessProbe.exec.command[0] | string | `"/bin/sh"` |  |
 | redis.statefulSet.livenessProbe.exec.command[1] | string | `"-c"` |  |
