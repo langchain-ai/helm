@@ -384,7 +384,7 @@ Template containing common environment variables that are used by several servic
 {{- if .Values.e2eTest.serviceAccount.create -}}
     {{ default (printf "%s-%s" (include "langsmith.fullname" .) .Values.e2eTest.name) .Values.e2eTest.serviceAccount.name | trunc 63 | trimSuffix "-" }}
 {{- else -}}
-    {{ include "backend.serviceAccountName" . }}
+    {{ default "default" .Values.e2eTest.serviceAccount.name }}
 {{- end -}}
 {{- end -}}
 
@@ -416,7 +416,7 @@ Template containing common environment variables that are used by several servic
 {{- if .Values.backend.migrations.serviceAccount.create -}}
     {{ default (printf "%s-%s-migrations" (include "langsmith.fullname" .) .Values.backend.name) .Values.backend.migrations.serviceAccount.name | trunc 63 | trimSuffix "-" }}
 {{- else -}}
-    {{ include "backend.serviceAccountName" . }}
+    {{ default "default" .Values.backend.migrations.serviceAccount.name }}
 {{- end -}}
 {{- end -}}
 
