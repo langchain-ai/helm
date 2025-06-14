@@ -61,6 +61,10 @@ spec:
       securityContext:
         {{- toYaml .Values.postgres.statefulSet.podSecurityContext | nindent 8 }}
       serviceAccountName: {{ include "postgres.serviceAccountName" . }}
+      {{- with .Values.postgres.statefulSet.initContainers }}
+      initContainers:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       containers:
         - name: {{ .Values.postgres.name }}
           {{- with.Values.postgres.statefulSet.command }}

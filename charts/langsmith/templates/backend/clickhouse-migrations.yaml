@@ -42,6 +42,10 @@ spec:
       securityContext:
         {{- toYaml .Values.backend.clickhouseMigrations.podSecurityContext | nindent 8 }}
       serviceAccountName: {{ include "backend.serviceAccountName" . }}
+      {{- with .Values.backend.clickhouseMigrations.initContainers }}
+      initContainers:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       containers:
         - name: ch-migrations
           {{- with .Values.backend.clickhouseMigrations.command }}
