@@ -61,6 +61,14 @@ spec:
             {{- with $envVars }}
               {{- toYaml . | nindent 12 }}
             {{- end }}
+            {{- if .Values.config.tracing.enabled }}
+            - name: OTEL_TRACING_ENABLED
+              value: {{ .Values.config.tracing.enabled }}
+            - name: OTLP_ENDPOINT
+              value: {{ .Values.config.tracing.endpoint }}
+            - name: OTEL_USE_TLS
+              value: {{ .Values.config.tracing.useTls }}
+            {{- end }}
           envFrom:
             - configMapRef:
                 name: {{ include "langsmith.fullname" . }}-config
