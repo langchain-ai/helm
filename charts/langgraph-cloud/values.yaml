@@ -75,6 +75,7 @@ apiServer:
     affinity: {}
     volumes: []
     volumeMounts: []
+    initContainers: []
   autoscaling:
     enabled: false
     minReplicas: 1
