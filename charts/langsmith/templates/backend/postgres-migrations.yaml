@@ -50,13 +50,7 @@ spec:
         - name: pg-migrations
           {{- with .Values.backend.migrations.command }}
           command:
-            {{- if eq (include "migrations.hasPostgresUriOverride" $) "true" }}
-            - "/bin/bash"
-            - "-c"
-            - "export POSTGRES_DATABASE_URI=$POSTGRES_URI_OVERRIDE && {{ range $i, $cmd := . }}{{if $i}} {{end}}{{ $cmd }}{{end}}"
-            {{- else }}
             {{- toYaml . | nindent 12 }}
-            {{- end }}
           {{- end }}
           env:
             {{- with $envVars }}

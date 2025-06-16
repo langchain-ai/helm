@@ -629,36 +629,3 @@ Creates the image reference used for Langsmith deployments. If registry is speci
 {{ $imageConfig.repository }}:{{ $imageConfig.tag | default .Chart.AppVersion }}
 {{- end -}}
 {{- end -}}
-
-
-{{/*
-Check if the migrations job has a POSTGRES_DATABASE_URI environment variable
-*/}}
-{{- define "migrations.hasPostgresUriOverride" -}}
-{{- $root := . -}}
-{{- $hasOverride := "false" -}}
-{{- if and $root.Values.backend.migrations.extraEnv (not (empty $root.Values.backend.migrations.extraEnv)) -}}
-  {{- range $root.Values.backend.migrations.extraEnv -}}
-    {{- if eq .name "POSTGRES_URI_OVERRIDE" -}}
-      {{- $hasOverride = "true" -}}
-    {{- end -}}
-  {{- end -}}
-{{- end -}}
-{{- $hasOverride -}}
-{{- end -}}
-
-{{/*
-Check if the auth bootstrap job has a POSTGRES_DATABASE_URI environment variable
-*/}}
-{{- define "authBootstrap.hasPostgresUriOverride" -}}
-{{- $root := . -}}
-{{- $hasOverride := "false" -}}
-{{- if and $root.Values.backend.authBootstrap.extraEnv (not (empty $root.Values.backend.authBootstrap.extraEnv)) -}}
-  {{- range $root.Values.backend.authBootstrap.extraEnv -}}
-    {{- if eq .name "POSTGRES_URI_OVERRIDE" -}}
-      {{- $hasOverride = "true" -}}
-    {{- end -}}
-  {{- end -}}
-{{- end -}}
-{{- $hasOverride -}}
-{{- end -}}

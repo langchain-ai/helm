@@ -78,11 +78,7 @@ spec:
         - name: auth-bootstrap
           {{- with .Values.backend.authBootstrap.command }}
           command:
-            {{- if eq (include "authBootstrap.hasPostgresUriOverride" $) "true" }}
-            - "export POSTGRES_DATABASE_URI=$POSTGRES_URI_OVERRIDE && {{ range $i, $cmd := . }}{{if $i}} {{end}}{{ $cmd }}{{end}}"
-            {{- else }}
             {{- toYaml . | nindent 12 }}
-            {{- end }}
           {{- end }}
           env:
             {{- with $envVars }}
