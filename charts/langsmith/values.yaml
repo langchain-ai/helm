@@ -171,10 +171,11 @@ config:
     logoUrl: ""
     coBrandingEnabled: true
   
-  tracing:
-    enabled: false
-    endpoint: ""
-    useTls: true
+  observability:
+    tracing:
+      enabled: false
+      endpoint: ""
+      useTls: true
 
 aceBackend:
   name: "ace-backend"

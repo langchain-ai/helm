@@ -61,13 +61,13 @@ spec:
             {{- with $envVars }}
               {{- toYaml . | nindent 12 }}
             {{- end }}
-            {{- if .Values.config.tracing.enabled }}
+            {{- if .Values.config.observability.tracing.enabled }}
             - name: OTEL_TRACING_ENABLED
-              value: {{ .Values.config.tracing.enabled }}
+              value: {{ .Values.config.observability.tracing.enabled }}
             - name: OTLP_ENDPOINT
-              value: {{ .Values.config.tracing.endpoint }}
+              value: {{ .Values.config.observability.tracing.endpoint }}
             - name: OTEL_USE_TLS
-              value: {{ .Values.config.tracing.useTls }}
+              value: {{ .Values.config.observability.tracing.useTls }}
             {{- end }}
           envFrom:
             - configMapRef:
