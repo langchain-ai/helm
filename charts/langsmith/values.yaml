@@ -341,7 +341,6 @@ backend:
       - "/bin/bash"
       - "-c"
       - "alembic upgrade head"
-    connectionString: ""
     extraContainerConfig: {}
     extraEnv: []
     sidecars: []
@@ -354,11 +353,6 @@ backend:
     volumeMounts: []
     # You can set this to null to disable the TTL for the migrations job. Useful for some deployment setups.
     ttlSecondsAfterFinished: 600
-    serviceAccount:
-      create: false
-      name: ""
-      labels: {}
-      annotations: {}
   authBootstrap:
     # Helpful when running using helm template to avoid the job name conflict
     randomizeName: true
@@ -376,7 +370,6 @@ backend:
     command:
       - "python"
       - "hooks/auth_bootstrap.pyc"
-    connectionString: ""
     extraContainerConfig: {}
     extraEnv: []
     sidecars: []

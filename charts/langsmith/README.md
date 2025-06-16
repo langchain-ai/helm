@@ -439,10 +439,6 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | backend.migrations.resources.requests.cpu | string | `"200m"` |  |
 | backend.migrations.resources.requests.memory | string | `"500Mi"` |  |
 | backend.migrations.securityContext | object | `{}` |  |
-| backend.migrations.serviceAccount.annotations | object | `{}` |  |
-| backend.migrations.serviceAccount.create | bool | `false` |  |
-| backend.migrations.serviceAccount.labels | object | `{}` |  |
-| backend.migrations.serviceAccount.name | string | `""` |  |
 | backend.migrations.sidecars | list | `[]` |  |
 | backend.migrations.tolerations | list | `[]` |  |
 | backend.migrations.topologySpreadConstraints | list | `[]` |  |

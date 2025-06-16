@@ -412,14 +412,6 @@ Template containing common environment variables that are used by several servic
 {{- end -}}
 {{- end -}}
 
-{{- define "migrations.serviceAccountName" -}}
-{{- if .Values.backend.migrations.serviceAccount.create -}}
-    {{ default (printf "%s-%s-migrations" (include "langsmith.fullname" .) .Values.backend.name) .Values.backend.migrations.serviceAccount.name | trunc 63 | trimSuffix "-" }}
-{{- else -}}
-    {{ default "default" .Values.backend.migrations.serviceAccount.name }}
-{{- end -}}
-{{- end -}}
-
 {{- define "operator.serviceAccountName" -}}
 {{- if .Values.operator.serviceAccount.create -}}
     {{ default (printf "%s-%s" (include "langsmith.fullname" .) .Values.operator.name) .Values.operator.serviceAccount.name | trunc 63 | trimSuffix "-" }}
@@ -636,4 +628,37 @@ Creates the image reference used for Langsmith deployments. If registry is speci
 {{- else -}}
 {{ $imageConfig.repository }}:{{ $imageConfig.tag | default .Chart.AppVersion }}
 {{- end -}}
+{{- end -}}
+
+
+{{/*
+Check if the migrations job has a POSTGRES_DATABASE_URI environment variable
+*/}}
+{{- define "migrations.hasPostgresUriOverride" -}}
+{{- $root := . -}}
+{{- $hasOverride := "false" -}}
+{{- if and $root.Values.backend.migrations.extraEnv (not (empty $root.Values.backend.migrations.extraEnv)) -}}
+  {{- range $root.Values.backend.migrations.extraEnv -}}
+    {{- if eq .name "POSTGRES_URI_OVERRIDE" -}}
+      {{- $hasOverride = "true" -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+{{- $hasOverride -}}
+{{- end -}}
+
+{{/*
+Check if the auth bootstrap job has a POSTGRES_DATABASE_URI environment variable
+*/}}
+{{- define "authBootstrap.hasPostgresUriOverride" -}}
+{{- $root := . -}}
+{{- $hasOverride := "false" -}}
+{{- if and $root.Values.backend.authBootstrap.extraEnv (not (empty $root.Values.backend.authBootstrap.extraEnv)) -}}
+  {{- range $root.Values.backend.authBootstrap.extraEnv -}}
+    {{- if eq .name "POSTGRES_URI_OVERRIDE" -}}
+      {{- $hasOverride = "true" -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+{{- $hasOverride -}}
 {{- end -}}
