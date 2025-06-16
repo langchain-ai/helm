@@ -1,0 +1,140 @@
+{{- if and .Values.collector.enabled .Values.collector.mode | eq "daemonset" }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "opentelemetry-collector.name" . }}-config
+  namespace: {{ .Release.Namespace }}
+  data:
+  relay: |
+    extensions:
+      health_check:
+        endpoint: ${env:MY_POD_IP}:13133
+    
+    receivers:
+      {{- if .Values.collector.logs.enabled }}
+      filelog:
+        exclude: []
+        include:
+        - /var/log/pods/*/*/*.log
+        include_file_name: false
+        include_file_path: true
+        operators:
+        - id: container-parser
+          max_log_size: 102400
+          type: container
+        retry_on_failure:
+          enabled: true
+        start_at: end
+      {{- end }}
+      {{- if .Values.collector.metrics.enabled }}
+      prometheus:
+        scrape_configs:
+        - job_name: 'database-metrics'
+          scrape_interval: 15s
+          static_configs:
+          - targets: {{ include "opentelemetry-collector.database-dns-names" . | quote }}
+        - job_name: 'service-metrics'
+          scrape_interval: 15s
+          static_configs:
+          - targets: {{ include "opentelemetry-collector.service-dns-names" . | quote }}
+      {{- end }}
+      {{- if .Values.collector.traces.enabled }}
+      otlp:
+        protocols:
+          grpc: 
+            endpoint:
+          http: 
+            endpoint:
+      {{- end }}
+
+    processors:
+      batch: {}
+      memory_limiter:
+        check_interval: 1m
+        limit_percentage: 75
+        spike_limit_percentage: 25
+      filter:
+        error_mode: ignore
+        logs:
+          log_record:
+          - 'resource.attributes["k8s.namespace.name"] != "{{ .Values.observability.langsmith_namespace }}"'
+          - 'resource.attributes["k8s.app.name"] != "langsmith"'
+      k8sattributes:
+          extract:
+            labels:
+            - from: pod
+              key: app.kubernetes.io/name
+              tag_name: k8s.app.name
+            metadata:
+            - k8s.namespace.name
+          filter:
+            node_from_env_var: K8S_NODE_NAME
+          passthrough: false
+          pod_association:
+          - sources:
+            - from: resource_attribute
+              name: k8s.pod.ip
+          - sources:
+            - from: resource_attribute
+              name: k8s.pod.uid
+          - sources:
+            - from: connection
+
+    exporters:
+      {{- if .Values.collector.logs.enabled }}
+      otlphttp/logs:
+        endpoint: {{ .Values.collector.logs.endpoint }}
+        tls:
+          insecure: {{ not .Values.collector.logs.useTls }}
+      {{- end }}
+      {{- if .Values.collector.metrics.enabled }}
+      otlphttp/metrics:
+        endpoint: {{ .Values.collector.metrics.endpoint }}
+        tls:
+          insecure: {{ not .Values.collector.metrics.useTls }}
+      {{- end }}
+      {{- if .Values.collector.traces.enabled }}
+      otlphttp/traces:
+        endpoint: {{ .Values.collector.traces.endpoint }}
+        tls:
+          insecure: {{ not .Values.collector.traces.useTls }}
+      {{- end }}
+
+    service:
+      extensions:
+        - health_check
+      pipelines:
+        {{- if .Values.collector.logs.enabled }}
+        logs/langsmith:
+          receivers:
+            - filelog
+          processors:
+            - k8sattributes
+            - filter
+            - batch
+          exporters:
+            - otlphttp/logs
+            - debug
+        {{- end }}
+        {{- if .Values.collector.metrics.enabled }}
+        metrics/langsmith:
+          receivers:
+            - prometheus
+          processors:
+            - batch
+          exporters:
+            - otlphttp/metrics
+            - debug
+        {{- end }}
+        {{- if .Values.collector.traces.enabled }}
+        traces/langsmith:
+          receivers:
+            - otlp
+          processors:
+            - batch
+            - memory_limiter
+          exporters:
+            - otlphttp/traces
+            - debug
+        {{- end }}
+{{- end }}
