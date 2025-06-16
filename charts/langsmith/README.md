@@ -322,7 +322,6 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | backend.authBootstrap.annotations | object | `{}` |  |
 | backend.authBootstrap.command[0] | string | `"python"` |  |
 | backend.authBootstrap.command[1] | string | `"hooks/auth_bootstrap.pyc"` |  |
-| backend.authBootstrap.connectionString | string | `""` |  |
 | backend.authBootstrap.extraContainerConfig | object | `{}` |  |
 | backend.authBootstrap.extraEnv | list | `[]` |  |
 | backend.authBootstrap.initContainers | list | `[]` |  |
@@ -425,7 +424,6 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | backend.migrations.command[0] | string | `"/bin/bash"` |  |
 | backend.migrations.command[1] | string | `"-c"` |  |
 | backend.migrations.command[2] | string | `"alembic upgrade head"` |  |
-| backend.migrations.connectionString | string | `""` |  |
 | backend.migrations.enabled | bool | `true` |  |
 | backend.migrations.extraContainerConfig | object | `{}` |  |
 | backend.migrations.extraEnv | list | `[]` |  |
