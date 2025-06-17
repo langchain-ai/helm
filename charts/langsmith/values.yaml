@@ -231,6 +231,7 @@ aceBackend:
     extraContainerConfig: {}
     extraEnv: []
     sidecars: []
+    initContainers: []
     nodeSelector: {}
     tolerations: []
     topologySpreadConstraints: []
@@ -321,6 +322,7 @@ backend:
     extraContainerConfig: {}
     extraEnv: []
     sidecars: []
+    initContainers: []
     nodeSelector: {}
     tolerations: []
     topologySpreadConstraints: []
@@ -350,6 +352,7 @@ backend:
     extraContainerConfig: {}
     extraEnv: []
     sidecars: []
+    initContainers: []
     nodeSelector: {}
     tolerations: []
     topologySpreadConstraints: []
@@ -378,6 +381,7 @@ backend:
     extraContainerConfig: {}
     extraEnv: []
     sidecars: []
+    initContainers: []
     nodeSelector: {}
     tolerations: []
     topologySpreadConstraints: []
@@ -407,6 +411,7 @@ backend:
     extraContainerConfig: {}
     extraEnv: []
     sidecars: []
+    initContainers: []
     nodeSelector: {}
     tolerations: []
     topologySpreadConstraints: []
@@ -518,6 +523,7 @@ clickhouse:
     extraContainerConfig: {}
     extraEnv: []
     sidecars: []
+    initContainers: []
     nodeSelector: {}
     tolerations: []
     topologySpreadConstraints: []
@@ -551,6 +557,39 @@ clickhouse:
   metrics:
     enabled: false
     port: 9363
+
+e2eTest:
+  name: "e2e-test"
+  enabled: true
+  labels: {}
+  annotations: {}
+  podSecurityContext: {}
+  securityContext: {}
+  resources:
+    limits:
+      cpu: 500m
+      memory: 1Gi
+    requests:
+      cpu: 200m
+      memory: 500Mi
+  command:
+    - "python"
+    - "scripts/test_e2e_trace.pyc"
+  serviceAccount:
+    create: false
+    name: ""
+    labels: {}
+    annotations: {}
+  extraContainerConfig: {}
+  sidecars: []
+  initContainers: []
+  nodeSelector: {}
+  tolerations: []
+  topologySpreadConstraints: []
+  affinity: {}
+  volumes: []
+  volumeMounts: []
+  ttlSecondsAfterFinished: 10
 
 frontend:
   name: "frontend"
@@ -604,6 +643,7 @@ frontend:
     extraContainerConfig: {}
     extraEnv: []
     sidecars: []
+    initContainers: []
     nodeSelector: {}
     tolerations: []
     topologySpreadConstraints: []
@@ -693,6 +733,7 @@ hostBackend:
     extraContainerConfig: {}
     extraEnv: []
     sidecars: []
+    initContainers: []
     nodeSelector: {}
     tolerations: []
     topologySpreadConstraints: []
@@ -780,6 +821,7 @@ listener:
     extraContainerConfig: {}
     extraEnv: []
     sidecars: []
+    initContainers: []
     nodeSelector: {}
     tolerations: []
     topologySpreadConstraints: []
@@ -955,6 +997,7 @@ platformBackend:
     extraContainerConfig: {}
     extraEnv: []
     sidecars: []
+    initContainers: []
     nodeSelector: {}
     tolerations: []
     topologySpreadConstraints: []
@@ -1011,6 +1054,7 @@ operator:
     extraContainerConfig: {}
     extraEnv: []
     sidecars: []
+    initContainers: []
     nodeSelector: {}
     tolerations: []
     topologySpreadConstraints: []
@@ -1142,6 +1186,7 @@ playground:
     extraContainerConfig: {}
     extraEnv: []
     sidecars: []
+    initContainers: []
     nodeSelector: {}
     tolerations: []
     topologySpreadConstraints: []
@@ -1238,6 +1283,7 @@ postgres:
     extraContainerConfig: {}
     extraEnv: []
     sidecars: []
+    initContainers: []
     nodeSelector: {}
     tolerations: []
     topologySpreadConstraints: []
@@ -1330,6 +1376,7 @@ queue:
     extraContainerConfig: {}
     extraEnv: []
     sidecars: []
+    initContainers: []
     nodeSelector: {}
     tolerations: []
     topologySpreadConstraints: []
@@ -1411,6 +1458,7 @@ redis:
     extraContainerConfig: {}
     extraEnv: []
     sidecars: []
+    initContainers: []
     nodeSelector: {}
     tolerations: []
     topologySpreadConstraints: []

@@ -51,6 +51,10 @@ spec:
       securityContext:
         {{- toYaml .Values.playground.deployment.podSecurityContext | nindent 8 }}
       serviceAccountName: {{ include "playground.serviceAccountName" . }}
+      {{- with .Values.playground.deployment.initContainers }}
+      initContainers:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       containers:
         - name: {{ .Values.playground.name }}
           {{- with.Values.playground.deployment.command }}

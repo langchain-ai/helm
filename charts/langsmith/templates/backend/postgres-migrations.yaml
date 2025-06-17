@@ -42,6 +42,10 @@ spec:
       securityContext:
         {{- toYaml .Values.backend.migrations.podSecurityContext | nindent 8 }}
       serviceAccountName: {{ include "backend.serviceAccountName" . }}
+      {{- with .Values.backend.migrations.initContainers }}
+      initContainers:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       containers:
         - name: pg-migrations
           {{- with .Values.backend.migrations.command }}

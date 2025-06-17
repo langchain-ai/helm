@@ -27,8 +27,8 @@ spec:
       protocol: TCP
     {{- if .Values.postgres.metrics.enabled }}
     - name: postgres-metrics
-      port: {{ .Values.postgres.metrics.containerPort }}
-      targetPort: {{ .Values.postgres.metrics.containerPort }}
+      port: {{ .Values.postgres.metrics.port }}
+      targetPort: {{ .Values.postgres.metrics.port }}
       protocol: TCP
     {{- end }}
   selector:

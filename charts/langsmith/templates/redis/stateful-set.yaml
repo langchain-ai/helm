@@ -42,6 +42,10 @@ spec:
       securityContext:
         {{- toYaml .Values.redis.statefulSet.podSecurityContext | nindent 8 }}
       serviceAccountName: {{ include "redis.serviceAccountName" . }}
+      {{- with .Values.redis.statefulSet.initContainers }}
+      initContainers:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       containers:
         - name: {{ .Values.redis.name }}
           {{- with.Values.redis.statefulSet.command }}

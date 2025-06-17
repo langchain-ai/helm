@@ -52,6 +52,10 @@ spec:
         {{- toYaml .Values.queue.deployment.podSecurityContext | nindent 8 }}
       serviceAccountName: {{ include "queue.serviceAccountName" . }}
       restartPolicy: Always
+      {{- with .Values.queue.deployment.initContainers }}
+      initContainers:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       containers:
         - name: {{ .Values.queue.name }}
           {{- with.Values.queue.deployment.command }}

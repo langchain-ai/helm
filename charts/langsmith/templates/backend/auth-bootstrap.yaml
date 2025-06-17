@@ -70,6 +70,10 @@ spec:
       securityContext:
         {{- toYaml .Values.backend.authBootstrap.podSecurityContext | nindent 8 }}
       serviceAccountName: {{ include "backend.serviceAccountName" . }}
+      {{- with .Values.backend.authBootstrap.initContainers }}
+      initContainers:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       containers:
         - name: auth-bootstrap
           {{- with .Values.backend.authBootstrap.command }}
