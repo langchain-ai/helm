@@ -170,12 +170,14 @@ config:
     enabled: false
     logoUrl: ""
     coBrandingEnabled: true
-  
+
   observability:
     tracing:
       enabled: false
-      endpoint: ""
+      endpoint: "http://localhost:4318"
       useTls: true
+      env: "ls_self_hosted"
+      exporter: "http"
 
 aceBackend:
   name: "ace-backend"
@@ -439,10 +441,6 @@ backend:
     name: ""
     labels: {}
     annotations: {}
-  traces:
-    enabled: false
-    endpoint: ""
-    useTls: true
 
 clickhouse:
   name: "clickhouse"
@@ -551,7 +549,7 @@ clickhouse:
     labels: {}
     annotations: {}
   metrics:
-    enabled: true
+    enabled: false
     port: 9363
 
 frontend:
@@ -732,10 +730,6 @@ hostBackend:
     create: true
     labels: {}
     annotations: {}
-  traces:
-    enabled: false
-    endpoint: ""
-    useTls: true
 
 listener:
   name: "listener"
@@ -994,10 +988,6 @@ platformBackend:
     name: ""
     labels: {}
     annotations: {}
-  traces:
-    enabled: false
-    endpoint: ""
-    useTls: true
 
 operator:
   name: "operator"
@@ -1185,10 +1175,6 @@ playground:
     name: ""
     labels: {}
     annotations: {}
-  traces:
-    enabled: false
-    endpoint: ""
-    useTls: true
 
 postgres:
   name: "postgres"
@@ -1281,7 +1267,7 @@ postgres:
     labels: {}
     annotations: {}
   metrics:
-    enabled: true
+    enabled: false
     image:
       repository: prometheuscommunity/postgres-exporter
       tag: v0.17.1
@@ -1370,10 +1356,6 @@ queue:
     name: ""
     labels: {}
     annotations: {}
-  traces:
-    enabled: false
-    endpoint: ""
-    useTls: true
 
 redis:
   name: "redis"
@@ -1458,7 +1440,7 @@ redis:
     labels: {}
     annotations: {}
   metrics:
-    enabled: true
+    enabled: false
     image:
       repository: oliver006/redis_exporter
       tag: v1.74.0

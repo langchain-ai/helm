@@ -233,6 +233,11 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | config.oauth.oauthIssuerUrl | string | `""` |  |
 | config.oauth.oauthScopes | string | `"email,profile,openid"` |  |
 | config.oauth.oauthSessionMaxSec | string | `"86400"` |  |
+| config.observability.tracing.enabled | bool | `false` |  |
+| config.observability.tracing.endpoint | string | `"http://localhost:4318"` |  |
+| config.observability.tracing.env | string | `"ls_self_hosted"` |  |
+| config.observability.tracing.exporter | string | `"http"` |  |
+| config.observability.tracing.useTls | bool | `true` |  |
 | config.orgCreationDisabled | bool | `false` | Prevent organization creation. If using basic auth, this is set to true by default. |
 | config.personalOrgsDisabled | bool | `false` | Disable personal orgs. Users will need to be invited to an org manually. If using basic auth, this is set to true by default. |
 | config.settings | object | `{"redisRunsExpirySeconds":"21600"}` | Application Settings. These are used to tune the application |
@@ -480,6 +485,8 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | clickhouse.external.tlsSecretKey | string | `"clickhouse_tls"` |  |
 | clickhouse.external.user | string | `"default"` |  |
 | clickhouse.external.userSecretKey | string | `"clickhouse_user"` |  |
+| clickhouse.metrics.enabled | bool | `false` |  |
+| clickhouse.metrics.port | int | `9363` |  |
 | clickhouse.name | string | `"clickhouse"` |  |
 | clickhouse.pdb.annotations | object | `{}` |  |
 | clickhouse.pdb.enabled | bool | `false` |  |
@@ -942,6 +949,15 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | postgres.external.port | string | `"5432"` |  |
 | postgres.external.schema | string | `"public"` |  |
 | postgres.external.user | string | `"postgres"` |  |
+| postgres.metrics.containerPort | int | `9187` |  |
+| postgres.metrics.enabled | bool | `false` |  |
+| postgres.metrics.image.pullPolicy | string | `"IfNotPresent"` |  |
+| postgres.metrics.image.repository | string | `"prometheuscommunity/postgres-exporter"` |  |
+| postgres.metrics.image.tag | string | `"v0.17.1"` |  |
+| postgres.metrics.resources.limits.cpu | string | `"100m"` |  |
+| postgres.metrics.resources.limits.memory | string | `"128Mi"` |  |
+| postgres.metrics.resources.requests.cpu | string | `"100m"` |  |
+| postgres.metrics.resources.requests.memory | string | `"128Mi"` |  |
 | postgres.name | string | `"postgres"` |  |
 | postgres.pdb.annotations | object | `{}` |  |
 | postgres.pdb.enabled | bool | `false` |  |
@@ -1067,6 +1083,15 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | redis.external.connectionUrlSecretKey | string | `"connection_url"` |  |
 | redis.external.enabled | bool | `false` |  |
 | redis.external.existingSecretName | string | `""` |  |
+| redis.metrics.containerPort | int | `9121` |  |
+| redis.metrics.enabled | bool | `false` |  |
+| redis.metrics.image.pullPolicy | string | `"IfNotPresent"` |  |
+| redis.metrics.image.repository | string | `"oliver006/redis_exporter"` |  |
+| redis.metrics.image.tag | string | `"v1.74.0"` |  |
+| redis.metrics.resources.limits.cpu | string | `"100m"` |  |
+| redis.metrics.resources.limits.memory | string | `"128Mi"` |  |
+| redis.metrics.resources.requests.cpu | string | `"100m"` |  |
+| redis.metrics.resources.requests.memory | string | `"128Mi"` |  |
 | redis.name | string | `"redis"` |  |
 | redis.pdb.annotations | object | `{}` |  |
 | redis.pdb.enabled | bool | `false` |  |
