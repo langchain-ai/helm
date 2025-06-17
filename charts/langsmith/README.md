@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.10.28](https://img.shields.io/badge/Version-0.10.28-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.10.74](https://img.shields.io/badge/AppVersion-0.10.74-informational?style=flat-square)
+![Version: 0.10.29](https://img.shields.io/badge/Version-0.10.29-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.10.74](https://img.shields.io/badge/AppVersion-0.10.74-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -234,7 +234,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | config.oauth.oauthScopes | string | `"email,profile,openid"` |  |
 | config.oauth.oauthSessionMaxSec | string | `"86400"` |  |
 | config.observability.tracing.enabled | bool | `false` |  |
-| config.observability.tracing.endpoint | string | `"http://localhost:4318"` |  |
+| config.observability.tracing.endpoint | string | `""` |  |
 | config.observability.tracing.env | string | `"ls_self_hosted"` |  |
 | config.observability.tracing.exporter | string | `"http"` |  |
 | config.observability.tracing.useTls | bool | `true` |  |
@@ -463,6 +463,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | backend.serviceAccount.create | bool | `true` |  |
 | backend.serviceAccount.labels | object | `{}` |  |
 | backend.serviceAccount.name | string | `""` |  |
+| backend.tracing.endpoint | string | `""` |  |
 
 ## Clickhouse
 
@@ -901,6 +902,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | platformBackend.serviceAccount.create | bool | `true` |  |
 | platformBackend.serviceAccount.labels | object | `{}` |  |
 | platformBackend.serviceAccount.name | string | `""` |  |
+| platformBackend.tracing.endpoint | string | `""` |  |
 
 ## Playground
 
@@ -976,6 +978,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | playground.serviceAccount.create | bool | `true` |  |
 | playground.serviceAccount.labels | object | `{}` |  |
 | playground.serviceAccount.name | string | `""` |  |
+| playground.tracing.endpoint | string | `""` |  |
 
 ## Postgres
 
@@ -992,11 +995,11 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | postgres.external.port | string | `"5432"` |  |
 | postgres.external.schema | string | `"public"` |  |
 | postgres.external.user | string | `"postgres"` |  |
+| postgres.metrics.containerPort | int | `9187` |  |
 | postgres.metrics.enabled | bool | `false` |  |
 | postgres.metrics.image.pullPolicy | string | `"IfNotPresent"` |  |
 | postgres.metrics.image.repository | string | `"prometheuscommunity/postgres-exporter"` |  |
 | postgres.metrics.image.tag | string | `"v0.17.1"` |  |
-| postgres.metrics.port | int | `9187` |  |
 | postgres.metrics.resources.limits.cpu | string | `"100m"` |  |
 | postgres.metrics.resources.limits.memory | string | `"128Mi"` |  |
 | postgres.metrics.resources.requests.cpu | string | `"100m"` |  |
@@ -1118,6 +1121,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | queue.serviceAccount.create | bool | `true` |  |
 | queue.serviceAccount.labels | object | `{}` |  |
 | queue.serviceAccount.name | string | `""` |  |
+| queue.tracing.endpoint | string | `""` |  |
 
 ## Redis
 
@@ -1128,11 +1132,11 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | redis.external.connectionUrlSecretKey | string | `"connection_url"` |  |
 | redis.external.enabled | bool | `false` |  |
 | redis.external.existingSecretName | string | `""` |  |
+| redis.metrics.containerPort | int | `9121` |  |
 | redis.metrics.enabled | bool | `false` |  |
 | redis.metrics.image.pullPolicy | string | `"IfNotPresent"` |  |
 | redis.metrics.image.repository | string | `"oliver006/redis_exporter"` |  |
 | redis.metrics.image.tag | string | `"v1.74.0"` |  |
-| redis.metrics.port | int | `9121` |  |
 | redis.metrics.resources.limits.cpu | string | `"100m"` |  |
 | redis.metrics.resources.limits.memory | string | `"128Mi"` |  |
 | redis.metrics.resources.requests.cpu | string | `"100m"` |  |

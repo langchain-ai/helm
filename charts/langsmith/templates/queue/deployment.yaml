@@ -5,7 +5,7 @@
   value: "3"
 {{- end -}}
 {{- $envVars := concat .Values.commonEnv (include "langsmith.commonEnv" . | fromYamlArray) (include "queueEnvVars" . | fromYamlArray) .Values.queue.deployment.extraEnv -}}
-{{- $envVars := concat $envVars (include "langsmith.otelTracingEnvVars" . | fromYamlArray) -}}
+{{- $envVars := concat $envVars (include "langsmith.queueOtelTracingEnvVars" . | fromYamlArray) -}}
 {{- include "langsmith.detectDuplicates" $envVars -}}
 apiVersion: apps/v1
 kind: Deployment

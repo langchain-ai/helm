@@ -3,7 +3,6 @@
   value: {{ .Values.hostBackend.containerPort | quote }}
 {{- end -}}
 {{- $envVars := concat (include "langsmith.commonEnv" . | fromYamlArray ) (include "hostBackendEnvVars" . | fromYamlArray) .Values.hostBackend.deployment.extraEnv -}}
-{{- $envVars := concat $envVars (include "langsmith.otelTracingEnvVars" . | fromYamlArray) -}}
 {{- include "langsmith.detectDuplicates" $envVars -}}
 {{- if .Values.config.langgraphPlatform.enabled }}
 apiVersion: apps/v1

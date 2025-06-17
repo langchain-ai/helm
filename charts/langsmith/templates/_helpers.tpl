@@ -633,17 +633,76 @@ Creates the image reference used for Langsmith deployments. If registry is speci
 {{/*
 Returns the OTEL tracing envrironment variables.
 */}}
-{{- define "langsmith.otelTracingEnvVars" -}}
+{{- define "langsmith.sharedTracingEnvVars" -}}
 {{- if .Values.config.observability.tracing.enabled }}
 - name: OTEL_TRACING_ENABLED
-  value: {{ .Values.config.observability.tracing.enabled }}
+  value: {{ .Values.config.observability.tracing.enabled | quote }}
 - name: OTEL_ENVIRONMENT
-  value: {{ .Values.config.observability.tracing.env }}
-- name: OTLP_ENDPOINT
-  value: {{ .Values.config.observability.tracing.endpoint }}
+  value: {{ .Values.config.observability.tracing.env | quote }}
 - name: OTEL_EXPORTER
-  value: {{ .Values.config.observability.tracing.exporter }}
+  value: {{ .Values.config.observability.tracing.exporter | quote }}
 - name: OTEL_USE_TLS
-  value: {{ .Values.config.observability.tracing.useTls }}
+  value: {{ .Values.config.observability.tracing.useTls | quote }}
+{{- end }}
+{{- end }}
+
+
+{{/*
+Returns the OTEL tracing environment variables for platform-backend.
+*/}}
+{{- define "langsmith.platformBackendOtelTracingEnvVars" -}}
+{{- if .Values.config.observability.tracing.enabled }}
+{{- include "langsmith.sharedTracingEnvVars" . | nindent 0 }}
+- name: OTLP_ENDPOINT
+  {{- if .Values.platformBackend.tracing.endpoint }}
+  value: {{ .Values.platformBackend.tracing.endpoint }}
+  {{- else }}
+  value: {{ .Values.config.observability.tracing.endpoint }}
+  {{- end }}
+{{- end }}
+{{- end }}
+
+{{/*
+Returns the OTEL tracing environment variables for backend.
+*/}}
+{{- define "langsmith.backendOtelTracingEnvVars" -}}
+{{- if .Values.config.observability.tracing.enabled }}
+{{- include "langsmith.sharedTracingEnvVars" . | nindent 0 }}
+- name: OTLP_ENDPOINT
+  {{- if .Values.backend.tracing.endpoint }}
+  value: {{ .Values.backend.tracing.endpoint }}
+  {{- else }}
+  value: {{ .Values.config.observability.tracing.endpoint }}
+  {{- end }}
+{{- end }}
+{{- end }}
+
+{{/*
+Returns the OTEL tracing environment variables for playground.
+*/}}
+{{- define "langsmith.playgroundOtelTracingEnvVars" -}}
+{{- if .Values.config.observability.tracing.enabled }}
+{{- include "langsmith.sharedTracingEnvVars" . | nindent 0 }}
+- name: OTLP_ENDPOINT
+  {{- if .Values.playground.tracing.endpoint }}
+  value: {{ .Values.playground.tracing.endpoint }}
+  {{- else }}
+  value: {{ .Values.config.observability.tracing.endpoint }}
+  {{- end }}
+{{- end }}
+{{- end }}
+
+{{/*
+Returns the OTEL tracing environment variables for queue.
+*/}}
+{{- define "langsmith.queueOtelTracingEnvVars" -}}
+{{- if .Values.config.observability.tracing.enabled }}
+{{- include "langsmith.sharedTracingEnvVars" . | nindent 0 }}
+- name: OTLP_ENDPOINT
+  {{- if .Values.queue.tracing.endpoint }}
+  value: {{ .Values.queue.tracing.endpoint }}
+  {{- else }}
+  value: {{ .Values.config.observability.tracing.endpoint }}
+  {{- end }}
 {{- end }}
 {{- end }}

@@ -27,8 +27,8 @@ spec:
       protocol: TCP
     {{- if .Values.redis.metrics.enabled }}
     - name: redis-metrics
-      port: {{ .Values.redis.metrics.port }}
-      targetPort: {{ .Values.redis.metrics.port }}
+      port: {{ .Values.redis.metrics.containerPort }}
+      targetPort: {{ .Values.redis.metrics.containerPort }}
       protocol: TCP
     {{- end }}
   selector:

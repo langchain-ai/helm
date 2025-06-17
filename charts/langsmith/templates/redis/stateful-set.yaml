@@ -62,7 +62,7 @@ spec:
           imagePullPolicy: {{ .Values.images.redisImage.pullPolicy }}
           ports:
             - name: redis
-              port: {{ .Values.redis.port }}
+              containerPort: {{ .Values.redis.containerPort }}
               protocol: TCP
           {{- with .Values.redis.statefulSet.startupProbe }}
           startupProbe:
@@ -99,7 +99,7 @@ spec:
           imagePullPolicy: {{ .Values.redis.metrics.image.pullPolicy }}
           ports:  
             - name: redis-metrics
-              containerPort: {{ .Values.redis.metrics.port }}
+              containerPort: {{ .Values.redis.metrics.containerPort }}
           resources:
             {{- toYaml .Values.redis.metrics.resources | nindent 12 }}
           {{- end }}
