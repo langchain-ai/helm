@@ -10,9 +10,10 @@ commonAnnotations: {}
 commonLabels: {}
 
 images:
-   # -- If supplied, all children <image_name>.repository values will be prepended with this registry name + `/`
-  registry: ""
-   # -- Secrets with credentials to pull images from a private registry. Specified as name: value.
+  # -- If supplied, all children <image_name>.repository values will be prepended with this registry name + `/`
+  registry:
+    ""
+    # -- Secrets with credentials to pull images from a private registry. Specified as name: value.
   imagePullSecrets: []
   # This should be the image you have built using the LangGraph Cli. Find more information here:
   apiServerImage:
@@ -35,7 +36,7 @@ images:
 config:
   existingSecretName: ""
   langGraphCloudLicenseKey: ""
-  numberOfJobsPerWorker: 10  # Number of jobs per worker. Workers are bundled with the api server if queue is disabled."
+  numberOfJobsPerWorker: 10 # Number of jobs per worker. Workers are bundled with the api server if queue is disabled."
   auth:
     enabled: false
     langSmithAuthEndpoint: ""
@@ -43,8 +44,8 @@ config:
 
 ingress:
   enabled: false
-  hostname: ""  #  Set this to the hostname you want to use for the ingress.
-  studioHostname: ""  # Set this to the hostname you want to use for the studio ingress
+  hostname: "" #  Set this to the hostname you want to use for the ingress.
+  studioHostname: "" # Set this to the hostname you want to use for the studio ingress
   ingressClassName: ""
   annotations: {}
   labels: {}
@@ -68,7 +69,7 @@ apiServer:
         cpu: 1000m
         memory: 2Gi
     extraEnv: []
-    envFrom: []  # List of ConfigMap or Secret references to load environment variables from
+    envFrom: [] # List of ConfigMap or Secret references to load environment variables from
     sidecars: []
     nodeSelector: {}
     tolerations: []
@@ -81,7 +82,7 @@ apiServer:
     minReplicas: 1
     maxReplicas: 5
     targetCPUUtilizationPercentage: 80
-    keda:  #  KEDA autoscaling configuration. Recommended for autoscaling but only available if keda is installed in the cluster.
+    keda: #  KEDA autoscaling configuration. Recommended for autoscaling but only available if keda is installed in the cluster.
       enabled: false
       pollingInterval: 30
       cooldownPeriod: 300
@@ -133,7 +134,7 @@ queue:
     minReplicas: 1
     maxReplicas: 5
     targetCPUUtilizationPercentage: 80
-    keda:  #  KEDA autoscaling configuration. Recommended for autoscaling but only available if keda is installed in the cluster.
+    keda: #  KEDA autoscaling configuration. Recommended for autoscaling but only available if keda is installed in the cluster.
       enabled: false
       pollingInterval: 30
       cooldownPeriod: 300
@@ -281,7 +282,7 @@ redis:
 
 studio:
   enabled: true
-  localGraphUrl: ""  #  Set this to api-server base url you want studio to point to by default.
+  localGraphUrl: "" #  Set this to api-server base url you want studio to point to by default.
   name: "studio"
   containerPort: 3968
   deployment:
@@ -305,12 +306,12 @@ studio:
     affinity: {}
     volumes: []
     volumeMounts: []
-  autoscaling:  #  Autoscaling configuration. Not generally needed for studio.
+  autoscaling: #  Autoscaling configuration. Not generally needed for studio.
     enabled: false
     minReplicas: 1
     maxReplicas: 5
     targetCPUUtilizationPercentage: 80
-    keda:  #  KEDA autoscaling configuration. Recommended for autoscaling but only available if keda is installed in the cluster.
+    keda: #  KEDA autoscaling configuration. Recommended for autoscaling but only available if keda is installed in the cluster.
       enabled: false
       pollingInterval: 30
       cooldownPeriod: 300
