@@ -2,4 +2,3 @@
 test*.yaml
 .DS_Store
 .cursor/
-langsmith-observability/charts/*
