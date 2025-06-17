@@ -949,11 +949,11 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | postgres.external.port | string | `"5432"` |  |
 | postgres.external.schema | string | `"public"` |  |
 | postgres.external.user | string | `"postgres"` |  |
-| postgres.metrics.containerPort | int | `9187` |  |
 | postgres.metrics.enabled | bool | `false` |  |
 | postgres.metrics.image.pullPolicy | string | `"IfNotPresent"` |  |
 | postgres.metrics.image.repository | string | `"prometheuscommunity/postgres-exporter"` |  |
 | postgres.metrics.image.tag | string | `"v0.17.1"` |  |
+| postgres.metrics.port | int | `9187` |  |
 | postgres.metrics.resources.limits.cpu | string | `"100m"` |  |
 | postgres.metrics.resources.limits.memory | string | `"128Mi"` |  |
 | postgres.metrics.resources.requests.cpu | string | `"100m"` |  |
@@ -1083,11 +1083,11 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | redis.external.connectionUrlSecretKey | string | `"connection_url"` |  |
 | redis.external.enabled | bool | `false` |  |
 | redis.external.existingSecretName | string | `""` |  |
-| redis.metrics.containerPort | int | `9121` |  |
 | redis.metrics.enabled | bool | `false` |  |
 | redis.metrics.image.pullPolicy | string | `"IfNotPresent"` |  |
 | redis.metrics.image.repository | string | `"oliver006/redis_exporter"` |  |
 | redis.metrics.image.tag | string | `"v1.74.0"` |  |
+| redis.metrics.port | int | `9121` |  |
 | redis.metrics.resources.limits.cpu | string | `"100m"` |  |
 | redis.metrics.resources.limits.memory | string | `"128Mi"` |  |
 | redis.metrics.resources.requests.cpu | string | `"100m"` |  |

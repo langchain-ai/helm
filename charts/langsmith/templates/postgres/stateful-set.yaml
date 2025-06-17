@@ -114,7 +114,7 @@ spec:
           imagePullPolicy: {{ .Values.postgres.metrics.image.pullPolicy }}
           ports:
             - name: pg-metrics
-              containerPort: {{ .Values.postgres.metrics.containerPort }}
+              containerPort: {{ .Values.postgres.metrics.port }}
           resources:
             {{- toYaml .Values.postgres.metrics.resources | nindent 12 }}
         {{- end }}

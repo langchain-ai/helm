@@ -1272,7 +1272,7 @@ postgres:
       repository: prometheuscommunity/postgres-exporter
       tag: v0.17.1
       pullPolicy: IfNotPresent
-    containerPort: 9187
+    port: 9187
     resources:
       limits:
         cpu: 100m
@@ -1445,7 +1445,7 @@ redis:
       repository: oliver006/redis_exporter
       tag: v1.74.0
       pullPolicy: IfNotPresent
-    containerPort: 9121
+    port: 9121
     resources:
       limits:
         cpu: 100m

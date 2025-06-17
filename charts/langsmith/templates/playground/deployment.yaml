@@ -5,6 +5,7 @@
   value: {{ .Values.config.logLevel | quote }}
 {{- end -}}
 {{- $envVars := concat (include "playgroundEnvVars" . | fromYamlArray) .Values.playground.deployment.extraEnv -}}
+{{- $envVars := concat $envVars (include "langsmith.otelTracingEnvVars" . | fromYamlArray) -}}
 {{- include "langsmith.detectDuplicates" $envVars -}}
 apiVersion: apps/v1
 kind: Deployment

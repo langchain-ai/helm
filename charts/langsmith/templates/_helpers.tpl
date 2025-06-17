@@ -621,3 +621,21 @@ Creates the image reference used for Langsmith deployments. If registry is speci
 {{ $imageConfig.repository }}:{{ $imageConfig.tag | default .Chart.AppVersion }}
 {{- end -}}
 {{- end -}}
+
+{{/*
+Returns the OTEL tracing envrironment variables.
+*/}}
+{{- define "langsmith.otelTracingEnvVars" -}}
+{{- if .Values.config.observability.tracing.enabled }}
+- name: OTEL_TRACING_ENABLED
+  value: {{ .Values.config.observability.tracing.enabled }}
+- name: OTEL_ENVIRONMENT
+  value: {{ .Values.config.observability.tracing.env }}
+- name: OTLP_ENDPOINT
+  value: {{ .Values.config.observability.tracing.endpoint }}
+- name: OTEL_EXPORTER
+  value: {{ .Values.config.observability.tracing.exporter }}
+- name: OTEL_USE_TLS
+  value: {{ .Values.config.observability.tracing.useTls }}
+{{- end }}
+{{- end }}

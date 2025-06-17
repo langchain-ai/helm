@@ -7,6 +7,7 @@
 {{- end }}
 {{- end -}}
 {{- $envVars := concat .Values.commonEnv (include "langsmith.commonEnv" . | fromYamlArray) (include "platformBackendEnvVars" . | fromYamlArray) .Values.platformBackend.deployment.extraEnv -}}
+{{- $envVars := concat $envVars (include "langsmith.otelTracingEnvVars" . | fromYamlArray) -}}
 {{- include "langsmith.detectDuplicates" $envVars -}}
 apiVersion: apps/v1
 kind: Deployment
@@ -61,14 +62,6 @@ spec:
           env:
             {{- with $envVars }}
               {{ toYaml . | nindent 12 }}
-            {{- end }}
-            {{- if .Values.config.observability.tracing.enabled }}
-            - name: OTEL_TRACING_ENABLED
-              value: {{ .Values.config.observability.tracing.enabled }}
-            - name: OTLP_ENDPOINT
-              value: {{ .Values.config.observability.tracing.endpoint }}
-            - name: OTEL_USE_TLS
-              value: {{ .Values.config.observability.tracing.useTls }}
             {{- end }}
           envFrom:
             - configMapRef:
