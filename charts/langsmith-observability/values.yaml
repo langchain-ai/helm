@@ -1,0 +1,139 @@
+releaseName: "langsmith-observability"
+langsmithNamespace: "romain"
+
+config:
+  logs:
+    enabled: true
+  metrics:
+    enabled: false
+  traces:
+    enabled: false
+
+grafana:
+  datasources:
+    datasources.yaml:
+      apiVersion: 1
+      datasources:
+        - name: Loki
+          uid: loki
+          type: loki
+          url: http://{{ .Release.Name }}-loki-gateway
+          isDefault: false
+
+loki:
+  deploymentMode: Distributed
+  loki:
+    schemaConfig:
+      configs:
+        - from: "2024-04-01"
+          store: tsdb
+          object_store: s3
+          schema: v13
+          index:
+            prefix: loki_index_
+            period: 24h
+
+    # storage_config:
+    #   aws:
+    #     region: us-east-1
+    #     bucketnames: loki-chunks
+    #     s3forcepathstyle: true
+
+    storage:
+      type: s3
+      bucketNames:
+        chunks: loki-chunks
+        ruler: loki-ruler
+        admin: loki-admin
+      s3:
+        endpoint: langsmith-observability-minio.romain-observability.svc.cluster.local:9000
+        region: us-east-1
+        secretAccessKey: admin_password
+        accessKeyId: admin
+        insecure: true
+        s3ForcePathStyle: true
+
+    ingester:
+      chunk_encoding: snappy
+    querier:
+      # Default is 4, if you have enough memory and CPU you can increase, reduce if OOMing
+      max_concurrent: 4
+  
+  lokiCanary: # Disable as it runs as a daemonset. This is only used to periodically test that Loki is working. Log volume can also tell.
+    enabled: false
+  test:
+    enabled: false
+
+  ingester:
+    replicas: 3
+  querier:
+    replicas: 3
+    maxUnavailable: 2
+  queryFrontend:
+    replicas: 2
+    maxUnavailable: 1
+  queryScheduler:
+    replicas: 2
+  distributor:
+    replicas: 3
+    maxUnavailable: 2
+  compactor:
+    replicas: 1
+  indexGateway:
+    replicas: 2
+    maxUnavailable: 1
+
+  # optional experimental components
+  bloomPlanner:
+    replicas: 0
+  bloomBuilder:
+    replicas: 0
+  bloomGateway:
+    replicas: 0
+
+  # Zero out replica counts of other deployment modes
+  backend:
+    replicas: 0
+  read:
+    replicas: 0
+  write:
+    replicas: 0
+
+  singleBinary:
+    replicas: 0
+
+minio:
+  enabled: true
+  mode: standalone
+  replicas: 1
+  persistence:
+    enabled: true
+    size: 10Gi
+  readinessProbe:
+    enabled: false
+  auth:
+    rootUser: admin
+    rootPassword: admin_password
+  defaultBuckets: "loki-chunks, loki-ruler, loki-admin, mimir-blocks, mimir-ruler, mimir-alertmanager, tempo"
+
+opentelemetryCollector:
+  name: "langsmith-collector"
+  image:
+    repository: otel/opentelemetry-collector-contrib
+    tag: "0.123.0"
+
+  k8sAttributes:
+    enabled: false
+    namespace: "romain"
+    name: "langsmith-backend"
+  
+  serviceAccounts:
+    - "langsmith-ace-backend"
+    - "langsmith-backend"
+    - "langsmith-clickhouse"
+    - "langsmith-frontend"
+    - "langsmith-platform-backend"
+    - "langsmith-playground"
+    - "langsmith-postgres"
+    - "langsmith-queue"
+    - "langsmith-redis"
