@@ -13,10 +13,18 @@ data:
 
     proxy_cache_path /tmp/server_cache levels=1:2 keys_zone=llm_cache:100m max_size=1g inactive=60 use_temp_path=off;
 
-    log_format cache_log '$remote_addr - $remote_user [$time_local] '
-    '"$request" $status $body_bytes_sent '
-    '"$http_referer" "$http_user_agent" '
-    'Cache: $upstream_cache_status';
+    log_format cache_log_json escape=json
+    '{'
+        '"remote_addr":"$remote_addr",'
+        '"remote_user":"$remote_user",'
+        '"time_local":"$time_local",'
+        '"request":"$request",'
+        '"status":$status,'
+        '"body_bytes_sent":$body_bytes_sent,'
+        '"http_referer":"$http_referer",'
+        '"http_user_agent":"$http_user_agent",'
+        '"cache_status":"$upstream_cache_status"'
+    '}';
 
     server {
         listen       {{ .Values.frontend.containerPort }};
@@ -34,6 +42,8 @@ data:
         add_header X-Frame-Options "SAMEORIGIN" always;
         add_header X-Content-Type-Options "nosniff" always;
         add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" always;
+
+        access_log /var/log/nginx/access.log cache_log_json;
 
         error_page   500 502 503 504  /50x.html;
         location = /50x.html {
@@ -227,10 +237,18 @@ data:
 
     proxy_cache_path /tmp/server_cache levels=1:2 keys_zone=llm_cache:100m max_size=1g inactive=60 use_temp_path=off;
 
-    log_format cache_log '$remote_addr - $remote_user [$time_local] '
-    '"$request" $status $body_bytes_sent '
-    '"$http_referer" "$http_user_agent" '
-    'Cache: $upstream_cache_status';
+    log_format cache_log_json escape=json
+    '{'
+        '"remote_addr":"$remote_addr",'
+        '"remote_user":"$remote_user",'
+        '"time_local":"$time_local",'
+        '"request":"$request",'
+        '"status":$status,'
+        '"body_bytes_sent":$body_bytes_sent,'
+        '"http_referer":"$http_referer",'
+        '"http_user_agent":"$http_user_agent",'
+        '"cache_status":"$upstream_cache_status"'
+    '}';
 
 
     server {
@@ -249,6 +267,8 @@ data:
         add_header X-Frame-Options "SAMEORIGIN" always;
         add_header X-Content-Type-Options "nosniff" always;
         add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" always;
+
+        access_log /var/log/nginx/access.log cache_log_json;
 
         location / {
             root   /tmp/build;
