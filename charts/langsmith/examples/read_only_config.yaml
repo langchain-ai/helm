@@ -126,6 +126,155 @@ listener:
         type: RuntimeDefault
       allowPrivilegeEscalation: false
       readOnlyRootFilesystem: true
+  templates:
+      db: |
+        apiVersion: apps/v1
+        kind: StatefulSet
+        metadata:
+          name: ${service_name}
+        spec:
+          serviceName: ${service_name}
+          replicas: ${replicas}
+          selector:
+            matchLabels:
+              app: ${service_name}
+          persistentVolumeClaimRetentionPolicy:
+            whenDeleted: Delete
+            whenScaled: Retain
+          template:
+            metadata:
+              labels:
+                app: ${service_name}
+            spec:
+              # Pod-level security context (applies to all containers)
+              securityContext:
+                runAsNonRoot: true
+                runAsUser: 1000
+                runAsGroup: 1000
+                fsGroup: 1000
+              # Declare additional volumes
+              volumes:
+              - name: tmp
+                emptyDir: {}
+              - name: postgres
+                emptyDir: {}
+              containers:
+              - name: postgres
+                image: pgvector/pgvector:pg15
+                ports:
+                  - containerPort: 5432
+                command: ["docker-entrypoint.sh"]
+                args:
+                  - postgres
+                  - -c
+                  - max_connections=${max_connections}
+                env:
+                  - name: POSTGRES_PASSWORD
+                    valueFrom:
+                      secretKeyRef:
+                        name: ${secret_name}
+                        key: POSTGRES_PASSWORD
+                  - name: POSTGRES_USER
+                    value: ${postgres_user}
+                  - name: POSTGRES_DB
+                    value: ${postgres_db}
+                  - name: PGDATA
+                    value: /var/lib/postgresql/data/pgdata
+                # Mount the PVC volume (postgres-data), plus the tmp/postgres volumes
+                volumeMounts:
+                  - name: postgres-data
+                    mountPath: /var/lib/postgresql/data
+                  - name: tmp
+                    mountPath: /tmp
+                  - name: postgres
+                    mountPath: /run/postgresql
+                # Container-level security context (applies only to "postgres" container)
+                securityContext:
+                  capabilities:
+                    drop:
+                      - ALL
+                  seccompProfile:
+                    type: RuntimeDefault
+                  allowPrivilegeEscalation: false
+                  readOnlyRootFilesystem: true
+                resources:
+                  requests:
+                    cpu: "${cpu}"
+                    memory: "${memory_mb}Mi"
+                  limits:
+                    cpu: "${cpu_limit}"
+                    memory: "${memory_limit}Mi"
+              enableServiceLinks: false
+          volumeClaimTemplates:
+          - metadata:
+              name: postgres-data
+            spec:
+              storageClassName: "gp2"
+              accessModes: ["ReadWriteOnce"]
+              resources:
+                requests:
+                  storage: "${storage_gi}Gi"
+      redis: |
+        apiVersion: apps/v1
+        kind: Deployment
+        metadata:
+          name: ${service_name}
+        spec:
+          replicas: 1
+          selector:
+            matchLabels:
+              app: ${service_name}
+          template:
+            metadata:
+              labels:
+                app: ${service_name}
+            spec:
+              # Pod-level security context
+              securityContext:
+                runAsNonRoot: true
+                runAsUser: 1000
+                runAsGroup: 1000
+                fsGroup: 1000
+              volumes:
+              - name: data
+                emptyDir: {}
+              containers:
+                - name: redis
+                  image: redis:6
+                  ports:
+                    - containerPort: 6379
+                  livenessProbe:
+                    exec:
+                      command:
+                      - redis-cli
+                      - ping
+                    initialDelaySeconds: 30
+                    periodSeconds: 10
+                  readinessProbe:
+                    tcpSocket:
+                      port: 6379
+                    initialDelaySeconds: 10
+                    periodSeconds: 5
+                  # Container-level security context
+                  securityContext:
+                    capabilities:
+                      drop:
+                        - ALL
+                    seccompProfile:
+                      type: RuntimeDefault
+                    allowPrivilegeEscalation: false
+                    readOnlyRootFilesystem: true
+                  resources:
+                    requests:
+                      cpu: "1"
+                      memory: "2048Mi"
+                    limits:
+                      cpu: "1"
+                      memory: "2048Mi"
+                  volumeMounts:
+                    - name: data
+                      mountPath: /data
+              enableServiceLinks: false
 
 operator:
   deployment:
@@ -142,6 +291,60 @@ operator:
         type: RuntimeDefault
       allowPrivilegeEscalation: false
       readOnlyRootFilesystem: true
+  templates:
+    deployment: |
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: ${name}
+        namespace: ${namespace}
+      spec:
+        replicas: ${replicas}
+        selector:
+          matchLabels:
+            app: ${name}
+        template:
+          metadata:
+            labels:
+              app: ${name}
+          spec:
+            enableServiceLinks: false
+            # Pod-level security context:
+            securityContext:
+              runAsNonRoot: true
+              runAsUser: 1000
+              runAsGroup: 1000
+              fsGroup: 1000
+            containers:
+              - name: api-server
+                image: ${image}
+                ports:
+                  - name: api-server
+                    containerPort: 8000
+                    protocol: TCP
+                # Container-level security context:
+                securityContext:
+                  capabilities:
+                    drop:
+                      - ALL
+                  seccompProfile:
+                    type: RuntimeDefault
+                  allowPrivilegeEscalation: false
+                  readOnlyRootFilesystem: true
+                livenessProbe:
+                  httpGet:
+                    path: /lgp/${name}/ok?check_db=1
+                    port: 8000
+                  periodSeconds: 15
+                  timeoutSeconds: 5
+                  failureThreshold: 6
+                readinessProbe:
+                  httpGet:
+                    path: /lgp/${name}/ok
+                    port: 8000
+                  periodSeconds: 15
+                  timeoutSeconds: 5
+                  failureThreshold: 6
 
 frontend:
   deployment:
