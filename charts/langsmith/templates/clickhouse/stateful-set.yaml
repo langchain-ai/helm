@@ -42,6 +42,7 @@ spec:
   template:
     metadata:
       annotations:
+        {{- include "langsmith.observabilityAnnotations" . | nindent 8 }}
         {{- with .Values.clickhouse.statefulSet.annotations }}
           {{- toYaml . | nindent 8 }}
         {{- end }}

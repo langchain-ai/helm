@@ -1319,7 +1319,8 @@ postgres:
     labels: {}
     annotations: {}
   metrics:
-    enabled: false
+    enabled: true
+    containerName: "postgres-metrics-exporter"
     image:
       repository: prometheuscommunity/postgres-exporter
       tag: v0.17.1
@@ -1496,7 +1497,8 @@ redis:
     labels: {}
     annotations: {}
   metrics:
-    enabled: false
+    enabled: true
+    containerName: "redis-metrics-exporter"
     image:
       repository: oliver006/redis_exporter
       tag: v1.74.0

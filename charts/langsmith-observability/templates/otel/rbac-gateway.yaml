@@ -1,0 +1,25 @@
+{{- if .Values.config.metrics.enabled }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: get-pod-metrics
+  namespace: {{ .Values.langsmithNamespace }}
+rules:
+  - apiGroups: [""]
+    resources: ["pods", "services", "endpoints"]
+    verbs: ["get", "watch", "list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: get-pod-metrics-binding
+  namespace: {{ .Values.langsmithNamespace }}
+roleRef:
+  kind: Role
+  name: get-pod-metrics
+  namespace: {{ .Values.langsmithNamespace }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ .Values.opentelemetryCollector.name }}-gateway-collector
+    namespace: {{ .Release.Namespace }}
+{{- end }}

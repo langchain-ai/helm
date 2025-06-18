@@ -36,7 +36,7 @@ spec:
 
     exporters:
       otlphttp/logs:
-        endpoint: http://loki.{{ .Release.Namespace }}.svc.cluster.local:3100/loki/api/v1/push
+        endpoint: http://{{ .Release.Name }}-loki-gateway.{{ .Release.Namespace }}.svc.cluster.local:80/otlp
         tls:
           insecure: false
 

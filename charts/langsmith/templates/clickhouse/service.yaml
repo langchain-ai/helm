@@ -30,7 +30,7 @@ spec:
       targetPort: ch-native
       protocol: TCP
     {{- if .Values.clickhouse.metrics.enabled }}
-    - name: ch-metrics
+    - name: metrics
       port: {{ .Values.clickhouse.metrics.port }}
       targetPort: {{ .Values.clickhouse.metrics.port }}
       protocol: TCP

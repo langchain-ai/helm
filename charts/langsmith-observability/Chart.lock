@@ -8,5 +8,11 @@ dependencies:
 - name: minio
   repository: https://charts.bitnami.com/bitnami
   version: 16.0.10
-digest: sha256:e6b828e8881b4b2d049e49b8aa16f7af697eb6fdf842750820ab2b3c81a88e40
-generated: "2025-06-17T21:27:00.575251-07:00"
+- name: mimir-distributed
+  repository: https://grafana.github.io/helm-charts
+  version: 5.7.0
+- name: tempo-distributed
+  repository: https://grafana.github.io/helm-charts
+  version: 1.41.1
+digest: sha256:04afd5846b32979e71b89b33879de13c9104572ba2c4374b47f975e4f7e8b6d4
+generated: "2025-06-18T14:20:23.094864-07:00"

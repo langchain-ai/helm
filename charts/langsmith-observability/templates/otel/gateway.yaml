@@ -1,0 +1,105 @@
+{{- if or .Values.config.metrics.enabled .Values.config.traces.enabled }}
+apiVersion: opentelemetry.io/v1beta1
+kind: OpenTelemetryCollector
+metadata:
+  name: {{ .Values.opentelemetryCollector.name }}-gateway
+spec:
+  mode: deployment
+  image: {{ .Values.opentelemetryCollector.image.repository }}:{{ .Values.opentelemetryCollector.image.tag }}
+  
+  config:
+    receivers:
+      {{ if .Values.config.metrics.enabled }}
+      prometheus:
+        config:
+          scrape_configs:
+            - job_name: langsmith-services
+              metrics_path: /metrics
+              kubernetes_sd_configs:
+                - role: endpoints
+                  namespaces:
+                    names: [{{ .Values.langsmithNamespace }}]   
+              relabel_configs:
+                # Keeps all services with the name langsmith-.*
+                - source_labels: [__meta_kubernetes_service_name]
+                  regex: "langsmith-.*"
+                  action: keep
+                - source_labels: [__meta_kubernetes_endpoint_port_name]
+                  regex: "(backend|platform|playground)"
+                  action: keep
+                # Promote useful metadata into regular labels 
+                - source_labels: [__meta_kubernetes_service_name]
+                  target_label: k8s_service
+                - source_labels: [__meta_kubernetes_pod_name]
+                  target_label: k8s_pod
+                # Replace the default "host:port" as Prom's instance label
+                - source_labels: [__address__]
+                  target_label: instance
+            {{- if include "langsmith-observability.databaseMetricsEnabled" . }}
+            - job_name: database-metrics
+              metrics_path: /metrics
+              kubernetes_sd_configs:
+                - role: endpoints
+                  namespaces:
+                    names: [{{ .Values.langsmithNamespace }}]   
+              relabel_configs:
+                - source_labels: [__meta_kubernetes_service_name]
+                  regex: {{ include "langsmith-observability.enabledServicesRegex" . }}
+                  action: keep
+                - source_labels: [__meta_kubernetes_endpoint_port_name]
+                  regex: ".*metrics.*"
+                  action: keep
+                - source_labels: [__meta_kubernetes_service_name]
+                  target_label: k8s_service
+                - source_labels: [__meta_kubernetes_pod_name]
+                  target_label: k8s_pod
+                - source_labels: [__address__]
+                  target_label: instance
+            {{- end }}
+      {{ end }}
+      {{- if .Values.config.traces.enabled }}
+      otlp:
+        protocols:
+          grpc:
+            endpoint: 0.0.0.0:4317
+          http:
+            endpoint: 0.0.0.0:4318
+      {{- end }}
+
+    processors:
+      batch:
+        send_batch_size: 8192
+        timeout: 10s
+      memory_limiter:
+        check_interval: 1m
+        limit_percentage: 90
+        spike_limit_percentage: 80
+    
+    exporters:
+      {{ if .Values.config.metrics.enabled }}
+      otlphttp/metrics:
+        endpoint: http://{{ .Release.Name }}-mimir-nginx.{{ .Release.Namespace }}.svc.cluster.local:80/otlp
+      {{ end }}
+      {{ if .Values.config.traces.enabled }}
+      otlphttp/traces:
+        endpoint: http://langsmith-observability-tempo-distributor-discovery.romain-observability.svc.cluster.local:4318
+      {{ end }}
+
+    service:  
+      telemetry:
+        logs:
+          level: debug
+      pipelines:
+        {{ if .Values.config.metrics.enabled }}
+        metrics/langsmith:
+          receivers: [prometheus]
+          processors: [batch, memory_limiter]
+          exporters: [otlphttp/metrics]
+        {{ end }}
+        {{ if .Values.config.traces.enabled }}
+        traces/langsmith:
+          receivers: [otlp]
+          processors: [batch, memory_limiter]
+          exporters: [otlphttp/traces]
+        {{ end }}
+{{- end }}

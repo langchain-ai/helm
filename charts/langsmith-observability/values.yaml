@@ -1,13 +1,14 @@
 releaseName: "langsmith-observability"
 langsmithNamespace: "romain"
+langSmithReleaseName: "langsmith"
 
 config:
   logs:
     enabled: true
   metrics:
-    enabled: false
+    enabled: true
   traces:
-    enabled: false
+    enabled: true
 
 grafana:
   datasources:
@@ -19,10 +20,29 @@ grafana:
           type: loki
           url: http://{{ .Release.Name }}-loki-gateway
           isDefault: false
+        - name: Mimir
+          uid: prom
+          type: prometheus
+          url: http://{{ .Release.Name }}-mimir-nginx/prometheus
+        - name: Tempo
+          uid: tempo
+          type: tempo
+          url: http://{{ .Release.Name }}-tempo-query-frontend-discovery:3200
+          isDefault: false
+          jsonData:
+            tracesToLogsV2:
+              datasourceUid: loki
+            lokiSearch:
+              datasourceUid: loki
+            tracesToMetrics:
+              datasourceUid: prom
+            serviceMap:
+              datasourceUid: prom
 
 loki:
   deploymentMode: Distributed
   loki:
+    auth_enabled: false # This just drops tenant based authentication header, and all logs are under tenant "fake"
     schemaConfig:
       configs:
         - from: "2024-04-01"
@@ -33,18 +53,17 @@ loki:
             prefix: loki_index_
             period: 24h
 
-    # storage_config:
-    #   aws:
-    #     region: us-east-1
-    #     bucketnames: loki-chunks
-    #     s3forcepathstyle: true
+    storage_config:
+      aws:
+        region: us-east-1
+        bucketnames: loki-chunks
+        s3forcepathstyle: true
 
     storage:
       type: s3
       bucketNames:
         chunks: loki-chunks
-        ruler: loki-ruler
-        admin: loki-admin
+        # In the future, configure a ruler bucket if we want to set rules/alerts on logs?
       s3:
         endpoint: langsmith-observability-minio.romain-observability.svc.cluster.local:9000
         region: us-east-1
@@ -55,6 +74,7 @@ loki:
 
     ingester:
       chunk_encoding: snappy
+      max_chunk_age: 10s
     querier:
       # Default is 4, if you have enough memory and CPU you can increase, reduce if OOMing
       max_concurrent: 4
@@ -102,6 +122,33 @@ loki:
   singleBinary:
     replicas: 0
 
+mimir:
+  minio:
+    enabled: false
+  mimir:
+    structuredConfig:
+      common:
+         storage:
+          backend: s3
+          s3:
+            endpoint: langsmith-observability-minio.romain-observability.svc.cluster.local:9000
+            region: us-east-1
+            secret_access_key: admin_password
+            access_key_id: admin
+            insecure: true
+
+      blocks_storage:
+        s3:
+          bucket_name: mimir-blocks
+
+      alertmanager_storage:
+        s3:
+          bucket_name: mimir-alertmanager
+
+      ruler_storage:
+        s3:
+          bucket_name: mimir-ruler
+
 minio:
   enabled: true
   mode: standalone
@@ -112,20 +159,15 @@ minio:
   readinessProbe:
     enabled: false
   auth:
-    rootUser: admin
-    rootPassword: admin_password
-  defaultBuckets: "loki-chunks, loki-ruler, loki-admin, mimir-blocks, mimir-ruler, mimir-alertmanager, tempo"
+    rootUser: "admin"
+    rootPassword: "admin_password"
+  defaultBuckets: "loki-chunks, mimir-blocks, mimir-ruler, mimir-alertmanager, tempo"
 
 opentelemetryCollector:
   name: "langsmith-collector"
   image:
     repository: otel/opentelemetry-collector-contrib
     tag: "0.123.0"
-
-  k8sAttributes:
-    enabled: false
-    namespace: "romain"
-    name: "langsmith-backend"
   
   serviceAccounts:
     - "langsmith-ace-backend"
@@ -137,3 +179,48 @@ opentelemetryCollector:
     - "langsmith-postgres"
     - "langsmith-queue"
     - "langsmith-redis"
+
+  metrics:
+    langsmith:
+      enabled: true
+    redis:
+      enabled: true
+      serviceName: ""
+      portName: ""
+    postgres:
+      enabled: true
+      serviceName: ""
+      portName: ""
+    clickhouse:
+      enabled: true
+      serviceName: ""
+      portName: ""
+
+tempo:
+  storage:
+    trace:
+      backend: s3
+      s3:
+        access_key: admin
+        secret_key: admin_password
+        bucket: tempo
+        endpoint: langsmith-observability-minio.romain-observability.svc.cluster.local:9000
+        insecure: true
+  # Specifies which trace protocols to accept by the gateway.
+  traces:
+    otlp:
+      grpc:
+        enabled: true
+      http:
+        enabled: true
+    zipkin:
+      enabled: false
+    jaeger:
+      thriftHttp:
+        enabled: false
+    opencensus:
+      enabled: false
+  
+  metricsGenerator:
+    enabled: true
+
