@@ -12,6 +12,7 @@ templates:
   - redis/secrets.yaml
   - postgres/secrets.yaml
   - clickhouse/secrets.yaml
+  - frontend/config-map.yaml
 tests:
   - it: should not have hybrid overrides set
     template: backend/deployment.yaml
