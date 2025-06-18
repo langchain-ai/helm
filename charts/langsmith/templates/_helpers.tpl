@@ -604,6 +604,7 @@ Quickwit environment
 
 {{- define "langsmith.checksumAnnotations"}}
 checksum/config: {{ include (print $.Template.BasePath "/config-map.yaml") . | sha256sum }}
+checksum/frontend-config: {{ include (print $.Template.BasePath "/frontend/config-map.yaml") . | sha256sum }}
 {{- if not .Values.config.existingSecretName }}
 checksum/secrets: {{ include (print $.Template.BasePath "/secrets.yaml") . | sha256sum }}
 {{- end }}
