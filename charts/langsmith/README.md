@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.10.28](https://img.shields.io/badge/Version-0.10.28-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.10.74](https://img.shields.io/badge/AppVersion-0.10.74-informational?style=flat-square)
+![Version: 0.10.29](https://img.shields.io/badge/Version-0.10.29-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.10.74](https://img.shields.io/badge/AppVersion-0.10.74-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -233,6 +233,11 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | config.oauth.oauthIssuerUrl | string | `""` |  |
 | config.oauth.oauthScopes | string | `"email,profile,openid"` |  |
 | config.oauth.oauthSessionMaxSec | string | `"86400"` |  |
+| config.observability.tracing.enabled | bool | `false` |  |
+| config.observability.tracing.endpoint | string | `""` |  |
+| config.observability.tracing.env | string | `"ls_self_hosted"` |  |
+| config.observability.tracing.exporter | string | `"http"` |  |
+| config.observability.tracing.useTls | bool | `true` |  |
 | config.orgCreationDisabled | bool | `false` | Prevent organization creation. If using basic auth, this is set to true by default. |
 | config.personalOrgsDisabled | bool | `false` | Disable personal orgs. Users will need to be invited to an org manually. If using basic auth, this is set to true by default. |
 | config.settings | object | `{"redisRunsExpirySeconds":"21600"}` | Application Settings. These are used to tune the application |
@@ -485,6 +490,8 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | clickhouse.external.tlsSecretKey | string | `"clickhouse_tls"` |  |
 | clickhouse.external.user | string | `"default"` |  |
 | clickhouse.external.userSecretKey | string | `"clickhouse_user"` |  |
+| clickhouse.metrics.enabled | bool | `true` |  |
+| clickhouse.metrics.port | int | `9363` |  |
 | clickhouse.name | string | `"clickhouse"` |  |
 | clickhouse.pdb.annotations | object | `{}` |  |
 | clickhouse.pdb.enabled | bool | `false` |  |

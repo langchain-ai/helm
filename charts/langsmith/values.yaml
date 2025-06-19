@@ -171,6 +171,14 @@ config:
     logoUrl: ""
     coBrandingEnabled: true
 
+  observability:
+    tracing:
+      enabled: false
+      endpoint: ""
+      useTls: true
+      env: "ls_self_hosted"
+      exporter: "http"
+
 aceBackend:
   name: "ace-backend"
   containerPort: 1987
@@ -546,6 +554,9 @@ clickhouse:
     name: ""
     labels: {}
     annotations: {}
+  metrics:
+    enabled: true
+    port: 9363
 
 e2eTest:
   name: "e2e-test"
