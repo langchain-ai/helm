@@ -8,7 +8,7 @@ config:
     initialOrgAdminEmail: "youremail@corp.dev"
     initialOrgAdminPassword: "TestLangSmith123!"
     jwtSecret: "YOUR_JWT_SECRET"
-  
+
   observability:
     tracing:
       enabled: true
