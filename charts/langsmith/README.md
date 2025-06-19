@@ -463,7 +463,6 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | backend.serviceAccount.create | bool | `true` |  |
 | backend.serviceAccount.labels | object | `{}` |  |
 | backend.serviceAccount.name | string | `""` |  |
-| backend.tracing.endpoint | string | `""` |  |
 
 ## Clickhouse
 
@@ -491,7 +490,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | clickhouse.external.tlsSecretKey | string | `"clickhouse_tls"` |  |
 | clickhouse.external.user | string | `"default"` |  |
 | clickhouse.external.userSecretKey | string | `"clickhouse_user"` |  |
-| clickhouse.metrics.enabled | bool | `false` |  |
+| clickhouse.metrics.enabled | bool | `true` |  |
 | clickhouse.metrics.port | int | `9363` |  |
 | clickhouse.name | string | `"clickhouse"` |  |
 | clickhouse.pdb.annotations | object | `{}` |  |
@@ -902,7 +901,6 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | platformBackend.serviceAccount.create | bool | `true` |  |
 | platformBackend.serviceAccount.labels | object | `{}` |  |
 | platformBackend.serviceAccount.name | string | `""` |  |
-| platformBackend.tracing.endpoint | string | `""` |  |
 
 ## Playground
 
@@ -978,7 +976,6 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | playground.serviceAccount.create | bool | `true` |  |
 | playground.serviceAccount.labels | object | `{}` |  |
 | playground.serviceAccount.name | string | `""` |  |
-| playground.tracing.endpoint | string | `""` |  |
 
 ## Postgres
 
@@ -1121,7 +1118,6 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | queue.serviceAccount.create | bool | `true` |  |
 | queue.serviceAccount.labels | object | `{}` |  |
 | queue.serviceAccount.name | string | `""` |  |
-| queue.tracing.endpoint | string | `""` |  |
 
 ## Redis
 

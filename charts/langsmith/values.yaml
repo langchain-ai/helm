@@ -446,8 +446,6 @@ backend:
     name: ""
     labels: {}
     annotations: {}
-  tracing:
-    endpoint: ""
 
 clickhouse:
   name: "clickhouse"
@@ -557,7 +555,7 @@ clickhouse:
     labels: {}
     annotations: {}
   metrics:
-    enabled: false
+    enabled: true
     port: 9363
 
 e2eTest:
@@ -1033,8 +1031,6 @@ platformBackend:
     name: ""
     labels: {}
     annotations: {}
-  tracing:
-    endpoint: ""
 
 operator:
   name: "operator"
@@ -1224,8 +1220,6 @@ playground:
     name: ""
     labels: {}
     annotations: {}
-  tracing:
-    endpoint: ""
 
 postgres:
   name: "postgres"
@@ -1409,8 +1403,6 @@ queue:
     name: ""
     labels: {}
     annotations: {}
-  tracing:
-    endpoint: ""
 
 redis:
   name: "redis"
