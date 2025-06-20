@@ -1,4 +1,4 @@
-{{- if .Values.config.logs.enabled }}
+{{- if .Values.opentelemetryCollector.logs.enabled }}
 apiVersion: opentelemetry.io/v1beta1
 kind: OpenTelemetryCollector
 metadata:

@@ -8,6 +8,28 @@ type: application
 version: 0.1.0
 appVersion: "0.1.0"
 dependencies:
+  # Prometheus Exporters
+  - name: prometheus-postgres-exporter
+    version: 6.10.2
+    repository: https://prometheus-community.github.io/helm-charts
+    condition: postgresexporter.enabled
+    alias: postgresexporter
+  - name: prometheus-redis-exporter
+    version: 6.11.0
+    repository: https://prometheus-community.github.io/helm-charts
+    condition: redisexporter.enabled
+    alias: redisexporter
+  - name: prometheus-nginx-exporter
+    version: 1.6.0
+    repository: https://prometheus-community.github.io/helm-charts
+    condition: nginxexporter.enabled
+    alias: nginxexporter
+  - name: kube-state-metrics
+    version: 5.37.0
+    repository: https://prometheus-community.github.io/helm-charts
+    condition: kubestatemetrics.enabled
+    alias: kubestatemetrics
+  # LGTM Stack
   - name: grafana
     version: 9.2.6
     repository: https://grafana.github.io/helm-charts
@@ -15,7 +37,7 @@ dependencies:
   - name: loki
     version: 6.30.1
     repository: https://grafana.github.io/helm-charts
-    condition: config.logs.enabled
+    condition: loki.enabled
   - name: minio
     version: 16.0.10
     repository: https://charts.bitnami.com/bitnami
@@ -23,10 +45,10 @@ dependencies:
   - name: mimir-distributed
     version: 5.7.0
     repository: https://grafana.github.io/helm-charts
-    condition: config.metrics.enabled
+    condition: mimir.enabled
     alias: mimir
   - name: tempo-distributed
     version: 1.41.1
     repository: https://grafana.github.io/helm-charts
-    condition: config.traces.enabled
+    condition: tempo.enabled
     alias: tempo

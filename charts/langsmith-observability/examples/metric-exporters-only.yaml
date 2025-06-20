@@ -1,0 +1,24 @@
+# This configuration is to deploy all of the Prometheus Exporters, but not the LGTM Stack or OTEL collector.
+# Use this if you already have a collector and just want to scrape all metrics
+
+kubestatemetrics:
+  enabled: true
+  namespaces: "langsmith"
+
+postgresexporter:
+  enabled: true
+  config:
+    datasource:
+      host: langsmith-postgres.langsmith.svc.cluster.local
+      user: postgres
+      password: password
+      database: postgres
+      port: "5432"
+
+nginxexporter:
+  enabled: true
+  nginxServer: "http://langsmith-frontend.langsmith.svc.cluster.local:8080/nginx_status"
+
+redisexporter:
+  enabled: true
+  redisAddress: langsmith-redis.langsmith.svc.cluster.local:6379

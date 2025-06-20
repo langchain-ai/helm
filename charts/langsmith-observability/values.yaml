@@ -1,16 +1,10 @@
-releaseName: "langsmith-observability"
 langsmithNamespace: "romain"
+
 langSmithReleaseName: "langsmith"
 
-config:
-  logs:
-    enabled: true
-  metrics:
-    enabled: true
-  traces:
-    enabled: true
-
+# Values for Grafana: https://github.com/grafana/helm-charts/blob/main/charts/grafana/values.yaml
 grafana:
+  enabled: false
   datasources:
     datasources.yaml:
       apiVersion: 1
@@ -39,7 +33,16 @@ grafana:
             serviceMap:
               datasourceUid: prom
 
+# Values for Kube State Metrics: https://github.com/prometheus-community/helm-charts/blob/main/charts/kube-state-metrics/values.yaml
+kubestatemetrics:
+  enabled: true
+  service:
+    type: ClusterIP
+    port: 8080
+
+# Values for Loki: https://github.com/grafana/loki/blob/main/production/helm/loki/values.yaml
 loki:
+  enabled: false
   deploymentMode: Distributed
   loki:
     auth_enabled: false # This just drops tenant based authentication header, and all logs are under tenant "fake"
@@ -122,7 +125,9 @@ loki:
   singleBinary:
     replicas: 0
 
+# Values for Mimir: https://github.com/grafana/mimir/blob/main/operations/helm/charts/mimir-distributed/values.yaml
 mimir:
+  enabled: false
   minio:
     enabled: false
   mimir:
@@ -149,8 +154,9 @@ mimir:
         s3:
           bucket_name: mimir-ruler
 
+# Values for Minio: https://github.com/bitnami/charts/blob/main/bitnami/minio/values.yaml
 minio:
-  enabled: true
+  enabled: false
   mode: standalone
   replicas: 1
   persistence:
@@ -162,6 +168,15 @@ minio:
     rootUser: "admin"
     rootPassword: "admin_password"
   defaultBuckets: "loki-chunks, mimir-blocks, mimir-ruler, mimir-alertmanager, tempo"
+
+# Values for the Nginx Exporter: https://github.com/prometheus-community/helm-charts/blob/main/charts/prometheus-nginx-exporter/values.yaml
+nginxExporter:
+  enabled: true
+  service:
+    type: ClusterIP
+    port: 9113
+  nginxServer: "http://langsmith-frontend.romain.svc.cluster.local:8080/nginx_status"
+
 
 opentelemetryCollector:
   name: "langsmith-collector"
@@ -179,24 +194,40 @@ opentelemetryCollector:
     - "langsmith-postgres"
     - "langsmith-queue"
     - "langsmith-redis"
-
+  
+  logs:
+    enabled: false
   metrics:
-    langsmith:
-      enabled: true
-    redis:
-      enabled: true
-      serviceName: ""
-      portName: ""
-    postgres:
-      enabled: true
-      serviceName: ""
-      portName: ""
-    clickhouse:
-      enabled: true
-      serviceName: ""
-      portName: ""
+    enabled: false
+  traces:
+    enabled: false
 
+# Values for the Postgres Exporter: https://github.com/prometheus-community/helm-charts/blob/main/charts/prometheus-postgres-exporter/values.yaml
+postgresexporter:
+  enabled: true
+  service:
+    type: ClusterIP
+    port: 80
+    targetPort: 9187
+  config:
+    datasource:
+      host: langsmith-postgres.romain.svc.cluster.local
+      user: postgres
+      password: password
+      database: postgres
+      port: "5432"
+
+# Values for the Redis Exporter: https://github.com/prometheus-community/helm-charts/blob/main/charts/prometheus-redis-exporter/values.yaml
+redisexporter:
+  enabled: true
+  service:
+    type: ClusterIP
+    port: 9121
+  redisAddress: langsmith-redis.romain.svc.cluster.local:6379
+    
+# Values for Tempo: https://github.com/grafana/helm-charts/blob/main/charts/tempo-distributed/values.yaml
 tempo:
+  enabled: false
   storage:
     trace:
       backend: s3

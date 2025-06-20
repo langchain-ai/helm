@@ -1,4 +1,4 @@
-{{- if or .Values.config.metrics.enabled .Values.config.traces.enabled }}
+{{- if or .Values.opentelemetryCollector.metrics.enabled .Values.opentelemetryCollector.traces.enabled }}
 apiVersion: opentelemetry.io/v1beta1
 kind: OpenTelemetryCollector
 metadata:
@@ -9,7 +9,7 @@ spec:
   
   config:
     receivers:
-      {{ if .Values.config.metrics.enabled }}
+      {{ if .Values.opentelemetryCollector.metrics.enabled }}
       prometheus:
         config:
           scrape_configs:
@@ -57,7 +57,7 @@ spec:
                   target_label: instance
             {{- end }}
       {{ end }}
-      {{- if .Values.config.traces.enabled }}
+      {{- if .Values.opentelemetryCollector.traces.enabled }}
       otlp:
         protocols:
           grpc:
@@ -76,11 +76,11 @@ spec:
         spike_limit_percentage: 80
     
     exporters:
-      {{ if .Values.config.metrics.enabled }}
+      {{ if .Values.opentelemetryCollector.metrics.enabled }}
       otlphttp/metrics:
         endpoint: http://{{ .Release.Name }}-mimir-nginx.{{ .Release.Namespace }}.svc.cluster.local:80/otlp
       {{ end }}
-      {{ if .Values.config.traces.enabled }}
+      {{ if .Values.opentelemetryCollector.traces.enabled }}
       otlphttp/traces:
         endpoint: http://langsmith-observability-tempo-distributor-discovery.romain-observability.svc.cluster.local:4318
       {{ end }}
@@ -90,13 +90,13 @@ spec:
         logs:
           level: debug
       pipelines:
-        {{ if .Values.config.metrics.enabled }}
+        {{ if .Values.opentelemetryCollector.metrics.enabled }}
         metrics/langsmith:
           receivers: [prometheus]
           processors: [batch, memory_limiter]
           exporters: [otlphttp/metrics]
         {{ end }}
-        {{ if .Values.config.traces.enabled }}
+        {{ if .Values.opentelemetryCollector.traces.enabled }}
         traces/langsmith:
           receivers: [otlp]
           processors: [batch, memory_limiter]
