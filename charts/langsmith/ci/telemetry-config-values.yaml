@@ -1,0 +1,83 @@
+# Lightweight configuration with telemetry enabled. Only use this if you are running Langsmith in a development environment.
+config:
+  langsmithLicenseKey: "YOUR_LICENSE_KEY"
+  apiKeySalt: "YOUR_API_KEY_SALT"
+  authType: "mixed"
+  basicAuth:
+    enabled: true
+    initialOrgAdminEmail: "youremail@corp.dev"
+    initialOrgAdminPassword: "TestLangSmith123!"
+    jwtSecret: "YOUR_JWT_SECRET"
+
+  observability:
+    tracing:
+      enabled: true
+      endpoint: "YOUR_COLLECTOR_ENDPOINT"
+      env: "ls_self_hosted"
+      exporter: "http"
+      useTls: true
+
+# Note, you likely should tweak the values to match something that fits your local development environment.
+aceBackend:
+  deployment:
+    resources:
+      requests:
+        cpu: 100m
+        memory: 500Mi
+
+backend:
+  deployment:
+    resources:
+      requests:
+        cpu: 100m
+        memory: 500Mi
+
+frontend:
+  deployment:
+    resources:
+      requests:
+        cpu: 100m
+        memory: 500Mi
+
+platformBackend:
+  deployment:
+    resources:
+      requests:
+        cpu: 100m
+        memory: 500Mi
+
+playground:
+  deployment:
+    resources:
+      requests:
+        cpu: 100m
+        memory: 500Mi
+
+queue:
+  replicas: 1
+  deployment:
+    resources:
+      requests:
+        cpu: 100m
+        memory: 500Mi
+
+postgres:
+  statefulSet:
+    resources:
+      requests:
+        cpu: 200m
+        memory: 500Mi
+
+redis:
+  statefulSet:
+    resources:
+      requests:
+        cpu: 200m
+        memory: 500Mi
+
+clickhouse:
+  statefulSet:
+    resources:
+      requests:
+        cpu: 200m
+        memory: 500Mi

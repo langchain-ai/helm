@@ -99,16 +99,6 @@ spec:
             {{- toYaml . | nindent 12 }}
           {{- end }}
           {{- end }}
-        {{- if .Values.redis.metrics.enabled }}
-        - name: {{ .Values.redis.metrics.containerName }}
-          image: {{ .Values.redis.metrics.image.repository }}:{{ .Values.redis.metrics.image.tag }}
-          imagePullPolicy: {{ .Values.redis.metrics.image.pullPolicy }}
-          ports:  
-            - name: redis-metrics
-              containerPort: {{ .Values.redis.metrics.containerPort }}
-          resources:
-            {{- toYaml .Values.redis.metrics.resources | nindent 12 }}
-          {{- end }}
         {{- with .Values.redis.statefulSet.extraContainerConfig }}
           {{- toYaml . | nindent 10 }}
         {{- end }}

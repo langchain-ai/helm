@@ -446,8 +446,6 @@ backend:
     name: ""
     labels: {}
     annotations: {}
-  tracing:
-    endpoint: ""
 
 clickhouse:
   name: "clickhouse"
@@ -557,7 +555,7 @@ clickhouse:
     labels: {}
     annotations: {}
   metrics:
-    enabled: false
+    enabled: true
     port: 9363
 
 e2eTest:
@@ -1033,8 +1031,6 @@ platformBackend:
     name: ""
     labels: {}
     annotations: {}
-  tracing:
-    endpoint: ""
 
 operator:
   name: "operator"
@@ -1224,8 +1220,6 @@ playground:
     name: ""
     labels: {}
     annotations: {}
-  tracing:
-    endpoint: ""
 
 postgres:
   name: "postgres"
@@ -1318,21 +1312,6 @@ postgres:
     name: ""
     labels: {}
     annotations: {}
-  metrics:
-    enabled: true
-    containerName: "postgres-metrics-exporter"
-    image:
-      repository: prometheuscommunity/postgres-exporter
-      tag: v0.17.1
-      pullPolicy: IfNotPresent
-    containerPort: 9187
-    resources:
-      limits:
-        cpu: 100m
-        memory: 128Mi
-      requests:
-        cpu: 100m
-        memory: 128Mi
 
 queue:
   name: "queue"
@@ -1410,8 +1389,6 @@ queue:
     name: ""
     labels: {}
     annotations: {}
-  tracing:
-    endpoint: ""
 
 redis:
   name: "redis"
@@ -1427,7 +1404,7 @@ redis:
     labels: {}
     annotations: {}
     podSecurityContext: {}
-    securityContext: {}
+  securityContext: {}
     # In a production environment, we strongly recommend an external Redis database.
     resources:
       limits:
@@ -1496,22 +1473,6 @@ redis:
     name: ""
     labels: {}
     annotations: {}
-  metrics:
-    enabled: true
-    containerName: "redis-metrics-exporter"
-    image:
-      repository: oliver006/redis_exporter
-      tag: v1.74.0
-      pullPolicy: IfNotPresent
-    containerPort: 9121
-    resources:
-      limits:
-        cpu: 100m
-        memory: 128Mi
-      requests:
-        cpu: 100m
-        memory: 128Mi
-
 
 quickwit:
   name: quickwit

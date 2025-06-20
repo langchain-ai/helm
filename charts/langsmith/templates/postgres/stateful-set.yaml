@@ -118,16 +118,6 @@ spec:
         {{- with .Values.postgres.statefulSet.sidecars }}
           {{- toYaml . | nindent 8 }}
         {{- end }}
-        {{- if .Values.postgres.metrics.enabled }}
-        - name: {{ .Values.postgres.metrics.containerName }}
-          image: {{ .Values.postgres.metrics.image.repository }}:{{ .Values.postgres.metrics.image.tag }}
-          imagePullPolicy: {{ .Values.postgres.metrics.image.pullPolicy }}
-          ports:
-            - name: pg-metrics
-              containerPort: {{ .Values.postgres.metrics.containerPort }}
-          resources:
-            {{- toYaml .Values.postgres.metrics.resources | nindent 12 }}
-        {{- end }}
       {{- with .Values.postgres.statefulSet.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
