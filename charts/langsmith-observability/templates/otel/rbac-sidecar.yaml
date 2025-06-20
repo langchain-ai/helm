@@ -1,4 +1,4 @@
-{{- if .Values.opentelemetryCollector.logs.enabled }}
+{{- if .Values.otelCollector.logs.enabled }}
 {{- $namespace := .Values.langsmithNamespace }}
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
@@ -20,7 +20,7 @@ roleRef:
   name: read-pod-logs
   namespace: {{ $namespace }}
 subjects:
-{{- range .Values.opentelemetryCollector.serviceAccounts }}
+{{- range .Values.otelCollector.serviceAccounts }}
   - kind: ServiceAccount
     name: {{ . }}
     namespace: {{ $namespace }}

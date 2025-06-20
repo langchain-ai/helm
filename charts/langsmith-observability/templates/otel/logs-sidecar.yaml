@@ -1,11 +1,11 @@
-{{- if .Values.opentelemetryCollector.logs.enabled }}
+{{- if .Values.otelCollector.logs.enabled }}
 apiVersion: opentelemetry.io/v1beta1
 kind: OpenTelemetryCollector
 metadata:
-  name: {{ .Values.opentelemetryCollector.name }}
+  name: {{ .Values.otelCollector.name }}-sidecar
 spec:
   mode: sidecar
-  image: {{ .Values.opentelemetryCollector.image.repository }}:{{ .Values.opentelemetryCollector.image.tag }}
+  image: {{ .Values.otelCollector.image.repository }}:{{ .Values.otelCollector.image.tag }}
       
   config:
     receivers:

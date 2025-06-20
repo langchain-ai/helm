@@ -49,8 +49,8 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 Common labels for the observability stack
 */}}
 {{- define "langsmith.observabilityAnnotations" -}}
-{{- if .Values.config.observability.collector.enabled }}
-sidecar.opentelemetry.io/inject: {{ .Values.config.observability.collector.namespace }}/{{ .Values.config.observability.collector.name }}
+{{- if .Values.config.observability.sidecarCollector.enabled }}
+sidecar.opentelemetry.io/inject: {{ .Values.config.observability.sidecarCollector.namespace }}/{{ .Values.config.observability.sidecarCollector.name }}
 {{- end }}
 {{- end }}
 

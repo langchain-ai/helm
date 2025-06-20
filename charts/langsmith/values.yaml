@@ -172,10 +172,10 @@ config:
     coBrandingEnabled: true
 
   observability:
-    collector:
+    sidecarCollector:
       enabled: false
       namespace: "langsmith-observability"
-      name: "langsmith-observability-collector"
+      name: "langsmith-collector-sidecar"
     tracing:
       enabled: false
       endpoint: ""

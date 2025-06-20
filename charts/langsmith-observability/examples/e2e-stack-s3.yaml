@@ -1,0 +1,117 @@
+# Use this configuration to deploy the full LangSmith observability stack with in-cluster storage.
+# You can disable parts as you see fit, such as exporters, or logs/metrics/traces.
+# NOTE: This configuration is not recommended for production environments.
+
+langSmithReleaseName: "langsmith"
+langSmithNamespace: "langsmith"
+
+# ======================== OTEL Collector ========================
+otelCollector:
+  logs:
+    enabled: true
+  metrics:
+    enabled: true
+  traces:
+    enabled: true
+    
+# ======================== LGTM Stack ========================
+
+# Telemetry visualization tool
+grafana:
+  enabled: true
+
+# Logging storage + retrieval
+loki:
+  enabled: true
+  loki:
+    storage:
+      type: s3
+      # Modify these values do match your S3 bucket.
+      bucketNames:
+        chunks: langsmith-lgtm-stack
+        ruler: langsmith-lgtm-stack
+      s3:
+        endpoint: s3.${REGION}.amazonaws.com
+        region: ${REGION}
+        secretAccessKey: ${YOUR_SECRET_ACCESS_KEY}
+        accessKeyId: ${YOUR_ACCESS_KEY_ID}
+        insecure: false
+        s3ForcePathStyle: false
+
+    storage_config:
+      object_prefix: loki
+      aws:
+        region: ${REGION}
+        bucketnames: ${YOUR_BUCKET}
+        s3forcepathstyle: false
+        
+# Metrics storage + retrieval
+mimir:
+  enabled: true
+  mimir:
+    structuredConfig:
+      common:
+        # Modify these values do match your S3 bucket.
+         storage:
+          backend: s3
+          s3:
+            endpoint: s3.${REGION}.amazonaws.com
+            bucket_name: ${YOUR_BUCKET}
+            region: ${REGION}
+            secret_access_key: ${YOUR_SECRET_ACCESS_KEY}
+            access_key_id: ${YOUR_ACCESS_KEY_ID}
+            insecure: false
+            s3forcepathstyle: false
+
+      blocks_storage:
+        storage_prefix: mimirBlocks
+
+      alertmanager_storage:
+        storage_prefix: mimirAlertmanager
+
+      ruler_storage:
+        storage_prefix: mimirRuler
+
+# Traces storage + retrieval
+tempo:
+  enabled: true
+  storage:
+    trace:
+      backend: s3
+      s3:
+        # Modify these values do match your S3 bucket.
+        access_key: ${YOUR_ACCESS_KEY_ID}
+        secret_key: ${YOUR_SECRET_ACCESS_KEY}
+        bucket: ${YOUR_BUCKET}
+        endpoint: s3.${REGION}.amazonaws.com
+        insecure: false
+        prefix: tempo
+        s3forcepathstyle: false
+
+# ======================== Metrics Exporters ========================
+
+kubestatemetrics:
+  enabled: true
+  # Change this value to match your LangSmith namespace.
+  namespaces: "langsmith"
+
+postgresexporter:
+  enabled: true
+  config:
+    # Change these values to match your Postgres instance.
+    datasource:
+      host: langsmith-postgres.langsmith.svc.cluster.local
+      user: postgres
+      password: postgres
+      database: postgres
+      port: "5432"
+
+nginxexporter:
+  enabled: true
+  # Change this value to match your LangSmith frontend service.
+  nginxServer: "http://langsmith-frontend.langsmith.svc.cluster.local:80/nginx_status"
+
+redisexporter:
+  enabled: true
+  # Change this value to match your Redis instance.
+  redisAddress: langsmith-redis.langsmith.svc.cluster.local:6379

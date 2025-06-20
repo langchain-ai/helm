@@ -1,4 +1,4 @@
-{{- if .Values.opentelemetryCollector.metrics.enabled }}
+{{- if .Values.otelCollector.metrics.enabled }}
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
@@ -20,6 +20,6 @@ roleRef:
   namespace: {{ .Values.langsmithNamespace }}
 subjects:
   - kind: ServiceAccount
-    name: {{ .Values.opentelemetryCollector.name }}-gateway-collector
+    name: {{ .Values.otelCollector.name }}-gateway-collector
     namespace: {{ .Release.Namespace }}
 {{- end }}

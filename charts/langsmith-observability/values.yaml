@@ -1,6 +1,10 @@
+# This should match the namespace of the langsmith release
 langsmithNamespace: "romain"
 
+# This should match the release name of the langsmith release
 langSmithReleaseName: "langsmith"
+
+# ======================== Grafana ========================
 
 # Values for Grafana: https://github.com/grafana/helm-charts/blob/main/charts/grafana/values.yaml
 grafana:
@@ -33,12 +37,17 @@ grafana:
             serviceMap:
               datasourceUid: prom
 
+# ======================== Kube State Metrics ========================
+
 # Values for Kube State Metrics: https://github.com/prometheus-community/helm-charts/blob/main/charts/kube-state-metrics/values.yaml
 kubestatemetrics:
-  enabled: true
+  enabled: false
   service:
     type: ClusterIP
     port: 8080
+  namespaces: "romain"
+
+# ======================== Loki ========================
 
 # Values for Loki: https://github.com/grafana/loki/blob/main/production/helm/loki/values.yaml
 loki:
@@ -56,24 +65,24 @@ loki:
             prefix: loki_index_
             period: 24h
 
-    storage_config:
-      aws:
-        region: us-east-1
-        bucketnames: loki-chunks
-        s3forcepathstyle: true
-
     storage:
       type: s3
       bucketNames:
-        chunks: loki-chunks
-        # In the future, configure a ruler bucket if we want to set rules/alerts on logs?
+        chunks: langsmith-lgtm-stack
+        ruler: langsmith-lgtm-stack
       s3:
-        endpoint: langsmith-observability-minio.romain-observability.svc.cluster.local:9000
-        region: us-east-1
+        endpoint: {{ .Release.Name }}-minio.{{ .Release.Namespace }}.svc.cluster.local:9000
         secretAccessKey: admin_password
         accessKeyId: admin
         insecure: true
-        s3ForcePathStyle: true
+        s3ForcePathStyle: true # Required true for minio
+
+    storage_config:
+      object_prefix: loki
+      aws:
+        region: us-west-2
+        bucketnames: langsmith-lgtm-stack
+        s3forcepathstyle: true # Required true for minio
 
     ingester:
       chunk_encoding: snappy
@@ -125,6 +134,8 @@ loki:
   singleBinary:
     replicas: 0
 
+# ======================== Mimir ========================
+
 # Values for Mimir: https://github.com/grafana/mimir/blob/main/operations/helm/charts/mimir-distributed/values.yaml
 mimir:
   enabled: false
@@ -136,23 +147,23 @@ mimir:
          storage:
           backend: s3
           s3:
-            endpoint: langsmith-observability-minio.romain-observability.svc.cluster.local:9000
-            region: us-east-1
+            endpoint: {{ .Release.Name }}-minio.{{ .Release.Namespace }}.svc.cluster.local:9000
+            bucket_name: langsmith-lgtm-stack
             secret_access_key: admin_password
             access_key_id: admin
+            s3forcepathstyle: true
             insecure: true
 
       blocks_storage:
-        s3:
-          bucket_name: mimir-blocks
+        storage_prefix: mimirBlocks
 
       alertmanager_storage:
-        s3:
-          bucket_name: mimir-alertmanager
+        storage_prefix: mimirAlertmanager
 
       ruler_storage:
-        s3:
-          bucket_name: mimir-ruler
+        storage_prefix: mimirRuler
+
+# ======================== Minio ========================
 
 # Values for Minio: https://github.com/bitnami/charts/blob/main/bitnami/minio/values.yaml
 minio:
@@ -167,18 +178,23 @@ minio:
   auth:
     rootUser: "admin"
     rootPassword: "admin_password"
-  defaultBuckets: "loki-chunks, mimir-blocks, mimir-ruler, mimir-alertmanager, tempo"
+  defaultBuckets: "langsmith-lgtm-stack"
+
+
+# ======================== Nginx Exporter ========================
 
 # Values for the Nginx Exporter: https://github.com/prometheus-community/helm-charts/blob/main/charts/prometheus-nginx-exporter/values.yaml
-nginxExporter:
-  enabled: true
+nginxexporter:
+  enabled: false
   service:
     type: ClusterIP
     port: 9113
-  nginxServer: "http://langsmith-frontend.romain.svc.cluster.local:8080/nginx_status"
+  nginxServer: "http://langsmith-frontend.romain.svc.cluster.local:80/nginx_status"
 
 
-opentelemetryCollector:
+# ======================== OTEL Collector ========================
+
+otelCollector:
   name: "langsmith-collector"
   image:
     repository: otel/opentelemetry-collector-contrib
@@ -194,7 +210,6 @@ opentelemetryCollector:
     - "langsmith-postgres"
     - "langsmith-queue"
     - "langsmith-redis"
-  
   logs:
     enabled: false
   metrics:
@@ -202,9 +217,11 @@ opentelemetryCollector:
   traces:
     enabled: false
 
+# ======================== Postgres Exporter ========================
+
 # Values for the Postgres Exporter: https://github.com/prometheus-community/helm-charts/blob/main/charts/prometheus-postgres-exporter/values.yaml
 postgresexporter:
-  enabled: true
+  enabled: false
   service:
     type: ClusterIP
     port: 80
@@ -213,18 +230,25 @@ postgresexporter:
     datasource:
       host: langsmith-postgres.romain.svc.cluster.local
       user: postgres
-      password: password
+      password: postgres
       database: postgres
       port: "5432"
 
+
+# ======================== Redis Exporter ========================
+
 # Values for the Redis Exporter: https://github.com/prometheus-community/helm-charts/blob/main/charts/prometheus-redis-exporter/values.yaml
 redisexporter:
-  enabled: true
+  enabled: false
   service:
     type: ClusterIP
     port: 9121
+    portName: http
   redisAddress: langsmith-redis.romain.svc.cluster.local:6379
+
     
+# ======================== Tempo ========================
+
 # Values for Tempo: https://github.com/grafana/helm-charts/blob/main/charts/tempo-distributed/values.yaml
 tempo:
   enabled: false
@@ -234,9 +258,12 @@ tempo:
       s3:
         access_key: admin
         secret_key: admin_password
-        bucket: tempo
-        endpoint: langsmith-observability-minio.romain-observability.svc.cluster.local:9000
+        bucket: langsmith-lgtm-stack
+        endpoint: {{ .Release.Name }}-minio.{{ .Release.Namespace }}.svc.cluster.local:9000
+        s3forcepathstyle: true # Required true for minio
         insecure: true
+        prefix: tempo
+
   # Specifies which trace protocols to accept by the gateway.
   traces:
     otlp:

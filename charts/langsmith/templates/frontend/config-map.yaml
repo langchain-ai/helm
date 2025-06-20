@@ -46,6 +46,17 @@ data:
                 return 200;
          }
 
+        location = /nginx_status {
+            stub_status on;
+            access_log off;
+            # Allow access from private IP ranges used in k8s clusters
+            allow 127.0.0.1;        # localhost
+            allow 10.0.0.0/8;       # Standard private network range
+            allow 172.16.0.0/12;    # Standard private network range
+            allow 192.168.0.0/16;   # Standard private network range
+            deny all;               # Deny all other IPs
+        }
+
         location ~ /{{ .Values.ingress.subdomain }}/api/v1/playground/ {
             rewrite /{{ .Values.ingress.subdomain }}/api/v1/playground/(.*) /playground/$1  break;
             proxy_set_header Connection '';
@@ -260,6 +271,17 @@ data:
                   # health checks are frequent and boring, so we avoid logging them
                   access_log off;
                   return 200;
+        }
+
+        location = /nginx_status {
+            stub_status on;
+            access_log off;
+            # Allow access from private IP ranges used in k8s clusters
+            allow 127.0.0.1;        # localhost
+            allow 10.0.0.0/8;       # Standard private network range
+            allow 172.16.0.0/12;    # Standard private network range
+            allow 192.168.0.0/16;   # Standard private network range
+            deny all;               # Deny all other IPs
         }
 
         error_page   500 502 503 504  /50x.html;
