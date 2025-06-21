@@ -71,7 +71,7 @@ loki:
         chunks: langsmith-lgtm-stack
         ruler: langsmith-lgtm-stack
       s3:
-        endpoint: {{ .Release.Name }}-minio.{{ .Release.Namespace }}.svc.cluster.local:9000
+        endpoint: "{{ .Release.Name }}-minio.{{ .Release.Namespace }}.svc.cluster.local:9000"
         secretAccessKey: admin_password
         accessKeyId: admin
         insecure: true
@@ -86,7 +86,6 @@ loki:
 
     ingester:
       chunk_encoding: snappy
-      max_chunk_age: 10s
     querier:
       # Default is 4, if you have enough memory and CPU you can increase, reduce if OOMing
       max_concurrent: 4
@@ -147,11 +146,10 @@ mimir:
          storage:
           backend: s3
           s3:
-            endpoint: {{ .Release.Name }}-minio.{{ .Release.Namespace }}.svc.cluster.local:9000
+            endpoint: "{{ .Release.Name }}-minio.{{ .Release.Namespace }}.svc.cluster.local:9000"
             bucket_name: langsmith-lgtm-stack
             secret_access_key: admin_password
             access_key_id: admin
-            s3forcepathstyle: true
             insecure: true
 
       blocks_storage:
@@ -259,7 +257,7 @@ tempo:
         access_key: admin
         secret_key: admin_password
         bucket: langsmith-lgtm-stack
-        endpoint: {{ .Release.Name }}-minio.{{ .Release.Namespace }}.svc.cluster.local:9000
+        endpoint: "{{ .Release.Name }}-minio.{{ .Release.Namespace }}.svc.cluster.local:9000"
         s3forcepathstyle: true # Required true for minio
         insecure: true
         prefix: tempo

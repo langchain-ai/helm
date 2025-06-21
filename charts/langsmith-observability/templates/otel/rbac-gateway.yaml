@@ -1,6 +1,6 @@
 {{- if .Values.otelCollector.metrics.enabled }}
 apiVersion: rbac.authorization.k8s.io/v1
-kind: Role
+kind: Role # Role for the main Langsmith namespace
 metadata:
   name: get-pod-metrics
   namespace: {{ .Values.langsmithNamespace }}
@@ -10,10 +10,34 @@ rules:
     verbs: ["get", "watch", "list"]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
+kind: Role # Role for the observability namespace
 metadata:
-  name: get-pod-metrics-binding
+  name: get-pod-metrics
+  namespace: {{ .Release.Namespace }}
+rules:
+  - apiGroups: [""]
+    resources: ["pods", "services", "endpoints"]
+    verbs: ["get", "watch", "list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding # RolBinding for the main Langsmith namespace
+metadata:
+  name: get-pod-metrics-binding-langsmith
   namespace: {{ .Values.langsmithNamespace }}
+roleRef:
+  kind: Role
+  name: get-pod-metrics
+  namespace: {{ .Release.Namespace }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ .Values.otelCollector.name }}-gateway-collector
+    namespace: {{ .Release.Namespace }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding # RolBinding for the observability namespace
+metadata:
+  name: get-pod-metrics-binding-langsmith-observability
+  namespace: {{ .Release.Namespace }}
 roleRef:
   kind: Role
   name: get-pod-metrics

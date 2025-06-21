@@ -13,6 +13,7 @@ spec:
       prometheus:
         config:
           scrape_configs:
+          # Fetches all the metrics from the langsmith namespace (LS services + CH)
             - job_name: langsmith-services
               metrics_path: /metrics
               kubernetes_sd_configs:
@@ -25,7 +26,7 @@ spec:
                   regex: "langsmith-.*"
                   action: keep
                 - source_labels: [__meta_kubernetes_endpoint_port_name]
-                  regex: "(backend|platform|playground|host-backend|ch-metrics)"
+                  regex: "(backend|platform|playground|host-backend|metrics)"
                   action: keep
                 # Promote useful metadata into regular labels 
                 - source_labels: [__meta_kubernetes_service_name]
@@ -35,6 +36,7 @@ spec:
                 # Replace the default "host:port" as Prom's instance label
                 - source_labels: [__address__]
                   target_label: instance
+            # Fetches all the metrics from the metrics exporters in Langsmith-Observability namespace
             - job_name: database-metrics
               metrics_path: /metrics
               kubernetes_sd_configs:
@@ -72,6 +74,12 @@ spec:
         check_interval: 1m
         limit_percentage: 90
         spike_limit_percentage: 80
+      filter/drop_go_metrics:
+        metrics:
+          exclude:
+            match_type: regexp
+            metric_names:
+              - "go_.*"
     
     exporters:
       {{ if .Values.otelCollector.metrics.enabled }}
@@ -91,7 +99,7 @@ spec:
         {{ if .Values.otelCollector.metrics.enabled }}
         metrics/langsmith:
           receivers: [prometheus]
-          processors: [batch, memory_limiter]
+          processors: [filter/drop_go_metrics, batch, memory_limiter]
           exporters: [otlphttp/metrics]
         {{ end }}
         {{ if .Values.otelCollector.traces.enabled }}
