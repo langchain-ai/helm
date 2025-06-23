@@ -2,12 +2,10 @@
 # You can disable parts as you see fit, such as exporters, or logs/metrics/traces.
 # NOTE: This configuration is not recommended for production environments.
 
-# ======================== Metrics Exporters ========================
-# Feel free to disable exporters if you already have them deployed.
-
 langsmithNamespace: "langsmith" # Change this value to match your LangSmith namespace.
 langSmithReleaseName: "langsmith" # Change this value to match your LangSmith release name.
 
+# ======================== Metrics Exporters ========================
 kubestatemetrics:
   enabled: true
   # Change this value to match your LangSmith namespace.
@@ -59,17 +57,17 @@ minio:
 grafana:
   enabled: true
 
-# Logging storage + retrieval
+# Log storage + retrieval
 loki:
   enabled: true
   loki:
     storage:
       s3:
-        endpoint: "langsmith-observability-minio.langsmith-observability.svc.cluster.local:9000" # Modify to match the correct release and namespace
+        endpoint: "langsmith-observability-minio.langsmith-observability.svc.cluster.local:9000" # Modify to match the correct release and namespace for the Minio instance.
         secretAccessKey: admin_password # This must match the rootPassword in the minio chart
         accessKeyId: admin # This must match the rootUser in the minio chart
 
-# Metrics storage + retrieval
+# Metric storage + retrieval
 mimir:
   enabled: true
   mimir:
@@ -77,17 +75,17 @@ mimir:
       common:
         storage:
           s3:
-            endpoint: "langsmith-observability-minio.langsmith-observability.svc.cluster.local:9000" # Modify to match the correct release and namespace
+            endpoint: "langsmith-observability-minio.langsmith-observability.svc.cluster.local:9000" # Modify to match the correct release and namespace for the Minio instance.
             secret_access_key: admin_password # This must match the rootPassword in the minio chart
             access_key_id: admin # This must match the rootUser in the minio chart
 
-# Traces storage + retrieval
+# Trace storage + retrieval
 tempo:
   enabled: true
   storage:
     trace:
       backend: s3
       s3:
-        endpoint: "langsmith-observability-minio.langsmith-observability.svc.cluster.local:9000" # Modify to match the correct release and namespace
+        endpoint: "langsmith-observability-minio.langsmith-observability.svc.cluster.local:9000" # Modify to match the correct release and namespace for the Minio instance.
         access_key: admin # This must match the rootPassword in the minio chart
         secret_key: admin_password # This must match the rootUser in the minio chart

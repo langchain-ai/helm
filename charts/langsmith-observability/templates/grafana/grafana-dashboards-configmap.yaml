@@ -2,7 +2,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: grafana-dashboards
+  name: {{ .Values.grafana.dashboardsConfigMaps.default }}
   labels:
     grafana_dashboard: "1"
 data:

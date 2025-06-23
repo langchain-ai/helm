@@ -6,7 +6,6 @@ langsmithNamespace: "langsmith" # Change this value to match your LangSmith name
 langSmithReleaseName: "langsmith" # Change this value to match your LangSmith release name.
 
 # ======================== Metrics Exporters ========================
-
 kubestatemetrics:
   enabled: true
   # Change this value to match your LangSmith namespace.
@@ -43,7 +42,6 @@ otelCollector:
     enabled: true
     
 # ======================== LGTM Stack ========================
-
 # Telemetry visualization tool
 grafana:
   enabled: true

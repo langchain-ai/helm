@@ -50,7 +50,7 @@ grafana:
         options:
           path: /var/lib/grafana/dashboards/default
   dashboardsConfigMaps:
-    default: "grafana-dashboards"
+    default: "langsmith-grafana-dashboards"
 
 # ======================== Kube State Metrics ========================
 

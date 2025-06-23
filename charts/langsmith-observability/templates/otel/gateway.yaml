@@ -91,10 +91,7 @@ spec:
         endpoint: http://{{ .Release.Name }}-tempo-distributor-discovery.{{ .Release.Namespace }}.svc.cluster.local:4318
       {{ end }}
 
-    service:  
-      telemetry:
-        logs:
-          level: debug
+    service:
       pipelines:
         {{ if .Values.otelCollector.metrics.enabled }}
         metrics/langsmith:
