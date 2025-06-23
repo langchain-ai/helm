@@ -30,7 +30,7 @@ roleRef:
   namespace: {{ .Release.Namespace }}
 subjects:
   - kind: ServiceAccount
-    name: {{ .Values.otelCollector.name }}-gateway-collector
+    name: langsmith-collector-gateway
     namespace: {{ .Release.Namespace }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
@@ -44,6 +44,6 @@ roleRef:
   namespace: {{ .Values.langsmithNamespace }}
 subjects:
   - kind: ServiceAccount
-    name: {{ .Values.otelCollector.name }}-gateway-collector
+    name: langsmith-collector-gateway
     namespace: {{ .Release.Namespace }}
 {{- end }}

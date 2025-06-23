@@ -2,7 +2,7 @@
 apiVersion: opentelemetry.io/v1beta1
 kind: OpenTelemetryCollector
 metadata:
-  name: {{ .Values.otelCollector.name }}-gateway
+  name: langsmith-collector-gateway
 spec:
   mode: deployment
   image: {{ .Values.otelCollector.image.repository }}:{{ .Values.otelCollector.image.tag }}
@@ -88,7 +88,7 @@ spec:
       {{ end }}
       {{ if .Values.otelCollector.traces.enabled }}
       otlphttp/traces:
-        endpoint: http://langsmith-observability-tempo-distributor-discovery.romain-observability.svc.cluster.local:4318
+        endpoint: http://{{ .Release.Name }}-tempo-distributor-discovery.{{ .Release.Namespace }}.svc.cluster.local:4318
       {{ end }}
 
     service:  

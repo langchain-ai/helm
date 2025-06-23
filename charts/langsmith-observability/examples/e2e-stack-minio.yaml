@@ -1,66 +1,12 @@
-# Use this configuration to deploy the full LangSmith observability stack with in-cluster storage.
+# Use this configuration to deploy the full LangSmith Observability stack with in-cluster storage.
 # You can disable parts as you see fit, such as exporters, or logs/metrics/traces.
 # NOTE: This configuration is not recommended for production environments.
 
-# ======================== OTEL Collector ========================
-otelCollector:
-  logs:
-    enabled: true
-  metrics:
-    enabled: true
-  traces:
-    enabled: true
-
-# ======================== Minio ========================
-minio:
-  enabled: true
-  persistence:
-    enabled: true
-    size: 10Gi
-  auth:
-    rootUser: "admin"
-    rootPassword: "admin_password"
-
-# ======================== LGTM Stack ========================
-
-# Telemetry visualization tool
-grafana:
-  enabled: true
-
-# Logging storage + retrieval
-loki:
-  enabled: true
-  loki:
-    storage:
-      s3:
-        endpoint: langsmith-observability-minio.langsmith.svc.cluster.local:9000 # Modify to match the correct release and namespace
-        secret_access_key: admin_password # This must match the rootPassword in the minio chart
-        access_key_id: admin # This must match the rootUser in the minio chart
-
-# Metrics storage + retrieval
-mimir:
-  enabled: true
-  mimir:
-    structuredConfig:
-      common:
-        storage:
-          s3:
-            endpoint: langsmith-observability-minio.langsmith.svc.cluster.local:9000 # Modify to match the correct release and namespace
-            secret_access_key: admin_password # This must match the rootPassword in the minio chart
-            access_key_id: admin # This must match the rootUser in the minio chart
-
-# Traces storage + retrieval
-tempo:
-  enabled: true
-  storage:
-    trace:
-      backend: s3
-      s3:
-        endpoint: langsmith-observability-minio.langsmith.svc.cluster.local:9000 # Modify to match the correct release and namespace
-        secret_access_key: admin_password # This must match the rootPassword in the minio chart
-        access_key_id: admin # This must match the rootUser in the minio chart
-
 # ======================== Metrics Exporters ========================
+# Feel free to disable exporters if you already have them deployed.
+
+langsmithNamespace: "langsmith" # Change this value to match your LangSmith namespace.
+langSmithReleaseName: "langsmith" # Change this value to match your LangSmith release name.
 
 kubestatemetrics:
   enabled: true
@@ -87,3 +33,61 @@ redisexporter:
   enabled: true
   # Change this value to match your Redis instance.
   redisAddress: langsmith-redis.langsmith.svc.cluster.local:6379
+
+# ======================== OTEL Collector ========================
+otelCollector:
+  logs:
+    enabled: true
+  metrics:
+    enabled: true
+  traces:
+    enabled: true
+
+# ======================== Minio ========================
+minio:
+  enabled: true
+  persistence:
+    enabled: true
+    size: 10Gi
+  auth:
+    rootUser: "admin" # This value is used to log into the Minio console.
+    rootPassword: "admin_password" # This value is used to log into the Minio console.
+
+# ======================== LGTM Stack ========================
+
+# Telemetry visualization tool
+grafana:
+  enabled: true
+
+# Logging storage + retrieval
+loki:
+  enabled: true
+  loki:
+    storage:
+      s3:
+        endpoint: "langsmith-observability-minio.langsmith-observability.svc.cluster.local:9000" # Modify to match the correct release and namespace
+        secretAccessKey: admin_password # This must match the rootPassword in the minio chart
+        accessKeyId: admin # This must match the rootUser in the minio chart
+
+# Metrics storage + retrieval
+mimir:
+  enabled: true
+  mimir:
+    structuredConfig:
+      common:
+        storage:
+          s3:
+            endpoint: "langsmith-observability-minio.langsmith-observability.svc.cluster.local:9000" # Modify to match the correct release and namespace
+            secret_access_key: admin_password # This must match the rootPassword in the minio chart
+            access_key_id: admin # This must match the rootUser in the minio chart
+
+# Traces storage + retrieval
+tempo:
+  enabled: true
+  storage:
+    trace:
+      backend: s3
+      s3:
+        endpoint: "langsmith-observability-minio.langsmith-observability.svc.cluster.local:9000" # Modify to match the correct release and namespace
+        access_key: admin # This must match the rootPassword in the minio chart
+        secret_key: admin_password # This must match the rootUser in the minio chart

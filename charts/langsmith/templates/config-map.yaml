@@ -35,7 +35,7 @@ data:
   FF_RUN_STATS_GROUP_BY_ENABLED_ALL: "true"
   {{- if .Values.config.observability.tracing.enabled }}
   OTEL_TRACING_ENABLED: "{{ .Values.config.observability.tracing.enabled }}"
-  OTLP_ENDPOINT: "http://{{ .Values.config.observability.tracing.endpoint }}"
+  OTLP_ENDPOINT: "{{ .Values.config.observability.tracing.endpoint }}"
   OTEL_ENVIRONMENT: "{{ .Values.config.observability.tracing.env }}"
   OTEL_EXPORTER: "{{ .Values.config.observability.tracing.exporter }}"
   OTLE_USE_TLS: "{{ .Values.config.observability.tracing.useTls }}"

@@ -2,7 +2,7 @@
 apiVersion: opentelemetry.io/v1beta1
 kind: OpenTelemetryCollector
 metadata:
-  name: {{ .Values.otelCollector.name }}-sidecar
+  name: langsmith-collector-sidecar
 spec:
   mode: sidecar
   image: {{ .Values.otelCollector.image.repository }}:{{ .Values.otelCollector.image.tag }}

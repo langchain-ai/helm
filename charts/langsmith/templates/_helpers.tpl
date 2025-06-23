@@ -50,7 +50,7 @@ Common labels for the observability stack
 */}}
 {{- define "langsmith.observabilityAnnotations" -}}
 {{- if .Values.config.observability.sidecarCollector.enabled }}
-sidecar.opentelemetry.io/inject: {{ .Values.config.observability.sidecarCollector.namespace }}/{{ .Values.config.observability.sidecarCollector.name }}
+sidecar.opentelemetry.io/inject: {{ .Values.config.observability.sidecarCollector.namespace }}/langsmith-collector-sidecar
 {{- end }}
 {{- end }}
 

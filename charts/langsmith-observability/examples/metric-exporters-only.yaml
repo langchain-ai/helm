@@ -1,6 +1,9 @@
 # This configuration is to deploy all of the Prometheus Exporters, but not the LGTM Stack or OTEL collector.
 # Use this if you already have a collector and just want to scrape all metrics from LangSmith.
 
+langsmithNamespace: "langsmith" # Change this value to match your LangSmith namespace.
+langSmithReleaseName: "langsmith" # Change this value to match your LangSmith release name.
+
 kubestatemetrics:
   enabled: true
   # Change this value to match your LangSmith namespace.

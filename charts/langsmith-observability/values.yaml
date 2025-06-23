@@ -1,7 +1,7 @@
-# This should match the namespace of the langsmith release
-langsmithNamespace: "romain"
+# The namespace in which langsmith is deployed.
+langsmithNamespace: "langsmith"
 
-# This should match the release name of the langsmith release
+# The release name of the langsmith release.
 langSmithReleaseName: "langsmith"
 
 # ======================== Grafana ========================
@@ -22,6 +22,7 @@ grafana:
           uid: prom
           type: prometheus
           url: http://{{ .Release.Name }}-mimir-nginx/prometheus
+          isDefault: true
         - name: Tempo
           uid: tempo
           type: tempo
@@ -36,6 +37,20 @@ grafana:
               datasourceUid: prom
             serviceMap:
               datasourceUid: prom
+  dashboardProviders:
+    dashboardproviders.yaml:
+      apiVersion: 1
+      providers:
+      - name: 'default'
+        orgId: 1
+        folder: ''
+        type: file
+        disableDeletion: false
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards/default
+  dashboardsConfigMaps:
+    default: "grafana-dashboards"
 
 # ======================== Kube State Metrics ========================
 
@@ -46,6 +61,13 @@ kubestatemetrics:
     type: ClusterIP
     port: 8080
   namespaces: "romain"
+  resources:
+    requests:
+      cpu: 100m
+      memory: 250Mi
+    limits:
+      cpu: 250m
+      memory: 500Mi
 
 # ======================== Loki ========================
 
@@ -193,7 +215,6 @@ nginxexporter:
 # ======================== OTEL Collector ========================
 
 otelCollector:
-  name: "langsmith-collector"
   image:
     repository: otel/opentelemetry-collector-contrib
     tag: "0.123.0"
@@ -258,7 +279,6 @@ tempo:
         secret_key: admin_password
         bucket: langsmith-lgtm-stack
         endpoint: "{{ .Release.Name }}-minio.{{ .Release.Namespace }}.svc.cluster.local:9000"
-        s3forcepathstyle: true # Required true for minio
         insecure: true
         prefix: tempo
 
@@ -269,14 +289,3 @@ tempo:
         enabled: true
       http:
         enabled: true
-    zipkin:
-      enabled: false
-    jaeger:
-      thriftHttp:
-        enabled: false
-    opencensus:
-      enabled: false
-  
-  metricsGenerator:
-    enabled: true
-

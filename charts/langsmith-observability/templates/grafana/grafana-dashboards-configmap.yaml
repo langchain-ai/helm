@@ -1,0 +1,21 @@
+{{- if .Values.grafana.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboards
+  labels:
+    grafana_dashboard: "1"
+data:
+  clickhouse.json: |
+{{ .Files.Get "dashboards/clickhouse.json" | indent 4 }}
+  kube-state-metrics.json: |
+{{ .Files.Get "dashboards/kube-state-metrics.json" | indent 4 }}
+  langsmith-services.json: |
+{{ .Files.Get "dashboards/langsmith-services.json" | indent 4 }}
+  nginx.json: |
+{{ .Files.Get "dashboards/nginx.json" | indent 4 }}
+  postgres.json: |
+{{ .Files.Get "dashboards/postgres.json" | indent 4 }}
+  redis.json: |
+{{ .Files.Get "dashboards/redis.json" | indent 4 }}
+{{- end }}
