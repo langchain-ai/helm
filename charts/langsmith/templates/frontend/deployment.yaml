@@ -93,7 +93,7 @@ spec:
           imagePullPolicy: {{ .Values.images.frontendImage.pullPolicy }}
           ports:
             - name: frontend
-              containerPort: {{ .Values.frontend.containerPort }}
+              containerPort: {{ ternary .Values.frontend.ssl.port .Values.frontend.containerPort .Values.frontend.ssl.enabled }}
               protocol: TCP
           {{- with .Values.frontend.deployment.startupProbe }}
           startupProbe:
