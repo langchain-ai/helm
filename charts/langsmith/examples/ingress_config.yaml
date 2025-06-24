@@ -21,4 +21,4 @@ ingress:
 # By default, the frontend service is of type LoadBalancer.
 frontend:
   service:
-    type: NodePort
+    type: ClusterIP
