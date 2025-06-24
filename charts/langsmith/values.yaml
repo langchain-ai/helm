@@ -594,8 +594,10 @@ frontend:
   keepAliveTimeout: "75"
   ipv6Enabled: true
   ssl:
-    # If enabled, the certificate and key paths must be provided.
+    # If enabled, the frontend will listen on HTTPS and require a certificate and key to be mounted.
     enabled: false
+    # This is the port the frontend will listen on for HTTPS traffic.
+    port: 8443
     # This is the path the certificate must be mounted to in the container.
     certificatePath: ""
     # This is the path the key must be mounted to in the container.

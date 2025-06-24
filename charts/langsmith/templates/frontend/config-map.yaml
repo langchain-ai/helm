@@ -26,11 +26,33 @@ data:
         '"cache_status":"$upstream_cache_status"'
     '}';
 
+    {{- if .Values.frontend.ssl.enabled }}
+    # HTTP server for health checks only
+    server {
+        listen       {{ .Values.frontend.containerPort }};
+        {{- if .Values.frontend.ipv6Enabled }}
+        listen  [::]:{{ .Values.frontend.containerPort }};
+        {{- end }}
+        server_name  localhost;
+
+        # Only allow health checks on HTTP
+        location = /health {
+            access_log off;
+            return 200;
+        }
+
+        # Redirect everything else to HTTPS
+        location / {
+            return 301 https://$host:{{ .Values.frontend.ssl.port }}$request_uri;
+        }
+    }
+   {{- end }}
+
     server {
         {{- if .Values.frontend.ssl.enabled }}
-        listen       {{ .Values.frontend.containerPort }} ssl;
+        listen       {{ .Values.frontend.ssl.port }} ssl;
         {{- if .Values.frontend.ipv6Enabled }}
-        listen  [::]:{{ .Values.frontend.containerPort }} ssl;
+        listen  [::]:{{ .Values.frontend.ssl.port }} ssl;
         {{- end }}
 
         ssl_certificate     {{ .Values.frontend.ssl.certificatePath }};
@@ -262,12 +284,33 @@ data:
         '"cache_status":"$upstream_cache_status"'
     '}';
 
+    {{- if .Values.frontend.ssl.enabled }}
+    # HTTP server for health checks only
+    server {
+        listen       {{ .Values.frontend.containerPort }};
+        {{- if .Values.frontend.ipv6Enabled }}
+        listen  [::]:{{ .Values.frontend.containerPort }};
+        {{- end }}
+        server_name  localhost;
+
+        # Only allow health checks on HTTP
+        location = /health {
+            access_log off;
+            return 200;
+        }
+
+        # Redirect everything else to HTTPS
+        location / {
+            return 301 https://$host:{{ .Values.frontend.ssl.port }}$request_uri;
+        }
+    }
+   {{- end }}
 
     server {
         {{- if .Values.frontend.ssl.enabled }}
-        listen       {{ .Values.frontend.containerPort }} ssl;
+        listen       {{ .Values.frontend.ssl.port }} ssl;
         {{- if .Values.frontend.ipv6Enabled }}
-        listen  [::]:{{ .Values.frontend.containerPort }} ssl;
+        listen  [::]:{{ .Values.frontend.ssl.port }} ssl;
         {{- end }}
 
         ssl_certificate     {{ .Values.frontend.ssl.certificatePath }};
