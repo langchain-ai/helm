@@ -10,7 +10,7 @@ services:
       - GO_ENDPOINT=http://langchain-platform-backend:1986
       - SMITH_BACKEND_ENDPOINT=${SMITH_BACKEND_ENDPOINT:-http://langchain-backend:1984}
   langchain-frontend:
-    image: langchain/langsmith-frontend:${_LANGSMITH_IMAGE_VERSION:-0.10.25}
+    image: ${_REGISTRY:-docker.io}/langchain/langsmith-frontend:${_LANGSMITH_IMAGE_VERSION:-0.10.25}
     environment:
       - VITE_BACKEND_AUTH_TYPE=${AUTH_TYPE:-none}
       - VITE_BASIC_AUTH_ENABLED=${BASIC_AUTH_ENABLED:-false}
