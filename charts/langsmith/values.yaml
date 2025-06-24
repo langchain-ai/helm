@@ -19,19 +19,19 @@ images:
   aceBackendImage:
     repository: "docker.io/langchain/langsmith-ace-backend"
     pullPolicy: IfNotPresent
-    tag: "0.10.83"
+    tag: "0.10.85"
   backendImage:
     repository: "docker.io/langchain/langsmith-backend"
     pullPolicy: IfNotPresent
-    tag: "0.10.83"
+    tag: "0.10.85"
   frontendImage:
     repository: "docker.io/langchain/langsmith-frontend"
     pullPolicy: IfNotPresent
-    tag: "0.10.83"
+    tag: "0.10.85"
   hostBackendImage:
     repository: "docker.io/langchain/hosted-langserve-backend"
     pullPolicy: IfNotPresent
-    tag: "0.10.83"
+    tag: "0.10.85"
   operatorImage:
     repository: "docker.io/langchain/langgraph-operator"
     pullPolicy: IfNotPresent
@@ -39,11 +39,11 @@ images:
   platformBackendImage:
     repository: "docker.io/langchain/langsmith-go-backend"
     pullPolicy: IfNotPresent
-    tag: "0.10.83"
+    tag: "0.10.85"
   playgroundImage:
     repository: "docker.io/langchain/langsmith-playground"
     pullPolicy: IfNotPresent
-    tag: "0.10.83"
+    tag: "0.10.85"
   postgresImage:
     repository: "docker.io/postgres"
     pullPolicy: IfNotPresent
@@ -593,6 +593,13 @@ frontend:
   # For example for GCP Classic ALB, this should be set to between 600 and 610 (exclusive). https://cloud.google.com/load-balancing/docs/https#timeouts_and_retries
   keepAliveTimeout: "75"
   ipv6Enabled: true
+  ssl:
+    # If enabled, the certificate and key paths must be provided.
+    enabled: false
+    # This is the path the certificate must be mounted to in the container.
+    certificatePath: ""
+    # This is the path the key must be mounted to in the container.
+    keyPath: ""
   deployment:
     replicas: 1
     labels: {}
