@@ -281,6 +281,26 @@ tempo:
         endpoint: "{{ .Release.Name }}-minio.{{ .Release.Namespace }}.svc.cluster.local:9000"
         insecure: true
         prefix: tempo
+  
+  metricsGenerator:
+    enabled: true
+    replicas: 2
+    config:
+      processor:
+        local_blocks:
+          filter_server_spans: false
+          flush_to_storage: true
+      storage:
+        path: /var/tempo/generator/wal
+      traces_storage:
+        path: /var/tempo/generator/traces
+    remoteWrite:
+      enabled: false
+
+  overrides:
+    defaults:
+      metrics_generator:
+        processors: [service-graphs, span-metrics, local-blocks]
 
   # Specifies which trace protocols to accept by the gateway.
   traces:
