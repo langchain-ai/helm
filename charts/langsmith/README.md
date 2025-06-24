@@ -724,6 +724,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | frontend.ssl.certificatePath | string | `""` |  |
 | frontend.ssl.enabled | bool | `false` |  |
 | frontend.ssl.keyPath | string | `""` |  |
+| frontend.ssl.port | int | `8443` |  |
 
 ## Listener (Optional)
 
