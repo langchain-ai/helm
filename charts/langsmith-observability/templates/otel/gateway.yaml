@@ -84,11 +84,11 @@ spec:
     exporters:
       {{ if .Values.otelCollector.metrics.enabled }}
       otlphttp/metrics:
-        endpoint: http://{{ .Release.Name }}-mimir-nginx.{{ .Release.Namespace }}.svc.cluster.local:80/otlp
+        endpoint: http://{{ .Release.Name }}-mimir.{{ .Release.Namespace }}.svc.cluster.local:9009/otlp
       {{ end }}
       {{ if .Values.otelCollector.traces.enabled }}
       otlphttp/traces:
-        endpoint: http://{{ .Release.Name }}-tempo-distributor-discovery.{{ .Release.Namespace }}.svc.cluster.local:4318
+        endpoint: http://{{ .Release.Name }}-tempo.{{ .Release.Namespace }}.svc.cluster.local:4318
       {{ end }}
 
     service:

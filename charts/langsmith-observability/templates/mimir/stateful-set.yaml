@@ -1,0 +1,107 @@
+{{- if .Values.mimir.enabled }}
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ .Release.Name }}-mimir
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "langsmith-observability.labels" . | nindent 4 }}
+  {{- with .Values.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  replicas: {{ .Values.mimir.replicas }}
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}-mimir
+  serviceName: {{ include "langsmith-observability.name" . }}-mimir-headless
+  template:
+    metadata:
+      labels:
+        {{- include "langsmith-observability.labels" . | nindent 8 }}
+        app: {{ .Release.Name }}-mimir
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/mimir/config-map.yaml") . | sha256sum }}
+    spec:
+      containers:
+        - name: mimir
+          image: {{ .Values.mimir.image.registry }}/{{ .Values.mimir.image.repository }}{{ if .Values.mimir.image.tag }}:{{ .Values.mimir.image.tag }}{{ end }}
+          imagePullPolicy: {{ .Values.mimir.image.pullPolicy }}
+          args:
+            - -config.file=/etc/mimir/mimir.yaml
+          ports:
+            - name: http
+              containerPort: {{ .Values.mimir.service.port }}
+              protocol: TCP
+          {{- with .Values.mimir.livenessProbe }}
+          livenessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.mimir.readinessProbe }}
+          readinessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.mimir.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 10 }}
+          {{- end }}
+          {{- with .Values.mimir.envFrom }}
+          envFrom:
+            {{- toYaml . | nindent 10 }}
+          {{- end }}
+          volumeMounts:
+          {{- if .Values.mimir.extraVolumeMounts -}}
+          {{ toYaml .Values.mimir.extraVolumeMounts | nindent 8 }}
+          {{- end }}
+          - mountPath: /etc/mimir
+            name: mimir-conf
+          - mountPath: /tmp/mimir
+            name: storage
+      {{- with .Values.mimir.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.mimir.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.mimir.securityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.mimir.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      volumes:
+        {{- if .Values.mimir.extraVolumes -}}
+          {{ toYaml .Values.mimir.extraVolumes | nindent 12 }}
+        {{- end }}
+          - name: mimir-conf
+            configMap:
+              name: {{ include "langsmith-observability.name" . }}-mimir
+              items:
+                - key: "mimir.yaml"
+                  path: "mimir.yaml"
+          {{- if not .Values.mimir.persistence.enabled }}
+          - name: storage
+            emptyDir: { }
+          {{- end }}
+  updateStrategy:
+    {{- toYaml .Values.mimir.updateStrategy | nindent 4 }}
+  {{- if .Values.mimir.persistence.enabled }}
+  volumeClaimTemplates:
+    - metadata:
+        name: storage
+        annotations: {{- toYaml .Values.mimir.persistence.annotations | nindent 10 }}
+      spec:
+        accessModes: {{- toYaml .Values.mimir.persistence.accessModes | nindent 10 }}
+        resources:
+          requests:
+            storage: {{ .Values.mimir.persistence.size | quote }}
+        {{- if .Values.mimir.persistence.storageClassName }}
+        storageClassName: {{ .Values.mimir.persistence.storageClassName }}
+        {{- end }}
+  {{- end }}
+{{- end }}

@@ -38,17 +38,8 @@ dependencies:
     version: 6.30.1
     repository: https://grafana.github.io/helm-charts
     condition: loki.enabled
-  - name: minio
-    version: 16.0.10
-    repository: https://charts.bitnami.com/bitnami
-    condition: minio.enabled
-  - name: mimir-distributed
-    version: 5.7.0
-    repository: https://grafana.github.io/helm-charts
-    condition: mimir.enabled
-    alias: mimir
-  - name: tempo-distributed
-    version: 1.41.1
+  - name: tempo
+    version: 1.23.1
     repository: https://grafana.github.io/helm-charts
     condition: tempo.enabled
     alias: tempo
