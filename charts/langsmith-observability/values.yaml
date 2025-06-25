@@ -1,11 +1,11 @@
 # The namespace in which langsmith is deployed.
 langsmithNamespace: "langsmith"
-
 # The release name of the langsmith release.
 langSmithReleaseName: "langsmith"
-
 # The name override for the observability stack.
 nameOverride: ""
+# -- Labels that will be applied to all resources created by the chart
+commonLabels: {}
 
 # ======================== Grafana ========================
 
@@ -152,8 +152,6 @@ loki:
 
 mimir:
   enabled: false
-  extraEnv: []
-  replicas: 1 # Must be 1 to use filesystem.
   image:
     registry: docker.io
     repository: grafana/mimir
@@ -161,14 +159,12 @@ mimir:
     tag: null
   persistence:
     enabled: true
-    storageClass:
+    storageClass: ""
     annotations: {}
     accessModes:
       - ReadWriteOnce
     size: 10Gi
     selector: {}
-  updateStrategy:
-    type: RollingUpdate
   service:
     type: ClusterIP
     port: 9009
@@ -189,6 +185,19 @@ mimir:
     periodSeconds: 10
     timeoutSeconds: 5
     failureThreshold: 3
+  updateStrategy:
+    type: RollingUpdate
+  annotations: {}
+  podAnnotations: {}
+  securityContext: {}
+  podSecurityContext: {}
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  extraEnv: []
+  envFrom: []
+  extraVolumes: []
+  extraVolumeMounts: []
 
 # ======================== Nginx Exporter ========================
 
@@ -214,6 +223,8 @@ nginx-exporter:
 # ======================== OTEL Collector ========================
 
 otelCollector:
+  gatewayNameOverride: ""
+  sidecarNameOverride: ""
   image:
     repository: otel/opentelemetry-collector-contrib
     tag: "0.123.0"

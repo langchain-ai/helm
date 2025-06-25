@@ -2,7 +2,7 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role # Role for the main Langsmith namespace
 metadata:
-  name: get-pod-metrics
+  name: {{ include "langsmith-gateway-collector.name" . }}-role
   namespace: {{ .Values.langsmithNamespace }}
 rules:
   - apiGroups: [""]
@@ -12,7 +12,7 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role # Role for the observability namespace
 metadata:
-  name: get-pod-metrics
+  name: {{ include "langsmith-gateway-collector.name" . }}-role
   namespace: {{ .Release.Namespace }}
 rules:
   - apiGroups: [""]
@@ -22,28 +22,28 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding # RoleBinding for the main Langsmith namespace
 metadata:
-  name: get-pod-metrics-binding-langsmith
+  name: {{ include "langsmith-gateway-collector.name" . }}-rolebinding
   namespace: {{ .Values.langsmithNamespace }}
 roleRef:
   kind: Role
-  name: get-pod-metrics
+  name: {{ include "langsmith-gateway-collector.name" . }}-role
   namespace: {{ .Release.Namespace }}
 subjects:
   - kind: ServiceAccount
-    name: langsmith-collector-gateway-collector
+    name: {{ include "langsmith-gateway-collector.name" . }}
     namespace: {{ .Release.Namespace }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding # Roleinding for the observability namespace
 metadata:
-  name: get-pod-metrics-binding-langsmith
+  name: {{ include "langsmith-gateway-collector.name" . }}-rolebinding
   namespace: {{ .Release.Namespace }}
 roleRef:
   kind: Role
-  name: get-pod-metrics
+  name: {{ include "langsmith-gateway-collector.name" . }}-role
   namespace: {{ .Values.langsmithNamespace }}
 subjects:
   - kind: ServiceAccount
-    name: langsmith-collector-gateway-collector
+    name: {{ include "langsmith-gateway-collector.name" . }}
     namespace: {{ .Release.Namespace }}
 {{- end }}

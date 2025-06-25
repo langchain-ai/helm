@@ -2,7 +2,7 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ .Release.Name }}-mimir
+  name: {{ include "langsmith-mimir.name" . }}
   labels:
     {{- include "langsmith-observability.labels" . | nindent 4 }}
 spec:
@@ -13,5 +13,5 @@ spec:
       port: {{ .Values.mimir.service.port }}
       targetPort: {{ .Values.mimir.service.targetPort }}
   selector:
-    app: {{ .Release.Name }}-mimir
+    app: {{ include "langsmith-mimir.name" . }}
 {{- end }}

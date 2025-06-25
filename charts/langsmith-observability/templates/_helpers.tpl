@@ -36,3 +36,31 @@ Selector labels
 app.kubernetes.io/name: {{ include "langsmith-observability.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
+
+{{/* 
+Mimir Resource Name
+*/}}
+{{ define "langsmith-mimir.name" -}}
+{{- printf "%s-%s" .Release.Name "mimir" | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+
+{{/*
+OTEL Gatway Collector Resource Name
+*/}}
+{{ define "langsmith-gateway-collector.name" -}}
+{{- if .Values.otelCollector.gatewayNameOverride -}}
+{{- .Values.otelCollector.gatewayNameOverride | trunc 63 | trimSuffix "-" -}}
+{{- else -}}
+{{- printf "%s-%s" (include "langsmith-observability.name" .) "collector-gateway" | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+
+{{/*
+OTEL Sidecar Collector Resource Name
+*/}}
+{{ define "langsmith-sidecar-collector.name" -}}
+{{- if .Values.otelCollector.sidecarNameOverride -}}
+{{- .Values.otelCollector.sidecarNameOverride | trunc 63 | trimSuffix "-" -}}
+{{- else -}}
+{{- printf "%s-%s" (include "langsmith-observability.name" .) "collector-sidecar" | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+{{- end -}}

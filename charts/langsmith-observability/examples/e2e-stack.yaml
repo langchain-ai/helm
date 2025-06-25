@@ -1,7 +1,6 @@
-# Use this configuration to deploy the full LangSmith observability stack with storage on the filesystem.
-# This should not be used as a production observability system, but rather to gain quick insights into your LangSmith deployment.
+# Use this configuration to deploy the full LangSmith observability stack with filesystem storage.
 # You can disable parts as you see fit, such as exporters, or logs/metrics/traces.
-# NOTE: This configuration is not recommended for production environments.
+# NOTE: This should not be used as a production observability system, but rather to gain quick insights into your LangSmith deployment.
 
 langsmithNamespace: "langsmith" # Change this value to match your LangSmith namespace.
 langSmithReleaseName: "langsmith" # Change this value to match your LangSmith release name.

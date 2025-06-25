@@ -2,27 +2,26 @@
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: {{ .Release.Name }}-mimir
+  name: {{ include "langsmith-mimir.name" . }}
   namespace: {{ .Release.Namespace }}
   labels:
     {{- include "langsmith-observability.labels" . | nindent 4 }}
-  {{- with .Values.annotations }}
   annotations:
-    {{- toYaml . | nindent 4 }}
-  {{- end }}
+    {{- toYaml .Values.mimir.annotations | nindent 4 }}
 spec:
-  replicas: {{ .Values.mimir.replicas }}
+  replicas: 1 # Replicas must be 1 to use filesystem.
   selector:
     matchLabels:
-      app: {{ .Release.Name }}-mimir
-  serviceName: {{ include "langsmith-observability.name" . }}-mimir-headless
+      app: {{ include "langsmith-mimir.name" . }}
+  serviceName: {{ include "langsmith-mimir.name" . }}-headless
   template:
     metadata:
       labels:
         {{- include "langsmith-observability.labels" . | nindent 8 }}
-        app: {{ .Release.Name }}-mimir
+        app: {{ include "langsmith-mimir.name" . }}
       annotations:
         checksum/config: {{ include (print $.Template.BasePath "/mimir/config-map.yaml") . | sha256sum }}
+        {{- toYaml .Values.mimir.podAnnotations | nindent 8 }}
     spec:
       containers:
         - name: mimir
@@ -42,7 +41,7 @@ spec:
           readinessProbe:
             {{- toYaml . | nindent 12 }}
           {{- end }}
-          {{- with .Values.mimir.securityContext }}
+          {{- with .Values.mimir.podSecurityContext }}
           securityContext:
             {{- toYaml . | nindent 10 }}
           {{- end }}
@@ -80,7 +79,7 @@ spec:
         {{- end }}
           - name: mimir-conf
             configMap:
-              name: {{ include "langsmith-observability.name" . }}-mimir
+              name: {{ include "langsmith-mimir.name" . }}
               items:
                 - key: "mimir.yaml"
                   path: "mimir.yaml"
@@ -100,8 +99,8 @@ spec:
         resources:
           requests:
             storage: {{ .Values.mimir.persistence.size | quote }}
-        {{- if .Values.mimir.persistence.storageClassName }}
-        storageClassName: {{ .Values.mimir.persistence.storageClassName }}
+        {{- if .Values.mimir.persistence.storageClass }}
+        storageClassName: {{ .Values.mimir.persistence.storageClass }}
         {{- end }}
   {{- end }}
 {{- end }}

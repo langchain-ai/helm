@@ -2,7 +2,7 @@
 apiVersion: opentelemetry.io/v1beta1
 kind: OpenTelemetryCollector
 metadata:
-  name: langsmith-collector-gateway
+  name: {{ include "langsmith-gateway-collector.name" . }}
 spec:
   mode: deployment
   image: {{ .Values.otelCollector.image.repository }}:{{ .Values.otelCollector.image.tag }}
@@ -23,7 +23,7 @@ spec:
               relabel_configs:
                 # Keeps all services with the name langsmith-.*
                 - source_labels: [__meta_kubernetes_service_name]
-                  regex: "langsmith-.*"
+                  regex: "{{ include "langsmith-observability.name" .}}-.*"
                   action: keep
                 - source_labels: [__meta_kubernetes_endpoint_port_name]
                   regex: "(backend|platform|playground|host-backend|metrics)"
@@ -45,7 +45,7 @@ spec:
                     names: [{{ .Release.Namespace }}]   
               relabel_configs:
                 - source_labels: [__meta_kubernetes_service_name]
-                  regex: "{{ .Values.langSmithReleaseName }}-.*"
+                  regex: "{{ include "langsmith-observability.name" .}}-.*"
                   action: keep
                 - source_labels: [__meta_kubernetes_endpoint_port_name]
                   regex: "(http)"
@@ -84,11 +84,11 @@ spec:
     exporters:
       {{ if .Values.otelCollector.metrics.enabled }}
       otlphttp/metrics:
-        endpoint: http://{{ .Release.Name }}-mimir.{{ .Release.Namespace }}.svc.cluster.local:9009/otlp
+        endpoint: http://{{ include "langsmith-mimir.name" . }}.{{ .Release.Namespace }}.svc.cluster.local:9009/otlp
       {{ end }}
       {{ if .Values.otelCollector.traces.enabled }}
       otlphttp/traces:
-        endpoint: http://{{ .Release.Name }}-tempo.{{ .Release.Namespace }}.svc.cluster.local:4318
+        endpoint: http://{{ include "langsmith-observability.name"}}-tempo.{{ .Release.Namespace }}.svc.cluster.local:4318
       {{ end }}
 
     service:

@@ -558,7 +558,6 @@ clickhouse:
     labels: {}
     annotations: {}
   metrics:
-    enabled: true
     port: 9363
 
 e2eTest:

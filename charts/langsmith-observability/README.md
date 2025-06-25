@@ -17,15 +17,16 @@ Helm chart to deploy the observability stack for LangSmith.
 | https://prometheus-community.github.io/helm-charts | redis-exporter(prometheus-redis-exporter) | 6.11.0 |
 
 ## Documentation
-For information on how to use this chart and how to deploy the full LangSmith Observability stack, please refer to the [documentation](https://docs.smith.langchain.com/self_hosting/observability).
+For information on how to use this chart and how to deploy the full LangSmith Observability stack, please refer to the [documentation](https://docs.smith.langchain.com/self_hosting/observability/observability_stack).
 
-NOTE: For any values in dependencies (Loki, Mimir, Tempo, etc.), you can update the values as you see fit. Only a small set of
+NOTE: For any values in dependencies (Loki, Tempo, etc.), you can update the values as you see fit. Only a small set of
 values are listed in the `values.yaml` and this `README`. Refer to the `values.yaml` files listed next to each dependency header for additional values.
 
 ## General parameters
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
+| commonLabels | object | `{}` | Labels that will be applied to all resources created by the chart |
 | langSmithReleaseName | string | `"langsmith"` |  |
 | langsmithNamespace | string | `"langsmith"` |  |
 | nameOverride | string | `""` |  |
@@ -130,8 +131,13 @@ Values for Loki Single Binary: `https://github.com/grafana/loki/blob/main/produc
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
+| mimir.affinity | object | `{}` |  |
+| mimir.annotations | object | `{}` |  |
 | mimir.enabled | bool | `false` |  |
+| mimir.envFrom | list | `[]` |  |
 | mimir.extraEnv | list | `[]` |  |
+| mimir.extraVolumeMounts | list | `[]` |  |
+| mimir.extraVolumes | list | `[]` |  |
 | mimir.image.pullPolicy | string | `"IfNotPresent"` |  |
 | mimir.image.registry | string | `"docker.io"` |  |
 | mimir.image.repository | string | `"grafana/mimir"` |  |
@@ -142,22 +148,26 @@ Values for Loki Single Binary: `https://github.com/grafana/loki/blob/main/produc
 | mimir.livenessProbe.initialDelaySeconds | int | `20` |  |
 | mimir.livenessProbe.periodSeconds | int | `10` |  |
 | mimir.livenessProbe.timeoutSeconds | int | `5` |  |
+| mimir.nodeSelector | object | `{}` |  |
 | mimir.persistence.accessModes[0] | string | `"ReadWriteOnce"` |  |
 | mimir.persistence.annotations | object | `{}` |  |
 | mimir.persistence.enabled | bool | `true` |  |
 | mimir.persistence.selector | object | `{}` |  |
 | mimir.persistence.size | string | `"10Gi"` |  |
-| mimir.persistence.storageClass | string | `nil` |  |
+| mimir.persistence.storageClass | string | `""` |  |
+| mimir.podAnnotations | object | `{}` |  |
+| mimir.podSecurityContext | object | `{}` |  |
 | mimir.readinessProbe.failureThreshold | int | `3` |  |
 | mimir.readinessProbe.httpGet.path | string | `"/ready"` |  |
 | mimir.readinessProbe.httpGet.port | string | `"http"` |  |
 | mimir.readinessProbe.initialDelaySeconds | int | `20` |  |
 | mimir.readinessProbe.periodSeconds | int | `10` |  |
 | mimir.readinessProbe.timeoutSeconds | int | `5` |  |
-| mimir.replicas | int | `1` |  |
+| mimir.securityContext | object | `{}` |  |
 | mimir.service.port | int | `9009` |  |
 | mimir.service.targetPort | string | `"http"` |  |
 | mimir.service.type | string | `"ClusterIP"` |  |
+| mimir.tolerations | list | `[]` |  |
 | mimir.updateStrategy.type | string | `"RollingUpdate"` |  |
 
 ## Nginx Exporter
@@ -186,6 +196,7 @@ Values for Nginx Exporter: `https://github.com/prometheus-community/helm-charts/
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
+| otelCollector.gatewayNameOverride | string | `""` |  |
 | otelCollector.image.repository | string | `"otel/opentelemetry-collector-contrib"` |  |
 | otelCollector.image.tag | string | `"0.123.0"` |  |
 | otelCollector.logs.enabled | bool | `false` |  |
@@ -199,6 +210,7 @@ Values for Nginx Exporter: `https://github.com/prometheus-community/helm-charts/
 | otelCollector.serviceAccounts[6] | string | `"langsmith-postgres"` |  |
 | otelCollector.serviceAccounts[7] | string | `"langsmith-queue"` |  |
 | otelCollector.serviceAccounts[8] | string | `"langsmith-redis"` |  |
+| otelCollector.sidecarNameOverride | string | `""` |  |
 | otelCollector.traces.enabled | bool | `false` |  |
 
 ## Postgres Exporter

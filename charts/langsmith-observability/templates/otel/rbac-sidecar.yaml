@@ -3,7 +3,7 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
-  name: read-pod-logs
+  name: {{ include "langsmith-sidecar-collector.name" . }}-role
   namespace: {{ $namespace }}
 rules:
   - apiGroups: [""]
@@ -13,11 +13,11 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: read-pod-logs-binding
+  name: {{ include "langsmith-sidecar-collector.name" . }}-rolebinding
   namespace: {{ $namespace }}
 roleRef:
   kind: Role
-  name: read-pod-logs
+  name: {{ include "langsmith-sidecar-collector.name" . }}-role
   namespace: {{ $namespace }}
 subjects:
 {{- range .Values.otelCollector.serviceAccounts }}

@@ -10,9 +10,9 @@ config:
   # existingSecretName: "langsmith-config" You can also put the above into a secret if you want to avoid putting the license key in the values file.
 
 observability:
-  sidecarCollector: # Use this for the LangSmith Observability helm chart. This will add an annotation to your containers telling the OTEL Operator to bring up a sidecar container.
-    enabled: true
-    namespace: "langsmith-observability" # Replace with your LangSmith Observability namespace.
+  commonPodAnnotations:
+    # Use this to inject the OTEL sidecar collector into your containers if you are using the LangSmith Observability helm chart.
+    sidecar.opentelemetry.io/inject: "${LANGSMITH_OBSERVABILITY_NAMESPACE}/${LANGSMITH_OBSERVABILITY_CRD_NAME}"
   tracing:
     enabled: true
     endpoint: "http://${YOUR_OTEL_GATEWAY_ENDPOINT}/v1/traces" # Replace this with the endpoint of your trace collector.

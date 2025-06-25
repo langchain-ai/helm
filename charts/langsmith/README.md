@@ -491,7 +491,6 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | clickhouse.external.tlsSecretKey | string | `"clickhouse_tls"` |  |
 | clickhouse.external.user | string | `"default"` |  |
 | clickhouse.external.userSecretKey | string | `"clickhouse_user"` |  |
-| clickhouse.metrics.enabled | bool | `true` |  |
 | clickhouse.metrics.port | int | `9363` |  |
 | clickhouse.name | string | `"clickhouse"` |  |
 | clickhouse.pdb.annotations | object | `{}` |  |
