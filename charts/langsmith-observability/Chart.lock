@@ -1,0 +1,24 @@
+dependencies:
+- name: prometheus-postgres-exporter
+  repository: https://prometheus-community.github.io/helm-charts
+  version: 6.10.2
+- name: prometheus-redis-exporter
+  repository: https://prometheus-community.github.io/helm-charts
+  version: 6.11.0
+- name: prometheus-nginx-exporter
+  repository: https://prometheus-community.github.io/helm-charts
+  version: 1.6.0
+- name: kube-state-metrics
+  repository: https://prometheus-community.github.io/helm-charts
+  version: 5.37.0
+- name: grafana
+  repository: https://grafana.github.io/helm-charts
+  version: 9.2.6
+- name: loki
+  repository: https://grafana.github.io/helm-charts
+  version: 6.30.1
+- name: tempo
+  repository: https://grafana.github.io/helm-charts
+  version: 1.23.1
+digest: sha256:37a0e475faf029162aa4025c48fdb8bfc46f8dbb8d9f6c89e12e132f4d45b3d1
+generated: "2025-06-25T10:33:20.351036-07:00"

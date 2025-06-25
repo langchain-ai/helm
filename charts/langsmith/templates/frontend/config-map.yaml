@@ -90,6 +90,11 @@ data:
                 return 200;
          }
 
+        location = /nginx_status {
+            stub_status on;
+            access_log off;
+        }
+
         location ~ /{{ .Values.ingress.subdomain }}/api/v1/playground/ {
             rewrite /{{ .Values.ingress.subdomain }}/api/v1/playground/(.*) /playground/$1  break;
             proxy_set_header Connection '';
@@ -347,6 +352,11 @@ data:
                   # health checks are frequent and boring, so we avoid logging them
                   access_log off;
                   return 200;
+        }
+
+        location = /nginx_status {
+            stub_status on;
+            access_log off;
         }
 
         error_page   500 502 503 504  /50x.html;

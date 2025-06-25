@@ -1,0 +1,69 @@
+{{- if .Values.otelCollector.logs.enabled }}
+apiVersion: opentelemetry.io/v1beta1
+kind: OpenTelemetryCollector
+metadata:
+  name: {{ include "langsmith-sidecar-collector.name" . }}
+spec:
+  mode: sidecar
+  image: {{ .Values.otelCollector.image.repository }}:{{ .Values.otelCollector.image.tag }}
+      
+  config:
+    receivers:
+      filelog:
+        exclude: 
+          - '**/otc-container/*.log'
+        include:
+          - /var/log/pods/${POD_NAMESPACE}_${POD_NAME}_${POD_UID}/*/*.log
+        include_file_name: false
+        include_file_path: true
+        operators:
+          - id: container-parser
+            type: container
+        retry_on_failure:
+          enabled: true
+        start_at: end
+
+    processors:
+      batch:
+        send_batch_size: 8192
+        timeout: 10s
+      memory_limiter:
+        check_interval: 1m
+        limit_percentage: 90
+        spike_limit_percentage: 80
+
+    exporters:
+      otlphttp/logs:
+        endpoint: http://{{ include "langsmith-observability.name" . }}-loki-gateway.{{ .Release.Namespace }}.svc.cluster.local:80/otlp
+        tls:
+          insecure: false
+
+    service:
+      pipelines:
+        logs/langsmith:
+          receivers: [filelog]
+          processors: [batch, memory_limiter]
+          exporters: [otlphttp/logs]
+
+  env:
+    - name: POD_NAME
+      valueFrom:
+        fieldRef:
+          fieldPath: metadata.name
+    - name: POD_NAMESPACE
+      valueFrom:
+        fieldRef:
+          fieldPath: metadata.namespace
+    - name: POD_UID
+      valueFrom:
+        fieldRef:
+          fieldPath: metadata.uid
+  volumes:
+    - name: varlogpods
+      hostPath:
+        path: /var/log/pods
+  volumeMounts:
+    - name: varlogpods
+      mountPath: /var/log/pods
+      readOnly: true
+{{- end }}

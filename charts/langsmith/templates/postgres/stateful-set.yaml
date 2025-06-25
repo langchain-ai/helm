@@ -43,10 +43,11 @@ spec:
       app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-{{ .Values.postgres.name }}
   template:
     metadata:
-      {{- with .Values.postgres.statefulSet.annotations }}
       annotations:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
+        {{- include "langsmith.commonPodAnnotations" . | nindent 8 }}
+        {{- with .Values.postgres.statefulSet.annotations }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
       labels:
         {{- with.Values.postgres.statefulSet.labels }}
             {{- toYaml . | nindent 8 }}

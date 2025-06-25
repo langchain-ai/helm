@@ -1,0 +1,109 @@
+{{- if or .Values.otelCollector.metrics.enabled .Values.otelCollector.traces.enabled }}
+apiVersion: opentelemetry.io/v1beta1
+kind: OpenTelemetryCollector
+metadata:
+  name: {{ include "langsmith-gateway-collector.name" . }}
+spec:
+  mode: deployment
+  image: {{ .Values.otelCollector.image.repository }}:{{ .Values.otelCollector.image.tag }}
+  
+  config:
+    receivers:
+      {{ if .Values.otelCollector.metrics.enabled }}
+      prometheus:
+        config:
+          scrape_configs:
+          # Fetches all the metrics from the langsmith namespace (LS services + CH)
+            - job_name: langsmith-metrics
+              metrics_path: /metrics
+              kubernetes_sd_configs:
+                - role: endpoints
+                  namespaces:
+                    names: [{{ .Values.langsmithNamespace }}]   
+              relabel_configs:
+                # Keeps all services with the name langsmith-.*
+                - source_labels: [__meta_kubernetes_service_name]
+                  regex: "{{ .Values.langSmithReleaseName }}-.*"
+                  action: keep
+                - source_labels: [__meta_kubernetes_endpoint_port_name]
+                  regex: "(backend|platform|playground|host-backend|metrics)"
+                  action: keep
+                # Promote useful metadata into regular labels 
+                - source_labels: [__meta_kubernetes_service_name]
+                  target_label: k8s_service
+                - source_labels: [__meta_kubernetes_pod_name]
+                  target_label: k8s_pod
+                # Replace the default "host:port" as Prom's instance label
+                - source_labels: [__address__]
+                  target_label: instance
+            # Fetches all the metrics from the metrics exporters in Langsmith-Observability namespace
+            - job_name: database-metrics
+              metrics_path: /metrics
+              kubernetes_sd_configs:
+                - role: endpoints
+                  namespaces:
+                    names: [{{ .Release.Namespace }}]   
+              relabel_configs:
+                - source_labels: [__meta_kubernetes_service_name]
+                  regex: "{{ include "langsmith-observability.name" . }}-.*"
+                  action: keep
+                - source_labels: [__meta_kubernetes_endpoint_port_name]
+                  regex: "(http)"
+                  action: keep
+                - source_labels: [__meta_kubernetes_service_name]
+                  target_label: k8s_service
+                - source_labels: [__meta_kubernetes_pod_name]
+                  target_label: k8s_pod
+                - source_labels: [__address__]
+                  target_label: instance
+      {{ end }}
+      {{- if .Values.otelCollector.traces.enabled }}
+      otlp:
+        protocols:
+          grpc:
+            endpoint: 0.0.0.0:4317
+          http:
+            endpoint: 0.0.0.0:4318
+      {{- end }}
+
+    processors:
+      batch:
+        send_batch_size: 8192
+        timeout: 10s
+      memory_limiter:
+        check_interval: 1m
+        limit_percentage: 90
+        spike_limit_percentage: 80
+      filter/drop_go_metrics:
+        metrics:
+          exclude:
+            match_type: regexp
+            metric_names:
+              - "go_.*"
+              - "cortex_.*"
+    
+    exporters:
+      {{ if .Values.otelCollector.metrics.enabled }}
+      otlphttp/metrics:
+        endpoint: http://{{ include "langsmith-mimir.name" . }}.{{ .Release.Namespace }}.svc.cluster.local:9009/otlp
+      {{ end }}
+      {{ if .Values.otelCollector.traces.enabled }}
+      otlphttp/traces:
+        endpoint: http://{{ include "langsmith-observability.name" .}}-tempo.{{ .Release.Namespace }}.svc.cluster.local:4318
+      {{ end }}
+
+    service:
+      pipelines:
+        {{ if .Values.otelCollector.metrics.enabled }}
+        metrics/langsmith:
+          receivers: [prometheus]
+          processors: [filter/drop_go_metrics, batch, memory_limiter]
+          exporters: [otlphttp/metrics]
+        {{ end }}
+        {{ if .Values.otelCollector.traces.enabled }}
+        traces/langsmith:
+          receivers: [otlp]
+          processors: [batch, memory_limiter]
+          exporters: [otlphttp/traces]
+        {{ end }}
+{{- end }}

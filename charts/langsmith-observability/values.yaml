@@ -1,0 +1,334 @@
+# The namespace in which langsmith is deployed.
+langsmithNamespace: "langsmith"
+# The release name of the langsmith release.
+langSmithReleaseName: "langsmith"
+# The name override for the observability stack.
+nameOverride: ""
+# -- Labels that will be applied to all resources created by the chart
+commonLabels: {}
+
+# ======================== Grafana ========================
+
+# Values for Grafana: https://github.com/grafana/helm-charts/blob/main/charts/grafana/values.yaml
+grafana:
+  enabled: false
+  datasources:
+    datasources.yaml:
+      apiVersion: 1
+      datasources:
+        - name: Loki
+          uid: loki
+          type: loki
+          url: http://{{ .Release.Name }}-loki-gateway:80
+          isDefault: false
+        - name: Mimir
+          uid: prom
+          type: prometheus
+          url: http://{{ .Release.Name }}-mimir:9009/prometheus
+          isDefault: true
+        - name: Tempo
+          uid: tempo
+          type: tempo
+          url: http://{{ .Release.Name }}-tempo:3200
+          isDefault: false
+          jsonData:
+            tracesToLogsV2:
+              datasourceUid: loki
+            lokiSearch:
+              datasourceUid: loki
+            tracesToMetrics:
+              datasourceUid: prom
+            serviceMap:
+              datasourceUid: prom
+  dashboardProviders:
+    dashboardproviders.yaml:
+      apiVersion: 1
+      providers:
+      - name: 'default'
+        orgId: 1
+        folder: ''
+        type: file
+        disableDeletion: false
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards/default
+  dashboardsConfigMaps:
+    default: "langsmith-grafana-dashboards"
+
+# ======================== Kube State Metrics ========================
+
+# Values for Kube State Metrics: https://github.com/prometheus-community/helm-charts/blob/main/charts/kube-state-metrics/values.yaml
+kube-state-metrics:
+  enabled: false
+  service:
+    type: ClusterIP
+    port: 8080
+  namespaces: "romain"
+  resources:
+    requests:
+      cpu: 100m
+      memory: 250Mi
+    limits:
+      cpu: 250m
+      memory: 500Mi
+
+# ======================== Loki ========================
+
+# Values for Loki Single Binary: https://github.com/grafana/loki/blob/main/production/helm/loki/values.yaml#L1364
+loki:
+  enabled: false
+  deploymentMode: SingleBinary
+  singleBinary:
+    replicas: 1 # If you use more than 1 replica, you need to use object storage (minio or s3/gcs...)
+    persistence:
+      enabled: true
+      size: 10Gi
+      storageClass: null
+    resources:
+      limits:
+        cpu: 3000m
+        memory: 4Gi
+      requests:
+        cpu: 2000m
+        memory: 2Gi
+  loki:
+    auth_enabled: false
+    commonConfig:
+     replication_factor: 1
+    storage:
+      type: filesystem
+      filesystem:
+        chunks_directory: /var/loki/chunks
+        rules_directory: /var/loki/rules
+        admin_api_directory: /var/loki/admin
+    schemaConfig:
+      configs:
+        - from: "2024-04-01"
+          store: tsdb
+          object_store: filesystem
+          schema: v13
+          index:
+            prefix: loki_index_
+            period: 24h
+    pattern_ingester:
+      enabled: true
+    limits_config:
+      allow_structured_metadata: true
+      volume_enabled: true
+    ruler:
+      enable_api: true
+  
+  # Canary is testing containers, so disable.
+  lokiCanary:
+    enabled: false
+  test:
+    enabled: false
+
+  # Disable minio since we use filesystem.
+  minio:
+    enabled: false
+  
+  # Zero out replica counts of other deployment modes.
+  backend:
+    replicas: 0
+  read:
+    replicas: 0
+  write:
+    replicas: 0
+
+  ingester:
+    replicas: 0
+  querier:
+    replicas: 0
+  queryFrontend:
+    replicas: 0
+  queryScheduler:
+    replicas: 0
+  distributor:
+    replicas: 0
+  compactor:
+    replicas: 0
+  indexGateway:
+    replicas: 0
+  bloomCompactor:
+    replicas: 0
+  bloomGateway:
+    replicas: 0
+
+# ======================== Mimir ========================
+
+mimir:
+  enabled: false
+  image:
+    registry: docker.io
+    repository: grafana/mimir
+    pullPolicy: IfNotPresent
+    tag: null
+  persistence:
+    enabled: true
+    storageClass: ""
+    annotations: {}
+    accessModes:
+      - ReadWriteOnce
+    size: 10Gi
+    selector: {}
+  resources:
+    limits:
+      cpu: 2000m
+      memory: 4Gi
+    requests:
+      cpu: 1000m
+      memory: 2Gi
+  service:
+    type: ClusterIP
+    port: 9009
+    targetPort: http
+  readinessProbe:
+    httpGet:
+      path: /ready
+      port: http
+    initialDelaySeconds: 20
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+  livenessProbe:
+    httpGet:
+      path: /ready
+      port: http
+    initialDelaySeconds: 20
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+  updateStrategy:
+    type: RollingUpdate
+  annotations: {}
+  podAnnotations: {}
+  securityContext: {}
+  podSecurityContext: {}
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  extraEnv: []
+  envFrom: []
+  extraVolumes: []
+  extraVolumeMounts: []
+
+# ======================== Nginx Exporter ========================
+
+# Values for the Nginx Exporter: https://github.com/prometheus-community/helm-charts/blob/main/charts/prometheus-nginx-exporter/values.yaml
+nginx-exporter:
+  enabled: false
+  service:
+    type: ClusterIP
+    port: 9113
+  nginxServer: "http://langsmith-frontend.romain.svc.cluster.local:80/nginx_status"
+  additionalLabels: {}
+  additionalAnnotations: {}
+  podAnnotations: {}
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  extraEnv: []
+  initContainers: []
+  extraContainers: []
+  extraVolumes: []
+  extraVolumeMounts: []
+
+# ======================== OTEL Collector ========================
+
+otelCollector:
+  gatewayNameOverride: ""
+  sidecarNameOverride: ""
+  image:
+    repository: otel/opentelemetry-collector-contrib
+    tag: "0.123.0"
+  
+  serviceAccounts:
+    - "langsmith-ace-backend"
+    - "langsmith-backend"
+    - "langsmith-clickhouse"
+    - "langsmith-frontend"
+    - "langsmith-platform-backend"
+    - "langsmith-playground"
+    - "langsmith-postgres"
+    - "langsmith-queue"
+    - "langsmith-redis"
+  logs:
+    enabled: false
+  metrics:
+    enabled: false
+  traces:
+    enabled: false
+
+# ======================== Postgres Exporter ========================
+
+# Values for the Postgres Exporter: https://github.com/prometheus-community/helm-charts/blob/main/charts/prometheus-postgres-exporter/values.yaml
+postgres-exporter:
+  enabled: false
+  service:
+    type: ClusterIP
+    port: 80
+    targetPort: 9187
+  config:
+    datasource:
+      host: langsmith-postgres.romain.svc.cluster.local
+      user: postgres
+      password: postgres
+      database: postgres
+      port: "5432"
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  annotations: {}
+  podLabels: {}
+  extraEnv: []
+  initContainers: []
+  extraContainers: []
+  extraVolumes: []
+  extraVolumeMounts: []
+
+
+# ======================== Redis Exporter ========================
+
+# Values for the Redis Exporter: https://github.com/prometheus-community/helm-charts/blob/main/charts/prometheus-redis-exporter/values.yaml
+redis-exporter:
+  enabled: false
+  service:
+    type: ClusterIP
+    port: 9121
+    portName: http
+  redisAddress: langsmith-redis.romain.svc.cluster.local:6379
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  annotations: {}
+  labels: {}
+  extraArgs: {}
+
+    
+# ======================== Tempo ========================
+
+# Values for Tempo: https://github.com/grafana/helm-charts/blob/main/charts/tempo/values.yaml
+tempo:
+  enabled: false
+  tempo:
+    resources:
+      limits:
+        cpu: 2000m
+        memory: 6Gi
+      requests:
+        cpu: 1000m
+        memory: 4Gi
+    metricsGenerator:
+      enabled: true
+    reportingEnabled: false
+    overrides:
+      defaults:
+        metrics_generator:
+          processors: [service-graphs, span-metrics, local-blocks]
+  persistence:
+    enabled: true
+    storageClassName: ""
+    accessModes:
+      - ReadWriteOnce
+    size: 10Gi

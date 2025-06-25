@@ -24,10 +24,11 @@ spec:
       app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-{{ .Values.redis.name }}
   template:
     metadata:
-      {{- with .Values.redis.statefulSet.annotations }}
       annotations:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
+        {{- include "langsmith.commonPodAnnotations" . | nindent 8 }}
+        {{- with .Values.redis.statefulSet.annotations }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
       labels:
         {{- with.Values.redis.statefulSet.labels }}
             {{- toYaml . | nindent 8 }}

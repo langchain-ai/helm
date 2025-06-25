@@ -61,6 +61,15 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{- end }}
 
 {{/*
+Common pod annotations
+*/}}
+{{- define "langsmith.commonPodAnnotations" -}}
+{{- if .Values.commonPodAnnotations }}
+{{ toYaml .Values.commonPodAnnotations }}
+{{- end }}
+{{- end }}
+
+{{/*
 Selector labels
 */}}
 {{- define "langsmith.selectorLabels" -}}

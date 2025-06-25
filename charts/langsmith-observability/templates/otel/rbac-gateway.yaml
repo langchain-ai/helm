@@ -1,0 +1,49 @@
+{{- if .Values.otelCollector.metrics.enabled }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role # Role for the main Langsmith namespace
+metadata:
+  name: {{ include "langsmith-gateway-collector.name" . }}-role
+  namespace: {{ .Values.langsmithNamespace }}
+rules:
+  - apiGroups: [""]
+    resources: ["pods", "services", "endpoints"]
+    verbs: ["get", "watch", "list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role # Role for the observability namespace
+metadata:
+  name: {{ include "langsmith-gateway-collector.name" . }}-role
+  namespace: {{ .Release.Namespace }}
+rules:
+  - apiGroups: [""]
+    resources: ["pods", "services", "endpoints"]
+    verbs: ["get", "watch", "list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding # RoleBinding for the main Langsmith namespace
+metadata:
+  name: {{ include "langsmith-gateway-collector.name" . }}-rolebinding
+  namespace: {{ .Values.langsmithNamespace }}
+roleRef:
+  kind: Role
+  name: {{ include "langsmith-gateway-collector.name" . }}-role
+  namespace: {{ .Values.langsmithNamespace }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "langsmith-gateway-collector.name" . }}-collector
+    namespace: {{ .Release.Namespace }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding # Roleinding for the observability namespace
+metadata:
+  name: {{ include "langsmith-gateway-collector.name" . }}-rolebinding
+  namespace: {{ .Release.Namespace }}
+roleRef:
+  kind: Role
+  name: {{ include "langsmith-gateway-collector.name" . }}-role
+  namespace: {{ .Values.langsmithNamespace }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "langsmith-gateway-collector.name" . }}-collector
+    namespace: {{ .Release.Namespace }}
+{{- end }}
