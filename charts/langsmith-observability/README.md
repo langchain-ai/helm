@@ -124,6 +124,10 @@ Values for Loki Single Binary: `https://github.com/grafana/loki/blob/main/produc
 | loki.singleBinary.persistence.size | string | `"10Gi"` |  |
 | loki.singleBinary.persistence.storageClass | string | `nil` |  |
 | loki.singleBinary.replicas | int | `1` |  |
+| loki.singleBinary.resources.limits.cpu | string | `"3000m"` |  |
+| loki.singleBinary.resources.limits.memory | string | `"4Gi"` |  |
+| loki.singleBinary.resources.requests.cpu | string | `"2000m"` |  |
+| loki.singleBinary.resources.requests.memory | string | `"2Gi"` |  |
 | loki.test.enabled | bool | `false` |  |
 | loki.write.replicas | int | `0` |  |
 
@@ -163,6 +167,10 @@ Values for Loki Single Binary: `https://github.com/grafana/loki/blob/main/produc
 | mimir.readinessProbe.initialDelaySeconds | int | `20` |  |
 | mimir.readinessProbe.periodSeconds | int | `10` |  |
 | mimir.readinessProbe.timeoutSeconds | int | `5` |  |
+| mimir.resources.limits.cpu | string | `"2000m"` |  |
+| mimir.resources.limits.memory | string | `"4Gi"` |  |
+| mimir.resources.requests.cpu | string | `"1000m"` |  |
+| mimir.resources.requests.memory | string | `"2Gi"` |  |
 | mimir.securityContext | object | `{}` |  |
 | mimir.service.port | int | `9009` |  |
 | mimir.service.targetPort | string | `"http"` |  |
@@ -273,3 +281,7 @@ Values for Tempo: `https://github.com/grafana/helm-charts/blob/main/charts/tempo
 | tempo.tempo.overrides.defaults.metrics_generator.processors[1] | string | `"span-metrics"` |  |
 | tempo.tempo.overrides.defaults.metrics_generator.processors[2] | string | `"local-blocks"` |  |
 | tempo.tempo.reportingEnabled | bool | `false` |  |
+| tempo.tempo.resources.limits.cpu | string | `"2000m"` |  |
+| tempo.tempo.resources.limits.memory | string | `"6Gi"` |  |
+| tempo.tempo.resources.requests.cpu | string | `"1000m"` |  |
+| tempo.tempo.resources.requests.memory | string | `"4Gi"` |  |
