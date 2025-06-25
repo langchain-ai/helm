@@ -10,7 +10,6 @@ spec:
   config:
     receivers:
       filelog:
-        # TODO: ignore all logs from the collectors, check once deployed.
         exclude: 
           - '**/otc-container/*.log'
         include:
