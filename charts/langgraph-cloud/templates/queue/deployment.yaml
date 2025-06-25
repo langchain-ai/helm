@@ -81,6 +81,10 @@ spec:
             {{- with .Values.queue.deployment.extraEnv }}
               {{- toYaml . | nindent 12 }}
             {{- end }}
+          {{- with .Values.queue.deployment.envFrom }}
+          envFrom:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           image: {{ include "langGraphCloud.image" (dict "Values" .Values "Chart" .Chart "component" "apiServerImage") | quote }}
           imagePullPolicy: {{ .Values.images.apiServerImage.pullPolicy }}
           ports:
