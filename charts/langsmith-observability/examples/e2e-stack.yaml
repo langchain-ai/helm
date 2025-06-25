@@ -7,12 +7,12 @@ langsmithNamespace: "langsmith" # Change this value to match your LangSmith name
 langSmithReleaseName: "langsmith" # Change this value to match your LangSmith release name.
 
 # ======================== Metrics Exporters ========================
-kubestatemetrics:
+kube-state-metrics:
   enabled: true
   # Change this value to match your LangSmith namespace.
   namespaces: "langsmith"
 
-postgresexporter:
+postgres-exporter:
   enabled: true
   config:
     # Change these values to match your Postgres instance.
@@ -23,12 +23,12 @@ postgresexporter:
       database: postgres
       port: "5432"
 
-nginxexporter:
+nginx-exporter:
   enabled: true
   # Change this value to match your LangSmith frontend service.
   nginxServer: "http://langsmith-frontend.langsmith.svc.cluster.local:80/nginx_status"
 
-redisexporter:
+redis-exporter:
   enabled: true
   # Change this value to match your Redis instance.
   redisAddress: langsmith-redis.langsmith.svc.cluster.local:6379

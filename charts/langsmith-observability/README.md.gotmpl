@@ -17,7 +17,7 @@ values are listed in the `values.yaml` and this `README`. Refer to the `values.y
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
 {{- range .Values }}
-  {{- if not (or (hasPrefix "grafana" .Key) (hasPrefix "kubestatemetrics" .Key) (hasPrefix "loki" .Key) (hasPrefix "mimir" .Key) (hasPrefix "minio" .Key) (hasPrefix "nginxexporter" .Key) (hasPrefix "otelCollector" .Key) (hasPrefix "postgresexporter" .Key) (hasPrefix "redisexporter" .Key) (hasPrefix "tempo" .Key)) }}
+  {{- if not (or (hasPrefix "grafana" .Key) (hasPrefix "kube-state-metrics" .Key) (hasPrefix "loki" .Key) (hasPrefix "mimir" .Key) (hasPrefix "minio" .Key) (hasPrefix "nginx-exporter" .Key) (hasPrefix "otelCollector" .Key) (hasPrefix "postgres-exporter" .Key) (hasPrefix "redis-exporter" .Key) (hasPrefix "tempo" .Key)) }}
 | {{ .Key }} | {{ .Type }} | {{ if .Default }}{{ .Default }}{{ else }}{{ .AutoDefault }}{{ end }} | {{ if .Description }}{{ .Description }}{{ else }}{{ .AutoDescription }}{{ end }} |
   {{- end }}
 {{- end }}
@@ -41,14 +41,14 @@ Values for Kube State Metrics: `https://github.com/prometheus-community/helm-cha
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
 {{- range .Values }}
-  {{- if hasPrefix "kubestatemetrics" .Key }}
+  {{- if hasPrefix "kube-state-metrics" .Key }}
 | {{ .Key }} | {{ .Type }} | {{ if .Default }}{{ .Default }}{{ else }}{{ .AutoDefault }}{{ end }} | {{ if .Description }}{{ .Description }}{{ else }}{{ .AutoDescription }}{{ end }} |
   {{- end }}
 {{- end }}
 
 ## Loki
 
-Values for Loki: `https://github.com/grafana/loki/blob/main/production/helm/loki/values.yaml`
+Values for Loki Single Binary: `https://github.com/grafana/loki/blob/main/production/helm/loki/values.yaml#L1364`
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
@@ -60,24 +60,11 @@ Values for Loki: `https://github.com/grafana/loki/blob/main/production/helm/loki
 
 ## Mimir
 
-Values for Mimir: `https://github.com/grafana/helm-charts/blob/main/charts/mimir/values.yaml`
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
 {{- range .Values }}
   {{- if hasPrefix "mimir" .Key }}
-| {{ .Key }} | {{ .Type }} | {{ if .Default }}{{ .Default }}{{ else }}{{ .AutoDefault }}{{ end }} | {{ if .Description }}{{ .Description }}{{ else }}{{ .AutoDescription }}{{ end }} |
-  {{- end }}
-{{- end }}
-
-## Minio
-
-Values for Minio: `https://github.com/bitnami/charts/blob/main/bitnami/minio/values.yaml`
-
-| Key | Type | Default | Description |
-|-----|------|---------|-------------|
-{{- range .Values }}
-  {{- if hasPrefix "minio" .Key }}
 | {{ .Key }} | {{ .Type }} | {{ if .Default }}{{ .Default }}{{ else }}{{ .AutoDefault }}{{ end }} | {{ if .Description }}{{ .Description }}{{ else }}{{ .AutoDescription }}{{ end }} |
   {{- end }}
 {{- end }}
@@ -89,14 +76,13 @@ Values for Nginx Exporter: `https://github.com/prometheus-community/helm-charts/
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
 {{- range .Values }}
-  {{- if hasPrefix "nginxexporter" .Key }}
+  {{- if hasPrefix "nginx-exporter" .Key }}
 | {{ .Key }} | {{ .Type }} | {{ if .Default }}{{ .Default }}{{ else }}{{ .AutoDefault }}{{ end }} | {{ if .Description }}{{ .Description }}{{ else }}{{ .AutoDescription }}{{ end }} |
   {{- end }}
 {{- end }}
 
 ## OTEL Collector
 
-Values for OTEL Collector: `https://github.com/open-telemetry/opentelemetry-helm-charts/blob/main/charts/opentelemetry-collector-contrib/values.yaml`
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
@@ -113,7 +99,7 @@ Values for Postgres Exporter: `https://github.com/prometheus-community/helm-char
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
 {{- range .Values }}
-  {{- if hasPrefix "postgresexporter" .Key }}
+  {{- if hasPrefix "postgres-exporter" .Key }}
 | {{ .Key }} | {{ .Type }} | {{ if .Default }}{{ .Default }}{{ else }}{{ .AutoDefault }}{{ end }} | {{ if .Description }}{{ .Description }}{{ else }}{{ .AutoDescription }}{{ end }} |
   {{- end }}
 {{- end }}
@@ -125,14 +111,14 @@ Values for Redis Exporter: `https://github.com/prometheus-community/helm-charts/
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
 {{- range .Values }}
-  {{- if hasPrefix "redisexporter" .Key }}
+  {{- if hasPrefix "redis-exporter" .Key }}
 | {{ .Key }} | {{ .Type }} | {{ if .Default }}{{ .Default }}{{ else }}{{ .AutoDefault }}{{ end }} | {{ if .Description }}{{ .Description }}{{ else }}{{ .AutoDescription }}{{ end }} |
   {{- end }}
 {{- end }}
 
 ## Tempo
 
-Values for Tempo: `https://github.com/grafana/helm-charts/blob/main/charts/tempo-distributed/values.yaml`
+Values for Tempo: `https://github.com/grafana/helm-charts/blob/main/charts/tempo/values.yaml`
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|

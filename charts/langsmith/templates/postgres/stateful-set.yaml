@@ -43,12 +43,8 @@ spec:
       app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-{{ .Values.postgres.name }}
   template:
     metadata:
-      {{- $observabilityAnnotations := include "langsmith.observabilityAnnotations" . }}
-      {{- if or $observabilityAnnotations .Values.postgres.statefulSet.annotations }}
       annotations:
-        {{- if $observabilityAnnotations }}
-          {{- $observabilityAnnotations | nindent 8 }}
-        {{- end }}
+        {{- include "langsmith.commonPodAnnotations" . | nindent 8 }}
         {{- with .Values.postgres.statefulSet.annotations }}
           {{- toYaml . | nindent 8 }}
         {{- end }}

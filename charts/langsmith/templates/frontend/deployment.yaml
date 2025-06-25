@@ -53,7 +53,7 @@ spec:
   template:
     metadata:
       annotations:
-      {{- include "langsmith.observabilityAnnotations" . | nindent 8 }}
+      {{- include "langsmith.commonPodAnnotations" . | nindent 8 }}
       {{- include "langsmith.checksumAnnotations" . | nindent 8 }}
       {{- with .Values.frontend.deployment.annotations }}
         {{- toYaml . | nindent 8 }}

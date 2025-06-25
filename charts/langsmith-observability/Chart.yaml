@@ -12,23 +12,23 @@ dependencies:
   - name: prometheus-postgres-exporter
     version: 6.10.2
     repository: https://prometheus-community.github.io/helm-charts
-    condition: postgresexporter.enabled
-    alias: postgresexporter
+    condition: postgres-exporter.enabled
+    alias: postgres-exporter
   - name: prometheus-redis-exporter
     version: 6.11.0
     repository: https://prometheus-community.github.io/helm-charts
-    condition: redisexporter.enabled
-    alias: redisexporter
+    condition: redis-exporter.enabled
+    alias: redis-exporter
   - name: prometheus-nginx-exporter
     version: 1.6.0
     repository: https://prometheus-community.github.io/helm-charts
-    condition: nginxexporter.enabled
-    alias: nginxexporter
+    condition: nginx-exporter.enabled
+    alias: nginx-exporter
   - name: kube-state-metrics
     version: 5.37.0
     repository: https://prometheus-community.github.io/helm-charts
-    condition: kubestatemetrics.enabled
-    alias: kubestatemetrics
+    condition: kube-state-metrics.enabled
+    alias: kube-state-metrics
   # LGTM Stack
   - name: grafana
     version: 9.2.6

@@ -6,6 +6,8 @@ nameOverride: ""
 fullnameOverride: ""
 # -- Annotations that will be applied to all resources created by the chart
 commonAnnotations: {}
+# -- Annotations that will be applied to all pods created by the chart
+commonPodAnnotations: {}
 # -- Labels that will be applied to all resources created by the chart
 commonLabels: {}
 # -- Common environment variables that will be applied to all deployments/statefulsets except for the playground/aceBackend services (which are sandboxed). Be careful not to override values already specified by the chart.
@@ -172,11 +174,6 @@ config:
     coBrandingEnabled: true
 
   observability:
-    # This will add an annotation to your containers telling the OTEL Operator to bring up a sidecar container. Used in the LangSmith Observability helm chart.
-    sidecarCollector:
-      enabled: false
-      # Replace with your LangSmith Observability namespace.
-      namespace: "langsmith-observability"
     tracing:
       enabled: false
       # Replace this with the endpoint of your trace collector. If you are using the LangSmith Observability helm chart, this will be the endpoint of the OTEL Gateway collector.

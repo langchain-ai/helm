@@ -30,6 +30,7 @@ spec:
   template:
     metadata:
       annotations:
+      {{- include "langsmith.commonPodAnnotations" . | nindent 8 }}
       {{- include "langsmith.checksumAnnotations" . | nindent 8 }}
       {{- with .Values.hostBackend.deployment.annotations }}
         {{- toYaml . | nindent 8 }}

@@ -29,12 +29,10 @@ spec:
       port: {{ .Values.clickhouse.service.nativePort }}
       targetPort: ch-native
       protocol: TCP
-    {{- if .Values.clickhouse.metrics.enabled }}
     - name: metrics
       port: {{ .Values.clickhouse.metrics.port }}
       targetPort: {{ .Values.clickhouse.metrics.port }}
       protocol: TCP
-    {{- end }}
   selector:
     {{- include "langsmith.selectorLabels" . | nindent 4 }}
     app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-{{ .Values.clickhouse.name }}

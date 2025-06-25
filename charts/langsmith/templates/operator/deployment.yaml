@@ -22,6 +22,7 @@ spec:
   template:
     metadata:
       annotations:
+        {{- include "langsmith.commonPodAnnotations" . | nindent 8 }}
         {{- with .Values.operator.deployment.annotations }}
         {{- toYaml . | nindent 8 }}
         {{- end }}

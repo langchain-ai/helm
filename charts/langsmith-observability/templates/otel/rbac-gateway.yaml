@@ -20,7 +20,7 @@ rules:
     verbs: ["get", "watch", "list"]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding # RolBinding for the main Langsmith namespace
+kind: RoleBinding # RoleBinding for the main Langsmith namespace
 metadata:
   name: get-pod-metrics-binding-langsmith
   namespace: {{ .Values.langsmithNamespace }}
@@ -34,7 +34,7 @@ subjects:
     namespace: {{ .Release.Namespace }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding # RolBinding for the observability namespace
+kind: RoleBinding # Roleinding for the observability namespace
 metadata:
   name: get-pod-metrics-binding-langsmith
   namespace: {{ .Release.Namespace }}

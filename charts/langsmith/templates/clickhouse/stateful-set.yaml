@@ -42,7 +42,7 @@ spec:
   template:
     metadata:
       annotations:
-        {{- include "langsmith.observabilityAnnotations" . | nindent 8 }}
+        {{- include "langsmith.commonPodAnnotations" . | nindent 8 }}
         {{- with .Values.clickhouse.statefulSet.annotations }}
           {{- toYaml . | nindent 8 }}
         {{- end }}
@@ -84,11 +84,9 @@ spec:
             - name: ch-native
               containerPort: {{ .Values.clickhouse.containerNativePort }}
               protocol: TCP
-            {{- if .Values.clickhouse.metrics.enabled }}
             - name: ch-metrics
               containerPort: {{ .Values.clickhouse.metrics.port }}
               protocol: TCP
-            {{- end }}
           {{- with .Values.clickhouse.statefulSet.startupProbe }}
           startupProbe:
             {{- toYaml . | nindent 12 }}
@@ -119,11 +117,9 @@ spec:
             - mountPath: /etc/clickhouse-server/config.d/logging_config.xml
               name: clickhouse-conf
               subPath: logging_config.xml
-            {{- if .Values.clickhouse.metrics.enabled }}
             - mountPath: /etc/clickhouse-server/config.d/metrics_config.xml
               name: clickhouse-conf
               subPath: metrics_config.xml
-            {{- end }}
           {{- with .Values.clickhouse.statefulSet.extraContainerConfig }}
             {{- toYaml . | nindent 10 }}
           {{- end }}
@@ -155,10 +151,8 @@ spec:
                 path: users.xml
               - key: logging_config.xml
                 path: logging_config.xml
-              {{- if .Values.clickhouse.metrics.enabled }}
               - key: metrics_config.xml
                 path: metrics_config.xml
-              {{- end }}
       {{- with .Values.clickhouse.statefulSet.volumes }}
           {{- toYaml . | nindent 8 }}
       {{- end }}

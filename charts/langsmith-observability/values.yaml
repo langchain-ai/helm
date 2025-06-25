@@ -4,6 +4,7 @@ langsmithNamespace: "langsmith"
 # The release name of the langsmith release.
 langSmithReleaseName: "langsmith"
 
+# The name override for the observability stack.
 nameOverride: ""
 
 # ======================== Grafana ========================
@@ -57,7 +58,7 @@ grafana:
 # ======================== Kube State Metrics ========================
 
 # Values for Kube State Metrics: https://github.com/prometheus-community/helm-charts/blob/main/charts/kube-state-metrics/values.yaml
-kubestatemetrics:
+kube-state-metrics:
   enabled: false
   service:
     type: ClusterIP
@@ -73,7 +74,7 @@ kubestatemetrics:
 
 # ======================== Loki ========================
 
-# Values for Lokig Single Binary: https://github.com/grafana/loki/blob/main/production/helm/loki/values.yaml#L1364
+# Values for Loki Single Binary: https://github.com/grafana/loki/blob/main/production/helm/loki/values.yaml#L1364
 loki:
   enabled: false
   deploymentMode: SingleBinary
@@ -192,13 +193,23 @@ mimir:
 # ======================== Nginx Exporter ========================
 
 # Values for the Nginx Exporter: https://github.com/prometheus-community/helm-charts/blob/main/charts/prometheus-nginx-exporter/values.yaml
-nginxexporter:
+nginx-exporter:
   enabled: false
   service:
     type: ClusterIP
     port: 9113
   nginxServer: "http://langsmith-frontend.romain.svc.cluster.local:80/nginx_status"
-
+  additionalLabels: {}
+  additionalAnnotations: {}
+  podAnnotations: {}
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  extraEnv: []
+  initContainers: []
+  extraContainers: []
+  extraVolumes: []
+  extraVolumeMounts: []
 
 # ======================== OTEL Collector ========================
 
@@ -227,7 +238,7 @@ otelCollector:
 # ======================== Postgres Exporter ========================
 
 # Values for the Postgres Exporter: https://github.com/prometheus-community/helm-charts/blob/main/charts/prometheus-postgres-exporter/values.yaml
-postgresexporter:
+postgres-exporter:
   enabled: false
   service:
     type: ClusterIP
@@ -240,18 +251,34 @@ postgresexporter:
       password: postgres
       database: postgres
       port: "5432"
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  annotations: {}
+  podLabels: {}
+  extraEnv: []
+  initContainers: []
+  extraContainers: []
+  extraVolumes: []
+  extraVolumeMounts: []
 
 
 # ======================== Redis Exporter ========================
 
 # Values for the Redis Exporter: https://github.com/prometheus-community/helm-charts/blob/main/charts/prometheus-redis-exporter/values.yaml
-redisexporter:
+redis-exporter:
   enabled: false
   service:
     type: ClusterIP
     port: 9121
     portName: http
   redisAddress: langsmith-redis.romain.svc.cluster.local:6379
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  annotations: {}
+  labels: {}
+  extraArgs: {}
 
     
 # ======================== Tempo ========================
