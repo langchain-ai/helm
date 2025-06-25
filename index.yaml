@@ -3168,6 +3168,54 @@ entries:
     urls:
     - https://github.com/langchain-ai/helm/releases/download/langsmith-0.1.1/langsmith-0.1.1.tgz
     version: 0.1.1
+  langsmith-observability:
+  - apiVersion: v2
+    appVersion: 0.1.0
+    created: "2025-06-25T21:29:07.649493516Z"
+    dependencies:
+    - alias: postgres-exporter
+      condition: postgres-exporter.enabled
+      name: prometheus-postgres-exporter
+      repository: https://prometheus-community.github.io/helm-charts
+      version: 6.10.2
+    - alias: redis-exporter
+      condition: redis-exporter.enabled
+      name: prometheus-redis-exporter
+      repository: https://prometheus-community.github.io/helm-charts
+      version: 6.11.0
+    - alias: nginx-exporter
+      condition: nginx-exporter.enabled
+      name: prometheus-nginx-exporter
+      repository: https://prometheus-community.github.io/helm-charts
+      version: 1.6.0
+    - alias: kube-state-metrics
+      condition: kube-state-metrics.enabled
+      name: kube-state-metrics
+      repository: https://prometheus-community.github.io/helm-charts
+      version: 5.37.0
+    - condition: grafana.enabled
+      name: grafana
+      repository: https://grafana.github.io/helm-charts
+      version: 9.2.6
+    - condition: loki.enabled
+      name: loki
+      repository: https://grafana.github.io/helm-charts
+      version: 6.30.1
+    - alias: tempo
+      condition: tempo.enabled
+      name: tempo
+      repository: https://grafana.github.io/helm-charts
+      version: 1.23.1
+    description: Helm chart to deploy the observability stack for LangSmith.
+    digest: e2ecde2494492b86c2c635b9d118b228c246d836ad55de5b2da4c6e7c5d826b1
+    maintainers:
+    - email: romain@langchain.dev
+      name: Romain
+    name: langsmith-observability
+    type: application
+    urls:
+    - https://github.com/langchain-ai/helm/releases/download/langsmith-observability-0.1.0/langsmith-observability-0.1.0.tgz
+    version: 0.1.0
   open-gpts:
   - apiVersion: v2
     appVersion: 0.1.0
@@ -3211,4 +3259,4 @@ entries:
     urls:
     - https://github.com/langchain-ai/helm/releases/download/open-gpts-0.1.0/open-gpts-0.1.0.tgz
     version: 0.1.0
-generated: "2025-06-25T18:58:26.381850596Z"
+generated: "2025-06-25T21:29:07.649841009Z"
