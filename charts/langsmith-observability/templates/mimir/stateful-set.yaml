@@ -21,7 +21,9 @@ spec:
         app: {{ include "langsmith-mimir.name" . }}
       annotations:
         checksum/config: {{ include (print $.Template.BasePath "/mimir/config-map.yaml") . | sha256sum }}
+        {{- if .Values.mimir.podAnnotations }}
         {{- toYaml .Values.mimir.podAnnotations | nindent 8 }}
+        {{- end }}
     spec:
       containers:
         - name: mimir
@@ -50,13 +52,17 @@ spec:
             {{- toYaml . | nindent 10 }}
           {{- end }}
           volumeMounts:
-          {{- if .Values.mimir.extraVolumeMounts -}}
-          {{ toYaml .Values.mimir.extraVolumeMounts | nindent 8 }}
+            {{- if .Values.mimir.extraVolumeMounts }}
+            {{- toYaml .Values.mimir.extraVolumeMounts | nindent 12 }}
+            {{- end }}
+            - mountPath: /etc/mimir
+              name: mimir-conf
+            - mountPath: /tmp/mimir
+              name: storage
+          {{- with .Values.mimir.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
           {{- end }}
-          - mountPath: /etc/mimir
-            name: mimir-conf
-          - mountPath: /tmp/mimir
-            name: storage
       {{- with .Values.mimir.affinity }}
       affinity:
         {{- toYaml . | nindent 8 }}
@@ -74,19 +80,19 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       volumes:
-        {{- if .Values.mimir.extraVolumes -}}
-          {{ toYaml .Values.mimir.extraVolumes | nindent 12 }}
+        {{- if .Values.mimir.extraVolumes }}
+        {{- toYaml .Values.mimir.extraVolumes | nindent 8 }}
         {{- end }}
-          - name: mimir-conf
-            configMap:
-              name: {{ include "langsmith-mimir.name" . }}
-              items:
-                - key: "mimir.yaml"
-                  path: "mimir.yaml"
-          {{- if not .Values.mimir.persistence.enabled }}
-          - name: storage
-            emptyDir: { }
-          {{- end }}
+        - name: mimir-conf
+          configMap:
+            name: {{ include "langsmith-mimir.name" . }}
+            items:
+              - key: "mimir.yaml"
+                path: "mimir.yaml"
+        {{- if not .Values.mimir.persistence.enabled }}
+        - name: storage
+          emptyDir: { }
+        {{- end }}
   updateStrategy:
     {{- toYaml .Values.mimir.updateStrategy | nindent 4 }}
   {{- if .Values.mimir.persistence.enabled }}

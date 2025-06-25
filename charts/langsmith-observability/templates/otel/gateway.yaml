@@ -14,7 +14,7 @@ spec:
         config:
           scrape_configs:
           # Fetches all the metrics from the langsmith namespace (LS services + CH)
-            - job_name: langsmith-services
+            - job_name: langsmith-metrics
               metrics_path: /metrics
               kubernetes_sd_configs:
                 - role: endpoints
@@ -23,7 +23,7 @@ spec:
               relabel_configs:
                 # Keeps all services with the name langsmith-.*
                 - source_labels: [__meta_kubernetes_service_name]
-                  regex: "{{ include "langsmith-observability.name" .}}-.*"
+                  regex: "{{ .Values.langSmithReleaseName }}-.*"
                   action: keep
                 - source_labels: [__meta_kubernetes_endpoint_port_name]
                   regex: "(backend|platform|playground|host-backend|metrics)"
@@ -45,7 +45,7 @@ spec:
                     names: [{{ .Release.Namespace }}]   
               relabel_configs:
                 - source_labels: [__meta_kubernetes_service_name]
-                  regex: "{{ include "langsmith-observability.name" .}}-.*"
+                  regex: "{{ include "langsmith-observability.name" . }}-.*"
                   action: keep
                 - source_labels: [__meta_kubernetes_endpoint_port_name]
                   regex: "(http)"
@@ -80,6 +80,7 @@ spec:
             match_type: regexp
             metric_names:
               - "go_.*"
+              - "cortex_.*"
     
     exporters:
       {{ if .Values.otelCollector.metrics.enabled }}
@@ -88,7 +89,7 @@ spec:
       {{ end }}
       {{ if .Values.otelCollector.traces.enabled }}
       otlphttp/traces:
-        endpoint: http://{{ include "langsmith-observability.name"}}-tempo.{{ .Release.Namespace }}.svc.cluster.local:4318
+        endpoint: http://{{ include "langsmith-observability.name" .}}-tempo.{{ .Release.Namespace }}.svc.cluster.local:4318
       {{ end }}
 
     service:

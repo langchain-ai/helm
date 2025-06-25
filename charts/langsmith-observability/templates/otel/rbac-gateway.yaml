@@ -27,10 +27,10 @@ metadata:
 roleRef:
   kind: Role
   name: {{ include "langsmith-gateway-collector.name" . }}-role
-  namespace: {{ .Release.Namespace }}
+  namespace: {{ .Values.langsmithNamespace }}
 subjects:
   - kind: ServiceAccount
-    name: {{ include "langsmith-gateway-collector.name" . }}
+    name: {{ include "langsmith-gateway-collector.name" . }}-collector
     namespace: {{ .Release.Namespace }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
@@ -44,6 +44,6 @@ roleRef:
   namespace: {{ .Values.langsmithNamespace }}
 subjects:
   - kind: ServiceAccount
-    name: {{ include "langsmith-gateway-collector.name" . }}
+    name: {{ include "langsmith-gateway-collector.name" . }}-collector
     namespace: {{ .Release.Namespace }}
 {{- end }}

@@ -84,6 +84,13 @@ loki:
       enabled: true
       size: 10Gi
       storageClass: null
+    resources:
+      limits:
+        cpu: 3000m
+        memory: 4Gi
+      requests:
+        cpu: 2000m
+        memory: 2Gi
   loki:
     auth_enabled: false
     commonConfig:
@@ -165,6 +172,13 @@ mimir:
       - ReadWriteOnce
     size: 10Gi
     selector: {}
+  resources:
+    limits:
+      cpu: 2000m
+      memory: 4Gi
+    requests:
+      cpu: 1000m
+      memory: 2Gi
   service:
     type: ClusterIP
     port: 9009
@@ -298,6 +312,13 @@ redis-exporter:
 tempo:
   enabled: false
   tempo:
+    resources:
+      limits:
+        cpu: 2000m
+        memory: 6Gi
+      requests:
+        cpu: 1000m
+        memory: 4Gi
     metricsGenerator:
       enabled: true
     reportingEnabled: false

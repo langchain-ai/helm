@@ -53,6 +53,7 @@ OTEL Gatway Collector Resource Name
 {{- else -}}
 {{- printf "%s-%s" (include "langsmith-observability.name" .) "collector-gateway" | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
+{{- end -}}
 
 {{/*
 OTEL Sidecar Collector Resource Name
