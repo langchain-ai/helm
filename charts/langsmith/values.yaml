@@ -72,7 +72,7 @@ ingress:
 
 # Whether to use the Gateway API for ingress. Will create an HTTPRoute for LangSmith and an HTTPRoute for each LangGraph platform deployment.
 gateway:
-  enabled: true
+  enabled: false
   name: ""
   namespace: ""
   hostname: ""

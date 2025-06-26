@@ -17,7 +17,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | commonLabels | object | `{}` | Labels that will be applied to all resources created by the chart |
 | fullnameOverride | string | `""` | String to fully override `"langsmith.fullname"` |
 | gateway.annotations | object | `{}` |  |
-| gateway.enabled | bool | `true` |  |
+| gateway.enabled | bool | `false` |  |
 | gateway.hostname | string | `""` |  |
 | gateway.labels | object | `{}` |  |
 | gateway.name | string | `""` |  |
