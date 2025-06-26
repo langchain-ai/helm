@@ -80,8 +80,10 @@ spec:
             {{- toYaml .Values.listener.deployment.resources | nindent 12 }}
           securityContext:
             {{- toYaml .Values.listener.deployment.securityContext | nindent 12 }}
-          {{- with .Values.listener.deployment.volumeMounts }}
           volumeMounts:
+            - name: templates-volume
+              mountPath: /code/host-backend/host/k8s_templates
+          {{- with .Values.listener.deployment.volumeMounts }}
             {{- toYaml . | nindent 12 }}
           {{- end }}
           {{- with .Values.listener.deployment.extraContainerConfig }}
@@ -106,7 +108,15 @@ spec:
       topologySpreadConstraints:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.listener.deployment.volumes }}
       volumes:
+        - name: templates-volume
+          configMap:
+            name: {{ include "langgraphDataplane.fullname" . }}-listener-config
+            items:
+              - key: db-statefulset.yaml.tmpl
+                path: db-statefulset.yaml.tmpl
+              - key: redis-deployment.yaml.tmpl
+                path: redis-deployment.yaml.tmpl
+      {{- with .Values.listener.deployment.volumes }}
           {{- toYaml . | nindent 8 }}
       {{- end }}
