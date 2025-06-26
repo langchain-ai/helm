@@ -12,6 +12,10 @@ config:
     enabled: true
     langgraphPlatformLicenseKey: "YOUR_LANGGRAPH_PLATFORM_LICENSE_KEY"
 
+# Ingress or Gateway must be enabled when using the LangGraph Platform.
+ingress:
+  enabled: true
+  hostname: "test.smith.langchain.dev"
 # Note, you likely should tweak the values to match something that fits your local development environment.
 aceBackend:
   deployment:
