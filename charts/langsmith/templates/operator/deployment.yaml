@@ -94,12 +94,19 @@ spec:
             value: {{ .Values.operator.watchNamespaces | quote }}
           - name: KEDA_ENABLED
             value: {{ .Values.operator.kedaEnabled | quote }}
+        {{- if .Values.gateway.enabled }}
+          - name: GATEWAY_NAME
+            value: {{ .Values.gateway.name | quote }}
+          - name: GATEWAY_NAMESPACE
+            value: {{ .Values.gateway.namespace | default .Release.Namespace | quote }}
+        {{- else }}
           - name: SHARED_INGRESS_NAME
             value: {{ include "langsmith.fullname" . }}-ingress
           - name: SHARED_INGRESS_NAMESPACE
             value: {{ .Release.Namespace }}
+        {{- end }}
           - name: ROOT_DOMAIN
-            value: {{ .Values.config.langgraphPlatform.rootDomain | default .Values.ingress.hostname | quote }}
+            value: {{ coalesce .Values.config.langgraphPlatform.rootDomain .Values.ingress.hostname .Values.gateway.hostname | quote }}
           - name: TLS_ENABLED
             value: {{ .Values.config.langgraphPlatform.tlsEnabled | quote }}
         {{- with .Values.operator.deployment.extraEnv }}

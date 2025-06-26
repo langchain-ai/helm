@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.10.31](https://img.shields.io/badge/Version-0.10.31-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.10.85](https://img.shields.io/badge/AppVersion-0.10.85-informational?style=flat-square)
+![Version: 0.10.32](https://img.shields.io/badge/Version-0.10.32-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.10.87](https://img.shields.io/badge/AppVersion-0.10.87-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -17,31 +17,39 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | commonLabels | object | `{}` | Labels that will be applied to all resources created by the chart |
 | commonPodAnnotations | object | `{}` | Annotations that will be applied to all pods created by the chart |
 | fullnameOverride | string | `""` | String to fully override `"langsmith.fullname"` |
+| gateway.annotations | object | `{}` |  |
+| gateway.enabled | bool | `false` |  |
+| gateway.hostname | string | `""` |  |
+| gateway.labels | object | `{}` |  |
+| gateway.name | string | `""` |  |
+| gateway.namespace | string | `""` |  |
+| gateway.sectionName | string | `""` |  |
+| gateway.subdomain | string | `""` |  |
 | images.aceBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.aceBackendImage.repository | string | `"docker.io/langchain/langsmith-ace-backend"` |  |
-| images.aceBackendImage.tag | string | `"0.10.85"` |  |
+| images.aceBackendImage.tag | string | `"0.10.87"` |  |
 | images.backendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.backendImage.repository | string | `"docker.io/langchain/langsmith-backend"` |  |
-| images.backendImage.tag | string | `"0.10.85"` |  |
+| images.backendImage.tag | string | `"0.10.87"` |  |
 | images.clickhouseImage.pullPolicy | string | `"Always"` |  |
 | images.clickhouseImage.repository | string | `"docker.io/clickhouse/clickhouse-server"` |  |
 | images.clickhouseImage.tag | string | `"24.8"` |  |
 | images.frontendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.frontendImage.repository | string | `"docker.io/langchain/langsmith-frontend"` |  |
-| images.frontendImage.tag | string | `"0.10.85"` |  |
+| images.frontendImage.tag | string | `"0.10.87"` |  |
 | images.hostBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.hostBackendImage.repository | string | `"docker.io/langchain/hosted-langserve-backend"` |  |
-| images.hostBackendImage.tag | string | `"0.10.85"` |  |
+| images.hostBackendImage.tag | string | `"0.10.87"` |  |
 | images.imagePullSecrets | list | `[]` | Secrets with credentials to pull images from a private registry. Specified as name: value. |
 | images.operatorImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.operatorImage.repository | string | `"docker.io/langchain/langgraph-operator"` |  |
-| images.operatorImage.tag | string | `"f8f6901"` |  |
+| images.operatorImage.tag | string | `"8a7350b"` |  |
 | images.platformBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.platformBackendImage.repository | string | `"docker.io/langchain/langsmith-go-backend"` |  |
-| images.platformBackendImage.tag | string | `"0.10.85"` |  |
+| images.platformBackendImage.tag | string | `"0.10.87"` |  |
 | images.playgroundImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.playgroundImage.repository | string | `"docker.io/langchain/langsmith-playground"` |  |
-| images.playgroundImage.tag | string | `"0.10.85"` |  |
+| images.playgroundImage.tag | string | `"0.10.87"` |  |
 | images.postgresImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.postgresImage.repository | string | `"docker.io/postgres"` |  |
 | images.postgresImage.tag | string | `"14.7"` |  |
@@ -53,7 +61,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | images.redisImage.tag | string | `"7"` |  |
 | images.registry | string | `""` | If supplied, all children <image_name>.repository values will be prepended with this registry name + `/` |
 | ingress.annotations | object | `{}` |  |
-| ingress.enabled | bool | `false` | Set to true if langgraph platform enabled. |
+| ingress.enabled | bool | `false` |  |
 | ingress.hostname | string | `""` |  |
 | ingress.ingressClassName | string | `""` |  |
 | ingress.labels | object | `{}` |  |
@@ -838,7 +846,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | operator.serviceAccount.create | bool | `true` |  |
 | operator.serviceAccount.labels | object | `{}` |  |
 | operator.serviceAccount.name | string | `""` |  |
-| operator.templates.deployment | string | `"apiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: ${name}\n  namespace: ${namespace}\nspec:\n  replicas: ${replicas}\n  selector:\n    matchLabels:\n      app: ${name}\n  template:\n    metadata:\n      labels:\n        app: ${name}\n    spec:\n      enableServiceLinks: false\n      containers:\n      - name: api-server\n        image: ${image}\n        ports:\n        - name: api-server\n          containerPort: 8000\n          protocol: TCP\n        livenessProbe:\n          httpGet:\n            path: /lgp/${name}/ok?check_db=1\n            port: 8000\n          periodSeconds: 15\n          timeoutSeconds: 5\n          failureThreshold: 6\n        readinessProbe:\n          httpGet:\n            path: /lgp/${name}/ok\n            port: 8000\n          periodSeconds: 15\n          timeoutSeconds: 5\n          failureThreshold: 6\n"` |  |
+| operator.templates.deployment | string | `"apiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: ${name}\n  namespace: ${namespace}\nspec:\n  replicas: ${replicas}\n  selector:\n    matchLabels:\n      app: ${name}\n  template:\n    metadata:\n      labels:\n        app: ${name}\n    spec:\n      enableServiceLinks: false\n      containers:\n      - name: api-server\n        image: ${image}\n        ports:\n        - name: api-server\n          containerPort: 8000\n          protocol: TCP\n        livenessProbe:\n          httpGet:\n            path: /ok\n            port: 8000\n          periodSeconds: 15\n          timeoutSeconds: 5\n          failureThreshold: 6\n        readinessProbe:\n          httpGet:\n            path: /ok\n            port: 8000\n          periodSeconds: 15\n          timeoutSeconds: 5\n          failureThreshold: 6\n"` |  |
 | operator.templates.service | string | `"apiVersion: v1\nkind: Service\nmetadata:\n  name: ${name}\n  namespace: ${namespace}\nspec:\n  type: ClusterIP\n  selector:\n    app: ${name}\n  ports:\n  - name: api-server\n    protocol: TCP\n    port: 8000\n    targetPort: 8000\n"` |  |
 | operator.watchNamespaces | string | `""` |  |
 

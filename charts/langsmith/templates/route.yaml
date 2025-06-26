@@ -1,0 +1,37 @@
+{{- if .Values.gateway.enabled }}
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: {{ include "langsmith.fullname" . }}
+  annotations:
+    {{- include "langsmith.annotations" . | nindent 4 }}
+    {{- with .Values.gateway.annotations }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+  labels:
+    {{- include "langsmith.labels" . | nindent 4 }}
+    {{- with .Values.gateway.labels }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  parentRefs:
+  - name: {{ .Values.gateway.name }}
+    {{- if .Values.gateway.namespace }}
+    namespace: {{ .Values.gateway.namespace }}
+    {{- end }}
+    {{- if .Values.gateway.sectionName }}
+    sectionName: {{ .Values.gateway.sectionName }}
+    {{- end }}
+  {{- if .Values.gateway.hostname }}
+  hostnames:
+  - {{ .Values.gateway.hostname | quote }}
+  {{- end }}
+  rules:
+  - matches:
+    - path:
+        type: PathPrefix
+        value: {{ ternary "/" (printf "/%s" .Values.gateway.subdomain) (empty .Values.gateway.subdomain) }}
+    backendRefs:
+    - name: {{ include "langsmith.fullname" . }}-{{ .Values.frontend.name }}
+      port: {{ .Values.frontend.service.httpPort }}
+{{- end }}

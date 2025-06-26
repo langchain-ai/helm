@@ -12,6 +12,9 @@ config:
     enabled: true
     langgraphPlatformLicenseKey: "YOUR_LANGGRAPH_PLATFORM_LICENSE_KEY"
 
+ingress:
+  enabled: true
+  hostname: "test.smith.langchain.dev"
 
 aceBackend:
   deployment:
