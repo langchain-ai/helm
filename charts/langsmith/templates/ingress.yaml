@@ -1,4 +1,14 @@
-{{- if or .Values.ingress.enabled .Values.config.langgraphPlatform.enabled }}
+{{- define "validateIngress" -}}
+# Fail if ingress or gateway aren't enabled
+{{- if and (not .Values.ingress.enabled) (not .Values.gateway.enabled) .Values.config.langgraphPlatform.enabled }}
+{{- fail "Either ingress or gateway must be enabled if LangGraph Platform is enabled." -}}
+{{- end -}}
+{{- if and .Values.ingress.enabled .Values.gateway.enabled}}
+{{- fail "Both ingress and gateway cannot be enabled at the same time." -}}
+{{- end -}}
+{{- end -}}
+{{- template "validateIngress" . -}}
+{{- if .Values.ingress.enabled }}
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:

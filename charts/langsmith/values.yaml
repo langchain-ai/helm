@@ -19,31 +19,31 @@ images:
   aceBackendImage:
     repository: "docker.io/langchain/langsmith-ace-backend"
     pullPolicy: IfNotPresent
-    tag: "0.10.85"
+    tag: "0.10.87"
   backendImage:
     repository: "docker.io/langchain/langsmith-backend"
     pullPolicy: IfNotPresent
-    tag: "0.10.85"
+    tag: "0.10.87"
   frontendImage:
     repository: "docker.io/langchain/langsmith-frontend"
     pullPolicy: IfNotPresent
-    tag: "0.10.85"
+    tag: "0.10.87"
   hostBackendImage:
     repository: "docker.io/langchain/hosted-langserve-backend"
     pullPolicy: IfNotPresent
-    tag: "0.10.85"
+    tag: "0.10.87"
   operatorImage:
     repository: "docker.io/langchain/langgraph-operator"
     pullPolicy: IfNotPresent
-    tag: "f8f6901"
+    tag: "8a7350b"
   platformBackendImage:
     repository: "docker.io/langchain/langsmith-go-backend"
     pullPolicy: IfNotPresent
-    tag: "0.10.85"
+    tag: "0.10.87"
   playgroundImage:
     repository: "docker.io/langchain/langsmith-playground"
     pullPolicy: IfNotPresent
-    tag: "0.10.85"
+    tag: "0.10.87"
   postgresImage:
     repository: "docker.io/postgres"
     pullPolicy: IfNotPresent
@@ -62,7 +62,6 @@ images:
     tag: edge
 
 ingress:
-  # -- Set to true if langgraph platform enabled.
   enabled: false
   hostname: ""
   subdomain: ""
@@ -70,6 +69,17 @@ ingress:
   annotations: {}
   labels: {}
   tls: []
+
+# Whether to use the Gateway API for ingress. Will create an HTTPRoute for LangSmith and an HTTPRoute for each LangGraph platform deployment.
+gateway:
+  enabled: true
+  name: ""
+  namespace: ""
+  hostname: ""
+  subdomain: ""
+  sectionName: ""
+  annotations: {}
+  labels: {}
 
 config:
   existingSecretName: ""
@@ -1102,14 +1112,14 @@ operator:
                 protocol: TCP
               livenessProbe:
                 httpGet:
-                  path: /lgp/${name}/ok?check_db=1
+                  path: /ok
                   port: 8000
                 periodSeconds: 15
                 timeoutSeconds: 5
                 failureThreshold: 6
               readinessProbe:
                 httpGet:
-                  path: /lgp/${name}/ok
+                  path: /ok
                   port: 8000
                 periodSeconds: 15
                 timeoutSeconds: 5
