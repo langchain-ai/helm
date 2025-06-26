@@ -16,6 +16,7 @@ config:
 ingress:
   enabled: true
   hostname: "test.smith.langchain.dev"
+
 # Note, you likely should tweak the values to match something that fits your local development environment.
 aceBackend:
   deployment:
