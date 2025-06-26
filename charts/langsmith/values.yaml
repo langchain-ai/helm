@@ -1395,7 +1395,7 @@ queue:
           - "--check"
       failureThreshold: 6
       periodSeconds: 60
-      timeoutSeconds: 30
+      timeoutSeconds: 60
     readinessProbe:
       exec:
         command:
