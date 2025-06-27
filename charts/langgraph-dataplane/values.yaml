@@ -49,6 +49,7 @@ config:
 
 listener:
   name: "listener"
+  containerPort: 8080
   deployment:
     autoRestart: true
     replicas: 1
