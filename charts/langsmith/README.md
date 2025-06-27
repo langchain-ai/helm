@@ -777,6 +777,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | listener.autoscaling.minReplicas | int | `3` |  |
 | listener.autoscaling.targetCPUUtilizationPercentage | int | `50` |  |
 | listener.autoscaling.targetMemoryUtilizationPercentage | int | `80` |  |
+| listener.containerPort | int | `8080` |  |
 | listener.deployment.affinity | object | `{}` |  |
 | listener.deployment.annotations | object | `{}` |  |
 | listener.deployment.command[0] | string | `"saq"` |  |
