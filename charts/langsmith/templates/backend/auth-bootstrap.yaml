@@ -1,3 +1,18 @@
+{{- define "validateAuthMode" -}}
+{{- if and .Values.config.basicAuth.enabled .Values.config.oauth.enabled -}}
+  {{- fail "Error: Basic auth and OAuth are both enabled. Please enable only one." -}}
+{{- end -}}
+{{- if and (not .Values.config.basicAuth.enabled) (not .Values.config.oauth.enabled) -}}
+  {{- fail "Error: Neither Basic auth nor OAuth are enabled. Please enable one of them." -}}
+{{- end -}}
+{{- if and (ne .Values.config.authType "mixed") (ne .Values.config.authType "oauth") -}}
+  {{- fail "Error: config.authType must be either 'mixed' or 'oauth'." -}}
+{{- end -}}
+{{- if and (.Values.config.basicAuth.enabled) (ne .Values.config.authType "mixed") -}}
+  {{- fail "Error: Basic auth is enabled but config.authType is not set to 'mixed'." -}}
+{{- end -}}
+{{- end -}}
+
 {{- define "validatePassword" -}}
 {{- $password := .Values.config.basicAuth.initialOrgAdminPassword -}}
 {{- if lt (len $password) 12 -}}
@@ -23,6 +38,7 @@
       name: {{ include "langsmith.secretsName" . }}
       key: initial_org_admin_password
 {{- end -}}
+{{- template "validateAuthMode" . -}}
 {{- if .Values.config.basicAuth.enabled }}
 {{- if not .Values.config.existingSecretName }}
 {{- template "validatePassword" . -}}
