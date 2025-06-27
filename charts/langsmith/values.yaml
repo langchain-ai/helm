@@ -829,6 +829,7 @@ hostBackend:
 
 listener:
   name: "listener"
+  containerPort: 8080
   deployment:
     replicas: 1
     labels: {}
@@ -846,33 +847,30 @@ listener:
       - "saq"
       - "app.workers.queues.host_worker.settings"
       - "--quiet"
+      - "--web"
+      - "--port"
+      - "$(PORT)"
     startupProbe:
-      exec:
-        command:
-          - "saq"
-          - "app.workers.queues.host_worker.settings"
-          - "--check"
+      httpGet:
+        path: /health
+        port: 8080
       failureThreshold: 6
-      periodSeconds: 60
-      timeoutSeconds: 30
-    readinessProbe:
-      exec:
-        command:
-          - "saq"
-          - "app.workers.queues.host_worker.settings"
-          - "--check"
-      failureThreshold: 6
-      periodSeconds: 60
-      timeoutSeconds: 30
+      periodSeconds: 10
+      timeoutSeconds: 1
     livenessProbe:
-      exec:
-        command:
-          - "saq"
-          - "app.workers.queues.host_worker.settings"
-          - "--check"
+      httpGet:
+        path: /health
+        port: 8080
       failureThreshold: 6
-      periodSeconds: 60
-      timeoutSeconds: 30
+      periodSeconds: 10
+      timeoutSeconds: 1
+    readinessProbe:
+      httpGet:
+        path: /health
+        port: 8080
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 1
     extraContainerConfig: {}
     extraEnv: []
     sidecars: []
@@ -1370,6 +1368,7 @@ postgres:
 
 queue:
   name: "queue"
+  containerPort: 8080
   deployment:
     replicas: 3
     labels: {}
@@ -1387,33 +1386,30 @@ queue:
       - "saq"
       - "app.workers.queues.single_queue_worker.settings"
       - "--quiet"
+      - "--web"
+      - "--port"
+      - "$(PORT)"
     startupProbe:
-      exec:
-        command:
-          - "saq"
-          - "app.workers.queues.single_queue_worker.settings"
-          - "--check"
+      httpGet:
+        path: /health
+        port: 8080
       failureThreshold: 6
-      periodSeconds: 60
-      timeoutSeconds: 60
-    readinessProbe:
-      exec:
-        command:
-          - "saq"
-          - "app.workers.queues.single_queue_worker.settings"
-          - "--check"
-      failureThreshold: 6
-      periodSeconds: 60
-      timeoutSeconds: 60
+      periodSeconds: 10
+      timeoutSeconds: 1
     livenessProbe:
-      exec:
-        command:
-          - "saq"
-          - "app.workers.queues.single_queue_worker.settings"
-          - "--check"
+      httpGet:
+        path: /health
+        port: 8080
       failureThreshold: 6
-      periodSeconds: 60
-      timeoutSeconds: 60
+      periodSeconds: 10
+      timeoutSeconds: 1
+    readinessProbe:
+      httpGet:
+        path: /health
+        port: 8080
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 1
     extraContainerConfig: {}
     extraEnv: []
     sidecars: []

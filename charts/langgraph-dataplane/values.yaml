@@ -49,6 +49,7 @@ config:
 
 listener:
   name: "listener"
+  containerPort: 8080
   deployment:
     autoRestart: true
     replicas: 1
@@ -67,33 +68,30 @@ listener:
       - "saq"
       - "app.workers.queues.host_worker.settings"
       - "--quiet"
+      - "--web"
+      - "--port"
+      - "$(PORT)"
     startupProbe:
-      exec:
-        command:
-          - "saq"
-          - "app.workers.queues.host_worker.settings"
-          - "--check"
+      httpGet:
+        path: /health
+        port: 8080
       failureThreshold: 6
-      periodSeconds: 60
-      timeoutSeconds: 30
-    readinessProbe:
-      exec:
-        command:
-          - "saq"
-          - "app.workers.queues.host_worker.settings"
-          - "--check"
-      failureThreshold: 6
-      periodSeconds: 60
-      timeoutSeconds: 30
+      periodSeconds: 10
+      timeoutSeconds: 1
     livenessProbe:
-      exec:
-        command:
-          - "saq"
-          - "app.workers.queues.host_worker.settings"
-          - "--check"
+      httpGet:
+        path: /health
+        port: 8080
       failureThreshold: 6
-      periodSeconds: 60
-      timeoutSeconds: 30
+      periodSeconds: 10
+      timeoutSeconds: 1
+    readinessProbe:
+      httpGet:
+        path: /health
+        port: 8080
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 1
     extraContainerConfig: {}
     extraEnv: []
     sidecars: []
