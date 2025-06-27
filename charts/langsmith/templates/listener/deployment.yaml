@@ -3,6 +3,8 @@
   value: "250"
 - name: "ASYNCPG_POOL_MAX_SIZE"
   value: "3"
+- name: "PORT"
+  value: {{ .Values.listener.containerPort | quote }}
 {{- end -}}
 {{- $envVars := concat .Values.commonEnv (include "langsmith.commonEnv" . | fromYamlArray) (include "listenerEnvVars" . | fromYamlArray) .Values.listener.deployment.extraEnv -}}
 {{- include "langsmith.detectDuplicates" $envVars -}}
