@@ -210,16 +210,7 @@ aceBackend:
         cpu: 200m
         memory: 1000Mi
     command:
-      - "deno"
-      - "run"
-      - "--unstable-worker-options"
-      - "--allow-env"
-      - "--allow-net=$(BIND_ADDRESS):$(PORT)"
-      - "--node-modules-dir"
-      - "-R"
-      - "src/main.ts"
-      - "-R"
-      - "src/python_worker.ts"
+      - "./entrypoint.sh"
     startupProbe:
       httpGet:
         path: /ok
@@ -298,19 +289,7 @@ backend:
         cpu: 1000m
         memory: 2Gi
     command:
-      - "uvicorn"
-      - "app.main:app"
-      - "--host"
-      - "0.0.0.0"
-      - "--port"
-      - "$(PORT)"
-      - "--log-level"
-      - "$(LOG_LEVEL)"
-      - "--loop"
-      - "uvloop"
-      - "--http"
-      - "httptools"
-      - "--no-access-log"
+      - "./entrypoint.sh"
     startupProbe:
       httpGet:
         path: /health
@@ -359,9 +338,7 @@ backend:
         cpu: 200m
         memory: 500Mi
     command:
-      - "/bin/bash"
-      - "-c"
-      - "alembic upgrade head"
+      - "./pg_migration_entrypoint.sh"
     extraContainerConfig: {}
     extraEnv: []
     sidecars: []
@@ -423,8 +400,7 @@ backend:
         cpu: 200m
         memory: 500Mi
     command:
-      - "python"
-      - "hooks/auth_bootstrap.pyc"
+      - "./auth_bootstrap_entrypoint.sh"
     extraContainerConfig: {}
     extraEnv: []
     sidecars: []
@@ -453,8 +429,7 @@ backend:
         cpu: 200m
         memory: 500Mi
     command:
-      - "/bin/bash"
-      - "scripts/wait_for_clickhouse_and_migrate.sh"
+      - "./ch_migration_entrypoint.sh"
     extraContainerConfig: {}
     extraEnv: []
     sidecars: []
@@ -751,19 +726,7 @@ hostBackend:
         cpu: 200m
         memory: 1000Mi
     command:
-      - "uvicorn"
-      - "host.main:app"
-      - "--host"
-      - "0.0.0.0"
-      - "--port"
-      - "$(PORT)"
-      - "--log-level"
-      - "$(LOG_LEVEL)"
-      - "--loop"
-      - "uvloop"
-      - "--http"
-      - "httptools"
-      - "--no-access-log"
+      - "./entrypoint.sh"
     startupProbe:
       httpGet:
         path: /ok
@@ -844,12 +807,7 @@ listener:
         cpu: 1000m
         memory: 2Gi
     command:
-      - "saq"
-      - "app.workers.queues.host_worker.settings"
-      - "--quiet"
-      - "--web"
-      - "--port"
-      - "$(PORT)"
+      - "./listener_entrypoint.sh"
     startupProbe:
       httpGet:
         path: /health
@@ -1025,7 +983,7 @@ platformBackend:
         cpu: 1000m
         memory: 2Gi
     command:
-      - "./smith-go"
+      - "./entrypoint.sh"
     startupProbe:
       httpGet:
         path: /ok
@@ -1202,19 +1160,7 @@ playground:
         cpu: 500m
         memory: 1Gi
     command:
-      - "uvicorn"
-      - "playground.main:app"
-      - "--host"
-      - "0.0.0.0"
-      - "--port"
-      - "$(PORT)"
-      - "--log-level"
-      - "$(LOG_LEVEL)"
-      - "--loop"
-      - "uvloop"
-      - "--http"
-      - "httptools"
-      - "--no-access-log"
+      - "./entrypoint.sh"
     startupProbe:
       httpGet:
         path: /ok
@@ -1383,12 +1329,7 @@ queue:
         cpu: 1000m
         memory: 2Gi
     command:
-      - "saq"
-      - "app.workers.queues.single_queue_worker.settings"
-      - "--quiet"
-      - "--web"
-      - "--port"
-      - "$(PORT)"
+      - "./queue_entrypoint.sh"
     startupProbe:
       httpGet:
         path: /health
