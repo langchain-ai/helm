@@ -8,6 +8,7 @@ metadata:
     {{- with.Values.redis.service.labels }}
       {{- toYaml . | nindent 4 }}
     {{- end }}
+    app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-{{ .Values.redis.name }}
   annotations:
     {{- include "langsmith.annotations" . | nindent 4 }}
     {{- with.Values.redis.service.annotations }}
