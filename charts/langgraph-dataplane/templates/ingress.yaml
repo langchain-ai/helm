@@ -3,6 +3,7 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: {{ include "langgraphDataplane.fullname" . }}-ingress
+  namespace: {{ .Values.namespace | default .Release.Namespace | quote }}
   annotations:
     {{- include "langgraphDataplane.annotations" . | nindent 4 }}
     {{- with .Values.ingress.annotations }}
