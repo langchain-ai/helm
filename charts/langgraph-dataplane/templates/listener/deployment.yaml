@@ -10,6 +10,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ include "langgraphDataplane.fullname" . }}-{{ .Values.listener.name }}
+  namespace: {{ .Values.namespace | default .Release.Namespace | quote }}
   labels:
     {{- include "langgraphDataplane.labels" . | nindent 4 }}
     app.kubernetes.io/component: {{ include "langgraphDataplane.fullname" . }}-{{ .Values.listener.name }}
