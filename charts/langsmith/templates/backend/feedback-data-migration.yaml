@@ -62,7 +62,7 @@ spec:
             - configMapRef:
                 name: {{ include "langsmith.fullname" . }}-config
           image: {{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "backendImage") | quote }}
-          imagePullPolicy: {{ .Values.images.backendImage.pullPolicy }}
+          imagePullPolicy: {{ include "langsmith.imagePullPolicy" (dict "Values" .Values "Chart" .Chart "component" "backendImage") }}
           resources:
             {{- toYaml .Values.backend.feedbackDataMigration.resources | nindent 12 }}
           securityContext:

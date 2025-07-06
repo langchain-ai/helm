@@ -60,7 +60,7 @@ spec:
           - --leader-elect
           - --health-probe-bind-address=:8081
         image: {{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "operatorImage") | quote }} 
-        imagePullPolicy: {{ .Values.images.operatorImage.pullPolicy }}
+        imagePullPolicy: {{ include "langsmith.imagePullPolicy" (dict "Values" .Values "Chart" .Chart "component" "operatorImage") }}
         name: {{ .Values.operator.name }}
         {{- with .Values.operator.deployment.securityContext }}
         securityContext:

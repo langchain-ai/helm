@@ -51,6 +51,7 @@ spec:
       containers:
         - name: {{ .Values.e2eTest.name }}
           image: {{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "backendImage") | quote }}
+          imagePullPolicy: {{ include "langsmith.imagePullPolicy" (dict "Values" .Values "Chart" .Chart "component" "backendImage") }}
           command:
             {{- toYaml .Values.e2eTest.command | nindent 12 }}
           securityContext:

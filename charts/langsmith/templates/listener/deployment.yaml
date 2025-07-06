@@ -81,7 +81,7 @@ spec:
             - configMapRef:
                 name: {{ include "langsmith.fullname" . }}-config
           image: {{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "hostBackendImage") | quote }}
-          imagePullPolicy: {{ .Values.images.hostBackendImage.pullPolicy }}
+          imagePullPolicy: {{ include "langsmith.imagePullPolicy" (dict "Values" .Values "Chart" .Chart "component" "hostBackendImage") }}
           ports:
             - name: listener
               containerPort: {{ .Values.listener.containerPort }}

@@ -42,25 +42,6 @@ It only performs validation checks and fails template rendering if issues are fo
 {{- fail "Basic auth and OAuth are both enabled. Please enable only one." -}}
 {{- end -}}
 
-{{- /* Validate langsmithLicenseKey and apikeysalt are set */ -}}
-{{- if not .Values.config.existingSecretName -}}
-{{- if not .Values.config.apiKeySalt -}}
-{{- fail "config.apiKeySalt is required. This may have previously been set to your license key by default. Set this value to the license key to avoid invalidating existing API Keys. This can alternatively be set within .Values.config.existingSecretName." -}}
-{{- end -}}
-{{- if not .Values.config.langsmithLicenseKey -}}
-{{- fail "config.langsmithLicenseKey is required.  This can alternatively be set within .Values.config.existingSecretName." -}}
-{{- end -}}
-{{- end -}}
-
-{{- if and (not .Values.config.basicAuth.enabled) (not .Values.config.oauth.enabled) -}}
-{{- fail "Neither Basic auth nor OAuth are enabled. Please enable one of them." -}}
-{{- end -}}
-{{- if and (ne .Values.config.authType "mixed") (ne .Values.config.authType "oauth") -}}
-{{- fail "config.authType must be either 'mixed' or 'oauth'." -}}
-{{- end -}}
-{{- if and (.Values.config.basicAuth.enabled) (ne .Values.config.authType "mixed") -}}
-{{- fail "Basic auth is enabled but config.authType is not set to 'mixed'." -}}
-{{- end -}}
 
 {{- /* Validate initial org admin email */ -}}
 {{- if or .Values.config.basicAuth.enabled -}}
