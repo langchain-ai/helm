@@ -13,55 +13,65 @@ commonLabels: {}
 # -- Common environment variables that will be applied to all deployments/statefulsets except for the playground/aceBackend services (which are sandboxed). Be careful not to override values already specified by the chart.
 commonEnv: []
 
-images:
-   # -- If supplied, all children <image_name>.repository values will be prepended with this registry name + `/`
-  registry: ""
-   # -- Secrets with credentials to pull images from a private registry. Specified as name: value.
-  imagePullSecrets: []
-  aceBackendImage:
-    repository: "docker.io/langchain/langsmith-ace-backend"
-    pullPolicy: IfNotPresent
-    tag: "0.10.93"
-  backendImage:
-    repository: "docker.io/langchain/langsmith-backend"
-    pullPolicy: IfNotPresent
-    tag: "0.10.93"
-  frontendImage:
-    repository: "docker.io/langchain/langsmith-frontend"
-    pullPolicy: IfNotPresent
-    tag: "0.10.93"
-  hostBackendImage:
-    repository: "docker.io/langchain/hosted-langserve-backend"
-    pullPolicy: IfNotPresent
-    tag: "0.10.93"
-  operatorImage:
-    repository: "docker.io/langchain/langgraph-operator"
-    pullPolicy: IfNotPresent
-    tag: "8a7350b"
-  platformBackendImage:
-    repository: "docker.io/langchain/langsmith-go-backend"
-    pullPolicy: IfNotPresent
-    tag: "0.10.93"
-  playgroundImage:
-    repository: "docker.io/langchain/langsmith-playground"
-    pullPolicy: IfNotPresent
-    tag: "0.10.93"
-  postgresImage:
-    repository: "docker.io/postgres"
-    pullPolicy: IfNotPresent
-    tag: "14.7"
-  redisImage:
-    repository: "docker.io/redis"
-    pullPolicy: IfNotPresent
-    tag: "7"
-  clickhouseImage:
-    repository: "docker.io/clickhouse/clickhouse-server"
-    pullPolicy: Always
-    tag: "24.8"
-  quickwitImage:
-    repository: "quickwit/quickwit"
-    pullPolicy: IfNotPresent
-    tag: edge
+global:
+  azure:
+    webhookUri: "https://langsmith-billing-admin.azurewebsites.net/api/container?sig=MTA3ZGY1ODEtMmY4OC00MjRhLWJjNzctNzZiMGExYWZmNzY3"
+    productID: "langsmith"
+    identity:
+      # Application's Managed Service Identity (MSI) Client ID. ClientID can be used to generate authentication token to communicate to external services like Microsoft Marketplace Metering API
+      clientId: "DONOTMODIFY" # Azure populates this value at deployment time
+    marketplace:
+      # id of the plan purchased for the Azure Marketplace Kubernetes application,to be used in usage event payload to metering api, for more information please refer: https://learn.microsoft.com/en-us/partner-center/marketplace/marketplace-metering-service-apis
+      planId: "DONOTMODIFY" # Azure populates this value at deployment time
+    extension:
+      # resource id of the Azure Marketplace Kubernetes application,to be used in usage event payload to metering api, for more information please refer: https://learn.microsoft.com/en-us/partner-center/marketplace/marketplace-metering-service-apis
+      resourceId: "DONOTMODIFY" # application's Azure Resource ID, Azure populates this value at deployment time
+    images:
+      aceBackendImage:
+        tag: "0.10.93"
+        image: "langsmith-ace-backend"
+        registry: "langsmith.azurecr.io"
+        pullPolicy: IfNotPresent
+      backendImage:
+        tag: "0.10.93"
+        image: "langsmith-backend"
+        registry: "langsmith.azurecr.io"
+        pullPolicy: IfNotPresent
+      frontendImage:
+        tag: "0.10.93"
+        image: "langsmith-frontend"
+        registry: "langsmith.azurecr.io"
+        pullPolicy: IfNotPresent
+      platformBackendImage:
+        tag: "0.10.93"
+        image: "langsmith-go-backend"
+        registry: "langsmith.azurecr.io"
+        pullPolicy: IfNotPresent
+      playgroundImage:
+        tag: "0.10.93"
+        image: "langsmith-playground"
+        registry: "langsmith.azurecr.io"
+        pullPolicy: IfNotPresent
+      postgresImage:
+        tag: "14.7"
+        image: "postgres"
+        registry: "langsmith.azurecr.io"
+        pullPolicy: IfNotPresent
+      redisImage:
+        tag: "7"
+        image: "redis"
+        registry: "langsmith.azurecr.io"
+        pullPolicy: IfNotPresent
+      clickhouseImage:
+        tag: "24.8"
+        image: "clickhouse-server"
+        registry: "langsmith.azurecr.io"
+        pullPolicy: IfNotPresent
+      customMetersAcceleratorImage:
+        tag: "92049a3"
+        image: "custom-meters-accelerator"
+        registry: "langsmith.azurecr.io"
+        pullPolicy: IfNotPresents
 
 ingress:
   enabled: false
@@ -253,7 +263,7 @@ aceBackend:
     volumeMounts: []
     terminationGracePeriodSeconds: 30
   autoscaling:
-    enabled: false
+    enabled: true
     # If enabled, use the following values to configure the HPA. You can also use your own HPA configuration by not creating an HPA.
     # You may want to manage the HPA yourself if you have a custom autoscaling setup like KEDA.
     createHpa: true
@@ -283,20 +293,12 @@ aceBackend:
 backend:
   name: "backend"
   containerPort: 1984
-  existingConfigMapName: ""
   deployment:
-    replicas: 1
+    replicas: 3
     labels: {}
     annotations: {}
     podSecurityContext: {}
     securityContext: {}
-    resources:
-      limits:
-        cpu: 2000m
-        memory: 4Gi
-      requests:
-        cpu: 1000m
-        memory: 2Gi
     command:
       - "uvicorn"
       - "app.main:app"
@@ -332,6 +334,10 @@ backend:
       failureThreshold: 6
       periodSeconds: 10
       timeoutSeconds: 1
+    resources:
+      requests:
+        cpu: 500m
+        memory: 1Gi
     extraContainerConfig: {}
     extraEnv: []
     sidecars: []
@@ -468,12 +474,12 @@ backend:
     # You can set this to null to disable the TTL for the migrations job. Useful for some deployment setups.
     ttlSecondsAfterFinished: 600
   autoscaling:
-    enabled: false
+    enabled: true
     # If enabled, use the following values to configure the HPA. You can also use your own HPA configuration by not creating an HPA.
     # You may want to manage the HPA yourself if you have a custom autoscaling setup like KEDA.
     createHpa: true
-    minReplicas: 1
-    maxReplicas: 5
+    minReplicas: 3
+    maxReplicas: 10
     targetCPUUtilizationPercentage: 50
     targetMemoryUtilizationPercentage: 80
   pdb:
@@ -540,8 +546,8 @@ clickhouse:
         cpu: 8000m
         memory: 32Gi
       requests:
-        cpu: 3500m
-        memory: 12Gi
+        cpu: 1500m
+        memory: 3500Mi
     command:
       - "/bin/bash"
       - "-c"
@@ -660,18 +666,11 @@ frontend:
     # This is the path the key must be mounted to in the container.
     keyPath: ""
   deployment:
-    replicas: 1
+    replicas: 2
     labels: {}
     annotations: {}
     podSecurityContext: {}
     securityContext: {}
-    resources:
-      limits:
-        cpu: 1000m
-        memory: 2Gi
-      requests:
-        cpu: 500m
-        memory: 1Gi
     command:
       - "/entrypoint.sh"
     startupProbe:
@@ -695,6 +694,10 @@ frontend:
       failureThreshold: 10
       periodSeconds: 10
       timeoutSeconds: 1
+    resources:
+      requests:
+        cpu: 200m
+        memory: 500Mi
     extraContainerConfig: {}
     extraEnv: []
     sidecars: []
@@ -707,7 +710,7 @@ frontend:
     volumeMounts: []
     terminationGracePeriodSeconds: 30
   autoscaling:
-    enabled: false
+    enabled: true
     # If enabled, use the following values to configure the HPA. You can also use your own HPA configuration by not creating an HPA.
     # You may want to manage the HPA yourself if you have a custom autoscaling setup like KEDA.
     createHpa: true
@@ -721,7 +724,7 @@ frontend:
     labels: {}
     annotations: {}
   service:
-    type: LoadBalancer
+    type: ClusterIP
     httpPort: 80
     httpsPort: 443
     labels: {}
@@ -1059,7 +1062,7 @@ platformBackend:
     volumeMounts: []
     terminationGracePeriodSeconds: 30
   autoscaling:
-    enabled: false
+    enabled: true
     # If enabled, use the following values to configure the HPA. You can also use your own HPA configuration by not creating an HPA.
     # You may want to manage the HPA yourself if you have a custom autoscaling setup like KEDA.
     createHpa: true
@@ -1248,13 +1251,11 @@ playground:
     volumeMounts: []
     terminationGracePeriodSeconds: 30
   autoscaling:
-    enabled: false
-    # If enabled, use the following values to configure the HPA. You can also use your own HPA configuration by not creating an HPA.
-    # You may want to manage the HPA yourself if you have a custom autoscaling setup like KEDA.
+    enabled: true
     createHpa: true
     minReplicas: 1
-    maxReplicas: 5
-    targetCPUUtilizationPercentage: 50
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 80
     targetMemoryUtilizationPercentage: 80
   pdb:
     enabled: false
@@ -1298,13 +1299,9 @@ postgres:
     podSecurityContext: {}
     securityContext: {}
     resources:
-      # In a production environment, we strongly recommend an external Postgres database.
-      limits:
-        cpu: 4000m
-        memory: 16Gi
       requests:
-        cpu: 2000m
-        memory: 8Gi
+        cpu: 1000m
+        memory: 2Gi
     command: []
     startupProbe:
       exec:
@@ -1376,12 +1373,9 @@ queue:
     podSecurityContext: {}
     securityContext: {}
     resources:
-      limits:
-        cpu: 2000m
-        memory: 4Gi
       requests:
         cpu: 1000m
-        memory: 2Gi
+        memory: 2000Mi
     command:
       - "saq"
       - "app.workers.queues.single_queue_worker.settings"
@@ -1427,7 +1421,7 @@ queue:
     labels: {}
     annotations: {}
   autoscaling:
-    enabled: false
+    enabled: true
     # If enabled, use the following values to configure the HPA. You can also use your own HPA configuration by not creating an HPA.
     # You may want to manage the HPA yourself if you have a custom autoscaling setup like KEDA.
     createHpa: true
@@ -1456,14 +1450,10 @@ redis:
     annotations: {}
     podSecurityContext: {}
     securityContext: {}
-    # In a production environment, we strongly recommend an external Redis database.
     resources:
-      limits:
-        cpu: 4000m
-        memory: 8Gi
       requests:
-        cpu: 2000m
-        memory: 4Gi
+        cpu: 1000m
+        memory: 2Gi
     command: []
     startupProbe:
       exec:

@@ -66,10 +66,6 @@ spec:
         app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-{{ .Values.frontend.name }}
     spec:
       terminationGracePeriodSeconds: {{ .Values.frontend.deployment.terminationGracePeriodSeconds }}
-      {{- with .Values.images.imagePullSecrets }}
-      imagePullSecrets:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
       securityContext:
         {{- toYaml .Values.frontend.deployment.podSecurityContext | nindent 8 }}
       serviceAccountName: {{ include "frontend.serviceAccountName" . }}
@@ -91,7 +87,7 @@ spec:
             - configMapRef:
                 name: {{ include "langsmith.fullname" . }}-config
           image: {{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "frontendImage") | quote }}
-          imagePullPolicy: {{ .Values.images.frontendImage.pullPolicy }}
+          imagePullPolicy: {{ include "langsmith.imagePullPolicy" (dict "Values" .Values "Chart" .Chart "component" "frontendImage") }}
           ports:
             - name: frontend
               containerPort: {{ ternary .Values.frontend.ssl.port .Values.frontend.containerPort .Values.frontend.ssl.enabled }}
