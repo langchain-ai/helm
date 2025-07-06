@@ -60,10 +60,6 @@ spec:
         {{- include "langsmith.labels" . | nindent 8 }}
         app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-{{ .Values.clickhouse.name }}
     spec:
-      {{- with .Values.images.imagePullSecrets }}
-      imagePullSecrets:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
       securityContext:
         {{- include "langsmith.podSecurityContext" (dict "Values" .Values "componentSecurityContext" .Values.clickhouse.statefulSet.podSecurityContext) | nindent 8 }}
       serviceAccountName: {{ include "clickhouse.serviceAccountName" . }}
@@ -74,7 +70,7 @@ spec:
       containers:
         - name: {{ .Values.clickhouse.name }}
           image: {{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "clickhouseImage") | quote }}
-          imagePullPolicy: {{ .Values.images.clickhouseImage.pullPolicy }}
+          imagePullPolicy: {{ include "langsmith.imagePullPolicy" (dict "Values" .Values "Chart" .Chart "component" "clickhouseImage") }}
           {{- with.Values.clickhouse.statefulSet.command }}
           command:
              {{- toYaml . | nindent 12 }}

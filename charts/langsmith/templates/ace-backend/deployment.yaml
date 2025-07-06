@@ -50,10 +50,6 @@ spec:
         app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-{{ .Values.aceBackend.name }}
     spec:
       terminationGracePeriodSeconds: {{ .Values.aceBackend.deployment.terminationGracePeriodSeconds }}
-      {{- with .Values.images.imagePullSecrets }}
-      imagePullSecrets:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
       securityContext:
         {{- include "langsmith.podSecurityContext" (dict "Values" .Values "componentSecurityContext" .Values.aceBackend.deployment.podSecurityContext) | nindent 8 }}
       serviceAccountName: {{ include "aceBackend.serviceAccountName" . }}
@@ -75,7 +71,7 @@ spec:
             - configMapRef:
                 name: {{ include "langsmith.fullname" . }}-config
           image: {{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "aceBackendImage") | quote }}
-          imagePullPolicy: {{ .Values.images.aceBackendImage.pullPolicy }}
+          imagePullPolicy: {{ include "langsmith.imagePullPolicy" (dict "Values" .Values "Chart" .Chart "component" "aceBackendImage") }}
           ports:
             - name: ace
               containerPort: {{ .Values.aceBackend.containerPort }}
