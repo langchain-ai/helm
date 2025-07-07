@@ -8,6 +8,10 @@ fullnameOverride: ""
 commonAnnotations: {}
 # -- Labels that will be applied to all resources created by the chart
 commonLabels: {}
+# -- Common volumes added to all deployments/statefulsets.
+commonVolumes: []
+# -- Common volume mounts added to all deployments/statefulsets.
+commonVolumeMounts: []
 
 images:
   # -- If supplied, all children <image_name>.repository values will be prepended with this registry name + `/`
