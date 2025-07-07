@@ -18,6 +18,8 @@
 {{- if not .Values.clickhouse.external.enabled }}
 {{- $envVars := concat .Values.commonEnv (include "clickhouseEnvVars" . | fromYamlArray) .Values.clickhouse.statefulSet.extraEnv -}}
 {{- include "langsmith.detectDuplicates" $envVars -}}
+{{- $volumes := concat .Values.commonVolumes .Values.clickhouse.statefulSet.volumes -}}
+{{- $volumeMounts := concat .Values.commonVolumeMounts .Values.clickhouse.statefulSet.volumeMounts -}}
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
@@ -104,7 +106,7 @@ spec:
           securityContext:
             {{- toYaml .Values.clickhouse.statefulSet.securityContext | nindent 12 }}
           volumeMounts:
-            {{- with .Values.clickhouse.statefulSet.volumeMounts }}
+            {{- with $volumeMounts }}
               {{- toYaml . | nindent 12 }}
             {{- end }}
             {{- if .Values.clickhouse.statefulSet.persistence.enabled }}
@@ -143,6 +145,9 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       volumes:
+        {{- with $volumes }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
         - name: clickhouse-conf
           configMap:
             name: {{ include "langsmith.fullname" . }}-{{ .Values.clickhouse.name }}
@@ -153,9 +158,6 @@ spec:
                 path: logging_config.xml
               - key: metrics_config.xml
                 path: metrics_config.xml
-      {{- with .Values.clickhouse.statefulSet.volumes }}
-          {{- toYaml . | nindent 8 }}
-      {{- end }}
   {{- if .Values.clickhouse.statefulSet.persistence.enabled }}
   {{- with .Values.clickhouse.statefulSet.persistentVolumeClaimRetentionPolicy }}
   persistentVolumeClaimRetentionPolicy:

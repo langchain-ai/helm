@@ -12,6 +12,10 @@ commonPodAnnotations: {}
 commonLabels: {}
 # -- Common environment variables that will be applied to all deployments/statefulsets except for the playground/aceBackend services (which are sandboxed). Be careful not to override values already specified by the chart.
 commonEnv: []
+# -- Common volumes added to all deployments/statefulsets except for the playground/aceBackend services (which are sandboxed). Be careful not to override values already specified by the chart.
+commonVolumes: []
+# -- Common volume mounts added to all deployments/statefulsets except for the playground/aceBackend services (which are sandboxed). Be careful not to override values already specified by the chart.
+commonVolumeMounts: []
 
 images:
    # -- If supplied, all children <image_name>.repository values will be prepended with this registry name + `/`
@@ -626,6 +630,7 @@ e2eTest:
     name: ""
     labels: {}
     annotations: {}
+  extraEnv: []
   extraContainerConfig: {}
   sidecars: []
   initContainers: []
