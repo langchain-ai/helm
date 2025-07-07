@@ -145,9 +145,6 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       volumes:
-        {{- with $volumes }}
-          {{- toYaml . | nindent 8 }}
-        {{- end }}
         - name: clickhouse-conf
           configMap:
             name: {{ include "langsmith.fullname" . }}-{{ .Values.clickhouse.name }}
@@ -158,6 +155,9 @@ spec:
                 path: logging_config.xml
               - key: metrics_config.xml
                 path: metrics_config.xml
+      {{- with $volumes }}
+          {{- toYaml . | nindent 8 }}
+      {{- end }}
   {{- if .Values.clickhouse.statefulSet.persistence.enabled }}
   {{- with .Values.clickhouse.statefulSet.persistentVolumeClaimRetentionPolicy }}
   persistentVolumeClaimRetentionPolicy:
