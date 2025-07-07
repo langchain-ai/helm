@@ -93,6 +93,8 @@ config:
     #  Defaults to ingress.hostname
     rootDomain: ""
     tlsEnabled: true
+    # Disable this if there is restricted access to the external facing ingress endpoint for your agent(s) from inside of your kubernetes cluster.
+    ingressHealthCheckEnabled: true
 
   # -- Salt used to generate the API key. Should be a random string.
   apiKeySalt: ""
@@ -737,8 +739,6 @@ frontend:
 hostBackend:
   name: "host-backend"
   containerPort: 1985
-  # Disable this if there is restricted access to the external facing ingress endpoint for your agent(s) from inside of your kubernetes cluster.
-  ingressHealthCheckEnabled: true
   deployment:
     replicas: 1
     labels: {}
