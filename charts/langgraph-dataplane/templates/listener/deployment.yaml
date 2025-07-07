@@ -88,7 +88,7 @@ spec:
           volumeMounts:
             - name: templates-volume
               mountPath: /code/host-backend/host/k8s_templates
-          {{- with .Values.listener.deployment.volumeMounts }}
+          {{- with $volumeMounts }}
             {{- toYaml . | nindent 12 }}
           {{- end }}
           {{- with .Values.listener.deployment.extraContainerConfig }}
@@ -122,6 +122,6 @@ spec:
                 path: db-statefulset.yaml.tmpl
               - key: redis-deployment.yaml.tmpl
                 path: redis-deployment.yaml.tmpl
-        {{- with $volumes }}
+      {{- with $volumes }}
           {{- toYaml . | nindent 8 }}
-        {{- end }}
+      {{- end }}
