@@ -1,4 +1,6 @@
 {{- if .Values.studio.enabled }}
+{{- $volumes := concat .Values.commonVolumes .Values.studio.deployment.volumes -}}
+{{- $volumeMounts := concat .Values.commonVolumeMounts .Values.studio.deployment.volumeMounts -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -83,7 +85,7 @@ spec:
             {{- toYaml .Values.studio.deployment.resources | nindent 12 }}
           securityContext:
             {{- toYaml .Values.studio.deployment.securityContext | nindent 12 }}
-          {{- with .Values.studio.deployment.volumeMounts }}
+          {{- with $volumeMounts }}
           volumeMounts:
               {{- toYaml . | nindent 12 }}
           {{- end }}
@@ -102,7 +104,7 @@ spec:
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.studio.deployment.volumes }}
+      {{- with $volumes }}
       volumes:
           {{- toYaml . | nindent 8 }}
       {{- end }}

@@ -8,6 +8,8 @@
 {{- end -}}
 {{- $envVars := concat .Values.commonEnv (include "langsmith.commonEnv" . | fromYamlArray) (include "platformBackendEnvVars" . | fromYamlArray) .Values.platformBackend.deployment.extraEnv -}}
 {{- include "langsmith.detectDuplicates" $envVars -}}
+{{- $volumes := concat .Values.commonVolumes .Values.platformBackend.deployment.volumes -}}
+{{- $volumeMounts := concat .Values.commonVolumeMounts .Values.platformBackend.deployment.volumeMounts -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -92,7 +94,7 @@ spec:
             {{- toYaml .Values.platformBackend.deployment.resources | nindent 12 }}
           securityContext:
             {{- toYaml .Values.platformBackend.deployment.securityContext | nindent 12 }}
-          {{- with .Values.platformBackend.deployment.volumeMounts }}
+          {{- with $volumeMounts }}
           volumeMounts:
               {{- toYaml . | nindent 12 }}
           {{- end }}
@@ -118,7 +120,7 @@ spec:
       topologySpreadConstraints:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.platformBackend.deployment.volumes }}
+      {{- with $volumes }}
       volumes:
         {{- toYaml . | nindent 8 }}
       {{- end }}

@@ -1,4 +1,6 @@
 {{- if .Values.queue.enabled -}}
+{{- $volumes := concat .Values.commonVolumes .Values.queue.deployment.volumes -}}
+{{- $volumeMounts := concat .Values.commonVolumeMounts .Values.queue.deployment.volumeMounts -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -116,7 +118,7 @@ spec:
             {{- toYaml .Values.queue.deployment.resources | nindent 12 }}
           securityContext:
             {{- toYaml .Values.queue.deployment.securityContext | nindent 12 }}
-          {{- with .Values.queue.deployment.volumeMounts }}
+          {{- with $volumeMounts }}
           volumeMounts:
               {{- toYaml . | nindent 12 }}
           {{- end }}
@@ -135,7 +137,7 @@ spec:
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.queue.deployment.volumes }}
+      {{- with $volumes }}
       volumes:
           {{- toYaml . | nindent 8 }}
       {{- end }}

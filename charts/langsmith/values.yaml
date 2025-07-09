@@ -12,6 +12,10 @@ commonPodAnnotations: {}
 commonLabels: {}
 # -- Common environment variables that will be applied to all deployments/statefulsets except for the playground/aceBackend services (which are sandboxed). Be careful not to override values already specified by the chart.
 commonEnv: []
+# -- Common volumes added to all deployments/statefulsets except for the playground/aceBackend services (which are sandboxed).
+commonVolumes: []
+# -- Common volume mounts added to all deployments/statefulsets except for the playground/aceBackend services (which are sandboxed).
+commonVolumeMounts: []
 
 images:
    # -- If supplied, all children <image_name>.repository values will be prepended with this registry name + `/`
@@ -21,19 +25,19 @@ images:
   aceBackendImage:
     repository: "docker.io/langchain/langsmith-ace-backend"
     pullPolicy: IfNotPresent
-    tag: "0.10.93"
+    tag: "0.10.98"
   backendImage:
     repository: "docker.io/langchain/langsmith-backend"
     pullPolicy: IfNotPresent
-    tag: "0.10.93"
+    tag: "0.10.98"
   frontendImage:
     repository: "docker.io/langchain/langsmith-frontend"
     pullPolicy: IfNotPresent
-    tag: "0.10.93"
+    tag: "0.10.98"
   hostBackendImage:
     repository: "docker.io/langchain/hosted-langserve-backend"
     pullPolicy: IfNotPresent
-    tag: "0.10.93"
+    tag: "0.10.98"
   operatorImage:
     repository: "docker.io/langchain/langgraph-operator"
     pullPolicy: IfNotPresent
@@ -41,11 +45,11 @@ images:
   platformBackendImage:
     repository: "docker.io/langchain/langsmith-go-backend"
     pullPolicy: IfNotPresent
-    tag: "0.10.93"
+    tag: "0.10.98"
   playgroundImage:
     repository: "docker.io/langchain/langsmith-playground"
     pullPolicy: IfNotPresent
-    tag: "0.10.93"
+    tag: "0.10.98"
   postgresImage:
     repository: "docker.io/postgres"
     pullPolicy: IfNotPresent
@@ -93,6 +97,8 @@ config:
     #  Defaults to ingress.hostname
     rootDomain: ""
     tlsEnabled: true
+    # Disable this if there is restricted access to the external facing ingress endpoint for your agent(s) from inside of your kubernetes cluster.
+    ingressHealthCheckEnabled: true
 
   # -- Salt used to generate the API key. Should be a random string.
   apiKeySalt: ""
@@ -626,6 +632,7 @@ e2eTest:
     name: ""
     labels: {}
     annotations: {}
+  extraEnv: []
   extraContainerConfig: {}
   sidecars: []
   initContainers: []

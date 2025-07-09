@@ -1,5 +1,7 @@
 {{- if and .Values.config.basicAuth.enabled .Values.e2eTest.enabled }}
-{{- $envVars := concat .Values.commonEnv (include "langsmith.commonEnv" . | fromYamlArray) (include "backendEnvVars" . | fromYamlArray) .Values.backend.deployment.extraEnv -}}
+{{- $envVars := concat .Values.commonEnv (include "langsmith.commonEnv" . | fromYamlArray) (include "backendEnvVars" . | fromYamlArray) .Values.e2eTest.extraEnv -}}
+{{- $volumes := concat .Values.commonVolumes .Values.e2eTest.volumes -}}
+{{- $volumeMounts := concat .Values.commonVolumeMounts .Values.e2eTest.volumeMounts -}}
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -58,7 +60,7 @@ spec:
           envFrom:
             - configMapRef:
                 name: {{ include "langsmith.fullname" . }}-config
-          {{- with .Values.e2eTest.volumeMounts }}
+          {{- with $volumeMounts }}
           volumeMounts:
             {{- toYaml . | nindent 12 }}
           {{- end }}
@@ -84,7 +86,7 @@ spec:
       topologySpreadConstraints:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.e2eTest.volumes }}
+      {{- with $volumes }}
       volumes:
           {{- toYaml . | nindent 8 }}
       {{- end }}

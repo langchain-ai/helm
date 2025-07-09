@@ -6,6 +6,8 @@
 {{- end }}
 {{- $envVars := concat .Values.commonEnv (include "listenerEnvVars" . | fromYamlArray) (include "langgraphDataplane.commonEnv" . | fromYamlArray) .Values.listener.deployment.extraEnv -}}
 {{- include "langgraphDataplane.detectDuplicates" $envVars -}}
+{{- $volumes := concat .Values.commonVolumes .Values.listener.deployment.volumes -}}
+{{- $volumeMounts := concat .Values.commonVolumeMounts .Values.listener.deployment.volumeMounts -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -86,7 +88,7 @@ spec:
           volumeMounts:
             - name: templates-volume
               mountPath: /code/host-backend/host/k8s_templates
-          {{- with .Values.listener.deployment.volumeMounts }}
+          {{- with $volumeMounts }}
             {{- toYaml . | nindent 12 }}
           {{- end }}
           {{- with .Values.listener.deployment.extraContainerConfig }}
@@ -120,6 +122,6 @@ spec:
                 path: db-statefulset.yaml.tmpl
               - key: redis-deployment.yaml.tmpl
                 path: redis-deployment.yaml.tmpl
-      {{- with .Values.listener.deployment.volumes }}
+      {{- with $volumes }}
           {{- toYaml . | nindent 8 }}
       {{- end }}

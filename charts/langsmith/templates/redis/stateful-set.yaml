@@ -1,6 +1,8 @@
 {{- if not .Values.redis.external.enabled }}
 {{- $envVars := concat .Values.commonEnv .Values.redis.statefulSet.extraEnv -}}
 {{- include "langsmith.detectDuplicates" $envVars -}}
+{{- $volumes := concat .Values.commonVolumes .Values.redis.statefulSet.volumes -}}
+{{- $volumeMounts := concat .Values.commonVolumeMounts .Values.redis.statefulSet.volumeMounts -}}
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
@@ -85,11 +87,11 @@ spec:
           volumeMounts:
             - mountPath: /data
               name: data
-            {{- with .Values.redis.statefulSet.volumeMounts }}
+            {{- with $volumeMounts }}
               {{- toYaml . | nindent 12 }}
             {{- end }}
           {{- else }}
-          {{- with .Values.redis.statefulSet.volumeMounts }}
+          {{- with $volumeMounts }}
           volumeMounts:
             {{- toYaml . | nindent 12 }}
           {{- end }}
@@ -116,7 +118,7 @@ spec:
       topologySpreadConstraints:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.redis.statefulSet.volumes }}
+      {{- with $volumes }}
       volumes:
           {{- toYaml . | nindent 8 }}
       {{- end }}
