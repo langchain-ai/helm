@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.10.36](https://img.shields.io/badge/Version-0.10.36-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.10.93](https://img.shields.io/badge/AppVersion-0.10.93-informational?style=flat-square)
+![Version: 0.10.39](https://img.shields.io/badge/Version-0.10.39-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.10.100](https://img.shields.io/badge/AppVersion-0.10.100-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -16,6 +16,8 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | commonEnv | list | `[]` | Common environment variables that will be applied to all deployments/statefulsets except for the playground/aceBackend services (which are sandboxed). Be careful not to override values already specified by the chart. |
 | commonLabels | object | `{}` | Labels that will be applied to all resources created by the chart |
 | commonPodAnnotations | object | `{}` | Annotations that will be applied to all pods created by the chart |
+| commonVolumeMounts | list | `[]` | Common volume mounts added to all deployments/statefulsets except for the playground/aceBackend services (which are sandboxed). |
+| commonVolumes | list | `[]` | Common volumes added to all deployments/statefulsets except for the playground/aceBackend services (which are sandboxed). |
 | fullnameOverride | string | `""` | String to fully override `"langsmith.fullname"` |
 | gateway.annotations | object | `{}` |  |
 | gateway.enabled | bool | `false` |  |
@@ -27,29 +29,29 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | gateway.subdomain | string | `""` |  |
 | images.aceBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.aceBackendImage.repository | string | `"docker.io/langchain/langsmith-ace-backend"` |  |
-| images.aceBackendImage.tag | string | `"0.10.93"` |  |
+| images.aceBackendImage.tag | string | `"0.10.100"` |  |
 | images.backendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.backendImage.repository | string | `"docker.io/langchain/langsmith-backend"` |  |
-| images.backendImage.tag | string | `"0.10.93"` |  |
+| images.backendImage.tag | string | `"0.10.100"` |  |
 | images.clickhouseImage.pullPolicy | string | `"Always"` |  |
 | images.clickhouseImage.repository | string | `"docker.io/clickhouse/clickhouse-server"` |  |
 | images.clickhouseImage.tag | string | `"24.8"` |  |
 | images.frontendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.frontendImage.repository | string | `"docker.io/langchain/langsmith-frontend"` |  |
-| images.frontendImage.tag | string | `"0.10.93"` |  |
+| images.frontendImage.tag | string | `"0.10.100"` |  |
 | images.hostBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.hostBackendImage.repository | string | `"docker.io/langchain/hosted-langserve-backend"` |  |
-| images.hostBackendImage.tag | string | `"0.10.93"` |  |
+| images.hostBackendImage.tag | string | `"0.10.100"` |  |
 | images.imagePullSecrets | list | `[]` | Secrets with credentials to pull images from a private registry. Specified as name: value. |
 | images.operatorImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.operatorImage.repository | string | `"docker.io/langchain/langgraph-operator"` |  |
 | images.operatorImage.tag | string | `"8a7350b"` |  |
 | images.platformBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.platformBackendImage.repository | string | `"docker.io/langchain/langsmith-go-backend"` |  |
-| images.platformBackendImage.tag | string | `"0.10.93"` |  |
+| images.platformBackendImage.tag | string | `"0.10.100"` |  |
 | images.playgroundImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.playgroundImage.repository | string | `"docker.io/langchain/langsmith-playground"` |  |
-| images.playgroundImage.tag | string | `"0.10.93"` |  |
+| images.playgroundImage.tag | string | `"0.10.100"` |  |
 | images.postgresImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.postgresImage.repository | string | `"docker.io/postgres"` |  |
 | images.postgresImage.tag | string | `"14.7"` |  |
@@ -231,6 +233,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | config.fullTextSearch.indexing.enabled | bool | `false` |  |
 | config.hostname | string | `""` | Base URL of the LangSmith installation. Used for redirects. |
 | config.langgraphPlatform.enabled | bool | `false` | Optional. Used to enable the Langgraph platform control plane. If enabled, the license key must be provided. |
+| config.langgraphPlatform.ingressHealthCheckEnabled | bool | `true` |  |
 | config.langgraphPlatform.langgraphPlatformLicenseKey | string | `""` |  |
 | config.langgraphPlatform.rootDomain | string | `""` |  |
 | config.langgraphPlatform.tlsEnabled | bool | `true` |  |
@@ -593,6 +596,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | e2eTest.command[1] | string | `"scripts/test_e2e_trace.pyc"` |  |
 | e2eTest.enabled | bool | `true` |  |
 | e2eTest.extraContainerConfig | object | `{}` |  |
+| e2eTest.extraEnv | list | `[]` |  |
 | e2eTest.initContainers | list | `[]` |  |
 | e2eTest.labels | object | `{}` |  |
 | e2eTest.name | string | `"e2e-test"` |  |
