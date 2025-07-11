@@ -5,6 +5,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ include "langGraphCloud.fullname" . }}-{{ .Values.queue.name }}
+  namespace: {{ .Values.namespace | default .Release.Namespace | quote }}
   labels:
     {{- include "langGraphCloud.labels" . | nindent 4 }}
     {{- with.Values.queue.deployment.labels }}
