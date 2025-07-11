@@ -2,6 +2,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: {{ include "langsmith.fullname" . }}-{{ .Values.frontend.name }}
+  namespace: {{ .Values.namespace | default .Release.Namespace }}
   labels:
     {{- include "langsmith.labels" . | nindent 4 }}
   annotations:
@@ -101,7 +102,7 @@ data:
             proxy_http_version 1.1;
             proxy_buffering off;
             proxy_cache off;
-            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.playground.name }}.{{ .Release.Namespace }}.svc.cluster.local:{{ .Values.playground.service.port }};
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.playground.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.cluster.local:{{ .Values.playground.service.port }};
         }
 
         # Platform Backend Routes
@@ -111,7 +112,7 @@ data:
             proxy_http_version 1.1;
             proxy_buffering off;
             proxy_cache off;
-            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Release.Namespace }}.svc.cluster.local:{{ .Values.platformBackend.service.port }};
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.cluster.local:{{ .Values.platformBackend.service.port }};
         }
 
         location /{{ .Values.ingress.subdomain }}/api/v1/otel/ {
@@ -120,7 +121,7 @@ data:
             proxy_http_version 1.1;
             proxy_buffering off;
             proxy_cache off;
-            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Release.Namespace }}.svc.cluster.local:{{ .Values.platformBackend.service.port }};
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.cluster.local:{{ .Values.platformBackend.service.port }};
         }
 
         location = /{{ .Values.ingress.subdomain }}/api/v1/runs/multipart {
@@ -129,7 +130,7 @@ data:
             proxy_http_version 1.1;
             proxy_buffering off;
             proxy_cache off;
-            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Release.Namespace }}.svc.cluster.local:{{ .Values.platformBackend.service.port }};
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.cluster.local:{{ .Values.platformBackend.service.port }};
         }
 
         location = /{{ .Values.ingress.subdomain }}/api/v1/runs/batch {
@@ -138,7 +139,7 @@ data:
             proxy_http_version 1.1;
             proxy_buffering off;
             proxy_cache off;
-            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Release.Namespace }}.svc.cluster.local:{{ .Values.platformBackend.service.port }};
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.cluster.local:{{ .Values.platformBackend.service.port }};
         }
 
         location = /{{ .Values.ingress.subdomain }}/api/v1/runs {
@@ -147,7 +148,7 @@ data:
             proxy_http_version 1.1;
             proxy_buffering off;
             proxy_cache off;
-            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Release.Namespace }}.svc.cluster.local:{{ .Values.platformBackend.service.port }};
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.cluster.local:{{ .Values.platformBackend.service.port }};
         }
 
         location = /{{ .Values.ingress.subdomain }}/api/v1/info {
@@ -156,7 +157,7 @@ data:
             proxy_http_version 1.1;
             proxy_buffering off;
             proxy_cache off;
-            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Release.Namespace }}.svc.cluster.local:{{ .Values.platformBackend.service.port }};
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.cluster.local:{{ .Values.platformBackend.service.port }};
         }
 
         location /{{ .Values.ingress.subdomain }}/api/v1/auth {
@@ -165,7 +166,7 @@ data:
             proxy_http_version 1.1;
             proxy_buffering off;
             proxy_cache off;
-            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Release.Namespace }}.svc.cluster.local:{{ .Values.platformBackend.service.port }};
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.cluster.local:{{ .Values.platformBackend.service.port }};
         }
 
         location /{{ .Values.ingress.subdomain }}/scim {
@@ -174,7 +175,7 @@ data:
             proxy_http_version 1.1;
             proxy_buffering off;
             proxy_cache off;
-            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Release.Namespace }}.svc.cluster.local:{{ .Values.platformBackend.service.port }};
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.cluster.local:{{ .Values.platformBackend.service.port }};
         }
 
         location /{{ .Values.ingress.subdomain }}/api/public {
@@ -183,7 +184,7 @@ data:
             proxy_http_version 1.1;
             proxy_buffering off;
             proxy_cache off;
-            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Release.Namespace }}.svc.cluster.local:{{ .Values.platformBackend.service.port }};
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.cluster.local:{{ .Values.platformBackend.service.port }};
         }
 
         # Backend Routes
@@ -193,7 +194,7 @@ data:
             proxy_http_version 1.1;
             proxy_buffering off;
             proxy_cache off;
-            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}.{{ .Release.Namespace }}.svc.cluster.local:{{ .Values.backend.service.port }};
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.cluster.local:{{ .Values.backend.service.port }};
         }
 
     {{- if .Values.config.langgraphPlatform.enabled }}
@@ -203,7 +204,7 @@ data:
             proxy_http_version 1.1;
             proxy_buffering off;
             proxy_cache off;
-            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.hostBackend.name }}.{{ .Release.Namespace }}.svc.cluster.local:{{ .Values.hostBackend.service.port }};
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.hostBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.cluster.local:{{ .Values.hostBackend.service.port }};
         }
     {{- end }}
 
@@ -213,7 +214,7 @@ data:
             proxy_http_version 1.1;
             proxy_buffering off;
             proxy_cache off;
-            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Release.Namespace }}.svc.cluster.local:{{ .Values.platformBackend.service.port }};
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.cluster.local:{{ .Values.platformBackend.service.port }};
         }
 
         location = /{{ .Values.ingress.subdomain }}/api/runs/batch {
@@ -222,7 +223,7 @@ data:
             proxy_http_version 1.1;
             proxy_buffering off;
             proxy_cache off;
-            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Release.Namespace }}.svc.cluster.local:{{ .Values.platformBackend.service.port }};
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.cluster.local:{{ .Values.platformBackend.service.port }};
         }
 
         location = /{{ .Values.ingress.subdomain }}/api/runs {
@@ -231,7 +232,7 @@ data:
             proxy_http_version 1.1;
             proxy_buffering off;
             proxy_cache off;
-            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Release.Namespace }}.svc.cluster.local:{{ .Values.platformBackend.service.port }};
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.cluster.local:{{ .Values.platformBackend.service.port }};
         }
 
         # Deprecated Backend Routes
@@ -241,7 +242,7 @@ data:
             proxy_http_version 1.1;
             proxy_buffering off;
             proxy_cache off;
-            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}.{{ .Release.Namespace }}.svc.cluster.local:{{ .Values.backend.service.port }};
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.cluster.local:{{ .Values.backend.service.port }};
         }
 
         location = /{{ .Values.ingress.subdomain }}/api/docs {
@@ -249,7 +250,7 @@ data:
             proxy_http_version 1.1;
             proxy_buffering off;
             proxy_cache off;
-            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}.{{ .Release.Namespace }}.svc.cluster.local:{{ .Values.backend.service.port }};
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.cluster.local:{{ .Values.backend.service.port }};
         }
 
         location = /{{ .Values.ingress.subdomain }}/api/redoc {
@@ -257,7 +258,7 @@ data:
             proxy_http_version 1.1;
             proxy_buffering off;
             proxy_cache off;
-            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}.{{ .Release.Namespace }}.svc.cluster.local:{{ .Values.backend.service.port }};
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.cluster.local:{{ .Values.backend.service.port }};
         }
 
         location = /{{ .Values.ingress.subdomain }}/api/openapi.json {
@@ -265,7 +266,7 @@ data:
             proxy_http_version 1.1;
             proxy_buffering off;
             proxy_cache off;
-            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}.{{ .Release.Namespace }}.svc.cluster.local:{{ .Values.backend.service.port }};
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.cluster.local:{{ .Values.backend.service.port }};
         }
 
         location = /{{ .Values.ingress.subdomain }} {
@@ -379,7 +380,7 @@ data:
             proxy_http_version 1.1;
             proxy_buffering off;
             proxy_cache off;
-            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.playground.name }}.{{ .Release.Namespace }}.svc.cluster.local:{{ .Values.playground.service.port }};
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.playground.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.cluster.local:{{ .Values.playground.service.port }};
         }
 
         # Platform Backend Routes
@@ -389,7 +390,7 @@ data:
             proxy_http_version 1.1;
             proxy_buffering off;
             proxy_cache off;
-            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Release.Namespace }}.svc.cluster.local:{{ .Values.platformBackend.service.port }};
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.cluster.local:{{ .Values.platformBackend.service.port }};
         }
 
         location /api/v1/otel/ {
@@ -398,7 +399,7 @@ data:
             proxy_http_version 1.1;
             proxy_buffering off;
             proxy_cache off;
-            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Release.Namespace }}.svc.cluster.local:{{ .Values.platformBackend.service.port }};
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.cluster.local:{{ .Values.platformBackend.service.port }};
          }
 
         location = /api/v1/runs/multipart {
@@ -407,7 +408,7 @@ data:
             proxy_http_version 1.1;
             proxy_buffering off;
             proxy_cache off;
-            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Release.Namespace }}.svc.cluster.local:{{ .Values.platformBackend.service.port }};
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.cluster.local:{{ .Values.platformBackend.service.port }};
         }
 
         location = /api/v1/runs/batch {
@@ -416,7 +417,7 @@ data:
             proxy_http_version 1.1;
             proxy_buffering off;
             proxy_cache off;
-            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Release.Namespace }}.svc.cluster.local:{{ .Values.platformBackend.service.port }};
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.cluster.local:{{ .Values.platformBackend.service.port }};
         }
 
         location = /api/v1/runs {
@@ -425,7 +426,7 @@ data:
             proxy_http_version 1.1;
             proxy_buffering off;
             proxy_cache off;
-            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Release.Namespace }}.svc.cluster.local:{{ .Values.platformBackend.service.port }};
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.cluster.local:{{ .Values.platformBackend.service.port }};
         }
 
         location = /api/v1/info {
@@ -434,7 +435,7 @@ data:
             proxy_http_version 1.1;
             proxy_buffering off;
             proxy_cache off;
-            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Release.Namespace }}.svc.cluster.local:{{ .Values.platformBackend.service.port }};
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.cluster.local:{{ .Values.platformBackend.service.port }};
          }
 
          location /api/v1/auth {
@@ -443,7 +444,7 @@ data:
             proxy_http_version 1.1;
             proxy_buffering off;
             proxy_cache off;
-            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Release.Namespace }}.svc.cluster.local:{{ .Values.platformBackend.service.port }};
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.cluster.local:{{ .Values.platformBackend.service.port }};
          }
 
         location /api/public {
@@ -452,7 +453,7 @@ data:
             proxy_http_version 1.1;
             proxy_buffering off;
             proxy_cache off;
-            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Release.Namespace }}.svc.cluster.local:{{ .Values.platformBackend.service.port }};
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.cluster.local:{{ .Values.platformBackend.service.port }};
         }
 
         location /scim/ {
@@ -460,7 +461,7 @@ data:
             proxy_http_version 1.1;
             proxy_buffering off;
             proxy_cache off;
-            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Release.Namespace }}.svc.cluster.local:{{ .Values.platformBackend.service.port }};
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.cluster.local:{{ .Values.platformBackend.service.port }};
         }
 
         # Backend Routes
@@ -469,7 +470,7 @@ data:
             proxy_http_version 1.1;
             proxy_buffering off;
             proxy_cache off;
-            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}.{{ .Release.Namespace }}.svc.cluster.local:{{ .Values.backend.service.port }};
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.cluster.local:{{ .Values.backend.service.port }};
         }
 
     {{- if .Values.config.langgraphPlatform.enabled }}
@@ -479,7 +480,7 @@ data:
             proxy_http_version 1.1;
             proxy_buffering off;
             proxy_cache off;
-            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.hostBackend.name }}.{{ .Release.Namespace }}.svc.cluster.local:{{ .Values.hostBackend.service.port }};
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.hostBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.cluster.local:{{ .Values.hostBackend.service.port }};
         }
     {{- end }}
 
@@ -489,7 +490,7 @@ data:
             proxy_http_version 1.1;
             proxy_buffering off;
             proxy_cache off;
-            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Release.Namespace }}.svc.cluster.local:{{ .Values.platformBackend.service.port }};
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.cluster.local:{{ .Values.platformBackend.service.port }};
         }
 
         location = /api/runs/batch {
@@ -498,7 +499,7 @@ data:
             proxy_http_version 1.1;
             proxy_buffering off;
             proxy_cache off;
-            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Release.Namespace }}.svc.cluster.local:{{ .Values.platformBackend.service.port }};
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.cluster.local:{{ .Values.platformBackend.service.port }};
         }
 
         location = /api/runs {
@@ -507,7 +508,7 @@ data:
             proxy_http_version 1.1;
             proxy_buffering off;
             proxy_cache off;
-            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Release.Namespace }}.svc.cluster.local:{{ .Values.platformBackend.service.port }};
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.cluster.local:{{ .Values.platformBackend.service.port }};
         }
 
         # Deprecated Backend Routes To be removed in v8
@@ -517,7 +518,7 @@ data:
             proxy_http_version 1.1;
             proxy_buffering off;
             proxy_cache off;
-            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}.{{ .Release.Namespace }}.svc.cluster.local:{{ .Values.backend.service.port }};
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.cluster.local:{{ .Values.backend.service.port }};
        }
 
         location = /api/docs {
@@ -525,7 +526,7 @@ data:
             proxy_http_version 1.1;
             proxy_buffering off;
             proxy_cache off;
-            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}.{{ .Release.Namespace }}.svc.cluster.local:{{ .Values.backend.service.port }};
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.cluster.local:{{ .Values.backend.service.port }};
         }
 
         location = /api/redoc {
@@ -533,7 +534,7 @@ data:
             proxy_http_version 1.1;
             proxy_buffering off;
             proxy_cache off;
-            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}.{{ .Release.Namespace }}.svc.cluster.local:{{ .Values.backend.service.port }};
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.cluster.local:{{ .Values.backend.service.port }};
         }
 
         location = /api/openapi.json {
@@ -541,7 +542,7 @@ data:
             proxy_http_version 1.1;
             proxy_buffering off;
             proxy_cache off;
-            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}.{{ .Release.Namespace }}.svc.cluster.local:{{ .Values.backend.service.port }};
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.cluster.local:{{ .Values.backend.service.port }};
         }
       }
 {{- end }}

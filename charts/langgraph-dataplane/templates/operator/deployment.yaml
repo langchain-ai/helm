@@ -5,7 +5,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ include "langgraphDataplane.fullname" . }}-{{ .Values.operator.name }}
-  namespace: {{ .Values.namespace | default .Release.Namespace | quote }}
+  namespace: {{ .Values.namespace | default .Release.Namespace }}
   labels:
     {{- include "langgraphDataplane.labels" . | nindent 4 }}
     app.kubernetes.io/component: {{ include "langgraphDataplane.fullname" . }}-{{ .Values.operator.name }}
@@ -107,7 +107,7 @@ spec:
           - name: SHARED_INGRESS_NAME
             value: {{ include "langgraphDataplane.fullname" . }}-ingress
           - name: SHARED_INGRESS_NAMESPACE
-            value: {{ .Release.Namespace }}
+            value: {{ .Values.namespace | default .Release.Namespace }}
           {{- end }}
           - name: ROOT_DOMAIN
             value: {{ .Values.ingress.hostname | quote }}
