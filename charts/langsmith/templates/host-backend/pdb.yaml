@@ -3,7 +3,7 @@ apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
   name: {{ include "langsmith.fullname" . }}-{{ .Values.hostBackend.name }}
-  namespace: {{ .Values.namespace | default .Release.Namespace | quote }}
+  namespace: {{ .Values.namespace | default .Release.Namespace }}
   labels:
     {{- include "langsmith.labels" . | nindent 4 }}
     {{- with .Values.hostBackend.pdb.labels }}

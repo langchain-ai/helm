@@ -87,7 +87,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: {{ include "listener.serviceAccountName" $ }}-rolebinding
-  namespace: {{ .Values.namespace | default .Release.Namespace | quote }}
+  namespace: {{ .Values.namespace | default .Release.Namespace }}
   labels:
     {{- include "langsmith.labels" . | nindent 4 }}
     {{- with.Values.listener.rbac.labels }}

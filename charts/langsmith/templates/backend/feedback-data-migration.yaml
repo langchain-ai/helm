@@ -6,7 +6,7 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   name: {{ include "langsmith.fullname" . }}-feedback-data-migration
-  namespace: {{ .Values.namespace | default .Release.Namespace | quote }}
+  namespace: {{ .Values.namespace | default .Release.Namespace }}
   labels:
     {{- include "langsmith.labels" . | nindent 4 }}
     app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-feedback-data-migration
