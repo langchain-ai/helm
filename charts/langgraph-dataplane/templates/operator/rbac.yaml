@@ -290,7 +290,7 @@ metadata:
 subjects:
   - kind: ServiceAccount
     name: {{ include "operator.serviceAccountName" . }}
-    namespace: {{ .Release.Namespace }}
+    namespace: {{ .Values.namespace | default .Release.Namespace | quote }}
 roleRef:
   kind: ClusterRole
   name: {{ include "operator.serviceAccountName" . }}-role
@@ -364,7 +364,7 @@ metadata:
 subjects:
 - kind: ServiceAccount
   name: {{ include "operator.serviceAccountName" . }}
-  namespace: {{ .Release.Namespace }}
+  namespace: {{ .Values.namespace | default .Release.Namespace | quote }}
 roleRef:
   kind: Role
   name: {{ include "operator.serviceAccountName" . }}-leader-election-role
