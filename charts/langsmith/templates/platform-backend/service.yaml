@@ -2,6 +2,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: {{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}
+  namespace: {{ .Values.namespace | default .Release.Namespace | quote }}
   labels:
     {{- include "langsmith.labels" . | nindent 4 }}
     {{- with.Values.platformBackend.service.labels }}

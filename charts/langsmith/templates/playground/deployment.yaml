@@ -12,6 +12,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ include "langsmith.fullname" . }}-{{ .Values.playground.name }}
+  namespace: {{ .Values.namespace | default .Release.Namespace | quote }}
   labels:
     {{- include "langsmith.labels" . | nindent 4 }}
     {{- with.Values.playground.deployment.labels }}
