@@ -338,10 +338,10 @@ Template containing common environment variables that are used by several servic
   value: "true"
 {{- if .Values.ingress.subdomain }}
 - name: HOST_LANGCHAIN_API_ENDPOINT
-  value: "http://{{ include "langsmith.fullname" . }}-{{ .Values.frontend.name }}.{{ .Release.Namespace }}:{{ .Values.frontend.service.httpPort }}/{{ .Values.ingress.subdomain}}/api/v1"
+  value: "http://{{ include "langsmith.fullname" . }}-{{ .Values.frontend.name }}.{{ .Values.namespace | default .Release.Namespace | quote }}:{{ .Values.frontend.service.httpPort }}/{{ .Values.ingress.subdomain}}/api/v1"
 {{- else }}
 - name: HOST_LANGCHAIN_API_ENDPOINT
-  value: "http://{{ include "langsmith.fullname" . }}-{{ .Values.frontend.name }}.{{ .Release.Namespace }}:{{ .Values.frontend.service.httpPort }}/api/v1"
+  value: "http://{{ include "langsmith.fullname" . }}-{{ .Values.frontend.name }}.{{ .Values.namespace | default .Release.Namespace | quote }}:{{ .Values.frontend.service.httpPort }}/api/v1"
 {{- end }}
 - name: HOSTED_K8S_ROOT_DOMAIN
   value: {{ .Values.config.langgraphPlatform.rootDomain | default .Values.ingress.hostname | quote }}

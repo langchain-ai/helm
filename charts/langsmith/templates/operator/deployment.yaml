@@ -127,7 +127,7 @@ spec:
           - name: SHARED_INGRESS_NAME
             value: {{ include "langsmith.fullname" . }}-ingress
           - name: SHARED_INGRESS_NAMESPACE
-            value: {{ .Release.Namespace }}
+            value: {{ .Values.namespace | default .Release.Namespace | quote }}
         {{- end }}
           - name: ROOT_DOMAIN
             value: {{ coalesce .Values.config.langgraphPlatform.rootDomain .Values.ingress.hostname .Values.gateway.hostname | quote }}
