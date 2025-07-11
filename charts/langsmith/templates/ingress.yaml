@@ -13,7 +13,7 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: {{ include "langsmith.fullname" . }}-ingress
-  namespace: {{ .Values.namespace | default .Release.Namespace | quote }}
+  namespace: {{ .Values.namespace | default .Release.Namespace }}
   annotations:
     {{- include "langsmith.annotations" . | nindent 4 }}
     {{- with .Values.ingress.annotations }}

@@ -12,7 +12,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ include "langsmith.fullname" . }}-{{ .Values.operator.name }}
-  namespace: {{ .Values.namespace | default .Release.Namespace | quote }}
+  namespace: {{ .Values.namespace | default .Release.Namespace }}
   labels:
     {{- include "langsmith.labels" . | nindent 4 }}
     {{- with .Values.operator.deployment.labels }}
@@ -122,12 +122,12 @@ spec:
           - name: GATEWAY_NAME
             value: {{ .Values.gateway.name | quote }}
           - name: GATEWAY_NAMESPACE
-            value: {{ .Values.gateway.namespace | default .Release.Namespace | quote }}
+            value: {{ .Values.gateway.namespace | default .Release.Namespace }}
         {{- else }}
           - name: SHARED_INGRESS_NAME
             value: {{ include "langsmith.fullname" . }}-ingress
           - name: SHARED_INGRESS_NAMESPACE
-            value: {{ .Values.namespace | default .Release.Namespace | quote }}
+            value: {{ .Values.namespace | default .Release.Namespace }}
         {{- end }}
           - name: ROOT_DOMAIN
             value: {{ coalesce .Values.config.langgraphPlatform.rootDomain .Values.ingress.hostname .Values.gateway.hostname | quote }}
