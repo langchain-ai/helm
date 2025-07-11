@@ -219,6 +219,7 @@ the same format as the secret in the corresponding `secrets.yaml` file. Note: AP
 | ingress.studioHostname | string | `""` |  |
 | ingress.tls | list | `[]` |  |
 | nameOverride | string | `""` | Provide a name in place of `langgraph-cloud` for the chart |
+| namespace | string | `""` | Namespace to install the chart into. If not set, will use the namespace of the current context. |
 | queue.autoscaling.enabled | bool | `false` |  |
 | queue.autoscaling.keda.cooldownPeriod | int | `300` |  |
 | queue.autoscaling.keda.enabled | bool | `false` |  |
