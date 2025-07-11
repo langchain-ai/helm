@@ -26,6 +26,7 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: {{ include "langsmith.fullname" . }}-{{ .Values.postgres.name }}
+  namespace: {{ .Values.namespace | default .Release.Namespace | quote }}
   labels:
     {{- include "langsmith.labels" . | nindent 4 }}
     {{- with.Values.postgres.statefulSet.labels }}

@@ -6,6 +6,7 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   name: "{{ include "langsmith.fullname" . }}-{{ .Values.e2eTest.name }}"
+  namespace: {{ .Values.namespace | default .Release.Namespace | quote }}
   labels:
     {{- include "langsmith.labels" . | nindent 4 }}
     {{- with .Values.e2eTest.labels }}
