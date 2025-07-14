@@ -38,5 +38,5 @@ data:
   OTLP_ENDPOINT: "{{ .Values.config.observability.tracing.endpoint }}"
   OTEL_ENVIRONMENT: "{{ .Values.config.observability.tracing.env }}"
   OTEL_EXPORTER: "{{ .Values.config.observability.tracing.exporter }}"
-  OTLE_USE_TLS: "{{ .Values.config.observability.tracing.useTls }}"
+  OTEL_USE_TLS: "{{ .Values.config.observability.tracing.useTls }}"
   {{- end }}
