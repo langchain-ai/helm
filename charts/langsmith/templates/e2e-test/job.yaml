@@ -12,7 +12,7 @@ metadata:
       {{- toYaml . | nindent 4 }}
     {{- end }}
   annotations:
-    "helm.sh/hook": post-install,test
+    "helm.sh/hook": post-install,test,post-upgrade
     "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded,hook-failed
     "helm.sh/hook-weight": "9999"
     "helm.sh/fail-hook-policy": fail
