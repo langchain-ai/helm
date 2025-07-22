@@ -25,7 +25,7 @@ images:
   listenerImage:
     repository: "docker.io/langchain/hosted-langserve-backend"
     pullPolicy: IfNotPresent
-    tag: "0.10.83"
+    tag: "0.10.109"
   redisImage:
     repository: "docker.io/redis"
     pullPolicy: IfNotPresent
