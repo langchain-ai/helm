@@ -291,7 +291,7 @@ backend:
   containerPort: 1984
   existingConfigMapName: ""
   deployment:
-    replicas: 1
+    replicas: 2
     labels: {}
     annotations: {}
     podSecurityContext: {}
@@ -478,8 +478,8 @@ backend:
     # If enabled, use the following values to configure the HPA. You can also use your own HPA configuration by not creating an HPA.
     # You may want to manage the HPA yourself if you have a custom autoscaling setup like KEDA.
     createHpa: true
-    minReplicas: 1
-    maxReplicas: 5
+    minReplicas: 2
+    maxReplicas: 6
     targetCPUUtilizationPercentage: 50
     targetMemoryUtilizationPercentage: 80
   pdb:
