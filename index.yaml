@@ -256,6 +256,19 @@ entries:
   langgraph-dataplane:
   - apiVersion: v2
     appVersion: 0.1.0
+    created: "2025-07-23T20:27:05.78249188Z"
+    description: Helm chart to deploy a langgraph dataplane on kubernetes.
+    digest: 4921c8dc490d75ca1507646f4271063a8f25bada91c799eba197ff9d1d3143d7
+    maintainers:
+    - email: ankush@langchain.dev
+      name: Ankush
+    name: langgraph-dataplane
+    type: application
+    urls:
+    - https://github.com/langchain-ai/helm/releases/download/langgraph-dataplane-0.1.20/langgraph-dataplane-0.1.20.tgz
+    version: 0.1.20
+  - apiVersion: v2
+    appVersion: 0.1.0
     created: "2025-07-02T02:38:35.500003472Z"
     description: Helm chart to deploy a langgraph dataplane on kubernetes.
     digest: 6ad7d6dfb768d4f43c6275cba019231a492143a1ab474b80d72da943d92526bd
@@ -3452,4 +3465,4 @@ entries:
     urls:
     - https://github.com/langchain-ai/helm/releases/download/open-gpts-0.1.0/open-gpts-0.1.0.tgz
     version: 0.1.0
-generated: "2025-07-21T18:36:53.780782985Z"
+generated: "2025-07-23T20:27:05.783068822Z"
