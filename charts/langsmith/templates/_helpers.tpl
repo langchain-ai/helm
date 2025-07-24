@@ -640,4 +640,13 @@ Creates the image reference used for Langsmith deployments. If registry is speci
 {{- else -}}
 {{ $imageConfig.repository }}:{{ $imageConfig.tag | default .Chart.AppVersion }}
 {{- end -}}
+
+{{- end -}}
+{{/*
+Validate tracing configuration
+*/}}
+{{- define "langsmith.validateTracing" -}}
+{{- if and .Values.config.observability.tracing.enabled (not .Values.config.observability.tracing.endpoint) -}}
+{{- fail "When tracing is enabled (config.observability.tracing.enabled=true), config.observability.tracing.endpoint must be provided" -}}
+{{- end -}}
 {{- end -}}
