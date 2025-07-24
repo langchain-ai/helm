@@ -323,21 +323,21 @@ backend:
         port: 1984
       failureThreshold: 6
       periodSeconds: 10
-      timeoutSeconds: 1
+      timeoutSeconds: 10
     livenessProbe:
       httpGet:
         path: /health
         port: 1984
       failureThreshold: 6
       periodSeconds: 10
-      timeoutSeconds: 1
+      timeoutSeconds: 10
     readinessProbe:
       httpGet:
         path: /health
         port: 1984
       failureThreshold: 6
       periodSeconds: 10
-      timeoutSeconds: 1
+      timeoutSeconds: 10
     extraContainerConfig: {}
     extraEnv: []
     sidecars: []
