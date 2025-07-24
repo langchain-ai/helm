@@ -156,6 +156,8 @@ the user or some other secret provisioning mechanism
 Template containing common environment variables that are used by several services.
 */}}
 {{- define "langsmith.commonEnv" -}}
+- name: IS_SELF_HOSTED
+  value: "true"
 - name: POSTGRES_DATABASE_URI
   valueFrom:
     secretKeyRef:
