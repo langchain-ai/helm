@@ -410,14 +410,14 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | backend.deployment.livenessProbe.httpGet.path | string | `"/health"` |  |
 | backend.deployment.livenessProbe.httpGet.port | int | `1984` |  |
 | backend.deployment.livenessProbe.periodSeconds | int | `10` |  |
-| backend.deployment.livenessProbe.timeoutSeconds | int | `1` |  |
+| backend.deployment.livenessProbe.timeoutSeconds | int | `10` |  |
 | backend.deployment.nodeSelector | object | `{}` |  |
 | backend.deployment.podSecurityContext | object | `{}` |  |
 | backend.deployment.readinessProbe.failureThreshold | int | `6` |  |
 | backend.deployment.readinessProbe.httpGet.path | string | `"/health"` |  |
 | backend.deployment.readinessProbe.httpGet.port | int | `1984` |  |
 | backend.deployment.readinessProbe.periodSeconds | int | `10` |  |
-| backend.deployment.readinessProbe.timeoutSeconds | int | `1` |  |
+| backend.deployment.readinessProbe.timeoutSeconds | int | `10` |  |
 | backend.deployment.replicas | int | `1` |  |
 | backend.deployment.resources.limits.cpu | string | `"2000m"` |  |
 | backend.deployment.resources.limits.memory | string | `"4Gi"` |  |
@@ -429,7 +429,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | backend.deployment.startupProbe.httpGet.path | string | `"/health"` |  |
 | backend.deployment.startupProbe.httpGet.port | int | `1984` |  |
 | backend.deployment.startupProbe.periodSeconds | int | `10` |  |
-| backend.deployment.startupProbe.timeoutSeconds | int | `1` |  |
+| backend.deployment.startupProbe.timeoutSeconds | int | `10` |  |
 | backend.deployment.terminationGracePeriodSeconds | int | `30` |  |
 | backend.deployment.tolerations | list | `[]` |  |
 | backend.deployment.topologySpreadConstraints | list | `[]` |  |
