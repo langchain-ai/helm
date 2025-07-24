@@ -1,4 +1,4 @@
-{{- if and .Values.listener.autoscaling.enabled .Values.listener.autoscaling.createHpa .Values.config.langgraphPlatform.enabled }}
+{{- if and .Values.listener.autoscaling.enabled .Values.listener.autoscaling.createHpa .Values.config.langgraphPlatform.enabled .Values.listener.enabled }}
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:

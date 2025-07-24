@@ -836,6 +836,7 @@ hostBackend:
 
 listener:
   name: "listener"
+  enabled: true
   containerPort: 8080
   deployment:
     replicas: 1

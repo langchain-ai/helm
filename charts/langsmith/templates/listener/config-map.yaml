@@ -1,4 +1,4 @@
-{{- if and .Values.config.langgraphPlatform.enabled }}
+{{- if and .Values.config.langgraphPlatform.enabled .Values.listener.enabled }}
 apiVersion: v1
 kind: ConfigMap
 metadata:

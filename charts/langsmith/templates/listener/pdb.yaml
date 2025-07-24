@@ -1,4 +1,4 @@
-{{- if .Values.listener.pdb.enabled }}
+{{- if and .Values.listener.pdb.enabled .Values.listener.enabled }}
 apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:

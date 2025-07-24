@@ -10,7 +10,7 @@
 {{- include "langsmith.detectDuplicates" $envVars -}}
 {{- $volumes := concat .Values.commonVolumes .Values.listener.deployment.volumes -}}
 {{- $volumeMounts := concat .Values.commonVolumeMounts .Values.listener.deployment.volumeMounts -}}
-{{- if .Values.config.langgraphPlatform.enabled }}
+{{- if and .Values.config.langgraphPlatform.enabled .Values.listener.enabled }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
