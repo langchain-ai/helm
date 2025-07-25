@@ -81,7 +81,7 @@ listener:
           - "--check"
       failureThreshold: 6
       periodSeconds: 60
-      timeoutSeconds: 30
+      timeoutSeconds: 60
     readinessProbe:
       exec:
         command:
@@ -90,7 +90,7 @@ listener:
           - "--check"
       failureThreshold: 6
       periodSeconds: 60
-      timeoutSeconds: 30
+      timeoutSeconds: 60
     livenessProbe:
       exec:
         command:
@@ -99,7 +99,7 @@ listener:
           - "--check"
       failureThreshold: 6
       periodSeconds: 60
-      timeoutSeconds: 30
+      timeoutSeconds: 60
     extraContainerConfig: {}
     extraEnv: []
     sidecars: []
