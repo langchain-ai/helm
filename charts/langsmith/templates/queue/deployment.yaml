@@ -3,8 +3,6 @@
   value: "250"
 - name: "ASYNCPG_POOL_MAX_SIZE"
   value: "3"
-- name: "PORT"
-  value: {{ .Values.queue.containerPort | quote }}
 {{- end -}}
 {{- $envVars := concat .Values.commonEnv (include "langsmith.commonEnv" . | fromYamlArray) (include "queueEnvVars" . | fromYamlArray) .Values.queue.deployment.extraEnv -}}
 {{- include "langsmith.detectDuplicates" $envVars -}}
@@ -75,10 +73,6 @@ spec:
                 name: {{ include "langsmith.fullname" . }}-config
           image: {{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "backendImage") | quote }}
           imagePullPolicy: {{ .Values.images.backendImage.pullPolicy }}
-          ports:
-            - name: queue
-              containerPort: {{ .Values.queue.containerPort }}
-              protocol: TCP
           {{- with .Values.queue.deployment.startupProbe }}
           startupProbe:
             {{- toYaml . | nindent 12 }}

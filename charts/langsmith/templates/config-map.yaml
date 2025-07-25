@@ -33,6 +33,7 @@ data:
   SMITH_BACKEND_ENDPOINT: "http://{{ include "langsmith.fullname" . }}-{{.Values.backend.name}}.{{ .Release.Namespace }}.svc.cluster.local:{{ .Values.backend.service.port }}"
   HOST_BACKEND_ENDPOINT: "http://{{ include "langsmith.fullname" . }}-{{.Values.hostBackend.name}}.{{ .Release.Namespace }}.svc.cluster.local:{{ .Values.hostBackend.service.port }}"
   FF_RUN_STATS_GROUP_BY_ENABLED_ALL: "true"
+  SEPARATE_QUEUES_WITH_SINGLE_WORKER: '["host"]'
   {{- if .Values.config.observability.tracing.enabled }}
   OTEL_TRACING_ENABLED: "{{ .Values.config.observability.tracing.enabled }}"
   OTLP_ENDPOINT: "{{ .Values.config.observability.tracing.endpoint }}"
