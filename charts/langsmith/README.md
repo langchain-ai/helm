@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.10.43](https://img.shields.io/badge/Version-0.10.43-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.10.116](https://img.shields.io/badge/AppVersion-0.10.116-informational?style=flat-square)
+![Version: 0.10.45](https://img.shields.io/badge/Version-0.10.45-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.10.119](https://img.shields.io/badge/AppVersion-0.10.119-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -29,29 +29,29 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | gateway.subdomain | string | `""` |  |
 | images.aceBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.aceBackendImage.repository | string | `"docker.io/langchain/langsmith-ace-backend"` |  |
-| images.aceBackendImage.tag | string | `"0.10.116"` |  |
+| images.aceBackendImage.tag | string | `"0.10.119"` |  |
 | images.backendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.backendImage.repository | string | `"docker.io/langchain/langsmith-backend"` |  |
-| images.backendImage.tag | string | `"0.10.116"` |  |
+| images.backendImage.tag | string | `"0.10.119"` |  |
 | images.clickhouseImage.pullPolicy | string | `"Always"` |  |
 | images.clickhouseImage.repository | string | `"docker.io/clickhouse/clickhouse-server"` |  |
 | images.clickhouseImage.tag | string | `"24.8"` |  |
 | images.frontendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.frontendImage.repository | string | `"docker.io/langchain/langsmith-frontend"` |  |
-| images.frontendImage.tag | string | `"0.10.116"` |  |
+| images.frontendImage.tag | string | `"0.10.119"` |  |
 | images.hostBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.hostBackendImage.repository | string | `"docker.io/langchain/hosted-langserve-backend"` |  |
-| images.hostBackendImage.tag | string | `"0.10.116"` |  |
+| images.hostBackendImage.tag | string | `"0.10.119"` |  |
 | images.imagePullSecrets | list | `[]` | Secrets with credentials to pull images from a private registry. Specified as name: value. |
 | images.operatorImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.operatorImage.repository | string | `"docker.io/langchain/langgraph-operator"` |  |
 | images.operatorImage.tag | string | `"8a7350b"` |  |
 | images.platformBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.platformBackendImage.repository | string | `"docker.io/langchain/langsmith-go-backend"` |  |
-| images.platformBackendImage.tag | string | `"0.10.116"` |  |
+| images.platformBackendImage.tag | string | `"0.10.119"` |  |
 | images.playgroundImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.playgroundImage.repository | string | `"docker.io/langchain/langsmith-playground"` |  |
-| images.playgroundImage.tag | string | `"0.10.116"` |  |
+| images.playgroundImage.tag | string | `"0.10.119"` |  |
 | images.postgresImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.postgresImage.repository | string | `"docker.io/postgres"` |  |
 | images.postgresImage.tag | string | `"14.7"` |  |
@@ -795,7 +795,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | listener.deployment.livenessProbe.exec.command[2] | string | `"--check"` |  |
 | listener.deployment.livenessProbe.failureThreshold | int | `6` |  |
 | listener.deployment.livenessProbe.periodSeconds | int | `60` |  |
-| listener.deployment.livenessProbe.timeoutSeconds | int | `30` |  |
+| listener.deployment.livenessProbe.timeoutSeconds | int | `60` |  |
 | listener.deployment.nodeSelector | object | `{}` |  |
 | listener.deployment.podSecurityContext | object | `{}` |  |
 | listener.deployment.readinessProbe.exec.command[0] | string | `"saq"` |  |
@@ -803,7 +803,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | listener.deployment.readinessProbe.exec.command[2] | string | `"--check"` |  |
 | listener.deployment.readinessProbe.failureThreshold | int | `6` |  |
 | listener.deployment.readinessProbe.periodSeconds | int | `60` |  |
-| listener.deployment.readinessProbe.timeoutSeconds | int | `30` |  |
+| listener.deployment.readinessProbe.timeoutSeconds | int | `60` |  |
 | listener.deployment.replicas | int | `1` |  |
 | listener.deployment.resources.limits.cpu | string | `"2000m"` |  |
 | listener.deployment.resources.limits.memory | string | `"4Gi"` |  |
@@ -816,7 +816,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | listener.deployment.startupProbe.exec.command[2] | string | `"--check"` |  |
 | listener.deployment.startupProbe.failureThreshold | int | `6` |  |
 | listener.deployment.startupProbe.periodSeconds | int | `60` |  |
-| listener.deployment.startupProbe.timeoutSeconds | int | `30` |  |
+| listener.deployment.startupProbe.timeoutSeconds | int | `60` |  |
 | listener.deployment.terminationGracePeriodSeconds | int | `30` |  |
 | listener.deployment.tolerations | list | `[]` |  |
 | listener.deployment.topologySpreadConstraints | list | `[]` |  |
@@ -1225,6 +1225,6 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | Ankush | <ankush@langchain.dev> |  |
 
 ----------------------------------------------
-Autogenerated from chart metadata using [helm-docs v1.14.2](https://github.com/norwoodj/helm-docs/releases/v1.14.2)
+Autogenerated from chart metadata using [helm-docs v1.13.1](https://github.com/norwoodj/helm-docs/releases/v1.13.1)
 ## Docs Generated by [helm-docs](https://github.com/norwoodj/helm-docs)
 `helm-docs -t ./charts/langsmith/README.md.gotmpl`
