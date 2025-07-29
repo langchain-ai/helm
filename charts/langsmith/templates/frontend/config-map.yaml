@@ -286,6 +286,32 @@ data:
             proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}.{{ .Release.Namespace }}.svc.cluster.local:{{ .Values.backend.service.port }};
         }
 
+    {{- if .Values.config.langgraphPlatform.enabled }}
+        location = /{{ .Values.ingress.subdomain }}/api-host/docs {
+            proxy_set_header Connection '';
+            proxy_http_version 1.1;
+            proxy_buffering off;
+            proxy_cache off;
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.hostBackend.name }}.{{ .Release.Namespace }}.svc.cluster.local:{{ .Values.hostBackend.service.port }};
+        }
+
+        location = /{{ .Values.ingress.subdomain }}/api-host/redoc {
+            proxy_set_header Connection '';
+            proxy_http_version 1.1;
+            proxy_buffering off;
+            proxy_cache off;
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.hostBackend.name }}.{{ .Release.Namespace }}.svc.cluster.local:{{ .Values.hostBackend.service.port }};
+        }
+
+        location = /{{ .Values.ingress.subdomain }}/api-host/openapi.json {
+            proxy_set_header Connection '';
+            proxy_http_version 1.1;
+            proxy_buffering off;
+            proxy_cache off;
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.hostBackend.name }}.{{ .Release.Namespace }}.svc.cluster.local:{{ .Values.hostBackend.service.port }};
+        }
+    {{- end }}
+
         location = /{{ .Values.ingress.subdomain }} {
             absolute_redirect off;
             rewrite ^ /{{ .Values.ingress.subdomain }}/ permanent;
@@ -579,5 +605,31 @@ data:
             proxy_cache off;
             proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}.{{ .Release.Namespace }}.svc.cluster.local:{{ .Values.backend.service.port }};
         }
+
+    {{- if .Values.config.langgraphPlatform.enabled }}
+        location = /api-host/docs {
+            proxy_set_header Connection '';
+            proxy_http_version 1.1;
+            proxy_buffering off;
+            proxy_cache off;
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.hostBackend.name }}.{{ .Release.Namespace }}.svc.cluster.local:{{ .Values.hostBackend.service.port }};
+        }
+
+        location = /api-host/redoc {
+            proxy_set_header Connection '';
+            proxy_http_version 1.1;
+            proxy_buffering off;
+            proxy_cache off;
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.hostBackend.name }}.{{ .Release.Namespace }}.svc.cluster.local:{{ .Values.hostBackend.service.port }};
+        }
+
+        location = /api-host/openapi.json {
+            proxy_set_header Connection '';
+            proxy_http_version 1.1;
+            proxy_buffering off;
+            proxy_cache off;
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.hostBackend.name }}.{{ .Release.Namespace }}.svc.cluster.local:{{ .Values.hostBackend.service.port }};
+        }
+    {{- end }}
       }
 {{- end }}
