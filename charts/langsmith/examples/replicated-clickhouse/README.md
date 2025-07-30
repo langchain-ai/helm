@@ -3,7 +3,9 @@ This folder can be used to setup a replicated clickhouse setup on a kubernetes c
 - `zookeeper-3-node-config.yaml`
 - `replicated-clickhouse-3-node-config.yaml`
 
-## Steps
+Note: This is intended for LangSmith instances that are expected to receive high load for both trace ingestion (write path) as well as high load for trace querying (read path). The default single instance ClickHouse deployment that comes with LangSmith should be able to handle other scenarios.
+
+## Deployment Steps
 1. Install the clickhouse operator on the kubernetes cluster. Run the command below after replacing `<langsmith-namespace>` with the namespace you will be deploying the replicated clickhouse cluster into.
 ```
 $ curl -s https://raw.githubusercontent.com/Altinity/clickhouse-operator/master/deploy/operator-web-installer/clickhouse-operator-install.sh | OPERATOR_NAMESPACE=<langsmith-namespace> bash
