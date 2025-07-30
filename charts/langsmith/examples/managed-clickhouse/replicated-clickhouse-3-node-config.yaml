@@ -1,3 +1,8 @@
+# This comes from combining a few examples from Altinity's Clickhouse Operator repo:
+# 1. https://github.com/Altinity/clickhouse-operator/blob/4df607eccab30e1a280d9fa6d6bd3dd761001f8c/docs/chi-examples/04-replication-zookeeper-04-medium-AWS-persistent-volume.yaml
+# 2. https://github.com/Altinity/clickhouse-operator/blob/4df607eccab30e1a280d9fa6d6bd3dd761001f8c/docs/chi-examples/05-settings-07-network.yaml
+# 3. https://github.com/Altinity/clickhouse-operator/blob/4df607eccab30e1a280d9fa6d6bd3dd761001f8c/docs/chi-examples/03-persistent-volume-01-default-volume.yaml
+
 apiVersion: "clickhouse.altinity.com/v1"
 kind: "ClickHouseInstallation"
 
@@ -12,6 +17,7 @@ spec:
 
   configuration:
     files:
+      # This is used to expose metrics. Optional.
       metrics_config.xml: |
         <clickhouse>
           <prometheus>
@@ -54,7 +60,7 @@ spec:
       default/wait_for_async_insert_timeout: 25
       default/lightweight_deletes_sync: 0
       default/async_insert_busy_timeout_max_ms: 3000
-      default/async_insert_busy_timeout_min_ms: 500
+      default/async_insert_busy_timeout_min_ms: 100
 
   templates:
     volumeClaimTemplates:
@@ -73,11 +79,11 @@ spec:
               image: clickhouse/clickhouse-server:24.8
               resources:
                 requests:
-                  cpu: 18
-                  memory: 20Gi
+                  cpu: 4
+                  memory: 12Gi
                 limits:
-                  cpu: 24
-                  memory: 40Gi
+                  cpu: 8
+                  memory: 24Gi
 
     serviceTemplates:
     - name: langsmith-clickhouse-replicated
@@ -90,6 +96,7 @@ spec:
           - name: http
             port: 8123
             targetPort: 8123
+          # The metrics port is used to expose metrics. Optional.
           - name: metrics
             port: 9363
             targetPort: 9363
@@ -117,6 +124,7 @@ spec:
     - name: http
       port: 8123
       targetPort: 8123
+    # The metrics port is used to expose metrics. Optional.
     - name: metrics
       port: 9363
       targetPort: 9363

@@ -1,4 +1,5 @@
 ## This comes from Altinity's Clickhouse Operator repo: https://github.com/Altinity/clickhouse-operator/blob/4df607eccab30e1a280d9fa6d6bd3dd761001f8c/deploy/zookeeper/zookeeper-manually/quick-start-persistent-volume/zookeeper-3-nodes.yaml#L42
+
 # Setup Service to provide access to Zookeeper for clients
 apiVersion: v1
 kind: Service
