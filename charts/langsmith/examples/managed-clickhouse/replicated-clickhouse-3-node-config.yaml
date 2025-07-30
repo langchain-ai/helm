@@ -79,7 +79,7 @@ spec:
               image: clickhouse/clickhouse-server:24.8
               resources:
                 requests:
-                  cpu: 4
+                  cpu: 3
                   memory: 12Gi
                 limits:
                   cpu: 8
