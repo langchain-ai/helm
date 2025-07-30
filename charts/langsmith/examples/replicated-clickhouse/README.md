@@ -12,7 +12,7 @@ $ curl -s https://raw.githubusercontent.com/Altinity/clickhouse-operator/master/
 ```
 You should see a clickhouse operator pod created.
 ```
-$ kubectl get po
+$ kubectl get pods
 clickhouse-operator-67db695d69-9pvtz   2/2     Running   0          17m
 ```
 
@@ -24,7 +24,7 @@ $ kubectl -n <langsmith-namespace> apply -f zookeeper-3-node-config.yaml
 ```
 You should see zookeeper pods created.
 ```
-$ kubectl get po
+$ kubectl get pods
 langsmith-zookeeper-0                            1/1     Running   0          9m16s
 langsmith-zookeeper-1                            1/1     Running   0          8m25s
 langsmith-zookeeper-2                            1/1     Running   0          7m36s
@@ -48,9 +48,9 @@ Run a command like this:
 ```
 $ kubectl -n <langsmith-namespace> apply -f replicated-clickhouse-3-node-config.yaml
 ```
-You should see a 3 node cluster provisioned.
+You should see a 3 node replicated ClickHouse cluster provisioned.
 ```
-$ kubectl get po | grep repl
+$ kubectl get pods
 chi-ch-repl-replicated-0-0-0                    1/1     Running   0             3m8s
 chi-ch-repl-replicated-0-1-0                    1/1     Running   0             2m3s
 chi-ch-repl-replicated-0-2-0                    1/1     Running   0             72s
