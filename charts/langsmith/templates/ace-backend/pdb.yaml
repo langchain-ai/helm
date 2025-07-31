@@ -3,6 +3,7 @@ apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
   name: {{ include "langsmith.fullname" . }}-{{ .Values.aceBackend.name }}
+  namespace: {{ .Values.namespace | default .Release.Namespace }}
   labels:
     {{- include "langsmith.labels" . | nindent 4 }}
     {{- with .Values.aceBackend.pdb.labels }}
