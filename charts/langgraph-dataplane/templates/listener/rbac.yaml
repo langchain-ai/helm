@@ -3,7 +3,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   name: {{ include "listener.serviceAccountName" $ }}-role
-  namespace: {{ .Values.namespace | default .Release.Namespace | quote }}
+  namespace: {{ .Values.namespace | default .Release.Namespace }}
   labels:
     {{- include "langgraphDataplane.labels" . | nindent 4 }}
     {{- with.Values.listener.rbac.labels }}
@@ -101,7 +101,7 @@ metadata:
 subjects:
   - kind: ServiceAccount
     name: {{ include "listener.serviceAccountName" $ }}
-    namespace: {{ $.Release.Namespace }}
+    namespace: {{  .Values.namespace | default .Release.Namespace }}
 roleRef:
   kind: Role
   name: {{ include "listener.serviceAccountName" $ }}-role

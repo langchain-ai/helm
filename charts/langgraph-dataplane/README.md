@@ -1,6 +1,6 @@
 # langgraph-dataplane
 
-![Version: 0.1.21](https://img.shields.io/badge/Version-0.1.21-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.1.0](https://img.shields.io/badge/AppVersion-0.1.0-informational?style=flat-square)
+![Version: 0.1.23](https://img.shields.io/badge/Version-0.1.23-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.1.0](https://img.shields.io/badge/AppVersion-0.1.0-informational?style=flat-square)
 
 Helm chart to deploy a langgraph dataplane on kubernetes.
 
@@ -22,7 +22,7 @@ You can find the guide to deploy a LangGraph Dataplane [here](https://langchain-
 | images.imagePullSecrets | list | `[]` | Secrets with credentials to pull images from a private registry. Specified as name: value. |
 | images.listenerImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.listenerImage.repository | string | `"docker.io/langchain/hosted-langserve-backend"` |  |
-| images.listenerImage.tag | string | `"0.10.109"` |  |
+| images.listenerImage.tag | string | `"0.10.116"` |  |
 | images.operatorImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.operatorImage.repository | string | `"docker.io/langchain/langgraph-operator"` |  |
 | images.operatorImage.tag | string | `"f8f6901"` |  |
@@ -117,7 +117,7 @@ You can find the guide to deploy a LangGraph Dataplane [here](https://langchain-
 | listener.deployment.livenessProbe.exec.command[2] | string | `"--check"` |  |
 | listener.deployment.livenessProbe.failureThreshold | int | `6` |  |
 | listener.deployment.livenessProbe.periodSeconds | int | `60` |  |
-| listener.deployment.livenessProbe.timeoutSeconds | int | `30` |  |
+| listener.deployment.livenessProbe.timeoutSeconds | int | `60` |  |
 | listener.deployment.nodeSelector | object | `{}` |  |
 | listener.deployment.podSecurityContext | object | `{}` |  |
 | listener.deployment.readinessProbe.exec.command[0] | string | `"saq"` |  |
@@ -125,7 +125,7 @@ You can find the guide to deploy a LangGraph Dataplane [here](https://langchain-
 | listener.deployment.readinessProbe.exec.command[2] | string | `"--check"` |  |
 | listener.deployment.readinessProbe.failureThreshold | int | `6` |  |
 | listener.deployment.readinessProbe.periodSeconds | int | `60` |  |
-| listener.deployment.readinessProbe.timeoutSeconds | int | `30` |  |
+| listener.deployment.readinessProbe.timeoutSeconds | int | `60` |  |
 | listener.deployment.replicas | int | `1` |  |
 | listener.deployment.resources.limits.cpu | string | `"2000m"` |  |
 | listener.deployment.resources.limits.memory | string | `"4Gi"` |  |
@@ -138,7 +138,7 @@ You can find the guide to deploy a LangGraph Dataplane [here](https://langchain-
 | listener.deployment.startupProbe.exec.command[2] | string | `"--check"` |  |
 | listener.deployment.startupProbe.failureThreshold | int | `6` |  |
 | listener.deployment.startupProbe.periodSeconds | int | `60` |  |
-| listener.deployment.startupProbe.timeoutSeconds | int | `30` |  |
+| listener.deployment.startupProbe.timeoutSeconds | int | `60` |  |
 | listener.deployment.terminationGracePeriodSeconds | int | `30` |  |
 | listener.deployment.tolerations | list | `[]` |  |
 | listener.deployment.topologySpreadConstraints | list | `[]` |  |
