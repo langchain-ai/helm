@@ -7,7 +7,7 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: {{ include "langgraphDataplane.fullname" . }}-{{ .Values.redis.name }}
-  namespace: {{ .Values.namespace | default .Release.Namespace | quote }}
+  namespace: {{ .Values.namespace | default .Release.Namespace }}
   labels:
     {{- include "langgraphDataplane.labels" . | nindent 4 }}
     {{- with.Values.redis.statefulSet.labels }}
