@@ -41,3 +41,12 @@ data:
   OTEL_EXPORTER: "{{ .Values.config.observability.tracing.exporter }}"
   OTEL_USE_TLS: "{{ .Values.config.observability.tracing.useTls }}"
   {{- end }}
+  {{- if .Values.config.telemetry.metrics }}
+  BEACON_METRICS_ENABLED: "true"
+  ENABLE_POSTGRES_METRICS_CRON: "true"
+  ENABLE_REDIS_METRICS_CRON: "true"
+  ENABLE_CLICKHOUSE_METRICS_CRON: "true"
+  {{- end }}
+  {{- if .Values.config.telemetry.traces }}
+  BEACON_TRACING_ENABLED: "true"
+  {{- end }}
