@@ -50,4 +50,3 @@ data:
   {{- if .Values.config.telemetry.traces }}
   BEACON_TRACING_ENABLED: "true"
   {{- end }}
-  
