@@ -121,6 +121,11 @@ config:
   # -- Base URL of the LangSmith installation. Used for redirects.
   hostname: ""
 
+  telemetry:
+    # -- Optional. These values are used to send telemetry to the LangChain team to assist with troubleshooting.
+    metrics: true
+    traces: true
+
   oauth:
     enabled: false
     oauthClientId: ""
