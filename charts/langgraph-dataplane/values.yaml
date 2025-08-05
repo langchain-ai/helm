@@ -51,6 +51,7 @@ config:
   hostBackendUrl: "https://api.host.langchain.com"
   smithBackendUrl: "https://api.smith.langchain.com"
   langsmithWorkspaceId: ""
+  langgraphListenerId: ""
 
 
 listener:
