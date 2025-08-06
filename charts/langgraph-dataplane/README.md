@@ -25,7 +25,7 @@ You can find the guide to deploy a LangGraph Dataplane [here](https://langchain-
 | images.listenerImage.tag | string | `"0.10.116"` |  |
 | images.operatorImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.operatorImage.repository | string | `"docker.io/langchain/langgraph-operator"` |  |
-| images.operatorImage.tag | string | `"f8f6901"` |  |
+| images.operatorImage.tag | string | `"e31de82"` |  |
 | images.redisImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.redisImage.repository | string | `"docker.io/redis"` |  |
 | images.redisImage.tag | string | `"7"` |  |
