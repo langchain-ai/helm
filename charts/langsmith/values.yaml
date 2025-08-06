@@ -123,8 +123,8 @@ config:
 
   telemetry:
     # -- Optional. These values are used to send telemetry to the LangChain team to assist with troubleshooting.
-    metrics: true
-    traces: true
+    metrics: false
+    traces: false
 
   oauth:
     enabled: false
