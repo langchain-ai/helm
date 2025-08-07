@@ -129,6 +129,8 @@ Template containing common environment variables that are used by several servic
   value: "true"
 - name: LOG_LEVEL
   value: "INFO"
+- name: ENABLE_LGP_DEPLOYMENT_HEALTH_CHECK
+  value: "true"
 {{- end }}
 
 
