@@ -1,9 +1,15 @@
 {{- if .Values.listener.rbac.create }}
+{{- $defaultNamespace := .Values.namespace | default .Release.Namespace }}
+{{- if .Values.operator.watchNamespaces }}
+{{- $watchNamespacesList := splitList "," .Values.operator.watchNamespaces }}
+{{- $namespaces := uniq (append $watchNamespacesList $defaultNamespace) }}
+{{- range $ns := $namespaces }}
+---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   name: {{ include "listener.serviceAccountName" $ }}-role
-  namespace: {{ .Values.namespace | default .Release.Namespace }}
+  namespace: {{ $ns | trim }}
   labels:
     {{- include "langgraphDataplane.labels" . | nindent 4 }}
     {{- with.Values.listener.rbac.labels }}
@@ -88,6 +94,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: {{ include "listener.serviceAccountName" $ }}-rolebinding
+  namespace: {{ $ns | trim }}
   labels:
     {{- include "langgraphDataplane.labels" . | nindent 4 }}
     {{- with.Values.listener.rbac.labels }}
