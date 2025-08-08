@@ -1,9 +1,7 @@
 {{- if .Values.listener.rbac.create }}
-{{- $defaultNamespace := .Values.namespace | default .Release.Namespace }}
 {{- if .Values.operator.watchNamespaces }}
 {{- $watchNamespacesList := splitList "," .Values.operator.watchNamespaces }}
-{{- $namespaces := uniq (append $watchNamespacesList $defaultNamespace) }}
-{{- range $ns := $namespaces }}
+{{- range $ns := $watchNamespacesList }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
@@ -113,4 +111,6 @@ roleRef:
   kind: Role
   name: {{ include "listener.serviceAccountName" $ }}-role
   apiGroup: rbac.authorization.k8s.io
+{{- end }}
+{{- end }}
 {{- end }}
