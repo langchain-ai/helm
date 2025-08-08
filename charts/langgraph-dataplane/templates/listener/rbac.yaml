@@ -1,6 +1,6 @@
 {{- if .Values.listener.rbac.create }}
-{{- if .Values.operator.watchNamespaces }}
-{{- $watchNamespacesList := splitList "," .Values.operator.watchNamespaces }}
+{{- if .Values.listener.watchNamespaces }}
+{{- $watchNamespacesList := splitList "," .Values.listener.watchNamespaces }}
 {{- range $ns := $watchNamespacesList }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
@@ -9,13 +9,13 @@ metadata:
   name: {{ include "listener.serviceAccountName" $ }}-role
   namespace: {{ $ns | trim }}
   labels:
-    {{- include "langgraphDataplane.labels" . | nindent 4 }}
-    {{- with.Values.listener.rbac.labels }}
+    {{- include "langgraphDataplane.labels" $ | nindent 4 }}
+    {{- with $.Values.listener.rbac.labels }}
       {{- toYaml . | nindent 4 }}
     {{- end }}
   annotations:
-    {{- include "langgraphDataplane.annotations" . | nindent 4 }}
-    {{- with.Values.listener.rbac.annotations }}
+    {{- include "langgraphDataplane.annotations" $ | nindent 4 }}
+    {{- with $.Values.listener.rbac.annotations }}
       {{- toYaml . | nindent 4 }}
     {{- end }}
 rules:
@@ -94,19 +94,19 @@ metadata:
   name: {{ include "listener.serviceAccountName" $ }}-rolebinding
   namespace: {{ $ns | trim }}
   labels:
-    {{- include "langgraphDataplane.labels" . | nindent 4 }}
-    {{- with.Values.listener.rbac.labels }}
+    {{- include "langgraphDataplane.labels" $ | nindent 4 }}
+    {{- with $.Values.listener.rbac.labels }}
       {{- toYaml . | nindent 4 }}
     {{- end }}
   annotations:
-    {{- include "langgraphDataplane.annotations" . | nindent 4 }}
-    {{- with.Values.listener.rbac.annotations }}
+    {{- include "langgraphDataplane.annotations" $ | nindent 4 }}
+    {{- with $.Values.listener.rbac.annotations }}
       {{- toYaml . | nindent 4 }}
     {{- end }}
 subjects:
   - kind: ServiceAccount
     name: {{ include "listener.serviceAccountName" $ }}
-    namespace: {{  .Values.namespace | default .Release.Namespace }}
+    namespace: {{ $.Values.namespace | default $.Release.Namespace }}
 roleRef:
   kind: Role
   name: {{ include "listener.serviceAccountName" $ }}-role
