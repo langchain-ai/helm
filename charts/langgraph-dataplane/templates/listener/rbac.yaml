@@ -1,17 +1,21 @@
 {{- if .Values.listener.rbac.create }}
+{{- if .Values.listener.watchNamespaces }}
+{{- $watchNamespacesList := splitList "," .Values.listener.watchNamespaces }}
+{{- range $ns := $watchNamespacesList }}
+---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   name: {{ include "listener.serviceAccountName" $ }}-role
-  namespace: {{ .Values.namespace | default .Release.Namespace }}
+  namespace: {{ $ns | trim }}
   labels:
-    {{- include "langgraphDataplane.labels" . | nindent 4 }}
-    {{- with.Values.listener.rbac.labels }}
+    {{- include "langgraphDataplane.labels" $ | nindent 4 }}
+    {{- with $.Values.listener.rbac.labels }}
       {{- toYaml . | nindent 4 }}
     {{- end }}
   annotations:
-    {{- include "langgraphDataplane.annotations" . | nindent 4 }}
-    {{- with.Values.listener.rbac.annotations }}
+    {{- include "langgraphDataplane.annotations" $ | nindent 4 }}
+    {{- with $.Values.listener.rbac.annotations }}
       {{- toYaml . | nindent 4 }}
     {{- end }}
 rules:
@@ -88,22 +92,25 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: {{ include "listener.serviceAccountName" $ }}-rolebinding
+  namespace: {{ $ns | trim }}
   labels:
-    {{- include "langgraphDataplane.labels" . | nindent 4 }}
-    {{- with.Values.listener.rbac.labels }}
+    {{- include "langgraphDataplane.labels" $ | nindent 4 }}
+    {{- with $.Values.listener.rbac.labels }}
       {{- toYaml . | nindent 4 }}
     {{- end }}
   annotations:
-    {{- include "langgraphDataplane.annotations" . | nindent 4 }}
-    {{- with.Values.listener.rbac.annotations }}
+    {{- include "langgraphDataplane.annotations" $ | nindent 4 }}
+    {{- with $.Values.listener.rbac.annotations }}
       {{- toYaml . | nindent 4 }}
     {{- end }}
 subjects:
   - kind: ServiceAccount
     name: {{ include "listener.serviceAccountName" $ }}
-    namespace: {{  .Values.namespace | default .Release.Namespace }}
+    namespace: {{ $.Values.namespace | default $.Release.Namespace }}
 roleRef:
   kind: Role
   name: {{ include "listener.serviceAccountName" $ }}-role
   apiGroup: rbac.authorization.k8s.io
+{{- end }}
+{{- end }}
 {{- end }}
