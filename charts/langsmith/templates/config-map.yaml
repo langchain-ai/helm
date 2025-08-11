@@ -26,7 +26,7 @@ data:
   VITE_BACKEND_AUTH_TYPE: "none"
   AUTH_TYPE: "none"
   {{- end }}
-  LANGCHAIN_ENV: "local_kubernetes"
+  LANGCHAIN_ENV: "self_hosted_kubernetes"
   GO_ENDPOINT: "http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Release.Namespace }}.svc.cluster.local:{{ .Values.platformBackend.service.port }}"
   GO_ACE_ENDPOINT: "http://{{ include "langsmith.fullname" . }}-{{.Values.aceBackend.name}}.{{ .Release.Namespace }}.svc.cluster.local:{{ .Values.aceBackend.service.port }}"
   PLAYGROUND_ENDPOINT: "http://{{ include "langsmith.fullname" . }}-{{.Values.playground.name}}.{{ .Release.Namespace }}.svc.cluster.local:{{ .Values.playground.service.port }}"

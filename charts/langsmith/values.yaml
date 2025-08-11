@@ -386,7 +386,7 @@ backend:
     # You can set this to null to disable the TTL for the migrations job. Useful for some deployment setups.
     ttlSecondsAfterFinished: 600
   feedbackConfigMigration:
-    enabled: false
+    enabled: true
     annotations: {}
     podAnnotations: {}
     podSecurityContext: {}
@@ -403,7 +403,7 @@ backend:
     tolerations: []
     affinity: {}
   feedbackMigration:
-    enabled: false
+    enabled: true
     annotations: {}
     podAnnotations: {}
     podSecurityContext: {}
