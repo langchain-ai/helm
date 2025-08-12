@@ -130,7 +130,7 @@ Template containing common environment variables that are used by several servic
 - name: LOG_LEVEL
   value: "INFO"
 - name: ENABLE_LGP_DEPLOYMENT_HEALTH_CHECK
-  value: {{ .Values.listener.enableLGPDeploymentHealthCheck | quote }}
+  value: {{ .Values.config.enableLGPDeploymentHealthCheck | quote }}
 {{- end }}
 
 

@@ -53,10 +53,10 @@ config:
   langsmithWorkspaceId: ""
   langgraphListenerId: ""
   watchNamespaces: ""
+  enableLGPDeploymentHealthCheck: true
 
 listener:
   name: "listener"
-  enableLGPDeploymentHealthCheck: true
   deployment:
     autoRestart: true
     replicas: 1
