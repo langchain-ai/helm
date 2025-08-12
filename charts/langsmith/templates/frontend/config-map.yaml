@@ -195,8 +195,8 @@ data:
             proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Release.Namespace }}.svc.cluster.local:{{ .Values.platformBackend.service.port }};
         }
 
-        location = /{{ .Values.ingress.subdomain }}/commits {
-            rewrite /{{ .Values.ingress.subdomain }}/commits/(.*) /commits/$1  break;
+        location = /{{ .Values.ingress.subdomain }}/api/commits {
+            rewrite /{{ .Values.ingress.subdomain }}/api/commits/(.*) /commits/$1  break;
             proxy_set_header Connection '';
             proxy_http_version 1.1;
             proxy_buffering off;
@@ -534,7 +534,8 @@ data:
             proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Release.Namespace }}.svc.cluster.local:{{ .Values.platformBackend.service.port }};
         }
 
-        location = /commits {
+        location = /api/commits {
+            rewrite /api/commits/(.*) /commits/$1  break;
             proxy_set_header Connection '';
             proxy_http_version 1.1;
             proxy_buffering off;
