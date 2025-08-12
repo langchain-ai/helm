@@ -186,6 +186,15 @@ data:
             proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Release.Namespace }}.svc.cluster.local:{{ .Values.platformBackend.service.port }};
         }
 
+        location /{{ .Values.ingress.subdomain }}/api/v1/public {
+            rewrite /{{ .Values.ingress.subdomain }}/api/v1/public/(.*) /public/$1 break;
+            proxy_set_header Connection '';
+            proxy_http_version 1.1;
+            proxy_buffering off;
+            proxy_cache off;
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Release.Namespace }}.svc.cluster.local:{{ .Values.platformBackend.service.port }};
+        }
+
         location /{{ .Values.ingress.subdomain }}/api/public {
             rewrite /{{ .Values.ingress.subdomain }}/api/public/(.*) /public/$1 break;
             proxy_set_header Connection '';
@@ -501,6 +510,15 @@ data:
 
         location /api/public {
             rewrite /api/public/(.*) /public/$1  break;
+            proxy_set_header Connection '';
+            proxy_http_version 1.1;
+            proxy_buffering off;
+            proxy_cache off;
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Release.Namespace }}.svc.cluster.local:{{ .Values.platformBackend.service.port }};
+        }
+
+        location /api/v1/public {
+            rewrite /api/v1/public/(.*) /public/$1  break;
             proxy_set_header Connection '';
             proxy_http_version 1.1;
             proxy_buffering off;
