@@ -100,7 +100,7 @@ spec:
         {{- end }}
         env:
           - name: WATCH_NAMESPACE
-            value: {{ default .Values.operator.watchNamespaces .Values.config.watchNamespace | quote }}
+            value: {{ default .Values.operator.watchNamespaces .Values.config.watchNamespaces | quote }}
           - name: KEDA_ENABLED
             value: {{ .Values.operator.kedaEnabled | quote }}
           {{- if .Values.ingress.enabled }}
