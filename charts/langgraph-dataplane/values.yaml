@@ -240,6 +240,7 @@ operator:
   name: "operator"
   enabled: true
   createCRDs: true
+  watchNamespaces: ""
   kedaEnabled: true
   deployment:
     autoRestart: true
