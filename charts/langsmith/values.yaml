@@ -12,6 +12,10 @@ commonPodAnnotations: {}
 commonLabels: {}
 # -- Common environment variables that will be applied to all deployments/statefulsets except for the playground/aceBackend services (which are sandboxed). Be careful not to override values already specified by the chart.
 commonEnv: []
+# -- Common volumes added to all deployments/statefulsets except for the playground/aceBackend services (which are sandboxed).
+commonVolumes: []
+# -- Common volume mounts added to all deployments/statefulsets except for the playground/aceBackend services (which are sandboxed).
+commonVolumeMounts: []
 
 images:
    # -- If supplied, all children <image_name>.repository values will be prepended with this registry name + `/`
@@ -21,19 +25,19 @@ images:
   aceBackendImage:
     repository: "docker.io/langchain/langsmith-ace-backend"
     pullPolicy: IfNotPresent
-    tag: "0.10.91"
+    tag: "0.10.132"
   backendImage:
     repository: "docker.io/langchain/langsmith-backend"
     pullPolicy: IfNotPresent
-    tag: "0.10.91"
+    tag: "0.10.132"
   frontendImage:
     repository: "docker.io/langchain/langsmith-frontend"
     pullPolicy: IfNotPresent
-    tag: "0.10.91"
+    tag: "0.10.132"
   hostBackendImage:
     repository: "docker.io/langchain/hosted-langserve-backend"
     pullPolicy: IfNotPresent
-    tag: "0.10.91"
+    tag: "0.10.132"
   operatorImage:
     repository: "docker.io/langchain/langgraph-operator"
     pullPolicy: IfNotPresent
@@ -41,11 +45,11 @@ images:
   platformBackendImage:
     repository: "docker.io/langchain/langsmith-go-backend"
     pullPolicy: IfNotPresent
-    tag: "0.10.91"
+    tag: "0.10.132"
   playgroundImage:
     repository: "docker.io/langchain/langsmith-playground"
     pullPolicy: IfNotPresent
-    tag: "0.10.91"
+    tag: "0.10.132"
   postgresImage:
     repository: "docker.io/postgres"
     pullPolicy: IfNotPresent
@@ -93,6 +97,8 @@ config:
     #  Defaults to ingress.hostname
     rootDomain: ""
     tlsEnabled: true
+    # Disable this if there is restricted access to the external facing ingress endpoint for your agent(s) from inside of your kubernetes cluster.
+    ingressHealthCheckEnabled: true
 
   # -- Salt used to generate the API key. Should be a random string.
   apiKeySalt: ""
@@ -114,6 +120,11 @@ config:
 
   # -- Base URL of the LangSmith installation. Used for redirects.
   hostname: ""
+
+  telemetry:
+    # -- Optional. These values are used to send telemetry to the LangChain team to assist with troubleshooting.
+    metrics: false
+    traces: false
 
   oauth:
     enabled: false
@@ -276,7 +287,7 @@ backend:
   containerPort: 1984
   existingConfigMapName: ""
   deployment:
-    replicas: 1
+    replicas: 2
     labels: {}
     annotations: {}
     podSecurityContext: {}
@@ -296,21 +307,21 @@ backend:
         port: 1984
       failureThreshold: 6
       periodSeconds: 10
-      timeoutSeconds: 1
+      timeoutSeconds: 10
     livenessProbe:
       httpGet:
         path: /health
         port: 1984
       failureThreshold: 6
       periodSeconds: 10
-      timeoutSeconds: 1
+      timeoutSeconds: 10
     readinessProbe:
       httpGet:
         path: /health
         port: 1984
       failureThreshold: 6
       periodSeconds: 10
-      timeoutSeconds: 1
+      timeoutSeconds: 10
     extraContainerConfig: {}
     extraEnv: []
     sidecars: []
@@ -352,7 +363,7 @@ backend:
     # You can set this to null to disable the TTL for the migrations job. Useful for some deployment setups.
     ttlSecondsAfterFinished: 600
   feedbackConfigMigration:
-    enabled: false
+    enabled: true
     annotations: {}
     podAnnotations: {}
     podSecurityContext: {}
@@ -369,7 +380,7 @@ backend:
     tolerations: []
     affinity: {}
   feedbackMigration:
-    enabled: false
+    enabled: true
     annotations: {}
     podAnnotations: {}
     podSecurityContext: {}
@@ -447,8 +458,8 @@ backend:
     # If enabled, use the following values to configure the HPA. You can also use your own HPA configuration by not creating an HPA.
     # You may want to manage the HPA yourself if you have a custom autoscaling setup like KEDA.
     createHpa: true
-    minReplicas: 1
-    maxReplicas: 5
+    minReplicas: 2
+    maxReplicas: 6
     targetCPUUtilizationPercentage: 50
     targetMemoryUtilizationPercentage: 80
   pdb:
@@ -601,6 +612,7 @@ e2eTest:
     name: ""
     labels: {}
     annotations: {}
+  extraEnv: []
   extraContainerConfig: {}
   sidecars: []
   initContainers: []
@@ -792,7 +804,6 @@ hostBackend:
 
 listener:
   name: "listener"
-  containerPort: 8080
   deployment:
     replicas: 1
     labels: {}
@@ -809,26 +820,32 @@ listener:
     command:
       - "./listener_entrypoint.sh"
     startupProbe:
-      httpGet:
-        path: /health
-        port: 8080
+      exec:
+        command:
+          - "saq"
+          - "app.workers.queues.host_worker.settings"
+          - "--check"
       failureThreshold: 6
-      periodSeconds: 10
-      timeoutSeconds: 1
-    livenessProbe:
-      httpGet:
-        path: /health
-        port: 8080
-      failureThreshold: 6
-      periodSeconds: 10
-      timeoutSeconds: 1
+      periodSeconds: 60
+      timeoutSeconds: 60
     readinessProbe:
-      httpGet:
-        path: /health
-        port: 8080
+      exec:
+        command:
+          - "saq"
+          - "app.workers.queues.host_worker.settings"
+          - "--check"
       failureThreshold: 6
-      periodSeconds: 10
-      timeoutSeconds: 1
+      periodSeconds: 60
+      timeoutSeconds: 60
+    livenessProbe:
+      exec:
+        command:
+          - "saq"
+          - "app.workers.queues.host_worker.settings"
+          - "--check"
+      failureThreshold: 6
+      periodSeconds: 60
+      timeoutSeconds: 60
     extraContainerConfig: {}
     extraEnv: []
     sidecars: []
@@ -1314,7 +1331,6 @@ postgres:
 
 queue:
   name: "queue"
-  containerPort: 8080
   deployment:
     replicas: 3
     labels: {}
@@ -1331,26 +1347,32 @@ queue:
     command:
       - "./queue_entrypoint.sh"
     startupProbe:
-      httpGet:
-        path: /health
-        port: 8080
+      exec:
+        command:
+          - "saq"
+          - "app.workers.queues.single_queue_worker.settings"
+          - "--check"
       failureThreshold: 6
-      periodSeconds: 10
-      timeoutSeconds: 1
-    livenessProbe:
-      httpGet:
-        path: /health
-        port: 8080
-      failureThreshold: 6
-      periodSeconds: 10
-      timeoutSeconds: 1
+      periodSeconds: 60
+      timeoutSeconds: 60
     readinessProbe:
-      httpGet:
-        path: /health
-        port: 8080
+      exec:
+        command:
+          - "saq"
+          - "app.workers.queues.single_queue_worker.settings"
+          - "--check"
       failureThreshold: 6
-      periodSeconds: 10
-      timeoutSeconds: 1
+      periodSeconds: 60
+      timeoutSeconds: 60
+    livenessProbe:
+      exec:
+        command:
+          - "saq"
+          - "app.workers.queues.single_queue_worker.settings"
+          - "--check"
+      failureThreshold: 6
+      periodSeconds: 60
+      timeoutSeconds: 60
     extraContainerConfig: {}
     extraEnv: []
     sidecars: []

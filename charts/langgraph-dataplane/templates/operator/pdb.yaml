@@ -3,6 +3,7 @@ apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
   name: {{ include "langgraphDataplane.fullname" . }}-{{ .Values.operator.name }}
+  namespace: {{ .Values.namespace | default .Release.Namespace }}
   labels:
     {{- include "langgraphDataplane.labels" . | nindent 4 }}
 spec:

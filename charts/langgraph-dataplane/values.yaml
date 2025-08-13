@@ -4,12 +4,18 @@
 nameOverride: ""
 # -- String to fully override `"langgraphDataplane.fullname"`
 fullnameOverride: ""
+# -- Namespace to install the chart into. If not set, will use the namespace of the current context.
+namespace: ""
 # -- Annotations that will be applied to all resources created by the chart
 commonAnnotations: {}
 # -- Labels that will be applied to all resources created by the chart
 commonLabels: {}
 # -- Common environment variables that will be applied to all deployments.
 commonEnv: []
+# -- Common volumes added to all deployments/statefulsets.
+commonVolumes: []
+# -- Common volume mounts added to all deployments/statefulsets.
+commonVolumeMounts: []
 
 images:
    # -- If supplied, all children <image_name>.repository values will be prepended with this registry name + `/`
@@ -19,7 +25,7 @@ images:
   listenerImage:
     repository: "docker.io/langchain/hosted-langserve-backend"
     pullPolicy: IfNotPresent
-    tag: "0.10.83"
+    tag: "0.10.116"
   redisImage:
     repository: "docker.io/redis"
     pullPolicy: IfNotPresent
@@ -49,7 +55,6 @@ config:
 
 listener:
   name: "listener"
-  containerPort: 8080
   deployment:
     autoRestart: true
     replicas: 1
@@ -68,30 +73,33 @@ listener:
       - "saq"
       - "app.workers.queues.host_worker.settings"
       - "--quiet"
-      - "--web"
-      - "--port"
-      - "$(PORT)"
     startupProbe:
-      httpGet:
-        path: /health
-        port: 8080
+      exec:
+        command:
+          - "saq"
+          - "app.workers.queues.host_worker.settings"
+          - "--check"
       failureThreshold: 6
-      periodSeconds: 10
-      timeoutSeconds: 1
-    livenessProbe:
-      httpGet:
-        path: /health
-        port: 8080
-      failureThreshold: 6
-      periodSeconds: 10
-      timeoutSeconds: 1
+      periodSeconds: 60
+      timeoutSeconds: 60
     readinessProbe:
-      httpGet:
-        path: /health
-        port: 8080
+      exec:
+        command:
+          - "saq"
+          - "app.workers.queues.host_worker.settings"
+          - "--check"
       failureThreshold: 6
-      periodSeconds: 10
-      timeoutSeconds: 1
+      periodSeconds: 60
+      timeoutSeconds: 60
+    livenessProbe:
+      exec:
+        command:
+          - "saq"
+          - "app.workers.queues.host_worker.settings"
+          - "--check"
+      failureThreshold: 6
+      periodSeconds: 60
+      timeoutSeconds: 60
     extraContainerConfig: {}
     extraEnv: []
     sidecars: []

@@ -1,8 +1,11 @@
 {{- if not .Values.postgres.external.enabled }}
+{{- $volumes := concat .Values.commonVolumes .Values.postgres.statefulSet.volumes -}}
+{{- $volumeMounts := concat .Values.commonVolumeMounts .Values.postgres.statefulSet.volumeMounts -}}
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: {{ include "langGraphCloud.fullname" . }}-{{ .Values.postgres.name }}
+  namespace: {{ .Values.namespace | default .Release.Namespace | quote }}
   labels:
     {{- include "langGraphCloud.labels" . | nindent 4 }}
     {{- with.Values.postgres.statefulSet.labels }}
@@ -108,7 +111,7 @@ spec:
           securityContext:
             {{- toYaml .Values.postgres.statefulSet.securityContext | nindent 12 }}
           volumeMounts:
-            {{- with .Values.postgres.statefulSet.volumeMounts }}
+            {{- with $volumeMounts }}
               {{- toYaml . | nindent 12 }}
             {{- end }}
             {{- if .Values.postgres.statefulSet.persistence.enabled }}
@@ -134,7 +137,7 @@ spec:
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.postgres.statefulSet.volumes }}
+      {{- with $volumes }}
       volumes:
           {{- toYaml . | nindent 8 }}
       {{- end }}

@@ -361,6 +361,8 @@ Template containing common environment variables that are used by several servic
 - name: QUICKWIT_SEARCH_ENABLED
   value: "true"
 {{- end }}
+- name: ENABLE_LGP_DEPLOYMENT_HEALTH_CHECK
+  value: {{ .Values.config.langgraphPlatform.ingressHealthCheckEnabled | quote }}
 {{- end }}
 
 

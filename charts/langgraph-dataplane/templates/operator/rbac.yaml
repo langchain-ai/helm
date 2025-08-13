@@ -143,7 +143,7 @@ metadata:
 subjects:
   - kind: ServiceAccount
     name: {{ include "operator.serviceAccountName" $ }}
-    namespace: {{ $.Release.Namespace }}
+    namespace: {{ $.Values.namespace | default $.Release.Namespace }}
 roleRef:
   kind: Role
   name: {{ include "operator.serviceAccountName" $ }}-role
@@ -290,7 +290,7 @@ metadata:
 subjects:
   - kind: ServiceAccount
     name: {{ include "operator.serviceAccountName" . }}
-    namespace: {{ .Release.Namespace }}
+    namespace: {{ .Values.namespace | default .Release.Namespace }}
 roleRef:
   kind: ClusterRole
   name: {{ include "operator.serviceAccountName" . }}-role
@@ -301,7 +301,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   name: {{ include "operator.serviceAccountName" . }}-leader-election-role
-  namespace: {{ .Release.Namespace }}
+  namespace: {{ .Values.namespace | default .Release.Namespace }}
   labels:
     {{- include "langgraphDataplane.labels" . | nindent 4 }}
     {{- with.Values.operator.rbac.labels }}
@@ -350,7 +350,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: {{ include "operator.serviceAccountName" . }}-leader-election-rolebinding
-  namespace: {{ .Release.Namespace }}
+  namespace: {{ .Values.namespace | default .Release.Namespace }}
   labels:
     {{- include "langgraphDataplane.labels" . | nindent 4 }}
     {{- with.Values.operator.rbac.labels }}
@@ -364,7 +364,7 @@ metadata:
 subjects:
 - kind: ServiceAccount
   name: {{ include "operator.serviceAccountName" . }}
-  namespace: {{ .Release.Namespace }}
+  namespace: {{  .Values.namespace | default .Release.Namespace }}
 roleRef:
   kind: Role
   name: {{ include "operator.serviceAccountName" . }}-leader-election-role

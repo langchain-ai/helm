@@ -3,11 +3,11 @@
   value: "250"
 - name: "ASYNCPG_POOL_MAX_SIZE"
   value: "3"
-- name: "PORT"
-  value: {{ .Values.queue.containerPort | quote }}
 {{- end -}}
 {{- $envVars := concat .Values.commonEnv (include "langsmith.commonEnv" . | fromYamlArray) (include "queueEnvVars" . | fromYamlArray) .Values.queue.deployment.extraEnv -}}
 {{- include "langsmith.detectDuplicates" $envVars -}}
+{{- $volumes := concat .Values.commonVolumes .Values.queue.deployment.volumes -}}
+{{- $volumeMounts := concat .Values.commonVolumeMounts .Values.queue.deployment.volumeMounts -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -73,10 +73,6 @@ spec:
                 name: {{ include "langsmith.fullname" . }}-config
           image: {{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "backendImage") | quote }}
           imagePullPolicy: {{ .Values.images.backendImage.pullPolicy }}
-          ports:
-            - name: queue
-              containerPort: {{ .Values.queue.containerPort }}
-              protocol: TCP
           {{- with .Values.queue.deployment.startupProbe }}
           startupProbe:
             {{- toYaml . | nindent 12 }}
@@ -93,7 +89,7 @@ spec:
             {{- toYaml .Values.queue.deployment.resources | nindent 12 }}
           securityContext:
             {{- toYaml .Values.queue.deployment.securityContext | nindent 12 }}
-          {{- with .Values.queue.deployment.volumeMounts }}
+          {{- with $volumeMounts }}
           volumeMounts:
             {{- toYaml . | nindent 12 }}
           {{- end }}
@@ -119,7 +115,7 @@ spec:
       topologySpreadConstraints:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.queue.deployment.volumes }}
+      {{- with $volumes }}
       volumes:
           {{- toYaml . | nindent 8 }}
       {{- end }}

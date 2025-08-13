@@ -2,6 +2,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: {{ include "langgraphDataplane.fullname" . }}-listener-config
+  namespace: {{ .Values.namespace | default .Release.Namespace }}
   labels:
     {{- include "langgraphDataplane.labels" . | nindent 4 }}
   annotations:

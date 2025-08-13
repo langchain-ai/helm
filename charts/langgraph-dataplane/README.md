@@ -1,12 +1,13 @@
 # langgraph-dataplane
 
-![Version: 0.1.18](https://img.shields.io/badge/Version-0.1.18-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.1.0](https://img.shields.io/badge/AppVersion-0.1.0-informational?style=flat-square)
+![Version: 0.1.25](https://img.shields.io/badge/Version-0.1.25-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.1.0](https://img.shields.io/badge/AppVersion-0.1.0-informational?style=flat-square)
 
 Helm chart to deploy a langgraph dataplane on kubernetes.
 
 ## Deploying a LangGraph Dataplane
 
-### TODO: ADD README for LangGraph Dataplane Chart
+This chart deploys a LangGraph Dataplane, which is a component of the LangGraph Platform. The Dataplane is responsible for executing and managing LangGraph applications.
+You can find the guide to deploy a LangGraph Dataplane [here](https://langchain-ai.github.io/langgraph/cloud/deployment/self_hosted_data_plane/).
 
 ## General parameters
 
@@ -15,11 +16,13 @@ Helm chart to deploy a langgraph dataplane on kubernetes.
 | commonAnnotations | object | `{}` | Annotations that will be applied to all resources created by the chart |
 | commonEnv | list | `[]` | Common environment variables that will be applied to all deployments. |
 | commonLabels | object | `{}` | Labels that will be applied to all resources created by the chart |
+| commonVolumeMounts | list | `[]` | Common volume mounts added to all deployments/statefulsets. |
+| commonVolumes | list | `[]` | Common volumes added to all deployments/statefulsets. |
 | fullnameOverride | string | `""` | String to fully override `"langgraphDataplane.fullname"` |
 | images.imagePullSecrets | list | `[]` | Secrets with credentials to pull images from a private registry. Specified as name: value. |
 | images.listenerImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.listenerImage.repository | string | `"docker.io/langchain/hosted-langserve-backend"` |  |
-| images.listenerImage.tag | string | `"0.10.83"` |  |
+| images.listenerImage.tag | string | `"0.10.116"` |  |
 | images.operatorImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.operatorImage.repository | string | `"docker.io/langchain/langgraph-operator"` |  |
 | images.operatorImage.tag | string | `"f8f6901"` |  |
@@ -36,6 +39,7 @@ Helm chart to deploy a langgraph dataplane on kubernetes.
 | ingress.tls | list | `[]` |  |
 | ingress.tlsEnabled | bool | `true` |  |
 | nameOverride | string | `""` | Provide a name in place of `langgraphDataplane` |
+| namespace | string | `""` | Namespace to install the chart into. If not set, will use the namespace of the current context. |
 | operator.createCRDs | bool | `true` |  |
 | operator.deployment.affinity | object | `{}` |  |
 | operator.deployment.annotations | object | `{}` |  |
@@ -99,31 +103,29 @@ Helm chart to deploy a langgraph dataplane on kubernetes.
 | listener.autoscaling.minReplicas | int | `3` |  |
 | listener.autoscaling.targetCPUUtilizationPercentage | int | `50` |  |
 | listener.autoscaling.targetMemoryUtilizationPercentage | int | `80` |  |
-| listener.containerPort | int | `8080` |  |
 | listener.deployment.affinity | object | `{}` |  |
 | listener.deployment.annotations | object | `{}` |  |
 | listener.deployment.autoRestart | bool | `true` |  |
 | listener.deployment.command[0] | string | `"saq"` |  |
 | listener.deployment.command[1] | string | `"app.workers.queues.host_worker.settings"` |  |
 | listener.deployment.command[2] | string | `"--quiet"` |  |
-| listener.deployment.command[3] | string | `"--web"` |  |
-| listener.deployment.command[4] | string | `"--port"` |  |
-| listener.deployment.command[5] | string | `"$(PORT)"` |  |
 | listener.deployment.extraContainerConfig | object | `{}` |  |
 | listener.deployment.extraEnv | list | `[]` |  |
 | listener.deployment.labels | object | `{}` |  |
+| listener.deployment.livenessProbe.exec.command[0] | string | `"saq"` |  |
+| listener.deployment.livenessProbe.exec.command[1] | string | `"app.workers.queues.host_worker.settings"` |  |
+| listener.deployment.livenessProbe.exec.command[2] | string | `"--check"` |  |
 | listener.deployment.livenessProbe.failureThreshold | int | `6` |  |
-| listener.deployment.livenessProbe.httpGet.path | string | `"/health"` |  |
-| listener.deployment.livenessProbe.httpGet.port | int | `8080` |  |
-| listener.deployment.livenessProbe.periodSeconds | int | `10` |  |
-| listener.deployment.livenessProbe.timeoutSeconds | int | `1` |  |
+| listener.deployment.livenessProbe.periodSeconds | int | `60` |  |
+| listener.deployment.livenessProbe.timeoutSeconds | int | `60` |  |
 | listener.deployment.nodeSelector | object | `{}` |  |
 | listener.deployment.podSecurityContext | object | `{}` |  |
+| listener.deployment.readinessProbe.exec.command[0] | string | `"saq"` |  |
+| listener.deployment.readinessProbe.exec.command[1] | string | `"app.workers.queues.host_worker.settings"` |  |
+| listener.deployment.readinessProbe.exec.command[2] | string | `"--check"` |  |
 | listener.deployment.readinessProbe.failureThreshold | int | `6` |  |
-| listener.deployment.readinessProbe.httpGet.path | string | `"/health"` |  |
-| listener.deployment.readinessProbe.httpGet.port | int | `8080` |  |
-| listener.deployment.readinessProbe.periodSeconds | int | `10` |  |
-| listener.deployment.readinessProbe.timeoutSeconds | int | `1` |  |
+| listener.deployment.readinessProbe.periodSeconds | int | `60` |  |
+| listener.deployment.readinessProbe.timeoutSeconds | int | `60` |  |
 | listener.deployment.replicas | int | `1` |  |
 | listener.deployment.resources.limits.cpu | string | `"2000m"` |  |
 | listener.deployment.resources.limits.memory | string | `"4Gi"` |  |
@@ -131,11 +133,12 @@ Helm chart to deploy a langgraph dataplane on kubernetes.
 | listener.deployment.resources.requests.memory | string | `"2Gi"` |  |
 | listener.deployment.securityContext | object | `{}` |  |
 | listener.deployment.sidecars | list | `[]` |  |
+| listener.deployment.startupProbe.exec.command[0] | string | `"saq"` |  |
+| listener.deployment.startupProbe.exec.command[1] | string | `"app.workers.queues.host_worker.settings"` |  |
+| listener.deployment.startupProbe.exec.command[2] | string | `"--check"` |  |
 | listener.deployment.startupProbe.failureThreshold | int | `6` |  |
-| listener.deployment.startupProbe.httpGet.path | string | `"/health"` |  |
-| listener.deployment.startupProbe.httpGet.port | int | `8080` |  |
-| listener.deployment.startupProbe.periodSeconds | int | `10` |  |
-| listener.deployment.startupProbe.timeoutSeconds | int | `1` |  |
+| listener.deployment.startupProbe.periodSeconds | int | `60` |  |
+| listener.deployment.startupProbe.timeoutSeconds | int | `60` |  |
 | listener.deployment.terminationGracePeriodSeconds | int | `30` |  |
 | listener.deployment.tolerations | list | `[]` |  |
 | listener.deployment.topologySpreadConstraints | list | `[]` |  |
@@ -271,6 +274,6 @@ Helm chart to deploy a langgraph dataplane on kubernetes.
 | Ankush | <ankush@langchain.dev> |  |
 
 ----------------------------------------------
-Autogenerated from chart metadata using [helm-docs v1.11.3](https://github.com/norwoodj/helm-docs/releases/v1.11.3)
+Autogenerated from chart metadata using [helm-docs v1.14.2](https://github.com/norwoodj/helm-docs/releases/v1.14.2)
 ## Docs Generated by [helm-docs](https://github.com/norwoodj/helm-docs)
 `helm-docs -t ./charts/langgraph-cloud/README.md.gotmpl`

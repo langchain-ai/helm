@@ -28,6 +28,8 @@
 {{- end -}}
 {{- $envVars := concat .Values.commonEnv (include "frontendEnvVars" . | fromYamlArray) .Values.frontend.deployment.extraEnv -}}
 {{- include "langsmith.detectDuplicates" $envVars -}}
+{{- $volumes := concat .Values.commonVolumes .Values.frontend.deployment.volumes -}}
+{{- $volumeMounts := concat .Values.commonVolumes .Values.frontend.deployment.volumeMounts -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -113,7 +115,7 @@ spec:
           securityContext:
             {{- toYaml .Values.frontend.deployment.securityContext | nindent 12 }}
           volumeMounts:
-            {{- with .Values.frontend.deployment.volumeMounts }}
+            {{- with $volumeMounts }}
               {{- toYaml . | nindent 12 }}
             {{- end }}
             - mountPath: /etc/nginx/conf.d/default.conf
@@ -142,7 +144,7 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       volumes:
-        {{- with .Values.frontend.deployment.volumes }}
+        {{- with $volumes }}
             {{- toYaml . | nindent 8 }}
         {{- end }}
         - name: nginx-conf

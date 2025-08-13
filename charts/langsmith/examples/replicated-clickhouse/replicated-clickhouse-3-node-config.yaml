@@ -1,0 +1,131 @@
+# This comes from combining a few examples from Altinity's Clickhouse Operator repo:
+# 1. https://github.com/Altinity/clickhouse-operator/blob/4df607eccab30e1a280d9fa6d6bd3dd761001f8c/docs/chi-examples/04-replication-zookeeper-04-medium-AWS-persistent-volume.yaml
+# 2. https://github.com/Altinity/clickhouse-operator/blob/4df607eccab30e1a280d9fa6d6bd3dd761001f8c/docs/chi-examples/05-settings-07-network.yaml
+# 3. https://github.com/Altinity/clickhouse-operator/blob/4df607eccab30e1a280d9fa6d6bd3dd761001f8c/docs/chi-examples/03-persistent-volume-01-default-volume.yaml
+
+apiVersion: "clickhouse.altinity.com/v1"
+kind: "ClickHouseInstallation"
+
+metadata:
+  name: "ch-repl"
+
+spec:
+  defaults:
+    templates:
+      dataVolumeClaimTemplate: default
+      podTemplate: clickhouse
+
+  configuration:
+    files:
+      # This is used to expose metrics. Optional.
+      metrics_config.xml: |
+        <clickhouse>
+          <prometheus>
+            <endpoint>/metrics</endpoint>
+            <port>9363</port>
+            <metrics>true</metrics>
+            <events>true</events>
+            <asynchronous_metrics>true</asynchronous_metrics>
+            <errors>true</errors>
+          </prometheus>
+        </clickhouse>
+
+    zookeeper:
+      nodes:
+        - host: langsmith-zookeeper-0.langsmith-zookeepers.default.svc.cluster.local
+        - host: langsmith-zookeeper-1.langsmith-zookeepers.default.svc.cluster.local
+        - host: langsmith-zookeeper-2.langsmith-zookeepers.default.svc.cluster.local
+    clusters:
+      - name: replicated
+        layout:
+          shardsCount: 1
+          replicasCount: 3
+        templates:
+          serviceTemplate: langsmith-clickhouse-replicated
+
+    users:
+      default/profile: default
+      default/password: password
+      default/networks/ip:
+        - "10.0.0.0/16"
+      default/networks/host_regexp:
+        - "langsmith-clickhouse-replicated\\.default\\.svc\\.cluster\\.local$"
+        - "chi-ch-repl-replicated-.*\\.default\\.svc\\.cluster\\.local$"
+    profiles:
+      default/async_insert: 1
+      default/async_insert_max_data_size: 20000000
+      default/wait_for_async_insert: 0
+      default/parallel_view_processing: 1
+      default/materialize_ttl_after_modify: 0
+      default/wait_for_async_insert_timeout: 25
+      default/lightweight_deletes_sync: 0
+      default/async_insert_busy_timeout_max_ms: 3000
+      default/async_insert_busy_timeout_min_ms: 100
+
+  templates:
+    volumeClaimTemplates:
+      - name: default
+        spec:
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: 200Gi
+    podTemplates:
+      - name: clickhouse
+        spec:
+          containers:
+            - name: clickhouse-pod
+              image: clickhouse/clickhouse-server:24.8
+              resources:
+                requests:
+                  cpu: 3
+                  memory: 12Gi
+                limits:
+                  cpu: 8
+                  memory: 24Gi
+
+    serviceTemplates:
+    - name: langsmith-clickhouse-replicated
+      generateName: langsmith-clickhouse-replicated
+      spec:
+        ports:
+          - name: native
+            port: 9000
+            targetPort: 9000
+          - name: http
+            port: 8123
+            targetPort: 8123
+          # The metrics port is used to expose metrics. Optional.
+          - name: metrics
+            port: 9363
+            targetPort: 9363
+            protocol: TCP
+        type: ClusterIP
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: langsmith-ch-clickhouse-replicated
+  labels:
+    clickhouse.altinity.com/chi: ch-repl
+    clickhouse.altinity.com/cluster: replicated
+spec:
+  type: ClusterIP
+  selector:
+    clickhouse.altinity.com/chi: ch-repl
+    clickhouse.altinity.com/cluster: replicated
+  ports:
+    - name: native
+      port: 9000
+      targetPort: 9000
+    - name: http
+      port: 8123
+      targetPort: 8123
+    # The metrics port is used to expose metrics. Optional.
+    - name: metrics
+      port: 9363
+      targetPort: 9363
+

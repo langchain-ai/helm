@@ -3,6 +3,7 @@ apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
   name: {{ include "langGraphCloud.fullname" . }}-{{ .Values.queue.name }}
+  namespace: {{ .Values.namespace | default .Release.Namespace | quote }}
   labels:
     {{- include "langGraphCloud.labels" . | nindent 4 }}
 spec:

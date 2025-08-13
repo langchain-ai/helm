@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.10.34](https://img.shields.io/badge/Version-0.10.34-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.10.91](https://img.shields.io/badge/AppVersion-0.10.91-informational?style=flat-square)
+![Version: 0.10.52](https://img.shields.io/badge/Version-0.10.52-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.10.132](https://img.shields.io/badge/AppVersion-0.10.132-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -16,6 +16,8 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | commonEnv | list | `[]` | Common environment variables that will be applied to all deployments/statefulsets except for the playground/aceBackend services (which are sandboxed). Be careful not to override values already specified by the chart. |
 | commonLabels | object | `{}` | Labels that will be applied to all resources created by the chart |
 | commonPodAnnotations | object | `{}` | Annotations that will be applied to all pods created by the chart |
+| commonVolumeMounts | list | `[]` | Common volume mounts added to all deployments/statefulsets except for the playground/aceBackend services (which are sandboxed). |
+| commonVolumes | list | `[]` | Common volumes added to all deployments/statefulsets except for the playground/aceBackend services (which are sandboxed). |
 | fullnameOverride | string | `""` | String to fully override `"langsmith.fullname"` |
 | gateway.annotations | object | `{}` |  |
 | gateway.enabled | bool | `false` |  |
@@ -27,29 +29,29 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | gateway.subdomain | string | `""` |  |
 | images.aceBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.aceBackendImage.repository | string | `"docker.io/langchain/langsmith-ace-backend"` |  |
-| images.aceBackendImage.tag | string | `"0.10.91"` |  |
+| images.aceBackendImage.tag | string | `"0.10.132"` |  |
 | images.backendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.backendImage.repository | string | `"docker.io/langchain/langsmith-backend"` |  |
-| images.backendImage.tag | string | `"0.10.91"` |  |
+| images.backendImage.tag | string | `"0.10.132"` |  |
 | images.clickhouseImage.pullPolicy | string | `"Always"` |  |
 | images.clickhouseImage.repository | string | `"docker.io/clickhouse/clickhouse-server"` |  |
 | images.clickhouseImage.tag | string | `"24.8"` |  |
 | images.frontendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.frontendImage.repository | string | `"docker.io/langchain/langsmith-frontend"` |  |
-| images.frontendImage.tag | string | `"0.10.91"` |  |
+| images.frontendImage.tag | string | `"0.10.132"` |  |
 | images.hostBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.hostBackendImage.repository | string | `"docker.io/langchain/hosted-langserve-backend"` |  |
-| images.hostBackendImage.tag | string | `"0.10.91"` |  |
+| images.hostBackendImage.tag | string | `"0.10.132"` |  |
 | images.imagePullSecrets | list | `[]` | Secrets with credentials to pull images from a private registry. Specified as name: value. |
 | images.operatorImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.operatorImage.repository | string | `"docker.io/langchain/langgraph-operator"` |  |
 | images.operatorImage.tag | string | `"8a7350b"` |  |
 | images.platformBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.platformBackendImage.repository | string | `"docker.io/langchain/langsmith-go-backend"` |  |
-| images.platformBackendImage.tag | string | `"0.10.91"` |  |
+| images.platformBackendImage.tag | string | `"0.10.132"` |  |
 | images.playgroundImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.playgroundImage.repository | string | `"docker.io/langchain/langsmith-playground"` |  |
-| images.playgroundImage.tag | string | `"0.10.91"` |  |
+| images.playgroundImage.tag | string | `"0.10.132"` |  |
 | images.postgresImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.postgresImage.repository | string | `"docker.io/postgres"` |  |
 | images.postgresImage.tag | string | `"14.7"` |  |
@@ -231,6 +233,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | config.fullTextSearch.indexing.enabled | bool | `false` |  |
 | config.hostname | string | `""` | Base URL of the LangSmith installation. Used for redirects. |
 | config.langgraphPlatform.enabled | bool | `false` | Optional. Used to enable the Langgraph platform control plane. If enabled, the license key must be provided. |
+| config.langgraphPlatform.ingressHealthCheckEnabled | bool | `true` |  |
 | config.langgraphPlatform.langgraphPlatformLicenseKey | string | `""` |  |
 | config.langgraphPlatform.rootDomain | string | `""` |  |
 | config.langgraphPlatform.tlsEnabled | bool | `true` |  |
@@ -251,6 +254,8 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | config.personalOrgsDisabled | bool | `false` | Disable personal orgs. Users will need to be invited to an org manually. If using basic auth, this is set to true by default. |
 | config.settings | object | `{"redisRunsExpirySeconds":"21600"}` | Application Settings. These are used to tune the application |
 | config.settings.redisRunsExpirySeconds | string | `"21600"` | Optional. Be very careful when lowering this value as it can result in runs being lost if your queue is down/not processing items fast enough. |
+| config.telemetry.metrics | bool | `false` | Optional. These values are used to send telemetry to the LangChain team to assist with troubleshooting. |
+| config.telemetry.traces | bool | `false` |  |
 | config.ttl | object | `{"enabled":true,"ttl_period_seconds":{"longlived":"34560000","shortlived":"1209600"}}` | TTL configuration Optional. Used to set TTLS for longlived and shortlived objects. |
 | config.ttl.ttl_period_seconds.longlived | string | `"34560000"` | 400 day longlived and 14 day shortlived |
 | config.workspaceScopeOrgInvitesEnabled | bool | `false` | Enable Workspace Admins to invite users to the org and workspace. |
@@ -356,8 +361,8 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | backend.authBootstrap.volumes | list | `[]` |  |
 | backend.autoscaling.createHpa | bool | `true` |  |
 | backend.autoscaling.enabled | bool | `false` |  |
-| backend.autoscaling.maxReplicas | int | `5` |  |
-| backend.autoscaling.minReplicas | int | `1` |  |
+| backend.autoscaling.maxReplicas | int | `6` |  |
+| backend.autoscaling.minReplicas | int | `2` |  |
 | backend.autoscaling.targetCPUUtilizationPercentage | int | `50` |  |
 | backend.autoscaling.targetMemoryUtilizationPercentage | int | `80` |  |
 | backend.clickhouseMigrations.affinity | object | `{}` |  |
@@ -407,15 +412,15 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | backend.deployment.livenessProbe.httpGet.path | string | `"/health"` |  |
 | backend.deployment.livenessProbe.httpGet.port | int | `1984` |  |
 | backend.deployment.livenessProbe.periodSeconds | int | `10` |  |
-| backend.deployment.livenessProbe.timeoutSeconds | int | `1` |  |
+| backend.deployment.livenessProbe.timeoutSeconds | int | `10` |  |
 | backend.deployment.nodeSelector | object | `{}` |  |
 | backend.deployment.podSecurityContext | object | `{}` |  |
 | backend.deployment.readinessProbe.failureThreshold | int | `6` |  |
 | backend.deployment.readinessProbe.httpGet.path | string | `"/health"` |  |
 | backend.deployment.readinessProbe.httpGet.port | int | `1984` |  |
 | backend.deployment.readinessProbe.periodSeconds | int | `10` |  |
-| backend.deployment.readinessProbe.timeoutSeconds | int | `1` |  |
-| backend.deployment.replicas | int | `1` |  |
+| backend.deployment.readinessProbe.timeoutSeconds | int | `10` |  |
+| backend.deployment.replicas | int | `2` |  |
 | backend.deployment.resources.limits.cpu | string | `"2000m"` |  |
 | backend.deployment.resources.limits.memory | string | `"4Gi"` |  |
 | backend.deployment.resources.requests.cpu | string | `"1000m"` |  |
@@ -426,7 +431,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | backend.deployment.startupProbe.httpGet.path | string | `"/health"` |  |
 | backend.deployment.startupProbe.httpGet.port | int | `1984` |  |
 | backend.deployment.startupProbe.periodSeconds | int | `10` |  |
-| backend.deployment.startupProbe.timeoutSeconds | int | `1` |  |
+| backend.deployment.startupProbe.timeoutSeconds | int | `10` |  |
 | backend.deployment.terminationGracePeriodSeconds | int | `30` |  |
 | backend.deployment.tolerations | list | `[]` |  |
 | backend.deployment.topologySpreadConstraints | list | `[]` |  |
@@ -593,6 +598,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | e2eTest.command[1] | string | `"scripts/test_e2e_trace.pyc"` |  |
 | e2eTest.enabled | bool | `true` |  |
 | e2eTest.extraContainerConfig | object | `{}` |  |
+| e2eTest.extraEnv | list | `[]` |  |
 | e2eTest.initContainers | list | `[]` |  |
 | e2eTest.labels | object | `{}` |  |
 | e2eTest.name | string | `"e2e-test"` |  |
@@ -777,31 +783,29 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | listener.autoscaling.minReplicas | int | `3` |  |
 | listener.autoscaling.targetCPUUtilizationPercentage | int | `50` |  |
 | listener.autoscaling.targetMemoryUtilizationPercentage | int | `80` |  |
-| listener.containerPort | int | `8080` |  |
 | listener.deployment.affinity | object | `{}` |  |
 | listener.deployment.annotations | object | `{}` |  |
 | listener.deployment.command[0] | string | `"saq"` |  |
 | listener.deployment.command[1] | string | `"app.workers.queues.host_worker.settings"` |  |
 | listener.deployment.command[2] | string | `"--quiet"` |  |
-| listener.deployment.command[3] | string | `"--web"` |  |
-| listener.deployment.command[4] | string | `"--port"` |  |
-| listener.deployment.command[5] | string | `"$(PORT)"` |  |
 | listener.deployment.extraContainerConfig | object | `{}` |  |
 | listener.deployment.extraEnv | list | `[]` |  |
 | listener.deployment.initContainers | list | `[]` |  |
 | listener.deployment.labels | object | `{}` |  |
+| listener.deployment.livenessProbe.exec.command[0] | string | `"saq"` |  |
+| listener.deployment.livenessProbe.exec.command[1] | string | `"app.workers.queues.host_worker.settings"` |  |
+| listener.deployment.livenessProbe.exec.command[2] | string | `"--check"` |  |
 | listener.deployment.livenessProbe.failureThreshold | int | `6` |  |
-| listener.deployment.livenessProbe.httpGet.path | string | `"/health"` |  |
-| listener.deployment.livenessProbe.httpGet.port | int | `8080` |  |
-| listener.deployment.livenessProbe.periodSeconds | int | `10` |  |
-| listener.deployment.livenessProbe.timeoutSeconds | int | `1` |  |
+| listener.deployment.livenessProbe.periodSeconds | int | `60` |  |
+| listener.deployment.livenessProbe.timeoutSeconds | int | `60` |  |
 | listener.deployment.nodeSelector | object | `{}` |  |
 | listener.deployment.podSecurityContext | object | `{}` |  |
+| listener.deployment.readinessProbe.exec.command[0] | string | `"saq"` |  |
+| listener.deployment.readinessProbe.exec.command[1] | string | `"app.workers.queues.host_worker.settings"` |  |
+| listener.deployment.readinessProbe.exec.command[2] | string | `"--check"` |  |
 | listener.deployment.readinessProbe.failureThreshold | int | `6` |  |
-| listener.deployment.readinessProbe.httpGet.path | string | `"/health"` |  |
-| listener.deployment.readinessProbe.httpGet.port | int | `8080` |  |
-| listener.deployment.readinessProbe.periodSeconds | int | `10` |  |
-| listener.deployment.readinessProbe.timeoutSeconds | int | `1` |  |
+| listener.deployment.readinessProbe.periodSeconds | int | `60` |  |
+| listener.deployment.readinessProbe.timeoutSeconds | int | `60` |  |
 | listener.deployment.replicas | int | `1` |  |
 | listener.deployment.resources.limits.cpu | string | `"2000m"` |  |
 | listener.deployment.resources.limits.memory | string | `"4Gi"` |  |
@@ -809,11 +813,12 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | listener.deployment.resources.requests.memory | string | `"2Gi"` |  |
 | listener.deployment.securityContext | object | `{}` |  |
 | listener.deployment.sidecars | list | `[]` |  |
+| listener.deployment.startupProbe.exec.command[0] | string | `"saq"` |  |
+| listener.deployment.startupProbe.exec.command[1] | string | `"app.workers.queues.host_worker.settings"` |  |
+| listener.deployment.startupProbe.exec.command[2] | string | `"--check"` |  |
 | listener.deployment.startupProbe.failureThreshold | int | `6` |  |
-| listener.deployment.startupProbe.httpGet.path | string | `"/health"` |  |
-| listener.deployment.startupProbe.httpGet.port | int | `8080` |  |
-| listener.deployment.startupProbe.periodSeconds | int | `10` |  |
-| listener.deployment.startupProbe.timeoutSeconds | int | `1` |  |
+| listener.deployment.startupProbe.periodSeconds | int | `60` |  |
+| listener.deployment.startupProbe.timeoutSeconds | int | `60` |  |
 | listener.deployment.terminationGracePeriodSeconds | int | `30` |  |
 | listener.deployment.tolerations | list | `[]` |  |
 | listener.deployment.topologySpreadConstraints | list | `[]` |  |
@@ -1098,31 +1103,29 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | queue.autoscaling.minReplicas | int | `3` |  |
 | queue.autoscaling.targetCPUUtilizationPercentage | int | `50` |  |
 | queue.autoscaling.targetMemoryUtilizationPercentage | int | `80` |  |
-| queue.containerPort | int | `8080` |  |
 | queue.deployment.affinity | object | `{}` |  |
 | queue.deployment.annotations | object | `{}` |  |
 | queue.deployment.command[0] | string | `"saq"` |  |
 | queue.deployment.command[1] | string | `"app.workers.queues.single_queue_worker.settings"` |  |
 | queue.deployment.command[2] | string | `"--quiet"` |  |
-| queue.deployment.command[3] | string | `"--web"` |  |
-| queue.deployment.command[4] | string | `"--port"` |  |
-| queue.deployment.command[5] | string | `"$(PORT)"` |  |
 | queue.deployment.extraContainerConfig | object | `{}` |  |
 | queue.deployment.extraEnv | list | `[]` |  |
 | queue.deployment.initContainers | list | `[]` |  |
 | queue.deployment.labels | object | `{}` |  |
+| queue.deployment.livenessProbe.exec.command[0] | string | `"saq"` |  |
+| queue.deployment.livenessProbe.exec.command[1] | string | `"app.workers.queues.single_queue_worker.settings"` |  |
+| queue.deployment.livenessProbe.exec.command[2] | string | `"--check"` |  |
 | queue.deployment.livenessProbe.failureThreshold | int | `6` |  |
-| queue.deployment.livenessProbe.httpGet.path | string | `"/health"` |  |
-| queue.deployment.livenessProbe.httpGet.port | int | `8080` |  |
-| queue.deployment.livenessProbe.periodSeconds | int | `10` |  |
-| queue.deployment.livenessProbe.timeoutSeconds | int | `1` |  |
+| queue.deployment.livenessProbe.periodSeconds | int | `60` |  |
+| queue.deployment.livenessProbe.timeoutSeconds | int | `60` |  |
 | queue.deployment.nodeSelector | object | `{}` |  |
 | queue.deployment.podSecurityContext | object | `{}` |  |
+| queue.deployment.readinessProbe.exec.command[0] | string | `"saq"` |  |
+| queue.deployment.readinessProbe.exec.command[1] | string | `"app.workers.queues.single_queue_worker.settings"` |  |
+| queue.deployment.readinessProbe.exec.command[2] | string | `"--check"` |  |
 | queue.deployment.readinessProbe.failureThreshold | int | `6` |  |
-| queue.deployment.readinessProbe.httpGet.path | string | `"/health"` |  |
-| queue.deployment.readinessProbe.httpGet.port | int | `8080` |  |
-| queue.deployment.readinessProbe.periodSeconds | int | `10` |  |
-| queue.deployment.readinessProbe.timeoutSeconds | int | `1` |  |
+| queue.deployment.readinessProbe.periodSeconds | int | `60` |  |
+| queue.deployment.readinessProbe.timeoutSeconds | int | `60` |  |
 | queue.deployment.replicas | int | `3` |  |
 | queue.deployment.resources.limits.cpu | string | `"2000m"` |  |
 | queue.deployment.resources.limits.memory | string | `"4Gi"` |  |
@@ -1130,11 +1133,12 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | queue.deployment.resources.requests.memory | string | `"2Gi"` |  |
 | queue.deployment.securityContext | object | `{}` |  |
 | queue.deployment.sidecars | list | `[]` |  |
+| queue.deployment.startupProbe.exec.command[0] | string | `"saq"` |  |
+| queue.deployment.startupProbe.exec.command[1] | string | `"app.workers.queues.single_queue_worker.settings"` |  |
+| queue.deployment.startupProbe.exec.command[2] | string | `"--check"` |  |
 | queue.deployment.startupProbe.failureThreshold | int | `6` |  |
-| queue.deployment.startupProbe.httpGet.path | string | `"/health"` |  |
-| queue.deployment.startupProbe.httpGet.port | int | `8080` |  |
-| queue.deployment.startupProbe.periodSeconds | int | `10` |  |
-| queue.deployment.startupProbe.timeoutSeconds | int | `1` |  |
+| queue.deployment.startupProbe.periodSeconds | int | `60` |  |
+| queue.deployment.startupProbe.timeoutSeconds | int | `60` |  |
 | queue.deployment.terminationGracePeriodSeconds | int | `30` |  |
 | queue.deployment.tolerations | list | `[]` |  |
 | queue.deployment.topologySpreadConstraints | list | `[]` |  |
@@ -1223,6 +1227,6 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | Ankush | <ankush@langchain.dev> |  |
 
 ----------------------------------------------
-Autogenerated from chart metadata using [helm-docs v1.13.1](https://github.com/norwoodj/helm-docs/releases/v1.13.1)
+Autogenerated from chart metadata using [helm-docs v1.14.2](https://github.com/norwoodj/helm-docs/releases/v1.14.2)
 ## Docs Generated by [helm-docs](https://github.com/norwoodj/helm-docs)
 `helm-docs -t ./charts/langsmith/README.md.gotmpl`

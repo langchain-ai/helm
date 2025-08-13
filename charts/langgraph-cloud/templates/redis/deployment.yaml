@@ -1,8 +1,11 @@
 {{- if not .Values.redis.external.enabled }}
+{{- $volumes := concat .Values.commonVolumes .Values.redis.deployment.volumes -}}
+{{- $volumeMounts := concat .Values.commonVolumeMounts .Values.redis.deployment.volumeMounts -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ include "langGraphCloud.fullname" . }}-{{ .Values.redis.name }}
+  namespace: {{ .Values.namespace | default .Release.Namespace | quote }}
   labels:
     {{- include "langGraphCloud.labels" . | nindent 4 }}
     {{- with.Values.redis.deployment.labels }}
@@ -76,7 +79,7 @@ spec:
             {{- toYaml .Values.redis.deployment.resources | nindent 12 }}
           securityContext:
             {{- toYaml .Values.redis.deployment.securityContext | nindent 12 }}
-          {{- with .Values.redis.deployment.volumeMounts }}
+          {{- with $volumeMounts }}
           volumeMounts:
             {{- toYaml . | nindent 12 }}
           {{- end }}
@@ -98,7 +101,7 @@ spec:
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.redis.deployment.volumes }}
+      {{- with $volumes }}
       volumes:
           {{- toYaml . | nindent 8 }}
       {{- end }}

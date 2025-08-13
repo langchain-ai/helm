@@ -3,6 +3,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: {{ include "langgraphDataplane.fullname" . }}-{{ .Values.operator.name }}
+  namespace: {{ .Values.namespace | default .Release.Namespace }}
   labels:
     {{- include "langgraphDataplane.labels" . | nindent 4 }}
     {{- with.Values.operator.service.labels }}

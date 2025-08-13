@@ -1,16 +1,16 @@
 services:
   langchain-playground:
-    image: ${_REGISTRY:-docker.io}/langchain/langsmith-playground:${_LANGSMITH_IMAGE_VERSION:-0.10.25}
+    image: ${_REGISTRY:-docker.io}/langchain/langsmith-playground:${_LANGSMITH_IMAGE_VERSION:-0.11.1}
     ports:
       - 3001:3001
     environment:
       - PORT=3001
-      - LANGCHAIN_ENV=local_docker
+      - LANGCHAIN_ENV=local_docke r
       - LOG_LEVEL=${LOG_LEVEL:-info}
       - GO_ENDPOINT=http://langchain-platform-backend:1986
       - SMITH_BACKEND_ENDPOINT=${SMITH_BACKEND_ENDPOINT:-http://langchain-backend:1984}
   langchain-frontend:
-    image: ${_REGISTRY:-docker.io}/langchain/langsmith-frontend:${_LANGSMITH_IMAGE_VERSION:-0.10.25}
+    image: ${_REGISTRY:-docker.io}/langchain/langsmith-frontend:${_LANGSMITH_IMAGE_VERSION:-0.11.1}
     environment:
       - VITE_BACKEND_AUTH_TYPE=${AUTH_TYPE:-none}
       - VITE_BASIC_AUTH_ENABLED=${BASIC_AUTH_ENABLED:-false}
@@ -22,7 +22,7 @@ services:
       - langchain-backend
       - langchain-playground
   langchain-ace-backend:
-    image: ${_REGISTRY:-docker.io}/langchain/langsmith-ace-backend:${_LANGSMITH_IMAGE_VERSION:-0.10.25}
+    image: ${_REGISTRY:-docker.io}/langchain/langsmith-ace-backend:${_LANGSMITH_IMAGE_VERSION:-0.11.1}
     ports:
       - 1987:1987
     environment:
@@ -39,7 +39,7 @@ services:
       - "-R"
       - "src/python_worker.ts"
   langchain-backend:
-    image: ${_REGISTRY:-docker.io}/langchain/langsmith-backend:${_LANGSMITH_IMAGE_VERSION:-0.10.25}
+    image: ${_REGISTRY:-docker.io}/langchain/langsmith-backend:${_LANGSMITH_IMAGE_VERSION:-0.11.1}
     environment:
       - PORT=1984
       - LANGCHAIN_ENV=local_docker
@@ -90,7 +90,7 @@ services:
         condition: service_completed_successfully
     restart: always
   langchain-platform-backend:
-    image: ${_REGISTRY:-docker.io}/langchain/langsmith-go-backend:${_LANGSMITH_IMAGE_VERSION:-0.10.25}
+    image: ${_REGISTRY:-docker.io}/langchain/langsmith-go-backend:${_LANGSMITH_IMAGE_VERSION:-0.11.1}
     environment:
       - PORT=1986
       - LANGCHAIN_ENV=local_docker
@@ -138,7 +138,7 @@ services:
         condition: service_completed_successfully
     restart: always
   langchain-queue:
-    image: ${_REGISTRY:-docker.io}/langchain/langsmith-backend:${_LANGSMITH_IMAGE_VERSION:-0.10.25}
+    image: ${_REGISTRY:-docker.io}/langchain/langsmith-backend:${_LANGSMITH_IMAGE_VERSION:-0.11.1}
     environment:
       - LANGCHAIN_ENV=local_docker
       - GO_ENDPOINT=http://langchain-platform-backend:1986
@@ -239,7 +239,7 @@ services:
       timeout: 2s
       retries: 30
   clickhouse-setup:
-    image: ${_REGISTRY:-docker.io}/langchain/langsmith-backend:${_LANGSMITH_IMAGE_VERSION:-0.10.25}
+    image: ${_REGISTRY:-docker.io}/langchain/langsmith-backend:${_LANGSMITH_IMAGE_VERSION:-0.11.1}
     depends_on:
       langchain-clickhouse:
         condition: service_healthy
@@ -258,7 +258,7 @@ services:
         "scripts/wait_for_clickhouse_and_migrate.sh"
       ]
   postgres-setup:
-    image: ${_REGISTRY:-docker.io}/langchain/langsmith-backend:${_LANGSMITH_IMAGE_VERSION:-0.10.25}
+    image: ${_REGISTRY:-docker.io}/langchain/langsmith-backend:${_LANGSMITH_IMAGE_VERSION:-0.11.1}
     depends_on:
       langchain-db:
         condition: service_healthy

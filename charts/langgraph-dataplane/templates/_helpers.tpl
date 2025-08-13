@@ -125,6 +125,8 @@ Template containing common environment variables that are used by several servic
   value: {{ .Values.config.rootDomain | quote }}
 - name: HOSTED_K8S_SHARED_INGRESS
   value: "true"
+- name: LOG_LEVEL
+  value: "INFO"
 {{- end }}
 
 

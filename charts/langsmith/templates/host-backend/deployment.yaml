@@ -1,9 +1,15 @@
 {{- define "hostBackendEnvVars" -}}
 - name: PORT
   value: {{ .Values.hostBackend.containerPort | quote }}
+{{- with .Values.ingress.subdomain }}
+- name: HOST_DOCS_PREFIX
+  value: /{{ . }}/api-host
+{{- end }}
 {{- end -}}
 {{- $envVars := concat (include "langsmith.commonEnv" . | fromYamlArray ) (include "hostBackendEnvVars" . | fromYamlArray) .Values.hostBackend.deployment.extraEnv -}}
 {{- include "langsmith.detectDuplicates" $envVars -}}
+{{- $volumes := concat .Values.commonVolumes .Values.hostBackend.deployment.volumes -}}
+{{- $volumeMounts := concat .Values.commonVolumeMounts .Values.hostBackend.deployment.volumeMounts -}}
 {{- if .Values.config.langgraphPlatform.enabled }}
 apiVersion: apps/v1
 kind: Deployment
@@ -89,7 +95,7 @@ spec:
             {{- toYaml .Values.hostBackend.deployment.resources | nindent 12 }}
           securityContext:
             {{- toYaml .Values.hostBackend.deployment.securityContext | nindent 12 }}
-          {{- with .Values.hostBackend.deployment.volumeMounts }}
+          {{- with $volumeMounts }}
           volumeMounts:
               {{- toYaml . | nindent 12 }}
           {{- end }}
@@ -115,7 +121,7 @@ spec:
       topologySpreadConstraints:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.hostBackend.deployment.volumes }}
+      {{- with $volumes }}
       volumes:
         {{- toYaml . | nindent 8 }}
       {{- end }}
