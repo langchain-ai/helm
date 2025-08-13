@@ -5,5 +5,5 @@ maintainers:
     email: ankush@langchain.dev
 description: Helm chart to deploy a langgraph dataplane on kubernetes.
 type: application
-version: 0.1.26
+version: 0.1.27
 appVersion: "0.10.129"
