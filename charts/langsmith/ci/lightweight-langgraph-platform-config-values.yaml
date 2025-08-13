@@ -31,6 +31,16 @@ backend:
       requests:
         cpu: 100m
         memory: 500Mi
+  feedbackConfigMigration:
+    resources:
+      requests:
+        cpu: 100m
+        memory: 500Mi
+  feedbackDataMigration:
+    resources:
+      requests:
+        cpu: 100m
+        memory: 500Mi
 
 frontend:
   deployment:
