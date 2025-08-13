@@ -1,6 +1,6 @@
 # langgraph-dataplane
 
-![Version: 0.1.25](https://img.shields.io/badge/Version-0.1.25-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.1.0](https://img.shields.io/badge/AppVersion-0.1.0-informational?style=flat-square)
+![Version: 0.1.26](https://img.shields.io/badge/Version-0.1.26-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.10.129](https://img.shields.io/badge/AppVersion-0.10.129-informational?style=flat-square)
 
 Helm chart to deploy a langgraph dataplane on kubernetes.
 
@@ -22,7 +22,7 @@ You can find the guide to deploy a LangGraph Dataplane [here](https://langchain-
 | images.imagePullSecrets | list | `[]` | Secrets with credentials to pull images from a private registry. Specified as name: value. |
 | images.listenerImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.listenerImage.repository | string | `"docker.io/langchain/hosted-langserve-backend"` |  |
-| images.listenerImage.tag | string | `"0.10.116"` |  |
+| images.listenerImage.tag | string | `"0.10.129"` |  |
 | images.operatorImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.operatorImage.repository | string | `"docker.io/langchain/langgraph-operator"` |  |
 | images.operatorImage.tag | string | `"f8f6901"` |  |
@@ -87,11 +87,14 @@ You can find the guide to deploy a LangGraph Dataplane [here](https://langchain-
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
+| config.enableLGPDeploymentHealthCheck | bool | `true` |  |
 | config.existingSecretName | string | `""` |  |
 | config.hostBackendUrl | string | `"https://api.host.langchain.com"` |  |
+| config.langgraphListenerId | string | `""` |  |
 | config.langsmithApiKey | string | `""` |  |
 | config.langsmithWorkspaceId | string | `""` |  |
 | config.smithBackendUrl | string | `"https://api.smith.langchain.com"` |  |
+| config.watchNamespaces | string | `""` |  |
 
 ## Listener
 

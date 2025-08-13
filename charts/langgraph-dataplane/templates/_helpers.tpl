@@ -121,12 +121,16 @@ Template containing common environment variables that are used by several servic
   value: {{ .Values.config.smithBackendUrl }}
 - name: HOST_WORKER_TENANT_ID
   value: {{ .Values.config.langsmithWorkspaceId }}
+- name: HOST_WORKER_LISTENER_ID
+  value: {{ .Values.config.langgraphListenerId }}
 - name: HOSTED_K8S_ROOT_DOMAIN
   value: {{ .Values.config.rootDomain | quote }}
 - name: HOSTED_K8S_SHARED_INGRESS
   value: "true"
 - name: LOG_LEVEL
   value: "INFO"
+- name: ENABLE_LGP_DEPLOYMENT_HEALTH_CHECK
+  value: {{ .Values.config.enableLGPDeploymentHealthCheck | quote }}
 {{- end }}
 
 

@@ -25,7 +25,7 @@ images:
   listenerImage:
     repository: "docker.io/langchain/hosted-langserve-backend"
     pullPolicy: IfNotPresent
-    tag: "0.10.116"
+    tag: "0.10.129"
   redisImage:
     repository: "docker.io/redis"
     pullPolicy: IfNotPresent
@@ -51,7 +51,9 @@ config:
   hostBackendUrl: "https://api.host.langchain.com"
   smithBackendUrl: "https://api.smith.langchain.com"
   langsmithWorkspaceId: ""
-
+  langgraphListenerId: ""
+  watchNamespaces: ""
+  enableLGPDeploymentHealthCheck: true
 
 listener:
   name: "listener"
