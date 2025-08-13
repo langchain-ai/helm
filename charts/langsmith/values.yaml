@@ -364,8 +364,10 @@ backend:
     ttlSecondsAfterFinished: 600
   feedbackConfigMigration:
     enabled: true
+    # Helpful when running using helm template to avoid the job name conflict
+    randomizeName: false
+    labels: {}
     annotations: {}
-    podAnnotations: {}
     podSecurityContext: {}
     securityContext: {}
     resources:
@@ -375,27 +377,51 @@ backend:
       requests:
         cpu: 1000m
         memory: 2Gi
+    command:
+      - "python"
+      - "scripts/jobs/migrate-feedback-config.pyc"
+    extraContainerConfig: {}
     extraEnv: []
+    sidecars: []
+    initContainers: []
     nodeSelector: {}
     tolerations: []
+    topologySpreadConstraints: []
     affinity: {}
-  feedbackMigration:
+    volumes: []
+    volumeMounts: []
+    # You can set this to null to disable the TTL for the migrations job. Useful for some deployment setups.
+    ttlSecondsAfterFinished: 600
+  feedbackDataMigration:
     enabled: true
+    # Helpful when running using helm template to avoid the job name conflict
+    randomizeName: false
+    labels: {}
     annotations: {}
-    podAnnotations: {}
     podSecurityContext: {}
     securityContext: {}
     resources:
       limits:
-        cpu: 3000m
-        memory: 6Gi
+        cpu: 2000m
+        memory: 4Gi
       requests:
-        cpu: 1500m
-        memory: 3Gi
+        cpu: 1000m
+        memory: 2Gi
+    command:
+      - "python"
+      - "scripts/jobs/migrate-feedback-to-postgres.pyc"
+    extraContainerConfig: {}
     extraEnv: []
+    sidecars: []
+    initContainers: []
     nodeSelector: {}
     tolerations: []
+    topologySpreadConstraints: []
     affinity: {}
+    volumes: []
+    volumeMounts: []
+    # You can set this to null to disable the TTL for the migrations job. Useful for some deployment setups.
+    ttlSecondsAfterFinished: 600
   authBootstrap:
     # Helpful when running using helm template to avoid the job name conflict
     randomizeName: true
