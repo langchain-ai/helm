@@ -109,6 +109,42 @@ backend:
         type: RuntimeDefault
       allowPrivilegeEscalation: false
       readOnlyRootFilesystem: true
+  feedbackConfigMigration:
+    podSecurityContext:
+      runAsNonRoot: true
+      runAsUser: 1000
+      runAsGroup: 1000
+      fsGroup: 1000
+    securityContext:
+      capabilities:
+        drop:
+          - ALL
+      seccompProfile:
+        type: RuntimeDefault
+      allowPrivilegeEscalation: false
+      readOnlyRootFilesystem: true
+    resources:
+      requests:
+        cpu: 100m
+        memory: 500Mi
+  feedbackDataMigration:
+    podSecurityContext:
+      runAsNonRoot: true
+      runAsUser: 1000
+      runAsGroup: 1000
+      fsGroup: 1000
+    securityContext:
+      capabilities:
+        drop:
+          - ALL
+      seccompProfile:
+        type: RuntimeDefault
+      allowPrivilegeEscalation: false
+      readOnlyRootFilesystem: true
+    resources:
+      requests:
+        cpu: 100m
+        memory: 500Mi
 
 hostBackend:
   deployment:

@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.10.53](https://img.shields.io/badge/Version-0.10.53-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.10.132](https://img.shields.io/badge/AppVersion-0.10.132-informational?style=flat-square)
+![Version: 0.11.0](https://img.shields.io/badge/Version-0.11.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.11.3](https://img.shields.io/badge/AppVersion-0.11.3-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -29,29 +29,29 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | gateway.subdomain | string | `""` |  |
 | images.aceBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.aceBackendImage.repository | string | `"docker.io/langchain/langsmith-ace-backend"` |  |
-| images.aceBackendImage.tag | string | `"0.10.132"` |  |
+| images.aceBackendImage.tag | string | `"0.11.3"` |  |
 | images.backendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.backendImage.repository | string | `"docker.io/langchain/langsmith-backend"` |  |
-| images.backendImage.tag | string | `"0.10.132"` |  |
+| images.backendImage.tag | string | `"0.11.3"` |  |
 | images.clickhouseImage.pullPolicy | string | `"Always"` |  |
 | images.clickhouseImage.repository | string | `"docker.io/clickhouse/clickhouse-server"` |  |
-| images.clickhouseImage.tag | string | `"24.8"` |  |
+| images.clickhouseImage.tag | string | `"25.4"` |  |
 | images.frontendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.frontendImage.repository | string | `"docker.io/langchain/langsmith-frontend"` |  |
-| images.frontendImage.tag | string | `"0.10.132"` |  |
+| images.frontendImage.tag | string | `"0.11.3"` |  |
 | images.hostBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.hostBackendImage.repository | string | `"docker.io/langchain/hosted-langserve-backend"` |  |
-| images.hostBackendImage.tag | string | `"0.10.132"` |  |
+| images.hostBackendImage.tag | string | `"0.11.3"` |  |
 | images.imagePullSecrets | list | `[]` | Secrets with credentials to pull images from a private registry. Specified as name: value. |
 | images.operatorImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.operatorImage.repository | string | `"docker.io/langchain/langgraph-operator"` |  |
 | images.operatorImage.tag | string | `"8a7350b"` |  |
 | images.platformBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.platformBackendImage.repository | string | `"docker.io/langchain/langsmith-go-backend"` |  |
-| images.platformBackendImage.tag | string | `"0.10.132"` |  |
+| images.platformBackendImage.tag | string | `"0.11.3"` |  |
 | images.playgroundImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.playgroundImage.repository | string | `"docker.io/langchain/langsmith-playground"` |  |
-| images.playgroundImage.tag | string | `"0.10.132"` |  |
+| images.playgroundImage.tag | string | `"0.11.3"` |  |
 | images.postgresImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.postgresImage.repository | string | `"docker.io/postgres"` |  |
 | images.postgresImage.tag | string | `"14.7"` |  |
@@ -254,8 +254,8 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | config.personalOrgsDisabled | bool | `false` | Disable personal orgs. Users will need to be invited to an org manually. If using basic auth, this is set to true by default. |
 | config.settings | object | `{"redisRunsExpirySeconds":"21600"}` | Application Settings. These are used to tune the application |
 | config.settings.redisRunsExpirySeconds | string | `"21600"` | Optional. Be very careful when lowering this value as it can result in runs being lost if your queue is down/not processing items fast enough. |
-| config.telemetry.metrics | bool | `false` | Optional. These values are used to send telemetry to the LangChain team to assist with troubleshooting. |
-| config.telemetry.traces | bool | `false` |  |
+| config.telemetry.metrics | bool | `true` | Optional. These values are used to send telemetry to the LangChain team to assist with troubleshooting. |
+| config.telemetry.traces | bool | `true` |  |
 | config.ttl | object | `{"enabled":true,"ttl_period_seconds":{"longlived":"34560000","shortlived":"1209600"}}` | TTL configuration Optional. Used to set TTLS for longlived and shortlived objects. |
 | config.ttl.ttl_period_seconds.longlived | string | `"34560000"` | 400 day longlived and 14 day shortlived |
 | config.workspaceScopeOrgInvitesEnabled | bool | `false` | Enable Workspace Admins to invite users to the org and workspace. |
@@ -274,16 +274,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | aceBackend.containerPort | int | `1987` |  |
 | aceBackend.deployment.affinity | object | `{}` |  |
 | aceBackend.deployment.annotations | object | `{}` |  |
-| aceBackend.deployment.command[0] | string | `"deno"` |  |
-| aceBackend.deployment.command[1] | string | `"run"` |  |
-| aceBackend.deployment.command[2] | string | `"--unstable-worker-options"` |  |
-| aceBackend.deployment.command[3] | string | `"--allow-env"` |  |
-| aceBackend.deployment.command[4] | string | `"--allow-net=$(BIND_ADDRESS):$(PORT)"` |  |
-| aceBackend.deployment.command[5] | string | `"--node-modules-dir"` |  |
-| aceBackend.deployment.command[6] | string | `"-R"` |  |
-| aceBackend.deployment.command[7] | string | `"src/main.ts"` |  |
-| aceBackend.deployment.command[8] | string | `"-R"` |  |
-| aceBackend.deployment.command[9] | string | `"src/python_worker.ts"` |  |
+| aceBackend.deployment.command[0] | string | `"./entrypoint.sh"` |  |
 | aceBackend.deployment.extraContainerConfig | object | `{}` |  |
 | aceBackend.deployment.extraEnv | list | `[]` |  |
 | aceBackend.deployment.initContainers | list | `[]` |  |
@@ -339,8 +330,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 |-----|------|---------|-------------|
 | backend.authBootstrap.affinity | object | `{}` |  |
 | backend.authBootstrap.annotations | object | `{}` |  |
-| backend.authBootstrap.command[0] | string | `"python"` |  |
-| backend.authBootstrap.command[1] | string | `"hooks/auth_bootstrap.pyc"` |  |
+| backend.authBootstrap.command[0] | string | `"./auth_bootstrap_entrypoint.sh"` |  |
 | backend.authBootstrap.extraContainerConfig | object | `{}` |  |
 | backend.authBootstrap.extraEnv | list | `[]` |  |
 | backend.authBootstrap.initContainers | list | `[]` |  |
@@ -367,8 +357,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | backend.autoscaling.targetMemoryUtilizationPercentage | int | `80` |  |
 | backend.clickhouseMigrations.affinity | object | `{}` |  |
 | backend.clickhouseMigrations.annotations | object | `{}` |  |
-| backend.clickhouseMigrations.command[0] | string | `"/bin/bash"` |  |
-| backend.clickhouseMigrations.command[1] | string | `"scripts/wait_for_clickhouse_and_migrate.sh"` |  |
+| backend.clickhouseMigrations.command[0] | string | `"./ch_migration_entrypoint.sh"` |  |
 | backend.clickhouseMigrations.enabled | bool | `true` |  |
 | backend.clickhouseMigrations.extraContainerConfig | object | `{}` |  |
 | backend.clickhouseMigrations.extraEnv | list | `[]` |  |
@@ -391,19 +380,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | backend.containerPort | int | `1984` |  |
 | backend.deployment.affinity | object | `{}` |  |
 | backend.deployment.annotations | object | `{}` |  |
-| backend.deployment.command[0] | string | `"uvicorn"` |  |
-| backend.deployment.command[10] | string | `"--http"` |  |
-| backend.deployment.command[11] | string | `"httptools"` |  |
-| backend.deployment.command[12] | string | `"--no-access-log"` |  |
-| backend.deployment.command[1] | string | `"app.main:app"` |  |
-| backend.deployment.command[2] | string | `"--host"` |  |
-| backend.deployment.command[3] | string | `"0.0.0.0"` |  |
-| backend.deployment.command[4] | string | `"--port"` |  |
-| backend.deployment.command[5] | string | `"$(PORT)"` |  |
-| backend.deployment.command[6] | string | `"--log-level"` |  |
-| backend.deployment.command[7] | string | `"$(LOG_LEVEL)"` |  |
-| backend.deployment.command[8] | string | `"--loop"` |  |
-| backend.deployment.command[9] | string | `"uvloop"` |  |
+| backend.deployment.command[0] | string | `"./entrypoint.sh"` |  |
 | backend.deployment.extraContainerConfig | object | `{}` |  |
 | backend.deployment.extraEnv | list | `[]` |  |
 | backend.deployment.initContainers | list | `[]` |  |
@@ -440,35 +417,53 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | backend.existingConfigMapName | string | `""` |  |
 | backend.feedbackConfigMigration.affinity | object | `{}` |  |
 | backend.feedbackConfigMigration.annotations | object | `{}` |  |
-| backend.feedbackConfigMigration.enabled | bool | `false` |  |
+| backend.feedbackConfigMigration.command[0] | string | `"python"` |  |
+| backend.feedbackConfigMigration.command[1] | string | `"scripts/jobs/migrate-feedback-config.pyc"` |  |
+| backend.feedbackConfigMigration.enabled | bool | `true` |  |
+| backend.feedbackConfigMigration.extraContainerConfig | object | `{}` |  |
 | backend.feedbackConfigMigration.extraEnv | list | `[]` |  |
+| backend.feedbackConfigMigration.initContainers | list | `[]` |  |
+| backend.feedbackConfigMigration.labels | object | `{}` |  |
 | backend.feedbackConfigMigration.nodeSelector | object | `{}` |  |
-| backend.feedbackConfigMigration.podAnnotations | object | `{}` |  |
 | backend.feedbackConfigMigration.podSecurityContext | object | `{}` |  |
+| backend.feedbackConfigMigration.randomizeName | bool | `false` |  |
 | backend.feedbackConfigMigration.resources.limits.cpu | string | `"2000m"` |  |
 | backend.feedbackConfigMigration.resources.limits.memory | string | `"4Gi"` |  |
 | backend.feedbackConfigMigration.resources.requests.cpu | string | `"1000m"` |  |
 | backend.feedbackConfigMigration.resources.requests.memory | string | `"2Gi"` |  |
 | backend.feedbackConfigMigration.securityContext | object | `{}` |  |
+| backend.feedbackConfigMigration.sidecars | list | `[]` |  |
 | backend.feedbackConfigMigration.tolerations | list | `[]` |  |
-| backend.feedbackMigration.affinity | object | `{}` |  |
-| backend.feedbackMigration.annotations | object | `{}` |  |
-| backend.feedbackMigration.enabled | bool | `false` |  |
-| backend.feedbackMigration.extraEnv | list | `[]` |  |
-| backend.feedbackMigration.nodeSelector | object | `{}` |  |
-| backend.feedbackMigration.podAnnotations | object | `{}` |  |
-| backend.feedbackMigration.podSecurityContext | object | `{}` |  |
-| backend.feedbackMigration.resources.limits.cpu | string | `"3000m"` |  |
-| backend.feedbackMigration.resources.limits.memory | string | `"6Gi"` |  |
-| backend.feedbackMigration.resources.requests.cpu | string | `"1500m"` |  |
-| backend.feedbackMigration.resources.requests.memory | string | `"3Gi"` |  |
-| backend.feedbackMigration.securityContext | object | `{}` |  |
-| backend.feedbackMigration.tolerations | list | `[]` |  |
+| backend.feedbackConfigMigration.topologySpreadConstraints | list | `[]` |  |
+| backend.feedbackConfigMigration.ttlSecondsAfterFinished | int | `600` |  |
+| backend.feedbackConfigMigration.volumeMounts | list | `[]` |  |
+| backend.feedbackConfigMigration.volumes | list | `[]` |  |
+| backend.feedbackDataMigration.affinity | object | `{}` |  |
+| backend.feedbackDataMigration.annotations | object | `{}` |  |
+| backend.feedbackDataMigration.command[0] | string | `"python"` |  |
+| backend.feedbackDataMigration.command[1] | string | `"scripts/jobs/migrate-feedback-to-postgres.pyc"` |  |
+| backend.feedbackDataMigration.enabled | bool | `true` |  |
+| backend.feedbackDataMigration.extraContainerConfig | object | `{}` |  |
+| backend.feedbackDataMigration.extraEnv | list | `[]` |  |
+| backend.feedbackDataMigration.initContainers | list | `[]` |  |
+| backend.feedbackDataMigration.labels | object | `{}` |  |
+| backend.feedbackDataMigration.nodeSelector | object | `{}` |  |
+| backend.feedbackDataMigration.podSecurityContext | object | `{}` |  |
+| backend.feedbackDataMigration.randomizeName | bool | `false` |  |
+| backend.feedbackDataMigration.resources.limits.cpu | string | `"2000m"` |  |
+| backend.feedbackDataMigration.resources.limits.memory | string | `"4Gi"` |  |
+| backend.feedbackDataMigration.resources.requests.cpu | string | `"1000m"` |  |
+| backend.feedbackDataMigration.resources.requests.memory | string | `"2Gi"` |  |
+| backend.feedbackDataMigration.securityContext | object | `{}` |  |
+| backend.feedbackDataMigration.sidecars | list | `[]` |  |
+| backend.feedbackDataMigration.tolerations | list | `[]` |  |
+| backend.feedbackDataMigration.topologySpreadConstraints | list | `[]` |  |
+| backend.feedbackDataMigration.ttlSecondsAfterFinished | int | `600` |  |
+| backend.feedbackDataMigration.volumeMounts | list | `[]` |  |
+| backend.feedbackDataMigration.volumes | list | `[]` |  |
 | backend.migrations.affinity | object | `{}` |  |
 | backend.migrations.annotations | object | `{}` |  |
-| backend.migrations.command[0] | string | `"/bin/bash"` |  |
-| backend.migrations.command[1] | string | `"-c"` |  |
-| backend.migrations.command[2] | string | `"alembic upgrade head"` |  |
+| backend.migrations.command[0] | string | `"./pg_migration_entrypoint.sh"` |  |
 | backend.migrations.enabled | bool | `true` |  |
 | backend.migrations.extraContainerConfig | object | `{}` |  |
 | backend.migrations.extraEnv | list | `[]` |  |
@@ -633,19 +628,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | hostBackend.containerPort | int | `1985` |  |
 | hostBackend.deployment.affinity | object | `{}` |  |
 | hostBackend.deployment.annotations | object | `{}` |  |
-| hostBackend.deployment.command[0] | string | `"uvicorn"` |  |
-| hostBackend.deployment.command[10] | string | `"--http"` |  |
-| hostBackend.deployment.command[11] | string | `"httptools"` |  |
-| hostBackend.deployment.command[12] | string | `"--no-access-log"` |  |
-| hostBackend.deployment.command[1] | string | `"host.main:app"` |  |
-| hostBackend.deployment.command[2] | string | `"--host"` |  |
-| hostBackend.deployment.command[3] | string | `"0.0.0.0"` |  |
-| hostBackend.deployment.command[4] | string | `"--port"` |  |
-| hostBackend.deployment.command[5] | string | `"$(PORT)"` |  |
-| hostBackend.deployment.command[6] | string | `"--log-level"` |  |
-| hostBackend.deployment.command[7] | string | `"$(LOG_LEVEL)"` |  |
-| hostBackend.deployment.command[8] | string | `"--loop"` |  |
-| hostBackend.deployment.command[9] | string | `"uvloop"` |  |
+| hostBackend.deployment.command[0] | string | `"./entrypoint.sh"` |  |
 | hostBackend.deployment.extraContainerConfig | object | `{}` |  |
 | hostBackend.deployment.extraEnv | list | `[]` |  |
 | hostBackend.deployment.initContainers | list | `[]` |  |
@@ -785,9 +768,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | listener.autoscaling.targetMemoryUtilizationPercentage | int | `80` |  |
 | listener.deployment.affinity | object | `{}` |  |
 | listener.deployment.annotations | object | `{}` |  |
-| listener.deployment.command[0] | string | `"saq"` |  |
-| listener.deployment.command[1] | string | `"app.workers.queues.host_worker.settings"` |  |
-| listener.deployment.command[2] | string | `"--quiet"` |  |
+| listener.deployment.command[0] | string | `"./listener_entrypoint.sh"` |  |
 | listener.deployment.extraContainerConfig | object | `{}` |  |
 | listener.deployment.extraEnv | list | `[]` |  |
 | listener.deployment.initContainers | list | `[]` |  |
@@ -895,7 +876,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | platformBackend.containerPort | int | `1986` |  |
 | platformBackend.deployment.affinity | object | `{}` |  |
 | platformBackend.deployment.annotations | object | `{}` |  |
-| platformBackend.deployment.command[0] | string | `"./smith-go"` |  |
+| platformBackend.deployment.command[0] | string | `"./entrypoint.sh"` |  |
 | platformBackend.deployment.extraContainerConfig | object | `{}` |  |
 | platformBackend.deployment.extraEnv | list | `[]` |  |
 | platformBackend.deployment.initContainers | list | `[]` |  |
@@ -959,19 +940,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | playground.containerPort | int | `1988` |  |
 | playground.deployment.affinity | object | `{}` |  |
 | playground.deployment.annotations | object | `{}` |  |
-| playground.deployment.command[0] | string | `"uvicorn"` |  |
-| playground.deployment.command[10] | string | `"--http"` |  |
-| playground.deployment.command[11] | string | `"httptools"` |  |
-| playground.deployment.command[12] | string | `"--no-access-log"` |  |
-| playground.deployment.command[1] | string | `"playground.main:app"` |  |
-| playground.deployment.command[2] | string | `"--host"` |  |
-| playground.deployment.command[3] | string | `"0.0.0.0"` |  |
-| playground.deployment.command[4] | string | `"--port"` |  |
-| playground.deployment.command[5] | string | `"$(PORT)"` |  |
-| playground.deployment.command[6] | string | `"--log-level"` |  |
-| playground.deployment.command[7] | string | `"$(LOG_LEVEL)"` |  |
-| playground.deployment.command[8] | string | `"--loop"` |  |
-| playground.deployment.command[9] | string | `"uvloop"` |  |
+| playground.deployment.command[0] | string | `"./entrypoint.sh"` |  |
 | playground.deployment.extraContainerConfig | object | `{}` |  |
 | playground.deployment.extraEnv | list | `[]` |  |
 | playground.deployment.initContainers | list | `[]` |  |
@@ -1105,9 +1074,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | queue.autoscaling.targetMemoryUtilizationPercentage | int | `80` |  |
 | queue.deployment.affinity | object | `{}` |  |
 | queue.deployment.annotations | object | `{}` |  |
-| queue.deployment.command[0] | string | `"saq"` |  |
-| queue.deployment.command[1] | string | `"app.workers.queues.single_queue_worker.settings"` |  |
-| queue.deployment.command[2] | string | `"--quiet"` |  |
+| queue.deployment.command[0] | string | `"./queue_entrypoint.sh"` |  |
 | queue.deployment.extraContainerConfig | object | `{}` |  |
 | queue.deployment.extraEnv | list | `[]` |  |
 | queue.deployment.initContainers | list | `[]` |  |

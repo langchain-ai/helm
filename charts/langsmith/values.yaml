@@ -25,19 +25,19 @@ images:
   aceBackendImage:
     repository: "docker.io/langchain/langsmith-ace-backend"
     pullPolicy: IfNotPresent
-    tag: "0.10.132"
+    tag: "0.11.4"
   backendImage:
     repository: "docker.io/langchain/langsmith-backend"
     pullPolicy: IfNotPresent
-    tag: "0.10.132"
+    tag: "0.11.4"
   frontendImage:
     repository: "docker.io/langchain/langsmith-frontend"
     pullPolicy: IfNotPresent
-    tag: "0.10.132"
+    tag: "0.11.4"
   hostBackendImage:
     repository: "docker.io/langchain/hosted-langserve-backend"
     pullPolicy: IfNotPresent
-    tag: "0.10.132"
+    tag: "0.11.4"
   operatorImage:
     repository: "docker.io/langchain/langgraph-operator"
     pullPolicy: IfNotPresent
@@ -45,11 +45,11 @@ images:
   platformBackendImage:
     repository: "docker.io/langchain/langsmith-go-backend"
     pullPolicy: IfNotPresent
-    tag: "0.10.132"
+    tag: "0.11.4"
   playgroundImage:
     repository: "docker.io/langchain/langsmith-playground"
     pullPolicy: IfNotPresent
-    tag: "0.10.132"
+    tag: "0.11.4"
   postgresImage:
     repository: "docker.io/postgres"
     pullPolicy: IfNotPresent
@@ -61,7 +61,7 @@ images:
   clickhouseImage:
     repository: "docker.io/clickhouse/clickhouse-server"
     pullPolicy: Always
-    tag: "24.8"
+    tag: "25.4"
   quickwitImage:
     repository: "quickwit/quickwit"
     pullPolicy: IfNotPresent
@@ -123,8 +123,8 @@ config:
 
   telemetry:
     # -- Optional. These values are used to send telemetry to the LangChain team to assist with troubleshooting.
-    metrics: false
-    traces: false
+    metrics: true
+    traces: true
 
   oauth:
     enabled: false
@@ -221,16 +221,7 @@ aceBackend:
         cpu: 200m
         memory: 1000Mi
     command:
-      - "deno"
-      - "run"
-      - "--unstable-worker-options"
-      - "--allow-env"
-      - "--allow-net=$(BIND_ADDRESS):$(PORT)"
-      - "--node-modules-dir"
-      - "-R"
-      - "src/main.ts"
-      - "-R"
-      - "src/python_worker.ts"
+      - "./entrypoint.sh"
     startupProbe:
       httpGet:
         path: /ok
@@ -309,19 +300,7 @@ backend:
         cpu: 1000m
         memory: 2Gi
     command:
-      - "uvicorn"
-      - "app.main:app"
-      - "--host"
-      - "0.0.0.0"
-      - "--port"
-      - "$(PORT)"
-      - "--log-level"
-      - "$(LOG_LEVEL)"
-      - "--loop"
-      - "uvloop"
-      - "--http"
-      - "httptools"
-      - "--no-access-log"
+      - "./entrypoint.sh"
     startupProbe:
       httpGet:
         path: /health
@@ -370,9 +349,7 @@ backend:
         cpu: 200m
         memory: 500Mi
     command:
-      - "/bin/bash"
-      - "-c"
-      - "alembic upgrade head"
+      - "./pg_migration_entrypoint.sh"
     extraContainerConfig: {}
     extraEnv: []
     sidecars: []
@@ -386,9 +363,11 @@ backend:
     # You can set this to null to disable the TTL for the migrations job. Useful for some deployment setups.
     ttlSecondsAfterFinished: 600
   feedbackConfigMigration:
-    enabled: false
+    enabled: true
+    # Helpful when running using helm template to avoid the job name conflict
+    randomizeName: false
+    labels: {}
     annotations: {}
-    podAnnotations: {}
     podSecurityContext: {}
     securityContext: {}
     resources:
@@ -398,27 +377,51 @@ backend:
       requests:
         cpu: 1000m
         memory: 2Gi
+    command:
+      - "python"
+      - "scripts/jobs/migrate-feedback-config.pyc"
+    extraContainerConfig: {}
     extraEnv: []
+    sidecars: []
+    initContainers: []
     nodeSelector: {}
     tolerations: []
+    topologySpreadConstraints: []
     affinity: {}
-  feedbackMigration:
-    enabled: false
+    volumes: []
+    volumeMounts: []
+    # You can set this to null to disable the TTL for the migrations job. Useful for some deployment setups.
+    ttlSecondsAfterFinished: 600
+  feedbackDataMigration:
+    enabled: true
+    # Helpful when running using helm template to avoid the job name conflict
+    randomizeName: false
+    labels: {}
     annotations: {}
-    podAnnotations: {}
     podSecurityContext: {}
     securityContext: {}
     resources:
       limits:
-        cpu: 3000m
-        memory: 6Gi
+        cpu: 2000m
+        memory: 4Gi
       requests:
-        cpu: 1500m
-        memory: 3Gi
+        cpu: 1000m
+        memory: 2Gi
+    command:
+      - "python"
+      - "scripts/jobs/migrate-feedback-to-postgres.pyc"
+    extraContainerConfig: {}
     extraEnv: []
+    sidecars: []
+    initContainers: []
     nodeSelector: {}
     tolerations: []
+    topologySpreadConstraints: []
     affinity: {}
+    volumes: []
+    volumeMounts: []
+    # You can set this to null to disable the TTL for the migrations job. Useful for some deployment setups.
+    ttlSecondsAfterFinished: 600
   authBootstrap:
     # Helpful when running using helm template to avoid the job name conflict
     randomizeName: true
@@ -434,8 +437,7 @@ backend:
         cpu: 200m
         memory: 500Mi
     command:
-      - "python"
-      - "hooks/auth_bootstrap.pyc"
+      - "./auth_bootstrap_entrypoint.sh"
     extraContainerConfig: {}
     extraEnv: []
     sidecars: []
@@ -464,8 +466,7 @@ backend:
         cpu: 200m
         memory: 500Mi
     command:
-      - "/bin/bash"
-      - "scripts/wait_for_clickhouse_and_migrate.sh"
+      - "./ch_migration_entrypoint.sh"
     extraContainerConfig: {}
     extraEnv: []
     sidecars: []
@@ -763,19 +764,7 @@ hostBackend:
         cpu: 200m
         memory: 1000Mi
     command:
-      - "uvicorn"
-      - "host.main:app"
-      - "--host"
-      - "0.0.0.0"
-      - "--port"
-      - "$(PORT)"
-      - "--log-level"
-      - "$(LOG_LEVEL)"
-      - "--loop"
-      - "uvloop"
-      - "--http"
-      - "httptools"
-      - "--no-access-log"
+      - "./entrypoint.sh"
     startupProbe:
       httpGet:
         path: /ok
@@ -855,9 +844,7 @@ listener:
         cpu: 1000m
         memory: 2Gi
     command:
-      - "saq"
-      - "app.workers.queues.host_worker.settings"
-      - "--quiet"
+      - "./listener_entrypoint.sh"
     startupProbe:
       exec:
         command:
@@ -1039,7 +1026,7 @@ platformBackend:
         cpu: 1000m
         memory: 2Gi
     command:
-      - "./smith-go"
+      - "./entrypoint.sh"
     startupProbe:
       httpGet:
         path: /ok
@@ -1216,19 +1203,7 @@ playground:
         cpu: 500m
         memory: 1Gi
     command:
-      - "uvicorn"
-      - "playground.main:app"
-      - "--host"
-      - "0.0.0.0"
-      - "--port"
-      - "$(PORT)"
-      - "--log-level"
-      - "$(LOG_LEVEL)"
-      - "--loop"
-      - "uvloop"
-      - "--http"
-      - "httptools"
-      - "--no-access-log"
+      - "./entrypoint.sh"
     startupProbe:
       httpGet:
         path: /ok
@@ -1396,9 +1371,7 @@ queue:
         cpu: 1000m
         memory: 2Gi
     command:
-      - "saq"
-      - "app.workers.queues.single_queue_worker.settings"
-      - "--quiet"
+      - "./queue_entrypoint.sh"
     startupProbe:
       exec:
         command:
