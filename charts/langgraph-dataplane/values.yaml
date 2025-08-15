@@ -37,6 +37,7 @@ images:
 
 ingress:
   enabled: true
+  create: true
   hostname: ""
   ingressClassName: ""
   annotations: {}
