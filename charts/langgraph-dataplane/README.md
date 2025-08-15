@@ -1,6 +1,6 @@
 # langgraph-dataplane
 
-![Version: 0.1.27](https://img.shields.io/badge/Version-0.1.27-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.10.129](https://img.shields.io/badge/AppVersion-0.10.129-informational?style=flat-square)
+![Version: 0.1.28](https://img.shields.io/badge/Version-0.1.28-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.10.129](https://img.shields.io/badge/AppVersion-0.10.129-informational?style=flat-square)
 
 Helm chart to deploy a langgraph dataplane on kubernetes.
 
@@ -32,6 +32,7 @@ You can find the guide to deploy a LangGraph Dataplane [here](https://langchain-
 | images.registry | string | `""` | If supplied, all children <image_name>.repository values will be prepended with this registry name + `/` |
 | ingress.additionalPaths | list | `[]` |  |
 | ingress.annotations | object | `{}` |  |
+| ingress.create | bool | `true` |  |
 | ingress.enabled | bool | `true` |  |
 | ingress.hostname | string | `""` |  |
 | ingress.ingressClassName | string | `""` |  |
