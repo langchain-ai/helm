@@ -1,3 +1,6 @@
+-- This query exports all pending and pending-backfill trace count transactions
+-- for local sources.
+
 SELECT
     tc.*,
     t.display_name AS workspace_name,

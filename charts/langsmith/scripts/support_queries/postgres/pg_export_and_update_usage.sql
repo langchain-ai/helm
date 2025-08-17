@@ -1,3 +1,6 @@
+-- This query exports all pending and pending-backfill trace count transactions
+-- and updates the status to sent-backfilled for those that were pending-backfill.
+
 WITH backfilled_txns AS (
     UPDATE trace_count_transactions
     SET status = 'sent-backfilled'
