@@ -25,8 +25,8 @@ backfill_txns AS (
       num_failed_metronome_send_attempts,
       tenant_id,
       self_hosted_customer_id,
-      backfill_id,
-      backfilled_at
+      rm.backfill_id,
+      rm.backfilled_at
 )
 SELECT
     bt.*,
