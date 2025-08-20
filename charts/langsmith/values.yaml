@@ -505,6 +505,27 @@ backend:
     name: ""
     labels: {}
     annotations: {}
+  largeVolumeDataConfig:
+    enabled: false
+    schedule: "*/5 * * * *"
+    concurrencyPolicy: "Forbid"
+    successfulJobsHistoryLimit: 3
+    failedJobsHistoryLimit: 1
+    annotations: {}
+    podAnnotations: {}
+    podSecurityContext: {}
+    securityContext: {}
+    resources:
+      limits:
+        cpu: 1000m
+        memory: 1Gi
+      requests:
+        cpu: 500m
+        memory: 512Mi
+    extraEnv: []
+    nodeSelector: {}
+    tolerations: []
+    affinity: {}
 
 clickhouse:
   name: "clickhouse"
