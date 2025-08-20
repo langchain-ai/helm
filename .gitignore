@@ -3,3 +3,4 @@ test*.yaml
 .DS_Store
 .cursor/
 charts/langsmith-observability/charts/*
+test*.csv

@@ -4,7 +4,7 @@
 print_usage_and_exit() {
     echo "Error: $1"
     echo "Usage: $0 <postgres_url> [--debug] [--output <path/to/file.csv>] [--input <path/to/file.sql>] [-v var=value]..."
-    echo "Example: $0 postgres://username:password@host:port/database [--debug] [--output path/to/file.csv] [--input path/to/file.sql] -v bulk_export_id=\"'id'\" -v start_date=\"'2024-01-01'\""
+    echo "Example: $0 postgres://username:password@host:port/database [--debug] [--output path/to/file.csv] [--input path/to/file.sql] [-v backfill_id=\"'id'\" -v other_var=\"'other-value'\"]"
     echo "Note: The -v flag is used to pass variables to queries that support them.  String values must be wrapped in single quotes."
     exit 1
 }
