@@ -506,7 +506,7 @@ backend:
     labels: {}
     annotations: {}
   largeVolumeDataConfig:
-    enabled: true 
+    enabled: true
     schedule: "*/5 * * * *"
     command: ["./scripts/k6/large_data_volume.sh"]
     concurrencyPolicy: "Forbid"
