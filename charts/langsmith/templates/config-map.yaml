@@ -40,13 +40,12 @@ data:
   OTEL_ENVIRONMENT: "{{ .Values.config.observability.tracing.env }}"
   OTEL_EXPORTER: "{{ .Values.config.observability.tracing.exporter }}"
   OTEL_USE_TLS: "{{ .Values.config.observability.tracing.useTls }}"
+  {{- else }}
+  OTEL_TRACING_ENABLED: "false"
   {{- end }}
-  {{- if .Values.config.telemetry.metrics }}
-  BEACON_METRICS_ENABLED: "true"
-  ENABLE_POSTGRES_METRICS_CRON: "true"
-  ENABLE_REDIS_METRICS_CRON: "true"
-  ENABLE_CLICKHOUSE_METRICS_CRON: "true"
-  {{- end }}
-  {{- if .Values.config.telemetry.traces }}
-  BEACON_TRACING_ENABLED: "true"
-  {{- end }}
+  # Self-hosted telemetry
+  ENABLE_POSTGRES_METRICS_CRON: {{ ternary "true" "false" .Values.config.telemetry.metrics | quote }}
+  ENABLE_REDIS_METRICS_CRON: {{ ternary "true" "false" .Values.config.telemetry.metrics | quote }}
+  ENABLE_CLICKHOUSE_METRICS_CRON: {{ ternary "true" "false" .Values.config.telemetry.metrics | quote }}
+  BEACON_METRICS_ENABLED: {{ ternary "true" "false" .Values.config.telemetry.metrics | quote }}
+  BEACON_TRACING_ENABLED: {{ ternary "true" "false" .Values.config.telemetry.traces | quote }}
