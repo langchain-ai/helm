@@ -258,6 +258,12 @@ Template containing common environment variables that are used by several servic
   value: "true"
 - name: FF_PERSONAL_ORGS_DISABLED
   value: "true"
+{{- else if .Values.config.oauth.enabled }}
+- name: FF_ORG_CREATION_DISABLED
+  value: "true"
+- name: FF_PERSONAL_ORGS_DISABLED
+  value: "true"
+{{- end }}
 {{- else }}
 - name: FF_ORG_CREATION_DISABLED
   value: {{ .Values.config.orgCreationDisabled | quote }}
