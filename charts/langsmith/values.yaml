@@ -105,9 +105,11 @@ config:
   logLevel: "info"
   # -- Must be 'oauth' for OAuth with PKCE, 'mixed' for basic auth or OAuth without PKCE
   authType: ""
+  initialOrgAdminEmail: ""
+  defaultOrgName: "Default" # Default org name to be provisioned. For OAuth, this is the org name that new users will automatically be added to.
+
   basicAuth:
     enabled: false
-    initialOrgAdminEmail: ""
     # Either set the password and JWT secret in plaintext, or set in the secret specified by existingSecretName above.
     initialOrgAdminPassword: ""
     jwtSecret: ""

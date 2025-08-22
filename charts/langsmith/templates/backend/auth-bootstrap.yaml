@@ -29,14 +29,24 @@
 {{- end -}}
 {{- end -}}
 
+{{- define "validateInitialOrgAdminEmail" -}}
+{{- if or .Values.config.basicAuth.enabled .Values.config.oauth.enabled -}}
+  {{- if not .Values.config.initialOrgAdminEmail -}}
+    {{- fail "Error: initialOrgAdminEmail is required if basic auth or oauth is enabled." -}}
+  {{- end -}}
+{{- end -}}
+{{- end -}}
+
 {{- define "authBootstrapEnvVars" -}}
 - name: INITIAL_ORG_ADMIN_EMAIL
-  value: {{ .Values.config.basicAuth.initialOrgAdminEmail }}
+  value: {{ .Values.config.initialOrgAdminEmail }}
 - name: INITIAL_ORG_ADMIN_PASSWORD
   valueFrom:
     secretKeyRef:
       name: {{ include "langsmith.secretsName" . }}
       key: initial_org_admin_password
+- name: DEFAULT_ORG_NAME
+  value: {{ .Values.config.defaultOrgName }}
 {{- end -}}
 {{- template "validateAuthMode" . -}}
 {{- if .Values.config.basicAuth.enabled }}
