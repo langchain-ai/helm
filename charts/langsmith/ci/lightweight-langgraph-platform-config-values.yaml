@@ -27,6 +27,7 @@ aceBackend:
 
 backend:
   deployment:
+    replicas: 1
     resources:
       requests:
         cpu: 100m
@@ -72,6 +73,7 @@ operator:
 
 platformBackend:
   deployment:
+    replicas: 1
     resources:
       requests:
         cpu: 100m
@@ -85,8 +87,8 @@ playground:
         memory: 500Mi
 
 queue:
-  replicas: 1
   deployment:
+    replicas: 1
     resources:
       requests:
         cpu: 100m

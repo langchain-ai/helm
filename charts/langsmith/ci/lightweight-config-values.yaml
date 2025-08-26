@@ -19,6 +19,7 @@ aceBackend:
 
 backend:
   deployment:
+    replicas: 1
     resources:
       requests:
         cpu: 100m
@@ -42,6 +43,7 @@ frontend:
         memory: 500Mi
 
 platformBackend:
+  replicas: 1
   deployment:
     resources:
       requests:
