@@ -1,3 +1,4 @@
+{{- include "langsmith.validateTracing" . -}}
 Thank you for installing LangSmith!
 
 This is the LangSmith application helm chart. All pods should be running! You can access the LangSmith UI by running the following command:
