@@ -5,7 +5,7 @@
 WITH backfilled_txns AS (
     UPDATE trace_count_transactions
     SET status = 'sent-backfilled'
-    WHERE backfill_id = :backfill_id
+    WHERE backfill_id = :'backfill_id'
     RETURNING *
 )
 SELECT
