@@ -830,6 +830,7 @@ hostBackend:
 
 listener:
   name: "listener"
+  containerPort: 8080
   deployment:
     replicas: 1
     labels: {}
