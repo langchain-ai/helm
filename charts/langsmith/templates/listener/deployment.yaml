@@ -77,6 +77,10 @@ spec:
                 name: {{ include "langsmith.fullname" . }}-config
           image: {{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "hostBackendImage") | quote }}
           imagePullPolicy: {{ .Values.images.hostBackendImage.pullPolicy }}
+          ports:
+            - name: listener
+              containerPort: {{ .Values.listener.containerPort }}
+              protocol: TCP
           {{- with .Values.listener.deployment.startupProbe }}
           startupProbe:
             {{- toYaml . | nindent 12 }}
