@@ -4,6 +4,10 @@
 
 Helm chart to deploy the observability stack for LangSmith.
 
+## Documentation
+
+For information on how to use this chart, up-to-date release notes, and other guides please check out the [documentation.](https://docs.smith.langchain.com/self_hosting)
+
 ## Requirements
 
 | Repository | Name | Version |
@@ -16,27 +20,11 @@ Helm chart to deploy the observability stack for LangSmith.
 | https://prometheus-community.github.io/helm-charts | postgres-exporter(prometheus-postgres-exporter) | 6.10.2 |
 | https://prometheus-community.github.io/helm-charts | redis-exporter(prometheus-redis-exporter) | 6.11.0 |
 
-## Documentation
-For information on how to use this chart and how to deploy the full LangSmith Observability stack, please refer to the [documentation](https://docs.smith.langchain.com/self_hosting/observability/observability_stack).
-
-NOTE: For any values in dependencies (Loki, Tempo, etc.), you can update the values as you see fit. Only a small set of
-values are listed in the `values.yaml` and this `README`. Refer to the `values.yaml` files listed next to each dependency header for additional values.
-
 ## General parameters
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
 | commonLabels | object | `{}` | Labels that will be applied to all resources created by the chart |
-| langSmithReleaseName | string | `"langsmith"` |  |
-| langsmithNamespace | string | `"langsmith"` |  |
-| nameOverride | string | `""` |  |
-
-## Grafana
-
-Values for Grafana: `https://github.com/grafana/helm-charts/blob/main/charts/grafana/values.yaml`
-
-| Key | Type | Default | Description |
-|-----|------|---------|-------------|
 | grafana.dashboardProviders."dashboardproviders.yaml".apiVersion | int | `1` |  |
 | grafana.dashboardProviders."dashboardproviders.yaml".providers[0].disableDeletion | bool | `false` |  |
 | grafana.dashboardProviders."dashboardproviders.yaml".providers[0].editable | bool | `true` |  |
@@ -67,13 +55,6 @@ Values for Grafana: `https://github.com/grafana/helm-charts/blob/main/charts/gra
 | grafana.datasources."datasources.yaml".datasources[2].uid | string | `"tempo"` |  |
 | grafana.datasources."datasources.yaml".datasources[2].url | string | `"http://{{ .Release.Name }}-tempo:3200"` |  |
 | grafana.enabled | bool | `false` |  |
-
-## Kube State Metrics
-
-Values for Kube State Metrics: `https://github.com/prometheus-community/helm-charts/blob/main/charts/kube-state-metrics/values.yaml`
-
-| Key | Type | Default | Description |
-|-----|------|---------|-------------|
 | kube-state-metrics.enabled | bool | `false` |  |
 | kube-state-metrics.namespaces | string | `"romain"` |  |
 | kube-state-metrics.resources.limits.cpu | string | `"250m"` |  |
@@ -82,13 +63,8 @@ Values for Kube State Metrics: `https://github.com/prometheus-community/helm-cha
 | kube-state-metrics.resources.requests.memory | string | `"250Mi"` |  |
 | kube-state-metrics.service.port | int | `8080` |  |
 | kube-state-metrics.service.type | string | `"ClusterIP"` |  |
-
-## Loki
-
-Values for Loki Single Binary: `https://github.com/grafana/loki/blob/main/production/helm/loki/values.yaml#L1364`
-
-| Key | Type | Default | Description |
-|-----|------|---------|-------------|
+| langSmithReleaseName | string | `"langsmith"` |  |
+| langsmithNamespace | string | `"langsmith"` |  |
 | loki.backend.replicas | int | `0` |  |
 | loki.bloomCompactor.replicas | int | `0` |  |
 | loki.bloomGateway.replicas | int | `0` |  |
@@ -130,11 +106,6 @@ Values for Loki Single Binary: `https://github.com/grafana/loki/blob/main/produc
 | loki.singleBinary.resources.requests.memory | string | `"2Gi"` |  |
 | loki.test.enabled | bool | `false` |  |
 | loki.write.replicas | int | `0` |  |
-
-## Mimir
-
-| Key | Type | Default | Description |
-|-----|------|---------|-------------|
 | mimir.affinity | object | `{}` |  |
 | mimir.annotations | object | `{}` |  |
 | mimir.enabled | bool | `false` |  |
@@ -177,13 +148,7 @@ Values for Loki Single Binary: `https://github.com/grafana/loki/blob/main/produc
 | mimir.service.type | string | `"ClusterIP"` |  |
 | mimir.tolerations | list | `[]` |  |
 | mimir.updateStrategy.type | string | `"RollingUpdate"` |  |
-
-## Nginx Exporter
-
-Values for Nginx Exporter: `https://github.com/prometheus-community/helm-charts/blob/main/charts/prometheus-nginx-exporter/values.yaml`
-
-| Key | Type | Default | Description |
-|-----|------|---------|-------------|
+| nameOverride | string | `""` |  |
 | nginx-exporter.additionalAnnotations | object | `{}` |  |
 | nginx-exporter.additionalLabels | object | `{}` |  |
 | nginx-exporter.affinity | object | `{}` |  |
@@ -199,11 +164,6 @@ Values for Nginx Exporter: `https://github.com/prometheus-community/helm-charts/
 | nginx-exporter.service.port | int | `9113` |  |
 | nginx-exporter.service.type | string | `"ClusterIP"` |  |
 | nginx-exporter.tolerations | list | `[]` |  |
-
-## OTEL Collector
-
-| Key | Type | Default | Description |
-|-----|------|---------|-------------|
 | otelCollector.gatewayNameOverride | string | `""` |  |
 | otelCollector.image.repository | string | `"otel/opentelemetry-collector-contrib"` |  |
 | otelCollector.image.tag | string | `"0.123.0"` |  |
@@ -220,10 +180,77 @@ Values for Nginx Exporter: `https://github.com/prometheus-community/helm-charts/
 | otelCollector.serviceAccounts[8] | string | `"langsmith-redis"` |  |
 | otelCollector.sidecarNameOverride | string | `""` |  |
 | otelCollector.traces.enabled | bool | `false` |  |
+| tempo.enabled | bool | `false` |  |
+| tempo.persistence.accessModes[0] | string | `"ReadWriteOnce"` |  |
+| tempo.persistence.enabled | bool | `true` |  |
+| tempo.persistence.size | string | `"10Gi"` |  |
+| tempo.persistence.storageClassName | string | `""` |  |
+| tempo.tempo.metricsGenerator.enabled | bool | `true` |  |
+| tempo.tempo.overrides.defaults.metrics_generator.processors[0] | string | `"service-graphs"` |  |
+| tempo.tempo.overrides.defaults.metrics_generator.processors[1] | string | `"span-metrics"` |  |
+| tempo.tempo.overrides.defaults.metrics_generator.processors[2] | string | `"local-blocks"` |  |
+| tempo.tempo.reportingEnabled | bool | `false` |  |
+| tempo.tempo.resources.limits.cpu | string | `"2000m"` |  |
+| tempo.tempo.resources.limits.memory | string | `"6Gi"` |  |
+| tempo.tempo.resources.requests.cpu | string | `"1000m"` |  |
+| tempo.tempo.resources.requests.memory | string | `"4Gi"` |  |
 
-## Postgres Exporter
+## Configs
 
-Values for Postgres Exporter: `https://github.com/prometheus-community/helm-charts/blob/main/charts/prometheus-postgres-exporter/values.yaml`
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+
+## Ace Backend
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+
+## Backend
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+
+## Clickhouse
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+
+## E2E Test
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+
+## Host Backend (Optional)
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+
+## Frontend
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+
+## Listener (Optional)
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+
+## Operator (Optional)
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+
+## Platform Backend
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+
+## Playground
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+
+## Postgres
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
@@ -247,9 +274,12 @@ Values for Postgres Exporter: `https://github.com/prometheus-community/helm-char
 | postgres-exporter.service.type | string | `"ClusterIP"` |  |
 | postgres-exporter.tolerations | list | `[]` |  |
 
-## Redis Exporter
+## Queue
 
-Values for Redis Exporter: `https://github.com/prometheus-community/helm-charts/blob/main/charts/prometheus-redis-exporter/values.yaml`
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+
+## Redis
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
@@ -265,23 +295,13 @@ Values for Redis Exporter: `https://github.com/prometheus-community/helm-charts/
 | redis-exporter.service.type | string | `"ClusterIP"` |  |
 | redis-exporter.tolerations | list | `[]` |  |
 
-## Tempo
+## Maintainers
 
-Values for Tempo: `https://github.com/grafana/helm-charts/blob/main/charts/tempo/values.yaml`
+| Name | Email | Url |
+| ---- | ------ | --- |
+| Romain | <romain@langchain.dev> |  |
 
-| Key | Type | Default | Description |
-|-----|------|---------|-------------|
-| tempo.enabled | bool | `false` |  |
-| tempo.persistence.accessModes[0] | string | `"ReadWriteOnce"` |  |
-| tempo.persistence.enabled | bool | `true` |  |
-| tempo.persistence.size | string | `"10Gi"` |  |
-| tempo.persistence.storageClassName | string | `""` |  |
-| tempo.tempo.metricsGenerator.enabled | bool | `true` |  |
-| tempo.tempo.overrides.defaults.metrics_generator.processors[0] | string | `"service-graphs"` |  |
-| tempo.tempo.overrides.defaults.metrics_generator.processors[1] | string | `"span-metrics"` |  |
-| tempo.tempo.overrides.defaults.metrics_generator.processors[2] | string | `"local-blocks"` |  |
-| tempo.tempo.reportingEnabled | bool | `false` |  |
-| tempo.tempo.resources.limits.cpu | string | `"2000m"` |  |
-| tempo.tempo.resources.limits.memory | string | `"6Gi"` |  |
-| tempo.tempo.resources.requests.cpu | string | `"1000m"` |  |
-| tempo.tempo.resources.requests.memory | string | `"4Gi"` |  |
+----------------------------------------------
+Autogenerated from chart metadata using [helm-docs v1.14.2](https://github.com/norwoodj/helm-docs/releases/v1.14.2)
+## Docs Generated by [helm-docs](https://github.com/norwoodj/helm-docs)
+`helm-docs -t ./charts/langsmith/README.md.gotmpl`
