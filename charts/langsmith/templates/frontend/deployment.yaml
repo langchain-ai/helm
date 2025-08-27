@@ -10,6 +10,8 @@
     secretKeyRef:
       key: oauth_issuer_url
       name: {{ include "langsmith.secretsName" .}}
+- name: VITE_DEFAULT_ORG_NAME
+  value: {{ .Values.config.defaultOrgName }}
 {{- end }}
 {{- if .Values.ingress.subdomain }}
 - name: VITE_SUBDOMAIN
