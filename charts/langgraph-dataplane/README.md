@@ -4,9 +4,10 @@
 
 Helm chart to deploy a langgraph dataplane on kubernetes.
 
-## Documentation
+## Deploying a LangGraph Dataplane
 
-For information on how to use this chart, up-to-date release notes, and other guides please check out the [documentation.](https://docs.smith.langchain.com/self_hosting)
+This chart deploys a LangGraph Dataplane, which is a component of the LangGraph Platform. The Dataplane is responsible for executing and managing LangGraph applications.
+You can find the guide to deploy a LangGraph Dataplane [here](https://langchain-ai.github.io/langgraph/cloud/deployment/self_hosted_data_plane/).
 
 ## General parameters
 
@@ -40,6 +41,48 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | ingress.tlsEnabled | bool | `true` |  |
 | nameOverride | string | `""` | Provide a name in place of `langgraphDataplane` |
 | namespace | string | `""` | Namespace to install the chart into. If not set, will use the namespace of the current context. |
+| operator.createCRDs | bool | `true` |  |
+| operator.deployment.affinity | object | `{}` |  |
+| operator.deployment.annotations | object | `{}` |  |
+| operator.deployment.autoRestart | bool | `true` |  |
+| operator.deployment.extraContainerConfig | object | `{}` |  |
+| operator.deployment.extraEnv | list | `[]` |  |
+| operator.deployment.labels | object | `{}` |  |
+| operator.deployment.nodeSelector | object | `{}` |  |
+| operator.deployment.podSecurityContext | object | `{}` |  |
+| operator.deployment.replicas | int | `1` |  |
+| operator.deployment.resources.limits.cpu | string | `"2000m"` |  |
+| operator.deployment.resources.limits.memory | string | `"4Gi"` |  |
+| operator.deployment.resources.requests.cpu | string | `"1000m"` |  |
+| operator.deployment.resources.requests.memory | string | `"2Gi"` |  |
+| operator.deployment.securityContext | object | `{}` |  |
+| operator.deployment.sidecars | list | `[]` |  |
+| operator.deployment.terminationGracePeriodSeconds | int | `30` |  |
+| operator.deployment.tolerations | list | `[]` |  |
+| operator.deployment.topologySpreadConstraints | list | `[]` |  |
+| operator.deployment.volumeMounts | list | `[]` |  |
+| operator.deployment.volumes | list | `[]` |  |
+| operator.enabled | bool | `true` |  |
+| operator.kedaEnabled | bool | `true` |  |
+| operator.name | string | `"operator"` |  |
+| operator.pdb.enabled | bool | `false` |  |
+| operator.pdb.minAvailable | int | `1` |  |
+| operator.rbac.annotations | object | `{}` |  |
+| operator.rbac.create | bool | `true` |  |
+| operator.rbac.labels | object | `{}` |  |
+| operator.service.annotations | object | `{}` |  |
+| operator.service.labels | object | `{}` |  |
+| operator.service.loadBalancerIP | string | `""` |  |
+| operator.service.loadBalancerSourceRanges | list | `[]` |  |
+| operator.service.type | string | `"ClusterIP"` |  |
+| operator.serviceAccount.annotations | object | `{}` |  |
+| operator.serviceAccount.create | bool | `true` |  |
+| operator.serviceAccount.labels | object | `{}` |  |
+| operator.serviceAccount.name | string | `""` |  |
+| operator.templates.deployment | string | `"apiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: ${name}\n  namespace: ${namespace}\nspec:\n  replicas: ${replicas}\n  selector:\n    matchLabels:\n      app: ${name}\n  template:\n    metadata:\n      labels:\n        app: ${name}\n    spec:\n      enableServiceLinks: false\n      containers:\n      - name: api-server\n        image: ${image}\n        ports:\n        - name: api-server\n          containerPort: 8000\n          protocol: TCP\n        livenessProbe:\n          httpGet:\n            path: /ok?check_db=1\n            port: 8000\n          initialDelaySeconds: 90\n          periodSeconds: 5\n          timeoutSeconds: 5\n        readinessProbe:\n          httpGet:\n            path: /ok\n            port: 8000\n          initialDelaySeconds: 90\n          periodSeconds: 5\n          timeoutSeconds: 5\n"` |  |
+| operator.templates.ingress | string | `"apiVersion: networking.k8s.io/v1\nkind: Ingress\nmetadata:\n  name: ${name}\n  namespace: ${namespace}\nspec:\n  rules:\n  - host: ${ingress.hostname}\n    http:\n      paths:\n      - path: /\n        pathType: Prefix\n        backend:\n          service:\n            name: ${name}\n            port:\n              number: 8000\n"` |  |
+| operator.templates.service | string | `"apiVersion: v1\nkind: Service\nmetadata:\n  name: ${name}\n  namespace: ${namespace}\nspec:\n  type: ClusterIP\n  selector:\n    app: ${name}\n  ports:\n  - name: api-server\n    protocol: TCP\n    port: 8000\n    targetPort: 8000\n"` |  |
+| operator.watchNamespaces | string | `""` |  |
 
 ## Configs
 
@@ -54,37 +97,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | config.smithBackendUrl | string | `"https://api.smith.langchain.com"` |  |
 | config.watchNamespaces | string | `""` |  |
 
-## Ace Backend
-
-| Key | Type | Default | Description |
-|-----|------|---------|-------------|
-
-## Backend
-
-| Key | Type | Default | Description |
-|-----|------|---------|-------------|
-
-## Clickhouse
-
-| Key | Type | Default | Description |
-|-----|------|---------|-------------|
-
-## E2E Test
-
-| Key | Type | Default | Description |
-|-----|------|---------|-------------|
-
-## Host Backend (Optional)
-
-| Key | Type | Default | Description |
-|-----|------|---------|-------------|
-
-## Frontend
-
-| Key | Type | Default | Description |
-|-----|------|---------|-------------|
-
-## Listener (Optional)
+## Listener
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
@@ -148,7 +161,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | listener.templates.db | string | `"apiVersion: apps/v1\nkind: StatefulSet\nmetadata:\n  name: ${service_name}\nspec:\n  serviceName: ${service_name}\n  replicas: ${replicas}\n  selector:\n    matchLabels:\n      app: ${service_name}\n  persistentVolumeClaimRetentionPolicy:\n    whenDeleted: Delete\n    whenScaled: Retain\n  template:\n    metadata:\n      labels:\n        app: ${service_name}\n    spec:\n      containers:\n      - name: postgres\n        image: pgvector/pgvector:pg15\n        ports:\n        - containerPort: 5432\n        command: [\"docker-entrypoint.sh\"]\n        args:\n          - postgres\n          - -c\n          - max_connections=${max_connections}\n        env:\n        - name: POSTGRES_PASSWORD\n          valueFrom:\n            secretKeyRef:\n              name: ${secret_name}\n              key: POSTGRES_PASSWORD\n        - name: POSTGRES_USER\n          value: ${postgres_user}\n        - name: POSTGRES_DB\n          value: ${postgres_db}\n        - name: PGDATA\n          value: /var/lib/postgresql/data/pgdata\n        volumeMounts:\n        - name: postgres-data\n          mountPath: /var/lib/postgresql/data\n        resources:\n          requests:\n            cpu: \"${cpu}\"\n            memory: \"${memory_mb}Mi\"\n          limits:\n            cpu: \"${cpu_limit}\"\n            memory: \"${memory_limit}Mi\"\n      enableServiceLinks: false\n  volumeClaimTemplates:\n  - metadata:\n      name: postgres-data\n    spec:\n      accessModes: [\"ReadWriteOnce\"]\n      resources:\n        requests:\n          storage: \"${storage_gi}Gi\"\n"` |  |
 | listener.templates.redis | string | `"apiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: ${service_name}\nspec:\n  replicas: 1\n  selector:\n    matchLabels:\n      app: ${service_name}\n  template:\n    metadata:\n      labels:\n        app: ${service_name}\n    spec:\n      containers:\n      - name: redis\n        image: redis:6\n        ports:\n        - containerPort: 6379\n        livenessProbe:\n          exec:\n            command:\n            - redis-cli\n            - ping\n          initialDelaySeconds: 30\n          periodSeconds: 10\n        readinessProbe:\n          tcpSocket:\n            port: 6379\n          initialDelaySeconds: 10\n          periodSeconds: 5\n        resources:\n          requests:\n            cpu: \"1\"\n            memory: \"2048Mi\"\n          limits:\n            cpu: \"1\"\n            memory: \"2048Mi\"\n      enableServiceLinks: false\n"` |  |
 
-## Operator (Optional)
+## Operator (Optional, deployed as sub-chart)
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
@@ -194,26 +207,6 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | operator.templates.ingress | string | `"apiVersion: networking.k8s.io/v1\nkind: Ingress\nmetadata:\n  name: ${name}\n  namespace: ${namespace}\nspec:\n  rules:\n  - host: ${ingress.hostname}\n    http:\n      paths:\n      - path: /\n        pathType: Prefix\n        backend:\n          service:\n            name: ${name}\n            port:\n              number: 8000\n"` |  |
 | operator.templates.service | string | `"apiVersion: v1\nkind: Service\nmetadata:\n  name: ${name}\n  namespace: ${namespace}\nspec:\n  type: ClusterIP\n  selector:\n    app: ${name}\n  ports:\n  - name: api-server\n    protocol: TCP\n    port: 8000\n    targetPort: 8000\n"` |  |
 | operator.watchNamespaces | string | `""` |  |
-
-## Platform Backend
-
-| Key | Type | Default | Description |
-|-----|------|---------|-------------|
-
-## Playground
-
-| Key | Type | Default | Description |
-|-----|------|---------|-------------|
-
-## Postgres
-
-| Key | Type | Default | Description |
-|-----|------|---------|-------------|
-
-## Queue
-
-| Key | Type | Default | Description |
-|-----|------|---------|-------------|
 
 ## Redis
 
@@ -287,4 +280,4 @@ For information on how to use this chart, up-to-date release notes, and other gu
 ----------------------------------------------
 Autogenerated from chart metadata using [helm-docs v1.14.2](https://github.com/norwoodj/helm-docs/releases/v1.14.2)
 ## Docs Generated by [helm-docs](https://github.com/norwoodj/helm-docs)
-`helm-docs -t ./charts/langsmith/README.md.gotmpl`
+`helm-docs -t ./charts/langgraph-cloud/README.md.gotmpl`
