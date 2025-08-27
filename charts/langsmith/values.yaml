@@ -106,8 +106,10 @@ config:
   # -- Must be 'oauth' for OAuth with PKCE, 'mixed' for basic auth or OAuth without PKCE
   authType: ""
   initialOrgAdminEmail: ""
-  defaultOrgName: "Default" # Default org name to be provisioned. For OAuth, this is the org name that new users will automatically be added to.
-  defaultWorkspaceName: "Workspace 1" # Default workspace name to be provisioned when org is created.
+  # -- Default org name to be provisioned. For OAuth, this is the org name that new users will automatically be added to.
+  defaultOrgName: "Default"
+  # -- Default workspace name to be provisioned when org is created.
+  defaultWorkspaceName: "Workspace 1"
 
   basicAuth:
     enabled: false
