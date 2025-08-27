@@ -111,12 +111,7 @@ You can find the guide to deploy a LangGraph Dataplane [here](https://langchain-
 | listener.deployment.affinity | object | `{}` |  |
 | listener.deployment.annotations | object | `{}` |  |
 | listener.deployment.autoRestart | bool | `true` |  |
-| listener.deployment.command[0] | string | `"saq"` |  |
-| listener.deployment.command[1] | string | `"app.workers.queues.host_worker.settings"` |  |
-| listener.deployment.command[2] | string | `"--quiet"` |  |
-| listener.deployment.command[3] | string | `"--web"` |  |
-| listener.deployment.command[4] | string | `"--port"` |  |
-| listener.deployment.command[5] | string | `"$(PORT)"` |  |
+| listener.deployment.command[0] | string | `"./listener_entrypoint.sh"` |  |
 | listener.deployment.extraContainerConfig | object | `{}` |  |
 | listener.deployment.extraEnv | list | `[]` |  |
 | listener.deployment.labels | object | `{}` |  |

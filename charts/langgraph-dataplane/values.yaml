@@ -74,12 +74,7 @@ listener:
         cpu: 1000m
         memory: 2Gi
     command:
-      - "saq"
-      - "app.workers.queues.host_worker.settings"
-      - "--quiet"
-      - "--web"
-      - "--port"
-      - "$(PORT)"
+      - "./listener_entrypoint.sh"
     startupProbe:
       httpGet:
         path: /health
