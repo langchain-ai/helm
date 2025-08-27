@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.11.5](https://img.shields.io/badge/Version-0.11.5-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.11.20](https://img.shields.io/badge/AppVersion-0.11.20-informational?style=flat-square)
+![Version: 0.11.6](https://img.shields.io/badge/Version-0.11.6-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.11.20](https://img.shields.io/badge/AppVersion-0.11.20-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -766,6 +766,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | listener.autoscaling.minReplicas | int | `3` |  |
 | listener.autoscaling.targetCPUUtilizationPercentage | int | `50` |  |
 | listener.autoscaling.targetMemoryUtilizationPercentage | int | `80` |  |
+| listener.containerPort | int | `8080` |  |
 | listener.deployment.affinity | object | `{}` |  |
 | listener.deployment.annotations | object | `{}` |  |
 | listener.deployment.command[0] | string | `"./listener_entrypoint.sh"` |  |
@@ -781,12 +782,11 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | listener.deployment.livenessProbe.timeoutSeconds | int | `60` |  |
 | listener.deployment.nodeSelector | object | `{}` |  |
 | listener.deployment.podSecurityContext | object | `{}` |  |
-| listener.deployment.readinessProbe.exec.command[0] | string | `"saq"` |  |
-| listener.deployment.readinessProbe.exec.command[1] | string | `"app.workers.queues.host_worker.settings"` |  |
-| listener.deployment.readinessProbe.exec.command[2] | string | `"--check"` |  |
 | listener.deployment.readinessProbe.failureThreshold | int | `6` |  |
-| listener.deployment.readinessProbe.periodSeconds | int | `60` |  |
-| listener.deployment.readinessProbe.timeoutSeconds | int | `60` |  |
+| listener.deployment.readinessProbe.httpGet.path | string | `"/health"` |  |
+| listener.deployment.readinessProbe.httpGet.port | int | `8080` |  |
+| listener.deployment.readinessProbe.periodSeconds | int | `10` |  |
+| listener.deployment.readinessProbe.timeoutSeconds | int | `10` |  |
 | listener.deployment.replicas | int | `1` |  |
 | listener.deployment.resources.limits.cpu | string | `"2000m"` |  |
 | listener.deployment.resources.limits.memory | string | `"4Gi"` |  |
@@ -794,12 +794,11 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | listener.deployment.resources.requests.memory | string | `"2Gi"` |  |
 | listener.deployment.securityContext | object | `{}` |  |
 | listener.deployment.sidecars | list | `[]` |  |
-| listener.deployment.startupProbe.exec.command[0] | string | `"saq"` |  |
-| listener.deployment.startupProbe.exec.command[1] | string | `"app.workers.queues.host_worker.settings"` |  |
-| listener.deployment.startupProbe.exec.command[2] | string | `"--check"` |  |
 | listener.deployment.startupProbe.failureThreshold | int | `6` |  |
-| listener.deployment.startupProbe.periodSeconds | int | `60` |  |
-| listener.deployment.startupProbe.timeoutSeconds | int | `60` |  |
+| listener.deployment.startupProbe.httpGet.path | string | `"/health"` |  |
+| listener.deployment.startupProbe.httpGet.port | int | `8080` |  |
+| listener.deployment.startupProbe.periodSeconds | int | `10` |  |
+| listener.deployment.startupProbe.timeoutSeconds | int | `10` |  |
 | listener.deployment.terminationGracePeriodSeconds | int | `30` |  |
 | listener.deployment.tolerations | list | `[]` |  |
 | listener.deployment.topologySpreadConstraints | list | `[]` |  |
@@ -1072,6 +1071,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | queue.autoscaling.minReplicas | int | `3` |  |
 | queue.autoscaling.targetCPUUtilizationPercentage | int | `50` |  |
 | queue.autoscaling.targetMemoryUtilizationPercentage | int | `80` |  |
+| queue.containerPort | int | `8080` |  |
 | queue.deployment.affinity | object | `{}` |  |
 | queue.deployment.annotations | object | `{}` |  |
 | queue.deployment.command[0] | string | `"./queue_entrypoint.sh"` |  |
@@ -1087,12 +1087,11 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | queue.deployment.livenessProbe.timeoutSeconds | int | `60` |  |
 | queue.deployment.nodeSelector | object | `{}` |  |
 | queue.deployment.podSecurityContext | object | `{}` |  |
-| queue.deployment.readinessProbe.exec.command[0] | string | `"saq"` |  |
-| queue.deployment.readinessProbe.exec.command[1] | string | `"app.workers.queues.single_queue_worker.settings"` |  |
-| queue.deployment.readinessProbe.exec.command[2] | string | `"--check"` |  |
 | queue.deployment.readinessProbe.failureThreshold | int | `6` |  |
-| queue.deployment.readinessProbe.periodSeconds | int | `60` |  |
-| queue.deployment.readinessProbe.timeoutSeconds | int | `60` |  |
+| queue.deployment.readinessProbe.httpGet.path | string | `"/health"` |  |
+| queue.deployment.readinessProbe.httpGet.port | int | `8080` |  |
+| queue.deployment.readinessProbe.periodSeconds | int | `10` |  |
+| queue.deployment.readinessProbe.timeoutSeconds | int | `10` |  |
 | queue.deployment.replicas | int | `3` |  |
 | queue.deployment.resources.limits.cpu | string | `"2000m"` |  |
 | queue.deployment.resources.limits.memory | string | `"4Gi"` |  |
@@ -1100,12 +1099,11 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | queue.deployment.resources.requests.memory | string | `"2Gi"` |  |
 | queue.deployment.securityContext | object | `{}` |  |
 | queue.deployment.sidecars | list | `[]` |  |
-| queue.deployment.startupProbe.exec.command[0] | string | `"saq"` |  |
-| queue.deployment.startupProbe.exec.command[1] | string | `"app.workers.queues.single_queue_worker.settings"` |  |
-| queue.deployment.startupProbe.exec.command[2] | string | `"--check"` |  |
 | queue.deployment.startupProbe.failureThreshold | int | `6` |  |
-| queue.deployment.startupProbe.periodSeconds | int | `60` |  |
-| queue.deployment.startupProbe.timeoutSeconds | int | `60` |  |
+| queue.deployment.startupProbe.httpGet.path | string | `"/health"` |  |
+| queue.deployment.startupProbe.httpGet.port | int | `8080` |  |
+| queue.deployment.startupProbe.periodSeconds | int | `10` |  |
+| queue.deployment.startupProbe.timeoutSeconds | int | `10` |  |
 | queue.deployment.terminationGracePeriodSeconds | int | `30` |  |
 | queue.deployment.tolerations | list | `[]` |  |
 | queue.deployment.topologySpreadConstraints | list | `[]` |  |

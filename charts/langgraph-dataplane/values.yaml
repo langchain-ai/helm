@@ -58,6 +58,7 @@ config:
 
 listener:
   name: "listener"
+  containerPort: 8080
   deployment:
     autoRestart: true
     replicas: 1
@@ -73,27 +74,21 @@ listener:
         cpu: 1000m
         memory: 2Gi
     command:
-      - "saq"
-      - "app.workers.queues.host_worker.settings"
-      - "--quiet"
+      - "./listener_entrypoint.sh"
     startupProbe:
-      exec:
-        command:
-          - "saq"
-          - "app.workers.queues.host_worker.settings"
-          - "--check"
+      httpGet:
+        path: /health
+        port: 8080
       failureThreshold: 6
-      periodSeconds: 60
-      timeoutSeconds: 60
+      periodSeconds: 10
+      timeoutSeconds: 10
     readinessProbe:
-      exec:
-        command:
-          - "saq"
-          - "app.workers.queues.host_worker.settings"
-          - "--check"
+      httpGet:
+        path: /health
+        port: 8080
       failureThreshold: 6
-      periodSeconds: 60
-      timeoutSeconds: 60
+      periodSeconds: 10
+      timeoutSeconds: 10
     livenessProbe:
       exec:
         command:
