@@ -1,6 +1,8 @@
 {{- define "listenerEnvVars" -}}
 - name: LANGGRAPH_CLOUD_INGRESS_ENABLED
   value: {{ .Values.ingress.enabled | quote }}
+- name: PORT
+  value: {{ .Values.listener.containerPort | quote }}
 {{- end }}
 {{- $envVars := concat .Values.commonEnv (include "listenerEnvVars" . | fromYamlArray) (include "langgraphDataplane.commonEnv" . | fromYamlArray) .Values.listener.deployment.extraEnv -}}
 {{- include "langgraphDataplane.detectDuplicates" $envVars -}}
@@ -67,6 +69,10 @@ spec:
             {{- end }}
           image: {{ include "langgraphDataplane.image" (dict "Values" .Values "Chart" .Chart "component" "listenerImage") | quote }}
           imagePullPolicy: {{ .Values.images.listenerImage.pullPolicy }}
+          ports:
+            - name: listener
+              containerPort: {{ .Values.listener.containerPort }}
+              protocol: TCP
           {{- with .Values.listener.deployment.startupProbe }}
           startupProbe:
             {{- toYaml . | nindent 12 }}

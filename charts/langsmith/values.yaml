@@ -830,6 +830,7 @@ hostBackend:
 
 listener:
   name: "listener"
+  containerPort: 8080
   deployment:
     replicas: 1
     labels: {}
@@ -846,23 +847,19 @@ listener:
     command:
       - "./listener_entrypoint.sh"
     startupProbe:
-      exec:
-        command:
-          - "saq"
-          - "app.workers.queues.host_worker.settings"
-          - "--check"
+      httpGet:
+        path: /health
+        port: 8080
       failureThreshold: 6
-      periodSeconds: 60
-      timeoutSeconds: 60
+      periodSeconds: 10
+      timeoutSeconds: 10
     readinessProbe:
-      exec:
-        command:
-          - "saq"
-          - "app.workers.queues.host_worker.settings"
-          - "--check"
+      httpGet:
+        path: /health
+        port: 8080
       failureThreshold: 6
-      periodSeconds: 60
-      timeoutSeconds: 60
+      periodSeconds: 10
+      timeoutSeconds: 10
     livenessProbe:
       exec:
         command:
@@ -1357,6 +1354,7 @@ postgres:
 
 queue:
   name: "queue"
+  containerPort: 8080
   deployment:
     replicas: 3
     labels: {}
@@ -1373,23 +1371,19 @@ queue:
     command:
       - "./queue_entrypoint.sh"
     startupProbe:
-      exec:
-        command:
-          - "saq"
-          - "app.workers.queues.single_queue_worker.settings"
-          - "--check"
+      httpGet:
+        path: /health
+        port: 8080
       failureThreshold: 6
-      periodSeconds: 60
-      timeoutSeconds: 60
+      periodSeconds: 10
+      timeoutSeconds: 10
     readinessProbe:
-      exec:
-        command:
-          - "saq"
-          - "app.workers.queues.single_queue_worker.settings"
-          - "--check"
+      httpGet:
+        path: /health
+        port: 8080
       failureThreshold: 6
-      periodSeconds: 60
-      timeoutSeconds: 60
+      periodSeconds: 10
+      timeoutSeconds: 10
     livenessProbe:
       exec:
         command:

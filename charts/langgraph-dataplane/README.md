@@ -1,6 +1,6 @@
 # langgraph-dataplane
 
-![Version: 0.1.30](https://img.shields.io/badge/Version-0.1.30-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.11.19](https://img.shields.io/badge/AppVersion-0.11.19-informational?style=flat-square)
+![Version: 0.1.31](https://img.shields.io/badge/Version-0.1.31-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.11.19](https://img.shields.io/badge/AppVersion-0.11.19-informational?style=flat-square)
 
 Helm chart to deploy a langgraph dataplane on kubernetes.
 
@@ -107,12 +107,11 @@ You can find the guide to deploy a LangGraph Dataplane [here](https://langchain-
 | listener.autoscaling.minReplicas | int | `3` |  |
 | listener.autoscaling.targetCPUUtilizationPercentage | int | `50` |  |
 | listener.autoscaling.targetMemoryUtilizationPercentage | int | `80` |  |
+| listener.containerPort | int | `8080` |  |
 | listener.deployment.affinity | object | `{}` |  |
 | listener.deployment.annotations | object | `{}` |  |
 | listener.deployment.autoRestart | bool | `true` |  |
-| listener.deployment.command[0] | string | `"saq"` |  |
-| listener.deployment.command[1] | string | `"app.workers.queues.host_worker.settings"` |  |
-| listener.deployment.command[2] | string | `"--quiet"` |  |
+| listener.deployment.command[0] | string | `"./listener_entrypoint.sh"` |  |
 | listener.deployment.extraContainerConfig | object | `{}` |  |
 | listener.deployment.extraEnv | list | `[]` |  |
 | listener.deployment.labels | object | `{}` |  |
@@ -124,12 +123,11 @@ You can find the guide to deploy a LangGraph Dataplane [here](https://langchain-
 | listener.deployment.livenessProbe.timeoutSeconds | int | `60` |  |
 | listener.deployment.nodeSelector | object | `{}` |  |
 | listener.deployment.podSecurityContext | object | `{}` |  |
-| listener.deployment.readinessProbe.exec.command[0] | string | `"saq"` |  |
-| listener.deployment.readinessProbe.exec.command[1] | string | `"app.workers.queues.host_worker.settings"` |  |
-| listener.deployment.readinessProbe.exec.command[2] | string | `"--check"` |  |
 | listener.deployment.readinessProbe.failureThreshold | int | `6` |  |
-| listener.deployment.readinessProbe.periodSeconds | int | `60` |  |
-| listener.deployment.readinessProbe.timeoutSeconds | int | `60` |  |
+| listener.deployment.readinessProbe.httpGet.path | string | `"/health"` |  |
+| listener.deployment.readinessProbe.httpGet.port | int | `8080` |  |
+| listener.deployment.readinessProbe.periodSeconds | int | `10` |  |
+| listener.deployment.readinessProbe.timeoutSeconds | int | `10` |  |
 | listener.deployment.replicas | int | `1` |  |
 | listener.deployment.resources.limits.cpu | string | `"2000m"` |  |
 | listener.deployment.resources.limits.memory | string | `"4Gi"` |  |
@@ -137,12 +135,11 @@ You can find the guide to deploy a LangGraph Dataplane [here](https://langchain-
 | listener.deployment.resources.requests.memory | string | `"2Gi"` |  |
 | listener.deployment.securityContext | object | `{}` |  |
 | listener.deployment.sidecars | list | `[]` |  |
-| listener.deployment.startupProbe.exec.command[0] | string | `"saq"` |  |
-| listener.deployment.startupProbe.exec.command[1] | string | `"app.workers.queues.host_worker.settings"` |  |
-| listener.deployment.startupProbe.exec.command[2] | string | `"--check"` |  |
 | listener.deployment.startupProbe.failureThreshold | int | `6` |  |
-| listener.deployment.startupProbe.periodSeconds | int | `60` |  |
-| listener.deployment.startupProbe.timeoutSeconds | int | `60` |  |
+| listener.deployment.startupProbe.httpGet.path | string | `"/health"` |  |
+| listener.deployment.startupProbe.httpGet.port | int | `8080` |  |
+| listener.deployment.startupProbe.periodSeconds | int | `10` |  |
+| listener.deployment.startupProbe.timeoutSeconds | int | `10` |  |
 | listener.deployment.terminationGracePeriodSeconds | int | `30` |  |
 | listener.deployment.tolerations | list | `[]` |  |
 | listener.deployment.topologySpreadConstraints | list | `[]` |  |
