@@ -14,6 +14,7 @@
 {{- end -}}
 
 {{- define "validatePassword" -}}
+{{- if .Values.config.basicAuth.enabled -}}
 {{- $password := .Values.config.basicAuth.initialOrgAdminPassword -}}
 {{- if lt (len $password) 12 -}}
   {{- fail "Error: Admin password must be at least 12 characters long" -}}
@@ -26,6 +27,7 @@
 {{- end -}}
 {{- if not (regexMatch `[!#$%()+,./:?@\[\]\\^_{~}-]` $password) -}}
   {{- fail "Error: Admin password must contain at least one symbol from: !#$%()+,-./:?@[\\]^_{~}" -}}
+{{- end -}}
 {{- end -}}
 {{- end -}}
 
@@ -47,9 +49,11 @@
       key: initial_org_admin_password
 - name: DEFAULT_ORG_NAME
   value: {{ .Values.config.defaultOrgName }}
+- name: DEFAULT_WORKSPACE_NAME
+  value: {{ .Values.config.defaultWorkspaceName }}
 {{- end -}}
 {{- template "validateAuthMode" . -}}
-{{- if .Values.config.basicAuth.enabled }}
+{{- if or .Values.config.basicAuth.enabled .Values.config.oauth.enabled }}
 {{- if not .Values.config.existingSecretName }}
 {{- template "validatePassword" . -}}
 {{- end }}
