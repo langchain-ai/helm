@@ -107,6 +107,7 @@ config:
   authType: ""
   initialOrgAdminEmail: ""
   defaultOrgName: "Default" # Default org name to be provisioned. For OAuth, this is the org name that new users will automatically be added to.
+  defaultWorkspaceName: "Workspace 1" # Default workspace name to be provisioned when org is created.
 
   basicAuth:
     enabled: false
