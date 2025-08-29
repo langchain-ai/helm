@@ -19,7 +19,9 @@ backfill_txns AS (
 SELECT
     bt.*,
     t.display_name AS workspace_name,
-    o.display_name AS organization_name
+    o.display_name AS organization_name,
+    :'customer_id' AS customer_id,
+    :'customer_name' AS customer_name
 FROM backfill_txns bt
 JOIN tenants t ON bt.tenant_id = t.id
 JOIN organizations o ON bt.organization_id = o.id

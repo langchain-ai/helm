@@ -5,7 +5,7 @@
 WITH backfilled_txns AS (
     UPDATE remote_metrics
     SET reported_status = 'sent-backfilled'
-    WHERE backfill_id = :backfill_id
+    WHERE backfill_id = :'backfill_id'
     RETURNING
       id,
       from_timestamp,

@@ -4,8 +4,8 @@
 print_usage_and_exit() {
     echo "Error: $1"
     echo "Usage: $0 <postgres_url> [--debug] [--output <path/to/file.csv>] [--input <path/to/file.sql>] [-v var=value]..."
-    echo "Example: $0 postgres://username:password@host:port/database [--debug] [--output path/to/file.csv] [--input path/to/file.sql] [-v backfill_id=\"'id'\" -v other_var=\"'other-value'\"]"
-    echo "Note: The -v flag is used to pass variables to queries that support them.  String values must be wrapped in single quotes."
+    echo "Example: $0 postgres://username:password@host:port/database [--debug] [--output path/to/file.csv] [--input path/to/file.sql] [-v backfill_id=\"id\" -v other_var=\"other-value\"]"
+    echo "Note: The -v flag is used to pass variables to queries that support them.  String values should NOT be wrapped in single quotes, as the scripts will do that for you."
     exit 1
 }
 
@@ -14,7 +14,7 @@ postgres_url=""
 debug=""
 output_file=""
 input_file=""
-psql_vars=""
+psql_vars=()
 
 while [ $# -gt 0 ]; do
     case "$1" in
@@ -34,7 +34,9 @@ while [ $# -gt 0 ]; do
             if [ -z "$2" ]; then
                 print_usage_and_exit "Missing value for -v flag"
             fi
-            psql_vars="$psql_vars -v $2"
+            var_name="${2%%=*}"
+            var_value="${2#*=}"
+            psql_vars+=(-v "$var_name=$var_value")
             shift 2
             ;;
         *)
@@ -92,14 +94,14 @@ fi
 # Execute the query and output to the specified CSV file or stdout
 export PGPASSWORD="$pg_passwd"
 if [ -n "$output_file" ]; then
-    psql $psql_opts $psql_vars -f "$input_file" > "$output_file"
+    psql $psql_opts "${psql_vars[@]}" -f "$input_file" > "$output_file"
     if [ $? -ne 0 ]; then
         echo "Error: Failed to execute query on PostgreSQL."
         exit 1
     fi
     echo "Metrics have been successfully written to $output_file"
 else
-    psql $psql_opts $psql_vars -f "$input_file"
+    psql $psql_opts "${psql_vars[@]}" -f "$input_file"
     if [ $? -ne 0 ]; then
         echo "Error: Failed to execute query on PostgreSQL."
         exit 1
