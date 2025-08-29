@@ -62,26 +62,11 @@ spec:
               containerPort: {{ .Values.studio.containerPort }}
               protocol: TCP
           startupProbe:
-            httpGet:
-              path: /health
-              port: {{ .Values.studio.containerPort }}
-            failureThreshold: 6
-            periodSeconds: 10
-            timeoutSeconds: 1
+            {{- toYaml .Values.studio.deployment.startupProbe | nindent 12 }}
           readinessProbe:
-            httpGet:
-              path: /health
-              port: {{ .Values.studio.containerPort }}
-            failureThreshold: 3
-            periodSeconds: 10
-            timeoutSeconds: 1
+            {{- toYaml .Values.studio.deployment.readinessProbe | nindent 12 }}
           livenessProbe:
-            httpGet:
-              path: /health
-              port: {{ .Values.studio.containerPort }}
-            failureThreshold: 6
-            periodSeconds: 10
-            timeoutSeconds: 1
+            {{- toYaml .Values.studio.deployment.livenessProbe | nindent 12 }}
           resources:
             {{- toYaml .Values.studio.deployment.resources | nindent 12 }}
           securityContext:

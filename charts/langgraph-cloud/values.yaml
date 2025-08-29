@@ -83,6 +83,33 @@ apiServer:
     volumes: []
     volumeMounts: []
     initContainers: []
+    startupProbe:
+      exec:
+        command:
+          - /bin/sh
+          - -c
+          - exec python /api/healthcheck.py
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 1
+    readinessProbe:
+      exec:
+        command:
+          - /bin/sh
+          - -c
+          - exec python /api/healthcheck.py
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 1
+    livenessProbe:
+      exec:
+        command:
+          - /bin/sh
+          - -c
+          - exec python /api/healthcheck.py
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 1
   autoscaling:
     enabled: false
     minReplicas: 1
@@ -136,6 +163,27 @@ queue:
     affinity: {}
     volumes: []
     volumeMounts: []
+    startupProbe:
+      httpGet:
+        path: "/ok"
+        port: 8000
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 1
+    readinessProbe:
+      httpGet:
+        path: "/ok"
+        port: 8000
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 1
+    livenessProbe:
+      httpGet:
+        path: "/ok"
+        port: 8000
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 1
   autoscaling:
     enabled: false
     minReplicas: 1
@@ -313,6 +361,27 @@ studio:
     affinity: {}
     volumes: []
     volumeMounts: []
+    startupProbe:
+      httpGet:
+        path: /health
+        port: 3968
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 1
+    readinessProbe:
+      httpGet:
+        path: /health
+        port: 3968
+      failureThreshold: 3
+      periodSeconds: 10
+      timeoutSeconds: 1
+    livenessProbe:
+      httpGet:
+        path: /health
+        port: 3968
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 1
   autoscaling:  #  Autoscaling configuration. Not generally needed for studio.
     enabled: false
     minReplicas: 1
