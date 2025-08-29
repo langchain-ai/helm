@@ -83,6 +83,33 @@ apiServer:
     volumes: []
     volumeMounts: []
     initContainers: []
+    startupProbe:
+      exec:
+        command:
+          - /bin/sh
+          - -c
+          - exec python /api/healthcheck.py
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 1
+    readinessProbe:
+      exec:
+        command:
+          - /bin/sh
+          - -c
+          - exec python /api/healthcheck.py
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 1
+    livenessProbe:
+      exec:
+        command:
+          - /bin/sh
+          - -c
+          - exec python /api/healthcheck.py
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 1
   autoscaling:
     enabled: false
     minReplicas: 1

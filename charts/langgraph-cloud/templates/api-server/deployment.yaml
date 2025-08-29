@@ -99,32 +99,11 @@ spec:
               containerPort: {{ .Values.apiServer.containerPort }}
               protocol: TCP
           startupProbe:
-            exec:
-              command:
-                - /bin/sh
-                - -c
-                - exec python /api/healthcheck.py
-            failureThreshold: 6
-            periodSeconds: 10
-            timeoutSeconds: 1
+            {{- toYaml .Values.apiServer.deployment.startupProbe | nindent 12 }}
           readinessProbe:
-            exec:
-              command:
-                - /bin/sh
-                - -c
-                - exec python /api/healthcheck.py
-            failureThreshold: 6
-            periodSeconds: 10
-            timeoutSeconds: 1
+            {{- toYaml .Values.apiServer.deployment.readinessProbe | nindent 12 }}
           livenessProbe:
-            exec:
-              command:
-                - /bin/sh
-                - -c
-                - exec python /api/healthcheck.py
-            failureThreshold: 6
-            periodSeconds: 10
-            timeoutSeconds: 1
+            {{- toYaml .Values.apiServer.deployment.livenessProbe | nindent 12 }}
           resources:
             {{- toYaml .Values.apiServer.deployment.resources | nindent 12 }}
           securityContext:
