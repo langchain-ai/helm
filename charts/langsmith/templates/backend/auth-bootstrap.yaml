@@ -47,8 +47,8 @@
     secretKeyRef:
       name: {{ include "langsmith.secretsName" . }}
       key: initial_org_admin_password
-- name: DEFAULT_ORG_NAME
-  value: {{ .Values.config.defaultOrgName }}
+- name: INITIAL_ORG_NAME
+  value: {{ .Values.config.initialOrgName }}
 - name: DEFAULT_WORKSPACE_NAME
   value: {{ .Values.config.defaultWorkspaceName }}
 {{- end -}}

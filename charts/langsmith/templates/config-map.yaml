@@ -12,7 +12,7 @@ data:
   VITE_BACKEND_AUTH_TYPE: "mixed"
   AUTH_TYPE: "mixed"
   BASIC_AUTH_ENABLED: "false"
-  DEFAULT_ORG_NAME: {{ .Values.config.defaultOrgName }}
+  INITIAL_ORG_NAME: {{ .Values.config.defaultOrgName }}
   DEFAULT_WORKSPACE_NAME: {{ .Values.config.defaultWorkspaceName }}
   OAUTH_SCOPES: {{ .Values.config.oauth.oauthScopes }}
   OAUTH_SESSION_MAX_SEC: {{ .Values.config.oauth.oauthSessionMaxSec | quote }}
@@ -24,7 +24,7 @@ data:
   AUTH_TYPE: "mixed"
   BASIC_AUTH_ENABLED: "true"
   VITE_BASIC_AUTH_ENABLED: "true"
-  DEFAULT_ORG_NAME: {{ .Values.config.defaultOrgName }}
+  INITIAL_ORG_NAME: {{ .Values.config.defaultOrgName }}
   DEFAULT_WORKSPACE_NAME: {{ .Values.config.defaultWorkspaceName }}
   {{- else }}
   VITE_BACKEND_AUTH_TYPE: "none"
