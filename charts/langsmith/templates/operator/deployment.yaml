@@ -87,7 +87,13 @@ spec:
           {{- end }}
         volumeMounts:
           - name: templates-volume
-            mountPath: /templates
+            mountPath: /templates/deployment.yaml.tmpl
+            subPath: deployment.yaml.tmpl
+            readOnly: true
+          - name: templates-volume
+            mountPath: /templates/service.yaml.tmpl
+            subPath: service.yaml.tmpl
+            readOnly: true
         {{- with $volumeMounts }}
           {{- toYaml . | nindent 10 }}
         {{- end }}
