@@ -95,26 +95,11 @@ spec:
               containerPort: {{ .Values.queue.containerPort }}
               protocol: TCP
           startupProbe:
-            httpGet:
-              port: {{ .Values.queue.containerPort }}
-              path: "/ok"
-            failureThreshold: 6
-            periodSeconds: 10
-            timeoutSeconds: 1
+            {{- toYaml .Values.queue.deployment.startupProbe | nindent 12 }}
           readinessProbe:
-            httpGet:
-              port: {{ .Values.queue.containerPort }}
-              path: "/ok"
-            failureThreshold: 6
-            periodSeconds: 10
-            timeoutSeconds: 1
+            {{- toYaml .Values.queue.deployment.readinessProbe | nindent 12 }}
           livenessProbe:
-            httpGet:
-              port: {{ .Values.queue.containerPort }}
-              path: "/ok"
-            failureThreshold: 6
-            periodSeconds: 10
-            timeoutSeconds: 1
+            {{- toYaml .Values.queue.deployment.livenessProbe | nindent 12 }}
           resources:
             {{- toYaml .Values.queue.deployment.resources | nindent 12 }}
           securityContext:
