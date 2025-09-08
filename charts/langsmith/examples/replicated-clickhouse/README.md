@@ -1,5 +1,5 @@
 # Replicated Clickhouse Cluster
-> To setup a replicated Clickhouse cluster, you can either use the Altinity Helm chart defined [here](https://github.com/Altinity/helm-charts/tree/main/charts/clickhouse) with specific example configurations shown [here](https://github.com/Altinity/helm-charts/tree/main/charts/clickhouse/examples) or follow along with the manual installatin below. Using the Helm chart is easier to manage in CI and more reproducible, but the manual process may be best for initial development depending on your use case.
+> To setup a replicated Clickhouse cluster, you can either use the Altinity Helm chart defined [here](https://github.com/Altinity/helm-charts/tree/main/charts/clickhouse) with specific example configurations shown [here](https://github.com/Altinity/helm-charts/tree/main/charts/clickhouse/examples) or follow along with the manual installatin below. Using the Helm chart is likely easier to manage in CI, but the manual process may be best for initial development depending on your use case.
 
 This folder can be used to setup a replicated clickhouse setup on a kubernetes cluster. You can then connect your LangSmith instance to this replicated ClickHouse setup. There are two manifest files in this folder that are used in the installation instructions below:
 - `zookeeper-3-node-config.yaml`
