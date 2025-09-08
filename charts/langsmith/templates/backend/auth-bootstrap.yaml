@@ -33,7 +33,7 @@
 
 {{- define "validateInitialOrgAdminEmail" -}}
 {{- if or .Values.config.basicAuth.enabled .Values.config.oauth.enabled -}}
-  {{- if not .Values.config.initialOrgAdminEmail -}}
+  {{- if not or .Values.config.initialOrgAdminEmail .Values.config.basicAuth.initialOrgAdminEmail -}}
     {{- fail "Error: initialOrgAdminEmail is required if basic auth or oauth is enabled." -}}
   {{- end -}}
 {{- end -}}
@@ -41,7 +41,7 @@
 
 {{- define "authBootstrapEnvVars" -}}
 - name: INITIAL_ORG_ADMIN_EMAIL
-  value: {{ .Values.config.initialOrgAdminEmail }}
+  value: {{ .Values.config.initialOrgAdminEmail | default .Values.config.basicAuth.initialOrgAdminEmail }}
 - name: INITIAL_ORG_ADMIN_PASSWORD
   valueFrom:
     secretKeyRef:
