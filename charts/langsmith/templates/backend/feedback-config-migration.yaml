@@ -1,6 +1,8 @@
 {{- if .Values.backend.feedbackConfigMigration.enabled }}
 {{- $envVars := concat .Values.commonEnv (include "langsmith.commonEnv" . | fromYamlArray) .Values.backend.feedbackConfigMigration.extraEnv -}}
 {{- include "langsmith.detectDuplicates" $envVars -}}
+{{- $volumes := concat .Values.backend.feedbackConfigMigration.volumes (include "langsmith.tlsVolumes" . | fromYamlArray) -}}
+{{- $volumeMounts := concat .Values.backend.feedbackConfigMigration.volumeMounts (include "langsmith.tlsVolumeMounts" . | fromYamlArray) -}}
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -64,7 +66,7 @@ spec:
             {{- toYaml .Values.backend.feedbackConfigMigration.resources | nindent 12 }}
           securityContext:
             {{- toYaml .Values.backend.feedbackConfigMigration.securityContext | nindent 12 }}
-          {{- with .Values.backend.feedbackConfigMigration.volumeMounts }}
+          {{- with $volumeMounts }}
           volumeMounts:
               {{- toYaml . | nindent 12 }}
           {{- end }}
@@ -90,7 +92,7 @@ spec:
       topologySpreadConstraints:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.backend.feedbackConfigMigration.volumes }}
+      {{- with $volumes }}
       volumes:
           {{- toYaml . | nindent 8 }}
       {{- end }}

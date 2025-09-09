@@ -8,8 +8,8 @@
 {{- end -}}
 {{- $envVars := concat (include "langsmith.commonEnv" . | fromYamlArray ) (include "hostBackendEnvVars" . | fromYamlArray) .Values.hostBackend.deployment.extraEnv -}}
 {{- include "langsmith.detectDuplicates" $envVars -}}
-{{- $volumes := concat .Values.commonVolumes .Values.hostBackend.deployment.volumes -}}
-{{- $volumeMounts := concat .Values.commonVolumeMounts .Values.hostBackend.deployment.volumeMounts -}}
+{{- $volumes := concat .Values.commonVolumes .Values.hostBackend.deployment.volumes (include "langsmith.tlsVolumes" . | fromYamlArray) -}}
+{{- $volumeMounts := concat .Values.commonVolumeMounts .Values.hostBackend.deployment.volumeMounts (include "langsmith.tlsVolumeMounts" . | fromYamlArray) -}}
 {{- if .Values.config.langgraphPlatform.enabled }}
 apiVersion: apps/v1
 kind: Deployment

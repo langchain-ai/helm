@@ -203,6 +203,11 @@ config:
       env: "ls_self_hosted"
       exporter: "http"
 
+  customCa:
+    # -- Optional. Used to set a custom CA certificate for database connections. Make sure to also include a public CA to access beacon and playground.
+    secretName: "langsmith-tls-cert"
+    secretKey: "ca.crt"
+
 aceBackend:
   name: "ace-backend"
   containerPort: 1987
@@ -1254,6 +1259,7 @@ postgres:
     connectionUrl: ""
     connectionUrlSecretKey: "connection_url"
     existingSecretName: ""
+    tls: false
   containerPort: 5432
   statefulSet:
     labels: {}
