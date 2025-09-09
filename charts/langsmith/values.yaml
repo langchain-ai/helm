@@ -204,9 +204,9 @@ config:
       exporter: "http"
 
   customCa:
-    # -- Optional. Used to set a custom CA certificate for database connections. Make sure to also include a public CA to access beacon and playground.
-    secretName: "langsmith-tls-cert"
-    secretKey: "ca.crt"
+    # -- Optional. Used to set a file containing trusted CA certificates. Make sure to also include a public CA to access beacon and playground.
+    secretName: ""
+    secretKey: ""
 
 aceBackend:
   name: "ace-backend"

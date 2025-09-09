@@ -8,8 +8,8 @@
 {{- end -}}
 {{- $envVars := concat .Values.commonEnv (include "langsmith.commonEnv" . | fromYamlArray) (include "queueEnvVars" . | fromYamlArray) .Values.queue.deployment.extraEnv -}}
 {{- include "langsmith.detectDuplicates" $envVars -}}
-{{- $volumes := concat .Values.commonVolumes .Values.queue.deployment.volumes -}}
-{{- $volumeMounts := concat .Values.commonVolumeMounts .Values.queue.deployment.volumeMounts -}}
+{{- $volumes := concat .Values.commonVolumes .Values.queue.deployment.volumes (include "langsmith.tlsVolumes" . | fromYamlArray)  -}}
+{{- $volumeMounts := concat .Values.commonVolumeMounts .Values.queue.deployment.volumeMounts (include "langsmith.tlsVolumeMounts" . | fromYamlArray) -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
