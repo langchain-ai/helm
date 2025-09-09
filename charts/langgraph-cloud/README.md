@@ -1,6 +1,6 @@
 # langgraph-cloud
 
-![Version: 0.1.17](https://img.shields.io/badge/Version-0.1.17-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.2.0](https://img.shields.io/badge/AppVersion-0.2.0-informational?style=flat-square)
+![Version: 0.1.18](https://img.shields.io/badge/Version-0.1.18-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.2.0](https://img.shields.io/badge/AppVersion-0.2.0-informational?style=flat-square)
 
 Helm chart to deploy the LangGraph Cloud application and all services it depends on.
 
@@ -234,9 +234,19 @@ the same format as the secret in the corresponding `secrets.yaml` file. Note: AP
 | queue.deployment.envFrom | list | `[]` |  |
 | queue.deployment.extraEnv | list | `[]` |  |
 | queue.deployment.labels | object | `{}` |  |
+| queue.deployment.livenessProbe.failureThreshold | int | `6` |  |
+| queue.deployment.livenessProbe.httpGet.path | string | `"/ok"` |  |
+| queue.deployment.livenessProbe.httpGet.port | int | `8000` |  |
+| queue.deployment.livenessProbe.periodSeconds | int | `10` |  |
+| queue.deployment.livenessProbe.timeoutSeconds | int | `1` |  |
 | queue.deployment.nodeSelector | object | `{}` |  |
 | queue.deployment.podSecurityContext | object | `{}` |  |
 | queue.deployment.priorityClassName | string | `""` |  |
+| queue.deployment.readinessProbe.failureThreshold | int | `6` |  |
+| queue.deployment.readinessProbe.httpGet.path | string | `"/ok"` |  |
+| queue.deployment.readinessProbe.httpGet.port | int | `8000` |  |
+| queue.deployment.readinessProbe.periodSeconds | int | `10` |  |
+| queue.deployment.readinessProbe.timeoutSeconds | int | `1` |  |
 | queue.deployment.replicaCount | int | `1` |  |
 | queue.deployment.resources.limits.cpu | string | `"2000m"` |  |
 | queue.deployment.resources.limits.memory | string | `"4Gi"` |  |
@@ -244,6 +254,11 @@ the same format as the secret in the corresponding `secrets.yaml` file. Note: AP
 | queue.deployment.resources.requests.memory | string | `"2Gi"` |  |
 | queue.deployment.securityContext | object | `{}` |  |
 | queue.deployment.sidecars | list | `[]` |  |
+| queue.deployment.startupProbe.failureThreshold | int | `6` |  |
+| queue.deployment.startupProbe.httpGet.path | string | `"/ok"` |  |
+| queue.deployment.startupProbe.httpGet.port | int | `8000` |  |
+| queue.deployment.startupProbe.periodSeconds | int | `10` |  |
+| queue.deployment.startupProbe.timeoutSeconds | int | `1` |  |
 | queue.deployment.tolerations | list | `[]` |  |
 | queue.deployment.volumeMounts | list | `[]` |  |
 | queue.deployment.volumes | list | `[]` |  |
@@ -321,9 +336,19 @@ the same format as the secret in the corresponding `secrets.yaml` file. Note: AP
 | studio.deployment.annotations | object | `{}` |  |
 | studio.deployment.extraEnv | list | `[]` |  |
 | studio.deployment.labels | object | `{}` |  |
+| studio.deployment.livenessProbe.failureThreshold | int | `6` |  |
+| studio.deployment.livenessProbe.httpGet.path | string | `"/health"` |  |
+| studio.deployment.livenessProbe.httpGet.port | int | `3968` |  |
+| studio.deployment.livenessProbe.periodSeconds | int | `10` |  |
+| studio.deployment.livenessProbe.timeoutSeconds | int | `1` |  |
 | studio.deployment.nodeSelector | object | `{}` |  |
 | studio.deployment.podSecurityContext | object | `{}` |  |
 | studio.deployment.priorityClassName | string | `""` |  |
+| studio.deployment.readinessProbe.failureThreshold | int | `3` |  |
+| studio.deployment.readinessProbe.httpGet.path | string | `"/health"` |  |
+| studio.deployment.readinessProbe.httpGet.port | int | `3968` |  |
+| studio.deployment.readinessProbe.periodSeconds | int | `10` |  |
+| studio.deployment.readinessProbe.timeoutSeconds | int | `1` |  |
 | studio.deployment.replicaCount | int | `1` |  |
 | studio.deployment.resources.limits.cpu | string | `"1000m"` |  |
 | studio.deployment.resources.limits.memory | string | `"2Gi"` |  |
@@ -331,6 +356,11 @@ the same format as the secret in the corresponding `secrets.yaml` file. Note: AP
 | studio.deployment.resources.requests.memory | string | `"1Gi"` |  |
 | studio.deployment.securityContext | object | `{}` |  |
 | studio.deployment.sidecars | list | `[]` |  |
+| studio.deployment.startupProbe.failureThreshold | int | `6` |  |
+| studio.deployment.startupProbe.httpGet.path | string | `"/health"` |  |
+| studio.deployment.startupProbe.httpGet.port | int | `3968` |  |
+| studio.deployment.startupProbe.periodSeconds | int | `10` |  |
+| studio.deployment.startupProbe.timeoutSeconds | int | `1` |  |
 | studio.deployment.tolerations | list | `[]` |  |
 | studio.deployment.volumeMounts | list | `[]` |  |
 | studio.deployment.volumes | list | `[]` |  |
@@ -381,9 +411,21 @@ the same format as the secret in the corresponding `secrets.yaml` file. Note: AP
 | apiServer.deployment.extraEnv | list | `[]` |  |
 | apiServer.deployment.initContainers | list | `[]` |  |
 | apiServer.deployment.labels | object | `{}` |  |
+| apiServer.deployment.livenessProbe.exec.command[0] | string | `"/bin/sh"` |  |
+| apiServer.deployment.livenessProbe.exec.command[1] | string | `"-c"` |  |
+| apiServer.deployment.livenessProbe.exec.command[2] | string | `"exec python /api/healthcheck.py"` |  |
+| apiServer.deployment.livenessProbe.failureThreshold | int | `6` |  |
+| apiServer.deployment.livenessProbe.periodSeconds | int | `10` |  |
+| apiServer.deployment.livenessProbe.timeoutSeconds | int | `1` |  |
 | apiServer.deployment.nodeSelector | object | `{}` |  |
 | apiServer.deployment.podSecurityContext | object | `{}` |  |
 | apiServer.deployment.priorityClassName | string | `""` |  |
+| apiServer.deployment.readinessProbe.exec.command[0] | string | `"/bin/sh"` |  |
+| apiServer.deployment.readinessProbe.exec.command[1] | string | `"-c"` |  |
+| apiServer.deployment.readinessProbe.exec.command[2] | string | `"exec python /api/healthcheck.py"` |  |
+| apiServer.deployment.readinessProbe.failureThreshold | int | `6` |  |
+| apiServer.deployment.readinessProbe.periodSeconds | int | `10` |  |
+| apiServer.deployment.readinessProbe.timeoutSeconds | int | `1` |  |
 | apiServer.deployment.replicaCount | int | `1` |  |
 | apiServer.deployment.resources.limits.cpu | string | `"2000m"` |  |
 | apiServer.deployment.resources.limits.memory | string | `"4Gi"` |  |
@@ -391,6 +433,12 @@ the same format as the secret in the corresponding `secrets.yaml` file. Note: AP
 | apiServer.deployment.resources.requests.memory | string | `"2Gi"` |  |
 | apiServer.deployment.securityContext | object | `{}` |  |
 | apiServer.deployment.sidecars | list | `[]` |  |
+| apiServer.deployment.startupProbe.exec.command[0] | string | `"/bin/sh"` |  |
+| apiServer.deployment.startupProbe.exec.command[1] | string | `"-c"` |  |
+| apiServer.deployment.startupProbe.exec.command[2] | string | `"exec python /api/healthcheck.py"` |  |
+| apiServer.deployment.startupProbe.failureThreshold | int | `6` |  |
+| apiServer.deployment.startupProbe.periodSeconds | int | `10` |  |
+| apiServer.deployment.startupProbe.timeoutSeconds | int | `1` |  |
 | apiServer.deployment.tolerations | list | `[]` |  |
 | apiServer.deployment.volumeMounts | list | `[]` |  |
 | apiServer.deployment.volumes | list | `[]` |  |

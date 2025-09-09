@@ -92,8 +92,12 @@ spec:
             subPath: service.yaml.tmpl
             readOnly: true
           - name: templates-volume
-            mountPath: /templates/ingress.yaml.tmpl
-            subPath: ingress.yaml.tmpl
+            mountPath: /templates/redis-deployment.yaml.tmpl
+            subPath: redis-deployment.yaml.tmpl
+            readOnly: true
+          - name: templates-volume
+            mountPath: /templates/database-statefulset.yaml.tmpl
+            subPath: database-statefulset.yaml.tmpl
             readOnly: true
         {{- with $volumeMounts }}
           {{- toYaml . | nindent 12 }}
@@ -137,12 +141,14 @@ spec:
           configMap:
             name: {{ include "langgraphDataplane.fullname" . }}-config
             items:
-              - key: deployment.yaml
+              - key: deployment.yaml.tmpl
                 path: deployment.yaml.tmpl
-              - key: service.yaml
+              - key: service.yaml.tmpl
                 path: service.yaml.tmpl
-              - key: ingress.yaml
-                path: ingress.yaml.tmpl
+              - key: redis-deployment.yaml.tmpl
+                path: redis-deployment.yaml.tmpl
+              - key: database-statefulset.yaml.tmpl
+                path: database-statefulset.yaml.tmpl
       {{- with $volumes }}
         {{- toYaml . | nindent 8 }}
       {{- end }}

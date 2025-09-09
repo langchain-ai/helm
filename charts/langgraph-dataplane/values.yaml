@@ -25,7 +25,7 @@ images:
   listenerImage:
     repository: "docker.io/langchain/hosted-langserve-backend"
     pullPolicy: IfNotPresent
-    tag: "0.11.19"
+    tag: "0.11.30"
   redisImage:
     repository: "docker.io/redis"
     pullPolicy: IfNotPresent
@@ -33,7 +33,7 @@ images:
   operatorImage:
     repository: "docker.io/langchain/langgraph-operator"
     pullPolicy: IfNotPresent
-    tag: "0.1.2"
+    tag: "0.1.11"
 
 ingress:
   enabled: true
@@ -129,107 +129,6 @@ listener:
     create: true
     labels: {}
     annotations: {}
-  templates:
-    db: |
-      apiVersion: apps/v1
-      kind: StatefulSet
-      metadata:
-        name: ${service_name}
-      spec:
-        serviceName: ${service_name}
-        replicas: ${replicas}
-        selector:
-          matchLabels:
-            app: ${service_name}
-        persistentVolumeClaimRetentionPolicy:
-          whenDeleted: Delete
-          whenScaled: Retain
-        template:
-          metadata:
-            labels:
-              app: ${service_name}
-          spec:
-            containers:
-            - name: postgres
-              image: pgvector/pgvector:pg15
-              ports:
-              - containerPort: 5432
-              command: ["docker-entrypoint.sh"]
-              args:
-                - postgres
-                - -c
-                - max_connections=${max_connections}
-              env:
-              - name: POSTGRES_PASSWORD
-                valueFrom:
-                  secretKeyRef:
-                    name: ${secret_name}
-                    key: POSTGRES_PASSWORD
-              - name: POSTGRES_USER
-                value: ${postgres_user}
-              - name: POSTGRES_DB
-                value: ${postgres_db}
-              - name: PGDATA
-                value: /var/lib/postgresql/data/pgdata
-              volumeMounts:
-              - name: postgres-data
-                mountPath: /var/lib/postgresql/data
-              resources:
-                requests:
-                  cpu: "${cpu}"
-                  memory: "${memory_mb}Mi"
-                limits:
-                  cpu: "${cpu_limit}"
-                  memory: "${memory_limit}Mi"
-            enableServiceLinks: false
-        volumeClaimTemplates:
-        - metadata:
-            name: postgres-data
-          spec:
-            accessModes: ["ReadWriteOnce"]
-            resources:
-              requests:
-                storage: "${storage_gi}Gi"
-    redis: |
-      apiVersion: apps/v1
-      kind: Deployment
-      metadata:
-        name: ${service_name}
-      spec:
-        replicas: 1
-        selector:
-          matchLabels:
-            app: ${service_name}
-        template:
-          metadata:
-            labels:
-              app: ${service_name}
-          spec:
-            containers:
-            - name: redis
-              image: redis:6
-              ports:
-              - containerPort: 6379
-              livenessProbe:
-                exec:
-                  command:
-                  - redis-cli
-                  - ping
-                initialDelaySeconds: 30
-                periodSeconds: 10
-              readinessProbe:
-                tcpSocket:
-                  port: 6379
-                initialDelaySeconds: 10
-                periodSeconds: 5
-              resources:
-                requests:
-                  cpu: "1"
-                  memory: "2048Mi"
-                limits:
-                  cpu: "1"
-                  memory: "2048Mi"
-            enableServiceLinks: false
 
 # These values are all passed into the operator subChart.
 operator:
@@ -335,25 +234,106 @@ operator:
           protocol: TCP
           port: 8000
           targetPort: 8000
-    ingress: |
-      apiVersion: networking.k8s.io/v1
-      kind: Ingress
+    db: |
+      apiVersion: apps/v1
+      kind: StatefulSet
       metadata:
-        name: ${name}
-        namespace: ${namespace}
+        name: ${service_name}
       spec:
-        rules:
-        - host: ${ingress.hostname}
-          http:
-            paths:
-            - path: /
-              pathType: Prefix
-              backend:
-                service:
-                  name: ${name}
-                  port:
-                    number: 8000
-
+        serviceName: ${service_name}
+        replicas: ${replicas}
+        selector:
+          matchLabels:
+            app: ${service_name}
+        persistentVolumeClaimRetentionPolicy:
+          whenDeleted: Delete
+          whenScaled: Retain
+        template:
+          metadata:
+            labels:
+              app: ${service_name}
+          spec:
+            containers:
+            - name: postgres
+              image: pgvector/pgvector:pg15
+              ports:
+              - containerPort: 5432
+              command: ["docker-entrypoint.sh"]
+              args:
+                - postgres
+                - -c
+                - max_connections=${max_connections}
+              env:
+              - name: POSTGRES_PASSWORD
+                valueFrom:
+                  secretKeyRef:
+                    name: ${secret_name}
+                    key: POSTGRES_PASSWORD
+              - name: POSTGRES_USER
+                value: ${postgres_user}
+              - name: POSTGRES_DB
+                value: ${postgres_db}
+              - name: PGDATA
+                value: /var/lib/postgresql/data/pgdata
+              volumeMounts:
+              - name: postgres-data
+                mountPath: /var/lib/postgresql/data
+              resources:
+                requests:
+                  cpu: "${cpu}"
+                  memory: "${memory_mb}Mi"
+                limits:
+                  cpu: "${cpu_limit}"
+                  memory: "${memory_limit}Mi"
+            enableServiceLinks: false
+        volumeClaimTemplates:
+        - metadata:
+            name: postgres-data
+          spec:
+            accessModes: ["ReadWriteOnce"]
+            resources:
+              requests:
+                storage: "${storage_gi}Gi"
+    redis: |
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: ${service_name}
+      spec:
+        replicas: 1
+        selector:
+          matchLabels:
+            app: ${service_name}
+        template:
+          metadata:
+            labels:
+              app: ${service_name}
+          spec:
+            containers:
+            - name: redis
+              image: redis:6
+              ports:
+              - containerPort: 6379
+              livenessProbe:
+                exec:
+                  command:
+                  - redis-cli
+                  - ping
+                initialDelaySeconds: 30
+                periodSeconds: 10
+              readinessProbe:
+                tcpSocket:
+                  port: 6379
+                initialDelaySeconds: 10
+                periodSeconds: 5
+              resources:
+                requests:
+                  cpu: "1"
+                  memory: "2048Mi"
+                limits:
+                  cpu: "1"
+                  memory: "2048Mi"
+            enableServiceLinks: false
 
 redis:
   name: "redis"
