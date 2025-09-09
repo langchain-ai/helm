@@ -1,4 +1,11 @@
+{{- define "validateTemplatesMoved" -}}
+{{- $hasListenerTemplates := and (hasKey .Values "listener") (hasKey .Values.listener "templates") (not (empty .Values.listener.templates)) -}}
+{{- if $hasListenerTemplates -}}
+  {{- fail "Error: templates have moved to the operator. Please move your values from .Values.listener.templates to .Values.operator.templates." -}}
+{{- end -}}
+{{- end -}}
 {{- if and .Values.config.langgraphPlatform.enabled .Values.operator.enabled }}
+{{- include "validateTemplatesMoved" . -}}
 {{- $volumes := concat .Values.commonVolumes .Values.operator.deployment.volumes -}}
 {{- $volumeMounts := concat .Values.commonVolumeMounts .Values.operator.deployment.volumeMounts -}}
 apiVersion: apps/v1
@@ -94,6 +101,14 @@ spec:
             mountPath: /templates/service.yaml.tmpl
             subPath: service.yaml.tmpl
             readOnly: true
+          - name: templates-volume
+            mountPath: /templates/redis-deployment.yaml.tmpl
+            subPath: redis-deployment.yaml.tmpl
+            readOnly: true
+          - name: templates-volume
+            mountPath: /templates/database-statefulset.yaml.tmpl
+            subPath: database-statefulset.yaml.tmpl
+            readOnly: true
         {{- with $volumeMounts }}
           {{- toYaml . | nindent 10 }}
         {{- end }}
@@ -145,6 +160,10 @@ spec:
                 path: deployment.yaml.tmpl
               - key: service.yaml.tmpl
                 path: service.yaml.tmpl
+              - key: redis-deployment.yaml.tmpl
+                path: redis-deployment.yaml.tmpl
+              - key: database-statefulset.yaml.tmpl
+                path: database-statefulset.yaml.tmpl
       {{- with $volumes }}
         {{- toYaml . | nindent 8 }}
       {{- end }}

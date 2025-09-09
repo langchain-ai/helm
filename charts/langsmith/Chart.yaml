@@ -5,5 +5,5 @@ maintainers:
     email: ankush@langchain.dev
 description: Helm chart to deploy the langsmith application and all services it depends on.
 type: application
-version: 0.11.7
-appVersion: "0.11.20"
+version: 0.11.8
+appVersion: "0.11.30"
