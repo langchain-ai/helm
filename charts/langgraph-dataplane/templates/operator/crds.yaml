@@ -4,6 +4,7 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.16.1
+    helm.sh/resource-policy: keep
   name: lgps.apps.langchain.ai
 spec:
   group: apps.langchain.ai
@@ -1006,6 +1007,11 @@ spec:
                   enabled:
                     default: false
                     description: Whether to enable a database
+                    type: boolean
+                  legacyName:
+                    default: false
+                    description: LegacyName indicates if legacy database name/setup
+                      should be used
                     type: boolean
                   maxConnections:
                     default: 100

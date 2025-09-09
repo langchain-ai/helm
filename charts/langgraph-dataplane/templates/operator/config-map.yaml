@@ -9,10 +9,12 @@ metadata:
   annotations:
     {{- include "langgraphDataplane.annotations" . | nindent 4 }}
 data:
-  deployment.yaml: |
+  deployment.yaml.tmpl: |
 {{ .Values.operator.templates.deployment | indent 4 }}
-  service.yaml: |
+  service.yaml.tmpl: |
 {{ .Values.operator.templates.service | indent 4 }}
-  ingress.yaml: |
-{{ .Values.operator.templates.ingress | indent 4 }}
+  redis-deployment.yaml.tmpl: |
+{{ .Values.operator.templates.redis | indent 4 }}
+  database-statefulset.yaml.tmpl: |
+{{ .Values.operator.templates.db | indent 4 }}
 {{- end }}
