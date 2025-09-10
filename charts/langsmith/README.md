@@ -1005,7 +1005,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | postgres.external.password | string | `"postgres"` |  |
 | postgres.external.port | string | `"5432"` |  |
 | postgres.external.schema | string | `"public"` |  |
-| postgres.external.tls | bool | `false` |  |
+| postgres.external.customTls | bool | `false` |  |
 | postgres.external.user | string | `"postgres"` |  |
 | postgres.name | string | `"postgres"` |  |
 | postgres.pdb.annotations | object | `{}` |  |
