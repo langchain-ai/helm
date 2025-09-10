@@ -52,8 +52,7 @@
 {{- end -}}
 {{- template "validateAuthMode" . -}}
 {{- template "validateInitialOrgAdminEmail" . -}}
-{{- if or .Values.config.basicAuth.enabled }}
-{{- if not .Values.config.existingSecretName }}
+{{- if and .Values.config.basicAuth.enabled (not .Values.config.existingSecretName) }}
 {{- template "validatePassword" . -}}
 {{- end }}
 {{- end }}
