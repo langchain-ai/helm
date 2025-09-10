@@ -6,6 +6,8 @@
 {{- end -}}
 {{- $envVars := concat (include "playgroundEnvVars" . | fromYamlArray) .Values.playground.deployment.extraEnv -}}
 {{- include "langsmith.detectDuplicates" $envVars -}}
+{{- $volumes := concat .Values.commonVolumes .Values.playground.deployment.volumes (include "langsmith.tlsVolumes" . | fromYamlArray)  -}}
+{{- $volumeMounts := concat .Values.commonVolumeMounts .Values.playground.deployment.volumeMounts (include "langsmith.tlsVolumeMounts" . | fromYamlArray) -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -90,7 +92,7 @@ spec:
             {{- toYaml .Values.playground.deployment.resources | nindent 12 }}
           securityContext:
             {{- toYaml .Values.playground.deployment.securityContext | nindent 12 }}
-          {{- with .Values.playground.deployment.volumeMounts }}
+          {{- with $volumeMounts }}
           volumeMounts:
               {{- toYaml . | nindent 12 }}
           {{- end }}
@@ -116,7 +118,7 @@ spec:
       topologySpreadConstraints:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.playground.deployment.volumes }}
+      {{- with $volumes }}
       volumes:
           {{- toYaml . | nindent 8 }}
       {{- end }}

@@ -164,6 +164,8 @@ Template containing common environment variables that are used by several servic
 {{- if .Values.postgres.external.enabled }}
 - name: POSTGRES_SCHEMA
   value: {{ .Values.postgres.external.schema }}
+- name: POSTGRES_TLS
+  value: {{ .Values.postgres.external.customTls | quote }}
 {{- end }}
 {{- if .Values.config.hostname }}
 - name: LANGSMITH_URL
@@ -649,4 +651,24 @@ Validate tracing configuration
 {{- if and .Values.config.observability.tracing.enabled (not .Values.config.observability.tracing.endpoint) -}}
 {{- fail "When tracing is enabled (config.observability.tracing.enabled=true), config.observability.tracing.endpoint must be provided" -}}
 {{- end -}}
+{{- end -}}
+
+{{- define "langsmith.tlsVolumeMounts" -}}
+{{- if and .Values.config.customCa.secretName .Values.config.customCa.secretKey -}}
+- name: langsmith-custom-ca
+  mountPath: /etc/ssl/certs/ca-certificates.crt
+  subPath: ca-certificates.crt
+  readOnly: true
+{{- end }}
+{{- end -}}
+
+{{- define "langsmith.tlsVolumes" -}}
+{{- if and .Values.config.customCa.secretName .Values.config.customCa.secretKey -}}
+- name: langsmith-custom-ca
+  secret:
+    secretName: {{ .Values.config.customCa.secretName }}
+    items:
+      - key: {{ .Values.config.customCa.secretKey }}
+        path: ca-certificates.crt
+{{- end }}
 {{- end -}}
