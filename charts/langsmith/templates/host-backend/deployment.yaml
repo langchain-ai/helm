@@ -5,6 +5,10 @@
 - name: HOST_DOCS_PREFIX
   value: /{{ . }}/api-host
 {{- end }}
+{{- if .Values.ingress.hostname }}
+- name: HOST_BACKEND_ENDPOINT_PUBLIC
+  value: {{ .Values.ingress.hostname }}{{- with .Values.ingress.subdomain }}/{{ . }}{{- end }}
+{{- end }}
 {{- end -}}
 {{- $envVars := concat (include "langsmith.commonEnv" . | fromYamlArray ) (include "hostBackendEnvVars" . | fromYamlArray) .Values.hostBackend.deployment.extraEnv -}}
 {{- include "langsmith.detectDuplicates" $envVars -}}
