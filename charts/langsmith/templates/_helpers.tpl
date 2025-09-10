@@ -165,7 +165,7 @@ Template containing common environment variables that are used by several servic
 - name: POSTGRES_SCHEMA
   value: {{ .Values.postgres.external.schema }}
 - name: POSTGRES_TLS
-  value: {{ .Values.postgres.external.tls | quote }}
+  value: {{ .Values.postgres.external.customTls | quote }}
 {{- end }}
 {{- if .Values.config.hostname }}
 - name: LANGSMITH_URL

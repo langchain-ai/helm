@@ -1259,7 +1259,8 @@ postgres:
     connectionUrl: ""
     connectionUrlSecretKey: "connection_url"
     existingSecretName: ""
-    tls: false
+    # Use this to enable TLS using a custom CA (non-public) certificate.
+    customTls: false
   containerPort: 5432
   statefulSet:
     labels: {}
