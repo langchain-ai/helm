@@ -55,7 +55,6 @@
 {{- if and .Values.config.basicAuth.enabled (not .Values.config.existingSecretName) }}
 {{- template "validatePassword" . -}}
 {{- end }}
-{{- end }}
 {{- $envVars := concat .Values.commonEnv (include "langsmith.commonEnv" . | fromYamlArray) (include "authBootstrapEnvVars" . | fromYamlArray) .Values.backend.authBootstrap.extraEnv -}}
 {{- include "langsmith.detectDuplicates" $envVars -}}
 {{- $volumes := concat .Values.backend.authBootstrap.volumes (include "langsmith.tlsVolumes" . | fromYamlArray) -}}
