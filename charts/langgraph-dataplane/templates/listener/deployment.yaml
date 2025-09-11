@@ -3,6 +3,7 @@
 {{- if $hasListenerTemplates -}}
   {{- fail "Error: templates have moved to the operator. Please move your values from .Values.listener.templates to .Values.operator.templates." -}}
 {{- end -}}
+{{- end -}}
 {{- define "listenerEnvVars" -}}
 - name: LANGGRAPH_CLOUD_INGRESS_ENABLED
   value: {{ .Values.ingress.enabled | quote }}
