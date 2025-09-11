@@ -29,18 +29,30 @@
 {{- end -}}
 {{- end -}}
 
+{{- define "validateInitialOrgAdminEmail" -}}
+{{- if or .Values.config.basicAuth.enabled .Values.config.oauth.enabled -}}
+  {{- if not (or .Values.config.initialOrgAdminEmail .Values.config.basicAuth.initialOrgAdminEmail) -}}
+    {{- fail "Error: initialOrgAdminEmail is required if basic auth or oauth is enabled. Please set config.initialOrgAdminEmail." -}}
+  {{- end -}}
+{{- end -}}
+{{- end -}}
+
 {{- define "authBootstrapEnvVars" -}}
 - name: INITIAL_ORG_ADMIN_EMAIL
-  value: {{ .Values.config.basicAuth.initialOrgAdminEmail }}
+  value: {{ .Values.config.initialOrgAdminEmail | default .Values.config.basicAuth.initialOrgAdminEmail }}
 - name: INITIAL_ORG_ADMIN_PASSWORD
   valueFrom:
     secretKeyRef:
       name: {{ include "langsmith.secretsName" . }}
       key: initial_org_admin_password
+- name: INITIAL_ORG_NAME
+  value: {{ .Values.config.initialOrgName }}
+- name: DEFAULT_WORKSPACE_NAME
+  value: {{ .Values.config.defaultWorkspaceName }}
 {{- end -}}
 {{- template "validateAuthMode" . -}}
-{{- if .Values.config.basicAuth.enabled }}
-{{- if not .Values.config.existingSecretName }}
+{{- template "validateInitialOrgAdminEmail" . -}}
+{{- if and .Values.config.basicAuth.enabled (not .Values.config.existingSecretName) }}
 {{- template "validatePassword" . -}}
 {{- end }}
 {{- $envVars := concat .Values.commonEnv (include "langsmith.commonEnv" . | fromYamlArray) (include "authBootstrapEnvVars" . | fromYamlArray) .Values.backend.authBootstrap.extraEnv -}}
@@ -141,4 +153,3 @@ spec:
       volumes:
           {{- toYaml . | nindent 8 }}
       {{- end }}
-{{- end }}
