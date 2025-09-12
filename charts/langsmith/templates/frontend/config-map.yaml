@@ -79,11 +79,6 @@ data:
 
         access_log /var/log/nginx/access.log cache_log_json;
 
-        error_page   500 502 503 504  /50x.html;
-        location = /50x.html {
-            root   /tmp;
-        }
-
         location = /health {
                 # health checks are frequent and boring, so we avoid logging them
                 access_log off;
