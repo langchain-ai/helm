@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.11.7](https://img.shields.io/badge/Version-0.11.7-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.11.30](https://img.shields.io/badge/AppVersion-0.11.30-informational?style=flat-square)
+![Version: 0.11.11](https://img.shields.io/badge/Version-0.11.11-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.11.36](https://img.shields.io/badge/AppVersion-0.11.36-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -29,29 +29,29 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | gateway.subdomain | string | `""` |  |
 | images.aceBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.aceBackendImage.repository | string | `"docker.io/langchain/langsmith-ace-backend"` |  |
-| images.aceBackendImage.tag | string | `"0.11.30"` |  |
+| images.aceBackendImage.tag | string | `"0.11.36"` |  |
 | images.backendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.backendImage.repository | string | `"docker.io/langchain/langsmith-backend"` |  |
-| images.backendImage.tag | string | `"0.11.30"` |  |
+| images.backendImage.tag | string | `"0.11.36"` |  |
 | images.clickhouseImage.pullPolicy | string | `"Always"` |  |
 | images.clickhouseImage.repository | string | `"docker.io/clickhouse/clickhouse-server"` |  |
 | images.clickhouseImage.tag | string | `"25.4"` |  |
 | images.frontendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.frontendImage.repository | string | `"docker.io/langchain/langsmith-frontend"` |  |
-| images.frontendImage.tag | string | `"0.11.30"` |  |
+| images.frontendImage.tag | string | `"0.11.36"` |  |
 | images.hostBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.hostBackendImage.repository | string | `"docker.io/langchain/hosted-langserve-backend"` |  |
-| images.hostBackendImage.tag | string | `"0.11.30"` |  |
+| images.hostBackendImage.tag | string | `"0.11.36"` |  |
 | images.imagePullSecrets | list | `[]` | Secrets with credentials to pull images from a private registry. Specified as name: value. |
 | images.operatorImage.pullPolicy | string | `"Always"` |  |
 | images.operatorImage.repository | string | `"docker.io/langchain/langgraph-operator"` |  |
 | images.operatorImage.tag | string | `"0.1.11"` |  |
 | images.platformBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.platformBackendImage.repository | string | `"docker.io/langchain/langsmith-go-backend"` |  |
-| images.platformBackendImage.tag | string | `"0.11.30"` |  |
+| images.platformBackendImage.tag | string | `"0.11.36"` |  |
 | images.playgroundImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.playgroundImage.repository | string | `"docker.io/langchain/langsmith-playground"` |  |
-| images.playgroundImage.tag | string | `"0.11.30"` |  |
+| images.playgroundImage.tag | string | `"0.11.36"` |  |
 | images.postgresImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.postgresImage.repository | string | `"docker.io/postgres"` |  |
 | images.postgresImage.tag | string | `"14.7"` |  |
@@ -219,7 +219,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | config.apiKeySalt | string | `""` | Salt used to generate the API key. Should be a random string. |
 | config.authType | string | `""` | Must be 'oauth' for OAuth with PKCE, 'mixed' for basic auth or OAuth without PKCE |
 | config.basicAuth.enabled | bool | `false` |  |
-| config.basicAuth.initialOrgAdminEmail | string | `""` |  |
+| config.basicAuth.initialOrgAdminEmail | string | `""` | Kept for backwards compatibility. Will be removed in a future release. Please use values.config.initialOrgAdminEmail instead. |
 | config.basicAuth.initialOrgAdminPassword | string | `""` |  |
 | config.basicAuth.jwtSecret | string | `""` |  |
 | config.blobStorage | object | `{"accessKey":"","accessKeySecret":"","apiURL":"https://s3.us-west-2.amazonaws.com","azureStorageAccountKey":"","azureStorageAccountName":"","azureStorageConnectionString":"","azureStorageContainerName":"","azureStorageServiceUrlOverride":"","bucketName":"","chSearchEnabled":true,"enabled":false,"engine":"S3","minBlobStorageSizeKb":"20"}` | Blob storage configuration Optional. Used to store inputs, outputs, and errors in Blob Storage. We currently support S3, GCS, Minio, and Azure as Blob Storage providers. |
@@ -230,10 +230,13 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | config.customCa.secretKey | string | `""` |  |
 | config.customCa.secretName | string | `""` | Optional. Used to set a file containing trusted CA certificates. Make sure to also include a public CA to access beacon and playground. |
 | config.customLogo | object | `{"coBrandingEnabled":true,"enabled":false,"logoUrl":""}` | Custom logo configuration. If enabled, the logoUrl and coBrandingEnabled values must be provided. The logoUrl must be a valid URL to an image like png, jpg, or svg. Co-branding will show LangSmith and customer logos side by side. |
+| config.defaultWorkspaceName | string | `"Workspace 1"` | Default workspace name to be provisioned when org is created. |
 | config.existingSecretName | string | `""` |  |
 | config.fullTextSearch.deletes.enabled | bool | `false` |  |
 | config.fullTextSearch.indexing.enabled | bool | `false` |  |
 | config.hostname | string | `""` | Base URL of the LangSmith installation. Used for redirects. |
+| config.initialOrgAdminEmail | string | `""` |  |
+| config.initialOrgName | string | `"Default"` | Initial org name to be provisioned. |
 | config.langgraphPlatform.enabled | bool | `false` | Optional. Used to enable the Langgraph platform control plane. If enabled, the license key must be provided. |
 | config.langgraphPlatform.ingressHealthCheckEnabled | bool | `true` |  |
 | config.langgraphPlatform.langgraphPlatformLicenseKey | string | `""` |  |
@@ -252,8 +255,8 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | config.observability.tracing.env | string | `"ls_self_hosted"` |  |
 | config.observability.tracing.exporter | string | `"http"` |  |
 | config.observability.tracing.useTls | bool | `true` |  |
-| config.orgCreationDisabled | bool | `false` | Prevent organization creation. If using basic auth, this is set to true by default. |
-| config.personalOrgsDisabled | bool | `false` | Disable personal orgs. Users will need to be invited to an org manually. If using basic auth, this is set to true by default. |
+| config.orgCreationDisabled | bool | `false` | Prevent organization creation. If using basic auth or oauth with client secret, this is set to true by default. |
+| config.personalOrgsDisabled | bool | `false` | Disable personal orgs. Users will need to be invited to an org manually. If using basic auth or oauth with client secret, this is set to true by default. |
 | config.settings | object | `{"redisRunsExpirySeconds":"21600"}` | Application Settings. These are used to tune the application |
 | config.settings.redisRunsExpirySeconds | string | `"21600"` | Optional. Be very careful when lowering this value as it can result in runs being lost if your queue is down/not processing items fast enough. |
 | config.telemetry.metrics | bool | `true` | Optional. These values are used to send telemetry to the LangChain team to assist with troubleshooting. |
@@ -998,6 +1001,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | postgres.containerPort | int | `5432` |  |
 | postgres.external.connectionUrl | string | `""` |  |
 | postgres.external.connectionUrlSecretKey | string | `"connection_url"` |  |
+| postgres.external.customTls | bool | `false` |  |
 | postgres.external.database | string | `"postgres"` |  |
 | postgres.external.enabled | bool | `false` |  |
 | postgres.external.existingSecretName | string | `""` |  |
@@ -1005,7 +1009,6 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | postgres.external.password | string | `"postgres"` |  |
 | postgres.external.port | string | `"5432"` |  |
 | postgres.external.schema | string | `"public"` |  |
-| postgres.external.customTls | bool | `false` |  |
 | postgres.external.user | string | `"postgres"` |  |
 | postgres.name | string | `"postgres"` |  |
 | postgres.pdb.annotations | object | `{}` |  |
@@ -1195,6 +1198,6 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | Ankush | <ankush@langchain.dev> |  |
 
 ----------------------------------------------
-Autogenerated from chart metadata using [helm-docs v1.14.2](https://github.com/norwoodj/helm-docs/releases/v1.14.2)
+Autogenerated from chart metadata using [helm-docs v1.13.1](https://github.com/norwoodj/helm-docs/releases/v1.13.1)
 ## Docs Generated by [helm-docs](https://github.com/norwoodj/helm-docs)
 `helm-docs -t ./charts/langsmith/README.md.gotmpl`
