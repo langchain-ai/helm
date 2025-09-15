@@ -30,9 +30,9 @@
 {{- end -}}
 
 {{- define "validateInitialOrgAdminEmail" -}}
-{{- if or .Values.config.basicAuth.enabled .Values.config.oauth.enabled -}}
+{{- if or .Values.config.basicAuth.enabled -}}
   {{- if not (or .Values.config.initialOrgAdminEmail .Values.config.basicAuth.initialOrgAdminEmail) -}}
-    {{- fail "Error: initialOrgAdminEmail is required if basic auth or oauth is enabled. Please set config.initialOrgAdminEmail." -}}
+    {{- fail "Error: initialOrgAdminEmail is required if basic auth is enabled. Please set config.initialOrgAdminEmail." -}}
   {{- end -}}
 {{- end -}}
 {{- end -}}
