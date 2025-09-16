@@ -25,19 +25,19 @@ images:
   aceBackendImage:
     repository: "docker.io/langchain/langsmith-ace-backend"
     pullPolicy: IfNotPresent
-    tag: "0.11.40"
+    tag: "0.11.41"
   backendImage:
     repository: "docker.io/langchain/langsmith-backend"
     pullPolicy: IfNotPresent
-    tag: "0.11.40"
+    tag: "0.11.41"
   frontendImage:
     repository: "docker.io/langchain/langsmith-frontend"
     pullPolicy: IfNotPresent
-    tag: "0.11.40"
+    tag: "0.11.41"
   hostBackendImage:
     repository: "docker.io/langchain/hosted-langserve-backend"
     pullPolicy: IfNotPresent
-    tag: "0.11.40"
+    tag: "0.11.41"
   operatorImage:
     repository: "docker.io/langchain/langgraph-operator"
     pullPolicy: Always
@@ -45,11 +45,11 @@ images:
   platformBackendImage:
     repository: "docker.io/langchain/langsmith-go-backend"
     pullPolicy: IfNotPresent
-    tag: "0.11.40"
+    tag: "0.11.41"
   playgroundImage:
     repository: "docker.io/langchain/langsmith-playground"
     pullPolicy: IfNotPresent
-    tag: "0.11.40"
+    tag: "0.11.41"
   postgresImage:
     repository: "docker.io/postgres"
     pullPolicy: IfNotPresent
