@@ -39,6 +39,8 @@ ingress:
   enabled: true
   create: true
   hostname: ""
+  # -- Set a prefix if using multiple ingresses pointed at the same hostname
+  metricsPrefix: ""
   ingressClassName: ""
   annotations: {}
   labels: {}
