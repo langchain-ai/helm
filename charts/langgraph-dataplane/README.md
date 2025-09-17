@@ -1,6 +1,6 @@
 # langgraph-dataplane
 
-![Version: 0.2.0](https://img.shields.io/badge/Version-0.2.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.11.30](https://img.shields.io/badge/AppVersion-0.11.30-informational?style=flat-square)
+![Version: 0.2.3](https://img.shields.io/badge/Version-0.2.3-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.11.32](https://img.shields.io/badge/AppVersion-0.11.32-informational?style=flat-square)
 
 Helm chart to deploy a langgraph dataplane on kubernetes.
 
@@ -22,7 +22,7 @@ You can find the guide to deploy a LangGraph Dataplane [here](https://langchain-
 | images.imagePullSecrets | list | `[]` | Secrets with credentials to pull images from a private registry. Specified as name: value. |
 | images.listenerImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.listenerImage.repository | string | `"docker.io/langchain/hosted-langserve-backend"` |  |
-| images.listenerImage.tag | string | `"0.11.30"` |  |
+| images.listenerImage.tag | string | `"0.11.32"` |  |
 | images.operatorImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.operatorImage.repository | string | `"docker.io/langchain/langgraph-operator"` |  |
 | images.operatorImage.tag | string | `"0.1.11"` |  |
@@ -37,6 +37,7 @@ You can find the guide to deploy a LangGraph Dataplane [here](https://langchain-
 | ingress.hostname | string | `""` |  |
 | ingress.ingressClassName | string | `""` |  |
 | ingress.labels | object | `{}` |  |
+| ingress.metricsPrefix | string | `""` | Set a prefix if using multiple ingresses pointed at the same hostname |
 | ingress.tls | list | `[]` |  |
 | ingress.tlsEnabled | bool | `true` |  |
 | nameOverride | string | `""` | Provide a name in place of `langgraphDataplane` |
