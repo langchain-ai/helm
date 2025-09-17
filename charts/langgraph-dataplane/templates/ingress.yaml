@@ -28,7 +28,7 @@ spec:
   - host: {{ .Values.ingress.hostname }}
     http:
       paths:
-      - path: {{ ternary (printf "%s/metrics" .Values.ingress.metricsPrefix) "/metrics" .Values.ingress.metricsPrefix }}
+      - path: {{ ternary (printf "%s/metrics" .Values.ingress.metricsPrefix) "/metrics" (not (empty .Values.ingress.metricsPrefix)) }}
         pathType: Prefix
         backend:
           service:
