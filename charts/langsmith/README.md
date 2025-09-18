@@ -255,8 +255,8 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | config.observability.tracing.env | string | `"ls_self_hosted"` |  |
 | config.observability.tracing.exporter | string | `"http"` |  |
 | config.observability.tracing.useTls | bool | `true` |  |
-| config.orgCreationDisabled | bool | `false` | Prevent organization creation. If using basic auth or oauth with client secret, this is set to true by default. |
-| config.personalOrgsDisabled | bool | `false` | Disable personal orgs. Users will need to be invited to an org manually. If using basic auth or oauth with client secret, this is set to true by default. |
+| config.orgCreationDisabled | bool | `true` | Prevent organization creation. |
+| config.personalOrgsDisabled | bool | `true` | Disable personal orgs. |
 | config.settings | object | `{"redisRunsExpirySeconds":"21600"}` | Application Settings. These are used to tune the application |
 | config.settings.redisRunsExpirySeconds | string | `"21600"` | Optional. Be very careful when lowering this value as it can result in runs being lost if your queue is down/not processing items fast enough. |
 | config.telemetry.metrics | bool | `true` | Optional. These values are used to send telemetry to the LangChain team to assist with troubleshooting. |
