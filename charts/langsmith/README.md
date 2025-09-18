@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.11.13](https://img.shields.io/badge/Version-0.11.13-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.11.42](https://img.shields.io/badge/AppVersion-0.11.42-informational?style=flat-square)
+![Version: 0.11.14](https://img.shields.io/badge/Version-0.11.14-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.11.45](https://img.shields.io/badge/AppVersion-0.11.45-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -29,29 +29,29 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | gateway.subdomain | string | `""` |  |
 | images.aceBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.aceBackendImage.repository | string | `"docker.io/langchain/langsmith-ace-backend"` |  |
-| images.aceBackendImage.tag | string | `"0.11.42"` |  |
+| images.aceBackendImage.tag | string | `"0.11.45"` |  |
 | images.backendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.backendImage.repository | string | `"docker.io/langchain/langsmith-backend"` |  |
-| images.backendImage.tag | string | `"0.11.42"` |  |
+| images.backendImage.tag | string | `"0.11.45"` |  |
 | images.clickhouseImage.pullPolicy | string | `"Always"` |  |
 | images.clickhouseImage.repository | string | `"docker.io/clickhouse/clickhouse-server"` |  |
 | images.clickhouseImage.tag | string | `"25.4"` |  |
 | images.frontendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.frontendImage.repository | string | `"docker.io/langchain/langsmith-frontend"` |  |
-| images.frontendImage.tag | string | `"0.11.42"` |  |
+| images.frontendImage.tag | string | `"0.11.45"` |  |
 | images.hostBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.hostBackendImage.repository | string | `"docker.io/langchain/hosted-langserve-backend"` |  |
-| images.hostBackendImage.tag | string | `"0.11.42"` |  |
+| images.hostBackendImage.tag | string | `"0.11.45"` |  |
 | images.imagePullSecrets | list | `[]` | Secrets with credentials to pull images from a private registry. Specified as name: value. |
 | images.operatorImage.pullPolicy | string | `"Always"` |  |
 | images.operatorImage.repository | string | `"docker.io/langchain/langgraph-operator"` |  |
 | images.operatorImage.tag | string | `"0.1.11"` |  |
 | images.platformBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.platformBackendImage.repository | string | `"docker.io/langchain/langsmith-go-backend"` |  |
-| images.platformBackendImage.tag | string | `"0.11.42"` |  |
+| images.platformBackendImage.tag | string | `"0.11.45"` |  |
 | images.playgroundImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.playgroundImage.repository | string | `"docker.io/langchain/langsmith-playground"` |  |
-| images.playgroundImage.tag | string | `"0.11.42"` |  |
+| images.playgroundImage.tag | string | `"0.11.45"` |  |
 | images.postgresImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.postgresImage.repository | string | `"docker.io/postgres"` |  |
 | images.postgresImage.tag | string | `"14.7"` |  |
@@ -255,14 +255,14 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | config.observability.tracing.env | string | `"ls_self_hosted"` |  |
 | config.observability.tracing.exporter | string | `"http"` |  |
 | config.observability.tracing.useTls | bool | `true` |  |
-| config.orgCreationDisabled | bool | `false` | Prevent organization creation. If using basic auth or oauth with client secret, this is set to true by default. |
-| config.personalOrgsDisabled | bool | `false` | Disable personal orgs. Users will need to be invited to an org manually. If using basic auth or oauth with client secret, this is set to true by default. |
+| config.personalOrgsDisabled | bool | `true` | Disable personal orgs. |
 | config.settings | object | `{"redisRunsExpirySeconds":"21600"}` | Application Settings. These are used to tune the application |
 | config.settings.redisRunsExpirySeconds | string | `"21600"` | Optional. Be very careful when lowering this value as it can result in runs being lost if your queue is down/not processing items fast enough. |
 | config.telemetry.metrics | bool | `true` | Optional. These values are used to send telemetry to the LangChain team to assist with troubleshooting. |
 | config.telemetry.traces | bool | `true` |  |
 | config.ttl | object | `{"enabled":true,"ttl_period_seconds":{"longlived":"34560000","shortlived":"1209600"}}` | TTL configuration Optional. Used to set TTLS for longlived and shortlived objects. |
 | config.ttl.ttl_period_seconds.longlived | string | `"34560000"` | 400 day longlived and 14 day shortlived |
+| config.userOrgCreationDisabled | bool | `true` | Prevent organization creation by users. This includes admins. |
 | config.workspaceScopeOrgInvitesEnabled | bool | `false` | Enable Workspace Admins to invite users to the org and workspace. |
 
 ## Ace Backend
@@ -1198,6 +1198,6 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | Ankush | <ankush@langchain.dev> |  |
 
 ----------------------------------------------
-Autogenerated from chart metadata using [helm-docs v1.13.1](https://github.com/norwoodj/helm-docs/releases/v1.13.1)
+Autogenerated from chart metadata using [helm-docs v1.14.2](https://github.com/norwoodj/helm-docs/releases/v1.14.2)
 ## Docs Generated by [helm-docs](https://github.com/norwoodj/helm-docs)
 `helm-docs -t ./charts/langsmith/README.md.gotmpl`

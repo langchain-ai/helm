@@ -254,21 +254,11 @@ Template containing common environment variables that are used by several servic
     secretKeyRef:
       name: {{ include "langsmith.secretsName" . }}
       key: jwt_secret
+{{- end }}
 - name: FF_ORG_CREATION_DISABLED
-  value: "true"
-- name: FF_PERSONAL_ORGS_DISABLED
-  value: "true"
-{{- else if .Values.config.oauth.enabled }}
-- name: FF_ORG_CREATION_DISABLED
-  value: "true"
-- name: FF_PERSONAL_ORGS_DISABLED
-  value: "true"
-{{- else }}
-- name: FF_ORG_CREATION_DISABLED
-  value: {{ .Values.config.orgCreationDisabled | quote }}
+  value: {{ .Values.config.userOrgCreationDisabled | quote }}
 - name: FF_PERSONAL_ORGS_DISABLED
   value: {{ .Values.config.personalOrgsDisabled | quote }}
-{{- end }}
 {{- if .Values.config.ttl.enabled }}
 - name: FF_TRACE_TIERS_ENABLED
   value: {{ .Values.config.ttl.enabled | quote }}
