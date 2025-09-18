@@ -118,8 +118,8 @@ config:
     # Either set the password and JWT secret in plaintext, or set in the secret specified by existingSecretName above.
     initialOrgAdminPassword: ""
     jwtSecret: ""
-  # -- Prevent organization creation.
-  orgCreationDisabled: true
+  # -- Prevent organization creation by users. This includes admins.
+  userOrgCreationDisabled: true
   # -- Disable personal orgs.
   personalOrgsDisabled: true
   # -- Enable Workspace Admins to invite users to the org and workspace.

@@ -256,7 +256,7 @@ Template containing common environment variables that are used by several servic
       key: jwt_secret
 {{- end }}
 - name: FF_ORG_CREATION_DISABLED
-  value: {{ .Values.config.orgCreationDisabled | quote }}
+  value: {{ .Values.config.userOrgCreationDisabled | quote }}
 - name: FF_PERSONAL_ORGS_DISABLED
   value: {{ .Values.config.personalOrgsDisabled | quote }}
 {{- if .Values.config.ttl.enabled }}
