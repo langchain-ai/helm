@@ -118,10 +118,10 @@ config:
     # Either set the password and JWT secret in plaintext, or set in the secret specified by existingSecretName above.
     initialOrgAdminPassword: ""
     jwtSecret: ""
-  # -- Prevent organization creation. If using basic auth or oauth with client secret, this is set to true by default.
-  orgCreationDisabled: false
-  # -- Disable personal orgs. Users will need to be invited to an org manually. If using basic auth or oauth with client secret, this is set to true by default.
-  personalOrgsDisabled: false
+  # -- Prevent organization creation.
+  orgCreationDisabled: true
+  # -- Disable personal orgs.
+  personalOrgsDisabled: true
   # -- Enable Workspace Admins to invite users to the org and workspace.
   workspaceScopeOrgInvitesEnabled: false
 
