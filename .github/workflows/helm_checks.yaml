@@ -49,7 +49,7 @@ jobs:
       - name: Create kind cluster
         uses: helm/kind-action@v1.7.0
 
-      - name: Pre-pull and load redis:7 into kind
+      - name: Pre-pull and load external images into kind
         run: |
           docker pull docker.io/redis:7
           kind load docker-image docker.io/redis:7 --name chart-testing
