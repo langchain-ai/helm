@@ -54,8 +54,14 @@ jobs:
           docker pull docker.io/redis:7
           kind load docker-image docker.io/redis:7 --name chart-testing
 
+          docker pull docker.io/postgres:14.7
+          kind load docker-image docker.io/postgres:14.7 --name chart-testing
+
+          docker pull docker.io/clickhouse/clickhouse-server:25.4
+          kind load docker-image docker.io/clickhouse/clickhouse-server:25.4 --name chart-testing
+
       - name: Run chart-testing (install)
         env:
           LANGSMITH_LICENSE_KEY: ${{ secrets.LANGSMITH_LICENSE_KEY }}
           LANGGRAPH_CLOUD_LICENSE_KEY: ${{ secrets.LANGGRAPH_CLOUD_LICENSE_KEY }}
-        run: ct install --target-branch ${{ github.event.repository.default_branch }} --charts charts/${{ matrix.chart-name }} --helm-extra-set-args "--timeout=15m --set=frontend.service.type=ClusterIP --set=config.langsmithLicenseKey=$LANGSMITH_LICENSE_KEY --set=config.langGraphCloudLicenseKey=$LANGGRAPH_CLOUD_LICENSE_KEY --set=apiServer.service.type=ClusterIP --set=studio.service.type=ClusterIP --set=redis.statefulSet.resources.limits.cpu=200m --set=redis.statefulSet.resources.limits.memory=256Mi --set=redis.statefulSet.resources.requests.cpu=50m --set=redis.statefulSet.resources.requests.memory=64Mi"
+        run: ct install --target-branch ${{ github.event.repository.default_branch }} --charts charts/${{ matrix.chart-name }} --helm-extra-set-args "--timeout=15m --set=frontend.service.type=ClusterIP --set=config.langsmithLicenseKey=$LANGSMITH_LICENSE_KEY --set=config.langGraphCloudLicenseKey=$LANGGRAPH_CLOUD_LICENSE_KEY --set=apiServer.service.type=ClusterIP --set=studio.service.type=ClusterIP --set=redis.statefulSet.resources.requests.cpu=50m --set=redis.statefulSet.resources.requests.memory=64Mi --set=postgres.statefulSet.resources.requests.cpu=500m --set=postgres.statefulSet.resources.requests.memory=1Gi --set=clickhouse.statefulSet.resources.requests.cpu=1000m --set=clickhouse.statefulSet.resources.requests.memory=2Gi"
