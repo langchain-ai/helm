@@ -49,8 +49,13 @@ jobs:
       - name: Create kind cluster
         uses: helm/kind-action@v1.7.0
 
+      - name: Pre-pull and load redis:7 into kind
+        run: |
+          docker pull docker.io/redis:7
+          kind load docker-image docker.io/redis:7 --name chart-testing
+
       - name: Run chart-testing (install)
         env:
           LANGSMITH_LICENSE_KEY: ${{ secrets.LANGSMITH_LICENSE_KEY }}
           LANGGRAPH_CLOUD_LICENSE_KEY: ${{ secrets.LANGGRAPH_CLOUD_LICENSE_KEY }}
-        run: ct install --target-branch ${{ github.event.repository.default_branch }} --charts charts/${{ matrix.chart-name }} --helm-extra-set-args "--set=frontend.service.type=ClusterIP --set=config.langsmithLicenseKey=$LANGSMITH_LICENSE_KEY --set=config.langGraphCloudLicenseKey=$LANGGRAPH_CLOUD_LICENSE_KEY --set=apiServer.service.type=ClusterIP --set=studio.service.type=ClusterIP"
+        run: ct install --target-branch ${{ github.event.repository.default_branch }} --charts charts/${{ matrix.chart-name }} --helm-extra-set-args "--timeout=15m --set=frontend.service.type=ClusterIP --set=config.langsmithLicenseKey=$LANGSMITH_LICENSE_KEY --set=config.langGraphCloudLicenseKey=$LANGGRAPH_CLOUD_LICENSE_KEY --set=apiServer.service.type=ClusterIP --set=studio.service.type=ClusterIP --set=redis.statefulSet.resources.limits.cpu=200m --set=redis.statefulSet.resources.limits.memory=256Mi --set=redis.statefulSet.resources.requests.cpu=50m --set=redis.statefulSet.resources.requests.memory=64Mi"
