@@ -339,7 +339,7 @@ backend:
   migrations:
     enabled: true
     # Helpful when running using helm template to avoid the job name conflict
-    randomizeName: true
+    randomizeName: false
     labels: {}
     annotations: {}
     podSecurityContext: {}
@@ -427,7 +427,7 @@ backend:
     ttlSecondsAfterFinished: 600
   authBootstrap:
     # Helpful when running using helm template to avoid the job name conflict
-    randomizeName: true
+    randomizeName: false
     labels: {}
     annotations: {}
     podSecurityContext: {}
@@ -456,7 +456,7 @@ backend:
   clickhouseMigrations:
     enabled: true
     # Helpful when running using helm template to avoid the job name conflict
-    randomizeName: true
+    randomizeName: false
     labels: {}
     annotations: {}
     podSecurityContext: {}

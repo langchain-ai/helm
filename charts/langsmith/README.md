@@ -198,7 +198,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | backend.authBootstrap.labels | object | `{}` |  |
 | backend.authBootstrap.nodeSelector | object | `{}` |  |
 | backend.authBootstrap.podSecurityContext | object | `{}` |  |
-| backend.authBootstrap.randomizeName | bool | `true` |  |
+| backend.authBootstrap.randomizeName | bool | `false` |  |
 | backend.authBootstrap.resources.limits.cpu | string | `"1000m"` |  |
 | backend.authBootstrap.resources.limits.memory | string | `"1Gi"` |  |
 | backend.authBootstrap.resources.requests.cpu | string | `"200m"` |  |
@@ -226,7 +226,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | backend.clickhouseMigrations.labels | object | `{}` |  |
 | backend.clickhouseMigrations.nodeSelector | object | `{}` |  |
 | backend.clickhouseMigrations.podSecurityContext | object | `{}` |  |
-| backend.clickhouseMigrations.randomizeName | bool | `true` |  |
+| backend.clickhouseMigrations.randomizeName | bool | `false` |  |
 | backend.clickhouseMigrations.resources.limits.cpu | string | `"1000m"` |  |
 | backend.clickhouseMigrations.resources.limits.memory | string | `"1Gi"` |  |
 | backend.clickhouseMigrations.resources.requests.cpu | string | `"200m"` |  |
@@ -332,7 +332,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | backend.migrations.labels | object | `{}` |  |
 | backend.migrations.nodeSelector | object | `{}` |  |
 | backend.migrations.podSecurityContext | object | `{}` |  |
-| backend.migrations.randomizeName | bool | `true` |  |
+| backend.migrations.randomizeName | bool | `false` |  |
 | backend.migrations.resources.limits.cpu | string | `"1000m"` |  |
 | backend.migrations.resources.limits.memory | string | `"1Gi"` |  |
 | backend.migrations.resources.requests.cpu | string | `"200m"` |  |
