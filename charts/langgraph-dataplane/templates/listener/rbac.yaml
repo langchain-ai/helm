@@ -37,6 +37,12 @@ rules:
   - patch
   - update
   - watch
+- apiGroups:
+    - apps
+  resources:
+    - deployments/status
+  verbs:
+    - get
 # Read ReplicaSets/Deployments to get statuses
 - apiGroups:
   - apps
