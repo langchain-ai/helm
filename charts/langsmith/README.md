@@ -179,6 +179,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | aceBackend.service.port | int | `1987` |  |
 | aceBackend.service.type | string | `"ClusterIP"` |  |
 | aceBackend.serviceAccount.annotations | object | `{}` |  |
+| aceBackend.serviceAccount.automountServiceAccountToken | bool | `true` |  |
 | aceBackend.serviceAccount.create | bool | `true` |  |
 | aceBackend.serviceAccount.labels | object | `{}` |  |
 | aceBackend.serviceAccount.name | string | `""` |  |
@@ -354,6 +355,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | backend.service.port | int | `1984` |  |
 | backend.service.type | string | `"ClusterIP"` |  |
 | backend.serviceAccount.annotations | object | `{}` |  |
+| backend.serviceAccount.automountServiceAccountToken | bool | `true` |  |
 | backend.serviceAccount.create | bool | `true` |  |
 | backend.serviceAccount.labels | object | `{}` |  |
 | backend.serviceAccount.name | string | `""` |  |
@@ -398,6 +400,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | clickhouse.service.nativePort | int | `9000` |  |
 | clickhouse.service.type | string | `"ClusterIP"` |  |
 | clickhouse.serviceAccount.annotations | object | `{}` |  |
+| clickhouse.serviceAccount.automountServiceAccountToken | bool | `true` |  |
 | clickhouse.serviceAccount.create | bool | `true` |  |
 | clickhouse.serviceAccount.labels | object | `{}` |  |
 | clickhouse.serviceAccount.name | string | `""` |  |
@@ -464,6 +467,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | e2eTest.resources.requests.memory | string | `"500Mi"` |  |
 | e2eTest.securityContext | object | `{}` |  |
 | e2eTest.serviceAccount.annotations | object | `{}` |  |
+| e2eTest.serviceAccount.automountServiceAccountToken | bool | `true` |  |
 | e2eTest.serviceAccount.create | bool | `false` |  |
 | e2eTest.serviceAccount.labels | object | `{}` |  |
 | e2eTest.serviceAccount.name | string | `""` |  |
@@ -536,6 +540,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | hostBackend.service.port | int | `1985` |  |
 | hostBackend.service.type | string | `"ClusterIP"` |  |
 | hostBackend.serviceAccount.annotations | object | `{}` |  |
+| hostBackend.serviceAccount.automountServiceAccountToken | bool | `true` |  |
 | hostBackend.serviceAccount.create | bool | `true` |  |
 | hostBackend.serviceAccount.labels | object | `{}` |  |
 | hostBackend.serviceAccount.name | string | `""` |  |
@@ -607,6 +612,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | frontend.service.loadBalancerSourceRanges | list | `[]` |  |
 | frontend.service.type | string | `"LoadBalancer"` |  |
 | frontend.serviceAccount.annotations | object | `{}` |  |
+| frontend.serviceAccount.automountServiceAccountToken | bool | `true` |  |
 | frontend.serviceAccount.create | bool | `true` |  |
 | frontend.serviceAccount.labels | object | `{}` |  |
 | frontend.serviceAccount.name | string | `""` |  |
@@ -672,6 +678,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | listener.rbac.create | bool | `true` |  |
 | listener.rbac.labels | object | `{}` |  |
 | listener.serviceAccount.annotations | object | `{}` |  |
+| listener.serviceAccount.automountServiceAccountToken | bool | `true` |  |
 | listener.serviceAccount.create | bool | `true` |  |
 | listener.serviceAccount.labels | object | `{}` |  |
 | listener.serviceAccount.name | string | `""` |  |
@@ -712,6 +719,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | operator.rbac.create | bool | `true` |  |
 | operator.rbac.labels | object | `{}` |  |
 | operator.serviceAccount.annotations | object | `{}` |  |
+| operator.serviceAccount.automountServiceAccountToken | bool | `true` |  |
 | operator.serviceAccount.create | bool | `true` |  |
 | operator.serviceAccount.labels | object | `{}` |  |
 | operator.serviceAccount.name | string | `""` |  |
@@ -781,6 +789,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | platformBackend.service.port | int | `1986` |  |
 | platformBackend.service.type | string | `"ClusterIP"` |  |
 | platformBackend.serviceAccount.annotations | object | `{}` |  |
+| platformBackend.serviceAccount.automountServiceAccountToken | bool | `true` |  |
 | platformBackend.serviceAccount.create | bool | `true` |  |
 | platformBackend.serviceAccount.labels | object | `{}` |  |
 | platformBackend.serviceAccount.name | string | `""` |  |
@@ -844,6 +853,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | playground.service.port | int | `1988` |  |
 | playground.service.type | string | `"ClusterIP"` |  |
 | playground.serviceAccount.annotations | object | `{}` |  |
+| playground.serviceAccount.automountServiceAccountToken | bool | `true` |  |
 | playground.serviceAccount.create | bool | `true` |  |
 | playground.serviceAccount.labels | object | `{}` |  |
 | playground.serviceAccount.name | string | `""` |  |
@@ -876,6 +886,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | postgres.service.port | int | `5432` |  |
 | postgres.service.type | string | `"ClusterIP"` |  |
 | postgres.serviceAccount.annotations | object | `{}` |  |
+| postgres.serviceAccount.automountServiceAccountToken | bool | `true` |  |
 | postgres.serviceAccount.create | bool | `true` |  |
 | postgres.serviceAccount.labels | object | `{}` |  |
 | postgres.serviceAccount.name | string | `""` |  |
@@ -975,6 +986,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | queue.pdb.labels | object | `{}` |  |
 | queue.pdb.minAvailable | int | `1` |  |
 | queue.serviceAccount.annotations | object | `{}` |  |
+| queue.serviceAccount.automountServiceAccountToken | bool | `true` |  |
 | queue.serviceAccount.create | bool | `true` |  |
 | queue.serviceAccount.labels | object | `{}` |  |
 | queue.serviceAccount.name | string | `""` |  |
@@ -1000,6 +1012,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | redis.service.port | int | `6379` |  |
 | redis.service.type | string | `"ClusterIP"` |  |
 | redis.serviceAccount.annotations | object | `{}` |  |
+| redis.serviceAccount.automountServiceAccountToken | bool | `true` |  |
 | redis.serviceAccount.create | bool | `true` |  |
 | redis.serviceAccount.labels | object | `{}` |  |
 | redis.serviceAccount.name | string | `""` |  |

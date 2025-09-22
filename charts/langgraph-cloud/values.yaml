@@ -133,6 +133,7 @@ apiServer:
     name: ""
     labels: {}
     annotations: {}
+    automountServiceAccountToken: true
   pdb:
     enabled: false
     minAvailable: 1
@@ -199,6 +200,7 @@ queue:
     name: ""
     labels: {}
     annotations: {}
+    automountServiceAccountToken: true
   pdb:
     enabled: false
     minAvailable: 1
@@ -257,6 +259,7 @@ postgres:
     name: ""
     labels: {}
     annotations: {}
+    automountServiceAccountToken: true
   pdb:
     enabled: false
     minAvailable: 1
@@ -331,6 +334,7 @@ redis:
     name: ""
     labels: {}
     annotations: {}
+    automountServiceAccountToken: true
   pdb:
     enabled: false
     minAvailable: 1
@@ -405,6 +409,7 @@ studio:
     name: ""
     labels: {}
     annotations: {}
+    automountServiceAccountToken: true
   pdb:
     enabled: false
     minAvailable: 1

@@ -280,6 +280,7 @@ aceBackend:
     name: ""
     labels: {}
     annotations: {}
+    automountServiceAccountToken: true
 
 
 backend:
@@ -505,6 +506,7 @@ backend:
     name: ""
     labels: {}
     annotations: {}
+    automountServiceAccountToken: true
 
 clickhouse:
   name: "clickhouse"
@@ -613,6 +615,7 @@ clickhouse:
     name: ""
     labels: {}
     annotations: {}
+    automountServiceAccountToken: true
   metrics:
     port: 9363
 
@@ -638,6 +641,7 @@ e2eTest:
     name: ""
     labels: {}
     annotations: {}
+    automountServiceAccountToken: true
   extraEnv: []
   extraContainerConfig: {}
   sidecars: []
@@ -746,6 +750,7 @@ frontend:
     name: ""
     labels: {}
     annotations: {}
+    automountServiceAccountToken: true
 
 hostBackend:
   name: "host-backend"
@@ -823,6 +828,7 @@ hostBackend:
     name: ""
     labels: {}
     annotations: {}
+    automountServiceAccountToken: true
   rbac:
     create: true
     labels: {}
@@ -899,6 +905,7 @@ listener:
     name: ""
     labels: {}
     annotations: {}
+    automountServiceAccountToken: true
   rbac:
     create: true
     labels: {}
@@ -981,6 +988,7 @@ platformBackend:
     name: ""
     labels: {}
     annotations: {}
+    automountServiceAccountToken: true
 
 operator:
   name: "operator"
@@ -1022,6 +1030,7 @@ operator:
     name: ""
     labels: {}
     annotations: {}
+    automountServiceAccountToken: true
   rbac:
     create: true
     labels: {}
@@ -1236,6 +1245,7 @@ playground:
     name: ""
     labels: {}
     annotations: {}
+    automountServiceAccountToken: true
 
 postgres:
   name: "postgres"
@@ -1330,6 +1340,7 @@ postgres:
     name: ""
     labels: {}
     annotations: {}
+    automountServiceAccountToken: true
 
 queue:
   name: "queue"
@@ -1402,6 +1413,7 @@ queue:
     name: ""
     labels: {}
     annotations: {}
+    automountServiceAccountToken: true
 
 redis:
   name: "redis"
@@ -1486,3 +1498,4 @@ redis:
     name: ""
     labels: {}
     annotations: {}
+    automountServiceAccountToken: true
