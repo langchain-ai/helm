@@ -1008,11 +1008,6 @@ spec:
                     default: false
                     description: Whether to enable a database
                     type: boolean
-                  legacyName:
-                    default: false
-                    description: LegacyName indicates if legacy database name/setup
-                      should be used
-                    type: boolean
                   maxConnections:
                     default: 100
                     description: Maximum number of database connections
