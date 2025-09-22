@@ -77,6 +77,7 @@ You can find the guide to deploy a LangGraph Dataplane [here](https://langchain-
 | operator.service.loadBalancerSourceRanges | list | `[]` |  |
 | operator.service.type | string | `"ClusterIP"` |  |
 | operator.serviceAccount.annotations | object | `{}` |  |
+| operator.serviceAccount.automountServiceAccountToken | bool | `true` |  |
 | operator.serviceAccount.create | bool | `true` |  |
 | operator.serviceAccount.labels | object | `{}` |  |
 | operator.serviceAccount.name | string | `""` |  |
@@ -154,6 +155,7 @@ You can find the guide to deploy a LangGraph Dataplane [here](https://langchain-
 | listener.rbac.create | bool | `true` |  |
 | listener.rbac.labels | object | `{}` |  |
 | listener.serviceAccount.annotations | object | `{}` |  |
+| listener.serviceAccount.automountServiceAccountToken | bool | `true` |  |
 | listener.serviceAccount.create | bool | `true` |  |
 | listener.serviceAccount.labels | object | `{}` |  |
 | listener.serviceAccount.name | string | `""` |  |
@@ -197,6 +199,7 @@ You can find the guide to deploy a LangGraph Dataplane [here](https://langchain-
 | operator.service.loadBalancerSourceRanges | list | `[]` |  |
 | operator.service.type | string | `"ClusterIP"` |  |
 | operator.serviceAccount.annotations | object | `{}` |  |
+| operator.serviceAccount.automountServiceAccountToken | bool | `true` |  |
 | operator.serviceAccount.create | bool | `true` |  |
 | operator.serviceAccount.labels | object | `{}` |  |
 | operator.serviceAccount.name | string | `""` |  |
@@ -225,6 +228,7 @@ You can find the guide to deploy a LangGraph Dataplane [here](https://langchain-
 | redis.service.port | int | `6379` |  |
 | redis.service.type | string | `"ClusterIP"` |  |
 | redis.serviceAccount.annotations | object | `{}` |  |
+| redis.serviceAccount.automountServiceAccountToken | bool | `true` |  |
 | redis.serviceAccount.create | bool | `true` |  |
 | redis.serviceAccount.labels | object | `{}` |  |
 | redis.serviceAccount.name | string | `""` |  |

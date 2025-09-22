@@ -267,6 +267,7 @@ the same format as the secret in the corresponding `secrets.yaml` file. Note: AP
 | queue.pdb.enabled | bool | `false` |  |
 | queue.pdb.minAvailable | int | `1` |  |
 | queue.serviceAccount.annotations | object | `{}` |  |
+| queue.serviceAccount.automountServiceAccountToken | bool | `true` |  |
 | queue.serviceAccount.create | bool | `true` |  |
 | queue.serviceAccount.labels | object | `{}` |  |
 | queue.serviceAccount.name | string | `""` |  |
@@ -320,6 +321,7 @@ the same format as the secret in the corresponding `secrets.yaml` file. Note: AP
 | redis.service.port | int | `6379` |  |
 | redis.service.type | string | `"ClusterIP"` |  |
 | redis.serviceAccount.annotations | object | `{}` |  |
+| redis.serviceAccount.automountServiceAccountToken | bool | `true` |  |
 | redis.serviceAccount.create | bool | `true` |  |
 | redis.serviceAccount.labels | object | `{}` |  |
 | redis.serviceAccount.name | string | `""` |  |
@@ -377,6 +379,7 @@ the same format as the secret in the corresponding `secrets.yaml` file. Note: AP
 | studio.service.loadBalancerSourceRanges | list | `[]` |  |
 | studio.service.type | string | `"LoadBalancer"` |  |
 | studio.serviceAccount.annotations | object | `{}` |  |
+| studio.serviceAccount.automountServiceAccountToken | bool | `true` |  |
 | studio.serviceAccount.create | bool | `true` |  |
 | studio.serviceAccount.labels | object | `{}` |  |
 | studio.serviceAccount.name | string | `""` |  |
@@ -453,6 +456,7 @@ the same format as the secret in the corresponding `secrets.yaml` file. Note: AP
 | apiServer.service.loadBalancerSourceRanges | list | `[]` |  |
 | apiServer.service.type | string | `"LoadBalancer"` |  |
 | apiServer.serviceAccount.annotations | object | `{}` |  |
+| apiServer.serviceAccount.automountServiceAccountToken | bool | `true` |  |
 | apiServer.serviceAccount.create | bool | `true` |  |
 | apiServer.serviceAccount.labels | object | `{}` |  |
 | apiServer.serviceAccount.name | string | `""` |  |
@@ -481,6 +485,7 @@ the same format as the secret in the corresponding `secrets.yaml` file. Note: AP
 | postgres.service.port | int | `5432` |  |
 | postgres.service.type | string | `"ClusterIP"` |  |
 | postgres.serviceAccount.annotations | object | `{}` |  |
+| postgres.serviceAccount.automountServiceAccountToken | bool | `true` |  |
 | postgres.serviceAccount.create | bool | `true` |  |
 | postgres.serviceAccount.labels | object | `{}` |  |
 | postgres.serviceAccount.name | string | `""` |  |
