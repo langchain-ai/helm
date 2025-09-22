@@ -127,6 +127,7 @@ listener:
     name: ""
     labels: {}
     annotations: {}
+    automountServiceAccountToken: true
   rbac:
     create: true
     labels: {}
@@ -177,6 +178,7 @@ operator:
     name: ""
     labels: {}
     annotations: {}
+    automountServiceAccountToken: true
   rbac:
     create: true
     labels: {}
@@ -417,3 +419,4 @@ redis:
     name: ""
     labels: {}
     annotations: {}
+    automountServiceAccountToken: true
