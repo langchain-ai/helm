@@ -67,6 +67,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | ingress.subdomain | string | `""` |  |
 | ingress.tls | list | `[]` |  |
 | nameOverride | string | `""` | Provide a name in place of `langsmith` |
+| namespace | string | `""` | Namespace to install the chart into. If not set, will use the namespace of the current context. |
 
 ## Configs
 

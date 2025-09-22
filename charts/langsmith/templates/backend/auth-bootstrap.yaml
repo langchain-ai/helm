@@ -63,6 +63,7 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   name: {{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}-auth-bootstrap{{ ternary (printf "-%s" (randAlphaNum 5 | lower)) ""  .Values.backend.authBootstrap.randomizeName }}
+  namespace: {{ .Values.namespace | default .Release.Namespace }}
   labels:
     {{- include "langsmith.labels" . | nindent 4 }}
     {{- with.Values.backend.authBootstrap.labels }}

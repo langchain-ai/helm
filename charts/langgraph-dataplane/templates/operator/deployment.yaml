@@ -111,7 +111,7 @@ spec:
           - name: SHARED_INGRESS_NAME
             value: {{ include "langgraphDataplane.fullname" . }}-ingress
           - name: SHARED_INGRESS_NAMESPACE
-            value: {{ .Release.Namespace }}
+            value: {{ .Values.namespace | default .Release.Namespace }}
           {{- end }}
           - name: ROOT_DOMAIN
             value: {{ .Values.ingress.hostname | quote }}
