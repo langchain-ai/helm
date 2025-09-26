@@ -48,6 +48,13 @@ ingress:
   tlsEnabled: true
   additionalPaths: []
 
+# -- Whether to use the Gateway API for ingress. Will create an HTTPRoute for each LangGraph platform deployment.
+gateway:
+  enabled: false
+  name: ""
+  namespace: ""
+  hostname: ""
+
 config:
   existingSecretName: ""
   langsmithApiKey: ""
