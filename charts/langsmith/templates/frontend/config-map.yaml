@@ -435,11 +435,6 @@ data:
             access_log off;
         }
 
-        error_page   500 502 503 504  /50x.html;
-        location = /50x.html {
-            root   /tmp/build;
-        }
-
         location /api/v1/playground/ {
             rewrite /api/v1/playground/(.*) /playground/$1  break;
             proxy_set_header Connection '';
