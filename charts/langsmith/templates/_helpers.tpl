@@ -280,7 +280,7 @@ Template containing common environment variables that are used by several servic
   value: {{ .Values.config.blobStorage.engine | quote }}
 - name: MIN_BLOB_STORAGE_SIZE_KB
   value: {{ ternary 0 .Values.config.blobStorage.minBlobStorageSizeKb .Values.clickhouse.external.hybrid | quote }}
-{{- if eq .Values.config.blobStorage.engine "S3" }}
+{{- if (or (eq .Values.config.blobStorage.engine "S3") (eq .Values.config.blobStorage.engine "s3")) }}
 - name: S3_BUCKET_NAME
   value: {{ .Values.config.blobStorage.bucketName | quote }}
 - name: S3_RUN_MANIFEST_BUCKET_NAME
@@ -524,10 +524,10 @@ Validate blob storage configuration
  */}}
 {{- define "langsmith.validateBlobStorage" -}}
 {{- if and .Values.config.blobStorage.enabled (not .Values.config.blobStorage.engine) -}}
-{{- fail "When blob storage is enabled (config.blobStorage.enabled=true), config.blobStorage.engine must be one of [S3, Azure]" -}}
+{{- fail "When blob storage is enabled (config.blobStorage.enabled=true), config.blobStorage.engine must be one of [S3, s3, Azure]" -}}
 {{- end -}}
-{{- if and .Values.config.blobStorage.enabled (not (or (eq .Values.config.blobStorage.engine "S3") (eq .Values.config.blobStorage.engine "Azure"))) -}}
-{{- fail "When blob storage is enabled (config.blobStorage.enabled=true), config.blobStorage.engine must be one of [S3, Azure]" -}}
+{{- if and .Values.config.blobStorage.enabled (not (or (eq .Values.config.blobStorage.engine "S3") (eq .Values.config.blobStorage.engine "s3") (eq .Values.config.blobStorage.engine "Azure"))) -}}
+{{- fail "When blob storage is enabled (config.blobStorage.enabled=true), config.blobStorage.engine must be one of [S3, s3, Azure]" -}}
 {{- end -}}
 {{- end -}}
 
