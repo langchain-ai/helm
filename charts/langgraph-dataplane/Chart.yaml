@@ -6,4 +6,4 @@ maintainers:
 description: Helm chart to deploy a langgraph dataplane on kubernetes.
 type: application
 version: 0.2.7
-appVersion: "0.11.32"
+appVersion: "0.11.57"
