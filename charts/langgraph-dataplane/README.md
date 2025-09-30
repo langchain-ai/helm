@@ -1,6 +1,6 @@
 # langgraph-dataplane
 
-![Version: 0.2.6](https://img.shields.io/badge/Version-0.2.6-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.11.32](https://img.shields.io/badge/AppVersion-0.11.32-informational?style=flat-square)
+![Version: 0.2.7](https://img.shields.io/badge/Version-0.2.7-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.11.32](https://img.shields.io/badge/AppVersion-0.11.32-informational?style=flat-square)
 
 Helm chart to deploy a langgraph dataplane on kubernetes.
 
@@ -19,10 +19,11 @@ You can find the guide to deploy a LangGraph Dataplane [here](https://langchain-
 | commonVolumeMounts | list | `[]` | Common volume mounts added to all deployments/statefulsets. |
 | commonVolumes | list | `[]` | Common volumes added to all deployments/statefulsets. |
 | fullnameOverride | string | `""` | String to fully override `"langgraphDataplane.fullname"` |
+| gateway | object | `{"enabled":false,"hostname":"","name":"","namespace":""}` | Whether to use the Gateway API for ingress. Will create an HTTPRoute for each LangGraph platform deployment. Recommended for production use / if deploying multiple releases in the same cluster. |
 | images.imagePullSecrets | list | `[]` | Secrets with credentials to pull images from a private registry. Specified as name: value. |
 | images.listenerImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.listenerImage.repository | string | `"docker.io/langchain/hosted-langserve-backend"` |  |
-| images.listenerImage.tag | string | `"0.11.32"` |  |
+| images.listenerImage.tag | string | `"0.11.57"` |  |
 | images.operatorImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.operatorImage.repository | string | `"docker.io/langchain/langgraph-operator"` |  |
 | images.operatorImage.tag | string | `"0.1.11"` |  |
