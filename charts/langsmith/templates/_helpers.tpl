@@ -519,6 +519,19 @@ Validate tracing configuration
 {{- end -}}
 {{- end -}}
 
+{{/*
+Validate blob storage configuration
+ */}}
+{{- define "langsmith.validateBlobStorage" -}}
+{{- if and .Values.config.blobStorage.enabled (not .Values.config.blobStorage.engine) -}}
+{{- fail "When blob storage is enabled (config.blobStorage.enabled=true), config.blobStorage.engine must be one of [S3, Azure]" -}}
+{{- end -}}
+{{- if and .Values.config.blobStorage.enabled (not (or (eq .Values.config.blobStorage.engine "S3") (eq .Values.config.blobStorage.engine "Azure"))) -}}
+{{- fail "When blob storage is enabled (config.blobStorage.enabled=true), config.blobStorage.engine must be one of [S3, Azure]" -}}
+{{- end -}}
+{{- end -}}
+
+
 {{- define "langsmith.tlsVolumeMounts" -}}
 {{- if and .Values.config.customCa.secretName .Values.config.customCa.secretKey -}}
 - name: langsmith-custom-ca
