@@ -20,20 +20,25 @@ echo "Starting to pull debugging info. Creating directory $DIR..."
 mkdir -p "$DIR"
 
 echo "Pulling summary of resources..."
-kubectl get all -n "$NS" -o wide > "$DIR/resources_summary.txt"
+kubectl get all -n "$NS" -o wide | grep -E '^(NAME|langsmith-|lg-|toolbox)' > "$DIR/resources_summary.txt"
 
 echo "Pulling details of all resources..."
-kubectl get all -n "$NS" -o yaml > "$DIR/resources_details.yaml"
+kubectl get all -n "$NS" -o yaml > "$DIR/resources_details_all.yaml"
+# Filter for langchain-related resources only
+grep -E '^(kind:|metadata:|  name: (langsmith-|lg-|toolbox))' "$DIR/resources_details_all.yaml" > "$DIR/resources_details.yaml" || cp "$DIR/resources_details_all.yaml" "$DIR/resources_details.yaml"
+rm "$DIR/resources_details_all.yaml"
 
 echo "Pulling kubernetes events..."
 kubectl get events -n "$NS" --sort-by=.lastTimestamp > "$DIR/events.txt"
 
-echo "Pulling resource usage for all pods..."
-kubectl top pods -n "$NS" --containers > "$DIR/pod-resource-usage.txt"
+echo "Pulling resource usage for langchain-related pods..."
+kubectl top pods -n "$NS" --containers | grep -E '^(NAME|langsmith-|lg-|toolbox)' > "$DIR/pod-resource-usage.txt"
 
-echo "Pulling container logs for all pods. Also pulling previous logs from restarted containers..."
+echo "Pulling container logs for langchain-related pods only. Also pulling previous logs from restarted containers..."
 mkdir -p "$DIR/logs"
-PODS=$(kubectl get pods -n "$NS" -o jsonpath='{.items[*].metadata.name}')
+
+# Filter for langchain-related pods based on naming conventions
+PODS=$(kubectl get pods -n "$NS" -o jsonpath='{.items[*].metadata.name}' | tr ' ' '\n' | grep -E '^(langsmith-|lg-|toolbox)' | tr '\n' ' ')
 
 for POD in $PODS; do
   CONTAINERS=$(kubectl get pod "$POD" -n "$NS" -o jsonpath='{.spec.containers[*].name}')
@@ -41,14 +46,17 @@ for POD in $PODS; do
     echo "Pulling current container logs (last 24h) for $POD/$CONTAINER..."
     kubectl logs -n "$NS" "$POD" -c "$CONTAINER" --since=24h > "$DIR/logs/${POD}_${CONTAINER}_current.log" 2>/dev/null
 
-    RESTART_COUNT=$(kubectl get pod "$POD" -n "$NS" -o json | jq ".status.containerStatuses[] | select(.name==\"$CONTAINER\") | .restartCount // 0")
-    if [[ "$RESTART_COUNT" -gt 0 ]]; then
-      echo "  $POD/$CONTAINER restarted ($RESTART_COUNT times) — grabbing previous logs..."
+    RESTART_COUNT=$(kubectl get pod "$POD" -n "$NS" -o jsonpath='{.status.containerStatuses[?(@.name=="'$CONTAINER'")].restartCount}')
+    if [ "$RESTART_COUNT" -gt 0 ]; then
+      echo "Pulling previous container logs for $POD/$CONTAINER..."
       kubectl logs -n "$NS" "$POD" -c "$CONTAINER" --previous > "$DIR/logs/${POD}_${CONTAINER}_previous.log" 2>/dev/null
     fi
   done
 done
 
-echo "Compressing directory..."
-tar -czf "${DIR}.tar.gz" -C "$(dirname "$DIR")" "$(basename "$DIR")"
-echo "Bundle written to ${DIR}.tar.gz"
+echo "Compressing debugging info..."
+tar -czf "$DIR.tar.gz" -C /tmp "$(basename "$DIR")"
+
+echo "Debugging info saved to $DIR.tar.gz"
+echo "Directory contents:"
+ls -la "$DIR"
