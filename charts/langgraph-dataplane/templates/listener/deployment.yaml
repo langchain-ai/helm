@@ -6,7 +6,7 @@
 {{- end -}}
 {{- define "listenerEnvVars" -}}
 - name: LANGGRAPH_CLOUD_INGRESS_ENABLED
-  value: {{ .Values.ingress.enabled | quote }}
+  value: {{ or .Values.ingress.enabled .Values.gateway.enabled | quote }}
 - name: PORT
   value: {{ .Values.listener.containerPort | quote }}
 {{- end }}

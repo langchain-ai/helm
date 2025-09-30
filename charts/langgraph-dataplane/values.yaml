@@ -25,7 +25,7 @@ images:
   listenerImage:
     repository: "docker.io/langchain/hosted-langserve-backend"
     pullPolicy: IfNotPresent
-    tag: "0.11.32"
+    tag: "0.11.57"
   redisImage:
     repository: "docker.io/redis"
     pullPolicy: IfNotPresent
@@ -47,6 +47,13 @@ ingress:
   tls: []
   tlsEnabled: true
   additionalPaths: []
+
+# -- Whether to use the Gateway API for ingress. Will create an HTTPRoute for each LangGraph platform deployment. Recommended for production use / if deploying multiple releases in the same cluster.
+gateway:
+  enabled: false
+  name: ""
+  namespace: ""
+  hostname: ""
 
 config:
   existingSecretName: ""
