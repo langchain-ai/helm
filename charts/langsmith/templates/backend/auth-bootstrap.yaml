@@ -40,11 +40,13 @@
 {{- define "authBootstrapEnvVars" -}}
 - name: INITIAL_ORG_ADMIN_EMAIL
   value: {{ .Values.config.initialOrgAdminEmail | default .Values.config.basicAuth.initialOrgAdminEmail }}
+{{- if .Values.config.basicAuth.enabled }}
 - name: INITIAL_ORG_ADMIN_PASSWORD
   valueFrom:
     secretKeyRef:
       name: {{ include "langsmith.secretsName" . }}
       key: initial_org_admin_password
+{{- end }}
 - name: INITIAL_ORG_NAME
   value: {{ .Values.config.initialOrgName }}
 - name: DEFAULT_WORKSPACE_NAME
