@@ -300,7 +300,7 @@ Template containing common environment variables that are used by several servic
       key: blob_storage_access_key_secret
       optional: true
 {{- end }}
-{{- if eq .Values.config.blobStorage.engine "Azure" }}
+{{- if (or (eq .Values.config.blobStorage.engine "Azure") (eq .Values.config.blobStorage.engine "azure")) }}
 - name: AZURE_STORAGE_ACCOUNT_NAME
   value: {{ .Values.config.blobStorage.azureStorageAccountName | quote }}
 - name: AZURE_STORAGE_CONTAINER_NAME
@@ -524,10 +524,10 @@ Validate blob storage configuration
  */}}
 {{- define "langsmith.validateBlobStorage" -}}
 {{- if and .Values.config.blobStorage.enabled (not .Values.config.blobStorage.engine) -}}
-{{- fail "When blob storage is enabled (config.blobStorage.enabled=true), config.blobStorage.engine must be one of [S3, s3, Azure]" -}}
+{{- fail "When blob storage is enabled (config.blobStorage.enabled=true), config.blobStorage.engine must be one of [S3, Azure]" -}}
 {{- end -}}
-{{- if and .Values.config.blobStorage.enabled (not (or (eq .Values.config.blobStorage.engine "S3") (eq .Values.config.blobStorage.engine "s3") (eq .Values.config.blobStorage.engine "Azure"))) -}}
-{{- fail "When blob storage is enabled (config.blobStorage.enabled=true), config.blobStorage.engine must be one of [S3, s3, Azure]" -}}
+{{- if and .Values.config.blobStorage.enabled (not (or (eq .Values.config.blobStorage.engine "S3") (eq .Values.config.blobStorage.engine "s3") (eq .Values.config.blobStorage.engine "Azure") (eq .Values.config.blobStorage.engine "azure"))) -}}
+{{- fail "When blob storage is enabled (config.blobStorage.enabled=true), config.blobStorage.engine must be one of [S3, Azure]" -}}
 {{- end -}}
 {{- end -}}
 
