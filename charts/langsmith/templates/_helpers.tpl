@@ -280,7 +280,7 @@ Template containing common environment variables that are used by several servic
   value: {{ .Values.config.blobStorage.engine | quote }}
 - name: MIN_BLOB_STORAGE_SIZE_KB
   value: {{ ternary 0 .Values.config.blobStorage.minBlobStorageSizeKb .Values.clickhouse.external.hybrid | quote }}
-{{- if eq .Values.config.blobStorage.engine "S3" }}
+{{- if (or (eq .Values.config.blobStorage.engine "S3") (eq .Values.config.blobStorage.engine "s3")) }}
 - name: S3_BUCKET_NAME
   value: {{ .Values.config.blobStorage.bucketName | quote }}
 - name: S3_RUN_MANIFEST_BUCKET_NAME
@@ -300,7 +300,7 @@ Template containing common environment variables that are used by several servic
       key: blob_storage_access_key_secret
       optional: true
 {{- end }}
-{{- if eq .Values.config.blobStorage.engine "Azure" }}
+{{- if (or (eq .Values.config.blobStorage.engine "Azure") (eq .Values.config.blobStorage.engine "azure")) }}
 - name: AZURE_STORAGE_ACCOUNT_NAME
   value: {{ .Values.config.blobStorage.azureStorageAccountName | quote }}
 - name: AZURE_STORAGE_CONTAINER_NAME
@@ -518,6 +518,19 @@ Validate tracing configuration
 {{- fail "When tracing is enabled (config.observability.tracing.enabled=true), config.observability.tracing.endpoint must be provided" -}}
 {{- end -}}
 {{- end -}}
+
+{{/*
+Validate blob storage configuration
+ */}}
+{{- define "langsmith.validateBlobStorage" -}}
+{{- if and .Values.config.blobStorage.enabled (not .Values.config.blobStorage.engine) -}}
+{{- fail "When blob storage is enabled (config.blobStorage.enabled=true), config.blobStorage.engine must be one of [S3, Azure]" -}}
+{{- end -}}
+{{- if and .Values.config.blobStorage.enabled (not (or (eq .Values.config.blobStorage.engine "S3") (eq .Values.config.blobStorage.engine "s3") (eq .Values.config.blobStorage.engine "Azure") (eq .Values.config.blobStorage.engine "azure"))) -}}
+{{- fail "When blob storage is enabled (config.blobStorage.enabled=true), config.blobStorage.engine must be one of [S3, Azure]" -}}
+{{- end -}}
+{{- end -}}
+
 
 {{- define "langsmith.tlsVolumeMounts" -}}
 {{- if and .Values.config.customCa.secretName .Values.config.customCa.secretKey -}}
