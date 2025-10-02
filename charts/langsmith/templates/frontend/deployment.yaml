@@ -1,3 +1,20 @@
+# Validate the appropriate mounts are present for the readOnlyRootFilesystem
+{{- if .Values.frontend.deployment.securityContext.readOnlyRootFilesystem }}
+{{- $hasNginxMount := false }}
+{{- $hasVarRunMount := false }}
+{{- range .Values.frontend.deployment.volumeMounts }}
+  {{- if eq .mountPath "/var/lib/nginx" }}
+    {{- $hasNginxMount = true }}
+  {{- end }}
+  {{- if eq .mountPath "/var/run" }}
+    {{- $hasVarRunMount = true }}
+  {{- end }}
+{{- end }}
+{{- if not (and $hasNginxMount $hasVarRunMount) }}
+{{- fail "ERROR: When frontend.deployment.securityContext.readOnlyRootFilesystem is true, you must mount both /var/lib/nginx and /var/run as writable volumes. Missing mounts - /var/lib/nginx: %t, /var/run: %t. Add these as emptyDir volumes. See read_only guide." (not $hasNginxMount) (not $hasVarRunMount) }}
+{{- end }}
+{{- end }}
+
 {{- define "frontendEnvVars" -}}
 {{- if .Values.config.oauth.enabled }}
 - name: VITE_OAUTH_CLIENT_ID
