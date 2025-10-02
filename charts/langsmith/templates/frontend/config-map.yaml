@@ -73,7 +73,7 @@ data:
         proxy_send_timeout {{ .Values.frontend.proxyWriteTimeout }};
         keepalive_timeout {{ .Values.frontend.keepAliveTimeout }};
 
-        add_header Content-Security-Policy "frame-ancestors 'self'; object-src 'none'" always;
+        add_header Content-Security-Policy "{{ .Values.frontend.cspHeader }}" always;
         add_header X-Frame-Options "SAMEORIGIN" always;
         add_header X-Content-Type-Options "nosniff" always;
         add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" always;
@@ -411,18 +411,30 @@ data:
         proxy_send_timeout {{ .Values.frontend.proxyWriteTimeout }};
         keepalive_timeout {{ .Values.frontend.keepAliveTimeout }};
 
-        add_header Content-Security-Policy "frame-ancestors 'self'; object-src 'none'" always;
+        add_header Content-Security-Policy "{{ .Values.frontend.cspHeader }}" always;
         add_header X-Frame-Options "SAMEORIGIN" always;
         add_header X-Content-Type-Options "nosniff" always;
         add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" always;
 
         access_log /var/log/nginx/access.log cache_log_json;
 
+        {{- if .Values.frontend.includeNonce }}
+        location / {
+            sub_filter_once off;
+            # Replace placeholder with nonce in HTML
+            sub_filter '%%NONCE%%' $request_id;
+
+            root   /tmp/build;
+            index  index.html index.htm;
+            try_files $uri $uri/ /index.html;
+        }
+        {{- else }}
         location / {
             root   /tmp/build;
             index  index.html index.htm;
             try_files $uri $uri/ /index.html;
         }
+        {{- end }}
 
         location = /health {
                   # health checks are frequent and boring, so we avoid logging them

@@ -662,6 +662,11 @@ frontend:
   existingConfigMapName: ""
   # Nginx Max Body Size. Refer to https://nginx.org/en/docs/http/ngx_http_core_module.html#client_max_body_size for more information.
   maxBodySize: "25M"
+  # Custom CSP Header. Refer to https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/CSP.
+  # If includeNonce is true, use nginx built-in $request_id as nonce (cryptographically secure because compiled with OpenSSL)
+  # Sample compatible CSP header with includeNonce: true: "script-src 'nonce-$request_id' 'strict-dynamic'; style-src 'nonce-$request_id' 'strict-dynamic'; frame-ancestors 'self'; object-src 'none'"
+  cspHeader: "frame-ancestors 'self'; object-src 'none'"
+  includeNonce: false
   proxyReadTimeout: "300"
   proxyWriteTimeout: "300"
   proxyConnectTimeout: "60"
