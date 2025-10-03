@@ -6,6 +6,18 @@
 {{- end -}}
 {{- $envVars := concat (include "aceBackendEnvVars" . | fromYamlArray) .Values.aceBackend.deployment.extraEnv -}}
 {{- include "langsmith.detectDuplicates" $envVars -}}
+{{- /* Validate cache mounts when readOnlyRootFilesystem is enabled */ -}}
+{{- if .Values.aceBackend.deployment.securityContext.readOnlyRootFilesystem }}
+{{- $hasCacheMount := false }}
+{{- range .Values.aceBackend.deployment.volumeMounts }}
+  {{- if eq .mountPath "/.cache" }}
+    {{- $hasCacheMount = true }}
+  {{- end }}
+{{- end }}
+{{- if not $hasCacheMount }}
+{{- fail "ERROR: When aceBackend.deployment.securityContext.readOnlyRootFilesystem is true, you must mount /.cache as a writable volume. See read_only config example." }}
+{{- end }}
+{{- end }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
