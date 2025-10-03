@@ -38,17 +38,9 @@ aceBackend:
     volumes:
       - name: tmp
         emptyDir: {}
-      - name: var-run
-        emptyDir: {}
-      - name: var-lib-nginx
-        emptyDir: {}
     volumeMounts:
       - name: tmp
         mountPath: /app/node_modules
-      - name: var-run
-        mountPath: /var/run
-      - name: var-lib-nginx
-        mountPath: /var/lib/nginx
 
 backend:
   deployment:
@@ -237,9 +229,17 @@ frontend:
     volumes:
       - name: tmp
         emptyDir: {}
+      - name: var-run
+        emptyDir: {}
+      - name: var-lib-nginx
+        emptyDir: {}
     volumeMounts:
       - name: tmp
         mountPath: /tmp
+      - name: var-run
+        mountPath: /var/run
+      - name: var-lib-nginx
+        mountPath: /var/lib/nginx
 
 platformBackend:
   deployment:
