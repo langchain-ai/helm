@@ -38,9 +38,13 @@ aceBackend:
     volumes:
       - name: tmp
         emptyDir: {}
+      - name: deno-cache
+        emptyDir: {}
     volumeMounts:
       - name: tmp
         mountPath: /app/node_modules
+      - name: deno-cache
+        mountPath: /.cache
 
 backend:
   deployment:
