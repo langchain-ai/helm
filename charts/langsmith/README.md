@@ -91,7 +91,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | config.blobStorage.azureStorageConnectionString | string | `""` | Optional. Use this to specify the full connection string including any authentication params. |
 | config.blobStorage.azureStorageContainerName | string | `""` | Required if using Azure blob storage |
 | config.blobStorage.azureStorageServiceUrlOverride | string | `""` | Optional. Use this to customize the service URL, which by default is 'https://<storage_account_name>.blob.core.windows.net/' |
-| config.blobStorage.kmsEncryptionEnabled | bool | `false` | Optional. Use this to enable passing KMS key header, as well as an ARN of the KMS key to use. |
+| config.blobStorage.kmsEncryptionEnabled | bool | `false` | |
 | config.blobStorage.kmsKeyArn | string | `""` | |
 | config.customCa.secretKey | string | `""` |  |
 | config.customCa.secretName | string | `""` | Optional. Used to set a file containing trusted CA certificates. Make sure to also include a public CA to access beacon and playground. |
