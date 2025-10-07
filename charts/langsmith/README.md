@@ -86,11 +86,13 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | config.basicAuth.initialOrgAdminEmail | string | `""` | Kept for backwards compatibility. Will be removed in a future release. Please use values.config.initialOrgAdminEmail instead. |
 | config.basicAuth.initialOrgAdminPassword | string | `""` |  |
 | config.basicAuth.jwtSecret | string | `""` |  |
-| config.blobStorage | object | `{"accessKey":"","accessKeySecret":"","apiURL":"https://s3.us-west-2.amazonaws.com","azureStorageAccountKey":"","azureStorageAccountName":"","azureStorageConnectionString":"","azureStorageContainerName":"","azureStorageServiceUrlOverride":"","bucketName":"","chSearchEnabled":true,"enabled":false,"engine":"S3","minBlobStorageSizeKb":"20"}` | Blob storage configuration Optional. Used to store inputs, outputs, and errors in Blob Storage. We currently support S3, GCS, Minio, and Azure as Blob Storage providers. |
+| config.blobStorage | object | `{"accessKey":"","accessKeySecret":"","apiURL":"https://s3.us-west-2.amazonaws.com","azureStorageAccountKey":"","azureStorageAccountName":"","azureStorageConnectionString":"","azureStorageContainerName":"","azureStorageServiceUrlOverride":"","bucketName":"","chSearchEnabled":true,"enabled":false,"engine":"S3","kmsEncryptionEnabled":false,"kmsKeyArn":"","minBlobStorageSizeKb":"20"}` | Blob storage configuration Optional. Used to store inputs, outputs, and errors in Blob Storage. We currently support S3, GCS, Minio, and Azure as Blob Storage providers. |
 | config.blobStorage.azureStorageAccountName | string | `""` | Optional. Set this along with azureStorageAccountKey to use a storage account and access key. Higher precedence than azureStorageConnectionString. |
 | config.blobStorage.azureStorageConnectionString | string | `""` | Optional. Use this to specify the full connection string including any authentication params. |
 | config.blobStorage.azureStorageContainerName | string | `""` | Required if using Azure blob storage |
 | config.blobStorage.azureStorageServiceUrlOverride | string | `""` | Optional. Use this to customize the service URL, which by default is 'https://<storage_account_name>.blob.core.windows.net/' |
+| config.blobStorage.kmsEncryptionEnabled | bool | `false` | Optional. Use this to enable passing KMS key header, as well as an ARN of the KMS key to use. |
+| config.blobStorage.kmsKeyArn | string | `""` | |
 | config.customCa.secretKey | string | `""` |  |
 | config.customCa.secretName | string | `""` | Optional. Used to set a file containing trusted CA certificates. Make sure to also include a public CA to access beacon and playground. |
 | config.customLogo | object | `{"coBrandingEnabled":true,"enabled":false,"logoUrl":""}` | Custom logo configuration. If enabled, the logoUrl and coBrandingEnabled values must be provided. The logoUrl must be a valid URL to an image like png, jpg, or svg. Co-branding will show LangSmith and customer logos side by side. |
