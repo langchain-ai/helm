@@ -30,6 +30,22 @@
 {{- include "langsmith.detectDuplicates" $envVars -}}
 {{- $volumes := concat .Values.commonVolumes .Values.frontend.deployment.volumes -}}
 {{- $volumeMounts := concat .Values.commonVolumes .Values.frontend.deployment.volumeMounts -}}
+{{- /* Validate nginx mounts when readOnlyRootFilesystem is enabled */ -}}
+{{- if .Values.frontend.deployment.securityContext.readOnlyRootFilesystem }}
+{{- $hasNginxMount := false }}
+{{- $hasVarRunMount := false }}
+{{- range $volumeMounts }}
+  {{- if eq .mountPath "/var/lib/nginx" }}
+    {{- $hasNginxMount = true }}
+  {{- end }}
+  {{- if eq .mountPath "/var/run" }}
+    {{- $hasVarRunMount = true }}
+  {{- end }}
+{{- end }}
+{{- if not (and $hasNginxMount $hasVarRunMount) }}
+{{- fail "ERROR: When frontend.deployment.securityContext.readOnlyRootFilesystem is true, you must mount both /var/lib/nginx and /var/run as writable volumes. Add emptyDir volumes for 'var-lib-nginx' mounted at /var/lib/nginx and 'var-run' mounted at /var/run. See read_only config example." }}
+{{- end }}
+{{- end }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
