@@ -123,6 +123,11 @@ spec:
             value: {{ .Values.gateway.name | quote }}
           - name: GATEWAY_NAMESPACE
             value: {{ .Values.gateway.namespace | default .Release.Namespace }}
+        {{- else if .Values.istioGateway.enabled }}
+          - name: ISTIO_GATEWAY_NAME
+            value: {{ .Values.istioGateway.name | quote }}
+          - name: ISTIO_GATEWAY_NAMESPACE
+            value: {{ .Values.istioGateway.namespace | default .Release.Namespace }}
         {{- else }}
           - name: SHARED_INGRESS_NAME
             value: {{ include "langsmith.fullname" . }}-ingress
@@ -130,7 +135,7 @@ spec:
             value: {{ .Values.namespace | default .Release.Namespace }}
         {{- end }}
           - name: ROOT_DOMAIN
-            value: {{ coalesce .Values.config.langgraphPlatform.rootDomain .Values.ingress.hostname .Values.gateway.hostname | quote }}
+            value: {{ coalesce .Values.config.langgraphPlatform.rootDomain .Values.ingress.hostname .Values.gateway.hostname .Values.istioGateway.hostname | quote }}
           - name: TLS_ENABLED
             value: {{ .Values.config.langgraphPlatform.tlsEnabled | quote }}
         {{- with .Values.operator.deployment.extraEnv }}

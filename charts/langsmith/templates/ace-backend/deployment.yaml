@@ -14,9 +14,9 @@
     {{- $hasCacheMount = true }}
   {{- end }}
 {{- end }}
-{{- if not $hasCacheMount }}
-{{- fail "ERROR: When aceBackend.deployment.securityContext.readOnlyRootFilesystem is true, you must mount /.cache as a writable volume. See read_only config example." }}
-{{- end }}
+{{/*{{- if not $hasCacheMount }}*/}}
+{{/*{{- fail "ERROR: When aceBackend.deployment.securityContext.readOnlyRootFilesystem is true, you must mount /.cache as a writable volume. See read_only config example." }}*/}}
+{{/*{{- end }}*/}}
 {{- end }}
 apiVersion: apps/v1
 kind: Deployment

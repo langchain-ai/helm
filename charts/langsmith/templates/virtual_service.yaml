@@ -1,0 +1,40 @@
+{{- if .Values.istioGateway.enabled }}
+apiVersion: networking.istio.io/v1
+kind: VirtualService
+metadata:
+  name: {{ include "langsmith.fullname" . }}
+  namespace: {{ .Values.namespace | default .Release.Namespace }}
+  annotations:
+    {{- include "langsmith.annotations" . | nindent 4 }}
+    {{- with .Values.istioGateway.annotations }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+  labels:
+    {{- include "langsmith.labels" . | nindent 4 }}
+    {{- with .Values.istioGateway.labels }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  {{- if .Values.istioGateway.hostname }}
+  hosts:
+  - {{ .Values.istioGateway.hostname | quote }}
+  {{- else }}
+  hosts:
+  - "*"
+  {{- end }}
+  gateways:
+  {{- if .Values.istioGateway.namespace }}
+  - {{ .Values.istioGateway.namespace }}/{{ .Values.istioGateway.name }}
+  {{- else }}
+  - {{ .Values.istioGateway.name }}
+  {{- end }}
+  http:
+  - match:
+    - uri:
+        prefix: {{ ternary "/" (printf "/%s" .Values.istioGateway.subdomain) (empty .Values.istioGateway.subdomain) }}
+    route:
+    - destination:
+        host: {{ include "langsmith.fullname" . }}-{{ .Values.frontend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.cluster.local
+        port:
+          number: {{ .Values.frontend.service.httpPort }}
+{{- end }}
