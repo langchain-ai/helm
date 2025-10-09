@@ -299,6 +299,14 @@ Template containing common environment variables that are used by several servic
       name: {{ include "langsmith.secretsName" . }}
       key: blob_storage_access_key_secret
       optional: true
+{{- if .Values.config.blobStorage.kmsEncryptionEnabled }}
+- name: S3_KMS_ENCRYPTION_ENABLED
+  value: {{ .Values.config.blobStorage.kmsEncryptionEnabled | quote }}
+{{- if .Values.config.blobStorage.kmsKeyArn }}
+- name: S3_KMS_KEY_ARN
+  value: {{ .Values.config.blobStorage.kmsKeyArn | quote }}
+{{- end }}
+{{- end }}
 {{- end }}
 {{- if (or (eq .Values.config.blobStorage.engine "Azure") (eq .Values.config.blobStorage.engine "azure")) }}
 - name: AZURE_STORAGE_ACCOUNT_NAME
