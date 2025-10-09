@@ -25,7 +25,7 @@ images:
   listenerImage:
     repository: "docker.io/langchain/hosted-langserve-backend"
     pullPolicy: IfNotPresent
-    tag: "0.11.57"
+    tag: "0.11.68"
   redisImage:
     repository: "docker.io/redis"
     pullPolicy: IfNotPresent
@@ -33,7 +33,7 @@ images:
   operatorImage:
     repository: "docker.io/langchain/langgraph-operator"
     pullPolicy: IfNotPresent
-    tag: "0.1.11"
+    tag: "0.1.16"
 
 ingress:
   enabled: true
@@ -50,6 +50,13 @@ ingress:
 
 # -- Whether to use the Gateway API for ingress. Will create an HTTPRoute for each LangGraph platform deployment. Recommended for production use / if deploying multiple releases in the same cluster.
 gateway:
+  enabled: false
+  name: ""
+  namespace: ""
+  hostname: ""
+
+# -- Whether to use Istio VirtualServices for ingress. Will create a VirtualService for each LangGraph platform deployment. Recommended for production use / if deploying multiple releases in the same cluster.
+istioGateway:
   enabled: false
   name: ""
   namespace: ""
@@ -218,18 +225,18 @@ operator:
                 protocol: TCP
               livenessProbe:
                 httpGet:
-                  path: /ok?check_db=1
+                  path: /ok
                   port: 8000
-                initialDelaySeconds: 90
-                periodSeconds: 5
+                periodSeconds: 15
                 timeoutSeconds: 5
+                failureThreshold: 6
               readinessProbe:
                 httpGet:
                   path: /ok
                   port: 8000
-                initialDelaySeconds: 90
-                periodSeconds: 5
+                periodSeconds: 15
                 timeoutSeconds: 5
+                failureThreshold: 6
     service: |
       apiVersion: v1
       kind: Service

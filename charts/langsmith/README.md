@@ -43,7 +43,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | images.hostBackendImage.repository | string | `"docker.io/langchain/hosted-langserve-backend"` |  |
 | images.hostBackendImage.tag | string | `"0.11.68"` |  |
 | images.imagePullSecrets | list | `[]` | Secrets with credentials to pull images from a private registry. Specified as name: value. |
-| images.operatorImage.pullPolicy | string | `"Always"` |  |
+| images.operatorImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.operatorImage.repository | string | `"docker.io/langchain/langgraph-operator"` |  |
 | images.operatorImage.tag | string | `"0.1.16"` |  |
 | images.platformBackendImage.pullPolicy | string | `"IfNotPresent"` |  |

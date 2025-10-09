@@ -124,7 +124,7 @@ spec:
             value: {{ .Values.namespace | default .Release.Namespace }}
         {{- end }}
           - name: ROOT_DOMAIN
-            value: {{ coalesce .Values.gateway.hostname .Values.ingress.hostname | quote }}
+            value: {{ coalesce .Values.gateway.hostname .Values.ingress.hostname .Values.istioGateway.hostname | quote }}
           - name: TLS_ENABLED
             value: {{ .Values.ingress.tlsEnabled | quote }}
         {{- with .Values.operator.deployment.extraEnv }}
