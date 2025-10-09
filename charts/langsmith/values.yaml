@@ -27,19 +27,19 @@ images:
   aceBackendImage:
     repository: "docker.io/langchain/langsmith-ace-backend"
     pullPolicy: IfNotPresent
-    tag: "0.11.68"
+    tag: "0.11.69"
   backendImage:
     repository: "docker.io/langchain/langsmith-backend"
     pullPolicy: IfNotPresent
-    tag: "0.11.68"
+    tag: "0.11.69"
   frontendImage:
     repository: "docker.io/langchain/langsmith-frontend"
     pullPolicy: IfNotPresent
-    tag: "0.11.68"
+    tag: "0.11.69"
   hostBackendImage:
     repository: "docker.io/langchain/hosted-langserve-backend"
     pullPolicy: IfNotPresent
-    tag: "0.11.68"
+    tag: "0.11.69"
   operatorImage:
     repository: "docker.io/langchain/langgraph-operator"
     pullPolicy: IfNotPresent
@@ -47,11 +47,11 @@ images:
   platformBackendImage:
     repository: "docker.io/langchain/langsmith-go-backend"
     pullPolicy: IfNotPresent
-    tag: "0.11.68"
+    tag: "0.11.69"
   playgroundImage:
     repository: "docker.io/langchain/langsmith-playground"
     pullPolicy: IfNotPresent
-    tag: "0.11.68"
+    tag: "0.11.69"
   postgresImage:
     repository: "docker.io/postgres"
     pullPolicy: IfNotPresent
@@ -177,7 +177,7 @@ config:
     accessKeySecret: ""
     bucketName: ""
     apiURL: "https://s3.us-west-2.amazonaws.com"
-    # -- Optional. Use this to enable passing KMS key header, as well as an ARN of the KMS key to use.
+    # Use this to enable passing KMS key header, as well as an ARN of the KMS key to use.
     kmsEncryptionEnabled: false
     kmsKeyArn: ""
     # The following blob storage configuration values are for Azure and require blobStorage.engine = "Azure"
