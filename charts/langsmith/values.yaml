@@ -177,7 +177,7 @@ config:
     accessKeySecret: ""
     bucketName: ""
     apiURL: "https://s3.us-west-2.amazonaws.com"
-    # Use this to enable passing KMS key header, as well as an ARN of the KMS key to use.
+    # S3 Users: use this to enable passing KMS key header, as well as an ARN of the KMS key to use.
     kmsEncryptionEnabled: false
     kmsKeyArn: ""
     # The following blob storage configuration values are for Azure and require blobStorage.engine = "Azure"
