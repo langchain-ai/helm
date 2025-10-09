@@ -140,7 +140,6 @@ rules:
   - networking.istio.io
   resources:
   - virtualservices
-  - gateways
   verbs:
   - create
   - delete
@@ -313,7 +312,6 @@ rules:
   - networking.istio.io
   resources:
   - virtualservices
-  - gateways
   verbs:
   - create
   - delete
