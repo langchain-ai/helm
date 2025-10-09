@@ -27,31 +27,31 @@ images:
   aceBackendImage:
     repository: "docker.io/langchain/langsmith-ace-backend"
     pullPolicy: IfNotPresent
-    tag: "0.11.64"
+    tag: "0.11.68"
   backendImage:
     repository: "docker.io/langchain/langsmith-backend"
     pullPolicy: IfNotPresent
-    tag: "0.11.64"
+    tag: "0.11.68"
   frontendImage:
     repository: "docker.io/langchain/langsmith-frontend"
     pullPolicy: IfNotPresent
-    tag: "0.11.64"
+    tag: "0.11.68"
   hostBackendImage:
     repository: "docker.io/langchain/hosted-langserve-backend"
     pullPolicy: IfNotPresent
-    tag: "0.11.64"
+    tag: "0.11.68"
   operatorImage:
     repository: "docker.io/langchain/langgraph-operator"
     pullPolicy: Always
-    tag: "0.1.11"
+    tag: "0.1.16"
   platformBackendImage:
     repository: "docker.io/langchain/langsmith-go-backend"
     pullPolicy: IfNotPresent
-    tag: "0.11.64"
+    tag: "0.11.68"
   playgroundImage:
     repository: "docker.io/langchain/langsmith-playground"
     pullPolicy: IfNotPresent
-    tag: "0.11.64"
+    tag: "0.11.68"
   postgresImage:
     repository: "docker.io/postgres"
     pullPolicy: IfNotPresent
@@ -82,6 +82,16 @@ gateway:
   hostname: ""
   subdomain: ""
   sectionName: ""
+  annotations: {}
+  labels: {}
+
+# Whether to use Istio Gateway for ingress. Will create a VirtualService for LangSmith and a VirtualService for each LangGraph platform deployment.
+istioGateway:
+  enabled: false
+  name: "istio-gateway"
+  namespace: "istio-system"
+  hostname: ""
+  subdomain: ""
   annotations: {}
   labels: {}
 
