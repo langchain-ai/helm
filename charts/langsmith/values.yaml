@@ -42,7 +42,7 @@ images:
     tag: "0.11.68"
   operatorImage:
     repository: "docker.io/langchain/langgraph-operator"
-    pullPolicy: Always
+    pullPolicy: IfNotPresent
     tag: "0.1.16"
   platformBackendImage:
     repository: "docker.io/langchain/langsmith-go-backend"
