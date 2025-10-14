@@ -34,7 +34,7 @@ spec:
         prefix: {{ ternary "/" (printf "/%s" .Values.istioGateway.subdomain) (empty .Values.istioGateway.subdomain) }}
     route:
     - destination:
-        host: {{ include "langsmith.fullname" . }}-{{ .Values.frontend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.cluster.local
+        host: {{ include "langsmith.fullname" . }}-{{ .Values.frontend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}
         port:
           number: {{ .Values.frontend.service.httpPort }}
 {{- end }}
