@@ -80,7 +80,7 @@ metadata:
       {{- toYaml . | nindent 4 }}
     {{- end }}
 spec:
-  backoffLimit: 3
+  backoffLimit: 0
   ttlSecondsAfterFinished: {{ .Values.backend.authBootstrap.ttlSecondsAfterFinished }}
   template:
     metadata:
