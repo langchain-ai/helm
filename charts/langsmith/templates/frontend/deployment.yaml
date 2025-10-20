@@ -11,9 +11,9 @@
       key: oauth_issuer_url
       name: {{ include "langsmith.secretsName" .}}
 {{- end }}
-{{- if .Values.ingress.subdomain }}
+{{- if .Values.config.basePath }}
 - name: VITE_SUBDOMAIN
-  value: {{ .Values.ingress.subdomain }}
+  value: {{ .Values.config.basePath }}
 {{- end }}
 {{- if .Values.config.customLogo.enabled }}
 - name: VITE_CUSTOM_LOGO_URL
@@ -21,7 +21,7 @@
 - name: VITE_CO_BRANDING_ENABLED
   value: {{ .Values.config.customLogo.coBrandingEnabled | quote }}
 {{- end }}
-{{- if .Values.config.langgraphPlatform.enabled }}
+{{- if .Values.config.deployment.enabled }}
 - name: VITE_HOST_ENABLED
   value: "1"
 {{- end }}

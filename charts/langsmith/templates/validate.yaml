@@ -1,0 +1,99 @@
+{{- /*
+================================================================================
+CONFIGURATION VALIDATION
+================================================================================
+
+This template validates configuration and prevents deployment when:
+1. Deprecated values from versions prior to v12 are detected
+2. Invalid or conflicting configuration is present
+3. Required values are missing or malformed
+
+This template intentionally does not render any Kubernetes resources.
+It only performs validation checks and fails template rendering if issues are found.
+
+For full migration guide, see: https://docs.langchain.com/langsmith/v12-upgrade
+================================================================================
+*/}}
+
+{{- /* Validate ingress configuration */ -}}
+# Fail if none of ingress, gateway, or istioGateway are enabled and LangSmith Deployment is enabled
+{{- if and (not .Values.ingress.enabled) (not .Values.gateway.enabled) (not .Values.istioGateway.enabled) .Values.config.deployment.enabled }}
+{{- fail "Either ingress, gateway, or istioGateway must be enabled if LangGraph Platform is enabled." -}}
+{{- end -}}
+# Fail if more than one ingress type is enabled
+{{- $enabledCount := 0 -}}
+{{- if .Values.ingress.enabled }}{{ $enabledCount = add1 $enabledCount }}{{- end -}}
+{{- if .Values.gateway.enabled }}{{ $enabledCount = add1 $enabledCount }}{{- end -}}
+{{- if .Values.istioGateway.enabled }}{{ $enabledCount = add1 $enabledCount }}{{- end -}}
+{{- if gt $enabledCount 1 -}}
+{{- fail "Only one of ingress, gateway, or istioGateway can be enabled at the same time." -}}
+{{- end -}}
+
+{{- /* Validate authentication configuration */ -}}
+{{- if and .Values.config.basicAuth.enabled .Values.config.oauth.enabled -}}
+{{- fail "Basic auth and OAuth are both enabled. Please enable only one." -}}
+{{- end -}}
+{{- if and (not .Values.config.basicAuth.enabled) (not .Values.config.oauth.enabled) -}}
+{{- fail "Neither Basic auth nor OAuth are enabled. Please enable one of them." -}}
+{{- end -}}
+{{- if and (ne .Values.config.authType "mixed") (ne .Values.config.authType "oauth") -}}
+{{- fail "config.authType must be either 'mixed' or 'oauth'." -}}
+{{- end -}}
+{{- if and (.Values.config.basicAuth.enabled) (ne .Values.config.authType "mixed") -}}
+{{- fail "Basic auth is enabled but config.authType is not set to 'mixed'." -}}
+{{- end -}}
+
+{{- /* Validate initial org admin email */ -}}
+{{- if or .Values.config.basicAuth.enabled -}}
+{{- if not (or .Values.config.initialOrgAdminEmail .Values.config.basicAuth.initialOrgAdminEmail) -}}
+{{- fail "initialOrgAdminEmail is required if basic auth is enabled. Please set config.initialOrgAdminEmail." -}}
+{{- end -}}
+{{- end -}}
+
+{{- /* Validate password requirements */ -}}
+{{- if and .Values.config.basicAuth.enabled (not .Values.config.existingSecretName) }}
+{{- $password := .Values.config.basicAuth.initialOrgAdminPassword -}}
+{{- if lt (len $password) 12 -}}
+{{- fail "Admin password must be at least 12 characters long" -}}
+{{- end -}}
+{{- if not (regexMatch "[a-z]" $password) -}}
+{{- fail "Admin password must contain at least one lowercase letter" -}}
+{{- end -}}
+{{- if not (regexMatch "[A-Z]" $password) -}}
+{{- fail "Admin password must contain at least one uppercase letter" -}}
+{{- end -}}
+{{- if not (regexMatch `[!#$%()+,./:?@\[\]\\^_{~}-]` $password) -}}
+{{- fail "Admin password must contain at least one symbol from: !#$%()+,-./:?@[\\]^_{~}" -}}
+{{- end -}}
+{{- end }}
+
+{{- /* Validate operator/listener configuration */ -}}
+{{- $hasListenerTemplates := and (hasKey .Values "listener") (hasKey .Values.listener "templates") (not (empty .Values.listener.templates)) -}}
+{{- if $hasListenerTemplates -}}
+{{- fail "templates have moved to the operator. Please move your values from .Values.listener.templates to .Values.operator.templates." -}}
+{{- end -}}
+
+{{- /* Validate breaking changes from v12+ */ -}}
+{{- if hasKey .Values.config "langgraphPlatform" }}
+{{- fail "As of v12, config.langgraphPlatform has been moved to config.deployment. Please update your values.yaml file." }}
+{{- end }}
+
+{{- if hasKey .Values.ingress "hostname" }}
+{{- fail "As of v12, ingress.hostname has been moved to config.hostname. Please update your values.yaml file." }}
+{{- end }}
+
+{{- if hasKey .Values.ingress "subdomain" }}
+{{- fail "As of v12, ingress.subdomain has been moved to config.basePath. Please update your values.yaml file." }}
+{{- end }}
+
+{{- if and .Values.config.observability.tracing.enabled (not .Values.config.observability.tracing.endpoint) -}}
+{{- fail "When tracing is enabled (config.observability.tracing.enabled=true), config.observability.tracing.endpoint must be provided" -}}
+{{- end -}}
+
+{{- if and .Values.config.blobStorage.enabled (not .Values.config.blobStorage.engine) -}}
+{{- fail "When blob storage is enabled (config.blobStorage.enabled=true), config.blobStorage.engine must be one of [S3, Azure]" -}}
+{{- end -}}
+
+{{- if and .Values.config.blobStorage.enabled (not (or (eq .Values.config.blobStorage.engine "S3") (eq .Values.config.blobStorage.engine "s3") (eq .Values.config.blobStorage.engine "Azure") (eq .Values.config.blobStorage.engine "azure"))) -}}
+{{- fail "When blob storage is enabled (config.blobStorage.enabled=true), config.blobStorage.engine must be one of [S3, Azure]" -}}
+{{- end -}}

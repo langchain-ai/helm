@@ -1,42 +1,3 @@
-{{- define "validateAuthMode" -}}
-{{- if and .Values.config.basicAuth.enabled .Values.config.oauth.enabled -}}
-  {{- fail "Error: Basic auth and OAuth are both enabled. Please enable only one." -}}
-{{- end -}}
-{{- if and (not .Values.config.basicAuth.enabled) (not .Values.config.oauth.enabled) -}}
-  {{- fail "Error: Neither Basic auth nor OAuth are enabled. Please enable one of them." -}}
-{{- end -}}
-{{- if and (ne .Values.config.authType "mixed") (ne .Values.config.authType "oauth") -}}
-  {{- fail "Error: config.authType must be either 'mixed' or 'oauth'." -}}
-{{- end -}}
-{{- if and (.Values.config.basicAuth.enabled) (ne .Values.config.authType "mixed") -}}
-  {{- fail "Error: Basic auth is enabled but config.authType is not set to 'mixed'." -}}
-{{- end -}}
-{{- end -}}
-
-{{- define "validatePassword" -}}
-{{- $password := .Values.config.basicAuth.initialOrgAdminPassword -}}
-{{- if lt (len $password) 12 -}}
-  {{- fail "Error: Admin password must be at least 12 characters long" -}}
-{{- end -}}
-{{- if not (regexMatch "[a-z]" $password) -}}
-  {{- fail "Error: Admin password must contain at least one lowercase letter" -}}
-{{- end -}}
-{{- if not (regexMatch "[A-Z]" $password) -}}
-  {{- fail "Error: Admin password must contain at least one uppercase letter" -}}
-{{- end -}}
-{{- if not (regexMatch `[!#$%()+,./:?@\[\]\\^_{~}-]` $password) -}}
-  {{- fail "Error: Admin password must contain at least one symbol from: !#$%()+,-./:?@[\\]^_{~}" -}}
-{{- end -}}
-{{- end -}}
-
-{{- define "validateInitialOrgAdminEmail" -}}
-{{- if or .Values.config.basicAuth.enabled -}}
-  {{- if not (or .Values.config.initialOrgAdminEmail .Values.config.basicAuth.initialOrgAdminEmail) -}}
-    {{- fail "Error: initialOrgAdminEmail is required if basic auth is enabled. Please set config.initialOrgAdminEmail." -}}
-  {{- end -}}
-{{- end -}}
-{{- end -}}
-
 {{- define "authBootstrapEnvVars" -}}
 - name: INITIAL_ORG_ADMIN_EMAIL
   value: {{ .Values.config.initialOrgAdminEmail | default .Values.config.basicAuth.initialOrgAdminEmail }}
@@ -52,11 +13,6 @@
 - name: DEFAULT_WORKSPACE_NAME
   value: {{ .Values.config.defaultWorkspaceName }}
 {{- end -}}
-{{- template "validateAuthMode" . -}}
-{{- template "validateInitialOrgAdminEmail" . -}}
-{{- if and .Values.config.basicAuth.enabled (not .Values.config.existingSecretName) }}
-{{- template "validatePassword" . -}}
-{{- end }}
 {{- $envVars := concat .Values.commonEnv (include "langsmith.commonEnv" . | fromYamlArray) (include "authBootstrapEnvVars" . | fromYamlArray) .Values.backend.authBootstrap.extraEnv -}}
 {{- include "langsmith.detectDuplicates" $envVars -}}
 {{- $volumes := concat .Values.backend.authBootstrap.volumes (include "langsmith.tlsVolumes" . | fromYamlArray) -}}

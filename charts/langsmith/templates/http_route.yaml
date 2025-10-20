@@ -23,15 +23,15 @@ spec:
     {{- if .Values.gateway.sectionName }}
     sectionName: {{ .Values.gateway.sectionName }}
     {{- end }}
-  {{- if .Values.gateway.hostname }}
+  {{- if .Values.config.hostname }}
   hostnames:
-  - {{ .Values.gateway.hostname | quote }}
+  - {{ include "langsmith.hostnameWithoutProtocol" . | quote }}
   {{- end }}
   rules:
   - matches:
     - path:
         type: PathPrefix
-        value: {{ ternary "/" (printf "/%s" .Values.gateway.subdomain) (empty .Values.gateway.subdomain) }}
+        value: {{ ternary "/" (printf "/%s" .Values.config.basePath) (empty .Values.config.basePath) }}
     backendRefs:
     - name: {{ include "langsmith.fullname" . }}-{{ .Values.frontend.name }}
       port: {{ .Values.frontend.service.httpPort }}

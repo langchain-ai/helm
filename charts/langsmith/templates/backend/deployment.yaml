@@ -1,7 +1,7 @@
 {{- define "backendEnvVars" -}}
 - name: PORT
   value: {{ .Values.backend.containerPort | quote }}
-{{- with .Values.ingress.subdomain }}
+{{- with .Values.config.basePath }}
 - name: DOCS_PREFIX
   value: /{{ . }}/api
 {{- end }}

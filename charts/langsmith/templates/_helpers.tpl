@@ -169,7 +169,7 @@ Template containing common environment variables that are used by several servic
 {{- end }}
 {{- if .Values.config.hostname }}
 - name: LANGSMITH_URL
-  value: {{ .Values.config.hostname }}
+  value: {{ include "langsmith.hostnameWithoutProtocol" . }}
 {{- end }}
 - name: REDIS_DATABASE_URI
   valueFrom:
@@ -334,30 +334,30 @@ Template containing common environment variables that are used by several servic
 {{ include "langsmith.conditionalEnvVarsResolved" . }}
 - name: REDIS_RUNS_EXPIRY_SECONDS
   value: {{ .Values.config.settings.redisRunsExpirySeconds | quote }}
-{{- if .Values.config.langgraphPlatform.enabled }}
+{{- if .Values.config.deployment.enabled }}
 - name: LANGGRAPH_CLOUD_LICENSE_KEY
   valueFrom:
     secretKeyRef:
       name: {{ include "langsmith.secretsName" . }}
-      key: langgraph_cloud_license_key
+      key: langsmith_license_key
 - name: HOST_QUEUE
   value: "host"
 - name: HOST_WORKER_RECONCILIATION_CRON_ENABLED
   value: "true"
-{{- if .Values.ingress.subdomain }}
+{{- if .Values.config.basePath }}
 - name: HOST_LANGCHAIN_API_ENDPOINT
-  value: "http://{{ include "langsmith.fullname" . }}-{{ .Values.frontend.name }}.{{ .Values.namespace | default .Release.Namespace }}:{{ .Values.frontend.service.httpPort }}/{{ .Values.ingress.subdomain}}/api/v1"
+  value: "http://{{ include "langsmith.fullname" . }}-{{ .Values.frontend.name }}.{{ .Values.namespace | default .Release.Namespace }}:{{ .Values.frontend.service.httpPort }}/{{ .Values.config.basePath}}/api/v1"
 {{- else }}
 - name: HOST_LANGCHAIN_API_ENDPOINT
   value: "http://{{ include "langsmith.fullname" . }}-{{ .Values.frontend.name }}.{{ .Values.namespace | default .Release.Namespace }}:{{ .Values.frontend.service.httpPort }}/api/v1"
 {{- end }}
 - name: HOSTED_K8S_ROOT_DOMAIN
-  value: {{ .Values.config.langgraphPlatform.rootDomain | default .Values.ingress.hostname | quote }}
+  value: {{ include "langsmith.hostnameWithoutProtocol" . | quote }}
 - name: HOSTED_K8S_SHARED_INGRESS
   value: "true"
 {{- end }}
 - name: ENABLE_LGP_DEPLOYMENT_HEALTH_CHECK
-  value: {{ .Values.config.langgraphPlatform.ingressHealthCheckEnabled | quote }}
+  value: {{ .Values.config.deployment.ingressHealthCheckEnabled | quote }}
 {{- end }}
 
 
@@ -518,27 +518,6 @@ Creates the image reference used for Langsmith deployments. If registry is speci
 {{- end -}}
 
 {{- end -}}
-{{/*
-Validate tracing configuration
-*/}}
-{{- define "langsmith.validateTracing" -}}
-{{- if and .Values.config.observability.tracing.enabled (not .Values.config.observability.tracing.endpoint) -}}
-{{- fail "When tracing is enabled (config.observability.tracing.enabled=true), config.observability.tracing.endpoint must be provided" -}}
-{{- end -}}
-{{- end -}}
-
-{{/*
-Validate blob storage configuration
- */}}
-{{- define "langsmith.validateBlobStorage" -}}
-{{- if and .Values.config.blobStorage.enabled (not .Values.config.blobStorage.engine) -}}
-{{- fail "When blob storage is enabled (config.blobStorage.enabled=true), config.blobStorage.engine must be one of [S3, Azure]" -}}
-{{- end -}}
-{{- if and .Values.config.blobStorage.enabled (not (or (eq .Values.config.blobStorage.engine "S3") (eq .Values.config.blobStorage.engine "s3") (eq .Values.config.blobStorage.engine "Azure") (eq .Values.config.blobStorage.engine "azure"))) -}}
-{{- fail "When blob storage is enabled (config.blobStorage.enabled=true), config.blobStorage.engine must be one of [S3, Azure]" -}}
-{{- end -}}
-{{- end -}}
-
 
 {{- define "langsmith.tlsVolumeMounts" -}}
 {{- if and .Values.config.customCa.secretName .Values.config.customCa.secretKey -}}
@@ -558,4 +537,13 @@ Validate blob storage configuration
       - key: {{ .Values.config.customCa.secretKey }}
         path: ca-certificates.crt
 {{- end }}
+{{- end -}}
+
+{{/*
+Strip protocol (http://, https://, etc.) from hostname
+*/}}
+{{- define "langsmith.hostnameWithoutProtocol" -}}
+{{- if .Values.config.hostname -}}
+{{- regexReplaceAll "^[a-zA-Z][a-zA-Z0-9+.-]*://" .Values.config.hostname "" -}}
+{{- end -}}
 {{- end -}}

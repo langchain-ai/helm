@@ -54,3 +54,7 @@ data:
   ENABLE_CLICKHOUSE_METRICS_CRON: {{ ternary "true" "false" .Values.config.telemetry.metrics | quote }}
   BEACON_METRICS_ENABLED: {{ ternary "true" "false" .Values.config.telemetry.metrics | quote }}
   BEACON_TRACING_ENABLED: {{ ternary "true" "false" .Values.config.telemetry.traces | quote }}
+  # Feedback from postgres
+  FEEDBACK_CONFIG_SKIP_INGEST_CH_WRITE: "true"
+  FF_USE_PG_FOR_FEEDBACK_CONFIGS_FETCH_ENABLED_ALL: "true"
+  FF_USE_PG_FOR_FEEDBACK_FETCH_ENABLED_ALL: "true"
