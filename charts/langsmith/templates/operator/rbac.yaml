@@ -84,6 +84,7 @@ rules:
   - pods
   - services
   - serviceaccounts
+  - persistentvolumeclaims
   verbs:
   - create
   - delete
@@ -256,6 +257,7 @@ rules:
   - pods
   - services
   - serviceaccounts
+  - persistentvolumeclaims
   verbs:
   - create
   - delete
