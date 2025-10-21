@@ -181,6 +181,8 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | aceBackend.pdb.enabled | bool | `false` |  |
 | aceBackend.pdb.labels | object | `{}` |  |
 | aceBackend.pdb.minAvailable | int | `1` |  |
+| aceBackend.rollout.enabled | bool | `false` |  |
+| aceBackend.rollout.strategy | object | `{}` |  |
 | aceBackend.service.annotations | object | `{}` |  |
 | aceBackend.service.labels | object | `{}` |  |
 | aceBackend.service.loadBalancerIP | string | `""` |  |
@@ -357,6 +359,8 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | backend.pdb.enabled | bool | `false` |  |
 | backend.pdb.labels | object | `{}` |  |
 | backend.pdb.minAvailable | int | `1` |  |
+| backend.rollout.enabled | bool | `false` |  |
+| backend.rollout.strategy | object | `{}` |  |
 | backend.service.annotations | object | `{}` |  |
 | backend.service.labels | object | `{}` |  |
 | backend.service.loadBalancerIP | string | `""` |  |
@@ -542,6 +546,8 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | hostBackend.rbac.annotations | object | `{}` |  |
 | hostBackend.rbac.create | bool | `true` |  |
 | hostBackend.rbac.labels | object | `{}` |  |
+| hostBackend.rollout.enabled | bool | `false` |  |
+| hostBackend.rollout.strategy | object | `{}` |  |
 | hostBackend.service.annotations | object | `{}` |  |
 | hostBackend.service.labels | object | `{}` |  |
 | hostBackend.service.loadBalancerIP | string | `""` |  |
@@ -615,6 +621,8 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | frontend.proxyConnectTimeout | string | `"60"` |  |
 | frontend.proxyReadTimeout | string | `"300"` |  |
 | frontend.proxyWriteTimeout | string | `"300"` |  |
+| frontend.rollout.enabled | bool | `false` |  |
+| frontend.rollout.strategy | object | `{}` |  |
 | frontend.service.annotations | object | `{}` |  |
 | frontend.service.httpPort | int | `80` |  |
 | frontend.service.httpsPort | int | `443` |  |
@@ -688,6 +696,8 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | listener.rbac.annotations | object | `{}` |  |
 | listener.rbac.create | bool | `true` |  |
 | listener.rbac.labels | object | `{}` |  |
+| listener.rollout.enabled | bool | `false` |  |
+| listener.rollout.strategy | object | `{}` |  |
 | listener.serviceAccount.annotations | object | `{}` |  |
 | listener.serviceAccount.automountServiceAccountToken | bool | `true` |  |
 | listener.serviceAccount.create | bool | `true` |  |
@@ -729,6 +739,8 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | operator.rbac.annotations | object | `{}` |  |
 | operator.rbac.create | bool | `true` |  |
 | operator.rbac.labels | object | `{}` |  |
+| operator.rollout.enabled | bool | `false` |  |
+| operator.rollout.strategy | object | `{}` |  |
 | operator.serviceAccount.annotations | object | `{}` |  |
 | operator.serviceAccount.automountServiceAccountToken | bool | `true` |  |
 | operator.serviceAccount.create | bool | `true` |  |
@@ -793,6 +805,8 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | platformBackend.pdb.enabled | bool | `false` |  |
 | platformBackend.pdb.labels | object | `{}` |  |
 | platformBackend.pdb.minAvailable | int | `1` |  |
+| platformBackend.rollout.enabled | bool | `false` |  |
+| platformBackend.rollout.strategy | object | `{}` |  |
 | platformBackend.service.annotations | object | `{}` |  |
 | platformBackend.service.labels | object | `{}` |  |
 | platformBackend.service.loadBalancerIP | string | `""` |  |
@@ -857,6 +871,8 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | playground.pdb.enabled | bool | `false` |  |
 | playground.pdb.labels | object | `{}` |  |
 | playground.pdb.minAvailable | int | `1` |  |
+| playground.rollout.enabled | bool | `false` |  |
+| playground.rollout.strategy | object | `{}` |  |
 | playground.service.annotations | object | `{}` |  |
 | playground.service.labels | object | `{}` |  |
 | playground.service.loadBalancerIP | string | `""` |  |
@@ -996,6 +1012,8 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | queue.pdb.enabled | bool | `false` |  |
 | queue.pdb.labels | object | `{}` |  |
 | queue.pdb.minAvailable | int | `1` |  |
+| queue.rollout.enabled | bool | `false` |  |
+| queue.rollout.strategy | object | `{}` |  |
 | queue.serviceAccount.annotations | object | `{}` |  |
 | queue.serviceAccount.automountServiceAccountToken | bool | `true` |  |
 | queue.serviceAccount.create | bool | `true` |  |
