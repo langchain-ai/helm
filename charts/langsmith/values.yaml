@@ -29,19 +29,19 @@ images:
   aceBackendImage:
     repository: "docker.io/langchain/langsmith-ace-backend"
     pullPolicy: IfNotPresent
-    tag: "0.12.4"
+    tag: "0.12.6"
   backendImage:
     repository: "docker.io/langchain/langsmith-backend"
     pullPolicy: IfNotPresent
-    tag: "0.12.4"
+    tag: "0.12.6"
   frontendImage:
     repository: "docker.io/langchain/langsmith-frontend"
     pullPolicy: IfNotPresent
-    tag: "0.12.4"
+    tag: "0.12.6"
   hostBackendImage:
     repository: "docker.io/langchain/hosted-langserve-backend"
     pullPolicy: IfNotPresent
-    tag: "0.12.4"
+    tag: "0.12.6"
   operatorImage:
     repository: "docker.io/langchain/langgraph-operator"
     pullPolicy: IfNotPresent
@@ -49,11 +49,11 @@ images:
   platformBackendImage:
     repository: "docker.io/langchain/langsmith-go-backend"
     pullPolicy: IfNotPresent
-    tag: "0.12.4"
+    tag: "0.12.6"
   playgroundImage:
     repository: "docker.io/langchain/langsmith-playground"
     pullPolicy: IfNotPresent
-    tag: "0.12.4"
+    tag: "0.12.6"
   postgresImage:
     repository: "docker.io/postgres"
     pullPolicy: IfNotPresent
@@ -127,7 +127,7 @@ config:
   # -- Enable Workspace Admins to invite users to the org and workspace.
   workspaceScopeOrgInvitesEnabled: false
 
-  # -- Base URL of the LangSmith installation. Used for redirects and LangSmith deployments.
+  # -- hostname of the LangSmith installation. Used for redirects and LangSmith deployments. Required for OAuth and LangSmith Deployments. E.g langsmith.com
   hostname: ""
   # -- Base path for the LangSmith installation. Used to serve the app under a subpath like example.com/langsmith.
   basePath: ""

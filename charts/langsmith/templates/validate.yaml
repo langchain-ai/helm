@@ -78,12 +78,36 @@ For full migration guide, see: https://docs.langchain.com/langsmith/v12-upgrade
 {{- fail "As of v12, config.langgraphPlatform has been moved to config.deployment. Please update your values.yaml file." }}
 {{- end }}
 
+{{- if hasKey .Values.config.deployment "langgraphPlatformLicenseKey" }}
+{{- fail "As of v12, langgraphPlatform no longer needs a dedicated license key. You can remove this value." }}
+{{- end }}
+
+{{- if hasKey .Values.config "subdomain" }}
+{{- fail "As of v12, istioGateway.subdomain has been moved to istioGateway.basePath. Please update your values.yaml file." }}
+{{- end }}
+
 {{- if hasKey .Values.ingress "hostname" }}
 {{- fail "As of v12, ingress.hostname has been moved to config.hostname. Please update your values.yaml file." }}
 {{- end }}
 
 {{- if hasKey .Values.ingress "subdomain" }}
 {{- fail "As of v12, ingress.subdomain has been moved to config.basePath. Please update your values.yaml file." }}
+{{- end }}
+
+{{- if hasKey .Values.gateway "hostname" }}
+{{- fail "As of v12, gateway.hostname has been moved to config.hostname. Please update your values.yaml file." }}
+{{- end }}
+
+{{- if hasKey .Values.gateway "subdomain" }}
+{{- fail "As of v12, gateway.subdomain has been moved to config.basePath. Please update your values.yaml file." }}
+{{- end }}
+
+{{- if hasKey .Values.istioGateway "hostname" }}
+{{- fail "As of v12, istioGateway.hostname has been moved to config.hostname. Please update your values.yaml file." }}
+{{- end }}
+
+{{- if hasKey .Values.istioGateway "subdomain" }}
+{{- fail "As of v12, istioGateway.subdomain has been moved to config.basePath. Please update your values.yaml file." }}
 {{- end }}
 
 {{- if and .Values.config.observability.tracing.enabled (not .Values.config.observability.tracing.endpoint) -}}
