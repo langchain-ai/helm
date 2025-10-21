@@ -11,8 +11,13 @@
 {{- $volumes := concat .Values.commonVolumes .Values.listener.deployment.volumes (include "langsmith.tlsVolumes" . | fromYamlArray) -}}
 {{- $volumeMounts := concat .Values.commonVolumeMounts .Values.listener.deployment.volumeMounts (include "langsmith.tlsVolumeMounts" . | fromYamlArray) -}}
 {{- if .Values.config.langgraphPlatform.enabled }}
+{{- if .Values.listener.rollout.enabled }}
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+{{- else }}
 apiVersion: apps/v1
 kind: Deployment
+{{- end }}
 metadata:
   name: {{ include "langsmith.fullname" . }}-{{ .Values.listener.name }}
   namespace: {{ .Values.namespace | default .Release.Namespace }}
@@ -127,4 +132,8 @@ spec:
       volumes:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+{{- if .Values.listener.rollout.enabled }}
+  strategy:
+    {{- toYaml .Values.listener.rollout.strategy | nindent 4 }}
+{{- end }}
 {{- end }}

@@ -1,3 +1,4 @@
+{{- if .Values.config.langgraphPlatform.enabled }}
 {{- define "hostBackendEnvVars" -}}
 - name: PORT
   value: {{ .Values.hostBackend.containerPort | quote }}
@@ -7,16 +8,20 @@
 {{- end }}
 {{- if .Values.ingress.hostname }}
 - name: HOST_BACKEND_ENDPOINT_PUBLIC
-  value: {{ .Values.config.hostname }}
+  value: {{ .Values.ingress.hostname }}
 {{- end }}
 {{- end -}}
 {{- $envVars := concat (include "langsmith.commonEnv" . | fromYamlArray ) (include "hostBackendEnvVars" . | fromYamlArray) .Values.hostBackend.deployment.extraEnv -}}
 {{- include "langsmith.detectDuplicates" $envVars -}}
 {{- $volumes := concat .Values.commonVolumes .Values.hostBackend.deployment.volumes (include "langsmith.tlsVolumes" . | fromYamlArray) -}}
 {{- $volumeMounts := concat .Values.commonVolumeMounts .Values.hostBackend.deployment.volumeMounts (include "langsmith.tlsVolumeMounts" . | fromYamlArray) -}}
-{{- if .Values.config.langgraphPlatform.enabled }}
+{{- if .Values.hostBackend.rollout.enabled }}
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+{{- else }}
 apiVersion: apps/v1
 kind: Deployment
+{{- end }}
 metadata:
   name: {{ include "langsmith.fullname" . }}-{{ .Values.hostBackend.name }}
   namespace: {{ .Values.namespace | default .Release.Namespace }}
@@ -130,4 +135,8 @@ spec:
       volumes:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+{{- if .Values.hostBackend.rollout.enabled }}
+  strategy:
+    {{- toYaml .Values.hostBackend.rollout.strategy | nindent 4 }}
+{{- end }}
 {{- end }}
