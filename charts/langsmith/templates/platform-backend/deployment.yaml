@@ -66,10 +66,6 @@ spec:
           command:
             {{- toYaml . | nindent 12 }}
           {{- end }}
-          {{- with .Values.platformBackend.deployment.args }}
-          args:
-            {{- toYaml . | nindent 12 }}
-          {{- end }}
           env:
             {{- with $envVars }}
               {{ toYaml . | nindent 12 }}

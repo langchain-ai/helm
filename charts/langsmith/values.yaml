@@ -101,7 +101,7 @@ istioGateway:
 
 config:
   existingSecretName: ""
-  disableSecretCreation: false # Use this to prevent the creation of kubernetes secrets.
+  disableSecretCreation: false
   langsmithLicenseKey: ""
   langgraphPlatform:
       # -- Optional. Used to enable the Langgraph platform control plane. If enabled, the license key must be provided.

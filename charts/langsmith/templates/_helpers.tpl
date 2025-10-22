@@ -157,14 +157,12 @@ the user or some other secret provisioning mechanism
 Template containing common environment variables that are used by several services.
 */}}
 {{- define "langsmith.commonEnv" -}}
-{{- if not .Values.config.disableSecretCreation }}
 - name: POSTGRES_DATABASE_URI
   valueFrom:
     secretKeyRef:
       name: {{ include "langsmith.postgresSecretsName" . }}
       key: {{ .Values.postgres.external.connectionUrlSecretKey }}
       optional: {{ .Values.config.disableSecretCreation }}
-{{- end }}
 {{- if .Values.postgres.external.enabled }}
 - name: POSTGRES_SCHEMA
   value: {{ .Values.postgres.external.schema }}
