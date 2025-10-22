@@ -46,8 +46,13 @@
 {{- fail "ERROR: When frontend.deployment.securityContext.readOnlyRootFilesystem is true, you must mount both /var/lib/nginx and /var/run as writable volumes. Add emptyDir volumes for 'var-lib-nginx' mounted at /var/lib/nginx and 'var-run' mounted at /var/run. See read_only config example." }}
 {{- end }}
 {{- end }}
+{{- if .Values.frontend.rollout.enabled }}
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+{{- else }}
 apiVersion: apps/v1
 kind: Deployment
+{{- end }}
 metadata:
   name: {{ include "langsmith.fullname" . }}-{{ .Values.frontend.name }}
   namespace: {{ .Values.namespace | default .Release.Namespace }}
@@ -175,3 +180,7 @@ spec:
             items:
               - key: nginx.conf
                 path: nginx.conf
+{{- if .Values.frontend.rollout.enabled }}
+  strategy:
+    {{- toYaml .Values.frontend.rollout.strategy | nindent 4 }}
+{{- end }}

@@ -8,8 +8,13 @@
 {{- include "validateTemplatesMoved" . -}}
 {{- $volumes := concat .Values.commonVolumes .Values.operator.deployment.volumes -}}
 {{- $volumeMounts := concat .Values.commonVolumeMounts .Values.operator.deployment.volumeMounts -}}
+{{- if .Values.operator.rollout.enabled }}
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+{{- else }}
 apiVersion: apps/v1
 kind: Deployment
+{{- end }}
 metadata:
   name: {{ include "langsmith.fullname" . }}-{{ .Values.operator.name }}
   namespace: {{ .Values.namespace | default .Release.Namespace }}
@@ -173,4 +178,8 @@ spec:
       {{- with $volumes }}
         {{- toYaml . | nindent 8 }}
       {{- end }}
+{{- if .Values.operator.rollout.enabled }}
+  strategy:
+    {{- toYaml .Values.operator.rollout.strategy | nindent 4 }}
+{{- end }}
 {{- end }}

@@ -8,8 +8,13 @@ metadata:
     {{- include "langsmith.labels" . | nindent 4 }}
 spec:
   scaleTargetRef:
+    {{- if .Values.playground.rollout.enabled }}
+    apiVersion: argoproj.io/v1alpha1
+    kind: Rollout
+    {{- else }}
     apiVersion: apps/v1
     kind: Deployment
+    {{- end }}
     name: {{ include "langsmith.fullname" . }}-{{ .Values.playground.name }}
   minReplicas: {{ .Values.playground.autoscaling.minReplicas }}
   maxReplicas: {{ .Values.playground.autoscaling.maxReplicas }}
