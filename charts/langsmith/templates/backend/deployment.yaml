@@ -56,7 +56,7 @@ spec:
       securityContext:
         {{- toYaml .Values.backend.deployment.podSecurityContext | nindent 8 }}
       serviceAccountName: {{ include "backend.serviceAccountName" . }}
-      {{- with .Values.backend.deployment.initContainers }}
+      {{- with concat .Values.commonInitContainers .Values.backend.deployment.initContainers }}
       initContainers:
         {{- toYaml . | nindent 8 }}
       {{- end }}

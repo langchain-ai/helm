@@ -4,16 +4,19 @@
     secretKeyRef:
       name: {{ include "langsmith.clickhouseSecretsName" . }}
       key: clickhouse_db
+      optional: {{ .Values.config.disableSecretCreation }}
 - name: CLICKHOUSE_USER
   valueFrom:
     secretKeyRef:
       name: {{ include "langsmith.clickhouseSecretsName" . }}
       key: clickhouse_user
+      optional: {{ .Values.config.disableSecretCreation }}
 - name: CLICKHOUSE_PASSWORD
   valueFrom:
     secretKeyRef:
       name: {{ include "langsmith.clickhouseSecretsName" . }}
       key: clickhouse_password
+      optional: {{ .Values.config.disableSecretCreation }}
 {{- end -}}
 {{- if not .Values.clickhouse.external.enabled }}
 {{- $envVars := concat .Values.commonEnv (include "clickhouseEnvVars" . | fromYamlArray) .Values.clickhouse.statefulSet.extraEnv -}}
@@ -64,7 +67,7 @@ spec:
       securityContext:
         {{- toYaml .Values.clickhouse.statefulSet.podSecurityContext | nindent 8 }}
       serviceAccountName: {{ include "clickhouse.serviceAccountName" . }}
-      {{- with .Values.clickhouse.statefulSet.initContainers }}
+      {{- with concat .Values.commonInitContainers .Values.clickhouse.statefulSet.initContainers }}
       initContainers:
         {{- toYaml . | nindent 8 }}
       {{- end }}

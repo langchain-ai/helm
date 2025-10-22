@@ -132,6 +132,7 @@ the user or some other secret provisioning mechanism
     secretKeyRef:
       name: {{ include "langsmith.secretsName" . }}
       key: api_key_salt
+      optional: {{ .Values.config.disableSecretCreation }}
 {{- end }}
 {{- define "langsmith.conditionalEnvVarsResolved" -}}
   {{- $commonEnvKeys := list -}}
@@ -156,11 +157,14 @@ the user or some other secret provisioning mechanism
 Template containing common environment variables that are used by several services.
 */}}
 {{- define "langsmith.commonEnv" -}}
+{{- if not .Values.config.disableSecretCreation }}
 - name: POSTGRES_DATABASE_URI
   valueFrom:
     secretKeyRef:
       name: {{ include "langsmith.postgresSecretsName" . }}
       key: {{ .Values.postgres.external.connectionUrlSecretKey }}
+      optional: {{ .Values.config.disableSecretCreation }}
+{{- end }}
 {{- if .Values.postgres.external.enabled }}
 - name: POSTGRES_SCHEMA
   value: {{ .Values.postgres.external.schema }}
@@ -176,6 +180,7 @@ Template containing common environment variables that are used by several servic
     secretKeyRef:
       name: {{ include "langsmith.redisSecretsName" . }}
       key: {{ .Values.redis.external.connectionUrlSecretKey }}
+      optional: {{ .Values.config.disableSecretCreation }}
 - name: CLICKHOUSE_HYBRID
   value: {{ .Values.clickhouse.external.hybrid | quote }}
 - name: CLICKHOUSE_DB
@@ -183,36 +188,43 @@ Template containing common environment variables that are used by several servic
     secretKeyRef:
       name: {{ include "langsmith.clickhouseSecretsName" . }}
       key: {{ .Values.clickhouse.external.databaseSecretKey }}
+      optional: {{ .Values.config.disableSecretCreation }}
 - name: CLICKHOUSE_HOST
   valueFrom:
     secretKeyRef:
       name: {{ include "langsmith.clickhouseSecretsName" . }}
       key: {{ .Values.clickhouse.external.hostSecretKey }}
+      optional: {{ .Values.config.disableSecretCreation }}
 - name: CLICKHOUSE_PORT
   valueFrom:
     secretKeyRef:
       name: {{ include "langsmith.clickhouseSecretsName" . }}
       key: {{ .Values.clickhouse.external.portSecretKey }}
+      optional: {{ .Values.config.disableSecretCreation }}
 - name: CLICKHOUSE_NATIVE_PORT
   valueFrom:
     secretKeyRef:
       name: {{ include "langsmith.clickhouseSecretsName" . }}
       key: {{ .Values.clickhouse.external.nativePortSecretKey }}
+      optional: {{ .Values.config.disableSecretCreation }}
 - name: CLICKHOUSE_USER
   valueFrom:
     secretKeyRef:
       name: {{ include "langsmith.clickhouseSecretsName" . }}
       key: {{ .Values.clickhouse.external.userSecretKey }}
+      optional: {{ .Values.config.disableSecretCreation }}
 - name: CLICKHOUSE_PASSWORD
   valueFrom:
     secretKeyRef:
       name: {{ include "langsmith.clickhouseSecretsName" . }}
       key: {{ .Values.clickhouse.external.passwordSecretKey }}
+      optional: {{ .Values.config.disableSecretCreation }}
 - name: CLICKHOUSE_TLS
   valueFrom:
     secretKeyRef:
       name: {{ include "langsmith.clickhouseSecretsName" . }}
       key: {{ .Values.clickhouse.external.tlsSecretKey }}
+      optional: {{ .Values.config.disableSecretCreation }}
 - name: CLICKHOUSE_CLUSTER
   value: {{ .Values.clickhouse.external.cluster }}
 - name: LOG_LEVEL
@@ -223,17 +235,20 @@ Template containing common environment variables that are used by several servic
     secretKeyRef:
       name: {{ include "langsmith.secretsName" . }}
       key: oauth_client_id
+      optional: {{ .Values.config.disableSecretCreation }}
 - name: OAUTH_ISSUER_URL
   valueFrom:
     secretKeyRef:
       name: {{ include "langsmith.secretsName" . }}
       key: oauth_issuer_url
+      optional: {{ .Values.config.disableSecretCreation }}
 {{- if eq .Values.config.authType "mixed" }}
 - name: OAUTH_CLIENT_SECRET
   valueFrom:
     secretKeyRef:
       name: {{ include "langsmith.secretsName" . }}
       key: oauth_client_secret
+      optional: {{ .Values.config.disableSecretCreation }}
 {{- end }}
 {{- end }}
 - name: LANGSMITH_LICENSE_KEY
@@ -241,11 +256,13 @@ Template containing common environment variables that are used by several servic
     secretKeyRef:
       name: {{ include "langsmith.secretsName" . }}
       key: langsmith_license_key
+      optional: {{ .Values.config.disableSecretCreation }}
 - name: API_KEY_SALT
   valueFrom:
     secretKeyRef:
       name: {{ include "langsmith.secretsName" . }}
       key: api_key_salt
+      optional: {{ .Values.config.disableSecretCreation }}
 - name: BASIC_AUTH_ENABLED
   value: {{ .Values.config.basicAuth.enabled | quote }}
 {{- if .Values.config.basicAuth.enabled }}
@@ -254,6 +271,7 @@ Template containing common environment variables that are used by several servic
     secretKeyRef:
       name: {{ include "langsmith.secretsName" . }}
       key: jwt_secret
+      optional: {{ .Values.config.disableSecretCreation }}
 {{- end }}
 - name: FF_ORG_CREATION_DISABLED
   value: {{ .Values.config.userOrgCreationDisabled | quote }}
@@ -340,6 +358,7 @@ Template containing common environment variables that are used by several servic
     secretKeyRef:
       name: {{ include "langsmith.secretsName" . }}
       key: langgraph_cloud_license_key
+      optional: {{ .Values.config.disableSecretCreation }}
 - name: HOST_QUEUE
   value: "host"
 - name: HOST_WORKER_RECONCILIATION_CRON_ENABLED
