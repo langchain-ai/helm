@@ -228,7 +228,10 @@ aceBackend:
   rollout:
     enabled: false
     # -- Rollout strategy configuration. See https://argo-rollouts.readthedocs.io/en/stable/features/specification/
-    strategy: {}
+    strategy:
+      canary:
+        steps:
+          - setWeight: 100
   deployment:
     replicas: 1
     labels: {}
@@ -313,7 +316,10 @@ backend:
   rollout:
     enabled: false
     # -- Rollout strategy configuration. See https://argo-rollouts.readthedocs.io/en/stable/features/specification/
-    strategy: {}
+    strategy:
+      canary:
+        steps:
+          - setWeight: 100
   deployment:
     replicas: 2
     labels: {}
@@ -689,7 +695,10 @@ frontend:
   rollout:
     enabled: false
     # -- Rollout strategy configuration. See https://argo-rollouts.readthedocs.io/en/stable/features/specification/
-    strategy: {}
+    strategy:
+      canary:
+        steps:
+          - setWeight: 100
   # Nginx Max Body Size. Refer to https://nginx.org/en/docs/http/ngx_http_core_module.html#client_max_body_size for more information.
   maxBodySize: "25M"
   # Custom CSP Header. Refer to https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/CSP.
@@ -796,7 +805,10 @@ hostBackend:
   rollout:
     enabled: false
     # -- Rollout strategy configuration. See https://argo-rollouts.readthedocs.io/en/stable/features/specification/
-    strategy: {}
+    strategy:
+      canary:
+        steps:
+          - setWeight: 100
   deployment:
     replicas: 1
     labels: {}
@@ -883,7 +895,10 @@ listener:
   rollout:
     enabled: false
     # -- Rollout strategy configuration. See https://argo-rollouts.readthedocs.io/en/stable/features/specification/
-    strategy: {}
+    strategy:
+      canary:
+        steps:
+          - setWeight: 100
   deployment:
     replicas: 1
     labels: {}
@@ -966,7 +981,10 @@ platformBackend:
   rollout:
     enabled: false
     # -- Rollout strategy configuration. See https://argo-rollouts.readthedocs.io/en/stable/features/specification/
-    strategy: {}
+    strategy:
+      canary:
+        steps:
+          - setWeight: 100
   deployment:
     replicas: 3
     labels: {}
@@ -1052,7 +1070,10 @@ operator:
   rollout:
     enabled: false
     # -- Rollout strategy configuration. See https://argo-rollouts.readthedocs.io/en/stable/features/specification/
-    strategy: {}
+    strategy:
+      canary:
+        steps:
+          - setWeight: 100
   deployment:
     replicas: 1
     labels: {}
@@ -1233,7 +1254,10 @@ playground:
   rollout:
     enabled: false
     # -- Rollout strategy configuration. See https://argo-rollouts.readthedocs.io/en/stable/features/specification/
-    strategy: {}
+    strategy:
+      canary:
+        steps:
+          - setWeight: 100
   deployment:
     replicas: 1
     labels: {}
@@ -1411,7 +1435,10 @@ queue:
   rollout:
     enabled: false
     # -- Rollout strategy configuration. See https://argo-rollouts.readthedocs.io/en/stable/features/specification/
-    strategy: {}
+    strategy:
+      canary:
+        steps:
+          - setWeight: 100
   deployment:
     replicas: 3
     labels: {}
