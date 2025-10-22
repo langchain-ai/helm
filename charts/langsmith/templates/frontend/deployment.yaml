@@ -5,11 +5,13 @@
     secretKeyRef:
       key: oauth_client_id
       name: {{ include "langsmith.secretsName" .}}
+      optional: {{ .Values.config.disableSecretCreation }}
 - name: VITE_OAUTH_ISSUER_URL
   valueFrom:
     secretKeyRef:
       key: oauth_issuer_url
       name: {{ include "langsmith.secretsName" .}}
+      optional: {{ .Values.config.disableSecretCreation }}
 {{- end }}
 {{- if .Values.ingress.subdomain }}
 - name: VITE_SUBDOMAIN
@@ -29,7 +31,7 @@
 {{- $envVars := concat .Values.commonEnv (include "frontendEnvVars" . | fromYamlArray) .Values.frontend.deployment.extraEnv -}}
 {{- include "langsmith.detectDuplicates" $envVars -}}
 {{- $volumes := concat .Values.commonVolumes .Values.frontend.deployment.volumes -}}
-{{- $volumeMounts := concat .Values.commonVolumes .Values.frontend.deployment.volumeMounts -}}
+{{- $volumeMounts := concat .Values.commonVolumeMounts .Values.frontend.deployment.volumeMounts -}}
 {{- /* Validate nginx mounts when readOnlyRootFilesystem is enabled */ -}}
 {{- if .Values.frontend.deployment.securityContext.readOnlyRootFilesystem }}
 {{- $hasNginxMount := false }}
@@ -97,7 +99,7 @@ spec:
       securityContext:
         {{- toYaml .Values.frontend.deployment.podSecurityContext | nindent 8 }}
       serviceAccountName: {{ include "frontend.serviceAccountName" . }}
-      {{- with .Values.frontend.deployment.initContainers }}
+      {{- with concat .Values.commonInitContainers .Values.frontend.deployment.initContainers }}
       initContainers:
         {{- toYaml . | nindent 8 }}
       {{- end }}

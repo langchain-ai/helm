@@ -46,6 +46,7 @@
     secretKeyRef:
       name: {{ include "langsmith.secretsName" . }}
       key: initial_org_admin_password
+      optional: {{ .Values.config.disableSecretCreation }}
 {{- end }}
 - name: INITIAL_ORG_NAME
   value: {{ .Values.config.initialOrgName }}
@@ -59,8 +60,8 @@
 {{- end }}
 {{- $envVars := concat .Values.commonEnv (include "langsmith.commonEnv" . | fromYamlArray) (include "authBootstrapEnvVars" . | fromYamlArray) .Values.backend.authBootstrap.extraEnv -}}
 {{- include "langsmith.detectDuplicates" $envVars -}}
-{{- $volumes := concat .Values.backend.authBootstrap.volumes (include "langsmith.tlsVolumes" . | fromYamlArray) -}}
-{{- $volumeMounts := concat .Values.backend.authBootstrap.volumeMounts (include "langsmith.tlsVolumeMounts" . | fromYamlArray) -}}
+{{- $volumes := concat .Values.commonVolumes .Values.backend.authBootstrap.volumes (include "langsmith.tlsVolumes" . | fromYamlArray) -}}
+{{- $volumeMounts := concat .Values.commonVolumeMounts .Values.backend.authBootstrap.volumeMounts (include "langsmith.tlsVolumeMounts" . | fromYamlArray) -}}
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -103,7 +104,7 @@ spec:
       securityContext:
         {{- toYaml .Values.backend.authBootstrap.podSecurityContext | nindent 8 }}
       serviceAccountName: {{ include "backend.serviceAccountName" . }}
-      {{- with .Values.backend.authBootstrap.initContainers }}
+      {{- with concat .Values.commonInitContainers .Values.backend.authBootstrap.initContainers }}
       initContainers:
         {{- toYaml . | nindent 8 }}
       {{- end }}

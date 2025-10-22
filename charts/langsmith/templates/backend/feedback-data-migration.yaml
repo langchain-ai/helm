@@ -1,8 +1,8 @@
 {{- if .Values.backend.feedbackDataMigration.enabled }}
 {{- $envVars := concat .Values.commonEnv (include "langsmith.commonEnv" . | fromYamlArray) .Values.backend.feedbackDataMigration.extraEnv -}}
 {{- include "langsmith.detectDuplicates" $envVars -}}
-{{- $volumes := concat .Values.backend.feedbackDataMigration.volumes (include "langsmith.tlsVolumes" . | fromYamlArray) -}}
-{{- $volumeMounts := concat .Values.backend.feedbackDataMigration.volumeMounts (include "langsmith.tlsVolumeMounts" . | fromYamlArray) -}}
+{{- $volumes := concat .Values.commonVolumes .Values.backend.feedbackDataMigration.volumes (include "langsmith.tlsVolumes" . | fromYamlArray) -}}
+{{- $volumeMounts := concat .Values.commonVolumeMounts .Values.backend.feedbackDataMigration.volumeMounts (include "langsmith.tlsVolumeMounts" . | fromYamlArray) -}}
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -44,7 +44,7 @@ spec:
       securityContext:
         {{- toYaml .Values.backend.feedbackDataMigration.podSecurityContext | nindent 8 }}
       serviceAccountName: {{ include "backend.serviceAccountName" . }}
-      {{- with .Values.backend.feedbackDataMigration.initContainers }}
+      {{- with concat .Values.commonInitContainers .Values.backend.feedbackDataMigration.initContainers }}
       initContainers:
         {{- toYaml . | nindent 8 }}
       {{- end }}

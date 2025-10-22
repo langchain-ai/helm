@@ -1,8 +1,8 @@
 {{- if .Values.backend.clickhouseMigrations.enabled }}
 {{- $envVars := concat .Values.commonEnv (include "langsmith.commonEnv" . | fromYamlArray) .Values.backend.clickhouseMigrations.extraEnv -}}
 {{- include "langsmith.detectDuplicates" $envVars -}}
-{{- $volumes := concat .Values.backend.clickhouseMigrations.volumes (include "langsmith.tlsVolumes" . | fromYamlArray) -}}
-{{- $volumeMounts := concat .Values.backend.clickhouseMigrations.volumeMounts (include "langsmith.tlsVolumeMounts" . | fromYamlArray) -}}
+{{- $volumes := concat .Values.commonVolumes .Values.backend.clickhouseMigrations.volumes (include "langsmith.tlsVolumes" . | fromYamlArray) -}}
+{{- $volumeMounts := concat .Values.commonVolumeMounts .Values.backend.clickhouseMigrations.volumeMounts (include "langsmith.tlsVolumeMounts" . | fromYamlArray) -}}
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -45,7 +45,7 @@ spec:
       securityContext:
         {{- toYaml .Values.backend.clickhouseMigrations.podSecurityContext | nindent 8 }}
       serviceAccountName: {{ include "backend.serviceAccountName" . }}
-      {{- with .Values.backend.clickhouseMigrations.initContainers }}
+      {{- with concat .Values.commonInitContainers .Values.backend.clickhouseMigrations.initContainers }}
       initContainers:
         {{- toYaml . | nindent 8 }}
       {{- end }}
