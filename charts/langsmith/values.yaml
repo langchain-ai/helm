@@ -530,6 +530,7 @@ backend:
 
 clickhouse:
   name: "clickhouse"
+  disableSecretCreation: false
   config:
     allowSimdjson: true
     logLevel: "warning"
@@ -1274,6 +1275,7 @@ playground:
 
 postgres:
   name: "postgres"
+  disableSecretCreation: false
   external:
     # If enabled, use the following values to connect to an external database. This will also disable the
     # creation of a postgres stateful-set and service.
@@ -1442,6 +1444,7 @@ queue:
 
 redis:
   name: "redis"
+  disableSecretCreation: false
   external:
     # If enabled, use the following values to connect to an external redis instance. This will also disable the
     # creation of a redis stateful-set and service.
