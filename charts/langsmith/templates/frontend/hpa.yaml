@@ -8,8 +8,13 @@ metadata:
     {{- include "langsmith.labels" . | nindent 4 }}
 spec:
   scaleTargetRef:
+    {{- if .Values.frontend.rollout.enabled }}
+    apiVersion: argoproj.io/v1alpha1
+    kind: Rollout
+    {{- else }}
     apiVersion: apps/v1
     kind: Deployment
+    {{- end }}
     name: {{ include "langsmith.fullname" . }}-{{ .Values.frontend.name }}
   minReplicas: {{ .Values.frontend.autoscaling.minReplicas }}
   maxReplicas: {{ .Values.frontend.autoscaling.maxReplicas }}

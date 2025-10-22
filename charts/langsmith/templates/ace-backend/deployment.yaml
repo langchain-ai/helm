@@ -6,8 +6,13 @@
 {{- end -}}
 {{- $envVars := concat (include "aceBackendEnvVars" . | fromYamlArray) .Values.aceBackend.deployment.extraEnv -}}
 {{- include "langsmith.detectDuplicates" $envVars -}}
+{{- if .Values.aceBackend.rollout.enabled }}
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+{{- else }}
 apiVersion: apps/v1
 kind: Deployment
+{{- end }}
 metadata:
   name: {{ include "langsmith.fullname" . }}-{{ .Values.aceBackend.name }}
   namespace: {{ .Values.namespace | default .Release.Namespace }}
@@ -121,3 +126,7 @@ spec:
       volumes:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+{{- if .Values.aceBackend.rollout.enabled }}
+  strategy:
+    {{- toYaml .Values.aceBackend.rollout.strategy | nindent 4 }}
+{{- end }}

@@ -15,8 +15,13 @@
 {{- $volumes := concat .Values.commonVolumes .Values.hostBackend.deployment.volumes (include "langsmith.tlsVolumes" . | fromYamlArray) -}}
 {{- $volumeMounts := concat .Values.commonVolumeMounts .Values.hostBackend.deployment.volumeMounts (include "langsmith.tlsVolumeMounts" . | fromYamlArray) -}}
 {{- if .Values.config.deployment.enabled }}
+{{- if .Values.hostBackend.rollout.enabled }}
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+{{- else }}
 apiVersion: apps/v1
 kind: Deployment
+{{- end }}
 metadata:
   name: {{ include "langsmith.fullname" . }}-{{ .Values.hostBackend.name }}
   namespace: {{ .Values.namespace | default .Release.Namespace }}
@@ -130,4 +135,8 @@ spec:
       volumes:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+{{- if .Values.hostBackend.rollout.enabled }}
+  strategy:
+    {{- toYaml .Values.hostBackend.rollout.strategy | nindent 4 }}
+{{- end }}
 {{- end }}

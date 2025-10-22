@@ -218,6 +218,14 @@ aceBackend:
   name: "ace-backend"
   containerPort: 1987
   bindAddress: "0.0.0.0"
+  # -- ArgoCD Rollouts configuration. If enabled, will create a Rollout resource instead of a Deployment. See https://argo-rollouts.readthedocs.io/
+  rollout:
+    enabled: false
+    # -- Rollout strategy configuration. See https://argo-rollouts.readthedocs.io/en/stable/features/specification/
+    strategy:
+      canary:
+        steps:
+          - setWeight: 100
   deployment:
     replicas: 1
     labels: {}
@@ -298,6 +306,14 @@ backend:
   name: "backend"
   containerPort: 1984
   existingConfigMapName: ""
+  # -- ArgoCD Rollouts configuration. If enabled, will create a Rollout resource instead of a Deployment. See https://argo-rollouts.readthedocs.io/
+  rollout:
+    enabled: false
+    # -- Rollout strategy configuration. See https://argo-rollouts.readthedocs.io/en/stable/features/specification/
+    strategy:
+      canary:
+        steps:
+          - setWeight: 100
   deployment:
     replicas: 2
     labels: {}
@@ -669,6 +685,14 @@ frontend:
   name: "frontend"
   containerPort: 8080
   existingConfigMapName: ""
+  # -- ArgoCD Rollouts configuration. If enabled, will create a Rollout resource instead of a Deployment. See https://argo-rollouts.readthedocs.io/
+  rollout:
+    enabled: false
+    # -- Rollout strategy configuration. See https://argo-rollouts.readthedocs.io/en/stable/features/specification/
+    strategy:
+      canary:
+        steps:
+          - setWeight: 100
   # Nginx Max Body Size. Refer to https://nginx.org/en/docs/http/ngx_http_core_module.html#client_max_body_size for more information.
   maxBodySize: "25M"
   # Custom CSP Header. Refer to https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/CSP.
@@ -771,6 +795,14 @@ frontend:
 hostBackend:
   name: "host-backend"
   containerPort: 1985
+  # -- ArgoCD Rollouts configuration. If enabled, will create a Rollout resource instead of a Deployment. See https://argo-rollouts.readthedocs.io/
+  rollout:
+    enabled: false
+    # -- Rollout strategy configuration. See https://argo-rollouts.readthedocs.io/en/stable/features/specification/
+    strategy:
+      canary:
+        steps:
+          - setWeight: 100
   deployment:
     replicas: 1
     labels: {}
@@ -853,6 +885,14 @@ hostBackend:
 listener:
   name: "listener"
   containerPort: 8080
+  # -- ArgoCD Rollouts configuration. If enabled, will create a Rollout resource instead of a Deployment. See https://argo-rollouts.readthedocs.io/
+  rollout:
+    enabled: false
+    # -- Rollout strategy configuration. See https://argo-rollouts.readthedocs.io/en/stable/features/specification/
+    strategy:
+      canary:
+        steps:
+          - setWeight: 100
   deployment:
     replicas: 1
     labels: {}
@@ -931,6 +971,14 @@ platformBackend:
   name: "platform-backend"
   containerPort: 1986
   existingConfigMapName: ""
+  # -- ArgoCD Rollouts configuration. If enabled, will create a Rollout resource instead of a Deployment. See https://argo-rollouts.readthedocs.io/
+  rollout:
+    enabled: false
+    # -- Rollout strategy configuration. See https://argo-rollouts.readthedocs.io/en/stable/features/specification/
+    strategy:
+      canary:
+        steps:
+          - setWeight: 100
   deployment:
     replicas: 3
     labels: {}
@@ -1012,6 +1060,14 @@ operator:
   createCRDs: true
   watchNamespaces: ""
   kedaEnabled: true
+  # -- ArgoCD Rollouts configuration. If enabled, will create a Rollout resource instead of a Deployment. See https://argo-rollouts.readthedocs.io/
+  rollout:
+    enabled: false
+    # -- Rollout strategy configuration. See https://argo-rollouts.readthedocs.io/en/stable/features/specification/
+    strategy:
+      canary:
+        steps:
+          - setWeight: 100
   deployment:
     replicas: 1
     labels: {}
@@ -1188,6 +1244,14 @@ operator:
 playground:
   name: "playground"
   containerPort: 1988
+  # -- ArgoCD Rollouts configuration. If enabled, will create a Rollout resource instead of a Deployment. See https://argo-rollouts.readthedocs.io/
+  rollout:
+    enabled: false
+    # -- Rollout strategy configuration. See https://argo-rollouts.readthedocs.io/en/stable/features/specification/
+    strategy:
+      canary:
+        steps:
+          - setWeight: 100
   deployment:
     replicas: 1
     labels: {}
@@ -1361,6 +1425,14 @@ postgres:
 queue:
   name: "queue"
   containerPort: 8080
+  # -- ArgoCD Rollouts configuration. If enabled, will create a Rollout resource instead of a Deployment. See https://argo-rollouts.readthedocs.io/
+  rollout:
+    enabled: false
+    # -- Rollout strategy configuration. See https://argo-rollouts.readthedocs.io/en/stable/features/specification/
+    strategy:
+      canary:
+        steps:
+          - setWeight: 100
   deployment:
     replicas: 3
     labels: {}

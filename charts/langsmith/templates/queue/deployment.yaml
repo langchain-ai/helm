@@ -10,8 +10,13 @@
 {{- include "langsmith.detectDuplicates" $envVars -}}
 {{- $volumes := concat .Values.commonVolumes .Values.queue.deployment.volumes (include "langsmith.tlsVolumes" . | fromYamlArray)  -}}
 {{- $volumeMounts := concat .Values.commonVolumeMounts .Values.queue.deployment.volumeMounts (include "langsmith.tlsVolumeMounts" . | fromYamlArray) -}}
+{{- if .Values.queue.rollout.enabled }}
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+{{- else }}
 apiVersion: apps/v1
 kind: Deployment
+{{- end }}
 metadata:
   name: {{ include "langsmith.fullname" . }}-{{ .Values.queue.name }}
   namespace: {{ .Values.namespace | default .Release.Namespace }}
@@ -126,3 +131,7 @@ spec:
       volumes:
           {{- toYaml . | nindent 8 }}
       {{- end }}
+{{- if .Values.queue.rollout.enabled }}
+  strategy:
+    {{- toYaml .Values.queue.rollout.strategy | nindent 4 }}
+{{- end }}
