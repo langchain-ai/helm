@@ -1,4 +1,3 @@
-{{- if .Values.config.langgraphPlatform.enabled }}
 {{- define "hostBackendEnvVars" -}}
 - name: PORT
   value: {{ .Values.hostBackend.containerPort | quote }}
@@ -15,6 +14,7 @@
 {{- include "langsmith.detectDuplicates" $envVars -}}
 {{- $volumes := concat .Values.commonVolumes .Values.hostBackend.deployment.volumes (include "langsmith.tlsVolumes" . | fromYamlArray) -}}
 {{- $volumeMounts := concat .Values.commonVolumeMounts .Values.hostBackend.deployment.volumeMounts (include "langsmith.tlsVolumeMounts" . | fromYamlArray) -}}
+{{- if .Values.config.langgraphPlatform.enabled }}
 {{- if .Values.hostBackend.rollout.enabled }}
 apiVersion: argoproj.io/v1alpha1
 kind: Rollout

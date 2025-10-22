@@ -183,4 +183,3 @@ spec:
     {{- toYaml .Values.operator.rollout.strategy | nindent 4 }}
 {{- end }}
 {{- end }}
-{{- end }}

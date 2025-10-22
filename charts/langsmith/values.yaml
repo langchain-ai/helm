@@ -224,8 +224,10 @@ aceBackend:
   name: "ace-backend"
   containerPort: 1987
   bindAddress: "0.0.0.0"
+  # -- ArgoCD Rollouts configuration. If enabled, will create a Rollout resource instead of a Deployment. See https://argo-rollouts.readthedocs.io/
   rollout:
     enabled: false
+    # -- Rollout strategy configuration. See https://argo-rollouts.readthedocs.io/en/stable/features/specification/
     strategy: {}
   deployment:
     replicas: 1
@@ -307,8 +309,10 @@ backend:
   name: "backend"
   containerPort: 1984
   existingConfigMapName: ""
+  # -- ArgoCD Rollouts configuration. If enabled, will create a Rollout resource instead of a Deployment. See https://argo-rollouts.readthedocs.io/
   rollout:
     enabled: false
+    # -- Rollout strategy configuration. See https://argo-rollouts.readthedocs.io/en/stable/features/specification/
     strategy: {}
   deployment:
     replicas: 2
@@ -681,8 +685,10 @@ frontend:
   name: "frontend"
   containerPort: 8080
   existingConfigMapName: ""
+  # -- ArgoCD Rollouts configuration. If enabled, will create a Rollout resource instead of a Deployment. See https://argo-rollouts.readthedocs.io/
   rollout:
     enabled: false
+    # -- Rollout strategy configuration. See https://argo-rollouts.readthedocs.io/en/stable/features/specification/
     strategy: {}
   # Nginx Max Body Size. Refer to https://nginx.org/en/docs/http/ngx_http_core_module.html#client_max_body_size for more information.
   maxBodySize: "25M"
@@ -786,8 +792,10 @@ frontend:
 hostBackend:
   name: "host-backend"
   containerPort: 1985
+  # -- ArgoCD Rollouts configuration. If enabled, will create a Rollout resource instead of a Deployment. See https://argo-rollouts.readthedocs.io/
   rollout:
     enabled: false
+    # -- Rollout strategy configuration. See https://argo-rollouts.readthedocs.io/en/stable/features/specification/
     strategy: {}
   deployment:
     replicas: 1
@@ -871,8 +879,10 @@ hostBackend:
 listener:
   name: "listener"
   containerPort: 8080
+  # -- ArgoCD Rollouts configuration. If enabled, will create a Rollout resource instead of a Deployment. See https://argo-rollouts.readthedocs.io/
   rollout:
     enabled: false
+    # -- Rollout strategy configuration. See https://argo-rollouts.readthedocs.io/en/stable/features/specification/
     strategy: {}
   deployment:
     replicas: 1
@@ -952,8 +962,10 @@ platformBackend:
   name: "platform-backend"
   containerPort: 1986
   existingConfigMapName: ""
+  # -- ArgoCD Rollouts configuration. If enabled, will create a Rollout resource instead of a Deployment. See https://argo-rollouts.readthedocs.io/
   rollout:
     enabled: false
+    # -- Rollout strategy configuration. See https://argo-rollouts.readthedocs.io/en/stable/features/specification/
     strategy: {}
   deployment:
     replicas: 3
@@ -1036,8 +1048,10 @@ operator:
   createCRDs: true
   watchNamespaces: ""
   kedaEnabled: true
+  # -- ArgoCD Rollouts configuration. If enabled, will create a Rollout resource instead of a Deployment. See https://argo-rollouts.readthedocs.io/
   rollout:
     enabled: false
+    # -- Rollout strategy configuration. See https://argo-rollouts.readthedocs.io/en/stable/features/specification/
     strategy: {}
   deployment:
     replicas: 1
@@ -1215,8 +1229,10 @@ operator:
 playground:
   name: "playground"
   containerPort: 1988
+  # -- ArgoCD Rollouts configuration. If enabled, will create a Rollout resource instead of a Deployment. See https://argo-rollouts.readthedocs.io/
   rollout:
     enabled: false
+    # -- Rollout strategy configuration. See https://argo-rollouts.readthedocs.io/en/stable/features/specification/
     strategy: {}
   deployment:
     replicas: 1
@@ -1391,8 +1407,10 @@ postgres:
 queue:
   name: "queue"
   containerPort: 8080
+  # -- ArgoCD Rollouts configuration. If enabled, will create a Rollout resource instead of a Deployment. See https://argo-rollouts.readthedocs.io/
   rollout:
     enabled: false
+    # -- Rollout strategy configuration. See https://argo-rollouts.readthedocs.io/en/stable/features/specification/
     strategy: {}
   deployment:
     replicas: 3
