@@ -375,6 +375,10 @@ Template containing common environment variables that are used by several servic
 {{- end }}
 - name: ENABLE_LGP_DEPLOYMENT_HEALTH_CHECK
   value: {{ .Values.config.deployment.ingressHealthCheckEnabled | quote }}
+{{- if and .Values.config.customCa.secretName .Values.config.customCa.secretKey -}}
+- name: SSL_CERT_FILE
+  value: /etc/ssl/certs/custom-ca-certificates.crt
+{{- end }}
 {{- end }}
 
 
@@ -539,7 +543,7 @@ Creates the image reference used for Langsmith deployments. If registry is speci
 {{- define "langsmith.tlsVolumeMounts" -}}
 {{- if and .Values.config.customCa.secretName .Values.config.customCa.secretKey -}}
 - name: langsmith-custom-ca
-  mountPath: /etc/ssl/certs/ca-certificates.crt
+  mountPath: /etc/ssl/certs/custom-ca-certificates.crt
   subPath: ca-certificates.crt
   readOnly: true
 {{- end }}
