@@ -4,14 +4,12 @@ CONFIGURATION VALIDATION
 ================================================================================
 
 This template validates configuration and prevents deployment when:
-1. Deprecated values from versions prior to v12 are detected
+1. Deprecated values are detected
 2. Invalid or conflicting configuration is present
 3. Required values are missing or malformed
 
 This template intentionally does not render any Kubernetes resources.
 It only performs validation checks and fails template rendering if issues are found.
-
-For full migration guide, see: https://docs.langchain.com/langsmith/v12-upgrade
 ================================================================================
 */}}
 
@@ -20,6 +18,17 @@ For full migration guide, see: https://docs.langchain.com/langsmith/v12-upgrade
 {{- if and (not .Values.ingress.enabled) (not .Values.gateway.enabled) (not .Values.istioGateway.enabled) .Values.config.deployment.enabled }}
 {{- fail "Either ingress, gateway, or istioGateway must be enabled if LangGraph Platform is enabled." -}}
 {{- end -}}
+
+# Fail if hostname is missing when deployment is enabled
+{{- if and .Values.config.deployment.enabled (not .Values.config.hostname) }}
+{{- fail "config.hostname is required when LangGraph Platform deployment is enabled." -}}
+{{- end -}}
+
+# Fail if rootDomain is missing when deployment is enabled
+{{- if .Values.config.deployment.rootDomain }}
+{{- fail "config.rootDomain is deprecated. Please use config.hostname" -}}
+{{- end -}}
+
 # Fail if more than one ingress type is enabled
 {{- $enabledCount := 0 -}}
 {{- if .Values.ingress.enabled }}{{ $enabledCount = add1 $enabledCount }}{{- end -}}
