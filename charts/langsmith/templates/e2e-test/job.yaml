@@ -41,7 +41,7 @@ spec:
       securityContext:
         {{- toYaml .Values.e2eTest.podSecurityContext | nindent 8 }}
       serviceAccountName: {{ include "e2eTest.serviceAccountName" . }}
-      {{- with .Values.e2eTest.initContainers }}
+      {{- with concat .Values.commonInitContainers .Values.e2eTest.initContainers }}
       initContainers:
         {{- toYaml . | nindent 8 }}
       {{- end }}

@@ -51,7 +51,7 @@ spec:
       securityContext:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.operator.deployment.initContainers }}
+      {{- with concat .Values.commonInitContainers .Values.operator.deployment.initContainers }}
       initContainers:
         {{- toYaml . | nindent 8 }}
       {{- end }}

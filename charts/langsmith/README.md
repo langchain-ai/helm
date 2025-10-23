@@ -15,6 +15,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | clusterDomain | string | `"cluster.local"` | Kubernetes cluster domain. Only change if not using 'cluster.local' |
 | commonAnnotations | object | `{}` | Annotations that will be applied to all resources created by the chart |
 | commonEnv | list | `[]` | Common environment variables that will be applied to all deployments/statefulsets except for the playground/aceBackend services (which are sandboxed). Be careful not to override values already specified by the chart. |
+| commonInitContainers | list | `[]` | Common init containers added to all deployments/statefulsets except for the playground/aceBackend services (which are sandboxed). |
 | commonLabels | object | `{}` | Labels that will be applied to all resources created by the chart |
 | commonPodAnnotations | object | `{}` | Annotations that will be applied to all pods created by the chart |
 | commonVolumeMounts | list | `[]` | Common volume mounts added to all deployments/statefulsets except for the playground/aceBackend services (which are sandboxed). |
@@ -93,6 +94,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | config.defaultWorkspaceName | string | `"Workspace 1"` | Default workspace name to be provisioned when org is created. |
 | config.deployment | object | `{"enabled":false,"ingressHealthCheckEnabled":true,"tlsEnabled":true}` | Configuration for LangSmith Deployments features |
 | config.deployment.enabled | bool | `false` | Optional. Used to enable the LangSmith Deployment. Requires additional setup. Refer to the documentation for more information. |
+| config.disableSecretCreation | bool | `false` |  |
 | config.existingSecretName | string | `""` |  |
 | config.hostname | string | `""` | hostname of the LangSmith installation. Used for redirects and LangSmith deployments. Required for OAuth and LangSmith Deployments. E.g langsmith.com |
 | config.initialOrgAdminEmail | string | `""` |  |

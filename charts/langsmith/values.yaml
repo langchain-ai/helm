@@ -18,6 +18,8 @@ commonEnv: []
 commonVolumes: []
 # -- Common volume mounts added to all deployments/statefulsets except for the playground/aceBackend services (which are sandboxed).
 commonVolumeMounts: []
+# -- Common init containers added to all deployments/statefulsets except for the playground/aceBackend services (which are sandboxed).
+commonInitContainers: []
 # -- Kubernetes cluster domain. Only change if not using 'cluster.local'
 clusterDomain: "cluster.local"
 
@@ -93,6 +95,7 @@ istioGateway:
 
 config:
   existingSecretName: ""
+  disableSecretCreation: false
   langsmithLicenseKey: ""
   # -- Configuration for LangSmith Deployments features
   deployment:
@@ -537,6 +540,7 @@ backend:
 
 clickhouse:
   name: "clickhouse"
+  disableSecretCreation: false
   config:
     allowSimdjson: true
     logLevel: "warning"
@@ -1329,6 +1333,7 @@ playground:
 
 postgres:
   name: "postgres"
+  disableSecretCreation: false
   external:
     # If enabled, use the following values to connect to an external database. This will also disable the
     # creation of a postgres stateful-set and service.
@@ -1505,6 +1510,7 @@ queue:
 
 redis:
   name: "redis"
+  disableSecretCreation: false
   external:
     # If enabled, use the following values to connect to an external redis instance. This will also disable the
     # creation of a redis stateful-set and service.
