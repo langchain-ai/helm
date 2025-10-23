@@ -7,7 +7,7 @@
     secretKeyRef:
       name: {{ include "langsmith.secretsName" . }}
       key: initial_org_admin_password
-      optional: {{ .Values.config.disableSecretCreation }}
+      optional: {{ not .Values.config.requireSecret }}
 {{- end }}
 - name: INITIAL_ORG_NAME
   value: {{ .Values.config.initialOrgName }}

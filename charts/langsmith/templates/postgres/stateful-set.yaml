@@ -4,19 +4,19 @@
     secretKeyRef:
       name: {{ include "langsmith.postgresSecretsName" .}}
       key: postgres_db
-      optional: {{ .Values.config.disableSecretCreation }}
+      optional: {{ not .Values.postgres.requireSecret }}
 - name: POSTGRES_PASSWORD
   valueFrom:
     secretKeyRef:
       name: {{ include "langsmith.postgresSecretsName" .}}
       key: postgres_password
-      optional: {{ .Values.config.disableSecretCreation }}
+      optional: {{ not .Values.postgres.requireSecret }}
 - name: POSTGRES_USER
   valueFrom:
     secretKeyRef:
       name: {{ include "langsmith.postgresSecretsName" .}}
       key: postgres_user
-      optional: {{ .Values.config.disableSecretCreation }}
+      optional: {{ not .Values.postgres.requireSecret }}
 - name: PGDATA
   value: /var/lib/postgresql/data/postgres
 {{- end -}}

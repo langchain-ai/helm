@@ -94,7 +94,6 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | config.defaultWorkspaceName | string | `"Workspace 1"` | Default workspace name to be provisioned when org is created. |
 | config.deployment | object | `{"enabled":false,"ingressHealthCheckEnabled":true,"tlsEnabled":true}` | Configuration for LangSmith Deployments features |
 | config.deployment.enabled | bool | `false` | Optional. Used to enable the LangSmith Deployment. Requires additional setup. Refer to the documentation for more information. |
-| config.disableSecretCreation | bool | `false` |  |
 | config.existingSecretName | string | `""` |  |
 | config.hostname | string | `""` | hostname of the LangSmith installation. Used for redirects and LangSmith deployments. Required for OAuth and LangSmith Deployments. E.g langsmith.com |
 | config.initialOrgAdminEmail | string | `""` |  |
@@ -113,6 +112,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | config.observability.tracing.exporter | string | `"http"` |  |
 | config.observability.tracing.useTls | bool | `true` |  |
 | config.personalOrgsDisabled | bool | `true` | Disable personal orgs. |
+| config.requireSecret | bool | `true` |  |
 | config.settings | object | `{"redisRunsExpirySeconds":"21600"}` | Application Settings. These are used to tune the application |
 | config.settings.redisRunsExpirySeconds | string | `"21600"` | Optional. Be very careful when lowering this value as it can result in runs being lost if your queue is down/not processing items fast enough. |
 | config.telemetry.metrics | bool | `true` | Optional. These values are used to send telemetry to the LangChain team to assist with troubleshooting. |
@@ -375,30 +375,29 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | clickhouse.config.logLevel | string | `"warning"` |  |
 | clickhouse.containerHttpPort | int | `8123` |  |
 | clickhouse.containerNativePort | int | `9000` |  |
+| clickhouse.databaseSecretKey | string | `"clickhouse_db"` |  |
+| clickhouse.existingSecretName | string | `""` |  |
 | clickhouse.external.cluster | string | `""` |  |
 | clickhouse.external.database | string | `"default"` |  |
-| clickhouse.external.databaseSecretKey | string | `"clickhouse_db"` |  |
 | clickhouse.external.enabled | bool | `false` |  |
-| clickhouse.external.existingSecretName | string | `""` |  |
 | clickhouse.external.host | string | `""` |  |
-| clickhouse.external.hostSecretKey | string | `"clickhouse_host"` |  |
 | clickhouse.external.hybrid | bool | `false` | Must be set to true if using managed ClickHouse |
 | clickhouse.external.nativePort | string | `"9000"` |  |
-| clickhouse.external.nativePortSecretKey | string | `"clickhouse_native_port"` |  |
 | clickhouse.external.password | string | `"password"` |  |
-| clickhouse.external.passwordSecretKey | string | `"clickhouse_password"` |  |
 | clickhouse.external.port | string | `"8123"` |  |
-| clickhouse.external.portSecretKey | string | `"clickhouse_port"` |  |
 | clickhouse.external.tls | bool | `false` |  |
-| clickhouse.external.tlsSecretKey | string | `"clickhouse_tls"` |  |
 | clickhouse.external.user | string | `"default"` |  |
-| clickhouse.external.userSecretKey | string | `"clickhouse_user"` |  |
+| clickhouse.hostSecretKey | string | `"clickhouse_host"` |  |
 | clickhouse.metrics.port | int | `9363` |  |
 | clickhouse.name | string | `"clickhouse"` |  |
+| clickhouse.nativePortSecretKey | string | `"clickhouse_native_port"` |  |
+| clickhouse.passwordSecretKey | string | `"clickhouse_password"` |  |
 | clickhouse.pdb.annotations | object | `{}` |  |
 | clickhouse.pdb.enabled | bool | `false` |  |
 | clickhouse.pdb.labels | object | `{}` |  |
 | clickhouse.pdb.minAvailable | int | `1` |  |
+| clickhouse.portSecretKey | string | `"clickhouse_port"` |  |
+| clickhouse.requireSecret | bool | `true` |  |
 | clickhouse.service.annotations | object | `{}` |  |
 | clickhouse.service.httpPort | int | `8123` |  |
 | clickhouse.service.labels | object | `{}` |  |
@@ -451,6 +450,8 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | clickhouse.statefulSet.topologySpreadConstraints | list | `[]` |  |
 | clickhouse.statefulSet.volumeMounts | list | `[]` |  |
 | clickhouse.statefulSet.volumes | list | `[]` |  |
+| clickhouse.tlsSecretKey | string | `"clickhouse_tls"` |  |
+| clickhouse.userSecretKey | string | `"clickhouse_user"` |  |
 
 ## E2E Test
 
@@ -883,13 +884,13 @@ For information on how to use this chart, up-to-date release notes, and other gu
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
+| postgres.connectionUrlSecretKey | string | `"connection_url"` |  |
 | postgres.containerPort | int | `5432` |  |
+| postgres.existingSecretName | string | `""` |  |
 | postgres.external.connectionUrl | string | `""` |  |
-| postgres.external.connectionUrlSecretKey | string | `"connection_url"` |  |
 | postgres.external.customTls | bool | `false` |  |
 | postgres.external.database | string | `"postgres"` |  |
 | postgres.external.enabled | bool | `false` |  |
-| postgres.external.existingSecretName | string | `""` |  |
 | postgres.external.host | string | `""` |  |
 | postgres.external.password | string | `"postgres"` |  |
 | postgres.external.port | string | `"5432"` |  |
@@ -900,6 +901,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | postgres.pdb.enabled | bool | `false` |  |
 | postgres.pdb.labels | object | `{}` |  |
 | postgres.pdb.minAvailable | int | `1` |  |
+| postgres.requireSecret | bool | `true` |  |
 | postgres.service.annotations | object | `{}` |  |
 | postgres.service.labels | object | `{}` |  |
 | postgres.service.loadBalancerIP | string | `""` |  |
@@ -1018,16 +1020,17 @@ For information on how to use this chart, up-to-date release notes, and other gu
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
+| redis.connectionUrlSecretKey | string | `"connection_url"` |  |
 | redis.containerPort | int | `6379` |  |
+| redis.existingSecretName | string | `""` |  |
 | redis.external.connectionUrl | string | `""` |  |
-| redis.external.connectionUrlSecretKey | string | `"connection_url"` |  |
 | redis.external.enabled | bool | `false` |  |
-| redis.external.existingSecretName | string | `""` |  |
 | redis.name | string | `"redis"` |  |
 | redis.pdb.annotations | object | `{}` |  |
 | redis.pdb.enabled | bool | `false` |  |
 | redis.pdb.labels | object | `{}` |  |
 | redis.pdb.minAvailable | int | `1` |  |
+| redis.requireSecret | bool | `true` |  |
 | redis.service.annotations | object | `{}` |  |
 | redis.service.labels | object | `{}` |  |
 | redis.service.loadBalancerIP | string | `""` |  |

@@ -95,7 +95,7 @@ istioGateway:
 
 config:
   existingSecretName: ""
-  disableSecretCreation: false
+  requireSecret: true
   langsmithLicenseKey: ""
   # -- Configuration for LangSmith Deployments features
   deployment:
@@ -540,7 +540,15 @@ backend:
 
 clickhouse:
   name: "clickhouse"
-  disableSecretCreation: false
+  requireSecret: true
+  existingSecretName: ""
+  hostSecretKey: "clickhouse_host"
+  portSecretKey: "clickhouse_port"
+  nativePortSecretKey: "clickhouse_native_port"
+  userSecretKey: "clickhouse_user"
+  passwordSecretKey: "clickhouse_password"
+  databaseSecretKey: "clickhouse_db"
+  tlsSecretKey: "clickhouse_tls"
   config:
     allowSimdjson: true
     logLevel: "warning"
@@ -551,21 +559,13 @@ clickhouse:
     # -- Must be set to true if using managed ClickHouse
     hybrid: false
     host: ""
-    hostSecretKey: "clickhouse_host"
     port: "8123"
-    portSecretKey: "clickhouse_port"
     nativePort: "9000"
-    nativePortSecretKey: "clickhouse_native_port"
     user: "default"
-    userSecretKey: "clickhouse_user"
     password: "password"
-    passwordSecretKey: "clickhouse_password"
     database: "default"
-    databaseSecretKey: "clickhouse_db"
     tls: false
-    tlsSecretKey: "clickhouse_tls"
     cluster: ""
-    existingSecretName: ""
   containerHttpPort: 8123
   containerNativePort: 9000
   statefulSet:
@@ -1333,7 +1333,9 @@ playground:
 
 postgres:
   name: "postgres"
-  disableSecretCreation: false
+  requireSecret: true
+  existingSecretName: ""
+  connectionUrlSecretKey: "connection_url"
   external:
     # If enabled, use the following values to connect to an external database. This will also disable the
     # creation of a postgres stateful-set and service.
@@ -1347,8 +1349,6 @@ postgres:
     # If connection string is specified, we will ignore all above values and use the connection string instead.
     # Do not include the driver name(something like "postgres://" in the connection string.
     connectionUrl: ""
-    connectionUrlSecretKey: "connection_url"
-    existingSecretName: ""
     # Use this to enable TLS using a custom CA (non-public) certificate.
     customTls: false
   containerPort: 5432
@@ -1510,14 +1510,14 @@ queue:
 
 redis:
   name: "redis"
-  disableSecretCreation: false
+  requireSecret: true
+  existingSecretName: ""
+  connectionUrlSecretKey: "connection_url"
   external:
     # If enabled, use the following values to connect to an external redis instance. This will also disable the
     # creation of a redis stateful-set and service.
     enabled: false
     connectionUrl: ""
-    connectionUrlSecretKey: "connection_url"
-    existingSecretName: ""
   containerPort: 6379
   statefulSet:
     labels: {}

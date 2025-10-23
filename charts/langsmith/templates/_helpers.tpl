@@ -94,8 +94,8 @@ Name of the secret containing the secrets for postgres. This can be overridden b
 the user or some other secret provisioning mechanism
 */}}
 {{- define "langsmith.postgresSecretsName" -}}
-{{- if .Values.postgres.external.existingSecretName }}
-{{- .Values.postgres.external.existingSecretName }}
+{{- if .Values.postgres.existingSecretName }}
+{{- .Values.postgres.existingSecretName }}
 {{- else }}
 {{- include "langsmith.fullname" . }}-postgres
 {{- end }}
@@ -106,8 +106,8 @@ Name of the secret containing the secrets for redis. This can be overridden by a
 the user or some other secret provisioning mechanism
 */}}
 {{- define "langsmith.redisSecretsName" -}}
-{{- if .Values.redis.external.existingSecretName }}
-{{- .Values.redis.external.existingSecretName }}
+{{- if .Values.redis.existingSecretName }}
+{{- .Values.redis.existingSecretName }}
 {{- else }}
 {{- include "langsmith.fullname" . }}-redis
 {{- end }}
@@ -118,8 +118,8 @@ Name of the secret containing the secrets for clickhouse. This can be overridden
 the user or some other secret provisioning mechanism
 */}}
 {{- define "langsmith.clickhouseSecretsName" -}}
-{{- if .Values.clickhouse.external.existingSecretName }}
-{{- .Values.clickhouse.external.existingSecretName }}
+{{- if .Values.clickhouse.existingSecretName }}
+{{- .Values.clickhouse.existingSecretName }}
 {{- else }}
 {{- include "langsmith.fullname" . }}-clickhouse
 {{- end }}
@@ -132,7 +132,7 @@ the user or some other secret provisioning mechanism
     secretKeyRef:
       name: {{ include "langsmith.secretsName" . }}
       key: api_key_salt
-      optional: {{ .Values.config.disableSecretCreation }}
+      optional: {{ not.Values.config.requireSecret }}
 {{- end }}
 {{- define "langsmith.conditionalEnvVarsResolved" -}}
   {{- $commonEnvKeys := list -}}
@@ -161,8 +161,8 @@ Template containing common environment variables that are used by several servic
   valueFrom:
     secretKeyRef:
       name: {{ include "langsmith.postgresSecretsName" . }}
-      key: {{ .Values.postgres.external.connectionUrlSecretKey }}
-      optional: {{ .Values.config.disableSecretCreation }}
+      key: {{ .Values.postgres.connectionUrlSecretKey }}
+      optional: {{ not .Values.config.requireSecret }}
 {{- if .Values.postgres.external.enabled }}
 - name: POSTGRES_SCHEMA
   value: {{ .Values.postgres.external.schema }}
@@ -177,52 +177,52 @@ Template containing common environment variables that are used by several servic
   valueFrom:
     secretKeyRef:
       name: {{ include "langsmith.redisSecretsName" . }}
-      key: {{ .Values.redis.external.connectionUrlSecretKey }}
-      optional: {{ .Values.config.disableSecretCreation }}
+      key: {{ .Values.redis.connectionUrlSecretKey }}
+      optional: {{ not .Values.config.requireSecret }}
 - name: CLICKHOUSE_HYBRID
   value: {{ .Values.clickhouse.external.hybrid | quote }}
 - name: CLICKHOUSE_DB
   valueFrom:
     secretKeyRef:
       name: {{ include "langsmith.clickhouseSecretsName" . }}
-      key: {{ .Values.clickhouse.external.databaseSecretKey }}
-      optional: {{ .Values.config.disableSecretCreation }}
+      key: {{ .Values.clickhouse.databaseSecretKey }}
+      optional: {{ not .Values.config.requireSecret }}
 - name: CLICKHOUSE_HOST
   valueFrom:
     secretKeyRef:
       name: {{ include "langsmith.clickhouseSecretsName" . }}
-      key: {{ .Values.clickhouse.external.hostSecretKey }}
-      optional: {{ .Values.config.disableSecretCreation }}
+      key: {{ .Values.clickhouse.hostSecretKey }}
+      optional: {{ not .Values.config.requireSecret }}
 - name: CLICKHOUSE_PORT
   valueFrom:
     secretKeyRef:
       name: {{ include "langsmith.clickhouseSecretsName" . }}
-      key: {{ .Values.clickhouse.external.portSecretKey }}
-      optional: {{ .Values.config.disableSecretCreation }}
+      key: {{ .Values.clickhouse.portSecretKey }}
+      optional: {{ not .Values.config.requireSecret }}
 - name: CLICKHOUSE_NATIVE_PORT
   valueFrom:
     secretKeyRef:
       name: {{ include "langsmith.clickhouseSecretsName" . }}
-      key: {{ .Values.clickhouse.external.nativePortSecretKey }}
-      optional: {{ .Values.config.disableSecretCreation }}
+      key: {{ .Values.clickhouse.nativePortSecretKey }}
+      optional: {{ not .Values.config.requireSecret }}
 - name: CLICKHOUSE_USER
   valueFrom:
     secretKeyRef:
       name: {{ include "langsmith.clickhouseSecretsName" . }}
-      key: {{ .Values.clickhouse.external.userSecretKey }}
-      optional: {{ .Values.config.disableSecretCreation }}
+      key: {{ .Values.clickhouse.userSecretKey }}
+      optional: {{ not .Values.config.requireSecret }}
 - name: CLICKHOUSE_PASSWORD
   valueFrom:
     secretKeyRef:
       name: {{ include "langsmith.clickhouseSecretsName" . }}
-      key: {{ .Values.clickhouse.external.passwordSecretKey }}
-      optional: {{ .Values.config.disableSecretCreation }}
+      key: {{ .Values.clickhouse.passwordSecretKey }}
+      optional: {{ not .Values.config.requireSecret }}
 - name: CLICKHOUSE_TLS
   valueFrom:
     secretKeyRef:
       name: {{ include "langsmith.clickhouseSecretsName" . }}
-      key: {{ .Values.clickhouse.external.tlsSecretKey }}
-      optional: {{ .Values.config.disableSecretCreation }}
+      key: {{ .Values.clickhouse.tlsSecretKey }}
+      optional: {{ not .Values.config.requireSecret }}
 - name: CLICKHOUSE_CLUSTER
   value: {{ .Values.clickhouse.external.cluster }}
 - name: LOG_LEVEL
@@ -233,20 +233,20 @@ Template containing common environment variables that are used by several servic
     secretKeyRef:
       name: {{ include "langsmith.secretsName" . }}
       key: oauth_client_id
-      optional: {{ .Values.config.disableSecretCreation }}
+      optional: {{ not .Values.config.requireSecret }}
 - name: OAUTH_ISSUER_URL
   valueFrom:
     secretKeyRef:
       name: {{ include "langsmith.secretsName" . }}
       key: oauth_issuer_url
-      optional: {{ .Values.config.disableSecretCreation }}
+      optional: {{ not .Values.config.requireSecret }}
 {{- if eq .Values.config.authType "mixed" }}
 - name: OAUTH_CLIENT_SECRET
   valueFrom:
     secretKeyRef:
       name: {{ include "langsmith.secretsName" . }}
       key: oauth_client_secret
-      optional: {{ .Values.config.disableSecretCreation }}
+      optional: {{ not .Values.config.requireSecret }}
 {{- end }}
 {{- end }}
 - name: LANGSMITH_LICENSE_KEY
@@ -254,13 +254,13 @@ Template containing common environment variables that are used by several servic
     secretKeyRef:
       name: {{ include "langsmith.secretsName" . }}
       key: langsmith_license_key
-      optional: {{ .Values.config.disableSecretCreation }}
+      optional: {{ not .Values.config.requireSecret }}
 - name: API_KEY_SALT
   valueFrom:
     secretKeyRef:
       name: {{ include "langsmith.secretsName" . }}
       key: api_key_salt
-      optional: {{ .Values.config.disableSecretCreation }}
+      optional: {{ not .Values.config.requireSecret }}
 - name: BASIC_AUTH_ENABLED
   value: {{ .Values.config.basicAuth.enabled | quote }}
 {{- if .Values.config.basicAuth.enabled }}
@@ -269,7 +269,7 @@ Template containing common environment variables that are used by several servic
     secretKeyRef:
       name: {{ include "langsmith.secretsName" . }}
       key: jwt_secret
-      optional: {{ .Values.config.disableSecretCreation }}
+      optional: {{ not .Values.config.requireSecret }}
 {{- end }}
 - name: FF_ORG_CREATION_DISABLED
   value: {{ .Values.config.userOrgCreationDisabled | quote }}
@@ -356,7 +356,7 @@ Template containing common environment variables that are used by several servic
     secretKeyRef:
       name: {{ include "langsmith.secretsName" . }}
       key: langsmith_license_key
-      optional: {{ .Values.config.disableSecretCreation }}
+      optional: {{ not .Values.config.requireSecret }}
 - name: HOST_QUEUE
   value: "host"
 - name: HOST_WORKER_RECONCILIATION_CRON_ENABLED
@@ -512,13 +512,13 @@ checksum/frontend-config: {{ include (print $.Template.BasePath "/frontend/confi
 {{- if not .Values.config.existingSecretName }}
 checksum/secrets: {{ include (print $.Template.BasePath "/secrets.yaml") . | sha256sum }}
 {{- end }}
-{{- if not .Values.redis.external.existingSecretName }}
+{{- if not .Values.redis.existingSecretName }}
 checksum/redis: {{ include (print $.Template.BasePath "/redis/secrets.yaml") . | sha256sum }}
 {{- end }}
-{{- if not .Values.postgres.external.existingSecretName }}
+{{- if not .Values.postgres.existingSecretName }}
 checksum/postgres: {{ include (print $.Template.BasePath "/postgres/secrets.yaml") . | sha256sum }}
 {{- end }}
-{{- if not .Values.clickhouse.external.existingSecretName }}
+{{- if not .Values.clickhouse.existingSecretName }}
 checksum/clickhouse: {{ include (print $.Template.BasePath "/clickhouse/secrets.yaml") . | sha256sum }}
 {{- end }}
 {{- end }}
