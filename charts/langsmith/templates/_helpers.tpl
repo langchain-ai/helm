@@ -132,7 +132,7 @@ the user or some other secret provisioning mechanism
     secretKeyRef:
       name: {{ include "langsmith.secretsName" . }}
       key: api_key_salt
-      optional: {{ not .Values.config.requireSecret }}
+      optional: {{ not.Values.config.requireSecret }}
 {{- end }}
 {{- define "langsmith.conditionalEnvVarsResolved" -}}
   {{- $commonEnvKeys := list -}}
