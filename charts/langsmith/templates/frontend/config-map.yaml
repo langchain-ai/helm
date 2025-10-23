@@ -8,7 +8,7 @@ metadata:
   annotations:
     {{- include "langsmith.annotations" . | nindent 4 }}
 data:
-{{- if .Values.ingress.subdomain }}
+{{- if .Values.config.basePath }}
   nginx.conf: |
     proxy_ssl_server_name on;
 
@@ -91,8 +91,8 @@ data:
             access_log off;
         }
 
-        location /{{ .Values.ingress.subdomain }}/api/v1/playground/ {
-            rewrite /{{ .Values.ingress.subdomain }}/api/v1/playground/(.*) /playground/$1  break;
+        location /{{ .Values.config.basePath }}/api/v1/playground/ {
+            rewrite /{{ .Values.config.basePath }}/api/v1/playground/(.*) /playground/$1  break;
             proxy_set_header Connection '';
             proxy_http_version 1.1;
             proxy_buffering off;
@@ -101,8 +101,8 @@ data:
         }
 
         # Platform Backend Routes
-        location /{{ .Values.ingress.subdomain }}/api/v1/platform/ {
-            rewrite /{{ .Values.ingress.subdomain }}/api/v1/platform/(.*) /v1/platform/$1  break;
+        location /{{ .Values.config.basePath }}/api/v1/platform/ {
+            rewrite /{{ .Values.config.basePath }}/api/v1/platform/(.*) /v1/platform/$1  break;
             proxy_set_header Connection '';
             proxy_http_version 1.1;
             proxy_buffering off;
@@ -110,8 +110,8 @@ data:
             proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.platformBackend.service.port }};
         }
 
-        location /{{ .Values.ingress.subdomain }}/api/v1/otel/ {
-            rewrite /{{ .Values.ingress.subdomain }}/api/v1/otel/(.*) /otel/$1  break;
+        location /{{ .Values.config.basePath }}/api/v1/otel/ {
+            rewrite /{{ .Values.config.basePath }}/api/v1/otel/(.*) /otel/$1  break;
             proxy_set_header Connection '';
             proxy_http_version 1.1;
             proxy_buffering off;
@@ -119,8 +119,8 @@ data:
             proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.platformBackend.service.port }};
         }
 
-        location = /{{ .Values.ingress.subdomain }}/api/v1/runs/multipart {
-            rewrite /{{ .Values.ingress.subdomain }}/api/v1/runs/multipart /runs/multipart  break;
+        location = /{{ .Values.config.basePath }}/api/v1/runs/multipart {
+            rewrite /{{ .Values.config.basePath }}/api/v1/runs/multipart /runs/multipart  break;
             proxy_set_header Connection '';
             proxy_http_version 1.1;
             proxy_buffering off;
@@ -128,8 +128,8 @@ data:
             proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.platformBackend.service.port }};
         }
 
-        location = /{{ .Values.ingress.subdomain }}/api/v1/runs/batch {
-            rewrite /{{ .Values.ingress.subdomain }}/api/v1/runs/batch /runs/batch  break;
+        location = /{{ .Values.config.basePath }}/api/v1/runs/batch {
+            rewrite /{{ .Values.config.basePath }}/api/v1/runs/batch /runs/batch  break;
             proxy_set_header Connection '';
             proxy_http_version 1.1;
             proxy_buffering off;
@@ -137,8 +137,8 @@ data:
             proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.platformBackend.service.port }};
         }
 
-        location = /{{ .Values.ingress.subdomain }}/api/v1/runs {
-            rewrite /{{ .Values.ingress.subdomain }}/api/v1/runs /runs  break;
+        location = /{{ .Values.config.basePath }}/api/v1/runs {
+            rewrite /{{ .Values.config.basePath }}/api/v1/runs /runs  break;
             proxy_set_header Connection '';
             proxy_http_version 1.1;
             proxy_buffering off;
@@ -146,8 +146,8 @@ data:
             proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.platformBackend.service.port }};
         }
 
-        location = /{{ .Values.ingress.subdomain }}/api/v1/info {
-            rewrite /{{ .Values.ingress.subdomain }}/api/v1/info /info  break;
+        location = /{{ .Values.config.basePath }}/api/v1/info {
+            rewrite /{{ .Values.config.basePath }}/api/v1/info /info  break;
             proxy_set_header Connection '';
             proxy_http_version 1.1;
             proxy_buffering off;
@@ -155,8 +155,8 @@ data:
             proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.platformBackend.service.port }};
         }
 
-        location = /{{ .Values.ingress.subdomain }}/api/v1/metadata/submit {
-            rewrite /{{ .Values.ingress.subdomain }}/api/v1/metadata/submit /v1/metadata/submit break;
+        location = /{{ .Values.config.basePath }}/api/v1/metadata/submit {
+            rewrite /{{ .Values.config.basePath }}/api/v1/metadata/submit /v1/metadata/submit break;
             proxy_set_header Connection '';
             proxy_http_version 1.1;
             proxy_buffering off;
@@ -164,8 +164,8 @@ data:
             proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.platformBackend.service.port }};
         }
 
-        location /{{ .Values.ingress.subdomain }}/api/v1/auth {
-            rewrite /{{ .Values.ingress.subdomain }}/api/v1/(.*) /$1  break;
+        location /{{ .Values.config.basePath }}/api/v1/auth {
+            rewrite /{{ .Values.config.basePath }}/api/v1/(.*) /$1  break;
             proxy_set_header Connection '';
             proxy_http_version 1.1;
             proxy_buffering off;
@@ -173,8 +173,8 @@ data:
             proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.platformBackend.service.port }};
         }
 
-        location /{{ .Values.ingress.subdomain }}/scim {
-            rewrite /{{ .Values.ingress.subdomain }}/scim/(.*) /scim/$1 break;
+        location /{{ .Values.config.basePath }}/scim {
+            rewrite /{{ .Values.config.basePath }}/scim/(.*) /scim/$1 break;
             proxy_set_header Connection '';
             proxy_http_version 1.1;
             proxy_buffering off;
@@ -182,8 +182,8 @@ data:
             proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.platformBackend.service.port }};
         }
 
-        location = /{{ .Values.ingress.subdomain }}/api/v1/public/download {
-            rewrite /{{ .Values.ingress.subdomain }}/api/v1/public/(.*) /public/$1 break;
+        location = /{{ .Values.config.basePath }}/api/v1/public/download {
+            rewrite /{{ .Values.config.basePath }}/api/v1/public/(.*) /public/$1 break;
             proxy_set_header Connection '';
             proxy_http_version 1.1;
             proxy_buffering off;
@@ -191,8 +191,8 @@ data:
             proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.platformBackend.service.port }};
         }
 
-        location /{{ .Values.ingress.subdomain }}/api/public {
-            rewrite /{{ .Values.ingress.subdomain }}/api/public/(.*) /public/$1 break;
+        location /{{ .Values.config.basePath }}/api/public {
+            rewrite /{{ .Values.config.basePath }}/api/public/(.*) /public/$1 break;
             proxy_set_header Connection '';
             proxy_http_version 1.1;
             proxy_buffering off;
@@ -200,8 +200,8 @@ data:
             proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.platformBackend.service.port }};
         }
 
-        location = /{{ .Values.ingress.subdomain }}/api/commits {
-            rewrite /{{ .Values.ingress.subdomain }}/api/commits/(.*) /commits/$1  break;
+        location = /{{ .Values.config.basePath }}/api/commits {
+            rewrite /{{ .Values.config.basePath }}/api/commits/(.*) /commits/$1  break;
             proxy_set_header Connection '';
             proxy_http_version 1.1;
             proxy_buffering off;
@@ -209,8 +209,8 @@ data:
             proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.platformBackend.service.port }};
         }
 
-        location = /{{ .Values.ingress.subdomain }}/api/v1/commits {
-            rewrite /{{ .Values.ingress.subdomain }}/api/v1/commits/(.*) /commits/$1  break;
+        location = /{{ .Values.config.basePath }}/api/v1/commits {
+            rewrite /{{ .Values.config.basePath }}/api/v1/commits/(.*) /commits/$1  break;
             proxy_set_header Connection '';
             proxy_http_version 1.1;
             proxy_buffering off;
@@ -219,8 +219,8 @@ data:
         }
 
         # Backend Routes
-        location /{{ .Values.ingress.subdomain }}/api/v1 {
-            rewrite /{{ .Values.ingress.subdomain }}/api/v1/(.*) /api/v1/$1  break;
+        location /{{ .Values.config.basePath }}/api/v1 {
+            rewrite /{{ .Values.config.basePath }}/api/v1/(.*) /api/v1/$1  break;
             proxy_set_header Connection '';
             proxy_http_version 1.1;
             proxy_buffering off;
@@ -228,9 +228,9 @@ data:
             proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.backend.service.port }};
         }
 
-    {{- if .Values.config.langgraphPlatform.enabled }}
-        location /{{ .Values.ingress.subdomain }}/api-host {
-            rewrite /{{ .Values.ingress.subdomain }}/api-host/(.*) /$1  break;
+    {{- if .Values.config.deployment.enabled }}
+        location /{{ .Values.config.basePath }}/api-host {
+            rewrite /{{ .Values.config.basePath }}/api-host/(.*) /$1  break;
             proxy_set_header Connection '';
             proxy_http_version 1.1;
             proxy_buffering off;
@@ -239,8 +239,8 @@ data:
         }
     {{- end }}
 
-        location = /{{ .Values.ingress.subdomain }}/api/runs/multipart {
-            rewrite /{{ .Values.ingress.subdomain }}/api/runs/multipart /runs/multipart  break;
+        location = /{{ .Values.config.basePath }}/api/runs/multipart {
+            rewrite /{{ .Values.config.basePath }}/api/runs/multipart /runs/multipart  break;
             proxy_set_header Connection '';
             proxy_http_version 1.1;
             proxy_buffering off;
@@ -248,8 +248,8 @@ data:
             proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.platformBackend.service.port }};
         }
 
-        location = /{{ .Values.ingress.subdomain }}/api/runs/batch {
-            rewrite /{{ .Values.ingress.subdomain }}/api/runs/batch /runs/batch  break;
+        location = /{{ .Values.config.basePath }}/api/runs/batch {
+            rewrite /{{ .Values.config.basePath }}/api/runs/batch /runs/batch  break;
             proxy_set_header Connection '';
             proxy_http_version 1.1;
             proxy_buffering off;
@@ -257,8 +257,8 @@ data:
             proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.platformBackend.service.port }};
         }
 
-        location = /{{ .Values.ingress.subdomain }}/api/runs {
-            rewrite /{{ .Values.ingress.subdomain }}/api/runs /runs  break;
+        location = /{{ .Values.config.basePath }}/api/runs {
+            rewrite /{{ .Values.config.basePath }}/api/runs /runs  break;
             proxy_set_header Connection '';
             proxy_http_version 1.1;
             proxy_buffering off;
@@ -266,8 +266,8 @@ data:
             proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.platformBackend.service.port }};
         }
 
-        location = /{{ .Values.ingress.subdomain }}/api/info {
-            rewrite /{{ .Values.ingress.subdomain }}/api/info /info  break;
+        location = /{{ .Values.config.basePath }}/api/info {
+            rewrite /{{ .Values.config.basePath }}/api/info /info  break;
             proxy_set_header Connection '';
             proxy_http_version 1.1;
             proxy_buffering off;
@@ -276,8 +276,8 @@ data:
         }
 
         # Deprecated Backend Routes
-        location /{{ .Values.ingress.subdomain }}/api {
-            rewrite /{{ .Values.ingress.subdomain }}/api/(.*) /api/v1/$1  break;
+        location /{{ .Values.config.basePath }}/api {
+            rewrite /{{ .Values.config.basePath }}/api/(.*) /api/v1/$1  break;
             proxy_set_header Connection '';
             proxy_http_version 1.1;
             proxy_buffering off;
@@ -285,7 +285,7 @@ data:
             proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.backend.service.port }};
         }
 
-        location = /{{ .Values.ingress.subdomain }}/api/docs {
+        location = /{{ .Values.config.basePath }}/api/docs {
             proxy_set_header Connection '';
             proxy_http_version 1.1;
             proxy_buffering off;
@@ -293,7 +293,7 @@ data:
             proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.backend.service.port }};
         }
 
-        location = /{{ .Values.ingress.subdomain }}/api/redoc {
+        location = /{{ .Values.config.basePath }}/api/redoc {
             proxy_set_header Connection '';
             proxy_http_version 1.1;
             proxy_buffering off;
@@ -301,7 +301,7 @@ data:
             proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.backend.service.port }};
         }
 
-        location = /{{ .Values.ingress.subdomain }}/api/openapi.json {
+        location = /{{ .Values.config.basePath }}/api/openapi.json {
             proxy_set_header Connection '';
             proxy_http_version 1.1;
             proxy_buffering off;
@@ -309,8 +309,8 @@ data:
             proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.backend.service.port }};
         }
 
-    {{- if .Values.config.langgraphPlatform.enabled }}
-        location = /{{ .Values.ingress.subdomain }}/api-host/docs {
+    {{- if .Values.config.deployment.enabled }}
+        location = /{{ .Values.config.basePath }}/api-host/docs {
             proxy_set_header Connection '';
             proxy_http_version 1.1;
             proxy_buffering off;
@@ -318,7 +318,7 @@ data:
             proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.hostBackend.name }}.{{ .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.hostBackend.service.port }};
         }
 
-        location = /{{ .Values.ingress.subdomain }}/api-host/redoc {
+        location = /{{ .Values.config.basePath }}/api-host/redoc {
             proxy_set_header Connection '';
             proxy_http_version 1.1;
             proxy_buffering off;
@@ -326,7 +326,7 @@ data:
             proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.hostBackend.name }}.{{ .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.hostBackend.service.port }};
         }
 
-        location = /{{ .Values.ingress.subdomain }}/api-host/openapi.json {
+        location = /{{ .Values.config.basePath }}/api-host/openapi.json {
             proxy_set_header Connection '';
             proxy_http_version 1.1;
             proxy_buffering off;
@@ -335,15 +335,15 @@ data:
         }
     {{- end }}
 
-        location = /{{ .Values.ingress.subdomain }} {
+        location = /{{ .Values.config.basePath }} {
             absolute_redirect off;
-            rewrite ^ /{{ .Values.ingress.subdomain }}/ permanent;
+            rewrite ^ /{{ .Values.config.basePath }}/ permanent;
         }
 
-        location /{{ .Values.ingress.subdomain }} {
+        location /{{ .Values.config.basePath }} {
             root   /tmp;
             index  index.html index.htm;
-            try_files $uri $uri/ /{{ .Values.ingress.subdomain }}/index.html;
+            try_files $uri $uri/ /{{ .Values.config.basePath }}/index.html;
         }
     }
 {{- else }}
@@ -582,7 +582,7 @@ data:
             proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.backend.service.port }};
         }
 
-    {{- if .Values.config.langgraphPlatform.enabled }}
+    {{- if .Values.config.deployment.enabled }}
         location /api-host {
             rewrite /api-host/(.*) /$1  break;
             proxy_set_header Connection '';
@@ -663,7 +663,7 @@ data:
             proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.backend.service.port }};
         }
 
-    {{- if .Values.config.langgraphPlatform.enabled }}
+    {{- if .Values.config.deployment.enabled }}
         location = /api-host/docs {
             proxy_set_header Connection '';
             proxy_http_version 1.1;

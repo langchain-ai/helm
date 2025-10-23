@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.11.28](https://img.shields.io/badge/Version-0.11.28-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.12.4](https://img.shields.io/badge/AppVersion-0.12.4-informational?style=flat-square)
+![Version: 0.12.0](https://img.shields.io/badge/Version-0.12.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.12.10](https://img.shields.io/badge/AppVersion-0.12.10-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -23,37 +23,35 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | fullnameOverride | string | `""` | String to fully override `"langsmith.fullname"` |
 | gateway.annotations | object | `{}` |  |
 | gateway.enabled | bool | `false` |  |
-| gateway.hostname | string | `""` |  |
 | gateway.labels | object | `{}` |  |
 | gateway.name | string | `""` |  |
 | gateway.namespace | string | `""` |  |
 | gateway.sectionName | string | `""` |  |
-| gateway.subdomain | string | `""` |  |
 | images.aceBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.aceBackendImage.repository | string | `"docker.io/langchain/langsmith-ace-backend"` |  |
-| images.aceBackendImage.tag | string | `"0.12.4"` |  |
+| images.aceBackendImage.tag | string | `"0.12.10"` |  |
 | images.backendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.backendImage.repository | string | `"docker.io/langchain/langsmith-backend"` |  |
-| images.backendImage.tag | string | `"0.12.4"` |  |
+| images.backendImage.tag | string | `"0.12.10"` |  |
 | images.clickhouseImage.pullPolicy | string | `"Always"` |  |
 | images.clickhouseImage.repository | string | `"docker.io/clickhouse/clickhouse-server"` |  |
 | images.clickhouseImage.tag | string | `"25.4"` |  |
 | images.frontendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.frontendImage.repository | string | `"docker.io/langchain/langsmith-frontend"` |  |
-| images.frontendImage.tag | string | `"0.12.4"` |  |
+| images.frontendImage.tag | string | `"0.12.10"` |  |
 | images.hostBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.hostBackendImage.repository | string | `"docker.io/langchain/hosted-langserve-backend"` |  |
-| images.hostBackendImage.tag | string | `"0.12.4"` |  |
+| images.hostBackendImage.tag | string | `"0.12.10"` |  |
 | images.imagePullSecrets | list | `[]` | Secrets with credentials to pull images from a private registry. Specified as name: value. |
 | images.operatorImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.operatorImage.repository | string | `"docker.io/langchain/langgraph-operator"` |  |
 | images.operatorImage.tag | string | `"0.1.17"` |  |
 | images.platformBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.platformBackendImage.repository | string | `"docker.io/langchain/langsmith-go-backend"` |  |
-| images.platformBackendImage.tag | string | `"0.12.4"` |  |
+| images.platformBackendImage.tag | string | `"0.12.10"` |  |
 | images.playgroundImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.playgroundImage.repository | string | `"docker.io/langchain/langsmith-playground"` |  |
-| images.playgroundImage.tag | string | `"0.12.4"` |  |
+| images.playgroundImage.tag | string | `"0.12.10"` |  |
 | images.postgresImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.postgresImage.repository | string | `"docker.io/postgres"` |  |
 | images.postgresImage.tag | string | `"14.7"` |  |
@@ -63,18 +61,14 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | images.registry | string | `""` | If supplied, all children <image_name>.repository values will be prepended with this registry name + `/` |
 | ingress.annotations | object | `{}` |  |
 | ingress.enabled | bool | `false` |  |
-| ingress.hostname | string | `""` |  |
 | ingress.ingressClassName | string | `""` |  |
 | ingress.labels | object | `{}` |  |
-| ingress.subdomain | string | `""` |  |
 | ingress.tls | list | `[]` |  |
 | istioGateway.annotations | object | `{}` |  |
 | istioGateway.enabled | bool | `false` |  |
-| istioGateway.hostname | string | `""` |  |
 | istioGateway.labels | object | `{}` |  |
 | istioGateway.name | string | `"istio-gateway"` |  |
 | istioGateway.namespace | string | `"istio-system"` |  |
-| istioGateway.subdomain | string | `""` |  |
 | nameOverride | string | `""` | Provide a name in place of `langsmith` |
 | namespace | string | `""` | Namespace to install the chart into. If not set, will use the namespace of the current context. |
 
@@ -84,6 +78,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 |-----|------|---------|-------------|
 | config.apiKeySalt | string | `""` | Salt used to generate the API key. Should be a random string. |
 | config.authType | string | `""` | Must be 'oauth' for OAuth with PKCE, 'mixed' for basic auth or OAuth without PKCE |
+| config.basePath | string | `""` | Base path for the LangSmith installation. Used to serve the app under a subpath like example.com/langsmith. |
 | config.basicAuth.enabled | bool | `false` |  |
 | config.basicAuth.initialOrgAdminEmail | string | `""` | Kept for backwards compatibility. Will be removed in a future release. Please use values.config.initialOrgAdminEmail instead. |
 | config.basicAuth.initialOrgAdminPassword | string | `""` |  |
@@ -97,16 +92,13 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | config.customCa.secretName | string | `""` | Optional. Used to set a file containing trusted CA certificates. Make sure to also include a public CA to access beacon and playground. |
 | config.customLogo | object | `{"coBrandingEnabled":true,"enabled":false,"logoUrl":""}` | Custom logo configuration. If enabled, the logoUrl and coBrandingEnabled values must be provided. The logoUrl must be a valid URL to an image like png, jpg, or svg. Co-branding will show LangSmith and customer logos side by side. |
 | config.defaultWorkspaceName | string | `"Workspace 1"` | Default workspace name to be provisioned when org is created. |
+| config.deployment | object | `{"enabled":false,"ingressHealthCheckEnabled":true,"tlsEnabled":true}` | Configuration for LangSmith Deployments features |
+| config.deployment.enabled | bool | `false` | Optional. Used to enable the LangSmith Deployment. Requires additional setup. Refer to the documentation for more information. |
 | config.disableSecretCreation | bool | `false` |  |
 | config.existingSecretName | string | `""` |  |
-| config.hostname | string | `""` | Base URL of the LangSmith installation. Used for redirects. |
+| config.hostname | string | `""` | hostname of the LangSmith installation. Used for redirects and LangSmith deployments. Required for OAuth and LangSmith Deployments. E.g langsmith.com |
 | config.initialOrgAdminEmail | string | `""` |  |
 | config.initialOrgName | string | `"Default"` | Initial org name to be provisioned. |
-| config.langgraphPlatform.enabled | bool | `false` | Optional. Used to enable the Langgraph platform control plane. If enabled, the license key must be provided. |
-| config.langgraphPlatform.ingressHealthCheckEnabled | bool | `true` |  |
-| config.langgraphPlatform.langgraphPlatformLicenseKey | string | `""` |  |
-| config.langgraphPlatform.rootDomain | string | `""` |  |
-| config.langgraphPlatform.tlsEnabled | bool | `true` |  |
 | config.langsmithLicenseKey | string | `""` |  |
 | config.logLevel | string | `"info"` |  |
 | config.oauth.enabled | bool | `false` |  |
@@ -383,6 +375,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | clickhouse.config.logLevel | string | `"warning"` |  |
 | clickhouse.containerHttpPort | int | `8123` |  |
 | clickhouse.containerNativePort | int | `9000` |  |
+| clickhouse.disableSecretCreation | bool | `false` |  |
 | clickhouse.external.cluster | string | `""` |  |
 | clickhouse.external.database | string | `"default"` |  |
 | clickhouse.external.databaseSecretKey | string | `"clickhouse_db"` |  |
@@ -892,6 +885,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
 | postgres.containerPort | int | `5432` |  |
+| postgres.disableSecretCreation | bool | `false` |  |
 | postgres.external.connectionUrl | string | `""` |  |
 | postgres.external.connectionUrlSecretKey | string | `"connection_url"` |  |
 | postgres.external.customTls | bool | `false` |  |
@@ -1027,6 +1021,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
 | redis.containerPort | int | `6379` |  |
+| redis.disableSecretCreation | bool | `false` |  |
 | redis.external.connectionUrl | string | `""` |  |
 | redis.external.connectionUrlSecretKey | string | `"connection_url"` |  |
 | redis.external.enabled | bool | `false` |  |

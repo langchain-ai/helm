@@ -8,13 +8,12 @@ config:
     initialOrgAdminEmail: "youremail@corp.dev"
     initialOrgAdminPassword: "TestLangSmith123!"
     jwtSecret: "YOUR_JWT_SECRET"
-  langgraphPlatform:
+  deployment:
     enabled: true
-    langgraphPlatformLicenseKey: "YOUR_LANGGRAPH_PLATFORM_LICENSE_KEY"
+  hostname: "test.smith.langchain.dev"
 
 ingress:
   enabled: true
-  hostname: "test.smith.langchain.dev"
 
 aceBackend:
   deployment:

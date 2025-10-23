@@ -1,4 +1,4 @@
-{{- if .Values.config.langgraphPlatform.enabled }}
+{{- if .Values.config.deployment.enabled }}
 apiVersion: v1
 kind: Service
 metadata:

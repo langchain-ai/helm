@@ -15,9 +15,9 @@ metadata:
       {{- toYaml . | nindent 4 }}
     {{- end }}
 spec:
-  {{- if .Values.istioGateway.hostname }}
+  {{- if .Values.config.hostname }}
   hosts:
-  - {{ .Values.istioGateway.hostname | quote }}
+  - {{ include "langsmith.hostnameWithoutProtocol" . | quote }}
   {{- else }}
   hosts:
   - "*"
@@ -31,7 +31,7 @@ spec:
   http:
   - match:
     - uri:
-        prefix: {{ ternary "/" (printf "/%s" .Values.istioGateway.subdomain) (empty .Values.istioGateway.subdomain) }}
+        prefix: {{ ternary "/" (printf "/%s" .Values.config.basePath) (empty .Values.config.basePath) }}
     route:
     - destination:
         host: {{ include "langsmith.fullname" . }}-{{ .Values.frontend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}

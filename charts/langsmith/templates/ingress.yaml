@@ -1,18 +1,3 @@
-{{- define "validateIngress" -}}
-# Fail if none of ingress, gateway, or istioGateway are enabled
-{{- if and (not .Values.ingress.enabled) (not .Values.gateway.enabled) (not .Values.istioGateway.enabled) .Values.config.langgraphPlatform.enabled }}
-{{- fail "Either ingress, gateway, or istioGateway must be enabled if LangGraph Platform is enabled." -}}
-{{- end -}}
-# Fail if more than one ingress type is enabled
-{{- $enabledCount := 0 -}}
-{{- if .Values.ingress.enabled }}{{ $enabledCount = add1 $enabledCount }}{{- end -}}
-{{- if .Values.gateway.enabled }}{{ $enabledCount = add1 $enabledCount }}{{- end -}}
-{{- if .Values.istioGateway.enabled }}{{ $enabledCount = add1 $enabledCount }}{{- end -}}
-{{- if gt $enabledCount 1 }}
-{{- fail "Only one of ingress, gateway, or istioGateway can be enabled at the same time." -}}
-{{- end -}}
-{{- end -}}
-{{- template "validateIngress" . -}}
 {{- if .Values.ingress.enabled }}
 apiVersion: networking.k8s.io/v1
 kind: Ingress
@@ -24,8 +9,8 @@ metadata:
     {{- with .Values.ingress.annotations }}
       {{- toYaml . | nindent 4 }}
     {{- end }}
-    {{- if .Values.ingress.hostname }}
-    external-dns.alpha.kubernetes.io/hostname: {{ .Values.ingress.hostname }}
+    {{- if .Values.config.hostname }}
+    external-dns.alpha.kubernetes.io/hostname: {{ include "langsmith.hostnameWithoutProtocol" . }}
     {{- end }}
   labels:
     {{- include "langsmith.labels" . | nindent 4 }}
@@ -39,10 +24,10 @@ spec:
     {{- toYaml . | nindent 4 }}
   {{- end }}
   rules:
-  - host: {{ .Values.ingress.hostname }}
+  - host: {{ include "langsmith.hostnameWithoutProtocol" . }}
     http:
       paths:
-      - path: /{{ .Values.ingress.subdomain }}
+      - path: /{{ .Values.config.subdomain }}
         pathType: Prefix
         backend:
           service:

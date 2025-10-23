@@ -1,4 +1,4 @@
-{{- if and .Values.config.langgraphPlatform.enabled .Values.hostBackend.autoscaling.enabled .Values.hostBackend.autoscaling.createHpa }}
+{{- if and .Values.config.deployment.enabled .Values.hostBackend.autoscaling.enabled .Values.hostBackend.autoscaling.createHpa }}
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:

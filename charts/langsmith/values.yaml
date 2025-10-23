@@ -31,19 +31,19 @@ images:
   aceBackendImage:
     repository: "docker.io/langchain/langsmith-ace-backend"
     pullPolicy: IfNotPresent
-    tag: "0.12.4"
+    tag: "0.12.10"
   backendImage:
     repository: "docker.io/langchain/langsmith-backend"
     pullPolicy: IfNotPresent
-    tag: "0.12.4"
+    tag: "0.12.10"
   frontendImage:
     repository: "docker.io/langchain/langsmith-frontend"
     pullPolicy: IfNotPresent
-    tag: "0.12.4"
+    tag: "0.12.10"
   hostBackendImage:
     repository: "docker.io/langchain/hosted-langserve-backend"
     pullPolicy: IfNotPresent
-    tag: "0.12.4"
+    tag: "0.12.10"
   operatorImage:
     repository: "docker.io/langchain/langgraph-operator"
     pullPolicy: IfNotPresent
@@ -51,11 +51,11 @@ images:
   platformBackendImage:
     repository: "docker.io/langchain/langsmith-go-backend"
     pullPolicy: IfNotPresent
-    tag: "0.12.4"
+    tag: "0.12.10"
   playgroundImage:
     repository: "docker.io/langchain/langsmith-playground"
     pullPolicy: IfNotPresent
-    tag: "0.12.4"
+    tag: "0.12.10"
   postgresImage:
     repository: "docker.io/postgres"
     pullPolicy: IfNotPresent
@@ -71,31 +71,25 @@ images:
 
 ingress:
   enabled: false
-  hostname: ""
-  subdomain: ""
   ingressClassName: ""
   annotations: {}
   labels: {}
   tls: []
 
-# Whether to use the Gateway API for ingress. Will create an HTTPRoute for LangSmith and an HTTPRoute for each LangGraph platform deployment.
+# Whether to use the Gateway API for ingress. Will create an HTTPRoute for LangSmith and an HTTPRoute for each LangSmith Deployment.
 gateway:
   enabled: false
   name: ""
   namespace: ""
-  hostname: ""
-  subdomain: ""
   sectionName: ""
   annotations: {}
   labels: {}
 
-# Whether to use Istio Gateway for ingress. Will create a VirtualService for LangSmith and a VirtualService for each LangGraph platform deployment.
+# Whether to use Istio Gateway for ingress. Will create a VirtualService for LangSmith and a VirtualService for each LangSmith Deployment.
 istioGateway:
   enabled: false
   name: "istio-gateway"
   namespace: "istio-system"
-  hostname: ""
-  subdomain: ""
   annotations: {}
   labels: {}
 
@@ -103,12 +97,10 @@ config:
   existingSecretName: ""
   disableSecretCreation: false
   langsmithLicenseKey: ""
-  langgraphPlatform:
-      # -- Optional. Used to enable the Langgraph platform control plane. If enabled, the license key must be provided.
+  # -- Configuration for LangSmith Deployments features
+  deployment:
+      # -- Optional. Used to enable the LangSmith Deployment. Requires additional setup. Refer to the documentation for more information.
     enabled: false
-    langgraphPlatformLicenseKey: ""
-    #  Defaults to ingress.hostname
-    rootDomain: ""
     tlsEnabled: true
     # Disable this if there is restricted access to the external facing ingress endpoint for your agent(s) from inside of your kubernetes cluster.
     ingressHealthCheckEnabled: true
@@ -138,8 +130,10 @@ config:
   # -- Enable Workspace Admins to invite users to the org and workspace.
   workspaceScopeOrgInvitesEnabled: false
 
-  # -- Base URL of the LangSmith installation. Used for redirects.
+  # -- hostname of the LangSmith installation. Used for redirects and LangSmith deployments. Required for OAuth and LangSmith Deployments. E.g langsmith.com
   hostname: ""
+  # -- Base path for the LangSmith installation. Used to serve the app under a subpath like example.com/langsmith.
+  basePath: ""
 
   telemetry:
     # -- Optional. These values are used to send telemetry to the LangChain team to assist with troubleshooting.

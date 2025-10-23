@@ -1,20 +1,20 @@
 {{- define "hostBackendEnvVars" -}}
 - name: PORT
   value: {{ .Values.hostBackend.containerPort | quote }}
-{{- with .Values.ingress.subdomain }}
+{{- with .Values.config.basePath }}
 - name: HOST_DOCS_PREFIX
   value: /{{ . }}/api-host
 {{- end }}
-{{- if .Values.ingress.hostname }}
+{{- if .Values.config.hostname }}
 - name: HOST_BACKEND_ENDPOINT_PUBLIC
-  value: {{ .Values.ingress.hostname }}
+  value: {{ include "langsmith.hostnameWithoutProtocol" . }}
 {{- end }}
 {{- end -}}
 {{- $envVars := concat (include "langsmith.commonEnv" . | fromYamlArray ) (include "hostBackendEnvVars" . | fromYamlArray) .Values.hostBackend.deployment.extraEnv -}}
 {{- include "langsmith.detectDuplicates" $envVars -}}
 {{- $volumes := concat .Values.commonVolumes .Values.hostBackend.deployment.volumes (include "langsmith.tlsVolumes" . | fromYamlArray) -}}
 {{- $volumeMounts := concat .Values.commonVolumeMounts .Values.hostBackend.deployment.volumeMounts (include "langsmith.tlsVolumeMounts" . | fromYamlArray) -}}
-{{- if .Values.config.langgraphPlatform.enabled }}
+{{- if .Values.config.deployment.enabled }}
 {{- if .Values.hostBackend.rollout.enabled }}
 apiVersion: argoproj.io/v1alpha1
 kind: Rollout

@@ -1,4 +1,4 @@
-{{- if and .Values.config.langgraphPlatform.enabled .Values.operator.pdb.enabled }}
+{{- if and .Values.config.deployment.enabled .Values.operator.pdb.enabled }}
 apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:

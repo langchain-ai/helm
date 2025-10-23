@@ -1,11 +1,4 @@
-{{- define "validateTemplatesMoved" -}}
-{{- $hasListenerTemplates := and (hasKey .Values "listener") (hasKey .Values.listener "templates") (not (empty .Values.listener.templates)) -}}
-{{- if $hasListenerTemplates -}}
-  {{- fail "Error: templates have moved to the operator. Please move your values from .Values.listener.templates to .Values.operator.templates." -}}
-{{- end -}}
-{{- end -}}
-{{- if and .Values.config.langgraphPlatform.enabled .Values.operator.enabled }}
-{{- include "validateTemplatesMoved" . -}}
+{{- if and .Values.config.deployment.enabled .Values.operator.enabled }}
 {{- $volumes := concat .Values.commonVolumes .Values.operator.deployment.volumes -}}
 {{- $volumeMounts := concat .Values.commonVolumeMounts .Values.operator.deployment.volumeMounts -}}
 {{- if .Values.operator.rollout.enabled }}
@@ -140,9 +133,9 @@ spec:
             value: {{ .Values.namespace | default .Release.Namespace }}
         {{- end }}
           - name: ROOT_DOMAIN
-            value: {{ coalesce .Values.config.langgraphPlatform.rootDomain .Values.ingress.hostname .Values.gateway.hostname .Values.istioGateway.hostname | quote }}
+            value: {{ include "langsmith.hostnameWithoutProtocol" . | quote }}
           - name: TLS_ENABLED
-            value: {{ .Values.config.langgraphPlatform.tlsEnabled | quote }}
+            value: {{ .Values.config.deployment.tlsEnabled | quote }}
         {{- with .Values.operator.deployment.extraEnv }}
           {{- toYaml . | nindent 12 }}
         {{- end }}

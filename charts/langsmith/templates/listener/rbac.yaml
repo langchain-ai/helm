@@ -1,4 +1,4 @@
-{{- if and .Values.config.langgraphPlatform.enabled .Values.listener.rbac.create}}
+{{- if and .Values.config.deployment.enabled .Values.listener.rbac.create}}
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
