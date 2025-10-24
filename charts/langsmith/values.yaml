@@ -31,19 +31,19 @@ images:
   aceBackendImage:
     repository: "docker.io/langchain/langsmith-ace-backend"
     pullPolicy: IfNotPresent
-    tag: "0.12.10"
+    tag: "0.12.13"
   backendImage:
     repository: "docker.io/langchain/langsmith-backend"
     pullPolicy: IfNotPresent
-    tag: "0.12.10"
+    tag: "0.12.13"
   frontendImage:
     repository: "docker.io/langchain/langsmith-frontend"
     pullPolicy: IfNotPresent
-    tag: "0.12.10"
+    tag: "0.12.13"
   hostBackendImage:
     repository: "docker.io/langchain/hosted-langserve-backend"
     pullPolicy: IfNotPresent
-    tag: "0.12.10"
+    tag: "0.12.13"
   operatorImage:
     repository: "docker.io/langchain/langgraph-operator"
     pullPolicy: IfNotPresent
@@ -51,11 +51,11 @@ images:
   platformBackendImage:
     repository: "docker.io/langchain/langsmith-go-backend"
     pullPolicy: IfNotPresent
-    tag: "0.12.10"
+    tag: "0.12.13"
   playgroundImage:
     repository: "docker.io/langchain/langsmith-playground"
     pullPolicy: IfNotPresent
-    tag: "0.12.10"
+    tag: "0.12.13"
   postgresImage:
     repository: "docker.io/postgres"
     pullPolicy: IfNotPresent
@@ -176,6 +176,9 @@ config:
     accessKeySecret: ""
     bucketName: ""
     apiURL: "https://s3.us-west-2.amazonaws.com"
+    # Set this to true to use path style addressing for S3. This is required for some S3 compatible storage providers like MinIO.
+    # If set to true, endpoint will be s3.<region>.amazonaws.com/bucket-name. If false, endpoint will be bucket-name.s3.<region>.amazonaws.com
+    s3UsePathStyle: false
     # S3 Users: use this to enable passing KMS key header, as well as an ARN of the KMS key to use.
     kmsEncryptionEnabled: false
     kmsKeyArn: ""
