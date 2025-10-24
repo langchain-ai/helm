@@ -12,6 +12,9 @@ config:
     secretName: "langsmith-custom-ca"
     secretKey: "ca-bundle.crt"
 
+e2eTest:
+  enabled: false
+
 # Use external Redis with TLS
 redis:
   external:
