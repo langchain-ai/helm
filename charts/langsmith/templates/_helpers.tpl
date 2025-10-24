@@ -315,6 +315,8 @@ Template containing common environment variables that are used by several servic
       name: {{ include "langsmith.secretsName" . }}
       key: blob_storage_access_key_secret
       optional: true
+- name: S3_USE_PATH_STYLE
+  value: {{ .Values.config.blobStorage.s3UsePathStyle | quote }}
 {{- if .Values.config.blobStorage.kmsEncryptionEnabled }}
 - name: S3_KMS_ENCRYPTION_ENABLED
   value: {{ .Values.config.blobStorage.kmsEncryptionEnabled | quote }}

@@ -176,6 +176,8 @@ config:
     accessKeySecret: ""
     bucketName: ""
     apiURL: "https://s3.us-west-2.amazonaws.com"
+    # Set this to true to use path style addressing for S3. This is required for some S3 compatible storage providers like MinIO.
+    s3UsePathStyle: false
     # S3 Users: use this to enable passing KMS key header, as well as an ARN of the KMS key to use.
     kmsEncryptionEnabled: false
     kmsKeyArn: ""
