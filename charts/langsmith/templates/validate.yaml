@@ -42,6 +42,9 @@ It only performs validation checks and fails template rendering if issues are fo
 {{- if and .Values.config.basicAuth.enabled .Values.config.oauth.enabled -}}
 {{- fail "Basic auth and OAuth are both enabled. Please enable only one." -}}
 {{- end -}}
+{{- if not ( .Values.config.apiKeySalt ) -}}
+{{- fail "config.apiKeySalt is required. Please set a random string value for it." -}}
+{{- end -}}
 {{- if and (not .Values.config.basicAuth.enabled) (not .Values.config.oauth.enabled) -}}
 {{- fail "Neither Basic auth nor OAuth are enabled. Please enable one of them." -}}
 {{- end -}}
