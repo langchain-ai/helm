@@ -1,0 +1,89 @@
+# Test configuration for custom CA with external Redis using TLS
+config:
+  langsmithLicenseKey: "YOUR_LICENSE_KEY"
+  apiKeySalt: "YOUR_API_KEY_SALT"
+  authType: "mixed"
+  basicAuth:
+    enabled: true
+    initialOrgAdminEmail: "youremail@corp.dev"
+    initialOrgAdminPassword: "TestLangSmith123!"
+    jwtSecret: "YOUR_JWT_SECRET"
+  customCa:
+    secretName: "langsmith-custom-ca"
+    secretKey: "ca-bundle.crt"
+
+# Use external Redis with TLS
+redis:
+  external:
+    enabled: true
+    connectionUrl: "rediss://redis-tls-master.default.svc.cluster.local:6379"
+
+# Lightweight resources for CI
+aceBackend:
+  deployment:
+    resources:
+      requests:
+        cpu: 100m
+        memory: 500Mi
+
+backend:
+  deployment:
+    replicas: 1
+    resources:
+      requests:
+        cpu: 100m
+        memory: 500Mi
+  feedbackConfigMigration:
+    resources:
+      requests:
+        cpu: 100m
+        memory: 500Mi
+  feedbackDataMigration:
+    resources:
+      requests:
+        cpu: 100m
+        memory: 500Mi
+
+frontend:
+  deployment:
+    resources:
+      requests:
+        cpu: 100m
+        memory: 500Mi
+
+platformBackend:
+  deployment:
+    replicas: 1
+    resources:
+      requests:
+        cpu: 100m
+        memory: 500Mi
+
+playground:
+  deployment:
+    resources:
+      requests:
+        cpu: 100m
+        memory: 500Mi
+
+queue:
+  deployment:
+    replicas: 1
+    resources:
+      requests:
+        cpu: 100m
+        memory: 500Mi
+
+postgres:
+  statefulSet:
+    resources:
+      requests:
+        cpu: 200m
+        memory: 500Mi
+
+clickhouse:
+  statefulSet:
+    resources:
+      requests:
+        cpu: 200m
+        memory: 500Mi
