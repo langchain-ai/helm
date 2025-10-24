@@ -37,14 +37,21 @@ It only performs validation checks and fails template rendering if issues are fo
 {{- if gt $enabledCount 1 -}}
 {{- fail "Only one of ingress, gateway, or istioGateway can be enabled at the same time." -}}
 {{- end -}}
-
 {{- /* Validate authentication configuration */ -}}
 {{- if and .Values.config.basicAuth.enabled .Values.config.oauth.enabled -}}
 {{- fail "Basic auth and OAuth are both enabled. Please enable only one." -}}
 {{- end -}}
-{{- if not ( .Values.config.apiKeySalt ) -}}
-{{- fail "config.apiKeySalt is required. Please set a random string value for it." -}}
+
+{{- /* Validate langsmithLicenseKey and apikeysalt are set */ -}}
+{{- if not .Values.config.existingSecretName -}}
+{{- if not .Values.config.apiKeySalt -}}
+{{- fail "config.apiKeySalt is required. This may have previously been set to your license key by default. Set this value to the license key to avoid invalidating existing API Keys. This can alternatively be set within .Values.config.existingSecretName." -}}
 {{- end -}}
+{{- if not .Values.config.langsmithLicenseKey -}}
+{{- fail "config.langsmithLicenseKey is required.  This can alternatively be set within .Values.config.existingSecretName." -}}
+{{- end -}}
+{{- end -}}
+
 {{- if and (not .Values.config.basicAuth.enabled) (not .Values.config.oauth.enabled) -}}
 {{- fail "Neither Basic auth nor OAuth are enabled. Please enable one of them." -}}
 {{- end -}}
