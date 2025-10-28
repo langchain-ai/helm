@@ -50,5 +50,8 @@ for POD in $PODS; do
 done
 
 echo "Compressing directory..."
-tar -czf "${DIR}.tar.gz" -C "$(dirname "$DIR")" "$(basename "$DIR")"
-echo "Bundle written to ${DIR}.tar.gz"
+if command -v zip >/dev/null 2>&1; then
+  zip -r "${DIR}.zip" "$DIR" >/dev/null && echo "Bundle written to ${DIR}.zip"
+else
+  tar -czf "${DIR}.tar.gz" -C "$(dirname "$DIR")" "$(basename "$DIR")" && echo "Bundle written to ${DIR}.tar.gz"
+fi
