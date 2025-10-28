@@ -53,5 +53,6 @@ echo "Compressing directory..."
 if command -v zip >/dev/null 2>&1; then
   zip -r "${DIR}.zip" "$DIR" >/dev/null && echo "Bundle written to ${DIR}.zip"
 else
+  echo "Unable to use zip, falling back to tar.gz. We encourage installing zip if possible to allow uploading via Slack."
   tar -czf "${DIR}.tar.gz" -C "$(dirname "$DIR")" "$(basename "$DIR")" && echo "Bundle written to ${DIR}.tar.gz"
 fi
