@@ -50,5 +50,10 @@ for POD in $PODS; do
 done
 
 echo "Compressing directory..."
-tar -czf "${DIR}.tar.gz" -C "$(dirname "$DIR")" "$(basename "$DIR")"
-echo "Bundle written to ${DIR}.tar.gz"
+if ! command -v zip &> /dev/null; then
+  echo "Error: 'zip' command not found. Please install it first."
+  echo "Logs written to $DIR"
+  exit 1
+fi
+cd "$(dirname "$DIR")" && zip -qr "$(basename "$DIR").zip" "$(basename "$DIR")"
+echo "Bundle written to ${DIR}.zip"
