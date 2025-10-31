@@ -18,7 +18,6 @@
             <wait_for_async_insert_timeout>25</wait_for_async_insert_timeout>
             <allow_simdjson>0</allow_simdjson>
             <lightweight_deletes_sync>0</lightweight_deletes_sync>
-            <allow_materialized_view_with_bad_select>1</allow_materialized_view_with_bad_select>
         </default>
     </profiles>
 </clickhouse>
