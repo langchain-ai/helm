@@ -1,8 +1,4 @@
 {{- define "validateIngress" -}}
-# Fail if none of ingress, gateway, or istioGateway are enabled
-{{- if and (not .Values.ingress.enabled) (not .Values.gateway.enabled) (not .Values.istioGateway.enabled)}}
-{{- fail "Either ingress, gateway, or istioGateway must be enabled." -}}
-{{- end -}}
 # Fail if more than one ingress type is enabled
 {{- $enabledCount := 0 -}}
 {{- if .Values.ingress.enabled }}{{ $enabledCount = add1 $enabledCount }}{{- end -}}
