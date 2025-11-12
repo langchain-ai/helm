@@ -117,7 +117,7 @@ spec:
             value: {{ .Values.istioGateway.name | quote }}
           - name: ISTIO_GATEWAY_NAMESPACE
             value: {{ .Values.istioGateway.namespace | default .Release.Namespace }}
-        {{- else if .Values.ingress.enabled }}
+        {{- else }}
           - name: SHARED_INGRESS_NAME
             value: {{ include "langgraphDataplane.fullname" . }}-ingress
           - name: SHARED_INGRESS_NAMESPACE
