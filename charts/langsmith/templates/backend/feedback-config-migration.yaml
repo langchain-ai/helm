@@ -6,7 +6,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: {{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}-fb-migrations{{ ternary (printf "-%s" (randAlphaNum 5 | lower)) ""  .Values.backend.feedbackConfigMigration.randomizeName }}
+  name: {{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}-config-migrations{{ ternary (printf "-%s" (randAlphaNum 5 | lower)) ""  .Values.backend.feedbackConfigMigration.randomizeName }}
   namespace: {{ .Values.namespace | default .Release.Namespace }}
   labels:
     {{- include "langsmith.labels" . | nindent 4 }}
