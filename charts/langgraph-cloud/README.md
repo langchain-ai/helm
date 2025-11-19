@@ -210,7 +210,7 @@ the same format as the secret in the corresponding `secrets.yaml` file. Note: AP
 | images.registry | string | `""` | If supplied, all children <image_name>.repository values will be prepended with this registry name + `/` |
 | images.studioImage.pullPolicy | string | `"Always"` |  |
 | images.studioImage.repository | string | `"docker.io/langchain/langgraph-debugger"` |  |
-| images.studioImage.tag | string | `"latest"` |  |
+| images.studioImage.tag | string | `"0.12.40"` |  |
 | ingress.annotations | object | `{}` |  |
 | ingress.enabled | bool | `false` |  |
 | ingress.hostname | string | `""` |  |
