@@ -45,13 +45,17 @@ studio:
     volumes:
       - name: tmp
         emptyDir: {}
-      - name: etc
+      - name: var-run
+        emptyDir: {}
+      - name: var-lib-nginx
         emptyDir: {}
     volumeMounts:
       - name: tmp
         mountPath: /tmp
-      - name: etc
-        mountPath: /etc/nginx/conf.d
+      - name: var-run
+        mountPath: /var/run
+      - name: var-lib-nginx
+        mountPath: /var/lib/nginx
 
 
 postgres:
