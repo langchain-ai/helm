@@ -37,7 +37,7 @@ images:
   studioImage:
     repository: "docker.io/langchain/langgraph-debugger"
     pullPolicy: Always
-    tag: "latest"
+    tag: "0.12.40"
 
 config:
   existingSecretName: ""
