@@ -3,6 +3,10 @@
   value: {{ .Values.playground.containerPort | quote }}
 - name: LOG_LEVEL
   value: {{ .Values.config.logLevel | quote }}
+{{- if and .Values.config.customCa.secretName .Values.config.customCa.secretKey }}
+- name: SSL_CERT_FILE
+  value: /etc/ssl/certs/custom-ca-certificates.crt
+{{- end }}
 {{- end -}}
 {{- $envVars := concat (include "playgroundEnvVars" . | fromYamlArray) .Values.playground.deployment.extraEnv -}}
 {{- include "langsmith.detectDuplicates" $envVars -}}
