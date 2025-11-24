@@ -69,6 +69,13 @@ It only performs validation checks and fails template rendering if issues are fo
 {{- end -}}
 {{- end -}}
 
+{{- /* Validate custom cert */ -}}
+{{- if .Values.config.customCa.secretName -}}
+{{- if not .Values.config.customCa.secretKey -}}
+{{- fail "config.customCa.secretKey is required when config.customCa.secretName is set." -}}
+{{- end -}}
+{{- end -}}
+
 {{- /* Validate password requirements */ -}}
 {{- if and .Values.config.basicAuth.enabled (not .Values.config.existingSecretName) }}
 {{- $password := .Values.config.basicAuth.initialOrgAdminPassword -}}
