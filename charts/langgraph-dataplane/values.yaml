@@ -207,6 +207,7 @@ operator:
         namespace: ${namespace}
       spec:
         replicas: ${replicas}
+        revisionHistoryLimit: 10
         selector:
           matchLabels:
             app: ${name}
