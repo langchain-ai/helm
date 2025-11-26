@@ -66,10 +66,33 @@ jobs:
           set -e
           echo "=== Creating self-signed certificate for Redis ==="
           
-          # Generate private key and certificate
+          # Generate private key and certificate with SAN for Go TLS verification
           openssl genrsa -out /tmp/redis.key 2048
-          openssl req -new -x509 -key /tmp/redis.key -out /tmp/redis.crt -days 365 \
-            -subj "/C=US/ST=CA/L=SF/O=Test/CN=redis-tls-master.default.svc.cluster.local"
+          cat >/tmp/redis-openssl.cnf <<'EOF'
+[req]
+distinguished_name = req_distinguished_name
+req_extensions = v3_req
+x509_extensions = v3_req
+prompt = no
+
+[req_distinguished_name]
+C = US
+ST = CA
+L = SF
+O = Test
+CN = redis-tls-master.default.svc.cluster.local
+
+[v3_req]
+basicConstraints = CA:FALSE
+keyUsage = nonRepudiation, digitalSignature, keyEncipherment
+extendedKeyUsage = serverAuth, clientAuth
+subjectAltName = @alt_names
+
+[alt_names]
+DNS.1 = redis-tls-master.default.svc.cluster.local
+DNS.2 = redis-tls-master
+EOF
+          openssl req -new -x509 -key /tmp/redis.key -out /tmp/redis.crt -days 365 -config /tmp/redis-openssl.cnf
           
           # Create Kubernetes secrets
           kubectl create secret generic redis-tls-secret \
