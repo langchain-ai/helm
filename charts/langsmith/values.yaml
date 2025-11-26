@@ -1541,21 +1541,21 @@ ingestQueue:
       - "./asynq_worker_entrypoint.sh"
     startupProbe:
       httpGet:
-        path: /ok
+        path: /health
         port: 1989
       failureThreshold: 6
       periodSeconds: 10
       timeoutSeconds: 1
     livenessProbe:
       httpGet:
-        path: /ok
+        path: /health
         port: 1989
       failureThreshold: 6
       periodSeconds: 10
       timeoutSeconds: 1
     readinessProbe:
       httpGet:
-        path: /ok
+        path: /health
         port: 1989
       failureThreshold: 6
       periodSeconds: 10
