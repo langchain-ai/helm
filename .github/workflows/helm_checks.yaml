@@ -110,3 +110,18 @@ jobs:
           LANGSMITH_LICENSE_KEY: ${{ secrets.LANGSMITH_LICENSE_KEY }}
           LANGGRAPH_CLOUD_LICENSE_KEY: ${{ secrets.LANGGRAPH_CLOUD_LICENSE_KEY }}
         run: ct install --target-branch ${{ github.event.repository.default_branch }} --charts charts/${{ matrix.chart-name }} --namespace default --helm-extra-set-args "--timeout=15m --set=frontend.service.type=ClusterIP --set=config.langsmithLicenseKey=$LANGSMITH_LICENSE_KEY --set=config.langGraphCloudLicenseKey=$LANGGRAPH_CLOUD_LICENSE_KEY --set=apiServer.service.type=ClusterIP --set=studio.service.type=ClusterIP --set=redis.statefulSet.resources.requests.cpu=50m --set=redis.statefulSet.resources.requests.memory=64Mi --set=postgres.statefulSet.resources.requests.cpu=100m --set=postgres.statefulSet.resources.requests.memory=256Mi --set=clickhouse.statefulSet.resources.requests.cpu=200m --set=clickhouse.statefulSet.resources.requests.memory=512Mi"
+
+      - name: Collect LangSmith diagnostics (pods/events/logs)
+        if: always() && matrix.chart-name == 'langsmith'
+        run: |
+          set -xe
+          kubectl get pods -n default -o wide || true
+          kubectl get events -n default --sort-by=.metadata.creationTimestamp | tail -n 200 || true
+
+          pods=$(kubectl get pods -n default -o name | grep ingest-queue || true)
+          for pod in $pods; do
+            echo "=== Describe $pod ==="
+            kubectl describe -n default "$pod" || true
+            echo "=== Logs $pod (last 200 lines) ==="
+            kubectl logs -n default "$pod" --tail=200 || true
+          done
