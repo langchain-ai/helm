@@ -1515,6 +1515,7 @@ queue:
 ingestQueue:
   enabled: false
   name: "ingest-queue"
+  containerPort: 1989
   # -- ArgoCD Rollouts configuration. If enabled, will create a Rollout resource instead of a Deployment. See https://argo-rollouts.readthedocs.io/
   rollout:
     enabled: false
