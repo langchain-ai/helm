@@ -45,7 +45,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | images.imagePullSecrets | list | `[]` | Secrets with credentials to pull images from a private registry. Specified as name: value. |
 | images.operatorImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.operatorImage.repository | string | `"docker.io/langchain/langgraph-operator"` |  |
-| images.operatorImage.tag | string | `"0.1.21"` |  |
+| images.operatorImage.tag | string | `"0.1.23"` |  |
 | images.platformBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.platformBackendImage.repository | string | `"docker.io/langchain/langsmith-go-backend"` |  |
 | images.platformBackendImage.tag | string | `"0.12.62"` |  |
@@ -59,6 +59,46 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | images.redisImage.repository | string | `"docker.io/redis"` |  |
 | images.redisImage.tag | string | `"7"` |  |
 | images.registry | string | `""` | If supplied, all children <image_name>.repository values will be prepended with this registry name + `/` |
+| ingestQueue.autoscaling.createHpa | bool | `true` |  |
+| ingestQueue.autoscaling.enabled | bool | `false` |  |
+| ingestQueue.autoscaling.maxReplicas | int | `10` |  |
+| ingestQueue.autoscaling.minReplicas | int | `3` |  |
+| ingestQueue.autoscaling.targetCPUUtilizationPercentage | int | `50` |  |
+| ingestQueue.autoscaling.targetMemoryUtilizationPercentage | int | `80` |  |
+| ingestQueue.deployment.affinity | object | `{}` |  |
+| ingestQueue.deployment.annotations | object | `{}` |  |
+| ingestQueue.deployment.command[0] | string | `"./asynq_worker_entrypoint.sh"` |  |
+| ingestQueue.deployment.extraContainerConfig | object | `{}` |  |
+| ingestQueue.deployment.extraEnv | list | `[]` |  |
+| ingestQueue.deployment.initContainers | list | `[]` |  |
+| ingestQueue.deployment.labels | object | `{}` |  |
+| ingestQueue.deployment.nodeSelector | object | `{}` |  |
+| ingestQueue.deployment.podSecurityContext | object | `{}` |  |
+| ingestQueue.deployment.replicas | int | `3` |  |
+| ingestQueue.deployment.resources.limits.cpu | string | `"2000m"` |  |
+| ingestQueue.deployment.resources.limits.memory | string | `"4Gi"` |  |
+| ingestQueue.deployment.resources.requests.cpu | string | `"1000m"` |  |
+| ingestQueue.deployment.resources.requests.memory | string | `"2Gi"` |  |
+| ingestQueue.deployment.securityContext | object | `{}` |  |
+| ingestQueue.deployment.sidecars | list | `[]` |  |
+| ingestQueue.deployment.terminationGracePeriodSeconds | int | `30` |  |
+| ingestQueue.deployment.tolerations | list | `[]` |  |
+| ingestQueue.deployment.topologySpreadConstraints | list | `[]` |  |
+| ingestQueue.deployment.volumeMounts | list | `[]` |  |
+| ingestQueue.deployment.volumes | list | `[]` |  |
+| ingestQueue.enabled | bool | `false` |  |
+| ingestQueue.name | string | `"ingest-queue"` |  |
+| ingestQueue.pdb.annotations | object | `{}` |  |
+| ingestQueue.pdb.enabled | bool | `false` |  |
+| ingestQueue.pdb.labels | object | `{}` |  |
+| ingestQueue.pdb.minAvailable | int | `1` |  |
+| ingestQueue.rollout | object | `{"enabled":false,"strategy":{"canary":{"steps":[{"setWeight":100}]}}}` | ArgoCD Rollouts configuration. If enabled, will create a Rollout resource instead of a Deployment. See https://argo-rollouts.readthedocs.io/ |
+| ingestQueue.rollout.strategy | object | `{"canary":{"steps":[{"setWeight":100}]}}` | Rollout strategy configuration. See https://argo-rollouts.readthedocs.io/en/stable/features/specification/ |
+| ingestQueue.serviceAccount.annotations | object | `{}` |  |
+| ingestQueue.serviceAccount.automountServiceAccountToken | bool | `true` |  |
+| ingestQueue.serviceAccount.create | bool | `true` |  |
+| ingestQueue.serviceAccount.labels | object | `{}` |  |
+| ingestQueue.serviceAccount.name | string | `""` |  |
 | ingress.annotations | object | `{}` |  |
 | ingress.enabled | bool | `false` |  |
 | ingress.ingressClassName | string | `""` |  |
