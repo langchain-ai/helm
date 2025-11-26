@@ -173,8 +173,6 @@ Template containing common environment variables that are used by several servic
 - name: LANGSMITH_URL
   value: {{ include "langsmith.hostnameWithoutProtocol" . }}
 {{- end }}
-- name: LANGCHAIN_ENDPOINT
-  value: /{{ if .Values.config.basePath }}{{ .Values.config.basePath }}/{{ end }}api/v1
 - name: REDIS_DATABASE_URI
   valueFrom:
     secretKeyRef:
