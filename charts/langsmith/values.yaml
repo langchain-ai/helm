@@ -45,7 +45,7 @@ images:
     pullPolicy: IfNotPresent
     tag: "0.12.61"
   operatorImage:
-    repository: "docker.io/langchain/langgraph  -operator"
+    repository: "docker.io/langchain/langgraph-operator"
     pullPolicy: IfNotPresent
     tag: "0.1.21"
   platformBackendImage:

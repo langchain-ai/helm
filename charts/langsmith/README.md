@@ -44,7 +44,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | images.hostBackendImage.tag | string | `"0.12.61"` |  |
 | images.imagePullSecrets | list | `[]` | Secrets with credentials to pull images from a private registry. Specified as name: value. |
 | images.operatorImage.pullPolicy | string | `"IfNotPresent"` |  |
-| images.operatorImage.repository | string | `"docker.io/langchain/langgraph  -operator"` |  |
+| images.operatorImage.repository | string | `"docker.io/langchain/langgraph-operator"` |  |
 | images.operatorImage.tag | string | `"0.1.21"` |  |
 | images.platformBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.platformBackendImage.repository | string | `"docker.io/langchain/langsmith-go-backend"` |  |
