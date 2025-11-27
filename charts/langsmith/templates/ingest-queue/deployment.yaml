@@ -3,7 +3,7 @@
   value: "250"
 - name: "ASYNCPG_POOL_MAX_SIZE"
   value: "3"
-- name: "PORT"
+- name: "QUEUE_PORT"
   value: {{ .Values.ingestQueue.containerPort | quote }}
 {{- end -}}
 {{- if .Values.ingestQueue.enabled }}
