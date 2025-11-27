@@ -1,6 +1,4 @@
 {{- define "ingestQueueEnvVars" -}}
-- name: "REDIS_MAX_CONNECTIONS"
-  value: "250"
 - name: "ASYNCPG_POOL_MAX_SIZE"
   value: "3"
 - name: "QUEUE_PORT"

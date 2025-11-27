@@ -51,13 +51,7 @@ queue:
         memory: 500Mi
 
 ingestQueue:
-  enabled: true
-  deployment:
-    replicas: 1
-    resources:
-      requests:
-        cpu: 100m
-        memory: 500Mi
+  enabled: false
 
 postgres:
   statefulSet:
