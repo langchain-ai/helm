@@ -1,4 +1,4 @@
-# Lightweight configuration. Only use this if you are running Langsmith in a development environment.
+# Lightweight configuration with ingest queue enabled. Only use this if you are running Langsmith in a development environment.
 config:
   langsmithLicenseKey: "YOUR_LICENSE_KEY"
   apiKeySalt: "YOUR_API_KEY_SALT"
@@ -66,7 +66,13 @@ queue:
         memory: 500Mi
 
 ingestQueue:
-  enabled: false
+  enabled: true
+  deployment:
+    replicas: 1
+    resources:
+      requests:
+        cpu: 100m
+        memory: 500Mi
 
 postgres:
   statefulSet:

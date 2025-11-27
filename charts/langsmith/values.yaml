@@ -31,31 +31,31 @@ images:
   aceBackendImage:
     repository: "docker.io/langchain/langsmith-ace-backend"
     pullPolicy: IfNotPresent
-    tag: "0.12.62"
+    tag: "0.12.63"
   backendImage:
     repository: "docker.io/langchain/langsmith-backend"
     pullPolicy: IfNotPresent
-    tag: "0.12.62"
+    tag: "0.12.63"
   frontendImage:
     repository: "docker.io/langchain/langsmith-frontend"
     pullPolicy: IfNotPresent
-    tag: "0.12.62"
+    tag: "0.12.63"
   hostBackendImage:
     repository: "docker.io/langchain/hosted-langserve-backend"
     pullPolicy: IfNotPresent
-    tag: "0.12.62"
+    tag: "0.12.63"
   operatorImage:
     repository: "docker.io/langchain/langgraph-operator"
     pullPolicy: IfNotPresent
-    tag: "0.1.21"
+    tag: "0.1.23"
   platformBackendImage:
     repository: "docker.io/langchain/langsmith-go-backend"
     pullPolicy: IfNotPresent
-    tag: "0.12.62"
+    tag: "0.12.63"
   playgroundImage:
     repository: "docker.io/langchain/langsmith-playground"
     pullPolicy: IfNotPresent
-    tag: "0.12.62"
+    tag: "0.12.63"
   postgresImage:
     repository: "docker.io/postgres"
     pullPolicy: IfNotPresent
@@ -1480,6 +1480,86 @@ queue:
       failureThreshold: 6
       periodSeconds: 60
       timeoutSeconds: 60
+    extraContainerConfig: {}
+    extraEnv: []
+    sidecars: []
+    initContainers: []
+    nodeSelector: {}
+    tolerations: []
+    topologySpreadConstraints: []
+    affinity: {}
+    volumes: []
+    volumeMounts: []
+    terminationGracePeriodSeconds: 30
+  pdb:
+    enabled: false
+    minAvailable: 1
+    labels: {}
+    annotations: {}
+  autoscaling:
+    enabled: false
+    # If enabled, use the following values to configure the HPA. You can also use your own HPA configuration by not creating an HPA.
+    # You may want to manage the HPA yourself if you have a custom autoscaling setup like KEDA.
+    createHpa: true
+    minReplicas: 3
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 50
+    targetMemoryUtilizationPercentage: 80
+  serviceAccount:
+    create: true
+    name: ""
+    labels: {}
+    annotations: {}
+    automountServiceAccountToken: true
+
+ingestQueue:
+  enabled: false
+  name: "ingest-queue"
+  containerPort: 1989
+  # -- ArgoCD Rollouts configuration. If enabled, will create a Rollout resource instead of a Deployment. See https://argo-rollouts.readthedocs.io/
+  rollout:
+    enabled: false
+    # -- Rollout strategy configuration. See https://argo-rollouts.readthedocs.io/en/stable/features/specification/
+    strategy:
+      canary:
+        steps:
+          - setWeight: 100
+  deployment:
+    replicas: 3
+    labels: {}
+    annotations: {}
+    podSecurityContext: {}
+    securityContext: {}
+    resources:
+      limits:
+        cpu: 2000m
+        memory: 4Gi
+      requests:
+        cpu: 1000m
+        memory: 2Gi
+    command:
+      - "./asynq_worker_entrypoint.sh"
+    startupProbe:
+      httpGet:
+        path: /health
+        port: 1989
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 1
+    livenessProbe:
+      httpGet:
+        path: /health
+        port: 1989
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 1
+    readinessProbe:
+      httpGet:
+        path: /health
+        port: 1989
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 1
     extraContainerConfig: {}
     extraEnv: []
     sidecars: []

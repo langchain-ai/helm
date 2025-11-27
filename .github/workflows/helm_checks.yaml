@@ -66,10 +66,33 @@ jobs:
           set -e
           echo "=== Creating self-signed certificate for Redis ==="
           
-          # Generate private key and certificate
+          # Generate private key and certificate with SAN for Go TLS verification
           openssl genrsa -out /tmp/redis.key 2048
-          openssl req -new -x509 -key /tmp/redis.key -out /tmp/redis.crt -days 365 \
-            -subj "/C=US/ST=CA/L=SF/O=Test/CN=redis-tls-master.default.svc.cluster.local"
+          cat >/tmp/redis-openssl.cnf <<'EOF'
+          [req]
+          distinguished_name = req_distinguished_name
+          req_extensions = v3_req
+          x509_extensions = v3_req
+          prompt = no
+
+          [req_distinguished_name]
+          C = US
+          ST = CA
+          L = SF
+          O = Test
+          CN = redis-tls-master.default.svc.cluster.local
+
+          [v3_req]
+          basicConstraints = CA:FALSE
+          keyUsage = nonRepudiation, digitalSignature, keyEncipherment
+          extendedKeyUsage = serverAuth, clientAuth
+          subjectAltName = @alt_names
+
+          [alt_names]
+          DNS.1 = redis-tls-master.default.svc.cluster.local
+          DNS.2 = redis-tls-master
+          EOF
+          openssl req -new -x509 -key /tmp/redis.key -out /tmp/redis.crt -days 365 -config /tmp/redis-openssl.cnf
           
           # Create Kubernetes secrets
           kubectl create secret generic redis-tls-secret \
@@ -110,3 +133,18 @@ jobs:
           LANGSMITH_LICENSE_KEY: ${{ secrets.LANGSMITH_LICENSE_KEY }}
           LANGGRAPH_CLOUD_LICENSE_KEY: ${{ secrets.LANGGRAPH_CLOUD_LICENSE_KEY }}
         run: ct install --target-branch ${{ github.event.repository.default_branch }} --charts charts/${{ matrix.chart-name }} --namespace default --helm-extra-set-args "--timeout=15m --set=frontend.service.type=ClusterIP --set=config.langsmithLicenseKey=$LANGSMITH_LICENSE_KEY --set=config.langGraphCloudLicenseKey=$LANGGRAPH_CLOUD_LICENSE_KEY --set=apiServer.service.type=ClusterIP --set=studio.service.type=ClusterIP --set=redis.statefulSet.resources.requests.cpu=50m --set=redis.statefulSet.resources.requests.memory=64Mi --set=postgres.statefulSet.resources.requests.cpu=100m --set=postgres.statefulSet.resources.requests.memory=256Mi --set=clickhouse.statefulSet.resources.requests.cpu=200m --set=clickhouse.statefulSet.resources.requests.memory=512Mi"
+
+      - name: Collect LangSmith diagnostics (pods/events/logs)
+        if: always() && matrix.chart-name == 'langsmith'
+        run: |
+          set -xe
+          kubectl get pods -n default -o wide || true
+          kubectl get events -n default --sort-by=.metadata.creationTimestamp | tail -n 200 || true
+
+          pods=$(kubectl get pods -n default -o name | grep ingest-queue || true)
+          for pod in $pods; do
+            echo "=== Describe $pod ==="
+            kubectl describe -n default "$pod" || true
+            echo "=== Logs $pod (last 200 lines) ==="
+            kubectl logs -n default "$pod" --tail=200 || true
+          done

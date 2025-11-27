@@ -319,6 +319,9 @@ queue:
       allowPrivilegeEscalation: false
       readOnlyRootFilesystem: true
 
+ingestQueue:
+  enabled: false
+
 
 postgres:
   statefulSet:

@@ -1,0 +1,137 @@
+{{- define "ingestQueueEnvVars" -}}
+- name: "ASYNCPG_POOL_MAX_SIZE"
+  value: "3"
+- name: "QUEUE_PORT"
+  value: {{ .Values.ingestQueue.containerPort | quote }}
+{{- end -}}
+{{- if .Values.ingestQueue.enabled }}
+{{- $envVars := concat .Values.commonEnv (include "langsmith.commonEnv" . | fromYamlArray) (include "ingestQueueEnvVars" . | fromYamlArray) .Values.ingestQueue.deployment.extraEnv -}}
+{{- include "langsmith.detectDuplicates" $envVars -}}
+{{- $volumes := concat .Values.commonVolumes .Values.ingestQueue.deployment.volumes (include "langsmith.tlsVolumes" . | fromYamlArray)  -}}
+{{- $volumeMounts := concat .Values.commonVolumeMounts .Values.ingestQueue.deployment.volumeMounts (include "langsmith.tlsVolumeMounts" . | fromYamlArray) -}}
+{{- if .Values.ingestQueue.rollout.enabled }}
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+{{- else }}
+apiVersion: apps/v1
+kind: Deployment
+{{- end }}
+metadata:
+  name: {{ include "langsmith.fullname" . }}-{{ .Values.ingestQueue.name }}
+  namespace: {{ .Values.namespace | default .Release.Namespace }}
+  labels:
+    {{- include "langsmith.labels" . | nindent 4 }}
+    {{- with.Values.ingestQueue.deployment.labels }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+  annotations:
+    {{- include "langsmith.annotations" . | nindent 4 }}
+    {{- with.Values.ingestQueue.deployment.annotations }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  {{- if not .Values.ingestQueue.autoscaling.enabled }}
+  replicas: {{ .Values.ingestQueue.deployment.replicas }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "langsmith.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-{{ .Values.ingestQueue.name }}
+  template:
+    metadata:
+      annotations:
+      {{- include "langsmith.commonPodAnnotations" . | nindent 8 }}
+      {{- include "langsmith.checksumAnnotations" . | nindent 8 }}
+      {{- with .Values.ingestQueue.deployment.annotations }}
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- with.Values.ingestQueue.deployment.labels }}
+            {{- toYaml . | nindent 8 }}
+        {{- end }}
+        {{- include "langsmith.labels" . | nindent 8 }}
+        app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-{{ .Values.ingestQueue.name }}
+    spec:
+      terminationGracePeriodSeconds: {{ .Values.ingestQueue.deployment.terminationGracePeriodSeconds }}
+      {{- with .Values.images.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.ingestQueue.deployment.podSecurityContext | nindent 8 }}
+      serviceAccountName: {{ include "ingestQueue.serviceAccountName" . }}
+      restartPolicy: Always
+      {{- with concat .Values.commonInitContainers .Values.ingestQueue.deployment.initContainers }}
+      initContainers:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: {{ .Values.ingestQueue.name }}
+          {{- with.Values.ingestQueue.deployment.command }}
+          command:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          env:
+            {{- with $envVars }}
+              {{- toYaml . | nindent 12 }}
+            {{- end }}
+          envFrom:
+            - configMapRef:
+                name: {{ include "langsmith.fullname" . }}-config
+          image: {{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "platformBackendImage") | quote }}
+          imagePullPolicy: {{ .Values.images.platformBackendImage.pullPolicy }}
+          ports:
+            - name: ingest-queue
+              containerPort: {{ .Values.ingestQueue.containerPort }}
+              protocol: TCP
+          {{- with .Values.ingestQueue.deployment.startupProbe }}
+          startupProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.ingestQueue.deployment.livenessProbe }}
+          livenessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.ingestQueue.deployment.readinessProbe }}
+          readinessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          resources:
+            {{- toYaml .Values.ingestQueue.deployment.resources | nindent 12 }}
+          securityContext:
+            {{- toYaml .Values.ingestQueue.deployment.securityContext | nindent 12 }}
+          {{- with $volumeMounts }}
+          volumeMounts:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.ingestQueue.deployment.extraContainerConfig }}
+            {{- toYaml . | nindent 10 }}
+          {{- end }}
+        {{- with .Values.ingestQueue.deployment.sidecars }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- with .Values.ingestQueue.deployment.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.ingestQueue.deployment.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.ingestQueue.deployment.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.ingestQueue.deployment.topologySpreadConstraints }}
+      topologySpreadConstraints:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with $volumes }}
+      volumes:
+          {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- if .Values.ingestQueue.rollout.enabled }}
+  strategy:
+    {{- toYaml .Values.ingestQueue.rollout.strategy | nindent 4 }}
+{{- end }}
+{{- end }}

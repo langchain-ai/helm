@@ -381,6 +381,14 @@ Template containing common environment variables that are used by several servic
 - name: SSL_CERT_FILE
   value: /etc/ssl/certs/custom-ca-certificates.crt
 {{- end }}
+{{- if .Values.ingestQueue.enabled }}
+- name: GO_QUEUE_ENABLED_ALL
+  value: "true"
+- name: GO_FEEDBACK_QUEUE_ENABLED_ALL
+  value: "true"
+- name: FF_PERSIST_BATCHED_RUNS_SUCCESS_LOGGING
+  value: "true"
+{{- end }}
 {{- end }}
 
 
@@ -478,6 +486,14 @@ Template containing common environment variables that are used by several servic
     {{ default (printf "%s-%s" (include "langsmith.fullname" .) .Values.queue.name) .Values.queue.serviceAccount.name | trunc 63 | trimSuffix "-" }}
 {{- else -}}
     {{ default "default" .Values.queue.serviceAccount.name }}
+{{- end -}}
+{{- end -}}
+
+{{- define "ingestQueue.serviceAccountName" -}}
+{{- if .Values.ingestQueue.serviceAccount.create -}}
+    {{ default (printf "%s-%s" (include "langsmith.fullname" .) .Values.ingestQueue.name) .Values.ingestQueue.serviceAccount.name | trunc 63 | trimSuffix "-" }}
+{{- else -}}
+    {{ default "default" .Values.ingestQueue.serviceAccount.name }}
 {{- end -}}
 {{- end -}}
 

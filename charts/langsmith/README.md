@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.12.23](https://img.shields.io/badge/Version-0.12.23-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.12.62](https://img.shields.io/badge/AppVersion-0.12.62-informational?style=flat-square)
+![Version: 0.12.24](https://img.shields.io/badge/Version-0.12.24-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.12.63](https://img.shields.io/badge/AppVersion-0.12.63-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -29,29 +29,29 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | gateway.sectionName | string | `""` |  |
 | images.aceBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.aceBackendImage.repository | string | `"docker.io/langchain/langsmith-ace-backend"` |  |
-| images.aceBackendImage.tag | string | `"0.12.62"` |  |
+| images.aceBackendImage.tag | string | `"0.12.63"` |  |
 | images.backendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.backendImage.repository | string | `"docker.io/langchain/langsmith-backend"` |  |
-| images.backendImage.tag | string | `"0.12.62"` |  |
+| images.backendImage.tag | string | `"0.12.63"` |  |
 | images.clickhouseImage.pullPolicy | string | `"Always"` |  |
 | images.clickhouseImage.repository | string | `"docker.io/clickhouse/clickhouse-server"` |  |
 | images.clickhouseImage.tag | string | `"25.4"` |  |
 | images.frontendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.frontendImage.repository | string | `"docker.io/langchain/langsmith-frontend"` |  |
-| images.frontendImage.tag | string | `"0.12.62"` |  |
+| images.frontendImage.tag | string | `"0.12.63"` |  |
 | images.hostBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.hostBackendImage.repository | string | `"docker.io/langchain/hosted-langserve-backend"` |  |
-| images.hostBackendImage.tag | string | `"0.12.62"` |  |
+| images.hostBackendImage.tag | string | `"0.12.63"` |  |
 | images.imagePullSecrets | list | `[]` | Secrets with credentials to pull images from a private registry. Specified as name: value. |
 | images.operatorImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.operatorImage.repository | string | `"docker.io/langchain/langgraph-operator"` |  |
-| images.operatorImage.tag | string | `"0.1.21"` |  |
+| images.operatorImage.tag | string | `"0.1.23"` |  |
 | images.platformBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.platformBackendImage.repository | string | `"docker.io/langchain/langsmith-go-backend"` |  |
-| images.platformBackendImage.tag | string | `"0.12.62"` |  |
+| images.platformBackendImage.tag | string | `"0.12.63"` |  |
 | images.playgroundImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.playgroundImage.repository | string | `"docker.io/langchain/langsmith-playground"` |  |
-| images.playgroundImage.tag | string | `"0.12.62"` |  |
+| images.playgroundImage.tag | string | `"0.12.63"` |  |
 | images.postgresImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.postgresImage.repository | string | `"docker.io/postgres"` |  |
 | images.postgresImage.tag | string | `"14.7"` |  |
@@ -59,6 +59,62 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | images.redisImage.repository | string | `"docker.io/redis"` |  |
 | images.redisImage.tag | string | `"7"` |  |
 | images.registry | string | `""` | If supplied, all children <image_name>.repository values will be prepended with this registry name + `/` |
+| ingestQueue.autoscaling.createHpa | bool | `true` |  |
+| ingestQueue.autoscaling.enabled | bool | `false` |  |
+| ingestQueue.autoscaling.maxReplicas | int | `10` |  |
+| ingestQueue.autoscaling.minReplicas | int | `3` |  |
+| ingestQueue.autoscaling.targetCPUUtilizationPercentage | int | `50` |  |
+| ingestQueue.autoscaling.targetMemoryUtilizationPercentage | int | `80` |  |
+| ingestQueue.containerPort | int | `1989` |  |
+| ingestQueue.deployment.affinity | object | `{}` |  |
+| ingestQueue.deployment.annotations | object | `{}` |  |
+| ingestQueue.deployment.command[0] | string | `"./asynq_worker_entrypoint.sh"` |  |
+| ingestQueue.deployment.extraContainerConfig | object | `{}` |  |
+| ingestQueue.deployment.extraEnv | list | `[]` |  |
+| ingestQueue.deployment.initContainers | list | `[]` |  |
+| ingestQueue.deployment.labels | object | `{}` |  |
+| ingestQueue.deployment.livenessProbe.failureThreshold | int | `6` |  |
+| ingestQueue.deployment.livenessProbe.httpGet.path | string | `"/health"` |  |
+| ingestQueue.deployment.livenessProbe.httpGet.port | int | `1989` |  |
+| ingestQueue.deployment.livenessProbe.periodSeconds | int | `10` |  |
+| ingestQueue.deployment.livenessProbe.timeoutSeconds | int | `1` |  |
+| ingestQueue.deployment.nodeSelector | object | `{}` |  |
+| ingestQueue.deployment.podSecurityContext | object | `{}` |  |
+| ingestQueue.deployment.readinessProbe.failureThreshold | int | `6` |  |
+| ingestQueue.deployment.readinessProbe.httpGet.path | string | `"/health"` |  |
+| ingestQueue.deployment.readinessProbe.httpGet.port | int | `1989` |  |
+| ingestQueue.deployment.readinessProbe.periodSeconds | int | `10` |  |
+| ingestQueue.deployment.readinessProbe.timeoutSeconds | int | `1` |  |
+| ingestQueue.deployment.replicas | int | `3` |  |
+| ingestQueue.deployment.resources.limits.cpu | string | `"2000m"` |  |
+| ingestQueue.deployment.resources.limits.memory | string | `"4Gi"` |  |
+| ingestQueue.deployment.resources.requests.cpu | string | `"1000m"` |  |
+| ingestQueue.deployment.resources.requests.memory | string | `"2Gi"` |  |
+| ingestQueue.deployment.securityContext | object | `{}` |  |
+| ingestQueue.deployment.sidecars | list | `[]` |  |
+| ingestQueue.deployment.startupProbe.failureThreshold | int | `6` |  |
+| ingestQueue.deployment.startupProbe.httpGet.path | string | `"/health"` |  |
+| ingestQueue.deployment.startupProbe.httpGet.port | int | `1989` |  |
+| ingestQueue.deployment.startupProbe.periodSeconds | int | `10` |  |
+| ingestQueue.deployment.startupProbe.timeoutSeconds | int | `1` |  |
+| ingestQueue.deployment.terminationGracePeriodSeconds | int | `30` |  |
+| ingestQueue.deployment.tolerations | list | `[]` |  |
+| ingestQueue.deployment.topologySpreadConstraints | list | `[]` |  |
+| ingestQueue.deployment.volumeMounts | list | `[]` |  |
+| ingestQueue.deployment.volumes | list | `[]` |  |
+| ingestQueue.enabled | bool | `false` |  |
+| ingestQueue.name | string | `"ingest-queue"` |  |
+| ingestQueue.pdb.annotations | object | `{}` |  |
+| ingestQueue.pdb.enabled | bool | `false` |  |
+| ingestQueue.pdb.labels | object | `{}` |  |
+| ingestQueue.pdb.minAvailable | int | `1` |  |
+| ingestQueue.rollout | object | `{"enabled":false,"strategy":{"canary":{"steps":[{"setWeight":100}]}}}` | ArgoCD Rollouts configuration. If enabled, will create a Rollout resource instead of a Deployment. See https://argo-rollouts.readthedocs.io/ |
+| ingestQueue.rollout.strategy | object | `{"canary":{"steps":[{"setWeight":100}]}}` | Rollout strategy configuration. See https://argo-rollouts.readthedocs.io/en/stable/features/specification/ |
+| ingestQueue.serviceAccount.annotations | object | `{}` |  |
+| ingestQueue.serviceAccount.automountServiceAccountToken | bool | `true` |  |
+| ingestQueue.serviceAccount.create | bool | `true` |  |
+| ingestQueue.serviceAccount.labels | object | `{}` |  |
+| ingestQueue.serviceAccount.name | string | `""` |  |
 | ingress.annotations | object | `{}` |  |
 | ingress.enabled | bool | `false` |  |
 | ingress.ingressClassName | string | `""` |  |
