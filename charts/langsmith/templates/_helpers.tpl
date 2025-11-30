@@ -173,12 +173,31 @@ Template containing common environment variables that are used by several servic
 - name: LANGSMITH_URL
   value: {{ include "langsmith.hostnameWithoutProtocol" . }}
 {{- end }}
+{{- if .Values.redis.external.cluster.enabled }}
+- name: REDIS_CLUSTER_ENABLED
+  value: "true"
+- name: REDIS_CLUSTER_DATABASE_URIS
+  valueFrom:
+    secretKeyRef:
+      name: {{ include "langsmith.redisSecretsName" . }}
+      key: redis_cluster_database_uris
+      optional: {{ .Values.config.disableSecretCreation }}
+- name: REDIS_CLUSTER_PASSWORD
+  valueFrom:
+    secretKeyRef:
+      name: {{ include "langsmith.redisSecretsName" . }}
+      key: redis_cluster_password
+      optional: {{ .Values.config.disableSecretCreation }}
+- name: REDIS_CLUSTER_USE_SSL_CONNECTION
+  value: {{ .Values.redis.external.cluster.tlsEnabled | quote }}
+{{- else }}
 - name: REDIS_DATABASE_URI
   valueFrom:
     secretKeyRef:
       name: {{ include "langsmith.redisSecretsName" . }}
       key: {{ .Values.redis.external.connectionUrlSecretKey }}
       optional: {{ .Values.config.disableSecretCreation }}
+{{- end }}
 - name: CLICKHOUSE_HYBRID
   value: {{ .Values.clickhouse.external.hybrid | quote }}
 - name: CLICKHOUSE_DB

@@ -1602,6 +1602,13 @@ redis:
     connectionUrl: ""
     connectionUrlSecretKey: "connection_url"
     existingSecretName: ""
+    # Redis cluster configuration.
+    cluster:
+      enabled: false
+      # Node URIs and password can also be set in the secret above (existingSecretName), with the keys "redis_cluster_database_uris" and "redis_cluster_password" respectively.
+      nodeUris: []
+      password: ""
+      tlsEnabled: true
   containerPort: 6379
   statefulSet:
     labels: {}
