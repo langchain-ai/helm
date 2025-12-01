@@ -1080,7 +1080,9 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | redis.disableSecretCreation | bool | `false` |  |
 | redis.external.cluster.enabled | bool | `false` |  |
 | redis.external.cluster.nodeUris | list | `[]` |  |
+| redis.external.cluster.nodeUrisSecretKey | string | `"redis_cluster_database_uris"` |  |
 | redis.external.cluster.password | string | `""` |  |
+| redis.external.cluster.passwordSecretKey | string | `"redis_cluster_password"` |  |
 | redis.external.cluster.tlsEnabled | bool | `true` |  |
 | redis.external.connectionUrl | string | `""` |  |
 | redis.external.connectionUrlSecretKey | string | `"connection_url"` |  |
