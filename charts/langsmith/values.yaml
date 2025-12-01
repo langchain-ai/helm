@@ -1606,7 +1606,7 @@ redis:
     cluster:
       enabled: false
       # Node URIs and password can also be set in the secret above (existingSecretName).
-      # Node URIs should be in the format: "redis://host:port"
+      # Node URIs should be in the format: '["redis://host:port", "redis://host:port", "redis://host:port"]'
       nodeUris: []
       nodeUrisSecretKey: "redis_cluster_node_uris"
       password: ""
