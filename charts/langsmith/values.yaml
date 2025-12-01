@@ -576,13 +576,13 @@ clickhouse:
     podSecurityContext: {}
     securityContext: {}
     resources:
-      # For a production environment, we recommend increasing the CPU and memory limits to something like 16 cores and 64Gi.
-      #      limits:
-      #        cpu: 16000m
-      #        memory: 64Gi
-      #      requests:
-      #        cpu: 8000m
-      #        memory: 32Gi
+# For a production environment, we recommend increasing the CPU and memory limits to something like 16 cores and 64Gi.
+#      limits:
+#        cpu: 16000m
+#        memory: 64Gi
+#      requests:
+#        cpu: 8000m
+#        memory: 32Gi
       limits:
         cpu: 8000m
         memory: 32Gi
