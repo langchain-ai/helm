@@ -1608,7 +1608,7 @@ redis:
       # Node URIs and password can also be set in the secret above (existingSecretName).
       # Node URIs should be in the format: "redis://host:port"
       nodeUris: []
-      nodeUrisSecretKey: "redis_cluster_database_uris"
+      nodeUrisSecretKey: "redis_cluster_node_uris"
       password: ""
       passwordSecretKey: "redis_cluster_password"
       tlsEnabled: true
