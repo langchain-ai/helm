@@ -1,0 +1,123 @@
+config:
+  langsmithLicenseKey: "YOUR_LICENSE_KEY"
+  apiKeySalt: "YOUR_API_KEY_SALT"
+  authType: "mixed"
+  basicAuth:
+    enabled: true
+    initialOrgAdminEmail: "youremail@corp.dev"
+    initialOrgAdminPassword: "TestLangSmith123!"
+    jwtSecret: "YOUR_JWT_SECRET"
+
+# Note, you likely should tweak the values to match your needs
+backend:
+  deployment:
+    resources:
+      limits:
+        cpu: 2000m
+        memory: 4Gi
+      requests:
+        cpu: 1000m
+        memory: 2000Mi
+  autoscaling:
+    enabled: true
+    minReplicas: 3
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 50
+    targetMemoryUtilizationPercentage: 80
+
+frontend:
+  deployment:
+    resources:
+      limits:
+        cpu: 1000m
+        memory: 2Gi
+      requests:
+        cpu: 500m
+        memory: 1Gi
+  autoscaling:
+    enabled: true
+    minReplicas: 1
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 50
+    targetMemoryUtilizationPercentage: 80
+
+platformBackend:
+  deployment:
+    resources:
+      limits:
+        cpu: 1000m
+        memory: 2Gi
+      requests:
+        cpu: 500m
+        memory: 1Gi
+  autoscaling:
+    enabled: true
+    minReplicas: 1
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 50
+    targetMemoryUtilizationPercentage: 80
+
+playground:
+  deployment:
+    resources:
+      limits:
+        cpu: 1000m
+        memory: 2Gi
+      requests:
+        cpu: 500m
+        memory: 1Gi
+  autoscaling:
+    enabled: true
+    minReplicas: 1
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 50
+    targetMemoryUtilizationPercentage: 80
+
+queue:
+  deployment:
+    resources:
+      limits:
+        cpu: 2000m
+        memory: 4Gi
+      requests:
+        cpu: 1000m
+        memory: 2Gi
+  autoscaling:
+      enabled: true
+      minReplicas: 3
+      maxReplicas: 10
+      targetCPUUtilizationPercentage: 50
+      targetMemoryUtilizationPercentage: 80
+
+# We suggest using an external database for production use cases.
+postgres:
+  external:
+    enabled: true
+    connectionUrl: "default:foo@host:port/database?sslmode=require"
+    # existingSecretName: "postgres-secret" Can also put the above into a secret if you want to avoid putting the connection string in the values file.
+
+# We suggest using an external redis for production use cases.
+redis:
+  external:
+    enabled: true
+    # existingSecretName: "redis-secret" Can also put the node URIs and password into a secret if you want to avoid putting them in the values file.
+    # The keys in the secret default to "redis_cluster_node_uris" and "redis_cluster_password", but can be customized via nodeUrisSecretKey and passwordSecretKey.
+    cluster:
+      enabled: true
+      nodeUris: ["redis://node_1:6379", "redis://node_2:6379", "redis://node_3:6379"]
+      # nodeUrisSecretKey: "redis_cluster_node_uris" # Optional, if using existing secret
+      password: "test_password"
+      # passwordSecretKey: "redis_cluster_password" # Optional, if using existing secret
+      tlsEnabled: true
+
+clickhouse:
+  statefulSet:
+    resources:
+      limits:
+        cpu: 8000m
+        memory: 32Gi
+      requests:
+        cpu: 3500m
+        memory: 15Gi
+    persistence:
+      size: "500Gi"

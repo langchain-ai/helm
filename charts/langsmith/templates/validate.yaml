@@ -76,6 +76,13 @@ It only performs validation checks and fails template rendering if issues are fo
 {{- end -}}
 {{- end -}}
 
+{{- /* Validate redis cluster configuration */ -}}
+{{- if .Values.redis.external.cluster.enabled -}}
+{{- if not .Values.redis.external.enabled -}}
+{{- fail "redis.external.enabled must be true when redis.external.cluster.enabled is true." -}}
+{{- end -}}
+{{- end -}}
+
 {{- /* Validate password requirements */ -}}
 {{- if and .Values.config.basicAuth.enabled (not .Values.config.existingSecretName) }}
 {{- $password := .Values.config.basicAuth.initialOrgAdminPassword -}}
