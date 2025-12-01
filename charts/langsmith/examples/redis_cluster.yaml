@@ -101,11 +101,13 @@ redis:
   external:
     enabled: true
     # existingSecretName: "redis-secret" Can also put the node URIs and password into a secret if you want to avoid putting them in the values file.
-    # The keys in the secret are "redis_cluster_database_uris" and "redis_cluster_password" respectively.
+    # The keys in the secret default to "redis_cluster_node_uris" and "redis_cluster_password", but can be customized via nodeUrisSecretKey and passwordSecretKey.
     cluster:
       enabled: true
       nodeUris: ["redis://node_1:6379", "redis://node_2:6379", "redis://node_3:6379"]
+      nodeUrisSecretKey: "redis_cluster_node_uris"
       password: "test_password"
+      passwordSecretKey: "redis_cluster_password"
       tlsEnabled: true
 
 clickhouse:

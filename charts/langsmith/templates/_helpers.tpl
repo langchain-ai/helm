@@ -180,13 +180,13 @@ Template containing common environment variables that are used by several servic
   valueFrom:
     secretKeyRef:
       name: {{ include "langsmith.redisSecretsName" . }}
-      key: redis_cluster_database_uris
+      key: {{ .Values.redis.external.cluster.nodeUrisSecretKey }}
       optional: {{ .Values.config.disableSecretCreation }}
 - name: REDIS_CLUSTER_PASSWORD
   valueFrom:
     secretKeyRef:
       name: {{ include "langsmith.redisSecretsName" . }}
-      key: redis_cluster_password
+      key: {{ .Values.redis.external.cluster.passwordSecretKey }}
       optional: {{ .Values.config.disableSecretCreation }}
 - name: REDIS_CLUSTER_USE_SSL_CONNECTION
   value: {{ .Values.redis.external.cluster.tlsEnabled | quote }}

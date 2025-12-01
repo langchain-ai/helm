@@ -1605,10 +1605,12 @@ redis:
     # Redis cluster configuration.
     cluster:
       enabled: false
-      # Node URIs and password can also be set in the secret above (existingSecretName), with the keys "redis_cluster_database_uris" and "redis_cluster_password" respectively.
+      # Node URIs and password can also be set in the secret above (existingSecretName).
       # Node URIs should be in the format: "redis://host:port"
       nodeUris: []
+      nodeUrisSecretKey: "redis_cluster_database_uris"
       password: ""
+      passwordSecretKey: "redis_cluster_password"
       tlsEnabled: true
   containerPort: 6379
   statefulSet:
