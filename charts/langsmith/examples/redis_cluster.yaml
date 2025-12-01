@@ -105,9 +105,9 @@ redis:
     cluster:
       enabled: true
       nodeUris: ["redis://node_1:6379", "redis://node_2:6379", "redis://node_3:6379"]
-      nodeUrisSecretKey: "redis_cluster_node_uris"
+      # nodeUrisSecretKey: "redis_cluster_node_uris" # Optional, if using existing secret
       password: "test_password"
-      passwordSecretKey: "redis_cluster_password"
+      # passwordSecretKey: "redis_cluster_password" # Optional, if using existing secret
       tlsEnabled: true
 
 clickhouse:
