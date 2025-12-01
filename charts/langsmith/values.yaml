@@ -24,26 +24,27 @@ commonInitContainers: []
 clusterDomain: "cluster.local"
 
 images:
-   # -- If supplied, all children <image_name>.repository values will be prepended with this registry name + `/`
-  registry: ""
-   # -- Secrets with credentials to pull images from a private registry. Specified as name: value.
+  # -- If supplied, all children <image_name>.repository values will be prepended with this registry name + `/`
+  registry:
+    ""
+    # -- Secrets with credentials to pull images from a private registry. Specified as name: value.
   imagePullSecrets: []
   aceBackendImage:
     repository: "docker.io/langchain/langsmith-ace-backend"
     pullPolicy: IfNotPresent
-    tag: "0.12.63"
+    tag: "0.12.64-bd72fb0a24339b17682ad90a5572e5a554faafbc"
   backendImage:
     repository: "docker.io/langchain/langsmith-backend"
     pullPolicy: IfNotPresent
-    tag: "0.12.63"
+    tag: "0.12.64-bd72fb0a24339b17682ad90a5572e5a554faafbc"
   frontendImage:
     repository: "docker.io/langchain/langsmith-frontend"
     pullPolicy: IfNotPresent
-    tag: "0.12.63"
+    tag: "0.12.64-bd72fb0a24339b17682ad90a5572e5a554faafbc"
   hostBackendImage:
     repository: "docker.io/langchain/hosted-langserve-backend"
     pullPolicy: IfNotPresent
-    tag: "0.12.63"
+    tag: "0.12.64-bd72fb0a24339b17682ad90a5572e5a554faafbc"
   operatorImage:
     repository: "docker.io/langchain/langgraph-operator"
     pullPolicy: IfNotPresent
@@ -51,11 +52,11 @@ images:
   platformBackendImage:
     repository: "docker.io/langchain/langsmith-go-backend"
     pullPolicy: IfNotPresent
-    tag: "0.12.63"
+    tag: "0.12.64-bd72fb0a24339b17682ad90a5572e5a554faafbc"
   playgroundImage:
     repository: "docker.io/langchain/langsmith-playground"
     pullPolicy: IfNotPresent
-    tag: "0.12.63"
+    tag: "0.12.64-bd72fb0a24339b17682ad90a5572e5a554faafbc"
   postgresImage:
     repository: "docker.io/postgres"
     pullPolicy: IfNotPresent
@@ -99,7 +100,7 @@ config:
   langsmithLicenseKey: ""
   # -- Configuration for LangSmith Deployments features
   deployment:
-      # -- Optional. Used to enable the LangSmith Deployment. Requires additional setup. Refer to the documentation for more information.
+    # -- Optional. Used to enable the LangSmith Deployment. Requires additional setup. Refer to the documentation for more information.
     enabled: false
     tlsEnabled: true
     # Disable this if there is restricted access to the external facing ingress endpoint for your agent(s) from inside of your kubernetes cluster.
@@ -146,8 +147,8 @@ config:
     # -- Client secret requires authType to be 'mixed' and hostname to be present
     oauthClientSecret: ""
     oauthIssuerUrl: ""
-    oauthScopes: "email,profile,openid"  # Comma-separated list of scopes. We require at least 'email', 'profile', and 'openid'. Some OIDC providers require the 'offline_access' scope for refresh tokens.
-    oauthSessionMaxSec: "86400"  # 24 hours. Maximum age of a session in seconds. Your session will attempt to refresh until the max age at which point you will be logged out.
+    oauthScopes: "email,profile,openid" # Comma-separated list of scopes. We require at least 'email', 'profile', and 'openid'. Some OIDC providers require the 'offline_access' scope for refresh tokens.
+    oauthSessionMaxSec: "86400" # 24 hours. Maximum age of a session in seconds. Your session will attempt to refresh until the max age at which point you will be logged out.
   # -- TTL configuration
   # Optional. Used to set TTLS for longlived and shortlived objects.
   ttl:
@@ -196,7 +197,7 @@ config:
   # -- Application Settings. These are used to tune the application
   settings:
     # -- Optional. Be very careful when lowering this value as it can result in runs being lost if your queue is down/not processing items fast enough.
-    redisRunsExpirySeconds: "21600"  # 6 hours
+    redisRunsExpirySeconds: "21600" # 6 hours
 
   # -- Custom logo configuration.
   # If enabled, the logoUrl and coBrandingEnabled values must be provided.
@@ -306,7 +307,6 @@ aceBackend:
     labels: {}
     annotations: {}
     automountServiceAccountToken: true
-
 
 backend:
   name: "backend"
@@ -577,13 +577,13 @@ clickhouse:
     podSecurityContext: {}
     securityContext: {}
     resources:
-# For a production environment, we recommend increasing the CPU and memory limits to something like 16 cores and 64Gi.
-#      limits:
-#        cpu: 16000m
-#        memory: 64Gi
-#      requests:
-#        cpu: 8000m
-#        memory: 32Gi
+      # For a production environment, we recommend increasing the CPU and memory limits to something like 16 cores and 64Gi.
+      #      limits:
+      #        cpu: 16000m
+      #        memory: 64Gi
+      #      requests:
+      #        cpu: 8000m
+      #        memory: 32Gi
       limits:
         cpu: 8000m
         memory: 32Gi
