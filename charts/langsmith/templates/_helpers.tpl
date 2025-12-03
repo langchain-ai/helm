@@ -173,9 +173,9 @@ Template containing common environment variables that are used by several servic
 - name: LANGSMITH_URL
   value: {{ include "langsmith.hostnameWithoutProtocol" . }}
 {{- end }}
-{{- if .Values.redis.external.cluster.enabled }}
 - name: REDIS_CLUSTER_ENABLED
-  value: "true"
+  value: {{ .Values.redis.external.cluster.enabled | quote }}
+{{- if .Values.redis.external.cluster.enabled }}
 - name: REDIS_CLUSTER_DATABASE_URIS
   valueFrom:
     secretKeyRef:
@@ -197,6 +197,12 @@ Template containing common environment variables that are used by several servic
       name: {{ include "langsmith.redisSecretsName" . }}
       key: {{ .Values.redis.external.connectionUrlSecretKey }}
       optional: {{ .Values.config.disableSecretCreation }}
+{{- end }}
+{{- if .Values.redis.external.clientCert.secretName }}
+- name: REDIS_TLS_CLIENT_CERT_PATH
+  value: /etc/redis/certs/client.crt
+- name: REDIS_TLS_CLIENT_KEY_PATH
+  value: /etc/redis/certs/client.key
 {{- end }}
 - name: CLICKHOUSE_HYBRID
   value: {{ .Values.clickhouse.external.hybrid | quote }}
@@ -578,23 +584,25 @@ Creates the image reference used for Langsmith deployments. If registry is speci
 {{- end -}}
 
 {{- define "langsmith.tlsVolumeMounts" -}}
+{{- $mounts := list -}}
 {{- if and .Values.config.customCa.secretName .Values.config.customCa.secretKey -}}
-- name: langsmith-custom-ca
-  mountPath: /etc/ssl/certs/custom-ca-certificates.crt
-  subPath: ca-certificates.crt
-  readOnly: true
-{{- end }}
+{{- $mounts = append $mounts (dict "name" "langsmith-custom-ca" "mountPath" "/etc/ssl/certs/custom-ca-certificates.crt" "subPath" "ca-certificates.crt" "readOnly" true) -}}
+{{- end -}}
+{{- if .Values.redis.external.clientCert.secretName -}}
+{{- $mounts = append $mounts (dict "name" "redis-client-cert" "mountPath" "/etc/redis/certs" "readOnly" true) -}}
+{{- end -}}
+{{ $mounts | toYaml }}
 {{- end -}}
 
 {{- define "langsmith.tlsVolumes" -}}
+{{- $volumes := list -}}
 {{- if and .Values.config.customCa.secretName .Values.config.customCa.secretKey -}}
-- name: langsmith-custom-ca
-  secret:
-    secretName: {{ .Values.config.customCa.secretName }}
-    items:
-      - key: {{ .Values.config.customCa.secretKey }}
-        path: ca-certificates.crt
-{{- end }}
+{{- $volumes = append $volumes (dict "name" "langsmith-custom-ca" "secret" (dict "secretName" .Values.config.customCa.secretName "items" (list (dict "key" .Values.config.customCa.secretKey "path" "ca-certificates.crt")))) -}}
+{{- end -}}
+{{- if .Values.redis.external.clientCert.secretName -}}
+{{- $volumes = append $volumes (dict "name" "redis-client-cert" "secret" (dict "secretName" .Values.redis.external.clientCert.secretName "items" (list (dict "key" .Values.redis.external.clientCert.certSecretKey "path" "client.crt") (dict "key" .Values.redis.external.clientCert.keySecretKey "path" "client.key")))) -}}
+{{- end -}}
+{{ $volumes | toYaml }}
 {{- end -}}
 
 {{/*
