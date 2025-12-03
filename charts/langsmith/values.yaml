@@ -1602,7 +1602,7 @@ redis:
     connectionUrl: ""
     connectionUrlSecretKey: "connection_url"
     existingSecretName: ""
-    # -- mTLS client certificate configuration for Redis connections. Provide a secret name to enable mTLS authentication.
+    # mTLS client certificate configuration for Redis connections. Provide a secret name to enable mTLS authentication.
     # For server certificate validation with a custom CA, use config.customCa.secretName and config.customCa.secretKey instead.
     clientCert:
       secretName: ""
