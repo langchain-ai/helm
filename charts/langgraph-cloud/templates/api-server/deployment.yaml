@@ -70,6 +70,13 @@ spec:
                 secretKeyRef:
                   name: {{ include "langGraphCloud.secretsName" . }}
                   key: langgraph_cloud_license_key
+                  optional: true
+            - name: LANGSMITH_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "langGraphCloud.secretsName" . }}
+                  key: api_key
+                  optional: true
             {{- if .Values.queue.enabled }}
             - name: N_JOBS_PER_WORKER
               value: "0"
