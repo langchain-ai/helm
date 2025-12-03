@@ -16,8 +16,8 @@
 {{- end -}}
 {{- $envVars := concat .Values.commonEnv (include "langsmith.commonEnv" . | fromYamlArray) (include "authBootstrapEnvVars" . | fromYamlArray) .Values.backend.authBootstrap.extraEnv -}}
 {{- include "langsmith.detectDuplicates" $envVars -}}
-{{- $volumes := concat .Values.commonVolumes .Values.backend.authBootstrap.volumes (include "langsmith.tlsVolumes" . | fromYamlArray) (include "langsmith.redisClientCertVolumes" . | fromYamlArray) -}}
-{{- $volumeMounts := concat .Values.commonVolumeMounts .Values.backend.authBootstrap.volumeMounts (include "langsmith.tlsVolumeMounts" . | fromYamlArray) (include "langsmith.redisClientCertVolumeMounts" . | fromYamlArray) -}}
+{{- $volumes := concat .Values.commonVolumes .Values.backend.authBootstrap.volumes (include "langsmith.tlsVolumes" . | fromYamlArray) -}}
+{{- $volumeMounts := concat .Values.commonVolumeMounts .Values.backend.authBootstrap.volumeMounts (include "langsmith.tlsVolumeMounts" . | fromYamlArray) -}}
 apiVersion: batch/v1
 kind: Job
 metadata:
