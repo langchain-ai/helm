@@ -167,7 +167,13 @@ Template containing common environment variables that are used by several servic
 - name: POSTGRES_SCHEMA
   value: {{ .Values.postgres.external.schema }}
 - name: POSTGRES_TLS
-  value: {{ .Values.postgres.external.customTls | quote }}
+  value: {{ or .Values.postgres.external.customTls (not (not .Values.postgres.external.clientCert.secretName)) | quote }}
+{{- if .Values.postgres.external.clientCert.secretName }}
+- name: POSTGRES_TLS_CLIENT_CERT_PATH
+  value: /etc/postgres/certs/client.crt
+- name: POSTGRES_TLS_CLIENT_KEY_PATH
+  value: /etc/postgres/certs/client.key
+{{- end }}
 {{- end }}
 {{- if .Values.config.hostname }}
 - name: LANGSMITH_URL
@@ -591,6 +597,9 @@ Creates the image reference used for Langsmith deployments. If registry is speci
 {{- if .Values.redis.external.clientCert.secretName -}}
 {{- $mounts = append $mounts (dict "name" "redis-client-cert" "mountPath" "/etc/redis/certs" "readOnly" true) -}}
 {{- end -}}
+{{- if .Values.postgres.external.clientCert.secretName -}}
+{{- $mounts = append $mounts (dict "name" "postgres-client-cert" "mountPath" "/etc/postgres/certs" "readOnly" true) -}}
+{{- end -}}
 {{ $mounts | toYaml }}
 {{- end -}}
 
@@ -600,7 +609,10 @@ Creates the image reference used for Langsmith deployments. If registry is speci
 {{- $volumes = append $volumes (dict "name" "langsmith-custom-ca" "secret" (dict "secretName" .Values.config.customCa.secretName "items" (list (dict "key" .Values.config.customCa.secretKey "path" "ca-certificates.crt")))) -}}
 {{- end -}}
 {{- if .Values.redis.external.clientCert.secretName -}}
-{{- $volumes = append $volumes (dict "name" "redis-client-cert" "secret" (dict "secretName" .Values.redis.external.clientCert.secretName "items" (list (dict "key" .Values.redis.external.clientCert.certSecretKey "path" "client.crt") (dict "key" .Values.redis.external.clientCert.keySecretKey "path" "client.key")))) -}}
+{{- $volumes = append $volumes (dict "name" "redis-client-cert" "secret" (dict "secretName" .Values.redis.external.clientCert.secretName "items" (list (dict "key" .Values.redis.external.clientCert.certSecretKey "path" "client.crt" "mode" 0644) (dict "key" .Values.redis.external.clientCert.keySecretKey "path" "client.key" "mode" 0640)))) -}}
+{{- end -}}
+{{- if .Values.postgres.external.clientCert.secretName -}}
+{{- $volumes = append $volumes (dict "name" "postgres-client-cert" "secret" (dict "secretName" .Values.postgres.external.clientCert.secretName "items" (list (dict "key" .Values.postgres.external.clientCert.certSecretKey "path" "client.crt" "mode" 0644) (dict "key" .Values.postgres.external.clientCert.keySecretKey "path" "client.key" "mode" 0640)))) -}}
 {{- end -}}
 {{ $volumes | toYaml }}
 {{- end -}}

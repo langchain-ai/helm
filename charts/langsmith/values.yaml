@@ -1355,6 +1355,12 @@ postgres:
     existingSecretName: ""
     # Use this to enable TLS using a custom CA (non-public) certificate.
     customTls: false
+    # mTLS client certificate configuration for Postgres connections. Provide a secret name to enable mTLS authentication.
+    # For server certificate validation with a custom CA, use config.customCa.secretName and config.customCa.secretKey instead.
+    clientCert:
+      secretName: ""
+      certSecretKey: "client.crt"
+      keySecretKey: "client.key"
   containerPort: 5432
   statefulSet:
     labels: {}
