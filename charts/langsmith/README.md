@@ -6,7 +6,7 @@ Helm chart to deploy the langsmith application and all services it depends on.
 
 ## Documentation
 
-For information on how to use this chart, up-to-date release notes, and other guides please check out the [documentation.](https://docs.smith.langchain.com/self_hosting)
+For information on how to use this chart, up-to-date release notes, and other guides please check out the [documentation.](https://docs.langchain.com/langsmith/kubernetes)
 
 ## General parameters
 
