@@ -154,3 +154,8 @@ It only performs validation checks and fails template rendering if issues are fo
 {{- if and .Values.config.blobStorage.enabled (not (or (eq .Values.config.blobStorage.engine "S3") (eq .Values.config.blobStorage.engine "s3") (eq .Values.config.blobStorage.engine "Azure") (eq .Values.config.blobStorage.engine "azure"))) -}}
 {{- fail "When blob storage is enabled (config.blobStorage.enabled=true), config.blobStorage.engine must be one of [S3, Azure]" -}}
 {{- end -}}
+
+{{- /* Validate postgres mTLS configuration */ -}}
+{{- if and .Values.postgres.external.clientCert.secretName (not .Values.postgres.external.customTls) -}}
+{{- fail "postgres.external.customTls must be true when postgres.external.clientCert.secretName is set." -}}
+{{- end -}}

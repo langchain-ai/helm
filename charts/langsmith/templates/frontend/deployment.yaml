@@ -97,7 +97,7 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       securityContext:
-        {{- toYaml .Values.frontend.deployment.podSecurityContext | nindent 8 }}
+        {{- include "langsmith.podSecurityContext" (dict "Values" .Values "componentSecurityContext" .Values.frontend.deployment.podSecurityContext) | nindent 8 }}
       serviceAccountName: {{ include "frontend.serviceAccountName" . }}
       {{- with concat .Values.commonInitContainers .Values.frontend.deployment.initContainers }}
       initContainers:

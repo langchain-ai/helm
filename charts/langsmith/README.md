@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.12.27](https://img.shields.io/badge/Version-0.12.27-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.12.66](https://img.shields.io/badge/AppVersion-0.12.66-informational?style=flat-square)
+![Version: 0.12.28](https://img.shields.io/badge/Version-0.12.28-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.12.67](https://img.shields.io/badge/AppVersion-0.12.67-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -18,6 +18,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | commonInitContainers | list | `[]` | Common init containers added to all deployments/statefulsets except for the playground/aceBackend services (which are sandboxed). |
 | commonLabels | object | `{}` | Labels that will be applied to all resources created by the chart |
 | commonPodAnnotations | object | `{}` | Annotations that will be applied to all pods created by the chart |
+| commonPodSecurityContext | object | `{}` | Common pod security context applied to all pods. Component-specific podSecurityContext values will be merged on top of this (component values take precedence). |
 | commonVolumeMounts | list | `[]` | Common volume mounts added to all deployments/statefulsets except for the playground/aceBackend services (which are sandboxed). |
 | commonVolumes | list | `[]` | Common volumes added to all deployments/statefulsets except for the playground/aceBackend services (which are sandboxed). |
 | fullnameOverride | string | `""` | String to fully override `"langsmith.fullname"` |
@@ -29,29 +30,29 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | gateway.sectionName | string | `""` |  |
 | images.aceBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.aceBackendImage.repository | string | `"docker.io/langchain/langsmith-ace-backend"` |  |
-| images.aceBackendImage.tag | string | `"0.12.66"` |  |
+| images.aceBackendImage.tag | string | `"0.12.67"` |  |
 | images.backendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.backendImage.repository | string | `"docker.io/langchain/langsmith-backend"` |  |
-| images.backendImage.tag | string | `"0.12.66"` |  |
+| images.backendImage.tag | string | `"0.12.67"` |  |
 | images.clickhouseImage.pullPolicy | string | `"Always"` |  |
 | images.clickhouseImage.repository | string | `"docker.io/clickhouse/clickhouse-server"` |  |
 | images.clickhouseImage.tag | string | `"25.4"` |  |
 | images.frontendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.frontendImage.repository | string | `"docker.io/langchain/langsmith-frontend"` |  |
-| images.frontendImage.tag | string | `"0.12.66"` |  |
+| images.frontendImage.tag | string | `"0.12.67"` |  |
 | images.hostBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.hostBackendImage.repository | string | `"docker.io/langchain/hosted-langserve-backend"` |  |
-| images.hostBackendImage.tag | string | `"0.12.66"` |  |
+| images.hostBackendImage.tag | string | `"0.12.67"` |  |
 | images.imagePullSecrets | list | `[]` | Secrets with credentials to pull images from a private registry. Specified as name: value. |
 | images.operatorImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.operatorImage.repository | string | `"docker.io/langchain/langgraph-operator"` |  |
 | images.operatorImage.tag | string | `"0.1.23"` |  |
 | images.platformBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.platformBackendImage.repository | string | `"docker.io/langchain/langsmith-go-backend"` |  |
-| images.platformBackendImage.tag | string | `"0.12.66"` |  |
+| images.platformBackendImage.tag | string | `"0.12.67"` |  |
 | images.playgroundImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.playgroundImage.repository | string | `"docker.io/langchain/langsmith-playground"` |  |
-| images.playgroundImage.tag | string | `"0.12.66"` |  |
+| images.playgroundImage.tag | string | `"0.12.67"` |  |
 | images.postgresImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.postgresImage.repository | string | `"docker.io/postgres"` |  |
 | images.postgresImage.tag | string | `"14.7"` |  |
@@ -942,6 +943,9 @@ For information on how to use this chart, up-to-date release notes, and other gu
 |-----|------|---------|-------------|
 | postgres.containerPort | int | `5432` |  |
 | postgres.disableSecretCreation | bool | `false` |  |
+| postgres.external.clientCert.certSecretKey | string | `"tls.crt"` |  |
+| postgres.external.clientCert.keySecretKey | string | `"tls.key"` |  |
+| postgres.external.clientCert.secretName | string | `""` |  |
 | postgres.external.connectionUrl | string | `""` |  |
 | postgres.external.connectionUrlSecretKey | string | `"connection_url"` |  |
 | postgres.external.customTls | bool | `false` |  |
@@ -1078,8 +1082,8 @@ For information on how to use this chart, up-to-date release notes, and other gu
 |-----|------|---------|-------------|
 | redis.containerPort | int | `6379` |  |
 | redis.disableSecretCreation | bool | `false` |  |
-| redis.external.clientCert.certSecretKey | string | `"client.crt"` |  |
-| redis.external.clientCert.keySecretKey | string | `"client.key"` |  |
+| redis.external.clientCert.certSecretKey | string | `"tls.crt"` |  |
+| redis.external.clientCert.keySecretKey | string | `"tls.key"` |  |
 | redis.external.clientCert.secretName | string | `""` |  |
 | redis.external.cluster.enabled | bool | `false` |  |
 | redis.external.cluster.nodeUris | list | `[]` |  |

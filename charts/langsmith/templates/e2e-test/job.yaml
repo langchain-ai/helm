@@ -38,7 +38,7 @@ spec:
     spec:
       restartPolicy: Never
       securityContext:
-        {{- toYaml .Values.e2eTest.podSecurityContext | nindent 8 }}
+        {{- include "langsmith.podSecurityContext" (dict "Values" .Values "componentSecurityContext" .Values.e2eTest.podSecurityContext) | nindent 8 }}
       serviceAccountName: {{ include "e2eTest.serviceAccountName" . }}
       {{- with concat .Values.commonInitContainers .Values.e2eTest.initContainers }}
       initContainers:

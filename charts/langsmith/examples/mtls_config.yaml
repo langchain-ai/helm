@@ -1,0 +1,79 @@
+# This is required for the volumes to be mounted as non-root, which is required for application to read the client certificates.
+# You can also set the fsGroup to each pod individually by setting the fsGroup in the podSecurityContext. See pods below.
+commonPodSecurityContext:
+  fsGroup: 1000
+
+
+# Set the fsGroup to 1000 for each pod individually instead of using the commonPodSecurityContext.
+backend:
+  podSecurityContext:
+    fsGroup: 1000
+  migrations:
+    fsGroup: 1000
+  clickhouseMigrations:
+    fsGroup: 1000
+  authBootstrap:
+    fsGroup: 1000
+  feedbackConfigMigration:
+    fsGroup: 1000
+  feedbackDataMigration:
+    fsGroup: 1000
+e2eTest:
+  podSecurityContext:
+    fsGroup: 1000
+hostBackend:
+  podSecurityContext:
+    fsGroup: 1000
+listener:
+  podSecurityContext:
+    fsGroup: 1000
+platformBackend:
+  podSecurityContext:
+    fsGroup: 1000
+playground:
+  podSecurityContext:
+    fsGroup: 1000
+queue:
+  podSecurityContext:
+    fsGroup: 1000
+ingestQueue:
+  podSecurityContext:
+    fsGroup: 1000
+
+config:
+  langsmithLicenseKey: "YOUR_LICENSE_KEY"
+  apiKeySalt: "YOUR_API_KEY_SALT"
+  authType: "mixed"
+  basicAuth:
+    enabled: true
+    initialOrgAdminEmail: "youremail@corp.dev"
+    initialOrgAdminPassword: "TestLangSmith123!"
+    jwtSecret: "YOUR_JWT_SECRET"
+
+  # Custom CA certificate for server certificate validation (applies to both Postgres and Redis).
+  # Make sure to also include a public CA if you need to access beacon and playground.
+  # NOTE: This is not required if you are using a public CA for Postgres and Redis.
+  customCa:
+    secretName: "custom-ca-secret"
+    secretKey: "ca.crt"
+
+# External Postgres with mTLS authentication
+postgres:
+  external:
+    enabled: true
+    connectionUrl: "postgres://your-username:your-password@your-postgres-host.example.com:5432/your-database?sslmode=verify-full&sslrootcert=system"
+    customTls: true
+    clientCert:
+      secretName: "postgres-client-cert" # You will need to create this secret with the client certificate and private key.
+      certSecretKey: "tls.crt"  # Key in the secret for the certificate
+      keySecretKey: "tls.key"   # Key in the secret for the private key
+
+# External Redis with mTLS authentication
+redis:
+  external:
+    enabled: true
+    connectionUrl: "rediss://your-redis-host.example.com:6379"
+    clientCert:
+      secretName: "redis-client-cert" # You will need to create this secret with the client certificate and private key.
+      certSecretKey: "tls.crt"  # Key in the secret for the certificate
+      keySecretKey: "tls.key"   # Key in the secret for the private key

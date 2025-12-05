@@ -20,6 +20,8 @@ commonVolumes: []
 commonVolumeMounts: []
 # -- Common init containers added to all deployments/statefulsets except for the playground/aceBackend services (which are sandboxed).
 commonInitContainers: []
+# -- Common pod security context applied to all pods. Component-specific podSecurityContext values will be merged on top of this (component values take precedence).
+commonPodSecurityContext: {}
 # -- Kubernetes cluster domain. Only change if not using 'cluster.local'
 clusterDomain: "cluster.local"
 
@@ -31,19 +33,19 @@ images:
   aceBackendImage:
     repository: "docker.io/langchain/langsmith-ace-backend"
     pullPolicy: IfNotPresent
-    tag: "0.12.66"
+    tag: "0.12.67"
   backendImage:
     repository: "docker.io/langchain/langsmith-backend"
     pullPolicy: IfNotPresent
-    tag: "0.12.66"
+    tag: "0.12.67"
   frontendImage:
     repository: "docker.io/langchain/langsmith-frontend"
     pullPolicy: IfNotPresent
-    tag: "0.12.66"
+    tag: "0.12.67"
   hostBackendImage:
     repository: "docker.io/langchain/hosted-langserve-backend"
     pullPolicy: IfNotPresent
-    tag: "0.12.66"
+    tag: "0.12.67"
   operatorImage:
     repository: "docker.io/langchain/langgraph-operator"
     pullPolicy: IfNotPresent
@@ -51,11 +53,11 @@ images:
   platformBackendImage:
     repository: "docker.io/langchain/langsmith-go-backend"
     pullPolicy: IfNotPresent
-    tag: "0.12.66"
+    tag: "0.12.67"
   playgroundImage:
     repository: "docker.io/langchain/langsmith-playground"
     pullPolicy: IfNotPresent
-    tag: "0.12.66"
+    tag: "0.12.67"
   postgresImage:
     repository: "docker.io/postgres"
     pullPolicy: IfNotPresent
@@ -1355,6 +1357,12 @@ postgres:
     existingSecretName: ""
     # Use this to enable TLS using a custom CA (non-public) certificate.
     customTls: false
+    # mTLS client certificate configuration for Postgres connections. Provide a secret name to enable mTLS authentication.
+    # For server certificate validation with a custom CA, use config.customCa.secretName and config.customCa.secretKey instead.
+    clientCert:
+      secretName: ""
+      certSecretKey: "tls.crt"
+      keySecretKey: "tls.key"
   containerPort: 5432
   statefulSet:
     labels: {}
@@ -1606,8 +1614,8 @@ redis:
     # For server certificate validation with a custom CA, use config.customCa.secretName and config.customCa.secretKey instead.
     clientCert:
       secretName: ""
-      certSecretKey: "client.crt"
-      keySecretKey: "client.key"
+      certSecretKey: "tls.crt"
+      keySecretKey: "tls.key"
     # Redis cluster configuration.
     cluster:
       enabled: false

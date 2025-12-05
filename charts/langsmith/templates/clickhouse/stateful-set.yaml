@@ -65,7 +65,7 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       securityContext:
-        {{- toYaml .Values.clickhouse.statefulSet.podSecurityContext | nindent 8 }}
+        {{- include "langsmith.podSecurityContext" (dict "Values" .Values "componentSecurityContext" .Values.clickhouse.statefulSet.podSecurityContext) | nindent 8 }}
       serviceAccountName: {{ include "clickhouse.serviceAccountName" . }}
       {{- with concat .Values.commonInitContainers .Values.clickhouse.statefulSet.initContainers }}
       initContainers:
