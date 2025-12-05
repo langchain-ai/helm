@@ -20,6 +20,8 @@ commonVolumes: []
 commonVolumeMounts: []
 # -- Common init containers added to all deployments/statefulsets except for the playground/aceBackend services (which are sandboxed).
 commonInitContainers: []
+# -- Common pod security context applied to all pods. Component-specific podSecurityContext values will be merged on top of this (component values take precedence).
+commonPodSecurityContext: {}
 # -- Kubernetes cluster domain. Only change if not using 'cluster.local'
 clusterDomain: "cluster.local"
 
@@ -1359,8 +1361,8 @@ postgres:
     # For server certificate validation with a custom CA, use config.customCa.secretName and config.customCa.secretKey instead.
     clientCert:
       secretName: ""
-      certSecretKey: "client.crt"
-      keySecretKey: "client.key"
+      certSecretKey: "tls.crt"
+      keySecretKey: "tls.key"
   containerPort: 5432
   statefulSet:
     labels: {}
@@ -1612,8 +1614,8 @@ redis:
     # For server certificate validation with a custom CA, use config.customCa.secretName and config.customCa.secretKey instead.
     clientCert:
       secretName: ""
-      certSecretKey: "client.crt"
-      keySecretKey: "client.key"
+      certSecretKey: "tls.crt"
+      keySecretKey: "tls.key"
     # Redis cluster configuration.
     cluster:
       enabled: false

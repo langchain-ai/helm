@@ -58,7 +58,7 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       securityContext:
-        {{- toYaml .Values.ingestQueue.deployment.podSecurityContext | nindent 8 }}
+        {{- include "langsmith.podSecurityContext" (dict "Values" .Values "componentSecurityContext" .Values.ingestQueue.deployment.podSecurityContext) | nindent 8 }}
       serviceAccountName: {{ include "ingestQueue.serviceAccountName" . }}
       restartPolicy: Always
       {{- with concat .Values.commonInitContainers .Values.ingestQueue.deployment.initContainers }}

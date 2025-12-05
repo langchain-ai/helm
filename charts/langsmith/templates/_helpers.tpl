@@ -154,6 +154,16 @@ the user or some other secret provisioning mechanism
 
 
 {{/*
+Template for merging commonPodSecurityContext with component-specific podSecurityContext.
+Component-specific values take precedence over common values.
+Usage: {{ include "langsmith.podSecurityContext" (dict "Values" .Values "componentSecurityContext" .Values.backend.deployment.podSecurityContext) }}
+*/}}
+{{- define "langsmith.podSecurityContext" -}}
+{{- $merged := merge .componentSecurityContext .Values.commonPodSecurityContext -}}
+{{- toYaml $merged -}}
+{{- end -}}
+
+{{/*
 Template containing common environment variables that are used by several services.
 */}}
 {{- define "langsmith.commonEnv" -}}

@@ -44,7 +44,7 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       securityContext:
-        {{- toYaml .Values.redis.statefulSet.podSecurityContext | nindent 8 }}
+        {{- include "langsmith.podSecurityContext" (dict "Values" .Values "componentSecurityContext" .Values.redis.statefulSet.podSecurityContext) | nindent 8 }}
       serviceAccountName: {{ include "redis.serviceAccountName" . }}
       {{- with concat .Values.commonInitContainers .Values.redis.statefulSet.initContainers }}
       initContainers:
