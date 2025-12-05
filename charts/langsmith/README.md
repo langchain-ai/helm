@@ -18,6 +18,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | commonInitContainers | list | `[]` | Common init containers added to all deployments/statefulsets except for the playground/aceBackend services (which are sandboxed). |
 | commonLabels | object | `{}` | Labels that will be applied to all resources created by the chart |
 | commonPodAnnotations | object | `{}` | Annotations that will be applied to all pods created by the chart |
+| commonPodSecurityContext | object | `{}` | Common pod security context applied to all pods. Component-specific podSecurityContext values will be merged on top of this (component values take precedence). |
 | commonVolumeMounts | list | `[]` | Common volume mounts added to all deployments/statefulsets except for the playground/aceBackend services (which are sandboxed). |
 | commonVolumes | list | `[]` | Common volumes added to all deployments/statefulsets except for the playground/aceBackend services (which are sandboxed). |
 | fullnameOverride | string | `""` | String to fully override `"langsmith.fullname"` |
@@ -942,8 +943,8 @@ For information on how to use this chart, up-to-date release notes, and other gu
 |-----|------|---------|-------------|
 | postgres.containerPort | int | `5432` |  |
 | postgres.disableSecretCreation | bool | `false` |  |
-| postgres.external.clientCert.certSecretKey | string | `"client.crt"` |  |
-| postgres.external.clientCert.keySecretKey | string | `"client.key"` |  |
+| postgres.external.clientCert.certSecretKey | string | `"tls.crt"` |  |
+| postgres.external.clientCert.keySecretKey | string | `"tls.key"` |  |
 | postgres.external.clientCert.secretName | string | `""` |  |
 | postgres.external.connectionUrl | string | `""` |  |
 | postgres.external.connectionUrlSecretKey | string | `"connection_url"` |  |
@@ -1081,8 +1082,8 @@ For information on how to use this chart, up-to-date release notes, and other gu
 |-----|------|---------|-------------|
 | redis.containerPort | int | `6379` |  |
 | redis.disableSecretCreation | bool | `false` |  |
-| redis.external.clientCert.certSecretKey | string | `"client.crt"` |  |
-| redis.external.clientCert.keySecretKey | string | `"client.key"` |  |
+| redis.external.clientCert.certSecretKey | string | `"tls.crt"` |  |
+| redis.external.clientCert.keySecretKey | string | `"tls.key"` |  |
 | redis.external.clientCert.secretName | string | `""` |  |
 | redis.external.cluster.enabled | bool | `false` |  |
 | redis.external.cluster.nodeUris | list | `[]` |  |
