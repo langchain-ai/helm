@@ -1,6 +1,6 @@
 # langgraph-cloud
 
-![Version: 0.1.19](https://img.shields.io/badge/Version-0.1.19-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.2.0](https://img.shields.io/badge/AppVersion-0.2.0-informational?style=flat-square)
+![Version: 0.2.0](https://img.shields.io/badge/Version-0.2.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.2.0](https://img.shields.io/badge/AppVersion-0.2.0-informational?style=flat-square)
 
 Helm chart to deploy the LangGraph Cloud application and all services it depends on.
 
@@ -20,8 +20,10 @@ Ensure you have the following tools/items ready.
         ```
 1. `Helm`
     1. `brew install helm`
-1. LangGraph Cloud License Key
+1. LangGraph Cloud License Key (optional)
     1. You can get this from your LangChain representative. Contact us at sales@langchain.dev for more information.
+1. LangSmith API Key (optional)
+    1. Use this if your deployment needs LangSmith access. It is mounted as `LANGSMITH_API_KEY`.
 1. A LangGraph Cloud API image
     1. You can use the [langgraph-cli](https://langchain-ai.github.io/langgraph/cloud/reference/cli/) to build your own image.
 1. SSL(optional)
@@ -38,7 +40,7 @@ Ensure you have the following tools/items ready.
     1. SSL
         1. Add an annotation to the `apiServer.service` object to tell your cloud provider to provision a load balancer with said certificate attached.
         2. This will vary based on your cloud provider. Refer to their documentation for more information.
-    1. License Key
+    1. License/API Keys
     1. A LangGraph Cloud API image. You can use the [langgraph-cli](https://langchain-ai.github.io/langgraph/cloud/reference/cli/) to build your own image.
 
 Bare minimum config file `langgraph_cloud_config.yaml`:
@@ -53,6 +55,7 @@ images:
 
 config:
   langGraphCloudLicenseKey: ""
+  apiKey: ""
 ```
 
 If your application reads from environment variables, specify `apiServer.deployment.extraEnv`:
@@ -67,6 +70,7 @@ images:
 
 config:
   langGraphCloudLicenseKey: ""
+  apiKey: ""
 
 apiServer:
   deployment:
@@ -89,6 +93,7 @@ images:
 
 config:
   langGraphCloudLicenseKey: ""
+  apiKey: ""
 
 apiServer:
   service:
@@ -110,6 +115,7 @@ images:
 
 config:
   langGraphCloudLicenseKey: ""
+  apiKey: ""
 
 postgres:
   external:
@@ -117,8 +123,7 @@ postgres:
     connectionUrl: "postgres://postgres:postgres@postgres-host.com:5432/postgres?sslmode=disable"
 ```
 
-You can also use existingSecretName to avoid checking in secrets. This secret will need to follow
-the same format as the secret in the corresponding `secrets.yaml` file. Note: API keys such as `OPENAI_API_KEY` should not be specified as environment variables. These values should be stored as secrets (e.g. Kubernetes secrets).
+You can also use existingSecretName to avoid checking in secrets. This secret should contain keys named `langgraph_cloud_license_key` (optional) and/or `api_key`. Note: API keys such as `OPENAI_API_KEY` should not be specified as environment variables. These values should be stored as secrets (e.g. Kubernetes secrets).
 
 ### Deploying to Kubernetes:
 
@@ -388,11 +393,12 @@ the same format as the secret in the corresponding `secrets.yaml` file. Note: AP
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
+| config.apiKey | string | `""` | Optional LangSmith API key mounted as LANGSMITH_API_KEY. |
 | config.auth.enabled | bool | `false` |  |
 | config.auth.langSmithAuthEndpoint | string | `""` |  |
 | config.auth.langSmithTenantId | string | `""` |  |
 | config.existingSecretName | string | `""` |  |
-| config.langGraphCloudLicenseKey | string | `""` |  |
+| config.langGraphCloudLicenseKey | string | `""` | Optional LangGraph Cloud license key loaded from the chart secret. |
 | config.numberOfJobsPerWorker | int | `10` |  |
 
 ## Api Server
