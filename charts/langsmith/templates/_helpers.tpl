@@ -177,7 +177,7 @@ Template containing common environment variables that are used by several servic
 - name: POSTGRES_SCHEMA
   value: {{ .Values.postgres.external.schema }}
 - name: POSTGRES_TLS
-  value: {{ or .Values.postgres.external.customTls (not (not .Values.postgres.external.clientCert.secretName)) | quote }}
+  value: {{ .Values.postgres.external.customTls | quote }}
 {{- if .Values.postgres.external.clientCert.secretName }}
 - name: POSTGRES_TLS_CLIENT_CERT_PATH
   value: /etc/postgres/certs/client.crt
