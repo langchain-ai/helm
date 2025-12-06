@@ -159,3 +159,8 @@ It only performs validation checks and fails template rendering if issues are fo
 {{- if and .Values.postgres.external.clientCert.secretName (not .Values.postgres.external.customTls) -}}
 {{- fail "postgres.external.customTls must be true when postgres.external.clientCert.secretName is set." -}}
 {{- end -}}
+
+{{- /* Validate clickhouse mTLS configuration */ -}}
+{{- if and .Values.clickhouse.external.clientCert.secretName (not .Values.clickhouse.external.existingSecretName) (not .Values.clickhouse.external.tls) -}}
+{{- fail "clickhouse.external.tls must be true when clickhouse.external.clientCert.secretName is set and the value is not being fetched from an existing secret." -}}
+{{- end -}}

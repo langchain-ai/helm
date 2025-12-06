@@ -12,6 +12,11 @@ backend:
     fsGroup: 1000
   clickhouseMigrations:
     fsGroup: 1000
+    extraEnv:
+      # It is required to keep a non-TLS port for migrations job to run on upgrade.
+      # By default it is 9000, this is an example of how to override it.
+      - name: CLICKHOUSE_MIGRATE_NATIVE_PORT
+        value: "9000"
   authBootstrap:
     fsGroup: 1000
   feedbackConfigMigration:
@@ -56,6 +61,22 @@ config:
   customCa:
     secretName: "custom-ca-secret"
     secretKey: "ca.crt"
+
+# MTLS Configuration for ClickHouse. Note that you MUST keep a non-TLS port for migrations job to run on upgrade. See 
+clickhouse:
+  external:
+    enabled: true
+    host: "langsmith-clickhouse-mtls.default.svc.cluster.local"
+    port: "8443"
+    nativePort: "9440"
+    user: "default"
+    password: "password"
+    database: "default"
+    tls: true
+    clientCert:
+      secretName: "clickhouse-client-cert"
+      certSecretKey: "tls.crt"
+      keySecretKey: "tls.key"
 
 # External Postgres with mTLS authentication
 postgres:

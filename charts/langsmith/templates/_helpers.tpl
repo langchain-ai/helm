@@ -264,6 +264,12 @@ Template containing common environment variables that are used by several servic
       name: {{ include "langsmith.clickhouseSecretsName" . }}
       key: {{ .Values.clickhouse.external.tlsSecretKey }}
       optional: {{ .Values.config.disableSecretCreation }}
+{{- if .Values.clickhouse.external.clientCert.secretName }}
+- name: CLICKHOUSE_TLS_CLIENT_CERT_PATH
+  value: /etc/clickhouse/certs/client.crt
+- name: CLICKHOUSE_TLS_CLIENT_KEY_PATH
+  value: /etc/clickhouse/certs/client.key
+{{- end }}
 - name: CLICKHOUSE_CLUSTER
   value: {{ .Values.clickhouse.external.cluster }}
 - name: LOG_LEVEL
@@ -610,6 +616,9 @@ Creates the image reference used for Langsmith deployments. If registry is speci
 {{- if .Values.postgres.external.clientCert.secretName -}}
 {{- $mounts = append $mounts (dict "name" "postgres-client-cert" "mountPath" "/etc/postgres/certs" "readOnly" true) -}}
 {{- end -}}
+{{- if .Values.clickhouse.external.clientCert.secretName -}}
+{{- $mounts = append $mounts (dict "name" "clickhouse-client-cert" "mountPath" "/etc/clickhouse/certs" "readOnly" true) -}}
+{{- end -}}
 {{ $mounts | toYaml }}
 {{- end -}}
 
@@ -623,6 +632,9 @@ Creates the image reference used for Langsmith deployments. If registry is speci
 {{- end -}}
 {{- if .Values.postgres.external.clientCert.secretName -}}
 {{- $volumes = append $volumes (dict "name" "postgres-client-cert" "secret" (dict "secretName" .Values.postgres.external.clientCert.secretName "items" (list (dict "key" .Values.postgres.external.clientCert.certSecretKey "path" "client.crt" "mode" 0644) (dict "key" .Values.postgres.external.clientCert.keySecretKey "path" "client.key" "mode" 0640)))) -}}
+{{- end -}}
+{{- if .Values.clickhouse.external.clientCert.secretName -}}
+{{- $volumes = append $volumes (dict "name" "clickhouse-client-cert" "secret" (dict "secretName" .Values.clickhouse.external.clientCert.secretName "items" (list (dict "key" .Values.clickhouse.external.clientCert.certSecretKey "path" "client.crt" "mode" 0644) (dict "key" .Values.clickhouse.external.clientCert.keySecretKey "path" "client.key" "mode" 0640)))) -}}
 {{- end -}}
 {{ $volumes | toYaml }}
 {{- end -}}

@@ -33,19 +33,19 @@ images:
   aceBackendImage:
     repository: "docker.io/langchain/langsmith-ace-backend"
     pullPolicy: IfNotPresent
-    tag: "0.12.67"
+    tag: "0.12.68"
   backendImage:
     repository: "docker.io/langchain/langsmith-backend"
     pullPolicy: IfNotPresent
-    tag: "0.12.67"
+    tag: "0.12.68"
   frontendImage:
     repository: "docker.io/langchain/langsmith-frontend"
     pullPolicy: IfNotPresent
-    tag: "0.12.67"
+    tag: "0.12.68"
   hostBackendImage:
     repository: "docker.io/langchain/hosted-langserve-backend"
     pullPolicy: IfNotPresent
-    tag: "0.12.67"
+    tag: "0.12.68"
   operatorImage:
     repository: "docker.io/langchain/langgraph-operator"
     pullPolicy: IfNotPresent
@@ -53,11 +53,11 @@ images:
   platformBackendImage:
     repository: "docker.io/langchain/langsmith-go-backend"
     pullPolicy: IfNotPresent
-    tag: "0.12.67"
+    tag: "0.12.68"
   playgroundImage:
     repository: "docker.io/langchain/langsmith-playground"
     pullPolicy: IfNotPresent
-    tag: "0.12.67"
+    tag: "0.12.68"
   postgresImage:
     repository: "docker.io/postgres"
     pullPolicy: IfNotPresent
@@ -571,6 +571,12 @@ clickhouse:
     tlsSecretKey: "clickhouse_tls"
     cluster: ""
     existingSecretName: ""
+    # mTLS client certificate configuration for ClickHouse connections. Provide a secret name to enable mTLS authentication.
+    # For server certificate validation with a custom CA, use config.customCa.secretName and config.customCa.secretKey instead.
+    clientCert:
+      secretName: ""
+      certSecretKey: "tls.crt"
+      keySecretKey: "tls.key"
   containerHttpPort: 8123
   containerNativePort: 9000
   statefulSet:
