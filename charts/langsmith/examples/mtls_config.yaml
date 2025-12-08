@@ -62,7 +62,8 @@ config:
     secretName: "custom-ca-secret"
     secretKey: "ca.crt"
 
-# MTLS Configuration for ClickHouse. Note that you MUST keep a non-TLS port for migrations job to run on upgrade. See 
+# MTLS Configuration for ClickHouse. Note that you MUST keep a non-TLS port for migrations job to run on upgrade. See the comment above, under "backend" for more details.
+# Outside of the 1 migration job that runs on upgrade, the application will always use the secure port.
 clickhouse:
   external:
     enabled: true
