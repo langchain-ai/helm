@@ -37,6 +37,10 @@ spec:
         app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-{{ .Values.e2eTest.name }}
     spec:
       restartPolicy: Never
+      {{- with .Values.images.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       securityContext:
         {{- include "langsmith.podSecurityContext" (dict "Values" .Values "componentSecurityContext" .Values.e2eTest.podSecurityContext) | nindent 8 }}
       serviceAccountName: {{ include "e2eTest.serviceAccountName" . }}
