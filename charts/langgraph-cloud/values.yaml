@@ -41,7 +41,10 @@ images:
 
 config:
   existingSecretName: ""
+  # -- Optional LangGraph Cloud license key loaded from the chart secret.
   langGraphCloudLicenseKey: ""
+  # -- Optional LangSmith API key mounted as LANGSMITH_API_KEY.
+  apiKey: ""
   numberOfJobsPerWorker: 10  # Number of jobs per worker. Workers are bundled with the api server if queue is disabled."
   auth:
     enabled: false
