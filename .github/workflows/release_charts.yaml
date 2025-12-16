@@ -36,3 +36,10 @@ jobs:
         env:
           CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
           CR_SKIP_EXISTING: true
+
+      - name: Trigger self-hosted changelog bot
+        run: |
+          curl -X POST "${{ secrets.HELM_CHANGELOG_BOT_URL }}/trigger" \
+            -H "X-Api-Key: ${{ secrets.LANGSMITH_API_KEY }}" \
+            -H "Content-Type: application/json" \
+            --fail --silent --show-error
