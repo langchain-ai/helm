@@ -1,0 +1,27 @@
+{{- if and .Values.agentBuilder.enabled .Values.agentBuilder.triggerServer.enabled .Values.agentBuilder.triggerServer.autoscaling.enabled .Values.agentBuilder.triggerServer.autoscaling.createHpa }}
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ include "langsmith.fullname" . }}-{{ .Values.agentBuilder.triggerServer.name }}
+  namespace: {{ .Values.namespace | default .Release.Namespace }}
+  labels:
+    {{- include "langsmith.labels" . | nindent 4 }}
+    app.kubernetes.io/component: {{ .Values.agentBuilder.triggerServer.name }}
+  annotations:
+    {{- include "langsmith.annotations" . | nindent 4 }}
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ include "langsmith.fullname" . }}-{{ .Values.agentBuilder.triggerServer.name }}
+  minReplicas: {{ .Values.agentBuilder.triggerServer.autoscaling.minReplicas }}
+  maxReplicas: {{ .Values.agentBuilder.triggerServer.autoscaling.maxReplicas }}
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.agentBuilder.triggerServer.autoscaling.targetCPUUtilizationPercentage }}
+{{- end }}
+
