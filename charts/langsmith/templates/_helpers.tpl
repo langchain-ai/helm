@@ -446,6 +446,14 @@ Template containing common environment variables that are used by several servic
 - name: FF_PERSIST_BATCHED_RUNS_SUCCESS_LOGGING
   value: "true"
 {{- end }}
+{{- if .Values.agentBuilder.enabled }}
+- name: AGENT_BUILDER_ENCRYPTION_KEY
+  valueFrom:
+    secretKeyRef:
+      name: {{ include "langsmith.secretsName" . }}
+      key: agent_builder_encryption_key
+      optional: false
+{{- end }}
 {{- end }}
 
 
@@ -562,6 +570,26 @@ Template containing common environment variables that are used by several servic
 {{- end -}}
 {{- end -}}
 
+{{- define "agentBuilderToolServer.serviceAccountName" -}}
+{{- if .Values.agentBuilder.toolServer.serviceAccount.create -}}
+    {{ default (printf "%s-%s" (include "langsmith.fullname" .) .Values.agentBuilder.toolServer.name) .Values.agentBuilder.toolServer.serviceAccount.name | trunc 63 | trimSuffix "-" }}
+{{- else -}}
+    {{ default "default" .Values.agentBuilder.toolServer.serviceAccount.name }}
+{{- end -}}
+{{- end -}}
+
+{{- define "agentBuilderTriggerServer.serviceAccountName" -}}
+{{- if .Values.agentBuilder.triggerServer.serviceAccount.create -}}
+    {{ default (printf "%s-%s" (include "langsmith.fullname" .) .Values.agentBuilder.triggerServer.name) .Values.agentBuilder.triggerServer.serviceAccount.name | trunc 63 | trimSuffix "-" }}
+{{- else -}}
+    {{ default "default" .Values.agentBuilder.triggerServer.serviceAccount.name }}
+{{- end -}}
+{{- end -}}
+
+{{- define "agentBuilderBootstrap.serviceAccountName" -}}
+{{ printf "%s-%s" (include "langsmith.fullname" .) "agent-builder-bootstrap" | trunc 63 | trimSuffix "-" }}
+{{- end -}}
+
 {{/* Fail on duplicate keys in the inputted list of environment variables */}}
 {{- define "langsmith.detectDuplicates" -}}
 {{- $inputList := . -}}
@@ -599,6 +627,9 @@ checksum/postgres: {{ include (print $.Template.BasePath "/postgres/secrets.yaml
 {{- end }}
 {{- if not .Values.clickhouse.external.existingSecretName }}
 checksum/clickhouse: {{ include (print $.Template.BasePath "/clickhouse/secrets.yaml") . | sha256sum }}
+{{- end }}
+{{- if .Values.agentBuilder.enabled }}
+checksum/graphs-config: {{ include (print $.Template.BasePath "/agent-builder/graphs-config-map.yaml") . | sha256sum }}
 {{- end }}
 {{- end }}
 
