@@ -956,6 +956,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | postgres.external.enabled | bool | `false` |  |
 | postgres.external.existingSecretName | string | `""` |  |
 | postgres.external.host | string | `""` |  |
+| postgres.external.iamAuthProvider | string | `""` |  |
 | postgres.external.password | string | `"postgres"` |  |
 | postgres.external.port | string | `"5432"` |  |
 | postgres.external.schema | string | `"public"` |  |
@@ -1098,6 +1099,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | redis.external.connectionUrlSecretKey | string | `"connection_url"` |  |
 | redis.external.enabled | bool | `false` |  |
 | redis.external.existingSecretName | string | `""` |  |
+| redis.external.iamAuthProvider | string | `""` |  |
 | redis.name | string | `"redis"` |  |
 | redis.pdb.annotations | object | `{}` |  |
 | redis.pdb.enabled | bool | `false` |  |
