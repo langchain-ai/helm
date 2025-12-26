@@ -33,19 +33,19 @@ images:
   aceBackendImage:
     repository: "docker.io/langchain/langsmith-ace-backend"
     pullPolicy: IfNotPresent
-    tag: "0.12.72"
+    tag: "0.12.73"
   backendImage:
     repository: "docker.io/langchain/langsmith-backend"
     pullPolicy: IfNotPresent
-    tag: "0.12.72"
+    tag: "0.12.73"
   frontendImage:
     repository: "docker.io/langchain/langsmith-frontend"
     pullPolicy: IfNotPresent
-    tag: "0.12.72"
+    tag: "0.12.73"
   hostBackendImage:
     repository: "docker.io/langchain/hosted-langserve-backend"
     pullPolicy: IfNotPresent
-    tag: "0.12.72"
+    tag: "0.12.73"
   operatorImage:
     repository: "docker.io/langchain/langgraph-operator"
     pullPolicy: IfNotPresent
@@ -53,11 +53,11 @@ images:
   platformBackendImage:
     repository: "docker.io/langchain/langsmith-go-backend"
     pullPolicy: IfNotPresent
-    tag: "0.12.72"
+    tag: "0.12.73"
   playgroundImage:
     repository: "docker.io/langchain/langsmith-playground"
     pullPolicy: IfNotPresent
-    tag: "0.12.72"
+    tag: "0.12.73"
   postgresImage:
     repository: "docker.io/postgres"
     pullPolicy: IfNotPresent
@@ -1361,6 +1361,9 @@ postgres:
     connectionUrl: ""
     connectionUrlSecretKey: "connection_url"
     existingSecretName: ""
+    # IAM authentication provider. If set, the application will use workload identity to authenticate.
+    # Valid values: "gcp", "aws", "azure". Leave empty to disable IAM authentication.
+    iamAuthProvider: ""
     # Use this to enable TLS using a custom CA (non-public) certificate.
     customTls: false
     # mTLS client certificate configuration for Postgres connections. Provide a secret name to enable mTLS authentication.
@@ -1616,6 +1619,9 @@ redis:
     connectionUrl: ""
     connectionUrlSecretKey: "connection_url"
     existingSecretName: ""
+    # IAM authentication provider. If set, the application will use workload identity to authenticate.
+    # Valid values: "gcp", "aws", "azure". Leave empty to disable IAM authentication.
+    iamAuthProvider: ""
     # mTLS client certificate configuration for Redis connections. Provide a secret name to enable mTLS authentication.
     # For server certificate validation with a custom CA, use config.customCa.secretName and config.customCa.secretKey instead.
     clientCert:
