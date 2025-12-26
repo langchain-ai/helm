@@ -220,6 +220,14 @@ Template containing common environment variables that are used by several servic
 - name: REDIS_TLS_CLIENT_KEY_PATH
   value: /etc/redis/certs/client.key
 {{- end }}
+{{- if .Values.postgres.external.iamAuthProvider }}
+- name: POSTGRES_IAM_AUTH_PROVIDER
+  value: {{ .Values.postgres.external.iamAuthProvider | quote }}
+{{- end }}
+{{- if .Values.redis.external.iamAuthProvider }}
+- name: REDIS_IAM_AUTH_PROVIDER
+  value: {{ .Values.redis.external.iamAuthProvider | quote }}
+{{- end }}
 - name: CLICKHOUSE_HYBRID
   value: {{ .Values.clickhouse.external.hybrid | quote }}
 - name: CLICKHOUSE_DB
