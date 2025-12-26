@@ -678,12 +678,7 @@ e2eTest:
   command:
     - "python"
     - "scripts/test_e2e_trace.pyc"
-  serviceAccount:
-    create: false
-    name: ""
-    labels: {}
-    annotations: {}
-    automountServiceAccountToken: true
+  # Note: e2eTest uses the backend service account.
   extraEnv: []
   extraContainerConfig: {}
   sidecars: []
