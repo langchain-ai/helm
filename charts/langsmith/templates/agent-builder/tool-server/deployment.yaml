@@ -1,0 +1,123 @@
+{{- define "agentBuilderToolServerEnvVars" -}}
+- name: "PORT"
+  value: "{{ .Values.agentBuilder.toolServer.containerPort }}"
+{{- end -}}
+{{- if and .Values.agentBuilder.enabled .Values.agentBuilder.toolServer.enabled }}
+{{- $envVars := concat .Values.commonEnv (include "langsmith.commonEnv" . | fromYamlArray) (include "agentBuilderToolServerEnvVars" . | fromYamlArray) .Values.agentBuilder.toolServer.deployment.extraEnv -}}
+{{- include "langsmith.detectDuplicates" $envVars -}}
+{{- $volumes := concat .Values.commonVolumes .Values.agentBuilder.toolServer.deployment.volumes (include "langsmith.tlsVolumes" . | fromYamlArray) -}}
+{{- $volumeMounts := concat .Values.commonVolumeMounts .Values.agentBuilder.toolServer.deployment.volumeMounts (include "langsmith.tlsVolumeMounts" . | fromYamlArray) -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "langsmith.fullname" . }}-{{ .Values.agentBuilder.toolServer.name }}
+  namespace: {{ .Values.namespace | default .Release.Namespace }}
+  labels:
+    {{- include "langsmith.labels" . | nindent 4 }}
+    app.kubernetes.io/component: {{ .Values.agentBuilder.toolServer.name }}
+    {{- with .Values.agentBuilder.toolServer.deployment.labels }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+  annotations:
+    {{- include "langsmith.annotations" . | nindent 4 }}
+    {{- with .Values.agentBuilder.toolServer.deployment.annotations }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  {{- if not .Values.agentBuilder.toolServer.autoscaling.enabled }}
+  replicas: {{ .Values.agentBuilder.toolServer.deployment.replicas }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "langsmith.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-{{ .Values.agentBuilder.toolServer.name }}
+  template:
+    metadata:
+      annotations:
+      {{- include "langsmith.commonPodAnnotations" . | nindent 8 }}
+      {{- include "langsmith.checksumAnnotations" . | nindent 8 }}
+      {{- with .Values.agentBuilder.toolServer.deployment.annotations }}
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- with .Values.agentBuilder.toolServer.deployment.labels }}
+            {{- toYaml . | nindent 8 }}
+        {{- end }}
+        {{- include "langsmith.labels" . | nindent 8 }}
+        app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-{{ .Values.agentBuilder.toolServer.name }}
+    spec:
+      terminationGracePeriodSeconds: {{ .Values.agentBuilder.toolServer.deployment.terminationGracePeriodSeconds }}
+      {{- with .Values.images.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{- include "langsmith.podSecurityContext" (dict "Values" .Values "componentSecurityContext" .Values.agentBuilder.toolServer.deployment.podSecurityContext) | nindent 8 }}
+      serviceAccountName: {{ include "agentBuilderToolServer.serviceAccountName" . }}
+      {{- with concat .Values.commonInitContainers .Values.agentBuilder.toolServer.deployment.initContainers }}
+      initContainers:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: {{ .Values.agentBuilder.toolServer.name }}
+          env:
+            {{- with $envVars }}
+              {{- toYaml . | nindent 12 }}
+            {{- end }}
+          envFrom:
+            - configMapRef:
+                name: {{ include "langsmith.fullname" . }}-config
+          image: {{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "agentBuilderToolServerImage") | quote }}
+          imagePullPolicy: {{ .Values.images.agentBuilderToolServerImage.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.agentBuilder.toolServer.containerPort }}
+              protocol: TCP
+          {{- with .Values.agentBuilder.toolServer.deployment.startupProbe }}
+          startupProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.agentBuilder.toolServer.deployment.livenessProbe }}
+          livenessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.agentBuilder.toolServer.deployment.readinessProbe }}
+          readinessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          resources:
+            {{- toYaml .Values.agentBuilder.toolServer.deployment.resources | nindent 12 }}
+          securityContext:
+            {{- toYaml .Values.agentBuilder.toolServer.deployment.securityContext | nindent 12 }}
+          {{- with $volumeMounts }}
+          volumeMounts:
+              {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.agentBuilder.toolServer.deployment.extraContainerConfig }}
+            {{- toYaml . | nindent 10 }}
+          {{- end }}
+        {{- with .Values.agentBuilder.toolServer.deployment.sidecars }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- with .Values.agentBuilder.toolServer.deployment.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.agentBuilder.toolServer.deployment.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.agentBuilder.toolServer.deployment.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.agentBuilder.toolServer.deployment.topologySpreadConstraints }}
+      topologySpreadConstraints:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with $volumes }}
+      volumes:
+          {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}
+

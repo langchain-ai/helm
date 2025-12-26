@@ -1,0 +1,33 @@
+{{- if and .Values.agentBuilder.enabled .Values.agentBuilder.toolServer.enabled .Values.agentBuilder.toolServer.autoscaling.enabled .Values.agentBuilder.toolServer.autoscaling.createHpa }}
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ include "langsmith.fullname" . }}-{{ .Values.agentBuilder.toolServer.name }}
+  namespace: {{ .Values.namespace | default .Release.Namespace }}
+  labels:
+    {{- include "langsmith.labels" . | nindent 4 }}
+    app.kubernetes.io/component: {{ .Values.agentBuilder.toolServer.name }}
+  annotations:
+    {{- include "langsmith.annotations" . | nindent 4 }}
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ include "langsmith.fullname" . }}-{{ .Values.agentBuilder.toolServer.name }}
+  minReplicas: {{ .Values.agentBuilder.toolServer.autoscaling.minReplicas }}
+  maxReplicas: {{ .Values.agentBuilder.toolServer.autoscaling.maxReplicas }}
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.agentBuilder.toolServer.autoscaling.targetCPUUtilizationPercentage }}
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.agentBuilder.toolServer.autoscaling.targetMemoryUtilizationPercentage }}
+{{- end }}
+

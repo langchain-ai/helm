@@ -257,6 +257,28 @@ data:
         }
     {{- end }}
 
+    {{- if and .Values.agentBuilder.enabled .Values.agentBuilder.toolServer.enabled }}
+        location /{{ .Values.config.basePath }}/mcp {
+            rewrite /{{ .Values.config.basePath }}/mcp/(.*) /$1  break;
+            proxy_set_header Connection '';
+            proxy_http_version 1.1;
+            proxy_buffering off;
+            proxy_cache off;
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.agentBuilder.toolServer.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.agentBuilder.toolServer.service.port }};
+        }
+    {{- end }}
+
+    {{- if and .Values.agentBuilder.enabled .Values.agentBuilder.triggerServer.enabled }}
+        location /{{ .Values.config.basePath }}/triggers {
+            rewrite /{{ .Values.config.basePath }}/triggers/(.*) /v1/triggers/$1  break;
+            proxy_set_header Connection '';
+            proxy_http_version 1.1;
+            proxy_buffering off;
+            proxy_cache off;
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.agentBuilder.triggerServer.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.agentBuilder.triggerServer.service.port }};
+        }
+    {{- end }}
+
         location = /{{ .Values.config.basePath }}/api/runs/multipart {
             rewrite /{{ .Values.config.basePath }}/api/runs/multipart /runs/multipart  break;
             proxy_set_header Connection '';
@@ -740,6 +762,27 @@ data:
             proxy_buffering off;
             proxy_cache off;
             proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.hostBackend.name }}.{{ .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.hostBackend.service.port }};
+        }
+    {{- end }}
+
+    {{- if and .Values.agentBuilder.enabled .Values.agentBuilder.toolServer.enabled }}
+        location /mcp {
+            proxy_set_header Connection '';
+            proxy_http_version 1.1;
+            proxy_buffering off;
+            proxy_cache off;
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.agentBuilder.toolServer.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.agentBuilder.toolServer.service.port }};
+        }
+    {{- end }}
+
+    {{- if and .Values.agentBuilder.enabled .Values.agentBuilder.triggerServer.enabled }}
+        location /triggers {
+            rewrite ^/triggers(.*)$ $1 break;
+            proxy_set_header Connection '';
+            proxy_http_version 1.1;
+            proxy_buffering off;
+            proxy_cache off;
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.agentBuilder.triggerServer.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.agentBuilder.triggerServer.service.port }};
         }
     {{- end }}
       }
