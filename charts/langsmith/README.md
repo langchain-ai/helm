@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.12.34](https://img.shields.io/badge/Version-0.12.34-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.12.73](https://img.shields.io/badge/AppVersion-0.12.73-informational?style=flat-square)
+![Version: 0.12.35](https://img.shields.io/badge/Version-0.12.35-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.12.73](https://img.shields.io/badge/AppVersion-0.12.73-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -534,11 +534,6 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | e2eTest.resources.requests.cpu | string | `"200m"` |  |
 | e2eTest.resources.requests.memory | string | `"500Mi"` |  |
 | e2eTest.securityContext | object | `{}` |  |
-| e2eTest.serviceAccount.annotations | object | `{}` |  |
-| e2eTest.serviceAccount.automountServiceAccountToken | bool | `true` |  |
-| e2eTest.serviceAccount.create | bool | `false` |  |
-| e2eTest.serviceAccount.labels | object | `{}` |  |
-| e2eTest.serviceAccount.name | string | `""` |  |
 | e2eTest.sidecars | list | `[]` |  |
 | e2eTest.tolerations | list | `[]` |  |
 | e2eTest.topologySpreadConstraints | list | `[]` |  |
