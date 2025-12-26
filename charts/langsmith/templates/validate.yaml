@@ -164,3 +164,8 @@ It only performs validation checks and fails template rendering if issues are fo
 {{- if and .Values.clickhouse.external.clientCert.secretName (not .Values.clickhouse.external.existingSecretName) (not .Values.clickhouse.external.tls) -}}
 {{- fail "clickhouse.external.tls must be true when clickhouse.external.clientCert.secretName is set and the value is not being fetched from an existing secret." -}}
 {{- end -}}
+
+{{- /* Validate e2eTest serviceAccount removal */ -}}
+{{- if .Values.e2eTest.serviceAccount -}}
+{{- fail "e2eTest.serviceAccount is no longer supported. The e2eTest job now uses the backend service account. Please remove e2eTest.serviceAccount from your values." -}}
+{{- end -}}

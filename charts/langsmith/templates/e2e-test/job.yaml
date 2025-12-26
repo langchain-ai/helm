@@ -43,7 +43,7 @@ spec:
       {{- end }}
       securityContext:
         {{- include "langsmith.podSecurityContext" (dict "Values" .Values "componentSecurityContext" .Values.e2eTest.podSecurityContext) | nindent 8 }}
-      serviceAccountName: {{ include "e2eTest.serviceAccountName" . }}
+      serviceAccountName: {{ include "backend.serviceAccountName" . }}
       {{- with concat .Values.commonInitContainers .Values.e2eTest.initContainers }}
       initContainers:
         {{- toYaml . | nindent 8 }}

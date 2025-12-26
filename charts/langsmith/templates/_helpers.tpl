@@ -472,14 +472,6 @@ Template containing common environment variables that are used by several servic
 {{- end -}}
 {{- end -}}
 
-{{- define "e2eTest.serviceAccountName" -}}
-{{- if .Values.e2eTest.serviceAccount.create -}}
-    {{ default (printf "%s-%s" (include "langsmith.fullname" .) .Values.e2eTest.name) .Values.e2eTest.serviceAccount.name | trunc 63 | trimSuffix "-" }}
-{{- else -}}
-    {{ default "default" .Values.e2eTest.serviceAccount.name }}
-{{- end -}}
-{{- end -}}
-
 {{- define "frontend.serviceAccountName" -}}
 {{- if .Values.frontend.serviceAccount.create -}}
     {{ default (printf "%s-%s" (include "langsmith.fullname" .) .Values.frontend.name) .Values.frontend.serviceAccount.name | trunc 63 | trimSuffix "-" }}
