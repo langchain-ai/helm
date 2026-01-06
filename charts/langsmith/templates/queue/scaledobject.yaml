@@ -48,7 +48,7 @@ spec:
     - type: metrics-api
       metadata:
         targetValue: "{{ .Values.queue.autoscaling.keda.queueTargetSize }}"
-        url: "http://{{ include "langsmith-multitenant.fullname" . }}-{{ .Values.langsmith.backend.name }}.{{ .Release.Namespace }}.svc.cluster.local:{{ .Values.langsmith.backend.service.port }}/metrics/queue/default"
+        url: "http://{{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}.{{ .Release.Namespace }}.svc.cluster.local:{{ .Values.backend.service.port }}/metrics/queue/default"
         valueLocation: "queued"
         format: "json"
     - type: cpu

@@ -48,13 +48,13 @@ spec:
     - type: metrics-api
       metadata:
         targetValue: "{{ .Values.ingestQueue.autoscaling.keda.queueTargetSize }}"
-        url: "http://{{ include "langsmith-multitenant.fullname" . }}-{{ .Values.langsmith.platformBackend.name }}.{{ .Release.Namespace }}.svc.cluster.local:{{ .Values.langsmith.platformBackend.service.port }}/metrics?format=json"
+        url: "http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Release.Namespace }}.svc.cluster.local:{{ .Values.platformBackend.service.port }}/metrics?format=json"
         valueLocation: "ingestion_queue.pending"
         format: "json"
     - type: metrics-api
       metadata:
         targetValue: "{{ .Values.ingestQueue.autoscaling.keda.queueTargetSize }}"
-        url: "http://{{ include "langsmith-multitenant.fullname" . }}-{{ .Values.langsmith.platformBackend.name }}.{{ .Release.Namespace }}.svc.cluster.local:{{ .Values.langsmith.platformBackend.service.port }}/metrics?format=json"
+        url: "http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Release.Namespace }}.svc.cluster.local:{{ .Values.platformBackend.service.port }}/metrics?format=json"
         valueLocation: "feedback_queue.pending"
         format: "json"
     - type: cpu

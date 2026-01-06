@@ -1517,7 +1517,7 @@ queue:
     # HPA-specific configuration
     hpa:
       enabled: false
-      minReplicas: 1
+      minReplicas: 3
       maxReplicas: 10
       targetCPUUtilizationPercentage: 50
       targetMemoryUtilizationPercentage: 80
@@ -1530,7 +1530,7 @@ queue:
       pollingInterval: 30
       cooldownPeriod: 300
       initialCooldownPeriod: 0
-      minReplicaCount: 1
+      minReplicaCount: 3
       maxReplicaCount: 10
       targetCPUUtilizationPercentage: "80"
       targetMemoryUtilizationPercentage: "60"
@@ -1621,7 +1621,7 @@ ingestQueue:
     # HPA-specific configuration
     hpa:
       enabled: false
-      minReplicas: 1
+      minReplicas: 3
       maxReplicas: 10
       targetCPUUtilizationPercentage: 50
       targetMemoryUtilizationPercentage: 80
@@ -1641,7 +1641,7 @@ ingestQueue:
       queueTargetSize: "10"
       fallback:
         failureThreshold: 3
-        replicas: 6
+        replicas: 3
       scaleDownStabilizationWindowSeconds: 1800
       scaleDownPolicy:
         value: 100
