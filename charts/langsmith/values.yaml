@@ -120,8 +120,6 @@ config:
 
   basicAuth:
     enabled: false
-    # -- Kept for backwards compatibility. Will be removed in a future release. Please use values.config.initialOrgAdminEmail instead.
-    initialOrgAdminEmail: ""
     # Either set the password and JWT secret in plaintext, or set in the secret specified by existingSecretName above.
     initialOrgAdminPassword: ""
     jwtSecret: ""
