@@ -19,11 +19,21 @@ backend:
         cpu: 1000m
         memory: 2000Mi
   autoscaling:
-    enabled: true
-    minReplicas: 3
-    maxReplicas: 10
-    targetCPUUtilizationPercentage: 50
-    targetMemoryUtilizationPercentage: 80
+    # -- HPA configuration example
+    hpa:
+      enabled: true
+      minReplicas: 3
+      maxReplicas: 10
+      targetCPUUtilizationPercentage: 50
+      targetMemoryUtilizationPercentage: 80
+    # -- KEDA configuration example
+    keda:
+      enabled: true
+      minReplicaCount: 3
+      maxReplicaCount: 10
+      targetCPUUtilizationPercentage: 50
+      targetMemoryUtilizationPercentage: 80
+      queueTargetSize: 10
 
 frontend:
   deployment:

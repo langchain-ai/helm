@@ -164,3 +164,31 @@ It only performs validation checks and fails template rendering if issues are fo
 {{- if and .Values.clickhouse.external.clientCert.secretName (not .Values.clickhouse.external.existingSecretName) (not .Values.clickhouse.external.tls) -}}
 {{- fail "clickhouse.external.tls must be true when clickhouse.external.clientCert.secretName is set and the value is not being fetched from an existing secret." -}}
 {{- end -}}
+
+{{- /* Validate queue autoscaling configuration */ -}}
+{{- if and .Values.queue.autoscaling.hpa.enabled .Values.queue.autoscaling.keda.enabled -}}
+{{- fail "Only one of queue.autoscaling.hpa.enabled or queue.autoscaling.keda.enabled can be enabled at the same time." -}}
+{{- end -}}
+{{- if hasKey .Values.queue.autoscaling "createHpa" -}}
+{{- fail "queue.autoscaling.createHpa is deprecated. Please use queue.autoscaling.hpa.enabled and/or queue.autoscaling.keda.enabled instead." -}}
+{{- end -}}
+{{- if hasKey .Values.queue.autoscaling "type" -}}
+{{- fail "queue.autoscaling.type is deprecated. Please use queue.autoscaling.hpa.enabled and/or queue.autoscaling.keda.enabled instead." -}}
+{{- end -}}
+{{- if hasKey .Values.queue.autoscaling "enabled" -}}
+{{- fail "queue.autoscaling.enabled is deprecated. Please use queue.autoscaling.hpa.enabled and/or queue.autoscaling.keda.enabled instead." -}}
+{{- end -}}
+
+{{- /* Validate ingestQueue autoscaling configuration */ -}}
+{{- if and .Values.ingestQueue.enabled .Values.ingestQueue.autoscaling.hpa.enabled .Values.ingestQueue.autoscaling.keda.enabled -}}
+{{- fail "Only one of ingestQueue.autoscaling.hpa.enabled or ingestQueue.autoscaling.keda.enabled can be enabled at the same time." -}}
+{{- end -}}
+{{- if hasKey .Values.ingestQueue.autoscaling "createHpa" -}}
+{{- fail "ingestQueue.autoscaling.createHpa is deprecated. Please use ingestQueue.autoscaling.hpa.enabled and/or ingestQueue.autoscaling.keda.enabled instead." -}}
+{{- end -}}
+{{- if hasKey .Values.ingestQueue.autoscaling "type" -}}
+{{- fail "ingestQueue.autoscaling.type is deprecated. Please use ingestQueue.autoscaling.hpa.enabled and/or ingestQueue.autoscaling.keda.enabled instead." -}}
+{{- end -}}
+{{- if hasKey .Values.ingestQueue.autoscaling "enabled" -}}
+{{- fail "ingestQueue.autoscaling.enabled is deprecated. Please use ingestQueue.autoscaling.hpa.enabled and/or ingestQueue.autoscaling.keda.enabled instead." -}}
+{{- end -}}

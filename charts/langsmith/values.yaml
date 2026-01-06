@@ -158,8 +158,8 @@ config:
       # -- 400 day longlived and 14 day shortlived
       longlived: "34560000"
       shortlived: "1209600"
-    #
-  # -- Blob storage configuration
+
+  # Blob storage configuration
   # Optional. Used to store inputs, outputs, and errors in Blob Storage.
   # We currently support S3, GCS, Minio, and Azure as Blob Storage providers.
   blobStorage:
@@ -1514,14 +1514,37 @@ queue:
     labels: {}
     annotations: {}
   autoscaling:
-    enabled: false
-    # If enabled, use the following values to configure the HPA. You can also use your own HPA configuration by not creating an HPA.
-    # You may want to manage the HPA yourself if you have a custom autoscaling setup like KEDA.
-    createHpa: true
-    minReplicas: 3
-    maxReplicas: 10
-    targetCPUUtilizationPercentage: 50
-    targetMemoryUtilizationPercentage: 80
+    # HPA-specific configuration
+    hpa:
+      enabled: false
+      minReplicas: 1
+      maxReplicas: 10
+      targetCPUUtilizationPercentage: 50
+      targetMemoryUtilizationPercentage: 80
+    # KEDA ScaledObject configuration. See https://keda.sh/docs/2.18/reference/scaledobject-spec
+    # These are some recommended default values. You can tweak them to your needs, using the docs above.
+    keda:
+      enabled: false
+      labels: {}
+      annotations: {}
+      pollingInterval: 30
+      cooldownPeriod: 300
+      initialCooldownPeriod: 0
+      minReplicaCount: 1
+      maxReplicaCount: 10
+      targetCPUUtilizationPercentage: "80"
+      targetMemoryUtilizationPercentage: "60"
+      queueTargetSize: "10"
+      fallback:
+        failureThreshold: 3
+        replicas: 3
+      scaleDownStabilizationWindowSeconds: 1800
+      scaleDownPolicy:
+        value: 100
+        periodSeconds: 300
+      scaleUpPolicy:
+        value: 100
+        periodSeconds: 15
   serviceAccount:
     create: true
     name: ""
@@ -1593,15 +1616,39 @@ ingestQueue:
     minAvailable: 1
     labels: {}
     annotations: {}
+  # Autoscaling configuration. Either HPA or KEDA can be enabled, not both.
   autoscaling:
-    enabled: false
-    # If enabled, use the following values to configure the HPA. You can also use your own HPA configuration by not creating an HPA.
-    # You may want to manage the HPA yourself if you have a custom autoscaling setup like KEDA.
-    createHpa: true
-    minReplicas: 3
-    maxReplicas: 10
-    targetCPUUtilizationPercentage: 50
-    targetMemoryUtilizationPercentage: 80
+    # HPA-specific configuration
+    hpa:
+      enabled: false
+      minReplicas: 1
+      maxReplicas: 10
+      targetCPUUtilizationPercentage: 50
+      targetMemoryUtilizationPercentage: 80
+    # KEDA ScaledObject configuration. See https://keda.sh/docs/2.18/reference/scaledobject-spec
+    # These are some recommended default values. You can tweak them to your needs, using the docs above.
+    keda:
+      enabled: false
+      labels: {}
+      annotations: {}
+      pollingInterval: 30
+      cooldownPeriod: 300
+      initialCooldownPeriod: 0
+      minReplicaCount: 3
+      maxReplicaCount: 10
+      targetCPUUtilizationPercentage: "80"
+      targetMemoryUtilizationPercentage: "60"
+      queueTargetSize: "10"
+      fallback:
+        failureThreshold: 3
+        replicas: 6
+      scaleDownStabilizationWindowSeconds: 1800
+      scaleDownPolicy:
+        value: 100
+        periodSeconds: 300
+      scaleUpPolicy:
+        value: 100
+        periodSeconds: 15
   serviceAccount:
     create: true
     name: ""
