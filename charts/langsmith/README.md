@@ -60,12 +60,29 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | images.redisImage.repository | string | `"docker.io/redis"` |  |
 | images.redisImage.tag | string | `"7"` |  |
 | images.registry | string | `""` | If supplied, all children <image_name>.repository values will be prepended with this registry name + `/` |
-| ingestQueue.autoscaling.createHpa | bool | `true` |  |
-| ingestQueue.autoscaling.enabled | bool | `false` |  |
-| ingestQueue.autoscaling.maxReplicas | int | `10` |  |
-| ingestQueue.autoscaling.minReplicas | int | `3` |  |
-| ingestQueue.autoscaling.targetCPUUtilizationPercentage | int | `50` |  |
-| ingestQueue.autoscaling.targetMemoryUtilizationPercentage | int | `80` |  |
+| ingestQueue.autoscaling.hpa.enabled | bool | `false` |  |
+| ingestQueue.autoscaling.hpa.maxReplicas | int | `10` |  |
+| ingestQueue.autoscaling.hpa.minReplicas | int | `1` |  |
+| ingestQueue.autoscaling.hpa.targetCPUUtilizationPercentage | int | `50` |  |
+| ingestQueue.autoscaling.hpa.targetMemoryUtilizationPercentage | int | `80` |  |
+| ingestQueue.autoscaling.keda.annotations | object | `{}` |  |
+| ingestQueue.autoscaling.keda.cooldownPeriod | int | `300` |  |
+| ingestQueue.autoscaling.keda.enabled | bool | `false` |  |
+| ingestQueue.autoscaling.keda.fallback.failureThreshold | int | `3` |  |
+| ingestQueue.autoscaling.keda.fallback.replicas | int | `6` |  |
+| ingestQueue.autoscaling.keda.initialCooldownPeriod | int | `0` |  |
+| ingestQueue.autoscaling.keda.labels | object | `{}` |  |
+| ingestQueue.autoscaling.keda.maxReplicaCount | int | `10` |  |
+| ingestQueue.autoscaling.keda.minReplicaCount | int | `3` |  |
+| ingestQueue.autoscaling.keda.pollingInterval | int | `30` |  |
+| ingestQueue.autoscaling.keda.queueTargetSize | string | `"10"` |  |
+| ingestQueue.autoscaling.keda.scaleDownPolicy.periodSeconds | int | `300` |  |
+| ingestQueue.autoscaling.keda.scaleDownPolicy.value | int | `100` |  |
+| ingestQueue.autoscaling.keda.scaleDownStabilizationWindowSeconds | int | `1800` |  |
+| ingestQueue.autoscaling.keda.scaleUpPolicy.periodSeconds | int | `15` |  |
+| ingestQueue.autoscaling.keda.scaleUpPolicy.value | int | `100` |  |
+| ingestQueue.autoscaling.keda.targetCPUUtilizationPercentage | string | `"80"` |  |
+| ingestQueue.autoscaling.keda.targetMemoryUtilizationPercentage | string | `"60"` |  |
 | ingestQueue.containerPort | int | `1989` |  |
 | ingestQueue.deployment.affinity | object | `{}` |  |
 | ingestQueue.deployment.annotations | object | `{}` |  |
@@ -140,11 +157,22 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | config.basicAuth.initialOrgAdminEmail | string | `""` | Kept for backwards compatibility. Will be removed in a future release. Please use values.config.initialOrgAdminEmail instead. |
 | config.basicAuth.initialOrgAdminPassword | string | `""` |  |
 | config.basicAuth.jwtSecret | string | `""` |  |
-| config.blobStorage | object | `{"accessKey":"","accessKeySecret":"","apiURL":"https://s3.us-west-2.amazonaws.com","azureStorageAccountKey":"","azureStorageAccountName":"","azureStorageConnectionString":"","azureStorageContainerName":"","azureStorageServiceUrlOverride":"","bucketName":"","chSearchEnabled":true,"enabled":false,"engine":"S3","kmsEncryptionEnabled":false,"kmsKeyArn":"","minBlobStorageSizeKb":"20","s3UsePathStyle":false}` | Blob storage configuration Optional. Used to store inputs, outputs, and errors in Blob Storage. We currently support S3, GCS, Minio, and Azure as Blob Storage providers. |
+| config.blobStorage.accessKey | string | `""` |  |
+| config.blobStorage.accessKeySecret | string | `""` |  |
+| config.blobStorage.apiURL | string | `"https://s3.us-west-2.amazonaws.com"` |  |
+| config.blobStorage.azureStorageAccountKey | string | `""` |  |
 | config.blobStorage.azureStorageAccountName | string | `""` | Optional. Set this along with azureStorageAccountKey to use a storage account and access key. Higher precedence than azureStorageConnectionString. |
 | config.blobStorage.azureStorageConnectionString | string | `""` | Optional. Use this to specify the full connection string including any authentication params. |
 | config.blobStorage.azureStorageContainerName | string | `""` | Required if using Azure blob storage |
 | config.blobStorage.azureStorageServiceUrlOverride | string | `""` | Optional. Use this to customize the service URL, which by default is 'https://<storage_account_name>.blob.core.windows.net/' |
+| config.blobStorage.bucketName | string | `""` |  |
+| config.blobStorage.chSearchEnabled | bool | `true` |  |
+| config.blobStorage.enabled | bool | `false` |  |
+| config.blobStorage.engine | string | `"S3"` |  |
+| config.blobStorage.kmsEncryptionEnabled | bool | `false` |  |
+| config.blobStorage.kmsKeyArn | string | `""` |  |
+| config.blobStorage.minBlobStorageSizeKb | string | `"20"` |  |
+| config.blobStorage.s3UsePathStyle | bool | `false` |  |
 | config.customCa.secretKey | string | `""` |  |
 | config.customCa.secretName | string | `""` | Optional. Used to set a file containing trusted CA certificates. Make sure to also include a public CA to access beacon and playground. |
 | config.customLogo | object | `{"coBrandingEnabled":true,"enabled":false,"logoUrl":""}` | Custom logo configuration. If enabled, the logoUrl and coBrandingEnabled values must be provided. The logoUrl must be a valid URL to an image like png, jpg, or svg. Co-branding will show LangSmith and customer logos side by side. |
@@ -1023,12 +1051,29 @@ For information on how to use this chart, up-to-date release notes, and other gu
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| queue.autoscaling.createHpa | bool | `true` |  |
-| queue.autoscaling.enabled | bool | `false` |  |
-| queue.autoscaling.maxReplicas | int | `10` |  |
-| queue.autoscaling.minReplicas | int | `3` |  |
-| queue.autoscaling.targetCPUUtilizationPercentage | int | `50` |  |
-| queue.autoscaling.targetMemoryUtilizationPercentage | int | `80` |  |
+| queue.autoscaling.hpa.enabled | bool | `false` |  |
+| queue.autoscaling.hpa.maxReplicas | int | `10` |  |
+| queue.autoscaling.hpa.minReplicas | int | `1` |  |
+| queue.autoscaling.hpa.targetCPUUtilizationPercentage | int | `50` |  |
+| queue.autoscaling.hpa.targetMemoryUtilizationPercentage | int | `80` |  |
+| queue.autoscaling.keda.annotations | object | `{}` |  |
+| queue.autoscaling.keda.cooldownPeriod | int | `300` |  |
+| queue.autoscaling.keda.enabled | bool | `false` |  |
+| queue.autoscaling.keda.fallback.failureThreshold | int | `3` |  |
+| queue.autoscaling.keda.fallback.replicas | int | `3` |  |
+| queue.autoscaling.keda.initialCooldownPeriod | int | `0` |  |
+| queue.autoscaling.keda.labels | object | `{}` |  |
+| queue.autoscaling.keda.maxReplicaCount | int | `10` |  |
+| queue.autoscaling.keda.minReplicaCount | int | `1` |  |
+| queue.autoscaling.keda.pollingInterval | int | `30` |  |
+| queue.autoscaling.keda.queueTargetSize | string | `"10"` |  |
+| queue.autoscaling.keda.scaleDownPolicy.periodSeconds | int | `300` |  |
+| queue.autoscaling.keda.scaleDownPolicy.value | int | `100` |  |
+| queue.autoscaling.keda.scaleDownStabilizationWindowSeconds | int | `1800` |  |
+| queue.autoscaling.keda.scaleUpPolicy.periodSeconds | int | `15` |  |
+| queue.autoscaling.keda.scaleUpPolicy.value | int | `100` |  |
+| queue.autoscaling.keda.targetCPUUtilizationPercentage | string | `"80"` |  |
+| queue.autoscaling.keda.targetMemoryUtilizationPercentage | string | `"60"` |  |
 | queue.containerPort | int | `8080` |  |
 | queue.deployment.affinity | object | `{}` |  |
 | queue.deployment.annotations | object | `{}` |  |

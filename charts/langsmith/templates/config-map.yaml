@@ -48,6 +48,7 @@ data:
   OTEL_USE_TLS: "{{ .Values.config.observability.tracing.useTls }}"
   {{- else }}
   OTEL_TRACING_ENABLED: "false"
+  OTLP_ENDPOINT: ""
   {{- end }}
   # Self-hosted telemetry
   ENABLE_POSTGRES_METRICS_CRON: {{ ternary "true" "false" .Values.config.telemetry.metrics | quote }}
