@@ -19,21 +19,11 @@ backend:
         cpu: 1000m
         memory: 2000Mi
   autoscaling:
-    # -- HPA configuration example
-    hpa:
-      enabled: true
-      minReplicas: 3
-      maxReplicas: 10
-      targetCPUUtilizationPercentage: 50
-      targetMemoryUtilizationPercentage: 80
-    # -- KEDA configuration example
-    keda:
-      enabled: true
-      minReplicaCount: 3
-      maxReplicaCount: 10
-      targetCPUUtilizationPercentage: 50
-      targetMemoryUtilizationPercentage: 80
-      queueTargetSize: 10
+    enabled: true
+    minReplicas: 3
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 50
+    targetMemoryUtilizationPercentage: 80
 
 frontend:
   deployment:
@@ -83,6 +73,32 @@ playground:
     targetCPUUtilizationPercentage: 50
     targetMemoryUtilizationPercentage: 80
 
+ingestQueue:
+  deployment:
+    resources:
+      limits:
+        cpu: 2000m
+        memory: 4Gi
+      requests:
+        cpu: 1000m
+        memory: 2Gi
+  autoscaling:
+    # -- HPA configuration example
+    hpa:
+      enabled: true
+      minReplicas: 3
+      maxReplicas: 10
+      targetCPUUtilizationPercentage: 50
+      targetMemoryUtilizationPercentage: 80
+    # -- KEDA configuration example
+    keda:
+      enabled: true
+      minReplicaCount: 3
+      maxReplicaCount: 10
+      targetCPUUtilizationPercentage: 50
+      targetMemoryUtilizationPercentage: 80
+      queueTargetSize: 10
+
 queue:
   deployment:
     resources:
@@ -93,11 +109,21 @@ queue:
         cpu: 1000m
         memory: 2Gi
   autoscaling:
+    # -- HPA configuration example
+    hpa:
       enabled: true
       minReplicas: 3
       maxReplicas: 10
       targetCPUUtilizationPercentage: 50
       targetMemoryUtilizationPercentage: 80
+    # -- KEDA configuration example
+    keda:
+      enabled: true
+      minReplicaCount: 3
+      maxReplicaCount: 10
+      targetCPUUtilizationPercentage: 50
+      targetMemoryUtilizationPercentage: 80
+      queueTargetSize: 10
 
 postgres:
   statefulSet:
