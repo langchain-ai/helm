@@ -164,3 +164,13 @@ It only performs validation checks and fails template rendering if issues are fo
 {{- if and .Values.clickhouse.external.clientCert.secretName (not .Values.clickhouse.external.existingSecretName) (not .Values.clickhouse.external.tls) -}}
 {{- fail "clickhouse.external.tls must be true when clickhouse.external.clientCert.secretName is set and the value is not being fetched from an existing secret." -}}
 {{- end -}}
+
+{{- /* Validate agent builder configuration */ -}}
+{{- if .Values.agentBuilder.enabled -}}
+{{- if and (not .Values.agentBuilder.encryptionKey) (not .Values.config.existingSecretName) -}}
+{{- fail "agentBuilder.encryptionKey is required when agentBuilder is enabled. Generate one with: python -c \"from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())\"" -}}
+{{- end -}}
+{{- if not .Values.config.deployment.enabled -}}
+{{- fail "config.deployment.enabled must be true when agentBuilder is enabled. Agent Builder requires LangSmith Deployments." -}}
+{{- end -}}
+{{- end -}}

@@ -70,6 +70,23 @@ images:
     repository: "docker.io/clickhouse/clickhouse-server"
     pullPolicy: Always
     tag: "25.4"
+  # Agent Builder images
+  agentBuilderToolServerImage:
+    repository: "docker.io/langchain/agent-builder-tool-server"
+    pullPolicy: IfNotPresent
+    tag: "TODO"
+  agentBuilderTriggerServerImage:
+    repository: "docker.io/langchain/agent-builder-trigger-server"
+    pullPolicy: IfNotPresent
+    tag: "TODO"
+  agentBuilderGeneratorImage:
+    repository: "docker.io/langchain/agent-builder-generator"
+    pullPolicy: IfNotPresent
+    tag: "TODO"
+  agentBuilderDeepAgentImage:
+    repository: "docker.io/langchain/agent-builder-deep-agent"
+    pullPolicy: IfNotPresent
+    tag: "TODO"
 
 ingress:
   enabled: false
@@ -1713,3 +1730,212 @@ redis:
     labels: {}
     annotations: {}
     automountServiceAccountToken: true
+
+# Agent Builder configuration
+# This enables the Agent Builder feature which allows users to create and manage agents through a UI.
+# Requires config.deployment.enabled to be true.
+agentBuilder:
+  # -- Enable the Agent Builder feature
+  enabled: false
+  # -- Fernet encryption key for agent builder secrets. Required when agentBuilder is enabled.
+  # Generate with: python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
+  encryptionKey: ""
+
+  # Tool Server configuration - provides MCP tool execution capabilities
+  toolServer:
+    enabled: true
+    name: "agent-builder-tool-server"
+    containerPort: 1989
+    deployment:
+      replicas: 1
+      labels: {}
+      annotations: {}
+      podSecurityContext: {}
+      securityContext: {}
+      resources:
+        limits:
+          cpu: 2000m
+          memory: 4Gi
+        requests:
+          cpu: 1000m
+          memory: 2Gi
+      startupProbe:
+        httpGet:
+          path: /health
+          port: 1989
+        failureThreshold: 6
+        periodSeconds: 10
+        timeoutSeconds: 3
+      livenessProbe:
+        httpGet:
+          path: /health
+          port: 1989
+        failureThreshold: 6
+        periodSeconds: 10
+        timeoutSeconds: 3
+      readinessProbe:
+        httpGet:
+          path: /health
+          port: 1989
+        failureThreshold: 6
+        periodSeconds: 10
+        timeoutSeconds: 3
+      extraContainerConfig: {}
+      extraEnv: []
+      sidecars: []
+      initContainers: []
+      nodeSelector: {}
+      tolerations: []
+      topologySpreadConstraints: []
+      affinity: {}
+      volumes: []
+      volumeMounts: []
+      terminationGracePeriodSeconds: 30
+    autoscaling:
+      enabled: false
+      createHpa: true
+      minReplicas: 1
+      maxReplicas: 3
+      targetCPUUtilizationPercentage: 70
+      targetMemoryUtilizationPercentage: 70
+    pdb:
+      enabled: false
+      minAvailable: 1
+      labels: {}
+      annotations: {}
+    service:
+      type: ClusterIP
+      port: 1989
+      labels: {}
+      annotations: {}
+      loadBalancerSourceRanges: []
+      loadBalancerIP: ""
+    serviceAccount:
+      create: true
+      name: ""
+      labels: {}
+      annotations: {}
+      automountServiceAccountToken: true
+
+  # Trigger Server configuration - handles webhooks and scheduled triggers for agents
+  triggerServer:
+    enabled: true
+    name: "agent-builder-trigger-server"
+    containerPort: 1990
+    deployment:
+      replicas: 1
+      labels: {}
+      annotations: {}
+      podSecurityContext: {}
+      securityContext: {}
+      resources:
+        limits:
+          cpu: 2000m
+          memory: 4Gi
+        requests:
+          cpu: 1000m
+          memory: 2Gi
+      startupProbe:
+        httpGet:
+          path: /health
+          port: 1990
+        failureThreshold: 6
+        periodSeconds: 10
+        timeoutSeconds: 1
+      livenessProbe:
+        httpGet:
+          path: /health
+          port: 1990
+        failureThreshold: 6
+        periodSeconds: 10
+        timeoutSeconds: 1
+      readinessProbe:
+        httpGet:
+          path: /health
+          port: 1990
+        failureThreshold: 6
+        periodSeconds: 10
+        timeoutSeconds: 1
+      extraContainerConfig: {}
+      extraEnv: []
+      sidecars: []
+      initContainers: []
+      nodeSelector: {}
+      tolerations: []
+      topologySpreadConstraints: []
+      affinity: {}
+      volumes: []
+      volumeMounts: []
+      terminationGracePeriodSeconds: 30
+    autoscaling:
+      enabled: false
+      createHpa: true
+      minReplicas: 1
+      # NOTE: maxReplicas should be 1 until the trigger server supports multi-instance (crons run duplicatively otherwise)
+      maxReplicas: 1
+      targetCPUUtilizationPercentage: 80
+    pdb:
+      enabled: false
+      minAvailable: 1
+      labels: {}
+      annotations: {}
+    service:
+      type: ClusterIP
+      port: 1990
+      labels: {}
+      annotations: {}
+      loadBalancerSourceRanges: []
+      loadBalancerIP: ""
+    serviceAccount:
+      create: true
+      name: ""
+      labels: {}
+      annotations: {}
+      automountServiceAccountToken: true
+
+  # Main Agent (Deep Agent) configuration - deployed via LangSmith Deployments
+  mainAgent:
+    # Resource specifications for the main agent deployment
+    resources:
+      cpu: 2
+      cpuLimit: 4
+      memoryMb: 4096
+      memoryLimitMb: 8192
+      minScale: 1
+      maxScale: 5
+
+  # Generator Agent configuration - deployed via LangSmith Deployments
+  generatorAgent:
+    # Resource specifications for the generator agent deployment
+    resources:
+      cpu: 2
+      cpuLimit: 4
+      memoryMb: 4096
+      memoryLimitMb: 8192
+      minScale: 1
+      maxScale: 5
+
+  # Bootstrap job configuration - deploys the agent builder agents via LangSmith Deployments API
+  bootstrap:
+    # Set to false to skip the bootstrap job that deploys the agent builder agents
+    enabled: true
+    # Helpful when running using helm template to avoid the job name conflict
+    randomizeName: false
+    labels: {}
+    annotations: {}
+    podSecurityContext: {}
+    securityContext: {}
+    resources:
+      limits:
+        cpu: 500m
+        memory: 512Mi
+      requests:
+        cpu: 100m
+        memory: 256Mi
+    extraEnv: []
+    nodeSelector: {}
+    tolerations: []
+    topologySpreadConstraints: []
+    affinity: {}
+    # You can set this to null to disable the TTL for the job. Useful for some deployment setups.
+    ttlSecondsAfterFinished: 600
