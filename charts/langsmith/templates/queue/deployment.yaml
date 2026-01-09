@@ -79,6 +79,11 @@ spec:
           envFrom:
             - configMapRef:
                 name: {{ include "langsmith.fullname" . }}-config
+            {{- if .Values.insightsAgent.enabled }}
+            - configMapRef:
+                name: {{ include "langsmith.fullname" . }}-clio-config
+                optional: true
+            {{- end }}
           image: {{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "backendImage") | quote }}
           imagePullPolicy: {{ .Values.images.backendImage.pullPolicy }}
           ports:

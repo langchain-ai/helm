@@ -33,19 +33,23 @@ images:
   aceBackendImage:
     repository: "docker.io/langchain/langsmith-ace-backend"
     pullPolicy: IfNotPresent
-    tag: "0.12.72"
+    tag: "0.12.73"
   backendImage:
     repository: "docker.io/langchain/langsmith-backend"
     pullPolicy: IfNotPresent
-    tag: "0.12.72"
+    tag: "0.12.73"
+  clioAgentImage:
+    repository: "docker.io/langchain/langsmith-clio"
+    pullPolicy: IfNotPresent
+    tag: "0.12.73-amd64"
   frontendImage:
     repository: "docker.io/langchain/langsmith-frontend"
     pullPolicy: IfNotPresent
-    tag: "0.12.72"
+    tag: "0.12.73"
   hostBackendImage:
     repository: "docker.io/langchain/hosted-langserve-backend"
     pullPolicy: IfNotPresent
-    tag: "0.12.72"
+    tag: "0.12.73"
   operatorImage:
     repository: "docker.io/langchain/langgraph-operator"
     pullPolicy: IfNotPresent
@@ -53,11 +57,11 @@ images:
   platformBackendImage:
     repository: "docker.io/langchain/langsmith-go-backend"
     pullPolicy: IfNotPresent
-    tag: "0.12.72"
+    tag: "0.12.73"
   playgroundImage:
     repository: "docker.io/langchain/langsmith-playground"
     pullPolicy: IfNotPresent
-    tag: "0.12.72"
+    tag: "0.12.73"
   postgresImage:
     repository: "docker.io/postgres"
     pullPolicy: IfNotPresent
@@ -1378,6 +1382,9 @@ postgres:
     connectionUrl: ""
     connectionUrlSecretKey: "connection_url"
     existingSecretName: ""
+    # IAM authentication provider. If set, the application will use workload identity to authenticate.
+    # Valid values: "gcp", "aws", "azure". Leave empty to disable IAM authentication.
+    iamAuthProvider: ""
     # Use this to enable TLS using a custom CA (non-public) certificate.
     customTls: false
     # mTLS client certificate configuration for Postgres connections. Provide a secret name to enable mTLS authentication.
@@ -1633,6 +1640,9 @@ redis:
     connectionUrl: ""
     connectionUrlSecretKey: "connection_url"
     existingSecretName: ""
+    # IAM authentication provider. If set, the application will use workload identity to authenticate.
+    # Valid values: "gcp", "aws", "azure". Leave empty to disable IAM authentication.
+    iamAuthProvider: ""
     # mTLS client certificate configuration for Redis connections. Provide a secret name to enable mTLS authentication.
     # For server certificate validation with a custom CA, use config.customCa.secretName and config.customCa.secretKey instead.
     clientCert:
@@ -1724,6 +1734,24 @@ redis:
     labels: {}
     annotations: {}
     automountServiceAccountToken: true
+
+# Configurations for the CLIO insights agent.
+insightsAgent:
+  # Enable the CLIO insights agent
+  enabled: false
+  # Fernet encryption key for the CLIO insights agent. Required when insights agent is enabled.
+  # Generate with: python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
+  encryptionKey: ""
+  # Resource specifications for the CLIO insights agent deployment
+
+  agentConfiguration:
+    resources:
+      cpu: 2
+      cpuLimit: 4
+      memoryMb: 4096
+      memoryLimitMb: 8192
+      minScale: 1
+      maxScale: 5
 
 # Agent Builder configuration
 # This enables the Agent Builder feature which allows users to create and manage agents through a UI.
@@ -1909,27 +1937,27 @@ agentBuilder:
       minScale: 1
       maxScale: 5
 
-  # Bootstrap job configuration - deploys the agent builder agents via LangSmith Deployments API
-  bootstrap:
-    # Set to false to skip the bootstrap job that deploys the agent builder agents
-    enabled: true
-    # Helpful when running using helm template to avoid the job name conflict
-    randomizeName: false
-    labels: {}
-    annotations: {}
-    podSecurityContext: {}
-    securityContext: {}
-    resources:
-      limits:
-        cpu: 500m
-        memory: 512Mi
-      requests:
-        cpu: 100m
-        memory: 256Mi
-    extraEnv: []
-    nodeSelector: {}
-    tolerations: []
-    topologySpreadConstraints: []
-    affinity: {}
-    # You can set this to null to disable the TTL for the job. Useful for some deployment setups.
-    ttlSecondsAfterFinished: 600
+# Bootstrap job configuration - deploys the agent builder agents, and insights agent via LangSmith Deployments API
+agentBootstrap:
+  # Set to false to skip the bootstrap job that deploys the agent builder agents
+  enabled: false
+  # Helpful when running using helm template to avoid the job name conflict
+  randomizeName: false
+  labels: {}
+  annotations: {}
+  podSecurityContext: {}
+  securityContext: {}
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 256Mi
+  extraEnv: []
+  nodeSelector: {}
+  tolerations: []
+  topologySpreadConstraints: []
+  affinity: {}
+  # You can set this to null to disable the TTL for the job. Useful for some deployment setups.
+  ttlSecondsAfterFinished: 600
