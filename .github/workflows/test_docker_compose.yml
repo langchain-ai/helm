@@ -18,6 +18,8 @@ concurrency:
 jobs:
 
   docker-compose:
+    permissions:
+      contents: read
     timeout-minutes: 10
     runs-on: ubuntu-latest
 
