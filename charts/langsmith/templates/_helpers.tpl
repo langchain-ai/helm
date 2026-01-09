@@ -450,6 +450,13 @@ Template containing common environment variables that are used by several servic
     secretKeyRef:
       name: {{ include "langsmith.secretsName" . }}
       key: agent_builder_encryption_key
+{{- end }}
+{{- if .Values.insightsAgent.enabled }}
+- name: CLIO_ENCRYPTION_KEY
+  valueFrom:
+    secretKeyRef:
+      name: {{ include "langsmith.secretsName" . }}
+      key: insights_encryption_key
       optional: false
 {{- end }}
 {{- end }}

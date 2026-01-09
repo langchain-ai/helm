@@ -1,4 +1,8 @@
 {{- define "frontendEnvVars" -}}
+{{- with .Values.insightsAgent }}
+- name: VITE_SELF_HOSTED_CLIO_ENABLED
+  value: {{ .enabled | quote }}
+{{- end }}
 {{- if .Values.config.oauth.enabled }}
 - name: VITE_OAUTH_CLIENT_ID
   valueFrom:

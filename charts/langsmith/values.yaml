@@ -38,6 +38,10 @@ images:
     repository: "docker.io/langchain/langsmith-backend"
     pullPolicy: IfNotPresent
     tag: "0.12.73"
+  clioAgentImage:
+    repository: "docker.io/langchain/langsmith-clio"
+    pullPolicy: IfNotPresent
+    tag: "0.12.73-amd64"
   frontendImage:
     repository: "docker.io/langchain/langsmith-frontend"
     pullPolicy: IfNotPresent
@@ -1731,6 +1735,24 @@ redis:
     annotations: {}
     automountServiceAccountToken: true
 
+# Configurations for the CLIO insights agent.
+insightsAgent:
+  # Enable the CLIO insights agent
+  enabled: false
+  # Fernet encryption key for the CLIO insights agent. Required when insights agent is enabled.
+  # Generate with: python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
+  encryptionKey: ""
+  # Resource specifications for the CLIO insights agent deployment
+
+  agentConfiguration:
+    resources:
+      cpu: 2
+      cpuLimit: 4
+      memoryMb: 4096
+      memoryLimitMb: 8192
+      minScale: 1
+      maxScale: 5
+
 # Agent Builder configuration
 # This enables the Agent Builder feature which allows users to create and manage agents through a UI.
 # Requires config.deployment.enabled to be true.
@@ -1915,27 +1937,27 @@ agentBuilder:
       minScale: 1
       maxScale: 5
 
-  # Bootstrap job configuration - deploys the agent builder agents via LangSmith Deployments API
-  bootstrap:
-    # Set to false to skip the bootstrap job that deploys the agent builder agents
-    enabled: true
-    # Helpful when running using helm template to avoid the job name conflict
-    randomizeName: false
-    labels: {}
-    annotations: {}
-    podSecurityContext: {}
-    securityContext: {}
-    resources:
-      limits:
-        cpu: 500m
-        memory: 512Mi
-      requests:
-        cpu: 100m
-        memory: 256Mi
-    extraEnv: []
-    nodeSelector: {}
-    tolerations: []
-    topologySpreadConstraints: []
-    affinity: {}
-    # You can set this to null to disable the TTL for the job. Useful for some deployment setups.
-    ttlSecondsAfterFinished: 600
+# Bootstrap job configuration - deploys the agent builder agents, and insights agent via LangSmith Deployments API
+agentBootstrap:
+  # Set to false to skip the bootstrap job that deploys the agent builder agents
+  enabled: false
+  # Helpful when running using helm template to avoid the job name conflict
+  randomizeName: false
+  labels: {}
+  annotations: {}
+  podSecurityContext: {}
+  securityContext: {}
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 256Mi
+  extraEnv: []
+  nodeSelector: {}
+  tolerations: []
+  topologySpreadConstraints: []
+  affinity: {}
+  # You can set this to null to disable the TTL for the job. Useful for some deployment setups.
+  ttlSecondsAfterFinished: 600
