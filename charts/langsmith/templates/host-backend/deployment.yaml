@@ -7,7 +7,7 @@
 {{- end }}
 {{- if .Values.config.hostname }}
 - name: HOST_BACKEND_ENDPOINT_PUBLIC
-  value: {{ include "langsmith.hostnameWithoutProtocol" . }}
+  value: {{ .Values.config.hostname }}/api-host
 {{- end }}
 {{- end -}}
 {{- $envVars := concat (include "langsmith.commonEnv" . | fromYamlArray ) (include "hostBackendEnvVars" . | fromYamlArray) .Values.hostBackend.deployment.extraEnv -}}
