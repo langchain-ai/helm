@@ -188,6 +188,8 @@ Template containing common environment variables that are used by several servic
 {{- if .Values.config.hostname }}
 - name: LANGSMITH_URL
   value: {{ include "langsmith.hostnameWithoutProtocol" . }}
+- name: HOST_BACKEND_ENDPOINT_PUBLIC
+  value: {{ .Values.config.hostname }}/api-host
 {{- end }}
 - name: REDIS_CLUSTER_ENABLED
   value: {{ .Values.redis.external.cluster.enabled | quote }}
