@@ -5,10 +5,6 @@
 - name: HOST_DOCS_PREFIX
   value: /{{ . }}/api-host
 {{- end }}
-{{- if .Values.config.hostname }}
-- name: HOST_BACKEND_ENDPOINT_PUBLIC
-  value: {{ include "langsmith.hostnameWithoutProtocol" . }}
-{{- end }}
 {{- end -}}
 {{- $envVars := concat (include "langsmith.commonEnv" . | fromYamlArray ) (include "hostBackendEnvVars" . | fromYamlArray) .Values.hostBackend.deployment.extraEnv -}}
 {{- include "langsmith.detectDuplicates" $envVars -}}
