@@ -174,3 +174,11 @@ It only performs validation checks and fails template rendering if issues are fo
 {{- fail "config.deployment.enabled must be true when agentBuilder is enabled. Agent Builder requires LangSmith Deployments." -}}
 {{- end -}}
 {{- end -}}
+
+{{- /* Validate insights configuration */ -}}
+{{- if and .Values.insightsAgent.enabled (not .Values.config.deployment.enabled) -}}
+{{- fail "config.deployment.enabled must be true when CLIO insights is enabled. CLIO insights requires LangSmith Deployments." -}}
+{{- end -}}
+{{- if and .Values.insightsAgent.enabled (not .Values.insightsAgent.encryptionKey) -}}
+{{- fail "insightsAgent.encryptionKey is required when CLIO insights is enabled. Generate one with: python -c \"from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())\"" -}}
+{{- end -}}
