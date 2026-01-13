@@ -1,0 +1,39 @@
+{{- if .Values.networkPolicy.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "langgraphDataplane.fullname" . }}-network-policy
+  namespace: {{ .Values.namespace | default .Release.Namespace | quote }}
+  labels:
+    {{- include "langgraphDataplane.labels" . | nindent 4 }}
+  annotations:
+    {{- include "langgraphDataplane.annotations" . | nindent 4 }}
+spec:
+  podSelector: {}  # Apply to all pods in namespace
+  policyTypes:
+    {{- toYaml .Values.networkPolicy.policyTypes | nindent 4 }}
+  {{- with .Values.networkPolicy.ingress }}
+  ingress:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  egress:
+    # Rule 1: Allow all IPv4 traffic EXCEPT blocked CIDRs
+    - to:
+      - ipBlock:
+          cidr: {{ .Values.networkPolicy.egress.allowAllExcept.cidr }}
+          except:
+            {{- toYaml .Values.networkPolicy.egress.allowAllExcept.except | nindent 12 }}
+    # Rule 2: Allow DNS resolution
+    {{- with .Values.networkPolicy.egress.dns }}
+    - ports:
+      {{- toYaml .ports | nindent 6 }}
+      {{- with .to }}
+      to:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    {{- end }}
+    # Rule 3: Additional custom egress rules
+    {{- with .Values.networkPolicy.egress.custom }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+{{- end }}
