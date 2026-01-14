@@ -112,14 +112,14 @@ queue:
     # -- HPA configuration example
     hpa:
       enabled: true
-      minReplicas: 3
+      minReplicas: 1
       maxReplicas: 10
       targetCPUUtilizationPercentage: 50
       targetMemoryUtilizationPercentage: 80
     # -- KEDA configuration example
     keda:
       enabled: true
-      minReplicaCount: 3
+      minReplicaCount: 1
       maxReplicaCount: 10
       targetCPUUtilizationPercentage: 50
       targetMemoryUtilizationPercentage: 80

@@ -1458,7 +1458,7 @@ queue:
         steps:
           - setWeight: 100
   deployment:
-    replicas: 3
+    replicas: 1
     labels: {}
     annotations: {}
     podSecurityContext: {}
@@ -1515,7 +1515,7 @@ queue:
     # HPA-specific configuration
     hpa:
       enabled: false
-      minReplicas: 3
+      minReplicas: 1
       maxReplicas: 10
       targetCPUUtilizationPercentage: 50
       targetMemoryUtilizationPercentage: 80
@@ -1528,7 +1528,7 @@ queue:
       pollingInterval: 30
       cooldownPeriod: 300
       initialCooldownPeriod: 0
-      minReplicaCount: 3
+      minReplicaCount: 1
       maxReplicaCount: 10
       targetCPUUtilizationPercentage: "80"
       targetMemoryUtilizationPercentage: "60"
