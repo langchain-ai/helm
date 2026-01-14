@@ -1,13 +1,13 @@
-# RBAC for the agent builder bootstrap job to patch the ConfigMap
-{{- if .Values.agentBuilder.enabled }}
+# RBAC for the agent bootstrap job to create/patch ConfigMaps and restart deployments
+{{- if and .Values.agentBootstrap.enabled (or .Values.agentBuilder.enabled .Values.insightsAgent.enabled) }}
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: {{ include "langsmith.fullname" . }}-agent-builder-bootstrap
+  name: {{ include "langsmith.fullname" . }}-agent-bootstrap
   namespace: {{ .Values.namespace | default .Release.Namespace }}
   labels:
     {{- include "langsmith.labels" . | nindent 4 }}
-    app.kubernetes.io/component: agent-builder-bootstrap
+    app.kubernetes.io/component: agent-bootstrap
   annotations:
     {{- include "langsmith.annotations" . | nindent 4 }}
     "helm.sh/hook": post-install,post-upgrade
@@ -17,36 +17,53 @@ metadata:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
-  name: {{ include "langsmith.fullname" . }}-agent-builder-bootstrap
+  name: {{ include "langsmith.fullname" . }}-agent-bootstrap
   namespace: {{ .Values.namespace | default .Release.Namespace }}
   labels:
     {{- include "langsmith.labels" . | nindent 4 }}
-    app.kubernetes.io/component: agent-builder-bootstrap
+    app.kubernetes.io/component: agent-bootstrap
   annotations:
     {{- include "langsmith.annotations" . | nindent 4 }}
     "helm.sh/hook": post-install,post-upgrade
     "helm.sh/hook-weight": "5"
     "helm.sh/hook-delete-policy": before-hook-creation
 rules:
+  # Permission to create ConfigMaps (for initial creation when they don't exist)
+  - apiGroups: [""]
+    resources: ["configmaps"]
+    verbs: ["create"]
+  # Permission to get/patch/update specific ConfigMaps
   - apiGroups: [""]
     resources: ["configmaps"]
     verbs: ["get", "patch", "update"]
     resourceNames:
-      - {{ include "langsmith.fullname" . }}-graphs-config
+      {{- if .Values.agentBuilder.enabled }}
+      - {{ include "langsmith.fullname" . }}-agent-builder-config
+      {{- end }}
+      {{- if .Values.insightsAgent.enabled }}
+      - {{ include "langsmith.fullname" . }}-insights-config
+      {{- end }}
+  # Permission to restart deployments after ConfigMap updates
   - apiGroups: ["apps"]
     resources: ["deployments"]
     verbs: ["get", "patch"]
     resourceNames:
       - {{ include "langsmith.fullname" . }}-{{ .Values.frontend.name }}
+      {{- if .Values.agentBuilder.enabled }}
+      - {{ include "langsmith.fullname" . }}-agent-builder-trigger-server
+      {{- end }}
+      {{- if .Values.insightsAgent.enabled }}
+      - {{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}
+      {{- end }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: {{ include "langsmith.fullname" . }}-agent-builder-bootstrap
+  name: {{ include "langsmith.fullname" . }}-agent-bootstrap
   namespace: {{ .Values.namespace | default .Release.Namespace }}
   labels:
     {{- include "langsmith.labels" . | nindent 4 }}
-    app.kubernetes.io/component: agent-builder-bootstrap
+    app.kubernetes.io/component: agent-bootstrap
   annotations:
     {{- include "langsmith.annotations" . | nindent 4 }}
     "helm.sh/hook": post-install,post-upgrade
@@ -54,11 +71,10 @@ metadata:
     "helm.sh/hook-delete-policy": before-hook-creation
 subjects:
   - kind: ServiceAccount
-    name: {{ include "langsmith.fullname" . }}-agent-builder-bootstrap
+    name: {{ include "langsmith.fullname" . }}-agent-bootstrap
     namespace: {{ .Values.namespace | default .Release.Namespace }}
 roleRef:
   kind: Role
-  name: {{ include "langsmith.fullname" . }}-agent-builder-bootstrap
+  name: {{ include "langsmith.fullname" . }}-agent-bootstrap
   apiGroup: rbac.authorization.k8s.io
 {{- end }}
-

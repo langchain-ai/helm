@@ -3,6 +3,22 @@
   value: "{{ .Values.agentBuilder.triggerServer.containerPort }}"
 - name: "TRIGGER_SERVER_HOST_API_URL"
   value: "http://{{ include "langsmith.fullname" . }}-{{ .Values.hostBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.hostBackend.service.port }}"
+{{- if .Values.agentBuilder.oauth.googleOAuthProvider }}
+- name: "GOOGLE_OAUTH_PROVIDER"
+  value: {{ .Values.agentBuilder.oauth.googleOAuthProvider | quote }}
+{{- end }}
+{{- if .Values.agentBuilder.oauth.slackOAuthProvider }}
+- name: "SLACK_OAUTH_PROVIDER"
+  value: {{ .Values.agentBuilder.oauth.slackOAuthProvider | quote }}
+{{- end }}
+{{- if .Values.agentBuilder.oauth.slackSigningSecret }}
+- name: "SLACK_SIGNING_SECRET"
+  value: {{ .Values.agentBuilder.oauth.slackSigningSecret | quote }}
+{{- end }}
+{{- if .Values.agentBuilder.oauth.slackBotId }}
+- name: "AGENT_BUILDER_SLACK_BOT_ID"
+  value: {{ .Values.agentBuilder.oauth.slackBotId | quote }}
+{{- end }}
 {{- end -}}
 {{- if and .Values.agentBuilder.enabled .Values.agentBuilder.triggerServer.enabled }}
 {{- $envVars := concat .Values.commonEnv (include "langsmith.commonEnv" . | fromYamlArray) (include "agentBuilderTriggerServerEnvVars" . | fromYamlArray) .Values.agentBuilder.triggerServer.deployment.extraEnv -}}
@@ -38,9 +54,6 @@ spec:
       annotations:
         {{- include "langsmith.commonPodAnnotations" . | nindent 8 }}
         {{- include "langsmith.checksumAnnotations" . | nindent 8 }}
-        {{- if .Values.agentBuilder.enabled }}
-        checksum/graphs-config: {{ include (print $.Template.BasePath "/agent-builder/graphs-config-map.yaml") . | sha256sum }}
-        {{- end }}
         {{- with .Values.agentBuilder.triggerServer.deployment.annotations }}
         {{- toYaml . | nindent 8 }}
       {{- end }}
@@ -73,7 +86,7 @@ spec:
             - configMapRef:
                 name: {{ include "langsmith.fullname" . }}-config
             - configMapRef:
-                name: {{ include "langsmith.fullname" . }}-graphs-config
+                name: {{ include "langsmith.fullname" . }}-agent-builder-config
                 optional: true
           image: {{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "agentBuilderTriggerServerImage") | quote }}
           imagePullPolicy: {{ .Values.images.agentBuilderTriggerServerImage.pullPolicy }}

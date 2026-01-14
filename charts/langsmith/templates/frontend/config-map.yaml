@@ -776,8 +776,7 @@ data:
     {{- end }}
 
     {{- if and .Values.agentBuilder.enabled .Values.agentBuilder.triggerServer.enabled }}
-        location /triggers {
-            rewrite ^/triggers(.*)$ $1 break;
+        location /v1/triggers {
             proxy_set_header Connection '';
             proxy_http_version 1.1;
             proxy_buffering off;

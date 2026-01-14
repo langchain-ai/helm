@@ -593,8 +593,8 @@ Template containing common environment variables that are used by several servic
 {{- end -}}
 {{- end -}}
 
-{{- define "agentBuilderBootstrap.serviceAccountName" -}}
-{{ printf "%s-%s" (include "langsmith.fullname" .) "agent-builder-bootstrap" | trunc 63 | trimSuffix "-" }}
+{{- define "agentBootstrap.serviceAccountName" -}}
+{{ printf "%s-%s" (include "langsmith.fullname" .) "agent-bootstrap" | trunc 63 | trimSuffix "-" }}
 {{- end -}}
 
 {{/* Fail on duplicate keys in the inputted list of environment variables */}}
@@ -634,9 +634,6 @@ checksum/postgres: {{ include (print $.Template.BasePath "/postgres/secrets.yaml
 {{- end }}
 {{- if not .Values.clickhouse.external.existingSecretName }}
 checksum/clickhouse: {{ include (print $.Template.BasePath "/clickhouse/secrets.yaml") . | sha256sum }}
-{{- end }}
-{{- if .Values.agentBuilder.enabled }}
-checksum/graphs-config: {{ include (print $.Template.BasePath "/agent-builder/graphs-config-map.yaml") . | sha256sum }}
 {{- end }}
 {{- end }}
 

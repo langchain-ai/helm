@@ -173,12 +173,19 @@ It only performs validation checks and fails template rendering if issues are fo
 {{- if not .Values.config.deployment.enabled -}}
 {{- fail "config.deployment.enabled must be true when agentBuilder is enabled. Agent Builder requires LangSmith Deployments." -}}
 {{- end -}}
+{{- /* Validate trigger server replicas - only 1 replica supported to prevent duplicate cron executions */ -}}
+{{- if and .Values.agentBuilder.triggerServer.enabled (gt (int .Values.agentBuilder.triggerServer.deployment.replicas) 1) -}}
+{{- fail "agentBuilder.triggerServer.deployment.replicas must be 1. The trigger server currently only supports a single replica to prevent duplicate cron job executions." -}}
+{{- end -}}
+{{- if and .Values.agentBuilder.triggerServer.enabled .Values.agentBuilder.triggerServer.autoscaling.enabled (gt (int .Values.agentBuilder.triggerServer.autoscaling.maxReplicas) 1) -}}
+{{- fail "agentBuilder.triggerServer.autoscaling.maxReplicas must be 1. The trigger server currently only supports a single replica to prevent duplicate cron job executions." -}}
+{{- end -}}
 {{- end -}}
 
 {{- /* Validate insights configuration */ -}}
 {{- if and .Values.insightsAgent.enabled (not .Values.config.deployment.enabled) -}}
-{{- fail "config.deployment.enabled must be true when CLIO insights is enabled. CLIO insights requires LangSmith Deployments." -}}
+{{- fail "config.deployment.enabled must be true when Insights is enabled. Insights requires LangSmith Deployments." -}}
 {{- end -}}
 {{- if and .Values.insightsAgent.enabled (not .Values.insightsAgent.encryptionKey) -}}
-{{- fail "insightsAgent.encryptionKey is required when CLIO insights is enabled. Generate one with: python -c \"from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())\"" -}}
+{{- fail "insightsAgent.encryptionKey is required when Insights is enabled. Generate one with: python -c \"from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())\"" -}}
 {{- end -}}

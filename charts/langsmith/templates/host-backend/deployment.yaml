@@ -5,6 +5,38 @@
 - name: HOST_DOCS_PREFIX
   value: /{{ . }}/api-host
 {{- end }}
+{{- /* Agent Builder OAuth and Trigger Server configuration */ -}}
+{{- if .Values.agentBuilder.enabled }}
+{{- if .Values.agentBuilder.oauthProviderOrgId }}
+- name: AGENT_BUILDER_AUTH_PROVIDER_ORG_ID
+  value: {{ .Values.agentBuilder.oauthProviderOrgId | quote }}
+{{- end }}
+{{- if .Values.agentBuilder.triggerServer.enabled }}
+- name: AGENT_BUILDER_TRIGGERS_API_URL
+  value: "http://{{ include "langsmith.fullname" . }}-{{ .Values.agentBuilder.triggerServer.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.agentBuilder.triggerServer.service.port }}/v1/triggers"
+{{- end }}
+{{- /* Pass OAuth provider IDs to host-backend */ -}}
+{{- if .Values.agentBuilder.oauth.googleOAuthProvider }}
+- name: GOOGLE_OAUTH_PROVIDER
+  value: {{ .Values.agentBuilder.oauth.googleOAuthProvider | quote }}
+{{- end }}
+{{- if .Values.agentBuilder.oauth.slackOAuthProvider }}
+- name: SLACK_OAUTH_PROVIDER
+  value: {{ .Values.agentBuilder.oauth.slackOAuthProvider | quote }}
+{{- end }}
+{{- if .Values.agentBuilder.oauth.linkedinOAuthProvider }}
+- name: LINKEDIN_OAUTH_PROVIDER
+  value: {{ .Values.agentBuilder.oauth.linkedinOAuthProvider | quote }}
+{{- end }}
+{{- if .Values.agentBuilder.oauth.linearOAuthProvider }}
+- name: LINEAR_OAUTH_PROVIDER
+  value: {{ .Values.agentBuilder.oauth.linearOAuthProvider | quote }}
+{{- end }}
+{{- if .Values.agentBuilder.oauth.githubOAuthProvider }}
+- name: GITHUB_OAUTH_PROVIDER
+  value: {{ .Values.agentBuilder.oauth.githubOAuthProvider | quote }}
+{{- end }}
+{{- end }}
 {{- end -}}
 {{- $envVars := concat (include "langsmith.commonEnv" . | fromYamlArray ) (include "hostBackendEnvVars" . | fromYamlArray) .Values.hostBackend.deployment.extraEnv -}}
 {{- include "langsmith.detectDuplicates" $envVars -}}
