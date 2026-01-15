@@ -279,15 +279,38 @@ aceBackend:
     volumes: []
     volumeMounts: []
     terminationGracePeriodSeconds: 30
+  # Autoscaling configuration. Either HPA or KEDA can be enabled, not both.
   autoscaling:
-    enabled: false
-    # If enabled, use the following values to configure the HPA. You can also use your own HPA configuration by not creating an HPA.
-    # You may want to manage the HPA yourself if you have a custom autoscaling setup like KEDA.
-    createHpa: true
-    minReplicas: 1
-    maxReplicas: 5
-    targetCPUUtilizationPercentage: 50
-    targetMemoryUtilizationPercentage: 80
+    # HPA-specific configuration
+    hpa:
+      enabled: false
+      minReplicas: 1
+      maxReplicas: 5
+      targetCPUUtilizationPercentage: 50
+      targetMemoryUtilizationPercentage: 80
+    # KEDA ScaledObject configuration. See https://keda.sh/docs/2.18/reference/scaledobject-spec
+    # These are some recommended default values. You can tweak them to your needs, using the docs above.
+    keda:
+      enabled: false
+      labels: {}
+      annotations: {}
+      pollingInterval: 30
+      cooldownPeriod: 300
+      initialCooldownPeriod: 0
+      minReplicaCount: 1
+      maxReplicaCount: 5
+      targetCPUUtilizationPercentage: 50
+      targetMemoryUtilizationPercentage: 80
+      fallback:
+        failureThreshold: 3
+        replicas: 1
+      scaleDownStabilizationWindowSeconds: 1800
+      scaleDownPolicy:
+        value: 100
+        periodSeconds: 300
+      scaleUpPolicy:
+        value: 100
+        periodSeconds: 15
   pdb:
     enabled: false
     minAvailable: 1
@@ -513,15 +536,39 @@ backend:
     volumeMounts: []
     # You can set this to null to disable the TTL for the migrations job. Useful for some deployment setups.
     ttlSecondsAfterFinished: 600
+  # Autoscaling configuration. Either HPA or KEDA can be enabled, not both.
   autoscaling:
-    enabled: false
-    # If enabled, use the following values to configure the HPA. You can also use your own HPA configuration by not creating an HPA.
-    # You may want to manage the HPA yourself if you have a custom autoscaling setup like KEDA.
-    createHpa: true
-    minReplicas: 2
-    maxReplicas: 6
-    targetCPUUtilizationPercentage: 50
-    targetMemoryUtilizationPercentage: 80
+    # HPA-specific configuration
+    hpa:
+      enabled: false
+      minReplicas: 2
+      maxReplicas: 6
+      targetCPUUtilizationPercentage: 50
+      targetMemoryUtilizationPercentage: 80
+      additionalMetrics: []
+    # KEDA ScaledObject configuration. See https://keda.sh/docs/2.18/reference/scaledobject-spec
+    # These are some recommended default values. You can tweak them to your needs, using the docs above.
+    keda:
+      enabled: false
+      labels: {}
+      annotations: {}
+      pollingInterval: 30
+      cooldownPeriod: 300
+      initialCooldownPeriod: 0
+      minReplicaCount: 2
+      maxReplicaCount: 6
+      targetCPUUtilizationPercentage: 50
+      targetMemoryUtilizationPercentage: 80
+      fallback:
+        failureThreshold: 3
+        replicas: 2
+      scaleDownStabilizationWindowSeconds: 1800
+      scaleDownPolicy:
+        value: 100
+        periodSeconds: 300
+      scaleUpPolicy:
+        value: 100
+        periodSeconds: 15
   pdb:
     enabled: false
     minAvailable: 1
@@ -776,15 +823,39 @@ frontend:
     volumes: []
     volumeMounts: []
     terminationGracePeriodSeconds: 30
+  # Autoscaling configuration. Either HPA or KEDA can be enabled, not both.
   autoscaling:
-    enabled: false
-    # If enabled, use the following values to configure the HPA. You can also use your own HPA configuration by not creating an HPA.
-    # You may want to manage the HPA yourself if you have a custom autoscaling setup like KEDA.
-    createHpa: true
-    minReplicas: 1
-    maxReplicas: 5
-    targetCPUUtilizationPercentage: 50
-    targetMemoryUtilizationPercentage: 80
+    # HPA-specific configuration
+    hpa:
+      enabled: false
+      minReplicas: 1
+      maxReplicas: 5
+      targetCPUUtilizationPercentage: 50
+      targetMemoryUtilizationPercentage: 80
+      additionalMetrics: []
+    # KEDA ScaledObject configuration. See https://keda.sh/docs/2.18/reference/scaledobject-spec
+    # These are some recommended default values. You can tweak them to your needs, using the docs above.
+    keda:
+      enabled: false
+      labels: {}
+      annotations: {}
+      pollingInterval: 30
+      cooldownPeriod: 300
+      initialCooldownPeriod: 0
+      minReplicaCount: 1
+      maxReplicaCount: 5
+      targetCPUUtilizationPercentage: 50
+      targetMemoryUtilizationPercentage: 80
+      fallback:
+        failureThreshold: 3
+        replicas: 1
+      scaleDownStabilizationWindowSeconds: 1800
+      scaleDownPolicy:
+        value: 100
+        periodSeconds: 300
+      scaleUpPolicy:
+        value: 100
+        periodSeconds: 15
   pdb:
     enabled: false
     minAvailable: 1
@@ -863,15 +934,38 @@ hostBackend:
     volumes: []
     volumeMounts: []
     terminationGracePeriodSeconds: 30
+  # Autoscaling configuration. Either HPA or KEDA can be enabled, not both.
   autoscaling:
-    enabled: false
-    # If enabled, use the following values to configure the HPA. You can also use your own HPA configuration by not creating an HPA.
-    # You may want to manage the HPA yourself if you have a custom autoscaling setup like KEDA.
-    createHpa: true
-    minReplicas: 1
-    maxReplicas: 5
-    targetCPUUtilizationPercentage: 50
-    targetMemoryUtilizationPercentage: 80
+    # HPA-specific configuration
+    hpa:
+      enabled: false
+      minReplicas: 1
+      maxReplicas: 5
+      targetCPUUtilizationPercentage: 50
+      targetMemoryUtilizationPercentage: 80
+    # KEDA ScaledObject configuration. See https://keda.sh/docs/2.18/reference/scaledobject-spec
+    # These are some recommended default values. You can tweak them to your needs, using the docs above.
+    keda:
+      enabled: false
+      labels: {}
+      annotations: {}
+      pollingInterval: 30
+      cooldownPeriod: 300
+      initialCooldownPeriod: 0
+      minReplicaCount: 1
+      maxReplicaCount: 5
+      targetCPUUtilizationPercentage: 50
+      targetMemoryUtilizationPercentage: 80
+      fallback:
+        failureThreshold: 3
+        replicas: 1
+      scaleDownStabilizationWindowSeconds: 1800
+      scaleDownPolicy:
+        value: 100
+        periodSeconds: 300
+      scaleUpPolicy:
+        value: 100
+        periodSeconds: 15
   pdb:
     enabled: false
     minAvailable: 1
@@ -955,15 +1049,38 @@ listener:
     volumes: []
     volumeMounts: []
     terminationGracePeriodSeconds: 30
+  # Autoscaling configuration. Either HPA or KEDA can be enabled, not both.
   autoscaling:
-    enabled: false
-    # If enabled, use the following values to configure the HPA. You can also use your own HPA configuration by not creating an HPA.
-    # You may want to manage the HPA yourself if you have a custom autoscaling setup like KEDA.
-    createHpa: true
-    minReplicas: 3
-    maxReplicas: 10
-    targetCPUUtilizationPercentage: 50
-    targetMemoryUtilizationPercentage: 80
+    # HPA-specific configuration
+    hpa:
+      enabled: false
+      minReplicas: 3
+      maxReplicas: 10
+      targetCPUUtilizationPercentage: 50
+      targetMemoryUtilizationPercentage: 80
+    # KEDA ScaledObject configuration. See https://keda.sh/docs/2.18/reference/scaledobject-spec
+    # These are some recommended default values. You can tweak them to your needs, using the docs above.
+    keda:
+      enabled: false
+      labels: {}
+      annotations: {}
+      pollingInterval: 30
+      cooldownPeriod: 300
+      initialCooldownPeriod: 0
+      minReplicaCount: 3
+      maxReplicaCount: 10
+      targetCPUUtilizationPercentage: 50
+      targetMemoryUtilizationPercentage: 80
+      fallback:
+        failureThreshold: 3
+        replicas: 3
+      scaleDownStabilizationWindowSeconds: 1800
+      scaleDownPolicy:
+        value: 100
+        periodSeconds: 300
+      scaleUpPolicy:
+        value: 100
+        periodSeconds: 15
   pdb:
     enabled: false
     minAvailable: 1
@@ -1039,15 +1156,39 @@ platformBackend:
     volumes: []
     volumeMounts: []
     terminationGracePeriodSeconds: 30
+  # Autoscaling configuration. Either HPA or KEDA can be enabled, not both.
   autoscaling:
-    enabled: false
-    # If enabled, use the following values to configure the HPA. You can also use your own HPA configuration by not creating an HPA.
-    # You may want to manage the HPA yourself if you have a custom autoscaling setup like KEDA.
-    createHpa: true
-    minReplicas: 3
-    maxReplicas: 10
-    targetCPUUtilizationPercentage: 50
-    targetMemoryUtilizationPercentage: 80
+    # HPA-specific configuration
+    hpa:
+      enabled: false
+      minReplicas: 3
+      maxReplicas: 10
+      targetCPUUtilizationPercentage: 50
+      targetMemoryUtilizationPercentage: 80
+      additionalMetrics: []
+    # KEDA ScaledObject configuration. See https://keda.sh/docs/2.18/reference/scaledobject-spec
+    # These are some recommended default values. You can tweak them to your needs, using the docs above.
+    keda:
+      enabled: false
+      labels: {}
+      annotations: {}
+      pollingInterval: 30
+      cooldownPeriod: 300
+      initialCooldownPeriod: 0
+      minReplicaCount: 3
+      maxReplicaCount: 10
+      targetCPUUtilizationPercentage: 50
+      targetMemoryUtilizationPercentage: 80
+      fallback:
+        failureThreshold: 3
+        replicas: 3
+      scaleDownStabilizationWindowSeconds: 1800
+      scaleDownPolicy:
+        value: 100
+        periodSeconds: 300
+      scaleUpPolicy:
+        value: 100
+        periodSeconds: 15
   pdb:
     enabled: false
     minAvailable: 1
@@ -1313,15 +1454,39 @@ playground:
     volumes: []
     volumeMounts: []
     terminationGracePeriodSeconds: 30
+  # Autoscaling configuration. Either HPA or KEDA can be enabled, not both.
   autoscaling:
-    enabled: false
-    # If enabled, use the following values to configure the HPA. You can also use your own HPA configuration by not creating an HPA.
-    # You may want to manage the HPA yourself if you have a custom autoscaling setup like KEDA.
-    createHpa: true
-    minReplicas: 1
-    maxReplicas: 5
-    targetCPUUtilizationPercentage: 50
-    targetMemoryUtilizationPercentage: 80
+    # HPA-specific configuration
+    hpa:
+      enabled: false
+      minReplicas: 1
+      maxReplicas: 5
+      targetCPUUtilizationPercentage: 50
+      targetMemoryUtilizationPercentage: 80
+      additionalMetrics: []
+    # KEDA ScaledObject configuration. See https://keda.sh/docs/2.18/reference/scaledobject-spec
+    # These are some recommended default values. You can tweak them to your needs, using the docs above.
+    keda:
+      enabled: false
+      labels: {}
+      annotations: {}
+      pollingInterval: 30
+      cooldownPeriod: 300
+      initialCooldownPeriod: 0
+      minReplicaCount: 1
+      maxReplicaCount: 5
+      targetCPUUtilizationPercentage: 50
+      targetMemoryUtilizationPercentage: 80
+      fallback:
+        failureThreshold: 3
+        replicas: 1
+      scaleDownStabilizationWindowSeconds: 1800
+      scaleDownPolicy:
+        value: 100
+        periodSeconds: 300
+      scaleUpPolicy:
+        value: 100
+        periodSeconds: 15
   pdb:
     enabled: false
     minAvailable: 1
@@ -1530,8 +1695,8 @@ queue:
       initialCooldownPeriod: 0
       minReplicaCount: 1
       maxReplicaCount: 10
-      targetCPUUtilizationPercentage: "80"
-      targetMemoryUtilizationPercentage: "60"
+      targetCPUUtilizationPercentage: 50
+      targetMemoryUtilizationPercentage: 80
       queueTargetSize: "10"
       fallback:
         failureThreshold: 3
@@ -1634,8 +1799,8 @@ ingestQueue:
       initialCooldownPeriod: 0
       minReplicaCount: 3
       maxReplicaCount: 10
-      targetCPUUtilizationPercentage: "80"
-      targetMemoryUtilizationPercentage: "60"
+      targetCPUUtilizationPercentage: 50
+      targetMemoryUtilizationPercentage: 80
       queueTargetSize: "10"
       fallback:
         failureThreshold: 3

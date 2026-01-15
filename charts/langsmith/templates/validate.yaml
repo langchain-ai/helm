@@ -165,30 +165,31 @@ It only performs validation checks and fails template rendering if issues are fo
 {{- fail "clickhouse.external.tls must be true when clickhouse.external.clientCert.secretName is set and the value is not being fetched from an existing secret." -}}
 {{- end -}}
 
-{{- /* Validate queue autoscaling configuration */ -}}
-{{- if and .Values.queue.autoscaling.hpa.enabled .Values.queue.autoscaling.keda.enabled -}}
-{{- fail "Only one of queue.autoscaling.hpa.enabled or queue.autoscaling.keda.enabled can be enabled at the same time." -}}
+{{- /* Validate autoscaling configuration for all services */ -}}
+{{- $autoscalingServices := dict
+  "aceBackend" .Values.aceBackend.autoscaling
+  "backend" .Values.backend.autoscaling
+  "frontend" .Values.frontend.autoscaling
+  "hostBackend" .Values.hostBackend.autoscaling
+  "listener" .Values.listener.autoscaling
+  "platformBackend" .Values.platformBackend.autoscaling
+  "playground" .Values.playground.autoscaling
+  "queue" .Values.queue.autoscaling
+  "ingestQueue" .Values.ingestQueue.autoscaling
+-}}
+{{- range $serviceName, $autoscaling := $autoscalingServices -}}
+{{- /* Validate that both HPA and KEDA are not enabled at the same time */ -}}
+{{- if and $autoscaling.hpa.enabled $autoscaling.keda.enabled -}}
+{{- fail (printf "Only one of %s.autoscaling.hpa.enabled or %s.autoscaling.keda.enabled can be enabled at the same time." $serviceName $serviceName) -}}
 {{- end -}}
-{{- if hasKey .Values.queue.autoscaling "createHpa" -}}
-{{- fail "queue.autoscaling.createHpa is deprecated. Please use queue.autoscaling.hpa.enabled and/or queue.autoscaling.keda.enabled instead." -}}
+{{- /* Validate deprecated autoscaling values */ -}}
+{{- if hasKey $autoscaling "createHpa" -}}
+{{- fail (printf "%s.autoscaling.createHpa is deprecated. Please use %s.autoscaling.hpa.enabled and/or %s.autoscaling.keda.enabled instead." $serviceName $serviceName $serviceName) -}}
 {{- end -}}
-{{- if hasKey .Values.queue.autoscaling "type" -}}
-{{- fail "queue.autoscaling.type is deprecated. Please use queue.autoscaling.hpa.enabled and/or queue.autoscaling.keda.enabled instead." -}}
+{{- if hasKey $autoscaling "type" -}}
+{{- fail (printf "%s.autoscaling.type is deprecated. Please use %s.autoscaling.hpa.enabled and/or %s.autoscaling.keda.enabled instead." $serviceName $serviceName $serviceName) -}}
 {{- end -}}
-{{- if hasKey .Values.queue.autoscaling "enabled" -}}
-{{- fail "queue.autoscaling.enabled is deprecated. Please use queue.autoscaling.hpa.enabled and/or queue.autoscaling.keda.enabled instead." -}}
+{{- if hasKey $autoscaling "enabled" -}}
+{{- fail (printf "%s.autoscaling.enabled is deprecated. Please use %s.autoscaling.hpa.enabled and/or %s.autoscaling.keda.enabled instead." $serviceName $serviceName $serviceName) -}}
 {{- end -}}
-
-{{- /* Validate ingestQueue autoscaling configuration */ -}}
-{{- if and .Values.ingestQueue.enabled .Values.ingestQueue.autoscaling.hpa.enabled .Values.ingestQueue.autoscaling.keda.enabled -}}
-{{- fail "Only one of ingestQueue.autoscaling.hpa.enabled or ingestQueue.autoscaling.keda.enabled can be enabled at the same time." -}}
-{{- end -}}
-{{- if hasKey .Values.ingestQueue.autoscaling "createHpa" -}}
-{{- fail "ingestQueue.autoscaling.createHpa is deprecated. Please use ingestQueue.autoscaling.hpa.enabled and/or ingestQueue.autoscaling.keda.enabled instead." -}}
-{{- end -}}
-{{- if hasKey .Values.ingestQueue.autoscaling "type" -}}
-{{- fail "ingestQueue.autoscaling.type is deprecated. Please use ingestQueue.autoscaling.hpa.enabled and/or ingestQueue.autoscaling.keda.enabled instead." -}}
-{{- end -}}
-{{- if hasKey .Values.ingestQueue.autoscaling "enabled" -}}
-{{- fail "ingestQueue.autoscaling.enabled is deprecated. Please use ingestQueue.autoscaling.hpa.enabled and/or ingestQueue.autoscaling.keda.enabled instead." -}}
 {{- end -}}

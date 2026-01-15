@@ -1,4 +1,4 @@
-{{- if and .Values.config.deployment.enabled .Values.hostBackend.autoscaling.enabled .Values.hostBackend.autoscaling.createHpa }}
+{{- if and .Values.config.deployment.enabled .Values.hostBackend.autoscaling.hpa.enabled }}
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
@@ -16,23 +16,23 @@ spec:
     kind: Deployment
     {{- end }}
     name: {{ include "langsmith.fullname" . }}-{{ .Values.hostBackend.name }}
-  minReplicas: {{ .Values.hostBackend.autoscaling.minReplicas }}
-  maxReplicas: {{ .Values.hostBackend.autoscaling.maxReplicas }}
+  minReplicas: {{ .Values.hostBackend.autoscaling.hpa.minReplicas }}
+  maxReplicas: {{ .Values.hostBackend.autoscaling.hpa.maxReplicas }}
   metrics:
-    {{- if .Values.hostBackend.autoscaling.targetCPUUtilizationPercentage }}
+    {{- if .Values.hostBackend.autoscaling.hpa.targetCPUUtilizationPercentage }}
     - type: Resource
       resource:
         name: cpu
         target:
           type: Utilization
-          averageUtilization: {{ .Values.hostBackend.autoscaling.targetCPUUtilizationPercentage }}
+          averageUtilization: {{ .Values.hostBackend.autoscaling.hpa.targetCPUUtilizationPercentage }}
     {{- end }}
-    {{- if .Values.hostBackend.autoscaling.targetMemoryUtilizationPercentage }}
+    {{- if .Values.hostBackend.autoscaling.hpa.targetMemoryUtilizationPercentage }}
     - type: Resource
       resource:
         name: memory
         target:
           type: Utilization
-          averageUtilization: {{ .Values.hostBackend.autoscaling.targetMemoryUtilizationPercentage }}
+          averageUtilization: {{ .Values.hostBackend.autoscaling.hpa.targetMemoryUtilizationPercentage }}
     {{- end }}
 {{- end }}

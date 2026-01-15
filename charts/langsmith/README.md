@@ -62,14 +62,14 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | images.registry | string | `""` | If supplied, all children <image_name>.repository values will be prepended with this registry name + `/` |
 | ingestQueue.autoscaling.hpa.enabled | bool | `false` |  |
 | ingestQueue.autoscaling.hpa.maxReplicas | int | `10` |  |
-| ingestQueue.autoscaling.hpa.minReplicas | int | `1` |  |
+| ingestQueue.autoscaling.hpa.minReplicas | int | `3` |  |
 | ingestQueue.autoscaling.hpa.targetCPUUtilizationPercentage | int | `50` |  |
 | ingestQueue.autoscaling.hpa.targetMemoryUtilizationPercentage | int | `80` |  |
 | ingestQueue.autoscaling.keda.annotations | object | `{}` |  |
 | ingestQueue.autoscaling.keda.cooldownPeriod | int | `300` |  |
 | ingestQueue.autoscaling.keda.enabled | bool | `false` |  |
 | ingestQueue.autoscaling.keda.fallback.failureThreshold | int | `3` |  |
-| ingestQueue.autoscaling.keda.fallback.replicas | int | `6` |  |
+| ingestQueue.autoscaling.keda.fallback.replicas | int | `3` |  |
 | ingestQueue.autoscaling.keda.initialCooldownPeriod | int | `0` |  |
 | ingestQueue.autoscaling.keda.labels | object | `{}` |  |
 | ingestQueue.autoscaling.keda.maxReplicaCount | int | `10` |  |
@@ -81,8 +81,8 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | ingestQueue.autoscaling.keda.scaleDownStabilizationWindowSeconds | int | `1800` |  |
 | ingestQueue.autoscaling.keda.scaleUpPolicy.periodSeconds | int | `15` |  |
 | ingestQueue.autoscaling.keda.scaleUpPolicy.value | int | `100` |  |
-| ingestQueue.autoscaling.keda.targetCPUUtilizationPercentage | string | `"80"` |  |
-| ingestQueue.autoscaling.keda.targetMemoryUtilizationPercentage | string | `"60"` |  |
+| ingestQueue.autoscaling.keda.targetCPUUtilizationPercentage | int | `50` |  |
+| ingestQueue.autoscaling.keda.targetMemoryUtilizationPercentage | int | `80` |  |
 | ingestQueue.containerPort | int | `1989` |  |
 | ingestQueue.deployment.affinity | object | `{}` |  |
 | ingestQueue.deployment.annotations | object | `{}` |  |
@@ -154,7 +154,6 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | config.authType | string | `""` | Must be 'oauth' for OAuth with PKCE, 'mixed' for basic auth or OAuth without PKCE |
 | config.basePath | string | `""` | Base path for the LangSmith installation. Used to serve the app under a subpath like example.com/langsmith. |
 | config.basicAuth.enabled | bool | `false` |  |
-| config.basicAuth.initialOrgAdminEmail | string | `""` | Kept for backwards compatibility. Will be removed in a future release. Please use values.config.initialOrgAdminEmail instead. |
 | config.basicAuth.initialOrgAdminPassword | string | `""` |  |
 | config.basicAuth.jwtSecret | string | `""` |  |
 | config.blobStorage.accessKey | string | `""` |  |
@@ -211,12 +210,28 @@ For information on how to use this chart, up-to-date release notes, and other gu
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| aceBackend.autoscaling.createHpa | bool | `true` |  |
-| aceBackend.autoscaling.enabled | bool | `false` |  |
-| aceBackend.autoscaling.maxReplicas | int | `5` |  |
-| aceBackend.autoscaling.minReplicas | int | `1` |  |
-| aceBackend.autoscaling.targetCPUUtilizationPercentage | int | `50` |  |
-| aceBackend.autoscaling.targetMemoryUtilizationPercentage | int | `80` |  |
+| aceBackend.autoscaling.hpa.enabled | bool | `false` |  |
+| aceBackend.autoscaling.hpa.maxReplicas | int | `5` |  |
+| aceBackend.autoscaling.hpa.minReplicas | int | `1` |  |
+| aceBackend.autoscaling.hpa.targetCPUUtilizationPercentage | int | `50` |  |
+| aceBackend.autoscaling.hpa.targetMemoryUtilizationPercentage | int | `80` |  |
+| aceBackend.autoscaling.keda.annotations | object | `{}` |  |
+| aceBackend.autoscaling.keda.cooldownPeriod | int | `300` |  |
+| aceBackend.autoscaling.keda.enabled | bool | `false` |  |
+| aceBackend.autoscaling.keda.fallback.failureThreshold | int | `3` |  |
+| aceBackend.autoscaling.keda.fallback.replicas | int | `1` |  |
+| aceBackend.autoscaling.keda.initialCooldownPeriod | int | `0` |  |
+| aceBackend.autoscaling.keda.labels | object | `{}` |  |
+| aceBackend.autoscaling.keda.maxReplicaCount | int | `5` |  |
+| aceBackend.autoscaling.keda.minReplicaCount | int | `1` |  |
+| aceBackend.autoscaling.keda.pollingInterval | int | `30` |  |
+| aceBackend.autoscaling.keda.scaleDownPolicy.periodSeconds | int | `300` |  |
+| aceBackend.autoscaling.keda.scaleDownPolicy.value | int | `100` |  |
+| aceBackend.autoscaling.keda.scaleDownStabilizationWindowSeconds | int | `1800` |  |
+| aceBackend.autoscaling.keda.scaleUpPolicy.periodSeconds | int | `15` |  |
+| aceBackend.autoscaling.keda.scaleUpPolicy.value | int | `100` |  |
+| aceBackend.autoscaling.keda.targetCPUUtilizationPercentage | int | `50` |  |
+| aceBackend.autoscaling.keda.targetMemoryUtilizationPercentage | int | `80` |  |
 | aceBackend.bindAddress | string | `"0.0.0.0"` |  |
 | aceBackend.containerPort | int | `1987` |  |
 | aceBackend.deployment.affinity | object | `{}` |  |
@@ -299,12 +314,29 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | backend.authBootstrap.ttlSecondsAfterFinished | int | `600` |  |
 | backend.authBootstrap.volumeMounts | list | `[]` |  |
 | backend.authBootstrap.volumes | list | `[]` |  |
-| backend.autoscaling.createHpa | bool | `true` |  |
-| backend.autoscaling.enabled | bool | `false` |  |
-| backend.autoscaling.maxReplicas | int | `6` |  |
-| backend.autoscaling.minReplicas | int | `2` |  |
-| backend.autoscaling.targetCPUUtilizationPercentage | int | `50` |  |
-| backend.autoscaling.targetMemoryUtilizationPercentage | int | `80` |  |
+| backend.autoscaling.hpa.additionalMetrics | list | `[]` |  |
+| backend.autoscaling.hpa.enabled | bool | `false` |  |
+| backend.autoscaling.hpa.maxReplicas | int | `6` |  |
+| backend.autoscaling.hpa.minReplicas | int | `2` |  |
+| backend.autoscaling.hpa.targetCPUUtilizationPercentage | int | `50` |  |
+| backend.autoscaling.hpa.targetMemoryUtilizationPercentage | int | `80` |  |
+| backend.autoscaling.keda.annotations | object | `{}` |  |
+| backend.autoscaling.keda.cooldownPeriod | int | `300` |  |
+| backend.autoscaling.keda.enabled | bool | `false` |  |
+| backend.autoscaling.keda.fallback.failureThreshold | int | `3` |  |
+| backend.autoscaling.keda.fallback.replicas | int | `2` |  |
+| backend.autoscaling.keda.initialCooldownPeriod | int | `0` |  |
+| backend.autoscaling.keda.labels | object | `{}` |  |
+| backend.autoscaling.keda.maxReplicaCount | int | `6` |  |
+| backend.autoscaling.keda.minReplicaCount | int | `2` |  |
+| backend.autoscaling.keda.pollingInterval | int | `30` |  |
+| backend.autoscaling.keda.scaleDownPolicy.periodSeconds | int | `300` |  |
+| backend.autoscaling.keda.scaleDownPolicy.value | int | `100` |  |
+| backend.autoscaling.keda.scaleDownStabilizationWindowSeconds | int | `1800` |  |
+| backend.autoscaling.keda.scaleUpPolicy.periodSeconds | int | `15` |  |
+| backend.autoscaling.keda.scaleUpPolicy.value | int | `100` |  |
+| backend.autoscaling.keda.targetCPUUtilizationPercentage | int | `50` |  |
+| backend.autoscaling.keda.targetMemoryUtilizationPercentage | int | `80` |  |
 | backend.clickhouseMigrations.affinity | object | `{}` |  |
 | backend.clickhouseMigrations.annotations | object | `{}` |  |
 | backend.clickhouseMigrations.command[0] | string | `"./ch_migration_entrypoint.sh"` |  |
@@ -578,12 +610,28 @@ For information on how to use this chart, up-to-date release notes, and other gu
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| hostBackend.autoscaling.createHpa | bool | `true` |  |
-| hostBackend.autoscaling.enabled | bool | `false` |  |
-| hostBackend.autoscaling.maxReplicas | int | `5` |  |
-| hostBackend.autoscaling.minReplicas | int | `1` |  |
-| hostBackend.autoscaling.targetCPUUtilizationPercentage | int | `50` |  |
-| hostBackend.autoscaling.targetMemoryUtilizationPercentage | int | `80` |  |
+| hostBackend.autoscaling.hpa.enabled | bool | `false` |  |
+| hostBackend.autoscaling.hpa.maxReplicas | int | `5` |  |
+| hostBackend.autoscaling.hpa.minReplicas | int | `1` |  |
+| hostBackend.autoscaling.hpa.targetCPUUtilizationPercentage | int | `50` |  |
+| hostBackend.autoscaling.hpa.targetMemoryUtilizationPercentage | int | `80` |  |
+| hostBackend.autoscaling.keda.annotations | object | `{}` |  |
+| hostBackend.autoscaling.keda.cooldownPeriod | int | `300` |  |
+| hostBackend.autoscaling.keda.enabled | bool | `false` |  |
+| hostBackend.autoscaling.keda.fallback.failureThreshold | int | `3` |  |
+| hostBackend.autoscaling.keda.fallback.replicas | int | `1` |  |
+| hostBackend.autoscaling.keda.initialCooldownPeriod | int | `0` |  |
+| hostBackend.autoscaling.keda.labels | object | `{}` |  |
+| hostBackend.autoscaling.keda.maxReplicaCount | int | `5` |  |
+| hostBackend.autoscaling.keda.minReplicaCount | int | `1` |  |
+| hostBackend.autoscaling.keda.pollingInterval | int | `30` |  |
+| hostBackend.autoscaling.keda.scaleDownPolicy.periodSeconds | int | `300` |  |
+| hostBackend.autoscaling.keda.scaleDownPolicy.value | int | `100` |  |
+| hostBackend.autoscaling.keda.scaleDownStabilizationWindowSeconds | int | `1800` |  |
+| hostBackend.autoscaling.keda.scaleUpPolicy.periodSeconds | int | `15` |  |
+| hostBackend.autoscaling.keda.scaleUpPolicy.value | int | `100` |  |
+| hostBackend.autoscaling.keda.targetCPUUtilizationPercentage | int | `50` |  |
+| hostBackend.autoscaling.keda.targetMemoryUtilizationPercentage | int | `80` |  |
 | hostBackend.containerPort | int | `1985` |  |
 | hostBackend.deployment.affinity | object | `{}` |  |
 | hostBackend.deployment.annotations | object | `{}` |  |
@@ -647,12 +695,29 @@ For information on how to use this chart, up-to-date release notes, and other gu
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| frontend.autoscaling.createHpa | bool | `true` |  |
-| frontend.autoscaling.enabled | bool | `false` |  |
-| frontend.autoscaling.maxReplicas | int | `5` |  |
-| frontend.autoscaling.minReplicas | int | `1` |  |
-| frontend.autoscaling.targetCPUUtilizationPercentage | int | `50` |  |
-| frontend.autoscaling.targetMemoryUtilizationPercentage | int | `80` |  |
+| frontend.autoscaling.hpa.additionalMetrics | list | `[]` |  |
+| frontend.autoscaling.hpa.enabled | bool | `false` |  |
+| frontend.autoscaling.hpa.maxReplicas | int | `5` |  |
+| frontend.autoscaling.hpa.minReplicas | int | `1` |  |
+| frontend.autoscaling.hpa.targetCPUUtilizationPercentage | int | `50` |  |
+| frontend.autoscaling.hpa.targetMemoryUtilizationPercentage | int | `80` |  |
+| frontend.autoscaling.keda.annotations | object | `{}` |  |
+| frontend.autoscaling.keda.cooldownPeriod | int | `300` |  |
+| frontend.autoscaling.keda.enabled | bool | `false` |  |
+| frontend.autoscaling.keda.fallback.failureThreshold | int | `3` |  |
+| frontend.autoscaling.keda.fallback.replicas | int | `1` |  |
+| frontend.autoscaling.keda.initialCooldownPeriod | int | `0` |  |
+| frontend.autoscaling.keda.labels | object | `{}` |  |
+| frontend.autoscaling.keda.maxReplicaCount | int | `5` |  |
+| frontend.autoscaling.keda.minReplicaCount | int | `1` |  |
+| frontend.autoscaling.keda.pollingInterval | int | `30` |  |
+| frontend.autoscaling.keda.scaleDownPolicy.periodSeconds | int | `300` |  |
+| frontend.autoscaling.keda.scaleDownPolicy.value | int | `100` |  |
+| frontend.autoscaling.keda.scaleDownStabilizationWindowSeconds | int | `1800` |  |
+| frontend.autoscaling.keda.scaleUpPolicy.periodSeconds | int | `15` |  |
+| frontend.autoscaling.keda.scaleUpPolicy.value | int | `100` |  |
+| frontend.autoscaling.keda.targetCPUUtilizationPercentage | int | `50` |  |
+| frontend.autoscaling.keda.targetMemoryUtilizationPercentage | int | `80` |  |
 | frontend.containerPort | int | `8080` |  |
 | frontend.cspHeader | string | `"frame-ancestors 'self'; object-src 'none'"` |  |
 | frontend.deployment.affinity | object | `{}` |  |
@@ -727,12 +792,28 @@ For information on how to use this chart, up-to-date release notes, and other gu
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| listener.autoscaling.createHpa | bool | `true` |  |
-| listener.autoscaling.enabled | bool | `false` |  |
-| listener.autoscaling.maxReplicas | int | `10` |  |
-| listener.autoscaling.minReplicas | int | `3` |  |
-| listener.autoscaling.targetCPUUtilizationPercentage | int | `50` |  |
-| listener.autoscaling.targetMemoryUtilizationPercentage | int | `80` |  |
+| listener.autoscaling.hpa.enabled | bool | `false` |  |
+| listener.autoscaling.hpa.maxReplicas | int | `10` |  |
+| listener.autoscaling.hpa.minReplicas | int | `3` |  |
+| listener.autoscaling.hpa.targetCPUUtilizationPercentage | int | `50` |  |
+| listener.autoscaling.hpa.targetMemoryUtilizationPercentage | int | `80` |  |
+| listener.autoscaling.keda.annotations | object | `{}` |  |
+| listener.autoscaling.keda.cooldownPeriod | int | `300` |  |
+| listener.autoscaling.keda.enabled | bool | `false` |  |
+| listener.autoscaling.keda.fallback.failureThreshold | int | `3` |  |
+| listener.autoscaling.keda.fallback.replicas | int | `3` |  |
+| listener.autoscaling.keda.initialCooldownPeriod | int | `0` |  |
+| listener.autoscaling.keda.labels | object | `{}` |  |
+| listener.autoscaling.keda.maxReplicaCount | int | `10` |  |
+| listener.autoscaling.keda.minReplicaCount | int | `3` |  |
+| listener.autoscaling.keda.pollingInterval | int | `30` |  |
+| listener.autoscaling.keda.scaleDownPolicy.periodSeconds | int | `300` |  |
+| listener.autoscaling.keda.scaleDownPolicy.value | int | `100` |  |
+| listener.autoscaling.keda.scaleDownStabilizationWindowSeconds | int | `1800` |  |
+| listener.autoscaling.keda.scaleUpPolicy.periodSeconds | int | `15` |  |
+| listener.autoscaling.keda.scaleUpPolicy.value | int | `100` |  |
+| listener.autoscaling.keda.targetCPUUtilizationPercentage | int | `50` |  |
+| listener.autoscaling.keda.targetMemoryUtilizationPercentage | int | `80` |  |
 | listener.containerPort | int | `8080` |  |
 | listener.deployment.affinity | object | `{}` |  |
 | listener.deployment.annotations | object | `{}` |  |
@@ -839,12 +920,29 @@ For information on how to use this chart, up-to-date release notes, and other gu
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| platformBackend.autoscaling.createHpa | bool | `true` |  |
-| platformBackend.autoscaling.enabled | bool | `false` |  |
-| platformBackend.autoscaling.maxReplicas | int | `10` |  |
-| platformBackend.autoscaling.minReplicas | int | `3` |  |
-| platformBackend.autoscaling.targetCPUUtilizationPercentage | int | `50` |  |
-| platformBackend.autoscaling.targetMemoryUtilizationPercentage | int | `80` |  |
+| platformBackend.autoscaling.hpa.additionalMetrics | list | `[]` |  |
+| platformBackend.autoscaling.hpa.enabled | bool | `false` |  |
+| platformBackend.autoscaling.hpa.maxReplicas | int | `10` |  |
+| platformBackend.autoscaling.hpa.minReplicas | int | `3` |  |
+| platformBackend.autoscaling.hpa.targetCPUUtilizationPercentage | int | `50` |  |
+| platformBackend.autoscaling.hpa.targetMemoryUtilizationPercentage | int | `80` |  |
+| platformBackend.autoscaling.keda.annotations | object | `{}` |  |
+| platformBackend.autoscaling.keda.cooldownPeriod | int | `300` |  |
+| platformBackend.autoscaling.keda.enabled | bool | `false` |  |
+| platformBackend.autoscaling.keda.fallback.failureThreshold | int | `3` |  |
+| platformBackend.autoscaling.keda.fallback.replicas | int | `3` |  |
+| platformBackend.autoscaling.keda.initialCooldownPeriod | int | `0` |  |
+| platformBackend.autoscaling.keda.labels | object | `{}` |  |
+| platformBackend.autoscaling.keda.maxReplicaCount | int | `10` |  |
+| platformBackend.autoscaling.keda.minReplicaCount | int | `3` |  |
+| platformBackend.autoscaling.keda.pollingInterval | int | `30` |  |
+| platformBackend.autoscaling.keda.scaleDownPolicy.periodSeconds | int | `300` |  |
+| platformBackend.autoscaling.keda.scaleDownPolicy.value | int | `100` |  |
+| platformBackend.autoscaling.keda.scaleDownStabilizationWindowSeconds | int | `1800` |  |
+| platformBackend.autoscaling.keda.scaleUpPolicy.periodSeconds | int | `15` |  |
+| platformBackend.autoscaling.keda.scaleUpPolicy.value | int | `100` |  |
+| platformBackend.autoscaling.keda.targetCPUUtilizationPercentage | int | `50` |  |
+| platformBackend.autoscaling.keda.targetMemoryUtilizationPercentage | int | `80` |  |
 | platformBackend.containerPort | int | `1986` |  |
 | platformBackend.deployment.affinity | object | `{}` |  |
 | platformBackend.deployment.annotations | object | `{}` |  |
@@ -906,12 +1004,29 @@ For information on how to use this chart, up-to-date release notes, and other gu
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| playground.autoscaling.createHpa | bool | `true` |  |
-| playground.autoscaling.enabled | bool | `false` |  |
-| playground.autoscaling.maxReplicas | int | `5` |  |
-| playground.autoscaling.minReplicas | int | `1` |  |
-| playground.autoscaling.targetCPUUtilizationPercentage | int | `50` |  |
-| playground.autoscaling.targetMemoryUtilizationPercentage | int | `80` |  |
+| playground.autoscaling.hpa.additionalMetrics | list | `[]` |  |
+| playground.autoscaling.hpa.enabled | bool | `false` |  |
+| playground.autoscaling.hpa.maxReplicas | int | `5` |  |
+| playground.autoscaling.hpa.minReplicas | int | `1` |  |
+| playground.autoscaling.hpa.targetCPUUtilizationPercentage | int | `50` |  |
+| playground.autoscaling.hpa.targetMemoryUtilizationPercentage | int | `80` |  |
+| playground.autoscaling.keda.annotations | object | `{}` |  |
+| playground.autoscaling.keda.cooldownPeriod | int | `300` |  |
+| playground.autoscaling.keda.enabled | bool | `false` |  |
+| playground.autoscaling.keda.fallback.failureThreshold | int | `3` |  |
+| playground.autoscaling.keda.fallback.replicas | int | `1` |  |
+| playground.autoscaling.keda.initialCooldownPeriod | int | `0` |  |
+| playground.autoscaling.keda.labels | object | `{}` |  |
+| playground.autoscaling.keda.maxReplicaCount | int | `5` |  |
+| playground.autoscaling.keda.minReplicaCount | int | `1` |  |
+| playground.autoscaling.keda.pollingInterval | int | `30` |  |
+| playground.autoscaling.keda.scaleDownPolicy.periodSeconds | int | `300` |  |
+| playground.autoscaling.keda.scaleDownPolicy.value | int | `100` |  |
+| playground.autoscaling.keda.scaleDownStabilizationWindowSeconds | int | `1800` |  |
+| playground.autoscaling.keda.scaleUpPolicy.periodSeconds | int | `15` |  |
+| playground.autoscaling.keda.scaleUpPolicy.value | int | `100` |  |
+| playground.autoscaling.keda.targetCPUUtilizationPercentage | int | `50` |  |
+| playground.autoscaling.keda.targetMemoryUtilizationPercentage | int | `80` |  |
 | playground.containerPort | int | `1988` |  |
 | playground.deployment.affinity | object | `{}` |  |
 | playground.deployment.annotations | object | `{}` |  |
@@ -1072,8 +1187,8 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | queue.autoscaling.keda.scaleDownStabilizationWindowSeconds | int | `1800` |  |
 | queue.autoscaling.keda.scaleUpPolicy.periodSeconds | int | `15` |  |
 | queue.autoscaling.keda.scaleUpPolicy.value | int | `100` |  |
-| queue.autoscaling.keda.targetCPUUtilizationPercentage | string | `"80"` |  |
-| queue.autoscaling.keda.targetMemoryUtilizationPercentage | string | `"60"` |  |
+| queue.autoscaling.keda.targetCPUUtilizationPercentage | int | `50` |  |
+| queue.autoscaling.keda.targetMemoryUtilizationPercentage | int | `80` |  |
 | queue.containerPort | int | `8080` |  |
 | queue.deployment.affinity | object | `{}` |  |
 | queue.deployment.annotations | object | `{}` |  |
@@ -1095,7 +1210,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | queue.deployment.readinessProbe.httpGet.port | int | `8080` |  |
 | queue.deployment.readinessProbe.periodSeconds | int | `10` |  |
 | queue.deployment.readinessProbe.timeoutSeconds | int | `10` |  |
-| queue.deployment.replicas | int | `3` |  |
+| queue.deployment.replicas | int | `1` |  |
 | queue.deployment.resources.limits.cpu | string | `"2000m"` |  |
 | queue.deployment.resources.limits.memory | string | `"4Gi"` |  |
 | queue.deployment.resources.requests.cpu | string | `"1000m"` |  |

@@ -1,0 +1,56 @@
+{{- if and .Values.listener.autoscaling.keda.enabled .Values.config.deployment.enabled }}
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: {{ include "langsmith.fullname" . }}-{{ .Values.listener.name }}
+  namespace: {{ .Values.namespace | default .Release.Namespace }}
+  labels:
+    {{- include "langsmith.labels" . | nindent 4 }}
+    {{- with .Values.listener.autoscaling.keda.labels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  {{- with .Values.listener.autoscaling.keda.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  scaleTargetRef:
+    {{- if .Values.listener.rollout.enabled }}
+    apiVersion: argoproj.io/v1alpha1
+    kind: Rollout
+    {{- else }}
+    apiVersion: apps/v1
+    kind: Deployment
+    {{- end }}
+    name: {{ include "langsmith.fullname" . }}-{{ .Values.listener.name }}
+  pollingInterval: {{ .Values.listener.autoscaling.keda.pollingInterval }}
+  cooldownPeriod: {{ .Values.listener.autoscaling.keda.cooldownPeriod }}
+  initialCooldownPeriod: {{ .Values.listener.autoscaling.keda.initialCooldownPeriod }}
+  minReplicaCount: {{ .Values.listener.autoscaling.keda.minReplicaCount }}
+  maxReplicaCount: {{ .Values.listener.autoscaling.keda.maxReplicaCount }}
+  fallback:
+    {{- toYaml .Values.listener.autoscaling.keda.fallback | nindent 4 }}
+  advanced:
+    horizontalPodAutoscalerConfig:
+      behavior:
+        scaleDown:
+          stabilizationWindowSeconds: {{ .Values.listener.autoscaling.keda.scaleDownStabilizationWindowSeconds }}
+          policies:
+            - type: Percent
+              value: {{ .Values.listener.autoscaling.keda.scaleDownPolicy.value }}
+              periodSeconds: {{ .Values.listener.autoscaling.keda.scaleDownPolicy.periodSeconds }}
+        scaleUp:
+          policies:
+            - type: Percent
+              value: {{ .Values.listener.autoscaling.keda.scaleUpPolicy.value }}
+              periodSeconds: {{ .Values.listener.autoscaling.keda.scaleUpPolicy.periodSeconds }}
+  triggers:
+    - type: cpu
+      metricType: Utilization
+      metadata:
+        value: "{{ .Values.listener.autoscaling.keda.targetCPUUtilizationPercentage }}"
+    - type: memory
+      metricType: Utilization
+      metadata:
+        value: "{{ .Values.listener.autoscaling.keda.targetMemoryUtilizationPercentage }}"
+{{- end }}
