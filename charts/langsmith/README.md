@@ -218,8 +218,6 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | aceBackend.autoscaling.keda.annotations | object | `{}` |  |
 | aceBackend.autoscaling.keda.cooldownPeriod | int | `300` |  |
 | aceBackend.autoscaling.keda.enabled | bool | `false` |  |
-| aceBackend.autoscaling.keda.fallback.failureThreshold | int | `3` |  |
-| aceBackend.autoscaling.keda.fallback.replicas | int | `1` |  |
 | aceBackend.autoscaling.keda.initialCooldownPeriod | int | `0` |  |
 | aceBackend.autoscaling.keda.labels | object | `{}` |  |
 | aceBackend.autoscaling.keda.maxReplicaCount | int | `5` |  |
@@ -323,8 +321,6 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | backend.autoscaling.keda.annotations | object | `{}` |  |
 | backend.autoscaling.keda.cooldownPeriod | int | `300` |  |
 | backend.autoscaling.keda.enabled | bool | `false` |  |
-| backend.autoscaling.keda.fallback.failureThreshold | int | `3` |  |
-| backend.autoscaling.keda.fallback.replicas | int | `2` |  |
 | backend.autoscaling.keda.initialCooldownPeriod | int | `0` |  |
 | backend.autoscaling.keda.labels | object | `{}` |  |
 | backend.autoscaling.keda.maxReplicaCount | int | `6` |  |
@@ -618,8 +614,6 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | hostBackend.autoscaling.keda.annotations | object | `{}` |  |
 | hostBackend.autoscaling.keda.cooldownPeriod | int | `300` |  |
 | hostBackend.autoscaling.keda.enabled | bool | `false` |  |
-| hostBackend.autoscaling.keda.fallback.failureThreshold | int | `3` |  |
-| hostBackend.autoscaling.keda.fallback.replicas | int | `1` |  |
 | hostBackend.autoscaling.keda.initialCooldownPeriod | int | `0` |  |
 | hostBackend.autoscaling.keda.labels | object | `{}` |  |
 | hostBackend.autoscaling.keda.maxReplicaCount | int | `5` |  |
@@ -704,8 +698,6 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | frontend.autoscaling.keda.annotations | object | `{}` |  |
 | frontend.autoscaling.keda.cooldownPeriod | int | `300` |  |
 | frontend.autoscaling.keda.enabled | bool | `false` |  |
-| frontend.autoscaling.keda.fallback.failureThreshold | int | `3` |  |
-| frontend.autoscaling.keda.fallback.replicas | int | `1` |  |
 | frontend.autoscaling.keda.initialCooldownPeriod | int | `0` |  |
 | frontend.autoscaling.keda.labels | object | `{}` |  |
 | frontend.autoscaling.keda.maxReplicaCount | int | `5` |  |
@@ -794,18 +786,16 @@ For information on how to use this chart, up-to-date release notes, and other gu
 |-----|------|---------|-------------|
 | listener.autoscaling.hpa.enabled | bool | `false` |  |
 | listener.autoscaling.hpa.maxReplicas | int | `10` |  |
-| listener.autoscaling.hpa.minReplicas | int | `3` |  |
+| listener.autoscaling.hpa.minReplicas | int | `1` |  |
 | listener.autoscaling.hpa.targetCPUUtilizationPercentage | int | `50` |  |
 | listener.autoscaling.hpa.targetMemoryUtilizationPercentage | int | `80` |  |
 | listener.autoscaling.keda.annotations | object | `{}` |  |
 | listener.autoscaling.keda.cooldownPeriod | int | `300` |  |
 | listener.autoscaling.keda.enabled | bool | `false` |  |
-| listener.autoscaling.keda.fallback.failureThreshold | int | `3` |  |
-| listener.autoscaling.keda.fallback.replicas | int | `3` |  |
 | listener.autoscaling.keda.initialCooldownPeriod | int | `0` |  |
 | listener.autoscaling.keda.labels | object | `{}` |  |
 | listener.autoscaling.keda.maxReplicaCount | int | `10` |  |
-| listener.autoscaling.keda.minReplicaCount | int | `3` |  |
+| listener.autoscaling.keda.minReplicaCount | int | `1` |  |
 | listener.autoscaling.keda.pollingInterval | int | `30` |  |
 | listener.autoscaling.keda.scaleDownPolicy.periodSeconds | int | `300` |  |
 | listener.autoscaling.keda.scaleDownPolicy.value | int | `100` |  |
@@ -929,8 +919,6 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | platformBackend.autoscaling.keda.annotations | object | `{}` |  |
 | platformBackend.autoscaling.keda.cooldownPeriod | int | `300` |  |
 | platformBackend.autoscaling.keda.enabled | bool | `false` |  |
-| platformBackend.autoscaling.keda.fallback.failureThreshold | int | `3` |  |
-| platformBackend.autoscaling.keda.fallback.replicas | int | `3` |  |
 | platformBackend.autoscaling.keda.initialCooldownPeriod | int | `0` |  |
 | platformBackend.autoscaling.keda.labels | object | `{}` |  |
 | platformBackend.autoscaling.keda.maxReplicaCount | int | `10` |  |
@@ -1013,8 +1001,6 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | playground.autoscaling.keda.annotations | object | `{}` |  |
 | playground.autoscaling.keda.cooldownPeriod | int | `300` |  |
 | playground.autoscaling.keda.enabled | bool | `false` |  |
-| playground.autoscaling.keda.fallback.failureThreshold | int | `3` |  |
-| playground.autoscaling.keda.fallback.replicas | int | `1` |  |
 | playground.autoscaling.keda.initialCooldownPeriod | int | `0` |  |
 | playground.autoscaling.keda.labels | object | `{}` |  |
 | playground.autoscaling.keda.maxReplicaCount | int | `5` |  |
