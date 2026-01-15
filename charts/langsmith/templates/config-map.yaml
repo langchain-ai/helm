@@ -54,6 +54,7 @@ data:
   ENABLE_POSTGRES_METRICS_CRON: {{ ternary "true" "false" .Values.config.telemetry.metrics | quote }}
   ENABLE_REDIS_METRICS_CRON: {{ ternary "true" "false" .Values.config.telemetry.metrics | quote }}
   ENABLE_CLICKHOUSE_METRICS_CRON: {{ ternary "true" "false" .Values.config.telemetry.metrics | quote }}
+  BEACON_LOGGING_ENABLED: {{ ternary "true" "false" .Values.config.telemetry.logs | quote }}
   BEACON_METRICS_ENABLED: {{ ternary "true" "false" .Values.config.telemetry.metrics | quote }}
   BEACON_TRACING_ENABLED: {{ ternary "true" "false" .Values.config.telemetry.traces | quote }}
   # Feedback from postgres

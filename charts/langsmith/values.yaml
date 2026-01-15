@@ -137,6 +137,7 @@ config:
 
   telemetry:
     # -- Optional. These values are used to send telemetry to the LangChain team to assist with troubleshooting.
+    logs: true
     metrics: true
     traces: true
 
