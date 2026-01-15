@@ -684,3 +684,48 @@ Strip protocol (http://, https://, etc.) from hostname
 {{- regexReplaceAll "^[a-zA-Z][a-zA-Z0-9+.-]*://" .Values.config.hostname "" -}}
 {{- end -}}
 {{- end -}}
+
+{{- define "agentBuilderOAuthEnvVars" -}}
+{{- if .Values.agentBuilder.oauth.googleOAuthProvider }}
+- name: "GOOGLE_OAUTH_PROVIDER"
+  value: {{ .Values.agentBuilder.oauth.googleOAuthProvider | quote }}
+{{- end }}
+{{- if .Values.agentBuilder.oauth.slackOAuthProvider }}
+- name: "SLACK_OAUTH_PROVIDER"
+  value: {{ .Values.agentBuilder.oauth.slackOAuthProvider | quote }}
+{{- end }}
+{{- if .Values.agentBuilder.oauth.linkedinOAuthProvider }}
+- name: "LINKEDIN_OAUTH_PROVIDER"
+  value: {{ .Values.agentBuilder.oauth.linkedinOAuthProvider | quote }}
+{{- end }}
+{{- if .Values.agentBuilder.oauth.linearOAuthProvider }}
+- name: "LINEAR_OAUTH_PROVIDER"
+  value: {{ .Values.agentBuilder.oauth.linearOAuthProvider | quote }}
+{{- end }}
+{{- if .Values.agentBuilder.oauth.githubOAuthProvider }}
+- name: "GITHUB_OAUTH_PROVIDER"
+  value: {{ .Values.agentBuilder.oauth.githubOAuthProvider | quote }}
+{{- end }}
+{{- end -}}
+
+{{- define "agentBuilderToolServerEnvVars" -}}
+- name: "PORT"
+  value: "{{ .Values.agentBuilder.toolServer.containerPort }}"
+{{- include "agentBuilderOAuthEnvVars" . }}
+{{- end -}}
+
+{{- define "agentBuilderTriggerServerEnvVars" -}}
+- name: "PORT"
+  value: "{{ .Values.agentBuilder.triggerServer.containerPort }}"
+- name: "TRIGGER_SERVER_HOST_API_URL"
+  value: "http://{{ include "langsmith.fullname" . }}-{{ .Values.hostBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.hostBackend.service.port }}"
+{{- include "agentBuilderOAuthEnvVars" . }}
+{{- if .Values.agentBuilder.oauth.slackSigningSecret }}
+- name: "SLACK_SIGNING_SECRET"
+  value: {{ .Values.agentBuilder.oauth.slackSigningSecret | quote }}
+{{- end }}
+{{- if .Values.agentBuilder.oauth.slackBotId }}
+- name: "AGENT_BUILDER_SLACK_BOT_ID"
+  value: {{ .Values.agentBuilder.oauth.slackBotId | quote }}
+{{- end }}
+{{- end -}}

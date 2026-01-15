@@ -110,7 +110,7 @@ spec:
                   "image": "{{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "insightsAgentImage") }}",
                   "configmap_name": "{{ include "langsmith.fullname" . }}-insights-config",
                   "k8s_namespace": "{{ .Values.namespace | default .Release.Namespace }}",
-                  "restart_deployments": ["{{ include "langsmith.fullname" . }}-{{ .Values.frontend.name }}", "{{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}"],
+                  "restart_deployments": ["{{ include "langsmith.fullname" . }}-{{ .Values.frontend.name }}", "{{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}", "{{ include "langsmith.fullname" . }}-{{ .Values.queue.name }}"],
                   "cpu": {{ .Values.insightsAgent.agentConfiguration.resources.cpu }},
                   "cpu_limit": {{ .Values.insightsAgent.agentConfiguration.resources.cpuLimit }},
                   "memory_mb": {{ .Values.insightsAgent.agentConfiguration.resources.memoryMb }},

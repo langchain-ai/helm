@@ -1472,7 +1472,7 @@ queue:
         steps:
           - setWeight: 100
   deployment:
-    replicas: 2
+    replicas: 1
     labels: {}
     annotations: {}
     podSecurityContext: {}
@@ -1728,12 +1728,10 @@ redis:
 
 # Configurations for the Insights agent.
 insightsAgent:
-  # Enable the Insights agent
   enabled: false
   # Fernet encryption key for the Insights agent. Required when insightsAgent is enabled.
   # Generate with: python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
   encryptionKey: ""
-  # Resource specifications for the Insights agent deployment
 
   agentConfiguration:
     resources:
@@ -1748,7 +1746,6 @@ insightsAgent:
 # This enables the Agent Builder feature which allows users to create and manage agents through a UI.
 # Requires config.deployment.enabled to be true.
 agentBuilder:
-  # -- Enable the Agent Builder feature
   enabled: false
   # -- Fernet encryption key for agent builder secrets. Required when agentBuilder is enabled.
   # Generate with: python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
@@ -1859,8 +1856,6 @@ agentBuilder:
     name: "agent-builder-trigger-server"
     containerPort: 1990
     deployment:
-      # WARNING: Do not increase beyond 1 - see note above
-      replicas: 1
       labels: {}
       annotations: {}
       podSecurityContext: {}
@@ -1904,18 +1899,6 @@ agentBuilder:
       volumes: []
       volumeMounts: []
       terminationGracePeriodSeconds: 30
-    autoscaling:
-      enabled: false
-      createHpa: true
-      minReplicas: 1
-      # NOTE: maxReplicas should be 1 until the trigger server supports multi-instance (crons run duplicatively otherwise)
-      maxReplicas: 1
-      targetCPUUtilizationPercentage: 80
-    pdb:
-      enabled: false
-      minAvailable: 1
-      labels: {}
-      annotations: {}
     service:
       type: ClusterIP
       port: 1990

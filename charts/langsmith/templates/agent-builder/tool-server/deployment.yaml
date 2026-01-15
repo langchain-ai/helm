@@ -1,27 +1,3 @@
-{{- define "agentBuilderToolServerEnvVars" -}}
-- name: "PORT"
-  value: "{{ .Values.agentBuilder.toolServer.containerPort }}"
-{{- if .Values.agentBuilder.oauth.googleOAuthProvider }}
-- name: "GOOGLE_OAUTH_PROVIDER"
-  value: {{ .Values.agentBuilder.oauth.googleOAuthProvider | quote }}
-{{- end }}
-{{- if .Values.agentBuilder.oauth.slackOAuthProvider }}
-- name: "SLACK_OAUTH_PROVIDER"
-  value: {{ .Values.agentBuilder.oauth.slackOAuthProvider | quote }}
-{{- end }}
-{{- if .Values.agentBuilder.oauth.linkedinOAuthProvider }}
-- name: "LINKEDIN_OAUTH_PROVIDER"
-  value: {{ .Values.agentBuilder.oauth.linkedinOAuthProvider | quote }}
-{{- end }}
-{{- if .Values.agentBuilder.oauth.linearOAuthProvider }}
-- name: "LINEAR_OAUTH_PROVIDER"
-  value: {{ .Values.agentBuilder.oauth.linearOAuthProvider | quote }}
-{{- end }}
-{{- if .Values.agentBuilder.oauth.githubOAuthProvider }}
-- name: "GITHUB_OAUTH_PROVIDER"
-  value: {{ .Values.agentBuilder.oauth.githubOAuthProvider | quote }}
-{{- end }}
-{{- end -}}
 {{- if and .Values.agentBuilder.enabled .Values.agentBuilder.toolServer.enabled }}
 {{- $envVars := concat .Values.commonEnv (include "langsmith.commonEnv" . | fromYamlArray) (include "agentBuilderToolServerEnvVars" . | fromYamlArray) .Values.agentBuilder.toolServer.deployment.extraEnv -}}
 {{- include "langsmith.detectDuplicates" $envVars -}}
