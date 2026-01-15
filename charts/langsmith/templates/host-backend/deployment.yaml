@@ -36,7 +36,7 @@ metadata:
       {{- toYaml . | nindent 4 }}
     {{- end }}
 spec:
-  {{- if not .Values.hostBackend.autoscaling.enabled }}
+  {{- if not (or .Values.hostBackend.autoscaling.hpa.enabled .Values.hostBackend.autoscaling.keda.enabled) }}
   replicas: {{ .Values.hostBackend.deployment.replicas }}
   {{- end }}
   selector:

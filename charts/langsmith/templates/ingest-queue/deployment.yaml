@@ -30,7 +30,7 @@ metadata:
       {{- toYaml . | nindent 4 }}
     {{- end }}
 spec:
-  {{- if not .Values.ingestQueue.autoscaling.enabled }}
+  {{- if not (or .Values.ingestQueue.autoscaling.hpa.enabled .Values.ingestQueue.autoscaling.keda.enabled) }}
   replicas: {{ .Values.ingestQueue.deployment.replicas }}
   {{- end }}
   selector:

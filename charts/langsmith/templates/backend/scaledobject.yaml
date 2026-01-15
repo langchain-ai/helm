@@ -9,10 +9,11 @@ metadata:
     {{- with .Values.backend.autoscaling.keda.labels }}
     {{- toYaml . | nindent 4 }}
     {{- end }}
-  {{- with .Values.backend.autoscaling.keda.annotations }}
   annotations:
+    scaledobject.keda.sh/transfer-hpa-ownership: "true"
+    {{- with .Values.backend.autoscaling.keda.annotations }}
     {{- toYaml . | nindent 4 }}
-  {{- end }}
+    {{- end }}
 spec:
   scaleTargetRef:
     {{- if .Values.backend.rollout.enabled }}
@@ -28,10 +29,9 @@ spec:
   initialCooldownPeriod: {{ .Values.backend.autoscaling.keda.initialCooldownPeriod }}
   minReplicaCount: {{ .Values.backend.autoscaling.keda.minReplicaCount }}
   maxReplicaCount: {{ .Values.backend.autoscaling.keda.maxReplicaCount }}
-  fallback:
-    {{- toYaml .Values.backend.autoscaling.keda.fallback | nindent 4 }}
   advanced:
     horizontalPodAutoscalerConfig:
+      name: {{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}
       behavior:
         scaleDown:
           stabilizationWindowSeconds: {{ .Values.backend.autoscaling.keda.scaleDownStabilizationWindowSeconds }}

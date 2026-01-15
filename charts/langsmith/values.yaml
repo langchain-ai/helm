@@ -301,9 +301,6 @@ aceBackend:
       maxReplicaCount: 5
       targetCPUUtilizationPercentage: 50
       targetMemoryUtilizationPercentage: 80
-      fallback:
-        failureThreshold: 3
-        replicas: 1
       scaleDownStabilizationWindowSeconds: 1800
       scaleDownPolicy:
         value: 100
@@ -559,9 +556,6 @@ backend:
       maxReplicaCount: 6
       targetCPUUtilizationPercentage: 50
       targetMemoryUtilizationPercentage: 80
-      fallback:
-        failureThreshold: 3
-        replicas: 2
       scaleDownStabilizationWindowSeconds: 1800
       scaleDownPolicy:
         value: 100
@@ -846,9 +840,6 @@ frontend:
       maxReplicaCount: 5
       targetCPUUtilizationPercentage: 50
       targetMemoryUtilizationPercentage: 80
-      fallback:
-        failureThreshold: 3
-        replicas: 1
       scaleDownStabilizationWindowSeconds: 1800
       scaleDownPolicy:
         value: 100
@@ -956,9 +947,6 @@ hostBackend:
       maxReplicaCount: 5
       targetCPUUtilizationPercentage: 50
       targetMemoryUtilizationPercentage: 80
-      fallback:
-        failureThreshold: 3
-        replicas: 1
       scaleDownStabilizationWindowSeconds: 1800
       scaleDownPolicy:
         value: 100
@@ -1054,7 +1042,7 @@ listener:
     # HPA-specific configuration
     hpa:
       enabled: false
-      minReplicas: 3
+      minReplicas: 1
       maxReplicas: 10
       targetCPUUtilizationPercentage: 50
       targetMemoryUtilizationPercentage: 80
@@ -1067,13 +1055,10 @@ listener:
       pollingInterval: 30
       cooldownPeriod: 300
       initialCooldownPeriod: 0
-      minReplicaCount: 3
+      minReplicaCount: 1
       maxReplicaCount: 10
       targetCPUUtilizationPercentage: 50
       targetMemoryUtilizationPercentage: 80
-      fallback:
-        failureThreshold: 3
-        replicas: 3
       scaleDownStabilizationWindowSeconds: 1800
       scaleDownPolicy:
         value: 100
@@ -1179,9 +1164,6 @@ platformBackend:
       maxReplicaCount: 10
       targetCPUUtilizationPercentage: 50
       targetMemoryUtilizationPercentage: 80
-      fallback:
-        failureThreshold: 3
-        replicas: 3
       scaleDownStabilizationWindowSeconds: 1800
       scaleDownPolicy:
         value: 100
@@ -1477,9 +1459,6 @@ playground:
       maxReplicaCount: 5
       targetCPUUtilizationPercentage: 50
       targetMemoryUtilizationPercentage: 80
-      fallback:
-        failureThreshold: 3
-        replicas: 1
       scaleDownStabilizationWindowSeconds: 1800
       scaleDownPolicy:
         value: 100

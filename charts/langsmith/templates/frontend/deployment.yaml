@@ -69,7 +69,7 @@ metadata:
       {{- toYaml . | nindent 4 }}
     {{- end }}
 spec:
-  {{- if not .Values.frontend.autoscaling.enabled }}
+  {{- if not (or .Values.frontend.autoscaling.hpa.enabled .Values.frontend.autoscaling.keda.enabled) }}
   replicas: {{ .Values.frontend.deployment.replicas }}
   {{- end }}
   selector:
