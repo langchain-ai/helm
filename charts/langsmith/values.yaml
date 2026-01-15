@@ -416,7 +416,7 @@ backend:
     # You can set this to null to disable the TTL for the migrations job. Useful for some deployment setups.
     ttlSecondsAfterFinished: 600
   feedbackConfigMigration:
-    enabled: true
+    enabled: false
     # Helpful when running using helm template to avoid the job name conflict
     randomizeName: false
     labels: {}
@@ -446,7 +446,7 @@ backend:
     # You can set this to null to disable the TTL for the migrations job. Useful for some deployment setups.
     ttlSecondsAfterFinished: 600
   feedbackDataMigration:
-    enabled: true
+    enabled: false
     # Helpful when running using helm template to avoid the job name conflict
     randomizeName: false
     labels: {}
@@ -695,12 +695,7 @@ e2eTest:
   command:
     - "python"
     - "scripts/test_e2e_trace.pyc"
-  serviceAccount:
-    create: false
-    name: ""
-    labels: {}
-    annotations: {}
-    automountServiceAccountToken: true
+  # Note: Uses backend service account for authentication
   extraEnv: []
   extraContainerConfig: {}
   sidecars: []
@@ -1477,7 +1472,7 @@ queue:
         steps:
           - setWeight: 100
   deployment:
-    replicas: 3
+    replicas: 2
     labels: {}
     annotations: {}
     podSecurityContext: {}
@@ -1547,7 +1542,7 @@ queue:
     automountServiceAccountToken: true
 
 ingestQueue:
-  enabled: false
+  enabled: true
   name: "ingest-queue"
   containerPort: 1989
   # -- ArgoCD Rollouts configuration. If enabled, will create a Rollout resource instead of a Deployment. See https://argo-rollouts.readthedocs.io/
