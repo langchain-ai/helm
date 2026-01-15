@@ -199,7 +199,8 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | config.personalOrgsDisabled | bool | `true` | Disable personal orgs. |
 | config.settings | object | `{"redisRunsExpirySeconds":"21600"}` | Application Settings. These are used to tune the application |
 | config.settings.redisRunsExpirySeconds | string | `"21600"` | Optional. Be very careful when lowering this value as it can result in runs being lost if your queue is down/not processing items fast enough. |
-| config.telemetry.metrics | bool | `true` | Optional. These values are used to send telemetry to the LangChain team to assist with troubleshooting. |
+| config.telemetry.logs | bool | `true` | Optional. These values are used to send telemetry to the LangChain team to assist with troubleshooting. |
+| config.telemetry.metrics | bool | `true` |  |
 | config.telemetry.traces | bool | `true` |  |
 | config.ttl | object | `{"enabled":true,"ttl_period_seconds":{"longlived":"34560000","shortlived":"1209600"}}` | TTL configuration Optional. Used to set TTLS for longlived and shortlived objects. |
 | config.ttl.ttl_period_seconds.longlived | string | `"34560000"` | 400 day longlived and 14 day shortlived |
