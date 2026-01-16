@@ -12,22 +12,6 @@ For information on how to use this chart, up-to-date release notes, and other gu
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| agentBootstrap.affinity | object | `{}` |  |
-| agentBootstrap.annotations | object | `{}` |  |
-| agentBootstrap.enabled | bool | `false` |  |
-| agentBootstrap.extraEnv | list | `[]` |  |
-| agentBootstrap.labels | object | `{}` |  |
-| agentBootstrap.nodeSelector | object | `{}` |  |
-| agentBootstrap.podSecurityContext | object | `{}` |  |
-| agentBootstrap.randomizeName | bool | `false` |  |
-| agentBootstrap.resources.limits.cpu | string | `"500m"` |  |
-| agentBootstrap.resources.limits.memory | string | `"512Mi"` |  |
-| agentBootstrap.resources.requests.cpu | string | `"100m"` |  |
-| agentBootstrap.resources.requests.memory | string | `"256Mi"` |  |
-| agentBootstrap.securityContext | object | `{}` |  |
-| agentBootstrap.tolerations | list | `[]` |  |
-| agentBootstrap.topologySpreadConstraints | list | `[]` |  |
-| agentBootstrap.ttlSecondsAfterFinished | int | `600` |  |
 | agentBuilder.agent.resources.cpu | int | `2` |  |
 | agentBuilder.agent.resources.cpuLimit | int | `4` |  |
 | agentBuilder.agent.resources.maxScale | int | `5` |  |
@@ -451,6 +435,22 @@ For information on how to use this chart, up-to-date release notes, and other gu
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
+| backend.agentBootstrap.affinity | object | `{}` |  |
+| backend.agentBootstrap.annotations | object | `{}` |  |
+| backend.agentBootstrap.enabled | bool | `false` |  |
+| backend.agentBootstrap.extraEnv | list | `[]` |  |
+| backend.agentBootstrap.labels | object | `{}` |  |
+| backend.agentBootstrap.nodeSelector | object | `{}` |  |
+| backend.agentBootstrap.podSecurityContext | object | `{}` |  |
+| backend.agentBootstrap.randomizeName | bool | `false` |  |
+| backend.agentBootstrap.resources.limits.cpu | string | `"500m"` |  |
+| backend.agentBootstrap.resources.limits.memory | string | `"512Mi"` |  |
+| backend.agentBootstrap.resources.requests.cpu | string | `"100m"` |  |
+| backend.agentBootstrap.resources.requests.memory | string | `"256Mi"` |  |
+| backend.agentBootstrap.securityContext | object | `{}` |  |
+| backend.agentBootstrap.tolerations | list | `[]` |  |
+| backend.agentBootstrap.topologySpreadConstraints | list | `[]` |  |
+| backend.agentBootstrap.ttlSecondsAfterFinished | int | `600` |  |
 | backend.authBootstrap.affinity | object | `{}` |  |
 | backend.authBootstrap.annotations | object | `{}` |  |
 | backend.authBootstrap.command[0] | string | `"./auth_bootstrap_entrypoint.sh"` |  |
@@ -552,6 +552,29 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | backend.deployment.topologySpreadConstraints | list | `[]` |  |
 | backend.deployment.volumeMounts | list | `[]` |  |
 | backend.deployment.volumes | list | `[]` |  |
+| backend.e2eTest.affinity | object | `{}` |  |
+| backend.e2eTest.annotations | object | `{}` |  |
+| backend.e2eTest.command[0] | string | `"python"` |  |
+| backend.e2eTest.command[1] | string | `"scripts/test_e2e_trace.pyc"` |  |
+| backend.e2eTest.enabled | bool | `true` |  |
+| backend.e2eTest.extraContainerConfig | object | `{}` |  |
+| backend.e2eTest.extraEnv | list | `[]` |  |
+| backend.e2eTest.initContainers | list | `[]` |  |
+| backend.e2eTest.labels | object | `{}` |  |
+| backend.e2eTest.name | string | `"e2e-test"` |  |
+| backend.e2eTest.nodeSelector | object | `{}` |  |
+| backend.e2eTest.podSecurityContext | object | `{}` |  |
+| backend.e2eTest.resources.limits.cpu | string | `"500m"` |  |
+| backend.e2eTest.resources.limits.memory | string | `"1Gi"` |  |
+| backend.e2eTest.resources.requests.cpu | string | `"200m"` |  |
+| backend.e2eTest.resources.requests.memory | string | `"500Mi"` |  |
+| backend.e2eTest.securityContext | object | `{}` |  |
+| backend.e2eTest.sidecars | list | `[]` |  |
+| backend.e2eTest.tolerations | list | `[]` |  |
+| backend.e2eTest.topologySpreadConstraints | list | `[]` |  |
+| backend.e2eTest.ttlSecondsAfterFinished | int | `10` |  |
+| backend.e2eTest.volumeMounts | list | `[]` |  |
+| backend.e2eTest.volumes | list | `[]` |  |
 | backend.existingConfigMapName | string | `""` |  |
 | backend.feedbackConfigMigration.affinity | object | `{}` |  |
 | backend.feedbackConfigMigration.annotations | object | `{}` |  |
@@ -733,29 +756,6 @@ For information on how to use this chart, up-to-date release notes, and other gu
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| e2eTest.affinity | object | `{}` |  |
-| e2eTest.annotations | object | `{}` |  |
-| e2eTest.command[0] | string | `"python"` |  |
-| e2eTest.command[1] | string | `"scripts/test_e2e_trace.pyc"` |  |
-| e2eTest.enabled | bool | `true` |  |
-| e2eTest.extraContainerConfig | object | `{}` |  |
-| e2eTest.extraEnv | list | `[]` |  |
-| e2eTest.initContainers | list | `[]` |  |
-| e2eTest.labels | object | `{}` |  |
-| e2eTest.name | string | `"e2e-test"` |  |
-| e2eTest.nodeSelector | object | `{}` |  |
-| e2eTest.podSecurityContext | object | `{}` |  |
-| e2eTest.resources.limits.cpu | string | `"500m"` |  |
-| e2eTest.resources.limits.memory | string | `"1Gi"` |  |
-| e2eTest.resources.requests.cpu | string | `"200m"` |  |
-| e2eTest.resources.requests.memory | string | `"500Mi"` |  |
-| e2eTest.securityContext | object | `{}` |  |
-| e2eTest.sidecars | list | `[]` |  |
-| e2eTest.tolerations | list | `[]` |  |
-| e2eTest.topologySpreadConstraints | list | `[]` |  |
-| e2eTest.ttlSecondsAfterFinished | int | `10` |  |
-| e2eTest.volumeMounts | list | `[]` |  |
-| e2eTest.volumes | list | `[]` |  |
 
 ## Host Backend (Optional)
 

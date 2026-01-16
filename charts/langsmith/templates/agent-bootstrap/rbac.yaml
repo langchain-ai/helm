@@ -1,5 +1,5 @@
 # RBAC for the agent bootstrap job to create/patch ConfigMaps and restart deployments
-{{- if and .Values.agentBootstrap.enabled (or .Values.agentBuilder.enabled .Values.insightsAgent.enabled) }}
+{{- if and .Values.backend.agentBootstrap.enabled (or .Values.agentBuilder.enabled .Values.insightsAgent.enabled) }}
 apiVersion: v1
 kind: ServiceAccount
 metadata:

@@ -1,5 +1,5 @@
-{{- if and .Values.agentBootstrap.enabled (or .Values.agentBuilder.enabled .Values.insightsAgent.enabled) }}
-{{- $envVars := concat .Values.commonEnv (include "langsmith.commonEnv" . | fromYamlArray) .Values.agentBootstrap.extraEnv -}}
+{{- if and .Values.backend.agentBootstrap.enabled (or .Values.agentBuilder.enabled .Values.insightsAgent.enabled) }}
+{{- $envVars := concat .Values.commonEnv (include "langsmith.commonEnv" . | fromYamlArray) .Values.backend.agentBootstrap.extraEnv -}}
 {{- $volumes := concat .Values.commonVolumes (include "langsmith.tlsVolumes" . | fromYamlArray) -}}
 {{- $volumeMounts := concat .Values.commonVolumeMounts (include "langsmith.tlsVolumeMounts" . | fromYamlArray) }}
 # This job deploys bundled agents (Agent Builder, Insights) via the LangSmith Deployments API
@@ -7,7 +7,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  {{- if .Values.agentBootstrap.randomizeName }}
+  {{- if .Values.backend.agentBootstrap.randomizeName }}
   name: {{ include "langsmith.fullname" . }}-agent-bootstrap-{{ randAlphaNum 5 | lower }}
   {{- else }}
   name: {{ include "langsmith.fullname" . }}-agent-bootstrap
@@ -16,7 +16,7 @@ metadata:
   labels:
     {{- include "langsmith.labels" . | nindent 4 }}
     app.kubernetes.io/component: agent-bootstrap
-    {{- with .Values.agentBootstrap.labels }}
+    {{- with .Values.backend.agentBootstrap.labels }}
       {{- toYaml . | nindent 4 }}
     {{- end }}
   annotations:
@@ -25,12 +25,12 @@ metadata:
     "helm.sh/hook": post-install,post-upgrade
     "helm.sh/hook-weight": "10"
     "helm.sh/hook-delete-policy": before-hook-creation
-    {{- with .Values.agentBootstrap.annotations }}
+    {{- with .Values.backend.agentBootstrap.annotations }}
       {{- toYaml . | nindent 4 }}
     {{- end }}
 spec:
-  {{- if .Values.agentBootstrap.ttlSecondsAfterFinished }}
-  ttlSecondsAfterFinished: {{ .Values.agentBootstrap.ttlSecondsAfterFinished }}
+  {{- if .Values.backend.agentBootstrap.ttlSecondsAfterFinished }}
+  ttlSecondsAfterFinished: {{ .Values.backend.agentBootstrap.ttlSecondsAfterFinished }}
   {{- end }}
   backoffLimit: 3
   template:
@@ -38,12 +38,12 @@ spec:
       labels:
         {{- include "langsmith.labels" . | nindent 8 }}
         app.kubernetes.io/component: agent-bootstrap
-        {{- with .Values.agentBootstrap.labels }}
+        {{- with .Values.backend.agentBootstrap.labels }}
           {{- toYaml . | nindent 8 }}
         {{- end }}
       annotations:
         {{- include "langsmith.commonPodAnnotations" . | nindent 8 }}
-        {{- with .Values.agentBootstrap.annotations }}
+        {{- with .Values.backend.agentBootstrap.annotations }}
           {{- toYaml . | nindent 8 }}
         {{- end }}
     spec:
@@ -53,21 +53,21 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       securityContext:
-        {{- include "langsmith.podSecurityContext" (dict "Values" .Values "componentSecurityContext" .Values.agentBootstrap.podSecurityContext) | nindent 8 }}
+        {{- include "langsmith.podSecurityContext" (dict "Values" .Values "componentSecurityContext" .Values.backend.agentBootstrap.podSecurityContext) | nindent 8 }}
       serviceAccountName: {{ include "agentBootstrap.serviceAccountName" . }}
-      {{- with .Values.agentBootstrap.nodeSelector }}
+      {{- with .Values.backend.agentBootstrap.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.agentBootstrap.tolerations }}
+      {{- with .Values.backend.agentBootstrap.tolerations }}
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.agentBootstrap.affinity }}
+      {{- with .Values.backend.agentBootstrap.affinity }}
       affinity:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.agentBootstrap.topologySpreadConstraints }}
+      {{- with .Values.backend.agentBootstrap.topologySpreadConstraints }}
       topologySpreadConstraints:
         {{- toYaml . | nindent 8 }}
       {{- end }}
@@ -128,9 +128,9 @@ spec:
             - configMapRef:
                 name: {{ include "langsmith.fullname" . }}-config
           resources:
-            {{- toYaml .Values.agentBootstrap.resources | nindent 12 }}
+            {{- toYaml .Values.backend.agentBootstrap.resources | nindent 12 }}
           securityContext:
-            {{- toYaml .Values.agentBootstrap.securityContext | nindent 12 }}
+            {{- toYaml .Values.backend.agentBootstrap.securityContext | nindent 12 }}
           {{- with $volumeMounts }}
           volumeMounts:
               {{- toYaml . | nindent 12 }}

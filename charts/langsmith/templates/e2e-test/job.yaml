@@ -1,15 +1,15 @@
-{{- if and .Values.config.basicAuth.enabled .Values.e2eTest.enabled }}
-{{- $envVars := concat .Values.commonEnv (include "langsmith.commonEnv" . | fromYamlArray) (include "backendEnvVars" . | fromYamlArray) .Values.e2eTest.extraEnv -}}
-{{- $volumes := concat .Values.commonVolumes .Values.e2eTest.volumes (include "langsmith.tlsVolumes" . | fromYamlArray) -}}
-{{- $volumeMounts := concat .Values.commonVolumeMounts .Values.e2eTest.volumeMounts (include "langsmith.tlsVolumeMounts" . | fromYamlArray) -}}
+{{- if and .Values.config.basicAuth.enabled .Values.backend.e2eTest.enabled }}
+{{- $envVars := concat .Values.commonEnv (include "langsmith.commonEnv" . | fromYamlArray) (include "backendEnvVars" . | fromYamlArray) .Values.backend.e2eTest.extraEnv -}}
+{{- $volumes := concat .Values.commonVolumes .Values.backend.e2eTest.volumes (include "langsmith.tlsVolumes" . | fromYamlArray) -}}
+{{- $volumeMounts := concat .Values.commonVolumeMounts .Values.backend.e2eTest.volumeMounts (include "langsmith.tlsVolumeMounts" . | fromYamlArray) -}}
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: "{{ include "langsmith.fullname" . }}-{{ .Values.e2eTest.name }}"
+  name: "{{ include "langsmith.fullname" . }}-{{ .Values.backend.e2eTest.name }}"
   namespace: {{ .Values.namespace | default .Release.Namespace }}
   labels:
     {{- include "langsmith.labels" . | nindent 4 }}
-    {{- with .Values.e2eTest.labels }}
+    {{- with .Values.backend.e2eTest.labels }}
       {{- toYaml . | nindent 4 }}
     {{- end }}
   annotations:
@@ -17,24 +17,24 @@ metadata:
     "helm.sh/hook-weight": "1"
     "helm.sh/fail-hook-policy": fail
     {{- include "langsmith.annotations" . | nindent 4 }}
-    {{- with .Values.e2eTest.annotations }}
+    {{- with .Values.backend.e2eTest.annotations }}
       {{- toYaml . | nindent 4 }}
     {{- end }}
 spec:
   backoffLimit: 5
-  ttlSecondsAfterFinished: {{ .Values.e2eTest.ttlSecondsAfterFinished }}
+  ttlSecondsAfterFinished: {{ .Values.backend.e2eTest.ttlSecondsAfterFinished }}
   template:
     metadata:
-      {{- with .Values.e2eTest.annotations }}
+      {{- with .Values.backend.e2eTest.annotations }}
       annotations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       labels:
-        {{- with .Values.e2eTest.labels }}
+        {{- with .Values.backend.e2eTest.labels }}
           {{- toYaml . | nindent 8 }}
         {{- end }}
         {{- include "langsmith.labels" . | nindent 8 }}
-        app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-{{ .Values.e2eTest.name }}
+        app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-{{ .Values.backend.e2eTest.name }}
     spec:
       restartPolicy: Never
       {{- with .Values.images.imagePullSecrets }}
@@ -42,21 +42,21 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       securityContext:
-        {{- include "langsmith.podSecurityContext" (dict "Values" .Values "componentSecurityContext" .Values.e2eTest.podSecurityContext) | nindent 8 }}
+        {{- include "langsmith.podSecurityContext" (dict "Values" .Values "componentSecurityContext" .Values.backend.e2eTest.podSecurityContext) | nindent 8 }}
       serviceAccountName: {{ include "backend.serviceAccountName" . }}
-      {{- with concat .Values.commonInitContainers .Values.e2eTest.initContainers }}
+      {{- with concat .Values.commonInitContainers .Values.backend.e2eTest.initContainers }}
       initContainers:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       containers:
-        - name: {{ .Values.e2eTest.name }}
+        - name: {{ .Values.backend.e2eTest.name }}
           image: {{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "backendImage") | quote }}
           command:
-            {{- toYaml .Values.e2eTest.command | nindent 12 }}
+            {{- toYaml .Values.backend.e2eTest.command | nindent 12 }}
           securityContext:
-            {{- toYaml .Values.e2eTest.securityContext | nindent 12 }}
+            {{- toYaml .Values.backend.e2eTest.securityContext | nindent 12 }}
           resources:
-            {{- toYaml .Values.e2eTest.resources | nindent 12 }}
+            {{- toYaml .Values.backend.e2eTest.resources | nindent 12 }}
           env:
             {{- with $envVars }}
               {{- toYaml . | nindent 12 }}
@@ -68,25 +68,25 @@ spec:
           volumeMounts:
             {{- toYaml . | nindent 12 }}
           {{- end }}
-          {{- with .Values.e2eTest.extraContainerConfig }}
+          {{- with .Values.backend.e2eTest.extraContainerConfig }}
             {{- toYaml . | nindent 10 }}
           {{- end }}
-        {{- with .Values.e2eTest.sidecars }}
+        {{- with .Values.backend.e2eTest.sidecars }}
           {{- toYaml . | nindent 10 }}
         {{- end }}
-      {{- with .Values.e2eTest.nodeSelector }}
+      {{- with .Values.backend.e2eTest.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.e2eTest.affinity }}
+      {{- with .Values.backend.e2eTest.affinity }}
       affinity:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.e2eTest.tolerations }}
+      {{- with .Values.backend.e2eTest.tolerations }}
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.e2eTest.topologySpreadConstraints }}
+      {{- with .Values.backend.e2eTest.topologySpreadConstraints }}
       topologySpreadConstraints:
         {{- toYaml . | nindent 8 }}
       {{- end }}

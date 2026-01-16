@@ -598,6 +598,56 @@ backend:
     labels: {}
     annotations: {}
     automountServiceAccountToken: true
+  e2eTest:
+    name: "e2e-test"
+    enabled: true
+    labels: {}
+    annotations: {}
+    podSecurityContext: {}
+    securityContext: {}
+    resources:
+      limits:
+        cpu: 500m
+        memory: 1Gi
+      requests:
+        cpu: 200m
+        memory: 500Mi
+    command:
+      - "python"
+      - "scripts/test_e2e_trace.pyc"
+    extraEnv: []
+    extraContainerConfig: {}
+    sidecars: []
+    initContainers: []
+    nodeSelector: {}
+    tolerations: []
+    topologySpreadConstraints: []
+    affinity: {}
+    volumes: []
+    volumeMounts: []
+    ttlSecondsAfterFinished: 10
+
+  # Deploys bundled agents (Agent Builder, Insights) via LangSmith Deployments API
+  agentBootstrap:
+    enabled: false
+    randomizeName: false
+    labels: {}
+    annotations: {}
+    podSecurityContext: {}
+    securityContext: {}
+    resources:
+      limits:
+        cpu: 500m
+        memory: 512Mi
+      requests:
+        cpu: 100m
+        memory: 256Mi
+    extraEnv: []
+    nodeSelector: {}
+    tolerations: []
+    topologySpreadConstraints: []
+    affinity: {}
+    ttlSecondsAfterFinished: 600
 
 clickhouse:
   name: "clickhouse"
@@ -716,36 +766,6 @@ clickhouse:
     automountServiceAccountToken: true
   metrics:
     port: 9363
-
-e2eTest:
-  name: "e2e-test"
-  enabled: true
-  labels: {}
-  annotations: {}
-  podSecurityContext: {}
-  securityContext: {}
-  resources:
-    limits:
-      cpu: 500m
-      memory: 1Gi
-    requests:
-      cpu: 200m
-      memory: 500Mi
-  command:
-    - "python"
-    - "scripts/test_e2e_trace.pyc"
-  # Note: Uses backend service account for authentication
-  extraEnv: []
-  extraContainerConfig: {}
-  sidecars: []
-  initContainers: []
-  nodeSelector: {}
-  tolerations: []
-  topologySpreadConstraints: []
-  affinity: {}
-  volumes: []
-  volumeMounts: []
-  ttlSecondsAfterFinished: 10
 
 frontend:
   name: "frontend"
@@ -2112,28 +2132,3 @@ agentBuilder:
       memoryLimitMb: 8192
       minScale: 1
       maxScale: 5
-
-# Bootstrap job configuration - deploys bundled agents (Agent Builder, Insights) via LangSmith Deployments API
-agentBootstrap:
-  # Set to false to skip the bootstrap job
-  enabled: false
-  # Helpful when running using helm template to avoid the job name conflict
-  randomizeName: false
-  labels: {}
-  annotations: {}
-  podSecurityContext: {}
-  securityContext: {}
-  resources:
-    limits:
-      cpu: 500m
-      memory: 512Mi
-    requests:
-      cpu: 100m
-      memory: 256Mi
-  extraEnv: []
-  nodeSelector: {}
-  tolerations: []
-  topologySpreadConstraints: []
-  affinity: {}
-  # You can set this to null to disable the TTL for the job. Useful for some deployment setups.
-  ttlSecondsAfterFinished: 600
