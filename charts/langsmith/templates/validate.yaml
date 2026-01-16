@@ -182,3 +182,32 @@ It only performs validation checks and fails template rendering if issues are fo
 {{- if and .Values.insightsAgent.enabled (not .Values.insightsAgent.encryptionKey) -}}
 {{- fail "insightsAgent.encryptionKey is required when Insights is enabled. Generate one with: python -c \"from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())\"" -}}
 {{- end -}}
+
+{{- /* Validate autoscaling configuration for all services */ -}}
+{{- $autoscalingServices := dict
+  "aceBackend" .Values.aceBackend.autoscaling
+  "backend" .Values.backend.autoscaling
+  "frontend" .Values.frontend.autoscaling
+  "hostBackend" .Values.hostBackend.autoscaling
+  "listener" .Values.listener.autoscaling
+  "platformBackend" .Values.platformBackend.autoscaling
+  "playground" .Values.playground.autoscaling
+  "queue" .Values.queue.autoscaling
+  "ingestQueue" .Values.ingestQueue.autoscaling
+-}}
+{{- range $serviceName, $autoscaling := $autoscalingServices -}}
+{{- /* Validate that both HPA and KEDA are not enabled at the same time */ -}}
+{{- if and $autoscaling.hpa.enabled $autoscaling.keda.enabled -}}
+{{- fail (printf "Only one of %s.autoscaling.hpa.enabled or %s.autoscaling.keda.enabled can be enabled at the same time." $serviceName $serviceName) -}}
+{{- end -}}
+{{- /* Validate deprecated autoscaling values */ -}}
+{{- if hasKey $autoscaling "createHpa" -}}
+{{- fail (printf "%s.autoscaling.createHpa is deprecated. Please use %s.autoscaling.hpa.enabled and/or %s.autoscaling.keda.enabled instead." $serviceName $serviceName $serviceName) -}}
+{{- end -}}
+{{- if hasKey $autoscaling "type" -}}
+{{- fail (printf "%s.autoscaling.type is deprecated. Please use %s.autoscaling.hpa.enabled and/or %s.autoscaling.keda.enabled instead." $serviceName $serviceName $serviceName) -}}
+{{- end -}}
+{{- if hasKey $autoscaling "enabled" -}}
+{{- fail (printf "%s.autoscaling.enabled is deprecated. Please use %s.autoscaling.hpa.enabled and/or %s.autoscaling.keda.enabled instead." $serviceName $serviceName $serviceName) -}}
+{{- end -}}
+{{- end -}}

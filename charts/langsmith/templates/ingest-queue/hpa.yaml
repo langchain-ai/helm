@@ -1,4 +1,4 @@
-{{- if and .Values.ingestQueue.enabled .Values.ingestQueue.autoscaling.enabled .Values.ingestQueue.autoscaling.createHpa }}
+{{- if and .Values.ingestQueue.enabled .Values.ingestQueue.autoscaling.hpa.enabled }}
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
@@ -16,26 +16,23 @@ spec:
     kind: Deployment
     {{- end }}
     name: {{ include "langsmith.fullname" . }}-{{ .Values.ingestQueue.name }}
-  minReplicas: {{ .Values.ingestQueue.autoscaling.minReplicas }}
-  maxReplicas: {{ .Values.ingestQueue.autoscaling.maxReplicas }}
+  minReplicas: {{ .Values.ingestQueue.autoscaling.hpa.minReplicas }}
+  maxReplicas: {{ .Values.ingestQueue.autoscaling.hpa.maxReplicas }}
   metrics:
-    {{- if .Values.ingestQueue.autoscaling.targetCPUUtilizationPercentage }}
+    {{- if .Values.ingestQueue.autoscaling.hpa.targetCPUUtilizationPercentage }}
     - type: Resource
       resource:
         name: cpu
         target:
           type: Utilization
-          averageUtilization: {{ .Values.ingestQueue.autoscaling.targetCPUUtilizationPercentage }}
+          averageUtilization: {{ .Values.ingestQueue.autoscaling.hpa.targetCPUUtilizationPercentage }}
     {{- end }}
-    {{- if .Values.ingestQueue.autoscaling.targetMemoryUtilizationPercentage }}
+    {{- if .Values.ingestQueue.autoscaling.hpa.targetMemoryUtilizationPercentage }}
     - type: Resource
       resource:
         name: memory
         target:
           type: Utilization
-          averageUtilization: {{ .Values.ingestQueue.autoscaling.targetMemoryUtilizationPercentage }}
-    {{- end }}
-    {{- if .Values.ingestQueue.autoscaling.additionalMetrics }}
-    {{- toYaml .Values.ingestQueue.autoscaling.additionalMetrics | nindent 4 }}
+          averageUtilization: {{ .Values.ingestQueue.autoscaling.hpa.targetMemoryUtilizationPercentage }}
     {{- end }}
 {{- end }}

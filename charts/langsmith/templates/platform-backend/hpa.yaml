@@ -1,4 +1,4 @@
-{{- if and .Values.platformBackend.autoscaling.enabled .Values.platformBackend.autoscaling.createHpa }}
+{{- if .Values.platformBackend.autoscaling.hpa.enabled }}
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
@@ -16,26 +16,26 @@ spec:
     kind: Deployment
     {{- end }}
     name: {{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}
-  minReplicas: {{ .Values.platformBackend.autoscaling.minReplicas }}
-  maxReplicas: {{ .Values.platformBackend.autoscaling.maxReplicas }}
+  minReplicas: {{ .Values.platformBackend.autoscaling.hpa.minReplicas }}
+  maxReplicas: {{ .Values.platformBackend.autoscaling.hpa.maxReplicas }}
   metrics:
-    {{- if .Values.platformBackend.autoscaling.targetCPUUtilizationPercentage }}
+    {{- if .Values.platformBackend.autoscaling.hpa.targetCPUUtilizationPercentage }}
     - type: Resource
       resource:
         name: cpu
         target:
           type: Utilization
-          averageUtilization: {{ .Values.platformBackend.autoscaling.targetCPUUtilizationPercentage }}
+          averageUtilization: {{ .Values.platformBackend.autoscaling.hpa.targetCPUUtilizationPercentage }}
     {{- end }}
-    {{- if .Values.platformBackend.autoscaling.targetMemoryUtilizationPercentage }}
+    {{- if .Values.platformBackend.autoscaling.hpa.targetMemoryUtilizationPercentage }}
     - type: Resource
       resource:
         name: memory
         target:
           type: Utilization
-          averageUtilization: {{ .Values.platformBackend.autoscaling.targetMemoryUtilizationPercentage }}
+          averageUtilization: {{ .Values.platformBackend.autoscaling.hpa.targetMemoryUtilizationPercentage }}
     {{- end }}
-    {{- if .Values.platformBackend.autoscaling.additionalMetrics }}
-    {{- toYaml .Values.platformBackend.autoscaling.additionalMetrics | nindent 4 }}
+    {{- if .Values.platformBackend.autoscaling.hpa.additionalMetrics }}
+    {{- toYaml .Values.platformBackend.autoscaling.hpa.additionalMetrics | nindent 4 }}
     {{- end }}
 {{- end }}

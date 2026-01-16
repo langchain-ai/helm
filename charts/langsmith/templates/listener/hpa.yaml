@@ -1,4 +1,4 @@
-{{- if and .Values.listener.autoscaling.enabled .Values.listener.autoscaling.createHpa .Values.config.deployment.enabled }}
+{{- if and .Values.listener.autoscaling.hpa.enabled .Values.config.deployment.enabled }}
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
@@ -16,23 +16,23 @@ spec:
     kind: Deployment
     {{- end }}
     name: {{ include "langsmith.fullname" . }}-{{ .Values.listener.name }}
-  minReplicas: {{ .Values.listener.autoscaling.minReplicas }}
-  maxReplicas: {{ .Values.listener.autoscaling.maxReplicas }}
+  minReplicas: {{ .Values.listener.autoscaling.hpa.minReplicas }}
+  maxReplicas: {{ .Values.listener.autoscaling.hpa.maxReplicas }}
   metrics:
-    {{- if .Values.listener.autoscaling.targetCPUUtilizationPercentage }}
+    {{- if .Values.listener.autoscaling.hpa.targetCPUUtilizationPercentage }}
     - type: Resource
       resource:
         name: cpu
         target:
           type: Utilization
-          averageUtilization: {{ .Values.listener.autoscaling.targetCPUUtilizationPercentage }}
+          averageUtilization: {{ .Values.listener.autoscaling.hpa.targetCPUUtilizationPercentage }}
     {{- end }}
-    {{- if .Values.listener.autoscaling.targetMemoryUtilizationPercentage }}
+    {{- if .Values.listener.autoscaling.hpa.targetMemoryUtilizationPercentage }}
     - type: Resource
       resource:
         name: memory
         target:
           type: Utilization
-          averageUtilization: {{ .Values.listener.autoscaling.targetMemoryUtilizationPercentage }}
+          averageUtilization: {{ .Values.listener.autoscaling.hpa.targetMemoryUtilizationPercentage }}
     {{- end }}
 {{- end }}

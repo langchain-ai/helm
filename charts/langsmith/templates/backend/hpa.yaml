@@ -1,4 +1,4 @@
-{{- if and .Values.backend.autoscaling.enabled .Values.backend.autoscaling.createHpa }}
+{{- if .Values.backend.autoscaling.hpa.enabled }}
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
@@ -16,26 +16,26 @@ spec:
     kind: Deployment
     {{- end }}
     name: {{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}
-  minReplicas: {{ .Values.backend.autoscaling.minReplicas }}
-  maxReplicas: {{ .Values.backend.autoscaling.maxReplicas }}
+  minReplicas: {{ .Values.backend.autoscaling.hpa.minReplicas }}
+  maxReplicas: {{ .Values.backend.autoscaling.hpa.maxReplicas }}
   metrics:
-    {{- if .Values.backend.autoscaling.targetCPUUtilizationPercentage }}
+    {{- if .Values.backend.autoscaling.hpa.targetCPUUtilizationPercentage }}
     - type: Resource
       resource:
         name: cpu
         target:
           type: Utilization
-          averageUtilization: {{ .Values.backend.autoscaling.targetCPUUtilizationPercentage }}
+          averageUtilization: {{ .Values.backend.autoscaling.hpa.targetCPUUtilizationPercentage }}
     {{- end }}
-    {{- if .Values.backend.autoscaling.targetMemoryUtilizationPercentage }}
+    {{- if .Values.backend.autoscaling.hpa.targetMemoryUtilizationPercentage }}
     - type: Resource
       resource:
         name: memory
         target:
           type: Utilization
-          averageUtilization: {{ .Values.backend.autoscaling.targetMemoryUtilizationPercentage }}
+          averageUtilization: {{ .Values.backend.autoscaling.hpa.targetMemoryUtilizationPercentage }}
     {{- end }}
-    {{- if .Values.backend.autoscaling.additionalMetrics }}
-    {{- toYaml .Values.backend.autoscaling.additionalMetrics | nindent 4 }}
+    {{- if .Values.backend.autoscaling.hpa.additionalMetrics }}
+    {{- toYaml .Values.backend.autoscaling.hpa.additionalMetrics | nindent 4 }}
     {{- end }}
 {{- end }}

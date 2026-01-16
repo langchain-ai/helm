@@ -1,0 +1,56 @@
+{{- if .Values.platformBackend.autoscaling.keda.enabled }}
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: {{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}
+  namespace: {{ .Values.namespace | default .Release.Namespace }}
+  labels:
+    {{- include "langsmith.labels" . | nindent 4 }}
+    {{- with .Values.platformBackend.autoscaling.keda.labels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  annotations:
+    scaledobject.keda.sh/transfer-hpa-ownership: "true"
+    {{- with .Values.platformBackend.autoscaling.keda.annotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  scaleTargetRef:
+    {{- if .Values.platformBackend.rollout.enabled }}
+    apiVersion: argoproj.io/v1alpha1
+    kind: Rollout
+    {{- else }}
+    apiVersion: apps/v1
+    kind: Deployment
+    {{- end }}
+    name: {{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}
+  pollingInterval: {{ .Values.platformBackend.autoscaling.keda.pollingInterval }}
+  cooldownPeriod: {{ .Values.platformBackend.autoscaling.keda.cooldownPeriod }}
+  initialCooldownPeriod: {{ .Values.platformBackend.autoscaling.keda.initialCooldownPeriod }}
+  minReplicaCount: {{ .Values.platformBackend.autoscaling.keda.minReplicaCount }}
+  maxReplicaCount: {{ .Values.platformBackend.autoscaling.keda.maxReplicaCount }}
+  advanced:
+    horizontalPodAutoscalerConfig:
+      name: {{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}
+      behavior:
+        scaleDown:
+          stabilizationWindowSeconds: {{ .Values.platformBackend.autoscaling.keda.scaleDownStabilizationWindowSeconds }}
+          policies:
+            - type: Percent
+              value: {{ .Values.platformBackend.autoscaling.keda.scaleDownPolicy.value }}
+              periodSeconds: {{ .Values.platformBackend.autoscaling.keda.scaleDownPolicy.periodSeconds }}
+        scaleUp:
+          policies:
+            - type: Percent
+              value: {{ .Values.platformBackend.autoscaling.keda.scaleUpPolicy.value }}
+              periodSeconds: {{ .Values.platformBackend.autoscaling.keda.scaleUpPolicy.periodSeconds }}
+  triggers:
+    - type: cpu
+      metricType: Utilization
+      metadata:
+        value: "{{ .Values.platformBackend.autoscaling.keda.targetCPUUtilizationPercentage }}"
+    - type: memory
+      metricType: Utilization
+      metadata:
+        value: "{{ .Values.platformBackend.autoscaling.keda.targetMemoryUtilizationPercentage }}"
+{{- end }}

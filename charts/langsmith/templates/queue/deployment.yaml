@@ -31,7 +31,7 @@ metadata:
       {{- toYaml . | nindent 4 }}
     {{- end }}
 spec:
-  {{- if not .Values.queue.autoscaling.enabled }}
+  {{- if not (or .Values.queue.autoscaling.hpa.enabled .Values.queue.autoscaling.keda.enabled) }}
   replicas: {{ .Values.queue.deployment.replicas }}
   {{- end }}
   selector:
