@@ -1,0 +1,25 @@
+{{- if and .Values.config.agentBuilder.enabled .Values.agentBuilderToolServer.enabled .Values.agentBuilderToolServer.pdb.enabled }}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "langsmith.fullname" . }}-{{ .Values.agentBuilderToolServer.name }}
+  namespace: {{ .Values.namespace | default .Release.Namespace }}
+  labels:
+    {{- include "langsmith.labels" . | nindent 4 }}
+    app.kubernetes.io/component: {{ .Values.agentBuilderToolServer.name }}
+    {{- with .Values.agentBuilderToolServer.pdb.labels }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+  annotations:
+    {{- include "langsmith.annotations" . | nindent 4 }}
+    {{- with .Values.agentBuilderToolServer.pdb.annotations }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  minAvailable: {{ .Values.agentBuilderToolServer.pdb.minAvailable }}
+  selector:
+    matchLabels:
+      {{- include "langsmith.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-{{ .Values.agentBuilderToolServer.name }}
+{{- end }}
+

@@ -164,3 +164,50 @@ It only performs validation checks and fails template rendering if issues are fo
 {{- if and .Values.clickhouse.external.clientCert.secretName (not .Values.clickhouse.external.existingSecretName) (not .Values.clickhouse.external.tls) -}}
 {{- fail "clickhouse.external.tls must be true when clickhouse.external.clientCert.secretName is set and the value is not being fetched from an existing secret." -}}
 {{- end -}}
+
+{{- /* Validate agent builder configuration */ -}}
+{{- if .Values.config.agentBuilder.enabled -}}
+{{- if and (not .Values.config.agentBuilder.encryptionKey) (not .Values.config.existingSecretName) -}}
+{{- fail "config.agentBuilder.encryptionKey is required when Agent Builder is enabled. Generate one with: python -c \"from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())\"" -}}
+{{- end -}}
+{{- if not .Values.config.deployment.enabled -}}
+{{- fail "config.deployment.enabled must be true when agentBuilder is enabled. Agent Builder requires LangSmith Deployments." -}}
+{{- end -}}
+{{- end -}}
+
+{{- /* Validate insights configuration */ -}}
+{{- if and .Values.config.insights.enabled (not .Values.config.deployment.enabled) -}}
+{{- fail "config.deployment.enabled must be true when Insights is enabled. Insights requires LangSmith Deployments." -}}
+{{- end -}}
+{{- if and .Values.config.insights.enabled (not .Values.config.insights.encryptionKey) -}}
+{{- fail "config.insights.encryptionKey is required when Insights is enabled. Generate one with: python -c \"from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())\"" -}}
+{{- end -}}
+
+{{- /* Validate autoscaling configuration for all services */ -}}
+{{- $autoscalingServices := dict
+  "aceBackend" .Values.aceBackend.autoscaling
+  "backend" .Values.backend.autoscaling
+  "frontend" .Values.frontend.autoscaling
+  "hostBackend" .Values.hostBackend.autoscaling
+  "listener" .Values.listener.autoscaling
+  "platformBackend" .Values.platformBackend.autoscaling
+  "playground" .Values.playground.autoscaling
+  "queue" .Values.queue.autoscaling
+  "ingestQueue" .Values.ingestQueue.autoscaling
+-}}
+{{- range $serviceName, $autoscaling := $autoscalingServices -}}
+{{- /* Validate that both HPA and KEDA are not enabled at the same time */ -}}
+{{- if and $autoscaling.hpa.enabled $autoscaling.keda.enabled -}}
+{{- fail (printf "Only one of %s.autoscaling.hpa.enabled or %s.autoscaling.keda.enabled can be enabled at the same time." $serviceName $serviceName) -}}
+{{- end -}}
+{{- /* Validate deprecated autoscaling values */ -}}
+{{- if hasKey $autoscaling "createHpa" -}}
+{{- fail (printf "%s.autoscaling.createHpa is deprecated. Please use %s.autoscaling.hpa.enabled and/or %s.autoscaling.keda.enabled instead." $serviceName $serviceName $serviceName) -}}
+{{- end -}}
+{{- if hasKey $autoscaling "type" -}}
+{{- fail (printf "%s.autoscaling.type is deprecated. Please use %s.autoscaling.hpa.enabled and/or %s.autoscaling.keda.enabled instead." $serviceName $serviceName $serviceName) -}}
+{{- end -}}
+{{- if hasKey $autoscaling "enabled" -}}
+{{- fail (printf "%s.autoscaling.enabled is deprecated. Please use %s.autoscaling.hpa.enabled and/or %s.autoscaling.keda.enabled instead." $serviceName $serviceName $serviceName) -}}
+{{- end -}}
+{{- end -}}

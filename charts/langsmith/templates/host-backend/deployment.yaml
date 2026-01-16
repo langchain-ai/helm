@@ -5,6 +5,18 @@
 - name: HOST_DOCS_PREFIX
   value: /{{ . }}/api-host
 {{- end }}
+{{- /* Agent Builder OAuth and Trigger Server configuration */ -}}
+{{- if .Values.config.agentBuilder.enabled }}
+{{- if .Values.config.agentBuilder.oauthProviderOrgId }}
+- name: AGENT_BUILDER_AUTH_PROVIDER_ORG_ID
+  value: {{ .Values.config.agentBuilder.oauthProviderOrgId | quote }}
+{{- end }}
+{{- if .Values.agentBuilderTriggerServer.enabled }}
+- name: AGENT_BUILDER_TRIGGERS_API_URL
+  value: "http://{{ include "langsmith.fullname" . }}-{{ .Values.agentBuilderTriggerServer.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.agentBuilderTriggerServer.service.port }}/v1/triggers"
+{{- end }}
+{{- include "agentBuilderOAuthEnvVars" . }}
+{{- end }}
 {{- end -}}
 {{- $envVars := concat (include "langsmith.commonEnv" . | fromYamlArray ) (include "hostBackendEnvVars" . | fromYamlArray) .Values.hostBackend.deployment.extraEnv -}}
 {{- include "langsmith.detectDuplicates" $envVars -}}
@@ -32,7 +44,7 @@ metadata:
       {{- toYaml . | nindent 4 }}
     {{- end }}
 spec:
-  {{- if not .Values.hostBackend.autoscaling.enabled }}
+  {{- if not (or .Values.hostBackend.autoscaling.hpa.enabled .Values.hostBackend.autoscaling.keda.enabled) }}
   replicas: {{ .Values.hostBackend.deployment.replicas }}
   {{- end }}
   selector:

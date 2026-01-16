@@ -32,7 +32,7 @@ metadata:
       {{- toYaml . | nindent 4 }}
     {{- end }}
 spec:
-  {{- if not .Values.listener.autoscaling.enabled }}
+  {{- if not (or .Values.listener.autoscaling.hpa.enabled .Values.listener.autoscaling.keda.enabled) }}
   replicas: {{ .Values.listener.deployment.replicas }}
   {{- end }}
   selector:

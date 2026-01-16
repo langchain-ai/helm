@@ -1,0 +1,142 @@
+{{- if and .Values.backend.agentBootstrap.enabled (or .Values.config.agentBuilder.enabled .Values.config.insights.enabled) }}
+{{- $envVars := concat .Values.commonEnv (include "langsmith.commonEnv" . | fromYamlArray) .Values.backend.agentBootstrap.extraEnv -}}
+{{- $volumes := concat .Values.commonVolumes (include "langsmith.tlsVolumes" . | fromYamlArray) -}}
+{{- $volumeMounts := concat .Values.commonVolumeMounts (include "langsmith.tlsVolumeMounts" . | fromYamlArray) }}
+# This job deploys bundled agents (Agent Builder, Insights) via the LangSmith Deployments API
+# It runs as a post-install/post-upgrade hook to ensure the agents are deployed after the rest of LangSmith is ready
+apiVersion: batch/v1
+kind: Job
+metadata:
+  {{- if .Values.backend.agentBootstrap.randomizeName }}
+  name: {{ include "langsmith.fullname" . }}-agent-bootstrap-{{ randAlphaNum 5 | lower }}
+  {{- else }}
+  name: {{ include "langsmith.fullname" . }}-agent-bootstrap
+  {{- end }}
+  namespace: {{ .Values.namespace | default .Release.Namespace }}
+  labels:
+    {{- include "langsmith.labels" . | nindent 4 }}
+    app.kubernetes.io/component: agent-bootstrap
+    {{- with .Values.backend.agentBootstrap.labels }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+  annotations:
+    {{- include "langsmith.annotations" . | nindent 4 }}
+    # Run after install/upgrade, after other resources are created
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-weight": "10"
+    "helm.sh/hook-delete-policy": before-hook-creation
+    {{- with .Values.backend.agentBootstrap.annotations }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  {{- if .Values.backend.agentBootstrap.ttlSecondsAfterFinished }}
+  ttlSecondsAfterFinished: {{ .Values.backend.agentBootstrap.ttlSecondsAfterFinished }}
+  {{- end }}
+  backoffLimit: 3
+  template:
+    metadata:
+      labels:
+        {{- include "langsmith.labels" . | nindent 8 }}
+        app.kubernetes.io/component: agent-bootstrap
+        {{- with .Values.backend.agentBootstrap.labels }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+      annotations:
+        {{- include "langsmith.commonPodAnnotations" . | nindent 8 }}
+        {{- with .Values.backend.agentBootstrap.annotations }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      restartPolicy: OnFailure
+      {{- with .Values.images.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{- include "langsmith.podSecurityContext" (dict "Values" .Values "componentSecurityContext" .Values.backend.agentBootstrap.podSecurityContext) | nindent 8 }}
+      serviceAccountName: {{ include "agentBootstrap.serviceAccountName" . }}
+      {{- with .Values.backend.agentBootstrap.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.backend.agentBootstrap.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.backend.agentBootstrap.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.backend.agentBootstrap.topologySpreadConstraints }}
+      topologySpreadConstraints:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: bootstrap
+          image: {{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "backendImage") | quote }}
+          imagePullPolicy: {{ .Values.images.backendImage.pullPolicy }}
+          command:
+            - "python"
+            - "scripts/deploy_bundled_agents.pyc"
+          args:
+            - "--products"
+            {{- $products := list }}
+            {{- if .Values.config.agentBuilder.enabled }}
+            {{- $products = append $products "agent_builder" }}
+            {{- end }}
+            {{- if .Values.config.insights.enabled }}
+            {{- $products = append $products "insights" }}
+            {{- end }}
+            - "{{ join "," $products }}"
+            - "--config"
+            - |
+              {
+              {{- if .Values.config.agentBuilder.enabled }}
+                "agent-builder": {
+                  "image": "{{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "agentBuilderImage") }}",
+                  "configmap_name": "{{ include "langsmith.fullname" . }}-agent-builder-config",
+                  "k8s_namespace": "{{ .Values.namespace | default .Release.Namespace }}",
+                  "restart_deployments": ["{{ include "langsmith.fullname" . }}-{{ .Values.frontend.name }}", "{{ include "langsmith.fullname" . }}-agent-builder-trigger-server"],
+                  "cpu": {{ .Values.config.agentBuilder.agent.resources.cpu }},
+                  "cpu_limit": {{ .Values.config.agentBuilder.agent.resources.cpuLimit }},
+                  "memory_mb": {{ .Values.config.agentBuilder.agent.resources.memoryMb }},
+                  "memory_limit_mb": {{ .Values.config.agentBuilder.agent.resources.memoryLimitMb }},
+                  "min_scale": {{ .Values.config.agentBuilder.agent.resources.minScale }},
+                  "max_scale": {{ .Values.config.agentBuilder.agent.resources.maxScale }}
+                }{{- if .Values.config.insights.enabled }},{{- end }}
+              {{- end }}
+              {{- if .Values.config.insights.enabled }}
+                "clio": {
+                  "image": "{{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "insightsAgentImage") }}",
+                  "configmap_name": "{{ include "langsmith.fullname" . }}-insights-config",
+                  "k8s_namespace": "{{ .Values.namespace | default .Release.Namespace }}",
+                  "restart_deployments": ["{{ include "langsmith.fullname" . }}-{{ .Values.frontend.name }}", "{{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}", "{{ include "langsmith.fullname" . }}-{{ .Values.queue.name }}"],
+                  "cpu": {{ .Values.config.insights.agent.resources.cpu }},
+                  "cpu_limit": {{ .Values.config.insights.agent.resources.cpuLimit }},
+                  "memory_mb": {{ .Values.config.insights.agent.resources.memoryMb }},
+                  "memory_limit_mb": {{ .Values.config.insights.agent.resources.memoryLimitMb }},
+                  "min_scale": {{ .Values.config.insights.agent.resources.minScale }},
+                  "max_scale": {{ .Values.config.insights.agent.resources.maxScale }}
+                }
+              {{- end }}
+              }
+          env:
+            {{- with $envVars }}
+              {{- toYaml . | nindent 12 }}
+            {{- end }}
+          envFrom:
+            - configMapRef:
+                name: {{ include "langsmith.fullname" . }}-config
+          resources:
+            {{- toYaml .Values.backend.agentBootstrap.resources | nindent 12 }}
+          securityContext:
+            {{- toYaml .Values.backend.agentBootstrap.securityContext | nindent 12 }}
+          {{- with $volumeMounts }}
+          volumeMounts:
+              {{- toYaml . | nindent 12 }}
+          {{- end }}
+      {{- with $volumes }}
+      volumes:
+          {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}

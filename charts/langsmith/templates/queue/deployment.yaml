@@ -31,7 +31,7 @@ metadata:
       {{- toYaml . | nindent 4 }}
     {{- end }}
 spec:
-  {{- if not .Values.queue.autoscaling.enabled }}
+  {{- if not (or .Values.queue.autoscaling.hpa.enabled .Values.queue.autoscaling.keda.enabled) }}
   replicas: {{ .Values.queue.deployment.replicas }}
   {{- end }}
   selector:
@@ -79,6 +79,11 @@ spec:
           envFrom:
             - configMapRef:
                 name: {{ include "langsmith.fullname" . }}-config
+            {{- if .Values.config.insights.enabled }}
+            - configMapRef:
+                name: {{ include "langsmith.fullname" . }}-insights-config
+                optional: true
+            {{- end }}
           image: {{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "backendImage") | quote }}
           imagePullPolicy: {{ .Values.images.backendImage.pullPolicy }}
           ports:

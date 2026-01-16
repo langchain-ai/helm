@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.12.37](https://img.shields.io/badge/Version-0.12.37-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.12.76](https://img.shields.io/badge/AppVersion-0.12.76-informational?style=flat-square)
+![Version: 0.13.0](https://img.shields.io/badge/Version-0.13.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.13.1](https://img.shields.io/badge/AppVersion-0.13.1-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -12,6 +12,113 @@ For information on how to use this chart, up-to-date release notes, and other gu
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
+| agentBuilderToolServer.autoscaling.createHpa | bool | `true` |  |
+| agentBuilderToolServer.autoscaling.enabled | bool | `false` |  |
+| agentBuilderToolServer.autoscaling.maxReplicas | int | `3` |  |
+| agentBuilderToolServer.autoscaling.minReplicas | int | `1` |  |
+| agentBuilderToolServer.autoscaling.targetCPUUtilizationPercentage | int | `70` |  |
+| agentBuilderToolServer.autoscaling.targetMemoryUtilizationPercentage | int | `70` |  |
+| agentBuilderToolServer.containerPort | int | `1989` |  |
+| agentBuilderToolServer.deployment.affinity | object | `{}` |  |
+| agentBuilderToolServer.deployment.annotations | object | `{}` |  |
+| agentBuilderToolServer.deployment.extraContainerConfig | object | `{}` |  |
+| agentBuilderToolServer.deployment.extraEnv | list | `[]` |  |
+| agentBuilderToolServer.deployment.initContainers | list | `[]` |  |
+| agentBuilderToolServer.deployment.labels | object | `{}` |  |
+| agentBuilderToolServer.deployment.livenessProbe.failureThreshold | int | `6` |  |
+| agentBuilderToolServer.deployment.livenessProbe.httpGet.path | string | `"/health"` |  |
+| agentBuilderToolServer.deployment.livenessProbe.httpGet.port | int | `1989` |  |
+| agentBuilderToolServer.deployment.livenessProbe.periodSeconds | int | `10` |  |
+| agentBuilderToolServer.deployment.livenessProbe.timeoutSeconds | int | `3` |  |
+| agentBuilderToolServer.deployment.nodeSelector | object | `{}` |  |
+| agentBuilderToolServer.deployment.podSecurityContext | object | `{}` |  |
+| agentBuilderToolServer.deployment.readinessProbe.failureThreshold | int | `6` |  |
+| agentBuilderToolServer.deployment.readinessProbe.httpGet.path | string | `"/health"` |  |
+| agentBuilderToolServer.deployment.readinessProbe.httpGet.port | int | `1989` |  |
+| agentBuilderToolServer.deployment.readinessProbe.periodSeconds | int | `10` |  |
+| agentBuilderToolServer.deployment.readinessProbe.timeoutSeconds | int | `3` |  |
+| agentBuilderToolServer.deployment.replicas | int | `1` |  |
+| agentBuilderToolServer.deployment.resources.limits.cpu | string | `"2000m"` |  |
+| agentBuilderToolServer.deployment.resources.limits.memory | string | `"4Gi"` |  |
+| agentBuilderToolServer.deployment.resources.requests.cpu | string | `"1000m"` |  |
+| agentBuilderToolServer.deployment.resources.requests.memory | string | `"2Gi"` |  |
+| agentBuilderToolServer.deployment.securityContext | object | `{}` |  |
+| agentBuilderToolServer.deployment.sidecars | list | `[]` |  |
+| agentBuilderToolServer.deployment.startupProbe.failureThreshold | int | `6` |  |
+| agentBuilderToolServer.deployment.startupProbe.httpGet.path | string | `"/health"` |  |
+| agentBuilderToolServer.deployment.startupProbe.httpGet.port | int | `1989` |  |
+| agentBuilderToolServer.deployment.startupProbe.periodSeconds | int | `10` |  |
+| agentBuilderToolServer.deployment.startupProbe.timeoutSeconds | int | `3` |  |
+| agentBuilderToolServer.deployment.terminationGracePeriodSeconds | int | `30` |  |
+| agentBuilderToolServer.deployment.tolerations | list | `[]` |  |
+| agentBuilderToolServer.deployment.topologySpreadConstraints | list | `[]` |  |
+| agentBuilderToolServer.deployment.volumeMounts | list | `[]` |  |
+| agentBuilderToolServer.deployment.volumes | list | `[]` |  |
+| agentBuilderToolServer.enabled | bool | `true` |  |
+| agentBuilderToolServer.name | string | `"agent-builder-tool-server"` |  |
+| agentBuilderToolServer.pdb.annotations | object | `{}` |  |
+| agentBuilderToolServer.pdb.enabled | bool | `false` |  |
+| agentBuilderToolServer.pdb.labels | object | `{}` |  |
+| agentBuilderToolServer.pdb.minAvailable | int | `1` |  |
+| agentBuilderToolServer.service.annotations | object | `{}` |  |
+| agentBuilderToolServer.service.labels | object | `{}` |  |
+| agentBuilderToolServer.service.loadBalancerIP | string | `""` |  |
+| agentBuilderToolServer.service.loadBalancerSourceRanges | list | `[]` |  |
+| agentBuilderToolServer.service.port | int | `1989` |  |
+| agentBuilderToolServer.service.type | string | `"ClusterIP"` |  |
+| agentBuilderToolServer.serviceAccount.annotations | object | `{}` |  |
+| agentBuilderToolServer.serviceAccount.automountServiceAccountToken | bool | `true` |  |
+| agentBuilderToolServer.serviceAccount.create | bool | `true` |  |
+| agentBuilderToolServer.serviceAccount.labels | object | `{}` |  |
+| agentBuilderToolServer.serviceAccount.name | string | `""` |  |
+| agentBuilderTriggerServer.containerPort | int | `1990` |  |
+| agentBuilderTriggerServer.deployment.affinity | object | `{}` |  |
+| agentBuilderTriggerServer.deployment.annotations | object | `{}` |  |
+| agentBuilderTriggerServer.deployment.extraContainerConfig | object | `{}` |  |
+| agentBuilderTriggerServer.deployment.extraEnv | list | `[]` |  |
+| agentBuilderTriggerServer.deployment.initContainers | list | `[]` |  |
+| agentBuilderTriggerServer.deployment.labels | object | `{}` |  |
+| agentBuilderTriggerServer.deployment.livenessProbe.failureThreshold | int | `6` |  |
+| agentBuilderTriggerServer.deployment.livenessProbe.httpGet.path | string | `"/health"` |  |
+| agentBuilderTriggerServer.deployment.livenessProbe.httpGet.port | int | `1990` |  |
+| agentBuilderTriggerServer.deployment.livenessProbe.periodSeconds | int | `10` |  |
+| agentBuilderTriggerServer.deployment.livenessProbe.timeoutSeconds | int | `1` |  |
+| agentBuilderTriggerServer.deployment.nodeSelector | object | `{}` |  |
+| agentBuilderTriggerServer.deployment.podSecurityContext | object | `{}` |  |
+| agentBuilderTriggerServer.deployment.readinessProbe.failureThreshold | int | `6` |  |
+| agentBuilderTriggerServer.deployment.readinessProbe.httpGet.path | string | `"/health"` |  |
+| agentBuilderTriggerServer.deployment.readinessProbe.httpGet.port | int | `1990` |  |
+| agentBuilderTriggerServer.deployment.readinessProbe.periodSeconds | int | `10` |  |
+| agentBuilderTriggerServer.deployment.readinessProbe.timeoutSeconds | int | `1` |  |
+| agentBuilderTriggerServer.deployment.resources.limits.cpu | string | `"2000m"` |  |
+| agentBuilderTriggerServer.deployment.resources.limits.memory | string | `"4Gi"` |  |
+| agentBuilderTriggerServer.deployment.resources.requests.cpu | string | `"1000m"` |  |
+| agentBuilderTriggerServer.deployment.resources.requests.memory | string | `"2Gi"` |  |
+| agentBuilderTriggerServer.deployment.securityContext | object | `{}` |  |
+| agentBuilderTriggerServer.deployment.sidecars | list | `[]` |  |
+| agentBuilderTriggerServer.deployment.startupProbe.failureThreshold | int | `6` |  |
+| agentBuilderTriggerServer.deployment.startupProbe.httpGet.path | string | `"/health"` |  |
+| agentBuilderTriggerServer.deployment.startupProbe.httpGet.port | int | `1990` |  |
+| agentBuilderTriggerServer.deployment.startupProbe.periodSeconds | int | `10` |  |
+| agentBuilderTriggerServer.deployment.startupProbe.timeoutSeconds | int | `1` |  |
+| agentBuilderTriggerServer.deployment.terminationGracePeriodSeconds | int | `30` |  |
+| agentBuilderTriggerServer.deployment.tolerations | list | `[]` |  |
+| agentBuilderTriggerServer.deployment.topologySpreadConstraints | list | `[]` |  |
+| agentBuilderTriggerServer.deployment.volumeMounts | list | `[]` |  |
+| agentBuilderTriggerServer.deployment.volumes | list | `[]` |  |
+| agentBuilderTriggerServer.enabled | bool | `true` |  |
+| agentBuilderTriggerServer.name | string | `"agent-builder-trigger-server"` |  |
+| agentBuilderTriggerServer.service.annotations | object | `{}` |  |
+| agentBuilderTriggerServer.service.labels | object | `{}` |  |
+| agentBuilderTriggerServer.service.loadBalancerIP | string | `""` |  |
+| agentBuilderTriggerServer.service.loadBalancerSourceRanges | list | `[]` |  |
+| agentBuilderTriggerServer.service.port | int | `1990` |  |
+| agentBuilderTriggerServer.service.type | string | `"ClusterIP"` |  |
+| agentBuilderTriggerServer.serviceAccount.annotations | object | `{}` |  |
+| agentBuilderTriggerServer.serviceAccount.automountServiceAccountToken | bool | `true` |  |
+| agentBuilderTriggerServer.serviceAccount.create | bool | `true` |  |
+| agentBuilderTriggerServer.serviceAccount.labels | object | `{}` |  |
+| agentBuilderTriggerServer.serviceAccount.name | string | `""` |  |
 | clusterDomain | string | `"cluster.local"` | Kubernetes cluster domain. Only change if not using 'cluster.local' |
 | commonAnnotations | object | `{}` | Annotations that will be applied to all resources created by the chart |
 | commonEnv | list | `[]` | Common environment variables that will be applied to all deployments/statefulsets except for the playground/aceBackend services (which are sandboxed). Be careful not to override values already specified by the chart. |
@@ -30,29 +137,41 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | gateway.sectionName | string | `""` |  |
 | images.aceBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.aceBackendImage.repository | string | `"docker.io/langchain/langsmith-ace-backend"` |  |
-| images.aceBackendImage.tag | string | `"0.12.76"` |  |
+| images.aceBackendImage.tag | string | `"0.13.1"` |  |
+| images.agentBuilderImage.pullPolicy | string | `"IfNotPresent"` |  |
+| images.agentBuilderImage.repository | string | `"docker.io/langchain/agent-builder-deep-agent"` |  |
+| images.agentBuilderImage.tag | string | `"0.13.1"` |  |
+| images.agentBuilderToolServerImage.pullPolicy | string | `"IfNotPresent"` |  |
+| images.agentBuilderToolServerImage.repository | string | `"docker.io/langchain/agent-builder-tool-server"` |  |
+| images.agentBuilderToolServerImage.tag | string | `"0.13.1"` |  |
+| images.agentBuilderTriggerServerImage.pullPolicy | string | `"IfNotPresent"` |  |
+| images.agentBuilderTriggerServerImage.repository | string | `"docker.io/langchain/agent-builder-trigger-server"` |  |
+| images.agentBuilderTriggerServerImage.tag | string | `"0.13.1"` |  |
 | images.backendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.backendImage.repository | string | `"docker.io/langchain/langsmith-backend"` |  |
-| images.backendImage.tag | string | `"0.12.76"` |  |
+| images.backendImage.tag | string | `"0.13.1"` |  |
 | images.clickhouseImage.pullPolicy | string | `"Always"` |  |
 | images.clickhouseImage.repository | string | `"docker.io/clickhouse/clickhouse-server"` |  |
 | images.clickhouseImage.tag | string | `"25.4"` |  |
 | images.frontendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.frontendImage.repository | string | `"docker.io/langchain/langsmith-frontend"` |  |
-| images.frontendImage.tag | string | `"0.12.76"` |  |
+| images.frontendImage.tag | string | `"0.13.1"` |  |
 | images.hostBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.hostBackendImage.repository | string | `"docker.io/langchain/hosted-langserve-backend"` |  |
-| images.hostBackendImage.tag | string | `"0.12.76"` |  |
+| images.hostBackendImage.tag | string | `"0.13.1"` |  |
 | images.imagePullSecrets | list | `[]` | Secrets with credentials to pull images from a private registry. Specified as name: value. |
+| images.insightsAgentImage.pullPolicy | string | `"IfNotPresent"` |  |
+| images.insightsAgentImage.repository | string | `"docker.io/langchain/langsmith-clio"` |  |
+| images.insightsAgentImage.tag | string | `"0.13.1"` |  |
 | images.operatorImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.operatorImage.repository | string | `"docker.io/langchain/langgraph-operator"` |  |
 | images.operatorImage.tag | string | `"0.1.23"` |  |
 | images.platformBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.platformBackendImage.repository | string | `"docker.io/langchain/langsmith-go-backend"` |  |
-| images.platformBackendImage.tag | string | `"0.12.76"` |  |
+| images.platformBackendImage.tag | string | `"0.13.1"` |  |
 | images.playgroundImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.playgroundImage.repository | string | `"docker.io/langchain/langsmith-playground"` |  |
-| images.playgroundImage.tag | string | `"0.12.76"` |  |
+| images.playgroundImage.tag | string | `"0.13.1"` |  |
 | images.postgresImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.postgresImage.repository | string | `"docker.io/postgres"` |  |
 | images.postgresImage.tag | string | `"14.7"` |  |
@@ -60,12 +179,29 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | images.redisImage.repository | string | `"docker.io/redis"` |  |
 | images.redisImage.tag | string | `"7"` |  |
 | images.registry | string | `""` | If supplied, all children <image_name>.repository values will be prepended with this registry name + `/` |
-| ingestQueue.autoscaling.createHpa | bool | `true` |  |
-| ingestQueue.autoscaling.enabled | bool | `false` |  |
-| ingestQueue.autoscaling.maxReplicas | int | `10` |  |
-| ingestQueue.autoscaling.minReplicas | int | `3` |  |
-| ingestQueue.autoscaling.targetCPUUtilizationPercentage | int | `50` |  |
-| ingestQueue.autoscaling.targetMemoryUtilizationPercentage | int | `80` |  |
+| ingestQueue.autoscaling.hpa.enabled | bool | `false` |  |
+| ingestQueue.autoscaling.hpa.maxReplicas | int | `10` |  |
+| ingestQueue.autoscaling.hpa.minReplicas | int | `3` |  |
+| ingestQueue.autoscaling.hpa.targetCPUUtilizationPercentage | int | `50` |  |
+| ingestQueue.autoscaling.hpa.targetMemoryUtilizationPercentage | int | `80` |  |
+| ingestQueue.autoscaling.keda.annotations | object | `{}` |  |
+| ingestQueue.autoscaling.keda.cooldownPeriod | int | `300` |  |
+| ingestQueue.autoscaling.keda.enabled | bool | `false` |  |
+| ingestQueue.autoscaling.keda.fallback.failureThreshold | int | `3` |  |
+| ingestQueue.autoscaling.keda.fallback.replicas | int | `3` |  |
+| ingestQueue.autoscaling.keda.initialCooldownPeriod | int | `0` |  |
+| ingestQueue.autoscaling.keda.labels | object | `{}` |  |
+| ingestQueue.autoscaling.keda.maxReplicaCount | int | `10` |  |
+| ingestQueue.autoscaling.keda.minReplicaCount | int | `3` |  |
+| ingestQueue.autoscaling.keda.pollingInterval | int | `30` |  |
+| ingestQueue.autoscaling.keda.queueTargetSize | string | `"10"` |  |
+| ingestQueue.autoscaling.keda.scaleDownPolicy.periodSeconds | int | `300` |  |
+| ingestQueue.autoscaling.keda.scaleDownPolicy.value | int | `100` |  |
+| ingestQueue.autoscaling.keda.scaleDownStabilizationWindowSeconds | int | `1800` |  |
+| ingestQueue.autoscaling.keda.scaleUpPolicy.periodSeconds | int | `15` |  |
+| ingestQueue.autoscaling.keda.scaleUpPolicy.value | int | `100` |  |
+| ingestQueue.autoscaling.keda.targetCPUUtilizationPercentage | int | `50` |  |
+| ingestQueue.autoscaling.keda.targetMemoryUtilizationPercentage | int | `80` |  |
 | ingestQueue.containerPort | int | `1989` |  |
 | ingestQueue.deployment.affinity | object | `{}` |  |
 | ingestQueue.deployment.annotations | object | `{}` |  |
@@ -103,7 +239,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | ingestQueue.deployment.topologySpreadConstraints | list | `[]` |  |
 | ingestQueue.deployment.volumeMounts | list | `[]` |  |
 | ingestQueue.deployment.volumes | list | `[]` |  |
-| ingestQueue.enabled | bool | `false` |  |
+| ingestQueue.enabled | bool | `true` |  |
 | ingestQueue.name | string | `"ingest-queue"` |  |
 | ingestQueue.pdb.annotations | object | `{}` |  |
 | ingestQueue.pdb.enabled | bool | `false` |  |
@@ -133,18 +269,44 @@ For information on how to use this chart, up-to-date release notes, and other gu
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
+| config.agentBuilder.agent.resources.cpu | int | `2` |  |
+| config.agentBuilder.agent.resources.cpuLimit | int | `4` |  |
+| config.agentBuilder.agent.resources.maxScale | int | `5` |  |
+| config.agentBuilder.agent.resources.memoryLimitMb | int | `8192` |  |
+| config.agentBuilder.agent.resources.memoryMb | int | `4096` |  |
+| config.agentBuilder.agent.resources.minScale | int | `1` |  |
+| config.agentBuilder.enabled | bool | `false` |  |
+| config.agentBuilder.encryptionKey | string | `""` |  |
+| config.agentBuilder.oauth.githubOAuthProvider | string | `""` |  |
+| config.agentBuilder.oauth.googleOAuthProvider | string | `""` |  |
+| config.agentBuilder.oauth.linearOAuthProvider | string | `""` |  |
+| config.agentBuilder.oauth.linkedinOAuthProvider | string | `""` |  |
+| config.agentBuilder.oauth.slackBotId | string | `""` |  |
+| config.agentBuilder.oauth.slackOAuthProvider | string | `""` |  |
+| config.agentBuilder.oauth.slackSigningSecret | string | `""` |  |
+| config.agentBuilder.oauthProviderOrgId | string | `""` |  |
 | config.apiKeySalt | string | `""` | Salt used to generate the API key. Should be a random string. |
 | config.authType | string | `""` | Must be 'oauth' for OAuth with PKCE, 'mixed' for basic auth or OAuth without PKCE |
 | config.basePath | string | `""` | Base path for the LangSmith installation. Used to serve the app under a subpath like example.com/langsmith. |
 | config.basicAuth.enabled | bool | `false` |  |
-| config.basicAuth.initialOrgAdminEmail | string | `""` | Kept for backwards compatibility. Will be removed in a future release. Please use values.config.initialOrgAdminEmail instead. |
 | config.basicAuth.initialOrgAdminPassword | string | `""` |  |
 | config.basicAuth.jwtSecret | string | `""` |  |
-| config.blobStorage | object | `{"accessKey":"","accessKeySecret":"","apiURL":"https://s3.us-west-2.amazonaws.com","azureStorageAccountKey":"","azureStorageAccountName":"","azureStorageConnectionString":"","azureStorageContainerName":"","azureStorageServiceUrlOverride":"","bucketName":"","chSearchEnabled":true,"enabled":false,"engine":"S3","kmsEncryptionEnabled":false,"kmsKeyArn":"","minBlobStorageSizeKb":"20","s3UsePathStyle":false}` | Blob storage configuration Optional. Used to store inputs, outputs, and errors in Blob Storage. We currently support S3, GCS, Minio, and Azure as Blob Storage providers. |
+| config.blobStorage.accessKey | string | `""` |  |
+| config.blobStorage.accessKeySecret | string | `""` |  |
+| config.blobStorage.apiURL | string | `"https://s3.us-west-2.amazonaws.com"` |  |
+| config.blobStorage.azureStorageAccountKey | string | `""` |  |
 | config.blobStorage.azureStorageAccountName | string | `""` | Optional. Set this along with azureStorageAccountKey to use a storage account and access key. Higher precedence than azureStorageConnectionString. |
 | config.blobStorage.azureStorageConnectionString | string | `""` | Optional. Use this to specify the full connection string including any authentication params. |
 | config.blobStorage.azureStorageContainerName | string | `""` | Required if using Azure blob storage |
 | config.blobStorage.azureStorageServiceUrlOverride | string | `""` | Optional. Use this to customize the service URL, which by default is 'https://<storage_account_name>.blob.core.windows.net/' |
+| config.blobStorage.bucketName | string | `""` |  |
+| config.blobStorage.chSearchEnabled | bool | `true` |  |
+| config.blobStorage.enabled | bool | `false` |  |
+| config.blobStorage.engine | string | `"S3"` |  |
+| config.blobStorage.kmsEncryptionEnabled | bool | `false` |  |
+| config.blobStorage.kmsKeyArn | string | `""` |  |
+| config.blobStorage.minBlobStorageSizeKb | string | `"20"` |  |
+| config.blobStorage.s3UsePathStyle | bool | `false` |  |
 | config.customCa.secretKey | string | `""` |  |
 | config.customCa.secretName | string | `""` | Optional. Used to set a file containing trusted CA certificates. Make sure to also include a public CA to access beacon and playground. |
 | config.customLogo | object | `{"coBrandingEnabled":true,"enabled":false,"logoUrl":""}` | Custom logo configuration. If enabled, the logoUrl and coBrandingEnabled values must be provided. The logoUrl must be a valid URL to an image like png, jpg, or svg. Co-branding will show LangSmith and customer logos side by side. |
@@ -156,6 +318,14 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | config.hostname | string | `""` | hostname of the LangSmith installation. Used for redirects and LangSmith deployments. Required for OAuth and LangSmith Deployments. E.g langsmith.com |
 | config.initialOrgAdminEmail | string | `""` |  |
 | config.initialOrgName | string | `"Default"` | Initial org name to be provisioned. |
+| config.insights.agent.resources.cpu | int | `2` |  |
+| config.insights.agent.resources.cpuLimit | int | `4` |  |
+| config.insights.agent.resources.maxScale | int | `5` |  |
+| config.insights.agent.resources.memoryLimitMb | int | `8192` |  |
+| config.insights.agent.resources.memoryMb | int | `4096` |  |
+| config.insights.agent.resources.minScale | int | `1` |  |
+| config.insights.enabled | bool | `false` |  |
+| config.insights.encryptionKey | string | `""` |  |
 | config.langsmithLicenseKey | string | `""` |  |
 | config.logLevel | string | `"info"` |  |
 | config.oauth.enabled | bool | `false` |  |
@@ -172,7 +342,8 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | config.personalOrgsDisabled | bool | `true` | Disable personal orgs. |
 | config.settings | object | `{"redisRunsExpirySeconds":"21600"}` | Application Settings. These are used to tune the application |
 | config.settings.redisRunsExpirySeconds | string | `"21600"` | Optional. Be very careful when lowering this value as it can result in runs being lost if your queue is down/not processing items fast enough. |
-| config.telemetry.metrics | bool | `true` | Optional. These values are used to send telemetry to the LangChain team to assist with troubleshooting. |
+| config.telemetry.logs | bool | `true` | Optional. These values are used to send telemetry to the LangChain team to assist with troubleshooting. |
+| config.telemetry.metrics | bool | `true` |  |
 | config.telemetry.traces | bool | `true` |  |
 | config.ttl | object | `{"enabled":true,"ttl_period_seconds":{"longlived":"34560000","shortlived":"1209600"}}` | TTL configuration Optional. Used to set TTLS for longlived and shortlived objects. |
 | config.ttl.ttl_period_seconds.longlived | string | `"34560000"` | 400 day longlived and 14 day shortlived |
@@ -183,12 +354,26 @@ For information on how to use this chart, up-to-date release notes, and other gu
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| aceBackend.autoscaling.createHpa | bool | `true` |  |
-| aceBackend.autoscaling.enabled | bool | `false` |  |
-| aceBackend.autoscaling.maxReplicas | int | `5` |  |
-| aceBackend.autoscaling.minReplicas | int | `1` |  |
-| aceBackend.autoscaling.targetCPUUtilizationPercentage | int | `50` |  |
-| aceBackend.autoscaling.targetMemoryUtilizationPercentage | int | `80` |  |
+| aceBackend.autoscaling.hpa.enabled | bool | `false` |  |
+| aceBackend.autoscaling.hpa.maxReplicas | int | `5` |  |
+| aceBackend.autoscaling.hpa.minReplicas | int | `1` |  |
+| aceBackend.autoscaling.hpa.targetCPUUtilizationPercentage | int | `50` |  |
+| aceBackend.autoscaling.hpa.targetMemoryUtilizationPercentage | int | `80` |  |
+| aceBackend.autoscaling.keda.annotations | object | `{}` |  |
+| aceBackend.autoscaling.keda.cooldownPeriod | int | `300` |  |
+| aceBackend.autoscaling.keda.enabled | bool | `false` |  |
+| aceBackend.autoscaling.keda.initialCooldownPeriod | int | `0` |  |
+| aceBackend.autoscaling.keda.labels | object | `{}` |  |
+| aceBackend.autoscaling.keda.maxReplicaCount | int | `5` |  |
+| aceBackend.autoscaling.keda.minReplicaCount | int | `1` |  |
+| aceBackend.autoscaling.keda.pollingInterval | int | `30` |  |
+| aceBackend.autoscaling.keda.scaleDownPolicy.periodSeconds | int | `300` |  |
+| aceBackend.autoscaling.keda.scaleDownPolicy.value | int | `100` |  |
+| aceBackend.autoscaling.keda.scaleDownStabilizationWindowSeconds | int | `1800` |  |
+| aceBackend.autoscaling.keda.scaleUpPolicy.periodSeconds | int | `15` |  |
+| aceBackend.autoscaling.keda.scaleUpPolicy.value | int | `100` |  |
+| aceBackend.autoscaling.keda.targetCPUUtilizationPercentage | int | `50` |  |
+| aceBackend.autoscaling.keda.targetMemoryUtilizationPercentage | int | `80` |  |
 | aceBackend.bindAddress | string | `"0.0.0.0"` |  |
 | aceBackend.containerPort | int | `1987` |  |
 | aceBackend.deployment.affinity | object | `{}` |  |
@@ -250,6 +435,22 @@ For information on how to use this chart, up-to-date release notes, and other gu
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
+| backend.agentBootstrap.affinity | object | `{}` |  |
+| backend.agentBootstrap.annotations | object | `{}` |  |
+| backend.agentBootstrap.enabled | bool | `false` |  |
+| backend.agentBootstrap.extraEnv | list | `[]` |  |
+| backend.agentBootstrap.labels | object | `{}` |  |
+| backend.agentBootstrap.nodeSelector | object | `{}` |  |
+| backend.agentBootstrap.podSecurityContext | object | `{}` |  |
+| backend.agentBootstrap.randomizeName | bool | `false` |  |
+| backend.agentBootstrap.resources.limits.cpu | string | `"500m"` |  |
+| backend.agentBootstrap.resources.limits.memory | string | `"512Mi"` |  |
+| backend.agentBootstrap.resources.requests.cpu | string | `"100m"` |  |
+| backend.agentBootstrap.resources.requests.memory | string | `"256Mi"` |  |
+| backend.agentBootstrap.securityContext | object | `{}` |  |
+| backend.agentBootstrap.tolerations | list | `[]` |  |
+| backend.agentBootstrap.topologySpreadConstraints | list | `[]` |  |
+| backend.agentBootstrap.ttlSecondsAfterFinished | int | `600` |  |
 | backend.authBootstrap.affinity | object | `{}` |  |
 | backend.authBootstrap.annotations | object | `{}` |  |
 | backend.authBootstrap.command[0] | string | `"./auth_bootstrap_entrypoint.sh"` |  |
@@ -271,12 +472,27 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | backend.authBootstrap.ttlSecondsAfterFinished | int | `600` |  |
 | backend.authBootstrap.volumeMounts | list | `[]` |  |
 | backend.authBootstrap.volumes | list | `[]` |  |
-| backend.autoscaling.createHpa | bool | `true` |  |
-| backend.autoscaling.enabled | bool | `false` |  |
-| backend.autoscaling.maxReplicas | int | `6` |  |
-| backend.autoscaling.minReplicas | int | `2` |  |
-| backend.autoscaling.targetCPUUtilizationPercentage | int | `50` |  |
-| backend.autoscaling.targetMemoryUtilizationPercentage | int | `80` |  |
+| backend.autoscaling.hpa.additionalMetrics | list | `[]` |  |
+| backend.autoscaling.hpa.enabled | bool | `false` |  |
+| backend.autoscaling.hpa.maxReplicas | int | `6` |  |
+| backend.autoscaling.hpa.minReplicas | int | `2` |  |
+| backend.autoscaling.hpa.targetCPUUtilizationPercentage | int | `50` |  |
+| backend.autoscaling.hpa.targetMemoryUtilizationPercentage | int | `80` |  |
+| backend.autoscaling.keda.annotations | object | `{}` |  |
+| backend.autoscaling.keda.cooldownPeriod | int | `300` |  |
+| backend.autoscaling.keda.enabled | bool | `false` |  |
+| backend.autoscaling.keda.initialCooldownPeriod | int | `0` |  |
+| backend.autoscaling.keda.labels | object | `{}` |  |
+| backend.autoscaling.keda.maxReplicaCount | int | `6` |  |
+| backend.autoscaling.keda.minReplicaCount | int | `2` |  |
+| backend.autoscaling.keda.pollingInterval | int | `30` |  |
+| backend.autoscaling.keda.scaleDownPolicy.periodSeconds | int | `300` |  |
+| backend.autoscaling.keda.scaleDownPolicy.value | int | `100` |  |
+| backend.autoscaling.keda.scaleDownStabilizationWindowSeconds | int | `1800` |  |
+| backend.autoscaling.keda.scaleUpPolicy.periodSeconds | int | `15` |  |
+| backend.autoscaling.keda.scaleUpPolicy.value | int | `100` |  |
+| backend.autoscaling.keda.targetCPUUtilizationPercentage | int | `50` |  |
+| backend.autoscaling.keda.targetMemoryUtilizationPercentage | int | `80` |  |
 | backend.clickhouseMigrations.affinity | object | `{}` |  |
 | backend.clickhouseMigrations.annotations | object | `{}` |  |
 | backend.clickhouseMigrations.command[0] | string | `"./ch_migration_entrypoint.sh"` |  |
@@ -336,12 +552,35 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | backend.deployment.topologySpreadConstraints | list | `[]` |  |
 | backend.deployment.volumeMounts | list | `[]` |  |
 | backend.deployment.volumes | list | `[]` |  |
+| backend.e2eTest.affinity | object | `{}` |  |
+| backend.e2eTest.annotations | object | `{}` |  |
+| backend.e2eTest.command[0] | string | `"python"` |  |
+| backend.e2eTest.command[1] | string | `"scripts/test_e2e_trace.pyc"` |  |
+| backend.e2eTest.enabled | bool | `true` |  |
+| backend.e2eTest.extraContainerConfig | object | `{}` |  |
+| backend.e2eTest.extraEnv | list | `[]` |  |
+| backend.e2eTest.initContainers | list | `[]` |  |
+| backend.e2eTest.labels | object | `{}` |  |
+| backend.e2eTest.name | string | `"e2e-test"` |  |
+| backend.e2eTest.nodeSelector | object | `{}` |  |
+| backend.e2eTest.podSecurityContext | object | `{}` |  |
+| backend.e2eTest.resources.limits.cpu | string | `"500m"` |  |
+| backend.e2eTest.resources.limits.memory | string | `"1Gi"` |  |
+| backend.e2eTest.resources.requests.cpu | string | `"200m"` |  |
+| backend.e2eTest.resources.requests.memory | string | `"500Mi"` |  |
+| backend.e2eTest.securityContext | object | `{}` |  |
+| backend.e2eTest.sidecars | list | `[]` |  |
+| backend.e2eTest.tolerations | list | `[]` |  |
+| backend.e2eTest.topologySpreadConstraints | list | `[]` |  |
+| backend.e2eTest.ttlSecondsAfterFinished | int | `10` |  |
+| backend.e2eTest.volumeMounts | list | `[]` |  |
+| backend.e2eTest.volumes | list | `[]` |  |
 | backend.existingConfigMapName | string | `""` |  |
 | backend.feedbackConfigMigration.affinity | object | `{}` |  |
 | backend.feedbackConfigMigration.annotations | object | `{}` |  |
 | backend.feedbackConfigMigration.command[0] | string | `"python"` |  |
 | backend.feedbackConfigMigration.command[1] | string | `"scripts/jobs/migrate-feedback-config.pyc"` |  |
-| backend.feedbackConfigMigration.enabled | bool | `true` |  |
+| backend.feedbackConfigMigration.enabled | bool | `false` |  |
 | backend.feedbackConfigMigration.extraContainerConfig | object | `{}` |  |
 | backend.feedbackConfigMigration.extraEnv | list | `[]` |  |
 | backend.feedbackConfigMigration.initContainers | list | `[]` |  |
@@ -364,7 +603,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | backend.feedbackDataMigration.annotations | object | `{}` |  |
 | backend.feedbackDataMigration.command[0] | string | `"python"` |  |
 | backend.feedbackDataMigration.command[1] | string | `"scripts/jobs/migrate-feedback-to-postgres.pyc"` |  |
-| backend.feedbackDataMigration.enabled | bool | `true` |  |
+| backend.feedbackDataMigration.enabled | bool | `false` |  |
 | backend.feedbackDataMigration.extraContainerConfig | object | `{}` |  |
 | backend.feedbackDataMigration.extraEnv | list | `[]` |  |
 | backend.feedbackDataMigration.initContainers | list | `[]` |  |
@@ -517,45 +756,31 @@ For information on how to use this chart, up-to-date release notes, and other gu
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| e2eTest.affinity | object | `{}` |  |
-| e2eTest.annotations | object | `{}` |  |
-| e2eTest.command[0] | string | `"python"` |  |
-| e2eTest.command[1] | string | `"scripts/test_e2e_trace.pyc"` |  |
-| e2eTest.enabled | bool | `true` |  |
-| e2eTest.extraContainerConfig | object | `{}` |  |
-| e2eTest.extraEnv | list | `[]` |  |
-| e2eTest.initContainers | list | `[]` |  |
-| e2eTest.labels | object | `{}` |  |
-| e2eTest.name | string | `"e2e-test"` |  |
-| e2eTest.nodeSelector | object | `{}` |  |
-| e2eTest.podSecurityContext | object | `{}` |  |
-| e2eTest.resources.limits.cpu | string | `"500m"` |  |
-| e2eTest.resources.limits.memory | string | `"1Gi"` |  |
-| e2eTest.resources.requests.cpu | string | `"200m"` |  |
-| e2eTest.resources.requests.memory | string | `"500Mi"` |  |
-| e2eTest.securityContext | object | `{}` |  |
-| e2eTest.serviceAccount.annotations | object | `{}` |  |
-| e2eTest.serviceAccount.automountServiceAccountToken | bool | `true` |  |
-| e2eTest.serviceAccount.create | bool | `false` |  |
-| e2eTest.serviceAccount.labels | object | `{}` |  |
-| e2eTest.serviceAccount.name | string | `""` |  |
-| e2eTest.sidecars | list | `[]` |  |
-| e2eTest.tolerations | list | `[]` |  |
-| e2eTest.topologySpreadConstraints | list | `[]` |  |
-| e2eTest.ttlSecondsAfterFinished | int | `10` |  |
-| e2eTest.volumeMounts | list | `[]` |  |
-| e2eTest.volumes | list | `[]` |  |
 
 ## Host Backend (Optional)
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| hostBackend.autoscaling.createHpa | bool | `true` |  |
-| hostBackend.autoscaling.enabled | bool | `false` |  |
-| hostBackend.autoscaling.maxReplicas | int | `5` |  |
-| hostBackend.autoscaling.minReplicas | int | `1` |  |
-| hostBackend.autoscaling.targetCPUUtilizationPercentage | int | `50` |  |
-| hostBackend.autoscaling.targetMemoryUtilizationPercentage | int | `80` |  |
+| hostBackend.autoscaling.hpa.enabled | bool | `false` |  |
+| hostBackend.autoscaling.hpa.maxReplicas | int | `5` |  |
+| hostBackend.autoscaling.hpa.minReplicas | int | `1` |  |
+| hostBackend.autoscaling.hpa.targetCPUUtilizationPercentage | int | `50` |  |
+| hostBackend.autoscaling.hpa.targetMemoryUtilizationPercentage | int | `80` |  |
+| hostBackend.autoscaling.keda.annotations | object | `{}` |  |
+| hostBackend.autoscaling.keda.cooldownPeriod | int | `300` |  |
+| hostBackend.autoscaling.keda.enabled | bool | `false` |  |
+| hostBackend.autoscaling.keda.initialCooldownPeriod | int | `0` |  |
+| hostBackend.autoscaling.keda.labels | object | `{}` |  |
+| hostBackend.autoscaling.keda.maxReplicaCount | int | `5` |  |
+| hostBackend.autoscaling.keda.minReplicaCount | int | `1` |  |
+| hostBackend.autoscaling.keda.pollingInterval | int | `30` |  |
+| hostBackend.autoscaling.keda.scaleDownPolicy.periodSeconds | int | `300` |  |
+| hostBackend.autoscaling.keda.scaleDownPolicy.value | int | `100` |  |
+| hostBackend.autoscaling.keda.scaleDownStabilizationWindowSeconds | int | `1800` |  |
+| hostBackend.autoscaling.keda.scaleUpPolicy.periodSeconds | int | `15` |  |
+| hostBackend.autoscaling.keda.scaleUpPolicy.value | int | `100` |  |
+| hostBackend.autoscaling.keda.targetCPUUtilizationPercentage | int | `50` |  |
+| hostBackend.autoscaling.keda.targetMemoryUtilizationPercentage | int | `80` |  |
 | hostBackend.containerPort | int | `1985` |  |
 | hostBackend.deployment.affinity | object | `{}` |  |
 | hostBackend.deployment.annotations | object | `{}` |  |
@@ -619,12 +844,27 @@ For information on how to use this chart, up-to-date release notes, and other gu
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| frontend.autoscaling.createHpa | bool | `true` |  |
-| frontend.autoscaling.enabled | bool | `false` |  |
-| frontend.autoscaling.maxReplicas | int | `5` |  |
-| frontend.autoscaling.minReplicas | int | `1` |  |
-| frontend.autoscaling.targetCPUUtilizationPercentage | int | `50` |  |
-| frontend.autoscaling.targetMemoryUtilizationPercentage | int | `80` |  |
+| frontend.autoscaling.hpa.additionalMetrics | list | `[]` |  |
+| frontend.autoscaling.hpa.enabled | bool | `false` |  |
+| frontend.autoscaling.hpa.maxReplicas | int | `5` |  |
+| frontend.autoscaling.hpa.minReplicas | int | `1` |  |
+| frontend.autoscaling.hpa.targetCPUUtilizationPercentage | int | `50` |  |
+| frontend.autoscaling.hpa.targetMemoryUtilizationPercentage | int | `80` |  |
+| frontend.autoscaling.keda.annotations | object | `{}` |  |
+| frontend.autoscaling.keda.cooldownPeriod | int | `300` |  |
+| frontend.autoscaling.keda.enabled | bool | `false` |  |
+| frontend.autoscaling.keda.initialCooldownPeriod | int | `0` |  |
+| frontend.autoscaling.keda.labels | object | `{}` |  |
+| frontend.autoscaling.keda.maxReplicaCount | int | `5` |  |
+| frontend.autoscaling.keda.minReplicaCount | int | `1` |  |
+| frontend.autoscaling.keda.pollingInterval | int | `30` |  |
+| frontend.autoscaling.keda.scaleDownPolicy.periodSeconds | int | `300` |  |
+| frontend.autoscaling.keda.scaleDownPolicy.value | int | `100` |  |
+| frontend.autoscaling.keda.scaleDownStabilizationWindowSeconds | int | `1800` |  |
+| frontend.autoscaling.keda.scaleUpPolicy.periodSeconds | int | `15` |  |
+| frontend.autoscaling.keda.scaleUpPolicy.value | int | `100` |  |
+| frontend.autoscaling.keda.targetCPUUtilizationPercentage | int | `50` |  |
+| frontend.autoscaling.keda.targetMemoryUtilizationPercentage | int | `80` |  |
 | frontend.containerPort | int | `8080` |  |
 | frontend.cspHeader | string | `"frame-ancestors 'self'; object-src 'none'"` |  |
 | frontend.deployment.affinity | object | `{}` |  |
@@ -699,12 +939,26 @@ For information on how to use this chart, up-to-date release notes, and other gu
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| listener.autoscaling.createHpa | bool | `true` |  |
-| listener.autoscaling.enabled | bool | `false` |  |
-| listener.autoscaling.maxReplicas | int | `10` |  |
-| listener.autoscaling.minReplicas | int | `3` |  |
-| listener.autoscaling.targetCPUUtilizationPercentage | int | `50` |  |
-| listener.autoscaling.targetMemoryUtilizationPercentage | int | `80` |  |
+| listener.autoscaling.hpa.enabled | bool | `false` |  |
+| listener.autoscaling.hpa.maxReplicas | int | `10` |  |
+| listener.autoscaling.hpa.minReplicas | int | `1` |  |
+| listener.autoscaling.hpa.targetCPUUtilizationPercentage | int | `50` |  |
+| listener.autoscaling.hpa.targetMemoryUtilizationPercentage | int | `80` |  |
+| listener.autoscaling.keda.annotations | object | `{}` |  |
+| listener.autoscaling.keda.cooldownPeriod | int | `300` |  |
+| listener.autoscaling.keda.enabled | bool | `false` |  |
+| listener.autoscaling.keda.initialCooldownPeriod | int | `0` |  |
+| listener.autoscaling.keda.labels | object | `{}` |  |
+| listener.autoscaling.keda.maxReplicaCount | int | `10` |  |
+| listener.autoscaling.keda.minReplicaCount | int | `1` |  |
+| listener.autoscaling.keda.pollingInterval | int | `30` |  |
+| listener.autoscaling.keda.scaleDownPolicy.periodSeconds | int | `300` |  |
+| listener.autoscaling.keda.scaleDownPolicy.value | int | `100` |  |
+| listener.autoscaling.keda.scaleDownStabilizationWindowSeconds | int | `1800` |  |
+| listener.autoscaling.keda.scaleUpPolicy.periodSeconds | int | `15` |  |
+| listener.autoscaling.keda.scaleUpPolicy.value | int | `100` |  |
+| listener.autoscaling.keda.targetCPUUtilizationPercentage | int | `50` |  |
+| listener.autoscaling.keda.targetMemoryUtilizationPercentage | int | `80` |  |
 | listener.containerPort | int | `8080` |  |
 | listener.deployment.affinity | object | `{}` |  |
 | listener.deployment.annotations | object | `{}` |  |
@@ -811,12 +1065,27 @@ For information on how to use this chart, up-to-date release notes, and other gu
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| platformBackend.autoscaling.createHpa | bool | `true` |  |
-| platformBackend.autoscaling.enabled | bool | `false` |  |
-| platformBackend.autoscaling.maxReplicas | int | `10` |  |
-| platformBackend.autoscaling.minReplicas | int | `3` |  |
-| platformBackend.autoscaling.targetCPUUtilizationPercentage | int | `50` |  |
-| platformBackend.autoscaling.targetMemoryUtilizationPercentage | int | `80` |  |
+| platformBackend.autoscaling.hpa.additionalMetrics | list | `[]` |  |
+| platformBackend.autoscaling.hpa.enabled | bool | `false` |  |
+| platformBackend.autoscaling.hpa.maxReplicas | int | `10` |  |
+| platformBackend.autoscaling.hpa.minReplicas | int | `3` |  |
+| platformBackend.autoscaling.hpa.targetCPUUtilizationPercentage | int | `50` |  |
+| platformBackend.autoscaling.hpa.targetMemoryUtilizationPercentage | int | `80` |  |
+| platformBackend.autoscaling.keda.annotations | object | `{}` |  |
+| platformBackend.autoscaling.keda.cooldownPeriod | int | `300` |  |
+| platformBackend.autoscaling.keda.enabled | bool | `false` |  |
+| platformBackend.autoscaling.keda.initialCooldownPeriod | int | `0` |  |
+| platformBackend.autoscaling.keda.labels | object | `{}` |  |
+| platformBackend.autoscaling.keda.maxReplicaCount | int | `10` |  |
+| platformBackend.autoscaling.keda.minReplicaCount | int | `3` |  |
+| platformBackend.autoscaling.keda.pollingInterval | int | `30` |  |
+| platformBackend.autoscaling.keda.scaleDownPolicy.periodSeconds | int | `300` |  |
+| platformBackend.autoscaling.keda.scaleDownPolicy.value | int | `100` |  |
+| platformBackend.autoscaling.keda.scaleDownStabilizationWindowSeconds | int | `1800` |  |
+| platformBackend.autoscaling.keda.scaleUpPolicy.periodSeconds | int | `15` |  |
+| platformBackend.autoscaling.keda.scaleUpPolicy.value | int | `100` |  |
+| platformBackend.autoscaling.keda.targetCPUUtilizationPercentage | int | `50` |  |
+| platformBackend.autoscaling.keda.targetMemoryUtilizationPercentage | int | `80` |  |
 | platformBackend.containerPort | int | `1986` |  |
 | platformBackend.deployment.affinity | object | `{}` |  |
 | platformBackend.deployment.annotations | object | `{}` |  |
@@ -878,12 +1147,27 @@ For information on how to use this chart, up-to-date release notes, and other gu
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| playground.autoscaling.createHpa | bool | `true` |  |
-| playground.autoscaling.enabled | bool | `false` |  |
-| playground.autoscaling.maxReplicas | int | `5` |  |
-| playground.autoscaling.minReplicas | int | `1` |  |
-| playground.autoscaling.targetCPUUtilizationPercentage | int | `50` |  |
-| playground.autoscaling.targetMemoryUtilizationPercentage | int | `80` |  |
+| playground.autoscaling.hpa.additionalMetrics | list | `[]` |  |
+| playground.autoscaling.hpa.enabled | bool | `false` |  |
+| playground.autoscaling.hpa.maxReplicas | int | `5` |  |
+| playground.autoscaling.hpa.minReplicas | int | `1` |  |
+| playground.autoscaling.hpa.targetCPUUtilizationPercentage | int | `50` |  |
+| playground.autoscaling.hpa.targetMemoryUtilizationPercentage | int | `80` |  |
+| playground.autoscaling.keda.annotations | object | `{}` |  |
+| playground.autoscaling.keda.cooldownPeriod | int | `300` |  |
+| playground.autoscaling.keda.enabled | bool | `false` |  |
+| playground.autoscaling.keda.initialCooldownPeriod | int | `0` |  |
+| playground.autoscaling.keda.labels | object | `{}` |  |
+| playground.autoscaling.keda.maxReplicaCount | int | `5` |  |
+| playground.autoscaling.keda.minReplicaCount | int | `1` |  |
+| playground.autoscaling.keda.pollingInterval | int | `30` |  |
+| playground.autoscaling.keda.scaleDownPolicy.periodSeconds | int | `300` |  |
+| playground.autoscaling.keda.scaleDownPolicy.value | int | `100` |  |
+| playground.autoscaling.keda.scaleDownStabilizationWindowSeconds | int | `1800` |  |
+| playground.autoscaling.keda.scaleUpPolicy.periodSeconds | int | `15` |  |
+| playground.autoscaling.keda.scaleUpPolicy.value | int | `100` |  |
+| playground.autoscaling.keda.targetCPUUtilizationPercentage | int | `50` |  |
+| playground.autoscaling.keda.targetMemoryUtilizationPercentage | int | `80` |  |
 | playground.containerPort | int | `1988` |  |
 | playground.deployment.affinity | object | `{}` |  |
 | playground.deployment.annotations | object | `{}` |  |
@@ -1023,12 +1307,29 @@ For information on how to use this chart, up-to-date release notes, and other gu
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| queue.autoscaling.createHpa | bool | `true` |  |
-| queue.autoscaling.enabled | bool | `false` |  |
-| queue.autoscaling.maxReplicas | int | `10` |  |
-| queue.autoscaling.minReplicas | int | `3` |  |
-| queue.autoscaling.targetCPUUtilizationPercentage | int | `50` |  |
-| queue.autoscaling.targetMemoryUtilizationPercentage | int | `80` |  |
+| queue.autoscaling.hpa.enabled | bool | `false` |  |
+| queue.autoscaling.hpa.maxReplicas | int | `10` |  |
+| queue.autoscaling.hpa.minReplicas | int | `1` |  |
+| queue.autoscaling.hpa.targetCPUUtilizationPercentage | int | `50` |  |
+| queue.autoscaling.hpa.targetMemoryUtilizationPercentage | int | `80` |  |
+| queue.autoscaling.keda.annotations | object | `{}` |  |
+| queue.autoscaling.keda.cooldownPeriod | int | `300` |  |
+| queue.autoscaling.keda.enabled | bool | `false` |  |
+| queue.autoscaling.keda.fallback.failureThreshold | int | `3` |  |
+| queue.autoscaling.keda.fallback.replicas | int | `3` |  |
+| queue.autoscaling.keda.initialCooldownPeriod | int | `0` |  |
+| queue.autoscaling.keda.labels | object | `{}` |  |
+| queue.autoscaling.keda.maxReplicaCount | int | `10` |  |
+| queue.autoscaling.keda.minReplicaCount | int | `1` |  |
+| queue.autoscaling.keda.pollingInterval | int | `30` |  |
+| queue.autoscaling.keda.queueTargetSize | string | `"10"` |  |
+| queue.autoscaling.keda.scaleDownPolicy.periodSeconds | int | `300` |  |
+| queue.autoscaling.keda.scaleDownPolicy.value | int | `100` |  |
+| queue.autoscaling.keda.scaleDownStabilizationWindowSeconds | int | `1800` |  |
+| queue.autoscaling.keda.scaleUpPolicy.periodSeconds | int | `15` |  |
+| queue.autoscaling.keda.scaleUpPolicy.value | int | `100` |  |
+| queue.autoscaling.keda.targetCPUUtilizationPercentage | int | `50` |  |
+| queue.autoscaling.keda.targetMemoryUtilizationPercentage | int | `80` |  |
 | queue.containerPort | int | `8080` |  |
 | queue.deployment.affinity | object | `{}` |  |
 | queue.deployment.annotations | object | `{}` |  |
@@ -1050,7 +1351,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | queue.deployment.readinessProbe.httpGet.port | int | `8080` |  |
 | queue.deployment.readinessProbe.periodSeconds | int | `10` |  |
 | queue.deployment.readinessProbe.timeoutSeconds | int | `10` |  |
-| queue.deployment.replicas | int | `3` |  |
+| queue.deployment.replicas | int | `1` |  |
 | queue.deployment.resources.limits.cpu | string | `"2000m"` |  |
 | queue.deployment.resources.limits.memory | string | `"4Gi"` |  |
 | queue.deployment.resources.requests.cpu | string | `"1000m"` |  |

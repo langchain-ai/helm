@@ -33,7 +33,7 @@ metadata:
       {{- toYaml . | nindent 4 }}
     {{- end }}
 spec:
-  {{- if not .Values.playground.autoscaling.enabled }}
+  {{- if not (or .Values.playground.autoscaling.hpa.enabled .Values.playground.autoscaling.keda.enabled) }}
   replicas: {{ .Values.playground.deployment.replicas }}
   {{- end }}
   selector:

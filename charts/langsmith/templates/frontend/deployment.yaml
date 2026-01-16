@@ -1,4 +1,21 @@
 {{- define "frontendEnvVars" -}}
+{{- with .Values.config.insights }}
+- name: VITE_SELF_HOSTED_CLIO_ENABLED
+  value: {{ .enabled | quote }}
+{{- end }}
+{{- /* Agent Builder OAuth provider IDs for frontend */ -}}
+{{- if .Values.config.agentBuilder.oauth.googleOAuthProvider }}
+- name: VITE_GOOGLE_OAUTH_PROVIDER
+  value: {{ .Values.config.agentBuilder.oauth.googleOAuthProvider | quote }}
+{{- end }}
+{{- if .Values.config.agentBuilder.oauth.slackOAuthProvider }}
+- name: VITE_SLACK_OAUTH_PROVIDER
+  value: {{ .Values.config.agentBuilder.oauth.slackOAuthProvider | quote }}
+{{- end }}
+{{- if .Values.config.agentBuilder.oauth.githubOAuthProvider }}
+- name: VITE_GITHUB_OAUTH_PROVIDER
+  value: {{ .Values.config.agentBuilder.oauth.githubOAuthProvider | quote }}
+{{- end }}
 {{- if .Values.config.oauth.enabled }}
 - name: VITE_OAUTH_CLIENT_ID
   valueFrom:
@@ -69,7 +86,7 @@ metadata:
       {{- toYaml . | nindent 4 }}
     {{- end }}
 spec:
-  {{- if not .Values.frontend.autoscaling.enabled }}
+  {{- if not (or .Values.frontend.autoscaling.hpa.enabled .Values.frontend.autoscaling.keda.enabled) }}
   replicas: {{ .Values.frontend.deployment.replicas }}
   {{- end }}
   selector:
@@ -116,6 +133,11 @@ spec:
           envFrom:
             - configMapRef:
                 name: {{ include "langsmith.fullname" . }}-config
+            {{- if .Values.config.agentBuilder.enabled }}
+            - configMapRef:
+                name: {{ include "langsmith.fullname" . }}-agent-builder-config
+                optional: true
+            {{- end }}
           image: {{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "frontendImage") | quote }}
           imagePullPolicy: {{ .Values.images.frontendImage.pullPolicy }}
           ports:

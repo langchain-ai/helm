@@ -1,4 +1,4 @@
-{{- if and .Values.playground.autoscaling.enabled .Values.playground.autoscaling.createHpa }}
+{{- if .Values.playground.autoscaling.hpa.enabled }}
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
@@ -16,26 +16,26 @@ spec:
     kind: Deployment
     {{- end }}
     name: {{ include "langsmith.fullname" . }}-{{ .Values.playground.name }}
-  minReplicas: {{ .Values.playground.autoscaling.minReplicas }}
-  maxReplicas: {{ .Values.playground.autoscaling.maxReplicas }}
+  minReplicas: {{ .Values.playground.autoscaling.hpa.minReplicas }}
+  maxReplicas: {{ .Values.playground.autoscaling.hpa.maxReplicas }}
   metrics:
-    {{- if .Values.playground.autoscaling.targetCPUUtilizationPercentage }}
+    {{- if .Values.playground.autoscaling.hpa.targetCPUUtilizationPercentage }}
     - type: Resource
       resource:
         name: cpu
         target:
           type: Utilization
-          averageUtilization: {{ .Values.playground.autoscaling.targetCPUUtilizationPercentage }}
+          averageUtilization: {{ .Values.playground.autoscaling.hpa.targetCPUUtilizationPercentage }}
     {{- end }}
-    {{- if .Values.playground.autoscaling.targetMemoryUtilizationPercentage }}
+    {{- if .Values.playground.autoscaling.hpa.targetMemoryUtilizationPercentage }}
     - type: Resource
       resource:
         name: memory
         target:
           type: Utilization
-          averageUtilization: {{ .Values.playground.autoscaling.targetMemoryUtilizationPercentage }}
+          averageUtilization: {{ .Values.playground.autoscaling.hpa.targetMemoryUtilizationPercentage }}
     {{- end }}
-    {{- if .Values.playground.autoscaling.additionalMetrics }}
-    {{- toYaml .Values.playground.autoscaling.additionalMetrics | nindent 4 }}
+    {{- if .Values.playground.autoscaling.hpa.additionalMetrics }}
+    {{- toYaml .Values.playground.autoscaling.hpa.additionalMetrics | nindent 4 }}
     {{- end }}
 {{- end }}
