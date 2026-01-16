@@ -166,9 +166,9 @@ It only performs validation checks and fails template rendering if issues are fo
 {{- end -}}
 
 {{- /* Validate agent builder configuration */ -}}
-{{- if .Values.agentBuilder.enabled -}}
-{{- if and (not .Values.agentBuilder.encryptionKey) (not .Values.config.existingSecretName) -}}
-{{- fail "agentBuilder.encryptionKey is required when agentBuilder is enabled. Generate one with: python -c \"from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())\"" -}}
+{{- if .Values.config.agentBuilder.enabled -}}
+{{- if and (not .Values.config.agentBuilder.encryptionKey) (not .Values.config.existingSecretName) -}}
+{{- fail "config.agentBuilder.encryptionKey is required when Agent Builder is enabled. Generate one with: python -c \"from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())\"" -}}
 {{- end -}}
 {{- if not .Values.config.deployment.enabled -}}
 {{- fail "config.deployment.enabled must be true when agentBuilder is enabled. Agent Builder requires LangSmith Deployments." -}}
@@ -176,11 +176,11 @@ It only performs validation checks and fails template rendering if issues are fo
 {{- end -}}
 
 {{- /* Validate insights configuration */ -}}
-{{- if and .Values.insightsAgent.enabled (not .Values.config.deployment.enabled) -}}
+{{- if and .Values.config.insights.enabled (not .Values.config.deployment.enabled) -}}
 {{- fail "config.deployment.enabled must be true when Insights is enabled. Insights requires LangSmith Deployments." -}}
 {{- end -}}
-{{- if and .Values.insightsAgent.enabled (not .Values.insightsAgent.encryptionKey) -}}
-{{- fail "insightsAgent.encryptionKey is required when Insights is enabled. Generate one with: python -c \"from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())\"" -}}
+{{- if and .Values.config.insights.enabled (not .Values.config.insights.encryptionKey) -}}
+{{- fail "config.insights.encryptionKey is required when Insights is enabled. Generate one with: python -c \"from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())\"" -}}
 {{- end -}}
 
 {{- /* Validate autoscaling configuration for all services */ -}}

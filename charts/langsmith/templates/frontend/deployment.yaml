@@ -1,20 +1,20 @@
 {{- define "frontendEnvVars" -}}
-{{- with .Values.insightsAgent }}
+{{- with .Values.config.insights }}
 - name: VITE_SELF_HOSTED_CLIO_ENABLED
   value: {{ .enabled | quote }}
 {{- end }}
 {{- /* Agent Builder OAuth provider IDs for frontend */ -}}
-{{- if .Values.agentBuilder.oauth.googleOAuthProvider }}
+{{- if .Values.config.agentBuilder.oauth.googleOAuthProvider }}
 - name: VITE_GOOGLE_OAUTH_PROVIDER
-  value: {{ .Values.agentBuilder.oauth.googleOAuthProvider | quote }}
+  value: {{ .Values.config.agentBuilder.oauth.googleOAuthProvider | quote }}
 {{- end }}
-{{- if .Values.agentBuilder.oauth.slackOAuthProvider }}
+{{- if .Values.config.agentBuilder.oauth.slackOAuthProvider }}
 - name: VITE_SLACK_OAUTH_PROVIDER
-  value: {{ .Values.agentBuilder.oauth.slackOAuthProvider | quote }}
+  value: {{ .Values.config.agentBuilder.oauth.slackOAuthProvider | quote }}
 {{- end }}
-{{- if .Values.agentBuilder.oauth.githubOAuthProvider }}
+{{- if .Values.config.agentBuilder.oauth.githubOAuthProvider }}
 - name: VITE_GITHUB_OAUTH_PROVIDER
-  value: {{ .Values.agentBuilder.oauth.githubOAuthProvider | quote }}
+  value: {{ .Values.config.agentBuilder.oauth.githubOAuthProvider | quote }}
 {{- end }}
 {{- if .Values.config.oauth.enabled }}
 - name: VITE_OAUTH_CLIENT_ID
@@ -133,7 +133,7 @@ spec:
           envFrom:
             - configMapRef:
                 name: {{ include "langsmith.fullname" . }}-config
-            {{- if .Values.agentBuilder.enabled }}
+            {{- if .Values.config.agentBuilder.enabled }}
             - configMapRef:
                 name: {{ include "langsmith.fullname" . }}-agent-builder-config
                 optional: true

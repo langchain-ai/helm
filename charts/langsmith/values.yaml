@@ -123,6 +123,56 @@ config:
     # Disable this if there is restricted access to the external facing ingress endpoint for your agent(s) from inside of your kubernetes cluster.
     ingressHealthCheckEnabled: true
 
+  # Insights (Clio) configuration - AI-powered insights agent
+  # Requires config.deployment.enabled to be true
+  insights:
+    enabled: false
+    # Fernet encryption key for Insights. Required when enabled.
+    # Generate with: python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
+    encryptionKey: ""
+    agent:
+      resources:
+        cpu: 2
+        cpuLimit: 4
+        memoryMb: 4096
+        memoryLimitMb: 8192
+        minScale: 1
+        maxScale: 5
+
+  # Agent Builder configuration - UI for creating and managing agents
+  # Requires config.deployment.enabled to be true
+  agentBuilder:
+    enabled: false
+    # Fernet encryption key for Agent Builder secrets. Required when enabled.
+    # Generate with: python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
+    encryptionKey: ""
+    # Organization ID that owns OAuth providers for Agent Builder.
+    # Required for OAuth tools/triggers to work.
+    oauthProviderOrgId: ""
+    # OAuth provider IDs - set to enable corresponding tools and triggers.
+    # Leave empty to disable. Each provider enables specific integrations:
+    # - googleOAuthProvider: Gmail, Google Calendar, Google Sheets, BigQuery tools + Gmail trigger
+    # - slackOAuthProvider: Slack tools + Slack trigger
+    # - linkedinOAuthProvider: LinkedIn tools
+    # - linearOAuthProvider: Linear tools
+    # - githubOAuthProvider: GitHub tools
+    oauth:
+      googleOAuthProvider: ""
+      linkedinOAuthProvider: ""
+      linearOAuthProvider: ""
+      githubOAuthProvider: ""
+      slackOAuthProvider: ""
+      slackSigningSecret: ""
+      slackBotId: ""
+    agent:
+      resources:
+        cpu: 2
+        cpuLimit: 4
+        memoryMb: 4096
+        memoryLimitMb: 8192
+        minScale: 1
+        maxScale: 5
+
   # -- Salt used to generate the API key. Should be a random string.
   apiKeySalt: ""
   logLevel: "info"
@@ -1935,200 +1985,144 @@ redis:
     annotations: {}
     automountServiceAccountToken: true
 
-# Configurations for the Insights agent.
-insightsAgent:
-  enabled: false
-  # Fernet encryption key for the Insights agent. Required when insightsAgent is enabled.
-  # Generate with: python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
-  encryptionKey: ""
-
-  agentConfiguration:
+# Agent Builder Tool Server - provides MCP tool execution capabilities
+# Only runs when config.agentBuilder.enabled is true
+agentBuilderToolServer:
+  enabled: true
+  name: "agent-builder-tool-server"
+  containerPort: 1989
+  deployment:
+    replicas: 1
+    labels: {}
+    annotations: {}
+    podSecurityContext: {}
+    securityContext: {}
     resources:
-      cpu: 2
-      cpuLimit: 4
-      memoryMb: 4096
-      memoryLimitMb: 8192
-      minScale: 1
-      maxScale: 5
+      limits:
+        cpu: 2000m
+        memory: 4Gi
+      requests:
+        cpu: 1000m
+        memory: 2Gi
+    startupProbe:
+      httpGet:
+        path: /health
+        port: 1989
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 3
+    livenessProbe:
+      httpGet:
+        path: /health
+        port: 1989
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 3
+    readinessProbe:
+      httpGet:
+        path: /health
+        port: 1989
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 3
+    extraContainerConfig: {}
+    extraEnv: []
+    sidecars: []
+    initContainers: []
+    nodeSelector: {}
+    tolerations: []
+    topologySpreadConstraints: []
+    affinity: {}
+    volumes: []
+    volumeMounts: []
+    terminationGracePeriodSeconds: 30
+  autoscaling:
+    enabled: false
+    createHpa: true
+    minReplicas: 1
+    maxReplicas: 3
+    targetCPUUtilizationPercentage: 70
+    targetMemoryUtilizationPercentage: 70
+  pdb:
+    enabled: false
+    minAvailable: 1
+    labels: {}
+    annotations: {}
+  service:
+    type: ClusterIP
+    port: 1989
+    labels: {}
+    annotations: {}
+    loadBalancerSourceRanges: []
+    loadBalancerIP: ""
+  serviceAccount:
+    create: true
+    name: ""
+    labels: {}
+    annotations: {}
+    automountServiceAccountToken: true
 
-# Agent Builder configuration
-# This enables the Agent Builder feature which allows users to create and manage agents through a UI.
-# Requires config.deployment.enabled to be true.
-agentBuilder:
-  enabled: false
-  # -- Fernet encryption key for agent builder secrets. Required when agentBuilder is enabled.
-  # Generate with: python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
-  encryptionKey: ""
-
-  # -- Organization ID that owns OAuth providers for Agent Builder.
-  # This is required for OAuth tools/triggers to work. Set to the organization ID
-  # where OAuth providers (Google, Slack, etc.) are configured.
-  oauthProviderOrgId: ""
-
-  # OAuth provider IDs - set to enable corresponding tools and triggers.
-  # Leave empty to disable. Each provider enables specific integrations:
-  # - googleOAuthProvider: Gmail, Google Calendar, Google Sheets, BigQuery tools + Gmail trigger
-  # - slackOAuthProvider: Slack tools + Slack trigger
-  # - linkedinOAuthProvider: LinkedIn tools
-  # - linearOAuthProvider: Linear tools
-  # - githubOAuthProvider: GitHub tools
-  oauth:
-    googleOAuthProvider: ""
-    linkedinOAuthProvider: ""
-    linearOAuthProvider: ""
-    githubOAuthProvider: ""
-    slackOAuthProvider: ""
-    slackSigningSecret: ""
-    slackBotId: ""
-
-  # Tool Server configuration - provides MCP tool execution capabilities
-  toolServer:
-    enabled: true
-    name: "agent-builder-tool-server"
-    containerPort: 1989
-    deployment:
-      replicas: 1
-      labels: {}
-      annotations: {}
-      podSecurityContext: {}
-      securityContext: {}
-      resources:
-        limits:
-          cpu: 2000m
-          memory: 4Gi
-        requests:
-          cpu: 1000m
-          memory: 2Gi
-      startupProbe:
-        httpGet:
-          path: /health
-          port: 1989
-        failureThreshold: 6
-        periodSeconds: 10
-        timeoutSeconds: 3
-      livenessProbe:
-        httpGet:
-          path: /health
-          port: 1989
-        failureThreshold: 6
-        periodSeconds: 10
-        timeoutSeconds: 3
-      readinessProbe:
-        httpGet:
-          path: /health
-          port: 1989
-        failureThreshold: 6
-        periodSeconds: 10
-        timeoutSeconds: 3
-      extraContainerConfig: {}
-      extraEnv: []
-      sidecars: []
-      initContainers: []
-      nodeSelector: {}
-      tolerations: []
-      topologySpreadConstraints: []
-      affinity: {}
-      volumes: []
-      volumeMounts: []
-      terminationGracePeriodSeconds: 30
-    autoscaling:
-      enabled: false
-      createHpa: true
-      minReplicas: 1
-      maxReplicas: 3
-      targetCPUUtilizationPercentage: 70
-      targetMemoryUtilizationPercentage: 70
-    pdb:
-      enabled: false
-      minAvailable: 1
-      labels: {}
-      annotations: {}
-    service:
-      type: ClusterIP
-      port: 1989
-      labels: {}
-      annotations: {}
-      loadBalancerSourceRanges: []
-      loadBalancerIP: ""
-    serviceAccount:
-      create: true
-      name: ""
-      labels: {}
-      annotations: {}
-      automountServiceAccountToken: true
-
-  # Trigger Server configuration - handles cron, Slack, and Gmail triggers
-  # NOTE: Currently only supports a single replica. Cron jobs run on each replica,
-  # so multiple replicas would cause duplicate trigger executions.
-  triggerServer:
-    enabled: true
-    name: "agent-builder-trigger-server"
-    containerPort: 1990
-    deployment:
-      labels: {}
-      annotations: {}
-      podSecurityContext: {}
-      securityContext: {}
-      resources:
-        limits:
-          cpu: 2000m
-          memory: 4Gi
-        requests:
-          cpu: 1000m
-          memory: 2Gi
-      startupProbe:
-        httpGet:
-          path: /health
-          port: 1990
-        failureThreshold: 6
-        periodSeconds: 10
-        timeoutSeconds: 1
-      livenessProbe:
-        httpGet:
-          path: /health
-          port: 1990
-        failureThreshold: 6
-        periodSeconds: 10
-        timeoutSeconds: 1
-      readinessProbe:
-        httpGet:
-          path: /health
-          port: 1990
-        failureThreshold: 6
-        periodSeconds: 10
-        timeoutSeconds: 1
-      extraContainerConfig: {}
-      extraEnv: []
-      sidecars: []
-      initContainers: []
-      nodeSelector: {}
-      tolerations: []
-      topologySpreadConstraints: []
-      affinity: {}
-      volumes: []
-      volumeMounts: []
-      terminationGracePeriodSeconds: 30
-    service:
-      type: ClusterIP
-      port: 1990
-      labels: {}
-      annotations: {}
-      loadBalancerSourceRanges: []
-      loadBalancerIP: ""
-    serviceAccount:
-      create: true
-      name: ""
-      labels: {}
-      annotations: {}
-      automountServiceAccountToken: true
-
-  # Agent Builder agent configuration - deployed via LangSmith Deployments
-  agent:
-    # Resource specifications for the agent deployment
+# Agent Builder Trigger Server - handles cron, Slack, and Gmail triggers
+# Only runs when config.agentBuilder.enabled is true
+# NOTE: Currently only supports a single replica to prevent duplicate trigger executions
+agentBuilderTriggerServer:
+  enabled: true
+  name: "agent-builder-trigger-server"
+  containerPort: 1990
+  deployment:
+    labels: {}
+    annotations: {}
+    podSecurityContext: {}
+    securityContext: {}
     resources:
-      cpu: 2
-      cpuLimit: 4
-      memoryMb: 4096
-      memoryLimitMb: 8192
-      minScale: 1
-      maxScale: 5
+      limits:
+        cpu: 2000m
+        memory: 4Gi
+      requests:
+        cpu: 1000m
+        memory: 2Gi
+    startupProbe:
+      httpGet:
+        path: /health
+        port: 1990
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 1
+    livenessProbe:
+      httpGet:
+        path: /health
+        port: 1990
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 1
+    readinessProbe:
+      httpGet:
+        path: /health
+        port: 1990
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 1
+    extraContainerConfig: {}
+    extraEnv: []
+    sidecars: []
+    initContainers: []
+    nodeSelector: {}
+    tolerations: []
+    topologySpreadConstraints: []
+    affinity: {}
+    volumes: []
+    volumeMounts: []
+    terminationGracePeriodSeconds: 30
+  service:
+    type: ClusterIP
+    port: 1990
+    labels: {}
+    annotations: {}
+    loadBalancerSourceRanges: []
+    loadBalancerIP: ""
+  serviceAccount:
+    create: true
+    name: ""
+    labels: {}
+    annotations: {}
+    automountServiceAccountToken: true

@@ -6,14 +6,14 @@
   value: /{{ . }}/api-host
 {{- end }}
 {{- /* Agent Builder OAuth and Trigger Server configuration */ -}}
-{{- if .Values.agentBuilder.enabled }}
-{{- if .Values.agentBuilder.oauthProviderOrgId }}
+{{- if .Values.config.agentBuilder.enabled }}
+{{- if .Values.config.agentBuilder.oauthProviderOrgId }}
 - name: AGENT_BUILDER_AUTH_PROVIDER_ORG_ID
-  value: {{ .Values.agentBuilder.oauthProviderOrgId | quote }}
+  value: {{ .Values.config.agentBuilder.oauthProviderOrgId | quote }}
 {{- end }}
-{{- if .Values.agentBuilder.triggerServer.enabled }}
+{{- if .Values.agentBuilderTriggerServer.enabled }}
 - name: AGENT_BUILDER_TRIGGERS_API_URL
-  value: "http://{{ include "langsmith.fullname" . }}-{{ .Values.agentBuilder.triggerServer.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.agentBuilder.triggerServer.service.port }}/v1/triggers"
+  value: "http://{{ include "langsmith.fullname" . }}-{{ .Values.agentBuilderTriggerServer.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.agentBuilderTriggerServer.service.port }}/v1/triggers"
 {{- end }}
 {{- include "agentBuilderOAuthEnvVars" . }}
 {{- end }}

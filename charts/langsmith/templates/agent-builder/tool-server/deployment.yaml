@@ -1,61 +1,61 @@
-{{- if and .Values.agentBuilder.enabled .Values.agentBuilder.toolServer.enabled }}
-{{- $envVars := concat .Values.commonEnv (include "langsmith.commonEnv" . | fromYamlArray) (include "agentBuilderToolServerEnvVars" . | fromYamlArray) .Values.agentBuilder.toolServer.deployment.extraEnv -}}
+{{- if and .Values.config.agentBuilder.enabled .Values.agentBuilderToolServer.enabled }}
+{{- $envVars := concat .Values.commonEnv (include "langsmith.commonEnv" . | fromYamlArray) (include "agentBuilderToolServerEnvVars" . | fromYamlArray) .Values.agentBuilderToolServer.deployment.extraEnv -}}
 {{- include "langsmith.detectDuplicates" $envVars -}}
-{{- $volumes := concat .Values.commonVolumes .Values.agentBuilder.toolServer.deployment.volumes (include "langsmith.tlsVolumes" . | fromYamlArray) -}}
-{{- $volumeMounts := concat .Values.commonVolumeMounts .Values.agentBuilder.toolServer.deployment.volumeMounts (include "langsmith.tlsVolumeMounts" . | fromYamlArray) -}}
+{{- $volumes := concat .Values.commonVolumes .Values.agentBuilderToolServer.deployment.volumes (include "langsmith.tlsVolumes" . | fromYamlArray) -}}
+{{- $volumeMounts := concat .Values.commonVolumeMounts .Values.agentBuilderToolServer.deployment.volumeMounts (include "langsmith.tlsVolumeMounts" . | fromYamlArray) -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "langsmith.fullname" . }}-{{ .Values.agentBuilder.toolServer.name }}
+  name: {{ include "langsmith.fullname" . }}-{{ .Values.agentBuilderToolServer.name }}
   namespace: {{ .Values.namespace | default .Release.Namespace }}
   labels:
     {{- include "langsmith.labels" . | nindent 4 }}
-    app.kubernetes.io/component: {{ .Values.agentBuilder.toolServer.name }}
-    {{- with .Values.agentBuilder.toolServer.deployment.labels }}
+    app.kubernetes.io/component: {{ .Values.agentBuilderToolServer.name }}
+    {{- with .Values.agentBuilderToolServer.deployment.labels }}
       {{- toYaml . | nindent 4 }}
     {{- end }}
   annotations:
     {{- include "langsmith.annotations" . | nindent 4 }}
-    {{- with .Values.agentBuilder.toolServer.deployment.annotations }}
+    {{- with .Values.agentBuilderToolServer.deployment.annotations }}
       {{- toYaml . | nindent 4 }}
     {{- end }}
 spec:
-  {{- if not .Values.agentBuilder.toolServer.autoscaling.enabled }}
-  replicas: {{ .Values.agentBuilder.toolServer.deployment.replicas }}
+  {{- if not .Values.agentBuilderToolServer.autoscaling.enabled }}
+  replicas: {{ .Values.agentBuilderToolServer.deployment.replicas }}
   {{- end }}
   selector:
     matchLabels:
       {{- include "langsmith.selectorLabels" . | nindent 6 }}
-      app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-{{ .Values.agentBuilder.toolServer.name }}
+      app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-{{ .Values.agentBuilderToolServer.name }}
   template:
     metadata:
       annotations:
       {{- include "langsmith.commonPodAnnotations" . | nindent 8 }}
       {{- include "langsmith.checksumAnnotations" . | nindent 8 }}
-      {{- with .Values.agentBuilder.toolServer.deployment.annotations }}
+      {{- with .Values.agentBuilderToolServer.deployment.annotations }}
         {{- toYaml . | nindent 8 }}
       {{- end }}
       labels:
-        {{- with .Values.agentBuilder.toolServer.deployment.labels }}
+        {{- with .Values.agentBuilderToolServer.deployment.labels }}
             {{- toYaml . | nindent 8 }}
         {{- end }}
         {{- include "langsmith.labels" . | nindent 8 }}
-        app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-{{ .Values.agentBuilder.toolServer.name }}
+        app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-{{ .Values.agentBuilderToolServer.name }}
     spec:
-      terminationGracePeriodSeconds: {{ .Values.agentBuilder.toolServer.deployment.terminationGracePeriodSeconds }}
+      terminationGracePeriodSeconds: {{ .Values.agentBuilderToolServer.deployment.terminationGracePeriodSeconds }}
       {{- with .Values.images.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       securityContext:
-        {{- include "langsmith.podSecurityContext" (dict "Values" .Values "componentSecurityContext" .Values.agentBuilder.toolServer.deployment.podSecurityContext) | nindent 8 }}
+        {{- include "langsmith.podSecurityContext" (dict "Values" .Values "componentSecurityContext" .Values.agentBuilderToolServer.deployment.podSecurityContext) | nindent 8 }}
       serviceAccountName: {{ include "agentBuilderToolServer.serviceAccountName" . }}
-      {{- with concat .Values.commonInitContainers .Values.agentBuilder.toolServer.deployment.initContainers }}
+      {{- with concat .Values.commonInitContainers .Values.agentBuilderToolServer.deployment.initContainers }}
       initContainers:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       containers:
-        - name: {{ .Values.agentBuilder.toolServer.name }}
+        - name: {{ .Values.agentBuilderToolServer.name }}
           env:
             {{- with $envVars }}
               {{- toYaml . | nindent 12 }}
@@ -67,47 +67,47 @@ spec:
           imagePullPolicy: {{ .Values.images.agentBuilderToolServerImage.pullPolicy }}
           ports:
             - name: http
-              containerPort: {{ .Values.agentBuilder.toolServer.containerPort }}
+              containerPort: {{ .Values.agentBuilderToolServer.containerPort }}
               protocol: TCP
-          {{- with .Values.agentBuilder.toolServer.deployment.startupProbe }}
+          {{- with .Values.agentBuilderToolServer.deployment.startupProbe }}
           startupProbe:
             {{- toYaml . | nindent 12 }}
           {{- end }}
-          {{- with .Values.agentBuilder.toolServer.deployment.livenessProbe }}
+          {{- with .Values.agentBuilderToolServer.deployment.livenessProbe }}
           livenessProbe:
             {{- toYaml . | nindent 12 }}
           {{- end }}
-          {{- with .Values.agentBuilder.toolServer.deployment.readinessProbe }}
+          {{- with .Values.agentBuilderToolServer.deployment.readinessProbe }}
           readinessProbe:
             {{- toYaml . | nindent 12 }}
           {{- end }}
           resources:
-            {{- toYaml .Values.agentBuilder.toolServer.deployment.resources | nindent 12 }}
+            {{- toYaml .Values.agentBuilderToolServer.deployment.resources | nindent 12 }}
           securityContext:
-            {{- toYaml .Values.agentBuilder.toolServer.deployment.securityContext | nindent 12 }}
+            {{- toYaml .Values.agentBuilderToolServer.deployment.securityContext | nindent 12 }}
           {{- with $volumeMounts }}
           volumeMounts:
               {{- toYaml . | nindent 12 }}
           {{- end }}
-          {{- with .Values.agentBuilder.toolServer.deployment.extraContainerConfig }}
+          {{- with .Values.agentBuilderToolServer.deployment.extraContainerConfig }}
             {{- toYaml . | nindent 10 }}
           {{- end }}
-        {{- with .Values.agentBuilder.toolServer.deployment.sidecars }}
+        {{- with .Values.agentBuilderToolServer.deployment.sidecars }}
           {{- toYaml . | nindent 8 }}
         {{- end }}
-      {{- with .Values.agentBuilder.toolServer.deployment.nodeSelector }}
+      {{- with .Values.agentBuilderToolServer.deployment.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.agentBuilder.toolServer.deployment.affinity }}
+      {{- with .Values.agentBuilderToolServer.deployment.affinity }}
       affinity:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.agentBuilder.toolServer.deployment.tolerations }}
+      {{- with .Values.agentBuilderToolServer.deployment.tolerations }}
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.agentBuilder.toolServer.deployment.topologySpreadConstraints }}
+      {{- with .Values.agentBuilderToolServer.deployment.topologySpreadConstraints }}
       topologySpreadConstraints:
         {{- toYaml . | nindent 8 }}
       {{- end }}

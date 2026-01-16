@@ -1,36 +1,36 @@
-{{- if and .Values.agentBuilder.enabled .Values.agentBuilder.triggerServer.enabled }}
+{{- if and .Values.config.agentBuilder.enabled .Values.agentBuilderTriggerServer.enabled }}
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "langsmith.fullname" . }}-{{ .Values.agentBuilder.triggerServer.name }}
+  name: {{ include "langsmith.fullname" . }}-{{ .Values.agentBuilderTriggerServer.name }}
   namespace: {{ .Values.namespace | default .Release.Namespace }}
   labels:
     {{- include "langsmith.labels" . | nindent 4 }}
-    app.kubernetes.io/component: {{ .Values.agentBuilder.triggerServer.name }}
-    {{- with .Values.agentBuilder.triggerServer.service.labels }}
+    app.kubernetes.io/component: {{ .Values.agentBuilderTriggerServer.name }}
+    {{- with .Values.agentBuilderTriggerServer.service.labels }}
       {{- toYaml . | nindent 4 }}
     {{- end }}
   annotations:
     {{- include "langsmith.annotations" . | nindent 4 }}
-    {{- with .Values.agentBuilder.triggerServer.service.annotations }}
+    {{- with .Values.agentBuilderTriggerServer.service.annotations }}
       {{- toYaml . | nindent 4 }}
     {{- end }}
 spec:
-  type: {{ .Values.agentBuilder.triggerServer.service.type }}
-  {{- with .Values.agentBuilder.triggerServer.service.loadBalancerSourceRanges }}
+  type: {{ .Values.agentBuilderTriggerServer.service.type }}
+  {{- with .Values.agentBuilderTriggerServer.service.loadBalancerSourceRanges }}
   loadBalancerSourceRanges:
     {{- toYaml . | nindent 4 }}
   {{- end }}
-  {{- if .Values.agentBuilder.triggerServer.service.loadBalancerIP }}
-  loadBalancerIP: {{ .Values.agentBuilder.triggerServer.service.loadBalancerIP }}
+  {{- if .Values.agentBuilderTriggerServer.service.loadBalancerIP }}
+  loadBalancerIP: {{ .Values.agentBuilderTriggerServer.service.loadBalancerIP }}
   {{- end }}
   ports:
-    - port: {{ .Values.agentBuilder.triggerServer.service.port }}
-      targetPort: {{ .Values.agentBuilder.triggerServer.containerPort }}
+    - port: {{ .Values.agentBuilderTriggerServer.service.port }}
+      targetPort: {{ .Values.agentBuilderTriggerServer.containerPort }}
       protocol: TCP
       name: http
   selector:
     {{- include "langsmith.selectorLabels" . | nindent 4 }}
-    app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-{{ .Values.agentBuilder.triggerServer.name }}
+    app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-{{ .Values.agentBuilderTriggerServer.name }}
 {{- end }}
 

@@ -1,4 +1,4 @@
-{{- if and .Values.backend.agentBootstrap.enabled (or .Values.agentBuilder.enabled .Values.insightsAgent.enabled) }}
+{{- if and .Values.backend.agentBootstrap.enabled (or .Values.config.agentBuilder.enabled .Values.config.insights.enabled) }}
 {{- $envVars := concat .Values.commonEnv (include "langsmith.commonEnv" . | fromYamlArray) .Values.backend.agentBootstrap.extraEnv -}}
 {{- $volumes := concat .Values.commonVolumes (include "langsmith.tlsVolumes" . | fromYamlArray) -}}
 {{- $volumeMounts := concat .Values.commonVolumeMounts (include "langsmith.tlsVolumeMounts" . | fromYamlArray) }}
@@ -81,42 +81,42 @@ spec:
           args:
             - "--products"
             {{- $products := list }}
-            {{- if .Values.agentBuilder.enabled }}
+            {{- if .Values.config.agentBuilder.enabled }}
             {{- $products = append $products "agent_builder" }}
             {{- end }}
-            {{- if .Values.insightsAgent.enabled }}
+            {{- if .Values.config.insights.enabled }}
             {{- $products = append $products "insights" }}
             {{- end }}
             - "{{ join "," $products }}"
             - "--config"
             - |
               {
-              {{- if .Values.agentBuilder.enabled }}
+              {{- if .Values.config.agentBuilder.enabled }}
                 "agent-builder": {
                   "image": "{{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "agentBuilderImage") }}",
                   "configmap_name": "{{ include "langsmith.fullname" . }}-agent-builder-config",
                   "k8s_namespace": "{{ .Values.namespace | default .Release.Namespace }}",
                   "restart_deployments": ["{{ include "langsmith.fullname" . }}-{{ .Values.frontend.name }}", "{{ include "langsmith.fullname" . }}-agent-builder-trigger-server"],
-                  "cpu": {{ .Values.agentBuilder.agent.resources.cpu }},
-                  "cpu_limit": {{ .Values.agentBuilder.agent.resources.cpuLimit }},
-                  "memory_mb": {{ .Values.agentBuilder.agent.resources.memoryMb }},
-                  "memory_limit_mb": {{ .Values.agentBuilder.agent.resources.memoryLimitMb }},
-                  "min_scale": {{ .Values.agentBuilder.agent.resources.minScale }},
-                  "max_scale": {{ .Values.agentBuilder.agent.resources.maxScale }}
-                }{{- if .Values.insightsAgent.enabled }},{{- end }}
+                  "cpu": {{ .Values.config.agentBuilder.agent.resources.cpu }},
+                  "cpu_limit": {{ .Values.config.agentBuilder.agent.resources.cpuLimit }},
+                  "memory_mb": {{ .Values.config.agentBuilder.agent.resources.memoryMb }},
+                  "memory_limit_mb": {{ .Values.config.agentBuilder.agent.resources.memoryLimitMb }},
+                  "min_scale": {{ .Values.config.agentBuilder.agent.resources.minScale }},
+                  "max_scale": {{ .Values.config.agentBuilder.agent.resources.maxScale }}
+                }{{- if .Values.config.insights.enabled }},{{- end }}
               {{- end }}
-              {{- if .Values.insightsAgent.enabled }}
+              {{- if .Values.config.insights.enabled }}
                 "clio": {
                   "image": "{{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "insightsAgentImage") }}",
                   "configmap_name": "{{ include "langsmith.fullname" . }}-insights-config",
                   "k8s_namespace": "{{ .Values.namespace | default .Release.Namespace }}",
                   "restart_deployments": ["{{ include "langsmith.fullname" . }}-{{ .Values.frontend.name }}", "{{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}", "{{ include "langsmith.fullname" . }}-{{ .Values.queue.name }}"],
-                  "cpu": {{ .Values.insightsAgent.agentConfiguration.resources.cpu }},
-                  "cpu_limit": {{ .Values.insightsAgent.agentConfiguration.resources.cpuLimit }},
-                  "memory_mb": {{ .Values.insightsAgent.agentConfiguration.resources.memoryMb }},
-                  "memory_limit_mb": {{ .Values.insightsAgent.agentConfiguration.resources.memoryLimitMb }},
-                  "min_scale": {{ .Values.insightsAgent.agentConfiguration.resources.minScale }},
-                  "max_scale": {{ .Values.insightsAgent.agentConfiguration.resources.maxScale }}
+                  "cpu": {{ .Values.config.insights.agent.resources.cpu }},
+                  "cpu_limit": {{ .Values.config.insights.agent.resources.cpuLimit }},
+                  "memory_mb": {{ .Values.config.insights.agent.resources.memoryMb }},
+                  "memory_limit_mb": {{ .Values.config.insights.agent.resources.memoryLimitMb }},
+                  "min_scale": {{ .Values.config.insights.agent.resources.minScale }},
+                  "max_scale": {{ .Values.config.insights.agent.resources.maxScale }}
                 }
               {{- end }}
               }

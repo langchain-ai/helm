@@ -1,22 +1,22 @@
-{{- if and .Values.agentBuilder.enabled .Values.agentBuilder.triggerServer.enabled }}
-{{- $envVars := concat .Values.commonEnv (include "langsmith.commonEnv" . | fromYamlArray) (include "agentBuilderTriggerServerEnvVars" . | fromYamlArray) .Values.agentBuilder.triggerServer.deployment.extraEnv -}}
+{{- if and .Values.config.agentBuilder.enabled .Values.agentBuilderTriggerServer.enabled }}
+{{- $envVars := concat .Values.commonEnv (include "langsmith.commonEnv" . | fromYamlArray) (include "agentBuilderTriggerServerEnvVars" . | fromYamlArray) .Values.agentBuilderTriggerServer.deployment.extraEnv -}}
 {{- include "langsmith.detectDuplicates" $envVars -}}
-{{- $volumes := concat .Values.commonVolumes .Values.agentBuilder.triggerServer.deployment.volumes (include "langsmith.tlsVolumes" . | fromYamlArray) -}}
-{{- $volumeMounts := concat .Values.commonVolumeMounts .Values.agentBuilder.triggerServer.deployment.volumeMounts (include "langsmith.tlsVolumeMounts" . | fromYamlArray) -}}
+{{- $volumes := concat .Values.commonVolumes .Values.agentBuilderTriggerServer.deployment.volumes (include "langsmith.tlsVolumes" . | fromYamlArray) -}}
+{{- $volumeMounts := concat .Values.commonVolumeMounts .Values.agentBuilderTriggerServer.deployment.volumeMounts (include "langsmith.tlsVolumeMounts" . | fromYamlArray) -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "langsmith.fullname" . }}-{{ .Values.agentBuilder.triggerServer.name }}
+  name: {{ include "langsmith.fullname" . }}-{{ .Values.agentBuilderTriggerServer.name }}
   namespace: {{ .Values.namespace | default .Release.Namespace }}
   labels:
     {{- include "langsmith.labels" . | nindent 4 }}
-    app.kubernetes.io/component: {{ .Values.agentBuilder.triggerServer.name }}
-    {{- with .Values.agentBuilder.triggerServer.deployment.labels }}
+    app.kubernetes.io/component: {{ .Values.agentBuilderTriggerServer.name }}
+    {{- with .Values.agentBuilderTriggerServer.deployment.labels }}
       {{- toYaml . | nindent 4 }}
     {{- end }}
   annotations:
     {{- include "langsmith.annotations" . | nindent 4 }}
-    {{- with .Values.agentBuilder.triggerServer.deployment.annotations }}
+    {{- with .Values.agentBuilderTriggerServer.deployment.annotations }}
       {{- toYaml . | nindent 4 }}
     {{- end }}
 spec:
@@ -25,36 +25,36 @@ spec:
   selector:
     matchLabels:
       {{- include "langsmith.selectorLabels" . | nindent 6 }}
-      app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-{{ .Values.agentBuilder.triggerServer.name }}
+      app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-{{ .Values.agentBuilderTriggerServer.name }}
   template:
     metadata:
       annotations:
         {{- include "langsmith.commonPodAnnotations" . | nindent 8 }}
         {{- include "langsmith.checksumAnnotations" . | nindent 8 }}
-        {{- with .Values.agentBuilder.triggerServer.deployment.annotations }}
+        {{- with .Values.agentBuilderTriggerServer.deployment.annotations }}
         {{- toYaml . | nindent 8 }}
       {{- end }}
       labels:
-        {{- with .Values.agentBuilder.triggerServer.deployment.labels }}
+        {{- with .Values.agentBuilderTriggerServer.deployment.labels }}
             {{- toYaml . | nindent 8 }}
         {{- end }}
         {{- include "langsmith.labels" . | nindent 8 }}
-        app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-{{ .Values.agentBuilder.triggerServer.name }}
+        app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-{{ .Values.agentBuilderTriggerServer.name }}
     spec:
-      terminationGracePeriodSeconds: {{ .Values.agentBuilder.triggerServer.deployment.terminationGracePeriodSeconds }}
+      terminationGracePeriodSeconds: {{ .Values.agentBuilderTriggerServer.deployment.terminationGracePeriodSeconds }}
       {{- with .Values.images.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       securityContext:
-        {{- include "langsmith.podSecurityContext" (dict "Values" .Values "componentSecurityContext" .Values.agentBuilder.triggerServer.deployment.podSecurityContext) | nindent 8 }}
+        {{- include "langsmith.podSecurityContext" (dict "Values" .Values "componentSecurityContext" .Values.agentBuilderTriggerServer.deployment.podSecurityContext) | nindent 8 }}
       serviceAccountName: {{ include "agentBuilderTriggerServer.serviceAccountName" . }}
-      {{- with concat .Values.commonInitContainers .Values.agentBuilder.triggerServer.deployment.initContainers }}
+      {{- with concat .Values.commonInitContainers .Values.agentBuilderTriggerServer.deployment.initContainers }}
       initContainers:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       containers:
-        - name: {{ .Values.agentBuilder.triggerServer.name }}
+        - name: {{ .Values.agentBuilderTriggerServer.name }}
           env:
             {{- with $envVars }}
               {{- toYaml . | nindent 12 }}
@@ -69,47 +69,47 @@ spec:
           imagePullPolicy: {{ .Values.images.agentBuilderTriggerServerImage.pullPolicy }}
           ports:
             - name: http
-              containerPort: {{ .Values.agentBuilder.triggerServer.containerPort }}
+              containerPort: {{ .Values.agentBuilderTriggerServer.containerPort }}
               protocol: TCP
-          {{- with .Values.agentBuilder.triggerServer.deployment.startupProbe }}
+          {{- with .Values.agentBuilderTriggerServer.deployment.startupProbe }}
           startupProbe:
             {{- toYaml . | nindent 12 }}
           {{- end }}
-          {{- with .Values.agentBuilder.triggerServer.deployment.livenessProbe }}
+          {{- with .Values.agentBuilderTriggerServer.deployment.livenessProbe }}
           livenessProbe:
             {{- toYaml . | nindent 12 }}
           {{- end }}
-          {{- with .Values.agentBuilder.triggerServer.deployment.readinessProbe }}
+          {{- with .Values.agentBuilderTriggerServer.deployment.readinessProbe }}
           readinessProbe:
             {{- toYaml . | nindent 12 }}
           {{- end }}
           resources:
-            {{- toYaml .Values.agentBuilder.triggerServer.deployment.resources | nindent 12 }}
+            {{- toYaml .Values.agentBuilderTriggerServer.deployment.resources | nindent 12 }}
           securityContext:
-            {{- toYaml .Values.agentBuilder.triggerServer.deployment.securityContext | nindent 12 }}
+            {{- toYaml .Values.agentBuilderTriggerServer.deployment.securityContext | nindent 12 }}
           {{- with $volumeMounts }}
           volumeMounts:
               {{- toYaml . | nindent 12 }}
           {{- end }}
-          {{- with .Values.agentBuilder.triggerServer.deployment.extraContainerConfig }}
+          {{- with .Values.agentBuilderTriggerServer.deployment.extraContainerConfig }}
             {{- toYaml . | nindent 10 }}
           {{- end }}
-        {{- with .Values.agentBuilder.triggerServer.deployment.sidecars }}
+        {{- with .Values.agentBuilderTriggerServer.deployment.sidecars }}
           {{- toYaml . | nindent 8 }}
         {{- end }}
-      {{- with .Values.agentBuilder.triggerServer.deployment.nodeSelector }}
+      {{- with .Values.agentBuilderTriggerServer.deployment.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.agentBuilder.triggerServer.deployment.affinity }}
+      {{- with .Values.agentBuilderTriggerServer.deployment.affinity }}
       affinity:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.agentBuilder.triggerServer.deployment.tolerations }}
+      {{- with .Values.agentBuilderTriggerServer.deployment.tolerations }}
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.agentBuilder.triggerServer.deployment.topologySpreadConstraints }}
+      {{- with .Values.agentBuilderTriggerServer.deployment.topologySpreadConstraints }}
       topologySpreadConstraints:
         {{- toYaml . | nindent 8 }}
       {{- end }}

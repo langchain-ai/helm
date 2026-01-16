@@ -446,14 +446,14 @@ Template containing common environment variables that are used by several servic
 - name: FF_PERSIST_BATCHED_RUNS_SUCCESS_LOGGING
   value: "true"
 {{- end }}
-{{- if .Values.agentBuilder.enabled }}
+{{- if .Values.config.agentBuilder.enabled }}
 - name: AGENT_BUILDER_ENCRYPTION_KEY
   valueFrom:
     secretKeyRef:
       name: {{ include "langsmith.secretsName" . }}
       key: agent_builder_encryption_key
 {{- end }}
-{{- if .Values.insightsAgent.enabled }}
+{{- if .Values.config.insights.enabled }}
 - name: CLIO_ENCRYPTION_KEY
   valueFrom:
     secretKeyRef:
@@ -570,18 +570,18 @@ Template containing common environment variables that are used by several servic
 {{- end -}}
 
 {{- define "agentBuilderToolServer.serviceAccountName" -}}
-{{- if .Values.agentBuilder.toolServer.serviceAccount.create -}}
-    {{ default (printf "%s-%s" (include "langsmith.fullname" .) .Values.agentBuilder.toolServer.name) .Values.agentBuilder.toolServer.serviceAccount.name | trunc 63 | trimSuffix "-" }}
+{{- if .Values.agentBuilderToolServer.serviceAccount.create -}}
+    {{ default (printf "%s-%s" (include "langsmith.fullname" .) .Values.agentBuilderToolServer.name) .Values.agentBuilderToolServer.serviceAccount.name | trunc 63 | trimSuffix "-" }}
 {{- else -}}
-    {{ default "default" .Values.agentBuilder.toolServer.serviceAccount.name }}
+    {{ default "default" .Values.agentBuilderToolServer.serviceAccount.name }}
 {{- end -}}
 {{- end -}}
 
 {{- define "agentBuilderTriggerServer.serviceAccountName" -}}
-{{- if .Values.agentBuilder.triggerServer.serviceAccount.create -}}
-    {{ default (printf "%s-%s" (include "langsmith.fullname" .) .Values.agentBuilder.triggerServer.name) .Values.agentBuilder.triggerServer.serviceAccount.name | trunc 63 | trimSuffix "-" }}
+{{- if .Values.agentBuilderTriggerServer.serviceAccount.create -}}
+    {{ default (printf "%s-%s" (include "langsmith.fullname" .) .Values.agentBuilderTriggerServer.name) .Values.agentBuilderTriggerServer.serviceAccount.name | trunc 63 | trimSuffix "-" }}
 {{- else -}}
-    {{ default "default" .Values.agentBuilder.triggerServer.serviceAccount.name }}
+    {{ default "default" .Values.agentBuilderTriggerServer.serviceAccount.name }}
 {{- end -}}
 {{- end -}}
 
@@ -686,46 +686,46 @@ Strip protocol (http://, https://, etc.) from hostname
 {{- end -}}
 
 {{- define "agentBuilderOAuthEnvVars" -}}
-{{- if .Values.agentBuilder.oauth.googleOAuthProvider }}
+{{- if .Values.config.agentBuilder.oauth.googleOAuthProvider }}
 - name: "GOOGLE_OAUTH_PROVIDER"
-  value: {{ .Values.agentBuilder.oauth.googleOAuthProvider | quote }}
+  value: {{ .Values.config.agentBuilder.oauth.googleOAuthProvider | quote }}
 {{- end }}
-{{- if .Values.agentBuilder.oauth.slackOAuthProvider }}
+{{- if .Values.config.agentBuilder.oauth.slackOAuthProvider }}
 - name: "SLACK_OAUTH_PROVIDER"
-  value: {{ .Values.agentBuilder.oauth.slackOAuthProvider | quote }}
+  value: {{ .Values.config.agentBuilder.oauth.slackOAuthProvider | quote }}
 {{- end }}
-{{- if .Values.agentBuilder.oauth.linkedinOAuthProvider }}
+{{- if .Values.config.agentBuilder.oauth.linkedinOAuthProvider }}
 - name: "LINKEDIN_OAUTH_PROVIDER"
-  value: {{ .Values.agentBuilder.oauth.linkedinOAuthProvider | quote }}
+  value: {{ .Values.config.agentBuilder.oauth.linkedinOAuthProvider | quote }}
 {{- end }}
-{{- if .Values.agentBuilder.oauth.linearOAuthProvider }}
+{{- if .Values.config.agentBuilder.oauth.linearOAuthProvider }}
 - name: "LINEAR_OAUTH_PROVIDER"
-  value: {{ .Values.agentBuilder.oauth.linearOAuthProvider | quote }}
+  value: {{ .Values.config.agentBuilder.oauth.linearOAuthProvider | quote }}
 {{- end }}
-{{- if .Values.agentBuilder.oauth.githubOAuthProvider }}
+{{- if .Values.config.agentBuilder.oauth.githubOAuthProvider }}
 - name: "GITHUB_OAUTH_PROVIDER"
-  value: {{ .Values.agentBuilder.oauth.githubOAuthProvider | quote }}
+  value: {{ .Values.config.agentBuilder.oauth.githubOAuthProvider | quote }}
 {{- end }}
 {{- end -}}
 
 {{- define "agentBuilderToolServerEnvVars" -}}
 - name: "PORT"
-  value: "{{ .Values.agentBuilder.toolServer.containerPort }}"
+  value: "{{ .Values.agentBuilderToolServer.containerPort }}"
 {{- include "agentBuilderOAuthEnvVars" . }}
 {{- end -}}
 
 {{- define "agentBuilderTriggerServerEnvVars" -}}
 - name: "PORT"
-  value: "{{ .Values.agentBuilder.triggerServer.containerPort }}"
+  value: "{{ .Values.agentBuilderTriggerServer.containerPort }}"
 - name: "TRIGGER_SERVER_HOST_API_URL"
   value: "http://{{ include "langsmith.fullname" . }}-{{ .Values.hostBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.hostBackend.service.port }}"
 {{- include "agentBuilderOAuthEnvVars" . }}
-{{- if .Values.agentBuilder.oauth.slackSigningSecret }}
+{{- if .Values.config.agentBuilder.oauth.slackSigningSecret }}
 - name: "SLACK_SIGNING_SECRET"
-  value: {{ .Values.agentBuilder.oauth.slackSigningSecret | quote }}
+  value: {{ .Values.config.agentBuilder.oauth.slackSigningSecret | quote }}
 {{- end }}
-{{- if .Values.agentBuilder.oauth.slackBotId }}
+{{- if .Values.config.agentBuilder.oauth.slackBotId }}
 - name: "AGENT_BUILDER_SLACK_BOT_ID"
-  value: {{ .Values.agentBuilder.oauth.slackBotId | quote }}
+  value: {{ .Values.config.agentBuilder.oauth.slackBotId | quote }}
 {{- end }}
 {{- end -}}

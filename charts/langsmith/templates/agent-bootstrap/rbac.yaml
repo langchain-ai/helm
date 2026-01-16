@@ -1,5 +1,5 @@
 # RBAC for the agent bootstrap job to create/patch ConfigMaps and restart deployments
-{{- if and .Values.backend.agentBootstrap.enabled (or .Values.agentBuilder.enabled .Values.insightsAgent.enabled) }}
+{{- if and .Values.backend.agentBootstrap.enabled (or .Values.config.agentBuilder.enabled .Values.config.insights.enabled) }}
 apiVersion: v1
 kind: ServiceAccount
 metadata:
@@ -31,10 +31,10 @@ rules:
     resources: ["configmaps"]
     verbs: ["get", "patch", "update"]
     resourceNames:
-      {{- if .Values.agentBuilder.enabled }}
+      {{- if .Values.config.agentBuilder.enabled }}
       - {{ include "langsmith.fullname" . }}-agent-builder-config
       {{- end }}
-      {{- if .Values.insightsAgent.enabled }}
+      {{- if .Values.config.insights.enabled }}
       - {{ include "langsmith.fullname" . }}-insights-config
       {{- end }}
   # Permission to restart deployments after ConfigMap updates
@@ -43,10 +43,10 @@ rules:
     verbs: ["get", "patch"]
     resourceNames:
       - {{ include "langsmith.fullname" . }}-{{ .Values.frontend.name }}
-      {{- if .Values.agentBuilder.enabled }}
+      {{- if .Values.config.agentBuilder.enabled }}
       - {{ include "langsmith.fullname" . }}-agent-builder-trigger-server
       {{- end }}
-      {{- if .Values.insightsAgent.enabled }}
+      {{- if .Values.config.insights.enabled }}
       - {{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}
       {{- end }}
 ---

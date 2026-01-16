@@ -78,7 +78,7 @@ spec:
           envFrom:
             - configMapRef:
                 name: {{ include "langsmith.fullname" . }}-config
-            {{- if .Values.insightsAgent.enabled }}
+            {{- if .Values.config.insights.enabled }}
             - configMapRef:
                 name: {{ include "langsmith.fullname" . }}-insights-config
                 optional: true
