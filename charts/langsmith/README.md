@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.13.0](https://img.shields.io/badge/Version-0.13.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.12.76](https://img.shields.io/badge/AppVersion-0.12.76-informational?style=flat-square)
+![Version: 0.13.0](https://img.shields.io/badge/Version-0.13.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.13.1](https://img.shields.io/badge/AppVersion-0.13.1-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -34,7 +34,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | agentBuilder.agent.resources.memoryLimitMb | int | `8192` |  |
 | agentBuilder.agent.resources.memoryMb | int | `4096` |  |
 | agentBuilder.agent.resources.minScale | int | `1` |  |
-| agentBuilder.enabled | bool | `false` | Enable the Agent Builder feature |
+| agentBuilder.enabled | bool | `false` |  |
 | agentBuilder.encryptionKey | string | `""` | Fernet encryption key for agent builder secrets. Required when agentBuilder is enabled. Generate with: python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())" |
 | agentBuilder.oauth.githubOAuthProvider | string | `""` |  |
 | agentBuilder.oauth.googleOAuthProvider | string | `""` |  |
@@ -103,11 +103,6 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | agentBuilder.toolServer.serviceAccount.create | bool | `true` |  |
 | agentBuilder.toolServer.serviceAccount.labels | object | `{}` |  |
 | agentBuilder.toolServer.serviceAccount.name | string | `""` |  |
-| agentBuilder.triggerServer.autoscaling.createHpa | bool | `true` |  |
-| agentBuilder.triggerServer.autoscaling.enabled | bool | `false` |  |
-| agentBuilder.triggerServer.autoscaling.maxReplicas | int | `1` |  |
-| agentBuilder.triggerServer.autoscaling.minReplicas | int | `1` |  |
-| agentBuilder.triggerServer.autoscaling.targetCPUUtilizationPercentage | int | `80` |  |
 | agentBuilder.triggerServer.containerPort | int | `1990` |  |
 | agentBuilder.triggerServer.deployment.affinity | object | `{}` |  |
 | agentBuilder.triggerServer.deployment.annotations | object | `{}` |  |
@@ -127,7 +122,6 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | agentBuilder.triggerServer.deployment.readinessProbe.httpGet.port | int | `1990` |  |
 | agentBuilder.triggerServer.deployment.readinessProbe.periodSeconds | int | `10` |  |
 | agentBuilder.triggerServer.deployment.readinessProbe.timeoutSeconds | int | `1` |  |
-| agentBuilder.triggerServer.deployment.replicas | int | `1` |  |
 | agentBuilder.triggerServer.deployment.resources.limits.cpu | string | `"2000m"` |  |
 | agentBuilder.triggerServer.deployment.resources.limits.memory | string | `"4Gi"` |  |
 | agentBuilder.triggerServer.deployment.resources.requests.cpu | string | `"1000m"` |  |
@@ -146,10 +140,6 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | agentBuilder.triggerServer.deployment.volumes | list | `[]` |  |
 | agentBuilder.triggerServer.enabled | bool | `true` |  |
 | agentBuilder.triggerServer.name | string | `"agent-builder-trigger-server"` |  |
-| agentBuilder.triggerServer.pdb.annotations | object | `{}` |  |
-| agentBuilder.triggerServer.pdb.enabled | bool | `false` |  |
-| agentBuilder.triggerServer.pdb.labels | object | `{}` |  |
-| agentBuilder.triggerServer.pdb.minAvailable | int | `1` |  |
 | agentBuilder.triggerServer.service.annotations | object | `{}` |  |
 | agentBuilder.triggerServer.service.labels | object | `{}` |  |
 | agentBuilder.triggerServer.service.loadBalancerIP | string | `""` |  |
@@ -179,41 +169,41 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | gateway.sectionName | string | `""` |  |
 | images.aceBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.aceBackendImage.repository | string | `"docker.io/langchain/langsmith-ace-backend"` |  |
-| images.aceBackendImage.tag | string | `"0.12.76"` |  |
+| images.aceBackendImage.tag | string | `"0.13.1"` |  |
 | images.agentBuilderImage.pullPolicy | string | `"IfNotPresent"` |  |
-| images.agentBuilderImage.repository | string | `"docker.io/langchain/agent-builder"` |  |
-| images.agentBuilderImage.tag | string | `"TODO"` |  |
+| images.agentBuilderImage.repository | string | `"docker.io/langchain/agent-builder-deep-agent"` |  |
+| images.agentBuilderImage.tag | string | `"0.13.1"` |  |
 | images.agentBuilderToolServerImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.agentBuilderToolServerImage.repository | string | `"docker.io/langchain/agent-builder-tool-server"` |  |
-| images.agentBuilderToolServerImage.tag | string | `"TODO"` |  |
+| images.agentBuilderToolServerImage.tag | string | `"0.13.1"` |  |
 | images.agentBuilderTriggerServerImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.agentBuilderTriggerServerImage.repository | string | `"docker.io/langchain/agent-builder-trigger-server"` |  |
-| images.agentBuilderTriggerServerImage.tag | string | `"TODO"` |  |
+| images.agentBuilderTriggerServerImage.tag | string | `"0.13.1"` |  |
 | images.backendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.backendImage.repository | string | `"docker.io/langchain/langsmith-backend"` |  |
-| images.backendImage.tag | string | `"0.12.76"` |  |
+| images.backendImage.tag | string | `"0.13.1"` |  |
 | images.clickhouseImage.pullPolicy | string | `"Always"` |  |
 | images.clickhouseImage.repository | string | `"docker.io/clickhouse/clickhouse-server"` |  |
 | images.clickhouseImage.tag | string | `"25.4"` |  |
 | images.frontendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.frontendImage.repository | string | `"docker.io/langchain/langsmith-frontend"` |  |
-| images.frontendImage.tag | string | `"0.12.76"` |  |
+| images.frontendImage.tag | string | `"0.13.1"` |  |
 | images.hostBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.hostBackendImage.repository | string | `"docker.io/langchain/hosted-langserve-backend"` |  |
-| images.hostBackendImage.tag | string | `"0.12.76"` |  |
+| images.hostBackendImage.tag | string | `"0.13.1"` |  |
 | images.imagePullSecrets | list | `[]` | Secrets with credentials to pull images from a private registry. Specified as name: value. |
 | images.insightsAgentImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.insightsAgentImage.repository | string | `"docker.io/langchain/langsmith-clio"` |  |
-| images.insightsAgentImage.tag | string | `"0.12.76-amd64"` |  |
+| images.insightsAgentImage.tag | string | `"0.13.1"` |  |
 | images.operatorImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.operatorImage.repository | string | `"docker.io/langchain/langgraph-operator"` |  |
 | images.operatorImage.tag | string | `"0.1.23"` |  |
 | images.platformBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.platformBackendImage.repository | string | `"docker.io/langchain/langsmith-go-backend"` |  |
-| images.platformBackendImage.tag | string | `"0.12.76"` |  |
+| images.platformBackendImage.tag | string | `"0.13.1"` |  |
 | images.playgroundImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.playgroundImage.repository | string | `"docker.io/langchain/langsmith-playground"` |  |
-| images.playgroundImage.tag | string | `"0.12.76"` |  |
+| images.playgroundImage.tag | string | `"0.13.1"` |  |
 | images.postgresImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.postgresImage.repository | string | `"docker.io/postgres"` |  |
 | images.postgresImage.tag | string | `"14.7"` |  |

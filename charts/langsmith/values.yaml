@@ -33,23 +33,23 @@ images:
   aceBackendImage:
     repository: "docker.io/langchain/langsmith-ace-backend"
     pullPolicy: IfNotPresent
-    tag: "0.12.76"
+    tag: "0.13.1"
   backendImage:
     repository: "docker.io/langchain/langsmith-backend"
     pullPolicy: IfNotPresent
-    tag: "0.12.76"
+    tag: "0.13.1"
   insightsAgentImage:
     repository: "docker.io/langchain/langsmith-clio"
     pullPolicy: IfNotPresent
-    tag: "0.12.76-amd64"
+    tag: "0.13.1"
   frontendImage:
     repository: "docker.io/langchain/langsmith-frontend"
     pullPolicy: IfNotPresent
-    tag: "0.12.76"
+    tag: "0.13.1"
   hostBackendImage:
     repository: "docker.io/langchain/hosted-langserve-backend"
     pullPolicy: IfNotPresent
-    tag: "0.12.76"
+    tag: "0.13.1"
   operatorImage:
     repository: "docker.io/langchain/langgraph-operator"
     pullPolicy: IfNotPresent
@@ -57,11 +57,11 @@ images:
   platformBackendImage:
     repository: "docker.io/langchain/langsmith-go-backend"
     pullPolicy: IfNotPresent
-    tag: "0.12.76"
+    tag: "0.13.1"
   playgroundImage:
     repository: "docker.io/langchain/langsmith-playground"
     pullPolicy: IfNotPresent
-    tag: "0.12.76"
+    tag: "0.13.1"
   postgresImage:
     repository: "docker.io/postgres"
     pullPolicy: IfNotPresent
@@ -77,15 +77,15 @@ images:
   agentBuilderToolServerImage:
     repository: "docker.io/langchain/agent-builder-tool-server"
     pullPolicy: IfNotPresent
-    tag: "TODO"
+    tag: "0.13.1"
   agentBuilderTriggerServerImage:
     repository: "docker.io/langchain/agent-builder-trigger-server"
     pullPolicy: IfNotPresent
-    tag: "TODO"
+    tag: "0.13.1"
   agentBuilderImage:
-    repository: "docker.io/langchain/agent-builder"
+    repository: "docker.io/langchain/agent-builder-deep-agent"
     pullPolicy: IfNotPresent
-    tag: "TODO"
+    tag: "0.13.1"
 
 ingress:
   enabled: false
