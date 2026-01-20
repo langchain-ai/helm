@@ -1,0 +1,131 @@
+# Agent Builder configuration. Tests that the tool server and trigger server come up.
+# Requires config.deployment.enabled to be true.
+config:
+  langsmithLicenseKey: "YOUR_LICENSE_KEY"
+  apiKeySalt: "YOUR_API_KEY_SALT"
+  authType: "mixed"
+  initialOrgAdminEmail: "youremail@corp.dev"
+  basicAuth:
+    enabled: true
+    initialOrgAdminPassword: "TestLangSmith123!"
+    jwtSecret: "YOUR_JWT_SECRET"
+  deployment:
+    enabled: true
+  hostname: "test.smith.langchain.dev"
+  agentBuilder:
+    enabled: true
+    encryptionKey: "test-fernet-key-for-ci-only-32bytes"
+
+# Note, you likely should tweak the values to match something that fits your local development environment.
+aceBackend:
+  deployment:
+    resources:
+      requests:
+        cpu: 100m
+        memory: 500Mi
+
+backend:
+  deployment:
+    replicas: 1
+    resources:
+      requests:
+        cpu: 100m
+        memory: 500Mi
+  feedbackConfigMigration:
+    resources:
+      requests:
+        cpu: 100m
+        memory: 500Mi
+  feedbackDataMigration:
+    resources:
+      requests:
+        cpu: 100m
+        memory: 500Mi
+
+frontend:
+  deployment:
+    resources:
+      requests:
+        cpu: 100m
+        memory: 500Mi
+
+hostBackend:
+  deployment:
+    resources:
+      requests:
+        cpu: 100m
+        memory: 500Mi
+
+listener:
+  deployment:
+    resources:
+      requests:
+        cpu: 100m
+        memory: 500Mi
+
+operator:
+  deployment:
+    resources:
+      requests:
+        cpu: 100m
+        memory: 500Mi
+
+platformBackend:
+  replicas: 1
+  deployment:
+    resources:
+      requests:
+        cpu: 100m
+        memory: 500Mi
+
+playground:
+  deployment:
+    resources:
+      requests:
+        cpu: 100m
+        memory: 500Mi
+
+queue:
+  replicas: 1
+  deployment:
+    resources:
+      requests:
+        cpu: 100m
+        memory: 500Mi
+
+postgres:
+  statefulSet:
+    resources:
+      requests:
+        cpu: 200m
+        memory: 500Mi
+
+redis:
+  statefulSet:
+    resources:
+      requests:
+        cpu: 200m
+        memory: 500Mi
+
+clickhouse:
+  statefulSet:
+    resources:
+      requests:
+        cpu: 200m
+        memory: 500Mi
+
+agentBuilderToolServer:
+  enabled: true
+  deployment:
+    resources:
+      requests:
+        cpu: 100m
+        memory: 500Mi
+
+agentBuilderTriggerServer:
+  enabled: true
+  deployment:
+    resources:
+      requests:
+        cpu: 100m
+        memory: 500Mi
