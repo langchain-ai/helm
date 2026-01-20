@@ -57,6 +57,7 @@ listener:
         memory: 500Mi
 
 operator:
+  kedaEnabled: false
   deployment:
     resources:
       requests:
