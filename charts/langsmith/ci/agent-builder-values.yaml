@@ -16,6 +16,9 @@ config:
     enabled: true
     encryptionKey: "test-fernet-key-for-ci-only-32bytes"
 
+ingress:
+  enabled: true
+
 # Note, you likely should tweak the values to match something that fits your local development environment.
 aceBackend:
   deployment:
