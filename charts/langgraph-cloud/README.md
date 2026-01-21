@@ -1,6 +1,6 @@
 # langgraph-cloud
 
-![Version: 0.2.0](https://img.shields.io/badge/Version-0.2.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.2.0](https://img.shields.io/badge/AppVersion-0.2.0-informational?style=flat-square)
+![Version: 0.2.1](https://img.shields.io/badge/Version-0.2.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.2.1](https://img.shields.io/badge/AppVersion-0.2.1-informational?style=flat-square)
 
 Helm chart to deploy the LangGraph Cloud application and all services it depends on.
 
@@ -215,7 +215,7 @@ You can also use existingSecretName to avoid checking in secrets. This secret sh
 | images.registry | string | `""` | If supplied, all children <image_name>.repository values will be prepended with this registry name + `/` |
 | images.studioImage.pullPolicy | string | `"Always"` |  |
 | images.studioImage.repository | string | `"docker.io/langchain/langgraph-debugger"` |  |
-| images.studioImage.tag | string | `"0.12.40"` |  |
+| images.studioImage.tag | string | `"0.12.77"` |  |
 | ingress.annotations | object | `{}` |  |
 | ingress.enabled | bool | `false` |  |
 | ingress.hostname | string | `""` |  |
