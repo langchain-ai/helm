@@ -79,6 +79,14 @@ playground:
         cpu: 100m
         memory: 500Mi
 
+ingestQueue:
+  replicas: 1
+  deployment:
+    resources:
+      requests:
+        cpu: 100m
+        memory: 500Mi
+
 queue:
   replicas: 1
   deployment:
