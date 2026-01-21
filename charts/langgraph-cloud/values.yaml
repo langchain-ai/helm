@@ -25,7 +25,7 @@ images:
   apiServerImage:
     repository: "docker.io/langchain/langgraph-api"
     pullPolicy: Always
-    tag: "3.11"
+    tag: "3.11-28c1407"
   postgresImage:
     repository: "pgvector/pgvector"
     pullPolicy: IfNotPresent

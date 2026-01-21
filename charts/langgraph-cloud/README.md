@@ -204,7 +204,7 @@ You can also use existingSecretName to avoid checking in secrets. This secret sh
 | fullnameOverride | string | `""` | String to fully override `"langgraph-cloud.fullname"` |
 | images.apiServerImage.pullPolicy | string | `"Always"` |  |
 | images.apiServerImage.repository | string | `"docker.io/langchain/langgraph-api"` |  |
-| images.apiServerImage.tag | string | `"3.11"` |  |
+| images.apiServerImage.tag | string | `"3.11-28c1407"` |  |
 | images.imagePullSecrets | list | `[]` | Secrets with credentials to pull images from a private registry. Specified as name: value. |
 | images.postgresImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.postgresImage.repository | string | `"pgvector/pgvector"` |  |
