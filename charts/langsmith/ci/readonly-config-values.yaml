@@ -191,6 +191,7 @@ listener:
       readOnlyRootFilesystem: true
 
 operator:
+  createCRDs: false
   deployment:
     resources:
       requests:
