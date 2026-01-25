@@ -17,6 +17,50 @@ commonVolumes: []
 # -- Common volume mounts added to all deployments/statefulsets.
 commonVolumeMounts: []
 
+# Network Policy configuration
+networkPolicy:
+  # -- Enable network policy to block metadata endpoints and localhost
+  enabled: true
+
+  # -- Policy types to enforce
+  policyTypes:
+    - Egress
+
+  # -- Ingress rules (empty by default - no ingress restrictions)
+  ingress: []
+
+  # -- Egress rules
+  egress:
+    # Allow all IPv4 traffic except specified CIDRs
+    allowAllExcept:
+      cidr: 0.0.0.0/0
+      except:
+        - 169.254.169.254/32  # Cloud metadata endpoint (AWS, Azure, GCP)
+
+    # DNS resolution configuration
+    dns:
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+      # Optional: Restrict DNS to specific destinations
+      # to:
+      #   - namespaceSelector:
+      #       matchLabels:
+      #         name: kube-system
+
+    # Additional custom egress rules (optional)
+    # Example: Allow egress to specific external services
+    custom: []
+    # custom:
+    #   - to:
+    #     - ipBlock:
+    #         cidr: 10.0.0.0/8
+    #     ports:
+    #     - protocol: TCP
+    #       port: 443
+
 images:
    # -- If supplied, all children <image_name>.repository values will be prepended with this registry name + `/`
   registry: ""
