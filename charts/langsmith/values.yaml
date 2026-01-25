@@ -287,6 +287,25 @@ config:
     secretName: ""
     secretKey: ""
 
+  # -- Security configuration for CORS, headers, and other security-related settings. These settings control cross-origin access and help protect against common web vulnerabilities.
+  security:
+    # -- CORS (Cross-Origin Resource Sharing) configuration.
+    # Controls which origins can make requests to the LangSmith API.
+    # By default, CORS is permissive. For production deployments, you should restrict this.
+    cors:
+      # -- Comma-separated list of allowed origins. Use "*" to allow all origins (not recommended for production).
+      # Example: "https://app.example.com,https://admin.example.com"
+      # If allowedOriginsRegex is set, this value is ignored.
+      allowedOrigins: "*"
+      # -- Regular expression pattern for allowed origins. Takes precedence over allowedOrigins if set.
+      # Example: "https://.*\\.example\\.com" to allow all subdomains of example.com.
+      # Leave empty to use allowedOrigins instead.
+      allowedOriginsRegex: ""
+      # -- Regular expression pattern for paths that should always allow CORS from any origin.
+      # Useful for public endpoints like webhooks or public API endpoints.
+      # Example: ".*(/feedback/tokens/|/public/).*"
+      alwaysAllowPathsRegex: ""
+
 aceBackend:
   name: "ace-backend"
   containerPort: 1987

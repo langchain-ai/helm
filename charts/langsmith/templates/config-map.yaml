@@ -62,3 +62,12 @@ data:
   FF_USE_PG_FOR_FEEDBACK_CONFIGS_FETCH_ENABLED_ALL: "true"
   FF_USE_PG_FOR_FEEDBACK_FETCH_ENABLED_ALL: "true"
   IS_SELF_HOSTED: "true"
+  # Security - CORS configuration
+  {{- if .Values.config.security.cors.allowedOriginsRegex }}
+  CORS_ALLOWED_ORIGINS_REGEX: {{ .Values.config.security.cors.allowedOriginsRegex | quote }}
+  {{- else }}
+  CORS_ALLOWED_ORIGINS: {{ .Values.config.security.cors.allowedOrigins | quote }}
+  {{- end }}
+  {{- if .Values.config.security.cors.alwaysAllowPathsRegex }}
+  CORS_ALWAYS_ALLOW_PATHS_REGEX: {{ .Values.config.security.cors.alwaysAllowPathsRegex | quote }}
+  {{- end }}
