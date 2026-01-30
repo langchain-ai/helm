@@ -13,7 +13,9 @@ commonPodAnnotations: {}
 # -- Labels that will be applied to all resources created by the chart
 commonLabels: {}
 # -- Common environment variables that will be applied to all deployments/statefulsets except for the playground/aceBackend services (which are sandboxed). Be careful not to override values already specified by the chart.
-commonEnv: []
+commonEnv:
+  - name: ADHOC_QUEUE
+    value: "default"
 # -- Common volumes added to all deployments/statefulsets except for the playground/aceBackend services (which are sandboxed).
 commonVolumes: []
 # -- Common volume mounts added to all deployments/statefulsets except for the playground/aceBackend services (which are sandboxed).
