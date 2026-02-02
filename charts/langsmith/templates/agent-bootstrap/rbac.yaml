@@ -1,5 +1,5 @@
-# RBAC for the agent bootstrap job to create/patch ConfigMaps and restart deployments
-{{- if and .Values.backend.agentBootstrap.enabled (or .Values.config.agentBuilder.enabled .Values.config.insights.enabled) }}
+# ServiceAccount for the agent bootstrap job (needed whenever the job runs)
+{{- if and .Values.backend.agentBootstrap.enabled .Values.config.deployment.enabled }}
 apiVersion: v1
 kind: ServiceAccount
 metadata:
@@ -10,7 +10,10 @@ metadata:
     app.kubernetes.io/component: agent-bootstrap
   annotations:
     {{- include "langsmith.annotations" . | nindent 4 }}
+{{- end }}
 ---
+# Role + RoleBinding: only when at least one product is enabled (create path patches ConfigMaps and restarts deployments)
+{{- if and .Values.backend.agentBootstrap.enabled .Values.config.deployment.enabled (or .Values.config.agentBuilder.enabled .Values.config.insights.enabled) }}
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
