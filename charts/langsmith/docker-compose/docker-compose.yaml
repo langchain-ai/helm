@@ -220,7 +220,7 @@ services:
       timeout: 2s
       retries: 30
   langchain-clickhouse:
-    image: ${_REGISTRY:-docker.io}/clickhouse/clickhouse-server:25.10
+    image: ${_REGISTRY:-docker.io}/clickhouse/clickhouse-server:25.12
     user: "101:101"
     restart: always
     environment:

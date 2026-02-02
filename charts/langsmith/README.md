@@ -152,7 +152,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | images.backendImage.tag | string | `"0.13.4"` |  |
 | images.clickhouseImage.pullPolicy | string | `"Always"` |  |
 | images.clickhouseImage.repository | string | `"docker.io/clickhouse/clickhouse-server"` |  |
-| images.clickhouseImage.tag | string | `"25.4"` |  |
+| images.clickhouseImage.tag | string | `"25.12"` |  |
 | images.frontendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.frontendImage.repository | string | `"docker.io/langchain/langsmith-frontend"` |  |
 | images.frontendImage.tag | string | `"0.13.4"` |  |

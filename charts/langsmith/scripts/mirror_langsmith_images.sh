@@ -11,7 +11,7 @@
 set -euo pipefail
 
 # Default version
-DEFAULT_VERSION="0.10.66"
+DEFAULT_VERSION="0.13.3"
 
 ###############################################################################
 # CLI parsing
@@ -59,7 +59,7 @@ IMAGES=(
     "docker.io/langchain/langsmith-playground:${VERSION}"
     "docker.io/postgres:14.7"
     "docker.io/redis:7"
-    "docker.io/clickhouse/clickhouse-server:24.8"
+    "docker.io/clickhouse/clickhouse-server:25.12"
 )
 
 echo "Using version: ${VERSION}"
