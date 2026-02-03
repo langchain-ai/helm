@@ -127,6 +127,12 @@ config:
   # Requires config.deployment.enabled to be true
   insights:
     enabled: false
+    # Optional: the tenant that will contain the insights deployment, will default to the first created tenant when insights is bootstrapped
+    tenantId: ""
+    # The listener that will be associated with the insights deployment. You MUST specify this if the tenant is specified and the tenant has listeners
+    listenerId: ""
+    # The k8s namespace the insights deployment will live in. You MUST specify this if listenerId is specified
+    namespace: ""
     # Fernet encryption key for Insights. Required when enabled.
     # Generate with: python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
     encryptionKey: ""
@@ -143,6 +149,12 @@ config:
   # Requires config.deployment.enabled to be true
   agentBuilder:
     enabled: false
+    # Optional: the tenant that will contain the agent builder deployment, will default to the first created tenant when agent builder is bootstrapped
+    tenantId: ""
+    # The listener that will be associated with the agent builder deployment. You MUST specify this if the tenant is specified and the tenant has listeners
+    listenerId: ""
+    # The k8s namespace the agent builder deployment will live in. You MUST specify this if listenerId is specified
+    namespace: ""
     # Fernet encryption key for Agent Builder secrets. Required when enabled.
     # Generate with: python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
     encryptionKey: ""

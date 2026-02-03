@@ -86,15 +86,13 @@ spec:
             - "{{ join "," $destroyProducts }}"
             - "--create-products"
             - "{{ join "," $createProducts }}"
-            {{- if $createProducts }}
             - "--config"
             - |
               {
-              {{- if .Values.config.agentBuilder.enabled }}
                 "agent-builder": {
                   "image": "{{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "agentBuilderImage") }}",
                   "configmap_name": "{{ include "langsmith.fullname" . }}-agent-builder-config",
-                  "k8s_namespace": "{{ .Values.namespace | default .Release.Namespace }}",
+                  "k8s_namespace": "{{ if and .Values.config.agentBuilder.tenantId .Values.config.agentBuilder.listenerId }}{{ .Values.config.agentBuilder.namespace }}{{ end }}",
                   "restart_deployments": ["{{ include "langsmith.fullname" . }}-{{ .Values.frontend.name }}", "{{ include "langsmith.fullname" . }}-agent-builder-trigger-server"],
                   "cpu": {{ .Values.config.agentBuilder.agent.resources.cpu }},
                   "cpu_limit": {{ .Values.config.agentBuilder.agent.resources.cpuLimit }},
@@ -102,13 +100,17 @@ spec:
                   "memory_limit_mb": {{ .Values.config.agentBuilder.agent.resources.memoryLimitMb }},
                   "min_scale": {{ .Values.config.agentBuilder.agent.resources.minScale }},
                   "max_scale": {{ .Values.config.agentBuilder.agent.resources.maxScale }}
-                }{{- if .Values.config.insights.enabled }},{{- end }}
-              {{- end }}
-              {{- if .Values.config.insights.enabled }}
+                  {{- if .Values.config.agentBuilder.tenantId }},
+                  "tenant_id": {{ .Values.config.agentBuilder.tenantId | quote }}
+                  {{- end }}
+                  {{- if and .Values.config.agentBuilder.tenantId .Values.config.agentBuilder.listenerId }},
+                  "listener_id": {{ .Values.config.agentBuilder.listenerId | quote }}
+                  {{- end }}
+                },
                 "clio": {
                   "image": "{{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "insightsAgentImage") }}",
                   "configmap_name": "{{ include "langsmith.fullname" . }}-insights-config",
-                  "k8s_namespace": "{{ .Values.namespace | default .Release.Namespace }}",
+                  "k8s_namespace": "{{ if and .Values.config.insights.tenantId .Values.config.insights.listenerId }}{{ .Values.config.insights.namespace }}{{ end }}",
                   "restart_deployments": ["{{ include "langsmith.fullname" . }}-{{ .Values.frontend.name }}", "{{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}", "{{ include "langsmith.fullname" . }}-{{ .Values.queue.name }}"],
                   "cpu": {{ .Values.config.insights.agent.resources.cpu }},
                   "cpu_limit": {{ .Values.config.insights.agent.resources.cpuLimit }},
@@ -116,10 +118,14 @@ spec:
                   "memory_limit_mb": {{ .Values.config.insights.agent.resources.memoryLimitMb }},
                   "min_scale": {{ .Values.config.insights.agent.resources.minScale }},
                   "max_scale": {{ .Values.config.insights.agent.resources.maxScale }}
+                  {{- if .Values.config.insights.tenantId }},
+                  "tenant_id": {{ .Values.config.insights.tenantId | quote }}
+                  {{- end }}
+                  {{- if and .Values.config.insights.tenantId .Values.config.insights.listenerId }},
+                  "listener_id": {{ .Values.config.insights.listenerId | quote }}
+                  {{- end }}
                 }
-              {{- end }}
               }
-            {{- end }}
           env:
             {{- with $envVars }}
               {{- toYaml . | nindent 12 }}

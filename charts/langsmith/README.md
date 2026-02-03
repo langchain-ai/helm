@@ -277,6 +277,8 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | config.agentBuilder.agent.resources.minScale | int | `1` |  |
 | config.agentBuilder.enabled | bool | `false` |  |
 | config.agentBuilder.encryptionKey | string | `""` |  |
+| config.agentBuilder.listenerId | string | `""` |  |
+| config.agentBuilder.namespace | string | `""` |  |
 | config.agentBuilder.oauth.githubOAuthProvider | string | `""` |  |
 | config.agentBuilder.oauth.googleOAuthProvider | string | `""` |  |
 | config.agentBuilder.oauth.linearOAuthProvider | string | `""` |  |
@@ -285,6 +287,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | config.agentBuilder.oauth.slackOAuthProvider | string | `""` |  |
 | config.agentBuilder.oauth.slackSigningSecret | string | `""` |  |
 | config.agentBuilder.oauthProviderOrgId | string | `""` |  |
+| config.agentBuilder.tenantId | string | `""` |  |
 | config.apiKeySalt | string | `""` | Salt used to generate the API key. Should be a random string. |
 | config.authType | string | `""` | Must be 'oauth' for OAuth with PKCE, 'mixed' for basic auth or OAuth without PKCE |
 | config.basePath | string | `""` | Base path for the LangSmith installation. Used to serve the app under a subpath like example.com/langsmith. |
@@ -326,6 +329,9 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | config.insights.agent.resources.minScale | int | `1` |  |
 | config.insights.enabled | bool | `false` |  |
 | config.insights.encryptionKey | string | `""` |  |
+| config.insights.listenerId | string | `""` |  |
+| config.insights.namespace | string | `""` |  |
+| config.insights.tenantId | string | `""` |  |
 | config.langsmithLicenseKey | string | `""` |  |
 | config.logLevel | string | `"info"` |  |
 | config.oauth.enabled | bool | `false` |  |
@@ -442,7 +448,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 |-----|------|---------|-------------|
 | backend.agentBootstrap.affinity | object | `{}` |  |
 | backend.agentBootstrap.annotations | object | `{}` |  |
-| backend.agentBootstrap.enabled | bool | `false` |  |
+| backend.agentBootstrap.enabled | bool | `true` |  |
 | backend.agentBootstrap.extraEnv | list | `[]` |  |
 | backend.agentBootstrap.labels | object | `{}` |  |
 | backend.agentBootstrap.nodeSelector | object | `{}` |  |
