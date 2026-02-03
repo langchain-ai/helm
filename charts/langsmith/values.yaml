@@ -698,7 +698,7 @@ backend:
 
   # Deploys bundled agents (Agent Builder, Insights) via LangSmith Deployments API
   agentBootstrap:
-    enabled: false
+    enabled: true
     randomizeName: false
     labels: {}
     annotations: {}
