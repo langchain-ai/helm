@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.13.3](https://img.shields.io/badge/Version-0.13.3-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.13.4](https://img.shields.io/badge/AppVersion-0.13.4-informational?style=flat-square)
+![Version: 0.13.4](https://img.shields.io/badge/Version-0.13.4-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.13.5](https://img.shields.io/badge/AppVersion-0.13.5-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -137,41 +137,41 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | gateway.sectionName | string | `""` |  |
 | images.aceBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.aceBackendImage.repository | string | `"docker.io/langchain/langsmith-ace-backend"` |  |
-| images.aceBackendImage.tag | string | `"0.13.4"` |  |
+| images.aceBackendImage.tag | string | `"0.13.5"` |  |
 | images.agentBuilderImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.agentBuilderImage.repository | string | `"docker.io/langchain/agent-builder-deep-agent"` |  |
-| images.agentBuilderImage.tag | string | `"0.13.4"` |  |
+| images.agentBuilderImage.tag | string | `"0.13.5"` |  |
 | images.agentBuilderToolServerImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.agentBuilderToolServerImage.repository | string | `"docker.io/langchain/agent-builder-tool-server"` |  |
-| images.agentBuilderToolServerImage.tag | string | `"0.13.4"` |  |
+| images.agentBuilderToolServerImage.tag | string | `"0.13.5"` |  |
 | images.agentBuilderTriggerServerImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.agentBuilderTriggerServerImage.repository | string | `"docker.io/langchain/agent-builder-trigger-server"` |  |
-| images.agentBuilderTriggerServerImage.tag | string | `"0.13.4"` |  |
+| images.agentBuilderTriggerServerImage.tag | string | `"0.13.5"` |  |
 | images.backendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.backendImage.repository | string | `"docker.io/langchain/langsmith-backend"` |  |
-| images.backendImage.tag | string | `"0.13.4"` |  |
+| images.backendImage.tag | string | `"0.13.5"` |  |
 | images.clickhouseImage.pullPolicy | string | `"Always"` |  |
 | images.clickhouseImage.repository | string | `"docker.io/clickhouse/clickhouse-server"` |  |
 | images.clickhouseImage.tag | string | `"25.4"` |  |
 | images.frontendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.frontendImage.repository | string | `"docker.io/langchain/langsmith-frontend"` |  |
-| images.frontendImage.tag | string | `"0.13.4"` |  |
+| images.frontendImage.tag | string | `"0.13.5"` |  |
 | images.hostBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.hostBackendImage.repository | string | `"docker.io/langchain/hosted-langserve-backend"` |  |
-| images.hostBackendImage.tag | string | `"0.13.4"` |  |
+| images.hostBackendImage.tag | string | `"0.13.5"` |  |
 | images.imagePullSecrets | list | `[]` | Secrets with credentials to pull images from a private registry. Specified as name: value. |
 | images.insightsAgentImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.insightsAgentImage.repository | string | `"docker.io/langchain/langsmith-clio"` |  |
-| images.insightsAgentImage.tag | string | `"0.13.4"` |  |
+| images.insightsAgentImage.tag | string | `"0.13.5"` |  |
 | images.operatorImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.operatorImage.repository | string | `"docker.io/langchain/langgraph-operator"` |  |
 | images.operatorImage.tag | string | `"0.1.23"` |  |
 | images.platformBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.platformBackendImage.repository | string | `"docker.io/langchain/langsmith-go-backend"` |  |
-| images.platformBackendImage.tag | string | `"0.13.4"` |  |
+| images.platformBackendImage.tag | string | `"0.13.5"` |  |
 | images.playgroundImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.playgroundImage.repository | string | `"docker.io/langchain/langsmith-playground"` |  |
-| images.playgroundImage.tag | string | `"0.13.4"` |  |
+| images.playgroundImage.tag | string | `"0.13.5"` |  |
 | images.postgresImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.postgresImage.repository | string | `"docker.io/postgres"` |  |
 | images.postgresImage.tag | string | `"14.7"` |  |
@@ -340,6 +340,11 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | config.observability.tracing.exporter | string | `"http"` |  |
 | config.observability.tracing.useTls | bool | `true` |  |
 | config.personalOrgsDisabled | bool | `true` | Disable personal orgs. |
+| config.security | object | `{"cors":{"allowedOrigins":"*","allowedOriginsRegex":"","alwaysAllowPathsRegex":""}}` | Security configuration for CORS, headers, and other security-related settings. These settings control cross-origin access and help protect against common web vulnerabilities. |
+| config.security.cors | object | `{"allowedOrigins":"*","allowedOriginsRegex":"","alwaysAllowPathsRegex":""}` | CORS (Cross-Origin Resource Sharing) configuration. Controls which origins can make requests to the LangSmith API. By default, CORS is permissive. For production deployments, you should restrict this. |
+| config.security.cors.allowedOrigins | string | `"*"` | Comma-separated list of allowed origins. Use "*" to allow all origins (not recommended for production). Example: "https://app.example.com,https://admin.example.com" If allowedOriginsRegex is set, this value is ignored. |
+| config.security.cors.allowedOriginsRegex | string | `""` | Regular expression pattern for allowed origins. Takes precedence over allowedOrigins if set. Example: "https://.*\\.example\\.com" to allow all subdomains of example.com. Leave empty to use allowedOrigins instead. |
+| config.security.cors.alwaysAllowPathsRegex | string | `""` | Regular expression pattern for paths that should always allow CORS from any origin. Useful for public endpoints like webhooks or public API endpoints. Example: ".*(/feedback/tokens/|/public/).*" |
 | config.settings | object | `{"redisRunsExpirySeconds":"21600"}` | Application Settings. These are used to tune the application |
 | config.settings.redisRunsExpirySeconds | string | `"21600"` | Optional. Be very careful when lowering this value as it can result in runs being lost if your queue is down/not processing items fast enough. |
 | config.telemetry.logs | bool | `true` | Optional. These values are used to send telemetry to the LangChain team to assist with troubleshooting. |
