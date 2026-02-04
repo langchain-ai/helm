@@ -589,6 +589,28 @@ Template containing common environment variables that are used by several servic
 {{ printf "%s-%s" (include "langsmith.fullname" .) "agent-bootstrap" | trunc 63 | trimSuffix "-" }}
 {{- end -}}
 
+{{- define "agentBootstrap.createAgentProducts" -}}
+{{- $createProducts := list }}
+{{- if .Values.config.agentBuilder.enabled }}
+{{- $createProducts = append $createProducts "agent_builder" }}
+{{- end }}
+{{- if .Values.config.insights.enabled }}
+{{- $createProducts = append $createProducts "insights" }}
+{{- end }}
+{{ toYaml $createProducts }}
+{{- end -}}
+
+{{- define "agentBootstrap.destroyAgentProducts" -}}
+{{- $destroyProducts := list }}
+{{- if not .Values.config.agentBuilder.enabled }}
+{{- $destroyProducts = append $destroyProducts "agent_builder" }}
+{{- end }}
+{{- if not .Values.config.insights.enabled }}
+{{- $destroyProducts = append $destroyProducts "insights" }}
+{{- end }}
+{{ toYaml $destroyProducts }}
+{{- end -}}
+
 {{/* Fail on duplicate keys in the inputted list of environment variables */}}
 {{- define "langsmith.detectDuplicates" -}}
 {{- $inputList := . -}}

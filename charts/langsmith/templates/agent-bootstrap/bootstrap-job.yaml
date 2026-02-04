@@ -1,9 +1,12 @@
-{{- if and .Values.backend.agentBootstrap.enabled (or .Values.config.agentBuilder.enabled .Values.config.insights.enabled) }}
+{{- if and .Values.backend.agentBootstrap.enabled .Values.config.deployment.enabled }}
 {{- $envVars := concat .Values.commonEnv (include "langsmith.commonEnv" . | fromYamlArray) .Values.backend.agentBootstrap.extraEnv -}}
 {{- $volumes := concat .Values.commonVolumes (include "langsmith.tlsVolumes" . | fromYamlArray) -}}
 {{- $volumeMounts := concat .Values.commonVolumeMounts (include "langsmith.tlsVolumeMounts" . | fromYamlArray) }}
-# This job deploys bundled agents (Agent Builder, Insights) via the LangSmith Deployments API
-# It runs as a post-install/post-upgrade hook to ensure the agents are deployed after the rest of LangSmith is ready
+{{- $createProducts := include "agentBootstrap.createAgentProducts" . | fromYamlArray }}
+{{- $destroyProducts := include "agentBootstrap.destroyAgentProducts" . | fromYamlArray }}
+# This job creates/destroys bundled agents per product (Agent Builder, Insights) via the LangSmith Deployments API.
+# Each product is either create (enabled) or destroy (disabled) in a single run (e.g. turn off Agent Builder, turn on Insights).
+# It runs as a post-install/post-upgrade hook.
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -79,15 +82,11 @@ spec:
             - "python"
             - "scripts/deploy_bundled_agents.pyc"
           args:
-            - "--products"
-            {{- $products := list }}
-            {{- if .Values.config.agentBuilder.enabled }}
-            {{- $products = append $products "agent_builder" }}
-            {{- end }}
-            {{- if .Values.config.insights.enabled }}
-            {{- $products = append $products "insights" }}
-            {{- end }}
-            - "{{ join "," $products }}"
+            - "--destroy-products"
+            - "{{ join "," $destroyProducts }}"
+            - "--create-products"
+            - "{{ join "," $createProducts }}"
+            {{- if $createProducts }}
             - "--config"
             - |
               {
@@ -120,6 +119,7 @@ spec:
                 }
               {{- end }}
               }
+            {{- end }}
           env:
             {{- with $envVars }}
               {{- toYaml . | nindent 12 }}
