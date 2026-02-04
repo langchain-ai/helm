@@ -2,18 +2,8 @@
 {{- $envVars := concat .Values.commonEnv (include "langsmith.commonEnv" . | fromYamlArray) .Values.backend.agentBootstrap.extraEnv -}}
 {{- $volumes := concat .Values.commonVolumes (include "langsmith.tlsVolumes" . | fromYamlArray) -}}
 {{- $volumeMounts := concat .Values.commonVolumeMounts (include "langsmith.tlsVolumeMounts" . | fromYamlArray) }}
-{{- $createProducts := list }}
-{{- $destroyProducts := list }}
-{{- if .Values.config.agentBuilder.enabled }}
-{{- $createProducts = append $createProducts "agent_builder" }}
-{{- else }}
-{{- $destroyProducts = append $destroyProducts "agent_builder" }}
-{{- end }}
-{{- if .Values.config.insights.enabled }}
-{{- $createProducts = append $createProducts "insights" }}
-{{- else }}
-{{- $destroyProducts = append $destroyProducts "insights" }}
-{{- end }}
+{{- $createProducts := include "agentBootstrap.createAgentProducts" . | fromYamlArray }}
+{{- $destroyProducts := include "agentBootstrap.destroyAgentProducts" . | fromYamlArray }}
 # This job creates/destroys bundled agents per product (Agent Builder, Insights) via the LangSmith Deployments API.
 # Each product is either create (enabled) or destroy (disabled) in a single run (e.g. turn off Agent Builder, turn on Insights).
 # It runs as a post-install/post-upgrade hook.
