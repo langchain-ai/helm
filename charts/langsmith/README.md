@@ -165,7 +165,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | images.insightsAgentImage.tag | string | `"0.13.5"` |  |
 | images.operatorImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.operatorImage.repository | string | `"docker.io/langchain/langgraph-operator"` |  |
-| images.operatorImage.tag | string | `"0.1.23"` |  |
+| images.operatorImage.tag | string | `"0.1.34"` |  |
 | images.platformBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.platformBackendImage.repository | string | `"docker.io/langchain/langsmith-go-backend"` |  |
 | images.platformBackendImage.tag | string | `"0.13.5"` |  |
