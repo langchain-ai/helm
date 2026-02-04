@@ -33,7 +33,7 @@ images:
   operatorImage:
     repository: "docker.io/langchain/langgraph-operator"
     pullPolicy: IfNotPresent
-    tag: "0.1.23"
+    tag: "0.1.34"
 
 ingress:
   enabled: true
