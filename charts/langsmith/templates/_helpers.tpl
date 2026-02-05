@@ -586,7 +586,11 @@ Template containing common environment variables that are used by several servic
 {{- end -}}
 
 {{- define "agentBootstrap.serviceAccountName" -}}
-{{ printf "%s-%s" (include "langsmith.fullname" .) "agent-bootstrap" | trunc 63 | trimSuffix "-" }}
+{{- if .Values.backend.agentBootstrap.serviceAccount.create -}}
+    {{ default (printf "%s-%s" (include "langsmith.fullname" .) "agent-bootstrap") .Values.backend.agentBootstrap.serviceAccount.name | trunc 63 | trimSuffix "-" }}
+{{- else -}}
+    {{ default "default" .Values.backend.agentBootstrap.serviceAccount.name }}
+{{- end -}}
 {{- end -}}
 
 {{- define "agentBootstrap.createAgentProducts" -}}

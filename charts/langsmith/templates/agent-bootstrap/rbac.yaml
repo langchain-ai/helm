@@ -1,15 +1,22 @@
 # ServiceAccount for the agent bootstrap job (needed whenever the job runs)
-{{- if and .Values.backend.agentBootstrap.enabled .Values.config.deployment.enabled }}
+{{- if and .Values.backend.agentBootstrap.enabled .Values.config.deployment.enabled .Values.backend.agentBootstrap.serviceAccount.create }}
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: {{ include "langsmith.fullname" . }}-agent-bootstrap
+  name: {{ include "agentBootstrap.serviceAccountName" . }}
   namespace: {{ .Values.namespace | default .Release.Namespace }}
   labels:
     {{- include "langsmith.labels" . | nindent 4 }}
     app.kubernetes.io/component: agent-bootstrap
+    {{- with .Values.backend.agentBootstrap.serviceAccount.labels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
   annotations:
     {{- include "langsmith.annotations" . | nindent 4 }}
+    {{- with .Values.backend.agentBootstrap.serviceAccount.annotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+automountServiceAccountToken: {{ .Values.backend.agentBootstrap.serviceAccount.automountServiceAccountToken | default true }}
 {{- end }}
 ---
 # Role + RoleBinding: only when at least one product is enabled (create path patches ConfigMaps and restarts deployments)
@@ -65,7 +72,7 @@ metadata:
     {{- include "langsmith.annotations" . | nindent 4 }}
 subjects:
   - kind: ServiceAccount
-    name: {{ include "langsmith.fullname" . }}-agent-bootstrap
+    name: {{ include "agentBootstrap.serviceAccountName" . }}
     namespace: {{ .Values.namespace | default .Release.Namespace }}
 roleRef:
   kind: Role

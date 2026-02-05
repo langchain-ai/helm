@@ -453,6 +453,11 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | backend.agentBootstrap.resources.requests.cpu | string | `"100m"` |  |
 | backend.agentBootstrap.resources.requests.memory | string | `"256Mi"` |  |
 | backend.agentBootstrap.securityContext | object | `{}` |  |
+| backend.agentBootstrap.serviceAccount.annotations | object | `{}` |  |
+| backend.agentBootstrap.serviceAccount.automountServiceAccountToken | bool | `true` |  |
+| backend.agentBootstrap.serviceAccount.create | bool | `true` |  |
+| backend.agentBootstrap.serviceAccount.labels | object | `{}` |  |
+| backend.agentBootstrap.serviceAccount.name | string | `""` |  |
 | backend.agentBootstrap.tolerations | list | `[]` |  |
 | backend.agentBootstrap.topologySpreadConstraints | list | `[]` |  |
 | backend.agentBootstrap.ttlSecondsAfterFinished | int | `600` |  |
