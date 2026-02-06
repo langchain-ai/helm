@@ -448,7 +448,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 |-----|------|---------|-------------|
 | backend.agentBootstrap.affinity | object | `{}` |  |
 | backend.agentBootstrap.annotations | object | `{}` |  |
-| backend.agentBootstrap.enabled | bool | `true` |  |
+| backend.agentBootstrap.enabled | bool | `false` |  |
 | backend.agentBootstrap.extraEnv | list | `[]` |  |
 | backend.agentBootstrap.labels | object | `{}` |  |
 | backend.agentBootstrap.nodeSelector | object | `{}` |  |
