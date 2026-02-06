@@ -175,7 +175,7 @@ Template containing common environment variables that are used by several servic
       optional: {{ .Values.config.disableSecretCreation }}
 {{- if .Values.postgres.external.enabled }}
 - name: POSTGRES_SCHEMA
-  value: {{ .Values.postgres.external.schema }}
+  value: {{ .Values.postgres.external.schema | quote }}
 - name: POSTGRES_TLS
   value: {{ .Values.postgres.external.customTls | quote }}
 {{- if .Values.postgres.external.clientCert.secretName }}
@@ -281,9 +281,9 @@ Template containing common environment variables that are used by several servic
   value: /etc/clickhouse/certs/client.key
 {{- end }}
 - name: CLICKHOUSE_CLUSTER
-  value: {{ .Values.clickhouse.external.cluster }}
+  value: {{ .Values.clickhouse.external.cluster | quote }}
 - name: LOG_LEVEL
-  value: {{ .Values.config.logLevel }}
+  value: {{ .Values.config.logLevel | quote }}
 {{- if .Values.config.oauth.enabled }}
 - name: OAUTH_CLIENT_ID
   valueFrom:
