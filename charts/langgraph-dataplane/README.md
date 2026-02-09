@@ -13,26 +13,28 @@ You can find the guide to deploy a LangGraph Dataplane [here](https://langchain-
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
+| clusterDomain | string | `"cluster.local"` | Kubernetes cluster domain. Used for constructing service FQDNs. |
 | commonAnnotations | object | `{}` | Annotations that will be applied to all resources created by the chart |
 | commonEnv | list | `[]` | Common environment variables that will be applied to all deployments. |
 | commonLabels | object | `{}` | Labels that will be applied to all resources created by the chart |
 | commonVolumeMounts | list | `[]` | Common volume mounts added to all deployments/statefulsets. |
 | commonVolumes | list | `[]` | Common volumes added to all deployments/statefulsets. |
 | fullnameOverride | string | `""` | String to fully override `"langgraphDataplane.fullname"` |
-| gateway | object | `{"enabled":false,"hostname":"","name":"","namespace":""}` | Whether to use the Gateway API for ingress. Will create an HTTPRoute for each LangGraph platform deployment. Recommended for production use / if deploying multiple releases in the same cluster. |
+| gateway | object | `{"basePath":"","enabled":false,"hostname":"","name":"","namespace":""}` | Whether to use the Gateway API for ingress. Will create an HTTPRoute for each LangGraph platform deployment. Recommended for production use / if deploying multiple releases in the same cluster. |
 | images.imagePullSecrets | list | `[]` | Secrets with credentials to pull images from a private registry. Specified as name: value. |
 | images.listenerImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.listenerImage.repository | string | `"docker.io/langchain/hosted-langserve-backend"` |  |
-| images.listenerImage.tag | string | `"0.12.4"` |  |
+| images.listenerImage.tag | string | `"0.13.9"` |  |
 | images.operatorImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.operatorImage.repository | string | `"docker.io/langchain/langgraph-operator"` |  |
-| images.operatorImage.tag | string | `"0.1.34"` |  |
+| images.operatorImage.tag | string | `"0.1.36"` |  |
 | images.redisImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.redisImage.repository | string | `"docker.io/redis"` |  |
 | images.redisImage.tag | string | `"7"` |  |
 | images.registry | string | `""` | If supplied, all children <image_name>.repository values will be prepended with this registry name + `/` |
 | ingress.additionalPaths | list | `[]` |  |
 | ingress.annotations | object | `{}` |  |
+| ingress.basePath | string | `""` |  |
 | ingress.create | bool | `true` |  |
 | ingress.enabled | bool | `true` |  |
 | ingress.hostname | string | `""` |  |
@@ -41,7 +43,7 @@ You can find the guide to deploy a LangGraph Dataplane [here](https://langchain-
 | ingress.metricsPrefix | string | `""` | Set a prefix if using multiple ingresses pointed at the same hostname |
 | ingress.tls | list | `[]` |  |
 | ingress.tlsEnabled | bool | `true` |  |
-| istioGateway | object | `{"enabled":false,"hostname":"","name":"","namespace":""}` | Whether to use Istio VirtualServices for ingress. Will create a VirtualService for each LangGraph platform deployment. Recommended for production use / if deploying multiple releases in the same cluster. |
+| istioGateway | object | `{"basePath":"","enabled":false,"hostname":"","name":"","namespace":""}` | Whether to use Istio VirtualServices for ingress. Will create a VirtualService for each LangGraph platform deployment. Recommended for production use / if deploying multiple releases in the same cluster. |
 | nameOverride | string | `""` | Provide a name in place of `langgraphDataplane` |
 | namespace | string | `""` | Namespace to install the chart into. If not set, will use the namespace of the current context. |
 | operator.createCRDs | bool | `true` |  |

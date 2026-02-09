@@ -134,6 +134,10 @@ spec:
             value: {{ include "langsmith.hostnameWithoutProtocol" . | quote }}
           - name: TLS_ENABLED
             value: {{ .Values.config.deployment.tlsEnabled | quote }}
+          - name: BASE_PATH
+            value: {{ default .Values.config.basePath .Values.config.deployment.basePath | quote }}
+          - name: CLUSTER_DOMAIN
+            value: {{ .Values.clusterDomain | quote }}
         {{- with .Values.operator.deployment.extraEnv }}
           {{- toYaml . | nindent 12 }}
         {{- end }}

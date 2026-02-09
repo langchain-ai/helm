@@ -16,6 +16,8 @@ commonEnv: []
 commonVolumes: []
 # -- Common volume mounts added to all deployments/statefulsets.
 commonVolumeMounts: []
+# -- Kubernetes cluster domain. Used for constructing service FQDNs.
+clusterDomain: "cluster.local"
 
 images:
    # -- If supplied, all children <image_name>.repository values will be prepended with this registry name + `/`
@@ -25,7 +27,7 @@ images:
   listenerImage:
     repository: "docker.io/langchain/hosted-langserve-backend"
     pullPolicy: IfNotPresent
-    tag: "0.12.4"
+    tag: "0.13.9"
   redisImage:
     repository: "docker.io/redis"
     pullPolicy: IfNotPresent
@@ -33,7 +35,7 @@ images:
   operatorImage:
     repository: "docker.io/langchain/langgraph-operator"
     pullPolicy: IfNotPresent
-    tag: "0.1.34"
+    tag: "0.1.36"
 
 ingress:
   enabled: true
@@ -46,6 +48,9 @@ ingress:
   labels: {}
   tls: []
   tlsEnabled: true
+  # WARNING: Changing basePath after LangGraph Platform deployments have been created will break existing deployments.
+  # Existing deployments will need to be recreated for the new basePath to take effect.
+  basePath: ""
   additionalPaths: []
 
 # -- Whether to use the Gateway API for ingress. Will create an HTTPRoute for each LangGraph platform deployment. Recommended for production use / if deploying multiple releases in the same cluster.
@@ -54,6 +59,9 @@ gateway:
   name: ""
   namespace: ""
   hostname: ""
+  # WARNING: Changing basePath after LangGraph Platform deployments have been created will break existing deployments.
+  # Existing deployments will need to be recreated for the new basePath to take effect.
+  basePath: ""
 
 # -- Whether to use Istio VirtualServices for ingress. Will create a VirtualService for each LangGraph platform deployment. Recommended for production use / if deploying multiple releases in the same cluster.
 istioGateway:
@@ -61,6 +69,9 @@ istioGateway:
   name: ""
   namespace: ""
   hostname: ""
+  # WARNING: Changing basePath after LangGraph Platform deployments have been created will break existing deployments.
+  # Existing deployments will need to be recreated for the new basePath to take effect.
+  basePath: ""
 
 config:
   existingSecretName: ""

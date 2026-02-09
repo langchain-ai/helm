@@ -19,6 +19,13 @@ It only performs validation checks and fails template rendering if issues are fo
 {{- fail "Either ingress, gateway, or istioGateway must be enabled if LangGraph Platform is enabled." -}}
 {{- end -}}
 
+# Fail if Istio + LGP + basePath is set without a distinct LGP base path
+{{- if and .Values.istioGateway.enabled .Values.config.deployment.enabled .Values.config.basePath -}}
+  {{- if or (not .Values.config.deployment.basePath) (eq .Values.config.deployment.basePath .Values.config.basePath) -}}
+{{- fail "When istioGateway is enabled with LangGraph Platform and config.basePath is set, you must set config.deployment.basePath to a different value to avoid overlapping VirtualService prefixes. Istio does not deterministically guarantee longest-prefix routing across multiple VirtualServices." -}}
+  {{- end -}}
+{{- end -}}
+
 # Fail if hostname is missing when deployment is enabled
 {{- if and .Values.config.deployment.enabled (not .Values.config.hostname) }}
 {{- fail "config.hostname is required when LangGraph Platform deployment is enabled." -}}

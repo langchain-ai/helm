@@ -127,6 +127,10 @@ spec:
             value: {{ coalesce .Values.gateway.hostname .Values.ingress.hostname .Values.istioGateway.hostname | quote }}
           - name: TLS_ENABLED
             value: {{ .Values.ingress.tlsEnabled | quote }}
+          - name: BASE_PATH
+            value: {{ coalesce .Values.gateway.basePath .Values.ingress.basePath .Values.istioGateway.basePath | quote }}
+          - name: CLUSTER_DOMAIN
+            value: {{ .Values.clusterDomain | quote }}
         {{- with .Values.operator.deployment.extraEnv }}
           {{- toYaml . | nindent 12 }}
         {{- end }}
