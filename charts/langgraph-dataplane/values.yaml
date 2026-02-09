@@ -41,6 +41,8 @@ ingress:
   enabled: true
   create: true
   hostname: ""
+  # -- Namespace where the Ingress resource is created. If set (e.g. to your ingress controller's namespace), the Ingress is created there and the operator is configured to look for it in this namespace. Defaults to the release namespace.
+  namespace: ""
   # -- Set a prefix if using multiple ingresses pointed at the same hostname
   metricsPrefix: ""
   ingressClassName: ""

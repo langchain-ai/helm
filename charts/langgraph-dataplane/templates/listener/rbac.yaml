@@ -10,7 +10,7 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
-  name: {{ include "listener.serviceAccountName" $ }}-role
+  name: {{ include "langgraphDataplane.fullname" $ }}-listener
   namespace: {{ $ns | trim }}
   labels:
     {{- include "langgraphDataplane.labels" $ | nindent 4 }}
@@ -108,7 +108,7 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: {{ include "listener.serviceAccountName" $ }}-rolebinding
+  name: {{ include "langgraphDataplane.fullname" $ }}-listener
   namespace: {{ $ns | trim }}
   labels:
     {{- include "langgraphDataplane.labels" $ | nindent 4 }}
@@ -126,7 +126,7 @@ subjects:
     namespace: {{ $.Values.namespace | default $.Release.Namespace }}
 roleRef:
   kind: Role
-  name: {{ include "listener.serviceAccountName" $ }}-role
+  name: {{ include "langgraphDataplane.fullname" $ }}-listener
   apiGroup: rbac.authorization.k8s.io
 {{- end }}
 {{- end }}
