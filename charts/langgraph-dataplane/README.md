@@ -24,10 +24,10 @@ You can find the guide to deploy a LangGraph Dataplane [here](https://langchain-
 | images.imagePullSecrets | list | `[]` | Secrets with credentials to pull images from a private registry. Specified as name: value. |
 | images.listenerImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.listenerImage.repository | string | `"docker.io/langchain/hosted-langserve-backend"` |  |
-| images.listenerImage.tag | string | `"0.12.4"` |  |
+| images.listenerImage.tag | string | `"0.13.9"` |  |
 | images.operatorImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.operatorImage.repository | string | `"docker.io/langchain/langgraph-operator"` |  |
-| images.operatorImage.tag | string | `"0.1.34"` |  |
+| images.operatorImage.tag | string | `"0.1.36"` |  |
 | images.redisImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.redisImage.repository | string | `"docker.io/redis"` |  |
 | images.redisImage.tag | string | `"7"` |  |
