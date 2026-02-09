@@ -187,7 +187,7 @@ Template containing common environment variables that are used by several servic
 {{- end }}
 {{- if .Values.config.hostname }}
 - name: LANGSMITH_URL
-  value: {{ include "langsmith.hostnameWithoutProtocol" . }}
+  value: {{ include "langsmith.hostnameWithoutProtocol" . }}{{- with .Values.config.basePath }}/{{ . }}{{- end }}
 - name: HOST_BACKEND_ENDPOINT_PUBLIC
   value: {{ .Values.config.hostname }}/api-host
 {{- end }}

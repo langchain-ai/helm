@@ -1,7 +1,11 @@
 {{- define "hostBackendEnvVars" -}}
 - name: PORT
   value: {{ .Values.hostBackend.containerPort | quote }}
-{{- with .Values.config.basePath }}
+- name: HOSTED_K8S_BASE_PATH
+  value: {{ default .Values.config.basePath .Values.config.deployment.basePath | quote }}
+- name: HOSTED_K8S_CLUSTER_DOMAIN
+  value: {{ .Values.clusterDomain | quote }}
+{{- with (default .Values.config.basePath .Values.config.deployment.basePath) }}
 - name: HOST_DOCS_PREFIX
   value: /{{ . }}/api-host
 {{- end }}

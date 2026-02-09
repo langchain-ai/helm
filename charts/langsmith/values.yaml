@@ -53,7 +53,7 @@ images:
   operatorImage:
     repository: "docker.io/langchain/langgraph-operator"
     pullPolicy: IfNotPresent
-    tag: "0.1.34"
+    tag: "0.1.36"
   platformBackendImage:
     repository: "docker.io/langchain/langsmith-go-backend"
     pullPolicy: IfNotPresent
@@ -117,8 +117,10 @@ config:
   langsmithLicenseKey: ""
   # -- Configuration for LangSmith Deployments features
   deployment:
-      # -- Optional. Used to enable the LangSmith Deployment. Requires additional setup. Refer to the documentation for more information.
+      # -- Optional. Used to enable the LangSmith Deployments feature. Requires additional setup. Refer to the documentation for more information.
     enabled: false
+    # -- Base path for LangGraph Platform (LGP) routes managed by the operator.
+    basePath: ""
     tlsEnabled: true
     # Disable this if there is restricted access to the external facing ingress endpoint for your agent(s) from inside of your kubernetes cluster.
     ingressHealthCheckEnabled: true
@@ -199,6 +201,8 @@ config:
   # -- hostname of the LangSmith installation. Used for redirects and LangSmith deployments. Required for OAuth and LangSmith Deployments. E.g langsmith.com
   hostname: ""
   # -- Base path for the LangSmith installation. Used to serve the app under a subpath like example.com/langsmith.
+  # WARNING: Changing basePath after LangGraph Platform deployments have been created will break existing deployments.
+  # Existing deployments will need to be recreated for the new basePath to take effect.
   basePath: ""
 
   telemetry:

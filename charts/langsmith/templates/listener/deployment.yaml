@@ -5,6 +5,10 @@
   value: "3"
 - name: "PORT"
   value: {{ .Values.listener.containerPort | quote }}
+- name: HOSTED_K8S_BASE_PATH
+  value: {{ default .Values.config.basePath .Values.config.deployment.basePath | quote }}
+- name: HOSTED_K8S_CLUSTER_DOMAIN
+  value: {{ .Values.clusterDomain | quote }}
 {{- end -}}
 {{- $envVars := concat .Values.commonEnv (include "langsmith.commonEnv" . | fromYamlArray) (include "listenerEnvVars" . | fromYamlArray) .Values.listener.deployment.extraEnv -}}
 {{- include "langsmith.detectDuplicates" $envVars -}}
