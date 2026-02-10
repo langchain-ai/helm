@@ -38,6 +38,7 @@ spec:
         {{- end }}
     spec:
       serviceAccountName: {{ include "operator.serviceAccountName" . }}
+      automountServiceAccountToken: {{ .Values.operator.serviceAccount.automountServiceAccountToken | default true }}
       {{- with .Values.images.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
@@ -100,7 +101,7 @@ spec:
             subPath: database-statefulset.yaml.tmpl
             readOnly: true
         {{- with $volumeMounts }}
-          {{- toYaml . | nindent 12 }}
+          {{- toYaml . | nindent 10 }}
         {{- end }}
         env:
           - name: WATCH_NAMESPACE
@@ -121,7 +122,7 @@ spec:
           - name: SHARED_INGRESS_NAME
             value: {{ include "langgraphDataplane.fullname" . }}-ingress
           - name: SHARED_INGRESS_NAMESPACE
-            value: {{ .Values.namespace | default .Release.Namespace }}
+            value: {{ .Values.ingress.namespace | default .Values.namespace | default .Release.Namespace }}
         {{- end }}
           - name: ROOT_DOMAIN
             value: {{ coalesce .Values.gateway.hostname .Values.ingress.hostname .Values.istioGateway.hostname | quote }}
