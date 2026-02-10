@@ -60,8 +60,8 @@ jobs:
           docker pull docker.io/postgres:14.7
           kind load docker-image docker.io/postgres:14.7 --name chart-testing
 
-          docker pull docker.io/clickhouse/clickhouse-server:25.4
-          kind load docker-image docker.io/clickhouse/clickhouse-server:25.4 --name chart-testing
+          docker pull docker.io/clickhouse/clickhouse-server:25.12
+          kind load docker-image docker.io/clickhouse/clickhouse-server:25.12 --name chart-testing
 
       - name: Setup Redis with TLS for Custom CA Testing (LangSmith only)
         if: matrix.chart-name == 'langsmith'
