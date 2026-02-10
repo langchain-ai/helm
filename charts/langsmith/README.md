@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.13.9](https://img.shields.io/badge/Version-0.13.9-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.13.9](https://img.shields.io/badge/AppVersion-0.13.9-informational?style=flat-square)
+![Version: 0.13.10](https://img.shields.io/badge/Version-0.13.10-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.13.10](https://img.shields.io/badge/AppVersion-0.13.10-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -137,47 +137,47 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | gateway.sectionName | string | `""` |  |
 | images.aceBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.aceBackendImage.repository | string | `"docker.io/langchain/langsmith-ace-backend"` |  |
-| images.aceBackendImage.tag | string | `"0.13.7"` |  |
+| images.aceBackendImage.tag | string | `"0.13.10"` |  |
 | images.agentBuilderImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.agentBuilderImage.repository | string | `"docker.io/langchain/agent-builder-deep-agent"` |  |
-| images.agentBuilderImage.tag | string | `"0.13.7"` |  |
+| images.agentBuilderImage.tag | string | `"0.13.10"` |  |
 | images.agentBuilderToolServerImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.agentBuilderToolServerImage.repository | string | `"docker.io/langchain/agent-builder-tool-server"` |  |
-| images.agentBuilderToolServerImage.tag | string | `"0.13.7"` |  |
+| images.agentBuilderToolServerImage.tag | string | `"0.13.10"` |  |
 | images.agentBuilderTriggerServerImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.agentBuilderTriggerServerImage.repository | string | `"docker.io/langchain/agent-builder-trigger-server"` |  |
-| images.agentBuilderTriggerServerImage.tag | string | `"0.13.7"` |  |
+| images.agentBuilderTriggerServerImage.tag | string | `"0.13.10"` |  |
 | images.backendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.backendImage.repository | string | `"docker.io/langchain/langsmith-backend"` |  |
-| images.backendImage.tag | string | `"0.13.7"` |  |
+| images.backendImage.tag | string | `"0.13.10"` |  |
 | images.clickhouseImage.pullPolicy | string | `"Always"` |  |
 | images.clickhouseImage.repository | string | `"docker.io/clickhouse/clickhouse-server"` |  |
-| images.clickhouseImage.tag | string | `"25.4"` |  |
+| images.clickhouseImage.tag | string | `"25.12"` |  |
 | images.frontendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.frontendImage.repository | string | `"docker.io/langchain/langsmith-frontend"` |  |
-| images.frontendImage.tag | string | `"0.13.7"` |  |
+| images.frontendImage.tag | string | `"0.13.10"` |  |
 | images.hostBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.hostBackendImage.repository | string | `"docker.io/langchain/hosted-langserve-backend"` |  |
-| images.hostBackendImage.tag | string | `"0.13.7"` |  |
+| images.hostBackendImage.tag | string | `"0.13.10"` |  |
 | images.imagePullSecrets | list | `[]` | Secrets with credentials to pull images from a private registry. Specified as name: value. |
 | images.insightsAgentImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.insightsAgentImage.repository | string | `"docker.io/langchain/langsmith-clio"` |  |
-| images.insightsAgentImage.tag | string | `"0.13.7"` |  |
+| images.insightsAgentImage.tag | string | `"0.13.10"` |  |
 | images.operatorImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.operatorImage.repository | string | `"docker.io/langchain/langgraph-operator"` |  |
-| images.operatorImage.tag | string | `"0.1.36"` |  |
+| images.operatorImage.tag | string | `"0.1.37"` |  |
 | images.platformBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.platformBackendImage.repository | string | `"docker.io/langchain/langsmith-go-backend"` |  |
-| images.platformBackendImage.tag | string | `"0.13.7"` |  |
+| images.platformBackendImage.tag | string | `"0.13.10"` |  |
 | images.playgroundImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.playgroundImage.repository | string | `"docker.io/langchain/langsmith-playground"` |  |
-| images.playgroundImage.tag | string | `"0.13.7"` |  |
+| images.playgroundImage.tag | string | `"0.13.10"` |  |
 | images.postgresImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.postgresImage.repository | string | `"docker.io/postgres"` |  |
-| images.postgresImage.tag | string | `"14.7"` |  |
+| images.postgresImage.tag | string | `"15.15"` |  |
 | images.redisImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.redisImage.repository | string | `"docker.io/redis"` |  |
-| images.redisImage.tag | string | `"7"` |  |
+| images.redisImage.tag | string | `"8"` |  |
 | images.registry | string | `""` | If supplied, all children <image_name>.repository values will be prepended with this registry name + `/` |
 | ingestQueue.autoscaling.hpa.enabled | bool | `false` |  |
 | ingestQueue.autoscaling.hpa.maxReplicas | int | `10` |  |
@@ -348,6 +348,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | config.security.cors.alwaysAllowPathsRegex | string | `""` | Regular expression pattern for paths that should always allow CORS from any origin. Useful for public endpoints like webhooks or public API endpoints. Example: ".*(/feedback/tokens/|/public/).*" |
 | config.settings | object | `{"redisRunsExpirySeconds":"21600"}` | Application Settings. These are used to tune the application |
 | config.settings.redisRunsExpirySeconds | string | `"21600"` | Optional. Be very careful when lowering this value as it can result in runs being lost if your queue is down/not processing items fast enough. |
+| config.skipValidation | bool | `false` | Skip validation checks in validate.yaml. Used by AWS Marketplace for helm template verification. |
 | config.telemetry.logs | bool | `true` | Optional. These values are used to send telemetry to the LangChain team to assist with troubleshooting. |
 | config.telemetry.metrics | bool | `true` |  |
 | config.telemetry.traces | bool | `true` |  |
