@@ -10,8 +10,13 @@ This template validates configuration and prevents deployment when:
 
 This template intentionally does not render any Kubernetes resources.
 It only performs validation checks and fails template rendering if issues are found.
+
+Set config.skipValidation to true to skip all validation checks (e.g. for
+AWS Marketplace Helm template verification).
 ================================================================================
 */}}
+
+{{- if not .Values.config.skipValidation -}}
 
 {{- /* Validate ingress configuration */ -}}
 # Fail if none of ingress, gateway, or istioGateway are enabled and LangSmith Deployment is enabled
@@ -218,3 +223,5 @@ It only performs validation checks and fails template rendering if issues are fo
 {{- fail (printf "%s.autoscaling.enabled is deprecated. Please use %s.autoscaling.hpa.enabled and/or %s.autoscaling.keda.enabled instead." $serviceName $serviceName $serviceName) -}}
 {{- end -}}
 {{- end -}}
+
+{{- end -}}{{- /* end skipValidation */ -}}
