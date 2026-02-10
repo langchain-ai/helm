@@ -50,9 +50,7 @@ spec:
       containers:
         - name: {{ .Values.queue.name }}
           command:
-            - "python"
-            - "-m"
-            - "langgraph_api.queue_entrypoint"
+            - "/storage/queue_entrypoint.sh"
           env:
             - name: PORT
               value: {{ .Values.queue.containerPort | quote }}
