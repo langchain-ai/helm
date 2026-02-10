@@ -41,6 +41,8 @@ ingress:
   enabled: true
   create: true
   hostname: ""
+  # -- Namespace where the operator looks for the shared Ingress (SHARED_INGRESS_NAMESPACE). The Ingress resource, when created by this chart, is always placed in the release namespace so its backend Service (same namespace) is valid. Set this only when using an existing Ingress created elsewhere (e.g. ingress.create: false) so the operator can find it. Defaults to the release namespace.
+  namespace: ""
   # -- Set a prefix if using multiple ingresses pointed at the same hostname
   metricsPrefix: ""
   ingressClassName: ""

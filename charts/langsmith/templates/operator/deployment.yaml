@@ -43,6 +43,7 @@ spec:
         {{- end }}
     spec:
       serviceAccountName: {{ include "operator.serviceAccountName" . }}
+      automountServiceAccountToken: {{ .Values.operator.serviceAccount.automountServiceAccountToken | default true }}
       {{- with .Values.images.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
