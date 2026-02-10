@@ -50,7 +50,7 @@ spec:
       containers:
         - name: {{ .Values.queue.name }}
           command:
-            - "./queue_entrypoint.sh"
+            - "/storage/queue_entrypoint.sh"
           env:
             - name: PORT
               value: {{ .Values.queue.containerPort | quote }}
