@@ -69,7 +69,7 @@ images:
   redisImage:
     repository: "docker.io/redis"
     pullPolicy: IfNotPresent
-    tag: "7"
+    tag: "8"
   clickhouseImage:
     repository: "docker.io/clickhouse/clickhouse-server"
     pullPolicy: Always
