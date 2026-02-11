@@ -65,11 +65,11 @@ images:
   postgresImage:
     repository: "docker.io/postgres"
     pullPolicy: IfNotPresent
-    tag: "15.15"
+    tag: "14.7"
   redisImage:
     repository: "docker.io/redis"
     pullPolicy: IfNotPresent
-    tag: "8"
+    tag: "7"
   clickhouseImage:
     repository: "docker.io/clickhouse/clickhouse-server"
     pullPolicy: Always
