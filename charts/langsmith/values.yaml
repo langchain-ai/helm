@@ -27,47 +27,47 @@ clusterDomain: "cluster.local"
 
 images:
    # -- If supplied, all children <image_name>.repository values will be prepended with this registry name + `/`
-  registry: ""
+  registry: "docker.io"
    # -- Secrets with credentials to pull images from a private registry. Specified as name: value.
   imagePullSecrets: []
   aceBackendImage:
-    repository: "docker.io/langchain/langsmith-ace-backend"
+    repository: "langchain/langsmith-ace-backend"
     pullPolicy: IfNotPresent
     tag: "0.13.10"
   backendImage:
-    repository: "docker.io/langchain/langsmith-backend"
+    repository: "langchain/langsmith-backend"
     pullPolicy: IfNotPresent
     tag: "0.13.10"
   insightsAgentImage:
-    repository: "docker.io/langchain/langsmith-clio"
+    repository: "langchain/langsmith-clio"
     pullPolicy: IfNotPresent
     tag: "0.13.10"
   frontendImage:
-    repository: "docker.io/langchain/langsmith-frontend"
+    repository: "langchain/langsmith-frontend"
     pullPolicy: IfNotPresent
     tag: "0.13.10"
   hostBackendImage:
-    repository: "docker.io/langchain/hosted-langserve-backend"
+    repository: "langchain/hosted-langserve-backend"
     pullPolicy: IfNotPresent
     tag: "0.13.10"
   operatorImage:
-    repository: "docker.io/langchain/langgraph-operator"
+    repository: "langchain/langgraph-operator"
     pullPolicy: IfNotPresent
     tag: "0.1.37"
   platformBackendImage:
-    repository: "docker.io/langchain/langsmith-go-backend"
+    repository: "langchain/langsmith-go-backend"
     pullPolicy: IfNotPresent
     tag: "0.13.10"
   playgroundImage:
-    repository: "docker.io/langchain/langsmith-playground"
+    repository: "langchain/langsmith-playground"
     pullPolicy: IfNotPresent
     tag: "0.13.10"
   postgresImage:
-    repository: "docker.io/postgres"
+    repository: "postgres"
     pullPolicy: IfNotPresent
     tag: "15.15"
   redisImage:
-    repository: "docker.io/redis"
+    repository: "redis"
     pullPolicy: IfNotPresent
     tag: "8"
   clickhouseImage:
@@ -75,15 +75,15 @@ images:
     pullPolicy: Always
     tag: "25.12"
   agentBuilderToolServerImage:
-    repository: "docker.io/langchain/agent-builder-tool-server"
+    repository: "langchain/agent-builder-tool-server"
     pullPolicy: IfNotPresent
     tag: "0.13.10"
   agentBuilderTriggerServerImage:
-    repository: "docker.io/langchain/agent-builder-trigger-server"
+    repository: "langchain/agent-builder-trigger-server"
     pullPolicy: IfNotPresent
     tag: "0.13.10"
   agentBuilderImage:
-    repository: "docker.io/langchain/agent-builder-deep-agent"
+    repository: "langchain/agent-builder-deep-agent"
     pullPolicy: IfNotPresent
     tag: "0.13.10"
 
