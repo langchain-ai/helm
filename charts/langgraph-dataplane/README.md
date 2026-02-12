@@ -1,6 +1,6 @@
 # langgraph-dataplane
 
-![Version: 0.2.16](https://img.shields.io/badge/Version-0.2.16-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.13.9](https://img.shields.io/badge/AppVersion-0.13.9-informational?style=flat-square)
+![Version: 0.2.17](https://img.shields.io/badge/Version-0.2.17-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.13.9](https://img.shields.io/badge/AppVersion-0.13.9-informational?style=flat-square)
 
 Helm chart to deploy a langgraph dataplane on kubernetes.
 
@@ -41,6 +41,7 @@ You can find the guide to deploy a LangGraph Dataplane [here](https://langchain-
 | ingress.ingressClassName | string | `""` |  |
 | ingress.labels | object | `{}` |  |
 | ingress.metricsPrefix | string | `""` | Set a prefix if using multiple ingresses pointed at the same hostname |
+| ingress.namespace | string | `""` | Namespace where the operator looks for the shared Ingress (SHARED_INGRESS_NAMESPACE). The Ingress resource, when created by this chart, is always placed in the release namespace so its backend Service (same namespace) is valid. Set this only when using an existing Ingress created elsewhere (e.g. ingress.create: false) so the operator can find it. Defaults to the release namespace. |
 | ingress.tls | list | `[]` |  |
 | ingress.tlsEnabled | bool | `true` |  |
 | istioGateway | object | `{"basePath":"","enabled":false,"hostname":"","name":"","namespace":""}` | Whether to use Istio VirtualServices for ingress. Will create a VirtualService for each LangGraph platform deployment. Recommended for production use / if deploying multiple releases in the same cluster. |
