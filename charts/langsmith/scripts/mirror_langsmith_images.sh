@@ -15,7 +15,7 @@
 set -euo pipefail
 
 # Default version
-DEFAULT_VERSION="0.13.9"
+DEFAULT_VERSION="0.3.10"
 DEFAULT_OPERATOR_VERSION="0.1.37"
 
 ###############################################################################

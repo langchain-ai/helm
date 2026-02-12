@@ -7,14 +7,14 @@
 #   - AWS credentials must be valid with marketplace-catalog permissions.
 #
 # Usage:
-#   ./create_marketplace_version.sh --version 0.13.9
-#   ./create_marketplace_version.sh --version 0.13.9 --dry-run
+#   ./create_marketplace_version.sh --version 0.3.10
+#   ./create_marketplace_version.sh --version 0.3.10 --dry-run
 
 set -euo pipefail
 
 # Defaults
-DEFAULT_VERSION="0.13.9"
-DEFAULT_CHART_VERSION="0.13.9"
+DEFAULT_VERSION="0.3.10"
+DEFAULT_CHART_VERSION="0.3.10"
 DEFAULT_OPERATOR_VERSION="0.1.37"
 PRODUCT_ID="prod-6eamcxpv3kh6m"
 REGISTRY="709825985650.dkr.ecr.us-east-1.amazonaws.com"

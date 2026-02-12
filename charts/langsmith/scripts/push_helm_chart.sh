@@ -8,7 +8,7 @@
 #
 # Examples:
 # ./push_helm_chart.sh --registry 709825985650.dkr.ecr.us-east-1.amazonaws.com
-# ./push_helm_chart.sh --registry 709825985650.dkr.ecr.us-east-1.amazonaws.com --version 0.13.9 --dry-run
+# ./push_helm_chart.sh --registry 709825985650.dkr.ecr.us-east-1.amazonaws.com --version 0.3.10 --dry-run
 
 set -euo pipefail
 
@@ -16,7 +16,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CHART_DIR="${SCRIPT_DIR}/.."
 
 # Defaults
-DEFAULT_VERSION="0.13.9"
+DEFAULT_VERSION="0.3.10"
 DEFAULT_CHART_NAME="langchain-repository"
 DEFAULT_NAMESPACE="langchain"
 
