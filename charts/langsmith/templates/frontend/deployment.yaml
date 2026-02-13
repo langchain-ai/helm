@@ -138,6 +138,11 @@ spec:
                 name: {{ include "langsmith.fullname" . }}-agent-builder-config
                 optional: true
             {{- end }}
+            {{- if .Values.config.polly.enabled }}
+            - configMapRef:
+                name: {{ include "langsmith.fullname" . }}-polly-config
+                optional: true
+            {{- end }}
           image: {{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "frontendImage") | quote }}
           imagePullPolicy: {{ .Values.images.frontendImage.pullPolicy }}
           ports:

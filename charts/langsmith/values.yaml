@@ -42,6 +42,10 @@ images:
     repository: "docker.io/langchain/langsmith-clio"
     pullPolicy: IfNotPresent
     tag: "0.13.11"
+  pollyAgentImage:
+    repository: "docker.io/langchain/langsmith-polly"
+    pullPolicy: IfNotPresent
+    tag: "0.13.11"
   frontendImage:
     repository: "docker.io/langchain/langsmith-frontend"
     pullPolicy: IfNotPresent
@@ -132,6 +136,22 @@ config:
   insights:
     enabled: false
     # Fernet encryption key for Insights. Required when enabled.
+    # Generate with: python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
+    encryptionKey: ""
+    agent:
+      resources:
+        cpu: 2
+        cpuLimit: 4
+        memoryMb: 4096
+        memoryLimitMb: 8192
+        minScale: 1
+        maxScale: 5
+
+  # Polly configuration - in-app analysis agent
+  # Requires config.deployment.enabled to be true
+  polly:
+    enabled: false
+    # Fernet encryption key for Polly. Required when enabled.
     # Generate with: python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
     encryptionKey: ""
     agent:
