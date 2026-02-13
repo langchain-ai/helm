@@ -461,6 +461,14 @@ Template containing common environment variables that are used by several servic
       key: insights_encryption_key
       optional: false
 {{- end }}
+{{- if .Values.config.polly.enabled }}
+- name: POLLY_ENCRYPTION_KEY
+  valueFrom:
+    secretKeyRef:
+      name: {{ include "langsmith.secretsName" . }}
+      key: polly_encryption_key
+      optional: false
+{{- end }}
 {{- end }}
 
 
@@ -601,6 +609,9 @@ Template containing common environment variables that are used by several servic
 {{- if .Values.config.insights.enabled }}
 {{- $createProducts = append $createProducts "insights" }}
 {{- end }}
+{{- if .Values.config.polly.enabled }}
+{{- $createProducts = append $createProducts "polly" }}
+{{- end }}
 {{ toYaml $createProducts }}
 {{- end -}}
 
@@ -611,6 +622,9 @@ Template containing common environment variables that are used by several servic
 {{- end }}
 {{- if not .Values.config.insights.enabled }}
 {{- $destroyProducts = append $destroyProducts "insights" }}
+{{- end }}
+{{- if not .Values.config.polly.enabled }}
+{{- $destroyProducts = append $destroyProducts "polly" }}
 {{- end }}
 {{ toYaml $destroyProducts }}
 {{- end -}}

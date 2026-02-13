@@ -195,6 +195,14 @@ AWS Marketplace Helm template verification).
 {{- fail "config.insights.encryptionKey is required when Insights is enabled. Generate one with: python -c \"from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())\"" -}}
 {{- end -}}
 
+{{- /* Validate polly configuration */ -}}
+{{- if and .Values.config.polly.enabled (not .Values.config.deployment.enabled) -}}
+{{- fail "config.deployment.enabled must be true when Polly is enabled. Polly requires LangSmith Deployments." -}}
+{{- end -}}
+{{- if and .Values.config.polly.enabled (not .Values.config.polly.encryptionKey) (not .Values.config.existingSecretName) -}}
+{{- fail "config.polly.encryptionKey is required when Polly is enabled. Generate one with: python -c \"from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())\"" -}}
+{{- end -}}
+
 {{- /* Validate autoscaling configuration for all services */ -}}
 {{- $autoscalingServices := dict
   "aceBackend" .Values.aceBackend.autoscaling
