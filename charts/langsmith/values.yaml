@@ -62,14 +62,18 @@ images:
     repository: "docker.io/langchain/langsmith-playground"
     pullPolicy: IfNotPresent
     tag: "0.13.12"
+  # For production environments, we strongly recommend connecting to a managed PostgreSQL instance instead of using the one provided by the chart.
+  # Docs: https://docs.langchain.com/langsmith/self-host-external-postgres
   postgresImage:
     repository: "docker.io/postgres"
     pullPolicy: IfNotPresent
-    tag: "15.15"
+    tag: "14.7"
+  # For production environments, we strongly recommend connecting to a managed Redis instance instead of using the one provided by the chart.
+  # Docs: https://docs.langchain.com/langsmith/self-host-external-redis
   redisImage:
     repository: "docker.io/redis"
     pullPolicy: IfNotPresent
-    tag: "8"
+    tag: "7"
   clickhouseImage:
     repository: "docker.io/clickhouse/clickhouse-server"
     pullPolicy: Always
