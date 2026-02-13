@@ -54,13 +54,13 @@ jobs:
 
       - name: Pre-pull and load external images into kind
         run: |
-          docker pull docker.io/redis:7
+          docker pull --platform linux/amd64 docker.io/redis:7
           kind load docker-image docker.io/redis:7 --name chart-testing
 
-          docker pull docker.io/postgres:14.7
+          docker pull --platform linux/amd64 docker.io/postgres:14.7
           kind load docker-image docker.io/postgres:14.7 --name chart-testing
 
-          docker pull docker.io/clickhouse/clickhouse-server:25.4
+          docker pull --platform linux/amd64 docker.io/clickhouse/clickhouse-server:25.4
           kind load docker-image docker.io/clickhouse/clickhouse-server:25.4 --name chart-testing
 
       - name: Setup Redis with TLS for Custom CA Testing (LangSmith only)
