@@ -119,7 +119,7 @@ spec:
                 }{{- if .Values.config.polly.enabled }},{{- end }}
               {{- end }}
               {{- if .Values.config.polly.enabled }}
-                "smith-polly": {
+                "polly": {
                   "image": "{{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "pollyAgentImage") }}",
                   "configmap_name": "{{ include "langsmith.fullname" . }}-polly-config",
                   "k8s_namespace": "{{ .Values.namespace | default .Release.Namespace }}",

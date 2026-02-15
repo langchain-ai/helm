@@ -610,7 +610,7 @@ Template containing common environment variables that are used by several servic
 {{- $createProducts = append $createProducts "insights" }}
 {{- end }}
 {{- if .Values.config.polly.enabled }}
-{{- $createProducts = append $createProducts "smith_polly" }}
+{{- $createProducts = append $createProducts "polly" }}
 {{- end }}
 {{ toYaml $createProducts }}
 {{- end -}}
@@ -624,7 +624,7 @@ Template containing common environment variables that are used by several servic
 {{- $destroyProducts = append $destroyProducts "insights" }}
 {{- end }}
 {{- if not .Values.config.polly.enabled }}
-{{- $destroyProducts = append $destroyProducts "smith_polly" }}
+{{- $destroyProducts = append $destroyProducts "polly" }}
 {{- end }}
 {{ toYaml $destroyProducts }}
 {{- end -}}
