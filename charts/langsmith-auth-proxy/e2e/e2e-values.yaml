@@ -1,6 +1,6 @@
 authProxy:
   enabled: true
-  upstream: "http://echo-upstream:10001"
+  upstream: "http://fake-gateway:10001"
   jwtIssuer: "langsmith"
   jwtAudiences:
     - "test-audience"

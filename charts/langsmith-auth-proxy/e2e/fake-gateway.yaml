@@ -1,18 +1,18 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: echo-upstream
+  name: fake-gateway
   labels:
-    app: echo-upstream
+    app: fake-gateway
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: echo-upstream
+      app: fake-gateway
   template:
     metadata:
       labels:
-        app: echo-upstream
+        app: fake-gateway
     spec:
       containers:
         - name: echo
@@ -26,12 +26,12 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: echo-upstream
+  name: fake-gateway
   labels:
-    app: echo-upstream
+    app: fake-gateway
 spec:
   selector:
-    app: echo-upstream
+    app: fake-gateway
   ports:
     - port: 10001
       targetPort: 10001

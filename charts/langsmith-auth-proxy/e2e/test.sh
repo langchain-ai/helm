@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
 # End-to-end test for langsmith-auth-proxy chart.
-# Spins up a kind cluster, deploys an echo upstream + the chart with a
+# Spins up a kind cluster, deploys an fake gateway + the chart with a
 # Python ext_authz sidecar, and runs curl-based tests through the proxy.
 set -euo pipefail
+
+CLAIMS_FILE="${1:-}"
 
 CLUSTER_NAME="auth-proxy-e2e"
 RELEASE_NAME="auth-proxy-e2e"
@@ -74,24 +76,50 @@ PUB_JWK=$(step crypto key format --jwk < "$TMPDIR_KEYS/pub.pem")
 JWKS_JSON=$(echo "$PUB_JWK" | jq -c '{keys: [. + {use: "sig", alg: "RS256"}]}')
 echo "JWKS: $JWKS_JSON"
 
-# Mint a valid JWT
+# Mint a valid JWT with claims matching LangSmith's token structure.
+# Standard claims are set via flags; custom claims are piped as JSON via stdin.
+# Pass a .json file as $1 to override the default custom claims.
 NOW=$(date +%s)
 EXP=$(( NOW + 3600 ))
-JWT=$(step crypto jwt sign \
+JTI=$(uuidgen | tr '[:upper:]' '[:lower:]')
+
+if [[ -n "$CLAIMS_FILE" ]]; then
+  echo "Using custom claims from: $CLAIMS_FILE"
+  CUSTOM_CLAIMS=$(jq -c '.' "$CLAIMS_FILE")
+else
+  echo "Using default fake claims"
+  CUSTOM_CLAIMS=$(jq -nc \
+    --arg jti "$JTI" \
+    --arg req "$JTI" \
+    '{
+      jti: $jti,
+      ls_user_id: "e2e-ls-user-id",
+      organization_id: "e2e-org-id",
+      workspace_id: "e2e-workspace-id",
+      model_provider: "fake-provider",
+      model_name: "fake-model",
+      streaming: false,
+      request_id: $req,
+      actor_type: "user"
+    }')
+fi
+echo "Custom claims: $CUSTOM_CLAIMS"
+
+JWT=$(echo "$CUSTOM_CLAIMS" | step crypto jwt sign \
   --key "$TMPDIR_KEYS/priv.pem" \
   --iss "langsmith" \
   --aud "test-audience" \
-  --sub "e2e-test" \
+  --sub "e2e-test-user-id" \
   --nbf "$NOW" \
   --exp "$EXP")
 echo "JWT: ${JWT:0:40}..."
 
 rm -rf "$TMPDIR_KEYS"
 
-# ── 4. Deploy echo upstream ─────────────────────────────────────────
-log "Deploying echo upstream"
-kubectl apply --context "kind-$CLUSTER_NAME" -f "$SCRIPT_DIR/echo-upstream.yaml"
-kubectl rollout status deployment/echo-upstream --context "kind-$CLUSTER_NAME" --timeout=90s
+# ── 4. Deploy fake gateway ─────────────────────────────────────────
+log "Deploying fake gateway"
+kubectl apply --context "kind-$CLUSTER_NAME" -f "$SCRIPT_DIR/fake-gateway.yaml"
+kubectl rollout status deployment/fake-gateway --context "kind-$CLUSTER_NAME" --timeout=90s
 
 # ── 5. Deploy chart ─────────────────────────────────────────────────
 log "Creating ext-authz-script ConfigMap"
@@ -166,6 +194,13 @@ log "Test 4: POST /v1/chat/completions with garbage JWT → 401"
 STATUS=$(curl -s -o /dev/null -w '%{http_code}' -X POST "$BASE/v1/chat/completions" \
   -H "X-LangSmith-LLM-Auth: garbage.jwt.token")
 assert_status "Garbage JWT returns 401" "401" "$STATUS"
+
+# ── 8. Logs ──────────────────────────────────────────────────────────
+log "Echo upstream logs"
+kubectl logs --context "kind-$CLUSTER_NAME" -l app=fake-gateway --tail=100
+
+log "ext_authz sidecar logs"
+kubectl logs --context "kind-$CLUSTER_NAME" "$AUTH_POD" -c ext-authz-mock --tail=100
 
 # ── Summary ──────────────────────────────────────────────────────────
 echo ""
