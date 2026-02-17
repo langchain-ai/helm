@@ -86,10 +86,6 @@ images:
     repository: "docker.io/langchain/agent-builder-trigger-server"
     pullPolicy: IfNotPresent
     tag: "0.13.14"
-  authProxyImage:
-    repository: "docker.io/envoyproxy/envoy"
-    pullPolicy: IfNotPresent
-    tag: "v1.37-latest"
   agentBuilderImage:
     repository: "docker.io/langchain/agent-builder-deep-agent"
     pullPolicy: IfNotPresent
