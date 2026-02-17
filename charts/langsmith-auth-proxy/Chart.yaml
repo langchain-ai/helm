@@ -1,0 +1,9 @@
+apiVersion: v2
+name: langsmith-auth-proxy
+maintainers:
+  - name: Brian
+    email: brian@langchain.dev
+description: Helm chart to deploy the langsmith auth-proxy application.
+type: application
+version: 0.0.1
+appVersion: "1.37.0"
