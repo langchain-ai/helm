@@ -2168,6 +2168,7 @@ agentBuilderTriggerServer:
 
 # Auth Proxy - Optional Envoy-based proxy for validating LangSmith-signed JWTs
 # and optionally calling an external auth service before forwarding to an upstream LLM provider or gateway.
+# Separate ingress from the main LangSmith app — different hostname, streaming-optimized.
 authProxy:
   enabled: false
   name: "auth-proxy"
@@ -2194,6 +2195,24 @@ authProxy:
     sendBody: false
     # -- Maximum request body bytes to buffer for ext_authz
     maxRequestBytes: 8192
+  ingress:
+    enabled: false
+    ingressClassName: ""
+    labels: {}
+    # -- Annotations for streaming support. Defaults shown are for nginx ingress controller.
+    annotations: {}
+    #   nginx.ingress.kubernetes.io/proxy-buffering: "off"
+    #   nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    #   nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+    hosts: []
+    #   - host: llm-proxy.example.com
+    #     paths:
+    #       - path: /
+    #         pathType: Prefix
+    tls: []
+    #   - secretName: llm-proxy-tls
+    #     hosts:
+    #       - llm-proxy.example.com
   # -- ArgoCD Rollouts configuration. If enabled, will create a Rollout resource instead of a Deployment. See https://argo-rollouts.readthedocs.io/
   rollout:
     enabled: false
