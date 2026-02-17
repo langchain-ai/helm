@@ -1,0 +1,17 @@
+# CI values for testing auth proxy chart.
+
+authProxy:
+  enabled: true
+  upstream: "https://api.openai.com"
+  jwtIssuer: "langsmith"
+  jwtAudiences:
+    - "test-audience"
+  jwksJson: '{"keys": [{"kty": "RSA","use": "sig","alg": "RS256","kid": "f98e5ea5-2ee6-4141-b1fd-9a3ecb6648fd","d": "Ntcd3fjgYh1ytShRgfgEScbc1t_9H6mNZ5nkyjUJ9WpMUmBk9MltimV0qMDRWs85695c30YD-Uf5VMvgYszSQZZo3iNWX8bfKEffqYboN2zNyhvomB1dboyUXz4I3B4-7Zrxgdamd1adOPg7Rxedck8a3oJwE9FzpypCg67-mQjTnZ8RTTtu5ekvoXYsrR30qI_lWUGiA9aL6pCbTEQOjBombLNkOlwl2Hh7FORSvM3ViEMop7rMDvMAWRPcBcpJgwHhQTBhBx1QMi01DmdX7kXnnsTgrU4bxX9zgIXtBV7Fhlk1bvIVqOTT7M3JMbQG_MXLXjRbvj7bAHta1FRE9Q","n": "uqHU2bRgvKIBe88_ikr3MLdTa4W55gv3DjVFuB6hZxaJIbOzGXE3-FRf7cfqg0Exysow5uuXUUTtq_zaE3AZLvEOt3CmQ3su_OxHPsytTHwLcc74NCL7hozv1uAQTMWAof4_KvyYIYOX5_wRgwoahQJPDSvbQpZvjdxUR7muVps65idF6lZrvoRYQiyuyMzozyFYAqiOI9VIud3Z9S2gSsHRhExPf8UD-HKiTKPUOlWLCwiU9FWWRgYse0jPwzU6j2lXu38aJjJd43ROH7OrcWp4fdLY-pjLQb6rz-RshTgXPkvZxTmfLVSqUkHr0xkM-Rb4T1CmvV4DuXNDBkfkgw","e": "AQAB"}]}'
+  streamIdleTimeout: "300s"
+  extAuthz:
+    enabled: true
+    serviceUrl: "http://auth-service:8080"
+    timeout: "10s"
+
+ingress:
+  enabled: false

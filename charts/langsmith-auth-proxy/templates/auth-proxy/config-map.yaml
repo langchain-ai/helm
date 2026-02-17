@@ -1,0 +1,170 @@
+{{- if .Values.authProxy.enabled }}
+{{- $upstreamScheme := (urlParse .Values.authProxy.upstream).scheme -}}
+{{- $upstreamHostname := include "authProxy.urlHostname" .Values.authProxy.upstream -}}
+{{- $upstreamPort := include "authProxy.urlPort" .Values.authProxy.upstream -}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "authProxy.fullname" . }}-{{ .Values.authProxy.name }}
+  namespace: {{ .Values.namespace | default .Release.Namespace }}
+  labels:
+    {{- include "authProxy.labels" . | nindent 4 }}
+  annotations:
+    {{- include "authProxy.annotations" . | nindent 4 }}
+data:
+  envoy.yaml: |
+    static_resources:
+      listeners:
+        - name: listener_0
+          address:
+            socket_address:
+              address: 0.0.0.0
+              port_value: 10000
+          filter_chains:
+            - filters:
+                - name: envoy.filters.network.http_connection_manager
+                  typed_config:
+                    "@type": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
+                    stat_prefix: ingress_http
+                    route_config:
+                      name: local_route
+                      virtual_hosts:
+                        - name: upstream
+                          domains: ["*"]
+                          routes:
+                            - match:
+                                prefix: "/"
+                              route:
+                                cluster: upstream_provider
+                                host_rewrite_literal: {{ $upstreamHostname }}
+                                timeout: 0s
+                                idle_timeout: {{ .Values.authProxy.streamIdleTimeout }}
+                    http_filters:
+                      - name: envoy.filters.http.health_check
+                        typed_config:
+                          "@type": type.googleapis.com/envoy.extensions.filters.http.health_check.v3.HealthCheck
+                          pass_through_mode: false
+                          headers:
+                            - name: ":path"
+                              string_match:
+                                exact: "/healthz"
+                      - name: envoy.filters.http.jwt_authn
+                        typed_config:
+                          "@type": type.googleapis.com/envoy.extensions.filters.http.jwt_authn.v3.JwtAuthentication
+                          providers:
+                            langsmith_jwt:
+                              issuer: {{ .Values.authProxy.jwtIssuer }}
+                              {{- if .Values.authProxy.jwtAudiences }}
+                              audiences:
+                                {{- range .Values.authProxy.jwtAudiences }}
+                                - {{ . | quote }}
+                                {{- end }}
+                              {{- end }}
+                              local_jwks:
+                                inline_string: '{{ .Values.authProxy.jwksJson }}'
+                              from_headers:
+                                - name: X-LangSmith-LLM-Auth
+                              forward: true
+                          rules:
+                            - match:
+                                prefix: "/"
+                              requires:
+                                provider_name: langsmith_jwt
+                      {{- if .Values.authProxy.extAuthz.enabled }}
+                      - name: envoy.filters.http.ext_authz
+                        typed_config:
+                          "@type": type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthz
+                          failure_mode_allow: false
+                          allowed_headers:
+                            patterns:
+                              - safe_regex:
+                                  regex: {{ .Values.authProxy.extAuthz.allowedHeadersRegex | quote }}
+                          {{- if .Values.authProxy.extAuthz.disallowedHeadersRegex }}
+                          disallowed_headers:
+                            patterns:
+                              - safe_regex:
+                                  regex: {{ .Values.authProxy.extAuthz.disallowedHeadersRegex | quote }}
+                          {{- end }}
+                          http_service:
+                            server_uri:
+                              uri: {{ .Values.authProxy.extAuthz.serviceUrl }}
+                              cluster: ext_authz_service
+                              timeout: {{ .Values.authProxy.extAuthz.timeout }}
+                            path_prefix: "/check"
+                            {{- if .Values.authProxy.extAuthz.headersToAdd }}
+                            authorization_request:
+                              headers_to_add:
+                                {{- range .Values.authProxy.extAuthz.headersToAdd }}
+                                - key: {{ .key | quote }}
+                                  value: {{ .value | quote }}
+                                {{- end }}
+                            {{- end }}
+                            authorization_response:
+                              allowed_upstream_headers:
+                                patterns:
+                                {{- if .Values.authProxy.extAuthz.allowedUpstreamHeaders }}
+                                  {{- range .Values.authProxy.extAuthz.allowedUpstreamHeaders }}
+                                  {{- if .exact }}
+                                  - exact: {{ .exact | quote }}
+                                  {{- else if .prefix }}
+                                  - prefix: {{ .prefix | quote }}
+                                  {{- else if .safe_regex }}
+                                  - safe_regex:
+                                      regex: {{ .safe_regex | quote }}
+                                  {{- end }}
+                                  {{- end }}
+                                {{- else }}
+                                  - safe_regex:
+                                      regex: ".*"
+                                {{- end }}
+                              allowed_client_headers:
+                                patterns:
+                                  - exact: "www-authenticate"
+                                  - prefix: "x-"
+                          {{- if .Values.authProxy.extAuthz.sendBody }}
+                          with_request_body:
+                            max_request_bytes: {{ .Values.authProxy.extAuthz.maxRequestBytes }}
+                            allow_partial_message: false
+                          {{- end }}
+                      {{- end }}
+                      - name: envoy.filters.http.router
+                        typed_config:
+                          "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
+
+      clusters:
+        - name: upstream_provider
+          connect_timeout: 5s
+          type: LOGICAL_DNS
+          dns_lookup_family: V4_ONLY
+          load_assignment:
+            cluster_name: upstream_provider
+            endpoints:
+              - lb_endpoints:
+                  - endpoint:
+                      address:
+                        socket_address:
+                          address: {{ $upstreamHostname }}
+                          port_value: {{ $upstreamPort }}
+          {{- if eq $upstreamScheme "https" }}
+          transport_socket:
+            name: envoy.transport_sockets.tls
+            typed_config:
+              "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.UpstreamTlsContext
+              sni: {{ $upstreamHostname }}
+          {{- end }}
+        {{- if .Values.authProxy.extAuthz.enabled }}
+        - name: ext_authz_service
+          connect_timeout: 5s
+          type: STRICT_DNS
+          dns_lookup_family: V4_ONLY
+          load_assignment:
+            cluster_name: ext_authz_service
+            endpoints:
+              - lb_endpoints:
+                  - endpoint:
+                      address:
+                        socket_address:
+                          address: {{ include "authProxy.urlHostname" .Values.authProxy.extAuthz.serviceUrl }}
+                          port_value: {{ include "authProxy.urlPort" .Values.authProxy.extAuthz.serviceUrl }}
+        {{- end }}
+{{- end }}

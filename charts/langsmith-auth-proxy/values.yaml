@@ -1,0 +1,186 @@
+# -- Provide a name in place of `langsmith-auth-proxy`
+nameOverride: ""
+# -- String to fully override `"langsmith.fullname"`
+fullnameOverride: ""
+# -- Namespace to install the chart into. If not set, will use the namespace of the current context.
+namespace: ""
+# -- Annotations that will be applied to all resources created by the chart
+commonAnnotations: {}
+# -- Annotations that will be applied to all pods created by the chart
+commonPodAnnotations: {}
+# -- Labels that will be applied to all resources created by the chart
+commonLabels: {}
+# -- Common pod security context applied to all pods. Component-specific podSecurityContext values will be merged on top of this (component values take precedence).
+commonPodSecurityContext: {}
+
+images:
+  # -- If supplied, all children <image_name>.repository values will be prepended with this registry name + `/`
+  registry: ""
+  imagePullSecrets: []
+  authProxyImage:
+    repository: "docker.io/envoyproxy/envoy"
+    pullPolicy: IfNotPresent
+    tag: "v1.37-latest"
+
+# Auth Proxy - Envoy-based proxy for validating LangSmith-signed JWTs
+# and optionally calling an external auth service before forwarding to an upstream LLM provider or gateway.
+# Separate ingress from the main LangSmith app — different hostname, streaming-optimized.
+authProxy:
+  enabled: true
+  name: "auth-proxy"
+  containerPort: 10000
+  # -- Upstream LLM provider URL (e.g. https://api.openai.com)
+  upstream: ""
+  # -- JWT issuer claim to validate
+  jwtIssuer: "langsmith"
+  # -- JWT audience claims to validate. Must match audiences in the signed JWT.
+  jwtAudiences: []
+  # -- JWKS JSON string containing the public keys for JWT validation.
+  # Generate with the LangSmith JWKS tooling and paste the full JSON here.
+  jwksJson: ""
+  # -- Idle timeout for streaming responses (e.g. SSE from LLM providers)
+  streamIdleTimeout: "300s"
+  # External authorization service configuration (for injecting LLM provider auth headers).
+  # See https://www.envoyproxy.io/docs/envoy/latest/api-v3/extensions/filters/http/ext_authz/v3/ext_authz.proto for details.
+  extAuthz:
+    enabled: false
+    # -- HTTP service URL for ext_authz (e.g. http://my-auth-service:8080)
+    serviceUrl: ""
+    # -- Timeout for ext_authz requests
+    timeout: "10s"
+    # -- Regex controlling which client request headers are forwarded to the ext_authz service. Defaults to all headers.
+    # Maps to http_service.allowed_headers. Uses Google RE2 syntax: https://github.com/google/re2/wiki/Syntax.
+    allowedHeadersRegex: ".*"
+    # -- Regex controlling which client request headers are NOT forwarded to the ext_authz service (higher precedence than allowedHeadersRegex).
+    # Maps to http_service.disallowed_headers. Uses Google RE2 syntax: https://github.com/google/re2/wiki/Syntax.
+    disallowedHeadersRegex: ""
+    # -- Static headers to add to every ext_authz check request (authorization_request.headers_to_add).
+    # Example: [{key: "x-auth-context", value: "langsmith"}]
+    headersToAdd: []
+    # -- Patterns controlling which ext_authz response headers are forwarded upstream (authorization_response.allowed_upstream_headers).
+    # Each entry is an object with one of these keys: `exact`, `prefix`, or `safe_regex`.
+    # @default -- `[{exact: "authorization"}, {prefix: "x-"}]`
+    allowedUpstreamHeaders: []
+    # -- Whether to send the request body to ext_authz
+    sendBody: false
+    # -- Maximum request body bytes to buffer for ext_authz
+    maxRequestBytes: 8192
+  # -- ArgoCD Rollouts configuration. If enabled, will create a Rollout resource instead of a Deployment. See https://argo-rollouts.readthedocs.io/
+  rollout:
+    enabled: false
+    # -- Rollout strategy configuration. See https://argo-rollouts.readthedocs.io/en/stable/features/specification/
+    strategy:
+      canary:
+        steps:
+          - setWeight: 100
+  deployment:
+    replicas: 1
+    labels: {}
+    annotations: {}
+    podSecurityContext: {}
+    securityContext: {}
+    resources:
+      limits:
+        cpu: 500m
+        memory: 256Mi
+      requests:
+        cpu: 100m
+        memory: 128Mi
+    command:
+      - "envoy"
+      - "-c"
+      - "/etc/envoy/envoy.yaml"
+    startupProbe:
+      httpGet:
+        path: /healthz
+        port: 10000
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 1
+    livenessProbe:
+      httpGet:
+        path: /healthz
+        port: 10000
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 1
+    readinessProbe:
+      httpGet:
+        path: /healthz
+        port: 10000
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 1
+    extraContainerConfig: {}
+    extraEnv: []
+    sidecars: []
+    initContainers: []
+    nodeSelector: {}
+    tolerations: []
+    topologySpreadConstraints: []
+    affinity: {}
+    volumes: []
+    volumeMounts: []
+    terminationGracePeriodSeconds: 30
+  # Autoscaling configuration.
+  autoscaling:
+    # HPA-specific configuration
+    hpa:
+      enabled: false
+      minReplicas: 1
+      maxReplicas: 5
+      targetCPUUtilizationPercentage: 50
+      targetMemoryUtilizationPercentage: 80
+      additionalMetrics: []
+  pdb:
+    enabled: false
+    minAvailable: 1
+    labels: {}
+    annotations: {}
+  service:
+    type: ClusterIP
+    port: 10000
+    labels: {}
+    annotations: {}
+    loadBalancerSourceRanges: []
+    loadBalancerIP: ""
+  serviceAccount:
+    create: true
+    name: ""
+    labels: {}
+    annotations: {}
+    automountServiceAccountToken: true
+
+# -- Ingress configuration
+ingress:
+  enabled: false
+  ingressClassName: ""
+  labels: {}
+  # -- Annotations for streaming support. Defaults shown are for nginx ingress controller.
+  annotations: {}
+  #   nginx.ingress.kubernetes.io/proxy-buffering: "off"
+  #   nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+  #   nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+  hosts: []
+  #   - host: llm-proxy.example.com
+  #     paths:
+  #       - path: /
+  #         pathType: Prefix
+  tls: []
+  #   - secretName: llm-proxy-tls
+  #     hosts:
+  #       - llm-proxy.example.com
+
+# -- Gateway API HTTPRoute configuration
+gateway:
+  enabled: false
+  # -- Name of the Gateway resource to attach to
+  name: ""
+  # -- Namespace of the Gateway resource (if different from chart namespace)
+  namespace: ""
+  # -- SectionName of the Gateway listener to attach to
+  sectionName: ""
+  labels: {}
+  annotations: {}
+  # -- Hostnames to match on
+  hostnames: []

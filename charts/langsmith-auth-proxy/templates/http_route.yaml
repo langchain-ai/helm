@@ -1,0 +1,38 @@
+{{- if .Values.gateway.enabled }}
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: {{ include "authProxy.fullname" . }}
+  namespace: {{ .Values.namespace | default .Release.Namespace }}
+  annotations:
+    {{- include "authProxy.annotations" . | nindent 4 }}
+    {{- with .Values.gateway.annotations }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+  labels:
+    {{- include "authProxy.labels" . | nindent 4 }}
+    {{- with .Values.gateway.labels }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  parentRefs:
+  - name: {{ .Values.gateway.name }}
+    {{- if .Values.gateway.namespace }}
+    namespace: {{ .Values.gateway.namespace }}
+    {{- end }}
+    {{- if .Values.gateway.sectionName }}
+    sectionName: {{ .Values.gateway.sectionName }}
+    {{- end }}
+  {{- with .Values.gateway.hostnames }}
+  hostnames:
+    {{- toYaml . | nindent 2 }}
+  {{- end }}
+  rules:
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /
+    backendRefs:
+    - name: {{ include "authProxy.fullname" . }}-{{ .Values.authProxy.name }}
+      port: {{ .Values.authProxy.service.port }}
+{{- end }}
