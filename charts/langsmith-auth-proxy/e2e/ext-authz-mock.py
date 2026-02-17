@@ -11,6 +11,7 @@ import sys
 class Handler(BaseHTTPRequestHandler):
     def do_any(self):
         print(f"ext_authz check: {self.command} {self.path}", flush=True)
+        print(f"  body: {self.rfile.read(int(self.headers['content-length']))}", flush=True)
         for k, v in self.headers.items():
             print(f"  {k}: {v}", flush=True)
         self.send_response(200)
