@@ -1,19 +1,7 @@
 {{- if .Values.authProxy.enabled }}
-{{- $upstreamUrl := urlParse .Values.authProxy.upstream -}}
-{{- $upstreamScheme := $upstreamUrl.scheme -}}
-{{- $upstreamHost := $upstreamUrl.host -}}
-{{- $hostParts := splitList ":" $upstreamHost -}}
-{{- $upstreamHostname := index $hostParts 0 -}}
-{{- $upstreamPort := "" -}}
-{{- if gt (len $hostParts) 1 -}}
-  {{- $upstreamPort = index $hostParts 1 -}}
-{{- else -}}
-  {{- if eq $upstreamScheme "https" -}}
-    {{- $upstreamPort = "443" -}}
-  {{- else -}}
-    {{- $upstreamPort = "80" -}}
-  {{- end -}}
-{{- end -}}
+{{- $upstreamScheme := (urlParse .Values.authProxy.upstream).scheme -}}
+{{- $upstreamHostname := include "authProxy.urlHostname" .Values.authProxy.upstream -}}
+{{- $upstreamPort := include "authProxy.urlPort" .Values.authProxy.upstream -}}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -87,23 +75,48 @@ data:
                         typed_config:
                           "@type": type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthz
                           failure_mode_allow: false
+                          allowed_headers:
+                            patterns:
+                              - safe_regex:
+                                  regex: {{ .Values.authProxy.extAuthz.allowedHeadersRegex | quote }}
+                          {{- if .Values.authProxy.extAuthz.disallowedHeadersRegex }}
+                          disallowed_headers:
+                            patterns:
+                              - safe_regex:
+                                  regex: {{ .Values.authProxy.extAuthz.disallowedHeadersRegex | quote }}
+                          {{- end }}
                           http_service:
                             server_uri:
                               uri: {{ .Values.authProxy.extAuthz.serviceUrl }}
                               cluster: ext_authz_service
                               timeout: {{ .Values.authProxy.extAuthz.timeout }}
                             path_prefix: "/check"
+                            {{- if .Values.authProxy.extAuthz.headersToAdd }}
                             authorization_request:
-                              allowed_headers:
-                                patterns:
-                                  - exact: "x-langsmith-llm-auth"
-                                  - prefix: "x-"
+                              headers_to_add:
+                                {{- range .Values.authProxy.extAuthz.headersToAdd }}
+                                - key: {{ .key | quote }}
+                                  value: {{ .value | quote }}
+                                {{- end }}
+                            {{- end }}
                             authorization_response:
                               allowed_upstream_headers:
                                 patterns:
-                                  - exact: "authorization"
-                                  - exact: "x-langsmith-llm-auth"
-                                  - prefix: "x-forwarded-"
+                                {{- if .Values.authProxy.extAuthz.allowedUpstreamHeaders }}
+                                  {{- range .Values.authProxy.extAuthz.allowedUpstreamHeaders }}
+                                  {{- if .exact }}
+                                  - exact: {{ .exact | quote }}
+                                  {{- else if .prefix }}
+                                  - prefix: {{ .prefix | quote }}
+                                  {{- else if .safe_regex }}
+                                  - safe_regex:
+                                      regex: {{ .safe_regex | quote }}
+                                  {{- end }}
+                                  {{- end }}
+                                {{- else }}
+                                  - safe_regex:
+                                      regex: ".*"
+                                {{- end }}
                               allowed_client_headers:
                                 patterns:
                                   - exact: "www-authenticate"
@@ -140,16 +153,6 @@ data:
               sni: {{ $upstreamHostname }}
           {{- end }}
         {{- if .Values.authProxy.extAuthz.enabled }}
-        {{- $extAuthzUrl := urlParse .Values.authProxy.extAuthz.serviceUrl }}
-        {{- $extAuthzHost := $extAuthzUrl.host }}
-        {{- $extAuthzParts := splitList ":" $extAuthzHost }}
-        {{- $extAuthzHostname := index $extAuthzParts 0 }}
-        {{- $extAuthzPort := "" }}
-        {{- if gt (len $extAuthzParts) 1 }}
-          {{- $extAuthzPort = index $extAuthzParts 1 }}
-        {{- else }}
-          {{- $extAuthzPort = "80" }}
-        {{- end }}
         - name: ext_authz_service
           connect_timeout: 5s
           type: STRICT_DNS
@@ -161,7 +164,7 @@ data:
                   - endpoint:
                       address:
                         socket_address:
-                          address: {{ $extAuthzHostname }}
-                          port_value: {{ $extAuthzPort }}
+                          address: {{ include "authProxy.urlHostname" .Values.authProxy.extAuthz.serviceUrl }}
+                          port_value: {{ include "authProxy.urlPort" .Values.authProxy.extAuthz.serviceUrl }}
         {{- end }}
 {{- end }}

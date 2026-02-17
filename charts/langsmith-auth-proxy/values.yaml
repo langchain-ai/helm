@@ -40,13 +40,27 @@ authProxy:
   jwksJson: ""
   # -- Idle timeout for streaming responses (e.g. SSE from LLM providers)
   streamIdleTimeout: "300s"
-  # External authorization service configuration (for injecting LLM provider auth headers)
+  # External authorization service configuration (for injecting LLM provider auth headers).
+  # See https://www.envoyproxy.io/docs/envoy/latest/api-v3/extensions/filters/http/ext_authz/v3/ext_authz.proto for details.
   extAuthz:
     enabled: false
     # -- HTTP service URL for ext_authz (e.g. http://my-auth-service:8080)
     serviceUrl: ""
     # -- Timeout for ext_authz requests
     timeout: "10s"
+    # -- Regex controlling which client request headers are forwarded to the ext_authz service. Defaults to all headers.
+    # Maps to http_service.allowed_headers. Uses Google RE2 syntax: https://github.com/google/re2/wiki/Syntax.
+    allowedHeadersRegex: ".*"
+    # -- Regex controlling which client request headers are NOT forwarded to the ext_authz service (higher precedence than allowedHeadersRegex).
+    # Maps to http_service.disallowed_headers. Uses Google RE2 syntax: https://github.com/google/re2/wiki/Syntax.
+    disallowedHeadersRegex: ""
+    # -- Static headers to add to every ext_authz check request (authorization_request.headers_to_add).
+    # Example: [{key: "x-auth-context", value: "langsmith"}]
+    headersToAdd: []
+    # -- Patterns controlling which ext_authz response headers are forwarded upstream (authorization_response.allowed_upstream_headers).
+    # Each entry is an object with one of these keys: `exact`, `prefix`, or `safe_regex`.
+    # @default -- `[{exact: "authorization"}, {prefix: "x-"}]`
+    allowedUpstreamHeaders: []
     # -- Whether to send the request body to ext_authz
     sendBody: false
     # -- Maximum request body bytes to buffer for ext_authz

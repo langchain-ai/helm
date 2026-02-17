@@ -98,6 +98,30 @@ Creates the image reference used for deployments. If registry is specified, conc
 {{- end -}}
 {{- end -}}
 
+{{/*
+Extract hostname from a URL string.
+Usage: include "authProxy.urlHostname" "http://example.com:8080"
+*/}}
+{{- define "authProxy.urlHostname" -}}
+{{- $url := urlParse . -}}
+{{- $parts := splitList ":" $url.host -}}
+{{- index $parts 0 -}}
+{{- end -}}
+
+{{/*
+Extract port from a URL string. Defaults to 443 for https, 80 for http.
+Usage: include "authProxy.urlPort" "http://example.com:8080"
+*/}}
+{{- define "authProxy.urlPort" -}}
+{{- $url := urlParse . -}}
+{{- $parts := splitList ":" $url.host -}}
+{{- if gt (len $parts) 1 -}}
+{{- index $parts 1 -}}
+{{- else -}}
+{{- if eq $url.scheme "https" -}}443{{- else -}}80{{- end -}}
+{{- end -}}
+{{- end -}}
+
 {{- define "authProxy.serviceAccountName" -}}
 {{- if .Values.authProxy.serviceAccount.create -}}
     {{ default (printf "%s-%s" (include "authProxy.fullname" .) .Values.authProxy.name) .Values.authProxy.serviceAccount.name | trunc 63 | trimSuffix "-" }}

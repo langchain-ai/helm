@@ -173,21 +173,39 @@ log "Test 2: POST /v1/chat/completions without JWT → 401"
 STATUS=$(curl -s -o /dev/null -w '%{http_code}' -X POST "$BASE/v1/chat/completions")
 assert_status "No JWT returns 401" "401" "$STATUS"
 
-log "Test 3: POST /v1/chat/completions with valid JWT → 200 + injected header"
+log "Test 3: POST /v1/chat/completions with valid JWT → 200 + header add/remove"
 RESP=$(curl -s -w '\n%{http_code}' -X POST "$BASE/v1/chat/completions" \
   -H "X-LangSmith-LLM-Auth: $JWT" \
+  -H "X-Remove-Me: should-be-removed" \
   -H "Content-Type: application/json" \
   -d '{"model":"test"}')
 BODY=$(echo "$RESP" | sed '$d')
 STATUS=$(echo "$RESP" | tail -1)
 assert_status "Valid JWT returns 200" "200" "$STATUS"
 
-# The echo server returns JSON with all received headers — verify ext_authz injected the Authorization header
+# The echo server returns JSON with all received headers
+# Verify ext_authz injected the Authorization header
 AUTH_HEADER=$(echo "$BODY" | jq -r '.headers.authorization // empty')
 if [[ "$AUTH_HEADER" == "Bearer fake-upstream-key" ]]; then
   pass "ext_authz injected Authorization header"
 else
   fail "Expected Authorization='Bearer fake-upstream-key', got '$AUTH_HEADER'"
+fi
+
+# Verify ext_authz added X-Custom-Added header
+CUSTOM_HEADER=$(echo "$BODY" | jq -r '.headers["x-custom-added"] // empty')
+if [[ "$CUSTOM_HEADER" == "from-ext-authz" ]]; then
+  pass "ext_authz added X-Custom-Added header"
+else
+  fail "Expected X-Custom-Added='from-ext-authz', got '$CUSTOM_HEADER'"
+fi
+
+# Verify ext_authz removed X-Remove-Me header
+REMOVED_HEADER=$(echo "$BODY" | jq -r '.headers["x-remove-me"] // empty')
+if [[ -z "$REMOVED_HEADER" ]]; then
+  pass "ext_authz removed X-Remove-Me header"
+else
+  fail "Expected X-Remove-Me to be removed, but got '$REMOVED_HEADER'"
 fi
 
 log "Test 4: POST /v1/chat/completions with garbage JWT → 401"
