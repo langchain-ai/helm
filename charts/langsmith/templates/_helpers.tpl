@@ -740,6 +740,14 @@ Strip protocol (http://, https://, etc.) from hostname
 {{- include "agentBuilderOAuthEnvVars" . }}
 {{- end -}}
 
+{{- define "authProxy.serviceAccountName" -}}
+{{- if .Values.authProxy.serviceAccount.create -}}
+    {{ default (printf "%s-%s" (include "langsmith.fullname" .) .Values.authProxy.name) .Values.authProxy.serviceAccount.name | trunc 63 | trimSuffix "-" }}
+{{- else -}}
+    {{ default "default" .Values.authProxy.serviceAccount.name }}
+{{- end -}}
+{{- end -}}
+
 {{- define "agentBuilderTriggerServerEnvVars" -}}
 - name: "PORT"
   value: "{{ .Values.agentBuilderTriggerServer.containerPort }}"

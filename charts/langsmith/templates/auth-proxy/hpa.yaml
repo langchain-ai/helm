@@ -1,0 +1,41 @@
+{{- if and .Values.authProxy.enabled .Values.authProxy.autoscaling.hpa.enabled }}
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ include "langsmith.fullname" . }}-{{ .Values.authProxy.name }}
+  namespace: {{ .Values.namespace | default .Release.Namespace }}
+  labels:
+    {{- include "langsmith.labels" . | nindent 4 }}
+spec:
+  scaleTargetRef:
+    {{- if .Values.authProxy.rollout.enabled }}
+    apiVersion: argoproj.io/v1alpha1
+    kind: Rollout
+    {{- else }}
+    apiVersion: apps/v1
+    kind: Deployment
+    {{- end }}
+    name: {{ include "langsmith.fullname" . }}-{{ .Values.authProxy.name }}
+  minReplicas: {{ .Values.authProxy.autoscaling.hpa.minReplicas }}
+  maxReplicas: {{ .Values.authProxy.autoscaling.hpa.maxReplicas }}
+  metrics:
+    {{- if .Values.authProxy.autoscaling.hpa.targetCPUUtilizationPercentage }}
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.authProxy.autoscaling.hpa.targetCPUUtilizationPercentage }}
+    {{- end }}
+    {{- if .Values.authProxy.autoscaling.hpa.targetMemoryUtilizationPercentage }}
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.authProxy.autoscaling.hpa.targetMemoryUtilizationPercentage }}
+    {{- end }}
+    {{- if .Values.authProxy.autoscaling.hpa.additionalMetrics }}
+    {{- toYaml .Values.authProxy.autoscaling.hpa.additionalMetrics | nindent 4 }}
+    {{- end }}
+{{- end }}

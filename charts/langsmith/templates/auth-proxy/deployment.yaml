@@ -1,0 +1,134 @@
+{{- if .Values.authProxy.enabled }}
+{{- $volumes := .Values.authProxy.deployment.volumes -}}
+{{- $volumeMounts := .Values.authProxy.deployment.volumeMounts -}}
+{{- if .Values.authProxy.rollout.enabled }}
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+{{- else }}
+apiVersion: apps/v1
+kind: Deployment
+{{- end }}
+metadata:
+  name: {{ include "langsmith.fullname" . }}-{{ .Values.authProxy.name }}
+  namespace: {{ .Values.namespace | default .Release.Namespace }}
+  labels:
+    {{- include "langsmith.labels" . | nindent 4 }}
+    {{- with.Values.authProxy.deployment.labels }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+  annotations:
+    {{- include "langsmith.annotations" . | nindent 4 }}
+    {{- with.Values.authProxy.deployment.annotations }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  {{- if not .Values.authProxy.autoscaling.hpa.enabled }}
+  replicas: {{ .Values.authProxy.deployment.replicas }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "langsmith.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-{{ .Values.authProxy.name }}
+  template:
+    metadata:
+      annotations:
+      {{- include "langsmith.commonPodAnnotations" . | nindent 8 }}
+      {{- with .Values.authProxy.deployment.annotations }}
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- with.Values.authProxy.deployment.labels }}
+            {{- toYaml . | nindent 8 }}
+        {{- end }}
+        {{- include "langsmith.labels" . | nindent 8 }}
+        app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-{{ .Values.authProxy.name }}
+    spec:
+      terminationGracePeriodSeconds: {{ .Values.authProxy.deployment.terminationGracePeriodSeconds }}
+      {{- with .Values.images.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{- include "langsmith.podSecurityContext" (dict "Values" .Values "componentSecurityContext" .Values.authProxy.deployment.podSecurityContext) | nindent 8 }}
+      serviceAccountName: {{ include "authProxy.serviceAccountName" . }}
+      {{- with .Values.authProxy.deployment.initContainers }}
+      initContainers:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: {{ .Values.authProxy.name }}
+          {{- with.Values.authProxy.deployment.command }}
+          command:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.authProxy.deployment.extraEnv }}
+          env:
+              {{ toYaml . | nindent 12 }}
+          {{- end }}
+          image: {{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "authProxyImage") | quote }}
+          imagePullPolicy: {{ .Values.images.authProxyImage.pullPolicy }}
+          ports:
+            - name: envoy
+              containerPort: {{ .Values.authProxy.containerPort }}
+              protocol: TCP
+          {{- with .Values.authProxy.deployment.startupProbe }}
+          startupProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.authProxy.deployment.livenessProbe }}
+          livenessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.authProxy.deployment.readinessProbe }}
+          readinessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          resources:
+            {{- toYaml .Values.authProxy.deployment.resources | nindent 12 }}
+          securityContext:
+            {{- toYaml .Values.authProxy.deployment.securityContext | nindent 12 }}
+          volumeMounts:
+            {{- with $volumeMounts }}
+              {{- toYaml . | nindent 12 }}
+            {{- end }}
+            - mountPath: /etc/envoy/envoy.yaml
+              name: envoy-conf
+              subPath: envoy.yaml
+              readOnly: true
+          {{- with .Values.authProxy.deployment.extraContainerConfig }}
+            {{- toYaml . | nindent 10 }}
+          {{- end }}
+        {{- with .Values.authProxy.deployment.sidecars }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- with .Values.authProxy.deployment.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.authProxy.deployment.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.authProxy.deployment.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.authProxy.deployment.topologySpreadConstraints }}
+      topologySpreadConstraints:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      volumes:
+        {{- with $volumes }}
+            {{- toYaml . | nindent 8 }}
+        {{- end }}
+        - name: envoy-conf
+          configMap:
+            name: {{ include "langsmith.fullname" . }}-{{ .Values.authProxy.name }}
+            items:
+              - key: envoy.yaml
+                path: envoy.yaml
+{{- if .Values.authProxy.rollout.enabled }}
+  strategy:
+    {{- toYaml .Values.authProxy.rollout.strategy | nindent 4 }}
+{{- end }}
+{{- end }}
