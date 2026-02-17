@@ -30,7 +30,7 @@ authProxy:
   name: "auth-proxy"
   containerPort: 10000
   # -- Upstream LLM provider URL (e.g. https://api.openai.com)
-  upstream: "https://api.openai.com"
+  upstream: ""
   # -- JWT issuer claim to validate
   jwtIssuer: "langsmith"
   # -- JWT audience claims to validate. Must match audiences in the signed JWT.
@@ -51,24 +51,6 @@ authProxy:
     sendBody: false
     # -- Maximum request body bytes to buffer for ext_authz
     maxRequestBytes: 8192
-  ingress:
-    enabled: false
-    ingressClassName: ""
-    labels: {}
-    # -- Annotations for streaming support. Defaults shown are for nginx ingress controller.
-    annotations: {}
-    #   nginx.ingress.kubernetes.io/proxy-buffering: "off"
-    #   nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
-    #   nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
-    hosts: []
-    #   - host: llm-proxy.example.com
-    #     paths:
-    #       - path: /
-    #         pathType: Prefix
-    tls: []
-    #   - secretName: llm-proxy-tls
-    #     hosts:
-    #       - llm-proxy.example.com
   # -- ArgoCD Rollouts configuration. If enabled, will create a Rollout resource instead of a Deployment. See https://argo-rollouts.readthedocs.io/
   rollout:
     enabled: false
@@ -155,18 +137,25 @@ authProxy:
     annotations: {}
     automountServiceAccountToken: true
 
-# -- Top-level Ingress configuration (alternative to authProxy.ingress)
+# -- Ingress configuration
 ingress:
   enabled: false
   ingressClassName: ""
   labels: {}
+  # -- Annotations for streaming support. Defaults shown are for nginx ingress controller.
   annotations: {}
+  #   nginx.ingress.kubernetes.io/proxy-buffering: "off"
+  #   nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+  #   nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
   hosts: []
   #   - host: llm-proxy.example.com
   #     paths:
   #       - path: /
   #         pathType: Prefix
   tls: []
+  #   - secretName: llm-proxy-tls
+  #     hosts:
+  #       - llm-proxy.example.com
 
 # -- Gateway API HTTPRoute configuration
 gateway:

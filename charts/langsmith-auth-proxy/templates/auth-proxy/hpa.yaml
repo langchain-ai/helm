@@ -2,10 +2,10 @@
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
-  name: {{ include "langsmith.fullname" . }}-{{ .Values.authProxy.name }}
+  name: {{ include "authProxy.fullname" . }}-{{ .Values.authProxy.name }}
   namespace: {{ .Values.namespace | default .Release.Namespace }}
   labels:
-    {{- include "langsmith.labels" . | nindent 4 }}
+    {{- include "authProxy.labels" . | nindent 4 }}
 spec:
   scaleTargetRef:
     {{- if .Values.authProxy.rollout.enabled }}
@@ -15,7 +15,7 @@ spec:
     apiVersion: apps/v1
     kind: Deployment
     {{- end }}
-    name: {{ include "langsmith.fullname" . }}-{{ .Values.authProxy.name }}
+    name: {{ include "authProxy.fullname" . }}-{{ .Values.authProxy.name }}
   minReplicas: {{ .Values.authProxy.autoscaling.hpa.minReplicas }}
   maxReplicas: {{ .Values.authProxy.autoscaling.hpa.maxReplicas }}
   metrics:

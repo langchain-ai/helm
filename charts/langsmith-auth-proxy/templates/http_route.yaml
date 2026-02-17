@@ -2,15 +2,15 @@
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
-  name: {{ include "langsmith.fullname" . }}
+  name: {{ include "authProxy.fullname" . }}
   namespace: {{ .Values.namespace | default .Release.Namespace }}
   annotations:
-    {{- include "langsmith.annotations" . | nindent 4 }}
+    {{- include "authProxy.annotations" . | nindent 4 }}
     {{- with .Values.gateway.annotations }}
       {{- toYaml . | nindent 4 }}
     {{- end }}
   labels:
-    {{- include "langsmith.labels" . | nindent 4 }}
+    {{- include "authProxy.labels" . | nindent 4 }}
     {{- with .Values.gateway.labels }}
       {{- toYaml . | nindent 4 }}
     {{- end }}
@@ -33,6 +33,6 @@ spec:
         type: PathPrefix
         value: /
     backendRefs:
-    - name: {{ include "langsmith.fullname" . }}-{{ .Values.authProxy.name }}
+    - name: {{ include "authProxy.fullname" . }}-{{ .Values.authProxy.name }}
       port: {{ .Values.authProxy.service.port }}
 {{- end }}
