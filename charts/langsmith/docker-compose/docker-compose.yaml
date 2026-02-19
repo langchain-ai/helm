@@ -21,6 +21,18 @@ services:
     depends_on:
       - langchain-backend
       - langchain-playground
+  langchain-frontend-chunked:
+    image: ${_REGISTRY:-docker.io}/langchain/langsmith-frontend-chunked:${_LANGSMITH_IMAGE_VERSION:-0.11.4}
+    environment:
+      - VITE_BACKEND_AUTH_TYPE=${AUTH_TYPE:-none}
+      - VITE_BASIC_AUTH_ENABLED=${BASIC_AUTH_ENABLED:-false}
+      - VITE_OAUTH_CLIENT_ID=${OAUTH_CLIENT_ID}
+      - VITE_OAUTH_ISSUER_URL=${OAUTH_ISSUER_URL}
+    ports:
+      - 1980:1980
+    depends_on:
+      - langchain-backend
+      - langchain-playground
   langchain-ace-backend:
     image: ${_REGISTRY:-docker.io}/langchain/langsmith-ace-backend:${_LANGSMITH_IMAGE_VERSION:-0.11.4}
     ports:

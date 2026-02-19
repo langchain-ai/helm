@@ -66,6 +66,7 @@ IMAGES=(
     "docker.io/langchain/langsmith-backend:${VERSION}"
     "docker.io/langchain/langsmith-clio:${VERSION}"
     "docker.io/langchain/langsmith-frontend:${VERSION}"
+    "docker.io/langchain/langsmith-frontend-chunked:${VERSION}"
     "docker.io/langchain/hosted-langserve-backend:${VERSION}"
     "docker.io/langchain/langgraph-operator:${OPERATOR_VERSION}"
     "docker.io/langchain/langsmith-go-backend:${VERSION}"

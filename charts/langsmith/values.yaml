@@ -46,6 +46,10 @@ images:
     repository: "docker.io/langchain/langsmith-frontend"
     pullPolicy: IfNotPresent
     tag: "0.13.14"
+  frontendChunkedImage:
+    repository: "docker.io/langchain/langsmith-frontend-chunked"
+    pullPolicy: IfNotPresent
+    tag: "0.13.14"
   hostBackendImage:
     repository: "docker.io/langchain/hosted-langserve-backend"
     pullPolicy: IfNotPresent

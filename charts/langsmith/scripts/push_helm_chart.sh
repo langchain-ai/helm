@@ -135,6 +135,7 @@ image_map = {
     'docker.io/langchain/langsmith-backend': 'langsmith-backend',
     'docker.io/langchain/langsmith-clio': 'langsmith-clio',
     'docker.io/langchain/langsmith-frontend': 'langsmith-frontend',
+    'docker.io/langchain/langsmith-frontend-chunked': 'langsmith-frontend-chunked',
     'docker.io/langchain/hosted-langserve-backend': 'hosted-langserve-backend',
     'docker.io/langchain/langgraph-operator': 'langgraph-operator',
     'docker.io/langchain/langsmith-go-backend': 'langsmith-go-backend',
