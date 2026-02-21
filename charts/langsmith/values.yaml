@@ -65,7 +65,7 @@ images:
   postgresImage:
     repository: "docker.io/postgres"
     pullPolicy: IfNotPresent
-    tag: "15.5"
+    tag: "15.15"
   redisImage:
     repository: "docker.io/redis"
     pullPolicy: IfNotPresent
