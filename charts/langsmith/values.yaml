@@ -33,23 +33,23 @@ images:
   aceBackendImage:
     repository: "docker.io/langchain/langsmith-ace-backend"
     pullPolicy: IfNotPresent
-    tag: "0.13.14"
+    tag: "0.13.11"
   backendImage:
     repository: "docker.io/langchain/langsmith-backend"
     pullPolicy: IfNotPresent
-    tag: "0.13.14"
+    tag: "0.13.11"
   insightsAgentImage:
     repository: "docker.io/langchain/langsmith-clio"
     pullPolicy: IfNotPresent
-    tag: "0.13.14"
+    tag: "0.13.11"
   frontendImage:
     repository: "docker.io/langchain/langsmith-frontend"
     pullPolicy: IfNotPresent
-    tag: "0.13.14"
+    tag: "0.13.11"
   hostBackendImage:
     repository: "docker.io/langchain/hosted-langserve-backend"
     pullPolicy: IfNotPresent
-    tag: "0.13.14"
+    tag: "0.13.11"
   operatorImage:
     repository: "docker.io/langchain/langgraph-operator"
     pullPolicy: IfNotPresent
@@ -57,23 +57,19 @@ images:
   platformBackendImage:
     repository: "docker.io/langchain/langsmith-go-backend"
     pullPolicy: IfNotPresent
-    tag: "0.13.14"
+    tag: "0.13.11"
   playgroundImage:
     repository: "docker.io/langchain/langsmith-playground"
     pullPolicy: IfNotPresent
-    tag: "0.13.14"
-  # For production environments, we strongly recommend connecting to a managed PostgreSQL instance instead of using the one provided by the chart.
-  # Docs: https://docs.langchain.com/langsmith/self-host-external-postgres
+    tag: "0.13.11"
   postgresImage:
     repository: "docker.io/postgres"
     pullPolicy: IfNotPresent
-    tag: "14.7"
-  # For production environments, we strongly recommend connecting to a managed Redis instance instead of using the one provided by the chart.
-  # Docs: https://docs.langchain.com/langsmith/self-host-external-redis
+    tag: "15.5"
   redisImage:
     repository: "docker.io/redis"
     pullPolicy: IfNotPresent
-    tag: "7"
+    tag: "8"
   clickhouseImage:
     repository: "docker.io/clickhouse/clickhouse-server"
     pullPolicy: Always
@@ -81,15 +77,15 @@ images:
   agentBuilderToolServerImage:
     repository: "docker.io/langchain/agent-builder-tool-server"
     pullPolicy: IfNotPresent
-    tag: "0.13.14"
+    tag: "0.13.11"
   agentBuilderTriggerServerImage:
     repository: "docker.io/langchain/agent-builder-trigger-server"
     pullPolicy: IfNotPresent
-    tag: "0.13.14"
+    tag: "0.13.11"
   agentBuilderImage:
     repository: "docker.io/langchain/agent-builder-deep-agent"
     pullPolicy: IfNotPresent
-    tag: "0.13.14"
+    tag: "0.13.11"
 
 ingress:
   enabled: false
@@ -151,8 +147,6 @@ config:
   # Requires config.deployment.enabled to be true
   polly:
     enabled: false
-    # Fernet encryption key for Polly. Required when enabled.
-    # Generate with: python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
     encryptionKey: ""
     agent:
       resources:
