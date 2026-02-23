@@ -143,8 +143,7 @@ config:
         minScale: 1
         maxScale: 5
 
-  # Polly configuration - in-app analysis agent
-  # Requires config.deployment.enabled to be true
+  # Polly configuration
   polly:
     enabled: false
     encryptionKey: ""

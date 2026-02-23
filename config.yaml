@@ -1,0 +1,259 @@
+config:
+  langsmithLicenseKey: "lcl_8054f23ec9464cfd851257aac715597e_5d1fa0e1d7" # Replace with your actual license key
+  apiKeySalt: "a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6"
+  authType: "mixed"
+  logLevel: "debug"  # Enable debug logging for platform-backend (and other services)
+  basicAuth:
+    enabled: true
+    initialOrgAdminEmail: "admin@example.com" # Replace with your admin email
+    initialOrgAdminPassword: "ChangeMe123!" # Replace with a secure password
+    jwtSecret: "x9y8z7w6v5u4t3s2r1q0p9o8n7m6l5k4j3i2h1g0f9e8d7c6b5a4"
+  deployment:
+    enabled: true
+    # Disable external ingress/URL health checks from inside the cluster
+    ingressHealthCheckEnabled: false
+  hostname: hari.eks.smith.langchain.dev
+  agentBuilder:
+    enabled: true
+    # Optional: the tenant that will contain the agent builder deployment, will default to the first created tenant when agent builder is bootstrapped
+    # tenantId: "86b34232-374a-460c-9721-d9bff68cba32"
+    # The listener that will be associated with the agent builder deployment. You MUST specify this if the tenant is specified and the tenant has listeners
+    # listenerId: "fe960216-2668-4e6a-85c8-179c5801354f"
+    # The k8s namespace the agent builder deployment will live in. You MUST specify this if listenerId is specified
+    # namespace: "hari-hybrid"
+    encryptionKey: "IXt9OB7eO9zLOFYujArbWyOxTsvrUQvqodwCs3IxzYE="
+  insights:
+    enabled: true
+    # Optional: the tenant that will contain the agent builder deployment, will default to the first created tenant when agent builder is bootstrapped
+    # tenantId: "86b34232-374a-460c-9721-d9bff68cba32"
+    # The listener that will be associated with the agent builder deployment. You MUST specify this if the tenant is specified and the tenant has listeners
+    # listenerId: "fe960216-2668-4e6a-85c8-179c5801354f"
+    # The k8s namespace the agent builder deployment will live in. You MUST specify this if listenerId is specified
+    # namespace: "hari-hybrid-other"
+    encryptionKey: "IXt9OB7eO9zLOFYujArbWyOxTsvrUQvqodwCs3IxzYE="
+  polly:
+    enabled: true
+    encryptionKey: "IXt9OB7eO9zLOFYujArbWyOxTsvrUQvqodwCs3IxzYE="
+gateway:
+  enabled: true
+  name: langsmith-gateway
+  namespace: envoy-gateway-system
+ingress:
+  enabled: false
+operator:
+  enabled: true
+  createCRDs: false
+  watchNamespaces: "palash-polly"
+  templates:
+    deployment: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: ${name}
+        namespace: ${namespace}
+      spec:
+        replicas: ${replicas}
+        revisionHistoryLimit: 10
+        selector:
+          matchLabels:
+            app: ${name}
+        template:
+          metadata:
+            labels:
+              app: ${name}
+          spec:
+            enableServiceLinks: false
+            imagePullSecrets:
+            - name: regcred
+            containers:
+            - name: api-server
+              image: ${image}
+              ports:
+              - name: api-server
+                containerPort: 8000
+                protocol: TCP
+              livenessProbe:
+                httpGet:
+                  path: /ok
+                  port: 8000
+                periodSeconds: 15
+                timeoutSeconds: 5
+                failureThreshold: 6
+              readinessProbe:
+                httpGet:
+                  path: /ok
+                  port: 8000
+                periodSeconds: 15
+                timeoutSeconds: 5
+                failureThreshold: 6
+    service: |-
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: ${name}
+        namespace: ${namespace}
+      spec:
+        type: ClusterIP
+        selector:
+          app: ${name}
+        ports:
+        - name: api-server
+          protocol: TCP
+          port: 8000
+          targetPort: 8000
+    redis: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: ${service_name}
+        namespace: ${namespace}
+      spec:
+        replicas: 1
+        selector:
+          matchLabels:
+            app: ${service_name}
+        template:
+          metadata:
+            labels:
+              app: ${service_name}
+          spec:
+            enableServiceLinks: false
+            imagePullSecrets:
+            - name: regcred
+            containers:
+            - name: redis
+              image: docker.io/redis:7
+              ports:
+              - containerPort: 6379
+                name: redis
+              livenessProbe:
+                exec:
+                  command:
+                  - redis-cli
+                  - ping
+                initialDelaySeconds: 30
+                periodSeconds: 10
+              readinessProbe:
+                tcpSocket:
+                  port: 6379
+                initialDelaySeconds: 10
+                periodSeconds: 5
+    db: |-
+      apiVersion: apps/v1
+      kind: StatefulSet
+      metadata:
+        name: ${service_name}
+      spec:
+        serviceName: ${service_name}
+        selector:
+          matchLabels:
+            app: ${service_name}
+        persistentVolumeClaimRetentionPolicy:
+          whenDeleted: Delete
+          whenScaled: Retain
+        template:
+          metadata:
+            labels:
+              app: ${service_name}
+          spec:
+            enableServiceLinks: false
+            imagePullSecrets:
+            - name: regcred
+            containers:
+            - name: postgres
+              image: pgvector/pgvector:pg15
+              ports:
+              - containerPort: 5432
+              command: ["docker-entrypoint.sh"]
+              args:
+                - postgres
+                - -c
+                - max_connections=${max_connections}
+              env:
+              - name: PGDATA
+                value: /var/lib/postgresql/data/pgdata
+              volumeMounts:
+              - name: postgres-data
+                mountPath: /var/lib/postgresql/data
+        volumeClaimTemplates:
+        - metadata:
+            name: postgres-data
+          spec:
+            accessModes: ["ReadWriteOnce"]
+            resources:
+              requests:
+                storage: "${storage_gi}Gi"
+images:
+  backendImage:
+    repository: docker.io/langchain/langsmith-backend-private
+    tag: "0.13.15-174bae52669aa3a54fbd7be513bb153e2fabf90c"
+  redisImage:
+    tag: 7
+  postgresImage:
+    tag: 14.7
+  frontendImage:
+    repository: docker.io/langchain/langsmith-frontend-private
+    tag: "0.13.15-174bae52669aa3a54fbd7be513bb153e2fabf90c"
+  platformBackendImage:
+    repository: docker.io/langchain/langsmith-go-backend-private
+    tag: "0.13.15-174bae52669aa3a54fbd7be513bb153e2fabf90c"
+  aceBackendImage:
+    repository: docker.io/langchain/langsmith-ace-backend-private
+    tag: "0.13.15-174bae52669aa3a54fbd7be513bb153e2fabf90c"
+  insightsAgentImage:
+    repository: docker.io/langchain/langsmith-clio-private
+    tag: "0.13.15-174bae52669aa3a54fbd7be513bb153e2fabf90c"
+  playgroundImage:
+    repository: docker.io/langchain/langsmith-playground-python-private
+    tag: "0.13.15-174bae52669aa3a54fbd7be513bb153e2fabf90c"
+  #   agentBuilderImage:
+#     pullPolicy: IfNotPresent
+#     repository: docker.io/langchain/agent-builder-deep-agent-private
+#     tag: 0.13.8-88bf9db2a0ca38e4402c78fd04a223717da7066f
+#   agentBuilderToolServerImage:
+#     pullPolicy: IfNotPresent
+#     repository: docker.io/langchain/agent-builder-tool-server-private
+#     tag: 0.13.8-88bf9db2a0ca38e4402c78fd04a223717da7066f
+#   agentBuilderTriggerServerImage:
+#     pullPolicy: IfNotPresent
+#     repository: docker.io/langchain/agent-builder-trigger-server-private
+#     tag: 0.13.8-88bf9db2a0ca38e4402c78fd04a223717da7066f
+#   backendImage:
+#     repository: docker.io/langchain/langsmith-backend-private
+#     tag: 0.13.8-88bf9db2a0ca38e4402c78fd04a223717da7066f
+#   frontendImage:
+#     pullPolicy: IfNotPresent
+#     repository: docker.io/langchain/langsmith-frontend-private
+#     tag: 0.13.8-88bf9db2a0ca38e4402c78fd04a223717da7066f
+#   hostBackendImage:
+#     repository: docker.io/langchain/hosted-langserve-backend-private
+#     tag: 0.13.8-88bf9db2a0ca38e4402c78fd04a223717da7066f
+  imagePullSecrets:
+    - name: regcred
+#   insightsAgentImage:
+#     pullPolicy: IfNotPresent
+#     repository: docker.io/langchain/langsmith-clio-private
+#     tag: 0.13.8-88bf9db2a0ca38e4402c78fd04a223717da7066f
+  pollyAgentImage:
+    repository: docker.io/langchain/langsmith-polly-private
+    tag: 0.13.15-174bae52669aa3a54fbd7be513bb153e2fabf90c
+#   platformBackendImage:
+#     repository: docker.io/langchain/langsmith-go-backend-private
+#     tag: 0.13.8-88bf9db2a0ca38e4402c78fd04a223717da7066f
+ingestQueue:
+  deployment:
+    replicas: 1
+backend:
+  clickhouseMigrations:
+    enabled: true
+  deployment:
+    replicas: 1
+  migrations:
+    enabled: true
+  agentBootstrap:
+    enabled: true
+    ttlSecondsAfterFinished: 1800   # 30 min so failed pod stays
+platformBackend:
+  deployment:
+    replicas: 1
+
