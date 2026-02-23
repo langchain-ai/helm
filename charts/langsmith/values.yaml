@@ -512,6 +512,39 @@ backend:
     volumeMounts: []
     # You can set this to null to disable the TTL for the migrations job. Useful for some deployment setups.
     ttlSecondsAfterFinished: 600
+  # Pre-upgrade check that blocks an upgrade if any asynq backfill jobs are
+  # still running.  Runs as a Helm pre-upgrade hook (ArgoCD PreSync) so that
+  # it executes BEFORE Alembic migrations on every upgrade attempt.
+  # Set enabled: false only if you need to bypass the check entirely.
+  backfillCheck:
+    enabled: true
+    # Helpful when running using helm template to avoid the job name conflict
+    randomizeName: false
+    labels: {}
+    annotations: {}
+    podSecurityContext: {}
+    securityContext: {}
+    resources:
+      limits:
+        cpu: 500m
+        memory: 512Mi
+      requests:
+        cpu: 100m
+        memory: 256Mi
+    command:
+      - "./backfill_check_entrypoint.sh"
+    extraContainerConfig: {}
+    extraEnv: []
+    sidecars: []
+    initContainers: []
+    nodeSelector: {}
+    tolerations: []
+    topologySpreadConstraints: []
+    affinity: {}
+    volumes: []
+    volumeMounts: []
+    # You can set this to null to disable the TTL for the backfill check job.
+    ttlSecondsAfterFinished: 600
   feedbackConfigMigration:
     enabled: false
     # Helpful when running using helm template to avoid the job name conflict
