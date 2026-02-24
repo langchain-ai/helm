@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.13.13](https://img.shields.io/badge/Version-0.13.13-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.13.14](https://img.shields.io/badge/AppVersion-0.13.14-informational?style=flat-square)
+![Version: 0.13.14](https://img.shields.io/badge/Version-0.13.14-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.13.15](https://img.shields.io/badge/AppVersion-0.13.15-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -137,41 +137,41 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | gateway.sectionName | string | `""` |  |
 | images.aceBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.aceBackendImage.repository | string | `"docker.io/langchain/langsmith-ace-backend"` |  |
-| images.aceBackendImage.tag | string | `"0.13.14"` |  |
+| images.aceBackendImage.tag | string | `"0.13.15"` |  |
 | images.agentBuilderImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.agentBuilderImage.repository | string | `"docker.io/langchain/agent-builder-deep-agent"` |  |
-| images.agentBuilderImage.tag | string | `"0.13.14"` |  |
+| images.agentBuilderImage.tag | string | `"0.13.15"` |  |
 | images.agentBuilderToolServerImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.agentBuilderToolServerImage.repository | string | `"docker.io/langchain/agent-builder-tool-server"` |  |
-| images.agentBuilderToolServerImage.tag | string | `"0.13.14"` |  |
+| images.agentBuilderToolServerImage.tag | string | `"0.13.15"` |  |
 | images.agentBuilderTriggerServerImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.agentBuilderTriggerServerImage.repository | string | `"docker.io/langchain/agent-builder-trigger-server"` |  |
-| images.agentBuilderTriggerServerImage.tag | string | `"0.13.14"` |  |
+| images.agentBuilderTriggerServerImage.tag | string | `"0.13.15"` |  |
 | images.backendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.backendImage.repository | string | `"docker.io/langchain/langsmith-backend"` |  |
-| images.backendImage.tag | string | `"0.13.14"` |  |
+| images.backendImage.tag | string | `"0.13.15"` |  |
 | images.clickhouseImage.pullPolicy | string | `"Always"` |  |
 | images.clickhouseImage.repository | string | `"docker.io/clickhouse/clickhouse-server"` |  |
 | images.clickhouseImage.tag | string | `"25.12"` |  |
 | images.frontendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.frontendImage.repository | string | `"docker.io/langchain/langsmith-frontend"` |  |
-| images.frontendImage.tag | string | `"0.13.14"` |  |
+| images.frontendImage.tag | string | `"0.13.15"` |  |
 | images.hostBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.hostBackendImage.repository | string | `"docker.io/langchain/hosted-langserve-backend"` |  |
-| images.hostBackendImage.tag | string | `"0.13.14"` |  |
+| images.hostBackendImage.tag | string | `"0.13.15"` |  |
 | images.imagePullSecrets | list | `[]` | Secrets with credentials to pull images from a private registry. Specified as name: value. |
 | images.insightsAgentImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.insightsAgentImage.repository | string | `"docker.io/langchain/langsmith-clio"` |  |
-| images.insightsAgentImage.tag | string | `"0.13.14"` |  |
+| images.insightsAgentImage.tag | string | `"0.13.15"` |  |
 | images.operatorImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.operatorImage.repository | string | `"docker.io/langchain/langgraph-operator"` |  |
 | images.operatorImage.tag | string | `"0.1.37"` |  |
 | images.platformBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.platformBackendImage.repository | string | `"docker.io/langchain/langsmith-go-backend"` |  |
-| images.platformBackendImage.tag | string | `"0.13.14"` |  |
+| images.platformBackendImage.tag | string | `"0.13.15"` |  |
 | images.playgroundImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.playgroundImage.repository | string | `"docker.io/langchain/langsmith-playground"` |  |
-| images.playgroundImage.tag | string | `"0.13.14"` |  |
+| images.playgroundImage.tag | string | `"0.13.15"` |  |
 | images.postgresImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.postgresImage.repository | string | `"docker.io/postgres"` |  |
 | images.postgresImage.tag | string | `"14.7"` |  |
