@@ -7,14 +7,13 @@
 #   - AWS credentials must be valid with marketplace-catalog permissions.
 #
 # Usage:
-#   ./create_marketplace_version.sh --version 0.13.9
-#   ./create_marketplace_version.sh --version 0.13.9 --dry-run
+#   ./create_marketplace_version.sh --version 0.13.14
+#   ./create_marketplace_version.sh --version 0.13.14 --dry-run
 
 set -euo pipefail
 
 # Defaults
-DEFAULT_VERSION="0.13.9"
-DEFAULT_CHART_VERSION="0.13.9"
+DEFAULT_VERSION="0.13.14"
 DEFAULT_OPERATOR_VERSION="0.1.37"
 PRODUCT_ID="prod-6eamcxpv3kh6m"
 REGISTRY="709825985650.dkr.ecr.us-east-1.amazonaws.com"
@@ -33,7 +32,7 @@ usage() {
 Usage: $0 --version <version> [--chart-version <chart-version>] [--operator-version <version>] [--product-id <id>] [--dry-run]
 
     --version           LangSmith version (default: $DEFAULT_VERSION)
-    --chart-version     Helm chart version/tag in ECR (default: $DEFAULT_CHART_VERSION)
+    --chart-version     Helm chart version/tag in ECR (default: same as --version)
     --operator-version  LangGraph operator version (default: $DEFAULT_OPERATOR_VERSION)
     --product-id        Marketplace product ID (default: $PRODUCT_ID)
     --dry-run           Only print the changeset JSON, don't submit
@@ -53,7 +52,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 VERSION="${VERSION:-$DEFAULT_VERSION}"
-CHART_VERSION="${CHART_VERSION:-$DEFAULT_CHART_VERSION}"
+CHART_VERSION="${CHART_VERSION:-$VERSION}"
 OPERATOR_VERSION="${OPERATOR_VERSION:-$DEFAULT_OPERATOR_VERSION}"
 
 ###############################################################################
@@ -73,7 +72,7 @@ CONTAINER_IMAGES=$(cat <<EOF
     "${REGISTRY}/${REPO}:agent-builder-trigger-server-${VERSION}",
     "${REGISTRY}/${REPO}:agent-builder-deep-agent-${VERSION}",
     "${REGISTRY}/${REPO}:postgres-15.15",
-    "${REGISTRY}/${REPO}:redis-8",
+    "${REGISTRY}/${REPO}:redis-8.6.1",
     "${REGISTRY}/${REPO}:clickhouse-server-25.12"
 ]
 EOF

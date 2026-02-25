@@ -99,8 +99,8 @@ IMAGES=(
     "docker.io/langchain/agent-builder-tool-server:${VERSION}"
     "docker.io/langchain/agent-builder-trigger-server:${VERSION}"
     "docker.io/langchain/agent-builder-deep-agent:${VERSION}"
-    "docker.io/postgres:14.21"
-    "docker.io/redis:7.4.8"
+    "docker.io/postgres:15.15"
+    "docker.io/redis:8.6.1"
     "docker.io/clickhouse/clickhouse-server:25.12"
 )
 
