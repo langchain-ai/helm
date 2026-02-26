@@ -60,6 +60,10 @@ spec:
         securityContext:
         {{- toYaml . | nindent 10 }}
         {{- end }}
+        {{- with .Values.operator.deployment.lifecycle }}
+        lifecycle:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
         livenessProbe:
           httpGet:
             path: /healthz

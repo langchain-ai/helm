@@ -1,6 +1,6 @@
 # langgraph-dataplane
 
-![Version: 0.2.17](https://img.shields.io/badge/Version-0.2.17-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.13.9](https://img.shields.io/badge/AppVersion-0.13.9-informational?style=flat-square)
+![Version: 0.2.18](https://img.shields.io/badge/Version-0.2.18-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.13.9](https://img.shields.io/badge/AppVersion-0.13.9-informational?style=flat-square)
 
 Helm chart to deploy a langgraph dataplane on kubernetes.
 
@@ -54,6 +54,7 @@ You can find the guide to deploy a LangGraph Dataplane [here](https://langchain-
 | operator.deployment.extraContainerConfig | object | `{}` |  |
 | operator.deployment.extraEnv | list | `[]` |  |
 | operator.deployment.labels | object | `{}` |  |
+| operator.deployment.lifecycle | object | `{}` |  |
 | operator.deployment.nodeSelector | object | `{}` |  |
 | operator.deployment.podSecurityContext | object | `{}` |  |
 | operator.deployment.replicas | int | `1` |  |
@@ -123,6 +124,7 @@ You can find the guide to deploy a LangGraph Dataplane [here](https://langchain-
 | listener.deployment.extraContainerConfig | object | `{}` |  |
 | listener.deployment.extraEnv | list | `[]` |  |
 | listener.deployment.labels | object | `{}` |  |
+| listener.deployment.lifecycle | object | `{}` |  |
 | listener.deployment.livenessProbe.exec.command[0] | string | `"saq"` |  |
 | listener.deployment.livenessProbe.exec.command[1] | string | `"app.workers.queues.host_worker.settings"` |  |
 | listener.deployment.livenessProbe.exec.command[2] | string | `"--check"` |  |
@@ -176,6 +178,7 @@ You can find the guide to deploy a LangGraph Dataplane [here](https://langchain-
 | operator.deployment.extraContainerConfig | object | `{}` |  |
 | operator.deployment.extraEnv | list | `[]` |  |
 | operator.deployment.labels | object | `{}` |  |
+| operator.deployment.lifecycle | object | `{}` |  |
 | operator.deployment.nodeSelector | object | `{}` |  |
 | operator.deployment.podSecurityContext | object | `{}` |  |
 | operator.deployment.replicas | int | `1` |  |
@@ -243,6 +246,7 @@ You can find the guide to deploy a LangGraph Dataplane [here](https://langchain-
 | redis.statefulSet.extraContainerConfig | object | `{}` |  |
 | redis.statefulSet.extraEnv | list | `[]` |  |
 | redis.statefulSet.labels | object | `{}` |  |
+| redis.statefulSet.lifecycle | object | `{}` |  |
 | redis.statefulSet.livenessProbe.exec.command[0] | string | `"/bin/sh"` |  |
 | redis.statefulSet.livenessProbe.exec.command[1] | string | `"-c"` |  |
 | redis.statefulSet.livenessProbe.exec.command[2] | string | `"exec redis-cli ping"` |  |
@@ -273,6 +277,7 @@ You can find the guide to deploy a LangGraph Dataplane [here](https://langchain-
 | redis.statefulSet.startupProbe.failureThreshold | int | `6` |  |
 | redis.statefulSet.startupProbe.periodSeconds | int | `10` |  |
 | redis.statefulSet.startupProbe.timeoutSeconds | int | `1` |  |
+| redis.statefulSet.terminationGracePeriodSeconds | int | `30` |  |
 | redis.statefulSet.tolerations | list | `[]` |  |
 | redis.statefulSet.topologySpreadConstraints | list | `[]` |  |
 | redis.statefulSet.volumeMounts | list | `[]` |  |
