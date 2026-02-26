@@ -123,9 +123,9 @@ postgres:
     connectionUrl: "postgres://postgres:postgres@postgres-host.com:5432/postgres?sslmode=disable"
 ```
 
-### Using `existingSecretName` (recommended for production)
+### Using `existingSecretName`
 
-To avoid checking secrets into git, create a Kubernetes secret with the required key names and reference it via `config.existingSecretName`. The chart expects the following keys:
+If you don't want to check secrets into git, create a Kubernetes secret and reference it via `config.existingSecretName`. The chart expects the following keys:
 
 - `api_key` — mounted as `LANGSMITH_API_KEY` (optional)
 - `langgraph_cloud_license_key` — mounted as `LANGGRAPH_CLOUD_LICENSE_KEY` (optional)
