@@ -25,6 +25,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | agentBuilderToolServer.deployment.extraEnv | list | `[]` |  |
 | agentBuilderToolServer.deployment.initContainers | list | `[]` |  |
 | agentBuilderToolServer.deployment.labels | object | `{}` |  |
+| agentBuilderToolServer.deployment.lifecycle | object | `{}` |  |
 | agentBuilderToolServer.deployment.livenessProbe.failureThreshold | int | `6` |  |
 | agentBuilderToolServer.deployment.livenessProbe.httpGet.path | string | `"/health"` |  |
 | agentBuilderToolServer.deployment.livenessProbe.httpGet.port | int | `1989` |  |
@@ -78,6 +79,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | agentBuilderTriggerServer.deployment.extraEnv | list | `[]` |  |
 | agentBuilderTriggerServer.deployment.initContainers | list | `[]` |  |
 | agentBuilderTriggerServer.deployment.labels | object | `{}` |  |
+| agentBuilderTriggerServer.deployment.lifecycle | object | `{}` |  |
 | agentBuilderTriggerServer.deployment.livenessProbe.failureThreshold | int | `6` |  |
 | agentBuilderTriggerServer.deployment.livenessProbe.httpGet.path | string | `"/health"` |  |
 | agentBuilderTriggerServer.deployment.livenessProbe.httpGet.port | int | `1990` |  |
@@ -210,6 +212,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | ingestQueue.deployment.extraEnv | list | `[]` |  |
 | ingestQueue.deployment.initContainers | list | `[]` |  |
 | ingestQueue.deployment.labels | object | `{}` |  |
+| ingestQueue.deployment.lifecycle | object | `{}` |  |
 | ingestQueue.deployment.livenessProbe.failureThreshold | int | `6` |  |
 | ingestQueue.deployment.livenessProbe.httpGet.path | string | `"/health"` |  |
 | ingestQueue.deployment.livenessProbe.httpGet.port | int | `1989` |  |
@@ -390,6 +393,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | aceBackend.deployment.extraEnv | list | `[]` |  |
 | aceBackend.deployment.initContainers | list | `[]` |  |
 | aceBackend.deployment.labels | object | `{}` |  |
+| aceBackend.deployment.lifecycle | object | `{}` |  |
 | aceBackend.deployment.livenessProbe.failureThreshold | int | `6` |  |
 | aceBackend.deployment.livenessProbe.httpGet.path | string | `"/ok"` |  |
 | aceBackend.deployment.livenessProbe.httpGet.port | int | `1987` |  |
@@ -535,6 +539,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | backend.deployment.extraEnv | list | `[]` |  |
 | backend.deployment.initContainers | list | `[]` |  |
 | backend.deployment.labels | object | `{}` |  |
+| backend.deployment.lifecycle | object | `{}` |  |
 | backend.deployment.livenessProbe.failureThreshold | int | `6` |  |
 | backend.deployment.livenessProbe.httpGet.path | string | `"/health"` |  |
 | backend.deployment.livenessProbe.httpGet.port | int | `1984` |  |
@@ -732,6 +737,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | clickhouse.statefulSet.extraEnv | list | `[]` |  |
 | clickhouse.statefulSet.initContainers | list | `[]` |  |
 | clickhouse.statefulSet.labels | object | `{}` |  |
+| clickhouse.statefulSet.lifecycle | object | `{}` |  |
 | clickhouse.statefulSet.livenessProbe.failureThreshold | int | `6` |  |
 | clickhouse.statefulSet.livenessProbe.httpGet.path | string | `"/ping"` |  |
 | clickhouse.statefulSet.livenessProbe.httpGet.port | int | `8123` |  |
@@ -802,6 +808,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | hostBackend.deployment.extraEnv | list | `[]` |  |
 | hostBackend.deployment.initContainers | list | `[]` |  |
 | hostBackend.deployment.labels | object | `{}` |  |
+| hostBackend.deployment.lifecycle | object | `{}` |  |
 | hostBackend.deployment.livenessProbe.failureThreshold | int | `6` |  |
 | hostBackend.deployment.livenessProbe.httpGet.path | string | `"/ok"` |  |
 | hostBackend.deployment.livenessProbe.httpGet.port | int | `1985` |  |
@@ -887,6 +894,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | frontend.deployment.extraEnv | list | `[]` |  |
 | frontend.deployment.initContainers | list | `[]` |  |
 | frontend.deployment.labels | object | `{}` |  |
+| frontend.deployment.lifecycle | object | `{}` |  |
 | frontend.deployment.livenessProbe.failureThreshold | int | `10` |  |
 | frontend.deployment.livenessProbe.httpGet.path | string | `"/health"` |  |
 | frontend.deployment.livenessProbe.httpGet.port | int | `8080` |  |
@@ -980,6 +988,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | listener.deployment.extraEnv | list | `[]` |  |
 | listener.deployment.initContainers | list | `[]` |  |
 | listener.deployment.labels | object | `{}` |  |
+| listener.deployment.lifecycle | object | `{}` |  |
 | listener.deployment.livenessProbe.exec.command[0] | string | `"saq"` |  |
 | listener.deployment.livenessProbe.exec.command[1] | string | `"app.workers.queues.host_worker.settings"` |  |
 | listener.deployment.livenessProbe.exec.command[2] | string | `"--check"` |  |
@@ -1037,6 +1046,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | operator.deployment.extraEnv | list | `[]` |  |
 | operator.deployment.initContainers | list | `[]` |  |
 | operator.deployment.labels | object | `{}` |  |
+| operator.deployment.lifecycle | object | `{}` |  |
 | operator.deployment.nodeSelector | object | `{}` |  |
 | operator.deployment.podSecurityContext | object | `{}` |  |
 | operator.deployment.replicas | int | `1` |  |
@@ -1107,6 +1117,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | platformBackend.deployment.extraEnv | list | `[]` |  |
 | platformBackend.deployment.initContainers | list | `[]` |  |
 | platformBackend.deployment.labels | object | `{}` |  |
+| platformBackend.deployment.lifecycle | object | `{}` |  |
 | platformBackend.deployment.livenessProbe.failureThreshold | int | `6` |  |
 | platformBackend.deployment.livenessProbe.httpGet.path | string | `"/ok"` |  |
 | platformBackend.deployment.livenessProbe.httpGet.port | int | `1986` |  |
@@ -1189,6 +1200,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | playground.deployment.extraEnv | list | `[]` |  |
 | playground.deployment.initContainers | list | `[]` |  |
 | playground.deployment.labels | object | `{}` |  |
+| playground.deployment.lifecycle | object | `{}` |  |
 | playground.deployment.livenessProbe.failureThreshold | int | `6` |  |
 | playground.deployment.livenessProbe.httpGet.path | string | `"/ok"` |  |
 | playground.deployment.livenessProbe.httpGet.port | int | `1988` |  |
@@ -1281,6 +1293,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | postgres.statefulSet.extraEnv | list | `[]` |  |
 | postgres.statefulSet.initContainers | list | `[]` |  |
 | postgres.statefulSet.labels | object | `{}` |  |
+| postgres.statefulSet.lifecycle | object | `{}` |  |
 | postgres.statefulSet.livenessProbe.exec.command[0] | string | `"/bin/sh"` |  |
 | postgres.statefulSet.livenessProbe.exec.command[1] | string | `"-c"` |  |
 | postgres.statefulSet.livenessProbe.exec.command[2] | string | `"exec pg_isready -d postgres -U postgres"` |  |
@@ -1352,6 +1365,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | queue.deployment.extraEnv | list | `[]` |  |
 | queue.deployment.initContainers | list | `[]` |  |
 | queue.deployment.labels | object | `{}` |  |
+| queue.deployment.lifecycle | object | `{}` |  |
 | queue.deployment.livenessProbe.exec.command[0] | string | `"saq"` |  |
 | queue.deployment.livenessProbe.exec.command[1] | string | `"app.workers.queues.single_queue_worker.settings"` |  |
 | queue.deployment.livenessProbe.exec.command[2] | string | `"--check"` |  |
@@ -1438,6 +1452,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | redis.statefulSet.extraEnv | list | `[]` |  |
 | redis.statefulSet.initContainers | list | `[]` |  |
 | redis.statefulSet.labels | object | `{}` |  |
+| redis.statefulSet.lifecycle | object | `{}` |  |
 | redis.statefulSet.livenessProbe.exec.command[0] | string | `"/bin/sh"` |  |
 | redis.statefulSet.livenessProbe.exec.command[1] | string | `"-c"` |  |
 | redis.statefulSet.livenessProbe.exec.command[2] | string | `"exec redis-cli ping"` |  |

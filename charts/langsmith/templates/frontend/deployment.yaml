@@ -160,6 +160,10 @@ spec:
             {{- toYaml .Values.frontend.deployment.resources | nindent 12 }}
           securityContext:
             {{- toYaml .Values.frontend.deployment.securityContext | nindent 12 }}
+          {{- with .Values.frontend.deployment.lifecycle }}
+          lifecycle:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           volumeMounts:
             {{- with $volumeMounts }}
               {{- toYaml . | nindent 12 }}

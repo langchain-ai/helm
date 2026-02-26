@@ -95,6 +95,7 @@ listener:
     annotations: {}
     podSecurityContext: {}
     securityContext: {}
+    lifecycle: {}
     resources:
       limits:
         cpu: 2000m
@@ -174,6 +175,7 @@ operator:
     annotations: {}
     podSecurityContext: {}
     securityContext: {}
+    lifecycle: {}
     resources:
       limits:
         cpu: 2000m
@@ -382,6 +384,7 @@ redis:
     annotations: {}
     podSecurityContext: {}
     securityContext: {}
+    lifecycle: {}
     terminationGracePeriodSeconds: 30
     # In a production environment, we strongly recommend an external Redis database.
     resources:

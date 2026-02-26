@@ -239,6 +239,7 @@ You can also use existingSecretName to avoid checking in secrets. This secret sh
 | queue.deployment.envFrom | list | `[]` |  |
 | queue.deployment.extraEnv | list | `[]` |  |
 | queue.deployment.labels | object | `{}` |  |
+| queue.deployment.lifecycle | object | `{}` |  |
 | queue.deployment.livenessProbe.failureThreshold | int | `6` |  |
 | queue.deployment.livenessProbe.httpGet.path | string | `"/ok"` |  |
 | queue.deployment.livenessProbe.httpGet.port | int | `8000` |  |
@@ -284,6 +285,7 @@ You can also use existingSecretName to avoid checking in secrets. This secret sh
 | redis.deployment.extraContainerConfig | object | `{}` |  |
 | redis.deployment.extraEnv | list | `[]` |  |
 | redis.deployment.labels | object | `{}` |  |
+| redis.deployment.lifecycle | object | `{}` |  |
 | redis.deployment.livenessProbe.exec.command[0] | string | `"/bin/sh"` |  |
 | redis.deployment.livenessProbe.exec.command[1] | string | `"-c"` |  |
 | redis.deployment.livenessProbe.exec.command[2] | string | `"exec redis-cli ping"` |  |
@@ -345,6 +347,7 @@ You can also use existingSecretName to avoid checking in secrets. This secret sh
 | studio.deployment.annotations | object | `{}` |  |
 | studio.deployment.extraEnv | list | `[]` |  |
 | studio.deployment.labels | object | `{}` |  |
+| studio.deployment.lifecycle | object | `{}` |  |
 | studio.deployment.livenessProbe.failureThreshold | int | `6` |  |
 | studio.deployment.livenessProbe.httpGet.path | string | `"/health"` |  |
 | studio.deployment.livenessProbe.httpGet.port | int | `3968` |  |
@@ -423,6 +426,7 @@ You can also use existingSecretName to avoid checking in secrets. This secret sh
 | apiServer.deployment.extraEnv | list | `[]` |  |
 | apiServer.deployment.initContainers | list | `[]` |  |
 | apiServer.deployment.labels | object | `{}` |  |
+| apiServer.deployment.lifecycle | object | `{}` |  |
 | apiServer.deployment.livenessProbe.exec.command[0] | string | `"/bin/sh"` |  |
 | apiServer.deployment.livenessProbe.exec.command[1] | string | `"-c"` |  |
 | apiServer.deployment.livenessProbe.exec.command[2] | string | `"exec python /api/healthcheck.py"` |  |
@@ -505,6 +509,7 @@ You can also use existingSecretName to avoid checking in secrets. This secret sh
 | postgres.statefulSet.extraContainerConfig | object | `{}` |  |
 | postgres.statefulSet.extraEnv | list | `[]` |  |
 | postgres.statefulSet.labels | object | `{}` |  |
+| postgres.statefulSet.lifecycle | object | `{}` |  |
 | postgres.statefulSet.nodeSelector | object | `{}` |  |
 | postgres.statefulSet.persistence.enabled | bool | `true` |  |
 | postgres.statefulSet.persistence.size | string | `"8Gi"` |  |

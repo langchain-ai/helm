@@ -69,6 +69,7 @@ apiServer:
     annotations: {}
     podSecurityContext: {}
     securityContext: {}
+    lifecycle: {}
     priorityClassName: ""
     terminationGracePeriodSeconds: 30
     resources:
@@ -152,6 +153,7 @@ queue:
     annotations: {}
     podSecurityContext: {}
     securityContext: {}
+    lifecycle: {}
     priorityClassName: ""
     terminationGracePeriodSeconds: 30
     resources:
@@ -230,6 +232,7 @@ postgres:
     annotations: {}
     podSecurityContext: {}
     securityContext: {}
+    lifecycle: {}
     priorityClassName: ""
     terminationGracePeriodSeconds: 30
     resources:
@@ -284,6 +287,7 @@ redis:
     annotations: {}
     podSecurityContext: {}
     securityContext: {}
+    lifecycle: {}
     priorityClassName: ""
     terminationGracePeriodSeconds: 30
     resources:
@@ -357,6 +361,7 @@ studio:
     annotations: {}
     podSecurityContext: {}
     securityContext: {}
+    lifecycle: {}
     priorityClassName: ""
     terminationGracePeriodSeconds: 30
     resources:

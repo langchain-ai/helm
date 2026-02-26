@@ -105,6 +105,10 @@ spec:
             {{- toYaml .Values.backend.deployment.resources | nindent 12 }}
           securityContext:
             {{- toYaml .Values.backend.deployment.securityContext | nindent 12 }}
+          {{- with .Values.backend.deployment.lifecycle }}
+          lifecycle:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           {{- with $volumeMounts }}
           volumeMounts:
               {{- toYaml . | nindent 12 }}

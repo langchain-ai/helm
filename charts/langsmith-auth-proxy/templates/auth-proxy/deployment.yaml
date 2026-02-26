@@ -87,6 +87,10 @@ spec:
             {{- toYaml .Values.authProxy.deployment.resources | nindent 12 }}
           securityContext:
             {{- toYaml .Values.authProxy.deployment.securityContext | nindent 12 }}
+          {{- with .Values.authProxy.deployment.lifecycle }}
+          lifecycle:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           volumeMounts:
             {{- with $volumeMounts }}
               {{- toYaml . | nindent 12 }}

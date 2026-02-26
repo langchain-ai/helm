@@ -54,6 +54,7 @@ You can find the guide to deploy a LangGraph Dataplane [here](https://langchain-
 | operator.deployment.extraContainerConfig | object | `{}` |  |
 | operator.deployment.extraEnv | list | `[]` |  |
 | operator.deployment.labels | object | `{}` |  |
+| operator.deployment.lifecycle | object | `{}` |  |
 | operator.deployment.nodeSelector | object | `{}` |  |
 | operator.deployment.podSecurityContext | object | `{}` |  |
 | operator.deployment.replicas | int | `1` |  |
@@ -123,6 +124,7 @@ You can find the guide to deploy a LangGraph Dataplane [here](https://langchain-
 | listener.deployment.extraContainerConfig | object | `{}` |  |
 | listener.deployment.extraEnv | list | `[]` |  |
 | listener.deployment.labels | object | `{}` |  |
+| listener.deployment.lifecycle | object | `{}` |  |
 | listener.deployment.livenessProbe.exec.command[0] | string | `"saq"` |  |
 | listener.deployment.livenessProbe.exec.command[1] | string | `"app.workers.queues.host_worker.settings"` |  |
 | listener.deployment.livenessProbe.exec.command[2] | string | `"--check"` |  |
@@ -176,6 +178,7 @@ You can find the guide to deploy a LangGraph Dataplane [here](https://langchain-
 | operator.deployment.extraContainerConfig | object | `{}` |  |
 | operator.deployment.extraEnv | list | `[]` |  |
 | operator.deployment.labels | object | `{}` |  |
+| operator.deployment.lifecycle | object | `{}` |  |
 | operator.deployment.nodeSelector | object | `{}` |  |
 | operator.deployment.podSecurityContext | object | `{}` |  |
 | operator.deployment.replicas | int | `1` |  |
@@ -243,6 +246,7 @@ You can find the guide to deploy a LangGraph Dataplane [here](https://langchain-
 | redis.statefulSet.extraContainerConfig | object | `{}` |  |
 | redis.statefulSet.extraEnv | list | `[]` |  |
 | redis.statefulSet.labels | object | `{}` |  |
+| redis.statefulSet.lifecycle | object | `{}` |  |
 | redis.statefulSet.livenessProbe.exec.command[0] | string | `"/bin/sh"` |  |
 | redis.statefulSet.livenessProbe.exec.command[1] | string | `"-c"` |  |
 | redis.statefulSet.livenessProbe.exec.command[2] | string | `"exec redis-cli ping"` |  |

@@ -116,6 +116,10 @@ spec:
             {{- toYaml .Values.apiServer.deployment.resources | nindent 12 }}
           securityContext:
             {{- toYaml .Values.apiServer.deployment.securityContext | nindent 12 }}
+          {{- with .Values.apiServer.deployment.lifecycle }}
+          lifecycle:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           {{- with $volumeMounts }}
           volumeMounts:
               {{- toYaml . | nindent 12 }}

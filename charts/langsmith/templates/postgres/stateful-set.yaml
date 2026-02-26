@@ -105,6 +105,10 @@ spec:
             {{- toYaml .Values.postgres.statefulSet.resources | nindent 12 }}
           securityContext:
             {{- toYaml .Values.postgres.statefulSet.securityContext | nindent 12 }}
+          {{- with .Values.postgres.statefulSet.lifecycle }}
+          lifecycle:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           volumeMounts:
             {{- with $volumeMounts }}
               {{- toYaml . | nindent 12 }}

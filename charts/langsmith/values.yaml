@@ -334,6 +334,7 @@ aceBackend:
     annotations: {}
     podSecurityContext: {}
     securityContext: {}
+    lifecycle: {}
     resources:
       limits:
         cpu: 1000m
@@ -442,6 +443,7 @@ backend:
     annotations: {}
     podSecurityContext: {}
     securityContext: {}
+    lifecycle: {}
     resources:
       limits:
         cpu: 2000m
@@ -775,6 +777,7 @@ clickhouse:
     annotations: {}
     podSecurityContext: {}
     securityContext: {}
+    lifecycle: {}
     terminationGracePeriodSeconds: 30
     resources:
 # For a production environment, we recommend increasing the CPU and memory limits to something like 16 cores and 64Gi.
@@ -894,6 +897,7 @@ frontend:
     annotations: {}
     podSecurityContext: {}
     securityContext: {}
+    lifecycle: {}
     resources:
       limits:
         cpu: 1000m
@@ -1002,6 +1006,7 @@ hostBackend:
     annotations: {}
     podSecurityContext: {}
     securityContext: {}
+    lifecycle: {}
     resources:
       limits:
         cpu: 1000m
@@ -1112,6 +1117,7 @@ listener:
     annotations: {}
     podSecurityContext: {}
     securityContext: {}
+    lifecycle: {}
     resources:
       limits:
         cpu: 2000m
@@ -1218,6 +1224,7 @@ platformBackend:
     annotations: {}
     podSecurityContext: {}
     securityContext: {}
+    lifecycle: {}
     resources:
       limits:
         cpu: 2000m
@@ -1328,6 +1335,7 @@ operator:
     annotations: {}
     podSecurityContext: {}
     securityContext: {}
+    lifecycle: {}
     resources:
       limits:
         cpu: 2000m
@@ -1513,6 +1521,7 @@ playground:
     annotations: {}
     podSecurityContext: {}
     securityContext: {}
+    lifecycle: {}
     resources:
       limits:
         cpu: 1000m
@@ -1638,6 +1647,7 @@ postgres:
     annotations: {}
     podSecurityContext: {}
     securityContext: {}
+    lifecycle: {}
     terminationGracePeriodSeconds: 30
     resources:
       # In a production environment, we strongly recommend an external Postgres database.
@@ -1726,6 +1736,7 @@ queue:
     annotations: {}
     podSecurityContext: {}
     securityContext: {}
+    lifecycle: {}
     resources:
       limits:
         cpu: 2000m
@@ -1831,6 +1842,7 @@ ingestQueue:
     annotations: {}
     podSecurityContext: {}
     securityContext: {}
+    lifecycle: {}
     resources:
       limits:
         cpu: 2000m
@@ -1952,6 +1964,7 @@ redis:
     annotations: {}
     podSecurityContext: {}
     securityContext: {}
+    lifecycle: {}
     terminationGracePeriodSeconds: 30
     # In a production environment, we strongly recommend an external Redis database.
     resources:
@@ -2035,6 +2048,7 @@ agentBuilderToolServer:
     annotations: {}
     podSecurityContext: {}
     securityContext: {}
+    lifecycle: {}
     resources:
       limits:
         cpu: 2000m
@@ -2112,6 +2126,7 @@ agentBuilderTriggerServer:
     annotations: {}
     podSecurityContext: {}
     securityContext: {}
+    lifecycle: {}
     resources:
       limits:
         cpu: 2000m
