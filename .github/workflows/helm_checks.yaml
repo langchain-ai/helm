@@ -14,7 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        chart-name: [ "langgraph-cloud", "langsmith" ]
+        chart-name: [ "langgraph-cloud", "langsmith", "langsmith-auth-proxy" ]
 
     steps:
       - name: Checkout
@@ -65,7 +65,7 @@ jobs:
         run: |
           set -e
           echo "=== Creating self-signed certificate for Redis ==="
-          
+
           # Generate private key and certificate with SAN for Go TLS verification
           openssl genrsa -out /tmp/redis.key 2048
           cat >/tmp/redis-openssl.cnf <<'EOF'
@@ -93,22 +93,22 @@ jobs:
           DNS.2 = redis-tls-master
           EOF
           openssl req -new -x509 -key /tmp/redis.key -out /tmp/redis.crt -days 365 -config /tmp/redis-openssl.cnf
-          
+
           # Create Kubernetes secrets
           kubectl create secret generic redis-tls-secret \
             --from-file=tls.crt=/tmp/redis.crt \
             --from-file=tls.key=/tmp/redis.key \
             --from-file=ca.crt=/tmp/redis.crt \
             --namespace default
-          
+
           kubectl create secret generic langsmith-custom-ca \
             --from-file=ca-bundle.crt=/tmp/redis.crt \
             --namespace default
-          
+
           echo "=== Installing Redis with TLS via Bitnami Helm chart ==="
           helm repo add bitnami https://charts.bitnami.com/bitnami
           helm repo update
-          
+
           helm install redis-tls bitnami/redis \
             --namespace default \
             --set auth.enabled=false \
@@ -125,7 +125,7 @@ jobs:
             --set master.resources.requests.memory=64Mi \
             --timeout 5m \
             --wait
-          
+
           echo "=== Redis with TLS ready for testing ==="
 
       - name: Run chart-testing (install)
