@@ -3,6 +3,10 @@
 - name: VITE_SELF_HOSTED_CLIO_ENABLED
   value: {{ .enabled | quote }}
 {{- end }}
+{{- with .Values.config.polly }}
+- name: VITE_SELF_HOSTED_POLLY_ENABLED
+  value: {{ .enabled | quote }}
+{{- end }}
 {{- /* Agent Builder OAuth provider IDs for frontend */ -}}
 {{- if .Values.config.agentBuilder.oauth.googleOAuthProvider }}
 - name: VITE_GOOGLE_OAUTH_PROVIDER
@@ -136,6 +140,11 @@ spec:
             {{- if .Values.config.agentBuilder.enabled }}
             - configMapRef:
                 name: {{ include "langsmith.fullname" . }}-agent-builder-config
+                optional: true
+            {{- end }}
+            {{- if .Values.config.polly.enabled }}
+            - configMapRef:
+                name: {{ include "langsmith.fullname" . }}-polly-config
                 optional: true
             {{- end }}
           image: {{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "frontendImage") | quote }}

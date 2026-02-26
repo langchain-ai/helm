@@ -147,6 +147,19 @@ config:
         minScale: 1
         maxScale: 5
 
+  # Polly configuration
+  polly:
+    enabled: false
+    encryptionKey: ""
+    agent:
+      resources:
+        cpu: 2
+        cpuLimit: 4
+        memoryMb: 4096
+        memoryLimitMb: 8192
+        minScale: 1
+        maxScale: 5
+
   # Agent Builder configuration - UI for creating and managing agents
   # Requires config.deployment.enabled to be true
   agentBuilder:
