@@ -123,7 +123,60 @@ postgres:
     connectionUrl: "postgres://postgres:postgres@postgres-host.com:5432/postgres?sslmode=disable"
 ```
 
-You can also use existingSecretName to avoid checking in secrets. This secret should contain keys named `langgraph_cloud_license_key` (optional) and/or `api_key`. Note: API keys such as `OPENAI_API_KEY` should not be specified as environment variables. These values should be stored as secrets (e.g. Kubernetes secrets).
+### Using `existingSecretName` (recommended for production)
+
+To avoid checking secrets into git, create a Kubernetes secret with the required key names and reference it via `config.existingSecretName`. The chart expects the following keys:
+
+- `api_key` — mounted as `LANGSMITH_API_KEY` (optional)
+- `langgraph_cloud_license_key` — mounted as `LANGGRAPH_CLOUD_LICENSE_KEY` (optional)
+
+```yaml
+config:
+  existingSecretName: "my-langgraph-secret"
+```
+
+> **Important:** Do not use `extraEnv` to set `LANGSMITH_API_KEY` or `LANGGRAPH_CLOUD_LICENSE_KEY`. The chart manages these env vars directly from the secret referenced by `existingSecretName` (or the chart-created secret). Using `extraEnv` for these variables will cause license verification failures.
+
+Other application-specific secrets (e.g. `OPENAI_API_KEY`, `AZURE_OPENAI_API_KEY`) should still be mounted via `extraEnv` or `envFrom`.
+
+### Upgrading from < 0.2.0
+
+If you are upgrading from chart version < 0.2.0 and were using `extraEnv` to mount `LANGSMITH_API_KEY`:
+
+1. **Remove** the `LANGSMITH_API_KEY` entry from `extraEnv` on both `apiServer` and `queue` deployments.
+2. **Rename** the key in your Kubernetes secret from `LANGSMITH_API_KEY` to `api_key`.
+3. **Set** `config.existingSecretName` to point to your secret.
+
+Before (< 0.2.0):
+```yaml
+config:
+  existingSecretName: "langgraph-secrets"
+
+apiServer:
+  deployment:
+    extraEnv:
+      - name: LANGSMITH_API_KEY
+        valueFrom:
+          secretKeyRef:
+            name: langgraph-secrets
+            key: LANGSMITH_API_KEY
+queue:
+  deployment:
+    extraEnv:
+      - name: LANGSMITH_API_KEY
+        valueFrom:
+          secretKeyRef:
+            name: langgraph-secrets
+            key: LANGSMITH_API_KEY
+```
+
+After (>= 0.2.0):
+```yaml
+config:
+  existingSecretName: "langgraph-secrets"
+# No extraEnv needed for LANGSMITH_API_KEY — the chart handles it automatically.
+# Your secret should contain key `api_key` (and optionally `langgraph_cloud_license_key`).
+```
 
 ### Deploying to Kubernetes:
 
