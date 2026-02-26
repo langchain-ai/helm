@@ -382,6 +382,7 @@ redis:
     annotations: {}
     podSecurityContext: {}
     securityContext: {}
+    terminationGracePeriodSeconds: 30
     # In a production environment, we strongly recommend an external Redis database.
     resources:
       limits:

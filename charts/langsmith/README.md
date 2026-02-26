@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.13.15](https://img.shields.io/badge/Version-0.13.15-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.13.16](https://img.shields.io/badge/AppVersion-0.13.16-informational?style=flat-square)
+![Version: 0.13.16](https://img.shields.io/badge/Version-0.13.16-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.13.16](https://img.shields.io/badge/AppVersion-0.13.16-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -759,6 +759,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | clickhouse.statefulSet.startupProbe.httpGet.port | int | `8123` |  |
 | clickhouse.statefulSet.startupProbe.periodSeconds | int | `10` |  |
 | clickhouse.statefulSet.startupProbe.timeoutSeconds | int | `1` |  |
+| clickhouse.statefulSet.terminationGracePeriodSeconds | int | `30` |  |
 | clickhouse.statefulSet.tolerations | list | `[]` |  |
 | clickhouse.statefulSet.topologySpreadConstraints | list | `[]` |  |
 | clickhouse.statefulSet.volumeMounts | list | `[]` |  |
@@ -1310,6 +1311,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | postgres.statefulSet.startupProbe.failureThreshold | int | `6` |  |
 | postgres.statefulSet.startupProbe.periodSeconds | int | `10` |  |
 | postgres.statefulSet.startupProbe.timeoutSeconds | int | `1` |  |
+| postgres.statefulSet.terminationGracePeriodSeconds | int | `30` |  |
 | postgres.statefulSet.tolerations | list | `[]` |  |
 | postgres.statefulSet.topologySpreadConstraints | list | `[]` |  |
 | postgres.statefulSet.volumeMounts | list | `[]` |  |
@@ -1466,6 +1468,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | redis.statefulSet.startupProbe.failureThreshold | int | `6` |  |
 | redis.statefulSet.startupProbe.periodSeconds | int | `10` |  |
 | redis.statefulSet.startupProbe.timeoutSeconds | int | `1` |  |
+| redis.statefulSet.terminationGracePeriodSeconds | int | `30` |  |
 | redis.statefulSet.tolerations | list | `[]` |  |
 | redis.statefulSet.topologySpreadConstraints | list | `[]` |  |
 | redis.statefulSet.volumeMounts | list | `[]` |  |

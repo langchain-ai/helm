@@ -43,6 +43,7 @@ spec:
       {{- if .Values.postgres.statefulSet.priorityClassName }}
       priorityClassName: {{ .Values.postgres.statefulSet.priorityClassName }}
       {{- end }}
+      terminationGracePeriodSeconds: {{ .Values.postgres.statefulSet.terminationGracePeriodSeconds }}
       securityContext:
         {{- toYaml .Values.postgres.statefulSet.podSecurityContext | nindent 8 }}
       serviceAccountName: {{ include "postgres.serviceAccountName" . }}

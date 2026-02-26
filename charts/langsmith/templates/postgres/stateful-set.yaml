@@ -65,6 +65,7 @@ spec:
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      terminationGracePeriodSeconds: {{ .Values.postgres.statefulSet.terminationGracePeriodSeconds }}
       securityContext:
         {{- include "langsmith.podSecurityContext" (dict "Values" .Values "componentSecurityContext" .Values.postgres.statefulSet.podSecurityContext) | nindent 8 }}
       serviceAccountName: {{ include "postgres.serviceAccountName" . }}

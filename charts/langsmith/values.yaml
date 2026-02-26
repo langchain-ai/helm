@@ -775,6 +775,7 @@ clickhouse:
     annotations: {}
     podSecurityContext: {}
     securityContext: {}
+    terminationGracePeriodSeconds: 30
     resources:
 # For a production environment, we recommend increasing the CPU and memory limits to something like 16 cores and 64Gi.
 #      limits:
@@ -1637,6 +1638,7 @@ postgres:
     annotations: {}
     podSecurityContext: {}
     securityContext: {}
+    terminationGracePeriodSeconds: 30
     resources:
       # In a production environment, we strongly recommend an external Postgres database.
       limits:
@@ -1950,6 +1952,7 @@ redis:
     annotations: {}
     podSecurityContext: {}
     securityContext: {}
+    terminationGracePeriodSeconds: 30
     # In a production environment, we strongly recommend an external Redis database.
     resources:
       limits:

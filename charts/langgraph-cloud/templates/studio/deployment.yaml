@@ -45,6 +45,7 @@ spec:
       {{- if .Values.studio.deployment.priorityClassName }}
       priorityClassName: {{ .Values.studio.deployment.priorityClassName }}
       {{- end }}
+      terminationGracePeriodSeconds: {{ .Values.studio.deployment.terminationGracePeriodSeconds }}
       securityContext:
         {{- toYaml .Values.studio.deployment.podSecurityContext | nindent 8 }}
       containers:

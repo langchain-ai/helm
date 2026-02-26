@@ -42,6 +42,7 @@ spec:
       {{- if .Values.redis.deployment.priorityClassName }}
       priorityClassName: {{ .Values.redis.deployment.priorityClassName }}
       {{- end }}
+      terminationGracePeriodSeconds: {{ .Values.redis.deployment.terminationGracePeriodSeconds }}
       securityContext:
         {{- toYaml .Values.redis.deployment.podSecurityContext | nindent 8 }}
       serviceAccountName: {{ include "redis.serviceAccountName" . }}

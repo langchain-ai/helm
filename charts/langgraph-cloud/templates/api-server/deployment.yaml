@@ -44,6 +44,7 @@ spec:
       {{- if .Values.apiServer.deployment.priorityClassName }}
       priorityClassName: {{ .Values.apiServer.deployment.priorityClassName }}
       {{- end }}
+      terminationGracePeriodSeconds: {{ .Values.apiServer.deployment.terminationGracePeriodSeconds }}
       securityContext:
         {{- toYaml .Values.apiServer.deployment.podSecurityContext | nindent 8 }}
       {{- with .Values.apiServer.deployment.initContainers }}
