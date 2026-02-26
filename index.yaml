@@ -2,6 +2,20 @@ apiVersion: v1
 entries:
   langgraph-cloud:
   - apiVersion: v2
+    appVersion: 0.2.3
+    created: "2026-02-26T15:55:20.799322565Z"
+    description: Helm chart to deploy the LangGraph Cloud application and all services
+      it depends on.
+    digest: 17ea713a3a255c66bae678bc6f29800cc15cfce83540ffd73dd2340d34985b3c
+    maintainers:
+    - email: ankush@langchain.dev
+      name: Ankush
+    name: langgraph-cloud
+    type: application
+    urls:
+    - https://github.com/langchain-ai/helm/releases/download/langgraph-cloud-0.2.3/langgraph-cloud-0.2.3.tgz
+    version: 0.2.3
+  - apiVersion: v2
     appVersion: 0.2.2
     created: "2026-02-10T23:54:24.177256011Z"
     description: Helm chart to deploy the LangGraph Cloud application and all services
@@ -324,6 +338,19 @@ entries:
     - https://github.com/langchain-ai/helm/releases/download/langgraph-cloud-0.1.0/langgraph-cloud-0.1.0.tgz
     version: 0.1.0
   langgraph-dataplane:
+  - apiVersion: v2
+    appVersion: 0.13.9
+    created: "2026-02-26T15:55:20.951963745Z"
+    description: Helm chart to deploy a langgraph dataplane on kubernetes.
+    digest: 14b349a7d513a5bdd0151dd8f65ca06483aebefa33050340251de40b26499337
+    maintainers:
+    - email: ankush@langchain.dev
+      name: Ankush
+    name: langgraph-dataplane
+    type: application
+    urls:
+    - https://github.com/langchain-ai/helm/releases/download/langgraph-dataplane-0.2.18/langgraph-dataplane-0.2.18.tgz
+    version: 0.2.18
   - apiVersion: v2
     appVersion: 0.13.9
     created: "2026-02-10T22:02:00.318342375Z"
@@ -1119,6 +1146,20 @@ entries:
     - https://github.com/langchain-ai/helm/releases/download/langgraph-operator-0.1.0/langgraph-operator-0.1.0.tgz
     version: 0.1.0
   langsmith:
+  - apiVersion: v2
+    appVersion: 0.13.16
+    created: "2026-02-26T15:55:21.134567645Z"
+    description: Helm chart to deploy the langsmith application and all services it
+      depends on.
+    digest: de07752acb36ff95d1dbb67af3e6b19137bbed77eddaf8d0af46859f67358d83
+    maintainers:
+    - email: ankush@langchain.dev
+      name: Ankush
+    name: langsmith
+    type: application
+    urls:
+    - https://github.com/langchain-ai/helm/releases/download/langsmith-0.13.16/langsmith-0.13.16.tgz
+    version: 0.13.16
   - apiVersion: v2
     appVersion: 0.13.16
     created: "2026-02-26T00:37:34.081000659Z"
@@ -5242,4 +5283,4 @@ entries:
     urls:
     - https://github.com/langchain-ai/helm/releases/download/open-gpts-0.1.0/open-gpts-0.1.0.tgz
     version: 0.1.0
-generated: "2026-02-26T00:37:34.081858104Z"
+generated: "2026-02-26T15:55:21.329137952Z"
