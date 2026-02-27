@@ -88,6 +88,40 @@ rules:
   - get
 ---
 apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "hostBackend.serviceAccountName" $ }}-cluster-role
+  labels:
+    {{- include "langsmith.labels" . | nindent 4 }}
+    {{- with.Values.hostBackend.rbac.labels }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+  annotations:
+    {{- include "langsmith.annotations" . | nindent 4 }}
+    {{- with.Values.hostBackend.rbac.annotations }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+rules:
+- apiGroups:
+  - apps
+  resources:
+  - deployments
+  - replicasets
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - pods
+  - pods/log
+  verbs:
+  - get
+  - list
+  - watch
+---
+apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: {{ include "hostBackend.serviceAccountName" $ }}-rolebinding
@@ -109,5 +143,28 @@ subjects:
 roleRef:
   kind: Role
   name: {{ include "hostBackend.serviceAccountName" $ }}-role
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ include "hostBackend.serviceAccountName" $ }}-cluster-role-binding
+  labels:
+    {{- include "langsmith.labels" . | nindent 4 }}
+    {{- with.Values.hostBackend.rbac.labels }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+  annotations:
+    {{- include "langsmith.annotations" . | nindent 4 }}
+    {{- with.Values.hostBackend.rbac.annotations }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "hostBackend.serviceAccountName" . }}
+    namespace: {{ $.Release.Namespace }}
+roleRef:
+  kind: ClusterRole
+  name: {{ include "hostBackend.serviceAccountName" $ }}-cluster-role
   apiGroup: rbac.authorization.k8s.io
 {{- end }}
