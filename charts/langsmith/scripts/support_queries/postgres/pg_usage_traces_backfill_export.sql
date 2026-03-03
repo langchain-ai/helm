@@ -1,4 +1,4 @@
--- This query exports all pending trace count transactions
+-- This query exports all unreported trace count transactions
 -- for local sources. It also sets backfill_id to a common random UUID for tracking
 -- and sets backfilled_at to the current timestamp.
 
@@ -12,11 +12,12 @@ backfill_txns AS (
   SET backfill_id = backfill_info.backfill_id,
       backfilled_at = backfill_info.backfilled_at
   FROM backfill_info
-  WHERE tc.status = 'pending'
+  WHERE tc.status IN ('pending', 'todo', 'should_retry', 'failed')
     AND tc.source = 'local'
-  RETURNING *
+  RETURNING tc.status AS original_status, tc.*
 )
 SELECT
+    bt.original_status,
     bt.*,
     t.display_name AS workspace_name,
     o.display_name AS organization_name,
