@@ -14,10 +14,9 @@ backfill_txns AS (
   FROM backfill_info
   WHERE tc.status IN ('pending', 'todo', 'should_retry', 'failed')
     AND tc.source = 'local'
-  RETURNING tc.status AS original_status, tc.*
+  RETURNING tc.*
 )
 SELECT
-    bt.original_status,
     bt.*,
     t.display_name AS workspace_name,
     o.display_name AS organization_name,
