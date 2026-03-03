@@ -14,7 +14,7 @@ backfill_txns AS (
   FROM backfill_info
   WHERE tc.status IN ('pending', 'todo', 'should_retry', 'failed')
     AND tc.source = 'local'
-  RETURNING tc.*
+  RETURNING *
 )
 SELECT
     bt.*,
