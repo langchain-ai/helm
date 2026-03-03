@@ -278,6 +278,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | config.agentBuilder.agent.resources.memoryLimitMb | int | `8192` |  |
 | config.agentBuilder.agent.resources.memoryMb | int | `4096` |  |
 | config.agentBuilder.agent.resources.minScale | int | `1` |  |
+| config.agentBuilder.agent.extraEnv | object | `{}` | Extra env vars for the Agent Builder agent; overrides predefined vars if keys overlap. |
 | config.agentBuilder.enabled | bool | `false` |  |
 | config.agentBuilder.encryptionKey | string | `""` |  |
 | config.agentBuilder.oauth.githubOAuthProvider | string | `""` |  |
@@ -328,6 +329,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | config.insights.agent.resources.memoryLimitMb | int | `8192` |  |
 | config.insights.agent.resources.memoryMb | int | `4096` |  |
 | config.insights.agent.resources.minScale | int | `1` |  |
+| config.insights.agent.extraEnv | object | `{}` | Extra env vars for the Insights agent; overrides predefined vars if keys overlap. |
 | config.insights.enabled | bool | `false` |  |
 | config.insights.encryptionKey | string | `""` |  |
 | config.langsmithLicenseKey | string | `""` |  |

@@ -33,23 +33,23 @@ images:
   aceBackendImage:
     repository: "docker.io/langchain/langsmith-ace-backend"
     pullPolicy: IfNotPresent
-    tag: "0.13.16"
+    tag: "0.13.18"
   backendImage:
     repository: "docker.io/langchain/langsmith-backend"
     pullPolicy: IfNotPresent
-    tag: "0.13.16"
+    tag: "0.13.18"
   insightsAgentImage:
     repository: "docker.io/langchain/langsmith-clio"
     pullPolicy: IfNotPresent
-    tag: "0.13.16"
+    tag: "0.13.18"
   frontendImage:
     repository: "docker.io/langchain/langsmith-frontend"
     pullPolicy: IfNotPresent
-    tag: "0.13.16"
+    tag: "0.13.18"
   hostBackendImage:
     repository: "docker.io/langchain/hosted-langserve-backend"
     pullPolicy: IfNotPresent
-    tag: "0.13.16"
+    tag: "0.13.18"
   operatorImage:
     repository: "docker.io/langchain/langgraph-operator"
     pullPolicy: IfNotPresent
@@ -57,11 +57,11 @@ images:
   platformBackendImage:
     repository: "docker.io/langchain/langsmith-go-backend"
     pullPolicy: IfNotPresent
-    tag: "0.13.16"
+    tag: "0.13.18"
   playgroundImage:
     repository: "docker.io/langchain/langsmith-playground"
     pullPolicy: IfNotPresent
-    tag: "0.13.16"
+    tag: "0.13.18"
   # For production environments, we strongly recommend connecting to a managed PostgreSQL instance instead of using the one provided by the chart.
   # Docs: https://docs.langchain.com/langsmith/self-host-external-postgres
   postgresImage:
@@ -81,15 +81,15 @@ images:
   agentBuilderToolServerImage:
     repository: "docker.io/langchain/agent-builder-tool-server"
     pullPolicy: IfNotPresent
-    tag: "0.13.16"
+    tag: "0.13.18"
   agentBuilderTriggerServerImage:
     repository: "docker.io/langchain/agent-builder-trigger-server"
     pullPolicy: IfNotPresent
-    tag: "0.13.16"
+    tag: "0.13.18"
   agentBuilderImage:
     repository: "docker.io/langchain/agent-builder-deep-agent"
     pullPolicy: IfNotPresent
-    tag: "0.13.16"
+    tag: "0.13.18"
 
 ingress:
   enabled: false
@@ -146,6 +146,7 @@ config:
         memoryLimitMb: 8192
         minScale: 1
         maxScale: 5
+      extraEnv: {}
 
   # Agent Builder configuration - UI for creating and managing agents
   # Requires config.deployment.enabled to be true
@@ -180,6 +181,7 @@ config:
         memoryLimitMb: 8192
         minScale: 1
         maxScale: 5
+      extraEnv: {}
 
   # -- Salt used to generate the API key. Should be a random string.
   apiKeySalt: ""

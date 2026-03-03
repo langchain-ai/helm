@@ -101,7 +101,8 @@ spec:
                   "memory_mb": {{ .Values.config.agentBuilder.agent.resources.memoryMb }},
                   "memory_limit_mb": {{ .Values.config.agentBuilder.agent.resources.memoryLimitMb }},
                   "min_scale": {{ .Values.config.agentBuilder.agent.resources.minScale }},
-                  "max_scale": {{ .Values.config.agentBuilder.agent.resources.maxScale }}
+                  "max_scale": {{ .Values.config.agentBuilder.agent.resources.maxScale }},
+                  "extra_env": {{ (.Values.config.agentBuilder.agent.extraEnv | default (dict)) | toJson }}
                 }{{- if .Values.config.insights.enabled }},{{- end }}
               {{- end }}
               {{- if .Values.config.insights.enabled }}
@@ -115,7 +116,8 @@ spec:
                   "memory_mb": {{ .Values.config.insights.agent.resources.memoryMb }},
                   "memory_limit_mb": {{ .Values.config.insights.agent.resources.memoryLimitMb }},
                   "min_scale": {{ .Values.config.insights.agent.resources.minScale }},
-                  "max_scale": {{ .Values.config.insights.agent.resources.maxScale }}
+                  "max_scale": {{ .Values.config.insights.agent.resources.maxScale }},
+                  "extra_env": {{ (.Values.config.insights.agent.extraEnv | default (dict)) | toJson }}
                 }
               {{- end }}
               }
