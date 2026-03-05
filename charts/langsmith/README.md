@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.13.16](https://img.shields.io/badge/Version-0.13.16-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.13.16](https://img.shields.io/badge/AppVersion-0.13.16-informational?style=flat-square)
+![Version: 0.13.18](https://img.shields.io/badge/Version-0.13.18-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.13.20](https://img.shields.io/badge/AppVersion-0.13.20-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -139,41 +139,41 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | gateway.sectionName | string | `""` |  |
 | images.aceBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.aceBackendImage.repository | string | `"docker.io/langchain/langsmith-ace-backend"` |  |
-| images.aceBackendImage.tag | string | `"0.13.16"` |  |
+| images.aceBackendImage.tag | string | `"0.13.20"` |  |
 | images.agentBuilderImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.agentBuilderImage.repository | string | `"docker.io/langchain/agent-builder-deep-agent"` |  |
-| images.agentBuilderImage.tag | string | `"0.13.16"` |  |
+| images.agentBuilderImage.tag | string | `"0.13.20"` |  |
 | images.agentBuilderToolServerImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.agentBuilderToolServerImage.repository | string | `"docker.io/langchain/agent-builder-tool-server"` |  |
-| images.agentBuilderToolServerImage.tag | string | `"0.13.16"` |  |
+| images.agentBuilderToolServerImage.tag | string | `"0.13.20"` |  |
 | images.agentBuilderTriggerServerImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.agentBuilderTriggerServerImage.repository | string | `"docker.io/langchain/agent-builder-trigger-server"` |  |
-| images.agentBuilderTriggerServerImage.tag | string | `"0.13.16"` |  |
+| images.agentBuilderTriggerServerImage.tag | string | `"0.13.20"` |  |
 | images.backendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.backendImage.repository | string | `"docker.io/langchain/langsmith-backend"` |  |
-| images.backendImage.tag | string | `"0.13.16"` |  |
+| images.backendImage.tag | string | `"0.13.20"` |  |
 | images.clickhouseImage.pullPolicy | string | `"Always"` |  |
 | images.clickhouseImage.repository | string | `"docker.io/clickhouse/clickhouse-server"` |  |
 | images.clickhouseImage.tag | string | `"25.12"` |  |
 | images.frontendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.frontendImage.repository | string | `"docker.io/langchain/langsmith-frontend"` |  |
-| images.frontendImage.tag | string | `"0.13.16"` |  |
+| images.frontendImage.tag | string | `"0.13.20"` |  |
 | images.hostBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.hostBackendImage.repository | string | `"docker.io/langchain/hosted-langserve-backend"` |  |
-| images.hostBackendImage.tag | string | `"0.13.16"` |  |
+| images.hostBackendImage.tag | string | `"0.13.20"` |  |
 | images.imagePullSecrets | list | `[]` | Secrets with credentials to pull images from a private registry. Specified as name: value. |
 | images.insightsAgentImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.insightsAgentImage.repository | string | `"docker.io/langchain/langsmith-clio"` |  |
-| images.insightsAgentImage.tag | string | `"0.13.16"` |  |
+| images.insightsAgentImage.tag | string | `"0.13.20"` |  |
 | images.operatorImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.operatorImage.repository | string | `"docker.io/langchain/langgraph-operator"` |  |
 | images.operatorImage.tag | string | `"0.1.37"` |  |
 | images.platformBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.platformBackendImage.repository | string | `"docker.io/langchain/langsmith-go-backend"` |  |
-| images.platformBackendImage.tag | string | `"0.13.16"` |  |
+| images.platformBackendImage.tag | string | `"0.13.20"` |  |
 | images.playgroundImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.playgroundImage.repository | string | `"docker.io/langchain/langsmith-playground"` |  |
-| images.playgroundImage.tag | string | `"0.13.16"` |  |
+| images.playgroundImage.tag | string | `"0.13.20"` |  |
 | images.postgresImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.postgresImage.repository | string | `"docker.io/postgres"` |  |
 | images.postgresImage.tag | string | `"14.7"` |  |
@@ -272,13 +272,13 @@ For information on how to use this chart, up-to-date release notes, and other gu
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
+| config.agentBuilder.agent.extraEnv | object | `{}` |  |
 | config.agentBuilder.agent.resources.cpu | int | `2` |  |
 | config.agentBuilder.agent.resources.cpuLimit | int | `4` |  |
 | config.agentBuilder.agent.resources.maxScale | int | `5` |  |
 | config.agentBuilder.agent.resources.memoryLimitMb | int | `8192` |  |
 | config.agentBuilder.agent.resources.memoryMb | int | `4096` |  |
 | config.agentBuilder.agent.resources.minScale | int | `1` |  |
-| config.agentBuilder.agent.extraEnv | object | `{}` | Extra env vars for the Agent Builder agent; overrides predefined vars if keys overlap. |
 | config.agentBuilder.enabled | bool | `false` |  |
 | config.agentBuilder.encryptionKey | string | `""` |  |
 | config.agentBuilder.oauth.githubOAuthProvider | string | `""` |  |
@@ -323,13 +323,13 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | config.hostname | string | `""` | hostname of the LangSmith installation. Used for redirects and LangSmith deployments. Required for OAuth and LangSmith Deployments. E.g langsmith.com |
 | config.initialOrgAdminEmail | string | `""` |  |
 | config.initialOrgName | string | `"Default"` | Initial org name to be provisioned. |
+| config.insights.agent.extraEnv | object | `{}` |  |
 | config.insights.agent.resources.cpu | int | `2` |  |
 | config.insights.agent.resources.cpuLimit | int | `4` |  |
 | config.insights.agent.resources.maxScale | int | `5` |  |
 | config.insights.agent.resources.memoryLimitMb | int | `8192` |  |
 | config.insights.agent.resources.memoryMb | int | `4096` |  |
 | config.insights.agent.resources.minScale | int | `1` |  |
-| config.insights.agent.extraEnv | object | `{}` | Extra env vars for the Insights agent; overrides predefined vars if keys overlap. |
 | config.insights.enabled | bool | `false` |  |
 | config.insights.encryptionKey | string | `""` |  |
 | config.langsmithLicenseKey | string | `""` |  |
