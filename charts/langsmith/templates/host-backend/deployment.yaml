@@ -26,7 +26,7 @@
 {{- include "langsmith.detectDuplicates" $envVars -}}
 {{- $volumes := concat .Values.commonVolumes .Values.hostBackend.deployment.volumes (include "langsmith.tlsVolumes" . | fromYamlArray) -}}
 {{- $volumeMounts := concat .Values.commonVolumeMounts .Values.hostBackend.deployment.volumeMounts (include "langsmith.tlsVolumeMounts" . | fromYamlArray) -}}
-{{- if .Values.config.deployment.enabled }}
+{{- if or .Values.config.deployment.enabled .Values.hostBackend.enabled }}
 {{- if .Values.hostBackend.rollout.enabled }}
 apiVersion: argoproj.io/v1alpha1
 kind: Rollout
