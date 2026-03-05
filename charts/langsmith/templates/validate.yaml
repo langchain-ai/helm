@@ -195,6 +195,14 @@ AWS Marketplace Helm template verification).
 {{- fail "config.insights.encryptionKey is required when Insights is enabled. Generate one with: python -c \"from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())\"" -}}
 {{- end -}}
 
+{{- /* Validate standalone: agentUrl required when enabled */ -}}
+{{- if and .Values.config.agentBuilder.standalone.enabled (not .Values.config.agentBuilder.standalone.agentUrl) -}}
+{{- fail "config.agentBuilder.standalone.agentUrl is required when config.agentBuilder.standalone.enabled is true." -}}
+{{- end -}}
+{{- if and .Values.config.insights.standalone.enabled (not .Values.config.insights.standalone.agentUrl) -}}
+{{- fail "config.insights.standalone.agentUrl is required when config.insights.standalone.enabled is true." -}}
+{{- end -}}
+
 {{- /* Validate autoscaling configuration for all services */ -}}
 {{- $autoscalingServices := dict
   "aceBackend" .Values.aceBackend.autoscaling

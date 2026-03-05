@@ -138,6 +138,10 @@ config:
     # Fernet encryption key for Insights. Required when enabled.
     # Generate with: python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
     encryptionKey: ""
+    standalone:
+      enabled: false
+      # -- URL of the standalone Insights (Clio) deployment
+      agentUrl: ""
     agent:
       resources:
         cpu: 2
@@ -173,6 +177,10 @@ config:
       slackOAuthProvider: ""
       slackSigningSecret: ""
       slackBotId: ""
+    standalone:
+      enabled: false
+      # -- URL of the standalone Agent Builder deployment
+      agentUrl: ""
     agent:
       resources:
         cpu: 2

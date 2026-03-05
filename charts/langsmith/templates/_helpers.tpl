@@ -461,6 +461,14 @@ Template containing common environment variables that are used by several servic
       key: insights_encryption_key
       optional: false
 {{- end }}
+{{- if and .Values.config.agentBuilder.standalone.enabled .Values.config.agentBuilder.standalone.agentUrl }}
+- name: LANGGRAPH_API_URL_PUBLIC
+  value: {{ .Values.config.agentBuilder.standalone.agentUrl | quote }}
+{{- end }}
+{{- if and .Values.config.insights.standalone.enabled .Values.config.insights.standalone.agentUrl }}
+- name: CLIO_LANGGRAPH_URL
+  value: {{ .Values.config.insights.standalone.agentUrl | quote }}
+{{- end }}
 {{- end }}
 
 
@@ -595,10 +603,11 @@ Template containing common environment variables that are used by several servic
 
 {{- define "agentBootstrap.createAgentProducts" -}}
 {{- $createProducts := list }}
-{{- if .Values.config.agentBuilder.enabled }}
+{{- /* Create in-cluster agent only when enabled and NOT using standalone */ -}}
+{{- if and .Values.config.agentBuilder.enabled (not .Values.config.agentBuilder.standalone.enabled) }}
 {{- $createProducts = append $createProducts "agent_builder" }}
 {{- end }}
-{{- if .Values.config.insights.enabled }}
+{{- if and .Values.config.insights.enabled (not .Values.config.insights.standalone.enabled) }}
 {{- $createProducts = append $createProducts "insights" }}
 {{- end }}
 {{ toYaml $createProducts }}
@@ -606,10 +615,11 @@ Template containing common environment variables that are used by several servic
 
 {{- define "agentBootstrap.destroyAgentProducts" -}}
 {{- $destroyProducts := list }}
-{{- if not .Values.config.agentBuilder.enabled }}
+{{- /* Destroy when disabled OR when standalone is enabled (use external agent instead) */ -}}
+{{- if or (not .Values.config.agentBuilder.enabled) .Values.config.agentBuilder.standalone.enabled }}
 {{- $destroyProducts = append $destroyProducts "agent_builder" }}
 {{- end }}
-{{- if not .Values.config.insights.enabled }}
+{{- if or (not .Values.config.insights.enabled) .Values.config.insights.standalone.enabled }}
 {{- $destroyProducts = append $destroyProducts "insights" }}
 {{- end }}
 {{ toYaml $destroyProducts }}

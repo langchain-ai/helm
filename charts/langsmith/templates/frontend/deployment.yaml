@@ -44,6 +44,20 @@
 - name: VITE_HOST_ENABLED
   value: "1"
 {{- end }}
+{{- if and .Values.config.agentBuilder.standalone.enabled .Values.config.agentBuilder.standalone.agentUrl }}
+- name: VITE_AGENT_BUILDER_DEPLOYMENT_URL_PUBLIC
+  value: {{ .Values.config.agentBuilder.standalone.agentUrl | quote }}
+- name: VITE_AGENT_BUILDER_GENERATOR_DEPLOYMENT_URL_PUBLIC
+  value: {{ .Values.config.agentBuilder.standalone.agentUrl | quote }}
+{{- if and .Values.config.hostname .Values.agentBuilderToolServer.enabled }}
+- name: VITE_AGENT_BUILDER_MCP_SERVER_URL
+  value: {{ .Values.config.hostname }}/mcp
+{{- end }}
+{{- if and .Values.config.hostname .Values.agentBuilderTriggerServer.enabled }}
+- name: VITE_AGENT_BUILDER_TRIGGERS_API_URL
+  value: {{ .Values.config.hostname | quote }}
+{{- end }}
+{{- end }}
 {{- end -}}
 {{- $envVars := concat .Values.commonEnv (include "frontendEnvVars" . | fromYamlArray) .Values.frontend.deployment.extraEnv -}}
 {{- include "langsmith.detectDuplicates" $envVars -}}
