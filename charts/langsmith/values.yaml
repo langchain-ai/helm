@@ -992,7 +992,6 @@ frontend:
     automountServiceAccountToken: true
 
 hostBackend:
-  # -- Set to true to deploy the host-backend service. Also deployed when config.deployment.enabled is true.
   enabled: false
   name: "host-backend"
   containerPort: 1985
