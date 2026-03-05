@@ -1,0 +1,112 @@
+{{- if .Values.backend.backfillCheck.enabled }}
+{{- $envVars := concat .Values.commonEnv (include "langsmith.commonEnv" . | fromYamlArray) .Values.backend.backfillCheck.extraEnv -}}
+{{- include "langsmith.detectDuplicates" $envVars -}}
+{{- $volumes := concat .Values.commonVolumes .Values.backend.backfillCheck.volumes (include "langsmith.tlsVolumes" . | fromYamlArray) -}}
+{{- $volumeMounts := concat .Values.commonVolumeMounts .Values.backend.backfillCheck.volumeMounts (include "langsmith.tlsVolumeMounts" . | fromYamlArray) -}}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}-backfill-check{{ ternary (printf "-%s" (randAlphaNum 5 | lower)) "" .Values.backend.backfillCheck.randomizeName }}
+  namespace: {{ .Values.namespace | default .Release.Namespace }}
+  labels:
+    {{- include "langsmith.labels" . | nindent 4 }}
+    {{- with .Values.backend.backfillCheck.labels }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+  annotations:
+    # Run before the upgrade so that unfinished backfills block the upgrade
+    # before any schema migrations are applied.  Uses pre-upgrade (not
+    # pre-install) because backfills are irrelevant on a fresh install.
+    "helm.sh/hook": pre-upgrade
+    "helm.sh/hook-weight": "0"
+    # Delete the previous job before creating a new one so each upgrade
+    # attempt gets a fresh check result.
+    "helm.sh/hook-delete-policy": before-hook-creation
+    "argocd.argoproj.io/hook": "PreSync"
+    "argocd.argoproj.io/hook-delete-policy": "BeforeHookCreation"
+    {{- include "langsmith.annotations" . | nindent 4 }}
+    {{- with .Values.backend.backfillCheck.annotations }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  # Do not retry — the operator must resolve the blocking backfills and
+  # re-attempt the upgrade rather than retrying the same check.
+  backoffLimit: 0
+  ttlSecondsAfterFinished: {{ .Values.backend.backfillCheck.ttlSecondsAfterFinished }}
+  template:
+    metadata:
+      {{- with .Values.backend.backfillCheck.annotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- with .Values.backend.backfillCheck.labels }}
+            {{- toYaml . | nindent 8 }}
+        {{- end }}
+        {{- include "langsmith.labels" . | nindent 8 }}
+        app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}
+    spec:
+      restartPolicy: Never
+      {{- with .Values.images.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{- include "langsmith.podSecurityContext" (dict "Values" .Values "componentSecurityContext" .Values.backend.backfillCheck.podSecurityContext) | nindent 8 }}
+      serviceAccountName: {{ include "backend.serviceAccountName" . }}
+      {{- with concat .Values.commonInitContainers .Values.backend.backfillCheck.initContainers }}
+      initContainers:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: backfill-check
+          {{- with .Values.backend.backfillCheck.command }}
+          command:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          env:
+            - name: LANGSMITH_APP_VERSION
+              value: {{ .Chart.AppVersion | quote }}
+            {{- with $envVars }}
+              {{- toYaml . | nindent 12 }}
+            {{- end }}
+          envFrom:
+            - configMapRef:
+                name: {{ include "langsmith.fullname" . }}-config
+          image: {{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "backendImage") | quote }}
+          imagePullPolicy: {{ .Values.images.backendImage.pullPolicy }}
+          resources:
+            {{- toYaml .Values.backend.backfillCheck.resources | nindent 12 }}
+          securityContext:
+            {{- toYaml .Values.backend.backfillCheck.securityContext | nindent 12 }}
+          {{- with $volumeMounts }}
+          volumeMounts:
+              {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.backend.backfillCheck.extraContainerConfig }}
+            {{- toYaml . | nindent 10 }}
+          {{- end }}
+        {{- with .Values.backend.backfillCheck.sidecars }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- with .Values.backend.backfillCheck.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.backend.backfillCheck.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.backend.backfillCheck.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.backend.backfillCheck.topologySpreadConstraints }}
+      topologySpreadConstraints:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with $volumes }}
+      volumes:
+          {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}
