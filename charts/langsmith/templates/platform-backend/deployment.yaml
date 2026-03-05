@@ -5,6 +5,10 @@
 - name: DOCS_PREFIX
   value: /{{ . }}/api
 {{- end }}
+{{- if and .Values.config.oauth.enabled .Values.config.hostname (or .Values.config.agentBuilder.standalone.enabled .Values.config.insights.standalone.enabled) }}
+- name: OAUTH_COOKIE_DOMAIN
+  value: {{ include "langsmith.hostnameWithoutProtocol" . | quote }}
+{{- end }}
 {{- end -}}
 {{- $envVars := concat .Values.commonEnv (include "langsmith.commonEnv" . | fromYamlArray) (include "platformBackendEnvVars" . | fromYamlArray) .Values.platformBackend.deployment.extraEnv -}}
 {{- include "langsmith.detectDuplicates" $envVars -}}
