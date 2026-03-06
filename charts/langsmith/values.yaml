@@ -992,6 +992,7 @@ frontend:
     automountServiceAccountToken: true
 
 hostBackend:
+  enabled: false
   name: "host-backend"
   containerPort: 1985
   # -- ArgoCD Rollouts configuration. If enabled, will create a Rollout resource instead of a Deployment. See https://argo-rollouts.readthedocs.io/

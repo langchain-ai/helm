@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.13.18](https://img.shields.io/badge/Version-0.13.18-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.13.20](https://img.shields.io/badge/AppVersion-0.13.20-informational?style=flat-square)
+![Version: 0.13.19](https://img.shields.io/badge/Version-0.13.19-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.13.20](https://img.shields.io/badge/AppVersion-0.13.20-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -840,6 +840,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | hostBackend.deployment.topologySpreadConstraints | list | `[]` |  |
 | hostBackend.deployment.volumeMounts | list | `[]` |  |
 | hostBackend.deployment.volumes | list | `[]` |  |
+| hostBackend.enabled | bool | `false` | Set to true to deploy the host-backend service. Also deployed when config.deployment.enabled is true. |
 | hostBackend.name | string | `"host-backend"` |  |
 | hostBackend.pdb.annotations | object | `{}` |  |
 | hostBackend.pdb.enabled | bool | `false` |  |
