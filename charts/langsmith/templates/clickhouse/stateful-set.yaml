@@ -64,6 +64,7 @@ spec:
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      terminationGracePeriodSeconds: {{ .Values.clickhouse.statefulSet.terminationGracePeriodSeconds }}
       securityContext:
         {{- include "langsmith.podSecurityContext" (dict "Values" .Values "componentSecurityContext" .Values.clickhouse.statefulSet.podSecurityContext) | nindent 8 }}
       serviceAccountName: {{ include "clickhouse.serviceAccountName" . }}
@@ -109,6 +110,10 @@ spec:
             {{- toYaml .Values.clickhouse.statefulSet.resources | nindent 12 }}
           securityContext:
             {{- toYaml .Values.clickhouse.statefulSet.securityContext | nindent 12 }}
+          {{- with .Values.clickhouse.statefulSet.lifecycle }}
+          lifecycle:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           volumeMounts:
             {{- with $volumeMounts }}
               {{- toYaml . | nindent 12 }}

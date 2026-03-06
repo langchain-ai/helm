@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.13.14](https://img.shields.io/badge/Version-0.13.14-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.13.14](https://img.shields.io/badge/AppVersion-0.13.14-informational?style=flat-square)
+![Version: 0.13.21](https://img.shields.io/badge/Version-0.13.21-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.13.21](https://img.shields.io/badge/AppVersion-0.13.21-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -25,6 +25,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | agentBuilderToolServer.deployment.extraEnv | list | `[]` |  |
 | agentBuilderToolServer.deployment.initContainers | list | `[]` |  |
 | agentBuilderToolServer.deployment.labels | object | `{}` |  |
+| agentBuilderToolServer.deployment.lifecycle | object | `{}` |  |
 | agentBuilderToolServer.deployment.livenessProbe.failureThreshold | int | `6` |  |
 | agentBuilderToolServer.deployment.livenessProbe.httpGet.path | string | `"/health"` |  |
 | agentBuilderToolServer.deployment.livenessProbe.httpGet.port | int | `1989` |  |
@@ -78,6 +79,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | agentBuilderTriggerServer.deployment.extraEnv | list | `[]` |  |
 | agentBuilderTriggerServer.deployment.initContainers | list | `[]` |  |
 | agentBuilderTriggerServer.deployment.labels | object | `{}` |  |
+| agentBuilderTriggerServer.deployment.lifecycle | object | `{}` |  |
 | agentBuilderTriggerServer.deployment.livenessProbe.failureThreshold | int | `6` |  |
 | agentBuilderTriggerServer.deployment.livenessProbe.httpGet.path | string | `"/health"` |  |
 | agentBuilderTriggerServer.deployment.livenessProbe.httpGet.port | int | `1990` |  |
@@ -137,41 +139,41 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | gateway.sectionName | string | `""` |  |
 | images.aceBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.aceBackendImage.repository | string | `"docker.io/langchain/langsmith-ace-backend"` |  |
-| images.aceBackendImage.tag | string | `"0.13.14"` |  |
+| images.aceBackendImage.tag | string | `"0.13.21"` |  |
 | images.agentBuilderImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.agentBuilderImage.repository | string | `"docker.io/langchain/agent-builder-deep-agent"` |  |
-| images.agentBuilderImage.tag | string | `"0.13.14"` |  |
+| images.agentBuilderImage.tag | string | `"0.13.21"` |  |
 | images.agentBuilderToolServerImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.agentBuilderToolServerImage.repository | string | `"docker.io/langchain/agent-builder-tool-server"` |  |
-| images.agentBuilderToolServerImage.tag | string | `"0.13.14"` |  |
+| images.agentBuilderToolServerImage.tag | string | `"0.13.21"` |  |
 | images.agentBuilderTriggerServerImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.agentBuilderTriggerServerImage.repository | string | `"docker.io/langchain/agent-builder-trigger-server"` |  |
-| images.agentBuilderTriggerServerImage.tag | string | `"0.13.14"` |  |
+| images.agentBuilderTriggerServerImage.tag | string | `"0.13.21"` |  |
 | images.backendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.backendImage.repository | string | `"docker.io/langchain/langsmith-backend"` |  |
-| images.backendImage.tag | string | `"0.13.14"` |  |
+| images.backendImage.tag | string | `"0.13.21"` |  |
 | images.clickhouseImage.pullPolicy | string | `"Always"` |  |
 | images.clickhouseImage.repository | string | `"docker.io/clickhouse/clickhouse-server"` |  |
 | images.clickhouseImage.tag | string | `"25.12"` |  |
 | images.frontendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.frontendImage.repository | string | `"docker.io/langchain/langsmith-frontend"` |  |
-| images.frontendImage.tag | string | `"0.13.14"` |  |
+| images.frontendImage.tag | string | `"0.13.21"` |  |
 | images.hostBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.hostBackendImage.repository | string | `"docker.io/langchain/hosted-langserve-backend"` |  |
-| images.hostBackendImage.tag | string | `"0.13.14"` |  |
+| images.hostBackendImage.tag | string | `"0.13.21"` |  |
 | images.imagePullSecrets | list | `[]` | Secrets with credentials to pull images from a private registry. Specified as name: value. |
 | images.insightsAgentImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.insightsAgentImage.repository | string | `"docker.io/langchain/langsmith-clio"` |  |
-| images.insightsAgentImage.tag | string | `"0.13.14"` |  |
+| images.insightsAgentImage.tag | string | `"0.13.21"` |  |
 | images.operatorImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.operatorImage.repository | string | `"docker.io/langchain/langgraph-operator"` |  |
 | images.operatorImage.tag | string | `"0.1.37"` |  |
 | images.platformBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.platformBackendImage.repository | string | `"docker.io/langchain/langsmith-go-backend"` |  |
-| images.platformBackendImage.tag | string | `"0.13.14"` |  |
+| images.platformBackendImage.tag | string | `"0.13.21"` |  |
 | images.playgroundImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.playgroundImage.repository | string | `"docker.io/langchain/langsmith-playground"` |  |
-| images.playgroundImage.tag | string | `"0.13.14"` |  |
+| images.playgroundImage.tag | string | `"0.13.21"` |  |
 | images.postgresImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.postgresImage.repository | string | `"docker.io/postgres"` |  |
 | images.postgresImage.tag | string | `"14.7"` |  |
@@ -210,6 +212,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | ingestQueue.deployment.extraEnv | list | `[]` |  |
 | ingestQueue.deployment.initContainers | list | `[]` |  |
 | ingestQueue.deployment.labels | object | `{}` |  |
+| ingestQueue.deployment.lifecycle | object | `{}` |  |
 | ingestQueue.deployment.livenessProbe.failureThreshold | int | `6` |  |
 | ingestQueue.deployment.livenessProbe.httpGet.path | string | `"/health"` |  |
 | ingestQueue.deployment.livenessProbe.httpGet.port | int | `1989` |  |
@@ -269,6 +272,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
+| config.agentBuilder.agent.extraEnv | object | `{}` |  |
 | config.agentBuilder.agent.resources.cpu | int | `2` |  |
 | config.agentBuilder.agent.resources.cpuLimit | int | `4` |  |
 | config.agentBuilder.agent.resources.maxScale | int | `5` |  |
@@ -319,6 +323,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | config.hostname | string | `""` | hostname of the LangSmith installation. Used for redirects and LangSmith deployments. Required for OAuth and LangSmith Deployments. E.g langsmith.com |
 | config.initialOrgAdminEmail | string | `""` |  |
 | config.initialOrgName | string | `"Default"` | Initial org name to be provisioned. |
+| config.insights.agent.extraEnv | object | `{}` |  |
 | config.insights.agent.resources.cpu | int | `2` |  |
 | config.insights.agent.resources.cpuLimit | int | `4` |  |
 | config.insights.agent.resources.maxScale | int | `5` |  |
@@ -390,6 +395,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | aceBackend.deployment.extraEnv | list | `[]` |  |
 | aceBackend.deployment.initContainers | list | `[]` |  |
 | aceBackend.deployment.labels | object | `{}` |  |
+| aceBackend.deployment.lifecycle | object | `{}` |  |
 | aceBackend.deployment.livenessProbe.failureThreshold | int | `6` |  |
 | aceBackend.deployment.livenessProbe.httpGet.path | string | `"/ok"` |  |
 | aceBackend.deployment.livenessProbe.httpGet.port | int | `1987` |  |
@@ -535,6 +541,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | backend.deployment.extraEnv | list | `[]` |  |
 | backend.deployment.initContainers | list | `[]` |  |
 | backend.deployment.labels | object | `{}` |  |
+| backend.deployment.lifecycle | object | `{}` |  |
 | backend.deployment.livenessProbe.failureThreshold | int | `6` |  |
 | backend.deployment.livenessProbe.httpGet.path | string | `"/health"` |  |
 | backend.deployment.livenessProbe.httpGet.port | int | `1984` |  |
@@ -732,6 +739,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | clickhouse.statefulSet.extraEnv | list | `[]` |  |
 | clickhouse.statefulSet.initContainers | list | `[]` |  |
 | clickhouse.statefulSet.labels | object | `{}` |  |
+| clickhouse.statefulSet.lifecycle | object | `{}` |  |
 | clickhouse.statefulSet.livenessProbe.failureThreshold | int | `6` |  |
 | clickhouse.statefulSet.livenessProbe.httpGet.path | string | `"/ping"` |  |
 | clickhouse.statefulSet.livenessProbe.httpGet.port | int | `8123` |  |
@@ -759,6 +767,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | clickhouse.statefulSet.startupProbe.httpGet.port | int | `8123` |  |
 | clickhouse.statefulSet.startupProbe.periodSeconds | int | `10` |  |
 | clickhouse.statefulSet.startupProbe.timeoutSeconds | int | `1` |  |
+| clickhouse.statefulSet.terminationGracePeriodSeconds | int | `30` |  |
 | clickhouse.statefulSet.tolerations | list | `[]` |  |
 | clickhouse.statefulSet.topologySpreadConstraints | list | `[]` |  |
 | clickhouse.statefulSet.volumeMounts | list | `[]` |  |
@@ -801,6 +810,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | hostBackend.deployment.extraEnv | list | `[]` |  |
 | hostBackend.deployment.initContainers | list | `[]` |  |
 | hostBackend.deployment.labels | object | `{}` |  |
+| hostBackend.deployment.lifecycle | object | `{}` |  |
 | hostBackend.deployment.livenessProbe.failureThreshold | int | `6` |  |
 | hostBackend.deployment.livenessProbe.httpGet.path | string | `"/ok"` |  |
 | hostBackend.deployment.livenessProbe.httpGet.port | int | `1985` |  |
@@ -830,6 +840,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | hostBackend.deployment.topologySpreadConstraints | list | `[]` |  |
 | hostBackend.deployment.volumeMounts | list | `[]` |  |
 | hostBackend.deployment.volumes | list | `[]` |  |
+| hostBackend.enabled | bool | `false` |  |
 | hostBackend.name | string | `"host-backend"` |  |
 | hostBackend.pdb.annotations | object | `{}` |  |
 | hostBackend.pdb.enabled | bool | `false` |  |
@@ -886,6 +897,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | frontend.deployment.extraEnv | list | `[]` |  |
 | frontend.deployment.initContainers | list | `[]` |  |
 | frontend.deployment.labels | object | `{}` |  |
+| frontend.deployment.lifecycle | object | `{}` |  |
 | frontend.deployment.livenessProbe.failureThreshold | int | `10` |  |
 | frontend.deployment.livenessProbe.httpGet.path | string | `"/health"` |  |
 | frontend.deployment.livenessProbe.httpGet.port | int | `8080` |  |
@@ -979,6 +991,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | listener.deployment.extraEnv | list | `[]` |  |
 | listener.deployment.initContainers | list | `[]` |  |
 | listener.deployment.labels | object | `{}` |  |
+| listener.deployment.lifecycle | object | `{}` |  |
 | listener.deployment.livenessProbe.exec.command[0] | string | `"saq"` |  |
 | listener.deployment.livenessProbe.exec.command[1] | string | `"app.workers.queues.host_worker.settings"` |  |
 | listener.deployment.livenessProbe.exec.command[2] | string | `"--check"` |  |
@@ -1036,6 +1049,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | operator.deployment.extraEnv | list | `[]` |  |
 | operator.deployment.initContainers | list | `[]` |  |
 | operator.deployment.labels | object | `{}` |  |
+| operator.deployment.lifecycle | object | `{}` |  |
 | operator.deployment.nodeSelector | object | `{}` |  |
 | operator.deployment.podSecurityContext | object | `{}` |  |
 | operator.deployment.replicas | int | `1` |  |
@@ -1106,6 +1120,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | platformBackend.deployment.extraEnv | list | `[]` |  |
 | platformBackend.deployment.initContainers | list | `[]` |  |
 | platformBackend.deployment.labels | object | `{}` |  |
+| platformBackend.deployment.lifecycle | object | `{}` |  |
 | platformBackend.deployment.livenessProbe.failureThreshold | int | `6` |  |
 | platformBackend.deployment.livenessProbe.httpGet.path | string | `"/ok"` |  |
 | platformBackend.deployment.livenessProbe.httpGet.port | int | `1986` |  |
@@ -1188,6 +1203,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | playground.deployment.extraEnv | list | `[]` |  |
 | playground.deployment.initContainers | list | `[]` |  |
 | playground.deployment.labels | object | `{}` |  |
+| playground.deployment.lifecycle | object | `{}` |  |
 | playground.deployment.livenessProbe.failureThreshold | int | `6` |  |
 | playground.deployment.livenessProbe.httpGet.path | string | `"/ok"` |  |
 | playground.deployment.livenessProbe.httpGet.port | int | `1988` |  |
@@ -1280,6 +1296,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | postgres.statefulSet.extraEnv | list | `[]` |  |
 | postgres.statefulSet.initContainers | list | `[]` |  |
 | postgres.statefulSet.labels | object | `{}` |  |
+| postgres.statefulSet.lifecycle | object | `{}` |  |
 | postgres.statefulSet.livenessProbe.exec.command[0] | string | `"/bin/sh"` |  |
 | postgres.statefulSet.livenessProbe.exec.command[1] | string | `"-c"` |  |
 | postgres.statefulSet.livenessProbe.exec.command[2] | string | `"exec pg_isready -d postgres -U postgres"` |  |
@@ -1310,6 +1327,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | postgres.statefulSet.startupProbe.failureThreshold | int | `6` |  |
 | postgres.statefulSet.startupProbe.periodSeconds | int | `10` |  |
 | postgres.statefulSet.startupProbe.timeoutSeconds | int | `1` |  |
+| postgres.statefulSet.terminationGracePeriodSeconds | int | `30` |  |
 | postgres.statefulSet.tolerations | list | `[]` |  |
 | postgres.statefulSet.topologySpreadConstraints | list | `[]` |  |
 | postgres.statefulSet.volumeMounts | list | `[]` |  |
@@ -1350,6 +1368,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | queue.deployment.extraEnv | list | `[]` |  |
 | queue.deployment.initContainers | list | `[]` |  |
 | queue.deployment.labels | object | `{}` |  |
+| queue.deployment.lifecycle | object | `{}` |  |
 | queue.deployment.livenessProbe.exec.command[0] | string | `"saq"` |  |
 | queue.deployment.livenessProbe.exec.command[1] | string | `"app.workers.queues.single_queue_worker.settings"` |  |
 | queue.deployment.livenessProbe.exec.command[2] | string | `"--check"` |  |
@@ -1436,6 +1455,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | redis.statefulSet.extraEnv | list | `[]` |  |
 | redis.statefulSet.initContainers | list | `[]` |  |
 | redis.statefulSet.labels | object | `{}` |  |
+| redis.statefulSet.lifecycle | object | `{}` |  |
 | redis.statefulSet.livenessProbe.exec.command[0] | string | `"/bin/sh"` |  |
 | redis.statefulSet.livenessProbe.exec.command[1] | string | `"-c"` |  |
 | redis.statefulSet.livenessProbe.exec.command[2] | string | `"exec redis-cli ping"` |  |
@@ -1466,6 +1486,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | redis.statefulSet.startupProbe.failureThreshold | int | `6` |  |
 | redis.statefulSet.startupProbe.periodSeconds | int | `10` |  |
 | redis.statefulSet.startupProbe.timeoutSeconds | int | `1` |  |
+| redis.statefulSet.terminationGracePeriodSeconds | int | `30` |  |
 | redis.statefulSet.tolerations | list | `[]` |  |
 | redis.statefulSet.topologySpreadConstraints | list | `[]` |  |
 | redis.statefulSet.volumeMounts | list | `[]` |  |

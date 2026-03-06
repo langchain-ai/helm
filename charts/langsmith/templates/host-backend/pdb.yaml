@@ -1,4 +1,4 @@
-{{- if .Values.hostBackend.pdb.enabled }}
+{{- if and (or .Values.config.deployment.enabled .Values.hostBackend.enabled) .Values.hostBackend.pdb.enabled }}
 apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:

@@ -96,6 +96,10 @@ spec:
             {{- toYaml .Values.aceBackend.deployment.resources | nindent 12 }}
           securityContext:
             {{- toYaml .Values.aceBackend.deployment.securityContext | nindent 12 }}
+          {{- with .Values.aceBackend.deployment.lifecycle }}
+          lifecycle:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           {{- with .Values.aceBackend.deployment.volumeMounts }}
           volumeMounts:
               {{- toYaml . | nindent 12 }}

@@ -69,7 +69,9 @@ apiServer:
     annotations: {}
     podSecurityContext: {}
     securityContext: {}
+    lifecycle: {}
     priorityClassName: ""
+    terminationGracePeriodSeconds: 30
     resources:
       limits:
         cpu: 2000m
@@ -151,7 +153,9 @@ queue:
     annotations: {}
     podSecurityContext: {}
     securityContext: {}
+    lifecycle: {}
     priorityClassName: ""
+    terminationGracePeriodSeconds: 30
     resources:
       limits:
         cpu: 2000m
@@ -228,7 +232,9 @@ postgres:
     annotations: {}
     podSecurityContext: {}
     securityContext: {}
+    lifecycle: {}
     priorityClassName: ""
+    terminationGracePeriodSeconds: 30
     resources:
       limits:
         cpu: 4000m
@@ -281,7 +287,9 @@ redis:
     annotations: {}
     podSecurityContext: {}
     securityContext: {}
+    lifecycle: {}
     priorityClassName: ""
+    terminationGracePeriodSeconds: 30
     resources:
       limits:
         cpu: 2000m
@@ -353,7 +361,9 @@ studio:
     annotations: {}
     podSecurityContext: {}
     securityContext: {}
+    lifecycle: {}
     priorityClassName: ""
+    terminationGracePeriodSeconds: 30
     resources:
       limits:
         cpu: 1000m

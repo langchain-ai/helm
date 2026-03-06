@@ -53,6 +53,7 @@ This chart uses the **HTTP** `ext_authz` mode — HTTP request in, HTTP response
 | authProxy.deployment.extraEnv | list | `[]` |  |
 | authProxy.deployment.initContainers | list | `[]` |  |
 | authProxy.deployment.labels | object | `{}` |  |
+| authProxy.deployment.lifecycle | object | `{}` |  |
 | authProxy.deployment.livenessProbe.failureThreshold | int | `6` |  |
 | authProxy.deployment.livenessProbe.httpGet.path | string | `"/healthz"` |  |
 | authProxy.deployment.livenessProbe.httpGet.port | int | `10000` |  |
