@@ -43,6 +43,7 @@ spec:
         {{- end }}
     spec:
       serviceAccountName: {{ include "operator.serviceAccountName" . }}
+      {{- include "langsmith.dnsConfig" . | nindent 6 }}
       automountServiceAccountToken: {{ .Values.operator.serviceAccount.automountServiceAccountToken | default true }}
       {{- with .Values.images.imagePullSecrets }}
       imagePullSecrets:

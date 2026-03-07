@@ -49,6 +49,7 @@ spec:
       securityContext:
         {{- include "langsmith.podSecurityContext" (dict "Values" .Values "componentSecurityContext" .Values.agentBuilderTriggerServer.deployment.podSecurityContext) | nindent 8 }}
       serviceAccountName: {{ include "agentBuilderTriggerServer.serviceAccountName" . }}
+      {{- include "langsmith.dnsConfig" . | nindent 6 }}
       {{- with concat .Values.commonInitContainers .Values.agentBuilderTriggerServer.deployment.initContainers }}
       initContainers:
         {{- toYaml . | nindent 8 }}
