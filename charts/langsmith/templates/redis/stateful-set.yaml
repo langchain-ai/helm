@@ -47,6 +47,7 @@ spec:
       securityContext:
         {{- include "langsmith.podSecurityContext" (dict "Values" .Values "componentSecurityContext" .Values.redis.statefulSet.podSecurityContext) | nindent 8 }}
       serviceAccountName: {{ include "redis.serviceAccountName" . }}
+      {{- include "langsmith.dnsConfig" . | nindent 6 }}
       {{- with concat .Values.commonInitContainers .Values.redis.statefulSet.initContainers }}
       initContainers:
         {{- toYaml . | nindent 8 }}

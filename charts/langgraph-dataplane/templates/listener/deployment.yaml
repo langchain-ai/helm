@@ -67,6 +67,7 @@ spec:
       securityContext:
         {{- toYaml .Values.listener.deployment.podSecurityContext | nindent 8 }}
       serviceAccountName: {{ include "listener.serviceAccountName" . }}
+      {{- include "langgraphDataplane.dnsConfig" . | nindent 6 }}
       restartPolicy: Always
       containers:
         - name: {{ .Values.listener.name }}

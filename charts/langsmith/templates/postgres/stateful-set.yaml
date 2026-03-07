@@ -69,6 +69,7 @@ spec:
       securityContext:
         {{- include "langsmith.podSecurityContext" (dict "Values" .Values "componentSecurityContext" .Values.postgres.statefulSet.podSecurityContext) | nindent 8 }}
       serviceAccountName: {{ include "postgres.serviceAccountName" . }}
+      {{- include "langsmith.dnsConfig" . | nindent 6 }}
       {{- with concat .Values.commonInitContainers .Values.postgres.statefulSet.initContainers }}
       initContainers:
         {{- toYaml . | nindent 8 }}

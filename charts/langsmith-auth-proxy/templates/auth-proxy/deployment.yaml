@@ -51,6 +51,7 @@ spec:
       securityContext:
         {{- include "authProxy.podSecurityContext" (dict "Values" .Values "componentSecurityContext" .Values.authProxy.deployment.podSecurityContext) | nindent 8 }}
       serviceAccountName: {{ include "authProxy.serviceAccountName" . }}
+      {{- include "authProxy.dnsConfig" . | nindent 6 }}
       {{- with .Values.authProxy.deployment.initContainers }}
       initContainers:
         {{- toYaml . | nindent 8 }}

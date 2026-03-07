@@ -46,6 +46,7 @@ spec:
       securityContext:
         {{- toYaml .Values.redis.deployment.podSecurityContext | nindent 8 }}
       serviceAccountName: {{ include "redis.serviceAccountName" . }}
+      {{- include "langGraphCloud.dnsConfig" . | nindent 6 }}
       containers:
         - name: {{ .Values.redis.name }}
           {{- with.Values.redis.deployment.command }}

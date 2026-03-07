@@ -38,6 +38,7 @@ spec:
         {{- end }}
     spec:
       serviceAccountName: {{ include "operator.serviceAccountName" . }}
+      {{- include "langgraphDataplane.dnsConfig" . | nindent 6 }}
       automountServiceAccountToken: {{ .Values.operator.serviceAccount.automountServiceAccountToken }}
       {{- with .Values.images.imagePullSecrets }}
       imagePullSecrets:

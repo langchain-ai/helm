@@ -120,6 +120,7 @@ spec:
       securityContext:
         {{- include "langsmith.podSecurityContext" (dict "Values" .Values "componentSecurityContext" .Values.frontend.deployment.podSecurityContext) | nindent 8 }}
       serviceAccountName: {{ include "frontend.serviceAccountName" . }}
+      {{- include "langsmith.dnsConfig" . | nindent 6 }}
       {{- with concat .Values.commonInitContainers .Values.frontend.deployment.initContainers }}
       initContainers:
         {{- toYaml . | nindent 8 }}

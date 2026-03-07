@@ -18,6 +18,13 @@ commonVolumes: []
 commonVolumeMounts: []
 # -- Kubernetes cluster domain. Used for constructing service FQDNs.
 clusterDomain: "cluster.local"
+# -- Common DNS configuration applied to all pods. Reduces DNS query amplification in Kubernetes by
+# -- ensuring service FQDNs (which have 4 dots) are resolved directly without search domain expansion.
+# -- Set to null to disable and use Kubernetes defaults (ndots: 5).
+commonDnsConfig:
+  options:
+    - name: ndots
+      value: "4"
 
 images:
    # -- If supplied, all children <image_name>.repository values will be prepended with this registry name + `/`
