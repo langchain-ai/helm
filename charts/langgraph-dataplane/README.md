@@ -1,6 +1,6 @@
 # langgraph-dataplane
 
-![Version: 0.2.18](https://img.shields.io/badge/Version-0.2.18-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.13.9](https://img.shields.io/badge/AppVersion-0.13.9-informational?style=flat-square)
+![Version: 0.2.19](https://img.shields.io/badge/Version-0.2.19-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.13.9](https://img.shields.io/badge/AppVersion-0.13.9-informational?style=flat-square)
 
 Helm chart to deploy a langgraph dataplane on kubernetes.
 
@@ -15,6 +15,7 @@ You can find the guide to deploy a LangGraph Dataplane [here](https://langchain-
 |-----|------|---------|-------------|
 | clusterDomain | string | `"cluster.local"` | Kubernetes cluster domain. Used for constructing service FQDNs. |
 | commonAnnotations | object | `{}` | Annotations that will be applied to all resources created by the chart |
+| commonDnsConfig | object | `{"options":[{"name":"ndots","value":"4"}]}` | Set to null to disable and use Kubernetes defaults (ndots: 5). |
 | commonEnv | list | `[]` | Common environment variables that will be applied to all deployments. |
 | commonLabels | object | `{}` | Labels that will be applied to all resources created by the chart |
 | commonVolumeMounts | list | `[]` | Common volume mounts added to all deployments/statefulsets. |
