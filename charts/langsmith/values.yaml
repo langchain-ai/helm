@@ -199,6 +199,13 @@ config:
     # Either set the password and JWT secret in plaintext, or set in the secret specified by existingSecretName above.
     initialOrgAdminPassword: ""
     jwtSecret: ""
+  # -- Email addresses of super admins who can export usage data.
+  # These are the only users allowed to use the usage backfill export
+  # unless orgAdminsInstallationUsageExportEnabled is set.
+  superAdmins: []
+  # -- When true, any org admin can use the usage backfill export.
+  orgAdminsInstallationUsageExportEnabled: false
+
   # -- Prevent organization creation by users. This includes admins.
   userOrgCreationDisabled: true
   # -- Disable personal orgs.
