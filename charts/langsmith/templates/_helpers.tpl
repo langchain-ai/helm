@@ -354,6 +354,10 @@ Template containing common environment variables that are used by several servic
 - name: FF_WORKSPACE_SCOPE_ORG_INVITES_ENABLED
   value: {{ .Values.config.workspaceScopeOrgInvitesEnabled | quote }}
 {{- end }}
+{{- if .Values.config.infoEndpointAuthRequired }}
+- name: FF_INFO_ENDPOINT_AUTH_REQUIRED
+  value: {{ .Values.config.infoEndpointAuthRequired | quote }}
+{{- end }}
 {{- if .Values.config.blobStorage.enabled }}
 - name: FF_S3_STORAGE_ENABLED
   value: {{ .Values.config.blobStorage.enabled | quote }}
