@@ -1,0 +1,66 @@
+# Example: OAuth2 client-credentials token exchange
+#
+# Deploys the auth-proxy with a sidecar ext_authz service that fetches an
+# OAuth access token from your identity provider and injects it as the
+# Authorization header on every request forwarded to the upstream LLM provider.
+#
+# Prerequisites:
+#   1. Create a Kubernetes Secret with your OAuth credentials:
+#
+#        kubectl create secret generic oauth-credentials \
+#          --from-literal=OAUTH_TOKEN_URL=https://login.example.com/oauth/token \
+#          --from-literal=OAUTH_CLIENT_ID=my-client-id \
+#          --from-literal=OAUTH_CLIENT_SECRET=my-client-secret \
+#          --from-literal=OAUTH_SCOPE="api.read api.write" # Optional
+#
+#   2. Create a ConfigMap with the ext-authz-oauth.py script:
+#
+#        kubectl create configmap ext-authz-oauth-script \
+#          --from-file=ext-authz-oauth.py
+#
+#   3. Install the chart with these values:
+#
+#        helm install auth-proxy charts/langsmith-auth-proxy/ -f charts/langsmith-auth-proxy/examples/oauth-token-exchange/values.yaml
+
+authProxy:
+  enabled: true
+  upstream: "https://api.openai.com"  # Replace with your upstream
+  jwtIssuer: "langsmith"
+  jwtAudiences: []
+  jwksJson: ""  # Fill this in with your JWKS JSON
+  streamIdleTimeout: "300s"
+
+  extAuthz:
+    enabled: true
+    serviceUrl: "http://localhost:10002"
+    timeout: "10s"
+
+  deployment:
+    replicas: 1
+    sidecars:
+      - name: ext-authz-oauth
+        image: python:3.12-slim
+        command: ["python", "/scripts/ext-authz-oauth.py"]
+        ports:
+          - containerPort: 10002
+        envFrom:
+          - secretRef:
+              name: oauth-credentials
+        volumeMounts:
+          - name: ext-authz-oauth-script
+            mountPath: /scripts
+            readOnly: true
+        resources:
+          requests:
+            cpu: 50m
+            memory: 64Mi
+          limits:
+            cpu: 200m
+            memory: 128Mi
+    volumes:
+      - name: ext-authz-oauth-script
+        configMap:
+          name: ext-authz-oauth-script
+
+ingress:
+  enabled: false

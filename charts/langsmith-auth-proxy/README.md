@@ -1,6 +1,6 @@
 # langsmith-auth-proxy
 
-![Version: 0.0.2](https://img.shields.io/badge/Version-0.0.2-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.37.0](https://img.shields.io/badge/AppVersion-1.37.0-informational?style=flat-square)
+![Version: 0.0.3](https://img.shields.io/badge/Version-0.0.3-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.37.0](https://img.shields.io/badge/AppVersion-1.37.0-informational?style=flat-square)
 
 Helm chart to deploy the langsmith auth-proxy application.
 
@@ -96,6 +96,8 @@ This chart uses the **HTTP** `ext_authz` mode — HTTP request in, HTTP response
 | authProxy.jwksJson | string | `""` | JWKS JSON string containing the public keys for JWT validation. Generate with the LangSmith JWKS tooling and paste the full JSON here. |
 | authProxy.jwtAudiences | list | `[]` | JWT audience claims to validate. Must match audiences in the signed JWT. |
 | authProxy.jwtIssuer | string | `"langsmith"` | JWT issuer claim to validate |
+| authProxy.jwtValidation | object | `{"enabled":true}` | JWT validation configuration |
+| authProxy.jwtValidation.enabled | bool | `true` | Set to false to disable the envoy.filters.http.jwt_authn filter entirely. Useful for testing or when JWT validation is handled elsewhere. |
 | authProxy.name | string | `"auth-proxy"` |  |
 | authProxy.pdb.annotations | object | `{}` |  |
 | authProxy.pdb.enabled | bool | `false` |  |

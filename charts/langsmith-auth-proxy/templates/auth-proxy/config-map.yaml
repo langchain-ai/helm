@@ -48,6 +48,7 @@ data:
                             - name: ":path"
                               string_match:
                                 exact: "/healthz"
+                      {{- if .Values.authProxy.jwtValidation.enabled }}
                       - name: envoy.filters.http.jwt_authn
                         typed_config:
                           "@type": type.googleapis.com/envoy.extensions.filters.http.jwt_authn.v3.JwtAuthentication
@@ -70,6 +71,7 @@ data:
                                 prefix: "/"
                               requires:
                                 provider_name: langsmith_jwt
+                      {{- end }}
                       {{- if .Values.authProxy.extAuthz.enabled }}
                       - name: envoy.filters.http.ext_authz
                         typed_config:

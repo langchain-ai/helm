@@ -45,6 +45,11 @@ authProxy:
   # -- JWKS JSON string containing the public keys for JWT validation.
   # Generate with the LangSmith JWKS tooling and paste the full JSON here.
   jwksJson: ""
+  # -- JWT validation configuration
+  jwtValidation:
+    # -- Set to false to disable the envoy.filters.http.jwt_authn filter entirely.
+    # Useful for testing or when JWT validation is handled elsewhere.
+    enabled: true
   # -- Idle timeout for streaming responses (e.g. SSE from LLM providers)
   streamIdleTimeout: "300s"
   # External authorization service configuration (for injecting LLM provider auth headers).
