@@ -111,5 +111,5 @@ class Handler(BaseHTTPRequestHandler):
 if __name__ == "__main__":
     server = HTTPServer(("0.0.0.0", LISTEN_PORT), Handler)
     print(f"ext-authz-oauth listening on :{LISTEN_PORT}", flush=True)
-    print(f"  token_url={TOKEN_URL} client_id={CLIENT_ID}", flush=True)
+    print(f"  token_url={TOKEN_URL} client_id=<redacted>", flush=True)
     server.serve_forever()
