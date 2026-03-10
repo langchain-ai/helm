@@ -89,8 +89,7 @@ config:
   smithBackendUrl: "https://api.smith.langchain.com"
   langsmithWorkspaceId: ""
   langgraphListenerId: ""
-  # -- Comma-separated list of namespaces for the operator to watch. Defaults to the release namespace if not set.
-  # Set to a comma-separated list to watch additional namespaces.
+  # -- Comma-separated list of namespaces for the operator to watch. Defaults to the release namespace; setting this overrides that default entirely.
   watchNamespaces: ""
   enableLGPDeploymentHealthCheck: true
 
@@ -175,7 +174,7 @@ operator:
   name: "operator"
   enabled: true
   createCRDs: true
-  # -- Comma-separated list of namespaces for the operator to watch. Overridden by config.watchNamespaces if set. Defaults to the release namespace if not set.
+  # -- Comma-separated list of namespaces for the operator to watch. Overridden by config.watchNamespaces if set. Defaults to the release namespace; setting this overrides that default entirely.
   watchNamespaces: ""
   kedaEnabled: true
   deployment:
