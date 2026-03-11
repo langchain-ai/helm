@@ -1342,6 +1342,7 @@ operator:
   name: "operator"
   enabled: true
   createCRDs: true
+  # -- Comma-separated list of namespaces for the operator to watch. Defaults to the release namespace; setting this overrides that default entirely.
   watchNamespaces: ""
   kedaEnabled: true
   # -- ArgoCD Rollouts configuration. If enabled, will create a Rollout resource instead of a Deployment. See https://argo-rollouts.readthedocs.io/
