@@ -167,6 +167,7 @@ config:
         memoryLimitMb: 8192
         minScale: 1
         maxScale: 5
+      extraEnv: {}
 
   # Agent Builder configuration - UI for creating and managing agents
   # Requires config.deployment.enabled to be true

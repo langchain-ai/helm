@@ -131,7 +131,8 @@ spec:
                   "memory_mb": {{ .Values.config.polly.agent.resources.memoryMb }},
                   "memory_limit_mb": {{ .Values.config.polly.agent.resources.memoryLimitMb }},
                   "min_scale": {{ .Values.config.polly.agent.resources.minScale }},
-                  "max_scale": {{ .Values.config.polly.agent.resources.maxScale }}
+                  "max_scale": {{ .Values.config.polly.agent.resources.maxScale }},
+                  "extra_env": {{ (.Values.config.polly.agent.extraEnv | default (dict)) | toJson }}
                 }
               {{- end }}
               }
