@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fake-gateway
+  labels:
+    app: fake-gateway
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: fake-gateway
+  template:
+    metadata:
+      labels:
+        app: fake-gateway
+    spec:
+      containers:
+        - name: echo
+          image: mendhak/http-https-echo:35
+          ports:
+            - containerPort: 8080
+          env:
+            - name: HTTP_PORT
+              value: "10001"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: fake-gateway
+  labels:
+    app: fake-gateway
+spec:
+  selector:
+    app: fake-gateway
+  ports:
+    - port: 10001
+      targetPort: 10001
+      protocol: TCP

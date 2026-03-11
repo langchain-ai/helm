@@ -61,6 +61,7 @@ spec:
       securityContext:
         {{- include "langsmith.podSecurityContext" (dict "Values" .Values "componentSecurityContext" .Values.platformBackend.deployment.podSecurityContext) | nindent 8 }}
       serviceAccountName: {{ include "platformBackend.serviceAccountName" . }}
+      {{- include "langsmith.dnsConfig" . | nindent 6 }}
       {{- with concat .Values.commonInitContainers .Values.platformBackend.deployment.initContainers }}
       initContainers:
         {{- toYaml . | nindent 8 }}
@@ -100,6 +101,10 @@ spec:
             {{- toYaml .Values.platformBackend.deployment.resources | nindent 12 }}
           securityContext:
             {{- toYaml .Values.platformBackend.deployment.securityContext | nindent 12 }}
+          {{- with .Values.platformBackend.deployment.lifecycle }}
+          lifecycle:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           {{- with $volumeMounts }}
           volumeMounts:
               {{- toYaml . | nindent 12 }}

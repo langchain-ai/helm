@@ -1,6 +1,6 @@
 # langgraph-cloud
 
-![Version: 0.2.2](https://img.shields.io/badge/Version-0.2.2-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.2.2](https://img.shields.io/badge/AppVersion-0.2.2-informational?style=flat-square)
+![Version: 0.2.4](https://img.shields.io/badge/Version-0.2.4-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.2.3](https://img.shields.io/badge/AppVersion-0.2.3-informational?style=flat-square)
 
 Helm chart to deploy the LangGraph Cloud application and all services it depends on.
 
@@ -123,7 +123,60 @@ postgres:
     connectionUrl: "postgres://postgres:postgres@postgres-host.com:5432/postgres?sslmode=disable"
 ```
 
-You can also use existingSecretName to avoid checking in secrets. This secret should contain keys named `langgraph_cloud_license_key` (optional) and/or `api_key`. Note: API keys such as `OPENAI_API_KEY` should not be specified as environment variables. These values should be stored as secrets (e.g. Kubernetes secrets).
+### Using `existingSecretName`
+
+If you don't want to check secrets into git, create a Kubernetes secret and reference it via `config.existingSecretName`. The chart expects the following keys:
+
+- `api_key` — mounted as `LANGSMITH_API_KEY` (optional)
+- `langgraph_cloud_license_key` — mounted as `LANGGRAPH_CLOUD_LICENSE_KEY` (optional)
+
+```yaml
+config:
+  existingSecretName: "my-langgraph-secret"
+```
+
+> **Important:** Do not use `extraEnv` to set `LANGSMITH_API_KEY` or `LANGGRAPH_CLOUD_LICENSE_KEY`. The chart manages these env vars directly from the secret referenced by `existingSecretName` (or the chart-created secret). Using `extraEnv` for these variables will cause license verification failures.
+
+Other application-specific secrets (e.g. `OPENAI_API_KEY`, `AZURE_OPENAI_API_KEY`) should still be mounted via `extraEnv` or `envFrom`.
+
+### Upgrading from < 0.2.0
+
+If you are upgrading from chart version < 0.2.0 and were using `extraEnv` to mount `LANGSMITH_API_KEY`:
+
+1. **Remove** the `LANGSMITH_API_KEY` entry from `extraEnv` on both `apiServer` and `queue` deployments.
+2. **Rename** the key in your Kubernetes secret from `LANGSMITH_API_KEY` to `api_key`.
+3. **Set** `config.existingSecretName` to point to your secret.
+
+Before (< 0.2.0):
+```yaml
+config:
+  existingSecretName: "langgraph-secrets"
+
+apiServer:
+  deployment:
+    extraEnv:
+      - name: LANGSMITH_API_KEY
+        valueFrom:
+          secretKeyRef:
+            name: langgraph-secrets
+            key: LANGSMITH_API_KEY
+queue:
+  deployment:
+    extraEnv:
+      - name: LANGSMITH_API_KEY
+        valueFrom:
+          secretKeyRef:
+            name: langgraph-secrets
+            key: LANGSMITH_API_KEY
+```
+
+After (>= 0.2.0):
+```yaml
+config:
+  existingSecretName: "langgraph-secrets"
+# No extraEnv needed for LANGSMITH_API_KEY — the chart handles it automatically.
+# Your secret should contain key `api_key` (and optionally `langgraph_cloud_license_key`).
+```
 
 ### Deploying to Kubernetes:
 
@@ -197,7 +250,9 @@ You can also use existingSecretName to avoid checking in secrets. This secret sh
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
+| clusterDomain | string | `"cluster.local"` | Kubernetes cluster domain. Only change if not using 'cluster.local' |
 | commonAnnotations | object | `{}` | Annotations that will be applied to all resources created by the chart |
+| commonDnsConfig | object | `{"options":[{"name":"ndots","value":"4"}]}` | Set to null to disable and use Kubernetes defaults (ndots: 5). |
 | commonLabels | object | `{}` | Labels that will be applied to all resources created by the chart |
 | commonVolumeMounts | list | `[]` | Common volume mounts added to all deployments/statefulsets. |
 | commonVolumes | list | `[]` | Common volumes added to all deployments/statefulsets. |
@@ -239,6 +294,7 @@ You can also use existingSecretName to avoid checking in secrets. This secret sh
 | queue.deployment.envFrom | list | `[]` |  |
 | queue.deployment.extraEnv | list | `[]` |  |
 | queue.deployment.labels | object | `{}` |  |
+| queue.deployment.lifecycle | object | `{}` |  |
 | queue.deployment.livenessProbe.failureThreshold | int | `6` |  |
 | queue.deployment.livenessProbe.httpGet.path | string | `"/ok"` |  |
 | queue.deployment.livenessProbe.httpGet.port | int | `8000` |  |
@@ -264,6 +320,7 @@ You can also use existingSecretName to avoid checking in secrets. This secret sh
 | queue.deployment.startupProbe.httpGet.port | int | `8000` |  |
 | queue.deployment.startupProbe.periodSeconds | int | `10` |  |
 | queue.deployment.startupProbe.timeoutSeconds | int | `1` |  |
+| queue.deployment.terminationGracePeriodSeconds | int | `30` |  |
 | queue.deployment.tolerations | list | `[]` |  |
 | queue.deployment.volumeMounts | list | `[]` |  |
 | queue.deployment.volumes | list | `[]` |  |
@@ -283,6 +340,7 @@ You can also use existingSecretName to avoid checking in secrets. This secret sh
 | redis.deployment.extraContainerConfig | object | `{}` |  |
 | redis.deployment.extraEnv | list | `[]` |  |
 | redis.deployment.labels | object | `{}` |  |
+| redis.deployment.lifecycle | object | `{}` |  |
 | redis.deployment.livenessProbe.exec.command[0] | string | `"/bin/sh"` |  |
 | redis.deployment.livenessProbe.exec.command[1] | string | `"-c"` |  |
 | redis.deployment.livenessProbe.exec.command[2] | string | `"exec redis-cli ping"` |  |
@@ -310,6 +368,7 @@ You can also use existingSecretName to avoid checking in secrets. This secret sh
 | redis.deployment.startupProbe.failureThreshold | int | `6` |  |
 | redis.deployment.startupProbe.periodSeconds | int | `10` |  |
 | redis.deployment.startupProbe.timeoutSeconds | int | `1` |  |
+| redis.deployment.terminationGracePeriodSeconds | int | `30` |  |
 | redis.deployment.tolerations | list | `[]` |  |
 | redis.deployment.volumeMounts | list | `[]` |  |
 | redis.deployment.volumes | list | `[]` |  |
@@ -343,6 +402,7 @@ You can also use existingSecretName to avoid checking in secrets. This secret sh
 | studio.deployment.annotations | object | `{}` |  |
 | studio.deployment.extraEnv | list | `[]` |  |
 | studio.deployment.labels | object | `{}` |  |
+| studio.deployment.lifecycle | object | `{}` |  |
 | studio.deployment.livenessProbe.failureThreshold | int | `6` |  |
 | studio.deployment.livenessProbe.httpGet.path | string | `"/health"` |  |
 | studio.deployment.livenessProbe.httpGet.port | int | `3968` |  |
@@ -368,6 +428,7 @@ You can also use existingSecretName to avoid checking in secrets. This secret sh
 | studio.deployment.startupProbe.httpGet.port | int | `3968` |  |
 | studio.deployment.startupProbe.periodSeconds | int | `10` |  |
 | studio.deployment.startupProbe.timeoutSeconds | int | `1` |  |
+| studio.deployment.terminationGracePeriodSeconds | int | `30` |  |
 | studio.deployment.tolerations | list | `[]` |  |
 | studio.deployment.volumeMounts | list | `[]` |  |
 | studio.deployment.volumes | list | `[]` |  |
@@ -420,6 +481,7 @@ You can also use existingSecretName to avoid checking in secrets. This secret sh
 | apiServer.deployment.extraEnv | list | `[]` |  |
 | apiServer.deployment.initContainers | list | `[]` |  |
 | apiServer.deployment.labels | object | `{}` |  |
+| apiServer.deployment.lifecycle | object | `{}` |  |
 | apiServer.deployment.livenessProbe.exec.command[0] | string | `"/bin/sh"` |  |
 | apiServer.deployment.livenessProbe.exec.command[1] | string | `"-c"` |  |
 | apiServer.deployment.livenessProbe.exec.command[2] | string | `"exec python /api/healthcheck.py"` |  |
@@ -448,6 +510,7 @@ You can also use existingSecretName to avoid checking in secrets. This secret sh
 | apiServer.deployment.startupProbe.failureThreshold | int | `6` |  |
 | apiServer.deployment.startupProbe.periodSeconds | int | `10` |  |
 | apiServer.deployment.startupProbe.timeoutSeconds | int | `1` |  |
+| apiServer.deployment.terminationGracePeriodSeconds | int | `30` |  |
 | apiServer.deployment.tolerations | list | `[]` |  |
 | apiServer.deployment.volumeMounts | list | `[]` |  |
 | apiServer.deployment.volumes | list | `[]` |  |
@@ -501,6 +564,7 @@ You can also use existingSecretName to avoid checking in secrets. This secret sh
 | postgres.statefulSet.extraContainerConfig | object | `{}` |  |
 | postgres.statefulSet.extraEnv | list | `[]` |  |
 | postgres.statefulSet.labels | object | `{}` |  |
+| postgres.statefulSet.lifecycle | object | `{}` |  |
 | postgres.statefulSet.nodeSelector | object | `{}` |  |
 | postgres.statefulSet.persistence.enabled | bool | `true` |  |
 | postgres.statefulSet.persistence.size | string | `"8Gi"` |  |
@@ -514,6 +578,7 @@ You can also use existingSecretName to avoid checking in secrets. This secret sh
 | postgres.statefulSet.resources.requests.memory | string | `"8Gi"` |  |
 | postgres.statefulSet.securityContext | object | `{}` |  |
 | postgres.statefulSet.sidecars | list | `[]` |  |
+| postgres.statefulSet.terminationGracePeriodSeconds | int | `30` |  |
 | postgres.statefulSet.tolerations | list | `[]` |  |
 | postgres.statefulSet.volumeMounts | list | `[]` |  |
 | postgres.statefulSet.volumes | list | `[]` |  |

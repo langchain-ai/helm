@@ -1,4 +1,4 @@
-{{- if and .Values.config.deployment.enabled .Values.hostBackend.autoscaling.hpa.enabled }}
+{{- if and (or .Values.config.deployment.enabled .Values.hostBackend.enabled) .Values.hostBackend.autoscaling.hpa.enabled }}
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:

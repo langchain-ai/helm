@@ -38,6 +38,7 @@ spec:
         app.kubernetes.io/component: {{ include "langGraphCloud.fullname" . }}-{{ .Values.queue.name }}
     spec:
       serviceAccountName: {{ include "queue.serviceAccountName" . }}
+      {{- include "langGraphCloud.dnsConfig" . | nindent 6 }}
       {{- with .Values.images.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
@@ -45,6 +46,7 @@ spec:
       {{- if .Values.queue.deployment.priorityClassName }}
       priorityClassName: {{ .Values.queue.deployment.priorityClassName }}
       {{- end }}
+      terminationGracePeriodSeconds: {{ .Values.queue.deployment.terminationGracePeriodSeconds }}
       securityContext:
         {{- toYaml .Values.queue.deployment.podSecurityContext | nindent 8 }}
       containers:
@@ -109,6 +111,10 @@ spec:
             {{- toYaml .Values.queue.deployment.resources | nindent 12 }}
           securityContext:
             {{- toYaml .Values.queue.deployment.securityContext | nindent 12 }}
+          {{- with .Values.queue.deployment.lifecycle }}
+          lifecycle:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           {{- with $volumeMounts }}
           volumeMounts:
               {{- toYaml . | nindent 12 }}

@@ -43,9 +43,11 @@ spec:
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      terminationGracePeriodSeconds: {{ .Values.redis.statefulSet.terminationGracePeriodSeconds }}
       securityContext:
         {{- include "langsmith.podSecurityContext" (dict "Values" .Values "componentSecurityContext" .Values.redis.statefulSet.podSecurityContext) | nindent 8 }}
       serviceAccountName: {{ include "redis.serviceAccountName" . }}
+      {{- include "langsmith.dnsConfig" . | nindent 6 }}
       {{- with concat .Values.commonInitContainers .Values.redis.statefulSet.initContainers }}
       initContainers:
         {{- toYaml . | nindent 8 }}
@@ -84,6 +86,10 @@ spec:
             {{- toYaml .Values.redis.statefulSet.resources | nindent 12 }}
           securityContext:
             {{- toYaml .Values.redis.statefulSet.securityContext | nindent 12 }}
+          {{- with .Values.redis.statefulSet.lifecycle }}
+          lifecycle:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           {{- if .Values.redis.statefulSet.persistence.enabled }}
           volumeMounts:
             - mountPath: /data

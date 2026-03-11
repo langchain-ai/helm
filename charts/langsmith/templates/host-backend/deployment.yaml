@@ -26,7 +26,7 @@
 {{- include "langsmith.detectDuplicates" $envVars -}}
 {{- $volumes := concat .Values.commonVolumes .Values.hostBackend.deployment.volumes (include "langsmith.tlsVolumes" . | fromYamlArray) -}}
 {{- $volumeMounts := concat .Values.commonVolumeMounts .Values.hostBackend.deployment.volumeMounts (include "langsmith.tlsVolumeMounts" . | fromYamlArray) -}}
-{{- if .Values.config.deployment.enabled }}
+{{- if or .Values.config.deployment.enabled .Values.hostBackend.enabled }}
 {{- if .Values.hostBackend.rollout.enabled }}
 apiVersion: argoproj.io/v1alpha1
 kind: Rollout
@@ -78,6 +78,7 @@ spec:
       securityContext:
         {{- include "langsmith.podSecurityContext" (dict "Values" .Values "componentSecurityContext" .Values.hostBackend.deployment.podSecurityContext) | nindent 8 }}
       serviceAccountName: {{ include "hostBackend.serviceAccountName" . }}
+      {{- include "langsmith.dnsConfig" . | nindent 6 }}
       {{- with concat .Values.commonInitContainers .Values.hostBackend.deployment.initContainers }}
       initContainers:
         {{- toYaml . | nindent 8 }}
@@ -117,6 +118,10 @@ spec:
             {{- toYaml .Values.hostBackend.deployment.resources | nindent 12 }}
           securityContext:
             {{- toYaml .Values.hostBackend.deployment.securityContext | nindent 12 }}
+          {{- with .Values.hostBackend.deployment.lifecycle }}
+          lifecycle:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           {{- with $volumeMounts }}
           volumeMounts:
               {{- toYaml . | nindent 12 }}

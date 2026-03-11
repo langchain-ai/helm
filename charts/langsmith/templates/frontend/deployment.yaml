@@ -53,10 +53,11 @@
 {{- include "langsmith.detectDuplicates" $envVars -}}
 {{- $volumes := concat .Values.commonVolumes .Values.frontend.deployment.volumes -}}
 {{- $volumeMounts := concat .Values.commonVolumeMounts .Values.frontend.deployment.volumeMounts -}}
-{{- /* Validate nginx mounts when readOnlyRootFilesystem is enabled */ -}}
+{{- /* Validate nginx mounts when readOnlyRootFilesystem is enabled (nginx 1.29+ uses /run/nginx.pid) */ -}}
 {{- if .Values.frontend.deployment.securityContext.readOnlyRootFilesystem }}
 {{- $hasNginxMount := false }}
 {{- $hasVarRunMount := false }}
+{{- $hasRunMount := false }}
 {{- range $volumeMounts }}
   {{- if eq .mountPath "/var/lib/nginx" }}
     {{- $hasNginxMount = true }}
@@ -64,9 +65,12 @@
   {{- if eq .mountPath "/var/run" }}
     {{- $hasVarRunMount = true }}
   {{- end }}
+  {{- if eq .mountPath "/run" }}
+    {{- $hasRunMount = true }}
+  {{- end }}
 {{- end }}
-{{- if not (and $hasNginxMount $hasVarRunMount) }}
-{{- fail "ERROR: When frontend.deployment.securityContext.readOnlyRootFilesystem is true, you must mount both /var/lib/nginx and /var/run as writable volumes. Add emptyDir volumes for 'var-lib-nginx' mounted at /var/lib/nginx and 'var-run' mounted at /var/run. See read_only config example." }}
+{{- if not (and $hasNginxMount $hasVarRunMount $hasRunMount) }}
+{{- fail "ERROR: When frontend.deployment.securityContext.readOnlyRootFilesystem is true, you must mount /var/lib/nginx, /var/run, and /run as writable volumes (nginx 1.29+ writes pid to /run/nginx.pid). Add emptyDir volumes for 'var-lib-nginx', 'var-run', and 'run'. See read_only config example." }}
 {{- end }}
 {{- end }}
 {{- if .Values.frontend.rollout.enabled }}
@@ -120,6 +124,7 @@ spec:
       securityContext:
         {{- include "langsmith.podSecurityContext" (dict "Values" .Values "componentSecurityContext" .Values.frontend.deployment.podSecurityContext) | nindent 8 }}
       serviceAccountName: {{ include "frontend.serviceAccountName" . }}
+      {{- include "langsmith.dnsConfig" . | nindent 6 }}
       {{- with concat .Values.commonInitContainers .Values.frontend.deployment.initContainers }}
       initContainers:
         {{- toYaml . | nindent 8 }}
@@ -169,6 +174,10 @@ spec:
             {{- toYaml .Values.frontend.deployment.resources | nindent 12 }}
           securityContext:
             {{- toYaml .Values.frontend.deployment.securityContext | nindent 12 }}
+          {{- with .Values.frontend.deployment.lifecycle }}
+          lifecycle:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           volumeMounts:
             {{- with $volumeMounts }}
               {{- toYaml . | nindent 12 }}

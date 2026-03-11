@@ -136,6 +136,16 @@ Template containing common environment variables that are used by several servic
 {{- end }}
 
 
+{{/*
+Common DNS configuration for all pods. When commonDnsConfig is set, it will be applied to all pods.
+*/}}
+{{- define "langgraphDataplane.dnsConfig" -}}
+{{- if .Values.commonDnsConfig }}
+dnsConfig:
+  {{- toYaml .Values.commonDnsConfig | nindent 2 }}
+{{- end }}
+{{- end }}
+
 {{- define "listener.serviceAccountName" -}}
 {{- if .Values.listener.serviceAccount.create -}}
     {{ default (printf "%s-%s" (include "langgraphDataplane.fullname" .) .Values.listener.name) .Values.listener.serviceAccount.name | trunc 63 | trimSuffix "-" }}

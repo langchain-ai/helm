@@ -16,7 +16,7 @@ metadata:
     {{- with .Values.backend.agentBootstrap.serviceAccount.annotations }}
     {{- toYaml . | nindent 4 }}
     {{- end }}
-automountServiceAccountToken: {{ .Values.backend.agentBootstrap.serviceAccount.automountServiceAccountToken | default true }}
+automountServiceAccountToken: {{ .Values.backend.agentBootstrap.serviceAccount.automountServiceAccountToken }}
 {{- end }}
 ---
 # Role + RoleBinding: only when at least one product is enabled (create path patches ConfigMaps and restarts deployments)

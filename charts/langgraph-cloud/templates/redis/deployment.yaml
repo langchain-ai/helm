@@ -42,9 +42,11 @@ spec:
       {{- if .Values.redis.deployment.priorityClassName }}
       priorityClassName: {{ .Values.redis.deployment.priorityClassName }}
       {{- end }}
+      terminationGracePeriodSeconds: {{ .Values.redis.deployment.terminationGracePeriodSeconds }}
       securityContext:
         {{- toYaml .Values.redis.deployment.podSecurityContext | nindent 8 }}
       serviceAccountName: {{ include "redis.serviceAccountName" . }}
+      {{- include "langGraphCloud.dnsConfig" . | nindent 6 }}
       containers:
         - name: {{ .Values.redis.name }}
           {{- with.Values.redis.deployment.command }}
@@ -79,6 +81,10 @@ spec:
             {{- toYaml .Values.redis.deployment.resources | nindent 12 }}
           securityContext:
             {{- toYaml .Values.redis.deployment.securityContext | nindent 12 }}
+          {{- with .Values.redis.deployment.lifecycle }}
+          lifecycle:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           {{- with $volumeMounts }}
           volumeMounts:
             {{- toYaml . | nindent 12 }}

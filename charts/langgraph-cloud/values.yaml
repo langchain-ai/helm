@@ -14,6 +14,15 @@ commonLabels: {}
 commonVolumes: []
 # -- Common volume mounts added to all deployments/statefulsets.
 commonVolumeMounts: []
+# -- Common DNS configuration applied to all pods. Reduces DNS query amplification in Kubernetes by
+# -- ensuring service FQDNs (which have 4 dots) are resolved directly without search domain expansion.
+# -- Set to null to disable and use Kubernetes defaults (ndots: 5).
+commonDnsConfig:
+  options:
+    - name: ndots
+      value: "4"
+# -- Kubernetes cluster domain. Only change if not using 'cluster.local'
+clusterDomain: "cluster.local"
 
 images:
   # -- If supplied, all children <image_name>.repository values will be prepended with this registry name + `/`
@@ -69,7 +78,9 @@ apiServer:
     annotations: {}
     podSecurityContext: {}
     securityContext: {}
+    lifecycle: {}
     priorityClassName: ""
+    terminationGracePeriodSeconds: 30
     resources:
       limits:
         cpu: 2000m
@@ -151,7 +162,9 @@ queue:
     annotations: {}
     podSecurityContext: {}
     securityContext: {}
+    lifecycle: {}
     priorityClassName: ""
+    terminationGracePeriodSeconds: 30
     resources:
       limits:
         cpu: 2000m
@@ -228,7 +241,9 @@ postgres:
     annotations: {}
     podSecurityContext: {}
     securityContext: {}
+    lifecycle: {}
     priorityClassName: ""
+    terminationGracePeriodSeconds: 30
     resources:
       limits:
         cpu: 4000m
@@ -281,7 +296,9 @@ redis:
     annotations: {}
     podSecurityContext: {}
     securityContext: {}
+    lifecycle: {}
     priorityClassName: ""
+    terminationGracePeriodSeconds: 30
     resources:
       limits:
         cpu: 2000m
@@ -353,7 +370,9 @@ studio:
     annotations: {}
     podSecurityContext: {}
     securityContext: {}
+    lifecycle: {}
     priorityClassName: ""
+    terminationGracePeriodSeconds: 30
     resources:
       limits:
         cpu: 1000m

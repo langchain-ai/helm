@@ -1,0 +1,32 @@
+authProxy:
+  enabled: true
+  upstream: "http://fake-gateway:10001"
+  jwtIssuer: "langsmith"
+  jwtAudiences:
+    - "test-audience"
+  # jwksJson injected via --set at install time
+  streamIdleTimeout: "300s"
+  extAuthz:
+    enabled: true
+    serviceUrl: "http://localhost:10002"
+    timeout: "10s"
+    sendBody: false
+  deployment:
+    replicas: 1
+    sidecars:
+      - name: ext-authz-mock
+        image: python:3.12-slim
+        command: ["python", "/scripts/ext-authz-mock.py"]
+        ports:
+          - containerPort: 10002
+        volumeMounts:
+          - name: ext-authz-script
+            mountPath: /scripts
+            readOnly: true
+    volumes:
+      - name: ext-authz-script
+        configMap:
+          name: ext-authz-script
+
+ingress:
+  enabled: false

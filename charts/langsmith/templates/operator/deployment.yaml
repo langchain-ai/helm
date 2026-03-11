@@ -43,7 +43,8 @@ spec:
         {{- end }}
     spec:
       serviceAccountName: {{ include "operator.serviceAccountName" . }}
-      automountServiceAccountToken: {{ .Values.operator.serviceAccount.automountServiceAccountToken | default true }}
+      {{- include "langsmith.dnsConfig" . | nindent 6 }}
+      automountServiceAccountToken: {{ .Values.operator.serviceAccount.automountServiceAccountToken }}
       {{- with .Values.images.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
@@ -66,6 +67,10 @@ spec:
         {{- with .Values.operator.deployment.securityContext }}
         securityContext:
         {{- toYaml . | nindent 10 }}
+        {{- end }}
+        {{- with .Values.operator.deployment.lifecycle }}
+        lifecycle:
+          {{- toYaml . | nindent 10 }}
         {{- end }}
         livenessProbe:
           httpGet:

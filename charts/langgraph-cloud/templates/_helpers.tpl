@@ -104,6 +104,16 @@ the user or some other secret provisioning mechanism
 {{- end }}
 {{- end }}
 
+{{/*
+Common DNS configuration for all pods. When commonDnsConfig is set, it will be applied to all pods.
+*/}}
+{{- define "langGraphCloud.dnsConfig" -}}
+{{- if .Values.commonDnsConfig }}
+dnsConfig:
+  {{- toYaml .Values.commonDnsConfig | nindent 2 }}
+{{- end }}
+{{- end }}
+
 {{- define "apiServer.serviceAccountName" -}}
 {{- if .Values.apiServer.serviceAccount.create -}}
     {{ default (printf "%s-%s" (include "langGraphCloud.fullname" .) .Values.apiServer.name) .Values.apiServer.serviceAccount.name | trunc 63 | trimSuffix "-" }}
