@@ -219,6 +219,12 @@ config:
   personalOrgsDisabled: true
   # -- Enable Workspace Admins to invite users to the org and workspace.
   workspaceScopeOrgInvitesEnabled: false
+  # -- Require authentication on the GET /info endpoint. When enabled, unauthenticated
+  # requests to /info will receive a 401 and must supply a valid API key. The LangSmith
+  # SDK handles this automatically by retrying with credentials. Useful for deployments
+  # that must not expose instance configuration (version, feature flags, batch ingest
+  # config) to unauthenticated callers.
+  infoEndpointAuthRequired: false
 
   # -- hostname of the LangSmith installation. Used for redirects and LangSmith deployments. Required for OAuth and LangSmith Deployments. E.g langsmith.com
   hostname: ""

@@ -333,6 +333,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | config.insights.agent.resources.minScale | int | `1` |  |
 | config.insights.enabled | bool | `false` |  |
 | config.insights.encryptionKey | string | `""` |  |
+| config.infoEndpointAuthRequired | bool | `false` | Require authentication on the GET /info endpoint. When enabled, unauthenticated requests to /info will receive a 401 and must supply a valid API key. The LangSmith SDK handles this automatically by retrying with credentials. Useful for deployments that must not expose instance configuration (version, feature flags, batch ingest config) to unauthenticated callers. |
 | config.langsmithLicenseKey | string | `""` |  |
 | config.logLevel | string | `"info"` |  |
 | config.oauth.enabled | bool | `false` |  |
