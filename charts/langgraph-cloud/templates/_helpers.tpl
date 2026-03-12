@@ -156,7 +156,6 @@ Environment variables used to default agent server checkpointers without overrid
 {{- end }}
 {{- end }}
 {{- end }}
-
 {{- define "apiServer.serviceAccountName" -}}
 {{- if .Values.apiServer.serviceAccount.create -}}
     {{ default (printf "%s-%s" (include "langGraphCloud.fullname" .) .Values.apiServer.name) .Values.apiServer.serviceAccount.name | trunc 63 | trimSuffix "-" }}
