@@ -86,9 +86,13 @@ data:
                 return 200;
          }
 
+        # Restrict nginx status to localhost only (security)
         location = /nginx_status {
             stub_status on;
             access_log off;
+            allow 127.0.0.1;
+            allow ::1;
+            deny all;
         }
 
         location /{{ .Values.config.basePath }}/api/v1/playground/ {
@@ -491,9 +495,13 @@ data:
                   return 200;
         }
 
+        # Restrict nginx status to localhost only (security)
         location = /nginx_status {
             stub_status on;
             access_log off;
+            allow 127.0.0.1;
+            allow ::1;
+            deny all;
         }
 
         location /api/v1/playground/ {
