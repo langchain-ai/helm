@@ -60,6 +60,18 @@ config:
     langSmithAuthEndpoint: ""
     langSmithTenantId: ""
 
+checkpointer:
+  # -- Default checkpointer backend used when LANGGRAPH_CHECKPOINTER omits `backend`. Supported values: `""`, `"default"`, `"mongo"`.
+  defaultBackend: ""
+  mongo:
+    external:
+      # -- MongoDB connection URL used when `checkpointer.defaultBackend` is `"mongo"`. Must include the target database name.
+      connectionUrl: ""
+      # -- Secret key containing the MongoDB connection URL.
+      connectionUrlSecretKey: "mongodb_connection_url"
+      # -- Existing secret name containing the MongoDB connection URL.
+      existingSecretName: ""
+
 ingress:
   enabled: false
   hostname: ""  #  Set this to the hostname you want to use for the ingress.

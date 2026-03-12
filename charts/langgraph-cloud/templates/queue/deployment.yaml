@@ -1,6 +1,7 @@
 {{- if .Values.queue.enabled -}}
 {{- $volumes := concat .Values.commonVolumes .Values.queue.deployment.volumes -}}
 {{- $volumeMounts := concat .Values.commonVolumeMounts .Values.queue.deployment.volumeMounts -}}
+{{- $checkpointerEnv := include "langGraphCloud.checkpointerEnv" . -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -66,6 +67,9 @@ spec:
                 secretKeyRef:
                   name: {{ include "langGraphCloud.redisSecretsName" . }}
                   key: redis_connection_url
+            {{- if $checkpointerEnv }}
+{{ $checkpointerEnv | indent 12 }}
+            {{- end }}
             - name: LANGGRAPH_CLOUD_LICENSE_KEY
               valueFrom:
                 secretKeyRef:
