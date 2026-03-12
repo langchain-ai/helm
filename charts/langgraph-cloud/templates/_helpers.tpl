@@ -104,6 +104,59 @@ the user or some other secret provisioning mechanism
 {{- end }}
 {{- end }}
 
+{{/*
+Common DNS configuration for all pods. When commonDnsConfig is set, it will be applied to all pods.
+*/}}
+{{- define "langGraphCloud.dnsConfig" -}}
+{{- if .Values.commonDnsConfig }}
+dnsConfig:
+  {{- toYaml .Values.commonDnsConfig | nindent 2 }}
+{{- end }}
+{{- end }}
+
+{{/*
+Name of the secret containing the MongoDB URI for the optional Mongo checkpointer default.
+*/}}
+{{- define "langGraphCloud.mongoSecretsName" -}}
+{{- if .Values.checkpointer.mongo.external.existingSecretName }}
+{{- .Values.checkpointer.mongo.external.existingSecretName }}
+{{- else }}
+{{- include "langGraphCloud.fullname" . }}-mongo
+{{- end }}
+{{- end }}
+
+{{/*
+Validated default checkpointer backend configured by the platform chart.
+*/}}
+{{- define "langGraphCloud.defaultCheckpointerBackend" -}}
+{{- $backend := trim .Values.checkpointer.defaultBackend -}}
+{{- if and $backend (not (has $backend (list "default" "mongo"))) -}}
+{{- fail (printf "checkpointer.defaultBackend must be one of %q, %q, or empty; got %q" "default" "mongo" $backend) -}}
+{{- end -}}
+{{- if and (eq $backend "mongo") (not .Values.checkpointer.mongo.external.existingSecretName) (empty .Values.checkpointer.mongo.external.connectionUrl) -}}
+{{- fail "checkpointer.mongo.external.connectionUrl must be set or checkpointer.mongo.external.existingSecretName must be provided when checkpointer.defaultBackend=\"mongo\"" -}}
+{{- end -}}
+{{- $backend -}}
+{{- end }}
+
+{{/*
+Environment variables used to default agent server checkpointers without overriding app-level LANGGRAPH_CHECKPOINTER.
+*/}}
+{{- define "langGraphCloud.checkpointerEnv" -}}
+{{- $backend := include "langGraphCloud.defaultCheckpointerBackend" . -}}
+{{- if $backend }}
+- name: LS_DEFAULT_CHECKPOINTER_BACKEND
+  value: {{ $backend | quote }}
+{{- if eq $backend "mongo" }}
+- name: LS_MONGODB_URI
+  valueFrom:
+    secretKeyRef:
+      name: {{ include "langGraphCloud.mongoSecretsName" . }}
+      key: {{ .Values.checkpointer.mongo.external.connectionUrlSecretKey }}
+{{- end }}
+{{- end }}
+{{- end }}
+
 {{- define "apiServer.serviceAccountName" -}}
 {{- if .Values.apiServer.serviceAccount.create -}}
     {{ default (printf "%s-%s" (include "langGraphCloud.fullname" .) .Values.apiServer.name) .Values.apiServer.serviceAccount.name | trunc 63 | trimSuffix "-" }}

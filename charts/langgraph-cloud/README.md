@@ -1,6 +1,6 @@
 # langgraph-cloud
 
-![Version: 0.2.2](https://img.shields.io/badge/Version-0.2.2-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.2.2](https://img.shields.io/badge/AppVersion-0.2.2-informational?style=flat-square)
+![Version: 0.2.4](https://img.shields.io/badge/Version-0.2.4-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.2.3](https://img.shields.io/badge/AppVersion-0.2.3-informational?style=flat-square)
 
 Helm chart to deploy the LangGraph Cloud application and all services it depends on.
 
@@ -123,9 +123,9 @@ postgres:
     connectionUrl: "postgres://postgres:postgres@postgres-host.com:5432/postgres?sslmode=disable"
 ```
 
-### Using `existingSecretName` (recommended for production)
+### Using `existingSecretName`
 
-To avoid checking secrets into git, create a Kubernetes secret with the required key names and reference it via `config.existingSecretName`. The chart expects the following keys:
+If you don't want to check secrets into git, create a Kubernetes secret and reference it via `config.existingSecretName`. The chart expects the following keys:
 
 - `api_key` — mounted as `LANGSMITH_API_KEY` (optional)
 - `langgraph_cloud_license_key` — mounted as `LANGGRAPH_CLOUD_LICENSE_KEY` (optional)
@@ -250,7 +250,9 @@ config:
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
+| clusterDomain | string | `"cluster.local"` | Kubernetes cluster domain. Only change if not using 'cluster.local' |
 | commonAnnotations | object | `{}` | Annotations that will be applied to all resources created by the chart |
+| commonDnsConfig | object | `{"options":[{"name":"ndots","value":"4"}]}` | Set to null to disable and use Kubernetes defaults (ndots: 5). |
 | commonLabels | object | `{}` | Labels that will be applied to all resources created by the chart |
 | commonVolumeMounts | list | `[]` | Common volume mounts added to all deployments/statefulsets. |
 | commonVolumes | list | `[]` | Common volumes added to all deployments/statefulsets. |
@@ -292,6 +294,7 @@ config:
 | queue.deployment.envFrom | list | `[]` |  |
 | queue.deployment.extraEnv | list | `[]` |  |
 | queue.deployment.labels | object | `{}` |  |
+| queue.deployment.lifecycle | object | `{}` |  |
 | queue.deployment.livenessProbe.failureThreshold | int | `6` |  |
 | queue.deployment.livenessProbe.httpGet.path | string | `"/ok"` |  |
 | queue.deployment.livenessProbe.httpGet.port | int | `8000` |  |
@@ -317,6 +320,7 @@ config:
 | queue.deployment.startupProbe.httpGet.port | int | `8000` |  |
 | queue.deployment.startupProbe.periodSeconds | int | `10` |  |
 | queue.deployment.startupProbe.timeoutSeconds | int | `1` |  |
+| queue.deployment.terminationGracePeriodSeconds | int | `30` |  |
 | queue.deployment.tolerations | list | `[]` |  |
 | queue.deployment.volumeMounts | list | `[]` |  |
 | queue.deployment.volumes | list | `[]` |  |
@@ -336,6 +340,7 @@ config:
 | redis.deployment.extraContainerConfig | object | `{}` |  |
 | redis.deployment.extraEnv | list | `[]` |  |
 | redis.deployment.labels | object | `{}` |  |
+| redis.deployment.lifecycle | object | `{}` |  |
 | redis.deployment.livenessProbe.exec.command[0] | string | `"/bin/sh"` |  |
 | redis.deployment.livenessProbe.exec.command[1] | string | `"-c"` |  |
 | redis.deployment.livenessProbe.exec.command[2] | string | `"exec redis-cli ping"` |  |
@@ -363,6 +368,7 @@ config:
 | redis.deployment.startupProbe.failureThreshold | int | `6` |  |
 | redis.deployment.startupProbe.periodSeconds | int | `10` |  |
 | redis.deployment.startupProbe.timeoutSeconds | int | `1` |  |
+| redis.deployment.terminationGracePeriodSeconds | int | `30` |  |
 | redis.deployment.tolerations | list | `[]` |  |
 | redis.deployment.volumeMounts | list | `[]` |  |
 | redis.deployment.volumes | list | `[]` |  |
@@ -396,6 +402,7 @@ config:
 | studio.deployment.annotations | object | `{}` |  |
 | studio.deployment.extraEnv | list | `[]` |  |
 | studio.deployment.labels | object | `{}` |  |
+| studio.deployment.lifecycle | object | `{}` |  |
 | studio.deployment.livenessProbe.failureThreshold | int | `6` |  |
 | studio.deployment.livenessProbe.httpGet.path | string | `"/health"` |  |
 | studio.deployment.livenessProbe.httpGet.port | int | `3968` |  |
@@ -421,6 +428,7 @@ config:
 | studio.deployment.startupProbe.httpGet.port | int | `3968` |  |
 | studio.deployment.startupProbe.periodSeconds | int | `10` |  |
 | studio.deployment.startupProbe.timeoutSeconds | int | `1` |  |
+| studio.deployment.terminationGracePeriodSeconds | int | `30` |  |
 | studio.deployment.tolerations | list | `[]` |  |
 | studio.deployment.volumeMounts | list | `[]` |  |
 | studio.deployment.volumes | list | `[]` |  |
@@ -473,6 +481,7 @@ config:
 | apiServer.deployment.extraEnv | list | `[]` |  |
 | apiServer.deployment.initContainers | list | `[]` |  |
 | apiServer.deployment.labels | object | `{}` |  |
+| apiServer.deployment.lifecycle | object | `{}` |  |
 | apiServer.deployment.livenessProbe.exec.command[0] | string | `"/bin/sh"` |  |
 | apiServer.deployment.livenessProbe.exec.command[1] | string | `"-c"` |  |
 | apiServer.deployment.livenessProbe.exec.command[2] | string | `"exec python /api/healthcheck.py"` |  |
@@ -501,6 +510,7 @@ config:
 | apiServer.deployment.startupProbe.failureThreshold | int | `6` |  |
 | apiServer.deployment.startupProbe.periodSeconds | int | `10` |  |
 | apiServer.deployment.startupProbe.timeoutSeconds | int | `1` |  |
+| apiServer.deployment.terminationGracePeriodSeconds | int | `30` |  |
 | apiServer.deployment.tolerations | list | `[]` |  |
 | apiServer.deployment.volumeMounts | list | `[]` |  |
 | apiServer.deployment.volumes | list | `[]` |  |
@@ -554,6 +564,7 @@ config:
 | postgres.statefulSet.extraContainerConfig | object | `{}` |  |
 | postgres.statefulSet.extraEnv | list | `[]` |  |
 | postgres.statefulSet.labels | object | `{}` |  |
+| postgres.statefulSet.lifecycle | object | `{}` |  |
 | postgres.statefulSet.nodeSelector | object | `{}` |  |
 | postgres.statefulSet.persistence.enabled | bool | `true` |  |
 | postgres.statefulSet.persistence.size | string | `"8Gi"` |  |
@@ -567,6 +578,7 @@ config:
 | postgres.statefulSet.resources.requests.memory | string | `"8Gi"` |  |
 | postgres.statefulSet.securityContext | object | `{}` |  |
 | postgres.statefulSet.sidecars | list | `[]` |  |
+| postgres.statefulSet.terminationGracePeriodSeconds | int | `30` |  |
 | postgres.statefulSet.tolerations | list | `[]` |  |
 | postgres.statefulSet.volumeMounts | list | `[]` |  |
 | postgres.statefulSet.volumes | list | `[]` |  |

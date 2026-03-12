@@ -1,0 +1,5 @@
+checkpointer:
+  defaultBackend: "mongo"
+  mongo:
+    external:
+      connectionUrl: "mongodb://mongo.example.net:27017/langgraph"

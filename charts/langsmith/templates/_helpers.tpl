@@ -164,6 +164,16 @@ Usage: {{ include "langsmith.podSecurityContext" (dict "Values" .Values "compone
 {{- end -}}
 
 {{/*
+Common DNS configuration for all pods. When commonDnsConfig is set, it will be applied to all pods.
+*/}}
+{{- define "langsmith.dnsConfig" -}}
+{{- if .Values.commonDnsConfig }}
+dnsConfig:
+  {{- toYaml .Values.commonDnsConfig | nindent 2 }}
+{{- end }}
+{{- end }}
+
+{{/*
 Template containing common environment variables that are used by several services.
 */}}
 {{- define "langsmith.commonEnv" -}}
@@ -344,6 +354,10 @@ Template containing common environment variables that are used by several servic
 - name: FF_WORKSPACE_SCOPE_ORG_INVITES_ENABLED
   value: {{ .Values.config.workspaceScopeOrgInvitesEnabled | quote }}
 {{- end }}
+{{- if .Values.config.infoEndpointAuthRequired }}
+- name: FF_INFO_ENDPOINT_AUTH_REQUIRED
+  value: {{ .Values.config.infoEndpointAuthRequired | quote }}
+{{- end }}
 {{- if .Values.config.blobStorage.enabled }}
 - name: FF_S3_STORAGE_ENABLED
   value: {{ .Values.config.blobStorage.enabled | quote }}
@@ -420,13 +434,6 @@ Template containing common environment variables that are used by several servic
   value: "host"
 - name: HOST_WORKER_RECONCILIATION_CRON_ENABLED
   value: "true"
-{{- if .Values.config.basePath }}
-- name: HOST_LANGCHAIN_API_ENDPOINT
-  value: "http://{{ include "langsmith.fullname" . }}-{{ .Values.frontend.name }}.{{ .Values.namespace | default .Release.Namespace }}:{{ .Values.frontend.service.httpPort }}/{{ .Values.config.basePath}}/api/v1"
-{{- else }}
-- name: HOST_LANGCHAIN_API_ENDPOINT
-  value: "http://{{ include "langsmith.fullname" . }}-{{ .Values.frontend.name }}.{{ .Values.namespace | default .Release.Namespace }}:{{ .Values.frontend.service.httpPort }}/api/v1"
-{{- end }}
 - name: HOSTED_K8S_ROOT_DOMAIN
   value: {{ include "langsmith.hostnameWithoutProtocol" . | quote }}
 - name: HOSTED_K8S_SHARED_INGRESS

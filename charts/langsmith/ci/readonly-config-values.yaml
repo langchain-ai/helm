@@ -235,6 +235,8 @@ frontend:
         emptyDir: {}
       - name: var-run
         emptyDir: {}
+      - name: run
+        emptyDir: {}
       - name: var-lib-nginx
         emptyDir: {}
     volumeMounts:
@@ -242,6 +244,8 @@ frontend:
         mountPath: /tmp
       - name: var-run
         mountPath: /var/run
+      - name: run
+        mountPath: /run
       - name: var-lib-nginx
         mountPath: /var/lib/nginx
 

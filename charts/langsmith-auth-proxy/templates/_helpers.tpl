@@ -122,6 +122,16 @@ Usage: include "authProxy.urlPort" "http://example.com:8080"
 {{- end -}}
 {{- end -}}
 
+{{/*
+Common DNS configuration for all pods. When commonDnsConfig is set, it will be applied to all pods.
+*/}}
+{{- define "authProxy.dnsConfig" -}}
+{{- if .Values.commonDnsConfig }}
+dnsConfig:
+  {{- toYaml .Values.commonDnsConfig | nindent 2 }}
+{{- end }}
+{{- end }}
+
 {{- define "authProxy.serviceAccountName" -}}
 {{- if .Values.authProxy.serviceAccount.create -}}
     {{ default (printf "%s-%s" (include "authProxy.fullname" .) .Values.authProxy.name) .Values.authProxy.serviceAccount.name | trunc 63 | trimSuffix "-" }}

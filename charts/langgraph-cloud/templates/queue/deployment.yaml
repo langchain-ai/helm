@@ -1,6 +1,7 @@
 {{- if .Values.queue.enabled -}}
 {{- $volumes := concat .Values.commonVolumes .Values.queue.deployment.volumes -}}
 {{- $volumeMounts := concat .Values.commonVolumeMounts .Values.queue.deployment.volumeMounts -}}
+{{- $checkpointerEnv := include "langGraphCloud.checkpointerEnv" . -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -38,6 +39,7 @@ spec:
         app.kubernetes.io/component: {{ include "langGraphCloud.fullname" . }}-{{ .Values.queue.name }}
     spec:
       serviceAccountName: {{ include "queue.serviceAccountName" . }}
+      {{- include "langGraphCloud.dnsConfig" . | nindent 6 }}
       {{- with .Values.images.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
@@ -45,6 +47,7 @@ spec:
       {{- if .Values.queue.deployment.priorityClassName }}
       priorityClassName: {{ .Values.queue.deployment.priorityClassName }}
       {{- end }}
+      terminationGracePeriodSeconds: {{ .Values.queue.deployment.terminationGracePeriodSeconds }}
       securityContext:
         {{- toYaml .Values.queue.deployment.podSecurityContext | nindent 8 }}
       containers:
@@ -64,6 +67,9 @@ spec:
                 secretKeyRef:
                   name: {{ include "langGraphCloud.redisSecretsName" . }}
                   key: redis_connection_url
+            {{- if $checkpointerEnv }}
+{{ $checkpointerEnv | indent 12 }}
+            {{- end }}
             - name: LANGGRAPH_CLOUD_LICENSE_KEY
               valueFrom:
                 secretKeyRef:
@@ -109,6 +115,10 @@ spec:
             {{- toYaml .Values.queue.deployment.resources | nindent 12 }}
           securityContext:
             {{- toYaml .Values.queue.deployment.securityContext | nindent 12 }}
+          {{- with .Values.queue.deployment.lifecycle }}
+          lifecycle:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           {{- with $volumeMounts }}
           volumeMounts:
               {{- toYaml . | nindent 12 }}

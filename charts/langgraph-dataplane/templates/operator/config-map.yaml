@@ -10,7 +10,41 @@ metadata:
     {{- include "langgraphDataplane.annotations" . | nindent 4 }}
 data:
   deployment.yaml.tmpl: |
-{{ .Values.operator.templates.deployment | indent 4 }}
+{{- $agentCheckpointerEnvYaml := include "langgraphDataplane.agentCheckpointerEnv" . | trim -}}
+{{- $deploymentTmpl := .Values.operator.templates.deployment -}}
+{{- if $agentCheckpointerEnvYaml -}}
+{{- $agentCheckpointerEnv := fromYamlArray $agentCheckpointerEnvYaml -}}
+{{- $deployment := fromYaml $deploymentTmpl -}}
+{{- $deploymentSpec := get $deployment "spec" | default dict -}}
+{{- $podTemplate := get $deploymentSpec "template" | default dict -}}
+{{- $podSpec := get $podTemplate "spec" | default dict -}}
+{{- $containers := get $podSpec "containers" | default (list) -}}
+{{- $state := dict "found" false -}}
+{{- range $containers }}
+  {{- if eq (get . "name") "api-server" }}
+    {{- $existingEnv := get . "env" | default (list) -}}
+    {{- $existingEnvNames := dict -}}
+    {{- range $existingEnv }}
+      {{- $_ := set $existingEnvNames (get . "name") true -}}
+    {{- end }}
+    {{- $envToInject := list -}}
+    {{- range $agentCheckpointerEnv }}
+      {{- if not (hasKey $existingEnvNames (get . "name")) -}}
+        {{- $envToInject = append $envToInject . -}}
+      {{- end }}
+    {{- end }}
+    {{- if $envToInject }}
+      {{- $_ := set . "env" (concat $existingEnv $envToInject) -}}
+    {{- end }}
+    {{- $_ := set $state "found" true -}}
+  {{- end }}
+{{- end }}
+{{- if not (get $state "found") -}}
+{{- fail "operator.templates.deployment must contain a container named api-server when checkpointer.defaultBackend is set" -}}
+{{- end -}}
+{{- $deploymentTmpl = toYaml $deployment -}}
+{{- end }}
+{{ $deploymentTmpl | indent 4 }}
   service.yaml.tmpl: |
 {{ .Values.operator.templates.service | indent 4 }}
   redis-deployment.yaml.tmpl: |

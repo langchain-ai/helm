@@ -60,6 +60,7 @@ spec:
       securityContext:
         {{- include "langsmith.podSecurityContext" (dict "Values" .Values "componentSecurityContext" .Values.ingestQueue.deployment.podSecurityContext) | nindent 8 }}
       serviceAccountName: {{ include "ingestQueue.serviceAccountName" . }}
+      {{- include "langsmith.dnsConfig" . | nindent 6 }}
       restartPolicy: Always
       {{- with concat .Values.commonInitContainers .Values.ingestQueue.deployment.initContainers }}
       initContainers:
@@ -100,6 +101,10 @@ spec:
             {{- toYaml .Values.ingestQueue.deployment.resources | nindent 12 }}
           securityContext:
             {{- toYaml .Values.ingestQueue.deployment.securityContext | nindent 12 }}
+          {{- with .Values.ingestQueue.deployment.lifecycle }}
+          lifecycle:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           {{- with $volumeMounts }}
           volumeMounts:
             {{- toYaml . | nindent 12 }}

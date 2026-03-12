@@ -1,6 +1,6 @@
 # langsmith-auth-proxy
 
-![Version: 0.0.1](https://img.shields.io/badge/Version-0.0.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.37.0](https://img.shields.io/badge/AppVersion-1.37.0-informational?style=flat-square)
+![Version: 0.0.3](https://img.shields.io/badge/Version-0.0.3-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.37.0](https://img.shields.io/badge/AppVersion-1.37.0-informational?style=flat-square)
 
 Helm chart to deploy the langsmith auth-proxy application.
 
@@ -53,6 +53,7 @@ This chart uses the **HTTP** `ext_authz` mode — HTTP request in, HTTP response
 | authProxy.deployment.extraEnv | list | `[]` |  |
 | authProxy.deployment.initContainers | list | `[]` |  |
 | authProxy.deployment.labels | object | `{}` |  |
+| authProxy.deployment.lifecycle | object | `{}` |  |
 | authProxy.deployment.livenessProbe.failureThreshold | int | `6` |  |
 | authProxy.deployment.livenessProbe.httpGet.path | string | `"/healthz"` |  |
 | authProxy.deployment.livenessProbe.httpGet.port | int | `10000` |  |
@@ -95,6 +96,8 @@ This chart uses the **HTTP** `ext_authz` mode — HTTP request in, HTTP response
 | authProxy.jwksJson | string | `""` | JWKS JSON string containing the public keys for JWT validation. Generate with the LangSmith JWKS tooling and paste the full JSON here. |
 | authProxy.jwtAudiences | list | `[]` | JWT audience claims to validate. Must match audiences in the signed JWT. |
 | authProxy.jwtIssuer | string | `"langsmith"` | JWT issuer claim to validate |
+| authProxy.jwtValidation | object | `{"enabled":true}` | JWT validation configuration |
+| authProxy.jwtValidation.enabled | bool | `true` | Set to false to disable the envoy.filters.http.jwt_authn filter entirely. Useful for testing or when JWT validation is handled elsewhere. |
 | authProxy.name | string | `"auth-proxy"` |  |
 | authProxy.pdb.annotations | object | `{}` |  |
 | authProxy.pdb.enabled | bool | `false` |  |
@@ -116,6 +119,7 @@ This chart uses the **HTTP** `ext_authz` mode — HTTP request in, HTTP response
 | authProxy.streamIdleTimeout | string | `"300s"` | Idle timeout for streaming responses (e.g. SSE from LLM providers) |
 | authProxy.upstream | string | `""` | Upstream LLM provider URL (e.g. https://api.openai.com) |
 | commonAnnotations | object | `{}` | Annotations that will be applied to all resources created by the chart |
+| commonDnsConfig | object | `{"options":[{"name":"ndots","value":"4"}]}` | Set to null to disable and use Kubernetes defaults (ndots: 5). |
 | commonLabels | object | `{}` | Labels that will be applied to all resources created by the chart |
 | commonPodAnnotations | object | `{}` | Annotations that will be applied to all pods created by the chart |
 | commonPodSecurityContext | object | `{}` | Common pod security context applied to all pods. Component-specific podSecurityContext values will be merged on top of this (component values take precedence). |

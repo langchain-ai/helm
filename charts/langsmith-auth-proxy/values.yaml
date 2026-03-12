@@ -12,6 +12,13 @@ commonPodAnnotations: {}
 commonLabels: {}
 # -- Common pod security context applied to all pods. Component-specific podSecurityContext values will be merged on top of this (component values take precedence).
 commonPodSecurityContext: {}
+# -- Common DNS configuration applied to all pods. Reduces DNS query amplification in Kubernetes by
+# -- ensuring service FQDNs (which have 4 dots) are resolved directly without search domain expansion.
+# -- Set to null to disable and use Kubernetes defaults (ndots: 5).
+commonDnsConfig:
+  options:
+    - name: ndots
+      value: "4"
 
 images:
   # -- If supplied, all children <image_name>.repository values will be prepended with this registry name + `/`
@@ -38,6 +45,11 @@ authProxy:
   # -- JWKS JSON string containing the public keys for JWT validation.
   # Generate with the LangSmith JWKS tooling and paste the full JSON here.
   jwksJson: ""
+  # -- JWT validation configuration
+  jwtValidation:
+    # -- Set to false to disable the envoy.filters.http.jwt_authn filter entirely.
+    # Useful for testing or when JWT validation is handled elsewhere.
+    enabled: true
   # -- Idle timeout for streaming responses (e.g. SSE from LLM providers)
   streamIdleTimeout: "300s"
   # External authorization service configuration (for injecting LLM provider auth headers).
@@ -79,6 +91,7 @@ authProxy:
     annotations: {}
     podSecurityContext: {}
     securityContext: {}
+    lifecycle: {}
     resources:
       limits:
         cpu: 500m

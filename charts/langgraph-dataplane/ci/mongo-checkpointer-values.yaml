@@ -1,0 +1,6 @@
+checkpointer:
+  defaultBackend: "mongo"
+  mongo:
+    external:
+      existingSecretName: "langgraph-mongo"
+      connectionUrlSecretKey: "mongodb_connection_url"

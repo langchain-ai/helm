@@ -22,6 +22,13 @@ commonVolumeMounts: []
 commonInitContainers: []
 # -- Common pod security context applied to all pods. Component-specific podSecurityContext values will be merged on top of this (component values take precedence).
 commonPodSecurityContext: {}
+# -- Common DNS configuration applied to all pods. Reduces DNS query amplification in Kubernetes by
+# -- ensuring service FQDNs (which have 4 dots) are resolved directly without search domain expansion.
+# -- Set to null to disable and use Kubernetes defaults (ndots: 5).
+commonDnsConfig:
+  options:
+    - name: ndots
+      value: "4"
 # -- Kubernetes cluster domain. Only change if not using 'cluster.local'
 clusterDomain: "cluster.local"
 
@@ -33,23 +40,23 @@ images:
   aceBackendImage:
     repository: "docker.io/langchain/langsmith-ace-backend"
     pullPolicy: IfNotPresent
-    tag: "0.13.16"
+    tag: "0.13.24"
   backendImage:
     repository: "docker.io/langchain/langsmith-backend"
     pullPolicy: IfNotPresent
-    tag: "0.13.16"
+    tag: "0.13.24"
   insightsAgentImage:
     repository: "docker.io/langchain/langsmith-clio"
     pullPolicy: IfNotPresent
-    tag: "0.13.16"
+    tag: "0.13.24"
   frontendImage:
     repository: "docker.io/langchain/langsmith-frontend"
     pullPolicy: IfNotPresent
-    tag: "0.13.16"
+    tag: "0.13.24"
   hostBackendImage:
     repository: "docker.io/langchain/hosted-langserve-backend"
     pullPolicy: IfNotPresent
-    tag: "0.13.16"
+    tag: "0.13.24"
   operatorImage:
     repository: "docker.io/langchain/langgraph-operator"
     pullPolicy: IfNotPresent
@@ -57,11 +64,11 @@ images:
   platformBackendImage:
     repository: "docker.io/langchain/langsmith-go-backend"
     pullPolicy: IfNotPresent
-    tag: "0.13.16"
+    tag: "0.13.24"
   playgroundImage:
     repository: "docker.io/langchain/langsmith-playground"
     pullPolicy: IfNotPresent
-    tag: "0.13.16"
+    tag: "0.13.24"
   # For production environments, we strongly recommend connecting to a managed PostgreSQL instance instead of using the one provided by the chart.
   # Docs: https://docs.langchain.com/langsmith/self-host-external-postgres
   postgresImage:
@@ -81,15 +88,15 @@ images:
   agentBuilderToolServerImage:
     repository: "docker.io/langchain/agent-builder-tool-server"
     pullPolicy: IfNotPresent
-    tag: "0.13.16"
+    tag: "0.13.24"
   agentBuilderTriggerServerImage:
     repository: "docker.io/langchain/agent-builder-trigger-server"
     pullPolicy: IfNotPresent
-    tag: "0.13.16"
+    tag: "0.13.24"
   agentBuilderImage:
     repository: "docker.io/langchain/agent-builder-deep-agent"
     pullPolicy: IfNotPresent
-    tag: "0.13.16"
+    tag: "0.13.24"
 
 ingress:
   enabled: false
@@ -146,6 +153,7 @@ config:
         memoryLimitMb: 8192
         minScale: 1
         maxScale: 5
+      extraEnv: {}
 
   # Agent Builder configuration - UI for creating and managing agents
   # Requires config.deployment.enabled to be true
@@ -180,6 +188,7 @@ config:
         memoryLimitMb: 8192
         minScale: 1
         maxScale: 5
+      extraEnv: {}
 
   # -- Salt used to generate the API key. Should be a random string.
   apiKeySalt: ""
@@ -197,12 +206,25 @@ config:
     # Either set the password and JWT secret in plaintext, or set in the secret specified by existingSecretName above.
     initialOrgAdminPassword: ""
     jwtSecret: ""
+  # -- Email addresses of super admins who can export usage data.
+  # These are the only users allowed to use the usage backfill export
+  # unless orgAdminsInstallationUsageExportEnabled is set.
+  superAdmins: []
+  # -- When true, any org admin can use the usage backfill export.
+  orgAdminsInstallationUsageExportEnabled: false
+
   # -- Prevent organization creation by users. This includes admins.
   userOrgCreationDisabled: true
   # -- Disable personal orgs.
   personalOrgsDisabled: true
   # -- Enable Workspace Admins to invite users to the org and workspace.
   workspaceScopeOrgInvitesEnabled: false
+  # -- Require authentication on the GET /info endpoint. When enabled, unauthenticated
+  # requests to /info will receive a 401 and must supply a valid API key. The LangSmith
+  # SDK handles this automatically by retrying with credentials. Useful for deployments
+  # that must not expose instance configuration (version, feature flags, batch ingest
+  # config) to unauthenticated callers.
+  infoEndpointAuthRequired: false
 
   # -- hostname of the LangSmith installation. Used for redirects and LangSmith deployments. Required for OAuth and LangSmith Deployments. E.g langsmith.com
   hostname: ""
@@ -334,6 +356,7 @@ aceBackend:
     annotations: {}
     podSecurityContext: {}
     securityContext: {}
+    lifecycle: {}
     resources:
       limits:
         cpu: 1000m
@@ -442,6 +465,7 @@ backend:
     annotations: {}
     podSecurityContext: {}
     securityContext: {}
+    lifecycle: {}
     resources:
       limits:
         cpu: 2000m
@@ -775,6 +799,8 @@ clickhouse:
     annotations: {}
     podSecurityContext: {}
     securityContext: {}
+    lifecycle: {}
+    terminationGracePeriodSeconds: 30
     resources:
 # For a production environment, we recommend increasing the CPU and memory limits to something like 16 cores and 64Gi.
 #      limits:
@@ -893,6 +919,7 @@ frontend:
     annotations: {}
     podSecurityContext: {}
     securityContext: {}
+    lifecycle: {}
     resources:
       limits:
         cpu: 1000m
@@ -985,6 +1012,7 @@ frontend:
     automountServiceAccountToken: true
 
 hostBackend:
+  enabled: false
   name: "host-backend"
   containerPort: 1985
   # -- ArgoCD Rollouts configuration. If enabled, will create a Rollout resource instead of a Deployment. See https://argo-rollouts.readthedocs.io/
@@ -1001,6 +1029,7 @@ hostBackend:
     annotations: {}
     podSecurityContext: {}
     securityContext: {}
+    lifecycle: {}
     resources:
       limits:
         cpu: 1000m
@@ -1111,6 +1140,7 @@ listener:
     annotations: {}
     podSecurityContext: {}
     securityContext: {}
+    lifecycle: {}
     resources:
       limits:
         cpu: 2000m
@@ -1217,6 +1247,7 @@ platformBackend:
     annotations: {}
     podSecurityContext: {}
     securityContext: {}
+    lifecycle: {}
     resources:
       limits:
         cpu: 2000m
@@ -1327,6 +1358,7 @@ operator:
     annotations: {}
     podSecurityContext: {}
     securityContext: {}
+    lifecycle: {}
     resources:
       limits:
         cpu: 2000m
@@ -1512,6 +1544,7 @@ playground:
     annotations: {}
     podSecurityContext: {}
     securityContext: {}
+    lifecycle: {}
     resources:
       limits:
         cpu: 1000m
@@ -1637,6 +1670,8 @@ postgres:
     annotations: {}
     podSecurityContext: {}
     securityContext: {}
+    lifecycle: {}
+    terminationGracePeriodSeconds: 30
     resources:
       # In a production environment, we strongly recommend an external Postgres database.
       limits:
@@ -1724,6 +1759,7 @@ queue:
     annotations: {}
     podSecurityContext: {}
     securityContext: {}
+    lifecycle: {}
     resources:
       limits:
         cpu: 2000m
@@ -1829,6 +1865,7 @@ ingestQueue:
     annotations: {}
     podSecurityContext: {}
     securityContext: {}
+    lifecycle: {}
     resources:
       limits:
         cpu: 2000m
@@ -1950,6 +1987,8 @@ redis:
     annotations: {}
     podSecurityContext: {}
     securityContext: {}
+    lifecycle: {}
+    terminationGracePeriodSeconds: 30
     # In a production environment, we strongly recommend an external Redis database.
     resources:
       limits:
@@ -2032,6 +2071,7 @@ agentBuilderToolServer:
     annotations: {}
     podSecurityContext: {}
     securityContext: {}
+    lifecycle: {}
     resources:
       limits:
         cpu: 2000m
@@ -2109,6 +2149,7 @@ agentBuilderTriggerServer:
     annotations: {}
     podSecurityContext: {}
     securityContext: {}
+    lifecycle: {}
     resources:
       limits:
         cpu: 2000m

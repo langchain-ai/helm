@@ -136,6 +136,16 @@ Template containing common environment variables that are used by several servic
 {{- end }}
 
 
+{{/*
+Common DNS configuration for all pods. When commonDnsConfig is set, it will be applied to all pods.
+*/}}
+{{- define "langgraphDataplane.dnsConfig" -}}
+{{- if .Values.commonDnsConfig }}
+dnsConfig:
+  {{- toYaml .Values.commonDnsConfig | nindent 2 }}
+{{- end }}
+{{- end }}
+
 {{- define "listener.serviceAccountName" -}}
 {{- if .Values.listener.serviceAccount.create -}}
     {{ default (printf "%s-%s" (include "langgraphDataplane.fullname" .) .Values.listener.name) .Values.listener.serviceAccount.name | trunc 63 | trimSuffix "-" }}
@@ -182,6 +192,38 @@ Template containing common environment variables that are used by several servic
   {{ fail (printf "Duplicate keys detected: %v" $duplicates) }}
 {{- end }}
 {{- end -}}
+
+{{/*
+Validated default checkpointer backend configured for spawned agent Deployments.
+*/}}
+{{- define "langgraphDataplane.defaultCheckpointerBackend" -}}
+{{- $backend := trim .Values.checkpointer.defaultBackend -}}
+{{- if and $backend (not (has $backend (list "default" "mongo"))) -}}
+{{- fail (printf "checkpointer.defaultBackend must be one of %q, %q, or empty; got %q" "default" "mongo" $backend) -}}
+{{- end -}}
+{{- if and (eq $backend "mongo") (empty .Values.checkpointer.mongo.external.existingSecretName) -}}
+{{- fail "checkpointer.mongo.external.existingSecretName must be set when checkpointer.defaultBackend=\"mongo\". The referenced secret must exist in each namespace where the operator creates agent Deployments." -}}
+{{- end -}}
+{{- $backend -}}
+{{- end }}
+
+{{/*
+Environment variables injected into spawned agent Deployments to provide a platform default checkpointer backend.
+*/}}
+{{- define "langgraphDataplane.agentCheckpointerEnv" -}}
+{{- $backend := include "langgraphDataplane.defaultCheckpointerBackend" . -}}
+{{- if $backend }}
+- name: LS_DEFAULT_CHECKPOINTER_BACKEND
+  value: {{ $backend | quote }}
+{{- if eq $backend "mongo" }}
+- name: LS_MONGODB_URI
+  valueFrom:
+    secretKeyRef:
+      name: {{ .Values.checkpointer.mongo.external.existingSecretName }}
+      key: {{ .Values.checkpointer.mongo.external.connectionUrlSecretKey }}
+{{- end }}
+{{- end }}
+{{- end }}
 
 
 {{/*
