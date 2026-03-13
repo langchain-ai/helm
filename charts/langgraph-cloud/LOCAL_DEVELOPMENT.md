@@ -126,6 +126,7 @@ These are the main knobs:
   - Defaults to `8000`
 - `EXPECT_ENV_VARS`
   - Optional comma-separated list of env vars that must be present during `make cloud-dev-smoke`
+  - Use `NAME=value` to assert an exact value, for example `LS_DEFAULT_CHECKPOINTER_BACKEND=mongo`
   - Entries must be valid shell variable names, for example `FOO` or `MY_APP_TOKEN`
 - `SMOKE_THREAD_ID`
   - Defaults to `2cfc6f4f-c711-4a71-b193-5d89a681a813`
@@ -250,6 +251,19 @@ If your app does not expose an assistant named `agent`, override the default app
 export SMOKE_ASSISTANT_ID=my-assistant
 make cloud-dev-smoke
 ```
+
+### Local Mongo checkpointer
+
+To exercise the Mongo default checkpointer against the local fixture installed by `make cloud-dev-up`:
+
+```bash
+export EXTRA_VALUES_FILE=charts/langgraph-cloud/ci/dev-kind-mongo-checkpointer-values.yaml
+export EXPECT_ENV_VARS=LS_DEFAULT_CHECKPOINTER_BACKEND=mongo,LS_MONGODB_URI
+make cloud-dev-up
+make cloud-dev-smoke
+```
+
+The checked-in `charts/langgraph-cloud/ci/mongo-checkpointer-values.yaml` file is still useful as a generic non-local example, but it points at `mongo.example.net` and is not intended for the disposable kind workflow.
 
 ## Diagnostics
 

@@ -61,11 +61,11 @@ config:
     langSmithTenantId: ""
 
 checkpointer:
-  # -- Default checkpointer backend used when LANGGRAPH_CHECKPOINTER omits `backend`. Supported values: `""`, `"default"`, `"mongo"`.
-  defaultBackend: ""
-  mongo:
-    external:
-      # -- MongoDB connection URL used when `checkpointer.defaultBackend` is `"mongo"`. Must include the target database name.
+  default:
+    # -- Default checkpointer backend used when LANGGRAPH_CHECKPOINTER omits `backend`. Supported values: `""`, `"default"`, `"mongo"`.
+    backend: ""
+    mongo:
+      # -- MongoDB connection URL used when `checkpointer.default.backend` is `"mongo"`. Must include the target database name.
       connectionUrl: ""
       # -- Secret key containing the MongoDB connection URL.
       connectionUrlSecretKey: "mongodb_connection_url"

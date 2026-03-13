@@ -118,8 +118,8 @@ dnsConfig:
 Name of the secret containing the MongoDB URI for the optional Mongo checkpointer default.
 */}}
 {{- define "langGraphCloud.mongoSecretsName" -}}
-{{- if .Values.checkpointer.mongo.external.existingSecretName }}
-{{- .Values.checkpointer.mongo.external.existingSecretName }}
+{{- if .Values.checkpointer.default.mongo.existingSecretName }}
+{{- .Values.checkpointer.default.mongo.existingSecretName }}
 {{- else }}
 {{- include "langGraphCloud.fullname" . }}-mongo
 {{- end }}
@@ -129,12 +129,12 @@ Name of the secret containing the MongoDB URI for the optional Mongo checkpointe
 Validated default checkpointer backend configured by the platform chart.
 */}}
 {{- define "langGraphCloud.defaultCheckpointerBackend" -}}
-{{- $backend := trim .Values.checkpointer.defaultBackend -}}
+{{- $backend := trim .Values.checkpointer.default.backend -}}
 {{- if and $backend (not (has $backend (list "default" "mongo"))) -}}
-{{- fail (printf "checkpointer.defaultBackend must be one of %q, %q, or empty; got %q" "default" "mongo" $backend) -}}
+{{- fail (printf "checkpointer.default.backend must be one of %q, %q, or empty; got %q" "default" "mongo" $backend) -}}
 {{- end -}}
-{{- if and (eq $backend "mongo") (not .Values.checkpointer.mongo.external.existingSecretName) (empty .Values.checkpointer.mongo.external.connectionUrl) -}}
-{{- fail "checkpointer.mongo.external.connectionUrl must be set or checkpointer.mongo.external.existingSecretName must be provided when checkpointer.defaultBackend=\"mongo\"" -}}
+{{- if and (eq $backend "mongo") (not .Values.checkpointer.default.mongo.existingSecretName) (empty .Values.checkpointer.default.mongo.connectionUrl) -}}
+{{- fail "checkpointer.default.mongo.connectionUrl must be set or checkpointer.default.mongo.existingSecretName must be provided when checkpointer.default.backend=\"mongo\"" -}}
 {{- end -}}
 {{- $backend -}}
 {{- end }}
@@ -152,7 +152,7 @@ Environment variables used to default agent server checkpointers without overrid
   valueFrom:
     secretKeyRef:
       name: {{ include "langGraphCloud.mongoSecretsName" . }}
-      key: {{ .Values.checkpointer.mongo.external.connectionUrlSecretKey }}
+      key: {{ .Values.checkpointer.default.mongo.connectionUrlSecretKey }}
 {{- end }}
 {{- end }}
 {{- end }}

@@ -50,6 +50,12 @@ json_escape() {
   printf '%s' "$escaped"
 }
 
+sh_single_quote() {
+  local value="$1"
+  value="${value//\'/\'\"\'\"\'}"
+  printf "'%s'" "$value"
+}
+
 cleanup() {
   if [[ -n "${port_forward_pid:-}" ]]; then
     kill "$port_forward_pid" >/dev/null 2>&1 || true
@@ -153,14 +159,34 @@ fi
 
 if [[ -n "${EXPECT_ENV_VARS:-}" ]]; then
   log "Verifying expected API container env vars: $EXPECT_ENV_VARS"
-  IFS=',' read -r -a env_names <<<"${EXPECT_ENV_VARS}"
+  IFS=',' read -r -a env_specs <<<"${EXPECT_ENV_VARS}"
   remote_check='set -eu;'
-  for env_name in "${env_names[@]}"; do
+  for env_spec in "${env_specs[@]}"; do
+    env_spec="${env_spec#"${env_spec%%[![:space:]]*}"}"
+    env_spec="${env_spec%"${env_spec##*[![:space:]]}"}"
+    [[ -n "$env_spec" ]] || die "EXPECT_ENV_VARS must not contain empty entries"
+
+    env_name="$env_spec"
+    expected_value=""
+    has_expected_value=0
+    if [[ "$env_spec" == *"="* ]]; then
+      env_name="${env_spec%%=*}"
+      expected_value="${env_spec#*=}"
+      has_expected_value=1
+    fi
+
     env_name="${env_name#"${env_name%%[![:space:]]*}"}"
     env_name="${env_name%"${env_name##*[![:space:]]}"}"
     [[ -n "$env_name" ]] || die "EXPECT_ENV_VARS must not contain empty names"
     [[ "$env_name" =~ ^[A-Za-z_][A-Za-z0-9_]*$ ]] || die "EXPECT_ENV_VARS entries must be valid shell variable names, got \"$env_name\""
-    remote_check+=" value=\${${env_name}:-}; [ -n \"\$value\" ] || { echo \"${env_name} is not set\" >&2; exit 1; };"
+
+    remote_check+=" value=\${${env_name}:-};"
+    if [[ "$has_expected_value" == "1" ]]; then
+      expected_value_quoted="$(sh_single_quote "$expected_value")"
+      remote_check+=" [ \"\$value\" = ${expected_value_quoted} ] || { echo \"${env_name} does not match expected value\" >&2; exit 1; };"
+    else
+      remote_check+=" [ -n \"\$value\" ] || { echo \"${env_name} is not set\" >&2; exit 1; };"
+    fi
   done
   kubectl_ctx -n "$NAMESPACE" exec "deployment/${api_deployment}" -- sh -lc "$remote_check"
 fi
