@@ -30,7 +30,7 @@ tests:
     template: mongo/stateful-set.yaml
     set:
       mongo.enabled: true
-      mongo.persistence.size: 8Gi
+      mongo.statefulSet.persistence.size: 8Gi
     asserts:
       - hasDocuments:
           count: 1
@@ -44,7 +44,7 @@ tests:
     template: mongo/service.yaml
     set:
       mongo.enabled: true
-      mongo.persistence.size: 8Gi
+      mongo.statefulSet.persistence.size: 8Gi
     asserts:
       - hasDocuments:
           count: 1
@@ -64,7 +64,7 @@ tests:
     template: mongo/secrets.yaml
     set:
       mongo.enabled: true
-      mongo.persistence.size: 8Gi
+      mongo.statefulSet.persistence.size: 8Gi
     asserts:
       - hasDocuments:
           count: 1
@@ -80,7 +80,7 @@ tests:
     template: mongo/stateful-set.yaml
     set:
       mongo.enabled: true
-      mongo.persistence.size: 8Gi
+      mongo.statefulSet.persistence.size: 8Gi
     asserts:
       - equal:
           path: spec.template.spec.containers[0].image
@@ -90,7 +90,7 @@ tests:
     template: mongo/stateful-set.yaml
     set:
       mongo.enabled: true
-      mongo.persistence.size: 8Gi
+      mongo.statefulSet.persistence.size: 8Gi
     asserts:
       - equal:
           path: spec.volumeClaimTemplates[0].metadata.name
@@ -106,7 +106,7 @@ tests:
     template: mongo/stateful-set.yaml
     set:
       mongo.enabled: true
-      mongo.persistence.size: 8Gi
+      mongo.statefulSet.persistence.size: 8Gi
     asserts:
       - exists:
           path: spec.template.spec.containers[0].startupProbe
@@ -154,7 +154,7 @@ tests:
     template: api-server/deployment.yaml
     set:
       mongo.enabled: true
-      mongo.persistence.size: 8Gi
+      mongo.statefulSet.persistence.size: 8Gi
     asserts:
       - contains:
           path: spec.template.spec.containers[0].env

@@ -255,6 +255,11 @@ config:
 # Your secret should contain key `api_key` (and optionally `langgraph_cloud_license_key`).
 ```
 
+If you are upgrading from a chart revision that used the old flat MongoDB values, move these keys before upgrading:
+
+- `mongo.resources` -> `mongo.statefulSet.resources`
+- `mongo.persistence` -> `mongo.statefulSet.persistence`
+
 ### Deploying to Kubernetes:
 
 1. Verify that you can connect to your Kubernetes cluster(note: We highly suggest installing into an empty namespace)
@@ -362,8 +367,8 @@ config:
 | mongo.external.connectionUrl | string | `""` | MongoDB connection URL used when `mongo.enabled` and `mongo.external.enabled` are true. Must include the target database name and point at a replica set member or `mongos`. |
 | mongo.external.enabled | bool | `false` | Use an external MongoDB deployment instead of the chart-managed MongoDB instance. |
 | mongo.external.existingSecretName | string | `""` | Existing secret name containing the MongoDB connection URL. |
-| mongo.persistence.size | string | `"8Gi"` | Persistent volume size for the bundled MongoDB instance. |
-| mongo.resources | object | `{"limits":{"cpu":"2000m","memory":"4Gi"},"requests":{"cpu":"500m","memory":"1Gi"}}` | Resource requests and limits for the bundled MongoDB pod. |
+| mongo.statefulSet.persistence.size | string | `"8Gi"` | Persistent volume size for the bundled MongoDB instance. |
+| mongo.statefulSet.resources | object | `{"limits":{"cpu":"2000m","memory":"4Gi"},"requests":{"cpu":"500m","memory":"1Gi"}}` | Resource requests and limits for the bundled MongoDB pod. |
 | nameOverride | string | `""` | Provide a name in place of `langgraph-cloud` for the chart |
 | namespace | string | `""` | Namespace to install the chart into. If not set, will use the namespace of the current context. |
 | queue.autoscaling.enabled | bool | `false` |  |
