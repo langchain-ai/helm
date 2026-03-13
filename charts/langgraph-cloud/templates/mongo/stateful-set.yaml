@@ -89,7 +89,7 @@ spec:
                 sleep 1
               done
 
-              if [[ "${HOSTNAME##*-}" == "0" ]]; then
+              if [ "${HOSTNAME##*-}" = "0" ]; then
                 if ! mongosh --quiet --host 127.0.0.1 --port "${MONGO_PORT}" --eval "quit(rs.status().ok === 1 ? 0 : 1)" >/dev/null 2>&1; then
                   mongosh --quiet --host 127.0.0.1 --port "${MONGO_PORT}" --eval "rs.initiate({_id: '${MONGO_REPLICA_SET_NAME}', members: [{_id: 0, host: '${member_host}'}]})"
                 fi
@@ -120,6 +120,7 @@ spec:
                   --eval "quit(db.adminCommand({ ping: 1 }).ok === 1 ? 0 : 1)"
             failureThreshold: 30
             periodSeconds: 2
+            timeoutSeconds: 5
           readinessProbe:
             exec:
               command:
@@ -129,6 +130,7 @@ spec:
                   mongosh --quiet --host 127.0.0.1 --port {{ .Values.mongo.containerPort }}
                   --eval "const hello = db.adminCommand({ hello: 1 }); quit(hello.setName === '{{ .Values.mongo.internal.replicaSetName }}' && hello.isWritablePrimary ? 0 : 1)"
             periodSeconds: 5
+            timeoutSeconds: 5
           livenessProbe:
             exec:
               command:
@@ -138,6 +140,7 @@ spec:
                   mongosh --quiet --host 127.0.0.1 --port {{ .Values.mongo.containerPort }}
                   --eval "quit(db.adminCommand({ ping: 1 }).ok === 1 ? 0 : 1)"
             periodSeconds: 10
+            timeoutSeconds: 5
           resources:
             {{- toYaml .Values.mongo.internal.statefulSet.resources | nindent 12 }}
           securityContext:
