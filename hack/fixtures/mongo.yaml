@@ -16,30 +16,94 @@ spec:
         app.kubernetes.io/name: mongo
         app.kubernetes.io/part-of: langgraph-cloud-local-dev
     spec:
+      volumes:
+      - name: mongo-data
+        emptyDir: {}
       containers:
       - name: mongo
         image: mongo:7
         imagePullPolicy: IfNotPresent
+        env:
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        command:
+        - /bin/sh
+        - -lc
+        - |
+          set -eu
+
+          mongo_host="mongo.${POD_NAMESPACE}.svc.cluster.local:27017"
+
+          mongod --replSet rs0 --bind_ip_all --port 27017 --dbpath /data/db &
+          pid="$!"
+
+          terminate() {
+            kill -TERM "$pid"
+            wait "$pid"
+          }
+          trap terminate TERM INT
+
+          until mongosh --quiet --host 127.0.0.1 --port 27017 --eval 'quit(db.adminCommand({ ping: 1 }).ok === 1 ? 0 : 1)' >/dev/null 2>&1; do
+            if ! kill -0 "$pid" >/dev/null 2>&1; then
+              wait "$pid"
+              exit 1
+            fi
+            sleep 1
+          done
+
+          if ! mongosh --quiet --host 127.0.0.1 --port 27017 --eval 'quit(rs.status().ok === 1 ? 0 : 1)' >/dev/null 2>&1; then
+            mongosh --quiet --host 127.0.0.1 --port 27017 --eval "rs.initiate({_id: 'rs0', members: [{_id: 0, host: '${mongo_host}'}]})"
+          fi
+
+          until mongosh --quiet --host 127.0.0.1 --port 27017 --eval 'const hello = db.adminCommand({ hello: 1 }); quit(hello.setName === "rs0" && hello.isWritablePrimary ? 0 : 1)' >/dev/null 2>&1; do
+            if ! kill -0 "$pid" >/dev/null 2>&1; then
+              wait "$pid"
+              exit 1
+            fi
+            sleep 1
+          done
+
+          wait "$pid"
         ports:
         - containerPort: 27017
           name: mongo
           protocol: TCP
+        volumeMounts:
+        - name: mongo-data
+          mountPath: /data/db
         resources:
           requests:
             cpu: 100m
             memory: 256Mi
         startupProbe:
-          tcpSocket:
-            port: 27017
+          exec:
+            command:
+            - /bin/sh
+            - -lc
+            - >-
+              mongosh --quiet --host 127.0.0.1 --port 27017 --eval
+              'quit(db.adminCommand({ ping: 1 }).ok === 1 ? 0 : 1)'
           failureThreshold: 30
           periodSeconds: 2
         readinessProbe:
-          tcpSocket:
-            port: 27017
+          exec:
+            command:
+            - /bin/sh
+            - -lc
+            - >-
+              mongosh --quiet --host 127.0.0.1 --port 27017 --eval
+              'const hello = db.adminCommand({ hello: 1 }); quit(hello.setName === "rs0" && hello.isWritablePrimary ? 0 : 1)'
           periodSeconds: 5
         livenessProbe:
-          tcpSocket:
-            port: 27017
+          exec:
+            command:
+            - /bin/sh
+            - -lc
+            - >-
+              mongosh --quiet --host 127.0.0.1 --port 27017 --eval
+              'quit(db.adminCommand({ ping: 1 }).ok === 1 ? 0 : 1)'
           periodSeconds: 10
 ---
 apiVersion: v1

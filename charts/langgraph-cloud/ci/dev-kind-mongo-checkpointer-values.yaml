@@ -1,7 +1,7 @@
 # Local kind overlay for exercising the Mongo default checkpointer against the
-# disposable Mongo fixture installed by `make cloud-dev-up`.
+# disposable single-node replica set fixture installed by `make cloud-dev-up`.
 checkpointer:
   default:
     backend: "mongo"
     mongo:
-      connectionUrl: "mongodb://mongo:27017/langgraph"
+      connectionUrl: "mongodb://mongo:27017/langgraph?replicaSet=rs0"

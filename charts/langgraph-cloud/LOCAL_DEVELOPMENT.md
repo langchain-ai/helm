@@ -171,7 +171,7 @@ This checks:
 - `/ok` returns successfully
 - `/docs` returns successfully
 - `POST /threads/<thread_id>/runs/stream` succeeds against the deployed app
-- the optional local Mongo fixture responds
+- the optional local Mongo fixture becomes a writable single-node replica set
 
 By default, the app-level smoke request assumes the starter app created by `uv run langgraph new ...` and sends:
 
@@ -254,6 +254,8 @@ make cloud-dev-smoke
 
 ### Local Mongo checkpointer
 
+The Mongo checkpointer expects a Mongo replica set member or `mongos`. A standalone `mongod` is not enough for transactional checkpoint writes.
+
 To exercise the Mongo default checkpointer against the local fixture installed by `make cloud-dev-up`:
 
 ```bash
@@ -283,4 +285,4 @@ make cloud-dev-logs
 
 - The default local values intentionally disable `studio` and `ingress` to keep the dev footprint small.
 - `queue` is disabled by default in the local profile for a tighter feedback loop.
-- The local Mongo fixture is there to support feature testing. The chart does not depend on it unless your overlay values do.
+- The local Mongo fixture is there to support feature testing. It runs as a single-node replica set because the Mongo checkpointer requires replica set semantics. The chart does not depend on it unless your overlay values do.

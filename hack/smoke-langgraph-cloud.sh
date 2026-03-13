@@ -153,8 +153,8 @@ EOF
 fi
 
 if [[ "$INSTALL_MONGO_FIXTURE" == "1" ]]; then
-  log "Verifying the local Mongo fixture responds"
-  kubectl_ctx -n "$NAMESPACE" exec deployment/mongo -- sh -lc 'mongosh --quiet "mongodb://mongo:27017/langgraph" --eval "db.adminCommand({ ping: 1 }).ok"' | grep -qx '1'
+  log "Verifying the local Mongo fixture is a writable replica set primary"
+  kubectl_ctx -n "$NAMESPACE" exec deployment/mongo -- sh -lc "mongosh --quiet \"mongodb://mongo:27017/langgraph?replicaSet=rs0\" --eval 'const hello = db.adminCommand({ hello: 1 }); quit(hello.setName === \"rs0\" && hello.isWritablePrimary ? 0 : 1)'"
 fi
 
 if [[ -n "${EXPECT_ENV_VARS:-}" ]]; then
