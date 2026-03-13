@@ -131,6 +131,8 @@ postgres:
 
 Use the chart-managed MongoDB instance for local development, CI, and quickstarts. The chart provisions a single-node replica set and injects the generated connection URL when `checkpointer.default.backend` is set to `mongo`. This mode is convenient for getting started, but it is not the recommended production topology.
 
+The bundled MongoDB settings only take effect when `checkpointer.default.backend` is set to `mongo`. By default this mode also creates a persistent volume claim, so your cluster needs a default `StorageClass` unless you override `mongo.internal.statefulSet.persistence`.
+
 Create a values file:
 
 ```yaml
@@ -165,6 +167,8 @@ Use an external MongoDB deployment for production. The MongoDB connection URL mu
 - point at a replica set member or `mongos`
 
 This configuration is release-scoped. If you want two independently configured deployments, use two Helm releases and give each release its own MongoDB connection URL and logical database, even if both releases talk to the same MongoDB cluster.
+
+The external MongoDB settings only take effect when `checkpointer.default.backend` is set to `mongo`.
 
 Create a Kubernetes secret for the MongoDB connection URL:
 
@@ -366,10 +370,10 @@ config:
 | mongo.connectionUrlSecretKey | string | `"mongodb_connection_url"` | Secret key containing the MongoDB connection URL. |
 | mongo.containerPort | int | `27017` |  |
 | mongo.external.connectionUrl | string | `""` | MongoDB connection URL used when `checkpointer.default.backend` is `"mongo"` and `mongo.external.enabled` is true. Must include the target database name and point at a replica set member or `mongos`. |
-| mongo.external.enabled | bool | `false` | Enable an external MongoDB checkpointer endpoint instead of the chart-managed MongoDB instance. |
+| mongo.external.enabled | bool | `false` | Enable an external MongoDB checkpointer endpoint instead of the chart-managed MongoDB instance. This only takes effect when `checkpointer.default.backend` is set to `"mongo"`. |
 | mongo.external.existingSecretName | string | `""` | Existing secret name containing the MongoDB connection URL. |
 | mongo.internal.database | string | `"langgraph"` | Logical database name used in the generated MongoDB connection URL. |
-| mongo.internal.enabled | bool | `false` | Enable the chart-managed single-node MongoDB replica set. Intended for local development, CI, and quickstarts rather than production. |
+| mongo.internal.enabled | bool | `false` | Enable the chart-managed single-node MongoDB replica set. Intended for local development, CI, and quickstarts rather than production. This only takes effect when `checkpointer.default.backend` is set to `"mongo"`. |
 | mongo.internal.pdb.enabled | bool | `false` |  |
 | mongo.internal.pdb.minAvailable | int | `1` |  |
 | mongo.internal.replicaSetName | string | `"rs0"` | Replica set name used by the chart-managed MongoDB instance. |

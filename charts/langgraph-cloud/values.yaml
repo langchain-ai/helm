@@ -374,7 +374,7 @@ mongo:
   # -- Secret key containing the MongoDB connection URL.
   connectionUrlSecretKey: "mongodb_connection_url"
   internal:
-    # -- Enable the chart-managed single-node MongoDB replica set. Intended for local development, CI, and quickstarts rather than production.
+    # -- Enable the chart-managed single-node MongoDB replica set. Intended for local development, CI, and quickstarts rather than production. This only takes effect when `checkpointer.default.backend` is set to `"mongo"`.
     enabled: false
     # -- Logical database name used in the generated MongoDB connection URL.
     database: "langgraph"
@@ -419,7 +419,7 @@ mongo:
       enabled: false
       minAvailable: 1
   external:
-    # -- Enable an external MongoDB checkpointer endpoint instead of the chart-managed MongoDB instance.
+    # -- Enable an external MongoDB checkpointer endpoint instead of the chart-managed MongoDB instance. This only takes effect when `checkpointer.default.backend` is set to `"mongo"`.
     enabled: false
     # -- MongoDB connection URL used when `checkpointer.default.backend` is `"mongo"` and `mongo.external.enabled` is true. Must include the target database name and point at a replica set member or `mongos`.
     connectionUrl: ""
