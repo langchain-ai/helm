@@ -54,6 +54,7 @@
 {{- $hasNginxMount := false }}
 {{- $hasVarRunMount := false }}
 {{- $hasRunMount := false }}
+{{- $hasVarCacheNginxMount := false }}
 {{- range $volumeMounts }}
   {{- if eq .mountPath "/var/lib/nginx" }}
     {{- $hasNginxMount = true }}
@@ -64,9 +65,12 @@
   {{- if eq .mountPath "/run" }}
     {{- $hasRunMount = true }}
   {{- end }}
+  {{- if eq .mountPath "/var/cache/nginx" }}
+    {{- $hasVarCacheNginxMount = true }}
+  {{- end }}
 {{- end }}
-{{- if not (and $hasNginxMount $hasVarRunMount $hasRunMount) }}
-{{- fail "ERROR: When frontend.deployment.securityContext.readOnlyRootFilesystem is true, you must mount /var/lib/nginx, /var/run, and /run as writable volumes (nginx 1.29+ writes pid to /run/nginx.pid). Add emptyDir volumes for 'var-lib-nginx', 'var-run', and 'run'. See read_only config example." }}
+{{- if not (and $hasNginxMount $hasVarRunMount $hasRunMount $hasVarCacheNginxMount) }}
+{{- fail "ERROR: When frontend.deployment.securityContext.readOnlyRootFilesystem is true, you must mount /var/lib/nginx, /var/run, /run, and /var/cache/nginx as writable volumes. Add emptyDir volumes for 'var-lib-nginx', 'var-run', 'run', and 'var-cache-nginx'. See read_only config example." }}
 {{- end }}
 {{- end }}
 {{- if .Values.frontend.rollout.enabled }}
