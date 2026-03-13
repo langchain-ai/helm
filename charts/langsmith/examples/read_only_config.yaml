@@ -164,7 +164,7 @@ listener:
                 emptyDir: {}
               containers:
               - name: postgres
-                image: pgvector/pgvector:pg15
+                image: langchain/langsmith-pgvector:0.1.0
                 ports:
                   - containerPort: 5432
                 command: ["docker-entrypoint.sh"]
