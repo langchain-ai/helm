@@ -1,0 +1,9 @@
+# Local kind overlay for exercising the external MongoDB checkpointer path
+# against the standalone Mongo fixture installed by `make cloud-dev-up`.
+checkpointer:
+  default:
+    backend: "mongo"
+mongo:
+  external:
+    enabled: true
+    connectionUrl: "mongodb://mongo:27017/langgraph?replicaSet=rs0"

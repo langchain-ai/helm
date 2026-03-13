@@ -81,6 +81,13 @@ else
   log "Skipping Redis rollout wait because no managed Redis deployment was rendered"
 fi
 
+mongo_statefulset="$(maybe_find_managed_mongo_statefulset)"
+if [[ -n "$mongo_statefulset" ]]; then
+  wait_for_statefulset "$mongo_statefulset"
+else
+  log "Skipping Mongo rollout wait because no managed Mongo StatefulSet was rendered"
+fi
+
 wait_for_deployment "$(find_api_deployment)"
 
 queue_deployment="$(maybe_find_queue_deployment)"

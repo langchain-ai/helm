@@ -41,7 +41,7 @@ setup_defaults() {
   : "${MONGO_FIXTURE_FILE:=hack/fixtures/mongo.yaml}"
   : "${PORT_FORWARD_PORT:=8000}"
   : "${WAIT_TIMEOUT:=10m}"
-  : "${INSTALL_MONGO_FIXTURE:=1}"
+  : "${INSTALL_MONGO_FIXTURE:=0}"
   : "${DEBUG_OUTPUT_DIR:=$(repo_root)/.tmp/langgraph-cloud-dev-debug}"
 }
 
@@ -216,6 +216,13 @@ maybe_find_managed_redis_deployment() {
     deploy \
     '{range .items[*]}{.metadata.name}{"\t"}{range .spec.template.spec.containers[*]}{range .ports[*]}{.name}{" "}{end}{end}{"\n"}{end}' \
     "redis"
+}
+
+maybe_find_managed_mongo_statefulset() {
+  maybe_find_release_resource_matching \
+    statefulset \
+    '{range .items[*]}{.metadata.name}{"\t"}{range .spec.template.spec.containers[*]}{range .ports[*]}{.name}{" "}{end}{end}{"\n"}{end}' \
+    "mongo"
 }
 
 get_service_port_by_name() {

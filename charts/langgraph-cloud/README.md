@@ -127,9 +127,29 @@ postgres:
     connectionUrl: "postgres://postgres:postgres@postgres-host.com:5432/postgres?sslmode=disable"
 ```
 
-### Example config file with MongoDB checkpointer
+### Example config file with bundled MongoDB checkpointer
 
-Use the chart-level checkpointer default when you want the platform deployment to supply MongoDB checkpointing for a release. The MongoDB connection URL must:
+Use the chart-managed bundled MongoDB instance for local development, CI, and quickstarts. The chart provisions a single-node replica set and wires the generated connection URL into the platform deployment when `checkpointer.default.backend` is set to `mongo`.
+
+```yaml
+images:
+  apiServerImage:
+    pullPolicy: IfNotPresent
+    repository: <your repository>
+    tag: <image tag>
+
+checkpointer:
+  default:
+    backend: "mongo"
+
+mongo:
+  internal:
+    enabled: true
+```
+
+### Example config file with external MongoDB checkpointer
+
+Use an external MongoDB deployment for production. The MongoDB connection URL must:
 
 - include the target logical database name in the path
 - point at a replica set member or `mongos`
@@ -155,13 +175,16 @@ images:
 checkpointer:
   default:
     backend: "mongo"
-    mongo:
-      existingSecretName: "my-release-mongo"
+
+mongo:
+  external:
+    enabled: true
+    existingSecretName: "my-release-mongo"
 ```
 
-By default, the chart reads the URI from the `mongodb_connection_url` key. If your secret uses a different key name, also set `checkpointer.default.mongo.connectionUrlSecretKey`.
+By default, the chart reads the URI from the `mongodb_connection_url` key. If your secret uses a different key name, also set `mongo.connectionUrlSecretKey`.
 
-> **Important:** `checkpointer.default.mongo.existingSecretName` is separate from `config.existingSecretName`. The former is for the MongoDB connection URL used by the checkpointer, while the latter is for `LANGSMITH_API_KEY` and `LANGGRAPH_CLOUD_LICENSE_KEY`.
+> **Important:** `mongo.external.existingSecretName` is separate from `config.existingSecretName`. The former is for the MongoDB connection URL used by the checkpointer, while the latter is for `LANGSMITH_API_KEY` and `LANGGRAPH_CLOUD_LICENSE_KEY`.
 
 ### Using `existingSecretName`
 
@@ -290,6 +313,7 @@ config:
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
+| checkpointer.default.backend | string | `""` | Default checkpointer backend used when LANGGRAPH_CHECKPOINTER omits `backend`. Supported values: `""`, `"default"`, `"mongo"`. |
 | clusterDomain | string | `"cluster.local"` | Kubernetes cluster domain. Only change if not using 'cluster.local' |
 | commonAnnotations | object | `{}` | Annotations that will be applied to all resources created by the chart |
 | commonDnsConfig | object | `{"options":[{"name":"ndots","value":"4"}]}` | Set to null to disable and use Kubernetes defaults (ndots: 5). |
@@ -301,6 +325,9 @@ config:
 | images.apiServerImage.repository | string | `"docker.io/langchain/langgraph-api"` |  |
 | images.apiServerImage.tag | string | `"3.11-28c1407"` |  |
 | images.imagePullSecrets | list | `[]` | Secrets with credentials to pull images from a private registry. Specified as name: value. |
+| images.mongoImage.pullPolicy | string | `"IfNotPresent"` |  |
+| images.mongoImage.repository | string | `"mongo"` |  |
+| images.mongoImage.tag | string | `"7"` |  |
 | images.postgresImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.postgresImage.repository | string | `"pgvector/pgvector"` |  |
 | images.postgresImage.tag | string | `"pg16"` |  |
@@ -318,6 +345,45 @@ config:
 | ingress.labels | object | `{}` |  |
 | ingress.studioHostname | string | `""` |  |
 | ingress.tls | list | `[]` |  |
+| mongo.connectionUrlSecretKey | string | `"mongodb_connection_url"` | Secret key containing the MongoDB connection URL. |
+| mongo.containerPort | int | `27017` |  |
+| mongo.external.connectionUrl | string | `""` | MongoDB connection URL used when `checkpointer.default.backend` is `"mongo"` and `mongo.external.enabled` is true. Must include the target database name and point at a replica set member or `mongos`. |
+| mongo.external.enabled | bool | `false` | Enable an external MongoDB checkpointer endpoint instead of the chart-managed MongoDB instance. |
+| mongo.external.existingSecretName | string | `""` | Existing secret name containing the MongoDB connection URL. |
+| mongo.internal.database | string | `"langgraph"` | Logical database name used in the generated MongoDB connection URL. |
+| mongo.internal.enabled | bool | `false` | Enable the chart-managed single-node MongoDB replica set. Intended for local development, CI, and quickstarts rather than production. |
+| mongo.internal.pdb.enabled | bool | `false` |  |
+| mongo.internal.pdb.minAvailable | int | `1` |  |
+| mongo.internal.replicaSetName | string | `"rs0"` | Replica set name used by the chart-managed MongoDB instance. |
+| mongo.internal.service.annotations | object | `{}` |  |
+| mongo.internal.service.labels | object | `{}` |  |
+| mongo.internal.service.port | int | `27017` |  |
+| mongo.internal.serviceAccount.annotations | object | `{}` |  |
+| mongo.internal.serviceAccount.automountServiceAccountToken | bool | `true` |  |
+| mongo.internal.serviceAccount.create | bool | `true` |  |
+| mongo.internal.serviceAccount.labels | object | `{}` |  |
+| mongo.internal.serviceAccount.name | string | `""` |  |
+| mongo.internal.statefulSet.affinity | object | `{}` |  |
+| mongo.internal.statefulSet.annotations | object | `{}` |  |
+| mongo.internal.statefulSet.labels | object | `{}` |  |
+| mongo.internal.statefulSet.lifecycle | object | `{}` |  |
+| mongo.internal.statefulSet.nodeSelector | object | `{}` |  |
+| mongo.internal.statefulSet.persistence.enabled | bool | `true` |  |
+| mongo.internal.statefulSet.persistence.size | string | `"8Gi"` |  |
+| mongo.internal.statefulSet.persistence.storageClassName | string | `""` |  |
+| mongo.internal.statefulSet.persistentVolumeClaimRetentionPolicy | object | `{}` |  |
+| mongo.internal.statefulSet.podSecurityContext | object | `{}` |  |
+| mongo.internal.statefulSet.priorityClassName | string | `""` |  |
+| mongo.internal.statefulSet.resources.limits.cpu | string | `"2000m"` |  |
+| mongo.internal.statefulSet.resources.limits.memory | string | `"4Gi"` |  |
+| mongo.internal.statefulSet.resources.requests.cpu | string | `"500m"` |  |
+| mongo.internal.statefulSet.resources.requests.memory | string | `"1Gi"` |  |
+| mongo.internal.statefulSet.securityContext | object | `{}` |  |
+| mongo.internal.statefulSet.terminationGracePeriodSeconds | int | `30` |  |
+| mongo.internal.statefulSet.tolerations | list | `[]` |  |
+| mongo.internal.statefulSet.volumeMounts | list | `[]` |  |
+| mongo.internal.statefulSet.volumes | list | `[]` |  |
+| mongo.name | string | `"mongo"` |  |
 | nameOverride | string | `""` | Provide a name in place of `langgraph-cloud` for the chart |
 | namespace | string | `""` | Namespace to install the chart into. If not set, will use the namespace of the current context. |
 | queue.autoscaling.enabled | bool | `false` |  |
@@ -629,7 +695,5 @@ config:
 | ---- | ------ | --- |
 | Ankush | <ankush@langchain.dev> |  |
 
-----------------------------------------------
-Autogenerated from chart metadata using [helm-docs v1.14.2](https://github.com/norwoodj/helm-docs/releases/v1.14.2)
 ## Docs Generated by [helm-docs](https://github.com/norwoodj/helm-docs)
 `helm-docs -t ./charts/langgraph-cloud/README.md.gotmpl`

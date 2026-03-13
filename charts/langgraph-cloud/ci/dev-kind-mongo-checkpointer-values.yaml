@@ -1,7 +1,18 @@
-# Local kind overlay for exercising the Mongo default checkpointer against the
-# disposable single-node replica set fixture installed by `make cloud-dev-up`.
+# Local kind overlay for exercising the bundled Mongo default checkpointer in a
+# disposable kind cluster.
 checkpointer:
   default:
     backend: "mongo"
-    mongo:
-      connectionUrl: "mongodb://mongo:27017/langgraph?replicaSet=rs0"
+mongo:
+  internal:
+    enabled: true
+    statefulSet:
+      resources:
+        limits:
+          cpu: 250m
+          memory: 512Mi
+        requests:
+          cpu: 100m
+          memory: 256Mi
+      persistence:
+        size: 2Gi

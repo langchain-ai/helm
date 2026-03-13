@@ -157,6 +157,12 @@ if [[ "$INSTALL_MONGO_FIXTURE" == "1" ]]; then
   kubectl_ctx -n "$NAMESPACE" exec deployment/mongo -- sh -lc "mongosh --quiet \"mongodb://mongo:27017/langgraph?replicaSet=rs0\" --eval 'const hello = db.adminCommand({ hello: 1 }); quit(hello.setName === \"rs0\" && hello.isWritablePrimary ? 0 : 1)'"
 fi
 
+managed_mongo_statefulset="$(maybe_find_managed_mongo_statefulset)"
+if [[ -n "$managed_mongo_statefulset" ]]; then
+  log "Verifying the chart-managed MongoDB instance is a writable replica set primary"
+  kubectl_ctx -n "$NAMESPACE" exec "pod/${managed_mongo_statefulset}-0" -- sh -lc 'mongosh --quiet "mongodb://127.0.0.1:27017/admin?directConnection=true" --eval '\''const hello = db.adminCommand({ hello: 1 }); quit(hello.setName && hello.isWritablePrimary ? 0 : 1)'\'''
+fi
+
 if [[ -n "${EXPECT_ENV_VARS:-}" ]]; then
   log "Verifying expected API container env vars: $EXPECT_ENV_VARS"
   IFS=',' read -r -a env_specs <<<"${EXPECT_ENV_VARS}"

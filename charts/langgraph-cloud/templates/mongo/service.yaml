@@ -1,0 +1,29 @@
+{{- $defaultCheckpointerBackend := include "langGraphCloud.defaultCheckpointerBackend" . -}}
+{{- if and (eq $defaultCheckpointerBackend "mongo") .Values.mongo.internal.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "langGraphCloud.mongoServiceName" . }}
+  namespace: {{ .Values.namespace | default .Release.Namespace | quote }}
+  labels:
+    {{- include "langGraphCloud.labels" . | nindent 4 }}
+    {{- with .Values.mongo.internal.service.labels }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+  annotations:
+    {{- include "langGraphCloud.annotations" . | nindent 4 }}
+    {{- with .Values.mongo.internal.service.annotations }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  clusterIP: None
+  publishNotReadyAddresses: true
+  ports:
+    - name: mongo
+      port: {{ .Values.mongo.internal.service.port }}
+      targetPort: mongo
+      protocol: TCP
+  selector:
+    {{- include "langGraphCloud.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: {{ include "langGraphCloud.mongoServiceName" . }}
+{{- end }}

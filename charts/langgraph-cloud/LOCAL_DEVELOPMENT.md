@@ -121,7 +121,8 @@ These are the main knobs:
 - `KIND_LOAD_IMAGE`
   - `auto`, `always`, or `never`
 - `INSTALL_MONGO_FIXTURE`
-  - Defaults to `1`
+  - Defaults to `0`
+  - Set to `1` only if you want to install the optional standalone Mongo fixture for testing external MongoDB connection paths
 - `PORT_FORWARD_PORT`
   - Defaults to `8000`
 - `EXPECT_ENV_VARS`
@@ -171,7 +172,7 @@ This checks:
 - `/ok` returns successfully
 - `/docs` returns successfully
 - `POST /threads/<thread_id>/runs/stream` succeeds against the deployed app
-- the optional local Mongo fixture becomes a writable single-node replica set
+- any enabled local Mongo target becomes a writable replica set primary
 
 By default, the app-level smoke request assumes the starter app created by `uv run langgraph new ...` and sends:
 
@@ -254,9 +255,9 @@ make cloud-dev-smoke
 
 ### Local Mongo checkpointer
 
-The Mongo checkpointer expects a Mongo replica set member or `mongos`. A standalone `mongod` is not enough for transactional checkpoint writes.
+The Mongo checkpointer expects a Mongo replica set member or `mongos`. For local development and CI, prefer the chart-managed bundled MongoDB instance. It runs as a single-node replica set and matches the chart's built-in wiring. A standalone `mongod` is not enough for transactional checkpoint writes.
 
-To exercise the Mongo default checkpointer against the local fixture installed by `make cloud-dev-up`:
+To exercise the Mongo default checkpointer with the bundled chart-managed MongoDB instance:
 
 ```bash
 export EXTRA_VALUES_FILE=charts/langgraph-cloud/ci/dev-kind-mongo-checkpointer-values.yaml
@@ -265,7 +266,16 @@ make cloud-dev-up
 make cloud-dev-smoke
 ```
 
-The checked-in `charts/langgraph-cloud/ci/mongo-checkpointer-values.yaml` file is still useful as a generic non-local example, but it points at `mongo.example.net` and is not intended for the disposable kind workflow.
+If you specifically want to test the external MongoDB path against the standalone local fixture instead, opt into it explicitly:
+
+```bash
+export INSTALL_MONGO_FIXTURE=1
+export EXTRA_VALUES_FILE=charts/langgraph-cloud/ci/dev-kind-external-mongo-checkpointer-values.yaml
+make cloud-dev-up
+make cloud-dev-smoke
+```
+
+The checked-in `charts/langgraph-cloud/ci/mongo-checkpointer-values.yaml` file is a generic external example. It still points at `mongo.example.net`, so use your own external URI or an additional override file for disposable local clusters.
 
 ## Diagnostics
 
@@ -285,4 +295,5 @@ make cloud-dev-logs
 
 - The default local values intentionally disable `studio` and `ingress` to keep the dev footprint small.
 - `queue` is disabled by default in the local profile for a tighter feedback loop.
-- The local Mongo fixture is there to support feature testing. It runs as a single-node replica set because the Mongo checkpointer requires replica set semantics. The chart does not depend on it unless your overlay values do.
+- The bundled chart-managed MongoDB instance is the recommended way to exercise the Mongo checkpointer locally.
+- The optional local Mongo fixture is still available for testing external MongoDB connection paths. It runs as a single-node replica set because the Mongo checkpointer requires replica set semantics.
