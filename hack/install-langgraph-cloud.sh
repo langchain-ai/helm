@@ -67,9 +67,26 @@ fi
 log "Installing $RELEASE_NAME into namespace $NAMESPACE"
 helm_ctx "${helm_args[@]}"
 
-wait_for_release_statefulset_suffix "-postgres"
-wait_for_release_deployment_suffix "-redis"
-wait_for_release_deployment_suffix "-api-server"
+postgres_statefulset="$(maybe_find_managed_postgres_statefulset)"
+if [[ -n "$postgres_statefulset" ]]; then
+  wait_for_statefulset "$postgres_statefulset"
+else
+  log "Skipping Postgres rollout wait because no managed Postgres StatefulSet was rendered"
+fi
+
+redis_deployment="$(maybe_find_managed_redis_deployment)"
+if [[ -n "$redis_deployment" ]]; then
+  wait_for_deployment "$redis_deployment"
+else
+  log "Skipping Redis rollout wait because no managed Redis deployment was rendered"
+fi
+
+wait_for_deployment "$(find_api_deployment)"
+
+queue_deployment="$(maybe_find_queue_deployment)"
+if [[ -n "$queue_deployment" ]]; then
+  wait_for_deployment "$queue_deployment"
+fi
 
 log "LangGraph Cloud is installed"
 log "Run 'make cloud-dev-smoke' to verify the API is reachable"

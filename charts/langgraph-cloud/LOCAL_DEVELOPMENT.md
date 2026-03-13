@@ -126,6 +126,7 @@ These are the main knobs:
   - Defaults to `8000`
 - `EXPECT_ENV_VARS`
   - Optional comma-separated list of env vars that must be present during `make cloud-dev-smoke`
+  - Entries must be valid shell variable names, for example `FOO` or `MY_APP_TOKEN`
 - `SMOKE_THREAD_ID`
   - Defaults to `2cfc6f4f-c711-4a71-b193-5d89a681a813`
 - `SMOKE_ASSISTANT_ID`

@@ -132,36 +132,115 @@ maybe_load_api_image() {
   fi
 }
 
-find_release_resource_with_suffix() {
+find_release_resource_matching() {
   local resource_kind="$1"
-  local suffix="$2"
+  local jsonpath="$2"
+  local needle="$3"
+  local description="$4"
   local resource_name
 
   resource_name="$(
     kubectl_ctx -n "$NAMESPACE" get "$resource_kind" \
       -l "app.kubernetes.io/instance=${RELEASE_NAME}" \
-      -o jsonpath='{range .items[*]}{.metadata.name}{"\n"}{end}' |
-      grep -E -- "${suffix}\$" |
-      head -n1 ||
-      true
+      -o jsonpath="$jsonpath" |
+      awk -v needle="$needle" '
+        NF == 0 { next }
+        {
+          for (i = 2; i <= NF; i++) {
+            if ($i == needle) {
+              print $1
+              exit
+            }
+          }
+        }
+      '
   )"
 
-  [[ -n "$resource_name" ]] || die "could not find $resource_kind resource for release $RELEASE_NAME ending with \"$suffix\""
+  [[ -n "$resource_name" ]] || die "could not find $description for release $RELEASE_NAME"
   printf '%s\n' "$resource_name"
 }
 
-wait_for_release_deployment_suffix() {
-  local suffix="$1"
-  local resource_name
-  resource_name="$(find_release_resource_with_suffix deploy "$suffix")"
+maybe_find_release_resource_matching() {
+  local resource_kind="$1"
+  local jsonpath="$2"
+  local needle="$3"
+
+  kubectl_ctx -n "$NAMESPACE" get "$resource_kind" \
+    -l "app.kubernetes.io/instance=${RELEASE_NAME}" \
+    -o jsonpath="$jsonpath" |
+    awk -v needle="$needle" '
+      NF == 0 { next }
+      {
+        for (i = 2; i <= NF; i++) {
+          if ($i == needle) {
+            print $1
+            exit
+          }
+        }
+      }
+    '
+}
+
+find_api_service() {
+  find_release_resource_matching \
+    svc \
+    '{range .items[*]}{.metadata.name}{"\t"}{range .spec.ports[*]}{.targetPort}{" "}{end}{"\n"}{end}' \
+    "api-server" \
+    "API service"
+}
+
+find_api_deployment() {
+  find_release_resource_matching \
+    deploy \
+    '{range .items[*]}{.metadata.name}{"\t"}{range .spec.template.spec.containers[*]}{range .ports[*]}{.name}{" "}{end}{end}{"\n"}{end}' \
+    "api-server" \
+    "API deployment"
+}
+
+maybe_find_queue_deployment() {
+  maybe_find_release_resource_matching \
+    deploy \
+    '{range .items[*]}{.metadata.name}{"\t"}{range .spec.template.spec.containers[*]}{range .ports[*]}{.name}{" "}{end}{end}{"\n"}{end}' \
+    "queue"
+}
+
+maybe_find_managed_postgres_statefulset() {
+  maybe_find_release_resource_matching \
+    statefulset \
+    '{range .items[*]}{.metadata.name}{"\t"}{range .spec.template.spec.containers[*]}{range .ports[*]}{.name}{" "}{end}{end}{"\n"}{end}' \
+    "postgres"
+}
+
+maybe_find_managed_redis_deployment() {
+  maybe_find_release_resource_matching \
+    deploy \
+    '{range .items[*]}{.metadata.name}{"\t"}{range .spec.template.spec.containers[*]}{range .ports[*]}{.name}{" "}{end}{end}{"\n"}{end}' \
+    "redis"
+}
+
+get_service_port_by_name() {
+  local service_name="$1"
+  local port_name="$2"
+  local port
+
+  port="$(
+    kubectl_ctx -n "$NAMESPACE" get service "$service_name" \
+      -o jsonpath='{range .spec.ports[*]}{.name}{"\t"}{.port}{"\n"}{end}' |
+      awk -v port_name="$port_name" '$1 == port_name { print $2; exit }'
+  )"
+
+  [[ -n "$port" ]] || die "could not find service port \"$port_name\" on service/$service_name"
+  printf '%s\n' "$port"
+}
+
+wait_for_deployment() {
+  local resource_name="$1"
   log "Waiting for deployment/$resource_name"
   kubectl_ctx -n "$NAMESPACE" rollout status "deployment/$resource_name" --timeout "$WAIT_TIMEOUT"
 }
 
-wait_for_release_statefulset_suffix() {
-  local suffix="$1"
-  local resource_name
-  resource_name="$(find_release_resource_with_suffix statefulset "$suffix")"
+wait_for_statefulset() {
+  local resource_name="$1"
   log "Waiting for statefulset/$resource_name"
   kubectl_ctx -n "$NAMESPACE" rollout status "statefulset/$resource_name" --timeout "$WAIT_TIMEOUT"
 }

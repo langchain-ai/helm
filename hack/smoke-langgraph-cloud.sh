@@ -5,12 +5,49 @@ source "$(dirname "$0")/lib.sh"
 
 json_escape() {
   local value="$1"
-  value="${value//\\/\\\\}"
-  value="${value//\"/\\\"}"
-  value="${value//$'\n'/\\n}"
-  value="${value//$'\r'/\\r}"
-  value="${value//$'\t'/\\t}"
-  printf '%s' "$value"
+  local LC_ALL=C
+  local escaped=""
+  local char=""
+  local char_ord=0
+  local i=0
+
+  for ((i = 0; i < ${#value}; i++)); do
+    char="${value:i:1}"
+    printf -v char_ord '%d' "'$char"
+    case "$char" in
+      '"')
+        escaped+='\"'
+        ;;
+      \\)
+        escaped+='\\'
+        ;;
+      $'\b')
+        escaped+='\b'
+        ;;
+      $'\f')
+        escaped+='\f'
+        ;;
+      $'\n')
+        escaped+='\n'
+        ;;
+      $'\r')
+        escaped+='\r'
+        ;;
+      $'\t')
+        escaped+='\t'
+        ;;
+      *)
+        if ((char_ord < 32)); then
+          printf -v char '\\u%04x' "$char_ord"
+          escaped+="$char"
+        else
+          escaped+="$char"
+        fi
+        ;;
+    esac
+  done
+
+  printf '%s' "$escaped"
 }
 
 cleanup() {
@@ -38,19 +75,32 @@ SMOKE_SKIP_APP_RUN="${SMOKE_SKIP_APP_RUN:-0}"
 SMOKE_API_KEY="${SMOKE_API_KEY:-}"
 SMOKE_AUTH_TOKEN="${SMOKE_AUTH_TOKEN:-}"
 
-api_service="$(find_release_resource_with_suffix svc "-api-server")"
-api_deployment="$(find_release_resource_with_suffix deploy "-api-server")"
+api_service="$(find_api_service)"
+api_service_port="$(get_service_port_by_name "$api_service" "http")"
+api_deployment="$(find_api_deployment)"
 
-log "Starting port-forward for service/$api_service"
-kubectl_ctx -n "$NAMESPACE" port-forward "service/${api_service}" "${PORT_FORWARD_PORT}:80" >"${DEBUG_OUTPUT_DIR}/port-forward.log" 2>&1 &
+log "Starting port-forward for service/$api_service on service port $api_service_port"
+kubectl_ctx -n "$NAMESPACE" port-forward "service/${api_service}" "${PORT_FORWARD_PORT}:${api_service_port}" >"${DEBUG_OUTPUT_DIR}/port-forward.log" 2>&1 &
 port_forward_pid="$!"
 
+port_forward_ready=0
 for _ in $(seq 1 30); do
+  if ! kill -0 "$port_forward_pid" >/dev/null 2>&1; then
+    sed -n '1,120p' "${DEBUG_OUTPUT_DIR}/port-forward.log" >&2 || true
+    die "port-forward process exited unexpectedly"
+  fi
+
   if curl --fail --silent "http://127.0.0.1:${PORT_FORWARD_PORT}/ok" >/dev/null; then
+    port_forward_ready=1
     break
   fi
   sleep 2
 done
+
+if [[ "$port_forward_ready" != "1" ]]; then
+  sed -n '1,120p' "${DEBUG_OUTPUT_DIR}/port-forward.log" >&2 || true
+  die "timed out waiting for the API port-forward to become ready"
+fi
 
 curl --fail --silent "http://127.0.0.1:${PORT_FORWARD_PORT}/ok" >/dev/null
 curl --fail --silent "http://127.0.0.1:${PORT_FORWARD_PORT}/docs" >/dev/null
@@ -106,6 +156,10 @@ if [[ -n "${EXPECT_ENV_VARS:-}" ]]; then
   IFS=',' read -r -a env_names <<<"${EXPECT_ENV_VARS}"
   remote_check='set -eu;'
   for env_name in "${env_names[@]}"; do
+    env_name="${env_name#"${env_name%%[![:space:]]*}"}"
+    env_name="${env_name%"${env_name##*[![:space:]]}"}"
+    [[ -n "$env_name" ]] || die "EXPECT_ENV_VARS must not contain empty names"
+    [[ "$env_name" =~ ^[A-Za-z_][A-Za-z0-9_]*$ ]] || die "EXPECT_ENV_VARS entries must be valid shell variable names, got \"$env_name\""
     remote_check+=" value=\${${env_name}:-}; [ -n \"\$value\" ] || { echo \"${env_name} is not set\" >&2; exit 1; };"
   done
   kubectl_ctx -n "$NAMESPACE" exec "deployment/${api_deployment}" -- sh -lc "$remote_check"
