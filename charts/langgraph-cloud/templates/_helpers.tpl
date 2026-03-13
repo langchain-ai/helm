@@ -136,7 +136,7 @@ Name of the Service backing the chart-managed MongoDB instance.
 Stable DNS name for the primary member of the chart-managed single-node MongoDB replica set.
 */}}
 {{- define "langGraphCloud.mongoPrimaryHost" -}}
-{{- printf "%s.%s.svc.%s:%v" (include "langGraphCloud.mongoServiceName" .) (default .Release.Namespace .Values.namespace) .Values.clusterDomain 27017 -}}
+{{- printf "%s.%s.svc.%s:%v" (include "langGraphCloud.mongoServiceName" .) (default .Release.Namespace .Values.namespace) .Values.clusterDomain (.Values.mongo.containerPort | int) -}}
 {{- end }}
 
 {{/*
@@ -160,8 +160,8 @@ Validates MongoDB provisioning and default-checkpointer settings.
 {{- if and .Values.mongo.external.enabled (not .Values.mongo.external.existingSecretName) (empty .Values.mongo.external.connectionUrl) -}}
 {{- fail "mongo.external.connectionUrl must be set or mongo.external.existingSecretName must be provided when mongo.external.enabled=true" -}}
 {{- end -}}
-{{- if and .Values.mongo.enabled (not .Values.mongo.external.enabled) (empty .Values.mongo.persistence.size) -}}
-{{- fail "mongo.persistence.size must be set when mongo.enabled=true and using the bundled MongoDB instance" -}}
+{{- if and .Values.mongo.enabled (not .Values.mongo.external.enabled) .Values.mongo.statefulSet.persistence.enabled (empty .Values.mongo.statefulSet.persistence.size) -}}
+{{- fail "mongo.statefulSet.persistence.size must be set when mongo.enabled=true and persistence is enabled" -}}
 {{- end -}}
 {{- end }}
 
@@ -210,6 +210,14 @@ Environment variables used to default agent server checkpointers without overrid
     {{ default (printf "%s-%s" (include "langGraphCloud.fullname" .) .Values.redis.name) .Values.redis.serviceAccount.name | trunc 63 | trimSuffix "-" }}
 {{- else -}}
     {{ default "default" .Values.redis.serviceAccount.name }}
+{{- end -}}
+{{- end -}}
+
+{{- define "mongo.serviceAccountName" -}}
+{{- if .Values.mongo.serviceAccount.create -}}
+    {{ default (include "langGraphCloud.mongoServiceName" .) .Values.mongo.serviceAccount.name | trunc 63 | trimSuffix "-" }}
+{{- else -}}
+    {{ default "default" .Values.mongo.serviceAccount.name }}
 {{- end -}}
 {{- end -}}
 

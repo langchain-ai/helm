@@ -1,5 +1,6 @@
 {{- if and .Values.mongo.enabled (not .Values.mongo.external.enabled) }}
-{{- $volumeMounts := .Values.commonVolumeMounts | default (list) -}}
+{{- $volumes := concat .Values.commonVolumes .Values.mongo.statefulSet.volumes -}}
+{{- $volumeMounts := concat .Values.commonVolumeMounts .Values.mongo.statefulSet.volumeMounts -}}
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
@@ -7,6 +8,14 @@ metadata:
   namespace: {{ .Values.namespace | default .Release.Namespace | quote }}
   labels:
     {{- include "langGraphCloud.labels" . | nindent 4 }}
+    {{- with.Values.mongo.statefulSet.labels }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+  annotations:
+    {{- include "langGraphCloud.annotations" . | nindent 4 }}
+    {{- with.Values.mongo.statefulSet.annotations }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
 spec:
   serviceName: {{ include "langGraphCloud.mongoServiceName" . }}
   replicas: 1
@@ -16,7 +25,14 @@ spec:
       app.kubernetes.io/component: {{ include "langGraphCloud.mongoServiceName" . }}
   template:
     metadata:
+      {{- with .Values.mongo.statefulSet.annotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       labels:
+        {{- with.Values.mongo.statefulSet.labels }}
+            {{- toYaml . | nindent 8 }}
+        {{- end }}
         {{- include "langGraphCloud.labels" . | nindent 8 }}
         app.kubernetes.io/component: {{ include "langGraphCloud.mongoServiceName" . }}
     spec:
@@ -24,7 +40,13 @@ spec:
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      terminationGracePeriodSeconds: 30
+      {{- if .Values.mongo.statefulSet.priorityClassName }}
+      priorityClassName: {{ .Values.mongo.statefulSet.priorityClassName }}
+      {{- end }}
+      terminationGracePeriodSeconds: {{ .Values.mongo.statefulSet.terminationGracePeriodSeconds }}
+      securityContext:
+        {{- toYaml .Values.mongo.statefulSet.podSecurityContext | nindent 8 }}
+      serviceAccountName: {{ include "mongo.serviceAccountName" . }}
       {{- include "langGraphCloud.dnsConfig" . | nindent 6 }}
       containers:
         - name: mongo
@@ -38,9 +60,12 @@ spec:
             - name: MONGO_CLUSTER_DOMAIN
               value: {{ .Values.clusterDomain | quote }}
             - name: MONGO_PORT
-              value: "27017"
+              value: {{ .Values.mongo.containerPort | quote }}
             - name: MONGO_REPLICA_SET_NAME
               value: "rs0"
+            {{- with .Values.mongo.statefulSet.extraEnv }}
+              {{- toYaml . | nindent 12 }}
+            {{- end }}
           command:
             - /bin/sh
             - -lc
@@ -85,7 +110,7 @@ spec:
           imagePullPolicy: {{ .Values.images.mongoImage.pullPolicy }}
           ports:
             - name: mongo
-              containerPort: 27017
+              containerPort: {{ .Values.mongo.containerPort }}
               protocol: TCP
           startupProbe:
             exec:
@@ -93,7 +118,7 @@ spec:
                 - /bin/sh
                 - -lc
                 - >-
-                  mongosh --quiet --host 127.0.0.1 --port 27017
+                  mongosh --quiet --host 127.0.0.1 --port {{ .Values.mongo.containerPort }}
                   --eval "quit(db.adminCommand({ ping: 1 }).ok === 1 ? 0 : 1)"
             failureThreshold: 30
             periodSeconds: 2
@@ -104,7 +129,7 @@ spec:
                 - /bin/sh
                 - -lc
                 - >-
-                  mongosh --quiet --host 127.0.0.1 --port 27017
+                  mongosh --quiet --host 127.0.0.1 --port {{ .Values.mongo.containerPort }}
                   --eval "const hello = db.adminCommand({ hello: 1 }); quit(hello.setName === 'rs0' && hello.isWritablePrimary ? 0 : 1)"
             periodSeconds: 5
             timeoutSeconds: 5
@@ -114,22 +139,53 @@ spec:
                 - /bin/sh
                 - -lc
                 - >-
-                  mongosh --quiet --host 127.0.0.1 --port 27017
+                  mongosh --quiet --host 127.0.0.1 --port {{ .Values.mongo.containerPort }}
                   --eval "quit(db.adminCommand({ ping: 1 }).ok === 1 ? 0 : 1)"
             periodSeconds: 10
             timeoutSeconds: 5
           resources:
-            {{- toYaml .Values.mongo.resources | nindent 12 }}
+            {{- toYaml .Values.mongo.statefulSet.resources | nindent 12 }}
+          securityContext:
+            {{- toYaml .Values.mongo.statefulSet.securityContext | nindent 12 }}
+          {{- with .Values.mongo.statefulSet.lifecycle }}
+          lifecycle:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           volumeMounts:
             {{- with $volumeMounts }}
               {{- toYaml . | nindent 12 }}
             {{- end }}
+            {{- if .Values.mongo.statefulSet.persistence.enabled }}
             - mountPath: /data/db
               name: data
-      {{- with .Values.commonVolumes }}
-      volumes:
+            {{- end }}
+          {{- with .Values.mongo.statefulSet.extraContainerConfig }}
+            {{- toYaml . | nindent 10 }}
+          {{- end }}
+        {{- with .Values.mongo.statefulSet.sidecars }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- with .Values.mongo.statefulSet.nodeSelector }}
+      nodeSelector:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      {{- with .Values.mongo.statefulSet.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.mongo.statefulSet.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with $volumes }}
+      volumes:
+          {{- toYaml . | nindent 8 }}
+      {{- end }}
+ {{- if .Values.mongo.statefulSet.persistence.enabled }}
+  {{- with .Values.mongo.statefulSet.persistentVolumeClaimRetentionPolicy }}
+  persistentVolumeClaimRetentionPolicy:
+        {{- toYaml . | nindent 4 }}
+  {{- end }}
   volumeClaimTemplates:
     - apiVersion: v1
       kind: PersistentVolumeClaim
@@ -143,5 +199,9 @@ spec:
           - ReadWriteOnce
         resources:
           requests:
-            storage: {{ .Values.mongo.persistence.size }}
+            storage: {{ .Values.mongo.statefulSet.persistence.size }}
+        {{- if .Values.mongo.statefulSet.persistence.storageClassName }}
+        storageClassName: {{ .Values.mongo.statefulSet.persistence.storageClassName }}
+        {{- end }}
+  {{- end }}
 {{- end }}

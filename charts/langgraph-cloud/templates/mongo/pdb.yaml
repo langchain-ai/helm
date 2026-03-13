@@ -1,0 +1,20 @@
+{{- if .Values.mongo.pdb.enabled }}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "langGraphCloud.mongoServiceName" . }}
+  namespace: {{ .Values.namespace | default .Release.Namespace | quote }}
+  labels:
+    {{- include "langGraphCloud.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "langGraphCloud.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: {{ include "langGraphCloud.mongoServiceName" . }}
+  {{- if .Values.mongo.pdb.minAvailable }}
+  minAvailable: {{ .Values.mongo.pdb.minAvailable }}
+  {{- end }}
+  {{- if .Values.mongo.pdb.maxUnavailable }}
+  maxUnavailable: {{ .Values.mongo.pdb.maxUnavailable }}
+  {{- end }}
+{{- end }}

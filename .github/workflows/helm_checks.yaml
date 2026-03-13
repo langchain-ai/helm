@@ -59,6 +59,7 @@ jobs:
           docker exec chart-testing-control-plane crictl pull docker.io/redis:7
           docker exec chart-testing-control-plane crictl pull docker.io/postgres:14.7
           docker exec chart-testing-control-plane crictl pull docker.io/clickhouse/clickhouse-server:25.4
+          docker exec chart-testing-control-plane crictl pull docker.io/mongo:7
 
       - name: Setup Redis with TLS for Custom CA Testing (LangSmith only)
         if: matrix.chart-name == 'langsmith'

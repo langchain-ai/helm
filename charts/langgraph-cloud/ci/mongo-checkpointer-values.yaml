@@ -1,5 +1,0 @@
-mongo:
-  enabled: true
-  external:
-    enabled: true
-    connectionUrl: "mongodb://mongo.example.net:27017/langgraph?replicaSet=rs0"
