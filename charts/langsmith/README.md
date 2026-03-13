@@ -349,6 +349,15 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | config.observability.tracing.useTls | bool | `true` |  |
 | config.orgAdminsInstallationUsageExportEnabled | bool | `false` | When true, any org admin can use the usage backfill export. |
 | config.personalOrgsDisabled | bool | `true` | Disable personal orgs. |
+| config.polly.agent.extraEnv | object | `{}` |  |
+| config.polly.agent.resources.cpu | int | `2` |  |
+| config.polly.agent.resources.cpuLimit | int | `4` |  |
+| config.polly.agent.resources.maxScale | int | `5` |  |
+| config.polly.agent.resources.memoryLimitMb | int | `8192` |  |
+| config.polly.agent.resources.memoryMb | int | `4096` |  |
+| config.polly.agent.resources.minScale | int | `1` |  |
+| config.polly.enabled | bool | `false` |  |
+| config.polly.encryptionKey | string | `""` |  |
 | config.security | object | `{"cors":{"allowedOrigins":"*","allowedOriginsRegex":"","alwaysAllowPathsRegex":""}}` | Security configuration for CORS, headers, and other security-related settings. These settings control cross-origin access and help protect against common web vulnerabilities. |
 | config.security.cors | object | `{"allowedOrigins":"*","allowedOriginsRegex":"","alwaysAllowPathsRegex":""}` | CORS (Cross-Origin Resource Sharing) configuration. Controls which origins can make requests to the LangSmith API. By default, CORS is permissive. For production deployments, you should restrict this. |
 | config.security.cors.allowedOrigins | string | `"*"` | Comma-separated list of allowed origins. Use "*" to allow all origins (not recommended for production). Example: "https://app.example.com,https://admin.example.com" If allowedOriginsRegex is set, this value is ignored. |
