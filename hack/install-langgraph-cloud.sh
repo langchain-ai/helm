@@ -3,9 +3,11 @@ set -euo pipefail
 
 source "$(dirname "$0")/lib.sh"
 
+should_dump_diagnostics=0
+
 cleanup_on_error() {
   local exit_code="$1"
-  if [[ "$exit_code" -ne 0 ]]; then
+  if [[ "$exit_code" -ne 0 && "$should_dump_diagnostics" == "1" ]]; then
     warn "Installation failed, collecting Kubernetes diagnostics"
     "$(absolute_path hack/dump-k8s-debug.sh)" || true
   fi
@@ -21,6 +23,7 @@ ensure_kind_context
 ensure_namespace
 parse_api_image
 maybe_load_api_image
+should_dump_diagnostics=1
 
 if [[ "$INSTALL_MONGO_FIXTURE" == "1" ]]; then
   log "Installing local Mongo fixture"

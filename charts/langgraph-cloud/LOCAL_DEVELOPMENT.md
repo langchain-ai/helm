@@ -1,6 +1,6 @@
 # LangGraph Cloud Local Development
 
-This chart now has a safe local development workflow built around `kind`.
+We've set up local testing with `kind`.
 
 The goal is to make it easy to:
 
@@ -11,14 +11,7 @@ The goal is to make it easy to:
 
 ## Safety Model
 
-The scripts are intentionally scoped to `kind` clusters only.
-
-- They target `kind-${KIND_CLUSTER_NAME}` explicitly.
-- They refuse to run against a non-`kind` kube context.
-- They default to a dedicated namespace and release name.
-- They use `ClusterIP` services and `kubectl port-forward` instead of exposing public load balancers.
-
-The default local values live in [ci/dev-kind-values.yaml](./ci/dev-kind-values.yaml).
+The scripts are intentionally scoped to `kind` clusters only and refuse to run against other kube contexts.
 
 ## Prerequisites
 
@@ -29,13 +22,54 @@ You need:
 - `kubectl`
 - `helm`
 
-If you want to test your own app image, set `LANGGRAPH_CLOUD_API_IMAGE`. If you do not set one, the scripts use the chart's default API image.
+You must provide an API image for `make cloud-dev-up`.
+
+Set either:
+
+- `LANGGRAPH_CLOUD_API_IMAGE`
+- `LANGGRAPH_CLOUD_API_IMAGE_REPOSITORY` and `LANGGRAPH_CLOUD_API_IMAGE_TAG`
+
+This is intentional. The local install flow should never silently fall back to the chart's default API image, because that makes it unclear what app you are actually testing.
+
+## Build an Agent Server Image First
+
+The normal local workflow is:
+
+1. Create a small LangGraph app
+2. Build an agent server image for it
+3. Point `make cloud-dev-up` at that image
+
+Example:
+
+```bash
+uv run langgraph new my_template
+cd my_template
+uv run langgraph build -t foo
+cd ..
+LANGGRAPH_CLOUD_API_IMAGE=docker.io/library/foo:latest make cloud-dev-up
+```
+
+If you already have an app and just need to rebuild the image:
+
+```bash
+cd path/to/your/app
+uv run langgraph build -t foo
+cd -
+LANGGRAPH_CLOUD_API_IMAGE=docker.io/library/foo:latest make cloud-dev-up
+```
+
+Use the exact image reference you expect Docker and `kind` to see. If in doubt, check `docker image ls` or `docker image inspect`.
 
 ## Quickstart
 
 From the repo root:
 
 ```bash
+uv run langgraph new my_template
+cd my_template
+uv run langgraph build -t foo
+cd ..
+export LANGGRAPH_CLOUD_API_IMAGE=docker.io/library/foo:latest
 make cloud-dev-up
 make cloud-dev-smoke
 make cloud-dev-connect
@@ -92,6 +126,20 @@ These are the main knobs:
   - Defaults to `8000`
 - `EXPECT_ENV_VARS`
   - Optional comma-separated list of env vars that must be present during `make cloud-dev-smoke`
+- `SMOKE_THREAD_ID`
+  - Defaults to `2cfc6f4f-c711-4a71-b193-5d89a681a813`
+- `SMOKE_ASSISTANT_ID`
+  - Defaults to `agent`
+- `SMOKE_MESSAGE`
+  - Defaults to `Hi there`
+- `SMOKE_STREAM_TIMEOUT_SECONDS`
+  - Defaults to `30`
+- `SMOKE_SKIP_APP_RUN`
+  - Set to `1` to skip the app-level run request during `make cloud-dev-smoke`
+- `SMOKE_API_KEY`
+  - Optional `X-Api-Key` header for apps that require API-key auth during the app-level smoke request
+- `SMOKE_AUTH_TOKEN`
+  - Optional bearer token for apps that require `Authorization: Bearer ...` during the app-level smoke request
 
 ## Typical Workflows
 
@@ -104,13 +152,7 @@ make cloud-dev-template
 ### Install the chart into kind
 
 ```bash
-make cloud-dev-up
-```
-
-To test your own app image instead of the chart default:
-
-```bash
-export LANGGRAPH_CLOUD_API_IMAGE=your-image:dev
+export LANGGRAPH_CLOUD_API_IMAGE=docker.io/library/foo:latest
 make cloud-dev-up
 ```
 
@@ -126,7 +168,49 @@ This checks:
 - the API service can be port-forwarded
 - `/ok` returns successfully
 - `/docs` returns successfully
+- `POST /threads/<thread_id>/runs/stream` succeeds against the deployed app
 - the optional local Mongo fixture responds
+
+By default, the app-level smoke request assumes the starter app created by `uv run langgraph new ...` and sends:
+
+```json
+{"input":{"messages":[{"role":"user","content":"Hi there"}]},"assistant_id":"agent","if_not_exists":"create"}
+```
+
+to:
+
+```text
+/threads/2cfc6f4f-c711-4a71-b193-5d89a681a813/runs/stream
+```
+
+If your app uses a different assistant ID or you want a different prompt, override the defaults:
+
+```bash
+export SMOKE_ASSISTANT_ID=my-assistant
+export SMOKE_MESSAGE="Hello from kind"
+make cloud-dev-smoke
+```
+
+If your app requires auth, pass the needed header values into the smoke request:
+
+```bash
+export SMOKE_API_KEY=local-dev-key
+make cloud-dev-smoke
+```
+
+or:
+
+```bash
+export SMOKE_AUTH_TOKEN=your-token
+make cloud-dev-smoke
+```
+
+If you only want the infrastructure checks and need to skip the app-level run:
+
+```bash
+export SMOKE_SKIP_APP_RUN=1
+make cloud-dev-smoke
+```
 
 ### Manual testing
 
@@ -143,6 +227,10 @@ If you are working on a chart feature and need extra values, layer them with `EX
 Example:
 
 ```bash
+cd path/to/your/app
+uv run langgraph build -t foo
+cd -
+export LANGGRAPH_CLOUD_API_IMAGE=docker.io/library/foo:latest
 export EXTRA_VALUES_FILE=charts/langgraph-cloud/ci/some-feature-values.yaml
 make cloud-dev-up
 make cloud-dev-smoke
@@ -152,6 +240,13 @@ If you also need to assert specific env vars from your chart change:
 
 ```bash
 export EXPECT_ENV_VARS=LS_DEFAULT_CHECKPOINTER_BACKEND,LS_MONGODB_URI
+make cloud-dev-smoke
+```
+
+If your app does not expose an assistant named `agent`, override the default app-level smoke request:
+
+```bash
+export SMOKE_ASSISTANT_ID=my-assistant
 make cloud-dev-smoke
 ```
 

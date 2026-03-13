@@ -1,25 +1,30 @@
-Thank you for installing LangGraph Cloud!
+{{- $namespace := .Values.namespace | default .Release.Namespace -}}
+{{- $apiServerServiceName := printf "%s-%s" (include "langGraphCloud.fullname" .) .Values.apiServer.name -}}
+{{- $studioServiceName := printf "%s-%s" (include "langGraphCloud.fullname" .) .Values.studio.name -}}
+Thank you for installing the Standalone Agent Server!
 
-This chart deploys a LangGraph Cloud instance. All pods should be running! You can access the docs for your API Server by running the following command:
+This chart deploys a Standalone Agent Server instance. All pods should be running! You can access the docs for your API Server by running the following command:
 
-  kubectl port-forward svc/langgraph-api-server 8080:80
+  kubectl -n {{ $namespace }} port-forward svc/{{ $apiServerServiceName }} 8080:80
 
 Then you can access the LangGraph API Server Docs at http://localhost:8080/docs
 
 If you have configured a LoadBalancer service for the LangGraph API Server, you can access the LangGraph API Server by running the following command:
 
-  kubectl get svc langgraph-api-server
+  kubectl -n {{ $namespace }} get svc {{ $apiServerServiceName }}
 
 Then you can access the LangGraph API Server at http://<EXTERNAL-IP>.
 
+{{- if .Values.studio.enabled }}
 If you have enabled the studio, you can access the LangGraph Studio by running the following command:
 
-  kubectl port-forward svc/langgraph-cloud-studio 8080:80
+  kubectl -n {{ $namespace }} port-forward svc/{{ $studioServiceName }} 8080:80
 
 Then you can access the LangGraph Studio at http://localhost:8080. Note that it will by default point to the ingress.hostname parameter. You can update this by changing the baseUrl parameter in the url.
 
 If you have configured a LoadBalancer service for the LangGraph Studio, you can access the LangGraph Studio by running the following command:
 
-  kubectl get svc langgraph-cloud-studio
+  kubectl -n {{ $namespace }} get svc {{ $studioServiceName }}
 
 Then you can access the LangGraph Studio at http://<EXTERNAL-IP>.
+{{- end }}
