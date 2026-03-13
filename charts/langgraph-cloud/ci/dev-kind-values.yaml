@@ -1,0 +1,45 @@
+# Local development defaults for a disposable kind cluster.
+# Layer your own overrides with EXTRA_VALUES_FILE to test feature branches or app-specific config.
+
+studio:
+  enabled: false
+
+queue:
+  enabled: false
+
+ingress:
+  enabled: false
+
+apiServer:
+  service:
+    type: ClusterIP
+  deployment:
+    resources:
+      limits:
+        cpu: 500m
+        memory: 1Gi
+      requests:
+        cpu: 100m
+        memory: 512Mi
+
+postgres:
+  statefulSet:
+    resources:
+      limits:
+        cpu: 1000m
+        memory: 2Gi
+      requests:
+        cpu: 250m
+        memory: 512Mi
+    persistence:
+      size: 2Gi
+
+redis:
+  deployment:
+    resources:
+      limits:
+        cpu: 250m
+        memory: 512Mi
+      requests:
+        cpu: 50m
+        memory: 128Mi

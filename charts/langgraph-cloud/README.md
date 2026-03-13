@@ -4,6 +4,10 @@
 
 Helm chart to deploy the LangGraph Cloud application and all services it depends on.
 
+## Local Development
+
+For a safe disposable `kind` workflow, see [LOCAL_DEVELOPMENT.md](./LOCAL_DEVELOPMENT.md).
+
 ## Deploying LangGraph Cloud with Helm
 
 ### Prerequisites
