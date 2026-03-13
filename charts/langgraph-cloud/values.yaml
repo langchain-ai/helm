@@ -377,6 +377,7 @@ mongo:
   statefulSet:
     labels: {}
     annotations: {}
+    podAnnotations: {}
     podSecurityContext: {}
     securityContext: {}
     lifecycle: {}
@@ -406,12 +407,9 @@ mongo:
       size: 8Gi
       storageClassName: ""
   service:
-    type: ClusterIP
     port: 27017
     labels: {}
     annotations: {}
-    loadBalancerSourceRanges: []
-    loadBalancerIP: ""
   serviceAccount:
     create: true
     name: ""
@@ -420,6 +418,7 @@ mongo:
     automountServiceAccountToken: true
   pdb:
     enabled: false
+    # -- With the bundled single-node StatefulSet, `minAvailable: 1` blocks voluntary evictions such as node drains.
     minAvailable: 1
 
 studio:

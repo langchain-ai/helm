@@ -8,12 +8,12 @@ metadata:
   namespace: {{ .Values.namespace | default .Release.Namespace | quote }}
   labels:
     {{- include "langGraphCloud.labels" . | nindent 4 }}
-    {{- with.Values.mongo.statefulSet.labels }}
+    {{- with .Values.mongo.statefulSet.labels }}
       {{- toYaml . | nindent 4 }}
     {{- end }}
   annotations:
     {{- include "langGraphCloud.annotations" . | nindent 4 }}
-    {{- with.Values.mongo.statefulSet.annotations }}
+    {{- with .Values.mongo.statefulSet.annotations }}
       {{- toYaml . | nindent 4 }}
     {{- end }}
 spec:
@@ -25,13 +25,13 @@ spec:
       app.kubernetes.io/component: {{ include "langGraphCloud.mongoServiceName" . }}
   template:
     metadata:
-      {{- with .Values.mongo.statefulSet.annotations }}
+      {{- with .Values.mongo.statefulSet.podAnnotations }}
       annotations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       labels:
-        {{- with.Values.mongo.statefulSet.labels }}
-            {{- toYaml . | nindent 8 }}
+        {{- with .Values.mongo.statefulSet.labels }}
+          {{- toYaml . | nindent 8 }}
         {{- end }}
         {{- include "langGraphCloud.labels" . | nindent 8 }}
         app.kubernetes.io/component: {{ include "langGraphCloud.mongoServiceName" . }}
@@ -179,12 +179,12 @@ spec:
       {{- end }}
       {{- with $volumes }}
       volumes:
-          {{- toYaml . | nindent 8 }}
+        {{- toYaml . | nindent 8 }}
       {{- end }}
- {{- if .Values.mongo.statefulSet.persistence.enabled }}
+  {{- if .Values.mongo.statefulSet.persistence.enabled }}
   {{- with .Values.mongo.statefulSet.persistentVolumeClaimRetentionPolicy }}
   persistentVolumeClaimRetentionPolicy:
-        {{- toYaml . | nindent 4 }}
+    {{- toYaml . | nindent 4 }}
   {{- end }}
   volumeClaimTemplates:
     - apiVersion: v1

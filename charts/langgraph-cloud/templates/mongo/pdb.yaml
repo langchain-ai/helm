@@ -1,4 +1,4 @@
-{{- if .Values.mongo.pdb.enabled }}
+{{- if and .Values.mongo.enabled (not .Values.mongo.external.enabled) .Values.mongo.pdb.enabled }}
 apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
@@ -11,10 +11,10 @@ spec:
     matchLabels:
       {{- include "langGraphCloud.selectorLabels" . | nindent 6 }}
       app.kubernetes.io/component: {{ include "langGraphCloud.mongoServiceName" . }}
-  {{- if .Values.mongo.pdb.minAvailable }}
+  {{- if hasKey .Values.mongo.pdb "minAvailable" }}
   minAvailable: {{ .Values.mongo.pdb.minAvailable }}
   {{- end }}
-  {{- if .Values.mongo.pdb.maxUnavailable }}
+  {{- if hasKey .Values.mongo.pdb "maxUnavailable" }}
   maxUnavailable: {{ .Values.mongo.pdb.maxUnavailable }}
   {{- end }}
 {{- end }}

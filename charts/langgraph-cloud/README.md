@@ -1,6 +1,6 @@
 # langgraph-cloud
 
-![Version: 0.2.4](https://img.shields.io/badge/Version-0.2.4-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.2.3](https://img.shields.io/badge/AppVersion-0.2.3-informational?style=flat-square)
+![Version: 0.2.5](https://img.shields.io/badge/Version-0.2.5-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.2.3](https://img.shields.io/badge/AppVersion-0.2.3-informational?style=flat-square)
 
 Helm chart to deploy the LangGraph Cloud application and all services it depends on.
 
@@ -255,6 +255,13 @@ config:
 # Your secret should contain key `api_key` (and optionally `langgraph_cloud_license_key`).
 ```
 
+If you are upgrading from a chart revision that used the old flat MongoDB values, move these keys before upgrading:
+
+- `mongo.resources` -> `mongo.statefulSet.resources`
+- `mongo.persistence` -> `mongo.statefulSet.persistence`
+
+The chart now fails validation when the deprecated flat keys are still populated so the migration is explicit.
+
 ### Deploying to Kubernetes:
 
 1. Verify that you can connect to your Kubernetes cluster(note: We highly suggest installing into an empty namespace)
@@ -358,12 +365,42 @@ config:
 | ingress.labels | object | `{}` |  |
 | ingress.studioHostname | string | `""` |  |
 | ingress.tls | list | `[]` |  |
+| mongo.containerPort | int | `27017` |  |
 | mongo.enabled | bool | `false` | Enable MongoDB checkpointing. When `mongo.external.enabled` is false, the chart provisions a bundled single-node MongoDB replica set intended for local development, CI, and quickstarts. |
 | mongo.external.connectionUrl | string | `""` | MongoDB connection URL used when `mongo.enabled` and `mongo.external.enabled` are true. Must include the target database name and point at a replica set member or `mongos`. |
 | mongo.external.enabled | bool | `false` | Use an external MongoDB deployment instead of the chart-managed MongoDB instance. |
 | mongo.external.existingSecretName | string | `""` | Existing secret name containing the MongoDB connection URL. |
-| mongo.persistence.size | string | `"8Gi"` | Persistent volume size for the bundled MongoDB instance. |
-| mongo.resources | object | `{"limits":{"cpu":"2000m","memory":"4Gi"},"requests":{"cpu":"500m","memory":"1Gi"}}` | Resource requests and limits for the bundled MongoDB pod. |
+| mongo.pdb.enabled | bool | `false` |  |
+| mongo.pdb.minAvailable | int | `1` | With the bundled single-node StatefulSet, `minAvailable: 1` blocks voluntary evictions such as node drains. |
+| mongo.service.annotations | object | `{}` |  |
+| mongo.service.labels | object | `{}` |  |
+| mongo.service.port | int | `27017` |  |
+| mongo.serviceAccount.annotations | object | `{}` |  |
+| mongo.serviceAccount.automountServiceAccountToken | bool | `true` |  |
+| mongo.serviceAccount.create | bool | `true` |  |
+| mongo.serviceAccount.labels | object | `{}` |  |
+| mongo.serviceAccount.name | string | `""` |  |
+| mongo.statefulSet.affinity | object | `{}` |  |
+| mongo.statefulSet.annotations | object | `{}` |  |
+| mongo.statefulSet.extraContainerConfig | object | `{}` |  |
+| mongo.statefulSet.extraEnv | list | `[]` |  |
+| mongo.statefulSet.labels | object | `{}` |  |
+| mongo.statefulSet.lifecycle | object | `{}` |  |
+| mongo.statefulSet.nodeSelector | object | `{}` |  |
+| mongo.statefulSet.persistence.enabled | bool | `true` | Enable persistence for the bundled MongoDB instance. |
+| mongo.statefulSet.persistence.size | string | `"8Gi"` | Persistent volume size for the bundled MongoDB instance. |
+| mongo.statefulSet.persistence.storageClassName | string | `""` |  |
+| mongo.statefulSet.persistentVolumeClaimRetentionPolicy | object | `{}` |  |
+| mongo.statefulSet.podAnnotations | object | `{}` |  |
+| mongo.statefulSet.podSecurityContext | object | `{}` |  |
+| mongo.statefulSet.priorityClassName | string | `""` |  |
+| mongo.statefulSet.resources | object | `{"limits":{"cpu":"2000m","memory":"4Gi"},"requests":{"cpu":"500m","memory":"1Gi"}}` | Resource requests and limits for the bundled MongoDB pod. |
+| mongo.statefulSet.securityContext | object | `{}` |  |
+| mongo.statefulSet.sidecars | list | `[]` |  |
+| mongo.statefulSet.terminationGracePeriodSeconds | int | `30` |  |
+| mongo.statefulSet.tolerations | list | `[]` |  |
+| mongo.statefulSet.volumeMounts | list | `[]` |  |
+| mongo.statefulSet.volumes | list | `[]` |  |
 | nameOverride | string | `""` | Provide a name in place of `langgraph-cloud` for the chart |
 | namespace | string | `""` | Namespace to install the chart into. If not set, will use the namespace of the current context. |
 | queue.autoscaling.enabled | bool | `false` |  |
