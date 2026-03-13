@@ -97,6 +97,10 @@ images:
     repository: "docker.io/langchain/agent-builder-deep-agent"
     pullPolicy: IfNotPresent
     tag: "0.13.24"
+  pollyAgentImage:
+    repository: "docker.io/langchain/langsmith-polly"
+    pullPolicy: IfNotPresent
+    tag: "0.13.24"
 
 ingress:
   enabled: false
