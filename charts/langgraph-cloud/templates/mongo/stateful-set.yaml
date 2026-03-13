@@ -25,7 +25,7 @@ spec:
       app.kubernetes.io/component: {{ include "langGraphCloud.mongoServiceName" . }}
   template:
     metadata:
-      {{- with .Values.mongo.statefulSet.podAnnotations }}
+      {{- with .Values.mongo.statefulSet.annotations }}
       annotations:
         {{- toYaml . | nindent 8 }}
       {{- end }}

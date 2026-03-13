@@ -260,8 +260,6 @@ If you are upgrading from a chart revision that used the old flat MongoDB values
 - `mongo.resources` -> `mongo.statefulSet.resources`
 - `mongo.persistence` -> `mongo.statefulSet.persistence`
 
-The chart now fails validation when the deprecated flat keys are still populated so the migration is explicit.
-
 ### Deploying to Kubernetes:
 
 1. Verify that you can connect to your Kubernetes cluster(note: We highly suggest installing into an empty namespace)
@@ -391,7 +389,6 @@ The chart now fails validation when the deprecated flat keys are still populated
 | mongo.statefulSet.persistence.size | string | `"8Gi"` | Persistent volume size for the bundled MongoDB instance. |
 | mongo.statefulSet.persistence.storageClassName | string | `""` |  |
 | mongo.statefulSet.persistentVolumeClaimRetentionPolicy | object | `{}` |  |
-| mongo.statefulSet.podAnnotations | object | `{}` |  |
 | mongo.statefulSet.podSecurityContext | object | `{}` |  |
 | mongo.statefulSet.priorityClassName | string | `""` |  |
 | mongo.statefulSet.resources | object | `{"limits":{"cpu":"2000m","memory":"4Gi"},"requests":{"cpu":"500m","memory":"1Gi"}}` | Resource requests and limits for the bundled MongoDB pod. |
