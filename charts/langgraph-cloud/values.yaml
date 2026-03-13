@@ -366,6 +366,17 @@ redis:
 mongo:
   # -- Enable MongoDB checkpointing. When `mongo.external.enabled` is false, the chart provisions a bundled single-node MongoDB replica set intended for local development, CI, and quickstarts.
   enabled: false
+  # -- Resource requests and limits for the bundled MongoDB pod.
+  resources:
+    limits:
+      cpu: 2000m
+      memory: 4Gi
+    requests:
+      cpu: 500m
+      memory: 1Gi
+  persistence:
+    # -- Persistent volume size for the bundled MongoDB instance.
+    size: 8Gi
   external:
     # -- Use an external MongoDB deployment instead of the chart-managed MongoDB instance.
     enabled: false
@@ -373,52 +384,6 @@ mongo:
     connectionUrl: ""
     # -- Existing secret name containing the MongoDB connection URL.
     existingSecretName: ""
-  containerPort: 27017
-  statefulSet:
-    labels: {}
-    annotations: {}
-    podSecurityContext: {}
-    securityContext: {}
-    lifecycle: {}
-    priorityClassName: ""
-    terminationGracePeriodSeconds: 30
-    # -- Resource requests and limits for the bundled MongoDB pod.
-    resources:
-      limits:
-        cpu: 2000m
-        memory: 4Gi
-      requests:
-        cpu: 500m
-        memory: 1Gi
-    extraContainerConfig: {}
-    extraEnv: []
-    sidecars: []
-    nodeSelector: {}
-    tolerations: []
-    affinity: {}
-    volumes: []
-    volumeMounts: []
-    persistentVolumeClaimRetentionPolicy: {}
-    persistence:
-      # -- Enable persistence for the bundled MongoDB instance.
-      enabled: true
-      # -- Persistent volume size for the bundled MongoDB instance.
-      size: 8Gi
-      storageClassName: ""
-  service:
-    port: 27017
-    labels: {}
-    annotations: {}
-  serviceAccount:
-    create: true
-    name: ""
-    labels: {}
-    annotations: {}
-    automountServiceAccountToken: true
-  pdb:
-    enabled: false
-    # -- With the bundled single-node StatefulSet, `minAvailable: 1` blocks voluntary evictions such as node drains.
-    minAvailable: 1
 
 studio:
   enabled: true

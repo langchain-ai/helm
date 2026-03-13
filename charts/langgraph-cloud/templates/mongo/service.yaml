@@ -6,20 +6,14 @@ metadata:
   namespace: {{ .Values.namespace | default .Release.Namespace | quote }}
   labels:
     {{- include "langGraphCloud.labels" . | nindent 4 }}
-    {{- with .Values.mongo.service.labels }}
-      {{- toYaml . | nindent 4 }}
-    {{- end }}
   annotations:
     {{- include "langGraphCloud.annotations" . | nindent 4 }}
-    {{- with .Values.mongo.service.annotations }}
-      {{- toYaml . | nindent 4 }}
-    {{- end }}
 spec:
   clusterIP: None
   publishNotReadyAddresses: true
   ports:
     - name: mongo
-      port: {{ .Values.mongo.service.port }}
+      port: 27017
       targetPort: mongo
       protocol: TCP
   selector:

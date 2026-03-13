@@ -2,17 +2,12 @@ suite: MongoDB templates
 templates:
   - mongo/stateful-set.yaml
   - mongo/service.yaml
-  - mongo/service-account.yaml
-  - mongo/pdb.yaml
   - mongo/secrets.yaml
   - api-server/deployment.yaml
   - secrets.yaml
   - postgres/secrets.yaml
   - redis/secrets.yaml
 tests:
-  # ---------------------------------------------------------------------------
-  # 1. Mongo disabled by default
-  # ---------------------------------------------------------------------------
   - it: should not render mongo statefulset when mongo is disabled
     template: mongo/stateful-set.yaml
     asserts:
@@ -31,14 +26,11 @@ tests:
       - hasDocuments:
           count: 0
 
-  # ---------------------------------------------------------------------------
-  # 2. Bundled mongo enabled
-  # ---------------------------------------------------------------------------
   - it: should render mongo statefulset with correct name
     template: mongo/stateful-set.yaml
     set:
       mongo.enabled: true
-      mongo.statefulSet.persistence.size: 8Gi
+      mongo.persistence.size: 8Gi
     asserts:
       - hasDocuments:
           count: 1
@@ -52,7 +44,7 @@ tests:
     template: mongo/service.yaml
     set:
       mongo.enabled: true
-      mongo.statefulSet.persistence.size: 8Gi
+      mongo.persistence.size: 8Gi
     asserts:
       - hasDocuments:
           count: 1
@@ -68,77 +60,11 @@ tests:
           path: spec.publishNotReadyAddresses
           value: true
 
-  - it: should render mongo service account when bundled mongo is enabled
-    template: mongo/service-account.yaml
-    set:
-      mongo.enabled: true
-      mongo.statefulSet.persistence.size: 8Gi
-    asserts:
-      - hasDocuments:
-          count: 1
-      - isKind:
-          of: ServiceAccount
-
-  - it: should not render mongo service account when serviceAccount.create is false
-    template: mongo/service-account.yaml
-    set:
-      mongo.enabled: true
-      mongo.serviceAccount.create: false
-      mongo.statefulSet.persistence.size: 8Gi
-    asserts:
-      - hasDocuments:
-          count: 0
-
-  - it: should render mongo service account with automount disabled
-    template: mongo/service-account.yaml
-    set:
-      mongo.enabled: true
-      mongo.serviceAccount.automountServiceAccountToken: false
-      mongo.statefulSet.persistence.size: 8Gi
-    asserts:
-      - equal:
-          path: automountServiceAccountToken
-          value: false
-
-  - it: should render mongo pdb only for bundled mongo
-    template: mongo/pdb.yaml
-    set:
-      mongo.enabled: true
-      mongo.pdb.enabled: true
-      mongo.statefulSet.persistence.size: 8Gi
-    asserts:
-      - hasDocuments:
-          count: 1
-      - isKind:
-          of: PodDisruptionBudget
-      - equal:
-          path: spec.minAvailable
-          value: 1
-
-  - it: should not render mongo pdb when mongo is disabled
-    template: mongo/pdb.yaml
-    set:
-      mongo.pdb.enabled: true
-    asserts:
-      - hasDocuments:
-          count: 0
-
-  - it: should not render mongo pdb when external mongo is enabled
-    template: mongo/pdb.yaml
-    set:
-      mongo.enabled: true
-      mongo.external.enabled: true
-      mongo.external.connectionUrl: "mongodb://external-host:27017/langgraph"
-      mongo.pdb.enabled: true
-    asserts:
-      - hasDocuments:
-          count: 0
-
   - it: should render mongo secret with connection URL
     template: mongo/secrets.yaml
     set:
       mongo.enabled: true
-      mongo.statefulSet.persistence.size: 8Gi
+      mongo.persistence.size: 8Gi
     asserts:
       - hasDocuments:
           count: 1
@@ -154,7 +80,7 @@ tests:
     template: mongo/stateful-set.yaml
     set:
       mongo.enabled: true
-      mongo.statefulSet.persistence.size: 8Gi
+      mongo.persistence.size: 8Gi
     asserts:
       - equal:
           path: spec.template.spec.containers[0].image
@@ -164,7 +90,7 @@ tests:
     template: mongo/stateful-set.yaml
     set:
       mongo.enabled: true
-      mongo.statefulSet.persistence.size: 8Gi
+      mongo.persistence.size: 8Gi
     asserts:
       - equal:
           path: spec.volumeClaimTemplates[0].metadata.name
@@ -180,7 +106,7 @@ tests:
     template: mongo/stateful-set.yaml
     set:
       mongo.enabled: true
-      mongo.statefulSet.persistence.size: 8Gi
+      mongo.persistence.size: 8Gi
     asserts:
       - exists:
           path: spec.template.spec.containers[0].startupProbe
@@ -189,9 +115,6 @@ tests:
       - exists:
           path: spec.template.spec.containers[0].livenessProbe
 
-  # ---------------------------------------------------------------------------
-  # 3. External mongo
-  # ---------------------------------------------------------------------------
   - it: should not render statefulset when external mongo is used
     template: mongo/stateful-set.yaml
     set:
@@ -204,16 +127,6 @@ tests:
 
   - it: should not render service when external mongo is used
     template: mongo/service.yaml
-    set:
-      mongo.enabled: true
-      mongo.external.enabled: true
-      mongo.external.connectionUrl: "mongodb://external-host:27017/langgraph"
-    asserts:
-      - hasDocuments:
-          count: 0
-
-  - it: should not render service account when external mongo is used
-    template: mongo/service-account.yaml
     set:
       mongo.enabled: true
       mongo.external.enabled: true
@@ -237,14 +150,11 @@ tests:
           path: metadata.name
           value: RELEASE-NAME-langgraph-cloud-mongo
 
-  # ---------------------------------------------------------------------------
-  # 4. Checkpointer env injection into api-server
-  # ---------------------------------------------------------------------------
   - it: should inject checkpointer env vars into api-server when mongo is enabled
     template: api-server/deployment.yaml
     set:
       mongo.enabled: true
-      mongo.statefulSet.persistence.size: 8Gi
+      mongo.persistence.size: 8Gi
     asserts:
       - contains:
           path: spec.template.spec.containers[0].env
@@ -277,9 +187,6 @@ tests:
                 name: RELEASE-NAME-langgraph-cloud-mongo
                 key: mongodb_connection_url
 
-  # ---------------------------------------------------------------------------
-  # 5. External mongo with existing secret
-  # ---------------------------------------------------------------------------
   - it: should not render mongo secret when existingSecretName is provided
     template: mongo/secrets.yaml
     set:
@@ -305,36 +212,3 @@ tests:
               secretKeyRef:
                 name: my-secret
                 key: mongodb_connection_url
-
-  # ---------------------------------------------------------------------------
-  # 6. Bundled mongo options
-  # ---------------------------------------------------------------------------
-  - it: should not render pvc resources when mongo persistence is disabled
-    template: mongo/stateful-set.yaml
-    set:
-      mongo.enabled: true
-      mongo.statefulSet.persistence.enabled: false
-    asserts:
-      - hasDocuments:
-          count: 1
-      - notExists:
-          path: spec.volumeClaimTemplates
-
-  - it: should wire custom mongo containerPort into the workload
-    template: mongo/stateful-set.yaml
-    set:
-      mongo.enabled: true
-      mongo.containerPort: 27018
-      mongo.statefulSet.persistence.size: 8Gi
-    asserts:
-      - contains:
-          path: spec.template.spec.containers[0].env
-          content:
-            name: MONGO_PORT
-            value: "27018"
-      - equal:
-          path: spec.template.spec.containers[0].ports[0].containerPort
-          value: 27018
-      - matchRegex:
-          path: spec.template.spec.containers[0].startupProbe.exec.command[2]
-          pattern: "--port 27018"
