@@ -64,11 +64,6 @@ config:
     langSmithAuthEndpoint: ""
     langSmithTenantId: ""
 
-checkpointer:
-  default:
-    # -- Default checkpointer backend used when LANGGRAPH_CHECKPOINTER omits `backend`. Supported values: `""`, `"default"`, `"mongo"`.
-    backend: ""
-
 ingress:
   enabled: false
   hostname: ""  #  Set this to the hostname you want to use for the ingress.
@@ -369,59 +364,23 @@ redis:
     minAvailable: 1
 
 mongo:
-  name: "mongo"
-  containerPort: 27017
-  # -- Secret key containing the MongoDB connection URL.
-  connectionUrlSecretKey: "mongodb_connection_url"
-  internal:
-    # -- Enable the chart-managed single-node MongoDB replica set. Intended for local development, CI, and quickstarts rather than production. This only takes effect when `checkpointer.default.backend` is set to `"mongo"`.
-    enabled: false
-    # -- Logical database name used in the generated MongoDB connection URL.
-    database: "langgraph"
-    # -- Replica set name used by the chart-managed MongoDB instance.
-    replicaSetName: "rs0"
-    statefulSet:
-      labels: {}
-      annotations: {}
-      podSecurityContext: {}
-      securityContext: {}
-      lifecycle: {}
-      priorityClassName: ""
-      terminationGracePeriodSeconds: 30
-      resources:
-        limits:
-          cpu: 2000m
-          memory: 4Gi
-        requests:
-          cpu: 500m
-          memory: 1Gi
-      nodeSelector: {}
-      tolerations: []
-      affinity: {}
-      volumes: []
-      volumeMounts: []
-      persistentVolumeClaimRetentionPolicy: {}
-      persistence:
-        enabled: true
-        size: 8Gi
-        storageClassName: ""
-    service:
-      port: 27017
-      labels: {}
-      annotations: {}
-    serviceAccount:
-      create: true
-      name: ""
-      labels: {}
-      annotations: {}
-      automountServiceAccountToken: true
-    pdb:
-      enabled: false
-      minAvailable: 1
+  # -- Enable MongoDB checkpointing. When `mongo.external.enabled` is false, the chart provisions a bundled single-node MongoDB replica set intended for local development, CI, and quickstarts.
+  enabled: false
+  # -- Resource requests and limits for the bundled MongoDB pod.
+  resources:
+    limits:
+      cpu: 2000m
+      memory: 4Gi
+    requests:
+      cpu: 500m
+      memory: 1Gi
+  persistence:
+    # -- Persistent volume size for the bundled MongoDB instance.
+    size: 8Gi
   external:
-    # -- Enable an external MongoDB checkpointer endpoint instead of the chart-managed MongoDB instance. This only takes effect when `checkpointer.default.backend` is set to `"mongo"`.
+    # -- Use an external MongoDB deployment instead of the chart-managed MongoDB instance.
     enabled: false
-    # -- MongoDB connection URL used when `checkpointer.default.backend` is `"mongo"` and `mongo.external.enabled` is true. Must include the target database name and point at a replica set member or `mongos`.
+    # -- MongoDB connection URL used when `mongo.enabled` and `mongo.external.enabled` are true. Must include the target database name and point at a replica set member or `mongos`.
     connectionUrl: ""
     # -- Existing secret name containing the MongoDB connection URL.
     existingSecretName: ""

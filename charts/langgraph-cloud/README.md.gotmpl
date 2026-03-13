@@ -129,9 +129,11 @@ postgres:
 
 ### Bundled MongoDB checkpointer
 
-Use the chart-managed MongoDB instance for local development, CI, and quickstarts. The chart provisions a single-node replica set and injects the generated connection URL when `checkpointer.default.backend` is set to `mongo`. This mode is convenient for getting started, but it is not the recommended production topology.
+Use the chart-managed MongoDB instance for local development, CI, and quickstarts. The chart provisions a single-node replica set and injects the generated MongoDB checkpointer defaults when `mongo.enabled` is true. This mode is convenient for getting started, but it is not the recommended production topology.
 
-The bundled MongoDB settings only take effect when `checkpointer.default.backend` is set to `mongo`. By default this mode also creates a persistent volume claim, so your cluster needs a default `StorageClass` unless you override `mongo.internal.statefulSet.persistence`.
+When `mongo.enabled` is true, the chart always injects `LS_DEFAULT_CHECKPOINTER_BACKEND=mongo` and `LS_MONGODB_URI`. That lets app-level `LANGGRAPH_CHECKPOINTER` values supply overrides like `ttl` while still inheriting the MongoDB backend and URI defaults.
+
+By default this mode creates a persistent volume claim, so your cluster needs a default `StorageClass`.
 
 Create a values file:
 
@@ -142,13 +144,8 @@ images:
     repository: <your repository>
     tag: <image tag>
 
-checkpointer:
-  default:
-    backend: "mongo"
-
 mongo:
-  internal:
-    enabled: true
+  enabled: true
 ```
 
 Install or upgrade the release:
@@ -168,7 +165,7 @@ Use an external MongoDB deployment for production. The MongoDB connection URL mu
 
 This configuration is release-scoped. If you want two independently configured deployments, use two Helm releases and give each release its own MongoDB connection URL and logical database, even if both releases talk to the same MongoDB cluster.
 
-The external MongoDB settings only take effect when `checkpointer.default.backend` is set to `mongo`.
+The external MongoDB settings manage the MongoDB connection URL secret. When `mongo.enabled` is true, the chart injects the MongoDB checkpointer defaults as `LS_DEFAULT_CHECKPOINTER_BACKEND` and `LS_MONGODB_URI`.
 
 Create a Kubernetes secret for the MongoDB connection URL:
 
@@ -186,11 +183,8 @@ images:
     repository: <your repository>
     tag: <image tag>
 
-checkpointer:
-  default:
-    backend: "mongo"
-
 mongo:
+  enabled: true
   external:
     enabled: true
     existingSecretName: "my-release-mongo"
@@ -203,8 +197,6 @@ helm upgrade --install my-release ./charts/langgraph-cloud \
   --namespace langgraph --create-namespace \
   -f values-mongo-external.yaml
 ```
-
-By default, the chart reads the URI from the `mongodb_connection_url` key. If your secret uses a different key name, also set `mongo.connectionUrlSecretKey`.
 
 > **Important:** `mongo.external.existingSecretName` is separate from `config.existingSecretName`. The former is for the MongoDB connection URL used by the checkpointer, while the latter is for `LANGSMITH_API_KEY` and `LANGGRAPH_CLOUD_LICENSE_KEY`.
 

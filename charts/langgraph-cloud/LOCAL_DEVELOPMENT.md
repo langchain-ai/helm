@@ -277,6 +277,8 @@ make cloud-dev-smoke
 
 The checked-in `charts/langgraph-cloud/ci/mongo-checkpointer-values.yaml` file is a generic external example. It still points at `mongo.example.net`, so use your own external URI or an additional override file for disposable local clusters.
 
+When `mongo.enabled=true`, the chart always injects `LS_DEFAULT_CHECKPOINTER_BACKEND=mongo` and `LS_MONGODB_URI`. That is intentional: app-level `LANGGRAPH_CHECKPOINTER` values can still override fields like `ttl` while inheriting the MongoDB backend and URI defaults.
+
 ## Diagnostics
 
 If install fails, the install script automatically dumps Kubernetes diagnostics into:

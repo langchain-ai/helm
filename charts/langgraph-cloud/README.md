@@ -129,9 +129,11 @@ postgres:
 
 ### Bundled MongoDB checkpointer
 
-Use the chart-managed MongoDB instance for local development, CI, and quickstarts. The chart provisions a single-node replica set and injects the generated connection URL when `checkpointer.default.backend` is set to `mongo`. This mode is convenient for getting started, but it is not the recommended production topology.
+Use the chart-managed MongoDB instance for local development, CI, and quickstarts. The chart provisions a single-node replica set and injects the generated MongoDB checkpointer defaults when `mongo.enabled` is true. This mode is convenient for getting started, but it is not the recommended production topology.
 
-The bundled MongoDB settings only take effect when `checkpointer.default.backend` is set to `mongo`. By default this mode also creates a persistent volume claim, so your cluster needs a default `StorageClass` unless you override `mongo.internal.statefulSet.persistence`.
+When `mongo.enabled` is true, the chart always injects `LS_DEFAULT_CHECKPOINTER_BACKEND=mongo` and `LS_MONGODB_URI`. That lets app-level `LANGGRAPH_CHECKPOINTER` values supply overrides like `ttl` while still inheriting the MongoDB backend and URI defaults.
+
+By default this mode creates a persistent volume claim, so your cluster needs a default `StorageClass`.
 
 Create a values file:
 
@@ -142,13 +144,8 @@ images:
     repository: <your repository>
     tag: <image tag>
 
-checkpointer:
-  default:
-    backend: "mongo"
-
 mongo:
-  internal:
-    enabled: true
+  enabled: true
 ```
 
 Install or upgrade the release:
@@ -168,7 +165,7 @@ Use an external MongoDB deployment for production. The MongoDB connection URL mu
 
 This configuration is release-scoped. If you want two independently configured deployments, use two Helm releases and give each release its own MongoDB connection URL and logical database, even if both releases talk to the same MongoDB cluster.
 
-The external MongoDB settings only take effect when `checkpointer.default.backend` is set to `mongo`.
+The external MongoDB settings manage the MongoDB connection URL secret. When `mongo.enabled` is true, the chart injects the MongoDB checkpointer defaults as `LS_DEFAULT_CHECKPOINTER_BACKEND` and `LS_MONGODB_URI`.
 
 Create a Kubernetes secret for the MongoDB connection URL:
 
@@ -186,11 +183,8 @@ images:
     repository: <your repository>
     tag: <image tag>
 
-checkpointer:
-  default:
-    backend: "mongo"
-
 mongo:
+  enabled: true
   external:
     enabled: true
     existingSecretName: "my-release-mongo"
@@ -203,8 +197,6 @@ helm upgrade --install my-release ./charts/langgraph-cloud \
   --namespace langgraph --create-namespace \
   -f values-mongo-external.yaml
 ```
-
-By default, the chart reads the URI from the `mongodb_connection_url` key. If your secret uses a different key name, also set `mongo.connectionUrlSecretKey`.
 
 > **Important:** `mongo.external.existingSecretName` is separate from `config.existingSecretName`. The former is for the MongoDB connection URL used by the checkpointer, while the latter is for `LANGSMITH_API_KEY` and `LANGGRAPH_CLOUD_LICENSE_KEY`.
 
@@ -335,7 +327,6 @@ config:
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| checkpointer.default.backend | string | `""` | Default checkpointer backend used when LANGGRAPH_CHECKPOINTER omits `backend`. Supported values: `""`, `"default"`, `"mongo"`. |
 | clusterDomain | string | `"cluster.local"` | Kubernetes cluster domain. Only change if not using 'cluster.local' |
 | commonAnnotations | object | `{}` | Annotations that will be applied to all resources created by the chart |
 | commonDnsConfig | object | `{"options":[{"name":"ndots","value":"4"}]}` | Set to null to disable and use Kubernetes defaults (ndots: 5). |
@@ -367,45 +358,12 @@ config:
 | ingress.labels | object | `{}` |  |
 | ingress.studioHostname | string | `""` |  |
 | ingress.tls | list | `[]` |  |
-| mongo.connectionUrlSecretKey | string | `"mongodb_connection_url"` | Secret key containing the MongoDB connection URL. |
-| mongo.containerPort | int | `27017` |  |
-| mongo.external.connectionUrl | string | `""` | MongoDB connection URL used when `checkpointer.default.backend` is `"mongo"` and `mongo.external.enabled` is true. Must include the target database name and point at a replica set member or `mongos`. |
-| mongo.external.enabled | bool | `false` | Enable an external MongoDB checkpointer endpoint instead of the chart-managed MongoDB instance. This only takes effect when `checkpointer.default.backend` is set to `"mongo"`. |
+| mongo.enabled | bool | `false` | Enable MongoDB checkpointing. When `mongo.external.enabled` is false, the chart provisions a bundled single-node MongoDB replica set intended for local development, CI, and quickstarts. |
+| mongo.external.connectionUrl | string | `""` | MongoDB connection URL used when `mongo.enabled` and `mongo.external.enabled` are true. Must include the target database name and point at a replica set member or `mongos`. |
+| mongo.external.enabled | bool | `false` | Use an external MongoDB deployment instead of the chart-managed MongoDB instance. |
 | mongo.external.existingSecretName | string | `""` | Existing secret name containing the MongoDB connection URL. |
-| mongo.internal.database | string | `"langgraph"` | Logical database name used in the generated MongoDB connection URL. |
-| mongo.internal.enabled | bool | `false` | Enable the chart-managed single-node MongoDB replica set. Intended for local development, CI, and quickstarts rather than production. This only takes effect when `checkpointer.default.backend` is set to `"mongo"`. |
-| mongo.internal.pdb.enabled | bool | `false` |  |
-| mongo.internal.pdb.minAvailable | int | `1` |  |
-| mongo.internal.replicaSetName | string | `"rs0"` | Replica set name used by the chart-managed MongoDB instance. |
-| mongo.internal.service.annotations | object | `{}` |  |
-| mongo.internal.service.labels | object | `{}` |  |
-| mongo.internal.service.port | int | `27017` |  |
-| mongo.internal.serviceAccount.annotations | object | `{}` |  |
-| mongo.internal.serviceAccount.automountServiceAccountToken | bool | `true` |  |
-| mongo.internal.serviceAccount.create | bool | `true` |  |
-| mongo.internal.serviceAccount.labels | object | `{}` |  |
-| mongo.internal.serviceAccount.name | string | `""` |  |
-| mongo.internal.statefulSet.affinity | object | `{}` |  |
-| mongo.internal.statefulSet.annotations | object | `{}` |  |
-| mongo.internal.statefulSet.labels | object | `{}` |  |
-| mongo.internal.statefulSet.lifecycle | object | `{}` |  |
-| mongo.internal.statefulSet.nodeSelector | object | `{}` |  |
-| mongo.internal.statefulSet.persistence.enabled | bool | `true` |  |
-| mongo.internal.statefulSet.persistence.size | string | `"8Gi"` |  |
-| mongo.internal.statefulSet.persistence.storageClassName | string | `""` |  |
-| mongo.internal.statefulSet.persistentVolumeClaimRetentionPolicy | object | `{}` |  |
-| mongo.internal.statefulSet.podSecurityContext | object | `{}` |  |
-| mongo.internal.statefulSet.priorityClassName | string | `""` |  |
-| mongo.internal.statefulSet.resources.limits.cpu | string | `"2000m"` |  |
-| mongo.internal.statefulSet.resources.limits.memory | string | `"4Gi"` |  |
-| mongo.internal.statefulSet.resources.requests.cpu | string | `"500m"` |  |
-| mongo.internal.statefulSet.resources.requests.memory | string | `"1Gi"` |  |
-| mongo.internal.statefulSet.securityContext | object | `{}` |  |
-| mongo.internal.statefulSet.terminationGracePeriodSeconds | int | `30` |  |
-| mongo.internal.statefulSet.tolerations | list | `[]` |  |
-| mongo.internal.statefulSet.volumeMounts | list | `[]` |  |
-| mongo.internal.statefulSet.volumes | list | `[]` |  |
-| mongo.name | string | `"mongo"` |  |
+| mongo.persistence.size | string | `"8Gi"` | Persistent volume size for the bundled MongoDB instance. |
+| mongo.resources | object | `{"limits":{"cpu":"2000m","memory":"4Gi"},"requests":{"cpu":"500m","memory":"1Gi"}}` | Resource requests and limits for the bundled MongoDB pod. |
 | nameOverride | string | `""` | Provide a name in place of `langgraph-cloud` for the chart |
 | namespace | string | `""` | Namespace to install the chart into. If not set, will use the namespace of the current context. |
 | queue.autoscaling.enabled | bool | `false` |  |

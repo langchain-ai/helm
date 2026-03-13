@@ -1,6 +1,6 @@
 {{- $volumes := concat .Values.commonVolumes .Values.apiServer.deployment.volumes -}}
 {{- $volumeMounts := concat .Values.commonVolumeMounts .Values.apiServer.deployment.volumeMounts -}}
-{{- $checkpointerEnv := include "langGraphCloud.checkpointerEnv" (dict "root" . "extraEnv" .Values.apiServer.deployment.extraEnv) -}}
+{{- $checkpointerEnv := include "langGraphCloud.checkpointerEnv" . -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:

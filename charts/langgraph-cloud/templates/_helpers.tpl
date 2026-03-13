@@ -129,91 +129,39 @@ Name of the secret containing the MongoDB URI for the optional Mongo checkpointe
 Name of the Service backing the chart-managed MongoDB instance.
 */}}
 {{- define "langGraphCloud.mongoServiceName" -}}
-{{- include "langGraphCloud.fullname" . }}-{{ .Values.mongo.name }}
+{{- include "langGraphCloud.fullname" . }}-mongo
 {{- end }}
 
 {{/*
 Stable DNS name for the primary member of the chart-managed single-node MongoDB replica set.
 */}}
 {{- define "langGraphCloud.mongoPrimaryHost" -}}
-{{- printf "%s.%s.svc.%s:%v" (include "langGraphCloud.mongoServiceName" .) (default .Release.Namespace .Values.namespace) .Values.clusterDomain .Values.mongo.containerPort -}}
+{{- printf "%s.%s.svc.%s:%v" (include "langGraphCloud.mongoServiceName" .) (default .Release.Namespace .Values.namespace) .Values.clusterDomain 27017 -}}
 {{- end }}
 
 {{/*
 MongoDB connection URL used by the chart-managed checkpointer default.
 */}}
 {{- define "langGraphCloud.mongoConnectionUrl" -}}
-{{- if .Values.mongo.internal.enabled -}}
-{{- printf "mongodb://%s/%s?replicaSet=%s" (include "langGraphCloud.mongoPrimaryHost" .) .Values.mongo.internal.database .Values.mongo.internal.replicaSetName -}}
+{{- if and .Values.mongo.enabled (not .Values.mongo.external.enabled) -}}
+{{- printf "mongodb://%s/langgraph?replicaSet=rs0" (include "langGraphCloud.mongoPrimaryHost" .) -}}
 {{- else -}}
 {{- .Values.mongo.external.connectionUrl -}}
 {{- end -}}
 {{- end }}
 
 {{/*
-Whether a deployment explicitly configures LANGGRAPH_CHECKPOINTER in extraEnv.
-*/}}
-{{- define "langGraphCloud.hasExplicitCheckpointer" -}}
-{{- $extraEnv := .extraEnv | default (list) -}}
-{{- if gt (len (where $extraEnv "name" "LANGGRAPH_CHECKPOINTER")) 0 -}}
-true
-{{- end -}}
-{{- end }}
-
-{{/*
-Whether any chart-managed workload still needs the chart-level default checkpointer env vars.
-*/}}
-{{- define "langGraphCloud.defaultCheckpointerRequired" -}}
-{{- $apiExplicit := eq (include "langGraphCloud.hasExplicitCheckpointer" (dict "extraEnv" .Values.apiServer.deployment.extraEnv)) "true" -}}
-{{- if .Values.queue.enabled -}}
-{{- $queueExplicit := eq (include "langGraphCloud.hasExplicitCheckpointer" (dict "extraEnv" .Values.queue.deployment.extraEnv)) "true" -}}
-{{- if or (not $apiExplicit) (not $queueExplicit) -}}
-true
-{{- end -}}
-{{- else -}}
-{{- if not $apiExplicit -}}
-true
-{{- end -}}
-{{- end -}}
-{{- end }}
-
-{{/*
-Validated default checkpointer backend requested by the platform chart.
-*/}}
-{{- define "langGraphCloud.defaultCheckpointerBackend" -}}
-{{- $backend := trim .Values.checkpointer.default.backend -}}
-{{- if and $backend (not (has $backend (list "default" "mongo"))) -}}
-{{- fail (printf "checkpointer.default.backend must be one of %q, %q, or empty; got %q" "default" "mongo" $backend) -}}
-{{- end -}}
-{{- $backend -}}
-{{- end }}
-
-{{/*
 Validates MongoDB provisioning and default-checkpointer settings.
 */}}
 {{- define "langGraphCloud.validateMongoConfiguration" -}}
-{{- $backend := include "langGraphCloud.defaultCheckpointerBackend" . -}}
-{{- $defaultCheckpointerRequired := eq (include "langGraphCloud.defaultCheckpointerRequired" .) "true" -}}
-{{- if and .Values.mongo.internal.enabled .Values.mongo.external.enabled -}}
-{{- fail "mongo.internal.enabled and mongo.external.enabled cannot both be true" -}}
-{{- end -}}
-{{- if and .Values.mongo.internal.enabled (empty .Values.mongo.internal.database) -}}
-{{- fail "mongo.internal.database must be set when mongo.internal.enabled=true" -}}
-{{- end -}}
-{{- if and .Values.mongo.internal.enabled (empty .Values.mongo.internal.replicaSetName) -}}
-{{- fail "mongo.internal.replicaSetName must be set when mongo.internal.enabled=true" -}}
+{{- if and (not .Values.mongo.enabled) .Values.mongo.external.enabled -}}
+{{- fail "mongo.external.enabled requires mongo.enabled=true" -}}
 {{- end -}}
 {{- if and .Values.mongo.external.enabled (not .Values.mongo.external.existingSecretName) (empty .Values.mongo.external.connectionUrl) -}}
 {{- fail "mongo.external.connectionUrl must be set or mongo.external.existingSecretName must be provided when mongo.external.enabled=true" -}}
 {{- end -}}
-{{- if and (or .Values.mongo.internal.enabled (and .Values.mongo.external.enabled (not .Values.mongo.external.existingSecretName))) (empty .Values.mongo.connectionUrlSecretKey) -}}
-{{- fail "mongo.connectionUrlSecretKey must be set when the chart manages the MongoDB connection URL secret" -}}
-{{- end -}}
-{{- if and (eq $backend "mongo") $defaultCheckpointerRequired (empty .Values.mongo.connectionUrlSecretKey) -}}
-{{- fail "mongo.connectionUrlSecretKey must be set when checkpointer.default.backend=\"mongo\"" -}}
-{{- end -}}
-{{- if and (eq $backend "mongo") $defaultCheckpointerRequired (not .Values.mongo.internal.enabled) (not .Values.mongo.external.enabled) -}}
-{{- fail "enable exactly one of mongo.internal.enabled or mongo.external.enabled when checkpointer.default.backend=\"mongo\" and no workload explicitly sets LANGGRAPH_CHECKPOINTER" -}}
+{{- if and .Values.mongo.enabled (not .Values.mongo.external.enabled) (empty .Values.mongo.persistence.size) -}}
+{{- fail "mongo.persistence.size must be set when mongo.enabled=true and using the bundled MongoDB instance" -}}
 {{- end -}}
 {{- end }}
 
@@ -222,22 +170,15 @@ Environment variables used to default agent server checkpointers without overrid
 */}}
 {{- define "langGraphCloud.checkpointerEnv" -}}
 {{- $root := .root | default . -}}
-{{- $extraEnv := .extraEnv | default (list) -}}
 {{- include "langGraphCloud.validateMongoConfiguration" $root -}}
-{{- if eq (include "langGraphCloud.hasExplicitCheckpointer" (dict "extraEnv" $extraEnv)) "true" -}}
-{{- else -}}
-{{- $backend := include "langGraphCloud.defaultCheckpointerBackend" $root -}}
-{{- if $backend }}
+{{- if $root.Values.mongo.enabled }}
 - name: LS_DEFAULT_CHECKPOINTER_BACKEND
-  value: {{ $backend | quote }}
-{{- if eq $backend "mongo" }}
+  value: "mongo"
 - name: LS_MONGODB_URI
   valueFrom:
     secretKeyRef:
       name: {{ include "langGraphCloud.mongoSecretsName" $root }}
-      key: {{ $root.Values.mongo.connectionUrlSecretKey }}
-{{- end }}
-{{- end }}
+      key: mongodb_connection_url
 {{- end }}
 {{- end }}
 {{- define "apiServer.serviceAccountName" -}}
@@ -269,14 +210,6 @@ Environment variables used to default agent server checkpointers without overrid
     {{ default (printf "%s-%s" (include "langGraphCloud.fullname" .) .Values.redis.name) .Values.redis.serviceAccount.name | trunc 63 | trimSuffix "-" }}
 {{- else -}}
     {{ default "default" .Values.redis.serviceAccount.name }}
-{{- end -}}
-{{- end -}}
-
-{{- define "mongo.serviceAccountName" -}}
-{{- if .Values.mongo.internal.serviceAccount.create -}}
-    {{ default (printf "%s-%s" (include "langGraphCloud.fullname" .) .Values.mongo.name) .Values.mongo.internal.serviceAccount.name | trunc 63 | trimSuffix "-" }}
-{{- else -}}
-    {{ default "default" .Values.mongo.internal.serviceAccount.name }}
 {{- end -}}
 {{- end -}}
 
