@@ -175,6 +175,9 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | images.playgroundImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.playgroundImage.repository | string | `"docker.io/langchain/langsmith-playground"` |  |
 | images.playgroundImage.tag | string | `"0.13.24"` |  |
+| images.pollyAgentImage.pullPolicy | string | `"IfNotPresent"` |  |
+| images.pollyAgentImage.repository | string | `"docker.io/langchain/langsmith-polly"` |  |
+| images.pollyAgentImage.tag | string | `"0.13.24"` |  |
 | images.postgresImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.postgresImage.repository | string | `"docker.io/postgres"` |  |
 | images.postgresImage.tag | string | `"14.7"` |  |
