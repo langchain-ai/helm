@@ -1,5 +1,4 @@
-{{- $defaultCheckpointerBackend := include "langGraphCloud.defaultCheckpointerBackend" . -}}
-{{- if and (eq $defaultCheckpointerBackend "mongo") .Values.mongo.internal.enabled }}
+{{- if .Values.mongo.internal.enabled }}
 {{- $volumes := concat .Values.commonVolumes .Values.mongo.internal.statefulSet.volumes -}}
 {{- $volumeMounts := concat .Values.commonVolumeMounts .Values.mongo.internal.statefulSet.volumeMounts -}}
 apiVersion: apps/v1

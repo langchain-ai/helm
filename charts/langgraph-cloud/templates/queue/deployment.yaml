@@ -1,7 +1,7 @@
 {{- if .Values.queue.enabled -}}
 {{- $volumes := concat .Values.commonVolumes .Values.queue.deployment.volumes -}}
 {{- $volumeMounts := concat .Values.commonVolumeMounts .Values.queue.deployment.volumeMounts -}}
-{{- $checkpointerEnv := include "langGraphCloud.checkpointerEnv" . -}}
+{{- $checkpointerEnv := include "langGraphCloud.checkpointerEnv" (dict "root" . "extraEnv" .Values.queue.deployment.extraEnv) -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:

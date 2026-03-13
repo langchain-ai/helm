@@ -151,42 +151,82 @@ MongoDB connection URL used by the chart-managed checkpointer default.
 {{- end }}
 
 {{/*
-Validated default checkpointer backend configured by the platform chart.
+Whether a deployment explicitly configures LANGGRAPH_CHECKPOINTER in extraEnv.
+*/}}
+{{- define "langGraphCloud.hasExplicitCheckpointer" -}}
+{{- $extraEnv := .extraEnv | default (list) -}}
+{{- if gt (len (where $extraEnv "name" "LANGGRAPH_CHECKPOINTER")) 0 -}}
+true
+{{- end -}}
+{{- end }}
+
+{{/*
+Whether any chart-managed workload still needs the chart-level default checkpointer env vars.
+*/}}
+{{- define "langGraphCloud.defaultCheckpointerRequired" -}}
+{{- $apiExplicit := eq (include "langGraphCloud.hasExplicitCheckpointer" (dict "extraEnv" .Values.apiServer.deployment.extraEnv)) "true" -}}
+{{- if .Values.queue.enabled -}}
+{{- $queueExplicit := eq (include "langGraphCloud.hasExplicitCheckpointer" (dict "extraEnv" .Values.queue.deployment.extraEnv)) "true" -}}
+{{- if or (not $apiExplicit) (not $queueExplicit) -}}
+true
+{{- end -}}
+{{- else -}}
+{{- if not $apiExplicit -}}
+true
+{{- end -}}
+{{- end -}}
+{{- end }}
+
+{{/*
+Validated default checkpointer backend requested by the platform chart.
 */}}
 {{- define "langGraphCloud.defaultCheckpointerBackend" -}}
 {{- $backend := trim .Values.checkpointer.default.backend -}}
 {{- if and $backend (not (has $backend (list "default" "mongo"))) -}}
 {{- fail (printf "checkpointer.default.backend must be one of %q, %q, or empty; got %q" "default" "mongo" $backend) -}}
 {{- end -}}
-{{- if and (eq $backend "mongo") (empty .Values.mongo.connectionUrlSecretKey) -}}
+{{- $backend -}}
+{{- end }}
+
+{{/*
+Validates MongoDB provisioning and default-checkpointer settings.
+*/}}
+{{- define "langGraphCloud.validateMongoConfiguration" -}}
+{{- $backend := include "langGraphCloud.defaultCheckpointerBackend" . -}}
+{{- $defaultCheckpointerRequired := eq (include "langGraphCloud.defaultCheckpointerRequired" .) "true" -}}
+{{- if and .Values.mongo.internal.enabled .Values.mongo.external.enabled -}}
+{{- fail "mongo.internal.enabled and mongo.external.enabled cannot both be true" -}}
+{{- end -}}
+{{- if and .Values.mongo.internal.enabled (empty .Values.mongo.internal.database) -}}
+{{- fail "mongo.internal.database must be set when mongo.internal.enabled=true" -}}
+{{- end -}}
+{{- if and .Values.mongo.internal.enabled (empty .Values.mongo.internal.replicaSetName) -}}
+{{- fail "mongo.internal.replicaSetName must be set when mongo.internal.enabled=true" -}}
+{{- end -}}
+{{- if and .Values.mongo.external.enabled (not .Values.mongo.external.existingSecretName) (empty .Values.mongo.external.connectionUrl) -}}
+{{- fail "mongo.external.connectionUrl must be set or mongo.external.existingSecretName must be provided when mongo.external.enabled=true" -}}
+{{- end -}}
+{{- if and (or .Values.mongo.internal.enabled (and .Values.mongo.external.enabled (not .Values.mongo.external.existingSecretName))) (empty .Values.mongo.connectionUrlSecretKey) -}}
+{{- fail "mongo.connectionUrlSecretKey must be set when the chart manages the MongoDB connection URL secret" -}}
+{{- end -}}
+{{- if and (eq $backend "mongo") $defaultCheckpointerRequired (empty .Values.mongo.connectionUrlSecretKey) -}}
 {{- fail "mongo.connectionUrlSecretKey must be set when checkpointer.default.backend=\"mongo\"" -}}
 {{- end -}}
-{{- if and (eq $backend "mongo") .Values.mongo.internal.enabled .Values.mongo.external.enabled -}}
-{{- fail "mongo.internal.enabled and mongo.external.enabled cannot both be true when checkpointer.default.backend=\"mongo\"" -}}
+{{- if and (eq $backend "mongo") $defaultCheckpointerRequired (not .Values.mongo.internal.enabled) (not .Values.mongo.external.enabled) -}}
+{{- fail "enable exactly one of mongo.internal.enabled or mongo.external.enabled when checkpointer.default.backend=\"mongo\" and no workload explicitly sets LANGGRAPH_CHECKPOINTER" -}}
 {{- end -}}
-{{- if and (eq $backend "mongo") (not .Values.mongo.internal.enabled) (not .Values.mongo.external.enabled) -}}
-{{- fail "enable exactly one of mongo.internal.enabled or mongo.external.enabled when checkpointer.default.backend=\"mongo\"" -}}
-{{- end -}}
-{{- if and (eq $backend "mongo") .Values.mongo.internal.enabled (empty .Values.mongo.internal.database) -}}
-{{- fail "mongo.internal.database must be set when checkpointer.default.backend=\"mongo\" and mongo.internal.enabled=true" -}}
-{{- end -}}
-{{- if and (eq $backend "mongo") .Values.mongo.internal.enabled (empty .Values.mongo.internal.replicaSetName) -}}
-{{- fail "mongo.internal.replicaSetName must be set when checkpointer.default.backend=\"mongo\" and mongo.internal.enabled=true" -}}
-{{- end -}}
-{{- if and (eq $backend "mongo") .Values.mongo.internal.enabled (ne (int .Values.mongo.internal.service.port) (int .Values.mongo.containerPort)) -}}
-{{- fail "mongo.internal.service.port must match mongo.containerPort when checkpointer.default.backend=\"mongo\" and mongo.internal.enabled=true" -}}
-{{- end -}}
-{{- if and (eq $backend "mongo") .Values.mongo.external.enabled (not .Values.mongo.external.existingSecretName) (empty .Values.mongo.external.connectionUrl) -}}
-{{- fail "mongo.external.connectionUrl must be set or mongo.external.existingSecretName must be provided when checkpointer.default.backend=\"mongo\" and mongo.external.enabled=true" -}}
-{{- end -}}
-{{- $backend -}}
 {{- end }}
 
 {{/*
 Environment variables used to default agent server checkpointers without overriding app-level LANGGRAPH_CHECKPOINTER.
 */}}
 {{- define "langGraphCloud.checkpointerEnv" -}}
-{{- $backend := include "langGraphCloud.defaultCheckpointerBackend" . -}}
+{{- $root := .root | default . -}}
+{{- $extraEnv := .extraEnv | default (list) -}}
+{{- include "langGraphCloud.validateMongoConfiguration" $root -}}
+{{- if eq (include "langGraphCloud.hasExplicitCheckpointer" (dict "extraEnv" $extraEnv)) "true" -}}
+{{- else -}}
+{{- $backend := include "langGraphCloud.defaultCheckpointerBackend" $root -}}
 {{- if $backend }}
 - name: LS_DEFAULT_CHECKPOINTER_BACKEND
   value: {{ $backend | quote }}
@@ -194,8 +234,9 @@ Environment variables used to default agent server checkpointers without overrid
 - name: LS_MONGODB_URI
   valueFrom:
     secretKeyRef:
-      name: {{ include "langGraphCloud.mongoSecretsName" . }}
-      key: {{ .Values.mongo.connectionUrlSecretKey }}
+      name: {{ include "langGraphCloud.mongoSecretsName" $root }}
+      key: {{ $root.Values.mongo.connectionUrlSecretKey }}
+{{- end }}
 {{- end }}
 {{- end }}
 {{- end }}

@@ -1,5 +1,4 @@
-{{- $defaultCheckpointerBackend := include "langGraphCloud.defaultCheckpointerBackend" . -}}
-{{- if and (eq $defaultCheckpointerBackend "mongo") .Values.mongo.internal.enabled }}
+{{- if .Values.mongo.internal.enabled }}
 apiVersion: v1
 kind: Service
 metadata:
@@ -20,7 +19,7 @@ spec:
   publishNotReadyAddresses: true
   ports:
     - name: mongo
-      port: {{ .Values.mongo.internal.service.port }}
+      port: {{ .Values.mongo.containerPort }}
       targetPort: mongo
       protocol: TCP
   selector:
