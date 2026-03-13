@@ -114,6 +114,7 @@ metadata:
     app.kubernetes.io/name: mongo
     app.kubernetes.io/part-of: langgraph-cloud-local-dev
 spec:
+  publishNotReadyAddresses: true
   selector:
     app.kubernetes.io/name: mongo
   ports:

@@ -127,6 +127,42 @@ postgres:
     connectionUrl: "postgres://postgres:postgres@postgres-host.com:5432/postgres?sslmode=disable"
 ```
 
+### Example config file with MongoDB checkpointer
+
+Use the chart-level checkpointer default when you want the platform deployment to supply MongoDB checkpointing for a release. The MongoDB connection URL must:
+
+- include the target logical database name in the path
+- point at a replica set member or `mongos`
+
+This configuration is release-scoped. If you want two independently configured deployments, use two Helm releases and give each release its own MongoDB connection URL and logical database, even if both releases talk to the same MongoDB cluster.
+
+Create a Kubernetes secret for the MongoDB connection URL:
+
+```bash
+kubectl create secret generic my-release-mongo \
+  --from-literal=mongodb_connection_url='mongodb://user:password@mongo.example.net:27017/my_release?replicaSet=rs0'
+```
+
+Then reference that secret from your values file:
+
+```yaml
+images:
+  apiServerImage:
+    pullPolicy: IfNotPresent
+    repository: <your repository>
+    tag: <image tag>
+
+checkpointer:
+  default:
+    backend: "mongo"
+    mongo:
+      existingSecretName: "my-release-mongo"
+```
+
+By default, the chart reads the URI from the `mongodb_connection_url` key. If your secret uses a different key name, also set `checkpointer.default.mongo.connectionUrlSecretKey`.
+
+> **Important:** `checkpointer.default.mongo.existingSecretName` is separate from `config.existingSecretName`. The former is for the MongoDB connection URL used by the checkpointer, while the latter is for `LANGSMITH_API_KEY` and `LANGGRAPH_CLOUD_LICENSE_KEY`.
+
 ### Using `existingSecretName`
 
 If you don't want to check secrets into git, create a Kubernetes secret and reference it via `config.existingSecretName`. The chart expects the following keys:
