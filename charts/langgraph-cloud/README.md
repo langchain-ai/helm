@@ -127,9 +127,11 @@ postgres:
     connectionUrl: "postgres://postgres:postgres@postgres-host.com:5432/postgres?sslmode=disable"
 ```
 
-### Example config file with bundled MongoDB checkpointer
+### Bundled MongoDB checkpointer
 
-Use the chart-managed bundled MongoDB instance for local development, CI, and quickstarts. The chart provisions a single-node replica set and wires the generated connection URL into the platform deployment when `checkpointer.default.backend` is set to `mongo`.
+Use the chart-managed MongoDB instance for local development, CI, and quickstarts. The chart provisions a single-node replica set and injects the generated connection URL when `checkpointer.default.backend` is set to `mongo`. This mode is convenient for getting started, but it is not the recommended production topology.
+
+Create a values file:
 
 ```yaml
 images:
@@ -147,7 +149,15 @@ mongo:
     enabled: true
 ```
 
-### Example config file with external MongoDB checkpointer
+Install or upgrade the release:
+
+```bash
+helm upgrade --install my-release ./charts/langgraph-cloud \
+  --namespace langgraph --create-namespace \
+  -f values-mongo-bundled.yaml
+```
+
+### External MongoDB checkpointer
 
 Use an external MongoDB deployment for production. The MongoDB connection URL must:
 
@@ -159,7 +169,7 @@ This configuration is release-scoped. If you want two independently configured d
 Create a Kubernetes secret for the MongoDB connection URL:
 
 ```bash
-kubectl create secret generic my-release-mongo \
+kubectl -n langgraph create secret generic my-release-mongo \
   --from-literal=mongodb_connection_url='mongodb://user:password@mongo.example.net:27017/my_release?replicaSet=rs0'
 ```
 
@@ -180,6 +190,14 @@ mongo:
   external:
     enabled: true
     existingSecretName: "my-release-mongo"
+```
+
+Install or upgrade the release:
+
+```bash
+helm upgrade --install my-release ./charts/langgraph-cloud \
+  --namespace langgraph --create-namespace \
+  -f values-mongo-external.yaml
 ```
 
 By default, the chart reads the URI from the `mongodb_connection_url` key. If your secret uses a different key name, also set `mongo.connectionUrlSecretKey`.
