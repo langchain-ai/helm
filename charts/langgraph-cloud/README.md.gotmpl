@@ -255,6 +255,11 @@ config:
 # Your secret should contain key `api_key` (and optionally `langgraph_cloud_license_key`).
 ```
 
+If you are upgrading from a chart revision that used the old flat MongoDB values, move these keys before upgrading:
+
+- `mongo.resources` -> `mongo.statefulSet.resources`
+- `mongo.persistence` -> `mongo.statefulSet.persistence`
+
 ### Deploying to Kubernetes:
 
 1. Verify that you can connect to your Kubernetes cluster(note: We highly suggest installing into an empty namespace)

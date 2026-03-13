@@ -154,14 +154,20 @@ MongoDB connection URL used by the chart-managed checkpointer default.
 Validates MongoDB provisioning and default-checkpointer settings.
 */}}
 {{- define "langGraphCloud.validateMongoConfiguration" -}}
+{{- if and (hasKey .Values.mongo "resources") (not (empty .Values.mongo.resources)) -}}
+{{- fail "mongo.resources has moved to mongo.statefulSet.resources; update your values file to use the new path" -}}
+{{- end -}}
+{{- if and (hasKey .Values.mongo "persistence") (not (empty .Values.mongo.persistence)) -}}
+{{- fail "mongo.persistence has moved to mongo.statefulSet.persistence; update your values file to use the new path" -}}
+{{- end -}}
 {{- if and (not .Values.mongo.enabled) .Values.mongo.external.enabled -}}
 {{- fail "mongo.external.enabled requires mongo.enabled=true" -}}
 {{- end -}}
 {{- if and .Values.mongo.external.enabled (not .Values.mongo.external.existingSecretName) (empty .Values.mongo.external.connectionUrl) -}}
 {{- fail "mongo.external.connectionUrl must be set or mongo.external.existingSecretName must be provided when mongo.external.enabled=true" -}}
 {{- end -}}
-{{- if and .Values.mongo.enabled (not .Values.mongo.external.enabled) (empty .Values.mongo.persistence.size) -}}
-{{- fail "mongo.persistence.size must be set when mongo.enabled=true and using the bundled MongoDB instance" -}}
+{{- if and .Values.mongo.enabled (not .Values.mongo.external.enabled) (empty .Values.mongo.statefulSet.persistence.size) -}}
+{{- fail "mongo.statefulSet.persistence.size must be set when mongo.enabled=true and using the bundled MongoDB instance" -}}
 {{- end -}}
 {{- end }}
 
