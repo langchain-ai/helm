@@ -4,6 +4,10 @@
 
 Helm chart to deploy the LangGraph Cloud application and all services it depends on.
 
+## Local Development
+
+For a safe disposable `kind` workflow, see [LOCAL_DEVELOPMENT.md](./LOCAL_DEVELOPMENT.md).
+
 ## Deploying LangGraph Cloud with Helm
 
 ### Prerequisites
@@ -122,6 +126,79 @@ postgres:
     enabled: true
     connectionUrl: "postgres://postgres:postgres@postgres-host.com:5432/postgres?sslmode=disable"
 ```
+
+### Bundled MongoDB checkpointer
+
+Use the chart-managed MongoDB instance for local development, CI, and quickstarts. The chart provisions a single-node replica set and injects the generated MongoDB checkpointer defaults when `mongo.enabled` is true. This mode is convenient for getting started, but it is not the recommended production topology.
+
+When `mongo.enabled` is true, the chart always injects `LS_DEFAULT_CHECKPOINTER_BACKEND=mongo` and `LS_MONGODB_URI`. That lets app-level `LANGGRAPH_CHECKPOINTER` values supply overrides like `ttl` while still inheriting the MongoDB backend and URI defaults.
+
+By default this mode creates a persistent volume claim, so your cluster needs a default `StorageClass`.
+
+Create a values file:
+
+```yaml
+images:
+  apiServerImage:
+    pullPolicy: IfNotPresent
+    repository: <your repository>
+    tag: <image tag>
+
+mongo:
+  enabled: true
+```
+
+Install or upgrade the release:
+
+```bash
+helm upgrade --install my-release ./charts/langgraph-cloud \
+  --namespace langgraph --create-namespace \
+  -f values-mongo-bundled.yaml
+```
+
+### External MongoDB checkpointer
+
+Use an external MongoDB deployment for production. The MongoDB connection URL must:
+
+- include the target logical database name in the path
+- point at a replica set member or `mongos`
+
+This configuration is release-scoped. If you want two independently configured deployments, use two Helm releases and give each release its own MongoDB connection URL and logical database, even if both releases talk to the same MongoDB cluster.
+
+The external MongoDB settings manage the MongoDB connection URL secret. When `mongo.enabled` is true, the chart injects the MongoDB checkpointer defaults as `LS_DEFAULT_CHECKPOINTER_BACKEND` and `LS_MONGODB_URI`.
+
+Create a Kubernetes secret for the MongoDB connection URL:
+
+```bash
+kubectl -n langgraph create secret generic my-release-mongo \
+  --from-literal=mongodb_connection_url='mongodb://user:password@mongo.example.net:27017/my_release?replicaSet=rs0'
+```
+
+Then reference that secret from your values file:
+
+```yaml
+images:
+  apiServerImage:
+    pullPolicy: IfNotPresent
+    repository: <your repository>
+    tag: <image tag>
+
+mongo:
+  enabled: true
+  external:
+    enabled: true
+    existingSecretName: "my-release-mongo"
+```
+
+Install or upgrade the release:
+
+```bash
+helm upgrade --install my-release ./charts/langgraph-cloud \
+  --namespace langgraph --create-namespace \
+  -f values-mongo-external.yaml
+```
+
+> **Important:** `mongo.external.existingSecretName` is separate from `config.existingSecretName`. The former is for the MongoDB connection URL used by the checkpointer, while the latter is for `LANGSMITH_API_KEY` and `LANGGRAPH_CLOUD_LICENSE_KEY`.
 
 ### Using `existingSecretName`
 
@@ -261,6 +338,9 @@ config:
 | images.apiServerImage.repository | string | `"docker.io/langchain/langgraph-api"` |  |
 | images.apiServerImage.tag | string | `"3.11-28c1407"` |  |
 | images.imagePullSecrets | list | `[]` | Secrets with credentials to pull images from a private registry. Specified as name: value. |
+| images.mongoImage.pullPolicy | string | `"IfNotPresent"` |  |
+| images.mongoImage.repository | string | `"mongo"` |  |
+| images.mongoImage.tag | string | `"7"` |  |
 | images.postgresImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.postgresImage.repository | string | `"pgvector/pgvector"` |  |
 | images.postgresImage.tag | string | `"pg16"` |  |
@@ -278,6 +358,12 @@ config:
 | ingress.labels | object | `{}` |  |
 | ingress.studioHostname | string | `""` |  |
 | ingress.tls | list | `[]` |  |
+| mongo.enabled | bool | `false` | Enable MongoDB checkpointing. When `mongo.external.enabled` is false, the chart provisions a bundled single-node MongoDB replica set intended for local development, CI, and quickstarts. |
+| mongo.external.connectionUrl | string | `""` | MongoDB connection URL used when `mongo.enabled` and `mongo.external.enabled` are true. Must include the target database name and point at a replica set member or `mongos`. |
+| mongo.external.enabled | bool | `false` | Use an external MongoDB deployment instead of the chart-managed MongoDB instance. |
+| mongo.external.existingSecretName | string | `""` | Existing secret name containing the MongoDB connection URL. |
+| mongo.persistence.size | string | `"8Gi"` | Persistent volume size for the bundled MongoDB instance. |
+| mongo.resources | object | `{"limits":{"cpu":"2000m","memory":"4Gi"},"requests":{"cpu":"500m","memory":"1Gi"}}` | Resource requests and limits for the bundled MongoDB pod. |
 | nameOverride | string | `""` | Provide a name in place of `langgraph-cloud` for the chart |
 | namespace | string | `""` | Namespace to install the chart into. If not set, will use the namespace of the current context. |
 | queue.autoscaling.enabled | bool | `false` |  |
@@ -589,7 +675,5 @@ config:
 | ---- | ------ | --- |
 | Ankush | <ankush@langchain.dev> |  |
 
-----------------------------------------------
-Autogenerated from chart metadata using [helm-docs v1.14.2](https://github.com/norwoodj/helm-docs/releases/v1.14.2)
 ## Docs Generated by [helm-docs](https://github.com/norwoodj/helm-docs)
 `helm-docs -t ./charts/langgraph-cloud/README.md.gotmpl`

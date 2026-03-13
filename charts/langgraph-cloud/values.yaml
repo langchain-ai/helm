@@ -43,6 +43,10 @@ images:
     repository: "docker.io/redis"
     pullPolicy: IfNotPresent
     tag: "6"
+  mongoImage:
+    repository: "mongo"
+    pullPolicy: IfNotPresent
+    tag: "7"
   studioImage:
     repository: "docker.io/langchain/langgraph-debugger"
     pullPolicy: Always
@@ -358,6 +362,28 @@ redis:
   pdb:
     enabled: false
     minAvailable: 1
+
+mongo:
+  # -- Enable MongoDB checkpointing. When `mongo.external.enabled` is false, the chart provisions a bundled single-node MongoDB replica set intended for local development, CI, and quickstarts.
+  enabled: false
+  # -- Resource requests and limits for the bundled MongoDB pod.
+  resources:
+    limits:
+      cpu: 2000m
+      memory: 4Gi
+    requests:
+      cpu: 500m
+      memory: 1Gi
+  persistence:
+    # -- Persistent volume size for the bundled MongoDB instance.
+    size: 8Gi
+  external:
+    # -- Use an external MongoDB deployment instead of the chart-managed MongoDB instance.
+    enabled: false
+    # -- MongoDB connection URL used when `mongo.enabled` and `mongo.external.enabled` are true. Must include the target database name and point at a replica set member or `mongos`.
+    connectionUrl: ""
+    # -- Existing secret name containing the MongoDB connection URL.
+    existingSecretName: ""
 
 studio:
   enabled: true

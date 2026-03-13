@@ -1,0 +1,13 @@
+# Local kind overlay for exercising the bundled Mongo default checkpointer in a
+# disposable kind cluster.
+mongo:
+  enabled: true
+  resources:
+    limits:
+      cpu: 250m
+      memory: 1Gi
+    requests:
+      cpu: 100m
+      memory: 512Mi
+  persistence:
+    size: 2Gi

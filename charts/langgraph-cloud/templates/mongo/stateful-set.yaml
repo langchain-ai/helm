@@ -1,0 +1,147 @@
+{{- if and .Values.mongo.enabled (not .Values.mongo.external.enabled) }}
+{{- $volumeMounts := .Values.commonVolumeMounts | default (list) -}}
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "langGraphCloud.mongoServiceName" . }}
+  namespace: {{ .Values.namespace | default .Release.Namespace | quote }}
+  labels:
+    {{- include "langGraphCloud.labels" . | nindent 4 }}
+spec:
+  serviceName: {{ include "langGraphCloud.mongoServiceName" . }}
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "langGraphCloud.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: {{ include "langGraphCloud.mongoServiceName" . }}
+  template:
+    metadata:
+      labels:
+        {{- include "langGraphCloud.labels" . | nindent 8 }}
+        app.kubernetes.io/component: {{ include "langGraphCloud.mongoServiceName" . }}
+    spec:
+      {{- with .Values.images.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      terminationGracePeriodSeconds: 30
+      {{- include "langGraphCloud.dnsConfig" . | nindent 6 }}
+      containers:
+        - name: mongo
+          env:
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: MONGO_SERVICE_NAME
+              value: {{ include "langGraphCloud.mongoServiceName" . | quote }}
+            - name: MONGO_CLUSTER_DOMAIN
+              value: {{ .Values.clusterDomain | quote }}
+            - name: MONGO_PORT
+              value: "27017"
+            - name: MONGO_REPLICA_SET_NAME
+              value: "rs0"
+          command:
+            - /bin/sh
+            - -lc
+            - |
+              set -eu
+
+              member_host="${MONGO_SERVICE_NAME}.${POD_NAMESPACE}.svc.${MONGO_CLUSTER_DOMAIN}:${MONGO_PORT}"
+
+              mongod --replSet "${MONGO_REPLICA_SET_NAME}" --bind_ip_all --port "${MONGO_PORT}" --dbpath /data/db &
+              pid="$!"
+
+              terminate() {
+                kill -TERM "$pid"
+                wait "$pid"
+              }
+              trap terminate TERM INT
+
+              until mongosh --quiet --host 127.0.0.1 --port "${MONGO_PORT}" --eval "quit(db.adminCommand({ ping: 1 }).ok === 1 ? 0 : 1)" >/dev/null 2>&1; do
+                if ! kill -0 "$pid" >/dev/null 2>&1; then
+                  wait "$pid"
+                  exit 1
+                fi
+                sleep 1
+              done
+
+              if [ "${HOSTNAME##*-}" = "0" ]; then
+                if ! mongosh --quiet --host 127.0.0.1 --port "${MONGO_PORT}" --eval "quit(rs.status().ok === 1 ? 0 : 1)" >/dev/null 2>&1; then
+                  mongosh --quiet --host 127.0.0.1 --port "${MONGO_PORT}" --eval "rs.initiate({_id: '${MONGO_REPLICA_SET_NAME}', members: [{_id: 0, host: '${member_host}'}]})"
+                fi
+              fi
+
+              until mongosh --quiet --host 127.0.0.1 --port "${MONGO_PORT}" --eval "const hello = db.adminCommand({ hello: 1 }); quit(hello.setName === '${MONGO_REPLICA_SET_NAME}' && hello.isWritablePrimary ? 0 : 1)" >/dev/null 2>&1; do
+                if ! kill -0 "$pid" >/dev/null 2>&1; then
+                  wait "$pid"
+                  exit 1
+                fi
+                sleep 1
+              done
+
+              wait "$pid"
+          image: {{ include "langGraphCloud.image" (dict "Values" .Values "Chart" .Chart "component" "mongoImage") | quote }}
+          imagePullPolicy: {{ .Values.images.mongoImage.pullPolicy }}
+          ports:
+            - name: mongo
+              containerPort: 27017
+              protocol: TCP
+          startupProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -lc
+                - >-
+                  mongosh --quiet --host 127.0.0.1 --port 27017
+                  --eval "quit(db.adminCommand({ ping: 1 }).ok === 1 ? 0 : 1)"
+            failureThreshold: 30
+            periodSeconds: 2
+            timeoutSeconds: 5
+          readinessProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -lc
+                - >-
+                  mongosh --quiet --host 127.0.0.1 --port 27017
+                  --eval "const hello = db.adminCommand({ hello: 1 }); quit(hello.setName === 'rs0' && hello.isWritablePrimary ? 0 : 1)"
+            periodSeconds: 5
+            timeoutSeconds: 5
+          livenessProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -lc
+                - >-
+                  mongosh --quiet --host 127.0.0.1 --port 27017
+                  --eval "quit(db.adminCommand({ ping: 1 }).ok === 1 ? 0 : 1)"
+            periodSeconds: 10
+            timeoutSeconds: 5
+          resources:
+            {{- toYaml .Values.mongo.resources | nindent 12 }}
+          volumeMounts:
+            {{- with $volumeMounts }}
+              {{- toYaml . | nindent 12 }}
+            {{- end }}
+            - mountPath: /data/db
+              name: data
+      {{- with .Values.commonVolumes }}
+      volumes:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+  volumeClaimTemplates:
+    - apiVersion: v1
+      kind: PersistentVolumeClaim
+      metadata:
+        name: data
+        labels:
+          {{- include "langGraphCloud.selectorLabels" . | nindent 10 }}
+          app.kubernetes.io/component: {{ include "langGraphCloud.mongoServiceName" . }}
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: {{ .Values.mongo.persistence.size }}
+{{- end }}
