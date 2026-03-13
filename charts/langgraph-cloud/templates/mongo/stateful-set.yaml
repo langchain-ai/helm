@@ -119,7 +119,7 @@ spec:
             periodSeconds: 10
             timeoutSeconds: 5
           resources:
-            {{- toYaml .Values.mongo.resources | nindent 12 }}
+            {{- toYaml .Values.mongo.statefulSet.resources | nindent 12 }}
           volumeMounts:
             {{- with $volumeMounts }}
               {{- toYaml . | nindent 12 }}
@@ -143,5 +143,5 @@ spec:
           - ReadWriteOnce
         resources:
           requests:
-            storage: {{ .Values.mongo.persistence.size }}
+            storage: {{ .Values.mongo.statefulSet.persistence.size }}
 {{- end }}
