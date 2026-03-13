@@ -23,3 +23,9 @@
 .vscode/
 # Helm Unittest
 tests/
+# Local dev tooling (not part of the chart)
+docker-compose/
+scripts/
+# Packaged artifacts
+*.tgz
+langsmith_config.yaml
