@@ -296,7 +296,7 @@ operator:
           spec:
             containers:
             - name: postgres
-              image: langchain/langsmith-pgvector:0.1.0
+              image: langchain/langsmith-pgvector:0.8.2-pg15
               ports:
               - containerPort: 5432
               command: ["docker-entrypoint.sh"]
