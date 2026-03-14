@@ -246,10 +246,6 @@ operator:
             containers:
             - name: api-server
               image: ${image}
-              {{- if .Values.mongo.enabled }}
-              env:
-              {{- include "langgraphDataplane.checkpointerEnv" . | trim | nindent 14 }}
-              {{- end }}
               ports:
               - name: api-server
                 containerPort: 8000

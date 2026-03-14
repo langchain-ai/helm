@@ -144,19 +144,18 @@ Validates MongoDB provisioning and default-checkpointer settings.
 {{- end }}
 
 {{/*
-Environment variables used to default agent server checkpointers without overriding app-level LANGGRAPH_CHECKPOINTER.
+Environment variables used to configure operator-level default checkpointer injection.
 */}}
-{{- define "langgraphDataplane.checkpointerEnv" -}}
+{{- define "langgraphDataplane.operatorCheckpointerEnv" -}}
 {{- $root := .root | default . -}}
 {{- include "langgraphDataplane.validateMongoConfiguration" $root -}}
 {{- if $root.Values.mongo.enabled }}
-- name: LS_DEFAULT_CHECKPOINTER_BACKEND
+- name: DEFAULT_CHECKPOINTER_BACKEND
   value: "mongo"
-- name: LS_MONGODB_URI
-  valueFrom:
-    secretKeyRef:
-      name: {{ include "langgraphDataplane.mongoSecretsName" $root }}
-      key: mongodb_connection_url
+- name: DEFAULT_MONGODB_URI_SECRET_NAME
+  value: {{ include "langgraphDataplane.mongoSecretsName" $root | quote }}
+- name: DEFAULT_MONGODB_URI_SECRET_KEY
+  value: "mongodb_connection_url"
 {{- end }}
 {{- end }}
 

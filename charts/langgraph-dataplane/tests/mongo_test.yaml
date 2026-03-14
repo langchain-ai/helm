@@ -3,6 +3,7 @@ templates:
   - mongo/stateful-set.yaml
   - mongo/service.yaml
   - mongo/secrets.yaml
+  - operator/deployment.yaml
   - operator/config-map.yaml
 tests:
   - it: should not render mongo statefulset when mongo is disabled
@@ -147,31 +148,41 @@ tests:
           path: metadata.name
           value: RELEASE-NAME-langgraph-dataplane-mongo
 
-  - it: should inject checkpointer env vars into the operator deployment template when mongo is enabled
-    template: operator/config-map.yaml
+  - it: should inject default checkpointer env vars into the operator deployment when mongo is enabled
+    template: operator/deployment.yaml
     set:
       mongo.enabled: true
       mongo.statefulSet.persistence.size: 8Gi
     asserts:
-      - matchRegex:
-          path: data["deployment.yaml.tmpl"]
-          pattern: 'LS_DEFAULT_CHECKPOINTER_BACKEND'
-      - matchRegex:
-          path: data["deployment.yaml.tmpl"]
-          pattern: 'name: RELEASE-NAME-langgraph-dataplane-mongo'
-      - matchRegex:
-          path: data["deployment.yaml.tmpl"]
-          pattern: 'key: mongodb_connection_url'
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: DEFAULT_CHECKPOINTER_BACKEND
+            value: "mongo"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: DEFAULT_MONGODB_URI_SECRET_NAME
+            value: "RELEASE-NAME-langgraph-dataplane-mongo"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: DEFAULT_MONGODB_URI_SECRET_KEY
+            value: "mongodb_connection_url"
 
-  - it: should not inject checkpointer env vars into the operator deployment template when mongo is disabled
-    template: operator/config-map.yaml
+  - it: should not inject default checkpointer env vars into the operator deployment when mongo is disabled
+    template: operator/deployment.yaml
     asserts:
-      - notMatchRegex:
-          path: data["deployment.yaml.tmpl"]
-          pattern: 'LS_DEFAULT_CHECKPOINTER_BACKEND'
-      - notMatchRegex:
-          path: data["deployment.yaml.tmpl"]
-          pattern: 'LS_MONGODB_URI'
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: DEFAULT_CHECKPOINTER_BACKEND
+            value: "mongo"
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: DEFAULT_MONGODB_URI_SECRET_NAME
+            value: "RELEASE-NAME-langgraph-dataplane-mongo"
 
   - it: should not render mongo secret when existingSecretName is provided
     template: mongo/secrets.yaml
@@ -183,19 +194,21 @@ tests:
       - hasDocuments:
           count: 0
 
-  - it: should reference an existing secret in the operator deployment template when provided
-    template: operator/config-map.yaml
+  - it: should reference an existing secret in the operator deployment when provided
+    template: operator/deployment.yaml
     set:
       mongo.enabled: true
       mongo.external.enabled: true
       mongo.external.existingSecretName: "my-secret"
     asserts:
-      - matchRegex:
-          path: data["deployment.yaml.tmpl"]
-          pattern: 'name: my-secret'
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: DEFAULT_MONGODB_URI_SECRET_NAME
+            value: "my-secret"
 
   - it: should fail when external mongo is enabled without mongo enabled
-    template: operator/config-map.yaml
+    template: operator/deployment.yaml
     set:
       mongo.external.enabled: true
       mongo.external.connectionUrl: "mongodb://external-host:27017/langgraph?replicaSet=rs0"
