@@ -132,6 +132,27 @@ dnsConfig:
 {{- end }}
 {{- end }}
 
+{{/*
+Determine whether the upstream hostname should use the HTTP proxy.
+Returns "true" if proxy should be used, "false" if the hostname matches a noProxy entry.
+Usage: include "authProxy.shouldUseProxy" (dict "hostname" $hostname "noProxy" .Values.authProxy.httpProxy.noProxy)
+*/}}
+{{- define "authProxy.shouldUseProxy" -}}
+{{- $hostname := .hostname -}}
+{{- $noProxy := .noProxy -}}
+{{- $result := dict "bypass" false -}}
+{{- range $entry := $noProxy -}}
+  {{- if eq $entry "*" -}}
+    {{- $_ := set $result "bypass" true -}}
+  {{- else if eq $entry $hostname -}}
+    {{- $_ := set $result "bypass" true -}}
+  {{- else if and (hasPrefix "." $entry) (hasSuffix $entry $hostname) -}}
+    {{- $_ := set $result "bypass" true -}}
+  {{- end -}}
+{{- end -}}
+{{- if $result.bypass -}}false{{- else -}}true{{- end -}}
+{{- end -}}
+
 {{- define "authProxy.serviceAccountName" -}}
 {{- if .Values.authProxy.serviceAccount.create -}}
     {{ default (printf "%s-%s" (include "authProxy.fullname" .) .Values.authProxy.name) .Values.authProxy.serviceAccount.name | trunc 63 | trimSuffix "-" }}
