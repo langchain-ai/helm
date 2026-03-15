@@ -1,6 +1,6 @@
 # langsmith-auth-proxy
 
-![Version: 0.0.3](https://img.shields.io/badge/Version-0.0.3-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.37.0](https://img.shields.io/badge/AppVersion-1.37.0-informational?style=flat-square)
+![Version: 0.0.4](https://img.shields.io/badge/Version-0.0.4-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.37.0](https://img.shields.io/badge/AppVersion-1.37.0-informational?style=flat-square)
 
 Helm chart to deploy the langsmith auth-proxy application.
 
@@ -93,6 +93,11 @@ This chart uses the **HTTP** `ext_authz` mode — HTTP request in, HTTP response
 | authProxy.extAuthz.sendBody | bool | `false` | Whether to send the request body to ext_authz |
 | authProxy.extAuthz.serviceUrl | string | `""` | HTTP service URL for ext_authz (e.g. http://my-auth-service:8080) |
 | authProxy.extAuthz.timeout | string | `"10s"` | Timeout for ext_authz requests |
+| authProxy.httpProxy | object | `{"enabled":false,"host":"","noProxy":[],"port":3128}` | HTTP proxy configuration for the upstream cluster. Envoy does not respect HTTP_PROXY/HTTPS_PROXY/NO_PROXY env vars; configure proxy here instead. See https://github.com/envoyproxy/envoy/issues/21175. Uses the two-listener loopback pattern (tcp_proxy + tunneling_config) to route through an HTTP CONNECT proxy. Supports both IP addresses and hostnames for the proxy host. |
+| authProxy.httpProxy.enabled | bool | `false` | Enable routing upstream traffic through an HTTP proxy |
+| authProxy.httpProxy.host | string | `""` | Proxy hostname or IP address |
+| authProxy.httpProxy.noProxy | list | `[]` | List of hostnames/domains to bypass the proxy for (NO_PROXY equivalent). Supports exact match ("internal.corp") and domain suffix (".internal.corp"). If the upstream hostname matches any entry, proxy is not used. |
+| authProxy.httpProxy.port | int | `3128` | Proxy port |
 | authProxy.jwksJson | string | `""` | JWKS JSON string containing the public keys for JWT validation. Generate with the LangSmith JWKS tooling and paste the full JSON here. |
 | authProxy.jwtAudiences | list | `[]` | JWT audience claims to validate. Must match audiences in the signed JWT. |
 | authProxy.jwtIssuer | string | `"langsmith"` | JWT issuer claim to validate |
