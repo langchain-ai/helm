@@ -1,6 +1,6 @@
 # HTTP Proxy E2E Test
 
-End-to-end test for the `httpProxy` feature of the `langsmith-auth-proxy` chart. Verifies that upstream traffic is routed through an HTTP forward proxy using Envoy's `Http11ProxyUpstreamTransport`.
+End-to-end test for the `httpProxy` feature of the `langsmith-auth-proxy` chart. Verifies that upstream traffic is routed through an HTTP forward proxy using the two-listener loopback pattern (`tcp_proxy` + `tunneling_config`).
 
 ## Prerequisites
 
@@ -22,13 +22,19 @@ End-to-end test for the `httpProxy` feature of the `langsmith-auth-proxy` chart.
 ## Architecture
 
 ```
-curl -H "X-LangSmith-LLM-Auth: <JWT>" -> Envoy(:10000)
+curl -H "X-LangSmith-LLM-Auth: <JWT>" -> listener_0 (:10000, HCM)
   -> JWT filter (validate sig, iss, aud)
-  -> Http11ProxyUpstreamTransport
-    -> CONNECT tinyproxy(:8888)
-      -> fake-gateway(:10001)
-        <- 200 + JSON with all received headers
+  -> loopback_cluster (STATIC, 127.0.0.1:10001)
+    -> listener_1 (:10001, tcp_proxy + tunneling_config CONNECT)
+      -> proxy_cluster (STRICT_DNS, tinyproxy:8888)
+        -> tinyproxy (CONNECT tunnel)
+          -> fake-gateway(:10001)
+            <- 200 + JSON with all received headers
 ```
+
+For HTTPS upstreams, TLS with SNI is applied on `loopback_cluster` so the encrypted payload flows through the CONNECT tunnel. `proxy_cluster` is always plaintext HTTP/1.1.
+
+This pattern supports both IP addresses and hostnames for the proxy host.
 
 ## Files
 
@@ -38,17 +44,6 @@ curl -H "X-LangSmith-LLM-Auth: <JWT>" -> Envoy(:10000)
 | `e2e-values.yaml` | Helm values override (proxy enabled) |
 | `fake-gateway.yaml` | Echo server Deployment+Service (upstream) |
 | `tinyproxy.yaml` | Tinyproxy Deployment+Service+ConfigMap (HTTP proxy) |
-
-## Key detail: proxy address must be an IP
-
-Envoy's `Http11ProxyUpstreamTransport` reads the proxy address from endpoint `typed_filter_metadata`. Envoy's `resolveProtoAddress()` only parses IP addresses — it does not perform DNS resolution. The test script handles this by resolving the tinyproxy Service ClusterIP before installing the chart:
-
-```bash
-PROXY_IP=$(kubectl get svc tinyproxy -o jsonpath='{.spec.clusterIP}')
-helm upgrade --install ... --set authProxy.httpProxy.host="$PROXY_IP"
-```
-
-In production, users should provide the proxy's IP address (or a stable ClusterIP) rather than a hostname.
 
 ## Cleanup
 

@@ -108,22 +108,16 @@ log "Deploying fake gateway"
 kubectl apply --context "kind-$CLUSTER_NAME" -f "$SCRIPT_DIR/fake-gateway.yaml"
 kubectl rollout status deployment/fake-gateway --context "kind-$CLUSTER_NAME" --timeout=90s
 
-# ── 6. Get tinyproxy ClusterIP ───────────────────────────────────────
-# Http11ProxyUpstreamTransport requires an IP address in the proxy metadata
-# (Envoy's resolveProtoAddress does not perform DNS resolution).
-log "Resolving tinyproxy ClusterIP"
-PROXY_IP=$(kubectl get svc tinyproxy --context "kind-$CLUSTER_NAME" \
-  -o jsonpath='{.spec.clusterIP}')
-echo "Tinyproxy ClusterIP: $PROXY_IP"
-
-# ── 7. Deploy chart ─────────────────────────────────────────────────
+# ── 6. Deploy chart ──────────────────────────────────────────────────
+# The two-listener loopback pattern supports hostnames natively via STRICT_DNS,
+# so we pass the tinyproxy service hostname directly (no ClusterIP resolution needed).
 log "Installing chart with helm"
 TMPDIR_VALS="$(mktemp -d)"
 cat > "$TMPDIR_VALS/runtime-values.yaml" <<EOYAML
 authProxy:
   jwksJson: '$JWKS_JSON'
   httpProxy:
-    host: "$PROXY_IP"
+    host: "tinyproxy"
 EOYAML
 
 helm upgrade --install "$RELEASE_NAME" "$CHART_DIR" \
@@ -134,7 +128,7 @@ helm upgrade --install "$RELEASE_NAME" "$CHART_DIR" \
 
 rm -rf "$TMPDIR_VALS"
 
-# ── 8. Port-forward ─────────────────────────────────────────────────
+# ── 7. Port-forward ─────────────────────────────────────────────────
 log "Setting up port-forward"
 AUTH_POD=$(kubectl get pods --context "kind-$CLUSTER_NAME" \
   -l "app.kubernetes.io/instance=${RELEASE_NAME},app.kubernetes.io/name=langsmith-auth-proxy" \
@@ -151,7 +145,7 @@ if ! kill -0 "$PF_PID" 2>/dev/null; then
   exit 1
 fi
 
-# ── 9. Tests ─────────────────────────────────────────────────────────
+# ── 8. Tests ─────────────────────────────────────────────────────────
 BASE="http://localhost:$LOCAL_PORT"
 
 log "Test 1: GET /healthz → 200 (bypasses auth)"
@@ -183,7 +177,7 @@ else
   echo "$PROXY_LOGS"
 fi
 
-# ── 10. Logs ─────────────────────────────────────────────────────────
+# ── 9. Logs ──────────────────────────────────────────────────────────
 log "Tinyproxy logs"
 kubectl logs --context "kind-$CLUSTER_NAME" "$PROXY_POD" --tail=20
 

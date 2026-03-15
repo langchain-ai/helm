@@ -55,7 +55,8 @@ authProxy:
   # -- HTTP proxy configuration for the upstream cluster.
   # Envoy does not respect HTTP_PROXY/HTTPS_PROXY/NO_PROXY env vars; configure proxy here instead.
   # See https://github.com/envoyproxy/envoy/issues/21175.
-  # Uses Envoy's Http11ProxyUpstreamTransport to tunnel upstream traffic through an HTTP CONNECT proxy.
+  # Uses the two-listener loopback pattern (tcp_proxy + tunneling_config) to route through an HTTP CONNECT proxy.
+  # Supports both IP addresses and hostnames for the proxy host.
   httpProxy:
     # -- Enable routing upstream traffic through an HTTP proxy
     enabled: false

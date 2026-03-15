@@ -40,7 +40,7 @@ data:
                             - match:
                                 prefix: "/"
                               route:
-                                cluster: upstream_provider
+                                cluster: {{ if $useProxy }}loopback_cluster{{ else }}upstream_provider{{ end }}
                                 host_rewrite_literal: {{ $upstreamHostname }}
                                 timeout: 0s
                                 idle_timeout: {{ .Values.authProxy.streamIdleTimeout }}
@@ -137,8 +137,58 @@ data:
                       - name: envoy.filters.http.router
                         typed_config:
                           "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
+        {{- if $useProxy }}
+        - name: listener_1
+          address:
+            socket_address:
+              address: 127.0.0.1
+              port_value: 10001
+          filter_chains:
+            - filters:
+                - name: envoy.filters.network.tcp_proxy
+                  typed_config:
+                    "@type": type.googleapis.com/envoy.extensions.filters.network.tcp_proxy.v3.TcpProxy
+                    stat_prefix: tcp_to_proxy
+                    cluster: proxy_cluster
+                    tunneling_config:
+                      hostname: {{ $upstreamHostname }}:{{ $upstreamPort }}
+        {{- end }}
 
       clusters:
+        {{- if $useProxy }}
+        - name: loopback_cluster
+          connect_timeout: 5s
+          type: STATIC
+          load_assignment:
+            cluster_name: loopback_cluster
+            endpoints:
+              - lb_endpoints:
+                  - endpoint:
+                      address:
+                        socket_address:
+                          address: 127.0.0.1
+                          port_value: 10001
+          {{- if eq $upstreamScheme "https" }}
+          transport_socket:
+            name: envoy.transport_sockets.tls
+            typed_config:
+              "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.UpstreamTlsContext
+              sni: {{ $upstreamHostname }}
+          {{- end }}
+        - name: proxy_cluster
+          connect_timeout: 5s
+          type: STRICT_DNS
+          dns_lookup_family: V4_ONLY
+          load_assignment:
+            cluster_name: proxy_cluster
+            endpoints:
+              - lb_endpoints:
+                  - endpoint:
+                      address:
+                        socket_address:
+                          address: {{ .Values.authProxy.httpProxy.host }}
+                          port_value: {{ .Values.authProxy.httpProxy.port }}
+        {{- else }}
         - name: upstream_provider
           connect_timeout: 5s
           type: LOGICAL_DNS
@@ -152,41 +202,14 @@ data:
                         socket_address:
                           address: {{ $upstreamHostname }}
                           port_value: {{ $upstreamPort }}
-                    {{- if $useProxy }}
-                    metadata:
-                      typed_filter_metadata:
-                        envoy.http11_proxy_transport_socket.proxy_address:
-                          "@type": type.googleapis.com/envoy.config.core.v3.Address
-                          socket_address:
-                            address: {{ .Values.authProxy.httpProxy.host }}
-                            port_value: {{ .Values.authProxy.httpProxy.port }}
-                    {{- end }}
-          {{- if and $useProxy (eq $upstreamScheme "https") }}
-          transport_socket:
-            name: envoy.transport_sockets.http_11_proxy
-            typed_config:
-              "@type": type.googleapis.com/envoy.extensions.transport_sockets.http_11_proxy.v3.Http11ProxyUpstreamTransport
-              transport_socket:
-                name: envoy.transport_sockets.tls
-                typed_config:
-                  "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.UpstreamTlsContext
-                  sni: {{ $upstreamHostname }}
-          {{- else if and $useProxy (ne $upstreamScheme "https") }}
-          transport_socket:
-            name: envoy.transport_sockets.http_11_proxy
-            typed_config:
-              "@type": type.googleapis.com/envoy.extensions.transport_sockets.http_11_proxy.v3.Http11ProxyUpstreamTransport
-              transport_socket:
-                name: envoy.transport_sockets.raw_buffer
-                typed_config:
-                  "@type": type.googleapis.com/envoy.extensions.transport_sockets.raw_buffer.v3.RawBuffer
-          {{- else if eq $upstreamScheme "https" }}
+          {{- if eq $upstreamScheme "https" }}
           transport_socket:
             name: envoy.transport_sockets.tls
             typed_config:
               "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.UpstreamTlsContext
               sni: {{ $upstreamHostname }}
           {{- end }}
+        {{- end }}
         {{- if .Values.authProxy.extAuthz.enabled }}
         - name: ext_authz_service
           connect_timeout: 5s

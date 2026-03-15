@@ -8,7 +8,7 @@ authProxy:
   streamIdleTimeout: "300s"
   httpProxy:
     enabled: true
-    # host is injected at install time (tinyproxy ClusterIP)
+    # host is injected at install time (tinyproxy service hostname)
     host: ""
     port: 8888
     noProxy: []
