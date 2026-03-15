@@ -1,0 +1,61 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: tinyproxy-config
+data:
+  tinyproxy.conf: |
+    User nobody
+    Group nobody
+    Port 8888
+    Timeout 600
+    MaxClients 100
+    # Allow all connections (test only)
+    Allow 0.0.0.0/0
+    # Allow CONNECT on upstream port (default restricts to 443/563)
+    ConnectPort 10001
+    DisableViaHeader Yes
+    LogLevel Info
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tinyproxy
+  labels:
+    app: tinyproxy
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: tinyproxy
+  template:
+    metadata:
+      labels:
+        app: tinyproxy
+    spec:
+      containers:
+        - name: tinyproxy
+          image: docker.io/kalaksi/tinyproxy:latest
+          ports:
+            - containerPort: 8888
+          volumeMounts:
+            - name: config
+              mountPath: /etc/tinyproxy
+              readOnly: true
+      volumes:
+        - name: config
+          configMap:
+            name: tinyproxy-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: tinyproxy
+  labels:
+    app: tinyproxy
+spec:
+  selector:
+    app: tinyproxy
+  ports:
+    - port: 8888
+      targetPort: 8888
+      protocol: TCP

@@ -1,0 +1,19 @@
+authProxy:
+  enabled: true
+  upstream: "http://fake-gateway:10001"
+  jwtIssuer: "langsmith"
+  jwtAudiences:
+    - "test-audience"
+  # jwksJson injected via --set at install time
+  streamIdleTimeout: "300s"
+  httpProxy:
+    enabled: true
+    # host is injected at install time (tinyproxy ClusterIP)
+    host: ""
+    port: 8888
+    noProxy: []
+  deployment:
+    replicas: 1
+
+ingress:
+  enabled: false

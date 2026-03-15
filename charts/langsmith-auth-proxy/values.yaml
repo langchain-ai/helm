@@ -52,6 +52,21 @@ authProxy:
     enabled: true
   # -- Idle timeout for streaming responses (e.g. SSE from LLM providers)
   streamIdleTimeout: "300s"
+  # -- HTTP proxy configuration for the upstream cluster.
+  # Envoy does not respect HTTP_PROXY/HTTPS_PROXY/NO_PROXY env vars; configure proxy here instead.
+  # See https://github.com/envoyproxy/envoy/issues/21175.
+  # Uses Envoy's Http11ProxyUpstreamTransport to tunnel upstream traffic through an HTTP CONNECT proxy.
+  httpProxy:
+    # -- Enable routing upstream traffic through an HTTP proxy
+    enabled: false
+    # -- Proxy hostname or IP address
+    host: ""
+    # -- Proxy port
+    port: 3128
+    # -- List of hostnames/domains to bypass the proxy for (NO_PROXY equivalent).
+    # Supports exact match ("internal.corp") and domain suffix (".internal.corp").
+    # If the upstream hostname matches any entry, proxy is not used.
+    noProxy: []
   # External authorization service configuration (for injecting LLM provider auth headers).
   # See https://www.envoyproxy.io/docs/envoy/latest/api-v3/extensions/filters/http/ext_authz/v3/ext_authz.proto for details.
   extAuthz:

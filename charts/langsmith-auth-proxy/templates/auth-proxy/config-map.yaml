@@ -2,6 +2,11 @@
 {{- $upstreamScheme := (urlParse .Values.authProxy.upstream).scheme -}}
 {{- $upstreamHostname := include "authProxy.urlHostname" .Values.authProxy.upstream -}}
 {{- $upstreamPort := include "authProxy.urlPort" .Values.authProxy.upstream -}}
+{{- $proxyEnabled := .Values.authProxy.httpProxy.enabled -}}
+{{- $useProxy := false -}}
+{{- if $proxyEnabled -}}
+  {{- $useProxy = include "authProxy.shouldUseProxy" (dict "hostname" $upstreamHostname "noProxy" .Values.authProxy.httpProxy.noProxy) | trim | eq "true" -}}
+{{- end -}}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -147,7 +152,35 @@ data:
                         socket_address:
                           address: {{ $upstreamHostname }}
                           port_value: {{ $upstreamPort }}
-          {{- if eq $upstreamScheme "https" }}
+                    {{- if $useProxy }}
+                    metadata:
+                      typed_filter_metadata:
+                        envoy.http11_proxy_transport_socket.proxy_address:
+                          "@type": type.googleapis.com/envoy.config.core.v3.Address
+                          socket_address:
+                            address: {{ .Values.authProxy.httpProxy.host }}
+                            port_value: {{ .Values.authProxy.httpProxy.port }}
+                    {{- end }}
+          {{- if and $useProxy (eq $upstreamScheme "https") }}
+          transport_socket:
+            name: envoy.transport_sockets.http_11_proxy
+            typed_config:
+              "@type": type.googleapis.com/envoy.extensions.transport_sockets.http_11_proxy.v3.Http11ProxyUpstreamTransport
+              transport_socket:
+                name: envoy.transport_sockets.tls
+                typed_config:
+                  "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.UpstreamTlsContext
+                  sni: {{ $upstreamHostname }}
+          {{- else if and $useProxy (ne $upstreamScheme "https") }}
+          transport_socket:
+            name: envoy.transport_sockets.http_11_proxy
+            typed_config:
+              "@type": type.googleapis.com/envoy.extensions.transport_sockets.http_11_proxy.v3.Http11ProxyUpstreamTransport
+              transport_socket:
+                name: envoy.transport_sockets.raw_buffer
+                typed_config:
+                  "@type": type.googleapis.com/envoy.extensions.transport_sockets.raw_buffer.v3.RawBuffer
+          {{- else if eq $upstreamScheme "https" }}
           transport_socket:
             name: envoy.transport_sockets.tls
             typed_config:
