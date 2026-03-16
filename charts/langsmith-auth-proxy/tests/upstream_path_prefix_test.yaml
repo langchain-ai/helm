@@ -4,78 +4,78 @@ templates:
 tests:
   - it: should not include prefix_rewrite when upstreamPathPrefix is empty
     set:
-      authProxy.upstream: "https://api.example.com"
+      authProxy.upstream: "https://gateway.example.com"
       authProxy.upstreamPathPrefix: ""
     asserts:
       - notMatchRegex:
           path: data["envoy.yaml"]
           pattern: prefix_rewrite
 
-  - it: should include prefix_rewrite with leading slash (input /gateway)
+  - it: should include prefix_rewrite with leading slash (input /api/v1)
     set:
-      authProxy.upstream: "https://api.example.com"
-      authProxy.upstreamPathPrefix: "/gateway"
+      authProxy.upstream: "https://gateway.example.com"
+      authProxy.upstreamPathPrefix: "/api/v1"
     asserts:
       - matchRegex:
           path: data["envoy.yaml"]
-          pattern: 'prefix_rewrite: "/gateway/"'
+          pattern: 'prefix_rewrite: "/api/v1/"'
 
-  - it: should normalize missing leading slash (input gateway)
+  - it: should normalize missing leading slash (input api/v1)
     set:
-      authProxy.upstream: "https://api.example.com"
-      authProxy.upstreamPathPrefix: "gateway"
+      authProxy.upstream: "https://gateway.example.com"
+      authProxy.upstreamPathPrefix: "api/v1"
     asserts:
       - matchRegex:
           path: data["envoy.yaml"]
-          pattern: 'prefix_rewrite: "/gateway/"'
+          pattern: 'prefix_rewrite: "/api/v1/"'
 
-  - it: should normalize trailing slash (input /gateway/)
+  - it: should normalize trailing slash (input /api/v1/)
     set:
-      authProxy.upstream: "https://api.example.com"
-      authProxy.upstreamPathPrefix: "/gateway/"
+      authProxy.upstream: "https://gateway.example.com"
+      authProxy.upstreamPathPrefix: "/api/v1/"
     asserts:
       - matchRegex:
           path: data["envoy.yaml"]
-          pattern: 'prefix_rewrite: "/gateway/"'
+          pattern: 'prefix_rewrite: "/api/v1/"'
 
-  - it: should normalize both missing leading and extra trailing slash (input gateway/)
+  - it: should normalize both missing leading and extra trailing slash (input api/v1/)
     set:
-      authProxy.upstream: "https://api.example.com"
-      authProxy.upstreamPathPrefix: "gateway/"
+      authProxy.upstream: "https://gateway.example.com"
+      authProxy.upstreamPathPrefix: "api/v1/"
     asserts:
       - matchRegex:
           path: data["envoy.yaml"]
-          pattern: 'prefix_rewrite: "/gateway/"'
+          pattern: 'prefix_rewrite: "/api/v1/"'
 
   - it: should work with multi-segment path prefix
     set:
-      authProxy.upstream: "https://api.example.com"
-      authProxy.upstreamPathPrefix: "/eaip-genai-gateway/v1"
+      authProxy.upstream: "https://gateway.example.com"
+      authProxy.upstreamPathPrefix: "/api/v1"
     asserts:
       - matchRegex:
           path: data["envoy.yaml"]
-          pattern: 'prefix_rewrite: "/eaip-genai-gateway/v1/"'
+          pattern: 'prefix_rewrite: "/api/v1/"'
 
   - it: should work when upstream has trailing slash
     set:
-      authProxy.upstream: "https://api.example.com/"
-      authProxy.upstreamPathPrefix: "/gateway"
+      authProxy.upstream: "https://gateway.example.com/"
+      authProxy.upstreamPathPrefix: "/api/v1"
     asserts:
       - matchRegex:
           path: data["envoy.yaml"]
-          pattern: 'prefix_rewrite: "/gateway/"'
+          pattern: 'prefix_rewrite: "/api/v1/"'
       - matchRegex:
           path: data["envoy.yaml"]
-          pattern: "host_rewrite_literal: api.example.com"
+          pattern: "host_rewrite_literal: gateway.example.com"
 
   - it: should not affect host_rewrite or port when pathPrefix is set
     set:
-      authProxy.upstream: "https://api.example.com"
-      authProxy.upstreamPathPrefix: "/gateway"
+      authProxy.upstream: "https://gateway.example.com"
+      authProxy.upstreamPathPrefix: "/api/v1"
     asserts:
       - matchRegex:
           path: data["envoy.yaml"]
-          pattern: "host_rewrite_literal: api.example.com"
+          pattern: "host_rewrite_literal: gateway.example.com"
       - matchRegex:
           path: data["envoy.yaml"]
           pattern: "port_value: 443"
