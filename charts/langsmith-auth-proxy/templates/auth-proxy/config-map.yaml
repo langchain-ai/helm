@@ -2,6 +2,7 @@
 {{- $upstreamScheme := (urlParse .Values.authProxy.upstream).scheme -}}
 {{- $upstreamHostname := include "authProxy.urlHostname" .Values.authProxy.upstream -}}
 {{- $upstreamPort := include "authProxy.urlPort" .Values.authProxy.upstream -}}
+{{- $upstreamPath := trimSuffix "/" (urlParse .Values.authProxy.upstream).path -}}
 {{- $proxyEnabled := .Values.authProxy.httpProxy.enabled -}}
 {{- $useProxy := false -}}
 {{- if $proxyEnabled -}}
@@ -42,6 +43,9 @@ data:
                               route:
                                 cluster: {{ if $useProxy }}loopback_cluster{{ else }}upstream_provider{{ end }}
                                 host_rewrite_literal: {{ $upstreamHostname }}
+                                {{- if $upstreamPath }}
+                                prefix_rewrite: "{{ $upstreamPath }}/"
+                                {{- end }}
                                 timeout: 0s
                                 idle_timeout: {{ .Values.authProxy.streamIdleTimeout }}
                     http_filters:

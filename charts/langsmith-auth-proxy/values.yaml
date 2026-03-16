@@ -36,7 +36,8 @@ authProxy:
   enabled: true
   name: "auth-proxy"
   containerPort: 10000
-  # -- Upstream LLM provider URL (e.g. https://api.openai.com)
+  # -- Upstream LLM provider or gateway URL (e.g. https://gateway.example.com or https://gateway.example.com/api/v1).
+  # If a path is included, all requests will be prefixed with it (e.g. /chat/completions becomes /api/v1/chat/completions).
   upstream: ""
   # -- JWT issuer claim to validate
   jwtIssuer: "langsmith"
