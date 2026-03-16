@@ -2,76 +2,49 @@ suite: upstream path prefix
 templates:
   - auth-proxy/config-map.yaml
 tests:
-  - it: should not include prefix_rewrite when upstreamPathPrefix is empty
+  - it: should not include prefix_rewrite when upstream has no path
     set:
       authProxy.upstream: "https://gateway.example.com"
-      authProxy.upstreamPathPrefix: ""
     asserts:
       - notMatchRegex:
           path: data["envoy.yaml"]
           pattern: prefix_rewrite
 
-  - it: should include prefix_rewrite with leading slash (input /api/v1)
+  - it: should include prefix_rewrite when upstream has a path
     set:
-      authProxy.upstream: "https://gateway.example.com"
-      authProxy.upstreamPathPrefix: "/api/v1"
+      authProxy.upstream: "https://gateway.example.com/api/v1"
     asserts:
       - matchRegex:
           path: data["envoy.yaml"]
           pattern: 'prefix_rewrite: "/api/v1/"'
 
-  - it: should normalize missing leading slash (input api/v1)
+  - it: should normalize trailing slash in upstream path
     set:
-      authProxy.upstream: "https://gateway.example.com"
-      authProxy.upstreamPathPrefix: "api/v1"
+      authProxy.upstream: "https://gateway.example.com/api/v1/"
     asserts:
       - matchRegex:
           path: data["envoy.yaml"]
           pattern: 'prefix_rewrite: "/api/v1/"'
 
-  - it: should normalize trailing slash (input /api/v1/)
+  - it: should work with single-segment path
     set:
-      authProxy.upstream: "https://gateway.example.com"
-      authProxy.upstreamPathPrefix: "/api/v1/"
+      authProxy.upstream: "https://gateway.example.com/v1"
     asserts:
       - matchRegex:
           path: data["envoy.yaml"]
-          pattern: 'prefix_rewrite: "/api/v1/"'
+          pattern: 'prefix_rewrite: "/v1/"'
 
-  - it: should normalize both missing leading and extra trailing slash (input api/v1/)
+  - it: should work with multi-segment path
     set:
-      authProxy.upstream: "https://gateway.example.com"
-      authProxy.upstreamPathPrefix: "api/v1/"
+      authProxy.upstream: "https://gateway.example.com/api/v1/proxy"
     asserts:
       - matchRegex:
           path: data["envoy.yaml"]
-          pattern: 'prefix_rewrite: "/api/v1/"'
+          pattern: 'prefix_rewrite: "/api/v1/proxy/"'
 
-  - it: should work with multi-segment path prefix
+  - it: should not affect host_rewrite or port when path is present
     set:
-      authProxy.upstream: "https://gateway.example.com"
-      authProxy.upstreamPathPrefix: "/api/v1"
-    asserts:
-      - matchRegex:
-          path: data["envoy.yaml"]
-          pattern: 'prefix_rewrite: "/api/v1/"'
-
-  - it: should work when upstream has trailing slash
-    set:
-      authProxy.upstream: "https://gateway.example.com/"
-      authProxy.upstreamPathPrefix: "/api/v1"
-    asserts:
-      - matchRegex:
-          path: data["envoy.yaml"]
-          pattern: 'prefix_rewrite: "/api/v1/"'
-      - matchRegex:
-          path: data["envoy.yaml"]
-          pattern: "host_rewrite_literal: gateway.example.com"
-
-  - it: should not affect host_rewrite or port when pathPrefix is set
-    set:
-      authProxy.upstream: "https://gateway.example.com"
-      authProxy.upstreamPathPrefix: "/api/v1"
+      authProxy.upstream: "https://gateway.example.com/api/v1"
     asserts:
       - matchRegex:
           path: data["envoy.yaml"]
@@ -79,3 +52,14 @@ tests:
       - matchRegex:
           path: data["envoy.yaml"]
           pattern: "port_value: 443"
+
+  - it: should not affect host_rewrite when upstream has trailing slash and path
+    set:
+      authProxy.upstream: "https://gateway.example.com/api/v1/"
+    asserts:
+      - matchRegex:
+          path: data["envoy.yaml"]
+          pattern: "host_rewrite_literal: gateway.example.com"
+      - matchRegex:
+          path: data["envoy.yaml"]
+          pattern: 'prefix_rewrite: "/api/v1/"'
