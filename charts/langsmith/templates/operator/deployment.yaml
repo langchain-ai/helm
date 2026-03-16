@@ -145,7 +145,7 @@ spec:
           - name: CLUSTER_DOMAIN
             value: {{ .Values.clusterDomain | quote }}
         {{- with .Values.operator.deployment.extraEnv }}
-          {{- toYaml . | nindent 12 }}
+          {{- toYaml . | nindent 10 }}
         {{- end }}
       {{- with .Values.operator.deployment.sidecars }}
       {{- toYaml . | nindent 8 }}
