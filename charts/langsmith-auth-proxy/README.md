@@ -1,6 +1,6 @@
 # langsmith-auth-proxy
 
-![Version: 0.0.4](https://img.shields.io/badge/Version-0.0.4-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.37.0](https://img.shields.io/badge/AppVersion-1.37.0-informational?style=flat-square)
+![Version: 0.0.5](https://img.shields.io/badge/Version-0.0.5-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.37.0](https://img.shields.io/badge/AppVersion-1.37.0-informational?style=flat-square)
 
 Helm chart to deploy the langsmith auth-proxy application.
 
@@ -122,7 +122,8 @@ This chart uses the **HTTP** `ext_authz` mode — HTTP request in, HTTP response
 | authProxy.serviceAccount.labels | object | `{}` |  |
 | authProxy.serviceAccount.name | string | `""` |  |
 | authProxy.streamIdleTimeout | string | `"300s"` | Idle timeout for streaming responses (e.g. SSE from LLM providers) |
-| authProxy.upstream | string | `""` | Upstream LLM provider URL (e.g. https://api.openai.com) |
+| authProxy.upstream | string | `""` | Upstream LLM provider or gateway URL (e.g. https://gateway.example.com). Should be the origin only (scheme + host + port), without a path. |
+| authProxy.upstreamPathPrefix | string | `""` | Path prefix to prepend when forwarding requests to the upstream. For example, if the upstream API is at https://gateway.example.com/api/v1, set upstream to "https://gateway.example.com" and upstreamPathPrefix to "/api/v1". Requests to /chat/completions will be forwarded as /api/v1/chat/completions. |
 | commonAnnotations | object | `{}` | Annotations that will be applied to all resources created by the chart |
 | commonDnsConfig | object | `{"options":[{"name":"ndots","value":"4"}]}` | Set to null to disable and use Kubernetes defaults (ndots: 5). |
 | commonLabels | object | `{}` | Labels that will be applied to all resources created by the chart |

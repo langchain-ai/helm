@@ -42,6 +42,9 @@ data:
                               route:
                                 cluster: {{ if $useProxy }}loopback_cluster{{ else }}upstream_provider{{ end }}
                                 host_rewrite_literal: {{ $upstreamHostname }}
+                                {{- if .Values.authProxy.upstreamPathPrefix }}
+                                prefix_rewrite: "/{{ trimSuffix "/" (trimPrefix "/" .Values.authProxy.upstreamPathPrefix) }}/"
+                                {{- end }}
                                 timeout: 0s
                                 idle_timeout: {{ .Values.authProxy.streamIdleTimeout }}
                     http_filters:
