@@ -122,7 +122,7 @@ This chart uses the **HTTP** `ext_authz` mode — HTTP request in, HTTP response
 | authProxy.serviceAccount.labels | object | `{}` |  |
 | authProxy.serviceAccount.name | string | `""` |  |
 | authProxy.streamIdleTimeout | string | `"300s"` | Idle timeout for streaming responses (e.g. SSE from LLM providers) |
-| authProxy.upstream | string | `""` | Upstream LLM provider or gateway URL (e.g. https://gateway.example.com). Should be the origin only (scheme + host + port), without a path. |
+| authProxy.upstream | string | `""` | Upstream LLM provider or gateway URL (e.g. https://gateway.example.com). Should be the origin only (scheme + host + optional port), without a path. |
 | authProxy.upstreamPathPrefix | string | `""` | Path prefix to prepend when forwarding requests to the upstream. For example, if the upstream API is at https://gateway.example.com/api/v1, set upstream to "https://gateway.example.com" and upstreamPathPrefix to "/api/v1". Requests to /chat/completions will be forwarded as /api/v1/chat/completions. |
 | commonAnnotations | object | `{}` | Annotations that will be applied to all resources created by the chart |
 | commonDnsConfig | object | `{"options":[{"name":"ndots","value":"4"}]}` | Set to null to disable and use Kubernetes defaults (ndots: 5). |
