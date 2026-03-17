@@ -59,6 +59,9 @@ config:
   # -- Optional LangSmith API key mounted as LANGSMITH_API_KEY.
   apiKey: ""
   numberOfJobsPerWorker: 10  # Number of jobs per worker. Workers are bundled with the api server if queue is disabled."
+  # -- Optional maximum HTTP request body size in bytes. The application defaults to 314572800 (300MB).
+  # -- Set this to override the default limit. Requests exceeding this limit receive HTTP 413.
+  httpMaxRequestBodyBytes: ""
   auth:
     enabled: false
     langSmithAuthEndpoint: ""
