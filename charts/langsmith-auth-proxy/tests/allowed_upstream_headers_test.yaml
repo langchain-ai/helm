@@ -1,0 +1,95 @@
+suite: allowed_upstream_headers
+templates:
+  - auth-proxy/config-map.yaml
+tests:
+  - it: should use default allowlist (authorization + x-*) when allowedUpstreamHeaders is empty
+    set:
+      authProxy.upstream: "https://gateway.example.com"
+      authProxy.extAuthz.enabled: true
+      authProxy.extAuthz.serviceUrl: "http://localhost:10002"
+    asserts:
+      - matchRegex:
+          path: data["envoy.yaml"]
+          pattern: 'allowed_upstream_headers:\s+patterns:\s+# Default to allow "authorization" and headers starting with "x-"\s+- exact: "authorization"\s+- prefix: "x-"'
+
+  - it: should not use wildcard .* as default for allowed_upstream_headers
+    set:
+      authProxy.upstream: "https://gateway.example.com"
+      authProxy.extAuthz.enabled: true
+      authProxy.extAuthz.serviceUrl: "http://localhost:10002"
+    asserts:
+      - notMatchRegex:
+          path: data["envoy.yaml"]
+          pattern: 'allowed_upstream_headers:\s+patterns:\s+- safe_regex:\s+regex: "\.\*"'
+
+  - it: should not forward content-length by default
+    set:
+      authProxy.upstream: "https://gateway.example.com"
+      authProxy.extAuthz.enabled: true
+      authProxy.extAuthz.serviceUrl: "http://localhost:10002"
+    asserts:
+      - notMatchRegex:
+          path: data["envoy.yaml"]
+          pattern: 'allowed_upstream_headers:[\s\S]*content-length'
+
+  - it: should use only user-specified entries when allowedUpstreamHeaders is overridden
+    set:
+      authProxy.upstream: "https://gateway.example.com"
+      authProxy.extAuthz.enabled: true
+      authProxy.extAuthz.serviceUrl: "http://localhost:10002"
+      authProxy.extAuthz.allowedUpstreamHeaders:
+        - exact: "my-custom-header"
+    asserts:
+      - matchRegex:
+          path: data["envoy.yaml"]
+          pattern: 'allowed_upstream_headers:\s+patterns:\s+- exact: "my-custom-header"\s+allowed_client_headers:'
+      - notMatchRegex:
+          path: data["envoy.yaml"]
+          pattern: 'Default to allow'
+
+  - it: should use prefix match when allowedUpstreamHeaders has prefix entry
+    set:
+      authProxy.upstream: "https://gateway.example.com"
+      authProxy.extAuthz.enabled: true
+      authProxy.extAuthz.serviceUrl: "http://localhost:10002"
+      authProxy.extAuthz.allowedUpstreamHeaders:
+        - prefix: "my-custom-prefix-"
+    asserts:
+      - matchRegex:
+          path: data["envoy.yaml"]
+          pattern: 'allowed_upstream_headers:\s+patterns:\s+- prefix: "my-custom-prefix-"\s+allowed_client_headers:'
+
+  - it: should use safe_regex when allowedUpstreamHeaders has safe_regex entry
+    set:
+      authProxy.upstream: "https://gateway.example.com"
+      authProxy.extAuthz.enabled: true
+      authProxy.extAuthz.serviceUrl: "http://localhost:10002"
+      authProxy.extAuthz.allowedUpstreamHeaders:
+        - safe_regex: "^(authorization|x-.*)$"
+    asserts:
+      - matchRegex:
+          path: data["envoy.yaml"]
+          pattern: 'allowed_upstream_headers:\s+patterns:\s+- safe_regex:\s+regex: "\^\(authorization\|x-\.\*\)\$"\s+allowed_client_headers:'
+
+  - it: should support multiple allowedUpstreamHeaders entries
+    set:
+      authProxy.upstream: "https://gateway.example.com"
+      authProxy.extAuthz.enabled: true
+      authProxy.extAuthz.serviceUrl: "http://localhost:10002"
+      authProxy.extAuthz.allowedUpstreamHeaders:
+        - exact: "authorization"
+        - prefix: "x-"
+        - exact: "my-custom-header"
+    asserts:
+      - matchRegex:
+          path: data["envoy.yaml"]
+          pattern: 'allowed_upstream_headers:\s+patterns:\s+- exact: "authorization"\s+- prefix: "x-"\s+- exact: "my-custom-header"\s+allowed_client_headers:'
+
+  - it: should not render allowed_upstream_headers when extAuthz is disabled
+    set:
+      authProxy.upstream: "https://gateway.example.com"
+      authProxy.extAuthz.enabled: false
+    asserts:
+      - notMatchRegex:
+          path: data["envoy.yaml"]
+          pattern: allowed_upstream_headers
