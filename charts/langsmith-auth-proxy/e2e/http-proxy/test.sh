@@ -165,7 +165,59 @@ BODY=$(echo "$RESP" | sed '$d')
 STATUS=$(echo "$RESP" | tail -1)
 assert_status "Valid JWT returns 200 through proxy" "200" "$STATUS"
 
-log "Test 4: Verify tinyproxy logged the proxied request"
+# Verify the request body was forwarded to upstream through the proxy
+UPSTREAM_BODY=$(echo "$BODY" | jq -r '.body // empty')
+if echo "$UPSTREAM_BODY" | jq -e '.model == "test"' &>/dev/null; then
+  pass "Request body forwarded to upstream through proxy"
+else
+  fail "Request body NOT forwarded to upstream through proxy — got: '$UPSTREAM_BODY'"
+fi
+
+# Verify content-length wasn't corrupted by the proxy chain
+UPSTREAM_CL=$(echo "$BODY" | jq -r '.headers["content-length"] // empty')
+if [[ "$UPSTREAM_CL" == "16" ]]; then
+  pass "Content-Length preserved through proxy (${UPSTREAM_CL})"
+else
+  fail "Content-Length mismatch through proxy — expected 16, got '$UPSTREAM_CL'"
+fi
+
+log "Test 5: POST with large body through proxy — verify full body forwarded"
+LARGE_BODY=$(jq -nc '{
+  model: "gpt-4",
+  messages: [
+    {role: "system", content: "You are a helpful assistant."},
+    {role: "user", content: "Tell me a story about a brave knight who fought dragons."}
+  ],
+  temperature: 0.7,
+  max_tokens: 1024,
+  stream: false
+}')
+RESP5=$(curl -s -w '\n%{http_code}' -X POST "$BASE/v1/chat/completions" \
+  -H "X-LangSmith-LLM-Auth: $JWT" \
+  -H "Content-Type: application/json" \
+  -d "$LARGE_BODY")
+BODY5=$(echo "$RESP5" | sed '$d')
+STATUS5=$(echo "$RESP5" | tail -1)
+assert_status "Large body POST through proxy returns 200" "200" "$STATUS5"
+
+UPSTREAM_BODY5=$(echo "$BODY5" | jq -r '.body // empty')
+UPSTREAM_MODEL=$(echo "$UPSTREAM_BODY5" | jq -r '.model // empty')
+UPSTREAM_MSG_COUNT=$(echo "$UPSTREAM_BODY5" | jq -r '.messages | length // 0')
+if [[ "$UPSTREAM_MODEL" == "gpt-4" ]] && [[ "$UPSTREAM_MSG_COUNT" == "2" ]]; then
+  pass "Large request body forwarded intact through proxy (model=$UPSTREAM_MODEL, messages=$UPSTREAM_MSG_COUNT)"
+else
+  fail "Large body corrupted or missing through proxy — model='$UPSTREAM_MODEL', messages='$UPSTREAM_MSG_COUNT'"
+fi
+
+EXPECTED_CL5=${#LARGE_BODY}
+ACTUAL_CL5=$(echo "$BODY5" | jq -r '.headers["content-length"] // empty')
+if [[ "$ACTUAL_CL5" == "$EXPECTED_CL5" ]]; then
+  pass "Large body Content-Length correct through proxy ($ACTUAL_CL5)"
+else
+  fail "Large body Content-Length mismatch through proxy — expected $EXPECTED_CL5, got '$ACTUAL_CL5'"
+fi
+
+log "Test 6: Verify tinyproxy logged the proxied requests"
 PROXY_POD=$(kubectl get pods --context "kind-$CLUSTER_NAME" \
   -l app=tinyproxy -o jsonpath='{.items[0].metadata.name}')
 PROXY_LOGS=$(kubectl logs --context "kind-$CLUSTER_NAME" "$PROXY_POD" --tail=50 2>&1)

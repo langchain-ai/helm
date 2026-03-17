@@ -125,8 +125,9 @@ data:
                                   {{- end }}
                                   {{- end }}
                                 {{- else }}
-                                  - safe_regex:
-                                      regex: ".*"
+                                  # Default to allow "authorization" and headers starting with "x-"
+                                  - exact: "authorization"
+                                  - prefix: "x-"
                                 {{- end }}
                               allowed_client_headers:
                                 patterns:

@@ -10,7 +10,7 @@ CLUSTER_NAME="auth-proxy-e2e"
 RELEASE_NAME="auth-proxy-e2e"
 NAMESPACE="default"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-CHART_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+CHART_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
 LOCAL_PORT=10000  # local port-forward target
 
 PASS=0
@@ -208,10 +208,64 @@ else
   fail "Expected X-Remove-Me to be removed, but got '$REMOVED_HEADER'"
 fi
 
+# Verify the request body was forwarded to upstream
+UPSTREAM_BODY=$(echo "$BODY" | jq -r '.body // empty')
+if echo "$UPSTREAM_BODY" | jq -e '.model == "test"' &>/dev/null; then
+  pass "Request body forwarded to upstream"
+else
+  fail "Request body NOT forwarded to upstream — got: '$UPSTREAM_BODY'"
+fi
+
+# Verify content-length header wasn't clobbered by ext_authz response
+UPSTREAM_CL=$(echo "$BODY" | jq -r '.headers["content-length"] // empty')
+if [[ "$UPSTREAM_CL" == "16" ]]; then
+  pass "Content-Length preserved (${UPSTREAM_CL})"
+else
+  fail "Content-Length mismatch — expected 16 for '{\"model\":\"test\"}', got '$UPSTREAM_CL'"
+fi
+
 log "Test 4: POST /v1/chat/completions with garbage JWT → 401"
 STATUS=$(curl -s -o /dev/null -w '%{http_code}' -X POST "$BASE/v1/chat/completions" \
   -H "X-LangSmith-LLM-Auth: garbage.jwt.token")
 assert_status "Garbage JWT returns 401" "401" "$STATUS"
+
+log "Test 5: POST with large body — verify full body forwarded to upstream"
+LARGE_BODY=$(jq -nc '{
+  model: "gpt-4",
+  messages: [
+    {role: "system", content: "You are a helpful assistant."},
+    {role: "user", content: "Tell me a story about a brave knight who fought dragons."}
+  ],
+  temperature: 0.7,
+  max_tokens: 1024,
+  stream: false
+}')
+RESP5=$(curl -s -w '\n%{http_code}' -X POST "$BASE/v1/chat/completions" \
+  -H "X-LangSmith-LLM-Auth: $JWT" \
+  -H "Content-Type: application/json" \
+  -d "$LARGE_BODY")
+BODY5=$(echo "$RESP5" | sed '$d')
+STATUS5=$(echo "$RESP5" | tail -1)
+assert_status "Large body POST returns 200" "200" "$STATUS5"
+
+# Verify the full body arrived intact at upstream
+UPSTREAM_BODY5=$(echo "$BODY5" | jq -r '.body // empty')
+UPSTREAM_MODEL=$(echo "$UPSTREAM_BODY5" | jq -r '.model // empty')
+UPSTREAM_MSG_COUNT=$(echo "$UPSTREAM_BODY5" | jq -r '.messages | length // 0')
+if [[ "$UPSTREAM_MODEL" == "gpt-4" ]] && [[ "$UPSTREAM_MSG_COUNT" == "2" ]]; then
+  pass "Large request body forwarded intact (model=$UPSTREAM_MODEL, messages=$UPSTREAM_MSG_COUNT)"
+else
+  fail "Large body corrupted or missing — model='$UPSTREAM_MODEL', messages='$UPSTREAM_MSG_COUNT'"
+fi
+
+# Verify content-length matches what was sent
+EXPECTED_CL5=${#LARGE_BODY}
+ACTUAL_CL5=$(echo "$BODY5" | jq -r '.headers["content-length"] // empty')
+if [[ "$ACTUAL_CL5" == "$EXPECTED_CL5" ]]; then
+  pass "Large body Content-Length correct ($ACTUAL_CL5)"
+else
+  fail "Large body Content-Length mismatch — expected $EXPECTED_CL5, got '$ACTUAL_CL5'"
+fi
 
 # ── 8. Logs ──────────────────────────────────────────────────────────
 log "Echo upstream logs"

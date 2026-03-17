@@ -20,6 +20,8 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header("Authorization", "Bearer fake-upstream-key")
         self.send_header("X-Custom-Added", "from-ext-authz")
         self.send_header("x-envoy-auth-headers-to-remove", "x-remove-me")
+        # For testing empty request. Should not be forwarded upstream.
+        self.send_header("Content-Length", "0")
         self.end_headers()
 
     # Handle every HTTP method the same way
