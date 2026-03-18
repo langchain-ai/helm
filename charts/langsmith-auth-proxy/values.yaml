@@ -47,7 +47,7 @@ authProxy:
   # Generate with the LangSmith JWKS tooling and paste the full JSON here.
   # Mutually exclusive with jwksUri — if both are set, jwksUri takes precedence.
   jwksJson: ""
-  # -- Remote JWKS endpoint URL for fetching public keys (e.g. https://langsmith.example.com/.well-known/jwks.json).
+  # -- Remote JWKS endpoint URL for fetching public keys (e.g. https://langsmith.example.com/.well-known/jwks.json for self-hosted LangSmith or https://api.smith.langchain.com/.well-known/jwks.json in SaaS).
   # When set, Envoy fetches and caches keys from this URL instead of using inline jwksJson.
   # Mutually exclusive with jwksJson — if both are set, jwksUri takes precedence.
   jwksUri: ""
