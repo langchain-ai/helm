@@ -1,0 +1,228 @@
+suite: jwks uri configuration
+templates:
+  - auth-proxy/config-map.yaml
+tests:
+  - it: should use local_jwks when only jwksJson is set
+    set:
+      authProxy.upstream: "https://gateway.example.com"
+      authProxy.jwksJson: '{"keys":[{"kty":"RSA"}]}'
+    asserts:
+      - matchRegex:
+          path: data["envoy.yaml"]
+          pattern: "local_jwks"
+      - notMatchRegex:
+          path: data["envoy.yaml"]
+          pattern: "remote_jwks"
+      - notMatchRegex:
+          path: data["envoy.yaml"]
+          pattern: "jwks_service"
+
+  - it: should use remote_jwks when jwksUri is set
+    set:
+      authProxy.upstream: "https://gateway.example.com"
+      authProxy.jwksUri: "https://langsmith.example.com/.well-known/jwks.json"
+    asserts:
+      - matchRegex:
+          path: data["envoy.yaml"]
+          pattern: "remote_jwks"
+      - matchRegex:
+          path: data["envoy.yaml"]
+          pattern: "cluster: jwks_service"
+      - matchRegex:
+          path: data["envoy.yaml"]
+          pattern: "uri: https://langsmith.example.com/.well-known/jwks.json"
+      - notMatchRegex:
+          path: data["envoy.yaml"]
+          pattern: "local_jwks"
+
+  - it: should create jwks_service cluster when jwksUri is set
+    set:
+      authProxy.upstream: "https://gateway.example.com"
+      authProxy.jwksUri: "https://langsmith.example.com/.well-known/jwks.json"
+    asserts:
+      - matchRegex:
+          path: data["envoy.yaml"]
+          pattern: "name: jwks_service"
+      - matchRegex:
+          path: data["envoy.yaml"]
+          pattern: "address: langsmith.example.com"
+      - matchRegex:
+          path: data["envoy.yaml"]
+          pattern: "port_value: 443"
+
+  - it: should use TLS for https jwksUri
+    set:
+      authProxy.upstream: "https://gateway.example.com"
+      authProxy.jwksUri: "https://langsmith.example.com/.well-known/jwks.json"
+    asserts:
+      - matchRegex:
+          path: data["envoy.yaml"]
+          pattern: "sni: langsmith.example.com"
+
+  - it: should not use TLS for http jwksUri
+    set:
+      authProxy.upstream: "https://gateway.example.com"
+      authProxy.jwksUri: "http://langsmith.internal:8080/.well-known/jwks.json"
+    asserts:
+      - matchRegex:
+          path: data["envoy.yaml"]
+          pattern: "address: langsmith.internal"
+      - matchRegex:
+          path: data["envoy.yaml"]
+          pattern: "port_value: 8080"
+
+  - it: should use jwksUri over jwksJson when both are set
+    set:
+      authProxy.upstream: "https://gateway.example.com"
+      authProxy.jwksJson: '{"keys":[{"kty":"RSA"}]}'
+      authProxy.jwksUri: "https://langsmith.example.com/.well-known/jwks.json"
+    asserts:
+      - matchRegex:
+          path: data["envoy.yaml"]
+          pattern: "remote_jwks"
+      - notMatchRegex:
+          path: data["envoy.yaml"]
+          pattern: "local_jwks"
+
+  - it: should use default cache duration of 300 seconds
+    set:
+      authProxy.upstream: "https://gateway.example.com"
+      authProxy.jwksUri: "https://langsmith.example.com/.well-known/jwks.json"
+    asserts:
+      - matchRegex:
+          path: data["envoy.yaml"]
+          pattern: "seconds: 300"
+
+  - it: should use custom cache duration when set
+    set:
+      authProxy.upstream: "https://gateway.example.com"
+      authProxy.jwksUri: "https://langsmith.example.com/.well-known/jwks.json"
+      authProxy.jwksCacheDurationSeconds: 600
+    asserts:
+      - matchRegex:
+          path: data["envoy.yaml"]
+          pattern: "seconds: 600"
+
+  - it: should not create jwks_service cluster when jwksUri is not set
+    set:
+      authProxy.upstream: "https://gateway.example.com"
+      authProxy.jwksJson: '{"keys":[{"kty":"RSA"}]}'
+    asserts:
+      - notMatchRegex:
+          path: data["envoy.yaml"]
+          pattern: "jwks_service"
+
+  # ── httpProxy + jwksUri scenarios ──────────────────────────────────
+
+  - it: should route JWKS through proxy when httpProxy enabled and JWKS host not in noProxy
+    set:
+      authProxy.upstream: "http://fake-gateway:10001"
+      authProxy.jwksUri: "https://api.smith.langchain.com/.well-known/jwks.json"
+      authProxy.httpProxy.enabled: true
+      authProxy.httpProxy.host: "proxy.corp.com"
+      authProxy.httpProxy.port: 3128
+      authProxy.httpProxy.noProxy:
+        - "fake-gateway"
+    asserts:
+      - matchRegex:
+          path: data["envoy.yaml"]
+          pattern: "cluster: jwks_loopback_cluster"
+      - matchRegex:
+          path: data["envoy.yaml"]
+          pattern: "name: jwks_loopback_cluster"
+      - matchRegex:
+          path: data["envoy.yaml"]
+          pattern: "name: listener_2"
+      - matchRegex:
+          path: data["envoy.yaml"]
+          pattern: "hostname: api.smith.langchain.com:443"
+      - matchRegex:
+          path: data["envoy.yaml"]
+          pattern: "sni: api.smith.langchain.com"
+      - notMatchRegex:
+          path: data["envoy.yaml"]
+          pattern: "name: jwks_service"
+
+  - it: should connect JWKS directly when httpProxy enabled but JWKS host is in noProxy
+    set:
+      authProxy.upstream: "http://fake-gateway:10001"
+      authProxy.jwksUri: "http://langsmith-backend:1984/.well-known/jwks.json"
+      authProxy.httpProxy.enabled: true
+      authProxy.httpProxy.host: "proxy.corp.com"
+      authProxy.httpProxy.port: 3128
+      authProxy.httpProxy.noProxy:
+        - "fake-gateway"
+        - "langsmith-backend"
+    asserts:
+      - matchRegex:
+          path: data["envoy.yaml"]
+          pattern: "cluster: jwks_service"
+      - matchRegex:
+          path: data["envoy.yaml"]
+          pattern: "name: jwks_service"
+      - notMatchRegex:
+          path: data["envoy.yaml"]
+          pattern: "jwks_loopback_cluster"
+      - notMatchRegex:
+          path: data["envoy.yaml"]
+          pattern: "name: listener_2"
+
+  - it: should create proxy_cluster when only JWKS needs proxy (upstream in noProxy)
+    set:
+      authProxy.upstream: "http://fake-gateway:10001"
+      authProxy.jwksUri: "https://api.smith.langchain.com/.well-known/jwks.json"
+      authProxy.httpProxy.enabled: true
+      authProxy.httpProxy.host: "proxy.corp.com"
+      authProxy.httpProxy.port: 3128
+      authProxy.httpProxy.noProxy:
+        - "fake-gateway"
+    asserts:
+      - matchRegex:
+          path: data["envoy.yaml"]
+          pattern: "name: proxy_cluster"
+      - matchRegex:
+          path: data["envoy.yaml"]
+          pattern: "name: upstream_provider"
+      - notMatchRegex:
+          path: data["envoy.yaml"]
+          pattern: "name: loopback_cluster"
+
+  - it: should create proxy_cluster shared by both upstream and JWKS when both need proxy
+    set:
+      authProxy.upstream: "https://api.openai.com"
+      authProxy.jwksUri: "https://api.smith.langchain.com/.well-known/jwks.json"
+      authProxy.httpProxy.enabled: true
+      authProxy.httpProxy.host: "proxy.corp.com"
+      authProxy.httpProxy.port: 3128
+    asserts:
+      - matchRegex:
+          path: data["envoy.yaml"]
+          pattern: "name: proxy_cluster"
+      - matchRegex:
+          path: data["envoy.yaml"]
+          pattern: "name: loopback_cluster"
+      - matchRegex:
+          path: data["envoy.yaml"]
+          pattern: "name: jwks_loopback_cluster"
+      - matchRegex:
+          path: data["envoy.yaml"]
+          pattern: "name: listener_1"
+      - matchRegex:
+          path: data["envoy.yaml"]
+          pattern: "name: listener_2"
+
+  - it: should not use proxy for JWKS when httpProxy is disabled
+    set:
+      authProxy.upstream: "https://gateway.example.com"
+      authProxy.jwksUri: "https://api.smith.langchain.com/.well-known/jwks.json"
+      authProxy.httpProxy.enabled: false
+    asserts:
+      - matchRegex:
+          path: data["envoy.yaml"]
+          pattern: "cluster: jwks_service"
+      - notMatchRegex:
+          path: data["envoy.yaml"]
+          pattern: "jwks_loopback_cluster"
+      - notMatchRegex:
+          path: data["envoy.yaml"]
+          pattern: "proxy_cluster"

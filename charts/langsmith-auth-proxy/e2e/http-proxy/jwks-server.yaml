@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jwks-server
+  labels:
+    app: jwks-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: jwks-server
+  template:
+    metadata:
+      labels:
+        app: jwks-server
+    spec:
+      containers:
+        - name: jwks-server
+          image: python:3.12-slim
+          command: ["python", "/scripts/jwks-server.py", "8080"]
+          ports:
+            - containerPort: 8080
+          volumeMounts:
+            - name: script
+              mountPath: /scripts
+              readOnly: true
+            - name: jwks-data
+              mountPath: /data
+              readOnly: true
+      volumes:
+        - name: script
+          configMap:
+            name: jwks-server-script
+        - name: jwks-data
+          configMap:
+            name: jwks-data
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: jwks-server
+  labels:
+    app: jwks-server
+spec:
+  selector:
+    app: jwks-server
+  ports:
+    - port: 8080
+      targetPort: 8080
+      protocol: TCP

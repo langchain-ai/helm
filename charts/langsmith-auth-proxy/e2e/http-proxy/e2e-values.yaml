@@ -4,7 +4,9 @@ authProxy:
   jwtIssuer: "langsmith"
   jwtAudiences:
     - "test-audience"
-  # jwksJson injected via --set at install time
+  # Remote JWKS — fetched from a separate jwks-server pod
+  jwksUri: "http://jwks-server:8080/well-known/jwks.json"
+  jwksCacheDurationSeconds: 30
   streamIdleTimeout: "300s"
   httpProxy:
     enabled: true

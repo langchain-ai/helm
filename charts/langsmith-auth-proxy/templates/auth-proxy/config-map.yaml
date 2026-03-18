@@ -8,6 +8,20 @@
 {{- if $proxyEnabled -}}
   {{- $useProxy = include "authProxy.shouldUseProxy" (dict "hostname" $upstreamHostname "noProxy" .Values.authProxy.httpProxy.noProxy) | trim | eq "true" -}}
 {{- end -}}
+{{- $jwksUri := .Values.authProxy.jwksUri -}}
+{{- $jwksScheme := "" -}}
+{{- $jwksHostname := "" -}}
+{{- $jwksPort := "" -}}
+{{- $useProxyForJwks := false -}}
+{{- if $jwksUri -}}
+  {{- $jwksScheme = (urlParse $jwksUri).scheme -}}
+  {{- $jwksHostname = include "authProxy.urlHostname" $jwksUri -}}
+  {{- $jwksPort = include "authProxy.urlPort" $jwksUri -}}
+  {{- if $proxyEnabled -}}
+    {{- $useProxyForJwks = include "authProxy.shouldUseProxy" (dict "hostname" $jwksHostname "noProxy" .Values.authProxy.httpProxy.noProxy) | trim | eq "true" -}}
+  {{- end -}}
+{{- end -}}
+{{- $needsProxyCluster := or $useProxy $useProxyForJwks -}}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -70,8 +84,18 @@ data:
                                 - {{ . | quote }}
                                 {{- end }}
                               {{- end }}
+                              {{- if $jwksUri }}
+                              remote_jwks:
+                                http_uri:
+                                  uri: {{ $jwksUri }}
+                                  cluster: {{ if $useProxyForJwks }}jwks_loopback_cluster{{ else }}jwks_service{{ end }}
+                                  timeout: 5s
+                                cache_duration:
+                                  seconds: {{ .Values.authProxy.jwksCacheDurationSeconds | default 300 }}
+                              {{- else }}
                               local_jwks:
                                 inline_string: '{{ .Values.authProxy.jwksJson }}'
+                              {{- end }}
                               from_headers:
                                 - name: X-LangSmith-LLM-Auth
                               forward: true
@@ -158,6 +182,22 @@ data:
                     tunneling_config:
                       hostname: {{ $upstreamHostname }}:{{ $upstreamPort }}
         {{- end }}
+        {{- if $useProxyForJwks }}
+        - name: listener_2
+          address:
+            socket_address:
+              address: 127.0.0.1
+              port_value: 10002
+          filter_chains:
+            - filters:
+                - name: envoy.filters.network.tcp_proxy
+                  typed_config:
+                    "@type": type.googleapis.com/envoy.extensions.filters.network.tcp_proxy.v3.TcpProxy
+                    stat_prefix: tcp_to_jwks_proxy
+                    cluster: proxy_cluster
+                    tunneling_config:
+                      hostname: {{ $jwksHostname }}:{{ $jwksPort }}
+        {{- end }}
 
       clusters:
         {{- if $useProxy }}
@@ -180,19 +220,6 @@ data:
               "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.UpstreamTlsContext
               sni: {{ $upstreamHostname }}
           {{- end }}
-        - name: proxy_cluster
-          connect_timeout: 5s
-          type: STRICT_DNS
-          dns_lookup_family: V4_ONLY
-          load_assignment:
-            cluster_name: proxy_cluster
-            endpoints:
-              - lb_endpoints:
-                  - endpoint:
-                      address:
-                        socket_address:
-                          address: {{ .Values.authProxy.httpProxy.host }}
-                          port_value: {{ .Values.authProxy.httpProxy.port }}
         {{- else }}
         - name: upstream_provider
           connect_timeout: 5s
@@ -213,6 +240,63 @@ data:
             typed_config:
               "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.UpstreamTlsContext
               sni: {{ $upstreamHostname }}
+          {{- end }}
+        {{- end }}
+        {{- if $needsProxyCluster }}
+        - name: proxy_cluster
+          connect_timeout: 5s
+          type: STRICT_DNS
+          dns_lookup_family: V4_ONLY
+          load_assignment:
+            cluster_name: proxy_cluster
+            endpoints:
+              - lb_endpoints:
+                  - endpoint:
+                      address:
+                        socket_address:
+                          address: {{ .Values.authProxy.httpProxy.host }}
+                          port_value: {{ .Values.authProxy.httpProxy.port }}
+        {{- end }}
+        {{- if $useProxyForJwks }}
+        - name: jwks_loopback_cluster
+          connect_timeout: 5s
+          type: STATIC
+          load_assignment:
+            cluster_name: jwks_loopback_cluster
+            endpoints:
+              - lb_endpoints:
+                  - endpoint:
+                      address:
+                        socket_address:
+                          address: 127.0.0.1
+                          port_value: 10002
+          {{- if eq $jwksScheme "https" }}
+          transport_socket:
+            name: envoy.transport_sockets.tls
+            typed_config:
+              "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.UpstreamTlsContext
+              sni: {{ $jwksHostname }}
+          {{- end }}
+        {{- else if $jwksUri }}
+        - name: jwks_service
+          connect_timeout: 5s
+          type: LOGICAL_DNS
+          dns_lookup_family: V4_ONLY
+          load_assignment:
+            cluster_name: jwks_service
+            endpoints:
+              - lb_endpoints:
+                  - endpoint:
+                      address:
+                        socket_address:
+                          address: {{ $jwksHostname }}
+                          port_value: {{ $jwksPort }}
+          {{- if eq $jwksScheme "https" }}
+          transport_socket:
+            name: envoy.transport_sockets.tls
+            typed_config:
+              "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.UpstreamTlsContext
+              sni: {{ $jwksHostname }}
           {{- end }}
         {{- end }}
         {{- if .Values.authProxy.extAuthz.enabled }}

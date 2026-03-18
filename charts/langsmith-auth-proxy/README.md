@@ -98,7 +98,9 @@ This chart uses the **HTTP** `ext_authz` mode — HTTP request in, HTTP response
 | authProxy.httpProxy.host | string | `""` | Proxy hostname or IP address |
 | authProxy.httpProxy.noProxy | list | `[]` | List of hostnames/domains to bypass the proxy for (NO_PROXY equivalent). Supports exact match ("internal.corp") and domain suffix (".internal.corp"). If the upstream hostname matches any entry, proxy is not used. |
 | authProxy.httpProxy.port | int | `3128` | Proxy port |
-| authProxy.jwksJson | string | `""` | JWKS JSON string containing the public keys for JWT validation. Generate with the LangSmith JWKS tooling and paste the full JSON here. |
+| authProxy.jwksCacheDurationSeconds | int | `300` | Cache duration in seconds for remote JWKS keys. Only used when jwksUri is set. |
+| authProxy.jwksJson | string | `""` | JWKS JSON string containing the public keys for JWT validation. Generate with the LangSmith JWKS tooling and paste the full JSON here. Mutually exclusive with jwksUri — if both are set, jwksUri takes precedence. |
+| authProxy.jwksUri | string | `""` | Remote JWKS endpoint URL for fetching public keys (e.g. https://langsmith.example.com/.well-known/jwks.json). When set, Envoy fetches and caches keys from this URL instead of using inline jwksJson. Mutually exclusive with jwksJson — if both are set, jwksUri takes precedence. |
 | authProxy.jwtAudiences | list | `[]` | JWT audience claims to validate. Must match audiences in the signed JWT. |
 | authProxy.jwtIssuer | string | `"langsmith"` | JWT issuer claim to validate |
 | authProxy.jwtValidation | object | `{"enabled":true}` | JWT validation configuration |

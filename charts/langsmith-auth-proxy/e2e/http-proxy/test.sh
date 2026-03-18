@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
-# End-to-end test for langsmith-auth-proxy HTTP proxy support.
-# Spins up a kind cluster with tinyproxy (HTTP forward proxy) + fake gateway
-# (echo server), deploys the chart with httpProxy enabled, and verifies that
-# upstream traffic is routed through the proxy.
+# End-to-end test for langsmith-auth-proxy HTTP proxy support with remote JWKS.
+# Spins up a kind cluster with tinyproxy (HTTP forward proxy), fake gateway
+# (echo server), and a JWKS server, deploys the chart with httpProxy enabled
+# and jwksUri pointing at the JWKS server, and verifies that upstream traffic
+# is routed through the proxy with keys fetched remotely.
 set -euo pipefail
 
 CLUSTER_NAME="auth-proxy-proxy-e2e"
@@ -108,27 +109,31 @@ log "Deploying fake gateway"
 kubectl apply --context "kind-$CLUSTER_NAME" -f "$SCRIPT_DIR/fake-gateway.yaml"
 kubectl rollout status deployment/fake-gateway --context "kind-$CLUSTER_NAME" --timeout=90s
 
-# ── 6. Deploy chart ──────────────────────────────────────────────────
-# The two-listener loopback pattern supports hostnames natively via STRICT_DNS,
-# so we pass the tinyproxy service hostname directly (no ClusterIP resolution needed).
-log "Installing chart with helm"
-TMPDIR_VALS="$(mktemp -d)"
-cat > "$TMPDIR_VALS/runtime-values.yaml" <<EOYAML
-authProxy:
-  jwksJson: '$JWKS_JSON'
-  httpProxy:
-    host: "tinyproxy"
-EOYAML
+# ── 6. Deploy JWKS server ───────────────────────────────────────────
+log "Deploying JWKS server"
+kubectl create configmap jwks-server-script \
+  --context "kind-$CLUSTER_NAME" \
+  --from-file="jwks-server.py=$SCRIPT_DIR/jwks-server.py" \
+  --dry-run=client -o yaml | kubectl apply --context "kind-$CLUSTER_NAME" -f -
 
+# Inject the generated JWKS JSON into a ConfigMap mounted by the server
+kubectl create configmap jwks-data \
+  --context "kind-$CLUSTER_NAME" \
+  --from-literal="jwks.json=$JWKS_JSON" \
+  --dry-run=client -o yaml | kubectl apply --context "kind-$CLUSTER_NAME" -f -
+
+kubectl apply --context "kind-$CLUSTER_NAME" -f "$SCRIPT_DIR/jwks-server.yaml"
+kubectl rollout status deployment/jwks-server --context "kind-$CLUSTER_NAME" --timeout=90s
+
+# ── 7. Deploy chart ──────────────────────────────────────────────────
+log "Installing chart with helm"
 helm upgrade --install "$RELEASE_NAME" "$CHART_DIR" \
   --kube-context "kind-$CLUSTER_NAME" \
   -f "$SCRIPT_DIR/e2e-values.yaml" \
-  -f "$TMPDIR_VALS/runtime-values.yaml" \
+  --set authProxy.httpProxy.host="tinyproxy" \
   --wait --timeout 120s
 
-rm -rf "$TMPDIR_VALS"
-
-# ── 7. Port-forward ─────────────────────────────────────────────────
+# ── 8. Port-forward ─────────────────────────────────────────────────
 log "Setting up port-forward"
 AUTH_POD=$(kubectl get pods --context "kind-$CLUSTER_NAME" \
   -l "app.kubernetes.io/instance=${RELEASE_NAME},app.kubernetes.io/name=langsmith-auth-proxy" \
@@ -145,7 +150,7 @@ if ! kill -0 "$PF_PID" 2>/dev/null; then
   exit 1
 fi
 
-# ── 8. Tests ─────────────────────────────────────────────────────────
+# ── 9. Tests ─────────────────────────────────────────────────────────
 BASE="http://localhost:$LOCAL_PORT"
 
 log "Test 1: GET /healthz → 200 (bypasses auth)"
@@ -156,7 +161,7 @@ log "Test 2: POST /v1/chat/completions without JWT → 401"
 STATUS=$(curl -s -o /dev/null -w '%{http_code}' -X POST "$BASE/v1/chat/completions")
 assert_status "No JWT returns 401" "401" "$STATUS"
 
-log "Test 3: POST /v1/chat/completions with valid JWT → 200 (routed through proxy)"
+log "Test 3: POST /v1/chat/completions with valid JWT → 200 (routed through proxy, JWKS fetched remotely)"
 RESP=$(curl -s -w '\n%{http_code}' -X POST "$BASE/v1/chat/completions" \
   -H "X-LangSmith-LLM-Auth: $JWT" \
   -H "Content-Type: application/json" \
@@ -181,7 +186,7 @@ else
   fail "Content-Length mismatch through proxy — expected 16, got '$UPSTREAM_CL'"
 fi
 
-log "Test 5: POST with large body through proxy — verify full body forwarded"
+log "Test 4: POST with large body through proxy — verify full body forwarded"
 LARGE_BODY=$(jq -nc '{
   model: "gpt-4",
   messages: [
@@ -192,32 +197,32 @@ LARGE_BODY=$(jq -nc '{
   max_tokens: 1024,
   stream: false
 }')
-RESP5=$(curl -s -w '\n%{http_code}' -X POST "$BASE/v1/chat/completions" \
+RESP4=$(curl -s -w '\n%{http_code}' -X POST "$BASE/v1/chat/completions" \
   -H "X-LangSmith-LLM-Auth: $JWT" \
   -H "Content-Type: application/json" \
   -d "$LARGE_BODY")
-BODY5=$(echo "$RESP5" | sed '$d')
-STATUS5=$(echo "$RESP5" | tail -1)
-assert_status "Large body POST through proxy returns 200" "200" "$STATUS5"
+BODY4=$(echo "$RESP4" | sed '$d')
+STATUS4=$(echo "$RESP4" | tail -1)
+assert_status "Large body POST through proxy returns 200" "200" "$STATUS4"
 
-UPSTREAM_BODY5=$(echo "$BODY5" | jq -r '.body // empty')
-UPSTREAM_MODEL=$(echo "$UPSTREAM_BODY5" | jq -r '.model // empty')
-UPSTREAM_MSG_COUNT=$(echo "$UPSTREAM_BODY5" | jq -r '.messages | length // 0')
+UPSTREAM_BODY4=$(echo "$BODY4" | jq -r '.body // empty')
+UPSTREAM_MODEL=$(echo "$UPSTREAM_BODY4" | jq -r '.model // empty')
+UPSTREAM_MSG_COUNT=$(echo "$UPSTREAM_BODY4" | jq -r '.messages | length // 0')
 if [[ "$UPSTREAM_MODEL" == "gpt-4" ]] && [[ "$UPSTREAM_MSG_COUNT" == "2" ]]; then
   pass "Large request body forwarded intact through proxy (model=$UPSTREAM_MODEL, messages=$UPSTREAM_MSG_COUNT)"
 else
   fail "Large body corrupted or missing through proxy — model='$UPSTREAM_MODEL', messages='$UPSTREAM_MSG_COUNT'"
 fi
 
-EXPECTED_CL5=${#LARGE_BODY}
-ACTUAL_CL5=$(echo "$BODY5" | jq -r '.headers["content-length"] // empty')
-if [[ "$ACTUAL_CL5" == "$EXPECTED_CL5" ]]; then
-  pass "Large body Content-Length correct through proxy ($ACTUAL_CL5)"
+EXPECTED_CL4=${#LARGE_BODY}
+ACTUAL_CL4=$(echo "$BODY4" | jq -r '.headers["content-length"] // empty')
+if [[ "$ACTUAL_CL4" == "$EXPECTED_CL4" ]]; then
+  pass "Large body Content-Length correct through proxy ($ACTUAL_CL4)"
 else
-  fail "Large body Content-Length mismatch through proxy — expected $EXPECTED_CL5, got '$ACTUAL_CL5'"
+  fail "Large body Content-Length mismatch through proxy — expected $EXPECTED_CL4, got '$ACTUAL_CL4'"
 fi
 
-log "Test 6: Verify tinyproxy logged the proxied requests"
+log "Test 5: Verify tinyproxy logged the proxied requests"
 PROXY_POD=$(kubectl get pods --context "kind-$CLUSTER_NAME" \
   -l app=tinyproxy -o jsonpath='{.items[0].metadata.name}')
 PROXY_LOGS=$(kubectl logs --context "kind-$CLUSTER_NAME" "$PROXY_POD" --tail=50 2>&1)
@@ -229,9 +234,24 @@ else
   echo "$PROXY_LOGS"
 fi
 
-# ── 9. Logs ──────────────────────────────────────────────────────────
+log "Test 6: Verify JWKS server received fetch requests from Envoy"
+JWKS_POD=$(kubectl get pods --context "kind-$CLUSTER_NAME" \
+  -l app=jwks-server -o jsonpath='{.items[0].metadata.name}')
+JWKS_LOGS=$(kubectl logs --context "kind-$CLUSTER_NAME" "$JWKS_POD" --tail=50 2>&1)
+if echo "$JWKS_LOGS" | grep -q "/well-known/jwks.json"; then
+  pass "JWKS server received key fetch request from Envoy"
+else
+  fail "JWKS server did not receive any key fetch requests"
+  echo "JWKS server logs:"
+  echo "$JWKS_LOGS"
+fi
+
+# ── 10. Logs ─────────────────────────────────────────────────────────
 log "Tinyproxy logs"
 kubectl logs --context "kind-$CLUSTER_NAME" "$PROXY_POD" --tail=20
+
+log "JWKS server logs"
+kubectl logs --context "kind-$CLUSTER_NAME" "$JWKS_POD" --tail=20
 
 log "Envoy logs (last 20 lines)"
 kubectl logs --context "kind-$CLUSTER_NAME" "$AUTH_POD" --tail=20
