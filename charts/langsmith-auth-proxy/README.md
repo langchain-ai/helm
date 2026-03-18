@@ -1,6 +1,6 @@
 # langsmith-auth-proxy
 
-![Version: 0.0.6](https://img.shields.io/badge/Version-0.0.6-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.37.0](https://img.shields.io/badge/AppVersion-1.37.0-informational?style=flat-square)
+![Version: 0.0.7](https://img.shields.io/badge/Version-0.0.7-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.37.0](https://img.shields.io/badge/AppVersion-1.37.0-informational?style=flat-square)
 
 Helm chart to deploy the langsmith auth-proxy application.
 
@@ -98,7 +98,9 @@ This chart uses the **HTTP** `ext_authz` mode — HTTP request in, HTTP response
 | authProxy.httpProxy.host | string | `""` | Proxy hostname or IP address |
 | authProxy.httpProxy.noProxy | list | `[]` | List of hostnames/domains to bypass the proxy for (NO_PROXY equivalent). Supports exact match ("internal.corp") and domain suffix (".internal.corp"). If the upstream hostname matches any entry, proxy is not used. |
 | authProxy.httpProxy.port | int | `3128` | Proxy port |
-| authProxy.jwksJson | string | `""` | JWKS JSON string containing the public keys for JWT validation. Generate with the LangSmith JWKS tooling and paste the full JSON here. |
+| authProxy.jwksCacheDurationSeconds | int | `300` | Cache duration in seconds for remote JWKS keys. Only used when jwksUri is set. |
+| authProxy.jwksJson | string | `""` | JWKS JSON string containing the public keys for JWT validation. Generate with the LangSmith JWKS tooling and paste the full JSON here. Mutually exclusive with jwksUri — if both are set, jwksUri takes precedence. |
+| authProxy.jwksUri | string | `""` | Remote JWKS endpoint URL for fetching public keys (e.g. https://langsmith.example.com/.well-known/jwks.json for self-hosted LangSmith or https://api.smith.langchain.com/.well-known/jwks.json in SaaS). When set, Envoy fetches and caches keys from this URL instead of using inline jwksJson. Mutually exclusive with jwksJson — if both are set, jwksUri takes precedence. |
 | authProxy.jwtAudiences | list | `[]` | JWT audience claims to validate. Must match audiences in the signed JWT. |
 | authProxy.jwtIssuer | string | `"langsmith"` | JWT issuer claim to validate |
 | authProxy.jwtValidation | object | `{"enabled":true}` | JWT validation configuration |

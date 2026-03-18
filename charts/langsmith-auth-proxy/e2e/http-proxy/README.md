@@ -1,6 +1,6 @@
 # HTTP Proxy E2E Test
 
-End-to-end test for the `httpProxy` feature of the `langsmith-auth-proxy` chart. Verifies that upstream traffic is routed through an HTTP forward proxy using the two-listener loopback pattern (`tcp_proxy` + `tunneling_config`).
+End-to-end test for the `httpProxy` feature of the `langsmith-auth-proxy` chart. Verifies that both upstream traffic and JWKS key fetches are routed through an HTTP forward proxy using the two-listener loopback pattern (`tcp_proxy` + `tunneling_config`).
 
 ## Prerequisites
 
@@ -17,22 +17,30 @@ End-to-end test for the `httpProxy` feature of the `langsmith-auth-proxy` chart.
 1. `GET /healthz` returns 200 (health check bypasses auth)
 2. Request without JWT returns 401
 3. Request with valid JWT returns 200, traffic routed through tinyproxy to fake-gateway
-4. Tinyproxy logs confirm it proxied the CONNECT request to the upstream
+4. Large request body forwarded intact through the proxy chain
+5. Tinyproxy logs confirm it proxied the CONNECT request to the upstream
+6. JWKS server logs confirm Envoy fetched keys remotely (via proxy)
 
 ## Architecture
 
 ```
 curl -H "X-LangSmith-LLM-Auth: <JWT>" -> listener_0 (:10000, HCM)
   -> JWT filter (validate sig, iss, aud)
+       keys fetched via:
+         jwks_loopback_cluster (STATIC, 127.0.0.1:10002)
+           -> listener_2 (:10002, tcp_proxy + tunneling_config CONNECT)
+             -> proxy_cluster (tinyproxy:8888)
+               -> jwks-server(:8080) /well-known/jwks.json
   -> loopback_cluster (STATIC, 127.0.0.1:10001)
     -> listener_1 (:10001, tcp_proxy + tunneling_config CONNECT)
-      -> proxy_cluster (STRICT_DNS, tinyproxy:8888)
-        -> tinyproxy (CONNECT tunnel)
-          -> fake-gateway(:10001)
-            <- 200 + JSON with all received headers
+      -> proxy_cluster (tinyproxy:8888)
+        -> fake-gateway(:10001)
+          <- 200 + JSON with all received headers
 ```
 
-For HTTPS upstreams, TLS with SNI is applied on `loopback_cluster` so the encrypted payload flows through the CONNECT tunnel. `proxy_cluster` is always plaintext HTTP/1.1.
+Both upstream LLM traffic and JWKS key fetches are routed through tinyproxy. This simulates the **cloud LangSmith** scenario where the auth-proxy pod has no direct internet access and must use a corporate HTTP proxy for all external traffic.
+
+For **self-hosted LangSmith**, the JWKS host would be added to `httpProxy.noProxy`, causing Envoy to connect directly to the in-cluster JWKS endpoint via the `jwks_service` cluster (no proxy).
 
 This pattern supports both IP addresses and hostnames for the proxy host.
 
@@ -41,9 +49,11 @@ This pattern supports both IP addresses and hostnames for the proxy host.
 | File | Purpose |
 |------|---------|
 | `test.sh` | Orchestration script |
-| `e2e-values.yaml` | Helm values override (proxy enabled) |
+| `e2e-values.yaml` | Helm values override (proxy enabled, jwksUri) |
 | `fake-gateway.yaml` | Echo server Deployment+Service (upstream) |
 | `tinyproxy.yaml` | Tinyproxy Deployment+Service+ConfigMap (HTTP proxy) |
+| `jwks-server.py` | Minimal Python JWKS server script |
+| `jwks-server.yaml` | JWKS server Deployment+Service |
 
 ## Cleanup
 

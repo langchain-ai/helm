@@ -5,5 +5,5 @@ maintainers:
     email: brian@langchain.dev
 description: Helm chart to deploy the langsmith auth-proxy application.
 type: application
-version: 0.0.6
+version: 0.0.7
 appVersion: "1.37.0"

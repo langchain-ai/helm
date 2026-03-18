@@ -11,8 +11,9 @@ data:
     MaxClients 100
     # Allow all connections (test only)
     Allow 0.0.0.0/0
-    # Allow CONNECT on upstream port (default restricts to 443/563)
+    # Allow CONNECT on upstream + JWKS server ports (default restricts to 443/563)
     ConnectPort 10001
+    ConnectPort 8080
     DisableViaHeader Yes
     LogLevel Info
 ---
