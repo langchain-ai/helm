@@ -323,6 +323,10 @@ config:
     logoUrl: ""
     coBrandingEnabled: true
 
+  # -- Custom error support message displayed on error pages (plain text).
+  # If empty, defaults to the built-in support messages with support@langchain.dev links.
+  customErrorSupportMessage: ""
+
   observability:
     tracing:
       enabled: false

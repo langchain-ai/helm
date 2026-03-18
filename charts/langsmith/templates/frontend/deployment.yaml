@@ -44,6 +44,10 @@
 - name: VITE_CO_BRANDING_ENABLED
   value: {{ .Values.config.customLogo.coBrandingEnabled | quote }}
 {{- end }}
+{{- if .Values.config.customErrorSupportMessage }}
+- name: VITE_CUSTOM_ERROR_SUPPORT_MESSAGE
+  value: {{ .Values.config.customErrorSupportMessage | quote }}
+{{- end }}
 {{- if .Values.config.deployment.enabled }}
 - name: VITE_HOST_ENABLED
   value: "1"
