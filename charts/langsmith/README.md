@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.13.27](https://img.shields.io/badge/Version-0.13.27-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.13.28](https://img.shields.io/badge/AppVersion-0.13.28-informational?style=flat-square)
+![Version: 0.13.28](https://img.shields.io/badge/Version-0.13.28-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.13.30](https://img.shields.io/badge/AppVersion-0.13.30-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -140,44 +140,44 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | gateway.sectionName | string | `""` |  |
 | images.aceBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.aceBackendImage.repository | string | `"docker.io/langchain/langsmith-ace-backend"` |  |
-| images.aceBackendImage.tag | string | `"0.13.28"` |  |
+| images.aceBackendImage.tag | string | `"0.13.30"` |  |
 | images.agentBuilderImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.agentBuilderImage.repository | string | `"docker.io/langchain/agent-builder-deep-agent"` |  |
-| images.agentBuilderImage.tag | string | `"0.13.28"` |  |
+| images.agentBuilderImage.tag | string | `"0.13.30"` |  |
 | images.agentBuilderToolServerImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.agentBuilderToolServerImage.repository | string | `"docker.io/langchain/agent-builder-tool-server"` |  |
-| images.agentBuilderToolServerImage.tag | string | `"0.13.28"` |  |
+| images.agentBuilderToolServerImage.tag | string | `"0.13.30"` |  |
 | images.agentBuilderTriggerServerImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.agentBuilderTriggerServerImage.repository | string | `"docker.io/langchain/agent-builder-trigger-server"` |  |
-| images.agentBuilderTriggerServerImage.tag | string | `"0.13.28"` |  |
+| images.agentBuilderTriggerServerImage.tag | string | `"0.13.30"` |  |
 | images.backendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.backendImage.repository | string | `"docker.io/langchain/langsmith-backend"` |  |
-| images.backendImage.tag | string | `"0.13.28"` |  |
+| images.backendImage.tag | string | `"0.13.30"` |  |
 | images.clickhouseImage.pullPolicy | string | `"Always"` |  |
 | images.clickhouseImage.repository | string | `"docker.io/clickhouse/clickhouse-server"` |  |
 | images.clickhouseImage.tag | string | `"25.12"` |  |
 | images.frontendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.frontendImage.repository | string | `"docker.io/langchain/langsmith-frontend"` |  |
-| images.frontendImage.tag | string | `"0.13.28"` |  |
+| images.frontendImage.tag | string | `"0.13.30"` |  |
 | images.hostBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.hostBackendImage.repository | string | `"docker.io/langchain/hosted-langserve-backend"` |  |
-| images.hostBackendImage.tag | string | `"0.13.28"` |  |
+| images.hostBackendImage.tag | string | `"0.13.30"` |  |
 | images.imagePullSecrets | list | `[]` | Secrets with credentials to pull images from a private registry. Specified as name: value. |
 | images.insightsAgentImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.insightsAgentImage.repository | string | `"docker.io/langchain/langsmith-clio"` |  |
-| images.insightsAgentImage.tag | string | `"0.13.28"` |  |
+| images.insightsAgentImage.tag | string | `"0.13.30"` |  |
 | images.operatorImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.operatorImage.repository | string | `"docker.io/langchain/langgraph-operator"` |  |
 | images.operatorImage.tag | string | `"0.1.37"` |  |
 | images.platformBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.platformBackendImage.repository | string | `"docker.io/langchain/langsmith-go-backend"` |  |
-| images.platformBackendImage.tag | string | `"0.13.28"` |  |
+| images.platformBackendImage.tag | string | `"0.13.30"` |  |
 | images.playgroundImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.playgroundImage.repository | string | `"docker.io/langchain/langsmith-playground"` |  |
-| images.playgroundImage.tag | string | `"0.13.28"` |  |
+| images.playgroundImage.tag | string | `"0.13.30"` |  |
 | images.pollyAgentImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.pollyAgentImage.repository | string | `"docker.io/langchain/langsmith-polly"` |  |
-| images.pollyAgentImage.tag | string | `"0.13.28"` |  |
+| images.pollyAgentImage.tag | string | `"0.13.30"` |  |
 | images.postgresImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.postgresImage.repository | string | `"docker.io/postgres"` |  |
 | images.postgresImage.tag | string | `"14.7"` |  |
@@ -317,7 +317,6 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | config.blobStorage.s3UsePathStyle | bool | `false` |  |
 | config.customCa.secretKey | string | `""` |  |
 | config.customCa.secretName | string | `""` | Optional. Used to set a file containing trusted CA certificates. Make sure to also include a public CA to access beacon and playground. |
-| config.customErrorSupportMessage | string | `""` | Custom error support message displayed on error pages (plain text). If empty, defaults to the built-in support messages with support@langchain.dev links. |
 | config.customLogo | object | `{"coBrandingEnabled":true,"enabled":false,"logoUrl":""}` | Custom logo configuration. If enabled, the logoUrl and coBrandingEnabled values must be provided. The logoUrl must be a valid URL to an image like png, jpg, or svg. Co-branding will show LangSmith and customer logos side by side. |
 | config.defaultWorkspaceName | string | `"Workspace 1"` | Default workspace name to be provisioned when org is created. |
 | config.deployment | object | `{"basePath":"","enabled":false,"ingressHealthCheckEnabled":true,"tlsEnabled":true}` | Configuration for LangSmith Deployments features |
