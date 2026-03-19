@@ -1,0 +1,2222 @@
+# Default values for the langsmith helm chart. Refer to documentation on individual values for help with configuration.
+
+# -- Provide a name in place of `langsmith`
+nameOverride: ""
+# -- String to fully override `"langsmith.fullname"`
+fullnameOverride: ""
+# -- Namespace to install the chart into. If not set, will use the namespace of the current context.
+namespace: ""
+# -- Annotations that will be applied to all resources created by the chart
+commonAnnotations: {}
+# -- Annotations that will be applied to all pods created by the chart
+commonPodAnnotations: {}
+# -- Labels that will be applied to all resources created by the chart
+commonLabels: {}
+# -- Common environment variables that will be applied to all deployments/statefulsets except for the playground/aceBackend services (which are sandboxed). Be careful not to override values already specified by the chart.
+commonEnv: []
+# -- Common volumes added to all deployments/statefulsets except for the playground/aceBackend services (which are sandboxed).
+commonVolumes: []
+# -- Common volume mounts added to all deployments/statefulsets except for the playground/aceBackend services (which are sandboxed).
+commonVolumeMounts: []
+# -- Common init containers added to all deployments/statefulsets except for the playground/aceBackend services (which are sandboxed).
+commonInitContainers: []
+# -- Common pod security context applied to all pods. Component-specific podSecurityContext values will be merged on top of this (component values take precedence).
+commonPodSecurityContext: {}
+# -- Common DNS configuration applied to all pods. Reduces DNS query amplification in Kubernetes by
+# -- ensuring service FQDNs (which have 4 dots) are resolved directly without search domain expansion.
+# -- Set to null to disable and use Kubernetes defaults (ndots: 5).
+commonDnsConfig:
+  options:
+    - name: ndots
+      value: "4"
+# -- Kubernetes cluster domain. Only change if not using 'cluster.local'
+clusterDomain: "cluster.local"
+
+images:
+   # -- If supplied, all children <image_name>.repository values will be prepended with this registry name + `/`
+  registry: ""
+   # -- Secrets with credentials to pull images from a private registry. Specified as name: value.
+  imagePullSecrets: []
+  aceBackendImage:
+    repository: "docker.io/langchain/langsmith-ace-backend"
+    pullPolicy: IfNotPresent
+    tag: "0.13.30"
+  backendImage:
+    repository: "docker.io/langchain/langsmith-backend"
+    pullPolicy: IfNotPresent
+    tag: "0.13.30"
+  insightsAgentImage:
+    repository: "docker.io/langchain/langsmith-clio"
+    pullPolicy: IfNotPresent
+    tag: "0.13.30"
+  frontendImage:
+    repository: "docker.io/langchain/langsmith-frontend"
+    pullPolicy: IfNotPresent
+    tag: "0.13.30"
+  hostBackendImage:
+    repository: "docker.io/langchain/hosted-langserve-backend"
+    pullPolicy: IfNotPresent
+    tag: "0.13.30"
+  operatorImage:
+    repository: "docker.io/langchain/langgraph-operator"
+    pullPolicy: IfNotPresent
+    tag: "0.1.37"
+  platformBackendImage:
+    repository: "docker.io/langchain/langsmith-go-backend"
+    pullPolicy: IfNotPresent
+    tag: "0.13.30"
+  playgroundImage:
+    repository: "docker.io/langchain/langsmith-playground"
+    pullPolicy: IfNotPresent
+    tag: "0.13.30"
+  # For production environments, we strongly recommend connecting to a managed PostgreSQL instance instead of using the one provided by the chart.
+  # Docs: https://docs.langchain.com/langsmith/self-host-external-postgres
+  postgresImage:
+    repository: "docker.io/postgres"
+    pullPolicy: IfNotPresent
+    tag: "14.7"
+  # For production environments, we strongly recommend connecting to a managed Redis instance instead of using the one provided by the chart.
+  # Docs: https://docs.langchain.com/langsmith/self-host-external-redis
+  redisImage:
+    repository: "docker.io/redis"
+    pullPolicy: IfNotPresent
+    tag: "7"
+  clickhouseImage:
+    repository: "docker.io/clickhouse/clickhouse-server"
+    pullPolicy: Always
+    tag: "25.12"
+  agentBuilderToolServerImage:
+    repository: "docker.io/langchain/agent-builder-tool-server"
+    pullPolicy: IfNotPresent
+    tag: "0.13.30"
+  agentBuilderTriggerServerImage:
+    repository: "docker.io/langchain/agent-builder-trigger-server"
+    pullPolicy: IfNotPresent
+    tag: "0.13.30"
+  agentBuilderImage:
+    repository: "docker.io/langchain/agent-builder-deep-agent"
+    pullPolicy: IfNotPresent
+    tag: "0.13.30"
+  pollyAgentImage:
+    repository: "docker.io/langchain/langsmith-polly"
+    pullPolicy: IfNotPresent
+    tag: "0.13.30"
+
+ingress:
+  enabled: false
+  ingressClassName: ""
+  annotations: {}
+  labels: {}
+  tls: []
+
+# Whether to use the Gateway API for ingress. Will create an HTTPRoute for LangSmith and an HTTPRoute for each LangSmith Deployment.
+gateway:
+  enabled: false
+  name: ""
+  namespace: ""
+  sectionName: ""
+  annotations: {}
+  labels: {}
+
+# Whether to use Istio Gateway for ingress. Will create a VirtualService for LangSmith and a VirtualService for each LangSmith Deployment.
+istioGateway:
+  enabled: false
+  name: "istio-gateway"
+  namespace: "istio-system"
+  annotations: {}
+  labels: {}
+
+config:
+  # -- Skip validation checks in validate.yaml. Used by AWS Marketplace for helm template verification.
+  skipValidation: false
+  existingSecretName: ""
+  disableSecretCreation: false
+  langsmithLicenseKey: ""
+  # -- Configuration for LangSmith Deployments features
+  deployment:
+      # -- Optional. Used to enable the LangSmith Deployments feature. Requires additional setup. Refer to the documentation for more information.
+    enabled: false
+    # -- Base path for LangGraph Platform (LGP) routes managed by the operator.
+    basePath: ""
+    tlsEnabled: true
+    # Disable this if there is restricted access to the external facing ingress endpoint for your agent(s) from inside of your kubernetes cluster.
+    ingressHealthCheckEnabled: true
+
+  # Insights (Clio) configuration - AI-powered insights agent
+  # Requires config.deployment.enabled to be true
+  insights:
+    enabled: false
+    # Fernet encryption key for Insights. Required when enabled.
+    # Generate with: python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
+    encryptionKey: ""
+    agent:
+      resources:
+        cpu: 2
+        cpuLimit: 4
+        memoryMb: 4096
+        memoryLimitMb: 8192
+        minScale: 1
+        maxScale: 5
+      extraEnv: {}
+
+  # Polly configuration
+  polly:
+    enabled: false
+    encryptionKey: ""
+    agent:
+      resources:
+        cpu: 2
+        cpuLimit: 4
+        memoryMb: 4096
+        memoryLimitMb: 8192
+        minScale: 1
+        maxScale: 5
+      extraEnv: {}
+
+  # Agent Builder configuration - UI for creating and managing agents
+  # Requires config.deployment.enabled to be true
+  agentBuilder:
+    enabled: false
+    # Fernet encryption key for Agent Builder secrets. Required when enabled.
+    # Generate with: python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
+    encryptionKey: ""
+    # Organization ID that owns OAuth providers for Agent Builder.
+    # Required for OAuth tools/triggers to work.
+    oauthProviderOrgId: ""
+    # OAuth provider IDs - set to enable corresponding tools and triggers.
+    # Leave empty to disable. Each provider enables specific integrations:
+    # - googleOAuthProvider: Gmail, Google Calendar, Google Sheets, BigQuery tools + Gmail trigger
+    # - slackOAuthProvider: Slack tools + Slack trigger
+    # - linkedinOAuthProvider: LinkedIn tools
+    # - linearOAuthProvider: Linear tools
+    # - githubOAuthProvider: GitHub tools
+    oauth:
+      googleOAuthProvider: ""
+      linkedinOAuthProvider: ""
+      linearOAuthProvider: ""
+      githubOAuthProvider: ""
+      slackOAuthProvider: ""
+      slackSigningSecret: ""
+      slackBotId: ""
+    agent:
+      resources:
+        cpu: 2
+        cpuLimit: 4
+        memoryMb: 4096
+        memoryLimitMb: 8192
+        minScale: 1
+        maxScale: 5
+      extraEnv: {}
+
+  # -- Salt used to generate the API key. Should be a random string.
+  apiKeySalt: ""
+  logLevel: "info"
+  # -- Must be 'oauth' for OAuth with PKCE, 'mixed' for basic auth or OAuth without PKCE
+  authType: ""
+  initialOrgAdminEmail: ""
+  # -- Initial org name to be provisioned.
+  initialOrgName: "Default"
+  # -- Default workspace name to be provisioned when org is created.
+  defaultWorkspaceName: "Workspace 1"
+
+  basicAuth:
+    enabled: false
+    # Either set the password and JWT secret in plaintext, or set in the secret specified by existingSecretName above.
+    initialOrgAdminPassword: ""
+    jwtSecret: ""
+  # -- Email addresses of super admins who can export usage data.
+  # These are the only users allowed to use the usage backfill export
+  # unless orgAdminsInstallationUsageExportEnabled is set.
+  superAdmins: []
+  # -- When true, any org admin can use the usage backfill export.
+  orgAdminsInstallationUsageExportEnabled: false
+
+  # -- Prevent organization creation by users. This includes admins.
+  userOrgCreationDisabled: true
+  # -- Disable personal orgs.
+  personalOrgsDisabled: true
+  # -- Enable Workspace Admins to invite users to the org and workspace.
+  workspaceScopeOrgInvitesEnabled: false
+  # -- Require authentication on the GET /info endpoint. When enabled, unauthenticated
+  # requests to /info will receive a 401 and must supply a valid API key. The LangSmith
+  # SDK handles this automatically by retrying with credentials. Useful for deployments
+  # that must not expose instance configuration (version, feature flags, batch ingest
+  # config) to unauthenticated callers.
+  infoEndpointAuthRequired: false
+
+  # -- hostname of the LangSmith installation. Used for redirects and LangSmith deployments. Required for OAuth and LangSmith Deployments. E.g langsmith.com
+  hostname: ""
+  # -- Base path for the LangSmith installation. Used to serve the app under a subpath like example.com/langsmith.
+  # WARNING: Changing basePath after LangGraph Platform deployments have been created will break existing deployments.
+  # Existing deployments will need to be recreated for the new basePath to take effect.
+  basePath: ""
+
+  telemetry:
+    # -- Optional. These values are used to send telemetry to the LangChain team to assist with troubleshooting.
+    logs: true
+    metrics: true
+    traces: true
+
+  oauth:
+    enabled: false
+    oauthClientId: ""
+    # -- Client secret requires authType to be 'mixed' and hostname to be present
+    oauthClientSecret: ""
+    oauthIssuerUrl: ""
+    oauthScopes: "email,profile,openid"  # Comma-separated list of scopes. We require at least 'email', 'profile', and 'openid'. Some OIDC providers require the 'offline_access' scope for refresh tokens.
+    oauthSessionMaxSec: "86400"  # 24 hours. Maximum age of a session in seconds. Your session will attempt to refresh until the max age at which point you will be logged out.
+  # -- TTL configuration
+  # Optional. Used to set TTLS for longlived and shortlived objects.
+  ttl:
+    enabled: true
+    ttl_period_seconds:
+      # -- 400 day longlived and 14 day shortlived
+      longlived: "34560000"
+      shortlived: "1209600"
+
+  # Blob storage configuration
+  # Optional. Used to store inputs, outputs, and errors in Blob Storage.
+  # We currently support S3, GCS, Minio, and Azure as Blob Storage providers.
+  blobStorage:
+    enabled: false
+    engine: "S3"
+    # If you are using langsmith-managed-clickhouse, you may not want inputs to be stored in clickhouse for search.
+    # Set this as false to ensure that inputs/outputs/errors are not stored in clickhouse.
+    # 'clickhouse.external.hybrid: true' overrides this to false.
+    chSearchEnabled: true
+    # Set this to change the threshold for payloads to be stored in blob storage
+    # 'clickhouse.external.hybrid: true' overrides this to 0
+    minBlobStorageSizeKb: "20"
+    # If you are using workload identity, you may not need to store the S3 credentials in the secrets.
+    # Instead, you will need to add the workload identity annotation to the backend and queue service accounts.
+    accessKey: ""
+    accessKeySecret: ""
+    bucketName: ""
+    apiURL: "https://s3.us-west-2.amazonaws.com"
+    # Set this to true to use path style addressing for S3. This is required for some S3 compatible storage providers like MinIO.
+    # If set to true, endpoint will be s3.<region>.amazonaws.com/bucket-name. If false, endpoint will be bucket-name.s3.<region>.amazonaws.com
+    s3UsePathStyle: false
+    # S3 Users: use this to enable passing KMS key header, as well as an ARN of the KMS key to use.
+    kmsEncryptionEnabled: false
+    kmsKeyArn: ""
+    # The following blob storage configuration values are for Azure and require blobStorage.engine = "Azure"
+    # -- Optional. Set this along with azureStorageAccountKey to use a storage account and access key. Higher precedence than azureStorageConnectionString.
+    azureStorageAccountName: ""
+    azureStorageAccountKey: ""
+    # -- Required if using Azure blob storage
+    azureStorageContainerName: ""
+    # -- Optional. Use this to specify the full connection string including any authentication params.
+    azureStorageConnectionString: ""
+    # -- Optional. Use this to customize the service URL, which by default is 'https://<storage_account_name>.blob.core.windows.net/'
+    azureStorageServiceUrlOverride: ""
+
+  # -- Application Settings. These are used to tune the application
+  settings:
+    # -- Optional. Be very careful when lowering this value as it can result in runs being lost if your queue is down/not processing items fast enough.
+    redisRunsExpirySeconds: "21600"  # 6 hours
+
+  # -- Custom logo configuration.
+  # If enabled, the logoUrl and coBrandingEnabled values must be provided.
+  # The logoUrl must be a valid URL to an image like png, jpg, or svg. Co-branding will show LangSmith and customer logos side by side.
+  customLogo:
+    enabled: false
+    logoUrl: ""
+    coBrandingEnabled: true
+
+  observability:
+    tracing:
+      enabled: false
+      # Replace this with the endpoint of your trace collector. If you are using the LangSmith Observability helm chart, this will be the endpoint of the OTEL Gateway collector.
+      endpoint: ""
+      useTls: true
+      env: "ls_self_hosted"
+      exporter: "http"
+
+  customCa:
+    # -- Optional. Used to set a file containing trusted CA certificates. Make sure to also include a public CA to access beacon and playground.
+    secretName: ""
+    secretKey: ""
+
+  # -- Security configuration for CORS, headers, and other security-related settings. These settings control cross-origin access and help protect against common web vulnerabilities.
+  security:
+    # -- CORS (Cross-Origin Resource Sharing) configuration.
+    # Controls which origins can make requests to the LangSmith API.
+    # By default, CORS is permissive. For production deployments, you should restrict this.
+    cors:
+      # -- Comma-separated list of allowed origins. Use "*" to allow all origins (not recommended for production).
+      # Example: "https://app.example.com,https://admin.example.com"
+      # If allowedOriginsRegex is set, this value is ignored.
+      allowedOrigins: "*"
+      # -- Regular expression pattern for allowed origins. Takes precedence over allowedOrigins if set.
+      # Example: "https://.*\\.example\\.com" to allow all subdomains of example.com.
+      # Leave empty to use allowedOrigins instead.
+      allowedOriginsRegex: ""
+      # -- Regular expression pattern for paths that should always allow CORS from any origin.
+      # Useful for public endpoints like webhooks or public API endpoints.
+      # Example: ".*(/feedback/tokens/|/public/).*"
+      alwaysAllowPathsRegex: ""
+
+aceBackend:
+  name: "ace-backend"
+  containerPort: 1987
+  bindAddress: "0.0.0.0"
+  # -- ArgoCD Rollouts configuration. If enabled, will create a Rollout resource instead of a Deployment. See https://argo-rollouts.readthedocs.io/
+  rollout:
+    enabled: false
+    # -- Rollout strategy configuration. See https://argo-rollouts.readthedocs.io/en/stable/features/specification/
+    strategy:
+      canary:
+        steps:
+          - setWeight: 100
+  deployment:
+    replicas: 1
+    labels: {}
+    annotations: {}
+    podSecurityContext: {}
+    securityContext: {}
+    lifecycle: {}
+    resources:
+      limits:
+        cpu: 1000m
+        memory: 2Gi
+      requests:
+        cpu: 200m
+        memory: 1000Mi
+    command:
+      - "./entrypoint.sh"
+    startupProbe:
+      httpGet:
+        path: /ok
+        port: 1987
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 1
+    livenessProbe:
+      httpGet:
+        path: /ok
+        port: 1987
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 1
+    readinessProbe:
+      httpGet:
+        path: /ok
+        port: 1987
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 1
+    extraContainerConfig: {}
+    extraEnv: []
+    sidecars: []
+    initContainers: []
+    nodeSelector: {}
+    tolerations: []
+    topologySpreadConstraints: []
+    affinity: {}
+    volumes: []
+    volumeMounts: []
+    terminationGracePeriodSeconds: 30
+  # Autoscaling configuration. Either HPA or KEDA can be enabled, not both.
+  autoscaling:
+    # HPA-specific configuration
+    hpa:
+      enabled: false
+      minReplicas: 1
+      maxReplicas: 5
+      targetCPUUtilizationPercentage: 50
+      targetMemoryUtilizationPercentage: 80
+    # KEDA ScaledObject configuration. See https://keda.sh/docs/2.18/reference/scaledobject-spec
+    # These are some recommended default values. You can tweak them to your needs, using the docs above.
+    keda:
+      enabled: false
+      labels: {}
+      annotations: {}
+      pollingInterval: 30
+      cooldownPeriod: 300
+      initialCooldownPeriod: 0
+      minReplicaCount: 1
+      maxReplicaCount: 5
+      targetCPUUtilizationPercentage: 50
+      targetMemoryUtilizationPercentage: 80
+      scaleDownStabilizationWindowSeconds: 1800
+      scaleDownPolicy:
+        value: 100
+        periodSeconds: 300
+      scaleUpPolicy:
+        value: 100
+        periodSeconds: 15
+  pdb:
+    enabled: false
+    minAvailable: 1
+    labels: {}
+    annotations: {}
+  service:
+    type: ClusterIP
+    port: 1987
+    labels: {}
+    annotations: {}
+    loadBalancerSourceRanges: []
+    loadBalancerIP: ""
+  serviceAccount:
+    create: true
+    name: ""
+    labels: {}
+    annotations: {}
+    automountServiceAccountToken: true
+
+
+backend:
+  name: "backend"
+  containerPort: 1984
+  existingConfigMapName: ""
+  # -- ArgoCD Rollouts configuration. If enabled, will create a Rollout resource instead of a Deployment. See https://argo-rollouts.readthedocs.io/
+  rollout:
+    enabled: false
+    # -- Rollout strategy configuration. See https://argo-rollouts.readthedocs.io/en/stable/features/specification/
+    strategy:
+      canary:
+        steps:
+          - setWeight: 100
+  deployment:
+    replicas: 2
+    labels: {}
+    annotations: {}
+    podSecurityContext: {}
+    securityContext: {}
+    lifecycle: {}
+    resources:
+      limits:
+        cpu: 2000m
+        memory: 4Gi
+      requests:
+        cpu: 1000m
+        memory: 2Gi
+    command:
+      - "./entrypoint.sh"
+    startupProbe:
+      httpGet:
+        path: /health
+        port: 1984
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 10
+    livenessProbe:
+      httpGet:
+        path: /health
+        port: 1984
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 10
+    readinessProbe:
+      httpGet:
+        path: /health
+        port: 1984
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 10
+    extraContainerConfig: {}
+    extraEnv: []
+    sidecars: []
+    initContainers: []
+    nodeSelector: {}
+    tolerations: []
+    topologySpreadConstraints: []
+    affinity: {}
+    volumes: []
+    volumeMounts: []
+    terminationGracePeriodSeconds: 30
+  migrations:
+    enabled: true
+    # Helpful when running using helm template to avoid the job name conflict
+    randomizeName: false
+    labels: {}
+    annotations: {}
+    podSecurityContext: {}
+    securityContext: {}
+    resources:
+      limits:
+        cpu: 1000m
+        memory: 1Gi
+      requests:
+        cpu: 200m
+        memory: 500Mi
+    command:
+      - "./pg_migration_entrypoint.sh"
+    extraContainerConfig: {}
+    extraEnv: []
+    sidecars: []
+    initContainers: []
+    nodeSelector: {}
+    tolerations: []
+    topologySpreadConstraints: []
+    affinity: {}
+    volumes: []
+    volumeMounts: []
+    # You can set this to null to disable the TTL for the migrations job. Useful for some deployment setups.
+    ttlSecondsAfterFinished: 600
+  feedbackConfigMigration:
+    enabled: false
+    # Helpful when running using helm template to avoid the job name conflict
+    randomizeName: false
+    labels: {}
+    annotations: {}
+    podSecurityContext: {}
+    securityContext: {}
+    resources:
+      limits:
+        cpu: 2000m
+        memory: 4Gi
+      requests:
+        cpu: 1000m
+        memory: 2Gi
+    command:
+      - "python"
+      - "scripts/jobs/migrate-feedback-config.pyc"
+    extraContainerConfig: {}
+    extraEnv: []
+    sidecars: []
+    initContainers: []
+    nodeSelector: {}
+    tolerations: []
+    topologySpreadConstraints: []
+    affinity: {}
+    volumes: []
+    volumeMounts: []
+    # You can set this to null to disable the TTL for the migrations job. Useful for some deployment setups.
+    ttlSecondsAfterFinished: 600
+  feedbackDataMigration:
+    enabled: false
+    # Helpful when running using helm template to avoid the job name conflict
+    randomizeName: false
+    labels: {}
+    annotations: {}
+    podSecurityContext: {}
+    securityContext: {}
+    resources:
+      limits:
+        cpu: 2000m
+        memory: 4Gi
+      requests:
+        cpu: 1000m
+        memory: 2Gi
+    command:
+      - "python"
+      - "scripts/jobs/migrate-feedback-to-postgres.pyc"
+    extraContainerConfig: {}
+    extraEnv: []
+    sidecars: []
+    initContainers: []
+    nodeSelector: {}
+    tolerations: []
+    topologySpreadConstraints: []
+    affinity: {}
+    volumes: []
+    volumeMounts: []
+    # You can set this to null to disable the TTL for the migrations job. Useful for some deployment setups.
+    ttlSecondsAfterFinished: 600
+  authBootstrap:
+    # Helpful when running using helm template to avoid the job name conflict
+    randomizeName: false
+    labels: {}
+    annotations: {}
+    podSecurityContext: {}
+    securityContext: {}
+    resources:
+      limits:
+        cpu: 1000m
+        memory: 1Gi
+      requests:
+        cpu: 200m
+        memory: 500Mi
+    command:
+      - "./auth_bootstrap_entrypoint.sh"
+    extraContainerConfig: {}
+    extraEnv: []
+    sidecars: []
+    initContainers: []
+    nodeSelector: {}
+    tolerations: []
+    topologySpreadConstraints: []
+    affinity: {}
+    volumes: []
+    volumeMounts: []
+    # You can set this to null to disable the TTL for the migrations job. Useful for some deployment setups.
+    ttlSecondsAfterFinished: 600
+  clickhouseMigrations:
+    enabled: true
+    # Helpful when running using helm template to avoid the job name conflict
+    randomizeName: false
+    labels: {}
+    annotations: {}
+    podSecurityContext: {}
+    securityContext: {}
+    resources:
+      limits:
+        cpu: 1000m
+        memory: 1Gi
+      requests:
+        cpu: 200m
+        memory: 500Mi
+    command:
+      - "./ch_migration_entrypoint.sh"
+    extraContainerConfig: {}
+    extraEnv: []
+    sidecars: []
+    initContainers: []
+    nodeSelector: {}
+    tolerations: []
+    topologySpreadConstraints: []
+    affinity: {}
+    volumes: []
+    volumeMounts: []
+    # You can set this to null to disable the TTL for the migrations job. Useful for some deployment setups.
+    ttlSecondsAfterFinished: 600
+  # Autoscaling configuration. Either HPA or KEDA can be enabled, not both.
+  autoscaling:
+    # HPA-specific configuration
+    hpa:
+      enabled: false
+      minReplicas: 2
+      maxReplicas: 6
+      targetCPUUtilizationPercentage: 50
+      targetMemoryUtilizationPercentage: 80
+      additionalMetrics: []
+    # KEDA ScaledObject configuration. See https://keda.sh/docs/2.18/reference/scaledobject-spec
+    # These are some recommended default values. You can tweak them to your needs, using the docs above.
+    keda:
+      enabled: false
+      labels: {}
+      annotations: {}
+      pollingInterval: 30
+      cooldownPeriod: 300
+      initialCooldownPeriod: 0
+      minReplicaCount: 2
+      maxReplicaCount: 6
+      targetCPUUtilizationPercentage: 50
+      targetMemoryUtilizationPercentage: 80
+      scaleDownStabilizationWindowSeconds: 1800
+      scaleDownPolicy:
+        value: 100
+        periodSeconds: 300
+      scaleUpPolicy:
+        value: 100
+        periodSeconds: 15
+  pdb:
+    enabled: false
+    minAvailable: 1
+    labels: {}
+    annotations: {}
+  service:
+    type: ClusterIP
+    port: 1984
+    labels: {}
+    annotations: {}
+    loadBalancerSourceRanges: []
+    loadBalancerIP: ""
+  serviceAccount:
+    create: true
+    name: ""
+    labels: {}
+    annotations: {}
+    automountServiceAccountToken: true
+  e2eTest:
+    name: "e2e-test"
+    enabled: true
+    labels: {}
+    annotations: {}
+    podSecurityContext: {}
+    securityContext: {}
+    resources:
+      limits:
+        cpu: 500m
+        memory: 1Gi
+      requests:
+        cpu: 200m
+        memory: 500Mi
+    command:
+      - "python"
+      - "scripts/test_e2e_trace.pyc"
+    extraEnv: []
+    extraContainerConfig: {}
+    sidecars: []
+    initContainers: []
+    nodeSelector: {}
+    tolerations: []
+    topologySpreadConstraints: []
+    affinity: {}
+    volumes: []
+    volumeMounts: []
+    ttlSecondsAfterFinished: 10
+
+  # Deploys bundled agents (Agent Builder, Insights) via LangSmith Deployments API
+  agentBootstrap:
+    enabled: false
+    randomizeName: false
+    serviceAccount:
+      create: true
+      name: ""
+      labels: {}
+      annotations: {}
+      automountServiceAccountToken: true
+    labels: {}
+    annotations: {}
+    podSecurityContext: {}
+    securityContext: {}
+    resources:
+      limits:
+        cpu: 500m
+        memory: 512Mi
+      requests:
+        cpu: 100m
+        memory: 256Mi
+    extraEnv: []
+    nodeSelector: {}
+    tolerations: []
+    topologySpreadConstraints: []
+    affinity: {}
+    ttlSecondsAfterFinished: 600
+
+clickhouse:
+  name: "clickhouse"
+  disableSecretCreation: false
+  config:
+    allowSimdjson: true
+    logLevel: "warning"
+  external:
+    # If enabled, use the following values to connect to an external database. This will also disable the
+    # creation of a clickhouse stateful-set and service.
+    enabled: false
+    # -- Must be set to true if using managed ClickHouse
+    hybrid: false
+    host: ""
+    hostSecretKey: "clickhouse_host"
+    port: "8123"
+    portSecretKey: "clickhouse_port"
+    nativePort: "9000"
+    nativePortSecretKey: "clickhouse_native_port"
+    user: "default"
+    userSecretKey: "clickhouse_user"
+    password: "password"
+    passwordSecretKey: "clickhouse_password"
+    database: "default"
+    databaseSecretKey: "clickhouse_db"
+    tls: false
+    tlsSecretKey: "clickhouse_tls"
+    cluster: ""
+    existingSecretName: ""
+    # mTLS client certificate configuration for ClickHouse connections. Provide a secret name to enable mTLS authentication.
+    # For server certificate validation with a custom CA, use config.customCa.secretName and config.customCa.secretKey instead.
+    clientCert:
+      secretName: ""
+      certSecretKey: "tls.crt"
+      keySecretKey: "tls.key"
+  containerHttpPort: 8123
+  containerNativePort: 9000
+  statefulSet:
+    labels: {}
+    annotations: {}
+    podSecurityContext: {}
+    securityContext: {}
+    lifecycle: {}
+    terminationGracePeriodSeconds: 30
+    resources:
+# For a production environment, we recommend increasing the CPU and memory limits to something like 16 cores and 64Gi.
+#      limits:
+#        cpu: 16000m
+#        memory: 64Gi
+#      requests:
+#        cpu: 8000m
+#        memory: 32Gi
+      limits:
+        cpu: 8000m
+        memory: 32Gi
+      requests:
+        cpu: 3500m
+        memory: 12Gi
+    command:
+      - "/bin/bash"
+      - "-c"
+      - "sed 's/id -g/id -gn/' /entrypoint.sh > /tmp/entrypoint.sh; exec bash /tmp/entrypoint.sh"
+    startupProbe:
+      httpGet:
+        path: /ping
+        port: 8123
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 1
+    readinessProbe:
+      httpGet:
+        path: /ping
+        port: 8123
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 1
+    livenessProbe:
+      httpGet:
+        path: /ping
+        port: 8123
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 1
+    extraContainerConfig: {}
+    extraEnv: []
+    sidecars: []
+    initContainers: []
+    nodeSelector: {}
+    tolerations: []
+    topologySpreadConstraints: []
+    affinity: {}
+    volumes: []
+    volumeMounts: []
+    persistentVolumeClaimRetentionPolicy: {}
+    # We recommend using a persistent volume and increasing the storage size to something like 50Gi when using in a production environment!
+    persistence:
+      enabled: true
+      size: 50Gi
+      storageClassName: ""
+  pdb:
+    enabled: false
+    minAvailable: 1
+    labels: {}
+    annotations: {}
+  service:
+    type: ClusterIP
+    httpPort: 8123
+    nativePort: 9000
+    labels: {}
+    annotations: {}
+    loadBalancerSourceRanges: []
+    loadBalancerIP: ""
+  serviceAccount:
+    create: true
+    name: ""
+    labels: {}
+    annotations: {}
+    automountServiceAccountToken: true
+  metrics:
+    port: 9363
+
+frontend:
+  name: "frontend"
+  containerPort: 8080
+  existingConfigMapName: ""
+  # -- ArgoCD Rollouts configuration. If enabled, will create a Rollout resource instead of a Deployment. See https://argo-rollouts.readthedocs.io/
+  rollout:
+    enabled: false
+    # -- Rollout strategy configuration. See https://argo-rollouts.readthedocs.io/en/stable/features/specification/
+    strategy:
+      canary:
+        steps:
+          - setWeight: 100
+  # Nginx Max Body Size. Refer to https://nginx.org/en/docs/http/ngx_http_core_module.html#client_max_body_size for more information.
+  maxBodySize: "25M"
+  # Custom CSP Header. Refer to https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/CSP.
+  # If includeNonce is true, use nginx built-in $request_id as nonce (cryptographically secure because compiled with OpenSSL)
+  # Sample compatible CSP header with includeNonce: true: "script-src 'nonce-$request_id' 'strict-dynamic'; style-src 'nonce-$request_id' 'strict-dynamic'; frame-ancestors 'self'; object-src 'none'"
+  cspHeader: "frame-ancestors 'self'; object-src 'none'"
+  includeNonce: false
+  proxyReadTimeout: "300"
+  proxyWriteTimeout: "300"
+  proxyConnectTimeout: "60"
+  # Keep-Alive timeout in seconds. Depending on load balancer used for ingress, this may need to be increased to reduce intermittent connection issues.
+  # For example for GCP Classic ALB, this should be set to between 600 and 610 (exclusive). https://cloud.google.com/load-balancing/docs/https#timeouts_and_retries
+  keepAliveTimeout: "75"
+  ipv6Enabled: true
+  ssl:
+    # If enabled, the frontend will listen on HTTPS and require a certificate and key to be mounted.
+    enabled: false
+    # This is the port the frontend will listen on for HTTPS traffic.
+    port: 8443
+    # This is the path the certificate must be mounted to in the container.
+    certificatePath: ""
+    # This is the path the key must be mounted to in the container.
+    keyPath: ""
+  deployment:
+    replicas: 1
+    labels: {}
+    annotations: {}
+    podSecurityContext: {}
+    securityContext: {}
+    lifecycle: {}
+    resources:
+      limits:
+        cpu: 1000m
+        memory: 2Gi
+      requests:
+        cpu: 500m
+        memory: 1Gi
+    command:
+      - "/entrypoint.sh"
+    startupProbe:
+      httpGet:
+        path: /health
+        port: 8080
+      failureThreshold: 10
+      periodSeconds: 10
+      timeoutSeconds: 1
+    livenessProbe:
+      httpGet:
+        path: /health
+        port: 8080
+      failureThreshold: 10
+      periodSeconds: 10
+      timeoutSeconds: 1
+    readinessProbe:
+      httpGet:
+        path: /health
+        port: 8080
+      failureThreshold: 10
+      periodSeconds: 10
+      timeoutSeconds: 1
+    extraContainerConfig: {}
+    extraEnv: []
+    sidecars: []
+    initContainers: []
+    nodeSelector: {}
+    tolerations: []
+    topologySpreadConstraints: []
+    affinity: {}
+    volumes: []
+    volumeMounts: []
+    terminationGracePeriodSeconds: 30
+  # Autoscaling configuration. Either HPA or KEDA can be enabled, not both.
+  autoscaling:
+    # HPA-specific configuration
+    hpa:
+      enabled: false
+      minReplicas: 1
+      maxReplicas: 5
+      targetCPUUtilizationPercentage: 50
+      targetMemoryUtilizationPercentage: 80
+      additionalMetrics: []
+    # KEDA ScaledObject configuration. See https://keda.sh/docs/2.18/reference/scaledobject-spec
+    # These are some recommended default values. You can tweak them to your needs, using the docs above.
+    keda:
+      enabled: false
+      labels: {}
+      annotations: {}
+      pollingInterval: 30
+      cooldownPeriod: 300
+      initialCooldownPeriod: 0
+      minReplicaCount: 1
+      maxReplicaCount: 5
+      targetCPUUtilizationPercentage: 50
+      targetMemoryUtilizationPercentage: 80
+      scaleDownStabilizationWindowSeconds: 1800
+      scaleDownPolicy:
+        value: 100
+        periodSeconds: 300
+      scaleUpPolicy:
+        value: 100
+        periodSeconds: 15
+  pdb:
+    enabled: false
+    minAvailable: 1
+    labels: {}
+    annotations: {}
+  service:
+    type: LoadBalancer
+    httpPort: 80
+    httpsPort: 443
+    labels: {}
+    annotations: {}
+    loadBalancerSourceRanges: []
+    loadBalancerIP: ""
+  serviceAccount:
+    create: true
+    name: ""
+    labels: {}
+    annotations: {}
+    automountServiceAccountToken: true
+
+hostBackend:
+  enabled: false
+  name: "host-backend"
+  containerPort: 1985
+  # -- ArgoCD Rollouts configuration. If enabled, will create a Rollout resource instead of a Deployment. See https://argo-rollouts.readthedocs.io/
+  rollout:
+    enabled: false
+    # -- Rollout strategy configuration. See https://argo-rollouts.readthedocs.io/en/stable/features/specification/
+    strategy:
+      canary:
+        steps:
+          - setWeight: 100
+  deployment:
+    replicas: 1
+    labels: {}
+    annotations: {}
+    podSecurityContext: {}
+    securityContext: {}
+    lifecycle: {}
+    resources:
+      limits:
+        cpu: 1000m
+        memory: 2Gi
+      requests:
+        cpu: 200m
+        memory: 1000Mi
+    command:
+      - "./entrypoint.sh"
+    startupProbe:
+      httpGet:
+        path: /ok
+        port: 1985
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 1
+    livenessProbe:
+      httpGet:
+        path: /ok
+        port: 1985
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 1
+    readinessProbe:
+      httpGet:
+        path: /ok
+        port: 1985
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 1
+    extraContainerConfig: {}
+    extraEnv: []
+    sidecars: []
+    initContainers: []
+    nodeSelector: {}
+    tolerations: []
+    topologySpreadConstraints: []
+    affinity: {}
+    volumes: []
+    volumeMounts: []
+    terminationGracePeriodSeconds: 30
+  # Autoscaling configuration. Either HPA or KEDA can be enabled, not both.
+  autoscaling:
+    # HPA-specific configuration
+    hpa:
+      enabled: false
+      minReplicas: 1
+      maxReplicas: 5
+      targetCPUUtilizationPercentage: 50
+      targetMemoryUtilizationPercentage: 80
+    # KEDA ScaledObject configuration. See https://keda.sh/docs/2.18/reference/scaledobject-spec
+    # These are some recommended default values. You can tweak them to your needs, using the docs above.
+    keda:
+      enabled: false
+      labels: {}
+      annotations: {}
+      pollingInterval: 30
+      cooldownPeriod: 300
+      initialCooldownPeriod: 0
+      minReplicaCount: 1
+      maxReplicaCount: 5
+      targetCPUUtilizationPercentage: 50
+      targetMemoryUtilizationPercentage: 80
+      scaleDownStabilizationWindowSeconds: 1800
+      scaleDownPolicy:
+        value: 100
+        periodSeconds: 300
+      scaleUpPolicy:
+        value: 100
+        periodSeconds: 15
+  pdb:
+    enabled: false
+    minAvailable: 1
+    labels: {}
+    annotations: {}
+  service:
+    type: ClusterIP
+    port: 1985
+    labels: {}
+    annotations: {}
+    loadBalancerSourceRanges: []
+    loadBalancerIP: ""
+  serviceAccount:
+    create: true
+    name: ""
+    labels: {}
+    annotations: {}
+    automountServiceAccountToken: true
+  rbac:
+    create: true
+    labels: {}
+    annotations: {}
+
+listener:
+  name: "listener"
+  containerPort: 8080
+  # -- ArgoCD Rollouts configuration. If enabled, will create a Rollout resource instead of a Deployment. See https://argo-rollouts.readthedocs.io/
+  rollout:
+    enabled: false
+    # -- Rollout strategy configuration. See https://argo-rollouts.readthedocs.io/en/stable/features/specification/
+    strategy:
+      canary:
+        steps:
+          - setWeight: 100
+  deployment:
+    replicas: 1
+    labels: {}
+    annotations: {}
+    podSecurityContext: {}
+    securityContext: {}
+    lifecycle: {}
+    resources:
+      limits:
+        cpu: 2000m
+        memory: 4Gi
+      requests:
+        cpu: 1000m
+        memory: 2Gi
+    command:
+      - "./listener_entrypoint.sh"
+    startupProbe:
+      httpGet:
+        path: /health
+        port: 8080
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 10
+    readinessProbe:
+      httpGet:
+        path: /health
+        port: 8080
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 10
+    livenessProbe:
+      exec:
+        command:
+          - "saq"
+          - "app.workers.queues.host_worker.settings"
+          - "--check"
+      failureThreshold: 6
+      periodSeconds: 60
+      timeoutSeconds: 60
+    extraContainerConfig: {}
+    extraEnv: []
+    sidecars: []
+    initContainers: []
+    nodeSelector: {}
+    tolerations: []
+    topologySpreadConstraints: []
+    affinity: {}
+    volumes: []
+    volumeMounts: []
+    terminationGracePeriodSeconds: 30
+  # Autoscaling configuration. Either HPA or KEDA can be enabled, not both.
+  autoscaling:
+    # HPA-specific configuration
+    hpa:
+      enabled: false
+      minReplicas: 1
+      maxReplicas: 10
+      targetCPUUtilizationPercentage: 50
+      targetMemoryUtilizationPercentage: 80
+    # KEDA ScaledObject configuration. See https://keda.sh/docs/2.18/reference/scaledobject-spec
+    # These are some recommended default values. You can tweak them to your needs, using the docs above.
+    keda:
+      enabled: false
+      labels: {}
+      annotations: {}
+      pollingInterval: 30
+      cooldownPeriod: 300
+      initialCooldownPeriod: 0
+      minReplicaCount: 1
+      maxReplicaCount: 10
+      targetCPUUtilizationPercentage: 50
+      targetMemoryUtilizationPercentage: 80
+      scaleDownStabilizationWindowSeconds: 1800
+      scaleDownPolicy:
+        value: 100
+        periodSeconds: 300
+      scaleUpPolicy:
+        value: 100
+        periodSeconds: 15
+  pdb:
+    enabled: false
+    minAvailable: 1
+    labels: {}
+    annotations: {}
+  serviceAccount:
+    create: true
+    name: ""
+    labels: {}
+    annotations: {}
+    automountServiceAccountToken: true
+  rbac:
+    create: true
+    labels: {}
+    annotations: {}
+
+platformBackend:
+  name: "platform-backend"
+  containerPort: 1986
+  existingConfigMapName: ""
+  # -- ArgoCD Rollouts configuration. If enabled, will create a Rollout resource instead of a Deployment. See https://argo-rollouts.readthedocs.io/
+  rollout:
+    enabled: false
+    # -- Rollout strategy configuration. See https://argo-rollouts.readthedocs.io/en/stable/features/specification/
+    strategy:
+      canary:
+        steps:
+          - setWeight: 100
+  deployment:
+    replicas: 3
+    labels: {}
+    annotations: {}
+    podSecurityContext: {}
+    securityContext: {}
+    lifecycle: {}
+    resources:
+      limits:
+        cpu: 2000m
+        memory: 4Gi
+      requests:
+        cpu: 1000m
+        memory: 2Gi
+    command:
+      - "./entrypoint.sh"
+    startupProbe:
+      httpGet:
+        path: /ok
+        port: 1986
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 1
+    livenessProbe:
+      httpGet:
+        path: /ok
+        port: 1986
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 1
+    readinessProbe:
+      httpGet:
+        path: /ok
+        port: 1986
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 1
+    extraContainerConfig: {}
+    extraEnv: []
+    sidecars: []
+    initContainers: []
+    nodeSelector: {}
+    tolerations: []
+    topologySpreadConstraints: []
+    affinity: {}
+    volumes: []
+    volumeMounts: []
+    terminationGracePeriodSeconds: 30
+  # Autoscaling configuration. Either HPA or KEDA can be enabled, not both.
+  autoscaling:
+    # HPA-specific configuration
+    hpa:
+      enabled: false
+      minReplicas: 3
+      maxReplicas: 10
+      targetCPUUtilizationPercentage: 50
+      targetMemoryUtilizationPercentage: 80
+      additionalMetrics: []
+    # KEDA ScaledObject configuration. See https://keda.sh/docs/2.18/reference/scaledobject-spec
+    # These are some recommended default values. You can tweak them to your needs, using the docs above.
+    keda:
+      enabled: false
+      labels: {}
+      annotations: {}
+      pollingInterval: 30
+      cooldownPeriod: 300
+      initialCooldownPeriod: 0
+      minReplicaCount: 3
+      maxReplicaCount: 10
+      targetCPUUtilizationPercentage: 50
+      targetMemoryUtilizationPercentage: 80
+      scaleDownStabilizationWindowSeconds: 1800
+      scaleDownPolicy:
+        value: 100
+        periodSeconds: 300
+      scaleUpPolicy:
+        value: 100
+        periodSeconds: 15
+  pdb:
+    enabled: false
+    minAvailable: 1
+    labels: {}
+    annotations: {}
+  service:
+    type: ClusterIP
+    port: 1986
+    labels: {}
+    annotations: {}
+    loadBalancerSourceRanges: []
+    loadBalancerIP: ""
+  serviceAccount:
+    create: true
+    name: ""
+    labels: {}
+    annotations: {}
+    automountServiceAccountToken: true
+
+operator:
+  name: "operator"
+  enabled: true
+  createCRDs: true
+  watchNamespaces: ""
+  kedaEnabled: true
+  # -- ArgoCD Rollouts configuration. If enabled, will create a Rollout resource instead of a Deployment. See https://argo-rollouts.readthedocs.io/
+  rollout:
+    enabled: false
+    # -- Rollout strategy configuration. See https://argo-rollouts.readthedocs.io/en/stable/features/specification/
+    strategy:
+      canary:
+        steps:
+          - setWeight: 100
+  deployment:
+    replicas: 1
+    labels: {}
+    annotations: {}
+    podSecurityContext: {}
+    securityContext: {}
+    lifecycle: {}
+    resources:
+      limits:
+        cpu: 2000m
+        memory: 4Gi
+      requests:
+        cpu: 1000m
+        memory: 2Gi
+    extraContainerConfig: {}
+    extraEnv: []
+    sidecars: []
+    initContainers: []
+    nodeSelector: {}
+    tolerations: []
+    topologySpreadConstraints: []
+    affinity: {}
+    volumes: []
+    volumeMounts: []
+    terminationGracePeriodSeconds: 30
+  pdb:
+    enabled: false
+    minAvailable: 1
+    labels: {}
+    annotations: {}
+  serviceAccount:
+    create: true
+    name: ""
+    labels: {}
+    annotations: {}
+    automountServiceAccountToken: true
+  rbac:
+    create: true
+    labels: {}
+    annotations: {}
+  # These templates are used by the operator as the base spec for creating resources.
+  templates:
+    deployment: |
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: ${name}
+        namespace: ${namespace}
+      spec:
+        replicas: ${replicas}
+        revisionHistoryLimit: 10
+        selector:
+          matchLabels:
+            app: ${name}
+        template:
+          metadata:
+            labels:
+              app: ${name}
+          spec:
+            enableServiceLinks: false
+            containers:
+            - name: api-server
+              image: ${image}
+              ports:
+              - name: api-server
+                containerPort: 8000
+                protocol: TCP
+              livenessProbe:
+                httpGet:
+                  path: /ok
+                  port: 8000
+                periodSeconds: 15
+                timeoutSeconds: 5
+                failureThreshold: 6
+              readinessProbe:
+                httpGet:
+                  path: /ok
+                  port: 8000
+                periodSeconds: 15
+                timeoutSeconds: 5
+                failureThreshold: 6
+    service: |
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: ${name}
+        namespace: ${namespace}
+      spec:
+        type: ClusterIP
+        selector:
+          app: ${name}
+        ports:
+        - name: api-server
+          protocol: TCP
+          port: 8000
+          targetPort: 8000
+    redis: |
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: ${service_name}
+        namespace: ${namespace}
+      spec:
+        replicas: 1
+        selector:
+          matchLabels:
+            app: ${service_name}
+        template:
+          metadata:
+            labels:
+              app: ${service_name}
+          spec:
+            enableServiceLinks: false
+            containers:
+            - name: redis
+              image: docker.io/redis:7
+              ports:
+              - containerPort: 6379
+                name: redis
+              livenessProbe:
+                exec:
+                  command:
+                  - redis-cli
+                  - ping
+                initialDelaySeconds: 30
+                periodSeconds: 10
+              readinessProbe:
+                tcpSocket:
+                  port: 6379
+                initialDelaySeconds: 10
+                periodSeconds: 5
+    db: |
+      apiVersion: apps/v1
+      kind: StatefulSet
+      metadata:
+        name: ${service_name}
+      spec:
+        serviceName: ${service_name}
+        selector:
+          matchLabels:
+            app: ${service_name}
+        persistentVolumeClaimRetentionPolicy:
+          whenDeleted: Delete
+          whenScaled: Retain
+        template:
+          metadata:
+            labels:
+              app: ${service_name}
+          spec:
+            containers:
+            - name: postgres
+              image: pgvector/pgvector:pg15
+              ports:
+              - containerPort: 5432
+              command: ["docker-entrypoint.sh"]
+              args:
+                - postgres
+                - -c
+                - max_connections=${max_connections}
+              env:
+              - name: PGDATA
+                value: /var/lib/postgresql/data/pgdata
+              volumeMounts:
+              - name: postgres-data
+                mountPath: /var/lib/postgresql/data
+            enableServiceLinks: false
+        volumeClaimTemplates:
+        - metadata:
+            name: postgres-data
+          spec:
+            accessModes: ["ReadWriteOnce"]
+            resources:
+              requests:
+                storage: "${storage_gi}Gi"
+
+playground:
+  name: "playground"
+  containerPort: 1988
+  # -- ArgoCD Rollouts configuration. If enabled, will create a Rollout resource instead of a Deployment. See https://argo-rollouts.readthedocs.io/
+  rollout:
+    enabled: false
+    # -- Rollout strategy configuration. See https://argo-rollouts.readthedocs.io/en/stable/features/specification/
+    strategy:
+      canary:
+        steps:
+          - setWeight: 100
+  deployment:
+    replicas: 1
+    labels: {}
+    annotations: {}
+    podSecurityContext: {}
+    securityContext: {}
+    lifecycle: {}
+    resources:
+      limits:
+        cpu: 1000m
+        memory: 8Gi
+      requests:
+        cpu: 500m
+        memory: 1Gi
+    command:
+      - "./entrypoint.sh"
+    startupProbe:
+      httpGet:
+        path: /ok
+        port: 1988
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 1
+    livenessProbe:
+      httpGet:
+        path: /ok
+        port: 1988
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 1
+    readinessProbe:
+      httpGet:
+        path: /ok
+        port: 1988
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 1
+    extraContainerConfig: {}
+    extraEnv: []
+    sidecars: []
+    initContainers: []
+    nodeSelector: {}
+    tolerations: []
+    topologySpreadConstraints: []
+    affinity: {}
+    volumes: []
+    volumeMounts: []
+    terminationGracePeriodSeconds: 30
+  # Autoscaling configuration. Either HPA or KEDA can be enabled, not both.
+  autoscaling:
+    # HPA-specific configuration
+    hpa:
+      enabled: false
+      minReplicas: 1
+      maxReplicas: 5
+      targetCPUUtilizationPercentage: 50
+      targetMemoryUtilizationPercentage: 80
+      additionalMetrics: []
+    # KEDA ScaledObject configuration. See https://keda.sh/docs/2.18/reference/scaledobject-spec
+    # These are some recommended default values. You can tweak them to your needs, using the docs above.
+    keda:
+      enabled: false
+      labels: {}
+      annotations: {}
+      pollingInterval: 30
+      cooldownPeriod: 300
+      initialCooldownPeriod: 0
+      minReplicaCount: 1
+      maxReplicaCount: 5
+      targetCPUUtilizationPercentage: 50
+      targetMemoryUtilizationPercentage: 80
+      scaleDownStabilizationWindowSeconds: 1800
+      scaleDownPolicy:
+        value: 100
+        periodSeconds: 300
+      scaleUpPolicy:
+        value: 100
+        periodSeconds: 15
+  pdb:
+    enabled: false
+    minAvailable: 1
+    labels: {}
+    annotations: {}
+  service:
+    type: ClusterIP
+    port: 1988
+    labels: {}
+    annotations: {}
+    loadBalancerSourceRanges: []
+    loadBalancerIP: ""
+  serviceAccount:
+    create: true
+    name: ""
+    labels: {}
+    annotations: {}
+    automountServiceAccountToken: true
+
+postgres:
+  name: "postgres"
+  disableSecretCreation: false
+  external:
+    # If enabled, use the following values to connect to an external database. This will also disable the
+    # creation of a postgres stateful-set and service.
+    enabled: false
+    host: ""
+    port: "5432"
+    user: "postgres"
+    password: "postgres"
+    database: "postgres"
+    schema: "public"
+    # If connection string is specified, we will ignore all above values and use the connection string instead.
+    # Do not include the driver name(something like "postgres://" in the connection string.
+    connectionUrl: ""
+    connectionUrlSecretKey: "connection_url"
+    existingSecretName: ""
+    # IAM authentication provider. If set, the application will use workload identity to authenticate.
+    # Valid values: "gcp", "aws", "azure". Leave empty to disable IAM authentication.
+    iamAuthProvider: ""
+    # Use this to enable TLS using a custom CA (non-public) certificate.
+    customTls: false
+    # mTLS client certificate configuration for Postgres connections. Provide a secret name to enable mTLS authentication.
+    # For server certificate validation with a custom CA, use config.customCa.secretName and config.customCa.secretKey instead.
+    clientCert:
+      secretName: ""
+      certSecretKey: "tls.crt"
+      keySecretKey: "tls.key"
+  containerPort: 5432
+  statefulSet:
+    labels: {}
+    annotations: {}
+    podSecurityContext: {}
+    securityContext: {}
+    lifecycle: {}
+    terminationGracePeriodSeconds: 30
+    resources:
+      # In a production environment, we strongly recommend an external Postgres database.
+      limits:
+        cpu: 4000m
+        memory: 16Gi
+      requests:
+        cpu: 2000m
+        memory: 8Gi
+    command: []
+    startupProbe:
+      exec:
+        command:
+          - /bin/sh
+          - -c
+          - exec pg_isready -d postgres -U postgres
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 1
+    readinessProbe:
+      exec:
+        command:
+          - /bin/sh
+          - -c
+          - exec pg_isready -d postgres -U postgres
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 1
+    livenessProbe:
+      exec:
+        command:
+          - /bin/sh
+          - -c
+          - exec pg_isready -d postgres -U postgres
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 1
+    extraContainerConfig: {}
+    extraEnv: []
+    sidecars: []
+    initContainers: []
+    nodeSelector: {}
+    tolerations: []
+    topologySpreadConstraints: []
+    affinity: {}
+    volumes: []
+    volumeMounts: []
+    persistentVolumeClaimRetentionPolicy: {}
+    persistence:
+      enabled: true
+      size: 8Gi
+      storageClassName: ""
+  pdb:
+    enabled: false
+    minAvailable: 1
+    labels: {}
+    annotations: {}
+  service:
+    type: ClusterIP
+    port: 5432
+    labels: {}
+    annotations: {}
+    loadBalancerSourceRanges: []
+    loadBalancerIP: ""
+  serviceAccount:
+    create: true
+    name: ""
+    labels: {}
+    annotations: {}
+    automountServiceAccountToken: true
+
+queue:
+  name: "queue"
+  containerPort: 8080
+  # -- ArgoCD Rollouts configuration. If enabled, will create a Rollout resource instead of a Deployment. See https://argo-rollouts.readthedocs.io/
+  rollout:
+    enabled: false
+    # -- Rollout strategy configuration. See https://argo-rollouts.readthedocs.io/en/stable/features/specification/
+    strategy:
+      canary:
+        steps:
+          - setWeight: 100
+  deployment:
+    replicas: 1
+    labels: {}
+    annotations: {}
+    podSecurityContext: {}
+    securityContext: {}
+    lifecycle: {}
+    resources:
+      limits:
+        cpu: 2000m
+        memory: 4Gi
+      requests:
+        cpu: 1000m
+        memory: 2Gi
+    command:
+      - "./queue_entrypoint.sh"
+    startupProbe:
+      httpGet:
+        path: /health
+        port: 8080
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 10
+    readinessProbe:
+      httpGet:
+        path: /health
+        port: 8080
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 10
+    livenessProbe:
+      exec:
+        command:
+          - "saq"
+          - "app.workers.queues.single_queue_worker.settings"
+          - "--check"
+      failureThreshold: 6
+      periodSeconds: 60
+      timeoutSeconds: 60
+    extraContainerConfig: {}
+    extraEnv: []
+    sidecars: []
+    initContainers: []
+    nodeSelector: {}
+    tolerations: []
+    topologySpreadConstraints: []
+    affinity: {}
+    volumes: []
+    volumeMounts: []
+    terminationGracePeriodSeconds: 30
+  pdb:
+    enabled: false
+    minAvailable: 1
+    labels: {}
+    annotations: {}
+  autoscaling:
+    # HPA-specific configuration
+    hpa:
+      enabled: false
+      minReplicas: 1
+      maxReplicas: 10
+      targetCPUUtilizationPercentage: 50
+      targetMemoryUtilizationPercentage: 80
+    # KEDA ScaledObject configuration. See https://keda.sh/docs/2.18/reference/scaledobject-spec
+    # These are some recommended default values. You can tweak them to your needs, using the docs above.
+    keda:
+      enabled: false
+      labels: {}
+      annotations: {}
+      pollingInterval: 30
+      cooldownPeriod: 300
+      initialCooldownPeriod: 0
+      minReplicaCount: 1
+      maxReplicaCount: 10
+      targetCPUUtilizationPercentage: 50
+      targetMemoryUtilizationPercentage: 80
+      queueTargetSize: "10"
+      fallback:
+        failureThreshold: 3
+        replicas: 3
+      scaleDownStabilizationWindowSeconds: 1800
+      scaleDownPolicy:
+        value: 100
+        periodSeconds: 300
+      scaleUpPolicy:
+        value: 100
+        periodSeconds: 15
+  serviceAccount:
+    create: true
+    name: ""
+    labels: {}
+    annotations: {}
+    automountServiceAccountToken: true
+
+ingestQueue:
+  enabled: true
+  name: "ingest-queue"
+  containerPort: 1989
+  # -- ArgoCD Rollouts configuration. If enabled, will create a Rollout resource instead of a Deployment. See https://argo-rollouts.readthedocs.io/
+  rollout:
+    enabled: false
+    # -- Rollout strategy configuration. See https://argo-rollouts.readthedocs.io/en/stable/features/specification/
+    strategy:
+      canary:
+        steps:
+          - setWeight: 100
+  deployment:
+    replicas: 3
+    labels: {}
+    annotations: {}
+    podSecurityContext: {}
+    securityContext: {}
+    lifecycle: {}
+    resources:
+      limits:
+        cpu: 2000m
+        memory: 4Gi
+      requests:
+        cpu: 1000m
+        memory: 2Gi
+    command:
+      - "./asynq_worker_entrypoint.sh"
+    startupProbe:
+      httpGet:
+        path: /health
+        port: 1989
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 1
+    livenessProbe:
+      httpGet:
+        path: /health
+        port: 1989
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 1
+    readinessProbe:
+      httpGet:
+        path: /health
+        port: 1989
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 1
+    extraContainerConfig: {}
+    extraEnv: []
+    sidecars: []
+    initContainers: []
+    nodeSelector: {}
+    tolerations: []
+    topologySpreadConstraints: []
+    affinity: {}
+    volumes: []
+    volumeMounts: []
+    terminationGracePeriodSeconds: 30
+  pdb:
+    enabled: false
+    minAvailable: 1
+    labels: {}
+    annotations: {}
+  # Autoscaling configuration. Either HPA or KEDA can be enabled, not both.
+  autoscaling:
+    # HPA-specific configuration
+    hpa:
+      enabled: false
+      minReplicas: 3
+      maxReplicas: 10
+      targetCPUUtilizationPercentage: 50
+      targetMemoryUtilizationPercentage: 80
+    # KEDA ScaledObject configuration. See https://keda.sh/docs/2.18/reference/scaledobject-spec
+    # These are some recommended default values. You can tweak them to your needs, using the docs above.
+    keda:
+      enabled: false
+      labels: {}
+      annotations: {}
+      pollingInterval: 30
+      cooldownPeriod: 300
+      initialCooldownPeriod: 0
+      minReplicaCount: 3
+      maxReplicaCount: 10
+      targetCPUUtilizationPercentage: 50
+      targetMemoryUtilizationPercentage: 80
+      queueTargetSize: "10"
+      fallback:
+        failureThreshold: 3
+        replicas: 3
+      scaleDownStabilizationWindowSeconds: 1800
+      scaleDownPolicy:
+        value: 100
+        periodSeconds: 300
+      scaleUpPolicy:
+        value: 100
+        periodSeconds: 15
+  serviceAccount:
+    create: true
+    name: ""
+    labels: {}
+    annotations: {}
+    automountServiceAccountToken: true
+
+redis:
+  name: "redis"
+  disableSecretCreation: false
+  external:
+    # If enabled, use the following values to connect to an external redis instance. This will also disable the
+    # creation of a redis stateful-set and service.
+    enabled: false
+    connectionUrl: ""
+    connectionUrlSecretKey: "connection_url"
+    existingSecretName: ""
+    # IAM authentication provider. If set, the application will use workload identity to authenticate.
+    # Valid values: "gcp", "aws", "azure". Leave empty to disable IAM authentication.
+    iamAuthProvider: ""
+    # mTLS client certificate configuration for Redis connections. Provide a secret name to enable mTLS authentication.
+    # For server certificate validation with a custom CA, use config.customCa.secretName and config.customCa.secretKey instead.
+    clientCert:
+      secretName: ""
+      certSecretKey: "tls.crt"
+      keySecretKey: "tls.key"
+    # Redis cluster configuration.
+    cluster:
+      enabled: false
+      # Node URIs and password can also be set in the secret above (existingSecretName).
+      # Node URIs should be in the format: '["redis://host:port", "redis://host:port", "redis://host:port"]'
+      nodeUris: []
+      nodeUrisSecretKey: "redis_cluster_node_uris"
+      password: ""
+      passwordSecretKey: "redis_cluster_password"
+      tlsEnabled: true
+  containerPort: 6379
+  statefulSet:
+    labels: {}
+    annotations: {}
+    podSecurityContext: {}
+    securityContext: {}
+    lifecycle: {}
+    terminationGracePeriodSeconds: 30
+    # In a production environment, we strongly recommend an external Redis database.
+    resources:
+      limits:
+        cpu: 4000m
+        memory: 8Gi
+      requests:
+        cpu: 2000m
+        memory: 4Gi
+    command: []
+    startupProbe:
+      exec:
+        command:
+          - /bin/sh
+          - -c
+          - exec redis-cli ping
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 1
+    readinessProbe:
+      exec:
+        command:
+          - /bin/sh
+          - -c
+          - exec redis-cli ping
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 1
+    livenessProbe:
+      exec:
+        command:
+          - /bin/sh
+          - -c
+          - exec redis-cli ping
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 1
+    extraContainerConfig: {}
+    extraEnv: []
+    sidecars: []
+    initContainers: []
+    nodeSelector: {}
+    tolerations: []
+    topologySpreadConstraints: []
+    affinity: {}
+    volumes: []
+    volumeMounts: []
+    persistentVolumeClaimRetentionPolicy: {}
+    persistence:
+      enabled: true
+      size: 8Gi
+      storageClassName: ""
+  pdb:
+    enabled: false
+    minAvailable: 1
+    labels: {}
+    annotations: {}
+  service:
+    type: ClusterIP
+    port: 6379
+    labels: {}
+    annotations: {}
+    loadBalancerSourceRanges: []
+    loadBalancerIP: ""
+  serviceAccount:
+    create: true
+    name: ""
+    labels: {}
+    annotations: {}
+    automountServiceAccountToken: true
+
+# Agent Builder Tool Server - provides MCP tool execution capabilities
+# Only runs when config.agentBuilder.enabled is true
+agentBuilderToolServer:
+  enabled: true
+  name: "agent-builder-tool-server"
+  containerPort: 1989
+  deployment:
+    replicas: 1
+    labels: {}
+    annotations: {}
+    podSecurityContext: {}
+    securityContext: {}
+    lifecycle: {}
+    resources:
+      limits:
+        cpu: 2000m
+        memory: 4Gi
+      requests:
+        cpu: 1000m
+        memory: 2Gi
+    startupProbe:
+      httpGet:
+        path: /health
+        port: 1989
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 3
+    livenessProbe:
+      httpGet:
+        path: /health
+        port: 1989
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 3
+    readinessProbe:
+      httpGet:
+        path: /health
+        port: 1989
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 3
+    extraContainerConfig: {}
+    extraEnv: []
+    sidecars: []
+    initContainers: []
+    nodeSelector: {}
+    tolerations: []
+    topologySpreadConstraints: []
+    affinity: {}
+    volumes: []
+    volumeMounts: []
+    terminationGracePeriodSeconds: 30
+  autoscaling:
+    enabled: false
+    createHpa: true
+    minReplicas: 1
+    maxReplicas: 3
+    targetCPUUtilizationPercentage: 70
+    targetMemoryUtilizationPercentage: 70
+  pdb:
+    enabled: false
+    minAvailable: 1
+    labels: {}
+    annotations: {}
+  service:
+    type: ClusterIP
+    port: 1989
+    labels: {}
+    annotations: {}
+    loadBalancerSourceRanges: []
+    loadBalancerIP: ""
+  serviceAccount:
+    create: true
+    name: ""
+    labels: {}
+    annotations: {}
+    automountServiceAccountToken: true
+
+# Agent Builder Trigger Server - handles cron, Slack, and Gmail triggers
+# Only runs when config.agentBuilder.enabled is true
+# NOTE: Currently only supports a single replica to prevent duplicate trigger executions
+agentBuilderTriggerServer:
+  enabled: true
+  name: "agent-builder-trigger-server"
+  containerPort: 1990
+  deployment:
+    labels: {}
+    annotations: {}
+    podSecurityContext: {}
+    securityContext: {}
+    lifecycle: {}
+    resources:
+      limits:
+        cpu: 2000m
+        memory: 4Gi
+      requests:
+        cpu: 1000m
+        memory: 2Gi
+    startupProbe:
+      httpGet:
+        path: /health
+        port: 1990
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 1
+    livenessProbe:
+      httpGet:
+        path: /health
+        port: 1990
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 1
+    readinessProbe:
+      httpGet:
+        path: /health
+        port: 1990
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 1
+    extraContainerConfig: {}
+    extraEnv: []
+    sidecars: []
+    initContainers: []
+    nodeSelector: {}
+    tolerations: []
+    topologySpreadConstraints: []
+    affinity: {}
+    volumes: []
+    volumeMounts: []
+    terminationGracePeriodSeconds: 30
+  service:
+    type: ClusterIP
+    port: 1990
+    labels: {}
+    annotations: {}
+    loadBalancerSourceRanges: []
+    loadBalancerIP: ""
+  serviceAccount:
+    create: true
+    name: ""
+    labels: {}
+    annotations: {}
+    automountServiceAccountToken: true

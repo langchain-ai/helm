@@ -1,0 +1,9 @@
+apiVersion: v2
+name: langsmith
+maintainers:
+  - name: Ankush
+    email: ankush@langchain.dev
+description: Helm chart to deploy the langsmith application and all services it depends on.
+type: application
+version: 0.13.28
+appVersion: "0.13.30"
