@@ -1,0 +1,26 @@
+authProxy:
+  enabled: true
+  upstream: "http://fake-gateway:10001"
+  jwtIssuer: "langsmith"
+  jwtAudiences:
+    - "test-audience"
+  # jwksJson injected via temp values file at install time
+  streamIdleTimeout: "300s"
+  transformer:
+    enabled: true
+    serviceUrl: "grpc://transformer-mock:50051"
+    timeout: "10s"
+    failureModeAllow: false
+    processingMode:
+      requestHeaderMode: "SEND"
+      responseHeaderMode: "SKIP"
+      # BUFFERED: the transformer mock rewrites the JSON body before forwarding upstream.
+      # When mutating the body, the ext_proc service must also update the content-length
+      # header via HeaderMutation — Envoy rejects mismatched content-length.
+      requestBodyMode: "BUFFERED"
+      responseBodyMode: "NONE"
+      requestTrailerMode: "SKIP"
+      responseTrailerMode: "SKIP"
+
+ingress:
+  enabled: false
