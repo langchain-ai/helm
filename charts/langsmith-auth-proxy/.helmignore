@@ -2,6 +2,5 @@
 e2e/
 ci/
 tests/
-*.md
 *.gotmpl
 .venv/
