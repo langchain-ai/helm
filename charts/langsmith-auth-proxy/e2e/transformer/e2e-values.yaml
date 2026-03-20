@@ -1,0 +1,23 @@
+authProxy:
+  enabled: true
+  upstream: "http://fake-gateway:10001"
+  jwtIssuer: "langsmith"
+  jwtAudiences:
+    - "test-audience"
+  # jwksJson injected via temp values file at install time
+  streamIdleTimeout: "300s"
+  transformer:
+    enabled: true
+    serviceUrl: "grpc://transformer-mock:50051"
+    timeout: "10s"
+    failureModeAllow: false
+    processingMode:
+      requestHeaderMode: "SEND"
+      responseHeaderMode: "SKIP"
+      requestBodyMode: "NONE"
+      responseBodyMode: "NONE"
+      requestTrailerMode: "SKIP"
+      responseTrailerMode: "SKIP"
+
+ingress:
+  enabled: false

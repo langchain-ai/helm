@@ -163,6 +163,23 @@ data:
                             allow_partial_message: false
                           {{- end }}
                       {{- end }}
+                      {{- if .Values.authProxy.transformer.enabled }}
+                      - name: envoy.filters.http.ext_proc
+                        typed_config:
+                          "@type": type.googleapis.com/envoy.extensions.filters.http.ext_proc.v3.ExternalProcessor
+                          failure_mode_allow: {{ .Values.authProxy.transformer.failureModeAllow }}
+                          message_timeout: {{ .Values.authProxy.transformer.timeout }}
+                          processing_mode:
+                            request_header_mode: {{ .Values.authProxy.transformer.processingMode.requestHeaderMode }}
+                            response_header_mode: {{ .Values.authProxy.transformer.processingMode.responseHeaderMode }}
+                            request_body_mode: {{ .Values.authProxy.transformer.processingMode.requestBodyMode }}
+                            response_body_mode: {{ .Values.authProxy.transformer.processingMode.responseBodyMode }}
+                            request_trailer_mode: {{ .Values.authProxy.transformer.processingMode.requestTrailerMode }}
+                            response_trailer_mode: {{ .Values.authProxy.transformer.processingMode.responseTrailerMode }}
+                          grpc_service:
+                            envoy_grpc:
+                              cluster_name: transformer_service
+                      {{- end }}
                       - name: envoy.filters.http.router
                         typed_config:
                           "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
@@ -313,5 +330,25 @@ data:
                         socket_address:
                           address: {{ include "authProxy.urlHostname" .Values.authProxy.extAuthz.serviceUrl }}
                           port_value: {{ include "authProxy.urlPort" .Values.authProxy.extAuthz.serviceUrl }}
+        {{- end }}
+        {{- if .Values.authProxy.transformer.enabled }}
+        - name: transformer_service
+          connect_timeout: 5s
+          type: STRICT_DNS
+          dns_lookup_family: V4_ONLY
+          typed_extension_protocol_options:
+            envoy.extensions.upstreams.http.v3.HttpProtocolOptions:
+              "@type": type.googleapis.com/envoy.extensions.upstreams.http.v3.HttpProtocolOptions
+              explicit_http_config:
+                http2_protocol_options: {}
+          load_assignment:
+            cluster_name: transformer_service
+            endpoints:
+              - lb_endpoints:
+                  - endpoint:
+                      address:
+                        socket_address:
+                          address: {{ include "authProxy.urlHostname" .Values.authProxy.transformer.serviceUrl }}
+                          port_value: {{ include "authProxy.urlPort" .Values.authProxy.transformer.serviceUrl }}
         {{- end }}
 {{- end }}

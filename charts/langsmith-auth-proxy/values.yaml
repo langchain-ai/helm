@@ -101,6 +101,46 @@ authProxy:
     sendBody: false
     # -- Maximum request body bytes to buffer for ext_authz
     maxRequestBytes: 8192
+  # Request/response transformer using Envoy's ext_proc filter.
+  # More powerful than ext_authz — can modify headers AND bodies in both directions.
+  # Requires a gRPC service implementing envoy.service.ext_proc.v3.ExternalProcessor.
+  # See e2e/transformer/ for a sample Go implementation.
+  transformer:
+    # -- Enable the request/response transformer (ext_proc filter).
+    enabled: false
+    # -- gRPC service URL for the transformer (e.g. grpc://my-transformer:50051)
+    serviceUrl: ""
+    # -- Timeout for transformer calls
+    timeout: "10s"
+    # -- Whether to fail open (allow request) or closed (reject) on transformer errors
+    failureModeAllow: false
+    # -- Processing phases to enable. Only enabled phases are sent to the transformer service.
+    # Disabling unused phases avoids unnecessary gRPC round-trips and reduces latency.
+    processingMode:
+      # -- Whether to send request headers to the transformer.
+      # SEND: forward headers (use this to read JWTs, inject auth headers, add routing metadata).
+      # SKIP: do not forward. DEFAULT: use the server-side default.
+      requestHeaderMode: "SEND"
+      # -- Whether to send response headers to the transformer.
+      # SEND: forward headers (use this to strip, rewrite, or add response headers).
+      # SKIP: do not forward. DEFAULT: use the server-side default.
+      responseHeaderMode: "SKIP"
+      # -- Whether and how to send the request body to the transformer.
+      # NONE: do not send. BUFFERED: buffer the full body before sending (simplest — good for JSON rewriting).
+      # STREAMED: send body chunks as they arrive (lower latency, harder to implement).
+      # BUFFERED_PARTIAL: buffer up to the route-level per_route buffer limit, then send what was collected.
+      requestBodyMode: "NONE"
+      # -- Whether and how to send the response body to the transformer.
+      # NONE: do not send. BUFFERED: buffer the full body before sending.
+      # STREAMED: send body chunks as they arrive (use for SSE/streaming LLM responses — each chunk is forwarded individually).
+      # BUFFERED_PARTIAL: buffer up to the route-level per_route buffer limit, then send what was collected.
+      responseBodyMode: "NONE"
+      # -- Whether to send request trailers to the transformer. SEND or SKIP.
+      # Trailers are rarely used in LLM APIs; leave as SKIP unless your upstream requires them.
+      requestTrailerMode: "SKIP"
+      # -- Whether to send response trailers to the transformer. SEND or SKIP.
+      # Trailers are rarely used in LLM APIs; leave as SKIP unless your upstream requires them.
+      responseTrailerMode: "SKIP"
   # -- ArgoCD Rollouts configuration. If enabled, will create a Rollout resource instead of a Deployment. See https://argo-rollouts.readthedocs.io/
   rollout:
     enabled: false

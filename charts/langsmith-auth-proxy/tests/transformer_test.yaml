@@ -1,0 +1,155 @@
+suite: transformer (ext_proc)
+templates:
+  - auth-proxy/config-map.yaml
+tests:
+  - it: should not render ext_proc filter when transformer is disabled (default)
+    set:
+      authProxy.upstream: "https://gateway.example.com"
+    asserts:
+      - notMatchRegex:
+          path: data["envoy.yaml"]
+          pattern: ext_proc
+
+  - it: should render ext_proc filter when transformer is enabled
+    set:
+      authProxy.upstream: "https://gateway.example.com"
+      authProxy.transformer.enabled: true
+      authProxy.transformer.serviceUrl: "grpc://my-transformer:50051"
+    asserts:
+      - matchRegex:
+          path: data["envoy.yaml"]
+          pattern: 'envoy\.filters\.http\.ext_proc'
+      - matchRegex:
+          path: data["envoy.yaml"]
+          pattern: 'envoy\.extensions\.filters\.http\.ext_proc\.v3\.ExternalProcessor'
+
+  - it: should render transformer_service cluster with correct address and port
+    set:
+      authProxy.upstream: "https://gateway.example.com"
+      authProxy.transformer.enabled: true
+      authProxy.transformer.serviceUrl: "grpc://my-transformer:50051"
+    asserts:
+      - matchRegex:
+          path: data["envoy.yaml"]
+          pattern: 'cluster_name: transformer_service'
+      - matchRegex:
+          path: data["envoy.yaml"]
+          pattern: 'address: my-transformer'
+      - matchRegex:
+          path: data["envoy.yaml"]
+          pattern: 'port_value: 50051'
+
+  - it: should render http2_protocol_options for gRPC
+    set:
+      authProxy.upstream: "https://gateway.example.com"
+      authProxy.transformer.enabled: true
+      authProxy.transformer.serviceUrl: "grpc://my-transformer:50051"
+    asserts:
+      - matchRegex:
+          path: data["envoy.yaml"]
+          pattern: 'http2_protocol_options'
+
+  - it: should propagate processing_mode values correctly
+    set:
+      authProxy.upstream: "https://gateway.example.com"
+      authProxy.transformer.enabled: true
+      authProxy.transformer.serviceUrl: "grpc://my-transformer:50051"
+      authProxy.transformer.processingMode.requestHeaderMode: "SEND"
+      authProxy.transformer.processingMode.responseHeaderMode: "SEND"
+      authProxy.transformer.processingMode.requestBodyMode: "BUFFERED"
+      authProxy.transformer.processingMode.responseBodyMode: "STREAMED"
+      authProxy.transformer.processingMode.requestTrailerMode: "SKIP"
+      authProxy.transformer.processingMode.responseTrailerMode: "SKIP"
+    asserts:
+      - matchRegex:
+          path: data["envoy.yaml"]
+          pattern: 'request_header_mode: SEND'
+      - matchRegex:
+          path: data["envoy.yaml"]
+          pattern: 'response_header_mode: SEND'
+      - matchRegex:
+          path: data["envoy.yaml"]
+          pattern: 'request_body_mode: BUFFERED'
+      - matchRegex:
+          path: data["envoy.yaml"]
+          pattern: 'response_body_mode: STREAMED'
+
+  - it: should propagate failure_mode_allow
+    set:
+      authProxy.upstream: "https://gateway.example.com"
+      authProxy.transformer.enabled: true
+      authProxy.transformer.serviceUrl: "grpc://my-transformer:50051"
+      authProxy.transformer.failureModeAllow: true
+    asserts:
+      - matchRegex:
+          path: data["envoy.yaml"]
+          pattern: 'failure_mode_allow: true'
+
+  - it: should propagate message_timeout
+    set:
+      authProxy.upstream: "https://gateway.example.com"
+      authProxy.transformer.enabled: true
+      authProxy.transformer.serviceUrl: "grpc://my-transformer:50051"
+      authProxy.transformer.timeout: "30s"
+    asserts:
+      - matchRegex:
+          path: data["envoy.yaml"]
+          pattern: 'message_timeout: 30s'
+
+  - it: should coexist with ext_authz when both enabled
+    set:
+      authProxy.upstream: "https://gateway.example.com"
+      authProxy.extAuthz.enabled: true
+      authProxy.extAuthz.serviceUrl: "http://auth-service:8080"
+      authProxy.transformer.enabled: true
+      authProxy.transformer.serviceUrl: "grpc://my-transformer:50051"
+    asserts:
+      - matchRegex:
+          path: data["envoy.yaml"]
+          pattern: 'envoy\.filters\.http\.ext_authz'
+      - matchRegex:
+          path: data["envoy.yaml"]
+          pattern: 'envoy\.filters\.http\.ext_proc'
+      - matchRegex:
+          path: data["envoy.yaml"]
+          pattern: 'ext_authz_service'
+      - matchRegex:
+          path: data["envoy.yaml"]
+          pattern: 'transformer_service'
+
+  - it: should place ext_proc after ext_authz and before router
+    set:
+      authProxy.upstream: "https://gateway.example.com"
+      authProxy.extAuthz.enabled: true
+      authProxy.extAuthz.serviceUrl: "http://auth-service:8080"
+      authProxy.transformer.enabled: true
+      authProxy.transformer.serviceUrl: "grpc://my-transformer:50051"
+    asserts:
+      - matchRegex:
+          path: data["envoy.yaml"]
+          pattern: 'ext_authz[\s\S]*ext_proc[\s\S]*router'
+
+  - it: should work with httpProxy enabled (transformer cluster independent)
+    set:
+      authProxy.upstream: "https://gateway.example.com"
+      authProxy.httpProxy.enabled: true
+      authProxy.httpProxy.host: "proxy.corp.com"
+      authProxy.httpProxy.port: 3128
+      authProxy.transformer.enabled: true
+      authProxy.transformer.serviceUrl: "grpc://my-transformer:50051"
+    asserts:
+      - matchRegex:
+          path: data["envoy.yaml"]
+          pattern: 'transformer_service'
+      - matchRegex:
+          path: data["envoy.yaml"]
+          pattern: 'proxy_cluster'
+
+  - it: should not render transformer_service cluster when disabled
+    set:
+      authProxy.upstream: "https://gateway.example.com"
+      authProxy.transformer.enabled: false
+    asserts:
+      - notMatchRegex:
+          path: data["envoy.yaml"]
+          pattern: 'transformer_service'
