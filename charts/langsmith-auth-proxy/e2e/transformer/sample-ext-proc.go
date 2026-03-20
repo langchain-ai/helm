@@ -135,6 +135,17 @@ func handleRequestBody(body *ext_proc.HttpBody) *ext_proc.ProcessingResponse {
 
 	bodyResp := resp.GetRequestBody()
 	bodyResp.Response = &ext_proc.CommonResponse{
+		Status: ext_proc.CommonResponse_CONTINUE_AND_REPLACE,
+		HeaderMutation: &ext_proc.HeaderMutation{
+			SetHeaders: []*core.HeaderValueOption{
+				{
+					Header: &core.HeaderValue{
+						Key:      "content-length",
+						RawValue: []byte(fmt.Sprintf("%d", len(newBody))),
+					},
+				},
+			},
+		},
 		BodyMutation: &ext_proc.BodyMutation{
 			Mutation: &ext_proc.BodyMutation_Body{
 				Body: newBody,

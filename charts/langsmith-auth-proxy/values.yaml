@@ -129,6 +129,9 @@ authProxy:
       # NONE: do not send. BUFFERED: buffer the full body before sending (simplest — good for JSON rewriting).
       # STREAMED: send body chunks as they arrive (lower latency, harder to implement).
       # BUFFERED_PARTIAL: buffer up to the route-level per_route buffer limit, then send what was collected.
+      # IMPORTANT: when mutating the body, your ext_proc service MUST also set the content-length header
+      # to match the new body size via HeaderMutation in the body response. Envoy rejects responses where
+      # content-length doesn't match the mutated body. See e2e/transformer/sample-ext-proc.go for an example.
       requestBodyMode: "NONE"
       # -- Whether and how to send the response body to the transformer.
       # NONE: do not send. BUFFERED: buffer the full body before sending.

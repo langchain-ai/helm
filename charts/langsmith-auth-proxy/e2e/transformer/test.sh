@@ -64,7 +64,7 @@ kubectl cluster-info --context "kind-$CLUSTER_NAME" >/dev/null
 
 # ── 3. Build + load transformer mock image ──────────────────────────
 log "Building transformer-mock Docker image"
-docker build -t transformer-mock:e2e "$SCRIPT_DIR"
+docker build --no-cache -t transformer-mock:e2e "$SCRIPT_DIR"
 
 log "Loading image into kind"
 kind load docker-image transformer-mock:e2e --name "$CLUSTER_NAME"

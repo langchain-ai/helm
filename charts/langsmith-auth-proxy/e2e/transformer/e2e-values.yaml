@@ -14,7 +14,10 @@ authProxy:
     processingMode:
       requestHeaderMode: "SEND"
       responseHeaderMode: "SKIP"
-      requestBodyMode: "NONE"
+      # BUFFERED: the transformer mock rewrites the JSON body before forwarding upstream.
+      # When mutating the body, the ext_proc service must also update the content-length
+      # header via HeaderMutation — Envoy rejects mismatched content-length.
+      requestBodyMode: "BUFFERED"
       responseBodyMode: "NONE"
       requestTrailerMode: "SKIP"
       responseTrailerMode: "SKIP"
