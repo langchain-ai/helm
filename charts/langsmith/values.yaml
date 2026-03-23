@@ -331,6 +331,11 @@ config:
   # If empty, defaults to the built-in support messages with support@langchain.dev links.
   customErrorSupportMessage: ""
 
+  # -- Enables Google IAP (Identity-Aware Proxy) session handling in the frontend.
+  # When true, the frontend adds required IAP headers, uses credentialed fetches,
+  # and handles 401 re-auth via GCP's session refresh mechanism.
+  googleIapEnabled: false
+
   observability:
     tracing:
       enabled: false

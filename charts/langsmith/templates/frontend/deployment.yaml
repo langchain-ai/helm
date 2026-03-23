@@ -52,6 +52,10 @@
 - name: VITE_HOST_ENABLED
   value: "1"
 {{- end }}
+{{- if .Values.config.googleIapEnabled }}
+- name: VITE_GOOGLE_IAP_ENABLED
+  value: "true"
+{{- end }}
 {{- end -}}
 {{- $envVars := concat .Values.commonEnv (include "frontendEnvVars" . | fromYamlArray) .Values.frontend.deployment.extraEnv -}}
 {{- include "langsmith.detectDuplicates" $envVars -}}
