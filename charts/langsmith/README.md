@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.13.30](https://img.shields.io/badge/Version-0.13.30-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.13.31](https://img.shields.io/badge/AppVersion-0.13.31-informational?style=flat-square)
+![Version: 0.13.31](https://img.shields.io/badge/Version-0.13.31-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.13.31](https://img.shields.io/badge/AppVersion-0.13.31-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -325,6 +325,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | config.deployment.enabled | bool | `false` | Optional. Used to enable the LangSmith Deployments feature. Requires additional setup. Refer to the documentation for more information. |
 | config.disableSecretCreation | bool | `false` |  |
 | config.existingSecretName | string | `""` |  |
+| config.googleIapEnabled | bool | `false` | Enables Google IAP (Identity-Aware Proxy) session handling in the frontend. When true, the frontend adds required IAP headers, uses credentialed fetches, and handles 401 re-auth via GCP's session refresh mechanism. |
 | config.hostname | string | `""` | hostname of the LangSmith installation. Used for redirects and LangSmith deployments. Required for OAuth and LangSmith Deployments. E.g langsmith.com |
 | config.infoEndpointAuthRequired | bool | `false` | Require authentication on the GET /info endpoint. When enabled, unauthenticated requests to /info will receive a 401 and must supply a valid API key. The LangSmith SDK handles this automatically by retrying with credentials. Useful for deployments that must not expose instance configuration (version, feature flags, batch ingest config) to unauthenticated callers. |
 | config.initialOrgAdminEmail | string | `""` |  |
