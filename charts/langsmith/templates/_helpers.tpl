@@ -367,7 +367,7 @@ Template containing common environment variables that are used by several servic
   value: {{ .Values.config.blobStorage.engine | quote }}
 - name: MIN_BLOB_STORAGE_SIZE_KB
   value: {{ ternary 0 .Values.config.blobStorage.minBlobStorageSizeKb .Values.clickhouse.external.hybrid | quote }}
-{{- if (or (eq .Values.config.blobStorage.engine "S3") (eq .Values.config.blobStorage.engine "s3")) }}
+{{- if (or (eq .Values.config.blobStorage.engine "S3") (eq .Values.config.blobStorage.engine "s3") (eq .Values.config.blobStorage.engine "GCS") (eq .Values.config.blobStorage.engine "gcs")) }}
 - name: S3_BUCKET_NAME
   value: {{ .Values.config.blobStorage.bucketName | quote }}
 - name: S3_RUN_MANIFEST_BUCKET_NAME

@@ -40,23 +40,23 @@ images:
   aceBackendImage:
     repository: "docker.io/langchain/langsmith-ace-backend"
     pullPolicy: IfNotPresent
-    tag: "0.13.28"
+    tag: "0.13.31"
   backendImage:
     repository: "docker.io/langchain/langsmith-backend"
     pullPolicy: IfNotPresent
-    tag: "0.13.28"
+    tag: "0.13.31"
   insightsAgentImage:
     repository: "docker.io/langchain/langsmith-clio"
     pullPolicy: IfNotPresent
-    tag: "0.13.28"
+    tag: "0.13.31"
   frontendImage:
     repository: "docker.io/langchain/langsmith-frontend"
     pullPolicy: IfNotPresent
-    tag: "0.13.28"
+    tag: "0.13.31"
   hostBackendImage:
     repository: "docker.io/langchain/hosted-langserve-backend"
     pullPolicy: IfNotPresent
-    tag: "0.13.28"
+    tag: "0.13.31"
   operatorImage:
     repository: "docker.io/langchain/langgraph-operator"
     pullPolicy: IfNotPresent
@@ -64,11 +64,11 @@ images:
   platformBackendImage:
     repository: "docker.io/langchain/langsmith-go-backend"
     pullPolicy: IfNotPresent
-    tag: "0.13.28"
+    tag: "0.13.31"
   playgroundImage:
     repository: "docker.io/langchain/langsmith-playground"
     pullPolicy: IfNotPresent
-    tag: "0.13.28"
+    tag: "0.13.31"
   # For production environments, we strongly recommend connecting to a managed PostgreSQL instance instead of using the one provided by the chart.
   # Docs: https://docs.langchain.com/langsmith/self-host-external-postgres
   postgresImage:
@@ -88,19 +88,19 @@ images:
   agentBuilderToolServerImage:
     repository: "docker.io/langchain/agent-builder-tool-server"
     pullPolicy: IfNotPresent
-    tag: "0.13.28"
+    tag: "0.13.31"
   agentBuilderTriggerServerImage:
     repository: "docker.io/langchain/agent-builder-trigger-server"
     pullPolicy: IfNotPresent
-    tag: "0.13.28"
+    tag: "0.13.31"
   agentBuilderImage:
     repository: "docker.io/langchain/agent-builder-deep-agent"
     pullPolicy: IfNotPresent
-    tag: "0.13.28"
+    tag: "0.13.31"
   pollyAgentImage:
     repository: "docker.io/langchain/langsmith-polly"
     pullPolicy: IfNotPresent
-    tag: "0.13.28"
+    tag: "0.13.31"
 
 ingress:
   enabled: false
@@ -287,11 +287,15 @@ config:
     # Set this to change the threshold for payloads to be stored in blob storage
     # 'clickhouse.external.hybrid: true' overrides this to 0
     minBlobStorageSizeKb: "20"
-    # If you are using workload identity, you may not need to store the S3 credentials in the secrets.
+    # The following blob storage configuration values are for S3 and GCS and require blobStorage.engine = "S3" or "GCS"
+    # If you are using workload identity, you may not need to store the credentials in the secrets.
     # Instead, you will need to add the workload identity annotation to the backend and queue service accounts.
+    # For GCS with workload identity, leave accessKey and accessKeySecret empty to use Application Default Credentials.
+    # For GCS with HMAC keys, set accessKey and accessKeySecret to your GCS HMAC credentials.
     accessKey: ""
     accessKeySecret: ""
     bucketName: ""
+    # For GCS, set this to "https://storage.googleapis.com"
     apiURL: "https://s3.us-west-2.amazonaws.com"
     # Set this to true to use path style addressing for S3. This is required for some S3 compatible storage providers like MinIO.
     # If set to true, endpoint will be s3.<region>.amazonaws.com/bucket-name. If false, endpoint will be bucket-name.s3.<region>.amazonaws.com
