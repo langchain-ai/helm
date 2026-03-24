@@ -78,6 +78,7 @@ Control which phases are sent to the transformer via `processingMode`:
 | authProxy.containerPort | int | `10000` |  |
 | authProxy.deployment.affinity | object | `{}` |  |
 | authProxy.deployment.annotations | object | `{}` |  |
+| authProxy.deployment.autoRestartOnConfigChange | bool | `true` | Automatically restart pods when the envoy config changes (via checksum annotation). |
 | authProxy.deployment.command[0] | string | `"envoy"` |  |
 | authProxy.deployment.command[1] | string | `"-c"` |  |
 | authProxy.deployment.command[2] | string | `"/etc/envoy/envoy.yaml"` |  |
