@@ -154,8 +154,6 @@ authProxy:
         steps:
           - setWeight: 100
   deployment:
-    # -- Automatically restart pods when the envoy config changes (via checksum annotation).
-    autoRestartOnConfigChange: true
     replicas: 1
     labels: {}
     annotations: {}
