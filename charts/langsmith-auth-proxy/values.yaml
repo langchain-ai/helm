@@ -32,6 +32,7 @@ images:
 # Auth Proxy - Envoy-based proxy for validating LangSmith-signed JWTs
 # and optionally calling an external auth service before forwarding to an upstream LLM provider or gateway.
 # Separate ingress from the main LangSmith app — different hostname, streaming-optimized.
+# Note that auth-proxy restarts when values are updated (specifically changes that affect the envoy proxy config).
 authProxy:
   enabled: true
   name: "auth-proxy"

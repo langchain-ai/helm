@@ -32,6 +32,8 @@ spec:
   template:
     metadata:
       annotations:
+        # Redeploy the auth proxy when the envoy config changes
+        checksum/envoy-config: {{ include (print $.Template.BasePath "/auth-proxy/config-map.yaml") . | sha256sum }}
       {{- include "authProxy.commonPodAnnotations" . | nindent 8 }}
       {{- with .Values.authProxy.deployment.annotations }}
         {{- toYaml . | nindent 8 }}
