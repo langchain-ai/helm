@@ -103,14 +103,6 @@ data:
             proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.platformBackend.service.port }};
         }
 
-        location /{{ .Values.config.basePath }}/playground/experiment {
-            proxy_set_header Connection '';
-            proxy_http_version 1.1;
-            proxy_buffering off;
-            proxy_cache off;
-            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.platformBackend.service.port }};
-        }
-
         location /{{ .Values.config.basePath }}/api/v1/playground/experiment {
             proxy_set_header Connection '';
             proxy_http_version 1.1;
@@ -529,14 +521,6 @@ data:
         }
 
         location = /.well-known/jwks.json {
-            proxy_set_header Connection '';
-            proxy_http_version 1.1;
-            proxy_buffering off;
-            proxy_cache off;
-            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.platformBackend.service.port }};
-        }
-
-        location /playground/experiment {
             proxy_set_header Connection '';
             proxy_http_version 1.1;
             proxy_buffering off;
