@@ -79,6 +79,9 @@ spec:
           envFrom:
             - configMapRef:
                 name: {{ include "langsmith.fullname" . }}-config
+            - configMapRef:
+                name: {{ include "langsmith.fullname" . }}-agent-builder-config
+                optional: true
           image: {{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "platformBackendImage") | quote }}
           imagePullPolicy: {{ .Values.images.platformBackendImage.pullPolicy }}
           ports:
