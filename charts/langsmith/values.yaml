@@ -2002,6 +2002,8 @@ redis:
       secretName: ""
       certSecretKey: "tls.crt"
       keySecretKey: "tls.key"
+    # This flag disables cluster-unsafe operations. Needed for Azure EnterpriseCluster, which connects with the standalone client, but requires cluster-safe operations
+    clusterSafeMode: false
     # Redis cluster configuration.
     cluster:
       enabled: false

@@ -1445,6 +1445,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | redis.external.cluster.password | string | `""` |  |
 | redis.external.cluster.passwordSecretKey | string | `"redis_cluster_password"` |  |
 | redis.external.cluster.tlsEnabled | bool | `true` |  |
+| redis.external.clusterSafeMode | bool | `false` |  |
 | redis.external.connectionUrl | string | `""` |  |
 | redis.external.connectionUrlSecretKey | string | `"connection_url"` |  |
 | redis.external.enabled | bool | `false` |  |
