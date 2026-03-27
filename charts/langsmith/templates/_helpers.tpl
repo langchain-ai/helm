@@ -225,6 +225,8 @@ Template containing common environment variables that are used by several servic
       name: {{ include "langsmith.redisSecretsName" . }}
       key: {{ .Values.redis.external.connectionUrlSecretKey }}
       optional: {{ .Values.config.disableSecretCreation }}
+- name: REDIS_CLUSTER_SAFE_MODE
+  value: {{ .Values.redis.external.clusterSafeMode | quote }}
 {{- end }}
 {{- if .Values.redis.external.clientCert.secretName }}
 - name: REDIS_TLS_CLIENT_CERT_PATH

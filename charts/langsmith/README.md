@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.13.32](https://img.shields.io/badge/Version-0.13.32-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.13.35](https://img.shields.io/badge/AppVersion-0.13.35-informational?style=flat-square)
+![Version: 0.13.33](https://img.shields.io/badge/Version-0.13.33-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.13.35](https://img.shields.io/badge/AppVersion-0.13.35-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -1445,6 +1445,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | redis.external.cluster.password | string | `""` |  |
 | redis.external.cluster.passwordSecretKey | string | `"redis_cluster_password"` |  |
 | redis.external.cluster.tlsEnabled | bool | `true` |  |
+| redis.external.clusterSafeMode | bool | `false` |  |
 | redis.external.connectionUrl | string | `""` |  |
 | redis.external.connectionUrlSecretKey | string | `"connection_url"` |  |
 | redis.external.enabled | bool | `false` |  |
