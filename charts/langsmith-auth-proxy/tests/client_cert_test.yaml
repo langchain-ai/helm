@@ -1,0 +1,159 @@
+suite: client certificate (mTLS) configuration
+templates:
+  - auth-proxy/config-map.yaml
+  - auth-proxy/deployment.yaml
+tests:
+  - it: should not include tls_certificates when clientCert is not set
+    template: auth-proxy/config-map.yaml
+    set:
+      authProxy.upstream: "https://gateway.example.com"
+      authProxy.jwksJson: '{"keys":[{"kty":"RSA"}]}'
+    asserts:
+      - notMatchRegex:
+          path: data["envoy.yaml"]
+          pattern: "tls_certificates"
+
+  - it: should include tls_certificates in upstream cluster when clientCert is configured
+    template: auth-proxy/config-map.yaml
+    set:
+      authProxy.upstream: "https://gateway.example.com"
+      authProxy.jwksJson: '{"keys":[{"kty":"RSA"}]}'
+      customCa.secretName: "my-ca-secret"
+      customCa.secretKey: "ca.crt"
+      mtls.secretName: "my-tls-secret"
+      mtls.certKey: "tls.crt"
+      mtls.keyKey: "tls.key"
+    asserts:
+      - matchRegex:
+          path: data["envoy.yaml"]
+          pattern: '(?s)name: upstream_provider.*?tls_certificates:.*?certificate_chain:.*?filename: /etc/langsmith/client-cert/tls.crt.*?private_key:.*?filename: /etc/langsmith/client-cert/tls.key'
+
+  - it: should include tls_certificates in JWKS cluster when clientCert and jwksUri are set
+    template: auth-proxy/config-map.yaml
+    set:
+      authProxy.upstream: "https://gateway.example.com"
+      authProxy.jwksUri: "https://langsmith.example.com/.well-known/jwks.json"
+      customCa.secretName: "my-ca-secret"
+      customCa.secretKey: "ca.crt"
+      mtls.secretName: "my-tls-secret"
+      mtls.certKey: "tls.crt"
+      mtls.keyKey: "tls.key"
+    asserts:
+      - matchRegex:
+          path: data["envoy.yaml"]
+          pattern: '(?s)name: jwks_service.*?tls_certificates:.*?certificate_chain:.*?filename: /etc/langsmith/client-cert/tls.crt'
+
+  - it: should include both validation_context and tls_certificates when both customCa and clientCert are set
+    template: auth-proxy/config-map.yaml
+    set:
+      authProxy.upstream: "https://gateway.example.com"
+      authProxy.jwksJson: '{"keys":[{"kty":"RSA"}]}'
+      customCa.secretName: "my-ca-secret"
+      customCa.secretKey: "ca.crt"
+      mtls.secretName: "my-tls-secret"
+      mtls.certKey: "tls.crt"
+      mtls.keyKey: "tls.key"
+    asserts:
+      - matchRegex:
+          path: data["envoy.yaml"]
+          pattern: '(?s)name: upstream_provider.*?auto_sni_san_validation: true.*?common_tls_context:.*?validation_context:.*?trusted_ca:.*?tls_certificates:'
+      - matchRegex:
+          path: data["envoy.yaml"]
+          pattern: '(?s)common_tls_context:.*?tls_certificates:.*?certificate_chain:.*?filename: /etc/langsmith/client-cert/tls.crt'
+
+  - it: should not include tls_certificates for HTTP-only upstream
+    template: auth-proxy/config-map.yaml
+    set:
+      authProxy.upstream: "http://gateway.example.com"
+      authProxy.jwksJson: '{"keys":[{"kty":"RSA"}]}'
+      customCa.secretName: "my-ca-secret"
+      customCa.secretKey: "ca.crt"
+      mtls.secretName: "my-tls-secret"
+      mtls.certKey: "tls.crt"
+      mtls.keyKey: "tls.key"
+    asserts:
+      - notMatchRegex:
+          path: data["envoy.yaml"]
+          pattern: "tls_certificates"
+
+  - it: should include client-cert volume, mount, and rollout checksum when configured
+    template: auth-proxy/deployment.yaml
+    set:
+      authProxy.upstream: "https://gateway.example.com"
+      authProxy.jwksJson: '{"keys":[{"kty":"RSA"}]}'
+      customCa.secretName: "my-ca-secret"
+      customCa.secretKey: "ca.crt"
+      mtls.secretName: "my-tls-secret"
+      mtls.certKey: "tls.crt"
+      mtls.keyKey: "tls.key"
+    asserts:
+      - contains:
+          path: spec.template.spec.volumes
+          content:
+            name: client-cert
+            secret:
+              secretName: my-tls-secret
+              items:
+                - key: tls.crt
+                  path: tls.crt
+                - key: tls.key
+                  path: tls.key
+      - contains:
+          path: spec.template.spec.containers[0].volumeMounts
+          content:
+            mountPath: /etc/langsmith/client-cert
+            name: client-cert
+            readOnly: true
+      - matchRegex:
+          path: spec.template.metadata.annotations["checksum/client-cert"]
+          pattern: '^[0-9a-f]{64}$'
+
+  - it: should not include client-cert volume or rollout checksum when not configured
+    template: auth-proxy/deployment.yaml
+    set:
+      authProxy.upstream: "https://gateway.example.com"
+      authProxy.jwksJson: '{"keys":[{"kty":"RSA"}]}'
+    asserts:
+      - notContains:
+          path: spec.template.spec.volumes
+          content:
+            name: client-cert
+          any: true
+      - notExists:
+          path: spec.template.metadata.annotations["checksum/client-cert"]
+
+  - it: should include tls_certificates in proxied upstream cluster
+    template: auth-proxy/config-map.yaml
+    set:
+      authProxy.upstream: "https://gateway.example.com"
+      authProxy.jwksJson: '{"keys":[{"kty":"RSA"}]}'
+      authProxy.httpProxy.enabled: true
+      authProxy.httpProxy.host: "proxy.example.com"
+      authProxy.httpProxy.port: 3128
+      customCa.secretName: "my-ca-secret"
+      customCa.secretKey: "ca.crt"
+      mtls.secretName: "my-tls-secret"
+      mtls.certKey: "tls.crt"
+      mtls.keyKey: "tls.key"
+    asserts:
+      - matchRegex:
+          path: data["envoy.yaml"]
+          pattern: '(?s)name: loopback_cluster.*?tls_certificates:.*?certificate_chain:.*?filename: /etc/langsmith/client-cert/tls.crt'
+
+  - it: should include both rollout checksums when customCa and clientCert are both configured
+    template: auth-proxy/deployment.yaml
+    set:
+      authProxy.upstream: "https://gateway.example.com"
+      authProxy.jwksJson: '{"keys":[{"kty":"RSA"}]}'
+      customCa.secretName: "my-ca-secret"
+      customCa.secretKey: "ca.crt"
+      mtls.secretName: "my-tls-secret"
+      mtls.certKey: "tls.crt"
+      mtls.keyKey: "tls.key"
+    asserts:
+      - matchRegex:
+          path: spec.template.metadata.annotations["checksum/custom-ca"]
+          pattern: '^[0-9a-f]{64}$'
+      - matchRegex:
+          path: spec.template.metadata.annotations["checksum/client-cert"]
+          pattern: '^[0-9a-f]{64}$'

@@ -1,6 +1,8 @@
 {{- if .Values.authProxy.enabled }}
 {{- $volumes := .Values.authProxy.deployment.volumes -}}
 {{- $volumeMounts := .Values.authProxy.deployment.volumeMounts -}}
+{{- $customCaEnabled := include "authProxy.customCaEnabled" . -}}
+{{- $mtlsEnabled := include "authProxy.mtlsEnabled" . -}}
 {{- if .Values.authProxy.rollout.enabled }}
 apiVersion: argoproj.io/v1alpha1
 kind: Rollout
@@ -34,6 +36,12 @@ spec:
       annotations:
         # Redeploy the auth proxy when the envoy config changes
         checksum/envoy-config: {{ include (print $.Template.BasePath "/auth-proxy/config-map.yaml") . | sha256sum }}
+        {{- if $customCaEnabled }}
+        checksum/custom-ca: {{ include "authProxy.customCaRolloutHash" . }}
+        {{- end }}
+        {{- if $mtlsEnabled }}
+        checksum/client-cert: {{ include "authProxy.mtlsRolloutHash" . }}
+        {{- end }}
       {{- include "authProxy.commonPodAnnotations" . | nindent 8 }}
       {{- with .Values.authProxy.deployment.annotations }}
         {{- toYaml . | nindent 8 }}
@@ -98,6 +106,16 @@ spec:
             {{- with $volumeMounts }}
               {{- toYaml . | nindent 12 }}
             {{- end }}
+            {{- if $customCaEnabled }}
+            - mountPath: {{ include "authProxy.customCaMountDir" . }}
+              name: custom-ca-cert
+              readOnly: true
+            {{- end }}
+            {{- if $mtlsEnabled }}
+            - mountPath: {{ include "authProxy.mtlsMountDir" . }}
+              name: client-cert
+              readOnly: true
+            {{- end }}
             - mountPath: /etc/envoy/envoy.yaml
               name: envoy-conf
               subPath: envoy.yaml
@@ -127,6 +145,24 @@ spec:
       volumes:
         {{- with $volumes }}
             {{- toYaml . | nindent 8 }}
+        {{- end }}
+        {{- if $customCaEnabled }}
+        - name: custom-ca-cert
+          secret:
+            secretName: {{ include "authProxy.customCaSecretName" . }}
+            items:
+              - key: {{ include "authProxy.customCaSecretKey" . }}
+                path: {{ include "authProxy.customCaFileName" . }}
+        {{- end }}
+        {{- if $mtlsEnabled }}
+        - name: client-cert
+          secret:
+            secretName: {{ include "authProxy.mtlsSecretName" . }}
+            items:
+              - key: {{ include "authProxy.mtlsCertKey" . }}
+                path: {{ include "authProxy.mtlsCertFileName" . }}
+              - key: {{ include "authProxy.mtlsKeyKey" . }}
+                path: {{ include "authProxy.mtlsKeyFileName" . }}
         {{- end }}
         - name: envoy-conf
           configMap:

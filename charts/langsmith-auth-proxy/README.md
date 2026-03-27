@@ -1,6 +1,6 @@
 # langsmith-auth-proxy
 
-![Version: 0.0.9](https://img.shields.io/badge/Version-0.0.9-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.37.0](https://img.shields.io/badge/AppVersion-1.37.0-informational?style=flat-square)
+![Version: 0.0.10](https://img.shields.io/badge/Version-0.0.10-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.37.0](https://img.shields.io/badge/AppVersion-1.37.0-informational?style=flat-square)
 
 Helm chart to deploy the langsmith auth-proxy application.
 
@@ -64,6 +64,81 @@ Control which phases are sent to the transformer via `processingMode`:
 - **Trailer modes** (`SEND`, `SKIP`): whether trailers are forwarded
 
 `BUFFERED` mode buffers the entire body before sending — simplest for transformations but uses more memory for large payloads. `STREAMED` sends chunks incrementally (complex to implement). Use `NONE` to skip body processing entirely.
+
+## Custom CA support
+
+Use `customCa.secretName` and `customCa.secretKey` to mount a CA bundle that Envoy should trust for outbound HTTPS connections.
+
+This bundle is applied to every HTTPS peer Envoy validates in this chart:
+- The main upstream cluster defined by `authProxy.upstream`
+- The remote JWKS cluster when `authProxy.jwksUri` uses `https://`
+
+### Secret example
+
+```yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: corporate-ca-bundle
+type: Opaque
+stringData:
+  ca.crt: |
+    -----BEGIN CERTIFICATE-----
+    ...
+    -----END CERTIFICATE-----
+```
+
+```yaml
+customCa:
+  secretName: corporate-ca-bundle
+  secretKey: ca.crt
+```
+
+### Important notes
+
+- Provide the full CA bundle Envoy should trust, not just a single private root. If your upstream or JWKS endpoint chains to public roots as well, include those certificates in the bundle.
+- `customCa.secretName` and `customCa.secretKey` must either both be set or both be left empty.
+- Envoy reads the CA bundle from a mounted Secret volume. To make trust changes deterministic, roll the pod when the bundle changes.
+- Required when using `mtls` — see [mTLS support](#mtls-support) below.
+
+### Rotation workflow
+
+- Preferred: publish a new Secret name such as `corporate-ca-bundle-v2` and update `customCa.secretName`.
+- Alternate: keep the same Secret name and bump `customCa.rolloutToken` to force Helm to update the pod template and restart Envoy.
+
+## mTLS support
+
+Use `mtls.secretName`, `mtls.certKey`, and `mtls.keyKey` to present a client certificate when connecting to the upstream. This is required when the upstream enforces mutual TLS.
+
+`customCa` **must** also be configured — without a trusted CA bundle Envoy sends client certificates but does not verify the upstream server's identity, which is not mutual authentication. The chart will fail validation if `mtls` is set without `customCa`.
+
+### Secret example
+
+```yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: upstream-client-cert
+type: kubernetes.io/tls
+data:
+  tls.crt: <base64-encoded-client-certificate>
+  tls.key: <base64-encoded-client-private-key>
+```
+
+```yaml
+customCa:
+  secretName: corporate-ca-bundle
+  secretKey: ca.crt
+mtls:
+  secretName: upstream-client-cert
+  certKey: tls.crt
+  keyKey: tls.key
+```
+
+### Rotation workflow
+
+- Preferred: publish a new Secret name such as `upstream-client-cert-v2` and update `mtls.secretName`.
+- Alternate: keep the same Secret name and bump `mtls.rolloutToken` to force a pod restart.
 
 ## Values
 
@@ -173,6 +248,10 @@ Control which phases are sent to the transformer via `processingMode`:
 | commonLabels | object | `{}` | Labels that will be applied to all resources created by the chart |
 | commonPodAnnotations | object | `{}` | Annotations that will be applied to all pods created by the chart |
 | commonPodSecurityContext | object | `{}` | Common pod security context applied to all pods. Component-specific podSecurityContext values will be merged on top of this (component values take precedence). |
+| customCa | object | `{"rolloutToken":"","secretKey":"","secretName":""}` | Custom CA certificate for upstream TLS verification. Envoy uses BoringSSL and does NOT trust the system CA store. Provide a Kubernetes Secret with your CA bundle to verify upstream HTTPS connections signed by private/internal CAs. |
+| customCa.rolloutToken | string | `""` | Optional manual rollout trigger. Bump this when the Secret contents change without changing secretName, so Helm updates the pod template and restarts Envoy. |
+| customCa.secretKey | string | `""` | Key within the Secret that holds the CA certificate PEM data |
+| customCa.secretName | string | `""` | Name of the Kubernetes Secret containing the CA certificate |
 | fullnameOverride | string | `""` | String to fully override `"langsmith.fullname"` |
 | gateway | object | `{"annotations":{},"enabled":false,"hostnames":[],"labels":{},"name":"","namespace":"","sectionName":""}` | Gateway API HTTPRoute configuration |
 | gateway.hostnames | list | `[]` | Hostnames to match on |
