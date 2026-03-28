@@ -14,6 +14,7 @@ SELECT
     rm.self_hosted_customer_id,
     rm.backfill_id,
     rm.backfilled_at,
+    t.organization_id,
     t.display_name AS workspace_name,
     o.display_name AS organization_name
 FROM remote_metrics rm
