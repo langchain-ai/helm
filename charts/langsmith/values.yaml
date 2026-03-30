@@ -163,6 +163,11 @@ config:
   polly:
     enabled: false
     encryptionKey: ""
+    # -- Expose the /internal/llm-auth-proxy/jwt endpoint externally via nginx.
+    # Set to true for deployments where there isn't private network access between
+    # the LSD cluster (polly deployment) and LangSmith, so polly can reach the
+    # JWT endpoint over the public network.
+    exposeInternalLlmAuthProxyJwt: false
     agent:
       resources:
         cpu: 2
