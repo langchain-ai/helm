@@ -76,7 +76,7 @@ tests:
           path: data["envoy.yaml"]
           pattern: "tls_certificates"
 
-  - it: should include client-cert volume, mount, and rollout checksum when configured
+  - it: should include client-cert volume and mount when configured
     template: auth-proxy/deployment.yaml
     set:
       authProxy.upstream: "https://gateway.example.com"
@@ -104,11 +104,8 @@ tests:
             mountPath: /etc/langsmith/client-cert
             name: client-cert
             readOnly: true
-      - matchRegex:
-          path: spec.template.metadata.annotations["checksum/client-cert"]
-          pattern: '^[0-9a-f]{64}$'
 
-  - it: should not include client-cert volume or rollout checksum when not configured
+  - it: should not include client-cert volume when not configured
     template: auth-proxy/deployment.yaml
     set:
       authProxy.upstream: "https://gateway.example.com"
@@ -119,8 +116,6 @@ tests:
           content:
             name: client-cert
           any: true
-      - notExists:
-          path: spec.template.metadata.annotations["checksum/client-cert"]
 
   - it: should include tls_certificates in proxied upstream cluster
     template: auth-proxy/config-map.yaml
@@ -139,21 +134,3 @@ tests:
       - matchRegex:
           path: data["envoy.yaml"]
           pattern: '(?s)name: loopback_cluster.*?tls_certificates:.*?certificate_chain:.*?filename: /etc/langsmith/client-cert/tls.crt'
-
-  - it: should include both rollout checksums when customCa and clientCert are both configured
-    template: auth-proxy/deployment.yaml
-    set:
-      authProxy.upstream: "https://gateway.example.com"
-      authProxy.jwksJson: '{"keys":[{"kty":"RSA"}]}'
-      customCa.secretName: "my-ca-secret"
-      customCa.secretKey: "ca.crt"
-      mtls.secretName: "my-tls-secret"
-      mtls.certKey: "tls.crt"
-      mtls.keyKey: "tls.key"
-    asserts:
-      - matchRegex:
-          path: spec.template.metadata.annotations["checksum/custom-ca"]
-          pattern: '^[0-9a-f]{64}$'
-      - matchRegex:
-          path: spec.template.metadata.annotations["checksum/client-cert"]
-          pattern: '^[0-9a-f]{64}$'

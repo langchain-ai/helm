@@ -69,8 +69,8 @@ Control which phases are sent to the transformer via `processingMode`:
 
 Use `customCa.secretName` and `customCa.secretKey` to mount a CA bundle that Envoy should trust for outbound HTTPS connections.
 
-This bundle is applied to every HTTPS peer Envoy validates in this chart:
-- The main upstream cluster defined by `authProxy.upstream`
+This is needed when HTTPS peers present certificates signed by a private or internal CA that Envoy does not trust by default. The bundle is applied to:
+- The main upstream cluster defined by `authProxy.upstream` (when the scheme is `https://`)
 - The remote JWKS cluster when `authProxy.jwksUri` uses `https://`
 
 ### Secret example
@@ -98,13 +98,8 @@ customCa:
 
 - Provide the full CA bundle Envoy should trust, not just a single private root. If your upstream or JWKS endpoint chains to public roots as well, include those certificates in the bundle.
 - `customCa.secretName` and `customCa.secretKey` must either both be set or both be left empty.
-- Envoy reads the CA bundle from a mounted Secret volume. To make trust changes deterministic, roll the pod when the bundle changes.
+- To rotate the CA bundle, publish a new Secret (e.g. `corporate-ca-bundle-v2`) and update `customCa.secretName`. Helm will update the pod template and trigger a rolling restart. If you update a Secret in-place without changing its name, restart the pod manually — Envoy does not watch for Secret changes at runtime.
 - Required when using `mtls` — see [mTLS support](#mtls-support) below.
-
-### Rotation workflow
-
-- Preferred: publish a new Secret name such as `corporate-ca-bundle-v2` and update `customCa.secretName`.
-- Alternate: keep the same Secret name and bump `customCa.rolloutToken` to force Helm to update the pod template and restart Envoy.
 
 ## mTLS support
 
@@ -134,11 +129,6 @@ mtls:
   certKey: tls.crt
   keyKey: tls.key
 ```
-
-### Rotation workflow
-
-- Preferred: publish a new Secret name such as `upstream-client-cert-v2` and update `mtls.secretName`.
-- Alternate: keep the same Secret name and bump `mtls.rolloutToken` to force a pod restart.
 
 ## Values
 
@@ -248,8 +238,7 @@ mtls:
 | commonLabels | object | `{}` | Labels that will be applied to all resources created by the chart |
 | commonPodAnnotations | object | `{}` | Annotations that will be applied to all pods created by the chart |
 | commonPodSecurityContext | object | `{}` | Common pod security context applied to all pods. Component-specific podSecurityContext values will be merged on top of this (component values take precedence). |
-| customCa | object | `{"rolloutToken":"","secretKey":"","secretName":""}` | Custom CA certificate for upstream TLS verification. Envoy uses BoringSSL and does NOT trust the system CA store. Provide a Kubernetes Secret with your CA bundle to verify upstream HTTPS connections signed by private/internal CAs. |
-| customCa.rolloutToken | string | `""` | Optional manual rollout trigger. Bump this when the Secret contents change without changing secretName, so Helm updates the pod template and restarts Envoy. |
+| customCa | object | `{"secretKey":"","secretName":""}` | Custom CA certificate for upstream TLS verification. Envoy uses BoringSSL and does NOT trust the system CA store. Provide a Kubernetes Secret with your CA bundle to verify upstream HTTPS connections signed by private/internal CAs. |
 | customCa.secretKey | string | `""` | Key within the Secret that holds the CA certificate PEM data |
 | customCa.secretName | string | `""` | Name of the Kubernetes Secret containing the CA certificate |
 | fullnameOverride | string | `""` | String to fully override `"langsmith.fullname"` |

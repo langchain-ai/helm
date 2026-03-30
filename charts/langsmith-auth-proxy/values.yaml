@@ -241,9 +241,6 @@ customCa:
   secretName: ""
   # -- Key within the Secret that holds the CA certificate PEM data
   secretKey: ""
-  # -- Optional manual rollout trigger. Bump this when the Secret contents change
-  # -- without changing secretName, so Helm updates the pod template and restarts Envoy.
-  rolloutToken: ""
 
 # -- Client certificate for mTLS with upstream services.
 # When the upstream requires mutual TLS, provide a Kubernetes TLS Secret
@@ -258,9 +255,6 @@ mtls:
   certKey: ""
   # -- Key within the Secret for the client private key PEM
   keyKey: ""
-  # -- Optional manual rollout trigger. Bump this when the Secret contents change
-  # -- without changing secretName, so Helm updates the pod template and restarts Envoy.
-  rolloutToken: ""
 
 # -- Ingress configuration
 ingress:

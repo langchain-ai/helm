@@ -164,10 +164,6 @@ Normalized custom CA values and paths.
 {{- .Values.customCa.secretKey | default "" | trim -}}
 {{- end -}}
 
-{{- define "authProxy.customCaRolloutToken" -}}
-{{- .Values.customCa.rolloutToken | default "" | trim -}}
-{{- end -}}
-
 {{- define "authProxy.customCaEnabled" -}}
 {{- $secretName := include "authProxy.customCaSecretName" . -}}
 {{- $secretKey := include "authProxy.customCaSecretKey" . -}}
@@ -186,14 +182,6 @@ ca.crt
 {{- printf "%s/%s" (include "authProxy.customCaMountDir" .) (include "authProxy.customCaFileName" .) -}}
 {{- end -}}
 
-{{- define "authProxy.customCaRolloutHash" -}}
-{{- $name := include "authProxy.customCaSecretName" . -}}
-{{- $key := include "authProxy.customCaSecretKey" . -}}
-{{- if and $name $key -}}
-{{- dict "secretName" $name "secretKey" $key "rolloutToken" (include "authProxy.customCaRolloutToken" .) | toYaml | sha256sum -}}
-{{- end -}}
-{{- end -}}
-
 {{/*
 Client certificate helpers for mTLS with upstream services.
 */}}
@@ -207,10 +195,6 @@ Client certificate helpers for mTLS with upstream services.
 
 {{- define "authProxy.mtlsKeyKey" -}}
 {{- .Values.mtls.keyKey | default "" | trim -}}
-{{- end -}}
-
-{{- define "authProxy.mtlsRolloutToken" -}}
-{{- .Values.mtls.rolloutToken | default "" | trim -}}
 {{- end -}}
 
 {{- define "authProxy.mtlsEnabled" -}}
@@ -238,15 +222,6 @@ tls.key
 
 {{- define "authProxy.mtlsKeyFilePath" -}}
 {{- printf "%s/%s" (include "authProxy.mtlsMountDir" .) (include "authProxy.mtlsKeyFileName" .) -}}
-{{- end -}}
-
-{{- define "authProxy.mtlsRolloutHash" -}}
-{{- $name := include "authProxy.mtlsSecretName" . -}}
-{{- $certKey := include "authProxy.mtlsCertKey" . -}}
-{{- $keyKey := include "authProxy.mtlsKeyKey" . -}}
-{{- if and $name $certKey $keyKey -}}
-{{- dict "secretName" $name "certKey" $certKey "keyKey" $keyKey "rolloutToken" (include "authProxy.mtlsRolloutToken" .) | toYaml | sha256sum -}}
-{{- end -}}
 {{- end -}}
 
 {{/*

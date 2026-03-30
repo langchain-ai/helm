@@ -91,7 +91,7 @@ tests:
           path: data["envoy.yaml"]
           pattern: "trusted_ca"
 
-  - it: should include the custom CA volume, directory mount, and rollout checksum when configured
+  - it: should include the custom CA volume and directory mount when configured
     template: auth-proxy/deployment.yaml
     set:
       authProxy.upstream: "https://gateway.example.com"
@@ -121,24 +121,8 @@ tests:
             name: custom-ca-cert
             subPath: ca.crt
           any: true
-      - matchRegex:
-          path: spec.template.metadata.annotations["checksum/custom-ca"]
-          pattern: '^[0-9a-f]{64}$'
 
-  - it: should include the custom CA rollout checksum when rolloutToken is set
-    template: auth-proxy/deployment.yaml
-    set:
-      authProxy.upstream: "https://gateway.example.com"
-      authProxy.jwksJson: '{"keys":[{"kty":"RSA"}]}'
-      customCa.secretName: "my-ca-secret"
-      customCa.secretKey: "ca.crt"
-      customCa.rolloutToken: "2026-03-26"
-    asserts:
-      - matchRegex:
-          path: spec.template.metadata.annotations["checksum/custom-ca"]
-          pattern: '^[0-9a-f]{64}$'
-
-  - it: should not include the custom CA volume or rollout checksum when not configured
+  - it: should not include the custom CA volume when not configured
     template: auth-proxy/deployment.yaml
     set:
       authProxy.upstream: "https://gateway.example.com"
@@ -149,5 +133,3 @@ tests:
           content:
             name: custom-ca-cert
           any: true
-      - notExists:
-          path: spec.template.metadata.annotations["checksum/custom-ca"]
