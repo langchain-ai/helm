@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.13.33](https://img.shields.io/badge/Version-0.13.33-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.13.35](https://img.shields.io/badge/AppVersion-0.13.35-informational?style=flat-square)
+![Version: 0.13.35](https://img.shields.io/badge/Version-0.13.35-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.13.35](https://img.shields.io/badge/AppVersion-0.13.35-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -340,6 +340,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | config.insights.enabled | bool | `false` |  |
 | config.insights.encryptionKey | string | `""` |  |
 | config.langsmithLicenseKey | string | `""` |  |
+| config.llmAuthProxy.publicJwtEndpoint | bool | `false` | Expose the /internal/llm-auth-proxy/jwt endpoint externally via nginx. Set to true for deployments where there isn't private network access between the LSD cluster (polly deployment) and LangSmith, so polly can reach the JWT endpoint over the public network. |
 | config.logLevel | string | `"info"` |  |
 | config.oauth.enabled | bool | `false` |  |
 | config.oauth.oauthClientId | string | `""` |  |
