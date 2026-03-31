@@ -242,6 +242,9 @@ config:
   # SDK handles this automatically by retrying with credentials. Useful for deployments
   # that must not expose instance configuration (version, feature flags, batch ingest
   # config) to unauthenticated callers.
+  # WARNING: Incompatible with OAuth. Browser OAuth sessions do not carry API keys,
+  # so enabling this with OAuth causes /info to return 401, which the frontend
+  # interprets as session expiry and immediately logs the user out.
   infoEndpointAuthRequired: false
 
   # -- hostname of the LangSmith installation. Used for redirects and LangSmith deployments. Required for OAuth and LangSmith Deployments. E.g langsmith.com

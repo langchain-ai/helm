@@ -155,6 +155,10 @@ AWS Marketplace Helm template verification).
 {{- fail "As of v12, istioGateway.subdomain has been moved to config.basePath. Please update your values.yaml file." }}
 {{- end }}
 
+{{- if and .Values.config.infoEndpointAuthRequired .Values.config.oauth.enabled -}}
+{{- fail "config.infoEndpointAuthRequired cannot be enabled when OAuth is enabled. When FF_INFO_ENDPOINT_AUTH_REQUIRED is true, the /info endpoint returns 401 for browser sessions that authenticate via OAuth (since they lack API keys). The frontend interprets this 401 as a session expiry and logs the user out immediately." -}}
+{{- end -}}
+
 {{- if and .Values.config.observability.tracing.enabled (not .Values.config.observability.tracing.endpoint) -}}
 {{- fail "When tracing is enabled (config.observability.tracing.enabled=true), config.observability.tracing.endpoint must be provided" -}}
 {{- end -}}
