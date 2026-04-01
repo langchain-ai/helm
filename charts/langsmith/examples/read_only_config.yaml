@@ -370,15 +370,23 @@ frontend:
         emptyDir: {}
       - name: var-run
         emptyDir: {}
+      - name: run
+        emptyDir: {}
       - name: var-lib-nginx
+        emptyDir: {}
+      - name: var-cache-nginx
         emptyDir: {}
     volumeMounts:
       - name: tmp
         mountPath: /tmp
       - name: var-run
         mountPath: /var/run
+      - name: run
+        mountPath: /run
       - name: var-lib-nginx
         mountPath: /var/lib/nginx
+      - name: var-cache-nginx
+        mountPath: /var/cache/nginx
 
 platformBackend:
   deployment:
