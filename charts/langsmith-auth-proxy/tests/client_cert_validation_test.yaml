@@ -1,0 +1,55 @@
+suite: client certificate validation
+templates:
+  - validate.yaml
+tests:
+  - it: should fail when only mtls.secretName is set
+    set:
+      mtls.secretName: "my-tls-secret"
+    asserts:
+      - failedTemplate:
+          errorMessage: mtls.secretName, mtls.certKey, and mtls.keyKey must all be set together or all be empty.
+
+  - it: should fail when only mtls.certKey is set
+    set:
+      mtls.certKey: "tls.crt"
+    asserts:
+      - failedTemplate:
+          errorMessage: mtls.secretName, mtls.certKey, and mtls.keyKey must all be set together or all be empty.
+
+  - it: should fail when only mtls.keyKey is set
+    set:
+      mtls.keyKey: "tls.key"
+    asserts:
+      - failedTemplate:
+          errorMessage: mtls.secretName, mtls.certKey, and mtls.keyKey must all be set together or all be empty.
+
+  - it: should fail when secretName and certKey are set but keyKey is missing
+    set:
+      mtls.secretName: "my-tls-secret"
+      mtls.certKey: "tls.crt"
+    asserts:
+      - failedTemplate:
+          errorMessage: mtls.secretName, mtls.certKey, and mtls.keyKey must all be set together or all be empty.
+
+  - it: should not fail when all clientCert values are empty
+    asserts:
+      - notFailedTemplate: {}
+
+  - it: should fail when mtls is fully configured but customCa is not set
+    set:
+      mtls.secretName: "my-tls-secret"
+      mtls.certKey: "tls.crt"
+      mtls.keyKey: "tls.key"
+    asserts:
+      - failedTemplate:
+          errorMessage: "mtls requires customCa. Without customCa Envoy sends client certificates but does not verify the upstream server's identity, which is not mutual TLS. Set customCa.secretName and customCa.secretKey to provide a trusted CA bundle."
+
+  - it: should not fail when mtls and customCa are both fully configured
+    set:
+      mtls.secretName: "my-tls-secret"
+      mtls.certKey: "tls.crt"
+      mtls.keyKey: "tls.key"
+      customCa.secretName: "my-ca-secret"
+      customCa.secretKey: "ca.crt"
+    asserts:
+      - notFailedTemplate: {}

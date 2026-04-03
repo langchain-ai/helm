@@ -1,0 +1,135 @@
+suite: custom CA certificate configuration
+templates:
+  - auth-proxy/config-map.yaml
+  - auth-proxy/deployment.yaml
+tests:
+  - it: should not include validation_context when customCa is not set
+    template: auth-proxy/config-map.yaml
+    set:
+      authProxy.upstream: "https://gateway.example.com"
+      authProxy.jwksJson: '{"keys":[{"kty":"RSA"}]}'
+    asserts:
+      - notMatchRegex:
+          path: data["envoy.yaml"]
+          pattern: "validation_context"
+      - notMatchRegex:
+          path: data["envoy.yaml"]
+          pattern: "trusted_ca"
+      - notMatchRegex:
+          path: data["envoy.yaml"]
+          pattern: "auto_sni_san_validation"
+
+  - it: should include trusted_ca in the direct upstream cluster when customCa is configured
+    template: auth-proxy/config-map.yaml
+    set:
+      authProxy.upstream: "https://gateway.example.com"
+      authProxy.jwksJson: '{"keys":[{"kty":"RSA"}]}'
+      customCa.secretName: "my-ca-secret"
+      customCa.secretKey: "ca.crt"
+    asserts:
+      - matchRegex:
+          path: data["envoy.yaml"]
+          pattern: '(?s)name: upstream_provider.*?auto_sni_san_validation: true.*?trusted_ca:.*?filename: /etc/langsmith/custom-ca/ca.crt'
+
+  - it: should include trusted_ca in the direct JWKS cluster when customCa and jwksUri are set
+    template: auth-proxy/config-map.yaml
+    set:
+      authProxy.upstream: "https://gateway.example.com"
+      authProxy.jwksUri: "https://langsmith.example.com/.well-known/jwks.json"
+      customCa.secretName: "my-ca-secret"
+      customCa.secretKey: "ca.crt"
+    asserts:
+      - matchRegex:
+          path: data["envoy.yaml"]
+          pattern: '(?s)name: jwks_service.*?auto_sni_san_validation: true.*?trusted_ca:.*?filename: /etc/langsmith/custom-ca/ca.crt'
+
+  - it: should include trusted_ca in proxied upstream and JWKS HTTPS clusters
+    template: auth-proxy/config-map.yaml
+    set:
+      authProxy.upstream: "https://gateway.example.com"
+      authProxy.jwksUri: "https://langsmith.example.com/.well-known/jwks.json"
+      authProxy.httpProxy.enabled: true
+      authProxy.httpProxy.host: "proxy.example.com"
+      authProxy.httpProxy.port: 3128
+      customCa.secretName: "my-ca-secret"
+      customCa.secretKey: "ca.crt"
+    asserts:
+      - matchRegex:
+          path: data["envoy.yaml"]
+          pattern: '(?s)name: loopback_cluster.*?auto_sni_san_validation: true.*?trusted_ca:.*?filename: /etc/langsmith/custom-ca/ca.crt'
+      - matchRegex:
+          path: data["envoy.yaml"]
+          pattern: '(?s)name: jwks_loopback_cluster.*?auto_sni_san_validation: true.*?trusted_ca:.*?filename: /etc/langsmith/custom-ca/ca.crt'
+
+  - it: should only include trusted_ca in the HTTPS JWKS cluster when the upstream is HTTP
+    template: auth-proxy/config-map.yaml
+    set:
+      authProxy.upstream: "http://gateway.example.com"
+      authProxy.jwksUri: "https://langsmith.example.com/.well-known/jwks.json"
+      customCa.secretName: "my-ca-secret"
+      customCa.secretKey: "ca.crt"
+    asserts:
+      - notMatchRegex:
+          path: data["envoy.yaml"]
+          pattern: '(?m)^    - name: upstream_provider$\n(?:^      .*$\n)+^      transport_socket:'
+      - matchRegex:
+          path: data["envoy.yaml"]
+          pattern: '(?s)name: jwks_service.*?auto_sni_san_validation: true.*?trusted_ca:.*?filename: /etc/langsmith/custom-ca/ca.crt'
+
+  - it: should not include UpstreamTlsContext for HTTP-only upstream even when customCa is set
+    template: auth-proxy/config-map.yaml
+    set:
+      authProxy.upstream: "http://gateway.example.com"
+      authProxy.jwksJson: '{"keys":[{"kty":"RSA"}]}'
+      customCa.secretName: "my-ca-secret"
+      customCa.secretKey: "ca.crt"
+    asserts:
+      - notMatchRegex:
+          path: data["envoy.yaml"]
+          pattern: "UpstreamTlsContext"
+      - notMatchRegex:
+          path: data["envoy.yaml"]
+          pattern: "trusted_ca"
+
+  - it: should include the custom CA volume and directory mount when configured
+    template: auth-proxy/deployment.yaml
+    set:
+      authProxy.upstream: "https://gateway.example.com"
+      authProxy.jwksJson: '{"keys":[{"kty":"RSA"}]}'
+      customCa.secretName: "my-ca-secret"
+      customCa.secretKey: "ca.crt"
+    asserts:
+      - contains:
+          path: spec.template.spec.volumes
+          content:
+            name: custom-ca-cert
+            secret:
+              secretName: my-ca-secret
+              items:
+                - key: ca.crt
+                  path: ca.crt
+      - contains:
+          path: spec.template.spec.containers[0].volumeMounts
+          content:
+            mountPath: /etc/langsmith/custom-ca
+            name: custom-ca-cert
+            readOnly: true
+      - notContains:
+          path: spec.template.spec.containers[0].volumeMounts
+          content:
+            mountPath: /etc/langsmith/custom-ca
+            name: custom-ca-cert
+            subPath: ca.crt
+          any: true
+
+  - it: should not include the custom CA volume when not configured
+    template: auth-proxy/deployment.yaml
+    set:
+      authProxy.upstream: "https://gateway.example.com"
+      authProxy.jwksJson: '{"keys":[{"kty":"RSA"}]}'
+    asserts:
+      - notContains:
+          path: spec.template.spec.volumes
+          content:
+            name: custom-ca-cert
+          any: true

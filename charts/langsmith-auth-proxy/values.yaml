@@ -232,6 +232,30 @@ authProxy:
     annotations: {}
     automountServiceAccountToken: true
 
+# -- Custom CA certificate for upstream TLS verification.
+# Envoy uses BoringSSL and does NOT trust the system CA store.
+# Provide a Kubernetes Secret with your CA bundle to verify upstream HTTPS connections
+# signed by private/internal CAs.
+customCa:
+  # -- Name of the Kubernetes Secret containing the CA certificate
+  secretName: ""
+  # -- Key within the Secret that holds the CA certificate PEM data
+  secretKey: ""
+
+# -- Client certificate for mTLS with upstream services.
+# When the upstream requires mutual TLS, provide a Kubernetes TLS Secret
+# containing the client certificate and private key.
+# IMPORTANT: mTLS requires customCa to be configured. Without a trusted CA
+# bundle Envoy sends client certificates but does not verify the upstream
+# server's identity, which is not mutual authentication.
+mtls:
+  # -- Name of the Kubernetes Secret (type: kubernetes.io/tls or Opaque)
+  secretName: ""
+  # -- Key within the Secret for the client certificate PEM
+  certKey: ""
+  # -- Key within the Secret for the client private key PEM
+  keyKey: ""
+
 # -- Ingress configuration
 ingress:
   enabled: false
