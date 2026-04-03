@@ -161,7 +161,7 @@ config:
 
   # Polly configuration
   polly:
-    enabled: false
+    enabled: true
     encryptionKey: ""
     agent:
       resources:
