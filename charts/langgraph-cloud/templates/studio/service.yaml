@@ -15,22 +15,31 @@ metadata:
       {{- toYaml . | nindent 4 }}
     {{- end }}
 spec:
+  {{- $meshIngress := or .Values.gateway.enabled .Values.istioGateway.enabled -}}
+  {{- if $meshIngress }}
+  type: ClusterIP
+  {{- else }}
   type: {{ .Values.studio.service.type }}
   {{- with .Values.studio.service.loadBalancerSourceRanges }}
   loadBalancerSourceRanges:
     {{- toYaml . | nindent 4 }}
   {{- end }}
+  {{- if .Values.studio.service.loadBalancerIP }}
   loadBalancerIP: {{ .Values.studio.service.loadBalancerIP }}
+  {{- end }}
+  {{- end }}
   ports:
     - name: http
       port: {{ .Values.studio.service.httpPort }}
       targetPort: studio
       protocol: TCP
+  {{- if not $meshIngress }}
     - name: https
       port: {{ .Values.studio.service.httpsPort }}
       targetPort: studio
       protocol: TCP
+  {{- end }}
   selector:
     {{- include "langGraphCloud.selectorLabels" . | nindent 4 }}
     app.kubernetes.io/component: {{ include "langGraphCloud.fullname" . }}-{{ .Values.studio.name }}
-  {{- end }}
+{{- end }}

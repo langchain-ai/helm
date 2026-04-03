@@ -76,6 +76,44 @@ ingress:
   labels: {}
   tls: []
 
+# -- Whether to use the Gateway API for ingress. Will create an HTTPRoute for each service.
+# -- Only one of ingress, gateway, or istioGateway can be enabled at the same time.
+gateway:
+  enabled: false
+  # -- Name of the Gateway resource to attach the HTTPRoute to.
+  name: ""
+  # -- Namespace of the Gateway resource. If not set, the HTTPRoute will not specify a namespace for the parentRef.
+  namespace: ""
+  # -- Hostname for the HTTPRoute. If not set, the route will match all hostnames.
+  hostname: ""
+  # -- Optional hostname for studio HTTPRoute. If not set, studio routes are included on the main hostname.
+  studioHostname: ""
+  # -- Section name of the Gateway listener to attach to.
+  sectionName: ""
+  # -- Base path prefix for the HTTPRoute. The prefix is stripped before forwarding to the backend.
+  # -- WARNING: Changing basePath after deployment will break existing routes.
+  basePath: ""
+  annotations: {}
+  labels: {}
+
+# -- Whether to use Istio VirtualServices for ingress. Will create a VirtualService for each service.
+# -- Only one of ingress, gateway, or istioGateway can be enabled at the same time.
+istioGateway:
+  enabled: false
+  # -- Name of the Istio Gateway resource.
+  name: ""
+  # -- Namespace of the Istio Gateway resource.
+  namespace: ""
+  # -- Hostname for the VirtualService. If not set, the VirtualService will match all hosts ("*").
+  hostname: ""
+  # -- Optional hostname for studio VirtualService. If not set, studio routes are included on the main hostname.
+  studioHostname: ""
+  # -- Base path prefix for the VirtualService. The prefix is stripped (rewritten to /) before forwarding to the backend.
+  # -- WARNING: Changing basePath after deployment will break existing routes.
+  basePath: ""
+  annotations: {}
+  labels: {}
+
 apiServer:
   name: "api-server"
   containerPort: 8000

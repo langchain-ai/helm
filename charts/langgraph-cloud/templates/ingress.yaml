@@ -1,22 +1,45 @@
+{{- define "langGraphCloud.validateIngress" -}}
+{{- $enabledCount := 0 -}}
+{{- if .Values.ingress.enabled }}{{ $enabledCount = add1 $enabledCount }}{{- end -}}
+{{- if .Values.gateway.enabled }}{{ $enabledCount = add1 $enabledCount }}{{- end -}}
+{{- if .Values.istioGateway.enabled }}{{ $enabledCount = add1 $enabledCount }}{{- end -}}
+{{- if gt $enabledCount 1 }}
+{{- fail "Only one of ingress, gateway, or istioGateway can be enabled at the same time." -}}
+{{- end -}}
+{{- if and .Values.gateway.enabled (empty .Values.gateway.name) }}
+{{- fail "gateway.name must be set when gateway.enabled=true" -}}
+{{- end -}}
+{{- if and .Values.istioGateway.enabled (empty .Values.istioGateway.name) }}
+{{- fail "istioGateway.name must be set when istioGateway.enabled=true" -}}
+{{- end -}}
+{{- if and .Values.ingress.enabled (empty .Values.ingress.hostname) }}
+{{- fail "ingress.hostname must be set when ingress.enabled=true" -}}
+{{- end -}}
+{{- end -}}
+{{- template "langGraphCloud.validateIngress" . -}}
 {{- if .Values.ingress.enabled }}
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: {{ include "langGraphCloud.fullname" . }}-ingress
-  namespace: {{ .Values.namespace | default .Release.Namespace | quote }}
+  namespace: {{ .Values.namespace | default .Release.Namespace }}
   annotations:
     {{- include "langGraphCloud.annotations" . | nindent 4 }}
     {{- with .Values.ingress.annotations }}
       {{- toYaml . | nindent 4 }}
     {{- end }}
+    {{- if .Values.ingress.hostname }}
     external-dns.alpha.kubernetes.io/hostname: {{ .Values.ingress.hostname }}
+    {{- end }}
   labels:
     {{- include "langGraphCloud.labels" . | nindent 4 }}
     {{- with .Values.ingress.labels }}
       {{- toYaml . | nindent 4 }}
     {{- end }}
 spec:
+  {{- if .Values.ingress.ingressClassName }}
   ingressClassName: {{ .Values.ingress.ingressClassName }}
+  {{- end }}
   {{- with .Values.ingress.tls }}
   tls:
     {{- toYaml . | nindent 4 }}
@@ -32,16 +55,16 @@ spec:
             name: {{ include "langGraphCloud.fullname" . }}-{{ .Values.apiServer.name }}
             port:
               number: {{ .Values.apiServer.service.httpPort }}
-  {{- if .Values.studio.enabled }}
+  {{- if and .Values.studio.enabled .Values.ingress.studioHostname }}
   - host: {{ .Values.ingress.studioHostname }}
     http:
       paths:
-        - path: /
-          pathType: Prefix
-          backend:
-            service:
-              name: {{ include "langGraphCloud.fullname" . }}-{{ .Values.studio.name }}
-              port:
-                number: {{ .Values.studio.service.httpPort }}
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: {{ include "langGraphCloud.fullname" . }}-{{ .Values.studio.name }}
+            port:
+              number: {{ .Values.studio.service.httpPort }}
   {{- end }}
 {{- end }}
