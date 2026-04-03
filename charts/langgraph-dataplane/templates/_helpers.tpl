@@ -92,6 +92,73 @@ the user or some other secret provisioning mechanism
 {{- end }}
 {{- end }}
 
+{{/*
+Name of the secret containing the MongoDB URI for the optional Mongo checkpointer default.
+*/}}
+{{- define "langgraphDataplane.mongoSecretsName" -}}
+{{- if and .Values.mongo.external.enabled .Values.mongo.external.existingSecretName }}
+{{- .Values.mongo.external.existingSecretName }}
+{{- else }}
+{{- include "langgraphDataplane.fullname" . }}-mongo
+{{- end }}
+{{- end }}
+
+{{/*
+Name of the Service backing the chart-managed MongoDB instance.
+*/}}
+{{- define "langgraphDataplane.mongoServiceName" -}}
+{{- include "langgraphDataplane.fullname" . }}-mongo
+{{- end }}
+
+{{/*
+Stable DNS name for the primary member of the chart-managed single-node MongoDB replica set.
+*/}}
+{{- define "langgraphDataplane.mongoPrimaryHost" -}}
+{{- printf "%s.%s.svc.%s:%v" (include "langgraphDataplane.mongoServiceName" .) (default .Release.Namespace .Values.namespace) .Values.clusterDomain 27017 -}}
+{{- end }}
+
+{{/*
+MongoDB connection URL used by the chart-managed checkpointer default.
+*/}}
+{{- define "langgraphDataplane.mongoConnectionUrl" -}}
+{{- if and .Values.mongo.enabled (not .Values.mongo.external.enabled) -}}
+{{- printf "mongodb://%s/langgraph?replicaSet=rs0" (include "langgraphDataplane.mongoPrimaryHost" .) -}}
+{{- else -}}
+{{- .Values.mongo.external.connectionUrl -}}
+{{- end -}}
+{{- end }}
+
+{{/*
+Validates MongoDB provisioning and default-checkpointer settings.
+*/}}
+{{- define "langgraphDataplane.validateMongoConfiguration" -}}
+{{- if and (not .Values.mongo.enabled) .Values.mongo.external.enabled -}}
+{{- fail "mongo.external.enabled requires mongo.enabled=true" -}}
+{{- end -}}
+{{- if and .Values.mongo.external.enabled (not .Values.mongo.external.existingSecretName) (empty .Values.mongo.external.connectionUrl) -}}
+{{- fail "mongo.external.connectionUrl must be set or mongo.external.existingSecretName must be provided when mongo.external.enabled=true" -}}
+{{- end -}}
+{{- if and .Values.mongo.enabled (not .Values.mongo.external.enabled) (empty .Values.mongo.statefulSet.persistence.size) -}}
+{{- fail "mongo.statefulSet.persistence.size must be set when mongo.enabled=true and using the bundled MongoDB instance" -}}
+{{- end -}}
+{{- end }}
+
+{{/*
+Environment variables used to configure operator-level default checkpointer injection.
+*/}}
+{{- define "langgraphDataplane.operatorCheckpointerEnv" -}}
+{{- $root := .root | default . -}}
+{{- include "langgraphDataplane.validateMongoConfiguration" $root -}}
+{{- if $root.Values.mongo.enabled }}
+- name: DEFAULT_CHECKPOINTER_BACKEND
+  value: "mongo"
+- name: DEFAULT_MONGODB_URI_SECRET_NAME
+  value: {{ include "langgraphDataplane.mongoSecretsName" $root | quote }}
+- name: DEFAULT_MONGODB_URI_SECRET_KEY
+  value: "mongodb_connection_url"
+{{- end }}
+{{- end }}
+
 
 {{/*
 Template containing common environment variables that are used by several services.
