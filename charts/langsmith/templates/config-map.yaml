@@ -86,3 +86,7 @@ data:
   {{- if .Values.config.security.cors.alwaysAllowPathsRegex }}
   CORS_ALWAYS_ALLOW_PATHS_REGEX: {{ .Values.config.security.cors.alwaysAllowPathsRegex | quote }}
   {{- end }}
+  # Security - SSRF private IP toggles
+  SSRF_ALLOW_PRIVATE_IPS_WEBHOOKS: {{ .Values.config.security.ssrf.allowPrivateIpsWebhooks | quote }}
+  SSRF_ALLOW_PRIVATE_IPS_MCP_SERVERS: {{ .Values.config.security.ssrf.allowPrivateIpsMcpServers | quote }}
+  SSRF_ALLOW_PRIVATE_IPS_TOOLS: {{ .Values.config.security.ssrf.allowPrivateIpsTools | quote }}

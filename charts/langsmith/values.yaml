@@ -368,6 +368,19 @@ config:
       # Useful for public endpoints like webhooks or public API endpoints.
       # Example: ".*(/feedback/tokens/|/public/).*"
       alwaysAllowPathsRegex: ""
+    # -- SSRF (Server-Side Request Forgery) protection configuration.
+    # Controls whether private IP ranges (RFC 1918) are allowed for specific surfaces.
+    # Cloud metadata, localhost, and Kubernetes internal DNS protections remain enforced regardless of these settings.
+    ssrf:
+      # -- Allow webhooks (run rules, prompt, alert, agent builder) to target private IP addresses.
+      # Enable this if your self-hosted deployment needs to deliver webhooks to internal services.
+      allowPrivateIpsWebhooks: false
+      # -- Allow MCP servers to use private IP addresses for CRUD, proxy, and agent builder MCP client operations.
+      # Enable this if your self-hosted deployment connects to MCP servers on internal networks.
+      allowPrivateIpsMcpServers: false
+      # -- Allow tools.json mcp_server_url validation to accept private IP addresses.
+      # Enable this if your self-hosted deployment references MCP server URLs on internal networks.
+      allowPrivateIpsTools: false
 
 aceBackend:
   name: "ace-backend"
