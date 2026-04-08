@@ -58,9 +58,11 @@ rules:
       - {{ include "langsmith.fullname" . }}-{{ .Values.frontend.name }}
       {{- if .Values.config.agentBuilder.enabled }}
       - {{ include "langsmith.fullname" . }}-agent-builder-trigger-server
+      - {{ include "langsmith.fullname" . }}-{{ .Values.ingestQueue.name }}
       {{- end }}
       {{- if .Values.config.insights.enabled }}
       - {{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}
+      - {{ include "langsmith.fullname" . }}-{{ .Values.queue.name }}
       {{- end }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
