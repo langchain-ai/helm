@@ -190,11 +190,13 @@ config:
     # - linkedinOAuthProvider: LinkedIn tools
     # - linearOAuthProvider: Linear tools
     # - githubOAuthProvider: GitHub tools
+    # - microsoftOAuthProvider: Outlook, Teams, SharePoint tools + Outlook trigger
     oauth:
       googleOAuthProvider: ""
       linkedinOAuthProvider: ""
       linearOAuthProvider: ""
       githubOAuthProvider: ""
+      microsoftOAuthProvider: ""
       slackOAuthProvider: ""
       slackSigningSecret: ""
       slackBotId: ""

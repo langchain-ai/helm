@@ -755,6 +755,10 @@ Strip protocol (http://, https://, etc.) from hostname
 - name: "GITHUB_OAUTH_PROVIDER"
   value: {{ .Values.config.agentBuilder.oauth.githubOAuthProvider | quote }}
 {{- end }}
+{{- if .Values.config.agentBuilder.oauth.microsoftOAuthProvider }}
+- name: "MICROSOFT_OAUTH_PROVIDER"
+  value: {{ .Values.config.agentBuilder.oauth.microsoftOAuthProvider | quote }}
+{{- end }}
 {{- end -}}
 
 {{- define "agentBuilderToolServerEnvVars" -}}
