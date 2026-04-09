@@ -734,6 +734,40 @@ Strip protocol (http://, https://, etc.) from hostname
 {{- end -}}
 {{- end -}}
 
+{{/*
+Return config.hostname as an absolute URL.
+If no scheme is provided, default to https://, except localhost-style hosts
+which default to http:// for local development.
+*/}}
+{{- define "langsmith.hostnameWithProtocol" -}}
+{{- if .Values.config.hostname -}}
+  {{- $hostname := .Values.config.hostname -}}
+  {{- if regexMatch "^[a-zA-Z][a-zA-Z0-9+.-]*://" $hostname -}}
+    {{- $hostname -}}
+  {{- else if regexMatch "^(localhost|127\\.0\\.0\\.1|\\[::1\\])(?::[0-9]+)?(?:/.*)?$" $hostname -}}
+    {{- printf "http://%s" $hostname -}}
+  {{- else -}}
+    {{- printf "https://%s" $hostname -}}
+  {{- end -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Public URL for the default Agent Builder MCP server.
+Served through the frontend at /mcp (or /<basePath>/mcp).
+*/}}
+{{- define "langsmith.defaultMcpServerUrl" -}}
+{{- if and .Values.config.agentBuilder.enabled .Values.config.hostname -}}
+  {{- $baseURL := include "langsmith.hostnameWithProtocol" . | trimSuffix "/" -}}
+  {{- $basePath := trimAll "/" (default "" .Values.config.basePath) -}}
+  {{- if $basePath -}}
+    {{- printf "%s/%s/mcp" $baseURL $basePath -}}
+  {{- else -}}
+    {{- printf "%s/mcp" $baseURL -}}
+  {{- end -}}
+{{- end -}}
+{{- end -}}
+
 {{- define "agentBuilderOAuthEnvVars" -}}
 {{- if .Values.config.agentBuilder.oauth.googleOAuthProvider }}
 - name: "GOOGLE_OAUTH_PROVIDER"

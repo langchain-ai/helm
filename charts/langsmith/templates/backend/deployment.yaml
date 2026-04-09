@@ -5,6 +5,10 @@
 - name: DOCS_PREFIX
   value: /{{ . }}/api
 {{- end }}
+{{- with include "langsmith.defaultMcpServerUrl" . }}
+- name: MCP_SERVER_URL
+  value: {{ . | quote }}
+{{- end }}
 {{- end -}}
 {{- $envVars := concat .Values.commonEnv (include "langsmith.commonEnv" . | fromYamlArray) (include "backendEnvVars" . | fromYamlArray) .Values.backend.deployment.extraEnv -}}
 {{- include "langsmith.detectDuplicates" $envVars -}}
