@@ -40,23 +40,23 @@ images:
   aceBackendImage:
     repository: "docker.io/langchain/langsmith-ace-backend"
     pullPolicy: IfNotPresent
-    tag: "0.13.40"
+    tag: "0.13.41"
   backendImage:
     repository: "docker.io/langchain/langsmith-backend"
     pullPolicy: IfNotPresent
-    tag: "0.13.40"
+    tag: "0.13.41"
   insightsAgentImage:
     repository: "docker.io/langchain/langsmith-clio"
     pullPolicy: IfNotPresent
-    tag: "0.13.40"
+    tag: "0.13.41"
   frontendImage:
     repository: "docker.io/langchain/langsmith-frontend"
     pullPolicy: IfNotPresent
-    tag: "0.13.40"
+    tag: "0.13.41"
   hostBackendImage:
     repository: "docker.io/langchain/hosted-langserve-backend"
     pullPolicy: IfNotPresent
-    tag: "0.13.40"
+    tag: "0.13.41"
   operatorImage:
     repository: "docker.io/langchain/langgraph-operator"
     pullPolicy: IfNotPresent
@@ -64,11 +64,11 @@ images:
   platformBackendImage:
     repository: "docker.io/langchain/langsmith-go-backend"
     pullPolicy: IfNotPresent
-    tag: "0.13.40"
+    tag: "0.13.41"
   playgroundImage:
     repository: "docker.io/langchain/langsmith-playground"
     pullPolicy: IfNotPresent
-    tag: "0.13.40"
+    tag: "0.13.41"
   # For production environments, we strongly recommend connecting to a managed PostgreSQL instance instead of using the one provided by the chart.
   # Docs: https://docs.langchain.com/langsmith/self-host-external-postgres
   postgresImage:
@@ -88,19 +88,19 @@ images:
   agentBuilderToolServerImage:
     repository: "docker.io/langchain/agent-builder-tool-server"
     pullPolicy: IfNotPresent
-    tag: "0.13.40"
+    tag: "0.13.41"
   agentBuilderTriggerServerImage:
     repository: "docker.io/langchain/agent-builder-trigger-server"
     pullPolicy: IfNotPresent
-    tag: "0.13.40"
+    tag: "0.13.41"
   agentBuilderImage:
     repository: "docker.io/langchain/agent-builder-deep-agent"
     pullPolicy: IfNotPresent
-    tag: "0.13.40"
+    tag: "0.13.41"
   pollyAgentImage:
     repository: "docker.io/langchain/langsmith-polly"
     pullPolicy: IfNotPresent
-    tag: "0.13.40"
+    tag: "0.13.41"
 
 ingress:
   enabled: false
@@ -190,11 +190,13 @@ config:
     # - linkedinOAuthProvider: LinkedIn tools
     # - linearOAuthProvider: Linear tools
     # - githubOAuthProvider: GitHub tools
+    # - microsoftOAuthProvider: Outlook, Teams, SharePoint tools + Outlook trigger
     oauth:
       googleOAuthProvider: ""
       linkedinOAuthProvider: ""
       linearOAuthProvider: ""
       githubOAuthProvider: ""
+      microsoftOAuthProvider: ""
       slackOAuthProvider: ""
       slackSigningSecret: ""
       slackBotId: ""
