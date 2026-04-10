@@ -1,6 +1,6 @@
 # langgraph-cloud
 
-![Version: 0.2.6](https://img.shields.io/badge/Version-0.2.6-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.2.3](https://img.shields.io/badge/AppVersion-0.2.3-informational?style=flat-square)
+![Version: 0.2.7](https://img.shields.io/badge/Version-0.2.7-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.2.3](https://img.shields.io/badge/AppVersion-0.2.3-informational?style=flat-square)
 
 Helm chart to deploy the LangGraph Cloud application and all services it depends on.
 
@@ -339,6 +339,13 @@ If you are upgrading from a chart revision that used the old flat MongoDB values
 | commonVolumeMounts | list | `[]` | Common volume mounts added to all deployments/statefulsets. |
 | commonVolumes | list | `[]` | Common volumes added to all deployments/statefulsets. |
 | fullnameOverride | string | `""` | String to fully override `"langgraph-cloud.fullname"` |
+| gateway | object | `{"annotations":{},"basePath":"","enabled":false,"hostname":"","labels":{},"name":"","namespace":"","sectionName":"","studioHostname":""}` | Only one of ingress, gateway, or istioGateway can be enabled at the same time. |
+| gateway.basePath | string | `""` | WARNING: Changing basePath after deployment will break existing routes. |
+| gateway.hostname | string | `""` | Hostname for the HTTPRoute. If not set, the route will match all hostnames. |
+| gateway.name | string | `""` | Name of the Gateway resource to attach the HTTPRoute to. |
+| gateway.namespace | string | `""` | Namespace of the Gateway resource. If not set, the HTTPRoute will not specify a namespace for the parentRef. |
+| gateway.sectionName | string | `""` | Section name of the Gateway listener to attach to. |
+| gateway.studioHostname | string | `""` | Optional hostname for studio HTTPRoute. If not set, studio routes are included on the main hostname. |
 | images.apiServerImage.pullPolicy | string | `"Always"` |  |
 | images.apiServerImage.repository | string | `"docker.io/langchain/langgraph-api"` |  |
 | images.apiServerImage.tag | string | `"3.11-28c1407"` |  |
@@ -363,6 +370,12 @@ If you are upgrading from a chart revision that used the old flat MongoDB values
 | ingress.labels | object | `{}` |  |
 | ingress.studioHostname | string | `""` |  |
 | ingress.tls | list | `[]` |  |
+| istioGateway | object | `{"annotations":{},"basePath":"","enabled":false,"hostname":"","labels":{},"name":"","namespace":"","studioHostname":""}` | Only one of ingress, gateway, or istioGateway can be enabled at the same time. |
+| istioGateway.basePath | string | `""` | WARNING: Changing basePath after deployment will break existing routes. |
+| istioGateway.hostname | string | `""` | Hostname for the VirtualService. If not set, the VirtualService will match all hosts ("*"). |
+| istioGateway.name | string | `""` | Name of the Istio Gateway resource. |
+| istioGateway.namespace | string | `""` | Namespace of the Istio Gateway resource. |
+| istioGateway.studioHostname | string | `""` | Optional hostname for studio VirtualService. If not set, studio routes are included on the main hostname. |
 | mongo.enabled | bool | `false` | Enable MongoDB checkpointing. When `mongo.external.enabled` is false, the chart provisions a bundled single-node MongoDB replica set intended for local development, CI, and quickstarts. |
 | mongo.external.connectionUrl | string | `""` | MongoDB connection URL used when `mongo.enabled` and `mongo.external.enabled` are true. Must include the target database name and point at a replica set member or `mongos`. |
 | mongo.external.enabled | bool | `false` | Use an external MongoDB deployment instead of the chart-managed MongoDB instance. |
