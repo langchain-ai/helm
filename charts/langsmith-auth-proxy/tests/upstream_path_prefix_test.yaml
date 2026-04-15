@@ -1,6 +1,8 @@
 suite: upstream path prefix
 templates:
   - auth-proxy/config-map.yaml
+values:
+  - common-values.yaml
 tests:
   - it: should not include prefix_rewrite when upstream has no path
     set:

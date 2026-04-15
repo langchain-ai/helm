@@ -1,0 +1,5 @@
+# Shared base values for unit tests.
+# Every test suite should include this via `values:` to satisfy required fields.
+authProxy:
+  jwtAudiences:
+    - "test-audience"
