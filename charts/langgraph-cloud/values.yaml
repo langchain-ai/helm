@@ -47,6 +47,7 @@ images:
     repository: "mongo"
     pullPolicy: IfNotPresent
     tag: "7"
+
 config:
   existingSecretName: ""
   # -- Optional LangGraph Cloud license key loaded from the chart secret.

@@ -1,6 +1,6 @@
 # langgraph-cloud
 
-![Version: 0.2.7](https://img.shields.io/badge/Version-0.2.7-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.2.3](https://img.shields.io/badge/AppVersion-0.2.3-informational?style=flat-square)
+![Version: 0.3.0](https://img.shields.io/badge/Version-0.3.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.2.3](https://img.shields.io/badge/AppVersion-0.2.3-informational?style=flat-square)
 
 Helm chart to deploy the LangGraph Cloud application and all services it depends on.
 
@@ -339,13 +339,12 @@ If you are upgrading from a chart revision that used the old flat MongoDB values
 | commonVolumeMounts | list | `[]` | Common volume mounts added to all deployments/statefulsets. |
 | commonVolumes | list | `[]` | Common volumes added to all deployments/statefulsets. |
 | fullnameOverride | string | `""` | String to fully override `"langgraph-cloud.fullname"` |
-| gateway | object | `{"annotations":{},"basePath":"","enabled":false,"hostname":"","labels":{},"name":"","namespace":"","sectionName":"","studioHostname":""}` | Only one of ingress, gateway, or istioGateway can be enabled at the same time. |
+| gateway | object | `{"annotations":{},"basePath":"","enabled":false,"hostname":"","labels":{},"name":"","namespace":"","sectionName":""}` | Only one of ingress, gateway, or istioGateway can be enabled at the same time. |
 | gateway.basePath | string | `""` | WARNING: Changing basePath after deployment will break existing routes. |
 | gateway.hostname | string | `""` | Hostname for the HTTPRoute. If not set, the route will match all hostnames. |
 | gateway.name | string | `""` | Name of the Gateway resource to attach the HTTPRoute to. |
 | gateway.namespace | string | `""` | Namespace of the Gateway resource. If not set, the HTTPRoute will not specify a namespace for the parentRef. |
 | gateway.sectionName | string | `""` | Section name of the Gateway listener to attach to. |
-| gateway.studioHostname | string | `""` | Optional hostname for studio HTTPRoute. If not set, studio routes are included on the main hostname. |
 | images.apiServerImage.pullPolicy | string | `"Always"` |  |
 | images.apiServerImage.repository | string | `"docker.io/langchain/langgraph-api"` |  |
 | images.apiServerImage.tag | string | `"3.11-28c1407"` |  |
@@ -360,22 +359,17 @@ If you are upgrading from a chart revision that used the old flat MongoDB values
 | images.redisImage.repository | string | `"docker.io/redis"` |  |
 | images.redisImage.tag | string | `"6"` |  |
 | images.registry | string | `""` | If supplied, all children <image_name>.repository values will be prepended with this registry name + `/` |
-| images.studioImage.pullPolicy | string | `"Always"` |  |
-| images.studioImage.repository | string | `"docker.io/langchain/langgraph-debugger"` |  |
-| images.studioImage.tag | string | `"0.12.77"` |  |
 | ingress.annotations | object | `{}` |  |
 | ingress.enabled | bool | `false` |  |
 | ingress.hostname | string | `""` |  |
 | ingress.ingressClassName | string | `""` |  |
 | ingress.labels | object | `{}` |  |
-| ingress.studioHostname | string | `""` |  |
 | ingress.tls | list | `[]` |  |
-| istioGateway | object | `{"annotations":{},"basePath":"","enabled":false,"hostname":"","labels":{},"name":"","namespace":"","studioHostname":""}` | Only one of ingress, gateway, or istioGateway can be enabled at the same time. |
+| istioGateway | object | `{"annotations":{},"basePath":"","enabled":false,"hostname":"","labels":{},"name":"","namespace":""}` | Only one of ingress, gateway, or istioGateway can be enabled at the same time. |
 | istioGateway.basePath | string | `""` | WARNING: Changing basePath after deployment will break existing routes. |
 | istioGateway.hostname | string | `""` | Hostname for the VirtualService. If not set, the VirtualService will match all hosts ("*"). |
 | istioGateway.name | string | `""` | Name of the Istio Gateway resource. |
 | istioGateway.namespace | string | `""` | Namespace of the Istio Gateway resource. |
-| istioGateway.studioHostname | string | `""` | Optional hostname for studio VirtualService. If not set, studio routes are included on the main hostname. |
 | mongo.enabled | bool | `false` | Enable MongoDB checkpointing. When `mongo.external.enabled` is false, the chart provisions a bundled single-node MongoDB replica set intended for local development, CI, and quickstarts. |
 | mongo.external.connectionUrl | string | `""` | MongoDB connection URL used when `mongo.enabled` and `mongo.external.enabled` are true. Must include the target database name and point at a replica set member or `mongos`. |
 | mongo.external.enabled | bool | `false` | Use an external MongoDB deployment instead of the chart-managed MongoDB instance. |
@@ -493,66 +487,6 @@ If you are upgrading from a chart revision that used the old flat MongoDB values
 | redis.serviceAccount.create | bool | `true` |  |
 | redis.serviceAccount.labels | object | `{}` |  |
 | redis.serviceAccount.name | string | `""` |  |
-| studio.autoscaling.enabled | bool | `false` |  |
-| studio.autoscaling.keda.cooldownPeriod | int | `300` |  |
-| studio.autoscaling.keda.enabled | bool | `false` |  |
-| studio.autoscaling.keda.pollingInterval | int | `30` |  |
-| studio.autoscaling.keda.scaleDownStabilizationWindowSeconds | int | `300` |  |
-| studio.autoscaling.maxReplicas | int | `5` |  |
-| studio.autoscaling.minReplicas | int | `1` |  |
-| studio.autoscaling.targetCPUUtilizationPercentage | int | `80` |  |
-| studio.containerPort | int | `3968` |  |
-| studio.deployment.affinity | object | `{}` |  |
-| studio.deployment.annotations | object | `{}` |  |
-| studio.deployment.extraEnv | list | `[]` |  |
-| studio.deployment.labels | object | `{}` |  |
-| studio.deployment.lifecycle | object | `{}` |  |
-| studio.deployment.livenessProbe.failureThreshold | int | `6` |  |
-| studio.deployment.livenessProbe.httpGet.path | string | `"/health"` |  |
-| studio.deployment.livenessProbe.httpGet.port | int | `3968` |  |
-| studio.deployment.livenessProbe.periodSeconds | int | `10` |  |
-| studio.deployment.livenessProbe.timeoutSeconds | int | `1` |  |
-| studio.deployment.nodeSelector | object | `{}` |  |
-| studio.deployment.podSecurityContext | object | `{}` |  |
-| studio.deployment.priorityClassName | string | `""` |  |
-| studio.deployment.readinessProbe.failureThreshold | int | `3` |  |
-| studio.deployment.readinessProbe.httpGet.path | string | `"/health"` |  |
-| studio.deployment.readinessProbe.httpGet.port | int | `3968` |  |
-| studio.deployment.readinessProbe.periodSeconds | int | `10` |  |
-| studio.deployment.readinessProbe.timeoutSeconds | int | `1` |  |
-| studio.deployment.replicaCount | int | `1` |  |
-| studio.deployment.resources.limits.cpu | string | `"1000m"` |  |
-| studio.deployment.resources.limits.memory | string | `"2Gi"` |  |
-| studio.deployment.resources.requests.cpu | string | `"500m"` |  |
-| studio.deployment.resources.requests.memory | string | `"1Gi"` |  |
-| studio.deployment.securityContext | object | `{}` |  |
-| studio.deployment.sidecars | list | `[]` |  |
-| studio.deployment.startupProbe.failureThreshold | int | `6` |  |
-| studio.deployment.startupProbe.httpGet.path | string | `"/health"` |  |
-| studio.deployment.startupProbe.httpGet.port | int | `3968` |  |
-| studio.deployment.startupProbe.periodSeconds | int | `10` |  |
-| studio.deployment.startupProbe.timeoutSeconds | int | `1` |  |
-| studio.deployment.terminationGracePeriodSeconds | int | `30` |  |
-| studio.deployment.tolerations | list | `[]` |  |
-| studio.deployment.volumeMounts | list | `[]` |  |
-| studio.deployment.volumes | list | `[]` |  |
-| studio.enabled | bool | `true` |  |
-| studio.localGraphUrl | string | `""` |  |
-| studio.name | string | `"studio"` |  |
-| studio.pdb.enabled | bool | `false` |  |
-| studio.pdb.minAvailable | int | `1` |  |
-| studio.service.annotations | object | `{}` |  |
-| studio.service.httpPort | int | `80` |  |
-| studio.service.httpsPort | int | `443` |  |
-| studio.service.labels | object | `{}` |  |
-| studio.service.loadBalancerIP | string | `""` |  |
-| studio.service.loadBalancerSourceRanges | list | `[]` |  |
-| studio.service.type | string | `"LoadBalancer"` |  |
-| studio.serviceAccount.annotations | object | `{}` |  |
-| studio.serviceAccount.automountServiceAccountToken | bool | `true` |  |
-| studio.serviceAccount.create | bool | `true` |  |
-| studio.serviceAccount.labels | object | `{}` |  |
-| studio.serviceAccount.name | string | `""` |  |
 
 ## Configs
 

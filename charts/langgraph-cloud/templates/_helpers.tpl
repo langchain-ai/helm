@@ -219,6 +219,41 @@ Environment variables used to default agent server checkpointers without overrid
 {{- end -}}
 {{- end -}}
 
+{{/*
+Validates that at most one ingress mechanism is enabled and that required fields are set.
+*/}}
+{{- define "langGraphCloud.validateIngress" -}}
+{{- $enabledCount := 0 -}}
+{{- if .Values.ingress.enabled }}{{ $enabledCount = add1 $enabledCount }}{{- end -}}
+{{- if .Values.gateway.enabled }}{{ $enabledCount = add1 $enabledCount }}{{- end -}}
+{{- if .Values.istioGateway.enabled }}{{ $enabledCount = add1 $enabledCount }}{{- end -}}
+{{- if gt $enabledCount 1 }}
+{{- fail "Only one of ingress, gateway, or istioGateway can be enabled at the same time." -}}
+{{- end -}}
+{{- if and .Values.gateway.enabled (empty .Values.gateway.name) }}
+{{- fail "gateway.name must be set when gateway.enabled=true" -}}
+{{- end -}}
+{{- if and .Values.istioGateway.enabled (empty .Values.istioGateway.name) }}
+{{- fail "istioGateway.name must be set when istioGateway.enabled=true" -}}
+{{- end -}}
+{{- if and .Values.ingress.enabled (empty .Values.ingress.hostname) }}
+{{- fail "ingress.hostname must be set when ingress.enabled=true" -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Normalizes a basePath value by stripping leading and trailing slashes.
+*/}}
+{{- define "langGraphCloud.normalizeBasePath" -}}
+{{- . | trimPrefix "/" | trimSuffix "/" -}}
+{{- end -}}
+
+{{/*
+FQDN for the api-server Service inside the cluster.
+*/}}
+{{- define "langGraphCloud.apiServerHost" -}}
+{{- printf "%s-%s.%s.svc.%s" (include "langGraphCloud.fullname" .) .Values.apiServer.name (.Values.namespace | default .Release.Namespace) .Values.clusterDomain -}}
+{{- end -}}
 
 {{/*
 Creates the image reference used for LangGraph Cloud deployments. If registry is specified, concatenate it, along with a '/'.

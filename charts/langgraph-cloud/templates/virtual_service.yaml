@@ -3,7 +3,7 @@ apiVersion: networking.istio.io/v1
 kind: VirtualService
 metadata:
   name: {{ include "langGraphCloud.fullname" . }}
-  namespace: {{ .Values.namespace | default .Release.Namespace }}
+  namespace: {{ .Values.namespace | default .Release.Namespace | quote }}
   annotations:
     {{- include "langGraphCloud.annotations" . | nindent 4 }}
     {{- with .Values.istioGateway.annotations }}
@@ -28,8 +28,8 @@ spec:
   {{- else }}
   - {{ .Values.istioGateway.name }}
   {{- end }}
-  {{- $bp := .Values.istioGateway.basePath | trimPrefix "/" | trimSuffix "/" }}
-  {{- $apiHost := printf "%s-%s.%s.svc.%s" (include "langGraphCloud.fullname" .) .Values.apiServer.name (.Values.namespace | default .Release.Namespace) .Values.clusterDomain }}
+  {{- $bp := include "langGraphCloud.normalizeBasePath" .Values.istioGateway.basePath }}
+  {{- $apiHost := include "langGraphCloud.apiServerHost" . }}
   http:
   {{- if $bp }}
   - match:
