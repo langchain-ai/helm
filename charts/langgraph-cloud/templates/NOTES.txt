@@ -1,8 +1,6 @@
 {{- $namespace := .Values.namespace | default .Release.Namespace -}}
 {{- $apiServerServiceName := printf "%s-%s" (include "langGraphCloud.fullname" .) .Values.apiServer.name -}}
 {{- $apiServerServicePort := .Values.apiServer.service.httpPort -}}
-{{- $studioServiceName := printf "%s-%s" (include "langGraphCloud.fullname" .) .Values.studio.name -}}
-{{- $studioServicePort := .Values.studio.service.httpPort -}}
 Thank you for installing LangGraph Cloud!
 
 This chart deploys a LangGraph Cloud instance. All pods should be running! You can access the docs for your API Server by running the following command:
@@ -16,17 +14,3 @@ If you have configured a LoadBalancer service for the LangGraph API Server, you 
   kubectl -n {{ $namespace }} get svc {{ $apiServerServiceName }}
 
 Then you can access the LangGraph API Server at http://<EXTERNAL-IP>.
-
-{{- if .Values.studio.enabled }}
-If you have enabled the studio, you can access the LangGraph Studio by running the following command:
-
-  kubectl -n {{ $namespace }} port-forward svc/{{ $studioServiceName }} 8080:{{ $studioServicePort }}
-
-Then you can access the LangGraph Studio at http://localhost:8080. Note that it will by default point to the ingress.hostname parameter. You can update this by changing the baseUrl parameter in the url.
-
-If you have configured a LoadBalancer service for the LangGraph Studio, you can access the LangGraph Studio by running the following command:
-
-  kubectl -n {{ $namespace }} get svc {{ $studioServiceName }}
-
-Then you can access the LangGraph Studio at http://<EXTERNAL-IP>.
-{{- end }}

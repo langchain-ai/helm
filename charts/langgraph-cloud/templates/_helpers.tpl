@@ -219,13 +219,6 @@ Environment variables used to default agent server checkpointers without overrid
 {{- end -}}
 {{- end -}}
 
-{{- define "studio.serviceAccountName" -}}
-{{- if .Values.studio.serviceAccount.create -}}
-    {{ default (printf "%s-%s" (include "langGraphCloud.fullname" .) .Values.studio.name) .Values.studio.serviceAccount.name | trunc 63 | trimSuffix "-" }}
-{{- else -}}
-    {{ default "default" .Values.studio.serviceAccount.name }}
-{{- end -}}
-{{- end -}}
 
 {{/*
 Creates the image reference used for LangGraph Cloud deployments. If registry is specified, concatenate it, along with a '/'.

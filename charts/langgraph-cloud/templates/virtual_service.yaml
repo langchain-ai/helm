@@ -62,41 +62,4 @@ spec:
         port:
           number: {{ .Values.apiServer.service.httpPort }}
   {{- end }}
-{{- if and .Values.studio.enabled .Values.istioGateway.studioHostname }}
----
-apiVersion: networking.istio.io/v1
-kind: VirtualService
-metadata:
-  name: {{ include "langGraphCloud.fullname" . }}-studio
-  namespace: {{ .Values.namespace | default .Release.Namespace }}
-  annotations:
-    {{- include "langGraphCloud.annotations" . | nindent 4 }}
-    {{- with .Values.istioGateway.annotations }}
-      {{- toYaml . | nindent 4 }}
-    {{- end }}
-  labels:
-    {{- include "langGraphCloud.labels" . | nindent 4 }}
-    {{- with .Values.istioGateway.labels }}
-      {{- toYaml . | nindent 4 }}
-    {{- end }}
-spec:
-  hosts:
-  - {{ .Values.istioGateway.studioHostname | quote }}
-  gateways:
-  {{- if .Values.istioGateway.namespace }}
-  - {{ .Values.istioGateway.namespace }}/{{ .Values.istioGateway.name }}
-  {{- else }}
-  - {{ .Values.istioGateway.name }}
-  {{- end }}
-  {{- $studioHost := printf "%s-%s.%s.svc.%s" (include "langGraphCloud.fullname" .) .Values.studio.name (.Values.namespace | default .Release.Namespace) .Values.clusterDomain }}
-  http:
-  - match:
-    - uri:
-        prefix: /
-    route:
-    - destination:
-        host: {{ $studioHost }}
-        port:
-          number: {{ .Values.studio.service.httpPort }}
-{{- end }}
 {{- end }}

@@ -47,11 +47,6 @@ images:
     repository: "mongo"
     pullPolicy: IfNotPresent
     tag: "7"
-  studioImage:
-    repository: "docker.io/langchain/langgraph-debugger"
-    pullPolicy: Always
-    tag: "0.12.77"
-
 config:
   existingSecretName: ""
   # -- Optional LangGraph Cloud license key loaded from the chart secret.
@@ -70,7 +65,6 @@ config:
 ingress:
   enabled: false
   hostname: ""  #  Set this to the hostname you want to use for the ingress.
-  studioHostname: ""  # Set this to the hostname you want to use for the studio ingress
   ingressClassName: ""
   annotations: {}
   labels: {}
@@ -86,8 +80,6 @@ gateway:
   namespace: ""
   # -- Hostname for the HTTPRoute. If not set, the route will match all hostnames.
   hostname: ""
-  # -- Optional hostname for studio HTTPRoute. If not set, studio routes are included on the main hostname.
-  studioHostname: ""
   # -- Section name of the Gateway listener to attach to.
   sectionName: ""
   # -- Base path prefix for the HTTPRoute. The prefix is stripped before forwarding to the backend.
@@ -106,8 +98,6 @@ istioGateway:
   namespace: ""
   # -- Hostname for the VirtualService. If not set, the VirtualService will match all hosts ("*").
   hostname: ""
-  # -- Optional hostname for studio VirtualService. If not set, studio routes are included on the main hostname.
-  studioHostname: ""
   # -- Base path prefix for the VirtualService. The prefix is stripped (rewritten to /) before forwarding to the backend.
   # -- WARNING: Changing basePath after deployment will break existing routes.
   basePath: ""
@@ -426,80 +416,3 @@ mongo:
     persistence:
       # -- Persistent volume size for the bundled MongoDB instance.
       size: 8Gi
-
-studio:
-  enabled: true
-  localGraphUrl: ""  #  Set this to api-server base url you want studio to point to by default.
-  name: "studio"
-  containerPort: 3968
-  deployment:
-    replicaCount: 1
-    labels: {}
-    annotations: {}
-    podSecurityContext: {}
-    securityContext: {}
-    lifecycle: {}
-    priorityClassName: ""
-    terminationGracePeriodSeconds: 30
-    resources:
-      limits:
-        cpu: 1000m
-        memory: 2Gi
-      requests:
-        cpu: 500m
-        memory: 1Gi
-    extraEnv: []
-    sidecars: []
-    nodeSelector: {}
-    tolerations: []
-    affinity: {}
-    volumes: []
-    volumeMounts: []
-    startupProbe:
-      httpGet:
-        path: /health
-        port: 3968
-      failureThreshold: 6
-      periodSeconds: 10
-      timeoutSeconds: 1
-    readinessProbe:
-      httpGet:
-        path: /health
-        port: 3968
-      failureThreshold: 3
-      periodSeconds: 10
-      timeoutSeconds: 1
-    livenessProbe:
-      httpGet:
-        path: /health
-        port: 3968
-      failureThreshold: 6
-      periodSeconds: 10
-      timeoutSeconds: 1
-  autoscaling:  #  Autoscaling configuration. Not generally needed for studio.
-    enabled: false
-    minReplicas: 1
-    maxReplicas: 5
-    targetCPUUtilizationPercentage: 80
-    keda:  #  KEDA autoscaling configuration. Recommended for autoscaling but only available if keda is installed in the cluster.
-      enabled: false
-      pollingInterval: 30
-      cooldownPeriod: 300
-      scaleDownStabilizationWindowSeconds: 300
-  service:
-    type: LoadBalancer
-    httpPort: 80
-    httpsPort: 443
-    labels: {}
-    annotations: {}
-    loadBalancerSourceRanges: []
-    loadBalancerIP: ""
-  serviceAccount:
-    create: true
-    name: ""
-    labels: {}
-    annotations: {}
-    automountServiceAccountToken: true
-  pdb:
-    enabled: false
-    minAvailable: 1
