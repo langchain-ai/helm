@@ -78,12 +78,13 @@ data:
                           providers:
                             langsmith_jwt:
                               issuer: {{ .Values.authProxy.jwtIssuer }}
-                              {{- if .Values.authProxy.jwtAudiences }}
+                              {{- if not .Values.authProxy.jwtAudiences }}
+                                {{- fail "authProxy.jwtAudiences is required and must contain at least one audience" }}
+                              {{- end }}
                               audiences:
                                 {{- range .Values.authProxy.jwtAudiences }}
                                 - {{ . | quote }}
                                 {{- end }}
-                              {{- end }}
                               {{- if $jwksUri }}
                               remote_jwks:
                                 http_uri:

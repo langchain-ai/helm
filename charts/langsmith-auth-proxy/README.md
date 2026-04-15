@@ -133,7 +133,7 @@ Control which phases are sent to the transformer via `processingMode`:
 | authProxy.jwksCacheDurationSeconds | int | `300` | Cache duration in seconds for remote JWKS keys. Only used when jwksUri is set. |
 | authProxy.jwksJson | string | `""` | JWKS JSON string containing the public keys for JWT validation. Generate with the LangSmith JWKS tooling and paste the full JSON here. Mutually exclusive with jwksUri — if both are set, jwksUri takes precedence. |
 | authProxy.jwksUri | string | `""` | Remote JWKS endpoint URL for fetching public keys (e.g. https://langsmith.example.com/.well-known/jwks.json for self-hosted LangSmith or https://api.smith.langchain.com/.well-known/jwks.json in SaaS). When set, Envoy fetches and caches keys from this URL instead of using inline jwksJson. Mutually exclusive with jwksJson — if both are set, jwksUri takes precedence. |
-| authProxy.jwtAudiences | list | `[]` | JWT audience claims to validate. Must match audiences in the signed JWT. |
+| authProxy.jwtAudiences | list | `[]` | **(required)** JWT audience claims to validate. Must match audiences in the signed JWT. |
 | authProxy.jwtIssuer | string | `"langsmith"` | JWT issuer claim to validate |
 | authProxy.jwtValidation | object | `{"enabled":true}` | JWT validation configuration |
 | authProxy.jwtValidation.enabled | bool | `true` | Set to false to disable the envoy.filters.http.jwt_authn filter entirely. Useful for testing or when JWT validation is handled elsewhere. |
