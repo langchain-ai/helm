@@ -1,6 +1,8 @@
 suite: allowed_upstream_headers
 templates:
   - auth-proxy/config-map.yaml
+values:
+  - common-values.yaml
 tests:
   - it: should use default allowlist (authorization + x-*) when allowedUpstreamHeaders is empty
     set:

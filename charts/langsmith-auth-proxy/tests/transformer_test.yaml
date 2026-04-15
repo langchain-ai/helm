@@ -1,6 +1,8 @@
 suite: transformer (ext_proc)
 templates:
   - auth-proxy/config-map.yaml
+values:
+  - common-values.yaml
 tests:
   - it: should not render ext_proc filter when transformer is disabled (default)
     set:
