@@ -105,29 +105,23 @@ apiServer:
     volumeMounts: []
     initContainers: []
     startupProbe:
-      exec:
-        command:
-          - /bin/sh
-          - -c
-          - exec python /api/healthcheck.py
-      failureThreshold: 6
+      httpGet:
+        path: /ok?check_db=1
+        port: 8000
+      failureThreshold: 30
       periodSeconds: 10
       timeoutSeconds: 1
     readinessProbe:
-      exec:
-        command:
-          - /bin/sh
-          - -c
-          - exec python /api/healthcheck.py
-      failureThreshold: 6
+      httpGet:
+        path: /ok?check_db=0
+        port: 8000
+      failureThreshold: 3
       periodSeconds: 10
       timeoutSeconds: 1
     livenessProbe:
-      exec:
-        command:
-          - /bin/sh
-          - -c
-          - exec python /api/healthcheck.py
+      httpGet:
+        path: /ok?check_db=0
+        port: 8000
       failureThreshold: 6
       periodSeconds: 10
       timeoutSeconds: 1
