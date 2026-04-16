@@ -289,6 +289,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | config.agentBuilder.oauth.googleOAuthProvider | string | `""` |  |
 | config.agentBuilder.oauth.linearOAuthProvider | string | `""` |  |
 | config.agentBuilder.oauth.linkedinOAuthProvider | string | `""` |  |
+| config.agentBuilder.oauth.microsoftOAuthProvider | string | `""` |  |
 | config.agentBuilder.oauth.slackBotId | string | `""` |  |
 | config.agentBuilder.oauth.slackOAuthProvider | string | `""` |  |
 | config.agentBuilder.oauth.slackSigningSecret | string | `""` |  |
