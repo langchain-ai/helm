@@ -108,7 +108,7 @@ apiServer:
       httpGet:
         path: /ok?check_db=1
         port: 8000
-      failureThreshold: 30
+      failureThreshold: 6
       periodSeconds: 10
       timeoutSeconds: 1
     readinessProbe:
