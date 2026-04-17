@@ -24,6 +24,18 @@ AWS Marketplace Helm template verification).
 {{- fail "Either ingress, gateway, or istioGateway must be enabled if LangGraph Platform is enabled." -}}
 {{- end -}}
 
+{{- /* Validate frontend configuration */ -}}
+# Fail if frontend is disabled while ingress/gateway/istioGateway is enabled (they route to the frontend service)
+{{- if not .Values.frontend.enabled }}
+{{- if or .Values.ingress.enabled .Values.gateway.enabled .Values.istioGateway.enabled -}}
+{{- fail "frontend.enabled must be true when ingress, gateway, or istioGateway is enabled. These resources route traffic to the frontend service." -}}
+{{- end -}}
+# Fail if frontend is disabled while LangSmith Deployments is enabled (HOST_LANGCHAIN_API_ENDPOINT routes through the frontend service)
+{{- if .Values.config.deployment.enabled -}}
+{{- fail "frontend.enabled must be true when config.deployment.enabled is true. LangSmith Deployments routes traffic through the frontend service." -}}
+{{- end -}}
+{{- end -}}
+
 # Fail if Istio + LGP + basePath is set without a distinct LGP base path
 {{- if and .Values.istioGateway.enabled .Values.config.deployment.enabled .Values.config.basePath -}}
   {{- if or (not .Values.config.deployment.basePath) (eq .Values.config.deployment.basePath .Values.config.basePath) -}}
