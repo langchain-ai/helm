@@ -47,10 +47,6 @@ images:
     repository: "mongo"
     pullPolicy: IfNotPresent
     tag: "7"
-  studioImage:
-    repository: "docker.io/langchain/langgraph-debugger"
-    pullPolicy: Always
-    tag: "0.12.77"
 
 config:
   existingSecretName: ""
@@ -70,11 +66,44 @@ config:
 ingress:
   enabled: false
   hostname: ""  #  Set this to the hostname you want to use for the ingress.
-  studioHostname: ""  # Set this to the hostname you want to use for the studio ingress
   ingressClassName: ""
   annotations: {}
   labels: {}
   tls: []
+
+# -- Whether to use the Gateway API for ingress. Will create an HTTPRoute for each service.
+# -- Only one of ingress, gateway, or istioGateway can be enabled at the same time.
+gateway:
+  enabled: false
+  # -- Name of the Gateway resource to attach the HTTPRoute to.
+  name: ""
+  # -- Namespace of the Gateway resource. If not set, the HTTPRoute will not specify a namespace for the parentRef.
+  namespace: ""
+  # -- Hostname for the HTTPRoute. If not set, the route will match all hostnames.
+  hostname: ""
+  # -- Section name of the Gateway listener to attach to.
+  sectionName: ""
+  # -- Base path prefix for the HTTPRoute. The prefix is stripped before forwarding to the backend.
+  # -- WARNING: Changing basePath after deployment will break existing routes.
+  basePath: ""
+  annotations: {}
+  labels: {}
+
+# -- Whether to use Istio VirtualServices for ingress. Will create a VirtualService for each service.
+# -- Only one of ingress, gateway, or istioGateway can be enabled at the same time.
+istioGateway:
+  enabled: false
+  # -- Name of the Istio Gateway resource.
+  name: ""
+  # -- Namespace of the Istio Gateway resource.
+  namespace: ""
+  # -- Hostname for the VirtualService. If not set, the VirtualService will match all hosts ("*").
+  hostname: ""
+  # -- Base path prefix for the VirtualService. The prefix is stripped (rewritten to /) before forwarding to the backend.
+  # -- WARNING: Changing basePath after deployment will break existing routes.
+  basePath: ""
+  annotations: {}
+  labels: {}
 
 apiServer:
   name: "api-server"
@@ -388,80 +417,3 @@ mongo:
     persistence:
       # -- Persistent volume size for the bundled MongoDB instance.
       size: 8Gi
-
-studio:
-  enabled: true
-  localGraphUrl: ""  #  Set this to api-server base url you want studio to point to by default.
-  name: "studio"
-  containerPort: 3968
-  deployment:
-    replicaCount: 1
-    labels: {}
-    annotations: {}
-    podSecurityContext: {}
-    securityContext: {}
-    lifecycle: {}
-    priorityClassName: ""
-    terminationGracePeriodSeconds: 30
-    resources:
-      limits:
-        cpu: 1000m
-        memory: 2Gi
-      requests:
-        cpu: 500m
-        memory: 1Gi
-    extraEnv: []
-    sidecars: []
-    nodeSelector: {}
-    tolerations: []
-    affinity: {}
-    volumes: []
-    volumeMounts: []
-    startupProbe:
-      httpGet:
-        path: /health
-        port: 3968
-      failureThreshold: 6
-      periodSeconds: 10
-      timeoutSeconds: 1
-    readinessProbe:
-      httpGet:
-        path: /health
-        port: 3968
-      failureThreshold: 3
-      periodSeconds: 10
-      timeoutSeconds: 1
-    livenessProbe:
-      httpGet:
-        path: /health
-        port: 3968
-      failureThreshold: 6
-      periodSeconds: 10
-      timeoutSeconds: 1
-  autoscaling:  #  Autoscaling configuration. Not generally needed for studio.
-    enabled: false
-    minReplicas: 1
-    maxReplicas: 5
-    targetCPUUtilizationPercentage: 80
-    keda:  #  KEDA autoscaling configuration. Recommended for autoscaling but only available if keda is installed in the cluster.
-      enabled: false
-      pollingInterval: 30
-      cooldownPeriod: 300
-      scaleDownStabilizationWindowSeconds: 300
-  service:
-    type: LoadBalancer
-    httpPort: 80
-    httpsPort: 443
-    labels: {}
-    annotations: {}
-    loadBalancerSourceRanges: []
-    loadBalancerIP: ""
-  serviceAccount:
-    create: true
-    name: ""
-    labels: {}
-    annotations: {}
-    automountServiceAccountToken: true
-  pdb:
-    enabled: false
-    minAvailable: 1

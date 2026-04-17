@@ -1,0 +1,65 @@
+{{- if .Values.istioGateway.enabled }}
+apiVersion: networking.istio.io/v1
+kind: VirtualService
+metadata:
+  name: {{ include "langGraphCloud.fullname" . }}
+  namespace: {{ .Values.namespace | default .Release.Namespace | quote }}
+  annotations:
+    {{- include "langGraphCloud.annotations" . | nindent 4 }}
+    {{- with .Values.istioGateway.annotations }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+  labels:
+    {{- include "langGraphCloud.labels" . | nindent 4 }}
+    {{- with .Values.istioGateway.labels }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  {{- if .Values.istioGateway.hostname }}
+  hosts:
+  - {{ .Values.istioGateway.hostname | quote }}
+  {{- else }}
+  hosts:
+  - "*"
+  {{- end }}
+  gateways:
+  {{- if .Values.istioGateway.namespace }}
+  - {{ .Values.istioGateway.namespace }}/{{ .Values.istioGateway.name }}
+  {{- else }}
+  - {{ .Values.istioGateway.name }}
+  {{- end }}
+  {{- $bp := include "langGraphCloud.normalizeBasePath" .Values.istioGateway.basePath }}
+  {{- $apiHost := include "langGraphCloud.apiServerHost" . }}
+  http:
+  {{- if $bp }}
+  - match:
+    - uri:
+        exact: /{{ $bp }}
+    rewrite:
+      uri: /
+    route:
+    - destination:
+        host: {{ $apiHost }}
+        port:
+          number: {{ .Values.apiServer.service.httpPort }}
+  - match:
+    - uri:
+        prefix: /{{ $bp }}/
+    rewrite:
+      uri: /
+    route:
+    - destination:
+        host: {{ $apiHost }}
+        port:
+          number: {{ .Values.apiServer.service.httpPort }}
+  {{- else }}
+  - match:
+    - uri:
+        prefix: /
+    route:
+    - destination:
+        host: {{ $apiHost }}
+        port:
+          number: {{ .Values.apiServer.service.httpPort }}
+  {{- end }}
+{{- end }}

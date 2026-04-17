@@ -295,7 +295,7 @@ make cloud-dev-logs
 
 ## Notes
 
-- The default local values intentionally disable `studio` and `ingress` to keep the dev footprint small.
+- The default local values intentionally disable `ingress` to keep the dev footprint small.
 - `queue` is disabled by default in the local profile for a tighter feedback loop.
 - The bundled chart-managed MongoDB instance is the recommended way to exercise the Mongo checkpointer locally.
 - The optional local Mongo fixture is still available for testing external MongoDB connection paths. It runs as a single-node replica set because the Mongo checkpointer requires replica set semantics.
