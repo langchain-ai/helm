@@ -14,6 +14,7 @@ metadata:
       {{- toYaml . | nindent 4 }}
     {{- end }}
   annotations:
+    "argocd.argoproj.io/sync-wave": "-2"
     {{- include "langsmith.annotations" . | nindent 4 }}
     {{- with.Values.redis.statefulSet.annotations }}
       {{- toYaml . | nindent 4 }}
