@@ -57,6 +57,7 @@
   value: "true"
 {{- end }}
 {{- end -}}
+{{- if .Values.frontend.enabled }}
 {{- $envVars := concat .Values.commonEnv (include "frontendEnvVars" . | fromYamlArray) .Values.frontend.deployment.extraEnv -}}
 {{- include "langsmith.detectDuplicates" $envVars -}}
 {{- $volumes := concat .Values.commonVolumes .Values.frontend.deployment.volumes -}}
@@ -237,4 +238,5 @@ spec:
 {{- if .Values.frontend.rollout.enabled }}
   strategy:
     {{- toYaml .Values.frontend.rollout.strategy | nindent 4 }}
+{{- end }}
 {{- end }}

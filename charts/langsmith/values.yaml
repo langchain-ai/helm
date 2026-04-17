@@ -912,6 +912,7 @@ clickhouse:
     port: 9363
 
 frontend:
+  enabled: true
   name: "frontend"
   containerPort: 8080
   existingConfigMapName: ""

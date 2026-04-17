@@ -1,3 +1,4 @@
+{{- if .Values.frontend.enabled }}
 apiVersion: v1
 kind: Service
 metadata:
@@ -33,3 +34,4 @@ spec:
   selector:
     {{- include "langsmith.selectorLabels" . | nindent 4 }}
     app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-{{ .Values.frontend.name }}
+{{- end }}

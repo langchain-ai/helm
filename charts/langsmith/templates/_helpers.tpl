@@ -663,7 +663,9 @@ Template containing common environment variables that are used by several servic
 
 {{- define "langsmith.checksumAnnotations"}}
 checksum/config: {{ include (print $.Template.BasePath "/config-map.yaml") . | sha256sum }}
+{{- if .Values.frontend.enabled }}
 checksum/frontend-config: {{ include (print $.Template.BasePath "/frontend/config-map.yaml") . | sha256sum }}
+{{- end }}
 {{- if not .Values.config.existingSecretName }}
 checksum/secrets: {{ include (print $.Template.BasePath "/secrets.yaml") . | sha256sum }}
 {{- end }}
