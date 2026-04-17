@@ -1,0 +1,23 @@
+{{- include "langgraphDataplane.validateMongoConfiguration" . -}}
+{{- if and .Values.mongo.enabled (not .Values.mongo.external.enabled) }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "langgraphDataplane.mongoServiceName" . }}
+  namespace: {{ .Values.namespace | default .Release.Namespace | quote }}
+  labels:
+    {{- include "langgraphDataplane.labels" . | nindent 4 }}
+  annotations:
+    {{- include "langgraphDataplane.annotations" . | nindent 4 }}
+spec:
+  clusterIP: None
+  publishNotReadyAddresses: true
+  ports:
+    - name: mongo
+      port: 27017
+      targetPort: mongo
+      protocol: TCP
+  selector:
+    {{- include "langgraphDataplane.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: {{ include "langgraphDataplane.mongoServiceName" . }}
+{{- end }}
