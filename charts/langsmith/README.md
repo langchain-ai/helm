@@ -900,6 +900,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | frontend.deployment.topologySpreadConstraints | list | `[]` |  |
 | frontend.deployment.volumeMounts | list | `[]` |  |
 | frontend.deployment.volumes | list | `[]` |  |
+| frontend.enabled | bool | `true` |  |
 | frontend.existingConfigMapName | string | `""` |  |
 | frontend.includeNonce | bool | `false` |  |
 | frontend.ipv6Enabled | bool | `true` |  |
