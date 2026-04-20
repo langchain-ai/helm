@@ -38,7 +38,7 @@ spec:
             {{- toYaml . | nindent 8 }}
         {{- end }}
         {{- include "langsmith.labels" . | nindent 8 }}
-        app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}
+        app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}-migrations
     spec:
       restartPolicy: Never
       {{- with .Values.images.imagePullSecrets }}
