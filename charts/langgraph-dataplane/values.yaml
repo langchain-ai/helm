@@ -89,6 +89,8 @@ config:
   smithBackendUrl: "https://api.smith.langchain.com"
   langsmithWorkspaceId: ""
   langgraphListenerId: ""
+  # -- SAQ queue name used by the listener. When multiple installs of this chart share one Redis instance (e.g. a managed cache with DB-count limits), set this to a unique value per install to prevent SAQ queue collisions.
+  hostQueue: "host"
   watchNamespaces: ""
   enableLGPDeploymentHealthCheck: true
 

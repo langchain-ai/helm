@@ -1,6 +1,6 @@
 # langgraph-dataplane
 
-![Version: 0.2.19](https://img.shields.io/badge/Version-0.2.19-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.13.9](https://img.shields.io/badge/AppVersion-0.13.9-informational?style=flat-square)
+![Version: 0.2.20](https://img.shields.io/badge/Version-0.2.20-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.13.9](https://img.shields.io/badge/AppVersion-0.13.9-informational?style=flat-square)
 
 Helm chart to deploy a langgraph dataplane on kubernetes.
 
@@ -101,6 +101,7 @@ You can find the guide to deploy a LangGraph Dataplane [here](https://langchain-
 | config.enableLGPDeploymentHealthCheck | bool | `true` |  |
 | config.existingSecretName | string | `""` |  |
 | config.hostBackendUrl | string | `"https://api.host.langchain.com"` |  |
+| config.hostQueue | string | `"host"` | SAQ queue name used by the listener. When multiple installs of this chart share one Redis instance (e.g. a managed cache with DB-count limits), set this to a unique value per install to prevent SAQ queue collisions. |
 | config.langgraphListenerId | string | `""` |  |
 | config.langsmithApiKey | string | `""` |  |
 | config.langsmithWorkspaceId | string | `""` |  |
