@@ -817,4 +817,6 @@ Served through the frontend at /mcp (or /<basePath>/mcp).
 - name: "AGENT_BUILDER_SLACK_BOT_ID"
   value: {{ .Values.config.agentBuilder.oauth.slackBotId | quote }}
 {{- end }}
+- name: "SLACK_SOCKET_MODE_ENABLED"
+  value: {{ .Values.config.agentBuilder.oauth.slackSocketModeEnabled | quote }}
 {{- end -}}

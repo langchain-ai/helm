@@ -200,6 +200,7 @@ config:
       slackOAuthProvider: ""
       slackSigningSecret: ""
       slackBotId: ""
+      slackSocketModeEnabled: false
     agent:
       resources:
         cpu: 2

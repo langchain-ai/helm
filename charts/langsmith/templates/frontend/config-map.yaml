@@ -308,6 +308,14 @@ data:
             proxy_cache off;
             proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.agentBuilderTriggerServer.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.agentBuilderTriggerServer.service.port }};
         }
+        location = /{{ .Values.config.basePath }}/v1/info {
+            rewrite /{{ .Values.config.basePath }}/v1/info /v1/info  break;
+            proxy_set_header Connection '';
+            proxy_http_version 1.1;
+            proxy_buffering off;
+            proxy_cache off;
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.agentBuilderTriggerServer.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.agentBuilderTriggerServer.service.port }};
+        }
     {{- end }}
 
         location = /{{ .Values.config.basePath }}/api/runs/multipart {
@@ -838,6 +846,13 @@ data:
 
     {{- if and .Values.config.agentBuilder.enabled .Values.agentBuilderTriggerServer.enabled }}
         location /v1/triggers {
+            proxy_set_header Connection '';
+            proxy_http_version 1.1;
+            proxy_buffering off;
+            proxy_cache off;
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.agentBuilderTriggerServer.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.agentBuilderTriggerServer.service.port }};
+        }
+        location = /v1/info {
             proxy_set_header Connection '';
             proxy_http_version 1.1;
             proxy_buffering off;
