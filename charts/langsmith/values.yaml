@@ -214,7 +214,7 @@ fleet:
       enabled: false
       minAvailable: 1
   queue:
-    enabled: false
+    enabled: true
     name: "queue"
     containerPort: 8000
     numberOfJobsPerWorker: 10
@@ -467,7 +467,7 @@ insights:
       enabled: false
       minAvailable: 1
   queue:
-    enabled: false
+    enabled: true
     name: "queue"
     containerPort: 8000
     numberOfJobsPerWorker: 10
@@ -723,7 +723,7 @@ polly:
       enabled: false
       minAvailable: 1
   queue:
-    enabled: false
+    enabled: true
     name: "queue"
     containerPort: 8000
     numberOfJobsPerWorker: 10
