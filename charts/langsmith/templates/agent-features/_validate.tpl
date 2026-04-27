@@ -10,9 +10,12 @@
 {{- fail (printf "%s.encryptionKey is required when %s.enabled is true (not needed if config.existingSecretName is set with the key already present)" $fn $fn) }}
 {{- end }}
 {{- if $feat.postgres.external.enabled }}
+{{- if not $feat.postgres.external.existingSecretName }}
 {{- $pg := "" }}
 {{- if $feat.postgres.external.connectionUrl }}
 {{- $pg = trimAll " " $feat.postgres.external.connectionUrl }}
+{{- else if not $feat.postgres.external.host }}
+{{- fail (printf "%s.postgres.external.host or connectionUrl or existingSecretName is required when %s.postgres.external.enabled is true" $fn $fn) }}
 {{- else }}
 {{- $pg = printf "postgres://%s:%s@%s:%s/%s?sslmode=disable" $feat.postgres.external.user $feat.postgres.external.password $feat.postgres.external.host (toString $feat.postgres.external.port) $feat.postgres.external.database }}
 {{- end }}
@@ -20,13 +23,16 @@
 {{- $urls = append $urls $pg }}
 {{- end }}
 {{- end }}
+{{- end }}
 {{- if $feat.redis.external.enabled }}
+{{- if not $feat.redis.external.existingSecretName }}
 {{- if not $feat.redis.external.connectionUrl }}
-{{- fail (printf "%s.redis.external.connectionUrl is required when %s.redis.external.enabled is true" $fn $fn) }}
+{{- fail (printf "%s.redis.external.connectionUrl is required when %s.redis.external.enabled is true and no existingSecretName is set" $fn $fn) }}
 {{- end }}
 {{- $rurl := trimAll " " $feat.redis.external.connectionUrl }}
 {{- if $rurl }}
 {{- $urls = append $urls $rurl }}
+{{- end }}
 {{- end }}
 {{- end }}
 {{- end }}

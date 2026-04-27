@@ -127,13 +127,6 @@ dnsConfig:
 
 
 {{/*
-FQDN for the api-server Service inside the cluster.
-*/}}
-{{- define "langGraphCloud.apiServerHost" -}}
-{{- printf "%s-%s.%s.svc.%s" (include "langGraphCloud.fullname" .) .Values.apiServer.name (.Values.namespace | default .Release.Namespace) .Values.clusterDomain -}}
-{{- end -}}
-
-{{/*
 Creates the image reference used for LangGraph Cloud deployments. If registry is specified, concatenate it, along with a '/'.
 */}}
 {{- define "langGraphCloud.image" -}}
