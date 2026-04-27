@@ -61,8 +61,6 @@
 {{- $agentPath := include "langsmith.agentFeatures.agentPathPrefix" (dict "root" . "segment" "fleet") }}
 - name: VITE_AGENT_BUILDER_DEPLOYMENT_URL_PUBLIC
   value: {{ printf "%s%s" $baseURL $agentPath | quote }}
-- name: VITE_AGENT_BUILDER_GENERATOR_DEPLOYMENT_URL_PUBLIC
-  value: {{ printf "%s%s" $baseURL $agentPath | quote }}
 - name: LANGGRAPH_API_URL_PUBLIC
   value: {{ printf "%s%s" $baseURL $agentPath | quote }}
 - name: VITE_AGENT_BUILDER_MCP_SERVER_URL
