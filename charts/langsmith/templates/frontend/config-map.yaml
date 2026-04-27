@@ -881,6 +881,7 @@ data:
 
     {{- if .Values.fleet.enabled }}
         location {{ include "langsmith.agentFeatures.agentPathPrefix" (dict "root" . "segment" "fleet") }} {
+            rewrite /agents/fleet(/.*)?$ $1 break;
             proxy_set_header Connection '';
             proxy_http_version 1.1;
             proxy_buffering off;
@@ -891,6 +892,7 @@ data:
 
     {{- if .Values.insights.enabled }}
         location {{ include "langsmith.agentFeatures.agentPathPrefix" (dict "root" . "segment" "insights") }} {
+            rewrite /agents/insights(/.*)?$ $1 break;
             proxy_set_header Connection '';
             proxy_http_version 1.1;
             proxy_buffering off;
@@ -901,6 +903,7 @@ data:
 
     {{- if .Values.polly.enabled }}
         location {{ include "langsmith.agentFeatures.agentPathPrefix" (dict "root" . "segment" "polly") }} {
+            rewrite /agents/polly(/.*)?$ $1 break;
             proxy_set_header Connection '';
             proxy_http_version 1.1;
             proxy_buffering off;
