@@ -37,9 +37,9 @@
 {{- end }}
 {{- if eq .Chart.Name "standalone-fleet" }}
 {{- $out = concat $out (list (dict "name" "LANGSMITH_LICENSE_REQUIRED_CLAIMS" "value" "agent_builder_enabled")) }}
-{{- $oauth := $root.Values.config.agentBuilder.oauth }}
-{{- if $root.Values.config.agentBuilder.oauthProviderOrgId }}
-{{- $out = append $out (dict "name" "AGENT_BUILDER_AUTH_PROVIDER_ORG_ID" "value" ($root.Values.config.agentBuilder.oauthProviderOrgId | toString)) }}
+{{- $oauth := .Values.oauth }}
+{{- if $oauth.providerOrgId }}
+{{- $out = append $out (dict "name" "AGENT_BUILDER_AUTH_PROVIDER_ORG_ID" "value" ($oauth.providerOrgId | toString)) }}
 {{- end }}
 {{- if $oauth.googleOAuthProvider }}
 {{- $out = append $out (dict "name" "GOOGLE_OAUTH_PROVIDER" "value" ($oauth.googleOAuthProvider | toString)) }}

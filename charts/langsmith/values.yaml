@@ -132,6 +132,16 @@ agentFeatures:
   fleet:
     enabled: false
     encryptionKey: ""
+    oauth:
+      providerOrgId: ""
+      googleOAuthProvider: ""
+      slackOAuthProvider: ""
+      linkedinOAuthProvider: ""
+      linearOAuthProvider: ""
+      githubOAuthProvider: ""
+      microsoftOAuthProvider: ""
+      slackSigningSecret: ""
+      slackBotId: ""
     apiServer:
       name: "api-server"
       containerPort: 8000
