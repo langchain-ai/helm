@@ -27,33 +27,6 @@ spec:
   - host: {{ include "langsmith.hostnameWithoutProtocol" . }}
     http:
       paths:
-      {{- if .Values.agentFeatures.fleet.enabled }}
-      - path: {{ include "langsmith.agentFeatures.agentPathPrefix" (dict "root" . "segment" "fleet") }}
-        pathType: Prefix
-        backend:
-          service:
-            name: {{ include "langsmith.agentFeatures.apiServerK8sServiceName" (dict "root" . "feature" "fleet" "chartName" "standalone-fleet") }}
-            port:
-              number: {{ include "langsmith.agentFeatures.defaultApiServerHttpPort" . }}
-      {{- end }}
-      {{- if .Values.agentFeatures.insights.enabled }}
-      - path: {{ include "langsmith.agentFeatures.agentPathPrefix" (dict "root" . "segment" "insights") }}
-        pathType: Prefix
-        backend:
-          service:
-            name: {{ include "langsmith.agentFeatures.apiServerK8sServiceName" (dict "root" . "feature" "insights" "chartName" "standalone-insights") }}
-            port:
-              number: {{ include "langsmith.agentFeatures.defaultApiServerHttpPort" . }}
-      {{- end }}
-      {{- if .Values.agentFeatures.polly.enabled }}
-      - path: {{ include "langsmith.agentFeatures.agentPathPrefix" (dict "root" . "segment" "polly") }}
-        pathType: Prefix
-        backend:
-          service:
-            name: {{ include "langsmith.agentFeatures.apiServerK8sServiceName" (dict "root" . "feature" "polly" "chartName" "standalone-polly") }}
-            port:
-              number: {{ include "langsmith.agentFeatures.defaultApiServerHttpPort" . }}
-      {{- end }}
       - path: /{{ .Values.config.subdomain }}
         pathType: Prefix
         backend:

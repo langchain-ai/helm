@@ -310,6 +310,39 @@ data:
         }
     {{- end }}
 
+    {{- if .Values.agentFeatures.fleet.enabled }}
+        location /{{ .Values.config.basePath }}/agents/fleet {
+            rewrite /{{ .Values.config.basePath }}(/agents/fleet.*) $1  break;
+            proxy_set_header Connection '';
+            proxy_http_version 1.1;
+            proxy_buffering off;
+            proxy_cache off;
+            proxy_pass http://{{ include "langsmith.agentFeatures.apiServerK8sServiceName" (dict "root" . "feature" "fleet" "chartName" "standalone-fleet") }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.agentFeatures.fleet.apiServer.service.httpPort }};
+        }
+    {{- end }}
+
+    {{- if .Values.agentFeatures.insights.enabled }}
+        location /{{ .Values.config.basePath }}/agents/insights {
+            rewrite /{{ .Values.config.basePath }}(/agents/insights.*) $1  break;
+            proxy_set_header Connection '';
+            proxy_http_version 1.1;
+            proxy_buffering off;
+            proxy_cache off;
+            proxy_pass http://{{ include "langsmith.agentFeatures.apiServerK8sServiceName" (dict "root" . "feature" "insights" "chartName" "standalone-insights") }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.agentFeatures.insights.apiServer.service.httpPort }};
+        }
+    {{- end }}
+
+    {{- if .Values.agentFeatures.polly.enabled }}
+        location /{{ .Values.config.basePath }}/agents/polly {
+            rewrite /{{ .Values.config.basePath }}(/agents/polly.*) $1  break;
+            proxy_set_header Connection '';
+            proxy_http_version 1.1;
+            proxy_buffering off;
+            proxy_cache off;
+            proxy_pass http://{{ include "langsmith.agentFeatures.apiServerK8sServiceName" (dict "root" . "feature" "polly" "chartName" "standalone-polly") }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.agentFeatures.polly.apiServer.service.httpPort }};
+        }
+    {{- end }}
+
         location = /{{ .Values.config.basePath }}/api/runs/multipart {
             rewrite /{{ .Values.config.basePath }}/api/runs/multipart /runs/multipart  break;
             proxy_set_header Connection '';
@@ -843,6 +876,36 @@ data:
             proxy_buffering off;
             proxy_cache off;
             proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.agentBuilderTriggerServer.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.agentBuilderTriggerServer.service.port }};
+        }
+    {{- end }}
+
+    {{- if .Values.agentFeatures.fleet.enabled }}
+        location {{ include "langsmith.agentFeatures.agentPathPrefix" (dict "root" . "segment" "fleet") }} {
+            proxy_set_header Connection '';
+            proxy_http_version 1.1;
+            proxy_buffering off;
+            proxy_cache off;
+            proxy_pass http://{{ include "langsmith.agentFeatures.apiServerK8sServiceName" (dict "root" . "feature" "fleet" "chartName" "standalone-fleet") }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.agentFeatures.fleet.apiServer.service.httpPort }};
+        }
+    {{- end }}
+
+    {{- if .Values.agentFeatures.insights.enabled }}
+        location {{ include "langsmith.agentFeatures.agentPathPrefix" (dict "root" . "segment" "insights") }} {
+            proxy_set_header Connection '';
+            proxy_http_version 1.1;
+            proxy_buffering off;
+            proxy_cache off;
+            proxy_pass http://{{ include "langsmith.agentFeatures.apiServerK8sServiceName" (dict "root" . "feature" "insights" "chartName" "standalone-insights") }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.agentFeatures.insights.apiServer.service.httpPort }};
+        }
+    {{- end }}
+
+    {{- if .Values.agentFeatures.polly.enabled }}
+        location {{ include "langsmith.agentFeatures.agentPathPrefix" (dict "root" . "segment" "polly") }} {
+            proxy_set_header Connection '';
+            proxy_http_version 1.1;
+            proxy_buffering off;
+            proxy_cache off;
+            proxy_pass http://{{ include "langsmith.agentFeatures.apiServerK8sServiceName" (dict "root" . "feature" "polly" "chartName" "standalone-polly") }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.agentFeatures.polly.apiServer.service.httpPort }};
         }
     {{- end }}
       }

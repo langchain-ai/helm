@@ -111,8 +111,3 @@
 {{- $bp := trimAll "/" (default "" $root.Values.config.basePath) -}}
 {{- if $bp -}}/{{ $bp }}/agents/{{ $segment }}{{- else -}}/agents/{{ $segment }}{{- end -}}
 {{- end -}}
-
-{{- define "langsmith.agentFeatures.defaultApiServerHttpPort" -}}
-{{- $feat := index .Values.agentFeatures "fleet" -}}
-{{- $feat.apiServer.service.httpPort -}}
-{{- end -}}

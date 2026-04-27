@@ -28,33 +28,6 @@ spec:
   - {{ include "langsmith.hostnameWithoutProtocol" . | quote }}
   {{- end }}
   rules:
-  {{- if .Values.agentFeatures.fleet.enabled }}
-  - matches:
-    - path:
-        type: PathPrefix
-        value: {{ include "langsmith.agentFeatures.agentPathPrefix" (dict "root" . "segment" "fleet") }}
-    backendRefs:
-    - name: {{ include "langsmith.agentFeatures.apiServerK8sServiceName" (dict "root" . "feature" "fleet" "chartName" "standalone-fleet") }}
-      port: {{ include "langsmith.agentFeatures.defaultApiServerHttpPort" . }}
-  {{- end }}
-  {{- if .Values.agentFeatures.insights.enabled }}
-  - matches:
-    - path:
-        type: PathPrefix
-        value: {{ include "langsmith.agentFeatures.agentPathPrefix" (dict "root" . "segment" "insights") }}
-    backendRefs:
-    - name: {{ include "langsmith.agentFeatures.apiServerK8sServiceName" (dict "root" . "feature" "insights" "chartName" "standalone-insights") }}
-      port: {{ include "langsmith.agentFeatures.defaultApiServerHttpPort" . }}
-  {{- end }}
-  {{- if .Values.agentFeatures.polly.enabled }}
-  - matches:
-    - path:
-        type: PathPrefix
-        value: {{ include "langsmith.agentFeatures.agentPathPrefix" (dict "root" . "segment" "polly") }}
-    backendRefs:
-    - name: {{ include "langsmith.agentFeatures.apiServerK8sServiceName" (dict "root" . "feature" "polly" "chartName" "standalone-polly") }}
-      port: {{ include "langsmith.agentFeatures.defaultApiServerHttpPort" . }}
-  {{- end }}
   - matches:
     - path:
         type: PathPrefix
