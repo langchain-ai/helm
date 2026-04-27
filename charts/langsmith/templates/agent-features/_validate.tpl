@@ -1,7 +1,7 @@
 {{- define "langsmith.agentFeatures.validate" -}}
 {{- $root := . }}
 {{- $urls := list }}
-{{- $pairs := list (dict "n" "fleet" "c" "lgp-fleet") (dict "n" "insights" "c" "lgp-insights") (dict "n" "polly" "c" "lgp-polly") }}
+{{- $pairs := list (dict "n" "fleet" "c" "standalone-fleet") (dict "n" "insights" "c" "standalone-insights") (dict "n" "polly" "c" "standalone-polly") }}
 {{- range $pair := $pairs }}
 {{- $fn := index $pair "n" }}
 {{- $feat := index $root.Values.agentFeatures $fn }}

@@ -14,7 +14,7 @@
   "commonDnsConfig" ($root.Values.commonDnsConfig | default dict)
 ) }}
 {{- $merged := mergeOverwrite $merged (fromYaml (include "langsmith.agentFeatures.imagesPatch" (dict "root" $root "component" "agentBuilderImage"))) }}
-{{- $miniChart := dict "Name" "lgp-fleet" "Version" $root.Chart.Version "AppVersion" $root.Chart.AppVersion }}
+{{- $miniChart := dict "Name" "standalone-fleet" "Version" $root.Chart.Version "AppVersion" $root.Chart.AppVersion }}
 {{- $ctx := dict "Values" $merged "Release" $root.Release "Chart" $miniChart "Capabilities" $root.Capabilities "Root" $root }}
 {{- include "agentFeatures.secrets" $ctx }}
 ---

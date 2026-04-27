@@ -27,7 +27,7 @@
   (dict "name" "LANGSMITH_AUTH_ENDPOINT" "value" (printf "%s/api/v1" $raw))
   (dict "name" "LANGCHAIN_ENDPOINT" "value" (printf "%s/api/v1" $raw))
 ) }}
-{{- if eq .Chart.Name "lgp-fleet" }}
+{{- if eq .Chart.Name "standalone-fleet" }}
 {{- $out = concat $out (list
   (dict "name" "SMITH_BACKEND_ENDPOINT" "value" $raw)
   (dict "name" "HOST_BACKEND_ENDPOINT" "value" (printf "%s/api-host" $raw))
@@ -35,26 +35,26 @@
 ) }}
 {{- end }}
 {{- end }}
-{{- if eq .Chart.Name "lgp-fleet" }}
+{{- if eq .Chart.Name "standalone-fleet" }}
 {{- $out = concat $out (list (dict "name" "LANGSMITH_LICENSE_REQUIRED_CLAIMS" "value" "agent_builder_enabled")) }}
 {{- end }}
-{{- if or (eq .Chart.Name "lgp-insights") (eq .Chart.Name "lgp-polly") }}
+{{- if or (eq .Chart.Name "standalone-insights") (eq .Chart.Name "standalone-polly") }}
 {{- $out = concat $out (list (dict "name" "LLM_AUTH_PROXY_ACCEPT_HTTP" "value" "true")) }}
 {{- end }}
 {{- $secretName := include "langsmith.secretsName" $root }}
-{{- if eq .Chart.Name "lgp-fleet" }}
+{{- if eq .Chart.Name "standalone-fleet" }}
 {{- $out = concat $out (list
   (dict "name" "AGENT_BUILDER_ENCRYPTION_KEY" "valueFrom" (dict "secretKeyRef" (dict "name" $secretName "key" "agent_builder_encryption_key")))
   (dict "name" "X_SERVICE_AUTH_JWT_SECRET" "valueFrom" (dict "secretKeyRef" (dict "name" $secretName "key" "jwt_secret" "optional" true)))
 ) }}
 {{- end }}
-{{- if eq .Chart.Name "lgp-insights" }}
+{{- if eq .Chart.Name "standalone-insights" }}
 {{- $out = concat $out (list
   (dict "name" "CLIO_ENCRYPTION_KEY" "valueFrom" (dict "secretKeyRef" (dict "name" $secretName "key" "insights_encryption_key")))
   (dict "name" "X_SERVICE_AUTH_JWT_SECRET" "valueFrom" (dict "secretKeyRef" (dict "name" $secretName "key" "jwt_secret" "optional" true)))
 ) }}
 {{- end }}
-{{- if eq .Chart.Name "lgp-polly" }}
+{{- if eq .Chart.Name "standalone-polly" }}
 {{- $out = concat $out (list
   (dict "name" "POLLY_ENCRYPTION_KEY" "valueFrom" (dict "secretKeyRef" (dict "name" $secretName "key" "polly_encryption_key")))
 ) }}

@@ -32,7 +32,7 @@ spec:
         pathType: Prefix
         backend:
           service:
-            name: {{ include "langsmith.agentFeatures.apiServerK8sServiceName" (dict "root" . "feature" "fleet" "chartName" "lgp-fleet") }}
+            name: {{ include "langsmith.agentFeatures.apiServerK8sServiceName" (dict "root" . "feature" "fleet" "chartName" "standalone-fleet") }}
             port:
               number: {{ include "langsmith.agentFeatures.defaultApiServerHttpPort" . }}
       {{- end }}
@@ -41,7 +41,7 @@ spec:
         pathType: Prefix
         backend:
           service:
-            name: {{ include "langsmith.agentFeatures.apiServerK8sServiceName" (dict "root" . "feature" "insights" "chartName" "lgp-insights") }}
+            name: {{ include "langsmith.agentFeatures.apiServerK8sServiceName" (dict "root" . "feature" "insights" "chartName" "standalone-insights") }}
             port:
               number: {{ include "langsmith.agentFeatures.defaultApiServerHttpPort" . }}
       {{- end }}
@@ -50,7 +50,7 @@ spec:
         pathType: Prefix
         backend:
           service:
-            name: {{ include "langsmith.agentFeatures.apiServerK8sServiceName" (dict "root" . "feature" "polly" "chartName" "lgp-polly") }}
+            name: {{ include "langsmith.agentFeatures.apiServerK8sServiceName" (dict "root" . "feature" "polly" "chartName" "standalone-polly") }}
             port:
               number: {{ include "langsmith.agentFeatures.defaultApiServerHttpPort" . }}
       {{- end }}

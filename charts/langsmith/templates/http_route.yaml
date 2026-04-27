@@ -34,7 +34,7 @@ spec:
         type: PathPrefix
         value: {{ include "langsmith.agentFeatures.agentPathPrefix" (dict "root" . "segment" "fleet") }}
     backendRefs:
-    - name: {{ include "langsmith.agentFeatures.apiServerK8sServiceName" (dict "root" . "feature" "fleet" "chartName" "lgp-fleet") }}
+    - name: {{ include "langsmith.agentFeatures.apiServerK8sServiceName" (dict "root" . "feature" "fleet" "chartName" "standalone-fleet") }}
       port: {{ include "langsmith.agentFeatures.defaultApiServerHttpPort" . }}
   {{- end }}
   {{- if and (default true .Values.agentFeatures.exposePaths) .Values.agentFeatures.insights.enabled }}
@@ -43,7 +43,7 @@ spec:
         type: PathPrefix
         value: {{ include "langsmith.agentFeatures.agentPathPrefix" (dict "root" . "segment" "insights") }}
     backendRefs:
-    - name: {{ include "langsmith.agentFeatures.apiServerK8sServiceName" (dict "root" . "feature" "insights" "chartName" "lgp-insights") }}
+    - name: {{ include "langsmith.agentFeatures.apiServerK8sServiceName" (dict "root" . "feature" "insights" "chartName" "standalone-insights") }}
       port: {{ include "langsmith.agentFeatures.defaultApiServerHttpPort" . }}
   {{- end }}
   {{- if and (default true .Values.agentFeatures.exposePaths) .Values.agentFeatures.polly.enabled }}
@@ -52,7 +52,7 @@ spec:
         type: PathPrefix
         value: {{ include "langsmith.agentFeatures.agentPathPrefix" (dict "root" . "segment" "polly") }}
     backendRefs:
-    - name: {{ include "langsmith.agentFeatures.apiServerK8sServiceName" (dict "root" . "feature" "polly" "chartName" "lgp-polly") }}
+    - name: {{ include "langsmith.agentFeatures.apiServerK8sServiceName" (dict "root" . "feature" "polly" "chartName" "standalone-polly") }}
       port: {{ include "langsmith.agentFeatures.defaultApiServerHttpPort" . }}
   {{- end }}
   - matches:
