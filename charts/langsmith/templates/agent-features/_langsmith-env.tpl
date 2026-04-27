@@ -37,6 +37,34 @@
 {{- end }}
 {{- if eq .Chart.Name "standalone-fleet" }}
 {{- $out = concat $out (list (dict "name" "LANGSMITH_LICENSE_REQUIRED_CLAIMS" "value" "agent_builder_enabled")) }}
+{{- $oauth := $root.Values.config.agentBuilder.oauth }}
+{{- if $root.Values.config.agentBuilder.oauthProviderOrgId }}
+{{- $out = append $out (dict "name" "AGENT_BUILDER_AUTH_PROVIDER_ORG_ID" "value" ($root.Values.config.agentBuilder.oauthProviderOrgId | toString)) }}
+{{- end }}
+{{- if $oauth.googleOAuthProvider }}
+{{- $out = append $out (dict "name" "GOOGLE_OAUTH_PROVIDER" "value" ($oauth.googleOAuthProvider | toString)) }}
+{{- end }}
+{{- if $oauth.slackOAuthProvider }}
+{{- $out = append $out (dict "name" "SLACK_OAUTH_PROVIDER" "value" ($oauth.slackOAuthProvider | toString)) }}
+{{- end }}
+{{- if $oauth.linkedinOAuthProvider }}
+{{- $out = append $out (dict "name" "LINKEDIN_OAUTH_PROVIDER" "value" ($oauth.linkedinOAuthProvider | toString)) }}
+{{- end }}
+{{- if $oauth.linearOAuthProvider }}
+{{- $out = append $out (dict "name" "LINEAR_OAUTH_PROVIDER" "value" ($oauth.linearOAuthProvider | toString)) }}
+{{- end }}
+{{- if $oauth.githubOAuthProvider }}
+{{- $out = append $out (dict "name" "GITHUB_OAUTH_PROVIDER" "value" ($oauth.githubOAuthProvider | toString)) }}
+{{- end }}
+{{- if $oauth.microsoftOAuthProvider }}
+{{- $out = append $out (dict "name" "MICROSOFT_OAUTH_PROVIDER" "value" ($oauth.microsoftOAuthProvider | toString)) }}
+{{- end }}
+{{- if $oauth.slackSigningSecret }}
+{{- $out = append $out (dict "name" "SLACK_SIGNING_SECRET" "value" ($oauth.slackSigningSecret | toString)) }}
+{{- end }}
+{{- if $oauth.slackBotId }}
+{{- $out = append $out (dict "name" "AGENT_BUILDER_SLACK_BOT_ID" "value" ($oauth.slackBotId | toString)) }}
+{{- end }}
 {{- end }}
 {{- if or (eq .Chart.Name "standalone-insights") (eq .Chart.Name "standalone-polly") }}
 {{- $out = concat $out (list (dict "name" "LLM_AUTH_PROXY_ACCEPT_HTTP" "value" "true")) }}
