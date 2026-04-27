@@ -1,0 +1,51 @@
+{{- if .Values.agentFeatures.fleet.enabled }}
+{{- $root := . }}
+{{- $merged := omit $root.Values.agentFeatures.fleet "enabled" "encryptionKey" }}
+{{- $merged := mergeOverwrite $merged (dict "clusterDomain" $root.Values.clusterDomain "namespace" ($root.Values.namespace | default "")) }}
+{{- $merged := mergeOverwrite $merged (fromYaml (include "langsmith.agentFeatures.imagesPatch" (dict "root" $root "component" "agentBuilderImage"))) }}
+{{- $miniChart := dict "Name" "lgp-fleet" "Version" $root.Chart.Version "AppVersion" $root.Chart.AppVersion }}
+{{- $ctx := dict "Values" $merged "Release" $root.Release "Chart" $miniChart "Capabilities" $root.Capabilities "Root" $root }}
+{{- include "agentFeatures.secrets" $ctx }}
+---
+{{ include "agentFeatures.postgres.secrets" $ctx }}
+---
+{{ include "agentFeatures.postgres.stateful-set" $ctx }}
+---
+{{ include "agentFeatures.postgres.service" $ctx }}
+---
+{{ include "agentFeatures.postgres.service-account" $ctx }}
+---
+{{ include "agentFeatures.postgres.pdb" $ctx }}
+---
+{{ include "agentFeatures.redis.secrets" $ctx }}
+---
+{{ include "agentFeatures.redis.deployment" $ctx }}
+---
+{{ include "agentFeatures.redis.service" $ctx }}
+---
+{{ include "agentFeatures.redis.service-account" $ctx }}
+---
+{{ include "agentFeatures.redis.pdb" $ctx }}
+---
+{{ include "agentFeatures.queue.deployment" $ctx }}
+---
+{{ include "agentFeatures.queue.hpa" $ctx }}
+---
+{{ include "agentFeatures.queue.pdb" $ctx }}
+---
+{{ include "agentFeatures.queue.scaled-object" $ctx }}
+---
+{{ include "agentFeatures.queue.service-account" $ctx }}
+---
+{{ include "agentFeatures.api-server.deployment" $ctx }}
+---
+{{ include "agentFeatures.api-server.service" $ctx }}
+---
+{{ include "agentFeatures.api-server.service-account" $ctx }}
+---
+{{ include "agentFeatures.api-server.hpa" $ctx }}
+---
+{{ include "agentFeatures.api-server.pdb" $ctx }}
+---
+{{ include "agentFeatures.api-server.scaled-object" $ctx }}
+{{- end }}

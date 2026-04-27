@@ -245,3 +245,4 @@ AWS Marketplace Helm template verification).
 {{- end -}}
 
 {{- end -}}{{- /* end skipValidation */ -}}
+{{- include "langsmith.agentFeatures.validate" . }}

@@ -27,6 +27,33 @@ spec:
   - host: {{ include "langsmith.hostnameWithoutProtocol" . }}
     http:
       paths:
+      {{- if and (default true .Values.agentFeatures.exposePaths) .Values.agentFeatures.fleet.enabled }}
+      - path: {{ include "langsmith.agentFeatures.agentPathPrefix" (dict "root" . "segment" "fleet") }}
+        pathType: Prefix
+        backend:
+          service:
+            name: {{ include "langsmith.agentFeatures.apiServerK8sServiceName" (dict "root" . "feature" "fleet" "chartName" "lgp-fleet") }}
+            port:
+              number: {{ include "langsmith.agentFeatures.defaultApiServerHttpPort" . }}
+      {{- end }}
+      {{- if and (default true .Values.agentFeatures.exposePaths) .Values.agentFeatures.insights.enabled }}
+      - path: {{ include "langsmith.agentFeatures.agentPathPrefix" (dict "root" . "segment" "insights") }}
+        pathType: Prefix
+        backend:
+          service:
+            name: {{ include "langsmith.agentFeatures.apiServerK8sServiceName" (dict "root" . "feature" "insights" "chartName" "lgp-insights") }}
+            port:
+              number: {{ include "langsmith.agentFeatures.defaultApiServerHttpPort" . }}
+      {{- end }}
+      {{- if and (default true .Values.agentFeatures.exposePaths) .Values.agentFeatures.polly.enabled }}
+      - path: {{ include "langsmith.agentFeatures.agentPathPrefix" (dict "root" . "segment" "polly") }}
+        pathType: Prefix
+        backend:
+          service:
+            name: {{ include "langsmith.agentFeatures.apiServerK8sServiceName" (dict "root" . "feature" "polly" "chartName" "lgp-polly") }}
+            port:
+              number: {{ include "langsmith.agentFeatures.defaultApiServerHttpPort" . }}
+      {{- end }}
       - path: /{{ .Values.config.subdomain }}
         pathType: Prefix
         backend:

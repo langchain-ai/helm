@@ -29,6 +29,36 @@ spec:
   - {{ .Values.istioGateway.name }}
   {{- end }}
   http:
+  {{- if and (default true .Values.agentFeatures.exposePaths) .Values.agentFeatures.fleet.enabled }}
+  - match:
+    - uri:
+        prefix: {{ include "langsmith.agentFeatures.agentPathPrefix" (dict "root" . "segment" "fleet") }}
+    route:
+    - destination:
+        host: {{ include "langsmith.agentFeatures.apiServerK8sServiceName" (dict "root" . "feature" "fleet" "chartName" "lgp-fleet") }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}
+        port:
+          number: {{ include "langsmith.agentFeatures.defaultApiServerHttpPort" . }}
+  {{- end }}
+  {{- if and (default true .Values.agentFeatures.exposePaths) .Values.agentFeatures.insights.enabled }}
+  - match:
+    - uri:
+        prefix: {{ include "langsmith.agentFeatures.agentPathPrefix" (dict "root" . "segment" "insights") }}
+    route:
+    - destination:
+        host: {{ include "langsmith.agentFeatures.apiServerK8sServiceName" (dict "root" . "feature" "insights" "chartName" "lgp-insights") }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}
+        port:
+          number: {{ include "langsmith.agentFeatures.defaultApiServerHttpPort" . }}
+  {{- end }}
+  {{- if and (default true .Values.agentFeatures.exposePaths) .Values.agentFeatures.polly.enabled }}
+  - match:
+    - uri:
+        prefix: {{ include "langsmith.agentFeatures.agentPathPrefix" (dict "root" . "segment" "polly") }}
+    route:
+    - destination:
+        host: {{ include "langsmith.agentFeatures.apiServerK8sServiceName" (dict "root" . "feature" "polly" "chartName" "lgp-polly") }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}
+        port:
+          number: {{ include "langsmith.agentFeatures.defaultApiServerHttpPort" . }}
+  {{- end }}
   - match:
     - uri:
         prefix: {{ ternary "/" (printf "/%s" .Values.config.basePath) (empty .Values.config.basePath) }}

@@ -818,3 +818,4 @@ Served through the frontend at /mcp (or /<basePath>/mcp).
   value: {{ .Values.config.agentBuilder.oauth.slackBotId | quote }}
 {{- end }}
 {{- end -}}
+
