@@ -127,781 +127,780 @@ istioGateway:
   labels: {}
 
 
-agentFeatures:
-  fleet:
-    enabled: false
-    encryptionKey: ""
-    oauth:
-      providerOrgId: ""
-      googleOAuthProvider: ""
-      slackOAuthProvider: ""
-      linkedinOAuthProvider: ""
-      linearOAuthProvider: ""
-      githubOAuthProvider: ""
-      microsoftOAuthProvider: ""
-      slackSigningSecret: ""
-      slackBotId: ""
-    apiServer:
-      name: "api-server"
-      containerPort: 8000
-      deployment:
-        replicaCount: 1
-        labels: {}
-        annotations: {}
-        podSecurityContext: {}
-        securityContext: {}
-        lifecycle: {}
-        priorityClassName: ""
-        terminationGracePeriodSeconds: 30
-        resources: {}
-        extraEnv: []
-        envFrom: []
-        sidecars: []
-        nodeSelector: {}
-        tolerations: []
-        affinity: {}
-        volumes: []
-        volumeMounts: []
-        initContainers: []
-        startupProbe:
-          exec:
-            command:
-              - /bin/sh
-              - -c
-              - exec python /api/healthcheck.py
-          failureThreshold: 6
-          periodSeconds: 10
-          timeoutSeconds: 1
-        readinessProbe:
-          exec:
-            command:
-              - /bin/sh
-              - -c
-              - exec python /api/healthcheck.py
-          failureThreshold: 6
-          periodSeconds: 10
-          timeoutSeconds: 1
-        livenessProbe:
-          exec:
-            command:
-              - /bin/sh
-              - -c
-              - exec python /api/healthcheck.py
-          failureThreshold: 6
-          periodSeconds: 10
-          timeoutSeconds: 1
-      autoscaling:
-        enabled: false
-        minReplicas: 1
-        maxReplicas: 5
-        targetCPUUtilizationPercentage: 80
-        keda:
-          enabled: false
-          pollingInterval: 30
-          cooldownPeriod: 300
-          scaleDownStabilizationWindowSeconds: 300
-      service:
-        type: ClusterIP
-        httpPort: 80
-        labels: {}
-        annotations: {}
-      serviceAccount:
-        create: true
-        name: ""
-        labels: {}
-        annotations: {}
-        automountServiceAccountToken: true
-      pdb:
-        enabled: false
-        minAvailable: 1
-    queue:
+fleet:
+  enabled: false
+  encryptionKey: ""
+  oauth:
+    providerOrgId: ""
+    googleOAuthProvider: ""
+    slackOAuthProvider: ""
+    linkedinOAuthProvider: ""
+    linearOAuthProvider: ""
+    githubOAuthProvider: ""
+    microsoftOAuthProvider: ""
+    slackSigningSecret: ""
+    slackBotId: ""
+  apiServer:
+    name: "api-server"
+    containerPort: 8000
+    deployment:
+      replicaCount: 1
+      labels: {}
+      annotations: {}
+      podSecurityContext: {}
+      securityContext: {}
+      lifecycle: {}
+      priorityClassName: ""
+      terminationGracePeriodSeconds: 30
+      resources: {}
+      extraEnv: []
+      envFrom: []
+      sidecars: []
+      nodeSelector: {}
+      tolerations: []
+      affinity: {}
+      volumes: []
+      volumeMounts: []
+      initContainers: []
+      startupProbe:
+        exec:
+          command:
+            - /bin/sh
+            - -c
+            - exec python /api/healthcheck.py
+        failureThreshold: 6
+        periodSeconds: 10
+        timeoutSeconds: 1
+      readinessProbe:
+        exec:
+          command:
+            - /bin/sh
+            - -c
+            - exec python /api/healthcheck.py
+        failureThreshold: 6
+        periodSeconds: 10
+        timeoutSeconds: 1
+      livenessProbe:
+        exec:
+          command:
+            - /bin/sh
+            - -c
+            - exec python /api/healthcheck.py
+        failureThreshold: 6
+        periodSeconds: 10
+        timeoutSeconds: 1
+    autoscaling:
       enabled: false
-      name: "queue"
-      containerPort: 8000
-      numberOfJobsPerWorker: 10
-      deployment:
-        replicaCount: 1
-        labels: {}
-        annotations: {}
-        podSecurityContext: {}
-        securityContext: {}
-        lifecycle: {}
-        priorityClassName: ""
-        terminationGracePeriodSeconds: 30
-        resources: {}
-        extraEnv: []
-        envFrom: []
-        sidecars: []
-        nodeSelector: {}
-        tolerations: []
-        affinity: {}
-        volumes: []
-        volumeMounts: []
-        startupProbe:
-          httpGet:
-            path: "/ok"
-            port: 8000
-          failureThreshold: 6
-          periodSeconds: 10
-          timeoutSeconds: 1
-        readinessProbe:
-          httpGet:
-            path: "/ok"
-            port: 8000
-          failureThreshold: 6
-          periodSeconds: 10
-          timeoutSeconds: 1
-        livenessProbe:
-          httpGet:
-            path: "/ok"
-            port: 8000
-          failureThreshold: 6
-          periodSeconds: 10
-          timeoutSeconds: 1
-      autoscaling:
+      minReplicas: 1
+      maxReplicas: 5
+      targetCPUUtilizationPercentage: 80
+      keda:
         enabled: false
-        minReplicas: 1
-        maxReplicas: 5
-        targetCPUUtilizationPercentage: 80
-        keda:
-          enabled: false
-          pollingInterval: 30
-          cooldownPeriod: 300
-          scaleDownStabilizationWindowSeconds: 300
-      serviceAccount:
-        create: true
-        name: ""
-        labels: {}
-        annotations: {}
-        automountServiceAccountToken: true
-      pdb:
+        pollingInterval: 30
+        cooldownPeriod: 300
+        scaleDownStabilizationWindowSeconds: 300
+    service:
+      type: ClusterIP
+      httpPort: 80
+      labels: {}
+      annotations: {}
+    serviceAccount:
+      create: true
+      name: ""
+      labels: {}
+      annotations: {}
+      automountServiceAccountToken: true
+    pdb:
+      enabled: false
+      minAvailable: 1
+  queue:
+    enabled: false
+    name: "queue"
+    containerPort: 8000
+    numberOfJobsPerWorker: 10
+    deployment:
+      replicaCount: 1
+      labels: {}
+      annotations: {}
+      podSecurityContext: {}
+      securityContext: {}
+      lifecycle: {}
+      priorityClassName: ""
+      terminationGracePeriodSeconds: 30
+      resources: {}
+      extraEnv: []
+      envFrom: []
+      sidecars: []
+      nodeSelector: {}
+      tolerations: []
+      affinity: {}
+      volumes: []
+      volumeMounts: []
+      startupProbe:
+        httpGet:
+          path: "/ok"
+          port: 8000
+        failureThreshold: 6
+        periodSeconds: 10
+        timeoutSeconds: 1
+      readinessProbe:
+        httpGet:
+          path: "/ok"
+          port: 8000
+        failureThreshold: 6
+        periodSeconds: 10
+        timeoutSeconds: 1
+      livenessProbe:
+        httpGet:
+          path: "/ok"
+          port: 8000
+        failureThreshold: 6
+        periodSeconds: 10
+        timeoutSeconds: 1
+    autoscaling:
+      enabled: false
+      minReplicas: 1
+      maxReplicas: 5
+      targetCPUUtilizationPercentage: 80
+      keda:
         enabled: false
-        minAvailable: 1
-    postgres:
-      name: "postgres"
-      containerPort: 5432
-      external:
-        enabled: false
-        host: ""
-        port: "5432"
-        user: "postgres"
-        password: "postgres"
-        database: "postgres"
-        schema: "public"
-        connectionUrl: ""
-        existingSecretName: ""
-      statefulSet:
-        labels: {}
-        annotations: {}
-        podSecurityContext: {}
-        securityContext: {}
-        lifecycle: {}
-        priorityClassName: ""
-        terminationGracePeriodSeconds: 30
-        resources: {}
-        command: []
-        extraContainerConfig: {}
-        extraEnv: []
-        sidecars: []
-        nodeSelector: {}
-        tolerations: []
-        affinity: {}
-        volumes: []
-        volumeMounts: []
-        persistentVolumeClaimRetentionPolicy: {}
-        persistence:
-          enabled: true
-          size: 8Gi
-          storageClassName: ""
-      service:
-        type: ClusterIP
-        port: 5432
-        labels: {}
-        annotations: {}
-      serviceAccount:
-        create: true
-        name: ""
-        labels: {}
-        annotations: {}
-        automountServiceAccountToken: true
-      pdb:
-        enabled: false
-        minAvailable: 1
-    redis:
-      name: "redis"
-      containerPort: 6379
-      external:
-        enabled: false
-        connectionUrl: ""
-        existingSecretName: ""
-      deployment:
-        labels: {}
-        annotations: {}
-        podSecurityContext: {}
-        securityContext: {}
-        lifecycle: {}
-        priorityClassName: ""
-        terminationGracePeriodSeconds: 30
-        resources: {}
-        command: []
-        startupProbe:
-          exec:
-            command:
-              - /bin/sh
-              - -c
-              - exec redis-cli ping
-          failureThreshold: 6
-          periodSeconds: 10
-          timeoutSeconds: 1
-        readinessProbe:
-          exec:
-            command:
-              - /bin/sh
-              - -c
-              - exec redis-cli ping
-          failureThreshold: 6
-          periodSeconds: 10
-          timeoutSeconds: 1
-        livenessProbe:
-          exec:
-            command:
-              - /bin/sh
-              - -c
-              - exec redis-cli ping
-          failureThreshold: 6
-          periodSeconds: 10
-          timeoutSeconds: 1
-        extraContainerConfig: {}
-        extraEnv: []
-        sidecars: []
-        nodeSelector: {}
-        tolerations: []
-        affinity: {}
-        volumes: []
-        volumeMounts: []
-      service:
-        type: ClusterIP
-        port: 6379
-        labels: {}
-        annotations: {}
-      serviceAccount:
-        create: true
-        name: ""
-        labels: {}
-        annotations: {}
-        automountServiceAccountToken: true
-      pdb:
-        enabled: false
-        minAvailable: 1
+        pollingInterval: 30
+        cooldownPeriod: 300
+        scaleDownStabilizationWindowSeconds: 300
+    serviceAccount:
+      create: true
+      name: ""
+      labels: {}
+      annotations: {}
+      automountServiceAccountToken: true
+    pdb:
+      enabled: false
+      minAvailable: 1
+  postgres:
+    name: "postgres"
+    containerPort: 5432
+    external:
+      enabled: false
+      host: ""
+      port: "5432"
+      user: "postgres"
+      password: "postgres"
+      database: "postgres"
+      schema: "public"
+      connectionUrl: ""
+      existingSecretName: ""
+    statefulSet:
+      labels: {}
+      annotations: {}
+      podSecurityContext: {}
+      securityContext: {}
+      lifecycle: {}
+      priorityClassName: ""
+      terminationGracePeriodSeconds: 30
+      resources: {}
+      command: []
+      extraContainerConfig: {}
+      extraEnv: []
+      sidecars: []
+      nodeSelector: {}
+      tolerations: []
+      affinity: {}
+      volumes: []
+      volumeMounts: []
+      persistentVolumeClaimRetentionPolicy: {}
+      persistence:
+        enabled: true
+        size: 8Gi
+        storageClassName: ""
+    service:
+      type: ClusterIP
+      port: 5432
+      labels: {}
+      annotations: {}
+    serviceAccount:
+      create: true
+      name: ""
+      labels: {}
+      annotations: {}
+      automountServiceAccountToken: true
+    pdb:
+      enabled: false
+      minAvailable: 1
+  redis:
+    name: "redis"
+    containerPort: 6379
+    external:
+      enabled: false
+      connectionUrl: ""
+      existingSecretName: ""
+    deployment:
+      labels: {}
+      annotations: {}
+      podSecurityContext: {}
+      securityContext: {}
+      lifecycle: {}
+      priorityClassName: ""
+      terminationGracePeriodSeconds: 30
+      resources: {}
+      command: []
+      startupProbe:
+        exec:
+          command:
+            - /bin/sh
+            - -c
+            - exec redis-cli ping
+        failureThreshold: 6
+        periodSeconds: 10
+        timeoutSeconds: 1
+      readinessProbe:
+        exec:
+          command:
+            - /bin/sh
+            - -c
+            - exec redis-cli ping
+        failureThreshold: 6
+        periodSeconds: 10
+        timeoutSeconds: 1
+      livenessProbe:
+        exec:
+          command:
+            - /bin/sh
+            - -c
+            - exec redis-cli ping
+        failureThreshold: 6
+        periodSeconds: 10
+        timeoutSeconds: 1
+      extraContainerConfig: {}
+      extraEnv: []
+      sidecars: []
+      nodeSelector: {}
+      tolerations: []
+      affinity: {}
+      volumes: []
+      volumeMounts: []
+    service:
+      type: ClusterIP
+      port: 6379
+      labels: {}
+      annotations: {}
+    serviceAccount:
+      create: true
+      name: ""
+      labels: {}
+      annotations: {}
+      automountServiceAccountToken: true
+    pdb:
+      enabled: false
+      minAvailable: 1
 
-  insights:
-    enabled: false
-    encryptionKey: ""
-    apiServer:
-      name: "api-server"
-      containerPort: 8000
-      deployment:
-        replicaCount: 1
-        labels: {}
-        annotations: {}
-        podSecurityContext: {}
-        securityContext: {}
-        lifecycle: {}
-        priorityClassName: ""
-        terminationGracePeriodSeconds: 30
-        resources: {}
-        extraEnv: []
-        envFrom: []
-        sidecars: []
-        nodeSelector: {}
-        tolerations: []
-        affinity: {}
-        volumes: []
-        volumeMounts: []
-        initContainers: []
-        startupProbe:
-          exec: null
-          httpGet:
-            path: /ok?check_db=1
-            port: 8000
-          failureThreshold: 6
-          periodSeconds: 10
-          timeoutSeconds: 1
-        readinessProbe:
-          exec: null
-          httpGet:
-            path: /ok?check_db=0
-            port: 8000
-          failureThreshold: 3
-          periodSeconds: 10
-          timeoutSeconds: 1
-        livenessProbe:
-          exec: null
-          httpGet:
-            path: /ok?check_db=0
-            port: 8000
-          failureThreshold: 6
-          periodSeconds: 10
-          timeoutSeconds: 1
-      autoscaling:
-        enabled: false
-        minReplicas: 1
-        maxReplicas: 5
-        targetCPUUtilizationPercentage: 80
-        keda:
-          enabled: false
-          pollingInterval: 30
-          cooldownPeriod: 300
-          scaleDownStabilizationWindowSeconds: 300
-      service:
-        type: ClusterIP
-        httpPort: 80
-        labels: {}
-        annotations: {}
-      serviceAccount:
-        create: true
-        name: ""
-        labels: {}
-        annotations: {}
-        automountServiceAccountToken: true
-      pdb:
-        enabled: false
-        minAvailable: 1
-    queue:
+insights:
+  enabled: false
+  encryptionKey: ""
+  apiServer:
+    name: "api-server"
+    containerPort: 8000
+    deployment:
+      replicaCount: 1
+      labels: {}
+      annotations: {}
+      podSecurityContext: {}
+      securityContext: {}
+      lifecycle: {}
+      priorityClassName: ""
+      terminationGracePeriodSeconds: 30
+      resources: {}
+      extraEnv: []
+      envFrom: []
+      sidecars: []
+      nodeSelector: {}
+      tolerations: []
+      affinity: {}
+      volumes: []
+      volumeMounts: []
+      initContainers: []
+      startupProbe:
+        exec: null
+        httpGet:
+          path: /ok?check_db=1
+          port: 8000
+        failureThreshold: 6
+        periodSeconds: 10
+        timeoutSeconds: 1
+      readinessProbe:
+        exec: null
+        httpGet:
+          path: /ok?check_db=0
+          port: 8000
+        failureThreshold: 3
+        periodSeconds: 10
+        timeoutSeconds: 1
+      livenessProbe:
+        exec: null
+        httpGet:
+          path: /ok?check_db=0
+          port: 8000
+        failureThreshold: 6
+        periodSeconds: 10
+        timeoutSeconds: 1
+    autoscaling:
       enabled: false
-      name: "queue"
-      containerPort: 8000
-      numberOfJobsPerWorker: 10
-      deployment:
-        replicaCount: 1
-        labels: {}
-        annotations: {}
-        podSecurityContext: {}
-        securityContext: {}
-        lifecycle: {}
-        priorityClassName: ""
-        terminationGracePeriodSeconds: 30
-        resources: {}
-        extraEnv: []
-        envFrom: []
-        sidecars: []
-        nodeSelector: {}
-        tolerations: []
-        affinity: {}
-        volumes: []
-        volumeMounts: []
-        startupProbe:
-          httpGet:
-            path: "/ok"
-            port: 8000
-          failureThreshold: 6
-          periodSeconds: 10
-          timeoutSeconds: 1
-        readinessProbe:
-          httpGet:
-            path: "/ok"
-            port: 8000
-          failureThreshold: 6
-          periodSeconds: 10
-          timeoutSeconds: 1
-        livenessProbe:
-          httpGet:
-            path: "/ok"
-            port: 8000
-          failureThreshold: 6
-          periodSeconds: 10
-          timeoutSeconds: 1
-      autoscaling:
+      minReplicas: 1
+      maxReplicas: 5
+      targetCPUUtilizationPercentage: 80
+      keda:
         enabled: false
-        minReplicas: 1
-        maxReplicas: 5
-        targetCPUUtilizationPercentage: 80
-        keda:
-          enabled: false
-          pollingInterval: 30
-          cooldownPeriod: 300
-          scaleDownStabilizationWindowSeconds: 300
-      serviceAccount:
-        create: true
-        name: ""
-        labels: {}
-        annotations: {}
-        automountServiceAccountToken: true
-      pdb:
+        pollingInterval: 30
+        cooldownPeriod: 300
+        scaleDownStabilizationWindowSeconds: 300
+    service:
+      type: ClusterIP
+      httpPort: 80
+      labels: {}
+      annotations: {}
+    serviceAccount:
+      create: true
+      name: ""
+      labels: {}
+      annotations: {}
+      automountServiceAccountToken: true
+    pdb:
+      enabled: false
+      minAvailable: 1
+  queue:
+    enabled: false
+    name: "queue"
+    containerPort: 8000
+    numberOfJobsPerWorker: 10
+    deployment:
+      replicaCount: 1
+      labels: {}
+      annotations: {}
+      podSecurityContext: {}
+      securityContext: {}
+      lifecycle: {}
+      priorityClassName: ""
+      terminationGracePeriodSeconds: 30
+      resources: {}
+      extraEnv: []
+      envFrom: []
+      sidecars: []
+      nodeSelector: {}
+      tolerations: []
+      affinity: {}
+      volumes: []
+      volumeMounts: []
+      startupProbe:
+        httpGet:
+          path: "/ok"
+          port: 8000
+        failureThreshold: 6
+        periodSeconds: 10
+        timeoutSeconds: 1
+      readinessProbe:
+        httpGet:
+          path: "/ok"
+          port: 8000
+        failureThreshold: 6
+        periodSeconds: 10
+        timeoutSeconds: 1
+      livenessProbe:
+        httpGet:
+          path: "/ok"
+          port: 8000
+        failureThreshold: 6
+        periodSeconds: 10
+        timeoutSeconds: 1
+    autoscaling:
+      enabled: false
+      minReplicas: 1
+      maxReplicas: 5
+      targetCPUUtilizationPercentage: 80
+      keda:
         enabled: false
-        minAvailable: 1
-    postgres:
-      name: "postgres"
-      containerPort: 5432
-      external:
-        enabled: false
-        host: ""
-        port: "5432"
-        user: "postgres"
-        password: "postgres"
-        database: "postgres"
-        schema: "public"
-        connectionUrl: ""
-        existingSecretName: ""
-      statefulSet:
-        labels: {}
-        annotations: {}
-        podSecurityContext: {}
-        securityContext: {}
-        lifecycle: {}
-        priorityClassName: ""
-        terminationGracePeriodSeconds: 30
-        resources: {}
-        command: []
-        extraContainerConfig: {}
-        extraEnv: []
-        sidecars: []
-        nodeSelector: {}
-        tolerations: []
-        affinity: {}
-        volumes: []
-        volumeMounts: []
-        persistentVolumeClaimRetentionPolicy: {}
-        persistence:
-          enabled: true
-          size: 8Gi
-          storageClassName: ""
-      service:
-        type: ClusterIP
-        port: 5432
-        labels: {}
-        annotations: {}
-      serviceAccount:
-        create: true
-        name: ""
-        labels: {}
-        annotations: {}
-        automountServiceAccountToken: true
-      pdb:
-        enabled: false
-        minAvailable: 1
-    redis:
-      name: "redis"
-      containerPort: 6379
-      external:
-        enabled: false
-        connectionUrl: ""
-        existingSecretName: ""
-      deployment:
-        labels: {}
-        annotations: {}
-        podSecurityContext: {}
-        securityContext: {}
-        lifecycle: {}
-        priorityClassName: ""
-        terminationGracePeriodSeconds: 30
-        resources: {}
-        command: []
-        startupProbe:
-          exec:
-            command:
-              - /bin/sh
-              - -c
-              - exec redis-cli ping
-          failureThreshold: 6
-          periodSeconds: 10
-          timeoutSeconds: 1
-        readinessProbe:
-          exec:
-            command:
-              - /bin/sh
-              - -c
-              - exec redis-cli ping
-          failureThreshold: 6
-          periodSeconds: 10
-          timeoutSeconds: 1
-        livenessProbe:
-          exec:
-            command:
-              - /bin/sh
-              - -c
-              - exec redis-cli ping
-          failureThreshold: 6
-          periodSeconds: 10
-          timeoutSeconds: 1
-        extraContainerConfig: {}
-        extraEnv: []
-        sidecars: []
-        nodeSelector: {}
-        tolerations: []
-        affinity: {}
-        volumes: []
-        volumeMounts: []
-      service:
-        type: ClusterIP
-        port: 6379
-        labels: {}
-        annotations: {}
-      serviceAccount:
-        create: true
-        name: ""
-        labels: {}
-        annotations: {}
-        automountServiceAccountToken: true
-      pdb:
-        enabled: false
-        minAvailable: 1
+        pollingInterval: 30
+        cooldownPeriod: 300
+        scaleDownStabilizationWindowSeconds: 300
+    serviceAccount:
+      create: true
+      name: ""
+      labels: {}
+      annotations: {}
+      automountServiceAccountToken: true
+    pdb:
+      enabled: false
+      minAvailable: 1
+  postgres:
+    name: "postgres"
+    containerPort: 5432
+    external:
+      enabled: false
+      host: ""
+      port: "5432"
+      user: "postgres"
+      password: "postgres"
+      database: "postgres"
+      schema: "public"
+      connectionUrl: ""
+      existingSecretName: ""
+    statefulSet:
+      labels: {}
+      annotations: {}
+      podSecurityContext: {}
+      securityContext: {}
+      lifecycle: {}
+      priorityClassName: ""
+      terminationGracePeriodSeconds: 30
+      resources: {}
+      command: []
+      extraContainerConfig: {}
+      extraEnv: []
+      sidecars: []
+      nodeSelector: {}
+      tolerations: []
+      affinity: {}
+      volumes: []
+      volumeMounts: []
+      persistentVolumeClaimRetentionPolicy: {}
+      persistence:
+        enabled: true
+        size: 8Gi
+        storageClassName: ""
+    service:
+      type: ClusterIP
+      port: 5432
+      labels: {}
+      annotations: {}
+    serviceAccount:
+      create: true
+      name: ""
+      labels: {}
+      annotations: {}
+      automountServiceAccountToken: true
+    pdb:
+      enabled: false
+      minAvailable: 1
+  redis:
+    name: "redis"
+    containerPort: 6379
+    external:
+      enabled: false
+      connectionUrl: ""
+      existingSecretName: ""
+    deployment:
+      labels: {}
+      annotations: {}
+      podSecurityContext: {}
+      securityContext: {}
+      lifecycle: {}
+      priorityClassName: ""
+      terminationGracePeriodSeconds: 30
+      resources: {}
+      command: []
+      startupProbe:
+        exec:
+          command:
+            - /bin/sh
+            - -c
+            - exec redis-cli ping
+        failureThreshold: 6
+        periodSeconds: 10
+        timeoutSeconds: 1
+      readinessProbe:
+        exec:
+          command:
+            - /bin/sh
+            - -c
+            - exec redis-cli ping
+        failureThreshold: 6
+        periodSeconds: 10
+        timeoutSeconds: 1
+      livenessProbe:
+        exec:
+          command:
+            - /bin/sh
+            - -c
+            - exec redis-cli ping
+        failureThreshold: 6
+        periodSeconds: 10
+        timeoutSeconds: 1
+      extraContainerConfig: {}
+      extraEnv: []
+      sidecars: []
+      nodeSelector: {}
+      tolerations: []
+      affinity: {}
+      volumes: []
+      volumeMounts: []
+    service:
+      type: ClusterIP
+      port: 6379
+      labels: {}
+      annotations: {}
+    serviceAccount:
+      create: true
+      name: ""
+      labels: {}
+      annotations: {}
+      automountServiceAccountToken: true
+    pdb:
+      enabled: false
+      minAvailable: 1
 
-  polly:
-    enabled: false
-    encryptionKey: ""
-    apiServer:
-      name: "api-server"
-      containerPort: 8000
-      deployment:
-        replicaCount: 1
-        labels: {}
-        annotations: {}
-        podSecurityContext: {}
-        securityContext: {}
-        lifecycle: {}
-        priorityClassName: ""
-        terminationGracePeriodSeconds: 30
-        resources: {}
-        extraEnv: []
-        envFrom: []
-        sidecars: []
-        nodeSelector: {}
-        tolerations: []
-        affinity: {}
-        volumes: []
-        volumeMounts: []
-        initContainers: []
-        startupProbe:
-          exec:
-            command:
-              - /bin/sh
-              - -c
-              - exec python /api/healthcheck.py
-          failureThreshold: 6
-          periodSeconds: 10
-          timeoutSeconds: 1
-        readinessProbe:
-          exec:
-            command:
-              - /bin/sh
-              - -c
-              - exec python /api/healthcheck.py
-          failureThreshold: 6
-          periodSeconds: 10
-          timeoutSeconds: 1
-        livenessProbe:
-          exec:
-            command:
-              - /bin/sh
-              - -c
-              - exec python /api/healthcheck.py
-          failureThreshold: 6
-          periodSeconds: 10
-          timeoutSeconds: 1
-      autoscaling:
-        enabled: false
-        minReplicas: 1
-        maxReplicas: 5
-        targetCPUUtilizationPercentage: 80
-        keda:
-          enabled: false
-          pollingInterval: 30
-          cooldownPeriod: 300
-          scaleDownStabilizationWindowSeconds: 300
-      service:
-        type: ClusterIP
-        httpPort: 80
-        labels: {}
-        annotations: {}
-      serviceAccount:
-        create: true
-        name: ""
-        labels: {}
-        annotations: {}
-        automountServiceAccountToken: true
-      pdb:
-        enabled: false
-        minAvailable: 1
-    queue:
+polly:
+  enabled: false
+  encryptionKey: ""
+  apiServer:
+    name: "api-server"
+    containerPort: 8000
+    deployment:
+      replicaCount: 1
+      labels: {}
+      annotations: {}
+      podSecurityContext: {}
+      securityContext: {}
+      lifecycle: {}
+      priorityClassName: ""
+      terminationGracePeriodSeconds: 30
+      resources: {}
+      extraEnv: []
+      envFrom: []
+      sidecars: []
+      nodeSelector: {}
+      tolerations: []
+      affinity: {}
+      volumes: []
+      volumeMounts: []
+      initContainers: []
+      startupProbe:
+        exec:
+          command:
+            - /bin/sh
+            - -c
+            - exec python /api/healthcheck.py
+        failureThreshold: 6
+        periodSeconds: 10
+        timeoutSeconds: 1
+      readinessProbe:
+        exec:
+          command:
+            - /bin/sh
+            - -c
+            - exec python /api/healthcheck.py
+        failureThreshold: 6
+        periodSeconds: 10
+        timeoutSeconds: 1
+      livenessProbe:
+        exec:
+          command:
+            - /bin/sh
+            - -c
+            - exec python /api/healthcheck.py
+        failureThreshold: 6
+        periodSeconds: 10
+        timeoutSeconds: 1
+    autoscaling:
       enabled: false
-      name: "queue"
-      containerPort: 8000
-      numberOfJobsPerWorker: 10
-      deployment:
-        replicaCount: 1
-        labels: {}
-        annotations: {}
-        podSecurityContext: {}
-        securityContext: {}
-        lifecycle: {}
-        priorityClassName: ""
-        terminationGracePeriodSeconds: 30
-        resources: {}
-        extraEnv: []
-        envFrom: []
-        sidecars: []
-        nodeSelector: {}
-        tolerations: []
-        affinity: {}
-        volumes: []
-        volumeMounts: []
-        startupProbe:
-          httpGet:
-            path: "/ok"
-            port: 8000
-          failureThreshold: 6
-          periodSeconds: 10
-          timeoutSeconds: 1
-        readinessProbe:
-          httpGet:
-            path: "/ok"
-            port: 8000
-          failureThreshold: 6
-          periodSeconds: 10
-          timeoutSeconds: 1
-        livenessProbe:
-          httpGet:
-            path: "/ok"
-            port: 8000
-          failureThreshold: 6
-          periodSeconds: 10
-          timeoutSeconds: 1
-      autoscaling:
+      minReplicas: 1
+      maxReplicas: 5
+      targetCPUUtilizationPercentage: 80
+      keda:
         enabled: false
-        minReplicas: 1
-        maxReplicas: 5
-        targetCPUUtilizationPercentage: 80
-        keda:
-          enabled: false
-          pollingInterval: 30
-          cooldownPeriod: 300
-          scaleDownStabilizationWindowSeconds: 300
-      serviceAccount:
-        create: true
-        name: ""
-        labels: {}
-        annotations: {}
-        automountServiceAccountToken: true
-      pdb:
+        pollingInterval: 30
+        cooldownPeriod: 300
+        scaleDownStabilizationWindowSeconds: 300
+    service:
+      type: ClusterIP
+      httpPort: 80
+      labels: {}
+      annotations: {}
+    serviceAccount:
+      create: true
+      name: ""
+      labels: {}
+      annotations: {}
+      automountServiceAccountToken: true
+    pdb:
+      enabled: false
+      minAvailable: 1
+  queue:
+    enabled: false
+    name: "queue"
+    containerPort: 8000
+    numberOfJobsPerWorker: 10
+    deployment:
+      replicaCount: 1
+      labels: {}
+      annotations: {}
+      podSecurityContext: {}
+      securityContext: {}
+      lifecycle: {}
+      priorityClassName: ""
+      terminationGracePeriodSeconds: 30
+      resources: {}
+      extraEnv: []
+      envFrom: []
+      sidecars: []
+      nodeSelector: {}
+      tolerations: []
+      affinity: {}
+      volumes: []
+      volumeMounts: []
+      startupProbe:
+        httpGet:
+          path: "/ok"
+          port: 8000
+        failureThreshold: 6
+        periodSeconds: 10
+        timeoutSeconds: 1
+      readinessProbe:
+        httpGet:
+          path: "/ok"
+          port: 8000
+        failureThreshold: 6
+        periodSeconds: 10
+        timeoutSeconds: 1
+      livenessProbe:
+        httpGet:
+          path: "/ok"
+          port: 8000
+        failureThreshold: 6
+        periodSeconds: 10
+        timeoutSeconds: 1
+    autoscaling:
+      enabled: false
+      minReplicas: 1
+      maxReplicas: 5
+      targetCPUUtilizationPercentage: 80
+      keda:
         enabled: false
-        minAvailable: 1
-    postgres:
-      name: "postgres"
-      containerPort: 5432
-      external:
-        enabled: false
-        host: ""
-        port: "5432"
-        user: "postgres"
-        password: "postgres"
-        database: "postgres"
-        schema: "public"
-        connectionUrl: ""
-        existingSecretName: ""
-      statefulSet:
-        labels: {}
-        annotations: {}
-        podSecurityContext: {}
-        securityContext: {}
-        lifecycle: {}
-        priorityClassName: ""
-        terminationGracePeriodSeconds: 30
-        resources: {}
-        command: []
-        extraContainerConfig: {}
-        extraEnv: []
-        sidecars: []
-        nodeSelector: {}
-        tolerations: []
-        affinity: {}
-        volumes: []
-        volumeMounts: []
-        persistentVolumeClaimRetentionPolicy: {}
-        persistence:
-          enabled: true
-          size: 8Gi
-          storageClassName: ""
-      service:
-        type: ClusterIP
-        port: 5432
-        labels: {}
-        annotations: {}
-      serviceAccount:
-        create: true
-        name: ""
-        labels: {}
-        annotations: {}
-        automountServiceAccountToken: true
-      pdb:
-        enabled: false
-        minAvailable: 1
-    redis:
-      name: "redis"
-      containerPort: 6379
-      external:
-        enabled: false
-        connectionUrl: ""
-        existingSecretName: ""
-      deployment:
-        labels: {}
-        annotations: {}
-        podSecurityContext: {}
-        securityContext: {}
-        lifecycle: {}
-        priorityClassName: ""
-        terminationGracePeriodSeconds: 30
-        resources: {}
-        command: []
-        startupProbe:
-          exec:
-            command:
-              - /bin/sh
-              - -c
-              - exec redis-cli ping
-          failureThreshold: 6
-          periodSeconds: 10
-          timeoutSeconds: 1
-        readinessProbe:
-          exec:
-            command:
-              - /bin/sh
-              - -c
-              - exec redis-cli ping
-          failureThreshold: 6
-          periodSeconds: 10
-          timeoutSeconds: 1
-        livenessProbe:
-          exec:
-            command:
-              - /bin/sh
-              - -c
-              - exec redis-cli ping
-          failureThreshold: 6
-          periodSeconds: 10
-          timeoutSeconds: 1
-        extraContainerConfig: {}
-        extraEnv: []
-        sidecars: []
-        nodeSelector: {}
-        tolerations: []
-        affinity: {}
-        volumes: []
-        volumeMounts: []
-      service:
-        type: ClusterIP
-        port: 6379
-        labels: {}
-        annotations: {}
-      serviceAccount:
-        create: true
-        name: ""
-        labels: {}
-        annotations: {}
-        automountServiceAccountToken: true
-      pdb:
-        enabled: false
-        minAvailable: 1
+        pollingInterval: 30
+        cooldownPeriod: 300
+        scaleDownStabilizationWindowSeconds: 300
+    serviceAccount:
+      create: true
+      name: ""
+      labels: {}
+      annotations: {}
+      automountServiceAccountToken: true
+    pdb:
+      enabled: false
+      minAvailable: 1
+  postgres:
+    name: "postgres"
+    containerPort: 5432
+    external:
+      enabled: false
+      host: ""
+      port: "5432"
+      user: "postgres"
+      password: "postgres"
+      database: "postgres"
+      schema: "public"
+      connectionUrl: ""
+      existingSecretName: ""
+    statefulSet:
+      labels: {}
+      annotations: {}
+      podSecurityContext: {}
+      securityContext: {}
+      lifecycle: {}
+      priorityClassName: ""
+      terminationGracePeriodSeconds: 30
+      resources: {}
+      command: []
+      extraContainerConfig: {}
+      extraEnv: []
+      sidecars: []
+      nodeSelector: {}
+      tolerations: []
+      affinity: {}
+      volumes: []
+      volumeMounts: []
+      persistentVolumeClaimRetentionPolicy: {}
+      persistence:
+        enabled: true
+        size: 8Gi
+        storageClassName: ""
+    service:
+      type: ClusterIP
+      port: 5432
+      labels: {}
+      annotations: {}
+    serviceAccount:
+      create: true
+      name: ""
+      labels: {}
+      annotations: {}
+      automountServiceAccountToken: true
+    pdb:
+      enabled: false
+      minAvailable: 1
+  redis:
+    name: "redis"
+    containerPort: 6379
+    external:
+      enabled: false
+      connectionUrl: ""
+      existingSecretName: ""
+    deployment:
+      labels: {}
+      annotations: {}
+      podSecurityContext: {}
+      securityContext: {}
+      lifecycle: {}
+      priorityClassName: ""
+      terminationGracePeriodSeconds: 30
+      resources: {}
+      command: []
+      startupProbe:
+        exec:
+          command:
+            - /bin/sh
+            - -c
+            - exec redis-cli ping
+        failureThreshold: 6
+        periodSeconds: 10
+        timeoutSeconds: 1
+      readinessProbe:
+        exec:
+          command:
+            - /bin/sh
+            - -c
+            - exec redis-cli ping
+        failureThreshold: 6
+        periodSeconds: 10
+        timeoutSeconds: 1
+      livenessProbe:
+        exec:
+          command:
+            - /bin/sh
+            - -c
+            - exec redis-cli ping
+        failureThreshold: 6
+        periodSeconds: 10
+        timeoutSeconds: 1
+      extraContainerConfig: {}
+      extraEnv: []
+      sidecars: []
+      nodeSelector: {}
+      tolerations: []
+      affinity: {}
+      volumes: []
+      volumeMounts: []
+    service:
+      type: ClusterIP
+      port: 6379
+      labels: {}
+      annotations: {}
+    serviceAccount:
+      create: true
+      name: ""
+      labels: {}
+      annotations: {}
+      automountServiceAccountToken: true
+    pdb:
+      enabled: false
+      minAvailable: 1
 
 config:
   # -- Skip validation checks in validate.yaml. Used by AWS Marketplace for helm template verification.

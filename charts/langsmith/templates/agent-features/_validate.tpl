@@ -4,10 +4,10 @@
 {{- $pairs := list (dict "n" "fleet" "c" "standalone-fleet") (dict "n" "insights" "c" "standalone-insights") (dict "n" "polly" "c" "standalone-polly") }}
 {{- range $pair := $pairs }}
 {{- $fn := index $pair "n" }}
-{{- $feat := index $root.Values.agentFeatures $fn }}
+{{- $feat := index $root.Values $fn }}
 {{- if $feat.enabled }}
 {{- if and (not $feat.encryptionKey) (not $root.Values.config.existingSecretName) }}
-{{- fail (printf "agentFeatures.%s.encryptionKey is required when agentFeatures.%s.enabled is true (not needed if config.existingSecretName is set with the key already present)" $fn $fn) }}
+{{- fail (printf "%s.encryptionKey is required when %s.enabled is true (not needed if config.existingSecretName is set with the key already present)" $fn $fn) }}
 {{- end }}
 {{- if $feat.postgres.external.enabled }}
 {{- $pg := "" }}
@@ -22,7 +22,7 @@
 {{- end }}
 {{- if $feat.redis.external.enabled }}
 {{- if not $feat.redis.external.connectionUrl }}
-{{- fail (printf "agentFeatures.%s: redis.external.connectionUrl is required when redis.external.enabled is true" $fn) }}
+{{- fail (printf "%s.redis.external.connectionUrl is required when %s.redis.external.enabled is true" $fn $fn) }}
 {{- end }}
 {{- $rurl := trimAll " " $feat.redis.external.connectionUrl }}
 {{- if $rurl }}
@@ -32,6 +32,6 @@
 {{- end }}
 {{- end }}
 {{- if and (gt (len $urls) 0) (ne (len $urls) (len (uniq $urls))) }}
-{{- fail "agentFeatures: each enabled stack must use distinct external postgres/redis connection URLs; duplicate URLs were detected across fleet/insights/polly." }}
+{{- fail "fleet/insights/polly: each enabled stack must use distinct external postgres/redis connection URLs; duplicate URLs were detected." }}
 {{- end }}
 {{- end -}}

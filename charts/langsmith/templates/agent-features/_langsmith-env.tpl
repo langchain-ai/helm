@@ -98,7 +98,7 @@
 {{- $root := index . "root" }}
 {{- $feature := index . "feature" }}
 {{- $chartName := index . "chartName" }}
-{{- $m := omit (index $root.Values.agentFeatures $feature) "enabled" "encryptionKey" }}
+{{- $m := omit (index $root.Values $feature) "enabled" "encryptionKey" }}
 {{- $m := mergeOverwrite $m (dict "clusterDomain" $root.Values.clusterDomain "namespace" ($root.Values.namespace | default "")) }}
 {{- $miniChart := dict "Name" $chartName "Version" $root.Chart.Version "AppVersion" $root.Chart.AppVersion }}
 {{- $ctx := dict "Values" $m "Release" $root.Release "Chart" $miniChart }}

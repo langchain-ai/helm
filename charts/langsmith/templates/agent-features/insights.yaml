@@ -1,6 +1,6 @@
-{{- if .Values.agentFeatures.insights.enabled }}
+{{- if .Values.insights.enabled }}
 {{- $root := . }}
-{{- $merged := omit $root.Values.agentFeatures.insights "enabled" "encryptionKey" }}
+{{- $merged := omit $root.Values.insights "enabled" "encryptionKey" }}
 {{- $merged := mergeOverwrite $merged (dict
   "clusterDomain" $root.Values.clusterDomain
   "namespace" ($root.Values.namespace | default "")

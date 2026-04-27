@@ -1,6 +1,6 @@
-{{- if .Values.agentFeatures.polly.enabled }}
+{{- if .Values.polly.enabled }}
 {{- $root := . }}
-{{- $merged := omit $root.Values.agentFeatures.polly "enabled" "encryptionKey" }}
+{{- $merged := omit $root.Values.polly "enabled" "encryptionKey" }}
 {{- $merged := mergeOverwrite $merged (dict
   "clusterDomain" $root.Values.clusterDomain
   "namespace" ($root.Values.namespace | default "")

@@ -1,12 +1,12 @@
 {{- define "frontendEnvVars" -}}
 - name: VITE_SELF_HOSTED_CLIO_ENABLED
-  value: {{ (or .Values.config.insights.enabled .Values.agentFeatures.insights.enabled) | quote }}
+  value: {{ (or .Values.config.insights.enabled .Values.insights.enabled) | quote }}
 - name: VITE_SELF_HOSTED_POLLY_ENABLED
-  value: {{ (or .Values.config.polly.enabled .Values.agentFeatures.polly.enabled) | quote }}
+  value: {{ (or .Values.config.polly.enabled .Values.polly.enabled) | quote }}
 {{- /* Agent Builder OAuth provider IDs for frontend */ -}}
-{{- $googleOAuth := .Values.config.agentBuilder.oauth.googleOAuthProvider | default .Values.agentFeatures.fleet.oauth.googleOAuthProvider }}
-{{- $slackOAuth := .Values.config.agentBuilder.oauth.slackOAuthProvider | default .Values.agentFeatures.fleet.oauth.slackOAuthProvider }}
-{{- $githubOAuth := .Values.config.agentBuilder.oauth.githubOAuthProvider | default .Values.agentFeatures.fleet.oauth.githubOAuthProvider }}
+{{- $googleOAuth := .Values.config.agentBuilder.oauth.googleOAuthProvider | default .Values.fleet.oauth.googleOAuthProvider }}
+{{- $slackOAuth := .Values.config.agentBuilder.oauth.slackOAuthProvider | default .Values.fleet.oauth.slackOAuthProvider }}
+{{- $githubOAuth := .Values.config.agentBuilder.oauth.githubOAuthProvider | default .Values.fleet.oauth.githubOAuthProvider }}
 {{- if $googleOAuth }}
 - name: VITE_GOOGLE_OAUTH_PROVIDER
   value: {{ $googleOAuth | quote }}
@@ -56,7 +56,7 @@
   value: "true"
 {{- end }}
 {{- /* When using agentFeatures (standalone), inject the VITE vars that the bootstrap configmaps would otherwise provide */ -}}
-{{- if and .Values.agentFeatures.fleet.enabled .Values.config.hostname }}
+{{- if and .Values.fleet.enabled .Values.config.hostname }}
 {{- $baseURL := include "langsmith.hostnameWithProtocol" . | trimSuffix "/" }}
 {{- $agentPath := include "langsmith.agentFeatures.agentPathPrefix" (dict "root" . "segment" "fleet") }}
 - name: VITE_AGENT_BUILDER_DEPLOYMENT_URL_PUBLIC
@@ -68,7 +68,7 @@
 - name: VITE_AGENT_BUILDER_TRIGGERS_API_URL
   value: {{ $baseURL | quote }}
 {{- end }}
-{{- if and .Values.agentFeatures.polly.enabled .Values.config.hostname }}
+{{- if and .Values.polly.enabled .Values.config.hostname }}
 {{- $baseURL := include "langsmith.hostnameWithProtocol" . | trimSuffix "/" }}
 {{- $agentPath := include "langsmith.agentFeatures.agentPathPrefix" (dict "root" . "segment" "polly") }}
 - name: VITE_POLLY_DEPLOYMENT_URL

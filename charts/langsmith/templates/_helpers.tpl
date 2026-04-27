@@ -455,14 +455,14 @@ Template containing common environment variables that are used by several servic
 - name: FF_PERSIST_BATCHED_RUNS_SUCCESS_LOGGING
   value: "true"
 {{- end }}
-{{- if or .Values.config.agentBuilder.enabled .Values.agentFeatures.fleet.enabled }}
+{{- if or .Values.config.agentBuilder.enabled .Values.fleet.enabled }}
 - name: AGENT_BUILDER_ENCRYPTION_KEY
   valueFrom:
     secretKeyRef:
       name: {{ include "langsmith.secretsName" . }}
       key: agent_builder_encryption_key
 {{- end }}
-{{- if or .Values.config.insights.enabled .Values.agentFeatures.insights.enabled }}
+{{- if or .Values.config.insights.enabled .Values.insights.enabled }}
 - name: CLIO_ENCRYPTION_KEY
   valueFrom:
     secretKeyRef:
@@ -470,7 +470,7 @@ Template containing common environment variables that are used by several servic
       key: insights_encryption_key
       optional: false
 {{- end }}
-{{- if or .Values.config.polly.enabled .Values.agentFeatures.polly.enabled }}
+{{- if or .Values.config.polly.enabled .Values.polly.enabled }}
 - name: POLLY_ENCRYPTION_KEY
   valueFrom:
     secretKeyRef:
@@ -759,7 +759,7 @@ Public URL for the default Agent Builder MCP server.
 Served through the frontend at /mcp (or /<basePath>/mcp).
 */}}
 {{- define "langsmith.defaultMcpServerUrl" -}}
-{{- if and (or .Values.config.agentBuilder.enabled .Values.agentFeatures.fleet.enabled) .Values.config.hostname -}}
+{{- if and (or .Values.config.agentBuilder.enabled .Values.fleet.enabled) .Values.config.hostname -}}
   {{- $baseURL := include "langsmith.hostnameWithProtocol" . | trimSuffix "/" -}}
   {{- $basePath := trimAll "/" (default "" .Values.config.basePath) -}}
   {{- if $basePath -}}
@@ -771,12 +771,12 @@ Served through the frontend at /mcp (or /<basePath>/mcp).
 {{- end -}}
 
 {{- define "agentBuilderOAuthEnvVars" -}}
-{{- $googleOAuth := .Values.config.agentBuilder.oauth.googleOAuthProvider | default .Values.agentFeatures.fleet.oauth.googleOAuthProvider }}
-{{- $slackOAuth := .Values.config.agentBuilder.oauth.slackOAuthProvider | default .Values.agentFeatures.fleet.oauth.slackOAuthProvider }}
-{{- $linkedinOAuth := .Values.config.agentBuilder.oauth.linkedinOAuthProvider | default .Values.agentFeatures.fleet.oauth.linkedinOAuthProvider }}
-{{- $linearOAuth := .Values.config.agentBuilder.oauth.linearOAuthProvider | default .Values.agentFeatures.fleet.oauth.linearOAuthProvider }}
-{{- $githubOAuth := .Values.config.agentBuilder.oauth.githubOAuthProvider | default .Values.agentFeatures.fleet.oauth.githubOAuthProvider }}
-{{- $microsoftOAuth := .Values.config.agentBuilder.oauth.microsoftOAuthProvider | default .Values.agentFeatures.fleet.oauth.microsoftOAuthProvider }}
+{{- $googleOAuth := .Values.config.agentBuilder.oauth.googleOAuthProvider | default .Values.fleet.oauth.googleOAuthProvider }}
+{{- $slackOAuth := .Values.config.agentBuilder.oauth.slackOAuthProvider | default .Values.fleet.oauth.slackOAuthProvider }}
+{{- $linkedinOAuth := .Values.config.agentBuilder.oauth.linkedinOAuthProvider | default .Values.fleet.oauth.linkedinOAuthProvider }}
+{{- $linearOAuth := .Values.config.agentBuilder.oauth.linearOAuthProvider | default .Values.fleet.oauth.linearOAuthProvider }}
+{{- $githubOAuth := .Values.config.agentBuilder.oauth.githubOAuthProvider | default .Values.fleet.oauth.githubOAuthProvider }}
+{{- $microsoftOAuth := .Values.config.agentBuilder.oauth.microsoftOAuthProvider | default .Values.fleet.oauth.microsoftOAuthProvider }}
 {{- if $googleOAuth }}
 - name: "GOOGLE_OAUTH_PROVIDER"
   value: {{ $googleOAuth | quote }}
@@ -815,8 +815,8 @@ Served through the frontend at /mcp (or /<basePath>/mcp).
 - name: "TRIGGER_SERVER_HOST_API_URL"
   value: "http://{{ include "langsmith.fullname" . }}-{{ .Values.hostBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.hostBackend.service.port }}"
 {{- include "agentBuilderOAuthEnvVars" . }}
-{{- $slackSigningSecret := .Values.config.agentBuilder.oauth.slackSigningSecret | default .Values.agentFeatures.fleet.oauth.slackSigningSecret }}
-{{- $slackBotId := .Values.config.agentBuilder.oauth.slackBotId | default .Values.agentFeatures.fleet.oauth.slackBotId }}
+{{- $slackSigningSecret := .Values.config.agentBuilder.oauth.slackSigningSecret | default .Values.fleet.oauth.slackSigningSecret }}
+{{- $slackBotId := .Values.config.agentBuilder.oauth.slackBotId | default .Values.fleet.oauth.slackBotId }}
 {{- if $slackSigningSecret }}
 - name: "SLACK_SIGNING_SECRET"
   value: {{ $slackSigningSecret | quote }}

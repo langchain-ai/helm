@@ -10,8 +10,8 @@
   value: /{{ . }}/api-host
 {{- end }}
 {{- /* Agent Builder OAuth and Trigger Server configuration */ -}}
-{{- if or .Values.config.agentBuilder.enabled .Values.agentFeatures.fleet.enabled }}
-{{- $oauthProviderOrgId := .Values.config.agentBuilder.oauthProviderOrgId | default .Values.agentFeatures.fleet.oauth.providerOrgId }}
+{{- if or .Values.config.agentBuilder.enabled .Values.fleet.enabled }}
+{{- $oauthProviderOrgId := .Values.config.agentBuilder.oauthProviderOrgId | default .Values.fleet.oauth.providerOrgId }}
 {{- if $oauthProviderOrgId }}
 - name: AGENT_BUILDER_AUTH_PROVIDER_ORG_ID
   value: {{ $oauthProviderOrgId | quote }}
