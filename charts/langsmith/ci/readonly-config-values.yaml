@@ -1,4 +1,20 @@
 # Read-Only configuration. Use this if you are running in an environment where containers must run as read-only.
+images:
+  aceBackendImage:
+    repository: "docker.io/langchain/langsmith-ace-backend-fips"
+  backendImage:
+    repository: "docker.io/langchain/langsmith-backend-fips"
+  frontendImage:
+    repository: "docker.io/langchain/langsmith-frontend-fips"
+  hostBackendImage:
+    repository: "docker.io/langchain/hosted-langserve-backend-fips"
+  operatorImage:
+    repository: "docker.io/langchain/langgraph-operator-fips"
+  platformBackendImage:
+    repository: "docker.io/langchain/langsmith-go-backend-fips"
+  playgroundImage:
+    repository: "docker.io/langchain/langsmith-playground-fips"
+
 config:
   langsmithLicenseKey: "YOUR_LICENSE_KEY"
   apiKeySalt: "YOUR_API_KEY_SALT"
