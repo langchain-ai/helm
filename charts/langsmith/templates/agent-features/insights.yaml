@@ -16,9 +16,7 @@
 {{- $merged := mergeOverwrite $merged (fromYaml (include "langsmith.agentFeatures.imagesPatch" (dict "root" $root "component" "insightsAgentImage"))) }}
 {{- $miniChart := dict "Name" "standalone-insights" "Version" $root.Chart.Version "AppVersion" $root.Chart.AppVersion }}
 {{- $ctx := dict "Values" $merged "Release" $root.Release "Chart" $miniChart "Capabilities" $root.Capabilities "Root" $root }}
-{{- include "agentFeatures.secrets" $ctx }}
----
-{{ include "agentFeatures.postgres.secrets" $ctx }}
+{{- include "agentFeatures.postgres.secrets" $ctx }}
 ---
 {{ include "agentFeatures.postgres.stateful-set" $ctx }}
 ---

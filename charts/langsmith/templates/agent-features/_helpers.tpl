@@ -60,14 +60,6 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
 
 {{/*
-Name of the secret containing the secrets for this chart. This can be overriden by a secrets file created by
-the user or some other secret provisioning mechanism
-*/}}
-{{- define "langGraphCloud.secretsName" -}}
-{{- include "langGraphCloud.fullname" . }}-secrets
-{{- end }}
-
-{{/*
 Name of the secret containing the secrets for postgres. This can be overriden by a secrets file created by
 the user or some other secret provisioning mechanism
 */}}

@@ -1,18 +1,3 @@
-{{- define "agentFeatures.secrets" -}}
-{{- $root := .Root }}
-apiVersion: v1
-kind: Secret
-metadata:
-  name: {{ include "langGraphCloud.secretsName" . }}
-  namespace: {{ .Values.namespace | default .Release.Namespace | quote }}
-  labels:
-    {{- include "langGraphCloud.labels" . | nindent 4 }}
-  annotations:
-    {{- include "langGraphCloud.annotations" . | nindent 4 }}
-data:
-  langgraph_cloud_license_key: {{ default "" $root.Values.config.langsmithLicenseKey | b64enc | quote }}
-{{- end -}}
-
 {{- define "agentFeatures.postgres.secrets" -}}
 {{- if not .Values.postgres.external.existingSecretName }}
 apiVersion: v1
@@ -504,6 +489,7 @@ spec:
 
 {{- define "agentFeatures.queue.deployment" -}}
 {{- if .Values.queue.enabled -}}
+{{- $root := .Root }}
 {{- $volumes := concat .Values.commonVolumes .Values.queue.deployment.volumes -}}
 {{- $volumeMounts := concat .Values.commonVolumeMounts .Values.queue.deployment.volumeMounts -}}
 apiVersion: apps/v1
@@ -581,8 +567,8 @@ spec:
             - name: LANGGRAPH_CLOUD_LICENSE_KEY
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "langGraphCloud.secretsName" . }}
-                  key: langgraph_cloud_license_key
+                  name: {{ include "langsmith.secretsName" $root }}
+                  key: langsmith_license_key
                   optional: true
             - name: N_JOBS_PER_WORKER
               value: {{ .Values.queue.numberOfJobsPerWorker | quote }}
@@ -766,6 +752,7 @@ automountServiceAccountToken: true
 {{- end -}}
 
 {{- define "agentFeatures.api-server.deployment" -}}
+{{- $root := .Root }}
 {{- $volumes := concat .Values.commonVolumes .Values.apiServer.deployment.volumes -}}
 {{- $volumeMounts := concat .Values.commonVolumeMounts .Values.apiServer.deployment.volumeMounts -}}
 apiVersion: apps/v1
@@ -842,8 +829,8 @@ spec:
             - name: LANGGRAPH_CLOUD_LICENSE_KEY
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "langGraphCloud.secretsName" . }}
-                  key: langgraph_cloud_license_key
+                  name: {{ include "langsmith.secretsName" $root }}
+                  key: langsmith_license_key
                   optional: true
             {{- if .Values.queue.enabled }}
             - name: N_JOBS_PER_WORKER
