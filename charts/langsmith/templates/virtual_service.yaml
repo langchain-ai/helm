@@ -29,7 +29,7 @@ spec:
   - {{ .Values.istioGateway.name }}
   {{- end }}
   http:
-  {{- if and (default true .Values.agentFeatures.exposePaths) .Values.agentFeatures.fleet.enabled }}
+  {{- if .Values.agentFeatures.fleet.enabled }}
   - match:
     - uri:
         prefix: {{ include "langsmith.agentFeatures.agentPathPrefix" (dict "root" . "segment" "fleet") }}
@@ -39,7 +39,7 @@ spec:
         port:
           number: {{ include "langsmith.agentFeatures.defaultApiServerHttpPort" . }}
   {{- end }}
-  {{- if and (default true .Values.agentFeatures.exposePaths) .Values.agentFeatures.insights.enabled }}
+  {{- if .Values.agentFeatures.insights.enabled }}
   - match:
     - uri:
         prefix: {{ include "langsmith.agentFeatures.agentPathPrefix" (dict "root" . "segment" "insights") }}
@@ -49,7 +49,7 @@ spec:
         port:
           number: {{ include "langsmith.agentFeatures.defaultApiServerHttpPort" . }}
   {{- end }}
-  {{- if and (default true .Values.agentFeatures.exposePaths) .Values.agentFeatures.polly.enabled }}
+  {{- if .Values.agentFeatures.polly.enabled }}
   - match:
     - uri:
         prefix: {{ include "langsmith.agentFeatures.agentPathPrefix" (dict "root" . "segment" "polly") }}

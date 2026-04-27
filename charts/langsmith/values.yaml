@@ -128,7 +128,6 @@ istioGateway:
 
 
 agentFeatures:
-  exposePaths: true
   fleet:
     enabled: false
     encryptionKey: ""

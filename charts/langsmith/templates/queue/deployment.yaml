@@ -5,6 +5,10 @@
   value: "3"
 - name: "PORT"
   value: {{ .Values.queue.containerPort | quote }}
+{{- if .Values.agentFeatures.insights.enabled }}
+- name: CLIO_LANGGRAPH_URL
+  value: "http://{{ include "langsmith.agentFeatures.apiServerK8sServiceName" (dict "root" . "feature" "insights" "chartName" "standalone-insights") }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.agentFeatures.insights.apiServer.service.httpPort }}"
+{{- end }}
 {{- end -}}
 {{- $envVars := concat .Values.commonEnv (include "langsmith.commonEnv" . | fromYamlArray) (include "queueEnvVars" . | fromYamlArray) .Values.queue.deployment.extraEnv -}}
 {{- include "langsmith.detectDuplicates" $envVars -}}
