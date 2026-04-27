@@ -1,5 +1,5 @@
 {{- define "agentFeatures.secrets" -}}
-{{- if not .Values.config.existingSecretName }}
+{{- $root := .Root }}
 apiVersion: v1
 kind: Secret
 metadata:
@@ -10,9 +10,7 @@ metadata:
   annotations:
     {{- include "langGraphCloud.annotations" . | nindent 4 }}
 data:
-  langgraph_cloud_license_key: {{ default "" .Values.config.langGraphCloudLicenseKey | b64enc | quote }}
-  api_key: {{ default "" .Values.config.apiKey | b64enc | quote }}
-{{- end }}
+  langgraph_cloud_license_key: {{ default "" $root.Values.config.langsmithLicenseKey | b64enc | quote }}
 {{- end -}}
 
 {{- define "agentFeatures.postgres.secrets" -}}
@@ -238,11 +236,6 @@ metadata:
     {{- end }}
 spec:
   type: {{ .Values.postgres.service.type }}
-  {{- with .Values.postgres.service.loadBalancerSourceRanges }}
-  loadBalancerSourceRanges:
-    {{- toYaml . | nindent 4 }}
-  {{- end }}
-  loadBalancerIP: {{ .Values.postgres.service.loadBalancerIP }}
   ports:
     - name: postgres
       port: {{ .Values.postgres.service.port }}
@@ -454,11 +447,6 @@ metadata:
     {{- end }}
 spec:
   type: {{ .Values.redis.service.type }}
-  {{- with .Values.redis.service.loadBalancerSourceRanges }}
-  loadBalancerSourceRanges:
-    {{- toYaml . | nindent 4 }}
-  {{- end }}
-  loadBalancerIP: {{ .Values.redis.service.loadBalancerIP }}
   ports:
     - name: redis
       port: {{ .Values.redis.service.port }}
@@ -565,12 +553,19 @@ spec:
       {{- end }}
       terminationGracePeriodSeconds: {{ .Values.queue.deployment.terminationGracePeriodSeconds }}
       securityContext:
-        {{- toYaml .Values.queue.deployment.podSecurityContext | nindent 8 }}
+        {{- merge .Values.queue.deployment.podSecurityContext (.Values.commonPodSecurityContext | default dict) | toYaml | nindent 8 }}
+      {{- with .Values.commonInitContainers }}
+      initContainers:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       containers:
         - name: {{ .Values.queue.name }}
           command:
             - "/storage/queue_entrypoint.sh"
           env:
+            {{- with .Values.commonEnv }}
+              {{- toYaml . | nindent 12 }}
+            {{- end }}
             - name: PORT
               value: {{ .Values.queue.containerPort | quote }}
             - name: POSTGRES_URI
@@ -589,26 +584,8 @@ spec:
                   name: {{ include "langGraphCloud.secretsName" . }}
                   key: langgraph_cloud_license_key
                   optional: true
-            - name: LANGSMITH_API_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: {{ include "langGraphCloud.secretsName" . }}
-                  key: api_key
-                  optional: true
-            {{- if .Values.config.auth.enabled }}
-            - name: LANGGRAPH_AUTH_TYPE
-              value: "langsmith"
-            - name: LANGSMITH_AUTH_ENDPOINT
-              value: {{ .Values.config.auth.langSmithAuthEndpoint }}
-            - name: LANGSMITH_TENANT_ID
-              value: {{ .Values.config.auth.langSmithTenantId }}
-            {{- end }}
             - name: N_JOBS_PER_WORKER
-              value: {{ .Values.config.numberOfJobsPerWorker | quote }}
-            {{- if .Values.config.httpMaxRequestBodyBytes }}
-            - name: HTTP_MAX_REQUEST_BODY_BYTES
-              value: {{ .Values.config.httpMaxRequestBodyBytes | quote }}
-            {{- end }}
+              value: {{ .Values.queue.numberOfJobsPerWorker | quote }}
             {{- with .Values.queue.deployment.extraEnv }}
               {{- toYaml . | nindent 12 }}
             {{- end }}
@@ -759,8 +736,8 @@ spec:
       metadata:
         connectionFromEnv: "POSTGRES_URI"
         query: "SELECT COUNT(*) FROM run WHERE status = 'pending'"
-        targetQueryValue: {{ .Values.config.numberOfJobsPerWorker | quote }}
-        activationTargetQueryValue: {{ .Values.config.numberOfJobsPerWorker | quote }}
+        targetQueryValue: {{ .Values.queue.numberOfJobsPerWorker | quote }}
+        activationTargetQueryValue: {{ .Values.queue.numberOfJobsPerWorker | quote }}
     {{- with .Values.queue.autoscaling.keda.additionalTriggers }}
     {{- toYaml . | nindent 4 }}
     {{- end }}
@@ -838,14 +815,18 @@ spec:
       {{- end }}
       terminationGracePeriodSeconds: {{ .Values.apiServer.deployment.terminationGracePeriodSeconds }}
       securityContext:
-        {{- toYaml .Values.apiServer.deployment.podSecurityContext | nindent 8 }}
-      {{- with .Values.apiServer.deployment.initContainers }}
+        {{- merge .Values.apiServer.deployment.podSecurityContext (.Values.commonPodSecurityContext | default dict) | toYaml | nindent 8 }}
+      {{- $initContainers := concat (.Values.commonInitContainers | default list) (.Values.apiServer.deployment.initContainers | default list) }}
+      {{- with $initContainers }}
       initContainers:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       containers:
         - name: {{ .Values.apiServer.name }}
           env:
+            {{- with .Values.commonEnv }}
+              {{- toYaml . | nindent 12 }}
+            {{- end }}
             - name: PORT
               value: {{ .Values.apiServer.containerPort | quote }}
             - name: POSTGRES_URI
@@ -864,30 +845,12 @@ spec:
                   name: {{ include "langGraphCloud.secretsName" . }}
                   key: langgraph_cloud_license_key
                   optional: true
-            - name: LANGSMITH_API_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: {{ include "langGraphCloud.secretsName" . }}
-                  key: api_key
-                  optional: true
             {{- if .Values.queue.enabled }}
             - name: N_JOBS_PER_WORKER
               value: "0"
             {{- else }}
             - name: N_JOBS_PER_WORKER
-              value: {{ .Values.config.numberOfJobsPerWorker | quote }}
-            {{- end }}
-            {{- if .Values.config.auth.enabled }}
-            - name: LANGGRAPH_AUTH_TYPE
-              value: "langsmith"
-            - name: LANGSMITH_AUTH_ENDPOINT
-              value: {{ .Values.config.auth.langSmithAuthEndpoint }}
-            - name: LANGSMITH_TENANT_ID
-              value: {{ .Values.config.auth.langSmithTenantId }}
-            {{- end }}
-            {{- if .Values.config.httpMaxRequestBodyBytes }}
-            - name: HTTP_MAX_REQUEST_BODY_BYTES
-              value: {{ .Values.config.httpMaxRequestBodyBytes | quote }}
+              value: {{ .Values.queue.numberOfJobsPerWorker | quote }}
             {{- end }}
             {{- with include "langsmith.agentFeatures.apiServerExtraEnv" . | trim }}
               {{- . | nindent 12 }}
@@ -959,20 +922,9 @@ metadata:
     {{- end }}
 spec:
   type: {{ .Values.apiServer.service.type }}
-  {{- with .Values.apiServer.service.loadBalancerSourceRanges }}
-  loadBalancerSourceRanges:
-    {{- toYaml . | nindent 4 }}
-  {{- end }}
-  {{- if .Values.apiServer.service.loadBalancerIP }}
-  loadBalancerIP: {{ .Values.apiServer.service.loadBalancerIP }}
-  {{- end }}
   ports:
     - name: http
       port: {{ .Values.apiServer.service.httpPort }}
-      targetPort: api-server
-      protocol: TCP
-    - name: https
-      port: {{ .Values.apiServer.service.httpsPort }}
       targetPort: api-server
       protocol: TCP
   selector:
@@ -1099,8 +1051,8 @@ spec:
       metadata:
         connectionFromEnv: "POSTGRES_URI"
         query: "SELECT COUNT(*) FROM run WHERE status = 'pending'"
-        targetQueryValue: {{ .Values.config.numberOfJobsPerWorker | quote }}
-        activationTargetQueryValue: {{ .Values.config.numberOfJobsPerWorker | quote }}
+        targetQueryValue: {{ .Values.queue.numberOfJobsPerWorker | quote }}
+        activationTargetQueryValue: {{ .Values.queue.numberOfJobsPerWorker | quote }}
     {{- end }}
     {{- with .Values.apiServer.autoscaling.keda.additionalTriggers }}
     {{- toYaml . | nindent 4 }}

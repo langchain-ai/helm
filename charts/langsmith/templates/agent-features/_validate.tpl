@@ -6,8 +6,8 @@
 {{- $fn := index $pair "n" }}
 {{- $feat := index $root.Values.agentFeatures $fn }}
 {{- if $feat.enabled }}
-{{- if and (not $root.Values.config.existingSecretName) (not $feat.encryptionKey) }}
-{{- fail (printf "agentFeatures.%s.encryptionKey is required when agentFeatures.%s.enabled is true unless config.existingSecretName is set (use agent_builder_encryption_key / insights_encryption_key / polly_encryption_key in that Secret)" $fn $fn) }}
+{{- if not $feat.encryptionKey }}
+{{- fail (printf "agentFeatures.%s.encryptionKey is required when agentFeatures.%s.enabled is true" $fn $fn) }}
 {{- end }}
 {{- if $feat.postgres.external.enabled }}
 {{- $pg := "" }}

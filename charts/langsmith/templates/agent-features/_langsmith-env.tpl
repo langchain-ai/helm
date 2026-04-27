@@ -21,7 +21,7 @@
 {{- if $root.Values.config.hostname -}}
 {{- $raw = include "langsmith.hostnameWithProtocol" $root | trimSuffix "/" -}}
 {{- end -}}
-{{- if and $raw (not .Values.config.auth.enabled) }}
+{{- if $raw }}
 {{- $out = concat $out (list
   (dict "name" "GO_ENDPOINT" "value" (printf "%s/api/v1" $raw))
   (dict "name" "LANGSMITH_AUTH_ENDPOINT" "value" (printf "%s/api/v1" $raw))

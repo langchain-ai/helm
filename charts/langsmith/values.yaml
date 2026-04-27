@@ -126,33 +126,12 @@ istioGateway:
   annotations: {}
   labels: {}
 
-# Optional embedded LangGraph stacks (templates/agent-features/).
 
 agentFeatures:
   exposePaths: true
   fleet:
     enabled: false
     encryptionKey: ""
-    nameOverride: ""
-    fullnameOverride: ""
-    commonAnnotations: {}
-    commonLabels: {}
-    commonVolumes: []
-    commonVolumeMounts: []
-    commonDnsConfig:
-      options:
-        - name: ndots
-          value: "4"
-    config:
-      existingSecretName: ""
-      langGraphCloudLicenseKey: ""
-      apiKey: ""
-      numberOfJobsPerWorker: 10
-      httpMaxRequestBodyBytes: ""
-      auth:
-        enabled: false
-        langSmithAuthEndpoint: ""
-        langSmithTenantId: ""
     apiServer:
       name: "api-server"
       containerPort: 8000
@@ -215,11 +194,8 @@ agentFeatures:
       service:
         type: ClusterIP
         httpPort: 80
-        httpsPort: 443
         labels: {}
         annotations: {}
-        loadBalancerSourceRanges: []
-        loadBalancerIP: ""
       serviceAccount:
         create: true
         name: ""
@@ -233,6 +209,7 @@ agentFeatures:
       enabled: false
       name: "queue"
       containerPort: 8000
+      numberOfJobsPerWorker: 10
       deployment:
         replicaCount: 1
         labels: {}
@@ -332,8 +309,6 @@ agentFeatures:
         port: 5432
         labels: {}
         annotations: {}
-        loadBalancerSourceRanges: []
-        loadBalancerIP: ""
       serviceAccount:
         create: true
         name: ""
@@ -400,8 +375,6 @@ agentFeatures:
         port: 6379
         labels: {}
         annotations: {}
-        loadBalancerSourceRanges: []
-        loadBalancerIP: ""
       serviceAccount:
         create: true
         name: ""
@@ -415,26 +388,6 @@ agentFeatures:
   insights:
     enabled: false
     encryptionKey: ""
-    nameOverride: ""
-    fullnameOverride: ""
-    commonAnnotations: {}
-    commonLabels: {}
-    commonVolumes: []
-    commonVolumeMounts: []
-    commonDnsConfig:
-      options:
-        - name: ndots
-          value: "4"
-    config:
-      existingSecretName: ""
-      langGraphCloudLicenseKey: ""
-      apiKey: ""
-      numberOfJobsPerWorker: 10
-      httpMaxRequestBodyBytes: ""
-      auth:
-        enabled: false
-        langSmithAuthEndpoint: ""
-        langSmithTenantId: ""
     apiServer:
       name: "api-server"
       containerPort: 8000
@@ -494,11 +447,8 @@ agentFeatures:
       service:
         type: ClusterIP
         httpPort: 80
-        httpsPort: 443
         labels: {}
         annotations: {}
-        loadBalancerSourceRanges: []
-        loadBalancerIP: ""
       serviceAccount:
         create: true
         name: ""
@@ -512,6 +462,7 @@ agentFeatures:
       enabled: false
       name: "queue"
       containerPort: 8000
+      numberOfJobsPerWorker: 10
       deployment:
         replicaCount: 1
         labels: {}
@@ -611,8 +562,6 @@ agentFeatures:
         port: 5432
         labels: {}
         annotations: {}
-        loadBalancerSourceRanges: []
-        loadBalancerIP: ""
       serviceAccount:
         create: true
         name: ""
@@ -679,8 +628,6 @@ agentFeatures:
         port: 6379
         labels: {}
         annotations: {}
-        loadBalancerSourceRanges: []
-        loadBalancerIP: ""
       serviceAccount:
         create: true
         name: ""
@@ -694,26 +641,6 @@ agentFeatures:
   polly:
     enabled: false
     encryptionKey: ""
-    nameOverride: ""
-    fullnameOverride: ""
-    commonAnnotations: {}
-    commonLabels: {}
-    commonVolumes: []
-    commonVolumeMounts: []
-    commonDnsConfig:
-      options:
-        - name: ndots
-          value: "4"
-    config:
-      existingSecretName: ""
-      langGraphCloudLicenseKey: ""
-      apiKey: ""
-      numberOfJobsPerWorker: 10
-      httpMaxRequestBodyBytes: ""
-      auth:
-        enabled: false
-        langSmithAuthEndpoint: ""
-        langSmithTenantId: ""
     apiServer:
       name: "api-server"
       containerPort: 8000
@@ -776,11 +703,8 @@ agentFeatures:
       service:
         type: ClusterIP
         httpPort: 80
-        httpsPort: 443
         labels: {}
         annotations: {}
-        loadBalancerSourceRanges: []
-        loadBalancerIP: ""
       serviceAccount:
         create: true
         name: ""
@@ -794,6 +718,7 @@ agentFeatures:
       enabled: false
       name: "queue"
       containerPort: 8000
+      numberOfJobsPerWorker: 10
       deployment:
         replicaCount: 1
         labels: {}
@@ -893,8 +818,6 @@ agentFeatures:
         port: 5432
         labels: {}
         annotations: {}
-        loadBalancerSourceRanges: []
-        loadBalancerIP: ""
       serviceAccount:
         create: true
         name: ""
@@ -961,8 +884,6 @@ agentFeatures:
         port: 6379
         labels: {}
         annotations: {}
-        loadBalancerSourceRanges: []
-        loadBalancerIP: ""
       serviceAccount:
         create: true
         name: ""

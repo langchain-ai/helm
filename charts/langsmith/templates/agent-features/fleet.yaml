@@ -1,7 +1,18 @@
 {{- if .Values.agentFeatures.fleet.enabled }}
 {{- $root := . }}
 {{- $merged := omit $root.Values.agentFeatures.fleet "enabled" "encryptionKey" }}
-{{- $merged := mergeOverwrite $merged (dict "clusterDomain" $root.Values.clusterDomain "namespace" ($root.Values.namespace | default "")) }}
+{{- $merged := mergeOverwrite $merged (dict
+  "clusterDomain" $root.Values.clusterDomain
+  "namespace" ($root.Values.namespace | default "")
+  "commonAnnotations" ($root.Values.commonAnnotations | default dict)
+  "commonLabels" ($root.Values.commonLabels | default dict)
+  "commonVolumes" ($root.Values.commonVolumes | default list)
+  "commonVolumeMounts" ($root.Values.commonVolumeMounts | default list)
+  "commonEnv" ($root.Values.commonEnv | default list)
+  "commonInitContainers" ($root.Values.commonInitContainers | default list)
+  "commonPodSecurityContext" ($root.Values.commonPodSecurityContext | default dict)
+  "commonDnsConfig" ($root.Values.commonDnsConfig | default dict)
+) }}
 {{- $merged := mergeOverwrite $merged (fromYaml (include "langsmith.agentFeatures.imagesPatch" (dict "root" $root "component" "agentBuilderImage"))) }}
 {{- $miniChart := dict "Name" "lgp-fleet" "Version" $root.Chart.Version "AppVersion" $root.Chart.AppVersion }}
 {{- $ctx := dict "Values" $merged "Release" $root.Release "Chart" $miniChart "Capabilities" $root.Capabilities "Root" $root }}
