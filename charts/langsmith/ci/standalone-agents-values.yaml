@@ -18,7 +18,7 @@ ingress:
 
 fleet:
   enabled: true
-  encryptionKey: "test-fernet-key-for-ci-only-32bytes"
+  encryptionKey: "rQ3qW2rSXP6YZF9N_O0Nga4GkQcW9a9tzFXAtJDVEJo="
   apiServer:
     deployment:
       resources:
@@ -46,7 +46,7 @@ fleet:
 
 insights:
   enabled: true
-  encryptionKey: "test-fernet-key-for-ci-only-32bytes"
+  encryptionKey: "rQ3qW2rSXP6YZF9N_O0Nga4GkQcW9a9tzFXAtJDVEJo="
   apiServer:
     deployment:
       resources:
@@ -74,7 +74,7 @@ insights:
 
 polly:
   enabled: true
-  encryptionKey: "test-fernet-key-for-ci-only-32bytes"
+  encryptionKey: "rQ3qW2rSXP6YZF9N_O0Nga4GkQcW9a9tzFXAtJDVEJo="
   apiServer:
     deployment:
       resources:
