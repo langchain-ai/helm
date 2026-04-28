@@ -1,0 +1,37 @@
+{{- /*
+Validate custom CA configuration before rendering manifests.
+This check runs regardless of authProxy.enabled so that partial
+customCa config is caught early, not on first enable.
+*/ -}}
+{{- $secretName := include "authProxy.customCaSecretName" . -}}
+{{- $secretKey := include "authProxy.customCaSecretKey" . -}}
+{{- $nameSet := ne $secretName "" -}}
+{{- $keySet := ne $secretKey "" -}}
+{{- if ne $nameSet $keySet -}}
+{{- fail "customCa.secretName and customCa.secretKey must either both be set or both be empty." -}}
+{{- end -}}
+
+{{- /*
+Validate client certificate configuration.
+All three of secretName, certKey, and keyKey must be set together or all empty.
+*/ -}}
+{{- $mtlsSecretName := include "authProxy.mtlsSecretName" . -}}
+{{- $mtlsCertKey := include "authProxy.mtlsCertKey" . -}}
+{{- $mtlsKeyKey := include "authProxy.mtlsKeyKey" . -}}
+{{- $mtlsNameSet := ne $mtlsSecretName "" -}}
+{{- $mtlsCertSet := ne $mtlsCertKey "" -}}
+{{- $mtlsKeySet := ne $mtlsKeyKey "" -}}
+{{- if not (or (and $mtlsNameSet $mtlsCertSet $mtlsKeySet) (and (not $mtlsNameSet) (not $mtlsCertSet) (not $mtlsKeySet))) -}}
+{{- fail "mtls.secretName, mtls.certKey, and mtls.keyKey must all be set together or all be empty." -}}
+{{- end -}}
+
+{{- /*
+Require customCa when mTLS is enabled. Without a trusted CA bundle Envoy
+sends client certificates but does NOT verify the upstream server's identity,
+so the connection is not genuinely mutually authenticated.
+*/ -}}
+{{- $mtlsEnabled := and $mtlsNameSet $mtlsCertSet $mtlsKeySet -}}
+{{- $customCaEnabled := and $nameSet $keySet -}}
+{{- if and $mtlsEnabled (not $customCaEnabled) -}}
+{{- fail "mtls requires customCa. Without customCa Envoy sends client certificates but does not verify the upstream server's identity, which is not mutual TLS. Set customCa.secretName and customCa.secretKey to provide a trusted CA bundle." -}}
+{{- end -}}
