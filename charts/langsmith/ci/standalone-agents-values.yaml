@@ -1,5 +1,5 @@
-# Agent Builder configuration. Tests that the tool server and trigger server come up.
-# Requires config.deployment.enabled to be true.
+# Standalone agent features configuration.
+# Tests that fleet, insights, and polly come up with their own postgres/redis.
 config:
   langsmithLicenseKey: "YOUR_LICENSE_KEY"
   apiKeySalt: "YOUR_API_KEY_SALT"
@@ -12,14 +12,94 @@ config:
   deployment:
     enabled: true
   hostname: "test.smith.langchain.dev"
-  agentBuilder:
-    enabled: true
-    encryptionKey: "test-fernet-key-for-ci-only-32bytes"
 
 ingress:
   enabled: true
 
-# Note, you likely should tweak the values to match something that fits your local development environment.
+fleet:
+  enabled: true
+  encryptionKey: "test-fernet-key-for-ci-only-32bytes"
+  apiServer:
+    deployment:
+      resources:
+        requests:
+          cpu: 100m
+          memory: 500Mi
+  queue:
+    deployment:
+      resources:
+        requests:
+          cpu: 100m
+          memory: 500Mi
+  postgres:
+    statefulSet:
+      resources:
+        requests:
+          cpu: 200m
+          memory: 500Mi
+  redis:
+    deployment:
+      resources:
+        requests:
+          cpu: 200m
+          memory: 500Mi
+
+insights:
+  enabled: true
+  encryptionKey: "test-fernet-key-for-ci-only-32bytes"
+  apiServer:
+    deployment:
+      resources:
+        requests:
+          cpu: 100m
+          memory: 500Mi
+  queue:
+    deployment:
+      resources:
+        requests:
+          cpu: 100m
+          memory: 500Mi
+  postgres:
+    statefulSet:
+      resources:
+        requests:
+          cpu: 200m
+          memory: 500Mi
+  redis:
+    deployment:
+      resources:
+        requests:
+          cpu: 200m
+          memory: 500Mi
+
+polly:
+  enabled: true
+  encryptionKey: "test-fernet-key-for-ci-only-32bytes"
+  apiServer:
+    deployment:
+      resources:
+        requests:
+          cpu: 100m
+          memory: 500Mi
+  queue:
+    deployment:
+      resources:
+        requests:
+          cpu: 100m
+          memory: 500Mi
+  postgres:
+    statefulSet:
+      resources:
+        requests:
+          cpu: 200m
+          memory: 500Mi
+  redis:
+    deployment:
+      resources:
+        requests:
+          cpu: 200m
+          memory: 500Mi
+
 aceBackend:
   deployment:
     resources:
