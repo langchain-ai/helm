@@ -572,8 +572,8 @@ spec:
                   optional: true
             - name: N_JOBS_PER_WORKER
               value: {{ .Values.queue.numberOfJobsPerWorker | quote }}
-            {{- with .Values.queue.deployment.extraEnv }}
-              {{- toYaml . | nindent 12 }}
+            {{- with include "langsmith.agentFeatures.queueExtraEnv" . | trim }}
+              {{- . | nindent 12 }}
             {{- end }}
           {{- with .Values.queue.deployment.envFrom }}
           envFrom:
