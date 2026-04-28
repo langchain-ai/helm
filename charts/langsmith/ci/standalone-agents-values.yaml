@@ -23,25 +23,25 @@ fleet:
     deployment:
       resources:
         requests:
-          cpu: 100m
-          memory: 500Mi
+          cpu: 50m
+          memory: 300Mi
   queue:
     deployment:
       resources:
         requests:
-          cpu: 100m
-          memory: 500Mi
+          cpu: 50m
+          memory: 300Mi
   postgres:
     statefulSet:
       resources:
         requests:
-          cpu: 200m
+          cpu: 100m
           memory: 500Mi
   redis:
     deployment:
       resources:
         requests:
-          cpu: 200m
+          cpu: 100m
           memory: 500Mi
 
 insights:
@@ -51,25 +51,25 @@ insights:
     deployment:
       resources:
         requests:
-          cpu: 100m
-          memory: 500Mi
+          cpu: 50m
+          memory: 300Mi
   queue:
     deployment:
       resources:
         requests:
-          cpu: 100m
-          memory: 500Mi
+          cpu: 50m
+          memory: 300Mi
   postgres:
     statefulSet:
       resources:
         requests:
-          cpu: 200m
+          cpu: 100m
           memory: 500Mi
   redis:
     deployment:
       resources:
         requests:
-          cpu: 200m
+          cpu: 100m
           memory: 500Mi
 
 polly:
@@ -79,121 +79,121 @@ polly:
     deployment:
       resources:
         requests:
-          cpu: 100m
-          memory: 500Mi
+          cpu: 50m
+          memory: 300Mi
   queue:
     deployment:
       resources:
         requests:
-          cpu: 100m
-          memory: 500Mi
+          cpu: 50m
+          memory: 300Mi
   postgres:
     statefulSet:
       resources:
         requests:
-          cpu: 200m
+          cpu: 100m
           memory: 500Mi
   redis:
     deployment:
       resources:
         requests:
-          cpu: 200m
+          cpu: 100m
           memory: 500Mi
 
 aceBackend:
   deployment:
     resources:
       requests:
-        cpu: 100m
-        memory: 500Mi
+        cpu: 50m
+        memory: 300Mi
 
 backend:
   deployment:
     replicas: 1
     resources:
       requests:
-        cpu: 100m
-        memory: 500Mi
+        cpu: 50m
+        memory: 300Mi
 
 frontend:
   deployment:
     resources:
       requests:
-        cpu: 100m
-        memory: 500Mi
+        cpu: 50m
+        memory: 300Mi
 
 hostBackend:
   deployment:
     resources:
       requests:
-        cpu: 100m
-        memory: 500Mi
+        cpu: 50m
+        memory: 300Mi
 
 listener:
   deployment:
     resources:
       requests:
-        cpu: 100m
-        memory: 500Mi
+        cpu: 50m
+        memory: 300Mi
 
 operator:
   kedaEnabled: false
   deployment:
     resources:
       requests:
-        cpu: 100m
-        memory: 500Mi
+        cpu: 50m
+        memory: 300Mi
 
 platformBackend:
   replicas: 1
   deployment:
     resources:
       requests:
-        cpu: 100m
-        memory: 500Mi
+        cpu: 50m
+        memory: 300Mi
 
 playground:
   deployment:
     resources:
       requests:
-        cpu: 100m
-        memory: 500Mi
+        cpu: 50m
+        memory: 300Mi
 
 ingestQueue:
   replicas: 1
   deployment:
     resources:
       requests:
-        cpu: 100m
-        memory: 500Mi
+        cpu: 50m
+        memory: 300Mi
 
 queue:
   replicas: 1
   deployment:
     resources:
       requests:
-        cpu: 100m
-        memory: 500Mi
+        cpu: 50m
+        memory: 300Mi
 
 postgres:
   statefulSet:
     resources:
       requests:
-        cpu: 200m
+        cpu: 100m
         memory: 500Mi
 
 redis:
   statefulSet:
     resources:
       requests:
-        cpu: 200m
+        cpu: 100m
         memory: 500Mi
 
 clickhouse:
   statefulSet:
     resources:
       requests:
-        cpu: 200m
+        cpu: 100m
         memory: 500Mi
 
 agentBuilderToolServer:
@@ -201,13 +201,13 @@ agentBuilderToolServer:
   deployment:
     resources:
       requests:
-        cpu: 100m
-        memory: 500Mi
+        cpu: 50m
+        memory: 300Mi
 
 agentBuilderTriggerServer:
   enabled: true
   deployment:
     resources:
       requests:
-        cpu: 100m
-        memory: 500Mi
+        cpu: 50m
+        memory: 300Mi

@@ -2812,9 +2812,8 @@ redis:
     automountServiceAccountToken: true
 
 # Agent Builder Tool Server - provides MCP tool execution capabilities
-# Only runs when config.agentBuilder.enabled is true
 agentBuilderToolServer:
-  enabled: true
+  enabled: false
   name: "agent-builder-tool-server"
   containerPort: 1989
   deployment:
@@ -2890,10 +2889,9 @@ agentBuilderToolServer:
     automountServiceAccountToken: true
 
 # Agent Builder Trigger Server - handles cron, Slack, and Gmail triggers
-# Only runs when config.agentBuilder.enabled is true
 # NOTE: Currently only supports a single replica to prevent duplicate trigger executions
 agentBuilderTriggerServer:
-  enabled: true
+  enabled: false
   name: "agent-builder-trigger-server"
   containerPort: 1990
   deployment:
