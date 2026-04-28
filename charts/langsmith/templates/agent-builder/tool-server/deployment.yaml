@@ -1,4 +1,4 @@
-{{- if and .Values.config.agentBuilder.enabled .Values.agentBuilderToolServer.enabled }}
+{{- if .Values.agentBuilderToolServer.enabled }}
 {{- $envVars := concat .Values.commonEnv (include "langsmith.commonEnv" . | fromYamlArray) (include "agentBuilderToolServerEnvVars" . | fromYamlArray) .Values.agentBuilderToolServer.deployment.extraEnv -}}
 {{- include "langsmith.detectDuplicates" $envVars -}}
 {{- $volumes := concat .Values.commonVolumes .Values.agentBuilderToolServer.deployment.volumes (include "langsmith.tlsVolumes" . | fromYamlArray) -}}

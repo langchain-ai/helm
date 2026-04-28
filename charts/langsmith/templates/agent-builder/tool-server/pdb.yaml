@@ -1,4 +1,4 @@
-{{- if and .Values.config.agentBuilder.enabled .Values.agentBuilderToolServer.enabled .Values.agentBuilderToolServer.pdb.enabled }}
+{{- if and .Values.agentBuilderToolServer.enabled .Values.agentBuilderToolServer.pdb.enabled }}
 apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:

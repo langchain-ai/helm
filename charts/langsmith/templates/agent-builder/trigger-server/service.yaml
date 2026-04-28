@@ -1,4 +1,4 @@
-{{- if and .Values.config.agentBuilder.enabled .Values.agentBuilderTriggerServer.enabled }}
+{{- if .Values.agentBuilderTriggerServer.enabled }}
 apiVersion: v1
 kind: Service
 metadata:

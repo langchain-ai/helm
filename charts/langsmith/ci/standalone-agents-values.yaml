@@ -1,0 +1,213 @@
+# Standalone agent features configuration.
+# Tests that fleet, insights, and polly come up with their own postgres/redis.
+config:
+  langsmithLicenseKey: "YOUR_LICENSE_KEY"
+  apiKeySalt: "YOUR_API_KEY_SALT"
+  authType: "mixed"
+  initialOrgAdminEmail: "youremail@corp.dev"
+  basicAuth:
+    enabled: true
+    initialOrgAdminPassword: "TestLangSmith123!"
+    jwtSecret: "YOUR_JWT_SECRET"
+  deployment:
+    enabled: true
+  hostname: "test.smith.langchain.dev"
+
+ingress:
+  enabled: true
+
+fleet:
+  enabled: true
+  encryptionKey: "rQ3qW2rSXP6YZF9N_O0Nga4GkQcW9a9tzFXAtJDVEJo="
+  apiServer:
+    deployment:
+      resources:
+        requests:
+          cpu: 50m
+          memory: 300Mi
+  queue:
+    deployment:
+      resources:
+        requests:
+          cpu: 50m
+          memory: 300Mi
+  postgres:
+    statefulSet:
+      resources:
+        requests:
+          cpu: 100m
+          memory: 500Mi
+  redis:
+    deployment:
+      resources:
+        requests:
+          cpu: 100m
+          memory: 500Mi
+
+insights:
+  enabled: true
+  encryptionKey: "rQ3qW2rSXP6YZF9N_O0Nga4GkQcW9a9tzFXAtJDVEJo="
+  apiServer:
+    deployment:
+      resources:
+        requests:
+          cpu: 50m
+          memory: 300Mi
+  queue:
+    deployment:
+      resources:
+        requests:
+          cpu: 50m
+          memory: 300Mi
+  postgres:
+    statefulSet:
+      resources:
+        requests:
+          cpu: 100m
+          memory: 500Mi
+  redis:
+    deployment:
+      resources:
+        requests:
+          cpu: 100m
+          memory: 500Mi
+
+polly:
+  enabled: true
+  encryptionKey: "rQ3qW2rSXP6YZF9N_O0Nga4GkQcW9a9tzFXAtJDVEJo="
+  apiServer:
+    deployment:
+      resources:
+        requests:
+          cpu: 50m
+          memory: 300Mi
+  queue:
+    deployment:
+      resources:
+        requests:
+          cpu: 50m
+          memory: 300Mi
+  postgres:
+    statefulSet:
+      resources:
+        requests:
+          cpu: 100m
+          memory: 500Mi
+  redis:
+    deployment:
+      resources:
+        requests:
+          cpu: 100m
+          memory: 500Mi
+
+aceBackend:
+  deployment:
+    resources:
+      requests:
+        cpu: 50m
+        memory: 300Mi
+
+backend:
+  deployment:
+    replicas: 1
+    resources:
+      requests:
+        cpu: 50m
+        memory: 300Mi
+
+frontend:
+  deployment:
+    resources:
+      requests:
+        cpu: 50m
+        memory: 300Mi
+
+hostBackend:
+  deployment:
+    resources:
+      requests:
+        cpu: 50m
+        memory: 300Mi
+
+listener:
+  deployment:
+    resources:
+      requests:
+        cpu: 50m
+        memory: 300Mi
+
+operator:
+  kedaEnabled: false
+  deployment:
+    resources:
+      requests:
+        cpu: 50m
+        memory: 300Mi
+
+platformBackend:
+  replicas: 1
+  deployment:
+    resources:
+      requests:
+        cpu: 50m
+        memory: 300Mi
+
+playground:
+  deployment:
+    resources:
+      requests:
+        cpu: 50m
+        memory: 300Mi
+
+ingestQueue:
+  replicas: 1
+  deployment:
+    resources:
+      requests:
+        cpu: 50m
+        memory: 300Mi
+
+queue:
+  replicas: 1
+  deployment:
+    resources:
+      requests:
+        cpu: 50m
+        memory: 300Mi
+
+postgres:
+  statefulSet:
+    resources:
+      requests:
+        cpu: 100m
+        memory: 500Mi
+
+redis:
+  statefulSet:
+    resources:
+      requests:
+        cpu: 100m
+        memory: 500Mi
+
+clickhouse:
+  statefulSet:
+    resources:
+      requests:
+        cpu: 100m
+        memory: 500Mi
+
+agentBuilderToolServer:
+  enabled: true
+  deployment:
+    resources:
+      requests:
+        cpu: 50m
+        memory: 300Mi
+
+agentBuilderTriggerServer:
+  enabled: true
+  deployment:
+    resources:
+      requests:
+        cpu: 50m
+        memory: 300Mi

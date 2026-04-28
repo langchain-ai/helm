@@ -1,4 +1,4 @@
-{{- if and .Values.config.agentBuilder.enabled .Values.agentBuilderToolServer.enabled .Values.agentBuilderToolServer.autoscaling.enabled .Values.agentBuilderToolServer.autoscaling.createHpa }}
+{{- if and .Values.agentBuilderToolServer.enabled .Values.agentBuilderToolServer.autoscaling.enabled .Values.agentBuilderToolServer.autoscaling.createHpa }}
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:

@@ -1,4 +1,4 @@
-{{- if and .Values.config.agentBuilder.enabled .Values.agentBuilderTriggerServer.enabled }}
+{{- if .Values.agentBuilderTriggerServer.enabled }}
 {{- $envVars := concat .Values.commonEnv (include "langsmith.commonEnv" . | fromYamlArray) (include "agentBuilderTriggerServerEnvVars" . | fromYamlArray) .Values.agentBuilderTriggerServer.deployment.extraEnv -}}
 {{- include "langsmith.detectDuplicates" $envVars -}}
 {{- $volumes := concat .Values.commonVolumes .Values.agentBuilderTriggerServer.deployment.volumes (include "langsmith.tlsVolumes" . | fromYamlArray) -}}
