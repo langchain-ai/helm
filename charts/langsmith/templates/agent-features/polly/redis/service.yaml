@@ -1,0 +1,29 @@
+{{- if .Values.polly.enabled }}
+{{- if not .Values.polly.redis.external.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "langsmith.agentFeatures.fullname" (dict "root" . "product" "polly") }}-{{ .Values.polly.redis.name }}
+  namespace: {{ .Values.namespace | default .Release.Namespace | quote }}
+  labels:
+    {{- include "langsmith.labels" . | nindent 4 }}
+    {{- with .Values.polly.redis.service.labels }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+  annotations:
+    {{- include "langsmith.annotations" . | nindent 4 }}
+    {{- with .Values.polly.redis.service.annotations }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  type: {{ .Values.polly.redis.service.type }}
+  ports:
+    - name: redis
+      port: {{ .Values.polly.redis.service.port }}
+      targetPort: redis
+      protocol: TCP
+  selector:
+    {{- include "langsmith.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: {{ include "langsmith.agentFeatures.fullname" (dict "root" . "product" "polly") }}-{{ .Values.polly.redis.name }}
+{{- end }}
+{{- end }}

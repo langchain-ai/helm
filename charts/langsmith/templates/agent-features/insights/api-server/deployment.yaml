@@ -1,0 +1,138 @@
+{{- if .Values.insights.enabled }}
+{{- $volumes := concat .Values.commonVolumes .Values.insights.apiServer.deployment.volumes -}}
+{{- $volumeMounts := concat .Values.commonVolumeMounts .Values.insights.apiServer.deployment.volumeMounts -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "langsmith.agentFeatures.fullname" (dict "root" . "product" "insights") }}-{{ .Values.insights.apiServer.name }}
+  namespace: {{ .Values.namespace | default .Release.Namespace | quote }}
+  labels:
+    {{- include "langsmith.labels" . | nindent 4 }}
+    {{- with .Values.insights.apiServer.deployment.labels }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+  annotations:
+    {{- include "langsmith.annotations" . | nindent 4 }}
+    {{- with .Values.insights.apiServer.deployment.annotations }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  {{- if not .Values.insights.apiServer.autoscaling.enabled }}
+  replicas: {{ .Values.insights.apiServer.deployment.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "langsmith.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: {{ include "langsmith.agentFeatures.fullname" (dict "root" . "product" "insights") }}-{{ .Values.insights.apiServer.name }}
+  template:
+    metadata:
+      {{- with .Values.insights.apiServer.deployment.annotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- with .Values.insights.apiServer.deployment.labels }}
+            {{- toYaml . | nindent 8 }}
+        {{- end }}
+        {{- include "langsmith.labels" . | nindent 8 }}
+        app.kubernetes.io/component: {{ include "langsmith.agentFeatures.fullname" (dict "root" . "product" "insights") }}-{{ .Values.insights.apiServer.name }}
+    spec:
+      serviceAccountName: {{ include "langsmith.agentFeatures.fullname" (dict "root" . "product" "insights") }}-{{ .Values.insights.apiServer.name }}
+      {{- include "langsmith.dnsConfig" . | nindent 6 }}
+      {{- with .Values.images.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if .Values.insights.apiServer.deployment.priorityClassName }}
+      priorityClassName: {{ .Values.insights.apiServer.deployment.priorityClassName }}
+      {{- end }}
+      terminationGracePeriodSeconds: {{ .Values.insights.apiServer.deployment.terminationGracePeriodSeconds }}
+      securityContext:
+        {{- merge .Values.insights.apiServer.deployment.podSecurityContext (.Values.commonPodSecurityContext | default dict) | toYaml | nindent 8 }}
+      {{- $initContainers := concat (.Values.commonInitContainers | default list) (.Values.insights.apiServer.deployment.initContainers | default list) }}
+      {{- with $initContainers }}
+      initContainers:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: {{ .Values.insights.apiServer.name }}
+          env:
+            {{- with .Values.commonEnv }}
+              {{- toYaml . | nindent 12 }}
+            {{- end }}
+            - name: PORT
+              value: {{ .Values.insights.apiServer.containerPort | quote }}
+            - name: POSTGRES_URI
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "langsmith.agentFeatures.postgresSecretName" (dict "root" . "product" "insights") }}
+                  key: postgres_connection_url
+            - name: REDIS_URI
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "langsmith.agentFeatures.redisSecretName" (dict "root" . "product" "insights") }}
+                  key: redis_connection_url
+            - name: LANGGRAPH_CLOUD_LICENSE_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "langsmith.secretsName" . }}
+                  key: langsmith_license_key
+                  optional: true
+            {{- if .Values.insights.queue.enabled }}
+            - name: N_JOBS_PER_WORKER
+              value: "0"
+            {{- else }}
+            - name: N_JOBS_PER_WORKER
+              value: {{ .Values.insights.queue.numberOfJobsPerWorker | quote }}
+            {{- end }}
+            {{- with include "langsmith.insights.extraEnv" . | trim }}
+              {{- . | nindent 12 }}
+            {{- end }}
+          {{- with .Values.insights.apiServer.deployment.envFrom }}
+          envFrom:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          image: {{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "insightsAgentImage") | quote }}
+          imagePullPolicy: {{ .Values.images.insightsAgentImage.pullPolicy }}
+          ports:
+            - name: api-server
+              containerPort: {{ .Values.insights.apiServer.containerPort }}
+              protocol: TCP
+          startupProbe:
+            {{- toYaml .Values.insights.apiServer.deployment.startupProbe | nindent 12 }}
+          readinessProbe:
+            {{- toYaml .Values.insights.apiServer.deployment.readinessProbe | nindent 12 }}
+          livenessProbe:
+            {{- toYaml .Values.insights.apiServer.deployment.livenessProbe | nindent 12 }}
+          resources:
+            {{- toYaml .Values.insights.apiServer.deployment.resources | nindent 12 }}
+          securityContext:
+            {{- toYaml .Values.insights.apiServer.deployment.securityContext | nindent 12 }}
+          {{- with .Values.insights.apiServer.deployment.lifecycle }}
+          lifecycle:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with $volumeMounts }}
+          volumeMounts:
+              {{- toYaml . | nindent 12 }}
+          {{- end }}
+        {{- with .Values.insights.apiServer.deployment.sidecars }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- with .Values.insights.apiServer.deployment.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.insights.apiServer.deployment.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.insights.apiServer.deployment.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with $volumes }}
+      volumes:
+          {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}

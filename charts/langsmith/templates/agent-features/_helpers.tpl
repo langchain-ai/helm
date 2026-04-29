@@ -1,139 +1,130 @@
 {{/*
-Expand the name of the chart.
+Fullname prefix for a given agent feature product.
+Usage: include "langsmith.agentFeatures.fullname" (dict "root" . "product" "fleet")
+Produces: <release>-<namePrefix>  e.g. "langsmith-standalone-fleet"
 */}}
-{{- define "langGraphCloud.name" -}}
-{{- .Chart.Name | trunc 63 | trimSuffix "-" }}
-{{- end }}
+{{- define "langsmith.agentFeatures.fullname" -}}
+{{- $root := index . "root" }}
+{{- $product := index . "product" }}
+{{- $prefix := (index $root.Values $product).namePrefix }}
+{{- printf "%s-%s" (include "langsmith.fullname" $root) $prefix | trunc 63 | trimSuffix "-" }}
+{{- end -}}
 
-{{- define "langGraphCloud.fullname" -}}
-{{- $name := .Chart.Name }}
-{{- if contains $name .Release.Name }}
-{{- .Release.Name | trunc 63 | trimSuffix "-" }}
+{{/*
+Postgres secret name for a given product.
+Usage: include "langsmith.agentFeatures.postgresSecretName" (dict "root" . "product" "fleet")
+*/}}
+{{- define "langsmith.agentFeatures.postgresSecretName" -}}
+{{- $root := index . "root" }}
+{{- $product := index . "product" }}
+{{- $pg := (index $root.Values $product).postgres }}
+{{- if $pg.external.existingSecretName }}
+{{- $pg.external.existingSecretName }}
 {{- else }}
-{{- printf "%s-%s" .Release.Name $name | trunc 63 | trimSuffix "-" }}
+{{- include "langsmith.agentFeatures.fullname" . }}-postgres
 {{- end }}
-{{- end }}
+{{- end -}}
 
 {{/*
-Create chart name and version as used by the chart label.
+Redis secret name for a given product.
+Usage: include "langsmith.agentFeatures.redisSecretName" (dict "root" . "product" "fleet")
 */}}
-{{- define "langGraphCloud.chart" -}}
-{{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" }}
-{{- end }}
-
-{{/*
-Common labels
-*/}}
-{{- define "langGraphCloud.labels" -}}
-{{- if .Values.commonLabels }}
-{{ toYaml .Values.commonLabels }}
-{{- end }}
-helm.sh/chart: {{ include "langGraphCloud.chart" . }}
-{{ include "langGraphCloud.selectorLabels" . }}
-{{- if .Chart.AppVersion }}
-app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
-{{- end }}
-app.kubernetes.io/managed-by: {{ .Release.Service }}
-{{- end }}
-
-{{/*
-Common annotations
-*/}}
-{{- define "langGraphCloud.annotations" -}}
-{{- if .Values.commonAnnotations }}
-{{ toYaml .Values.commonAnnotations }}
-{{- end }}
-helm.sh/chart: {{ include "langGraphCloud.chart" . }}
-{{ include "langGraphCloud.selectorLabels" . }}
-{{- if .Chart.AppVersion }}
-app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
-{{- end }}
-app.kubernetes.io/managed-by: {{ .Release.Service }}
-{{- end }}
-
-{{/*
-Selector labels
-*/}}
-{{- define "langGraphCloud.selectorLabels" -}}
-app.kubernetes.io/name: {{ include "langGraphCloud.name" . }}
-app.kubernetes.io/instance: {{ .Release.Name }}
-{{- end }}
-
-{{/*
-Name of the secret containing the secrets for postgres. This can be overriden by a secrets file created by
-the user or some other secret provisioning mechanism
-*/}}
-{{- define "langGraphCloud.postgresSecretsName" -}}
-{{- if .Values.postgres.external.existingSecretName }}
-{{- .Values.postgres.external.existingSecretName }}
+{{- define "langsmith.agentFeatures.redisSecretName" -}}
+{{- $root := index . "root" }}
+{{- $product := index . "product" }}
+{{- $redis := (index $root.Values $product).redis }}
+{{- if $redis.external.existingSecretName }}
+{{- $redis.external.existingSecretName }}
 {{- else }}
-{{- include "langGraphCloud.fullname" . }}-postgres
+{{- include "langsmith.agentFeatures.fullname" . }}-redis
 {{- end }}
-{{- end }}
+{{- end -}}
 
 {{/*
-Name of the secret containing the secrets for redis. This can be overriden by a secrets file created by
-the user or some other secret provisioning mechanism
+FQDN for an agent feature's api-server Service (used by frontend nginx proxy_pass).
+Usage: include "langsmith.agentFeatures.apiServerK8sServiceName" (dict "root" . "product" "fleet")
 */}}
-{{- define "langGraphCloud.redisSecretsName" -}}
-{{- if .Values.redis.external.existingSecretName }}
-{{- .Values.redis.external.existingSecretName }}
-{{- else }}
-{{- include "langGraphCloud.fullname" . }}-redis
-{{- end }}
-{{- end }}
+{{- define "langsmith.agentFeatures.apiServerK8sServiceName" -}}
+{{- $root := index . "root" }}
+{{- $product := index . "product" }}
+{{- $feat := index $root.Values $product }}
+{{- printf "%s-%s" (include "langsmith.agentFeatures.fullname" .) $feat.apiServer.name }}
+{{- end -}}
 
 {{/*
-Common DNS configuration for all pods. When commonDnsConfig is set, it will be applied to all pods.
+URL path prefix for agent feature routes (handles basePath).
 */}}
-{{- define "langGraphCloud.dnsConfig" -}}
-{{- if .Values.commonDnsConfig }}
-dnsConfig:
-  {{- toYaml .Values.commonDnsConfig | nindent 2 }}
-{{- end }}
-{{- end }}
-
-{{- define "apiServer.serviceAccountName" -}}
-{{- if .Values.apiServer.serviceAccount.create -}}
-    {{ default (printf "%s-%s" (include "langGraphCloud.fullname" .) .Values.apiServer.name) .Values.apiServer.serviceAccount.name | trunc 63 | trimSuffix "-" }}
-{{- else -}}
-    {{ default "default" .Values.apiServer.serviceAccount.name }}
+{{- define "langsmith.agentFeatures.agentPathPrefix" -}}
+{{- $root := index . "root" }}
+{{- $segment := index . "segment" }}
+{{- $bp := trimAll "/" (default "" $root.Values.config.basePath) -}}
+{{- if $bp -}}/{{ $bp }}/agents/{{ $segment }}{{- else -}}/agents/{{ $segment }}{{- end -}}
 {{- end -}}
-{{- end -}}
-
-{{- define "queue.serviceAccountName" -}}
-{{- if .Values.queue.serviceAccount.create -}}
-    {{ default (printf "%s-%s" (include "langGraphCloud.fullname" .) .Values.queue.name) .Values.queue.serviceAccount.name | trunc 63 | trimSuffix "-" }}
-{{- else -}}
-    {{ default "default" .Values.queue.serviceAccount.name }}
-{{- end -}}
-{{- end -}}
-
-{{- define "postgres.serviceAccountName" -}}
-{{- if .Values.postgres.serviceAccount.create -}}
-    {{ default (printf "%s-%s" (include "langGraphCloud.fullname" .) .Values.postgres.name) .Values.postgres.serviceAccount.name | trunc 63 | trimSuffix "-" }}
-{{- else -}}
-    {{ default "default" .Values.postgres.serviceAccount.name }}
-{{- end -}}
-{{- end -}}
-
-{{- define "redis.serviceAccountName" -}}
-{{- if .Values.redis.serviceAccount.create -}}
-    {{ default (printf "%s-%s" (include "langGraphCloud.fullname" .) .Values.redis.name) .Values.redis.serviceAccount.name | trunc 63 | trimSuffix "-" }}
-{{- else -}}
-    {{ default "default" .Values.redis.serviceAccount.name }}
-{{- end -}}
-{{- end -}}
-
 
 {{/*
-Creates the image reference used for LangGraph Cloud deployments. If registry is specified, concatenate it, along with a '/'.
+Extra env vars for fleet api-server and queue pods.
 */}}
-{{- define "langGraphCloud.image" -}}
-{{- $imageConfig := index .Values.images .component -}}
-{{- if .Values.images.registry -}}
-{{ .Values.images.registry }}/{{ $imageConfig.repository }}:{{ $imageConfig.tag | default .Chart.AppVersion }}
-{{- else -}}
-{{ $imageConfig.repository }}:{{ $imageConfig.tag | default .Chart.AppVersion }}
+{{- define "langsmith.fleet.extraEnv" -}}
+{{- $ns := .Values.namespace | default .Release.Namespace -}}
+{{- $cd := .Values.clusterDomain -}}
+{{- $platformBackend := printf "http://%s-%s.%s.svc.%s:%v" (include "langsmith.fullname" .) .Values.platformBackend.name $ns $cd .Values.platformBackend.containerPort -}}
+{{- $backend := printf "http://%s-%s.%s.svc.%s:%v" (include "langsmith.fullname" .) .Values.backend.name $ns $cd .Values.backend.containerPort -}}
+{{- $hostBackend := printf "http://%s-%s.%s.svc.%s:%v" (include "langsmith.fullname" .) .Values.hostBackend.name $ns $cd .Values.hostBackend.containerPort -}}
+{{- $toolServer := printf "http://%s-%s.%s.svc.%s:%v" (include "langsmith.fullname" .) .Values.agentBuilderToolServer.name $ns $cd .Values.agentBuilderToolServer.containerPort -}}
+{{- $out := list
+  (dict "name" "GO_ENDPOINT" "value" $platformBackend)
+  (dict "name" "LANGSMITH_AUTH_ENDPOINT" "value" $platformBackend)
+  (dict "name" "LANGCHAIN_ENDPOINT" "value" $platformBackend)
+  (dict "name" "SMITH_BACKEND_ENDPOINT" "value" $backend)
+  (dict "name" "HOST_BACKEND_ENDPOINT" "value" $hostBackend)
+  (dict "name" "MCP_SERVER_URL" "value" $toolServer)
+  (dict "name" "LANGSMITH_LICENSE_REQUIRED_CLAIMS" "value" "agent_builder_enabled")
+-}}
+{{- $secretName := include "langsmith.secretsName" . }}
+{{- $out = concat $out (list
+  (dict "name" "AGENT_BUILDER_ENCRYPTION_KEY" "valueFrom" (dict "secretKeyRef" (dict "name" $secretName "key" "agent_builder_encryption_key")))
+  (dict "name" "X_SERVICE_AUTH_JWT_SECRET" "valueFrom" (dict "secretKeyRef" (dict "name" $secretName "key" "jwt_secret" "optional" true)))
+) }}
+{{- toYaml $out }}
 {{- end -}}
+
+{{/*
+Extra env vars for insights api-server and queue pods.
+*/}}
+{{- define "langsmith.insights.extraEnv" -}}
+{{- $ns := .Values.namespace | default .Release.Namespace -}}
+{{- $cd := .Values.clusterDomain -}}
+{{- $platformBackend := printf "http://%s-%s.%s.svc.%s:%v" (include "langsmith.fullname" .) .Values.platformBackend.name $ns $cd .Values.platformBackend.containerPort -}}
+{{- $out := list
+  (dict "name" "GO_ENDPOINT" "value" $platformBackend)
+  (dict "name" "LANGSMITH_AUTH_ENDPOINT" "value" $platformBackend)
+  (dict "name" "LANGCHAIN_ENDPOINT" "value" $platformBackend)
+  (dict "name" "LLM_AUTH_PROXY_ACCEPT_HTTP" "value" "true")
+-}}
+{{- $secretName := include "langsmith.secretsName" . }}
+{{- $out = concat $out (list
+  (dict "name" "CLIO_ENCRYPTION_KEY" "valueFrom" (dict "secretKeyRef" (dict "name" $secretName "key" "insights_encryption_key")))
+  (dict "name" "X_SERVICE_AUTH_JWT_SECRET" "valueFrom" (dict "secretKeyRef" (dict "name" $secretName "key" "jwt_secret" "optional" true)))
+) }}
+{{- toYaml $out }}
+{{- end -}}
+
+{{/*
+Extra env vars for polly api-server and queue pods.
+*/}}
+{{- define "langsmith.polly.extraEnv" -}}
+{{- $ns := .Values.namespace | default .Release.Namespace -}}
+{{- $cd := .Values.clusterDomain -}}
+{{- $platformBackend := printf "http://%s-%s.%s.svc.%s:%v" (include "langsmith.fullname" .) .Values.platformBackend.name $ns $cd .Values.platformBackend.containerPort -}}
+{{- $out := list
+  (dict "name" "GO_ENDPOINT" "value" $platformBackend)
+  (dict "name" "LANGSMITH_AUTH_ENDPOINT" "value" $platformBackend)
+  (dict "name" "LANGCHAIN_ENDPOINT" "value" $platformBackend)
+  (dict "name" "LLM_AUTH_PROXY_ACCEPT_HTTP" "value" "true")
+-}}
+{{- $secretName := include "langsmith.secretsName" . }}
+{{- $out = concat $out (list
+  (dict "name" "POLLY_ENCRYPTION_KEY" "valueFrom" (dict "secretKeyRef" (dict "name" $secretName "key" "polly_encryption_key")))
+) }}
+{{- toYaml $out }}
 {{- end -}}

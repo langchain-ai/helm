@@ -1,0 +1,22 @@
+{{- if .Values.insights.enabled }}
+{{- if .Values.insights.queue.pdb.enabled }}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "langsmith.agentFeatures.fullname" (dict "root" . "product" "insights") }}-{{ .Values.insights.queue.name }}
+  namespace: {{ .Values.namespace | default .Release.Namespace | quote }}
+  labels:
+    {{- include "langsmith.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "langsmith.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: {{ include "langsmith.agentFeatures.fullname" (dict "root" . "product" "insights") }}-{{ .Values.insights.queue.name }}
+  {{- if .Values.insights.queue.pdb.minAvailable }}
+  minAvailable: {{ .Values.insights.queue.pdb.minAvailable }}
+  {{- end }}
+  {{- if .Values.insights.queue.pdb.maxUnavailable }}
+  maxUnavailable: {{ .Values.insights.queue.pdb.maxUnavailable }}
+  {{- end }}
+{{- end }}
+{{- end }}

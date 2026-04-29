@@ -1,0 +1,176 @@
+{{- if .Values.insights.enabled }}
+{{- if not .Values.insights.postgres.external.enabled }}
+{{- $volumes := concat .Values.commonVolumes .Values.insights.postgres.statefulSet.volumes -}}
+{{- $volumeMounts := concat .Values.commonVolumeMounts .Values.insights.postgres.statefulSet.volumeMounts -}}
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "langsmith.agentFeatures.fullname" (dict "root" . "product" "insights") }}-{{ .Values.insights.postgres.name }}
+  namespace: {{ .Values.namespace | default .Release.Namespace | quote }}
+  labels:
+    {{- include "langsmith.labels" . | nindent 4 }}
+    {{- with .Values.insights.postgres.statefulSet.labels }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+  annotations:
+    {{- include "langsmith.annotations" . | nindent 4 }}
+    {{- with .Values.insights.postgres.statefulSet.annotations }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  serviceName: {{ include "langsmith.agentFeatures.fullname" (dict "root" . "product" "insights") }}-{{ .Values.insights.postgres.name }}
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "langsmith.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: {{ include "langsmith.agentFeatures.fullname" (dict "root" . "product" "insights") }}-{{ .Values.insights.postgres.name }}
+  template:
+    metadata:
+      {{- with .Values.insights.postgres.statefulSet.annotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- with .Values.insights.postgres.statefulSet.labels }}
+            {{- toYaml . | nindent 8 }}
+        {{- end }}
+        {{- include "langsmith.labels" . | nindent 8 }}
+        app.kubernetes.io/component: {{ include "langsmith.agentFeatures.fullname" (dict "root" . "product" "insights") }}-{{ .Values.insights.postgres.name }}
+    spec:
+      {{- with .Values.images.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if .Values.insights.postgres.statefulSet.priorityClassName }}
+      priorityClassName: {{ .Values.insights.postgres.statefulSet.priorityClassName }}
+      {{- end }}
+      terminationGracePeriodSeconds: {{ .Values.insights.postgres.statefulSet.terminationGracePeriodSeconds }}
+      securityContext:
+        {{- toYaml .Values.insights.postgres.statefulSet.podSecurityContext | nindent 8 }}
+      serviceAccountName: {{ include "langsmith.agentFeatures.fullname" (dict "root" . "product" "insights") }}-{{ .Values.insights.postgres.name }}
+      {{- include "langsmith.dnsConfig" . | nindent 6 }}
+      containers:
+        - name: {{ .Values.insights.postgres.name }}
+          {{- with .Values.insights.postgres.statefulSet.command }}
+          command:
+             {{ . }}
+          {{- end }}
+          env:
+            - name: POSTGRES_DB
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "langsmith.agentFeatures.postgresSecretName" (dict "root" . "product" "insights") }}
+                  key: postgres_db
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "langsmith.agentFeatures.postgresSecretName" (dict "root" . "product" "insights") }}
+                  key: postgres_password
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "langsmith.agentFeatures.postgresSecretName" (dict "root" . "product" "insights") }}
+                  key: postgres_user
+            - name: PGDATA
+              value: /var/lib/postgresql/data/postgres
+            {{- with .Values.insights.postgres.statefulSet.extraEnv }}
+              {{- toYaml . | nindent 12 }}
+            {{- end }}
+          image: {{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "postgresImage") | quote }}
+          imagePullPolicy: {{ .Values.images.postgresImage.pullPolicy }}
+          ports:
+            - name: postgres
+              containerPort: {{ .Values.insights.postgres.containerPort }}
+              protocol: TCP
+          startupProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - exec pg_isready -d postgres -U postgres
+            failureThreshold: 6
+            periodSeconds: 10
+            timeoutSeconds: 1
+          readinessProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - exec pg_isready -d postgres -U postgres
+            failureThreshold: 6
+            periodSeconds: 10
+            timeoutSeconds: 1
+          livenessProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - exec pg_isready -d postgres -U postgres
+            failureThreshold: 6
+            periodSeconds: 10
+            timeoutSeconds: 1
+          resources:
+            {{- toYaml .Values.insights.postgres.statefulSet.resources | nindent 12 }}
+          securityContext:
+            {{- toYaml .Values.insights.postgres.statefulSet.securityContext | nindent 12 }}
+          {{- with .Values.insights.postgres.statefulSet.lifecycle }}
+          lifecycle:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            {{- with $volumeMounts }}
+              {{- toYaml . | nindent 12 }}
+            {{- end }}
+            {{- if .Values.insights.postgres.statefulSet.persistence.enabled }}
+            - mountPath: /var/lib/postgresql/data
+              name: data
+              subPath: postgres
+            {{- end }}
+          {{- with .Values.insights.postgres.statefulSet.extraContainerConfig }}
+            {{- toYaml . | nindent 10 }}
+          {{- end }}
+        {{- with .Values.insights.postgres.statefulSet.sidecars }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- with .Values.insights.postgres.statefulSet.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.insights.postgres.statefulSet.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.insights.postgres.statefulSet.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with $volumes }}
+      volumes:
+          {{- toYaml . | nindent 8 }}
+      {{- end }}
+ {{- if .Values.insights.postgres.statefulSet.persistence.enabled }}
+  {{- with .Values.insights.postgres.statefulSet.persistentVolumeClaimRetentionPolicy }}
+  persistentVolumeClaimRetentionPolicy:
+        {{- toYaml . | nindent 4 }}
+  {{- end }}
+  volumeClaimTemplates:
+    - apiVersion: v1
+      kind: PersistentVolumeClaim
+      metadata:
+        name: data
+        labels:
+          {{- include "langsmith.selectorLabels" . | nindent 10 }}
+          app.kubernetes.io/component: {{ include "langsmith.agentFeatures.fullname" (dict "root" . "product" "insights") }}-{{ .Values.insights.postgres.name }}
+      spec:
+
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: {{ .Values.insights.postgres.statefulSet.persistence.size }}
+        {{- if .Values.insights.postgres.statefulSet.persistence.storageClassName }}
+        storageClassName: {{ .Values.insights.postgres.statefulSet.persistence.storageClassName }}
+        {{- end }}
+  {{- end }}
+{{- end}}
+{{- end }}
