@@ -67,16 +67,14 @@ Extra env vars for fleet api-server and queue pods.
 {{- define "langsmith.fleet.extraEnv" -}}
 {{- $ns := .Values.namespace | default .Release.Namespace -}}
 {{- $cd := .Values.clusterDomain -}}
-{{- $platformBackend := printf "http://%s-%s.%s.svc.%s:%v" (include "langsmith.fullname" .) .Values.platformBackend.name $ns $cd .Values.platformBackend.service.port -}}
-{{- $backend := printf "http://%s-%s.%s.svc.%s:%v" (include "langsmith.fullname" .) .Values.backend.name $ns $cd .Values.backend.service.port -}}
-{{- $hostBackend := printf "http://%s-%s.%s.svc.%s:%v" (include "langsmith.fullname" .) .Values.hostBackend.name $ns $cd .Values.hostBackend.service.port -}}
+{{- $frontend := printf "http://%s-%s.%s.svc.%s:%v" (include "langsmith.fullname" .) .Values.frontend.name $ns $cd .Values.frontend.service.httpPort -}}
 {{- $toolServer := printf "http://%s-%s.%s.svc.%s:%v" (include "langsmith.fullname" .) .Values.agentBuilderToolServer.name $ns $cd .Values.agentBuilderToolServer.service.port -}}
 {{- $out := list
-  (dict "name" "GO_ENDPOINT" "value" $platformBackend)
-  (dict "name" "LANGSMITH_AUTH_ENDPOINT" "value" $platformBackend)
-  (dict "name" "LANGCHAIN_ENDPOINT" "value" $platformBackend)
-  (dict "name" "SMITH_BACKEND_ENDPOINT" "value" $backend)
-  (dict "name" "HOST_BACKEND_ENDPOINT" "value" $hostBackend)
+  (dict "name" "GO_ENDPOINT" "value" (printf "%s/api/v1" $frontend))
+  (dict "name" "LANGSMITH_AUTH_ENDPOINT" "value" (printf "%s/api/v1" $frontend))
+  (dict "name" "LANGCHAIN_ENDPOINT" "value" (printf "%s/api/v1" $frontend))
+  (dict "name" "SMITH_BACKEND_ENDPOINT" "value" $frontend)
+  (dict "name" "HOST_BACKEND_ENDPOINT" "value" (printf "%s/api-host" $frontend))
   (dict "name" "MCP_SERVER_URL" "value" $toolServer)
   (dict "name" "LANGSMITH_LICENSE_REQUIRED_CLAIMS" "value" "agent_builder_enabled")
 -}}
@@ -97,11 +95,11 @@ Extra env vars for insights api-server and queue pods.
 {{- define "langsmith.insights.extraEnv" -}}
 {{- $ns := .Values.namespace | default .Release.Namespace -}}
 {{- $cd := .Values.clusterDomain -}}
-{{- $platformBackend := printf "http://%s-%s.%s.svc.%s:%v" (include "langsmith.fullname" .) .Values.platformBackend.name $ns $cd .Values.platformBackend.service.port -}}
+{{- $frontend := printf "http://%s-%s.%s.svc.%s:%v" (include "langsmith.fullname" .) .Values.frontend.name $ns $cd .Values.frontend.service.httpPort -}}
 {{- $out := list
-  (dict "name" "GO_ENDPOINT" "value" $platformBackend)
-  (dict "name" "LANGSMITH_AUTH_ENDPOINT" "value" $platformBackend)
-  (dict "name" "LANGCHAIN_ENDPOINT" "value" $platformBackend)
+  (dict "name" "GO_ENDPOINT" "value" (printf "%s/api/v1" $frontend))
+  (dict "name" "LANGSMITH_AUTH_ENDPOINT" "value" (printf "%s/api/v1" $frontend))
+  (dict "name" "LANGCHAIN_ENDPOINT" "value" (printf "%s/api/v1" $frontend))
   (dict "name" "LLM_AUTH_PROXY_ACCEPT_HTTP" "value" "true")
 -}}
 {{- $out = append $out (dict "name" "LANGSMITH_TRACING" "value" (ternary "true" "false" .Values.insights.enableTracing)) }}
@@ -119,11 +117,11 @@ Extra env vars for polly api-server and queue pods.
 {{- define "langsmith.polly.extraEnv" -}}
 {{- $ns := .Values.namespace | default .Release.Namespace -}}
 {{- $cd := .Values.clusterDomain -}}
-{{- $platformBackend := printf "http://%s-%s.%s.svc.%s:%v" (include "langsmith.fullname" .) .Values.platformBackend.name $ns $cd .Values.platformBackend.service.port -}}
+{{- $frontend := printf "http://%s-%s.%s.svc.%s:%v" (include "langsmith.fullname" .) .Values.frontend.name $ns $cd .Values.frontend.service.httpPort -}}
 {{- $out := list
-  (dict "name" "GO_ENDPOINT" "value" $platformBackend)
-  (dict "name" "LANGSMITH_AUTH_ENDPOINT" "value" $platformBackend)
-  (dict "name" "LANGCHAIN_ENDPOINT" "value" $platformBackend)
+  (dict "name" "GO_ENDPOINT" "value" (printf "%s/api/v1" $frontend))
+  (dict "name" "LANGSMITH_AUTH_ENDPOINT" "value" (printf "%s/api/v1" $frontend))
+  (dict "name" "LANGCHAIN_ENDPOINT" "value" (printf "%s/api/v1" $frontend))
   (dict "name" "LLM_AUTH_PROXY_ACCEPT_HTTP" "value" "true")
 -}}
 {{- $out = append $out (dict "name" "LANGSMITH_TRACING" "value" (ternary "true" "false" .Values.polly.enableTracing)) }}
