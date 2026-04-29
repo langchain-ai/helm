@@ -123,7 +123,7 @@ Extra env vars for polly api-server and queue pods.
   (dict "name" "LANGSMITH_AUTH_ENDPOINT" "value" (printf "%s/api/v1" $frontend))
   (dict "name" "LANGCHAIN_ENDPOINT" "value" (printf "%s/api/v1" $frontend))
   (dict "name" "LLM_AUTH_PROXY_ACCEPT_HTTP" "value" "true")
-  (dict "name" "LANGSMITH_TRACING" "value" "false")
+  (dict "name" "LANGSMITH_TRACING" "value" (ternary "false" "true" .Values.polly.enableTracing))
 -}}
 {{- $secretName := include "langsmith.secretsName" . }}
 {{- $out = concat $out (list
