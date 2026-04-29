@@ -101,8 +101,8 @@ Extra env vars for insights api-server and queue pods.
   (dict "name" "LANGSMITH_AUTH_ENDPOINT" "value" (printf "%s/api/v1" $frontend))
   (dict "name" "LANGCHAIN_ENDPOINT" "value" (printf "%s/api/v1" $frontend))
   (dict "name" "LLM_AUTH_PROXY_ACCEPT_HTTP" "value" "true")
+  (dict "name" "LANGSMITH_TRACING" "value" "false")
 -}}
-{{- $out = append $out (dict "name" "LANGSMITH_TRACING" "value" (ternary "true" "false" .Values.insights.enableTracing)) }}
 {{- $secretName := include "langsmith.secretsName" . }}
 {{- $out = concat $out (list
   (dict "name" "CLIO_ENCRYPTION_KEY" "valueFrom" (dict "secretKeyRef" (dict "name" $secretName "key" "insights_encryption_key")))
@@ -123,8 +123,8 @@ Extra env vars for polly api-server and queue pods.
   (dict "name" "LANGSMITH_AUTH_ENDPOINT" "value" (printf "%s/api/v1" $frontend))
   (dict "name" "LANGCHAIN_ENDPOINT" "value" (printf "%s/api/v1" $frontend))
   (dict "name" "LLM_AUTH_PROXY_ACCEPT_HTTP" "value" "true")
+  (dict "name" "LANGSMITH_TRACING" "value" "false")
 -}}
-{{- $out = append $out (dict "name" "LANGSMITH_TRACING" "value" (ternary "true" "false" .Values.polly.enableTracing)) }}
 {{- $secretName := include "langsmith.secretsName" . }}
 {{- $out = concat $out (list
   (dict "name" "POLLY_ENCRYPTION_KEY" "valueFrom" (dict "secretKeyRef" (dict "name" $secretName "key" "polly_encryption_key")))
