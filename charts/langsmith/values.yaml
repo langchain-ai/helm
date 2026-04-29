@@ -130,6 +130,7 @@ istioGateway:
 fleet:
   enabled: false
   namePrefix: "standalone-fleet"
+  enableTracing: true
   encryptionKey: ""
   oauth:
     providerOrgId: ""
@@ -397,6 +398,7 @@ fleet:
 insights:
   enabled: false
   namePrefix: "standalone-insights"
+  enableTracing: true
   encryptionKey: ""
   apiServer:
     name: "api-server"
@@ -651,6 +653,7 @@ insights:
 polly:
   enabled: false
   namePrefix: "standalone-polly"
+  enableTracing: true
   encryptionKey: ""
   apiServer:
     name: "api-server"

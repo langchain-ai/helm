@@ -67,10 +67,10 @@ Extra env vars for fleet api-server and queue pods.
 {{- define "langsmith.fleet.extraEnv" -}}
 {{- $ns := .Values.namespace | default .Release.Namespace -}}
 {{- $cd := .Values.clusterDomain -}}
-{{- $platformBackend := printf "http://%s-%s.%s.svc.%s:%v" (include "langsmith.fullname" .) .Values.platformBackend.name $ns $cd .Values.platformBackend.containerPort -}}
-{{- $backend := printf "http://%s-%s.%s.svc.%s:%v" (include "langsmith.fullname" .) .Values.backend.name $ns $cd .Values.backend.containerPort -}}
-{{- $hostBackend := printf "http://%s-%s.%s.svc.%s:%v" (include "langsmith.fullname" .) .Values.hostBackend.name $ns $cd .Values.hostBackend.containerPort -}}
-{{- $toolServer := printf "http://%s-%s.%s.svc.%s:%v" (include "langsmith.fullname" .) .Values.agentBuilderToolServer.name $ns $cd .Values.agentBuilderToolServer.containerPort -}}
+{{- $platformBackend := printf "http://%s-%s.%s.svc.%s:%v" (include "langsmith.fullname" .) .Values.platformBackend.name $ns $cd .Values.platformBackend.service.port -}}
+{{- $backend := printf "http://%s-%s.%s.svc.%s:%v" (include "langsmith.fullname" .) .Values.backend.name $ns $cd .Values.backend.service.port -}}
+{{- $hostBackend := printf "http://%s-%s.%s.svc.%s:%v" (include "langsmith.fullname" .) .Values.hostBackend.name $ns $cd .Values.hostBackend.service.port -}}
+{{- $toolServer := printf "http://%s-%s.%s.svc.%s:%v" (include "langsmith.fullname" .) .Values.agentBuilderToolServer.name $ns $cd .Values.agentBuilderToolServer.service.port -}}
 {{- $out := list
   (dict "name" "GO_ENDPOINT" "value" $platformBackend)
   (dict "name" "LANGSMITH_AUTH_ENDPOINT" "value" $platformBackend)
@@ -80,6 +80,9 @@ Extra env vars for fleet api-server and queue pods.
   (dict "name" "MCP_SERVER_URL" "value" $toolServer)
   (dict "name" "LANGSMITH_LICENSE_REQUIRED_CLAIMS" "value" "agent_builder_enabled")
 -}}
+{{- if .Values.fleet.enableTracing }}
+{{- $out = append $out (dict "name" "TENANT_AWARE_TRACING_ENABLED" "value" "true") }}
+{{- end }}
 {{- $secretName := include "langsmith.secretsName" . }}
 {{- $out = concat $out (list
   (dict "name" "AGENT_BUILDER_ENCRYPTION_KEY" "valueFrom" (dict "secretKeyRef" (dict "name" $secretName "key" "agent_builder_encryption_key")))
@@ -94,13 +97,14 @@ Extra env vars for insights api-server and queue pods.
 {{- define "langsmith.insights.extraEnv" -}}
 {{- $ns := .Values.namespace | default .Release.Namespace -}}
 {{- $cd := .Values.clusterDomain -}}
-{{- $platformBackend := printf "http://%s-%s.%s.svc.%s:%v" (include "langsmith.fullname" .) .Values.platformBackend.name $ns $cd .Values.platformBackend.containerPort -}}
+{{- $platformBackend := printf "http://%s-%s.%s.svc.%s:%v" (include "langsmith.fullname" .) .Values.platformBackend.name $ns $cd .Values.platformBackend.service.port -}}
 {{- $out := list
   (dict "name" "GO_ENDPOINT" "value" $platformBackend)
   (dict "name" "LANGSMITH_AUTH_ENDPOINT" "value" $platformBackend)
   (dict "name" "LANGCHAIN_ENDPOINT" "value" $platformBackend)
   (dict "name" "LLM_AUTH_PROXY_ACCEPT_HTTP" "value" "true")
 -}}
+{{- $out = append $out (dict "name" "LANGSMITH_TRACING" "value" (ternary "true" "false" .Values.insights.enableTracing)) }}
 {{- $secretName := include "langsmith.secretsName" . }}
 {{- $out = concat $out (list
   (dict "name" "CLIO_ENCRYPTION_KEY" "valueFrom" (dict "secretKeyRef" (dict "name" $secretName "key" "insights_encryption_key")))
@@ -115,13 +119,14 @@ Extra env vars for polly api-server and queue pods.
 {{- define "langsmith.polly.extraEnv" -}}
 {{- $ns := .Values.namespace | default .Release.Namespace -}}
 {{- $cd := .Values.clusterDomain -}}
-{{- $platformBackend := printf "http://%s-%s.%s.svc.%s:%v" (include "langsmith.fullname" .) .Values.platformBackend.name $ns $cd .Values.platformBackend.containerPort -}}
+{{- $platformBackend := printf "http://%s-%s.%s.svc.%s:%v" (include "langsmith.fullname" .) .Values.platformBackend.name $ns $cd .Values.platformBackend.service.port -}}
 {{- $out := list
   (dict "name" "GO_ENDPOINT" "value" $platformBackend)
   (dict "name" "LANGSMITH_AUTH_ENDPOINT" "value" $platformBackend)
   (dict "name" "LANGCHAIN_ENDPOINT" "value" $platformBackend)
   (dict "name" "LLM_AUTH_PROXY_ACCEPT_HTTP" "value" "true")
 -}}
+{{- $out = append $out (dict "name" "LANGSMITH_TRACING" "value" (ternary "true" "false" .Values.polly.enableTracing)) }}
 {{- $secretName := include "langsmith.secretsName" . }}
 {{- $out = concat $out (list
   (dict "name" "POLLY_ENCRYPTION_KEY" "valueFrom" (dict "secretKeyRef" (dict "name" $secretName "key" "polly_encryption_key")))

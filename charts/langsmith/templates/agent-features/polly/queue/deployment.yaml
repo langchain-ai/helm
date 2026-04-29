@@ -1,7 +1,7 @@
 {{- if .Values.polly.enabled }}
 {{- if .Values.polly.queue.enabled -}}
-{{- $volumes := concat .Values.commonVolumes .Values.polly.queue.deployment.volumes -}}
-{{- $volumeMounts := concat .Values.commonVolumeMounts .Values.polly.queue.deployment.volumeMounts -}}
+{{- $volumes := concat .Values.commonVolumes .Values.polly.queue.deployment.volumes (include "langsmith.tlsVolumes" . | fromYamlArray) -}}
+{{- $volumeMounts := concat .Values.commonVolumeMounts .Values.polly.queue.deployment.volumeMounts (include "langsmith.tlsVolumeMounts" . | fromYamlArray) -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -27,8 +27,9 @@ spec:
       app.kubernetes.io/component: {{ include "langsmith.agentFeatures.fullname" (dict "root" . "product" "polly") }}-{{ .Values.polly.queue.name }}
   template:
     metadata:
-      {{- with .Values.polly.queue.deployment.annotations }}
       annotations:
+      {{- include "langsmith.commonPodAnnotations" . | nindent 8 }}
+      {{- with .Values.polly.queue.deployment.annotations }}
         {{- toYaml . | nindent 8 }}
       {{- end }}
       labels:

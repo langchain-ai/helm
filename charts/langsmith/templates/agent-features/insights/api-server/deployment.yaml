@@ -1,6 +1,6 @@
 {{- if .Values.insights.enabled }}
-{{- $volumes := concat .Values.commonVolumes .Values.insights.apiServer.deployment.volumes -}}
-{{- $volumeMounts := concat .Values.commonVolumeMounts .Values.insights.apiServer.deployment.volumeMounts -}}
+{{- $volumes := concat .Values.commonVolumes .Values.insights.apiServer.deployment.volumes (include "langsmith.tlsVolumes" . | fromYamlArray) -}}
+{{- $volumeMounts := concat .Values.commonVolumeMounts .Values.insights.apiServer.deployment.volumeMounts (include "langsmith.tlsVolumeMounts" . | fromYamlArray) -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -26,8 +26,9 @@ spec:
       app.kubernetes.io/component: {{ include "langsmith.agentFeatures.fullname" (dict "root" . "product" "insights") }}-{{ .Values.insights.apiServer.name }}
   template:
     metadata:
-      {{- with .Values.insights.apiServer.deployment.annotations }}
       annotations:
+      {{- include "langsmith.commonPodAnnotations" . | nindent 8 }}
+      {{- with .Values.insights.apiServer.deployment.annotations }}
         {{- toYaml . | nindent 8 }}
       {{- end }}
       labels:
