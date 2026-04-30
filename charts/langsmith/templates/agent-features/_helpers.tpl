@@ -26,14 +26,17 @@ Usage: include "langsmith.agentFeatures.postgresSecretName" (dict "root" . "prod
 {{- end -}}
 
 {{/*
-Redis secret name (shared across all agents via agentsRedis).
-Usage: include "langsmith.agentFeatures.redisSecretName" .
+Redis secret name for a given product.
+Usage: include "langsmith.agentFeatures.redisSecretName" (dict "root" . "product" "fleet")
 */}}
 {{- define "langsmith.agentFeatures.redisSecretName" -}}
-{{- if .Values.agentsRedis.external.existingSecretName }}
-{{- .Values.agentsRedis.external.existingSecretName }}
+{{- $root := index . "root" }}
+{{- $product := index . "product" }}
+{{- $redis := (index $root.Values $product).redis }}
+{{- if $redis.external.existingSecretName }}
+{{- $redis.external.existingSecretName }}
 {{- else }}
-{{- include "langsmith.fullname" . }}-agent-redis
+{{- include "langsmith.agentFeatures.fullname" . }}-redis
 {{- end }}
 {{- end -}}
 

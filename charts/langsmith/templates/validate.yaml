@@ -290,11 +290,15 @@ AWS Marketplace Helm template verification).
 {{- fail "All postgres connection URLs (langsmith, fleet, insights, polly) must be unique. Duplicate URLs were detected." }}
 {{- end }}
 
-{{- /* Validate shared agentsRedis configuration */ -}}
-{{- if $anyAgentEnabled }}
-{{- if .Values.agentsRedis.external.enabled }}
-{{- if and (not .Values.agentsRedis.external.connectionUrl) (not .Values.agentsRedis.external.existingSecretName) }}
-{{- fail "agentsRedis.external.connectionUrl or agentsRedis.external.existingSecretName is required when agentsRedis.external.enabled is true" }}
+{{- /* Validate per-agent redis configuration */ -}}
+{{- range $pair := $agentPairs }}
+{{- $fn := index $pair "n" }}
+{{- $feat := index $.Values $fn }}
+{{- if $feat.enabled }}
+{{- if $feat.redis.external.enabled }}
+{{- if and (not $feat.redis.external.connectionUrl) (not $feat.redis.external.existingSecretName) }}
+{{- fail (printf "%s.redis.external.connectionUrl or %s.redis.external.existingSecretName is required when %s.redis.external.enabled is true" $fn $fn $fn) }}
+{{- end }}
 {{- end }}
 {{- end }}
 {{- end }}

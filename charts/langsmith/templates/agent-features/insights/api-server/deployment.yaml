@@ -71,10 +71,8 @@ spec:
             - name: REDIS_URI
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "langsmith.agentFeatures.redisSecretName" . }}
-                  key: connection_url
-            - name: REDIS_KEY_PREFIX
-              value: "insights"
+                  name: {{ include "langsmith.agentFeatures.redisSecretName" (dict "root" . "product" "insights") }}
+                  key: redis_connection_url
             - name: LANGGRAPH_CLOUD_LICENSE_KEY
               valueFrom:
                 secretKeyRef:

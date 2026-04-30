@@ -328,6 +328,50 @@ fleet:
     pdb:
       enabled: false
       minAvailable: 1
+  redis:
+    name: "redis"
+    containerPort: 6379
+    external:
+      enabled: false
+      connectionUrl: ""
+      existingSecretName: ""
+    statefulSet:
+      labels: {}
+      annotations: {}
+      podSecurityContext: {}
+      securityContext: {}
+      lifecycle: {}
+      priorityClassName: ""
+      terminationGracePeriodSeconds: 30
+      resources: {}
+      command: []
+      extraContainerConfig: {}
+      extraEnv: []
+      sidecars: []
+      nodeSelector: {}
+      tolerations: []
+      affinity: {}
+      volumes: []
+      volumeMounts: []
+      persistentVolumeClaimRetentionPolicy: {}
+      persistence:
+        enabled: true
+        size: 8Gi
+        storageClassName: ""
+    service:
+      type: ClusterIP
+      port: 6379
+      labels: {}
+      annotations: {}
+    serviceAccount:
+      create: true
+      name: ""
+      labels: {}
+      annotations: {}
+      automountServiceAccountToken: true
+    pdb:
+      enabled: false
+      minAvailable: 1
 insights:
   enabled: false
   namePrefix: "standalone-insights"
@@ -504,6 +548,50 @@ insights:
     service:
       type: ClusterIP
       port: 5432
+      labels: {}
+      annotations: {}
+    serviceAccount:
+      create: true
+      name: ""
+      labels: {}
+      annotations: {}
+      automountServiceAccountToken: true
+    pdb:
+      enabled: false
+      minAvailable: 1
+  redis:
+    name: "redis"
+    containerPort: 6379
+    external:
+      enabled: false
+      connectionUrl: ""
+      existingSecretName: ""
+    statefulSet:
+      labels: {}
+      annotations: {}
+      podSecurityContext: {}
+      securityContext: {}
+      lifecycle: {}
+      priorityClassName: ""
+      terminationGracePeriodSeconds: 30
+      resources: {}
+      command: []
+      extraContainerConfig: {}
+      extraEnv: []
+      sidecars: []
+      nodeSelector: {}
+      tolerations: []
+      affinity: {}
+      volumes: []
+      volumeMounts: []
+      persistentVolumeClaimRetentionPolicy: {}
+      persistence:
+        enabled: true
+        size: 8Gi
+        storageClassName: ""
+    service:
+      type: ClusterIP
+      port: 6379
       labels: {}
       annotations: {}
     serviceAccount:
@@ -707,91 +795,50 @@ polly:
     pdb:
       enabled: false
       minAvailable: 1
-
-# -- Dedicated Redis for agent features (fleet, insights, polly).
-# NOT shared with the main LangSmith redis. Agents share this single instance via REDIS_KEY_PREFIX.
-# Redis has 2 modes:
-#   1. Bundled (default): Chart deploys an agents-redis Deployment.
-#   2. External: You provide your own redis connection URL.
-agentsRedis:
-  name: "standalone-agents-redis"
-  containerPort: 6379
-  external:
-    # -- Set to true to use your own external redis instead of the bundled one.
-    enabled: false
-    connectionUrl: ""
-    existingSecretName: ""
-    connectionUrlSecretKey: "redis_connection_url"
-  statefulSet:
-    labels: {}
-    annotations: {}
-    podSecurityContext: {}
-    securityContext: {}
-    lifecycle: {}
-    priorityClassName: ""
-    terminationGracePeriodSeconds: 30
-    resources: {}
-    command: []
-    startupProbe:
-      exec:
-        command:
-          - /bin/sh
-          - -c
-          - exec redis-cli ping
-      failureThreshold: 6
-      periodSeconds: 10
-      timeoutSeconds: 1
-    readinessProbe:
-      exec:
-        command:
-          - /bin/sh
-          - -c
-          - exec redis-cli ping
-      failureThreshold: 6
-      periodSeconds: 10
-      timeoutSeconds: 1
-    livenessProbe:
-      exec:
-        command:
-          - /bin/sh
-          - -c
-          - exec redis-cli ping
-      failureThreshold: 6
-      periodSeconds: 10
-      timeoutSeconds: 1
-    extraContainerConfig: {}
-    extraEnv: []
-    sidecars: []
-    initContainers: []
-    nodeSelector: {}
-    tolerations: []
-    topologySpreadConstraints: []
-    affinity: {}
-    volumes: []
-    volumeMounts: []
-    persistentVolumeClaimRetentionPolicy: {}
-    persistence:
-      enabled: true
-      size: 20Gi
-      storageClassName: ""
-  service:
-    type: ClusterIP
-    port: 6379
-    labels: {}
-    annotations: {}
-    loadBalancerSourceRanges: []
-    loadBalancerIP: ""
-  serviceAccount:
-    create: true
-    name: ""
-    labels: {}
-    annotations: {}
-    automountServiceAccountToken: true
-  pdb:
-    enabled: false
-    minAvailable: 1
-    labels: {}
-    annotations: {}
+  redis:
+    name: "redis"
+    containerPort: 6379
+    external:
+      enabled: false
+      connectionUrl: ""
+      existingSecretName: ""
+    statefulSet:
+      labels: {}
+      annotations: {}
+      podSecurityContext: {}
+      securityContext: {}
+      lifecycle: {}
+      priorityClassName: ""
+      terminationGracePeriodSeconds: 30
+      resources: {}
+      command: []
+      extraContainerConfig: {}
+      extraEnv: []
+      sidecars: []
+      nodeSelector: {}
+      tolerations: []
+      affinity: {}
+      volumes: []
+      volumeMounts: []
+      persistentVolumeClaimRetentionPolicy: {}
+      persistence:
+        enabled: true
+        size: 8Gi
+        storageClassName: ""
+    service:
+      type: ClusterIP
+      port: 6379
+      labels: {}
+      annotations: {}
+    serviceAccount:
+      create: true
+      name: ""
+      labels: {}
+      annotations: {}
+      automountServiceAccountToken: true
+    pdb:
+      enabled: false
+      minAvailable: 1
 
 config:
   # -- Skip validation checks in validate.yaml. Used by AWS Marketplace for helm template verification.
