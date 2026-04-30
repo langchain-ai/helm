@@ -321,6 +321,60 @@ polly:
         allowPrivilegeEscalation: false
         readOnlyRootFilesystem: true
 
+agentBuilderToolServer:
+  enabled: true
+  deployment:
+    resources:
+      requests:
+        cpu: 50m
+        memory: 300Mi
+    podSecurityContext:
+      runAsNonRoot: true
+      runAsUser: 1000
+      runAsGroup: 1000
+      fsGroup: 1000
+    securityContext:
+      capabilities:
+        drop:
+          - ALL
+      seccompProfile:
+        type: RuntimeDefault
+      allowPrivilegeEscalation: false
+      readOnlyRootFilesystem: true
+    volumes:
+      - name: tmp
+        emptyDir: {}
+    volumeMounts:
+      - name: tmp
+        mountPath: /tmp
+
+agentBuilderTriggerServer:
+  enabled: true
+  deployment:
+    resources:
+      requests:
+        cpu: 50m
+        memory: 300Mi
+    podSecurityContext:
+      runAsNonRoot: true
+      runAsUser: 1000
+      runAsGroup: 1000
+      fsGroup: 1000
+    securityContext:
+      capabilities:
+        drop:
+          - ALL
+      seccompProfile:
+        type: RuntimeDefault
+      allowPrivilegeEscalation: false
+      readOnlyRootFilesystem: true
+    volumes:
+      - name: tmp
+        emptyDir: {}
+    volumeMounts:
+      - name: tmp
+        mountPath: /tmp
+
 aceBackend:
   deployment:
     resources:
