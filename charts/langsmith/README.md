@@ -147,29 +147,26 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | fleet.apiServer.deployment.initContainers | list | `[]` |  |
 | fleet.apiServer.deployment.labels | object | `{}` |  |
 | fleet.apiServer.deployment.lifecycle | object | `{}` |  |
-| fleet.apiServer.deployment.livenessProbe.exec.command[0] | string | `"/bin/sh"` |  |
-| fleet.apiServer.deployment.livenessProbe.exec.command[1] | string | `"-c"` |  |
-| fleet.apiServer.deployment.livenessProbe.exec.command[2] | string | `"exec python /api/healthcheck.py"` |  |
 | fleet.apiServer.deployment.livenessProbe.failureThreshold | int | `6` |  |
+| fleet.apiServer.deployment.livenessProbe.httpGet.path | string | `"/ok?check_db=0"` |  |
+| fleet.apiServer.deployment.livenessProbe.httpGet.port | int | `8000` |  |
 | fleet.apiServer.deployment.livenessProbe.periodSeconds | int | `10` |  |
 | fleet.apiServer.deployment.livenessProbe.timeoutSeconds | int | `1` |  |
 | fleet.apiServer.deployment.nodeSelector | object | `{}` |  |
 | fleet.apiServer.deployment.podSecurityContext | object | `{}` |  |
 | fleet.apiServer.deployment.priorityClassName | string | `""` |  |
-| fleet.apiServer.deployment.readinessProbe.exec.command[0] | string | `"/bin/sh"` |  |
-| fleet.apiServer.deployment.readinessProbe.exec.command[1] | string | `"-c"` |  |
-| fleet.apiServer.deployment.readinessProbe.exec.command[2] | string | `"exec python /api/healthcheck.py"` |  |
-| fleet.apiServer.deployment.readinessProbe.failureThreshold | int | `6` |  |
+| fleet.apiServer.deployment.readinessProbe.failureThreshold | int | `3` |  |
+| fleet.apiServer.deployment.readinessProbe.httpGet.path | string | `"/ok?check_db=0"` |  |
+| fleet.apiServer.deployment.readinessProbe.httpGet.port | int | `8000` |  |
 | fleet.apiServer.deployment.readinessProbe.periodSeconds | int | `10` |  |
 | fleet.apiServer.deployment.readinessProbe.timeoutSeconds | int | `1` |  |
 | fleet.apiServer.deployment.replicaCount | int | `1` |  |
 | fleet.apiServer.deployment.resources | object | `{}` |  |
 | fleet.apiServer.deployment.securityContext | object | `{}` |  |
 | fleet.apiServer.deployment.sidecars | list | `[]` |  |
-| fleet.apiServer.deployment.startupProbe.exec.command[0] | string | `"/bin/sh"` |  |
-| fleet.apiServer.deployment.startupProbe.exec.command[1] | string | `"-c"` |  |
-| fleet.apiServer.deployment.startupProbe.exec.command[2] | string | `"exec python /api/healthcheck.py"` |  |
 | fleet.apiServer.deployment.startupProbe.failureThreshold | int | `6` |  |
+| fleet.apiServer.deployment.startupProbe.httpGet.path | string | `"/ok?check_db=1"` |  |
+| fleet.apiServer.deployment.startupProbe.httpGet.port | int | `8000` |  |
 | fleet.apiServer.deployment.startupProbe.periodSeconds | int | `10` |  |
 | fleet.apiServer.deployment.startupProbe.timeoutSeconds | int | `1` |  |
 | fleet.apiServer.deployment.terminationGracePeriodSeconds | int | `30` |  |
@@ -679,29 +676,26 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | polly.apiServer.deployment.initContainers | list | `[]` |  |
 | polly.apiServer.deployment.labels | object | `{}` |  |
 | polly.apiServer.deployment.lifecycle | object | `{}` |  |
-| polly.apiServer.deployment.livenessProbe.exec.command[0] | string | `"/bin/sh"` |  |
-| polly.apiServer.deployment.livenessProbe.exec.command[1] | string | `"-c"` |  |
-| polly.apiServer.deployment.livenessProbe.exec.command[2] | string | `"exec python /api/healthcheck.py"` |  |
 | polly.apiServer.deployment.livenessProbe.failureThreshold | int | `6` |  |
+| polly.apiServer.deployment.livenessProbe.httpGet.path | string | `"/ok?check_db=0"` |  |
+| polly.apiServer.deployment.livenessProbe.httpGet.port | int | `8000` |  |
 | polly.apiServer.deployment.livenessProbe.periodSeconds | int | `10` |  |
 | polly.apiServer.deployment.livenessProbe.timeoutSeconds | int | `1` |  |
 | polly.apiServer.deployment.nodeSelector | object | `{}` |  |
 | polly.apiServer.deployment.podSecurityContext | object | `{}` |  |
 | polly.apiServer.deployment.priorityClassName | string | `""` |  |
-| polly.apiServer.deployment.readinessProbe.exec.command[0] | string | `"/bin/sh"` |  |
-| polly.apiServer.deployment.readinessProbe.exec.command[1] | string | `"-c"` |  |
-| polly.apiServer.deployment.readinessProbe.exec.command[2] | string | `"exec python /api/healthcheck.py"` |  |
-| polly.apiServer.deployment.readinessProbe.failureThreshold | int | `6` |  |
+| polly.apiServer.deployment.readinessProbe.failureThreshold | int | `3` |  |
+| polly.apiServer.deployment.readinessProbe.httpGet.path | string | `"/ok?check_db=0"` |  |
+| polly.apiServer.deployment.readinessProbe.httpGet.port | int | `8000` |  |
 | polly.apiServer.deployment.readinessProbe.periodSeconds | int | `10` |  |
 | polly.apiServer.deployment.readinessProbe.timeoutSeconds | int | `1` |  |
 | polly.apiServer.deployment.replicaCount | int | `1` |  |
 | polly.apiServer.deployment.resources | object | `{}` |  |
 | polly.apiServer.deployment.securityContext | object | `{}` |  |
 | polly.apiServer.deployment.sidecars | list | `[]` |  |
-| polly.apiServer.deployment.startupProbe.exec.command[0] | string | `"/bin/sh"` |  |
-| polly.apiServer.deployment.startupProbe.exec.command[1] | string | `"-c"` |  |
-| polly.apiServer.deployment.startupProbe.exec.command[2] | string | `"exec python /api/healthcheck.py"` |  |
 | polly.apiServer.deployment.startupProbe.failureThreshold | int | `6` |  |
+| polly.apiServer.deployment.startupProbe.httpGet.path | string | `"/ok?check_db=1"` |  |
+| polly.apiServer.deployment.startupProbe.httpGet.port | int | `8000` |  |
 | polly.apiServer.deployment.startupProbe.periodSeconds | int | `10` |  |
 | polly.apiServer.deployment.startupProbe.timeoutSeconds | int | `1` |  |
 | polly.apiServer.deployment.terminationGracePeriodSeconds | int | `30` |  |

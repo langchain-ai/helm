@@ -356,8 +356,8 @@ backend:
     replicas: 1
     resources:
       requests:
-        cpu: 100m
-        memory: 500Mi
+        cpu: 50m
+        memory: 300Mi
     podSecurityContext:
       runAsNonRoot: true
       runAsUser: 1000
@@ -464,8 +464,8 @@ operator:
   deployment:
     resources:
       requests:
-        cpu: 100m
-        memory: 500Mi
+        cpu: 50m
+        memory: 300Mi
     podSecurityContext:
       runAsNonRoot: true
       runAsUser: 1000
@@ -484,8 +484,8 @@ frontend:
   deployment:
     resources:
       requests:
-        cpu: 100m
-        memory: 500Mi
+        cpu: 50m
+        memory: 300Mi
     podSecurityContext:
       runAsNonRoot: true
       runAsUser: 1000
@@ -527,8 +527,8 @@ platformBackend:
     replicas: 1
     resources:
       requests:
-        cpu: 100m
-        memory: 500Mi
+        cpu: 50m
+        memory: 300Mi
     podSecurityContext:
       runAsNonRoot: true
       runAsUser: 1000
@@ -554,8 +554,8 @@ playground:
   deployment:
     resources:
       requests:
-        cpu: 100m
-        memory: 500Mi
+        cpu: 50m
+        memory: 300Mi
     podSecurityContext:
       runAsNonRoot: true
       runAsUser: 1000
@@ -581,8 +581,8 @@ queue:
     replicas: 1
     resources:
       requests:
-        cpu: 100m
-        memory: 500Mi
+        cpu: 50m
+        memory: 300Mi
     podSecurityContext:
       runAsNonRoot: true
       runAsUser: 1000
@@ -605,8 +605,8 @@ postgres:
   statefulSet:
     resources:
       requests:
-        cpu: 200m
-        memory: 500Mi
+        cpu: 100m
+        memory: 300Mi
     podSecurityContext:
       runAsNonRoot: true
       runAsUser: 1000
@@ -635,7 +635,7 @@ redis:
   statefulSet:
     resources:
       requests:
-        cpu: 200m
+        cpu: 100m
         memory: 500Mi
     podSecurityContext:
       runAsNonRoot: true
@@ -655,7 +655,7 @@ clickhouse:
   statefulSet:
     resources:
       requests:
-        cpu: 200m
+        cpu: 100m
         memory: 500Mi
     podSecurityContext:
       runAsNonRoot: true
