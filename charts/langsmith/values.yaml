@@ -714,7 +714,7 @@ polly:
 #   1. Bundled (default): Chart deploys an agents-redis Deployment.
 #   2. External: You provide your own redis connection URL.
 agentsRedis:
-  name: "agents-redis"
+  name: "standalone-agents-redis"
   containerPort: 6379
   external:
     # -- Set to true to use your own external redis instead of the bundled one.
@@ -722,7 +722,7 @@ agentsRedis:
     connectionUrl: ""
     existingSecretName: ""
     connectionUrlSecretKey: "redis_connection_url"
-  deployment:
+  statefulSet:
     labels: {}
     annotations: {}
     podSecurityContext: {}
@@ -769,6 +769,11 @@ agentsRedis:
     affinity: {}
     volumes: []
     volumeMounts: []
+    persistentVolumeClaimRetentionPolicy: {}
+    persistence:
+      enabled: true
+      size: 20Gi
+      storageClassName: ""
   service:
     type: ClusterIP
     port: 6379
@@ -2700,7 +2705,7 @@ redis:
 # Agent Builder Tool Server - provides MCP tool execution capabilities
 agentBuilderToolServer:
   enabled: true
-  name: "agent-builder-tool-server"
+  name: "fleet-tool-server"
   containerPort: 1989
   deployment:
     replicas: 1
@@ -2778,7 +2783,7 @@ agentBuilderToolServer:
 # NOTE: Currently only supports a single replica to prevent duplicate trigger executions
 agentBuilderTriggerServer:
   enabled: true
-  name: "agent-builder-trigger-server"
+  name: "fleet-trigger-server"
   containerPort: 1990
   deployment:
     labels: {}

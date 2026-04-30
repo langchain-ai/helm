@@ -83,7 +83,7 @@ polly:
           memory: 500Mi
 
 agentsRedis:
-  deployment:
+  statefulSet:
     resources:
       requests:
         cpu: 100m
