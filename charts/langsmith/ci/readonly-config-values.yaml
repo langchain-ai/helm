@@ -15,6 +15,366 @@ config:
 ingress:
   enabled: true
 
+fleet:
+  enabled: true
+  encryptionKey: "rQ3qW2rSXP6YZF9N_O0Nga4GkQcW9a9tzFXAtJDVEJo="
+  apiServer:
+    deployment:
+      resources:
+        requests:
+          cpu: 50m
+          memory: 300Mi
+      podSecurityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+      securityContext:
+        capabilities:
+          drop:
+            - ALL
+        seccompProfile:
+          type: RuntimeDefault
+        allowPrivilegeEscalation: false
+        readOnlyRootFilesystem: true
+      volumes:
+        - name: tmp
+          emptyDir: {}
+      volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+  queue:
+    deployment:
+      resources:
+        requests:
+          cpu: 50m
+          memory: 300Mi
+      podSecurityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+      securityContext:
+        capabilities:
+          drop:
+            - ALL
+        seccompProfile:
+          type: RuntimeDefault
+        allowPrivilegeEscalation: false
+        readOnlyRootFilesystem: true
+      volumes:
+        - name: tmp
+          emptyDir: {}
+      volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+  postgres:
+    statefulSet:
+      resources:
+        requests:
+          cpu: 100m
+          memory: 500Mi
+      podSecurityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+      securityContext:
+        capabilities:
+          drop:
+            - ALL
+        seccompProfile:
+          type: RuntimeDefault
+        allowPrivilegeEscalation: false
+        readOnlyRootFilesystem: true
+      volumes:
+        - name: tmp
+          emptyDir: {}
+        - name: postgres
+          emptyDir: {}
+      volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+        - name: postgres
+          mountPath: /run/postgresql
+  redis:
+    statefulSet:
+      resources:
+        requests:
+          cpu: 100m
+          memory: 500Mi
+      podSecurityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+      securityContext:
+        capabilities:
+          drop:
+            - ALL
+        seccompProfile:
+          type: RuntimeDefault
+        allowPrivilegeEscalation: false
+        readOnlyRootFilesystem: true
+
+insights:
+  enabled: true
+  encryptionKey: "rQ3qW2rSXP6YZF9N_O0Nga4GkQcW9a9tzFXAtJDVEJo="
+  apiServer:
+    deployment:
+      resources:
+        requests:
+          cpu: 50m
+          memory: 300Mi
+      podSecurityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+      securityContext:
+        capabilities:
+          drop:
+            - ALL
+        seccompProfile:
+          type: RuntimeDefault
+        allowPrivilegeEscalation: false
+        readOnlyRootFilesystem: true
+      volumes:
+        - name: tmp
+          emptyDir: {}
+      volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+  queue:
+    deployment:
+      resources:
+        requests:
+          cpu: 50m
+          memory: 300Mi
+      podSecurityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+      securityContext:
+        capabilities:
+          drop:
+            - ALL
+        seccompProfile:
+          type: RuntimeDefault
+        allowPrivilegeEscalation: false
+        readOnlyRootFilesystem: true
+      volumes:
+        - name: tmp
+          emptyDir: {}
+      volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+  postgres:
+    statefulSet:
+      resources:
+        requests:
+          cpu: 100m
+          memory: 500Mi
+      podSecurityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+      securityContext:
+        capabilities:
+          drop:
+            - ALL
+        seccompProfile:
+          type: RuntimeDefault
+        allowPrivilegeEscalation: false
+        readOnlyRootFilesystem: true
+      volumes:
+        - name: tmp
+          emptyDir: {}
+        - name: postgres
+          emptyDir: {}
+      volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+        - name: postgres
+          mountPath: /run/postgresql
+  redis:
+    statefulSet:
+      resources:
+        requests:
+          cpu: 100m
+          memory: 500Mi
+      podSecurityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+      securityContext:
+        capabilities:
+          drop:
+            - ALL
+        seccompProfile:
+          type: RuntimeDefault
+        allowPrivilegeEscalation: false
+        readOnlyRootFilesystem: true
+
+polly:
+  enabled: true
+  encryptionKey: "rQ3qW2rSXP6YZF9N_O0Nga4GkQcW9a9tzFXAtJDVEJo="
+  apiServer:
+    deployment:
+      resources:
+        requests:
+          cpu: 50m
+          memory: 300Mi
+      podSecurityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+      securityContext:
+        capabilities:
+          drop:
+            - ALL
+        seccompProfile:
+          type: RuntimeDefault
+        allowPrivilegeEscalation: false
+        readOnlyRootFilesystem: true
+      volumes:
+        - name: tmp
+          emptyDir: {}
+      volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+  queue:
+    deployment:
+      resources:
+        requests:
+          cpu: 50m
+          memory: 300Mi
+      podSecurityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+      securityContext:
+        capabilities:
+          drop:
+            - ALL
+        seccompProfile:
+          type: RuntimeDefault
+        allowPrivilegeEscalation: false
+        readOnlyRootFilesystem: true
+      volumes:
+        - name: tmp
+          emptyDir: {}
+      volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+  postgres:
+    statefulSet:
+      resources:
+        requests:
+          cpu: 100m
+          memory: 500Mi
+      podSecurityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+      securityContext:
+        capabilities:
+          drop:
+            - ALL
+        seccompProfile:
+          type: RuntimeDefault
+        allowPrivilegeEscalation: false
+        readOnlyRootFilesystem: true
+      volumes:
+        - name: tmp
+          emptyDir: {}
+        - name: postgres
+          emptyDir: {}
+      volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+        - name: postgres
+          mountPath: /run/postgresql
+  redis:
+    statefulSet:
+      resources:
+        requests:
+          cpu: 100m
+          memory: 500Mi
+      podSecurityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+      securityContext:
+        capabilities:
+          drop:
+            - ALL
+        seccompProfile:
+          type: RuntimeDefault
+        allowPrivilegeEscalation: false
+        readOnlyRootFilesystem: true
+
+agentBuilderToolServer:
+  enabled: true
+  deployment:
+    resources:
+      requests:
+        cpu: 50m
+        memory: 300Mi
+    podSecurityContext:
+      runAsNonRoot: true
+      runAsUser: 1000
+      runAsGroup: 1000
+      fsGroup: 1000
+    securityContext:
+      capabilities:
+        drop:
+          - ALL
+      seccompProfile:
+        type: RuntimeDefault
+      allowPrivilegeEscalation: false
+      readOnlyRootFilesystem: true
+    volumes:
+      - name: tmp
+        emptyDir: {}
+    volumeMounts:
+      - name: tmp
+        mountPath: /tmp
+
+agentBuilderTriggerServer:
+  enabled: true
+  deployment:
+    resources:
+      requests:
+        cpu: 50m
+        memory: 300Mi
+    podSecurityContext:
+      runAsNonRoot: true
+      runAsUser: 1000
+      runAsGroup: 1000
+      fsGroup: 1000
+    securityContext:
+      capabilities:
+        drop:
+          - ALL
+      seccompProfile:
+        type: RuntimeDefault
+      allowPrivilegeEscalation: false
+      readOnlyRootFilesystem: true
+    volumes:
+      - name: tmp
+        emptyDir: {}
+    volumeMounts:
+      - name: tmp
+        mountPath: /tmp
+
 aceBackend:
   deployment:
     resources:
@@ -50,8 +410,8 @@ backend:
     replicas: 1
     resources:
       requests:
-        cpu: 100m
-        memory: 500Mi
+        cpu: 50m
+        memory: 300Mi
     podSecurityContext:
       runAsNonRoot: true
       runAsUser: 1000
@@ -117,8 +477,8 @@ hostBackend:
   deployment:
     resources:
       requests:
-        cpu: 100m
-        memory: 500Mi
+        cpu: 50m
+        memory: 300Mi
     podSecurityContext:
       runAsNonRoot: true
       runAsUser: 1000
@@ -137,8 +497,8 @@ listener:
   deployment:
     resources:
       requests:
-        cpu: 100m
-        memory: 500Mi
+        cpu: 50m
+        memory: 300Mi
     podSecurityContext:
       runAsNonRoot: true
       runAsUser: 1000
@@ -158,8 +518,8 @@ operator:
   deployment:
     resources:
       requests:
-        cpu: 100m
-        memory: 500Mi
+        cpu: 50m
+        memory: 300Mi
     podSecurityContext:
       runAsNonRoot: true
       runAsUser: 1000
@@ -178,8 +538,8 @@ frontend:
   deployment:
     resources:
       requests:
-        cpu: 100m
-        memory: 500Mi
+        cpu: 50m
+        memory: 300Mi
     podSecurityContext:
       runAsNonRoot: true
       runAsUser: 1000
@@ -221,8 +581,8 @@ platformBackend:
     replicas: 1
     resources:
       requests:
-        cpu: 100m
-        memory: 500Mi
+        cpu: 50m
+        memory: 300Mi
     podSecurityContext:
       runAsNonRoot: true
       runAsUser: 1000
@@ -248,8 +608,8 @@ playground:
   deployment:
     resources:
       requests:
-        cpu: 100m
-        memory: 500Mi
+        cpu: 50m
+        memory: 300Mi
     podSecurityContext:
       runAsNonRoot: true
       runAsUser: 1000
@@ -275,8 +635,8 @@ queue:
     replicas: 1
     resources:
       requests:
-        cpu: 100m
-        memory: 500Mi
+        cpu: 50m
+        memory: 300Mi
     podSecurityContext:
       runAsNonRoot: true
       runAsUser: 1000
@@ -299,8 +659,8 @@ postgres:
   statefulSet:
     resources:
       requests:
-        cpu: 200m
-        memory: 500Mi
+        cpu: 100m
+        memory: 300Mi
     podSecurityContext:
       runAsNonRoot: true
       runAsUser: 1000
@@ -329,7 +689,7 @@ redis:
   statefulSet:
     resources:
       requests:
-        cpu: 200m
+        cpu: 100m
         memory: 500Mi
     podSecurityContext:
       runAsNonRoot: true
@@ -349,7 +709,7 @@ clickhouse:
   statefulSet:
     resources:
       requests:
-        cpu: 200m
+        cpu: 100m
         memory: 500Mi
     podSecurityContext:
       runAsNonRoot: true

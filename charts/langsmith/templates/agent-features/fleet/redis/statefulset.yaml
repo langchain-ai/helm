@@ -1,0 +1,157 @@
+{{- if .Values.fleet.enabled }}
+{{- if not .Values.fleet.redis.external.enabled }}
+{{- $volumes := concat .Values.commonVolumes .Values.fleet.redis.statefulSet.volumes -}}
+{{- $volumeMounts := concat .Values.commonVolumeMounts .Values.fleet.redis.statefulSet.volumeMounts -}}
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "langsmith.agentFeatures.fullname" (dict "root" . "product" "fleet") }}-{{ .Values.fleet.redis.name }}
+  namespace: {{ .Values.namespace | default .Release.Namespace | quote }}
+  labels:
+    {{- include "langsmith.labels" . | nindent 4 }}
+    {{- with .Values.fleet.redis.statefulSet.labels }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+  annotations:
+    {{- include "langsmith.annotations" . | nindent 4 }}
+    {{- with .Values.fleet.redis.statefulSet.annotations }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  serviceName: {{ include "langsmith.agentFeatures.fullname" (dict "root" . "product" "fleet") }}-{{ .Values.fleet.redis.name }}
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "langsmith.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: {{ include "langsmith.agentFeatures.fullname" (dict "root" . "product" "fleet") }}-{{ .Values.fleet.redis.name }}
+  template:
+    metadata:
+      {{- with .Values.fleet.redis.statefulSet.annotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- with .Values.fleet.redis.statefulSet.labels }}
+            {{- toYaml . | nindent 8 }}
+        {{- end }}
+        {{- include "langsmith.labels" . | nindent 8 }}
+        app.kubernetes.io/component: {{ include "langsmith.agentFeatures.fullname" (dict "root" . "product" "fleet") }}-{{ .Values.fleet.redis.name }}
+    spec:
+      {{- with .Values.images.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if .Values.fleet.redis.statefulSet.priorityClassName }}
+      priorityClassName: {{ .Values.fleet.redis.statefulSet.priorityClassName }}
+      {{- end }}
+      terminationGracePeriodSeconds: {{ .Values.fleet.redis.statefulSet.terminationGracePeriodSeconds }}
+      securityContext:
+        {{- toYaml .Values.fleet.redis.statefulSet.podSecurityContext | nindent 8 }}
+      serviceAccountName: {{ include "langsmith.agentFeatures.fullname" (dict "root" . "product" "fleet") }}-{{ .Values.fleet.redis.name }}
+      {{- include "langsmith.dnsConfig" . | nindent 6 }}
+      containers:
+        - name: {{ .Values.fleet.redis.name }}
+          {{- with .Values.fleet.redis.statefulSet.command }}
+          command:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- if .Values.fleet.redis.statefulSet.extraEnv }}
+          env:
+            {{- toYaml .Values.fleet.redis.statefulSet.extraEnv | nindent 12 }}
+          {{- end }}
+          image: {{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "redisImage") | quote }}
+          imagePullPolicy: {{ .Values.images.redisImage.pullPolicy }}
+          ports:
+            - name: redis
+              containerPort: {{ .Values.fleet.redis.containerPort }}
+              protocol: TCP
+          startupProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - exec redis-cli ping
+            failureThreshold: 6
+            periodSeconds: 10
+            timeoutSeconds: 1
+          readinessProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - exec redis-cli ping
+            failureThreshold: 6
+            periodSeconds: 10
+            timeoutSeconds: 1
+          livenessProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - exec redis-cli ping
+            failureThreshold: 6
+            periodSeconds: 10
+            timeoutSeconds: 1
+          resources:
+            {{- toYaml .Values.fleet.redis.statefulSet.resources | nindent 12 }}
+          securityContext:
+            {{- toYaml .Values.fleet.redis.statefulSet.securityContext | nindent 12 }}
+          {{- with .Values.fleet.redis.statefulSet.lifecycle }}
+          lifecycle:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            {{- with $volumeMounts }}
+              {{- toYaml . | nindent 12 }}
+            {{- end }}
+            {{- if .Values.fleet.redis.statefulSet.persistence.enabled }}
+            - mountPath: /data
+              name: data
+            {{- end }}
+          {{- with .Values.fleet.redis.statefulSet.extraContainerConfig }}
+            {{- toYaml . | nindent 10 }}
+          {{- end }}
+        {{- with .Values.fleet.redis.statefulSet.sidecars }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- with .Values.fleet.redis.statefulSet.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.fleet.redis.statefulSet.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.fleet.redis.statefulSet.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with $volumes }}
+      volumes:
+          {{- toYaml . | nindent 8 }}
+      {{- end }}
+ {{- if .Values.fleet.redis.statefulSet.persistence.enabled }}
+  {{- with .Values.fleet.redis.statefulSet.persistentVolumeClaimRetentionPolicy }}
+  persistentVolumeClaimRetentionPolicy:
+        {{- toYaml . | nindent 4 }}
+  {{- end }}
+  volumeClaimTemplates:
+    - apiVersion: v1
+      kind: PersistentVolumeClaim
+      metadata:
+        name: data
+        labels:
+          {{- include "langsmith.selectorLabels" . | nindent 10 }}
+          app.kubernetes.io/component: {{ include "langsmith.agentFeatures.fullname" (dict "root" . "product" "fleet") }}-{{ .Values.fleet.redis.name }}
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: {{ .Values.fleet.redis.statefulSet.persistence.size }}
+        {{- if .Values.fleet.redis.statefulSet.persistence.storageClassName }}
+        storageClassName: {{ .Values.fleet.redis.statefulSet.persistence.storageClassName }}
+        {{- end }}
+  {{- end }}
+{{- end }}
+{{- end }}
