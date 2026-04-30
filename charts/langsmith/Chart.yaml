@@ -6,4 +6,4 @@ maintainers:
 description: Helm chart to deploy the langsmith application and all services it depends on.
 type: application
 version: 0.15.0-rc.3
-appVersion: "0.15.1rc3"
+appVersion: "0.15.2rc1"
