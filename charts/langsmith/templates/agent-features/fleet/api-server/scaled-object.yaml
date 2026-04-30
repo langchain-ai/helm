@@ -1,0 +1,47 @@
+{{- if .Values.fleet.enabled }}
+{{- if and .Values.fleet.apiServer.autoscaling.enabled .Values.fleet.apiServer.autoscaling.keda.enabled }}
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: {{ include "langsmith.agentFeatures.fullname" (dict "root" . "product" "fleet") }}-{{ .Values.fleet.apiServer.name }}
+  namespace: {{ .Values.namespace | default .Release.Namespace | quote }}
+  labels:
+    {{- include "langsmith.labels" . | nindent 4 }}
+spec:
+  scaleTargetRef:
+    name: {{ include "langsmith.agentFeatures.fullname" (dict "root" . "product" "fleet") }}-{{ .Values.fleet.apiServer.name }}
+  minReplicaCount: {{ .Values.fleet.apiServer.autoscaling.minReplicas | default 1 }}
+  maxReplicaCount: {{ .Values.fleet.apiServer.autoscaling.maxReplicas | default 10 }}
+  pollingInterval: {{ .Values.fleet.apiServer.autoscaling.keda.pollingInterval | default 30 }}
+  cooldownPeriod: {{ .Values.fleet.apiServer.autoscaling.keda.cooldownPeriod | default 300 }}
+  advanced:
+    horizontalPodAutoscalerConfig:
+      behavior:
+        scaleDown:
+          stabilizationWindowSeconds: {{ .Values.fleet.apiServer.autoscaling.keda.scaleDownStabilizationWindowSeconds | default 300 }}
+  triggers:
+    {{- if .Values.fleet.apiServer.autoscaling.targetCPUUtilizationPercentage }}
+    - type: cpu
+      metricType: Utilization
+      metadata:
+        value: "{{ .Values.fleet.apiServer.autoscaling.targetCPUUtilizationPercentage }}"
+    {{- end }}
+    {{- if .Values.fleet.apiServer.autoscaling.targetMemoryUtilizationPercentage }}
+    - type: memory
+      metricType: Utilization
+      metadata:
+        value: "{{ .Values.fleet.apiServer.autoscaling.targetMemoryUtilizationPercentage }}"
+    {{- end }}
+    {{- if not .Values.fleet.queue.enabled }}
+    - type: postgresql
+      metadata:
+        connectionFromEnv: "POSTGRES_URI"
+        query: "SELECT COUNT(*) FROM run WHERE status = 'pending'"
+        targetQueryValue: {{ .Values.fleet.queue.numberOfJobsPerWorker | quote }}
+        activationTargetQueryValue: {{ .Values.fleet.queue.numberOfJobsPerWorker | quote }}
+    {{- end }}
+    {{- with .Values.fleet.apiServer.autoscaling.keda.additionalTriggers }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+{{- end }}
+{{- end }}

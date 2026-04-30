@@ -245,3 +245,60 @@ AWS Marketplace Helm template verification).
 {{- end -}}
 
 {{- end -}}{{- /* end skipValidation */ -}}
+
+{{- /* Validate agent feature (fleet/insights/polly) configuration */ -}}
+{{- $anyAgentEnabled := or .Values.fleet.enabled .Values.insights.enabled .Values.polly.enabled }}
+{{- $allPgUrls := list }}
+{{- /* Include the main LangSmith postgres URL if determinable */ -}}
+{{- if and .Values.postgres.external.enabled (not .Values.postgres.external.existingSecretName) }}
+{{- $mainPg := "" }}
+{{- if .Values.postgres.external.connectionUrl }}
+{{- $mainPg = trimAll " " .Values.postgres.external.connectionUrl }}
+{{- else if .Values.postgres.external.host }}
+{{- $mainPg = printf "postgres://%s:%s@%s:%s/%s?sslmode=disable" .Values.postgres.external.user .Values.postgres.external.password .Values.postgres.external.host (toString .Values.postgres.external.port) .Values.postgres.external.database }}
+{{- end }}
+{{- if $mainPg }}
+{{- $allPgUrls = append $allPgUrls $mainPg }}
+{{- end }}
+{{- end }}
+{{- $agentPairs := list (dict "n" "fleet" "c" "standalone-fleet") (dict "n" "insights" "c" "standalone-insights") (dict "n" "polly" "c" "standalone-polly") }}
+{{- range $pair := $agentPairs }}
+{{- $fn := index $pair "n" }}
+{{- $feat := index $.Values $fn }}
+{{- if $feat.enabled }}
+{{- if and (not $feat.encryptionKey) (not $.Values.config.existingSecretName) }}
+{{- fail (printf "%s.encryptionKey is required when %s.enabled is true (not needed if config.existingSecretName is set with the key already present)" $fn $fn) }}
+{{- end }}
+{{- if $feat.postgres.external.enabled }}
+{{- if not $feat.postgres.external.existingSecretName }}
+{{- $pg := "" }}
+{{- if $feat.postgres.external.connectionUrl }}
+{{- $pg = trimAll " " $feat.postgres.external.connectionUrl }}
+{{- else if not $feat.postgres.external.host }}
+{{- fail (printf "%s.postgres.external.host or connectionUrl or existingSecretName is required when %s.postgres.external.enabled is true" $fn $fn) }}
+{{- else }}
+{{- $pg = printf "postgres://%s:%s@%s:%s/%s?sslmode=disable" $feat.postgres.external.user $feat.postgres.external.password $feat.postgres.external.host (toString $feat.postgres.external.port) $feat.postgres.external.database }}
+{{- end }}
+{{- if $pg }}
+{{- $allPgUrls = append $allPgUrls $pg }}
+{{- end }}
+{{- end }}
+{{- end }}
+{{- end }}
+{{- end }}
+{{- if and (gt (len $allPgUrls) 0) (ne (len $allPgUrls) (len (uniq $allPgUrls))) }}
+{{- fail "All postgres connection URLs (langsmith, fleet, insights, polly) must be unique. Duplicate URLs were detected." }}
+{{- end }}
+
+{{- /* Validate per-agent redis configuration */ -}}
+{{- range $pair := $agentPairs }}
+{{- $fn := index $pair "n" }}
+{{- $feat := index $.Values $fn }}
+{{- if $feat.enabled }}
+{{- if $feat.redis.external.enabled }}
+{{- if and (not $feat.redis.external.connectionUrl) (not $feat.redis.external.existingSecretName) }}
+{{- fail (printf "%s.redis.external.connectionUrl or %s.redis.external.existingSecretName is required when %s.redis.external.enabled is true" $fn $fn $fn) }}
+{{- end }}
+{{- end }}
+{{- end }}
+{{- end }}

@@ -1,0 +1,22 @@
+{{- if .Values.fleet.enabled }}
+{{- if .Values.fleet.postgres.pdb.enabled }}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "langsmith.agentFeatures.fullname" (dict "root" . "product" "fleet") }}-{{ .Values.fleet.postgres.name }}
+  namespace: {{ .Values.namespace | default .Release.Namespace | quote }}
+  labels:
+    {{- include "langsmith.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "langsmith.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: {{ include "langsmith.agentFeatures.fullname" (dict "root" . "product" "fleet") }}-{{ .Values.fleet.postgres.name }}
+  {{- if .Values.fleet.postgres.pdb.minAvailable }}
+  minAvailable: {{ .Values.fleet.postgres.pdb.minAvailable }}
+  {{- end }}
+  {{- if .Values.fleet.postgres.pdb.maxUnavailable }}
+  maxUnavailable: {{ .Values.fleet.postgres.pdb.maxUnavailable }}
+  {{- end }}
+{{- end }}
+{{- end }}
