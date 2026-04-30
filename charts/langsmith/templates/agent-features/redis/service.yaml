@@ -1,0 +1,37 @@
+{{- if or .Values.fleet.enabled .Values.insights.enabled .Values.polly.enabled }}
+{{- if not .Values.agentsRedis.external.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "langsmith.fullname" . }}-{{ .Values.agentsRedis.name }}
+  namespace: {{ .Values.namespace | default .Release.Namespace | quote }}
+  labels:
+    {{- include "langsmith.labels" . | nindent 4 }}
+    app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-{{ .Values.agentsRedis.name }}
+    {{- with .Values.agentsRedis.service.labels }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+  annotations:
+    {{- include "langsmith.annotations" . | nindent 4 }}
+    {{- with .Values.agentsRedis.service.annotations }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  type: {{ .Values.agentsRedis.service.type }}
+  ports:
+    - name: redis
+      port: {{ .Values.agentsRedis.service.port }}
+      targetPort: redis
+      protocol: TCP
+  {{- with .Values.agentsRedis.service.loadBalancerSourceRanges }}
+  loadBalancerSourceRanges:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- if .Values.agentsRedis.service.loadBalancerIP }}
+  loadBalancerIP: {{ .Values.agentsRedis.service.loadBalancerIP }}
+  {{- end }}
+  selector:
+    {{- include "langsmith.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-{{ .Values.agentsRedis.name }}
+{{- end }}
+{{- end }}

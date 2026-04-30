@@ -37,12 +37,6 @@ fleet:
         requests:
           cpu: 100m
           memory: 500Mi
-  redis:
-    deployment:
-      resources:
-        requests:
-          cpu: 100m
-          memory: 500Mi
 
 insights:
   enabled: true
@@ -61,12 +55,6 @@ insights:
           memory: 300Mi
   postgres:
     statefulSet:
-      resources:
-        requests:
-          cpu: 100m
-          memory: 500Mi
-  redis:
-    deployment:
       resources:
         requests:
           cpu: 100m
@@ -93,12 +81,13 @@ polly:
         requests:
           cpu: 100m
           memory: 500Mi
-  redis:
-    deployment:
-      resources:
-        requests:
-          cpu: 100m
-          memory: 500Mi
+
+agentsRedis:
+  deployment:
+    resources:
+      requests:
+        cpu: 100m
+        memory: 500Mi
 
 aceBackend:
   deployment:
