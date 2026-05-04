@@ -77,6 +77,9 @@ Extra env vars for fleet api-server and queue pods.
   (dict "name" "HOST_BACKEND_ENDPOINT" "value" (printf "%s/api-host" $frontend))
   (dict "name" "MCP_SERVER_URL" "value" $toolServer)
   (dict "name" "LANGSMITH_LICENSE_REQUIRED_CLAIMS" "value" "agent_builder_enabled")
+  (dict "name" "SSRF_ALLOW_PRIVATE_IPS_MCP_SERVERS" "value" "true")
+  (dict "name" "SSRF_ALLOW_PRIVATE_IPS_TOOLS" "value" "true")
+  (dict "name" "SSRF_ALLOW_K8S_INTERNAL" "value" "true")
 -}}
 {{- if .Values.fleet.enableTracing }}
 {{- $out = append $out (dict "name" "TENANT_AWARE_TRACING_ENABLED" "value" "true") }}
