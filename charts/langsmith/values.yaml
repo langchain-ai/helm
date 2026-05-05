@@ -838,7 +838,6 @@ config:
   deployment:
       # -- Optional. Used to enable the LangSmith Deployments feature. Requires additional setup. Refer to the documentation for more information.
     enabled: false
-    dataPlaneOnly: false
     # -- Base path for LangSmith Deployments routes managed by the operator.
     basePath: ""
     tlsEnabled: true
