@@ -40,10 +40,14 @@ data:
   SMITH_BACKEND_ENDPOINT: "http://{{ include "langsmith.fullname" . }}-{{.Values.backend.name}}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.backend.service.port }}"
   HOST_BACKEND_ENDPOINT: "http://{{ include "langsmith.fullname" . }}-{{.Values.hostBackend.name}}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.hostBackend.service.port }}"
   {{- if .Values.config.deployment.enabled }}
+  {{- if not .Values.frontend.enabled }}
+  HOST_LANGCHAIN_API_ENDPOINT: "http://{{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.backend.service.port }}/api/v1"
+  {{- else }}
   {{- if .Values.config.basePath }}
   HOST_LANGCHAIN_API_ENDPOINT: "http://{{ include "langsmith.fullname" . }}-{{ .Values.frontend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.frontend.service.httpPort }}/{{ .Values.config.basePath}}/api/v1"
   {{- else }}
   HOST_LANGCHAIN_API_ENDPOINT: "http://{{ include "langsmith.fullname" . }}-{{ .Values.frontend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.frontend.service.httpPort }}/api/v1"
+  {{- end }}
   {{- end }}
   {{- end }}
   FF_RUN_STATS_GROUP_BY_ENABLED_ALL: "true"
