@@ -118,7 +118,7 @@ gateway:
   annotations: {}
   labels: {}
 
-# Whether to use Istio Gateway for ingress. Will create a VirtualService for LangSmith and a VirtualService for each LangSmith Deployment.
+# Whether to use Istio Gateway for ingress. Will create a VirtualService for LangSmith, unless data-plane-only mode is enabled, and a VirtualService for each LangSmith Deployment.
 istioGateway:
   enabled: false
   name: "istio-gateway"
@@ -840,7 +840,7 @@ config:
     enabled: false
     # -- Enable LangSmith Deployments components in a data-plane-only install without requiring the frontend.
     dataPlaneOnly: false
-    # -- Base path for LangSmith Deployments (LGP) routes managed by the operator.
+    # -- Base path for LangSmith Deployments routes managed by the operator.
     basePath: ""
     tlsEnabled: true
     # Disable this if there is restricted access to the external facing ingress endpoint for your agent(s) from inside of your kubernetes cluster.
