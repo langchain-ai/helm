@@ -42,7 +42,6 @@ data:
   {{- if .Values.config.deployment.enabled }}
   {{- if not .Values.frontend.enabled }}
   HOST_LANGCHAIN_API_ENDPOINT: "http://{{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.backend.service.port }}/api/v1"
-  HOST_LANGCHAIN_PRIVATE_API_ENDPOINT: "http://{{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.backend.service.port }}/api/v1"
   {{- else }}
   {{- if .Values.config.basePath }}
   HOST_LANGCHAIN_API_ENDPOINT: "http://{{ include "langsmith.fullname" . }}-{{ .Values.frontend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.frontend.service.httpPort }}/{{ .Values.config.basePath}}/api/v1"
