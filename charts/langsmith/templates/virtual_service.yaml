@@ -1,4 +1,4 @@
-{{- if .Values.istioGateway.enabled }}
+{{- if and .Values.istioGateway.enabled (not .Values.config.deployment.dataPlaneOnly) }}
 apiVersion: networking.istio.io/v1
 kind: VirtualService
 metadata:

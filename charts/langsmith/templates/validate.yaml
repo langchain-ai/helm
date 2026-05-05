@@ -20,18 +20,18 @@ AWS Marketplace Helm template verification).
 
 {{- /* Validate ingress configuration */ -}}
 # Fail if none of ingress, gateway, or istioGateway are enabled and LangSmith Deployment is enabled
-{{- if and (not .Values.ingress.enabled) (not .Values.gateway.enabled) (not .Values.istioGateway.enabled) .Values.config.deployment.enabled }}
-{{- fail "Either ingress, gateway, or istioGateway must be enabled if LangGraph Platform is enabled." -}}
+{{- if and (not .Values.config.deployment.dataPlaneOnly) (not .Values.ingress.enabled) (not .Values.gateway.enabled) (not .Values.istioGateway.enabled) .Values.config.deployment.enabled }}
+{{- fail "Either ingress, gateway, or istioGateway must be enabled if LangSmith Deployments is enabled." -}}
 {{- end -}}
 
 {{- /* Validate frontend configuration */ -}}
-# Fail if frontend is disabled while ingress/gateway/istioGateway is enabled (they route to the frontend service)
+# Fail if frontend is disabled while a chart-managed frontend route is enabled
 {{- if not .Values.frontend.enabled }}
-{{- if or .Values.ingress.enabled .Values.gateway.enabled .Values.istioGateway.enabled -}}
-{{- fail "frontend.enabled must be true when ingress, gateway, or istioGateway is enabled. These resources route traffic to the frontend service." -}}
+{{- if or .Values.ingress.enabled .Values.gateway.enabled (and .Values.istioGateway.enabled (not .Values.config.deployment.dataPlaneOnly)) -}}
+{{- fail "frontend.enabled must be true when ingress, gateway, or non-data-plane-only istioGateway is enabled. These resources route traffic to the frontend service." -}}
 {{- end -}}
 # Fail if frontend is disabled while LangSmith Deployments is enabled (HOST_LANGCHAIN_API_ENDPOINT routes through the frontend service)
-{{- if .Values.config.deployment.enabled -}}
+{{- if and .Values.config.deployment.enabled (not .Values.config.deployment.dataPlaneOnly) -}}
 {{- fail "frontend.enabled must be true when config.deployment.enabled is true. LangSmith Deployments routes traffic through the frontend service." -}}
 {{- end -}}
 {{- end -}}
@@ -39,13 +39,13 @@ AWS Marketplace Helm template verification).
 # Fail if Istio + LGP + basePath is set without a distinct LGP base path
 {{- if and .Values.istioGateway.enabled .Values.config.deployment.enabled .Values.config.basePath -}}
   {{- if or (not .Values.config.deployment.basePath) (eq .Values.config.deployment.basePath .Values.config.basePath) -}}
-{{- fail "When istioGateway is enabled with LangGraph Platform and config.basePath is set, you must set config.deployment.basePath to a different value to avoid overlapping VirtualService prefixes. Istio does not deterministically guarantee longest-prefix routing across multiple VirtualServices." -}}
+{{- fail "When istioGateway is enabled with LangSmith Deployments and config.basePath is set, you must set config.deployment.basePath to a different value to avoid overlapping VirtualService prefixes. Istio does not deterministically guarantee longest-prefix routing across multiple VirtualServices." -}}
   {{- end -}}
 {{- end -}}
 
 # Fail if hostname is missing when deployment is enabled
-{{- if and .Values.config.deployment.enabled (not .Values.config.hostname) }}
-{{- fail "config.hostname is required when LangGraph Platform deployment is enabled." -}}
+{{- if and .Values.config.deployment.enabled (not .Values.config.deployment.dataPlaneOnly) (not .Values.config.hostname) }}
+{{- fail "config.hostname is required when LangSmith Deployments is enabled." -}}
 {{- end -}}
 
 # Fail if rootDomain is missing when deployment is enabled

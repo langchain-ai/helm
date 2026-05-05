@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.15.0-rc.4](https://img.shields.io/badge/Version-0.15.0--rc.4-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.15.2rc3](https://img.shields.io/badge/AppVersion-0.15.2rc3-informational?style=flat-square)
+![Version: 0.15.0-rc.5](https://img.shields.io/badge/Version-0.15.0--rc.5-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.15.2rc3](https://img.shields.io/badge/AppVersion-0.15.2rc3-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -874,7 +874,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | config.agentBuilder.oauthProviderOrgId | string | `""` |  |
 | config.apiKeySalt | string | `""` | Salt used to generate the API key. Should be a random string. |
 | config.authType | string | `""` | Must be 'oauth' for OAuth with PKCE, 'mixed' for basic auth or OAuth without PKCE |
-| config.basePath | string | `""` | Base path for the LangSmith installation. Used to serve the app under a subpath like example.com/langsmith. WARNING: Changing basePath after LangGraph Platform deployments have been created will break existing deployments. Existing deployments will need to be recreated for the new basePath to take effect. |
+| config.basePath | string | `""` | Base path for the LangSmith installation. Used to serve the app under a subpath like example.com/langsmith. WARNING: Changing basePath after LangSmith Deployments have been created will break existing deployments. Existing deployments will need to be recreated for the new basePath to take effect. |
 | config.basicAuth.enabled | bool | `false` |  |
 | config.basicAuth.initialOrgAdminPassword | string | `""` |  |
 | config.basicAuth.jwtSecret | string | `""` |  |
@@ -899,8 +899,9 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | config.customErrorSupportMessage | string | `""` | Custom error support message displayed on error pages (plain text). If empty, defaults to the built-in support messages with support@langchain.dev links. |
 | config.customLogo | object | `{"coBrandingEnabled":true,"enabled":false,"logoUrl":""}` | Custom logo configuration. If enabled, the logoUrl and coBrandingEnabled values must be provided. The logoUrl must be a valid URL to an image like png, jpg, or svg. Co-branding will show LangSmith and customer logos side by side. |
 | config.defaultWorkspaceName | string | `"Workspace 1"` | Default workspace name to be provisioned when org is created. |
-| config.deployment | object | `{"basePath":"","enabled":false,"ingressHealthCheckEnabled":true,"tlsEnabled":true}` | Configuration for LangSmith Deployments features |
-| config.deployment.basePath | string | `""` | Base path for LangGraph Platform (LGP) routes managed by the operator. |
+| config.deployment | object | `{"basePath":"","dataPlaneOnly":false,"enabled":false,"ingressHealthCheckEnabled":true,"tlsEnabled":true}` | Configuration for LangSmith Deployments features |
+| config.deployment.basePath | string | `""` | Base path for LangSmith Deployments (LGP) routes managed by the operator. |
+| config.deployment.dataPlaneOnly | bool | `false` | Enable LangSmith Deployments components in a data-plane-only install without requiring the frontend. |
 | config.deployment.enabled | bool | `false` | Optional. Used to enable the LangSmith Deployments feature. Requires additional setup. Refer to the documentation for more information. |
 | config.disableSecretCreation | bool | `false` |  |
 | config.existingSecretName | string | `""` |  |
