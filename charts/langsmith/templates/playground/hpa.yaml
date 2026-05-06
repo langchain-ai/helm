@@ -1,4 +1,4 @@
-{{- if .Values.playground.autoscaling.hpa.enabled }}
+{{- if and .Values.playground.enabled .Values.playground.autoscaling.hpa.enabled }}
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:

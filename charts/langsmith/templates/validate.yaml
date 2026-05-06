@@ -18,6 +18,38 @@ AWS Marketplace Helm template verification).
 
 {{- if not .Values.config.skipValidation -}}
 
+{{- /* Validate Fleet/minimal LangSmith profile configuration */ -}}
+{{- $fleetMinimalLangsmith := .Values.config.fleetMinimalLangsmith | default dict -}}
+{{- if ($fleetMinimalLangsmith.enabled | default false) -}}
+{{- if not .Values.frontend.enabled -}}
+{{- fail "frontend.enabled must be true when config.fleetMinimalLangsmith.enabled is true. Fleet/minimal LangSmith uses the frontend nginx router for API, MCP, and trigger paths." -}}
+{{- end -}}
+{{- if not .Values.fleet.enabled -}}
+{{- fail "fleet.enabled must be true when config.fleetMinimalLangsmith.enabled is true." -}}
+{{- end -}}
+{{- if .Values.config.deployment.enabled -}}
+{{- fail "config.deployment.enabled must be false when config.fleetMinimalLangsmith.enabled is true. Standalone LangGraph/LSD must be deployed as sibling infrastructure for this profile." -}}
+{{- end -}}
+{{- if .Values.config.agentBuilder.enabled -}}
+{{- fail "config.agentBuilder.enabled must be false when config.fleetMinimalLangsmith.enabled is true. Use fleet.enabled and the Fleet services instead of LangSmith-managed Agent Builder deployments." -}}
+{{- end -}}
+{{- if .Values.config.insights.enabled -}}
+{{- fail "config.insights.enabled must be false when config.fleetMinimalLangsmith.enabled is true." -}}
+{{- end -}}
+{{- if .Values.config.polly.enabled -}}
+{{- fail "config.polly.enabled must be false when config.fleetMinimalLangsmith.enabled is true." -}}
+{{- end -}}
+{{- if .Values.insights.enabled -}}
+{{- fail "insights.enabled must be false when config.fleetMinimalLangsmith.enabled is true." -}}
+{{- end -}}
+{{- if .Values.polly.enabled -}}
+{{- fail "polly.enabled must be false when config.fleetMinimalLangsmith.enabled is true." -}}
+{{- end -}}
+{{- if and .Values.agentBuilderTriggerServer.enabled (not .Values.hostBackend.enabled) -}}
+{{- fail "hostBackend.enabled must be true when config.fleetMinimalLangsmith.enabled is true and agentBuilderTriggerServer.enabled is true. Trigger OAuth/provider flows still depend on host-backend in this profile." -}}
+{{- end -}}
+{{- end -}}
+
 {{- /* Validate ingress configuration */ -}}
 # Fail if none of ingress, gateway, or istioGateway are enabled and LangSmith Deployment is enabled with the chart-managed frontend
 {{- if and .Values.frontend.enabled (not .Values.ingress.enabled) (not .Values.gateway.enabled) (not .Values.istioGateway.enabled) .Values.config.deployment.enabled }}
@@ -181,8 +213,17 @@ AWS Marketplace Helm template verification).
 {{- end -}}
 
 {{- /* Validate clickhouse mTLS configuration */ -}}
+{{- if eq .Values.clickhouse.enabled false -}}
+{{- if .Values.clickhouse.external.enabled -}}
+{{- fail "clickhouse.external.enabled must be false when clickhouse.enabled is false." -}}
+{{- end -}}
+{{- if .Values.backend.clickhouseMigrations.enabled -}}
+{{- fail "backend.clickhouseMigrations.enabled must be false when clickhouse.enabled is false." -}}
+{{- end -}}
+{{- else -}}
 {{- if and .Values.clickhouse.external.clientCert.secretName (not .Values.clickhouse.external.existingSecretName) (not .Values.clickhouse.external.tls) -}}
 {{- fail "clickhouse.external.tls must be true when clickhouse.external.clientCert.secretName is set and the value is not being fetched from an existing secret." -}}
+{{- end -}}
 {{- end -}}
 
 {{- /* Validate agent builder configuration */ -}}

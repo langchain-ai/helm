@@ -4,6 +4,7 @@
 - name: BIND_ADDRESS
   value: {{ .Values.aceBackend.bindAddress | quote }}
 {{- end -}}
+{{- if .Values.aceBackend.enabled }}
 {{- $envVars := concat (include "aceBackendEnvVars" . | fromYamlArray) .Values.aceBackend.deployment.extraEnv -}}
 {{- include "langsmith.detectDuplicates" $envVars -}}
 {{- if .Values.aceBackend.rollout.enabled }}
@@ -134,4 +135,5 @@ spec:
 {{- if .Values.aceBackend.rollout.enabled }}
   strategy:
     {{- toYaml .Values.aceBackend.rollout.strategy | nindent 4 }}
+{{- end }}
 {{- end }}

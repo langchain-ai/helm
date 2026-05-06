@@ -13,6 +13,10 @@
 - name: CLIO_LANGGRAPH_URL
   value: "http://{{ include "langsmith.agentFeatures.apiServerK8sServiceName" (dict "root" . "product" "insights") }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.insights.apiServer.service.httpPort }}"
 {{- end }}
+{{- if eq .Values.clickhouse.enabled false }}
+- name: SKIP_HEALTH_SERVICES
+  value: '["clickhouse"]'
+{{- end }}
 {{- end -}}
 {{- $envVars := concat .Values.commonEnv (include "langsmith.commonEnv" . | fromYamlArray) (include "backendEnvVars" . | fromYamlArray) .Values.backend.deployment.extraEnv -}}
 {{- include "langsmith.detectDuplicates" $envVars -}}

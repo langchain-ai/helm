@@ -10,6 +10,7 @@
   value: "http://{{ include "langsmith.agentFeatures.apiServerK8sServiceName" (dict "root" . "product" "insights") }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.insights.apiServer.service.httpPort }}"
 {{- end }}
 {{- end -}}
+{{- if .Values.queue.enabled }}
 {{- $envVars := concat .Values.commonEnv (include "langsmith.commonEnv" . | fromYamlArray) (include "queueEnvVars" . | fromYamlArray) .Values.queue.deployment.extraEnv -}}
 {{- include "langsmith.detectDuplicates" $envVars -}}
 {{- $volumes := concat .Values.commonVolumes .Values.queue.deployment.volumes (include "langsmith.tlsVolumes" . | fromYamlArray)  -}}
@@ -148,4 +149,5 @@ spec:
 {{- if .Values.queue.rollout.enabled }}
   strategy:
     {{- toYaml .Values.queue.rollout.strategy | nindent 4 }}
+{{- end }}
 {{- end }}
