@@ -1,4 +1,4 @@
-{{- if .Values.clickhouse.pdb.enabled }}
+{{- if and (ne .Values.clickhouse.enabled false) .Values.clickhouse.pdb.enabled }}
 apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:

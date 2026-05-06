@@ -1,4 +1,4 @@
-{{- if .Values.aceBackend.pdb.enabled }}
+{{- if and .Values.aceBackend.enabled .Values.aceBackend.pdb.enabled }}
 apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:

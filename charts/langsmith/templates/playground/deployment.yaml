@@ -8,6 +8,7 @@
   value: /etc/ssl/certs/custom-ca-certificates.crt
 {{- end }}
 {{- end -}}
+{{- if .Values.playground.enabled }}
 {{- $envVars := concat (include "playgroundEnvVars" . | fromYamlArray) .Values.playground.deployment.extraEnv -}}
 {{- include "langsmith.detectDuplicates" $envVars -}}
 {{- $volumes := concat .Values.commonVolumes .Values.playground.deployment.volumes (include "langsmith.tlsVolumes" . | fromYamlArray)  -}}
@@ -140,4 +141,5 @@ spec:
 {{- if .Values.playground.rollout.enabled }}
   strategy:
     {{- toYaml .Values.playground.rollout.strategy | nindent 4 }}
+{{- end }}
 {{- end }}
