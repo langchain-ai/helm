@@ -27,6 +27,7 @@
 #   -u, --username NAME        Auth username (skips prompt)
 #       --password-stdin       Read auth password from stdin (skips prompt)
 #       --force                Overwrite existing values.yaml
+#       --skip-rbac-check      Skip kubectl auth can-i checks in prereqs
 #       --port LOCAL:REMOTE    Port mapping for forward (default: 3000:3000)
 #       --frontend-service NAME
 #                              Frontend Service name (default: langsmith-mission-control-frontend)
@@ -50,6 +51,7 @@ VALUES_FILE="values.yaml"
 USERNAME=""
 PASSWORD_STDIN=0
 FORCE=0
+SKIP_RBAC_CHECK=0
 PORT_MAP="3000:3000"
 FRONTEND_SERVICE="langsmith-mission-control-frontend"
 
@@ -93,6 +95,7 @@ Flags:
   -u, --username NAME        Auth username (skips prompt)
       --password-stdin       Read auth password from stdin (skips prompt)
       --force                Overwrite existing values.yaml
+      --skip-rbac-check      Skip kubectl auth can-i checks in prereqs
       --port LOCAL:REMOTE    Port mapping for forward (default: 3000:3000)
       --frontend-service NAME
                              Frontend Service name (default: langsmith-mission-control-frontend)
@@ -117,6 +120,7 @@ parse_flags() {
       -u|--username)         require_arg "$1" "${2:-}"; USERNAME="$2"; shift 2 ;;
       --password-stdin)      PASSWORD_STDIN=1; shift ;;
       --force)               FORCE=1; shift ;;
+      --skip-rbac-check)     SKIP_RBAC_CHECK=1; shift ;;
       --port)                require_arg "$1" "${2:-}"; PORT_MAP="$2"; shift 2 ;;
       --frontend-service)    require_arg "$1" "${2:-}"; FRONTEND_SERVICE="$2"; shift 2 ;;
       -h|--help)             usage; exit 0 ;;
@@ -135,6 +139,10 @@ step_prereqs() {
   if needs_public_chart; then
     need curl
   fi
+  if [[ $SKIP_RBAC_CHECK -eq 1 ]]; then
+    echo "  [skip] kubectl auth can-i RBAC checks"
+    return 0
+  fi
   local checks=(
     "create clusterrole"
     "create clusterrolebinding"
@@ -152,7 +160,24 @@ step_prereqs() {
       echo "  [ok] kubectl auth can-i $c"
     fi
   done
-  [[ $fail -eq 0 ]] || die "insufficient RBAC permissions; see Permissions Reference in the install doc"
+  if [[ $fail -ne 0 ]]; then
+    cat >&2 <<EOF
+
+Missing Kubernetes permissions for install.
+
+Mission Control installs a ServiceAccount, ClusterRole, and ClusterRoleBinding.
+Ask a cluster admin to run this installer, or grant an installer role that can create:
+- clusterroles
+- clusterrolebindings
+- serviceaccounts in ${NAMESPACE}
+- deployments in ${NAMESPACE}
+- secrets in ${NAMESPACE}
+
+If your organization intentionally blocks kubectl auth can-i but Helm is approved
+through another control path, rerun with --skip-rbac-check.
+EOF
+    exit 1
+  fi
 }
 
 resolve_chart_path() {
@@ -213,18 +238,24 @@ step_values() {
 namespace: $NAMESPACE
 
 backend:
-  image: langsmith/langsmith-mission-control:backend-3.7.29
+  image: langchain/langsmith-mission-control:backend-4.0.0
   pullPolicy: IfNotPresent
   resources:
     requests: { cpu: 250m, memory: 256Mi }
     limits:   { cpu: 500m, memory: 512Mi }
+  podSecurityContext: {}
+  securityContext: {}
+  extraEnv: []
 
 frontend:
-  image: langsmith/langsmith-mission-control:frontend-3.7.29
+  image: langchain/langsmith-mission-control:frontend-4.0.0
   pullPolicy: IfNotPresent
   resources:
     requests: { cpu: 100m, memory: 128Mi }
     limits:   { cpu: 200m, memory: 256Mi }
+  podSecurityContext: {}
+  securityContext: {}
+  extraEnv: []
 
 backendReplicas: 1
 frontendReplicas: 1
