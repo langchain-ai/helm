@@ -1,0 +1,45 @@
+# templates/frontend-deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "langsmith-mission-control.fullname" . }}-frontend
+  labels:
+    app: {{ include "langsmith-mission-control.name" . }}
+spec:
+  replicas: {{ .Values.frontendReplicas }}
+  selector:
+    matchLabels:
+      app: {{ include "langsmith-mission-control.name" . }}-frontend
+  template:
+    metadata:
+      labels:
+        app: {{ include "langsmith-mission-control.name" . }}-frontend
+    spec:
+      {{- if .Values.imagePullSecrets }}
+      imagePullSecrets:
+      {{- range .Values.imagePullSecrets }}
+        - name: {{ .name }}
+      {{- end }}
+      {{- end }}
+      {{- with .Values.frontend.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: frontend
+          image: {{ .Values.frontend.image }}
+          imagePullPolicy: {{ .Values.frontend.pullPolicy }}
+          ports:
+            - containerPort: 3000
+          {{- with .Values.frontend.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.frontend.extraEnv }}
+          env:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- if .Values.frontend.resources }}
+          resources:
+            {{- toYaml .Values.frontend.resources | nindent 12 }}
+          {{- end }}

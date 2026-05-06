@@ -3,7 +3,7 @@ namespace: <namespace_name>
 
 # Mission Control images.
 backend:
-  image: langsmith/langsmith-mission-control:backend-3.7.29
+  image: langchain/langsmith-mission-control:backend-latest
   pullPolicy: IfNotPresent
 
   resources:
@@ -16,7 +16,7 @@ backend:
       memory: 512Mi
 
 frontend:
-  image: langsmith/langsmith-mission-control:frontend-3.7.29
+  image: langchain/langsmith-mission-control:frontend-latest
   pullPolicy: IfNotPresent
 
   resources:

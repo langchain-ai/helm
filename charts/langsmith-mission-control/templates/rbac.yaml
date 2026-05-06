@@ -1,0 +1,234 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ include "langsmith-mission-control.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "langsmith-mission-control.fullname" . }}
+rules:
+  # ── Read-only: monitoring, health, diagnostics ────────────────────────────
+  - apiGroups: [""]
+    resources:
+      - pods
+      - pods/log
+      - services
+      - endpoints
+      - configmaps
+      - serviceaccounts
+      - persistentvolumeclaims
+      - resourcequotas
+      - events
+      - namespaces
+      - nodes
+    verbs: ["get", "list", "watch"]
+
+  - apiGroups: ["storage.k8s.io"]
+    resources: ["storageclasses"]
+    verbs: ["get", "list", "watch"]
+
+  - apiGroups: ["metrics.k8s.io"]
+    resources: ["pods", "nodes"]
+    verbs: ["get", "list", "watch"]
+
+  - apiGroups: ["apps"]
+    resources:
+      - deployments
+      - deployments/status
+      - statefulsets
+      - replicasets
+      - daemonsets
+    verbs: ["get", "list", "watch"]
+
+  - apiGroups: ["batch"]
+    resources: ["jobs", "cronjobs"]
+    verbs: ["get", "list", "watch"]
+
+  - apiGroups: ["networking.k8s.io"]
+    resources: ["ingresses", "ingressclasses"]
+    verbs: ["get", "list", "watch"]
+
+  - apiGroups: ["autoscaling"]
+    resources: ["horizontalpodautoscalers"]
+    verbs: ["get", "list", "watch"]
+
+  - apiGroups: ["rbac.authorization.k8s.io"]
+    resources:
+      - roles
+      - rolebindings
+      - clusterroles
+      - clusterrolebindings
+    verbs: ["get", "list", "watch"]
+
+  - apiGroups: ["apiextensions.k8s.io"]
+    resources: ["customresourcedefinitions"]
+    verbs: ["get", "list", "watch"]
+
+  - apiGroups: ["apps.langchain.ai"]
+    resources: ["lgps", "lgps/finalizers", "lgps/status"]
+    verbs: ["get", "list", "watch"]
+
+  - apiGroups: ["keda.sh"]
+    resources: ["scaledobjects"]
+    verbs: ["get", "list", "watch"]
+
+  - apiGroups: ["gateway.networking.k8s.io"]
+    resources: ["httproutes"]
+    verbs: ["get", "list", "watch"]
+
+  - apiGroups: ["networking.istio.io"]
+    resources: ["virtualservices"]
+    verbs: ["get", "list", "watch"]
+
+  - apiGroups: ["coordination.k8s.io"]
+    resources: ["leases"]
+    verbs: ["get", "list", "watch"]
+
+  # ── Secrets: read all; write scoped to named MC-managed secrets ───────────
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["get", "list"]
+
+  # Build the list of named secrets that require write access based on which
+  # features are enabled. When all write features are disabled, the create and
+  # update/delete rules are omitted entirely — zero secret write verbs.
+  {{- $secretNames := list }}
+  {{- if .Values.features.configSave }}
+  {{- $secretNames = append $secretNames "langsmith-mission-control-draft" }}
+  {{- end }}
+  {{- if .Values.features.deploy }}
+  {{- $secretNames = append $secretNames "langsmith-mission-control-deployed" }}
+  {{- $secretNames = append $secretNames "langsmith-mission-control-backup" }}
+  {{- $secretNames = append $secretNames "langsmith-mission-control-history" }}
+  {{- end }}
+  {{- if .Values.features.alerts }}
+  {{- $secretNames = append $secretNames "langsmith-mission-control-alerts-config" }}
+  {{- $secretNames = append $secretNames "langsmith-mission-control-alerts-key" }}
+  {{- $secretNames = append $secretNames "langsmith-mission-control-alerts-log" }}
+  {{- end }}
+
+  {{- if $secretNames }}
+  # Kubernetes RBAC does not support resourceNames on "create" — namespace-wide
+  # is unavoidable. Scoping is enforced at the application layer.
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["create"]
+
+  # update/delete scoped to the exact set of secrets Mission Control manages.
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["update", "delete"]
+    resourceNames:
+      {{- range $secretNames }}
+      - {{ . }}
+      {{- end }}
+  {{- end }}
+
+  # ── Auth setup flow ────────────────────────────────────────────────────────
+  # When auth is enabled the backend may need to create the auth Secret on
+  # first run (setup mode) and then restart itself to load the new credentials.
+  # create cannot be scoped by resourceName (K8s limitation); the application
+  # layer only ever creates the single auth secret during setup.
+  {{- if .Values.auth.enabled }}
+  {{- if not $secretNames }}
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["create"]
+  {{- end }}
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["update"]
+    resourceNames:
+      - {{ .Values.auth.existingSecret | default "mission-control-auth" }}
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["delete"]
+    resourceNames:
+      - {{ include "langsmith-mission-control.fullname" . }}-setup-token
+  - apiGroups: ["apps"]
+    resources: ["deployments"]
+    verbs: ["patch"]
+    resourceNames:
+      - {{ include "langsmith-mission-control.fullname" . }}-backend
+  {{- end }}
+
+  # ── Fix Issue button (disable via features.fixIssue=false) ────────────────
+  # Grants pods:delete to restart pods stuck in CreateContainerConfigError.
+  # Disable if your security policy prohibits pod deletion by tooling.
+  {{- if .Values.features.fixIssue }}
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["delete"]
+  {{- end }}
+
+  # ── Adopt button (disable via features.adopt=false) ───────────────────────
+  # Patches Helm ownership annotations onto existing resources so helm upgrade
+  # can manage resources that were created outside the release.
+  # patch on deployments/statefulsets is equivalent to update — disable if
+  # your policy requires workload immutability enforced by RBAC.
+  {{- if .Values.features.adopt }}
+  - apiGroups: [""]
+    resources: ["secrets", "configmaps", "serviceaccounts"]
+    verbs: ["patch"]
+  - apiGroups: ["apps"]
+    resources: ["deployments", "statefulsets"]
+    verbs: ["patch"]
+  {{- end }}
+
+  # ── Deploy feature (disable via features.deploy=false — off by default) ───
+  # Required by `helm upgrade --install langsmith` executed from the UI.
+  # The deploy button is currently hidden in the UI; keep this false until
+  # it is re-enabled. See docs/permissions.md for the full verb list.
+  {{- if .Values.features.deploy }}
+  - apiGroups: [""]
+    resources: ["services", "persistentvolumeclaims", "serviceaccounts"]
+    verbs: ["create", "update", "patch", "delete"]
+  - apiGroups: [""]
+    resources: ["namespaces"]
+    verbs: ["create"]
+  - apiGroups: ["apps"]
+    resources: ["deployments", "statefulsets", "daemonsets"]
+    verbs: ["create", "update", "patch", "delete"]
+  - apiGroups: ["batch"]
+    resources: ["jobs", "cronjobs"]
+    verbs: ["create", "update", "patch", "delete"]
+  - apiGroups: ["networking.k8s.io"]
+    resources: ["ingresses"]
+    verbs: ["create", "update", "patch", "delete"]
+  - apiGroups: ["autoscaling"]
+    resources: ["horizontalpodautoscalers"]
+    verbs: ["create", "update", "patch", "delete"]
+  - apiGroups: ["rbac.authorization.k8s.io"]
+    resources: ["roles", "rolebindings", "clusterroles", "clusterrolebindings"]
+    verbs: ["create", "update", "patch", "delete"]
+  - apiGroups: ["apiextensions.k8s.io"]
+    resources: ["customresourcedefinitions"]
+    verbs: ["create", "update", "patch", "delete"]
+  - apiGroups: ["apps.langchain.ai"]
+    resources: ["lgps", "lgps/finalizers", "lgps/status"]
+    verbs: ["create", "update", "patch", "delete"]
+  - apiGroups: ["keda.sh"]
+    resources: ["scaledobjects"]
+    verbs: ["create", "update", "patch", "delete"]
+  - apiGroups: ["gateway.networking.k8s.io"]
+    resources: ["httproutes"]
+    verbs: ["create", "update", "patch", "delete"]
+  - apiGroups: ["networking.istio.io"]
+    resources: ["virtualservices"]
+    verbs: ["create", "update", "patch", "delete"]
+  {{- end }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ include "langsmith-mission-control.fullname" . }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "langsmith-mission-control.fullname" . }}
+    namespace: {{ .Release.Namespace }}
+roleRef:
+  kind: ClusterRole
+  name: {{ include "langsmith-mission-control.fullname" . }}
+  apiGroup: rbac.authorization.k8s.io

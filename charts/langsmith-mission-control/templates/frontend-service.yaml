@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "langsmith-mission-control.fullname" . }}-frontend
+spec:
+  type: {{ .Values.frontendService.type }}
+  ports:
+    - port: {{ .Values.frontendService.port }}
+      targetPort: 3000
+      protocol: TCP
+  selector:
+    app: {{ include "langsmith-mission-control.name" . }}-frontend

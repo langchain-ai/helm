@@ -1,0 +1,18 @@
+{{- if .Values.diagnostics.persistence.enabled }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "langsmith-mission-control.fullname" . }}-diagnostics
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: {{ include "langsmith-mission-control.name" . }}
+spec:
+  accessModes:
+    - {{ .Values.diagnostics.persistence.accessMode | default "ReadWriteOnce" | quote }}
+  resources:
+    requests:
+      storage: {{ .Values.diagnostics.persistence.size | default "1Gi" | quote }}
+  {{- with .Values.diagnostics.persistence.storageClass }}
+  storageClassName: {{ . | quote }}
+  {{- end }}
+{{- end }}

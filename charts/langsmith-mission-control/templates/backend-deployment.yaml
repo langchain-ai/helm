@@ -1,0 +1,125 @@
+# templates/backend-deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "langsmith-mission-control.fullname" . }}-backend
+  labels:
+    app: {{ include "langsmith-mission-control.name" . }}
+spec:
+  replicas: {{ .Values.backendReplicas }}
+  selector:
+    matchLabels:
+      app: {{ include "langsmith-mission-control.name" . }}-backend
+  template:
+    metadata:
+      labels:
+        app: {{ include "langsmith-mission-control.name" . }}-backend
+    spec:
+      serviceAccountName: {{ include "langsmith-mission-control.fullname" . }}
+      {{- if .Values.imagePullSecrets }}
+      imagePullSecrets:
+      {{- range .Values.imagePullSecrets }}
+        - name: {{ .name }}
+      {{- end }}
+      {{- end }}
+      {{- with .Values.backend.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: backend
+          image: {{ .Values.backend.image }}
+          imagePullPolicy: {{ .Values.backend.pullPolicy }}
+          ports:
+            - containerPort: 8000
+          {{- with .Values.backend.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- if .Values.backend.resources }}
+          resources:
+            {{- toYaml .Values.backend.resources | nindent 12 }}
+          {{- end }}
+          env:
+            - name: NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: MC_VERSION
+              value: {{ .Chart.Version | quote }}
+            - name: BASIC_AUTH_ENABLED
+              value: {{ ternary "true" "false" .Values.auth.enabled | quote }}
+            {{- if .Values.auth.enabled }}
+            - name: BASIC_AUTH_SECRET_NAME
+              value: {{ .Values.auth.existingSecret | default "mission-control-auth" | quote }}
+            - name: BACKEND_DEPLOYMENT_NAME
+              value: {{ include "langsmith-mission-control.fullname" . }}-backend
+            - name: BASIC_AUTH_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.auth.existingSecret | default "mission-control-auth" }}
+                  key: {{ .Values.auth.usernameKey | default "username" }}
+                  optional: true
+            - name: BASIC_AUTH_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.auth.existingSecret | default "mission-control-auth" }}
+                  key: {{ .Values.auth.passwordKey | default "password" }}
+                  optional: true
+            {{- if .Values.auth.jwtSecretKey }}
+            - name: BASIC_AUTH_JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.auth.existingSecret | default "mission-control-auth" }}
+                  key: {{ .Values.auth.jwtSecretKey }}
+                  optional: true
+            {{- end }}
+            - name: SETUP_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "langsmith-mission-control.fullname" . }}-setup-token
+                  key: token
+                  optional: true
+            - name: SETUP_TOKEN_SECRET_NAME
+              value: {{ include "langsmith-mission-control.fullname" . }}-setup-token
+            {{- end }}
+            {{- if .Values.auth.allowedOrigins }}
+            - name: ALLOWED_ORIGINS
+              value: {{ .Values.auth.allowedOrigins | quote }}
+            {{- end }}
+            - name: MC_FEATURE_FIX_ISSUE
+              value: {{ ternary "true" "false" .Values.features.fixIssue | quote }}
+            - name: MC_FEATURE_ADOPT
+              value: {{ ternary "true" "false" .Values.features.adopt | quote }}
+            - name: MC_FEATURE_ALERTS
+              value: {{ ternary "true" "false" .Values.features.alerts | quote }}
+            - name: MC_FEATURE_CHAT
+              value: {{ ternary "true" "false" .Values.features.chat | quote }}
+            - name: MC_FEATURE_DIAGNOSTICS
+              value: {{ ternary "true" "false" .Values.features.diagnostics | quote }}
+            - name: MC_FEATURE_CONFIG_SAVE
+              value: {{ ternary "true" "false" .Values.features.configSave | quote }}
+            - name: MC_FEATURE_DEPLOY
+              value: {{ ternary "true" "false" .Values.features.deploy | quote }}
+            - name: MC_FEATURE_DISCOVER
+              value: {{ ternary "true" "false" .Values.features.discover | quote }}
+            - name: MC_FEATURE_DBTOOLS
+              value: {{ ternary "true" "false" .Values.features.dbTools | quote }}
+            {{- if .Values.discoverNamespaces }}
+            - name: DISCOVER_NAMESPACES
+              value: {{ .Values.discoverNamespaces | quote }}
+            {{- end }}
+            {{- with .Values.backend.extraEnv }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          volumeMounts:
+            - name: diagnostics-store
+              mountPath: /tmp/mc_diagnostics
+      volumes:
+        - name: diagnostics-store
+          {{- if .Values.diagnostics.persistence.enabled }}
+          persistentVolumeClaim:
+            claimName: {{ include "langsmith-mission-control.fullname" . }}-diagnostics
+          {{- else }}
+          emptyDir: {}
+          {{- end }}
