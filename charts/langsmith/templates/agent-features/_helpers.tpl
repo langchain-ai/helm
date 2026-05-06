@@ -87,7 +87,7 @@ Extra env vars for fleet api-server and queue pods.
 {{- $secretName := include "langsmith.secretsName" . }}
 {{- $out = concat $out (list
   (dict "name" "AGENT_BUILDER_ENCRYPTION_KEY" "valueFrom" (dict "secretKeyRef" (dict "name" $secretName "key" "agent_builder_encryption_key")))
-  (dict "name" "X_SERVICE_AUTH_JWT_SECRET" "valueFrom" (dict "secretKeyRef" (dict "name" $secretName "key" "jwt_secret" "optional" true)))
+  (dict "name" "X_SERVICE_AUTH_JWT_SECRET" "valueFrom" (dict "secretKeyRef" (dict "name" $secretName "key" "api_key_salt" "optional" true)))
 ) }}
 {{- toYaml $out }}
 {{- end -}}
@@ -109,7 +109,7 @@ Extra env vars for insights api-server and queue pods.
 {{- $secretName := include "langsmith.secretsName" . }}
 {{- $out = concat $out (list
   (dict "name" "CLIO_ENCRYPTION_KEY" "valueFrom" (dict "secretKeyRef" (dict "name" $secretName "key" "insights_encryption_key")))
-  (dict "name" "X_SERVICE_AUTH_JWT_SECRET" "valueFrom" (dict "secretKeyRef" (dict "name" $secretName "key" "jwt_secret" "optional" true)))
+  (dict "name" "X_SERVICE_AUTH_JWT_SECRET" "valueFrom" (dict "secretKeyRef" (dict "name" $secretName "key" "api_key_salt" "optional" true)))
 ) }}
 {{- toYaml $out }}
 {{- end -}}
