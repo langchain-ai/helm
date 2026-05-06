@@ -238,7 +238,7 @@ step_values() {
 namespace: $NAMESPACE
 
 backend:
-  image: langchain/langsmith-mission-control:backend-4.0.0
+  image: langchain/langsmith-mission-control:backend-latest
   pullPolicy: IfNotPresent
   resources:
     requests: { cpu: 250m, memory: 256Mi }
@@ -248,7 +248,7 @@ backend:
   extraEnv: []
 
 frontend:
-  image: langchain/langsmith-mission-control:frontend-4.0.0
+  image: langchain/langsmith-mission-control:frontend-latest
   pullPolicy: IfNotPresent
   resources:
     requests: { cpu: 100m, memory: 128Mi }
