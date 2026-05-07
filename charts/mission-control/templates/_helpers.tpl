@@ -168,38 +168,3 @@ mission-control-alerts-key
 {{- define "missionControl.alertsLogSecretName" -}}
 mission-control-alerts-log
 {{- end }}
-
-{{/*
-Legacy secret names retained for the rebrand migration path. Existing
-installations have secrets prefixed with `langsmith-mission-control-` from
-before the rename to `mission-control`. The backend reads from the legacy
-name when the new name is absent; the ClusterRole still needs update/delete
-on the legacy names so the backend can migrate data and clean up.
-*/}}
-{{- define "missionControl.legacyDraftSecretName" -}}
-langsmith-mission-control-draft
-{{- end }}
-
-{{- define "missionControl.legacyDeployedSecretName" -}}
-langsmith-mission-control-deployed
-{{- end }}
-
-{{- define "missionControl.legacyBackupSecretName" -}}
-langsmith-mission-control-backup
-{{- end }}
-
-{{- define "missionControl.legacyHistorySecretName" -}}
-langsmith-mission-control-history
-{{- end }}
-
-{{- define "missionControl.legacyAlertsConfigSecretName" -}}
-langsmith-mission-control-alerts-config
-{{- end }}
-
-{{- define "missionControl.legacyAlertsKeySecretName" -}}
-langsmith-mission-control-alerts-key
-{{- end }}
-
-{{- define "missionControl.legacyAlertsLogSecretName" -}}
-langsmith-mission-control-alerts-log
-{{- end }}

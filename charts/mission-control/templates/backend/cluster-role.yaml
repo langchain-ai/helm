@@ -95,30 +95,19 @@ rules:
   # Build the list of named secrets that require write access based on which
   # features are enabled. When all write features are disabled, the create and
   # update/delete rules are omitted entirely — zero secret write verbs.
-  #
-  # Legacy `langsmith-mission-control-*` names are included alongside the
-  # current `mission-control-*` names so the backend can migrate data from
-  # pre-rename installs (read legacy → write new → delete legacy).
   {{- $secretNames := list }}
   {{- if .Values.features.configSave }}
   {{- $secretNames = append $secretNames (include "missionControl.draftSecretName" .) }}
-  {{- $secretNames = append $secretNames (include "missionControl.legacyDraftSecretName" .) }}
   {{- end }}
   {{- if .Values.features.deploy }}
   {{- $secretNames = append $secretNames (include "missionControl.deployedSecretName" .) }}
   {{- $secretNames = append $secretNames (include "missionControl.backupSecretName" .) }}
   {{- $secretNames = append $secretNames (include "missionControl.historySecretName" .) }}
-  {{- $secretNames = append $secretNames (include "missionControl.legacyDeployedSecretName" .) }}
-  {{- $secretNames = append $secretNames (include "missionControl.legacyBackupSecretName" .) }}
-  {{- $secretNames = append $secretNames (include "missionControl.legacyHistorySecretName" .) }}
   {{- end }}
   {{- if .Values.features.alerts }}
   {{- $secretNames = append $secretNames (include "missionControl.alertsConfigSecretName" .) }}
   {{- $secretNames = append $secretNames (include "missionControl.alertsKeySecretName" .) }}
   {{- $secretNames = append $secretNames (include "missionControl.alertsLogSecretName" .) }}
-  {{- $secretNames = append $secretNames (include "missionControl.legacyAlertsConfigSecretName" .) }}
-  {{- $secretNames = append $secretNames (include "missionControl.legacyAlertsKeySecretName" .) }}
-  {{- $secretNames = append $secretNames (include "missionControl.legacyAlertsLogSecretName" .) }}
   {{- end }}
 
   {{- if $secretNames }}
@@ -193,9 +182,6 @@ rules:
   # Required by `helm upgrade --install langsmith` executed from the UI.
   # The deploy button is currently hidden in the UI; keep this false until
   # it is re-enabled.
-  {{- /* Note: legacy-named draft/deploy/alert secrets are surfaced here only so
-         the backend can read+migrate them; new resources are written with
-         the `mission-control-*` names. */ -}}
   {{- if .Values.features.deploy }}
   - apiGroups: [""]
     resources: ["services", "persistentvolumeclaims", "serviceaccounts"]
