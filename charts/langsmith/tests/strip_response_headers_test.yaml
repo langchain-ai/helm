@@ -59,3 +59,40 @@ tests:
       - equal:
           path: spec.configPatches[0].patch.value.typed_config["@type"]
           value: type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
+
+  - it: should render the configured custom headers list
+    template: envoy-filter-strip-response-headers.yaml
+    set:
+      istioGateway.enabled: true
+      istioGateway.stripResponseHeaders.enabled: true
+      istioGateway.stripResponseHeaders.headers:
+        - server
+        - x-powered-by
+        - x-custom-header
+    asserts:
+      - hasDocuments:
+          count: 1
+      - equal:
+          path: spec.configPatches[0].patch.value.typed_config.response_headers_to_remove
+          value:
+            - server
+            - x-powered-by
+            - x-custom-header
+
+  - it: should render the configured custom workloadSelector
+    template: envoy-filter-strip-response-headers.yaml
+    set:
+      istioGateway.enabled: true
+      istioGateway.stripResponseHeaders.enabled: true
+      istioGateway.stripResponseHeaders.workloadSelector:
+        app: my-custom-gateway
+        tier: edge
+    asserts:
+      - hasDocuments:
+          count: 1
+      - equal:
+          path: spec.workloadSelector.labels.app
+          value: my-custom-gateway
+      - equal:
+          path: spec.workloadSelector.labels.tier
+          value: edge
