@@ -28,3 +28,12 @@ tests:
     asserts:
       - failedTemplate:
           errorMessage: "istioGateway.stripResponseHeaders.workloadSelector must not be empty - an empty selector would attach the EnvoyFilter to every pod in the gateway namespace."
+
+  - it: should fail when stripResponseHeaders.headers is empty
+    set:
+      istioGateway.enabled: true
+      istioGateway.stripResponseHeaders.enabled: true
+      istioGateway.stripResponseHeaders.headers: []
+    asserts:
+      - failedTemplate:
+          errorMessage: "istioGateway.stripResponseHeaders.headers must contain at least one header to strip."
