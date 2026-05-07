@@ -1,26 +1,35 @@
-# templates/backend-deployment.yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "langsmith-mission-control.fullname" . }}-backend
+  name: {{ include "missionControl.backendDeploymentName" . }}
+  namespace: {{ .Values.namespace | default .Release.Namespace }}
   labels:
-    app: {{ include "langsmith-mission-control.name" . }}
+    {{- include "missionControl.labels" . | nindent 4 }}
+    app.kubernetes.io/component: backend
+  {{- with (include "missionControl.annotations" .) }}
+  annotations:
+    {{- . | nindent 4 }}
+  {{- end }}
 spec:
-  replicas: {{ .Values.backendReplicas }}
+  replicas: {{ .Values.backend.replicas }}
   selector:
     matchLabels:
-      app: {{ include "langsmith-mission-control.name" . }}-backend
+      {{- include "missionControl.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: backend
   template:
     metadata:
       labels:
-        app: {{ include "langsmith-mission-control.name" . }}-backend
-    spec:
-      serviceAccountName: {{ include "langsmith-mission-control.fullname" . }}
-      {{- if .Values.imagePullSecrets }}
-      imagePullSecrets:
-      {{- range .Values.imagePullSecrets }}
-        - name: {{ .name }}
+        {{- include "missionControl.labels" . | nindent 8 }}
+        app.kubernetes.io/component: backend
+      {{- with (include "missionControl.commonPodAnnotations" .) }}
+      annotations:
+        {{- . | nindent 8 }}
       {{- end }}
+    spec:
+      serviceAccountName: {{ include "missionControl.serviceAccountName" . }}
+      {{- with .Values.images.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
       {{- end }}
       {{- with .Values.backend.podSecurityContext }}
       securityContext:
@@ -28,17 +37,17 @@ spec:
       {{- end }}
       containers:
         - name: backend
-          image: {{ .Values.backend.image }}
-          imagePullPolicy: {{ .Values.backend.pullPolicy }}
+          image: {{ include "missionControl.image" (dict "Values" .Values "Chart" .Chart "component" "backendImage") }}
+          imagePullPolicy: {{ .Values.images.backendImage.pullPolicy }}
           ports:
             - containerPort: 8000
           {{- with .Values.backend.securityContext }}
           securityContext:
             {{- toYaml . | nindent 12 }}
           {{- end }}
-          {{- if .Values.backend.resources }}
+          {{- with .Values.backend.resources }}
           resources:
-            {{- toYaml .Values.backend.resources | nindent 12 }}
+            {{- toYaml . | nindent 12 }}
           {{- end }}
           env:
             - name: NAMESPACE
@@ -51,37 +60,37 @@ spec:
               value: {{ ternary "true" "false" .Values.auth.enabled | quote }}
             {{- if .Values.auth.enabled }}
             - name: BASIC_AUTH_SECRET_NAME
-              value: {{ .Values.auth.existingSecret | default "mission-control-auth" | quote }}
+              value: {{ include "missionControl.authSecretName" . | quote }}
             - name: BACKEND_DEPLOYMENT_NAME
-              value: {{ include "langsmith-mission-control.fullname" . }}-backend
+              value: {{ include "missionControl.backendDeploymentName" . | quote }}
             - name: BASIC_AUTH_USERNAME
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.auth.existingSecret | default "mission-control-auth" }}
+                  name: {{ include "missionControl.authSecretName" . }}
                   key: {{ .Values.auth.usernameKey | default "username" }}
                   optional: true
             - name: BASIC_AUTH_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.auth.existingSecret | default "mission-control-auth" }}
+                  name: {{ include "missionControl.authSecretName" . }}
                   key: {{ .Values.auth.passwordKey | default "password" }}
                   optional: true
             {{- if .Values.auth.jwtSecretKey }}
             - name: BASIC_AUTH_JWT_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.auth.existingSecret | default "mission-control-auth" }}
+                  name: {{ include "missionControl.authSecretName" . }}
                   key: {{ .Values.auth.jwtSecretKey }}
                   optional: true
             {{- end }}
             - name: SETUP_TOKEN
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "langsmith-mission-control.fullname" . }}-setup-token
+                  name: {{ include "missionControl.setupTokenSecretName" . }}
                   key: token
                   optional: true
             - name: SETUP_TOKEN_SECRET_NAME
-              value: {{ include "langsmith-mission-control.fullname" . }}-setup-token
+              value: {{ include "missionControl.setupTokenSecretName" . | quote }}
             {{- end }}
             {{- if .Values.auth.allowedOrigins }}
             - name: ALLOWED_ORIGINS
@@ -119,7 +128,7 @@ spec:
         - name: diagnostics-store
           {{- if .Values.diagnostics.persistence.enabled }}
           persistentVolumeClaim:
-            claimName: {{ include "langsmith-mission-control.fullname" . }}-diagnostics
+            claimName: {{ include "missionControl.fullname" . }}-diagnostics
           {{- else }}
           emptyDir: {}
           {{- end }}

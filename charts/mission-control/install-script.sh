@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# LangSmith Mission Control installer.
+# Mission Control installer.
 #
 # Usage:
 #   ./install-script.sh [subcommand] [flags]
@@ -16,7 +16,7 @@
 #
 # Flags:
 #   -n, --namespace NAME       Kubernetes namespace (default: langsmith)
-#   -r, --release NAME         Helm release name (default: langsmith-mission-control)
+#   -r, --release NAME         Helm release name (default: mission-control)
 #   -c, --chart-path PATH      Local Helm chart path (default: auto)
 #       --chart-ref REF        Public Helm chart ref used when no local chart exists
 #                              (default: langchain/langsmith-mission-control)
@@ -30,7 +30,7 @@
 #       --skip-rbac-check      Skip kubectl auth can-i checks in prereqs
 #       --port LOCAL:REMOTE    Port mapping for forward (default: 3000:3000)
 #       --frontend-service NAME
-#                              Frontend Service name (default: langsmith-mission-control-frontend)
+#                              Frontend Service name (default: mission-control-frontend)
 #   -h, --help                 Show this help
 
 set -euo pipefail
@@ -38,10 +38,10 @@ set -euo pipefail
 DEFAULT_CHART_REF="langchain/langsmith-mission-control"
 DEFAULT_HELM_REPO_NAME="langchain"
 DEFAULT_HELM_REPO_URL="https://langchain-ai.github.io/helm"
-DEFAULT_VALUES_URL="https://raw.githubusercontent.com/langchain-ai/helm/main/charts/langsmith-mission-control/values.yaml"
+DEFAULT_VALUES_URL="https://raw.githubusercontent.com/langchain-ai/helm/main/charts/mission-control/values.yaml"
 
 NAMESPACE="langsmith"
-RELEASE="langsmith-mission-control"
+RELEASE="mission-control"
 CHART_PATH="auto"
 CHART_REF="${MISSION_CONTROL_CHART_REF:-$DEFAULT_CHART_REF}"
 HELM_REPO_NAME="${MISSION_CONTROL_HELM_REPO_NAME:-$DEFAULT_HELM_REPO_NAME}"
@@ -53,7 +53,7 @@ PASSWORD_STDIN=0
 FORCE=0
 SKIP_RBAC_CHECK=0
 PORT_MAP="3000:3000"
-FRONTEND_SERVICE="langsmith-mission-control-frontend"
+FRONTEND_SERVICE="mission-control-frontend"
 
 die() { echo "error: $*" >&2; exit 1; }
 need() { command -v "$1" >/dev/null 2>&1 || die "missing required command: $1"; }
@@ -67,7 +67,7 @@ sync_values_namespace() {
 
 usage() {
   cat <<'USAGE'
-LangSmith Mission Control installer.
+Mission Control installer.
 
 Usage:
   ./install-script.sh [subcommand] [flags]
@@ -84,7 +84,7 @@ Subcommands:
 
 Flags:
   -n, --namespace NAME       Kubernetes namespace (default: langsmith)
-  -r, --release NAME         Helm release name (default: langsmith-mission-control)
+  -r, --release NAME         Helm release name (default: mission-control)
   -c, --chart-path PATH      Local Helm chart path (default: auto)
       --chart-ref REF        Public Helm chart ref used when no local chart exists
                              (default: langchain/langsmith-mission-control)
@@ -98,7 +98,7 @@ Flags:
       --skip-rbac-check      Skip kubectl auth can-i checks in prereqs
       --port LOCAL:REMOTE    Port mapping for forward (default: 3000:3000)
       --frontend-service NAME
-                             Frontend Service name (default: langsmith-mission-control-frontend)
+                             Frontend Service name (default: mission-control-frontend)
   -h, --help                 Show this help
 USAGE
 }
@@ -237,31 +237,41 @@ step_values() {
   cat > "$VALUES_FILE" <<YAML
 namespace: $NAMESPACE
 
+images:
+  registry: ""
+  imagePullSecrets:
+    - name: regcred
+  backendImage:
+    repository: langchain/langsmith-mission-control
+    pullPolicy: IfNotPresent
+    tag: backend-latest
+  frontendImage:
+    repository: langchain/langsmith-mission-control
+    pullPolicy: IfNotPresent
+    tag: frontend-latest
+
 backend:
-  image: langchain/langsmith-mission-control:backend-latest
-  pullPolicy: IfNotPresent
+  replicas: 1
+  podSecurityContext: {}
+  securityContext: {}
+  extraEnv: []
   resources:
     requests: { cpu: 250m, memory: 256Mi }
     limits:   { cpu: 500m, memory: 512Mi }
+  service: { type: ClusterIP, port: 8000 }
+  serviceAccount:
+    create: true
+    name: ""
+
+frontend:
+  replicas: 1
   podSecurityContext: {}
   securityContext: {}
   extraEnv: []
-
-frontend:
-  image: langchain/langsmith-mission-control:frontend-latest
-  pullPolicy: IfNotPresent
   resources:
     requests: { cpu: 100m, memory: 128Mi }
     limits:   { cpu: 200m, memory: 256Mi }
-  podSecurityContext: {}
-  securityContext: {}
-  extraEnv: []
-
-backendReplicas: 1
-frontendReplicas: 1
-
-backendService:  { type: ClusterIP, port: 8000 }
-frontendService: { type: ClusterIP, port: 3000 }
+  service: { type: ClusterIP, port: 3000 }
 
 ingress:
   enabled: false
@@ -291,6 +301,7 @@ discoverNamespaces: ""
 diagnostics:
   persistence:
     enabled: false
+    storageClass: ""
     size: 1Gi
     accessMode: ReadWriteOnce
 YAML

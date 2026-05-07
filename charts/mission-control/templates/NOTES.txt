@@ -1,8 +1,8 @@
 {{- if .Values.auth.enabled }}
-{{- $authSecretName := .Values.auth.existingSecret | default "mission-control-auth" }}
-{{- $authSecret := lookup "v1" "Secret" .Release.Namespace $authSecretName }}
+{{- $ns := .Values.namespace | default .Release.Namespace }}
+{{- $authSecret := lookup "v1" "Secret" $ns (include "missionControl.authSecretName" .) }}
 {{- if not $authSecret }}
-{{- $setupTokenName := printf "%s-setup-token" (include "langsmith-mission-control.fullname" .) }}
+{{- $setupTokenName := include "missionControl.setupTokenSecretName" . }}
 ╔══════════════════════════════════════════════════════════╗
 ║         MISSION CONTROL — FIRST-RUN SETUP TOKEN          ║
 ╠══════════════════════════════════════════════════════════╣
@@ -13,7 +13,7 @@
 ║  The token is deleted automatically once setup is done.  ║
 ╚══════════════════════════════════════════════════════════╝
 
-  kubectl get secret {{ $setupTokenName }} -n {{ .Release.Namespace }} \
+  kubectl get secret {{ $setupTokenName }} -n {{ $ns }} \
     -o jsonpath='{.data.token}' | base64 -d && echo
 
 {{- end }}

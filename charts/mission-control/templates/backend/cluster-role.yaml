@@ -1,13 +1,14 @@
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: {{ include "langsmith-mission-control.fullname" . }}
-  namespace: {{ .Release.Namespace }}
----
+{{- if .Values.backend.serviceAccount.create }}
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: {{ include "langsmith-mission-control.fullname" . }}
+  name: {{ include "missionControl.fullname" . }}
+  labels:
+    {{- include "missionControl.labels" . | nindent 4 }}
+  {{- with (include "missionControl.annotations" .) }}
+  annotations:
+    {{- . | nindent 4 }}
+  {{- end }}
 rules:
   # ── Read-only: monitoring, health, diagnostics ────────────────────────────
   - apiGroups: [""]
@@ -94,19 +95,30 @@ rules:
   # Build the list of named secrets that require write access based on which
   # features are enabled. When all write features are disabled, the create and
   # update/delete rules are omitted entirely — zero secret write verbs.
+  #
+  # Legacy `langsmith-mission-control-*` names are included alongside the
+  # current `mission-control-*` names so the backend can migrate data from
+  # pre-rename installs (read legacy → write new → delete legacy).
   {{- $secretNames := list }}
   {{- if .Values.features.configSave }}
-  {{- $secretNames = append $secretNames "langsmith-mission-control-draft" }}
+  {{- $secretNames = append $secretNames (include "missionControl.draftSecretName" .) }}
+  {{- $secretNames = append $secretNames (include "missionControl.legacyDraftSecretName" .) }}
   {{- end }}
   {{- if .Values.features.deploy }}
-  {{- $secretNames = append $secretNames "langsmith-mission-control-deployed" }}
-  {{- $secretNames = append $secretNames "langsmith-mission-control-backup" }}
-  {{- $secretNames = append $secretNames "langsmith-mission-control-history" }}
+  {{- $secretNames = append $secretNames (include "missionControl.deployedSecretName" .) }}
+  {{- $secretNames = append $secretNames (include "missionControl.backupSecretName" .) }}
+  {{- $secretNames = append $secretNames (include "missionControl.historySecretName" .) }}
+  {{- $secretNames = append $secretNames (include "missionControl.legacyDeployedSecretName" .) }}
+  {{- $secretNames = append $secretNames (include "missionControl.legacyBackupSecretName" .) }}
+  {{- $secretNames = append $secretNames (include "missionControl.legacyHistorySecretName" .) }}
   {{- end }}
   {{- if .Values.features.alerts }}
-  {{- $secretNames = append $secretNames "langsmith-mission-control-alerts-config" }}
-  {{- $secretNames = append $secretNames "langsmith-mission-control-alerts-key" }}
-  {{- $secretNames = append $secretNames "langsmith-mission-control-alerts-log" }}
+  {{- $secretNames = append $secretNames (include "missionControl.alertsConfigSecretName" .) }}
+  {{- $secretNames = append $secretNames (include "missionControl.alertsKeySecretName" .) }}
+  {{- $secretNames = append $secretNames (include "missionControl.alertsLogSecretName" .) }}
+  {{- $secretNames = append $secretNames (include "missionControl.legacyAlertsConfigSecretName" .) }}
+  {{- $secretNames = append $secretNames (include "missionControl.legacyAlertsKeySecretName" .) }}
+  {{- $secretNames = append $secretNames (include "missionControl.legacyAlertsLogSecretName" .) }}
   {{- end }}
 
   {{- if $secretNames }}
@@ -141,17 +153,17 @@ rules:
     resources: ["secrets"]
     verbs: ["update"]
     resourceNames:
-      - {{ .Values.auth.existingSecret | default "mission-control-auth" }}
+      - {{ include "missionControl.authSecretName" . }}
   - apiGroups: [""]
     resources: ["secrets"]
     verbs: ["delete"]
     resourceNames:
-      - {{ include "langsmith-mission-control.fullname" . }}-setup-token
+      - {{ include "missionControl.setupTokenSecretName" . }}
   - apiGroups: ["apps"]
     resources: ["deployments"]
     verbs: ["patch"]
     resourceNames:
-      - {{ include "langsmith-mission-control.fullname" . }}-backend
+      - {{ include "missionControl.backendDeploymentName" . }}
   {{- end }}
 
   # ── Fix Issue button (disable via features.fixIssue=false) ────────────────
@@ -180,7 +192,10 @@ rules:
   # ── Deploy feature (disable via features.deploy=false — off by default) ───
   # Required by `helm upgrade --install langsmith` executed from the UI.
   # The deploy button is currently hidden in the UI; keep this false until
-  # it is re-enabled. See docs/permissions.md for the full verb list.
+  # it is re-enabled.
+  {{- /* Note: legacy-named draft/deploy/alert secrets are surfaced here only so
+         the backend can read+migrate them; new resources are written with
+         the `mission-control-*` names. */ -}}
   {{- if .Values.features.deploy }}
   - apiGroups: [""]
     resources: ["services", "persistentvolumeclaims", "serviceaccounts"]
@@ -219,16 +234,4 @@ rules:
     resources: ["virtualservices"]
     verbs: ["create", "update", "patch", "delete"]
   {{- end }}
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRoleBinding
-metadata:
-  name: {{ include "langsmith-mission-control.fullname" . }}
-subjects:
-  - kind: ServiceAccount
-    name: {{ include "langsmith-mission-control.fullname" . }}
-    namespace: {{ .Release.Namespace }}
-roleRef:
-  kind: ClusterRole
-  name: {{ include "langsmith-mission-control.fullname" . }}
-  apiGroup: rbac.authorization.k8s.io
+{{- end }}

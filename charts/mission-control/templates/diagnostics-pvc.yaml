@@ -2,10 +2,15 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: {{ include "langsmith-mission-control.fullname" . }}-diagnostics
-  namespace: {{ .Release.Namespace }}
+  name: {{ include "missionControl.fullname" . }}-diagnostics
+  namespace: {{ .Values.namespace | default .Release.Namespace }}
   labels:
-    app: {{ include "langsmith-mission-control.name" . }}
+    {{- include "missionControl.labels" . | nindent 4 }}
+    app.kubernetes.io/component: backend
+  {{- with (include "missionControl.annotations" .) }}
+  annotations:
+    {{- . | nindent 4 }}
+  {{- end }}
 spec:
   accessModes:
     - {{ .Values.diagnostics.persistence.accessMode | default "ReadWriteOnce" | quote }}
