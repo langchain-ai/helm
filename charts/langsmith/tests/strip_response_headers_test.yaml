@@ -1,0 +1,17 @@
+suite: test envoy filter for stripping response headers
+templates:
+  - envoy-filter-strip-response-headers.yaml
+tests:
+  - it: should not render when istioGateway.enabled is false (default)
+    template: envoy-filter-strip-response-headers.yaml
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: should not render when istioGateway.enabled is true but stripResponseHeaders.enabled is false (default)
+    template: envoy-filter-strip-response-headers.yaml
+    set:
+      istioGateway.enabled: true
+    asserts:
+      - hasDocuments:
+          count: 0

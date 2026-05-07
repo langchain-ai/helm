@@ -1,0 +1,3 @@
+{{- if and .Values.istioGateway.enabled .Values.istioGateway.stripResponseHeaders.enabled }}
+{{- /* body filled in by Task 3 */ -}}
+{{- end }}
