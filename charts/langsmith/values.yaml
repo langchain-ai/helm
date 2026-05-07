@@ -125,6 +125,21 @@ istioGateway:
   namespace: "istio-system"
   annotations: {}
   labels: {}
+  # -- Optional: deploy an EnvoyFilter to the istio-gateway pods that
+  # -- strips internal Envoy observability headers from all responses
+  # -- leaving the gateway. Useful for closing pentest findings about
+  # -- HTTP response header information disclosure.
+  stripResponseHeaders:
+    enabled: false
+    # -- Label selector matching the Istio gateway pods to attach the
+    # -- filter to. Default matches the standard Istio ingress gateway.
+    workloadSelector:
+      istio: ingressgateway
+    # -- List of response headers to strip. The defaults cover known
+    # -- Envoy/Istio observability headers flagged by external pentests.
+    headers:
+      - x-envoy-upstream-service-time
+      - x-envoy-decorator-operation
 
 
 fleet:
