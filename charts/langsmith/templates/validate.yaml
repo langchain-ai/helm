@@ -39,6 +39,11 @@ AWS Marketplace Helm template verification).
   {{- end -}}
 {{- end -}}
 
+{{- /* Validate stripResponseHeaders requires istioGateway.enabled */ -}}
+{{- if and .Values.istioGateway.stripResponseHeaders.enabled (not .Values.istioGateway.enabled) -}}
+{{- fail "istioGateway.stripResponseHeaders.enabled requires istioGateway.enabled to be true." -}}
+{{- end -}}
+
 # Fail if hostname is missing when deployment is enabled
 {{- if and .Values.config.deployment.enabled (not .Values.config.hostname) }}
 {{- fail "config.hostname is required when LangSmith Deployments is enabled." -}}
