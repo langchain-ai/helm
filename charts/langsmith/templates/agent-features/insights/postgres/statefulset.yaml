@@ -2,10 +2,14 @@
 {{- if not .Values.insights.postgres.external.enabled }}
 {{- $volumes := concat .Values.commonVolumes .Values.insights.postgres.statefulSet.volumes -}}
 {{- $volumeMounts := concat .Values.commonVolumeMounts .Values.insights.postgres.statefulSet.volumeMounts -}}
+{{- $componentSuffix := printf "%s-%s" .Values.insights.namePrefix .Values.insights.postgres.name -}}
+{{- $componentPrefixMaxLen := int (sub 62 (len $componentSuffix)) -}}
+{{- $componentPrefix := include "langsmith.fullname" . | trunc $componentPrefixMaxLen | trimSuffix "-" -}}
+{{- $componentName := printf "%s-%s" $componentPrefix $componentSuffix -}}
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: {{ include "langsmith.agentFeatures.fullname" (dict "root" . "product" "insights") }}-{{ .Values.insights.postgres.name }}
+  name: {{ $componentName }}
   namespace: {{ .Values.namespace | default .Release.Namespace | quote }}
   labels:
     {{- include "langsmith.labels" . | nindent 4 }}
@@ -18,12 +22,12 @@ metadata:
       {{- toYaml . | nindent 4 }}
     {{- end }}
 spec:
-  serviceName: {{ include "langsmith.agentFeatures.fullname" (dict "root" . "product" "insights") }}-{{ .Values.insights.postgres.name }}
+  serviceName: {{ $componentName }}
   replicas: 1
   selector:
     matchLabels:
       {{- include "langsmith.selectorLabels" . | nindent 6 }}
-      app.kubernetes.io/component: {{ include "langsmith.agentFeatures.fullname" (dict "root" . "product" "insights") }}-{{ .Values.insights.postgres.name }}
+      app.kubernetes.io/component: {{ $componentName }}
   template:
     metadata:
       {{- with .Values.insights.postgres.statefulSet.annotations }}
@@ -35,7 +39,7 @@ spec:
             {{- toYaml . | nindent 8 }}
         {{- end }}
         {{- include "langsmith.labels" . | nindent 8 }}
-        app.kubernetes.io/component: {{ include "langsmith.agentFeatures.fullname" (dict "root" . "product" "insights") }}-{{ .Values.insights.postgres.name }}
+        app.kubernetes.io/component: {{ $componentName }}
     spec:
       {{- with .Values.images.imagePullSecrets }}
       imagePullSecrets:
@@ -47,7 +51,7 @@ spec:
       terminationGracePeriodSeconds: {{ .Values.insights.postgres.statefulSet.terminationGracePeriodSeconds }}
       securityContext:
         {{- toYaml .Values.insights.postgres.statefulSet.podSecurityContext | nindent 8 }}
-      serviceAccountName: {{ include "langsmith.agentFeatures.fullname" (dict "root" . "product" "insights") }}-{{ .Values.insights.postgres.name }}
+      serviceAccountName: {{ $componentName }}
       {{- include "langsmith.dnsConfig" . | nindent 6 }}
       containers:
         - name: {{ .Values.insights.postgres.name }}
@@ -160,7 +164,7 @@ spec:
         name: data
         labels:
           {{- include "langsmith.selectorLabels" . | nindent 10 }}
-          app.kubernetes.io/component: {{ include "langsmith.agentFeatures.fullname" (dict "root" . "product" "insights") }}-{{ .Values.insights.postgres.name }}
+          app.kubernetes.io/component: {{ $componentName }}
       spec:
 
         accessModes:

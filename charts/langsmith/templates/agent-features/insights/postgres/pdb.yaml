@@ -1,9 +1,13 @@
 {{- if .Values.insights.enabled }}
 {{- if .Values.insights.postgres.pdb.enabled }}
+{{- $componentSuffix := printf "%s-%s" .Values.insights.namePrefix .Values.insights.postgres.name -}}
+{{- $componentPrefixMaxLen := int (sub 62 (len $componentSuffix)) -}}
+{{- $componentPrefix := include "langsmith.fullname" . | trunc $componentPrefixMaxLen | trimSuffix "-" -}}
+{{- $componentName := printf "%s-%s" $componentPrefix $componentSuffix -}}
 apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
-  name: {{ include "langsmith.agentFeatures.fullname" (dict "root" . "product" "insights") }}-{{ .Values.insights.postgres.name }}
+  name: {{ $componentName }}
   namespace: {{ .Values.namespace | default .Release.Namespace | quote }}
   labels:
     {{- include "langsmith.labels" . | nindent 4 }}
@@ -11,7 +15,7 @@ spec:
   selector:
     matchLabels:
       {{- include "langsmith.selectorLabels" . | nindent 6 }}
-      app.kubernetes.io/component: {{ include "langsmith.agentFeatures.fullname" (dict "root" . "product" "insights") }}-{{ .Values.insights.postgres.name }}
+      app.kubernetes.io/component: {{ $componentName }}
   {{- if .Values.insights.postgres.pdb.minAvailable }}
   minAvailable: {{ .Values.insights.postgres.pdb.minAvailable }}
   {{- end }}
