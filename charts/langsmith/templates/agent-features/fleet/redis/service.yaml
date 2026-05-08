@@ -1,9 +1,10 @@
 {{- if .Values.fleet.enabled }}
 {{- if not .Values.fleet.redis.external.enabled }}
+{{- $componentName := include "langsmith.fleet.redisComponentName" . -}}
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "langsmith.agentFeatures.fullname" (dict "root" . "product" "fleet") }}-{{ .Values.fleet.redis.name }}
+  name: {{ $componentName }}
   namespace: {{ .Values.namespace | default .Release.Namespace | quote }}
   labels:
     {{- include "langsmith.labels" . | nindent 4 }}
@@ -24,6 +25,6 @@ spec:
       protocol: TCP
   selector:
     {{- include "langsmith.selectorLabels" . | nindent 4 }}
-    app.kubernetes.io/component: {{ include "langsmith.agentFeatures.fullname" (dict "root" . "product" "fleet") }}-{{ .Values.fleet.redis.name }}
+    app.kubernetes.io/component: {{ $componentName }}
   {{- end }}
 {{- end }}

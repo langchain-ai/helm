@@ -1,9 +1,10 @@
 {{- if .Values.polly.enabled }}
 {{- if .Values.polly.redis.pdb.enabled }}
+{{- $componentName := include "langsmith.polly.redisComponentName" . -}}
 apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
-  name: {{ include "langsmith.agentFeatures.fullname" (dict "root" . "product" "polly") }}-{{ .Values.polly.redis.name }}
+  name: {{ $componentName }}
   namespace: {{ .Values.namespace | default .Release.Namespace | quote }}
   labels:
     {{- include "langsmith.labels" . | nindent 4 }}
@@ -11,7 +12,7 @@ spec:
   selector:
     matchLabels:
       {{- include "langsmith.selectorLabels" . | nindent 6 }}
-      app.kubernetes.io/component: {{ include "langsmith.agentFeatures.fullname" (dict "root" . "product" "polly") }}-{{ .Values.polly.redis.name }}
+      app.kubernetes.io/component: {{ $componentName }}
   {{- if .Values.polly.redis.pdb.minAvailable }}
   minAvailable: {{ .Values.polly.redis.pdb.minAvailable }}
   {{- end }}

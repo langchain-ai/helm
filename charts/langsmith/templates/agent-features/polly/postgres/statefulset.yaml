@@ -2,10 +2,7 @@
 {{- if not .Values.polly.postgres.external.enabled }}
 {{- $volumes := concat .Values.commonVolumes .Values.polly.postgres.statefulSet.volumes -}}
 {{- $volumeMounts := concat .Values.commonVolumeMounts .Values.polly.postgres.statefulSet.volumeMounts -}}
-{{- $componentSuffix := printf "%s-%s" .Values.polly.namePrefix .Values.polly.postgres.name -}}
-{{- $componentPrefixMaxLen := int (sub 62 (len $componentSuffix)) -}}
-{{- $componentPrefix := include "langsmith.fullname" . | trunc $componentPrefixMaxLen | trimSuffix "-" -}}
-{{- $componentName := printf "%s-%s" $componentPrefix $componentSuffix -}}
+{{- $componentName := include "langsmith.polly.postgresComponentName" . -}}
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:

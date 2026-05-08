@@ -1,11 +1,12 @@
 {{- if .Values.polly.enabled }}
 {{- if not .Values.polly.redis.external.enabled }}
+{{- $componentName := include "langsmith.polly.redisComponentName" . -}}
 {{- $volumes := concat .Values.commonVolumes .Values.polly.redis.statefulSet.volumes -}}
 {{- $volumeMounts := concat .Values.commonVolumeMounts .Values.polly.redis.statefulSet.volumeMounts -}}
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: {{ include "langsmith.agentFeatures.fullname" (dict "root" . "product" "polly") }}-{{ .Values.polly.redis.name }}
+  name: {{ $componentName }}
   namespace: {{ .Values.namespace | default .Release.Namespace | quote }}
   labels:
     {{- include "langsmith.labels" . | nindent 4 }}
@@ -18,12 +19,12 @@ metadata:
       {{- toYaml . | nindent 4 }}
     {{- end }}
 spec:
-  serviceName: {{ include "langsmith.agentFeatures.fullname" (dict "root" . "product" "polly") }}-{{ .Values.polly.redis.name }}
+  serviceName: {{ $componentName }}
   replicas: 1
   selector:
     matchLabels:
       {{- include "langsmith.selectorLabels" . | nindent 6 }}
-      app.kubernetes.io/component: {{ include "langsmith.agentFeatures.fullname" (dict "root" . "product" "polly") }}-{{ .Values.polly.redis.name }}
+      app.kubernetes.io/component: {{ $componentName }}
   template:
     metadata:
       {{- with .Values.polly.redis.statefulSet.annotations }}
@@ -35,7 +36,7 @@ spec:
             {{- toYaml . | nindent 8 }}
         {{- end }}
         {{- include "langsmith.labels" . | nindent 8 }}
-        app.kubernetes.io/component: {{ include "langsmith.agentFeatures.fullname" (dict "root" . "product" "polly") }}-{{ .Values.polly.redis.name }}
+        app.kubernetes.io/component: {{ $componentName }}
     spec:
       {{- with .Values.images.imagePullSecrets }}
       imagePullSecrets:
@@ -47,7 +48,7 @@ spec:
       terminationGracePeriodSeconds: {{ .Values.polly.redis.statefulSet.terminationGracePeriodSeconds }}
       securityContext:
         {{- toYaml .Values.polly.redis.statefulSet.podSecurityContext | nindent 8 }}
-      serviceAccountName: {{ include "langsmith.agentFeatures.fullname" (dict "root" . "product" "polly") }}-{{ .Values.polly.redis.name }}
+      serviceAccountName: {{ $componentName }}
       {{- include "langsmith.dnsConfig" . | nindent 6 }}
       containers:
         - name: {{ .Values.polly.redis.name }}
@@ -142,7 +143,7 @@ spec:
         name: data
         labels:
           {{- include "langsmith.selectorLabels" . | nindent 10 }}
-          app.kubernetes.io/component: {{ include "langsmith.agentFeatures.fullname" (dict "root" . "product" "polly") }}-{{ .Values.polly.redis.name }}
+          app.kubernetes.io/component: {{ $componentName }}
       spec:
         accessModes:
           - ReadWriteOnce
