@@ -1,9 +1,6 @@
 {{- if .Values.polly.enabled }}
 {{- if .Values.polly.postgres.pdb.enabled }}
-{{- $componentSuffix := printf "%s-%s" .Values.polly.namePrefix .Values.polly.postgres.name -}}
-{{- $componentPrefixMaxLen := int (sub 62 (len $componentSuffix)) -}}
-{{- $componentPrefix := include "langsmith.fullname" . | trunc $componentPrefixMaxLen | trimSuffix "-" -}}
-{{- $componentName := printf "%s-%s" $componentPrefix $componentSuffix -}}
+{{- $componentName := include "langsmith.polly.postgresComponentName" . -}}
 apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:

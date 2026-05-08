@@ -1,9 +1,10 @@
 {{- if .Values.insights.enabled }}
 {{- if not .Values.insights.redis.external.enabled }}
+{{- $componentName := include "langsmith.insights.redisComponentName" . -}}
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "langsmith.agentFeatures.fullname" (dict "root" . "product" "insights") }}-{{ .Values.insights.redis.name }}
+  name: {{ $componentName }}
   namespace: {{ .Values.namespace | default .Release.Namespace | quote }}
   labels:
     {{- include "langsmith.labels" . | nindent 4 }}
@@ -24,6 +25,6 @@ spec:
       protocol: TCP
   selector:
     {{- include "langsmith.selectorLabels" . | nindent 4 }}
-    app.kubernetes.io/component: {{ include "langsmith.agentFeatures.fullname" (dict "root" . "product" "insights") }}-{{ .Values.insights.redis.name }}
+    app.kubernetes.io/component: {{ $componentName }}
   {{- end }}
 {{- end }}

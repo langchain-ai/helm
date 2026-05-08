@@ -2,10 +2,7 @@
 {{- if not .Values.insights.postgres.external.enabled }}
 {{- $volumes := concat .Values.commonVolumes .Values.insights.postgres.statefulSet.volumes -}}
 {{- $volumeMounts := concat .Values.commonVolumeMounts .Values.insights.postgres.statefulSet.volumeMounts -}}
-{{- $componentSuffix := printf "%s-%s" .Values.insights.namePrefix .Values.insights.postgres.name -}}
-{{- $componentPrefixMaxLen := int (sub 62 (len $componentSuffix)) -}}
-{{- $componentPrefix := include "langsmith.fullname" . | trunc $componentPrefixMaxLen | trimSuffix "-" -}}
-{{- $componentName := printf "%s-%s" $componentPrefix $componentSuffix -}}
+{{- $componentName := include "langsmith.insights.postgresComponentName" . -}}
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:

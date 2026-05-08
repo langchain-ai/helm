@@ -2,10 +2,7 @@
 {{- if not .Values.fleet.postgres.external.enabled }}
 {{- $volumes := concat .Values.commonVolumes .Values.fleet.postgres.statefulSet.volumes -}}
 {{- $volumeMounts := concat .Values.commonVolumeMounts .Values.fleet.postgres.statefulSet.volumeMounts -}}
-{{- $componentSuffix := printf "%s-%s" .Values.fleet.namePrefix .Values.fleet.postgres.name -}}
-{{- $componentPrefixMaxLen := int (sub 62 (len $componentSuffix)) -}}
-{{- $componentPrefix := include "langsmith.fullname" . | trunc $componentPrefixMaxLen | trimSuffix "-" -}}
-{{- $componentName := printf "%s-%s" $componentPrefix $componentSuffix -}}
+{{- $componentName := include "langsmith.fleet.postgresComponentName" . -}}
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
