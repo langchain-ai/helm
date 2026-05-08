@@ -1,9 +1,13 @@
 {{- if .Values.insights.enabled }}
 {{- if not .Values.insights.postgres.external.enabled }}
+{{- $componentSuffix := printf "%s-%s" .Values.insights.namePrefix .Values.insights.postgres.name -}}
+{{- $componentPrefixMaxLen := int (sub 62 (len $componentSuffix)) -}}
+{{- $componentPrefix := include "langsmith.fullname" . | trunc $componentPrefixMaxLen | trimSuffix "-" -}}
+{{- $componentName := printf "%s-%s" $componentPrefix $componentSuffix -}}
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "langsmith.agentFeatures.fullname" (dict "root" . "product" "insights") }}-{{ .Values.insights.postgres.name }}
+  name: {{ $componentName }}
   namespace: {{ .Values.namespace | default .Release.Namespace | quote }}
   labels:
     {{- include "langsmith.labels" . | nindent 4 }}
@@ -24,6 +28,6 @@ spec:
       protocol: TCP
   selector:
     {{- include "langsmith.selectorLabels" . | nindent 4 }}
-    app.kubernetes.io/component: {{ include "langsmith.agentFeatures.fullname" (dict "root" . "product" "insights") }}-{{ .Values.insights.postgres.name }}
+    app.kubernetes.io/component: {{ $componentName }}
   {{- end }}
 {{- end }}
