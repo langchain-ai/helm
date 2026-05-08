@@ -612,6 +612,22 @@ Template containing common environment variables that are used by several servic
 {{- end -}}
 {{- end -}}
 
+{{- define "fleetApiServer.serviceAccountName" -}}
+{{- if .Values.fleet.apiServer.serviceAccount.create -}}
+    {{ default (printf "%s-%s" (include "langsmith.agentFeatures.fullname" (dict "root" . "product" "fleet")) .Values.fleet.apiServer.name) .Values.fleet.apiServer.serviceAccount.name | trunc 63 | trimSuffix "-" }}
+{{- else -}}
+    {{ default "default" .Values.fleet.apiServer.serviceAccount.name }}
+{{- end -}}
+{{- end -}}
+
+{{- define "fleetQueue.serviceAccountName" -}}
+{{- if .Values.fleet.queue.serviceAccount.create -}}
+    {{ default (printf "%s-%s" (include "langsmith.agentFeatures.fullname" (dict "root" . "product" "fleet")) .Values.fleet.queue.name) .Values.fleet.queue.serviceAccount.name | trunc 63 | trimSuffix "-" }}
+{{- else -}}
+    {{ default "default" .Values.fleet.queue.serviceAccount.name }}
+{{- end -}}
+{{- end -}}
+
 {{- define "agentBootstrap.createAgentProducts" -}}
 {{- $createProducts := list }}
 {{- if .Values.config.agentBuilder.enabled }}
