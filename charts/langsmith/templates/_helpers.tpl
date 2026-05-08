@@ -610,6 +610,54 @@ Template containing common environment variables that are used by several servic
 {{- end -}}
 {{- end -}}
 
+{{- define "fleetApiServer.serviceAccountName" -}}
+{{- if .Values.fleet.apiServer.serviceAccount.create -}}
+    {{ default (printf "%s-%s" (include "langsmith.agentFeatures.fullname" (dict "root" . "product" "fleet")) .Values.fleet.apiServer.name) .Values.fleet.apiServer.serviceAccount.name | trunc 63 | trimSuffix "-" }}
+{{- else -}}
+    {{ default "default" .Values.fleet.apiServer.serviceAccount.name }}
+{{- end -}}
+{{- end -}}
+
+{{- define "fleetQueue.serviceAccountName" -}}
+{{- if .Values.fleet.queue.serviceAccount.create -}}
+    {{ default (printf "%s-%s" (include "langsmith.agentFeatures.fullname" (dict "root" . "product" "fleet")) .Values.fleet.queue.name) .Values.fleet.queue.serviceAccount.name | trunc 63 | trimSuffix "-" }}
+{{- else -}}
+    {{ default "default" .Values.fleet.queue.serviceAccount.name }}
+{{- end -}}
+{{- end -}}
+
+{{- define "insightsApiServer.serviceAccountName" -}}
+{{- if .Values.insights.apiServer.serviceAccount.create -}}
+    {{ default (printf "%s-%s" (include "langsmith.agentFeatures.fullname" (dict "root" . "product" "insights")) .Values.insights.apiServer.name) .Values.insights.apiServer.serviceAccount.name | trunc 63 | trimSuffix "-" }}
+{{- else -}}
+    {{ default "default" .Values.insights.apiServer.serviceAccount.name }}
+{{- end -}}
+{{- end -}}
+
+{{- define "insightsQueue.serviceAccountName" -}}
+{{- if .Values.insights.queue.serviceAccount.create -}}
+    {{ default (printf "%s-%s" (include "langsmith.agentFeatures.fullname" (dict "root" . "product" "insights")) .Values.insights.queue.name) .Values.insights.queue.serviceAccount.name | trunc 63 | trimSuffix "-" }}
+{{- else -}}
+    {{ default "default" .Values.insights.queue.serviceAccount.name }}
+{{- end -}}
+{{- end -}}
+
+{{- define "pollyApiServer.serviceAccountName" -}}
+{{- if .Values.polly.apiServer.serviceAccount.create -}}
+    {{ default (printf "%s-%s" (include "langsmith.agentFeatures.fullname" (dict "root" . "product" "polly")) .Values.polly.apiServer.name) .Values.polly.apiServer.serviceAccount.name | trunc 63 | trimSuffix "-" }}
+{{- else -}}
+    {{ default "default" .Values.polly.apiServer.serviceAccount.name }}
+{{- end -}}
+{{- end -}}
+
+{{- define "pollyQueue.serviceAccountName" -}}
+{{- if .Values.polly.queue.serviceAccount.create -}}
+    {{ default (printf "%s-%s" (include "langsmith.agentFeatures.fullname" (dict "root" . "product" "polly")) .Values.polly.queue.name) .Values.polly.queue.serviceAccount.name | trunc 63 | trimSuffix "-" }}
+{{- else -}}
+    {{ default "default" .Values.polly.queue.serviceAccount.name }}
+{{- end -}}
+{{- end -}}
+
 {{- define "agentBootstrap.createAgentProducts" -}}
 {{- $createProducts := list }}
 {{- if .Values.config.agentBuilder.enabled }}
