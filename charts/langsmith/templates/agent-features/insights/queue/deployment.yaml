@@ -39,7 +39,7 @@ spec:
         {{- include "langsmith.labels" . | nindent 8 }}
         app.kubernetes.io/component: {{ include "langsmith.agentFeatures.fullname" (dict "root" . "product" "insights") }}-{{ .Values.insights.queue.name }}
     spec:
-      serviceAccountName: {{ include "langsmith.agentFeatures.fullname" (dict "root" . "product" "insights") }}-{{ .Values.insights.queue.name }}
+      serviceAccountName: {{ include "insightsQueue.serviceAccountName" . }}
       {{- include "langsmith.dnsConfig" . | nindent 6 }}
       {{- with .Values.images.imagePullSecrets }}
       imagePullSecrets:
