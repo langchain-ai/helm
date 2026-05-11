@@ -1,6 +1,6 @@
 {{- if .Values.polly.enabled }}
 {{- if not .Values.polly.redis.external.enabled }}
-{{- $componentName := include "langsmith.polly.redisComponentName" . -}}
+{{- $componentName := include "langsmith.agentFeatures.componentName" (dict "root" . "product" "polly" "component" "redis") -}}
 {{- $volumes := concat .Values.commonVolumes .Values.polly.redis.statefulSet.volumes -}}
 {{- $volumeMounts := concat .Values.commonVolumeMounts .Values.polly.redis.statefulSet.volumeMounts -}}
 apiVersion: apps/v1

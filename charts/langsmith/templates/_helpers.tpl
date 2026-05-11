@@ -671,49 +671,20 @@ Produces: <release>-<namePrefix>  e.g. "langsmith-standalone-fleet"
 {{- end -}}
 
 {{/*
-Component names for StatefulSet-backed agent feature resources.
+Component name for StatefulSet-backed agent feature resources.
 Kept to 52 chars so Kubernetes can append a 10-char controller revision hash
 as a label value without exceeding the 63-char label limit.
+Usage: include "langsmith.agentFeatures.componentName" (dict "root" . "product" "fleet" "component" "postgres")
 */}}
-{{- define "langsmith.fleet.postgresComponentName" -}}
-{{- $suffix := printf "%s-%s" .Values.fleet.namePrefix .Values.fleet.postgres.name -}}
+{{- define "langsmith.agentFeatures.componentName" -}}
+{{- $root := index . "root" -}}
+{{- $product := index . "product" -}}
+{{- $componentName := index . "component" -}}
+{{- $feature := index $root.Values $product -}}
+{{- $component := index $feature $componentName -}}
+{{- $suffix := printf "%s-%s" $feature.namePrefix $component.name -}}
 {{- $prefixMaxLen := int (sub 51 (len $suffix)) -}}
-{{- $prefix := include "langsmith.fullname" . | trunc $prefixMaxLen | trimSuffix "-" -}}
-{{- printf "%s-%s" $prefix $suffix -}}
-{{- end -}}
-
-{{- define "langsmith.fleet.redisComponentName" -}}
-{{- $suffix := printf "%s-%s" .Values.fleet.namePrefix .Values.fleet.redis.name -}}
-{{- $prefixMaxLen := int (sub 51 (len $suffix)) -}}
-{{- $prefix := include "langsmith.fullname" . | trunc $prefixMaxLen | trimSuffix "-" -}}
-{{- printf "%s-%s" $prefix $suffix -}}
-{{- end -}}
-
-{{- define "langsmith.insights.postgresComponentName" -}}
-{{- $suffix := printf "%s-%s" .Values.insights.namePrefix .Values.insights.postgres.name -}}
-{{- $prefixMaxLen := int (sub 51 (len $suffix)) -}}
-{{- $prefix := include "langsmith.fullname" . | trunc $prefixMaxLen | trimSuffix "-" -}}
-{{- printf "%s-%s" $prefix $suffix -}}
-{{- end -}}
-
-{{- define "langsmith.insights.redisComponentName" -}}
-{{- $suffix := printf "%s-%s" .Values.insights.namePrefix .Values.insights.redis.name -}}
-{{- $prefixMaxLen := int (sub 51 (len $suffix)) -}}
-{{- $prefix := include "langsmith.fullname" . | trunc $prefixMaxLen | trimSuffix "-" -}}
-{{- printf "%s-%s" $prefix $suffix -}}
-{{- end -}}
-
-{{- define "langsmith.polly.postgresComponentName" -}}
-{{- $suffix := printf "%s-%s" .Values.polly.namePrefix .Values.polly.postgres.name -}}
-{{- $prefixMaxLen := int (sub 51 (len $suffix)) -}}
-{{- $prefix := include "langsmith.fullname" . | trunc $prefixMaxLen | trimSuffix "-" -}}
-{{- printf "%s-%s" $prefix $suffix -}}
-{{- end -}}
-
-{{- define "langsmith.polly.redisComponentName" -}}
-{{- $suffix := printf "%s-%s" .Values.polly.namePrefix .Values.polly.redis.name -}}
-{{- $prefixMaxLen := int (sub 51 (len $suffix)) -}}
-{{- $prefix := include "langsmith.fullname" . | trunc $prefixMaxLen | trimSuffix "-" -}}
+{{- $prefix := include "langsmith.fullname" $root | trunc $prefixMaxLen | trimSuffix "-" -}}
 {{- printf "%s-%s" $prefix $suffix -}}
 {{- end -}}
 

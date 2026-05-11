@@ -2,7 +2,7 @@
 {{- if not .Values.fleet.postgres.external.enabled }}
 {{- $volumes := concat .Values.commonVolumes .Values.fleet.postgres.statefulSet.volumes -}}
 {{- $volumeMounts := concat .Values.commonVolumeMounts .Values.fleet.postgres.statefulSet.volumeMounts -}}
-{{- $componentName := include "langsmith.fleet.postgresComponentName" . -}}
+{{- $componentName := include "langsmith.agentFeatures.componentName" (dict "root" . "product" "fleet" "component" "postgres") -}}
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:

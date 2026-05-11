@@ -1,6 +1,6 @@
 {{- if .Values.fleet.enabled }}
 {{- if not .Values.fleet.redis.external.enabled }}
-{{- $componentName := include "langsmith.fleet.redisComponentName" . -}}
+{{- $componentName := include "langsmith.agentFeatures.componentName" (dict "root" . "product" "fleet" "component" "redis") -}}
 {{- $volumes := concat .Values.commonVolumes .Values.fleet.redis.statefulSet.volumes -}}
 {{- $volumeMounts := concat .Values.commonVolumeMounts .Values.fleet.redis.statefulSet.volumeMounts -}}
 apiVersion: apps/v1

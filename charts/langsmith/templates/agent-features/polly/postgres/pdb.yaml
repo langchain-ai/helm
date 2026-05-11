@@ -1,6 +1,6 @@
 {{- if .Values.polly.enabled }}
 {{- if .Values.polly.postgres.pdb.enabled }}
-{{- $componentName := include "langsmith.polly.postgresComponentName" . -}}
+{{- $componentName := include "langsmith.agentFeatures.componentName" (dict "root" . "product" "polly" "component" "postgres") -}}
 apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
