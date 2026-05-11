@@ -658,6 +658,204 @@ Template containing common environment variables that are used by several servic
 {{- end -}}
 {{- end -}}
 
+{{/*
+Fullname prefix for a given agent feature product.
+Usage: include "langsmith.agentFeatures.fullname" (dict "root" . "product" "fleet")
+Produces: <release>-<namePrefix>  e.g. "langsmith-standalone-fleet"
+*/}}
+{{- define "langsmith.agentFeatures.fullname" -}}
+{{- $root := index . "root" }}
+{{- $product := index . "product" }}
+{{- $prefix := (index $root.Values $product).namePrefix }}
+{{- printf "%s-%s" (include "langsmith.fullname" $root) $prefix | trunc 63 | trimSuffix "-" }}
+{{- end -}}
+
+{{/*
+Component names for StatefulSet-backed agent feature resources.
+Kept to 52 chars so Kubernetes can append a 10-char controller revision hash
+as a label value without exceeding the 63-char label limit.
+*/}}
+{{- define "langsmith.fleet.postgresComponentName" -}}
+{{- $suffix := printf "%s-%s" .Values.fleet.namePrefix .Values.fleet.postgres.name -}}
+{{- $prefixMaxLen := int (sub 51 (len $suffix)) -}}
+{{- $prefix := include "langsmith.fullname" . | trunc $prefixMaxLen | trimSuffix "-" -}}
+{{- printf "%s-%s" $prefix $suffix -}}
+{{- end -}}
+
+{{- define "langsmith.fleet.redisComponentName" -}}
+{{- $suffix := printf "%s-%s" .Values.fleet.namePrefix .Values.fleet.redis.name -}}
+{{- $prefixMaxLen := int (sub 51 (len $suffix)) -}}
+{{- $prefix := include "langsmith.fullname" . | trunc $prefixMaxLen | trimSuffix "-" -}}
+{{- printf "%s-%s" $prefix $suffix -}}
+{{- end -}}
+
+{{- define "langsmith.insights.postgresComponentName" -}}
+{{- $suffix := printf "%s-%s" .Values.insights.namePrefix .Values.insights.postgres.name -}}
+{{- $prefixMaxLen := int (sub 51 (len $suffix)) -}}
+{{- $prefix := include "langsmith.fullname" . | trunc $prefixMaxLen | trimSuffix "-" -}}
+{{- printf "%s-%s" $prefix $suffix -}}
+{{- end -}}
+
+{{- define "langsmith.insights.redisComponentName" -}}
+{{- $suffix := printf "%s-%s" .Values.insights.namePrefix .Values.insights.redis.name -}}
+{{- $prefixMaxLen := int (sub 51 (len $suffix)) -}}
+{{- $prefix := include "langsmith.fullname" . | trunc $prefixMaxLen | trimSuffix "-" -}}
+{{- printf "%s-%s" $prefix $suffix -}}
+{{- end -}}
+
+{{- define "langsmith.polly.postgresComponentName" -}}
+{{- $suffix := printf "%s-%s" .Values.polly.namePrefix .Values.polly.postgres.name -}}
+{{- $prefixMaxLen := int (sub 51 (len $suffix)) -}}
+{{- $prefix := include "langsmith.fullname" . | trunc $prefixMaxLen | trimSuffix "-" -}}
+{{- printf "%s-%s" $prefix $suffix -}}
+{{- end -}}
+
+{{- define "langsmith.polly.redisComponentName" -}}
+{{- $suffix := printf "%s-%s" .Values.polly.namePrefix .Values.polly.redis.name -}}
+{{- $prefixMaxLen := int (sub 51 (len $suffix)) -}}
+{{- $prefix := include "langsmith.fullname" . | trunc $prefixMaxLen | trimSuffix "-" -}}
+{{- printf "%s-%s" $prefix $suffix -}}
+{{- end -}}
+
+{{/*
+Postgres secret name for a given product.
+Usage: include "langsmith.agentFeatures.postgresSecretName" (dict "root" . "product" "fleet")
+*/}}
+{{- define "langsmith.agentFeatures.postgresSecretName" -}}
+{{- $root := index . "root" }}
+{{- $product := index . "product" }}
+{{- $pg := (index $root.Values $product).postgres }}
+{{- if $pg.external.existingSecretName }}
+{{- $pg.external.existingSecretName }}
+{{- else }}
+{{- include "langsmith.agentFeatures.fullname" . }}-postgres
+{{- end }}
+{{- end -}}
+
+{{/*
+Redis secret name for a given product.
+Usage: include "langsmith.agentFeatures.redisSecretName" (dict "root" . "product" "fleet")
+*/}}
+{{- define "langsmith.agentFeatures.redisSecretName" -}}
+{{- $root := index . "root" }}
+{{- $product := index . "product" }}
+{{- $redis := (index $root.Values $product).redis }}
+{{- if $redis.external.existingSecretName }}
+{{- $redis.external.existingSecretName }}
+{{- else }}
+{{- include "langsmith.agentFeatures.fullname" . }}-redis
+{{- end }}
+{{- end -}}
+
+{{/*
+FQDN for an agent feature's api-server Service (used by frontend nginx proxy_pass).
+Usage: include "langsmith.agentFeatures.apiServerK8sServiceName" (dict "root" . "product" "fleet")
+*/}}
+{{- define "langsmith.agentFeatures.apiServerK8sServiceName" -}}
+{{- $root := index . "root" }}
+{{- $product := index . "product" }}
+{{- $feat := index $root.Values $product }}
+{{- printf "%s-%s" (include "langsmith.agentFeatures.fullname" .) $feat.apiServer.name }}
+{{- end -}}
+
+{{/*
+URL path prefix for agent feature routes (handles basePath).
+*/}}
+{{- define "langsmith.agentFeatures.agentPathPrefix" -}}
+{{- $root := index . "root" }}
+{{- $segment := index . "segment" }}
+{{- $bp := trimAll "/" (default "" $root.Values.config.basePath) -}}
+{{- if $bp -}}/{{ $bp }}/agents/{{ $segment }}{{- else -}}/agents/{{ $segment }}{{- end -}}
+{{- end -}}
+
+{{/*
+Extra env vars for fleet api-server and queue pods.
+*/}}
+{{- define "langsmith.fleet.extraEnv" -}}
+{{- $ns := .Values.namespace | default .Release.Namespace -}}
+{{- $cd := .Values.clusterDomain -}}
+{{- $frontend := printf "http://%s-%s.%s.svc.%s:%v" (include "langsmith.fullname" .) .Values.frontend.name $ns $cd .Values.frontend.service.httpPort -}}
+{{- $toolServer := printf "http://%s-%s.%s.svc.%s:%v" (include "langsmith.fullname" .) .Values.agentBuilderToolServer.name $ns $cd .Values.agentBuilderToolServer.service.port -}}
+{{- $out := list
+  (dict "name" "MCP_SERVER_URL" "value" $toolServer)
+  (dict "name" "LANGSMITH_LICENSE_REQUIRED_CLAIMS" "value" "agent_builder_enabled")
+  (dict "name" "SSRF_ALLOW_PRIVATE_IPS_MCP_SERVERS" "value" "true")
+  (dict "name" "SSRF_ALLOW_PRIVATE_IPS_TOOLS" "value" "true")
+  (dict "name" "SSRF_ALLOW_K8S_INTERNAL" "value" "true")
+-}}
+{{- $commonEnvKeys := list -}}
+{{- range .Values.commonEnv -}}
+{{- $commonEnvKeys = append $commonEnvKeys .name -}}
+{{- end -}}
+{{- if not (has "LANGSMITH_AUTH_ENDPOINT" $commonEnvKeys) }}
+{{- $out = append $out (dict "name" "LANGSMITH_AUTH_ENDPOINT" "value" (printf "%s/api/v1" $frontend)) }}
+{{- end }}
+{{- if .Values.fleet.enableTracing }}
+{{- $out = append $out (dict "name" "TENANT_AWARE_TRACING_ENABLED" "value" "true") }}
+{{- end }}
+{{- $secretName := include "langsmith.secretsName" . }}
+{{- if not (has "AGENT_BUILDER_ENCRYPTION_KEY" $commonEnvKeys) }}
+{{- $out = append $out (dict "name" "AGENT_BUILDER_ENCRYPTION_KEY" "valueFrom" (dict "secretKeyRef" (dict "name" $secretName "key" "agent_builder_encryption_key"))) }}
+{{- end }}
+{{- if not (has "X_SERVICE_AUTH_JWT_SECRET" $commonEnvKeys) }}
+{{- $out = append $out (dict "name" "X_SERVICE_AUTH_JWT_SECRET" "valueFrom" (dict "secretKeyRef" (dict "name" $secretName "key" "api_key_salt" "optional" true))) }}
+{{- end }}
+{{- toYaml $out }}
+{{- end -}}
+
+{{/*
+Extra env vars for insights api-server and queue pods.
+*/}}
+{{- define "langsmith.insights.extraEnv" -}}
+{{- $ns := .Values.namespace | default .Release.Namespace -}}
+{{- $cd := .Values.clusterDomain -}}
+{{- $frontend := printf "http://%s-%s.%s.svc.%s:%v" (include "langsmith.fullname" .) .Values.frontend.name $ns $cd .Values.frontend.service.httpPort -}}
+{{- $out := list
+  (dict "name" "LLM_AUTH_PROXY_ACCEPT_HTTP" "value" "true")
+  (dict "name" "LANGSMITH_TRACING" "value" "false")
+-}}
+{{- $commonEnvKeys := list -}}
+{{- range .Values.commonEnv -}}
+{{- $commonEnvKeys = append $commonEnvKeys .name -}}
+{{- end -}}
+{{- if not (has "LANGSMITH_AUTH_ENDPOINT" $commonEnvKeys) }}
+{{- $out = append $out (dict "name" "LANGSMITH_AUTH_ENDPOINT" "value" (printf "%s/api/v1" $frontend)) }}
+{{- end }}
+{{- $secretName := include "langsmith.secretsName" . }}
+{{- if not (has "CLIO_ENCRYPTION_KEY" $commonEnvKeys) }}
+{{- $out = append $out (dict "name" "CLIO_ENCRYPTION_KEY" "valueFrom" (dict "secretKeyRef" (dict "name" $secretName "key" "insights_encryption_key"))) }}
+{{- end }}
+{{- if not (has "X_SERVICE_AUTH_JWT_SECRET" $commonEnvKeys) }}
+{{- $out = append $out (dict "name" "X_SERVICE_AUTH_JWT_SECRET" "valueFrom" (dict "secretKeyRef" (dict "name" $secretName "key" "api_key_salt" "optional" true))) }}
+{{- end }}
+{{- toYaml $out }}
+{{- end -}}
+
+{{/*
+Extra env vars for polly api-server and queue pods.
+*/}}
+{{- define "langsmith.polly.extraEnv" -}}
+{{- $ns := .Values.namespace | default .Release.Namespace -}}
+{{- $cd := .Values.clusterDomain -}}
+{{- $frontend := printf "http://%s-%s.%s.svc.%s:%v" (include "langsmith.fullname" .) .Values.frontend.name $ns $cd .Values.frontend.service.httpPort -}}
+{{- $out := list
+  (dict "name" "LLM_AUTH_PROXY_ACCEPT_HTTP" "value" "true")
+  (dict "name" "LANGSMITH_TRACING" "value" (ternary "false" "true" .Values.polly.enableTracing))
+-}}
+{{- $commonEnvKeys := list -}}
+{{- range .Values.commonEnv -}}
+{{- $commonEnvKeys = append $commonEnvKeys .name -}}
+{{- end -}}
+{{- if not (has "LANGSMITH_AUTH_ENDPOINT" $commonEnvKeys) }}
+{{- $out = append $out (dict "name" "LANGSMITH_AUTH_ENDPOINT" "value" (printf "%s/api/v1" $frontend)) }}
+{{- end }}
+{{- $secretName := include "langsmith.secretsName" . }}
+{{- if not (has "POLLY_ENCRYPTION_KEY" $commonEnvKeys) }}
+{{- $out = append $out (dict "name" "POLLY_ENCRYPTION_KEY" "valueFrom" (dict "secretKeyRef" (dict "name" $secretName "key" "polly_encryption_key"))) }}
+{{- end }}
+{{- toYaml $out }}
+{{- end -}}
+
 {{- define "agentBootstrap.createAgentProducts" -}}
 {{- $createProducts := list }}
 {{- if .Values.config.agentBuilder.enabled }}

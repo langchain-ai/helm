@@ -1,4 +1,6 @@
 {{- if .Values.insights.enabled }}
+{{- $envVars := concat .Values.commonEnv (include "langsmith.insights.extraEnv" . | fromYamlArray) .Values.insights.apiServer.deployment.extraEnv -}}
+{{- include "langsmith.detectDuplicates" $envVars -}}
 {{- $volumes := concat .Values.commonVolumes .Values.insights.apiServer.deployment.volumes (include "langsmith.tlsVolumes" . | fromYamlArray) -}}
 {{- $volumeMounts := concat .Values.commonVolumeMounts .Values.insights.apiServer.deployment.volumeMounts (include "langsmith.tlsVolumeMounts" . | fromYamlArray) -}}
 apiVersion: apps/v1
@@ -58,7 +60,7 @@ spec:
       containers:
         - name: {{ .Values.insights.apiServer.name }}
           env:
-            {{- with .Values.commonEnv }}
+            {{- with $envVars }}
               {{- toYaml . | nindent 12 }}
             {{- end }}
             - name: PORT
@@ -86,13 +88,12 @@ spec:
             - name: N_JOBS_PER_WORKER
               value: {{ .Values.insights.queue.numberOfJobsPerWorker | quote }}
             {{- end }}
-            {{- with include "langsmith.insights.extraEnv" . | trim }}
-              {{- . | nindent 12 }}
-            {{- end }}
-          {{- with .Values.insights.apiServer.deployment.envFrom }}
           envFrom:
-            {{- toYaml . | nindent 12 }}
-          {{- end }}
+            - configMapRef:
+                name: {{ include "langsmith.fullname" . }}-config
+            {{- with .Values.insights.apiServer.deployment.envFrom }}
+              {{- toYaml . | nindent 12 }}
+            {{- end }}
           image: {{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "insightsAgentImage") | quote }}
           imagePullPolicy: {{ .Values.images.insightsAgentImage.pullPolicy }}
           ports:
