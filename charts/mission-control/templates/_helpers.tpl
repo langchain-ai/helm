@@ -83,10 +83,10 @@ Backend service account name.
 {{- end }}
 
 {{/*
-Backend Deployment name. Referenced by the backend itself (for self-restart on
-auth setup) and by the RBAC patch resourceNames.
+Backend workload name (StatefulSet). Referenced by the backend itself
+(for self-restart on auth setup) and by the RBAC patch resourceNames.
 */}}
-{{- define "missionControl.backendDeploymentName" -}}
+{{- define "missionControl.backendWorkloadName" -}}
 {{ include "missionControl.fullname" . }}-backend
 {{- end }}
 
@@ -121,7 +121,7 @@ Pre-created auth Secret containing username/password (and optional jwtSecret).
 Defaults to "mission-control-auth"; overridable via auth.existingSecret.
 */}}
 {{- define "missionControl.authSecretName" -}}
-{{ .Values.auth.existingSecret | default "mission-control-auth" }}
+{{ .Values.config.auth.existingSecret | default "mission-control-auth" }}
 {{- end }}
 
 {{/*

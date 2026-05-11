@@ -19,7 +19,7 @@
 #   -r, --release NAME         Helm release name (default: mission-control)
 #   -c, --chart-path PATH      Local Helm chart path (default: auto)
 #       --chart-ref REF        Public Helm chart ref used when no local chart exists
-#                              (default: langchain/langsmith-mission-control)
+#                              (default: langchain/mission-control)
 #       --helm-repo-url URL    Public Helm repo URL
 #                              (default: https://langchain-ai.github.io/helm)
 #       --values-url URL       Public default values.yaml URL
@@ -35,7 +35,7 @@
 
 set -euo pipefail
 
-DEFAULT_CHART_REF="langchain/langsmith-mission-control"
+DEFAULT_CHART_REF="langchain/mission-control"
 DEFAULT_HELM_REPO_NAME="langchain"
 DEFAULT_HELM_REPO_URL="https://langchain-ai.github.io/helm"
 DEFAULT_VALUES_URL="https://raw.githubusercontent.com/langchain-ai/helm/main/charts/mission-control/values.yaml"
@@ -87,7 +87,7 @@ Flags:
   -r, --release NAME         Helm release name (default: mission-control)
   -c, --chart-path PATH      Local Helm chart path (default: auto)
       --chart-ref REF        Public Helm chart ref used when no local chart exists
-                             (default: langchain/langsmith-mission-control)
+                             (default: langchain/mission-control)
       --helm-repo-url URL    Public Helm repo URL
                              (default: https://langchain-ai.github.io/helm)
       --values-url URL       Public default values.yaml URL
@@ -242,11 +242,11 @@ images:
   imagePullSecrets:
     - name: regcred
   backendImage:
-    repository: langchain/langsmith-mission-control
+    repository: langchain/mission-control
     pullPolicy: IfNotPresent
     tag: backend-latest
   frontendImage:
-    repository: langchain/langsmith-mission-control
+    repository: langchain/mission-control
     pullPolicy: IfNotPresent
     tag: frontend-latest
 
@@ -277,26 +277,25 @@ ingress:
   enabled: false
   host: ""
 
-auth:
-  enabled: true
-  existingSecret: mission-control-auth
-  usernameKey: username
-  passwordKey: password
-  jwtSecretKey: ""
-  allowedOrigins: ""
-
-features:
-  fixIssue: true
-  adopt: true
-  alerts: true
-  chat: true
-  diagnostics: true
-  configSave: true
-  discover: true
-  dbTools: true
-  deploy: false
-
-discoverNamespaces: ""
+config:
+  auth:
+    enabled: true
+    existingSecret: mission-control-auth
+    usernameKey: username
+    passwordKey: password
+    jwtSecretKey: ""
+    allowedOrigins: ""
+  features:
+    fixIssue: true
+    adopt: true
+    alerts: true
+    chat: true
+    diagnostics: true
+    configSave: true
+    discover: true
+    dbTools: true
+    deploy: false
+  discoverNamespaces: ""
 
 diagnostics:
   persistence:

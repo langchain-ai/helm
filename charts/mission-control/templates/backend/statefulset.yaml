@@ -1,7 +1,7 @@
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
-  name: {{ include "missionControl.backendDeploymentName" . }}
+  name: {{ include "missionControl.backendWorkloadName" . }}
   namespace: {{ .Values.namespace | default .Release.Namespace }}
   labels:
     {{- include "missionControl.labels" . | nindent 4 }}
@@ -11,6 +11,7 @@ metadata:
     {{- . | nindent 4 }}
   {{- end }}
 spec:
+  serviceName: {{ include "missionControl.backendWorkloadName" . }}
   replicas: {{ .Values.backend.replicas }}
   selector:
     matchLabels:
@@ -57,30 +58,30 @@ spec:
             - name: MC_VERSION
               value: {{ .Chart.Version | quote }}
             - name: BASIC_AUTH_ENABLED
-              value: {{ ternary "true" "false" .Values.auth.enabled | quote }}
-            {{- if .Values.auth.enabled }}
+              value: {{ ternary "true" "false" .Values.config.auth.enabled | quote }}
+            {{- if .Values.config.auth.enabled }}
             - name: BASIC_AUTH_SECRET_NAME
               value: {{ include "missionControl.authSecretName" . | quote }}
-            - name: BACKEND_DEPLOYMENT_NAME
-              value: {{ include "missionControl.backendDeploymentName" . | quote }}
+            - name: BACKEND_WORKLOAD_NAME
+              value: {{ include "missionControl.backendWorkloadName" . | quote }}
             - name: BASIC_AUTH_USERNAME
               valueFrom:
                 secretKeyRef:
                   name: {{ include "missionControl.authSecretName" . }}
-                  key: {{ .Values.auth.usernameKey | default "username" }}
+                  key: {{ .Values.config.auth.usernameKey | default "username" }}
                   optional: true
             - name: BASIC_AUTH_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: {{ include "missionControl.authSecretName" . }}
-                  key: {{ .Values.auth.passwordKey | default "password" }}
+                  key: {{ .Values.config.auth.passwordKey | default "password" }}
                   optional: true
-            {{- if .Values.auth.jwtSecretKey }}
+            {{- if .Values.config.auth.jwtSecretKey }}
             - name: BASIC_AUTH_JWT_SECRET
               valueFrom:
                 secretKeyRef:
                   name: {{ include "missionControl.authSecretName" . }}
-                  key: {{ .Values.auth.jwtSecretKey }}
+                  key: {{ .Values.config.auth.jwtSecretKey }}
                   optional: true
             {{- end }}
             - name: SETUP_TOKEN
@@ -92,31 +93,31 @@ spec:
             - name: SETUP_TOKEN_SECRET_NAME
               value: {{ include "missionControl.setupTokenSecretName" . | quote }}
             {{- end }}
-            {{- if .Values.auth.allowedOrigins }}
+            {{- if .Values.config.auth.allowedOrigins }}
             - name: ALLOWED_ORIGINS
-              value: {{ .Values.auth.allowedOrigins | quote }}
+              value: {{ .Values.config.auth.allowedOrigins | quote }}
             {{- end }}
             - name: MC_FEATURE_FIX_ISSUE
-              value: {{ ternary "true" "false" .Values.features.fixIssue | quote }}
+              value: {{ ternary "true" "false" .Values.config.features.fixIssue | quote }}
             - name: MC_FEATURE_ADOPT
-              value: {{ ternary "true" "false" .Values.features.adopt | quote }}
+              value: {{ ternary "true" "false" .Values.config.features.adopt | quote }}
             - name: MC_FEATURE_ALERTS
-              value: {{ ternary "true" "false" .Values.features.alerts | quote }}
+              value: {{ ternary "true" "false" .Values.config.features.alerts | quote }}
             - name: MC_FEATURE_CHAT
-              value: {{ ternary "true" "false" .Values.features.chat | quote }}
+              value: {{ ternary "true" "false" .Values.config.features.chat | quote }}
             - name: MC_FEATURE_DIAGNOSTICS
-              value: {{ ternary "true" "false" .Values.features.diagnostics | quote }}
+              value: {{ ternary "true" "false" .Values.config.features.diagnostics | quote }}
             - name: MC_FEATURE_CONFIG_SAVE
-              value: {{ ternary "true" "false" .Values.features.configSave | quote }}
+              value: {{ ternary "true" "false" .Values.config.features.configSave | quote }}
             - name: MC_FEATURE_DEPLOY
-              value: {{ ternary "true" "false" .Values.features.deploy | quote }}
+              value: {{ ternary "true" "false" .Values.config.features.deploy | quote }}
             - name: MC_FEATURE_DISCOVER
-              value: {{ ternary "true" "false" .Values.features.discover | quote }}
+              value: {{ ternary "true" "false" .Values.config.features.discover | quote }}
             - name: MC_FEATURE_DBTOOLS
-              value: {{ ternary "true" "false" .Values.features.dbTools | quote }}
-            {{- if .Values.discoverNamespaces }}
+              value: {{ ternary "true" "false" .Values.config.features.dbTools | quote }}
+            {{- if .Values.config.discoverNamespaces }}
             - name: DISCOVER_NAMESPACES
-              value: {{ .Values.discoverNamespaces | quote }}
+              value: {{ .Values.config.discoverNamespaces | quote }}
             {{- end }}
             {{- with .Values.backend.extraEnv }}
             {{- toYaml . | nindent 12 }}
@@ -124,11 +125,25 @@ spec:
           volumeMounts:
             - name: diagnostics-store
               mountPath: /tmp/mc_diagnostics
+      {{- if not .Values.diagnostics.persistence.enabled }}
       volumes:
         - name: diagnostics-store
-          {{- if .Values.diagnostics.persistence.enabled }}
-          persistentVolumeClaim:
-            claimName: {{ include "missionControl.fullname" . }}-diagnostics
-          {{- else }}
           emptyDir: {}
-          {{- end }}
+      {{- end }}
+  {{- if .Values.diagnostics.persistence.enabled }}
+  volumeClaimTemplates:
+    - metadata:
+        name: diagnostics-store
+        labels:
+          {{- include "missionControl.labels" . | nindent 10 }}
+          app.kubernetes.io/component: backend
+      spec:
+        accessModes:
+          - {{ .Values.diagnostics.persistence.accessMode | default "ReadWriteOnce" | quote }}
+        resources:
+          requests:
+            storage: {{ .Values.diagnostics.persistence.size | default "1Gi" | quote }}
+        {{- with .Values.diagnostics.persistence.storageClass }}
+        storageClassName: {{ . | quote }}
+        {{- end }}
+  {{- end }}

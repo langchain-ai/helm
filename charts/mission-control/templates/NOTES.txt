@@ -1,4 +1,4 @@
-{{- if .Values.auth.enabled }}
+{{- if .Values.config.auth.enabled }}
 {{- $ns := .Values.namespace | default .Release.Namespace }}
 {{- $authSecret := lookup "v1" "Secret" $ns (include "missionControl.authSecretName" .) }}
 {{- if not $authSecret }}

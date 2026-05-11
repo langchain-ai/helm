@@ -96,15 +96,15 @@ rules:
   # features are enabled. When all write features are disabled, the create and
   # update/delete rules are omitted entirely — zero secret write verbs.
   {{- $secretNames := list }}
-  {{- if .Values.features.configSave }}
+  {{- if .Values.config.features.configSave }}
   {{- $secretNames = append $secretNames (include "missionControl.draftSecretName" .) }}
   {{- end }}
-  {{- if .Values.features.deploy }}
+  {{- if .Values.config.features.deploy }}
   {{- $secretNames = append $secretNames (include "missionControl.deployedSecretName" .) }}
   {{- $secretNames = append $secretNames (include "missionControl.backupSecretName" .) }}
   {{- $secretNames = append $secretNames (include "missionControl.historySecretName" .) }}
   {{- end }}
-  {{- if .Values.features.alerts }}
+  {{- if .Values.config.features.alerts }}
   {{- $secretNames = append $secretNames (include "missionControl.alertsConfigSecretName" .) }}
   {{- $secretNames = append $secretNames (include "missionControl.alertsKeySecretName" .) }}
   {{- $secretNames = append $secretNames (include "missionControl.alertsLogSecretName" .) }}
@@ -132,7 +132,7 @@ rules:
   # first run (setup mode) and then restart itself to load the new credentials.
   # create cannot be scoped by resourceName (K8s limitation); the application
   # layer only ever creates the single auth secret during setup.
-  {{- if .Values.auth.enabled }}
+  {{- if .Values.config.auth.enabled }}
   {{- if not $secretNames }}
   - apiGroups: [""]
     resources: ["secrets"]
@@ -149,16 +149,16 @@ rules:
     resourceNames:
       - {{ include "missionControl.setupTokenSecretName" . }}
   - apiGroups: ["apps"]
-    resources: ["deployments"]
+    resources: ["statefulsets"]
     verbs: ["patch"]
     resourceNames:
-      - {{ include "missionControl.backendDeploymentName" . }}
+      - {{ include "missionControl.backendWorkloadName" . }}
   {{- end }}
 
   # ── Fix Issue button (disable via features.fixIssue=false) ────────────────
   # Grants pods:delete to restart pods stuck in CreateContainerConfigError.
   # Disable if your security policy prohibits pod deletion by tooling.
-  {{- if .Values.features.fixIssue }}
+  {{- if .Values.config.features.fixIssue }}
   - apiGroups: [""]
     resources: ["pods"]
     verbs: ["delete"]
@@ -169,7 +169,7 @@ rules:
   # can manage resources that were created outside the release.
   # patch on deployments/statefulsets is equivalent to update — disable if
   # your policy requires workload immutability enforced by RBAC.
-  {{- if .Values.features.adopt }}
+  {{- if .Values.config.features.adopt }}
   - apiGroups: [""]
     resources: ["secrets", "configmaps", "serviceaccounts"]
     verbs: ["patch"]
@@ -182,7 +182,7 @@ rules:
   # Required by `helm upgrade --install langsmith` executed from the UI.
   # The deploy button is currently hidden in the UI; keep this false until
   # it is re-enabled.
-  {{- if .Values.features.deploy }}
+  {{- if .Values.config.features.deploy }}
   - apiGroups: [""]
     resources: ["services", "persistentvolumeclaims", "serviceaccounts"]
     verbs: ["create", "update", "patch", "delete"]
