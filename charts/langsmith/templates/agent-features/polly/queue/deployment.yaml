@@ -1,6 +1,6 @@
 {{- if .Values.polly.enabled }}
 {{- if .Values.polly.queue.enabled -}}
-{{- $envVars := concat .Values.commonEnv (include "langsmith.commonEnv" . | fromYamlArray) (include "langsmith.agentFeatures.deploymentEnv" (dict "root" . "product" "polly" "component" "queue") | fromYamlArray) (include "langsmith.polly.extraEnv" . | fromYamlArray) .Values.polly.queue.deployment.extraEnv -}}
+{{- $envVars := concat .Values.commonEnv (include "langsmith.commonEnv" . | fromYamlArray) (include "langsmith.polly.extraEnv" (dict "root" . "component" "queue") | fromYamlArray) .Values.polly.queue.deployment.extraEnv -}}
 {{- include "langsmith.detectDuplicates" $envVars -}}
 {{- $volumes := concat .Values.commonVolumes .Values.polly.queue.deployment.volumes (include "langsmith.tlsVolumes" . | fromYamlArray) -}}
 {{- $volumeMounts := concat .Values.commonVolumeMounts .Values.polly.queue.deployment.volumeMounts (include "langsmith.tlsVolumeMounts" . | fromYamlArray) -}}

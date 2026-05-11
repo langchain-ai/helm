@@ -1,6 +1,6 @@
 {{- if .Values.fleet.enabled }}
 {{- if .Values.fleet.queue.enabled -}}
-{{- $envVars := concat .Values.commonEnv (include "langsmith.commonEnv" . | fromYamlArray) (include "langsmith.agentFeatures.deploymentEnv" (dict "root" . "product" "fleet" "component" "queue") | fromYamlArray) (include "langsmith.fleet.extraEnv" . | fromYamlArray) .Values.fleet.queue.deployment.extraEnv -}}
+{{- $envVars := concat .Values.commonEnv (include "langsmith.commonEnv" . | fromYamlArray) (include "langsmith.fleet.extraEnv" (dict "root" . "component" "queue") | fromYamlArray) .Values.fleet.queue.deployment.extraEnv -}}
 {{- include "langsmith.detectDuplicates" $envVars -}}
 {{- $volumes := concat .Values.commonVolumes .Values.fleet.queue.deployment.volumes (include "langsmith.tlsVolumes" . | fromYamlArray) -}}
 {{- $volumeMounts := concat .Values.commonVolumeMounts .Values.fleet.queue.deployment.volumeMounts (include "langsmith.tlsVolumeMounts" . | fromYamlArray) -}}

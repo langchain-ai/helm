@@ -1,6 +1,6 @@
 {{- if .Values.insights.enabled }}
 {{- if .Values.insights.queue.enabled -}}
-{{- $envVars := concat .Values.commonEnv (include "langsmith.commonEnv" . | fromYamlArray) (include "langsmith.agentFeatures.deploymentEnv" (dict "root" . "product" "insights" "component" "queue") | fromYamlArray) (include "langsmith.insights.extraEnv" . | fromYamlArray) .Values.insights.queue.deployment.extraEnv -}}
+{{- $envVars := concat .Values.commonEnv (include "langsmith.commonEnv" . | fromYamlArray) (include "langsmith.insights.extraEnv" (dict "root" . "component" "queue") | fromYamlArray) .Values.insights.queue.deployment.extraEnv -}}
 {{- include "langsmith.detectDuplicates" $envVars -}}
 {{- $volumes := concat .Values.commonVolumes .Values.insights.queue.deployment.volumes (include "langsmith.tlsVolumes" . | fromYamlArray) -}}
 {{- $volumeMounts := concat .Values.commonVolumeMounts .Values.insights.queue.deployment.volumeMounts (include "langsmith.tlsVolumeMounts" . | fromYamlArray) -}}

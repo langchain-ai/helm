@@ -769,46 +769,29 @@ URL path prefix for agent feature routes (handles basePath).
 {{- end -}}
 
 {{/*
-Common env vars for standalone agent feature api-server and queue pods.
-Usage: include "langsmith.agentFeatures.deploymentEnv" (dict "root" . "product" "fleet" "component" "apiServer")
-*/}}
-{{- define "langsmith.agentFeatures.deploymentEnv" -}}
-{{- $root := index . "root" -}}
-{{- $product := index . "product" -}}
-{{- $componentName := index . "component" -}}
-{{- $feature := index $root.Values $product -}}
-{{- $component := index $feature $componentName -}}
-{{- $out := list
-  (dict "name" "PORT" "value" (toString $component.containerPort))
-  (dict "name" "POSTGRES_URI" "valueFrom" (dict "secretKeyRef" (dict "name" (include "langsmith.agentFeatures.postgresSecretName" (dict "root" $root "product" $product)) "key" "postgres_connection_url")))
-  (dict "name" "REDIS_URI" "valueFrom" (dict "secretKeyRef" (dict "name" (include "langsmith.agentFeatures.redisSecretName" (dict "root" $root "product" $product)) "key" "redis_connection_url")))
-  (dict "name" "LANGGRAPH_CLOUD_LICENSE_KEY" "valueFrom" (dict "secretKeyRef" (dict "name" (include "langsmith.secretsName" $root) "key" "langsmith_license_key" "optional" true)))
--}}
-{{- if and (eq $componentName "apiServer") $feature.queue.enabled -}}
-{{- $out = append $out (dict "name" "N_JOBS_PER_WORKER" "value" "0") -}}
-{{- else -}}
-{{- $out = append $out (dict "name" "N_JOBS_PER_WORKER" "value" (toString $feature.queue.numberOfJobsPerWorker)) -}}
-{{- end -}}
-{{- toYaml $out -}}
-{{- end -}}
-
-{{/*
 Extra env vars for fleet api-server and queue pods.
 */}}
 {{- define "langsmith.fleet.extraEnv" -}}
-{{- $ns := .Values.namespace | default .Release.Namespace -}}
-{{- $cd := .Values.clusterDomain -}}
-{{- $frontend := printf "http://%s-%s.%s.svc.%s:%v" (include "langsmith.fullname" .) .Values.frontend.name $ns $cd .Values.frontend.service.httpPort -}}
+{{- $root := index . "root" -}}
+{{- $componentName := index . "component" -}}
+{{- $feature := $root.Values.fleet -}}
+{{- $component := index $feature $componentName -}}
+{{- $ns := $root.Values.namespace | default $root.Release.Namespace -}}
+{{- $cd := $root.Values.clusterDomain -}}
+{{- $frontend := printf "http://%s-%s.%s.svc.%s:%v" (include "langsmith.fullname" $root) $root.Values.frontend.name $ns $cd $root.Values.frontend.service.httpPort -}}
 {{- $authEndpoint := printf "%s/api/v1" $frontend -}}
-{{- if not .Values.frontend.enabled -}}
-{{- range .Values.commonEnv -}}
+{{- if not $root.Values.frontend.enabled -}}
+{{- range $root.Values.commonEnv -}}
 {{- if eq .name "AUTH_ENDPOINT" -}}
 {{- $authEndpoint = printf "%s/api/v1" (trimSuffix "/" .value) -}}
 {{- end -}}
 {{- end -}}
 {{- end -}}
-{{- $toolServer := printf "http://%s-%s.%s.svc.%s:%v" (include "langsmith.fullname" .) .Values.agentBuilderToolServer.name $ns $cd .Values.agentBuilderToolServer.service.port -}}
+{{- $toolServer := printf "http://%s-%s.%s.svc.%s:%v" (include "langsmith.fullname" $root) $root.Values.agentBuilderToolServer.name $ns $cd $root.Values.agentBuilderToolServer.service.port -}}
 {{- $out := list
+  (dict "name" "PORT" "value" (toString $component.containerPort))
+  (dict "name" "POSTGRES_URI" "valueFrom" (dict "secretKeyRef" (dict "name" (include "langsmith.agentFeatures.postgresSecretName" (dict "root" $root "product" "fleet")) "key" "postgres_connection_url")))
+  (dict "name" "REDIS_URI" "valueFrom" (dict "secretKeyRef" (dict "name" (include "langsmith.agentFeatures.redisSecretName" (dict "root" $root "product" "fleet")) "key" "redis_connection_url")))
   (dict "name" "LANGSMITH_AUTH_ENDPOINT" "value" $authEndpoint)
   (dict "name" "MCP_SERVER_URL" "value" $toolServer)
   (dict "name" "LANGSMITH_LICENSE_REQUIRED_CLAIMS" "value" "agent_builder_enabled")
@@ -816,7 +799,12 @@ Extra env vars for fleet api-server and queue pods.
   (dict "name" "SSRF_ALLOW_PRIVATE_IPS_TOOLS" "value" "true")
   (dict "name" "SSRF_ALLOW_K8S_INTERNAL" "value" "true")
 -}}
-{{- if .Values.fleet.enableTracing }}
+{{- if and (eq $componentName "apiServer") $feature.queue.enabled -}}
+{{- $out = append $out (dict "name" "N_JOBS_PER_WORKER" "value" "0") -}}
+{{- else -}}
+{{- $out = append $out (dict "name" "N_JOBS_PER_WORKER" "value" (toString $feature.queue.numberOfJobsPerWorker)) -}}
+{{- end -}}
+{{- if $feature.enableTracing }}
 {{- $out = append $out (dict "name" "TENANT_AWARE_TRACING_ENABLED" "value" "true") }}
 {{- end }}
 {{- toYaml $out }}
@@ -826,22 +814,34 @@ Extra env vars for fleet api-server and queue pods.
 Extra env vars for insights api-server and queue pods.
 */}}
 {{- define "langsmith.insights.extraEnv" -}}
-{{- $ns := .Values.namespace | default .Release.Namespace -}}
-{{- $cd := .Values.clusterDomain -}}
-{{- $frontend := printf "http://%s-%s.%s.svc.%s:%v" (include "langsmith.fullname" .) .Values.frontend.name $ns $cd .Values.frontend.service.httpPort -}}
+{{- $root := index . "root" -}}
+{{- $componentName := index . "component" -}}
+{{- $feature := $root.Values.insights -}}
+{{- $component := index $feature $componentName -}}
+{{- $ns := $root.Values.namespace | default $root.Release.Namespace -}}
+{{- $cd := $root.Values.clusterDomain -}}
+{{- $frontend := printf "http://%s-%s.%s.svc.%s:%v" (include "langsmith.fullname" $root) $root.Values.frontend.name $ns $cd $root.Values.frontend.service.httpPort -}}
 {{- $authEndpoint := printf "%s/api/v1" $frontend -}}
-{{- if not .Values.frontend.enabled -}}
-{{- range .Values.commonEnv -}}
+{{- if not $root.Values.frontend.enabled -}}
+{{- range $root.Values.commonEnv -}}
 {{- if eq .name "AUTH_ENDPOINT" -}}
 {{- $authEndpoint = printf "%s/api/v1" (trimSuffix "/" .value) -}}
 {{- end -}}
 {{- end -}}
 {{- end -}}
 {{- $out := list
+  (dict "name" "PORT" "value" (toString $component.containerPort))
+  (dict "name" "POSTGRES_URI" "valueFrom" (dict "secretKeyRef" (dict "name" (include "langsmith.agentFeatures.postgresSecretName" (dict "root" $root "product" "insights")) "key" "postgres_connection_url")))
+  (dict "name" "REDIS_URI" "valueFrom" (dict "secretKeyRef" (dict "name" (include "langsmith.agentFeatures.redisSecretName" (dict "root" $root "product" "insights")) "key" "redis_connection_url")))
   (dict "name" "LANGSMITH_AUTH_ENDPOINT" "value" $authEndpoint)
   (dict "name" "LLM_AUTH_PROXY_ACCEPT_HTTP" "value" "true")
   (dict "name" "LANGSMITH_TRACING" "value" "false")
 -}}
+{{- if and (eq $componentName "apiServer") $feature.queue.enabled -}}
+{{- $out = append $out (dict "name" "N_JOBS_PER_WORKER" "value" "0") -}}
+{{- else -}}
+{{- $out = append $out (dict "name" "N_JOBS_PER_WORKER" "value" (toString $feature.queue.numberOfJobsPerWorker)) -}}
+{{- end -}}
 {{- toYaml $out }}
 {{- end -}}
 
@@ -849,22 +849,34 @@ Extra env vars for insights api-server and queue pods.
 Extra env vars for polly api-server and queue pods.
 */}}
 {{- define "langsmith.polly.extraEnv" -}}
-{{- $ns := .Values.namespace | default .Release.Namespace -}}
-{{- $cd := .Values.clusterDomain -}}
-{{- $frontend := printf "http://%s-%s.%s.svc.%s:%v" (include "langsmith.fullname" .) .Values.frontend.name $ns $cd .Values.frontend.service.httpPort -}}
+{{- $root := index . "root" -}}
+{{- $componentName := index . "component" -}}
+{{- $feature := $root.Values.polly -}}
+{{- $component := index $feature $componentName -}}
+{{- $ns := $root.Values.namespace | default $root.Release.Namespace -}}
+{{- $cd := $root.Values.clusterDomain -}}
+{{- $frontend := printf "http://%s-%s.%s.svc.%s:%v" (include "langsmith.fullname" $root) $root.Values.frontend.name $ns $cd $root.Values.frontend.service.httpPort -}}
 {{- $authEndpoint := printf "%s/api/v1" $frontend -}}
-{{- if not .Values.frontend.enabled -}}
-{{- range .Values.commonEnv -}}
+{{- if not $root.Values.frontend.enabled -}}
+{{- range $root.Values.commonEnv -}}
 {{- if eq .name "AUTH_ENDPOINT" -}}
 {{- $authEndpoint = printf "%s/api/v1" (trimSuffix "/" .value) -}}
 {{- end -}}
 {{- end -}}
 {{- end -}}
 {{- $out := list
+  (dict "name" "PORT" "value" (toString $component.containerPort))
+  (dict "name" "POSTGRES_URI" "valueFrom" (dict "secretKeyRef" (dict "name" (include "langsmith.agentFeatures.postgresSecretName" (dict "root" $root "product" "polly")) "key" "postgres_connection_url")))
+  (dict "name" "REDIS_URI" "valueFrom" (dict "secretKeyRef" (dict "name" (include "langsmith.agentFeatures.redisSecretName" (dict "root" $root "product" "polly")) "key" "redis_connection_url")))
   (dict "name" "LANGSMITH_AUTH_ENDPOINT" "value" $authEndpoint)
   (dict "name" "LLM_AUTH_PROXY_ACCEPT_HTTP" "value" "true")
-  (dict "name" "LANGSMITH_TRACING" "value" (ternary "false" "true" .Values.polly.enableTracing))
+  (dict "name" "LANGSMITH_TRACING" "value" (ternary "false" "true" $feature.enableTracing))
 -}}
+{{- if and (eq $componentName "apiServer") $feature.queue.enabled -}}
+{{- $out = append $out (dict "name" "N_JOBS_PER_WORKER" "value" "0") -}}
+{{- else -}}
+{{- $out = append $out (dict "name" "N_JOBS_PER_WORKER" "value" (toString $feature.queue.numberOfJobsPerWorker)) -}}
+{{- end -}}
 {{- toYaml $out }}
 {{- end -}}
 

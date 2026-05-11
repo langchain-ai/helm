@@ -1,5 +1,5 @@
 {{- if .Values.fleet.enabled }}
-{{- $envVars := concat .Values.commonEnv (include "langsmith.commonEnv" . | fromYamlArray) (include "langsmith.agentFeatures.deploymentEnv" (dict "root" . "product" "fleet" "component" "apiServer") | fromYamlArray) (include "langsmith.fleet.extraEnv" . | fromYamlArray) .Values.fleet.apiServer.deployment.extraEnv -}}
+{{- $envVars := concat .Values.commonEnv (include "langsmith.commonEnv" . | fromYamlArray) (include "langsmith.fleet.extraEnv" (dict "root" . "component" "apiServer") | fromYamlArray) .Values.fleet.apiServer.deployment.extraEnv -}}
 {{- include "langsmith.detectDuplicates" $envVars -}}
 {{- $volumes := concat .Values.commonVolumes .Values.fleet.apiServer.deployment.volumes (include "langsmith.tlsVolumes" . | fromYamlArray) -}}
 {{- $volumeMounts := concat .Values.commonVolumeMounts .Values.fleet.apiServer.deployment.volumeMounts (include "langsmith.tlsVolumeMounts" . | fromYamlArray) -}}
