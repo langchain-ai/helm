@@ -242,13 +242,13 @@ images:
   imagePullSecrets:
     - name: regcred
   backendImage:
-    repository: langchain/mission-control
+    repository: langchain/mission-control-backend
     pullPolicy: IfNotPresent
-    tag: backend-latest
+    tag: latest
   frontendImage:
-    repository: langchain/mission-control
+    repository: langchain/mission-control-frontend
     pullPolicy: IfNotPresent
-    tag: frontend-latest
+    tag: latest
 
 backend:
   replicas: 1

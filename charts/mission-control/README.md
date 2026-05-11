@@ -66,15 +66,9 @@ helm upgrade --install mission-control langchain/mission-control \
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| auth.allowedOrigins | string | `""` | Optional: comma-separated list of origins allowed to make credentialed requests. Required only when the backend and frontend are served from different hostnames. |
-| auth.enabled | bool | `true` |  |
-| auth.existingSecret | string | `"mission-control-auth"` | Pre-created Secret with username/password (and optionally JWT signing) keys. Leave as-is to use the first-run setup flow described above. |
-| auth.jwtSecretKey | string | `""` | Optional: key in `existingSecret` holding the JWT signing secret. Required when backend.replicas > 1 so all pods can validate each other's tokens. Generate with: openssl rand -base64 32 |
-| auth.passwordKey | string | `"password"` | Key in `existingSecret` holding the basic-auth password. |
-| auth.usernameKey | string | `"username"` | Key in `existingSecret` holding the basic-auth username. |
 | backend.extraEnv | list | `[]` | Additional environment variables passed to the backend container. |
 | backend.podSecurityContext | object | `{}` | Pod-level security context. |
-| backend.replicas | int | `1` | Replica count. Set > 1 only when auth.jwtSecretKey is set so all pods validate each other's tokens. |
+| backend.replicas | int | `1` | Replica count. Set > 1 only when config.auth.jwtSecretKey is set so all pods validate each other's tokens. |
 | backend.resources.limits.cpu | string | `"500m"` |  |
 | backend.resources.limits.memory | string | `"512Mi"` |  |
 | backend.resources.requests.cpu | string | `"250m"` |  |
@@ -87,20 +81,26 @@ helm upgrade --install mission-control langchain/mission-control \
 | commonAnnotations | object | `{}` | Annotations that will be applied to all resources created by the chart |
 | commonLabels | object | `{}` | Labels that will be applied to all resources created by the chart |
 | commonPodAnnotations | object | `{}` | Annotations that will be applied to all pods created by the chart |
+| config.auth.allowedOrigins | string | `""` | Optional: comma-separated list of origins allowed to make credentialed requests. Required only when the backend and frontend are served from different hostnames. |
+| config.auth.enabled | bool | `true` |  |
+| config.auth.existingSecret | string | `"mission-control-auth"` | Pre-created Secret with username/password (and optionally JWT signing) keys. Leave as-is to use the first-run setup flow described above. |
+| config.auth.jwtSecretKey | string | `""` | Optional: key in `existingSecret` holding the JWT signing secret. Required when backend.replicas > 1 so all pods can validate each other's tokens. Generate with: openssl rand -base64 32 |
+| config.auth.passwordKey | string | `"password"` | Key in `existingSecret` holding the basic-auth password. |
+| config.auth.usernameKey | string | `"username"` | Key in `existingSecret` holding the basic-auth username. |
+| config.discoverNamespaces | string | `""` | Extra namespaces (comma-separated) the discover feature is allowed to scan. Default scans only the chart's release namespace to prevent cross-namespace secret disclosure on shared clusters. Add namespaces only when you trust every listed namespace. Example: "langsmith,monitoring" |
+| config.features.adopt | bool | `true` | Adopt button: patches Helm ownership metadata onto existing resources. Grants secrets/configmaps/serviceaccounts/deployments/statefulsets:patch. |
+| config.features.alerts | bool | `true` | Alert notifications (SMTP + webhook). Grants write access to alert-config secrets. Egress: outbound SMTP and webhook to the configured endpoints. |
+| config.features.chat | bool | `true` | Chat assistant: floating widget that proxies to chat.langchain.com. Egress: outbound HTTPS to chat.langchain.com and *.us.langgraph.app. |
+| config.features.configSave | bool | `true` | Persists working configuration to the draft Kubernetes Secret. Grants write access to the mission-control-draft secret. |
+| config.features.dbTools | bool | `true` | Database detection, preflight checks, and support query execution. Adds no extra RBAC verbs; gates the /db/* endpoints at the application layer. |
+| config.features.deploy | bool | `false` |  |
+| config.features.diagnostics | bool | `true` | Diagnostic bundle download (pod logs + resource manifests packaged as a zip). |
+| config.features.discover | bool | `true` | Namespace-scoped infrastructure discovery via the /api/discover endpoint. Adds no extra RBAC verbs; gates the endpoint at the application layer. |
+| config.features.fixIssue | bool | `true` | Fix Issue button: deletes pods stuck in CreateContainerConfigError. Grants pods:delete. |
 | diagnostics.persistence.accessMode | string | `"ReadWriteOnce"` |  |
 | diagnostics.persistence.enabled | bool | `false` |  |
 | diagnostics.persistence.size | string | `"1Gi"` |  |
 | diagnostics.persistence.storageClass | string | `""` | Leave empty to use the cluster default StorageClass. |
-| discoverNamespaces | string | `""` | Extra namespaces (comma-separated) the discover feature is allowed to scan. Default scans only the chart's release namespace to prevent cross-namespace secret disclosure on shared clusters. Add namespaces only when you trust every listed namespace. Example: "langsmith,monitoring" |
-| features.adopt | bool | `true` | Adopt button: patches Helm ownership metadata onto existing resources. Grants secrets/configmaps/serviceaccounts/deployments/statefulsets:patch. |
-| features.alerts | bool | `true` | Alert notifications (SMTP + webhook). Grants write access to alert-config secrets. Egress: outbound SMTP and webhook to the configured endpoints. |
-| features.chat | bool | `true` | Chat assistant: floating widget that proxies to chat.langchain.com. Egress: outbound HTTPS to chat.langchain.com and *.us.langgraph.app. |
-| features.configSave | bool | `true` | Persists working configuration to the draft Kubernetes Secret. Grants write access to the mission-control-draft secret. |
-| features.dbTools | bool | `true` | Database detection, preflight checks, and support query execution. Adds no extra RBAC verbs; gates the /db/* endpoints at the application layer. |
-| features.deploy | bool | `false` |  |
-| features.diagnostics | bool | `true` | Diagnostic bundle download (pod logs + resource manifests packaged as a zip). |
-| features.discover | bool | `true` | Namespace-scoped infrastructure discovery via the /api/discover endpoint. Adds no extra RBAC verbs; gates the endpoint at the application layer. |
-| features.fixIssue | bool | `true` | Fix Issue button: deletes pods stuck in CreateContainerConfigError. Grants pods:delete. |
 | frontend.extraEnv | list | `[]` | Additional environment variables passed to the frontend container. |
 | frontend.podSecurityContext | object | `{}` | Pod-level security context. |
 | frontend.replicas | int | `1` | Replica count. |
@@ -113,11 +113,11 @@ helm upgrade --install mission-control langchain/mission-control \
 | frontend.service.type | string | `"ClusterIP"` |  |
 | fullnameOverride | string | `""` | String to fully override the chart's full name |
 | images.backendImage.pullPolicy | string | `"IfNotPresent"` |  |
-| images.backendImage.repository | string | `"langchain/langsmith-mission-control"` |  |
-| images.backendImage.tag | string | `"backend-latest"` | Backend image tag. No versioned tags are published yet — use `backend-latest` until the release process publishes versioned tags. |
+| images.backendImage.repository | string | `"langchain/mission-control-backend"` |  |
+| images.backendImage.tag | string | `"latest"` | Backend image tag. Defaults to `latest`; pin to a specific release like `1.0.0` for reproducible deploys. Versioned tags are published alongside `latest` on every release. |
 | images.frontendImage.pullPolicy | string | `"IfNotPresent"` |  |
-| images.frontendImage.repository | string | `"langchain/langsmith-mission-control"` |  |
-| images.frontendImage.tag | string | `"frontend-latest"` | Frontend image tag. No versioned tags are published yet — use `frontend-latest` until the release process publishes versioned tags. |
+| images.frontendImage.repository | string | `"langchain/mission-control-frontend"` |  |
+| images.frontendImage.tag | string | `"latest"` | Frontend image tag. Defaults to `latest`; pin to a specific release like `1.0.0` for reproducible deploys. Versioned tags are published alongside `latest` on every release. |
 | images.imagePullSecrets | list | `[{"name":"regcred"}]` | Image pull secrets used by all components. |
 | images.registry | string | `""` | If supplied, all child <image>.repository values will be prepended with this registry name + `/` |
 | ingress.enabled | bool | `false` |  |
