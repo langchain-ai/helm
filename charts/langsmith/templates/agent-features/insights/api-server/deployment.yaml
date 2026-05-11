@@ -1,5 +1,5 @@
 {{- if .Values.insights.enabled }}
-{{- $envVars := concat .Values.commonEnv (include "langsmith.insights.extraEnv" . | fromYamlArray) .Values.insights.apiServer.deployment.extraEnv -}}
+{{- $envVars := concat .Values.commonEnv (include "langsmith.commonEnv" . | fromYamlArray) (include "langsmith.agentFeatures.deploymentEnv" (dict "root" . "product" "insights" "component" "apiServer") | fromYamlArray) (include "langsmith.insights.extraEnv" . | fromYamlArray) .Values.insights.apiServer.deployment.extraEnv -}}
 {{- include "langsmith.detectDuplicates" $envVars -}}
 {{- $volumes := concat .Values.commonVolumes .Values.insights.apiServer.deployment.volumes (include "langsmith.tlsVolumes" . | fromYamlArray) -}}
 {{- $volumeMounts := concat .Values.commonVolumeMounts .Values.insights.apiServer.deployment.volumeMounts (include "langsmith.tlsVolumeMounts" . | fromYamlArray) -}}
@@ -62,31 +62,6 @@ spec:
           env:
             {{- with $envVars }}
               {{- toYaml . | nindent 12 }}
-            {{- end }}
-            - name: PORT
-              value: {{ .Values.insights.apiServer.containerPort | quote }}
-            - name: POSTGRES_URI
-              valueFrom:
-                secretKeyRef:
-                  name: {{ include "langsmith.agentFeatures.postgresSecretName" (dict "root" . "product" "insights") }}
-                  key: postgres_connection_url
-            - name: REDIS_URI
-              valueFrom:
-                secretKeyRef:
-                  name: {{ include "langsmith.agentFeatures.redisSecretName" (dict "root" . "product" "insights") }}
-                  key: redis_connection_url
-            - name: LANGGRAPH_CLOUD_LICENSE_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: {{ include "langsmith.secretsName" . }}
-                  key: langsmith_license_key
-                  optional: true
-            {{- if .Values.insights.queue.enabled }}
-            - name: N_JOBS_PER_WORKER
-              value: "0"
-            {{- else }}
-            - name: N_JOBS_PER_WORKER
-              value: {{ .Values.insights.queue.numberOfJobsPerWorker | quote }}
             {{- end }}
           envFrom:
             - configMapRef:
