@@ -778,15 +778,8 @@ Extra env vars for fleet api-server and queue pods.
 {{- $component := index $feature $componentName -}}
 {{- $ns := $root.Values.namespace | default $root.Release.Namespace -}}
 {{- $cd := $root.Values.clusterDomain -}}
-{{- $frontend := printf "http://%s-%s.%s.svc.%s:%v" (include "langsmith.fullname" $root) $root.Values.frontend.name $ns $cd $root.Values.frontend.service.httpPort -}}
-{{- $authEndpoint := printf "%s/api/v1" $frontend -}}
-{{- if not $root.Values.frontend.enabled -}}
-{{- range $root.Values.commonEnv -}}
-{{- if eq .name "AUTH_ENDPOINT" -}}
-{{- $authEndpoint = printf "%s/api/v1" (trimSuffix "/" .value) -}}
-{{- end -}}
-{{- end -}}
-{{- end -}}
+{{- $platformBackend := printf "http://%s-%s.%s.svc.%s:%v" (include "langsmith.fullname" $root) $root.Values.platformBackend.name $ns $cd $root.Values.platformBackend.service.port -}}
+{{- $authEndpoint := printf "%s/api/v1" $platformBackend -}}
 {{- $toolServer := printf "http://%s-%s.%s.svc.%s:%v" (include "langsmith.fullname" $root) $root.Values.agentBuilderToolServer.name $ns $cd $root.Values.agentBuilderToolServer.service.port -}}
 {{- $out := list
   (dict "name" "PORT" "value" (toString $component.containerPort))
@@ -820,15 +813,8 @@ Extra env vars for insights api-server and queue pods.
 {{- $component := index $feature $componentName -}}
 {{- $ns := $root.Values.namespace | default $root.Release.Namespace -}}
 {{- $cd := $root.Values.clusterDomain -}}
-{{- $frontend := printf "http://%s-%s.%s.svc.%s:%v" (include "langsmith.fullname" $root) $root.Values.frontend.name $ns $cd $root.Values.frontend.service.httpPort -}}
-{{- $authEndpoint := printf "%s/api/v1" $frontend -}}
-{{- if not $root.Values.frontend.enabled -}}
-{{- range $root.Values.commonEnv -}}
-{{- if eq .name "AUTH_ENDPOINT" -}}
-{{- $authEndpoint = printf "%s/api/v1" (trimSuffix "/" .value) -}}
-{{- end -}}
-{{- end -}}
-{{- end -}}
+{{- $platformBackend := printf "http://%s-%s.%s.svc.%s:%v" (include "langsmith.fullname" $root) $root.Values.platformBackend.name $ns $cd $root.Values.platformBackend.service.port -}}
+{{- $authEndpoint := printf "%s/api/v1" $platformBackend -}}
 {{- $out := list
   (dict "name" "PORT" "value" (toString $component.containerPort))
   (dict "name" "POSTGRES_URI" "valueFrom" (dict "secretKeyRef" (dict "name" (include "langsmith.agentFeatures.postgresSecretName" (dict "root" $root "product" "insights")) "key" "postgres_connection_url")))
@@ -855,15 +841,8 @@ Extra env vars for polly api-server and queue pods.
 {{- $component := index $feature $componentName -}}
 {{- $ns := $root.Values.namespace | default $root.Release.Namespace -}}
 {{- $cd := $root.Values.clusterDomain -}}
-{{- $frontend := printf "http://%s-%s.%s.svc.%s:%v" (include "langsmith.fullname" $root) $root.Values.frontend.name $ns $cd $root.Values.frontend.service.httpPort -}}
-{{- $authEndpoint := printf "%s/api/v1" $frontend -}}
-{{- if not $root.Values.frontend.enabled -}}
-{{- range $root.Values.commonEnv -}}
-{{- if eq .name "AUTH_ENDPOINT" -}}
-{{- $authEndpoint = printf "%s/api/v1" (trimSuffix "/" .value) -}}
-{{- end -}}
-{{- end -}}
-{{- end -}}
+{{- $platformBackend := printf "http://%s-%s.%s.svc.%s:%v" (include "langsmith.fullname" $root) $root.Values.platformBackend.name $ns $cd $root.Values.platformBackend.service.port -}}
+{{- $authEndpoint := printf "%s/api/v1" $platformBackend -}}
 {{- $out := list
   (dict "name" "PORT" "value" (toString $component.containerPort))
   (dict "name" "POSTGRES_URI" "valueFrom" (dict "secretKeyRef" (dict "name" (include "langsmith.agentFeatures.postgresSecretName" (dict "root" $root "product" "polly")) "key" "postgres_connection_url")))
