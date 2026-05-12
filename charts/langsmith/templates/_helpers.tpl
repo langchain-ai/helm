@@ -1029,10 +1029,19 @@ Served through the frontend at /mcp (or /<basePath>/mcp).
 {{- end -}}
 
 {{- define "agentBuilderTriggerServerEnvVars" -}}
+{{- $ns := .Values.namespace | default .Release.Namespace -}}
+{{- $cd := .Values.clusterDomain -}}
 - name: "PORT"
   value: "{{ .Values.agentBuilderTriggerServer.containerPort }}"
 - name: "TRIGGER_SERVER_HOST_API_URL"
-  value: "http://{{ include "langsmith.fullname" . }}-{{ .Values.hostBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.hostBackend.service.port }}"
+  value: "http://{{ include "langsmith.fullname" . }}-{{ .Values.hostBackend.name }}.{{ $ns }}.svc.{{ $cd }}:{{ .Values.hostBackend.service.port }}"
+{{- if .Values.fleet.enabled }}
+{{- $fleetApi := printf "http://%s.%s.svc.%s:%v" (include "langsmith.agentFeatures.apiServerK8sServiceName" (dict "root" . "product" "fleet")) $ns $cd .Values.fleet.apiServer.service.httpPort }}
+- name: "LANGGRAPH_API_URL"
+  value: {{ $fleetApi | quote }}
+- name: "LANGGRAPH_API_URL_PUBLIC"
+  value: {{ $fleetApi | quote }}
+{{- end }}
 {{- include "agentBuilderOAuthEnvVars" . }}
 {{- $slackSigningSecret := .Values.config.agentBuilder.oauth.slackSigningSecret | default .Values.fleet.oauth.slackSigningSecret }}
 {{- $slackBotId := .Values.config.agentBuilder.oauth.slackBotId | default .Values.fleet.oauth.slackBotId }}

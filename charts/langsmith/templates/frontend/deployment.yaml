@@ -173,7 +173,7 @@ spec:
           envFrom:
             - configMapRef:
                 name: {{ include "langsmith.fullname" . }}-config
-            {{- if .Values.config.agentBuilder.enabled }}
+            {{- if and .Values.backend.agentBootstrap.enabled .Values.config.agentBuilder.enabled }}
             - configMapRef:
                 name: {{ include "langsmith.fullname" . }}-agent-builder-config
                 optional: true
