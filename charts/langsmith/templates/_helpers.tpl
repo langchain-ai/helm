@@ -813,12 +813,11 @@ Extra env vars for polly api-server and queue pods.
 {{- $ns := $root.Values.namespace | default $root.Release.Namespace -}}
 {{- $cd := $root.Values.clusterDomain -}}
 {{- $platformBackend := printf "http://%s-%s.%s.svc.%s:%v" (include "langsmith.fullname" $root) $root.Values.platformBackend.name $ns $cd $root.Values.platformBackend.service.port -}}
-{{- $authEndpoint := printf "%s/api/v1" $platformBackend -}}
 {{- $out := list
   (dict "name" "PORT" "value" (toString $component.containerPort))
   (dict "name" "POSTGRES_URI" "valueFrom" (dict "secretKeyRef" (dict "name" (include "langsmith.agentFeatures.postgresSecretName" (dict "root" $root "product" "polly")) "key" "postgres_connection_url")))
   (dict "name" "REDIS_URI" "valueFrom" (dict "secretKeyRef" (dict "name" (include "langsmith.agentFeatures.redisSecretName" (dict "root" $root "product" "polly")) "key" "redis_connection_url")))
-  (dict "name" "LANGSMITH_AUTH_ENDPOINT" "value" $authEndpoint)
+  (dict "name" "LANGSMITH_AUTH_ENDPOINT" "value" $platformBackend)
   (dict "name" "LLM_AUTH_PROXY_ACCEPT_HTTP" "value" "true")
   (dict "name" "LANGSMITH_TRACING" "value" (ternary "false" "true" $feature.enableTracing))
 -}}
