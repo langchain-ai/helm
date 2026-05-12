@@ -26,6 +26,46 @@ namespace: ""
 #     stringData:
 #       token: changeme
 extraManifests: []
+# -- Pre-requisite manifests rendered as Helm pre-install / pre-upgrade hooks so they
+# -- are applied before the rest of the chart's resources. Each entry can be a YAML
+# -- string (rendered through `tpl`) or a YAML object. Each entry must be a single
+# -- resource (no `---` separators inside one string).
+# --
+# -- Use this for resources the chart consumes during install/upgrade, e.g. an
+# -- ExternalSecret (External Secrets Operator) whose materialized Kubernetes Secret
+# -- is referenced via `config.existingSecretName` or the per-datastore
+# -- `*.external.existingSecretName` values.
+# --
+# -- These annotations are injected automatically; user-provided values on the same
+# -- keys take precedence so behavior can be overridden per entry:
+# --   helm.sh/hook: pre-install,pre-upgrade
+# --   helm.sh/hook-weight: "-5"
+# --   helm.sh/hook-delete-policy: before-hook-creation
+# --
+# -- Caveat: hook resources are not tracked as part of the Helm release and are
+# -- recreated on every upgrade. For ExternalSecret entries, prefer
+# -- `target.creationPolicy: Orphan` (or `target.deletionPolicy: Retain` on newer
+# -- ESO versions) so the materialized Secret survives upgrades.
+# Example:
+# preInstallManifests:
+#   - apiVersion: external-secrets.io/v1beta1
+#     kind: ExternalSecret
+#     metadata:
+#       name: langsmith-app
+#     spec:
+#       refreshInterval: 1h
+#       secretStoreRef:
+#         name: vault-backend
+#         kind: ClusterSecretStore
+#       target:
+#         name: langsmith-app-secret
+#         creationPolicy: Orphan
+#       data:
+#         - secretKey: langsmith_license_key
+#           remoteRef:
+#             key: secret/langsmith/app
+#             property: langsmith_license_key
+preInstallManifests: []
 # -- Annotations that will be applied to all resources created by the chart
 commonAnnotations: {}
 # -- Annotations that will be applied to all pods created by the chart

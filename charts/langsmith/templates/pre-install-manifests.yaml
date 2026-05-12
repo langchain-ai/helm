@@ -1,0 +1,33 @@
+{{- /*
+Renders each entry in .Values.preInstallManifests as a Helm pre-install / pre-upgrade
+hook so the resource is applied before the rest of the chart's manifests. Useful for
+prerequisites the chart consumes during install/upgrade (for example, an
+ExternalSecret whose materialized Secret is referenced by the chart's pods).
+
+Each entry can be a YAML object or a multi-line YAML string. Both are rendered
+through `tpl` so template expressions work. Each entry must be a single resource
+(no `---` separators inside one string).
+
+The following annotations are injected automatically; user-provided annotations
+on the same keys win, so they can be overridden per entry:
+  helm.sh/hook: pre-install,pre-upgrade
+  helm.sh/hook-weight: "-5"
+  helm.sh/hook-delete-policy: before-hook-creation
+*/ -}}
+{{- range .Values.preInstallManifests }}
+{{- $manifest := . }}
+{{- if typeIs "string" $manifest }}
+{{-   $manifest = tpl . $ | fromYaml }}
+{{- else }}
+{{-   $manifest = tpl (toYaml .) $ | fromYaml }}
+{{- end }}
+{{- $_ := set $manifest "metadata" (default (dict) $manifest.metadata) }}
+{{- $hookAnnotations := dict
+      "helm.sh/hook" "pre-install,pre-upgrade"
+      "helm.sh/hook-weight" "-5"
+      "helm.sh/hook-delete-policy" "before-hook-creation" }}
+{{- $userAnnotations := default (dict) $manifest.metadata.annotations }}
+{{- $_ := set $manifest.metadata "annotations" (merge $userAnnotations $hookAnnotations) }}
+---
+{{ toYaml $manifest }}
+{{- end }}
