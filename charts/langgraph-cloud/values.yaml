@@ -211,6 +211,7 @@ queue:
     extraEnv: []
     envFrom: []  # List of ConfigMap or Secret references to load environment variables from
     sidecars: []
+    extraPorts: []
     nodeSelector: {}
     tolerations: []
     affinity: {}

@@ -109,6 +109,9 @@ spec:
             - name: queue
               containerPort: {{ .Values.queue.containerPort }}
               protocol: TCP
+            {{- with .Values.queue.deployment.extraPorts }}
+              {{- toYaml . | nindent 12 }}
+            {{- end }}
           startupProbe:
             {{- toYaml .Values.queue.deployment.startupProbe | nindent 12 }}
           readinessProbe:
