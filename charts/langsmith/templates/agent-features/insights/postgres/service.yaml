@@ -1,6 +1,6 @@
 {{- if .Values.insights.enabled }}
 {{- if not .Values.insights.postgres.external.enabled }}
-{{- $componentName := include "langsmith.insights.postgresComponentName" . -}}
+{{- $componentName := include "langsmith.agentFeatures.componentName" (dict "root" . "product" "insights" "component" "postgres") -}}
 apiVersion: v1
 kind: Service
 metadata:

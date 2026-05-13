@@ -2,7 +2,7 @@
 {{- if not .Values.polly.postgres.external.enabled }}
 {{- $volumes := concat .Values.commonVolumes .Values.polly.postgres.statefulSet.volumes -}}
 {{- $volumeMounts := concat .Values.commonVolumeMounts .Values.polly.postgres.statefulSet.volumeMounts -}}
-{{- $componentName := include "langsmith.polly.postgresComponentName" . -}}
+{{- $componentName := include "langsmith.agentFeatures.componentName" (dict "root" . "product" "polly" "component" "postgres") -}}
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
