@@ -806,6 +806,7 @@ Extra env vars for polly api-server and queue pods.
   (dict "name" "POSTGRES_URI" "valueFrom" (dict "secretKeyRef" (dict "name" (include "langsmith.agentFeatures.postgresSecretName" (dict "root" $root "product" "polly")) "key" "postgres_connection_url")))
   (dict "name" "REDIS_URI" "valueFrom" (dict "secretKeyRef" (dict "name" (include "langsmith.agentFeatures.redisSecretName" (dict "root" $root "product" "polly")) "key" "redis_connection_url")))
   (dict "name" "LANGSMITH_ENDPOINT" "value" $backend)
+  (dict "name" "LANGSMITH_DISABLE_RUN_COMPRESSION" "value" "true")
   (dict "name" "LLM_AUTH_PROXY_ACCEPT_HTTP" "value" "true")
   (dict "name" "LANGSMITH_TRACING" "value" (ternary "false" "true" $feature.enableTracing))
 -}}
