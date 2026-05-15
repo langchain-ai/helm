@@ -1,0 +1,110 @@
+{{- if .Values.presidioAnalyzer.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "langsmith.fullname" . }}-{{ .Values.presidioAnalyzer.name }}
+  namespace: {{ .Values.namespace | default .Release.Namespace }}
+  labels:
+    {{- include "langsmith.labels" . | nindent 4 }}
+    {{- with .Values.presidioAnalyzer.deployment.labels }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+  annotations:
+    {{- include "langsmith.annotations" . | nindent 4 }}
+    {{- with .Values.presidioAnalyzer.deployment.annotations }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  {{- if not .Values.presidioAnalyzer.autoscaling.enabled }}
+  replicas: {{ .Values.presidioAnalyzer.deployment.replicas }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "langsmith.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-{{ .Values.presidioAnalyzer.name }}
+  template:
+    metadata:
+      annotations:
+      {{- include "langsmith.commonPodAnnotations" . | nindent 8 }}
+      {{- with .Values.presidioAnalyzer.deployment.annotations }}
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- with .Values.presidioAnalyzer.deployment.labels }}
+            {{- toYaml . | nindent 8 }}
+        {{- end }}
+        {{- include "langsmith.labels" . | nindent 8 }}
+        app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-{{ .Values.presidioAnalyzer.name }}
+    spec:
+      terminationGracePeriodSeconds: {{ .Values.presidioAnalyzer.deployment.terminationGracePeriodSeconds }}
+      {{- with .Values.images.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{- include "langsmith.podSecurityContext" (dict "Values" .Values "componentSecurityContext" .Values.presidioAnalyzer.deployment.podSecurityContext) | nindent 8 }}
+      serviceAccountName: {{ include "presidioAnalyzer.serviceAccountName" . }}
+      {{- include "langsmith.dnsConfig" . | nindent 6 }}
+      {{- with .Values.presidioAnalyzer.deployment.initContainers }}
+      initContainers:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: {{ .Values.presidioAnalyzer.name }}
+          {{- with .Values.presidioAnalyzer.deployment.extraEnv }}
+          env:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          image: {{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "presidioAnalyzerImage") | quote }}
+          imagePullPolicy: {{ .Values.images.presidioAnalyzerImage.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.presidioAnalyzer.containerPort }}
+              protocol: TCP
+          {{- with .Values.presidioAnalyzer.deployment.startupProbe }}
+          startupProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.presidioAnalyzer.deployment.livenessProbe }}
+          livenessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.presidioAnalyzer.deployment.readinessProbe }}
+          readinessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          resources:
+            {{- toYaml .Values.presidioAnalyzer.deployment.resources | nindent 12 }}
+          securityContext:
+            {{- toYaml .Values.presidioAnalyzer.deployment.securityContext | nindent 12 }}
+          {{- with .Values.presidioAnalyzer.deployment.lifecycle }}
+          lifecycle:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.presidioAnalyzer.deployment.volumeMounts }}
+          volumeMounts:
+              {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.presidioAnalyzer.deployment.extraContainerConfig }}
+            {{- toYaml . | nindent 10 }}
+          {{- end }}
+        {{- with .Values.presidioAnalyzer.deployment.sidecars }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- with .Values.presidioAnalyzer.deployment.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.presidioAnalyzer.deployment.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.presidioAnalyzer.deployment.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.presidioAnalyzer.deployment.volumes }}
+      volumes:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}

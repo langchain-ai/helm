@@ -602,6 +602,22 @@ Template containing common environment variables that are used by several servic
 {{- end -}}
 {{- end -}}
 
+{{- define "agentGateway.serviceAccountName" -}}
+{{- if .Values.agentGateway.serviceAccount.create -}}
+    {{ default (printf "%s-%s" (include "langsmith.fullname" .) .Values.agentGateway.name) .Values.agentGateway.serviceAccount.name | trunc 63 | trimSuffix "-" }}
+{{- else -}}
+    {{ default "default" .Values.agentGateway.serviceAccount.name }}
+{{- end -}}
+{{- end -}}
+
+{{- define "presidioAnalyzer.serviceAccountName" -}}
+{{- if .Values.presidioAnalyzer.serviceAccount.create -}}
+    {{ default (printf "%s-%s" (include "langsmith.fullname" .) .Values.presidioAnalyzer.name) .Values.presidioAnalyzer.serviceAccount.name | trunc 63 | trimSuffix "-" }}
+{{- else -}}
+    {{ default "default" .Values.presidioAnalyzer.serviceAccount.name }}
+{{- end -}}
+{{- end -}}
+
 {{- define "agentBootstrap.serviceAccountName" -}}
 {{- if .Values.backend.agentBootstrap.serviceAccount.create -}}
     {{ default (printf "%s-%s" (include "langsmith.fullname" .) "agent-bootstrap") .Values.backend.agentBootstrap.serviceAccount.name | trunc 63 | trimSuffix "-" }}
