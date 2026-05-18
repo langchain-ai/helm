@@ -55,6 +55,7 @@ data:
   {{- end }}
   {{- end }}
   FF_RUN_STATS_GROUP_BY_ENABLED_ALL: "true"
+  FF_CONTEXT_HUB_ENABLED_ALL: "true"
   SEPARATE_QUEUES_WITH_SINGLE_WORKER: '["host"]'
   {{- if .Values.config.observability.tracing.enabled }}
   OTEL_TRACING_ENABLED: "{{ .Values.config.observability.tracing.enabled }}"
