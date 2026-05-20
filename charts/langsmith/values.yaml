@@ -2884,6 +2884,7 @@ agentBuilderTriggerServer:
     automountServiceAccountToken: true
 
 # Agent Gateway - proxy for agent traffic with guardrails (NER redaction via Presidio)
+# Optional, disabled by default. Not required for core LangSmith functionality. Private beta.
 agentGateway:
   enabled: false
   name: "agent-gateway"
@@ -2954,6 +2955,7 @@ agentGateway:
     automountServiceAccountToken: true
 
 # Presidio Analyzer - Microsoft Presidio NER service for PII detection, used by the Agent Gateway
+# Optional, disabled by default. Not required for core LangSmith functionality. Private beta.
 presidioAnalyzer:
   enabled: false
   name: "presidio-analyzer"
