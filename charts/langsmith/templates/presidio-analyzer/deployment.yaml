@@ -1,4 +1,7 @@
 {{- if .Values.presidioAnalyzer.enabled }}
+{{- $envVars := concat .Values.commonEnv (include "langsmith.commonEnv" . | fromYamlArray) .Values.presidioAnalyzer.deployment.extraEnv -}}
+{{- $volumes := concat .Values.commonVolumes .Values.presidioAnalyzer.deployment.volumes (include "langsmith.tlsVolumes" . | fromYamlArray) -}}
+{{- $volumeMounts := concat .Values.commonVolumeMounts .Values.presidioAnalyzer.deployment.volumeMounts (include "langsmith.tlsVolumeMounts" . | fromYamlArray) -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -45,13 +48,13 @@ spec:
         {{- include "langsmith.podSecurityContext" (dict "Values" .Values "componentSecurityContext" .Values.presidioAnalyzer.deployment.podSecurityContext) | nindent 8 }}
       serviceAccountName: {{ include "presidioAnalyzer.serviceAccountName" . }}
       {{- include "langsmith.dnsConfig" . | nindent 6 }}
-      {{- with .Values.presidioAnalyzer.deployment.initContainers }}
+      {{- with concat .Values.commonInitContainers .Values.presidioAnalyzer.deployment.initContainers }}
       initContainers:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       containers:
         - name: {{ .Values.presidioAnalyzer.name }}
-          {{- with .Values.presidioAnalyzer.deployment.extraEnv }}
+          {{- with $envVars }}
           env:
             {{- toYaml . | nindent 12 }}
           {{- end }}
@@ -81,7 +84,7 @@ spec:
           lifecycle:
             {{- toYaml . | nindent 12 }}
           {{- end }}
-          {{- with .Values.presidioAnalyzer.deployment.volumeMounts }}
+          {{- with $volumeMounts }}
           volumeMounts:
               {{- toYaml . | nindent 12 }}
           {{- end }}
@@ -103,7 +106,7 @@ spec:
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.presidioAnalyzer.deployment.volumes }}
+      {{- with $volumes }}
       volumes:
         {{- toYaml . | nindent 8 }}
       {{- end }}
