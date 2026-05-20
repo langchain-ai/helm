@@ -141,10 +141,8 @@ data:
             proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.platformBackend.service.port }};
         }
 
-        # OIDC hybrid-flow form_post callback: route POSTs to the backend handler;
-        # GETs continue to render the SPA landing page. Provider is hardcoded to
-        # custom-oidc because the backend currently only supports that provider
-        # and explicitly checks for it.
+        # OIDC hybrid-flow support
+        # Hardcoded to custom-oidc - backend only supports that provider
         location = /{{ .Values.config.basePath }}/oauth-callback {
             if ($request_method = POST) {
                 rewrite ^ /{{ .Values.config.basePath }}/api/v1/oauth/custom-oidc/callback last;
@@ -620,10 +618,8 @@ data:
             proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.platformBackend.service.port }};
         }
 
-        # OIDC hybrid-flow form_post callback: route POSTs to the backend handler;
-        # GETs continue to render the SPA landing page. Provider is hardcoded to
-        # custom-oidc because the backend currently only supports that provider
-        # and explicitly checks for it.
+        # OIDC hybrid-flow support
+        # Hardcoded to custom-oidc - backend only supports that provider
         location = /oauth-callback {
             if ($request_method = POST) {
                 rewrite ^ /api/v1/oauth/custom-oidc/callback last;
