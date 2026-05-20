@@ -779,7 +779,6 @@ Extra env vars for insights api-server and queue pods.
   (dict "name" "PORT" "value" (toString $component.containerPort))
   (dict "name" "POSTGRES_URI" "valueFrom" (dict "secretKeyRef" (dict "name" (include "langsmith.agentFeatures.postgresSecretName" (dict "root" $root "product" "insights")) "key" "postgres_connection_url")))
   (dict "name" "REDIS_URI" "valueFrom" (dict "secretKeyRef" (dict "name" (include "langsmith.agentFeatures.redisSecretName" (dict "root" $root "product" "insights")) "key" "redis_connection_url")))
-  (dict "name" "LLM_AUTH_PROXY_ACCEPT_HTTP" "value" "true")
   (dict "name" "LANGSMITH_TRACING" "value" "false")
 -}}
 {{- if and (eq $componentName "apiServer") $feature.queue.enabled -}}
@@ -807,7 +806,6 @@ Extra env vars for polly api-server and queue pods.
   (dict "name" "REDIS_URI" "valueFrom" (dict "secretKeyRef" (dict "name" (include "langsmith.agentFeatures.redisSecretName" (dict "root" $root "product" "polly")) "key" "redis_connection_url")))
   (dict "name" "LANGSMITH_ENDPOINT" "value" $backend)
   (dict "name" "LANGSMITH_DISABLE_RUN_COMPRESSION" "value" "true")
-  (dict "name" "LLM_AUTH_PROXY_ACCEPT_HTTP" "value" "true")
   (dict "name" "LANGSMITH_TRACING" "value" (ternary "false" "true" $feature.enableTracing))
 -}}
 {{- if and (eq $componentName "apiServer") $feature.queue.enabled -}}
