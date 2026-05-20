@@ -188,7 +188,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | fleet.enableTracing | bool | `true` |  |
 | fleet.enabled | bool | `false` |  |
 | fleet.encryptionKey | string | `""` |  |
-| fleet.namePrefix | string | `"standalone-fleet"` |  |
+| fleet.namePrefix | string | `"fleet"` |  |
 | fleet.oauth.githubOAuthProvider | string | `""` |  |
 | fleet.oauth.googleOAuthProvider | string | `""` |  |
 | fleet.oauth.linearOAuthProvider | string | `""` |  |
@@ -521,7 +521,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | insights.apiServer.serviceAccount.name | string | `""` |  |
 | insights.enabled | bool | `false` |  |
 | insights.encryptionKey | string | `""` |  |
-| insights.namePrefix | string | `"standalone-insights"` |  |
+| insights.namePrefix | string | `"insights"` |  |
 | insights.postgres.containerPort | int | `5432` |  |
 | insights.postgres.external.connectionUrl | string | `""` |  |
 | insights.postgres.external.database | string | `"postgres"` |  |
@@ -717,7 +717,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | polly.enableTracing | bool | `true` |  |
 | polly.enabled | bool | `false` |  |
 | polly.encryptionKey | string | `""` |  |
-| polly.namePrefix | string | `"standalone-polly"` |  |
+| polly.namePrefix | string | `"polly"` |  |
 | polly.postgres.containerPort | int | `5432` |  |
 | polly.postgres.external.connectionUrl | string | `""` |  |
 | polly.postgres.external.database | string | `"postgres"` |  |

@@ -129,7 +129,7 @@ istioGateway:
 
 fleet:
   enabled: false
-  namePrefix: "standalone-fleet"
+  namePrefix: "fleet"
   enableTracing: true
   encryptionKey: ""
   oauth:
@@ -368,7 +368,7 @@ fleet:
       minAvailable: 1
 insights:
   enabled: false
-  namePrefix: "standalone-insights"
+  namePrefix: "insights"
   encryptionKey: ""
   apiServer:
     name: "api-server"
@@ -600,7 +600,7 @@ insights:
 
 polly:
   enabled: false
-  namePrefix: "standalone-polly"
+  namePrefix: "polly"
   enableTracing: true
   encryptionKey: ""
   apiServer:

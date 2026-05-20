@@ -661,7 +661,7 @@ Template containing common environment variables that are used by several servic
 {{/*
 Fullname prefix for a given agent feature product.
 Usage: include "langsmith.agentFeatures.fullname" (dict "root" . "product" "fleet")
-Produces: <release>-<namePrefix>  e.g. "langsmith-standalone-fleet"
+Produces: <release>-<namePrefix>  e.g. "langsmith-fleet"
 */}}
 {{- define "langsmith.agentFeatures.fullname" -}}
 {{- $root := index . "root" }}
