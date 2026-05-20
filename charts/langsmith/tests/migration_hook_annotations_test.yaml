@@ -1,0 +1,34 @@
+suite: test migration hook annotations
+templates:
+  - backend/clickhouse-migrations.yaml
+  - backend/postgres-migrations.yaml
+tests:
+  - it: should default migration hooks to PreSync
+    asserts:
+      - equal:
+          path: metadata.annotations["argocd.argoproj.io/hook"]
+          value: PreSync
+        template: backend/postgres-migrations.yaml
+      - equal:
+          path: metadata.annotations["argocd.argoproj.io/hook"]
+          value: PreSync
+        template: backend/clickhouse-migrations.yaml
+
+  - it: should allow overriding migration hook annotations
+    set:
+      backend:
+        migrations:
+          annotations:
+            argocd.argoproj.io/hook: PostSync
+        clickhouseMigrations:
+          annotations:
+            argocd.argoproj.io/hook: PostSync
+    asserts:
+      - equal:
+          path: metadata.annotations["argocd.argoproj.io/hook"]
+          value: PostSync
+        template: backend/postgres-migrations.yaml
+      - equal:
+          path: metadata.annotations["argocd.argoproj.io/hook"]
+          value: PostSync
+        template: backend/clickhouse-migrations.yaml
