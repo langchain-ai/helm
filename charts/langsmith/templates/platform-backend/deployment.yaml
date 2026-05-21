@@ -5,6 +5,13 @@
 - name: DOCS_PREFIX
   value: /{{ . }}/api
 {{- end }}
+{{- if .Values.fleet.enabled }}
+{{- $ns := .Values.namespace | default .Release.Namespace -}}
+{{- $cd := .Values.clusterDomain -}}
+{{- $fleetApi := printf "http://%s.%s.svc.%s:%v" (include "langsmith.agentFeatures.apiServerK8sServiceName" (dict "root" . "product" "fleet")) $ns $cd .Values.fleet.apiServer.service.httpPort }}
+- name: LANGGRAPH_DEPLOYMENT_URL
+  value: {{ $fleetApi | quote }}
+{{- end }}
 {{- end -}}
 {{- $envVars := concat .Values.commonEnv (include "langsmith.commonEnv" . | fromYamlArray) (include "platformBackendEnvVars" . | fromYamlArray) .Values.platformBackend.deployment.extraEnv -}}
 {{- include "langsmith.detectDuplicates" $envVars -}}
