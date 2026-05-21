@@ -2971,10 +2971,10 @@ presidioAnalyzer:
     resources:
       limits:
         cpu: 1
-        memory: 2Gi
+        memory: 4Gi
       requests:
         cpu: 250m
-        memory: 1Gi
+        memory: 2Gi
     startupProbe:
       httpGet:
         path: /health
@@ -2997,7 +2997,9 @@ presidioAnalyzer:
       periodSeconds: 10
       timeoutSeconds: 3
     extraContainerConfig: {}
-    extraEnv: []
+    extraEnv:
+      - name: LOG_LEVEL
+        value: "INFO"
     sidecars: []
     initContainers: []
     nodeSelector: {}
