@@ -1660,6 +1660,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | presidioAnalyzer.autoscaling.minReplicas | int | `1` |  |
 | presidioAnalyzer.autoscaling.targetCPUUtilizationPercentage | int | `80` |  |
 | presidioAnalyzer.containerPort | int | `3000` |  |
+| presidioAnalyzer.workers | int | `2` | Number of Gunicorn workers for the Presidio analyzer. |
 | presidioAnalyzer.deployment.affinity | object | `{}` |  |
 | presidioAnalyzer.deployment.annotations | object | `{}` |  |
 | presidioAnalyzer.deployment.extraContainerConfig | object | `{}` |  |
