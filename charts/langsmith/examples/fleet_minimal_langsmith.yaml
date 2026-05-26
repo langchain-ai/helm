@@ -1,0 +1,50 @@
+# Example Fleet/minimal LangSmith profile.
+# Replace all placeholder secrets before using outside a disposable cluster.
+
+config:
+  fleetMinimalLangsmith:
+    enabled: true
+  deployment:
+    enabled: false
+  agentBuilder:
+    enabled: false
+  langsmithLicenseKey: "replace-with-license-key"
+  apiKeySalt: "replace-with-api-key-salt"
+  authType: "mixed"
+  initialOrgAdminEmail: "admin@example.com"
+  hostname: "https://langsmith.example.com"
+  basicAuth:
+    enabled: true
+    initialOrgAdminPassword: "ReplaceThisPassword!123"
+    jwtSecret: "replace-with-jwt-secret"
+
+fleet:
+  enabled: true
+  encryptionKey: "replace-with-fernet-key"
+
+frontend:
+  enabled: true
+
+# Needed while Fleet OAuth provider, callback, token, and integration flows
+# still run through host-backend.
+hostBackend:
+  enabled: true
+
+clickhouse:
+  enabled: false
+
+backend:
+  clickhouseMigrations:
+    enabled: false
+
+aceBackend:
+  enabled: false
+
+playground:
+  enabled: false
+
+queue:
+  enabled: false
+
+ingestQueue:
+  enabled: false

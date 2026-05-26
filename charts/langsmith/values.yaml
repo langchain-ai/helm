@@ -836,6 +836,11 @@ polly:
 config:
   # -- Skip validation checks in validate.yaml. Used by AWS Marketplace for helm template verification.
   skipValidation: false
+  # -- Enables the reduced Fleet/minimal LangSmith deployment profile. This profile
+  # -- keeps LangSmith auth/user/org state and Fleet services, while requiring
+  # -- LangSmith Deployments and Agent Builder deployment management to stay off.
+  fleetMinimalLangsmith:
+    enabled: false
   existingSecretName: ""
   disableSecretCreation: false
   langsmithLicenseKey: ""
@@ -1079,6 +1084,7 @@ config:
       alwaysAllowPathsRegex: ""
 
 aceBackend:
+  enabled: true
   name: "ace-backend"
   containerPort: 1987
   bindAddress: "0.0.0.0"
@@ -1439,6 +1445,7 @@ backend:
     ttlSecondsAfterFinished: 600
 
 clickhouse:
+  enabled: true
   name: "clickhouse"
   disableSecretCreation: false
   config:
@@ -2209,6 +2216,7 @@ operator:
                 storage: "${storage_gi}Gi"
 
 playground:
+  enabled: true
   name: "playground"
   containerPort: 1988
   # -- ArgoCD Rollouts configuration. If enabled, will create a Rollout resource instead of a Deployment. See https://argo-rollouts.readthedocs.io/
@@ -2424,6 +2432,7 @@ postgres:
     automountServiceAccountToken: true
 
 queue:
+  enabled: true
   name: "queue"
   containerPort: 8080
   # -- ArgoCD Rollouts configuration. If enabled, will create a Rollout resource instead of a Deployment. See https://argo-rollouts.readthedocs.io/

@@ -35,8 +35,12 @@ data:
   LANGCHAIN_ENV: "local_kubernetes"
   LANGCHAIN_ENDPOINT: "/{{ if .Values.config.basePath }}{{ .Values.config.basePath }}/{{ end }}api/v1"
   GO_ENDPOINT: "http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.platformBackend.service.port }}"
+  {{- if .Values.aceBackend.enabled }}
   GO_ACE_ENDPOINT: "http://{{ include "langsmith.fullname" . }}-{{.Values.aceBackend.name}}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.aceBackend.service.port }}"
+  {{- end }}
+  {{- if .Values.playground.enabled }}
   PLAYGROUND_ENDPOINT: "http://{{ include "langsmith.fullname" . }}-{{.Values.playground.name}}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.playground.service.port }}"
+  {{- end }}
   SMITH_BACKEND_ENDPOINT: "http://{{ include "langsmith.fullname" . }}-{{.Values.backend.name}}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.backend.service.port }}"
   HOST_BACKEND_ENDPOINT: "http://{{ include "langsmith.fullname" . }}-{{.Values.hostBackend.name}}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.hostBackend.service.port }}"
   LANGSMITH_AUTH_ENDPOINT: "http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.platformBackend.service.port }}"
@@ -69,7 +73,7 @@ data:
   # Self-hosted telemetry
   ENABLE_POSTGRES_METRICS_CRON: {{ ternary "true" "false" .Values.config.telemetry.metrics | quote }}
   ENABLE_REDIS_METRICS_CRON: {{ ternary "true" "false" .Values.config.telemetry.metrics | quote }}
-  ENABLE_CLICKHOUSE_METRICS_CRON: {{ ternary "true" "false" .Values.config.telemetry.metrics | quote }}
+  ENABLE_CLICKHOUSE_METRICS_CRON: {{ ternary "true" "false" (and .Values.config.telemetry.metrics (ne .Values.clickhouse.enabled false)) | quote }}
   BEACON_LOGGING_ENABLED: {{ ternary "true" "false" .Values.config.telemetry.logs | quote }}
   BEACON_METRICS_ENABLED: {{ ternary "true" "false" .Values.config.telemetry.metrics | quote }}
   BEACON_TRACING_ENABLED: {{ ternary "true" "false" .Values.config.telemetry.traces | quote }}

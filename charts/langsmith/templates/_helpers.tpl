@@ -242,6 +242,7 @@ Template containing common environment variables that are used by several servic
 - name: REDIS_IAM_AUTH_PROVIDER
   value: {{ .Values.redis.external.iamAuthProvider | quote }}
 {{- end }}
+{{- if ne .Values.clickhouse.enabled false }}
 - name: CLICKHOUSE_HYBRID
   value: {{ .Values.clickhouse.external.hybrid | quote }}
 - name: CLICKHOUSE_DB
@@ -294,6 +295,7 @@ Template containing common environment variables that are used by several servic
 {{- end }}
 - name: CLICKHOUSE_CLUSTER
   value: {{ .Values.clickhouse.external.cluster | quote }}
+{{- end }}
 - name: LOG_LEVEL
   value: {{ .Values.config.logLevel | quote }}
 {{- if .Values.config.oauth.enabled }}
@@ -421,7 +423,7 @@ Template containing common environment variables that are used by several servic
 {{- end }}
 {{- end }}
 - name: FF_CH_SEARCH_ENABLED
-  value: {{ ternary "false" .Values.config.blobStorage.chSearchEnabled .Values.clickhouse.external.hybrid | quote }}
+  value: {{ ternary "false" .Values.config.blobStorage.chSearchEnabled (or .Values.clickhouse.external.hybrid (eq .Values.clickhouse.enabled false)) | quote }}
 {{ include "langsmith.conditionalEnvVarsResolved" . }}
 - name: REDIS_RUNS_EXPIRY_SECONDS
   value: {{ .Values.config.settings.redisRunsExpirySeconds | quote }}
@@ -899,7 +901,7 @@ checksum/redis: {{ include (print $.Template.BasePath "/redis/secrets.yaml") . |
 {{- if not .Values.postgres.external.existingSecretName }}
 checksum/postgres: {{ include (print $.Template.BasePath "/postgres/secrets.yaml") . | sha256sum }}
 {{- end }}
-{{- if not .Values.clickhouse.external.existingSecretName }}
+{{- if and (ne .Values.clickhouse.enabled false) (not .Values.clickhouse.external.existingSecretName) }}
 checksum/clickhouse: {{ include (print $.Template.BasePath "/clickhouse/secrets.yaml") . | sha256sum }}
 {{- end }}
 {{- end }}
@@ -928,7 +930,7 @@ Creates the image reference used for Langsmith deployments. If registry is speci
 {{- if .Values.postgres.external.clientCert.secretName -}}
 {{- $mounts = append $mounts (dict "name" "postgres-client-cert" "mountPath" "/etc/postgres/certs" "readOnly" true) -}}
 {{- end -}}
-{{- if .Values.clickhouse.external.clientCert.secretName -}}
+{{- if and (ne .Values.clickhouse.enabled false) .Values.clickhouse.external.clientCert.secretName -}}
 {{- $mounts = append $mounts (dict "name" "clickhouse-client-cert" "mountPath" "/etc/clickhouse/certs" "readOnly" true) -}}
 {{- end -}}
 {{ $mounts | toYaml }}
@@ -945,7 +947,7 @@ Creates the image reference used for Langsmith deployments. If registry is speci
 {{- if .Values.postgres.external.clientCert.secretName -}}
 {{- $volumes = append $volumes (dict "name" "postgres-client-cert" "secret" (dict "secretName" .Values.postgres.external.clientCert.secretName "items" (list (dict "key" .Values.postgres.external.clientCert.certSecretKey "path" "client.crt" "mode" 0644) (dict "key" .Values.postgres.external.clientCert.keySecretKey "path" "client.key" "mode" 0640)))) -}}
 {{- end -}}
-{{- if .Values.clickhouse.external.clientCert.secretName -}}
+{{- if and (ne .Values.clickhouse.enabled false) .Values.clickhouse.external.clientCert.secretName -}}
 {{- $volumes = append $volumes (dict "name" "clickhouse-client-cert" "secret" (dict "secretName" .Values.clickhouse.external.clientCert.secretName "items" (list (dict "key" .Values.clickhouse.external.clientCert.certSecretKey "path" "client.crt" "mode" 0644) (dict "key" .Values.clickhouse.external.clientCert.keySecretKey "path" "client.key" "mode" 0640)))) -}}
 {{- end -}}
 {{ $volumes | toYaml }}
@@ -1059,4 +1061,3 @@ Served through the frontend at /mcp (or /<basePath>/mcp).
   value: {{ $slackBotId | quote }}
 {{- end }}
 {{- end -}}
-

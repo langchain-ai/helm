@@ -1,4 +1,4 @@
-{{- if .Values.playground.pdb.enabled }}
+{{- if and .Values.playground.enabled .Values.playground.pdb.enabled }}
 apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:

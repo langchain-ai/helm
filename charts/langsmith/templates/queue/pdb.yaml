@@ -1,4 +1,4 @@
-{{- if .Values.queue.pdb.enabled }}
+{{- if and .Values.queue.enabled .Values.queue.pdb.enabled }}
 apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
