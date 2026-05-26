@@ -133,14 +133,14 @@ chart only when the auth Secret does not yet exist.
 {{- end }}
 
 {{/*
-Draft config Secret — written by the configSave feature.
+Draft config Secret  written by the configSave feature.
 */}}
 {{- define "missionControl.draftSecretName" -}}
 mission-control-draft
 {{- end }}
 
 {{/*
-Deploy-feature Secrets — written when the deploy feature is enabled.
+Deploy-feature Secrets  written when the deploy feature is enabled.
 */}}
 {{- define "missionControl.deployedSecretName" -}}
 mission-control-deployed
@@ -155,7 +155,7 @@ mission-control-history
 {{- end }}
 
 {{/*
-Alerts-feature Secrets — written when the alerts feature is enabled.
+Alerts-feature Secrets  written when the alerts feature is enabled.
 */}}
 {{- define "missionControl.alertsConfigSecretName" -}}
 mission-control-alerts-config
