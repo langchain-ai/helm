@@ -1,6 +1,6 @@
 # mission-control
 
-![Version: 1.0.0](https://img.shields.io/badge/Version-1.0.0-informational?style=flat-square) ![AppVersion: 1.0.0](https://img.shields.io/badge/AppVersion-1.0.0-informational?style=flat-square)
+![Version: 2.0.0](https://img.shields.io/badge/Version-2.0.0-informational?style=flat-square) ![AppVersion: 2.0.0](https://img.shields.io/badge/AppVersion-2.0.0-informational?style=flat-square)
 
 Mission Control to deploy and manage Langsmith in EKS
 
@@ -42,11 +42,11 @@ All write operations and external egress are gated behind Helm feature flags. Wi
 | `features.fixIssue` | `true` | Pod deletion (Fix Issue button) |
 | `features.adopt` | `true` | Helm ownership patching (Adopt button) |
 | `features.alerts` | `true` | SMTP / webhook alert notifications |
-| `features.chat` | `true` | Chat assistant — outbound egress to LangChain |
+| `features.chat` | `true` | Chat assistant — outbound egress to LangChain/LangGraph |
 | `features.diagnostics` | `true` | Diagnostic log bundle download |
 | `features.configSave` | `true` | Draft config persistence to a K8s Secret |
 | `features.discover` | `true` | Infra discovery scan (connection strings, license keys) |
-| `features.deploy` | `false` | In-UI Helm deploy (currently hidden) |
+| `features.deploy` | `true` | In-UI `helm upgrade --install` (LangSmith + sibling charts) |
 
 Read-only console — zero write verbs, no external egress:
 
@@ -93,7 +93,8 @@ helm upgrade --install mission-control langchain/mission-control \
 | config.features.chat | bool | `true` | Chat assistant: floating widget that proxies to chat.langchain.com. Egress: outbound HTTPS to chat.langchain.com and *.us.langgraph.app. |
 | config.features.configSave | bool | `true` | Persists working configuration to the draft Kubernetes Secret. Grants write access to the mission-control-draft secret. |
 | config.features.dbTools | bool | `true` | Database detection, preflight checks, and support query execution. Adds no extra RBAC verbs; gates the /db/* endpoints at the application layer. |
-| config.features.deploy | bool | `false` |  |
+| config.features.deploy | bool | `true` | In-UI `helm upgrade --install` for LangSmith and sibling charts. Grants broad write RBAC on secrets/configmaps cluster-wide (required for Helm). Set to `false` in compliance-sensitive installs to revert to read-mostly mode. |
+| config.features.valuesOverride | bool | `false` | Server-side values override layer applied on top of every deploy. When enabled, operators can lock specific Helm values that users cannot override from the UI. |
 | config.features.diagnostics | bool | `true` | Diagnostic bundle download (pod logs + resource manifests packaged as a zip). |
 | config.features.discover | bool | `true` | Namespace-scoped infrastructure discovery via the /api/discover endpoint. Adds no extra RBAC verbs; gates the endpoint at the application layer. |
 | config.features.fixIssue | bool | `true` | Fix Issue button: deletes pods stuck in CreateContainerConfigError. Grants pods:delete. |

@@ -42,11 +42,11 @@ All write operations and external egress are gated behind Helm feature flags. Wi
 | `features.fixIssue` | `true` | Pod deletion (Fix Issue button) |
 | `features.adopt` | `true` | Helm ownership patching (Adopt button) |
 | `features.alerts` | `true` | SMTP / webhook alert notifications |
-| `features.chat` | `true` | Chat assistant — outbound egress to LangChain |
+| `features.chat` | `true` | Chat assistant — outbound egress to LangChain/LangGraph |
 | `features.diagnostics` | `true` | Diagnostic log bundle download |
 | `features.configSave` | `true` | Draft config persistence to a K8s Secret |
 | `features.discover` | `true` | Infra discovery scan (connection strings, license keys) |
-| `features.deploy` | `false` | In-UI Helm deploy (currently hidden) |
+| `features.deploy` | `true` | In-UI `helm upgrade --install` (LangSmith + sibling charts) |
 
 Read-only console — zero write verbs, no external egress:
 
