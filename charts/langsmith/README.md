@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.15.0-rc.16](https://img.shields.io/badge/Version-0.15.0--rc.16-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.15.7rc1](https://img.shields.io/badge/AppVersion-0.15.7rc1-informational?style=flat-square)
+![Version: 0.15.0-rc.17](https://img.shields.io/badge/Version-0.15.0--rc.17-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.15.7rc1](https://img.shields.io/badge/AppVersion-0.15.7rc1-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -1681,9 +1681,9 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | presidioAnalyzer.deployment.readinessProbe.timeoutSeconds | int | `3` |  |
 | presidioAnalyzer.deployment.replicas | int | `1` |  |
 | presidioAnalyzer.deployment.resources.limits.cpu | int | `1` |  |
-| presidioAnalyzer.deployment.resources.limits.memory | string | `"2Gi"` |  |
+| presidioAnalyzer.deployment.resources.limits.memory | string | `"4Gi"` |  |
 | presidioAnalyzer.deployment.resources.requests.cpu | string | `"250m"` |  |
-| presidioAnalyzer.deployment.resources.requests.memory | string | `"1Gi"` |  |
+| presidioAnalyzer.deployment.resources.requests.memory | string | `"2Gi"` |  |
 | presidioAnalyzer.deployment.securityContext | object | `{}` |  |
 | presidioAnalyzer.deployment.sidecars | list | `[]` |  |
 | presidioAnalyzer.deployment.startupProbe.failureThreshold | int | `6` |  |
