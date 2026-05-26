@@ -1,9 +1,11 @@
+# Copy to values.yaml and adjust for your cluster.
+
 # -- Provide a name in place of `mission-control`
 nameOverride: ""
 # -- String to fully override the chart's full name
 fullnameOverride: ""
 # -- Namespace to install the chart into. If not set, will use the namespace of the current context.
-namespace: ""
+namespace: <namespace_name>
 # -- Annotations that will be applied to all resources created by the chart
 commonAnnotations: {}
 # -- Annotations that will be applied to all pods created by the chart
@@ -15,18 +17,10 @@ commonLabels: {}
 # and discovery scope. Infrastructure-level options (images, resources, services,
 # storage) stay at the top level outside `config`.
 config:
-  # Backend API authentication (HTTP Basic Auth).
-  # Keep config.auth.enabled=true in production.
-  #
-  # First-run setup flow: when config.auth.enabled=true and `existingSecret` does not
-  # yet exist, the chart generates a setup-token Secret. Retrieve the token with the
-  # command shown in the helm install NOTES, paste it into the Mission Control setup
-  # form, and the backend will create the auth Secret and delete the setup-token
-  # automatically.
+  # Backend API authentication (HTTP Basic Auth). Keep config.auth.enabled=true in production.
   auth:
     enabled: true
     # -- Pre-created Secret with username/password (and optionally JWT signing) keys.
-    # Leave as-is to use the first-run setup flow described above.
     existingSecret: mission-control-auth
     # -- Key in `existingSecret` holding the basic-auth username.
     usernameKey: username
@@ -41,7 +35,6 @@ config:
     allowedOrigins: ""
 
   # Feature flags. Disabling a flag removes its write verbs from the ClusterRole.
-  # With every flag false the ClusterRole is read-only.
   features:
     # -- Fix Issue button: deletes pods stuck in CreateContainerConfigError. Grants pods:delete.
     fixIssue: true
@@ -57,29 +50,20 @@ config:
     # -- Diagnostic bundle download (pod logs + resource manifests packaged as a zip).
     diagnostics: true
     # -- Persists working configuration to the draft Kubernetes Secret.
-    # Grants write access to the mission-control-draft secret.
     configSave: true
     # -- Namespace-scoped infrastructure discovery via the /api/discover endpoint.
-    # Adds no extra RBAC verbs; gates the endpoint at the application layer.
     discover: true
     # -- Database detection, preflight checks, and support query execution.
-    # Adds no extra RBAC verbs; gates the /db/* endpoints at the application layer.
     dbTools: true
-    # -- In-browser helm upgrade --install. When true, grants broad write access
-    # across multiple API groups - see templates/backend/cluster-role.yaml.
-    # Set to false in read-only / compliance-locked installs to remove all deploy
-    # write verbs from the ClusterRole and 403 the POST /deploy API.
+    # -- In-browser helm upgrade --install. Set false for read-only installs.
     deploy: true
     # -- Operator-uploaded values.yaml overrides per product (airgapped support).
-    # Adds the settings pill in the topbar and grants update/delete on the
-    # `mission-control-values-overrides` Secret. Set to false to remove the pill
-    # and 403 the /api/values-overrides/* endpoints.
+    # Adds a settings pill in the topbar to download/upload/clear values files;
+    # uploads are stored in the `mission-control-values-overrides` Secret and
+    # used by /api/values in preference to the live GitHub fetch.
     valuesOverride: true
 
   # -- Extra namespaces (comma-separated) the discover feature is allowed to scan.
-  # Default scans only the chart's release namespace to prevent cross-namespace secret
-  # disclosure on shared clusters. Add namespaces only when you trust every listed namespace.
-  # Example: "langsmith,monitoring"
   discoverNamespaces: ""
 
 images:
@@ -89,19 +73,15 @@ images:
   imagePullSecrets:
     - name: regcred
   backendImage:
-    repository: gdibz/mission-control-backend
+    repository: langchain/mission-control-backend
     pullPolicy: IfNotPresent
-    # -- Backend image tag. Defaults to `latest`; pin to a specific release like `1.1.0`
-    # for reproducible deploys. Versioned tags are published alongside `latest` on every release.
-    tag: 1.1.0
+    tag: latest
   frontendImage:
-    repository: gdibz/mission-control-frontend
+    repository: langchain/mission-control-frontend
     pullPolicy: IfNotPresent
-    # -- Frontend image tag. Defaults to `latest`; pin to a specific release like `1.1.0`
-    # for reproducible deploys. Versioned tags are published alongside `latest` on every release.
-    tag: 1.1.0
+    tag: latest
 
-# Backend (FastAPI) component.
+# Backend (FastAPI) component - installed as a StatefulSet.
 backend:
   # -- Replica count. Set > 1 only when config.auth.jwtSecretKey is set so all pods validate each other's tokens.
   replicas: 1
@@ -119,25 +99,19 @@ backend:
       cpu: 500m
       memory: 512Mi
   service:
-    # -- Internal Service type; port-forward is the default access path.
     type: ClusterIP
     port: 8000
   serviceAccount:
     # -- When true (default) the chart creates a ServiceAccount, ClusterRole, and ClusterRoleBinding.
-    # Set to false to bring your own ServiceAccount; you must then grant it the same RBAC.
     create: true
     # -- Override the generated ServiceAccount name.
     name: ""
 
 # Frontend (static React app served by an HTTP server) component.
 frontend:
-  # -- Replica count.
   replicas: 1
-  # -- Pod-level security context.
   podSecurityContext: {}
-  # -- Container-level security context.
   securityContext: {}
-  # -- Additional environment variables passed to the frontend container.
   extraEnv: []
   resources:
     requests:
@@ -155,9 +129,8 @@ ingress:
   enabled: false
   host: ""
 
-# Diagnostic-bundle storage. The backend always writes bundles to /tmp/mc_diagnostics.
-# The backend runs as a StatefulSet so persistence can be toggled by including or
-# omitting the volumeClaimTemplates entry. Default is emptyDir (bundles lost on pod restart).
+# Diagnostic-bundle storage. Toggles the backend StatefulSet's volumeClaimTemplates.
+# Default is emptyDir (bundles lost on pod restart).
 #
 # Important: `volumeClaimTemplates` is immutable on a StatefulSet. Toggling
 # `diagnostics.persistence.enabled` after install requires `helm uninstall` then
