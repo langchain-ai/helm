@@ -94,24 +94,39 @@ rules:
 
   # Build the list of named secrets that require write access based on which
   # features are enabled. When all write features are disabled, the create and
-  # update/delete rules are omitted entirely — zero secret write verbs.
+  # update/delete rules are omitted entirely - zero secret write verbs.
+  # The deploy feature requires unscoped secrets:update,delete (see deploy block
+  # below) - listing per-release MC secret names here only matters when deploy
+  # is OFF and configSave is ON (read-only console + draft persistence).
   {{- $secretNames := list }}
+  {{- $deployProducts := list "langgraph-cloud" "langgraph-dataplane" "langsmith-auth-proxy" "langsmith-observability" "mission-control" }}
   {{- if .Values.config.features.configSave }}
   {{- $secretNames = append $secretNames (include "missionControl.draftSecretName" .) }}
+  {{- range $deployProducts }}
+  {{- $secretNames = append $secretNames (printf "mission-control-draft-%s" .) }}
+  {{- end }}
   {{- end }}
   {{- if .Values.config.features.deploy }}
   {{- $secretNames = append $secretNames (include "missionControl.deployedSecretName" .) }}
   {{- $secretNames = append $secretNames (include "missionControl.backupSecretName" .) }}
   {{- $secretNames = append $secretNames (include "missionControl.historySecretName" .) }}
+  {{- range $deployProducts }}
+  {{- $secretNames = append $secretNames (printf "mission-control-deployed-%s" .) }}
+  {{- $secretNames = append $secretNames (printf "mission-control-backup-%s" .) }}
+  {{- $secretNames = append $secretNames (printf "mission-control-history-%s" .) }}
+  {{- end }}
   {{- end }}
   {{- if .Values.config.features.alerts }}
   {{- $secretNames = append $secretNames (include "missionControl.alertsConfigSecretName" .) }}
   {{- $secretNames = append $secretNames (include "missionControl.alertsKeySecretName" .) }}
   {{- $secretNames = append $secretNames (include "missionControl.alertsLogSecretName" .) }}
   {{- end }}
+  {{- if .Values.config.features.valuesOverride }}
+  {{- $secretNames = append $secretNames "mission-control-values-overrides" }}
+  {{- end }}
 
   {{- if $secretNames }}
-  # Kubernetes RBAC does not support resourceNames on "create" — namespace-wide
+  # Kubernetes RBAC does not support resourceNames on "create" - namespace-wide
   # is unavoidable. Scoping is enforced at the application layer.
   - apiGroups: [""]
     resources: ["secrets"]
@@ -167,7 +182,7 @@ rules:
   # ── Adopt button (disable via features.adopt=false) ───────────────────────
   # Patches Helm ownership annotations onto existing resources so helm upgrade
   # can manage resources that were created outside the release.
-  # patch on deployments/statefulsets is equivalent to update — disable if
+  # patch on deployments/statefulsets is equivalent to update - disable if
   # your policy requires workload immutability enforced by RBAC.
   {{- if .Values.config.features.adopt }}
   - apiGroups: [""]
@@ -178,13 +193,38 @@ rules:
     verbs: ["patch"]
   {{- end }}
 
-  # ── Deploy feature (disable via features.deploy=false — off by default) ───
-  # Required by `helm upgrade --install langsmith` executed from the UI.
-  # The deploy button is currently hidden in the UI; keep this false until
-  # it is re-enabled.
+  # ── Deploy feature (disable via features.deploy=false - on by default) ────
+  # Required by `helm upgrade --install <release> <chart>` executed from the
+  # UI. The chart name flows from a server-side allowlist (CHART_REGISTRY),
+  # not from user input, so unknown charts cannot be installed via this verb
+  # set.
+  #
+  # Why some verbs are unscoped here even though the MC-managed secret list
+  # above is scoped by name:
+  #   • Helm itself stores release state in Secrets named
+  #     `sh.helm.release.v1.<release>.v<N>` and prunes old revisions, so it
+  #     needs cluster-wide secrets:create,update,delete to function.
+  #   • Charts in the langchain repo create Secrets/ConfigMaps with names
+  #     chosen by the chart author (e.g. `langsmith-config`); these cannot
+  #     be enumerated at chart-install time.
+  # The trade-off: enabling deploy grants Mission Control broad write rights
+  # on secrets/configmaps in the cluster. Set features.deploy=false in
+  # compliance-sensitive installs to revert to the scoped, read-mostly mode.
   {{- if .Values.config.features.deploy }}
   - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["watch", "update", "delete"]
+  - apiGroups: [""]
+    resources: ["events"]
+    verbs: ["create", "patch"]
+  - apiGroups: [""]
+    resources: ["configmaps"]
+    verbs: ["create", "update", "patch", "delete"]
+  - apiGroups: [""]
     resources: ["services", "persistentvolumeclaims", "serviceaccounts"]
+    verbs: ["create", "update", "patch", "delete"]
+  - apiGroups: [""]
+    resources: ["pods"]
     verbs: ["create", "update", "patch", "delete"]
   - apiGroups: [""]
     resources: ["namespaces"]
@@ -196,7 +236,10 @@ rules:
     resources: ["jobs", "cronjobs"]
     verbs: ["create", "update", "patch", "delete"]
   - apiGroups: ["networking.k8s.io"]
-    resources: ["ingresses"]
+    resources: ["ingresses", "networkpolicies"]
+    verbs: ["create", "update", "patch", "delete"]
+  - apiGroups: ["policy"]
+    resources: ["poddisruptionbudgets"]
     verbs: ["create", "update", "patch", "delete"]
   - apiGroups: ["autoscaling"]
     resources: ["horizontalpodautoscalers"]
@@ -218,6 +261,9 @@ rules:
     verbs: ["create", "update", "patch", "delete"]
   - apiGroups: ["networking.istio.io"]
     resources: ["virtualservices"]
+    verbs: ["create", "update", "patch", "delete"]
+  - apiGroups: ["coordination.k8s.io"]
+    resources: ["leases"]
     verbs: ["create", "update", "patch", "delete"]
   {{- end }}
 {{- end }}

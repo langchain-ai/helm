@@ -54,10 +54,12 @@ spec:
       {{- end }}
       containers:
         - name: {{ .Values.presidioAnalyzer.name }}
-          {{- with $envVars }}
           env:
+            {{- with $envVars }}
             {{- toYaml . | nindent 12 }}
-          {{- end }}
+            {{- end }}
+            - name: LOG_LEVEL
+              value: {{ .Values.config.logLevel | upper | quote }}
           image: {{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "presidioAnalyzerImage") | quote }}
           imagePullPolicy: {{ .Values.images.presidioAnalyzerImage.pullPolicy }}
           ports:

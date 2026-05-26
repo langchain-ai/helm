@@ -65,9 +65,16 @@ config:
     # -- Database detection, preflight checks, and support query execution.
     # Adds no extra RBAC verbs; gates the /db/* endpoints at the application layer.
     dbTools: true
-    # -- In-browser helm upgrade --install. Currently hidden in the UI; keep false until re-enabled.
-    # When true, grants broad write access — see templates/backend/cluster-role.yaml.
-    deploy: false
+    # -- In-browser helm upgrade --install. When true, grants broad write access
+    # across multiple API groups - see templates/backend/cluster-role.yaml.
+    # Set to false in read-only / compliance-locked installs to remove all deploy
+    # write verbs from the ClusterRole and 403 the POST /deploy API.
+    deploy: true
+    # -- Operator-uploaded values.yaml overrides per product (airgapped support).
+    # Adds the settings pill in the topbar and grants update/delete on the
+    # `mission-control-values-overrides` Secret. Set to false to remove the pill
+    # and 403 the /api/values-overrides/* endpoints.
+    valuesOverride: true
 
   # -- Extra namespaces (comma-separated) the discover feature is allowed to scan.
   # Default scans only the chart's release namespace to prevent cross-namespace secret
@@ -84,13 +91,13 @@ images:
   backendImage:
     repository: langchain/mission-control-backend
     pullPolicy: IfNotPresent
-    # -- Backend image tag. Defaults to `latest`; pin to a specific release like `1.0.0`
+    # -- Backend image tag. Defaults to `latest`; pin to a specific release like `1.2.0`
     # for reproducible deploys. Versioned tags are published alongside `latest` on every release.
     tag: latest
   frontendImage:
     repository: langchain/mission-control-frontend
     pullPolicy: IfNotPresent
-    # -- Frontend image tag. Defaults to `latest`; pin to a specific release like `1.0.0`
+    # -- Frontend image tag. Defaults to `latest`; pin to a specific release like `1.2.0`
     # for reproducible deploys. Versioned tags are published alongside `latest` on every release.
     tag: latest
 
@@ -154,7 +161,7 @@ ingress:
 #
 # Important: `volumeClaimTemplates` is immutable on a StatefulSet. Toggling
 # `diagnostics.persistence.enabled` after install requires `helm uninstall` then
-# reinstall — Kubernetes does not allow adding or removing claim templates in place.
+# reinstall - Kubernetes does not allow adding or removing claim templates in place.
 diagnostics:
   persistence:
     enabled: false

@@ -1,0 +1,11 @@
+# Minimal override — set your namespace and image pull secret.
+# Use when installing into a non-default namespace on a registry that requires authentication.
+#
+# Apply with:
+#   helm install mission-control . -f examples/minimal.yaml
+
+namespace: <your-namespace>
+
+images:
+  imagePullSecrets:
+    - name: <your-pull-secret>

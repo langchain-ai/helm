@@ -1,0 +1,9 @@
+# Ingress override — expose Mission Control via an ingress controller.
+# Use when you want to access Mission Control at a stable hostname instead of port-forwarding.
+#
+# Apply with:
+#   helm install mission-control . -f examples/ingress.yaml
+
+ingress:
+  enabled: true
+  host: mission-control.example.com
