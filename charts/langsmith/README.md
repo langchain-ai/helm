@@ -1681,9 +1681,9 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | presidioAnalyzer.deployment.readinessProbe.timeoutSeconds | int | `3` |  |
 | presidioAnalyzer.deployment.replicas | int | `1` |  |
 | presidioAnalyzer.deployment.resources.limits.cpu | int | `1` |  |
-| presidioAnalyzer.deployment.resources.limits.memory | string | `"2Gi"` |  |
+| presidioAnalyzer.deployment.resources.limits.memory | string | `"4Gi"` |  |
 | presidioAnalyzer.deployment.resources.requests.cpu | string | `"250m"` |  |
-| presidioAnalyzer.deployment.resources.requests.memory | string | `"1Gi"` |  |
+| presidioAnalyzer.deployment.resources.requests.memory | string | `"2Gi"` |  |
 | presidioAnalyzer.deployment.securityContext | object | `{}` |  |
 | presidioAnalyzer.deployment.sidecars | list | `[]` |  |
 | presidioAnalyzer.deployment.startupProbe.failureThreshold | int | `6` |  |

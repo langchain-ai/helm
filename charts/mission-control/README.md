@@ -118,11 +118,11 @@ helm install mission-control langchain/mission-control \
 | config.features.chat | bool | `true` | Chat assistant: floating widget that proxies to chat.langchain.com. Egress: outbound HTTPS to chat.langchain.com and *.us.langgraph.app. |
 | config.features.configSave | bool | `true` | Persists working configuration to the draft Kubernetes Secret. Grants write access to the mission-control-draft secret. |
 | config.features.dbTools | bool | `true` | Database detection, preflight checks, and support query execution. Adds no extra RBAC verbs; gates the /db/* endpoints at the application layer. |
-| config.features.deploy | bool | `true` | In-UI `helm upgrade --install` for LangSmith and sibling charts. Grants broad write RBAC on secrets/configmaps cluster-wide (required for Helm). Set to `false` in compliance-sensitive installs to revert to read-mostly mode. |
-| config.features.valuesOverride | bool | `false` | Server-side values override layer applied on top of every deploy. When enabled, operators can lock specific Helm values that users cannot override from the UI. |
+| config.features.deploy | bool | `true` |  |
 | config.features.diagnostics | bool | `true` | Diagnostic bundle download (pod logs + resource manifests packaged as a zip). |
 | config.features.discover | bool | `true` | Namespace-scoped infrastructure discovery via the /api/discover endpoint. Adds no extra RBAC verbs; gates the endpoint at the application layer. |
 | config.features.fixIssue | bool | `true` | Fix Issue button: deletes pods stuck in CreateContainerConfigError. Grants pods:delete. |
+| config.features.valuesOverride | bool | `true` | Operator-uploaded values.yaml overrides per product (airgapped support). Adds the settings pill in the topbar and grants update/delete on the `mission-control-values-overrides` Secret. Set to false to remove the pill and 403 the /api/values-overrides/* endpoints. |
 | diagnostics.persistence.accessMode | string | `"ReadWriteOnce"` |  |
 | diagnostics.persistence.enabled | bool | `false` |  |
 | diagnostics.persistence.size | string | `"1Gi"` |  |
@@ -140,10 +140,10 @@ helm install mission-control langchain/mission-control \
 | fullnameOverride | string | `""` | String to fully override the chart's full name |
 | images.backendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.backendImage.repository | string | `"langchain/mission-control-backend"` |  |
-| images.backendImage.tag | string | `"latest"` | Backend image tag. Defaults to `latest`; pin to a specific release like `1.0.0` for reproducible deploys. Versioned tags are published alongside `latest` on every release. |
+| images.backendImage.tag | string | `"latest"` | Backend image tag. Defaults to `latest`; pin to a specific release like `1.2.0` for reproducible deploys. Versioned tags are published alongside `latest` on every release. |
 | images.frontendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.frontendImage.repository | string | `"langchain/mission-control-frontend"` |  |
-| images.frontendImage.tag | string | `"latest"` | Frontend image tag. Defaults to `latest`; pin to a specific release like `1.0.0` for reproducible deploys. Versioned tags are published alongside `latest` on every release. |
+| images.frontendImage.tag | string | `"latest"` | Frontend image tag. Defaults to `latest`; pin to a specific release like `1.2.0` for reproducible deploys. Versioned tags are published alongside `latest` on every release. |
 | images.imagePullSecrets | list | `[{"name":"regcred"}]` | Image pull secrets used by all components. |
 | images.registry | string | `""` | If supplied, all child <image>.repository values will be prepended with this registry name + `/` |
 | ingress.enabled | bool | `false` |  |
