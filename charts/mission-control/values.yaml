@@ -89,17 +89,17 @@ images:
   imagePullSecrets:
     - name: regcred
   backendImage:
-    repository: gdibz/mission-control-backend
+    repository: langchain/mission-control-backend
     pullPolicy: IfNotPresent
-    # -- Backend image tag. Defaults to `latest`; pin to a specific release like `1.1.0`
+    # -- Backend image tag. Defaults to `latest`; pin to a specific release like `1.2.0`
     # for reproducible deploys. Versioned tags are published alongside `latest` on every release.
-    tag: 1.1.0
+    tag: latest
   frontendImage:
-    repository: gdibz/mission-control-frontend
+    repository: langchain/mission-control-frontend
     pullPolicy: IfNotPresent
-    # -- Frontend image tag. Defaults to `latest`; pin to a specific release like `1.1.0`
+    # -- Frontend image tag. Defaults to `latest`; pin to a specific release like `1.2.0`
     # for reproducible deploys. Versioned tags are published alongside `latest` on every release.
-    tag: 1.1.0
+    tag: latest
 
 # Backend (FastAPI) component.
 backend:

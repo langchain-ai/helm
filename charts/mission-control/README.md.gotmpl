@@ -62,6 +62,31 @@ helm upgrade --install mission-control langchain/mission-control \
   --set features.discover=false
 ```
 
+## Examples
+
+The `examples/` directory contains ready-to-use values overrides for common scenarios:
+
+| File | Use case |
+|---|---|
+| `examples/minimal.yaml` | Custom namespace + image pull secret |
+| `examples/ingress.yaml` | Expose via ingress controller instead of port-forward |
+| `examples/persistence.yaml` | Retain diagnostic bundles across pod restarts |
+| `examples/high-availability.yaml` | Multi-replica backend with JWT signing secret |
+
+Apply an example with `-f`:
+
+```bash
+helm install mission-control langchain/mission-control -f examples/ingress.yaml
+```
+
+Multiple overrides can be layered:
+
+```bash
+helm install mission-control langchain/mission-control \
+  -f examples/minimal.yaml \
+  -f examples/persistence.yaml
+```
+
 ## Values
 
 | Key | Type | Default | Description |
