@@ -1,0 +1,20 @@
+# High-availability override — run multiple backend replicas.
+# Use when you need redundancy or rolling updates without downtime.
+#
+# Requires a shared JWT signing secret so all replicas can validate each other's tokens.
+# Generate one with: openssl rand -base64 32
+# Store it in a Kubernetes Secret and reference it via config.auth.existingSecret,
+# or pass it directly here (not recommended for production — use a Secret instead).
+#
+# Apply with:
+#   helm install mission-control . -f examples/high-availability.yaml
+
+config:
+  auth:
+    jwtSecretKey: jwt-secret   # key name inside existingSecret that holds the JWT signing value
+
+backend:
+  replicas: 2
+
+frontend:
+  replicas: 2

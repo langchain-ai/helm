@@ -115,6 +115,8 @@ spec:
               value: {{ ternary "true" "false" .Values.config.features.discover | quote }}
             - name: MC_FEATURE_DBTOOLS
               value: {{ ternary "true" "false" .Values.config.features.dbTools | quote }}
+            - name: MC_FEATURE_VALUES_OVERRIDE
+              value: {{ ternary "true" "false" .Values.config.features.valuesOverride | quote }}
             {{- if .Values.config.discoverNamespaces }}
             - name: DISCOVER_NAMESPACES
               value: {{ .Values.config.discoverNamespaces | quote }}

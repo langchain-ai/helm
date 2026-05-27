@@ -201,6 +201,13 @@ Template containing common environment variables that are used by several servic
 - name: HOST_BACKEND_ENDPOINT_PUBLIC
   value: {{ .Values.config.hostname }}/api-host
 {{- end }}
+{{- if .Values.fleet.enabled }}
+{{- $ns := .Values.namespace | default .Release.Namespace -}}
+{{- $cd := .Values.clusterDomain -}}
+{{- $fleetApi := printf "http://%s.%s.svc.%s:%v" (include "langsmith.agentFeatures.apiServerK8sServiceName" (dict "root" . "product" "fleet")) $ns $cd .Values.fleet.apiServer.service.httpPort }}
+- name: LANGGRAPH_DEPLOYMENT_URL
+  value: {{ $fleetApi | quote }}
+{{- end }}
 - name: REDIS_CLUSTER_ENABLED
   value: {{ .Values.redis.external.cluster.enabled | quote }}
 {{- if .Values.redis.external.cluster.enabled }}
@@ -952,6 +959,22 @@ Shared SmithDB service env vars. Args: root, service, displayName.
     {{ default (printf "%s-%s" (include "langsmith.fullname" .) .Values.agentBuilderTriggerServer.name) .Values.agentBuilderTriggerServer.serviceAccount.name | trunc 63 | trimSuffix "-" }}
 {{- else -}}
     {{ default "default" .Values.agentBuilderTriggerServer.serviceAccount.name }}
+{{- end -}}
+{{- end -}}
+
+{{- define "agentGateway.serviceAccountName" -}}
+{{- if .Values.agentGateway.serviceAccount.create -}}
+    {{ default (printf "%s-%s" (include "langsmith.fullname" .) .Values.agentGateway.name) .Values.agentGateway.serviceAccount.name | trunc 63 | trimSuffix "-" }}
+{{- else -}}
+    {{ default "default" .Values.agentGateway.serviceAccount.name }}
+{{- end -}}
+{{- end -}}
+
+{{- define "presidioAnalyzer.serviceAccountName" -}}
+{{- if .Values.presidioAnalyzer.serviceAccount.create -}}
+    {{ default (printf "%s-%s" (include "langsmith.fullname" .) .Values.presidioAnalyzer.name) .Values.presidioAnalyzer.serviceAccount.name | trunc 63 | trimSuffix "-" }}
+{{- else -}}
+    {{ default "default" .Values.presidioAnalyzer.serviceAccount.name }}
 {{- end -}}
 {{- end -}}
 

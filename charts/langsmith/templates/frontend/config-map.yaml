@@ -11,6 +11,11 @@ metadata:
 data:
 {{- if .Values.config.basePath }}
   nginx.conf: |
+    map $http_upgrade $connection_upgrade {
+        default upgrade;
+        ''      close;
+    }
+
     proxy_ssl_server_name on;
 
     proxy_cache_path /tmp/server_cache levels=1:2 keys_zone=llm_cache:100m max_size=1g inactive=60 use_temp_path=off;
@@ -150,6 +155,15 @@ data:
             proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.platformBackend.service.port }};
         }
 
+        # OIDC hybrid-flow support
+        # Hardcoded to custom-oidc - backend only supports that provider
+        location = /{{ .Values.config.basePath }}/oauth-callback {
+            if ($request_method = POST) {
+                rewrite ^ /{{ .Values.config.basePath }}/api/v1/oauth/custom-oidc/callback last;
+            }
+            rewrite ^ /{{ .Values.config.basePath }}/index.html last;
+        }
+
         location /{{ .Values.config.basePath }}/api/v1/otel/ {
             rewrite /{{ .Values.config.basePath }}/api/v1/otel/(.*) /otel/$1  break;
             proxy_set_header Connection '';
@@ -161,6 +175,15 @@ data:
 
         location /{{ .Values.config.basePath }}/api/v1/agent-builder/ {
             rewrite /{{ .Values.config.basePath }}/api/v1/agent-builder/(.*) /v1/agent-builder/$1  break;
+            proxy_set_header Connection '';
+            proxy_http_version 1.1;
+            proxy_buffering off;
+            proxy_cache off;
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.platformBackend.service.port }};
+        }
+
+        location /{{ .Values.config.basePath }}/api/v1/fleet/ {
+            rewrite /{{ .Values.config.basePath }}/api/v1/fleet/(.*) /v1/fleet/$1  break;
             proxy_set_header Connection '';
             proxy_http_version 1.1;
             proxy_buffering off;
@@ -352,6 +375,20 @@ data:
         }
     {{- end }}
 
+    {{- if .Values.agentGateway.enabled }}
+        # Extended timeout for long-running LLM calls; upgrade headers for future WebSocket support
+        location /{{ .Values.config.basePath }}/gateway/ {
+            rewrite /{{ .Values.config.basePath }}/gateway/(.*) /$1  break;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection $connection_upgrade;
+            proxy_http_version 1.1;
+            proxy_buffering off;
+            proxy_cache off;
+            proxy_read_timeout 900;
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.agentGateway.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.agentGateway.service.port }};
+        }
+    {{- end }}
+
         location = /{{ .Values.config.basePath }}/api/runs/multipart {
             rewrite /{{ .Values.config.basePath }}/api/runs/multipart /runs/multipart  break;
             proxy_set_header Connection '';
@@ -470,6 +507,11 @@ data:
     }
 {{- else }}
   nginx.conf: |
+    map $http_upgrade $connection_upgrade {
+        default upgrade;
+        ''      close;
+    }
+
     proxy_ssl_server_name on;
 
     proxy_cache_path /tmp/server_cache levels=1:2 keys_zone=llm_cache:100m max_size=1g inactive=60 use_temp_path=off;
@@ -627,6 +669,15 @@ data:
             proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.platformBackend.service.port }};
         }
 
+        # OIDC hybrid-flow support
+        # Hardcoded to custom-oidc - backend only supports that provider
+        location = /oauth-callback {
+            if ($request_method = POST) {
+                rewrite ^ /api/v1/oauth/custom-oidc/callback last;
+            }
+            rewrite ^ /index.html last;
+        }
+
         location /api/v1/otel/ {
             rewrite /api/v1/otel/(.*) /otel/$1  break;
             proxy_set_header Connection '';
@@ -638,6 +689,15 @@ data:
 
         location /api/v1/agent-builder/ {
             rewrite /api/v1/agent-builder/(.*) /v1/agent-builder/$1  break;
+            proxy_set_header Connection '';
+            proxy_http_version 1.1;
+            proxy_buffering off;
+            proxy_cache off;
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.platformBackend.service.port }};
+        }
+
+        location /api/v1/fleet/ {
+            rewrite /api/v1/fleet/(.*) /v1/fleet/$1  break;
             proxy_set_header Connection '';
             proxy_http_version 1.1;
             proxy_buffering off;
@@ -927,6 +987,20 @@ data:
             proxy_buffering off;
             proxy_cache off;
             proxy_pass http://{{ include "langsmith.agentFeatures.apiServerK8sServiceName" (dict "root" . "product" "polly") }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.polly.apiServer.service.httpPort }};
+        }
+    {{- end }}
+
+    {{- if .Values.agentGateway.enabled }}
+        # Extended timeout for long-running LLM calls; upgrade headers for future WebSocket support
+        location /gateway/ {
+            rewrite /gateway/(.*) /$1  break;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection $connection_upgrade;
+            proxy_http_version 1.1;
+            proxy_buffering off;
+            proxy_cache off;
+            proxy_read_timeout 900;
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.agentGateway.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.agentGateway.service.port }};
         }
     {{- end }}
       }
