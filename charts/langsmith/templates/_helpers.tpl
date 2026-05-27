@@ -478,6 +478,359 @@ Template containing common environment variables that are used by several servic
       key: polly_encryption_key
       optional: false
 {{- end }}
+{{ include "langsmith.smithdb.clientEnv" . }}
+{{- end }}
+
+{{/*
+SmithDB resource name prefix.
+*/}}
+{{- define "langsmith.smithdb.fullname" -}}
+{{- printf "%s-%s" (include "langsmith.fullname" .) .Values.smithdb.name | trunc 63 | trimSuffix "-" }}
+{{- end }}
+
+{{/*
+Common SmithDB labels.
+*/}}
+{{- define "langsmith.smithdb.labels" -}}
+{{ include "langsmith.labels" . }}
+{{- with .Values.smithdb.commonLabels }}
+{{ toYaml . }}
+{{- end }}
+{{- end }}
+
+{{/*
+Common SmithDB annotations.
+*/}}
+{{- define "langsmith.smithdb.annotations" -}}
+{{ include "langsmith.annotations" . }}
+{{- with .Values.smithdb.commonAnnotations }}
+{{ toYaml . }}
+{{- end }}
+{{- end }}
+
+{{/*
+Name of a SmithDB component Service or Deployment.
+Args: root, component.
+*/}}
+{{- define "langsmith.smithdb.componentName" -}}
+{{- $root := .root -}}
+{{- $component := .component -}}
+{{- $componentValues := index $root.Values.smithdb $component -}}
+{{- printf "%s-%s" (include "langsmith.smithdb.fullname" $root) $componentValues.name | trunc 63 | trimSuffix "-" }}
+{{- end }}
+
+{{/*
+Name of a SmithDB component service account.
+Args: root, component.
+*/}}
+{{- define "langsmith.smithdb.serviceAccountName" -}}
+{{- $root := .root -}}
+{{- $component := .component -}}
+{{- $componentValues := index $root.Values.smithdb $component -}}
+{{- if $componentValues.serviceAccount.create -}}
+{{- default (include "langsmith.smithdb.componentName" (dict "root" $root "component" $component)) $componentValues.serviceAccount.name | trunc 63 | trimSuffix "-" }}
+{{- else -}}
+{{- default "default" $componentValues.serviceAccount.name }}
+{{- end -}}
+{{- end }}
+
+{{/*
+SmithDB service URL used by LangSmith gRPC clients.
+Args: root, component, port.
+*/}}
+{{- define "langsmith.smithdb.grpcServiceUrl" -}}
+{{- $root := .root -}}
+{{- $component := .component -}}
+{{- $port := .port -}}
+{{- printf "%s.%s.svc.%s:%v" (include "langsmith.smithdb.componentName" (dict "root" $root "component" $component)) ($root.Values.namespace | default $root.Release.Namespace) $root.Values.clusterDomain $port }}
+{{- end }}
+
+{{/*
+SmithDB HTTP-style endpoint used by SmithDB services.
+Args: root, component, port.
+*/}}
+{{- define "langsmith.smithdb.httpServiceUrl" -}}
+{{- printf "http://%s" (include "langsmith.smithdb.grpcServiceUrl" .) }}
+{{- end }}
+
+{{/*
+SmithDB HTTP health probes.
+*/}}
+{{- define "langsmith.smithdb.httpProbes" -}}
+startupProbe:
+  httpGet:
+    path: /health
+    port: http
+  failureThreshold: 6
+  periodSeconds: 10
+  timeoutSeconds: 1
+livenessProbe:
+  httpGet:
+    path: /health
+    port: http
+  failureThreshold: 6
+  periodSeconds: 10
+  timeoutSeconds: 1
+readinessProbe:
+  httpGet:
+    path: /health
+    port: http
+  failureThreshold: 6
+  periodSeconds: 10
+  timeoutSeconds: 1
+{{- end }}
+
+{{/*
+SmithDB gRPC health probes. Args: port.
+*/}}
+{{- define "langsmith.smithdb.grpcProbes" -}}
+startupProbe:
+  grpc:
+    port: {{ .port }}
+  failureThreshold: 6
+  periodSeconds: 10
+  timeoutSeconds: 1
+livenessProbe:
+  grpc:
+    port: {{ .port }}
+  failureThreshold: 6
+  periodSeconds: 10
+  timeoutSeconds: 1
+readinessProbe:
+  grpc:
+    port: {{ .port }}
+  failureThreshold: 6
+  periodSeconds: 10
+  timeoutSeconds: 1
+{{- end }}
+
+{{/*
+SmithDB cluster-manager HTTP endpoint used by SmithDB services.
+*/}}
+{{- define "langsmith.smithdb.clusterManagerHttpEndpoint" -}}
+{{- include "langsmith.smithdb.httpServiceUrl" (dict "root" . "component" "clusterManager" "port" .Values.smithdb.clusterManager.service.port) }}
+{{- end }}
+
+{{/*
+LangSmith application env vars for calling SmithDB.
+*/}}
+{{- define "langsmith.smithdb.clientEnv" -}}
+{{- $dualIngestEnabled := .Values.smithdb.langsmith.dualIngest.enabled -}}
+{{- $frontendSmithDBEndpointsEnabled := .Values.smithdb.langsmith.frontend.useSmithDBEndpoints -}}
+{{- $clusterManagerEnabled := .Values.smithdb.langsmith.clusterManager.enabled -}}
+{{- $envVars := list -}}
+{{- if and .Values.smithdb.enabled (or $dualIngestEnabled $frontendSmithDBEndpointsEnabled $clusterManagerEnabled) }}
+{{- if $frontendSmithDBEndpointsEnabled }}
+{{- $queryUrl := include "langsmith.smithdb.grpcServiceUrl" (dict "root" . "component" "query" "port" .Values.smithdb.query.service.port) -}}
+{{- $envVars = append $envVars (dict "name" "SMITHDB_QUERY_SERVICE_URL" "value" $queryUrl) -}}
+{{- $envVars = append $envVars (dict "name" "SMITHDB_MUTATIONS_SERVICE_URL" "value" $queryUrl) -}}
+{{- if .Values.smithdb.langsmith.setRunRulesServiceUrl }}
+{{- $envVars = append $envVars (dict "name" "SMITHDB_RUN_RULES_SERVICE_URL" "value" $queryUrl) -}}
+{{- end }}
+{{- if .Values.smithdb.langsmith.setStatsQueryServiceUrl }}
+{{- $envVars = append $envVars (dict "name" "SMITHDB_STATS_QUERY_SERVICE_URL" "value" $queryUrl) -}}
+{{- end }}
+{{- if .Values.smithdb.langsmith.queryServiceMaxCallRecvMsgSize }}
+{{- $envVars = append $envVars (dict "name" "SMITHDB_QUERY_SERVICE_MAX_CALL_RECV_MSG_SIZE" "value" .Values.smithdb.langsmith.queryServiceMaxCallRecvMsgSize) -}}
+{{- end }}
+{{- with .Values.smithdb.langsmith.queryShadowEnabledPct }}
+{{- $envVars = append $envVars (dict "name" "SMITHDB_QUERY_SHADOW_ENABLED_PCT" "value" .) -}}
+{{- end }}
+{{- end }}
+{{- if $dualIngestEnabled }}
+{{- $ingestionUrl := include "langsmith.smithdb.grpcServiceUrl" (dict "root" . "component" "ingestion" "port" .Values.smithdb.ingestion.service.port) -}}
+{{- $envVars = append $envVars (dict "name" "SMITHDB_INGESTION_SERVICE_URL" "value" $ingestionUrl) -}}
+{{- if .Values.smithdb.langsmith.ingestionServiceMaxCallSendMsgSize }}
+{{- $envVars = append $envVars (dict "name" "SMITHDB_INGESTION_SERVICE_MAX_CALL_SEND_MSG_SIZE" "value" .Values.smithdb.langsmith.ingestionServiceMaxCallSendMsgSize) -}}
+{{- end }}
+{{- $envVars = append $envVars (dict "name" "SMITHDB_INGEST_ORGS_ROLLOUT_PCT" "value" .Values.smithdb.langsmith.dualIngest.ingestOrgsRolloutPct) -}}
+{{- with .Values.smithdb.langsmith.dualIngest.ingestTenantIds }}
+{{- $envVars = append $envVars (dict "name" "SMITHDB_ENABLED_INGEST_TENANTS" "value" (. | toJson)) -}}
+{{- end }}
+{{- with .Values.smithdb.langsmith.dualIngest.ingestOrgIds }}
+{{- $envVars = append $envVars (dict "name" "SMITHDB_ENABLED_INGEST_ORGS" "value" (. | toJson)) -}}
+{{- end }}
+{{- end }}
+{{- if $clusterManagerEnabled }}
+{{- $clusterManagerUrl := include "langsmith.smithdb.grpcServiceUrl" (dict "root" . "component" "clusterManager" "port" .Values.smithdb.clusterManager.service.port) -}}
+{{- $envVars = append $envVars (dict "name" "SMITHDB_CLUSTER_MANAGER_ENABLED" "value" "true") -}}
+{{- $envVars = append $envVars (dict "name" "SMITHDB_CLUSTER_MANAGER_URL" "value" $clusterManagerUrl) -}}
+{{- end }}
+{{- toYaml $envVars }}
+{{- end }}
+{{- end }}
+
+{{/*
+SmithDB cluster-manager client env vars. Args: root, service.
+*/}}
+{{- define "langsmith.smithdb.clusterManagerClientEnv" -}}
+{{- $root := .root -}}
+{{- $service := upper .service -}}
+{{- $prefix := printf "SMITHDB_%s__CLUSTER_MANAGER" $service -}}
+- name: {{ $prefix }}__ENABLED
+  value: "true"
+- name: {{ $prefix }}__ENDPOINT
+  value: {{ include "langsmith.smithdb.clusterManagerHttpEndpoint" $root | quote }}
+- name: {{ $prefix }}__STATUS_INTERVAL
+  value: "1s"
+- name: {{ $prefix }}__RETRY_DELAY
+  value: "1s"
+- name: {{ $prefix }}__STATUS_BUFFER_SIZE
+  value: "32"
+- name: {{ $prefix }}__CONNECT_TIMEOUT
+  value: "1s"
+{{- end }}
+
+{{/*
+SmithDB metastore migration env vars.
+*/}}
+{{- define "langsmith.smithdb.metastoreMigrationEnv" -}}
+- name: DATABASE_HOST
+  valueFrom:
+    secretKeyRef:
+      name: {{ .Values.smithdb.config.existingSecretName }}
+      key: {{ .Values.smithdb.config.metastore.hostSecretKey }}
+- name: DATABASE_PORT
+  value: {{ .Values.smithdb.config.metastore.port | quote }}
+- name: DATABASE_NAME
+  valueFrom:
+    secretKeyRef:
+      name: {{ .Values.smithdb.config.existingSecretName }}
+      key: {{ .Values.smithdb.config.metastore.databaseSecretKey }}
+- name: DATABASE_USERNAME
+  valueFrom:
+    secretKeyRef:
+      name: {{ .Values.smithdb.config.existingSecretName }}
+      key: {{ .Values.smithdb.config.metastore.usernameSecretKey }}
+- name: DATABASE_PASSWORD
+  valueFrom:
+    secretKeyRef:
+      name: {{ .Values.smithdb.config.existingSecretName }}
+      key: {{ .Values.smithdb.config.metastore.passwordSecretKey }}
+- name: DATABASE_USE_SSL
+  value: {{ .Values.smithdb.metastoreMigration.useSsl | quote }}
+{{- end }}
+
+{{/*
+Shared SmithDB service env vars. Args: root, service, displayName.
+*/}}
+{{- define "langsmith.smithdb.serviceEnv" -}}
+{{- $root := .root -}}
+{{- $service := .service -}}
+{{- $displayName := .displayName -}}
+{{- $prefix := printf "SMITHDB_%s" (upper $service) -}}
+{{- $objectStoreType := lower (default "s3" $root.Values.smithdb.config.objectStore.type) -}}
+{{- $objectStoreRootFolder := default (printf "smithdb-%s" $root.Values.smithdb.config.env) $root.Values.smithdb.config.objectStore.rootFolder -}}
+{{- $tracingEnabled := $root.Values.smithdb.config.observability.tracing.enabled -}}
+- name: {{ $prefix }}__LOGGING__FORMAT
+  value: {{ ternary "opentelemetry" "console" $tracingEnabled | quote }}
+- name: {{ $prefix }}__LOGGING__TRACING_ENABLED
+  value: {{ $tracingEnabled | quote }}
+- name: {{ $prefix }}__LOGGING__SERVICE_NAME
+  value: {{ $displayName | quote }}
+- name: {{ $prefix }}__OBJECT_STORE__TYPE
+  value: {{ $objectStoreType | quote }}
+{{- if eq $objectStoreType "s3" }}
+- name: {{ $prefix }}__OBJECT_STORE__S3__BUCKET
+  value: {{ $root.Values.smithdb.config.objectStore.bucket | quote }}
+- name: {{ $prefix }}__OBJECT_STORE__S3__ROOT_FOLDER
+  value: {{ $objectStoreRootFolder | quote }}
+{{- with $root.Values.smithdb.config.objectStore.s3.region }}
+- name: {{ $prefix }}__OBJECT_STORE__S3__REGION
+  value: {{ . | quote }}
+{{- end }}
+{{- with $root.Values.smithdb.config.objectStore.s3.endpoint }}
+- name: {{ $prefix }}__OBJECT_STORE__S3__ENDPOINT
+  value: {{ . | quote }}
+{{- end }}
+{{- if hasKey $root.Values.smithdb.config.objectStore.s3 "allowHttp" }}
+- name: {{ $prefix }}__OBJECT_STORE__S3__ALLOW_HTTP
+  value: {{ $root.Values.smithdb.config.objectStore.s3.allowHttp | quote }}
+{{- end }}
+{{- if $root.Values.smithdb.config.objectStore.s3.accessKeyIdSecretKey }}
+- name: {{ $prefix }}__OBJECT_STORE__S3__ACCESS_KEY_ID
+  valueFrom:
+    secretKeyRef:
+      name: {{ $root.Values.smithdb.config.existingSecretName }}
+      key: {{ $root.Values.smithdb.config.objectStore.s3.accessKeyIdSecretKey }}
+{{- end }}
+{{- if $root.Values.smithdb.config.objectStore.s3.secretAccessKeySecretKey }}
+- name: {{ $prefix }}__OBJECT_STORE__S3__SECRET_ACCESS_KEY
+  valueFrom:
+    secretKeyRef:
+      name: {{ $root.Values.smithdb.config.existingSecretName }}
+      key: {{ $root.Values.smithdb.config.objectStore.s3.secretAccessKeySecretKey }}
+{{- end }}
+{{- else if eq $objectStoreType "gcs" }}
+- name: {{ $prefix }}__OBJECT_STORE__GCS__BUCKET
+  value: {{ $root.Values.smithdb.config.objectStore.bucket | quote }}
+- name: {{ $prefix }}__OBJECT_STORE__GCS__ROOT_FOLDER
+  value: {{ $objectStoreRootFolder | quote }}
+{{- end }}
+- name: {{ $prefix }}__METASTORE__TYPE
+  value: "postgres"
+- name: {{ $prefix }}__METASTORE__DEFAULT_URI
+  value: {{ ternary "s3://" "gs://" (eq $objectStoreType "s3") | quote }}
+- name: {{ $prefix }}__METASTORE__HOST
+  valueFrom:
+    secretKeyRef:
+      name: {{ $root.Values.smithdb.config.existingSecretName }}
+      key: {{ $root.Values.smithdb.config.metastore.hostSecretKey }}
+- name: {{ $prefix }}__METASTORE__PORT
+  value: {{ $root.Values.smithdb.config.metastore.port | quote }}
+- name: {{ $prefix }}__METASTORE__DATABASE
+  valueFrom:
+    secretKeyRef:
+      name: {{ $root.Values.smithdb.config.existingSecretName }}
+      key: {{ $root.Values.smithdb.config.metastore.databaseSecretKey }}
+- name: {{ $prefix }}__METASTORE__USERNAME
+  valueFrom:
+    secretKeyRef:
+      name: {{ $root.Values.smithdb.config.existingSecretName }}
+      key: {{ $root.Values.smithdb.config.metastore.usernameSecretKey }}
+- name: {{ $prefix }}__METASTORE__PASSWORD
+  valueFrom:
+    secretKeyRef:
+      name: {{ $root.Values.smithdb.config.existingSecretName }}
+      key: {{ $root.Values.smithdb.config.metastore.passwordSecretKey }}
+- name: {{ $prefix }}__METASTORE__USE_SSL
+  value: {{ $root.Values.smithdb.config.metastore.useSsl | quote }}
+- name: NODE_IP
+  valueFrom:
+    fieldRef:
+      fieldPath: status.hostIP
+{{- if $tracingEnabled }}
+- name: OTEL_EXPORTER_OTLP_ENDPOINT
+  value: {{ $root.Values.smithdb.config.observability.tracing.endpoint | quote }}
+- name: OTEL_EXPORTER_OTLP_PROTOCOL
+  value: {{ $root.Values.smithdb.config.observability.tracing.protocol | quote }}
+{{- end }}
+- name: OTEL_SERVICE_NAME
+  value: {{ $displayName | quote }}
+- name: RUST_LOG
+  value: "INFO,vortex=WARN"
+- name: NODE_NAME
+  valueFrom:
+    fieldRef:
+      fieldPath: spec.nodeName
+- name: POD_NAME
+  valueFrom:
+    fieldRef:
+      fieldPath: metadata.name
+- name: POD_UID
+  valueFrom:
+    fieldRef:
+      fieldPath: metadata.uid
+- name: POD_IP
+  valueFrom:
+    fieldRef:
+      fieldPath: status.podIP
+- name: CONTAINER_NAME
+  value: {{ $displayName | quote }}
+- name: OTEL_RESOURCE_ATTRIBUTES
+  value: "pod_name=$(POD_NAME),k8s.pod.name=$(POD_NAME),container_name=$(CONTAINER_NAME),k8s.container.name=$(CONTAINER_NAME)"
+- name: _RJEM_MALLOC_CONF
+  value: "prof:true,prof_active:false,lg_prof_sample:19"
 {{- end }}
 
 

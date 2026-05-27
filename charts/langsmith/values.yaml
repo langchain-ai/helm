@@ -101,6 +101,30 @@ images:
     repository: "docker.io/langchain/langsmith-polly"
     pullPolicy: IfNotPresent
     tag: "0.15.7rc1"
+  smithdbQueryImage:
+    repository: "docker.io/langchain/smithdb-query"
+    pullPolicy: IfNotPresent
+    tag: "latest"
+  smithdbIngestionImage:
+    repository: "docker.io/langchain/smithdb-ingestion"
+    pullPolicy: IfNotPresent
+    tag: "latest"
+  smithdbClientImage:
+    repository: "docker.io/langchain/smithdb-client"
+    pullPolicy: IfNotPresent
+    tag: "latest"
+  smithdbCompactionImage:
+    repository: "docker.io/langchain/smithdb-compaction"
+    pullPolicy: IfNotPresent
+    tag: "latest"
+  smithdbClusterManagerImage:
+    repository: "docker.io/langchain/smithdb-clustermanager"
+    pullPolicy: IfNotPresent
+    tag: "latest"
+  smithdbMetastoreMigrationImage:
+    repository: "docker.io/langchain/smithdb-metastore-migrate"
+    pullPolicy: IfNotPresent
+    tag: "latest"
 
 ingress:
   enabled: false
@@ -1181,6 +1205,384 @@ aceBackend:
     annotations: {}
     automountServiceAccountToken: true
 
+smithdb:
+  # -- Deploy the in-chart SmithDB workloads.
+  enabled: false
+  # -- Name segment used for SmithDB resources.
+  name: "smithdb"
+  commonLabels: {}
+  commonAnnotations: {}
+
+  config:
+    # -- Environment name used for SmithDB object-store defaults and labels.
+    env: "self-hosted"
+    # -- Existing secret containing SmithDB metastore credentials.
+    existingSecretName: ""
+    metastore:
+      hostSecretKey: ""
+      databaseSecretKey: ""
+      usernameSecretKey: ""
+      passwordSecretKey: ""
+      port: "5432"
+      useSsl: false
+    observability:
+      tracing:
+        enabled: false
+        endpoint: ""
+        protocol: "grpc"
+    objectStore:
+      # -- Supported values: s3, gcs.
+      type: "s3"
+      bucket: ""
+      # -- Defaults to smithdb-<smithdb.config.env> when empty.
+      rootFolder: ""
+      s3:
+        # -- Defaults to the SmithDB S3 client default when empty.
+        region: ""
+        endpoint: ""
+        # -- Keys in smithdb.config.existingSecretName for static S3 credentials.
+        # Set both to "" when using ambient cloud identity, such as IRSA.
+        accessKeyIdSecretKey: ""
+        secretAccessKeySecretKey: ""
+
+  langsmith:
+    dualIngest:
+      # -- Enables LangSmith run ingestion to also write to SmithDB. Requires smithdb.enabled.
+      enabled: false
+      # -- Percent of organizations selected for SmithDB dual ingestion.
+      ingestOrgsRolloutPct: "100"
+      # -- Tenant IDs that always dual ingest to SmithDB. Use ["*"] for all tenants.
+      ingestTenantIds: []
+      # -- Organization IDs that always dual ingest to SmithDB.
+      ingestOrgIds: []
+    frontend:
+      # -- Defaults the LangSmith UI to SmithDB endpoints for run queries. Requires smithdb.enabled.
+      useSmithDBEndpoints: false
+    clusterManager:
+      # -- Lets LangSmith services call the SmithDB cluster manager. Requires smithdb.clusterManager.enabled.
+      enabled: false
+
+  query:
+    enabled: false
+    name: "query"
+    containerPort: 8060
+    containerGrpcPort: 8080
+    deployment:
+      replicas: 1
+      labels: {}
+      annotations: {}
+      podSecurityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        runAsGroup: 1001
+        fsGroup: 1001
+      securityContext:
+        allowPrivilegeEscalation: false
+        capabilities:
+          drop:
+            - ALL
+      resources: {}
+      command:
+        - "./smithdb-query"
+      extraEnv:
+        - name: SMITHDB_QUERY__GRPC_PORT
+          value: "8080"
+        - name: SMITHDB_QUERY__HTTP_PORT
+          value: "8060"
+      extraContainerConfig: {}
+      sidecars: []
+      nodeSelector: {}
+      tolerations: []
+      affinity: {}
+      topologySpreadConstraints: []
+      volumes: []
+      volumeMounts: []
+      initContainers: []
+    service:
+      port: 8080
+      labels: {}
+      annotations: {}
+    serviceAccount:
+      create: true
+      name: ""
+      labels: {}
+      annotations: {}
+      automountServiceAccountToken: true
+    pdb:
+      enabled: false
+      minAvailable: 1
+      labels: {}
+      annotations: {}
+
+  ingestion:
+    enabled: false
+    name: "ingestion"
+    containerPort: 8050
+    containerGrpcPort: 8082
+    probeType: grpc
+    deployment:
+      replicas: 1
+      labels: {}
+      annotations: {}
+      podSecurityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        runAsGroup: 1001
+        fsGroup: 1001
+      securityContext:
+        allowPrivilegeEscalation: false
+        capabilities:
+          drop:
+            - ALL
+      resources: {}
+      command:
+        - "./smithdb-ingestion"
+      terminationGracePeriodSeconds: 300
+      extraEnv:
+        - name: SMITHDB_INGESTION__HTTP_PORT
+          value: "8050"
+        - name: SMITHDB_INGESTION__GRPC_PORT
+          value: "8082"
+      extraContainerConfig: {}
+      sidecars: []
+      nodeSelector: {}
+      tolerations: []
+      affinity: {}
+      topologySpreadConstraints: []
+      volumes: []
+      volumeMounts: []
+      initContainers: []
+    service:
+      port: 8082
+      labels: {}
+      annotations: {}
+    serviceAccount:
+      create: true
+      name: ""
+      labels: {}
+      annotations: {}
+      automountServiceAccountToken: true
+    pdb:
+      enabled: false
+      minAvailable: 1
+      labels: {}
+      annotations: {}
+
+  compaction:
+    enabled: false
+    name: "compaction"
+    containerPort: 8070
+    containerGrpcPort: 8071
+    deployment:
+      replicas: 1
+      labels: {}
+      annotations: {}
+      podSecurityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        runAsGroup: 1001
+      securityContext:
+        allowPrivilegeEscalation: false
+        capabilities:
+          drop:
+            - ALL
+      resources: {}
+      command:
+        - "./smithdb-compaction"
+        - "scheduler"
+      extraEnv:
+        - name: SMITHDB_COMPACTION__HTTP_PORT
+          value: "8070"
+        - name: SMITHDB_COMPACTION__GRPC_PORT
+          value: "8071"
+      extraContainerConfig: {}
+      sidecars: []
+      nodeSelector: {}
+      tolerations: []
+      affinity: {}
+      topologySpreadConstraints: []
+      volumes: []
+      volumeMounts: []
+      initContainers: []
+    service:
+      port: 8071
+      labels: {}
+      annotations: {}
+    serviceAccount:
+      create: true
+      name: ""
+      labels: {}
+      annotations: {}
+      automountServiceAccountToken: true
+
+  compactionWorker:
+    enabled: false
+    name: "compaction-worker"
+    containerPort: 9000
+    # -- Maximum concurrent jobs per compaction worker. Empty uses the SmithDB default.
+    maxConcurrentJobs: ""
+    deployment:
+      replicas: 1
+      labels: {}
+      annotations: {}
+      podSecurityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        runAsGroup: 1001
+      securityContext:
+        allowPrivilegeEscalation: false
+        capabilities:
+          drop:
+            - ALL
+      terminationGracePeriodSeconds: 120
+      resources: {}
+      command:
+        - "./smithdb-compaction"
+        - "worker"
+      extraEnv: []
+      extraContainerConfig: {}
+      sidecars: []
+      nodeSelector: {}
+      tolerations: []
+      affinity: {}
+      topologySpreadConstraints: []
+      volumes: []
+      volumeMounts: []
+      initContainers: []
+
+  client:
+    enabled: false
+    name: "client"
+    containerPort: 8085
+    queryQps: 1
+    ingestionQps: 1
+    # Empty duration means run continuously until the pod is stopped.
+    duration: ""
+    batchSize: 10
+    maxConcurrent: 100
+    reportEvery: 5
+    multitenant: true
+    numTenants: 10
+    tenantId: ""
+    sessionId: ""
+    useClusterManager: false
+    queries:
+      - "SELECT 1"
+    workload:
+      rowsPerTick: 20
+      numActiveThreads: 10
+      tracesPerThread: 10
+    deployment:
+      replicas: 1
+      labels: {}
+      annotations: {}
+      podSecurityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        runAsGroup: 1001
+      securityContext:
+        allowPrivilegeEscalation: false
+        capabilities:
+          drop:
+            - ALL
+      resources: {}
+      command:
+        - "./smithdb-client"
+      extraArgs: []
+      extraEnv: []
+      extraContainerConfig: {}
+      sidecars: []
+      nodeSelector: {}
+      tolerations: []
+      affinity: {}
+      topologySpreadConstraints: []
+      volumes: []
+      volumeMounts: []
+      initContainers: []
+    serviceAccount:
+      create: true
+      name: ""
+      labels: {}
+      annotations: {}
+      automountServiceAccountToken: true
+
+  clusterManager:
+    enabled: false
+    name: "cluster-manager"
+    containerPort: 8090
+    containerGrpcPort: 8091
+    deployment:
+      replicas: 1
+      labels: {}
+      annotations: {}
+      podSecurityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        runAsGroup: 1001
+      securityContext:
+        allowPrivilegeEscalation: false
+        capabilities:
+          drop:
+            - ALL
+      resources: {}
+      command: []
+      extraEnv:
+        - name: SMITHDB_CLUSTERMANAGER__HTTP_PORT
+          value: "8090"
+        - name: SMITHDB_CLUSTERMANAGER__GRPC_PORT
+          value: "8091"
+      extraContainerConfig: {}
+      sidecars: []
+      nodeSelector: {}
+      tolerations: []
+      affinity: {}
+      topologySpreadConstraints: []
+      volumes: []
+      volumeMounts: []
+      initContainers: []
+    service:
+      port: 8091
+      labels: {}
+      annotations: {}
+    serviceAccount:
+      create: true
+      name: ""
+      labels: {}
+      annotations: {}
+      automountServiceAccountToken: true
+
+  metastoreMigration:
+    enabled: false
+    name: "metastore-migration"
+    useSsl: false
+    job:
+      ttlSecondsAfterFinished: 3600
+      backoffLimit: 0
+      activeDeadlineSeconds: 600
+      restartPolicy: Never
+      labels: {}
+      annotations: {}
+      podAnnotations: {}
+      podSecurityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        runAsGroup: 1001
+      securityContext:
+        allowPrivilegeEscalation: false
+        capabilities:
+          drop:
+            - ALL
+      resources: {}
+      extraEnv: []
+      nodeSelector: {}
+      tolerations: []
+      affinity: {}
+    serviceAccount:
+      create: true
+      name: ""
+      labels: {}
+      annotations: {}
+      automountServiceAccountToken: true
 
 backend:
   name: "backend"

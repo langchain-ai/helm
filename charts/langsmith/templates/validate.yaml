@@ -185,6 +185,99 @@ AWS Marketplace Helm template verification).
 {{- fail "clickhouse.external.tls must be true when clickhouse.external.clientCert.secretName is set and the value is not being fetched from an existing secret." -}}
 {{- end -}}
 
+{{- /* Validate SmithDB configuration */ -}}
+{{- if .Values.smithdb.enabled -}}
+{{- if not .Values.smithdb.config.existingSecretName -}}
+{{- fail "smithdb.config.existingSecretName is required when smithdb.enabled is true." -}}
+{{- end -}}
+{{- range $keyName := list "hostSecretKey" "databaseSecretKey" "usernameSecretKey" "passwordSecretKey" -}}
+{{- $keyValue := get $.Values.smithdb.config.metastore $keyName -}}
+{{- if not $keyValue -}}
+{{- fail (printf "smithdb.config.metastore.%s is required when smithdb.enabled is true." $keyName) -}}
+{{- end -}}
+{{- end -}}
+{{- $objectStoreType := lower .Values.smithdb.config.objectStore.type -}}
+{{- if not (or (eq $objectStoreType "s3") (eq $objectStoreType "gcs")) -}}
+{{- fail "smithdb.config.objectStore.type must be one of [s3, gcs]." -}}
+{{- end -}}
+{{- if not .Values.smithdb.config.objectStore.bucket -}}
+{{- fail "smithdb.config.objectStore.bucket is required when smithdb.enabled is true." -}}
+{{- end -}}
+{{- $smithdbWorkloads := dict
+  "query" .Values.smithdb.query
+  "ingestion" .Values.smithdb.ingestion
+  "compaction" .Values.smithdb.compaction
+  "compactionWorker" .Values.smithdb.compactionWorker
+  "client" .Values.smithdb.client
+  "clusterManager" .Values.smithdb.clusterManager
+-}}
+{{- range $workloadName, $workload := $smithdbWorkloads -}}
+{{- if and $workload.enabled (lt (int $workload.deployment.replicas) 1) -}}
+{{- fail (printf "smithdb.%s.deployment.replicas must be greater than 0 when the workload is enabled." $workloadName) -}}
+{{- end -}}
+{{- end -}}
+{{- $smithdbServiceWorkloads := dict
+  "query" .Values.smithdb.query
+  "ingestion" .Values.smithdb.ingestion
+  "compaction" .Values.smithdb.compaction
+  "clusterManager" .Values.smithdb.clusterManager
+-}}
+{{- range $workloadName, $workload := $smithdbServiceWorkloads -}}
+{{- if and $workload.enabled $workload.service.type (ne $workload.service.type "ClusterIP") -}}
+{{- fail (printf "smithdb.%s.service.type must be ClusterIP." $workloadName) -}}
+{{- end -}}
+{{- end -}}
+{{- if and .Values.smithdb.compactionWorker.enabled (not .Values.smithdb.compaction.enabled) -}}
+{{- fail "smithdb.compaction.enabled must be true when smithdb.compactionWorker.enabled is true." -}}
+{{- end -}}
+{{- if and .Values.smithdb.compactionWorker.enabled .Values.smithdb.compactionWorker.maxConcurrentJobs (lt (int .Values.smithdb.compactionWorker.maxConcurrentJobs) 1) -}}
+{{- fail "smithdb.compactionWorker.maxConcurrentJobs must be greater than 0 when set." -}}
+{{- end -}}
+{{- if and .Values.smithdb.langsmith.dualIngest.enabled (not .Values.smithdb.ingestion.enabled) -}}
+{{- fail "smithdb.ingestion.enabled must be true when smithdb.langsmith.dualIngest.enabled is true." -}}
+{{- end -}}
+{{- if and .Values.smithdb.langsmith.frontend.useSmithDBEndpoints (not .Values.smithdb.query.enabled) -}}
+{{- fail "smithdb.query.enabled must be true when smithdb.langsmith.frontend.useSmithDBEndpoints is true." -}}
+{{- end -}}
+{{- if and .Values.smithdb.langsmith.clusterManager.enabled (not .Values.smithdb.clusterManager.enabled) -}}
+{{- fail "smithdb.clusterManager.enabled must be true when smithdb.langsmith.clusterManager.enabled is true." -}}
+{{- end -}}
+{{- if and .Values.smithdb.client.enabled .Values.smithdb.client.useClusterManager (not .Values.smithdb.clusterManager.enabled) -}}
+{{- fail "smithdb.clusterManager.enabled must be true when smithdb.client.useClusterManager is true." -}}
+{{- end -}}
+{{- if .Values.smithdb.client.enabled -}}
+{{- if not .Values.smithdb.query.enabled -}}
+{{- fail "smithdb.query.enabled must be true when smithdb.client.enabled is true." -}}
+{{- end -}}
+{{- if not .Values.smithdb.ingestion.enabled -}}
+{{- fail "smithdb.ingestion.enabled must be true when smithdb.client.enabled is true." -}}
+{{- end -}}
+{{- if not .Values.smithdb.client.multitenant -}}
+{{- if not .Values.smithdb.client.tenantId -}}
+{{- fail "smithdb.client.tenantId is required when smithdb.client.enabled is true and smithdb.client.multitenant is false." -}}
+{{- end -}}
+{{- if not .Values.smithdb.client.sessionId -}}
+{{- fail "smithdb.client.sessionId is required when smithdb.client.enabled is true and smithdb.client.multitenant is false." -}}
+{{- end -}}
+{{- if not (regexMatch "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$" .Values.smithdb.client.tenantId) -}}
+{{- fail "smithdb.client.tenantId must be a valid UUID when set." -}}
+{{- end -}}
+{{- if not (regexMatch "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$" .Values.smithdb.client.sessionId) -}}
+{{- fail "smithdb.client.sessionId must be a valid UUID when set." -}}
+{{- end -}}
+{{- end -}}
+{{- if lt (int .Values.smithdb.client.queryQps) 1 -}}
+{{- fail "smithdb.client.queryQps must be greater than 0 when smithdb.client.enabled is true." -}}
+{{- end -}}
+{{- if lt (int .Values.smithdb.client.ingestionQps) 1 -}}
+{{- fail "smithdb.client.ingestionQps must be greater than 0 when smithdb.client.enabled is true." -}}
+{{- end -}}
+{{- if empty .Values.smithdb.client.queries -}}
+{{- fail "smithdb.client.queries must include at least one query when smithdb.client.enabled is true." -}}
+{{- end -}}
+{{- end -}}
+{{- end -}}
+
 {{- /* Validate agent builder configuration */ -}}
 {{- if .Values.config.agentBuilder.enabled -}}
 {{- if and (not .Values.config.agentBuilder.encryptionKey) (not .Values.config.existingSecretName) -}}

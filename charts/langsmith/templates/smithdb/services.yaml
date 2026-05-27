@@ -1,0 +1,40 @@
+{{- if .Values.smithdb.enabled }}
+{{- range $component := list "query" "ingestion" "compaction" "clusterManager" }}
+{{- $componentValues := index $.Values.smithdb $component }}
+{{- if $componentValues.enabled }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "langsmith.smithdb.componentName" (dict "root" $ "component" $component) }}
+  namespace: {{ $.Values.namespace | default $.Release.Namespace }}
+  labels:
+    {{- include "langsmith.smithdb.labels" $ | nindent 4 }}
+    app.kubernetes.io/component: {{ include "langsmith.smithdb.componentName" (dict "root" $ "component" $component) }}
+    {{- with $componentValues.service.labels }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+  annotations:
+    {{- include "langsmith.smithdb.annotations" $ | nindent 4 }}
+    {{- with $componentValues.service.annotations }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  type: ClusterIP
+  ports:
+    - name: grpc
+      port: {{ $componentValues.service.port }}
+      targetPort: grpc
+      protocol: TCP
+    {{- if or (eq $component "compaction") (eq $component "clusterManager") }}
+    - name: http
+      port: {{ $componentValues.containerPort }}
+      targetPort: http
+      protocol: TCP
+    {{- end }}
+  selector:
+    {{- include "langsmith.selectorLabels" $ | nindent 4 }}
+    app.kubernetes.io/component: {{ include "langsmith.smithdb.componentName" (dict "root" $ "component" $component) }}
+{{- end }}
+{{- end }}
+{{- end }}

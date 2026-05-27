@@ -1,0 +1,143 @@
+suite: test smithdb integration
+templates:
+  - backend/deployment.yaml
+  - frontend/deployment.yaml
+  - smithdb/query-deployment.yaml
+  - smithdb/ingestion-deployment.yaml
+  - smithdb/compaction-deployment.yaml
+  - smithdb/compaction-worker-deployment.yaml
+  - smithdb/cluster-manager-deployment.yaml
+  - smithdb/client-deployment.yaml
+  - smithdb/services.yaml
+  - smithdb/service-accounts.yaml
+  - smithdb/metastore-migration.yaml
+tests:
+  - it: should render smithdb workloads when enabled
+    values:
+      - ./values/smithdb-enabled.yaml
+    template: smithdb/query-deployment.yaml
+    asserts:
+      - isKind:
+          of: Deployment
+      - equal:
+          path: metadata.name
+          value: RELEASE-NAME-langsmith-smithdb-query
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_QUERY__METASTORE__HOST
+            valueFrom:
+              secretKeyRef:
+                name: smithdb-secret
+                key: smithdb_metastore_db_host
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_QUERY__CLUSTER_MANAGER__ENDPOINT
+            value: http://RELEASE-NAME-langsmith-smithdb-cluster-manager.NAMESPACE.svc.cluster.local:8091
+
+  - it: should keep smithdb services internal
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      config.skipValidation: true
+      smithdb.query.service.type: LoadBalancer
+      smithdb.query.service.loadBalancerSourceRanges[0]: "10.0.0.0/8"
+      smithdb.query.service.loadBalancerIP: "192.0.2.10"
+    template: smithdb/services.yaml
+    asserts:
+      - equal:
+          path: spec.type
+          value: ClusterIP
+      - notExists:
+          path: spec.loadBalancerSourceRanges
+      - notExists:
+          path: spec.loadBalancerIP
+
+  - it: should wire langsmith backend to smithdb when enabled
+    values:
+      - ./values/smithdb-enabled.yaml
+    template: backend/deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_QUERY_SERVICE_URL
+            value: RELEASE-NAME-langsmith-smithdb-query.NAMESPACE.svc.cluster.local:8080
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_INGESTION_SERVICE_URL
+            value: RELEASE-NAME-langsmith-smithdb-ingestion.NAMESPACE.svc.cluster.local:8082
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_MUTATIONS_SERVICE_URL
+            value: RELEASE-NAME-langsmith-smithdb-query.NAMESPACE.svc.cluster.local:8080
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_ENABLED_INGEST_TENANTS
+            value: '["*"]'
+
+  - it: should wire frontend SmithDB v2 endpoint flag when enabled
+    values:
+      - ./values/smithdb-enabled.yaml
+    template: frontend/deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: VITE_SELF_HOSTED_SMITHDB_V2_ENDPOINTS_ENABLED
+            value: "true"
+
+  - it: should skip smithdb workloads when disabled
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      smithdb.enabled: false
+    template: smithdb/query-deployment.yaml
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: should expose compaction worker concurrency as a value
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      smithdb.compaction.enabled: true
+      smithdb.compactionWorker.enabled: true
+      smithdb.compactionWorker.maxConcurrentJobs: 8
+    template: smithdb/compaction-worker-deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_COMPACTION_WORKER__MAX_CONCURRENT_JOBS
+            value: "8"
+
+  - it: should target a fixed tenant and session for the smithdb client
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      smithdb.client.enabled: true
+      smithdb.client.multitenant: false
+      smithdb.client.tenantId: 7e42eb9d-da10-407a-8410-dd25ec491280
+      smithdb.client.sessionId: 1151ea68-68a4-4d98-b6b4-4ed8b41f7cfb
+    template: smithdb/client-deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].args
+          content: "--tenant-id"
+      - contains:
+          path: spec.template.spec.containers[0].args
+          content: "7e42eb9d-da10-407a-8410-dd25ec491280"
+      - contains:
+          path: spec.template.spec.containers[0].args
+          content: "--session-id"
+      - contains:
+          path: spec.template.spec.containers[0].args
+          content: "1151ea68-68a4-4d98-b6b4-4ed8b41f7cfb"
+      - notContains:
+          path: spec.template.spec.containers[0].args
+          content: "--multitenant"
