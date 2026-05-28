@@ -469,7 +469,7 @@ Template containing common environment variables that are used by several servic
       name: {{ include "langsmith.secretsName" . }}
       key: agent_builder_encryption_key
 {{- end }}
-{{- if or .Values.config.insights.enabled .Values.insights.enabled }}
+{{- if .Values.insights.enabled }}
 - name: CLIO_ENCRYPTION_KEY
   valueFrom:
     secretKeyRef:
@@ -477,7 +477,7 @@ Template containing common environment variables that are used by several servic
       key: insights_encryption_key
       optional: false
 {{- end }}
-{{- if or .Values.config.polly.enabled .Values.polly.enabled }}
+{{- if .Values.polly.enabled }}
 - name: POLLY_ENCRYPTION_KEY
   valueFrom:
     secretKeyRef:

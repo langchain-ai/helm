@@ -210,13 +210,13 @@ AWS Marketplace Helm template verification).
 {{- end -}}
 
 {{- /* The bundled-agent bootstrap path was removed for Insights and Polly.
-       Reject any attempt to use config.insights.enabled / config.polly.enabled
-       and direct users at the top-level insights / polly blocks. */ -}}
-{{- if .Values.config.insights.enabled -}}
-{{- fail "config.insights.enabled is no longer supported (the bundled-agent bootstrap path was removed in chart 0.15.1). Use the top-level insights block: insights.enabled, insights.encryptionKey, etc." -}}
+       Reject any presence of config.insights / config.polly and direct
+       users at the top-level insights / polly blocks. */ -}}
+{{- if hasKey .Values.config "insights" -}}
+{{- fail "config.insights is no longer supported (the bundled-agent bootstrap path was removed in chart 0.15.1). Use the top-level insights block: insights.enabled, insights.encryptionKey, etc." -}}
 {{- end -}}
-{{- if .Values.config.polly.enabled -}}
-{{- fail "config.polly.enabled is no longer supported (the bundled-agent bootstrap path was removed in chart 0.15.1). Use the top-level polly block: polly.enabled, polly.encryptionKey, etc." -}}
+{{- if hasKey .Values.config "polly" -}}
+{{- fail "config.polly is no longer supported (the bundled-agent bootstrap path was removed in chart 0.15.1). Use the top-level polly block: polly.enabled, polly.encryptionKey, etc." -}}
 {{- end -}}
 
 {{- /* Validate autoscaling configuration for all services */ -}}
