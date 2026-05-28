@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.15.0](https://img.shields.io/badge/Version-0.15.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.15.8](https://img.shields.io/badge/AppVersion-0.15.8-informational?style=flat-square)
+![Version: 0.15.1](https://img.shields.io/badge/Version-0.15.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.15.8](https://img.shields.io/badge/AppVersion-0.15.8-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -522,7 +522,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | insights.apiServer.serviceAccount.create | bool | `true` |  |
 | insights.apiServer.serviceAccount.labels | object | `{}` |  |
 | insights.apiServer.serviceAccount.name | string | `""` |  |
-| insights.enabled | bool | `false` |  |
+| insights.enabled | bool | `true` |  |
 | insights.encryptionKey | string | `""` |  |
 | insights.namePrefix | string | `"standalone-insights"` |  |
 | insights.postgres.containerPort | int | `5432` |  |
@@ -718,7 +718,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | polly.apiServer.serviceAccount.labels | object | `{}` |  |
 | polly.apiServer.serviceAccount.name | string | `""` |  |
 | polly.enableTracing | bool | `true` |  |
-| polly.enabled | bool | `false` |  |
+| polly.enabled | bool | `true` |  |
 | polly.encryptionKey | string | `""` |  |
 | polly.namePrefix | string | `"standalone-polly"` |  |
 | polly.postgres.containerPort | int | `5432` |  |

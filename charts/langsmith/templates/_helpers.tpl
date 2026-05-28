@@ -844,12 +844,6 @@ Extra env vars for polly api-server and queue pods.
 {{- if .Values.config.agentBuilder.enabled }}
 {{- $createProducts = append $createProducts "agent_builder" }}
 {{- end }}
-{{- if .Values.config.insights.enabled }}
-{{- $createProducts = append $createProducts "insights" }}
-{{- end }}
-{{- if .Values.config.polly.enabled }}
-{{- $createProducts = append $createProducts "smith_polly" }}
-{{- end }}
 {{ toYaml $createProducts }}
 {{- end -}}
 
@@ -858,12 +852,7 @@ Extra env vars for polly api-server and queue pods.
 {{- if not .Values.config.agentBuilder.enabled }}
 {{- $destroyProducts = append $destroyProducts "agent_builder" }}
 {{- end }}
-{{- if not .Values.config.insights.enabled }}
-{{- $destroyProducts = append $destroyProducts "insights" }}
-{{- end }}
-{{- if not .Values.config.polly.enabled }}
-{{- $destroyProducts = append $destroyProducts "smith_polly" }}
-{{- end }}
+{{- $destroyProducts = append $destroyProducts "insights" "smith_polly" }}
 {{ toYaml $destroyProducts }}
 {{- end -}}
 

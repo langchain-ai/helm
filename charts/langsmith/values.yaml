@@ -372,7 +372,7 @@ fleet:
       enabled: false
       minAvailable: 1
 insights:
-  enabled: false
+  enabled: true
   namePrefix: "standalone-insights"
   encryptionKey: ""
   apiServer:
@@ -604,7 +604,7 @@ insights:
       minAvailable: 1
 
 polly:
-  enabled: false
+  enabled: true
   namePrefix: "standalone-polly"
   enableTracing: true
   encryptionKey: ""
@@ -849,8 +849,6 @@ config:
     # Disable this if there is restricted access to the external facing ingress endpoint for your agent(s) from inside of your kubernetes cluster.
     ingressHealthCheckEnabled: true
 
-  # DEPRECATED: use the top-level insights block instead. This bundled-agent
-  # path is managed by backend.agentBootstrap and is being phased out.
   # Insights (Clio) configuration - AI-powered insights agent
   # Requires config.deployment.enabled to be true
   insights:
@@ -868,8 +866,6 @@ config:
         maxScale: 5
       extraEnv: {}
 
-  # DEPRECATED: use the top-level polly block instead. This bundled-agent
-  # path is managed by backend.agentBootstrap and is being phased out.
   # Polly configuration
   polly:
     enabled: false
