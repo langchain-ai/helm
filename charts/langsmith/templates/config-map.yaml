@@ -40,8 +40,8 @@ data:
   SMITH_BACKEND_ENDPOINT: "http://{{ include "langsmith.fullname" . }}-{{.Values.backend.name}}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.backend.service.port }}"
   HOST_BACKEND_ENDPOINT: "http://{{ include "langsmith.fullname" . }}-{{.Values.hostBackend.name}}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.hostBackend.service.port }}"
   LANGSMITH_AUTH_ENDPOINT: "http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.platformBackend.service.port }}"
-  {{- if and .Values.fleet.enabled .Values.agentBuilderTriggerServer.enabled }}
-  MCP_SERVER_URL: "http://{{ include "langsmith.fullname" . }}-{{ .Values.agentBuilderToolServer.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.agentBuilderToolServer.service.port }}"
+  {{- if and .Values.fleet.enabled .Values.fleetTriggerServer.enabled }}
+  MCP_SERVER_URL: "http://{{ include "langsmith.fullname" . }}-{{ .Values.fleetToolServer.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.fleetToolServer.service.port }}"
   {{- end }}
   {{- if .Values.config.deployment.enabled }}
   {{- if not .Values.frontend.enabled }}

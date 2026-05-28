@@ -1,62 +1,62 @@
-{{- if and (or .Values.fleet.enabled .Values.config.agentBuilder.enabled) .Values.agentBuilderToolServer.enabled }}
-{{- $envVars := concat .Values.commonEnv (include "langsmith.commonEnv" . | fromYamlArray) (include "agentBuilderToolServerEnvVars" . | fromYamlArray) .Values.agentBuilderToolServer.deployment.extraEnv -}}
+{{- if and (or .Values.fleet.enabled .Values.config.agentBuilder.enabled) .Values.fleetToolServer.enabled }}
+{{- $envVars := concat .Values.commonEnv (include "langsmith.commonEnv" . | fromYamlArray) (include "fleetToolServerEnvVars" . | fromYamlArray) .Values.fleetToolServer.deployment.extraEnv -}}
 {{- include "langsmith.detectDuplicates" $envVars -}}
-{{- $volumes := concat .Values.commonVolumes .Values.agentBuilderToolServer.deployment.volumes (include "langsmith.tlsVolumes" . | fromYamlArray) -}}
-{{- $volumeMounts := concat .Values.commonVolumeMounts .Values.agentBuilderToolServer.deployment.volumeMounts (include "langsmith.tlsVolumeMounts" . | fromYamlArray) -}}
+{{- $volumes := concat .Values.commonVolumes .Values.fleetToolServer.deployment.volumes (include "langsmith.tlsVolumes" . | fromYamlArray) -}}
+{{- $volumeMounts := concat .Values.commonVolumeMounts .Values.fleetToolServer.deployment.volumeMounts (include "langsmith.tlsVolumeMounts" . | fromYamlArray) -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "langsmith.fullname" . }}-{{ .Values.agentBuilderToolServer.name }}
+  name: {{ include "langsmith.fullname" . }}-{{ .Values.fleetToolServer.name }}
   namespace: {{ .Values.namespace | default .Release.Namespace }}
   labels:
     {{- include "langsmith.labels" . | nindent 4 }}
-    app.kubernetes.io/component: {{ .Values.agentBuilderToolServer.name }}
-    {{- with .Values.agentBuilderToolServer.deployment.labels }}
+    app.kubernetes.io/component: {{ .Values.fleetToolServer.name }}
+    {{- with .Values.fleetToolServer.deployment.labels }}
       {{- toYaml . | nindent 4 }}
     {{- end }}
   annotations:
     {{- include "langsmith.annotations" . | nindent 4 }}
-    {{- with .Values.agentBuilderToolServer.deployment.annotations }}
+    {{- with .Values.fleetToolServer.deployment.annotations }}
       {{- toYaml . | nindent 4 }}
     {{- end }}
 spec:
-  {{- if not .Values.agentBuilderToolServer.autoscaling.enabled }}
-  replicas: {{ .Values.agentBuilderToolServer.deployment.replicas }}
+  {{- if not .Values.fleetToolServer.autoscaling.enabled }}
+  replicas: {{ .Values.fleetToolServer.deployment.replicas }}
   {{- end }}
   selector:
     matchLabels:
       {{- include "langsmith.selectorLabels" . | nindent 6 }}
-      app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-{{ .Values.agentBuilderToolServer.name }}
+      app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-{{ .Values.fleetToolServer.name }}
   template:
     metadata:
       annotations:
       {{- include "langsmith.commonPodAnnotations" . | nindent 8 }}
       {{- include "langsmith.checksumAnnotations" . | nindent 8 }}
-      {{- with .Values.agentBuilderToolServer.deployment.annotations }}
+      {{- with .Values.fleetToolServer.deployment.annotations }}
         {{- toYaml . | nindent 8 }}
       {{- end }}
       labels:
-        {{- with .Values.agentBuilderToolServer.deployment.labels }}
+        {{- with .Values.fleetToolServer.deployment.labels }}
             {{- toYaml . | nindent 8 }}
         {{- end }}
         {{- include "langsmith.labels" . | nindent 8 }}
-        app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-{{ .Values.agentBuilderToolServer.name }}
+        app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-{{ .Values.fleetToolServer.name }}
     spec:
-      terminationGracePeriodSeconds: {{ .Values.agentBuilderToolServer.deployment.terminationGracePeriodSeconds }}
+      terminationGracePeriodSeconds: {{ .Values.fleetToolServer.deployment.terminationGracePeriodSeconds }}
       {{- with .Values.images.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       securityContext:
-        {{- include "langsmith.podSecurityContext" (dict "Values" .Values "componentSecurityContext" .Values.agentBuilderToolServer.deployment.podSecurityContext) | nindent 8 }}
-      serviceAccountName: {{ include "agentBuilderToolServer.serviceAccountName" . }}
+        {{- include "langsmith.podSecurityContext" (dict "Values" .Values "componentSecurityContext" .Values.fleetToolServer.deployment.podSecurityContext) | nindent 8 }}
+      serviceAccountName: {{ include "fleetToolServer.serviceAccountName" . }}
       {{- include "langsmith.dnsConfig" . | nindent 6 }}
-      {{- with concat .Values.commonInitContainers .Values.agentBuilderToolServer.deployment.initContainers }}
+      {{- with concat .Values.commonInitContainers .Values.fleetToolServer.deployment.initContainers }}
       initContainers:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       containers:
-        - name: {{ .Values.agentBuilderToolServer.name }}
+        - name: {{ .Values.fleetToolServer.name }}
           env:
             {{- with $envVars }}
               {{- toYaml . | nindent 12 }}
@@ -64,29 +64,29 @@ spec:
           envFrom:
             - configMapRef:
                 name: {{ include "langsmith.fullname" . }}-config
-          image: {{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "agentBuilderToolServerImage") | quote }}
-          imagePullPolicy: {{ .Values.images.agentBuilderToolServerImage.pullPolicy }}
+          image: {{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "fleetToolServerImage") | quote }}
+          imagePullPolicy: {{ .Values.images.fleetToolServerImage.pullPolicy }}
           ports:
             - name: http
-              containerPort: {{ .Values.agentBuilderToolServer.containerPort }}
+              containerPort: {{ .Values.fleetToolServer.containerPort }}
               protocol: TCP
-          {{- with .Values.agentBuilderToolServer.deployment.startupProbe }}
+          {{- with .Values.fleetToolServer.deployment.startupProbe }}
           startupProbe:
             {{- toYaml . | nindent 12 }}
           {{- end }}
-          {{- with .Values.agentBuilderToolServer.deployment.livenessProbe }}
+          {{- with .Values.fleetToolServer.deployment.livenessProbe }}
           livenessProbe:
             {{- toYaml . | nindent 12 }}
           {{- end }}
-          {{- with .Values.agentBuilderToolServer.deployment.readinessProbe }}
+          {{- with .Values.fleetToolServer.deployment.readinessProbe }}
           readinessProbe:
             {{- toYaml . | nindent 12 }}
           {{- end }}
           resources:
-            {{- toYaml .Values.agentBuilderToolServer.deployment.resources | nindent 12 }}
+            {{- toYaml .Values.fleetToolServer.deployment.resources | nindent 12 }}
           securityContext:
-            {{- toYaml .Values.agentBuilderToolServer.deployment.securityContext | nindent 12 }}
-          {{- with .Values.agentBuilderToolServer.deployment.lifecycle }}
+            {{- toYaml .Values.fleetToolServer.deployment.securityContext | nindent 12 }}
+          {{- with .Values.fleetToolServer.deployment.lifecycle }}
           lifecycle:
             {{- toYaml . | nindent 12 }}
           {{- end }}
@@ -94,25 +94,25 @@ spec:
           volumeMounts:
               {{- toYaml . | nindent 12 }}
           {{- end }}
-          {{- with .Values.agentBuilderToolServer.deployment.extraContainerConfig }}
+          {{- with .Values.fleetToolServer.deployment.extraContainerConfig }}
             {{- toYaml . | nindent 10 }}
           {{- end }}
-        {{- with .Values.agentBuilderToolServer.deployment.sidecars }}
+        {{- with .Values.fleetToolServer.deployment.sidecars }}
           {{- toYaml . | nindent 8 }}
         {{- end }}
-      {{- with .Values.agentBuilderToolServer.deployment.nodeSelector }}
+      {{- with .Values.fleetToolServer.deployment.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.agentBuilderToolServer.deployment.affinity }}
+      {{- with .Values.fleetToolServer.deployment.affinity }}
       affinity:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.agentBuilderToolServer.deployment.tolerations }}
+      {{- with .Values.fleetToolServer.deployment.tolerations }}
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.agentBuilderToolServer.deployment.topologySpreadConstraints }}
+      {{- with .Values.fleetToolServer.deployment.topologySpreadConstraints }}
       topologySpreadConstraints:
         {{- toYaml . | nindent 8 }}
       {{- end }}

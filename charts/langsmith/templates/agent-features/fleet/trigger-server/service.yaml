@@ -1,36 +1,36 @@
-{{- if and (or .Values.fleet.enabled .Values.config.agentBuilder.enabled) .Values.agentBuilderTriggerServer.enabled }}
+{{- if and (or .Values.fleet.enabled .Values.config.agentBuilder.enabled) .Values.fleetTriggerServer.enabled }}
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "langsmith.fullname" . }}-{{ .Values.agentBuilderTriggerServer.name }}
+  name: {{ include "langsmith.fullname" . }}-{{ .Values.fleetTriggerServer.name }}
   namespace: {{ .Values.namespace | default .Release.Namespace }}
   labels:
     {{- include "langsmith.labels" . | nindent 4 }}
-    app.kubernetes.io/component: {{ .Values.agentBuilderTriggerServer.name }}
-    {{- with .Values.agentBuilderTriggerServer.service.labels }}
+    app.kubernetes.io/component: {{ .Values.fleetTriggerServer.name }}
+    {{- with .Values.fleetTriggerServer.service.labels }}
       {{- toYaml . | nindent 4 }}
     {{- end }}
   annotations:
     {{- include "langsmith.annotations" . | nindent 4 }}
-    {{- with .Values.agentBuilderTriggerServer.service.annotations }}
+    {{- with .Values.fleetTriggerServer.service.annotations }}
       {{- toYaml . | nindent 4 }}
     {{- end }}
 spec:
-  type: {{ .Values.agentBuilderTriggerServer.service.type }}
-  {{- with .Values.agentBuilderTriggerServer.service.loadBalancerSourceRanges }}
+  type: {{ .Values.fleetTriggerServer.service.type }}
+  {{- with .Values.fleetTriggerServer.service.loadBalancerSourceRanges }}
   loadBalancerSourceRanges:
     {{- toYaml . | nindent 4 }}
   {{- end }}
-  {{- if .Values.agentBuilderTriggerServer.service.loadBalancerIP }}
-  loadBalancerIP: {{ .Values.agentBuilderTriggerServer.service.loadBalancerIP }}
+  {{- if .Values.fleetTriggerServer.service.loadBalancerIP }}
+  loadBalancerIP: {{ .Values.fleetTriggerServer.service.loadBalancerIP }}
   {{- end }}
   ports:
-    - port: {{ .Values.agentBuilderTriggerServer.service.port }}
-      targetPort: {{ .Values.agentBuilderTriggerServer.containerPort }}
+    - port: {{ .Values.fleetTriggerServer.service.port }}
+      targetPort: {{ .Values.fleetTriggerServer.containerPort }}
       protocol: TCP
       name: http
   selector:
     {{- include "langsmith.selectorLabels" . | nindent 4 }}
-    app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-{{ .Values.agentBuilderTriggerServer.name }}
+    app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-{{ .Values.fleetTriggerServer.name }}
 {{- end }}
 
