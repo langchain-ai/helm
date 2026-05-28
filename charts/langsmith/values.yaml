@@ -85,11 +85,11 @@ images:
     repository: "docker.io/clickhouse/clickhouse-server"
     pullPolicy: Always
     tag: "25.12"
-  fleetToolServerImage:
+  agentBuilderToolServerImage:
     repository: "docker.io/langchain/agent-builder-tool-server"
     pullPolicy: IfNotPresent
     tag: "0.15.8"
-  fleetTriggerServerImage:
+  agentBuilderTriggerServerImage:
     repository: "docker.io/langchain/agent-builder-trigger-server"
     pullPolicy: IfNotPresent
     tag: "0.15.8"
@@ -368,7 +368,7 @@ fleet:
       minAvailable: 1
 insights:
   enabled: false
-  namePrefix: "insights"
+  namePrefix: "standalone-insights"
   encryptionKey: ""
   apiServer:
     name: "api-server"
@@ -600,7 +600,7 @@ insights:
 
 polly:
   enabled: false
-  namePrefix: "polly"
+  namePrefix: "standalone-polly"
   enableTracing: true
   encryptionKey: ""
   apiServer:
@@ -879,8 +879,8 @@ config:
         maxScale: 5
       extraEnv: {}
 
-  # DEPRECATED: use the top-level fleet block (fleet/fleetToolServer/
-  # fleetTriggerServer) instead. This bundled-agent path is managed by
+  # DEPRECATED: use the top-level fleet block (fleet/agentBuilderToolServer/
+  # agentBuilderTriggerServer) instead. This bundled-agent path is managed by
   # backend.agentBootstrap and is being phased out.
   # Agent Builder configuration - UI for creating and managing agents
   # Requires config.deployment.enabled to be true
@@ -2750,7 +2750,7 @@ redis:
     automountServiceAccountToken: true
 
 # Fleet Tool Server - provides MCP tool execution capabilities
-fleetToolServer:
+agentBuilderToolServer:
   enabled: true
   name: "fleet-tool-server"
   containerPort: 1989
@@ -2828,7 +2828,7 @@ fleetToolServer:
 
 # Fleet Trigger Server - handles cron, Slack, and Gmail triggers
 # NOTE: Currently only supports a single replica to prevent duplicate trigger executions
-fleetTriggerServer:
+agentBuilderTriggerServer:
   enabled: true
   name: "fleet-trigger-server"
   containerPort: 1990

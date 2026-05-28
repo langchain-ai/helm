@@ -593,19 +593,19 @@ Template containing common environment variables that are used by several servic
 {{- end -}}
 {{- end -}}
 
-{{- define "fleetToolServer.serviceAccountName" -}}
-{{- if .Values.fleetToolServer.serviceAccount.create -}}
-    {{ default (printf "%s-%s" (include "langsmith.fullname" .) .Values.fleetToolServer.name) .Values.fleetToolServer.serviceAccount.name | trunc 63 | trimSuffix "-" }}
+{{- define "agentBuilderToolServer.serviceAccountName" -}}
+{{- if .Values.agentBuilderToolServer.serviceAccount.create -}}
+    {{ default (printf "%s-%s" (include "langsmith.fullname" .) .Values.agentBuilderToolServer.name) .Values.agentBuilderToolServer.serviceAccount.name | trunc 63 | trimSuffix "-" }}
 {{- else -}}
-    {{ default "default" .Values.fleetToolServer.serviceAccount.name }}
+    {{ default "default" .Values.agentBuilderToolServer.serviceAccount.name }}
 {{- end -}}
 {{- end -}}
 
-{{- define "fleetTriggerServer.serviceAccountName" -}}
-{{- if .Values.fleetTriggerServer.serviceAccount.create -}}
-    {{ default (printf "%s-%s" (include "langsmith.fullname" .) .Values.fleetTriggerServer.name) .Values.fleetTriggerServer.serviceAccount.name | trunc 63 | trimSuffix "-" }}
+{{- define "agentBuilderTriggerServer.serviceAccountName" -}}
+{{- if .Values.agentBuilderTriggerServer.serviceAccount.create -}}
+    {{ default (printf "%s-%s" (include "langsmith.fullname" .) .Values.agentBuilderTriggerServer.name) .Values.agentBuilderTriggerServer.serviceAccount.name | trunc 63 | trimSuffix "-" }}
 {{- else -}}
-    {{ default "default" .Values.fleetTriggerServer.serviceAccount.name }}
+    {{ default "default" .Values.agentBuilderTriggerServer.serviceAccount.name }}
 {{- end -}}
 {{- end -}}
 
@@ -1016,17 +1016,17 @@ Served through the frontend at /mcp (or /<basePath>/mcp).
 {{- end }}
 {{- end -}}
 
-{{- define "fleetToolServerEnvVars" -}}
+{{- define "agentBuilderToolServerEnvVars" -}}
 - name: "PORT"
-  value: "{{ .Values.fleetToolServer.containerPort }}"
+  value: "{{ .Values.agentBuilderToolServer.containerPort }}"
 {{- include "agentBuilderOAuthEnvVars" . }}
 {{- end -}}
 
-{{- define "fleetTriggerServerEnvVars" -}}
+{{- define "agentBuilderTriggerServerEnvVars" -}}
 {{- $ns := .Values.namespace | default .Release.Namespace -}}
 {{- $cd := .Values.clusterDomain -}}
 - name: "PORT"
-  value: "{{ .Values.fleetTriggerServer.containerPort }}"
+  value: "{{ .Values.agentBuilderTriggerServer.containerPort }}"
 - name: "TRIGGER_SERVER_HOST_API_URL"
   value: "http://{{ include "langsmith.fullname" . }}-{{ .Values.hostBackend.name }}.{{ $ns }}.svc.{{ $cd }}:{{ .Values.hostBackend.service.port }}"
 {{- if .Values.fleet.enabled }}

@@ -321,7 +321,7 @@ polly:
         allowPrivilegeEscalation: false
         readOnlyRootFilesystem: true
 
-fleetToolServer:
+agentBuilderToolServer:
   enabled: true
   deployment:
     resources:
@@ -348,7 +348,7 @@ fleetToolServer:
       - name: tmp
         mountPath: /tmp
 
-fleetTriggerServer:
+agentBuilderTriggerServer:
   enabled: true
   deployment:
     resources:
