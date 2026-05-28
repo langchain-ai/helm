@@ -104,6 +104,23 @@ data:
             proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.platformBackend.service.port }};
         }
 
+        # LangSmith MCP OAuth discovery (RFC 8414, RFC 9728) — served at bare root per spec
+        location = /.well-known/oauth-authorization-server {
+            proxy_set_header Connection '';
+            proxy_http_version 1.1;
+            proxy_buffering off;
+            proxy_cache off;
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.platformBackend.service.port }};
+        }
+
+        location = /.well-known/oauth-protected-resource/mcp {
+            proxy_set_header Connection '';
+            proxy_http_version 1.1;
+            proxy_buffering off;
+            proxy_cache off;
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.platformBackend.service.port }};
+        }
+
         location /{{ .Values.config.basePath }}/api/v1/playground/experiment {
             rewrite /{{ .Values.config.basePath }}/api/v1/playground/experiment(.*) /playground/experiment$1  break;
             proxy_set_header Connection '';
@@ -139,6 +156,31 @@ data:
             proxy_buffering off;
             proxy_cache off;
             proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.platformBackend.service.port }};
+        }
+
+        # LangSmith MCP Server — protocol → platformBackend, tools → backend
+        location = /{{ .Values.config.basePath }}/mcp {
+            proxy_set_header Connection '';
+            proxy_http_version 1.1;
+            proxy_buffering off;
+            proxy_cache off;
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.platformBackend.service.port }};
+        }
+
+        location = /{{ .Values.config.basePath }}/mcp/ {
+            proxy_set_header Connection '';
+            proxy_http_version 1.1;
+            proxy_buffering off;
+            proxy_cache off;
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.platformBackend.service.port }};
+        }
+
+        location /{{ .Values.config.basePath }}/mcp/tools {
+            proxy_set_header Connection '';
+            proxy_http_version 1.1;
+            proxy_buffering off;
+            proxy_cache off;
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.backend.service.port }};
         }
 
         location /{{ .Values.config.basePath }}/api/v1/otel/ {
@@ -297,25 +339,25 @@ data:
         }
     {{- end }}
 
-    {{- if and (or .Values.fleet.enabled .Values.config.agentBuilder.enabled) .Values.agentBuilderToolServer.enabled }}
-        location /{{ .Values.config.basePath }}/mcp {
-            rewrite /{{ .Values.config.basePath }}/mcp/(.*) /$1  break;
+    {{- if and (or .Values.fleet.enabled .Values.config.agentBuilder.enabled) .Values.fleetToolServer.enabled }}
+        location /{{ .Values.config.basePath }}/agents/fleet/mcp {
+            rewrite /{{ .Values.config.basePath }}/agents/fleet/mcp/(.*) /$1  break;
             proxy_set_header Connection '';
             proxy_http_version 1.1;
             proxy_buffering off;
             proxy_cache off;
-            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.agentBuilderToolServer.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.agentBuilderToolServer.service.port }};
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.fleetToolServer.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.fleetToolServer.service.port }};
         }
     {{- end }}
 
-    {{- if and (or .Values.fleet.enabled .Values.config.agentBuilder.enabled) .Values.agentBuilderTriggerServer.enabled }}
+    {{- if and (or .Values.fleet.enabled .Values.config.agentBuilder.enabled) .Values.fleetTriggerServer.enabled }}
         location /{{ .Values.config.basePath }}/triggers {
             rewrite /{{ .Values.config.basePath }}/triggers/(.*) /v1/triggers/$1  break;
             proxy_set_header Connection '';
             proxy_http_version 1.1;
             proxy_buffering off;
             proxy_cache off;
-            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.agentBuilderTriggerServer.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.agentBuilderTriggerServer.service.port }};
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.fleetTriggerServer.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.fleetTriggerServer.service.port }};
         }
     {{- end }}
 
@@ -579,6 +621,48 @@ data:
             proxy_buffering off;
             proxy_cache off;
             proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.platformBackend.service.port }};
+        }
+
+        # LangSmith MCP OAuth discovery (RFC 8414, RFC 9728)
+        location = /.well-known/oauth-authorization-server {
+            proxy_set_header Connection '';
+            proxy_http_version 1.1;
+            proxy_buffering off;
+            proxy_cache off;
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.platformBackend.service.port }};
+        }
+
+        location = /.well-known/oauth-protected-resource/mcp {
+            proxy_set_header Connection '';
+            proxy_http_version 1.1;
+            proxy_buffering off;
+            proxy_cache off;
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.platformBackend.service.port }};
+        }
+
+        # LangSmith MCP Server — protocol → platformBackend, tools → backend
+        location = /mcp {
+            proxy_set_header Connection '';
+            proxy_http_version 1.1;
+            proxy_buffering off;
+            proxy_cache off;
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.platformBackend.service.port }};
+        }
+
+        location = /mcp/ {
+            proxy_set_header Connection '';
+            proxy_http_version 1.1;
+            proxy_buffering off;
+            proxy_cache off;
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.platformBackend.service.port }};
+        }
+
+        location /mcp/tools {
+            proxy_set_header Connection '';
+            proxy_http_version 1.1;
+            proxy_buffering off;
+            proxy_cache off;
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.backend.service.port }};
         }
 
         location /api/v1/playground/experiment {
@@ -877,23 +961,23 @@ data:
         }
     {{- end }}
 
-    {{- if and (or .Values.fleet.enabled .Values.config.agentBuilder.enabled) .Values.agentBuilderToolServer.enabled }}
-        location /mcp {
+    {{- if and (or .Values.fleet.enabled .Values.config.agentBuilder.enabled) .Values.fleetToolServer.enabled }}
+        location /agents/fleet/mcp {
             proxy_set_header Connection '';
             proxy_http_version 1.1;
             proxy_buffering off;
             proxy_cache off;
-            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.agentBuilderToolServer.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.agentBuilderToolServer.service.port }};
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.fleetToolServer.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.fleetToolServer.service.port }};
         }
     {{- end }}
 
-    {{- if and (or .Values.fleet.enabled .Values.config.agentBuilder.enabled) .Values.agentBuilderTriggerServer.enabled }}
+    {{- if and (or .Values.fleet.enabled .Values.config.agentBuilder.enabled) .Values.fleetTriggerServer.enabled }}
         location /v1/triggers {
             proxy_set_header Connection '';
             proxy_http_version 1.1;
             proxy_buffering off;
             proxy_cache off;
-            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.agentBuilderTriggerServer.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.agentBuilderTriggerServer.service.port }};
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.fleetTriggerServer.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.fleetTriggerServer.service.port }};
         }
     {{- end }}
 

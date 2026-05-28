@@ -40,23 +40,23 @@ images:
   aceBackendImage:
     repository: "docker.io/langchain/langsmith-ace-backend"
     pullPolicy: IfNotPresent
-    tag: "0.15.8rc1"
+    tag: "0.15.8"
   backendImage:
     repository: "docker.io/langchain/langsmith-backend"
     pullPolicy: IfNotPresent
-    tag: "0.15.8rc1"
+    tag: "0.15.8"
   insightsAgentImage:
     repository: "docker.io/langchain/langsmith-clio"
     pullPolicy: IfNotPresent
-    tag: "0.15.8rc1"
+    tag: "0.15.8"
   frontendImage:
     repository: "docker.io/langchain/langsmith-frontend"
     pullPolicy: IfNotPresent
-    tag: "0.15.8rc1"
+    tag: "0.15.8"
   hostBackendImage:
     repository: "docker.io/langchain/hosted-langserve-backend"
     pullPolicy: IfNotPresent
-    tag: "0.15.8rc1"
+    tag: "0.15.8"
   operatorImage:
     repository: "docker.io/langchain/langgraph-operator"
     pullPolicy: IfNotPresent
@@ -64,11 +64,11 @@ images:
   platformBackendImage:
     repository: "docker.io/langchain/langsmith-go-backend"
     pullPolicy: IfNotPresent
-    tag: "0.15.8rc1"
+    tag: "0.15.8"
   playgroundImage:
     repository: "docker.io/langchain/langsmith-playground"
     pullPolicy: IfNotPresent
-    tag: "0.15.8rc1"
+    tag: "0.15.8"
   # For production environments, we strongly recommend connecting to a managed PostgreSQL instance instead of using the one provided by the chart.
   # Docs: https://docs.langchain.com/langsmith/self-host-external-postgres
   postgresImage:
@@ -85,22 +85,22 @@ images:
     repository: "docker.io/clickhouse/clickhouse-server"
     pullPolicy: Always
     tag: "25.12"
-  agentBuilderToolServerImage:
+  fleetToolServerImage:
     repository: "docker.io/langchain/agent-builder-tool-server"
     pullPolicy: IfNotPresent
-    tag: "0.15.8rc1"
-  agentBuilderTriggerServerImage:
+    tag: "0.15.8"
+  fleetTriggerServerImage:
     repository: "docker.io/langchain/agent-builder-trigger-server"
     pullPolicy: IfNotPresent
-    tag: "0.15.8rc1"
+    tag: "0.15.8"
   agentBuilderImage:
     repository: "docker.io/langchain/agent-builder-deep-agent"
     pullPolicy: IfNotPresent
-    tag: "0.15.8rc1"
+    tag: "0.15.8"
   pollyAgentImage:
     repository: "docker.io/langchain/langsmith-polly"
     pullPolicy: IfNotPresent
-    tag: "0.15.8rc1"
+    tag: "0.15.8"
 
 ingress:
   enabled: false
@@ -129,7 +129,7 @@ istioGateway:
 
 fleet:
   enabled: false
-  namePrefix: "standalone-fleet"
+  namePrefix: "fleet"
   enableTracing: true
   encryptionKey: ""
   oauth:
@@ -368,7 +368,7 @@ fleet:
       minAvailable: 1
 insights:
   enabled: false
-  namePrefix: "standalone-insights"
+  namePrefix: "insights"
   encryptionKey: ""
   apiServer:
     name: "api-server"
@@ -600,7 +600,7 @@ insights:
 
 polly:
   enabled: false
-  namePrefix: "standalone-polly"
+  namePrefix: "polly"
   enableTracing: true
   encryptionKey: ""
   apiServer:
@@ -2737,8 +2737,8 @@ redis:
     annotations: {}
     automountServiceAccountToken: true
 
-# Agent Builder Tool Server - provides MCP tool execution capabilities
-agentBuilderToolServer:
+# Fleet Tool Server - provides MCP tool execution capabilities
+fleetToolServer:
   enabled: true
   name: "fleet-tool-server"
   containerPort: 1989
@@ -2814,9 +2814,9 @@ agentBuilderToolServer:
     annotations: {}
     automountServiceAccountToken: true
 
-# Agent Builder Trigger Server - handles cron, Slack, and Gmail triggers
+# Fleet Trigger Server - handles cron, Slack, and Gmail triggers
 # NOTE: Currently only supports a single replica to prevent duplicate trigger executions
-agentBuilderTriggerServer:
+fleetTriggerServer:
   enabled: true
   name: "fleet-trigger-server"
   containerPort: 1990

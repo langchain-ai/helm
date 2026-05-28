@@ -64,7 +64,7 @@
 - name: LANGGRAPH_API_URL_PUBLIC
   value: {{ printf "%s%s" $baseURL $agentPath | quote }}
 - name: VITE_AGENT_BUILDER_MCP_SERVER_URL
-  value: {{ printf "%s/mcp" $baseURL | quote }}
+  value: {{ printf "%s%s/mcp" $baseURL $agentPath | quote }}
 - name: VITE_AGENT_BUILDER_TRIGGERS_API_URL
   value: {{ $baseURL | quote }}
 {{- end }}
