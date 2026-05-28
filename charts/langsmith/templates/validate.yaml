@@ -18,6 +18,20 @@ AWS Marketplace Helm template verification).
 
 {{- if not .Values.config.skipValidation -}}
 
+{{- /* Validate deprecated fleet server value keys */ -}}
+{{- if hasKey .Values "agentBuilderToolServer" -}}
+{{- fail "agentBuilderToolServer is deprecated. Please use fleetToolServer." -}}
+{{- end -}}
+{{- if hasKey .Values "agentBuilderTriggerServer" -}}
+{{- fail "agentBuilderTriggerServer is deprecated. Please use fleetTriggerServer." -}}
+{{- end -}}
+{{- if hasKey .Values.images "agentBuilderToolServerImage" -}}
+{{- fail "images.agentBuilderToolServerImage is deprecated. Please use images.fleetToolServerImage." -}}
+{{- end -}}
+{{- if hasKey .Values.images "agentBuilderTriggerServerImage" -}}
+{{- fail "images.agentBuilderTriggerServerImage is deprecated. Please use images.fleetTriggerServerImage." -}}
+{{- end -}}
+
 {{- /* Validate ingress configuration */ -}}
 # Fail if none of ingress, gateway, or istioGateway are enabled and LangSmith Deployment is enabled with the chart-managed frontend
 {{- if and .Values.frontend.enabled (not .Values.ingress.enabled) (not .Values.gateway.enabled) (not .Values.istioGateway.enabled) .Values.config.deployment.enabled }}
@@ -257,7 +271,7 @@ AWS Marketplace Helm template verification).
 {{- $allPgUrls = append $allPgUrls $mainPg }}
 {{- end }}
 {{- end }}
-{{- $agentPairs := list (dict "n" "fleet" "c" "standalone-fleet") (dict "n" "insights" "c" "standalone-insights") (dict "n" "polly" "c" "standalone-polly") }}
+{{- $agentPairs := list (dict "n" "fleet") (dict "n" "insights") (dict "n" "polly") }}
 {{- range $pair := $agentPairs }}
 {{- $fn := index $pair "n" }}
 {{- $feat := index $.Values $fn }}
