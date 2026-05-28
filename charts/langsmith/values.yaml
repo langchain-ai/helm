@@ -129,7 +129,7 @@ istioGateway:
 
 fleet:
   enabled: false
-  namePrefix: "fleet"
+  namePrefix: "standalone-fleet"
   enableTracing: true
   encryptionKey: ""
   oauth:

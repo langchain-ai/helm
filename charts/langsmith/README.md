@@ -188,7 +188,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | fleet.enableTracing | bool | `true` |  |
 | fleet.enabled | bool | `false` |  |
 | fleet.encryptionKey | string | `""` |  |
-| fleet.namePrefix | string | `"fleet"` |  |
+| fleet.namePrefix | string | `"standalone-fleet"` |  |
 | fleet.oauth.githubOAuthProvider | string | `""` |  |
 | fleet.oauth.googleOAuthProvider | string | `""` |  |
 | fleet.oauth.linearOAuthProvider | string | `""` |  |
