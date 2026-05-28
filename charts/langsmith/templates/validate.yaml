@@ -209,20 +209,14 @@ AWS Marketplace Helm template verification).
 {{- end -}}
 {{- end -}}
 
-{{- /* Validate insights configuration */ -}}
-{{- if and .Values.config.insights.enabled (not .Values.config.deployment.enabled) -}}
-{{- fail "config.deployment.enabled must be true when Insights is enabled. Insights requires LangSmith Deployments." -}}
+{{- /* The bundled-agent bootstrap path was removed for Insights and Polly.
+       Reject any attempt to use config.insights.enabled / config.polly.enabled
+       and direct users at the top-level insights / polly blocks. */ -}}
+{{- if .Values.config.insights.enabled -}}
+{{- fail "config.insights.enabled is no longer supported (the bundled-agent bootstrap path was removed in chart 0.15.1). Use the top-level insights block: insights.enabled, insights.encryptionKey, etc." -}}
 {{- end -}}
-{{- if and .Values.config.insights.enabled (not .Values.config.insights.encryptionKey) (not .Values.config.existingSecretName) -}}
-{{- fail "config.insights.encryptionKey is required when Insights is enabled. Generate one with: python -c \"from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())\"" -}}
-{{- end -}}
-
-{{- /* Validate polly configuration */ -}}
-{{- if and .Values.config.polly.enabled (not .Values.config.deployment.enabled) -}}
-{{- fail "config.deployment.enabled must be true when Polly is enabled. Polly requires LangSmith Deployments." -}}
-{{- end -}}
-{{- if and .Values.config.polly.enabled (not .Values.config.polly.encryptionKey) (not .Values.config.existingSecretName) -}}
-{{- fail "config.polly.encryptionKey is required when Polly is enabled. Generate one with: python -c \"from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())\"" -}}
+{{- if .Values.config.polly.enabled -}}
+{{- fail "config.polly.enabled is no longer supported (the bundled-agent bootstrap path was removed in chart 0.15.1). Use the top-level polly block: polly.enabled, polly.encryptionKey, etc." -}}
 {{- end -}}
 
 {{- /* Validate autoscaling configuration for all services */ -}}

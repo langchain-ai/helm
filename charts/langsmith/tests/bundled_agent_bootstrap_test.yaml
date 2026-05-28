@@ -1,0 +1,23 @@
+suite: removed bundled-agent bootstrap keys validation
+templates:
+  - validate.yaml
+tests:
+  - it: should fail when deprecated config.insights.enabled is set
+    set:
+      config.existingSecretName: "langsmith-secrets"
+      config.oauth.enabled: true
+      config.authType: "oauth"
+      config.insights.enabled: true
+    asserts:
+      - failedTemplate:
+          errorMessage: "config.insights.enabled is no longer supported (the bundled-agent bootstrap path was removed in chart 0.15.1). Use the top-level insights block: insights.enabled, insights.encryptionKey, etc."
+
+  - it: should fail when deprecated config.polly.enabled is set
+    set:
+      config.existingSecretName: "langsmith-secrets"
+      config.oauth.enabled: true
+      config.authType: "oauth"
+      config.polly.enabled: true
+    asserts:
+      - failedTemplate:
+          errorMessage: "config.polly.enabled is no longer supported (the bundled-agent bootstrap path was removed in chart 0.15.1). Use the top-level polly block: polly.enabled, polly.encryptionKey, etc."
