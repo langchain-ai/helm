@@ -77,7 +77,7 @@ To consume a patched image, bump the chart version when upgrading the langsmith 
 
 ## Per-release CVE history
 
-Patched CVEs for each release are tracked in the auto-generated `## Security` section of the [self-hosted changelog](https://docs.smith.langchain.com/self-hosted/changelog). The changelog is the single source of truth for "what CVEs were fixed in version X." This document covers the standing security posture (image inventory, false-positive registry, SLAs, reporting flow) that is not version-specific.
+Patched CVEs for each release are tracked as auto-generated security fix bullets in the corresponding release entry of the [self-hosted changelog](https://docs.langchain.com/langsmith/self-hosted-changelog). The changelog is the single source of truth for "what CVEs were fixed in version X." This document covers the standing security posture (image inventory, false-positive registry, SLAs, reporting flow) that is not version-specific.
 
 ---
 
