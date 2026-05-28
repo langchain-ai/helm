@@ -101,6 +101,11 @@ images:
     repository: "docker.io/langchain/langsmith-polly"
     pullPolicy: IfNotPresent
     tag: "0.15.8"
+  # Optional: only mirror/pull when presidioAnalyzer.enabled is true
+  presidioAnalyzerImage:
+    repository: "mcr.microsoft.com/presidio-analyzer"
+    pullPolicy: IfNotPresent
+    tag: "2.2.354"
 
 ingress:
   enabled: false
@@ -2884,6 +2889,145 @@ fleetTriggerServer:
     annotations: {}
     loadBalancerSourceRanges: []
     loadBalancerIP: ""
+  serviceAccount:
+    create: true
+    name: ""
+    labels: {}
+    annotations: {}
+    automountServiceAccountToken: true
+
+# Agent Gateway - proxy for agent traffic with guardrails (NER redaction via Presidio)
+# Optional, disabled by default. Not required for core LangSmith functionality. Private beta.
+agentGateway:
+  enabled: false
+  name: "agent-gateway"
+  containerPort: 8083
+  deployment:
+    replicas: 1
+    labels: {}
+    annotations: {}
+    podSecurityContext: {}
+    securityContext: {}
+    lifecycle: {}
+    resources:
+      limits:
+        cpu: 500m
+        memory: 512Mi
+      requests:
+        cpu: 100m
+        memory: 256Mi
+    command:
+      - "./agent_gateway_entrypoint.sh"
+    startupProbe:
+      httpGet:
+        path: /health
+        port: 8083
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 3
+    livenessProbe:
+      httpGet:
+        path: /health
+        port: 8083
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 3
+    readinessProbe:
+      httpGet:
+        path: /health
+        port: 8083
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 3
+    extraContainerConfig: {}
+    extraEnv: []
+    sidecars: []
+    initContainers: []
+    nodeSelector: {}
+    tolerations: []
+    affinity: {}
+    volumes: []
+    volumeMounts: []
+    terminationGracePeriodSeconds: 30
+  autoscaling:
+    enabled: false
+    createHpa: true
+    minReplicas: 1
+    maxReplicas: 5
+    targetCPUUtilizationPercentage: 50
+  service:
+    type: ClusterIP
+    port: 8083
+    labels: {}
+    annotations: {}
+  serviceAccount:
+    create: true
+    name: ""
+    labels: {}
+    annotations: {}
+    automountServiceAccountToken: true
+
+# Presidio Analyzer - Microsoft Presidio NER service for PII detection, used by the Agent Gateway
+# Optional, disabled by default. Not required for core LangSmith functionality. Private beta.
+presidioAnalyzer:
+  enabled: false
+  name: "presidio-analyzer"
+  containerPort: 3000
+  deployment:
+    replicas: 1
+    labels: {}
+    annotations: {}
+    podSecurityContext: {}
+    securityContext: {}
+    lifecycle: {}
+    resources:
+      limits:
+        cpu: 1
+        memory: 4Gi
+      requests:
+        cpu: 250m
+        memory: 2Gi
+    startupProbe:
+      httpGet:
+        path: /health
+        port: 3000
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 3
+    livenessProbe:
+      httpGet:
+        path: /health
+        port: 3000
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 3
+    readinessProbe:
+      httpGet:
+        path: /health
+        port: 3000
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 3
+    extraContainerConfig: {}
+    extraEnv: []
+    sidecars: []
+    initContainers: []
+    nodeSelector: {}
+    tolerations: []
+    affinity: {}
+    volumes: []
+    volumeMounts: []
+    terminationGracePeriodSeconds: 30
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 80
+  service:
+    type: ClusterIP
+    port: 3000
+    labels: {}
+    annotations: {}
   serviceAccount:
     create: true
     name: ""

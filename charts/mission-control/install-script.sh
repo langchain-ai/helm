@@ -136,6 +136,15 @@ needs_public_chart() {
 step_prereqs() {
   need kubectl
   need helm
+  # --rollback-on-failure requires Helm >= 3.11
+  local helm_ver
+  helm_ver="$(helm version --short 2>/dev/null | grep -oE '[0-9]+\.[0-9]+' | head -1)"
+  local helm_major helm_minor
+  helm_major="${helm_ver%%.*}"
+  helm_minor="${helm_ver##*.}"
+  if [[ "${helm_major:-0}" -lt 3 || ( "${helm_major:-0}" -eq 3 && "${helm_minor:-0}" -lt 11 ) ]]; then
+    die "Helm >= 3.11 required (found ${helm_ver:-unknown})"
+  fi
   if needs_public_chart; then
     need curl
   fi
@@ -294,7 +303,8 @@ config:
     configSave: true
     discover: true
     dbTools: true
-    deploy: false
+    deploy: true
+    valuesOverride: true
   discoverNamespaces: ""
 
 diagnostics:

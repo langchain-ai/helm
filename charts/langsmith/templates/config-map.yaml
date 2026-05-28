@@ -81,6 +81,9 @@ data:
   {{- if or .Values.config.polly.enabled .Values.polly.enabled }}
   SELF_HOSTED_POLLY_ENABLED: "true"
   {{- end }}
+  {{- if .Values.agentGateway.enabled }}
+  AGENT_GATEWAY_URL: "http://{{ include "langsmith.fullname" . }}-{{ .Values.agentGateway.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.agentGateway.service.port }}"
+  {{- end }}
   # Usage backfill export gating
   {{- if .Values.config.superAdmins }}
   USAGE_EXPORT_ADMIN_EMAILS: {{ .Values.config.superAdmins | toJson | quote }}

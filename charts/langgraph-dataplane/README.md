@@ -4,6 +4,11 @@
 
 Helm chart to deploy a langgraph dataplane on kubernetes.
 
+> [!WARNING]
+> **Legacy Hybrid Deployment — No Longer Supported for New Customers**
+>
+> This chart is the legacy version of the Hybrid deployment option. New customers are not supported going forward; existing customers will continue to be supported. New Hybrid deployments should use the [`langgraph-cloud`](../langgraph-cloud) chart instead — see the [Hybrid deployment documentation](https://docs.langchain.com/langsmith/hybrid) for more details.
+
 ## Deploying a LangGraph Dataplane
 
 This chart deploys a LangGraph Dataplane, which is a component of the LangGraph Platform. The Dataplane is responsible for executing and managing LangGraph applications.

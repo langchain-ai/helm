@@ -379,6 +379,9 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | images.postgresImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.postgresImage.repository | string | `"docker.io/postgres"` |  |
 | images.postgresImage.tag | string | `"14.7"` |  |
+| images.presidioAnalyzerImage.pullPolicy | string | `"IfNotPresent"` |  |
+| images.presidioAnalyzerImage.repository | string | `"mcr.microsoft.com/presidio-analyzer"` |  |
+| images.presidioAnalyzerImage.tag | string | `"2.2.354"` |  |
 | images.redisImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.redisImage.repository | string | `"docker.io/redis"` |  |
 | images.redisImage.tag | string | `"7"` |  |
@@ -1590,6 +1593,120 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | listener.serviceAccount.labels | object | `{}` |  |
 | listener.serviceAccount.name | string | `""` |  |
 
+## Agent Gateway (Optional)
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| agentGateway.autoscaling.createHpa | bool | `true` |  |
+| agentGateway.autoscaling.enabled | bool | `false` |  |
+| agentGateway.autoscaling.maxReplicas | int | `5` |  |
+| agentGateway.autoscaling.minReplicas | int | `1` |  |
+| agentGateway.autoscaling.targetCPUUtilizationPercentage | int | `50` |  |
+| agentGateway.containerPort | int | `8083` |  |
+| agentGateway.deployment.affinity | object | `{}` |  |
+| agentGateway.deployment.annotations | object | `{}` |  |
+| agentGateway.deployment.command[0] | string | `"./agent_gateway_entrypoint.sh"` |  |
+| agentGateway.deployment.extraContainerConfig | object | `{}` |  |
+| agentGateway.deployment.extraEnv | list | `[]` |  |
+| agentGateway.deployment.initContainers | list | `[]` |  |
+| agentGateway.deployment.labels | object | `{}` |  |
+| agentGateway.deployment.lifecycle | object | `{}` |  |
+| agentGateway.deployment.livenessProbe.failureThreshold | int | `6` |  |
+| agentGateway.deployment.livenessProbe.httpGet.path | string | `"/health"` |  |
+| agentGateway.deployment.livenessProbe.httpGet.port | int | `8083` |  |
+| agentGateway.deployment.livenessProbe.periodSeconds | int | `10` |  |
+| agentGateway.deployment.livenessProbe.timeoutSeconds | int | `3` |  |
+| agentGateway.deployment.nodeSelector | object | `{}` |  |
+| agentGateway.deployment.podSecurityContext | object | `{}` |  |
+| agentGateway.deployment.readinessProbe.failureThreshold | int | `6` |  |
+| agentGateway.deployment.readinessProbe.httpGet.path | string | `"/health"` |  |
+| agentGateway.deployment.readinessProbe.httpGet.port | int | `8083` |  |
+| agentGateway.deployment.readinessProbe.periodSeconds | int | `10` |  |
+| agentGateway.deployment.readinessProbe.timeoutSeconds | int | `3` |  |
+| agentGateway.deployment.replicas | int | `1` |  |
+| agentGateway.deployment.resources.limits.cpu | string | `"500m"` |  |
+| agentGateway.deployment.resources.limits.memory | string | `"512Mi"` |  |
+| agentGateway.deployment.resources.requests.cpu | string | `"100m"` |  |
+| agentGateway.deployment.resources.requests.memory | string | `"256Mi"` |  |
+| agentGateway.deployment.securityContext | object | `{}` |  |
+| agentGateway.deployment.sidecars | list | `[]` |  |
+| agentGateway.deployment.startupProbe.failureThreshold | int | `6` |  |
+| agentGateway.deployment.startupProbe.httpGet.path | string | `"/health"` |  |
+| agentGateway.deployment.startupProbe.httpGet.port | int | `8083` |  |
+| agentGateway.deployment.startupProbe.periodSeconds | int | `10` |  |
+| agentGateway.deployment.startupProbe.timeoutSeconds | int | `3` |  |
+| agentGateway.deployment.terminationGracePeriodSeconds | int | `30` |  |
+| agentGateway.deployment.tolerations | list | `[]` |  |
+| agentGateway.deployment.volumeMounts | list | `[]` |  |
+| agentGateway.deployment.volumes | list | `[]` |  |
+| agentGateway.enabled | bool | `false` |  |
+| agentGateway.name | string | `"agent-gateway"` |  |
+| agentGateway.service.annotations | object | `{}` |  |
+| agentGateway.service.labels | object | `{}` |  |
+| agentGateway.service.port | int | `8083` |  |
+| agentGateway.service.type | string | `"ClusterIP"` |  |
+| agentGateway.serviceAccount.annotations | object | `{}` |  |
+| agentGateway.serviceAccount.automountServiceAccountToken | bool | `true` |  |
+| agentGateway.serviceAccount.create | bool | `true` |  |
+| agentGateway.serviceAccount.labels | object | `{}` |  |
+| agentGateway.serviceAccount.name | string | `""` |  |
+
+## Presidio Analyzer (Optional)
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| presidioAnalyzer.autoscaling.enabled | bool | `false` |  |
+| presidioAnalyzer.autoscaling.maxReplicas | int | `10` |  |
+| presidioAnalyzer.autoscaling.minReplicas | int | `1` |  |
+| presidioAnalyzer.autoscaling.targetCPUUtilizationPercentage | int | `80` |  |
+| presidioAnalyzer.containerPort | int | `3000` |  |
+| presidioAnalyzer.deployment.affinity | object | `{}` |  |
+| presidioAnalyzer.deployment.annotations | object | `{}` |  |
+| presidioAnalyzer.deployment.extraContainerConfig | object | `{}` |  |
+| presidioAnalyzer.deployment.extraEnv | list | `[]` |  |
+| presidioAnalyzer.deployment.initContainers | list | `[]` |  |
+| presidioAnalyzer.deployment.labels | object | `{}` |  |
+| presidioAnalyzer.deployment.lifecycle | object | `{}` |  |
+| presidioAnalyzer.deployment.livenessProbe.failureThreshold | int | `6` |  |
+| presidioAnalyzer.deployment.livenessProbe.httpGet.path | string | `"/health"` |  |
+| presidioAnalyzer.deployment.livenessProbe.httpGet.port | int | `3000` |  |
+| presidioAnalyzer.deployment.livenessProbe.periodSeconds | int | `10` |  |
+| presidioAnalyzer.deployment.livenessProbe.timeoutSeconds | int | `3` |  |
+| presidioAnalyzer.deployment.nodeSelector | object | `{}` |  |
+| presidioAnalyzer.deployment.podSecurityContext | object | `{}` |  |
+| presidioAnalyzer.deployment.readinessProbe.failureThreshold | int | `6` |  |
+| presidioAnalyzer.deployment.readinessProbe.httpGet.path | string | `"/health"` |  |
+| presidioAnalyzer.deployment.readinessProbe.httpGet.port | int | `3000` |  |
+| presidioAnalyzer.deployment.readinessProbe.periodSeconds | int | `10` |  |
+| presidioAnalyzer.deployment.readinessProbe.timeoutSeconds | int | `3` |  |
+| presidioAnalyzer.deployment.replicas | int | `1` |  |
+| presidioAnalyzer.deployment.resources.limits.cpu | int | `1` |  |
+| presidioAnalyzer.deployment.resources.limits.memory | string | `"4Gi"` |  |
+| presidioAnalyzer.deployment.resources.requests.cpu | string | `"250m"` |  |
+| presidioAnalyzer.deployment.resources.requests.memory | string | `"2Gi"` |  |
+| presidioAnalyzer.deployment.securityContext | object | `{}` |  |
+| presidioAnalyzer.deployment.sidecars | list | `[]` |  |
+| presidioAnalyzer.deployment.startupProbe.failureThreshold | int | `6` |  |
+| presidioAnalyzer.deployment.startupProbe.httpGet.path | string | `"/health"` |  |
+| presidioAnalyzer.deployment.startupProbe.httpGet.port | int | `3000` |  |
+| presidioAnalyzer.deployment.startupProbe.periodSeconds | int | `10` |  |
+| presidioAnalyzer.deployment.startupProbe.timeoutSeconds | int | `3` |  |
+| presidioAnalyzer.deployment.terminationGracePeriodSeconds | int | `30` |  |
+| presidioAnalyzer.deployment.tolerations | list | `[]` |  |
+| presidioAnalyzer.deployment.volumeMounts | list | `[]` |  |
+| presidioAnalyzer.deployment.volumes | list | `[]` |  |
+| presidioAnalyzer.enabled | bool | `false` |  |
+| presidioAnalyzer.name | string | `"presidio-analyzer"` |  |
+| presidioAnalyzer.service.annotations | object | `{}` |  |
+| presidioAnalyzer.service.labels | object | `{}` |  |
+| presidioAnalyzer.service.port | int | `3000` |  |
+| presidioAnalyzer.service.type | string | `"ClusterIP"` |  |
+| presidioAnalyzer.serviceAccount.annotations | object | `{}` |  |
+| presidioAnalyzer.serviceAccount.automountServiceAccountToken | bool | `true` |  |
+| presidioAnalyzer.serviceAccount.create | bool | `true` |  |
+| presidioAnalyzer.serviceAccount.labels | object | `{}` |  |
+| presidioAnalyzer.serviceAccount.name | string | `""` |  |
+
 ## Operator (Optional)
 
 | Key | Type | Default | Description |
@@ -2052,6 +2169,4 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | Ankush | <ankush@langchain.dev> |  |
 
 ----------------------------------------------
-Autogenerated from chart metadata using [helm-docs v1.14.2](https://github.com/norwoodj/helm-docs/releases/v1.14.2)
-## Docs Generated by [helm-docs](https://github.com/norwoodj/helm-docs)
-`helm-docs -t ./charts/langsmith/README.md.gotmpl`
+Autogenerated from chart metadata using [helm-docs](https://github.com/norwoodj/helm-docs)

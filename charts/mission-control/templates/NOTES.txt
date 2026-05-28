@@ -4,7 +4,7 @@
 {{- if not $authSecret }}
 {{- $setupTokenName := include "missionControl.setupTokenSecretName" . }}
 ╔══════════════════════════════════════════════════════════╗
-║         MISSION CONTROL — FIRST-RUN SETUP TOKEN          ║
+║         MISSION CONTROL - FIRST-RUN SETUP TOKEN          ║
 ╠══════════════════════════════════════════════════════════╣
 ║  Run the command below to retrieve your setup token,     ║
 ║  then open Mission Control and paste it into the setup   ║
