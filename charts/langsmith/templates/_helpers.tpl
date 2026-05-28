@@ -969,17 +969,16 @@ which default to http:// for local development.
 
 {{/*
 Public URL for the default Agent Builder MCP server.
-Served through the frontend at /agents/fleet/mcp (or /<basePath>/agents/fleet/mcp).
-The bare /mcp path is reserved for the LangSmith MCP server (platformBackend).
+Served through the frontend at /mcp (or /<basePath>/mcp).
 */}}
 {{- define "langsmith.defaultMcpServerUrl" -}}
 {{- if and (or .Values.config.agentBuilder.enabled .Values.fleet.enabled) .Values.config.hostname -}}
   {{- $baseURL := include "langsmith.hostnameWithProtocol" . | trimSuffix "/" -}}
   {{- $basePath := trimAll "/" (default "" .Values.config.basePath) -}}
   {{- if $basePath -}}
-    {{- printf "%s/%s/agents/fleet/mcp" $baseURL $basePath -}}
+    {{- printf "%s/%s/mcp" $baseURL $basePath -}}
   {{- else -}}
-    {{- printf "%s/agents/fleet/mcp" $baseURL -}}
+    {{- printf "%s/mcp" $baseURL -}}
   {{- end -}}
 {{- end -}}
 {{- end -}}
