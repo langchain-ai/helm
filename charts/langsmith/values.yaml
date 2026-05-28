@@ -859,6 +859,9 @@ config:
         memoryLimitMb: 8192
         minScale: 1
         maxScale: 5
+      # Merged into the bundled Insights agent Deployment pod env by the
+      # agentBootstrap script (keys here override script defaults). Does NOT
+      # affect ConfigMap entries the script writes. See backend.agentBootstrap.
       extraEnv: {}
 
   # Polly configuration
@@ -873,6 +876,9 @@ config:
         memoryLimitMb: 8192
         minScale: 1
         maxScale: 5
+      # Merged into the bundled Polly agent Deployment pod env by the
+      # agentBootstrap script (keys here override script defaults). Does NOT
+      # affect ConfigMap entries the script writes. See backend.agentBootstrap.
       extraEnv: {}
 
   # Agent Builder configuration - UI for creating and managing agents
@@ -910,6 +916,12 @@ config:
         memoryLimitMb: 8192
         minScale: 1
         maxScale: 5
+      # Merged into the bundled Agent Builder Deployment pod env by the
+      # agentBootstrap script. Keys here override script defaults
+      # (env_from_host + static_env_vars including MCP_SERVER_URL). Does NOT
+      # affect ConfigMap entries the script writes (e.g.
+      # VITE_AGENT_BUILDER_MCP_SERVER_URL — not chart-configurable). See
+      # backend.agentBootstrap for the full picture.
       extraEnv: {}
 
   # -- Salt used to generate the API key. Should be a random string.
@@ -1405,7 +1417,37 @@ backend:
     volumeMounts: []
     ttlSecondsAfterFinished: 10
 
-  # Deploys bundled agents (Agent Builder, Insights) via LangSmith Deployments API
+  # Bundled agents (Agent Builder, Insights, Polly) — managed by a script
+  # outside Helm's normal lifecycle.
+  #
+  # This job runs as a Helm post-install/post-upgrade hook and executes
+  # scripts/deploy_bundled_agents.py (baked into the langsmith-backend image).
+  # On every install/upgrade it:
+  #   - Creates or destroys bundled-agent Deployments via the LangSmith
+  #     Deployments API based on config.{agentBuilder,insights,polly}.enabled.
+  #   - Overwrites the langsmith-agent-builder-config ConfigMap with values
+  #     computed by the script (notably VITE_AGENT_BUILDER_MCP_SERVER_URL
+  #     and VITE_AGENT_BUILDER_TRIGGERS_API_URL — hardcoded as
+  #     "{LANGSMITH_URL}/mcp" and "{LANGSMITH_URL}", and NOT overridable
+  #     from chart values).
+  #   - Restarts dependent Deployments (frontend, ingest-queue,
+  #     fleet-trigger-server) via a configmap-hash annotation.
+  #
+  # WARNING:
+  #   - Manual edits to bundled-agent Deployments or to
+  #     langsmith-agent-builder-config WILL be reverted on the next
+  #     helm upgrade.
+  #   - Disabling agentBootstrap.enabled does NOT delete existing bundled
+  #     agents — it only stops the hook. To remove a product cleanly, set
+  #     config.<product>.enabled=false while agentBootstrap.enabled=true
+  #     so the destroy path runs.
+  #   - Bundled-agent Deployments live outside Helm-managed resources, so
+  #     chart-level changes such as namePrefix or service renames do not
+  #     affect them.
+  #   - Script-hardcoded behavior (e.g., the MCP URL path written into the
+  #     ConfigMap) can only be changed by patching
+  #     langchainplus:smith-backend/scripts/deploy_bundled_agents.py and
+  #     shipping a new langsmith-backend image.
   agentBootstrap:
     enabled: false
     randomizeName: false
