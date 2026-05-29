@@ -1,8 +1,8 @@
 {{- define "frontendEnvVars" -}}
 - name: VITE_SELF_HOSTED_CLIO_ENABLED
-  value: {{ (or .Values.config.insights.enabled .Values.insights.enabled) | quote }}
+  value: {{ .Values.insights.enabled | quote }}
 - name: VITE_SELF_HOSTED_POLLY_ENABLED
-  value: {{ (or .Values.config.polly.enabled .Values.polly.enabled) | quote }}
+  value: {{ .Values.polly.enabled | quote }}
 {{- /* Agent Builder OAuth provider IDs for frontend */ -}}
 {{- $googleOAuth := .Values.config.agentBuilder.oauth.googleOAuthProvider | default .Values.fleet.oauth.googleOAuthProvider }}
 {{- $slackOAuth := .Values.config.agentBuilder.oauth.slackOAuthProvider | default .Values.fleet.oauth.slackOAuthProvider }}
@@ -176,11 +176,6 @@ spec:
             {{- if and .Values.backend.agentBootstrap.enabled .Values.config.agentBuilder.enabled }}
             - configMapRef:
                 name: {{ include "langsmith.fullname" . }}-agent-builder-config
-                optional: true
-            {{- end }}
-            {{- if .Values.config.polly.enabled }}
-            - configMapRef:
-                name: {{ include "langsmith.fullname" . }}-polly-config
                 optional: true
             {{- end }}
           image: {{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "frontendImage") | quote }}

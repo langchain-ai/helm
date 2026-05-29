@@ -20,7 +20,7 @@ automountServiceAccountToken: {{ .Values.backend.agentBootstrap.serviceAccount.a
 {{- end }}
 ---
 # Role + RoleBinding: only when at least one product is enabled (create path patches ConfigMaps and restarts deployments)
-{{- if and .Values.backend.agentBootstrap.enabled .Values.config.deployment.enabled (or .Values.config.agentBuilder.enabled .Values.config.insights.enabled .Values.config.polly.enabled) }}
+{{- if and .Values.backend.agentBootstrap.enabled .Values.config.deployment.enabled .Values.config.agentBuilder.enabled }}
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
@@ -44,12 +44,6 @@ rules:
       {{- if .Values.config.agentBuilder.enabled }}
       - {{ include "langsmith.fullname" . }}-agent-builder-config
       {{- end }}
-      {{- if .Values.config.insights.enabled }}
-      - {{ include "langsmith.fullname" . }}-insights-config
-      {{- end }}
-      {{- if .Values.config.polly.enabled }}
-      - {{ include "langsmith.fullname" . }}-polly-config
-      {{- end }}
   # Permission to restart deployments after ConfigMap updates
   - apiGroups: ["apps"]
     resources: ["deployments"]
@@ -59,10 +53,6 @@ rules:
       {{- if .Values.config.agentBuilder.enabled }}
       - {{ include "langsmith.fullname" . }}-agent-builder-trigger-server
       - {{ include "langsmith.fullname" . }}-{{ .Values.ingestQueue.name }}
-      {{- end }}
-      {{- if .Values.config.insights.enabled }}
-      - {{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}
-      - {{ include "langsmith.fullname" . }}-{{ .Values.queue.name }}
       {{- end }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1

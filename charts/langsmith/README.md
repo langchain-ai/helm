@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.15.0](https://img.shields.io/badge/Version-0.15.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.15.8](https://img.shields.io/badge/AppVersion-0.15.8-informational?style=flat-square)
+![Version: 0.15.1](https://img.shields.io/badge/Version-0.15.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.15.9](https://img.shields.io/badge/AppVersion-0.15.9-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -338,44 +338,44 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | gateway.sectionName | string | `""` |  |
 | images.aceBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.aceBackendImage.repository | string | `"docker.io/langchain/langsmith-ace-backend"` |  |
-| images.aceBackendImage.tag | string | `"0.15.8"` |  |
+| images.aceBackendImage.tag | string | `"0.15.9"` |  |
 | images.agentBuilderImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.agentBuilderImage.repository | string | `"docker.io/langchain/agent-builder-deep-agent"` |  |
-| images.agentBuilderImage.tag | string | `"0.15.8"` |  |
+| images.agentBuilderImage.tag | string | `"0.15.9"` |  |
 | images.fleetToolServerImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.fleetToolServerImage.repository | string | `"docker.io/langchain/agent-builder-tool-server"` |  |
-| images.fleetToolServerImage.tag | string | `"0.15.8"` |  |
+| images.fleetToolServerImage.tag | string | `"0.15.9"` |  |
 | images.fleetTriggerServerImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.fleetTriggerServerImage.repository | string | `"docker.io/langchain/agent-builder-trigger-server"` |  |
-| images.fleetTriggerServerImage.tag | string | `"0.15.8"` |  |
+| images.fleetTriggerServerImage.tag | string | `"0.15.9"` |  |
 | images.backendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.backendImage.repository | string | `"docker.io/langchain/langsmith-backend"` |  |
-| images.backendImage.tag | string | `"0.15.8"` |  |
+| images.backendImage.tag | string | `"0.15.9"` |  |
 | images.clickhouseImage.pullPolicy | string | `"Always"` |  |
 | images.clickhouseImage.repository | string | `"docker.io/clickhouse/clickhouse-server"` |  |
 | images.clickhouseImage.tag | string | `"25.12"` |  |
 | images.frontendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.frontendImage.repository | string | `"docker.io/langchain/langsmith-frontend"` |  |
-| images.frontendImage.tag | string | `"0.15.8"` |  |
+| images.frontendImage.tag | string | `"0.15.9"` |  |
 | images.hostBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.hostBackendImage.repository | string | `"docker.io/langchain/hosted-langserve-backend"` |  |
-| images.hostBackendImage.tag | string | `"0.15.8"` |  |
+| images.hostBackendImage.tag | string | `"0.15.9"` |  |
 | images.imagePullSecrets | list | `[]` | Secrets with credentials to pull images from a private registry. Specified as name: value. |
 | images.insightsAgentImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.insightsAgentImage.repository | string | `"docker.io/langchain/langsmith-clio"` |  |
-| images.insightsAgentImage.tag | string | `"0.15.8"` |  |
+| images.insightsAgentImage.tag | string | `"0.15.9"` |  |
 | images.operatorImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.operatorImage.repository | string | `"docker.io/langchain/langgraph-operator"` |  |
 | images.operatorImage.tag | string | `"0.1.47"` |  |
 | images.platformBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.platformBackendImage.repository | string | `"docker.io/langchain/langsmith-go-backend"` |  |
-| images.platformBackendImage.tag | string | `"0.15.8"` |  |
+| images.platformBackendImage.tag | string | `"0.15.9"` |  |
 | images.playgroundImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.playgroundImage.repository | string | `"docker.io/langchain/langsmith-playground"` |  |
-| images.playgroundImage.tag | string | `"0.15.8"` |  |
+| images.playgroundImage.tag | string | `"0.15.9"` |  |
 | images.pollyAgentImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.pollyAgentImage.repository | string | `"docker.io/langchain/langsmith-polly"` |  |
-| images.pollyAgentImage.tag | string | `"0.15.8"` |  |
+| images.pollyAgentImage.tag | string | `"0.15.9"` |  |
 | images.postgresImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.postgresImage.repository | string | `"docker.io/postgres"` |  |
 | images.postgresImage.tag | string | `"14.7"` |  |
@@ -522,7 +522,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | insights.apiServer.serviceAccount.create | bool | `true` |  |
 | insights.apiServer.serviceAccount.labels | object | `{}` |  |
 | insights.apiServer.serviceAccount.name | string | `""` |  |
-| insights.enabled | bool | `false` |  |
+| insights.enabled | bool | `true` |  |
 | insights.encryptionKey | string | `""` |  |
 | insights.namePrefix | string | `"standalone-insights"` |  |
 | insights.postgres.containerPort | int | `5432` |  |
@@ -718,7 +718,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | polly.apiServer.serviceAccount.labels | object | `{}` |  |
 | polly.apiServer.serviceAccount.name | string | `""` |  |
 | polly.enableTracing | bool | `true` |  |
-| polly.enabled | bool | `false` |  |
+| polly.enabled | bool | `true` |  |
 | polly.encryptionKey | string | `""` |  |
 | polly.namePrefix | string | `"standalone-polly"` |  |
 | polly.postgres.containerPort | int | `5432` |  |
@@ -912,15 +912,6 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | config.infoEndpointAuthRequired | bool | `false` | Require authentication on the GET /info endpoint. When enabled, unauthenticated requests to /info will receive a 401 and must supply a valid API key. The LangSmith SDK handles this automatically by retrying with credentials. Useful for deployments that must not expose instance configuration (version, feature flags, batch ingest config) to unauthenticated callers. |
 | config.initialOrgAdminEmail | string | `""` |  |
 | config.initialOrgName | string | `"Default"` | Initial org name to be provisioned. |
-| config.insights.agent.extraEnv | object | `{}` |  |
-| config.insights.agent.resources.cpu | int | `2` |  |
-| config.insights.agent.resources.cpuLimit | int | `4` |  |
-| config.insights.agent.resources.maxScale | int | `5` |  |
-| config.insights.agent.resources.memoryLimitMb | int | `8192` |  |
-| config.insights.agent.resources.memoryMb | int | `4096` |  |
-| config.insights.agent.resources.minScale | int | `1` |  |
-| config.insights.enabled | bool | `false` |  |
-| config.insights.encryptionKey | string | `""` |  |
 | config.langsmithLicenseKey | string | `""` |  |
 | config.logLevel | string | `"info"` |  |
 | config.oauth.enabled | bool | `false` |  |
@@ -936,15 +927,6 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | config.observability.tracing.useTls | bool | `true` |  |
 | config.orgAdminsInstallationUsageExportEnabled | bool | `false` | When true, any org admin can use the usage backfill export. |
 | config.personalOrgsDisabled | bool | `true` | Disable personal orgs. |
-| config.polly.agent.extraEnv | object | `{}` |  |
-| config.polly.agent.resources.cpu | int | `2` |  |
-| config.polly.agent.resources.cpuLimit | int | `4` |  |
-| config.polly.agent.resources.maxScale | int | `5` |  |
-| config.polly.agent.resources.memoryLimitMb | int | `8192` |  |
-| config.polly.agent.resources.memoryMb | int | `4096` |  |
-| config.polly.agent.resources.minScale | int | `1` |  |
-| config.polly.enabled | bool | `false` |  |
-| config.polly.encryptionKey | string | `""` |  |
 | config.security | object | `{"cors":{"allowedOrigins":"*","allowedOriginsRegex":"","alwaysAllowPathsRegex":""}}` | Security configuration for CORS, headers, and other security-related settings. These settings control cross-origin access and help protect against common web vulnerabilities. |
 | config.security.cors | object | `{"allowedOrigins":"*","allowedOriginsRegex":"","alwaysAllowPathsRegex":""}` | CORS (Cross-Origin Resource Sharing) configuration. Controls which origins can make requests to the LangSmith API. By default, CORS is permissive. For production deployments, you should restrict this. |
 | config.security.cors.allowedOrigins | string | `"*"` | Comma-separated list of allowed origins. Use "*" to allow all origins (not recommended for production). Example: "https://app.example.com,https://admin.example.com" If allowedOriginsRegex is set, this value is ignored. |

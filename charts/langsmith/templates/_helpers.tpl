@@ -469,7 +469,7 @@ Template containing common environment variables that are used by several servic
       name: {{ include "langsmith.secretsName" . }}
       key: agent_builder_encryption_key
 {{- end }}
-{{- if or .Values.config.insights.enabled .Values.insights.enabled }}
+{{- if .Values.insights.enabled }}
 - name: CLIO_ENCRYPTION_KEY
   valueFrom:
     secretKeyRef:
@@ -477,7 +477,7 @@ Template containing common environment variables that are used by several servic
       key: insights_encryption_key
       optional: false
 {{- end }}
-{{- if or .Values.config.polly.enabled .Values.polly.enabled }}
+{{- if .Values.polly.enabled }}
 - name: POLLY_ENCRYPTION_KEY
   valueFrom:
     secretKeyRef:
@@ -844,12 +844,6 @@ Extra env vars for polly api-server and queue pods.
 {{- if .Values.config.agentBuilder.enabled }}
 {{- $createProducts = append $createProducts "agent_builder" }}
 {{- end }}
-{{- if .Values.config.insights.enabled }}
-{{- $createProducts = append $createProducts "insights" }}
-{{- end }}
-{{- if .Values.config.polly.enabled }}
-{{- $createProducts = append $createProducts "smith_polly" }}
-{{- end }}
 {{ toYaml $createProducts }}
 {{- end -}}
 
@@ -858,12 +852,7 @@ Extra env vars for polly api-server and queue pods.
 {{- if not .Values.config.agentBuilder.enabled }}
 {{- $destroyProducts = append $destroyProducts "agent_builder" }}
 {{- end }}
-{{- if not .Values.config.insights.enabled }}
-{{- $destroyProducts = append $destroyProducts "insights" }}
-{{- end }}
-{{- if not .Values.config.polly.enabled }}
-{{- $destroyProducts = append $destroyProducts "smith_polly" }}
-{{- end }}
+{{- $destroyProducts = append $destroyProducts "insights" "smith_polly" }}
 {{ toYaml $destroyProducts }}
 {{- end -}}
 
