@@ -244,7 +244,7 @@ AWS Marketplace Helm template verification).
 {{- if and .Values.smithdb.compactionWorker.enabled (not .Values.smithdb.compaction.enabled) -}}
 {{- fail "smithdb.compaction.enabled must be true when smithdb.compactionWorker.enabled is true." -}}
 {{- end -}}
-{{- if and .Values.smithdb.compactionWorker.enabled .Values.smithdb.compactionWorker.maxConcurrentJobs (lt (int .Values.smithdb.compactionWorker.maxConcurrentJobs) 1) -}}
+{{- if and .Values.smithdb.compactionWorker.enabled (ne (toString .Values.smithdb.compactionWorker.maxConcurrentJobs) "") (lt (int .Values.smithdb.compactionWorker.maxConcurrentJobs) 1) -}}
 {{- fail "smithdb.compactionWorker.maxConcurrentJobs must be greater than 0 when set." -}}
 {{- end -}}
 {{- if and .Values.smithdb.langsmith.dualIngest.enabled (not .Values.smithdb.ingestion.enabled) -}}

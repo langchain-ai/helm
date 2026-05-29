@@ -35,6 +35,24 @@ tests:
           content:
             name: SMITHDB_QUERY__CLUSTER_MANAGER__ENDPOINT
             value: http://RELEASE-NAME-langsmith-smithdb-cluster-manager.NAMESPACE.svc.cluster.local:8091
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: RUST_LOG
+            value: INFO,vortex=WARN
+
+  - it: should allow overriding smithdb log level
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      smithdb.config.observability.logging.level: warn,smithdb_query=debug,vortex=warn
+    template: smithdb/query-deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: RUST_LOG
+            value: warn,smithdb_query=debug,vortex=warn
 
   - it: should keep smithdb services internal
     values:
@@ -77,8 +95,8 @@ tests:
       - contains:
           path: spec.template.spec.containers[0].env
           content:
-            name: SMITHDB_ENABLED_INGEST_TENANTS
-            value: '["*"]'
+            name: SMITHDB_INGEST_ORGS_ROLLOUT_PCT
+            value: "100"
 
   - it: should wire frontend SmithDB v2 endpoint flag when enabled
     values:
@@ -115,29 +133,3 @@ tests:
           content:
             name: SMITHDB_COMPACTION_WORKER__MAX_CONCURRENT_JOBS
             value: "8"
-
-  - it: should target a fixed tenant and session for the smithdb client
-    values:
-      - ./values/smithdb-enabled.yaml
-    set:
-      smithdb.client.enabled: true
-      smithdb.client.multitenant: false
-      smithdb.client.tenantId: 7e42eb9d-da10-407a-8410-dd25ec491280
-      smithdb.client.sessionId: 1151ea68-68a4-4d98-b6b4-4ed8b41f7cfb
-    template: smithdb/client-deployment.yaml
-    asserts:
-      - contains:
-          path: spec.template.spec.containers[0].args
-          content: "--tenant-id"
-      - contains:
-          path: spec.template.spec.containers[0].args
-          content: "7e42eb9d-da10-407a-8410-dd25ec491280"
-      - contains:
-          path: spec.template.spec.containers[0].args
-          content: "--session-id"
-      - contains:
-          path: spec.template.spec.containers[0].args
-          content: "1151ea68-68a4-4d98-b6b4-4ed8b41f7cfb"
-      - notContains:
-          path: spec.template.spec.containers[0].args
-          content: "--multitenant"

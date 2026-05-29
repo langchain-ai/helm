@@ -631,32 +631,11 @@ LangSmith application env vars for calling SmithDB.
 {{- $queryUrl := include "langsmith.smithdb.grpcServiceUrl" (dict "root" . "component" "query" "port" .Values.smithdb.query.service.port) -}}
 {{- $envVars = append $envVars (dict "name" "SMITHDB_QUERY_SERVICE_URL" "value" $queryUrl) -}}
 {{- $envVars = append $envVars (dict "name" "SMITHDB_MUTATIONS_SERVICE_URL" "value" $queryUrl) -}}
-{{- if .Values.smithdb.langsmith.setRunRulesServiceUrl }}
-{{- $envVars = append $envVars (dict "name" "SMITHDB_RUN_RULES_SERVICE_URL" "value" $queryUrl) -}}
-{{- end }}
-{{- if .Values.smithdb.langsmith.setStatsQueryServiceUrl }}
-{{- $envVars = append $envVars (dict "name" "SMITHDB_STATS_QUERY_SERVICE_URL" "value" $queryUrl) -}}
-{{- end }}
-{{- if .Values.smithdb.langsmith.queryServiceMaxCallRecvMsgSize }}
-{{- $envVars = append $envVars (dict "name" "SMITHDB_QUERY_SERVICE_MAX_CALL_RECV_MSG_SIZE" "value" .Values.smithdb.langsmith.queryServiceMaxCallRecvMsgSize) -}}
-{{- end }}
-{{- with .Values.smithdb.langsmith.queryShadowEnabledPct }}
-{{- $envVars = append $envVars (dict "name" "SMITHDB_QUERY_SHADOW_ENABLED_PCT" "value" .) -}}
-{{- end }}
 {{- end }}
 {{- if $dualIngestEnabled }}
 {{- $ingestionUrl := include "langsmith.smithdb.grpcServiceUrl" (dict "root" . "component" "ingestion" "port" .Values.smithdb.ingestion.service.port) -}}
 {{- $envVars = append $envVars (dict "name" "SMITHDB_INGESTION_SERVICE_URL" "value" $ingestionUrl) -}}
-{{- if .Values.smithdb.langsmith.ingestionServiceMaxCallSendMsgSize }}
-{{- $envVars = append $envVars (dict "name" "SMITHDB_INGESTION_SERVICE_MAX_CALL_SEND_MSG_SIZE" "value" .Values.smithdb.langsmith.ingestionServiceMaxCallSendMsgSize) -}}
-{{- end }}
-{{- $envVars = append $envVars (dict "name" "SMITHDB_INGEST_ORGS_ROLLOUT_PCT" "value" .Values.smithdb.langsmith.dualIngest.ingestOrgsRolloutPct) -}}
-{{- with .Values.smithdb.langsmith.dualIngest.ingestTenantIds }}
-{{- $envVars = append $envVars (dict "name" "SMITHDB_ENABLED_INGEST_TENANTS" "value" (. | toJson)) -}}
-{{- end }}
-{{- with .Values.smithdb.langsmith.dualIngest.ingestOrgIds }}
-{{- $envVars = append $envVars (dict "name" "SMITHDB_ENABLED_INGEST_ORGS" "value" (. | toJson)) -}}
-{{- end }}
+{{- $envVars = append $envVars (dict "name" "SMITHDB_INGEST_ORGS_ROLLOUT_PCT" "value" "100") -}}
 {{- end }}
 {{- if $clusterManagerEnabled }}
 {{- $clusterManagerUrl := include "langsmith.smithdb.grpcServiceUrl" (dict "root" . "component" "clusterManager" "port" .Values.smithdb.clusterManager.service.port) -}}
@@ -729,6 +708,7 @@ Shared SmithDB service env vars. Args: root, service, displayName.
 {{- $objectStoreType := lower (default "s3" $root.Values.smithdb.config.objectStore.type) -}}
 {{- $objectStoreRootFolder := default (printf "smithdb-%s" $root.Values.smithdb.config.env) $root.Values.smithdb.config.objectStore.rootFolder -}}
 {{- $tracingEnabled := $root.Values.smithdb.config.observability.tracing.enabled -}}
+{{- $logLevel := default "INFO,vortex=WARN" $root.Values.smithdb.config.observability.logging.level -}}
 - name: {{ $prefix }}__LOGGING__FORMAT
   value: {{ ternary "opentelemetry" "console" $tracingEnabled | quote }}
 - name: {{ $prefix }}__LOGGING__TRACING_ENABLED
@@ -815,7 +795,7 @@ Shared SmithDB service env vars. Args: root, service, displayName.
 - name: OTEL_SERVICE_NAME
   value: {{ $displayName | quote }}
 - name: RUST_LOG
-  value: "INFO,vortex=WARN"
+  value: {{ $logLevel | quote }}
 - name: NODE_NAME
   valueFrom:
     fieldRef:

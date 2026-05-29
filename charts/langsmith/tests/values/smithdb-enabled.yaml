@@ -22,8 +22,6 @@ smithdb:
   langsmith:
     dualIngest:
       enabled: true
-      ingestTenantIds:
-        - "*"
     frontend:
       useSmithDBEndpoints: true
     clusterManager:

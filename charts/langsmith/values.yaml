@@ -1203,6 +1203,9 @@ smithdb:
       port: "5432"
       useSsl: false
     observability:
+      logging:
+        # -- Optional SmithDB log filter. Empty uses the chart default: INFO,vortex=WARN.
+        level: ""
       tracing:
         enabled: false
         endpoint: ""
@@ -1226,12 +1229,6 @@ smithdb:
     dualIngest:
       # -- Enables LangSmith run ingestion to also write to SmithDB. Requires smithdb.enabled.
       enabled: false
-      # -- Percent of organizations selected for SmithDB dual ingestion.
-      ingestOrgsRolloutPct: "100"
-      # -- Tenant IDs that always dual ingest to SmithDB. Use ["*"] for all tenants.
-      ingestTenantIds: []
-      # -- Organization IDs that always dual ingest to SmithDB.
-      ingestOrgIds: []
     frontend:
       # -- Defaults the LangSmith UI to SmithDB endpoints for run queries. Requires smithdb.enabled.
       useSmithDBEndpoints: false
