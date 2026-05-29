@@ -176,7 +176,7 @@ clickhouse:
         cpu: 100m
         memory: 500Mi
 
-agentBuilderToolServer:
+fleetToolServer:
   enabled: true
   deployment:
     resources:
@@ -184,7 +184,7 @@ agentBuilderToolServer:
         cpu: 50m
         memory: 300Mi
 
-agentBuilderTriggerServer:
+fleetTriggerServer:
   enabled: true
   deployment:
     resources:

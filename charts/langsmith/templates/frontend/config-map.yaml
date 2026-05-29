@@ -320,25 +320,25 @@ data:
         }
     {{- end }}
 
-    {{- if and (or .Values.fleet.enabled .Values.config.agentBuilder.enabled) .Values.agentBuilderToolServer.enabled }}
+    {{- if and (or .Values.fleet.enabled .Values.config.agentBuilder.enabled) .Values.fleetToolServer.enabled }}
         location /{{ .Values.config.basePath }}/mcp {
             rewrite /{{ .Values.config.basePath }}/mcp/(.*) /$1  break;
             proxy_set_header Connection '';
             proxy_http_version 1.1;
             proxy_buffering off;
             proxy_cache off;
-            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.agentBuilderToolServer.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.agentBuilderToolServer.service.port }};
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.fleetToolServer.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.fleetToolServer.service.port }};
         }
     {{- end }}
 
-    {{- if and (or .Values.fleet.enabled .Values.config.agentBuilder.enabled) .Values.agentBuilderTriggerServer.enabled }}
+    {{- if and (or .Values.fleet.enabled .Values.config.agentBuilder.enabled) .Values.fleetTriggerServer.enabled }}
         location /{{ .Values.config.basePath }}/triggers {
             rewrite /{{ .Values.config.basePath }}/triggers/(.*) /v1/triggers/$1  break;
             proxy_set_header Connection '';
             proxy_http_version 1.1;
             proxy_buffering off;
             proxy_cache off;
-            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.agentBuilderTriggerServer.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.agentBuilderTriggerServer.service.port }};
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.fleetTriggerServer.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.fleetTriggerServer.service.port }};
         }
     {{- end }}
 
@@ -937,23 +937,23 @@ data:
         }
     {{- end }}
 
-    {{- if and (or .Values.fleet.enabled .Values.config.agentBuilder.enabled) .Values.agentBuilderToolServer.enabled }}
+    {{- if and (or .Values.fleet.enabled .Values.config.agentBuilder.enabled) .Values.fleetToolServer.enabled }}
         location /mcp {
             proxy_set_header Connection '';
             proxy_http_version 1.1;
             proxy_buffering off;
             proxy_cache off;
-            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.agentBuilderToolServer.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.agentBuilderToolServer.service.port }};
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.fleetToolServer.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.fleetToolServer.service.port }};
         }
     {{- end }}
 
-    {{- if and (or .Values.fleet.enabled .Values.config.agentBuilder.enabled) .Values.agentBuilderTriggerServer.enabled }}
+    {{- if and (or .Values.fleet.enabled .Values.config.agentBuilder.enabled) .Values.fleetTriggerServer.enabled }}
         location /v1/triggers {
             proxy_set_header Connection '';
             proxy_http_version 1.1;
             proxy_buffering off;
             proxy_cache off;
-            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.agentBuilderTriggerServer.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.agentBuilderTriggerServer.service.port }};
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.fleetTriggerServer.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.fleetTriggerServer.service.port }};
         }
     {{- end }}
 
