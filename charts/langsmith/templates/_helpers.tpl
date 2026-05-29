@@ -852,7 +852,8 @@ Extra env vars for polly api-server and queue pods.
 {{- if not .Values.config.agentBuilder.enabled }}
 {{- $destroyProducts = append $destroyProducts "agent_builder" }}
 {{- end }}
-{{- $destroyProducts = append $destroyProducts "insights" "smith_polly" }}
+{{- $destroyProducts = append $destroyProducts "insights" }}
+{{- $destroyProducts = append $destroyProducts "smith_polly" }}
 {{ toYaml $destroyProducts }}
 {{- end -}}
 
