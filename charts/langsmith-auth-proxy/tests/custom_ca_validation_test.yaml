@@ -1,0 +1,28 @@
+suite: custom CA validation
+templates:
+  - validate.yaml
+tests:
+  - it: should fail when only customCa.secretName is set
+    set:
+      customCa.secretName: "my-ca-secret"
+    asserts:
+      - failedTemplate:
+          errorMessage: customCa.secretName and customCa.secretKey must either both be set or both be empty.
+
+  - it: should fail when only customCa.secretKey is set
+    set:
+      customCa.secretKey: "ca.crt"
+    asserts:
+      - failedTemplate:
+          errorMessage: customCa.secretName and customCa.secretKey must either both be set or both be empty.
+
+  - it: should not fail when both customCa values are empty
+    asserts:
+      - notFailedTemplate: {}
+
+  - it: should not fail when both customCa values are set
+    set:
+      customCa.secretName: "my-ca-secret"
+      customCa.secretKey: "ca.crt"
+    asserts:
+      - notFailedTemplate: {}

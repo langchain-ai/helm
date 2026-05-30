@@ -65,6 +65,71 @@ Control which phases are sent to the transformer via `processingMode`:
 
 `BUFFERED` mode buffers the entire body before sending — simplest for transformations but uses more memory for large payloads. `STREAMED` sends chunks incrementally (complex to implement). Use `NONE` to skip body processing entirely.
 
+## Custom CA support
+
+Use `customCa.secretName` and `customCa.secretKey` to mount a CA bundle that Envoy should trust for outbound HTTPS connections.
+
+This is needed when HTTPS peers present certificates signed by a private or internal CA that Envoy does not trust by default. The bundle is applied to:
+- The main upstream cluster defined by `authProxy.upstream` (when the scheme is `https://`)
+- The remote JWKS cluster when `authProxy.jwksUri` uses `https://`
+
+### Secret example
+
+```yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: corporate-ca-bundle
+type: Opaque
+stringData:
+  ca.crt: |
+    -----BEGIN CERTIFICATE-----
+    ...
+    -----END CERTIFICATE-----
+```
+
+```yaml
+customCa:
+  secretName: corporate-ca-bundle
+  secretKey: ca.crt
+```
+
+### Important notes
+
+- Provide the full CA bundle Envoy should trust, not just a single private root. If your upstream or JWKS endpoint chains to public roots as well, include those certificates in the bundle.
+- `customCa.secretName` and `customCa.secretKey` must either both be set or both be left empty.
+- To rotate the CA bundle, publish a new Secret (e.g. `corporate-ca-bundle-v2`) and update `customCa.secretName`. Helm will update the pod template and trigger a rolling restart. If you update a Secret in-place without changing its name, restart the pod manually — Envoy does not watch for Secret changes at runtime.
+- Required when using `mtls` — see [mTLS support](#mtls-support) below.
+
+## mTLS support
+
+Use `mtls.secretName`, `mtls.certKey`, and `mtls.keyKey` to present a client certificate when connecting to the upstream. This is required when the upstream enforces mutual TLS.
+
+`customCa` **must** also be configured — without a trusted CA bundle Envoy sends client certificates but does not verify the upstream server's identity, which is not mutual authentication. The chart will fail validation if `mtls` is set without `customCa`.
+
+### Secret example
+
+```yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: upstream-client-cert
+type: kubernetes.io/tls
+data:
+  tls.crt: <base64-encoded-client-certificate>
+  tls.key: <base64-encoded-client-private-key>
+```
+
+```yaml
+customCa:
+  secretName: corporate-ca-bundle
+  secretKey: ca.crt
+mtls:
+  secretName: upstream-client-cert
+  certKey: tls.crt
+  keyKey: tls.key
+```
+
 ## Values
 
 | Key | Type | Default | Description |

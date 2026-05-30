@@ -153,6 +153,106 @@ Usage: include "authProxy.shouldUseProxy" (dict "hostname" $hostname "noProxy" .
 {{- if $result.bypass -}}false{{- else -}}true{{- end -}}
 {{- end -}}
 
+{{/*
+Normalized custom CA values and paths.
+*/}}
+{{- define "authProxy.customCaSecretName" -}}
+{{- .Values.customCa.secretName | default "" | trim -}}
+{{- end -}}
+
+{{- define "authProxy.customCaSecretKey" -}}
+{{- .Values.customCa.secretKey | default "" | trim -}}
+{{- end -}}
+
+{{- define "authProxy.customCaEnabled" -}}
+{{- $secretName := include "authProxy.customCaSecretName" . -}}
+{{- $secretKey := include "authProxy.customCaSecretKey" . -}}
+{{- if and $secretName $secretKey -}}true{{- end -}}
+{{- end -}}
+
+{{- define "authProxy.customCaMountDir" -}}
+/etc/langsmith/custom-ca
+{{- end -}}
+
+{{- define "authProxy.customCaFileName" -}}
+ca.crt
+{{- end -}}
+
+{{- define "authProxy.customCaFilePath" -}}
+{{- printf "%s/%s" (include "authProxy.customCaMountDir" .) (include "authProxy.customCaFileName" .) -}}
+{{- end -}}
+
+{{/*
+Client certificate helpers for mTLS with upstream services.
+*/}}
+{{- define "authProxy.mtlsSecretName" -}}
+{{- .Values.mtls.secretName | default "" | trim -}}
+{{- end -}}
+
+{{- define "authProxy.mtlsCertKey" -}}
+{{- .Values.mtls.certKey | default "" | trim -}}
+{{- end -}}
+
+{{- define "authProxy.mtlsKeyKey" -}}
+{{- .Values.mtls.keyKey | default "" | trim -}}
+{{- end -}}
+
+{{- define "authProxy.mtlsEnabled" -}}
+{{- $secretName := include "authProxy.mtlsSecretName" . -}}
+{{- $certKey := include "authProxy.mtlsCertKey" . -}}
+{{- $keyKey := include "authProxy.mtlsKeyKey" . -}}
+{{- if and $secretName $certKey $keyKey -}}true{{- end -}}
+{{- end -}}
+
+{{- define "authProxy.mtlsMountDir" -}}
+/etc/langsmith/client-cert
+{{- end -}}
+
+{{- define "authProxy.mtlsCertFileName" -}}
+tls.crt
+{{- end -}}
+
+{{- define "authProxy.mtlsKeyFileName" -}}
+tls.key
+{{- end -}}
+
+{{- define "authProxy.mtlsFilePath" -}}
+{{- printf "%s/%s" (include "authProxy.mtlsMountDir" .) (include "authProxy.mtlsCertFileName" .) -}}
+{{- end -}}
+
+{{- define "authProxy.mtlsKeyFilePath" -}}
+{{- printf "%s/%s" (include "authProxy.mtlsMountDir" .) (include "authProxy.mtlsKeyFileName" .) -}}
+{{- end -}}
+
+{{/*
+Renders the Envoy UpstreamTlsContext extras for custom CA and/or client certificate.
+Combines validation_context and tls_certificates under a single common_tls_context
+block to avoid duplicate YAML keys.
+Usage: include "authProxy.envoyUpstreamTlsContextExtras" . | nindent N
+*/}}
+{{- define "authProxy.envoyUpstreamTlsContextExtras" -}}
+{{- $customCa := include "authProxy.customCaEnabled" . -}}
+{{- $mtls := include "authProxy.mtlsEnabled" . -}}
+{{- if $customCa -}}
+auto_sni_san_validation: true
+{{- end -}}
+{{- if or $customCa $mtls }}
+common_tls_context:
+  {{- if $customCa }}
+  validation_context:
+    trusted_ca:
+      filename: {{ include "authProxy.customCaFilePath" . }}
+  {{- end }}
+  {{- if $mtls }}
+  tls_certificates:
+    - certificate_chain:
+        filename: {{ include "authProxy.mtlsFilePath" . }}
+      private_key:
+        filename: {{ include "authProxy.mtlsKeyFilePath" . }}
+  {{- end }}
+{{- end -}}
+{{- end -}}
+
 {{- define "authProxy.serviceAccountName" -}}
 {{- if .Values.authProxy.serviceAccount.create -}}
     {{ default (printf "%s-%s" (include "authProxy.fullname" .) .Values.authProxy.name) .Values.authProxy.serviceAccount.name | trunc 63 | trimSuffix "-" }}
