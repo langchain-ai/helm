@@ -22,6 +22,13 @@ tests:
       - equal:
           path: metadata.name
           value: RELEASE-NAME-langsmith-smithdb-query
+      - equal:
+          path: spec.strategy
+          value:
+            type: RollingUpdate
+            rollingUpdate:
+              maxSurge: 1
+              maxUnavailable: 0
       - contains:
           path: spec.template.spec.containers[0].env
           content:
@@ -118,6 +125,19 @@ tests:
     asserts:
       - hasDocuments:
           count: 0
+
+  - it: should render zero-downtime rollout strategy for smithdb ingestion
+    values:
+      - ./values/smithdb-enabled.yaml
+    template: smithdb/ingestion-deployment.yaml
+    asserts:
+      - equal:
+          path: spec.strategy
+          value:
+            type: RollingUpdate
+            rollingUpdate:
+              maxSurge: 1
+              maxUnavailable: 0
 
   - it: should expose compaction worker concurrency as a value
     values:

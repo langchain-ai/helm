@@ -1243,6 +1243,11 @@ smithdb:
     containerGrpcPort: 8080
     deployment:
       replicas: 1
+      strategy:
+        type: RollingUpdate
+        rollingUpdate:
+          maxSurge: 1
+          maxUnavailable: 0
       labels: {}
       annotations: {}
       podSecurityContext:
@@ -1296,6 +1301,11 @@ smithdb:
     probeType: grpc
     deployment:
       replicas: 1
+      strategy:
+        type: RollingUpdate
+        rollingUpdate:
+          maxSurge: 1
+          maxUnavailable: 0
       labels: {}
       annotations: {}
       podSecurityContext:

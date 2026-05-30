@@ -23,6 +23,8 @@ metadata:
     {{- end }}
 spec:
   replicas: {{ .Values.smithdb.query.deployment.replicas }}
+  strategy:
+    {{- toYaml .Values.smithdb.query.deployment.strategy | nindent 4 }}
   selector:
     matchLabels:
       {{- include "langsmith.selectorLabels" . | nindent 6 }}
