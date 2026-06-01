@@ -1,0 +1,20 @@
+{{- if .Values.config.auth.enabled }}
+{{- $ns := .Values.namespace | default .Release.Namespace }}
+{{- $authSecret := lookup "v1" "Secret" $ns (include "missionControl.authSecretName" .) }}
+{{- if not $authSecret }}
+{{- $setupTokenName := include "missionControl.setupTokenSecretName" . }}
+╔══════════════════════════════════════════════════════════╗
+║         MISSION CONTROL - FIRST-RUN SETUP TOKEN          ║
+╠══════════════════════════════════════════════════════════╣
+║  Run the command below to retrieve your setup token,     ║
+║  then open Mission Control and paste it into the setup   ║
+║  form to create your admin credentials.                  ║
+║                                                          ║
+║  The token is deleted automatically once setup is done.  ║
+╚══════════════════════════════════════════════════════════╝
+
+  kubectl get secret {{ $setupTokenName }} -n {{ $ns }} \
+    -o jsonpath='{.data.token}' | base64 -d && echo
+
+{{- end }}
+{{- end }}

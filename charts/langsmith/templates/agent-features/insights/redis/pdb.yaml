@@ -1,6 +1,6 @@
 {{- if .Values.insights.enabled }}
 {{- if .Values.insights.redis.pdb.enabled }}
-{{- $componentName := include "langsmith.insights.redisComponentName" . -}}
+{{- $componentName := include "langsmith.agentFeatures.componentName" (dict "root" . "product" "insights" "component" "redis") -}}
 apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:

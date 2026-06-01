@@ -1,6 +1,6 @@
 {{- if .Values.insights.enabled }}
 {{- if .Values.insights.postgres.pdb.enabled }}
-{{- $componentName := include "langsmith.insights.postgresComponentName" . -}}
+{{- $componentName := include "langsmith.agentFeatures.componentName" (dict "root" . "product" "insights" "component" "postgres") -}}
 apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:

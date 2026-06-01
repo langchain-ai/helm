@@ -1,6 +1,6 @@
 {{- if .Values.polly.enabled }}
 {{- if not .Values.polly.postgres.external.enabled }}
-{{- $componentName := include "langsmith.polly.postgresComponentName" . -}}
+{{- $componentName := include "langsmith.agentFeatures.componentName" (dict "root" . "product" "polly" "component" "postgres") -}}
 apiVersion: v1
 kind: Service
 metadata:

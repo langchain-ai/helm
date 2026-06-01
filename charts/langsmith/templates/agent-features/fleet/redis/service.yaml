@@ -1,6 +1,6 @@
 {{- if .Values.fleet.enabled }}
 {{- if not .Values.fleet.redis.external.enabled }}
-{{- $componentName := include "langsmith.fleet.redisComponentName" . -}}
+{{- $componentName := include "langsmith.agentFeatures.componentName" (dict "root" . "product" "fleet" "component" "redis") -}}
 apiVersion: v1
 kind: Service
 metadata:

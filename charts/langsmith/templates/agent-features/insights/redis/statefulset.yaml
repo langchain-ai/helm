@@ -1,6 +1,6 @@
 {{- if .Values.insights.enabled }}
 {{- if not .Values.insights.redis.external.enabled }}
-{{- $componentName := include "langsmith.insights.redisComponentName" . -}}
+{{- $componentName := include "langsmith.agentFeatures.componentName" (dict "root" . "product" "insights" "component" "redis") -}}
 {{- $volumes := concat .Values.commonVolumes .Values.insights.redis.statefulSet.volumes -}}
 {{- $volumeMounts := concat .Values.commonVolumeMounts .Values.insights.redis.statefulSet.volumeMounts -}}
 apiVersion: apps/v1

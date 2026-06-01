@@ -40,23 +40,23 @@ images:
   aceBackendImage:
     repository: "docker.io/langchain/langsmith-ace-backend"
     pullPolicy: IfNotPresent
-    tag: "0.15.2rc3"
+    tag: "0.15.10"
   backendImage:
     repository: "docker.io/langchain/langsmith-backend"
     pullPolicy: IfNotPresent
-    tag: "0.15.2rc3"
+    tag: "0.15.10"
   insightsAgentImage:
     repository: "docker.io/langchain/langsmith-clio"
     pullPolicy: IfNotPresent
-    tag: "0.15.2rc3"
+    tag: "0.15.10"
   frontendImage:
     repository: "docker.io/langchain/langsmith-frontend"
     pullPolicy: IfNotPresent
-    tag: "0.15.2rc3"
+    tag: "0.15.10"
   hostBackendImage:
     repository: "docker.io/langchain/hosted-langserve-backend"
     pullPolicy: IfNotPresent
-    tag: "0.15.2rc3"
+    tag: "0.15.10"
   operatorImage:
     repository: "docker.io/langchain/langgraph-operator"
     pullPolicy: IfNotPresent
@@ -64,11 +64,11 @@ images:
   platformBackendImage:
     repository: "docker.io/langchain/langsmith-go-backend"
     pullPolicy: IfNotPresent
-    tag: "0.15.2rc3"
+    tag: "0.15.10"
   playgroundImage:
     repository: "docker.io/langchain/langsmith-playground"
     pullPolicy: IfNotPresent
-    tag: "0.15.2rc3"
+    tag: "0.15.10"
   # For production environments, we strongly recommend connecting to a managed PostgreSQL instance instead of using the one provided by the chart.
   # Docs: https://docs.langchain.com/langsmith/self-host-external-postgres
   postgresImage:
@@ -85,22 +85,27 @@ images:
     repository: "docker.io/clickhouse/clickhouse-server"
     pullPolicy: Always
     tag: "25.12"
-  agentBuilderToolServerImage:
+  fleetToolServerImage:
     repository: "docker.io/langchain/agent-builder-tool-server"
     pullPolicy: IfNotPresent
-    tag: "0.15.2rc3"
-  agentBuilderTriggerServerImage:
+    tag: "0.15.10"
+  fleetTriggerServerImage:
     repository: "docker.io/langchain/agent-builder-trigger-server"
     pullPolicy: IfNotPresent
-    tag: "0.15.2rc3"
+    tag: "0.15.10"
   agentBuilderImage:
     repository: "docker.io/langchain/agent-builder-deep-agent"
     pullPolicy: IfNotPresent
-    tag: "0.15.2rc3"
+    tag: "0.15.10"
   pollyAgentImage:
     repository: "docker.io/langchain/langsmith-polly"
     pullPolicy: IfNotPresent
-    tag: "0.15.2rc3"
+    tag: "0.15.10"
+  # Optional: only mirror/pull when presidioAnalyzer.enabled is true
+  presidioAnalyzerImage:
+    repository: "mcr.microsoft.com/presidio-analyzer"
+    pullPolicy: IfNotPresent
+    tag: "2.2.354"
 
 ingress:
   enabled: false
@@ -367,7 +372,7 @@ fleet:
       enabled: false
       minAvailable: 1
 insights:
-  enabled: false
+  enabled: true
   namePrefix: "standalone-insights"
   encryptionKey: ""
   apiServer:
@@ -599,7 +604,7 @@ insights:
       minAvailable: 1
 
 polly:
-  enabled: false
+  enabled: true
   namePrefix: "standalone-polly"
   enableTracing: true
   encryptionKey: ""
@@ -844,37 +849,9 @@ config:
     # Disable this if there is restricted access to the external facing ingress endpoint for your agent(s) from inside of your kubernetes cluster.
     ingressHealthCheckEnabled: true
 
-  # Insights (Clio) configuration - AI-powered insights agent
-  # Requires config.deployment.enabled to be true
-  insights:
-    enabled: false
-    # Fernet encryption key for Insights. Required when enabled.
-    # Generate with: python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
-    encryptionKey: ""
-    agent:
-      resources:
-        cpu: 2
-        cpuLimit: 4
-        memoryMb: 4096
-        memoryLimitMb: 8192
-        minScale: 1
-        maxScale: 5
-      extraEnv: {}
-
-  # Polly configuration
-  polly:
-    enabled: false
-    encryptionKey: ""
-    agent:
-      resources:
-        cpu: 2
-        cpuLimit: 4
-        memoryMb: 4096
-        memoryLimitMb: 8192
-        minScale: 1
-        maxScale: 5
-      extraEnv: {}
-
+  # DEPRECATED: use the top-level fleet block (fleet/fleetToolServer/
+  # fleetTriggerServer) instead. This bundled-agent path is managed by
+  # backend.agentBootstrap and is being phased out.
   # Agent Builder configuration - UI for creating and managing agents
   # Requires config.deployment.enabled to be true
   agentBuilder:
@@ -1405,7 +1382,12 @@ backend:
     volumeMounts: []
     ttlSecondsAfterFinished: 10
 
-  # Deploys bundled agents (Agent Builder, Insights) via LangSmith Deployments API
+  # DEPRECATED: the agentBootstrap flow (and the config.agentBuilder /
+  # config.insights / config.polly bundled-agent blocks it manages) is being
+  # phased out. New deployments should use the top-level fleet, insights, and
+  # polly blocks instead, which run as standard Helm-managed Deployments.
+  # These keys remain for backwards compatibility and may be removed in a
+  # future chart version.
   agentBootstrap:
     enabled: false
     randomizeName: false
@@ -2737,8 +2719,8 @@ redis:
     annotations: {}
     automountServiceAccountToken: true
 
-# Agent Builder Tool Server - provides MCP tool execution capabilities
-agentBuilderToolServer:
+# Fleet Tool Server - provides MCP tool execution capabilities
+fleetToolServer:
   enabled: true
   name: "fleet-tool-server"
   containerPort: 1989
@@ -2814,9 +2796,9 @@ agentBuilderToolServer:
     annotations: {}
     automountServiceAccountToken: true
 
-# Agent Builder Trigger Server - handles cron, Slack, and Gmail triggers
+# Fleet Trigger Server - handles cron, Slack, and Gmail triggers
 # NOTE: Currently only supports a single replica to prevent duplicate trigger executions
-agentBuilderTriggerServer:
+fleetTriggerServer:
   enabled: true
   name: "fleet-trigger-server"
   containerPort: 1990
@@ -2872,6 +2854,145 @@ agentBuilderTriggerServer:
     annotations: {}
     loadBalancerSourceRanges: []
     loadBalancerIP: ""
+  serviceAccount:
+    create: true
+    name: ""
+    labels: {}
+    annotations: {}
+    automountServiceAccountToken: true
+
+# Agent Gateway - proxy for agent traffic with guardrails (NER redaction via Presidio)
+# Optional, disabled by default. Not required for core LangSmith functionality. Private beta.
+agentGateway:
+  enabled: false
+  name: "agent-gateway"
+  containerPort: 8083
+  deployment:
+    replicas: 1
+    labels: {}
+    annotations: {}
+    podSecurityContext: {}
+    securityContext: {}
+    lifecycle: {}
+    resources:
+      limits:
+        cpu: 500m
+        memory: 512Mi
+      requests:
+        cpu: 100m
+        memory: 256Mi
+    command:
+      - "./agent_gateway_entrypoint.sh"
+    startupProbe:
+      httpGet:
+        path: /health
+        port: 8083
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 3
+    livenessProbe:
+      httpGet:
+        path: /health
+        port: 8083
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 3
+    readinessProbe:
+      httpGet:
+        path: /health
+        port: 8083
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 3
+    extraContainerConfig: {}
+    extraEnv: []
+    sidecars: []
+    initContainers: []
+    nodeSelector: {}
+    tolerations: []
+    affinity: {}
+    volumes: []
+    volumeMounts: []
+    terminationGracePeriodSeconds: 30
+  autoscaling:
+    enabled: false
+    createHpa: true
+    minReplicas: 1
+    maxReplicas: 5
+    targetCPUUtilizationPercentage: 50
+  service:
+    type: ClusterIP
+    port: 8083
+    labels: {}
+    annotations: {}
+  serviceAccount:
+    create: true
+    name: ""
+    labels: {}
+    annotations: {}
+    automountServiceAccountToken: true
+
+# Presidio Analyzer - Microsoft Presidio NER service for PII detection, used by the Agent Gateway
+# Optional, disabled by default. Not required for core LangSmith functionality. Private beta.
+presidioAnalyzer:
+  enabled: false
+  name: "presidio-analyzer"
+  containerPort: 3000
+  deployment:
+    replicas: 1
+    labels: {}
+    annotations: {}
+    podSecurityContext: {}
+    securityContext: {}
+    lifecycle: {}
+    resources:
+      limits:
+        cpu: 1
+        memory: 4Gi
+      requests:
+        cpu: 250m
+        memory: 2Gi
+    startupProbe:
+      httpGet:
+        path: /health
+        port: 3000
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 3
+    livenessProbe:
+      httpGet:
+        path: /health
+        port: 3000
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 3
+    readinessProbe:
+      httpGet:
+        path: /health
+        port: 3000
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 3
+    extraContainerConfig: {}
+    extraEnv: []
+    sidecars: []
+    initContainers: []
+    nodeSelector: {}
+    tolerations: []
+    affinity: {}
+    volumes: []
+    volumeMounts: []
+    terminationGracePeriodSeconds: 30
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 80
+  service:
+    type: ClusterIP
+    port: 3000
+    labels: {}
+    annotations: {}
   serviceAccount:
     create: true
     name: ""

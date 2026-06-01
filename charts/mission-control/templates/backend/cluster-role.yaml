@@ -1,0 +1,269 @@
+{{- if .Values.backend.serviceAccount.create }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "missionControl.fullname" . }}
+  labels:
+    {{- include "missionControl.labels" . | nindent 4 }}
+  {{- with (include "missionControl.annotations" .) }}
+  annotations:
+    {{- . | nindent 4 }}
+  {{- end }}
+rules:
+  # ── Read-only: monitoring, health, diagnostics ────────────────────────────
+  - apiGroups: [""]
+    resources:
+      - pods
+      - pods/log
+      - services
+      - endpoints
+      - configmaps
+      - serviceaccounts
+      - persistentvolumeclaims
+      - resourcequotas
+      - events
+      - namespaces
+      - nodes
+    verbs: ["get", "list", "watch"]
+
+  - apiGroups: ["storage.k8s.io"]
+    resources: ["storageclasses"]
+    verbs: ["get", "list", "watch"]
+
+  - apiGroups: ["metrics.k8s.io"]
+    resources: ["pods", "nodes"]
+    verbs: ["get", "list", "watch"]
+
+  - apiGroups: ["apps"]
+    resources:
+      - deployments
+      - deployments/status
+      - statefulsets
+      - replicasets
+      - daemonsets
+    verbs: ["get", "list", "watch"]
+
+  - apiGroups: ["batch"]
+    resources: ["jobs", "cronjobs"]
+    verbs: ["get", "list", "watch"]
+
+  - apiGroups: ["networking.k8s.io"]
+    resources: ["ingresses", "ingressclasses"]
+    verbs: ["get", "list", "watch"]
+
+  - apiGroups: ["autoscaling"]
+    resources: ["horizontalpodautoscalers"]
+    verbs: ["get", "list", "watch"]
+
+  - apiGroups: ["rbac.authorization.k8s.io"]
+    resources:
+      - roles
+      - rolebindings
+      - clusterroles
+      - clusterrolebindings
+    verbs: ["get", "list", "watch"]
+
+  - apiGroups: ["apiextensions.k8s.io"]
+    resources: ["customresourcedefinitions"]
+    verbs: ["get", "list", "watch"]
+
+  - apiGroups: ["apps.langchain.ai"]
+    resources: ["lgps", "lgps/finalizers", "lgps/status"]
+    verbs: ["get", "list", "watch"]
+
+  - apiGroups: ["keda.sh"]
+    resources: ["scaledobjects"]
+    verbs: ["get", "list", "watch"]
+
+  - apiGroups: ["gateway.networking.k8s.io"]
+    resources: ["httproutes"]
+    verbs: ["get", "list", "watch"]
+
+  - apiGroups: ["networking.istio.io"]
+    resources: ["virtualservices"]
+    verbs: ["get", "list", "watch"]
+
+  - apiGroups: ["coordination.k8s.io"]
+    resources: ["leases"]
+    verbs: ["get", "list", "watch"]
+
+  # ── Secrets: read all; write scoped to named MC-managed secrets ───────────
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["get", "list"]
+
+  # Build the list of named secrets that require write access based on which
+  # features are enabled. When all write features are disabled, the create and
+  # update/delete rules are omitted entirely - zero secret write verbs.
+  # The deploy feature requires unscoped secrets:update,delete (see deploy block
+  # below) - listing per-release MC secret names here only matters when deploy
+  # is OFF and configSave is ON (read-only console + draft persistence).
+  {{- $secretNames := list }}
+  {{- $deployProducts := list "langgraph-cloud" "langgraph-dataplane" "langsmith-auth-proxy" "langsmith-observability" "mission-control" }}
+  {{- if .Values.config.features.configSave }}
+  {{- $secretNames = append $secretNames (include "missionControl.draftSecretName" .) }}
+  {{- range $deployProducts }}
+  {{- $secretNames = append $secretNames (printf "mission-control-draft-%s" .) }}
+  {{- end }}
+  {{- end }}
+  {{- if .Values.config.features.deploy }}
+  {{- $secretNames = append $secretNames (include "missionControl.deployedSecretName" .) }}
+  {{- $secretNames = append $secretNames (include "missionControl.backupSecretName" .) }}
+  {{- $secretNames = append $secretNames (include "missionControl.historySecretName" .) }}
+  {{- range $deployProducts }}
+  {{- $secretNames = append $secretNames (printf "mission-control-deployed-%s" .) }}
+  {{- $secretNames = append $secretNames (printf "mission-control-backup-%s" .) }}
+  {{- $secretNames = append $secretNames (printf "mission-control-history-%s" .) }}
+  {{- end }}
+  {{- end }}
+  {{- if .Values.config.features.alerts }}
+  {{- $secretNames = append $secretNames (include "missionControl.alertsConfigSecretName" .) }}
+  {{- $secretNames = append $secretNames (include "missionControl.alertsKeySecretName" .) }}
+  {{- $secretNames = append $secretNames (include "missionControl.alertsLogSecretName" .) }}
+  {{- end }}
+  {{- if .Values.config.features.valuesOverride }}
+  {{- $secretNames = append $secretNames "mission-control-values-overrides" }}
+  {{- end }}
+
+  {{- if $secretNames }}
+  # Kubernetes RBAC does not support resourceNames on "create" - namespace-wide
+  # is unavoidable. Scoping is enforced at the application layer.
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["create"]
+
+  # update/delete scoped to the exact set of secrets Mission Control manages.
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["update", "delete"]
+    resourceNames:
+      {{- range $secretNames }}
+      - {{ . }}
+      {{- end }}
+  {{- end }}
+
+  # ── Auth setup flow ────────────────────────────────────────────────────────
+  # When auth is enabled the backend may need to create the auth Secret on
+  # first run (setup mode) and then restart itself to load the new credentials.
+  # create cannot be scoped by resourceName (K8s limitation); the application
+  # layer only ever creates the single auth secret during setup.
+  {{- if .Values.config.auth.enabled }}
+  {{- if not $secretNames }}
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["create"]
+  {{- end }}
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["update"]
+    resourceNames:
+      - {{ include "missionControl.authSecretName" . }}
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["delete"]
+    resourceNames:
+      - {{ include "missionControl.setupTokenSecretName" . }}
+  - apiGroups: ["apps"]
+    resources: ["statefulsets"]
+    verbs: ["patch"]
+    resourceNames:
+      - {{ include "missionControl.backendWorkloadName" . }}
+  {{- end }}
+
+  # ── Fix Issue button (disable via features.fixIssue=false) ────────────────
+  # Grants pods:delete to restart pods stuck in CreateContainerConfigError.
+  # Disable if your security policy prohibits pod deletion by tooling.
+  {{- if .Values.config.features.fixIssue }}
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["delete"]
+  {{- end }}
+
+  # ── Adopt button (disable via features.adopt=false) ───────────────────────
+  # Patches Helm ownership annotations onto existing resources so helm upgrade
+  # can manage resources that were created outside the release.
+  # patch on deployments/statefulsets is equivalent to update - disable if
+  # your policy requires workload immutability enforced by RBAC.
+  {{- if .Values.config.features.adopt }}
+  - apiGroups: [""]
+    resources: ["secrets", "configmaps", "serviceaccounts"]
+    verbs: ["patch"]
+  - apiGroups: ["apps"]
+    resources: ["deployments", "statefulsets"]
+    verbs: ["patch"]
+  {{- end }}
+
+  # ── Deploy feature (disable via features.deploy=false - on by default) ────
+  # Required by `helm upgrade --install <release> <chart>` executed from the
+  # UI. The chart name flows from a server-side allowlist (CHART_REGISTRY),
+  # not from user input, so unknown charts cannot be installed via this verb
+  # set.
+  #
+  # Why some verbs are unscoped here even though the MC-managed secret list
+  # above is scoped by name:
+  #   • Helm itself stores release state in Secrets named
+  #     `sh.helm.release.v1.<release>.v<N>` and prunes old revisions, so it
+  #     needs cluster-wide secrets:create,update,delete to function.
+  #   • Charts in the langchain repo create Secrets/ConfigMaps with names
+  #     chosen by the chart author (e.g. `langsmith-config`); these cannot
+  #     be enumerated at chart-install time.
+  # The trade-off: enabling deploy grants Mission Control broad write rights
+  # on secrets/configmaps in the cluster. Set features.deploy=false in
+  # compliance-sensitive installs to revert to the scoped, read-mostly mode.
+  {{- if .Values.config.features.deploy }}
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["watch", "update", "delete"]
+  - apiGroups: [""]
+    resources: ["events"]
+    verbs: ["create", "patch"]
+  - apiGroups: [""]
+    resources: ["configmaps"]
+    verbs: ["create", "update", "patch", "delete"]
+  - apiGroups: [""]
+    resources: ["services", "persistentvolumeclaims", "serviceaccounts"]
+    verbs: ["create", "update", "patch", "delete"]
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["create", "update", "patch", "delete"]
+  - apiGroups: [""]
+    resources: ["namespaces"]
+    verbs: ["create"]
+  - apiGroups: ["apps"]
+    resources: ["deployments", "statefulsets", "daemonsets"]
+    verbs: ["create", "update", "patch", "delete"]
+  - apiGroups: ["batch"]
+    resources: ["jobs", "cronjobs"]
+    verbs: ["create", "update", "patch", "delete"]
+  - apiGroups: ["networking.k8s.io"]
+    resources: ["ingresses", "networkpolicies"]
+    verbs: ["create", "update", "patch", "delete"]
+  - apiGroups: ["policy"]
+    resources: ["poddisruptionbudgets"]
+    verbs: ["create", "update", "patch", "delete"]
+  - apiGroups: ["autoscaling"]
+    resources: ["horizontalpodautoscalers"]
+    verbs: ["create", "update", "patch", "delete"]
+  - apiGroups: ["rbac.authorization.k8s.io"]
+    resources: ["roles", "rolebindings", "clusterroles", "clusterrolebindings"]
+    verbs: ["create", "update", "patch", "delete"]
+  - apiGroups: ["apiextensions.k8s.io"]
+    resources: ["customresourcedefinitions"]
+    verbs: ["create", "update", "patch", "delete"]
+  - apiGroups: ["apps.langchain.ai"]
+    resources: ["lgps", "lgps/finalizers", "lgps/status"]
+    verbs: ["create", "update", "patch", "delete"]
+  - apiGroups: ["keda.sh"]
+    resources: ["scaledobjects"]
+    verbs: ["create", "update", "patch", "delete"]
+  - apiGroups: ["gateway.networking.k8s.io"]
+    resources: ["httproutes"]
+    verbs: ["create", "update", "patch", "delete"]
+  - apiGroups: ["networking.istio.io"]
+    resources: ["virtualservices"]
+    verbs: ["create", "update", "patch", "delete"]
+  - apiGroups: ["coordination.k8s.io"]
+    resources: ["leases"]
+    verbs: ["create", "update", "patch", "delete"]
+  {{- end }}
+{{- end }}

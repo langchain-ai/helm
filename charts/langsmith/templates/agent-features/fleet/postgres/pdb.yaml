@@ -1,6 +1,6 @@
 {{- if .Values.fleet.enabled }}
 {{- if .Values.fleet.postgres.pdb.enabled }}
-{{- $componentName := include "langsmith.fleet.postgresComponentName" . -}}
+{{- $componentName := include "langsmith.agentFeatures.componentName" (dict "root" . "product" "fleet" "component" "postgres") -}}
 apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
