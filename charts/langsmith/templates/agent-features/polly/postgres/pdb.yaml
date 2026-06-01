@@ -13,10 +13,10 @@ spec:
     matchLabels:
       {{- include "langsmith.selectorLabels" . | nindent 6 }}
       app.kubernetes.io/component: {{ $componentName }}
-  {{- if .Values.polly.postgres.pdb.minAvailable }}
+  {{- if hasKey .Values.polly.postgres.pdb "minAvailable" }}
   minAvailable: {{ .Values.polly.postgres.pdb.minAvailable }}
   {{- end }}
-  {{- if .Values.polly.postgres.pdb.maxUnavailable }}
+  {{- if hasKey .Values.polly.postgres.pdb "maxUnavailable" }}
   maxUnavailable: {{ .Values.polly.postgres.pdb.maxUnavailable }}
   {{- end }}
 {{- end }}

@@ -19,10 +19,10 @@ spec:
     matchLabels:
       {{- include "langsmith.selectorLabels" . | nindent 6 }}
       app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-{{ .Values.aceBackend.name }}
-  {{- if .Values.aceBackend.pdb.minAvailable }}
+  {{- if hasKey .Values.aceBackend.pdb "minAvailable" }}
   minAvailable: {{ .Values.aceBackend.pdb.minAvailable }}
   {{- end }}
-  {{- if .Values.aceBackend.pdb.maxUnavailable }}
+  {{- if hasKey .Values.aceBackend.pdb "maxUnavailable" }}
   maxUnavailable: {{ .Values.aceBackend.pdb.maxUnavailable }}
   {{- end }}
 {{- end }}

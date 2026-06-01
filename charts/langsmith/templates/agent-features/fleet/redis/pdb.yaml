@@ -13,10 +13,10 @@ spec:
     matchLabels:
       {{- include "langsmith.selectorLabels" . | nindent 6 }}
       app.kubernetes.io/component: {{ $componentName }}
-  {{- if .Values.fleet.redis.pdb.minAvailable }}
+  {{- if hasKey .Values.fleet.redis.pdb "minAvailable" }}
   minAvailable: {{ .Values.fleet.redis.pdb.minAvailable }}
   {{- end }}
-  {{- if .Values.fleet.redis.pdb.maxUnavailable }}
+  {{- if hasKey .Values.fleet.redis.pdb "maxUnavailable" }}
   maxUnavailable: {{ .Values.fleet.redis.pdb.maxUnavailable }}
   {{- end }}
 {{- end }}
