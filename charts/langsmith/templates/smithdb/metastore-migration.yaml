@@ -49,54 +49,10 @@ spec:
       serviceAccountName: {{ include "langsmith.smithdb.serviceAccountName" (dict "root" . "component" "metastoreMigration") }}
       containers:
         - name: {{ .Values.smithdb.metastoreMigration.name }}
+          {{- with .Values.smithdb.metastoreMigration.command }}
           command:
-            - "/bin/sh"
-            - "-ec"
-          args:
-            - |
-              required_vars="DATABASE_HOST DATABASE_PORT DATABASE_USERNAME DATABASE_PASSWORD DATABASE_NAME"
-              for var_name in ${required_vars}; do
-                var_value="$(printenv "${var_name}" || true)"
-                if [ -z "${var_value}" ]; then
-                  echo "Missing required env var: ${var_name}" >&2
-                  exit 1
-                fi
-
-                cleaned_value="$(printf '%s' "${var_value}" | tr -d '\n')"
-                if [ "${cleaned_value}" != "${var_value}" ]; then
-                  echo "Invalid value for ${var_name}: newlines are not supported" >&2
-                  exit 1
-                fi
-              done
-
-              use_tls="false"
-              if [ "${DATABASE_USE_SSL}" = "true" ]; then
-                use_tls="true"
-              fi
-
-              toml_escape() {
-                printf '%s' "$1" | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g'
-              }
-
-              umask 077
-              tmp_config="$(mktemp)"
-              cleanup() {
-                rm -f "${tmp_config}"
-              }
-              trap cleanup EXIT
-
-              {
-                printf '%s\n' '[main]'
-                printf 'db_type = "%s"\n' 'Postgres'
-                printf 'db_host = "%s"\n' "$(toml_escape "${DATABASE_HOST}")"
-                printf 'db_port = "%s"\n' "$(toml_escape "${DATABASE_PORT}")"
-                printf 'db_user = "%s"\n' "$(toml_escape "${DATABASE_USERNAME}")"
-                printf 'db_pass = "%s"\n' "$(toml_escape "${DATABASE_PASSWORD}")"
-                printf 'db_name = "%s"\n' "$(toml_escape "${DATABASE_NAME}")"
-                printf 'use_tls = %s\n' "${use_tls}"
-              } > "${tmp_config}"
-
-              refinery migrate -c "${tmp_config}" -p /app/migrations/metastore
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           env:
             {{- toYaml $envVars | nindent 12 }}
           image: {{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "smithdbMetastoreMigrationImage") | quote }}

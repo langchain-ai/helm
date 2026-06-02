@@ -1539,6 +1539,8 @@ smithdb:
     enabled: false
     name: "metastore-migration"
     useSsl: false
+    command:
+      - "./smithdb-metastore-migrate-entrypoint.sh"
     job:
       ttlSecondsAfterFinished: 3600
       backoffLimit: 0
