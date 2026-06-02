@@ -78,7 +78,7 @@ spec:
       {{- end }}
       securityContext:
         {{- toYaml .Values.smithdb.client.deployment.podSecurityContext | nindent 8 }}
-      serviceAccountName: {{ include "langsmith.smithdb.serviceAccountName" (dict "root" . "component" "client") }}
+      serviceAccountName: {{ include "langsmith.smithdb.serviceAccountName" (dict "root" .) }}
       {{- include "langsmith.dnsConfig" . | nindent 6 }}
       {{- with .Values.smithdb.client.deployment.initContainers }}
       initContainers:
@@ -102,7 +102,7 @@ spec:
             - name: http
               containerPort: {{ .Values.smithdb.client.containerPort }}
               protocol: TCP
-          {{- include "langsmith.smithdb.httpProbes" . | nindent 10 }}
+          {{- include "langsmith.smithdb.probes" (dict "override" .Values.smithdb.client.deployment.probes "kind" "http") | nindent 10 }}
           resources:
             {{- toYaml .Values.smithdb.client.deployment.resources | nindent 12 }}
           securityContext:

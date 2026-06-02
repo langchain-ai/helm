@@ -500,9 +500,6 @@ Common SmithDB labels.
 */}}
 {{- define "langsmith.smithdb.labels" -}}
 {{ include "langsmith.labels" . }}
-{{- with .Values.smithdb.commonLabels }}
-{{ toYaml . }}
-{{- end }}
 {{- end }}
 
 {{/*
@@ -510,9 +507,6 @@ Common SmithDB annotations.
 */}}
 {{- define "langsmith.smithdb.annotations" -}}
 {{ include "langsmith.annotations" . }}
-{{- with .Values.smithdb.commonAnnotations }}
-{{ toYaml . }}
-{{- end }}
 {{- end }}
 
 {{/*
@@ -527,17 +521,15 @@ Args: root, component.
 {{- end }}
 
 {{/*
-Name of a SmithDB component service account.
-Args: root, component.
+Name of the shared SmithDB service account.
+Args: root.
 */}}
 {{- define "langsmith.smithdb.serviceAccountName" -}}
 {{- $root := .root -}}
-{{- $component := .component -}}
-{{- $componentValues := index $root.Values.smithdb $component -}}
-{{- if $componentValues.serviceAccount.create -}}
-{{- default (include "langsmith.smithdb.componentName" (dict "root" $root "component" $component)) $componentValues.serviceAccount.name | trunc 63 | trimSuffix "-" }}
+{{- if $root.Values.smithdb.serviceAccount.create -}}
+{{- default (include "langsmith.smithdb.fullname" $root) $root.Values.smithdb.serviceAccount.name | trunc 63 | trimSuffix "-" }}
 {{- else -}}
-{{- default "default" $componentValues.serviceAccount.name }}
+{{- default "default" $root.Values.smithdb.serviceAccount.name }}
 {{- end -}}
 {{- end }}
 
@@ -561,7 +553,7 @@ Args: root, component, port.
 {{- end }}
 
 {{/*
-SmithDB HTTP health probes.
+SmithDB HTTP probes.
 */}}
 {{- define "langsmith.smithdb.httpProbes" -}}
 startupProbe:
@@ -588,7 +580,7 @@ readinessProbe:
 {{- end }}
 
 {{/*
-SmithDB gRPC health probes. Args: port.
+SmithDB gRPC probes. Args: port.
 */}}
 {{- define "langsmith.smithdb.grpcProbes" -}}
 startupProbe:
@@ -609,6 +601,20 @@ readinessProbe:
   failureThreshold: 6
   periodSeconds: 10
   timeoutSeconds: 1
+{{- end }}
+
+{{/*
+SmithDB probes for a component.
+Args: override (map, may be empty), kind ("http"|"grpc"), grpcPort (for grpc).
+*/}}
+{{- define "langsmith.smithdb.probes" -}}
+{{- if .override -}}
+{{- toYaml .override }}
+{{- else if eq .kind "grpc" -}}
+{{- include "langsmith.smithdb.grpcProbes" (dict "port" .grpcPort) }}
+{{- else -}}
+{{- include "langsmith.smithdb.httpProbes" . }}
+{{- end -}}
 {{- end }}
 
 {{/*
@@ -668,33 +674,18 @@ SmithDB cluster-manager client env vars. Args: root, service.
 {{- end }}
 
 {{/*
-SmithDB metastore migration env vars.
+SmithDB component env vars.
+Args: root, service, displayName, withClusterManager (bool).
 */}}
-{{- define "langsmith.smithdb.metastoreMigrationEnv" -}}
-- name: DATABASE_HOST
-  valueFrom:
-    secretKeyRef:
-      name: {{ .Values.smithdb.config.existingSecretName }}
-      key: {{ .Values.smithdb.config.metastore.hostSecretKey }}
-- name: DATABASE_PORT
-  value: {{ .Values.smithdb.config.metastore.port | quote }}
-- name: DATABASE_NAME
-  valueFrom:
-    secretKeyRef:
-      name: {{ .Values.smithdb.config.existingSecretName }}
-      key: {{ .Values.smithdb.config.metastore.databaseSecretKey }}
-- name: DATABASE_USERNAME
-  valueFrom:
-    secretKeyRef:
-      name: {{ .Values.smithdb.config.existingSecretName }}
-      key: {{ .Values.smithdb.config.metastore.usernameSecretKey }}
-- name: DATABASE_PASSWORD
-  valueFrom:
-    secretKeyRef:
-      name: {{ .Values.smithdb.config.existingSecretName }}
-      key: {{ .Values.smithdb.config.metastore.passwordSecretKey }}
-- name: DATABASE_USE_SSL
-  value: {{ .Values.smithdb.metastoreMigration.useSsl | quote }}
+{{- define "langsmith.smithdb.componentEnv" -}}
+{{- $root := .root -}}
+{{- $service := .service -}}
+{{- $envVars := include "langsmith.smithdb.serviceEnv" (dict "root" $root "service" $service "displayName" .displayName) | fromYamlArray -}}
+{{- if and .withClusterManager $root.Values.smithdb.clusterManager.enabled }}
+{{- $envVars = concat $envVars (include "langsmith.smithdb.clusterManagerClientEnv" (dict "root" $root "service" $service) | fromYamlArray) -}}
+{{- end }}
+{{- $envVars = concat $envVars $root.Values.commonEnv $root.Values.smithdb.commonEnv -}}
+{{- toYaml $envVars }}
 {{- end }}
 
 {{/*
@@ -706,7 +697,7 @@ Shared SmithDB service env vars. Args: root, service, displayName.
 {{- $displayName := .displayName -}}
 {{- $prefix := printf "SMITHDB_%s" (upper $service) -}}
 {{- $objectStoreType := lower (default "s3" $root.Values.smithdb.config.objectStore.type) -}}
-{{- $objectStoreRootFolder := default (printf "smithdb-%s" $root.Values.smithdb.config.env) $root.Values.smithdb.config.objectStore.rootFolder -}}
+{{- $objectStoreRootFolder := "smithdb" -}}
 {{- $tracingEnabled := $root.Values.smithdb.config.observability.tracing.enabled -}}
 {{- $logLevel := default "INFO,vortex=WARN" $root.Values.smithdb.config.observability.logging.level -}}
 - name: {{ $prefix }}__LOGGING__FORMAT
@@ -789,8 +780,9 @@ Shared SmithDB service env vars. Args: root, service, displayName.
 {{- if $tracingEnabled }}
 - name: OTEL_EXPORTER_OTLP_ENDPOINT
   value: {{ $root.Values.smithdb.config.observability.tracing.endpoint | quote }}
+{{- /* SmithDB exports OTLP over gRPC. */}}
 - name: OTEL_EXPORTER_OTLP_PROTOCOL
-  value: {{ $root.Values.smithdb.config.observability.tracing.protocol | quote }}
+  value: "grpc"
 {{- end }}
 - name: OTEL_SERVICE_NAME
   value: {{ $displayName | quote }}

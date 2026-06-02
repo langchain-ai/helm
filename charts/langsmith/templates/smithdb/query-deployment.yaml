@@ -1,9 +1,5 @@
 {{- if and .Values.smithdb.enabled .Values.smithdb.query.enabled }}
-{{- $clusterManagerEnv := list -}}
-{{- if .Values.smithdb.clusterManager.enabled }}
-{{- $clusterManagerEnv = (include "langsmith.smithdb.clusterManagerClientEnv" (dict "root" . "service" "QUERY") | fromYamlArray) -}}
-{{- end }}
-{{- $envVars := concat (include "langsmith.smithdb.serviceEnv" (dict "root" . "service" "QUERY" "displayName" "smithdb-query") | fromYamlArray) $clusterManagerEnv .Values.smithdb.query.deployment.extraEnv -}}
+{{- $envVars := concat (include "langsmith.smithdb.componentEnv" (dict "root" . "service" "QUERY" "displayName" "smithdb-query" "withClusterManager" true) | fromYamlArray) .Values.smithdb.query.deployment.extraEnv -}}
 {{- include "langsmith.detectDuplicates" $envVars -}}
 apiVersion: apps/v1
 kind: Deployment
@@ -72,7 +68,7 @@ spec:
             - name: grpc
               containerPort: {{ .Values.smithdb.query.containerGrpcPort }}
               protocol: TCP
-          {{- include "langsmith.smithdb.httpProbes" . | nindent 10 }}
+          {{- include "langsmith.smithdb.probes" (dict "override" .Values.smithdb.query.deployment.probes "kind" "http") | nindent 10 }}
           resources:
             {{- toYaml .Values.smithdb.query.deployment.resources | nindent 12 }}
           securityContext:

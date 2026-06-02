@@ -7,7 +7,7 @@
 {{- with .Values.smithdb.compactionWorker.maxConcurrentJobs }}
 {{- $workerEnv = append $workerEnv (dict "name" "SMITHDB_COMPACTION_WORKER__MAX_CONCURRENT_JOBS" "value" (. | toString)) -}}
 {{- end }}
-{{- $envVars := concat (include "langsmith.smithdb.serviceEnv" (dict "root" . "service" "COMPACTION_WORKER" "displayName" "smithdb-compaction-worker") | fromYamlArray) $workerEnv .Values.smithdb.compactionWorker.deployment.extraEnv -}}
+{{- $envVars := concat (include "langsmith.smithdb.componentEnv" (dict "root" . "service" "COMPACTION_WORKER" "displayName" "smithdb-compaction-worker") | fromYamlArray) $workerEnv .Values.smithdb.compactionWorker.deployment.extraEnv -}}
 {{- include "langsmith.detectDuplicates" $envVars -}}
 apiVersion: apps/v1
 kind: Deployment
@@ -72,7 +72,7 @@ spec:
             - name: http
               containerPort: {{ .Values.smithdb.compactionWorker.containerPort }}
               protocol: TCP
-          {{- include "langsmith.smithdb.httpProbes" . | nindent 10 }}
+          {{- include "langsmith.smithdb.probes" (dict "override" .Values.smithdb.compactionWorker.deployment.probes "kind" "http") | nindent 10 }}
           resources:
             {{- toYaml .Values.smithdb.compactionWorker.deployment.resources | nindent 12 }}
           securityContext:

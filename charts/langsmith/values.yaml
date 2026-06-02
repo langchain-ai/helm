@@ -1187,12 +1187,18 @@ smithdb:
   enabled: false
   # -- Name segment used for SmithDB resources.
   name: "smithdb"
-  commonLabels: {}
-  commonAnnotations: {}
+  # -- Shared ServiceAccount for SmithDB workloads.
+  serviceAccount:
+    create: true
+    # -- Defaults to <release>-<smithdb.name>.
+    name: ""
+    labels: {}
+    annotations: {}
+    automountServiceAccountToken: true
+  # -- Extra env vars for every SmithDB workload.
+  commonEnv: []
 
   config:
-    # -- Environment name used for SmithDB object-store defaults and labels.
-    env: "self-hosted"
     # -- Existing secret containing SmithDB metastore credentials.
     existingSecretName: ""
     metastore:
@@ -1208,14 +1214,12 @@ smithdb:
         level: ""
       tracing:
         enabled: false
+        # -- gRPC OTLP collector endpoint. Protocol is not configurable.
         endpoint: ""
-        protocol: "grpc"
     objectStore:
       # -- Supported values: s3, gcs.
       type: "s3"
       bucket: ""
-      # -- Defaults to smithdb-<smithdb.config.env> when empty.
-      rootFolder: ""
       s3:
         # -- Defaults to the SmithDB S3 client default when empty.
         region: ""
@@ -1261,6 +1265,8 @@ smithdb:
           drop:
             - ALL
       resources: {}
+      # -- Optional probe override. Empty uses chart defaults.
+      probes: {}
       command:
         - "./smithdb-query"
       extraEnv:
@@ -1281,12 +1287,6 @@ smithdb:
       port: 8080
       labels: {}
       annotations: {}
-    serviceAccount:
-      create: true
-      name: ""
-      labels: {}
-      annotations: {}
-      automountServiceAccountToken: true
     pdb:
       enabled: false
       minAvailable: 1
@@ -1319,6 +1319,8 @@ smithdb:
           drop:
             - ALL
       resources: {}
+      # -- Optional probe override. Empty uses chart defaults.
+      probes: {}
       command:
         - "./smithdb-ingestion"
       terminationGracePeriodSeconds: 300
@@ -1340,12 +1342,6 @@ smithdb:
       port: 8082
       labels: {}
       annotations: {}
-    serviceAccount:
-      create: true
-      name: ""
-      labels: {}
-      annotations: {}
-      automountServiceAccountToken: true
     pdb:
       enabled: false
       minAvailable: 1
@@ -1371,6 +1367,8 @@ smithdb:
           drop:
             - ALL
       resources: {}
+      # -- Optional probe override. Empty uses chart defaults.
+      probes: {}
       command:
         - "./smithdb-compaction"
         - "scheduler"
@@ -1392,12 +1390,11 @@ smithdb:
       port: 8071
       labels: {}
       annotations: {}
-    serviceAccount:
-      create: true
-      name: ""
+    pdb:
+      enabled: false
+      minAvailable: 1
       labels: {}
       annotations: {}
-      automountServiceAccountToken: true
 
   compactionWorker:
     enabled: false
@@ -1420,6 +1417,8 @@ smithdb:
             - ALL
       terminationGracePeriodSeconds: 120
       resources: {}
+      # -- Optional probe override. Empty uses chart defaults.
+      probes: {}
       command:
         - "./smithdb-compaction"
         - "worker"
@@ -1470,6 +1469,8 @@ smithdb:
           drop:
             - ALL
       resources: {}
+      # -- Optional probe override. Empty uses chart defaults.
+      probes: {}
       command:
         - "./smithdb-client"
       extraArgs: []
@@ -1483,12 +1484,6 @@ smithdb:
       volumes: []
       volumeMounts: []
       initContainers: []
-    serviceAccount:
-      create: true
-      name: ""
-      labels: {}
-      annotations: {}
-      automountServiceAccountToken: true
 
   clusterManager:
     enabled: false
@@ -1509,6 +1504,8 @@ smithdb:
           drop:
             - ALL
       resources: {}
+      # -- Optional probe override. Empty uses chart defaults.
+      probes: {}
       command: []
       extraEnv:
         - name: SMITHDB_CLUSTERMANAGER__HTTP_PORT
@@ -1528,12 +1525,7 @@ smithdb:
       port: 8091
       labels: {}
       annotations: {}
-    serviceAccount:
-      create: true
-      name: ""
-      labels: {}
-      annotations: {}
-      automountServiceAccountToken: true
+    pdb: {}
 
   metastoreMigration:
     enabled: false
@@ -1563,12 +1555,6 @@ smithdb:
       nodeSelector: {}
       tolerations: []
       affinity: {}
-    serviceAccount:
-      create: true
-      name: ""
-      labels: {}
-      annotations: {}
-      automountServiceAccountToken: true
 
 backend:
   name: "backend"

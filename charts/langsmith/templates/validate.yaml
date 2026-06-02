@@ -256,40 +256,6 @@ AWS Marketplace Helm template verification).
 {{- if and .Values.smithdb.langsmith.clusterManager.enabled (not .Values.smithdb.clusterManager.enabled) -}}
 {{- fail "smithdb.clusterManager.enabled must be true when smithdb.langsmith.clusterManager.enabled is true." -}}
 {{- end -}}
-{{- if and .Values.smithdb.client.enabled .Values.smithdb.client.useClusterManager (not .Values.smithdb.clusterManager.enabled) -}}
-{{- fail "smithdb.clusterManager.enabled must be true when smithdb.client.useClusterManager is true." -}}
-{{- end -}}
-{{- if .Values.smithdb.client.enabled -}}
-{{- if not .Values.smithdb.query.enabled -}}
-{{- fail "smithdb.query.enabled must be true when smithdb.client.enabled is true." -}}
-{{- end -}}
-{{- if not .Values.smithdb.ingestion.enabled -}}
-{{- fail "smithdb.ingestion.enabled must be true when smithdb.client.enabled is true." -}}
-{{- end -}}
-{{- if not .Values.smithdb.client.multitenant -}}
-{{- if not .Values.smithdb.client.tenantId -}}
-{{- fail "smithdb.client.tenantId is required when smithdb.client.enabled is true and smithdb.client.multitenant is false." -}}
-{{- end -}}
-{{- if not .Values.smithdb.client.sessionId -}}
-{{- fail "smithdb.client.sessionId is required when smithdb.client.enabled is true and smithdb.client.multitenant is false." -}}
-{{- end -}}
-{{- if not (regexMatch "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$" .Values.smithdb.client.tenantId) -}}
-{{- fail "smithdb.client.tenantId must be a valid UUID when set." -}}
-{{- end -}}
-{{- if not (regexMatch "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$" .Values.smithdb.client.sessionId) -}}
-{{- fail "smithdb.client.sessionId must be a valid UUID when set." -}}
-{{- end -}}
-{{- end -}}
-{{- if lt (int .Values.smithdb.client.queryQps) 1 -}}
-{{- fail "smithdb.client.queryQps must be greater than 0 when smithdb.client.enabled is true." -}}
-{{- end -}}
-{{- if lt (int .Values.smithdb.client.ingestionQps) 1 -}}
-{{- fail "smithdb.client.ingestionQps must be greater than 0 when smithdb.client.enabled is true." -}}
-{{- end -}}
-{{- if empty .Values.smithdb.client.queries -}}
-{{- fail "smithdb.client.queries must include at least one query when smithdb.client.enabled is true." -}}
-{{- end -}}
-{{- end -}}
 {{- end -}}
 
 {{- /* Validate agent builder configuration */ -}}

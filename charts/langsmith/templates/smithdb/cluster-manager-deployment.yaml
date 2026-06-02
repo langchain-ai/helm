@@ -1,5 +1,5 @@
 {{- if and .Values.smithdb.enabled .Values.smithdb.clusterManager.enabled }}
-{{- $envVars := .Values.smithdb.clusterManager.deployment.extraEnv -}}
+{{- $envVars := concat .Values.commonEnv .Values.smithdb.commonEnv .Values.smithdb.clusterManager.deployment.extraEnv -}}
 {{- include "langsmith.detectDuplicates" $envVars -}}
 apiVersion: apps/v1
 kind: Deployment
@@ -66,7 +66,7 @@ spec:
             - name: grpc
               containerPort: {{ .Values.smithdb.clusterManager.containerGrpcPort }}
               protocol: TCP
-          {{- include "langsmith.smithdb.httpProbes" . | nindent 10 }}
+          {{- include "langsmith.smithdb.probes" (dict "override" .Values.smithdb.clusterManager.deployment.probes "kind" "http") | nindent 10 }}
           resources:
             {{- toYaml .Values.smithdb.clusterManager.deployment.resources | nindent 12 }}
           securityContext:

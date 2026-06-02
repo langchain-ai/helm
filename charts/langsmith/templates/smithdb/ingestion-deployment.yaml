@@ -1,9 +1,5 @@
 {{- if and .Values.smithdb.enabled .Values.smithdb.ingestion.enabled }}
-{{- $clusterManagerEnv := list -}}
-{{- if .Values.smithdb.clusterManager.enabled }}
-{{- $clusterManagerEnv = (include "langsmith.smithdb.clusterManagerClientEnv" (dict "root" . "service" "INGESTION") | fromYamlArray) -}}
-{{- end }}
-{{- $envVars := concat (include "langsmith.smithdb.serviceEnv" (dict "root" . "service" "INGESTION" "displayName" "smithdb-ingestion") | fromYamlArray) $clusterManagerEnv .Values.smithdb.ingestion.deployment.extraEnv -}}
+{{- $envVars := concat (include "langsmith.smithdb.componentEnv" (dict "root" . "service" "INGESTION" "displayName" "smithdb-ingestion" "withClusterManager" true) | fromYamlArray) .Values.smithdb.ingestion.deployment.extraEnv -}}
 {{- include "langsmith.detectDuplicates" $envVars -}}
 apiVersion: apps/v1
 kind: Deployment
@@ -73,11 +69,8 @@ spec:
             - name: grpc
               containerPort: {{ .Values.smithdb.ingestion.containerGrpcPort }}
               protocol: TCP
-          {{- if eq (default "grpc" .Values.smithdb.ingestion.probeType) "grpc" }}
-          {{- include "langsmith.smithdb.grpcProbes" (dict "port" .Values.smithdb.ingestion.containerGrpcPort) | nindent 10 }}
-          {{- else }}
-          {{- include "langsmith.smithdb.httpProbes" . | nindent 10 }}
-          {{- end }}
+          {{- $ingestionProbeKind := ternary "grpc" "http" (eq (default "grpc" .Values.smithdb.ingestion.probeType) "grpc") -}}
+          {{- include "langsmith.smithdb.probes" (dict "override" .Values.smithdb.ingestion.deployment.probes "kind" $ingestionProbeKind "grpcPort" .Values.smithdb.ingestion.containerGrpcPort) | nindent 10 }}
           resources:
             {{- toYaml .Values.smithdb.ingestion.deployment.resources | nindent 12 }}
           securityContext:

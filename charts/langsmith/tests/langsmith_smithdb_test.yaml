@@ -15,7 +15,7 @@ templates:
   - smithdb/cluster-manager-deployment.yaml
   - smithdb/client-deployment.yaml
   - smithdb/services.yaml
-  - smithdb/service-accounts.yaml
+  - smithdb/service-account.yaml
   - smithdb/metastore-migration.yaml
 tests:
   - it: should render smithdb workloads when enabled

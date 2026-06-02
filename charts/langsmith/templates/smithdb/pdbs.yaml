@@ -1,5 +1,5 @@
 {{- if .Values.smithdb.enabled }}
-{{- range $component := list "query" "ingestion" }}
+{{- range $component := list "query" "ingestion" "compaction" "clusterManager" }}
 {{- $componentValues := index $.Values.smithdb $component }}
 {{- if and $componentValues.enabled $componentValues.pdb.enabled }}
 ---
