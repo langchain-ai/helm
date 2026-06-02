@@ -2,6 +2,12 @@ suite: test smithdb integration
 templates:
   - backend/deployment.yaml
   - frontend/deployment.yaml
+  - config-map.yaml
+  - secrets.yaml
+  - redis/secrets.yaml
+  - postgres/secrets.yaml
+  - clickhouse/secrets.yaml
+  - frontend/config-map.yaml
   - smithdb/query-deployment.yaml
   - smithdb/ingestion-deployment.yaml
   - smithdb/compaction-deployment.yaml
