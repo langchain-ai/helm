@@ -12,10 +12,10 @@ spec:
     matchLabels:
       {{- include "langsmith.selectorLabels" . | nindent 6 }}
       app.kubernetes.io/component: {{ include "langsmith.agentFeatures.fullname" (dict "root" . "product" "fleet") }}-{{ .Values.fleet.queue.name }}
-  {{- if .Values.fleet.queue.pdb.minAvailable }}
+  {{- if hasKey .Values.fleet.queue.pdb "minAvailable" }}
   minAvailable: {{ .Values.fleet.queue.pdb.minAvailable }}
   {{- end }}
-  {{- if .Values.fleet.queue.pdb.maxUnavailable }}
+  {{- if hasKey .Values.fleet.queue.pdb "maxUnavailable" }}
   maxUnavailable: {{ .Values.fleet.queue.pdb.maxUnavailable }}
   {{- end }}
 {{- end }}

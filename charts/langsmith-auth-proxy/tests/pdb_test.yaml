@@ -1,0 +1,38 @@
+suite: PDB minAvailable/maxUnavailable rendering
+templates:
+  - auth-proxy/pdb.yaml
+values:
+  - common-values.yaml
+tests:
+  - it: renders default minAvailable of 1 when nothing is overridden
+    set:
+      authProxy.pdb.enabled: true
+    asserts:
+      - equal:
+          path: spec.minAvailable
+          value: 1
+      - notExists:
+          path: spec.maxUnavailable
+
+  - it: renders minAvailable when explicitly set to 0
+    set:
+      authProxy.pdb.enabled: true
+      authProxy.pdb.minAvailable: 0
+    asserts:
+      - equal:
+          path: spec.minAvailable
+          value: 0
+      - notExists:
+          path: spec.maxUnavailable
+
+  - it: renders maxUnavailable set to 0 when minAvailable is removed
+    set:
+      authProxy.pdb.enabled: true
+      authProxy.pdb.minAvailable: null
+      authProxy.pdb.maxUnavailable: 0
+    asserts:
+      - equal:
+          path: spec.maxUnavailable
+          value: 0
+      - notExists:
+          path: spec.minAvailable
