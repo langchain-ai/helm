@@ -1,6 +1,13 @@
 {{- if and .Values.smithdb.enabled .Values.smithdb.client.enabled }}
 {{- $queryUrl := include "langsmith.smithdb.httpServiceUrl" (dict "root" . "component" "query" "port" .Values.smithdb.query.service.port) -}}
 {{- $ingestionUrl := include "langsmith.smithdb.httpServiceUrl" (dict "root" . "component" "ingestion" "port" .Values.smithdb.ingestion.service.port) -}}
+{{- $mode := .Values.smithdb.client.mode | default "ingest" -}}
+{{- if not (has $mode (list "ingest" "mixed")) }}
+{{- fail (printf "smithdb.client.mode must be \"ingest\" or \"mixed\", got %q" $mode) }}
+{{- end }}
+{{- if and (not .Values.smithdb.client.multitenant) (or (not .Values.smithdb.client.tenantId) (not .Values.smithdb.client.sessionId)) }}
+{{- fail "smithdb.client.tenantId and smithdb.client.sessionId are required when smithdb.client.multitenant is false." }}
+{{- end }}
 {{- $clientArgs := list
   "--query-url" $queryUrl
   "--ingest-url" $ingestionUrl
@@ -9,17 +16,17 @@
 {{- if and .Values.smithdb.client.useClusterManager .Values.smithdb.clusterManager.enabled }}
 {{- $clientArgs = concat $clientArgs (list "--clustermanager-url" (include "langsmith.smithdb.clusterManagerHttpEndpoint" .)) -}}
 {{- end }}
-{{- $clientArgs = concat $clientArgs (list
-  "mixed"
-) -}}
+{{- $clientArgs = concat $clientArgs (list $mode) -}}
 {{- with .Values.smithdb.client.tenantId }}
 {{- $clientArgs = concat $clientArgs (list "--tenant-id" (. | toString)) -}}
 {{- end }}
 {{- with .Values.smithdb.client.sessionId }}
 {{- $clientArgs = concat $clientArgs (list "--session-id" (. | toString)) -}}
 {{- end }}
+{{- if eq $mode "mixed" }}
+{{- $clientArgs = concat $clientArgs (list "--query-rate" (.Values.smithdb.client.queryQps | toString)) -}}
+{{- end }}
 {{- $clientArgs = concat $clientArgs (list
-  "--query-rate" (.Values.smithdb.client.queryQps | toString)
   "--ingest-rate" (.Values.smithdb.client.ingestionQps | toString)
   "--batch-size" (.Values.smithdb.client.batchSize | toString)
   "--max-concurrent" (.Values.smithdb.client.maxConcurrent | toString)
@@ -34,7 +41,10 @@
 {{- if .Values.smithdb.client.multitenant }}
 {{- $clientArgs = concat $clientArgs (list "--multitenant" "--num-tenants" (.Values.smithdb.client.numTenants | toString)) -}}
 {{- end }}
-{{- $clientArgs = concat $clientArgs .Values.smithdb.client.deployment.extraArgs .Values.smithdb.client.queries -}}
+{{- $clientArgs = concat $clientArgs .Values.smithdb.client.deployment.extraArgs -}}
+{{- if eq $mode "mixed" }}
+{{- $clientArgs = concat $clientArgs .Values.smithdb.client.queries -}}
+{{- end }}
 {{- include "langsmith.detectDuplicates" .Values.smithdb.client.deployment.extraEnv -}}
 apiVersion: apps/v1
 kind: Deployment

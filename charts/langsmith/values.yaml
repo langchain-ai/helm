@@ -1435,26 +1435,27 @@ smithdb:
 
   client:
     enabled: false
+    mode: "ingest"
     name: "client"
     containerPort: 8085
-    queryQps: 1
     ingestionQps: 1
+    # queryQps and queries only apply when mode is "mixed".
+    queryQps: 1
+    queries: []
     # Empty duration means run continuously until the pod is stopped.
     duration: ""
-    batchSize: 10
-    maxConcurrent: 100
+    batchSize: 1
+    maxConcurrent: 10
     reportEvery: 5
-    multitenant: true
-    numTenants: 10
+    multitenant: false
+    numTenants: 1
     tenantId: ""
     sessionId: ""
     useClusterManager: false
-    queries:
-      - "SELECT 1"
     workload:
-      rowsPerTick: 20
-      numActiveThreads: 10
-      tracesPerThread: 10
+      rowsPerTick: 1
+      numActiveThreads: 1
+      tracesPerThread: 1
     deployment:
       replicas: 1
       labels: {}
