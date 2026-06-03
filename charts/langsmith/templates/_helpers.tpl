@@ -485,7 +485,6 @@ Template containing common environment variables that are used by several servic
       key: polly_encryption_key
       optional: false
 {{- end }}
-{{ include "langsmith.smithdb.clientEnv" . }}
 {{- end }}
 
 {{/*
@@ -622,34 +621,6 @@ SmithDB cluster-manager HTTP endpoint used by SmithDB services.
 */}}
 {{- define "langsmith.smithdb.clusterManagerHttpEndpoint" -}}
 {{- include "langsmith.smithdb.httpServiceUrl" (dict "root" . "component" "clusterManager" "port" .Values.smithdb.clusterManager.service.port) }}
-{{- end }}
-
-{{/*
-LangSmith application env vars for calling SmithDB.
-*/}}
-{{- define "langsmith.smithdb.clientEnv" -}}
-{{- $dualIngestEnabled := .Values.smithdb.langsmith.dualIngest.enabled -}}
-{{- $frontendSmithDBEndpointsEnabled := .Values.smithdb.langsmith.frontend.useSmithDBEndpoints -}}
-{{- $clusterManagerEnabled := .Values.smithdb.langsmith.clusterManager.enabled -}}
-{{- $envVars := list -}}
-{{- if and .Values.smithdb.enabled (or $dualIngestEnabled $frontendSmithDBEndpointsEnabled $clusterManagerEnabled) }}
-{{- if $frontendSmithDBEndpointsEnabled }}
-{{- $queryUrl := include "langsmith.smithdb.grpcServiceUrl" (dict "root" . "component" "query" "port" .Values.smithdb.query.service.port) -}}
-{{- $envVars = append $envVars (dict "name" "SMITHDB_QUERY_SERVICE_URL" "value" $queryUrl) -}}
-{{- $envVars = append $envVars (dict "name" "SMITHDB_MUTATIONS_SERVICE_URL" "value" $queryUrl) -}}
-{{- end }}
-{{- if $dualIngestEnabled }}
-{{- $ingestionUrl := include "langsmith.smithdb.grpcServiceUrl" (dict "root" . "component" "ingestion" "port" .Values.smithdb.ingestion.service.port) -}}
-{{- $envVars = append $envVars (dict "name" "SMITHDB_INGESTION_SERVICE_URL" "value" $ingestionUrl) -}}
-{{- $envVars = append $envVars (dict "name" "SMITHDB_INGEST_ORGS_ROLLOUT_PCT" "value" "100") -}}
-{{- end }}
-{{- if $clusterManagerEnabled }}
-{{- $clusterManagerUrl := include "langsmith.smithdb.grpcServiceUrl" (dict "root" . "component" "clusterManager" "port" .Values.smithdb.clusterManager.service.port) -}}
-{{- $envVars = append $envVars (dict "name" "SMITHDB_CLUSTER_MANAGER_ENABLED" "value" "true") -}}
-{{- $envVars = append $envVars (dict "name" "SMITHDB_CLUSTER_MANAGER_URL" "value" $clusterManagerUrl) -}}
-{{- end }}
-{{- toYaml $envVars }}
-{{- end }}
 {{- end }}
 
 {{/*
