@@ -916,6 +916,8 @@ config:
   userOrgCreationDisabled: true
   # -- Disable personal orgs.
   personalOrgsDisabled: true
+  # -- Deployment-wide cap on monthly traces for every personal org. -1 disables the cap.
+  personalOrgMaxMonthlyTraces: -1
   # -- Enable Workspace Admins to invite users to the org and workspace.
   workspaceScopeOrgInvitesEnabled: false
   # -- Require authentication on the GET /info endpoint. When enabled, unauthenticated
