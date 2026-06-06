@@ -1304,6 +1304,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | clickhouse.statefulSet.startupProbe.periodSeconds | int | `10` |  |
 | clickhouse.statefulSet.startupProbe.timeoutSeconds | int | `1` |  |
 | clickhouse.statefulSet.terminationGracePeriodSeconds | int | `30` |  |
+| clickhouse.statefulSet.updateStrategy | object | `{}` | Optional StatefulSet update strategy for the in-chart ClickHouse instance. Leave unset to keep the Kubernetes default RollingUpdate behavior. |
 | clickhouse.statefulSet.tolerations | list | `[]` |  |
 | clickhouse.statefulSet.topologySpreadConstraints | list | `[]` |  |
 | clickhouse.statefulSet.volumeMounts | list | `[]` |  |
