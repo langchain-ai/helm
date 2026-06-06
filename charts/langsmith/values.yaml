@@ -1454,6 +1454,9 @@ clickhouse:
   statefulSet:
     labels: {}
     annotations: {}
+    # -- Optional StatefulSet update strategy for the in-chart ClickHouse instance.
+    # -- Leave unset to keep the Kubernetes default RollingUpdate behavior.
+    updateStrategy: {}
     podSecurityContext: {}
     securityContext: {}
     lifecycle: {}
