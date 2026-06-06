@@ -130,6 +130,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | fleet.postgres.statefulSet.sidecars | list | `[]` |  |
 | fleet.postgres.statefulSet.terminationGracePeriodSeconds | int | `30` |  |
 | fleet.postgres.statefulSet.tolerations | list | `[]` |  |
+| fleet.postgres.statefulSet.updateStrategy | object | `{}` | Optional StatefulSet update strategy for the in-chart Fleet PostgreSQL instance. Leave unset to keep the Kubernetes default RollingUpdate behavior. |
 | fleet.postgres.statefulSet.volumeMounts | list | `[]` |  |
 | fleet.postgres.statefulSet.volumes | list | `[]` |  |
 | fleet.queue.autoscaling.enabled | bool | `false` |  |
@@ -218,6 +219,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | fleet.redis.statefulSet.sidecars | list | `[]` |  |
 | fleet.redis.statefulSet.terminationGracePeriodSeconds | int | `30` |  |
 | fleet.redis.statefulSet.tolerations | list | `[]` |  |
+| fleet.redis.statefulSet.updateStrategy | object | `{}` | Optional StatefulSet update strategy for the in-chart Fleet Redis instance. Leave unset to keep the Kubernetes default RollingUpdate behavior. |
 | fleet.redis.statefulSet.volumeMounts | list | `[]` |  |
 | fleet.redis.statefulSet.volumes | list | `[]` |  |
 | fleetToolServer.autoscaling.createHpa | bool | `true` |  |
@@ -566,6 +568,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | insights.postgres.statefulSet.sidecars | list | `[]` |  |
 | insights.postgres.statefulSet.terminationGracePeriodSeconds | int | `30` |  |
 | insights.postgres.statefulSet.tolerations | list | `[]` |  |
+| insights.postgres.statefulSet.updateStrategy | object | `{}` | Optional StatefulSet update strategy for the in-chart Insights PostgreSQL instance. Leave unset to keep the Kubernetes default RollingUpdate behavior. |
 | insights.postgres.statefulSet.volumeMounts | list | `[]` |  |
 | insights.postgres.statefulSet.volumes | list | `[]` |  |
 | insights.queue.autoscaling.enabled | bool | `false` |  |
@@ -654,6 +657,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | insights.redis.statefulSet.sidecars | list | `[]` |  |
 | insights.redis.statefulSet.terminationGracePeriodSeconds | int | `30` |  |
 | insights.redis.statefulSet.tolerations | list | `[]` |  |
+| insights.redis.statefulSet.updateStrategy | object | `{}` | Optional StatefulSet update strategy for the in-chart Insights Redis instance. Leave unset to keep the Kubernetes default RollingUpdate behavior. |
 | insights.redis.statefulSet.volumeMounts | list | `[]` |  |
 | insights.redis.statefulSet.volumes | list | `[]` |  |
 | istioGateway.annotations | object | `{}` |  |
@@ -762,6 +766,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | polly.postgres.statefulSet.sidecars | list | `[]` |  |
 | polly.postgres.statefulSet.terminationGracePeriodSeconds | int | `30` |  |
 | polly.postgres.statefulSet.tolerations | list | `[]` |  |
+| polly.postgres.statefulSet.updateStrategy | object | `{}` | Optional StatefulSet update strategy for the in-chart Polly PostgreSQL instance. Leave unset to keep the Kubernetes default RollingUpdate behavior. |
 | polly.postgres.statefulSet.volumeMounts | list | `[]` |  |
 | polly.postgres.statefulSet.volumes | list | `[]` |  |
 | polly.queue.autoscaling.enabled | bool | `false` |  |
@@ -850,6 +855,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | polly.redis.statefulSet.sidecars | list | `[]` |  |
 | polly.redis.statefulSet.terminationGracePeriodSeconds | int | `30` |  |
 | polly.redis.statefulSet.tolerations | list | `[]` |  |
+| polly.redis.statefulSet.updateStrategy | object | `{}` | Optional StatefulSet update strategy for the in-chart Polly Redis instance. Leave unset to keep the Kubernetes default RollingUpdate behavior. |
 | polly.redis.statefulSet.volumeMounts | list | `[]` |  |
 | polly.redis.statefulSet.volumes | list | `[]` |  |
 
@@ -1304,6 +1310,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | clickhouse.statefulSet.startupProbe.periodSeconds | int | `10` |  |
 | clickhouse.statefulSet.startupProbe.timeoutSeconds | int | `1` |  |
 | clickhouse.statefulSet.terminationGracePeriodSeconds | int | `30` |  |
+| clickhouse.statefulSet.updateStrategy | object | `{}` | Optional StatefulSet update strategy for the in-chart ClickHouse instance. Leave unset to keep the Kubernetes default RollingUpdate behavior. |
 | clickhouse.statefulSet.tolerations | list | `[]` |  |
 | clickhouse.statefulSet.topologySpreadConstraints | list | `[]` |  |
 | clickhouse.statefulSet.volumeMounts | list | `[]` |  |
@@ -1981,6 +1988,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | postgres.statefulSet.terminationGracePeriodSeconds | int | `30` |  |
 | postgres.statefulSet.tolerations | list | `[]` |  |
 | postgres.statefulSet.topologySpreadConstraints | list | `[]` |  |
+| postgres.statefulSet.updateStrategy | object | `{}` | Optional StatefulSet update strategy for the in-chart PostgreSQL instance. Leave unset to keep the Kubernetes default RollingUpdate behavior. |
 | postgres.statefulSet.volumeMounts | list | `[]` |  |
 | postgres.statefulSet.volumes | list | `[]` |  |
 
@@ -2141,6 +2149,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | redis.statefulSet.terminationGracePeriodSeconds | int | `30` |  |
 | redis.statefulSet.tolerations | list | `[]` |  |
 | redis.statefulSet.topologySpreadConstraints | list | `[]` |  |
+| redis.statefulSet.updateStrategy | object | `{}` | Optional StatefulSet update strategy for the in-chart Redis instance. Leave unset to keep the Kubernetes default RollingUpdate behavior. |
 | redis.statefulSet.volumeMounts | list | `[]` |  |
 | redis.statefulSet.volumes | list | `[]` |  |
 

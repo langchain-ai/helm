@@ -376,6 +376,7 @@ If you are upgrading from a chart revision that used the old flat MongoDB values
 | mongo.external.existingSecretName | string | `""` | Existing secret name containing the MongoDB connection URL. |
 | mongo.statefulSet.persistence.size | string | `"8Gi"` | Persistent volume size for the bundled MongoDB instance. |
 | mongo.statefulSet.resources | object | `{"limits":{"cpu":"2000m","memory":"4Gi"},"requests":{"cpu":"500m","memory":"1Gi"}}` | Resource requests and limits for the bundled MongoDB pod. |
+| mongo.statefulSet.updateStrategy | object | `{}` | Optional StatefulSet update strategy for the in-chart MongoDB instance. Leave unset to keep the Kubernetes default RollingUpdate behavior. |
 | nameOverride | string | `""` | Provide a name in place of `langgraph-cloud` for the chart |
 | namespace | string | `""` | Namespace to install the chart into. If not set, will use the namespace of the current context. |
 | queue.autoscaling.enabled | bool | `false` |  |
@@ -620,6 +621,7 @@ If you are upgrading from a chart revision that used the old flat MongoDB values
 | postgres.statefulSet.sidecars | list | `[]` |  |
 | postgres.statefulSet.terminationGracePeriodSeconds | int | `30` |  |
 | postgres.statefulSet.tolerations | list | `[]` |  |
+| postgres.statefulSet.updateStrategy | object | `{}` | Optional StatefulSet update strategy for the in-chart PostgreSQL instance. Leave unset to keep the Kubernetes default RollingUpdate behavior. |
 | postgres.statefulSet.volumeMounts | list | `[]` |  |
 | postgres.statefulSet.volumes | list | `[]` |  |
 

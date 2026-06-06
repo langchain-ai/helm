@@ -291,6 +291,9 @@ fleet:
       connectionUrl: ""
       existingSecretName: ""
     statefulSet:
+      # -- Optional StatefulSet update strategy for the in-chart Fleet PostgreSQL instance.
+      # Leave unset to keep the Kubernetes default RollingUpdate behavior.
+      updateStrategy: {}
       labels: {}
       annotations: {}
       podSecurityContext: {}
@@ -335,6 +338,9 @@ fleet:
       connectionUrl: ""
       existingSecretName: ""
     statefulSet:
+      # -- Optional StatefulSet update strategy for the in-chart Fleet Redis instance.
+      # Leave unset to keep the Kubernetes default RollingUpdate behavior.
+      updateStrategy: {}
       labels: {}
       annotations: {}
       podSecurityContext: {}
@@ -522,6 +528,9 @@ insights:
       connectionUrl: ""
       existingSecretName: ""
     statefulSet:
+      # -- Optional StatefulSet update strategy for the in-chart Insights PostgreSQL instance.
+      # Leave unset to keep the Kubernetes default RollingUpdate behavior.
+      updateStrategy: {}
       labels: {}
       annotations: {}
       podSecurityContext: {}
@@ -566,6 +575,9 @@ insights:
       connectionUrl: ""
       existingSecretName: ""
     statefulSet:
+      # -- Optional StatefulSet update strategy for the in-chart Insights Redis instance.
+      # Leave unset to keep the Kubernetes default RollingUpdate behavior.
+      updateStrategy: {}
       labels: {}
       annotations: {}
       podSecurityContext: {}
@@ -752,6 +764,9 @@ polly:
       connectionUrl: ""
       existingSecretName: ""
     statefulSet:
+      # -- Optional StatefulSet update strategy for the in-chart Polly PostgreSQL instance.
+      # Leave unset to keep the Kubernetes default RollingUpdate behavior.
+      updateStrategy: {}
       labels: {}
       annotations: {}
       podSecurityContext: {}
@@ -796,6 +811,9 @@ polly:
       connectionUrl: ""
       existingSecretName: ""
     statefulSet:
+      # -- Optional StatefulSet update strategy for the in-chart Polly Redis instance.
+      # Leave unset to keep the Kubernetes default RollingUpdate behavior.
+      updateStrategy: {}
       labels: {}
       annotations: {}
       podSecurityContext: {}
@@ -1454,6 +1472,9 @@ clickhouse:
   statefulSet:
     labels: {}
     annotations: {}
+    # -- Optional StatefulSet update strategy for the in-chart ClickHouse instance.
+    # -- Leave unset to keep the Kubernetes default RollingUpdate behavior.
+    updateStrategy: {}
     podSecurityContext: {}
     securityContext: {}
     lifecycle: {}
@@ -2324,6 +2345,9 @@ postgres:
       keySecretKey: "tls.key"
   containerPort: 5432
   statefulSet:
+    # -- Optional StatefulSet update strategy for the in-chart PostgreSQL instance.
+    # Leave unset to keep the Kubernetes default RollingUpdate behavior.
+    updateStrategy: {}
     labels: {}
     annotations: {}
     podSecurityContext: {}
@@ -2643,6 +2667,9 @@ redis:
       tlsEnabled: true
   containerPort: 6379
   statefulSet:
+    # -- Optional StatefulSet update strategy for the in-chart Redis instance.
+    # Leave unset to keep the Kubernetes default RollingUpdate behavior.
+    updateStrategy: {}
     labels: {}
     annotations: {}
     podSecurityContext: {}

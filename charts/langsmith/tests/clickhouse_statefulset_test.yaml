@@ -1,0 +1,20 @@
+suite: ClickHouse StatefulSet rendering
+templates:
+  - clickhouse/stateful-set.yaml
+  # config-map.yaml is loaded so the StatefulSet's checksum/config `include` resolves.
+  - clickhouse/config-map.yaml
+tests:
+  - it: does not render updateStrategy by default
+    template: clickhouse/stateful-set.yaml
+    asserts:
+      - notExists:
+          path: spec.updateStrategy
+
+  - it: renders a configured ClickHouse updateStrategy
+    template: clickhouse/stateful-set.yaml
+    set:
+      clickhouse.statefulSet.updateStrategy.type: OnDelete
+    asserts:
+      - equal:
+          path: spec.updateStrategy.type
+          value: OnDelete

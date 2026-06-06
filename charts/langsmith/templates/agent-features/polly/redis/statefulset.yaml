@@ -21,6 +21,10 @@ metadata:
 spec:
   serviceName: {{ $componentName }}
   replicas: 1
+  {{- with .Values.polly.redis.statefulSet.updateStrategy }}
+  updateStrategy:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
   selector:
     matchLabels:
       {{- include "langsmith.selectorLabels" . | nindent 6 }}

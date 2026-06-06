@@ -1,0 +1,148 @@
+suite: StatefulSet updateStrategy rendering
+templates:
+  - redis/stateful-set.yaml
+  - postgres/stateful-set.yaml
+  - agent-features/insights/redis/statefulset.yaml
+  - agent-features/insights/postgres/statefulset.yaml
+  - agent-features/fleet/redis/statefulset.yaml
+  - agent-features/fleet/postgres/statefulset.yaml
+  - agent-features/polly/redis/statefulset.yaml
+  - agent-features/polly/postgres/statefulset.yaml
+tests:
+  # --- redis ---
+  - it: redis does not render updateStrategy by default
+    template: redis/stateful-set.yaml
+    asserts:
+      - notExists:
+          path: spec.updateStrategy
+  - it: redis renders a configured updateStrategy
+    template: redis/stateful-set.yaml
+    set:
+      redis.statefulSet.updateStrategy.type: OnDelete
+    asserts:
+      - equal:
+          path: spec.updateStrategy.type
+          value: OnDelete
+
+  # --- postgres ---
+  - it: postgres does not render updateStrategy by default
+    template: postgres/stateful-set.yaml
+    asserts:
+      - notExists:
+          path: spec.updateStrategy
+  - it: postgres renders a configured updateStrategy
+    template: postgres/stateful-set.yaml
+    set:
+      postgres.statefulSet.updateStrategy.type: OnDelete
+    asserts:
+      - equal:
+          path: spec.updateStrategy.type
+          value: OnDelete
+
+  # --- insights redis ---
+  - it: insights redis does not render updateStrategy by default
+    template: agent-features/insights/redis/statefulset.yaml
+    set:
+      insights.enabled: true
+    asserts:
+      - notExists:
+          path: spec.updateStrategy
+  - it: insights redis renders a configured updateStrategy
+    template: agent-features/insights/redis/statefulset.yaml
+    set:
+      insights.enabled: true
+      insights.redis.statefulSet.updateStrategy.type: OnDelete
+    asserts:
+      - equal:
+          path: spec.updateStrategy.type
+          value: OnDelete
+
+  # --- insights postgres ---
+  - it: insights postgres does not render updateStrategy by default
+    template: agent-features/insights/postgres/statefulset.yaml
+    set:
+      insights.enabled: true
+    asserts:
+      - notExists:
+          path: spec.updateStrategy
+  - it: insights postgres renders a configured updateStrategy
+    template: agent-features/insights/postgres/statefulset.yaml
+    set:
+      insights.enabled: true
+      insights.postgres.statefulSet.updateStrategy.type: OnDelete
+    asserts:
+      - equal:
+          path: spec.updateStrategy.type
+          value: OnDelete
+
+  # --- fleet redis ---
+  - it: fleet redis does not render updateStrategy by default
+    template: agent-features/fleet/redis/statefulset.yaml
+    set:
+      fleet.enabled: true
+    asserts:
+      - notExists:
+          path: spec.updateStrategy
+  - it: fleet redis renders a configured updateStrategy
+    template: agent-features/fleet/redis/statefulset.yaml
+    set:
+      fleet.enabled: true
+      fleet.redis.statefulSet.updateStrategy.type: OnDelete
+    asserts:
+      - equal:
+          path: spec.updateStrategy.type
+          value: OnDelete
+
+  # --- fleet postgres ---
+  - it: fleet postgres does not render updateStrategy by default
+    template: agent-features/fleet/postgres/statefulset.yaml
+    set:
+      fleet.enabled: true
+    asserts:
+      - notExists:
+          path: spec.updateStrategy
+  - it: fleet postgres renders a configured updateStrategy
+    template: agent-features/fleet/postgres/statefulset.yaml
+    set:
+      fleet.enabled: true
+      fleet.postgres.statefulSet.updateStrategy.type: OnDelete
+    asserts:
+      - equal:
+          path: spec.updateStrategy.type
+          value: OnDelete
+
+  # --- polly redis ---
+  - it: polly redis does not render updateStrategy by default
+    template: agent-features/polly/redis/statefulset.yaml
+    set:
+      polly.enabled: true
+    asserts:
+      - notExists:
+          path: spec.updateStrategy
+  - it: polly redis renders a configured updateStrategy
+    template: agent-features/polly/redis/statefulset.yaml
+    set:
+      polly.enabled: true
+      polly.redis.statefulSet.updateStrategy.type: OnDelete
+    asserts:
+      - equal:
+          path: spec.updateStrategy.type
+          value: OnDelete
+
+  # --- polly postgres ---
+  - it: polly postgres does not render updateStrategy by default
+    template: agent-features/polly/postgres/statefulset.yaml
+    set:
+      polly.enabled: true
+    asserts:
+      - notExists:
+          path: spec.updateStrategy
+  - it: polly postgres renders a configured updateStrategy
+    template: agent-features/polly/postgres/statefulset.yaml
+    set:
+      polly.enabled: true
+      polly.postgres.statefulSet.updateStrategy.type: OnDelete
+    asserts:
+      - equal:
+          path: spec.updateStrategy.type
+          value: OnDelete
