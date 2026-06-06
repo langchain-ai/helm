@@ -1,0 +1,16 @@
+suite: ClickHouse StatefulSet rendering
+templates:
+  - clickhouse/stateful-set.yaml
+tests:
+  - it: does not render updateStrategy by default
+    asserts:
+      - notExists:
+          path: spec.updateStrategy
+
+  - it: renders a configured ClickHouse updateStrategy
+    set:
+      clickhouse.statefulSet.updateStrategy.type: OnDelete
+    asserts:
+      - equal:
+          path: spec.updateStrategy.type
+          value: OnDelete
