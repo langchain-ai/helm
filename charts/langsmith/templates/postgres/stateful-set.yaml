@@ -44,6 +44,10 @@ metadata:
 spec:
   serviceName: {{ include "langsmith.fullname" . }}-{{ .Values.postgres.name }}
   replicas: 1
+  {{- with .Values.postgres.statefulSet.updateStrategy }}
+  updateStrategy:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
   selector:
     matchLabels:
       {{- include "langsmith.selectorLabels" . | nindent 6 }}

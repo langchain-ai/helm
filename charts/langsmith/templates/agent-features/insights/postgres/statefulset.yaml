@@ -21,6 +21,10 @@ metadata:
 spec:
   serviceName: {{ $componentName }}
   replicas: 1
+  {{- with .Values.insights.postgres.statefulSet.updateStrategy }}
+  updateStrategy:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
   selector:
     matchLabels:
       {{- include "langsmith.selectorLabels" . | nindent 6 }}
