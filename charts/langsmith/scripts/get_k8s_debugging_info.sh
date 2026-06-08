@@ -1,23 +1,169 @@
 #!/bin/bash
 
 # We expect the namespace hosting all kubernetes resources to be passed as an argument to this script
+REDACT=0
+
 while [[ "$#" -gt 0 ]]; do
   case $1 in
     --namespace) NS="$2"; shift ;;
+    --redact) REDACT=1 ;;
     *) echo "Unknown parameter passed: $1"; exit 1 ;;
   esac
   shift
 done
 
 if [ -z "$NS" ]; then
-  echo "Usage: $0 --namespace <namespace>"
+  echo "Usage: $0 --namespace <namespace> [--redact]"
   exit 1
 fi
+
+# Best-effort redaction patterns. Masks structured secrets and PII only.
+# Does NOT remove free-text PHI (names, addresses, DOBs, diagnoses) that may
+# appear inside application log messages — review the bundle before sharing.
+SED_ARGS=(
+  # --- Auth headers / URIs (apply first so URI/Bearer tokens don't trip later rules) ---
+  -e 's/([Bb]earer )[A-Za-z0-9._~+/=-]+/\1***REDACTED***/g'
+  -e 's/([Aa]uthorization: *)[^[:space:]"'"'"']+/\1***REDACTED***/g'
+  -e 's#([A-Za-z][A-Za-z0-9+.-]*://[^:/?#[:space:]]+):[^@[:space:]]+@#\1:***REDACTED***@#g'
+  # --- env-var / kv / json sensitive assignments ---
+  -e 's/((PASSWORD|PASSWD|TOKEN|SECRET|API[_-]?KEY|APIKEY|ACCESS[_-]?KEY|PRIVATE[_-]?KEY|CREDENTIAL|AUTH)[A-Z0-9_-]*[[:space:]]*=[[:space:]]*)[^[:space:]"'"'"']+/\1***REDACTED***/gi'
+  -e 's/("(password|passwd|token|secret|api[_-]?key|apikey|access[_-]?key|private[_-]?key|credential|auth)[A-Za-z0-9_-]*"[[:space:]]*:[[:space:]]*")[^"]+/\1***REDACTED***/gi'
+  # JSON-style sensitive HTTP headers (x-service-key, x-api-key, x-auth-token, x-access-token, x-authorization, cookie, set-cookie)
+  -e 's/("(x-service-key|x-api-key|x-auth-token|x-access-token|x-authorization|x-csrf-token|cookie|set-cookie)"[[:space:]]*:[[:space:]]*")[^"]+/\1***REDACTED***/gi'
+  # JSON-style tenant / user / org / customer / patient / member / account / agent / thread ID headers (likely customer identifiers)
+  -e 's/("(x-(tenant|user|organization|org|account|customer|patient|member|agent|thread|session|ls-user)[-_]id)"[[:space:]]*:[[:space:]]*")[^"]+/\1***REDACTED***/gi'
+  # Envoy/Istio peer metadata (base64 cluster topology blob)
+  -e 's/("x-envoy-peer-metadata(-id)?"[[:space:]]*:[[:space:]]*")[^"]+/\1***REDACTED***/gi'
+  # AWS account ID inside ARNs (12 digits between the two colons after the region)
+  -e 's/(arn:aws[A-Za-z0-9-]*:[a-z0-9-]*:[a-z0-9-]*:)[0-9]{12}:/\1***REDACTED-AWS-ACCT***:/g'
+  # --- LangSmith trace content: inputs / outputs / messages / prompts / metadata / tags ---
+  # These fields commonly carry user payloads (and therefore PHI). They are not needed for
+  # diagnosing errors, memory pressure, queue depth, pod lifecycle, or k8s events, so strip
+  # them entirely. JSON string-valued form (respects \" escapes inside the value):
+  -e 's/("(inputs|outputs|input|output|prompt|completion|messages|message|content|text|query|response|body|payload|extra|metadata|tags|run_inputs|run_outputs|trace_input|trace_output|input_text|output_text|tool_input|tool_output|args|arguments|function_call|tool_calls|chat_history|human|ai|system|user|assistant|generations|llm_output|observation|action_input|final_answer)"[[:space:]]*:[[:space:]]*")(\\.|[^"\\])*"/\1***REDACTED-TRACE***"/g'
+  # Flat JSON object value (no nested braces)
+  -e 's/("(inputs|outputs|input|output|messages|metadata|extra|tags|args|arguments|tool_calls|function_call|chat_history|generations|llm_output)"[[:space:]]*:[[:space:]]*)\{[^{}]*\}/\1{"r":"***REDACTED-TRACE***"}/g'
+  # Flat JSON array value (no nested brackets)
+  -e 's/("(inputs|outputs|messages|tags|tool_calls|chat_history|args|generations)"[[:space:]]*:[[:space:]]*)\[[^][]*\]/\1["***REDACTED-TRACE***"]/g'
+  # --- Secret formats ---
+  -e 's/sk-ant-[A-Za-z0-9_-]{20,}/***REDACTED-ANTHROPIC***/g'
+  -e 's/sk-[A-Za-z0-9_-]{20,}/***REDACTED-OPENAI***/g'
+  -e 's/(sk|pk|rk)_(live|test)_[A-Za-z0-9]{20,}/***REDACTED-STRIPE***/g'
+  -e 's/xox[abprs]-[A-Za-z0-9-]{10,}/***REDACTED-SLACK***/g'
+  -e 's#https://hooks\.slack\.com/services/[A-Za-z0-9/_-]+#***REDACTED-SLACK-WEBHOOK***#g'
+  -e 's/AKIA[0-9A-Z]{16}/***REDACTED-AWS-KEY***/g'
+  -e 's/ASIA[0-9A-Z]{16}/***REDACTED-AWS-STS***/g'
+  -e 's/(ghp_|gho_|ghs_|ghu_|ghr_)[A-Za-z0-9]{30,}/***REDACTED-GITHUB***/g'
+  -e 's/glpat-[A-Za-z0-9_-]{20,}/***REDACTED-GITLAB***/g'
+  -e 's/AIza[0-9A-Za-z_-]{35}/***REDACTED-GOOGLE-API***/g'
+  -e 's/(AC|SK)[0-9a-fA-F]{32}/***REDACTED-TWILIO***/g'
+  -e 's/eyJ[A-Za-z0-9_=-]+\.[A-Za-z0-9_=-]+\.[A-Za-z0-9_.+/=-]*/***REDACTED-JWT***/g'
+  -e 's/lsv2_[A-Za-z0-9_]{20,}/***REDACTED-LANGSMITH***/g'
+  # Long hex blobs (sha hashes, generic tokens) >= 40 chars
+  -e 's/[a-fA-F0-9]{40,}/***REDACTED-HEX***/g'
+  # --- Personal identifiers ---
+  -e 's/[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/***REDACTED-EMAIL***/g'
+  -e 's/[0-9]{3}-[0-9]{2}-[0-9]{4}/***REDACTED-SSN***/g'
+  -e 's/[0-9]{4}[ -][0-9]{4}[ -][0-9]{4}[ -][0-9]{4}/***REDACTED-CC***/g'
+  -e 's/[0-9]{13,19}/***REDACTED-DIGITS***/g'
+  -e 's/\+[1-9][0-9]{7,14}/***REDACTED-PHONE***/g'
+  -e 's/\(?[0-9]{3}\)?[ .-][0-9]{3}[ .-][0-9]{4}/***REDACTED-PHONE***/g'
+  # UUIDs (potential patient/record IDs)
+  -e 's/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/***REDACTED-UUID***/g'
+  # MAC addresses (before IPv6 to avoid overlap)
+  -e 's/([0-9a-fA-F]{2}:){5}[0-9a-fA-F]{2}/***REDACTED-MAC***/g'
+  # IPv4
+  -e 's/(^|[^0-9.])([0-9]{1,3}\.){3}[0-9]{1,3}([^0-9.]|$)/\1***REDACTED-IP***\3/g'
+  # IPv6 (loose)
+  -e 's/([0-9a-fA-F]{1,4}:){2,7}[0-9a-fA-F]{1,4}/***REDACTED-IPV6***/g'
+  # US ZIP
+  -e 's/(^|[^0-9])[0-9]{5}(-[0-9]{4})?([^0-9]|$)/\1***REDACTED-ZIP***\3/g'
+  # Dates (DOB candidates) — also affects k8s timestamps; accepted tradeoff
+  -e 's/[12][0-9]{3}-[0-1][0-9]-[0-3][0-9]/***REDACTED-DATE***/g'
+  -e 's/[0-1]?[0-9][/-][0-3]?[0-9][/-][12][0-9]{3}/***REDACTED-DATE***/g'
+  # ICD-10 diagnosis codes
+  -e 's/(^|[^A-Z0-9])[A-TV-Z][0-9]{2}(\.[A-Z0-9]{1,4})?([^A-Z0-9]|$)/\1***REDACTED-ICD10***\3/g'
+)
+
+redact_file() {
+  local f="$1"
+  [[ ! -f "$f" ]] && return
+  local tmp
+  tmp="$(mktemp)" || return
+  if sed -E "${SED_ARGS[@]}" "$f" > "$tmp"; then
+    mv "$tmp" "$f"
+  else
+    rm -f "$tmp"
+  fi
+}
+
+# Strip PEM private-key blocks (multi-line) anywhere they appear.
+redact_pem() {
+  local f="$1"
+  [[ ! -f "$f" ]] && return
+  local tmp
+  tmp="$(mktemp)" || return
+  awk '
+    {
+      if ($0 ~ /-----BEGIN [A-Z ]*PRIVATE KEY-----/) { in_key=1; print "***REDACTED-PRIVATE-KEY***"; next }
+      if (in_key) {
+        if ($0 ~ /-----END [A-Z ]*PRIVATE KEY-----/) in_key=0
+        next
+      }
+      print
+    }
+  ' "$f" > "$tmp" && mv "$tmp" "$f"
+}
+
+# Redact `value:` lines in resources_details.yaml whose preceding `name:` looks sensitive.
+redact_env_yaml() {
+  local f="$1"
+  [[ ! -f "$f" ]] && return
+  local tmp
+  tmp="$(mktemp)" || return
+  awk '
+    {
+      if ($0 ~ /^[[:space:]]*-?[[:space:]]*name:[[:space:]]*/) last_name = $0
+      if ($0 ~ /^[[:space:]]*value:[[:space:]]*/ &&
+          last_name ~ /(KEY|SECRET|TOKEN|PASSWORD|PASSWD|CREDENTIAL|APIKEY|API_KEY)/) {
+        sub(/value:.*/, "value: \"***REDACTED***\"")
+        last_name = ""
+      }
+      print
+    }
+  ' "$f" > "$tmp" && mv "$tmp" "$f"
+}
 
 DIR=/tmp/langchain-debugging-$(date +%Y%m%d%H%M%S)
 
 echo "Starting to pull debugging info. Creating directory $DIR..."
 mkdir -p "$DIR"
+
+if [[ "$REDACT" -eq 1 ]]; then
+  cat >&2 <<'EOF'
+==============================================================================
+--redact is ENABLED. Best-effort scrub across the entire bundle for:
+  secrets   : API keys (OpenAI, Anthropic, Stripe, Slack, AWS, GCP, GitHub,
+              GitLab, Twilio, LangSmith), JWTs, Bearer/Authorization headers,
+              passwords in URIs, env/JSON values for *KEY|SECRET|TOKEN|
+              PASSWORD|CREDENTIAL, PEM private-key blocks, long hex blobs.
+  identifiers: emails, phones, SSNs, card numbers, ZIP codes, UUIDs,
+              IPv4/IPv6, MAC addresses, dates (DOB-shaped), ICD-10 codes,
+              tenant/user/org/customer/patient/agent/thread IDs in headers,
+              AWS account IDs in ARNs.
+  trace data: inputs, outputs, messages, prompts, completions, content, text,
+              tool calls, chat history, metadata, tags, extra — i.e. anything
+              that could carry a user payload. The bundle keeps errors, memory
+              stats, pod lifecycle, queue/worker behavior, k8s events, and
+              ClickHouse query/error logs intact for diagnostics.
+
+This WILL mangle k8s timestamps, cluster IPs, and resource hashes — that is
+the cost of aggressive redaction. It will NOT catch unstructured PHI such as
+patient names, street addresses, or medical narratives inside log messages —
+regex cannot reliably find those. REVIEW THE BUNDLE BEFORE SHARING.
+==============================================================================
+EOF
+fi
 
 echo "Pulling summary of resources..."
 kubectl get all -n "$NS" -o wide > "$DIR/resources_summary.txt"
@@ -48,6 +194,15 @@ for POD in $PODS; do
     fi
   done
 done
+
+if [[ "$REDACT" -eq 1 ]]; then
+  echo "Applying redaction pass over collected files..."
+  redact_env_yaml "$DIR/resources_details.yaml"
+  while IFS= read -r -d '' file; do
+    redact_pem "$file"
+    redact_file "$file"
+  done < <(find "$DIR" -type f -print0)
+fi
 
 echo "Compressing directory..."
 if command -v zip >/dev/null 2>&1; then
