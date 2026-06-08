@@ -49,6 +49,8 @@ images:
     tag: "7"
 
 config:
+  # -- Skip chart validation checks (ingress/gateway mutual-exclusion and MongoDB config guards). Used for helm template verification (e.g. AWS Marketplace).
+  skipValidation: false
   existingSecretName: ""
   # -- Optional LangGraph Cloud license key loaded from the chart secret.
   langGraphCloudLicenseKey: ""
