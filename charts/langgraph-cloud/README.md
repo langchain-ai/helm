@@ -502,6 +502,7 @@ If you are upgrading from a chart revision that used the old flat MongoDB values
 | config.httpMaxRequestBodyBytes | string | `""` | Set this to override the default limit. Requests exceeding this limit receive HTTP 413. |
 | config.langGraphCloudLicenseKey | string | `""` | Optional LangGraph Cloud license key loaded from the chart secret. |
 | config.numberOfJobsPerWorker | int | `10` |  |
+| config.skipValidation | bool | `false` | Skip chart validation checks (ingress/gateway mutual-exclusion and MongoDB config guards). Used for helm template verification (e.g. AWS Marketplace). |
 
 ## Api Server
 
