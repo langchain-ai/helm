@@ -59,6 +59,12 @@ spec:
         url: "http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.platformBackend.service.port }}/metrics?format=json"
         valueLocation: "feedback_queue.pending"
         format: "json"
+    - type: metrics-api
+      metadata:
+        targetValue: "{{ .Values.ingestQueue.autoscaling.keda.queueTargetSize }}"
+        url: "http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.platformBackend.service.port }}/metrics?format=json"
+        valueLocation: "adhoc_queue.pending"
+        format: "json"
     - type: cpu
       metricType: Utilization
       metadata:
