@@ -47,6 +47,9 @@ data:
   OAUTH_AS_ENABLED: "true"
   OAUTH_AS_ISSUER: {{ include "langsmith.oauthAsIssuer" . | quote }}
   {{- end }}
+  {{- if .Values.config.llmAuthProxyIssuer }}
+  LLM_AUTH_PROXY_ISSUER: {{ .Values.config.llmAuthProxyIssuer | quote }}
+  {{- end }}
   {{- if and .Values.fleet.enabled .Values.fleetTriggerServer.enabled }}
   MCP_SERVER_URL: "http://{{ include "langsmith.fullname" . }}-{{ .Values.fleetToolServer.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.fleetToolServer.service.port }}"
   {{- end }}

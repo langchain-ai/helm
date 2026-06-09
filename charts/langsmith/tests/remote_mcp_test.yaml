@@ -50,6 +50,32 @@ tests:
           path: data.OAUTH_AS_ISSUER
           value: "https://langsmith.example.com/langsmith/api"
 
+  - it: emits LLM_AUTH_PROXY_ISSUER when configured
+    template: templates/config-map.yaml
+    set:
+      config.langsmithLicenseKey: "lic"
+      config.apiKeySalt: "salt"
+      config.oauth.enabled: true
+      config.authType: "oauth"
+      config.hostname: "langsmith.example.com"
+      config.llmAuthProxyIssuer: "langsmith"
+    asserts:
+      - equal:
+          path: data.LLM_AUTH_PROXY_ISSUER
+          value: "langsmith"
+
+  - it: omits LLM_AUTH_PROXY_ISSUER when not configured
+    template: templates/config-map.yaml
+    set:
+      config.langsmithLicenseKey: "lic"
+      config.apiKeySalt: "salt"
+      config.oauth.enabled: true
+      config.authType: "oauth"
+      config.hostname: "langsmith.example.com"
+    asserts:
+      - notExists:
+          path: data.LLM_AUTH_PROXY_ISSUER
+
   - it: omits OAUTH_AS env when no hostname is set
     template: templates/config-map.yaml
     set:
