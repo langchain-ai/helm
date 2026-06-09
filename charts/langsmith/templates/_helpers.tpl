@@ -974,6 +974,18 @@ which default to http:// for local development.
 {{- end -}}
 
 {{/*
+OAuth issuer URL advertised by the remote MCP server / OAuth Authorization Server.
+Defaults to <hostnameWithProtocol>[/basePath]/api; overridable via config.remoteMcp.issuer.
+*/}}
+{{- define "langsmith.remoteMcpIssuer" -}}
+{{- if .Values.config.remoteMcp.issuer -}}
+{{- .Values.config.remoteMcp.issuer -}}
+{{- else -}}
+{{- include "langsmith.hostnameWithProtocol" . }}{{- with .Values.config.basePath }}/{{ . }}{{- end }}/api
+{{- end -}}
+{{- end -}}
+
+{{/*
 Public URL for the default Agent Builder MCP server.
 Served through the frontend at /mcp (or /<basePath>/mcp).
 */}}

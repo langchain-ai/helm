@@ -219,6 +219,13 @@ AWS Marketplace Helm template verification).
 {{- fail "config.polly is no longer supported (the bundled-agent bootstrap path was removed in chart 0.15.1). Use the top-level polly block: polly.enabled, polly.encryptionKey, etc." -}}
 {{- end -}}
 
+{{- /* Validate remote MCP / OAuth Authorization Server configuration */ -}}
+{{- if .Values.config.remoteMcp.signingJwks -}}
+{{- if and (not .Values.config.hostname) (not .Values.config.remoteMcp.issuer) -}}
+{{- fail "config.remoteMcp.signingJwks is set but no OAuth issuer can be derived. Set config.hostname (recommended) or config.remoteMcp.issuer explicitly." -}}
+{{- end -}}
+{{- end -}}
+
 {{- /* Validate autoscaling configuration for all services */ -}}
 {{- $autoscalingServices := dict
   "aceBackend" .Values.aceBackend.autoscaling

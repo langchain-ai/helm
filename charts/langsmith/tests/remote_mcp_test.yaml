@@ -1,0 +1,197 @@
+suite: remote MCP server / OAuth Authorization Server config
+# insights/polly are enabled by default on this chart and would otherwise require
+# encryption keys to pass validate.yaml (which renders for every test).
+set:
+  insights.enabled: false
+  polly.enabled: false
+tests:
+  # --- Shared config (env) ---
+  - it: sets OAUTH_AS env when remoteMcp.signingJwks is provided
+    template: templates/config-map.yaml
+    set:
+      config.langsmithLicenseKey: "lic"
+      config.apiKeySalt: "salt"
+      config.oauth.enabled: true
+      config.authType: "oauth"
+      config.hostname: "langsmith.example.com"
+      config.remoteMcp.signingJwks: '{"keys":[{"kty":"OKP"}]}'
+    asserts:
+      - equal:
+          path: data.OAUTH_AS_ENABLED
+          value: "true"
+      - equal:
+          path: data.OAUTH_AS_ISSUER
+          value: "https://langsmith.example.com/api"
+
+  - it: honors an explicit issuer override
+    template: templates/config-map.yaml
+    set:
+      config.langsmithLicenseKey: "lic"
+      config.apiKeySalt: "salt"
+      config.oauth.enabled: true
+      config.authType: "oauth"
+      config.hostname: "langsmith.example.com"
+      config.remoteMcp.signingJwks: '{"keys":[{"kty":"OKP"}]}'
+      config.remoteMcp.issuer: "https://mcp.example.com/api"
+    asserts:
+      - equal:
+          path: data.OAUTH_AS_ISSUER
+          value: "https://mcp.example.com/api"
+
+  - it: folds basePath into the derived issuer
+    template: templates/config-map.yaml
+    set:
+      config.langsmithLicenseKey: "lic"
+      config.apiKeySalt: "salt"
+      config.oauth.enabled: true
+      config.authType: "oauth"
+      config.hostname: "langsmith.example.com"
+      config.basePath: "langsmith"
+      config.remoteMcp.signingJwks: '{"keys":[{"kty":"OKP"}]}'
+    asserts:
+      - equal:
+          path: data.OAUTH_AS_ISSUER
+          value: "https://langsmith.example.com/langsmith/api"
+
+  - it: omits OAUTH_AS env when signingJwks is empty
+    template: templates/config-map.yaml
+    set:
+      config.langsmithLicenseKey: "lic"
+      config.apiKeySalt: "salt"
+      config.oauth.enabled: true
+      config.authType: "oauth"
+      config.hostname: "langsmith.example.com"
+    asserts:
+      - notExists:
+          path: data.OAUTH_AS_ENABLED
+      - notExists:
+          path: data.OAUTH_AS_ISSUER
+
+  # --- Secret ---
+  - it: stores the signing JWKS in the managed secret (base64)
+    template: templates/secrets.yaml
+    set:
+      config.langsmithLicenseKey: "lic"
+      config.apiKeySalt: "salt"
+      config.oauth.enabled: true
+      config.authType: "oauth"
+      config.hostname: "langsmith.example.com"
+      config.remoteMcp.signingJwks: "abc"
+    asserts:
+      - equal:
+          path: data.langsmith_signing_jwks
+          value: "YWJj" # base64("abc")
+
+  # --- platform-backend signing key env ---
+  - it: injects LANGSMITH_SIGNING_JWKS into platform-backend from the secret
+    template: templates/platform-backend/deployment.yaml
+    release:
+      name: ls
+    set:
+      config.langsmithLicenseKey: "lic"
+      config.apiKeySalt: "salt"
+      config.oauth.enabled: true
+      config.authType: "oauth"
+      config.hostname: "langsmith.example.com"
+      config.remoteMcp.signingJwks: '{"keys":[{"kty":"OKP"}]}'
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: LANGSMITH_SIGNING_JWKS
+            valueFrom:
+              secretKeyRef:
+                name: ls-langsmith-secrets
+                key: langsmith_signing_jwks
+                optional: false
+
+  - it: omits LANGSMITH_SIGNING_JWKS when signingJwks is empty
+    template: templates/platform-backend/deployment.yaml
+    release:
+      name: ls
+    set:
+      config.langsmithLicenseKey: "lic"
+      config.apiKeySalt: "salt"
+      config.oauth.enabled: true
+      config.authType: "oauth"
+      config.hostname: "langsmith.example.com"
+    asserts:
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: LANGSMITH_SIGNING_JWKS
+
+  # --- nginx routing (no basePath) ---
+  - it: adds /api MCP + OAuth + well-known routes when enabled
+    template: templates/frontend/config-map.yaml
+    set:
+      frontend.enabled: true
+      config.langsmithLicenseKey: "lic"
+      config.apiKeySalt: "salt"
+      config.oauth.enabled: true
+      config.authType: "oauth"
+      config.hostname: "langsmith.example.com"
+      config.remoteMcp.signingJwks: '{"keys":[{"kty":"OKP"}]}'
+    asserts:
+      - matchRegex:
+          path: data["nginx.conf"]
+          pattern: "location /api/mcp"
+      - matchRegex:
+          path: data["nginx.conf"]
+          pattern: "location /api/oauth/"
+      - matchRegex:
+          path: data["nginx.conf"]
+          pattern: "location = /.well-known/oauth-authorization-server/api"
+      - matchRegex:
+          path: data["nginx.conf"]
+          pattern: "location = /api/.well-known/oauth-protected-resource/mcp"
+
+  - it: omits the /api MCP routes when disabled
+    template: templates/frontend/config-map.yaml
+    set:
+      frontend.enabled: true
+      config.langsmithLicenseKey: "lic"
+      config.apiKeySalt: "salt"
+      config.oauth.enabled: true
+      config.authType: "oauth"
+      config.hostname: "langsmith.example.com"
+    asserts:
+      - notMatchRegex:
+          path: data["nginx.conf"]
+          pattern: "location /api/mcp"
+      - notMatchRegex:
+          path: data["nginx.conf"]
+          pattern: "oauth-authorization-server/api"
+
+  # --- nginx routing (basePath) ---
+  - it: prefixes the /api MCP routes with basePath
+    template: templates/frontend/config-map.yaml
+    set:
+      frontend.enabled: true
+      config.langsmithLicenseKey: "lic"
+      config.apiKeySalt: "salt"
+      config.oauth.enabled: true
+      config.authType: "oauth"
+      config.hostname: "langsmith.example.com"
+      config.basePath: "langsmith"
+      config.remoteMcp.signingJwks: '{"keys":[{"kty":"OKP"}]}'
+    asserts:
+      - matchRegex:
+          path: data["nginx.conf"]
+          pattern: "location /langsmith/api/mcp"
+      - matchRegex:
+          path: data["nginx.conf"]
+          pattern: "location = /.well-known/oauth-authorization-server/langsmith/api"
+
+  # --- Validation guard ---
+  - it: fails when signingJwks is set but no issuer can be derived
+    template: templates/validate.yaml
+    set:
+      config.langsmithLicenseKey: "lic"
+      config.apiKeySalt: "salt"
+      config.oauth.enabled: true
+      config.authType: "oauth"
+      config.remoteMcp.signingJwks: '{"keys":[{"kty":"OKP"}]}'
+    asserts:
+      - failedTemplate:
+          errorMessage: "config.remoteMcp.signingJwks is set but no OAuth issuer can be derived. Set config.hostname (recommended) or config.remoteMcp.issuer explicitly."
