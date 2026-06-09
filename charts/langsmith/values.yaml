@@ -1895,6 +1895,10 @@ listener:
       maxReplicaCount: 10
       targetCPUUtilizationPercentage: 50
       targetMemoryUtilizationPercentage: 80
+      queueTargetSize: "5"
+      fallback:
+        failureThreshold: 3
+        replicas: 2
       scaleDownStabilizationWindowSeconds: 1800
       scaleDownPolicy:
         value: 100

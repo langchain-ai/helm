@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.15.7](https://img.shields.io/badge/Version-0.15.7-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.15.13](https://img.shields.io/badge/AppVersion-0.15.13-informational?style=flat-square)
+![Version: 0.15.9](https://img.shields.io/badge/Version-0.15.9-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.15.13](https://img.shields.io/badge/AppVersion-0.15.13-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -1310,9 +1310,9 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | clickhouse.statefulSet.startupProbe.periodSeconds | int | `10` |  |
 | clickhouse.statefulSet.startupProbe.timeoutSeconds | int | `1` |  |
 | clickhouse.statefulSet.terminationGracePeriodSeconds | int | `30` |  |
-| clickhouse.statefulSet.updateStrategy | object | `{}` | Optional StatefulSet update strategy for the in-chart ClickHouse instance. Leave unset to keep the Kubernetes default RollingUpdate behavior. |
 | clickhouse.statefulSet.tolerations | list | `[]` |  |
 | clickhouse.statefulSet.topologySpreadConstraints | list | `[]` |  |
+| clickhouse.statefulSet.updateStrategy | object | `{}` | Leave unset to keep the Kubernetes default RollingUpdate behavior. |
 | clickhouse.statefulSet.volumeMounts | list | `[]` |  |
 | clickhouse.statefulSet.volumes | list | `[]` |  |
 
@@ -1515,11 +1515,14 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | listener.autoscaling.keda.annotations | object | `{}` |  |
 | listener.autoscaling.keda.cooldownPeriod | int | `300` |  |
 | listener.autoscaling.keda.enabled | bool | `false` |  |
+| listener.autoscaling.keda.fallback.failureThreshold | int | `3` |  |
+| listener.autoscaling.keda.fallback.replicas | int | `2` |  |
 | listener.autoscaling.keda.initialCooldownPeriod | int | `0` |  |
 | listener.autoscaling.keda.labels | object | `{}` |  |
 | listener.autoscaling.keda.maxReplicaCount | int | `10` |  |
 | listener.autoscaling.keda.minReplicaCount | int | `1` |  |
 | listener.autoscaling.keda.pollingInterval | int | `30` |  |
+| listener.autoscaling.keda.queueTargetSize | string | `"5"` |  |
 | listener.autoscaling.keda.scaleDownPolicy.periodSeconds | int | `300` |  |
 | listener.autoscaling.keda.scaleDownPolicy.value | int | `100` |  |
 | listener.autoscaling.keda.scaleDownStabilizationWindowSeconds | int | `1800` |  |
