@@ -49,6 +49,8 @@ images:
     tag: "7"
 
 config:
+  # -- Skip chart validation checks (ingress/gateway mutual-exclusion and MongoDB config guards). Used for helm template verification (e.g. AWS Marketplace).
+  skipValidation: false
   existingSecretName: ""
   # -- Optional LangGraph Cloud license key loaded from the chart secret.
   langGraphCloudLicenseKey: ""
@@ -274,6 +276,9 @@ postgres:
     existingSecretName: ""
   containerPort: 5432
   statefulSet:
+    # -- Optional StatefulSet update strategy for the in-chart PostgreSQL instance.
+    # Leave unset to keep the Kubernetes default RollingUpdate behavior.
+    updateStrategy: {}
     labels: {}
     annotations: {}
     podSecurityContext: {}
@@ -407,6 +412,9 @@ mongo:
     # -- Existing secret name containing the MongoDB connection URL.
     existingSecretName: ""
   statefulSet:
+    # -- Optional StatefulSet update strategy for the in-chart MongoDB instance.
+    # Leave unset to keep the Kubernetes default RollingUpdate behavior.
+    updateStrategy: {}
     # -- Resource requests and limits for the bundled MongoDB pod.
     resources:
       limits:

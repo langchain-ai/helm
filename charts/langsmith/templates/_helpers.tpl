@@ -1270,6 +1270,15 @@ which default to http:// for local development.
 {{- end -}}
 
 {{/*
+OAuth Authorization Server issuer URL advertised to remote MCP clients.
+Derived from <hostnameWithProtocol>[/basePath]/api. The /api path is fixed because the
+frontend nginx routes are hardcoded to it; host and scheme come from config.hostname.
+*/}}
+{{- define "langsmith.oauthAsIssuer" -}}
+{{- include "langsmith.hostnameWithProtocol" . }}{{- with .Values.config.basePath }}/{{ . }}{{- end }}/api
+{{- end -}}
+
+{{/*
 Public URL for the default Agent Builder MCP server.
 Served through the frontend at /mcp (or /<basePath>/mcp).
 */}}

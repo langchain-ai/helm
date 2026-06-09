@@ -5,6 +5,14 @@
 - name: DOCS_PREFIX
   value: /{{ . }}/api
 {{- end }}
+# OAuth AS / remote MCP (and LLM-auth-proxy) signing key. Always wired (optional) from
+# the chart secret, so don't set LANGSMITH_SIGNING_JWKS manually — it trips detectDuplicates.
+- name: LANGSMITH_SIGNING_JWKS
+  valueFrom:
+    secretKeyRef:
+      name: {{ include "langsmith.secretsName" . }}
+      key: langsmith_signing_jwks
+      optional: true
 {{- end -}}
 {{- $envVars := concat .Values.commonEnv (include "langsmith.commonEnv" . | fromYamlArray) (include "platformBackendEnvVars" . | fromYamlArray) .Values.platformBackend.deployment.extraEnv -}}
 {{- include "langsmith.detectDuplicates" $envVars -}}

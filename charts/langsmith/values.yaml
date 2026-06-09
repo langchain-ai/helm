@@ -40,23 +40,23 @@ images:
   aceBackendImage:
     repository: "docker.io/langchain/langsmith-ace-backend"
     pullPolicy: IfNotPresent
-    tag: "0.15.11"
+    tag: "0.16.1rc1"
   backendImage:
     repository: "docker.io/langchain/langsmith-backend"
     pullPolicy: IfNotPresent
-    tag: "0.15.11"
+    tag: "0.16.1rc1"
   insightsAgentImage:
     repository: "docker.io/langchain/langsmith-clio"
     pullPolicy: IfNotPresent
-    tag: "0.15.11"
+    tag: "0.16.1rc1"
   frontendImage:
     repository: "docker.io/langchain/langsmith-frontend"
     pullPolicy: IfNotPresent
-    tag: "0.15.11"
+    tag: "0.16.1rc1"
   hostBackendImage:
     repository: "docker.io/langchain/hosted-langserve-backend"
     pullPolicy: IfNotPresent
-    tag: "0.15.11"
+    tag: "0.16.1rc1"
   operatorImage:
     repository: "docker.io/langchain/langgraph-operator"
     pullPolicy: IfNotPresent
@@ -64,11 +64,11 @@ images:
   platformBackendImage:
     repository: "docker.io/langchain/langsmith-go-backend"
     pullPolicy: IfNotPresent
-    tag: "0.15.11"
+    tag: "0.16.1rc1"
   playgroundImage:
     repository: "docker.io/langchain/langsmith-playground"
     pullPolicy: IfNotPresent
-    tag: "0.15.11"
+    tag: "0.16.1rc1"
   # For production environments, we strongly recommend connecting to a managed PostgreSQL instance instead of using the one provided by the chart.
   # Docs: https://docs.langchain.com/langsmith/self-host-external-postgres
   postgresImage:
@@ -88,19 +88,19 @@ images:
   fleetToolServerImage:
     repository: "docker.io/langchain/agent-builder-tool-server"
     pullPolicy: IfNotPresent
-    tag: "0.15.11"
+    tag: "0.16.1rc1"
   fleetTriggerServerImage:
     repository: "docker.io/langchain/agent-builder-trigger-server"
     pullPolicy: IfNotPresent
-    tag: "0.15.11"
+    tag: "0.16.1rc1"
   agentBuilderImage:
     repository: "docker.io/langchain/agent-builder-deep-agent"
     pullPolicy: IfNotPresent
-    tag: "0.15.11"
+    tag: "0.16.1rc1"
   pollyAgentImage:
     repository: "docker.io/langchain/langsmith-polly"
     pullPolicy: IfNotPresent
-    tag: "0.15.11"
+    tag: "0.16.1rc1"
   smithdbQueryImage:
     repository: "docker.io/langchain/smithdb-query"
     pullPolicy: IfNotPresent
@@ -315,6 +315,9 @@ fleet:
       connectionUrl: ""
       existingSecretName: ""
     statefulSet:
+      # -- Optional StatefulSet update strategy for the in-chart Fleet PostgreSQL instance.
+      # Leave unset to keep the Kubernetes default RollingUpdate behavior.
+      updateStrategy: {}
       labels: {}
       annotations: {}
       podSecurityContext: {}
@@ -359,6 +362,9 @@ fleet:
       connectionUrl: ""
       existingSecretName: ""
     statefulSet:
+      # -- Optional StatefulSet update strategy for the in-chart Fleet Redis instance.
+      # Leave unset to keep the Kubernetes default RollingUpdate behavior.
+      updateStrategy: {}
       labels: {}
       annotations: {}
       podSecurityContext: {}
@@ -546,6 +552,9 @@ insights:
       connectionUrl: ""
       existingSecretName: ""
     statefulSet:
+      # -- Optional StatefulSet update strategy for the in-chart Insights PostgreSQL instance.
+      # Leave unset to keep the Kubernetes default RollingUpdate behavior.
+      updateStrategy: {}
       labels: {}
       annotations: {}
       podSecurityContext: {}
@@ -590,6 +599,9 @@ insights:
       connectionUrl: ""
       existingSecretName: ""
     statefulSet:
+      # -- Optional StatefulSet update strategy for the in-chart Insights Redis instance.
+      # Leave unset to keep the Kubernetes default RollingUpdate behavior.
+      updateStrategy: {}
       labels: {}
       annotations: {}
       podSecurityContext: {}
@@ -776,6 +788,9 @@ polly:
       connectionUrl: ""
       existingSecretName: ""
     statefulSet:
+      # -- Optional StatefulSet update strategy for the in-chart Polly PostgreSQL instance.
+      # Leave unset to keep the Kubernetes default RollingUpdate behavior.
+      updateStrategy: {}
       labels: {}
       annotations: {}
       podSecurityContext: {}
@@ -820,6 +835,9 @@ polly:
       connectionUrl: ""
       existingSecretName: ""
     statefulSet:
+      # -- Optional StatefulSet update strategy for the in-chart Polly Redis instance.
+      # Leave unset to keep the Kubernetes default RollingUpdate behavior.
+      updateStrategy: {}
       labels: {}
       annotations: {}
       podSecurityContext: {}
@@ -970,6 +988,16 @@ config:
     oauthIssuerUrl: ""
     oauthScopes: "email,profile,openid"  # Comma-separated list of scopes. We require at least 'email', 'profile', and 'openid'. Some OIDC providers require the 'offline_access' scope for refresh tokens.
     oauthSessionMaxSec: "86400"  # 24 hours. Maximum age of a session in seconds. Your session will attempt to refresh until the max age at which point you will be logged out.
+
+  # -- Ed25519/OKP JWKS (JSON) signing the OAuth AS / remote MCP (and LLM-auth-proxy)
+  # tokens; public keys are served at /.well-known/jwks.json. Set it here (stored in the
+  # chart secret) or as key `langsmith_signing_jwks` in config.existingSecretName. The
+  # remote MCP server / OAuth AS stay inert until this is set.
+  signingJwks: ""
+  # -- Optional issuer (iss claim) for tokens minted by the LLM auth proxy. Maps to
+  # LLM_AUTH_PROXY_ISSUER. Must match the jwtIssuer configured in the auth proxy chart.
+  # Left empty by default (not emitted); set it when using the LLM auth proxy.
+  llmAuthProxyIssuer: ""
   # -- TTL configuration
   # Optional. Used to set TTLS for longlived and shortlived objects.
   ttl:
@@ -1852,6 +1880,9 @@ clickhouse:
   statefulSet:
     labels: {}
     annotations: {}
+    # -- Optional StatefulSet update strategy for the in-chart ClickHouse instance.
+    # -- Leave unset to keep the Kubernetes default RollingUpdate behavior.
+    updateStrategy: {}
     podSecurityContext: {}
     securityContext: {}
     lifecycle: {}
@@ -2262,6 +2293,10 @@ listener:
       maxReplicaCount: 10
       targetCPUUtilizationPercentage: 50
       targetMemoryUtilizationPercentage: 80
+      queueTargetSize: "5"
+      fallback:
+        failureThreshold: 3
+        replicas: 2
       scaleDownStabilizationWindowSeconds: 1800
       scaleDownPolicy:
         value: 100
@@ -2722,6 +2757,9 @@ postgres:
       keySecretKey: "tls.key"
   containerPort: 5432
   statefulSet:
+    # -- Optional StatefulSet update strategy for the in-chart PostgreSQL instance.
+    # Leave unset to keep the Kubernetes default RollingUpdate behavior.
+    updateStrategy: {}
     labels: {}
     annotations: {}
     podSecurityContext: {}
@@ -3041,6 +3079,9 @@ redis:
       tlsEnabled: true
   containerPort: 6379
   statefulSet:
+    # -- Optional StatefulSet update strategy for the in-chart Redis instance.
+    # Leave unset to keep the Kubernetes default RollingUpdate behavior.
+    updateStrategy: {}
     labels: {}
     annotations: {}
     podSecurityContext: {}

@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.15.5](https://img.shields.io/badge/Version-0.15.5-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.15.11](https://img.shields.io/badge/AppVersion-0.15.11-informational?style=flat-square)
+![Version: 0.15.9](https://img.shields.io/badge/Version-0.15.9-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.15.13](https://img.shields.io/badge/AppVersion-0.15.13-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -130,6 +130,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | fleet.postgres.statefulSet.sidecars | list | `[]` |  |
 | fleet.postgres.statefulSet.terminationGracePeriodSeconds | int | `30` |  |
 | fleet.postgres.statefulSet.tolerations | list | `[]` |  |
+| fleet.postgres.statefulSet.updateStrategy | object | `{}` | Optional StatefulSet update strategy for the in-chart Fleet PostgreSQL instance. Leave unset to keep the Kubernetes default RollingUpdate behavior. |
 | fleet.postgres.statefulSet.volumeMounts | list | `[]` |  |
 | fleet.postgres.statefulSet.volumes | list | `[]` |  |
 | fleet.queue.autoscaling.enabled | bool | `false` |  |
@@ -218,6 +219,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | fleet.redis.statefulSet.sidecars | list | `[]` |  |
 | fleet.redis.statefulSet.terminationGracePeriodSeconds | int | `30` |  |
 | fleet.redis.statefulSet.tolerations | list | `[]` |  |
+| fleet.redis.statefulSet.updateStrategy | object | `{}` | Optional StatefulSet update strategy for the in-chart Fleet Redis instance. Leave unset to keep the Kubernetes default RollingUpdate behavior. |
 | fleet.redis.statefulSet.volumeMounts | list | `[]` |  |
 | fleet.redis.statefulSet.volumes | list | `[]` |  |
 | fleetToolServer.autoscaling.createHpa | bool | `true` |  |
@@ -338,44 +340,44 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | gateway.sectionName | string | `""` |  |
 | images.aceBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.aceBackendImage.repository | string | `"docker.io/langchain/langsmith-ace-backend"` |  |
-| images.aceBackendImage.tag | string | `"0.15.11"` |  |
+| images.aceBackendImage.tag | string | `"0.15.13"` |  |
 | images.agentBuilderImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.agentBuilderImage.repository | string | `"docker.io/langchain/agent-builder-deep-agent"` |  |
-| images.agentBuilderImage.tag | string | `"0.15.11"` |  |
+| images.agentBuilderImage.tag | string | `"0.15.13"` |  |
 | images.backendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.backendImage.repository | string | `"docker.io/langchain/langsmith-backend"` |  |
-| images.backendImage.tag | string | `"0.15.11"` |  |
+| images.backendImage.tag | string | `"0.15.13"` |  |
 | images.clickhouseImage.pullPolicy | string | `"Always"` |  |
 | images.clickhouseImage.repository | string | `"docker.io/clickhouse/clickhouse-server"` |  |
 | images.clickhouseImage.tag | string | `"25.12"` |  |
 | images.fleetToolServerImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.fleetToolServerImage.repository | string | `"docker.io/langchain/agent-builder-tool-server"` |  |
-| images.fleetToolServerImage.tag | string | `"0.15.11"` |  |
+| images.fleetToolServerImage.tag | string | `"0.15.13"` |  |
 | images.fleetTriggerServerImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.fleetTriggerServerImage.repository | string | `"docker.io/langchain/agent-builder-trigger-server"` |  |
-| images.fleetTriggerServerImage.tag | string | `"0.15.11"` |  |
+| images.fleetTriggerServerImage.tag | string | `"0.15.13"` |  |
 | images.frontendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.frontendImage.repository | string | `"docker.io/langchain/langsmith-frontend"` |  |
-| images.frontendImage.tag | string | `"0.15.11"` |  |
+| images.frontendImage.tag | string | `"0.15.13"` |  |
 | images.hostBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.hostBackendImage.repository | string | `"docker.io/langchain/hosted-langserve-backend"` |  |
-| images.hostBackendImage.tag | string | `"0.15.11"` |  |
+| images.hostBackendImage.tag | string | `"0.15.13"` |  |
 | images.imagePullSecrets | list | `[]` | Secrets with credentials to pull images from a private registry. Specified as name: value. |
 | images.insightsAgentImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.insightsAgentImage.repository | string | `"docker.io/langchain/langsmith-clio"` |  |
-| images.insightsAgentImage.tag | string | `"0.15.11"` |  |
+| images.insightsAgentImage.tag | string | `"0.15.13"` |  |
 | images.operatorImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.operatorImage.repository | string | `"docker.io/langchain/langgraph-operator"` |  |
 | images.operatorImage.tag | string | `"0.1.47"` |  |
 | images.platformBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.platformBackendImage.repository | string | `"docker.io/langchain/langsmith-go-backend"` |  |
-| images.platformBackendImage.tag | string | `"0.15.11"` |  |
+| images.platformBackendImage.tag | string | `"0.15.13"` |  |
 | images.playgroundImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.playgroundImage.repository | string | `"docker.io/langchain/langsmith-playground"` |  |
-| images.playgroundImage.tag | string | `"0.15.11"` |  |
+| images.playgroundImage.tag | string | `"0.15.13"` |  |
 | images.pollyAgentImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.pollyAgentImage.repository | string | `"docker.io/langchain/langsmith-polly"` |  |
-| images.pollyAgentImage.tag | string | `"0.15.11"` |  |
+| images.pollyAgentImage.tag | string | `"0.15.13"` |  |
 | images.postgresImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.postgresImage.repository | string | `"docker.io/postgres"` |  |
 | images.postgresImage.tag | string | `"14.7"` |  |
@@ -566,6 +568,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | insights.postgres.statefulSet.sidecars | list | `[]` |  |
 | insights.postgres.statefulSet.terminationGracePeriodSeconds | int | `30` |  |
 | insights.postgres.statefulSet.tolerations | list | `[]` |  |
+| insights.postgres.statefulSet.updateStrategy | object | `{}` | Optional StatefulSet update strategy for the in-chart Insights PostgreSQL instance. Leave unset to keep the Kubernetes default RollingUpdate behavior. |
 | insights.postgres.statefulSet.volumeMounts | list | `[]` |  |
 | insights.postgres.statefulSet.volumes | list | `[]` |  |
 | insights.queue.autoscaling.enabled | bool | `false` |  |
@@ -654,6 +657,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | insights.redis.statefulSet.sidecars | list | `[]` |  |
 | insights.redis.statefulSet.terminationGracePeriodSeconds | int | `30` |  |
 | insights.redis.statefulSet.tolerations | list | `[]` |  |
+| insights.redis.statefulSet.updateStrategy | object | `{}` | Optional StatefulSet update strategy for the in-chart Insights Redis instance. Leave unset to keep the Kubernetes default RollingUpdate behavior. |
 | insights.redis.statefulSet.volumeMounts | list | `[]` |  |
 | insights.redis.statefulSet.volumes | list | `[]` |  |
 | istioGateway.annotations | object | `{}` |  |
@@ -762,6 +766,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | polly.postgres.statefulSet.sidecars | list | `[]` |  |
 | polly.postgres.statefulSet.terminationGracePeriodSeconds | int | `30` |  |
 | polly.postgres.statefulSet.tolerations | list | `[]` |  |
+| polly.postgres.statefulSet.updateStrategy | object | `{}` | Optional StatefulSet update strategy for the in-chart Polly PostgreSQL instance. Leave unset to keep the Kubernetes default RollingUpdate behavior. |
 | polly.postgres.statefulSet.volumeMounts | list | `[]` |  |
 | polly.postgres.statefulSet.volumes | list | `[]` |  |
 | polly.queue.autoscaling.enabled | bool | `false` |  |
@@ -850,6 +855,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | polly.redis.statefulSet.sidecars | list | `[]` |  |
 | polly.redis.statefulSet.terminationGracePeriodSeconds | int | `30` |  |
 | polly.redis.statefulSet.tolerations | list | `[]` |  |
+| polly.redis.statefulSet.updateStrategy | object | `{}` | Optional StatefulSet update strategy for the in-chart Polly Redis instance. Leave unset to keep the Kubernetes default RollingUpdate behavior. |
 | polly.redis.statefulSet.volumeMounts | list | `[]` |  |
 | polly.redis.statefulSet.volumes | list | `[]` |  |
 
@@ -1306,6 +1312,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | clickhouse.statefulSet.terminationGracePeriodSeconds | int | `30` |  |
 | clickhouse.statefulSet.tolerations | list | `[]` |  |
 | clickhouse.statefulSet.topologySpreadConstraints | list | `[]` |  |
+| clickhouse.statefulSet.updateStrategy | object | `{}` | Leave unset to keep the Kubernetes default RollingUpdate behavior. |
 | clickhouse.statefulSet.volumeMounts | list | `[]` |  |
 | clickhouse.statefulSet.volumes | list | `[]` |  |
 
@@ -1508,11 +1515,14 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | listener.autoscaling.keda.annotations | object | `{}` |  |
 | listener.autoscaling.keda.cooldownPeriod | int | `300` |  |
 | listener.autoscaling.keda.enabled | bool | `false` |  |
+| listener.autoscaling.keda.fallback.failureThreshold | int | `3` |  |
+| listener.autoscaling.keda.fallback.replicas | int | `2` |  |
 | listener.autoscaling.keda.initialCooldownPeriod | int | `0` |  |
 | listener.autoscaling.keda.labels | object | `{}` |  |
 | listener.autoscaling.keda.maxReplicaCount | int | `10` |  |
 | listener.autoscaling.keda.minReplicaCount | int | `1` |  |
 | listener.autoscaling.keda.pollingInterval | int | `30` |  |
+| listener.autoscaling.keda.queueTargetSize | string | `"5"` |  |
 | listener.autoscaling.keda.scaleDownPolicy.periodSeconds | int | `300` |  |
 | listener.autoscaling.keda.scaleDownPolicy.value | int | `100` |  |
 | listener.autoscaling.keda.scaleDownStabilizationWindowSeconds | int | `1800` |  |
@@ -1981,6 +1991,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | postgres.statefulSet.terminationGracePeriodSeconds | int | `30` |  |
 | postgres.statefulSet.tolerations | list | `[]` |  |
 | postgres.statefulSet.topologySpreadConstraints | list | `[]` |  |
+| postgres.statefulSet.updateStrategy | object | `{}` | Optional StatefulSet update strategy for the in-chart PostgreSQL instance. Leave unset to keep the Kubernetes default RollingUpdate behavior. |
 | postgres.statefulSet.volumeMounts | list | `[]` |  |
 | postgres.statefulSet.volumes | list | `[]` |  |
 
@@ -2141,6 +2152,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | redis.statefulSet.terminationGracePeriodSeconds | int | `30` |  |
 | redis.statefulSet.tolerations | list | `[]` |  |
 | redis.statefulSet.topologySpreadConstraints | list | `[]` |  |
+| redis.statefulSet.updateStrategy | object | `{}` | Optional StatefulSet update strategy for the in-chart Redis instance. Leave unset to keep the Kubernetes default RollingUpdate behavior. |
 | redis.statefulSet.volumeMounts | list | `[]` |  |
 | redis.statefulSet.volumes | list | `[]` |  |
 
