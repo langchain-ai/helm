@@ -964,6 +964,23 @@ config:
     oauthIssuerUrl: ""
     oauthScopes: "email,profile,openid"  # Comma-separated list of scopes. We require at least 'email', 'profile', and 'openid'. Some OIDC providers require the 'offline_access' scope for refresh tokens.
     oauthSessionMaxSec: "86400"  # 24 hours. Maximum age of a session in seconds. Your session will attempt to refresh until the max age at which point you will be logged out.
+
+  # -- Optional Ed25519 JWKS (JSON) used to sign OAuth Authorization Server / remote MCP
+  # and LLM-auth-proxy tokens; its public keys are served at /.well-known/jwks.json (maps
+  # to LANGSMITH_SIGNING_JWKS). Like config.apiKeySalt, it is stored in the chart secret
+  # and always referenced optionally — or provide the key `langsmith_signing_jwks` in
+  # config.existingSecretName instead of setting it here. When config.hostname is set the
+  # chart enables the OAuth AS and exposes the MCP/OAuth routes under <hostname>/api, but
+  # they only activate once this signing JWKS is present (otherwise they are inert).
+  # Must be Ed25519/OKP (RSA is rejected).
+  signingJwks: ""
+  # -- Optional override for the OAuth Authorization Server issuer URL advertised to
+  # remote MCP clients. Defaults to <config.hostname>[/config.basePath]/api.
+  oauthAsIssuer: ""
+  # -- Optional issuer (iss claim) for tokens minted by the LLM auth proxy. Maps to
+  # LLM_AUTH_PROXY_ISSUER. Must match the jwtIssuer configured in the auth proxy chart.
+  # Left empty by default (not emitted); set it when using the LLM auth proxy.
+  llmAuthProxyIssuer: ""
   # -- TTL configuration
   # Optional. Used to set TTLS for longlived and shortlived objects.
   ttl:

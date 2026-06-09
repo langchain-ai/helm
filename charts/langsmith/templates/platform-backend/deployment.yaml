@@ -5,6 +5,24 @@
 - name: DOCS_PREFIX
   value: /{{ . }}/api
 {{- end }}
+# Signing JWKS for the OAuth Authorization Server / remote MCP and the LLM auth
+# proxy. The chart owns this env (like api_key_salt) and sources it from the chart
+# secret (config.signingJwks) or config.existingSecretName; operators must not set
+# LANGSMITH_SIGNING_JWKS manually (enforced in validate.yaml). The skip-guard keeps a
+# manual override from tripping the generic duplicate-key error before validate.yaml
+# surfaces the clear message. The OAuth AS only activates when this key is present.
+{{- $providedEnv := list -}}
+{{- range concat (.Values.commonEnv | default (list)) (.Values.platformBackend.deployment.extraEnv | default (list)) -}}
+{{- $providedEnv = append $providedEnv .name -}}
+{{- end -}}
+{{- if not (has "LANGSMITH_SIGNING_JWKS" $providedEnv) }}
+- name: LANGSMITH_SIGNING_JWKS
+  valueFrom:
+    secretKeyRef:
+      name: {{ include "langsmith.secretsName" . }}
+      key: langsmith_signing_jwks
+      optional: true
+{{- end }}
 {{- end -}}
 {{- $envVars := concat .Values.commonEnv (include "langsmith.commonEnv" . | fromYamlArray) (include "platformBackendEnvVars" . | fromYamlArray) .Values.platformBackend.deployment.extraEnv -}}
 {{- include "langsmith.detectDuplicates" $envVars -}}

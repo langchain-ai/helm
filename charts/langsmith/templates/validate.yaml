@@ -219,6 +219,15 @@ AWS Marketplace Helm template verification).
 {{- fail "config.polly is no longer supported (the bundled-agent bootstrap path was removed in chart 0.15.1). Use the top-level polly block: polly.enabled, polly.encryptionKey, etc." -}}
 {{- end -}}
 
+{{- /* The chart owns LANGSMITH_SIGNING_JWKS (sourced from the signing JWKS secret).
+       Forbid operators from setting it manually via commonEnv/extraEnv so there is a
+       single source of truth and no duplicate env var. */ -}}
+{{- range concat (.Values.commonEnv | default (list)) (.Values.platformBackend.deployment.extraEnv | default (list)) -}}
+{{- if eq .name "LANGSMITH_SIGNING_JWKS" -}}
+{{- fail "Do not set LANGSMITH_SIGNING_JWKS manually in commonEnv / platformBackend.deployment.extraEnv. The chart provides it from the signing JWKS secret — put the JWKS at key 'langsmith_signing_jwks' in config.existingSecretName, or set config.signingJwks." -}}
+{{- end -}}
+{{- end -}}
+
 {{- /* Validate autoscaling configuration for all services */ -}}
 {{- $autoscalingServices := dict
   "aceBackend" .Values.aceBackend.autoscaling
