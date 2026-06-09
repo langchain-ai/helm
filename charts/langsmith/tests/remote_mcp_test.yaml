@@ -111,8 +111,10 @@ tests:
                 key: langsmith_signing_jwks
                 optional: true
 
-  - it: fails when an operator sets LANGSMITH_SIGNING_JWKS manually via extraEnv
-    template: templates/validate.yaml
+  - it: fails on duplicate when an operator sets LANGSMITH_SIGNING_JWKS manually via extraEnv
+    # The chart always wires LANGSMITH_SIGNING_JWKS from the secret, so a manual copy in
+    # extraEnv produces a duplicate env var, caught by langsmith.detectDuplicates.
+    template: templates/platform-backend/deployment.yaml
     set:
       config.langsmithLicenseKey: "lic"
       config.apiKeySalt: "salt"
@@ -127,7 +129,7 @@ tests:
               key: langsmith_signing_jwks
     asserts:
       - failedTemplate:
-          errorMessage: "Do not set LANGSMITH_SIGNING_JWKS manually in commonEnv / platformBackend.deployment.extraEnv. The chart provides it from the signing JWKS secret — put the JWKS at key 'langsmith_signing_jwks' in config.existingSecretName, or set config.signingJwks."
+          errorMessage: "Duplicate keys detected: [LANGSMITH_SIGNING_JWKS]"
 
   - it: sources LANGSMITH_SIGNING_JWKS from config.existingSecretName when set
     template: templates/platform-backend/deployment.yaml
