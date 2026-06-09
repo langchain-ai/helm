@@ -370,6 +370,24 @@ data:
             proxy_cache off;
             proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.platformBackend.service.port }};
         }
+
+        # The OAuth consent page (SPA at /oauth/consent) submits approval and reads client
+        # metadata at the AS's root /oauth/* paths (single-origin leaves the SPA's backend
+        # origin empty). Route those to platform-backend; /oauth/consent stays on the SPA.
+        location = /oauth/authorize/approve {
+            proxy_set_header Connection '';
+            proxy_http_version 1.1;
+            proxy_buffering off;
+            proxy_cache off;
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.platformBackend.service.port }};
+        }
+        location /oauth/client/ {
+            proxy_set_header Connection '';
+            proxy_http_version 1.1;
+            proxy_buffering off;
+            proxy_cache off;
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.platformBackend.service.port }};
+        }
     {{- end }}
 
         # Backend Routes
@@ -950,6 +968,24 @@ data:
         # MCP JSON-RPC endpoint (kept distinct from the root /mcp fleet tool server).
         location /api/mcp {
             rewrite /api(/mcp.*) $1  break;
+            proxy_set_header Connection '';
+            proxy_http_version 1.1;
+            proxy_buffering off;
+            proxy_cache off;
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.platformBackend.service.port }};
+        }
+
+        # The OAuth consent page (SPA at /oauth/consent) submits approval and reads client
+        # metadata at the AS's root /oauth/* paths (single-origin leaves the SPA's backend
+        # origin empty). Route those to platform-backend; /oauth/consent stays on the SPA.
+        location = /oauth/authorize/approve {
+            proxy_set_header Connection '';
+            proxy_http_version 1.1;
+            proxy_buffering off;
+            proxy_cache off;
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.platformBackend.service.port }};
+        }
+        location /oauth/client/ {
             proxy_set_header Connection '';
             proxy_http_version 1.1;
             proxy_buffering off;
