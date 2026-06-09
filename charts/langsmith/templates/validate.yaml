@@ -220,9 +220,9 @@ AWS Marketplace Helm template verification).
 {{- end -}}
 
 {{- /* Validate remote MCP / OAuth Authorization Server configuration */ -}}
-{{- if .Values.config.remoteMcp.signingJwks -}}
-{{- if and (not .Values.config.hostname) (not .Values.config.remoteMcp.issuer) -}}
-{{- fail "config.remoteMcp.signingJwks is set but no OAuth issuer can be derived. Set config.hostname (recommended) or config.remoteMcp.issuer explicitly." -}}
+{{- if .Values.config.signingJwks -}}
+{{- if and (not .Values.config.hostname) (not .Values.config.oauthAsIssuer) -}}
+{{- fail "config.signingJwks is set but no OAuth issuer can be derived. Set config.hostname (recommended) or config.oauthAsIssuer explicitly." -}}
 {{- end -}}
 {{- end -}}
 

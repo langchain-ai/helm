@@ -6,7 +6,7 @@ set:
   polly.enabled: false
 tests:
   # --- Shared config (env) ---
-  - it: sets OAUTH_AS env when remoteMcp.signingJwks is provided
+  - it: sets OAUTH_AS env when signingJwks is provided
     template: templates/config-map.yaml
     set:
       config.langsmithLicenseKey: "lic"
@@ -14,7 +14,7 @@ tests:
       config.oauth.enabled: true
       config.authType: "oauth"
       config.hostname: "langsmith.example.com"
-      config.remoteMcp.signingJwks: '{"keys":[{"kty":"OKP"}]}'
+      config.signingJwks: '{"keys":[{"kty":"OKP"}]}'
     asserts:
       - equal:
           path: data.OAUTH_AS_ENABLED
@@ -31,8 +31,8 @@ tests:
       config.oauth.enabled: true
       config.authType: "oauth"
       config.hostname: "langsmith.example.com"
-      config.remoteMcp.signingJwks: '{"keys":[{"kty":"OKP"}]}'
-      config.remoteMcp.issuer: "https://mcp.example.com/api"
+      config.signingJwks: '{"keys":[{"kty":"OKP"}]}'
+      config.oauthAsIssuer: "https://mcp.example.com/api"
     asserts:
       - equal:
           path: data.OAUTH_AS_ISSUER
@@ -47,7 +47,7 @@ tests:
       config.authType: "oauth"
       config.hostname: "langsmith.example.com"
       config.basePath: "langsmith"
-      config.remoteMcp.signingJwks: '{"keys":[{"kty":"OKP"}]}'
+      config.signingJwks: '{"keys":[{"kty":"OKP"}]}'
     asserts:
       - equal:
           path: data.OAUTH_AS_ISSUER
@@ -76,7 +76,7 @@ tests:
       config.oauth.enabled: true
       config.authType: "oauth"
       config.hostname: "langsmith.example.com"
-      config.remoteMcp.signingJwks: "abc"
+      config.signingJwks: "abc"
     asserts:
       - equal:
           path: data.langsmith_signing_jwks
@@ -93,7 +93,7 @@ tests:
       config.oauth.enabled: true
       config.authType: "oauth"
       config.hostname: "langsmith.example.com"
-      config.remoteMcp.signingJwks: '{"keys":[{"kty":"OKP"}]}'
+      config.signingJwks: '{"keys":[{"kty":"OKP"}]}'
     asserts:
       - contains:
           path: spec.template.spec.containers[0].env
@@ -131,7 +131,7 @@ tests:
       config.oauth.enabled: true
       config.authType: "oauth"
       config.hostname: "langsmith.example.com"
-      config.remoteMcp.signingJwks: '{"keys":[{"kty":"OKP"}]}'
+      config.signingJwks: '{"keys":[{"kty":"OKP"}]}'
     asserts:
       - matchRegex:
           path: data["nginx.conf"]
@@ -174,7 +174,7 @@ tests:
       config.authType: "oauth"
       config.hostname: "langsmith.example.com"
       config.basePath: "langsmith"
-      config.remoteMcp.signingJwks: '{"keys":[{"kty":"OKP"}]}'
+      config.signingJwks: '{"keys":[{"kty":"OKP"}]}'
     asserts:
       - matchRegex:
           path: data["nginx.conf"]
@@ -191,7 +191,7 @@ tests:
       config.apiKeySalt: "salt"
       config.oauth.enabled: true
       config.authType: "oauth"
-      config.remoteMcp.signingJwks: '{"keys":[{"kty":"OKP"}]}'
+      config.signingJwks: '{"keys":[{"kty":"OKP"}]}'
     asserts:
       - failedTemplate:
-          errorMessage: "config.remoteMcp.signingJwks is set but no OAuth issuer can be derived. Set config.hostname (recommended) or config.remoteMcp.issuer explicitly."
+          errorMessage: "config.signingJwks is set but no OAuth issuer can be derived. Set config.hostname (recommended) or config.oauthAsIssuer explicitly."

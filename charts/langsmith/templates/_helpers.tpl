@@ -974,12 +974,12 @@ which default to http:// for local development.
 {{- end -}}
 
 {{/*
-OAuth issuer URL advertised by the remote MCP server / OAuth Authorization Server.
-Defaults to <hostnameWithProtocol>[/basePath]/api; overridable via config.remoteMcp.issuer.
+OAuth Authorization Server issuer URL advertised to remote MCP clients.
+Defaults to <hostnameWithProtocol>[/basePath]/api; overridable via config.oauthAsIssuer.
 */}}
-{{- define "langsmith.remoteMcpIssuer" -}}
-{{- if .Values.config.remoteMcp.issuer -}}
-{{- .Values.config.remoteMcp.issuer -}}
+{{- define "langsmith.oauthAsIssuer" -}}
+{{- if .Values.config.oauthAsIssuer -}}
+{{- .Values.config.oauthAsIssuer -}}
 {{- else -}}
 {{- include "langsmith.hostnameWithProtocol" . }}{{- with .Values.config.basePath }}/{{ . }}{{- end }}/api
 {{- end -}}

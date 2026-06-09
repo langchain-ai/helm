@@ -5,7 +5,7 @@
 - name: DOCS_PREFIX
   value: /{{ . }}/api
 {{- end }}
-{{- if .Values.config.remoteMcp.signingJwks }}
+{{- if .Values.config.signingJwks }}
 - name: LANGSMITH_SIGNING_JWKS
   valueFrom:
     secretKeyRef:

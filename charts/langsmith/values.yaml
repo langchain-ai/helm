@@ -947,22 +947,18 @@ config:
     oauthScopes: "email,profile,openid"  # Comma-separated list of scopes. We require at least 'email', 'profile', and 'openid'. Some OIDC providers require the 'offline_access' scope for refresh tokens.
     oauthSessionMaxSec: "86400"  # 24 hours. Maximum age of a session in seconds. Your session will attempt to refresh until the max age at which point you will be logged out.
 
-  # -- Remote MCP server: expose LangSmith as an OAuth-protected MCP server for
-  # external clients (e.g. Claude, Cursor). Served under <hostname>/api alongside
-  # the OAuth 2.1 Authorization Server. It turns on automatically when signingJwks
-  # is set; leave signingJwks empty to keep it disabled.
-  remoteMcp:
-    # -- Ed25519 JWKS (JSON) used to sign OAuth Authorization Server / MCP access
-    # tokens; the public keys are also served at /.well-known/jwks.json. Maps to the
-    # LANGSMITH_SIGNING_JWKS env var. Setting this enables the remote MCP server and
-    # OAuth Authorization Server and exposes their routes under /api. Requires
-    # config.hostname to be set (or set issuer below). Generate per the smith-go jwks
-    # README. Treated as a secret. Only honored when the chart manages the secret
-    # (i.e. config.existingSecretName / config.disableSecretCreation are unset).
-    signingJwks: ""
-    # -- Optional override for the OAuth issuer URL. Defaults to
-    # <config.hostname>[/config.basePath]/api. Set only if the auto-derived value is wrong.
-    issuer: ""
+  # -- Ed25519 JWKS (JSON) that LangSmith uses to sign tokens — this is the shared
+  # signing key for the LLM auth proxy, the OAuth Authorization Server, and sandbox
+  # callbacks; its public keys are served at /.well-known/jwks.json. Maps to the
+  # LANGSMITH_SIGNING_JWKS env var. Setting it also enables the OAuth-protected remote
+  # MCP server and exposes the OAuth AS + MCP routes under <hostname>/api (requires
+  # config.hostname, or set config.oauthAsIssuer). Must be Ed25519/OKP (RSA keys are
+  # rejected). Treated as a secret; honored only when the chart manages the secret
+  # (i.e. config.existingSecretName / config.disableSecretCreation are unset).
+  signingJwks: ""
+  # -- Optional override for the OAuth Authorization Server issuer URL advertised to
+  # remote MCP clients. Defaults to <config.hostname>[/config.basePath]/api.
+  oauthAsIssuer: ""
   # -- TTL configuration
   # Optional. Used to set TTLS for longlived and shortlived objects.
   ttl:
