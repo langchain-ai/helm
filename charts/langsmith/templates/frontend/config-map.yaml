@@ -371,9 +371,9 @@ data:
             proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.platformBackend.service.port }};
         }
 
-        # The OAuth consent page (SPA at /oauth/consent) submits approval and reads client
-        # metadata at the AS's root /oauth/* paths (single-origin leaves the SPA's backend
-        # origin empty). Route those to platform-backend; /oauth/consent stays on the SPA.
+        # The OAuth consent page (SPA at /oauth/consent) and the device-activation page (SPA
+        # at /activate) submit to the AS's root /oauth/* paths (single-origin leaves the SPA's
+        # backend origin empty). Route those to platform-backend; the SPA pages stay on the SPA.
         location = /oauth/authorize/approve {
             proxy_set_header Connection '';
             proxy_http_version 1.1;
@@ -382,6 +382,13 @@ data:
             proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.platformBackend.service.port }};
         }
         location /oauth/client/ {
+            proxy_set_header Connection '';
+            proxy_http_version 1.1;
+            proxy_buffering off;
+            proxy_cache off;
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.platformBackend.service.port }};
+        }
+        location = /oauth/device/authorize {
             proxy_set_header Connection '';
             proxy_http_version 1.1;
             proxy_buffering off;
@@ -975,9 +982,9 @@ data:
             proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.platformBackend.service.port }};
         }
 
-        # The OAuth consent page (SPA at /oauth/consent) submits approval and reads client
-        # metadata at the AS's root /oauth/* paths (single-origin leaves the SPA's backend
-        # origin empty). Route those to platform-backend; /oauth/consent stays on the SPA.
+        # The OAuth consent page (SPA at /oauth/consent) and the device-activation page (SPA
+        # at /activate) submit to the AS's root /oauth/* paths (single-origin leaves the SPA's
+        # backend origin empty). Route those to platform-backend; the SPA pages stay on the SPA.
         location = /oauth/authorize/approve {
             proxy_set_header Connection '';
             proxy_http_version 1.1;
@@ -986,6 +993,13 @@ data:
             proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.platformBackend.service.port }};
         }
         location /oauth/client/ {
+            proxy_set_header Connection '';
+            proxy_http_version 1.1;
+            proxy_buffering off;
+            proxy_cache off;
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.platformBackend.service.port }};
+        }
+        location = /oauth/device/authorize {
             proxy_set_header Connection '';
             proxy_http_version 1.1;
             proxy_buffering off;

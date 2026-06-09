@@ -173,6 +173,13 @@ tests:
       - matchRegex:
           path: data["nginx.conf"]
           pattern: "location = /api/.well-known/oauth-protected-resource/mcp"
+      # Root /oauth/* paths the SPA consent + device-activation pages submit to (single-origin).
+      - matchRegex:
+          path: data["nginx.conf"]
+          pattern: "location = /oauth/authorize/approve"
+      - matchRegex:
+          path: data["nginx.conf"]
+          pattern: "location = /oauth/device/authorize"
 
   - it: omits the /api MCP routes when no hostname is set
     template: templates/frontend/config-map.yaml
