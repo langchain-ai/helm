@@ -222,7 +222,6 @@ AWS Marketplace Helm template verification).
   "ingestion" .Values.smithdb.ingestion
   "compaction" .Values.smithdb.compaction
   "compactionWorker" .Values.smithdb.compactionWorker
-  "client" .Values.smithdb.client
   "clusterManager" .Values.smithdb.clusterManager
 -}}
 {{- range $workloadName, $workload := $smithdbWorkloads -}}
