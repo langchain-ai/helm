@@ -975,14 +975,11 @@ which default to http:// for local development.
 
 {{/*
 OAuth Authorization Server issuer URL advertised to remote MCP clients.
-Defaults to <hostnameWithProtocol>[/basePath]/api; overridable via config.oauthAsIssuer.
+Derived from <hostnameWithProtocol>[/basePath]/api. The /api path is fixed because the
+frontend nginx routes are hardcoded to it; host and scheme come from config.hostname.
 */}}
 {{- define "langsmith.oauthAsIssuer" -}}
-{{- if .Values.config.oauthAsIssuer -}}
-{{- .Values.config.oauthAsIssuer -}}
-{{- else -}}
 {{- include "langsmith.hostnameWithProtocol" . }}{{- with .Values.config.basePath }}/{{ . }}{{- end }}/api
-{{- end -}}
 {{- end -}}
 
 {{/*

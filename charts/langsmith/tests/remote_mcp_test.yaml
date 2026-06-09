@@ -22,20 +22,6 @@ tests:
           path: data.OAUTH_AS_ISSUER
           value: "https://langsmith.example.com/api"
 
-  - it: honors an explicit issuer override
-    template: templates/config-map.yaml
-    set:
-      config.langsmithLicenseKey: "lic"
-      config.apiKeySalt: "salt"
-      config.oauth.enabled: true
-      config.authType: "oauth"
-      config.hostname: "langsmith.example.com"
-      config.oauthAsIssuer: "https://mcp.example.com/api"
-    asserts:
-      - equal:
-          path: data.OAUTH_AS_ISSUER
-          value: "https://mcp.example.com/api"
-
   - it: folds basePath into the derived issuer
     template: templates/config-map.yaml
     set:

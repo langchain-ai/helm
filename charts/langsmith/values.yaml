@@ -974,9 +974,6 @@ config:
   # they only activate once this signing JWKS is present (otherwise they are inert).
   # Must be Ed25519/OKP (RSA is rejected).
   signingJwks: ""
-  # -- Optional override for the OAuth Authorization Server issuer URL advertised to
-  # remote MCP clients. Defaults to <config.hostname>[/config.basePath]/api.
-  oauthAsIssuer: ""
   # -- Optional issuer (iss claim) for tokens minted by the LLM auth proxy. Maps to
   # LLM_AUTH_PROXY_ISSUER. Must match the jwtIssuer configured in the auth proxy chart.
   # Left empty by default (not emitted); set it when using the LLM auth proxy.
