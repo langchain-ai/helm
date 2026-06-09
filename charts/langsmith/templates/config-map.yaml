@@ -40,9 +40,10 @@ data:
   SMITH_BACKEND_ENDPOINT: "http://{{ include "langsmith.fullname" . }}-{{.Values.backend.name}}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.backend.service.port }}"
   HOST_BACKEND_ENDPOINT: "http://{{ include "langsmith.fullname" . }}-{{.Values.hostBackend.name}}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.hostBackend.service.port }}"
   LANGSMITH_AUTH_ENDPOINT: "http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.platformBackend.service.port }}"
-  {{- if .Values.config.signingJwks }}
-  # Remote MCP server / OAuth Authorization Server (served under /api). Enabled when
-  # config.signingJwks is set; routes are added in the frontend nginx config.
+  {{- if .Values.config.hostname }}
+  # Remote MCP server / OAuth Authorization Server (served under /api). The AS only
+  # activates when a signing JWKS is present (langsmith_signing_jwks in the secret);
+  # without it these are inert. Routes are added in the frontend nginx config.
   OAUTH_AS_ENABLED: "true"
   OAUTH_AS_ISSUER: {{ include "langsmith.oauthAsIssuer" . | quote }}
   {{- end }}

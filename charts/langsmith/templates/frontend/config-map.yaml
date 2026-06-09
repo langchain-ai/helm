@@ -299,7 +299,7 @@ data:
             proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.platformBackend.service.port }};
         }
 
-    {{- if .Values.config.signingJwks }}
+    {{- if .Values.config.hostname }}
         # Remote MCP server (OAuth-protected) under /api -> platform-backend.
         # OAuth 2.1 discovery (RFC 8414 / RFC 9728), token endpoints, and the MCP JSON-RPC endpoint.
         # RFC 8414 path-insertion form of the authorization-server metadata (clients try this first).
@@ -876,7 +876,7 @@ data:
             proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.platformBackend.service.port }};
         }
 
-    {{- if .Values.config.signingJwks }}
+    {{- if .Values.config.hostname }}
         # Remote MCP server (OAuth-protected) under /api -> platform-backend.
         # OAuth 2.1 discovery (RFC 8414 / RFC 9728), token endpoints, and the MCP JSON-RPC endpoint.
         # RFC 8414 path-insertion form of the authorization-server metadata (clients try this first).

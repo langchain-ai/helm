@@ -5,8 +5,8 @@ set:
   insights.enabled: false
   polly.enabled: false
 tests:
-  # --- Shared config (env) ---
-  - it: sets OAUTH_AS env when signingJwks is provided
+  # --- Shared config (env): OAuth AS is enabled whenever a hostname is set ---
+  - it: sets OAUTH_AS env when a hostname is configured
     template: templates/config-map.yaml
     set:
       config.langsmithLicenseKey: "lic"
@@ -14,7 +14,6 @@ tests:
       config.oauth.enabled: true
       config.authType: "oauth"
       config.hostname: "langsmith.example.com"
-      config.signingJwks: '{"keys":[{"kty":"OKP"}]}'
     asserts:
       - equal:
           path: data.OAUTH_AS_ENABLED
@@ -31,7 +30,6 @@ tests:
       config.oauth.enabled: true
       config.authType: "oauth"
       config.hostname: "langsmith.example.com"
-      config.signingJwks: '{"keys":[{"kty":"OKP"}]}'
       config.oauthAsIssuer: "https://mcp.example.com/api"
     asserts:
       - equal:
@@ -47,28 +45,84 @@ tests:
       config.authType: "oauth"
       config.hostname: "langsmith.example.com"
       config.basePath: "langsmith"
-      config.signingJwks: '{"keys":[{"kty":"OKP"}]}'
     asserts:
       - equal:
           path: data.OAUTH_AS_ISSUER
           value: "https://langsmith.example.com/langsmith/api"
 
-  - it: omits OAUTH_AS env when signingJwks is empty
+  - it: omits OAUTH_AS env when no hostname is set
     template: templates/config-map.yaml
     set:
-      config.langsmithLicenseKey: "lic"
-      config.apiKeySalt: "salt"
+      config.existingSecretName: "langsmith-existing-secrets"
       config.oauth.enabled: true
       config.authType: "oauth"
-      config.hostname: "langsmith.example.com"
     asserts:
       - notExists:
           path: data.OAUTH_AS_ENABLED
       - notExists:
           path: data.OAUTH_AS_ISSUER
 
-  # --- Secret ---
-  - it: stores the signing JWKS in the managed secret (base64)
+  # --- Signing JWKS env is always wired and optional (like api_key_salt) ---
+  - it: always wires LANGSMITH_SIGNING_JWKS optionally into platform-backend
+    template: templates/platform-backend/deployment.yaml
+    release:
+      name: ls
+    set:
+      config.langsmithLicenseKey: "lic"
+      config.apiKeySalt: "salt"
+      config.oauth.enabled: true
+      config.authType: "oauth"
+      config.hostname: "langsmith.example.com"
+      # signingJwks intentionally not set — the env must still be wired, optionally.
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: LANGSMITH_SIGNING_JWKS
+            valueFrom:
+              secretKeyRef:
+                name: ls-langsmith-secrets
+                key: langsmith_signing_jwks
+                optional: true
+
+  - it: fails when an operator sets LANGSMITH_SIGNING_JWKS manually via extraEnv
+    template: templates/validate.yaml
+    set:
+      config.langsmithLicenseKey: "lic"
+      config.apiKeySalt: "salt"
+      config.oauth.enabled: true
+      config.authType: "oauth"
+      config.hostname: "langsmith.example.com"
+      platformBackend.deployment.extraEnv:
+        - name: LANGSMITH_SIGNING_JWKS
+          valueFrom:
+            secretKeyRef:
+              name: my-own-secret
+              key: langsmith_signing_jwks
+    asserts:
+      - failedTemplate:
+          errorMessage: "Do not set LANGSMITH_SIGNING_JWKS manually in commonEnv / platformBackend.deployment.extraEnv. The chart provides it from the signing JWKS secret — put the JWKS at key 'langsmith_signing_jwks' in config.existingSecretName, or set config.signingJwks."
+
+  - it: sources LANGSMITH_SIGNING_JWKS from config.existingSecretName when set
+    template: templates/platform-backend/deployment.yaml
+    set:
+      config.existingSecretName: "langsmith-existing-secrets"
+      config.oauth.enabled: true
+      config.authType: "oauth"
+      config.hostname: "langsmith.example.com"
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: LANGSMITH_SIGNING_JWKS
+            valueFrom:
+              secretKeyRef:
+                name: langsmith-existing-secrets
+                key: langsmith_signing_jwks
+                optional: true
+
+  # --- Chart-managed secret stores the inline value (like api_key_salt) ---
+  - it: stores the inline signing JWKS in the managed secret (base64)
     template: templates/secrets.yaml
     set:
       config.langsmithLicenseKey: "lic"
@@ -82,47 +136,8 @@ tests:
           path: data.langsmith_signing_jwks
           value: "YWJj" # base64("abc")
 
-  # --- platform-backend signing key env ---
-  - it: injects LANGSMITH_SIGNING_JWKS into platform-backend from the secret
-    template: templates/platform-backend/deployment.yaml
-    release:
-      name: ls
-    set:
-      config.langsmithLicenseKey: "lic"
-      config.apiKeySalt: "salt"
-      config.oauth.enabled: true
-      config.authType: "oauth"
-      config.hostname: "langsmith.example.com"
-      config.signingJwks: '{"keys":[{"kty":"OKP"}]}'
-    asserts:
-      - contains:
-          path: spec.template.spec.containers[0].env
-          content:
-            name: LANGSMITH_SIGNING_JWKS
-            valueFrom:
-              secretKeyRef:
-                name: ls-langsmith-secrets
-                key: langsmith_signing_jwks
-                optional: false
-
-  - it: omits LANGSMITH_SIGNING_JWKS when signingJwks is empty
-    template: templates/platform-backend/deployment.yaml
-    release:
-      name: ls
-    set:
-      config.langsmithLicenseKey: "lic"
-      config.apiKeySalt: "salt"
-      config.oauth.enabled: true
-      config.authType: "oauth"
-      config.hostname: "langsmith.example.com"
-    asserts:
-      - notContains:
-          path: spec.template.spec.containers[0].env
-          content:
-            name: LANGSMITH_SIGNING_JWKS
-
-  # --- nginx routing (no basePath) ---
-  - it: adds /api MCP + OAuth + well-known routes when enabled
+  # --- nginx routing follows hostname ---
+  - it: adds /api MCP + OAuth + well-known routes when a hostname is set
     template: templates/frontend/config-map.yaml
     set:
       frontend.enabled: true
@@ -131,7 +146,6 @@ tests:
       config.oauth.enabled: true
       config.authType: "oauth"
       config.hostname: "langsmith.example.com"
-      config.signingJwks: '{"keys":[{"kty":"OKP"}]}'
     asserts:
       - matchRegex:
           path: data["nginx.conf"]
@@ -146,15 +160,13 @@ tests:
           path: data["nginx.conf"]
           pattern: "location = /api/.well-known/oauth-protected-resource/mcp"
 
-  - it: omits the /api MCP routes when disabled
+  - it: omits the /api MCP routes when no hostname is set
     template: templates/frontend/config-map.yaml
     set:
       frontend.enabled: true
-      config.langsmithLicenseKey: "lic"
-      config.apiKeySalt: "salt"
+      config.existingSecretName: "langsmith-existing-secrets"
       config.oauth.enabled: true
       config.authType: "oauth"
-      config.hostname: "langsmith.example.com"
     asserts:
       - notMatchRegex:
           path: data["nginx.conf"]
@@ -163,7 +175,6 @@ tests:
           path: data["nginx.conf"]
           pattern: "oauth-authorization-server/api"
 
-  # --- nginx routing (basePath) ---
   - it: prefixes the /api MCP routes with basePath
     template: templates/frontend/config-map.yaml
     set:
@@ -174,7 +185,6 @@ tests:
       config.authType: "oauth"
       config.hostname: "langsmith.example.com"
       config.basePath: "langsmith"
-      config.signingJwks: '{"keys":[{"kty":"OKP"}]}'
     asserts:
       - matchRegex:
           path: data["nginx.conf"]
@@ -182,16 +192,3 @@ tests:
       - matchRegex:
           path: data["nginx.conf"]
           pattern: "location = /.well-known/oauth-authorization-server/langsmith/api"
-
-  # --- Validation guard ---
-  - it: fails when signingJwks is set but no issuer can be derived
-    template: templates/validate.yaml
-    set:
-      config.langsmithLicenseKey: "lic"
-      config.apiKeySalt: "salt"
-      config.oauth.enabled: true
-      config.authType: "oauth"
-      config.signingJwks: '{"keys":[{"kty":"OKP"}]}'
-    asserts:
-      - failedTemplate:
-          errorMessage: "config.signingJwks is set but no OAuth issuer can be derived. Set config.hostname (recommended) or config.oauthAsIssuer explicitly."

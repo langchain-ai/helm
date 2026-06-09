@@ -947,14 +947,14 @@ config:
     oauthScopes: "email,profile,openid"  # Comma-separated list of scopes. We require at least 'email', 'profile', and 'openid'. Some OIDC providers require the 'offline_access' scope for refresh tokens.
     oauthSessionMaxSec: "86400"  # 24 hours. Maximum age of a session in seconds. Your session will attempt to refresh until the max age at which point you will be logged out.
 
-  # -- Ed25519 JWKS (JSON) that LangSmith uses to sign tokens — this is the shared
-  # signing key for the LLM auth proxy, the OAuth Authorization Server, and sandbox
-  # callbacks; its public keys are served at /.well-known/jwks.json. Maps to the
-  # LANGSMITH_SIGNING_JWKS env var. Setting it also enables the OAuth-protected remote
-  # MCP server and exposes the OAuth AS + MCP routes under <hostname>/api (requires
-  # config.hostname, or set config.oauthAsIssuer). Must be Ed25519/OKP (RSA keys are
-  # rejected). Treated as a secret; honored only when the chart manages the secret
-  # (i.e. config.existingSecretName / config.disableSecretCreation are unset).
+  # -- Optional Ed25519 JWKS (JSON) used to sign OAuth Authorization Server / remote MCP
+  # and LLM-auth-proxy tokens; its public keys are served at /.well-known/jwks.json (maps
+  # to LANGSMITH_SIGNING_JWKS). Like config.apiKeySalt, it is stored in the chart secret
+  # and always referenced optionally — or provide the key `langsmith_signing_jwks` in
+  # config.existingSecretName instead of setting it here. When config.hostname is set the
+  # chart enables the OAuth AS and exposes the MCP/OAuth routes under <hostname>/api, but
+  # they only activate once this signing JWKS is present (otherwise they are inert).
+  # Must be Ed25519/OKP (RSA is rejected).
   signingJwks: ""
   # -- Optional override for the OAuth Authorization Server issuer URL advertised to
   # remote MCP clients. Defaults to <config.hostname>[/config.basePath]/api.
