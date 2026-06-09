@@ -5,11 +5,8 @@
 - name: DOCS_PREFIX
   value: /{{ . }}/api
 {{- end }}
-# Signing JWKS for the OAuth Authorization Server / remote MCP and the LLM auth
-# proxy. The chart owns this env (like api_key_salt) and sources it from the chart
-# secret (config.signingJwks) or config.existingSecretName, so operators must not set
-# LANGSMITH_SIGNING_JWKS manually — doing so trips the duplicate-env-var check
-# (langsmith.detectDuplicates). The OAuth AS only activates when this key is present.
+# OAuth AS / remote MCP (and LLM-auth-proxy) signing key. Always wired (optional) from
+# the chart secret, so don't set LANGSMITH_SIGNING_JWKS manually — it trips detectDuplicates.
 - name: LANGSMITH_SIGNING_JWKS
   valueFrom:
     secretKeyRef:
