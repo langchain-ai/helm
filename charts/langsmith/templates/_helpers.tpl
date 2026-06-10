@@ -660,6 +660,17 @@ Args: root, service, displayName, withClusterManager (bool).
 {{- end }}
 
 {{/*
+SmithDB OTEL resource attributes.
+*/}}
+{{- define "langsmith.smithdb.otelResourceAttributes" -}}
+{{- $resourceAttributes := list "pod_name=$(POD_NAME)" "k8s.pod.name=$(POD_NAME)" "container_name=$(CONTAINER_NAME)" "k8s.container.name=$(CONTAINER_NAME)" -}}
+{{- range $key, $value := .Values.smithdb.config.observability.tracing.extraResourceAttributes }}
+{{- $resourceAttributes = append $resourceAttributes (printf "%s=%s" $key (toString $value)) -}}
+{{- end }}
+{{- join "," $resourceAttributes -}}
+{{- end }}
+
+{{/*
 Shared SmithDB service env vars. Args: root, service, displayName.
 */}}
 {{- define "langsmith.smithdb.serviceEnv" -}}
@@ -778,7 +789,7 @@ Shared SmithDB service env vars. Args: root, service, displayName.
 - name: CONTAINER_NAME
   value: {{ $displayName | quote }}
 - name: OTEL_RESOURCE_ATTRIBUTES
-  value: "pod_name=$(POD_NAME),k8s.pod.name=$(POD_NAME),container_name=$(CONTAINER_NAME),k8s.container.name=$(CONTAINER_NAME)"
+  value: {{ include "langsmith.smithdb.otelResourceAttributes" $root | quote }}
 - name: _RJEM_MALLOC_CONF
   value: "prof:true,prof_active:false,lg_prof_sample:19"
 {{- end }}

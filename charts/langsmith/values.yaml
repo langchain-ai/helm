@@ -1244,6 +1244,8 @@ smithdb:
         enabled: false
         # -- gRPC OTLP collector endpoint. Protocol is not configurable.
         endpoint: ""
+        # -- Extra OpenTelemetry resource attributes appended to SmithDB traces/logs.
+        extraResourceAttributes: {}
     objectStore:
       # -- Supported values: s3, gcs.
       type: "s3"
