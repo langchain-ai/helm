@@ -86,6 +86,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | fleet.oauth.linkedinOAuthProvider | string | `""` |  |
 | fleet.oauth.microsoftOAuthProvider | string | `""` |  |
 | fleet.oauth.providerOrgId | string | `""` |  |
+| fleet.oauth.salesforceOAuthProvider | string | `""` |  |
 | fleet.oauth.slackBotId | string | `""` |  |
 | fleet.oauth.slackOAuthProvider | string | `""` |  |
 | fleet.oauth.slackSigningSecret | string | `""` |  |
@@ -877,6 +878,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | config.agentBuilder.oauth.linearOAuthProvider | string | `""` |  |
 | config.agentBuilder.oauth.linkedinOAuthProvider | string | `""` |  |
 | config.agentBuilder.oauth.microsoftOAuthProvider | string | `""` |  |
+| config.agentBuilder.oauth.salesforceOAuthProvider | string | `""` |  |
 | config.agentBuilder.oauth.slackBotId | string | `""` |  |
 | config.agentBuilder.oauth.slackOAuthProvider | string | `""` |  |
 | config.agentBuilder.oauth.slackSigningSecret | string | `""` |  |

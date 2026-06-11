@@ -145,6 +145,7 @@ fleet:
     linearOAuthProvider: ""
     githubOAuthProvider: ""
     microsoftOAuthProvider: ""
+    salesforceOAuthProvider: ""
     slackSigningSecret: ""
     slackBotId: ""
   apiServer:
@@ -888,12 +889,14 @@ config:
     # - linearOAuthProvider: Linear tools
     # - githubOAuthProvider: GitHub tools
     # - microsoftOAuthProvider: Outlook, Teams, SharePoint tools + Outlook trigger
+    # - salesforceOAuthProvider: Salesforce tools
     oauth:
       googleOAuthProvider: ""
       linkedinOAuthProvider: ""
       linearOAuthProvider: ""
       githubOAuthProvider: ""
       microsoftOAuthProvider: ""
+      salesforceOAuthProvider: ""
       slackOAuthProvider: ""
       slackSigningSecret: ""
       slackBotId: ""
