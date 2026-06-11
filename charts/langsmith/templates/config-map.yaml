@@ -40,6 +40,19 @@ data:
   SMITH_BACKEND_ENDPOINT: "http://{{ include "langsmith.fullname" . }}-{{.Values.backend.name}}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.backend.service.port }}"
   HOST_BACKEND_ENDPOINT: "http://{{ include "langsmith.fullname" . }}-{{.Values.hostBackend.name}}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.hostBackend.service.port }}"
   LANGSMITH_AUTH_ENDPOINT: "http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.platformBackend.service.port }}"
+  {{- if and .Values.smithdb.enabled .Values.smithdb.langsmith.frontend.useSmithDBEndpoints }}
+  {{- $smithdbQueryUrl := include "langsmith.smithdb.grpcServiceUrl" (dict "root" . "component" "query" "port" .Values.smithdb.query.service.port) }}
+  SMITHDB_QUERY_SERVICE_URL: {{ $smithdbQueryUrl | quote }}
+  SMITHDB_MUTATIONS_SERVICE_URL: {{ $smithdbQueryUrl | quote }}
+  {{- end }}
+  {{- if and .Values.smithdb.enabled .Values.smithdb.langsmith.dualIngest.enabled }}
+  SMITHDB_INGESTION_SERVICE_URL: {{ include "langsmith.smithdb.grpcServiceUrl" (dict "root" . "component" "ingestion" "port" .Values.smithdb.ingestion.service.port) | quote }}
+  SMITHDB_INGEST_ORGS_ROLLOUT_PCT: "100"
+  {{- end }}
+  {{- if .Values.smithdb.enabled }}
+  SMITHDB_CLUSTER_MANAGER_ENABLED: "true"
+  SMITHDB_CLUSTER_MANAGER_URL: {{ include "langsmith.smithdb.grpcServiceUrl" (dict "root" . "component" "clusterManager" "port" .Values.smithdb.clusterManager.service.port) | quote }}
+  {{- end }}
   {{- if .Values.config.hostname }}
   # Remote MCP server / OAuth Authorization Server (served under /api). The AS only
   # activates when a signing JWKS is present (langsmith_signing_jwks in the secret);

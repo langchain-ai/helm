@@ -199,6 +199,58 @@ AWS Marketplace Helm template verification).
 {{- fail "clickhouse.external.tls must be true when clickhouse.external.clientCert.secretName is set and the value is not being fetched from an existing secret." -}}
 {{- end -}}
 
+{{- /* Validate SmithDB configuration */ -}}
+{{- if .Values.smithdb.enabled -}}
+{{- if not .Values.smithdb.config.existingSecretName -}}
+{{- fail "smithdb.config.existingSecretName is required when smithdb.enabled is true." -}}
+{{- end -}}
+{{- range $keyName := list "hostSecretKey" "databaseSecretKey" "usernameSecretKey" "passwordSecretKey" -}}
+{{- $keyValue := get $.Values.smithdb.config.metastore $keyName -}}
+{{- if not $keyValue -}}
+{{- fail (printf "smithdb.config.metastore.%s is required when smithdb.enabled is true." $keyName) -}}
+{{- end -}}
+{{- end -}}
+{{- $objectStoreType := lower .Values.smithdb.config.objectStore.type -}}
+{{- if not (or (eq $objectStoreType "s3") (eq $objectStoreType "gcs")) -}}
+{{- fail "smithdb.config.objectStore.type must be one of [s3, gcs]." -}}
+{{- end -}}
+{{- if not .Values.smithdb.config.objectStore.bucket -}}
+{{- fail "smithdb.config.objectStore.bucket is required when smithdb.enabled is true." -}}
+{{- end -}}
+{{- $smithdbWorkloads := dict
+  "query" .Values.smithdb.query
+  "ingestion" .Values.smithdb.ingestion
+  "compaction" .Values.smithdb.compaction
+  "compactionWorker" .Values.smithdb.compactionWorker
+  "clusterManager" .Values.smithdb.clusterManager
+-}}
+{{- range $workloadName, $workload := $smithdbWorkloads -}}
+{{- if and $.Values.smithdb.enabled (lt (int $workload.deployment.replicas) 1) -}}
+{{- fail (printf "smithdb.%s.deployment.replicas must be greater than 0 when smithdb.enabled is true." $workloadName) -}}
+{{- end -}}
+{{- end -}}
+{{- $smithdbServiceWorkloads := dict
+  "query" .Values.smithdb.query
+  "ingestion" .Values.smithdb.ingestion
+  "compaction" .Values.smithdb.compaction
+  "clusterManager" .Values.smithdb.clusterManager
+-}}
+{{- range $workloadName, $workload := $smithdbServiceWorkloads -}}
+{{- if and $.Values.smithdb.enabled $workload.service.type (ne $workload.service.type "ClusterIP") -}}
+{{- fail (printf "smithdb.%s.service.type must be ClusterIP." $workloadName) -}}
+{{- end -}}
+{{- end -}}
+{{- if and .Values.smithdb.enabled (ne (toString .Values.smithdb.compactionWorker.maxConcurrentJobs) "") (lt (int .Values.smithdb.compactionWorker.maxConcurrentJobs) 1) -}}
+{{- fail "smithdb.compactionWorker.maxConcurrentJobs must be greater than 0 when set." -}}
+{{- end -}}
+{{- if and .Values.smithdb.langsmith.dualIngest.enabled (not .Values.smithdb.enabled) -}}
+{{- fail "smithdb.enabled must be true when smithdb.langsmith.dualIngest.enabled is true." -}}
+{{- end -}}
+{{- if and .Values.smithdb.langsmith.frontend.useSmithDBEndpoints (not .Values.smithdb.enabled) -}}
+{{- fail "smithdb.enabled must be true when smithdb.langsmith.frontend.useSmithDBEndpoints is true." -}}
+{{- end -}}
+{{- end -}}
+
 {{- /* Validate agent builder configuration */ -}}
 {{- if .Values.config.agentBuilder.enabled -}}
 {{- if and (not .Values.config.agentBuilder.encryptionKey) (not .Values.config.existingSecretName) -}}

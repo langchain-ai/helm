@@ -1,0 +1,115 @@
+{{- if .Values.smithdb.enabled }}
+{{- $envVars := concat (include "langsmith.smithdb.componentEnv" (dict "root" . "service" "INGESTION" "displayName" "smithdb-ingestion") | fromYamlArray) .Values.smithdb.ingestion.deployment.extraEnv -}}
+{{- include "langsmith.detectDuplicates" $envVars -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "langsmith.smithdb.componentName" (dict "root" . "component" "ingestion") }}
+  namespace: {{ .Values.namespace | default .Release.Namespace }}
+  labels:
+    {{- include "langsmith.labels" . | nindent 4 }}
+    app.kubernetes.io/component: {{ include "langsmith.smithdb.componentName" (dict "root" . "component" "ingestion") }}
+    {{- with .Values.smithdb.ingestion.deployment.labels }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+  annotations:
+    {{- include "langsmith.annotations" . | nindent 4 }}
+    {{- with .Values.smithdb.ingestion.deployment.annotations }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  replicas: {{ .Values.smithdb.ingestion.deployment.replicas }}
+  strategy:
+    {{- toYaml .Values.smithdb.ingestion.deployment.strategy | nindent 4 }}
+  selector:
+    matchLabels:
+      {{- include "langsmith.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: {{ include "langsmith.smithdb.componentName" (dict "root" . "component" "ingestion") }}
+  template:
+    metadata:
+      annotations:
+        {{- include "langsmith.commonPodAnnotations" . | nindent 8 }}
+        {{- with .Values.smithdb.ingestion.deployment.annotations }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+      labels:
+        {{- include "langsmith.labels" . | nindent 8 }}
+        app.kubernetes.io/component: {{ include "langsmith.smithdb.componentName" (dict "root" . "component" "ingestion") }}
+        {{- with .Values.smithdb.ingestion.deployment.labels }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      terminationGracePeriodSeconds: {{ .Values.smithdb.ingestion.deployment.terminationGracePeriodSeconds }}
+      {{- with .Values.images.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.smithdb.ingestion.deployment.podSecurityContext | nindent 8 }}
+      serviceAccountName: {{ include "langsmith.smithdb.serviceAccountName" (dict "root" . "component" "ingestion") }}
+      {{- include "langsmith.dnsConfig" . | nindent 6 }}
+      {{- with .Values.smithdb.ingestion.deployment.initContainers }}
+      initContainers:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: {{ .Values.smithdb.ingestion.name }}
+          {{- with .Values.smithdb.ingestion.deployment.command }}
+          command:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          env:
+            - name: SMITHDB_INGESTION__HTTP_PORT
+              value: {{ .Values.smithdb.ingestion.containerPort | quote }}
+            - name: SMITHDB_INGESTION__GRPC_PORT
+              value: {{ .Values.smithdb.ingestion.containerGrpcPort | quote }}
+            {{- with $envVars }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          image: {{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "smithdbIngestionImage") | quote }}
+          imagePullPolicy: {{ .Values.images.smithdbIngestionImage.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.smithdb.ingestion.containerPort }}
+              protocol: TCP
+            - name: grpc
+              containerPort: {{ .Values.smithdb.ingestion.containerGrpcPort }}
+              protocol: TCP
+          {{- with .Values.smithdb.ingestion.deployment.probes }}
+            {{- toYaml . | nindent 10 }}
+          {{- end }}
+          resources:
+            {{- toYaml .Values.smithdb.ingestion.deployment.resources | nindent 12 }}
+          securityContext:
+            {{- toYaml .Values.smithdb.ingestion.deployment.securityContext | nindent 12 }}
+          {{- with .Values.smithdb.ingestion.deployment.volumeMounts }}
+          volumeMounts:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.smithdb.ingestion.deployment.extraContainerConfig }}
+            {{- toYaml . | nindent 10 }}
+          {{- end }}
+        {{- with .Values.smithdb.ingestion.deployment.sidecars }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- with .Values.smithdb.ingestion.deployment.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.smithdb.ingestion.deployment.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.smithdb.ingestion.deployment.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.smithdb.ingestion.deployment.topologySpreadConstraints }}
+      topologySpreadConstraints:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.smithdb.ingestion.deployment.volumes }}
+      volumes:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}

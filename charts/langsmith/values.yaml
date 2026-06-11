@@ -101,6 +101,26 @@ images:
     repository: "docker.io/langchain/langsmith-polly"
     pullPolicy: IfNotPresent
     tag: "0.16.4rc1"
+  smithdbQueryImage:
+    repository: "docker.io/langchain/smithdb-query"
+    pullPolicy: IfNotPresent
+    tag: "latest"
+  smithdbIngestionImage:
+    repository: "docker.io/langchain/smithdb-ingestion"
+    pullPolicy: IfNotPresent
+    tag: "latest"
+  smithdbCompactionImage:
+    repository: "docker.io/langchain/smithdb-compaction"
+    pullPolicy: IfNotPresent
+    tag: "latest"
+  smithdbClusterManagerImage:
+    repository: "docker.io/langchain/smithdb-clustermanager"
+    pullPolicy: IfNotPresent
+    tag: "latest"
+  smithdbMetastoreMigrationImage:
+    repository: "docker.io/langchain/smithdb-metastore-migrate"
+    pullPolicy: IfNotPresent
+    tag: "latest"
   # Optional: only mirror/pull when presidioAnalyzer.enabled is true
   presidioAnalyzerImage:
     repository: "mcr.microsoft.com/presidio-analyzer"
@@ -1186,6 +1206,364 @@ aceBackend:
     annotations: {}
     automountServiceAccountToken: true
 
+smithdb:
+  # -- Deploy the in-chart SmithDB workloads.
+  enabled: false
+  # -- Name segment used for SmithDB resources.
+  name: "smithdb"
+  # -- Shared ServiceAccount for SmithDB workloads.
+  serviceAccount:
+    create: true
+    # -- Defaults to <release>-<smithdb.name>.
+    name: ""
+    labels: {}
+    annotations: {}
+    automountServiceAccountToken: true
+  # -- Extra env vars for every SmithDB workload.
+  commonEnv: []
+
+  config:
+    # -- Existing secret containing SmithDB metastore credentials.
+    existingSecretName: ""
+    metastore:
+      hostSecretKey: ""
+      databaseSecretKey: ""
+      usernameSecretKey: ""
+      passwordSecretKey: ""
+      port: "5432"
+      useSsl: false
+    observability:
+      logging:
+        # -- Optional SmithDB log filter. Empty uses the chart default: INFO,vortex=WARN.
+        level: ""
+      tracing:
+        # -- Enable OpenTelemetry tracing/log export for SmithDB components.
+        # SmithDB supports exporting OTLP over gRPC only.
+        enabled: false
+        # -- OTLP gRPC collector endpoint for SmithDB traces/logs.
+        endpoint: ""
+        # -- Extra OpenTelemetry resource attributes appended to SmithDB traces/logs.
+        extraResourceAttributes: {}
+    objectStore:
+      # -- Supported values: s3, gcs.
+      type: "s3"
+      bucket: ""
+      s3:
+        # -- Defaults to the SmithDB S3 client default when empty.
+        region: ""
+        endpoint: ""
+        # -- Keys in smithdb.config.existingSecretName for static S3 credentials.
+        # Set both to "" when using ambient cloud identity, such as IRSA.
+        accessKeyIdSecretKey: ""
+        secretAccessKeySecretKey: ""
+
+  langsmith:
+    dualIngest:
+      # -- Enables LangSmith run ingestion to also write to SmithDB. Requires smithdb.enabled.
+      enabled: false
+    frontend:
+      # -- Defaults the LangSmith UI to SmithDB endpoints for run queries. Requires smithdb.enabled.
+      useSmithDBEndpoints: false
+
+  query:
+    name: "query"
+    containerPort: 8060
+    containerGrpcPort: 8080
+    deployment:
+      replicas: 1
+      strategy:
+        type: RollingUpdate
+        rollingUpdate:
+          maxSurge: 1
+          maxUnavailable: 0
+      labels: {}
+      annotations: {}
+      podSecurityContext: {}
+      securityContext: {}
+      resources: {}
+      probes:
+        startupProbe:
+          httpGet:
+            path: /health
+            port: http
+          failureThreshold: 6
+          periodSeconds: 10
+          timeoutSeconds: 1
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: http
+          failureThreshold: 6
+          periodSeconds: 10
+          timeoutSeconds: 1
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: http
+          failureThreshold: 6
+          periodSeconds: 10
+          timeoutSeconds: 1
+      command:
+        - "./smithdb-query"
+      extraEnv: []
+      extraContainerConfig: {}
+      sidecars: []
+      nodeSelector: {}
+      tolerations: []
+      affinity: {}
+      topologySpreadConstraints: []
+      volumes: []
+      volumeMounts: []
+      initContainers: []
+    service:
+      port: 8080
+      labels: {}
+      annotations: {}
+    pdb:
+      enabled: false
+      minAvailable: 1
+      labels: {}
+      annotations: {}
+
+  ingestion:
+    name: "ingestion"
+    containerPort: 8050
+    containerGrpcPort: 8082
+    deployment:
+      replicas: 1
+      strategy:
+        type: RollingUpdate
+        rollingUpdate:
+          maxSurge: 1
+          maxUnavailable: 0
+      labels: {}
+      annotations: {}
+      podSecurityContext: {}
+      securityContext: {}
+      resources: {}
+      probes:
+        startupProbe:
+          httpGet:
+            path: /health
+            port: http
+          failureThreshold: 6
+          periodSeconds: 10
+          timeoutSeconds: 1
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: http
+          failureThreshold: 6
+          periodSeconds: 10
+          timeoutSeconds: 1
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: http
+          failureThreshold: 6
+          periodSeconds: 10
+          timeoutSeconds: 1
+      command:
+        - "./smithdb-ingestion"
+      terminationGracePeriodSeconds: 300
+      extraEnv: []
+      extraContainerConfig: {}
+      sidecars: []
+      nodeSelector: {}
+      tolerations: []
+      affinity: {}
+      topologySpreadConstraints: []
+      volumes: []
+      volumeMounts: []
+      initContainers: []
+    service:
+      port: 8082
+      labels: {}
+      annotations: {}
+    pdb:
+      enabled: false
+      minAvailable: 1
+      labels: {}
+      annotations: {}
+
+  compaction:
+    name: "compaction"
+    containerPort: 8070
+    containerGrpcPort: 8071
+    deployment:
+      replicas: 1
+      labels: {}
+      annotations: {}
+      podSecurityContext: {}
+      securityContext: {}
+      resources: {}
+      probes:
+        startupProbe:
+          httpGet:
+            path: /health
+            port: http
+          failureThreshold: 6
+          periodSeconds: 10
+          timeoutSeconds: 1
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: http
+          failureThreshold: 6
+          periodSeconds: 10
+          timeoutSeconds: 1
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: http
+          failureThreshold: 6
+          periodSeconds: 10
+          timeoutSeconds: 1
+      # -- Optional command override. Empty uses the chart default: ["./smithdb-compaction", "scheduler"].
+      command: []
+      extraEnv: []
+      extraContainerConfig: {}
+      sidecars: []
+      nodeSelector: {}
+      tolerations: []
+      affinity: {}
+      topologySpreadConstraints: []
+      volumes: []
+      volumeMounts: []
+      initContainers: []
+    service:
+      port: 8071
+      labels: {}
+      annotations: {}
+    pdb:
+      enabled: false
+      minAvailable: 1
+      labels: {}
+      annotations: {}
+
+  compactionWorker:
+    name: "compaction-worker"
+    containerPort: 9000
+    # -- Maximum concurrent jobs per compaction worker. Empty uses the SmithDB default.
+    maxConcurrentJobs: ""
+    deployment:
+      replicas: 1
+      labels: {}
+      annotations: {}
+      podSecurityContext: {}
+      securityContext: {}
+      terminationGracePeriodSeconds: 120
+      resources: {}
+      probes:
+        startupProbe:
+          httpGet:
+            path: /health
+            port: http
+          failureThreshold: 6
+          periodSeconds: 10
+          timeoutSeconds: 1
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: http
+          failureThreshold: 6
+          periodSeconds: 10
+          timeoutSeconds: 1
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: http
+          failureThreshold: 6
+          periodSeconds: 10
+          timeoutSeconds: 1
+      # -- Optional command override. Empty uses the chart default: ["./smithdb-compaction", "worker"].
+      command: []
+      extraEnv: []
+      extraContainerConfig: {}
+      sidecars: []
+      nodeSelector: {}
+      tolerations: []
+      affinity: {}
+      topologySpreadConstraints: []
+      volumes: []
+      volumeMounts: []
+      initContainers: []
+    pdb:
+      enabled: false
+      minAvailable: 1
+      labels: {}
+      annotations: {}
+
+  clusterManager:
+    name: "cluster-manager"
+    containerPort: 8090
+    containerGrpcPort: 8091
+    deployment:
+      replicas: 1
+      labels: {}
+      annotations: {}
+      podSecurityContext: {}
+      securityContext: {}
+      resources: {}
+      probes:
+        startupProbe:
+          httpGet:
+            path: /health
+            port: http
+          failureThreshold: 6
+          periodSeconds: 10
+          timeoutSeconds: 1
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: http
+          failureThreshold: 6
+          periodSeconds: 10
+          timeoutSeconds: 1
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: http
+          failureThreshold: 6
+          periodSeconds: 10
+          timeoutSeconds: 1
+      command: []
+      extraEnv: []
+      extraContainerConfig: {}
+      sidecars: []
+      nodeSelector: {}
+      tolerations: []
+      affinity: {}
+      topologySpreadConstraints: []
+      volumes: []
+      volumeMounts: []
+      initContainers: []
+    service:
+      port: 8091
+      labels: {}
+      annotations: {}
+    pdb: {}
+
+  metastoreMigration:
+    name: "metastore-migration"
+    useSsl: false
+    command:
+      - "./smithdb-metastore-migrate-entrypoint.sh"
+    job:
+      ttlSecondsAfterFinished: 3600
+      backoffLimit: 0
+      activeDeadlineSeconds: 600
+      restartPolicy: Never
+      labels: {}
+      annotations: {}
+      podAnnotations: {}
+      podSecurityContext: {}
+      securityContext: {}
+      resources: {}
+      extraEnv: []
+      nodeSelector: {}
+      tolerations: []
+      affinity: {}
 
 backend:
   name: "backend"

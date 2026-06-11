@@ -1,0 +1,111 @@
+{{- if .Values.smithdb.enabled }}
+{{- $command := default (list "./smithdb-compaction" "scheduler") .Values.smithdb.compaction.deployment.command -}}
+{{- $envVars := concat (include "langsmith.smithdb.componentEnv" (dict "root" . "service" "COMPACTION" "displayName" "smithdb-compaction") | fromYamlArray) .Values.smithdb.compaction.deployment.extraEnv -}}
+{{- include "langsmith.detectDuplicates" $envVars -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "langsmith.smithdb.componentName" (dict "root" . "component" "compaction") }}
+  namespace: {{ .Values.namespace | default .Release.Namespace }}
+  labels:
+    {{- include "langsmith.labels" . | nindent 4 }}
+    app.kubernetes.io/component: {{ include "langsmith.smithdb.componentName" (dict "root" . "component" "compaction") }}
+    {{- with .Values.smithdb.compaction.deployment.labels }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+  annotations:
+    {{- include "langsmith.annotations" . | nindent 4 }}
+    {{- with .Values.smithdb.compaction.deployment.annotations }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  replicas: {{ .Values.smithdb.compaction.deployment.replicas }}
+  selector:
+    matchLabels:
+      {{- include "langsmith.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: {{ include "langsmith.smithdb.componentName" (dict "root" . "component" "compaction") }}
+  template:
+    metadata:
+      annotations:
+        {{- include "langsmith.commonPodAnnotations" . | nindent 8 }}
+        {{- with .Values.smithdb.compaction.deployment.annotations }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+      labels:
+        {{- include "langsmith.labels" . | nindent 8 }}
+        app.kubernetes.io/component: {{ include "langsmith.smithdb.componentName" (dict "root" . "component" "compaction") }}
+        {{- with .Values.smithdb.compaction.deployment.labels }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      {{- with .Values.images.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.smithdb.compaction.deployment.podSecurityContext | nindent 8 }}
+      serviceAccountName: {{ include "langsmith.smithdb.serviceAccountName" (dict "root" . "component" "compaction") }}
+      {{- include "langsmith.dnsConfig" . | nindent 6 }}
+      {{- with .Values.smithdb.compaction.deployment.initContainers }}
+      initContainers:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: {{ .Values.smithdb.compaction.name }}
+          command:
+            {{- toYaml $command | nindent 12 }}
+          env:
+            - name: SMITHDB_COMPACTION__HTTP_PORT
+              value: {{ .Values.smithdb.compaction.containerPort | quote }}
+            - name: SMITHDB_COMPACTION__GRPC_PORT
+              value: {{ .Values.smithdb.compaction.containerGrpcPort | quote }}
+            {{- with $envVars }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          image: {{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "smithdbCompactionImage") | quote }}
+          imagePullPolicy: {{ .Values.images.smithdbCompactionImage.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.smithdb.compaction.containerPort }}
+              protocol: TCP
+            - name: grpc
+              containerPort: {{ .Values.smithdb.compaction.containerGrpcPort }}
+              protocol: TCP
+          {{- with .Values.smithdb.compaction.deployment.probes }}
+            {{- toYaml . | nindent 10 }}
+          {{- end }}
+          resources:
+            {{- toYaml .Values.smithdb.compaction.deployment.resources | nindent 12 }}
+          securityContext:
+            {{- toYaml .Values.smithdb.compaction.deployment.securityContext | nindent 12 }}
+          {{- with .Values.smithdb.compaction.deployment.volumeMounts }}
+          volumeMounts:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.smithdb.compaction.deployment.extraContainerConfig }}
+            {{- toYaml . | nindent 10 }}
+          {{- end }}
+        {{- with .Values.smithdb.compaction.deployment.sidecars }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- with .Values.smithdb.compaction.deployment.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.smithdb.compaction.deployment.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.smithdb.compaction.deployment.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.smithdb.compaction.deployment.topologySpreadConstraints }}
+      topologySpreadConstraints:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.smithdb.compaction.deployment.volumes }}
+      volumes:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}
