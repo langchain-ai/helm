@@ -495,20 +495,6 @@ SmithDB resource name prefix.
 {{- end }}
 
 {{/*
-Common SmithDB labels.
-*/}}
-{{- define "langsmith.smithdb.labels" -}}
-{{ include "langsmith.labels" . }}
-{{- end }}
-
-{{/*
-Common SmithDB annotations.
-*/}}
-{{- define "langsmith.smithdb.annotations" -}}
-{{ include "langsmith.annotations" . }}
-{{- end }}
-
-{{/*
 Name of a SmithDB component Service or Deployment.
 Args: root, component.
 */}}
@@ -533,7 +519,7 @@ Args: root.
 {{- end }}
 
 {{/*
-SmithDB service URL used by LangSmith gRPC clients.
+SmithDB internal service URL used by LangSmith and SmithDB gRPC clients.
 Args: root, component, port.
 */}}
 {{- define "langsmith.smithdb.grpcServiceUrl" -}}
@@ -544,76 +530,11 @@ Args: root, component, port.
 {{- end }}
 
 {{/*
-SmithDB HTTP-style endpoint used by SmithDB services.
+SmithDB HTTP-style endpoint used by SmithDB workloads for internal component calls.
 Args: root, component, port.
 */}}
 {{- define "langsmith.smithdb.httpServiceUrl" -}}
 {{- printf "http://%s" (include "langsmith.smithdb.grpcServiceUrl" .) }}
-{{- end }}
-
-{{/*
-SmithDB HTTP probes.
-*/}}
-{{- define "langsmith.smithdb.httpProbes" -}}
-startupProbe:
-  httpGet:
-    path: /health
-    port: http
-  failureThreshold: 6
-  periodSeconds: 10
-  timeoutSeconds: 1
-livenessProbe:
-  httpGet:
-    path: /health
-    port: http
-  failureThreshold: 6
-  periodSeconds: 10
-  timeoutSeconds: 1
-readinessProbe:
-  httpGet:
-    path: /health
-    port: http
-  failureThreshold: 6
-  periodSeconds: 10
-  timeoutSeconds: 1
-{{- end }}
-
-{{/*
-SmithDB gRPC probes. Args: port.
-*/}}
-{{- define "langsmith.smithdb.grpcProbes" -}}
-startupProbe:
-  grpc:
-    port: {{ .port }}
-  failureThreshold: 6
-  periodSeconds: 10
-  timeoutSeconds: 1
-livenessProbe:
-  grpc:
-    port: {{ .port }}
-  failureThreshold: 6
-  periodSeconds: 10
-  timeoutSeconds: 1
-readinessProbe:
-  grpc:
-    port: {{ .port }}
-  failureThreshold: 6
-  periodSeconds: 10
-  timeoutSeconds: 1
-{{- end }}
-
-{{/*
-SmithDB probes for a component.
-Args: override (map, may be empty), kind ("http"|"grpc"), grpcPort (for grpc).
-*/}}
-{{- define "langsmith.smithdb.probes" -}}
-{{- if .override -}}
-{{- toYaml .override }}
-{{- else if eq .kind "grpc" -}}
-{{- include "langsmith.smithdb.grpcProbes" (dict "port" .grpcPort) }}
-{{- else -}}
-{{- include "langsmith.smithdb.httpProbes" . }}
-{{- end -}}
 {{- end }}
 
 {{/*
@@ -646,13 +567,13 @@ SmithDB cluster-manager client env vars. Args: root, service.
 
 {{/*
 SmithDB component env vars.
-Args: root, service, displayName, withClusterManager (bool).
+Args: root, service, displayName.
 */}}
 {{- define "langsmith.smithdb.componentEnv" -}}
 {{- $root := .root -}}
 {{- $service := .service -}}
 {{- $envVars := include "langsmith.smithdb.serviceEnv" (dict "root" $root "service" $service "displayName" .displayName) | fromYamlArray -}}
-{{- if and .withClusterManager $root.Values.smithdb.clusterManager.enabled }}
+{{- if $root.Values.smithdb.enabled }}
 {{- $envVars = concat $envVars (include "langsmith.smithdb.clusterManagerClientEnv" (dict "root" $root "service" $service) | fromYamlArray) -}}
 {{- end }}
 {{- $envVars = concat $envVars $root.Values.commonEnv $root.Values.smithdb.commonEnv -}}

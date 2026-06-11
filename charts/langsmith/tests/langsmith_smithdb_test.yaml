@@ -13,8 +13,8 @@ templates:
   - smithdb/compaction-deployment.yaml
   - smithdb/compaction-worker-deployment.yaml
   - smithdb/cluster-manager-deployment.yaml
-  - smithdb/client-deployment.yaml
   - smithdb/services.yaml
+  - smithdb/pdbs.yaml
   - smithdb/service-account.yaml
   - smithdb/metastore-migration.yaml
 tests:
@@ -114,15 +114,56 @@ tests:
             name: VITE_SELF_HOSTED_SMITHDB_V2_ENDPOINTS_ENABLED
             value: "true"
 
-  - it: should skip smithdb workloads when disabled
+  - it: should skip all smithdb resources when disabled
     values:
       - ./values/smithdb-enabled.yaml
     set:
       smithdb.enabled: false
-    template: smithdb/query-deployment.yaml
+    templates:
+      - smithdb/query-deployment.yaml
+      - smithdb/ingestion-deployment.yaml
+      - smithdb/compaction-deployment.yaml
+      - smithdb/compaction-worker-deployment.yaml
+      - smithdb/cluster-manager-deployment.yaml
+      - smithdb/services.yaml
+      - smithdb/pdbs.yaml
+      - smithdb/service-account.yaml
+      - smithdb/metastore-migration.yaml
     asserts:
       - hasDocuments:
           count: 0
+
+  - it: should omit LangSmith SmithDB config when disabled
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      smithdb.enabled: false
+    template: config-map.yaml
+    asserts:
+      - notExists:
+          path: data.SMITHDB_QUERY_SERVICE_URL
+      - notExists:
+          path: data.SMITHDB_MUTATIONS_SERVICE_URL
+      - notExists:
+          path: data.SMITHDB_INGESTION_SERVICE_URL
+      - notExists:
+          path: data.SMITHDB_INGEST_ORGS_ROLLOUT_PCT
+      - notExists:
+          path: data.SMITHDB_CLUSTER_MANAGER_ENABLED
+      - notExists:
+          path: data.SMITHDB_CLUSTER_MANAGER_URL
+
+  - it: should omit frontend SmithDB v2 endpoint flag when disabled
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      smithdb.enabled: false
+    template: frontend/deployment.yaml
+    asserts:
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: VITE_SELF_HOSTED_SMITHDB_V2_ENDPOINTS_ENABLED
 
   - it: should render zero-downtime rollout strategy for smithdb ingestion
     values:
@@ -141,8 +182,6 @@ tests:
     values:
       - ./values/smithdb-enabled.yaml
     set:
-      smithdb.compaction.enabled: true
-      smithdb.compactionWorker.enabled: true
       smithdb.compactionWorker.maxConcurrentJobs: 8
     template: smithdb/compaction-worker-deployment.yaml
     asserts:

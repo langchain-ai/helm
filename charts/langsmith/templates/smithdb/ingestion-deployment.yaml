@@ -1,5 +1,9 @@
-{{- if and .Values.smithdb.enabled .Values.smithdb.ingestion.enabled }}
-{{- $envVars := concat (include "langsmith.smithdb.componentEnv" (dict "root" . "service" "INGESTION" "displayName" "smithdb-ingestion" "withClusterManager" true) | fromYamlArray) .Values.smithdb.ingestion.deployment.extraEnv -}}
+{{- if .Values.smithdb.enabled }}
+{{- $chartEnvVars := list
+  (dict "name" "SMITHDB_INGESTION__HTTP_PORT" "value" (.Values.smithdb.ingestion.containerPort | toString))
+  (dict "name" "SMITHDB_INGESTION__GRPC_PORT" "value" (.Values.smithdb.ingestion.containerGrpcPort | toString))
+-}}
+{{- $envVars := concat (include "langsmith.smithdb.componentEnv" (dict "root" . "service" "INGESTION" "displayName" "smithdb-ingestion") | fromYamlArray) $chartEnvVars .Values.smithdb.ingestion.deployment.extraEnv -}}
 {{- include "langsmith.detectDuplicates" $envVars -}}
 apiVersion: apps/v1
 kind: Deployment
@@ -7,13 +11,13 @@ metadata:
   name: {{ include "langsmith.smithdb.componentName" (dict "root" . "component" "ingestion") }}
   namespace: {{ .Values.namespace | default .Release.Namespace }}
   labels:
-    {{- include "langsmith.smithdb.labels" . | nindent 4 }}
+    {{- include "langsmith.labels" . | nindent 4 }}
     app.kubernetes.io/component: {{ include "langsmith.smithdb.componentName" (dict "root" . "component" "ingestion") }}
     {{- with .Values.smithdb.ingestion.deployment.labels }}
       {{- toYaml . | nindent 4 }}
     {{- end }}
   annotations:
-    {{- include "langsmith.smithdb.annotations" . | nindent 4 }}
+    {{- include "langsmith.annotations" . | nindent 4 }}
     {{- with .Values.smithdb.ingestion.deployment.annotations }}
       {{- toYaml . | nindent 4 }}
     {{- end }}
@@ -33,7 +37,7 @@ spec:
           {{- toYaml . | nindent 8 }}
         {{- end }}
       labels:
-        {{- include "langsmith.smithdb.labels" . | nindent 8 }}
+        {{- include "langsmith.labels" . | nindent 8 }}
         app.kubernetes.io/component: {{ include "langsmith.smithdb.componentName" (dict "root" . "component" "ingestion") }}
         {{- with .Values.smithdb.ingestion.deployment.labels }}
           {{- toYaml . | nindent 8 }}
@@ -69,8 +73,9 @@ spec:
             - name: grpc
               containerPort: {{ .Values.smithdb.ingestion.containerGrpcPort }}
               protocol: TCP
-          {{- $ingestionProbeKind := ternary "grpc" "http" (eq (default "grpc" .Values.smithdb.ingestion.probeType) "grpc") -}}
-          {{- include "langsmith.smithdb.probes" (dict "override" .Values.smithdb.ingestion.deployment.probes "kind" $ingestionProbeKind "grpcPort" .Values.smithdb.ingestion.containerGrpcPort) | nindent 10 }}
+          {{- with .Values.smithdb.ingestion.deployment.probes }}
+            {{- toYaml . | nindent 10 }}
+          {{- end }}
           resources:
             {{- toYaml .Values.smithdb.ingestion.deployment.resources | nindent 12 }}
           securityContext:

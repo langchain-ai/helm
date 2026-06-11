@@ -24,11 +24,3 @@ smithdb:
       enabled: true
     frontend:
       useSmithDBEndpoints: true
-    clusterManager:
-      enabled: true
-  query:
-    enabled: true
-  ingestion:
-    enabled: true
-  clusterManager:
-    enabled: true

@@ -109,10 +109,6 @@ images:
     repository: "docker.io/langchain/smithdb-ingestion"
     pullPolicy: IfNotPresent
     tag: "latest"
-  smithdbClientImage:
-    repository: "docker.io/langchain/smithdb-client"
-    pullPolicy: IfNotPresent
-    tag: "latest"
   smithdbCompactionImage:
     repository: "docker.io/langchain/smithdb-compaction"
     pullPolicy: IfNotPresent
@@ -1241,8 +1237,10 @@ smithdb:
         # -- Optional SmithDB log filter. Empty uses the chart default: INFO,vortex=WARN.
         level: ""
       tracing:
+        # -- Enable OpenTelemetry tracing/log export for SmithDB components.
+        # SmithDB supports exporting OTLP over gRPC only.
         enabled: false
-        # -- gRPC OTLP collector endpoint. Protocol is not configurable.
+        # -- OTLP gRPC collector endpoint for SmithDB traces/logs.
         endpoint: ""
         # -- Extra OpenTelemetry resource attributes appended to SmithDB traces/logs.
         extraResourceAttributes: {}
@@ -1266,12 +1264,8 @@ smithdb:
     frontend:
       # -- Defaults the LangSmith UI to SmithDB endpoints for run queries. Requires smithdb.enabled.
       useSmithDBEndpoints: false
-    clusterManager:
-      # -- Lets LangSmith services call the SmithDB cluster manager. Requires smithdb.clusterManager.enabled.
-      enabled: false
 
   query:
-    enabled: false
     name: "query"
     containerPort: 8060
     containerGrpcPort: 8080
@@ -1284,26 +1278,34 @@ smithdb:
           maxUnavailable: 0
       labels: {}
       annotations: {}
-      podSecurityContext:
-        runAsNonRoot: true
-        runAsUser: 1001
-        runAsGroup: 1001
-        fsGroup: 1001
-      securityContext:
-        allowPrivilegeEscalation: false
-        capabilities:
-          drop:
-            - ALL
+      podSecurityContext: {}
+      securityContext: {}
       resources: {}
-      # -- Optional probe override. Empty uses chart defaults.
-      probes: {}
+      probes:
+        startupProbe:
+          httpGet:
+            path: /health
+            port: http
+          failureThreshold: 6
+          periodSeconds: 10
+          timeoutSeconds: 1
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: http
+          failureThreshold: 6
+          periodSeconds: 10
+          timeoutSeconds: 1
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: http
+          failureThreshold: 6
+          periodSeconds: 10
+          timeoutSeconds: 1
       command:
         - "./smithdb-query"
-      extraEnv:
-        - name: SMITHDB_QUERY__GRPC_PORT
-          value: "8080"
-        - name: SMITHDB_QUERY__HTTP_PORT
-          value: "8060"
+      extraEnv: []
       extraContainerConfig: {}
       sidecars: []
       nodeSelector: {}
@@ -1324,11 +1326,9 @@ smithdb:
       annotations: {}
 
   ingestion:
-    enabled: false
     name: "ingestion"
     containerPort: 8050
     containerGrpcPort: 8082
-    probeType: grpc
     deployment:
       replicas: 1
       strategy:
@@ -1338,27 +1338,35 @@ smithdb:
           maxUnavailable: 0
       labels: {}
       annotations: {}
-      podSecurityContext:
-        runAsNonRoot: true
-        runAsUser: 1001
-        runAsGroup: 1001
-        fsGroup: 1001
-      securityContext:
-        allowPrivilegeEscalation: false
-        capabilities:
-          drop:
-            - ALL
+      podSecurityContext: {}
+      securityContext: {}
       resources: {}
-      # -- Optional probe override. Empty uses chart defaults.
-      probes: {}
+      probes:
+        startupProbe:
+          httpGet:
+            path: /health
+            port: http
+          failureThreshold: 6
+          periodSeconds: 10
+          timeoutSeconds: 1
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: http
+          failureThreshold: 6
+          periodSeconds: 10
+          timeoutSeconds: 1
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: http
+          failureThreshold: 6
+          periodSeconds: 10
+          timeoutSeconds: 1
       command:
         - "./smithdb-ingestion"
       terminationGracePeriodSeconds: 300
-      extraEnv:
-        - name: SMITHDB_INGESTION__HTTP_PORT
-          value: "8050"
-        - name: SMITHDB_INGESTION__GRPC_PORT
-          value: "8082"
+      extraEnv: []
       extraContainerConfig: {}
       sidecars: []
       nodeSelector: {}
@@ -1379,7 +1387,6 @@ smithdb:
       annotations: {}
 
   compaction:
-    enabled: false
     name: "compaction"
     containerPort: 8070
     containerGrpcPort: 8071
@@ -1387,26 +1394,34 @@ smithdb:
       replicas: 1
       labels: {}
       annotations: {}
-      podSecurityContext:
-        runAsNonRoot: true
-        runAsUser: 1001
-        runAsGroup: 1001
-      securityContext:
-        allowPrivilegeEscalation: false
-        capabilities:
-          drop:
-            - ALL
+      podSecurityContext: {}
+      securityContext: {}
       resources: {}
-      # -- Optional probe override. Empty uses chart defaults.
-      probes: {}
-      command:
-        - "./smithdb-compaction"
-        - "scheduler"
-      extraEnv:
-        - name: SMITHDB_COMPACTION__HTTP_PORT
-          value: "8070"
-        - name: SMITHDB_COMPACTION__GRPC_PORT
-          value: "8071"
+      probes:
+        startupProbe:
+          httpGet:
+            path: /health
+            port: http
+          failureThreshold: 6
+          periodSeconds: 10
+          timeoutSeconds: 1
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: http
+          failureThreshold: 6
+          periodSeconds: 10
+          timeoutSeconds: 1
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: http
+          failureThreshold: 6
+          periodSeconds: 10
+          timeoutSeconds: 1
+      # -- Optional command override. Empty uses the chart default: ["./smithdb-compaction", "scheduler"].
+      command: []
+      extraEnv: []
       extraContainerConfig: {}
       sidecars: []
       nodeSelector: {}
@@ -1427,7 +1442,6 @@ smithdb:
       annotations: {}
 
   compactionWorker:
-    enabled: false
     name: "compaction-worker"
     containerPort: 9000
     # -- Maximum concurrent jobs per compaction worker. Empty uses the SmithDB default.
@@ -1436,22 +1450,34 @@ smithdb:
       replicas: 1
       labels: {}
       annotations: {}
-      podSecurityContext:
-        runAsNonRoot: true
-        runAsUser: 1001
-        runAsGroup: 1001
-      securityContext:
-        allowPrivilegeEscalation: false
-        capabilities:
-          drop:
-            - ALL
+      podSecurityContext: {}
+      securityContext: {}
       terminationGracePeriodSeconds: 120
       resources: {}
-      # -- Optional probe override. Empty uses chart defaults.
-      probes: {}
-      command:
-        - "./smithdb-compaction"
-        - "worker"
+      probes:
+        startupProbe:
+          httpGet:
+            path: /health
+            port: http
+          failureThreshold: 6
+          periodSeconds: 10
+          timeoutSeconds: 1
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: http
+          failureThreshold: 6
+          periodSeconds: 10
+          timeoutSeconds: 1
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: http
+          failureThreshold: 6
+          periodSeconds: 10
+          timeoutSeconds: 1
+      # -- Optional command override. Empty uses the chart default: ["./smithdb-compaction", "worker"].
+      command: []
       extraEnv: []
       extraContainerConfig: {}
       sidecars: []
@@ -1462,62 +1488,13 @@ smithdb:
       volumes: []
       volumeMounts: []
       initContainers: []
-
-  client:
-    enabled: false
-    mode: "ingest"
-    name: "client"
-    containerPort: 8085
-    ingestionQps: 1
-    # queryQps and queries only apply when mode is "mixed".
-    queryQps: 1
-    queries: []
-    # Empty duration means run continuously until the pod is stopped.
-    duration: ""
-    batchSize: 1
-    maxConcurrent: 10
-    reportEvery: 5
-    multitenant: false
-    numTenants: 1
-    tenantId: ""
-    sessionId: ""
-    useClusterManager: false
-    workload:
-      rowsPerTick: 1
-      numActiveThreads: 1
-      tracesPerThread: 1
-    deployment:
-      replicas: 1
+    pdb:
+      enabled: false
+      minAvailable: 1
       labels: {}
       annotations: {}
-      podSecurityContext:
-        runAsNonRoot: true
-        runAsUser: 1001
-        runAsGroup: 1001
-      securityContext:
-        allowPrivilegeEscalation: false
-        capabilities:
-          drop:
-            - ALL
-      resources: {}
-      # -- Optional probe override. Empty uses chart defaults.
-      probes: {}
-      command:
-        - "./smithdb-client"
-      extraArgs: []
-      extraEnv: []
-      extraContainerConfig: {}
-      sidecars: []
-      nodeSelector: {}
-      tolerations: []
-      affinity: {}
-      topologySpreadConstraints: []
-      volumes: []
-      volumeMounts: []
-      initContainers: []
 
   clusterManager:
-    enabled: false
     name: "cluster-manager"
     containerPort: 8090
     containerGrpcPort: 8091
@@ -1525,24 +1502,33 @@ smithdb:
       replicas: 1
       labels: {}
       annotations: {}
-      podSecurityContext:
-        runAsNonRoot: true
-        runAsUser: 1001
-        runAsGroup: 1001
-      securityContext:
-        allowPrivilegeEscalation: false
-        capabilities:
-          drop:
-            - ALL
+      podSecurityContext: {}
+      securityContext: {}
       resources: {}
-      # -- Optional probe override. Empty uses chart defaults.
-      probes: {}
+      probes:
+        startupProbe:
+          httpGet:
+            path: /health
+            port: http
+          failureThreshold: 6
+          periodSeconds: 10
+          timeoutSeconds: 1
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: http
+          failureThreshold: 6
+          periodSeconds: 10
+          timeoutSeconds: 1
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: http
+          failureThreshold: 6
+          periodSeconds: 10
+          timeoutSeconds: 1
       command: []
-      extraEnv:
-        - name: SMITHDB_CLUSTERMANAGER__HTTP_PORT
-          value: "8090"
-        - name: SMITHDB_CLUSTERMANAGER__GRPC_PORT
-          value: "8091"
+      extraEnv: []
       extraContainerConfig: {}
       sidecars: []
       nodeSelector: {}
@@ -1559,7 +1545,6 @@ smithdb:
     pdb: {}
 
   metastoreMigration:
-    enabled: false
     name: "metastore-migration"
     useSsl: false
     command:
@@ -1572,15 +1557,8 @@ smithdb:
       labels: {}
       annotations: {}
       podAnnotations: {}
-      podSecurityContext:
-        runAsNonRoot: true
-        runAsUser: 1001
-        runAsGroup: 1001
-      securityContext:
-        allowPrivilegeEscalation: false
-        capabilities:
-          drop:
-            - ALL
+      podSecurityContext: {}
+      securityContext: {}
       resources: {}
       extraEnv: []
       nodeSelector: {}

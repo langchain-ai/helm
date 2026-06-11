@@ -49,7 +49,7 @@ data:
   SMITHDB_INGESTION_SERVICE_URL: {{ include "langsmith.smithdb.grpcServiceUrl" (dict "root" . "component" "ingestion" "port" .Values.smithdb.ingestion.service.port) | quote }}
   SMITHDB_INGEST_ORGS_ROLLOUT_PCT: "100"
   {{- end }}
-  {{- if and .Values.smithdb.enabled .Values.smithdb.langsmith.clusterManager.enabled }}
+  {{- if .Values.smithdb.enabled }}
   SMITHDB_CLUSTER_MANAGER_ENABLED: "true"
   SMITHDB_CLUSTER_MANAGER_URL: {{ include "langsmith.smithdb.grpcServiceUrl" (dict "root" . "component" "clusterManager" "port" .Values.smithdb.clusterManager.service.port) | quote }}
   {{- end }}

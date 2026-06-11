@@ -1,13 +1,14 @@
-{{- if and .Values.smithdb.enabled .Values.smithdb.compactionWorker.enabled }}
-{{- $workerEnv := list
+{{- if .Values.smithdb.enabled }}
+{{- $chartEnvVars := list
   (dict "name" "SMITHDB_COMPACTION_WORKER__HTTP_PORT" "value" (.Values.smithdb.compactionWorker.containerPort | toString))
   (dict "name" "SMITHDB_COMPACTION_WORKER__GRPC_ENDPOINT" "value" (include "langsmith.smithdb.httpServiceUrl" (dict "root" . "component" "compaction" "port" .Values.smithdb.compaction.service.port)))
   (dict "name" "SMITHDB_COMPACTION_WORKER__GRPC_REQUEST_TIMEOUT" "value" "30s")
 -}}
 {{- with .Values.smithdb.compactionWorker.maxConcurrentJobs }}
-{{- $workerEnv = append $workerEnv (dict "name" "SMITHDB_COMPACTION_WORKER__MAX_CONCURRENT_JOBS" "value" (. | toString)) -}}
+{{- $chartEnvVars = append $chartEnvVars (dict "name" "SMITHDB_COMPACTION_WORKER__MAX_CONCURRENT_JOBS" "value" (. | toString)) -}}
 {{- end }}
-{{- $envVars := concat (include "langsmith.smithdb.componentEnv" (dict "root" . "service" "COMPACTION_WORKER" "displayName" "smithdb-compaction-worker") | fromYamlArray) $workerEnv .Values.smithdb.compactionWorker.deployment.extraEnv -}}
+{{- $command := default (list "./smithdb-compaction" "worker") .Values.smithdb.compactionWorker.deployment.command -}}
+{{- $envVars := concat (include "langsmith.smithdb.componentEnv" (dict "root" . "service" "COMPACTION_WORKER" "displayName" "smithdb-compaction-worker") | fromYamlArray) $chartEnvVars .Values.smithdb.compactionWorker.deployment.extraEnv -}}
 {{- include "langsmith.detectDuplicates" $envVars -}}
 apiVersion: apps/v1
 kind: Deployment
@@ -15,13 +16,13 @@ metadata:
   name: {{ include "langsmith.smithdb.componentName" (dict "root" . "component" "compactionWorker") }}
   namespace: {{ .Values.namespace | default .Release.Namespace }}
   labels:
-    {{- include "langsmith.smithdb.labels" . | nindent 4 }}
+    {{- include "langsmith.labels" . | nindent 4 }}
     app.kubernetes.io/component: {{ include "langsmith.smithdb.componentName" (dict "root" . "component" "compactionWorker") }}
     {{- with .Values.smithdb.compactionWorker.deployment.labels }}
       {{- toYaml . | nindent 4 }}
     {{- end }}
   annotations:
-    {{- include "langsmith.smithdb.annotations" . | nindent 4 }}
+    {{- include "langsmith.annotations" . | nindent 4 }}
     {{- with .Values.smithdb.compactionWorker.deployment.annotations }}
       {{- toYaml . | nindent 4 }}
     {{- end }}
@@ -39,7 +40,7 @@ spec:
           {{- toYaml . | nindent 8 }}
         {{- end }}
       labels:
-        {{- include "langsmith.smithdb.labels" . | nindent 8 }}
+        {{- include "langsmith.labels" . | nindent 8 }}
         app.kubernetes.io/component: {{ include "langsmith.smithdb.componentName" (dict "root" . "component" "compactionWorker") }}
         {{- with .Values.smithdb.compactionWorker.deployment.labels }}
           {{- toYaml . | nindent 8 }}
@@ -60,10 +61,8 @@ spec:
       {{- end }}
       containers:
         - name: {{ .Values.smithdb.compactionWorker.name }}
-          {{- with .Values.smithdb.compactionWorker.deployment.command }}
           command:
-            {{- toYaml . | nindent 12 }}
-          {{- end }}
+            {{- toYaml $command | nindent 12 }}
           env:
             {{- toYaml $envVars | nindent 12 }}
           image: {{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "smithdbCompactionImage") | quote }}
@@ -72,7 +71,9 @@ spec:
             - name: http
               containerPort: {{ .Values.smithdb.compactionWorker.containerPort }}
               protocol: TCP
-          {{- include "langsmith.smithdb.probes" (dict "override" .Values.smithdb.compactionWorker.deployment.probes "kind" "http") | nindent 10 }}
+          {{- with .Values.smithdb.compactionWorker.deployment.probes }}
+            {{- toYaml . | nindent 10 }}
+          {{- end }}
           resources:
             {{- toYaml .Values.smithdb.compactionWorker.deployment.resources | nindent 12 }}
           securityContext:

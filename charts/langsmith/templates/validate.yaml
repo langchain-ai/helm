@@ -225,8 +225,8 @@ AWS Marketplace Helm template verification).
   "clusterManager" .Values.smithdb.clusterManager
 -}}
 {{- range $workloadName, $workload := $smithdbWorkloads -}}
-{{- if and $workload.enabled (lt (int $workload.deployment.replicas) 1) -}}
-{{- fail (printf "smithdb.%s.deployment.replicas must be greater than 0 when the workload is enabled." $workloadName) -}}
+{{- if and $.Values.smithdb.enabled (lt (int $workload.deployment.replicas) 1) -}}
+{{- fail (printf "smithdb.%s.deployment.replicas must be greater than 0 when smithdb.enabled is true." $workloadName) -}}
 {{- end -}}
 {{- end -}}
 {{- $smithdbServiceWorkloads := dict
@@ -236,24 +236,18 @@ AWS Marketplace Helm template verification).
   "clusterManager" .Values.smithdb.clusterManager
 -}}
 {{- range $workloadName, $workload := $smithdbServiceWorkloads -}}
-{{- if and $workload.enabled $workload.service.type (ne $workload.service.type "ClusterIP") -}}
+{{- if and $.Values.smithdb.enabled $workload.service.type (ne $workload.service.type "ClusterIP") -}}
 {{- fail (printf "smithdb.%s.service.type must be ClusterIP." $workloadName) -}}
 {{- end -}}
 {{- end -}}
-{{- if and .Values.smithdb.compactionWorker.enabled (not .Values.smithdb.compaction.enabled) -}}
-{{- fail "smithdb.compaction.enabled must be true when smithdb.compactionWorker.enabled is true." -}}
-{{- end -}}
-{{- if and .Values.smithdb.compactionWorker.enabled (ne (toString .Values.smithdb.compactionWorker.maxConcurrentJobs) "") (lt (int .Values.smithdb.compactionWorker.maxConcurrentJobs) 1) -}}
+{{- if and .Values.smithdb.enabled (ne (toString .Values.smithdb.compactionWorker.maxConcurrentJobs) "") (lt (int .Values.smithdb.compactionWorker.maxConcurrentJobs) 1) -}}
 {{- fail "smithdb.compactionWorker.maxConcurrentJobs must be greater than 0 when set." -}}
 {{- end -}}
-{{- if and .Values.smithdb.langsmith.dualIngest.enabled (not .Values.smithdb.ingestion.enabled) -}}
-{{- fail "smithdb.ingestion.enabled must be true when smithdb.langsmith.dualIngest.enabled is true." -}}
+{{- if and .Values.smithdb.langsmith.dualIngest.enabled (not .Values.smithdb.enabled) -}}
+{{- fail "smithdb.enabled must be true when smithdb.langsmith.dualIngest.enabled is true." -}}
 {{- end -}}
-{{- if and .Values.smithdb.langsmith.frontend.useSmithDBEndpoints (not .Values.smithdb.query.enabled) -}}
-{{- fail "smithdb.query.enabled must be true when smithdb.langsmith.frontend.useSmithDBEndpoints is true." -}}
-{{- end -}}
-{{- if and .Values.smithdb.langsmith.clusterManager.enabled (not .Values.smithdb.clusterManager.enabled) -}}
-{{- fail "smithdb.clusterManager.enabled must be true when smithdb.langsmith.clusterManager.enabled is true." -}}
+{{- if and .Values.smithdb.langsmith.frontend.useSmithDBEndpoints (not .Values.smithdb.enabled) -}}
+{{- fail "smithdb.enabled must be true when smithdb.langsmith.frontend.useSmithDBEndpoints is true." -}}
 {{- end -}}
 {{- end -}}
 

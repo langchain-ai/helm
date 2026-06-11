@@ -1,4 +1,4 @@
-{{- if and .Values.smithdb.enabled .Values.smithdb.metastoreMigration.enabled }}
+{{- if .Values.smithdb.enabled }}
 {{- $cfg := .Values.smithdb.config -}}
 {{- $secret := $cfg.existingSecretName -}}
 {{- $envVars := list
@@ -17,7 +17,7 @@ metadata:
   name: {{ include "langsmith.smithdb.componentName" (dict "root" . "component" "metastoreMigration") }}
   namespace: {{ .Values.namespace | default .Release.Namespace }}
   labels:
-    {{- include "langsmith.smithdb.labels" . | nindent 4 }}
+    {{- include "langsmith.labels" . | nindent 4 }}
     app.kubernetes.io/component: {{ include "langsmith.smithdb.componentName" (dict "root" . "component" "metastoreMigration") }}
     {{- with .Values.smithdb.metastoreMigration.job.labels }}
       {{- toYaml . | nindent 4 }}
@@ -26,7 +26,7 @@ metadata:
     "helm.sh/hook": pre-install,pre-upgrade
     "helm.sh/hook-weight": "-1"
     "helm.sh/hook-delete-policy": before-hook-creation
-    {{- include "langsmith.smithdb.annotations" . | nindent 4 }}
+    {{- include "langsmith.annotations" . | nindent 4 }}
     {{- with .Values.smithdb.metastoreMigration.job.annotations }}
       {{- toYaml . | nindent 4 }}
     {{- end }}
@@ -39,7 +39,7 @@ spec:
   template:
     metadata:
       labels:
-        {{- include "langsmith.smithdb.labels" . | nindent 8 }}
+        {{- include "langsmith.labels" . | nindent 8 }}
         app.kubernetes.io/component: {{ include "langsmith.smithdb.componentName" (dict "root" . "component" "metastoreMigration") }}
         {{- with .Values.smithdb.metastoreMigration.job.labels }}
           {{- toYaml . | nindent 8 }}

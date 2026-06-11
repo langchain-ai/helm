@@ -1,5 +1,10 @@
-{{- if and .Values.smithdb.enabled .Values.smithdb.compaction.enabled }}
-{{- $envVars := concat (include "langsmith.smithdb.componentEnv" (dict "root" . "service" "COMPACTION" "displayName" "smithdb-compaction") | fromYamlArray) .Values.smithdb.compaction.deployment.extraEnv -}}
+{{- if .Values.smithdb.enabled }}
+{{- $chartEnvVars := list
+  (dict "name" "SMITHDB_COMPACTION__HTTP_PORT" "value" (.Values.smithdb.compaction.containerPort | toString))
+  (dict "name" "SMITHDB_COMPACTION__GRPC_PORT" "value" (.Values.smithdb.compaction.containerGrpcPort | toString))
+-}}
+{{- $command := default (list "./smithdb-compaction" "scheduler") .Values.smithdb.compaction.deployment.command -}}
+{{- $envVars := concat (include "langsmith.smithdb.componentEnv" (dict "root" . "service" "COMPACTION" "displayName" "smithdb-compaction") | fromYamlArray) $chartEnvVars .Values.smithdb.compaction.deployment.extraEnv -}}
 {{- include "langsmith.detectDuplicates" $envVars -}}
 apiVersion: apps/v1
 kind: Deployment
@@ -7,13 +12,13 @@ metadata:
   name: {{ include "langsmith.smithdb.componentName" (dict "root" . "component" "compaction") }}
   namespace: {{ .Values.namespace | default .Release.Namespace }}
   labels:
-    {{- include "langsmith.smithdb.labels" . | nindent 4 }}
+    {{- include "langsmith.labels" . | nindent 4 }}
     app.kubernetes.io/component: {{ include "langsmith.smithdb.componentName" (dict "root" . "component" "compaction") }}
     {{- with .Values.smithdb.compaction.deployment.labels }}
       {{- toYaml . | nindent 4 }}
     {{- end }}
   annotations:
-    {{- include "langsmith.smithdb.annotations" . | nindent 4 }}
+    {{- include "langsmith.annotations" . | nindent 4 }}
     {{- with .Values.smithdb.compaction.deployment.annotations }}
       {{- toYaml . | nindent 4 }}
     {{- end }}
@@ -31,7 +36,7 @@ spec:
           {{- toYaml . | nindent 8 }}
         {{- end }}
       labels:
-        {{- include "langsmith.smithdb.labels" . | nindent 8 }}
+        {{- include "langsmith.labels" . | nindent 8 }}
         app.kubernetes.io/component: {{ include "langsmith.smithdb.componentName" (dict "root" . "component" "compaction") }}
         {{- with .Values.smithdb.compaction.deployment.labels }}
           {{- toYaml . | nindent 8 }}
@@ -51,10 +56,8 @@ spec:
       {{- end }}
       containers:
         - name: {{ .Values.smithdb.compaction.name }}
-          {{- with .Values.smithdb.compaction.deployment.command }}
           command:
-            {{- toYaml . | nindent 12 }}
-          {{- end }}
+            {{- toYaml $command | nindent 12 }}
           env:
             {{- toYaml $envVars | nindent 12 }}
           image: {{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "smithdbCompactionImage") | quote }}
@@ -66,7 +69,9 @@ spec:
             - name: grpc
               containerPort: {{ .Values.smithdb.compaction.containerGrpcPort }}
               protocol: TCP
-          {{- include "langsmith.smithdb.probes" (dict "override" .Values.smithdb.compaction.deployment.probes "kind" "http") | nindent 10 }}
+          {{- with .Values.smithdb.compaction.deployment.probes }}
+            {{- toYaml . | nindent 10 }}
+          {{- end }}
           resources:
             {{- toYaml .Values.smithdb.compaction.deployment.resources | nindent 12 }}
           securityContext:
