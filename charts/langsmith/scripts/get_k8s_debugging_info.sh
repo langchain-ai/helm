@@ -1,16 +1,23 @@
 #!/bin/bash
 
+NO_TRACE=false
 # We expect the namespace hosting all kubernetes resources to be passed as an argument to this script
+# Set no-trace true to exclude labels whose logs may contain trace payload content.
+TRACE_COMPONENT_PATTERN="-(listener|queue|ingest-queue|backend|host-backend|ace-backend)$"
 while [[ "$#" -gt 0 ]]; do
   case $1 in
     --namespace) NS="$2"; shift ;;
+    --no-trace) NO_TRACE=true ;;
     *) echo "Unknown parameter passed: $1"; exit 1 ;;
   esac
   shift
 done
 
 if [ -z "$NS" ]; then
-  echo "Usage: $0 --namespace <namespace>"
+  echo "Usage: $0 --namespace <namespace> [--no-trace]"
+  echo "  --no-trace  Omit logs from pods that process run/trace data (listener, queue,"
+  echo "              ingest-queue, backend, host-backend, ace-backend). Use when trace"
+  echo "              payloads may contain PII. All other debug info is still collected."
   exit 1
 fi
 
@@ -36,6 +43,15 @@ mkdir -p "$DIR/logs"
 PODS=$(kubectl get pods -n "$NS" -o jsonpath='{.items[*].metadata.name}')
 
 for POD in $PODS; do
+  if [[ "$NO_TRACE" == "true" ]]; then
+    COMPONENT=$(kubectl get pod "$POD" -n "$NS" \
+      -o jsonpath='{.metadata.labels.app\.kubernetes\.io/component}' 2>/dev/null)
+    if echo "$COMPONENT" | grep -qE "$TRACE_COMPONENT_PATTERN"; then
+      echo "Skipping logs for $POD (trace-bearing service, --no-trace set)..."
+      continue
+    fi
+  fi
+
   CONTAINERS=$(kubectl get pod "$POD" -n "$NS" -o jsonpath='{.spec.containers[*].name}')
   for CONTAINER in $CONTAINERS; do
     echo "Pulling current container logs (last 24h) for $POD/$CONTAINER..."
