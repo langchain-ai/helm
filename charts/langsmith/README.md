@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.15.9](https://img.shields.io/badge/Version-0.15.9-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.15.13](https://img.shields.io/badge/AppVersion-0.15.13-informational?style=flat-square)
+![Version: 0.16.0-rc.2](https://img.shields.io/badge/Version-0.16.0--rc.2-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.16.4rc1](https://img.shields.io/badge/AppVersion-0.16.4rc1-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -340,44 +340,44 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | gateway.sectionName | string | `""` |  |
 | images.aceBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.aceBackendImage.repository | string | `"docker.io/langchain/langsmith-ace-backend"` |  |
-| images.aceBackendImage.tag | string | `"0.15.13"` |  |
+| images.aceBackendImage.tag | string | `"0.16.4rc1"` |  |
 | images.agentBuilderImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.agentBuilderImage.repository | string | `"docker.io/langchain/agent-builder-deep-agent"` |  |
-| images.agentBuilderImage.tag | string | `"0.15.13"` |  |
+| images.agentBuilderImage.tag | string | `"0.16.4rc1"` |  |
 | images.backendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.backendImage.repository | string | `"docker.io/langchain/langsmith-backend"` |  |
-| images.backendImage.tag | string | `"0.15.13"` |  |
+| images.backendImage.tag | string | `"0.16.4rc1"` |  |
 | images.clickhouseImage.pullPolicy | string | `"Always"` |  |
 | images.clickhouseImage.repository | string | `"docker.io/clickhouse/clickhouse-server"` |  |
 | images.clickhouseImage.tag | string | `"25.12"` |  |
 | images.fleetToolServerImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.fleetToolServerImage.repository | string | `"docker.io/langchain/agent-builder-tool-server"` |  |
-| images.fleetToolServerImage.tag | string | `"0.15.13"` |  |
+| images.fleetToolServerImage.tag | string | `"0.16.4rc1"` |  |
 | images.fleetTriggerServerImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.fleetTriggerServerImage.repository | string | `"docker.io/langchain/agent-builder-trigger-server"` |  |
-| images.fleetTriggerServerImage.tag | string | `"0.15.13"` |  |
+| images.fleetTriggerServerImage.tag | string | `"0.16.4rc1"` |  |
 | images.frontendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.frontendImage.repository | string | `"docker.io/langchain/langsmith-frontend"` |  |
-| images.frontendImage.tag | string | `"0.15.13"` |  |
+| images.frontendImage.tag | string | `"0.16.4rc1"` |  |
 | images.hostBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.hostBackendImage.repository | string | `"docker.io/langchain/hosted-langserve-backend"` |  |
-| images.hostBackendImage.tag | string | `"0.15.13"` |  |
+| images.hostBackendImage.tag | string | `"0.16.4rc1"` |  |
 | images.imagePullSecrets | list | `[]` | Secrets with credentials to pull images from a private registry. Specified as name: value. |
 | images.insightsAgentImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.insightsAgentImage.repository | string | `"docker.io/langchain/langsmith-clio"` |  |
-| images.insightsAgentImage.tag | string | `"0.15.13"` |  |
+| images.insightsAgentImage.tag | string | `"0.16.4rc1"` |  |
 | images.operatorImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.operatorImage.repository | string | `"docker.io/langchain/langgraph-operator"` |  |
 | images.operatorImage.tag | string | `"0.1.47"` |  |
 | images.platformBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.platformBackendImage.repository | string | `"docker.io/langchain/langsmith-go-backend"` |  |
-| images.platformBackendImage.tag | string | `"0.15.13"` |  |
+| images.platformBackendImage.tag | string | `"0.16.4rc1"` |  |
 | images.playgroundImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.playgroundImage.repository | string | `"docker.io/langchain/langsmith-playground"` |  |
-| images.playgroundImage.tag | string | `"0.15.13"` |  |
+| images.playgroundImage.tag | string | `"0.16.4rc1"` |  |
 | images.pollyAgentImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.pollyAgentImage.repository | string | `"docker.io/langchain/langsmith-polly"` |  |
-| images.pollyAgentImage.tag | string | `"0.15.13"` |  |
+| images.pollyAgentImage.tag | string | `"0.16.4rc1"` |  |
 | images.postgresImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.postgresImage.repository | string | `"docker.io/postgres"` |  |
 | images.postgresImage.tag | string | `"14.7"` |  |
@@ -919,6 +919,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | config.initialOrgAdminEmail | string | `""` |  |
 | config.initialOrgName | string | `"Default"` | Initial org name to be provisioned. |
 | config.langsmithLicenseKey | string | `""` |  |
+| config.llmAuthProxyIssuer | string | `""` | Optional issuer (iss claim) for tokens minted by the LLM auth proxy. Maps to LLM_AUTH_PROXY_ISSUER. Must match the jwtIssuer configured in the auth proxy chart. Left empty by default (not emitted); set it when using the LLM auth proxy. |
 | config.logLevel | string | `"info"` |  |
 | config.oauth.enabled | bool | `false` |  |
 | config.oauth.oauthClientId | string | `""` |  |
@@ -940,6 +941,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | config.security.cors.alwaysAllowPathsRegex | string | `""` | Regular expression pattern for paths that should always allow CORS from any origin. Useful for public endpoints like webhooks or public API endpoints. Example: ".*(/feedback/tokens/|/public/).*" |
 | config.settings | object | `{"redisRunsExpirySeconds":"21600"}` | Application Settings. These are used to tune the application |
 | config.settings.redisRunsExpirySeconds | string | `"21600"` | Optional. Be very careful when lowering this value as it can result in runs being lost if your queue is down/not processing items fast enough. |
+| config.signingJwks | string | `""` | Ed25519/OKP JWKS (JSON) signing the OAuth AS / remote MCP (and LLM-auth-proxy) tokens; public keys are served at /.well-known/jwks.json. Set it here (stored in the chart secret) or as key `langsmith_signing_jwks` in config.existingSecretName. The remote MCP server / OAuth AS stay inert until this is set. |
 | config.skipValidation | bool | `false` | Skip validation checks in validate.yaml. Used by AWS Marketplace for helm template verification. |
 | config.superAdmins | list | `[]` | Email addresses of super admins who can export usage data. These are the only users allowed to use the usage backfill export unless orgAdminsInstallationUsageExportEnabled is set. |
 | config.telemetry.logs | bool | `true` | Optional. These values are used to send telemetry to the LangChain team to assist with troubleshooting. |
