@@ -1,14 +1,6 @@
 {{- if .Values.smithdb.enabled }}
-{{- $chartEnvVars := list
-  (dict "name" "SMITHDB_COMPACTION_WORKER__HTTP_PORT" "value" (.Values.smithdb.compactionWorker.containerPort | toString))
-  (dict "name" "SMITHDB_COMPACTION_WORKER__GRPC_ENDPOINT" "value" (include "langsmith.smithdb.httpServiceUrl" (dict "root" . "component" "compaction" "port" .Values.smithdb.compaction.service.port)))
-  (dict "name" "SMITHDB_COMPACTION_WORKER__GRPC_REQUEST_TIMEOUT" "value" "30s")
--}}
-{{- with .Values.smithdb.compactionWorker.maxConcurrentJobs }}
-{{- $chartEnvVars = append $chartEnvVars (dict "name" "SMITHDB_COMPACTION_WORKER__MAX_CONCURRENT_JOBS" "value" (. | toString)) -}}
-{{- end }}
 {{- $command := default (list "./smithdb-compaction" "worker") .Values.smithdb.compactionWorker.deployment.command -}}
-{{- $envVars := concat (include "langsmith.smithdb.componentEnv" (dict "root" . "service" "COMPACTION_WORKER" "displayName" "smithdb-compaction-worker") | fromYamlArray) $chartEnvVars .Values.smithdb.compactionWorker.deployment.extraEnv -}}
+{{- $envVars := concat (include "langsmith.smithdb.componentEnv" (dict "root" . "service" "COMPACTION_WORKER" "displayName" "smithdb-compaction-worker") | fromYamlArray) .Values.smithdb.compactionWorker.deployment.extraEnv -}}
 {{- include "langsmith.detectDuplicates" $envVars -}}
 apiVersion: apps/v1
 kind: Deployment
@@ -64,7 +56,19 @@ spec:
           command:
             {{- toYaml $command | nindent 12 }}
           env:
-            {{- toYaml $envVars | nindent 12 }}
+            - name: SMITHDB_COMPACTION_WORKER__HTTP_PORT
+              value: {{ .Values.smithdb.compactionWorker.containerPort | quote }}
+            - name: SMITHDB_COMPACTION_WORKER__GRPC_ENDPOINT
+              value: {{ include "langsmith.smithdb.httpServiceUrl" (dict "root" . "component" "compaction" "port" .Values.smithdb.compaction.service.port) | quote }}
+            - name: SMITHDB_COMPACTION_WORKER__GRPC_REQUEST_TIMEOUT
+              value: "30s"
+            {{- with .Values.smithdb.compactionWorker.maxConcurrentJobs }}
+            - name: SMITHDB_COMPACTION_WORKER__MAX_CONCURRENT_JOBS
+              value: {{ . | quote }}
+            {{- end }}
+            {{- with $envVars }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
           image: {{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "smithdbCompactionImage") | quote }}
           imagePullPolicy: {{ .Values.images.smithdbCompactionImage.pullPolicy }}
           ports:

@@ -1,9 +1,5 @@
 {{- if .Values.smithdb.enabled }}
-{{- $chartEnvVars := list
-  (dict "name" "SMITHDB_QUERY__GRPC_PORT" "value" (.Values.smithdb.query.containerGrpcPort | toString))
-  (dict "name" "SMITHDB_QUERY__HTTP_PORT" "value" (.Values.smithdb.query.containerPort | toString))
--}}
-{{- $envVars := concat (include "langsmith.smithdb.componentEnv" (dict "root" . "service" "QUERY" "displayName" "smithdb-query") | fromYamlArray) $chartEnvVars .Values.smithdb.query.deployment.extraEnv -}}
+{{- $envVars := concat (include "langsmith.smithdb.componentEnv" (dict "root" . "service" "QUERY" "displayName" "smithdb-query") | fromYamlArray) .Values.smithdb.query.deployment.extraEnv -}}
 {{- include "langsmith.detectDuplicates" $envVars -}}
 apiVersion: apps/v1
 kind: Deployment
@@ -62,7 +58,13 @@ spec:
             {{- toYaml . | nindent 12 }}
           {{- end }}
           env:
-            {{- toYaml $envVars | nindent 12 }}
+            - name: SMITHDB_QUERY__HTTP_PORT
+              value: {{ .Values.smithdb.query.containerPort | quote }}
+            - name: SMITHDB_QUERY__GRPC_PORT
+              value: {{ .Values.smithdb.query.containerGrpcPort | quote }}
+            {{- with $envVars }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
           image: {{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "smithdbQueryImage") | quote }}
           imagePullPolicy: {{ .Values.images.smithdbQueryImage.pullPolicy }}
           ports:

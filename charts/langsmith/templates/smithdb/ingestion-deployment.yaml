@@ -1,9 +1,5 @@
 {{- if .Values.smithdb.enabled }}
-{{- $chartEnvVars := list
-  (dict "name" "SMITHDB_INGESTION__HTTP_PORT" "value" (.Values.smithdb.ingestion.containerPort | toString))
-  (dict "name" "SMITHDB_INGESTION__GRPC_PORT" "value" (.Values.smithdb.ingestion.containerGrpcPort | toString))
--}}
-{{- $envVars := concat (include "langsmith.smithdb.componentEnv" (dict "root" . "service" "INGESTION" "displayName" "smithdb-ingestion") | fromYamlArray) $chartEnvVars .Values.smithdb.ingestion.deployment.extraEnv -}}
+{{- $envVars := concat (include "langsmith.smithdb.componentEnv" (dict "root" . "service" "INGESTION" "displayName" "smithdb-ingestion") | fromYamlArray) .Values.smithdb.ingestion.deployment.extraEnv -}}
 {{- include "langsmith.detectDuplicates" $envVars -}}
 apiVersion: apps/v1
 kind: Deployment
@@ -63,7 +59,13 @@ spec:
             {{- toYaml . | nindent 12 }}
           {{- end }}
           env:
-            {{- toYaml $envVars | nindent 12 }}
+            - name: SMITHDB_INGESTION__HTTP_PORT
+              value: {{ .Values.smithdb.ingestion.containerPort | quote }}
+            - name: SMITHDB_INGESTION__GRPC_PORT
+              value: {{ .Values.smithdb.ingestion.containerGrpcPort | quote }}
+            {{- with $envVars }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
           image: {{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "smithdbIngestionImage") | quote }}
           imagePullPolicy: {{ .Values.images.smithdbIngestionImage.pullPolicy }}
           ports:

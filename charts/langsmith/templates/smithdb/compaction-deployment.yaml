@@ -1,10 +1,6 @@
 {{- if .Values.smithdb.enabled }}
-{{- $chartEnvVars := list
-  (dict "name" "SMITHDB_COMPACTION__HTTP_PORT" "value" (.Values.smithdb.compaction.containerPort | toString))
-  (dict "name" "SMITHDB_COMPACTION__GRPC_PORT" "value" (.Values.smithdb.compaction.containerGrpcPort | toString))
--}}
 {{- $command := default (list "./smithdb-compaction" "scheduler") .Values.smithdb.compaction.deployment.command -}}
-{{- $envVars := concat (include "langsmith.smithdb.componentEnv" (dict "root" . "service" "COMPACTION" "displayName" "smithdb-compaction") | fromYamlArray) $chartEnvVars .Values.smithdb.compaction.deployment.extraEnv -}}
+{{- $envVars := concat (include "langsmith.smithdb.componentEnv" (dict "root" . "service" "COMPACTION" "displayName" "smithdb-compaction") | fromYamlArray) .Values.smithdb.compaction.deployment.extraEnv -}}
 {{- include "langsmith.detectDuplicates" $envVars -}}
 apiVersion: apps/v1
 kind: Deployment
@@ -59,7 +55,13 @@ spec:
           command:
             {{- toYaml $command | nindent 12 }}
           env:
-            {{- toYaml $envVars | nindent 12 }}
+            - name: SMITHDB_COMPACTION__HTTP_PORT
+              value: {{ .Values.smithdb.compaction.containerPort | quote }}
+            - name: SMITHDB_COMPACTION__GRPC_PORT
+              value: {{ .Values.smithdb.compaction.containerGrpcPort | quote }}
+            {{- with $envVars }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
           image: {{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "smithdbCompactionImage") | quote }}
           imagePullPolicy: {{ .Values.images.smithdbCompactionImage.pullPolicy }}
           ports:

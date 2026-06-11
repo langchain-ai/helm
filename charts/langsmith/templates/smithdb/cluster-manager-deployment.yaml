@@ -1,9 +1,5 @@
 {{- if .Values.smithdb.enabled }}
-{{- $chartEnvVars := list
-  (dict "name" "SMITHDB_CLUSTERMANAGER__HTTP_PORT" "value" (.Values.smithdb.clusterManager.containerPort | toString))
-  (dict "name" "SMITHDB_CLUSTERMANAGER__GRPC_PORT" "value" (.Values.smithdb.clusterManager.containerGrpcPort | toString))
--}}
-{{- $envVars := concat .Values.commonEnv .Values.smithdb.commonEnv $chartEnvVars .Values.smithdb.clusterManager.deployment.extraEnv -}}
+{{- $envVars := concat .Values.commonEnv .Values.smithdb.commonEnv .Values.smithdb.clusterManager.deployment.extraEnv -}}
 {{- include "langsmith.detectDuplicates" $envVars -}}
 apiVersion: apps/v1
 kind: Deployment
@@ -60,7 +56,13 @@ spec:
             {{- toYaml . | nindent 12 }}
           {{- end }}
           env:
-            {{- toYaml $envVars | nindent 12 }}
+            - name: SMITHDB_CLUSTERMANAGER__HTTP_PORT
+              value: {{ .Values.smithdb.clusterManager.containerPort | quote }}
+            - name: SMITHDB_CLUSTERMANAGER__GRPC_PORT
+              value: {{ .Values.smithdb.clusterManager.containerGrpcPort | quote }}
+            {{- with $envVars }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
           image: {{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "smithdbClusterManagerImage") | quote }}
           imagePullPolicy: {{ .Values.images.smithdbClusterManagerImage.pullPolicy }}
           ports:
