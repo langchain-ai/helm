@@ -1037,7 +1037,7 @@ config:
     coBrandingEnabled: true
 
   # -- Custom error support message displayed on error pages (plain text).
-  # If empty, defaults to the built-in support messages with support@langchain.dev links.
+  # If empty, defaults to the built-in support messages linking to our Support Portal (https://support.langchain.com).
   customErrorSupportMessage: ""
 
   # -- Enables Google IAP (Identity-Aware Proxy) session handling in the frontend.
