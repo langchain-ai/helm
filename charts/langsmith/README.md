@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.16.0-rc.2](https://img.shields.io/badge/Version-0.16.0--rc.2-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.16.4rc1](https://img.shields.io/badge/AppVersion-0.16.4rc1-informational?style=flat-square)
+![Version: 0.16.0-rc.3](https://img.shields.io/badge/Version-0.16.0--rc.3-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.16.4rc1](https://img.shields.io/badge/AppVersion-0.16.4rc1-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -86,6 +86,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | fleet.oauth.linkedinOAuthProvider | string | `""` |  |
 | fleet.oauth.microsoftOAuthProvider | string | `""` |  |
 | fleet.oauth.providerOrgId | string | `""` |  |
+| fleet.oauth.salesforceOAuthProvider | string | `""` |  |
 | fleet.oauth.slackBotId | string | `""` |  |
 | fleet.oauth.slackOAuthProvider | string | `""` |  |
 | fleet.oauth.slackSigningSecret | string | `""` |  |
@@ -877,6 +878,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | config.agentBuilder.oauth.linearOAuthProvider | string | `""` |  |
 | config.agentBuilder.oauth.linkedinOAuthProvider | string | `""` |  |
 | config.agentBuilder.oauth.microsoftOAuthProvider | string | `""` |  |
+| config.agentBuilder.oauth.salesforceOAuthProvider | string | `""` |  |
 | config.agentBuilder.oauth.slackBotId | string | `""` |  |
 | config.agentBuilder.oauth.slackOAuthProvider | string | `""` |  |
 | config.agentBuilder.oauth.slackSigningSecret | string | `""` |  |

@@ -1233,6 +1233,7 @@ Served through the frontend at /mcp (or /<basePath>/mcp).
 {{- $linearOAuth := .Values.config.agentBuilder.oauth.linearOAuthProvider | default .Values.fleet.oauth.linearOAuthProvider }}
 {{- $githubOAuth := .Values.config.agentBuilder.oauth.githubOAuthProvider | default .Values.fleet.oauth.githubOAuthProvider }}
 {{- $microsoftOAuth := .Values.config.agentBuilder.oauth.microsoftOAuthProvider | default .Values.fleet.oauth.microsoftOAuthProvider }}
+{{- $salesforceOAuth := .Values.config.agentBuilder.oauth.salesforceOAuthProvider | default .Values.fleet.oauth.salesforceOAuthProvider }}
 {{- if $googleOAuth }}
 - name: "GOOGLE_OAUTH_PROVIDER"
   value: {{ $googleOAuth | quote }}
@@ -1256,6 +1257,10 @@ Served through the frontend at /mcp (or /<basePath>/mcp).
 {{- if $microsoftOAuth }}
 - name: "MICROSOFT_OAUTH_PROVIDER"
   value: {{ $microsoftOAuth | quote }}
+{{- end }}
+{{- if $salesforceOAuth }}
+- name: "SALESFORCE_OAUTH_PROVIDER"
+  value: {{ $salesforceOAuth | quote }}
 {{- end }}
 {{- end -}}
 
