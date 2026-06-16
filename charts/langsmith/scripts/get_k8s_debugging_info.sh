@@ -33,9 +33,13 @@ kubectl top pods -n "$NS" --containers > "$DIR/pod-resource-usage.txt"
 
 echo "Pulling container logs for all pods. Also pulling previous logs from restarted containers..."
 mkdir -p "$DIR/logs"
+mkdir -p "$DIR/describe"
 PODS=$(kubectl get pods -n "$NS" -o jsonpath='{.items[*].metadata.name}')
 
 for POD in $PODS; do
+  echo "Describing pod $POD..."
+  kubectl describe pod "$POD" -n "$NS" > "$DIR/describe/${POD}_describe.txt" 2>/dev/null
+
   CONTAINERS=$(kubectl get pod "$POD" -n "$NS" -o jsonpath='{.spec.containers[*].name}')
   for CONTAINER in $CONTAINERS; do
     echo "Pulling current container logs (last 24h) for $POD/$CONTAINER..."
