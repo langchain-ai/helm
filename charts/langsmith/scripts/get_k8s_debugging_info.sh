@@ -11,18 +11,22 @@
 #             medical narratives inside log messages.
 
 REDACT=0
+COLLECT_LOGS=1
+COLLECT_DESCRIBE=1
 
 while [[ "$#" -gt 0 ]]; do
   case $1 in
-    --namespace) NS="$2"; shift ;;
-    --redact) REDACT=1 ;;
+    --namespace)       NS="$2"; shift ;;
+    --redact)          REDACT=1 ;;
+    --exclude-logs)    COLLECT_LOGS=0 ;;
+    --exclude-describe) COLLECT_DESCRIBE=0 ;;
     *) echo "Unknown parameter passed: $1"; exit 1 ;;
   esac
   shift
 done
 
 if [[ -z "$NS" ]]; then
-  echo "Usage: $0 --namespace <namespace> [--redact]"
+  echo "Usage: $0 --namespace <namespace> [--redact] [--exclude-logs] [--exclude-describe]"
   exit 1
 fi
 
@@ -208,34 +212,41 @@ kubectl get events -n "$NS" --sort-by=.lastTimestamp > "$DIR/events.txt"
 echo "Pulling resource usage for all pods..."
 kubectl top pods -n "$NS" --containers > "$DIR/pod-resource-usage.txt"
 
-echo "Pulling describe output for all pods..."
-mkdir -p "$DIR/describe"
 PODS=$(kubectl get pods -n "$NS" -o jsonpath='{.items[*].metadata.name}')
 
-for POD in $PODS; do
-  echo "  Describing pod $POD..."
-  kubectl describe pod "$POD" -n "$NS" > "$DIR/describe/${POD}_describe.txt" 2>/dev/null
-done
-
-echo "Pulling container logs for all pods (last 24h + previous on restart)..."
-mkdir -p "$DIR/logs"
-
-for POD in $PODS; do
-  CONTAINERS=$(kubectl get pod "$POD" -n "$NS" -o jsonpath='{.spec.containers[*].name}')
-  for CONTAINER in $CONTAINERS; do
-    echo "  Pulling logs for $POD/$CONTAINER..."
-    kubectl logs -n "$NS" "$POD" -c "$CONTAINER" --since=24h \
-      > "$DIR/logs/${POD}_${CONTAINER}_current.log" 2>/dev/null
-
-    RESTART_COUNT=$(kubectl get pod "$POD" -n "$NS" -o json \
-      | jq ".status.containerStatuses[] | select(.name==\"$CONTAINER\") | .restartCount // 0")
-    if [[ "$RESTART_COUNT" -gt 0 ]]; then
-      echo "  $POD/$CONTAINER restarted ($RESTART_COUNT times) — grabbing previous logs..."
-      kubectl logs -n "$NS" "$POD" -c "$CONTAINER" --previous \
-        > "$DIR/logs/${POD}_${CONTAINER}_previous.log" 2>/dev/null
-    fi
+if [[ "$COLLECT_DESCRIBE" -eq 1 ]]; then
+  echo "Pulling describe output for all pods..."
+  mkdir -p "$DIR/describe"
+  for POD in $PODS; do
+    echo "  Describing pod $POD..."
+    kubectl describe pod "$POD" -n "$NS" > "$DIR/describe/${POD}_describe.txt" 2>/dev/null
   done
-done
+else
+  echo "Skipping describe (--exclude-describe set)."
+fi
+
+if [[ "$COLLECT_LOGS" -eq 1 ]]; then
+  echo "Pulling container logs for all pods (last 24h + previous on restart)..."
+  mkdir -p "$DIR/logs"
+  for POD in $PODS; do
+    CONTAINERS=$(kubectl get pod "$POD" -n "$NS" -o jsonpath='{.spec.containers[*].name}')
+    for CONTAINER in $CONTAINERS; do
+      echo "  Pulling logs for $POD/$CONTAINER..."
+      kubectl logs -n "$NS" "$POD" -c "$CONTAINER" --since=24h \
+        > "$DIR/logs/${POD}_${CONTAINER}_current.log" 2>/dev/null
+
+      RESTART_COUNT=$(kubectl get pod "$POD" -n "$NS" -o json \
+        | jq ".status.containerStatuses[] | select(.name==\"$CONTAINER\") | .restartCount // 0")
+      if [[ "$RESTART_COUNT" -gt 0 ]]; then
+        echo "  $POD/$CONTAINER restarted ($RESTART_COUNT times) — grabbing previous logs..."
+        kubectl logs -n "$NS" "$POD" -c "$CONTAINER" --previous \
+          > "$DIR/logs/${POD}_${CONTAINER}_previous.log" 2>/dev/null
+      fi
+    done
+  done
+else
+  echo "Skipping pod logs (--exclude-logs set)."
+fi
 
 # ---------------------------------------------------------------------------
 # Helm values
