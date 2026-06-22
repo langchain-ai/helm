@@ -2,13 +2,17 @@
 
 # Diagnostic collection for self-hosted LangSmith/LangGraph clusters.
 #
+# Usage: $0 --namespace <namespace> [--redact] [--exclude-logs] [--exclude-describe]
+#
 # Default: collects everything — kubectl describe, events, resources, pod
 # metrics, and pod logs (last 24h + previous on restart).
 #
-# --redact  : apply best-effort redaction to all collected files (secrets, PII,
-#             ICD-10, trace payload fields). REVIEW THE BUNDLE BEFORE SHARING —
-#             regex cannot catch unstructured PHI such as patient names or
-#             medical narratives inside log messages.
+# --redact           : apply best-effort redaction to all collected files (secrets, PII,
+#                      ICD-10, trace payload fields). REVIEW THE BUNDLE BEFORE SHARING —
+#                      regex cannot catch unstructured PHI such as patient names or
+#                      medical narratives inside log messages.
+# --exclude-logs     : skip pod log collection.
+# --exclude-describe : skip kubectl describe collection.
 
 REDACT=0
 COLLECT_LOGS=1
