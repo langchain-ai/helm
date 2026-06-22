@@ -166,6 +166,13 @@ WARNING: bundle is collected RAW (no --redact).
   Support. Use --redact for best-effort scrubbing (still not a guarantee).
 ==============================================================================
 EOF
+  if [[ -t 0 ]]; then
+    read -r -p "Continue without redaction? [y/N] " CONFIRM
+    if [[ ! "$CONFIRM" =~ ^[Yy]$ ]]; then
+      echo "Aborted. Re-run with --redact to enable best-effort scrubbing."
+      exit 1
+    fi
+  fi
 fi
 
 if [[ "$REDACT" -eq 1 ]]; then
