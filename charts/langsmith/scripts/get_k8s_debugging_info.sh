@@ -202,10 +202,9 @@ fi
 # Collection
 # ---------------------------------------------------------------------------
 
-DIR=/tmp/langchain-debugging-$(date +%Y%m%d%H%M%S)
+DIR="$(mktemp -d -t langsmith-debugging.XXXXXX)"
 
 echo "Starting to pull debugging info. Creating directory $DIR..."
-mkdir -p "$DIR"
 
 echo "Pulling summary of resources..."
 kubectl get all -n "$NS" -o wide > "$DIR/resources_summary.txt"
