@@ -1,0 +1,77 @@
+suite: Validation guards (config.skipValidation)
+templates:
+  - ingress.yaml
+  - api-server/deployment.yaml
+tests:
+  - it: should fail when more than one ingress mechanism is enabled
+    template: ingress.yaml
+    set:
+      ingress.enabled: true
+      ingress.hostname: api.example.com
+      gateway.enabled: true
+      gateway.name: my-gateway
+    asserts:
+      - failedTemplate:
+          errorMessage: "Only one of ingress, gateway, or istioGateway can be enabled at the same time."
+
+  - it: should bypass the ingress mutual-exclusion guard when skipValidation is true
+    template: ingress.yaml
+    set:
+      config.skipValidation: true
+      ingress.enabled: true
+      ingress.hostname: api.example.com
+      gateway.enabled: true
+      gateway.name: my-gateway
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Ingress
+
+  - it: should fail when ingress is enabled without a hostname
+    template: ingress.yaml
+    set:
+      ingress.enabled: true
+    asserts:
+      - failedTemplate:
+          errorMessage: "ingress.hostname must be set when ingress.enabled=true"
+
+  - it: should bypass the ingress hostname guard when skipValidation is true
+    template: ingress.yaml
+    set:
+      config.skipValidation: true
+      ingress.enabled: true
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Ingress
+
+  - it: should fail when gateway is enabled without a name
+    template: ingress.yaml
+    set:
+      gateway.enabled: true
+    asserts:
+      - failedTemplate:
+          errorMessage: "gateway.name must be set when gateway.enabled=true"
+
+  - it: should fail when mongo.external.enabled without mongo.enabled
+    template: api-server/deployment.yaml
+    set:
+      mongo.enabled: false
+      mongo.external.enabled: true
+    asserts:
+      - failedTemplate:
+          errorMessage: "mongo.external.enabled requires mongo.enabled=true"
+
+  - it: should bypass the MongoDB configuration guard when skipValidation is true
+    template: api-server/deployment.yaml
+    set:
+      config.skipValidation: true
+      mongo.enabled: false
+      mongo.external.enabled: true
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Deployment

@@ -12,10 +12,10 @@ spec:
     matchLabels:
       {{- include "langsmith.selectorLabels" . | nindent 6 }}
       app.kubernetes.io/component: {{ include "langsmith.agentFeatures.fullname" (dict "root" . "product" "polly") }}-{{ .Values.polly.apiServer.name }}
-  {{- if .Values.polly.apiServer.pdb.minAvailable }}
+  {{- if hasKey .Values.polly.apiServer.pdb "minAvailable" }}
   minAvailable: {{ .Values.polly.apiServer.pdb.minAvailable }}
   {{- end }}
-  {{- if .Values.polly.apiServer.pdb.maxUnavailable }}
+  {{- if hasKey .Values.polly.apiServer.pdb "maxUnavailable" }}
   maxUnavailable: {{ .Values.polly.apiServer.pdb.maxUnavailable }}
   {{- end }}
 {{- end }}

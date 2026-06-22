@@ -287,6 +287,7 @@ You can find the guide to deploy a LangGraph Dataplane [here](https://langchain-
 | redis.statefulSet.terminationGracePeriodSeconds | int | `30` |  |
 | redis.statefulSet.tolerations | list | `[]` |  |
 | redis.statefulSet.topologySpreadConstraints | list | `[]` |  |
+| redis.statefulSet.updateStrategy | object | `{}` | Optional StatefulSet update strategy for the in-chart Redis instance. Leave unset to keep the Kubernetes default RollingUpdate behavior. |
 | redis.statefulSet.volumeMounts | list | `[]` |  |
 | redis.statefulSet.volumes | list | `[]` |  |
 

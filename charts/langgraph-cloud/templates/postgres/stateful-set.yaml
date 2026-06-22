@@ -19,6 +19,10 @@ metadata:
 spec:
   serviceName: {{ include "langGraphCloud.fullname" . }}-{{ .Values.postgres.name }}
   replicas: 1
+  {{- with .Values.postgres.statefulSet.updateStrategy }}
+  updateStrategy:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
   selector:
     matchLabels:
       {{- include "langGraphCloud.selectorLabels" . | nindent 6 }}

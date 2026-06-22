@@ -533,6 +533,60 @@ operator:
         type: RuntimeDefault
       allowPrivilegeEscalation: false
       readOnlyRootFilesystem: true
+  templates:
+    deployment: |
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: ${name}
+        namespace: ${namespace}
+      spec:
+        replicas: ${replicas}
+        selector:
+          matchLabels:
+            app: ${name}
+        template:
+          metadata:
+            labels:
+              app: ${name}
+          spec:
+            enableServiceLinks: false
+            # Pod-level security context:
+            securityContext:
+              runAsNonRoot: true
+              runAsUser: 1000
+              runAsGroup: 1000
+              fsGroup: 1000
+            containers:
+              - name: api-server
+                image: ${image}
+                ports:
+                  - name: api-server
+                    containerPort: 8000
+                    protocol: TCP
+                # Container-level security context:
+                securityContext:
+                  capabilities:
+                    drop:
+                      - ALL
+                  seccompProfile:
+                    type: RuntimeDefault
+                  allowPrivilegeEscalation: false
+                  readOnlyRootFilesystem: true
+                livenessProbe:
+                  httpGet:
+                    path: /lgp/${name}/ok?check_db=1
+                    port: 8000
+                  periodSeconds: 15
+                  timeoutSeconds: 5
+                  failureThreshold: 6
+                readinessProbe:
+                  httpGet:
+                    path: /lgp/${name}/ok
+                    port: 8000
+                  periodSeconds: 15
+                  timeoutSeconds: 5
+                  failureThreshold: 6
 
 frontend:
   deployment:

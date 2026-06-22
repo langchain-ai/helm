@@ -40,23 +40,23 @@ images:
   aceBackendImage:
     repository: "docker.io/langchain/langsmith-ace-backend"
     pullPolicy: IfNotPresent
-    tag: "0.15.8"
+    tag: "0.16.5rc1"
   backendImage:
     repository: "docker.io/langchain/langsmith-backend"
     pullPolicy: IfNotPresent
-    tag: "0.15.8"
+    tag: "0.16.5rc1"
   insightsAgentImage:
     repository: "docker.io/langchain/langsmith-clio"
     pullPolicy: IfNotPresent
-    tag: "0.15.8"
+    tag: "0.16.5rc1"
   frontendImage:
     repository: "docker.io/langchain/langsmith-frontend"
     pullPolicy: IfNotPresent
-    tag: "0.15.8"
+    tag: "0.16.5rc1"
   hostBackendImage:
     repository: "docker.io/langchain/hosted-langserve-backend"
     pullPolicy: IfNotPresent
-    tag: "0.15.8"
+    tag: "0.16.5rc1"
   operatorImage:
     repository: "docker.io/langchain/langgraph-operator"
     pullPolicy: IfNotPresent
@@ -64,11 +64,11 @@ images:
   platformBackendImage:
     repository: "docker.io/langchain/langsmith-go-backend"
     pullPolicy: IfNotPresent
-    tag: "0.15.8"
+    tag: "0.16.5rc1"
   playgroundImage:
     repository: "docker.io/langchain/langsmith-playground"
     pullPolicy: IfNotPresent
-    tag: "0.15.8"
+    tag: "0.16.5rc1"
   # For production environments, we strongly recommend connecting to a managed PostgreSQL instance instead of using the one provided by the chart.
   # Docs: https://docs.langchain.com/langsmith/self-host-external-postgres
   postgresImage:
@@ -88,19 +88,39 @@ images:
   fleetToolServerImage:
     repository: "docker.io/langchain/agent-builder-tool-server"
     pullPolicy: IfNotPresent
-    tag: "0.15.8"
+    tag: "0.16.5rc1"
   fleetTriggerServerImage:
     repository: "docker.io/langchain/agent-builder-trigger-server"
     pullPolicy: IfNotPresent
-    tag: "0.15.8"
+    tag: "0.16.5rc1"
   agentBuilderImage:
     repository: "docker.io/langchain/agent-builder-deep-agent"
     pullPolicy: IfNotPresent
-    tag: "0.15.8"
+    tag: "0.16.5rc1"
   pollyAgentImage:
     repository: "docker.io/langchain/langsmith-polly"
     pullPolicy: IfNotPresent
-    tag: "0.15.8"
+    tag: "0.16.5rc1"
+  smithdbQueryImage:
+    repository: "docker.io/langchain/smithdb-query"
+    pullPolicy: IfNotPresent
+    tag: "latest"
+  smithdbIngestionImage:
+    repository: "docker.io/langchain/smithdb-ingestion"
+    pullPolicy: IfNotPresent
+    tag: "latest"
+  smithdbCompactionImage:
+    repository: "docker.io/langchain/smithdb-compaction"
+    pullPolicy: IfNotPresent
+    tag: "latest"
+  smithdbClusterManagerImage:
+    repository: "docker.io/langchain/smithdb-clustermanager"
+    pullPolicy: IfNotPresent
+    tag: "latest"
+  smithdbMetastoreMigrationImage:
+    repository: "docker.io/langchain/smithdb-metastore-migrate"
+    pullPolicy: IfNotPresent
+    tag: "latest"
   # Optional: only mirror/pull when presidioAnalyzer.enabled is true
   presidioAnalyzerImage:
     repository: "mcr.microsoft.com/presidio-analyzer"
@@ -145,6 +165,7 @@ fleet:
     linearOAuthProvider: ""
     githubOAuthProvider: ""
     microsoftOAuthProvider: ""
+    salesforceOAuthProvider: ""
     slackSigningSecret: ""
     slackBotId: ""
   apiServer:
@@ -291,6 +312,9 @@ fleet:
       connectionUrl: ""
       existingSecretName: ""
     statefulSet:
+      # -- Optional StatefulSet update strategy for the in-chart Fleet PostgreSQL instance.
+      # Leave unset to keep the Kubernetes default RollingUpdate behavior.
+      updateStrategy: {}
       labels: {}
       annotations: {}
       podSecurityContext: {}
@@ -335,6 +359,9 @@ fleet:
       connectionUrl: ""
       existingSecretName: ""
     statefulSet:
+      # -- Optional StatefulSet update strategy for the in-chart Fleet Redis instance.
+      # Leave unset to keep the Kubernetes default RollingUpdate behavior.
+      updateStrategy: {}
       labels: {}
       annotations: {}
       podSecurityContext: {}
@@ -372,7 +399,7 @@ fleet:
       enabled: false
       minAvailable: 1
 insights:
-  enabled: false
+  enabled: true
   namePrefix: "standalone-insights"
   encryptionKey: ""
   apiServer:
@@ -522,6 +549,9 @@ insights:
       connectionUrl: ""
       existingSecretName: ""
     statefulSet:
+      # -- Optional StatefulSet update strategy for the in-chart Insights PostgreSQL instance.
+      # Leave unset to keep the Kubernetes default RollingUpdate behavior.
+      updateStrategy: {}
       labels: {}
       annotations: {}
       podSecurityContext: {}
@@ -566,6 +596,9 @@ insights:
       connectionUrl: ""
       existingSecretName: ""
     statefulSet:
+      # -- Optional StatefulSet update strategy for the in-chart Insights Redis instance.
+      # Leave unset to keep the Kubernetes default RollingUpdate behavior.
+      updateStrategy: {}
       labels: {}
       annotations: {}
       podSecurityContext: {}
@@ -604,7 +637,7 @@ insights:
       minAvailable: 1
 
 polly:
-  enabled: false
+  enabled: true
   namePrefix: "standalone-polly"
   enableTracing: true
   encryptionKey: ""
@@ -752,6 +785,9 @@ polly:
       connectionUrl: ""
       existingSecretName: ""
     statefulSet:
+      # -- Optional StatefulSet update strategy for the in-chart Polly PostgreSQL instance.
+      # Leave unset to keep the Kubernetes default RollingUpdate behavior.
+      updateStrategy: {}
       labels: {}
       annotations: {}
       podSecurityContext: {}
@@ -796,6 +832,9 @@ polly:
       connectionUrl: ""
       existingSecretName: ""
     statefulSet:
+      # -- Optional StatefulSet update strategy for the in-chart Polly Redis instance.
+      # Leave unset to keep the Kubernetes default RollingUpdate behavior.
+      updateStrategy: {}
       labels: {}
       annotations: {}
       podSecurityContext: {}
@@ -849,41 +888,6 @@ config:
     # Disable this if there is restricted access to the external facing ingress endpoint for your agent(s) from inside of your kubernetes cluster.
     ingressHealthCheckEnabled: true
 
-  # DEPRECATED: use the top-level insights block instead. This bundled-agent
-  # path is managed by backend.agentBootstrap and is being phased out.
-  # Insights (Clio) configuration - AI-powered insights agent
-  # Requires config.deployment.enabled to be true
-  insights:
-    enabled: false
-    # Fernet encryption key for Insights. Required when enabled.
-    # Generate with: python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
-    encryptionKey: ""
-    agent:
-      resources:
-        cpu: 2
-        cpuLimit: 4
-        memoryMb: 4096
-        memoryLimitMb: 8192
-        minScale: 1
-        maxScale: 5
-      extraEnv: {}
-
-  # DEPRECATED: use the top-level polly block instead. This bundled-agent
-  # path is managed by backend.agentBootstrap and is being phased out.
-  # Polly configuration
-  polly:
-    enabled: false
-    encryptionKey: ""
-    agent:
-      resources:
-        cpu: 2
-        cpuLimit: 4
-        memoryMb: 4096
-        memoryLimitMb: 8192
-        minScale: 1
-        maxScale: 5
-      extraEnv: {}
-
   # DEPRECATED: use the top-level fleet block (fleet/fleetToolServer/
   # fleetTriggerServer) instead. This bundled-agent path is managed by
   # backend.agentBootstrap and is being phased out.
@@ -905,12 +909,14 @@ config:
     # - linearOAuthProvider: Linear tools
     # - githubOAuthProvider: GitHub tools
     # - microsoftOAuthProvider: Outlook, Teams, SharePoint tools + Outlook trigger
+    # - salesforceOAuthProvider: Salesforce tools
     oauth:
       googleOAuthProvider: ""
       linkedinOAuthProvider: ""
       linearOAuthProvider: ""
       githubOAuthProvider: ""
       microsoftOAuthProvider: ""
+      salesforceOAuthProvider: ""
       slackOAuthProvider: ""
       slackSigningSecret: ""
       slackBotId: ""
@@ -981,6 +987,16 @@ config:
     oauthIssuerUrl: ""
     oauthScopes: "email,profile,openid"  # Comma-separated list of scopes. We require at least 'email', 'profile', and 'openid'. Some OIDC providers require the 'offline_access' scope for refresh tokens.
     oauthSessionMaxSec: "86400"  # 24 hours. Maximum age of a session in seconds. Your session will attempt to refresh until the max age at which point you will be logged out.
+
+  # -- Ed25519/OKP JWKS (JSON) signing the OAuth AS / remote MCP (and LLM-auth-proxy)
+  # tokens; public keys are served at /.well-known/jwks.json. Set it here (stored in the
+  # chart secret) or as key `langsmith_signing_jwks` in config.existingSecretName. The
+  # remote MCP server / OAuth AS stay inert until this is set.
+  signingJwks: ""
+  # -- Optional issuer (iss claim) for tokens minted by the LLM auth proxy. Maps to
+  # LLM_AUTH_PROXY_ISSUER. Must match the jwtIssuer configured in the auth proxy chart.
+  # Left empty by default (not emitted); set it when using the LLM auth proxy.
+  llmAuthProxyIssuer: ""
   # -- TTL configuration
   # Optional. Used to set TTLS for longlived and shortlived objects.
   ttl:
@@ -1044,7 +1060,7 @@ config:
     coBrandingEnabled: true
 
   # -- Custom error support message displayed on error pages (plain text).
-  # If empty, defaults to the built-in support messages with support@langchain.dev links.
+  # If empty, defaults to the built-in support messages linking to our Support Portal (https://support.langchain.com).
   customErrorSupportMessage: ""
 
   # -- Enables Google IAP (Identity-Aware Proxy) session handling in the frontend.
@@ -1193,6 +1209,364 @@ aceBackend:
     annotations: {}
     automountServiceAccountToken: true
 
+smithdb:
+  # -- Deploy the in-chart SmithDB workloads.
+  enabled: false
+  # -- Name segment used for SmithDB resources.
+  name: "smithdb"
+  # -- Shared ServiceAccount for SmithDB workloads.
+  serviceAccount:
+    create: true
+    # -- Defaults to <release>-<smithdb.name>.
+    name: ""
+    labels: {}
+    annotations: {}
+    automountServiceAccountToken: true
+  # -- Extra env vars for every SmithDB workload.
+  commonEnv: []
+
+  config:
+    # -- Existing secret containing SmithDB metastore credentials.
+    existingSecretName: ""
+    metastore:
+      hostSecretKey: ""
+      databaseSecretKey: ""
+      usernameSecretKey: ""
+      passwordSecretKey: ""
+      port: "5432"
+      useSsl: false
+    observability:
+      logging:
+        # -- Optional SmithDB log filter. Empty uses the chart default: INFO,vortex=WARN.
+        level: ""
+      tracing:
+        # -- Enable OpenTelemetry tracing/log export for SmithDB components.
+        # SmithDB supports exporting OTLP over gRPC only.
+        enabled: false
+        # -- OTLP gRPC collector endpoint for SmithDB traces/logs.
+        endpoint: ""
+        # -- Extra OpenTelemetry resource attributes appended to SmithDB traces/logs.
+        extraResourceAttributes: {}
+    objectStore:
+      # -- Supported values: s3, gcs.
+      type: "s3"
+      bucket: ""
+      s3:
+        # -- Defaults to the SmithDB S3 client default when empty.
+        region: ""
+        endpoint: ""
+        # -- Keys in smithdb.config.existingSecretName for static S3 credentials.
+        # Set both to "" when using ambient cloud identity, such as IRSA.
+        accessKeyIdSecretKey: ""
+        secretAccessKeySecretKey: ""
+
+  langsmith:
+    dualIngest:
+      # -- Enables LangSmith run ingestion to also write to SmithDB. Requires smithdb.enabled.
+      enabled: false
+    frontend:
+      # -- Defaults the LangSmith UI to SmithDB endpoints for run queries. Requires smithdb.enabled.
+      useSmithDBEndpoints: false
+
+  query:
+    name: "query"
+    containerPort: 8060
+    containerGrpcPort: 8080
+    deployment:
+      replicas: 1
+      strategy:
+        type: RollingUpdate
+        rollingUpdate:
+          maxSurge: 1
+          maxUnavailable: 0
+      labels: {}
+      annotations: {}
+      podSecurityContext: {}
+      securityContext: {}
+      resources: {}
+      probes:
+        startupProbe:
+          httpGet:
+            path: /health
+            port: http
+          failureThreshold: 6
+          periodSeconds: 10
+          timeoutSeconds: 1
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: http
+          failureThreshold: 6
+          periodSeconds: 10
+          timeoutSeconds: 1
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: http
+          failureThreshold: 6
+          periodSeconds: 10
+          timeoutSeconds: 1
+      command:
+        - "./smithdb-query"
+      extraEnv: []
+      extraContainerConfig: {}
+      sidecars: []
+      nodeSelector: {}
+      tolerations: []
+      affinity: {}
+      topologySpreadConstraints: []
+      volumes: []
+      volumeMounts: []
+      initContainers: []
+    service:
+      port: 8080
+      labels: {}
+      annotations: {}
+    pdb:
+      enabled: false
+      minAvailable: 1
+      labels: {}
+      annotations: {}
+
+  ingestion:
+    name: "ingestion"
+    containerPort: 8050
+    containerGrpcPort: 8082
+    deployment:
+      replicas: 1
+      strategy:
+        type: RollingUpdate
+        rollingUpdate:
+          maxSurge: 1
+          maxUnavailable: 0
+      labels: {}
+      annotations: {}
+      podSecurityContext: {}
+      securityContext: {}
+      resources: {}
+      probes:
+        startupProbe:
+          httpGet:
+            path: /health
+            port: http
+          failureThreshold: 6
+          periodSeconds: 10
+          timeoutSeconds: 1
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: http
+          failureThreshold: 6
+          periodSeconds: 10
+          timeoutSeconds: 1
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: http
+          failureThreshold: 6
+          periodSeconds: 10
+          timeoutSeconds: 1
+      command:
+        - "./smithdb-ingestion"
+      terminationGracePeriodSeconds: 300
+      extraEnv: []
+      extraContainerConfig: {}
+      sidecars: []
+      nodeSelector: {}
+      tolerations: []
+      affinity: {}
+      topologySpreadConstraints: []
+      volumes: []
+      volumeMounts: []
+      initContainers: []
+    service:
+      port: 8082
+      labels: {}
+      annotations: {}
+    pdb:
+      enabled: false
+      minAvailable: 1
+      labels: {}
+      annotations: {}
+
+  compaction:
+    name: "compaction"
+    containerPort: 8070
+    containerGrpcPort: 8071
+    deployment:
+      replicas: 1
+      labels: {}
+      annotations: {}
+      podSecurityContext: {}
+      securityContext: {}
+      resources: {}
+      probes:
+        startupProbe:
+          httpGet:
+            path: /health
+            port: http
+          failureThreshold: 6
+          periodSeconds: 10
+          timeoutSeconds: 1
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: http
+          failureThreshold: 6
+          periodSeconds: 10
+          timeoutSeconds: 1
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: http
+          failureThreshold: 6
+          periodSeconds: 10
+          timeoutSeconds: 1
+      # -- Optional command override. Empty uses the chart default: ["./smithdb-compaction", "scheduler"].
+      command: []
+      extraEnv: []
+      extraContainerConfig: {}
+      sidecars: []
+      nodeSelector: {}
+      tolerations: []
+      affinity: {}
+      topologySpreadConstraints: []
+      volumes: []
+      volumeMounts: []
+      initContainers: []
+    service:
+      port: 8071
+      labels: {}
+      annotations: {}
+    pdb:
+      enabled: false
+      minAvailable: 1
+      labels: {}
+      annotations: {}
+
+  compactionWorker:
+    name: "compaction-worker"
+    containerPort: 9000
+    # -- Maximum concurrent jobs per compaction worker. Empty uses the SmithDB default.
+    maxConcurrentJobs: ""
+    deployment:
+      replicas: 1
+      labels: {}
+      annotations: {}
+      podSecurityContext: {}
+      securityContext: {}
+      terminationGracePeriodSeconds: 120
+      resources: {}
+      probes:
+        startupProbe:
+          httpGet:
+            path: /health
+            port: http
+          failureThreshold: 6
+          periodSeconds: 10
+          timeoutSeconds: 1
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: http
+          failureThreshold: 6
+          periodSeconds: 10
+          timeoutSeconds: 1
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: http
+          failureThreshold: 6
+          periodSeconds: 10
+          timeoutSeconds: 1
+      # -- Optional command override. Empty uses the chart default: ["./smithdb-compaction", "worker"].
+      command: []
+      extraEnv: []
+      extraContainerConfig: {}
+      sidecars: []
+      nodeSelector: {}
+      tolerations: []
+      affinity: {}
+      topologySpreadConstraints: []
+      volumes: []
+      volumeMounts: []
+      initContainers: []
+    pdb:
+      enabled: false
+      minAvailable: 1
+      labels: {}
+      annotations: {}
+
+  clusterManager:
+    name: "cluster-manager"
+    containerPort: 8090
+    containerGrpcPort: 8091
+    deployment:
+      replicas: 1
+      labels: {}
+      annotations: {}
+      podSecurityContext: {}
+      securityContext: {}
+      resources: {}
+      probes:
+        startupProbe:
+          httpGet:
+            path: /health
+            port: http
+          failureThreshold: 6
+          periodSeconds: 10
+          timeoutSeconds: 1
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: http
+          failureThreshold: 6
+          periodSeconds: 10
+          timeoutSeconds: 1
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: http
+          failureThreshold: 6
+          periodSeconds: 10
+          timeoutSeconds: 1
+      command: []
+      extraEnv: []
+      extraContainerConfig: {}
+      sidecars: []
+      nodeSelector: {}
+      tolerations: []
+      affinity: {}
+      topologySpreadConstraints: []
+      volumes: []
+      volumeMounts: []
+      initContainers: []
+    service:
+      port: 8091
+      labels: {}
+      annotations: {}
+    pdb: {}
+
+  metastoreMigration:
+    name: "metastore-migration"
+    useSsl: false
+    command:
+      - "./smithdb-metastore-migrate-entrypoint.sh"
+    job:
+      ttlSecondsAfterFinished: 3600
+      backoffLimit: 0
+      activeDeadlineSeconds: 600
+      restartPolicy: Never
+      labels: {}
+      annotations: {}
+      podAnnotations: {}
+      podSecurityContext: {}
+      securityContext: {}
+      resources: {}
+      extraEnv: []
+      nodeSelector: {}
+      tolerations: []
+      affinity: {}
 
 backend:
   name: "backend"
@@ -1489,6 +1863,9 @@ clickhouse:
   statefulSet:
     labels: {}
     annotations: {}
+    # -- Optional StatefulSet update strategy for the in-chart ClickHouse instance.
+    # -- Leave unset to keep the Kubernetes default RollingUpdate behavior.
+    updateStrategy: {}
     podSecurityContext: {}
     securityContext: {}
     lifecycle: {}
@@ -1899,6 +2276,10 @@ listener:
       maxReplicaCount: 10
       targetCPUUtilizationPercentage: 50
       targetMemoryUtilizationPercentage: 80
+      queueTargetSize: "5"
+      fallback:
+        failureThreshold: 3
+        replicas: 2
       scaleDownStabilizationWindowSeconds: 1800
       scaleDownPolicy:
         value: 100
@@ -2359,6 +2740,9 @@ postgres:
       keySecretKey: "tls.key"
   containerPort: 5432
   statefulSet:
+    # -- Optional StatefulSet update strategy for the in-chart PostgreSQL instance.
+    # Leave unset to keep the Kubernetes default RollingUpdate behavior.
+    updateStrategy: {}
     labels: {}
     annotations: {}
     podSecurityContext: {}
@@ -2678,6 +3062,9 @@ redis:
       tlsEnabled: true
   containerPort: 6379
   statefulSet:
+    # -- Optional StatefulSet update strategy for the in-chart Redis instance.
+    # Leave unset to keep the Kubernetes default RollingUpdate behavior.
+    updateStrategy: {}
     labels: {}
     annotations: {}
     podSecurityContext: {}

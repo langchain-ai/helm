@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.15.0](https://img.shields.io/badge/Version-0.15.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.15.8](https://img.shields.io/badge/AppVersion-0.15.8-informational?style=flat-square)
+![Version: 0.16.0-rc.4](https://img.shields.io/badge/Version-0.16.0--rc.4-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.16.5rc1](https://img.shields.io/badge/AppVersion-0.16.5rc1-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -12,6 +12,217 @@ For information on how to use this chart, up-to-date release notes, and other gu
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
+| clusterDomain | string | `"cluster.local"` | Kubernetes cluster domain. Only change if not using 'cluster.local' |
+| commonAnnotations | object | `{}` | Annotations that will be applied to all resources created by the chart |
+| commonDnsConfig | object | `{"options":[{"name":"ndots","value":"4"}]}` | Set to null to disable and use Kubernetes defaults (ndots: 5). |
+| commonEnv | list | `[]` | Common environment variables that will be applied to all deployments/statefulsets except for the playground/aceBackend services (which are sandboxed). Be careful not to override values already specified by the chart. |
+| commonInitContainers | list | `[]` | Common init containers added to all deployments/statefulsets except for the playground/aceBackend services (which are sandboxed). |
+| commonLabels | object | `{}` | Labels that will be applied to all resources created by the chart |
+| commonPodAnnotations | object | `{}` | Annotations that will be applied to all pods created by the chart |
+| commonPodSecurityContext | object | `{}` | Common pod security context applied to all pods. Component-specific podSecurityContext values will be merged on top of this (component values take precedence). |
+| commonVolumeMounts | list | `[]` | Common volume mounts added to all deployments/statefulsets except for the playground/aceBackend services (which are sandboxed). |
+| commonVolumes | list | `[]` | Common volumes added to all deployments/statefulsets except for the playground/aceBackend services (which are sandboxed). |
+| fleet.apiServer.autoscaling.enabled | bool | `false` |  |
+| fleet.apiServer.autoscaling.keda.cooldownPeriod | int | `300` |  |
+| fleet.apiServer.autoscaling.keda.enabled | bool | `false` |  |
+| fleet.apiServer.autoscaling.keda.pollingInterval | int | `30` |  |
+| fleet.apiServer.autoscaling.keda.scaleDownStabilizationWindowSeconds | int | `300` |  |
+| fleet.apiServer.autoscaling.maxReplicas | int | `5` |  |
+| fleet.apiServer.autoscaling.minReplicas | int | `1` |  |
+| fleet.apiServer.autoscaling.targetCPUUtilizationPercentage | int | `80` |  |
+| fleet.apiServer.containerPort | int | `8000` |  |
+| fleet.apiServer.deployment.affinity | object | `{}` |  |
+| fleet.apiServer.deployment.annotations | object | `{}` |  |
+| fleet.apiServer.deployment.envFrom | list | `[]` |  |
+| fleet.apiServer.deployment.extraEnv | list | `[]` |  |
+| fleet.apiServer.deployment.initContainers | list | `[]` |  |
+| fleet.apiServer.deployment.labels | object | `{}` |  |
+| fleet.apiServer.deployment.lifecycle | object | `{}` |  |
+| fleet.apiServer.deployment.livenessProbe.failureThreshold | int | `6` |  |
+| fleet.apiServer.deployment.livenessProbe.httpGet.path | string | `"/ok?check_db=0"` |  |
+| fleet.apiServer.deployment.livenessProbe.httpGet.port | int | `8000` |  |
+| fleet.apiServer.deployment.livenessProbe.periodSeconds | int | `10` |  |
+| fleet.apiServer.deployment.livenessProbe.timeoutSeconds | int | `1` |  |
+| fleet.apiServer.deployment.nodeSelector | object | `{}` |  |
+| fleet.apiServer.deployment.podSecurityContext | object | `{}` |  |
+| fleet.apiServer.deployment.priorityClassName | string | `""` |  |
+| fleet.apiServer.deployment.readinessProbe.failureThreshold | int | `3` |  |
+| fleet.apiServer.deployment.readinessProbe.httpGet.path | string | `"/ok?check_db=0"` |  |
+| fleet.apiServer.deployment.readinessProbe.httpGet.port | int | `8000` |  |
+| fleet.apiServer.deployment.readinessProbe.periodSeconds | int | `10` |  |
+| fleet.apiServer.deployment.readinessProbe.timeoutSeconds | int | `1` |  |
+| fleet.apiServer.deployment.replicaCount | int | `1` |  |
+| fleet.apiServer.deployment.resources | object | `{}` |  |
+| fleet.apiServer.deployment.securityContext | object | `{}` |  |
+| fleet.apiServer.deployment.sidecars | list | `[]` |  |
+| fleet.apiServer.deployment.startupProbe.failureThreshold | int | `6` |  |
+| fleet.apiServer.deployment.startupProbe.httpGet.path | string | `"/ok?check_db=1"` |  |
+| fleet.apiServer.deployment.startupProbe.httpGet.port | int | `8000` |  |
+| fleet.apiServer.deployment.startupProbe.periodSeconds | int | `10` |  |
+| fleet.apiServer.deployment.startupProbe.timeoutSeconds | int | `1` |  |
+| fleet.apiServer.deployment.terminationGracePeriodSeconds | int | `30` |  |
+| fleet.apiServer.deployment.tolerations | list | `[]` |  |
+| fleet.apiServer.deployment.volumeMounts | list | `[]` |  |
+| fleet.apiServer.deployment.volumes | list | `[]` |  |
+| fleet.apiServer.name | string | `"api-server"` |  |
+| fleet.apiServer.pdb.enabled | bool | `false` |  |
+| fleet.apiServer.pdb.minAvailable | int | `1` |  |
+| fleet.apiServer.service.annotations | object | `{}` |  |
+| fleet.apiServer.service.httpPort | int | `80` |  |
+| fleet.apiServer.service.labels | object | `{}` |  |
+| fleet.apiServer.service.type | string | `"ClusterIP"` |  |
+| fleet.apiServer.serviceAccount.annotations | object | `{}` |  |
+| fleet.apiServer.serviceAccount.automountServiceAccountToken | bool | `true` |  |
+| fleet.apiServer.serviceAccount.create | bool | `true` |  |
+| fleet.apiServer.serviceAccount.labels | object | `{}` |  |
+| fleet.apiServer.serviceAccount.name | string | `""` |  |
+| fleet.enableTracing | bool | `true` |  |
+| fleet.enabled | bool | `false` |  |
+| fleet.encryptionKey | string | `""` |  |
+| fleet.namePrefix | string | `"standalone-fleet"` |  |
+| fleet.oauth.githubOAuthProvider | string | `""` |  |
+| fleet.oauth.googleOAuthProvider | string | `""` |  |
+| fleet.oauth.linearOAuthProvider | string | `""` |  |
+| fleet.oauth.linkedinOAuthProvider | string | `""` |  |
+| fleet.oauth.microsoftOAuthProvider | string | `""` |  |
+| fleet.oauth.providerOrgId | string | `""` |  |
+| fleet.oauth.salesforceOAuthProvider | string | `""` |  |
+| fleet.oauth.slackBotId | string | `""` |  |
+| fleet.oauth.slackOAuthProvider | string | `""` |  |
+| fleet.oauth.slackSigningSecret | string | `""` |  |
+| fleet.postgres.containerPort | int | `5432` |  |
+| fleet.postgres.external.connectionUrl | string | `""` |  |
+| fleet.postgres.external.database | string | `"postgres"` |  |
+| fleet.postgres.external.enabled | bool | `false` |  |
+| fleet.postgres.external.existingSecretName | string | `""` |  |
+| fleet.postgres.external.host | string | `""` |  |
+| fleet.postgres.external.password | string | `"postgres"` |  |
+| fleet.postgres.external.port | string | `"5432"` |  |
+| fleet.postgres.external.schema | string | `"public"` |  |
+| fleet.postgres.external.user | string | `"postgres"` |  |
+| fleet.postgres.name | string | `"postgres"` |  |
+| fleet.postgres.pdb.enabled | bool | `false` |  |
+| fleet.postgres.pdb.minAvailable | int | `1` |  |
+| fleet.postgres.service.annotations | object | `{}` |  |
+| fleet.postgres.service.labels | object | `{}` |  |
+| fleet.postgres.service.port | int | `5432` |  |
+| fleet.postgres.service.type | string | `"ClusterIP"` |  |
+| fleet.postgres.serviceAccount.annotations | object | `{}` |  |
+| fleet.postgres.serviceAccount.automountServiceAccountToken | bool | `true` |  |
+| fleet.postgres.serviceAccount.create | bool | `true` |  |
+| fleet.postgres.serviceAccount.labels | object | `{}` |  |
+| fleet.postgres.serviceAccount.name | string | `""` |  |
+| fleet.postgres.statefulSet.affinity | object | `{}` |  |
+| fleet.postgres.statefulSet.annotations | object | `{}` |  |
+| fleet.postgres.statefulSet.command | list | `[]` |  |
+| fleet.postgres.statefulSet.extraContainerConfig | object | `{}` |  |
+| fleet.postgres.statefulSet.extraEnv | list | `[]` |  |
+| fleet.postgres.statefulSet.labels | object | `{}` |  |
+| fleet.postgres.statefulSet.lifecycle | object | `{}` |  |
+| fleet.postgres.statefulSet.nodeSelector | object | `{}` |  |
+| fleet.postgres.statefulSet.persistence.enabled | bool | `true` |  |
+| fleet.postgres.statefulSet.persistence.size | string | `"8Gi"` |  |
+| fleet.postgres.statefulSet.persistence.storageClassName | string | `""` |  |
+| fleet.postgres.statefulSet.persistentVolumeClaimRetentionPolicy | object | `{}` |  |
+| fleet.postgres.statefulSet.podSecurityContext | object | `{}` |  |
+| fleet.postgres.statefulSet.priorityClassName | string | `""` |  |
+| fleet.postgres.statefulSet.resources | object | `{}` |  |
+| fleet.postgres.statefulSet.securityContext | object | `{}` |  |
+| fleet.postgres.statefulSet.sidecars | list | `[]` |  |
+| fleet.postgres.statefulSet.terminationGracePeriodSeconds | int | `30` |  |
+| fleet.postgres.statefulSet.tolerations | list | `[]` |  |
+| fleet.postgres.statefulSet.updateStrategy | object | `{}` | Optional StatefulSet update strategy for the in-chart Fleet PostgreSQL instance. Leave unset to keep the Kubernetes default RollingUpdate behavior. |
+| fleet.postgres.statefulSet.volumeMounts | list | `[]` |  |
+| fleet.postgres.statefulSet.volumes | list | `[]` |  |
+| fleet.queue.autoscaling.enabled | bool | `false` |  |
+| fleet.queue.autoscaling.keda.cooldownPeriod | int | `300` |  |
+| fleet.queue.autoscaling.keda.enabled | bool | `false` |  |
+| fleet.queue.autoscaling.keda.pollingInterval | int | `30` |  |
+| fleet.queue.autoscaling.keda.scaleDownStabilizationWindowSeconds | int | `300` |  |
+| fleet.queue.autoscaling.maxReplicas | int | `5` |  |
+| fleet.queue.autoscaling.minReplicas | int | `1` |  |
+| fleet.queue.autoscaling.targetCPUUtilizationPercentage | int | `80` |  |
+| fleet.queue.containerPort | int | `8000` |  |
+| fleet.queue.deployment.affinity | object | `{}` |  |
+| fleet.queue.deployment.annotations | object | `{}` |  |
+| fleet.queue.deployment.envFrom | list | `[]` |  |
+| fleet.queue.deployment.extraEnv | list | `[]` |  |
+| fleet.queue.deployment.labels | object | `{}` |  |
+| fleet.queue.deployment.lifecycle | object | `{}` |  |
+| fleet.queue.deployment.livenessProbe.failureThreshold | int | `6` |  |
+| fleet.queue.deployment.livenessProbe.httpGet.path | string | `"/ok"` |  |
+| fleet.queue.deployment.livenessProbe.httpGet.port | int | `8000` |  |
+| fleet.queue.deployment.livenessProbe.periodSeconds | int | `10` |  |
+| fleet.queue.deployment.livenessProbe.timeoutSeconds | int | `1` |  |
+| fleet.queue.deployment.nodeSelector | object | `{}` |  |
+| fleet.queue.deployment.podSecurityContext | object | `{}` |  |
+| fleet.queue.deployment.priorityClassName | string | `""` |  |
+| fleet.queue.deployment.readinessProbe.failureThreshold | int | `6` |  |
+| fleet.queue.deployment.readinessProbe.httpGet.path | string | `"/ok"` |  |
+| fleet.queue.deployment.readinessProbe.httpGet.port | int | `8000` |  |
+| fleet.queue.deployment.readinessProbe.periodSeconds | int | `10` |  |
+| fleet.queue.deployment.readinessProbe.timeoutSeconds | int | `1` |  |
+| fleet.queue.deployment.replicaCount | int | `1` |  |
+| fleet.queue.deployment.resources | object | `{}` |  |
+| fleet.queue.deployment.securityContext | object | `{}` |  |
+| fleet.queue.deployment.sidecars | list | `[]` |  |
+| fleet.queue.deployment.startupProbe.failureThreshold | int | `6` |  |
+| fleet.queue.deployment.startupProbe.httpGet.path | string | `"/ok"` |  |
+| fleet.queue.deployment.startupProbe.httpGet.port | int | `8000` |  |
+| fleet.queue.deployment.startupProbe.periodSeconds | int | `10` |  |
+| fleet.queue.deployment.startupProbe.timeoutSeconds | int | `1` |  |
+| fleet.queue.deployment.terminationGracePeriodSeconds | int | `30` |  |
+| fleet.queue.deployment.tolerations | list | `[]` |  |
+| fleet.queue.deployment.volumeMounts | list | `[]` |  |
+| fleet.queue.deployment.volumes | list | `[]` |  |
+| fleet.queue.enabled | bool | `true` |  |
+| fleet.queue.name | string | `"queue"` |  |
+| fleet.queue.numberOfJobsPerWorker | int | `10` |  |
+| fleet.queue.pdb.enabled | bool | `false` |  |
+| fleet.queue.pdb.minAvailable | int | `1` |  |
+| fleet.queue.serviceAccount.annotations | object | `{}` |  |
+| fleet.queue.serviceAccount.automountServiceAccountToken | bool | `true` |  |
+| fleet.queue.serviceAccount.create | bool | `true` |  |
+| fleet.queue.serviceAccount.labels | object | `{}` |  |
+| fleet.queue.serviceAccount.name | string | `""` |  |
+| fleet.redis.containerPort | int | `6379` |  |
+| fleet.redis.external.connectionUrl | string | `""` |  |
+| fleet.redis.external.enabled | bool | `false` |  |
+| fleet.redis.external.existingSecretName | string | `""` |  |
+| fleet.redis.name | string | `"redis"` |  |
+| fleet.redis.pdb.enabled | bool | `false` |  |
+| fleet.redis.pdb.minAvailable | int | `1` |  |
+| fleet.redis.service.annotations | object | `{}` |  |
+| fleet.redis.service.labels | object | `{}` |  |
+| fleet.redis.service.port | int | `6379` |  |
+| fleet.redis.service.type | string | `"ClusterIP"` |  |
+| fleet.redis.serviceAccount.annotations | object | `{}` |  |
+| fleet.redis.serviceAccount.automountServiceAccountToken | bool | `true` |  |
+| fleet.redis.serviceAccount.create | bool | `true` |  |
+| fleet.redis.serviceAccount.labels | object | `{}` |  |
+| fleet.redis.serviceAccount.name | string | `""` |  |
+| fleet.redis.statefulSet.affinity | object | `{}` |  |
+| fleet.redis.statefulSet.annotations | object | `{}` |  |
+| fleet.redis.statefulSet.command | list | `[]` |  |
+| fleet.redis.statefulSet.extraContainerConfig | object | `{}` |  |
+| fleet.redis.statefulSet.extraEnv | list | `[]` |  |
+| fleet.redis.statefulSet.labels | object | `{}` |  |
+| fleet.redis.statefulSet.lifecycle | object | `{}` |  |
+| fleet.redis.statefulSet.nodeSelector | object | `{}` |  |
+| fleet.redis.statefulSet.persistence.enabled | bool | `true` |  |
+| fleet.redis.statefulSet.persistence.size | string | `"8Gi"` |  |
+| fleet.redis.statefulSet.persistence.storageClassName | string | `""` |  |
+| fleet.redis.statefulSet.persistentVolumeClaimRetentionPolicy | object | `{}` |  |
+| fleet.redis.statefulSet.podSecurityContext | object | `{}` |  |
+| fleet.redis.statefulSet.priorityClassName | string | `""` |  |
+| fleet.redis.statefulSet.resources | object | `{}` |  |
+| fleet.redis.statefulSet.securityContext | object | `{}` |  |
+| fleet.redis.statefulSet.sidecars | list | `[]` |  |
+| fleet.redis.statefulSet.terminationGracePeriodSeconds | int | `30` |  |
+| fleet.redis.statefulSet.tolerations | list | `[]` |  |
+| fleet.redis.statefulSet.updateStrategy | object | `{}` | Optional StatefulSet update strategy for the in-chart Fleet Redis instance. Leave unset to keep the Kubernetes default RollingUpdate behavior. |
+| fleet.redis.statefulSet.volumeMounts | list | `[]` |  |
+| fleet.redis.statefulSet.volumes | list | `[]` |  |
 | fleetToolServer.autoscaling.createHpa | bool | `true` |  |
 | fleetToolServer.autoscaling.enabled | bool | `false` |  |
 | fleetToolServer.autoscaling.maxReplicas | int | `3` |  |
@@ -121,214 +332,6 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | fleetTriggerServer.serviceAccount.create | bool | `true` |  |
 | fleetTriggerServer.serviceAccount.labels | object | `{}` |  |
 | fleetTriggerServer.serviceAccount.name | string | `""` |  |
-| clusterDomain | string | `"cluster.local"` | Kubernetes cluster domain. Only change if not using 'cluster.local' |
-| commonAnnotations | object | `{}` | Annotations that will be applied to all resources created by the chart |
-| commonDnsConfig | object | `{"options":[{"name":"ndots","value":"4"}]}` | Set to null to disable and use Kubernetes defaults (ndots: 5). |
-| commonEnv | list | `[]` | Common environment variables that will be applied to all deployments/statefulsets except for the playground/aceBackend services (which are sandboxed). Be careful not to override values already specified by the chart. |
-| commonInitContainers | list | `[]` | Common init containers added to all deployments/statefulsets except for the playground/aceBackend services (which are sandboxed). |
-| commonLabels | object | `{}` | Labels that will be applied to all resources created by the chart |
-| commonPodAnnotations | object | `{}` | Annotations that will be applied to all pods created by the chart |
-| commonPodSecurityContext | object | `{}` | Common pod security context applied to all pods. Component-specific podSecurityContext values will be merged on top of this (component values take precedence). |
-| commonVolumeMounts | list | `[]` | Common volume mounts added to all deployments/statefulsets except for the playground/aceBackend services (which are sandboxed). |
-| commonVolumes | list | `[]` | Common volumes added to all deployments/statefulsets except for the playground/aceBackend services (which are sandboxed). |
-| fleet.apiServer.autoscaling.enabled | bool | `false` |  |
-| fleet.apiServer.autoscaling.keda.cooldownPeriod | int | `300` |  |
-| fleet.apiServer.autoscaling.keda.enabled | bool | `false` |  |
-| fleet.apiServer.autoscaling.keda.pollingInterval | int | `30` |  |
-| fleet.apiServer.autoscaling.keda.scaleDownStabilizationWindowSeconds | int | `300` |  |
-| fleet.apiServer.autoscaling.maxReplicas | int | `5` |  |
-| fleet.apiServer.autoscaling.minReplicas | int | `1` |  |
-| fleet.apiServer.autoscaling.targetCPUUtilizationPercentage | int | `80` |  |
-| fleet.apiServer.containerPort | int | `8000` |  |
-| fleet.apiServer.deployment.affinity | object | `{}` |  |
-| fleet.apiServer.deployment.annotations | object | `{}` |  |
-| fleet.apiServer.deployment.envFrom | list | `[]` |  |
-| fleet.apiServer.deployment.extraEnv | list | `[]` |  |
-| fleet.apiServer.deployment.initContainers | list | `[]` |  |
-| fleet.apiServer.deployment.labels | object | `{}` |  |
-| fleet.apiServer.deployment.lifecycle | object | `{}` |  |
-| fleet.apiServer.deployment.livenessProbe.failureThreshold | int | `6` |  |
-| fleet.apiServer.deployment.livenessProbe.httpGet.path | string | `"/ok?check_db=0"` |  |
-| fleet.apiServer.deployment.livenessProbe.httpGet.port | int | `8000` |  |
-| fleet.apiServer.deployment.livenessProbe.periodSeconds | int | `10` |  |
-| fleet.apiServer.deployment.livenessProbe.timeoutSeconds | int | `1` |  |
-| fleet.apiServer.deployment.nodeSelector | object | `{}` |  |
-| fleet.apiServer.deployment.podSecurityContext | object | `{}` |  |
-| fleet.apiServer.deployment.priorityClassName | string | `""` |  |
-| fleet.apiServer.deployment.readinessProbe.failureThreshold | int | `3` |  |
-| fleet.apiServer.deployment.readinessProbe.httpGet.path | string | `"/ok?check_db=0"` |  |
-| fleet.apiServer.deployment.readinessProbe.httpGet.port | int | `8000` |  |
-| fleet.apiServer.deployment.readinessProbe.periodSeconds | int | `10` |  |
-| fleet.apiServer.deployment.readinessProbe.timeoutSeconds | int | `1` |  |
-| fleet.apiServer.deployment.replicaCount | int | `1` |  |
-| fleet.apiServer.deployment.resources | object | `{}` |  |
-| fleet.apiServer.deployment.securityContext | object | `{}` |  |
-| fleet.apiServer.deployment.sidecars | list | `[]` |  |
-| fleet.apiServer.deployment.startupProbe.failureThreshold | int | `6` |  |
-| fleet.apiServer.deployment.startupProbe.httpGet.path | string | `"/ok?check_db=1"` |  |
-| fleet.apiServer.deployment.startupProbe.httpGet.port | int | `8000` |  |
-| fleet.apiServer.deployment.startupProbe.periodSeconds | int | `10` |  |
-| fleet.apiServer.deployment.startupProbe.timeoutSeconds | int | `1` |  |
-| fleet.apiServer.deployment.terminationGracePeriodSeconds | int | `30` |  |
-| fleet.apiServer.deployment.tolerations | list | `[]` |  |
-| fleet.apiServer.deployment.volumeMounts | list | `[]` |  |
-| fleet.apiServer.deployment.volumes | list | `[]` |  |
-| fleet.apiServer.name | string | `"api-server"` |  |
-| fleet.apiServer.pdb.enabled | bool | `false` |  |
-| fleet.apiServer.pdb.minAvailable | int | `1` |  |
-| fleet.apiServer.service.annotations | object | `{}` |  |
-| fleet.apiServer.service.httpPort | int | `80` |  |
-| fleet.apiServer.service.labels | object | `{}` |  |
-| fleet.apiServer.service.type | string | `"ClusterIP"` |  |
-| fleet.apiServer.serviceAccount.annotations | object | `{}` |  |
-| fleet.apiServer.serviceAccount.automountServiceAccountToken | bool | `true` |  |
-| fleet.apiServer.serviceAccount.create | bool | `true` |  |
-| fleet.apiServer.serviceAccount.labels | object | `{}` |  |
-| fleet.apiServer.serviceAccount.name | string | `""` |  |
-| fleet.enableTracing | bool | `true` |  |
-| fleet.enabled | bool | `false` |  |
-| fleet.encryptionKey | string | `""` |  |
-| fleet.namePrefix | string | `"standalone-fleet"` |  |
-| fleet.oauth.githubOAuthProvider | string | `""` |  |
-| fleet.oauth.googleOAuthProvider | string | `""` |  |
-| fleet.oauth.linearOAuthProvider | string | `""` |  |
-| fleet.oauth.linkedinOAuthProvider | string | `""` |  |
-| fleet.oauth.microsoftOAuthProvider | string | `""` |  |
-| fleet.oauth.providerOrgId | string | `""` |  |
-| fleet.oauth.slackBotId | string | `""` |  |
-| fleet.oauth.slackOAuthProvider | string | `""` |  |
-| fleet.oauth.slackSigningSecret | string | `""` |  |
-| fleet.postgres.containerPort | int | `5432` |  |
-| fleet.postgres.external.connectionUrl | string | `""` |  |
-| fleet.postgres.external.database | string | `"postgres"` |  |
-| fleet.postgres.external.enabled | bool | `false` |  |
-| fleet.postgres.external.existingSecretName | string | `""` |  |
-| fleet.postgres.external.host | string | `""` |  |
-| fleet.postgres.external.password | string | `"postgres"` |  |
-| fleet.postgres.external.port | string | `"5432"` |  |
-| fleet.postgres.external.schema | string | `"public"` |  |
-| fleet.postgres.external.user | string | `"postgres"` |  |
-| fleet.postgres.name | string | `"postgres"` |  |
-| fleet.postgres.pdb.enabled | bool | `false` |  |
-| fleet.postgres.pdb.minAvailable | int | `1` |  |
-| fleet.postgres.service.annotations | object | `{}` |  |
-| fleet.postgres.service.labels | object | `{}` |  |
-| fleet.postgres.service.port | int | `5432` |  |
-| fleet.postgres.service.type | string | `"ClusterIP"` |  |
-| fleet.postgres.serviceAccount.annotations | object | `{}` |  |
-| fleet.postgres.serviceAccount.automountServiceAccountToken | bool | `true` |  |
-| fleet.postgres.serviceAccount.create | bool | `true` |  |
-| fleet.postgres.serviceAccount.labels | object | `{}` |  |
-| fleet.postgres.serviceAccount.name | string | `""` |  |
-| fleet.postgres.statefulSet.affinity | object | `{}` |  |
-| fleet.postgres.statefulSet.annotations | object | `{}` |  |
-| fleet.postgres.statefulSet.command | list | `[]` |  |
-| fleet.postgres.statefulSet.extraContainerConfig | object | `{}` |  |
-| fleet.postgres.statefulSet.extraEnv | list | `[]` |  |
-| fleet.postgres.statefulSet.labels | object | `{}` |  |
-| fleet.postgres.statefulSet.lifecycle | object | `{}` |  |
-| fleet.postgres.statefulSet.nodeSelector | object | `{}` |  |
-| fleet.postgres.statefulSet.persistence.enabled | bool | `true` |  |
-| fleet.postgres.statefulSet.persistence.size | string | `"8Gi"` |  |
-| fleet.postgres.statefulSet.persistence.storageClassName | string | `""` |  |
-| fleet.postgres.statefulSet.persistentVolumeClaimRetentionPolicy | object | `{}` |  |
-| fleet.postgres.statefulSet.podSecurityContext | object | `{}` |  |
-| fleet.postgres.statefulSet.priorityClassName | string | `""` |  |
-| fleet.postgres.statefulSet.resources | object | `{}` |  |
-| fleet.postgres.statefulSet.securityContext | object | `{}` |  |
-| fleet.postgres.statefulSet.sidecars | list | `[]` |  |
-| fleet.postgres.statefulSet.terminationGracePeriodSeconds | int | `30` |  |
-| fleet.postgres.statefulSet.tolerations | list | `[]` |  |
-| fleet.postgres.statefulSet.volumeMounts | list | `[]` |  |
-| fleet.postgres.statefulSet.volumes | list | `[]` |  |
-| fleet.queue.autoscaling.enabled | bool | `false` |  |
-| fleet.queue.autoscaling.keda.cooldownPeriod | int | `300` |  |
-| fleet.queue.autoscaling.keda.enabled | bool | `false` |  |
-| fleet.queue.autoscaling.keda.pollingInterval | int | `30` |  |
-| fleet.queue.autoscaling.keda.scaleDownStabilizationWindowSeconds | int | `300` |  |
-| fleet.queue.autoscaling.maxReplicas | int | `5` |  |
-| fleet.queue.autoscaling.minReplicas | int | `1` |  |
-| fleet.queue.autoscaling.targetCPUUtilizationPercentage | int | `80` |  |
-| fleet.queue.containerPort | int | `8000` |  |
-| fleet.queue.deployment.affinity | object | `{}` |  |
-| fleet.queue.deployment.annotations | object | `{}` |  |
-| fleet.queue.deployment.envFrom | list | `[]` |  |
-| fleet.queue.deployment.extraEnv | list | `[]` |  |
-| fleet.queue.deployment.labels | object | `{}` |  |
-| fleet.queue.deployment.lifecycle | object | `{}` |  |
-| fleet.queue.deployment.livenessProbe.failureThreshold | int | `6` |  |
-| fleet.queue.deployment.livenessProbe.httpGet.path | string | `"/ok"` |  |
-| fleet.queue.deployment.livenessProbe.httpGet.port | int | `8000` |  |
-| fleet.queue.deployment.livenessProbe.periodSeconds | int | `10` |  |
-| fleet.queue.deployment.livenessProbe.timeoutSeconds | int | `1` |  |
-| fleet.queue.deployment.nodeSelector | object | `{}` |  |
-| fleet.queue.deployment.podSecurityContext | object | `{}` |  |
-| fleet.queue.deployment.priorityClassName | string | `""` |  |
-| fleet.queue.deployment.readinessProbe.failureThreshold | int | `6` |  |
-| fleet.queue.deployment.readinessProbe.httpGet.path | string | `"/ok"` |  |
-| fleet.queue.deployment.readinessProbe.httpGet.port | int | `8000` |  |
-| fleet.queue.deployment.readinessProbe.periodSeconds | int | `10` |  |
-| fleet.queue.deployment.readinessProbe.timeoutSeconds | int | `1` |  |
-| fleet.queue.deployment.replicaCount | int | `1` |  |
-| fleet.queue.deployment.resources | object | `{}` |  |
-| fleet.queue.deployment.securityContext | object | `{}` |  |
-| fleet.queue.deployment.sidecars | list | `[]` |  |
-| fleet.queue.deployment.startupProbe.failureThreshold | int | `6` |  |
-| fleet.queue.deployment.startupProbe.httpGet.path | string | `"/ok"` |  |
-| fleet.queue.deployment.startupProbe.httpGet.port | int | `8000` |  |
-| fleet.queue.deployment.startupProbe.periodSeconds | int | `10` |  |
-| fleet.queue.deployment.startupProbe.timeoutSeconds | int | `1` |  |
-| fleet.queue.deployment.terminationGracePeriodSeconds | int | `30` |  |
-| fleet.queue.deployment.tolerations | list | `[]` |  |
-| fleet.queue.deployment.volumeMounts | list | `[]` |  |
-| fleet.queue.deployment.volumes | list | `[]` |  |
-| fleet.queue.enabled | bool | `true` |  |
-| fleet.queue.name | string | `"queue"` |  |
-| fleet.queue.numberOfJobsPerWorker | int | `10` |  |
-| fleet.queue.pdb.enabled | bool | `false` |  |
-| fleet.queue.pdb.minAvailable | int | `1` |  |
-| fleet.queue.serviceAccount.annotations | object | `{}` |  |
-| fleet.queue.serviceAccount.automountServiceAccountToken | bool | `true` |  |
-| fleet.queue.serviceAccount.create | bool | `true` |  |
-| fleet.queue.serviceAccount.labels | object | `{}` |  |
-| fleet.queue.serviceAccount.name | string | `""` |  |
-| fleet.redis.containerPort | int | `6379` |  |
-| fleet.redis.external.connectionUrl | string | `""` |  |
-| fleet.redis.external.enabled | bool | `false` |  |
-| fleet.redis.external.existingSecretName | string | `""` |  |
-| fleet.redis.name | string | `"redis"` |  |
-| fleet.redis.pdb.enabled | bool | `false` |  |
-| fleet.redis.pdb.minAvailable | int | `1` |  |
-| fleet.redis.service.annotations | object | `{}` |  |
-| fleet.redis.service.labels | object | `{}` |  |
-| fleet.redis.service.port | int | `6379` |  |
-| fleet.redis.service.type | string | `"ClusterIP"` |  |
-| fleet.redis.serviceAccount.annotations | object | `{}` |  |
-| fleet.redis.serviceAccount.automountServiceAccountToken | bool | `true` |  |
-| fleet.redis.serviceAccount.create | bool | `true` |  |
-| fleet.redis.serviceAccount.labels | object | `{}` |  |
-| fleet.redis.serviceAccount.name | string | `""` |  |
-| fleet.redis.statefulSet.affinity | object | `{}` |  |
-| fleet.redis.statefulSet.annotations | object | `{}` |  |
-| fleet.redis.statefulSet.command | list | `[]` |  |
-| fleet.redis.statefulSet.extraContainerConfig | object | `{}` |  |
-| fleet.redis.statefulSet.extraEnv | list | `[]` |  |
-| fleet.redis.statefulSet.labels | object | `{}` |  |
-| fleet.redis.statefulSet.lifecycle | object | `{}` |  |
-| fleet.redis.statefulSet.nodeSelector | object | `{}` |  |
-| fleet.redis.statefulSet.persistence.enabled | bool | `true` |  |
-| fleet.redis.statefulSet.persistence.size | string | `"8Gi"` |  |
-| fleet.redis.statefulSet.persistence.storageClassName | string | `""` |  |
-| fleet.redis.statefulSet.persistentVolumeClaimRetentionPolicy | object | `{}` |  |
-| fleet.redis.statefulSet.podSecurityContext | object | `{}` |  |
-| fleet.redis.statefulSet.priorityClassName | string | `""` |  |
-| fleet.redis.statefulSet.resources | object | `{}` |  |
-| fleet.redis.statefulSet.securityContext | object | `{}` |  |
-| fleet.redis.statefulSet.sidecars | list | `[]` |  |
-| fleet.redis.statefulSet.terminationGracePeriodSeconds | int | `30` |  |
-| fleet.redis.statefulSet.tolerations | list | `[]` |  |
-| fleet.redis.statefulSet.volumeMounts | list | `[]` |  |
-| fleet.redis.statefulSet.volumes | list | `[]` |  |
 | fullnameOverride | string | `""` | String to fully override `"langsmith.fullname"` |
 | gateway.annotations | object | `{}` |  |
 | gateway.enabled | bool | `false` |  |
@@ -338,44 +341,44 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | gateway.sectionName | string | `""` |  |
 | images.aceBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.aceBackendImage.repository | string | `"docker.io/langchain/langsmith-ace-backend"` |  |
-| images.aceBackendImage.tag | string | `"0.15.8"` |  |
+| images.aceBackendImage.tag | string | `"0.16.5rc1"` |  |
 | images.agentBuilderImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.agentBuilderImage.repository | string | `"docker.io/langchain/agent-builder-deep-agent"` |  |
-| images.agentBuilderImage.tag | string | `"0.15.8"` |  |
-| images.fleetToolServerImage.pullPolicy | string | `"IfNotPresent"` |  |
-| images.fleetToolServerImage.repository | string | `"docker.io/langchain/agent-builder-tool-server"` |  |
-| images.fleetToolServerImage.tag | string | `"0.15.8"` |  |
-| images.fleetTriggerServerImage.pullPolicy | string | `"IfNotPresent"` |  |
-| images.fleetTriggerServerImage.repository | string | `"docker.io/langchain/agent-builder-trigger-server"` |  |
-| images.fleetTriggerServerImage.tag | string | `"0.15.8"` |  |
+| images.agentBuilderImage.tag | string | `"0.16.5rc1"` |  |
 | images.backendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.backendImage.repository | string | `"docker.io/langchain/langsmith-backend"` |  |
-| images.backendImage.tag | string | `"0.15.8"` |  |
+| images.backendImage.tag | string | `"0.16.5rc1"` |  |
 | images.clickhouseImage.pullPolicy | string | `"Always"` |  |
 | images.clickhouseImage.repository | string | `"docker.io/clickhouse/clickhouse-server"` |  |
 | images.clickhouseImage.tag | string | `"25.12"` |  |
+| images.fleetToolServerImage.pullPolicy | string | `"IfNotPresent"` |  |
+| images.fleetToolServerImage.repository | string | `"docker.io/langchain/agent-builder-tool-server"` |  |
+| images.fleetToolServerImage.tag | string | `"0.16.5rc1"` |  |
+| images.fleetTriggerServerImage.pullPolicy | string | `"IfNotPresent"` |  |
+| images.fleetTriggerServerImage.repository | string | `"docker.io/langchain/agent-builder-trigger-server"` |  |
+| images.fleetTriggerServerImage.tag | string | `"0.16.5rc1"` |  |
 | images.frontendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.frontendImage.repository | string | `"docker.io/langchain/langsmith-frontend"` |  |
-| images.frontendImage.tag | string | `"0.15.8"` |  |
+| images.frontendImage.tag | string | `"0.16.5rc1"` |  |
 | images.hostBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.hostBackendImage.repository | string | `"docker.io/langchain/hosted-langserve-backend"` |  |
-| images.hostBackendImage.tag | string | `"0.15.8"` |  |
+| images.hostBackendImage.tag | string | `"0.16.5rc1"` |  |
 | images.imagePullSecrets | list | `[]` | Secrets with credentials to pull images from a private registry. Specified as name: value. |
 | images.insightsAgentImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.insightsAgentImage.repository | string | `"docker.io/langchain/langsmith-clio"` |  |
-| images.insightsAgentImage.tag | string | `"0.15.8"` |  |
+| images.insightsAgentImage.tag | string | `"0.16.5rc1"` |  |
 | images.operatorImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.operatorImage.repository | string | `"docker.io/langchain/langgraph-operator"` |  |
 | images.operatorImage.tag | string | `"0.1.47"` |  |
 | images.platformBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.platformBackendImage.repository | string | `"docker.io/langchain/langsmith-go-backend"` |  |
-| images.platformBackendImage.tag | string | `"0.15.8"` |  |
+| images.platformBackendImage.tag | string | `"0.16.5rc1"` |  |
 | images.playgroundImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.playgroundImage.repository | string | `"docker.io/langchain/langsmith-playground"` |  |
-| images.playgroundImage.tag | string | `"0.15.8"` |  |
+| images.playgroundImage.tag | string | `"0.16.5rc1"` |  |
 | images.pollyAgentImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.pollyAgentImage.repository | string | `"docker.io/langchain/langsmith-polly"` |  |
-| images.pollyAgentImage.tag | string | `"0.15.8"` |  |
+| images.pollyAgentImage.tag | string | `"0.16.5rc1"` |  |
 | images.postgresImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.postgresImage.repository | string | `"docker.io/postgres"` |  |
 | images.postgresImage.tag | string | `"14.7"` |  |
@@ -386,6 +389,21 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | images.redisImage.repository | string | `"docker.io/redis"` |  |
 | images.redisImage.tag | string | `"7"` |  |
 | images.registry | string | `""` | If supplied, all children <image_name>.repository values will be prepended with this registry name + `/` |
+| images.smithdbClusterManagerImage.pullPolicy | string | `"IfNotPresent"` |  |
+| images.smithdbClusterManagerImage.repository | string | `"docker.io/langchain/smithdb-clustermanager"` |  |
+| images.smithdbClusterManagerImage.tag | string | `"latest"` |  |
+| images.smithdbCompactionImage.pullPolicy | string | `"IfNotPresent"` |  |
+| images.smithdbCompactionImage.repository | string | `"docker.io/langchain/smithdb-compaction"` |  |
+| images.smithdbCompactionImage.tag | string | `"latest"` |  |
+| images.smithdbIngestionImage.pullPolicy | string | `"IfNotPresent"` |  |
+| images.smithdbIngestionImage.repository | string | `"docker.io/langchain/smithdb-ingestion"` |  |
+| images.smithdbIngestionImage.tag | string | `"latest"` |  |
+| images.smithdbMetastoreMigrationImage.pullPolicy | string | `"IfNotPresent"` |  |
+| images.smithdbMetastoreMigrationImage.repository | string | `"docker.io/langchain/smithdb-metastore-migrate"` |  |
+| images.smithdbMetastoreMigrationImage.tag | string | `"latest"` |  |
+| images.smithdbQueryImage.pullPolicy | string | `"IfNotPresent"` |  |
+| images.smithdbQueryImage.repository | string | `"docker.io/langchain/smithdb-query"` |  |
+| images.smithdbQueryImage.tag | string | `"latest"` |  |
 | ingestQueue.autoscaling.hpa.enabled | bool | `false` |  |
 | ingestQueue.autoscaling.hpa.maxReplicas | int | `10` |  |
 | ingestQueue.autoscaling.hpa.minReplicas | int | `3` |  |
@@ -522,7 +540,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | insights.apiServer.serviceAccount.create | bool | `true` |  |
 | insights.apiServer.serviceAccount.labels | object | `{}` |  |
 | insights.apiServer.serviceAccount.name | string | `""` |  |
-| insights.enabled | bool | `false` |  |
+| insights.enabled | bool | `true` |  |
 | insights.encryptionKey | string | `""` |  |
 | insights.namePrefix | string | `"standalone-insights"` |  |
 | insights.postgres.containerPort | int | `5432` |  |
@@ -566,6 +584,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | insights.postgres.statefulSet.sidecars | list | `[]` |  |
 | insights.postgres.statefulSet.terminationGracePeriodSeconds | int | `30` |  |
 | insights.postgres.statefulSet.tolerations | list | `[]` |  |
+| insights.postgres.statefulSet.updateStrategy | object | `{}` | Optional StatefulSet update strategy for the in-chart Insights PostgreSQL instance. Leave unset to keep the Kubernetes default RollingUpdate behavior. |
 | insights.postgres.statefulSet.volumeMounts | list | `[]` |  |
 | insights.postgres.statefulSet.volumes | list | `[]` |  |
 | insights.queue.autoscaling.enabled | bool | `false` |  |
@@ -654,6 +673,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | insights.redis.statefulSet.sidecars | list | `[]` |  |
 | insights.redis.statefulSet.terminationGracePeriodSeconds | int | `30` |  |
 | insights.redis.statefulSet.tolerations | list | `[]` |  |
+| insights.redis.statefulSet.updateStrategy | object | `{}` | Optional StatefulSet update strategy for the in-chart Insights Redis instance. Leave unset to keep the Kubernetes default RollingUpdate behavior. |
 | insights.redis.statefulSet.volumeMounts | list | `[]` |  |
 | insights.redis.statefulSet.volumes | list | `[]` |  |
 | istioGateway.annotations | object | `{}` |  |
@@ -718,7 +738,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | polly.apiServer.serviceAccount.labels | object | `{}` |  |
 | polly.apiServer.serviceAccount.name | string | `""` |  |
 | polly.enableTracing | bool | `true` |  |
-| polly.enabled | bool | `false` |  |
+| polly.enabled | bool | `true` |  |
 | polly.encryptionKey | string | `""` |  |
 | polly.namePrefix | string | `"standalone-polly"` |  |
 | polly.postgres.containerPort | int | `5432` |  |
@@ -762,6 +782,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | polly.postgres.statefulSet.sidecars | list | `[]` |  |
 | polly.postgres.statefulSet.terminationGracePeriodSeconds | int | `30` |  |
 | polly.postgres.statefulSet.tolerations | list | `[]` |  |
+| polly.postgres.statefulSet.updateStrategy | object | `{}` | Optional StatefulSet update strategy for the in-chart Polly PostgreSQL instance. Leave unset to keep the Kubernetes default RollingUpdate behavior. |
 | polly.postgres.statefulSet.volumeMounts | list | `[]` |  |
 | polly.postgres.statefulSet.volumes | list | `[]` |  |
 | polly.queue.autoscaling.enabled | bool | `false` |  |
@@ -850,8 +871,262 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | polly.redis.statefulSet.sidecars | list | `[]` |  |
 | polly.redis.statefulSet.terminationGracePeriodSeconds | int | `30` |  |
 | polly.redis.statefulSet.tolerations | list | `[]` |  |
+| polly.redis.statefulSet.updateStrategy | object | `{}` | Optional StatefulSet update strategy for the in-chart Polly Redis instance. Leave unset to keep the Kubernetes default RollingUpdate behavior. |
 | polly.redis.statefulSet.volumeMounts | list | `[]` |  |
 | polly.redis.statefulSet.volumes | list | `[]` |  |
+| smithdb.clusterManager.containerGrpcPort | int | `8091` |  |
+| smithdb.clusterManager.containerPort | int | `8090` |  |
+| smithdb.clusterManager.deployment.affinity | object | `{}` |  |
+| smithdb.clusterManager.deployment.annotations | object | `{}` |  |
+| smithdb.clusterManager.deployment.command | list | `[]` |  |
+| smithdb.clusterManager.deployment.extraContainerConfig | object | `{}` |  |
+| smithdb.clusterManager.deployment.extraEnv | list | `[]` |  |
+| smithdb.clusterManager.deployment.initContainers | list | `[]` |  |
+| smithdb.clusterManager.deployment.labels | object | `{}` |  |
+| smithdb.clusterManager.deployment.nodeSelector | object | `{}` |  |
+| smithdb.clusterManager.deployment.podSecurityContext | object | `{}` |  |
+| smithdb.clusterManager.deployment.probes.livenessProbe.failureThreshold | int | `6` |  |
+| smithdb.clusterManager.deployment.probes.livenessProbe.httpGet.path | string | `"/health"` |  |
+| smithdb.clusterManager.deployment.probes.livenessProbe.httpGet.port | string | `"http"` |  |
+| smithdb.clusterManager.deployment.probes.livenessProbe.periodSeconds | int | `10` |  |
+| smithdb.clusterManager.deployment.probes.livenessProbe.timeoutSeconds | int | `1` |  |
+| smithdb.clusterManager.deployment.probes.readinessProbe.failureThreshold | int | `6` |  |
+| smithdb.clusterManager.deployment.probes.readinessProbe.httpGet.path | string | `"/health"` |  |
+| smithdb.clusterManager.deployment.probes.readinessProbe.httpGet.port | string | `"http"` |  |
+| smithdb.clusterManager.deployment.probes.readinessProbe.periodSeconds | int | `10` |  |
+| smithdb.clusterManager.deployment.probes.readinessProbe.timeoutSeconds | int | `1` |  |
+| smithdb.clusterManager.deployment.probes.startupProbe.failureThreshold | int | `6` |  |
+| smithdb.clusterManager.deployment.probes.startupProbe.httpGet.path | string | `"/health"` |  |
+| smithdb.clusterManager.deployment.probes.startupProbe.httpGet.port | string | `"http"` |  |
+| smithdb.clusterManager.deployment.probes.startupProbe.periodSeconds | int | `10` |  |
+| smithdb.clusterManager.deployment.probes.startupProbe.timeoutSeconds | int | `1` |  |
+| smithdb.clusterManager.deployment.replicas | int | `1` |  |
+| smithdb.clusterManager.deployment.resources | object | `{}` |  |
+| smithdb.clusterManager.deployment.securityContext | object | `{}` |  |
+| smithdb.clusterManager.deployment.sidecars | list | `[]` |  |
+| smithdb.clusterManager.deployment.tolerations | list | `[]` |  |
+| smithdb.clusterManager.deployment.topologySpreadConstraints | list | `[]` |  |
+| smithdb.clusterManager.deployment.volumeMounts | list | `[]` |  |
+| smithdb.clusterManager.deployment.volumes | list | `[]` |  |
+| smithdb.clusterManager.name | string | `"cluster-manager"` |  |
+| smithdb.clusterManager.pdb | object | `{}` |  |
+| smithdb.clusterManager.service.annotations | object | `{}` |  |
+| smithdb.clusterManager.service.labels | object | `{}` |  |
+| smithdb.clusterManager.service.port | int | `8091` |  |
+| smithdb.commonEnv | list | `[]` | Extra env vars for every SmithDB workload. |
+| smithdb.compaction.containerGrpcPort | int | `8071` |  |
+| smithdb.compaction.containerPort | int | `8070` |  |
+| smithdb.compaction.deployment.affinity | object | `{}` |  |
+| smithdb.compaction.deployment.annotations | object | `{}` |  |
+| smithdb.compaction.deployment.command | list | `[]` | Optional command override. Empty uses the chart default: ["./smithdb-compaction", "scheduler"]. |
+| smithdb.compaction.deployment.extraContainerConfig | object | `{}` |  |
+| smithdb.compaction.deployment.extraEnv | list | `[]` |  |
+| smithdb.compaction.deployment.initContainers | list | `[]` |  |
+| smithdb.compaction.deployment.labels | object | `{}` |  |
+| smithdb.compaction.deployment.nodeSelector | object | `{}` |  |
+| smithdb.compaction.deployment.podSecurityContext | object | `{}` |  |
+| smithdb.compaction.deployment.probes.livenessProbe.failureThreshold | int | `6` |  |
+| smithdb.compaction.deployment.probes.livenessProbe.httpGet.path | string | `"/health"` |  |
+| smithdb.compaction.deployment.probes.livenessProbe.httpGet.port | string | `"http"` |  |
+| smithdb.compaction.deployment.probes.livenessProbe.periodSeconds | int | `10` |  |
+| smithdb.compaction.deployment.probes.livenessProbe.timeoutSeconds | int | `1` |  |
+| smithdb.compaction.deployment.probes.readinessProbe.failureThreshold | int | `6` |  |
+| smithdb.compaction.deployment.probes.readinessProbe.httpGet.path | string | `"/health"` |  |
+| smithdb.compaction.deployment.probes.readinessProbe.httpGet.port | string | `"http"` |  |
+| smithdb.compaction.deployment.probes.readinessProbe.periodSeconds | int | `10` |  |
+| smithdb.compaction.deployment.probes.readinessProbe.timeoutSeconds | int | `1` |  |
+| smithdb.compaction.deployment.probes.startupProbe.failureThreshold | int | `6` |  |
+| smithdb.compaction.deployment.probes.startupProbe.httpGet.path | string | `"/health"` |  |
+| smithdb.compaction.deployment.probes.startupProbe.httpGet.port | string | `"http"` |  |
+| smithdb.compaction.deployment.probes.startupProbe.periodSeconds | int | `10` |  |
+| smithdb.compaction.deployment.probes.startupProbe.timeoutSeconds | int | `1` |  |
+| smithdb.compaction.deployment.replicas | int | `1` |  |
+| smithdb.compaction.deployment.resources | object | `{}` |  |
+| smithdb.compaction.deployment.securityContext | object | `{}` |  |
+| smithdb.compaction.deployment.sidecars | list | `[]` |  |
+| smithdb.compaction.deployment.tolerations | list | `[]` |  |
+| smithdb.compaction.deployment.topologySpreadConstraints | list | `[]` |  |
+| smithdb.compaction.deployment.volumeMounts | list | `[]` |  |
+| smithdb.compaction.deployment.volumes | list | `[]` |  |
+| smithdb.compaction.name | string | `"compaction"` |  |
+| smithdb.compaction.pdb.annotations | object | `{}` |  |
+| smithdb.compaction.pdb.enabled | bool | `false` |  |
+| smithdb.compaction.pdb.labels | object | `{}` |  |
+| smithdb.compaction.pdb.minAvailable | int | `1` |  |
+| smithdb.compaction.service.annotations | object | `{}` |  |
+| smithdb.compaction.service.labels | object | `{}` |  |
+| smithdb.compaction.service.port | int | `8071` |  |
+| smithdb.compactionWorker.containerPort | int | `9000` |  |
+| smithdb.compactionWorker.deployment.affinity | object | `{}` |  |
+| smithdb.compactionWorker.deployment.annotations | object | `{}` |  |
+| smithdb.compactionWorker.deployment.command | list | `[]` | Optional command override. Empty uses the chart default: ["./smithdb-compaction", "worker"]. |
+| smithdb.compactionWorker.deployment.extraContainerConfig | object | `{}` |  |
+| smithdb.compactionWorker.deployment.extraEnv | list | `[]` |  |
+| smithdb.compactionWorker.deployment.initContainers | list | `[]` |  |
+| smithdb.compactionWorker.deployment.labels | object | `{}` |  |
+| smithdb.compactionWorker.deployment.nodeSelector | object | `{}` |  |
+| smithdb.compactionWorker.deployment.podSecurityContext | object | `{}` |  |
+| smithdb.compactionWorker.deployment.probes.livenessProbe.failureThreshold | int | `6` |  |
+| smithdb.compactionWorker.deployment.probes.livenessProbe.httpGet.path | string | `"/health"` |  |
+| smithdb.compactionWorker.deployment.probes.livenessProbe.httpGet.port | string | `"http"` |  |
+| smithdb.compactionWorker.deployment.probes.livenessProbe.periodSeconds | int | `10` |  |
+| smithdb.compactionWorker.deployment.probes.livenessProbe.timeoutSeconds | int | `1` |  |
+| smithdb.compactionWorker.deployment.probes.readinessProbe.failureThreshold | int | `6` |  |
+| smithdb.compactionWorker.deployment.probes.readinessProbe.httpGet.path | string | `"/health"` |  |
+| smithdb.compactionWorker.deployment.probes.readinessProbe.httpGet.port | string | `"http"` |  |
+| smithdb.compactionWorker.deployment.probes.readinessProbe.periodSeconds | int | `10` |  |
+| smithdb.compactionWorker.deployment.probes.readinessProbe.timeoutSeconds | int | `1` |  |
+| smithdb.compactionWorker.deployment.probes.startupProbe.failureThreshold | int | `6` |  |
+| smithdb.compactionWorker.deployment.probes.startupProbe.httpGet.path | string | `"/health"` |  |
+| smithdb.compactionWorker.deployment.probes.startupProbe.httpGet.port | string | `"http"` |  |
+| smithdb.compactionWorker.deployment.probes.startupProbe.periodSeconds | int | `10` |  |
+| smithdb.compactionWorker.deployment.probes.startupProbe.timeoutSeconds | int | `1` |  |
+| smithdb.compactionWorker.deployment.replicas | int | `1` |  |
+| smithdb.compactionWorker.deployment.resources | object | `{}` |  |
+| smithdb.compactionWorker.deployment.securityContext | object | `{}` |  |
+| smithdb.compactionWorker.deployment.sidecars | list | `[]` |  |
+| smithdb.compactionWorker.deployment.terminationGracePeriodSeconds | int | `120` |  |
+| smithdb.compactionWorker.deployment.tolerations | list | `[]` |  |
+| smithdb.compactionWorker.deployment.topologySpreadConstraints | list | `[]` |  |
+| smithdb.compactionWorker.deployment.volumeMounts | list | `[]` |  |
+| smithdb.compactionWorker.deployment.volumes | list | `[]` |  |
+| smithdb.compactionWorker.maxConcurrentJobs | string | `""` | Maximum concurrent jobs per compaction worker. Empty uses the SmithDB default. |
+| smithdb.compactionWorker.name | string | `"compaction-worker"` |  |
+| smithdb.compactionWorker.pdb.annotations | object | `{}` |  |
+| smithdb.compactionWorker.pdb.enabled | bool | `false` |  |
+| smithdb.compactionWorker.pdb.labels | object | `{}` |  |
+| smithdb.compactionWorker.pdb.minAvailable | int | `1` |  |
+| smithdb.config.existingSecretName | string | `""` | Existing secret containing SmithDB metastore credentials. |
+| smithdb.config.metastore.databaseSecretKey | string | `""` |  |
+| smithdb.config.metastore.hostSecretKey | string | `""` |  |
+| smithdb.config.metastore.passwordSecretKey | string | `""` |  |
+| smithdb.config.metastore.port | string | `"5432"` |  |
+| smithdb.config.metastore.useSsl | bool | `false` |  |
+| smithdb.config.metastore.usernameSecretKey | string | `""` |  |
+| smithdb.config.objectStore.bucket | string | `""` |  |
+| smithdb.config.objectStore.s3.accessKeyIdSecretKey | string | `""` | Keys in smithdb.config.existingSecretName for static S3 credentials. Set both to "" when using ambient cloud identity, such as IRSA. |
+| smithdb.config.objectStore.s3.endpoint | string | `""` |  |
+| smithdb.config.objectStore.s3.region | string | `""` | Defaults to the SmithDB S3 client default when empty. |
+| smithdb.config.objectStore.s3.secretAccessKeySecretKey | string | `""` |  |
+| smithdb.config.objectStore.type | string | `"s3"` | Supported values: s3, gcs. |
+| smithdb.config.observability.logging.level | string | `""` | Optional SmithDB log filter. Empty uses the chart default: INFO,vortex=WARN. |
+| smithdb.config.observability.tracing.enabled | bool | `false` | Enable OpenTelemetry tracing/log export for SmithDB components. SmithDB supports exporting OTLP over gRPC only. |
+| smithdb.config.observability.tracing.endpoint | string | `""` | OTLP gRPC collector endpoint for SmithDB traces/logs. |
+| smithdb.config.observability.tracing.extraResourceAttributes | object | `{}` | Extra OpenTelemetry resource attributes appended to SmithDB traces/logs. |
+| smithdb.enabled | bool | `false` | Deploy the in-chart SmithDB workloads. |
+| smithdb.ingestion.containerGrpcPort | int | `8082` |  |
+| smithdb.ingestion.containerPort | int | `8050` |  |
+| smithdb.ingestion.deployment.affinity | object | `{}` |  |
+| smithdb.ingestion.deployment.annotations | object | `{}` |  |
+| smithdb.ingestion.deployment.command[0] | string | `"./smithdb-ingestion"` |  |
+| smithdb.ingestion.deployment.extraContainerConfig | object | `{}` |  |
+| smithdb.ingestion.deployment.extraEnv | list | `[]` |  |
+| smithdb.ingestion.deployment.initContainers | list | `[]` |  |
+| smithdb.ingestion.deployment.labels | object | `{}` |  |
+| smithdb.ingestion.deployment.nodeSelector | object | `{}` |  |
+| smithdb.ingestion.deployment.podSecurityContext | object | `{}` |  |
+| smithdb.ingestion.deployment.probes.livenessProbe.failureThreshold | int | `6` |  |
+| smithdb.ingestion.deployment.probes.livenessProbe.httpGet.path | string | `"/health"` |  |
+| smithdb.ingestion.deployment.probes.livenessProbe.httpGet.port | string | `"http"` |  |
+| smithdb.ingestion.deployment.probes.livenessProbe.periodSeconds | int | `10` |  |
+| smithdb.ingestion.deployment.probes.livenessProbe.timeoutSeconds | int | `1` |  |
+| smithdb.ingestion.deployment.probes.readinessProbe.failureThreshold | int | `6` |  |
+| smithdb.ingestion.deployment.probes.readinessProbe.httpGet.path | string | `"/health"` |  |
+| smithdb.ingestion.deployment.probes.readinessProbe.httpGet.port | string | `"http"` |  |
+| smithdb.ingestion.deployment.probes.readinessProbe.periodSeconds | int | `10` |  |
+| smithdb.ingestion.deployment.probes.readinessProbe.timeoutSeconds | int | `1` |  |
+| smithdb.ingestion.deployment.probes.startupProbe.failureThreshold | int | `6` |  |
+| smithdb.ingestion.deployment.probes.startupProbe.httpGet.path | string | `"/health"` |  |
+| smithdb.ingestion.deployment.probes.startupProbe.httpGet.port | string | `"http"` |  |
+| smithdb.ingestion.deployment.probes.startupProbe.periodSeconds | int | `10` |  |
+| smithdb.ingestion.deployment.probes.startupProbe.timeoutSeconds | int | `1` |  |
+| smithdb.ingestion.deployment.replicas | int | `1` |  |
+| smithdb.ingestion.deployment.resources | object | `{}` |  |
+| smithdb.ingestion.deployment.securityContext | object | `{}` |  |
+| smithdb.ingestion.deployment.sidecars | list | `[]` |  |
+| smithdb.ingestion.deployment.strategy.rollingUpdate.maxSurge | int | `1` |  |
+| smithdb.ingestion.deployment.strategy.rollingUpdate.maxUnavailable | int | `0` |  |
+| smithdb.ingestion.deployment.strategy.type | string | `"RollingUpdate"` |  |
+| smithdb.ingestion.deployment.terminationGracePeriodSeconds | int | `300` |  |
+| smithdb.ingestion.deployment.tolerations | list | `[]` |  |
+| smithdb.ingestion.deployment.topologySpreadConstraints | list | `[]` |  |
+| smithdb.ingestion.deployment.volumeMounts | list | `[]` |  |
+| smithdb.ingestion.deployment.volumes | list | `[]` |  |
+| smithdb.ingestion.name | string | `"ingestion"` |  |
+| smithdb.ingestion.pdb.annotations | object | `{}` |  |
+| smithdb.ingestion.pdb.enabled | bool | `false` |  |
+| smithdb.ingestion.pdb.labels | object | `{}` |  |
+| smithdb.ingestion.pdb.minAvailable | int | `1` |  |
+| smithdb.ingestion.service.annotations | object | `{}` |  |
+| smithdb.ingestion.service.labels | object | `{}` |  |
+| smithdb.ingestion.service.port | int | `8082` |  |
+| smithdb.langsmith.dualIngest.enabled | bool | `false` | Enables LangSmith run ingestion to also write to SmithDB. Requires smithdb.enabled. |
+| smithdb.langsmith.frontend.useSmithDBEndpoints | bool | `false` | Defaults the LangSmith UI to SmithDB endpoints for run queries. Requires smithdb.enabled. |
+| smithdb.metastoreMigration.command[0] | string | `"./smithdb-metastore-migrate-entrypoint.sh"` |  |
+| smithdb.metastoreMigration.job.activeDeadlineSeconds | int | `600` |  |
+| smithdb.metastoreMigration.job.affinity | object | `{}` |  |
+| smithdb.metastoreMigration.job.annotations | object | `{}` |  |
+| smithdb.metastoreMigration.job.backoffLimit | int | `0` |  |
+| smithdb.metastoreMigration.job.extraEnv | list | `[]` |  |
+| smithdb.metastoreMigration.job.labels | object | `{}` |  |
+| smithdb.metastoreMigration.job.nodeSelector | object | `{}` |  |
+| smithdb.metastoreMigration.job.podAnnotations | object | `{}` |  |
+| smithdb.metastoreMigration.job.podSecurityContext | object | `{}` |  |
+| smithdb.metastoreMigration.job.resources | object | `{}` |  |
+| smithdb.metastoreMigration.job.restartPolicy | string | `"Never"` |  |
+| smithdb.metastoreMigration.job.securityContext | object | `{}` |  |
+| smithdb.metastoreMigration.job.tolerations | list | `[]` |  |
+| smithdb.metastoreMigration.job.ttlSecondsAfterFinished | int | `3600` |  |
+| smithdb.metastoreMigration.name | string | `"metastore-migration"` |  |
+| smithdb.metastoreMigration.useSsl | bool | `false` |  |
+| smithdb.name | string | `"smithdb"` | Name segment used for SmithDB resources. |
+| smithdb.query.containerGrpcPort | int | `8080` |  |
+| smithdb.query.containerPort | int | `8060` |  |
+| smithdb.query.deployment.affinity | object | `{}` |  |
+| smithdb.query.deployment.annotations | object | `{}` |  |
+| smithdb.query.deployment.command[0] | string | `"./smithdb-query"` |  |
+| smithdb.query.deployment.extraContainerConfig | object | `{}` |  |
+| smithdb.query.deployment.extraEnv | list | `[]` |  |
+| smithdb.query.deployment.initContainers | list | `[]` |  |
+| smithdb.query.deployment.labels | object | `{}` |  |
+| smithdb.query.deployment.nodeSelector | object | `{}` |  |
+| smithdb.query.deployment.podSecurityContext | object | `{}` |  |
+| smithdb.query.deployment.probes.livenessProbe.failureThreshold | int | `6` |  |
+| smithdb.query.deployment.probes.livenessProbe.httpGet.path | string | `"/health"` |  |
+| smithdb.query.deployment.probes.livenessProbe.httpGet.port | string | `"http"` |  |
+| smithdb.query.deployment.probes.livenessProbe.periodSeconds | int | `10` |  |
+| smithdb.query.deployment.probes.livenessProbe.timeoutSeconds | int | `1` |  |
+| smithdb.query.deployment.probes.readinessProbe.failureThreshold | int | `6` |  |
+| smithdb.query.deployment.probes.readinessProbe.httpGet.path | string | `"/health"` |  |
+| smithdb.query.deployment.probes.readinessProbe.httpGet.port | string | `"http"` |  |
+| smithdb.query.deployment.probes.readinessProbe.periodSeconds | int | `10` |  |
+| smithdb.query.deployment.probes.readinessProbe.timeoutSeconds | int | `1` |  |
+| smithdb.query.deployment.probes.startupProbe.failureThreshold | int | `6` |  |
+| smithdb.query.deployment.probes.startupProbe.httpGet.path | string | `"/health"` |  |
+| smithdb.query.deployment.probes.startupProbe.httpGet.port | string | `"http"` |  |
+| smithdb.query.deployment.probes.startupProbe.periodSeconds | int | `10` |  |
+| smithdb.query.deployment.probes.startupProbe.timeoutSeconds | int | `1` |  |
+| smithdb.query.deployment.replicas | int | `1` |  |
+| smithdb.query.deployment.resources | object | `{}` |  |
+| smithdb.query.deployment.securityContext | object | `{}` |  |
+| smithdb.query.deployment.sidecars | list | `[]` |  |
+| smithdb.query.deployment.strategy.rollingUpdate.maxSurge | int | `1` |  |
+| smithdb.query.deployment.strategy.rollingUpdate.maxUnavailable | int | `0` |  |
+| smithdb.query.deployment.strategy.type | string | `"RollingUpdate"` |  |
+| smithdb.query.deployment.tolerations | list | `[]` |  |
+| smithdb.query.deployment.topologySpreadConstraints | list | `[]` |  |
+| smithdb.query.deployment.volumeMounts | list | `[]` |  |
+| smithdb.query.deployment.volumes | list | `[]` |  |
+| smithdb.query.name | string | `"query"` |  |
+| smithdb.query.pdb.annotations | object | `{}` |  |
+| smithdb.query.pdb.enabled | bool | `false` |  |
+| smithdb.query.pdb.labels | object | `{}` |  |
+| smithdb.query.pdb.minAvailable | int | `1` |  |
+| smithdb.query.service.annotations | object | `{}` |  |
+| smithdb.query.service.labels | object | `{}` |  |
+| smithdb.query.service.port | int | `8080` |  |
+| smithdb.serviceAccount | object | `{"annotations":{},"automountServiceAccountToken":true,"create":true,"labels":{},"name":""}` | Shared ServiceAccount for SmithDB workloads. |
+| smithdb.serviceAccount.name | string | `""` | Defaults to <release>-<smithdb.name>. |
 
 ## Configs
 
@@ -871,6 +1146,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | config.agentBuilder.oauth.linearOAuthProvider | string | `""` |  |
 | config.agentBuilder.oauth.linkedinOAuthProvider | string | `""` |  |
 | config.agentBuilder.oauth.microsoftOAuthProvider | string | `""` |  |
+| config.agentBuilder.oauth.salesforceOAuthProvider | string | `""` |  |
 | config.agentBuilder.oauth.slackBotId | string | `""` |  |
 | config.agentBuilder.oauth.slackOAuthProvider | string | `""` |  |
 | config.agentBuilder.oauth.slackSigningSecret | string | `""` |  |
@@ -899,7 +1175,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | config.blobStorage.s3UsePathStyle | bool | `false` |  |
 | config.customCa.secretKey | string | `""` |  |
 | config.customCa.secretName | string | `""` | Optional. Used to set a file containing trusted CA certificates. Make sure to also include a public CA to access beacon and playground. |
-| config.customErrorSupportMessage | string | `""` | Custom error support message displayed on error pages (plain text). If empty, defaults to the built-in support messages with support@langchain.dev links. |
+| config.customErrorSupportMessage | string | `""` | Custom error support message displayed on error pages (plain text). If empty, defaults to the built-in support messages linking to our Support Portal (https://support.langchain.com). |
 | config.customLogo | object | `{"coBrandingEnabled":true,"enabled":false,"logoUrl":""}` | Custom logo configuration. If enabled, the logoUrl and coBrandingEnabled values must be provided. The logoUrl must be a valid URL to an image like png, jpg, or svg. Co-branding will show LangSmith and customer logos side by side. |
 | config.defaultWorkspaceName | string | `"Workspace 1"` | Default workspace name to be provisioned when org is created. |
 | config.deployment | object | `{"basePath":"","enabled":false,"ingressHealthCheckEnabled":true,"tlsEnabled":true}` | Configuration for LangSmith Deployments features |
@@ -912,16 +1188,8 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | config.infoEndpointAuthRequired | bool | `false` | Require authentication on the GET /info endpoint. When enabled, unauthenticated requests to /info will receive a 401 and must supply a valid API key. The LangSmith SDK handles this automatically by retrying with credentials. Useful for deployments that must not expose instance configuration (version, feature flags, batch ingest config) to unauthenticated callers. |
 | config.initialOrgAdminEmail | string | `""` |  |
 | config.initialOrgName | string | `"Default"` | Initial org name to be provisioned. |
-| config.insights.agent.extraEnv | object | `{}` |  |
-| config.insights.agent.resources.cpu | int | `2` |  |
-| config.insights.agent.resources.cpuLimit | int | `4` |  |
-| config.insights.agent.resources.maxScale | int | `5` |  |
-| config.insights.agent.resources.memoryLimitMb | int | `8192` |  |
-| config.insights.agent.resources.memoryMb | int | `4096` |  |
-| config.insights.agent.resources.minScale | int | `1` |  |
-| config.insights.enabled | bool | `false` |  |
-| config.insights.encryptionKey | string | `""` |  |
 | config.langsmithLicenseKey | string | `""` |  |
+| config.llmAuthProxyIssuer | string | `""` | Optional issuer (iss claim) for tokens minted by the LLM auth proxy. Maps to LLM_AUTH_PROXY_ISSUER. Must match the jwtIssuer configured in the auth proxy chart. Left empty by default (not emitted); set it when using the LLM auth proxy. |
 | config.logLevel | string | `"info"` |  |
 | config.oauth.enabled | bool | `false` |  |
 | config.oauth.oauthClientId | string | `""` |  |
@@ -936,15 +1204,6 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | config.observability.tracing.useTls | bool | `true` |  |
 | config.orgAdminsInstallationUsageExportEnabled | bool | `false` | When true, any org admin can use the usage backfill export. |
 | config.personalOrgsDisabled | bool | `true` | Disable personal orgs. |
-| config.polly.agent.extraEnv | object | `{}` |  |
-| config.polly.agent.resources.cpu | int | `2` |  |
-| config.polly.agent.resources.cpuLimit | int | `4` |  |
-| config.polly.agent.resources.maxScale | int | `5` |  |
-| config.polly.agent.resources.memoryLimitMb | int | `8192` |  |
-| config.polly.agent.resources.memoryMb | int | `4096` |  |
-| config.polly.agent.resources.minScale | int | `1` |  |
-| config.polly.enabled | bool | `false` |  |
-| config.polly.encryptionKey | string | `""` |  |
 | config.security | object | `{"cors":{"allowedOrigins":"*","allowedOriginsRegex":"","alwaysAllowPathsRegex":""}}` | Security configuration for CORS, headers, and other security-related settings. These settings control cross-origin access and help protect against common web vulnerabilities. |
 | config.security.cors | object | `{"allowedOrigins":"*","allowedOriginsRegex":"","alwaysAllowPathsRegex":""}` | CORS (Cross-Origin Resource Sharing) configuration. Controls which origins can make requests to the LangSmith API. By default, CORS is permissive. For production deployments, you should restrict this. |
 | config.security.cors.allowedOrigins | string | `"*"` | Comma-separated list of allowed origins. Use "*" to allow all origins (not recommended for production). Example: "https://app.example.com,https://admin.example.com" If allowedOriginsRegex is set, this value is ignored. |
@@ -952,6 +1211,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | config.security.cors.alwaysAllowPathsRegex | string | `""` | Regular expression pattern for paths that should always allow CORS from any origin. Useful for public endpoints like webhooks or public API endpoints. Example: ".*(/feedback/tokens/|/public/).*" |
 | config.settings | object | `{"redisRunsExpirySeconds":"21600"}` | Application Settings. These are used to tune the application |
 | config.settings.redisRunsExpirySeconds | string | `"21600"` | Optional. Be very careful when lowering this value as it can result in runs being lost if your queue is down/not processing items fast enough. |
+| config.signingJwks | string | `""` | Ed25519/OKP JWKS (JSON) signing the OAuth AS / remote MCP (and LLM-auth-proxy) tokens; public keys are served at /.well-known/jwks.json. Set it here (stored in the chart secret) or as key `langsmith_signing_jwks` in config.existingSecretName. The remote MCP server / OAuth AS stay inert until this is set. |
 | config.skipValidation | bool | `false` | Skip validation checks in validate.yaml. Used by AWS Marketplace for helm template verification. |
 | config.superAdmins | list | `[]` | Email addresses of super admins who can export usage data. These are the only users allowed to use the usage backfill export unless orgAdminsInstallationUsageExportEnabled is set. |
 | config.telemetry.logs | bool | `true` | Optional. These values are used to send telemetry to the LangChain team to assist with troubleshooting. |
@@ -1324,6 +1584,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | clickhouse.statefulSet.terminationGracePeriodSeconds | int | `30` |  |
 | clickhouse.statefulSet.tolerations | list | `[]` |  |
 | clickhouse.statefulSet.topologySpreadConstraints | list | `[]` |  |
+| clickhouse.statefulSet.updateStrategy | object | `{}` | Leave unset to keep the Kubernetes default RollingUpdate behavior. |
 | clickhouse.statefulSet.volumeMounts | list | `[]` |  |
 | clickhouse.statefulSet.volumes | list | `[]` |  |
 
@@ -1526,11 +1787,14 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | listener.autoscaling.keda.annotations | object | `{}` |  |
 | listener.autoscaling.keda.cooldownPeriod | int | `300` |  |
 | listener.autoscaling.keda.enabled | bool | `false` |  |
+| listener.autoscaling.keda.fallback.failureThreshold | int | `3` |  |
+| listener.autoscaling.keda.fallback.replicas | int | `2` |  |
 | listener.autoscaling.keda.initialCooldownPeriod | int | `0` |  |
 | listener.autoscaling.keda.labels | object | `{}` |  |
 | listener.autoscaling.keda.maxReplicaCount | int | `10` |  |
 | listener.autoscaling.keda.minReplicaCount | int | `1` |  |
 | listener.autoscaling.keda.pollingInterval | int | `30` |  |
+| listener.autoscaling.keda.queueTargetSize | string | `"5"` |  |
 | listener.autoscaling.keda.scaleDownPolicy.periodSeconds | int | `300` |  |
 | listener.autoscaling.keda.scaleDownPolicy.value | int | `100` |  |
 | listener.autoscaling.keda.scaleDownStabilizationWindowSeconds | int | `1800` |  |
@@ -1999,6 +2263,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | postgres.statefulSet.terminationGracePeriodSeconds | int | `30` |  |
 | postgres.statefulSet.tolerations | list | `[]` |  |
 | postgres.statefulSet.topologySpreadConstraints | list | `[]` |  |
+| postgres.statefulSet.updateStrategy | object | `{}` | Optional StatefulSet update strategy for the in-chart PostgreSQL instance. Leave unset to keep the Kubernetes default RollingUpdate behavior. |
 | postgres.statefulSet.volumeMounts | list | `[]` |  |
 | postgres.statefulSet.volumes | list | `[]` |  |
 
@@ -2159,6 +2424,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | redis.statefulSet.terminationGracePeriodSeconds | int | `30` |  |
 | redis.statefulSet.tolerations | list | `[]` |  |
 | redis.statefulSet.topologySpreadConstraints | list | `[]` |  |
+| redis.statefulSet.updateStrategy | object | `{}` | Optional StatefulSet update strategy for the in-chart Redis instance. Leave unset to keep the Kubernetes default RollingUpdate behavior. |
 | redis.statefulSet.volumeMounts | list | `[]` |  |
 | redis.statefulSet.volumes | list | `[]` |  |
 

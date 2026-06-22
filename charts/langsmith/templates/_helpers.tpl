@@ -469,7 +469,7 @@ Template containing common environment variables that are used by several servic
       name: {{ include "langsmith.secretsName" . }}
       key: agent_builder_encryption_key
 {{- end }}
-{{- if or .Values.config.insights.enabled .Values.insights.enabled }}
+{{- if .Values.insights.enabled }}
 - name: CLIO_ENCRYPTION_KEY
   valueFrom:
     secretKeyRef:
@@ -477,7 +477,7 @@ Template containing common environment variables that are used by several servic
       key: insights_encryption_key
       optional: false
 {{- end }}
-{{- if or .Values.config.polly.enabled .Values.polly.enabled }}
+{{- if .Values.polly.enabled }}
 - name: POLLY_ENCRYPTION_KEY
   valueFrom:
     secretKeyRef:
@@ -485,6 +485,234 @@ Template containing common environment variables that are used by several servic
       key: polly_encryption_key
       optional: false
 {{- end }}
+{{- end }}
+
+{{/*
+SmithDB resource name prefix.
+*/}}
+{{- define "langsmith.smithdb.fullname" -}}
+{{- printf "%s-%s" (include "langsmith.fullname" .) .Values.smithdb.name | trunc 63 | trimSuffix "-" }}
+{{- end }}
+
+{{/*
+Name of a SmithDB component Service or Deployment.
+Args: root, component.
+*/}}
+{{- define "langsmith.smithdb.componentName" -}}
+{{- $root := .root -}}
+{{- $component := .component -}}
+{{- $componentValues := index $root.Values.smithdb $component -}}
+{{- printf "%s-%s" (include "langsmith.smithdb.fullname" $root) $componentValues.name | trunc 63 | trimSuffix "-" }}
+{{- end }}
+
+{{/*
+Name of the shared SmithDB service account.
+Args: root.
+*/}}
+{{- define "langsmith.smithdb.serviceAccountName" -}}
+{{- $root := .root -}}
+{{- if $root.Values.smithdb.serviceAccount.create -}}
+{{- default (include "langsmith.smithdb.fullname" $root) $root.Values.smithdb.serviceAccount.name | trunc 63 | trimSuffix "-" }}
+{{- else -}}
+{{- default "default" $root.Values.smithdb.serviceAccount.name }}
+{{- end -}}
+{{- end }}
+
+{{/*
+SmithDB internal service URL used by LangSmith and SmithDB gRPC clients.
+Args: root, component, port.
+*/}}
+{{- define "langsmith.smithdb.grpcServiceUrl" -}}
+{{- $root := .root -}}
+{{- $component := .component -}}
+{{- $port := .port -}}
+{{- printf "%s.%s.svc.%s:%v" (include "langsmith.smithdb.componentName" (dict "root" $root "component" $component)) ($root.Values.namespace | default $root.Release.Namespace) $root.Values.clusterDomain $port }}
+{{- end }}
+
+{{/*
+SmithDB HTTP-style endpoint used by SmithDB workloads for internal component calls.
+Args: root, component, port.
+*/}}
+{{- define "langsmith.smithdb.httpServiceUrl" -}}
+{{- printf "http://%s" (include "langsmith.smithdb.grpcServiceUrl" .) }}
+{{- end }}
+
+{{/*
+SmithDB cluster-manager HTTP endpoint used by SmithDB services.
+*/}}
+{{- define "langsmith.smithdb.clusterManagerHttpEndpoint" -}}
+{{- include "langsmith.smithdb.httpServiceUrl" (dict "root" . "component" "clusterManager" "port" .Values.smithdb.clusterManager.service.port) }}
+{{- end }}
+
+{{/*
+SmithDB cluster-manager client env vars. Args: root, service.
+*/}}
+{{- define "langsmith.smithdb.clusterManagerClientEnv" -}}
+{{- $root := .root -}}
+{{- $service := upper .service -}}
+{{- $prefix := printf "SMITHDB_%s__CLUSTER_MANAGER" $service -}}
+- name: {{ $prefix }}__ENABLED
+  value: "true"
+- name: {{ $prefix }}__ENDPOINT
+  value: {{ include "langsmith.smithdb.clusterManagerHttpEndpoint" $root | quote }}
+- name: {{ $prefix }}__STATUS_INTERVAL
+  value: "1s"
+- name: {{ $prefix }}__RETRY_DELAY
+  value: "1s"
+- name: {{ $prefix }}__STATUS_BUFFER_SIZE
+  value: "32"
+- name: {{ $prefix }}__CONNECT_TIMEOUT
+  value: "1s"
+{{- end }}
+
+{{/*
+SmithDB component env vars.
+Args: root, service, displayName.
+*/}}
+{{- define "langsmith.smithdb.componentEnv" -}}
+{{- $root := .root -}}
+{{- $service := .service -}}
+{{- $envVars := include "langsmith.smithdb.serviceEnv" (dict "root" $root "service" $service "displayName" .displayName) | fromYamlArray -}}
+{{- if $root.Values.smithdb.enabled }}
+{{- $envVars = concat $envVars (include "langsmith.smithdb.clusterManagerClientEnv" (dict "root" $root "service" $service) | fromYamlArray) -}}
+{{- end }}
+{{- $envVars = concat $envVars $root.Values.commonEnv $root.Values.smithdb.commonEnv -}}
+{{- toYaml $envVars }}
+{{- end }}
+
+{{/*
+SmithDB OTEL resource attributes.
+*/}}
+{{- define "langsmith.smithdb.otelResourceAttributes" -}}
+{{- $resourceAttributes := list "pod_name=$(POD_NAME)" "k8s.pod.name=$(POD_NAME)" "container_name=$(CONTAINER_NAME)" "k8s.container.name=$(CONTAINER_NAME)" -}}
+{{- range $key, $value := .Values.smithdb.config.observability.tracing.extraResourceAttributes }}
+{{- $resourceAttributes = append $resourceAttributes (printf "%s=%s" $key (toString $value)) -}}
+{{- end }}
+{{- join "," $resourceAttributes -}}
+{{- end }}
+
+{{/*
+Shared SmithDB service env vars. Args: root, service, displayName.
+*/}}
+{{- define "langsmith.smithdb.serviceEnv" -}}
+{{- $root := .root -}}
+{{- $service := .service -}}
+{{- $displayName := .displayName -}}
+{{- $prefix := printf "SMITHDB_%s" (upper $service) -}}
+{{- $objectStoreType := lower (default "s3" $root.Values.smithdb.config.objectStore.type) -}}
+{{- $objectStoreRootFolder := "smithdb" -}}
+{{- $tracingEnabled := $root.Values.smithdb.config.observability.tracing.enabled -}}
+{{- $logLevel := default "INFO,vortex=WARN" $root.Values.smithdb.config.observability.logging.level -}}
+- name: {{ $prefix }}__LOGGING__FORMAT
+  value: {{ ternary "opentelemetry" "console" $tracingEnabled | quote }}
+- name: {{ $prefix }}__LOGGING__TRACING_ENABLED
+  value: {{ $tracingEnabled | quote }}
+- name: {{ $prefix }}__LOGGING__SERVICE_NAME
+  value: {{ $displayName | quote }}
+- name: {{ $prefix }}__OBJECT_STORE__TYPE
+  value: {{ $objectStoreType | quote }}
+{{- if eq $objectStoreType "s3" }}
+- name: {{ $prefix }}__OBJECT_STORE__S3__BUCKET
+  value: {{ $root.Values.smithdb.config.objectStore.bucket | quote }}
+- name: {{ $prefix }}__OBJECT_STORE__S3__ROOT_FOLDER
+  value: {{ $objectStoreRootFolder | quote }}
+{{- with $root.Values.smithdb.config.objectStore.s3.region }}
+- name: {{ $prefix }}__OBJECT_STORE__S3__REGION
+  value: {{ . | quote }}
+{{- end }}
+{{- with $root.Values.smithdb.config.objectStore.s3.endpoint }}
+- name: {{ $prefix }}__OBJECT_STORE__S3__ENDPOINT
+  value: {{ . | quote }}
+{{- end }}
+{{- if hasKey $root.Values.smithdb.config.objectStore.s3 "allowHttp" }}
+- name: {{ $prefix }}__OBJECT_STORE__S3__ALLOW_HTTP
+  value: {{ $root.Values.smithdb.config.objectStore.s3.allowHttp | quote }}
+{{- end }}
+{{- if $root.Values.smithdb.config.objectStore.s3.accessKeyIdSecretKey }}
+- name: {{ $prefix }}__OBJECT_STORE__S3__ACCESS_KEY_ID
+  valueFrom:
+    secretKeyRef:
+      name: {{ $root.Values.smithdb.config.existingSecretName }}
+      key: {{ $root.Values.smithdb.config.objectStore.s3.accessKeyIdSecretKey }}
+{{- end }}
+{{- if $root.Values.smithdb.config.objectStore.s3.secretAccessKeySecretKey }}
+- name: {{ $prefix }}__OBJECT_STORE__S3__SECRET_ACCESS_KEY
+  valueFrom:
+    secretKeyRef:
+      name: {{ $root.Values.smithdb.config.existingSecretName }}
+      key: {{ $root.Values.smithdb.config.objectStore.s3.secretAccessKeySecretKey }}
+{{- end }}
+{{- else if eq $objectStoreType "gcs" }}
+- name: {{ $prefix }}__OBJECT_STORE__GCS__BUCKET
+  value: {{ $root.Values.smithdb.config.objectStore.bucket | quote }}
+- name: {{ $prefix }}__OBJECT_STORE__GCS__ROOT_FOLDER
+  value: {{ $objectStoreRootFolder | quote }}
+{{- end }}
+- name: {{ $prefix }}__METASTORE__TYPE
+  value: "postgres"
+- name: {{ $prefix }}__METASTORE__DEFAULT_URI
+  value: {{ ternary "s3://" "gs://" (eq $objectStoreType "s3") | quote }}
+- name: {{ $prefix }}__METASTORE__HOST
+  valueFrom:
+    secretKeyRef:
+      name: {{ $root.Values.smithdb.config.existingSecretName }}
+      key: {{ $root.Values.smithdb.config.metastore.hostSecretKey }}
+- name: {{ $prefix }}__METASTORE__PORT
+  value: {{ $root.Values.smithdb.config.metastore.port | quote }}
+- name: {{ $prefix }}__METASTORE__DATABASE
+  valueFrom:
+    secretKeyRef:
+      name: {{ $root.Values.smithdb.config.existingSecretName }}
+      key: {{ $root.Values.smithdb.config.metastore.databaseSecretKey }}
+- name: {{ $prefix }}__METASTORE__USERNAME
+  valueFrom:
+    secretKeyRef:
+      name: {{ $root.Values.smithdb.config.existingSecretName }}
+      key: {{ $root.Values.smithdb.config.metastore.usernameSecretKey }}
+- name: {{ $prefix }}__METASTORE__PASSWORD
+  valueFrom:
+    secretKeyRef:
+      name: {{ $root.Values.smithdb.config.existingSecretName }}
+      key: {{ $root.Values.smithdb.config.metastore.passwordSecretKey }}
+- name: {{ $prefix }}__METASTORE__USE_SSL
+  value: {{ $root.Values.smithdb.config.metastore.useSsl | quote }}
+- name: NODE_IP
+  valueFrom:
+    fieldRef:
+      fieldPath: status.hostIP
+{{- if $tracingEnabled }}
+- name: OTEL_EXPORTER_OTLP_ENDPOINT
+  value: {{ $root.Values.smithdb.config.observability.tracing.endpoint | quote }}
+{{- /* SmithDB exports OTLP over gRPC. */}}
+- name: OTEL_EXPORTER_OTLP_PROTOCOL
+  value: "grpc"
+{{- end }}
+- name: OTEL_SERVICE_NAME
+  value: {{ $displayName | quote }}
+- name: RUST_LOG
+  value: {{ $logLevel | quote }}
+- name: NODE_NAME
+  valueFrom:
+    fieldRef:
+      fieldPath: spec.nodeName
+- name: POD_NAME
+  valueFrom:
+    fieldRef:
+      fieldPath: metadata.name
+- name: POD_UID
+  valueFrom:
+    fieldRef:
+      fieldPath: metadata.uid
+- name: POD_IP
+  valueFrom:
+    fieldRef:
+      fieldPath: status.podIP
+- name: CONTAINER_NAME
+  value: {{ $displayName | quote }}
+- name: OTEL_RESOURCE_ATTRIBUTES
+  value: {{ include "langsmith.smithdb.otelResourceAttributes" $root | quote }}
+- name: _RJEM_MALLOC_CONF
+  value: "prof:true,prof_active:false,lg_prof_sample:19"
 {{- end }}
 
 
@@ -844,12 +1072,6 @@ Extra env vars for polly api-server and queue pods.
 {{- if .Values.config.agentBuilder.enabled }}
 {{- $createProducts = append $createProducts "agent_builder" }}
 {{- end }}
-{{- if .Values.config.insights.enabled }}
-{{- $createProducts = append $createProducts "insights" }}
-{{- end }}
-{{- if .Values.config.polly.enabled }}
-{{- $createProducts = append $createProducts "smith_polly" }}
-{{- end }}
 {{ toYaml $createProducts }}
 {{- end -}}
 
@@ -858,12 +1080,8 @@ Extra env vars for polly api-server and queue pods.
 {{- if not .Values.config.agentBuilder.enabled }}
 {{- $destroyProducts = append $destroyProducts "agent_builder" }}
 {{- end }}
-{{- if not .Values.config.insights.enabled }}
 {{- $destroyProducts = append $destroyProducts "insights" }}
-{{- end }}
-{{- if not .Values.config.polly.enabled }}
 {{- $destroyProducts = append $destroyProducts "smith_polly" }}
-{{- end }}
 {{ toYaml $destroyProducts }}
 {{- end -}}
 
@@ -984,6 +1202,15 @@ which default to http:// for local development.
 {{- end -}}
 
 {{/*
+OAuth Authorization Server issuer URL advertised to remote MCP clients.
+Derived from <hostnameWithProtocol>[/basePath]/api. The /api path is fixed because the
+frontend nginx routes are hardcoded to it; host and scheme come from config.hostname.
+*/}}
+{{- define "langsmith.oauthAsIssuer" -}}
+{{- include "langsmith.hostnameWithProtocol" . }}{{- with .Values.config.basePath }}/{{ . }}{{- end }}/api
+{{- end -}}
+
+{{/*
 Public URL for the default Agent Builder MCP server.
 Served through the frontend at /mcp (or /<basePath>/mcp).
 */}}
@@ -1006,6 +1233,7 @@ Served through the frontend at /mcp (or /<basePath>/mcp).
 {{- $linearOAuth := .Values.config.agentBuilder.oauth.linearOAuthProvider | default .Values.fleet.oauth.linearOAuthProvider }}
 {{- $githubOAuth := .Values.config.agentBuilder.oauth.githubOAuthProvider | default .Values.fleet.oauth.githubOAuthProvider }}
 {{- $microsoftOAuth := .Values.config.agentBuilder.oauth.microsoftOAuthProvider | default .Values.fleet.oauth.microsoftOAuthProvider }}
+{{- $salesforceOAuth := .Values.config.agentBuilder.oauth.salesforceOAuthProvider | default .Values.fleet.oauth.salesforceOAuthProvider }}
 {{- if $googleOAuth }}
 - name: "GOOGLE_OAUTH_PROVIDER"
   value: {{ $googleOAuth | quote }}
@@ -1029,6 +1257,10 @@ Served through the frontend at /mcp (or /<basePath>/mcp).
 {{- if $microsoftOAuth }}
 - name: "MICROSOFT_OAUTH_PROVIDER"
   value: {{ $microsoftOAuth | quote }}
+{{- end }}
+{{- if $salesforceOAuth }}
+- name: "SALESFORCE_OAUTH_PROVIDER"
+  value: {{ $salesforceOAuth | quote }}
 {{- end }}
 {{- end -}}
 

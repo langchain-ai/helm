@@ -137,6 +137,26 @@ data:
             proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.platformBackend.service.port }};
         }
 
+        location /{{ .Values.config.basePath }}/api/v2/datasets/ {
+            rewrite /{{ .Values.config.basePath }}/api/v2/datasets/(.*) /v2/datasets/$1  break;
+            proxy_set_header Connection '';
+            proxy_http_version 1.1;
+            proxy_buffering off;
+            proxy_cache off;
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.platformBackend.service.port }};
+        }
+
+        {{- if and .Values.smithdb.enabled .Values.smithdb.langsmith.frontend.useSmithDBEndpoints }}
+        location /{{ .Values.config.basePath }}/api/v2/ {
+            rewrite /{{ .Values.config.basePath }}/api/v2/(.*) /v2/$1  break;
+            proxy_set_header Connection '';
+            proxy_http_version 1.1;
+            proxy_buffering off;
+            proxy_cache off;
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.platformBackend.service.port }};
+        }
+        {{- end }}
+
         location /{{ .Values.config.basePath }}/api/v1/oauth/ {
             rewrite /{{ .Values.config.basePath }}/api/v1/oauth/(.*) /oauth/$1  break;
             proxy_set_header Connection '';
@@ -182,6 +202,15 @@ data:
             proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.platformBackend.service.port }};
         }
 
+        location /{{ .Values.config.basePath }}/api/v1/annotation-queues/pairwise {
+            rewrite /{{ .Values.config.basePath }}/api/v1/(.*) /$1  break;
+            proxy_set_header Connection '';
+            proxy_http_version 1.1;
+            proxy_buffering off;
+            proxy_cache off;
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.platformBackend.service.port }};
+        }
+
         location = /{{ .Values.config.basePath }}/api/v1/runs/multipart {
             rewrite /{{ .Values.config.basePath }}/api/v1/runs/multipart /runs/multipart  break;
             proxy_set_header Connection '';
@@ -211,6 +240,15 @@ data:
 
         location = /{{ .Values.config.basePath }}/api/v1/info {
             rewrite /{{ .Values.config.basePath }}/api/v1/info /info  break;
+            proxy_set_header Connection '';
+            proxy_http_version 1.1;
+            proxy_buffering off;
+            proxy_cache off;
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.platformBackend.service.port }};
+        }
+
+        location /{{ .Values.config.basePath }}/api/v1/me/ {
+            rewrite /{{ .Values.config.basePath }}/api/v1/(.*) /$1  break;
             proxy_set_header Connection '';
             proxy_http_version 1.1;
             proxy_buffering off;
@@ -289,6 +327,88 @@ data:
             proxy_cache off;
             proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.platformBackend.service.port }};
         }
+
+    {{- if .Values.config.hostname }}
+        # Remote MCP server (OAuth-protected) under /api -> platform-backend.
+        # OAuth 2.1 discovery (RFC 8414 / RFC 9728), token endpoints, and the MCP JSON-RPC endpoint.
+        # RFC 8414 path-insertion form of the authorization-server metadata (clients try this first).
+        location = /.well-known/oauth-authorization-server/{{ .Values.config.basePath }}/api {
+            rewrite ^ /.well-known/oauth-authorization-server  break;
+            proxy_set_header Connection '';
+            proxy_http_version 1.1;
+            proxy_buffering off;
+            proxy_cache off;
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.platformBackend.service.port }};
+        }
+
+        # Path-append form of the authorization-server metadata.
+        location = /{{ .Values.config.basePath }}/api/.well-known/oauth-authorization-server {
+            rewrite ^ /.well-known/oauth-authorization-server  break;
+            proxy_set_header Connection '';
+            proxy_http_version 1.1;
+            proxy_buffering off;
+            proxy_cache off;
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.platformBackend.service.port }};
+        }
+
+        # Protected-resource metadata (the URL advertised in the MCP 401 WWW-Authenticate header).
+        location = /{{ .Values.config.basePath }}/api/.well-known/oauth-protected-resource/mcp {
+            rewrite ^ /.well-known/oauth-protected-resource/mcp  break;
+            proxy_set_header Connection '';
+            proxy_http_version 1.1;
+            proxy_buffering off;
+            proxy_cache off;
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.platformBackend.service.port }};
+        }
+
+        # JWKS advertised under the /api issuer (jwks_uri).
+        location = /{{ .Values.config.basePath }}/api/.well-known/jwks.json {
+            rewrite ^ /.well-known/jwks.json  break;
+            proxy_set_header Connection '';
+            proxy_http_version 1.1;
+            proxy_buffering off;
+            proxy_cache off;
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.platformBackend.service.port }};
+        }
+
+        # OAuth Authorization Server endpoints (authorize, token, register, revoke, device).
+        location /{{ .Values.config.basePath }}/api/oauth/ {
+            rewrite /{{ .Values.config.basePath }}/api/oauth/(.*) /oauth/$1  break;
+            proxy_set_header Connection '';
+            proxy_http_version 1.1;
+            proxy_buffering off;
+            proxy_cache off;
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.platformBackend.service.port }};
+        }
+
+        # MCP JSON-RPC endpoint (kept distinct from the root /mcp fleet tool server).
+        location /{{ .Values.config.basePath }}/api/mcp {
+            rewrite /{{ .Values.config.basePath }}/api(/mcp.*) $1  break;
+            proxy_set_header Connection '';
+            proxy_http_version 1.1;
+            proxy_buffering off;
+            proxy_cache off;
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.platformBackend.service.port }};
+        }
+
+        # The OAuth consent page (SPA at /oauth/consent) submits approval and reads client
+        # metadata at the AS's root /oauth/* paths (single-origin leaves the SPA's backend
+        # origin empty). Route those to platform-backend; /oauth/consent stays on the SPA.
+        location = /oauth/authorize/approve {
+            proxy_set_header Connection '';
+            proxy_http_version 1.1;
+            proxy_buffering off;
+            proxy_cache off;
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.platformBackend.service.port }};
+        }
+        location /oauth/client/ {
+            proxy_set_header Connection '';
+            proxy_http_version 1.1;
+            proxy_buffering off;
+            proxy_cache off;
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.platformBackend.service.port }};
+        }
+    {{- end }}
 
         # Backend Routes
         location /{{ .Values.config.basePath }}/api/v1 {
@@ -642,6 +762,26 @@ data:
             proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.platformBackend.service.port }};
         }
 
+        location /api/v2/datasets/ {
+            rewrite /api/v2/datasets/(.*) /v2/datasets/$1  break;
+            proxy_set_header Connection '';
+            proxy_http_version 1.1;
+            proxy_buffering off;
+            proxy_cache off;
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.platformBackend.service.port }};
+        }
+
+        {{- if and .Values.smithdb.enabled .Values.smithdb.langsmith.frontend.useSmithDBEndpoints }}
+        location /api/v2/ {
+            rewrite /api/v2/(.*) /v2/$1  break;
+            proxy_set_header Connection '';
+            proxy_http_version 1.1;
+            proxy_buffering off;
+            proxy_cache off;
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.platformBackend.service.port }};
+        }
+        {{- end }}
+
         location /api/v1/oauth/ {
             rewrite /api/v1/oauth/(.*) /oauth/$1  break;
             proxy_set_header Connection '';
@@ -687,6 +827,15 @@ data:
             proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.platformBackend.service.port }};
         }
 
+        location /api/v1/annotation-queues/pairwise {
+            rewrite /api/v1/(.*) /$1  break;
+            proxy_set_header Connection '';
+            proxy_http_version 1.1;
+            proxy_buffering off;
+            proxy_cache off;
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.platformBackend.service.port }};
+        }
+
         location = /api/v1/runs/multipart {
             rewrite /api/v1/runs/multipart /runs/multipart  break;
             proxy_set_header Connection '';
@@ -722,6 +871,15 @@ data:
             proxy_cache off;
             proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.platformBackend.service.port }};
          }
+
+        location /api/v1/me/ {
+            rewrite /api/v1/(.*) /$1  break;
+            proxy_set_header Connection '';
+            proxy_http_version 1.1;
+            proxy_buffering off;
+            proxy_cache off;
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.platformBackend.service.port }};
+        }
 
         location = /api/v1/me {
             rewrite /api/v1/me /me  break;
@@ -793,6 +951,88 @@ data:
             proxy_cache off;
             proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.platformBackend.service.port }};
         }
+
+    {{- if .Values.config.hostname }}
+        # Remote MCP server (OAuth-protected) under /api -> platform-backend.
+        # OAuth 2.1 discovery (RFC 8414 / RFC 9728), token endpoints, and the MCP JSON-RPC endpoint.
+        # RFC 8414 path-insertion form of the authorization-server metadata (clients try this first).
+        location = /.well-known/oauth-authorization-server/api {
+            rewrite ^ /.well-known/oauth-authorization-server  break;
+            proxy_set_header Connection '';
+            proxy_http_version 1.1;
+            proxy_buffering off;
+            proxy_cache off;
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.platformBackend.service.port }};
+        }
+
+        # Path-append form of the authorization-server metadata.
+        location = /api/.well-known/oauth-authorization-server {
+            rewrite ^ /.well-known/oauth-authorization-server  break;
+            proxy_set_header Connection '';
+            proxy_http_version 1.1;
+            proxy_buffering off;
+            proxy_cache off;
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.platformBackend.service.port }};
+        }
+
+        # Protected-resource metadata (the URL advertised in the MCP 401 WWW-Authenticate header).
+        location = /api/.well-known/oauth-protected-resource/mcp {
+            rewrite ^ /.well-known/oauth-protected-resource/mcp  break;
+            proxy_set_header Connection '';
+            proxy_http_version 1.1;
+            proxy_buffering off;
+            proxy_cache off;
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.platformBackend.service.port }};
+        }
+
+        # JWKS advertised under the /api issuer (jwks_uri).
+        location = /api/.well-known/jwks.json {
+            rewrite ^ /.well-known/jwks.json  break;
+            proxy_set_header Connection '';
+            proxy_http_version 1.1;
+            proxy_buffering off;
+            proxy_cache off;
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.platformBackend.service.port }};
+        }
+
+        # OAuth Authorization Server endpoints (authorize, token, register, revoke, device).
+        location /api/oauth/ {
+            rewrite /api/oauth/(.*) /oauth/$1  break;
+            proxy_set_header Connection '';
+            proxy_http_version 1.1;
+            proxy_buffering off;
+            proxy_cache off;
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.platformBackend.service.port }};
+        }
+
+        # MCP JSON-RPC endpoint (kept distinct from the root /mcp fleet tool server).
+        location /api/mcp {
+            rewrite /api(/mcp.*) $1  break;
+            proxy_set_header Connection '';
+            proxy_http_version 1.1;
+            proxy_buffering off;
+            proxy_cache off;
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.platformBackend.service.port }};
+        }
+
+        # The OAuth consent page (SPA at /oauth/consent) submits approval and reads client
+        # metadata at the AS's root /oauth/* paths (single-origin leaves the SPA's backend
+        # origin empty). Route those to platform-backend; /oauth/consent stays on the SPA.
+        location = /oauth/authorize/approve {
+            proxy_set_header Connection '';
+            proxy_http_version 1.1;
+            proxy_buffering off;
+            proxy_cache off;
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.platformBackend.service.port }};
+        }
+        location /oauth/client/ {
+            proxy_set_header Connection '';
+            proxy_http_version 1.1;
+            proxy_buffering off;
+            proxy_cache off;
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.platformBackend.service.port }};
+        }
+    {{- end }}
 
         # Backend Routes
         location /api/v1 {
