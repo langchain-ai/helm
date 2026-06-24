@@ -1,0 +1,39 @@
+suite: test stripResponseHeaders validation
+templates:
+  - validate.yaml
+# Suite-level set provides minimum config to bypass UNRELATED validate.yaml checks
+# (apiKeySalt, license, basicAuth, authType, password complexity, frontend.enabled).
+# Per-test `set:` overrides what's needed to trigger the SPECIFIC validation under test.
+set:
+  config.apiKeySalt: "test-salt-1234567890"
+  config.langsmithLicenseKey: "test-license-key"
+  config.authType: "mixed"
+  config.basicAuth.enabled: true
+  config.basicAuth.initialOrgAdminEmail: "test@example.com"
+  config.basicAuth.initialOrgAdminPassword: "TestPass1234!"
+tests:
+  - it: should fail when stripResponseHeaders.enabled but istioGateway.enabled is false
+    set:
+      istioGateway.enabled: false
+      istioGateway.stripResponseHeaders.enabled: true
+    asserts:
+      - failedTemplate:
+          errorMessage: "istioGateway.stripResponseHeaders.enabled requires istioGateway.enabled to be true."
+
+  - it: should fail when stripResponseHeaders.workloadSelector is empty
+    set:
+      istioGateway.enabled: true
+      istioGateway.stripResponseHeaders.enabled: true
+      istioGateway.stripResponseHeaders.workloadSelector: null
+    asserts:
+      - failedTemplate:
+          errorMessage: "istioGateway.stripResponseHeaders.workloadSelector must not be empty - an empty selector would attach the EnvoyFilter to every pod in the gateway namespace."
+
+  - it: should fail when stripResponseHeaders.headers is empty
+    set:
+      istioGateway.enabled: true
+      istioGateway.stripResponseHeaders.enabled: true
+      istioGateway.stripResponseHeaders.headers: []
+    asserts:
+      - failedTemplate:
+          errorMessage: "istioGateway.stripResponseHeaders.headers must contain at least one header to strip."

@@ -1,0 +1,41 @@
+{{- if and .Values.istioGateway.enabled .Values.istioGateway.stripResponseHeaders.enabled }}
+{{- $s := .Values.istioGateway.stripResponseHeaders }}
+{{- if $s.headers }}
+apiVersion: networking.istio.io/v1alpha3
+kind: EnvoyFilter
+metadata:
+  name: {{ include "langsmith.fullname" . }}-strip-response-headers
+  namespace: {{ .Values.istioGateway.namespace }}
+  annotations:
+    {{- include "langsmith.annotations" . | nindent 4 }}
+    {{- with .Values.istioGateway.annotations }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+  labels:
+    {{- include "langsmith.labels" . | nindent 4 }}
+    {{- with .Values.istioGateway.labels }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  workloadSelector:
+    labels:
+      {{- toYaml $s.workloadSelector | nindent 6 }}
+  configPatches:
+    - applyTo: NETWORK_FILTER
+      match:
+        context: GATEWAY
+        listener:
+          filterChain:
+            filter:
+              name: envoy.filters.network.http_connection_manager
+      patch:
+        operation: MERGE
+        value:
+          typed_config:
+            "@type": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
+            response_headers_to_remove:
+              {{- range $s.headers }}
+              - {{ . | quote }}
+              {{- end }}
+{{- end }}
+{{- end }}

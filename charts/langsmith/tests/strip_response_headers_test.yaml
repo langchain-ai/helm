@@ -1,0 +1,98 @@
+suite: test envoy filter for stripping response headers
+templates:
+  - envoy-filter-strip-response-headers.yaml
+tests:
+  - it: should not render when istioGateway.enabled is false (default)
+    template: envoy-filter-strip-response-headers.yaml
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: should not render when istioGateway.enabled is true but stripResponseHeaders.enabled is false (default)
+    template: envoy-filter-strip-response-headers.yaml
+    set:
+      istioGateway.enabled: true
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: should render EnvoyFilter with defaults when both toggles enabled
+    template: envoy-filter-strip-response-headers.yaml
+    set:
+      istioGateway.enabled: true
+      istioGateway.stripResponseHeaders.enabled: true
+    asserts:
+      - hasDocuments:
+          count: 1
+      - equal:
+          path: kind
+          value: EnvoyFilter
+      - equal:
+          path: apiVersion
+          value: networking.istio.io/v1alpha3
+      - equal:
+          path: metadata.namespace
+          value: istio-system
+      - equal:
+          path: spec.workloadSelector.labels.istio
+          value: ingressgateway
+      - equal:
+          path: spec.configPatches[0].patch.value.typed_config.response_headers_to_remove
+          value:
+            - x-envoy-upstream-service-time
+            - x-envoy-decorator-operation
+      - equal:
+          path: spec.configPatches[0].applyTo
+          value: NETWORK_FILTER
+      - equal:
+          path: spec.configPatches[0].match.context
+          value: GATEWAY
+      - equal:
+          path: spec.configPatches[0].match.listener.filterChain.filter.name
+          value: envoy.filters.network.http_connection_manager
+      - equal:
+          path: spec.configPatches[0].patch.operation
+          value: MERGE
+      - equal:
+          path: metadata.name
+          value: RELEASE-NAME-langsmith-strip-response-headers
+      - equal:
+          path: spec.configPatches[0].patch.value.typed_config["@type"]
+          value: type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
+
+  - it: should render the configured custom headers list
+    template: envoy-filter-strip-response-headers.yaml
+    set:
+      istioGateway.enabled: true
+      istioGateway.stripResponseHeaders.enabled: true
+      istioGateway.stripResponseHeaders.headers:
+        - server
+        - x-powered-by
+        - x-custom-header
+    asserts:
+      - hasDocuments:
+          count: 1
+      - equal:
+          path: spec.configPatches[0].patch.value.typed_config.response_headers_to_remove
+          value:
+            - server
+            - x-powered-by
+            - x-custom-header
+
+  - it: should render the configured custom workloadSelector
+    template: envoy-filter-strip-response-headers.yaml
+    set:
+      istioGateway.enabled: true
+      istioGateway.stripResponseHeaders.enabled: true
+      istioGateway.stripResponseHeaders.workloadSelector:
+        app: my-custom-gateway
+        tier: edge
+    asserts:
+      - hasDocuments:
+          count: 1
+      - equal:
+          path: spec.workloadSelector.labels.app
+          value: my-custom-gateway
+      - equal:
+          path: spec.workloadSelector.labels.tier
+          value: edge

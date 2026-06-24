@@ -53,6 +53,21 @@ AWS Marketplace Helm template verification).
   {{- end -}}
 {{- end -}}
 
+{{- /* Validate stripResponseHeaders requires istioGateway.enabled */ -}}
+{{- if and .Values.istioGateway.stripResponseHeaders.enabled (not .Values.istioGateway.enabled) -}}
+{{- fail "istioGateway.stripResponseHeaders.enabled requires istioGateway.enabled to be true." -}}
+{{- end -}}
+
+{{- /* Validate workloadSelector is non-empty (empty selector attaches to ALL pods in the gateway namespace) */ -}}
+{{- if and .Values.istioGateway.stripResponseHeaders.enabled (empty .Values.istioGateway.stripResponseHeaders.workloadSelector) -}}
+{{- fail "istioGateway.stripResponseHeaders.workloadSelector must not be empty - an empty selector would attach the EnvoyFilter to every pod in the gateway namespace." -}}
+{{- end -}}
+
+{{- /* Validate headers list is non-empty */ -}}
+{{- if and .Values.istioGateway.stripResponseHeaders.enabled (empty .Values.istioGateway.stripResponseHeaders.headers) -}}
+{{- fail "istioGateway.stripResponseHeaders.headers must contain at least one header to strip." -}}
+{{- end -}}
+
 # Fail if hostname is missing when deployment is enabled
 {{- if and .Values.config.deployment.enabled (not .Values.config.hostname) }}
 {{- fail "config.hostname is required when LangSmith Deployments is enabled." -}}
