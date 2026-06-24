@@ -2,7 +2,9 @@ name: Lint and Test Charts
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
+      - '*-stable'
   pull_request:
   workflow_dispatch:
 
