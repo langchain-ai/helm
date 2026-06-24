@@ -1,0 +1,21 @@
+charts/langsmith/templates/pre-install-manifests.yaml
+  s_8b63b8e0fdebae::t_53563507e674b0 1-50
+charts/langsmith/values.yaml
+  s_8b63b8e0fdebae::t_57260d7d5f5f4e 9-33
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.11",
+  "base_commit_sha": "28b672665746298bb0b641e07d81a5baadfae9f1",
+  "prompts": {},
+  "sessions": {
+    "s_8b63b8e0fdebae": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "1513be88-aa1b-4259-832b-229ce5bf34da",
+        "model": "claude-sonnet-4-6"
+      },
+      "human_author": "Joaquin Borggio <joaquin@langchain.dev>"
+    }
+  }
+}
