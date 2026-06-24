@@ -6,6 +6,31 @@ nameOverride: ""
 fullnameOverride: ""
 # -- Namespace to install the chart into. If not set, will use the namespace of the current context.
 namespace: ""
+# -- Prerequisite manifests rendered as Helm pre-install / pre-upgrade hooks so they
+# -- are applied before the rest of the chart's resources. Typical use case is an
+# -- ExternalSecret that produces a Secret consumed via `config.existingSecretName`.
+# -- See `templates/pre-install-manifests.yaml` for entry forms, injected
+# -- annotations, idempotency rules, and caveats.
+# Example:
+# preInstallManifests:
+#   - apiVersion: external-secrets.io/v1beta1
+#     kind: ExternalSecret
+#     metadata:
+#       name: langsmith-app
+#     spec:
+#       refreshInterval: 1h
+#       secretStoreRef:
+#         name: vault-backend
+#         kind: ClusterSecretStore
+#       target:
+#         name: langsmith-app-secret
+#         creationPolicy: Orphan
+#       data:
+#         - secretKey: langsmith_license_key
+#           remoteRef:
+#             key: secret/langsmith/app
+#             property: langsmith_license_key
+preInstallManifests: []
 # -- Annotations that will be applied to all resources created by the chart
 commonAnnotations: {}
 # -- Annotations that will be applied to all pods created by the chart
