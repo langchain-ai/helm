@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.16.0-rc.2](https://img.shields.io/badge/Version-0.16.0--rc.2-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.16.4rc1](https://img.shields.io/badge/AppVersion-0.16.4rc1-informational?style=flat-square)
+![Version: 0.16.0-rc.4](https://img.shields.io/badge/Version-0.16.0--rc.4-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.16.5rc1](https://img.shields.io/badge/AppVersion-0.16.5rc1-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -86,6 +86,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | fleet.oauth.linkedinOAuthProvider | string | `""` |  |
 | fleet.oauth.microsoftOAuthProvider | string | `""` |  |
 | fleet.oauth.providerOrgId | string | `""` |  |
+| fleet.oauth.salesforceOAuthProvider | string | `""` |  |
 | fleet.oauth.slackBotId | string | `""` |  |
 | fleet.oauth.slackOAuthProvider | string | `""` |  |
 | fleet.oauth.slackSigningSecret | string | `""` |  |
@@ -340,44 +341,44 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | gateway.sectionName | string | `""` |  |
 | images.aceBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.aceBackendImage.repository | string | `"docker.io/langchain/langsmith-ace-backend"` |  |
-| images.aceBackendImage.tag | string | `"0.16.4rc1"` |  |
+| images.aceBackendImage.tag | string | `"0.16.5rc1"` |  |
 | images.agentBuilderImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.agentBuilderImage.repository | string | `"docker.io/langchain/agent-builder-deep-agent"` |  |
-| images.agentBuilderImage.tag | string | `"0.16.4rc1"` |  |
+| images.agentBuilderImage.tag | string | `"0.16.5rc1"` |  |
 | images.backendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.backendImage.repository | string | `"docker.io/langchain/langsmith-backend"` |  |
-| images.backendImage.tag | string | `"0.16.4rc1"` |  |
+| images.backendImage.tag | string | `"0.16.5rc1"` |  |
 | images.clickhouseImage.pullPolicy | string | `"Always"` |  |
 | images.clickhouseImage.repository | string | `"docker.io/clickhouse/clickhouse-server"` |  |
 | images.clickhouseImage.tag | string | `"25.12"` |  |
 | images.fleetToolServerImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.fleetToolServerImage.repository | string | `"docker.io/langchain/agent-builder-tool-server"` |  |
-| images.fleetToolServerImage.tag | string | `"0.16.4rc1"` |  |
+| images.fleetToolServerImage.tag | string | `"0.16.5rc1"` |  |
 | images.fleetTriggerServerImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.fleetTriggerServerImage.repository | string | `"docker.io/langchain/agent-builder-trigger-server"` |  |
-| images.fleetTriggerServerImage.tag | string | `"0.16.4rc1"` |  |
+| images.fleetTriggerServerImage.tag | string | `"0.16.5rc1"` |  |
 | images.frontendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.frontendImage.repository | string | `"docker.io/langchain/langsmith-frontend"` |  |
-| images.frontendImage.tag | string | `"0.16.4rc1"` |  |
+| images.frontendImage.tag | string | `"0.16.5rc1"` |  |
 | images.hostBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.hostBackendImage.repository | string | `"docker.io/langchain/hosted-langserve-backend"` |  |
-| images.hostBackendImage.tag | string | `"0.16.4rc1"` |  |
+| images.hostBackendImage.tag | string | `"0.16.5rc1"` |  |
 | images.imagePullSecrets | list | `[]` | Secrets with credentials to pull images from a private registry. Specified as name: value. |
 | images.insightsAgentImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.insightsAgentImage.repository | string | `"docker.io/langchain/langsmith-clio"` |  |
-| images.insightsAgentImage.tag | string | `"0.16.4rc1"` |  |
+| images.insightsAgentImage.tag | string | `"0.16.5rc1"` |  |
 | images.operatorImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.operatorImage.repository | string | `"docker.io/langchain/langgraph-operator"` |  |
 | images.operatorImage.tag | string | `"0.1.47"` |  |
 | images.platformBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.platformBackendImage.repository | string | `"docker.io/langchain/langsmith-go-backend"` |  |
-| images.platformBackendImage.tag | string | `"0.16.4rc1"` |  |
+| images.platformBackendImage.tag | string | `"0.16.5rc1"` |  |
 | images.playgroundImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.playgroundImage.repository | string | `"docker.io/langchain/langsmith-playground"` |  |
-| images.playgroundImage.tag | string | `"0.16.4rc1"` |  |
+| images.playgroundImage.tag | string | `"0.16.5rc1"` |  |
 | images.pollyAgentImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.pollyAgentImage.repository | string | `"docker.io/langchain/langsmith-polly"` |  |
-| images.pollyAgentImage.tag | string | `"0.16.4rc1"` |  |
+| images.pollyAgentImage.tag | string | `"0.16.5rc1"` |  |
 | images.postgresImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.postgresImage.repository | string | `"docker.io/postgres"` |  |
 | images.postgresImage.tag | string | `"14.7"` |  |
@@ -388,6 +389,21 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | images.redisImage.repository | string | `"docker.io/redis"` |  |
 | images.redisImage.tag | string | `"7"` |  |
 | images.registry | string | `""` | If supplied, all children <image_name>.repository values will be prepended with this registry name + `/` |
+| images.smithdbClusterManagerImage.pullPolicy | string | `"IfNotPresent"` |  |
+| images.smithdbClusterManagerImage.repository | string | `"docker.io/langchain/smithdb-clustermanager"` |  |
+| images.smithdbClusterManagerImage.tag | string | `"latest"` |  |
+| images.smithdbCompactionImage.pullPolicy | string | `"IfNotPresent"` |  |
+| images.smithdbCompactionImage.repository | string | `"docker.io/langchain/smithdb-compaction"` |  |
+| images.smithdbCompactionImage.tag | string | `"latest"` |  |
+| images.smithdbIngestionImage.pullPolicy | string | `"IfNotPresent"` |  |
+| images.smithdbIngestionImage.repository | string | `"docker.io/langchain/smithdb-ingestion"` |  |
+| images.smithdbIngestionImage.tag | string | `"latest"` |  |
+| images.smithdbMetastoreMigrationImage.pullPolicy | string | `"IfNotPresent"` |  |
+| images.smithdbMetastoreMigrationImage.repository | string | `"docker.io/langchain/smithdb-metastore-migrate"` |  |
+| images.smithdbMetastoreMigrationImage.tag | string | `"latest"` |  |
+| images.smithdbQueryImage.pullPolicy | string | `"IfNotPresent"` |  |
+| images.smithdbQueryImage.repository | string | `"docker.io/langchain/smithdb-query"` |  |
+| images.smithdbQueryImage.tag | string | `"latest"` |  |
 | ingestQueue.autoscaling.hpa.enabled | bool | `false` |  |
 | ingestQueue.autoscaling.hpa.maxReplicas | int | `10` |  |
 | ingestQueue.autoscaling.hpa.minReplicas | int | `3` |  |
@@ -858,6 +874,259 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | polly.redis.statefulSet.updateStrategy | object | `{}` | Optional StatefulSet update strategy for the in-chart Polly Redis instance. Leave unset to keep the Kubernetes default RollingUpdate behavior. |
 | polly.redis.statefulSet.volumeMounts | list | `[]` |  |
 | polly.redis.statefulSet.volumes | list | `[]` |  |
+| smithdb.clusterManager.containerGrpcPort | int | `8091` |  |
+| smithdb.clusterManager.containerPort | int | `8090` |  |
+| smithdb.clusterManager.deployment.affinity | object | `{}` |  |
+| smithdb.clusterManager.deployment.annotations | object | `{}` |  |
+| smithdb.clusterManager.deployment.command | list | `[]` |  |
+| smithdb.clusterManager.deployment.extraContainerConfig | object | `{}` |  |
+| smithdb.clusterManager.deployment.extraEnv | list | `[]` |  |
+| smithdb.clusterManager.deployment.initContainers | list | `[]` |  |
+| smithdb.clusterManager.deployment.labels | object | `{}` |  |
+| smithdb.clusterManager.deployment.nodeSelector | object | `{}` |  |
+| smithdb.clusterManager.deployment.podSecurityContext | object | `{}` |  |
+| smithdb.clusterManager.deployment.probes.livenessProbe.failureThreshold | int | `6` |  |
+| smithdb.clusterManager.deployment.probes.livenessProbe.httpGet.path | string | `"/health"` |  |
+| smithdb.clusterManager.deployment.probes.livenessProbe.httpGet.port | string | `"http"` |  |
+| smithdb.clusterManager.deployment.probes.livenessProbe.periodSeconds | int | `10` |  |
+| smithdb.clusterManager.deployment.probes.livenessProbe.timeoutSeconds | int | `1` |  |
+| smithdb.clusterManager.deployment.probes.readinessProbe.failureThreshold | int | `6` |  |
+| smithdb.clusterManager.deployment.probes.readinessProbe.httpGet.path | string | `"/health"` |  |
+| smithdb.clusterManager.deployment.probes.readinessProbe.httpGet.port | string | `"http"` |  |
+| smithdb.clusterManager.deployment.probes.readinessProbe.periodSeconds | int | `10` |  |
+| smithdb.clusterManager.deployment.probes.readinessProbe.timeoutSeconds | int | `1` |  |
+| smithdb.clusterManager.deployment.probes.startupProbe.failureThreshold | int | `6` |  |
+| smithdb.clusterManager.deployment.probes.startupProbe.httpGet.path | string | `"/health"` |  |
+| smithdb.clusterManager.deployment.probes.startupProbe.httpGet.port | string | `"http"` |  |
+| smithdb.clusterManager.deployment.probes.startupProbe.periodSeconds | int | `10` |  |
+| smithdb.clusterManager.deployment.probes.startupProbe.timeoutSeconds | int | `1` |  |
+| smithdb.clusterManager.deployment.replicas | int | `1` |  |
+| smithdb.clusterManager.deployment.resources | object | `{}` |  |
+| smithdb.clusterManager.deployment.securityContext | object | `{}` |  |
+| smithdb.clusterManager.deployment.sidecars | list | `[]` |  |
+| smithdb.clusterManager.deployment.tolerations | list | `[]` |  |
+| smithdb.clusterManager.deployment.topologySpreadConstraints | list | `[]` |  |
+| smithdb.clusterManager.deployment.volumeMounts | list | `[]` |  |
+| smithdb.clusterManager.deployment.volumes | list | `[]` |  |
+| smithdb.clusterManager.name | string | `"cluster-manager"` |  |
+| smithdb.clusterManager.pdb | object | `{}` |  |
+| smithdb.clusterManager.service.annotations | object | `{}` |  |
+| smithdb.clusterManager.service.labels | object | `{}` |  |
+| smithdb.clusterManager.service.port | int | `8091` |  |
+| smithdb.commonEnv | list | `[]` | Extra env vars for every SmithDB workload. |
+| smithdb.compaction.containerGrpcPort | int | `8071` |  |
+| smithdb.compaction.containerPort | int | `8070` |  |
+| smithdb.compaction.deployment.affinity | object | `{}` |  |
+| smithdb.compaction.deployment.annotations | object | `{}` |  |
+| smithdb.compaction.deployment.command | list | `[]` | Optional command override. Empty uses the chart default: ["./smithdb-compaction", "scheduler"]. |
+| smithdb.compaction.deployment.extraContainerConfig | object | `{}` |  |
+| smithdb.compaction.deployment.extraEnv | list | `[]` |  |
+| smithdb.compaction.deployment.initContainers | list | `[]` |  |
+| smithdb.compaction.deployment.labels | object | `{}` |  |
+| smithdb.compaction.deployment.nodeSelector | object | `{}` |  |
+| smithdb.compaction.deployment.podSecurityContext | object | `{}` |  |
+| smithdb.compaction.deployment.probes.livenessProbe.failureThreshold | int | `6` |  |
+| smithdb.compaction.deployment.probes.livenessProbe.httpGet.path | string | `"/health"` |  |
+| smithdb.compaction.deployment.probes.livenessProbe.httpGet.port | string | `"http"` |  |
+| smithdb.compaction.deployment.probes.livenessProbe.periodSeconds | int | `10` |  |
+| smithdb.compaction.deployment.probes.livenessProbe.timeoutSeconds | int | `1` |  |
+| smithdb.compaction.deployment.probes.readinessProbe.failureThreshold | int | `6` |  |
+| smithdb.compaction.deployment.probes.readinessProbe.httpGet.path | string | `"/health"` |  |
+| smithdb.compaction.deployment.probes.readinessProbe.httpGet.port | string | `"http"` |  |
+| smithdb.compaction.deployment.probes.readinessProbe.periodSeconds | int | `10` |  |
+| smithdb.compaction.deployment.probes.readinessProbe.timeoutSeconds | int | `1` |  |
+| smithdb.compaction.deployment.probes.startupProbe.failureThreshold | int | `6` |  |
+| smithdb.compaction.deployment.probes.startupProbe.httpGet.path | string | `"/health"` |  |
+| smithdb.compaction.deployment.probes.startupProbe.httpGet.port | string | `"http"` |  |
+| smithdb.compaction.deployment.probes.startupProbe.periodSeconds | int | `10` |  |
+| smithdb.compaction.deployment.probes.startupProbe.timeoutSeconds | int | `1` |  |
+| smithdb.compaction.deployment.replicas | int | `1` |  |
+| smithdb.compaction.deployment.resources | object | `{}` |  |
+| smithdb.compaction.deployment.securityContext | object | `{}` |  |
+| smithdb.compaction.deployment.sidecars | list | `[]` |  |
+| smithdb.compaction.deployment.tolerations | list | `[]` |  |
+| smithdb.compaction.deployment.topologySpreadConstraints | list | `[]` |  |
+| smithdb.compaction.deployment.volumeMounts | list | `[]` |  |
+| smithdb.compaction.deployment.volumes | list | `[]` |  |
+| smithdb.compaction.name | string | `"compaction"` |  |
+| smithdb.compaction.pdb.annotations | object | `{}` |  |
+| smithdb.compaction.pdb.enabled | bool | `false` |  |
+| smithdb.compaction.pdb.labels | object | `{}` |  |
+| smithdb.compaction.pdb.minAvailable | int | `1` |  |
+| smithdb.compaction.service.annotations | object | `{}` |  |
+| smithdb.compaction.service.labels | object | `{}` |  |
+| smithdb.compaction.service.port | int | `8071` |  |
+| smithdb.compactionWorker.containerPort | int | `9000` |  |
+| smithdb.compactionWorker.deployment.affinity | object | `{}` |  |
+| smithdb.compactionWorker.deployment.annotations | object | `{}` |  |
+| smithdb.compactionWorker.deployment.command | list | `[]` | Optional command override. Empty uses the chart default: ["./smithdb-compaction", "worker"]. |
+| smithdb.compactionWorker.deployment.extraContainerConfig | object | `{}` |  |
+| smithdb.compactionWorker.deployment.extraEnv | list | `[]` |  |
+| smithdb.compactionWorker.deployment.initContainers | list | `[]` |  |
+| smithdb.compactionWorker.deployment.labels | object | `{}` |  |
+| smithdb.compactionWorker.deployment.nodeSelector | object | `{}` |  |
+| smithdb.compactionWorker.deployment.podSecurityContext | object | `{}` |  |
+| smithdb.compactionWorker.deployment.probes.livenessProbe.failureThreshold | int | `6` |  |
+| smithdb.compactionWorker.deployment.probes.livenessProbe.httpGet.path | string | `"/health"` |  |
+| smithdb.compactionWorker.deployment.probes.livenessProbe.httpGet.port | string | `"http"` |  |
+| smithdb.compactionWorker.deployment.probes.livenessProbe.periodSeconds | int | `10` |  |
+| smithdb.compactionWorker.deployment.probes.livenessProbe.timeoutSeconds | int | `1` |  |
+| smithdb.compactionWorker.deployment.probes.readinessProbe.failureThreshold | int | `6` |  |
+| smithdb.compactionWorker.deployment.probes.readinessProbe.httpGet.path | string | `"/health"` |  |
+| smithdb.compactionWorker.deployment.probes.readinessProbe.httpGet.port | string | `"http"` |  |
+| smithdb.compactionWorker.deployment.probes.readinessProbe.periodSeconds | int | `10` |  |
+| smithdb.compactionWorker.deployment.probes.readinessProbe.timeoutSeconds | int | `1` |  |
+| smithdb.compactionWorker.deployment.probes.startupProbe.failureThreshold | int | `6` |  |
+| smithdb.compactionWorker.deployment.probes.startupProbe.httpGet.path | string | `"/health"` |  |
+| smithdb.compactionWorker.deployment.probes.startupProbe.httpGet.port | string | `"http"` |  |
+| smithdb.compactionWorker.deployment.probes.startupProbe.periodSeconds | int | `10` |  |
+| smithdb.compactionWorker.deployment.probes.startupProbe.timeoutSeconds | int | `1` |  |
+| smithdb.compactionWorker.deployment.replicas | int | `1` |  |
+| smithdb.compactionWorker.deployment.resources | object | `{}` |  |
+| smithdb.compactionWorker.deployment.securityContext | object | `{}` |  |
+| smithdb.compactionWorker.deployment.sidecars | list | `[]` |  |
+| smithdb.compactionWorker.deployment.terminationGracePeriodSeconds | int | `120` |  |
+| smithdb.compactionWorker.deployment.tolerations | list | `[]` |  |
+| smithdb.compactionWorker.deployment.topologySpreadConstraints | list | `[]` |  |
+| smithdb.compactionWorker.deployment.volumeMounts | list | `[]` |  |
+| smithdb.compactionWorker.deployment.volumes | list | `[]` |  |
+| smithdb.compactionWorker.maxConcurrentJobs | string | `""` | Maximum concurrent jobs per compaction worker. Empty uses the SmithDB default. |
+| smithdb.compactionWorker.name | string | `"compaction-worker"` |  |
+| smithdb.compactionWorker.pdb.annotations | object | `{}` |  |
+| smithdb.compactionWorker.pdb.enabled | bool | `false` |  |
+| smithdb.compactionWorker.pdb.labels | object | `{}` |  |
+| smithdb.compactionWorker.pdb.minAvailable | int | `1` |  |
+| smithdb.config.existingSecretName | string | `""` | Existing secret containing SmithDB metastore credentials. |
+| smithdb.config.metastore.databaseSecretKey | string | `""` |  |
+| smithdb.config.metastore.hostSecretKey | string | `""` |  |
+| smithdb.config.metastore.passwordSecretKey | string | `""` |  |
+| smithdb.config.metastore.port | string | `"5432"` |  |
+| smithdb.config.metastore.useSsl | bool | `false` |  |
+| smithdb.config.metastore.usernameSecretKey | string | `""` |  |
+| smithdb.config.objectStore.bucket | string | `""` |  |
+| smithdb.config.objectStore.s3.accessKeyIdSecretKey | string | `""` | Keys in smithdb.config.existingSecretName for static S3 credentials. Set both to "" when using ambient cloud identity, such as IRSA. |
+| smithdb.config.objectStore.s3.endpoint | string | `""` |  |
+| smithdb.config.objectStore.s3.region | string | `""` | Defaults to the SmithDB S3 client default when empty. |
+| smithdb.config.objectStore.s3.secretAccessKeySecretKey | string | `""` |  |
+| smithdb.config.objectStore.type | string | `"s3"` | Supported values: s3, gcs. |
+| smithdb.config.observability.logging.level | string | `""` | Optional SmithDB log filter. Empty uses the chart default: INFO,vortex=WARN. |
+| smithdb.config.observability.tracing.enabled | bool | `false` | Enable OpenTelemetry tracing/log export for SmithDB components. SmithDB supports exporting OTLP over gRPC only. |
+| smithdb.config.observability.tracing.endpoint | string | `""` | OTLP gRPC collector endpoint for SmithDB traces/logs. |
+| smithdb.config.observability.tracing.extraResourceAttributes | object | `{}` | Extra OpenTelemetry resource attributes appended to SmithDB traces/logs. |
+| smithdb.enabled | bool | `false` | Deploy the in-chart SmithDB workloads. |
+| smithdb.ingestion.containerGrpcPort | int | `8082` |  |
+| smithdb.ingestion.containerPort | int | `8050` |  |
+| smithdb.ingestion.deployment.affinity | object | `{}` |  |
+| smithdb.ingestion.deployment.annotations | object | `{}` |  |
+| smithdb.ingestion.deployment.command[0] | string | `"./smithdb-ingestion"` |  |
+| smithdb.ingestion.deployment.extraContainerConfig | object | `{}` |  |
+| smithdb.ingestion.deployment.extraEnv | list | `[]` |  |
+| smithdb.ingestion.deployment.initContainers | list | `[]` |  |
+| smithdb.ingestion.deployment.labels | object | `{}` |  |
+| smithdb.ingestion.deployment.nodeSelector | object | `{}` |  |
+| smithdb.ingestion.deployment.podSecurityContext | object | `{}` |  |
+| smithdb.ingestion.deployment.probes.livenessProbe.failureThreshold | int | `6` |  |
+| smithdb.ingestion.deployment.probes.livenessProbe.httpGet.path | string | `"/health"` |  |
+| smithdb.ingestion.deployment.probes.livenessProbe.httpGet.port | string | `"http"` |  |
+| smithdb.ingestion.deployment.probes.livenessProbe.periodSeconds | int | `10` |  |
+| smithdb.ingestion.deployment.probes.livenessProbe.timeoutSeconds | int | `1` |  |
+| smithdb.ingestion.deployment.probes.readinessProbe.failureThreshold | int | `6` |  |
+| smithdb.ingestion.deployment.probes.readinessProbe.httpGet.path | string | `"/health"` |  |
+| smithdb.ingestion.deployment.probes.readinessProbe.httpGet.port | string | `"http"` |  |
+| smithdb.ingestion.deployment.probes.readinessProbe.periodSeconds | int | `10` |  |
+| smithdb.ingestion.deployment.probes.readinessProbe.timeoutSeconds | int | `1` |  |
+| smithdb.ingestion.deployment.probes.startupProbe.failureThreshold | int | `6` |  |
+| smithdb.ingestion.deployment.probes.startupProbe.httpGet.path | string | `"/health"` |  |
+| smithdb.ingestion.deployment.probes.startupProbe.httpGet.port | string | `"http"` |  |
+| smithdb.ingestion.deployment.probes.startupProbe.periodSeconds | int | `10` |  |
+| smithdb.ingestion.deployment.probes.startupProbe.timeoutSeconds | int | `1` |  |
+| smithdb.ingestion.deployment.replicas | int | `1` |  |
+| smithdb.ingestion.deployment.resources | object | `{}` |  |
+| smithdb.ingestion.deployment.securityContext | object | `{}` |  |
+| smithdb.ingestion.deployment.sidecars | list | `[]` |  |
+| smithdb.ingestion.deployment.strategy.rollingUpdate.maxSurge | int | `1` |  |
+| smithdb.ingestion.deployment.strategy.rollingUpdate.maxUnavailable | int | `0` |  |
+| smithdb.ingestion.deployment.strategy.type | string | `"RollingUpdate"` |  |
+| smithdb.ingestion.deployment.terminationGracePeriodSeconds | int | `300` |  |
+| smithdb.ingestion.deployment.tolerations | list | `[]` |  |
+| smithdb.ingestion.deployment.topologySpreadConstraints | list | `[]` |  |
+| smithdb.ingestion.deployment.volumeMounts | list | `[]` |  |
+| smithdb.ingestion.deployment.volumes | list | `[]` |  |
+| smithdb.ingestion.name | string | `"ingestion"` |  |
+| smithdb.ingestion.pdb.annotations | object | `{}` |  |
+| smithdb.ingestion.pdb.enabled | bool | `false` |  |
+| smithdb.ingestion.pdb.labels | object | `{}` |  |
+| smithdb.ingestion.pdb.minAvailable | int | `1` |  |
+| smithdb.ingestion.service.annotations | object | `{}` |  |
+| smithdb.ingestion.service.labels | object | `{}` |  |
+| smithdb.ingestion.service.port | int | `8082` |  |
+| smithdb.langsmith.dualIngest.enabled | bool | `false` | Enables LangSmith run ingestion to also write to SmithDB. Requires smithdb.enabled. |
+| smithdb.langsmith.frontend.useSmithDBEndpoints | bool | `false` | Defaults the LangSmith UI to SmithDB endpoints for run queries. Requires smithdb.enabled. |
+| smithdb.metastoreMigration.command[0] | string | `"./smithdb-metastore-migrate-entrypoint.sh"` |  |
+| smithdb.metastoreMigration.job.activeDeadlineSeconds | int | `600` |  |
+| smithdb.metastoreMigration.job.affinity | object | `{}` |  |
+| smithdb.metastoreMigration.job.annotations | object | `{}` |  |
+| smithdb.metastoreMigration.job.backoffLimit | int | `0` |  |
+| smithdb.metastoreMigration.job.extraEnv | list | `[]` |  |
+| smithdb.metastoreMigration.job.labels | object | `{}` |  |
+| smithdb.metastoreMigration.job.nodeSelector | object | `{}` |  |
+| smithdb.metastoreMigration.job.podAnnotations | object | `{}` |  |
+| smithdb.metastoreMigration.job.podSecurityContext | object | `{}` |  |
+| smithdb.metastoreMigration.job.resources | object | `{}` |  |
+| smithdb.metastoreMigration.job.restartPolicy | string | `"Never"` |  |
+| smithdb.metastoreMigration.job.securityContext | object | `{}` |  |
+| smithdb.metastoreMigration.job.tolerations | list | `[]` |  |
+| smithdb.metastoreMigration.job.ttlSecondsAfterFinished | int | `3600` |  |
+| smithdb.metastoreMigration.name | string | `"metastore-migration"` |  |
+| smithdb.metastoreMigration.useSsl | bool | `false` |  |
+| smithdb.name | string | `"smithdb"` | Name segment used for SmithDB resources. |
+| smithdb.query.containerGrpcPort | int | `8080` |  |
+| smithdb.query.containerPort | int | `8060` |  |
+| smithdb.query.deployment.affinity | object | `{}` |  |
+| smithdb.query.deployment.annotations | object | `{}` |  |
+| smithdb.query.deployment.command[0] | string | `"./smithdb-query"` |  |
+| smithdb.query.deployment.extraContainerConfig | object | `{}` |  |
+| smithdb.query.deployment.extraEnv | list | `[]` |  |
+| smithdb.query.deployment.initContainers | list | `[]` |  |
+| smithdb.query.deployment.labels | object | `{}` |  |
+| smithdb.query.deployment.nodeSelector | object | `{}` |  |
+| smithdb.query.deployment.podSecurityContext | object | `{}` |  |
+| smithdb.query.deployment.probes.livenessProbe.failureThreshold | int | `6` |  |
+| smithdb.query.deployment.probes.livenessProbe.httpGet.path | string | `"/health"` |  |
+| smithdb.query.deployment.probes.livenessProbe.httpGet.port | string | `"http"` |  |
+| smithdb.query.deployment.probes.livenessProbe.periodSeconds | int | `10` |  |
+| smithdb.query.deployment.probes.livenessProbe.timeoutSeconds | int | `1` |  |
+| smithdb.query.deployment.probes.readinessProbe.failureThreshold | int | `6` |  |
+| smithdb.query.deployment.probes.readinessProbe.httpGet.path | string | `"/health"` |  |
+| smithdb.query.deployment.probes.readinessProbe.httpGet.port | string | `"http"` |  |
+| smithdb.query.deployment.probes.readinessProbe.periodSeconds | int | `10` |  |
+| smithdb.query.deployment.probes.readinessProbe.timeoutSeconds | int | `1` |  |
+| smithdb.query.deployment.probes.startupProbe.failureThreshold | int | `6` |  |
+| smithdb.query.deployment.probes.startupProbe.httpGet.path | string | `"/health"` |  |
+| smithdb.query.deployment.probes.startupProbe.httpGet.port | string | `"http"` |  |
+| smithdb.query.deployment.probes.startupProbe.periodSeconds | int | `10` |  |
+| smithdb.query.deployment.probes.startupProbe.timeoutSeconds | int | `1` |  |
+| smithdb.query.deployment.replicas | int | `1` |  |
+| smithdb.query.deployment.resources | object | `{}` |  |
+| smithdb.query.deployment.securityContext | object | `{}` |  |
+| smithdb.query.deployment.sidecars | list | `[]` |  |
+| smithdb.query.deployment.strategy.rollingUpdate.maxSurge | int | `1` |  |
+| smithdb.query.deployment.strategy.rollingUpdate.maxUnavailable | int | `0` |  |
+| smithdb.query.deployment.strategy.type | string | `"RollingUpdate"` |  |
+| smithdb.query.deployment.tolerations | list | `[]` |  |
+| smithdb.query.deployment.topologySpreadConstraints | list | `[]` |  |
+| smithdb.query.deployment.volumeMounts | list | `[]` |  |
+| smithdb.query.deployment.volumes | list | `[]` |  |
+| smithdb.query.name | string | `"query"` |  |
+| smithdb.query.pdb.annotations | object | `{}` |  |
+| smithdb.query.pdb.enabled | bool | `false` |  |
+| smithdb.query.pdb.labels | object | `{}` |  |
+| smithdb.query.pdb.minAvailable | int | `1` |  |
+| smithdb.query.service.annotations | object | `{}` |  |
+| smithdb.query.service.labels | object | `{}` |  |
+| smithdb.query.service.port | int | `8080` |  |
+| smithdb.serviceAccount | object | `{"annotations":{},"automountServiceAccountToken":true,"create":true,"labels":{},"name":""}` | Shared ServiceAccount for SmithDB workloads. |
+| smithdb.serviceAccount.name | string | `""` | Defaults to <release>-<smithdb.name>. |
 
 ## Configs
 
@@ -877,6 +1146,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | config.agentBuilder.oauth.linearOAuthProvider | string | `""` |  |
 | config.agentBuilder.oauth.linkedinOAuthProvider | string | `""` |  |
 | config.agentBuilder.oauth.microsoftOAuthProvider | string | `""` |  |
+| config.agentBuilder.oauth.salesforceOAuthProvider | string | `""` |  |
 | config.agentBuilder.oauth.slackBotId | string | `""` |  |
 | config.agentBuilder.oauth.slackOAuthProvider | string | `""` |  |
 | config.agentBuilder.oauth.slackSigningSecret | string | `""` |  |
@@ -905,7 +1175,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | config.blobStorage.s3UsePathStyle | bool | `false` |  |
 | config.customCa.secretKey | string | `""` |  |
 | config.customCa.secretName | string | `""` | Optional. Used to set a file containing trusted CA certificates. Make sure to also include a public CA to access beacon and playground. |
-| config.customErrorSupportMessage | string | `""` | Custom error support message displayed on error pages (plain text). If empty, defaults to the built-in support messages with support@langchain.dev links. |
+| config.customErrorSupportMessage | string | `""` | Custom error support message displayed on error pages (plain text). If empty, defaults to the built-in support messages linking to our Support Portal (https://support.langchain.com). |
 | config.customLogo | object | `{"coBrandingEnabled":true,"enabled":false,"logoUrl":""}` | Custom logo configuration. If enabled, the logoUrl and coBrandingEnabled values must be provided. The logoUrl must be a valid URL to an image like png, jpg, or svg. Co-branding will show LangSmith and customer logos side by side. |
 | config.defaultWorkspaceName | string | `"Workspace 1"` | Default workspace name to be provisioned when org is created. |
 | config.deployment | object | `{"basePath":"","enabled":false,"ingressHealthCheckEnabled":true,"tlsEnabled":true}` | Configuration for LangSmith Deployments features |

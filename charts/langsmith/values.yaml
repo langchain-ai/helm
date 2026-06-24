@@ -6,6 +6,31 @@ nameOverride: ""
 fullnameOverride: ""
 # -- Namespace to install the chart into. If not set, will use the namespace of the current context.
 namespace: ""
+# -- Prerequisite manifests rendered as Helm pre-install / pre-upgrade hooks so they
+# -- are applied before the rest of the chart's resources. Typical use case is an
+# -- ExternalSecret that produces a Secret consumed via `config.existingSecretName`.
+# -- See `templates/pre-install-manifests.yaml` for entry forms, injected
+# -- annotations, idempotency rules, and caveats.
+# Example:
+# preInstallManifests:
+#   - apiVersion: external-secrets.io/v1beta1
+#     kind: ExternalSecret
+#     metadata:
+#       name: langsmith-app
+#     spec:
+#       refreshInterval: 1h
+#       secretStoreRef:
+#         name: vault-backend
+#         kind: ClusterSecretStore
+#       target:
+#         name: langsmith-app-secret
+#         creationPolicy: Orphan
+#       data:
+#         - secretKey: langsmith_license_key
+#           remoteRef:
+#             key: secret/langsmith/app
+#             property: langsmith_license_key
+preInstallManifests: []
 # -- Annotations that will be applied to all resources created by the chart
 commonAnnotations: {}
 # -- Annotations that will be applied to all pods created by the chart
@@ -40,23 +65,23 @@ images:
   aceBackendImage:
     repository: "docker.io/langchain/langsmith-ace-backend"
     pullPolicy: IfNotPresent
-    tag: "0.16.4rc1"
+    tag: "0.16.5rc1"
   backendImage:
     repository: "docker.io/langchain/langsmith-backend"
     pullPolicy: IfNotPresent
-    tag: "0.16.4rc1"
+    tag: "0.16.5rc1"
   insightsAgentImage:
     repository: "docker.io/langchain/langsmith-clio"
     pullPolicy: IfNotPresent
-    tag: "0.16.4rc1"
+    tag: "0.16.5rc1"
   frontendImage:
     repository: "docker.io/langchain/langsmith-frontend"
     pullPolicy: IfNotPresent
-    tag: "0.16.4rc1"
+    tag: "0.16.5rc1"
   hostBackendImage:
     repository: "docker.io/langchain/hosted-langserve-backend"
     pullPolicy: IfNotPresent
-    tag: "0.16.4rc1"
+    tag: "0.16.5rc1"
   operatorImage:
     repository: "docker.io/langchain/langgraph-operator"
     pullPolicy: IfNotPresent
@@ -64,11 +89,11 @@ images:
   platformBackendImage:
     repository: "docker.io/langchain/langsmith-go-backend"
     pullPolicy: IfNotPresent
-    tag: "0.16.4rc1"
+    tag: "0.16.5rc1"
   playgroundImage:
     repository: "docker.io/langchain/langsmith-playground"
     pullPolicy: IfNotPresent
-    tag: "0.16.4rc1"
+    tag: "0.16.5rc1"
   # For production environments, we strongly recommend connecting to a managed PostgreSQL instance instead of using the one provided by the chart.
   # Docs: https://docs.langchain.com/langsmith/self-host-external-postgres
   postgresImage:
@@ -88,19 +113,19 @@ images:
   fleetToolServerImage:
     repository: "docker.io/langchain/agent-builder-tool-server"
     pullPolicy: IfNotPresent
-    tag: "0.16.4rc1"
+    tag: "0.16.5rc1"
   fleetTriggerServerImage:
     repository: "docker.io/langchain/agent-builder-trigger-server"
     pullPolicy: IfNotPresent
-    tag: "0.16.4rc1"
+    tag: "0.16.5rc1"
   agentBuilderImage:
     repository: "docker.io/langchain/agent-builder-deep-agent"
     pullPolicy: IfNotPresent
-    tag: "0.16.4rc1"
+    tag: "0.16.5rc1"
   pollyAgentImage:
     repository: "docker.io/langchain/langsmith-polly"
     pullPolicy: IfNotPresent
-    tag: "0.16.4rc1"
+    tag: "0.16.5rc1"
   smithdbQueryImage:
     repository: "docker.io/langchain/smithdb-query"
     pullPolicy: IfNotPresent
@@ -165,6 +190,7 @@ fleet:
     linearOAuthProvider: ""
     githubOAuthProvider: ""
     microsoftOAuthProvider: ""
+    salesforceOAuthProvider: ""
     slackSigningSecret: ""
     slackBotId: ""
   apiServer:
@@ -908,12 +934,14 @@ config:
     # - linearOAuthProvider: Linear tools
     # - githubOAuthProvider: GitHub tools
     # - microsoftOAuthProvider: Outlook, Teams, SharePoint tools + Outlook trigger
+    # - salesforceOAuthProvider: Salesforce tools
     oauth:
       googleOAuthProvider: ""
       linkedinOAuthProvider: ""
       linearOAuthProvider: ""
       githubOAuthProvider: ""
       microsoftOAuthProvider: ""
+      salesforceOAuthProvider: ""
       slackOAuthProvider: ""
       slackSigningSecret: ""
       slackBotId: ""
@@ -1057,7 +1085,7 @@ config:
     coBrandingEnabled: true
 
   # -- Custom error support message displayed on error pages (plain text).
-  # If empty, defaults to the built-in support messages with support@langchain.dev links.
+  # If empty, defaults to the built-in support messages linking to our Support Portal (https://support.langchain.com).
   customErrorSupportMessage: ""
 
   # -- Enables Google IAP (Identity-Aware Proxy) session handling in the frontend.
