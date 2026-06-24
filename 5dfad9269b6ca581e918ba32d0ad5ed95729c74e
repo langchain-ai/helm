@@ -1,0 +1,23 @@
+charts/langsmith/README.md
+  s_6ecc294cdf56b8::t_b3585d22525a88 908
+charts/langsmith/docs/UPGRADE-0.2.x.md
+  s_6ecc294cdf56b8::t_02226c17db6468 75
+charts/langsmith/values.yaml
+  s_6ecc294cdf56b8::t_881669dd33f5d2 1040
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "5dfad9269b6ca581e918ba32d0ad5ed95729c74e",
+  "prompts": {},
+  "sessions": {
+    "s_6ecc294cdf56b8": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "e028ac05-ecf7-446e-a0fb-d46392344031",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "lutan-langchain <lucy.tan@langchain.dev>"
+    }
+  }
+}

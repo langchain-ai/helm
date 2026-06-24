@@ -1,0 +1,19 @@
+charts/langsmith/scripts/get_k8s_debugging_info.sh
+  s_f9fef687625910::t_b6acfe3eeb1fcc 205
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.9",
+  "base_commit_sha": "cf4aea10a46df5c24de589436e10712fa7f5cc93",
+  "prompts": {},
+  "sessions": {
+    "s_f9fef687625910": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "e26db71b-ab6b-4a29-9f10-b68a5fb7ca2a",
+        "model": "claude-sonnet-4-6"
+      },
+      "human_author": "gdibben <gethin.dibben@langchain.dev>"
+    }
+  }
+}
