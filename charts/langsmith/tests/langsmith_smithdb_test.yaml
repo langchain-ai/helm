@@ -94,8 +94,14 @@ tests:
           path: data.SMITHDB_QUERY_SERVICE_URL
           value: RELEASE-NAME-langsmith-smithdb-query.NAMESPACE.svc.cluster.local:8080
       - equal:
+          path: data.SMITHDB_QUERY_ENABLED
+          value: "true"
+      - equal:
           path: data.SMITHDB_INGESTION_SERVICE_URL
           value: RELEASE-NAME-langsmith-smithdb-ingestion.NAMESPACE.svc.cluster.local:8082
+      - equal:
+          path: data.SMITHDB_INGESTION_ENABLED
+          value: "true"
       - equal:
           path: data.SMITHDB_MUTATIONS_SERVICE_URL
           value: RELEASE-NAME-langsmith-smithdb-query.NAMESPACE.svc.cluster.local:8080
@@ -143,9 +149,13 @@ tests:
       - notExists:
           path: data.SMITHDB_QUERY_SERVICE_URL
       - notExists:
+          path: data.SMITHDB_QUERY_ENABLED
+      - notExists:
           path: data.SMITHDB_MUTATIONS_SERVICE_URL
       - notExists:
           path: data.SMITHDB_INGESTION_SERVICE_URL
+      - notExists:
+          path: data.SMITHDB_INGESTION_ENABLED
       - notExists:
           path: data.SMITHDB_INGEST_ORGS_ROLLOUT_PCT
       - notExists:
