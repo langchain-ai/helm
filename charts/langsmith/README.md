@@ -1178,9 +1178,10 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | config.customErrorSupportMessage | string | `""` | Custom error support message displayed on error pages (plain text). If empty, defaults to the built-in support messages linking to our Support Portal (https://support.langchain.com). |
 | config.customLogo | object | `{"coBrandingEnabled":true,"enabled":false,"logoUrl":""}` | Custom logo configuration. If enabled, the logoUrl and coBrandingEnabled values must be provided. The logoUrl must be a valid URL to an image like png, jpg, or svg. Co-branding will show LangSmith and customer logos side by side. |
 | config.defaultWorkspaceName | string | `"Workspace 1"` | Default workspace name to be provisioned when org is created. |
-| config.deployment | object | `{"basePath":"","enabled":false,"ingressHealthCheckEnabled":true,"tlsEnabled":true}` | Configuration for LangSmith Deployments features |
+| config.deployment | object | `{"basePath":"","enabled":false,"ingressHealthCheckEnabled":true,"tlsEnabled":true,"uncappedResourcesEnabled":false}` | Configuration for LangSmith Deployments features |
 | config.deployment.basePath | string | `""` | Base path for LangSmith Deployments routes managed by the operator. |
 | config.deployment.enabled | bool | `false` | Optional. Used to enable the LangSmith Deployments feature. Requires additional setup. Refer to the documentation for more information. |
+| config.deployment.uncappedResourcesEnabled | bool | `false` | Lift the SaaS CPU/memory caps on LangSmith Deployments resource specs. Opt-in for self-hosted. |
 | config.disableSecretCreation | bool | `false` |  |
 | config.existingSecretName | string | `""` |  |
 | config.googleIapEnabled | bool | `false` | Enables Google IAP (Identity-Aware Proxy) session handling in the frontend. When true, the frontend adds required IAP headers, uses credentialed fetches, and handles 401 re-auth via GCP's session refresh mechanism. |
