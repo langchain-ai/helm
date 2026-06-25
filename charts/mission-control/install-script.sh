@@ -305,6 +305,10 @@ config:
     dbTools: true
     deploy: true
     valuesOverride: true
+    # Contention Insights is opt-in: set to true to gain new RBAC verbs
+    # (configmap update/delete on `mission-control-contention-config`;
+    # unscoped secrets:create,delete for dynamic incident secret names).
+    contention: false
   discoverNamespaces: ""
 
 diagnostics:

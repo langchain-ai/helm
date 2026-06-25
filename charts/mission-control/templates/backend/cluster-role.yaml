@@ -179,6 +179,47 @@ rules:
     verbs: ["delete"]
   {{- end }}
 
+  # ── Contention Insights (disable via features.contention=false) ──────────
+  # Read-only probes use the existing pods/configmaps read verbs above. The
+  # detector additionally needs to:
+  #   - update/delete its own ConfigMap (scoped by name below)
+  #   - create the ConfigMap on first write (unscoped - RBAC create cannot be
+  #     scoped by resourceName; application layer writes only the named CM)
+  #   - create + delete incident Secrets named
+  #     `mission-control-contention-incident-<unix_ts>`. resourceNames cannot
+  #     match a prefix and incident names are dynamic, so secrets:create,delete
+  #     are unscoped under this flag. Same trade-off as the deploy block.
+  #     Set features.contention=false to remove these verbs entirely.
+  {{- if (default false .Values.config.features.contention) }}
+  # The DB probes exec read-only commands (redis-cli INFO/SLOWLOG/XLEN,
+  # psql -c SELECT, clickhouse-client SELECT) inside the data-store pods via the
+  # K8s exec API. k8s_exec.py uses kubernetes.stream(connect_get_namespaced_pod_exec),
+  # which issues a GET against the pods/exec subresource, so "get" is required;
+  # "create" is retained for POST/kubectl-style exec. Without "get" the probe fails
+  # with 403 "cannot get resource pods/exec" even though "create" is allowed. The
+  # exec layer (k8s_exec.py) restricts the executable to a fixed allowlist
+  # (redis-cli/psql/clickhouse-client/sh) running hardcoded commands; log-signal
+  # probes use the pods/log read verb above.
+  - apiGroups: [""]
+    resources: ["pods/exec"]
+    verbs: ["create", "get"]
+  - apiGroups: [""]
+    resources: ["configmaps"]
+    verbs: ["create"]
+  - apiGroups: [""]
+    resources: ["configmaps"]
+    verbs: ["update", "delete", "patch"]
+    resourceNames:
+      - mission-control-contention-config
+  {{- if not .Values.config.features.deploy }}
+  # Only add unscoped secret create/delete here if deploy hasn't already
+  # granted them (avoids duplicate rules in the rendered ClusterRole).
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["create", "delete"]
+  {{- end }}
+  {{- end }}
+
   # ── Adopt button (disable via features.adopt=false) ───────────────────────
   # Patches Helm ownership annotations onto existing resources so helm upgrade
   # can manage resources that were created outside the release.

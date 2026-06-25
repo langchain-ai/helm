@@ -1,6 +1,6 @@
 # mission-control
 
-![Version: 1.1.0](https://img.shields.io/badge/Version-1.1.0-informational?style=flat-square) ![AppVersion: 1.1.0](https://img.shields.io/badge/AppVersion-1.1.0-informational?style=flat-square)
+![Version: 1.2.0](https://img.shields.io/badge/Version-1.2.0-informational?style=flat-square) ![AppVersion: 1.2.0](https://img.shields.io/badge/AppVersion-1.2.0-informational?style=flat-square)
 
 Mission Control to deploy and manage Langsmith in EKS
 
@@ -47,6 +47,7 @@ All write operations and external egress are gated behind Helm feature flags. Wi
 | `features.configSave` | `true` | Draft config persistence to a K8s Secret |
 | `features.discover` | `true` | Infra discovery scan (connection strings, license keys) |
 | `features.deploy` | `true` | In-UI `helm upgrade --install` (LangSmith + sibling charts) |
+| `features.contention` | `false` | Contention Insights — Redis/Postgres/ClickHouse probes + incident persistence (opt-in; adds pods/exec + configmap/secret write verbs) |
 
 Read-only console  zero write verbs, no external egress:
 
@@ -117,6 +118,7 @@ helm install mission-control langchain/mission-control \
 | config.features.alerts | bool | `true` | Alert notifications (SMTP + webhook). Grants write access to alert-config secrets. Egress: outbound SMTP and webhook to the configured endpoints. |
 | config.features.chat | bool | `true` | Chat assistant: floating widget that proxies to chat.langchain.com. Egress: outbound HTTPS to chat.langchain.com and *.us.langgraph.app. |
 | config.features.configSave | bool | `true` | Persists working configuration to the draft Kubernetes Secret. Grants write access to the mission-control-draft secret. |
+| config.features.contention | bool | `false` | Contention insights: live probe of Redis/Postgres/ClickHouse/workers plus a background detector that persists incidents as Secrets. Grants update/delete on the `mission-control-contention-config` ConfigMap and unscoped secrets:create,delete for incident storage (incident names carry per-second timestamps which cannot be enumerated up front). Defaults to false: existing installs upgrading the chart do not silently gain the new RBAC verbs. Set to true to enable the sidebar tab and the /api/contention/* endpoints. |
 | config.features.dbTools | bool | `true` | Database detection, preflight checks, and support query execution. Adds no extra RBAC verbs; gates the /db/* endpoints at the application layer. |
 | config.features.deploy | bool | `true` |  |
 | config.features.diagnostics | bool | `true` | Diagnostic bundle download (pod logs + resource manifests packaged as a zip). |

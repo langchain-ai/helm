@@ -42,6 +42,8 @@ config:
 
   # Feature flags. Disabling a flag removes its write verbs from the ClusterRole.
   # With every flag false the ClusterRole is read-only.
+  # Contention Insights (`contention`, below) is opt-in: it defaults to false so
+  # existing installs do not silently gain new RBAC verbs on upgrade.
   features:
     # -- Fix Issue button: deletes pods stuck in CreateContainerConfigError. Grants pods:delete.
     fixIssue: true
@@ -75,6 +77,15 @@ config:
     # `mission-control-values-overrides` Secret. Set to false to remove the pill
     # and 403 the /api/values-overrides/* endpoints.
     valuesOverride: true
+    # -- Contention insights: live probe of Redis/Postgres/ClickHouse/workers
+    # plus a background detector that persists incidents as Secrets. Grants
+    # update/delete on the `mission-control-contention-config` ConfigMap and
+    # unscoped secrets:create,delete for incident storage (incident names
+    # carry per-second timestamps which cannot be enumerated up front).
+    # Defaults to false: existing installs upgrading the chart do not silently
+    # gain the new RBAC verbs. Set to true to enable the sidebar tab and the
+    # /api/contention/* endpoints.
+    contention: false
 
   # -- Extra namespaces (comma-separated) the discover feature is allowed to scan.
   # Default scans only the chart's release namespace to prevent cross-namespace secret
