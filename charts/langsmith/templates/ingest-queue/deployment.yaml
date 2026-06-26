@@ -5,7 +5,7 @@
   value: {{ .Values.ingestQueue.containerPort | quote }}
 {{- end -}}
 {{- if .Values.ingestQueue.enabled }}
-{{- $envVars := concat .Values.commonEnv (include "langsmith.commonEnv" . | fromYamlArray) (include "ingestQueueEnvVars" . | fromYamlArray) .Values.ingestQueue.deployment.extraEnv -}}
+{{- $envVars := concat .Values.commonEnv (include "langsmith.commonEnv" . | fromYamlArray) (include "ingestQueueEnvVars" . | fromYamlArray) (include "langsmith.sandboxes.ingestQueueEnv" . | fromYamlArray) .Values.ingestQueue.deployment.extraEnv -}}
 {{- include "langsmith.detectDuplicates" $envVars -}}
 {{- $volumes := concat .Values.commonVolumes .Values.ingestQueue.deployment.volumes (include "langsmith.tlsVolumes" . | fromYamlArray)  -}}
 {{- $volumeMounts := concat .Values.commonVolumeMounts .Values.ingestQueue.deployment.volumeMounts (include "langsmith.tlsVolumeMounts" . | fromYamlArray) -}}

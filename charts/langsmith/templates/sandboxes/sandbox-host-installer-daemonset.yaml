@@ -1,0 +1,81 @@
+{{- if and .Values.config.sandboxes.enabled .Values.config.sandboxes.sandboxHost.enabled .Values.config.sandboxes.sandboxHostInstaller.enabled }}
+{{- $namespace := include "langsmith.sandboxes.namespace" . }}
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: {{ .Values.config.sandboxes.sandboxHostInstaller.name }}
+  namespace: {{ $namespace }}
+  labels:
+    app: sandbox-host-installer
+    {{- include "langsmith.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      app: sandbox-host-installer
+  updateStrategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: {{ .Values.config.sandboxes.sandboxHostInstaller.maxUnavailable }}
+  template:
+    metadata:
+      labels:
+        app: sandbox-host-installer
+        {{- include "langsmith.labels" . | nindent 8 }}
+    spec:
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      {{- with .Values.images.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.config.sandboxes.sandboxHost.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.config.sandboxes.sandboxHost.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: installer
+          image: {{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "sandboxHostImage") | quote }}
+          imagePullPolicy: {{ .Values.images.sandboxHostImage.pullPolicy }}
+          command:
+            - /opt/sandbox-host/bin/sandbox-host
+            - --install
+            - -addr
+            - 127.0.0.1:{{ .Values.config.sandboxes.sandboxHost.containerPort }}
+            - -binary-path
+            - /host-bin/sandbox-host
+            - -ready-file
+            - /tmp/installer-ready
+            - -timeout
+            - {{ .Values.config.sandboxes.sandboxHostInstaller.timeout | quote }}
+          env:
+            - name: LANGCHAIN_ENV
+              value: {{ .Values.config.sandboxes.langchainEnv | quote }}
+            - name: SANDBOX_X_SERVICE_AUTH_JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "langsmith.sandboxes.runtimeSecretName" . }}
+                  key: {{ .Values.config.sandboxes.runtimeSecret.xServiceAuthJwtSecretKey }}
+          readinessProbe:
+            exec:
+              command: ["test", "-f", "/tmp/installer-ready"]
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 2
+            failureThreshold: 60
+          securityContext:
+            {{- toYaml .Values.config.sandboxes.sandboxHostInstaller.securityContext | nindent 12 }}
+          resources:
+            {{- toYaml .Values.config.sandboxes.sandboxHostInstaller.resources | nindent 12 }}
+          volumeMounts:
+            - name: host-bin
+              mountPath: /host-bin
+      volumes:
+        - name: host-bin
+          hostPath:
+            path: /var/lib/sandbox-host
+            type: DirectoryOrCreate
+{{- end }}

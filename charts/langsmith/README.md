@@ -1,12 +1,18 @@
 # langsmith
 
-![Version: 0.16.0-rc.4](https://img.shields.io/badge/Version-0.16.0--rc.4-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.16.5rc1](https://img.shields.io/badge/AppVersion-0.16.5rc1-informational?style=flat-square)
+![Version: 0.16.0-rc.5](https://img.shields.io/badge/Version-0.16.0--rc.5-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.16.5rc1](https://img.shields.io/badge/AppVersion-0.16.5rc1-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
 ## Documentation
 
 For information on how to use this chart, up-to-date release notes, and other guides please check out the [documentation.](https://docs.langchain.com/langsmith/kubernetes)
+
+## Requirements
+
+| Repository | Name | Version |
+|------------|------|---------|
+| https://juicedata.github.io/charts/ | juicefs-csi-driver | 0.31.4 |
 
 ## General parameters
 
@@ -389,6 +395,8 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | images.redisImage.repository | string | `"docker.io/redis"` |  |
 | images.redisImage.tag | string | `"7"` |  |
 | images.registry | string | `""` | If supplied, all children <image_name>.repository values will be prepended with this registry name + `/` |
+| images.sandboxHostImage | object | `{"pullPolicy":"IfNotPresent","repository":"","tag":""}` | sandbox-host image. Only used when config.sandboxes.enabled is true. |
+| images.smithboxControlImage | object | `{"pullPolicy":"IfNotPresent","repository":"","tag":""}` | smithbox-control image. Only used when config.sandboxes.enabled is true. |
 | images.smithdbClusterManagerImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.smithdbClusterManagerImage.repository | string | `"docker.io/langchain/smithdb-clustermanager"` |  |
 | images.smithdbClusterManagerImage.tag | string | `"latest"` |  |
@@ -681,6 +689,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | istioGateway.labels | object | `{}` |  |
 | istioGateway.name | string | `"istio-gateway"` |  |
 | istioGateway.namespace | string | `"istio-system"` |  |
+| juicefs-csi-driver | object | `{"controller":{"annotations":{"prometheus.io/path":"/metrics","prometheus.io/port":"9567","prometheus.io/scrape":"true"}},"globalConfig":{"enabled":true,"mountPodPatch":[{"annotations":{"prometheus.io/path":"/metrics","prometheus.io/port":"9567","prometheus.io/scrape":"true"},"mountOptions":["cache-dir=/var/cache/juicefs-csi","cache-size=51200","buffer-size=300","prefetch=3","metrics=0.0.0.0:9567"],"resources":{"limits":{"cpu":"2","memory":"4Gi"},"requests":{"cpu":"2","memory":"4Gi"}}},{"mountOptions":["cache-dir=/var/cache/juicefs-csi","cache-size=307200"],"pvcSelector":{"matchLabels":{"juicefs.langsmith.com/cache":"ssd"}}}]},"node":{"annotations":{"prometheus.io/path":"/metrics","prometheus.io/port":"9567","prometheus.io/scrape":"true"},"fsShareMount":true,"tolerations":[{"effect":"NoSchedule","key":"sandbox.langsmith.com/host","operator":"Equal","value":"true"}]},"storageClasses":[{"enabled":false}]}` | Values for the JuiceFS CSI dependency. The dependency is installed only when config.sandboxes.enabled is true. |
 | nameOverride | string | `""` | Provide a name in place of `langsmith` |
 | namespace | string | `""` | Namespace to install the chart into. If not set, will use the namespace of the current context. |
 | polly.apiServer.autoscaling.enabled | bool | `false` |  |
@@ -874,6 +883,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | polly.redis.statefulSet.updateStrategy | object | `{}` | Optional StatefulSet update strategy for the in-chart Polly Redis instance. Leave unset to keep the Kubernetes default RollingUpdate behavior. |
 | polly.redis.statefulSet.volumeMounts | list | `[]` |  |
 | polly.redis.statefulSet.volumes | list | `[]` |  |
+| preInstallManifests | list | `[]` | annotations, idempotency rules, and caveats. Example: preInstallManifests:   - apiVersion: external-secrets.io/v1beta1     kind: ExternalSecret     metadata:       name: langsmith-app     spec:       refreshInterval: 1h       secretStoreRef:         name: vault-backend         kind: ClusterSecretStore       target:         name: langsmith-app-secret         creationPolicy: Orphan       data:         - secretKey: langsmith_license_key           remoteRef:             key: secret/langsmith/app             property: langsmith_license_key |
 | smithdb.clusterManager.containerGrpcPort | int | `8091` |  |
 | smithdb.clusterManager.containerPort | int | `8090` |  |
 | smithdb.clusterManager.deployment.affinity | object | `{}` |  |
@@ -1204,6 +1214,20 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | config.observability.tracing.useTls | bool | `true` |  |
 | config.orgAdminsInstallationUsageExportEnabled | bool | `false` | When true, any org admin can use the usage backfill export. |
 | config.personalOrgsDisabled | bool | `true` | Disable personal orgs. |
+| config.sandboxes | object | `{"callbackSigningJwk":"","clusterName":"","defaultBlueprintImage":"","enabled":false,"firecrackerSizeClasses":[{"mem_mib":1792,"name":"small","vcpus":1},{"mem_mib":3840,"name":"medium","vcpus":1},{"mem_mib":7936,"name":"large","vcpus":2},{"mem_mib":16128,"name":"xlarge","vcpus":4}],"juicefs":{"bucket":"","csi":{"configSecretName":"juicefs-csi-config","configSecretNamespace":"","enabled":true,"hostPVCName":"smithbox-juicefs-csi-host","hostPVName":"smithbox-juicefs-csi-host","metaURL":"","mountPath":"/juicefs","pvName":"smithbox-juicefs-csi","pvcName":"smithbox-juicefs-csi"},"enabled":true,"storage":"s3"},"langchainEnv":"local_kubernetes","limits":{"maxCpuCores":16,"maxEphemeralStorageGib":100,"maxMemoryGb":64,"maxSandboxes":1000,"minEphemeralStorageGb":1},"namespace":"langsmith-sandboxes","proxyCA":{"certManager":{"createIssuer":true,"duration":"8760h","issuerKind":"Issuer","issuerName":"smithbox-proxy-selfsigned","renewBefore":"720h"},"existingSecretName":"","mode":"generatedSecret","secretName":"smithbox-proxy-ca"},"runtimeSecret":{"callbackSigningJwkKey":"sandbox_callback_signing_jwk","create":true,"existingSecretName":"","name":"sandbox-external","xServiceAuthJwtSecretKey":"x_service_auth_jwt_secret","xServiceAuthJwtSecretPreviousKey":"x_service_auth_jwt_secret_previous"},"sandboxHost":{"containerPort":19190,"enabled":true,"name":"sandbox-host","nodeSelector":{"sandbox.langsmith.com/host":"true"},"resources":{"requests":{"cpu":"2","memory":"2Gi"}},"securityContext":{"privileged":true},"serviceAccount":{"annotations":{},"automountServiceAccountToken":true,"create":true,"labels":{},"name":""},"terminationGracePeriodSeconds":300,"tolerations":[{"effect":"NoSchedule","key":"sandbox.langsmith.com/host","operator":"Equal","value":"true"}]},"sandboxHostInstaller":{"enabled":true,"maxUnavailable":1,"name":"sandbox-host-installer","resources":{"limits":{"cpu":"200m","memory":"128Mi"},"requests":{"cpu":"10m","memory":"32Mi"}},"securityContext":{"runAsUser":0},"timeout":"120s"},"smithboxControl":{"annotations":{},"containerPort":9090,"enabled":true,"hostObserverEnabled":true,"labels":{},"name":"smithbox-control","nodeSelector":{},"podAnnotations":{},"redisClusterEnabled":false,"redisDisableClientSetinfo":false,"redisIamAuthProvider":"","replicas":2,"resources":{"limits":{"cpu":"2","memory":"8Gi"},"requests":{"cpu":"2","memory":"8Gi"}},"runtimeLifecycleReconcilerEnabled":false,"serviceAccount":{"annotations":{},"automountServiceAccountToken":true,"create":true,"labels":{},"name":""},"tolerations":[]},"xServiceAuthJwtSecret":"","xServiceAuthJwtSecretPrevious":""}` | LangSmith Sandboxes runtime configuration. Disabled by default. This supports the same-cluster sandbox-host architecture only. |
+| config.sandboxes.callbackSigningJwk | string | `""` | Optional private JWK for sandbox callback signing. |
+| config.sandboxes.clusterName | string | `""` | Logical Kubernetes cluster name sent to LangSmith sandbox workers. |
+| config.sandboxes.defaultBlueprintImage | string | `""` | Optional default sandbox blueprint/rootfs image. |
+| config.sandboxes.juicefs.csi.configSecretNamespace | string | `""` | Namespace for the JuiceFS CSI config Secret. Empty uses the LangSmith release namespace. |
+| config.sandboxes.juicefs.csi.metaURL | string | `""` | JuiceFS metadata URL. Redis metadata engines must use maxmemory-policy noeviction. |
+| config.sandboxes.juicefs.enabled | bool | `true` | Required when sandboxes are enabled. |
+| config.sandboxes.langchainEnv | string | `"local_kubernetes"` | Runtime environment value for sandbox-host and smithbox-control. |
+| config.sandboxes.namespace | string | `"langsmith-sandboxes"` | Namespace for sandbox runtime services and sandbox-host pods. |
+| config.sandboxes.proxyCA.mode | string | `"generatedSecret"` | generatedSecret creates a self-signed CA Secret with Helm. Other modes are existingSecret or certManager. |
+| config.sandboxes.runtimeSecret.create | bool | `true` | Create the sandbox-external Secret in config.sandboxes.namespace. |
+| config.sandboxes.runtimeSecret.existingSecretName | string | `""` | Existing Secret in config.sandboxes.namespace with x_service_auth_jwt_secret. |
+| config.sandboxes.xServiceAuthJwtSecret | string | `""` | Shared service-auth secret for LangSmith <-> sandbox runtime calls. Required when config.existingSecretName is set and runtimeSecret.create is true. |
+| config.sandboxes.xServiceAuthJwtSecretPrevious | string | `""` | Optional previous service-auth secret used during rotation. |
 | config.security | object | `{"cors":{"allowedOrigins":"*","allowedOriginsRegex":"","alwaysAllowPathsRegex":""}}` | Security configuration for CORS, headers, and other security-related settings. These settings control cross-origin access and help protect against common web vulnerabilities. |
 | config.security.cors | object | `{"allowedOrigins":"*","allowedOriginsRegex":"","alwaysAllowPathsRegex":""}` | CORS (Cross-Origin Resource Sharing) configuration. Controls which origins can make requests to the LangSmith API. By default, CORS is permissive. For production deployments, you should restrict this. |
 | config.security.cors.allowedOrigins | string | `"*"` | Comma-separated list of allowed origins. Use "*" to allow all origins (not recommended for production). Example: "https://app.example.com,https://admin.example.com" If allowedOriginsRegex is set, this value is ignored. |

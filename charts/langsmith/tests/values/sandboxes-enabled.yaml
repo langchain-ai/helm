@@ -1,0 +1,43 @@
+config:
+  existingSecretName: langsmith-secrets
+  oauth:
+    enabled: true
+  authType: oauth
+  sandboxes:
+    enabled: true
+    namespace: langsmith-sandboxes
+    clusterName: self-hosted-test
+    langchainEnv: local_kubernetes
+    xServiceAuthJwtSecret: test-sandbox-jwt
+    defaultBlueprintImage: python:3.12
+    limits:
+      maxCpuCores: 16
+      maxMemoryGb: 64
+      minEphemeralStorageGb: 1
+      maxEphemeralStorageGib: 100
+      maxSandboxes: 1000
+    proxyCA:
+      mode: generatedSecret
+    juicefs:
+      enabled: true
+      storage: s3
+      bucket: s3://langsmith-sandboxes-test
+      csi:
+        enabled: true
+        metaURL: redis://langsmith-redis.default.svc.cluster.local:6379/1
+        hostPVCName: smithbox-juicefs-csi-host
+        hostPVName: smithbox-juicefs-csi-host
+    smithboxControl:
+      enabled: true
+    sandboxHost:
+      enabled: true
+    sandboxHostInstaller:
+      enabled: true
+
+images:
+  sandboxHostImage:
+    repository: example.com/langsmith/sandbox-host
+    tag: test-sandbox-host
+  smithboxControlImage:
+    repository: example.com/langsmith/smithbox-control
+    tag: test-smithbox-control

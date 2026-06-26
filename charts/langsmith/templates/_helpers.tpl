@@ -1184,6 +1184,163 @@ Strip protocol (http://, https://, etc.) from hostname
 {{- end -}}
 
 {{/*
+Sandbox runtime namespace.
+*/}}
+{{- define "langsmith.sandboxes.namespace" -}}
+{{- default "langsmith-sandboxes" .Values.config.sandboxes.namespace -}}
+{{- end -}}
+
+{{/*
+Sandbox runtime secret name in config.sandboxes.namespace.
+*/}}
+{{- define "langsmith.sandboxes.runtimeSecretName" -}}
+{{- if .Values.config.sandboxes.runtimeSecret.existingSecretName -}}
+{{- .Values.config.sandboxes.runtimeSecret.existingSecretName -}}
+{{- else -}}
+{{- default "sandbox-external" .Values.config.sandboxes.runtimeSecret.name -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Sandbox proxy CA secret name in config.sandboxes.namespace.
+*/}}
+{{- define "langsmith.sandboxes.proxyCASecretName" -}}
+{{- if eq .Values.config.sandboxes.proxyCA.mode "existingSecret" -}}
+{{- .Values.config.sandboxes.proxyCA.existingSecretName -}}
+{{- else -}}
+{{- default "smithbox-proxy-ca" .Values.config.sandboxes.proxyCA.secretName -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Sandbox service auth secret material for chart-created app/runtime Secrets.
+*/}}
+{{- define "langsmith.sandboxes.xServiceAuthJwtSecretValue" -}}
+{{- default (default .Values.config.langsmithLicenseKey .Values.config.apiKeySalt) .Values.config.sandboxes.xServiceAuthJwtSecret -}}
+{{- end -}}
+
+{{/*
+smithbox-control in-cluster URL.
+*/}}
+{{- define "langsmith.sandboxes.smithboxControlUrl" -}}
+{{- printf "http://%s.%s.svc.%s:%v" .Values.config.sandboxes.smithboxControl.name (include "langsmith.sandboxes.namespace" .) .Values.clusterDomain .Values.config.sandboxes.smithboxControl.containerPort -}}
+{{- end -}}
+
+{{/*
+Internal LangSmith platform endpoint used by sandbox runtime callbacks.
+*/}}
+{{- define "langsmith.sandboxes.langsmithInternalEndpoint" -}}
+{{- printf "http://%s-%s.%s.svc.%s:%v" (include "langsmith.fullname" .) .Values.platformBackend.name (.Values.namespace | default .Release.Namespace) .Values.clusterDomain .Values.platformBackend.service.port -}}
+{{- end -}}
+
+{{/*
+Namespace for the JuiceFS CSI config Secret.
+*/}}
+{{- define "langsmith.sandboxes.juicefsCSIConfigSecretNamespace" -}}
+{{- default (.Values.namespace | default .Release.Namespace) .Values.config.sandboxes.juicefs.csi.configSecretNamespace -}}
+{{- end -}}
+
+{{/*
+Sandbox service account names.
+*/}}
+{{- define "langsmith.sandboxes.smithboxControlServiceAccountName" -}}
+{{- if .Values.config.sandboxes.smithboxControl.serviceAccount.create -}}
+{{- default .Values.config.sandboxes.smithboxControl.name .Values.config.sandboxes.smithboxControl.serviceAccount.name | trunc 63 | trimSuffix "-" -}}
+{{- else -}}
+{{- default "default" .Values.config.sandboxes.smithboxControl.serviceAccount.name -}}
+{{- end -}}
+{{- end -}}
+
+{{- define "langsmith.sandboxes.sandboxHostServiceAccountName" -}}
+{{- if .Values.config.sandboxes.sandboxHost.serviceAccount.create -}}
+{{- default .Values.config.sandboxes.sandboxHost.name .Values.config.sandboxes.sandboxHost.serviceAccount.name | trunc 63 | trimSuffix "-" -}}
+{{- else -}}
+{{- default "default" .Values.config.sandboxes.sandboxHost.serviceAccount.name -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+LangSmith app env vars for sandbox support.
+*/}}
+{{- define "langsmith.sandboxes.platformBackendEnv" -}}
+{{- if .Values.config.sandboxes.enabled }}
+- name: SANDBOX_FEATURE_ENABLED
+  value: "true"
+- name: SANDBOX_FRONTEND_ENABLED
+  value: "true"
+- name: SANDBOX_RUNTIME_V2
+  value: "always"
+- name: SMITHBOX_CONTROL_URL
+  value: {{ include "langsmith.sandboxes.smithboxControlUrl" . | quote }}
+- name: SANDBOX_SNAPSHOT_SERVICE_URL
+  value: {{ include "langsmith.sandboxes.smithboxControlUrl" . | quote }}
+- name: SANDBOX_K8S_CLUSTER_NAME
+  value: {{ .Values.config.sandboxes.clusterName | quote }}
+- name: SANDBOX_MAX_CPU_CORES
+  value: {{ .Values.config.sandboxes.limits.maxCpuCores | quote }}
+- name: SANDBOX_MAX_MEMORY_GB
+  value: {{ .Values.config.sandboxes.limits.maxMemoryGb | quote }}
+- name: SANDBOX_MIN_EPHEMERAL_STORAGE_GB
+  value: {{ .Values.config.sandboxes.limits.minEphemeralStorageGb | quote }}
+- name: SANDBOX_MAX_EPHEMERAL_STORAGE_GIB
+  value: {{ .Values.config.sandboxes.limits.maxEphemeralStorageGib | quote }}
+- name: SANDBOX_MAX_SANDBOXES
+  value: {{ .Values.config.sandboxes.limits.maxSandboxes | quote }}
+{{- if .Values.config.sandboxes.defaultBlueprintImage }}
+- name: SANDBOX_DEFAULT_BLUEPRINT_IMAGE
+  value: {{ .Values.config.sandboxes.defaultBlueprintImage | quote }}
+{{- end }}
+- name: SANDBOX_X_SERVICE_AUTH_JWT_SECRET
+  valueFrom:
+    secretKeyRef:
+      name: {{ include "langsmith.secretsName" . }}
+      key: sandbox_x_service_auth_jwt_secret
+      optional: {{ .Values.config.disableSecretCreation }}
+{{- if .Values.config.sandboxes.xServiceAuthJwtSecretPrevious }}
+- name: SANDBOX_X_SERVICE_AUTH_JWT_SECRET_PREVIOUS
+  valueFrom:
+    secretKeyRef:
+      name: {{ include "langsmith.secretsName" . }}
+      key: sandbox_x_service_auth_jwt_secret_previous
+      optional: {{ .Values.config.disableSecretCreation }}
+{{- end }}
+{{- if .Values.config.sandboxes.callbackSigningJwk }}
+- name: LANGSMITH_SANDBOX_CALLBACK_SIGNING_JWK
+  valueFrom:
+    secretKeyRef:
+      name: {{ include "langsmith.secretsName" . }}
+      key: sandbox_callback_signing_jwk
+      optional: true
+{{- end }}
+{{- end }}
+{{- end -}}
+
+{{- define "langsmith.sandboxes.ingestQueueEnv" -}}
+{{- if .Values.config.sandboxes.enabled }}
+- name: SANDBOX_FEATURE_ENABLED
+  value: "true"
+- name: SMITHBOX_CONTROL_URL
+  value: {{ include "langsmith.sandboxes.smithboxControlUrl" . | quote }}
+- name: SANDBOX_SNAPSHOT_SERVICE_URL
+  value: {{ include "langsmith.sandboxes.smithboxControlUrl" . | quote }}
+- name: SANDBOX_K8S_CLUSTER_NAME
+  value: {{ .Values.config.sandboxes.clusterName | quote }}
+{{- if .Values.config.sandboxes.defaultBlueprintImage }}
+- name: SANDBOX_DEFAULT_BLUEPRINT_IMAGE
+  value: {{ .Values.config.sandboxes.defaultBlueprintImage | quote }}
+{{- end }}
+- name: SANDBOX_QUEUE_PRIORITY
+  value: "1"
+- name: SANDBOX_X_SERVICE_AUTH_JWT_SECRET
+  valueFrom:
+    secretKeyRef:
+      name: {{ include "langsmith.secretsName" . }}
+      key: sandbox_x_service_auth_jwt_secret
+      optional: {{ .Values.config.disableSecretCreation }}
+{{- end }}
+{{- end -}}
+
+{{/*
 Return config.hostname as an absolute URL.
 If no scheme is provided, default to https://, except localhost-style hosts
 which default to http:// for local development.

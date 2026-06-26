@@ -1,0 +1,8 @@
+{{- if .Values.config.sandboxes.enabled }}
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: {{ include "langsmith.sandboxes.namespace" . }}
+  labels:
+    {{- include "langsmith.labels" . | nindent 4 }}
+{{- end }}

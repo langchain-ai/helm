@@ -1,0 +1,109 @@
+{{- if and .Values.config.sandboxes.enabled .Values.config.sandboxes.juicefs.enabled .Values.config.sandboxes.juicefs.csi.enabled }}
+{{- $namespace := include "langsmith.sandboxes.namespace" . }}
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ .Values.config.sandboxes.juicefs.csi.configSecretName }}
+  namespace: {{ include "langsmith.sandboxes.juicefsCSIConfigSecretNamespace" . }}
+  labels:
+    {{- include "langsmith.labels" . | nindent 4 }}
+  annotations:
+    "argocd.argoproj.io/sync-wave": "-2"
+    {{- include "langsmith.annotations" . | nindent 4 }}
+type: Opaque
+stringData:
+  name: smithbox
+  metaurl: {{ .Values.config.sandboxes.juicefs.csi.metaURL | quote }}
+  storage: {{ .Values.config.sandboxes.juicefs.storage | quote }}
+  bucket: {{ .Values.config.sandboxes.juicefs.bucket | quote }}
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: {{ .Values.config.sandboxes.juicefs.csi.pvName }}
+  labels:
+    app: smithbox
+    juicefs.langsmith.com/mount: csi
+spec:
+  capacity:
+    storage: 10Pi
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: ""
+  csi:
+    driver: csi.juicefs.com
+    volumeHandle: {{ .Values.config.sandboxes.juicefs.csi.pvName }}
+    fsType: juicefs
+    volumeAttributes:
+      juicefs/mount-service-account: juicefs-csi-node-sa
+    nodePublishSecretRef:
+      name: {{ .Values.config.sandboxes.juicefs.csi.configSecretName }}
+      namespace: {{ include "langsmith.sandboxes.juicefsCSIConfigSecretNamespace" . }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ .Values.config.sandboxes.juicefs.csi.pvcName }}
+  namespace: {{ $namespace }}
+spec:
+  accessModes:
+    - ReadWriteMany
+  volumeMode: Filesystem
+  storageClassName: ""
+  resources:
+    requests:
+      storage: 10Pi
+  selector:
+    matchLabels:
+      app: smithbox
+      juicefs.langsmith.com/mount: csi
+{{- if .Values.config.sandboxes.juicefs.csi.hostPVCName }}
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: {{ .Values.config.sandboxes.juicefs.csi.hostPVName }}
+  labels:
+    app: smithbox
+    juicefs.langsmith.com/mount: csi-host
+spec:
+  capacity:
+    storage: 10Pi
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: ""
+  csi:
+    driver: csi.juicefs.com
+    volumeHandle: {{ .Values.config.sandboxes.juicefs.csi.hostPVName }}
+    fsType: juicefs
+    volumeAttributes:
+      juicefs/mount-service-account: juicefs-csi-node-sa
+    nodePublishSecretRef:
+      name: {{ .Values.config.sandboxes.juicefs.csi.configSecretName }}
+      namespace: {{ include "langsmith.sandboxes.juicefsCSIConfigSecretNamespace" . }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ .Values.config.sandboxes.juicefs.csi.hostPVCName }}
+  namespace: {{ $namespace }}
+  labels:
+    juicefs.langsmith.com/cache: ssd
+spec:
+  accessModes:
+    - ReadWriteMany
+  volumeMode: Filesystem
+  storageClassName: ""
+  resources:
+    requests:
+      storage: 10Pi
+  selector:
+    matchLabels:
+      app: smithbox
+      juicefs.langsmith.com/mount: csi-host
+{{- end }}
+{{- end }}

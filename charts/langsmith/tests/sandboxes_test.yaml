@@ -1,0 +1,216 @@
+suite: self-hosted sandboxes
+templates:
+  - validate.yaml
+  - config-map.yaml
+  - secrets.yaml
+  - redis/secrets.yaml
+  - postgres/secrets.yaml
+  - clickhouse/secrets.yaml
+  - frontend/config-map.yaml
+  - platform-backend/deployment.yaml
+  - ingest-queue/deployment.yaml
+  - sandboxes/namespace.yaml
+  - sandboxes/secrets.yaml
+  - sandboxes/proxy-ca.yaml
+  - sandboxes/juicefs-csi.yaml
+  - sandboxes/smithbox-control.yaml
+  - sandboxes/sandbox-host-rbac.yaml
+  - sandboxes/sandbox-host-daemonset.yaml
+  - sandboxes/sandbox-host-installer-daemonset.yaml
+tests:
+  - it: should not render sandbox runtime resources by default
+    set:
+      config.existingSecretName: langsmith-secrets
+      config.oauth.enabled: true
+      config.authType: oauth
+    templates:
+      - sandboxes/namespace.yaml
+      - sandboxes/secrets.yaml
+      - sandboxes/proxy-ca.yaml
+      - sandboxes/juicefs-csi.yaml
+      - sandboxes/smithbox-control.yaml
+      - sandboxes/sandbox-host-rbac.yaml
+      - sandboxes/sandbox-host-daemonset.yaml
+      - sandboxes/sandbox-host-installer-daemonset.yaml
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: should wire platform backend sandbox environment when enabled
+    values:
+      - ./values/sandboxes-enabled.yaml
+    template: platform-backend/deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_FEATURE_ENABLED
+            value: "true"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_FRONTEND_ENABLED
+            value: "true"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_RUNTIME_V2
+            value: always
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHBOX_CONTROL_URL
+            value: http://smithbox-control.langsmith-sandboxes.svc.cluster.local:9090
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_K8S_CLUSTER_NAME
+            value: self-hosted-test
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_X_SERVICE_AUTH_JWT_SECRET
+            valueFrom:
+              secretKeyRef:
+                name: langsmith-secrets
+                key: sandbox_x_service_auth_jwt_secret
+                optional: false
+
+  - it: should wire ingest queue sandbox environment when enabled
+    values:
+      - ./values/sandboxes-enabled.yaml
+    template: ingest-queue/deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_FEATURE_ENABLED
+            value: "true"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHBOX_CONTROL_URL
+            value: http://smithbox-control.langsmith-sandboxes.svc.cluster.local:9090
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_DEFAULT_BLUEPRINT_IMAGE
+            value: python:3.12
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_QUEUE_PRIORITY
+            value: "1"
+
+  - it: should render smithbox-control when enabled
+    values:
+      - ./values/sandboxes-enabled.yaml
+    template: sandboxes/smithbox-control.yaml
+    documentSelector:
+      path: kind
+      value: Deployment
+    asserts:
+      - equal:
+          path: metadata.name
+          value: smithbox-control
+      - equal:
+          path: metadata.namespace
+          value: langsmith-sandboxes
+      - equal:
+          path: spec.template.spec.containers[0].image
+          value: example.com/langsmith/smithbox-control:test-smithbox-control
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHBOX_REDIS_ADDR
+            valueFrom:
+              secretKeyRef:
+                name: RELEASE-NAME-langsmith-redis
+                key: connection_url
+                optional: false
+
+  - it: should render sandbox-host with host network and OnDelete rollout
+    values:
+      - ./values/sandboxes-enabled.yaml
+    template: sandboxes/sandbox-host-daemonset.yaml
+    asserts:
+      - isKind:
+          of: DaemonSet
+      - equal:
+          path: metadata.name
+          value: sandbox-host
+      - equal:
+          path: metadata.namespace
+          value: langsmith-sandboxes
+      - equal:
+          path: spec.updateStrategy.type
+          value: OnDelete
+      - equal:
+          path: spec.template.spec.hostNetwork
+          value: true
+      - equal:
+          path: spec.template.spec.containers[0].ports[0].hostPort
+          value: 19190
+      - contains:
+          path: spec.template.spec.containers[0].volumeMounts
+          content:
+            name: proxy-ca
+            mountPath: /certs
+            readOnly: true
+
+  - it: should render JuiceFS CSI config and host PVC when enabled
+    values:
+      - ./values/sandboxes-enabled.yaml
+    template: sandboxes/juicefs-csi.yaml
+    documentIndex: 3
+    asserts:
+      - isKind:
+          of: PersistentVolume
+      - equal:
+          path: spec.csi.driver
+          value: csi.juicefs.com
+      - equal:
+          path: spec.csi.nodePublishSecretRef.name
+          value: juicefs-csi-config
+      - equal:
+          path: spec.csi.nodePublishSecretRef.namespace
+          value: NAMESPACE
+
+  - it: should fail when sandboxes are enabled without image tags
+    set:
+      config.existingSecretName: langsmith-secrets
+      config.oauth.enabled: true
+      config.authType: oauth
+      config.sandboxes.enabled: true
+      config.sandboxes.xServiceAuthJwtSecret: test-sandbox-jwt
+      config.sandboxes.juicefs.enabled: true
+      config.sandboxes.juicefs.csi.enabled: true
+      config.sandboxes.juicefs.csi.metaURL: redis://langsmith-redis.default.svc.cluster.local:6379/1
+      config.sandboxes.juicefs.bucket: s3://langsmith-sandboxes-test
+      images.sandboxHostImage.repository: example.com/langsmith/sandbox-host
+      images.smithboxControlImage.repository: example.com/langsmith/smithbox-control
+    template: validate.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: "images.sandboxHostImage.tag is required when config.sandboxes.enabled is true."
+
+  - it: should fail when raw sandbox env vars conflict with chart-managed platform env
+    values:
+      - ./values/sandboxes-enabled.yaml
+      - ./values/sandboxes-conflicting-env.yaml
+    template: platform-backend/deployment.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: "Duplicate keys detected: [SMITHBOX_CONTROL_URL]"
+
+  - it: should fail when Redis Cluster is configured only through an existing secret
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      redis.external.enabled: true
+      redis.external.existingSecretName: redis-cluster
+      redis.external.cluster.enabled: true
+    template: validate.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: "config.sandboxes.enabled with redis.external.cluster.enabled currently requires redis.external.cluster.nodeUris to be set directly instead of redis.external.existingSecretName."

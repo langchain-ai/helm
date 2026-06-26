@@ -1,0 +1,59 @@
+{{- if and .Values.config.sandboxes.enabled (eq .Values.config.sandboxes.proxyCA.mode "generatedSecret") }}
+{{- $name := include "langsmith.sandboxes.proxyCASecretName" . -}}
+{{- $namespace := include "langsmith.sandboxes.namespace" . -}}
+{{- $existing := lookup "v1" "Secret" $namespace $name -}}
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ $name }}
+  namespace: {{ $namespace }}
+  labels:
+    {{- include "langsmith.labels" . | nindent 4 }}
+  annotations:
+    "argocd.argoproj.io/sync-wave": "-2"
+    {{- include "langsmith.annotations" . | nindent 4 }}
+type: kubernetes.io/tls
+data:
+  {{- if $existing }}
+  tls.crt: {{ index $existing.data "tls.crt" | quote }}
+  tls.key: {{ index $existing.data "tls.key" | quote }}
+  {{- else }}
+  {{- $ca := genCA "smithbox-proxy-ca" 3650 }}
+  tls.crt: {{ $ca.Cert | b64enc | quote }}
+  tls.key: {{ $ca.Key | b64enc | quote }}
+  {{- end }}
+{{- else if and .Values.config.sandboxes.enabled (eq .Values.config.sandboxes.proxyCA.mode "certManager") }}
+{{- if .Values.config.sandboxes.proxyCA.certManager.createIssuer }}
+apiVersion: cert-manager.io/v1
+kind: {{ .Values.config.sandboxes.proxyCA.certManager.issuerKind }}
+metadata:
+  name: {{ .Values.config.sandboxes.proxyCA.certManager.issuerName }}
+  {{- if ne .Values.config.sandboxes.proxyCA.certManager.issuerKind "ClusterIssuer" }}
+  namespace: {{ include "langsmith.sandboxes.namespace" . }}
+  {{- end }}
+  labels:
+    {{- include "langsmith.labels" . | nindent 4 }}
+spec:
+  selfSigned: {}
+---
+{{- end }}
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: {{ include "langsmith.sandboxes.proxyCASecretName" . }}
+  namespace: {{ include "langsmith.sandboxes.namespace" . }}
+  labels:
+    {{- include "langsmith.labels" . | nindent 4 }}
+spec:
+  isCA: true
+  commonName: smithbox-proxy-ca
+  secretName: {{ include "langsmith.sandboxes.proxyCASecretName" . }}
+  duration: {{ .Values.config.sandboxes.proxyCA.certManager.duration | quote }}
+  renewBefore: {{ .Values.config.sandboxes.proxyCA.certManager.renewBefore | quote }}
+  privateKey:
+    algorithm: RSA
+    size: 2048
+  issuerRef:
+    name: {{ .Values.config.sandboxes.proxyCA.certManager.issuerName }}
+    kind: {{ .Values.config.sandboxes.proxyCA.certManager.issuerKind }}
+{{- end }}
