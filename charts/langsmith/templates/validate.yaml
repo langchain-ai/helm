@@ -117,6 +117,62 @@ AWS Marketplace Helm template verification).
 {{- end -}}
 {{- end -}}
 
+{{- /* Validate sandbox configuration */ -}}
+{{- if .Values.config.sandboxes.enabled -}}
+{{- if not .Values.images.sandboxHostImage.repository -}}
+{{- fail "images.sandboxHostImage.repository is required when config.sandboxes.enabled is true." -}}
+{{- end -}}
+{{- if not .Values.images.sandboxHostImage.tag -}}
+{{- fail "images.sandboxHostImage.tag is required when config.sandboxes.enabled is true." -}}
+{{- end -}}
+{{- if and .Values.config.sandboxes.smithboxControl.enabled (not .Values.images.smithboxControlImage.repository) -}}
+{{- fail "images.smithboxControlImage.repository is required when config.sandboxes.enabled is true." -}}
+{{- end -}}
+{{- if and .Values.config.sandboxes.smithboxControl.enabled (not .Values.images.smithboxControlImage.tag) -}}
+{{- fail "images.smithboxControlImage.tag is required when config.sandboxes.enabled is true." -}}
+{{- end -}}
+{{- if not .Values.config.sandboxes.namespace -}}
+{{- fail "config.sandboxes.namespace is required when config.sandboxes.enabled is true." -}}
+{{- end -}}
+{{- if not .Values.config.sandboxes.clusterName -}}
+{{- fail "config.sandboxes.clusterName is required when config.sandboxes.enabled is true." -}}
+{{- end -}}
+{{- if not .Values.config.sandboxes.juicefs.enabled -}}
+{{- fail "config.sandboxes.juicefs.enabled must be true when config.sandboxes.enabled is true." -}}
+{{- end -}}
+{{- if not .Values.config.sandboxes.juicefs.csi.enabled -}}
+{{- fail "config.sandboxes.juicefs.csi.enabled must be true when config.sandboxes.enabled is true." -}}
+{{- end -}}
+{{- if not .Values.config.sandboxes.juicefs.csi.metaURL -}}
+{{- fail "config.sandboxes.juicefs.csi.metaURL is required when config.sandboxes.enabled is true." -}}
+{{- end -}}
+{{- if not .Values.config.sandboxes.juicefs.bucket -}}
+{{- fail "config.sandboxes.juicefs.bucket is required when config.sandboxes.enabled is true." -}}
+{{- end -}}
+{{- if and .Values.config.sandboxes.runtimeSecret.create .Values.config.existingSecretName (not .Values.config.sandboxes.xServiceAuthJwtSecret) -}}
+{{- fail "config.sandboxes.xServiceAuthJwtSecret is required when config.sandboxes.enabled is true, config.existingSecretName is set, and config.sandboxes.runtimeSecret.create is true." -}}
+{{- end -}}
+{{- if and .Values.config.sandboxes.runtimeSecret.create (not (include "langsmith.sandboxes.xServiceAuthJwtSecretValue" .)) -}}
+{{- fail "config.sandboxes.xServiceAuthJwtSecret is required when config.sandboxes.enabled is true and no chart-managed app secret value is available." -}}
+{{- end -}}
+{{- if and .Values.redis.external.cluster.enabled .Values.redis.external.existingSecretName -}}
+{{- fail "config.sandboxes.enabled with redis.external.cluster.enabled currently requires redis.external.cluster.nodeUris to be set directly instead of redis.external.existingSecretName." -}}
+{{- end -}}
+{{- if and .Values.redis.external.cluster.enabled (eq (len .Values.redis.external.cluster.nodeUris) 0) -}}
+{{- fail "config.sandboxes.enabled with redis.external.cluster.enabled requires redis.external.cluster.nodeUris so smithbox-control can render SMITHBOX_REDIS_CLUSTER_ADDRS." -}}
+{{- end -}}
+{{- $proxyCAMode := .Values.config.sandboxes.proxyCA.mode -}}
+{{- if not (or (eq $proxyCAMode "generatedSecret") (eq $proxyCAMode "existingSecret") (eq $proxyCAMode "certManager")) -}}
+{{- fail "config.sandboxes.proxyCA.mode must be one of generatedSecret, existingSecret, or certManager." -}}
+{{- end -}}
+{{- if and (eq $proxyCAMode "existingSecret") (not .Values.config.sandboxes.proxyCA.existingSecretName) -}}
+{{- fail "config.sandboxes.proxyCA.existingSecretName is required when config.sandboxes.proxyCA.mode is existingSecret." -}}
+{{- end -}}
+{{- if and (eq $proxyCAMode "certManager") (not .Values.config.sandboxes.proxyCA.certManager.issuerName) -}}
+{{- fail "config.sandboxes.proxyCA.certManager.issuerName is required when config.sandboxes.proxyCA.mode is certManager." -}}
+{{- end -}}
+{{- end -}}
+
 {{- /* Validate password requirements */ -}}
 {{- if and .Values.config.basicAuth.enabled (not .Values.config.existingSecretName) }}
 {{- $password := .Values.config.basicAuth.initialOrgAdminPassword -}}

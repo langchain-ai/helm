@@ -151,6 +151,16 @@ images:
     repository: "mcr.microsoft.com/presidio-analyzer"
     pullPolicy: IfNotPresent
     tag: "2.2.354"
+  # -- sandbox-host image. Only used when config.sandboxes.enabled is true.
+  sandboxHostImage:
+    repository: ""
+    pullPolicy: IfNotPresent
+    tag: ""
+  # -- smithbox-control image. Only used when config.sandboxes.enabled is true.
+  smithboxControlImage:
+    repository: ""
+    pullPolicy: IfNotPresent
+    tag: ""
 
 ingress:
   enabled: false
@@ -912,6 +922,148 @@ config:
     tlsEnabled: true
     # Disable this if there is restricted access to the external facing ingress endpoint for your agent(s) from inside of your kubernetes cluster.
     ingressHealthCheckEnabled: true
+
+  # -- LangSmith Sandboxes runtime configuration. Disabled by default.
+  # This supports the same-cluster sandbox-host architecture only.
+  sandboxes:
+    enabled: false
+    # -- Namespace for sandbox runtime services and sandbox-host pods.
+    namespace: "langsmith-sandboxes"
+    # -- Logical Kubernetes cluster name sent to LangSmith sandbox workers.
+    clusterName: ""
+    # -- Runtime environment value for sandbox-host and smithbox-control.
+    langchainEnv: "local_kubernetes"
+    # -- Shared service-auth secret for LangSmith <-> sandbox runtime calls.
+    # Required when config.existingSecretName is set and runtimeSecret.create is true.
+    xServiceAuthJwtSecret: ""
+    # -- Optional previous service-auth secret used during rotation.
+    xServiceAuthJwtSecretPrevious: ""
+    # -- Optional private JWK for sandbox callback signing.
+    callbackSigningJwk: ""
+    # -- Optional default sandbox blueprint/rootfs image.
+    defaultBlueprintImage: ""
+    limits:
+      maxCpuCores: 16
+      maxMemoryGb: 64
+      minEphemeralStorageGb: 1
+      maxEphemeralStorageGib: 100
+      maxSandboxes: 1000
+    runtimeSecret:
+      # -- Create the sandbox-external Secret in config.sandboxes.namespace.
+      create: true
+      # -- Existing Secret in config.sandboxes.namespace with x_service_auth_jwt_secret.
+      existingSecretName: ""
+      name: "sandbox-external"
+      xServiceAuthJwtSecretKey: "x_service_auth_jwt_secret"
+      xServiceAuthJwtSecretPreviousKey: "x_service_auth_jwt_secret_previous"
+      callbackSigningJwkKey: "sandbox_callback_signing_jwk"
+    proxyCA:
+      # -- generatedSecret creates a self-signed CA Secret with Helm. Other modes are existingSecret or certManager.
+      mode: "generatedSecret"
+      secretName: "smithbox-proxy-ca"
+      existingSecretName: ""
+      certManager:
+        createIssuer: true
+        issuerName: "smithbox-proxy-selfsigned"
+        issuerKind: "Issuer"
+        duration: "8760h"
+        renewBefore: "720h"
+    juicefs:
+      # -- Required when sandboxes are enabled.
+      enabled: true
+      storage: "s3"
+      bucket: ""
+      csi:
+        enabled: true
+        # -- JuiceFS metadata URL. Redis metadata engines must use maxmemory-policy noeviction.
+        metaURL: ""
+        configSecretName: "juicefs-csi-config"
+        # -- Namespace for the JuiceFS CSI config Secret. Empty uses the LangSmith release namespace.
+        configSecretNamespace: ""
+        mountPath: "/juicefs"
+        pvName: "smithbox-juicefs-csi"
+        pvcName: "smithbox-juicefs-csi"
+        hostPVName: "smithbox-juicefs-csi-host"
+        hostPVCName: "smithbox-juicefs-csi-host"
+    smithboxControl:
+      enabled: true
+      name: "smithbox-control"
+      replicas: 2
+      containerPort: 9090
+      runtimeLifecycleReconcilerEnabled: false
+      hostObserverEnabled: true
+      redisIamAuthProvider: ""
+      redisClusterEnabled: false
+      redisDisableClientSetinfo: false
+      resources:
+        requests:
+          cpu: "2"
+          memory: 8Gi
+        limits:
+          cpu: "2"
+          memory: 8Gi
+      nodeSelector: {}
+      tolerations: []
+      annotations: {}
+      labels: {}
+      podAnnotations: {}
+      serviceAccount:
+        create: true
+        name: ""
+        labels: {}
+        annotations: {}
+        automountServiceAccountToken: true
+    sandboxHost:
+      enabled: true
+      name: "sandbox-host"
+      containerPort: 19190
+      terminationGracePeriodSeconds: 300
+      nodeSelector:
+        sandbox.langsmith.com/host: "true"
+      tolerations:
+        - key: sandbox.langsmith.com/host
+          operator: Equal
+          value: "true"
+          effect: NoSchedule
+      resources:
+        requests:
+          cpu: "2"
+          memory: 2Gi
+      securityContext:
+        privileged: true
+      serviceAccount:
+        create: true
+        name: ""
+        labels: {}
+        annotations: {}
+        automountServiceAccountToken: true
+    sandboxHostInstaller:
+      enabled: true
+      name: "sandbox-host-installer"
+      maxUnavailable: 1
+      timeout: "120s"
+      resources:
+        requests:
+          cpu: 10m
+          memory: 32Mi
+        limits:
+          cpu: 200m
+          memory: 128Mi
+      securityContext:
+        runAsUser: 0
+    firecrackerSizeClasses:
+      - name: small
+        vcpus: 1
+        mem_mib: 1792
+      - name: medium
+        vcpus: 1
+        mem_mib: 3840
+      - name: large
+        vcpus: 2
+        mem_mib: 7936
+      - name: xlarge
+        vcpus: 4
+        mem_mib: 16128
 
   # DEPRECATED: use the top-level fleet block (fleet/fleetToolServer/
   # fleetTriggerServer) instead. This bundled-agent path is managed by
@@ -3165,6 +3317,54 @@ redis:
     labels: {}
     annotations: {}
     automountServiceAccountToken: true
+
+# -- Values for the JuiceFS CSI dependency. The dependency is installed only
+# when config.sandboxes.enabled is true.
+juicefs-csi-driver:
+  storageClasses:
+    - enabled: false
+  controller:
+    annotations:
+      prometheus.io/scrape: "true"
+      prometheus.io/path: /metrics
+      prometheus.io/port: "9567"
+  node:
+    fsShareMount: true
+    annotations:
+      prometheus.io/scrape: "true"
+      prometheus.io/path: /metrics
+      prometheus.io/port: "9567"
+    tolerations:
+      - key: sandbox.langsmith.com/host
+        operator: Equal
+        value: "true"
+        effect: NoSchedule
+  globalConfig:
+    enabled: true
+    mountPodPatch:
+      - annotations:
+          prometheus.io/scrape: "true"
+          prometheus.io/path: /metrics
+          prometheus.io/port: "9567"
+        mountOptions:
+          - cache-dir=/var/cache/juicefs-csi
+          - cache-size=51200
+          - buffer-size=300
+          - prefetch=3
+          - metrics=0.0.0.0:9567
+        resources:
+          requests:
+            cpu: "2"
+            memory: 4Gi
+          limits:
+            cpu: "2"
+            memory: 4Gi
+      - pvcSelector:
+          matchLabels:
+            juicefs.langsmith.com/cache: ssd
+        mountOptions:
+          - cache-dir=/var/cache/juicefs-csi
+          - cache-size=307200
 
 # Fleet Tool Server - provides MCP tool execution capabilities
 fleetToolServer:
