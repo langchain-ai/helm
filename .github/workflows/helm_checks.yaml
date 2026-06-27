@@ -14,7 +14,15 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        chart-name: [ "langgraph-cloud", "langsmith", "langsmith-auth-proxy" ]
+        include:
+          - chart-name: "langgraph-cloud"
+            helm-extra-set-args: "--timeout=15m --set=frontend.service.type=ClusterIP --set=config.langsmithLicenseKey=${LANGSMITH_LICENSE_KEY} --set=config.langGraphCloudLicenseKey=${LANGGRAPH_CLOUD_LICENSE_KEY} --set=apiServer.service.type=ClusterIP --set=studio.service.type=ClusterIP --set=redis.statefulSet.resources.requests.cpu=50m --set=redis.statefulSet.resources.requests.memory=64Mi --set=postgres.statefulSet.resources.requests.cpu=100m --set=postgres.statefulSet.resources.requests.memory=256Mi --set=clickhouse.statefulSet.resources.requests.cpu=200m --set=clickhouse.statefulSet.resources.requests.memory=512Mi"
+          - chart-name: "langgraph-dataplane"
+            helm-extra-set-args: "--timeout=15m --set=listener.deployment.resources.requests.cpu=50m --set=listener.deployment.resources.requests.memory=128Mi --set=operator.deployment.resources.requests.cpu=50m --set=operator.deployment.resources.requests.memory=128Mi --set=redis.statefulSet.resources.requests.cpu=50m --set=redis.statefulSet.resources.requests.memory=64Mi --set=mongo.enabled=true --set=mongo.statefulSet.persistence.size=1Gi --set=mongo.statefulSet.resources.requests.cpu=50m --set=mongo.statefulSet.resources.requests.memory=128Mi --set=mongo.statefulSet.resources.limits.cpu=200m --set=mongo.statefulSet.resources.limits.memory=256Mi"
+          - chart-name: "langsmith"
+            helm-extra-set-args: "--timeout=15m --set=frontend.service.type=ClusterIP --set=config.langsmithLicenseKey=${LANGSMITH_LICENSE_KEY} --set=config.langGraphCloudLicenseKey=${LANGGRAPH_CLOUD_LICENSE_KEY} --set=apiServer.service.type=ClusterIP --set=studio.service.type=ClusterIP --set=redis.statefulSet.resources.requests.cpu=50m --set=redis.statefulSet.resources.requests.memory=64Mi --set=postgres.statefulSet.resources.requests.cpu=100m --set=postgres.statefulSet.resources.requests.memory=256Mi --set=clickhouse.statefulSet.resources.requests.cpu=200m --set=clickhouse.statefulSet.resources.requests.memory=512Mi"
+          - chart-name: "langsmith-auth-proxy"
+            helm-extra-set-args: "--timeout=15m"
 
     steps:
       - name: Checkout
@@ -133,7 +141,7 @@ jobs:
         env:
           LANGSMITH_LICENSE_KEY: ${{ secrets.LANGSMITH_LICENSE_KEY }}
           LANGGRAPH_CLOUD_LICENSE_KEY: ${{ secrets.LANGGRAPH_CLOUD_LICENSE_KEY }}
-        run: ct install --target-branch ${{ github.event.repository.default_branch }} --charts charts/${{ matrix.chart-name }} --namespace default --helm-extra-set-args "--timeout=15m --set=frontend.service.type=ClusterIP --set=config.langsmithLicenseKey=$LANGSMITH_LICENSE_KEY --set=config.langGraphCloudLicenseKey=$LANGGRAPH_CLOUD_LICENSE_KEY --set=apiServer.service.type=ClusterIP --set=studio.service.type=ClusterIP --set=redis.statefulSet.resources.requests.cpu=50m --set=redis.statefulSet.resources.requests.memory=64Mi --set=postgres.statefulSet.resources.requests.cpu=100m --set=postgres.statefulSet.resources.requests.memory=256Mi --set=clickhouse.statefulSet.resources.requests.cpu=200m --set=clickhouse.statefulSet.resources.requests.memory=512Mi"
+        run: ct install --target-branch ${{ github.event.repository.default_branch }} --charts charts/${{ matrix.chart-name }} --namespace default --helm-extra-set-args "${{ matrix.helm-extra-set-args }}"
 
       - name: Collect LangSmith diagnostics (pods/events/logs)
         if: always() && matrix.chart-name == 'langsmith'

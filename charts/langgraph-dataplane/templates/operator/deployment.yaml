@@ -1,6 +1,9 @@
 {{- if .Values.operator.enabled }}
 {{- $volumes := concat .Values.commonVolumes .Values.operator.deployment.volumes -}}
 {{- $volumeMounts := concat .Values.commonVolumeMounts .Values.operator.deployment.volumeMounts -}}
+{{- $operatorCheckpointerEnv := include "langgraphDataplane.operatorCheckpointerEnv" . | fromYamlArray -}}
+{{- $operatorExtraEnv := .Values.operator.deployment.extraEnv | default (list) -}}
+{{- $operatorEnv := concat $operatorCheckpointerEnv $operatorExtraEnv -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -137,8 +140,8 @@ spec:
             value: {{ coalesce .Values.gateway.basePath .Values.ingress.basePath .Values.istioGateway.basePath | quote }}
           - name: CLUSTER_DOMAIN
             value: {{ .Values.clusterDomain | quote }}
-        {{- with .Values.operator.deployment.extraEnv }}
-          {{- toYaml . | nindent 12 }}
+        {{- with $operatorEnv }}
+          {{- toYaml . | nindent 10 }}
         {{- end }}
       {{- with .Values.operator.deployment.sidecars }}
       {{- toYaml . | nindent 8 }}
