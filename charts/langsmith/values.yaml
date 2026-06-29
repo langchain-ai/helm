@@ -912,6 +912,8 @@ config:
     tlsEnabled: true
     # Disable this if there is restricted access to the external facing ingress endpoint for your agent(s) from inside of your kubernetes cluster.
     ingressHealthCheckEnabled: true
+    # -- Lift the SaaS CPU/memory caps on LangSmith Deployment resource specs. Opt-in for self-hosted.
+    uncappedResourcesEnabled: false
 
   # DEPRECATED: use the top-level fleet block (fleet/fleetToolServer/
   # fleetTriggerServer) instead. This bundled-agent path is managed by
