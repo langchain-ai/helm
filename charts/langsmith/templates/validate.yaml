@@ -151,7 +151,7 @@ AWS Marketplace Helm template verification).
 {{- fail "config.sandboxes.juicefs.name is required when config.sandboxes.enabled is true." -}}
 {{- end -}}
 {{- if not (regexMatch "^[a-z0-9][a-z0-9-]{1,61}[a-z0-9]$" $juicefsName) -}}
-{{- fail "config.sandboxes.juicefs.name must be 3-63 characters and contain only lowercase letters, numbers, and hyphens." -}}
+{{- fail "config.sandboxes.juicefs.name must be a DNS-label-style JuiceFS volume name: 3-63 characters, lowercase letters, numbers, and hyphens only. Do not use slashes or object-store subpaths here." -}}
 {{- end -}}
 {{- if not .Values.config.sandboxes.juicefs.bucket -}}
 {{- fail "config.sandboxes.juicefs.bucket is required when config.sandboxes.enabled is true." -}}

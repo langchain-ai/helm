@@ -971,7 +971,7 @@ config:
     juicefs:
       # -- Required when sandboxes are enabled.
       enabled: true
-      # -- JuiceFS volume name. JuiceFS stores objects under `<name>/` inside the configured bucket.
+      # -- JuiceFS volume name. Use a flat DNS-label-style name only; slashes and object-store subpaths are not supported here. JuiceFS stores objects under `<name>/` inside the configured bucket.
       name: "sandbox-juicefs"
       storage: "s3"
       # -- Object storage bucket/root URL used by JuiceFS, for example `s3://bucket-name` or `gs://bucket-name`. Use `config.sandboxes.juicefs.name` for JuiceFS volume isolation instead of deployment-specific bucket paths.

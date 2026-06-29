@@ -385,7 +385,17 @@ tests:
     template: validate.yaml
     asserts:
       - failedTemplate:
-          errorMessage: "config.sandboxes.juicefs.name must be 3-63 characters and contain only lowercase letters, numbers, and hyphens."
+          errorMessage: "config.sandboxes.juicefs.name must be a DNS-label-style JuiceFS volume name: 3-63 characters, lowercase letters, numbers, and hyphens only. Do not use slashes or object-store subpaths here."
+
+  - it: should fail when JuiceFS name contains a slash
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      config.sandboxes.juicefs.name: sandbox/juicefs
+    template: validate.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: "config.sandboxes.juicefs.name must be a DNS-label-style JuiceFS volume name: 3-63 characters, lowercase letters, numbers, and hyphens only. Do not use slashes or object-store subpaths here."
 
   - it: should fail when raw sandbox env vars conflict with chart-managed platform env
     values:

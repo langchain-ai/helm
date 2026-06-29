@@ -1223,7 +1223,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | config.sandboxes.juicefs.csi.configSecretNamespace | string | `""` | Namespace for the JuiceFS CSI config Secret. Empty uses the LangSmith release namespace. |
 | config.sandboxes.juicefs.csi.metaURL | string | `""` | JuiceFS metadata URL. Redis metadata engines must use maxmemory-policy noeviction. |
 | config.sandboxes.juicefs.enabled | bool | `true` | Required when sandboxes are enabled. |
-| config.sandboxes.juicefs.name | string | `"sandbox-juicefs"` | JuiceFS volume name. JuiceFS stores objects under `<name>/` inside the configured bucket. |
+| config.sandboxes.juicefs.name | string | `"sandbox-juicefs"` | JuiceFS volume name. Use a flat DNS-label-style name only; slashes and object-store subpaths are not supported here. JuiceFS stores objects under `<name>/` inside the configured bucket. |
 | config.sandboxes.langchainEnv | string | `"local_kubernetes"` | Runtime environment value for sandbox-host and smithbox-control. |
 | config.sandboxes.namespace | string | `"langsmith-sandboxes"` | Namespace for sandbox runtime services and sandbox-host pods. If `redis.external.existingSecretName` is set or `redis.disableSecretCreation` is true, provide the same Redis Secret name and `redis.external.connectionUrlSecretKey` in this namespace because Kubernetes Secret references are namespace-local. |
 | config.sandboxes.proxyCA.mode | string | `"generatedSecret"` | generatedSecret creates a self-signed CA Secret with Helm. Other modes are existingSecret or certManager. |
