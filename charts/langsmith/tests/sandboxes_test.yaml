@@ -154,8 +154,7 @@ tests:
     set:
       redis.external.enabled: true
       redis.external.existingSecretName: langsmith-redis
-      config.sandboxes.smithboxControl.redis.existingSecretName: sandbox-redis
-      config.sandboxes.smithboxControl.redis.connectionUrlSecretKey: sandbox_connection_url
+      redis.external.connectionUrlSecretKey: sandbox_connection_url
     template: sandboxes/smithbox-control.yaml
     documentSelector:
       path: kind
@@ -167,9 +166,50 @@ tests:
             name: SMITHBOX_REDIS_ADDR
             valueFrom:
               secretKeyRef:
-                name: sandbox-redis
+                name: langsmith-redis
                 key: sandbox_connection_url
                 optional: false
+
+  - it: should not render sandbox Redis Secret when Redis uses an existing Secret
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      redis.external.enabled: true
+      redis.external.existingSecretName: langsmith-redis
+    template: sandboxes/redis-secret.yaml
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: should reference the chart Redis Secret name when Redis secret creation is disabled
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      redis.disableSecretCreation: true
+    template: sandboxes/smithbox-control.yaml
+    documentSelector:
+      path: kind
+      value: Deployment
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHBOX_REDIS_ADDR
+            valueFrom:
+              secretKeyRef:
+                name: RELEASE-NAME-langsmith-redis
+                key: connection_url
+                optional: true
+
+  - it: should not render sandbox Redis Secret when Redis secret creation is disabled
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      redis.disableSecretCreation: true
+    template: sandboxes/redis-secret.yaml
+    asserts:
+      - hasDocuments:
+          count: 0
 
   - it: should use configured LANGCHAIN_ENV for smithbox-control
     values:
@@ -367,14 +407,3 @@ tests:
     asserts:
       - failedTemplate:
           errorMessage: "config.sandboxes.enabled with redis.external.cluster.enabled currently requires redis.external.cluster.nodeUris to be set directly instead of redis.external.existingSecretName."
-
-  - it: should fail when a non-cluster Redis existing secret is not available in the sandbox namespace
-    values:
-      - ./values/sandboxes-enabled.yaml
-    set:
-      redis.external.enabled: true
-      redis.external.existingSecretName: langsmith-redis
-    template: validate.yaml
-    asserts:
-      - failedTemplate:
-          errorMessage: "config.sandboxes.smithboxControl.redis.existingSecretName is required when sandboxes use non-cluster Redis and the chart cannot create a Redis connection Secret in config.sandboxes.namespace."

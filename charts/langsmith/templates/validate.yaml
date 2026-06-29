@@ -162,9 +162,6 @@ AWS Marketplace Helm template verification).
 {{- if and .Values.config.sandboxes.runtimeSecret.create (not (include "langsmith.sandboxes.xServiceAuthJwtSecretValue" .)) -}}
 {{- fail "config.sandboxes.xServiceAuthJwtSecret is required when config.sandboxes.enabled is true and no chart-managed app secret value is available." -}}
 {{- end -}}
-{{- if and .Values.config.sandboxes.smithboxControl.enabled (not .Values.redis.external.cluster.enabled) (not .Values.config.sandboxes.smithboxControl.redis.existingSecretName) (or .Values.redis.external.existingSecretName .Values.redis.disableSecretCreation) -}}
-{{- fail "config.sandboxes.smithboxControl.redis.existingSecretName is required when sandboxes use non-cluster Redis and the chart cannot create a Redis connection Secret in config.sandboxes.namespace." -}}
-{{- end -}}
 {{- if and .Values.redis.external.cluster.enabled .Values.redis.external.existingSecretName -}}
 {{- fail "config.sandboxes.enabled with redis.external.cluster.enabled currently requires redis.external.cluster.nodeUris to be set directly instead of redis.external.existingSecretName." -}}
 {{- end -}}
