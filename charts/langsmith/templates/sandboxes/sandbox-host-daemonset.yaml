@@ -27,10 +27,8 @@ spec:
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.config.sandboxes.sandboxHost.nodeSelector }}
       nodeSelector:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
+        {{- include "langsmith.sandboxes.sandboxHostNodeSelector" . | nindent 8 }}
       {{- with .Values.config.sandboxes.sandboxHost.tolerations }}
       tolerations:
         {{- toYaml . | nindent 8 }}

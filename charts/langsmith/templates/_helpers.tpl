@@ -1260,6 +1260,17 @@ Sandbox service account names.
 {{- end -}}
 
 {{/*
+Node selector for sandbox-host and sandbox-host-installer pods.
+*/}}
+{{- define "langsmith.sandboxes.sandboxHostNodeSelector" -}}
+{{- if .Values.config.sandboxes.sandboxHost.nodeSelector -}}
+{{- toYaml .Values.config.sandboxes.sandboxHost.nodeSelector -}}
+{{- else -}}
+sandbox.langsmith.com/host: "true"
+{{- end -}}
+{{- end -}}
+
+{{/*
 LangSmith app env vars for sandbox support.
 */}}
 {{- define "langsmith.sandboxes.platformBackendEnv" -}}

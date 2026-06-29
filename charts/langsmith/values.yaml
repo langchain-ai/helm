@@ -971,6 +971,8 @@ config:
     juicefs:
       # -- Required when sandboxes are enabled.
       enabled: true
+      # -- JuiceFS volume name. JuiceFS stores objects under `<name>/` inside the configured bucket.
+      name: "sandbox-juicefs"
       storage: "s3"
       bucket: ""
       csi:
@@ -1018,8 +1020,9 @@ config:
       name: "sandbox-host"
       containerPort: 19190
       terminationGracePeriodSeconds: 300
-      nodeSelector:
-        sandbox.langsmith.com/host: "true"
+      # -- Node selector for sandbox-host and sandbox-host-installer pods. Empty uses the default selector `sandbox.langsmith.com/host=true`; set this map to replace the default if your sandbox node pool uses different labels.
+      nodeSelector: {}
+      # -- Tolerations for sandbox-host and sandbox-host-installer pods. The default expects sandbox-host nodes tainted `sandbox.langsmith.com/host=true:NoSchedule`; override this if your sandbox node pool uses different taints.
       tolerations:
         - key: sandbox.langsmith.com/host
           operator: Equal

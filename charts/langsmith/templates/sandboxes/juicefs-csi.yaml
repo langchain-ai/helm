@@ -12,7 +12,7 @@ metadata:
     {{- include "langsmith.annotations" . | nindent 4 }}
 type: Opaque
 stringData:
-  name: smithbox
+  name: {{ .Values.config.sandboxes.juicefs.name | quote }}
   metaurl: {{ .Values.config.sandboxes.juicefs.csi.metaURL | quote }}
   storage: {{ .Values.config.sandboxes.juicefs.storage | quote }}
   bucket: {{ .Values.config.sandboxes.juicefs.bucket | quote }}

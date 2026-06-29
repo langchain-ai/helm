@@ -151,6 +151,17 @@ tests:
       - equal:
           path: spec.template.spec.containers[0].ports[0].hostPort
           value: 19190
+      - equal:
+          path: spec.template.spec.nodeSelector
+          value:
+            sandbox.langsmith.com/host: "true"
+      - equal:
+          path: spec.template.spec.tolerations
+          value:
+            - key: sandbox.langsmith.com/host
+              operator: Equal
+              value: "true"
+              effect: NoSchedule
       - contains:
           path: spec.template.spec.containers[0].volumeMounts
           content:
@@ -158,7 +169,55 @@ tests:
             mountPath: /certs
             readOnly: true
 
+  - it: should render custom sandbox-host scheduling on sandbox-host
+    values:
+      - ./values/sandboxes-enabled.yaml
+      - ./values/sandboxes-custom-scheduling.yaml
+    template: sandboxes/sandbox-host-daemonset.yaml
+    asserts:
+      - equal:
+          path: spec.template.spec.nodeSelector
+          value:
+            sandbox.example.com/pool: hosts
+      - equal:
+          path: spec.template.spec.tolerations
+          value:
+            - key: sandbox.example.com/pool
+              operator: Equal
+              value: hosts
+              effect: NoSchedule
+
+  - it: should render custom sandbox-host scheduling on sandbox-host installer
+    values:
+      - ./values/sandboxes-enabled.yaml
+      - ./values/sandboxes-custom-scheduling.yaml
+    template: sandboxes/sandbox-host-installer-daemonset.yaml
+    asserts:
+      - equal:
+          path: spec.template.spec.nodeSelector
+          value:
+            sandbox.example.com/pool: hosts
+      - equal:
+          path: spec.template.spec.tolerations
+          value:
+            - key: sandbox.example.com/pool
+              operator: Equal
+              value: hosts
+              effect: NoSchedule
+
   - it: should render JuiceFS CSI config and host PVC when enabled
+    values:
+      - ./values/sandboxes-enabled.yaml
+    template: sandboxes/juicefs-csi.yaml
+    documentIndex: 0
+    asserts:
+      - isKind:
+          of: Secret
+      - equal:
+          path: stringData.name
+          value: sandbox-juicefs
+
+  - it: should render JuiceFS CSI host PV when enabled
     values:
       - ./values/sandboxes-enabled.yaml
     template: sandboxes/juicefs-csi.yaml
@@ -193,6 +252,16 @@ tests:
     asserts:
       - failedTemplate:
           errorMessage: "images.sandboxHostImage.tag is required when config.sandboxes.enabled is true."
+
+  - it: should fail when JuiceFS name is invalid
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      config.sandboxes.juicefs.name: Sandbox_JuiceFS
+    template: validate.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: "config.sandboxes.juicefs.name must be 3-63 characters and contain only lowercase letters, numbers, and hyphens."
 
   - it: should fail when raw sandbox env vars conflict with chart-managed platform env
     values:

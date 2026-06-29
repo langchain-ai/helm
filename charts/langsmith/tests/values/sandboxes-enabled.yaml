@@ -20,6 +20,7 @@ config:
       mode: generatedSecret
     juicefs:
       enabled: true
+      name: sandbox-juicefs
       storage: s3
       bucket: s3://langsmith-sandboxes-test
       csi:
