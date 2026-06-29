@@ -145,9 +145,9 @@ spec:
             - name: SMITHBOX_REDIS_ADDR
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "langsmith.redisSecretsName" . }}
-                  key: {{ .Values.redis.external.connectionUrlSecretKey }}
-                  optional: {{ .Values.redis.disableSecretCreation }}
+                  name: {{ include "langsmith.sandboxes.smithboxControlRedisSecretName" . }}
+                  key: {{ include "langsmith.sandboxes.smithboxControlRedisConnectionUrlSecretKey" . }}
+                  optional: false
             {{- end }}
             - name: SMITHBOX_REDIS_IAM_AUTH_PROVIDER
               value: {{ default .Values.redis.external.iamAuthProvider .Values.config.sandboxes.smithboxControl.redisIamAuthProvider | quote }}

@@ -974,6 +974,7 @@ config:
       # -- JuiceFS volume name. JuiceFS stores objects under `<name>/` inside the configured bucket.
       name: "sandbox-juicefs"
       storage: "s3"
+      # -- Object storage bucket/root URL used by JuiceFS, for example `s3://bucket-name` or `gs://bucket-name`. Use `config.sandboxes.juicefs.name` for JuiceFS volume isolation instead of deployment-specific bucket paths.
       bucket: ""
       csi:
         enabled: true
@@ -997,6 +998,11 @@ config:
       redisIamAuthProvider: ""
       redisClusterEnabled: false
       redisDisableClientSetinfo: false
+      redis:
+        # -- Existing Secret in `config.sandboxes.namespace` containing the non-cluster Redis connection URL for smithbox-control. Required when non-cluster Redis credentials are managed outside this chart with `redis.external.existingSecretName` or `redis.disableSecretCreation`.
+        existingSecretName: ""
+        # -- Key in the sandbox Redis Secret containing the Redis connection URL. Empty uses `redis.external.connectionUrlSecretKey`.
+        connectionUrlSecretKey: ""
       resources:
         requests:
           cpu: "2"
@@ -3344,6 +3350,7 @@ juicefs-csi-driver:
         effect: NoSchedule
   globalConfig:
     enabled: true
+    # -- Optional JuiceFS CSI mount pod patches for cache options, resources, labels, and annotations required by admission webhooks.
     mountPodPatch:
       - annotations:
           prometheus.io/scrape: "true"

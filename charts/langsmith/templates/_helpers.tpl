@@ -1220,6 +1220,37 @@ Sandbox service auth secret material for chart-created app/runtime Secrets.
 {{- end -}}
 
 {{/*
+Sandbox Redis Secret name for smithbox-control. The Secret must exist in the
+sandbox namespace because Kubernetes Secret references are namespace-local.
+*/}}
+{{- define "langsmith.sandboxes.smithboxControlRedisSecretName" -}}
+{{- if .Values.config.sandboxes.smithboxControl.redis.existingSecretName -}}
+{{- .Values.config.sandboxes.smithboxControl.redis.existingSecretName -}}
+{{- else -}}
+{{- include "langsmith.redisSecretsName" . -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Sandbox Redis connection URL key for smithbox-control.
+*/}}
+{{- define "langsmith.sandboxes.smithboxControlRedisConnectionUrlSecretKey" -}}
+{{- default .Values.redis.external.connectionUrlSecretKey .Values.config.sandboxes.smithboxControl.redis.connectionUrlSecretKey -}}
+{{- end -}}
+
+{{/*
+Redis connection URL material used when Helm creates the sandbox namespace
+Redis Secret for smithbox-control.
+*/}}
+{{- define "langsmith.sandboxes.redisConnectionUrl" -}}
+{{- if .Values.redis.external.enabled -}}
+{{- .Values.redis.external.connectionUrl -}}
+{{- else -}}
+{{- printf "redis://%s-%s.%s.svc.%s:%v" (include "langsmith.fullname" .) .Values.redis.name (.Values.namespace | default .Release.Namespace) .Values.clusterDomain .Values.redis.service.port -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
 smithbox-control in-cluster URL.
 */}}
 {{- define "langsmith.sandboxes.smithboxControlUrl" -}}
