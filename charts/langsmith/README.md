@@ -1199,6 +1199,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | config.oauth.oauthIssuerUrl | string | `""` |  |
 | config.oauth.oauthScopes | string | `"email,profile,openid"` |  |
 | config.oauth.oauthSessionMaxSec | string | `"86400"` |  |
+| config.oauth.urlEncodeScopeSpaces | bool | `false` | When true, percent-encode spaces in the OIDC authorization request as %20 instead of '+'. Enable for IdPs (e.g. SiteMinder) that reject '+'-encoded scope lists. Requires authType 'mixed' with an OAuth client secret. |
 | config.observability.tracing.enabled | bool | `false` |  |
 | config.observability.tracing.endpoint | string | `""` |  |
 | config.observability.tracing.env | string | `"ls_self_hosted"` |  |
