@@ -66,11 +66,6 @@ tests:
       - contains:
           path: spec.template.spec.containers[0].env
           content:
-            name: DEFAULT_ORG_FEATURE_SANDBOX_ENABLED
-            value: "true"
-      - contains:
-          path: spec.template.spec.containers[0].env
-          content:
             name: SMITHBOX_CONTROL_URL
             value: http://smithbox-control.langsmith-sandboxes.svc.cluster.local:9090
       - contains:

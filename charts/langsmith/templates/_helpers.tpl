@@ -1293,8 +1293,6 @@ LangSmith app env vars for sandbox support.
   value: "true"
 - name: SANDBOX_RUNTIME_V2
   value: "always"
-- name: DEFAULT_ORG_FEATURE_SANDBOX_ENABLED
-  value: "true"
 - name: SMITHBOX_CONTROL_URL
   value: {{ include "langsmith.sandboxes.smithboxControlUrl" . | quote }}
 - name: SANDBOX_SNAPSHOT_SERVICE_URL
