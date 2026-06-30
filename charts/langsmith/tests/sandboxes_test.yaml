@@ -58,7 +58,7 @@ tests:
           content:
             name: SANDBOX_RUNTIME_V2
             value: always
-      - contains:
+      - notContains:
           path: spec.template.spec.containers[0].env
           content:
             name: LANGSMITH_LICENSE_REQUIRED_CLAIMS
@@ -410,15 +410,6 @@ tests:
     asserts:
       - failedTemplate:
           errorMessage: "Duplicate keys detected: [SMITHBOX_CONTROL_URL]"
-
-  - it: should fail when raw license required claims env conflicts with chart-managed sandbox license env
-    values:
-      - ./values/sandboxes-enabled.yaml
-      - ./values/sandboxes-conflicting-license-env.yaml
-    template: platform-backend/deployment.yaml
-    asserts:
-      - failedTemplate:
-          errorMessage: "Duplicate keys detected: [LANGSMITH_LICENSE_REQUIRED_CLAIMS]"
 
   - it: should fail when Redis Cluster is configured only through an existing secret
     values:

@@ -1,5 +1,0 @@
-platformBackend:
-  deployment:
-    extraEnv:
-      - name: LANGSMITH_LICENSE_REQUIRED_CLAIMS
-        value: sandbox_enabled
