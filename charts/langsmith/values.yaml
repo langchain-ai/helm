@@ -1014,7 +1014,6 @@ config:
     oauthIssuerUrl: ""
     oauthScopes: "email,profile,openid"  # Comma-separated list of scopes. We require at least 'email', 'profile', and 'openid'. Some OIDC providers require the 'offline_access' scope for refresh tokens.
     oauthSessionMaxSec: "86400"  # 24 hours. Maximum age of a session in seconds. Your session will attempt to refresh until the max age at which point you will be logged out.
-<<<<<<< Updated upstream
 
   # -- Ed25519/OKP JWKS (JSON) signing the OAuth AS / remote MCP (and LLM-auth-proxy)
   # tokens; public keys are served at /.well-known/jwks.json. Set it here (stored in the
@@ -1025,10 +1024,8 @@ config:
   # LLM_AUTH_PROXY_ISSUER. Must match the jwtIssuer configured in the auth proxy chart.
   # Left empty by default (not emitted); set it when using the LLM auth proxy.
   llmAuthProxyIssuer: ""
-=======
     # -- When true, percent-encode spaces in the OIDC authorization request as %20 instead of '+'. Enable for IdPs (e.g. SiteMinder) that reject '+'-encoded scope lists. Requires authType 'mixed' with an OAuth client secret.
-    urlEncodeScopeSpaces: false
->>>>>>> Stashed changes
+  urlEncodeScopeSpaces: false
   # -- TTL configuration
   # Optional. Used to set TTLS for longlived and shortlived objects.
   ttl:
