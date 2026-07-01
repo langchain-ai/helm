@@ -1050,6 +1050,7 @@ config:
           memory: 128Mi
       securityContext:
         runAsUser: 0
+    # -- Required when sandboxes are enabled. Firecracker VM size classes passed to smithbox-control as `SMITHBOX_FIRECRACKER_SIZE_CLASSES`; each entry must include `name`, `vcpus`, and `mem_mib`.
     firecrackerSizeClasses:
       - name: small
         vcpus: 1

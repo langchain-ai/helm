@@ -1219,6 +1219,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | config.sandboxes.callbackSigningJwk | string | `""` | Optional private JWK for sandbox callback signing. |
 | config.sandboxes.clusterName | string | `""` | Logical Kubernetes cluster name sent to LangSmith sandbox workers. |
 | config.sandboxes.defaultBlueprintImage | string | `""` | Optional default sandbox blueprint/rootfs image. |
+| config.sandboxes.firecrackerSizeClasses | list | `[{"mem_mib":1792,"name":"small","vcpus":1},{"mem_mib":3840,"name":"medium","vcpus":1},{"mem_mib":7936,"name":"large","vcpus":2},{"mem_mib":16128,"name":"xlarge","vcpus":4}]` | Required when sandboxes are enabled. Firecracker VM size classes passed to smithbox-control as `SMITHBOX_FIRECRACKER_SIZE_CLASSES`; each entry must include `name`, `vcpus`, and `mem_mib`. |
 | config.sandboxes.juicefs.bucket | string | `""` | Object storage bucket/root URL used by JuiceFS, for example `s3://bucket-name` or `gs://bucket-name`. Use `config.sandboxes.juicefs.name` for JuiceFS volume isolation instead of deployment-specific bucket paths. |
 | config.sandboxes.juicefs.csi.configSecretNamespace | string | `""` | Namespace for the JuiceFS CSI config Secret. Empty uses the LangSmith release namespace. |
 | config.sandboxes.juicefs.name | string | `"sandbox-juicefs"` | JuiceFS volume name. Use a flat DNS-label-style name only; slashes and object-store subpaths are not supported here. JuiceFS stores objects under `<name>/` inside the configured bucket. |
