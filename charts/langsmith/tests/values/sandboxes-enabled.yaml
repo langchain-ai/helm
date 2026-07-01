@@ -18,21 +18,14 @@ config:
     proxyCA:
       mode: generatedSecret
     juicefs:
-      enabled: true
       name: sandbox-juicefs
       storage: s3
       bucket: s3://langsmith-sandboxes-test
-      csi:
-        enabled: true
+      redis:
         metaURL: redis://langsmith-redis.default.svc.cluster.local:6379/1
+      csi:
         hostPVCName: smithbox-juicefs-csi-host
         hostPVName: smithbox-juicefs-csi-host
-    smithboxControl:
-      enabled: true
-    sandboxHost:
-      enabled: true
-    sandboxHostInstaller:
-      enabled: true
 
 images:
   sandboxHostImage:

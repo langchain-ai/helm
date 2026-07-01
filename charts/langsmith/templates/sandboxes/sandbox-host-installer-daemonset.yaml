@@ -1,4 +1,4 @@
-{{- if and .Values.config.sandboxes.enabled .Values.config.sandboxes.sandboxHost.enabled .Values.config.sandboxes.sandboxHostInstaller.enabled }}
+{{- if .Values.config.sandboxes.enabled }}
 {{- $namespace := include "langsmith.sandboxes.namespace" . }}
 apiVersion: apps/v1
 kind: DaemonSet

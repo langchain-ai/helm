@@ -125,10 +125,10 @@ AWS Marketplace Helm template verification).
 {{- if not .Values.images.sandboxHostImage.tag -}}
 {{- fail "images.sandboxHostImage.tag is required when config.sandboxes.enabled is true." -}}
 {{- end -}}
-{{- if and .Values.config.sandboxes.smithboxControl.enabled (not .Values.images.smithboxControlImage.repository) -}}
+{{- if not .Values.images.smithboxControlImage.repository -}}
 {{- fail "images.smithboxControlImage.repository is required when config.sandboxes.enabled is true." -}}
 {{- end -}}
-{{- if and .Values.config.sandboxes.smithboxControl.enabled (not .Values.images.smithboxControlImage.tag) -}}
+{{- if not .Values.images.smithboxControlImage.tag -}}
 {{- fail "images.smithboxControlImage.tag is required when config.sandboxes.enabled is true." -}}
 {{- end -}}
 {{- if not .Values.config.sandboxes.namespace -}}
@@ -137,14 +137,9 @@ AWS Marketplace Helm template verification).
 {{- if not .Values.config.sandboxes.clusterName -}}
 {{- fail "config.sandboxes.clusterName is required when config.sandboxes.enabled is true." -}}
 {{- end -}}
-{{- if not .Values.config.sandboxes.juicefs.enabled -}}
-{{- fail "config.sandboxes.juicefs.enabled must be true when config.sandboxes.enabled is true." -}}
-{{- end -}}
-{{- if not .Values.config.sandboxes.juicefs.csi.enabled -}}
-{{- fail "config.sandboxes.juicefs.csi.enabled must be true when config.sandboxes.enabled is true." -}}
-{{- end -}}
-{{- if not .Values.config.sandboxes.juicefs.csi.metaURL -}}
-{{- fail "config.sandboxes.juicefs.csi.metaURL is required when config.sandboxes.enabled is true." -}}
+{{- $juicefsRedis := .Values.config.sandboxes.juicefs.redis | default dict -}}
+{{- if not $juicefsRedis.metaURL -}}
+{{- fail "config.sandboxes.juicefs.redis.metaURL is required when config.sandboxes.enabled is true." -}}
 {{- end -}}
 {{- $juicefsName := .Values.config.sandboxes.juicefs.name | default "" -}}
 {{- if not $juicefsName -}}

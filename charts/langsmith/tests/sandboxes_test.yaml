@@ -345,6 +345,9 @@ tests:
       - equal:
           path: stringData.name
           value: sandbox-juicefs
+      - equal:
+          path: stringData.metaurl
+          value: redis://langsmith-redis.default.svc.cluster.local:6379/1
 
   - it: should render JuiceFS CSI host PV when enabled
     values:
@@ -371,9 +374,7 @@ tests:
       config.authType: oauth
       config.sandboxes.enabled: true
       config.sandboxes.xServiceAuthJwtSecret: test-sandbox-jwt
-      config.sandboxes.juicefs.enabled: true
-      config.sandboxes.juicefs.csi.enabled: true
-      config.sandboxes.juicefs.csi.metaURL: redis://langsmith-redis.default.svc.cluster.local:6379/1
+      config.sandboxes.juicefs.redis.metaURL: redis://langsmith-redis.default.svc.cluster.local:6379/1
       config.sandboxes.juicefs.bucket: s3://langsmith-sandboxes-test
       images.sandboxHostImage.repository: example.com/langsmith/sandbox-host
       images.smithboxControlImage.repository: example.com/langsmith/smithbox-control

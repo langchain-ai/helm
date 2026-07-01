@@ -969,17 +969,15 @@ config:
         duration: "8760h"
         renewBefore: "720h"
     juicefs:
-      # -- Required when sandboxes are enabled.
-      enabled: true
       # -- JuiceFS volume name. Use a flat DNS-label-style name only; slashes and object-store subpaths are not supported here. JuiceFS stores objects under `<name>/` inside the configured bucket.
       name: "sandbox-juicefs"
       storage: "s3"
       # -- Object storage bucket/root URL used by JuiceFS, for example `s3://bucket-name` or `gs://bucket-name`. Use `config.sandboxes.juicefs.name` for JuiceFS volume isolation instead of deployment-specific bucket paths.
       bucket: ""
-      csi:
-        enabled: true
-        # -- JuiceFS metadata URL. Redis metadata engines must use maxmemory-policy noeviction.
+      redis:
+        # -- JuiceFS Redis metadata URL. Redis metadata engines must use maxmemory-policy noeviction. For Redis Cluster, the `/DB` path is used by JuiceFS as a hash-tag key prefix rather than a Redis logical database.
         metaURL: ""
+      csi:
         configSecretName: "juicefs-csi-config"
         # -- Namespace for the JuiceFS CSI config Secret. Empty uses the LangSmith release namespace.
         configSecretNamespace: ""
@@ -989,7 +987,6 @@ config:
         hostPVName: "smithbox-juicefs-csi-host"
         hostPVCName: "smithbox-juicefs-csi-host"
     smithboxControl:
-      enabled: true
       name: "smithbox-control"
       replicas: 2
       containerPort: 9090
@@ -1017,7 +1014,6 @@ config:
         annotations: {}
         automountServiceAccountToken: true
     sandboxHost:
-      enabled: true
       name: "sandbox-host"
       containerPort: 19190
       terminationGracePeriodSeconds: 300
@@ -1042,7 +1038,6 @@ config:
         annotations: {}
         automountServiceAccountToken: true
     sandboxHostInstaller:
-      enabled: true
       name: "sandbox-host-installer"
       maxUnavailable: 1
       timeout: "120s"
