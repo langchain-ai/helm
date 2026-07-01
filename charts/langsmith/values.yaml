@@ -3314,36 +3314,20 @@ redis:
     annotations: {}
     automountServiceAccountToken: true
 
-# -- Values for the JuiceFS CSI dependency. The dependency is installed only
-# when config.sandboxes.enabled is true.
+# @ignored
+# Internal defaults for the JuiceFS CSI dependency. The dependency is installed
+# only when config.sandboxes.enabled is true.
 juicefs-csi-driver:
-  storageClasses:
-    - enabled: false
-  controller:
-    annotations:
-      prometheus.io/scrape: "true"
-      prometheus.io/path: /metrics
-      prometheus.io/port: "9567"
   node:
     fsShareMount: true
-    annotations:
-      prometheus.io/scrape: "true"
-      prometheus.io/path: /metrics
-      prometheus.io/port: "9567"
     tolerations:
       - key: sandbox.langsmith.com/host
         operator: Equal
         value: "true"
         effect: NoSchedule
   globalConfig:
-    enabled: true
-    # -- Optional JuiceFS CSI mount pod patches for cache options, resources, labels, and annotations required by admission webhooks.
     mountPodPatch:
-      - annotations:
-          prometheus.io/scrape: "true"
-          prometheus.io/path: /metrics
-          prometheus.io/port: "9567"
-        mountOptions:
+      - mountOptions:
           - cache-dir=/var/cache/juicefs-csi
           - cache-size=51200
           - buffer-size=300
