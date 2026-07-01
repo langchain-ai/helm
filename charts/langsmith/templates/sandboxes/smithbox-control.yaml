@@ -150,9 +150,9 @@ spec:
                   optional: {{ .Values.redis.disableSecretCreation }}
             {{- end }}
             - name: SMITHBOX_REDIS_IAM_AUTH_PROVIDER
-              value: {{ default .Values.redis.external.iamAuthProvider .Values.config.sandboxes.smithboxControl.redisIamAuthProvider | quote }}
+              value: {{ .Values.redis.external.iamAuthProvider | quote }}
             - name: SMITHBOX_REDIS_CLUSTER_ENABLED
-              value: {{ or .Values.config.sandboxes.smithboxControl.redisClusterEnabled .Values.redis.external.cluster.enabled | quote }}
+              value: {{ .Values.redis.external.cluster.enabled | quote }}
             - name: SMITHBOX_REDIS_DISABLE_CLIENT_SETINFO
               value: {{ .Values.config.sandboxes.smithboxControl.redisDisableClientSetinfo | quote }}
             - name: SMITHBOX_FIRECRACKER_SIZE_CLASSES

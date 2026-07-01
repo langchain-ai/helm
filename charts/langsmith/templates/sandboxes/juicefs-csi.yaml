@@ -60,12 +60,11 @@ spec:
     matchLabels:
       app: smithbox
       juicefs.langsmith.com/mount: csi
-{{- if .Values.config.sandboxes.juicefs.csi.hostPVCName }}
 ---
 apiVersion: v1
 kind: PersistentVolume
 metadata:
-  name: {{ .Values.config.sandboxes.juicefs.csi.hostPVName }}
+  name: {{ include "langsmith.sandboxes.juicefsHostPVName" . }}
   labels:
     app: smithbox
     juicefs.langsmith.com/mount: csi-host
@@ -79,7 +78,7 @@ spec:
   storageClassName: ""
   csi:
     driver: csi.juicefs.com
-    volumeHandle: {{ .Values.config.sandboxes.juicefs.csi.hostPVName }}
+    volumeHandle: {{ include "langsmith.sandboxes.juicefsHostPVName" . }}
     fsType: juicefs
     volumeAttributes:
       juicefs/mount-service-account: juicefs-csi-node-sa
@@ -90,7 +89,7 @@ spec:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: {{ .Values.config.sandboxes.juicefs.csi.hostPVCName }}
+  name: {{ include "langsmith.sandboxes.juicefsHostPVCName" . }}
   namespace: {{ $namespace }}
   labels:
     juicefs.langsmith.com/cache: ssd
@@ -106,5 +105,4 @@ spec:
     matchLabels:
       app: smithbox
       juicefs.langsmith.com/mount: csi-host
-{{- end }}
 {{- end }}

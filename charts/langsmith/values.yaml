@@ -984,16 +984,12 @@ config:
         mountPath: "/juicefs"
         pvName: "smithbox-juicefs-csi"
         pvcName: "smithbox-juicefs-csi"
-        hostPVName: "smithbox-juicefs-csi-host"
-        hostPVCName: "smithbox-juicefs-csi-host"
     smithboxControl:
       name: "smithbox-control"
       replicas: 2
       containerPort: 9090
       runtimeLifecycleReconcilerEnabled: false
       hostObserverEnabled: true
-      redisIamAuthProvider: ""
-      redisClusterEnabled: false
       redisDisableClientSetinfo: false
       resources:
         requests:

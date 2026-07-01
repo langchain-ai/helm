@@ -186,6 +186,52 @@ tests:
                 key: sandbox_connection_url
                 optional: false
 
+  - it: should derive smithbox-control Redis IAM auth provider from root Redis config
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      redis.external.iamAuthProvider: aws
+    template: sandboxes/smithbox-control.yaml
+    documentSelector:
+      path: kind
+      value: Deployment
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHBOX_REDIS_IAM_AUTH_PROVIDER
+            value: aws
+
+  - it: should derive smithbox-control Redis cluster mode from root Redis config
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      redis.external.enabled: true
+      redis.external.cluster.enabled: true
+      redis.external.cluster.nodeUris:
+        - redis://redis-0:6379
+        - redis://redis-1:6379
+    template: sandboxes/smithbox-control.yaml
+    documentSelector:
+      path: kind
+      value: Deployment
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHBOX_REDIS_ADDR
+            value: redis://redis-0:6379
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHBOX_REDIS_CLUSTER_ADDRS
+            value: redis://redis-0:6379,redis://redis-1:6379
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHBOX_REDIS_CLUSTER_ENABLED
+            value: "true"
+
   - it: should not render sandbox Redis Secret when Redis uses an existing Secret
     values:
       - ./values/sandboxes-enabled.yaml
@@ -369,6 +415,12 @@ tests:
       - isKind:
           of: PersistentVolume
       - equal:
+          path: metadata.name
+          value: smithbox-juicefs-csi-host
+      - equal:
+          path: spec.csi.volumeHandle
+          value: smithbox-juicefs-csi-host
+      - equal:
           path: spec.csi.driver
           value: csi.juicefs.com
       - equal:
@@ -377,6 +429,15 @@ tests:
       - equal:
           path: spec.csi.nodePublishSecretRef.namespace
           value: NAMESPACE
+
+  - it: should mount the derived JuiceFS host PVC on sandbox-host
+    values:
+      - ./values/sandboxes-enabled.yaml
+    template: sandboxes/sandbox-host-daemonset.yaml
+    asserts:
+      - equal:
+          path: spec.template.spec.volumes[0].persistentVolumeClaim.claimName
+          value: smithbox-juicefs-csi-host
 
   - it: should fail when sandboxes are enabled without image tags
     set:

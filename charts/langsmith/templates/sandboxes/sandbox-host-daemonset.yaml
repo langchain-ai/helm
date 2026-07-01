@@ -113,7 +113,7 @@ spec:
       volumes:
         - name: juicefs
           persistentVolumeClaim:
-            claimName: {{ default .Values.config.sandboxes.juicefs.csi.pvcName .Values.config.sandboxes.juicefs.csi.hostPVCName }}
+            claimName: {{ include "langsmith.sandboxes.juicefsHostPVCName" . }}
         - name: proxy-ca
           secret:
             secretName: {{ include "langsmith.sandboxes.proxyCASecretName" . }}
