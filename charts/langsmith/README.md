@@ -395,8 +395,8 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | images.redisImage.repository | string | `"docker.io/redis"` |  |
 | images.redisImage.tag | string | `"7"` |  |
 | images.registry | string | `""` | If supplied, all children <image_name>.repository values will be prepended with this registry name + `/` |
-| images.sandboxHostImage | object | `{"pullPolicy":"IfNotPresent","repository":"","tag":""}` | sandbox-host image. Only used when config.sandboxes.enabled is true. |
-| images.smithboxControlImage | object | `{"pullPolicy":"IfNotPresent","repository":"","tag":""}` | smithbox-control image. Only used when config.sandboxes.enabled is true. |
+| images.sandboxHostImage | object | `{"pullPolicy":"IfNotPresent","repository":"docker.io/langchain/sandbox-host","tag":""}` | sandbox-host image. Only used when config.sandboxes.enabled is true. |
+| images.smithboxControlImage | object | `{"pullPolicy":"IfNotPresent","repository":"docker.io/langchain/smithbox-control","tag":""}` | smithbox-control image. Only used when config.sandboxes.enabled is true. |
 | images.smithdbClusterManagerImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.smithdbClusterManagerImage.repository | string | `"docker.io/langchain/smithdb-clustermanager"` |  |
 | images.smithdbClusterManagerImage.tag | string | `"latest"` |  |

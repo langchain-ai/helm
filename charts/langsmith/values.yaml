@@ -153,12 +153,12 @@ images:
     tag: "2.2.354"
   # -- sandbox-host image. Only used when config.sandboxes.enabled is true.
   sandboxHostImage:
-    repository: ""
+    repository: "docker.io/langchain/sandbox-host"
     pullPolicy: IfNotPresent
     tag: ""
   # -- smithbox-control image. Only used when config.sandboxes.enabled is true.
   smithboxControlImage:
-    repository: ""
+    repository: "docker.io/langchain/smithbox-control"
     pullPolicy: IfNotPresent
     tag: ""
 
