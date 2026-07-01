@@ -1,5 +1,5 @@
-{{- if and .Values.config.sandboxes.enabled (eq .Values.config.sandboxes.proxyCA.mode "generatedSecret") }}
-{{- $name := include "langsmith.sandboxes.proxyCASecretName" . -}}
+{{- if and .Values.config.sandboxes.enabled (eq .Values.config.sandboxes.proxyCa.mode "generatedSecret") }}
+{{- $name := include "langsmith.sandboxes.proxyCaSecretName" . -}}
 {{- $namespace := include "langsmith.sandboxes.namespace" . -}}
 {{- $existing := lookup "v1" "Secret" $namespace $name -}}
 apiVersion: v1
@@ -22,13 +22,13 @@ data:
   tls.crt: {{ $ca.Cert | b64enc | quote }}
   tls.key: {{ $ca.Key | b64enc | quote }}
   {{- end }}
-{{- else if and .Values.config.sandboxes.enabled (eq .Values.config.sandboxes.proxyCA.mode "certManager") }}
-{{- if .Values.config.sandboxes.proxyCA.certManager.createIssuer }}
+{{- else if and .Values.config.sandboxes.enabled (eq .Values.config.sandboxes.proxyCa.mode "certManager") }}
+{{- if .Values.config.sandboxes.proxyCa.certManager.createIssuer }}
 apiVersion: cert-manager.io/v1
-kind: {{ .Values.config.sandboxes.proxyCA.certManager.issuerKind }}
+kind: {{ .Values.config.sandboxes.proxyCa.certManager.issuerKind }}
 metadata:
-  name: {{ .Values.config.sandboxes.proxyCA.certManager.issuerName }}
-  {{- if ne .Values.config.sandboxes.proxyCA.certManager.issuerKind "ClusterIssuer" }}
+  name: {{ .Values.config.sandboxes.proxyCa.certManager.issuerName }}
+  {{- if ne .Values.config.sandboxes.proxyCa.certManager.issuerKind "ClusterIssuer" }}
   namespace: {{ include "langsmith.sandboxes.namespace" . }}
   {{- end }}
   labels:
@@ -40,20 +40,20 @@ spec:
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
-  name: {{ include "langsmith.sandboxes.proxyCASecretName" . }}
+  name: {{ include "langsmith.sandboxes.proxyCaSecretName" . }}
   namespace: {{ include "langsmith.sandboxes.namespace" . }}
   labels:
     {{- include "langsmith.labels" . | nindent 4 }}
 spec:
   isCA: true
   commonName: smithbox-proxy-ca
-  secretName: {{ include "langsmith.sandboxes.proxyCASecretName" . }}
-  duration: {{ .Values.config.sandboxes.proxyCA.certManager.duration | quote }}
-  renewBefore: {{ .Values.config.sandboxes.proxyCA.certManager.renewBefore | quote }}
+  secretName: {{ include "langsmith.sandboxes.proxyCaSecretName" . }}
+  duration: {{ .Values.config.sandboxes.proxyCa.certManager.duration | quote }}
+  renewBefore: {{ .Values.config.sandboxes.proxyCa.certManager.renewBefore | quote }}
   privateKey:
     algorithm: RSA
     size: 2048
   issuerRef:
-    name: {{ .Values.config.sandboxes.proxyCA.certManager.issuerName }}
-    kind: {{ .Values.config.sandboxes.proxyCA.certManager.issuerKind }}
+    name: {{ .Values.config.sandboxes.proxyCa.certManager.issuerName }}
+    kind: {{ .Values.config.sandboxes.proxyCa.certManager.issuerKind }}
 {{- end }}

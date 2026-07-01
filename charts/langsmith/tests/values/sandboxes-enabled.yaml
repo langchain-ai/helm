@@ -13,9 +13,9 @@ config:
       maxCpuCores: 16
       maxMemoryGb: 64
       minEphemeralStorageGb: 1
-      maxEphemeralStorageGib: 100
+      maxEphemeralStorageGb: 100
       maxSandboxes: 1000
-    proxyCA:
+    proxyCa:
       mode: generatedSecret
     juicefs:
       name: sandbox-juicefs

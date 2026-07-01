@@ -946,18 +946,18 @@ config:
       maxCpuCores: 16
       maxMemoryGb: 64
       minEphemeralStorageGb: 1
-      maxEphemeralStorageGib: 100
+      maxEphemeralStorageGb: 100
       maxSandboxes: 1000
     runtimeSecret:
       # -- Create the sandbox-external Secret in config.sandboxes.namespace.
       create: true
       # -- Existing Secret in config.sandboxes.namespace with x_service_auth_jwt_secret.
       existingSecretName: ""
-      name: "sandbox-external"
+      secretName: "sandbox-external"
       xServiceAuthJwtSecretKey: "x_service_auth_jwt_secret"
       xServiceAuthJwtSecretPreviousKey: "x_service_auth_jwt_secret_previous"
       callbackSigningJwkKey: "sandbox_callback_signing_jwk"
-    proxyCA:
+    proxyCa:
       # -- generatedSecret creates a self-signed CA Secret with Helm. Other modes are existingSecret or certManager.
       mode: "generatedSecret"
       secretName: "smithbox-proxy-ca"
@@ -986,23 +986,31 @@ config:
         pvcName: "smithbox-juicefs-csi"
     smithboxControl:
       name: "smithbox-control"
-      replicas: 2
       containerPort: 9090
       runtimeLifecycleReconcilerEnabled: false
       hostObserverEnabled: true
       redisDisableClientSetinfo: false
-      resources:
-        requests:
-          cpu: "2"
-          memory: 8Gi
-        limits:
-          cpu: "2"
-          memory: 8Gi
-      nodeSelector: {}
-      tolerations: []
-      annotations: {}
-      labels: {}
-      podAnnotations: {}
+      deployment:
+        replicas: 2
+        labels: {}
+        annotations: {}
+        podAnnotations: {}
+        resources:
+          requests:
+            cpu: "2"
+            memory: 8Gi
+          limits:
+            cpu: "2"
+            memory: 8Gi
+        nodeSelector: {}
+        tolerations: []
+        securityContext:
+          privileged: true
+      service:
+        type: ClusterIP
+        port: 9090
+        labels: {}
+        annotations: {}
       serviceAccount:
         create: true
         name: ""
@@ -1012,21 +1020,25 @@ config:
     sandboxHost:
       name: "sandbox-host"
       containerPort: 19190
-      terminationGracePeriodSeconds: 300
-      # -- Node selector for sandbox-host and sandbox-host-installer pods. Empty uses the default selector `sandbox.langsmith.com/host=true`; set this map to replace the default if your sandbox node pool uses different labels.
-      nodeSelector: {}
-      # -- Tolerations for sandbox-host and sandbox-host-installer pods. The default expects sandbox-host nodes tainted `sandbox.langsmith.com/host=true:NoSchedule`; override this if your sandbox node pool uses different taints.
-      tolerations:
-        - key: sandbox.langsmith.com/host
-          operator: Equal
-          value: "true"
-          effect: NoSchedule
-      resources:
-        requests:
-          cpu: "2"
-          memory: 2Gi
-      securityContext:
-        privileged: true
+      daemonSet:
+        labels: {}
+        annotations: {}
+        podAnnotations: {}
+        terminationGracePeriodSeconds: 300
+        # -- Node selector for sandbox-host and sandbox-host-installer pods. Empty uses the default selector `sandbox.langsmith.com/host=true`; set this map to replace the default if your sandbox node pool uses different labels.
+        nodeSelector: {}
+        # -- Tolerations for sandbox-host and sandbox-host-installer pods. The default expects sandbox-host nodes tainted `sandbox.langsmith.com/host=true:NoSchedule`; override this if your sandbox node pool uses different taints.
+        tolerations:
+          - key: sandbox.langsmith.com/host
+            operator: Equal
+            value: "true"
+            effect: NoSchedule
+        resources:
+          requests:
+            cpu: "2"
+            memory: 2Gi
+        securityContext:
+          privileged: true
       serviceAccount:
         create: true
         name: ""
@@ -1035,31 +1047,35 @@ config:
         automountServiceAccountToken: true
     sandboxHostInstaller:
       name: "sandbox-host-installer"
-      maxUnavailable: 1
-      timeout: "120s"
-      resources:
-        requests:
-          cpu: 10m
-          memory: 32Mi
-        limits:
-          cpu: 200m
-          memory: 128Mi
-      securityContext:
-        runAsUser: 0
-    # -- Required when sandboxes are enabled. Firecracker VM size classes passed to smithbox-control as `SMITHBOX_FIRECRACKER_SIZE_CLASSES`; each entry must include `name`, `vcpus`, and `mem_mib`.
+      daemonSet:
+        labels: {}
+        annotations: {}
+        podAnnotations: {}
+        maxUnavailable: 1
+        timeout: "120s"
+        resources:
+          requests:
+            cpu: 10m
+            memory: 32Mi
+          limits:
+            cpu: 200m
+            memory: 128Mi
+        securityContext:
+          runAsUser: 0
+    # -- Required when sandboxes are enabled. Firecracker VM size classes passed to smithbox-control as `SMITHBOX_FIRECRACKER_SIZE_CLASSES`; each entry must include `name`, `vcpus`, and `memoryMib`.
     firecrackerSizeClasses:
       - name: small
         vcpus: 1
-        mem_mib: 1792
+        memoryMib: 1792
       - name: medium
         vcpus: 1
-        mem_mib: 3840
+        memoryMib: 3840
       - name: large
         vcpus: 2
-        mem_mib: 7936
+        memoryMib: 7936
       - name: xlarge
         vcpus: 4
-        mem_mib: 16128
+        memoryMib: 16128
 
   # DEPRECATED: use the top-level fleet block (fleet/fleetToolServer/
   # fleetTriggerServer) instead. This bundled-agent path is managed by

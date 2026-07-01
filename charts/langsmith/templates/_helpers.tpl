@@ -1197,18 +1197,18 @@ Sandbox runtime secret name in config.sandboxes.namespace.
 {{- if .Values.config.sandboxes.runtimeSecret.existingSecretName -}}
 {{- .Values.config.sandboxes.runtimeSecret.existingSecretName -}}
 {{- else -}}
-{{- default "sandbox-external" .Values.config.sandboxes.runtimeSecret.name -}}
+{{- default "sandbox-external" .Values.config.sandboxes.runtimeSecret.secretName -}}
 {{- end -}}
 {{- end -}}
 
 {{/*
 Sandbox proxy CA secret name in config.sandboxes.namespace.
 */}}
-{{- define "langsmith.sandboxes.proxyCASecretName" -}}
-{{- if eq .Values.config.sandboxes.proxyCA.mode "existingSecret" -}}
-{{- .Values.config.sandboxes.proxyCA.existingSecretName -}}
+{{- define "langsmith.sandboxes.proxyCaSecretName" -}}
+{{- if eq .Values.config.sandboxes.proxyCa.mode "existingSecret" -}}
+{{- .Values.config.sandboxes.proxyCa.existingSecretName -}}
 {{- else -}}
-{{- default "smithbox-proxy-ca" .Values.config.sandboxes.proxyCA.secretName -}}
+{{- default "smithbox-proxy-ca" .Values.config.sandboxes.proxyCa.secretName -}}
 {{- end -}}
 {{- end -}}
 
@@ -1235,7 +1235,18 @@ Redis Secret for smithbox-control.
 smithbox-control in-cluster URL.
 */}}
 {{- define "langsmith.sandboxes.smithboxControlUrl" -}}
-{{- printf "http://%s.%s.svc.%s:%v" .Values.config.sandboxes.smithboxControl.name (include "langsmith.sandboxes.namespace" .) .Values.clusterDomain .Values.config.sandboxes.smithboxControl.containerPort -}}
+{{- printf "http://%s.%s.svc.%s:%v" .Values.config.sandboxes.smithboxControl.name (include "langsmith.sandboxes.namespace" .) .Values.clusterDomain .Values.config.sandboxes.smithboxControl.service.port -}}
+{{- end -}}
+
+{{/*
+Firecracker size classes rendered in the JSON shape expected by smithbox-control.
+*/}}
+{{- define "langsmith.sandboxes.firecrackerSizeClasses" -}}
+{{- $classes := list -}}
+{{- range .Values.config.sandboxes.firecrackerSizeClasses -}}
+{{- $classes = append $classes (dict "name" .name "vcpus" .vcpus "mem_mib" .memoryMib) -}}
+{{- end -}}
+{{- $classes | toJson -}}
 {{- end -}}
 
 {{/*
@@ -1286,8 +1297,8 @@ Sandbox service account names.
 Node selector for sandbox-host and sandbox-host-installer pods.
 */}}
 {{- define "langsmith.sandboxes.sandboxHostNodeSelector" -}}
-{{- if .Values.config.sandboxes.sandboxHost.nodeSelector -}}
-{{- toYaml .Values.config.sandboxes.sandboxHost.nodeSelector -}}
+{{- if .Values.config.sandboxes.sandboxHost.daemonSet.nodeSelector -}}
+{{- toYaml .Values.config.sandboxes.sandboxHost.daemonSet.nodeSelector -}}
 {{- else -}}
 sandbox.langsmith.com/host: "true"
 {{- end -}}
@@ -1317,7 +1328,7 @@ LangSmith app env vars for sandbox support.
 - name: SANDBOX_MIN_EPHEMERAL_STORAGE_GB
   value: {{ .Values.config.sandboxes.limits.minEphemeralStorageGb | quote }}
 - name: SANDBOX_MAX_EPHEMERAL_STORAGE_GIB
-  value: {{ .Values.config.sandboxes.limits.maxEphemeralStorageGib | quote }}
+  value: {{ .Values.config.sandboxes.limits.maxEphemeralStorageGb | quote }}
 - name: SANDBOX_MAX_SANDBOXES
   value: {{ .Values.config.sandboxes.limits.maxSandboxes | quote }}
 {{- if .Values.config.sandboxes.defaultBlueprintImage }}

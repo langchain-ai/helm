@@ -1,10 +1,11 @@
 config:
   sandboxes:
     sandboxHost:
-      nodeSelector:
-        sandbox.example.com/pool: hosts
-      tolerations:
-        - key: sandbox.example.com/pool
-          operator: Equal
-          value: hosts
-          effect: NoSchedule
+      daemonSet:
+        nodeSelector:
+          sandbox.example.com/pool: hosts
+        tolerations:
+          - key: sandbox.example.com/pool
+            operator: Equal
+            value: hosts
+            effect: NoSchedule

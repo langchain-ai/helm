@@ -8,6 +8,14 @@ metadata:
   labels:
     app: sandbox-host-installer
     {{- include "langsmith.labels" . | nindent 4 }}
+    {{- with .Values.config.sandboxes.sandboxHostInstaller.daemonSet.labels }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+  annotations:
+    {{- include "langsmith.annotations" . | nindent 4 }}
+    {{- with .Values.config.sandboxes.sandboxHostInstaller.daemonSet.annotations }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
 spec:
   selector:
     matchLabels:
@@ -15,12 +23,17 @@ spec:
   updateStrategy:
     type: RollingUpdate
     rollingUpdate:
-      maxUnavailable: {{ .Values.config.sandboxes.sandboxHostInstaller.maxUnavailable }}
+      maxUnavailable: {{ .Values.config.sandboxes.sandboxHostInstaller.daemonSet.maxUnavailable }}
   template:
     metadata:
       labels:
         app: sandbox-host-installer
         {{- include "langsmith.labels" . | nindent 8 }}
+      annotations:
+        {{- include "langsmith.commonPodAnnotations" . | nindent 8 }}
+        {{- with .Values.config.sandboxes.sandboxHostInstaller.daemonSet.podAnnotations }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
     spec:
       hostNetwork: true
       dnsPolicy: ClusterFirstWithHostNet
@@ -30,7 +43,7 @@ spec:
       {{- end }}
       nodeSelector:
         {{- include "langsmith.sandboxes.sandboxHostNodeSelector" . | nindent 8 }}
-      {{- with .Values.config.sandboxes.sandboxHost.tolerations }}
+      {{- with .Values.config.sandboxes.sandboxHost.daemonSet.tolerations }}
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
@@ -48,7 +61,7 @@ spec:
             - -ready-file
             - /tmp/installer-ready
             - -timeout
-            - {{ .Values.config.sandboxes.sandboxHostInstaller.timeout | quote }}
+            - {{ .Values.config.sandboxes.sandboxHostInstaller.daemonSet.timeout | quote }}
           env:
             - name: LANGCHAIN_ENV
               value: {{ .Values.config.langchainEnv | quote }}
@@ -65,9 +78,9 @@ spec:
             timeoutSeconds: 2
             failureThreshold: 60
           securityContext:
-            {{- toYaml .Values.config.sandboxes.sandboxHostInstaller.securityContext | nindent 12 }}
+            {{- toYaml .Values.config.sandboxes.sandboxHostInstaller.daemonSet.securityContext | nindent 12 }}
           resources:
-            {{- toYaml .Values.config.sandboxes.sandboxHostInstaller.resources | nindent 12 }}
+            {{- toYaml .Values.config.sandboxes.sandboxHostInstaller.daemonSet.resources | nindent 12 }}
           volumeMounts:
             - name: host-bin
               mountPath: /host-bin

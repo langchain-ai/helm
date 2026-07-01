@@ -70,16 +70,16 @@ metadata:
   labels:
     app: smithbox-control
     {{- include "langsmith.labels" . | nindent 4 }}
-    {{- with .Values.config.sandboxes.smithboxControl.labels }}
+    {{- with .Values.config.sandboxes.smithboxControl.deployment.labels }}
       {{- toYaml . | nindent 4 }}
     {{- end }}
   annotations:
     {{- include "langsmith.annotations" . | nindent 4 }}
-    {{- with .Values.config.sandboxes.smithboxControl.annotations }}
+    {{- with .Values.config.sandboxes.smithboxControl.deployment.annotations }}
       {{- toYaml . | nindent 4 }}
     {{- end }}
 spec:
-  replicas: {{ .Values.config.sandboxes.smithboxControl.replicas }}
+  replicas: {{ .Values.config.sandboxes.smithboxControl.deployment.replicas }}
   selector:
     matchLabels:
       app: smithbox-control
@@ -90,7 +90,7 @@ spec:
         {{- include "langsmith.labels" . | nindent 8 }}
       annotations:
         {{- include "langsmith.commonPodAnnotations" . | nindent 8 }}
-        {{- with .Values.config.sandboxes.smithboxControl.podAnnotations }}
+        {{- with .Values.config.sandboxes.smithboxControl.deployment.podAnnotations }}
           {{- toYaml . | nindent 8 }}
         {{- end }}
     spec:
@@ -99,11 +99,11 @@ spec:
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.config.sandboxes.smithboxControl.nodeSelector }}
+      {{- with .Values.config.sandboxes.smithboxControl.deployment.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.config.sandboxes.smithboxControl.tolerations }}
+      {{- with .Values.config.sandboxes.smithboxControl.deployment.tolerations }}
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
@@ -156,13 +156,13 @@ spec:
             - name: SMITHBOX_REDIS_DISABLE_CLIENT_SETINFO
               value: {{ .Values.config.sandboxes.smithboxControl.redisDisableClientSetinfo | quote }}
             - name: SMITHBOX_FIRECRACKER_SIZE_CLASSES
-              value: {{ .Values.config.sandboxes.firecrackerSizeClasses | toJson | quote }}
+              value: {{ include "langsmith.sandboxes.firecrackerSizeClasses" . | quote }}
           ports:
             - containerPort: {{ .Values.config.sandboxes.smithboxControl.containerPort }}
               name: http
               protocol: TCP
           securityContext:
-            privileged: true
+            {{- toYaml .Values.config.sandboxes.smithboxControl.deployment.securityContext | nindent 12 }}
           readinessProbe:
             httpGet:
               path: /health
@@ -170,7 +170,7 @@ spec:
             initialDelaySeconds: 2
             periodSeconds: 5
           resources:
-            {{- toYaml .Values.config.sandboxes.smithboxControl.resources | nindent 12 }}
+            {{- toYaml .Values.config.sandboxes.smithboxControl.deployment.resources | nindent 12 }}
           volumeMounts:
             - name: juicefs-csi
               mountPath: {{ .Values.config.sandboxes.juicefs.csi.mountPath }}
@@ -188,12 +188,20 @@ metadata:
   labels:
     app: smithbox-control
     {{- include "langsmith.labels" . | nindent 4 }}
+    {{- with .Values.config.sandboxes.smithboxControl.service.labels }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+  annotations:
+    {{- include "langsmith.annotations" . | nindent 4 }}
+    {{- with .Values.config.sandboxes.smithboxControl.service.annotations }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
 spec:
-  type: ClusterIP
+  type: {{ .Values.config.sandboxes.smithboxControl.service.type }}
   selector:
     app: smithbox-control
   ports:
-    - port: {{ .Values.config.sandboxes.smithboxControl.containerPort }}
+    - port: {{ .Values.config.sandboxes.smithboxControl.service.port }}
       targetPort: {{ .Values.config.sandboxes.smithboxControl.containerPort }}
       protocol: TCP
 ---

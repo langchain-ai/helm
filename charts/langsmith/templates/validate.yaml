@@ -163,15 +163,15 @@ AWS Marketplace Helm template verification).
 {{- if and .Values.redis.external.cluster.enabled (eq (len .Values.redis.external.cluster.nodeUris) 0) -}}
 {{- fail "config.sandboxes.enabled with redis.external.cluster.enabled requires redis.external.cluster.nodeUris so smithbox-control can render SMITHBOX_REDIS_CLUSTER_ADDRS." -}}
 {{- end -}}
-{{- $proxyCAMode := .Values.config.sandboxes.proxyCA.mode -}}
-{{- if not (or (eq $proxyCAMode "generatedSecret") (eq $proxyCAMode "existingSecret") (eq $proxyCAMode "certManager")) -}}
-{{- fail "config.sandboxes.proxyCA.mode must be one of generatedSecret, existingSecret, or certManager." -}}
+{{- $proxyCaMode := .Values.config.sandboxes.proxyCa.mode -}}
+{{- if not (or (eq $proxyCaMode "generatedSecret") (eq $proxyCaMode "existingSecret") (eq $proxyCaMode "certManager")) -}}
+{{- fail "config.sandboxes.proxyCa.mode must be one of generatedSecret, existingSecret, or certManager." -}}
 {{- end -}}
-{{- if and (eq $proxyCAMode "existingSecret") (not .Values.config.sandboxes.proxyCA.existingSecretName) -}}
-{{- fail "config.sandboxes.proxyCA.existingSecretName is required when config.sandboxes.proxyCA.mode is existingSecret." -}}
+{{- if and (eq $proxyCaMode "existingSecret") (not .Values.config.sandboxes.proxyCa.existingSecretName) -}}
+{{- fail "config.sandboxes.proxyCa.existingSecretName is required when config.sandboxes.proxyCa.mode is existingSecret." -}}
 {{- end -}}
-{{- if and (eq $proxyCAMode "certManager") (not .Values.config.sandboxes.proxyCA.certManager.issuerName) -}}
-{{- fail "config.sandboxes.proxyCA.certManager.issuerName is required when config.sandboxes.proxyCA.mode is certManager." -}}
+{{- if and (eq $proxyCaMode "certManager") (not .Values.config.sandboxes.proxyCa.certManager.issuerName) -}}
+{{- fail "config.sandboxes.proxyCa.certManager.issuerName is required when config.sandboxes.proxyCa.mode is certManager." -}}
 {{- end -}}
 {{- end -}}
 

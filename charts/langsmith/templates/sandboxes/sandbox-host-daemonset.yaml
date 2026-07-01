@@ -8,6 +8,14 @@ metadata:
   labels:
     app: sandbox-host
     {{- include "langsmith.labels" . | nindent 4 }}
+    {{- with .Values.config.sandboxes.sandboxHost.daemonSet.labels }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+  annotations:
+    {{- include "langsmith.annotations" . | nindent 4 }}
+    {{- with .Values.config.sandboxes.sandboxHost.daemonSet.annotations }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
 spec:
   selector:
     matchLabels:
@@ -19,6 +27,11 @@ spec:
       labels:
         app: sandbox-host
         {{- include "langsmith.labels" . | nindent 8 }}
+      annotations:
+        {{- include "langsmith.commonPodAnnotations" . | nindent 8 }}
+        {{- with .Values.config.sandboxes.sandboxHost.daemonSet.podAnnotations }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
     spec:
       hostNetwork: true
       dnsPolicy: ClusterFirstWithHostNet
@@ -29,7 +42,7 @@ spec:
       {{- end }}
       nodeSelector:
         {{- include "langsmith.sandboxes.sandboxHostNodeSelector" . | nindent 8 }}
-      {{- with .Values.config.sandboxes.sandboxHost.tolerations }}
+      {{- with .Values.config.sandboxes.sandboxHost.daemonSet.tolerations }}
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
@@ -92,16 +105,16 @@ spec:
             - name: LANGSMITH_SANDBOX_INTERNAL_ENDPOINT
               value: {{ include "langsmith.sandboxes.langsmithInternalEndpoint" . | quote }}
             - name: SANDBOX_HOST_TERMINATION_GRACE_SECONDS
-              value: {{ .Values.config.sandboxes.sandboxHost.terminationGracePeriodSeconds | quote }}
+              value: {{ .Values.config.sandboxes.sandboxHost.daemonSet.terminationGracePeriodSeconds | quote }}
           ports:
             - name: http
               containerPort: {{ .Values.config.sandboxes.sandboxHost.containerPort }}
               hostPort: {{ .Values.config.sandboxes.sandboxHost.containerPort }}
               protocol: TCP
           securityContext:
-            {{- toYaml .Values.config.sandboxes.sandboxHost.securityContext | nindent 12 }}
+            {{- toYaml .Values.config.sandboxes.sandboxHost.daemonSet.securityContext | nindent 12 }}
           resources:
-            {{- toYaml .Values.config.sandboxes.sandboxHost.resources | nindent 12 }}
+            {{- toYaml .Values.config.sandboxes.sandboxHost.daemonSet.resources | nindent 12 }}
           volumeMounts:
             - name: juicefs
               mountPath: {{ .Values.config.sandboxes.juicefs.csi.mountPath }}
@@ -116,10 +129,10 @@ spec:
             claimName: {{ include "langsmith.sandboxes.juicefsHostPVCName" . }}
         - name: proxy-ca
           secret:
-            secretName: {{ include "langsmith.sandboxes.proxyCASecretName" . }}
+            secretName: {{ include "langsmith.sandboxes.proxyCaSecretName" . }}
         - name: host-bin
           hostPath:
             path: /var/lib/sandbox-host
             type: DirectoryOrCreate
-      terminationGracePeriodSeconds: {{ .Values.config.sandboxes.sandboxHost.terminationGracePeriodSeconds }}
+      terminationGracePeriodSeconds: {{ .Values.config.sandboxes.sandboxHost.daemonSet.terminationGracePeriodSeconds }}
 {{- end }}
