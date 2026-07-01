@@ -913,6 +913,8 @@ config:
   existingSecretName: ""
   disableSecretCreation: false
   langsmithLicenseKey: ""
+  # -- Runtime environment value rendered as LANGCHAIN_ENV for LangSmith services and sandbox runtime components.
+  langchainEnv: "local_kubernetes"
   # -- Configuration for LangSmith Deployments features
   deployment:
       # -- Optional. Used to enable the LangSmith Deployments feature. Requires additional setup. Refer to the documentation for more information.
@@ -931,8 +933,6 @@ config:
     namespace: "langsmith-sandboxes"
     # -- Logical Kubernetes cluster name sent to LangSmith sandbox workers.
     clusterName: ""
-    # -- Runtime environment value for sandbox-host and smithbox-control.
-    langchainEnv: "local_kubernetes"
     # -- Shared service-auth secret for LangSmith <-> sandbox runtime calls.
     # Required when config.existingSecretName is set and runtimeSecret.create is true.
     xServiceAuthJwtSecret: ""

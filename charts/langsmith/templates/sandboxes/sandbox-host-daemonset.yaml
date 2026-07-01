@@ -49,7 +49,7 @@ spec:
               exec /host-bin/sandbox-host
           env:
             - name: LANGCHAIN_ENV
-              value: {{ .Values.config.sandboxes.langchainEnv | quote }}
+              value: {{ .Values.config.langchainEnv | quote }}
             - name: SANDBOX_HOST_BIN_DIR
               value: /opt/sandbox-host/bin
             - name: POD_NAME

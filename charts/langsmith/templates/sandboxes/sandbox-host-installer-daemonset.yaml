@@ -51,7 +51,7 @@ spec:
             - {{ .Values.config.sandboxes.sandboxHostInstaller.timeout | quote }}
           env:
             - name: LANGCHAIN_ENV
-              value: {{ .Values.config.sandboxes.langchainEnv | quote }}
+              value: {{ .Values.config.langchainEnv | quote }}
             - name: SANDBOX_X_SERVICE_AUTH_JWT_SECRET
               valueFrom:
                 secretKeyRef:

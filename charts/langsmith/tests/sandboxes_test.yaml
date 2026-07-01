@@ -83,6 +83,17 @@ tests:
                 key: sandbox_x_service_auth_jwt_secret
                 optional: false
 
+  - it: should use configured LANGCHAIN_ENV in the shared config map
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      config.langchainEnv: chart-env
+    template: config-map.yaml
+    asserts:
+      - equal:
+          path: data.LANGCHAIN_ENV
+          value: chart-env
+
   - it: should wire ingest queue sandbox environment when enabled
     values:
       - ./values/sandboxes-enabled.yaml
@@ -220,7 +231,7 @@ tests:
     values:
       - ./values/sandboxes-enabled.yaml
     set:
-      config.sandboxes.langchainEnv: sandbox-specific-env
+      config.langchainEnv: chart-env
     template: sandboxes/smithbox-control.yaml
     documentSelector:
       path: kind
@@ -230,33 +241,33 @@ tests:
           path: spec.template.spec.containers[0].env
           content:
             name: LANGCHAIN_ENV
-            value: sandbox-specific-env
+            value: chart-env
 
   - it: should use configured LANGCHAIN_ENV for sandbox-host
     values:
       - ./values/sandboxes-enabled.yaml
     set:
-      config.sandboxes.langchainEnv: sandbox-specific-env
+      config.langchainEnv: chart-env
     template: sandboxes/sandbox-host-daemonset.yaml
     asserts:
       - contains:
           path: spec.template.spec.containers[0].env
           content:
             name: LANGCHAIN_ENV
-            value: sandbox-specific-env
+            value: chart-env
 
   - it: should use configured LANGCHAIN_ENV for sandbox-host installer
     values:
       - ./values/sandboxes-enabled.yaml
     set:
-      config.sandboxes.langchainEnv: sandbox-specific-env
+      config.langchainEnv: chart-env
     template: sandboxes/sandbox-host-installer-daemonset.yaml
     asserts:
       - contains:
           path: spec.template.spec.containers[0].env
           content:
             name: LANGCHAIN_ENV
-            value: sandbox-specific-env
+            value: chart-env
 
   - it: should render sandbox-host with host network and OnDelete rollout
     values:

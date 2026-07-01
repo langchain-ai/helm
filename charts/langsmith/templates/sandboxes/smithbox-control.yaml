@@ -116,7 +116,7 @@ spec:
             - --mount={{ .Values.config.sandboxes.juicefs.csi.mountPath }}
           env:
             - name: LANGCHAIN_ENV
-              value: {{ .Values.config.sandboxes.langchainEnv | quote }}
+              value: {{ .Values.config.langchainEnv | quote }}
             - name: SANDBOX_CONTROL_RUNTIME_LIFECYCLE_RECONCILER_ENABLED
               value: {{ .Values.config.sandboxes.smithboxControl.runtimeLifecycleReconcilerEnabled | quote }}
             - name: SANDBOX_CONTROL_HOST_OBSERVER_ENABLED
