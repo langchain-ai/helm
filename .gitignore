@@ -1,17 +1,7 @@
 .idea/
-.env
-.env.*
-*.pem
-*.key
-*.crt
-credentials.json
-node_modules/
-__pycache__/
-.venv/
 test*.yaml
 .DS_Store
 .cursor/
 charts/langsmith-observability/charts/*
-charts/langsmith/charts/*
 test*.csv
 .tmp/
