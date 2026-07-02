@@ -933,6 +933,8 @@ config:
     enabled: false
     # -- Namespace for sandbox runtime services and sandbox-host pods. If `redis.external.existingSecretName` is set or `redis.disableSecretCreation` is true, provide the same Redis Secret name and `redis.external.connectionUrlSecretKey` in this namespace because Kubernetes Secret references are namespace-local.
     namespace: "langsmith-sandboxes"
+    # -- Create config.sandboxes.namespace. Set false when the namespace is managed outside this chart, for example to create required Secrets before Helm install.
+    createNamespace: true
     # -- Logical Kubernetes cluster name sent to LangSmith sandbox workers.
     clusterName: ""
     # -- Shared service-auth secret for LangSmith <-> sandbox runtime calls.

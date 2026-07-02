@@ -38,6 +38,27 @@ tests:
       - hasDocuments:
           count: 0
 
+  - it: should allow using a pre-created sandbox namespace
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      config.sandboxes.createNamespace: false
+    template: sandboxes/namespace.yaml
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: should create the sandbox namespace by default when sandboxes are enabled
+    values:
+      - ./values/sandboxes-enabled.yaml
+    template: sandboxes/namespace.yaml
+    asserts:
+      - isKind:
+          of: Namespace
+      - equal:
+          path: metadata.name
+          value: langsmith-sandboxes
+
   - it: should wire platform backend sandbox environment when enabled
     values:
       - ./values/sandboxes-enabled.yaml
