@@ -983,7 +983,7 @@ config:
         configSecretName: "juicefs-csi-config"
         # -- Existing Secret containing JuiceFS CSI config keys `name`, `metaurl`, `storage`, and `bucket`. When set, this chart does not render the CSI config Secret and `config.sandboxes.juicefs.name`, `config.sandboxes.juicefs.storage`, `config.sandboxes.juicefs.bucket`, and `config.sandboxes.juicefs.redis.metaURL` are not used for the CSI config.
         existingSecretName: ""
-        # -- Namespace for the JuiceFS CSI config Secret. Empty uses `config.sandboxes.namespace`.
+        # -- Namespace for the JuiceFS CSI config Secret. Empty uses the Helm release namespace.
         configSecretNamespace: ""
         mountPath: "/juicefs"
         pvName: "smithbox-juicefs-csi"

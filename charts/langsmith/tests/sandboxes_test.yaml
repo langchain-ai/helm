@@ -428,7 +428,7 @@ tests:
           value: juicefs-csi-config
       - equal:
           path: spec.csi.nodePublishSecretRef.namespace
-          value: langsmith-sandboxes
+          value: NAMESPACE
 
   - it: should allow overriding the JuiceFS CSI config Secret namespace
     values:

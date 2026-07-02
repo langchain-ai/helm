@@ -1262,7 +1262,7 @@ Internal LangSmith platform endpoint used by sandbox runtime callbacks.
 Namespace for the JuiceFS CSI config Secret.
 */}}
 {{- define "langsmith.sandboxes.juicefsCSIConfigSecretNamespace" -}}
-{{- default (include "langsmith.sandboxes.namespace" .) .Values.config.sandboxes.juicefs.csi.configSecretNamespace -}}
+{{- default .Release.Namespace .Values.config.sandboxes.juicefs.csi.configSecretNamespace -}}
 {{- end -}}
 
 {{/*
