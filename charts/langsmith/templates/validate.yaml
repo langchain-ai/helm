@@ -137,19 +137,21 @@ AWS Marketplace Helm template verification).
 {{- if not .Values.config.sandboxes.clusterName -}}
 {{- fail "config.sandboxes.clusterName is required when config.sandboxes.enabled is true." -}}
 {{- end -}}
+{{- $juicefsCSI := .Values.config.sandboxes.juicefs.csi | default dict -}}
+{{- if not $juicefsCSI.existingSecretName -}}
 {{- $juicefsRedis := .Values.config.sandboxes.juicefs.redis | default dict -}}
 {{- if not $juicefsRedis.metaURL -}}
-{{- fail "config.sandboxes.juicefs.redis.metaURL is required when config.sandboxes.enabled is true." -}}
+{{- fail "config.sandboxes.juicefs.redis.metaURL is required when config.sandboxes.enabled is true and config.sandboxes.juicefs.csi.existingSecretName is not set." -}}
 {{- end -}}
 {{- $juicefsName := .Values.config.sandboxes.juicefs.name | default "" -}}
 {{- if not $juicefsName -}}
-{{- fail "config.sandboxes.juicefs.name is required when config.sandboxes.enabled is true." -}}
+{{- fail "config.sandboxes.juicefs.name is required when config.sandboxes.enabled is true and config.sandboxes.juicefs.csi.existingSecretName is not set." -}}
 {{- end -}}
 {{- if not (regexMatch "^[a-z0-9][a-z0-9-]{1,61}[a-z0-9]$" $juicefsName) -}}
 {{- fail "config.sandboxes.juicefs.name must be a DNS-label-style JuiceFS volume name: 3-63 characters, lowercase letters, numbers, and hyphens only. Do not use slashes or object-store subpaths here." -}}
 {{- end -}}
 {{- if not .Values.config.sandboxes.juicefs.bucket -}}
-{{- fail "config.sandboxes.juicefs.bucket is required when config.sandboxes.enabled is true." -}}
+{{- fail "config.sandboxes.juicefs.bucket is required when config.sandboxes.enabled is true and config.sandboxes.juicefs.csi.existingSecretName is not set." -}}
 {{- end -}}
 {{- $juicefsStorage := .Values.config.sandboxes.juicefs.storage | default "" -}}
 {{- $juicefsBucket := .Values.config.sandboxes.juicefs.bucket | default "" -}}
@@ -158,6 +160,7 @@ AWS Marketplace Helm template verification).
 {{- end -}}
 {{- if and (eq $juicefsStorage "s3") (not (regexMatch "^https?://" $juicefsBucket)) -}}
 {{- fail "config.sandboxes.juicefs.bucket must use an HTTP(S) S3 endpoint URL when config.sandboxes.juicefs.storage is s3." -}}
+{{- end -}}
 {{- end -}}
 {{- if and .Values.config.sandboxes.runtimeSecret.create .Values.config.existingSecretName (not .Values.config.sandboxes.xServiceAuthJwtSecret) -}}
 {{- fail "config.sandboxes.xServiceAuthJwtSecret is required when config.sandboxes.enabled is true, config.existingSecretName is set, and config.sandboxes.runtimeSecret.create is true." -}}

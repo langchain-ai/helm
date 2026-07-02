@@ -1,6 +1,8 @@
 {{- if .Values.config.sandboxes.enabled }}
 {{- $namespace := include "langsmith.sandboxes.namespace" . }}
 {{- $juicefsRedis := .Values.config.sandboxes.juicefs.redis | default dict }}
+{{- $juicefsCSI := .Values.config.sandboxes.juicefs.csi | default dict }}
+{{- if not $juicefsCSI.existingSecretName }}
 apiVersion: v1
 kind: Secret
 metadata:
@@ -18,6 +20,7 @@ stringData:
   storage: {{ .Values.config.sandboxes.juicefs.storage | quote }}
   bucket: {{ .Values.config.sandboxes.juicefs.bucket | quote }}
 ---
+{{- end }}
 apiVersion: v1
 kind: PersistentVolume
 metadata:
@@ -40,7 +43,7 @@ spec:
     volumeAttributes:
       juicefs/mount-service-account: juicefs-csi-node-sa
     nodePublishSecretRef:
-      name: {{ .Values.config.sandboxes.juicefs.csi.configSecretName }}
+      name: {{ include "langsmith.sandboxes.juicefsCSIConfigSecretName" . }}
       namespace: {{ include "langsmith.sandboxes.juicefsCSIConfigSecretNamespace" . }}
 ---
 apiVersion: v1
@@ -83,7 +86,7 @@ spec:
     volumeAttributes:
       juicefs/mount-service-account: juicefs-csi-node-sa
     nodePublishSecretRef:
-      name: {{ .Values.config.sandboxes.juicefs.csi.configSecretName }}
+      name: {{ include "langsmith.sandboxes.juicefsCSIConfigSecretName" . }}
       namespace: {{ include "langsmith.sandboxes.juicefsCSIConfigSecretNamespace" . }}
 ---
 apiVersion: v1

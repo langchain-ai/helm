@@ -1266,6 +1266,13 @@ Namespace for the JuiceFS CSI config Secret.
 {{- end -}}
 
 {{/*
+Name for the JuiceFS CSI config Secret.
+*/}}
+{{- define "langsmith.sandboxes.juicefsCSIConfigSecretName" -}}
+{{- default .Values.config.sandboxes.juicefs.csi.configSecretName .Values.config.sandboxes.juicefs.csi.existingSecretName -}}
+{{- end -}}
+
+{{/*
 Derived JuiceFS CSI PV/PVC names for the sandbox-host mount.
 */}}
 {{- define "langsmith.sandboxes.juicefsHostPVName" -}}
