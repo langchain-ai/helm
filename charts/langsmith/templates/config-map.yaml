@@ -17,6 +17,7 @@ data:
   INITIAL_ORG_NAME: {{ .Values.config.initialOrgName }}
   DEFAULT_WORKSPACE_NAME: {{ .Values.config.defaultWorkspaceName }}
   OAUTH_SCOPES: {{ .Values.config.oauth.oauthScopes }}
+  OAUTH_URL_ENCODE_SCOPE_SPACES: {{ .Values.config.oauth.urlEncodeScopeSpaces | quote }}
   OAUTH_SESSION_MAX_SEC: {{ .Values.config.oauth.oauthSessionMaxSec | quote }}
   {{- else if .Values.config.oauth.enabled }}
   VITE_BACKEND_AUTH_TYPE: "oauth"
