@@ -972,14 +972,14 @@ config:
       # -- JuiceFS volume name. Use a flat DNS-label-style name only; slashes and object-store subpaths are not supported here. JuiceFS stores objects under `<name>/` inside the configured bucket.
       name: "sandbox-juicefs"
       storage: "s3"
-      # -- Object storage bucket/root URL used by JuiceFS, for example `s3://bucket-name` or `gs://bucket-name`. Use `config.sandboxes.juicefs.name` for JuiceFS volume isolation instead of deployment-specific bucket paths.
+      # -- Object storage bucket/root URL used by JuiceFS. For AWS S3, use a region-explicit endpoint such as `https://bucket-name.s3.us-west-2.amazonaws.com`; do not use the `s3://bucket-name` shorthand because JuiceFS then infers region with GetBucketLocation. For GCS, use `gs://bucket-name`. Use `config.sandboxes.juicefs.name` for JuiceFS volume isolation instead of deployment-specific bucket paths.
       bucket: ""
       redis:
         # -- JuiceFS Redis metadata URL. Redis metadata engines must use maxmemory-policy noeviction. For Redis Cluster, the `/DB` path is used by JuiceFS as a hash-tag key prefix rather than a Redis logical database.
         metaURL: ""
       csi:
         configSecretName: "juicefs-csi-config"
-        # -- Namespace for the JuiceFS CSI config Secret. Empty uses the LangSmith release namespace.
+        # -- Namespace for the JuiceFS CSI config Secret. Empty uses `config.sandboxes.namespace`.
         configSecretNamespace: ""
         mountPath: "/juicefs"
         pvName: "smithbox-juicefs-csi"

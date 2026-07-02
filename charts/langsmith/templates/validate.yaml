@@ -151,6 +151,14 @@ AWS Marketplace Helm template verification).
 {{- if not .Values.config.sandboxes.juicefs.bucket -}}
 {{- fail "config.sandboxes.juicefs.bucket is required when config.sandboxes.enabled is true." -}}
 {{- end -}}
+{{- $juicefsStorage := .Values.config.sandboxes.juicefs.storage | default "" -}}
+{{- $juicefsBucket := .Values.config.sandboxes.juicefs.bucket | default "" -}}
+{{- if and (eq $juicefsStorage "s3") (hasPrefix "s3://" $juicefsBucket) -}}
+{{- fail "config.sandboxes.juicefs.bucket must use a region-explicit S3 endpoint URL such as https://bucket-name.s3.us-west-2.amazonaws.com when config.sandboxes.juicefs.storage is s3. The s3://bucket shorthand makes JuiceFS infer region with GetBucketLocation and is not supported." -}}
+{{- end -}}
+{{- if and (eq $juicefsStorage "s3") (not (regexMatch "^https?://" $juicefsBucket)) -}}
+{{- fail "config.sandboxes.juicefs.bucket must use an HTTP(S) S3 endpoint URL when config.sandboxes.juicefs.storage is s3." -}}
+{{- end -}}
 {{- if and .Values.config.sandboxes.runtimeSecret.create .Values.config.existingSecretName (not .Values.config.sandboxes.xServiceAuthJwtSecret) -}}
 {{- fail "config.sandboxes.xServiceAuthJwtSecret is required when config.sandboxes.enabled is true, config.existingSecretName is set, and config.sandboxes.runtimeSecret.create is true." -}}
 {{- end -}}

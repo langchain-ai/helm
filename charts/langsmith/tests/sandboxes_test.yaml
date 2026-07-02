@@ -428,7 +428,19 @@ tests:
           value: juicefs-csi-config
       - equal:
           path: spec.csi.nodePublishSecretRef.namespace
-          value: NAMESPACE
+          value: langsmith-sandboxes
+
+  - it: should allow overriding the JuiceFS CSI config Secret namespace
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      config.sandboxes.juicefs.csi.configSecretNamespace: default
+    template: sandboxes/juicefs-csi.yaml
+    documentIndex: 3
+    asserts:
+      - equal:
+          path: spec.csi.nodePublishSecretRef.namespace
+          value: default
 
   - it: should mount the derived JuiceFS host PVC on sandbox-host
     values:
@@ -474,6 +486,17 @@ tests:
     asserts:
       - failedTemplate:
           errorMessage: "config.sandboxes.juicefs.name must be a DNS-label-style JuiceFS volume name: 3-63 characters, lowercase letters, numbers, and hyphens only. Do not use slashes or object-store subpaths here."
+
+  - it: should fail when AWS JuiceFS bucket uses s3 shorthand
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      config.sandboxes.juicefs.storage: s3
+      config.sandboxes.juicefs.bucket: s3://langsmith-sandboxes-test
+    template: validate.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: "config.sandboxes.juicefs.bucket must use a region-explicit S3 endpoint URL such as https://bucket-name.s3.us-west-2.amazonaws.com when config.sandboxes.juicefs.storage is s3. The s3://bucket shorthand makes JuiceFS infer region with GetBucketLocation and is not supported."
 
   - it: should fail when raw sandbox env vars conflict with chart-managed platform env
     values:

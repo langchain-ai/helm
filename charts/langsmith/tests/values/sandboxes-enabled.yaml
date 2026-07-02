@@ -20,7 +20,7 @@ config:
     juicefs:
       name: sandbox-juicefs
       storage: s3
-      bucket: s3://langsmith-sandboxes-test
+      bucket: https://langsmith-sandboxes-test.s3.us-west-2.amazonaws.com
       redis:
         metaURL: redis://langsmith-redis.default.svc.cluster.local:6379/1
 
