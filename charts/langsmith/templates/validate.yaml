@@ -159,10 +159,7 @@ AWS Marketplace Helm template verification).
 {{- fail "config.sandboxes.juicefs.bucket must use an HTTP(S) S3 endpoint URL when config.sandboxes.juicefs.storage is s3." -}}
 {{- end -}}
 {{- end -}}
-{{- if and .Values.config.sandboxes.runtimeSecret.create .Values.config.existingSecretName (not .Values.config.sandboxes.xServiceAuthJwtSecret) -}}
-{{- fail "config.sandboxes.xServiceAuthJwtSecret is required when config.sandboxes.enabled is true, config.existingSecretName is set, and config.sandboxes.runtimeSecret.create is true." -}}
-{{- end -}}
-{{- if and .Values.config.sandboxes.runtimeSecret.create (not (include "langsmith.sandboxes.xServiceAuthJwtSecretValue" .)) -}}
+{{- if and (not .Values.config.existingSecretName) (not .Values.config.disableSecretCreation) (not (include "langsmith.sandboxes.xServiceAuthJwtSecretValue" .)) -}}
 {{- fail "config.sandboxes.xServiceAuthJwtSecret is required when config.sandboxes.enabled is true and no chart-managed app secret value is available." -}}
 {{- end -}}
 {{- if and .Values.redis.external.cluster.enabled .Values.redis.external.existingSecretName -}}

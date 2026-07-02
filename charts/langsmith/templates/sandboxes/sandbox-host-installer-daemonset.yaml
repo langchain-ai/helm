@@ -68,8 +68,9 @@ spec:
             - name: SANDBOX_X_SERVICE_AUTH_JWT_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "langsmith.sandboxes.runtimeSecretName" . }}
-                  key: {{ .Values.config.sandboxes.runtimeSecret.xServiceAuthJwtSecretKey }}
+                  name: {{ include "langsmith.secretsName" . }}
+                  key: sandbox_x_service_auth_jwt_secret
+                  optional: {{ .Values.config.disableSecretCreation }}
           readinessProbe:
             exec:
               command: ["test", "-f", "/tmp/installer-ready"]

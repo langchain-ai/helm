@@ -1186,17 +1186,6 @@ Strip protocol (http://, https://, etc.) from hostname
 {{- end -}}
 
 {{/*
-Sandbox runtime secret name in the LangSmith release namespace.
-*/}}
-{{- define "langsmith.sandboxes.runtimeSecretName" -}}
-{{- if .Values.config.sandboxes.runtimeSecret.existingSecretName -}}
-{{- .Values.config.sandboxes.runtimeSecret.existingSecretName -}}
-{{- else -}}
-{{- default "sandbox-external" .Values.config.sandboxes.runtimeSecret.secretName -}}
-{{- end -}}
-{{- end -}}
-
-{{/*
 Sandbox proxy CA secret name in the LangSmith release namespace.
 */}}
 {{- define "langsmith.sandboxes.proxyCaSecretName" -}}

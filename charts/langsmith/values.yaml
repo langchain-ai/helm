@@ -933,8 +933,8 @@ config:
     enabled: false
     # -- Logical Kubernetes cluster name sent to LangSmith sandbox workers.
     clusterName: ""
-    # -- Shared service-auth secret for LangSmith <-> sandbox runtime calls.
-    # Required when config.existingSecretName is set and runtimeSecret.create is true.
+    # -- Shared service-auth secret for LangSmith <-> sandbox runtime calls. Used only when this chart creates the LangSmith app Secret.
+    # When config.existingSecretName is set, add key `sandbox_x_service_auth_jwt_secret` to that Secret instead.
     xServiceAuthJwtSecret: ""
     # -- Optional previous service-auth secret used during rotation.
     xServiceAuthJwtSecretPrevious: ""
@@ -948,15 +948,6 @@ config:
       minEphemeralStorageGb: 1
       maxEphemeralStorageGb: 100
       maxSandboxes: 1000
-    runtimeSecret:
-      # -- Create the sandbox-external Secret in the LangSmith release namespace.
-      create: true
-      # -- Existing Secret in the LangSmith release namespace with x_service_auth_jwt_secret.
-      existingSecretName: ""
-      secretName: "sandbox-external"
-      xServiceAuthJwtSecretKey: "x_service_auth_jwt_secret"
-      xServiceAuthJwtSecretPreviousKey: "x_service_auth_jwt_secret_previous"
-      callbackSigningJwkKey: "sandbox_callback_signing_jwk"
     proxyCa:
       # -- generatedSecret creates a self-signed CA Secret with Helm. Other modes are existingSecret or certManager.
       mode: "generatedSecret"

@@ -6,7 +6,6 @@ config:
   sandboxes:
     enabled: true
     clusterName: self-hosted-test
-    xServiceAuthJwtSecret: test-sandbox-jwt
     defaultBlueprintImage: python:3.12
     limits:
       maxCpuCores: 16

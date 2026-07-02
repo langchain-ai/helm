@@ -9,7 +9,6 @@ templates:
   - frontend/config-map.yaml
   - platform-backend/deployment.yaml
   - ingest-queue/deployment.yaml
-  - sandboxes/secrets.yaml
   - sandboxes/proxy-ca.yaml
   - sandboxes/juicefs-csi.yaml
   - sandboxes/smithbox-control.yaml
@@ -23,7 +22,6 @@ tests:
       config.oauth.enabled: true
       config.authType: oauth
     templates:
-      - sandboxes/secrets.yaml
       - sandboxes/proxy-ca.yaml
       - sandboxes/juicefs-csi.yaml
       - sandboxes/smithbox-control.yaml
@@ -79,6 +77,32 @@ tests:
                 key: sandbox_x_service_auth_jwt_secret
                 optional: false
 
+  - it: should store sandbox auth material in the chart-managed LangSmith secret
+    set:
+      config.langsmithLicenseKey: test-license
+      config.apiKeySalt: test-api-key-salt
+      config.oauth.enabled: true
+      config.authType: oauth
+      config.sandboxes.enabled: true
+      config.sandboxes.clusterName: self-hosted-test
+      config.sandboxes.xServiceAuthJwtSecret: test-sandbox-jwt
+      config.sandboxes.juicefs.redis.metaURL: redis://langsmith-redis.default.svc.cluster.local:6379/1
+      config.sandboxes.juicefs.bucket: https://langsmith-sandboxes-test.s3.us-west-2.amazonaws.com
+      images.sandboxHostImage.repository: example.com/langsmith/sandbox-host
+      images.sandboxHostImage.tag: test-sandbox-host
+      images.smithboxControlImage.repository: example.com/langsmith/smithbox-control
+      images.smithboxControlImage.tag: test-smithbox-control
+      insights.encryptionKey: test-insights-encryption-key
+      polly.encryptionKey: test-polly-encryption-key
+    template: secrets.yaml
+    asserts:
+      - equal:
+          path: metadata.name
+          value: RELEASE-NAME-langsmith-secrets
+      - equal:
+          path: data.sandbox_x_service_auth_jwt_secret
+          value: dGVzdC1zYW5kYm94LWp3dA==
+
   - it: should use configured LANGCHAIN_ENV in the shared config map
     values:
       - ./values/sandboxes-enabled.yaml
@@ -133,6 +157,15 @@ tests:
       - equal:
           path: spec.template.spec.containers[0].image
           value: example.com/langsmith/smithbox-control:test-smithbox-control
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: X_SERVICE_AUTH_JWT_SECRET
+            valueFrom:
+              secretKeyRef:
+                name: langsmith-secrets
+                key: sandbox_x_service_auth_jwt_secret
+                optional: false
       - contains:
           path: spec.template.spec.containers[0].env
           content:
@@ -312,6 +345,30 @@ tests:
             name: proxy-ca
             mountPath: /certs
             readOnly: true
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_X_SERVICE_AUTH_JWT_SECRET
+            valueFrom:
+              secretKeyRef:
+                name: langsmith-secrets
+                key: sandbox_x_service_auth_jwt_secret
+                optional: false
+
+  - it: should wire sandbox-host installer to the main LangSmith secret
+    values:
+      - ./values/sandboxes-enabled.yaml
+    template: sandboxes/sandbox-host-installer-daemonset.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_X_SERVICE_AUTH_JWT_SECRET
+            valueFrom:
+              secretKeyRef:
+                name: langsmith-secrets
+                key: sandbox_x_service_auth_jwt_secret
+                optional: false
 
   - it: should render custom sandbox-host scheduling on sandbox-host
     values:
@@ -437,7 +494,6 @@ tests:
       config.oauth.enabled: true
       config.authType: oauth
       config.sandboxes.enabled: true
-      config.sandboxes.xServiceAuthJwtSecret: test-sandbox-jwt
       config.sandboxes.juicefs.redis.metaURL: redis://langsmith-redis.default.svc.cluster.local:6379/1
       config.sandboxes.juicefs.bucket: s3://langsmith-sandboxes-test
       images.sandboxHostImage.repository: example.com/langsmith/sandbox-host

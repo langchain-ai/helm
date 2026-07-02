@@ -126,14 +126,15 @@ spec:
             - name: X_SERVICE_AUTH_JWT_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "langsmith.sandboxes.runtimeSecretName" . }}
-                  key: {{ .Values.config.sandboxes.runtimeSecret.xServiceAuthJwtSecretKey }}
+                  name: {{ include "langsmith.secretsName" . }}
+                  key: sandbox_x_service_auth_jwt_secret
+                  optional: {{ .Values.config.disableSecretCreation }}
             {{- if .Values.config.sandboxes.xServiceAuthJwtSecretPrevious }}
             - name: X_SERVICE_AUTH_JWT_SECRET_PREVIOUS
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "langsmith.sandboxes.runtimeSecretName" . }}
-                  key: {{ .Values.config.sandboxes.runtimeSecret.xServiceAuthJwtSecretPreviousKey }}
+                  name: {{ include "langsmith.secretsName" . }}
+                  key: sandbox_x_service_auth_jwt_secret_previous
                   optional: true
             {{- end }}
             {{- if .Values.redis.external.cluster.enabled }}

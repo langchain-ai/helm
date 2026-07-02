@@ -84,16 +84,17 @@ spec:
             - name: SANDBOX_X_SERVICE_AUTH_JWT_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "langsmith.sandboxes.runtimeSecretName" . }}
-                  key: {{ .Values.config.sandboxes.runtimeSecret.xServiceAuthJwtSecretKey }}
+                  name: {{ include "langsmith.secretsName" . }}
+                  key: sandbox_x_service_auth_jwt_secret
+                  optional: {{ .Values.config.disableSecretCreation }}
             - name: SANDBOX_HOST_PROXY_CA_DIR
               value: /certs
             {{- if .Values.config.sandboxes.callbackSigningJwk }}
             - name: LANGSMITH_SANDBOX_CALLBACK_SIGNING_JWK
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "langsmith.sandboxes.runtimeSecretName" . }}
-                  key: {{ .Values.config.sandboxes.runtimeSecret.callbackSigningJwkKey }}
+                  name: {{ include "langsmith.secretsName" . }}
+                  key: sandbox_callback_signing_jwk
                   optional: true
             {{- end }}
             - name: OAUTH_AS_ISSUER
