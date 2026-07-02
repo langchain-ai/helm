@@ -1186,13 +1186,6 @@ Strip protocol (http://, https://, etc.) from hostname
 {{- end -}}
 
 {{/*
-Sandbox runtime namespace. Sandbox resources are colocated with the LangSmith release.
-*/}}
-{{- define "langsmith.sandboxes.namespace" -}}
-{{- .Values.namespace | default .Release.Namespace -}}
-{{- end -}}
-
-{{/*
 Sandbox runtime secret name in the LangSmith release namespace.
 */}}
 {{- define "langsmith.sandboxes.runtimeSecretName" -}}
@@ -1225,7 +1218,7 @@ Sandbox service auth secret material for chart-created app/runtime Secrets.
 smithbox-control in-cluster URL.
 */}}
 {{- define "langsmith.sandboxes.smithboxControlUrl" -}}
-{{- printf "http://%s.%s.svc.%s:%v" .Values.config.sandboxes.smithboxControl.name (include "langsmith.sandboxes.namespace" .) .Values.clusterDomain .Values.config.sandboxes.smithboxControl.service.port -}}
+{{- printf "http://%s.%s.svc.%s:%v" .Values.config.sandboxes.smithboxControl.name (.Values.namespace | default .Release.Namespace) .Values.clusterDomain .Values.config.sandboxes.smithboxControl.service.port -}}
 {{- end -}}
 
 {{/*

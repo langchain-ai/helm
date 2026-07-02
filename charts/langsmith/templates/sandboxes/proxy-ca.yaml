@@ -1,6 +1,6 @@
 {{- if and .Values.config.sandboxes.enabled (eq .Values.config.sandboxes.proxyCa.mode "generatedSecret") }}
 {{- $name := include "langsmith.sandboxes.proxyCaSecretName" . -}}
-{{- $namespace := include "langsmith.sandboxes.namespace" . -}}
+{{- $namespace := .Values.namespace | default .Release.Namespace -}}
 {{- $existing := lookup "v1" "Secret" $namespace $name -}}
 apiVersion: v1
 kind: Secret
@@ -29,7 +29,7 @@ kind: {{ .Values.config.sandboxes.proxyCa.certManager.issuerKind }}
 metadata:
   name: {{ .Values.config.sandboxes.proxyCa.certManager.issuerName }}
   {{- if ne .Values.config.sandboxes.proxyCa.certManager.issuerKind "ClusterIssuer" }}
-  namespace: {{ include "langsmith.sandboxes.namespace" . }}
+  namespace: {{ .Values.namespace | default .Release.Namespace }}
   {{- end }}
   labels:
     {{- include "langsmith.labels" . | nindent 4 }}
@@ -41,7 +41,7 @@ apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
   name: {{ include "langsmith.sandboxes.proxyCaSecretName" . }}
-  namespace: {{ include "langsmith.sandboxes.namespace" . }}
+  namespace: {{ .Values.namespace | default .Release.Namespace }}
   labels:
     {{- include "langsmith.labels" . | nindent 4 }}
 spec:

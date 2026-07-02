@@ -1,5 +1,5 @@
 {{- if .Values.config.sandboxes.enabled }}
-{{- $namespace := include "langsmith.sandboxes.namespace" . }}
+{{- $namespace := .Values.namespace | default .Release.Namespace }}
 {{- if .Values.config.sandboxes.sandboxHost.serviceAccount.create }}
 apiVersion: v1
 kind: ServiceAccount
