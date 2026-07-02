@@ -1,6 +1,6 @@
 # langgraph-dataplane
 
-![Version: 0.2.20](https://img.shields.io/badge/Version-0.2.20-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.13.9](https://img.shields.io/badge/AppVersion-0.13.9-informational?style=flat-square)
+![Version: 0.2.21](https://img.shields.io/badge/Version-0.2.21-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.13.9](https://img.shields.io/badge/AppVersion-0.13.9-informational?style=flat-square)
 
 Helm chart to deploy a langgraph dataplane on kubernetes.
 
