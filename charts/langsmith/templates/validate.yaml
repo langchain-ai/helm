@@ -131,9 +131,6 @@ AWS Marketplace Helm template verification).
 {{- if not .Values.images.smithboxControlImage.tag -}}
 {{- fail "images.smithboxControlImage.tag is required when config.sandboxes.enabled is true." -}}
 {{- end -}}
-{{- if not .Values.config.sandboxes.namespace -}}
-{{- fail "config.sandboxes.namespace is required when config.sandboxes.enabled is true." -}}
-{{- end -}}
 {{- if not .Values.config.sandboxes.clusterName -}}
 {{- fail "config.sandboxes.clusterName is required when config.sandboxes.enabled is true." -}}
 {{- end -}}

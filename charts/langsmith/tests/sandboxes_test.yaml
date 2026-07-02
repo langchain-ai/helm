@@ -9,8 +9,6 @@ templates:
   - frontend/config-map.yaml
   - platform-backend/deployment.yaml
   - ingest-queue/deployment.yaml
-  - sandboxes/namespace.yaml
-  - sandboxes/redis-secret.yaml
   - sandboxes/secrets.yaml
   - sandboxes/proxy-ca.yaml
   - sandboxes/juicefs-csi.yaml
@@ -25,8 +23,6 @@ tests:
       config.oauth.enabled: true
       config.authType: oauth
     templates:
-      - sandboxes/namespace.yaml
-      - sandboxes/redis-secret.yaml
       - sandboxes/secrets.yaml
       - sandboxes/proxy-ca.yaml
       - sandboxes/juicefs-csi.yaml
@@ -37,27 +33,6 @@ tests:
     asserts:
       - hasDocuments:
           count: 0
-
-  - it: should allow using a pre-created sandbox namespace
-    values:
-      - ./values/sandboxes-enabled.yaml
-    set:
-      config.sandboxes.createNamespace: false
-    template: sandboxes/namespace.yaml
-    asserts:
-      - hasDocuments:
-          count: 0
-
-  - it: should create the sandbox namespace by default when sandboxes are enabled
-    values:
-      - ./values/sandboxes-enabled.yaml
-    template: sandboxes/namespace.yaml
-    asserts:
-      - isKind:
-          of: Namespace
-      - equal:
-          path: metadata.name
-          value: langsmith-sandboxes
 
   - it: should wire platform backend sandbox environment when enabled
     values:
@@ -88,7 +63,7 @@ tests:
           path: spec.template.spec.containers[0].env
           content:
             name: SMITHBOX_CONTROL_URL
-            value: http://smithbox-control.langsmith-sandboxes.svc.cluster.local:9090
+            value: http://smithbox-control.NAMESPACE.svc.cluster.local:9090
       - contains:
           path: spec.template.spec.containers[0].env
           content:
@@ -129,7 +104,7 @@ tests:
           path: spec.template.spec.containers[0].env
           content:
             name: SMITHBOX_CONTROL_URL
-            value: http://smithbox-control.langsmith-sandboxes.svc.cluster.local:9090
+            value: http://smithbox-control.NAMESPACE.svc.cluster.local:9090
       - contains:
           path: spec.template.spec.containers[0].env
           content:
@@ -154,7 +129,7 @@ tests:
           value: smithbox-control
       - equal:
           path: metadata.namespace
-          value: langsmith-sandboxes
+          value: NAMESPACE
       - equal:
           path: spec.template.spec.containers[0].image
           value: example.com/langsmith/smithbox-control:test-smithbox-control
@@ -168,24 +143,7 @@ tests:
                 key: connection_url
                 optional: false
 
-  - it: should render sandbox Redis Secret in the sandbox namespace for chart-managed Redis
-    values:
-      - ./values/sandboxes-enabled.yaml
-    template: sandboxes/redis-secret.yaml
-    asserts:
-      - isKind:
-          of: Secret
-      - equal:
-          path: metadata.name
-          value: RELEASE-NAME-langsmith-redis
-      - equal:
-          path: metadata.namespace
-          value: langsmith-sandboxes
-      - equal:
-          path: stringData.connection_url
-          value: redis://RELEASE-NAME-langsmith-redis.NAMESPACE.svc.cluster.local:6379
-
-  - it: should let smithbox-control use a user-managed Redis Secret in the sandbox namespace
+  - it: should let smithbox-control use a user-managed Redis Secret in the release namespace
     values:
       - ./values/sandboxes-enabled.yaml
     set:
@@ -253,17 +211,6 @@ tests:
             name: SMITHBOX_REDIS_CLUSTER_ENABLED
             value: "true"
 
-  - it: should not render sandbox Redis Secret when Redis uses an existing Secret
-    values:
-      - ./values/sandboxes-enabled.yaml
-    set:
-      redis.external.enabled: true
-      redis.external.existingSecretName: langsmith-redis
-    template: sandboxes/redis-secret.yaml
-    asserts:
-      - hasDocuments:
-          count: 0
-
   - it: should reference the chart Redis Secret name when Redis secret creation is disabled
     values:
       - ./values/sandboxes-enabled.yaml
@@ -283,16 +230,6 @@ tests:
                 name: RELEASE-NAME-langsmith-redis
                 key: connection_url
                 optional: true
-
-  - it: should not render sandbox Redis Secret when Redis secret creation is disabled
-    values:
-      - ./values/sandboxes-enabled.yaml
-    set:
-      redis.disableSecretCreation: true
-    template: sandboxes/redis-secret.yaml
-    asserts:
-      - hasDocuments:
-          count: 0
 
   - it: should use configured LANGCHAIN_ENV for smithbox-control
     values:
@@ -348,7 +285,7 @@ tests:
           value: sandbox-host
       - equal:
           path: metadata.namespace
-          value: langsmith-sandboxes
+          value: NAMESPACE
       - equal:
           path: spec.updateStrategy.type
           value: OnDelete
@@ -451,18 +388,6 @@ tests:
           path: spec.csi.nodePublishSecretRef.namespace
           value: NAMESPACE
 
-  - it: should allow overriding the JuiceFS CSI config Secret namespace
-    values:
-      - ./values/sandboxes-enabled.yaml
-    set:
-      config.sandboxes.juicefs.csi.configSecretNamespace: default
-    template: sandboxes/juicefs-csi.yaml
-    documentIndex: 3
-    asserts:
-      - equal:
-          path: spec.csi.nodePublishSecretRef.namespace
-          value: default
-
   - it: should allow an externally managed JuiceFS CSI config Secret
     values:
       - ./values/sandboxes-enabled.yaml
@@ -470,7 +395,6 @@ tests:
       config.sandboxes.juicefs.redis.metaURL: ""
       config.sandboxes.juicefs.bucket: ""
       config.sandboxes.juicefs.csi.existingSecretName: external-juicefs-csi-config
-      config.sandboxes.juicefs.csi.configSecretNamespace: default
     template: sandboxes/juicefs-csi.yaml
     documentIndex: 2
     asserts:
@@ -484,7 +408,7 @@ tests:
           value: external-juicefs-csi-config
       - equal:
           path: spec.csi.nodePublishSecretRef.namespace
-          value: default
+          value: NAMESPACE
 
   - it: should not require JuiceFS config values when using an externally managed CSI config Secret
     values:

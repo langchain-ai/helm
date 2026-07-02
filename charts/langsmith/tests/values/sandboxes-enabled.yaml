@@ -5,7 +5,6 @@ config:
   authType: oauth
   sandboxes:
     enabled: true
-    namespace: langsmith-sandboxes
     clusterName: self-hosted-test
     xServiceAuthJwtSecret: test-sandbox-jwt
     defaultBlueprintImage: python:3.12

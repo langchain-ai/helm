@@ -7,7 +7,7 @@ apiVersion: v1
 kind: Secret
 metadata:
   name: {{ .Values.config.sandboxes.juicefs.csi.configSecretName }}
-  namespace: {{ include "langsmith.sandboxes.juicefsCSIConfigSecretNamespace" . }}
+  namespace: {{ $namespace }}
   labels:
     {{- include "langsmith.labels" . | nindent 4 }}
   annotations:
@@ -44,7 +44,7 @@ spec:
       juicefs/mount-service-account: juicefs-csi-node-sa
     nodePublishSecretRef:
       name: {{ include "langsmith.sandboxes.juicefsCSIConfigSecretName" . }}
-      namespace: {{ include "langsmith.sandboxes.juicefsCSIConfigSecretNamespace" . }}
+      namespace: {{ $namespace }}
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -87,7 +87,7 @@ spec:
       juicefs/mount-service-account: juicefs-csi-node-sa
     nodePublishSecretRef:
       name: {{ include "langsmith.sandboxes.juicefsCSIConfigSecretName" . }}
-      namespace: {{ include "langsmith.sandboxes.juicefsCSIConfigSecretNamespace" . }}
+      namespace: {{ $namespace }}
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim

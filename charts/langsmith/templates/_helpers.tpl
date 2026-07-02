@@ -1186,14 +1186,14 @@ Strip protocol (http://, https://, etc.) from hostname
 {{- end -}}
 
 {{/*
-Sandbox runtime namespace.
+Sandbox runtime namespace. Sandbox resources are colocated with the LangSmith release.
 */}}
 {{- define "langsmith.sandboxes.namespace" -}}
-{{- default "langsmith-sandboxes" .Values.config.sandboxes.namespace -}}
+{{- .Values.namespace | default .Release.Namespace -}}
 {{- end -}}
 
 {{/*
-Sandbox runtime secret name in config.sandboxes.namespace.
+Sandbox runtime secret name in the LangSmith release namespace.
 */}}
 {{- define "langsmith.sandboxes.runtimeSecretName" -}}
 {{- if .Values.config.sandboxes.runtimeSecret.existingSecretName -}}
@@ -1204,7 +1204,7 @@ Sandbox runtime secret name in config.sandboxes.namespace.
 {{- end -}}
 
 {{/*
-Sandbox proxy CA secret name in config.sandboxes.namespace.
+Sandbox proxy CA secret name in the LangSmith release namespace.
 */}}
 {{- define "langsmith.sandboxes.proxyCaSecretName" -}}
 {{- if eq .Values.config.sandboxes.proxyCa.mode "existingSecret" -}}
@@ -1219,18 +1219,6 @@ Sandbox service auth secret material for chart-created app/runtime Secrets.
 */}}
 {{- define "langsmith.sandboxes.xServiceAuthJwtSecretValue" -}}
 {{- default (default .Values.config.langsmithLicenseKey .Values.config.apiKeySalt) .Values.config.sandboxes.xServiceAuthJwtSecret -}}
-{{- end -}}
-
-{{/*
-Redis connection URL material used when Helm creates the sandbox namespace
-Redis Secret for smithbox-control.
-*/}}
-{{- define "langsmith.sandboxes.redisConnectionUrl" -}}
-{{- if .Values.redis.external.enabled -}}
-{{- .Values.redis.external.connectionUrl -}}
-{{- else -}}
-{{- printf "redis://%s-%s.%s.svc.%s:%v" (include "langsmith.fullname" .) .Values.redis.name (.Values.namespace | default .Release.Namespace) .Values.clusterDomain .Values.redis.service.port -}}
-{{- end -}}
 {{- end -}}
 
 {{/*
@@ -1256,13 +1244,6 @@ Internal LangSmith platform endpoint used by sandbox runtime callbacks.
 */}}
 {{- define "langsmith.sandboxes.langsmithInternalEndpoint" -}}
 {{- printf "http://%s-%s.%s.svc.%s:%v" (include "langsmith.fullname" .) .Values.platformBackend.name (.Values.namespace | default .Release.Namespace) .Values.clusterDomain .Values.platformBackend.service.port -}}
-{{- end -}}
-
-{{/*
-Namespace for the JuiceFS CSI config Secret.
-*/}}
-{{- define "langsmith.sandboxes.juicefsCSIConfigSecretNamespace" -}}
-{{- default .Release.Namespace .Values.config.sandboxes.juicefs.csi.configSecretNamespace -}}
 {{- end -}}
 
 {{/*
