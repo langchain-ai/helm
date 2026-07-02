@@ -927,7 +927,7 @@ config:
     # -- Lift the SaaS CPU/memory caps on LangSmith Deployment resource specs. Opt-in for self-hosted.
     uncappedResourcesEnabled: false
 
-  # -- LangSmith Sandboxes runtime configuration. Disabled by default. When enabled, sandbox resources are deployed in the same namespace as the LangSmith release.
+  # -- LangSmith Sandboxes configuration. Disabled by default. When enabled, this installs sandbox runtime resources in the same namespace as the LangSmith release and wires the LangSmith API/frontend services to expose sandbox functionality.
   # This supports the same-cluster sandbox-host architecture only.
   sandboxes:
     enabled: false
