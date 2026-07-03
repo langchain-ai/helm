@@ -168,11 +168,11 @@ while i < len(lines):
             i += 1
             while i < len(lines):
                 tag_line = lines[i]
-                tag_match = re.match(r'^(\s+tag:\s*)"(.+)"', tag_line)
+                tag_match = re.match(r'^(\s+tag:\s*)"(.*)"', tag_line)
                 if tag_match:
                     indent = tag_match.group(1)
                     old_tag = tag_match.group(2)
-                    new_tag = f'{tag_prefix}-{old_tag}'
+                    new_tag = f'{tag_prefix}-{old_tag}' if old_tag else old_tag
                     result.append(f'{indent}"{new_tag}"')
                     matched = True
                     break
