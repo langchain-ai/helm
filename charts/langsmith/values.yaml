@@ -929,6 +929,7 @@ config:
 
   # -- LangSmith Sandboxes configuration. Disabled by default. When enabled, this installs sandbox runtime resources in the same namespace as the LangSmith release and wires the LangSmith API/frontend services to expose sandbox functionality.
   # This supports the same-cluster sandbox-host architecture only.
+  # Enabling sandboxes also installs the JuiceFS CSI driver. The CSI driver creates cluster-scoped resources, so only one sandbox-enabled LangSmith release should manage it per Kubernetes cluster. Do not enable sandboxes in multiple releases in the same cluster, or alongside an independently managed JuiceFS CSI installation, unless you have verified ownership of those cluster-scoped resources.
   sandboxes:
     enabled: false
     # -- Logical Kubernetes cluster name sent to LangSmith sandbox workers.
