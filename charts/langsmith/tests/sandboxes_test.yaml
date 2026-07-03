@@ -77,6 +77,30 @@ tests:
                 key: sandbox_x_service_auth_jwt_secret
                 optional: false
 
+  - it: should wire optional sandbox keys from an existing LangSmith secret into platform backend
+    values:
+      - ./values/sandboxes-enabled.yaml
+    template: platform-backend/deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_X_SERVICE_AUTH_JWT_SECRET_PREVIOUS
+            valueFrom:
+              secretKeyRef:
+                name: langsmith-secrets
+                key: sandbox_x_service_auth_jwt_secret_previous
+                optional: true
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: LANGSMITH_SANDBOX_CALLBACK_SIGNING_JWK
+            valueFrom:
+              secretKeyRef:
+                name: langsmith-secrets
+                key: sandbox_callback_signing_jwk
+                optional: true
+
   - it: should store sandbox auth material in the chart-managed LangSmith secret
     set:
       config.langsmithLicenseKey: test-license
@@ -166,6 +190,15 @@ tests:
                 name: langsmith-secrets
                 key: sandbox_x_service_auth_jwt_secret
                 optional: false
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: X_SERVICE_AUTH_JWT_SECRET_PREVIOUS
+            valueFrom:
+              secretKeyRef:
+                name: langsmith-secrets
+                key: sandbox_x_service_auth_jwt_secret_previous
+                optional: true
       - contains:
           path: spec.template.spec.containers[0].env
           content:
@@ -354,6 +387,15 @@ tests:
                 name: langsmith-secrets
                 key: sandbox_x_service_auth_jwt_secret
                 optional: false
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: LANGSMITH_SANDBOX_CALLBACK_SIGNING_JWK
+            valueFrom:
+              secretKeyRef:
+                name: langsmith-secrets
+                key: sandbox_callback_signing_jwk
+                optional: true
 
   - it: should wire sandbox-host installer to the main LangSmith secret
     values:

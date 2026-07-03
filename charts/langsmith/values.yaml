@@ -938,10 +938,10 @@ config:
     # When config.existingSecretName is set, add key `sandbox_x_service_auth_jwt_secret` to that Secret instead.
     xServiceAuthJwtSecret: ""
     # -- Optional previous service-auth secret used during rotation. Used only when this chart creates the LangSmith app Secret.
-    # When config.existingSecretName is set, add key `sandbox_x_service_auth_jwt_secret_previous` to that Secret instead.
+    # When config.existingSecretName is set, add optional key `sandbox_x_service_auth_jwt_secret_previous` to that Secret to enable rotation.
     xServiceAuthJwtSecretPrevious: ""
     # -- Optional private JWK for sandbox callback signing. Used only when this chart creates the LangSmith app Secret.
-    # When config.existingSecretName is set, add key `sandbox_callback_signing_jwk` to that Secret instead.
+    # When config.existingSecretName is set, add optional key `sandbox_callback_signing_jwk` to that Secret to enable callback signing.
     callbackSigningJwk: ""
     # -- Optional default sandbox blueprint/rootfs image.
     defaultBlueprintImage: ""

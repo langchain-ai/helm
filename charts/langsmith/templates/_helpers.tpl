@@ -1313,15 +1313,15 @@ LangSmith app env vars for sandbox support.
       name: {{ include "langsmith.secretsName" . }}
       key: sandbox_x_service_auth_jwt_secret
       optional: {{ .Values.config.disableSecretCreation }}
-{{- if .Values.config.sandboxes.xServiceAuthJwtSecretPrevious }}
+{{- if or (not (empty .Values.config.existingSecretName)) .Values.config.sandboxes.xServiceAuthJwtSecretPrevious }}
 - name: SANDBOX_X_SERVICE_AUTH_JWT_SECRET_PREVIOUS
   valueFrom:
     secretKeyRef:
       name: {{ include "langsmith.secretsName" . }}
       key: sandbox_x_service_auth_jwt_secret_previous
-      optional: {{ .Values.config.disableSecretCreation }}
+      optional: {{ or .Values.config.disableSecretCreation (not (empty .Values.config.existingSecretName)) }}
 {{- end }}
-{{- if .Values.config.sandboxes.callbackSigningJwk }}
+{{- if or (not (empty .Values.config.existingSecretName)) .Values.config.sandboxes.callbackSigningJwk }}
 - name: LANGSMITH_SANDBOX_CALLBACK_SIGNING_JWK
   valueFrom:
     secretKeyRef:

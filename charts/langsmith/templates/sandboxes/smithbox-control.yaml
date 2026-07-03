@@ -129,7 +129,7 @@ spec:
                   name: {{ include "langsmith.secretsName" . }}
                   key: sandbox_x_service_auth_jwt_secret
                   optional: {{ .Values.config.disableSecretCreation }}
-            {{- if .Values.config.sandboxes.xServiceAuthJwtSecretPrevious }}
+            {{- if or (not (empty .Values.config.existingSecretName)) .Values.config.sandboxes.xServiceAuthJwtSecretPrevious }}
             - name: X_SERVICE_AUTH_JWT_SECRET_PREVIOUS
               valueFrom:
                 secretKeyRef:
