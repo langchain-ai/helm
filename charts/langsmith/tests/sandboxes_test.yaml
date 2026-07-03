@@ -534,6 +534,36 @@ tests:
       - failedTemplate:
           errorMessage: "config.sandboxes.juicefs.bucket must use a region-explicit S3 endpoint URL such as https://bucket-name.s3.us-west-2.amazonaws.com when config.sandboxes.juicefs.storage is s3. The s3://bucket shorthand makes JuiceFS infer region with GetBucketLocation and is not supported."
 
+  - it: should fail when existing app Secret is used with chart-provided sandbox service auth secret
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      config.sandboxes.xServiceAuthJwtSecret: test-sandbox-jwt
+    template: validate.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: "config.sandboxes.xServiceAuthJwtSecret cannot be used when config.existingSecretName is set. Add key sandbox_x_service_auth_jwt_secret to the existing Secret instead."
+
+  - it: should fail when existing app Secret is used with chart-provided previous sandbox service auth secret
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      config.sandboxes.xServiceAuthJwtSecretPrevious: test-previous-sandbox-jwt
+    template: validate.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: "config.sandboxes.xServiceAuthJwtSecretPrevious cannot be used when config.existingSecretName is set. Add key sandbox_x_service_auth_jwt_secret_previous to the existing Secret instead."
+
+  - it: should fail when existing app Secret is used with chart-provided sandbox callback signing JWK
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      config.sandboxes.callbackSigningJwk: test-callback-jwk
+    template: validate.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: "config.sandboxes.callbackSigningJwk cannot be used when config.existingSecretName is set. Add key sandbox_callback_signing_jwk to the existing Secret instead."
+
   - it: should fail when raw sandbox env vars conflict with chart-managed platform env
     values:
       - ./values/sandboxes-enabled.yaml
