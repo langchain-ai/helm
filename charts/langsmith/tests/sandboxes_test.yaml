@@ -7,6 +7,7 @@ templates:
   - postgres/secrets.yaml
   - clickhouse/secrets.yaml
   - frontend/config-map.yaml
+  - frontend/deployment.yaml
   - platform-backend/deployment.yaml
   - ingest-queue/deployment.yaml
   - sandboxes/proxy-ca.yaml
@@ -100,6 +101,17 @@ tests:
                 name: langsmith-secrets
                 key: sandbox_callback_signing_jwk
                 optional: true
+
+  - it: should enable frontend host routes when sandboxes are enabled
+    values:
+      - ./values/sandboxes-enabled.yaml
+    template: frontend/deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: VITE_HOST_ENABLED
+            value: "1"
 
   - it: should store sandbox auth material in the chart-managed LangSmith secret
     set:
