@@ -949,7 +949,7 @@ config:
       maxEphemeralStorageGb: 100
       maxSandboxes: 1000
     proxyCa:
-      # -- generatedSecret creates a self-signed CA Secret with Helm. Other modes are existingSecret or certManager.
+      # -- generatedSecret creates a self-signed CA Secret with Helm and reuses it on live upgrades via lookup. In pure render/GitOps workflows where lookup cannot read the cluster, generatedSecret produces different cert material on each render; use certManager or existingSecret for deterministic manifests. Other modes are existingSecret or certManager.
       mode: "generatedSecret"
       secretName: "smithbox-proxy-ca"
       existingSecretName: ""
