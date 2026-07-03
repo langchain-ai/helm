@@ -150,6 +150,8 @@ image_map = {
     'docker.io/langchain/agent-builder-tool-server': 'agent-builder-tool-server',
     'docker.io/langchain/agent-builder-trigger-server': 'agent-builder-trigger-server',
     'docker.io/langchain/agent-builder-deep-agent': 'agent-builder-deep-agent',
+    'docker.io/langchain/sandbox-host': 'sandbox-host',
+    'docker.io/langchain/smithbox-control': 'smithbox-control',
 }
 
 lines = content.split('\n')
@@ -192,7 +194,7 @@ PYEOF
 # Package and push
 ###############################################################################
 echo "--- Packaging ${CHART_NAME} ---"
-helm package "$EXTRACTED_DIR" -d "$TMPDIR" > /dev/null
+helm package "$EXTRACTED_DIR" --version "$VERSION" -d "$TMPDIR" > /dev/null
 CHART_TGZ="$TMPDIR/${CHART_NAME}-${VERSION}.tgz"
 
 OCI_URL="oci://${REGISTRY}/${NAMESPACE}"

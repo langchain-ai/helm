@@ -102,7 +102,7 @@ tests:
                 key: sandbox_callback_signing_jwk
                 optional: true
 
-  - it: should enable frontend host routes when sandboxes are enabled
+  - it: should set VITE_HOST_ENABLED when sandboxes are enabled
     values:
       - ./values/sandboxes-enabled.yaml
     template: frontend/deployment.yaml
