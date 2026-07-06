@@ -297,6 +297,11 @@ tests:
       - contains:
           path: spec.template.spec.containers[0].env
           content:
+            name: SMITHBOX_WORKLOAD_NAMESPACE
+            value: NAMESPACE
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
             name: X_SERVICE_AUTH_JWT_SECRET
             valueFrom:
               secretKeyRef:

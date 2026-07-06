@@ -121,6 +121,8 @@ spec:
               value: {{ .Values.config.sandboxes.smithboxControl.runtimeLifecycleReconcilerEnabled | quote }}
             - name: SANDBOX_CONTROL_HOST_OBSERVER_ENABLED
               value: {{ .Values.config.sandboxes.smithboxControl.hostObserverEnabled | quote }}
+            - name: SMITHBOX_WORKLOAD_NAMESPACE
+              value: {{ $namespace | quote }}
             - name: LANGSMITH_SANDBOX_INTERNAL_ENDPOINT
               value: {{ include "langsmith.sandboxes.langsmithInternalEndpoint" . | quote }}
             - name: X_SERVICE_AUTH_JWT_SECRET
