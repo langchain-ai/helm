@@ -675,6 +675,33 @@ tests:
           path: stringData.metaurl
           value: redis://langsmith-redis.default.svc.cluster.local:6379/1
 
+  - it: should pre-bind JuiceFS PV to the release PVC
+    values:
+      - ./values/sandboxes-enabled.yaml
+    template: sandboxes/juicefs-csi.yaml
+    documentIndex: 1
+    asserts:
+      - isKind:
+          of: PersistentVolume
+      - equal:
+          path: spec.claimRef.namespace
+          value: NAMESPACE
+      - equal:
+          path: spec.claimRef.name
+          value: smithbox-juicefs-csi
+
+  - it: should bind JuiceFS PVC to the release PV
+    values:
+      - ./values/sandboxes-enabled.yaml
+    template: sandboxes/juicefs-csi.yaml
+    documentIndex: 2
+    asserts:
+      - isKind:
+          of: PersistentVolumeClaim
+      - equal:
+          path: spec.volumeName
+          value: smithbox-juicefs-csi
+
   - it: should render JuiceFS CSI host PV when enabled
     values:
       - ./values/sandboxes-enabled.yaml
@@ -685,6 +712,12 @@ tests:
           of: PersistentVolume
       - equal:
           path: metadata.name
+          value: smithbox-juicefs-csi-host
+      - equal:
+          path: spec.claimRef.namespace
+          value: NAMESPACE
+      - equal:
+          path: spec.claimRef.name
           value: smithbox-juicefs-csi-host
       - equal:
           path: spec.csi.volumeHandle
@@ -698,6 +731,18 @@ tests:
       - equal:
           path: spec.csi.nodePublishSecretRef.namespace
           value: NAMESPACE
+
+  - it: should bind JuiceFS host PVC to the host PV
+    values:
+      - ./values/sandboxes-enabled.yaml
+    template: sandboxes/juicefs-csi.yaml
+    documentIndex: 4
+    asserts:
+      - isKind:
+          of: PersistentVolumeClaim
+      - equal:
+          path: spec.volumeName
+          value: smithbox-juicefs-csi-host
 
   - it: should allow an externally managed JuiceFS CSI config Secret
     values:

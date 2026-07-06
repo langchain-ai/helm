@@ -36,6 +36,9 @@ spec:
     - ReadWriteMany
   persistentVolumeReclaimPolicy: Retain
   storageClassName: ""
+  claimRef:
+    namespace: {{ $namespace }}
+    name: {{ .Values.config.sandboxes.juicefs.csi.pvcName }}
   csi:
     driver: csi.juicefs.com
     volumeHandle: {{ .Values.config.sandboxes.juicefs.csi.pvName }}
@@ -56,6 +59,7 @@ spec:
     - ReadWriteMany
   volumeMode: Filesystem
   storageClassName: ""
+  volumeName: {{ .Values.config.sandboxes.juicefs.csi.pvName }}
   resources:
     requests:
       storage: 10Pi
@@ -79,6 +83,9 @@ spec:
     - ReadWriteMany
   persistentVolumeReclaimPolicy: Retain
   storageClassName: ""
+  claimRef:
+    namespace: {{ $namespace }}
+    name: {{ include "langsmith.sandboxes.juicefsHostPVCName" . }}
   csi:
     driver: csi.juicefs.com
     volumeHandle: {{ include "langsmith.sandboxes.juicefsHostPVName" . }}
@@ -101,6 +108,7 @@ spec:
     - ReadWriteMany
   volumeMode: Filesystem
   storageClassName: ""
+  volumeName: {{ include "langsmith.sandboxes.juicefsHostPVName" . }}
   resources:
     requests:
       storage: 10Pi
