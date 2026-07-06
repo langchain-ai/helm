@@ -1,0 +1,150 @@
+{{- if and .Values.smithdb.enabled .Values.smithdb.langsmith.migration.enabled }}
+{{- $envVars := concat (include "langsmith.smithdb.componentEnv" (dict "root" . "service" "MIGRATION" "displayName" "smithdb-migration") | fromYamlArray) .Values.smithdb.migration.deployment.extraEnv -}}
+{{- include "langsmith.detectDuplicates" $envVars -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "langsmith.smithdb.componentName" (dict "root" . "component" "migration") }}
+  namespace: {{ .Values.namespace | default .Release.Namespace }}
+  labels:
+    {{- include "langsmith.labels" . | nindent 4 }}
+    app.kubernetes.io/component: {{ include "langsmith.smithdb.componentName" (dict "root" . "component" "migration") }}
+    {{- with .Values.smithdb.migration.deployment.labels }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+  annotations:
+    {{- include "langsmith.annotations" . | nindent 4 }}
+    {{- with .Values.smithdb.migration.deployment.annotations }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  replicas: {{ ternary (int .Values.smithdb.migration.deployment.replicas) 0 .Values.smithdb.langsmith.migration.enabled }}
+  selector:
+    matchLabels:
+      {{- include "langsmith.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: {{ include "langsmith.smithdb.componentName" (dict "root" . "component" "migration") }}
+  template:
+    metadata:
+      annotations:
+        {{- include "langsmith.commonPodAnnotations" . | nindent 8 }}
+        {{- with .Values.smithdb.migration.deployment.annotations }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+      labels:
+        {{- include "langsmith.labels" . | nindent 8 }}
+        app.kubernetes.io/component: {{ include "langsmith.smithdb.componentName" (dict "root" . "component" "migration") }}
+        {{- with .Values.smithdb.migration.deployment.labels }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      terminationGracePeriodSeconds: {{ .Values.smithdb.migration.deployment.terminationGracePeriodSeconds }}
+      {{- with .Values.images.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.smithdb.migration.deployment.podSecurityContext | nindent 8 }}
+      serviceAccountName: {{ include "langsmith.smithdb.serviceAccountName" (dict "root" . "component" "migration") }}
+      {{- include "langsmith.dnsConfig" . | nindent 6 }}
+      {{- with .Values.smithdb.migration.deployment.initContainers }}
+      initContainers:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: {{ .Values.smithdb.migration.name }}
+          {{- with .Values.smithdb.migration.deployment.command }}
+          command:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          env:
+            - name: SMITHDB_MIGRATION__HTTP_PORT
+              value: {{ .Values.smithdb.migration.containerPort | quote }}
+            {{- if .Values.smithdb.migration.taskdb.postgres.enabled }}
+            {{- $taskdb := .Values.smithdb.migration.taskdb.postgres }}
+            {{- if $taskdb.external.enabled }}
+            - name: SMITHDB_MIGRATION__TASKDB__HOST
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "langsmith.smithdb.taskdbPostgresSecretName" . }}
+                  key: {{ $taskdb.external.hostSecretKey }}
+            - name: SMITHDB_MIGRATION__TASKDB__PORT
+              value: {{ $taskdb.external.port | quote }}
+            - name: SMITHDB_MIGRATION__TASKDB__DATABASE
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "langsmith.smithdb.taskdbPostgresSecretName" . }}
+                  key: {{ $taskdb.external.databaseSecretKey }}
+            - name: SMITHDB_MIGRATION__TASKDB__USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "langsmith.smithdb.taskdbPostgresSecretName" . }}
+                  key: {{ $taskdb.external.usernameSecretKey }}
+            - name: SMITHDB_MIGRATION__TASKDB__PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "langsmith.smithdb.taskdbPostgresSecretName" . }}
+                  key: {{ $taskdb.external.passwordSecretKey }}
+            - name: SMITHDB_MIGRATION__TASKDB__USE_SSL
+              value: {{ $taskdb.external.useSsl | quote }}
+            {{- else }}
+            {{- $taskdbServiceName := printf "%s-%s" (include "langsmith.smithdb.fullname" .) $taskdb.name | trunc 63 | trimSuffix "-" }}
+            {{- $taskdbHost := printf "%s.%s.svc.%s" $taskdbServiceName (.Values.namespace | default .Release.Namespace) .Values.clusterDomain }}
+            - name: SMITHDB_MIGRATION__TASKDB__HOST
+              value: {{ $taskdbHost | quote }}
+            - name: SMITHDB_MIGRATION__TASKDB__PORT
+              value: {{ $taskdb.service.port | quote }}
+            - name: SMITHDB_MIGRATION__TASKDB__DATABASE
+              value: {{ $taskdb.auth.database | quote }}
+            - name: SMITHDB_MIGRATION__TASKDB__USERNAME
+              value: {{ $taskdb.auth.username | quote }}
+            - name: SMITHDB_MIGRATION__TASKDB__PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "langsmith.smithdb.taskdbPostgresSecretName" . }}
+                  key: {{ $taskdb.auth.passwordSecretKey }}
+            - name: SMITHDB_MIGRATION__TASKDB__USE_SSL
+              value: "false"
+            {{- end }}
+            {{- end }}
+            {{- toYaml $envVars | nindent 12 }}
+          image: {{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "smithdbMigrationImage") | quote }}
+          imagePullPolicy: {{ .Values.images.smithdbMigrationImage.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.smithdb.migration.containerPort }}
+              protocol: TCP
+          resources:
+            {{- toYaml .Values.smithdb.migration.deployment.resources | nindent 12 }}
+          securityContext:
+            {{- toYaml .Values.smithdb.migration.deployment.securityContext | nindent 12 }}
+          {{- with .Values.smithdb.migration.deployment.volumeMounts }}
+          volumeMounts:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.smithdb.migration.deployment.extraContainerConfig }}
+            {{- toYaml . | nindent 10 }}
+          {{- end }}
+        {{- with .Values.smithdb.migration.deployment.sidecars }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- with .Values.smithdb.migration.deployment.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.smithdb.migration.deployment.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.smithdb.migration.deployment.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.smithdb.migration.deployment.topologySpreadConstraints }}
+      topologySpreadConstraints:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.smithdb.migration.deployment.volumes }}
+      volumes:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}

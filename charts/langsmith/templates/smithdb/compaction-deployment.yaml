@@ -59,6 +59,10 @@ spec:
               value: {{ .Values.smithdb.compaction.containerPort | quote }}
             - name: SMITHDB_COMPACTION__GRPC_PORT
               value: {{ .Values.smithdb.compaction.containerGrpcPort | quote }}
+            {{- if .Values.smithdb.langsmith.lsmBackfill.enabled }}
+            - name: SMITHDB_COMPACTION__SEQUENCED_LSM_BACKFILL_ENABLED
+              value: "true"
+            {{- end }}
             {{- with $envVars }}
             {{- toYaml . | nindent 12 }}
             {{- end }}

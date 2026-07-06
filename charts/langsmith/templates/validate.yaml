@@ -217,16 +217,66 @@ AWS Marketplace Helm template verification).
 {{- if not .Values.smithdb.config.objectStore.bucket -}}
 {{- fail "smithdb.config.objectStore.bucket is required when smithdb.enabled is true." -}}
 {{- end -}}
-{{- $smithdbWorkloads := dict
+{{- $smithdbRequiredWorkloads := dict
   "query" .Values.smithdb.query
   "ingestion" .Values.smithdb.ingestion
   "compaction" .Values.smithdb.compaction
   "compactionWorker" .Values.smithdb.compactionWorker
   "clusterManager" .Values.smithdb.clusterManager
 -}}
-{{- range $workloadName, $workload := $smithdbWorkloads -}}
+{{- range $workloadName, $workload := $smithdbRequiredWorkloads -}}
 {{- if and $.Values.smithdb.enabled (lt (int $workload.deployment.replicas) 1) -}}
 {{- fail (printf "smithdb.%s.deployment.replicas must be greater than 0 when smithdb.enabled is true." $workloadName) -}}
+{{- end -}}
+{{- end -}}
+{{- if or .Values.smithdb.langsmith.migration.enabled .Values.smithdb.langsmith.lsmBackfill.enabled -}}
+{{- if lt (int .Values.smithdb.ingestion.deployment.replicas) 1 -}}
+{{- fail "smithdb.ingestion.deployment.replicas must be greater than 0 when smithdb.langsmith.migration.enabled or smithdb.langsmith.lsmBackfill.enabled is true." -}}
+{{- end -}}
+{{- end -}}
+{{- if and .Values.smithdb.langsmith.migration.enabled (not .Values.smithdb.langsmith.dualIngest.enabled) -}}
+{{- fail "smithdb.langsmith.dualIngest.enabled must be true when smithdb.langsmith.migration.enabled is true." -}}
+{{- end -}}
+{{- if and .Values.smithdb.langsmith.lsmBackfill.enabled (not .Values.smithdb.langsmith.dualIngest.enabled) -}}
+{{- fail "smithdb.langsmith.dualIngest.enabled must be true when smithdb.langsmith.lsmBackfill.enabled is true." -}}
+{{- end -}}
+{{- if and .Values.smithdb.langsmith.migration.enabled .Values.smithdb.langsmith.lsmBackfill.enabled -}}
+{{- fail "Only one of smithdb.langsmith.migration.enabled or smithdb.langsmith.lsmBackfill.enabled can be true at the same time." -}}
+{{- end -}}
+{{- if and .Values.smithdb.langsmith.migration.enabled (not .Values.smithdb.langsmith.lsmBackfill.enabled) (lt (int .Values.smithdb.migration.deployment.replicas) 1) -}}
+{{- fail "smithdb.migration.deployment.replicas must be greater than 0 when smithdb.langsmith.migration.enabled is true." -}}
+{{- end -}}
+{{- if and .Values.smithdb.langsmith.migration.enabled (not .Values.smithdb.migration.taskdb.postgres.enabled) -}}
+{{- fail "smithdb.migration.taskdb.postgres.enabled must be true when smithdb.langsmith.migration.enabled is true." -}}
+{{- end -}}
+{{- $taskdb := .Values.smithdb.migration.taskdb.postgres -}}
+{{- if and .Values.smithdb.langsmith.migration.enabled $taskdb.enabled -}}
+{{- if $taskdb.external.enabled -}}
+{{- if not $taskdb.external.port -}}
+{{- fail "smithdb.migration.taskdb.postgres.external.port is required when smithdb.migration.taskdb.postgres.external.enabled is true." -}}
+{{- end -}}
+{{- if $taskdb.external.existingSecretName -}}
+{{- range $keyName := list "hostSecretKey" "databaseSecretKey" "usernameSecretKey" "passwordSecretKey" -}}
+{{- $keyValue := get $taskdb.external $keyName -}}
+{{- if not $keyValue -}}
+{{- fail (printf "smithdb.migration.taskdb.postgres.external.%s is required when smithdb.migration.taskdb.postgres.external.existingSecretName is set." $keyName) -}}
+{{- end -}}
+{{- end -}}
+{{- else -}}
+{{- range $keyName := list "host" "database" "username" "password" -}}
+{{- $keyValue := get $taskdb.external $keyName -}}
+{{- if not $keyValue -}}
+{{- fail (printf "smithdb.migration.taskdb.postgres.external.%s is required when smithdb.migration.taskdb.postgres.external.enabled is true and external.existingSecretName is not set." $keyName) -}}
+{{- end -}}
+{{- end -}}
+{{- end -}}
+{{- else -}}
+{{- if not $taskdb.auth.passwordSecretKey -}}
+{{- fail "smithdb.migration.taskdb.postgres.auth.passwordSecretKey is required when smithdb.migration.taskdb.postgres.enabled is true." -}}
+{{- end -}}
+{{- if and (not $taskdb.auth.existingSecretName) (not $taskdb.auth.password) -}}
+{{- fail "smithdb.migration.taskdb.postgres.auth.password is required when smithdb.migration.taskdb.postgres.enabled is true and auth.existingSecretName is not set." -}}
+{{- end -}}
 {{- end -}}
 {{- end -}}
 {{- $smithdbServiceWorkloads := dict
@@ -249,6 +299,18 @@ AWS Marketplace Helm template verification).
 {{- if and .Values.smithdb.langsmith.frontend.useSmithDBEndpoints (not .Values.smithdb.enabled) -}}
 {{- fail "smithdb.enabled must be true when smithdb.langsmith.frontend.useSmithDBEndpoints is true." -}}
 {{- end -}}
+{{- end -}}
+{{- if and .Values.smithdb.langsmith.migration.enabled (not .Values.smithdb.enabled) -}}
+{{- fail "smithdb.enabled must be true when smithdb.langsmith.migration.enabled is true." -}}
+{{- end -}}
+{{- if and .Values.smithdb.langsmith.lsmBackfill.enabled (not .Values.smithdb.enabled) -}}
+{{- fail "smithdb.enabled must be true when smithdb.langsmith.lsmBackfill.enabled is true." -}}
+{{- end -}}
+{{- if and .Values.smithdb.langsmith.dualIngest.enabled (not .Values.smithdb.enabled) -}}
+{{- fail "smithdb.enabled must be true when smithdb.langsmith.dualIngest.enabled is true." -}}
+{{- end -}}
+{{- if and .Values.smithdb.langsmith.frontend.useSmithDBEndpoints (not .Values.smithdb.enabled) -}}
+{{- fail "smithdb.enabled must be true when smithdb.langsmith.frontend.useSmithDBEndpoints is true." -}}
 {{- end -}}
 
 {{- /* Validate agent builder configuration */ -}}

@@ -13,6 +13,10 @@ templates:
   - smithdb/compaction-deployment.yaml
   - smithdb/compaction-worker-deployment.yaml
   - smithdb/cluster-manager-deployment.yaml
+  - smithdb/migration-deployment.yaml
+  - smithdb/taskdb-postgres-secret.yaml
+  - smithdb/taskdb-postgres-service.yaml
+  - smithdb/taskdb-postgres-statefulset.yaml
   - smithdb/services.yaml
   - smithdb/pdbs.yaml
   - smithdb/service-account.yaml
@@ -131,6 +135,10 @@ tests:
       - smithdb/compaction-deployment.yaml
       - smithdb/compaction-worker-deployment.yaml
       - smithdb/cluster-manager-deployment.yaml
+      - smithdb/migration-deployment.yaml
+      - smithdb/taskdb-postgres-secret.yaml
+      - smithdb/taskdb-postgres-service.yaml
+      - smithdb/taskdb-postgres-statefulset.yaml
       - smithdb/services.yaml
       - smithdb/pdbs.yaml
       - smithdb/service-account.yaml
@@ -200,3 +208,216 @@ tests:
           content:
             name: SMITHDB_COMPACTION_WORKER__MAX_CONCURRENT_JOBS
             value: "8"
+
+  - it: should omit smithdb migration resources by default
+    values:
+      - ./values/smithdb-enabled.yaml
+    templates:
+      - smithdb/migration-deployment.yaml
+      - smithdb/taskdb-postgres-secret.yaml
+      - smithdb/taskdb-postgres-service.yaml
+      - smithdb/taskdb-postgres-statefulset.yaml
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: should render smithdb migration resources with chart-managed taskdb
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      smithdb.langsmith.migration.enabled: true
+      smithdb.langsmith.frontend.useSmithDBEndpoints: false
+      smithdb.migration.taskdb.postgres.enabled: true
+      smithdb.migration.taskdb.postgres.auth.password: taskdb-password
+    templates:
+      - smithdb/migration-deployment.yaml
+      - smithdb/taskdb-postgres-secret.yaml
+      - smithdb/taskdb-postgres-service.yaml
+      - smithdb/taskdb-postgres-statefulset.yaml
+    asserts:
+      - template: smithdb/migration-deployment.yaml
+        isKind:
+          of: Deployment
+      - template: smithdb/migration-deployment.yaml
+        equal:
+          path: spec.replicas
+          value: 1
+      - template: smithdb/migration-deployment.yaml
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_MIGRATION__TASKDB__PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: RELEASE-NAME-langsmith-smithdb-taskdb-postgres
+                key: postgres_password
+      - template: smithdb/taskdb-postgres-secret.yaml
+        isKind:
+          of: Secret
+      - template: smithdb/taskdb-postgres-secret.yaml
+        equal:
+          path: metadata.name
+          value: RELEASE-NAME-langsmith-smithdb-taskdb-postgres
+      - template: smithdb/taskdb-postgres-secret.yaml
+        equal:
+          path: data.postgres_password
+          value: dGFza2RiLXBhc3N3b3Jk
+      - template: smithdb/taskdb-postgres-service.yaml
+        isKind:
+          of: Service
+      - template: smithdb/taskdb-postgres-service.yaml
+        equal:
+          path: metadata.name
+          value: RELEASE-NAME-langsmith-smithdb-taskdb-postgres
+      - template: smithdb/taskdb-postgres-statefulset.yaml
+        isKind:
+          of: StatefulSet
+      - template: smithdb/taskdb-postgres-statefulset.yaml
+        equal:
+          path: metadata.name
+          value: RELEASE-NAME-langsmith-smithdb-taskdb-postgres
+      - template: smithdb/taskdb-postgres-statefulset.yaml
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: POSTGRES_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: RELEASE-NAME-langsmith-smithdb-taskdb-postgres
+                key: postgres_password
+
+  - it: should allow tuning smithdb migration replicas
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      smithdb.langsmith.migration.enabled: true
+      smithdb.langsmith.frontend.useSmithDBEndpoints: false
+      smithdb.migration.deployment.replicas: 2
+      smithdb.migration.taskdb.postgres.enabled: true
+      smithdb.migration.taskdb.postgres.auth.password: taskdb-password
+    template: smithdb/migration-deployment.yaml
+    asserts:
+      - equal:
+          path: spec.replicas
+          value: 2
+
+  - it: should omit smithdb migration during lsm backfill
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      smithdb.langsmith.frontend.useSmithDBEndpoints: false
+      smithdb.langsmith.lsmBackfill.enabled: true
+    template: smithdb/migration-deployment.yaml
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: should enable sequenced lsm backfill on compaction only
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      smithdb.langsmith.frontend.useSmithDBEndpoints: false
+      smithdb.langsmith.lsmBackfill.enabled: true
+    template: smithdb/compaction-deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_COMPACTION__SEQUENCED_LSM_BACKFILL_ENABLED
+            value: "true"
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_COMPACTION__SKIP_RUNS_COMPACTION_ON_THREAD_TRACE_FLUSH
+
+  - it: should use an existing smithdb taskdb postgres secret when provided
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      smithdb.langsmith.migration.enabled: true
+      smithdb.migration.taskdb.postgres.enabled: true
+      smithdb.migration.taskdb.postgres.auth.existingSecretName: smithdb-taskdb-secret
+    templates:
+      - smithdb/taskdb-postgres-secret.yaml
+      - smithdb/taskdb-postgres-statefulset.yaml
+    asserts:
+      - template: smithdb/taskdb-postgres-secret.yaml
+        hasDocuments:
+          count: 0
+      - template: smithdb/taskdb-postgres-statefulset.yaml
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: POSTGRES_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: smithdb-taskdb-secret
+                key: postgres_password
+
+  - it: should render smithdb migration with external taskdb postgres
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      smithdb.langsmith.migration.enabled: true
+      smithdb.langsmith.frontend.useSmithDBEndpoints: false
+      smithdb.migration.taskdb.postgres.enabled: true
+      smithdb.migration.taskdb.postgres.external.enabled: true
+      smithdb.migration.taskdb.postgres.external.host: external-taskdb
+      smithdb.migration.taskdb.postgres.external.port: "5433"
+      smithdb.migration.taskdb.postgres.external.database: external_taskdb
+      smithdb.migration.taskdb.postgres.external.username: external_user
+      smithdb.migration.taskdb.postgres.external.password: external-password
+      smithdb.migration.taskdb.postgres.external.useSsl: true
+    templates:
+      - smithdb/migration-deployment.yaml
+      - smithdb/taskdb-postgres-secret.yaml
+      - smithdb/taskdb-postgres-service.yaml
+      - smithdb/taskdb-postgres-statefulset.yaml
+    asserts:
+      - template: smithdb/taskdb-postgres-service.yaml
+        hasDocuments:
+          count: 0
+      - template: smithdb/taskdb-postgres-statefulset.yaml
+        hasDocuments:
+          count: 0
+      - template: smithdb/taskdb-postgres-secret.yaml
+        isKind:
+          of: Secret
+      - template: smithdb/taskdb-postgres-secret.yaml
+        equal:
+          path: metadata.name
+          value: RELEASE-NAME-langsmith-smithdb-taskdb-postgres
+      - template: smithdb/taskdb-postgres-secret.yaml
+        exists:
+          path: data.postgres_host
+      - template: smithdb/migration-deployment.yaml
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_MIGRATION__TASKDB__HOST
+            valueFrom:
+              secretKeyRef:
+                name: RELEASE-NAME-langsmith-smithdb-taskdb-postgres
+                key: postgres_host
+      - template: smithdb/migration-deployment.yaml
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_MIGRATION__TASKDB__PORT
+            value: "5433"
+      - template: smithdb/migration-deployment.yaml
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_MIGRATION__TASKDB__PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: RELEASE-NAME-langsmith-smithdb-taskdb-postgres
+                key: postgres_password
+      - template: smithdb/migration-deployment.yaml
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_MIGRATION__TASKDB__USE_SSL
+            value: "true"
+

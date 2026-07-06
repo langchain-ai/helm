@@ -142,6 +142,10 @@ images:
     repository: "docker.io/langchain/smithdb-clustermanager"
     pullPolicy: IfNotPresent
     tag: "latest"
+  smithdbMigrationImage:
+    repository: "docker.io/langchain/smithdb-migration"
+    pullPolicy: IfNotPresent
+    tag: "latest"
   smithdbMetastoreMigrationImage:
     repository: "docker.io/langchain/smithdb-metastore-migrate"
     pullPolicy: IfNotPresent
@@ -1293,6 +1297,13 @@ smithdb:
     dualIngest:
       # -- Enables LangSmith run ingestion to also write to SmithDB. Requires smithdb.enabled.
       enabled: false
+    migration:
+      # -- Runs the SmithDB migration phase and renders the migration Deployment plus taskdb Postgres resources.
+      # -- Detailed migration and taskdb configuration lives under smithdb.migration.
+      enabled: false
+    lsmBackfill:
+      # -- Runs the sequenced SmithDB LSM backfill phase. Requires smithdb.langsmith.migration.enabled to be false.
+      enabled: false
     frontend:
       # -- Defaults the LangSmith UI to SmithDB endpoints for run queries. Requires smithdb.enabled.
       useSmithDBEndpoints: false
@@ -1575,6 +1586,121 @@ smithdb:
       labels: {}
       annotations: {}
     pdb: {}
+
+  migration:
+    name: "migration"
+    containerPort: 9040
+    taskdb:
+      postgres:
+        # -- Enable Postgres for SmithDB migration task state. This is a separate database from
+        # -- both the main LangSmith Postgres and the SmithDB metastore.
+        enabled: false
+        name: "taskdb-postgres"
+        containerPort: 5432
+        # -- Credentials for the in-chart taskdb Postgres instance. Used only when external.enabled is false.
+        auth:
+          database: "smithdb_migration"
+          username: "postgres"
+          # -- Password for the chart-managed taskdb Postgres instance. Required unless existingSecretName is set.
+          password: ""
+          # -- Existing secret containing taskdb Postgres credentials. If set, the chart does not create one.
+          existingSecretName: ""
+          passwordSecretKey: "postgres_password"
+        # -- External Postgres configuration for SmithDB migration task state. Use this when taskdb
+        # -- should run outside the chart. Do not point this at the main LangSmith Postgres or
+        # -- the SmithDB metastore.
+        external:
+          enabled: false
+          host: ""
+          port: "5432"
+          database: "smithdb_migration"
+          username: "postgres"
+          password: ""
+          useSsl: false
+          # -- Existing secret containing external taskdb Postgres connection fields. If set, the chart does not create one.
+          existingSecretName: ""
+          hostSecretKey: "postgres_host"
+          databaseSecretKey: "postgres_db"
+          usernameSecretKey: "postgres_user"
+          passwordSecretKey: "postgres_password"
+        service:
+          port: 5432
+          labels: {}
+          annotations: {}
+        statefulSet:
+          # -- Optional StatefulSet update strategy for the in-chart SmithDB taskdb Postgres instance.
+          updateStrategy: {}
+          labels: {}
+          annotations: {}
+          podSecurityContext: {}
+          securityContext: {}
+          terminationGracePeriodSeconds: 30
+          resources: {}
+          startupProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - exec pg_isready -d "$POSTGRES_DB" -U "$POSTGRES_USER"
+            failureThreshold: 6
+            periodSeconds: 10
+            timeoutSeconds: 1
+          readinessProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - exec pg_isready -d "$POSTGRES_DB" -U "$POSTGRES_USER"
+            failureThreshold: 6
+            periodSeconds: 10
+            timeoutSeconds: 1
+          livenessProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - exec pg_isready -d "$POSTGRES_DB" -U "$POSTGRES_USER"
+            failureThreshold: 6
+            periodSeconds: 10
+            timeoutSeconds: 1
+          command: []
+          extraEnv: []
+          extraContainerConfig: {}
+          sidecars: []
+          nodeSelector: {}
+          tolerations: []
+          affinity: {}
+          topologySpreadConstraints: []
+          volumes: []
+          volumeMounts: []
+          initContainers: []
+          persistentVolumeClaimRetentionPolicy: {}
+          persistence:
+            enabled: true
+            size: 8Gi
+            storageClassName: ""
+    deployment:
+      replicas: 1
+      labels: {}
+      annotations: {}
+      podSecurityContext: {}
+      securityContext: {}
+      terminationGracePeriodSeconds: 120
+      resources: {}
+      command:
+        - "tail"
+        - "-f"
+        - "/dev/null"
+      extraEnv: []
+      extraContainerConfig: {}
+      sidecars: []
+      nodeSelector: {}
+      tolerations: []
+      affinity: {}
+      topologySpreadConstraints: []
+      volumes: []
+      volumeMounts: []
+      initContainers: []
 
   metastoreMigration:
     name: "metastore-migration"
