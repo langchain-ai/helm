@@ -43,7 +43,7 @@ spec:
       {{- end }}
       nodeSelector:
         {{- include "langsmith.sandboxes.sandboxHostNodeSelector" . | nindent 8 }}
-      {{- with .Values.config.sandboxes.sandboxHost.daemonSet.tolerations }}
+      {{- with .Values.config.sandboxes.sandboxHost.statefulSet.tolerations }}
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}

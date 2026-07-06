@@ -14,7 +14,8 @@ templates:
   - sandboxes/juicefs-csi.yaml
   - sandboxes/smithbox-control.yaml
   - sandboxes/sandbox-host-rbac.yaml
-  - sandboxes/sandbox-host-daemonset.yaml
+  - sandboxes/sandbox-host-service.yaml
+  - sandboxes/sandbox-host-statefulset.yaml
   - sandboxes/sandbox-host-installer-daemonset.yaml
 tests:
   - it: should not render sandbox runtime resources by default
@@ -27,7 +28,8 @@ tests:
       - sandboxes/juicefs-csi.yaml
       - sandboxes/smithbox-control.yaml
       - sandboxes/sandbox-host-rbac.yaml
-      - sandboxes/sandbox-host-daemonset.yaml
+      - sandboxes/sandbox-host-service.yaml
+      - sandboxes/sandbox-host-statefulset.yaml
       - sandboxes/sandbox-host-installer-daemonset.yaml
     asserts:
       - hasDocuments:
@@ -330,7 +332,7 @@ tests:
       - ./values/sandboxes-enabled.yaml
     set:
       config.langchainEnv: chart-env
-    template: sandboxes/sandbox-host-daemonset.yaml
+    template: sandboxes/sandbox-host-statefulset.yaml
     asserts:
       - contains:
           path: spec.template.spec.containers[0].env
@@ -354,10 +356,10 @@ tests:
   - it: should render sandbox-host with host network and OnDelete rollout
     values:
       - ./values/sandboxes-enabled.yaml
-    template: sandboxes/sandbox-host-daemonset.yaml
+    template: sandboxes/sandbox-host-statefulset.yaml
     asserts:
       - isKind:
-          of: DaemonSet
+          of: StatefulSet
       - equal:
           path: metadata.name
           value: sandbox-host
@@ -365,11 +367,23 @@ tests:
           path: metadata.namespace
           value: NAMESPACE
       - equal:
+          path: spec.serviceName
+          value: sandbox-host
+      - equal:
+          path: spec.podManagementPolicy
+          value: Parallel
+      - equal:
           path: spec.updateStrategy.type
           value: OnDelete
       - equal:
           path: spec.template.spec.hostNetwork
           value: true
+      - equal:
+          path: spec.template.spec.affinity.podAntiAffinity.requiredDuringSchedulingIgnoredDuringExecution[0].labelSelector.matchLabels.app
+          value: sandbox-host
+      - equal:
+          path: spec.template.spec.affinity.podAntiAffinity.requiredDuringSchedulingIgnoredDuringExecution[0].topologyKey
+          value: kubernetes.io/hostname
       - equal:
           path: spec.template.spec.containers[0].ports[0].hostPort
           value: 19190
@@ -409,6 +423,30 @@ tests:
                 key: sandbox_callback_signing_jwk
                 optional: true
 
+  - it: should render the sandbox-host headless service
+    values:
+      - ./values/sandboxes-enabled.yaml
+    template: sandboxes/sandbox-host-service.yaml
+    asserts:
+      - isKind:
+          of: Service
+      - equal:
+          path: metadata.name
+          value: sandbox-host
+      - equal:
+          path: metadata.namespace
+          value: NAMESPACE
+      - equal:
+          path: spec.clusterIP
+          value: None
+      - equal:
+          path: spec.selector
+          value:
+            app: sandbox-host
+      - equal:
+          path: spec.ports[0].port
+          value: 19190
+
   - it: should wire sandbox-host installer to the main LangSmith secret
     values:
       - ./values/sandboxes-enabled.yaml
@@ -428,7 +466,7 @@ tests:
     values:
       - ./values/sandboxes-enabled.yaml
       - ./values/sandboxes-custom-scheduling.yaml
-    template: sandboxes/sandbox-host-daemonset.yaml
+    template: sandboxes/sandbox-host-statefulset.yaml
     asserts:
       - equal:
           path: spec.template.spec.nodeSelector
@@ -536,7 +574,7 @@ tests:
   - it: should mount the derived JuiceFS host PVC on sandbox-host
     values:
       - ./values/sandboxes-enabled.yaml
-    template: sandboxes/sandbox-host-daemonset.yaml
+    template: sandboxes/sandbox-host-statefulset.yaml
     asserts:
       - equal:
           path: spec.template.spec.volumes[0].persistentVolumeClaim.claimName

@@ -1,25 +1,30 @@
 {{- if .Values.config.sandboxes.enabled }}
 {{- $namespace := .Values.namespace | default .Release.Namespace }}
 apiVersion: apps/v1
-kind: DaemonSet
+kind: StatefulSet
 metadata:
   name: {{ .Values.config.sandboxes.sandboxHost.name }}
   namespace: {{ $namespace }}
   labels:
     app: sandbox-host
     {{- include "langsmith.labels" . | nindent 4 }}
-    {{- with .Values.config.sandboxes.sandboxHost.daemonSet.labels }}
+    {{- with .Values.config.sandboxes.sandboxHost.statefulSet.labels }}
       {{- toYaml . | nindent 4 }}
     {{- end }}
   annotations:
     {{- include "langsmith.annotations" . | nindent 4 }}
-    {{- with .Values.config.sandboxes.sandboxHost.daemonSet.annotations }}
+    {{- with .Values.config.sandboxes.sandboxHost.statefulSet.annotations }}
       {{- toYaml . | nindent 4 }}
     {{- end }}
 spec:
   selector:
     matchLabels:
       app: sandbox-host
+  serviceName: {{ .Values.config.sandboxes.sandboxHost.name }}
+  {{- if not (kindIs "invalid" .Values.config.sandboxes.sandboxHost.statefulSet.replicas) }}
+  replicas: {{ .Values.config.sandboxes.sandboxHost.statefulSet.replicas }}
+  {{- end }}
+  podManagementPolicy: Parallel
   updateStrategy:
     type: OnDelete
   template:
@@ -29,20 +34,27 @@ spec:
         {{- include "langsmith.labels" . | nindent 8 }}
       annotations:
         {{- include "langsmith.commonPodAnnotations" . | nindent 8 }}
-        {{- with .Values.config.sandboxes.sandboxHost.daemonSet.podAnnotations }}
+        {{- with .Values.config.sandboxes.sandboxHost.statefulSet.podAnnotations }}
           {{- toYaml . | nindent 8 }}
         {{- end }}
     spec:
       hostNetwork: true
       dnsPolicy: ClusterFirstWithHostNet
       serviceAccountName: {{ include "langsmith.sandboxes.sandboxHostServiceAccountName" . }}
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchLabels:
+                  app: sandbox-host
+              topologyKey: kubernetes.io/hostname
       {{- with .Values.images.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       nodeSelector:
         {{- include "langsmith.sandboxes.sandboxHostNodeSelector" . | nindent 8 }}
-      {{- with .Values.config.sandboxes.sandboxHost.daemonSet.tolerations }}
+      {{- with .Values.config.sandboxes.sandboxHost.statefulSet.tolerations }}
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
@@ -106,16 +118,16 @@ spec:
             - name: LANGSMITH_SANDBOX_INTERNAL_ENDPOINT
               value: {{ include "langsmith.sandboxes.langsmithInternalEndpoint" . | quote }}
             - name: SANDBOX_HOST_TERMINATION_GRACE_SECONDS
-              value: {{ .Values.config.sandboxes.sandboxHost.daemonSet.terminationGracePeriodSeconds | quote }}
+              value: {{ .Values.config.sandboxes.sandboxHost.statefulSet.terminationGracePeriodSeconds | quote }}
           ports:
             - name: http
               containerPort: {{ .Values.config.sandboxes.sandboxHost.containerPort }}
               hostPort: {{ .Values.config.sandboxes.sandboxHost.containerPort }}
               protocol: TCP
           securityContext:
-            {{- toYaml .Values.config.sandboxes.sandboxHost.daemonSet.securityContext | nindent 12 }}
+            {{- toYaml .Values.config.sandboxes.sandboxHost.statefulSet.securityContext | nindent 12 }}
           resources:
-            {{- toYaml .Values.config.sandboxes.sandboxHost.daemonSet.resources | nindent 12 }}
+            {{- toYaml .Values.config.sandboxes.sandboxHost.statefulSet.resources | nindent 12 }}
           volumeMounts:
             - name: juicefs
               mountPath: {{ .Values.config.sandboxes.juicefs.csi.mountPath }}
@@ -135,5 +147,5 @@ spec:
           hostPath:
             path: /var/lib/sandbox-host
             type: DirectoryOrCreate
-      terminationGracePeriodSeconds: {{ .Values.config.sandboxes.sandboxHost.daemonSet.terminationGracePeriodSeconds }}
+      terminationGracePeriodSeconds: {{ .Values.config.sandboxes.sandboxHost.statefulSet.terminationGracePeriodSeconds }}
 {{- end }}

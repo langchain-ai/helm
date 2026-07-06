@@ -1014,10 +1014,12 @@ config:
     sandboxHost:
       name: "sandbox-host"
       containerPort: 19190
-      daemonSet:
+      statefulSet:
         labels: {}
         annotations: {}
         podAnnotations: {}
+        # -- Optional initial sandbox-host StatefulSet replica count. Leave null to let Kubernetes default the initial replica count and avoid Helm reconciling runtime scaling.
+        replicas: null
         terminationGracePeriodSeconds: 300
         # -- Node selector for sandbox-host and sandbox-host-installer pods. Empty uses the default selector `sandbox.langsmith.com/host=true`; set this map to replace the default if your sandbox node pool uses different labels.
         nodeSelector: {}
