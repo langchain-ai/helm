@@ -281,6 +281,7 @@ tests:
       config.sandboxes.enabled: true
       config.sandboxes.clusterName: self-hosted-test
       config.sandboxes.xServiceAuthJwtSecret: test-sandbox-jwt
+      config.sandboxes.callbackSigningJwk: test-callback-jwk
       config.sandboxes.juicefs.redis.metaURL: redis://langsmith-redis.default.svc.cluster.local:6379/1
       config.sandboxes.juicefs.bucket: https://langsmith-sandboxes-test.s3.us-west-2.amazonaws.com
       images.sandboxHostImage.repository: example.com/langsmith/sandbox-host
@@ -297,6 +298,9 @@ tests:
       - equal:
           path: data.sandbox_x_service_auth_jwt_secret
           value: dGVzdC1zYW5kYm94LWp3dA==
+      - equal:
+          path: data.sandbox_callback_signing_jwk
+          value: dGVzdC1jYWxsYmFjay1qd2s=
 
   - it: should use configured LANGCHAIN_ENV in the shared config map
     values:
@@ -934,6 +938,28 @@ tests:
     asserts:
       - failedTemplate:
           errorMessage: "config.sandboxes.callbackSigningJwk cannot be used when config.existingSecretName is set. Add key sandbox_callback_signing_jwk to the existing Secret instead."
+
+  - it: should fail when chart-managed app Secret is missing sandbox callback signing JWK
+    set:
+      config.langsmithLicenseKey: test-license
+      config.apiKeySalt: test-api-key-salt
+      config.oauth.enabled: true
+      config.authType: oauth
+      config.sandboxes.enabled: true
+      config.sandboxes.clusterName: self-hosted-test
+      config.sandboxes.xServiceAuthJwtSecret: test-sandbox-jwt
+      config.sandboxes.juicefs.redis.metaURL: redis://langsmith-redis.default.svc.cluster.local:6379/1
+      config.sandboxes.juicefs.bucket: https://langsmith-sandboxes-test.s3.us-west-2.amazonaws.com
+      images.sandboxHostImage.repository: example.com/langsmith/sandbox-host
+      images.sandboxHostImage.tag: test-sandbox-host
+      images.smithboxControlImage.repository: example.com/langsmith/smithbox-control
+      images.smithboxControlImage.tag: test-smithbox-control
+      insights.encryptionKey: test-insights-encryption-key
+      polly.encryptionKey: test-polly-encryption-key
+    template: validate.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: "config.sandboxes.callbackSigningJwk is required when config.sandboxes.enabled is true and the chart manages the LangSmith app Secret. When config.existingSecretName is set, add key sandbox_callback_signing_jwk to the existing Secret instead."
 
   - it: should fail when raw sandbox env vars conflict with chart-managed platform env
     values:

@@ -935,14 +935,14 @@ config:
     enabled: false
     # -- Logical Kubernetes cluster name sent to LangSmith sandbox workers.
     clusterName: ""
-    # -- Shared service-auth secret for LangSmith <-> sandbox runtime calls. Used only when this chart creates the LangSmith app Secret.
+    # -- Shared service-auth secret override for LangSmith <-> sandbox runtime calls when this chart creates the LangSmith app Secret. If unset, the chart uses the configured API key salt or LangSmith license key as the chart-managed value.
     # When config.existingSecretName is set, add key `sandbox_x_service_auth_jwt_secret` to that Secret instead.
     xServiceAuthJwtSecret: ""
     # -- Optional previous service-auth secret used during rotation. Used only when this chart creates the LangSmith app Secret.
     # When config.existingSecretName is set, add optional key `sandbox_x_service_auth_jwt_secret_previous` to that Secret to enable rotation.
     xServiceAuthJwtSecretPrevious: ""
-    # -- Optional private JWK for sandbox callback signing. Used only when this chart creates the LangSmith app Secret.
-    # When config.existingSecretName is set, add optional key `sandbox_callback_signing_jwk` to that Secret to enable callback signing.
+    # -- Required private JWK for sandbox callback signing when this chart creates the LangSmith app Secret.
+    # When config.existingSecretName is set, add key `sandbox_callback_signing_jwk` to that Secret instead.
     callbackSigningJwk: ""
     # -- Optional default sandbox blueprint/rootfs image.
     defaultBlueprintImage: ""
