@@ -788,6 +788,27 @@ tests:
       - failedTemplate:
           errorMessage: "config.sandboxes.juicefs.bucket must use a region-explicit S3 endpoint URL such as https://bucket-name.s3.us-west-2.amazonaws.com when config.sandboxes.juicefs.storage is s3. The s3://bucket shorthand makes JuiceFS infer region with GetBucketLocation and is not supported."
 
+  - it: should allow GCP JuiceFS storage
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      config.sandboxes.juicefs.storage: gs
+      config.sandboxes.juicefs.bucket: gs://langsmith-sandboxes-test
+    template: validate.yaml
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: should fail when sandbox JuiceFS storage is unsupported
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      config.sandboxes.juicefs.storage: azure
+    template: validate.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: "config.sandboxes.juicefs.storage currently supports only s3 for AWS/EKS and gs for GCP/GKE. Azure-backed sandbox storage is not supported yet."
+
   - it: should fail when sandbox service URL base URL does not use HTTP or HTTPS
     values:
       - ./values/sandboxes-enabled.yaml

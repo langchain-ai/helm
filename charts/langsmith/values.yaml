@@ -929,6 +929,7 @@ config:
 
   # -- LangSmith Sandboxes configuration. Disabled by default. When enabled, this installs sandbox runtime resources in the same namespace as the LangSmith release and wires the LangSmith API/frontend services to expose sandbox functionality.
   # This supports the same-cluster sandbox-host architecture only.
+  # Self-hosted sandboxes are currently supported on AWS/EKS and GCP/GKE. Azure/AKS is supported by the base LangSmith chart, but not by sandboxes yet.
   # Enabling sandboxes also installs the JuiceFS CSI driver. The CSI driver creates cluster-scoped resources, so only one sandbox-enabled LangSmith release should manage it per Kubernetes cluster. Do not enable sandboxes in multiple releases in the same cluster, or alongside an independently managed JuiceFS CSI installation, unless you have verified ownership of those cluster-scoped resources.
   sandboxes:
     enabled: false
@@ -970,6 +971,7 @@ config:
     juicefs:
       # -- JuiceFS volume name. Use a flat DNS-label-style name only; slashes and object-store subpaths are not supported here. JuiceFS stores objects under `<name>/` inside the configured bucket.
       name: "sandbox-juicefs"
+      # -- Object storage backend used by JuiceFS for sandboxes. Currently supported values are `s3` for AWS/EKS and `gs` for GCP/GKE. Azure-backed sandbox storage is not supported yet.
       storage: "s3"
       # -- Object storage bucket/root URL used by JuiceFS. For AWS S3, use a region-explicit endpoint such as `https://bucket-name.s3.us-west-2.amazonaws.com`; do not use the `s3://bucket-name` shorthand because JuiceFS then infers region with GetBucketLocation. For GCS, use `gs://bucket-name`. Use `config.sandboxes.juicefs.name` for JuiceFS volume isolation instead of deployment-specific bucket paths.
       bucket: ""
