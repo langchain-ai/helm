@@ -8,6 +8,10 @@ Helm chart to deploy the langsmith application and all services it depends on.
 
 For information on how to use this chart, up-to-date release notes, and other guides please check out the [documentation.](https://docs.langchain.com/langsmith/kubernetes)
 
+## Frontend Routing
+
+The chart-managed frontend owns public API route rewrites for LangSmith services and enabled features. If `frontend.enabled=false`, provide equivalent routing in the external frontend or reverse proxy for every enabled feature, including any configured `config.basePath` prefix and WebSocket upgrade handling where required.
+
 ## Requirements
 
 | Repository | Name | Version |

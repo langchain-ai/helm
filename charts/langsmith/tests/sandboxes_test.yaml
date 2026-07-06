@@ -115,6 +115,105 @@ tests:
             name: VITE_HOST_ENABLED
             value: "1"
 
+  - it: should route sandbox v2 API traffic through the chart frontend
+    values:
+      - ./values/sandboxes-enabled.yaml
+    template: frontend/config-map.yaml
+    asserts:
+      - matchRegex:
+          path: data["nginx.conf"]
+          pattern: 'location /api/v2/sandboxes/'
+      - matchRegex:
+          path: data["nginx.conf"]
+          pattern: 'rewrite /api/v2/sandboxes/\(\.\*\) /v2/sandboxes/\$1'
+      - matchRegex:
+          path: data["nginx.conf"]
+          pattern: 'proxy_set_header Upgrade \$http_upgrade;'
+      - matchRegex:
+          path: data["nginx.conf"]
+          pattern: 'proxy_set_header Connection \$connection_upgrade;'
+
+  - it: should route sandbox v2 API traffic through the chart frontend with basePath
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      config.basePath: langsmith
+    template: frontend/config-map.yaml
+    asserts:
+      - matchRegex:
+          path: data["nginx.conf"]
+          pattern: 'location /langsmith/api/v2/sandboxes/'
+      - matchRegex:
+          path: data["nginx.conf"]
+          pattern: 'rewrite /langsmith/api/v2/sandboxes/\(\.\*\) /v2/sandboxes/\$1'
+
+  - it: should route runs analytics v2 traffic through the chart frontend
+    values:
+      - ./values/sandboxes-enabled.yaml
+    template: frontend/config-map.yaml
+    asserts:
+      - matchRegex:
+          path: data["nginx.conf"]
+          pattern: 'location /api/v2/runs/analytics'
+      - matchRegex:
+          path: data["nginx.conf"]
+          pattern: 'rewrite /api/v2/runs/analytics\(\.\*\) /v2/runs/analytics\$1'
+
+  - it: should route runs analytics v2 traffic through the chart frontend with basePath
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      config.basePath: langsmith
+    template: frontend/config-map.yaml
+    asserts:
+      - matchRegex:
+          path: data["nginx.conf"]
+          pattern: 'location /langsmith/api/v2/runs/analytics'
+      - matchRegex:
+          path: data["nginx.conf"]
+          pattern: 'rewrite /langsmith/api/v2/runs/analytics\(\.\*\) /v2/runs/analytics\$1'
+
+  - it: should derive a relative platform endpoint for sandbox dataplane URLs
+    values:
+      - ./values/sandboxes-enabled.yaml
+    template: config-map.yaml
+    asserts:
+      - equal:
+          path: data.LANGCHAIN_PLATFORM_ENDPOINT
+          value: /api
+
+  - it: should derive a basePath-aware relative platform endpoint for sandbox dataplane URLs
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      config.basePath: langsmith
+    template: config-map.yaml
+    asserts:
+      - equal:
+          path: data.LANGCHAIN_PLATFORM_ENDPOINT
+          value: /langsmith/api
+
+  - it: should derive an absolute platform endpoint for sandbox dataplane URLs when hostname is set
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      config.hostname: langsmith.example.com
+    template: config-map.yaml
+    asserts:
+      - equal:
+          path: data.LANGCHAIN_PLATFORM_ENDPOINT
+          value: https://langsmith.example.com/api
+
+  - it: should allow sandboxes when the chart frontend is disabled
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      frontend.enabled: false
+    template: validate.yaml
+    asserts:
+      - hasDocuments:
+          count: 0
+
   - it: should store sandbox auth material in the chart-managed LangSmith secret
     set:
       config.langsmithLicenseKey: test-license
