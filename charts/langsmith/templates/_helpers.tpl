@@ -1285,8 +1285,6 @@ LangSmith app env vars for sandbox support.
   value: "true"
 - name: SANDBOX_FRONTEND_ENABLED
   value: "true"
-- name: SANDBOX_SKIP_FEATURE_FLAG
-  value: "true"
 - name: SANDBOX_RUNTIME_V2
   value: "always"
 - name: SMITHBOX_CONTROL_URL

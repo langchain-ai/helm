@@ -53,11 +53,6 @@ tests:
       - contains:
           path: spec.template.spec.containers[0].env
           content:
-            name: SANDBOX_SKIP_FEATURE_FLAG
-            value: "true"
-      - contains:
-          path: spec.template.spec.containers[0].env
-          content:
             name: SANDBOX_RUNTIME_V2
             value: always
       - notContains:
