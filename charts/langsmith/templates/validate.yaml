@@ -134,6 +134,19 @@ AWS Marketplace Helm template verification).
 {{- if not .Values.config.sandboxes.clusterName -}}
 {{- fail "config.sandboxes.clusterName is required when config.sandboxes.enabled is true." -}}
 {{- end -}}
+{{- $serviceUrlBaseUrl := .Values.config.sandboxes.serviceUrlBaseUrl | default "" -}}
+{{- if $serviceUrlBaseUrl -}}
+{{- if not (regexMatch "^https?://" $serviceUrlBaseUrl) -}}
+{{- fail "config.sandboxes.serviceUrlBaseUrl must start with http:// or https://." -}}
+{{- end -}}
+{{- if not (regexMatch "^https?://[^/?#]+$" $serviceUrlBaseUrl) -}}
+{{- fail "config.sandboxes.serviceUrlBaseUrl must not include a path, query string, or fragment." -}}
+{{- end -}}
+{{- $serviceUrlHost := regexReplaceAll "^https?://" $serviceUrlBaseUrl "" -}}
+{{- if and .Values.ingress.enabled (not (regexMatch "^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$" $serviceUrlHost)) -}}
+{{- fail "config.sandboxes.serviceUrlBaseUrl host must be a DNS hostname without a port when ingress.enabled is true." -}}
+{{- end -}}
+{{- end -}}
 {{- $juicefsCSI := .Values.config.sandboxes.juicefs.csi | default dict -}}
 {{- if not $juicefsCSI.existingSecretName -}}
 {{- $juicefsRedis := .Values.config.sandboxes.juicefs.redis | default dict -}}

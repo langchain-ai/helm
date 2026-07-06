@@ -1186,6 +1186,15 @@ Strip protocol (http://, https://, etc.) from hostname
 {{- end -}}
 
 {{/*
+Host portion of config.sandboxes.serviceUrlBaseUrl.
+*/}}
+{{- define "langsmith.sandboxes.serviceUrlHost" -}}
+{{- if .Values.config.sandboxes.serviceUrlBaseUrl -}}
+{{- regexReplaceAll "^https?://" .Values.config.sandboxes.serviceUrlBaseUrl "" -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
 Sandbox proxy CA secret name in the LangSmith release namespace.
 */}}
 {{- define "langsmith.sandboxes.proxyCaSecretName" -}}
@@ -1306,6 +1315,10 @@ LangSmith app env vars for sandbox support.
 {{- if .Values.config.sandboxes.defaultBlueprintImage }}
 - name: SANDBOX_DEFAULT_BLUEPRINT_IMAGE
   value: {{ .Values.config.sandboxes.defaultBlueprintImage | quote }}
+{{- end }}
+{{- if .Values.config.sandboxes.serviceUrlBaseUrl }}
+- name: SANDBOX_SERVICE_URLS
+  value: {{ dict .Values.config.sandboxes.clusterName .Values.config.sandboxes.serviceUrlBaseUrl | toJson | quote }}
 {{- end }}
 - name: SANDBOX_X_SERVICE_AUTH_JWT_SECRET
   valueFrom:

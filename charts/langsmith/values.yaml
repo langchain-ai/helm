@@ -945,6 +945,11 @@ config:
     callbackSigningJwk: ""
     # -- Optional default sandbox blueprint/rootfs image.
     defaultBlueprintImage: ""
+    # -- Optional base URL used to generate browser/programmatic service URLs for HTTP services running inside sandboxes.
+    # When set, the chart renders SANDBOX_SERVICE_URLS for config.sandboxes.clusterName.
+    # Requires wildcard DNS and TLS for `*.<host>`. When ingress.enabled is true, the chart also adds a wildcard ingress rule to the LangSmith platform backend.
+    # Must be an http:// or https:// URL without a path, query string, or fragment. When ingress.enabled is true, the host must be a DNS hostname without a port.
+    serviceUrlBaseUrl: ""
     limits:
       maxCpuCores: 16
       maxMemoryGb: 64

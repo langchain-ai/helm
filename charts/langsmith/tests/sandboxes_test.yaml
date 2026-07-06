@@ -8,6 +8,7 @@ templates:
   - clickhouse/secrets.yaml
   - frontend/config-map.yaml
   - frontend/deployment.yaml
+  - ingress.yaml
   - platform-backend/deployment.yaml
   - ingest-queue/deployment.yaml
   - sandboxes/proxy-ca.yaml
@@ -79,6 +80,63 @@ tests:
                 name: langsmith-secrets
                 key: sandbox_x_service_auth_jwt_secret
                 optional: false
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_SERVICE_URLS
+
+  - it: should derive sandbox service URLs from the service URL base URL
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      config.sandboxes.serviceUrlBaseUrl: https://sandbox-services.example.com
+    template: platform-backend/deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_SERVICE_URLS
+            value: '{"self-hosted-test":"https://sandbox-services.example.com"}'
+
+  - it: should not add a sandbox service URL ingress rule by default
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      config.hostname: langsmith.example.com
+      ingress.enabled: true
+      ingress.ingressClassName: nginx
+    template: ingress.yaml
+    asserts:
+      - notContains:
+          path: spec.rules
+          content:
+            host: "*.sandbox-services.example.com"
+
+  - it: should add a sandbox service URL ingress rule when using chart ingress
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      config.hostname: langsmith.example.com
+      config.sandboxes.serviceUrlBaseUrl: https://sandbox-services.example.com
+      ingress.enabled: true
+      ingress.ingressClassName: nginx
+    template: ingress.yaml
+    asserts:
+      - equal:
+          path: spec.rules[1].host
+          value: "*.sandbox-services.example.com"
+      - equal:
+          path: spec.rules[1].http.paths[0].path
+          value: /
+      - equal:
+          path: spec.rules[1].http.paths[0].pathType
+          value: Prefix
+      - equal:
+          path: spec.rules[1].http.paths[0].backend.service.name
+          value: RELEASE-NAME-langsmith-platform-backend
+      - equal:
+          path: spec.rules[1].http.paths[0].backend.service.port.number
+          value: 1986
 
   - it: should wire optional sandbox keys from an existing LangSmith secret into platform backend
     values:
@@ -729,6 +787,57 @@ tests:
     asserts:
       - failedTemplate:
           errorMessage: "config.sandboxes.juicefs.bucket must use a region-explicit S3 endpoint URL such as https://bucket-name.s3.us-west-2.amazonaws.com when config.sandboxes.juicefs.storage is s3. The s3://bucket shorthand makes JuiceFS infer region with GetBucketLocation and is not supported."
+
+  - it: should fail when sandbox service URL base URL does not use HTTP or HTTPS
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      config.sandboxes.serviceUrlBaseUrl: sandbox-services.example.com
+    template: validate.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: "config.sandboxes.serviceUrlBaseUrl must start with http:// or https://."
+
+  - it: should fail when sandbox service URL base URL contains a path
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      config.sandboxes.serviceUrlBaseUrl: https://sandbox-services.example.com/path
+    template: validate.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: "config.sandboxes.serviceUrlBaseUrl must not include a path, query string, or fragment."
+
+  - it: should fail when sandbox service URL base URL contains a query string
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      config.sandboxes.serviceUrlBaseUrl: https://sandbox-services.example.com?foo=bar
+    template: validate.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: "config.sandboxes.serviceUrlBaseUrl must not include a path, query string, or fragment."
+
+  - it: should fail when sandbox service URL base URL contains a fragment
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      config.sandboxes.serviceUrlBaseUrl: https://sandbox-services.example.com#fragment
+    template: validate.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: "config.sandboxes.serviceUrlBaseUrl must not include a path, query string, or fragment."
+
+  - it: should fail when chart ingress would render an invalid sandbox service URL host
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      config.sandboxes.serviceUrlBaseUrl: https://sandbox-services.example.com:8443
+      ingress.enabled: true
+    template: validate.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: "config.sandboxes.serviceUrlBaseUrl host must be a DNS hostname without a port when ingress.enabled is true."
 
   - it: should fail when existing app Secret is used with chart-provided sandbox service auth secret
     values:
