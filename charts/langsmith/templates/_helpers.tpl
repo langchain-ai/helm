@@ -197,7 +197,7 @@ Template containing common environment variables that are used by several servic
 {{- end }}
 {{- if .Values.config.hostname }}
 - name: LANGSMITH_URL
-  value: {{ include "langsmith.hostnameWithoutProtocol" . }}{{- with .Values.config.basePath }}/{{ . }}{{- end }}
+  value: {{ include "langsmith.frontendHostnameWithoutProtocol" . }}{{- with .Values.config.basePath }}/{{ . }}{{- end }}
 - name: HOST_BACKEND_ENDPOINT_PUBLIC
   value: {{ .Values.config.hostname }}/api-host
 {{- end }}
@@ -208,6 +208,8 @@ Template containing common environment variables that are used by several servic
 - name: LANGGRAPH_DEPLOYMENT_URL
   value: {{ $fleetApi | quote }}
 {{- end }}
+- name: FLEET_FEATURE_ENABLED
+  value: {{ .Values.fleet.enabled | quote }}
 - name: REDIS_CLUSTER_ENABLED
   value: {{ .Values.redis.external.cluster.enabled | quote }}
 {{- if .Values.redis.external.cluster.enabled }}
@@ -1194,6 +1196,17 @@ Strip protocol (http://, https://, etc.) from hostname
 {{- define "langsmith.hostnameWithoutProtocol" -}}
 {{- if .Values.config.hostname -}}
 {{- regexReplaceAll "^[a-zA-Z][a-zA-Z0-9+.-]*://" .Values.config.hostname "" -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Frontend origin for user-facing redirects (LANGSMITH_URL), scheme stripped.
+Falls back to config.hostname when config.frontendHostname is unset.
+*/}}
+{{- define "langsmith.frontendHostnameWithoutProtocol" -}}
+{{- $host := .Values.config.frontendHostname | default .Values.config.hostname -}}
+{{- if $host -}}
+{{- regexReplaceAll "^[a-zA-Z][a-zA-Z0-9+.-]*://" $host "" -}}
 {{- end -}}
 {{- end -}}
 
