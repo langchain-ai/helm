@@ -1,32 +1,33 @@
 {{- if .Values.config.sandboxes.enabled }}
 {{- $namespace := .Values.namespace | default .Release.Namespace }}
 apiVersion: apps/v1
-kind: StatefulSet
+kind: Deployment
 metadata:
   name: {{ .Values.config.sandboxes.sandboxHost.name }}
   namespace: {{ $namespace }}
   labels:
     app: sandbox-host
     {{- include "langsmith.labels" . | nindent 4 }}
-    {{- with .Values.config.sandboxes.sandboxHost.statefulSet.labels }}
+    {{- with .Values.config.sandboxes.sandboxHost.deployment.labels }}
       {{- toYaml . | nindent 4 }}
     {{- end }}
   annotations:
     {{- include "langsmith.annotations" . | nindent 4 }}
-    {{- with .Values.config.sandboxes.sandboxHost.statefulSet.annotations }}
+    {{- with .Values.config.sandboxes.sandboxHost.deployment.annotations }}
       {{- toYaml . | nindent 4 }}
     {{- end }}
 spec:
   selector:
     matchLabels:
       app: sandbox-host
-  serviceName: {{ .Values.config.sandboxes.sandboxHost.name }}
-  {{- if not (kindIs "invalid" .Values.config.sandboxes.sandboxHost.statefulSet.replicas) }}
-  replicas: {{ .Values.config.sandboxes.sandboxHost.statefulSet.replicas }}
+  {{- if not (kindIs "invalid" .Values.config.sandboxes.sandboxHost.deployment.replicas) }}
+  replicas: {{ .Values.config.sandboxes.sandboxHost.deployment.replicas }}
   {{- end }}
-  podManagementPolicy: Parallel
-  updateStrategy:
-    type: OnDelete
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 0
+      maxUnavailable: 1
   template:
     metadata:
       labels:
@@ -34,7 +35,7 @@ spec:
         {{- include "langsmith.labels" . | nindent 8 }}
       annotations:
         {{- include "langsmith.commonPodAnnotations" . | nindent 8 }}
-        {{- with .Values.config.sandboxes.sandboxHost.statefulSet.podAnnotations }}
+        {{- with .Values.config.sandboxes.sandboxHost.deployment.podAnnotations }}
           {{- toYaml . | nindent 8 }}
         {{- end }}
     spec:
@@ -54,7 +55,7 @@ spec:
       {{- end }}
       nodeSelector:
         {{- include "langsmith.sandboxes.sandboxHostNodeSelector" . | nindent 8 }}
-      {{- with .Values.config.sandboxes.sandboxHost.statefulSet.tolerations }}
+      {{- with .Values.config.sandboxes.sandboxHost.deployment.tolerations }}
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
@@ -62,21 +63,9 @@ spec:
         - name: sandbox-host
           image: {{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "sandboxHostImage") | quote }}
           imagePullPolicy: {{ .Values.images.sandboxHostImage.pullPolicy }}
-          command:
-            - /bin/sh
-            - -c
-            - |
-              set -e
-              if [ ! -x /host-bin/sandbox-host ]; then
-                cp /opt/sandbox-host/bin/sandbox-host /host-bin/sandbox-host.tmp
-                mv /host-bin/sandbox-host.tmp /host-bin/sandbox-host
-              fi
-              exec /host-bin/sandbox-host
           env:
             - name: LANGCHAIN_ENV
               value: {{ .Values.config.langchainEnv | quote }}
-            - name: SANDBOX_HOST_BIN_DIR
-              value: /opt/sandbox-host/bin
             - name: POD_NAME
               valueFrom:
                 fieldRef:
@@ -118,16 +107,16 @@ spec:
             - name: LANGSMITH_SANDBOX_INTERNAL_ENDPOINT
               value: {{ include "langsmith.sandboxes.langsmithInternalEndpoint" . | quote }}
             - name: SANDBOX_HOST_TERMINATION_GRACE_SECONDS
-              value: {{ .Values.config.sandboxes.sandboxHost.statefulSet.terminationGracePeriodSeconds | quote }}
+              value: {{ .Values.config.sandboxes.sandboxHost.deployment.terminationGracePeriodSeconds | quote }}
           ports:
             - name: http
               containerPort: {{ .Values.config.sandboxes.sandboxHost.containerPort }}
               hostPort: {{ .Values.config.sandboxes.sandboxHost.containerPort }}
               protocol: TCP
           securityContext:
-            {{- toYaml .Values.config.sandboxes.sandboxHost.statefulSet.securityContext | nindent 12 }}
+            {{- toYaml .Values.config.sandboxes.sandboxHost.deployment.securityContext | nindent 12 }}
           resources:
-            {{- toYaml .Values.config.sandboxes.sandboxHost.statefulSet.resources | nindent 12 }}
+            {{- toYaml .Values.config.sandboxes.sandboxHost.deployment.resources | nindent 12 }}
           volumeMounts:
             - name: juicefs
               mountPath: {{ .Values.config.sandboxes.juicefs.csi.mountPath }}
@@ -147,5 +136,5 @@ spec:
           hostPath:
             path: /var/lib/sandbox-host
             type: DirectoryOrCreate
-      terminationGracePeriodSeconds: {{ .Values.config.sandboxes.sandboxHost.statefulSet.terminationGracePeriodSeconds }}
+      terminationGracePeriodSeconds: {{ .Values.config.sandboxes.sandboxHost.deployment.terminationGracePeriodSeconds }}
 {{- end }}

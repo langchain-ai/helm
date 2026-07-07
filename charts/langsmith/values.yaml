@@ -983,11 +983,11 @@ config:
       containerPort: 19190
       # -- Whether sandbox callback validation should allow private IP and localhost targets. This renders SSRF_ALLOW_PRIVATE_IPS_CALLBACKS for sandbox-host.
       allowPrivateIPCallbacks: false
-      statefulSet:
+      deployment:
         labels: {}
         annotations: {}
         podAnnotations: {}
-        # -- Optional initial sandbox-host StatefulSet replica count. Leave null to let Kubernetes default the initial replica count and avoid Helm reconciling runtime scaling.
+        # -- Optional initial sandbox-host Deployment replica count. Leave null to let Kubernetes default the initial replica count and avoid Helm reconciling runtime scaling.
         replicas: null
         terminationGracePeriodSeconds: 300
         # -- Node selector for sandbox-host pods. Empty uses the default selector `sandbox.langsmith.com/host=true`; set this map to replace the default if your sandbox node pool uses different labels.

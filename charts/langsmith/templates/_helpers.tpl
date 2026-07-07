@@ -1252,8 +1252,8 @@ Sandbox service account names.
 Node selector for sandbox-host pods.
 */}}
 {{- define "langsmith.sandboxes.sandboxHostNodeSelector" -}}
-{{- if .Values.config.sandboxes.sandboxHost.statefulSet.nodeSelector -}}
-{{- toYaml .Values.config.sandboxes.sandboxHost.statefulSet.nodeSelector -}}
+{{- if .Values.config.sandboxes.sandboxHost.deployment.nodeSelector -}}
+{{- toYaml .Values.config.sandboxes.sandboxHost.deployment.nodeSelector -}}
 {{- else -}}
 sandbox.langsmith.com/host: "true"
 {{- end -}}

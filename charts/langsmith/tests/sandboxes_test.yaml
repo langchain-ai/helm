@@ -14,8 +14,7 @@ templates:
   - sandboxes/proxy-ca.yaml
   - sandboxes/juicefs-csi.yaml
   - sandboxes/sandbox-host-rbac.yaml
-  - sandboxes/sandbox-host-service.yaml
-  - sandboxes/sandbox-host-statefulset.yaml
+  - sandboxes/sandbox-host-deployment.yaml
 tests:
   - it: should not render sandbox runtime resources by default
     set:
@@ -26,8 +25,7 @@ tests:
       - sandboxes/proxy-ca.yaml
       - sandboxes/juicefs-csi.yaml
       - sandboxes/sandbox-host-rbac.yaml
-      - sandboxes/sandbox-host-service.yaml
-      - sandboxes/sandbox-host-statefulset.yaml
+      - sandboxes/sandbox-host-deployment.yaml
     asserts:
       - hasDocuments:
           count: 0
@@ -332,7 +330,7 @@ tests:
       - ./values/sandboxes-enabled.yaml
     set:
       config.langchainEnv: chart-env
-    template: sandboxes/sandbox-host-statefulset.yaml
+    template: sandboxes/sandbox-host-deployment.yaml
     asserts:
       - contains:
           path: spec.template.spec.containers[0].env
@@ -340,13 +338,13 @@ tests:
             name: LANGCHAIN_ENV
             value: chart-env
 
-  - it: should render sandbox-host with host network and OnDelete rollout
+  - it: should render sandbox-host with host network and rolling update rollout
     values:
       - ./values/sandboxes-enabled.yaml
-    template: sandboxes/sandbox-host-statefulset.yaml
+    template: sandboxes/sandbox-host-deployment.yaml
     asserts:
       - isKind:
-          of: StatefulSet
+          of: Deployment
       - equal:
           path: metadata.name
           value: sandbox-host
@@ -354,14 +352,14 @@ tests:
           path: metadata.namespace
           value: NAMESPACE
       - equal:
-          path: spec.serviceName
-          value: sandbox-host
+          path: spec.strategy.type
+          value: RollingUpdate
       - equal:
-          path: spec.podManagementPolicy
-          value: Parallel
+          path: spec.strategy.rollingUpdate.maxSurge
+          value: 0
       - equal:
-          path: spec.updateStrategy.type
-          value: OnDelete
+          path: spec.strategy.rollingUpdate.maxUnavailable
+          value: 1
       - equal:
           path: spec.template.spec.hostNetwork
           value: true
@@ -374,6 +372,8 @@ tests:
       - equal:
           path: spec.template.spec.containers[0].ports[0].hostPort
           value: 19190
+      - notExists:
+          path: spec.template.spec.containers[0].command
       - equal:
           path: spec.template.spec.nodeSelector
           value:
@@ -420,37 +420,13 @@ tests:
       - ./values/sandboxes-enabled.yaml
     set:
       config.sandboxes.sandboxHost.allowPrivateIPCallbacks: true
-    template: sandboxes/sandbox-host-statefulset.yaml
+    template: sandboxes/sandbox-host-deployment.yaml
     asserts:
       - contains:
           path: spec.template.spec.containers[0].env
           content:
             name: SSRF_ALLOW_PRIVATE_IPS_CALLBACKS
             value: "true"
-
-  - it: should render the sandbox-host headless service
-    values:
-      - ./values/sandboxes-enabled.yaml
-    template: sandboxes/sandbox-host-service.yaml
-    asserts:
-      - isKind:
-          of: Service
-      - equal:
-          path: metadata.name
-          value: sandbox-host
-      - equal:
-          path: metadata.namespace
-          value: NAMESPACE
-      - equal:
-          path: spec.clusterIP
-          value: None
-      - equal:
-          path: spec.selector
-          value:
-            app: sandbox-host
-      - equal:
-          path: spec.ports[0].port
-          value: 19190
 
   - it: should render custom sandbox-host RBAC metadata
     values:
@@ -482,7 +458,7 @@ tests:
     values:
       - ./values/sandboxes-enabled.yaml
       - ./values/sandboxes-custom-scheduling.yaml
-    template: sandboxes/sandbox-host-statefulset.yaml
+    template: sandboxes/sandbox-host-deployment.yaml
     asserts:
       - equal:
           path: spec.template.spec.nodeSelector
@@ -618,7 +594,7 @@ tests:
   - it: should mount the derived JuiceFS host PVC on sandbox-host
     values:
       - ./values/sandboxes-enabled.yaml
-    template: sandboxes/sandbox-host-statefulset.yaml
+    template: sandboxes/sandbox-host-deployment.yaml
     asserts:
       - equal:
           path: spec.template.spec.volumes[0].persistentVolumeClaim.claimName
