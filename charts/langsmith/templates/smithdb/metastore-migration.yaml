@@ -65,8 +65,8 @@ spec:
           {{- end }}
           env:
             {{- toYaml $envVars | nindent 12 }}
-          image: {{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "smithdbMetastoreMigrationImage") | quote }}
-          imagePullPolicy: {{ .Values.images.smithdbMetastoreMigrationImage.pullPolicy }}
+          image: {{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "smithdbImage") | quote }}
+          imagePullPolicy: {{ .Values.images.smithdbImage.pullPolicy }}
           resources:
             {{- toYaml .Values.smithdb.metastoreMigration.job.resources | nindent 12 }}
           securityContext:
