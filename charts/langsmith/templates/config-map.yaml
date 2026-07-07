@@ -33,7 +33,7 @@ data:
   VITE_BACKEND_AUTH_TYPE: "none"
   AUTH_TYPE: "none"
   {{- end }}
-  LANGCHAIN_ENV: {{ .Values.config.langchainEnv | quote }}
+  LANGCHAIN_ENV: "local_kubernetes"
   LANGCHAIN_ENDPOINT: "/{{ if .Values.config.basePath }}{{ .Values.config.basePath }}/{{ end }}api/v1"
   {{- if .Values.config.sandboxes.enabled }}
   LANGCHAIN_PLATFORM_ENDPOINT: {{ include "langsmith.sandboxes.platformEndpoint" . | quote }}

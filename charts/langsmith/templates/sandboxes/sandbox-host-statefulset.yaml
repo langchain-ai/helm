@@ -112,7 +112,7 @@ spec:
             - name: OAUTH_AS_ISSUER
               value: {{ include "langsmith.sandboxes.langsmithInternalEndpoint" . | quote }}
             - name: SSRF_ALLOW_PRIVATE_IPS_CALLBACKS
-              value: "true"
+              value: {{ .Values.config.sandboxes.sandboxHost.allowPrivateIPCallbacks | quote }}
             - name: SANDBOX_CALLBACK_LOOPBACK_REWRITE
               value: "false"
             - name: LANGSMITH_SANDBOX_INTERNAL_ENDPOINT

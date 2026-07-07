@@ -908,7 +908,7 @@ config:
   existingSecretName: ""
   disableSecretCreation: false
   langsmithLicenseKey: ""
-  # -- Runtime environment value rendered as LANGCHAIN_ENV for LangSmith services and sandbox runtime components.
+  # -- Runtime environment value rendered as LANGCHAIN_ENV for sandbox runtime components.
   langchainEnv: "local_kubernetes"
   # -- Configuration for LangSmith Deployments features
   deployment:
@@ -939,8 +939,6 @@ config:
     # -- Required private JWK for sandbox callback signing when this chart creates the LangSmith app Secret.
     # When config.existingSecretName is set, add key `sandbox_callback_signing_jwk` to that Secret instead.
     callbackSigningJwk: ""
-    # -- Optional default sandbox blueprint/rootfs image.
-    defaultBlueprintImage: ""
     # -- Optional base URL used to generate browser/programmatic service URLs for HTTP services running inside sandboxes.
     # When set, the chart renders SANDBOX_SERVICE_URLS for config.sandboxes.clusterName.
     # Requires wildcard DNS and TLS for `*.<host>`. When ingress.enabled is true, the chart also adds a wildcard ingress rule to the LangSmith platform backend.
@@ -983,6 +981,8 @@ config:
     sandboxHost:
       name: "sandbox-host"
       containerPort: 19190
+      # -- Whether sandbox callback validation should allow private IP and localhost targets. This renders SSRF_ALLOW_PRIVATE_IPS_CALLBACKS for sandbox-host.
+      allowPrivateIPCallbacks: true
       statefulSet:
         labels: {}
         annotations: {}
@@ -1010,6 +1010,10 @@ config:
         labels: {}
         annotations: {}
         automountServiceAccountToken: true
+      rbac:
+        create: true
+        labels: {}
+        annotations: {}
     sandboxHostInstaller:
       name: "sandbox-host-installer"
       daemonSet:

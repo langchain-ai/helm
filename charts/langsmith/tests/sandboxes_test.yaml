@@ -293,7 +293,7 @@ tests:
           path: data.sandbox_callback_signing_jwk
           value: dGVzdC1jYWxsYmFjay1qd2s=
 
-  - it: should use configured LANGCHAIN_ENV in the shared config map
+  - it: should keep local_kubernetes LANGCHAIN_ENV in the shared config map
     values:
       - ./values/sandboxes-enabled.yaml
     set:
@@ -302,7 +302,7 @@ tests:
     asserts:
       - equal:
           path: data.LANGCHAIN_ENV
-          value: chart-env
+          value: local_kubernetes
 
   - it: should wire ingest queue sandbox environment when enabled
     values:
@@ -319,11 +319,10 @@ tests:
           content:
             name: SANDBOX_RUNTIME_V2
             value: always
-      - contains:
+      - notContains:
           path: spec.template.spec.containers[0].env
           content:
             name: SANDBOX_DEFAULT_BLUEPRINT_IMAGE
-            value: python:3.12
       - contains:
           path: spec.template.spec.containers[0].env
           content:
@@ -425,6 +424,24 @@ tests:
                 name: langsmith-secrets
                 key: sandbox_callback_signing_jwk
                 optional: true
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SSRF_ALLOW_PRIVATE_IPS_CALLBACKS
+            value: "true"
+
+  - it: should allow disabling private IP sandbox callbacks on sandbox-host
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      config.sandboxes.sandboxHost.allowPrivateIPCallbacks: false
+    template: sandboxes/sandbox-host-statefulset.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SSRF_ALLOW_PRIVATE_IPS_CALLBACKS
+            value: "false"
 
   - it: should render the sandbox-host headless service
     values:
@@ -464,6 +481,32 @@ tests:
                 name: langsmith-secrets
                 key: sandbox_x_service_auth_jwt_secret
                 optional: false
+
+  - it: should render custom sandbox-host RBAC metadata
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      config.sandboxes.sandboxHost.rbac.labels.review: requested
+      config.sandboxes.sandboxHost.rbac.annotations.review: requested
+    template: sandboxes/sandbox-host-rbac.yaml
+    documentIndex: 1
+    asserts:
+      - equal:
+          path: metadata.labels.review
+          value: requested
+      - equal:
+          path: metadata.annotations.review
+          value: requested
+
+  - it: should allow disabling sandbox-host RBAC resources
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      config.sandboxes.sandboxHost.rbac.create: false
+    template: sandboxes/sandbox-host-rbac.yaml
+    asserts:
+      - hasDocuments:
+          count: 1
 
   - it: should render custom sandbox-host scheduling on sandbox-host
     values:
