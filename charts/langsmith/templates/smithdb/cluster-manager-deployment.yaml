@@ -60,6 +60,7 @@ spec:
               value: {{ .Values.smithdb.clusterManager.containerPort | quote }}
             - name: SMITHDB_CLUSTERMANAGER__GRPC_PORT
               value: {{ .Values.smithdb.clusterManager.containerGrpcPort | quote }}
+            {{- include "langsmith.smithdb.baseEnv" (dict "root" . "service" "CLUSTERMANAGER" "displayName" "smithdb-clustermanager") | nindent 12 }}
             {{- with $envVars }}
             {{- toYaml . | nindent 12 }}
             {{- end }}
