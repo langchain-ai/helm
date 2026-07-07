@@ -988,6 +988,8 @@ config:
         annotations: {}
         podAnnotations: {}
         # -- Optional initial sandbox-host Deployment replica count. Leave null to let Kubernetes default the initial replica count and avoid Helm reconciling runtime scaling.
+        # Multiple sandbox-host replicas are kept one per node by chart-managed required pod anti-affinity on `kubernetes.io/hostname` plus the sandbox-host `hostPort`.
+        # The chart also uses a no-surge rolling update strategy (`maxSurge: 0`, `maxUnavailable: 1`) so image updates roll hosts one node at a time instead of creating unschedulable surge pods.
         replicas: null
         terminationGracePeriodSeconds: 300
         # -- Node selector for sandbox-host pods. Empty uses the default selector `sandbox.langsmith.com/host=true`; set this map to replace the default if your sandbox node pool uses different labels.
