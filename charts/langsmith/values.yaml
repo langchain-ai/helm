@@ -982,7 +982,7 @@ config:
       name: "sandbox-host"
       containerPort: 19190
       # -- Whether sandbox callback validation should allow private IP and localhost targets. This renders SSRF_ALLOW_PRIVATE_IPS_CALLBACKS for sandbox-host.
-      allowPrivateIPCallbacks: true
+      allowPrivateIPCallbacks: false
       statefulSet:
         labels: {}
         annotations: {}

@@ -413,20 +413,20 @@ tests:
           path: spec.template.spec.containers[0].env
           content:
             name: SSRF_ALLOW_PRIVATE_IPS_CALLBACKS
-            value: "true"
+            value: "false"
 
-  - it: should allow disabling private IP sandbox callbacks on sandbox-host
+  - it: should allow enabling private IP sandbox callbacks on sandbox-host
     values:
       - ./values/sandboxes-enabled.yaml
     set:
-      config.sandboxes.sandboxHost.allowPrivateIPCallbacks: false
+      config.sandboxes.sandboxHost.allowPrivateIPCallbacks: true
     template: sandboxes/sandbox-host-statefulset.yaml
     asserts:
       - contains:
           path: spec.template.spec.containers[0].env
           content:
             name: SSRF_ALLOW_PRIVATE_IPS_CALLBACKS
-            value: "false"
+            value: "true"
 
   - it: should render the sandbox-host headless service
     values:
