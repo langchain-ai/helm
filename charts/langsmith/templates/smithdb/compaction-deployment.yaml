@@ -1,5 +1,4 @@
 {{- if .Values.smithdb.enabled }}
-{{- $command := default (list "./smithdb-compaction" "scheduler") .Values.smithdb.compaction.deployment.command -}}
 {{- $envVars := concat (include "langsmith.smithdb.componentEnv" (dict "root" . "service" "COMPACTION" "displayName" "smithdb-compaction") | fromYamlArray) .Values.smithdb.compaction.deployment.extraEnv -}}
 {{- include "langsmith.detectDuplicates" $envVars -}}
 apiVersion: apps/v1
@@ -52,8 +51,10 @@ spec:
       {{- end }}
       containers:
         - name: {{ .Values.smithdb.compaction.name }}
+          {{- with .Values.smithdb.compaction.deployment.command }}
           command:
-            {{- toYaml $command | nindent 12 }}
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           env:
             - name: SMITHDB_COMPACTION__HTTP_PORT
               value: {{ .Values.smithdb.compaction.containerPort | quote }}
@@ -62,8 +63,8 @@ spec:
             {{- with $envVars }}
             {{- toYaml . | nindent 12 }}
             {{- end }}
-          image: {{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "smithdbCompactionImage") | quote }}
-          imagePullPolicy: {{ .Values.images.smithdbCompactionImage.pullPolicy }}
+          image: {{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "smithdbImage") | quote }}
+          imagePullPolicy: {{ .Values.images.smithdbImage.pullPolicy }}
           ports:
             - name: http
               containerPort: {{ .Values.smithdb.compaction.containerPort }}

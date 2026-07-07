@@ -65,8 +65,8 @@ spec:
             {{- with $envVars }}
             {{- toYaml . | nindent 12 }}
             {{- end }}
-          image: {{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "smithdbQueryImage") | quote }}
-          imagePullPolicy: {{ .Values.images.smithdbQueryImage.pullPolicy }}
+          image: {{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "smithdbImage") | quote }}
+          imagePullPolicy: {{ .Values.images.smithdbImage.pullPolicy }}
           ports:
             - name: http
               containerPort: {{ .Values.smithdb.query.containerPort }}
