@@ -990,9 +990,9 @@ config:
         # -- Optional initial sandbox-host StatefulSet replica count. Leave null to let Kubernetes default the initial replica count and avoid Helm reconciling runtime scaling.
         replicas: null
         terminationGracePeriodSeconds: 300
-        # -- Node selector for sandbox-host and sandbox-host-installer pods. Empty uses the default selector `sandbox.langsmith.com/host=true`; set this map to replace the default if your sandbox node pool uses different labels.
+        # -- Node selector for sandbox-host pods. Empty uses the default selector `sandbox.langsmith.com/host=true`; set this map to replace the default if your sandbox node pool uses different labels.
         nodeSelector: {}
-        # -- Tolerations for sandbox-host and sandbox-host-installer pods. The default expects sandbox-host nodes tainted `sandbox.langsmith.com/host=true:NoSchedule`; override this if your sandbox node pool uses different taints.
+        # -- Tolerations for sandbox-host pods. The default expects sandbox-host nodes tainted `sandbox.langsmith.com/host=true:NoSchedule`; override this if your sandbox node pool uses different taints.
         tolerations:
           - key: sandbox.langsmith.com/host
             operator: Equal
@@ -1014,23 +1014,6 @@ config:
         create: true
         labels: {}
         annotations: {}
-    sandboxHostInstaller:
-      name: "sandbox-host-installer"
-      daemonSet:
-        labels: {}
-        annotations: {}
-        podAnnotations: {}
-        maxUnavailable: 1
-        timeout: "120s"
-        resources:
-          requests:
-            cpu: 10m
-            memory: 32Mi
-          limits:
-            cpu: 200m
-            memory: 128Mi
-        securityContext:
-          runAsUser: 0
 
   # DEPRECATED: use the top-level fleet block (fleet/fleetToolServer/
   # fleetTriggerServer) instead. This bundled-agent path is managed by

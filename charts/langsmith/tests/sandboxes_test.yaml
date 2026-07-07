@@ -16,7 +16,6 @@ templates:
   - sandboxes/sandbox-host-rbac.yaml
   - sandboxes/sandbox-host-service.yaml
   - sandboxes/sandbox-host-statefulset.yaml
-  - sandboxes/sandbox-host-installer-daemonset.yaml
 tests:
   - it: should not render sandbox runtime resources by default
     set:
@@ -29,7 +28,6 @@ tests:
       - sandboxes/sandbox-host-rbac.yaml
       - sandboxes/sandbox-host-service.yaml
       - sandboxes/sandbox-host-statefulset.yaml
-      - sandboxes/sandbox-host-installer-daemonset.yaml
     asserts:
       - hasDocuments:
           count: 0
@@ -342,19 +340,6 @@ tests:
             name: LANGCHAIN_ENV
             value: chart-env
 
-  - it: should use configured LANGCHAIN_ENV for sandbox-host installer
-    values:
-      - ./values/sandboxes-enabled.yaml
-    set:
-      config.langchainEnv: chart-env
-    template: sandboxes/sandbox-host-installer-daemonset.yaml
-    asserts:
-      - contains:
-          path: spec.template.spec.containers[0].env
-          content:
-            name: LANGCHAIN_ENV
-            value: chart-env
-
   - it: should render sandbox-host with host network and OnDelete rollout
     values:
       - ./values/sandboxes-enabled.yaml
@@ -467,21 +452,6 @@ tests:
           path: spec.ports[0].port
           value: 19190
 
-  - it: should wire sandbox-host installer to the main LangSmith secret
-    values:
-      - ./values/sandboxes-enabled.yaml
-    template: sandboxes/sandbox-host-installer-daemonset.yaml
-    asserts:
-      - contains:
-          path: spec.template.spec.containers[0].env
-          content:
-            name: SANDBOX_X_SERVICE_AUTH_JWT_SECRET
-            valueFrom:
-              secretKeyRef:
-                name: langsmith-secrets
-                key: sandbox_x_service_auth_jwt_secret
-                optional: false
-
   - it: should render custom sandbox-host RBAC metadata
     values:
       - ./values/sandboxes-enabled.yaml
@@ -526,23 +496,6 @@ tests:
               value: hosts
               effect: NoSchedule
 
-  - it: should render custom sandbox-host scheduling on sandbox-host installer
-    values:
-      - ./values/sandboxes-enabled.yaml
-      - ./values/sandboxes-custom-scheduling.yaml
-    template: sandboxes/sandbox-host-installer-daemonset.yaml
-    asserts:
-      - equal:
-          path: spec.template.spec.nodeSelector
-          value:
-            sandbox.example.com/pool: hosts
-      - equal:
-          path: spec.template.spec.tolerations
-          value:
-            - key: sandbox.example.com/pool
-              operator: Equal
-              value: hosts
-              effect: NoSchedule
 
   - it: should render JuiceFS CSI config and host PVC when enabled
     values:

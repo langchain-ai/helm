@@ -1249,7 +1249,7 @@ Sandbox service account names.
 {{- end -}}
 
 {{/*
-Node selector for sandbox-host and sandbox-host-installer pods.
+Node selector for sandbox-host pods.
 */}}
 {{- define "langsmith.sandboxes.sandboxHostNodeSelector" -}}
 {{- if .Values.config.sandboxes.sandboxHost.statefulSet.nodeSelector -}}
