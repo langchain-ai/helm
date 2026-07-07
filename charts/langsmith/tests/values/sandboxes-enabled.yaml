@@ -26,6 +26,3 @@ images:
   sandboxHostImage:
     repository: example.com/langsmith/sandbox-host
     tag: test-sandbox-host
-  smithboxControlImage:
-    repository: example.com/langsmith/smithbox-control
-    tag: test-smithbox-control

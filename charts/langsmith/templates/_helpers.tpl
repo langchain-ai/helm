@@ -1213,24 +1213,6 @@ Sandbox service auth secret material for chart-created app/runtime Secrets.
 {{- end -}}
 
 {{/*
-smithbox-control in-cluster URL.
-*/}}
-{{- define "langsmith.sandboxes.smithboxControlUrl" -}}
-{{- printf "http://%s.%s.svc.%s:%v" .Values.config.sandboxes.smithboxControl.name (.Values.namespace | default .Release.Namespace) .Values.clusterDomain .Values.config.sandboxes.smithboxControl.service.port -}}
-{{- end -}}
-
-{{/*
-Firecracker size classes rendered in the JSON shape expected by smithbox-control.
-*/}}
-{{- define "langsmith.sandboxes.firecrackerSizeClasses" -}}
-{{- $classes := list -}}
-{{- range .Values.config.sandboxes.firecrackerSizeClasses -}}
-{{- $classes = append $classes (dict "name" .name "vcpus" .vcpus "mem_mib" .memoryMib) -}}
-{{- end -}}
-{{- $classes | toJson -}}
-{{- end -}}
-
-{{/*
 Internal LangSmith platform endpoint used by sandbox runtime callbacks.
 */}}
 {{- define "langsmith.sandboxes.langsmithInternalEndpoint" -}}
@@ -1258,14 +1240,6 @@ Derived JuiceFS CSI PV/PVC names for the sandbox-host mount.
 {{/*
 Sandbox service account names.
 */}}
-{{- define "langsmith.sandboxes.smithboxControlServiceAccountName" -}}
-{{- if .Values.config.sandboxes.smithboxControl.serviceAccount.create -}}
-{{- default .Values.config.sandboxes.smithboxControl.name .Values.config.sandboxes.smithboxControl.serviceAccount.name | trunc 63 | trimSuffix "-" -}}
-{{- else -}}
-{{- default "default" .Values.config.sandboxes.smithboxControl.serviceAccount.name -}}
-{{- end -}}
-{{- end -}}
-
 {{- define "langsmith.sandboxes.sandboxHostServiceAccountName" -}}
 {{- if .Values.config.sandboxes.sandboxHost.serviceAccount.create -}}
 {{- default .Values.config.sandboxes.sandboxHost.name .Values.config.sandboxes.sandboxHost.serviceAccount.name | trunc 63 | trimSuffix "-" -}}
@@ -1296,10 +1270,6 @@ LangSmith app env vars for sandbox support.
   value: "true"
 - name: SANDBOX_RUNTIME_V2
   value: "always"
-- name: SMITHBOX_CONTROL_URL
-  value: {{ include "langsmith.sandboxes.smithboxControlUrl" . | quote }}
-- name: SANDBOX_SNAPSHOT_SERVICE_URL
-  value: {{ include "langsmith.sandboxes.smithboxControlUrl" . | quote }}
 - name: SANDBOX_K8S_CLUSTER_NAME
   value: {{ .Values.config.sandboxes.clusterName | quote }}
 - name: SANDBOX_MAX_CPU_CORES
@@ -1349,10 +1319,8 @@ LangSmith app env vars for sandbox support.
 {{- if .Values.config.sandboxes.enabled }}
 - name: SANDBOX_FEATURE_ENABLED
   value: "true"
-- name: SMITHBOX_CONTROL_URL
-  value: {{ include "langsmith.sandboxes.smithboxControlUrl" . | quote }}
-- name: SANDBOX_SNAPSHOT_SERVICE_URL
-  value: {{ include "langsmith.sandboxes.smithboxControlUrl" . | quote }}
+- name: SANDBOX_RUNTIME_V2
+  value: "always"
 - name: SANDBOX_K8S_CLUSTER_NAME
   value: {{ .Values.config.sandboxes.clusterName | quote }}
 {{- if .Values.config.sandboxes.defaultBlueprintImage }}

@@ -1,5 +1,5 @@
 platformBackend:
   deployment:
     extraEnv:
-      - name: SMITHBOX_CONTROL_URL
-        value: http://example.invalid
+      - name: SANDBOX_RUNTIME_V2
+        value: enabled

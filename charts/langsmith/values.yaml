@@ -156,11 +156,6 @@ images:
     repository: "docker.io/langchain/sandbox-host"
     pullPolicy: IfNotPresent
     tag: ""
-  # -- smithbox-control image. Only used when config.sandboxes.enabled is true.
-  smithboxControlImage:
-    repository: "docker.io/langchain/smithbox-control"
-    pullPolicy: IfNotPresent
-    tag: ""
 
 ingress:
   enabled: false
@@ -985,39 +980,6 @@ config:
         mountPath: "/juicefs"
         pvName: "smithbox-juicefs-csi"
         pvcName: "smithbox-juicefs-csi"
-    smithboxControl:
-      name: "smithbox-control"
-      containerPort: 9090
-      runtimeLifecycleReconcilerEnabled: false
-      hostObserverEnabled: true
-      redisDisableClientSetinfo: false
-      deployment:
-        replicas: 2
-        labels: {}
-        annotations: {}
-        podAnnotations: {}
-        resources:
-          requests:
-            cpu: "2"
-            memory: 8Gi
-          limits:
-            cpu: "2"
-            memory: 8Gi
-        nodeSelector: {}
-        tolerations: []
-        securityContext:
-          privileged: true
-      service:
-        type: ClusterIP
-        port: 9090
-        labels: {}
-        annotations: {}
-      serviceAccount:
-        create: true
-        name: ""
-        labels: {}
-        annotations: {}
-        automountServiceAccountToken: true
     sandboxHost:
       name: "sandbox-host"
       containerPort: 19190
@@ -1065,20 +1027,6 @@ config:
             memory: 128Mi
         securityContext:
           runAsUser: 0
-    # -- Required when sandboxes are enabled. Firecracker VM size classes passed to smithbox-control as `SMITHBOX_FIRECRACKER_SIZE_CLASSES`; each entry must include `name`, `vcpus`, and `memoryMib`.
-    firecrackerSizeClasses:
-      - name: small
-        vcpus: 1
-        memoryMib: 1792
-      - name: medium
-        vcpus: 1
-        memoryMib: 3840
-      - name: large
-        vcpus: 2
-        memoryMib: 7936
-      - name: xlarge
-        vcpus: 4
-        memoryMib: 16128
 
   # DEPRECATED: use the top-level fleet block (fleet/fleetToolServer/
   # fleetTriggerServer) instead. This bundled-agent path is managed by

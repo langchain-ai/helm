@@ -13,7 +13,6 @@ templates:
   - ingest-queue/deployment.yaml
   - sandboxes/proxy-ca.yaml
   - sandboxes/juicefs-csi.yaml
-  - sandboxes/smithbox-control.yaml
   - sandboxes/sandbox-host-rbac.yaml
   - sandboxes/sandbox-host-service.yaml
   - sandboxes/sandbox-host-statefulset.yaml
@@ -27,7 +26,6 @@ tests:
     templates:
       - sandboxes/proxy-ca.yaml
       - sandboxes/juicefs-csi.yaml
-      - sandboxes/smithbox-control.yaml
       - sandboxes/sandbox-host-rbac.yaml
       - sandboxes/sandbox-host-service.yaml
       - sandboxes/sandbox-host-statefulset.yaml
@@ -61,11 +59,6 @@ tests:
           content:
             name: LANGSMITH_LICENSE_REQUIRED_CLAIMS
             value: sandbox_enabled
-      - contains:
-          path: spec.template.spec.containers[0].env
-          content:
-            name: SMITHBOX_CONTROL_URL
-            value: http://smithbox-control.NAMESPACE.svc.cluster.local:9090
       - contains:
           path: spec.template.spec.containers[0].env
           content:
@@ -286,8 +279,6 @@ tests:
       config.sandboxes.juicefs.bucket: https://langsmith-sandboxes-test.s3.us-west-2.amazonaws.com
       images.sandboxHostImage.repository: example.com/langsmith/sandbox-host
       images.sandboxHostImage.tag: test-sandbox-host
-      images.smithboxControlImage.repository: example.com/langsmith/smithbox-control
-      images.smithboxControlImage.tag: test-smithbox-control
       insights.encryptionKey: test-insights-encryption-key
       polly.encryptionKey: test-polly-encryption-key
     template: secrets.yaml
@@ -326,8 +317,8 @@ tests:
       - contains:
           path: spec.template.spec.containers[0].env
           content:
-            name: SMITHBOX_CONTROL_URL
-            value: http://smithbox-control.NAMESPACE.svc.cluster.local:9090
+            name: SANDBOX_RUNTIME_V2
+            value: always
       - contains:
           path: spec.template.spec.containers[0].env
           content:
@@ -338,160 +329,6 @@ tests:
           content:
             name: SANDBOX_QUEUE_PRIORITY
             value: "1"
-
-  - it: should render smithbox-control when enabled
-    values:
-      - ./values/sandboxes-enabled.yaml
-    template: sandboxes/smithbox-control.yaml
-    documentSelector:
-      path: kind
-      value: Deployment
-    asserts:
-      - equal:
-          path: metadata.name
-          value: smithbox-control
-      - equal:
-          path: metadata.namespace
-          value: NAMESPACE
-      - equal:
-          path: spec.template.spec.containers[0].image
-          value: example.com/langsmith/smithbox-control:test-smithbox-control
-      - contains:
-          path: spec.template.spec.containers[0].env
-          content:
-            name: SMITHBOX_WORKLOAD_NAMESPACE
-            value: NAMESPACE
-      - contains:
-          path: spec.template.spec.containers[0].env
-          content:
-            name: X_SERVICE_AUTH_JWT_SECRET
-            valueFrom:
-              secretKeyRef:
-                name: langsmith-secrets
-                key: sandbox_x_service_auth_jwt_secret
-                optional: false
-      - contains:
-          path: spec.template.spec.containers[0].env
-          content:
-            name: X_SERVICE_AUTH_JWT_SECRET_PREVIOUS
-            valueFrom:
-              secretKeyRef:
-                name: langsmith-secrets
-                key: sandbox_x_service_auth_jwt_secret_previous
-                optional: true
-      - contains:
-          path: spec.template.spec.containers[0].env
-          content:
-            name: SMITHBOX_REDIS_ADDR
-            valueFrom:
-              secretKeyRef:
-                name: RELEASE-NAME-langsmith-redis
-                key: connection_url
-                optional: false
-
-  - it: should let smithbox-control use a user-managed Redis Secret in the release namespace
-    values:
-      - ./values/sandboxes-enabled.yaml
-    set:
-      redis.external.enabled: true
-      redis.external.existingSecretName: langsmith-redis
-      redis.external.connectionUrlSecretKey: sandbox_connection_url
-    template: sandboxes/smithbox-control.yaml
-    documentSelector:
-      path: kind
-      value: Deployment
-    asserts:
-      - contains:
-          path: spec.template.spec.containers[0].env
-          content:
-            name: SMITHBOX_REDIS_ADDR
-            valueFrom:
-              secretKeyRef:
-                name: langsmith-redis
-                key: sandbox_connection_url
-                optional: false
-
-  - it: should derive smithbox-control Redis IAM auth provider from root Redis config
-    values:
-      - ./values/sandboxes-enabled.yaml
-    set:
-      redis.external.iamAuthProvider: aws
-    template: sandboxes/smithbox-control.yaml
-    documentSelector:
-      path: kind
-      value: Deployment
-    asserts:
-      - contains:
-          path: spec.template.spec.containers[0].env
-          content:
-            name: SMITHBOX_REDIS_IAM_AUTH_PROVIDER
-            value: aws
-
-  - it: should derive smithbox-control Redis cluster mode from root Redis config
-    values:
-      - ./values/sandboxes-enabled.yaml
-    set:
-      redis.external.enabled: true
-      redis.external.cluster.enabled: true
-      redis.external.cluster.nodeUris:
-        - redis://redis-0:6379
-        - redis://redis-1:6379
-    template: sandboxes/smithbox-control.yaml
-    documentSelector:
-      path: kind
-      value: Deployment
-    asserts:
-      - contains:
-          path: spec.template.spec.containers[0].env
-          content:
-            name: SMITHBOX_REDIS_ADDR
-            value: redis://redis-0:6379
-      - contains:
-          path: spec.template.spec.containers[0].env
-          content:
-            name: SMITHBOX_REDIS_CLUSTER_ADDRS
-            value: redis://redis-0:6379,redis://redis-1:6379
-      - contains:
-          path: spec.template.spec.containers[0].env
-          content:
-            name: SMITHBOX_REDIS_CLUSTER_ENABLED
-            value: "true"
-
-  - it: should reference the chart Redis Secret name when Redis secret creation is disabled
-    values:
-      - ./values/sandboxes-enabled.yaml
-    set:
-      redis.disableSecretCreation: true
-    template: sandboxes/smithbox-control.yaml
-    documentSelector:
-      path: kind
-      value: Deployment
-    asserts:
-      - contains:
-          path: spec.template.spec.containers[0].env
-          content:
-            name: SMITHBOX_REDIS_ADDR
-            valueFrom:
-              secretKeyRef:
-                name: RELEASE-NAME-langsmith-redis
-                key: connection_url
-                optional: true
-
-  - it: should use configured LANGCHAIN_ENV for smithbox-control
-    values:
-      - ./values/sandboxes-enabled.yaml
-    set:
-      config.langchainEnv: chart-env
-    template: sandboxes/smithbox-control.yaml
-    documentSelector:
-      path: kind
-      value: Deployment
-    asserts:
-      - contains:
-          path: spec.template.spec.containers[0].env
-          content:
-            name: LANGCHAIN_ENV
-            value: chart-env
 
   - it: should use configured LANGCHAIN_ENV for sandbox-host
     values:
@@ -800,7 +637,6 @@ tests:
       config.sandboxes.juicefs.redis.metaURL: redis://langsmith-redis.default.svc.cluster.local:6379/1
       config.sandboxes.juicefs.bucket: s3://langsmith-sandboxes-test
       images.sandboxHostImage.repository: example.com/langsmith/sandbox-host
-      images.smithboxControlImage.repository: example.com/langsmith/smithbox-control
     template: validate.yaml
     asserts:
       - failedTemplate:
@@ -952,8 +788,6 @@ tests:
       config.sandboxes.juicefs.bucket: https://langsmith-sandboxes-test.s3.us-west-2.amazonaws.com
       images.sandboxHostImage.repository: example.com/langsmith/sandbox-host
       images.sandboxHostImage.tag: test-sandbox-host
-      images.smithboxControlImage.repository: example.com/langsmith/smithbox-control
-      images.smithboxControlImage.tag: test-smithbox-control
       insights.encryptionKey: test-insights-encryption-key
       polly.encryptionKey: test-polly-encryption-key
     template: validate.yaml
@@ -968,16 +802,4 @@ tests:
     template: platform-backend/deployment.yaml
     asserts:
       - failedTemplate:
-          errorMessage: "Duplicate keys detected: [SMITHBOX_CONTROL_URL]"
-
-  - it: should fail when Redis Cluster is configured only through an existing secret
-    values:
-      - ./values/sandboxes-enabled.yaml
-    set:
-      redis.external.enabled: true
-      redis.external.existingSecretName: redis-cluster
-      redis.external.cluster.enabled: true
-    template: validate.yaml
-    asserts:
-      - failedTemplate:
-          errorMessage: "config.sandboxes.enabled with redis.external.cluster.enabled currently requires redis.external.cluster.nodeUris to be set directly instead of redis.external.existingSecretName."
+          errorMessage: "Duplicate keys detected: [SANDBOX_RUNTIME_V2]"

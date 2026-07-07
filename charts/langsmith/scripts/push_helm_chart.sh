@@ -151,7 +151,6 @@ image_map = {
     'docker.io/langchain/agent-builder-trigger-server': 'agent-builder-trigger-server',
     'docker.io/langchain/agent-builder-deep-agent': 'agent-builder-deep-agent',
     'docker.io/langchain/sandbox-host': 'sandbox-host',
-    'docker.io/langchain/smithbox-control': 'smithbox-control',
 }
 
 lines = content.split('\n')
