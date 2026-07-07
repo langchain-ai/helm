@@ -995,6 +995,8 @@ config:
 
   # -- hostname of the LangSmith installation. Used for redirects and LangSmith deployments. Required for OAuth and LangSmith Deployments. E.g langsmith.com
   hostname: ""
+  # -- Frontend origin for user-facing redirects (LANGSMITH_URL); defaults to hostname. Set only when the UI is served from a different origin than this deployment's API.
+  frontendHostname: ""
   # -- Base path for the LangSmith installation. Used to serve the app under a subpath like example.com/langsmith.
   # WARNING: Changing basePath after LangSmith Deployments have been created will break existing deployments.
   # Existing deployments will need to be recreated for the new basePath to take effect.

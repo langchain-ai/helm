@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.16.0-rc.8](https://img.shields.io/badge/Version-0.16.0--rc.8-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.16.10rc1](https://img.shields.io/badge/AppVersion-0.16.10rc1-informational?style=flat-square)
+![Version: 0.16.0-rc.9](https://img.shields.io/badge/Version-0.16.0--rc.9-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.16.10rc1](https://img.shields.io/badge/AppVersion-0.16.10rc1-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -1185,6 +1185,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | config.deployment.uncappedResourcesEnabled | bool | `false` | Lift the SaaS CPU/memory caps on LangSmith Deployment resource specs. Opt-in for self-hosted. |
 | config.disableSecretCreation | bool | `false` |  |
 | config.existingSecretName | string | `""` |  |
+| config.frontendHostname | string | `""` | Frontend origin for user-facing redirects (LANGSMITH_URL): the OAuth callback bridge (/host-oauth-callback) and GitHub/Engine result pages. Defaults to `hostname`. Set this only when the UI is served from a different origin than this deployment's API — e.g. a split-plane / BYOC data plane, where the API runs here but the UI is served from the control-plane frontend. Scheme is optional (normalized to https). E.g. app.langsmith.com |
 | config.googleIapEnabled | bool | `false` | Enables Google IAP (Identity-Aware Proxy) session handling in the frontend. When true, the frontend adds required IAP headers, uses credentialed fetches, and handles 401 re-auth via GCP's session refresh mechanism. |
 | config.hostname | string | `""` | hostname of the LangSmith installation. Used for redirects and LangSmith deployments. Required for OAuth and LangSmith Deployments. E.g langsmith.com |
 | config.infoEndpointAuthRequired | bool | `false` | Require authentication on the GET /info endpoint. When enabled, unauthenticated requests to /info will receive a 401 and must supply a valid API key. The LangSmith SDK handles this automatically by retrying with credentials. Useful for deployments that must not expose instance configuration (version, feature flags, batch ingest config) to unauthenticated callers. |
