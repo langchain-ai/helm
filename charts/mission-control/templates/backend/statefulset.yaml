@@ -119,6 +119,8 @@ spec:
               value: {{ ternary "true" "false" .Values.config.features.valuesOverride | quote }}
             - name: MC_FEATURE_CONTENTION
               value: {{ ternary "true" "false" (default false .Values.config.features.contention) | quote }}
+            - name: MC_FEATURE_DEPLOY_CLUSTER_SCOPED_RESOURCES
+              value: {{ ternary "true" "false" (default false .Values.config.features.deployClusterScopedResources) | quote }}
             {{- if .Values.config.discoverNamespaces }}
             - name: DISCOVER_NAMESPACES
               value: {{ .Values.config.discoverNamespaces | quote }}

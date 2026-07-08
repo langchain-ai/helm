@@ -1,0 +1,21 @@
+{{- if and .Values.backend.serviceAccount.create .Values.config.features.deploy }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ include "missionControl.fullname" . }}
+  namespace: {{ .Values.namespace | default .Release.Namespace }}
+  labels:
+    {{- include "missionControl.labels" . | nindent 4 }}
+  {{- with (include "missionControl.annotations" .) }}
+  annotations:
+    {{- . | nindent 4 }}
+  {{- end }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "missionControl.serviceAccountName" . }}
+    namespace: {{ .Values.namespace | default .Release.Namespace }}
+roleRef:
+  kind: Role
+  name: {{ include "missionControl.fullname" . }}
+  apiGroup: rbac.authorization.k8s.io
+{{- end }}

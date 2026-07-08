@@ -196,6 +196,22 @@ tests:
               maxSurge: 1
               maxUnavailable: 0
 
+  - it: should disable smithdb cluster-manager tracing by default
+    values:
+      - ./values/smithdb-enabled.yaml
+    template: smithdb/cluster-manager-deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_CLUSTERMANAGER__LOGGING__TRACING_ENABLED
+            value: "false"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_CLUSTERMANAGER__LOGGING__FORMAT
+            value: console
+
   - it: should expose compaction worker concurrency as a value
     values:
       - ./values/smithdb-enabled.yaml
@@ -242,6 +258,10 @@ tests:
         equal:
           path: spec.replicas
           value: 1
+      - template: smithdb/migration-deployment.yaml
+        equal:
+          path: spec.template.spec.containers[0].image
+          value: docker.io/langchain/smithdb:latest
       - template: smithdb/migration-deployment.yaml
         contains:
           path: spec.template.spec.containers[0].env

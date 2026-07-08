@@ -60,11 +60,12 @@ spec:
               value: {{ .Values.smithdb.clusterManager.containerPort | quote }}
             - name: SMITHDB_CLUSTERMANAGER__GRPC_PORT
               value: {{ .Values.smithdb.clusterManager.containerGrpcPort | quote }}
+            {{- include "langsmith.smithdb.baseEnv" (dict "root" . "service" "CLUSTERMANAGER" "displayName" "smithdb-clustermanager") | nindent 12 }}
             {{- with $envVars }}
             {{- toYaml . | nindent 12 }}
             {{- end }}
-          image: {{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "smithdbClusterManagerImage") | quote }}
-          imagePullPolicy: {{ .Values.images.smithdbClusterManagerImage.pullPolicy }}
+          image: {{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "smithdbImage") | quote }}
+          imagePullPolicy: {{ .Values.images.smithdbImage.pullPolicy }}
           ports:
             - name: http
               containerPort: {{ .Values.smithdb.clusterManager.containerPort }}

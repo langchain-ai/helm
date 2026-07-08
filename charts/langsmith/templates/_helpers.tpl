@@ -197,7 +197,7 @@ Template containing common environment variables that are used by several servic
 {{- end }}
 {{- if .Values.config.hostname }}
 - name: LANGSMITH_URL
-  value: {{ include "langsmith.hostnameWithoutProtocol" . }}{{- with .Values.config.basePath }}/{{ . }}{{- end }}
+  value: {{ include "langsmith.frontendHostnameWithoutProtocol" . }}{{- with .Values.config.basePath }}/{{ . }}{{- end }}
 - name: HOST_BACKEND_ENDPOINT_PUBLIC
   value: {{ .Values.config.hostname }}/api-host
 {{- end }}
@@ -208,6 +208,8 @@ Template containing common environment variables that are used by several servic
 - name: LANGGRAPH_DEPLOYMENT_URL
   value: {{ $fleetApi | quote }}
 {{- end }}
+- name: FLEET_FEATURE_ENABLED
+  value: {{ .Values.fleet.enabled | quote }}
 - name: REDIS_CLUSTER_ENABLED
   value: {{ .Values.redis.external.cluster.enabled | quote }}
 {{- if .Values.redis.external.cluster.enabled }}
@@ -608,15 +610,13 @@ SmithDB OTEL resource attributes.
 {{- end }}
 
 {{/*
-Shared SmithDB service env vars. Args: root, service, displayName.
+Common per-process SmithDB env: logging, OpenTelemetry, pod identity, allocator.
+Args: root, service, displayName.
 */}}
-{{- define "langsmith.smithdb.serviceEnv" -}}
+{{- define "langsmith.smithdb.baseEnv" -}}
 {{- $root := .root -}}
-{{- $service := .service -}}
+{{- $prefix := printf "SMITHDB_%s" (upper .service) -}}
 {{- $displayName := .displayName -}}
-{{- $prefix := printf "SMITHDB_%s" (upper $service) -}}
-{{- $objectStoreType := lower (default "s3" $root.Values.smithdb.config.objectStore.type) -}}
-{{- $objectStoreRootFolder := "smithdb" -}}
 {{- $tracingEnabled := $root.Values.smithdb.config.observability.tracing.enabled -}}
 {{- $logLevel := default "INFO,vortex=WARN" $root.Values.smithdb.config.observability.logging.level -}}
 - name: {{ $prefix }}__LOGGING__FORMAT
@@ -625,6 +625,56 @@ Shared SmithDB service env vars. Args: root, service, displayName.
   value: {{ $tracingEnabled | quote }}
 - name: {{ $prefix }}__LOGGING__SERVICE_NAME
   value: {{ $displayName | quote }}
+- name: RUST_LOG
+  value: {{ $logLevel | quote }}
+{{- if $tracingEnabled }}
+- name: OTEL_EXPORTER_OTLP_ENDPOINT
+  value: {{ $root.Values.smithdb.config.observability.tracing.endpoint | quote }}
+{{- /* SmithDB exports OTLP over gRPC. */}}
+- name: OTEL_EXPORTER_OTLP_PROTOCOL
+  value: "grpc"
+{{- end }}
+- name: OTEL_SERVICE_NAME
+  value: {{ $displayName | quote }}
+- name: NODE_IP
+  valueFrom:
+    fieldRef:
+      fieldPath: status.hostIP
+- name: NODE_NAME
+  valueFrom:
+    fieldRef:
+      fieldPath: spec.nodeName
+- name: POD_NAME
+  valueFrom:
+    fieldRef:
+      fieldPath: metadata.name
+- name: POD_UID
+  valueFrom:
+    fieldRef:
+      fieldPath: metadata.uid
+- name: POD_IP
+  valueFrom:
+    fieldRef:
+      fieldPath: status.podIP
+- name: CONTAINER_NAME
+  value: {{ $displayName | quote }}
+- name: OTEL_RESOURCE_ATTRIBUTES
+  value: {{ include "langsmith.smithdb.otelResourceAttributes" $root | quote }}
+- name: _RJEM_MALLOC_CONF
+  value: "prof:true,prof_active:false,lg_prof_sample:19"
+{{- end }}
+
+{{/*
+Shared SmithDB service env vars (object store + metastore + base env).
+Args: root, service, displayName.
+*/}}
+{{- define "langsmith.smithdb.serviceEnv" -}}
+{{- $root := .root -}}
+{{- $service := .service -}}
+{{- $displayName := .displayName -}}
+{{- $prefix := printf "SMITHDB_%s" (upper $service) -}}
+{{- $objectStoreType := lower (default "s3" $root.Values.smithdb.config.objectStore.type) -}}
+{{- $objectStoreRootFolder := "smithdb" -}}
 - name: {{ $prefix }}__OBJECT_STORE__TYPE
   value: {{ $objectStoreType | quote }}
 {{- if eq $objectStoreType "s3" }}
@@ -692,43 +742,7 @@ Shared SmithDB service env vars. Args: root, service, displayName.
       key: {{ $root.Values.smithdb.config.metastore.passwordSecretKey }}
 - name: {{ $prefix }}__METASTORE__USE_SSL
   value: {{ $root.Values.smithdb.config.metastore.useSsl | quote }}
-- name: NODE_IP
-  valueFrom:
-    fieldRef:
-      fieldPath: status.hostIP
-{{- if $tracingEnabled }}
-- name: OTEL_EXPORTER_OTLP_ENDPOINT
-  value: {{ $root.Values.smithdb.config.observability.tracing.endpoint | quote }}
-{{- /* SmithDB exports OTLP over gRPC. */}}
-- name: OTEL_EXPORTER_OTLP_PROTOCOL
-  value: "grpc"
-{{- end }}
-- name: OTEL_SERVICE_NAME
-  value: {{ $displayName | quote }}
-- name: RUST_LOG
-  value: {{ $logLevel | quote }}
-- name: NODE_NAME
-  valueFrom:
-    fieldRef:
-      fieldPath: spec.nodeName
-- name: POD_NAME
-  valueFrom:
-    fieldRef:
-      fieldPath: metadata.name
-- name: POD_UID
-  valueFrom:
-    fieldRef:
-      fieldPath: metadata.uid
-- name: POD_IP
-  valueFrom:
-    fieldRef:
-      fieldPath: status.podIP
-- name: CONTAINER_NAME
-  value: {{ $displayName | quote }}
-- name: OTEL_RESOURCE_ATTRIBUTES
-  value: {{ include "langsmith.smithdb.otelResourceAttributes" $root | quote }}
-- name: _RJEM_MALLOC_CONF
-  value: "prof:true,prof_active:false,lg_prof_sample:19"
+{{ include "langsmith.smithdb.baseEnv" (dict "root" $root "service" $service "displayName" $displayName) }}
 {{- end }}
 
 
@@ -1196,6 +1210,17 @@ Strip protocol (http://, https://, etc.) from hostname
 {{- define "langsmith.hostnameWithoutProtocol" -}}
 {{- if .Values.config.hostname -}}
 {{- regexReplaceAll "^[a-zA-Z][a-zA-Z0-9+.-]*://" .Values.config.hostname "" -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Frontend origin for user-facing redirects (LANGSMITH_URL), scheme stripped.
+Falls back to config.hostname when config.frontendHostname is unset.
+*/}}
+{{- define "langsmith.frontendHostnameWithoutProtocol" -}}
+{{- $host := .Values.config.frontendHostname | default .Values.config.hostname -}}
+{{- if $host -}}
+{{- regexReplaceAll "^[a-zA-Z][a-zA-Z0-9+.-]*://" $host "" -}}
 {{- end -}}
 {{- end -}}
 
