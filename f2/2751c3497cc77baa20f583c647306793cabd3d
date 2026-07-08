@@ -1,0 +1,64 @@
+charts/langsmith/templates/smithdb/migration-deployment.yaml
+  s_86ce9723413f15::t_d4f223eabaa733 110-111
+charts/langsmith/tests/langsmith_smithdb_test.yaml
+  s_86ce9723413f15::t_49904351bbf005 262-264
+  s_86ce9723413f15::t_4c8ccd11845330 261
+charts/langgraph-cloud/README.md
+  s_86ce9723413f15::t_eecf5d397237b2 3
+charts/langgraph-dataplane/README.md
+  s_86ce9723413f15::t_46e10341e7e0ae 3
+charts/langsmith-auth-proxy/README.md
+  s_86ce9723413f15::t_0e7410e3008acc 3
+charts/langsmith/Chart.yaml
+  s_86ce9723413f15::t_5d24d1b24c1bf5 8-9
+charts/langsmith/README.md
+  s_86ce9723413f15::t_ab08747aa93ed8 3,344,347,350,356,359,362,365,369,375,378,381,1188
+charts/langsmith/scripts/enable_feature_flag_for_organization.sh
+  s_86ce9723413f15::t_38edfc5820a7c0 15-16,21
+charts/langsmith/templates/_helpers.tpl
+  s_86ce9723413f15::t_eba7b98421bd1d 200,211-212,613-614,616,618,628-677,745,1216-1226
+charts/langsmith/templates/smithdb/cluster-manager-deployment.yaml
+  s_86ce9723413f15::t_dbb9072f72e98f 63,67-68
+charts/langsmith/templates/smithdb/compaction-deployment.yaml
+  s_86ce9723413f15::t_bf757f08a121a2 54,56-57,70-71
+charts/langsmith/templates/smithdb/compaction-worker-deployment.yaml
+  s_86ce9723413f15::t_761b75277e2b53 55,57-58,73-74
+charts/langsmith/templates/smithdb/ingestion-deployment.yaml
+  s_86ce9723413f15::t_3496b9c53ec502 69-70
+charts/langsmith/templates/smithdb/metastore-migration.yaml
+  s_86ce9723413f15::t_9bdb4695505f2d 68-69
+charts/langsmith/templates/smithdb/query-deployment.yaml
+  s_86ce9723413f15::t_a4ca5d70994479 68-69
+charts/mission-control/Chart.yaml
+  s_86ce9723413f15::t_4795b3ba127e68 4
+charts/mission-control/README.md
+  s_86ce9723413f15::t_07e4d9ae799237 3,51,125
+charts/mission-control/README.md.gotmpl
+  s_86ce9723413f15::t_874ca5d539ed51 51
+charts/mission-control/templates/backend/cluster-role.yaml
+  s_86ce9723413f15::t_b8de0fef7fa3aa 237-239,241-245,250
+charts/mission-control/templates/backend/role-binding.yaml
+  s_86ce9723413f15::t_f00c83e8322385 1-21
+charts/mission-control/templates/backend/role.yaml
+  s_86ce9723413f15::t_e48c1481dff263 1-67
+charts/mission-control/templates/backend/statefulset.yaml
+  s_86ce9723413f15::t_400af8681d8141 122-123
+charts/mission-control/values.yaml
+  s_86ce9723413f15::t_ea0f31a014bb7f 89-94
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "f22751c3497cc77baa20f583c647306793cabd3d",
+  "prompts": {},
+  "sessions": {
+    "s_86ce9723413f15": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "957ad83f-cff0-4650-a3e8-aa030cb658b3",
+        "model": "gpt-5.5"
+      },
+      "human_author": "ben11211 <nagengast@langchain.dev>"
+    }
+  }
+}
