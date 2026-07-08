@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.16.0-rc.9](https://img.shields.io/badge/Version-0.16.0--rc.9-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.16.10rc1](https://img.shields.io/badge/AppVersion-0.16.10rc1-informational?style=flat-square)
+![Version: 0.16.0-rc.10](https://img.shields.io/badge/Version-0.16.0--rc.10-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.16.11rc1](https://img.shields.io/badge/AppVersion-0.16.11rc1-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -341,44 +341,44 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | gateway.sectionName | string | `""` |  |
 | images.aceBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.aceBackendImage.repository | string | `"docker.io/langchain/langsmith-ace-backend"` |  |
-| images.aceBackendImage.tag | string | `"0.16.10rc1"` |  |
+| images.aceBackendImage.tag | string | `"0.16.11rc1"` |  |
 | images.agentBuilderImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.agentBuilderImage.repository | string | `"docker.io/langchain/agent-builder-deep-agent"` |  |
-| images.agentBuilderImage.tag | string | `"0.16.10rc1"` |  |
+| images.agentBuilderImage.tag | string | `"0.16.11rc1"` |  |
 | images.backendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.backendImage.repository | string | `"docker.io/langchain/langsmith-backend"` |  |
-| images.backendImage.tag | string | `"0.16.10rc1"` |  |
+| images.backendImage.tag | string | `"0.16.11rc1"` |  |
 | images.clickhouseImage.pullPolicy | string | `"Always"` |  |
 | images.clickhouseImage.repository | string | `"docker.io/clickhouse/clickhouse-server"` |  |
 | images.clickhouseImage.tag | string | `"25.12"` |  |
 | images.fleetToolServerImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.fleetToolServerImage.repository | string | `"docker.io/langchain/agent-builder-tool-server"` |  |
-| images.fleetToolServerImage.tag | string | `"0.16.10rc1"` |  |
+| images.fleetToolServerImage.tag | string | `"0.16.11rc1"` |  |
 | images.fleetTriggerServerImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.fleetTriggerServerImage.repository | string | `"docker.io/langchain/agent-builder-trigger-server"` |  |
-| images.fleetTriggerServerImage.tag | string | `"0.16.10rc1"` |  |
+| images.fleetTriggerServerImage.tag | string | `"0.16.11rc1"` |  |
 | images.frontendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.frontendImage.repository | string | `"docker.io/langchain/langsmith-frontend"` |  |
-| images.frontendImage.tag | string | `"0.16.10rc1"` |  |
+| images.frontendImage.tag | string | `"0.16.11rc1"` |  |
 | images.hostBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.hostBackendImage.repository | string | `"docker.io/langchain/hosted-langserve-backend"` |  |
-| images.hostBackendImage.tag | string | `"0.16.10rc1"` |  |
+| images.hostBackendImage.tag | string | `"0.16.11rc1"` |  |
 | images.imagePullSecrets | list | `[]` | Secrets with credentials to pull images from a private registry. Specified as name: value. |
 | images.insightsAgentImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.insightsAgentImage.repository | string | `"docker.io/langchain/langsmith-clio"` |  |
-| images.insightsAgentImage.tag | string | `"0.16.10rc1"` |  |
+| images.insightsAgentImage.tag | string | `"0.16.11rc1"` |  |
 | images.operatorImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.operatorImage.repository | string | `"docker.io/langchain/langgraph-operator"` |  |
 | images.operatorImage.tag | string | `"0.1.47"` |  |
 | images.platformBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.platformBackendImage.repository | string | `"docker.io/langchain/langsmith-go-backend"` |  |
-| images.platformBackendImage.tag | string | `"0.16.10rc1"` |  |
+| images.platformBackendImage.tag | string | `"0.16.11rc1"` |  |
 | images.playgroundImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.playgroundImage.repository | string | `"docker.io/langchain/langsmith-playground"` |  |
-| images.playgroundImage.tag | string | `"0.16.10rc1"` |  |
+| images.playgroundImage.tag | string | `"0.16.11rc1"` |  |
 | images.pollyAgentImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.pollyAgentImage.repository | string | `"docker.io/langchain/langsmith-polly"` |  |
-| images.pollyAgentImage.tag | string | `"0.16.10rc1"` |  |
+| images.pollyAgentImage.tag | string | `"0.16.11rc1"` |  |
 | images.postgresImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.postgresImage.repository | string | `"docker.io/postgres"` |  |
 | images.postgresImage.tag | string | `"14.7"` |  |
@@ -389,21 +389,9 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | images.redisImage.repository | string | `"docker.io/redis"` |  |
 | images.redisImage.tag | string | `"7"` |  |
 | images.registry | string | `""` | If supplied, all children <image_name>.repository values will be prepended with this registry name + `/` |
-| images.smithdbClusterManagerImage.pullPolicy | string | `"IfNotPresent"` |  |
-| images.smithdbClusterManagerImage.repository | string | `"docker.io/langchain/smithdb-clustermanager"` |  |
-| images.smithdbClusterManagerImage.tag | string | `"latest"` |  |
-| images.smithdbCompactionImage.pullPolicy | string | `"IfNotPresent"` |  |
-| images.smithdbCompactionImage.repository | string | `"docker.io/langchain/smithdb-compaction"` |  |
-| images.smithdbCompactionImage.tag | string | `"latest"` |  |
-| images.smithdbIngestionImage.pullPolicy | string | `"IfNotPresent"` |  |
-| images.smithdbIngestionImage.repository | string | `"docker.io/langchain/smithdb-ingestion"` |  |
-| images.smithdbIngestionImage.tag | string | `"latest"` |  |
-| images.smithdbMetastoreMigrationImage.pullPolicy | string | `"IfNotPresent"` |  |
-| images.smithdbMetastoreMigrationImage.repository | string | `"docker.io/langchain/smithdb-metastore-migrate"` |  |
-| images.smithdbMetastoreMigrationImage.tag | string | `"latest"` |  |
-| images.smithdbQueryImage.pullPolicy | string | `"IfNotPresent"` |  |
-| images.smithdbQueryImage.repository | string | `"docker.io/langchain/smithdb-query"` |  |
-| images.smithdbQueryImage.tag | string | `"latest"` |  |
+| images.smithdbImage.pullPolicy | string | `"IfNotPresent"` |  |
+| images.smithdbImage.repository | string | `"docker.io/langchain/smithdb"` |  |
+| images.smithdbImage.tag | string | `"latest"` |  |
 | ingestQueue.autoscaling.hpa.enabled | bool | `false` |  |
 | ingestQueue.autoscaling.hpa.maxReplicas | int | `10` |  |
 | ingestQueue.autoscaling.hpa.minReplicas | int | `3` |  |
@@ -879,7 +867,8 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | smithdb.clusterManager.containerPort | int | `8090` |  |
 | smithdb.clusterManager.deployment.affinity | object | `{}` |  |
 | smithdb.clusterManager.deployment.annotations | object | `{}` |  |
-| smithdb.clusterManager.deployment.command | list | `[]` |  |
+| smithdb.clusterManager.deployment.command[0] | string | `"./smithdb"` |  |
+| smithdb.clusterManager.deployment.command[1] | string | `"clustermanager"` |  |
 | smithdb.clusterManager.deployment.extraContainerConfig | object | `{}` |  |
 | smithdb.clusterManager.deployment.extraEnv | list | `[]` |  |
 | smithdb.clusterManager.deployment.initContainers | list | `[]` |  |
@@ -919,7 +908,9 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | smithdb.compaction.containerPort | int | `8070` |  |
 | smithdb.compaction.deployment.affinity | object | `{}` |  |
 | smithdb.compaction.deployment.annotations | object | `{}` |  |
-| smithdb.compaction.deployment.command | list | `[]` | Optional command override. Empty uses the chart default: ["./smithdb-compaction", "scheduler"]. |
+| smithdb.compaction.deployment.command[0] | string | `"./smithdb"` |  |
+| smithdb.compaction.deployment.command[1] | string | `"compaction"` |  |
+| smithdb.compaction.deployment.command[2] | string | `"scheduler"` |  |
 | smithdb.compaction.deployment.extraContainerConfig | object | `{}` |  |
 | smithdb.compaction.deployment.extraEnv | list | `[]` |  |
 | smithdb.compaction.deployment.initContainers | list | `[]` |  |
@@ -960,7 +951,9 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | smithdb.compactionWorker.containerPort | int | `9000` |  |
 | smithdb.compactionWorker.deployment.affinity | object | `{}` |  |
 | smithdb.compactionWorker.deployment.annotations | object | `{}` |  |
-| smithdb.compactionWorker.deployment.command | list | `[]` | Optional command override. Empty uses the chart default: ["./smithdb-compaction", "worker"]. |
+| smithdb.compactionWorker.deployment.command[0] | string | `"./smithdb"` |  |
+| smithdb.compactionWorker.deployment.command[1] | string | `"compaction"` |  |
+| smithdb.compactionWorker.deployment.command[2] | string | `"worker"` |  |
 | smithdb.compactionWorker.deployment.extraContainerConfig | object | `{}` |  |
 | smithdb.compactionWorker.deployment.extraEnv | list | `[]` |  |
 | smithdb.compactionWorker.deployment.initContainers | list | `[]` |  |
@@ -1019,7 +1012,8 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | smithdb.ingestion.containerPort | int | `8050` |  |
 | smithdb.ingestion.deployment.affinity | object | `{}` |  |
 | smithdb.ingestion.deployment.annotations | object | `{}` |  |
-| smithdb.ingestion.deployment.command[0] | string | `"./smithdb-ingestion"` |  |
+| smithdb.ingestion.deployment.command[0] | string | `"./smithdb"` |  |
+| smithdb.ingestion.deployment.command[1] | string | `"ingestion"` |  |
 | smithdb.ingestion.deployment.extraContainerConfig | object | `{}` |  |
 | smithdb.ingestion.deployment.extraEnv | list | `[]` |  |
 | smithdb.ingestion.deployment.initContainers | list | `[]` |  |
@@ -1063,7 +1057,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | smithdb.ingestion.service.port | int | `8082` |  |
 | smithdb.langsmith.dualIngest.enabled | bool | `false` | Enables LangSmith run ingestion to also write to SmithDB. Requires smithdb.enabled. |
 | smithdb.langsmith.frontend.useSmithDBEndpoints | bool | `false` | Defaults the LangSmith UI to SmithDB endpoints for run queries. Requires smithdb.enabled. |
-| smithdb.metastoreMigration.command[0] | string | `"./smithdb-metastore-migrate-entrypoint.sh"` |  |
+| smithdb.metastoreMigration.command[0] | string | `"/usr/local/bin/smithdb-metastore-migrate-entrypoint.sh"` |  |
 | smithdb.metastoreMigration.job.activeDeadlineSeconds | int | `600` |  |
 | smithdb.metastoreMigration.job.affinity | object | `{}` |  |
 | smithdb.metastoreMigration.job.annotations | object | `{}` |  |
@@ -1085,7 +1079,8 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | smithdb.query.containerPort | int | `8060` |  |
 | smithdb.query.deployment.affinity | object | `{}` |  |
 | smithdb.query.deployment.annotations | object | `{}` |  |
-| smithdb.query.deployment.command[0] | string | `"./smithdb-query"` |  |
+| smithdb.query.deployment.command[0] | string | `"./smithdb"` |  |
+| smithdb.query.deployment.command[1] | string | `"query"` |  |
 | smithdb.query.deployment.extraContainerConfig | object | `{}` |  |
 | smithdb.query.deployment.extraEnv | list | `[]` |  |
 | smithdb.query.deployment.initContainers | list | `[]` |  |
@@ -1185,7 +1180,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | config.deployment.uncappedResourcesEnabled | bool | `false` | Lift the SaaS CPU/memory caps on LangSmith Deployment resource specs. Opt-in for self-hosted. |
 | config.disableSecretCreation | bool | `false` |  |
 | config.existingSecretName | string | `""` |  |
-| config.frontendHostname | string | `""` | Frontend origin for user-facing redirects (LANGSMITH_URL): the OAuth callback bridge (/host-oauth-callback) and GitHub/Engine result pages. Defaults to `hostname`. Set this only when the UI is served from a different origin than this deployment's API — e.g. a split-plane / BYOC data plane, where the API runs here but the UI is served from the control-plane frontend. Scheme is optional (normalized to https). E.g. app.langsmith.com |
+| config.frontendHostname | string | `""` | Frontend origin for user-facing redirects (LANGSMITH_URL); defaults to hostname. Set only when the UI is served from a different origin than this deployment's API. |
 | config.googleIapEnabled | bool | `false` | Enables Google IAP (Identity-Aware Proxy) session handling in the frontend. When true, the frontend adds required IAP headers, uses credentialed fetches, and handles 401 re-auth via GCP's session refresh mechanism. |
 | config.hostname | string | `""` | hostname of the LangSmith installation. Used for redirects and LangSmith deployments. Required for OAuth and LangSmith Deployments. E.g langsmith.com |
 | config.infoEndpointAuthRequired | bool | `false` | Require authentication on the GET /info endpoint. When enabled, unauthenticated requests to /info will receive a 401 and must supply a valid API key. The LangSmith SDK handles this automatically by retrying with credentials. Useful for deployments that must not expose instance configuration (version, feature flags, batch ingest config) to unauthenticated callers. |
