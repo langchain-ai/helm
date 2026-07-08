@@ -1,4 +1,39 @@
-{{- if and .Values.backend.serviceAccount.create .Values.config.features.deploy }}
+{{/*
+config.strictReadOnly forces every config.features.* flag off in one switch;
+$strict is computed identically here and in templates/backend/cluster-role.yaml
+and templates/backend/statefulset.yaml so the RBAC granted to the
+ServiceAccount and the app-layer features.require() gate the backend enforces
+can never drift apart.
+*/}}
+{{- $strict := .Values.config.strictReadOnly | default false }}
+{{- $roleEnabled := or (and .Values.config.features.configSave (not $strict)) (and .Values.config.features.deploy (not $strict)) (and .Values.config.features.alerts (not $strict)) (and .Values.config.features.valuesOverride (not $strict)) .Values.config.auth.enabled (and .Values.config.features.fixIssue (not $strict)) (and (default false .Values.config.features.contention) (not $strict)) (and .Values.config.features.adopt (not $strict)) }}
+{{- $secretNames := list }}
+{{- $deployProducts := list "langgraph-cloud" "langgraph-dataplane" "langsmith-auth-proxy" "langsmith-observability" "mission-control" }}
+{{- if (and .Values.config.features.configSave (not $strict)) }}
+{{- $secretNames = append $secretNames (include "missionControl.draftSecretName" .) }}
+{{- range $deployProducts }}
+{{- $secretNames = append $secretNames (printf "mission-control-draft-%s" .) }}
+{{- end }}
+{{- end }}
+{{- if (and .Values.config.features.deploy (not $strict)) }}
+{{- $secretNames = append $secretNames (include "missionControl.deployedSecretName" .) }}
+{{- $secretNames = append $secretNames (include "missionControl.backupSecretName" .) }}
+{{- $secretNames = append $secretNames (include "missionControl.historySecretName" .) }}
+{{- range $deployProducts }}
+{{- $secretNames = append $secretNames (printf "mission-control-deployed-%s" .) }}
+{{- $secretNames = append $secretNames (printf "mission-control-backup-%s" .) }}
+{{- $secretNames = append $secretNames (printf "mission-control-history-%s" .) }}
+{{- end }}
+{{- end }}
+{{- if (and .Values.config.features.alerts (not $strict)) }}
+{{- $secretNames = append $secretNames (include "missionControl.alertsConfigSecretName" .) }}
+{{- $secretNames = append $secretNames (include "missionControl.alertsKeySecretName" .) }}
+{{- $secretNames = append $secretNames (include "missionControl.alertsLogSecretName" .) }}
+{{- end }}
+{{- if (and .Values.config.features.valuesOverride (not $strict)) }}
+{{- $secretNames = append $secretNames "mission-control-values-overrides" }}
+{{- end }}
+{{- if and (dig "rbac" "create" true .Values.backend) $roleEnabled }}
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
@@ -11,11 +46,72 @@ metadata:
     {{- . | nindent 4 }}
   {{- end }}
 rules:
-  # ── Deploy feature: namespace-scoped write verbs ──────────────────────────
-  # These verbs are required by `helm upgrade --install` executed from the UI.
-  # Cluster-scoped write verbs (Namespaces, CRDs, ClusterRoles) live in the
-  # ClusterRole and are only rendered when
-  # features.deployClusterScopedResources=true.
+  {{- if $secretNames }}
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["create"]
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["update", "delete"]
+    resourceNames:
+      {{- range $secretNames }}
+      - {{ . }}
+      {{- end }}
+  {{- end }}
+  {{- if .Values.config.auth.enabled }}
+  {{- if (and (not $secretNames) (not $strict)) }}
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["create"]
+  {{- end }}
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["update"]
+    resourceNames:
+      - {{ include "missionControl.authSecretName" . }}
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["delete"]
+    resourceNames:
+      - {{ include "missionControl.setupTokenSecretName" . }}
+  - apiGroups: ["apps"]
+    resources: ["statefulsets"]
+    verbs: ["patch"]
+    resourceNames:
+      - {{ include "missionControl.backendWorkloadName" . }}
+  {{- end }}
+  {{- if (and .Values.config.features.fixIssue (not $strict)) }}
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["delete"]
+  {{- end }}
+  {{- if (and (default false .Values.config.features.contention) (not $strict)) }}
+  - apiGroups: [""]
+    resources: ["pods/exec"]
+    verbs: ["create", "get"]
+  - apiGroups: [""]
+    resources: ["configmaps"]
+    verbs: ["create"]
+  - apiGroups: [""]
+    resources: ["configmaps"]
+    verbs: ["update", "delete", "patch"]
+    resourceNames:
+      - mission-control-contention-config
+  {{- if not (and .Values.config.features.deploy (not $strict)) }}
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["create", "delete"]
+  {{- end }}
+  {{- end }}
+  {{- if (and .Values.config.features.adopt (not $strict)) }}
+  - apiGroups: [""]
+    resources: ["secrets", "configmaps", "serviceaccounts"]
+    verbs: ["patch"]
+  - apiGroups: ["apps"]
+    resources: ["deployments", "statefulsets"]
+    verbs: ["patch"]
+  {{- end }}
+  {{- if (and .Values.config.features.deploy (not $strict)) }}
   - apiGroups: [""]
     resources: ["secrets"]
     verbs: ["watch", "update", "delete"]
@@ -64,4 +160,5 @@ rules:
   - apiGroups: ["coordination.k8s.io"]
     resources: ["leases"]
     verbs: ["create", "update", "patch", "delete"]
+  {{- end }}
 {{- end }}
