@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.16.0-rc.10](https://img.shields.io/badge/Version-0.16.0--rc.10-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.16.11rc1](https://img.shields.io/badge/AppVersion-0.16.11rc1-informational?style=flat-square)
+![Version: 0.16.0-rc.11](https://img.shields.io/badge/Version-0.16.0--rc.11-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.16.11rc1](https://img.shields.io/badge/AppVersion-0.16.11rc1-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -1039,9 +1039,6 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | smithdb.ingestion.deployment.resources | object | `{}` |  |
 | smithdb.ingestion.deployment.securityContext | object | `{}` |  |
 | smithdb.ingestion.deployment.sidecars | list | `[]` |  |
-| smithdb.ingestion.deployment.strategy.rollingUpdate.maxSurge | int | `1` |  |
-| smithdb.ingestion.deployment.strategy.rollingUpdate.maxUnavailable | int | `0` |  |
-| smithdb.ingestion.deployment.strategy.type | string | `"RollingUpdate"` |  |
 | smithdb.ingestion.deployment.terminationGracePeriodSeconds | int | `300` |  |
 | smithdb.ingestion.deployment.tolerations | list | `[]` |  |
 | smithdb.ingestion.deployment.topologySpreadConstraints | list | `[]` |  |

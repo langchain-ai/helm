@@ -19,8 +19,6 @@ metadata:
     {{- end }}
 spec:
   replicas: {{ .Values.smithdb.ingestion.deployment.replicas }}
-  strategy:
-    {{- toYaml .Values.smithdb.ingestion.deployment.strategy | nindent 4 }}
   selector:
     matchLabels:
       {{- include "langsmith.selectorLabels" . | nindent 6 }}
