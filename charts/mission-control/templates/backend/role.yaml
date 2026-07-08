@@ -6,7 +6,7 @@ ServiceAccount and the app-layer features.require() gate the backend enforces
 can never drift apart.
 */}}
 {{- $strict := .Values.config.strictReadOnly | default false }}
-{{- $roleEnabled := or (and .Values.config.features.configSave (not $strict)) (and .Values.config.features.deploy (not $strict)) (and .Values.config.features.alerts (not $strict)) (and .Values.config.features.valuesOverride (not $strict)) .Values.config.auth.enabled (and .Values.config.features.fixIssue (not $strict)) (and (default false .Values.config.features.contention) (not $strict)) (and .Values.config.features.adopt (not $strict)) }}
+{{- $roleEnabled := or (and .Values.config.features.configSave (not $strict)) (and .Values.config.features.deploy (not $strict)) (and .Values.config.features.alerts (not $strict)) (and .Values.config.features.valuesOverride (not $strict)) (and .Values.config.auth.enabled (not $strict)) (and .Values.config.features.fixIssue (not $strict)) (and (default false .Values.config.features.contention) (not $strict)) (and .Values.config.features.adopt (not $strict)) }}
 {{- $secretNames := list }}
 {{- $deployProducts := list "langgraph-cloud" "langgraph-dataplane" "langsmith-auth-proxy" "langsmith-observability" "mission-control" }}
 {{- if (and .Values.config.features.configSave (not $strict)) }}
@@ -58,8 +58,8 @@ rules:
       - {{ . }}
       {{- end }}
   {{- end }}
-  {{- if .Values.config.auth.enabled }}
-  {{- if (and (not $secretNames) (not $strict)) }}
+  {{- if (and .Values.config.auth.enabled (not $strict)) }}
+  {{- if not $secretNames }}
   - apiGroups: [""]
     resources: ["secrets"]
     verbs: ["create"]

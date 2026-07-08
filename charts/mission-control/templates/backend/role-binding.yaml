@@ -1,5 +1,5 @@
 {{- $strict := .Values.config.strictReadOnly | default false }}
-{{- $roleEnabled := or (and .Values.config.features.configSave (not $strict)) (and .Values.config.features.deploy (not $strict)) (and .Values.config.features.alerts (not $strict)) (and .Values.config.features.valuesOverride (not $strict)) .Values.config.auth.enabled (and .Values.config.features.fixIssue (not $strict)) (and (default false .Values.config.features.contention) (not $strict)) (and .Values.config.features.adopt (not $strict)) }}
+{{- $roleEnabled := or (and .Values.config.features.configSave (not $strict)) (and .Values.config.features.deploy (not $strict)) (and .Values.config.features.alerts (not $strict)) (and .Values.config.features.valuesOverride (not $strict)) (and .Values.config.auth.enabled (not $strict)) (and .Values.config.features.fixIssue (not $strict)) (and (default false .Values.config.features.contention) (not $strict)) (and .Values.config.features.adopt (not $strict)) }}
 {{- if and (dig "rbac" "create" true .Values.backend) $roleEnabled }}
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
