@@ -194,32 +194,6 @@ tests:
           path: data["nginx.conf"]
           pattern: 'rewrite /langsmith/api/v2/sandboxes/\(\.\*\) /v2/sandboxes/\$1'
 
-  - it: should route runs analytics v2 traffic through the chart frontend
-    values:
-      - ./values/sandboxes-enabled.yaml
-    template: frontend/config-map.yaml
-    asserts:
-      - matchRegex:
-          path: data["nginx.conf"]
-          pattern: 'location /api/v2/runs/analytics'
-      - matchRegex:
-          path: data["nginx.conf"]
-          pattern: 'rewrite /api/v2/runs/analytics\(\.\*\) /v2/runs/analytics\$1'
-
-  - it: should route runs analytics v2 traffic through the chart frontend with basePath
-    values:
-      - ./values/sandboxes-enabled.yaml
-    set:
-      config.basePath: langsmith
-    template: frontend/config-map.yaml
-    asserts:
-      - matchRegex:
-          path: data["nginx.conf"]
-          pattern: 'location /langsmith/api/v2/runs/analytics'
-      - matchRegex:
-          path: data["nginx.conf"]
-          pattern: 'rewrite /langsmith/api/v2/runs/analytics\(\.\*\) /v2/runs/analytics\$1'
-
   - it: should derive a relative platform endpoint for sandbox dataplane URLs
     values:
       - ./values/sandboxes-enabled.yaml

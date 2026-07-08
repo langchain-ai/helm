@@ -158,15 +158,6 @@ data:
         }
         {{- end }}
 
-        location /{{ .Values.config.basePath }}/api/v2/runs/analytics {
-            rewrite /{{ .Values.config.basePath }}/api/v2/runs/analytics(.*) /v2/runs/analytics$1  break;
-            proxy_set_header Connection '';
-            proxy_http_version 1.1;
-            proxy_buffering off;
-            proxy_cache off;
-            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.platformBackend.service.port }};
-        }
-
         {{- if and .Values.smithdb.enabled .Values.smithdb.langsmith.frontend.useSmithDBEndpoints }}
         location /{{ .Values.config.basePath }}/api/v2/ {
             rewrite /{{ .Values.config.basePath }}/api/v2/(.*) /v2/$1  break;
@@ -812,15 +803,6 @@ data:
             proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.platformBackend.service.port }};
         }
         {{- end }}
-
-        location /api/v2/runs/analytics {
-            rewrite /api/v2/runs/analytics(.*) /v2/runs/analytics$1  break;
-            proxy_set_header Connection '';
-            proxy_http_version 1.1;
-            proxy_buffering off;
-            proxy_cache off;
-            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.platformBackend.service.port }};
-        }
 
         {{- if and .Values.smithdb.enabled .Values.smithdb.langsmith.frontend.useSmithDBEndpoints }}
         location /api/v2/ {
