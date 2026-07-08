@@ -1,6 +1,6 @@
 # mission-control
 
-![Version: 1.2.0](https://img.shields.io/badge/Version-1.2.0-informational?style=flat-square) ![AppVersion: 1.2.0](https://img.shields.io/badge/AppVersion-1.2.0-informational?style=flat-square)
+![Version: 1.2.1](https://img.shields.io/badge/Version-1.2.1-informational?style=flat-square) ![AppVersion: 1.2.0](https://img.shields.io/badge/AppVersion-1.2.0-informational?style=flat-square)
 
 Mission Control to deploy and manage Langsmith in EKS
 
@@ -48,6 +48,7 @@ All write operations and external egress are gated behind Helm feature flags. Wi
 | `features.discover` | `true` | Infra discovery scan (connection strings, license keys) |
 | `features.deploy` | `true` | In-UI `helm upgrade --install` (LangSmith + sibling charts) |
 | `features.contention` | `false` | Contention Insights — Redis/Postgres/ClickHouse probes + incident persistence (opt-in; adds pods/exec + configmap/secret write verbs) |
+| `features.deployClusterScopedResources` | `false` | Allow deploy to create/manage cluster-scoped objects (Namespaces, CRDs, ClusterRoles/ClusterRoleBindings). Off by default; namespace-scoped deploy uses a Role instead. |
 
 Read-only console  zero write verbs, no external egress:
 
@@ -121,6 +122,7 @@ helm install mission-control langchain/mission-control \
 | config.features.contention | bool | `false` | Contention insights: live probe of Redis/Postgres/ClickHouse/workers plus a background detector that persists incidents as Secrets. Grants update/delete on the `mission-control-contention-config` ConfigMap and unscoped secrets:create,delete for incident storage (incident names carry per-second timestamps which cannot be enumerated up front). Defaults to false: existing installs upgrading the chart do not silently gain the new RBAC verbs. Set to true to enable the sidebar tab and the /api/contention/* endpoints. |
 | config.features.dbTools | bool | `true` | Database detection, preflight checks, and support query execution. Adds no extra RBAC verbs; gates the /db/* endpoints at the application layer. |
 | config.features.deploy | bool | `true` |  |
+| config.features.deployClusterScopedResources | bool | `false` | Allow the deploy feature to create and manage cluster-scoped resources (Namespaces, ClusterRoles, ClusterRoleBindings, CRDs). When false (default) the deploy RBAC is namespace-scoped only (Role + RoleBinding); cluster-level write verbs are not granted. Set to true only when Mission Control needs to install charts that create cluster-level objects. |
 | config.features.diagnostics | bool | `true` | Diagnostic bundle download (pod logs + resource manifests packaged as a zip). |
 | config.features.discover | bool | `true` | Namespace-scoped infrastructure discovery via the /api/discover endpoint. Adds no extra RBAC verbs; gates the endpoint at the application layer. |
 | config.features.fixIssue | bool | `true` | Fix Issue button: deletes pods stuck in CreateContainerConfigError. Grants pods:delete. |

@@ -234,77 +234,23 @@ rules:
     verbs: ["patch"]
   {{- end }}
 
-  # ── Deploy feature (disable via features.deploy=false - on by default) ────
-  # Required by `helm upgrade --install <release> <chart>` executed from the
-  # UI. The chart name flows from a server-side allowlist (CHART_REGISTRY),
-  # not from user input, so unknown charts cannot be installed via this verb
-  # set.
+  # ── Deploy feature: cluster-scoped write verbs (opt-in) ──────────────────
+  # Namespace-scoped deploy write verbs have moved to role.yaml (Kind: Role)
+  # so that a standard deploy only requires namespace-level access.
   #
-  # Why some verbs are unscoped here even though the MC-managed secret list
-  # above is scoped by name:
-  #   • Helm itself stores release state in Secrets named
-  #     `sh.helm.release.v1.<release>.v<N>` and prunes old revisions, so it
-  #     needs cluster-wide secrets:create,update,delete to function.
-  #   • Charts in the langchain repo create Secrets/ConfigMaps with names
-  #     chosen by the chart author (e.g. `langsmith-config`); these cannot
-  #     be enumerated at chart-install time.
-  # The trade-off: enabling deploy grants Mission Control broad write rights
-  # on secrets/configmaps in the cluster. Set features.deploy=false in
-  # compliance-sensitive installs to revert to the scoped, read-mostly mode.
-  {{- if .Values.config.features.deploy }}
-  - apiGroups: [""]
-    resources: ["secrets"]
-    verbs: ["watch", "update", "delete"]
-  - apiGroups: [""]
-    resources: ["events"]
-    verbs: ["create", "patch"]
-  - apiGroups: [""]
-    resources: ["configmaps"]
-    verbs: ["create", "update", "patch", "delete"]
-  - apiGroups: [""]
-    resources: ["services", "persistentvolumeclaims", "serviceaccounts"]
-    verbs: ["create", "update", "patch", "delete"]
-  - apiGroups: [""]
-    resources: ["pods"]
-    verbs: ["create", "update", "patch", "delete"]
+  # This ClusterRole block is only rendered when
+  # features.deployClusterScopedResources=true, which opts in to the broader
+  # cluster-level writes needed by charts that create Namespaces, CRDs, or
+  # ClusterRoles/ClusterRoleBindings. Default is false.
+  {{- if and .Values.config.features.deploy (default false .Values.config.features.deployClusterScopedResources) }}
   - apiGroups: [""]
     resources: ["namespaces"]
     verbs: ["create"]
-  - apiGroups: ["apps"]
-    resources: ["deployments", "statefulsets", "daemonsets"]
-    verbs: ["create", "update", "patch", "delete"]
-  - apiGroups: ["batch"]
-    resources: ["jobs", "cronjobs"]
-    verbs: ["create", "update", "patch", "delete"]
-  - apiGroups: ["networking.k8s.io"]
-    resources: ["ingresses", "networkpolicies"]
-    verbs: ["create", "update", "patch", "delete"]
-  - apiGroups: ["policy"]
-    resources: ["poddisruptionbudgets"]
-    verbs: ["create", "update", "patch", "delete"]
-  - apiGroups: ["autoscaling"]
-    resources: ["horizontalpodautoscalers"]
-    verbs: ["create", "update", "patch", "delete"]
   - apiGroups: ["rbac.authorization.k8s.io"]
-    resources: ["roles", "rolebindings", "clusterroles", "clusterrolebindings"]
+    resources: ["clusterroles", "clusterrolebindings"]
     verbs: ["create", "update", "patch", "delete"]
   - apiGroups: ["apiextensions.k8s.io"]
     resources: ["customresourcedefinitions"]
-    verbs: ["create", "update", "patch", "delete"]
-  - apiGroups: ["apps.langchain.ai"]
-    resources: ["lgps", "lgps/finalizers", "lgps/status"]
-    verbs: ["create", "update", "patch", "delete"]
-  - apiGroups: ["keda.sh"]
-    resources: ["scaledobjects"]
-    verbs: ["create", "update", "patch", "delete"]
-  - apiGroups: ["gateway.networking.k8s.io"]
-    resources: ["httproutes"]
-    verbs: ["create", "update", "patch", "delete"]
-  - apiGroups: ["networking.istio.io"]
-    resources: ["virtualservices"]
-    verbs: ["create", "update", "patch", "delete"]
-  - apiGroups: ["coordination.k8s.io"]
-    resources: ["leases"]
     verbs: ["create", "update", "patch", "delete"]
   {{- end }}
 {{- end }}
