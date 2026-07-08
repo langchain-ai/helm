@@ -86,6 +86,12 @@ config:
     # gain the new RBAC verbs. Set to true to enable the sidebar tab and the
     # /api/contention/* endpoints.
     contention: false
+    # -- Allow the deploy feature to create and manage cluster-scoped resources
+    # (Namespaces, ClusterRoles, ClusterRoleBindings, CRDs). When false (default)
+    # the deploy RBAC is namespace-scoped only (Role + RoleBinding); cluster-level
+    # write verbs are not granted. Set to true only when Mission Control needs to
+    # install charts that create cluster-level objects.
+    deployClusterScopedResources: false
 
   # -- Extra namespaces (comma-separated) the discover feature is allowed to scan.
   # Default scans only the chart's release namespace to prevent cross-namespace secret
