@@ -741,6 +741,16 @@ tests:
       - failedTemplate:
           errorMessage: "config.sandboxes.callbackSigningJwk is required when config.sandboxes.enabled is true and the chart manages the LangSmith app Secret. When config.existingSecretName is set, add key sandbox_callback_signing_jwk to the existing Secret instead."
 
+  - it: should fail when sandbox proxy CA mode is unsupported
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      config.sandboxes.proxyCa.mode: certManager
+    template: validate.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: "config.sandboxes.proxyCa.mode must be one of generatedSecret or existingSecret."
+
   - it: should fail when raw sandbox env vars conflict with chart-managed platform env
     values:
       - ./values/sandboxes-enabled.yaml

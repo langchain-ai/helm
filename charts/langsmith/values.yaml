@@ -951,16 +951,11 @@ config:
       maxEphemeralStorageGb: 100
       maxSandboxes: 1000
     proxyCa:
-      # -- generatedSecret creates a self-signed CA Secret with Helm and reuses it on live upgrades via lookup. In pure render/GitOps workflows where lookup cannot read the cluster, generatedSecret produces different cert material on each render; use certManager or existingSecret for deterministic manifests. Other modes are existingSecret or certManager.
+      # -- generatedSecret creates a self-signed CA Secret with Helm and reuses it on live upgrades via lookup. In pure render/GitOps workflows where lookup cannot read the cluster, generatedSecret produces different cert material on each render; use existingSecret for deterministic manifests.
       mode: "generatedSecret"
       secretName: "smithbox-proxy-ca"
+      # -- Existing TLS Secret containing tls.crt and tls.key for the sandbox proxy CA. This Secret can be created manually, by cert-manager, or by another external process.
       existingSecretName: ""
-      certManager:
-        createIssuer: true
-        issuerName: "smithbox-proxy-selfsigned"
-        issuerKind: "Issuer"
-        duration: "8760h"
-        renewBefore: "720h"
     juicefs:
       # -- JuiceFS volume name. Use a flat DNS-label-style name only; slashes and object-store subpaths are not supported here. JuiceFS stores objects under `<name>/` inside the configured bucket.
       name: "sandbox-juicefs"

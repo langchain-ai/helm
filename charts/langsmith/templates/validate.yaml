@@ -185,14 +185,11 @@ AWS Marketplace Helm template verification).
 {{- fail "config.sandboxes.callbackSigningJwk cannot be used when config.existingSecretName is set. Add key sandbox_callback_signing_jwk to the existing Secret instead." -}}
 {{- end -}}
 {{- $proxyCaMode := .Values.config.sandboxes.proxyCa.mode -}}
-{{- if not (or (eq $proxyCaMode "generatedSecret") (eq $proxyCaMode "existingSecret") (eq $proxyCaMode "certManager")) -}}
-{{- fail "config.sandboxes.proxyCa.mode must be one of generatedSecret, existingSecret, or certManager." -}}
+{{- if not (or (eq $proxyCaMode "generatedSecret") (eq $proxyCaMode "existingSecret")) -}}
+{{- fail "config.sandboxes.proxyCa.mode must be one of generatedSecret or existingSecret." -}}
 {{- end -}}
 {{- if and (eq $proxyCaMode "existingSecret") (not .Values.config.sandboxes.proxyCa.existingSecretName) -}}
 {{- fail "config.sandboxes.proxyCa.existingSecretName is required when config.sandboxes.proxyCa.mode is existingSecret." -}}
-{{- end -}}
-{{- if and (eq $proxyCaMode "certManager") (not .Values.config.sandboxes.proxyCa.certManager.issuerName) -}}
-{{- fail "config.sandboxes.proxyCa.certManager.issuerName is required when config.sandboxes.proxyCa.mode is certManager." -}}
 {{- end -}}
 {{- end -}}
 
