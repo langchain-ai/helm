@@ -33,7 +33,7 @@ can never drift apart.
 {{- if (and .Values.config.features.valuesOverride (not $strict)) }}
 {{- $secretNames = append $secretNames "mission-control-values-overrides" }}
 {{- end }}
-{{- if and (dig "rbac" "create" true .Values.backend) $roleEnabled }}
+{{- if and .Values.backend.rbac.create $roleEnabled }}
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:

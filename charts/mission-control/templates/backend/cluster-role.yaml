@@ -1,4 +1,4 @@
-{{- if (dig "rbac" "create" true .Values.backend) }}
+{{- if .Values.backend.rbac.create }}
 {{/*
 config.strictReadOnly forces every config.features.* flag off in one switch.
 $strict is read below wherever a feature flag would otherwise grant a write
