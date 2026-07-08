@@ -51,7 +51,7 @@
 - name: VITE_CUSTOM_ERROR_SUPPORT_MESSAGE
   value: {{ .Values.config.customErrorSupportMessage | quote }}
 {{- end }}
-{{- if or .Values.config.deployment.enabled .Values.config.sandboxes.enabled }}
+{{- if .Values.config.deployment.enabled }}
 - name: VITE_HOST_ENABLED
   value: "1"
 {{- end }}
