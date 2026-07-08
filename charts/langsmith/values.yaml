@@ -126,24 +126,8 @@ images:
     repository: "docker.io/langchain/langsmith-polly"
     pullPolicy: IfNotPresent
     tag: "0.16.10rc1"
-  smithdbQueryImage:
-    repository: "docker.io/langchain/smithdb-query"
-    pullPolicy: IfNotPresent
-    tag: "latest"
-  smithdbIngestionImage:
-    repository: "docker.io/langchain/smithdb-ingestion"
-    pullPolicy: IfNotPresent
-    tag: "latest"
-  smithdbCompactionImage:
-    repository: "docker.io/langchain/smithdb-compaction"
-    pullPolicy: IfNotPresent
-    tag: "latest"
-  smithdbClusterManagerImage:
-    repository: "docker.io/langchain/smithdb-clustermanager"
-    pullPolicy: IfNotPresent
-    tag: "latest"
-  smithdbMetastoreMigrationImage:
-    repository: "docker.io/langchain/smithdb-metastore-migrate"
+  smithdbImage:
+    repository: "docker.io/langchain/smithdb"
     pullPolicy: IfNotPresent
     tag: "latest"
   # Optional: only mirror/pull when presidioAnalyzer.enabled is true
@@ -1092,6 +1076,8 @@ config:
 
   # -- hostname of the LangSmith installation. Used for redirects and LangSmith deployments. Required for OAuth and LangSmith Deployments. E.g langsmith.com
   hostname: ""
+  # -- Frontend origin for user-facing redirects (LANGSMITH_URL); defaults to hostname. Set only when the UI is served from a different origin than this deployment's API.
+  frontendHostname: ""
   # -- Base path for the LangSmith installation. Used to serve the app under a subpath like example.com/langsmith.
   # WARNING: Changing basePath after LangSmith Deployments have been created will break existing deployments.
   # Existing deployments will need to be recreated for the new basePath to take effect.
@@ -1433,7 +1419,8 @@ smithdb:
           periodSeconds: 10
           timeoutSeconds: 1
       command:
-        - "./smithdb-query"
+        - "./smithdb"
+        - "query"
       extraEnv: []
       extraContainerConfig: {}
       sidecars: []
@@ -1493,7 +1480,8 @@ smithdb:
           periodSeconds: 10
           timeoutSeconds: 1
       command:
-        - "./smithdb-ingestion"
+        - "./smithdb"
+        - "ingestion"
       terminationGracePeriodSeconds: 300
       extraEnv: []
       extraContainerConfig: {}
@@ -1548,8 +1536,10 @@ smithdb:
           failureThreshold: 6
           periodSeconds: 10
           timeoutSeconds: 1
-      # -- Optional command override. Empty uses the chart default: ["./smithdb-compaction", "scheduler"].
-      command: []
+      command:
+        - "./smithdb"
+        - "compaction"
+        - "scheduler"
       extraEnv: []
       extraContainerConfig: {}
       sidecars: []
@@ -1605,8 +1595,10 @@ smithdb:
           failureThreshold: 6
           periodSeconds: 10
           timeoutSeconds: 1
-      # -- Optional command override. Empty uses the chart default: ["./smithdb-compaction", "worker"].
-      command: []
+      command:
+        - "./smithdb"
+        - "compaction"
+        - "worker"
       extraEnv: []
       extraContainerConfig: {}
       sidecars: []
@@ -1656,7 +1648,9 @@ smithdb:
           failureThreshold: 6
           periodSeconds: 10
           timeoutSeconds: 1
-      command: []
+      command:
+        - "./smithdb"
+        - "clustermanager"
       extraEnv: []
       extraContainerConfig: {}
       sidecars: []
@@ -1677,7 +1671,7 @@ smithdb:
     name: "metastore-migration"
     useSsl: false
     command:
-      - "./smithdb-metastore-migrate-entrypoint.sh"
+      - "/usr/local/bin/smithdb-metastore-migrate-entrypoint.sh"
     job:
       ttlSecondsAfterFinished: 3600
       backoffLimit: 0

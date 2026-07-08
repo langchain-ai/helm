@@ -5,7 +5,7 @@ maintainers:
     email: ankush@langchain.dev
 description: Helm chart to deploy the langsmith application and all services it depends on.
 type: application
-version: 0.16.0-rc.8
+version: 0.16.0-rc.9
 appVersion: "0.16.10rc1"
 dependencies:
   - name: juicefs-csi-driver
