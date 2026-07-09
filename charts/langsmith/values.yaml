@@ -1002,6 +1002,8 @@ config:
     oauthSessionMaxSec: "86400"  # 24 hours. Maximum age of a session in seconds. Your session will attempt to refresh until the max age at which point you will be logged out.
     # -- When true, percent-encode spaces in the OIDC authorization request as %20 instead of '+'. Enable for IdPs (e.g. SiteMinder) that reject '+'-encoded scope lists. Requires authType 'mixed' with an OAuth client secret.
     urlEncodeScopeSpaces: false
+    # -- When true, re-link an existing custom-OIDC user to a new identity provider by matched email when their sub claim changes after an IdP switch (e.g. Google to Okta), instead of failing login. Self-hosted only; off by default. SCIM users with a conflicting externalId are still refused and realign through SCIM.
+    allowSubMigration: false
 
   # -- Ed25519/OKP JWKS (JSON) signing the OAuth AS / remote MCP (and LLM-auth-proxy)
   # tokens; public keys are served at /.well-known/jwks.json. Set it here (stored in the
