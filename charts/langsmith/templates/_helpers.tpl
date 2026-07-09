@@ -164,9 +164,12 @@ Usage: {{ include "langsmith.podSecurityContext" (dict "Values" .Values "compone
 {{- end -}}
 
 {{/*
-Common DNS configuration for all pods. When commonDnsConfig is set, it will be applied to all pods.
+Common DNS policy and configuration for all pods. When configured, they will be applied to all pods.
 */}}
 {{- define "langsmith.dnsConfig" -}}
+{{- with .Values.commonDnsPolicy }}
+dnsPolicy: {{ . | quote }}
+{{- end }}
 {{- if .Values.commonDnsConfig }}
 dnsConfig:
   {{- toYaml .Values.commonDnsConfig | nindent 2 }}

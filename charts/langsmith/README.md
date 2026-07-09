@@ -15,6 +15,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | clusterDomain | string | `"cluster.local"` | Kubernetes cluster domain. Only change if not using 'cluster.local' |
 | commonAnnotations | object | `{}` | Annotations that will be applied to all resources created by the chart |
 | commonDnsConfig | object | `{"options":[{"name":"ndots","value":"4"}]}` | Set to null to disable and use Kubernetes defaults (ndots: 5). |
+| commonDnsPolicy | string | `""` | DNS policy applied to all pods. Set to "None" with commonDnsConfig.nameservers to use custom DNS resolvers. |
 | commonEnv | list | `[]` | Common environment variables that will be applied to all deployments/statefulsets except for the playground/aceBackend services (which are sandboxed). Be careful not to override values already specified by the chart. |
 | commonInitContainers | list | `[]` | Common init containers added to all deployments/statefulsets except for the playground/aceBackend services (which are sandboxed). |
 | commonLabels | object | `{}` | Labels that will be applied to all resources created by the chart |
