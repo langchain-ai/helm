@@ -6889,6 +6889,15 @@ entries:
   mission-control:
   - apiVersion: v2
     appVersion: 1.2.0
+    created: "2026-07-09T12:45:24.901158699Z"
+    description: Mission Control to deploy and manage Langsmith in EKS
+    digest: e5f10e6d78ef155a3fee9138199677f318f8eca8e2caddcef15a5b65a0452e5f
+    name: mission-control
+    urls:
+    - https://github.com/langchain-ai/helm/releases/download/mission-control-1.2.2/mission-control-1.2.2.tgz
+    version: 1.2.2
+  - apiVersion: v2
+    appVersion: 1.2.0
     created: "2026-07-08T13:51:45.258165983Z"
     description: Mission Control to deploy and manage Langsmith in EKS
     digest: a8494b8c4d3a6101093cc4fbd1eb32ee59bc44513d87b321fbd2a9f74fd8f1b9
@@ -6966,4 +6975,4 @@ entries:
     urls:
     - https://github.com/langchain-ai/helm/releases/download/open-gpts-0.1.0/open-gpts-0.1.0.tgz
     version: 0.1.0
-generated: "2026-07-09T06:27:23.686601949Z"
+generated: "2026-07-09T12:45:24.901795589Z"
