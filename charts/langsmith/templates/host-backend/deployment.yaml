@@ -18,7 +18,7 @@
 {{- end }}
 {{- if .Values.fleetTriggerServer.enabled }}
 - name: AGENT_BUILDER_TRIGGERS_API_URL
-  value: "http://{{ include "langsmith.fullname" . }}-{{ .Values.fleetTriggerServer.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.fleetTriggerServer.service.port }}/v1/triggers"
+  value: {{ printf "%s/v1/triggers" (include "langsmith.internalServiceEndpoint" (dict "root" . "key" "fleetTriggerServer" "name" .Values.fleetTriggerServer.name "namespace" (.Values.namespace | default .Release.Namespace) "port" .Values.fleetTriggerServer.service.port)) | quote }}
 {{- end }}
 {{- include "agentBuilderOAuthEnvVars" . }}
 {{- end }}

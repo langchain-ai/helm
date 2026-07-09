@@ -3,7 +3,7 @@
   value: {{ .Values.agentGateway.containerPort | quote }}
 {{- if .Values.presidioAnalyzer.enabled }}
 - name: PRESIDIO_ANALYZER_URL
-  value: "http://{{ include "langsmith.fullname" . }}-{{ .Values.presidioAnalyzer.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.presidioAnalyzer.service.port }}"
+  value: {{ include "langsmith.internalServiceEndpoint" (dict "root" . "key" "presidioAnalyzer" "name" .Values.presidioAnalyzer.name "namespace" (.Values.namespace | default .Release.Namespace) "port" .Values.presidioAnalyzer.service.port) | quote }}
 {{- end }}
 {{- end -}}
 {{- if .Values.agentGateway.enabled }}

@@ -174,6 +174,45 @@ dnsConfig:
 {{- end }}
 
 {{/*
+Returns an internal URL override when configured, otherwise the provided default.
+*/}}
+{{- define "langsmith.internalServiceUrl" -}}
+{{- $root := .root -}}
+{{- $override := get $root.Values.internalServiceUrls .key -}}
+{{- if $override -}}
+{{- $override -}}
+{{- else -}}
+{{- .default -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Returns an internal service URL. A non-empty internalServiceUrls entry overrides
+the default Kubernetes service DNS URL.
+*/}}
+{{- define "langsmith.internalServiceEndpoint" -}}
+{{- $root := .root -}}
+{{- $default := printf "http://%s-%s.%s.svc.%s:%v" (include "langsmith.fullname" $root) .name .namespace $root.Values.clusterDomain .port -}}
+{{- include "langsmith.internalServiceUrl" (dict "root" $root "key" .key "default" $default) -}}
+{{- end -}}
+
+{{/*
+Returns the host LangChain API URL, preserving the existing deployment and base-path behavior.
+*/}}
+{{- define "langsmith.internalHostLangchainApiEndpoint" -}}
+{{- $namespace := .Values.namespace | default .Release.Namespace -}}
+{{- if .Values.internalServiceUrls.hostLangchainApi -}}
+{{- .Values.internalServiceUrls.hostLangchainApi -}}
+{{- else if not .Values.frontend.enabled -}}
+{{- printf "%s/api/v1" (include "langsmith.internalServiceEndpoint" (dict "root" . "key" "backend" "name" .Values.backend.name "namespace" $namespace "port" .Values.backend.service.port)) -}}
+{{- else if .Values.config.basePath -}}
+{{- printf "%s/%s/api/v1" (include "langsmith.internalServiceEndpoint" (dict "root" . "key" "frontend" "name" .Values.frontend.name "namespace" $namespace "port" .Values.frontend.service.httpPort)) .Values.config.basePath -}}
+{{- else -}}
+{{- printf "%s/api/v1" (include "langsmith.internalServiceEndpoint" (dict "root" . "key" "frontend" "name" .Values.frontend.name "namespace" $namespace "port" .Values.frontend.service.httpPort)) -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
 Template containing common environment variables that are used by several services.
 */}}
 {{- define "langsmith.commonEnv" -}}
@@ -204,7 +243,8 @@ Template containing common environment variables that are used by several servic
 {{- if .Values.fleet.enabled }}
 {{- $ns := .Values.namespace | default .Release.Namespace -}}
 {{- $cd := .Values.clusterDomain -}}
-{{- $fleetApi := printf "http://%s.%s.svc.%s:%v" (include "langsmith.agentFeatures.apiServerK8sServiceName" (dict "root" . "product" "fleet")) $ns $cd .Values.fleet.apiServer.service.httpPort }}
+{{- $fleetApiDefault := printf "http://%s.%s.svc.%s:%v" (include "langsmith.agentFeatures.apiServerK8sServiceName" (dict "root" . "product" "fleet")) $ns $cd .Values.fleet.apiServer.service.httpPort -}}
+{{- $fleetApi := include "langsmith.internalServiceUrl" (dict "root" . "key" "fleetApiServer" "default" $fleetApiDefault) }}
 - name: LANGGRAPH_DEPLOYMENT_URL
   value: {{ $fleetApi | quote }}
 {{- end }}

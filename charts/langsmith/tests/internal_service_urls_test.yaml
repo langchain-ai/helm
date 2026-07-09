@@ -1,0 +1,79 @@
+suite: Internal service URL overrides
+templates:
+  - config-map.yaml
+  - frontend/config-map.yaml
+tests:
+  - it: preserves Kubernetes service DNS by default
+    template: config-map.yaml
+    asserts:
+      - equal:
+          path: data.GO_ENDPOINT
+          value: http://RELEASE-NAME-langsmith-platform-backend.NAMESPACE.svc.cluster.local:1986
+      - equal:
+          path: data.SMITH_BACKEND_ENDPOINT
+          value: http://RELEASE-NAME-langsmith-backend.NAMESPACE.svc.cluster.local:1984
+
+  - it: overrides core configuration endpoints
+    template: config-map.yaml
+    set:
+      config.deployment.enabled: true
+      agentGateway.enabled: true
+      internalServiceUrls:
+        platformBackend: http://10.0.0.1:1986
+        aceBackend: http://10.0.0.2:1987
+        playground: http://10.0.0.3:1988
+        backend: http://10.0.0.4:1984
+        hostBackend: http://10.0.0.5:1985
+        frontend: http://10.0.0.6:80
+        agentGateway: http://10.0.0.7:8200
+        hostLangchainApi: http://10.0.0.99:1984/api/v1
+    asserts:
+      - equal:
+          path: data.GO_ENDPOINT
+          value: http://10.0.0.1:1986
+      - equal:
+          path: data.GO_ACE_ENDPOINT
+          value: http://10.0.0.2:1987
+      - equal:
+          path: data.PLAYGROUND_ENDPOINT
+          value: http://10.0.0.3:1988
+      - equal:
+          path: data.SMITH_BACKEND_ENDPOINT
+          value: http://10.0.0.4:1984
+      - equal:
+          path: data.HOST_BACKEND_ENDPOINT
+          value: http://10.0.0.5:1985
+      - equal:
+          path: data.AGENT_GATEWAY_URL
+          value: http://10.0.0.7:8200
+      - equal:
+          path: data.HOST_LANGCHAIN_API_ENDPOINT
+          value: http://10.0.0.99:1984/api/v1
+
+  - it: overrides every frontend proxy upstream
+    template: frontend/config-map.yaml
+    set:
+      fleet.enabled: true
+      insights.enabled: true
+      polly.enabled: true
+      internalServiceUrls:
+        platformBackend: http://10.0.0.1:1986
+        playground: http://10.0.0.3:1988
+        backend: http://10.0.0.4:1984
+        hostBackend: http://10.0.0.5:1985
+        agentGateway: http://10.0.0.7:8200
+        fleetToolServer: http://10.0.0.8:8080
+        fleetTriggerServer: http://10.0.0.9:8081
+        fleetApiServer: http://10.0.0.11:8080
+        insightsApiServer: http://10.0.0.12:8080
+        pollyApiServer: http://10.0.0.13:8080
+    asserts:
+      - matchRegex:
+          path: data["nginx.conf"]
+          pattern: "proxy_pass http://10\\.0\\.0\\.1:1986;"
+      - matchRegex:
+          path: data["nginx.conf"]
+          pattern: "proxy_pass http://10\\.0\\.0\\.11:8080;"
+      - notMatchRegex:
+          path: data["nginx.conf"]
+          pattern: "proxy_pass http://[^;]+\\.svc\\."
