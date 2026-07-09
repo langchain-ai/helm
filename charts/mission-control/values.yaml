@@ -15,6 +15,20 @@ commonLabels: {}
 # and discovery scope. Infrastructure-level options (images, resources, services,
 # storage) stay at the top level outside `config`.
 config:
+  # -- Single switch for locked-down / GitOps installs. When true, every
+  # `config.features.*` flag below is treated as false regardless of its
+  # individual setting, so the rendered ClusterRole is reduced to its
+  # read-only base (get/list/watch on cluster resources, get/list on
+  # secrets - no create/update/delete/patch verbs anywhere) and the backend
+  # 403s every write/disclosure endpoint (deploy, contention, discover,
+  # dbTools, adopt, fixIssue, alerts, configSave, valuesOverride, chat).
+  # Replaces manually setting each `features.*` flag to false, which is easy
+  # to get wrong (e.g. forgetting `deploy`, the single largest RBAC grant).
+  # Pair with `backend.serviceAccount.create=false` (and optionally
+  # `backend.rbac.create=false`) to bring your own ServiceAccount/RBAC
+  # provisioned by your own IaC pipeline instead of this chart's release.
+  strictReadOnly: false
+
   # Backend API authentication (HTTP Basic Auth).
   # Keep config.auth.enabled=true in production.
   #
@@ -26,7 +40,11 @@ config:
   auth:
     enabled: true
     # -- Pre-created Secret with username/password (and optionally JWT signing) keys.
-    # Leave as-is to use the first-run setup flow described above.
+    # Leave as-is to use the first-run setup flow described above. Under
+    # `strictReadOnly: true` the chart never grants the backend an unscoped
+    # secrets:create verb, so this Secret must be pre-created (e.g. via your
+    # own GitOps secrets pipeline) before the first `helm install` - the
+    # first-run setup flow cannot create it for you in that mode.
     existingSecret: mission-control-auth
     # -- Key in `existingSecret` holding the basic-auth username.
     usernameKey: username
@@ -41,7 +59,8 @@ config:
     allowedOrigins: ""
 
   # Feature flags. Disabling a flag removes its write verbs from the ClusterRole.
-  # With every flag false the ClusterRole is read-only.
+  # With every flag false the ClusterRole is read-only. `strictReadOnly` above
+  # forces all of these off in one switch instead of setting each individually.
   # Contention Insights (`contention`, below) is opt-in: it defaults to false so
   # existing installs do not silently gain new RBAC verbs on upgrade.
   features:
@@ -71,7 +90,7 @@ config:
     # across multiple API groups - see templates/backend/cluster-role.yaml.
     # Set to false in read-only / compliance-locked installs to remove all deploy
     # write verbs from the ClusterRole and 403 the POST /deploy API.
-    deploy: true
+    deploy: false
     # -- Operator-uploaded values.yaml overrides per product (airgapped support).
     # Adds the settings pill in the topbar and grants update/delete on the
     # `mission-control-values-overrides` Secret. Set to false to remove the pill
@@ -108,13 +127,13 @@ images:
   backendImage:
     repository: langchain/mission-control-backend
     pullPolicy: IfNotPresent
-    # -- Backend image tag. Defaults to `latest`; pin to a specific release like `1.2.0`
+    # -- Backend image tag. Defaults to `latest`; pin to a specific release like `1.2.2`
     # for reproducible deploys. Versioned tags are published alongside `latest` on every release.
     tag: latest
   frontendImage:
     repository: langchain/mission-control-frontend
     pullPolicy: IfNotPresent
-    # -- Frontend image tag. Defaults to `latest`; pin to a specific release like `1.2.0`
+    # -- Frontend image tag. Defaults to `latest`; pin to a specific release like `1.2.2`
     # for reproducible deploys. Versioned tags are published alongside `latest` on every release.
     tag: latest
 
@@ -140,11 +159,26 @@ backend:
     type: ClusterIP
     port: 8000
   serviceAccount:
-    # -- When true (default) the chart creates a ServiceAccount, ClusterRole, and ClusterRoleBinding.
-    # Set to false to bring your own ServiceAccount; you must then grant it the same RBAC.
+    # -- When true (default) the chart creates the ServiceAccount object.
+    # Set to false to bring your own ServiceAccount - e.g. one your platform
+    # Terraform/IaC already annotated for IRSA or GKE Workload Identity - and
+    # supply its name via `name` below. This is independent of `rbac.create`:
+    # you can bring your own ServiceAccount while still letting this chart
+    # manage the ClusterRole/ClusterRoleBinding bound to it.
     create: true
-    # -- Override the generated ServiceAccount name.
+    # -- Name of the ServiceAccount to use. Required when `create: false`;
+    # optional override of the generated name otherwise.
     name: ""
+  rbac:
+    # -- When true (default) the chart creates the ClusterRole and
+    # ClusterRoleBinding granting the backend ServiceAccount (see
+    # `serviceAccount` above) its permissions. Set to false for fully
+    # GitOps-managed RBAC: your own IaC pipeline grants the ServiceAccount
+    # named by `serviceAccount.name` the equivalent rules, reviewed and
+    # applied outside this chart's release. See templates/backend/cluster-role.yaml
+    # for the exact rule set to replicate (respects `strictReadOnly` and
+    # `config.features.*` the same way).
+    create: true
 
 # Frontend (static React app served by an HTTP server) component.
 frontend:
