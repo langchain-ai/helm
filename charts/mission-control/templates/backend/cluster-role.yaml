@@ -1,4 +1,13 @@
-{{- if .Values.backend.serviceAccount.create }}
+{{- if .Values.backend.rbac.create }}
+{{/*
+config.strictReadOnly forces every config.features.* flag off in one switch.
+$strict is read below wherever a feature flag would otherwise grant a write
+verb, so strictReadOnly=true can never leave a write verb behind because a
+flag was missed - the same $strict variable (computed the same way) also
+gates the MC_FEATURE_* env vars in templates/backend/statefulset.yaml, so the
+RBAC and the application-layer gate cannot drift apart.
+*/}}
+{{- $strict := .Values.config.strictReadOnly | default false }}
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
@@ -87,162 +96,19 @@ rules:
     resources: ["leases"]
     verbs: ["get", "list", "watch"]
 
-  # ── Secrets: read all; write scoped to named MC-managed secrets ───────────
+  # ── Secrets: read-only for deploy/status discovery ────────────────────────
   - apiGroups: [""]
     resources: ["secrets"]
     verbs: ["get", "list"]
 
-  # Build the list of named secrets that require write access based on which
-  # features are enabled. When all write features are disabled, the create and
-  # update/delete rules are omitted entirely - zero secret write verbs.
-  # The deploy feature requires unscoped secrets:update,delete (see deploy block
-  # below) - listing per-release MC secret names here only matters when deploy
-  # is OFF and configSave is ON (read-only console + draft persistence).
-  {{- $secretNames := list }}
-  {{- $deployProducts := list "langgraph-cloud" "langgraph-dataplane" "langsmith-auth-proxy" "langsmith-observability" "mission-control" }}
-  {{- if .Values.config.features.configSave }}
-  {{- $secretNames = append $secretNames (include "missionControl.draftSecretName" .) }}
-  {{- range $deployProducts }}
-  {{- $secretNames = append $secretNames (printf "mission-control-draft-%s" .) }}
-  {{- end }}
-  {{- end }}
-  {{- if .Values.config.features.deploy }}
-  {{- $secretNames = append $secretNames (include "missionControl.deployedSecretName" .) }}
-  {{- $secretNames = append $secretNames (include "missionControl.backupSecretName" .) }}
-  {{- $secretNames = append $secretNames (include "missionControl.historySecretName" .) }}
-  {{- range $deployProducts }}
-  {{- $secretNames = append $secretNames (printf "mission-control-deployed-%s" .) }}
-  {{- $secretNames = append $secretNames (printf "mission-control-backup-%s" .) }}
-  {{- $secretNames = append $secretNames (printf "mission-control-history-%s" .) }}
-  {{- end }}
-  {{- end }}
-  {{- if .Values.config.features.alerts }}
-  {{- $secretNames = append $secretNames (include "missionControl.alertsConfigSecretName" .) }}
-  {{- $secretNames = append $secretNames (include "missionControl.alertsKeySecretName" .) }}
-  {{- $secretNames = append $secretNames (include "missionControl.alertsLogSecretName" .) }}
-  {{- end }}
-  {{- if .Values.config.features.valuesOverride }}
-  {{- $secretNames = append $secretNames "mission-control-values-overrides" }}
-  {{- end }}
-
-  {{- if $secretNames }}
-  # Kubernetes RBAC does not support resourceNames on "create" - namespace-wide
-  # is unavoidable. Scoping is enforced at the application layer.
-  - apiGroups: [""]
-    resources: ["secrets"]
-    verbs: ["create"]
-
-  # update/delete scoped to the exact set of secrets Mission Control manages.
-  - apiGroups: [""]
-    resources: ["secrets"]
-    verbs: ["update", "delete"]
-    resourceNames:
-      {{- range $secretNames }}
-      - {{ . }}
-      {{- end }}
-  {{- end }}
-
-  # ── Auth setup flow ────────────────────────────────────────────────────────
-  # When auth is enabled the backend may need to create the auth Secret on
-  # first run (setup mode) and then restart itself to load the new credentials.
-  # create cannot be scoped by resourceName (K8s limitation); the application
-  # layer only ever creates the single auth secret during setup.
-  {{- if .Values.config.auth.enabled }}
-  {{- if not $secretNames }}
-  - apiGroups: [""]
-    resources: ["secrets"]
-    verbs: ["create"]
-  {{- end }}
-  - apiGroups: [""]
-    resources: ["secrets"]
-    verbs: ["update"]
-    resourceNames:
-      - {{ include "missionControl.authSecretName" . }}
-  - apiGroups: [""]
-    resources: ["secrets"]
-    verbs: ["delete"]
-    resourceNames:
-      - {{ include "missionControl.setupTokenSecretName" . }}
-  - apiGroups: ["apps"]
-    resources: ["statefulsets"]
-    verbs: ["patch"]
-    resourceNames:
-      - {{ include "missionControl.backendWorkloadName" . }}
-  {{- end }}
-
-  # ── Fix Issue button (disable via features.fixIssue=false) ────────────────
-  # Grants pods:delete to restart pods stuck in CreateContainerConfigError.
-  # Disable if your security policy prohibits pod deletion by tooling.
-  {{- if .Values.config.features.fixIssue }}
-  - apiGroups: [""]
-    resources: ["pods"]
-    verbs: ["delete"]
-  {{- end }}
-
-  # ── Contention Insights (disable via features.contention=false) ──────────
-  # Read-only probes use the existing pods/configmaps read verbs above. The
-  # detector additionally needs to:
-  #   - update/delete its own ConfigMap (scoped by name below)
-  #   - create the ConfigMap on first write (unscoped - RBAC create cannot be
-  #     scoped by resourceName; application layer writes only the named CM)
-  #   - create + delete incident Secrets named
-  #     `mission-control-contention-incident-<unix_ts>`. resourceNames cannot
-  #     match a prefix and incident names are dynamic, so secrets:create,delete
-  #     are unscoped under this flag. Same trade-off as the deploy block.
-  #     Set features.contention=false to remove these verbs entirely.
-  {{- if (default false .Values.config.features.contention) }}
-  # The DB probes exec read-only commands (redis-cli INFO/SLOWLOG/XLEN,
-  # psql -c SELECT, clickhouse-client SELECT) inside the data-store pods via the
-  # K8s exec API. k8s_exec.py uses kubernetes.stream(connect_get_namespaced_pod_exec),
-  # which issues a GET against the pods/exec subresource, so "get" is required;
-  # "create" is retained for POST/kubectl-style exec. Without "get" the probe fails
-  # with 403 "cannot get resource pods/exec" even though "create" is allowed. The
-  # exec layer (k8s_exec.py) restricts the executable to a fixed allowlist
-  # (redis-cli/psql/clickhouse-client/sh) running hardcoded commands; log-signal
-  # probes use the pods/log read verb above.
-  - apiGroups: [""]
-    resources: ["pods/exec"]
-    verbs: ["create", "get"]
-  - apiGroups: [""]
-    resources: ["configmaps"]
-    verbs: ["create"]
-  - apiGroups: [""]
-    resources: ["configmaps"]
-    verbs: ["update", "delete", "patch"]
-    resourceNames:
-      - mission-control-contention-config
-  {{- if not .Values.config.features.deploy }}
-  # Only add unscoped secret create/delete here if deploy hasn't already
-  # granted them (avoids duplicate rules in the rendered ClusterRole).
-  - apiGroups: [""]
-    resources: ["secrets"]
-    verbs: ["create", "delete"]
-  {{- end }}
-  {{- end }}
-
-  # ── Adopt button (disable via features.adopt=false) ───────────────────────
-  # Patches Helm ownership annotations onto existing resources so helm upgrade
-  # can manage resources that were created outside the release.
-  # patch on deployments/statefulsets is equivalent to update - disable if
-  # your policy requires workload immutability enforced by RBAC.
-  {{- if .Values.config.features.adopt }}
-  - apiGroups: [""]
-    resources: ["secrets", "configmaps", "serviceaccounts"]
-    verbs: ["patch"]
-  - apiGroups: ["apps"]
-    resources: ["deployments", "statefulsets"]
-    verbs: ["patch"]
-  {{- end }}
-
-  # ── Deploy feature: cluster-scoped write verbs (opt-in) ──────────────────
-  # Namespace-scoped deploy write verbs have moved to role.yaml (Kind: Role)
-  # so that a standard deploy only requires namespace-level access.
-  #
-  # This ClusterRole block is only rendered when
-  # features.deployClusterScopedResources=true, which opts in to the broader
-  # cluster-level writes needed by charts that create Namespaces, CRDs, or
-  # ClusterRoles/ClusterRoleBindings. Default is false.
-  {{- if and .Values.config.features.deploy (default false .Values.config.features.deployClusterScopedResources) }}
+  # ── Deploy cluster-scoped resources (explicit opt-in) ─────────────────────
+  # Everything else (namespace-scoped secrets writes, auth setup, fixIssue,
+  # contention, adopt, and the bulk of the deploy feature) lives in the
+  # namespace-scoped Role - see templates/backend/role.yaml. This ClusterRole
+  # only carries the base read-only rules above plus this narrow cluster-scoped
+  # opt-in. `$strict` (config.strictReadOnly) forces this off even if an
+  # operator has explicitly set both deploy flags to true.
+  {{- if and .Values.config.features.deploy (default false .Values.config.features.deployClusterScopedResources) (not $strict) }}
   - apiGroups: [""]
     resources: ["namespaces"]
     verbs: ["create"]
