@@ -140,6 +140,31 @@ images:
     repository: "docker.io/langchain/sandbox-host"
     pullPolicy: IfNotPresent
     tag: ""
+  # -- JuiceFS CSI driver image. Only used when config.sandboxes.enabled is true.
+  juicefsCSIImage:
+    repository: "docker.io/juicedata/juicefs-csi-driver"
+    pullPolicy: IfNotPresent
+    tag: "v0.31.4"
+  # -- JuiceFS CSI node-driver-registrar sidecar image. Only used when config.sandboxes.enabled is true.
+  juicefsCSINodeDriverRegistrarImage:
+    repository: "registry.k8s.io/sig-storage/csi-node-driver-registrar"
+    pullPolicy: IfNotPresent
+    tag: "v2.9.0"
+  # -- JuiceFS CSI resizer sidecar image. Only used when config.sandboxes.enabled is true.
+  juicefsCSIResizerImage:
+    repository: "registry.k8s.io/sig-storage/csi-resizer"
+    pullPolicy: IfNotPresent
+    tag: "v1.9.0"
+  # -- JuiceFS CSI liveness probe sidecar image. Only used when config.sandboxes.enabled is true.
+  juicefsCSILivenessProbeImage:
+    repository: "registry.k8s.io/sig-storage/livenessprobe"
+    pullPolicy: IfNotPresent
+    tag: "v2.12.0"
+  # -- Optional JuiceFS CE mount image used by runtime mount pods. Set this when mirroring images for restricted networks.
+  juicefsMountImage:
+    repository: "docker.io/juicedata/mount"
+    pullPolicy: IfNotPresent
+    tag: ""
 
 ingress:
   enabled: false
@@ -954,6 +979,33 @@ config:
         configSecretName: "juicefs-csi-config"
         # -- Existing Secret containing JuiceFS CSI config keys `name`, `metaurl`, `storage`, and `bucket`. When set, this chart does not render the CSI config Secret and `config.sandboxes.juicefs.name`, `config.sandboxes.juicefs.storage`, `config.sandboxes.juicefs.bucket`, and `config.sandboxes.juicefs.redis.metaURL` are not used for the CSI config.
         existingSecretName: ""
+        controller:
+          # -- Annotations applied to the JuiceFS CSI controller StatefulSet and pod template.
+          annotations: {}
+        node:
+          # -- Annotations applied to the JuiceFS CSI node DaemonSet and pod template.
+          annotations: {}
+        # -- Mount pod patches used by the JuiceFS CSI driver for sandbox volumes. Override only when tuning JuiceFS mount behavior or observability.
+        mountPodPatch:
+          - mountOptions:
+              - cache-dir=/var/cache/juicefs-csi
+              - cache-size=51200
+              - buffer-size=300
+              - prefetch=3
+              - metrics=0.0.0.0:9567
+            resources:
+              requests:
+                cpu: "2"
+                memory: 4Gi
+              limits:
+                cpu: "2"
+                memory: 4Gi
+          - pvcSelector:
+              matchLabels:
+                juicefs.langsmith.com/cache: ssd
+            mountOptions:
+              - cache-dir=/var/cache/juicefs-csi
+              - cache-size=307200
         mountPath: "/juicefs"
         pvName: "smithbox-juicefs-csi"
         pvcName: "smithbox-juicefs-csi"
@@ -3260,39 +3312,6 @@ redis:
     labels: {}
     annotations: {}
     automountServiceAccountToken: true
-
-# @ignored
-# Internal defaults for the JuiceFS CSI dependency. The dependency is installed
-# only when config.sandboxes.enabled is true.
-juicefs-csi-driver:
-  node:
-    fsShareMount: true
-    tolerations:
-      - key: sandbox.langsmith.com/host
-        operator: Equal
-        value: "true"
-        effect: NoSchedule
-  globalConfig:
-    mountPodPatch:
-      - mountOptions:
-          - cache-dir=/var/cache/juicefs-csi
-          - cache-size=51200
-          - buffer-size=300
-          - prefetch=3
-          - metrics=0.0.0.0:9567
-        resources:
-          requests:
-            cpu: "2"
-            memory: 4Gi
-          limits:
-            cpu: "2"
-            memory: 4Gi
-      - pvcSelector:
-          matchLabels:
-            juicefs.langsmith.com/cache: ssd
-        mountOptions:
-          - cache-dir=/var/cache/juicefs-csi
-          - cache-size=307200
 
 # Fleet Tool Server - provides MCP tool execution capabilities
 fleetToolServer:

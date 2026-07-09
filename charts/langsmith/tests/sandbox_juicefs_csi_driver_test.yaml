@@ -1,0 +1,177 @@
+suite: self-hosted sandbox JuiceFS CSI driver
+templates:
+  - validate.yaml
+  - sandboxes/juicefs-csi-driver/rbac.yaml
+  - sandboxes/juicefs-csi-driver/configmap.yaml
+  - sandboxes/juicefs-csi-driver/node-daemonset.yaml
+  - sandboxes/juicefs-csi-driver/controller-statefulset.yaml
+  - sandboxes/juicefs-csi-driver/csidriver.yaml
+tests:
+  - it: should not render inline JuiceFS CSI resources by default
+    set:
+      config.existingSecretName: langsmith-secrets
+      config.oauth.enabled: true
+      config.authType: oauth
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: should render only the sandbox-required JuiceFS CSI RBAC resources when sandboxes are enabled
+    values:
+      - ./values/sandboxes-enabled.yaml
+    template: sandboxes/juicefs-csi-driver/rbac.yaml
+    asserts:
+      - hasDocuments:
+          count: 6
+
+  - it: should render the JuiceFS CSI config map when sandboxes are enabled
+    values:
+      - ./values/sandboxes-enabled.yaml
+    template: sandboxes/juicefs-csi-driver/configmap.yaml
+    asserts:
+      - isKind:
+          of: ConfigMap
+      - equal:
+          path: metadata.name
+          value: RELEASE-NAME-langsmith-juicefs-csi-driver-config
+
+  - it: should render the JuiceFS CSIDriver when sandboxes are enabled
+    values:
+      - ./values/sandboxes-enabled.yaml
+    template: sandboxes/juicefs-csi-driver/csidriver.yaml
+    asserts:
+      - isKind:
+          of: CSIDriver
+      - equal:
+          path: metadata.name
+          value: csi.juicefs.com
+
+  - it: should render the JuiceFS CSI node daemonset with mirrored images
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      images.registry: mirror.example.com
+      images.imagePullSecrets:
+        - name: mirror-pull-secret
+      images.juicefsCSIImage.repository: juicedata/juicefs-csi-driver
+      images.juicefsCSIImage.tag: v0.31.4
+      images.juicefsCSINodeDriverRegistrarImage.repository: sig-storage/csi-node-driver-registrar
+      images.juicefsCSINodeDriverRegistrarImage.tag: v2.9.0
+      images.juicefsCSILivenessProbeImage.repository: sig-storage/livenessprobe
+      images.juicefsCSILivenessProbeImage.tag: v2.12.0
+      images.juicefsMountImage.repository: juicedata/mount
+      images.juicefsMountImage.tag: ce-v1.3.0
+    template: sandboxes/juicefs-csi-driver/node-daemonset.yaml
+    asserts:
+      - isKind:
+          of: DaemonSet
+      - equal:
+          path: metadata.name
+          value: juicefs-csi-node
+      - equal:
+          path: spec.selector.matchLabels["app.kubernetes.io/name"]
+          value: juicefs-csi-driver
+      - equal:
+          path: spec.template.metadata.labels["app.kubernetes.io/name"]
+          value: juicefs-csi-driver
+      - equal:
+          path: spec.template.spec.imagePullSecrets
+          value:
+            - name: mirror-pull-secret
+      - equal:
+          path: spec.template.spec.containers[0].image
+          value: mirror.example.com/juicedata/juicefs-csi-driver:v0.31.4
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: JUICEFS_CE_MOUNT_IMAGE
+            value: mirror.example.com/juicedata/mount:ce-v1.3.0
+      - equal:
+          path: spec.template.spec.containers[1].image
+          value: mirror.example.com/sig-storage/csi-node-driver-registrar:v2.9.0
+      - equal:
+          path: spec.template.spec.containers[2].image
+          value: mirror.example.com/sig-storage/livenessprobe:v2.12.0
+
+  - it: should render the JuiceFS CSI controller with mirrored images
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      images.registry: mirror.example.com
+      images.juicefsCSIImage.repository: juicedata/juicefs-csi-driver
+      images.juicefsCSIImage.tag: v0.31.4
+      images.juicefsCSIResizerImage.repository: sig-storage/csi-resizer
+      images.juicefsCSIResizerImage.tag: v1.9.0
+      images.juicefsCSILivenessProbeImage.repository: sig-storage/livenessprobe
+      images.juicefsCSILivenessProbeImage.tag: v2.12.0
+    template: sandboxes/juicefs-csi-driver/controller-statefulset.yaml
+    asserts:
+      - isKind:
+          of: StatefulSet
+      - equal:
+          path: metadata.name
+          value: juicefs-csi-controller
+      - equal:
+          path: spec.selector.matchLabels["app.kubernetes.io/name"]
+          value: juicefs-csi-driver
+      - equal:
+          path: spec.template.metadata.labels["app.kubernetes.io/name"]
+          value: juicefs-csi-driver
+      - equal:
+          path: spec.template.spec.containers[0].image
+          value: mirror.example.com/juicedata/juicefs-csi-driver:v0.31.4
+      - equal:
+          path: spec.template.spec.containers[1].image
+          value: mirror.example.com/sig-storage/csi-resizer:v1.9.0
+      - equal:
+          path: spec.template.spec.containers[2].image
+          value: mirror.example.com/sig-storage/livenessprobe:v2.12.0
+
+  - it: should fail when the JuiceFS CSI driver image tag is missing
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      images.juicefsCSIImage.tag: ""
+    template: validate.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: "images.juicefsCSIImage.tag is required when config.sandboxes.enabled is true."
+
+  - it: should render JuiceFS CSI node observability annotations
+    values:
+      - ./values/sandboxes-enabled.yaml
+      - ./values/sandboxes-juicefs-observability.yaml
+    template: sandboxes/juicefs-csi-driver/node-daemonset.yaml
+    asserts:
+      - equal:
+          path: metadata.annotations["prometheus.io/scrape"]
+          value: "true"
+      - equal:
+          path: spec.template.metadata.annotations["prometheus.io/port"]
+          value: "9567"
+
+  - it: should render JuiceFS CSI controller observability annotations
+    values:
+      - ./values/sandboxes-enabled.yaml
+      - ./values/sandboxes-juicefs-observability.yaml
+    template: sandboxes/juicefs-csi-driver/controller-statefulset.yaml
+    asserts:
+      - equal:
+          path: metadata.annotations["prometheus.io/scrape"]
+          value: "true"
+      - equal:
+          path: spec.template.metadata.annotations["prometheus.io/port"]
+          value: "9567"
+
+  - it: should render JuiceFS CSI mount pod patch overrides
+    values:
+      - ./values/sandboxes-enabled.yaml
+      - ./values/sandboxes-juicefs-observability.yaml
+    template: sandboxes/juicefs-csi-driver/configmap.yaml
+    asserts:
+      - matchRegex:
+          path: data["config.yaml"]
+          pattern: "admission.datadoghq.com/enabled: \"false\""
+      - matchRegex:
+          path: data["config.yaml"]
+          pattern: "ad.datadoghq.com/juicefs.logs"

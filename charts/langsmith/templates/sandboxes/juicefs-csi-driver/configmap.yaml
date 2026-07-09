@@ -1,0 +1,25 @@
+{{- if .Values.config.sandboxes.enabled }}
+{{- $namespace := .Values.namespace | default .Release.Namespace }}
+{{- $legacyCSI := index .Values "juicefs-csi-driver" | default dict }}
+{{- $legacyGlobalConfig := get $legacyCSI "globalConfig" | default dict }}
+{{- $mountPodPatch := .Values.config.sandboxes.juicefs.csi.mountPodPatch }}
+{{- if hasKey $legacyGlobalConfig "mountPodPatch" }}
+{{- $mountPodPatch = get $legacyGlobalConfig "mountPodPatch" }}
+{{- end }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "langsmith.sandboxes.juicefsCSIConfigMapName" . }}
+  namespace: {{ $namespace | quote }}
+  labels:
+    app.kubernetes.io/component: config
+    {{- include "langsmith.sandboxes.juicefsCSILabels" . | nindent 4 }}
+  annotations:
+    helm.sh/resource-policy: keep
+    {{- include "langsmith.sandboxes.juicefsCSIAnnotations" . | nindent 4 }}
+data:
+  config.yaml: |-
+    enableNodeSelector: false
+    mountPodPatch:
+{{- toYaml $mountPodPatch | nindent 4 }}
+{{- end }}

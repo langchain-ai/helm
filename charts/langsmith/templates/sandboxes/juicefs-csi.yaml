@@ -40,11 +40,11 @@ spec:
     namespace: {{ $namespace }}
     name: {{ .Values.config.sandboxes.juicefs.csi.pvcName }}
   csi:
-    driver: csi.juicefs.com
+    driver: {{ include "langsmith.sandboxes.juicefsCSIDriverName" . }}
     volumeHandle: {{ .Values.config.sandboxes.juicefs.csi.pvName }}
     fsType: juicefs
     volumeAttributes:
-      juicefs/mount-service-account: juicefs-csi-node-sa
+      juicefs/mount-service-account: {{ include "langsmith.sandboxes.juicefsCSINodeServiceAccountName" . }}
     nodePublishSecretRef:
       name: {{ include "langsmith.sandboxes.juicefsCSIConfigSecretName" . }}
       namespace: {{ $namespace }}
@@ -87,11 +87,11 @@ spec:
     namespace: {{ $namespace }}
     name: {{ include "langsmith.sandboxes.juicefsHostPVCName" . }}
   csi:
-    driver: csi.juicefs.com
+    driver: {{ include "langsmith.sandboxes.juicefsCSIDriverName" . }}
     volumeHandle: {{ include "langsmith.sandboxes.juicefsHostPVName" . }}
     fsType: juicefs
     volumeAttributes:
-      juicefs/mount-service-account: juicefs-csi-node-sa
+      juicefs/mount-service-account: {{ include "langsmith.sandboxes.juicefsCSINodeServiceAccountName" . }}
     nodePublishSecretRef:
       name: {{ include "langsmith.sandboxes.juicefsCSIConfigSecretName" . }}
       namespace: {{ $namespace }}

@@ -1263,6 +1263,68 @@ Derived JuiceFS CSI PV/PVC names for the sandbox-host mount.
 {{- end -}}
 
 {{/*
+JuiceFS CSI names used by self-hosted sandboxes.
+*/}}
+{{- define "langsmith.sandboxes.juicefsCSIDriverName" -}}
+csi.juicefs.com
+{{- end -}}
+
+{{- define "langsmith.sandboxes.juicefsCSISelectorLabels" -}}
+app.kubernetes.io/name: juicefs-csi-driver
+app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end -}}
+
+{{- define "langsmith.sandboxes.juicefsCSILabels" -}}
+{{- if .Values.commonLabels }}
+{{ toYaml .Values.commonLabels }}
+{{- end }}
+helm.sh/chart: {{ include "langsmith.chart" . }}
+{{ include "langsmith.sandboxes.juicefsCSISelectorLabels" . }}
+{{- if .Chart.AppVersion }}
+app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+{{- end }}
+app.kubernetes.io/managed-by: {{ .Release.Service }}
+{{- end -}}
+
+{{- define "langsmith.sandboxes.juicefsCSIAnnotations" -}}
+{{- if .Values.commonAnnotations }}
+{{ toYaml .Values.commonAnnotations }}
+{{- end }}
+helm.sh/chart: {{ include "langsmith.chart" . }}
+{{ include "langsmith.sandboxes.juicefsCSISelectorLabels" . }}
+{{- if .Chart.AppVersion }}
+app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+{{- end }}
+app.kubernetes.io/managed-by: {{ .Release.Service }}
+{{- end -}}
+
+{{- define "langsmith.sandboxes.juicefsCSIControllerServiceAccountName" -}}
+juicefs-csi-controller-sa
+{{- end -}}
+
+{{- define "langsmith.sandboxes.juicefsCSINodeServiceAccountName" -}}
+juicefs-csi-node-sa
+{{- end -}}
+
+{{- define "langsmith.sandboxes.juicefsCSIConfigMapName" -}}
+{{- printf "%s-juicefs-csi-driver-config" (include "langsmith.fullname" .) | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+
+{{/*
+Creates an optional image reference without falling back to Chart.AppVersion.
+*/}}
+{{- define "langsmith.optionalImage" -}}
+{{- $imageConfig := index .Values.images .component -}}
+{{- if and $imageConfig.repository $imageConfig.tag -}}
+{{- if .Values.images.registry -}}
+{{ .Values.images.registry }}/{{ $imageConfig.repository }}:{{ $imageConfig.tag }}
+{{- else -}}
+{{ $imageConfig.repository }}:{{ $imageConfig.tag }}
+{{- end -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
 Sandbox service account names.
 */}}
 {{- define "langsmith.sandboxes.sandboxHostServiceAccountName" -}}
