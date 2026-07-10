@@ -41,6 +41,24 @@ tests:
           path: metadata.namespace
           value: NAMESPACE
 
+  - it: should not grant JuiceFS CSI controller namespace secret access
+    values:
+      - ./values/sandboxes-enabled.yaml
+    template: sandboxes/juicefs-csi-driver/rbac.yaml
+    documentSelector:
+      path: $[?(@.kind == "Role")].metadata.name
+      value: juicefs-csi-external-provisioner-role
+    asserts:
+      - isKind:
+          of: Role
+      - notContains:
+          path: rules
+          content:
+            apiGroups:
+              - ""
+            resources:
+              - secrets
+
   - it: should scope JuiceFS CSI node mutations to the release namespace
     values:
       - ./values/sandboxes-enabled.yaml
@@ -57,6 +75,63 @@ tests:
       - equal:
           path: metadata.namespace
           value: NAMESPACE
+
+  - it: should scope JuiceFS CSI node secret reads and mutations to known sandbox secrets
+    values:
+      - ./values/sandboxes-enabled.yaml
+    template: sandboxes/juicefs-csi-driver/rbac.yaml
+    documentSelector:
+      path: $[?(@.kind == "Role")].metadata.name
+      value: juicefs-csi-external-node-service-role
+    asserts:
+      - isKind:
+          of: Role
+      - contains:
+          path: rules
+          content:
+            apiGroups:
+              - ""
+            resources:
+              - secrets
+            verbs:
+              - create
+      - contains:
+          path: rules
+          content:
+            apiGroups:
+              - ""
+            resources:
+              - secrets
+            resourceNames:
+              - juicefs-csi-config
+              - juicefs-sandbox-juicefs-secret
+              - juicefs-smithbox-juicefs-csi-secret
+              - juicefs-smithbox-juicefs-csi-host-secret
+            verbs:
+              - get
+              - update
+              - patch
+              - delete
+
+  - it: should not grant JuiceFS CSI node namespace pod exec access
+    values:
+      - ./values/sandboxes-enabled.yaml
+    template: sandboxes/juicefs-csi-driver/rbac.yaml
+    documentSelector:
+      path: $[?(@.kind == "Role")].metadata.name
+      value: juicefs-csi-external-node-service-role
+    asserts:
+      - isKind:
+          of: Role
+      - notContains:
+          path: rules
+          content:
+            apiGroups:
+              - ""
+            resources:
+              - pods/exec
+            verbs:
+              - create
 
   - it: should render JuiceFS CSI controller ServiceAccount annotations
     values:
@@ -155,6 +230,42 @@ tests:
               - ""
             resources:
               - secrets
+
+  - it: should not grant JuiceFS CSI controller cluster-wide persistent volume mutations
+    values:
+      - ./values/sandboxes-enabled.yaml
+    template: sandboxes/juicefs-csi-driver/rbac.yaml
+    documentSelector:
+      path: $[?(@.kind == "ClusterRole")].metadata.name
+      value: juicefs-csi-external-provisioner-role
+    asserts:
+      - isKind:
+          of: ClusterRole
+      - contains:
+          path: rules
+          content:
+            apiGroups:
+              - ""
+            resources:
+              - persistentvolumes
+            verbs:
+              - get
+              - list
+              - watch
+      - notContains:
+          path: rules
+          content:
+            apiGroups:
+              - ""
+            resources:
+              - persistentvolumes
+            verbs:
+              - get
+              - list
+              - watch
+              - create
+              - delete
+              - patch
 
   - it: should not grant JuiceFS CSI node cluster-wide pod exec access
     values:
@@ -286,6 +397,9 @@ tests:
       - notContains:
           path: spec.template.spec.containers[0].args
           content: --cache-client-conf=true
+      - notContains:
+          path: spec.template.spec.containers[0].args
+          content: --provisioner=true
 
   - it: should fail when the JuiceFS CSI driver image tag is missing
     values:

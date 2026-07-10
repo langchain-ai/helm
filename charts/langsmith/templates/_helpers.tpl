@@ -1252,6 +1252,24 @@ Name for the JuiceFS CSI config Secret.
 {{- end -}}
 
 {{/*
+Known JuiceFS CSI Secret names used by sandbox static volumes. Secret creates
+cannot be scoped by resourceNames, but read/update/delete verbs can.
+*/}}
+{{- define "langsmith.sandboxes.juicefsCSISecretResourceNames" -}}
+{{- $names := list
+  (include "langsmith.sandboxes.juicefsCSIConfigSecretName" .)
+  (printf "juicefs-%s-secret" .Values.config.sandboxes.juicefs.name)
+  (printf "juicefs-%s-secret" .Values.config.sandboxes.juicefs.csi.pvName)
+  (printf "juicefs-%s-secret" (include "langsmith.sandboxes.juicefsHostPVName" .))
+-}}
+{{- $resourceNames := list -}}
+{{- range ($names | compact | uniq) -}}
+{{- $resourceNames = append $resourceNames (printf "- %q" .) -}}
+{{- end -}}
+{{- join "\n" $resourceNames -}}
+{{- end -}}
+
+{{/*
 Rendered JuiceFS CSI config Secret data for chart-managed sandbox volumes.
 */}}
 {{- define "langsmith.sandboxes.juicefsCSIConfigSecretData" -}}

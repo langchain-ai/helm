@@ -961,7 +961,7 @@ config:
       # -- Existing TLS Secret containing tls.crt and tls.key for the sandbox proxy CA. This Secret can be created manually, by cert-manager, or by another external process.
       existingSecretName: ""
     juicefs:
-      # -- JuiceFS volume name. Use a flat DNS-label-style name only; slashes and object-store subpaths are not supported here. JuiceFS stores objects under `<name>/` inside the configured bucket.
+      # -- JuiceFS volume name. Use a flat DNS-label-style name only; slashes and object-store subpaths are not supported here. JuiceFS stores objects under `<name>/` inside the configured bucket. Also used to scope JuiceFS CSI RBAC for the generated mount Secret, so keep it aligned with the `name` key when using an existing CSI config Secret.
       name: "sandbox-juicefs"
       # -- Object storage backend used by JuiceFS for sandboxes. Currently supported values are `s3` for AWS/EKS and `gs` for GCP/GKE. Azure-backed sandbox storage is not supported yet.
       storage: "s3"

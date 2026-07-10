@@ -40,9 +40,6 @@ rules:
       - get
       - list
       - watch
-      - create
-      - delete
-      - patch
   - apiGroups:
       - ""
     resources:
@@ -116,16 +113,6 @@ rules:
       - get
       - list
       - watch
-      - create
-      - update
-      - patch
-      - delete
-  - apiGroups:
-      - ""
-    resources:
-      - secrets
-    verbs:
-      - get
       - create
       - update
       - patch
@@ -263,8 +250,15 @@ rules:
     resources:
       - secrets
     verbs:
-      - get
       - create
+  - apiGroups:
+      - ""
+    resources:
+      - secrets
+    resourceNames:
+      {{- include "langsmith.sandboxes.juicefsCSISecretResourceNames" . | nindent 6 }}
+    verbs:
+      - get
       - update
       - patch
       - delete
@@ -285,12 +279,6 @@ rules:
     verbs:
       - get
       - list
-  - apiGroups:
-      - ""
-    resources:
-      - pods/exec
-    verbs:
-      - create
   - apiGroups:
       - ""
     resources:
