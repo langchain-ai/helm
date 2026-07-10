@@ -38,6 +38,8 @@ spec:
         {{- with .Values.config.sandboxes.sandboxHost.deployment.podAnnotations }}
           {{- toYaml . | nindent 8 }}
         {{- end }}
+        checksum/juicefs-csi-config: {{ include "langsmith.sandboxes.juicefsCSIConfigSecretChecksum" . | quote }}
+        checksum/juicefs-csi-driver-config: {{ include "langsmith.sandboxes.juicefsCSIDriverConfigChecksum" . | quote }}
     spec:
       hostNetwork: true
       dnsPolicy: ClusterFirstWithHostNet

@@ -1252,6 +1252,29 @@ Name for the JuiceFS CSI config Secret.
 {{- end -}}
 
 {{/*
+Rendered JuiceFS CSI config Secret data for chart-managed sandbox volumes.
+*/}}
+{{- define "langsmith.sandboxes.juicefsCSIConfigSecretData" -}}
+{{- $juicefsRedis := .Values.config.sandboxes.juicefs.redis | default dict -}}
+name: {{ .Values.config.sandboxes.juicefs.name | quote }}
+metaurl: {{ $juicefsRedis.metaURL | quote }}
+storage: {{ .Values.config.sandboxes.juicefs.storage | quote }}
+bucket: {{ .Values.config.sandboxes.juicefs.bucket | quote }}
+{{- end -}}
+
+{{/*
+Checksum for the JuiceFS CSI config Secret known to Helm. Existing Secrets use
+the Secret name only because Helm cannot safely hash live external Secret data.
+*/}}
+{{- define "langsmith.sandboxes.juicefsCSIConfigSecretChecksum" -}}
+{{- if .Values.config.sandboxes.juicefs.csi.existingSecretName -}}
+{{- printf "existing:%s" (include "langsmith.sandboxes.juicefsCSIConfigSecretName" .) | sha256sum -}}
+{{- else -}}
+{{- include "langsmith.sandboxes.juicefsCSIConfigSecretData" . | sha256sum -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
 Derived JuiceFS CSI PV/PVC names for the sandbox-host mount.
 */}}
 {{- define "langsmith.sandboxes.juicefsHostPVName" -}}
@@ -1308,6 +1331,19 @@ juicefs-csi-node-sa
 
 {{- define "langsmith.sandboxes.juicefsCSIConfigMapName" -}}
 {{- printf "%s-juicefs-csi-driver-config" (include "langsmith.fullname" .) | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+
+{{/*
+Rendered JuiceFS CSI driver config file.
+*/}}
+{{- define "langsmith.sandboxes.juicefsCSIDriverConfig" -}}
+enableNodeSelector: false
+mountPodPatch:
+{{- toYaml .Values.config.sandboxes.juicefs.csi.mountPodPatch | nindent 2 }}
+{{- end -}}
+
+{{- define "langsmith.sandboxes.juicefsCSIDriverConfigChecksum" -}}
+{{- include "langsmith.sandboxes.juicefsCSIDriverConfig" . | sha256sum -}}
 {{- end -}}
 
 {{/*

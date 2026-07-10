@@ -346,6 +346,12 @@ tests:
       - equal:
           path: spec.template.spec.containers[0].ports[0].hostPort
           value: 19190
+      - matchRegex:
+          path: spec.template.metadata.annotations["checksum/juicefs-csi-config"]
+          pattern: "^[a-f0-9]{64}$"
+      - matchRegex:
+          path: spec.template.metadata.annotations["checksum/juicefs-csi-driver-config"]
+          pattern: "^[a-f0-9]{64}$"
       - notExists:
           path: spec.template.spec.containers[0].command
       - equal:

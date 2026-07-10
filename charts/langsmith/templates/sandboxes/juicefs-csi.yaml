@@ -1,6 +1,5 @@
 {{- if .Values.config.sandboxes.enabled }}
 {{- $namespace := .Values.namespace | default .Release.Namespace }}
-{{- $juicefsRedis := .Values.config.sandboxes.juicefs.redis | default dict }}
 {{- $juicefsCSI := .Values.config.sandboxes.juicefs.csi | default dict }}
 {{- if not $juicefsCSI.existingSecretName }}
 apiVersion: v1
@@ -15,10 +14,7 @@ metadata:
     {{- include "langsmith.annotations" . | nindent 4 }}
 type: Opaque
 stringData:
-  name: {{ .Values.config.sandboxes.juicefs.name | quote }}
-  metaurl: {{ $juicefsRedis.metaURL | quote }}
-  storage: {{ .Values.config.sandboxes.juicefs.storage | quote }}
-  bucket: {{ .Values.config.sandboxes.juicefs.bucket | quote }}
+{{ include "langsmith.sandboxes.juicefsCSIConfigSecretData" . | indent 2 }}
 ---
 {{- end }}
 apiVersion: v1

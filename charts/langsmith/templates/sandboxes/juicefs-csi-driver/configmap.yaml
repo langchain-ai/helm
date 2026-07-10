@@ -1,6 +1,5 @@
 {{- if .Values.config.sandboxes.enabled }}
 {{- $namespace := .Values.namespace | default .Release.Namespace }}
-{{- $mountPodPatch := .Values.config.sandboxes.juicefs.csi.mountPodPatch }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -14,7 +13,5 @@ metadata:
     {{- include "langsmith.sandboxes.juicefsCSIAnnotations" . | nindent 4 }}
 data:
   config.yaml: |-
-    enableNodeSelector: false
-    mountPodPatch:
-{{- toYaml $mountPodPatch | nindent 4 }}
+{{ include "langsmith.sandboxes.juicefsCSIDriverConfig" . | indent 4 }}
 {{- end }}

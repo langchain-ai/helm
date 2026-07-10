@@ -171,6 +171,9 @@ tests:
       - equal:
           path: spec.template.spec.containers[0].image
           value: mirror.example.com/juicedata/juicefs-csi-driver:v0.31.4
+      - matchRegex:
+          path: spec.template.metadata.annotations["checksum/juicefs-csi-driver-config"]
+          pattern: "^[a-f0-9]{64}$"
       - contains:
           path: spec.template.spec.containers[0].env
           content:
@@ -210,6 +213,9 @@ tests:
       - equal:
           path: spec.template.spec.containers[0].image
           value: mirror.example.com/juicedata/juicefs-csi-driver:v0.31.4
+      - matchRegex:
+          path: spec.template.metadata.annotations["checksum/juicefs-csi-driver-config"]
+          pattern: "^[a-f0-9]{64}$"
       - equal:
           path: spec.template.spec.containers[1].image
           value: mirror.example.com/sig-storage/csi-resizer:v1.9.0
