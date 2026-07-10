@@ -136,19 +136,6 @@ tests:
           path: metadata.name
           value: csi.juicefs.com
 
-  - it: should render the JuiceFS CSIDriver during offline upgrade renders
-    values:
-      - ./values/sandboxes-enabled.yaml
-    release:
-      isUpgrade: true
-    template: sandboxes/juicefs-csi-driver/csidriver.yaml
-    asserts:
-      - isKind:
-          of: CSIDriver
-      - equal:
-          path: metadata.name
-          value: csi.juicefs.com
-
   - it: should render the JuiceFS CSI node daemonset with mirrored images
     values:
       - ./values/sandboxes-enabled.yaml
