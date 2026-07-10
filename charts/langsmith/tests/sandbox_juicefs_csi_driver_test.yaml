@@ -78,6 +78,28 @@ tests:
             verbs:
               - "*"
 
+  - it: should grant JuiceFS CSI node cluster-wide pod reads
+    values:
+      - ./values/sandboxes-enabled.yaml
+    template: sandboxes/juicefs-csi-driver/rbac.yaml
+    documentSelector:
+      path: $[?(@.kind == "ClusterRole")].metadata.name
+      value: juicefs-csi-external-node-service-role
+    asserts:
+      - isKind:
+          of: ClusterRole
+      - contains:
+          path: rules
+          content:
+            apiGroups:
+              - ""
+            resources:
+              - pods
+            verbs:
+              - get
+              - list
+              - watch
+
   - it: should not grant JuiceFS CSI controller cluster-wide secret access
     values:
       - ./values/sandboxes-enabled.yaml
