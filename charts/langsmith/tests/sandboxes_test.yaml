@@ -347,6 +347,10 @@ tests:
           path: spec.template.spec.containers[0].ports[0].hostPort
           value: 19190
       - notExists:
+          path: spec.template.metadata.annotations["checksum/juicefs-csi-config"]
+      - notExists:
+          path: spec.template.metadata.annotations["checksum/juicefs-csi-driver-config"]
+      - notExists:
           path: spec.template.spec.containers[0].command
       - equal:
           path: spec.template.spec.nodeSelector

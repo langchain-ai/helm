@@ -1252,6 +1252,29 @@ Name for the JuiceFS CSI config Secret.
 {{- end -}}
 
 {{/*
+Rendered JuiceFS CSI config Secret data for chart-managed sandbox volumes.
+*/}}
+{{- define "langsmith.sandboxes.juicefsCSIConfigSecretData" -}}
+{{- $juicefsRedis := .Values.config.sandboxes.juicefs.redis | default dict -}}
+name: {{ .Values.config.sandboxes.juicefs.name | quote }}
+metaurl: {{ $juicefsRedis.metaURL | quote }}
+storage: {{ .Values.config.sandboxes.juicefs.storage | quote }}
+bucket: {{ .Values.config.sandboxes.juicefs.bucket | quote }}
+{{- end -}}
+
+{{/*
+Checksum for the JuiceFS CSI config Secret known to Helm. Existing Secrets use
+the Secret name only because Helm cannot safely hash live external Secret data.
+*/}}
+{{- define "langsmith.sandboxes.juicefsCSIConfigSecretChecksum" -}}
+{{- if .Values.config.sandboxes.juicefs.csi.existingSecretName -}}
+{{- printf "existing:%s" (include "langsmith.sandboxes.juicefsCSIConfigSecretName" .) | sha256sum -}}
+{{- else -}}
+{{- include "langsmith.sandboxes.juicefsCSIConfigSecretData" . | sha256sum -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
 Derived JuiceFS CSI PV/PVC names for the sandbox-host mount.
 */}}
 {{- define "langsmith.sandboxes.juicefsHostPVName" -}}
@@ -1260,6 +1283,81 @@ Derived JuiceFS CSI PV/PVC names for the sandbox-host mount.
 
 {{- define "langsmith.sandboxes.juicefsHostPVCName" -}}
 {{- printf "%s-host" .Values.config.sandboxes.juicefs.csi.pvcName -}}
+{{- end -}}
+
+{{/*
+JuiceFS CSI names used by self-hosted sandboxes.
+*/}}
+{{- define "langsmith.sandboxes.juicefsCSIDriverName" -}}
+csi.juicefs.com
+{{- end -}}
+
+{{- define "langsmith.sandboxes.juicefsCSISelectorLabels" -}}
+app.kubernetes.io/name: juicefs-csi-driver
+app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end -}}
+
+{{- define "langsmith.sandboxes.juicefsCSILabels" -}}
+{{- if .Values.commonLabels }}
+{{ toYaml .Values.commonLabels }}
+{{- end }}
+helm.sh/chart: {{ include "langsmith.chart" . }}
+{{ include "langsmith.sandboxes.juicefsCSISelectorLabels" . }}
+{{- if .Chart.AppVersion }}
+app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+{{- end }}
+app.kubernetes.io/managed-by: {{ .Release.Service }}
+{{- end -}}
+
+{{- define "langsmith.sandboxes.juicefsCSIAnnotations" -}}
+{{- if .Values.commonAnnotations }}
+{{ toYaml .Values.commonAnnotations }}
+{{- end }}
+helm.sh/chart: {{ include "langsmith.chart" . }}
+{{ include "langsmith.sandboxes.juicefsCSISelectorLabels" . }}
+{{- if .Chart.AppVersion }}
+app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+{{- end }}
+app.kubernetes.io/managed-by: {{ .Release.Service }}
+{{- end -}}
+
+{{- define "langsmith.sandboxes.juicefsCSIControllerServiceAccountName" -}}
+juicefs-csi-controller-sa
+{{- end -}}
+
+{{- define "langsmith.sandboxes.juicefsCSINodeServiceAccountName" -}}
+juicefs-csi-node-sa
+{{- end -}}
+
+{{- define "langsmith.sandboxes.juicefsCSIConfigMapName" -}}
+{{- printf "%s-juicefs-csi-driver-config" (include "langsmith.fullname" .) | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+
+{{/*
+Rendered JuiceFS CSI driver config file.
+*/}}
+{{- define "langsmith.sandboxes.juicefsCSIDriverConfig" -}}
+enableNodeSelector: false
+mountPodPatch:
+{{- toYaml .Values.config.sandboxes.juicefs.csi.mountPodPatch | nindent 2 }}
+{{- end -}}
+
+{{- define "langsmith.sandboxes.juicefsCSIDriverConfigChecksum" -}}
+{{- include "langsmith.sandboxes.juicefsCSIDriverConfig" . | sha256sum -}}
+{{- end -}}
+
+{{/*
+Creates an optional image reference without falling back to Chart.AppVersion.
+*/}}
+{{- define "langsmith.optionalImage" -}}
+{{- $imageConfig := index .Values.images .component -}}
+{{- if and $imageConfig.repository $imageConfig.tag -}}
+{{- if .Values.images.registry -}}
+{{ .Values.images.registry }}/{{ $imageConfig.repository }}:{{ $imageConfig.tag }}
+{{- else -}}
+{{ $imageConfig.repository }}:{{ $imageConfig.tag }}
+{{- end -}}
+{{- end -}}
 {{- end -}}
 
 {{/*

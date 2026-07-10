@@ -7,8 +7,3 @@ description: Helm chart to deploy the langsmith application and all services it 
 type: application
 version: 0.16.0-rc.12
 appVersion: "0.16.13rc1"
-dependencies:
-  - name: juicefs-csi-driver
-    version: 0.31.4
-    repository: https://juicedata.github.io/charts/
-    condition: config.sandboxes.enabled

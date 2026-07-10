@@ -1,6 +1,5 @@
 {{- if .Values.config.sandboxes.enabled }}
 {{- $namespace := .Values.namespace | default .Release.Namespace }}
-{{- $juicefsRedis := .Values.config.sandboxes.juicefs.redis | default dict }}
 {{- $juicefsCSI := .Values.config.sandboxes.juicefs.csi | default dict }}
 {{- if not $juicefsCSI.existingSecretName }}
 apiVersion: v1
@@ -15,10 +14,7 @@ metadata:
     {{- include "langsmith.annotations" . | nindent 4 }}
 type: Opaque
 stringData:
-  name: {{ .Values.config.sandboxes.juicefs.name | quote }}
-  metaurl: {{ $juicefsRedis.metaURL | quote }}
-  storage: {{ .Values.config.sandboxes.juicefs.storage | quote }}
-  bucket: {{ .Values.config.sandboxes.juicefs.bucket | quote }}
+{{ include "langsmith.sandboxes.juicefsCSIConfigSecretData" . | indent 2 }}
 ---
 {{- end }}
 apiVersion: v1
@@ -40,11 +36,11 @@ spec:
     namespace: {{ $namespace }}
     name: {{ .Values.config.sandboxes.juicefs.csi.pvcName }}
   csi:
-    driver: csi.juicefs.com
+    driver: {{ include "langsmith.sandboxes.juicefsCSIDriverName" . }}
     volumeHandle: {{ .Values.config.sandboxes.juicefs.csi.pvName }}
     fsType: juicefs
     volumeAttributes:
-      juicefs/mount-service-account: juicefs-csi-node-sa
+      juicefs/mount-service-account: {{ include "langsmith.sandboxes.juicefsCSINodeServiceAccountName" . }}
     nodePublishSecretRef:
       name: {{ include "langsmith.sandboxes.juicefsCSIConfigSecretName" . }}
       namespace: {{ $namespace }}
@@ -87,11 +83,11 @@ spec:
     namespace: {{ $namespace }}
     name: {{ include "langsmith.sandboxes.juicefsHostPVCName" . }}
   csi:
-    driver: csi.juicefs.com
+    driver: {{ include "langsmith.sandboxes.juicefsCSIDriverName" . }}
     volumeHandle: {{ include "langsmith.sandboxes.juicefsHostPVName" . }}
     fsType: juicefs
     volumeAttributes:
-      juicefs/mount-service-account: juicefs-csi-node-sa
+      juicefs/mount-service-account: {{ include "langsmith.sandboxes.juicefsCSINodeServiceAccountName" . }}
     nodePublishSecretRef:
       name: {{ include "langsmith.sandboxes.juicefsCSIConfigSecretName" . }}
       namespace: {{ $namespace }}
