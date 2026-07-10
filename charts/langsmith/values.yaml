@@ -978,9 +978,15 @@ config:
         controller:
           # -- Annotations applied to the JuiceFS CSI controller StatefulSet and pod template.
           annotations: {}
+          serviceAccount:
+            # -- Annotations applied to the JuiceFS CSI controller ServiceAccount.
+            annotations: {}
         node:
           # -- Annotations applied to the JuiceFS CSI node DaemonSet and pod template.
           annotations: {}
+          serviceAccount:
+            # -- Annotations applied to the JuiceFS CSI node ServiceAccount. Use this for workload identity annotations such as AWS IRSA or GCP Workload Identity.
+            annotations: {}
         # -- Mount pod patches used by the JuiceFS CSI driver for sandbox volumes. Override only when tuning JuiceFS mount behavior or observability.
         mountPodPatch:
           - mountOptions:

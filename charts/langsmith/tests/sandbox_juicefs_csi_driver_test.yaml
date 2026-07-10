@@ -58,6 +58,44 @@ tests:
           path: metadata.namespace
           value: NAMESPACE
 
+  - it: should render JuiceFS CSI controller ServiceAccount annotations
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      config.sandboxes.juicefs.csi.controller.serviceAccount.annotations.iam\.gke\.io/gcp-service-account: juicefs-controller@example.iam.gserviceaccount.com
+    template: sandboxes/juicefs-csi-driver/rbac.yaml
+    documentSelector:
+      path: $[?(@.kind == "ServiceAccount")].metadata.name
+      value: juicefs-csi-controller-sa
+    asserts:
+      - isKind:
+          of: ServiceAccount
+      - equal:
+          path: metadata.annotations["iam.gke.io/gcp-service-account"]
+          value: juicefs-controller@example.iam.gserviceaccount.com
+      - equal:
+          path: metadata.annotations["app.kubernetes.io/name"]
+          value: juicefs-csi-driver
+
+  - it: should render JuiceFS CSI node ServiceAccount annotations
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      config.sandboxes.juicefs.csi.node.serviceAccount.annotations.eks\.amazonaws\.com/role-arn: arn:aws:iam::123456789012:role/juicefs-csi-node
+    template: sandboxes/juicefs-csi-driver/rbac.yaml
+    documentSelector:
+      path: $[?(@.kind == "ServiceAccount")].metadata.name
+      value: juicefs-csi-node-sa
+    asserts:
+      - isKind:
+          of: ServiceAccount
+      - equal:
+          path: metadata.annotations["eks.amazonaws.com/role-arn"]
+          value: arn:aws:iam::123456789012:role/juicefs-csi-node
+      - equal:
+          path: metadata.annotations["app.kubernetes.io/name"]
+          value: juicefs-csi-driver
+
   - it: should not grant JuiceFS CSI node kubelet proxy access by default
     values:
       - ./values/sandboxes-enabled.yaml

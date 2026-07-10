@@ -1,5 +1,7 @@
 {{- if .Values.config.sandboxes.enabled }}
 {{- $namespace := .Values.namespace | default .Release.Namespace }}
+{{- $controllerServiceAccountAnnotations := mergeOverwrite (dict) (include "langsmith.sandboxes.juicefsCSIAnnotations" . | fromYaml) (default dict .Values.config.sandboxes.juicefs.csi.controller.serviceAccount.annotations) }}
+{{- $nodeServiceAccountAnnotations := mergeOverwrite (dict) (include "langsmith.sandboxes.juicefsCSIAnnotations" . | fromYaml) (default dict .Values.config.sandboxes.juicefs.csi.node.serviceAccount.annotations) }}
 apiVersion: v1
 kind: ServiceAccount
 metadata:
@@ -9,7 +11,7 @@ metadata:
     app.kubernetes.io/component: controller
     {{- include "langsmith.sandboxes.juicefsCSILabels" . | nindent 4 }}
   annotations:
-    {{- include "langsmith.sandboxes.juicefsCSIAnnotations" . | nindent 4 }}
+    {{- toYaml $controllerServiceAccountAnnotations | nindent 4 }}
 ---
 apiVersion: v1
 kind: ServiceAccount
@@ -20,7 +22,7 @@ metadata:
     app.kubernetes.io/component: node
     {{- include "langsmith.sandboxes.juicefsCSILabels" . | nindent 4 }}
   annotations:
-    {{- include "langsmith.sandboxes.juicefsCSIAnnotations" . | nindent 4 }}
+    {{- toYaml $nodeServiceAccountAnnotations | nindent 4 }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
