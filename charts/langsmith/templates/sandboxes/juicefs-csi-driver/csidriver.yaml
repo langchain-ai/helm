@@ -1,8 +1,19 @@
 {{- if .Values.config.sandboxes.enabled }}
+{{- $driverName := include "langsmith.sandboxes.juicefsCSIDriverName" . -}}
+{{- $existingDriver := lookup "storage.k8s.io/v1" "CSIDriver" "" $driverName -}}
+{{- $existingDriverLabels := dict -}}
+{{- $existingDriverAnnotations := dict -}}
+{{- if $existingDriver -}}
+{{- $existingDriverLabels = default dict $existingDriver.metadata.labels -}}
+{{- $existingDriverAnnotations = default dict $existingDriver.metadata.annotations -}}
+{{- end -}}
+{{- $existingDriverOwnedByThisRelease := and $existingDriver (eq (index $existingDriverLabels "app.kubernetes.io/managed-by") "Helm") (eq (index $existingDriverAnnotations "meta.helm.sh/release-name") .Release.Name) (eq (index $existingDriverAnnotations "meta.helm.sh/release-namespace") .Release.Namespace) -}}
+{{- $skipExistingDriver := and .Release.IsUpgrade $existingDriver (not $existingDriverOwnedByThisRelease) -}}
+{{- if not $skipExistingDriver }}
 apiVersion: storage.k8s.io/v1
 kind: CSIDriver
 metadata:
-  name: {{ include "langsmith.sandboxes.juicefsCSIDriverName" . }}
+  name: {{ $driverName }}
   labels:
     app.kubernetes.io/component: driver
     {{- include "langsmith.sandboxes.juicefsCSILabels" . | nindent 4 }}
@@ -18,4 +29,5 @@ spec:
   storageCapacity: false
   volumeLifecycleModes:
     - Persistent
+{{- end }}
 {{- end }}
