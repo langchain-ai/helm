@@ -1,11 +1,6 @@
 {{- if .Values.config.sandboxes.enabled }}
 {{- $namespace := .Values.namespace | default .Release.Namespace }}
-{{- $legacyCSI := index .Values "juicefs-csi-driver" | default dict }}
-{{- $legacyGlobalConfig := get $legacyCSI "globalConfig" | default dict }}
 {{- $mountPodPatch := .Values.config.sandboxes.juicefs.csi.mountPodPatch }}
-{{- if hasKey $legacyGlobalConfig "mountPodPatch" }}
-{{- $mountPodPatch = get $legacyGlobalConfig "mountPodPatch" }}
-{{- end }}
 apiVersion: v1
 kind: ConfigMap
 metadata:

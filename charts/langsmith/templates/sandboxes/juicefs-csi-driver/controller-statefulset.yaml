@@ -1,10 +1,7 @@
 {{- if .Values.config.sandboxes.enabled }}
 {{- $namespace := .Values.namespace | default .Release.Namespace }}
 {{- $mountImage := include "langsmith.optionalImage" (dict "Values" .Values "Chart" .Chart "component" "juicefsMountImage") }}
-{{- $legacyCSI := index .Values "juicefs-csi-driver" | default dict }}
-{{- $legacyController := get $legacyCSI "controller" | default dict }}
-{{- $legacyControllerAnnotations := get $legacyController "annotations" | default dict }}
-{{- $controllerAnnotations := mergeOverwrite (dict) $legacyControllerAnnotations .Values.config.sandboxes.juicefs.csi.controller.annotations }}
+{{- $controllerAnnotations := .Values.config.sandboxes.juicefs.csi.controller.annotations }}
 {{- $podAnnotations := mergeOverwrite (dict) (default dict .Values.commonPodAnnotations) $controllerAnnotations }}
 apiVersion: apps/v1
 kind: StatefulSet
