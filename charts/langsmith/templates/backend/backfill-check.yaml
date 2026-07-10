@@ -18,11 +18,12 @@ metadata:
     # before any schema migrations are applied.  Uses pre-upgrade (not
     # pre-install) because backfills are irrelevant on a fresh install.
     "helm.sh/hook": pre-upgrade
-    "helm.sh/hook-weight": "0"
+    "helm.sh/hook-weight": "-2"
     # Delete the previous job before creating a new one so each upgrade
     # attempt gets a fresh check result.
     "helm.sh/hook-delete-policy": before-hook-creation
     "argocd.argoproj.io/hook": "PreSync"
+    "argocd.argoproj.io/sync-wave": "-2"
     "argocd.argoproj.io/hook-delete-policy": "BeforeHookCreation"
     {{- include "langsmith.annotations" . | nindent 4 }}
     {{- with .Values.backend.backfillCheck.annotations }}
