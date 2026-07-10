@@ -4,3 +4,4 @@ test*.yaml
 .cursor/
 charts/langsmith-observability/charts/*
 test*.csv
+.tmp/

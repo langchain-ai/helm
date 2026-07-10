@@ -1,0 +1,50 @@
+{{- /*
+Renders each entry in .Values.preInstallManifests as a Helm pre-install /
+pre-upgrade hook so the resource is applied before the rest of the chart's
+manifests. Intended for prerequisites the chart consumes during install/upgrade
+-- for example, an ExternalSecret (External Secrets Operator) whose
+materialized Kubernetes Secret is referenced via `config.existingSecretName`
+or the per-datastore `*.external.existingSecretName` values.
+
+Entry forms
+-----------
+Each entry may be a YAML object or a multi-line YAML string. Both are rendered
+through `tpl` so template expressions like `{{ .Release.Name }}` work. Each
+entry must be a single resource (no `---` separators inside one string).
+
+Annotation handling
+-------------------
+The following annotations are injected automatically. User-provided values for
+the same keys take precedence, so the template is idempotent for manifests
+that already carry hook annotations -- partial overrides are merged
+(any default the user did not set is still applied).
+
+  helm.sh/hook: pre-install,pre-upgrade
+  helm.sh/hook-weight: "-5"
+  helm.sh/hook-delete-policy: before-hook-creation
+
+Caveats
+-------
+Hook resources are not tracked as part of the Helm release and are recreated
+on every upgrade. For ExternalSecret entries, prefer
+`target.creationPolicy: Orphan` (or `target.deletionPolicy: Retain` on newer
+ESO versions) so the materialized Secret survives upgrades and pods consuming
+it don't restart.
+*/ -}}
+{{- range .Values.preInstallManifests }}
+{{- $manifest := . }}
+{{- if typeIs "string" $manifest }}
+{{-   $manifest = tpl . $ | fromYaml }}
+{{- else }}
+{{-   $manifest = tpl (toYaml .) $ | fromYaml }}
+{{- end }}
+{{- $_ := set $manifest "metadata" (default (dict) $manifest.metadata) }}
+{{- $hookAnnotations := dict
+      "helm.sh/hook" "pre-install,pre-upgrade"
+      "helm.sh/hook-weight" "-5"
+      "helm.sh/hook-delete-policy" "before-hook-creation" }}
+{{- $userAnnotations := default (dict) $manifest.metadata.annotations }}
+{{- $_ := set $manifest.metadata "annotations" (merge $userAnnotations $hookAnnotations) }}
+---
+{{ toYaml $manifest }}
+{{- end }}

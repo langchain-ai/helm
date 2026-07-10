@@ -14,6 +14,15 @@ commonLabels: {}
 commonVolumes: []
 # -- Common volume mounts added to all deployments/statefulsets.
 commonVolumeMounts: []
+# -- Common DNS configuration applied to all pods. Reduces DNS query amplification in Kubernetes by
+# -- ensuring service FQDNs (which have 4 dots) are resolved directly without search domain expansion.
+# -- Set to null to disable and use Kubernetes defaults (ndots: 5).
+commonDnsConfig:
+  options:
+    - name: ndots
+      value: "4"
+# -- Kubernetes cluster domain. Only change if not using 'cluster.local'
+clusterDomain: "cluster.local"
 
 images:
   # -- If supplied, all children <image_name>.repository values will be prepended with this registry name + `/`
@@ -34,18 +43,23 @@ images:
     repository: "docker.io/redis"
     pullPolicy: IfNotPresent
     tag: "6"
-  studioImage:
-    repository: "docker.io/langchain/langgraph-debugger"
-    pullPolicy: Always
-    tag: "0.12.77"
+  mongoImage:
+    repository: "mongo"
+    pullPolicy: IfNotPresent
+    tag: "7"
 
 config:
+  # -- Skip chart validation checks (ingress/gateway mutual-exclusion and MongoDB config guards). Used for helm template verification (e.g. AWS Marketplace).
+  skipValidation: false
   existingSecretName: ""
   # -- Optional LangGraph Cloud license key loaded from the chart secret.
   langGraphCloudLicenseKey: ""
   # -- Optional LangSmith API key mounted as LANGSMITH_API_KEY.
   apiKey: ""
   numberOfJobsPerWorker: 10  # Number of jobs per worker. Workers are bundled with the api server if queue is disabled."
+  # -- Optional maximum HTTP request body size in bytes. The application defaults to 314572800 (300MB).
+  # -- Set this to override the default limit. Requests exceeding this limit receive HTTP 413.
+  httpMaxRequestBodyBytes: ""
   auth:
     enabled: false
     langSmithAuthEndpoint: ""
@@ -54,11 +68,44 @@ config:
 ingress:
   enabled: false
   hostname: ""  #  Set this to the hostname you want to use for the ingress.
-  studioHostname: ""  # Set this to the hostname you want to use for the studio ingress
   ingressClassName: ""
   annotations: {}
   labels: {}
   tls: []
+
+# -- Whether to use the Gateway API for ingress. Will create an HTTPRoute for each service.
+# -- Only one of ingress, gateway, or istioGateway can be enabled at the same time.
+gateway:
+  enabled: false
+  # -- Name of the Gateway resource to attach the HTTPRoute to.
+  name: ""
+  # -- Namespace of the Gateway resource. If not set, the HTTPRoute will not specify a namespace for the parentRef.
+  namespace: ""
+  # -- Hostname for the HTTPRoute. If not set, the route will match all hostnames.
+  hostname: ""
+  # -- Section name of the Gateway listener to attach to.
+  sectionName: ""
+  # -- Base path prefix for the HTTPRoute. The prefix is stripped before forwarding to the backend.
+  # -- WARNING: Changing basePath after deployment will break existing routes.
+  basePath: ""
+  annotations: {}
+  labels: {}
+
+# -- Whether to use Istio VirtualServices for ingress. Will create a VirtualService for each service.
+# -- Only one of ingress, gateway, or istioGateway can be enabled at the same time.
+istioGateway:
+  enabled: false
+  # -- Name of the Istio Gateway resource.
+  name: ""
+  # -- Namespace of the Istio Gateway resource.
+  namespace: ""
+  # -- Hostname for the VirtualService. If not set, the VirtualService will match all hosts ("*").
+  hostname: ""
+  # -- Base path prefix for the VirtualService. The prefix is stripped (rewritten to /) before forwarding to the backend.
+  # -- WARNING: Changing basePath after deployment will break existing routes.
+  basePath: ""
+  annotations: {}
+  labels: {}
 
 apiServer:
   name: "api-server"
@@ -69,7 +116,9 @@ apiServer:
     annotations: {}
     podSecurityContext: {}
     securityContext: {}
+    lifecycle: {}
     priorityClassName: ""
+    terminationGracePeriodSeconds: 30
     resources:
       limits:
         cpu: 2000m
@@ -151,7 +200,9 @@ queue:
     annotations: {}
     podSecurityContext: {}
     securityContext: {}
+    lifecycle: {}
     priorityClassName: ""
+    terminationGracePeriodSeconds: 30
     resources:
       limits:
         cpu: 2000m
@@ -162,6 +213,7 @@ queue:
     extraEnv: []
     envFrom: []  # List of ConfigMap or Secret references to load environment variables from
     sidecars: []
+    extraPorts: []
     nodeSelector: {}
     tolerations: []
     affinity: {}
@@ -224,11 +276,16 @@ postgres:
     existingSecretName: ""
   containerPort: 5432
   statefulSet:
+    # -- Optional StatefulSet update strategy for the in-chart PostgreSQL instance.
+    # Leave unset to keep the Kubernetes default RollingUpdate behavior.
+    updateStrategy: {}
     labels: {}
     annotations: {}
     podSecurityContext: {}
     securityContext: {}
+    lifecycle: {}
     priorityClassName: ""
+    terminationGracePeriodSeconds: 30
     resources:
       limits:
         cpu: 4000m
@@ -281,7 +338,9 @@ redis:
     annotations: {}
     podSecurityContext: {}
     securityContext: {}
+    lifecycle: {}
     priorityClassName: ""
+    terminationGracePeriodSeconds: 30
     resources:
       limits:
         cpu: 2000m
@@ -342,77 +401,28 @@ redis:
     enabled: false
     minAvailable: 1
 
-studio:
-  enabled: true
-  localGraphUrl: ""  #  Set this to api-server base url you want studio to point to by default.
-  name: "studio"
-  containerPort: 3968
-  deployment:
-    replicaCount: 1
-    labels: {}
-    annotations: {}
-    podSecurityContext: {}
-    securityContext: {}
-    priorityClassName: ""
+mongo:
+  # -- Enable MongoDB checkpointing. When `mongo.external.enabled` is false, the chart provisions a bundled single-node MongoDB replica set intended for local development, CI, and quickstarts.
+  enabled: false
+  external:
+    # -- Use an external MongoDB deployment instead of the chart-managed MongoDB instance.
+    enabled: false
+    # -- MongoDB connection URL used when `mongo.enabled` and `mongo.external.enabled` are true. Must include the target database name and point at a replica set member or `mongos`.
+    connectionUrl: ""
+    # -- Existing secret name containing the MongoDB connection URL.
+    existingSecretName: ""
+  statefulSet:
+    # -- Optional StatefulSet update strategy for the in-chart MongoDB instance.
+    # Leave unset to keep the Kubernetes default RollingUpdate behavior.
+    updateStrategy: {}
+    # -- Resource requests and limits for the bundled MongoDB pod.
     resources:
       limits:
-        cpu: 1000m
-        memory: 2Gi
+        cpu: 2000m
+        memory: 4Gi
       requests:
         cpu: 500m
         memory: 1Gi
-    extraEnv: []
-    sidecars: []
-    nodeSelector: {}
-    tolerations: []
-    affinity: {}
-    volumes: []
-    volumeMounts: []
-    startupProbe:
-      httpGet:
-        path: /health
-        port: 3968
-      failureThreshold: 6
-      periodSeconds: 10
-      timeoutSeconds: 1
-    readinessProbe:
-      httpGet:
-        path: /health
-        port: 3968
-      failureThreshold: 3
-      periodSeconds: 10
-      timeoutSeconds: 1
-    livenessProbe:
-      httpGet:
-        path: /health
-        port: 3968
-      failureThreshold: 6
-      periodSeconds: 10
-      timeoutSeconds: 1
-  autoscaling:  #  Autoscaling configuration. Not generally needed for studio.
-    enabled: false
-    minReplicas: 1
-    maxReplicas: 5
-    targetCPUUtilizationPercentage: 80
-    keda:  #  KEDA autoscaling configuration. Recommended for autoscaling but only available if keda is installed in the cluster.
-      enabled: false
-      pollingInterval: 30
-      cooldownPeriod: 300
-      scaleDownStabilizationWindowSeconds: 300
-  service:
-    type: LoadBalancer
-    httpPort: 80
-    httpsPort: 443
-    labels: {}
-    annotations: {}
-    loadBalancerSourceRanges: []
-    loadBalancerIP: ""
-  serviceAccount:
-    create: true
-    name: ""
-    labels: {}
-    annotations: {}
-    automountServiceAccountToken: true
-  pdb:
-    enabled: false
-    minAvailable: 1
+    persistence:
+      # -- Persistent volume size for the bundled MongoDB instance.
+      size: 8Gi

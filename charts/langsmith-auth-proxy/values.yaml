@@ -12,6 +12,13 @@ commonPodAnnotations: {}
 commonLabels: {}
 # -- Common pod security context applied to all pods. Component-specific podSecurityContext values will be merged on top of this (component values take precedence).
 commonPodSecurityContext: {}
+# -- Common DNS configuration applied to all pods. Reduces DNS query amplification in Kubernetes by
+# -- ensuring service FQDNs (which have 4 dots) are resolved directly without search domain expansion.
+# -- Set to null to disable and use Kubernetes defaults (ndots: 5).
+commonDnsConfig:
+  options:
+    - name: ndots
+      value: "4"
 
 images:
   # -- If supplied, all children <image_name>.repository values will be prepended with this registry name + `/`
@@ -25,21 +32,51 @@ images:
 # Auth Proxy - Envoy-based proxy for validating LangSmith-signed JWTs
 # and optionally calling an external auth service before forwarding to an upstream LLM provider or gateway.
 # Separate ingress from the main LangSmith app — different hostname, streaming-optimized.
+# Note that auth-proxy restarts when values are updated (specifically changes that affect the envoy proxy config).
 authProxy:
   enabled: true
   name: "auth-proxy"
   containerPort: 10000
-  # -- Upstream LLM provider URL (e.g. https://api.openai.com)
+  # -- Upstream LLM provider or gateway URL (e.g. https://gateway.example.com or https://gateway.example.com/api/v1).
+  # If a path is included, all requests will be prefixed with it (e.g. /chat/completions becomes /api/v1/chat/completions).
   upstream: ""
   # -- JWT issuer claim to validate
   jwtIssuer: "langsmith"
-  # -- JWT audience claims to validate. Must match audiences in the signed JWT.
+  # -- (required) JWT audience claims to validate. Must match audiences in the signed JWT.
   jwtAudiences: []
   # -- JWKS JSON string containing the public keys for JWT validation.
   # Generate with the LangSmith JWKS tooling and paste the full JSON here.
+  # Mutually exclusive with jwksUri — if both are set, jwksUri takes precedence.
   jwksJson: ""
+  # -- Remote JWKS endpoint URL for fetching public keys (e.g. https://langsmith.example.com/.well-known/jwks.json for self-hosted LangSmith or https://api.smith.langchain.com/.well-known/jwks.json in SaaS).
+  # When set, Envoy fetches and caches keys from this URL instead of using inline jwksJson.
+  # Mutually exclusive with jwksJson — if both are set, jwksUri takes precedence.
+  jwksUri: ""
+  # -- Cache duration in seconds for remote JWKS keys. Only used when jwksUri is set.
+  jwksCacheDurationSeconds: 300
+  # -- JWT validation configuration
+  jwtValidation:
+    # -- Set to false to disable the envoy.filters.http.jwt_authn filter entirely.
+    # Useful for testing or when JWT validation is handled elsewhere.
+    enabled: true
   # -- Idle timeout for streaming responses (e.g. SSE from LLM providers)
   streamIdleTimeout: "300s"
+  # -- HTTP proxy configuration for the upstream cluster.
+  # Envoy does not respect HTTP_PROXY/HTTPS_PROXY/NO_PROXY env vars; configure proxy here instead.
+  # See https://github.com/envoyproxy/envoy/issues/21175.
+  # Uses the two-listener loopback pattern (tcp_proxy + tunneling_config) to route through an HTTP CONNECT proxy.
+  # Supports both IP addresses and hostnames for the proxy host.
+  httpProxy:
+    # -- Enable routing upstream traffic through an HTTP proxy
+    enabled: false
+    # -- Proxy hostname or IP address
+    host: ""
+    # -- Proxy port
+    port: 3128
+    # -- List of hostnames/domains to bypass the proxy for (NO_PROXY equivalent).
+    # Supports exact match ("internal.corp") and domain suffix (".internal.corp").
+    # If the upstream hostname matches any entry, proxy is not used.
+    noProxy: []
   # External authorization service configuration (for injecting LLM provider auth headers).
   # See https://www.envoyproxy.io/docs/envoy/latest/api-v3/extensions/filters/http/ext_authz/v3/ext_authz.proto for details.
   extAuthz:
@@ -65,6 +102,49 @@ authProxy:
     sendBody: false
     # -- Maximum request body bytes to buffer for ext_authz
     maxRequestBytes: 8192
+  # Request/response transformer using Envoy's ext_proc filter.
+  # More powerful than ext_authz — can modify headers AND bodies in both directions.
+  # Requires a gRPC service implementing envoy.service.ext_proc.v3.ExternalProcessor.
+  # See e2e/transformer/ for a sample Go implementation.
+  transformer:
+    # -- Enable the request/response transformer (ext_proc filter).
+    enabled: false
+    # -- gRPC service URL for the transformer (e.g. grpc://my-transformer:50051)
+    serviceUrl: ""
+    # -- Timeout for transformer calls
+    timeout: "10s"
+    # -- Whether to fail open (allow request) or closed (reject) on transformer errors
+    failureModeAllow: false
+    # -- Processing phases to enable. Only enabled phases are sent to the transformer service.
+    # Disabling unused phases avoids unnecessary gRPC round-trips and reduces latency.
+    processingMode:
+      # -- Whether to send request headers to the transformer.
+      # SEND: forward headers (use this to read JWTs, inject auth headers, add routing metadata).
+      # SKIP: do not forward. DEFAULT: use the server-side default.
+      requestHeaderMode: "SEND"
+      # -- Whether to send response headers to the transformer.
+      # SEND: forward headers (use this to strip, rewrite, or add response headers).
+      # SKIP: do not forward. DEFAULT: use the server-side default.
+      responseHeaderMode: "SKIP"
+      # -- Whether and how to send the request body to the transformer.
+      # NONE: do not send. BUFFERED: buffer the full body before sending (simplest — good for JSON rewriting).
+      # STREAMED: send body chunks as they arrive (lower latency, harder to implement).
+      # BUFFERED_PARTIAL: buffer up to the route-level per_route buffer limit, then send what was collected.
+      # IMPORTANT: when mutating the body, your ext_proc service MUST also set the content-length header
+      # to match the new body size via HeaderMutation in the body response. Envoy rejects responses where
+      # content-length doesn't match the mutated body. See e2e/transformer/sample-ext-proc.go for an example.
+      requestBodyMode: "NONE"
+      # -- Whether and how to send the response body to the transformer.
+      # NONE: do not send. BUFFERED: buffer the full body before sending.
+      # STREAMED: send body chunks as they arrive (use for SSE/streaming LLM responses — each chunk is forwarded individually).
+      # BUFFERED_PARTIAL: buffer up to the route-level per_route buffer limit, then send what was collected.
+      responseBodyMode: "NONE"
+      # -- Whether to send request trailers to the transformer. SEND or SKIP.
+      # Trailers are rarely used in LLM APIs; leave as SKIP unless your upstream requires them.
+      requestTrailerMode: "SKIP"
+      # -- Whether to send response trailers to the transformer. SEND or SKIP.
+      # Trailers are rarely used in LLM APIs; leave as SKIP unless your upstream requires them.
+      responseTrailerMode: "SKIP"
   # -- ArgoCD Rollouts configuration. If enabled, will create a Rollout resource instead of a Deployment. See https://argo-rollouts.readthedocs.io/
   rollout:
     enabled: false
@@ -79,6 +159,7 @@ authProxy:
     annotations: {}
     podSecurityContext: {}
     securityContext: {}
+    lifecycle: {}
     resources:
       limits:
         cpu: 500m

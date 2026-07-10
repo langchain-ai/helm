@@ -19,6 +19,10 @@ metadata:
 spec:
   serviceName: {{ include "langGraphCloud.fullname" . }}-{{ .Values.postgres.name }}
   replicas: 1
+  {{- with .Values.postgres.statefulSet.updateStrategy }}
+  updateStrategy:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
   selector:
     matchLabels:
       {{- include "langGraphCloud.selectorLabels" . | nindent 6 }}
@@ -43,9 +47,11 @@ spec:
       {{- if .Values.postgres.statefulSet.priorityClassName }}
       priorityClassName: {{ .Values.postgres.statefulSet.priorityClassName }}
       {{- end }}
+      terminationGracePeriodSeconds: {{ .Values.postgres.statefulSet.terminationGracePeriodSeconds }}
       securityContext:
         {{- toYaml .Values.postgres.statefulSet.podSecurityContext | nindent 8 }}
       serviceAccountName: {{ include "postgres.serviceAccountName" . }}
+      {{- include "langGraphCloud.dnsConfig" . | nindent 6 }}
       containers:
         - name: {{ .Values.postgres.name }}
           {{- with.Values.postgres.statefulSet.command }}
@@ -110,6 +116,10 @@ spec:
             {{- toYaml .Values.postgres.statefulSet.resources | nindent 12 }}
           securityContext:
             {{- toYaml .Values.postgres.statefulSet.securityContext | nindent 12 }}
+          {{- with .Values.postgres.statefulSet.lifecycle }}
+          lifecycle:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           volumeMounts:
             {{- with $volumeMounts }}
               {{- toYaml . | nindent 12 }}

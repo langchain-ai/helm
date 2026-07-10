@@ -30,6 +30,7 @@ backfill_txns AS (
 )
 SELECT
     bt.*,
+    t.organization_id,
     t.display_name AS workspace_name,
     o.display_name AS organization_name,
     :'customer_id' AS customer_id,

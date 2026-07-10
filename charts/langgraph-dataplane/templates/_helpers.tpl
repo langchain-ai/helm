@@ -110,7 +110,7 @@ Template containing common environment variables that are used by several servic
       name: {{ include "langgraphDataplane.secretsName" . }}
       key: langsmith_api_key
 - name: HOST_QUEUE
-  value: "host"
+  value: {{ .Values.config.hostQueue | quote }}
 - name: HOST_WORKER_RECONCILIATION_CRON_ENABLED
   value: "true"
 - name: HOST_WORKER_EXTERNAL_ENABLED
@@ -135,6 +135,16 @@ Template containing common environment variables that are used by several servic
   value: {{ .Values.config.enableLGPDeploymentHealthCheck | quote }}
 {{- end }}
 
+
+{{/*
+Common DNS configuration for all pods. When commonDnsConfig is set, it will be applied to all pods.
+*/}}
+{{- define "langgraphDataplane.dnsConfig" -}}
+{{- if .Values.commonDnsConfig }}
+dnsConfig:
+  {{- toYaml .Values.commonDnsConfig | nindent 2 }}
+{{- end }}
+{{- end }}
 
 {{- define "listener.serviceAccountName" -}}
 {{- if .Values.listener.serviceAccount.create -}}

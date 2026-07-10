@@ -60,6 +60,7 @@ spec:
       securityContext:
         {{- include "langsmith.podSecurityContext" (dict "Values" .Values "componentSecurityContext" .Values.ingestQueue.deployment.podSecurityContext) | nindent 8 }}
       serviceAccountName: {{ include "ingestQueue.serviceAccountName" . }}
+      {{- include "langsmith.dnsConfig" . | nindent 6 }}
       restartPolicy: Always
       {{- with concat .Values.commonInitContainers .Values.ingestQueue.deployment.initContainers }}
       initContainers:
@@ -78,6 +79,11 @@ spec:
           envFrom:
             - configMapRef:
                 name: {{ include "langsmith.fullname" . }}-config
+            {{- if and .Values.backend.agentBootstrap.enabled .Values.config.agentBuilder.enabled }}
+            - configMapRef:
+                name: {{ include "langsmith.fullname" . }}-agent-builder-config
+                optional: true
+            {{- end }}
           image: {{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "platformBackendImage") | quote }}
           imagePullPolicy: {{ .Values.images.platformBackendImage.pullPolicy }}
           ports:
@@ -100,6 +106,10 @@ spec:
             {{- toYaml .Values.ingestQueue.deployment.resources | nindent 12 }}
           securityContext:
             {{- toYaml .Values.ingestQueue.deployment.securityContext | nindent 12 }}
+          {{- with .Values.ingestQueue.deployment.lifecycle }}
+          lifecycle:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           {{- with $volumeMounts }}
           volumeMounts:
             {{- toYaml . | nindent 12 }}

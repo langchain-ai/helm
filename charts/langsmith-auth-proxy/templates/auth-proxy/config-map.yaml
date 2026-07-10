@@ -2,6 +2,26 @@
 {{- $upstreamScheme := (urlParse .Values.authProxy.upstream).scheme -}}
 {{- $upstreamHostname := include "authProxy.urlHostname" .Values.authProxy.upstream -}}
 {{- $upstreamPort := include "authProxy.urlPort" .Values.authProxy.upstream -}}
+{{- $upstreamPath := trimSuffix "/" (urlParse .Values.authProxy.upstream).path -}}
+{{- $proxyEnabled := .Values.authProxy.httpProxy.enabled -}}
+{{- $useProxy := false -}}
+{{- if $proxyEnabled -}}
+  {{- $useProxy = include "authProxy.shouldUseProxy" (dict "hostname" $upstreamHostname "noProxy" .Values.authProxy.httpProxy.noProxy) | trim | eq "true" -}}
+{{- end -}}
+{{- $jwksUri := .Values.authProxy.jwksUri -}}
+{{- $jwksScheme := "" -}}
+{{- $jwksHostname := "" -}}
+{{- $jwksPort := "" -}}
+{{- $useProxyForJwks := false -}}
+{{- if $jwksUri -}}
+  {{- $jwksScheme = (urlParse $jwksUri).scheme -}}
+  {{- $jwksHostname = include "authProxy.urlHostname" $jwksUri -}}
+  {{- $jwksPort = include "authProxy.urlPort" $jwksUri -}}
+  {{- if $proxyEnabled -}}
+    {{- $useProxyForJwks = include "authProxy.shouldUseProxy" (dict "hostname" $jwksHostname "noProxy" .Values.authProxy.httpProxy.noProxy) | trim | eq "true" -}}
+  {{- end -}}
+{{- end -}}
+{{- $needsProxyCluster := or $useProxy $useProxyForJwks -}}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -35,8 +55,11 @@ data:
                             - match:
                                 prefix: "/"
                               route:
-                                cluster: upstream_provider
+                                cluster: {{ if $useProxy }}loopback_cluster{{ else }}upstream_provider{{ end }}
                                 host_rewrite_literal: {{ $upstreamHostname }}
+                                {{- if $upstreamPath }}
+                                prefix_rewrite: "{{ $upstreamPath }}/"
+                                {{- end }}
                                 timeout: 0s
                                 idle_timeout: {{ .Values.authProxy.streamIdleTimeout }}
                     http_filters:
@@ -48,20 +71,32 @@ data:
                             - name: ":path"
                               string_match:
                                 exact: "/healthz"
+                      {{- if .Values.authProxy.jwtValidation.enabled }}
                       - name: envoy.filters.http.jwt_authn
                         typed_config:
                           "@type": type.googleapis.com/envoy.extensions.filters.http.jwt_authn.v3.JwtAuthentication
                           providers:
                             langsmith_jwt:
                               issuer: {{ .Values.authProxy.jwtIssuer }}
-                              {{- if .Values.authProxy.jwtAudiences }}
+                              {{- if not .Values.authProxy.jwtAudiences }}
+                                {{- fail "authProxy.jwtAudiences is required and must contain at least one audience" }}
+                              {{- end }}
                               audiences:
                                 {{- range .Values.authProxy.jwtAudiences }}
                                 - {{ . | quote }}
                                 {{- end }}
-                              {{- end }}
+                              {{- if $jwksUri }}
+                              remote_jwks:
+                                http_uri:
+                                  uri: {{ $jwksUri }}
+                                  cluster: {{ if $useProxyForJwks }}jwks_loopback_cluster{{ else }}jwks_service{{ end }}
+                                  timeout: 5s
+                                cache_duration:
+                                  seconds: {{ .Values.authProxy.jwksCacheDurationSeconds | default 300 }}
+                              {{- else }}
                               local_jwks:
                                 inline_string: '{{ .Values.authProxy.jwksJson }}'
+                              {{- end }}
                               from_headers:
                                 - name: X-LangSmith-LLM-Auth
                               forward: true
@@ -70,6 +105,7 @@ data:
                                 prefix: "/"
                               requires:
                                 provider_name: langsmith_jwt
+                      {{- end }}
                       {{- if .Values.authProxy.extAuthz.enabled }}
                       - name: envoy.filters.http.ext_authz
                         typed_config:
@@ -114,8 +150,9 @@ data:
                                   {{- end }}
                                   {{- end }}
                                 {{- else }}
-                                  - safe_regex:
-                                      regex: ".*"
+                                  # Default to allow "authorization" and headers starting with "x-"
+                                  - exact: "authorization"
+                                  - prefix: "x-"
                                 {{- end }}
                               allowed_client_headers:
                                 patterns:
@@ -127,11 +164,81 @@ data:
                             allow_partial_message: false
                           {{- end }}
                       {{- end }}
+                      {{- if .Values.authProxy.transformer.enabled }}
+                      - name: envoy.filters.http.ext_proc
+                        typed_config:
+                          "@type": type.googleapis.com/envoy.extensions.filters.http.ext_proc.v3.ExternalProcessor
+                          failure_mode_allow: {{ .Values.authProxy.transformer.failureModeAllow }}
+                          message_timeout: {{ .Values.authProxy.transformer.timeout }}
+                          processing_mode:
+                            request_header_mode: {{ .Values.authProxy.transformer.processingMode.requestHeaderMode }}
+                            response_header_mode: {{ .Values.authProxy.transformer.processingMode.responseHeaderMode }}
+                            request_body_mode: {{ .Values.authProxy.transformer.processingMode.requestBodyMode }}
+                            response_body_mode: {{ .Values.authProxy.transformer.processingMode.responseBodyMode }}
+                            request_trailer_mode: {{ .Values.authProxy.transformer.processingMode.requestTrailerMode }}
+                            response_trailer_mode: {{ .Values.authProxy.transformer.processingMode.responseTrailerMode }}
+                          grpc_service:
+                            envoy_grpc:
+                              cluster_name: transformer_service
+                      {{- end }}
                       - name: envoy.filters.http.router
                         typed_config:
                           "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
+        {{- if $useProxy }}
+        - name: listener_1
+          address:
+            socket_address:
+              address: 127.0.0.1
+              port_value: 10001
+          filter_chains:
+            - filters:
+                - name: envoy.filters.network.tcp_proxy
+                  typed_config:
+                    "@type": type.googleapis.com/envoy.extensions.filters.network.tcp_proxy.v3.TcpProxy
+                    stat_prefix: tcp_to_proxy
+                    cluster: proxy_cluster
+                    tunneling_config:
+                      hostname: {{ $upstreamHostname }}:{{ $upstreamPort }}
+        {{- end }}
+        {{- if $useProxyForJwks }}
+        - name: listener_2
+          address:
+            socket_address:
+              address: 127.0.0.1
+              port_value: 10002
+          filter_chains:
+            - filters:
+                - name: envoy.filters.network.tcp_proxy
+                  typed_config:
+                    "@type": type.googleapis.com/envoy.extensions.filters.network.tcp_proxy.v3.TcpProxy
+                    stat_prefix: tcp_to_jwks_proxy
+                    cluster: proxy_cluster
+                    tunneling_config:
+                      hostname: {{ $jwksHostname }}:{{ $jwksPort }}
+        {{- end }}
 
       clusters:
+        {{- if $useProxy }}
+        - name: loopback_cluster
+          connect_timeout: 5s
+          type: STATIC
+          load_assignment:
+            cluster_name: loopback_cluster
+            endpoints:
+              - lb_endpoints:
+                  - endpoint:
+                      address:
+                        socket_address:
+                          address: 127.0.0.1
+                          port_value: 10001
+          {{- if eq $upstreamScheme "https" }}
+          transport_socket:
+            name: envoy.transport_sockets.tls
+            typed_config:
+              "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.UpstreamTlsContext
+              sni: {{ $upstreamHostname }}
+          {{- end }}
+        {{- else }}
         - name: upstream_provider
           connect_timeout: 5s
           type: LOGICAL_DNS
@@ -152,6 +259,64 @@ data:
               "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.UpstreamTlsContext
               sni: {{ $upstreamHostname }}
           {{- end }}
+        {{- end }}
+        {{- if $needsProxyCluster }}
+        - name: proxy_cluster
+          connect_timeout: 5s
+          type: STRICT_DNS
+          dns_lookup_family: V4_ONLY
+          load_assignment:
+            cluster_name: proxy_cluster
+            endpoints:
+              - lb_endpoints:
+                  - endpoint:
+                      address:
+                        socket_address:
+                          address: {{ .Values.authProxy.httpProxy.host }}
+                          port_value: {{ .Values.authProxy.httpProxy.port }}
+        {{- end }}
+        {{- if $useProxyForJwks }}
+        - name: jwks_loopback_cluster
+          connect_timeout: 5s
+          type: STATIC
+          load_assignment:
+            cluster_name: jwks_loopback_cluster
+            endpoints:
+              - lb_endpoints:
+                  - endpoint:
+                      address:
+                        socket_address:
+                          address: 127.0.0.1
+                          port_value: 10002
+          {{- if eq $jwksScheme "https" }}
+          transport_socket:
+            name: envoy.transport_sockets.tls
+            typed_config:
+              "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.UpstreamTlsContext
+              sni: {{ $jwksHostname }}
+          {{- end }}
+        {{- else if $jwksUri }}
+        - name: jwks_service
+          connect_timeout: 5s
+          type: LOGICAL_DNS
+          dns_lookup_family: V4_ONLY
+          load_assignment:
+            cluster_name: jwks_service
+            endpoints:
+              - lb_endpoints:
+                  - endpoint:
+                      address:
+                        socket_address:
+                          address: {{ $jwksHostname }}
+                          port_value: {{ $jwksPort }}
+          {{- if eq $jwksScheme "https" }}
+          transport_socket:
+            name: envoy.transport_sockets.tls
+            typed_config:
+              "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.UpstreamTlsContext
+              sni: {{ $jwksHostname }}
+          {{- end }}
+        {{- end }}
         {{- if .Values.authProxy.extAuthz.enabled }}
         - name: ext_authz_service
           connect_timeout: 5s
@@ -166,5 +331,25 @@ data:
                         socket_address:
                           address: {{ include "authProxy.urlHostname" .Values.authProxy.extAuthz.serviceUrl }}
                           port_value: {{ include "authProxy.urlPort" .Values.authProxy.extAuthz.serviceUrl }}
+        {{- end }}
+        {{- if .Values.authProxy.transformer.enabled }}
+        - name: transformer_service
+          connect_timeout: 5s
+          type: STRICT_DNS
+          dns_lookup_family: V4_ONLY
+          typed_extension_protocol_options:
+            envoy.extensions.upstreams.http.v3.HttpProtocolOptions:
+              "@type": type.googleapis.com/envoy.extensions.upstreams.http.v3.HttpProtocolOptions
+              explicit_http_config:
+                http2_protocol_options: {}
+          load_assignment:
+            cluster_name: transformer_service
+            endpoints:
+              - lb_endpoints:
+                  - endpoint:
+                      address:
+                        socket_address:
+                          address: {{ include "authProxy.urlHostname" .Values.authProxy.transformer.serviceUrl }}
+                          port_value: {{ include "authProxy.urlPort" .Values.authProxy.transformer.serviceUrl }}
         {{- end }}
 {{- end }}

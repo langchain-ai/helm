@@ -1,0 +1,6 @@
+# Patterns to ignore when building packages.
+e2e/
+ci/
+tests/
+*.gotmpl
+.venv/

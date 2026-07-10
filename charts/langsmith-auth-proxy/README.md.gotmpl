@@ -11,6 +11,7 @@ Client -> Envoy(:10000)
   -> Health check filter (/healthz bypasses auth)
   -> JWT validation (RS256, configurable issuer + audiences)
   -> [optional] ext_authz HTTP filter (e.g. inject provider API key)
+  -> [optional] ext_proc gRPC filter (e.g. transform request/response bodies)
   -> Upstream LLM provider or gateway
 ```
 
@@ -32,6 +33,37 @@ This chart uses the **HTTP** `ext_authz` mode — HTTP request in, HTTP response
 **Response** — The service returns a plain HTTP response:
 - `2xx` → allow: headers matching `allowed_upstream_headers` (`authorization`, `x-langsmith-llm-auth`, `x-forwarded-*`) are forwarded upstream
 - Non-`2xx` → deny: status code + headers matching `allowed_client_headers` (`www-authenticate`, `x-*`) are sent back to the client
+
+## ext_proc transformer integration
+
+For use cases that require **request/response body transformation** (not just header injection), this chart supports Envoy's [ext_proc filter](https://www.envoyproxy.io/docs/envoy/latest/configuration/http/http_filters/ext_proc_filter).
+
+### When to use ext_proc vs ext_authz
+
+| Capability | ext_authz | ext_proc (transformer) |
+|-----------|-----------|------------------------|
+| Modify request headers | Yes | Yes |
+| Modify response headers | No | Yes |
+| Modify request body | No | Yes |
+| Modify response body | No | Yes |
+| Protocol | HTTP | gRPC |
+
+Use **ext_authz** if you only need to inject auth headers (e.g. API keys). Use **transformer** (ext_proc) if you need to rewrite request or response bodies — for example, converting between OpenAI format and a custom gateway format.
+
+Both can be enabled simultaneously: ext_authz for auth header injection, transformer for body rewriting.
+
+### gRPC interface
+
+The transformer service must implement the `envoy.service.ext_proc.v3.ExternalProcessor` gRPC service. See [e2e/transformer/](e2e/transformer/) for a sample Go implementation.
+
+### Processing modes
+
+Control which phases are sent to the transformer via `processingMode`:
+- **Header modes** (`SEND`, `SKIP`, `DEFAULT`): whether request/response headers are forwarded
+- **Body modes** (`NONE`, `STREAMED`, `BUFFERED`, `BUFFERED_PARTIAL`): whether and how bodies are forwarded
+- **Trailer modes** (`SEND`, `SKIP`): whether trailers are forwarded
+
+`BUFFERED` mode buffers the entire body before sending — simplest for transformations but uses more memory for large payloads. `STREAMED` sends chunks incrementally (complex to implement). Use `NONE` to skip body processing entirely.
 
 ## Values
 

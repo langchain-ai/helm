@@ -5,6 +5,10 @@
   value: "3"
 - name: "PORT"
   value: {{ .Values.queue.containerPort | quote }}
+{{- if .Values.insights.enabled }}
+- name: CLIO_LANGGRAPH_URL
+  value: "http://{{ include "langsmith.agentFeatures.apiServerK8sServiceName" (dict "root" . "product" "insights") }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.insights.apiServer.service.httpPort }}"
+{{- end }}
 {{- end -}}
 {{- $envVars := concat .Values.commonEnv (include "langsmith.commonEnv" . | fromYamlArray) (include "queueEnvVars" . | fromYamlArray) .Values.queue.deployment.extraEnv -}}
 {{- include "langsmith.detectDuplicates" $envVars -}}
@@ -61,6 +65,7 @@ spec:
       securityContext:
         {{- include "langsmith.podSecurityContext" (dict "Values" .Values "componentSecurityContext" .Values.queue.deployment.podSecurityContext) | nindent 8 }}
       serviceAccountName: {{ include "queue.serviceAccountName" . }}
+      {{- include "langsmith.dnsConfig" . | nindent 6 }}
       restartPolicy: Always
       {{- with concat .Values.commonInitContainers .Values.queue.deployment.initContainers }}
       initContainers:
@@ -79,11 +84,6 @@ spec:
           envFrom:
             - configMapRef:
                 name: {{ include "langsmith.fullname" . }}-config
-            {{- if .Values.config.insights.enabled }}
-            - configMapRef:
-                name: {{ include "langsmith.fullname" . }}-insights-config
-                optional: true
-            {{- end }}
           image: {{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "backendImage") | quote }}
           imagePullPolicy: {{ .Values.images.backendImage.pullPolicy }}
           ports:
@@ -106,6 +106,10 @@ spec:
             {{- toYaml .Values.queue.deployment.resources | nindent 12 }}
           securityContext:
             {{- toYaml .Values.queue.deployment.securityContext | nindent 12 }}
+          {{- with .Values.queue.deployment.lifecycle }}
+          lifecycle:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           {{- with $volumeMounts }}
           volumeMounts:
             {{- toYaml . | nindent 12 }}

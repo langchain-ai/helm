@@ -66,6 +66,7 @@ spec:
       securityContext:
         {{- include "langsmith.podSecurityContext" (dict "Values" .Values "componentSecurityContext" .Values.listener.deployment.podSecurityContext) | nindent 8 }}
       serviceAccountName: {{ include "listener.serviceAccountName" . }}
+      {{- include "langsmith.dnsConfig" . | nindent 6 }}
       restartPolicy: Always
       {{- with concat .Values.commonInitContainers .Values.listener.deployment.initContainers }}
       initContainers:
@@ -106,6 +107,10 @@ spec:
             {{- toYaml .Values.listener.deployment.resources | nindent 12 }}
           securityContext:
             {{- toYaml .Values.listener.deployment.securityContext | nindent 12 }}
+          {{- with .Values.listener.deployment.lifecycle }}
+          lifecycle:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           {{- with $volumeMounts }}
           volumeMounts:
               {{- toYaml . | nindent 12 }}

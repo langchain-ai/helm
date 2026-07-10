@@ -10,11 +10,95 @@ config:
     jwtSecret: "YOUR_JWT_SECRET"
 
 # Note, you likely should tweak the values to match something that fits your local development environment.
+fleet:
+  enabled: true
+  encryptionKey: "rQ3qW2rSXP6YZF9N_O0Nga4GkQcW9a9tzFXAtJDVEJo="
+  apiServer:
+    deployment:
+      resources:
+        requests:
+          cpu: 50m
+          memory: 300Mi
+  queue:
+    deployment:
+      resources:
+        requests:
+          cpu: 50m
+          memory: 300Mi
+  postgres:
+    statefulSet:
+      resources:
+        requests:
+          cpu: 100m
+          memory: 500Mi
+  redis:
+    statefulSet:
+      resources:
+        requests:
+          cpu: 100m
+          memory: 500Mi
+
+insights:
+  enabled: true
+  encryptionKey: "rQ3qW2rSXP6YZF9N_O0Nga4GkQcW9a9tzFXAtJDVEJo="
+  apiServer:
+    deployment:
+      resources:
+        requests:
+          cpu: 50m
+          memory: 300Mi
+  queue:
+    deployment:
+      resources:
+        requests:
+          cpu: 50m
+          memory: 300Mi
+  postgres:
+    statefulSet:
+      resources:
+        requests:
+          cpu: 100m
+          memory: 500Mi
+  redis:
+    statefulSet:
+      resources:
+        requests:
+          cpu: 100m
+          memory: 500Mi
+
+polly:
+  enabled: true
+  encryptionKey: "rQ3qW2rSXP6YZF9N_O0Nga4GkQcW9a9tzFXAtJDVEJo="
+  apiServer:
+    deployment:
+      resources:
+        requests:
+          cpu: 50m
+          memory: 300Mi
+  queue:
+    deployment:
+      resources:
+        requests:
+          cpu: 50m
+          memory: 300Mi
+  postgres:
+    statefulSet:
+      resources:
+        requests:
+          cpu: 100m
+          memory: 500Mi
+  redis:
+    statefulSet:
+      resources:
+        requests:
+          cpu: 100m
+          memory: 500Mi
+
 aceBackend:
   deployment:
     resources:
       requests:
-        cpu: 100m
+        cpu: 50m
         memory: 500Mi
 
 backend:
@@ -24,18 +108,15 @@ backend:
       requests:
         cpu: 100m
         memory: 500Mi
-  feedbackConfigMigration:
-    resources:
-      requests:
-        cpu: 100m
-        memory: 500Mi
-  feedbackDataMigration:
-    resources:
-      requests:
-        cpu: 100m
-        memory: 500Mi
 
 frontend:
+  deployment:
+    resources:
+      requests:
+        cpu: 50m
+        memory: 500Mi
+
+hostBackend:
   deployment:
     resources:
       requests:
@@ -54,7 +135,7 @@ playground:
   deployment:
     resources:
       requests:
-        cpu: 100m
+        cpu: 50m
         memory: 500Mi
 
 queue:
@@ -66,25 +147,47 @@ queue:
         memory: 500Mi
 
 ingestQueue:
-  enabled: false
+  enabled: true
+  deployment:
+    replicas: 1
+    resources:
+      requests:
+        cpu: 100m
+        memory: 500Mi
 
 postgres:
   statefulSet:
     resources:
       requests:
-        cpu: 200m
+        cpu: 100m
         memory: 500Mi
 
 redis:
   statefulSet:
     resources:
       requests:
-        cpu: 200m
+        cpu: 100m
         memory: 500Mi
 
 clickhouse:
   statefulSet:
     resources:
       requests:
-        cpu: 200m
+        cpu: 100m
         memory: 500Mi
+
+fleetToolServer:
+  enabled: true
+  deployment:
+    resources:
+      requests:
+        cpu: 50m
+        memory: 300Mi
+
+fleetTriggerServer:
+  enabled: true
+  deployment:
+    resources:
+      requests:
+        cpu: 50m
+        memory: 300Mi

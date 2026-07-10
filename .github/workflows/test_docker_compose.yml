@@ -1,5 +1,8 @@
 name: "CI: Test Docker Compose"
 
+permissions:
+  contents: read
+
 on:
   push:
     branches: [ main ]
@@ -18,8 +21,6 @@ concurrency:
 jobs:
 
   docker-compose:
-    permissions:
-      contents: read
     timeout-minutes: 10
     runs-on: ubuntu-latest
 
@@ -30,9 +31,9 @@ jobs:
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v1
+      uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
 
-    - uses: KengoTODA/actions-setup-docker-compose@v1
+    - uses: KengoTODA/actions-setup-docker-compose@477353946803dd64eaa44008b865b6bfc88cab4e # v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

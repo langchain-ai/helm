@@ -1,0 +1,15 @@
+# Persistence override — retain diagnostic bundles across pod restarts.
+# Use when you want diagnostic zip downloads to survive backend pod restarts or upgrades.
+#
+# IMPORTANT: volumeClaimTemplates is immutable on a StatefulSet.
+# Changing this after install requires: helm uninstall mission-control && helm install ...
+#
+# Apply with:
+#   helm install mission-control . -f examples/persistence.yaml
+
+diagnostics:
+  persistence:
+    enabled: true
+    storageClass: ""   # leave empty to use the cluster default StorageClass
+    size: 1Gi
+    accessMode: ReadWriteOnce

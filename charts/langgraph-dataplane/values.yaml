@@ -18,6 +18,13 @@ commonVolumes: []
 commonVolumeMounts: []
 # -- Kubernetes cluster domain. Used for constructing service FQDNs.
 clusterDomain: "cluster.local"
+# -- Common DNS configuration applied to all pods. Reduces DNS query amplification in Kubernetes by
+# -- ensuring service FQDNs (which have 4 dots) are resolved directly without search domain expansion.
+# -- Set to null to disable and use Kubernetes defaults (ndots: 5).
+commonDnsConfig:
+  options:
+    - name: ndots
+      value: "4"
 
 images:
    # -- If supplied, all children <image_name>.repository values will be prepended with this registry name + `/`
@@ -82,6 +89,8 @@ config:
   smithBackendUrl: "https://api.smith.langchain.com"
   langsmithWorkspaceId: ""
   langgraphListenerId: ""
+  # -- SAQ queue name used by the listener. When multiple installs of this chart share one Redis instance (e.g. a managed cache with DB-count limits), set this to a unique value per install to prevent SAQ queue collisions.
+  hostQueue: "host"
   watchNamespaces: ""
   enableLGPDeploymentHealthCheck: true
 
@@ -95,6 +104,7 @@ listener:
     annotations: {}
     podSecurityContext: {}
     securityContext: {}
+    lifecycle: {}
     resources:
       limits:
         cpu: 2000m
@@ -174,6 +184,7 @@ operator:
     annotations: {}
     podSecurityContext: {}
     securityContext: {}
+    lifecycle: {}
     resources:
       limits:
         cpu: 2000m
@@ -378,10 +389,15 @@ redis:
     existingSecretName: ""
   containerPort: 6379
   statefulSet:
+    # -- Optional StatefulSet update strategy for the in-chart Redis instance.
+    # Leave unset to keep the Kubernetes default RollingUpdate behavior.
+    updateStrategy: {}
     labels: {}
     annotations: {}
     podSecurityContext: {}
     securityContext: {}
+    lifecycle: {}
+    terminationGracePeriodSeconds: 30
     # In a production environment, we strongly recommend an external Redis database.
     resources:
       limits:

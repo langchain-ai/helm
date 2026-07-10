@@ -1,0 +1,163 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "missionControl.backendWorkloadName" . }}
+  namespace: {{ .Values.namespace | default .Release.Namespace }}
+  labels:
+    {{- include "missionControl.labels" . | nindent 4 }}
+    app.kubernetes.io/component: backend
+  {{- with (include "missionControl.annotations" .) }}
+  annotations:
+    {{- . | nindent 4 }}
+  {{- end }}
+spec:
+  serviceName: {{ include "missionControl.backendWorkloadName" . }}
+  replicas: {{ .Values.backend.replicas }}
+  selector:
+    matchLabels:
+      {{- include "missionControl.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: backend
+  template:
+    metadata:
+      labels:
+        {{- include "missionControl.labels" . | nindent 8 }}
+        app.kubernetes.io/component: backend
+      {{- with (include "missionControl.commonPodAnnotations" .) }}
+      annotations:
+        {{- . | nindent 8 }}
+      {{- end }}
+    spec:
+      serviceAccountName: {{ include "missionControl.serviceAccountName" . }}
+      {{- with .Values.images.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.backend.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: backend
+          image: {{ include "missionControl.image" (dict "Values" .Values "Chart" .Chart "component" "backendImage") }}
+          imagePullPolicy: {{ .Values.images.backendImage.pullPolicy }}
+          ports:
+            - containerPort: 8000
+          {{- with .Values.backend.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.backend.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          env:
+            - name: NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: MC_VERSION
+              value: {{ .Chart.Version | quote }}
+            - name: BASIC_AUTH_ENABLED
+              value: {{ ternary "true" "false" .Values.config.auth.enabled | quote }}
+            {{- if .Values.config.auth.enabled }}
+            - name: BASIC_AUTH_SECRET_NAME
+              value: {{ include "missionControl.authSecretName" . | quote }}
+            - name: BACKEND_WORKLOAD_NAME
+              value: {{ include "missionControl.backendWorkloadName" . | quote }}
+            - name: BASIC_AUTH_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "missionControl.authSecretName" . }}
+                  key: {{ .Values.config.auth.usernameKey | default "username" }}
+                  optional: true
+            - name: BASIC_AUTH_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "missionControl.authSecretName" . }}
+                  key: {{ .Values.config.auth.passwordKey | default "password" }}
+                  optional: true
+            {{- if .Values.config.auth.jwtSecretKey }}
+            - name: BASIC_AUTH_JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "missionControl.authSecretName" . }}
+                  key: {{ .Values.config.auth.jwtSecretKey }}
+                  optional: true
+            {{- end }}
+            - name: SETUP_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "missionControl.setupTokenSecretName" . }}
+                  key: token
+                  optional: true
+            - name: SETUP_TOKEN_SECRET_NAME
+              value: {{ include "missionControl.setupTokenSecretName" . | quote }}
+            {{- end }}
+            {{- if .Values.config.auth.allowedOrigins }}
+            - name: ALLOWED_ORIGINS
+              value: {{ .Values.config.auth.allowedOrigins | quote }}
+            {{- end }}
+            {{/*
+            config.strictReadOnly forces every feature flag off in one switch;
+            $strict is computed identically here and in
+            templates/backend/cluster-role.yaml so the RBAC granted to the
+            ServiceAccount and the app-layer features.require() gate the
+            backend enforces can never drift apart.
+            */}}
+            {{- $strict := .Values.config.strictReadOnly | default false }}
+            - name: MC_FEATURE_FIX_ISSUE
+              value: {{ ternary "true" "false" (and .Values.config.features.fixIssue (not $strict)) | quote }}
+            - name: MC_FEATURE_ADOPT
+              value: {{ ternary "true" "false" (and .Values.config.features.adopt (not $strict)) | quote }}
+            - name: MC_FEATURE_ALERTS
+              value: {{ ternary "true" "false" (and .Values.config.features.alerts (not $strict)) | quote }}
+            - name: MC_FEATURE_CHAT
+              value: {{ ternary "true" "false" (and .Values.config.features.chat (not $strict)) | quote }}
+            - name: MC_FEATURE_DIAGNOSTICS
+              value: {{ ternary "true" "false" (and .Values.config.features.diagnostics (not $strict)) | quote }}
+            - name: MC_FEATURE_CONFIG_SAVE
+              value: {{ ternary "true" "false" (and .Values.config.features.configSave (not $strict)) | quote }}
+            - name: MC_FEATURE_DEPLOY
+              value: {{ ternary "true" "false" (and .Values.config.features.deploy (not $strict)) | quote }}
+            - name: MC_FEATURE_DEPLOY_CLUSTER_SCOPED_RESOURCES
+              value: {{ ternary "true" "false" (and (default false .Values.config.features.deployClusterScopedResources) (not $strict)) | quote }}
+            - name: MC_FEATURE_DISCOVER
+              value: {{ ternary "true" "false" (and .Values.config.features.discover (not $strict)) | quote }}
+            - name: MC_FEATURE_DBTOOLS
+              value: {{ ternary "true" "false" (and .Values.config.features.dbTools (not $strict)) | quote }}
+            - name: MC_FEATURE_VALUES_OVERRIDE
+              value: {{ ternary "true" "false" (and .Values.config.features.valuesOverride (not $strict)) | quote }}
+            - name: MC_FEATURE_CONTENTION
+              value: {{ ternary "true" "false" (and (default false .Values.config.features.contention) (not $strict)) | quote }}
+            {{- if and .Values.config.discoverNamespaces (not $strict) }}
+            - name: DISCOVER_NAMESPACES
+              value: {{ .Values.config.discoverNamespaces | quote }}
+            {{- end }}
+            {{- with .Values.backend.extraEnv }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          volumeMounts:
+            - name: diagnostics-store
+              mountPath: /tmp/mc_diagnostics
+      {{- if not .Values.diagnostics.persistence.enabled }}
+      volumes:
+        - name: diagnostics-store
+          emptyDir: {}
+      {{- end }}
+  {{- if .Values.diagnostics.persistence.enabled }}
+  volumeClaimTemplates:
+    - metadata:
+        name: diagnostics-store
+        labels:
+          {{- include "missionControl.labels" . | nindent 10 }}
+          app.kubernetes.io/component: backend
+      spec:
+        accessModes:
+          - {{ .Values.diagnostics.persistence.accessMode | default "ReadWriteOnce" | quote }}
+        resources:
+          requests:
+            storage: {{ .Values.diagnostics.persistence.size | default "1Gi" | quote }}
+        {{- with .Values.diagnostics.persistence.storageClass }}
+        storageClassName: {{ . | quote }}
+        {{- end }}
+  {{- end }}

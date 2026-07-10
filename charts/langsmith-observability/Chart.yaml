@@ -3,10 +3,11 @@ name: langsmith-observability
 maintainers:
   - name: Romain
     email: romain@langchain.dev
-description: Helm chart to deploy the observability stack for LangSmith.
+deprecated: true
+description: (DEPRECATED) This chart is deprecated and will be removed in a future version. Please use your own observability stack.
 type: application
-version: 0.1.0
-appVersion: "0.1.0"
+version: 0.2.0
+appVersion: "0.2.0"
 dependencies:
   # Prometheus Exporters
   - name: prometheus-postgres-exporter

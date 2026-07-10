@@ -1,3 +1,4 @@
+{{- template "langGraphCloud.validateIngress" . -}}
 {{- if .Values.ingress.enabled }}
 apiVersion: networking.k8s.io/v1
 kind: Ingress
@@ -16,7 +17,9 @@ metadata:
       {{- toYaml . | nindent 4 }}
     {{- end }}
 spec:
+  {{- if .Values.ingress.ingressClassName }}
   ingressClassName: {{ .Values.ingress.ingressClassName }}
+  {{- end }}
   {{- with .Values.ingress.tls }}
   tls:
     {{- toYaml . | nindent 4 }}
@@ -32,16 +35,4 @@ spec:
             name: {{ include "langGraphCloud.fullname" . }}-{{ .Values.apiServer.name }}
             port:
               number: {{ .Values.apiServer.service.httpPort }}
-  {{- if .Values.studio.enabled }}
-  - host: {{ .Values.ingress.studioHostname }}
-    http:
-      paths:
-        - path: /
-          pathType: Prefix
-          backend:
-            service:
-              name: {{ include "langGraphCloud.fullname" . }}-{{ .Values.studio.name }}
-              port:
-                number: {{ .Values.studio.service.httpPort }}
-  {{- end }}
 {{- end }}

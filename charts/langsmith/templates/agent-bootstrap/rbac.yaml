@@ -16,11 +16,11 @@ metadata:
     {{- with .Values.backend.agentBootstrap.serviceAccount.annotations }}
     {{- toYaml . | nindent 4 }}
     {{- end }}
-automountServiceAccountToken: {{ .Values.backend.agentBootstrap.serviceAccount.automountServiceAccountToken | default true }}
+automountServiceAccountToken: {{ .Values.backend.agentBootstrap.serviceAccount.automountServiceAccountToken }}
 {{- end }}
 ---
 # Role + RoleBinding: only when at least one product is enabled (create path patches ConfigMaps and restarts deployments)
-{{- if and .Values.backend.agentBootstrap.enabled .Values.config.deployment.enabled (or .Values.config.agentBuilder.enabled .Values.config.insights.enabled) }}
+{{- if and .Values.backend.agentBootstrap.enabled .Values.config.deployment.enabled .Values.config.agentBuilder.enabled }}
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
@@ -44,9 +44,6 @@ rules:
       {{- if .Values.config.agentBuilder.enabled }}
       - {{ include "langsmith.fullname" . }}-agent-builder-config
       {{- end }}
-      {{- if .Values.config.insights.enabled }}
-      - {{ include "langsmith.fullname" . }}-insights-config
-      {{- end }}
   # Permission to restart deployments after ConfigMap updates
   - apiGroups: ["apps"]
     resources: ["deployments"]
@@ -55,9 +52,7 @@ rules:
       - {{ include "langsmith.fullname" . }}-{{ .Values.frontend.name }}
       {{- if .Values.config.agentBuilder.enabled }}
       - {{ include "langsmith.fullname" . }}-agent-builder-trigger-server
-      {{- end }}
-      {{- if .Values.config.insights.enabled }}
-      - {{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}
+      - {{ include "langsmith.fullname" . }}-{{ .Values.ingestQueue.name }}
       {{- end }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1

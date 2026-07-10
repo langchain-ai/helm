@@ -1,4 +1,4 @@
-{{- if and .Values.config.deployment.enabled .Values.hostBackend.autoscaling.keda.enabled }}
+{{- if and (or .Values.config.deployment.enabled .Values.hostBackend.enabled) .Values.hostBackend.autoscaling.keda.enabled }}
 apiVersion: keda.sh/v1alpha1
 kind: ScaledObject
 metadata:

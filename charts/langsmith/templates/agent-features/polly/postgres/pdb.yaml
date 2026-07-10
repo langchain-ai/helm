@@ -1,0 +1,23 @@
+{{- if .Values.polly.enabled }}
+{{- if .Values.polly.postgres.pdb.enabled }}
+{{- $componentName := include "langsmith.agentFeatures.componentName" (dict "root" . "product" "polly" "component" "postgres") -}}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ $componentName }}
+  namespace: {{ .Values.namespace | default .Release.Namespace | quote }}
+  labels:
+    {{- include "langsmith.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "langsmith.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: {{ $componentName }}
+  {{- if hasKey .Values.polly.postgres.pdb "minAvailable" }}
+  minAvailable: {{ .Values.polly.postgres.pdb.minAvailable }}
+  {{- end }}
+  {{- if hasKey .Values.polly.postgres.pdb "maxUnavailable" }}
+  maxUnavailable: {{ .Values.polly.postgres.pdb.maxUnavailable }}
+  {{- end }}
+{{- end }}
+{{- end }}

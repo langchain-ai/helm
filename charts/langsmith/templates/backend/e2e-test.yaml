@@ -1,4 +1,4 @@
-{{- if and .Values.config.basicAuth.enabled .Values.backend.e2eTest.enabled }}
+{{- if and .Values.backend.e2eTest.enabled (or .Values.config.basicAuth.enabled (and (eq .Values.config.authType "mixed") .Values.config.oauth.enabled)) }}
 {{- $envVars := concat .Values.commonEnv (include "langsmith.commonEnv" . | fromYamlArray) (include "backendEnvVars" . | fromYamlArray) .Values.backend.e2eTest.extraEnv -}}
 {{- $volumes := concat .Values.commonVolumes .Values.backend.e2eTest.volumes (include "langsmith.tlsVolumes" . | fromYamlArray) -}}
 {{- $volumeMounts := concat .Values.commonVolumeMounts .Values.backend.e2eTest.volumeMounts (include "langsmith.tlsVolumeMounts" . | fromYamlArray) -}}

@@ -95,27 +95,14 @@ spec:
                   "image": "{{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "agentBuilderImage") }}",
                   "configmap_name": "{{ include "langsmith.fullname" . }}-agent-builder-config",
                   "k8s_namespace": "{{ .Values.namespace | default .Release.Namespace }}",
-                  "restart_deployments": ["{{ include "langsmith.fullname" . }}-{{ .Values.frontend.name }}", "{{ include "langsmith.fullname" . }}-agent-builder-trigger-server"],
+                  "restart_deployments": ["{{ include "langsmith.fullname" . }}-{{ .Values.frontend.name }}", "{{ include "langsmith.fullname" . }}-agent-builder-trigger-server", "{{ include "langsmith.fullname" . }}-{{ .Values.ingestQueue.name }}"],
                   "cpu": {{ .Values.config.agentBuilder.agent.resources.cpu }},
                   "cpu_limit": {{ .Values.config.agentBuilder.agent.resources.cpuLimit }},
                   "memory_mb": {{ .Values.config.agentBuilder.agent.resources.memoryMb }},
                   "memory_limit_mb": {{ .Values.config.agentBuilder.agent.resources.memoryLimitMb }},
                   "min_scale": {{ .Values.config.agentBuilder.agent.resources.minScale }},
-                  "max_scale": {{ .Values.config.agentBuilder.agent.resources.maxScale }}
-                }{{- if .Values.config.insights.enabled }},{{- end }}
-              {{- end }}
-              {{- if .Values.config.insights.enabled }}
-                "clio": {
-                  "image": "{{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "insightsAgentImage") }}",
-                  "configmap_name": "{{ include "langsmith.fullname" . }}-insights-config",
-                  "k8s_namespace": "{{ .Values.namespace | default .Release.Namespace }}",
-                  "restart_deployments": ["{{ include "langsmith.fullname" . }}-{{ .Values.frontend.name }}", "{{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}", "{{ include "langsmith.fullname" . }}-{{ .Values.queue.name }}"],
-                  "cpu": {{ .Values.config.insights.agent.resources.cpu }},
-                  "cpu_limit": {{ .Values.config.insights.agent.resources.cpuLimit }},
-                  "memory_mb": {{ .Values.config.insights.agent.resources.memoryMb }},
-                  "memory_limit_mb": {{ .Values.config.insights.agent.resources.memoryLimitMb }},
-                  "min_scale": {{ .Values.config.insights.agent.resources.minScale }},
-                  "max_scale": {{ .Values.config.insights.agent.resources.maxScale }}
+                  "max_scale": {{ .Values.config.agentBuilder.agent.resources.maxScale }},
+                  "extra_env": {{ (.Values.config.agentBuilder.agent.extraEnv | default (dict)) | toJson }}
                 }
               {{- end }}
               }

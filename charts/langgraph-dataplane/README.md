@@ -1,8 +1,13 @@
 # langgraph-dataplane
 
-![Version: 0.2.17](https://img.shields.io/badge/Version-0.2.17-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.13.9](https://img.shields.io/badge/AppVersion-0.13.9-informational?style=flat-square)
+![Version: 0.2.21](https://img.shields.io/badge/Version-0.2.21-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.13.9](https://img.shields.io/badge/AppVersion-0.13.9-informational?style=flat-square)
 
 Helm chart to deploy a langgraph dataplane on kubernetes.
+
+> [!WARNING]
+> **Legacy Hybrid Deployment — No Longer Supported for New Customers**
+>
+> This chart is the legacy version of the Hybrid deployment option. New customers are not supported going forward; existing customers will continue to be supported. New Hybrid deployments should use the [`langgraph-cloud`](../langgraph-cloud) chart instead — see the [Hybrid deployment documentation](https://docs.langchain.com/langsmith/hybrid) for more details.
 
 ## Deploying a LangGraph Dataplane
 
@@ -15,6 +20,7 @@ You can find the guide to deploy a LangGraph Dataplane [here](https://langchain-
 |-----|------|---------|-------------|
 | clusterDomain | string | `"cluster.local"` | Kubernetes cluster domain. Used for constructing service FQDNs. |
 | commonAnnotations | object | `{}` | Annotations that will be applied to all resources created by the chart |
+| commonDnsConfig | object | `{"options":[{"name":"ndots","value":"4"}]}` | Set to null to disable and use Kubernetes defaults (ndots: 5). |
 | commonEnv | list | `[]` | Common environment variables that will be applied to all deployments. |
 | commonLabels | object | `{}` | Labels that will be applied to all resources created by the chart |
 | commonVolumeMounts | list | `[]` | Common volume mounts added to all deployments/statefulsets. |
@@ -54,6 +60,7 @@ You can find the guide to deploy a LangGraph Dataplane [here](https://langchain-
 | operator.deployment.extraContainerConfig | object | `{}` |  |
 | operator.deployment.extraEnv | list | `[]` |  |
 | operator.deployment.labels | object | `{}` |  |
+| operator.deployment.lifecycle | object | `{}` |  |
 | operator.deployment.nodeSelector | object | `{}` |  |
 | operator.deployment.podSecurityContext | object | `{}` |  |
 | operator.deployment.replicas | int | `1` |  |
@@ -99,6 +106,7 @@ You can find the guide to deploy a LangGraph Dataplane [here](https://langchain-
 | config.enableLGPDeploymentHealthCheck | bool | `true` |  |
 | config.existingSecretName | string | `""` |  |
 | config.hostBackendUrl | string | `"https://api.host.langchain.com"` |  |
+| config.hostQueue | string | `"host"` | SAQ queue name used by the listener. When multiple installs of this chart share one Redis instance (e.g. a managed cache with DB-count limits), set this to a unique value per install to prevent SAQ queue collisions. |
 | config.langgraphListenerId | string | `""` |  |
 | config.langsmithApiKey | string | `""` |  |
 | config.langsmithWorkspaceId | string | `""` |  |
@@ -123,6 +131,7 @@ You can find the guide to deploy a LangGraph Dataplane [here](https://langchain-
 | listener.deployment.extraContainerConfig | object | `{}` |  |
 | listener.deployment.extraEnv | list | `[]` |  |
 | listener.deployment.labels | object | `{}` |  |
+| listener.deployment.lifecycle | object | `{}` |  |
 | listener.deployment.livenessProbe.exec.command[0] | string | `"saq"` |  |
 | listener.deployment.livenessProbe.exec.command[1] | string | `"app.workers.queues.host_worker.settings"` |  |
 | listener.deployment.livenessProbe.exec.command[2] | string | `"--check"` |  |
@@ -176,6 +185,7 @@ You can find the guide to deploy a LangGraph Dataplane [here](https://langchain-
 | operator.deployment.extraContainerConfig | object | `{}` |  |
 | operator.deployment.extraEnv | list | `[]` |  |
 | operator.deployment.labels | object | `{}` |  |
+| operator.deployment.lifecycle | object | `{}` |  |
 | operator.deployment.nodeSelector | object | `{}` |  |
 | operator.deployment.podSecurityContext | object | `{}` |  |
 | operator.deployment.replicas | int | `1` |  |
@@ -243,6 +253,7 @@ You can find the guide to deploy a LangGraph Dataplane [here](https://langchain-
 | redis.statefulSet.extraContainerConfig | object | `{}` |  |
 | redis.statefulSet.extraEnv | list | `[]` |  |
 | redis.statefulSet.labels | object | `{}` |  |
+| redis.statefulSet.lifecycle | object | `{}` |  |
 | redis.statefulSet.livenessProbe.exec.command[0] | string | `"/bin/sh"` |  |
 | redis.statefulSet.livenessProbe.exec.command[1] | string | `"-c"` |  |
 | redis.statefulSet.livenessProbe.exec.command[2] | string | `"exec redis-cli ping"` |  |
@@ -273,8 +284,10 @@ You can find the guide to deploy a LangGraph Dataplane [here](https://langchain-
 | redis.statefulSet.startupProbe.failureThreshold | int | `6` |  |
 | redis.statefulSet.startupProbe.periodSeconds | int | `10` |  |
 | redis.statefulSet.startupProbe.timeoutSeconds | int | `1` |  |
+| redis.statefulSet.terminationGracePeriodSeconds | int | `30` |  |
 | redis.statefulSet.tolerations | list | `[]` |  |
 | redis.statefulSet.topologySpreadConstraints | list | `[]` |  |
+| redis.statefulSet.updateStrategy | object | `{}` | Optional StatefulSet update strategy for the in-chart Redis instance. Leave unset to keep the Kubernetes default RollingUpdate behavior. |
 | redis.statefulSet.volumeMounts | list | `[]` |  |
 | redis.statefulSet.volumes | list | `[]` |  |
 

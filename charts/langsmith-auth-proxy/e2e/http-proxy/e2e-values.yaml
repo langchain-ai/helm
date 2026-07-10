@@ -1,0 +1,21 @@
+authProxy:
+  enabled: true
+  upstream: "http://fake-gateway:10001"
+  jwtIssuer: "langsmith"
+  jwtAudiences:
+    - "test-audience"
+  # Remote JWKS — fetched from a separate jwks-server pod
+  jwksUri: "http://jwks-server:8080/well-known/jwks.json"
+  jwksCacheDurationSeconds: 30
+  streamIdleTimeout: "300s"
+  httpProxy:
+    enabled: true
+    # host is injected at install time (tinyproxy service hostname)
+    host: ""
+    port: 8888
+    noProxy: []
+  deployment:
+    replicas: 1
+
+ingress:
+  enabled: false

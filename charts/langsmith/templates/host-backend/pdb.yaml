@@ -1,4 +1,4 @@
-{{- if .Values.hostBackend.pdb.enabled }}
+{{- if and (or .Values.config.deployment.enabled .Values.hostBackend.enabled) .Values.hostBackend.pdb.enabled }}
 apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
@@ -19,10 +19,10 @@ spec:
     matchLabels:
       {{- include "langsmith.selectorLabels" . | nindent 6 }}
       app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-{{ .Values.hostBackend.name }}
-  {{- if .Values.hostBackend.pdb.minAvailable }}
+  {{- if hasKey .Values.hostBackend.pdb "minAvailable" }}
   minAvailable: {{ .Values.hostBackend.pdb.minAvailable }}
   {{- end }}
-  {{- if .Values.hostBackend.pdb.maxUnavailable }}
+  {{- if hasKey .Values.hostBackend.pdb "maxUnavailable" }}
   maxUnavailable: {{ .Values.hostBackend.pdb.maxUnavailable }}
   {{- end }}
 {{- end }}

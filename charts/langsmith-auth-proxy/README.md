@@ -1,6 +1,6 @@
 # langsmith-auth-proxy
 
-![Version: 0.0.1](https://img.shields.io/badge/Version-0.0.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.37.0](https://img.shields.io/badge/AppVersion-1.37.0-informational?style=flat-square)
+![Version: 0.0.11](https://img.shields.io/badge/Version-0.0.11-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.37.0](https://img.shields.io/badge/AppVersion-1.37.0-informational?style=flat-square)
 
 Helm chart to deploy the langsmith auth-proxy application.
 
@@ -11,6 +11,7 @@ Client -> Envoy(:10000)
   -> Health check filter (/healthz bypasses auth)
   -> JWT validation (RS256, configurable issuer + audiences)
   -> [optional] ext_authz HTTP filter (e.g. inject provider API key)
+  -> [optional] ext_proc gRPC filter (e.g. transform request/response bodies)
   -> Upstream LLM provider or gateway
 ```
 
@@ -33,6 +34,37 @@ This chart uses the **HTTP** `ext_authz` mode — HTTP request in, HTTP response
 - `2xx` → allow: headers matching `allowed_upstream_headers` (`authorization`, `x-langsmith-llm-auth`, `x-forwarded-*`) are forwarded upstream
 - Non-`2xx` → deny: status code + headers matching `allowed_client_headers` (`www-authenticate`, `x-*`) are sent back to the client
 
+## ext_proc transformer integration
+
+For use cases that require **request/response body transformation** (not just header injection), this chart supports Envoy's [ext_proc filter](https://www.envoyproxy.io/docs/envoy/latest/configuration/http/http_filters/ext_proc_filter).
+
+### When to use ext_proc vs ext_authz
+
+| Capability | ext_authz | ext_proc (transformer) |
+|-----------|-----------|------------------------|
+| Modify request headers | Yes | Yes |
+| Modify response headers | No | Yes |
+| Modify request body | No | Yes |
+| Modify response body | No | Yes |
+| Protocol | HTTP | gRPC |
+
+Use **ext_authz** if you only need to inject auth headers (e.g. API keys). Use **transformer** (ext_proc) if you need to rewrite request or response bodies — for example, converting between OpenAI format and a custom gateway format.
+
+Both can be enabled simultaneously: ext_authz for auth header injection, transformer for body rewriting.
+
+### gRPC interface
+
+The transformer service must implement the `envoy.service.ext_proc.v3.ExternalProcessor` gRPC service. See [e2e/transformer/](e2e/transformer/) for a sample Go implementation.
+
+### Processing modes
+
+Control which phases are sent to the transformer via `processingMode`:
+- **Header modes** (`SEND`, `SKIP`, `DEFAULT`): whether request/response headers are forwarded
+- **Body modes** (`NONE`, `STREAMED`, `BUFFERED`, `BUFFERED_PARTIAL`): whether and how bodies are forwarded
+- **Trailer modes** (`SEND`, `SKIP`): whether trailers are forwarded
+
+`BUFFERED` mode buffers the entire body before sending — simplest for transformations but uses more memory for large payloads. `STREAMED` sends chunks incrementally (complex to implement). Use `NONE` to skip body processing entirely.
+
 ## Values
 
 | Key | Type | Default | Description |
@@ -53,6 +85,7 @@ This chart uses the **HTTP** `ext_authz` mode — HTTP request in, HTTP response
 | authProxy.deployment.extraEnv | list | `[]` |  |
 | authProxy.deployment.initContainers | list | `[]` |  |
 | authProxy.deployment.labels | object | `{}` |  |
+| authProxy.deployment.lifecycle | object | `{}` |  |
 | authProxy.deployment.livenessProbe.failureThreshold | int | `6` |  |
 | authProxy.deployment.livenessProbe.httpGet.path | string | `"/healthz"` |  |
 | authProxy.deployment.livenessProbe.httpGet.port | int | `10000` |  |
@@ -92,9 +125,18 @@ This chart uses the **HTTP** `ext_authz` mode — HTTP request in, HTTP response
 | authProxy.extAuthz.sendBody | bool | `false` | Whether to send the request body to ext_authz |
 | authProxy.extAuthz.serviceUrl | string | `""` | HTTP service URL for ext_authz (e.g. http://my-auth-service:8080) |
 | authProxy.extAuthz.timeout | string | `"10s"` | Timeout for ext_authz requests |
-| authProxy.jwksJson | string | `""` | JWKS JSON string containing the public keys for JWT validation. Generate with the LangSmith JWKS tooling and paste the full JSON here. |
-| authProxy.jwtAudiences | list | `[]` | JWT audience claims to validate. Must match audiences in the signed JWT. |
+| authProxy.httpProxy | object | `{"enabled":false,"host":"","noProxy":[],"port":3128}` | HTTP proxy configuration for the upstream cluster. Envoy does not respect HTTP_PROXY/HTTPS_PROXY/NO_PROXY env vars; configure proxy here instead. See https://github.com/envoyproxy/envoy/issues/21175. Uses the two-listener loopback pattern (tcp_proxy + tunneling_config) to route through an HTTP CONNECT proxy. Supports both IP addresses and hostnames for the proxy host. |
+| authProxy.httpProxy.enabled | bool | `false` | Enable routing upstream traffic through an HTTP proxy |
+| authProxy.httpProxy.host | string | `""` | Proxy hostname or IP address |
+| authProxy.httpProxy.noProxy | list | `[]` | List of hostnames/domains to bypass the proxy for (NO_PROXY equivalent). Supports exact match ("internal.corp") and domain suffix (".internal.corp"). If the upstream hostname matches any entry, proxy is not used. |
+| authProxy.httpProxy.port | int | `3128` | Proxy port |
+| authProxy.jwksCacheDurationSeconds | int | `300` | Cache duration in seconds for remote JWKS keys. Only used when jwksUri is set. |
+| authProxy.jwksJson | string | `""` | JWKS JSON string containing the public keys for JWT validation. Generate with the LangSmith JWKS tooling and paste the full JSON here. Mutually exclusive with jwksUri — if both are set, jwksUri takes precedence. |
+| authProxy.jwksUri | string | `""` | Remote JWKS endpoint URL for fetching public keys (e.g. https://langsmith.example.com/.well-known/jwks.json for self-hosted LangSmith or https://api.smith.langchain.com/.well-known/jwks.json in SaaS). When set, Envoy fetches and caches keys from this URL instead of using inline jwksJson. Mutually exclusive with jwksJson — if both are set, jwksUri takes precedence. |
+| authProxy.jwtAudiences | required | `[]` | JWT audience claims to validate. Must match audiences in the signed JWT. |
 | authProxy.jwtIssuer | string | `"langsmith"` | JWT issuer claim to validate |
+| authProxy.jwtValidation | object | `{"enabled":true}` | JWT validation configuration |
+| authProxy.jwtValidation.enabled | bool | `true` | Set to false to disable the envoy.filters.http.jwt_authn filter entirely. Useful for testing or when JWT validation is handled elsewhere. |
 | authProxy.name | string | `"auth-proxy"` |  |
 | authProxy.pdb.annotations | object | `{}` |  |
 | authProxy.pdb.enabled | bool | `false` |  |
@@ -114,8 +156,20 @@ This chart uses the **HTTP** `ext_authz` mode — HTTP request in, HTTP response
 | authProxy.serviceAccount.labels | object | `{}` |  |
 | authProxy.serviceAccount.name | string | `""` |  |
 | authProxy.streamIdleTimeout | string | `"300s"` | Idle timeout for streaming responses (e.g. SSE from LLM providers) |
-| authProxy.upstream | string | `""` | Upstream LLM provider URL (e.g. https://api.openai.com) |
+| authProxy.transformer.enabled | bool | `false` | Enable the request/response transformer (ext_proc filter). |
+| authProxy.transformer.failureModeAllow | bool | `false` | Whether to fail open (allow request) or closed (reject) on transformer errors |
+| authProxy.transformer.processingMode | object | `{"requestBodyMode":"NONE","requestHeaderMode":"SEND","requestTrailerMode":"SKIP","responseBodyMode":"NONE","responseHeaderMode":"SKIP","responseTrailerMode":"SKIP"}` | Processing phases to enable. Only enabled phases are sent to the transformer service. Disabling unused phases avoids unnecessary gRPC round-trips and reduces latency. |
+| authProxy.transformer.processingMode.requestBodyMode | string | `"NONE"` | Whether and how to send the request body to the transformer. NONE: do not send. BUFFERED: buffer the full body before sending (simplest — good for JSON rewriting). STREAMED: send body chunks as they arrive (lower latency, harder to implement). BUFFERED_PARTIAL: buffer up to the route-level per_route buffer limit, then send what was collected. IMPORTANT: when mutating the body, your ext_proc service MUST also set the content-length header to match the new body size via HeaderMutation in the body response. Envoy rejects responses where content-length doesn't match the mutated body. See e2e/transformer/sample-ext-proc.go for an example. |
+| authProxy.transformer.processingMode.requestHeaderMode | string | `"SEND"` | Whether to send request headers to the transformer. SEND: forward headers (use this to read JWTs, inject auth headers, add routing metadata). SKIP: do not forward. DEFAULT: use the server-side default. |
+| authProxy.transformer.processingMode.requestTrailerMode | string | `"SKIP"` | Whether to send request trailers to the transformer. SEND or SKIP. Trailers are rarely used in LLM APIs; leave as SKIP unless your upstream requires them. |
+| authProxy.transformer.processingMode.responseBodyMode | string | `"NONE"` | Whether and how to send the response body to the transformer. NONE: do not send. BUFFERED: buffer the full body before sending. STREAMED: send body chunks as they arrive (use for SSE/streaming LLM responses — each chunk is forwarded individually). BUFFERED_PARTIAL: buffer up to the route-level per_route buffer limit, then send what was collected. |
+| authProxy.transformer.processingMode.responseHeaderMode | string | `"SKIP"` | Whether to send response headers to the transformer. SEND: forward headers (use this to strip, rewrite, or add response headers). SKIP: do not forward. DEFAULT: use the server-side default. |
+| authProxy.transformer.processingMode.responseTrailerMode | string | `"SKIP"` | Whether to send response trailers to the transformer. SEND or SKIP. Trailers are rarely used in LLM APIs; leave as SKIP unless your upstream requires them. |
+| authProxy.transformer.serviceUrl | string | `""` | gRPC service URL for the transformer (e.g. grpc://my-transformer:50051) |
+| authProxy.transformer.timeout | string | `"10s"` | Timeout for transformer calls |
+| authProxy.upstream | string | `""` | Upstream LLM provider or gateway URL (e.g. https://gateway.example.com or https://gateway.example.com/api/v1). If a path is included, all requests will be prefixed with it (e.g. /chat/completions becomes /api/v1/chat/completions). |
 | commonAnnotations | object | `{}` | Annotations that will be applied to all resources created by the chart |
+| commonDnsConfig | object | `{"options":[{"name":"ndots","value":"4"}]}` | Set to null to disable and use Kubernetes defaults (ndots: 5). |
 | commonLabels | object | `{}` | Labels that will be applied to all resources created by the chart |
 | commonPodAnnotations | object | `{}` | Annotations that will be applied to all pods created by the chart |
 | commonPodSecurityContext | object | `{}` | Common pod security context applied to all pods. Component-specific podSecurityContext values will be merged on top of this (component values take precedence). |

@@ -19,10 +19,6 @@ backend:
         value: "9000"
   authBootstrap:
     fsGroup: 1000
-  feedbackConfigMigration:
-    fsGroup: 1000
-  feedbackDataMigration:
-    fsGroup: 1000
 e2eTest:
   podSecurityContext:
     fsGroup: 1000

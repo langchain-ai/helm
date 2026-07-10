@@ -10,23 +10,24 @@
   value: /{{ . }}/api-host
 {{- end }}
 {{- /* Agent Builder OAuth and Trigger Server configuration */ -}}
-{{- if .Values.config.agentBuilder.enabled }}
-{{- if .Values.config.agentBuilder.oauthProviderOrgId }}
+{{- if or .Values.config.agentBuilder.enabled .Values.fleet.enabled }}
+{{- $oauthProviderOrgId := .Values.config.agentBuilder.oauthProviderOrgId | default .Values.fleet.oauth.providerOrgId }}
+{{- if $oauthProviderOrgId }}
 - name: AGENT_BUILDER_AUTH_PROVIDER_ORG_ID
-  value: {{ .Values.config.agentBuilder.oauthProviderOrgId | quote }}
+  value: {{ $oauthProviderOrgId | quote }}
 {{- end }}
-{{- if .Values.agentBuilderTriggerServer.enabled }}
+{{- if .Values.fleetTriggerServer.enabled }}
 - name: AGENT_BUILDER_TRIGGERS_API_URL
-  value: "http://{{ include "langsmith.fullname" . }}-{{ .Values.agentBuilderTriggerServer.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.agentBuilderTriggerServer.service.port }}/v1/triggers"
+  value: "http://{{ include "langsmith.fullname" . }}-{{ .Values.fleetTriggerServer.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.fleetTriggerServer.service.port }}/v1/triggers"
 {{- end }}
 {{- include "agentBuilderOAuthEnvVars" . }}
 {{- end }}
 {{- end -}}
-{{- $envVars := concat (include "langsmith.commonEnv" . | fromYamlArray ) (include "hostBackendEnvVars" . | fromYamlArray) .Values.hostBackend.deployment.extraEnv -}}
+{{- $envVars := concat .Values.commonEnv (include "langsmith.commonEnv" . | fromYamlArray) (include "hostBackendEnvVars" . | fromYamlArray) .Values.hostBackend.deployment.extraEnv -}}
 {{- include "langsmith.detectDuplicates" $envVars -}}
 {{- $volumes := concat .Values.commonVolumes .Values.hostBackend.deployment.volumes (include "langsmith.tlsVolumes" . | fromYamlArray) -}}
 {{- $volumeMounts := concat .Values.commonVolumeMounts .Values.hostBackend.deployment.volumeMounts (include "langsmith.tlsVolumeMounts" . | fromYamlArray) -}}
-{{- if .Values.config.deployment.enabled }}
+{{- if or .Values.config.deployment.enabled .Values.hostBackend.enabled }}
 {{- if .Values.hostBackend.rollout.enabled }}
 apiVersion: argoproj.io/v1alpha1
 kind: Rollout
@@ -78,6 +79,7 @@ spec:
       securityContext:
         {{- include "langsmith.podSecurityContext" (dict "Values" .Values "componentSecurityContext" .Values.hostBackend.deployment.podSecurityContext) | nindent 8 }}
       serviceAccountName: {{ include "hostBackend.serviceAccountName" . }}
+      {{- include "langsmith.dnsConfig" . | nindent 6 }}
       {{- with concat .Values.commonInitContainers .Values.hostBackend.deployment.initContainers }}
       initContainers:
         {{- toYaml . | nindent 8 }}
@@ -117,6 +119,10 @@ spec:
             {{- toYaml .Values.hostBackend.deployment.resources | nindent 12 }}
           securityContext:
             {{- toYaml .Values.hostBackend.deployment.securityContext | nindent 12 }}
+          {{- with .Values.hostBackend.deployment.lifecycle }}
+          lifecycle:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           {{- with $volumeMounts }}
           volumeMounts:
               {{- toYaml . | nindent 12 }}

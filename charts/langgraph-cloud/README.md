@@ -1,8 +1,12 @@
 # langgraph-cloud
 
-![Version: 0.2.2](https://img.shields.io/badge/Version-0.2.2-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.2.2](https://img.shields.io/badge/AppVersion-0.2.2-informational?style=flat-square)
+![Version: 0.3.2](https://img.shields.io/badge/Version-0.3.2-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.2.3](https://img.shields.io/badge/AppVersion-0.2.3-informational?style=flat-square)
 
 Helm chart to deploy the LangGraph Cloud application and all services it depends on.
+
+## Local Development
+
+For a safe disposable `kind` workflow, see [LOCAL_DEVELOPMENT.md](./LOCAL_DEVELOPMENT.md).
 
 ## Deploying LangGraph Cloud with Helm
 
@@ -123,7 +127,138 @@ postgres:
     connectionUrl: "postgres://postgres:postgres@postgres-host.com:5432/postgres?sslmode=disable"
 ```
 
-You can also use existingSecretName to avoid checking in secrets. This secret should contain keys named `langgraph_cloud_license_key` (optional) and/or `api_key`. Note: API keys such as `OPENAI_API_KEY` should not be specified as environment variables. These values should be stored as secrets (e.g. Kubernetes secrets).
+### Bundled MongoDB checkpointer
+
+Use the chart-managed MongoDB instance for local development, CI, and quickstarts. The chart provisions a single-node replica set and injects the generated MongoDB checkpointer defaults when `mongo.enabled` is true. This mode is convenient for getting started, but it is not the recommended production topology.
+
+When `mongo.enabled` is true, the chart always injects `LS_DEFAULT_CHECKPOINTER_BACKEND=mongo` and `LS_MONGODB_URI`. That lets app-level `LANGGRAPH_CHECKPOINTER` values supply overrides like `ttl` while still inheriting the MongoDB backend and URI defaults.
+
+By default this mode creates a persistent volume claim, so your cluster needs a default `StorageClass`.
+
+Create a values file:
+
+```yaml
+images:
+  apiServerImage:
+    pullPolicy: IfNotPresent
+    repository: <your repository>
+    tag: <image tag>
+
+mongo:
+  enabled: true
+```
+
+Install or upgrade the release:
+
+```bash
+helm upgrade --install my-release ./charts/langgraph-cloud \
+  --namespace langgraph --create-namespace \
+  -f values-mongo-bundled.yaml
+```
+
+### External MongoDB checkpointer
+
+Use an external MongoDB deployment for production. The MongoDB connection URL must:
+
+- include the target logical database name in the path
+- point at a replica set member or `mongos`
+
+This configuration is release-scoped. If you want two independently configured deployments, use two Helm releases and give each release its own MongoDB connection URL and logical database, even if both releases talk to the same MongoDB cluster.
+
+The external MongoDB settings manage the MongoDB connection URL secret. When `mongo.enabled` is true, the chart injects the MongoDB checkpointer defaults as `LS_DEFAULT_CHECKPOINTER_BACKEND` and `LS_MONGODB_URI`.
+
+Create a Kubernetes secret for the MongoDB connection URL:
+
+```bash
+kubectl -n langgraph create secret generic my-release-mongo \
+  --from-literal=mongodb_connection_url='mongodb://user:password@mongo.example.net:27017/my_release?replicaSet=rs0'
+```
+
+Then reference that secret from your values file:
+
+```yaml
+images:
+  apiServerImage:
+    pullPolicy: IfNotPresent
+    repository: <your repository>
+    tag: <image tag>
+
+mongo:
+  enabled: true
+  external:
+    enabled: true
+    existingSecretName: "my-release-mongo"
+```
+
+Install or upgrade the release:
+
+```bash
+helm upgrade --install my-release ./charts/langgraph-cloud \
+  --namespace langgraph --create-namespace \
+  -f values-mongo-external.yaml
+```
+
+> **Important:** `mongo.external.existingSecretName` is separate from `config.existingSecretName`. The former is for the MongoDB connection URL used by the checkpointer, while the latter is for `LANGSMITH_API_KEY` and `LANGGRAPH_CLOUD_LICENSE_KEY`.
+
+### Using `existingSecretName`
+
+If you don't want to check secrets into git, create a Kubernetes secret and reference it via `config.existingSecretName`. The chart expects the following keys:
+
+- `api_key` — mounted as `LANGSMITH_API_KEY` (optional)
+- `langgraph_cloud_license_key` — mounted as `LANGGRAPH_CLOUD_LICENSE_KEY` (optional)
+
+```yaml
+config:
+  existingSecretName: "my-langgraph-secret"
+```
+
+> **Important:** Do not use `extraEnv` to set `LANGSMITH_API_KEY` or `LANGGRAPH_CLOUD_LICENSE_KEY`. The chart manages these env vars directly from the secret referenced by `existingSecretName` (or the chart-created secret). Using `extraEnv` for these variables will cause license verification failures.
+
+Other application-specific secrets (e.g. `OPENAI_API_KEY`, `AZURE_OPENAI_API_KEY`) should still be mounted via `extraEnv` or `envFrom`.
+
+### Upgrading from < 0.2.0
+
+If you are upgrading from chart version < 0.2.0 and were using `extraEnv` to mount `LANGSMITH_API_KEY`:
+
+1. **Remove** the `LANGSMITH_API_KEY` entry from `extraEnv` on both `apiServer` and `queue` deployments.
+2. **Rename** the key in your Kubernetes secret from `LANGSMITH_API_KEY` to `api_key`.
+3. **Set** `config.existingSecretName` to point to your secret.
+
+Before (< 0.2.0):
+```yaml
+config:
+  existingSecretName: "langgraph-secrets"
+
+apiServer:
+  deployment:
+    extraEnv:
+      - name: LANGSMITH_API_KEY
+        valueFrom:
+          secretKeyRef:
+            name: langgraph-secrets
+            key: LANGSMITH_API_KEY
+queue:
+  deployment:
+    extraEnv:
+      - name: LANGSMITH_API_KEY
+        valueFrom:
+          secretKeyRef:
+            name: langgraph-secrets
+            key: LANGSMITH_API_KEY
+```
+
+After (>= 0.2.0):
+```yaml
+config:
+  existingSecretName: "langgraph-secrets"
+# No extraEnv needed for LANGSMITH_API_KEY — the chart handles it automatically.
+# Your secret should contain key `api_key` (and optionally `langgraph_cloud_license_key`).
+```
+
+If you are upgrading from a chart revision that used the old flat MongoDB values, move these keys before upgrading:
+
+- `mongo.resources` -> `mongo.statefulSet.resources`
+- `mongo.persistence` -> `mongo.statefulSet.persistence`
 
 ### Deploying to Kubernetes:
 
@@ -197,15 +332,26 @@ You can also use existingSecretName to avoid checking in secrets. This secret sh
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
+| clusterDomain | string | `"cluster.local"` | Kubernetes cluster domain. Only change if not using 'cluster.local' |
 | commonAnnotations | object | `{}` | Annotations that will be applied to all resources created by the chart |
+| commonDnsConfig | object | `{"options":[{"name":"ndots","value":"4"}]}` | Set to null to disable and use Kubernetes defaults (ndots: 5). |
 | commonLabels | object | `{}` | Labels that will be applied to all resources created by the chart |
 | commonVolumeMounts | list | `[]` | Common volume mounts added to all deployments/statefulsets. |
 | commonVolumes | list | `[]` | Common volumes added to all deployments/statefulsets. |
 | fullnameOverride | string | `""` | String to fully override `"langgraph-cloud.fullname"` |
+| gateway | object | `{"annotations":{},"basePath":"","enabled":false,"hostname":"","labels":{},"name":"","namespace":"","sectionName":""}` | Only one of ingress, gateway, or istioGateway can be enabled at the same time. |
+| gateway.basePath | string | `""` | WARNING: Changing basePath after deployment will break existing routes. |
+| gateway.hostname | string | `""` | Hostname for the HTTPRoute. If not set, the route will match all hostnames. |
+| gateway.name | string | `""` | Name of the Gateway resource to attach the HTTPRoute to. |
+| gateway.namespace | string | `""` | Namespace of the Gateway resource. If not set, the HTTPRoute will not specify a namespace for the parentRef. |
+| gateway.sectionName | string | `""` | Section name of the Gateway listener to attach to. |
 | images.apiServerImage.pullPolicy | string | `"Always"` |  |
 | images.apiServerImage.repository | string | `"docker.io/langchain/langgraph-api"` |  |
 | images.apiServerImage.tag | string | `"3.11-28c1407"` |  |
 | images.imagePullSecrets | list | `[]` | Secrets with credentials to pull images from a private registry. Specified as name: value. |
+| images.mongoImage.pullPolicy | string | `"IfNotPresent"` |  |
+| images.mongoImage.repository | string | `"mongo"` |  |
+| images.mongoImage.tag | string | `"7"` |  |
 | images.postgresImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.postgresImage.repository | string | `"pgvector/pgvector"` |  |
 | images.postgresImage.tag | string | `"pg16"` |  |
@@ -213,16 +359,24 @@ You can also use existingSecretName to avoid checking in secrets. This secret sh
 | images.redisImage.repository | string | `"docker.io/redis"` |  |
 | images.redisImage.tag | string | `"6"` |  |
 | images.registry | string | `""` | If supplied, all children <image_name>.repository values will be prepended with this registry name + `/` |
-| images.studioImage.pullPolicy | string | `"Always"` |  |
-| images.studioImage.repository | string | `"docker.io/langchain/langgraph-debugger"` |  |
-| images.studioImage.tag | string | `"0.12.77"` |  |
 | ingress.annotations | object | `{}` |  |
 | ingress.enabled | bool | `false` |  |
 | ingress.hostname | string | `""` |  |
 | ingress.ingressClassName | string | `""` |  |
 | ingress.labels | object | `{}` |  |
-| ingress.studioHostname | string | `""` |  |
 | ingress.tls | list | `[]` |  |
+| istioGateway | object | `{"annotations":{},"basePath":"","enabled":false,"hostname":"","labels":{},"name":"","namespace":""}` | Only one of ingress, gateway, or istioGateway can be enabled at the same time. |
+| istioGateway.basePath | string | `""` | WARNING: Changing basePath after deployment will break existing routes. |
+| istioGateway.hostname | string | `""` | Hostname for the VirtualService. If not set, the VirtualService will match all hosts ("*"). |
+| istioGateway.name | string | `""` | Name of the Istio Gateway resource. |
+| istioGateway.namespace | string | `""` | Namespace of the Istio Gateway resource. |
+| mongo.enabled | bool | `false` | Enable MongoDB checkpointing. When `mongo.external.enabled` is false, the chart provisions a bundled single-node MongoDB replica set intended for local development, CI, and quickstarts. |
+| mongo.external.connectionUrl | string | `""` | MongoDB connection URL used when `mongo.enabled` and `mongo.external.enabled` are true. Must include the target database name and point at a replica set member or `mongos`. |
+| mongo.external.enabled | bool | `false` | Use an external MongoDB deployment instead of the chart-managed MongoDB instance. |
+| mongo.external.existingSecretName | string | `""` | Existing secret name containing the MongoDB connection URL. |
+| mongo.statefulSet.persistence.size | string | `"8Gi"` | Persistent volume size for the bundled MongoDB instance. |
+| mongo.statefulSet.resources | object | `{"limits":{"cpu":"2000m","memory":"4Gi"},"requests":{"cpu":"500m","memory":"1Gi"}}` | Resource requests and limits for the bundled MongoDB pod. |
+| mongo.statefulSet.updateStrategy | object | `{}` | Optional StatefulSet update strategy for the in-chart MongoDB instance. Leave unset to keep the Kubernetes default RollingUpdate behavior. |
 | nameOverride | string | `""` | Provide a name in place of `langgraph-cloud` for the chart |
 | namespace | string | `""` | Namespace to install the chart into. If not set, will use the namespace of the current context. |
 | queue.autoscaling.enabled | bool | `false` |  |
@@ -238,7 +392,9 @@ You can also use existingSecretName to avoid checking in secrets. This secret sh
 | queue.deployment.annotations | object | `{}` |  |
 | queue.deployment.envFrom | list | `[]` |  |
 | queue.deployment.extraEnv | list | `[]` |  |
+| queue.deployment.extraPorts | list | `[]` |  |
 | queue.deployment.labels | object | `{}` |  |
+| queue.deployment.lifecycle | object | `{}` |  |
 | queue.deployment.livenessProbe.failureThreshold | int | `6` |  |
 | queue.deployment.livenessProbe.httpGet.path | string | `"/ok"` |  |
 | queue.deployment.livenessProbe.httpGet.port | int | `8000` |  |
@@ -264,6 +420,7 @@ You can also use existingSecretName to avoid checking in secrets. This secret sh
 | queue.deployment.startupProbe.httpGet.port | int | `8000` |  |
 | queue.deployment.startupProbe.periodSeconds | int | `10` |  |
 | queue.deployment.startupProbe.timeoutSeconds | int | `1` |  |
+| queue.deployment.terminationGracePeriodSeconds | int | `30` |  |
 | queue.deployment.tolerations | list | `[]` |  |
 | queue.deployment.volumeMounts | list | `[]` |  |
 | queue.deployment.volumes | list | `[]` |  |
@@ -283,6 +440,7 @@ You can also use existingSecretName to avoid checking in secrets. This secret sh
 | redis.deployment.extraContainerConfig | object | `{}` |  |
 | redis.deployment.extraEnv | list | `[]` |  |
 | redis.deployment.labels | object | `{}` |  |
+| redis.deployment.lifecycle | object | `{}` |  |
 | redis.deployment.livenessProbe.exec.command[0] | string | `"/bin/sh"` |  |
 | redis.deployment.livenessProbe.exec.command[1] | string | `"-c"` |  |
 | redis.deployment.livenessProbe.exec.command[2] | string | `"exec redis-cli ping"` |  |
@@ -310,6 +468,7 @@ You can also use existingSecretName to avoid checking in secrets. This secret sh
 | redis.deployment.startupProbe.failureThreshold | int | `6` |  |
 | redis.deployment.startupProbe.periodSeconds | int | `10` |  |
 | redis.deployment.startupProbe.timeoutSeconds | int | `1` |  |
+| redis.deployment.terminationGracePeriodSeconds | int | `30` |  |
 | redis.deployment.tolerations | list | `[]` |  |
 | redis.deployment.volumeMounts | list | `[]` |  |
 | redis.deployment.volumes | list | `[]` |  |
@@ -330,64 +489,6 @@ You can also use existingSecretName to avoid checking in secrets. This secret sh
 | redis.serviceAccount.create | bool | `true` |  |
 | redis.serviceAccount.labels | object | `{}` |  |
 | redis.serviceAccount.name | string | `""` |  |
-| studio.autoscaling.enabled | bool | `false` |  |
-| studio.autoscaling.keda.cooldownPeriod | int | `300` |  |
-| studio.autoscaling.keda.enabled | bool | `false` |  |
-| studio.autoscaling.keda.pollingInterval | int | `30` |  |
-| studio.autoscaling.keda.scaleDownStabilizationWindowSeconds | int | `300` |  |
-| studio.autoscaling.maxReplicas | int | `5` |  |
-| studio.autoscaling.minReplicas | int | `1` |  |
-| studio.autoscaling.targetCPUUtilizationPercentage | int | `80` |  |
-| studio.containerPort | int | `3968` |  |
-| studio.deployment.affinity | object | `{}` |  |
-| studio.deployment.annotations | object | `{}` |  |
-| studio.deployment.extraEnv | list | `[]` |  |
-| studio.deployment.labels | object | `{}` |  |
-| studio.deployment.livenessProbe.failureThreshold | int | `6` |  |
-| studio.deployment.livenessProbe.httpGet.path | string | `"/health"` |  |
-| studio.deployment.livenessProbe.httpGet.port | int | `3968` |  |
-| studio.deployment.livenessProbe.periodSeconds | int | `10` |  |
-| studio.deployment.livenessProbe.timeoutSeconds | int | `1` |  |
-| studio.deployment.nodeSelector | object | `{}` |  |
-| studio.deployment.podSecurityContext | object | `{}` |  |
-| studio.deployment.priorityClassName | string | `""` |  |
-| studio.deployment.readinessProbe.failureThreshold | int | `3` |  |
-| studio.deployment.readinessProbe.httpGet.path | string | `"/health"` |  |
-| studio.deployment.readinessProbe.httpGet.port | int | `3968` |  |
-| studio.deployment.readinessProbe.periodSeconds | int | `10` |  |
-| studio.deployment.readinessProbe.timeoutSeconds | int | `1` |  |
-| studio.deployment.replicaCount | int | `1` |  |
-| studio.deployment.resources.limits.cpu | string | `"1000m"` |  |
-| studio.deployment.resources.limits.memory | string | `"2Gi"` |  |
-| studio.deployment.resources.requests.cpu | string | `"500m"` |  |
-| studio.deployment.resources.requests.memory | string | `"1Gi"` |  |
-| studio.deployment.securityContext | object | `{}` |  |
-| studio.deployment.sidecars | list | `[]` |  |
-| studio.deployment.startupProbe.failureThreshold | int | `6` |  |
-| studio.deployment.startupProbe.httpGet.path | string | `"/health"` |  |
-| studio.deployment.startupProbe.httpGet.port | int | `3968` |  |
-| studio.deployment.startupProbe.periodSeconds | int | `10` |  |
-| studio.deployment.startupProbe.timeoutSeconds | int | `1` |  |
-| studio.deployment.tolerations | list | `[]` |  |
-| studio.deployment.volumeMounts | list | `[]` |  |
-| studio.deployment.volumes | list | `[]` |  |
-| studio.enabled | bool | `true` |  |
-| studio.localGraphUrl | string | `""` |  |
-| studio.name | string | `"studio"` |  |
-| studio.pdb.enabled | bool | `false` |  |
-| studio.pdb.minAvailable | int | `1` |  |
-| studio.service.annotations | object | `{}` |  |
-| studio.service.httpPort | int | `80` |  |
-| studio.service.httpsPort | int | `443` |  |
-| studio.service.labels | object | `{}` |  |
-| studio.service.loadBalancerIP | string | `""` |  |
-| studio.service.loadBalancerSourceRanges | list | `[]` |  |
-| studio.service.type | string | `"LoadBalancer"` |  |
-| studio.serviceAccount.annotations | object | `{}` |  |
-| studio.serviceAccount.automountServiceAccountToken | bool | `true` |  |
-| studio.serviceAccount.create | bool | `true` |  |
-| studio.serviceAccount.labels | object | `{}` |  |
-| studio.serviceAccount.name | string | `""` |  |
 
 ## Configs
 
@@ -398,8 +499,10 @@ You can also use existingSecretName to avoid checking in secrets. This secret sh
 | config.auth.langSmithAuthEndpoint | string | `""` |  |
 | config.auth.langSmithTenantId | string | `""` |  |
 | config.existingSecretName | string | `""` |  |
+| config.httpMaxRequestBodyBytes | string | `""` | Set this to override the default limit. Requests exceeding this limit receive HTTP 413. |
 | config.langGraphCloudLicenseKey | string | `""` | Optional LangGraph Cloud license key loaded from the chart secret. |
 | config.numberOfJobsPerWorker | int | `10` |  |
+| config.skipValidation | bool | `false` | Skip chart validation checks (ingress/gateway mutual-exclusion and MongoDB config guards). Used for helm template verification (e.g. AWS Marketplace). |
 
 ## Api Server
 
@@ -420,6 +523,7 @@ You can also use existingSecretName to avoid checking in secrets. This secret sh
 | apiServer.deployment.extraEnv | list | `[]` |  |
 | apiServer.deployment.initContainers | list | `[]` |  |
 | apiServer.deployment.labels | object | `{}` |  |
+| apiServer.deployment.lifecycle | object | `{}` |  |
 | apiServer.deployment.livenessProbe.exec.command[0] | string | `"/bin/sh"` |  |
 | apiServer.deployment.livenessProbe.exec.command[1] | string | `"-c"` |  |
 | apiServer.deployment.livenessProbe.exec.command[2] | string | `"exec python /api/healthcheck.py"` |  |
@@ -448,6 +552,7 @@ You can also use existingSecretName to avoid checking in secrets. This secret sh
 | apiServer.deployment.startupProbe.failureThreshold | int | `6` |  |
 | apiServer.deployment.startupProbe.periodSeconds | int | `10` |  |
 | apiServer.deployment.startupProbe.timeoutSeconds | int | `1` |  |
+| apiServer.deployment.terminationGracePeriodSeconds | int | `30` |  |
 | apiServer.deployment.tolerations | list | `[]` |  |
 | apiServer.deployment.volumeMounts | list | `[]` |  |
 | apiServer.deployment.volumes | list | `[]` |  |
@@ -501,6 +606,7 @@ You can also use existingSecretName to avoid checking in secrets. This secret sh
 | postgres.statefulSet.extraContainerConfig | object | `{}` |  |
 | postgres.statefulSet.extraEnv | list | `[]` |  |
 | postgres.statefulSet.labels | object | `{}` |  |
+| postgres.statefulSet.lifecycle | object | `{}` |  |
 | postgres.statefulSet.nodeSelector | object | `{}` |  |
 | postgres.statefulSet.persistence.enabled | bool | `true` |  |
 | postgres.statefulSet.persistence.size | string | `"8Gi"` |  |
@@ -514,7 +620,9 @@ You can also use existingSecretName to avoid checking in secrets. This secret sh
 | postgres.statefulSet.resources.requests.memory | string | `"8Gi"` |  |
 | postgres.statefulSet.securityContext | object | `{}` |  |
 | postgres.statefulSet.sidecars | list | `[]` |  |
+| postgres.statefulSet.terminationGracePeriodSeconds | int | `30` |  |
 | postgres.statefulSet.tolerations | list | `[]` |  |
+| postgres.statefulSet.updateStrategy | object | `{}` | Optional StatefulSet update strategy for the in-chart PostgreSQL instance. Leave unset to keep the Kubernetes default RollingUpdate behavior. |
 | postgres.statefulSet.volumeMounts | list | `[]` |  |
 | postgres.statefulSet.volumes | list | `[]` |  |
 

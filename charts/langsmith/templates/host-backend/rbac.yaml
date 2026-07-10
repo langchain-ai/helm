@@ -1,4 +1,4 @@
-{{- if and .Values.config.deployment.enabled .Values.hostBackend.rbac.create}}
+{{- if and (or .Values.config.deployment.enabled .Values.hostBackend.enabled) .Values.hostBackend.rbac.create}}
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:

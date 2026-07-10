@@ -36,6 +36,7 @@ metadata:
       {{- toYaml . | nindent 4 }}
     {{- end }}
   annotations:
+    "argocd.argoproj.io/sync-wave": "-2"
     {{- include "langsmith.annotations" . | nindent 4 }}
     {{- with.Values.postgres.statefulSet.annotations }}
       {{- toYaml . | nindent 4 }}
@@ -43,6 +44,10 @@ metadata:
 spec:
   serviceName: {{ include "langsmith.fullname" . }}-{{ .Values.postgres.name }}
   replicas: 1
+  {{- with .Values.postgres.statefulSet.updateStrategy }}
+  updateStrategy:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
   selector:
     matchLabels:
       {{- include "langsmith.selectorLabels" . | nindent 6 }}
@@ -65,9 +70,11 @@ spec:
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      terminationGracePeriodSeconds: {{ .Values.postgres.statefulSet.terminationGracePeriodSeconds }}
       securityContext:
         {{- include "langsmith.podSecurityContext" (dict "Values" .Values "componentSecurityContext" .Values.postgres.statefulSet.podSecurityContext) | nindent 8 }}
       serviceAccountName: {{ include "postgres.serviceAccountName" . }}
+      {{- include "langsmith.dnsConfig" . | nindent 6 }}
       {{- with concat .Values.commonInitContainers .Values.postgres.statefulSet.initContainers }}
       initContainers:
         {{- toYaml . | nindent 8 }}
@@ -104,6 +111,10 @@ spec:
             {{- toYaml .Values.postgres.statefulSet.resources | nindent 12 }}
           securityContext:
             {{- toYaml .Values.postgres.statefulSet.securityContext | nindent 12 }}
+          {{- with .Values.postgres.statefulSet.lifecycle }}
+          lifecycle:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           volumeMounts:
             {{- with $volumeMounts }}
               {{- toYaml . | nindent 12 }}

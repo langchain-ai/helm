@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: transformer-mock
+  labels:
+    app: transformer-mock
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: transformer-mock
+  template:
+    metadata:
+      labels:
+        app: transformer-mock
+    spec:
+      containers:
+        - name: transformer
+          image: transformer-mock:e2e
+          ports:
+            - containerPort: 50051
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: transformer-mock
+  labels:
+    app: transformer-mock
+spec:
+  selector:
+    app: transformer-mock
+  ports:
+    - port: 50051
+      targetPort: 50051
+      protocol: TCP

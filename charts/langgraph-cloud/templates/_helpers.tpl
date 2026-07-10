@@ -104,6 +104,92 @@ the user or some other secret provisioning mechanism
 {{- end }}
 {{- end }}
 
+{{/*
+Common DNS configuration for all pods. When commonDnsConfig is set, it will be applied to all pods.
+*/}}
+{{- define "langGraphCloud.dnsConfig" -}}
+{{- if .Values.commonDnsConfig }}
+dnsConfig:
+  {{- toYaml .Values.commonDnsConfig | nindent 2 }}
+{{- end }}
+{{- end }}
+
+{{/*
+Name of the secret containing the MongoDB URI for the optional Mongo checkpointer default.
+*/}}
+{{- define "langGraphCloud.mongoSecretsName" -}}
+{{- if and .Values.mongo.external.enabled .Values.mongo.external.existingSecretName }}
+{{- .Values.mongo.external.existingSecretName }}
+{{- else }}
+{{- include "langGraphCloud.fullname" . }}-mongo
+{{- end }}
+{{- end }}
+
+{{/*
+Name of the Service backing the chart-managed MongoDB instance.
+*/}}
+{{- define "langGraphCloud.mongoServiceName" -}}
+{{- include "langGraphCloud.fullname" . }}-mongo
+{{- end }}
+
+{{/*
+Stable DNS name for the primary member of the chart-managed single-node MongoDB replica set.
+*/}}
+{{- define "langGraphCloud.mongoPrimaryHost" -}}
+{{- printf "%s.%s.svc.%s:%v" (include "langGraphCloud.mongoServiceName" .) (default .Release.Namespace .Values.namespace) .Values.clusterDomain 27017 -}}
+{{- end }}
+
+{{/*
+MongoDB connection URL used by the chart-managed checkpointer default.
+*/}}
+{{- define "langGraphCloud.mongoConnectionUrl" -}}
+{{- if and .Values.mongo.enabled (not .Values.mongo.external.enabled) -}}
+{{- printf "mongodb://%s/langgraph?replicaSet=rs0" (include "langGraphCloud.mongoPrimaryHost" .) -}}
+{{- else -}}
+{{- .Values.mongo.external.connectionUrl -}}
+{{- end -}}
+{{- end }}
+
+{{/*
+Validates MongoDB provisioning and default-checkpointer settings.
+Set config.skipValidation to true to bypass these checks (e.g. for helm template verification).
+*/}}
+{{- define "langGraphCloud.validateMongoConfiguration" -}}
+{{- if not .Values.config.skipValidation -}}
+{{- if and (hasKey .Values.mongo "resources") (not (empty .Values.mongo.resources)) -}}
+{{- fail "mongo.resources has moved to mongo.statefulSet.resources; update your values file to use the new path" -}}
+{{- end -}}
+{{- if and (hasKey .Values.mongo "persistence") (not (empty .Values.mongo.persistence)) -}}
+{{- fail "mongo.persistence has moved to mongo.statefulSet.persistence; update your values file to use the new path" -}}
+{{- end -}}
+{{- if and (not .Values.mongo.enabled) .Values.mongo.external.enabled -}}
+{{- fail "mongo.external.enabled requires mongo.enabled=true" -}}
+{{- end -}}
+{{- if and .Values.mongo.external.enabled (not .Values.mongo.external.existingSecretName) (empty .Values.mongo.external.connectionUrl) -}}
+{{- fail "mongo.external.connectionUrl must be set or mongo.external.existingSecretName must be provided when mongo.external.enabled=true" -}}
+{{- end -}}
+{{- if and .Values.mongo.enabled (not .Values.mongo.external.enabled) (empty .Values.mongo.statefulSet.persistence.size) -}}
+{{- fail "mongo.statefulSet.persistence.size must be set when mongo.enabled=true and using the bundled MongoDB instance" -}}
+{{- end -}}
+{{- end -}}{{- /* end skipValidation */ -}}
+{{- end }}
+
+{{/*
+Environment variables used to default agent server checkpointers without overriding app-level LANGGRAPH_CHECKPOINTER.
+*/}}
+{{- define "langGraphCloud.checkpointerEnv" -}}
+{{- $root := .root | default . -}}
+{{- include "langGraphCloud.validateMongoConfiguration" $root -}}
+{{- if $root.Values.mongo.enabled }}
+- name: LS_DEFAULT_CHECKPOINTER_BACKEND
+  value: "mongo"
+- name: LS_MONGODB_URI
+  valueFrom:
+    secretKeyRef:
+      name: {{ include "langGraphCloud.mongoSecretsName" $root }}
+      key: mongodb_connection_url
+{{- end }}
+{{- end }}
 {{- define "apiServer.serviceAccountName" -}}
 {{- if .Values.apiServer.serviceAccount.create -}}
     {{ default (printf "%s-%s" (include "langGraphCloud.fullname" .) .Values.apiServer.name) .Values.apiServer.serviceAccount.name | trunc 63 | trimSuffix "-" }}
@@ -136,12 +222,44 @@ the user or some other secret provisioning mechanism
 {{- end -}}
 {{- end -}}
 
-{{- define "studio.serviceAccountName" -}}
-{{- if .Values.studio.serviceAccount.create -}}
-    {{ default (printf "%s-%s" (include "langGraphCloud.fullname" .) .Values.studio.name) .Values.studio.serviceAccount.name | trunc 63 | trimSuffix "-" }}
-{{- else -}}
-    {{ default "default" .Values.studio.serviceAccount.name }}
+{{/*
+Validates that at most one ingress mechanism is enabled and that required fields are set.
+Set config.skipValidation to true to bypass these checks (e.g. for Ingress + Gateway
+coexistence or helm template verification).
+*/}}
+{{- define "langGraphCloud.validateIngress" -}}
+{{- if not .Values.config.skipValidation -}}
+{{- $enabledCount := 0 -}}
+{{- if .Values.ingress.enabled }}{{ $enabledCount = add1 $enabledCount }}{{- end -}}
+{{- if .Values.gateway.enabled }}{{ $enabledCount = add1 $enabledCount }}{{- end -}}
+{{- if .Values.istioGateway.enabled }}{{ $enabledCount = add1 $enabledCount }}{{- end -}}
+{{- if gt $enabledCount 1 }}
+{{- fail "Only one of ingress, gateway, or istioGateway can be enabled at the same time." -}}
 {{- end -}}
+{{- if and .Values.gateway.enabled (empty .Values.gateway.name) }}
+{{- fail "gateway.name must be set when gateway.enabled=true" -}}
+{{- end -}}
+{{- if and .Values.istioGateway.enabled (empty .Values.istioGateway.name) }}
+{{- fail "istioGateway.name must be set when istioGateway.enabled=true" -}}
+{{- end -}}
+{{- if and .Values.ingress.enabled (empty .Values.ingress.hostname) }}
+{{- fail "ingress.hostname must be set when ingress.enabled=true" -}}
+{{- end -}}
+{{- end -}}{{- /* end skipValidation */ -}}
+{{- end -}}
+
+{{/*
+Normalizes a basePath value by stripping leading and trailing slashes.
+*/}}
+{{- define "langGraphCloud.normalizeBasePath" -}}
+{{- . | trimPrefix "/" | trimSuffix "/" -}}
+{{- end -}}
+
+{{/*
+FQDN for the api-server Service inside the cluster.
+*/}}
+{{- define "langGraphCloud.apiServerHost" -}}
+{{- printf "%s-%s.%s.svc.%s" (include "langGraphCloud.fullname" .) .Values.apiServer.name (.Values.namespace | default .Release.Namespace) .Values.clusterDomain -}}
 {{- end -}}
 
 {{/*

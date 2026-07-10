@@ -1,0 +1,222 @@
+# -- Provide a name in place of `mission-control`
+nameOverride: ""
+# -- String to fully override the chart's full name
+fullnameOverride: ""
+# -- Namespace to install the chart into. If not set, will use the namespace of the current context.
+namespace: ""
+# -- Annotations that will be applied to all resources created by the chart
+commonAnnotations: {}
+# -- Annotations that will be applied to all pods created by the chart
+commonPodAnnotations: {}
+# -- Labels that will be applied to all resources created by the chart
+commonLabels: {}
+
+# Application-level configuration. Runtime knobs that gate features, authentication,
+# and discovery scope. Infrastructure-level options (images, resources, services,
+# storage) stay at the top level outside `config`.
+config:
+  # -- Single switch for locked-down / GitOps installs. When true, every
+  # `config.features.*` flag below is treated as false regardless of its
+  # individual setting, so the rendered ClusterRole is reduced to its
+  # read-only base (get/list/watch on cluster resources, get/list on
+  # secrets - no create/update/delete/patch verbs anywhere) and the backend
+  # 403s every write/disclosure endpoint (deploy, contention, discover,
+  # dbTools, adopt, fixIssue, alerts, configSave, valuesOverride, chat).
+  # Replaces manually setting each `features.*` flag to false, which is easy
+  # to get wrong (e.g. forgetting `deploy`, the single largest RBAC grant).
+  # Pair with `backend.serviceAccount.create=false` (and optionally
+  # `backend.rbac.create=false`) to bring your own ServiceAccount/RBAC
+  # provisioned by your own IaC pipeline instead of this chart's release.
+  strictReadOnly: false
+
+  # Backend API authentication (HTTP Basic Auth).
+  # Keep config.auth.enabled=true in production.
+  #
+  # First-run setup flow: when config.auth.enabled=true and `existingSecret` does not
+  # yet exist, the chart generates a setup-token Secret. Retrieve the token with the
+  # command shown in the helm install NOTES, paste it into the Mission Control setup
+  # form, and the backend will create the auth Secret and delete the setup-token
+  # automatically.
+  auth:
+    enabled: true
+    # -- Pre-created Secret with username/password (and optionally JWT signing) keys.
+    # Leave as-is to use the first-run setup flow described above. Under
+    # `strictReadOnly: true` the chart never grants the backend an unscoped
+    # secrets:create verb, so this Secret must be pre-created (e.g. via your
+    # own GitOps secrets pipeline) before the first `helm install` - the
+    # first-run setup flow cannot create it for you in that mode.
+    existingSecret: mission-control-auth
+    # -- Key in `existingSecret` holding the basic-auth username.
+    usernameKey: username
+    # -- Key in `existingSecret` holding the basic-auth password.
+    passwordKey: password
+    # -- Optional: key in `existingSecret` holding the JWT signing secret.
+    # Required when backend.replicas > 1 so all pods can validate each other's tokens.
+    # Generate with: openssl rand -base64 32
+    jwtSecretKey: ""
+    # -- Optional: comma-separated list of origins allowed to make credentialed requests.
+    # Required only when the backend and frontend are served from different hostnames.
+    allowedOrigins: ""
+
+  # Feature flags. Disabling a flag removes its write verbs from the ClusterRole.
+  # With every flag false the ClusterRole is read-only. `strictReadOnly` above
+  # forces all of these off in one switch instead of setting each individually.
+  # Contention Insights (`contention`, below) is opt-in: it defaults to false so
+  # existing installs do not silently gain new RBAC verbs on upgrade.
+  features:
+    # -- Fix Issue button: deletes pods stuck in CreateContainerConfigError. Grants pods:delete.
+    fixIssue: true
+    # -- Adopt button: patches Helm ownership metadata onto existing resources.
+    # Grants secrets/configmaps/serviceaccounts/deployments/statefulsets:patch.
+    adopt: true
+    # -- Alert notifications (SMTP + webhook). Grants write access to alert-config secrets.
+    # Egress: outbound SMTP and webhook to the configured endpoints.
+    alerts: true
+    # -- Chat assistant: floating widget that proxies to chat.langchain.com.
+    # Egress: outbound HTTPS to chat.langchain.com and *.us.langgraph.app.
+    chat: true
+    # -- Diagnostic bundle download (pod logs + resource manifests packaged as a zip).
+    diagnostics: true
+    # -- Persists working configuration to the draft Kubernetes Secret.
+    # Grants write access to the mission-control-draft secret.
+    configSave: true
+    # -- Namespace-scoped infrastructure discovery via the /api/discover endpoint.
+    # Adds no extra RBAC verbs; gates the endpoint at the application layer.
+    discover: true
+    # -- Database detection, preflight checks, and support query execution.
+    # Adds no extra RBAC verbs; gates the /db/* endpoints at the application layer.
+    dbTools: true
+    # -- In-browser helm upgrade --install. When true, grants broad write access
+    # across multiple API groups - see templates/backend/cluster-role.yaml.
+    # Set to false in read-only / compliance-locked installs to remove all deploy
+    # write verbs from the ClusterRole and 403 the POST /deploy API.
+    deploy: false
+    # -- Operator-uploaded values.yaml overrides per product (airgapped support).
+    # Adds the settings pill in the topbar and grants update/delete on the
+    # `mission-control-values-overrides` Secret. Set to false to remove the pill
+    # and 403 the /api/values-overrides/* endpoints.
+    valuesOverride: true
+    # -- Contention insights: live probe of Redis/Postgres/ClickHouse/workers
+    # plus a background detector that persists incidents as Secrets. Grants
+    # update/delete on the `mission-control-contention-config` ConfigMap and
+    # unscoped secrets:create,delete for incident storage (incident names
+    # carry per-second timestamps which cannot be enumerated up front).
+    # Defaults to false: existing installs upgrading the chart do not silently
+    # gain the new RBAC verbs. Set to true to enable the sidebar tab and the
+    # /api/contention/* endpoints.
+    contention: false
+    # -- Allow the deploy feature to create and manage cluster-scoped resources
+    # (Namespaces, ClusterRoles, ClusterRoleBindings, CRDs). When false (default)
+    # the deploy RBAC is namespace-scoped only (Role + RoleBinding); cluster-level
+    # write verbs are not granted. Set to true only when Mission Control needs to
+    # install charts that create cluster-level objects.
+    deployClusterScopedResources: false
+
+  # -- Extra namespaces (comma-separated) the discover feature is allowed to scan.
+  # Default scans only the chart's release namespace to prevent cross-namespace secret
+  # disclosure on shared clusters. Add namespaces only when you trust every listed namespace.
+  # Example: "langsmith,monitoring"
+  discoverNamespaces: ""
+
+images:
+  # -- If supplied, all child <image>.repository values will be prepended with this registry name + `/`
+  registry: ""
+  # -- Image pull secrets used by all components.
+  imagePullSecrets:
+    - name: regcred
+  backendImage:
+    repository: langchain/mission-control-backend
+    pullPolicy: IfNotPresent
+    # -- Backend image tag. Defaults to `latest`; pin to a specific release like `1.2.2`
+    # for reproducible deploys. Versioned tags are published alongside `latest` on every release.
+    tag: latest
+  frontendImage:
+    repository: langchain/mission-control-frontend
+    pullPolicy: IfNotPresent
+    # -- Frontend image tag. Defaults to `latest`; pin to a specific release like `1.2.2`
+    # for reproducible deploys. Versioned tags are published alongside `latest` on every release.
+    tag: latest
+
+# Backend (FastAPI) component.
+backend:
+  # -- Replica count. Set > 1 only when config.auth.jwtSecretKey is set so all pods validate each other's tokens.
+  replicas: 1
+  # -- Pod-level security context.
+  podSecurityContext: {}
+  # -- Container-level security context.
+  securityContext: {}
+  # -- Additional environment variables passed to the backend container.
+  extraEnv: []
+  resources:
+    requests:
+      cpu: 250m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  service:
+    # -- Internal Service type; port-forward is the default access path.
+    type: ClusterIP
+    port: 8000
+  serviceAccount:
+    # -- When true (default) the chart creates the ServiceAccount object.
+    # Set to false to bring your own ServiceAccount - e.g. one your platform
+    # Terraform/IaC already annotated for IRSA or GKE Workload Identity - and
+    # supply its name via `name` below. This is independent of `rbac.create`:
+    # you can bring your own ServiceAccount while still letting this chart
+    # manage the ClusterRole/ClusterRoleBinding bound to it.
+    create: true
+    # -- Name of the ServiceAccount to use. Required when `create: false`;
+    # optional override of the generated name otherwise.
+    name: ""
+  rbac:
+    # -- When true (default) the chart creates the ClusterRole and
+    # ClusterRoleBinding granting the backend ServiceAccount (see
+    # `serviceAccount` above) its permissions. Set to false for fully
+    # GitOps-managed RBAC: your own IaC pipeline grants the ServiceAccount
+    # named by `serviceAccount.name` the equivalent rules, reviewed and
+    # applied outside this chart's release. See templates/backend/cluster-role.yaml
+    # for the exact rule set to replicate (respects `strictReadOnly` and
+    # `config.features.*` the same way).
+    create: true
+
+# Frontend (static React app served by an HTTP server) component.
+frontend:
+  # -- Replica count.
+  replicas: 1
+  # -- Pod-level security context.
+  podSecurityContext: {}
+  # -- Container-level security context.
+  securityContext: {}
+  # -- Additional environment variables passed to the frontend container.
+  extraEnv: []
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+  service:
+    type: ClusterIP
+    port: 3000
+
+# Optional ingress; disabled by default.
+ingress:
+  enabled: false
+  host: ""
+
+# Diagnostic-bundle storage. The backend always writes bundles to /tmp/mc_diagnostics.
+# The backend runs as a StatefulSet so persistence can be toggled by including or
+# omitting the volumeClaimTemplates entry. Default is emptyDir (bundles lost on pod restart).
+#
+# Important: `volumeClaimTemplates` is immutable on a StatefulSet. Toggling
+# `diagnostics.persistence.enabled` after install requires `helm uninstall` then
+# reinstall - Kubernetes does not allow adding or removing claim templates in place.
+diagnostics:
+  persistence:
+    enabled: false
+    # -- Leave empty to use the cluster default StorageClass.
+    storageClass: ""
+    size: 1Gi
+    accessMode: ReadWriteOnce

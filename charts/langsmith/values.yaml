@@ -6,6 +6,31 @@ nameOverride: ""
 fullnameOverride: ""
 # -- Namespace to install the chart into. If not set, will use the namespace of the current context.
 namespace: ""
+# -- Prerequisite manifests rendered as Helm pre-install / pre-upgrade hooks so they
+# -- are applied before the rest of the chart's resources. Typical use case is an
+# -- ExternalSecret that produces a Secret consumed via `config.existingSecretName`.
+# -- See `templates/pre-install-manifests.yaml` for entry forms, injected
+# -- annotations, idempotency rules, and caveats.
+# Example:
+# preInstallManifests:
+#   - apiVersion: external-secrets.io/v1beta1
+#     kind: ExternalSecret
+#     metadata:
+#       name: langsmith-app
+#     spec:
+#       refreshInterval: 1h
+#       secretStoreRef:
+#         name: vault-backend
+#         kind: ClusterSecretStore
+#       target:
+#         name: langsmith-app-secret
+#         creationPolicy: Orphan
+#       data:
+#         - secretKey: langsmith_license_key
+#           remoteRef:
+#             key: secret/langsmith/app
+#             property: langsmith_license_key
+preInstallManifests: []
 # -- Annotations that will be applied to all resources created by the chart
 commonAnnotations: {}
 # -- Annotations that will be applied to all pods created by the chart
@@ -22,6 +47,13 @@ commonVolumeMounts: []
 commonInitContainers: []
 # -- Common pod security context applied to all pods. Component-specific podSecurityContext values will be merged on top of this (component values take precedence).
 commonPodSecurityContext: {}
+# -- Common DNS configuration applied to all pods. Reduces DNS query amplification in Kubernetes by
+# -- ensuring service FQDNs (which have 4 dots) are resolved directly without search domain expansion.
+# -- Set to null to disable and use Kubernetes defaults (ndots: 5).
+commonDnsConfig:
+  options:
+    - name: ndots
+      value: "4"
 # -- Kubernetes cluster domain. Only change if not using 'cluster.local'
 clusterDomain: "cluster.local"
 
@@ -33,35 +65,35 @@ images:
   aceBackendImage:
     repository: "docker.io/langchain/langsmith-ace-backend"
     pullPolicy: IfNotPresent
-    tag: "0.13.14"
+    tag: "0.16.13rc1"
   backendImage:
     repository: "docker.io/langchain/langsmith-backend"
     pullPolicy: IfNotPresent
-    tag: "0.13.14"
+    tag: "0.16.13rc1"
   insightsAgentImage:
     repository: "docker.io/langchain/langsmith-clio"
     pullPolicy: IfNotPresent
-    tag: "0.13.14"
+    tag: "0.16.13rc1"
   frontendImage:
     repository: "docker.io/langchain/langsmith-frontend"
     pullPolicy: IfNotPresent
-    tag: "0.13.14"
+    tag: "0.16.13rc1"
   hostBackendImage:
     repository: "docker.io/langchain/hosted-langserve-backend"
     pullPolicy: IfNotPresent
-    tag: "0.13.14"
+    tag: "0.16.13rc1"
   operatorImage:
     repository: "docker.io/langchain/langgraph-operator"
     pullPolicy: IfNotPresent
-    tag: "0.1.37"
+    tag: "0.1.47"
   platformBackendImage:
     repository: "docker.io/langchain/langsmith-go-backend"
     pullPolicy: IfNotPresent
-    tag: "0.13.14"
+    tag: "0.16.13rc1"
   playgroundImage:
     repository: "docker.io/langchain/langsmith-playground"
     pullPolicy: IfNotPresent
-    tag: "0.13.14"
+    tag: "0.16.13rc1"
   # For production environments, we strongly recommend connecting to a managed PostgreSQL instance instead of using the one provided by the chart.
   # Docs: https://docs.langchain.com/langsmith/self-host-external-postgres
   postgresImage:
@@ -78,18 +110,31 @@ images:
     repository: "docker.io/clickhouse/clickhouse-server"
     pullPolicy: Always
     tag: "25.12"
-  agentBuilderToolServerImage:
+  fleetToolServerImage:
     repository: "docker.io/langchain/agent-builder-tool-server"
     pullPolicy: IfNotPresent
-    tag: "0.13.14"
-  agentBuilderTriggerServerImage:
+    tag: "0.16.13rc1"
+  fleetTriggerServerImage:
     repository: "docker.io/langchain/agent-builder-trigger-server"
     pullPolicy: IfNotPresent
-    tag: "0.13.14"
+    tag: "0.16.13rc1"
   agentBuilderImage:
     repository: "docker.io/langchain/agent-builder-deep-agent"
     pullPolicy: IfNotPresent
-    tag: "0.13.14"
+    tag: "0.16.13rc1"
+  pollyAgentImage:
+    repository: "docker.io/langchain/langsmith-polly"
+    pullPolicy: IfNotPresent
+    tag: "0.16.13rc1"
+  smithdbImage:
+    repository: "docker.io/langchain/smithdb"
+    pullPolicy: IfNotPresent
+    tag: "latest"
+  # Optional: only mirror/pull when presidioAnalyzer.enabled is true
+  presidioAnalyzerImage:
+    repository: "mcr.microsoft.com/presidio-analyzer"
+    pullPolicy: IfNotPresent
+    tag: "2.2.354"
 
 ingress:
   enabled: false
@@ -115,6 +160,727 @@ istioGateway:
   annotations: {}
   labels: {}
 
+
+fleet:
+  enabled: false
+  namePrefix: "standalone-fleet"
+  enableTracing: true
+  encryptionKey: ""
+  oauth:
+    providerOrgId: ""
+    googleOAuthProvider: ""
+    slackOAuthProvider: ""
+    linkedinOAuthProvider: ""
+    linearOAuthProvider: ""
+    githubOAuthProvider: ""
+    microsoftOAuthProvider: ""
+    salesforceOAuthProvider: ""
+    slackSigningSecret: ""
+    slackBotId: ""
+  apiServer:
+    name: "api-server"
+    containerPort: 8000
+    deployment:
+      replicaCount: 1
+      labels: {}
+      annotations: {}
+      podSecurityContext: {}
+      securityContext: {}
+      lifecycle: {}
+      priorityClassName: ""
+      terminationGracePeriodSeconds: 30
+      resources: {}
+      extraEnv: []
+      envFrom: []
+      sidecars: []
+      nodeSelector: {}
+      tolerations: []
+      affinity: {}
+      volumes: []
+      volumeMounts: []
+      initContainers: []
+      startupProbe:
+        httpGet:
+          path: /ok?check_db=1
+          port: 8000
+        failureThreshold: 6
+        periodSeconds: 10
+        timeoutSeconds: 1
+      readinessProbe:
+        httpGet:
+          path: /ok?check_db=0
+          port: 8000
+        failureThreshold: 3
+        periodSeconds: 10
+        timeoutSeconds: 1
+      livenessProbe:
+        httpGet:
+          path: /ok?check_db=0
+          port: 8000
+        failureThreshold: 6
+        periodSeconds: 10
+        timeoutSeconds: 1
+    autoscaling:
+      enabled: false
+      minReplicas: 1
+      maxReplicas: 5
+      targetCPUUtilizationPercentage: 80
+      keda:
+        enabled: false
+        pollingInterval: 30
+        cooldownPeriod: 300
+        scaleDownStabilizationWindowSeconds: 300
+    service:
+      type: ClusterIP
+      httpPort: 80
+      labels: {}
+      annotations: {}
+    serviceAccount:
+      create: true
+      name: ""
+      labels: {}
+      annotations: {}
+      automountServiceAccountToken: true
+    pdb:
+      enabled: false
+      minAvailable: 1
+  queue:
+    enabled: true
+    name: "queue"
+    containerPort: 8000
+    numberOfJobsPerWorker: 10
+    deployment:
+      replicaCount: 1
+      labels: {}
+      annotations: {}
+      podSecurityContext: {}
+      securityContext: {}
+      lifecycle: {}
+      priorityClassName: ""
+      terminationGracePeriodSeconds: 30
+      resources: {}
+      extraEnv: []
+      envFrom: []
+      sidecars: []
+      nodeSelector: {}
+      tolerations: []
+      affinity: {}
+      volumes: []
+      volumeMounts: []
+      startupProbe:
+        httpGet:
+          path: "/ok"
+          port: 8000
+        failureThreshold: 6
+        periodSeconds: 10
+        timeoutSeconds: 1
+      readinessProbe:
+        httpGet:
+          path: "/ok"
+          port: 8000
+        failureThreshold: 6
+        periodSeconds: 10
+        timeoutSeconds: 1
+      livenessProbe:
+        httpGet:
+          path: "/ok"
+          port: 8000
+        failureThreshold: 6
+        periodSeconds: 10
+        timeoutSeconds: 1
+    autoscaling:
+      enabled: false
+      minReplicas: 1
+      maxReplicas: 5
+      targetCPUUtilizationPercentage: 80
+      keda:
+        enabled: false
+        pollingInterval: 30
+        cooldownPeriod: 300
+        scaleDownStabilizationWindowSeconds: 300
+    serviceAccount:
+      create: true
+      name: ""
+      labels: {}
+      annotations: {}
+      automountServiceAccountToken: true
+    pdb:
+      enabled: false
+      minAvailable: 1
+  postgres:
+    name: "postgres"
+    containerPort: 5432
+    external:
+      enabled: false
+      host: ""
+      port: "5432"
+      user: "postgres"
+      password: "postgres"
+      database: "postgres"
+      schema: "public"
+      connectionUrl: ""
+      existingSecretName: ""
+    statefulSet:
+      # -- Optional StatefulSet update strategy for the in-chart Fleet PostgreSQL instance.
+      # Leave unset to keep the Kubernetes default RollingUpdate behavior.
+      updateStrategy: {}
+      labels: {}
+      annotations: {}
+      podSecurityContext: {}
+      securityContext: {}
+      lifecycle: {}
+      priorityClassName: ""
+      terminationGracePeriodSeconds: 30
+      resources: {}
+      command: []
+      extraContainerConfig: {}
+      extraEnv: []
+      sidecars: []
+      nodeSelector: {}
+      tolerations: []
+      affinity: {}
+      volumes: []
+      volumeMounts: []
+      persistentVolumeClaimRetentionPolicy: {}
+      persistence:
+        enabled: true
+        size: 8Gi
+        storageClassName: ""
+    service:
+      type: ClusterIP
+      port: 5432
+      labels: {}
+      annotations: {}
+    serviceAccount:
+      create: true
+      name: ""
+      labels: {}
+      annotations: {}
+      automountServiceAccountToken: true
+    pdb:
+      enabled: false
+      minAvailable: 1
+  redis:
+    name: "redis"
+    containerPort: 6379
+    external:
+      enabled: false
+      connectionUrl: ""
+      existingSecretName: ""
+    statefulSet:
+      # -- Optional StatefulSet update strategy for the in-chart Fleet Redis instance.
+      # Leave unset to keep the Kubernetes default RollingUpdate behavior.
+      updateStrategy: {}
+      labels: {}
+      annotations: {}
+      podSecurityContext: {}
+      securityContext: {}
+      lifecycle: {}
+      priorityClassName: ""
+      terminationGracePeriodSeconds: 30
+      resources: {}
+      command: []
+      extraContainerConfig: {}
+      extraEnv: []
+      sidecars: []
+      nodeSelector: {}
+      tolerations: []
+      affinity: {}
+      volumes: []
+      volumeMounts: []
+      persistentVolumeClaimRetentionPolicy: {}
+      persistence:
+        enabled: true
+        size: 8Gi
+        storageClassName: ""
+    service:
+      type: ClusterIP
+      port: 6379
+      labels: {}
+      annotations: {}
+    serviceAccount:
+      create: true
+      name: ""
+      labels: {}
+      annotations: {}
+      automountServiceAccountToken: true
+    pdb:
+      enabled: false
+      minAvailable: 1
+insights:
+  enabled: true
+  namePrefix: "standalone-insights"
+  encryptionKey: ""
+  apiServer:
+    name: "api-server"
+    containerPort: 8000
+    deployment:
+      replicaCount: 1
+      labels: {}
+      annotations: {}
+      podSecurityContext: {}
+      securityContext: {}
+      lifecycle: {}
+      priorityClassName: ""
+      terminationGracePeriodSeconds: 30
+      resources: {}
+      extraEnv: []
+      envFrom: []
+      sidecars: []
+      nodeSelector: {}
+      tolerations: []
+      affinity: {}
+      volumes: []
+      volumeMounts: []
+      initContainers: []
+      startupProbe:
+        exec: null
+        httpGet:
+          path: /ok?check_db=1
+          port: 8000
+        failureThreshold: 6
+        periodSeconds: 10
+        timeoutSeconds: 1
+      readinessProbe:
+        exec: null
+        httpGet:
+          path: /ok?check_db=0
+          port: 8000
+        failureThreshold: 3
+        periodSeconds: 10
+        timeoutSeconds: 1
+      livenessProbe:
+        exec: null
+        httpGet:
+          path: /ok?check_db=0
+          port: 8000
+        failureThreshold: 6
+        periodSeconds: 10
+        timeoutSeconds: 1
+    autoscaling:
+      enabled: false
+      minReplicas: 1
+      maxReplicas: 5
+      targetCPUUtilizationPercentage: 80
+      keda:
+        enabled: false
+        pollingInterval: 30
+        cooldownPeriod: 300
+        scaleDownStabilizationWindowSeconds: 300
+    service:
+      type: ClusterIP
+      httpPort: 80
+      labels: {}
+      annotations: {}
+    serviceAccount:
+      create: true
+      name: ""
+      labels: {}
+      annotations: {}
+      automountServiceAccountToken: true
+    pdb:
+      enabled: false
+      minAvailable: 1
+  queue:
+    enabled: true
+    name: "queue"
+    containerPort: 8000
+    numberOfJobsPerWorker: 10
+    deployment:
+      replicaCount: 1
+      labels: {}
+      annotations: {}
+      podSecurityContext: {}
+      securityContext: {}
+      lifecycle: {}
+      priorityClassName: ""
+      terminationGracePeriodSeconds: 30
+      resources: {}
+      extraEnv: []
+      envFrom: []
+      sidecars: []
+      nodeSelector: {}
+      tolerations: []
+      affinity: {}
+      volumes: []
+      volumeMounts: []
+      startupProbe:
+        httpGet:
+          path: "/ok"
+          port: 8000
+        failureThreshold: 6
+        periodSeconds: 10
+        timeoutSeconds: 1
+      readinessProbe:
+        httpGet:
+          path: "/ok"
+          port: 8000
+        failureThreshold: 6
+        periodSeconds: 10
+        timeoutSeconds: 1
+      livenessProbe:
+        httpGet:
+          path: "/ok"
+          port: 8000
+        failureThreshold: 6
+        periodSeconds: 10
+        timeoutSeconds: 1
+    autoscaling:
+      enabled: false
+      minReplicas: 1
+      maxReplicas: 5
+      targetCPUUtilizationPercentage: 80
+      keda:
+        enabled: false
+        pollingInterval: 30
+        cooldownPeriod: 300
+        scaleDownStabilizationWindowSeconds: 300
+    serviceAccount:
+      create: true
+      name: ""
+      labels: {}
+      annotations: {}
+      automountServiceAccountToken: true
+    pdb:
+      enabled: false
+      minAvailable: 1
+  postgres:
+    name: "postgres"
+    containerPort: 5432
+    external:
+      enabled: false
+      host: ""
+      port: "5432"
+      user: "postgres"
+      password: "postgres"
+      database: "postgres"
+      schema: "public"
+      connectionUrl: ""
+      existingSecretName: ""
+    statefulSet:
+      # -- Optional StatefulSet update strategy for the in-chart Insights PostgreSQL instance.
+      # Leave unset to keep the Kubernetes default RollingUpdate behavior.
+      updateStrategy: {}
+      labels: {}
+      annotations: {}
+      podSecurityContext: {}
+      securityContext: {}
+      lifecycle: {}
+      priorityClassName: ""
+      terminationGracePeriodSeconds: 30
+      resources: {}
+      command: []
+      extraContainerConfig: {}
+      extraEnv: []
+      sidecars: []
+      nodeSelector: {}
+      tolerations: []
+      affinity: {}
+      volumes: []
+      volumeMounts: []
+      persistentVolumeClaimRetentionPolicy: {}
+      persistence:
+        enabled: true
+        size: 8Gi
+        storageClassName: ""
+    service:
+      type: ClusterIP
+      port: 5432
+      labels: {}
+      annotations: {}
+    serviceAccount:
+      create: true
+      name: ""
+      labels: {}
+      annotations: {}
+      automountServiceAccountToken: true
+    pdb:
+      enabled: false
+      minAvailable: 1
+  redis:
+    name: "redis"
+    containerPort: 6379
+    external:
+      enabled: false
+      connectionUrl: ""
+      existingSecretName: ""
+    statefulSet:
+      # -- Optional StatefulSet update strategy for the in-chart Insights Redis instance.
+      # Leave unset to keep the Kubernetes default RollingUpdate behavior.
+      updateStrategy: {}
+      labels: {}
+      annotations: {}
+      podSecurityContext: {}
+      securityContext: {}
+      lifecycle: {}
+      priorityClassName: ""
+      terminationGracePeriodSeconds: 30
+      resources: {}
+      command: []
+      extraContainerConfig: {}
+      extraEnv: []
+      sidecars: []
+      nodeSelector: {}
+      tolerations: []
+      affinity: {}
+      volumes: []
+      volumeMounts: []
+      persistentVolumeClaimRetentionPolicy: {}
+      persistence:
+        enabled: true
+        size: 8Gi
+        storageClassName: ""
+    service:
+      type: ClusterIP
+      port: 6379
+      labels: {}
+      annotations: {}
+    serviceAccount:
+      create: true
+      name: ""
+      labels: {}
+      annotations: {}
+      automountServiceAccountToken: true
+    pdb:
+      enabled: false
+      minAvailable: 1
+
+polly:
+  enabled: true
+  namePrefix: "standalone-polly"
+  enableTracing: true
+  encryptionKey: ""
+  apiServer:
+    name: "api-server"
+    containerPort: 8000
+    deployment:
+      replicaCount: 1
+      labels: {}
+      annotations: {}
+      podSecurityContext: {}
+      securityContext: {}
+      lifecycle: {}
+      priorityClassName: ""
+      terminationGracePeriodSeconds: 30
+      resources: {}
+      extraEnv: []
+      envFrom: []
+      sidecars: []
+      nodeSelector: {}
+      tolerations: []
+      affinity: {}
+      volumes: []
+      volumeMounts: []
+      initContainers: []
+      startupProbe:
+        httpGet:
+          path: /ok?check_db=1
+          port: 8000
+        failureThreshold: 6
+        periodSeconds: 10
+        timeoutSeconds: 1
+      readinessProbe:
+        httpGet:
+          path: /ok?check_db=0
+          port: 8000
+        failureThreshold: 3
+        periodSeconds: 10
+        timeoutSeconds: 1
+      livenessProbe:
+        httpGet:
+          path: /ok?check_db=0
+          port: 8000
+        failureThreshold: 6
+        periodSeconds: 10
+        timeoutSeconds: 1
+    autoscaling:
+      enabled: false
+      minReplicas: 1
+      maxReplicas: 5
+      targetCPUUtilizationPercentage: 80
+      keda:
+        enabled: false
+        pollingInterval: 30
+        cooldownPeriod: 300
+        scaleDownStabilizationWindowSeconds: 300
+    service:
+      type: ClusterIP
+      httpPort: 80
+      labels: {}
+      annotations: {}
+    serviceAccount:
+      create: true
+      name: ""
+      labels: {}
+      annotations: {}
+      automountServiceAccountToken: true
+    pdb:
+      enabled: false
+      minAvailable: 1
+  queue:
+    enabled: true
+    name: "queue"
+    containerPort: 8000
+    numberOfJobsPerWorker: 10
+    deployment:
+      replicaCount: 1
+      labels: {}
+      annotations: {}
+      podSecurityContext: {}
+      securityContext: {}
+      lifecycle: {}
+      priorityClassName: ""
+      terminationGracePeriodSeconds: 30
+      resources: {}
+      extraEnv: []
+      envFrom: []
+      sidecars: []
+      nodeSelector: {}
+      tolerations: []
+      affinity: {}
+      volumes: []
+      volumeMounts: []
+      startupProbe:
+        httpGet:
+          path: "/ok"
+          port: 8000
+        failureThreshold: 6
+        periodSeconds: 10
+        timeoutSeconds: 1
+      readinessProbe:
+        httpGet:
+          path: "/ok"
+          port: 8000
+        failureThreshold: 6
+        periodSeconds: 10
+        timeoutSeconds: 1
+      livenessProbe:
+        httpGet:
+          path: "/ok"
+          port: 8000
+        failureThreshold: 6
+        periodSeconds: 10
+        timeoutSeconds: 1
+    autoscaling:
+      enabled: false
+      minReplicas: 1
+      maxReplicas: 5
+      targetCPUUtilizationPercentage: 80
+      keda:
+        enabled: false
+        pollingInterval: 30
+        cooldownPeriod: 300
+        scaleDownStabilizationWindowSeconds: 300
+    serviceAccount:
+      create: true
+      name: ""
+      labels: {}
+      annotations: {}
+      automountServiceAccountToken: true
+    pdb:
+      enabled: false
+      minAvailable: 1
+  postgres:
+    name: "postgres"
+    containerPort: 5432
+    external:
+      enabled: false
+      host: ""
+      port: "5432"
+      user: "postgres"
+      password: "postgres"
+      database: "postgres"
+      schema: "public"
+      connectionUrl: ""
+      existingSecretName: ""
+    statefulSet:
+      # -- Optional StatefulSet update strategy for the in-chart Polly PostgreSQL instance.
+      # Leave unset to keep the Kubernetes default RollingUpdate behavior.
+      updateStrategy: {}
+      labels: {}
+      annotations: {}
+      podSecurityContext: {}
+      securityContext: {}
+      lifecycle: {}
+      priorityClassName: ""
+      terminationGracePeriodSeconds: 30
+      resources: {}
+      command: []
+      extraContainerConfig: {}
+      extraEnv: []
+      sidecars: []
+      nodeSelector: {}
+      tolerations: []
+      affinity: {}
+      volumes: []
+      volumeMounts: []
+      persistentVolumeClaimRetentionPolicy: {}
+      persistence:
+        enabled: true
+        size: 8Gi
+        storageClassName: ""
+    service:
+      type: ClusterIP
+      port: 5432
+      labels: {}
+      annotations: {}
+    serviceAccount:
+      create: true
+      name: ""
+      labels: {}
+      annotations: {}
+      automountServiceAccountToken: true
+    pdb:
+      enabled: false
+      minAvailable: 1
+  redis:
+    name: "redis"
+    containerPort: 6379
+    external:
+      enabled: false
+      connectionUrl: ""
+      existingSecretName: ""
+    statefulSet:
+      # -- Optional StatefulSet update strategy for the in-chart Polly Redis instance.
+      # Leave unset to keep the Kubernetes default RollingUpdate behavior.
+      updateStrategy: {}
+      labels: {}
+      annotations: {}
+      podSecurityContext: {}
+      securityContext: {}
+      lifecycle: {}
+      priorityClassName: ""
+      terminationGracePeriodSeconds: 30
+      resources: {}
+      command: []
+      extraContainerConfig: {}
+      extraEnv: []
+      sidecars: []
+      nodeSelector: {}
+      tolerations: []
+      affinity: {}
+      volumes: []
+      volumeMounts: []
+      persistentVolumeClaimRetentionPolicy: {}
+      persistence:
+        enabled: true
+        size: 8Gi
+        storageClassName: ""
+    service:
+      type: ClusterIP
+      port: 6379
+      labels: {}
+      annotations: {}
+    serviceAccount:
+      create: true
+      name: ""
+      labels: {}
+      annotations: {}
+      automountServiceAccountToken: true
+    pdb:
+      enabled: false
+      minAvailable: 1
+
 config:
   # -- Skip validation checks in validate.yaml. Used by AWS Marketplace for helm template verification.
   skipValidation: false
@@ -125,28 +891,17 @@ config:
   deployment:
       # -- Optional. Used to enable the LangSmith Deployments feature. Requires additional setup. Refer to the documentation for more information.
     enabled: false
-    # -- Base path for LangGraph Platform (LGP) routes managed by the operator.
+    # -- Base path for LangSmith Deployments routes managed by the operator.
     basePath: ""
     tlsEnabled: true
     # Disable this if there is restricted access to the external facing ingress endpoint for your agent(s) from inside of your kubernetes cluster.
     ingressHealthCheckEnabled: true
+    # -- Lift the SaaS CPU/memory caps on LangSmith Deployment resource specs. Opt-in for self-hosted.
+    uncappedResourcesEnabled: false
 
-  # Insights (Clio) configuration - AI-powered insights agent
-  # Requires config.deployment.enabled to be true
-  insights:
-    enabled: false
-    # Fernet encryption key for Insights. Required when enabled.
-    # Generate with: python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
-    encryptionKey: ""
-    agent:
-      resources:
-        cpu: 2
-        cpuLimit: 4
-        memoryMb: 4096
-        memoryLimitMb: 8192
-        minScale: 1
-        maxScale: 5
-
+  # DEPRECATED: use the top-level fleet block (fleet/fleetToolServer/
+  # fleetTriggerServer) instead. This bundled-agent path is managed by
+  # backend.agentBootstrap and is being phased out.
   # Agent Builder configuration - UI for creating and managing agents
   # Requires config.deployment.enabled to be true
   agentBuilder:
@@ -164,11 +919,15 @@ config:
     # - linkedinOAuthProvider: LinkedIn tools
     # - linearOAuthProvider: Linear tools
     # - githubOAuthProvider: GitHub tools
+    # - microsoftOAuthProvider: Outlook, Teams, SharePoint tools + Outlook trigger
+    # - salesforceOAuthProvider: Salesforce tools
     oauth:
       googleOAuthProvider: ""
       linkedinOAuthProvider: ""
       linearOAuthProvider: ""
       githubOAuthProvider: ""
+      microsoftOAuthProvider: ""
+      salesforceOAuthProvider: ""
       slackOAuthProvider: ""
       slackSigningSecret: ""
       slackBotId: ""
@@ -180,6 +939,7 @@ config:
         memoryLimitMb: 8192
         minScale: 1
         maxScale: 5
+      extraEnv: {}
 
   # -- Salt used to generate the API key. Should be a random string.
   apiKeySalt: ""
@@ -197,17 +957,32 @@ config:
     # Either set the password and JWT secret in plaintext, or set in the secret specified by existingSecretName above.
     initialOrgAdminPassword: ""
     jwtSecret: ""
+  # -- Email addresses of super admins who can export usage data.
+  # These are the only users allowed to use the usage backfill export
+  # unless orgAdminsInstallationUsageExportEnabled is set.
+  superAdmins: []
+  # -- When true, any org admin can use the usage backfill export.
+  orgAdminsInstallationUsageExportEnabled: false
+
   # -- Prevent organization creation by users. This includes admins.
   userOrgCreationDisabled: true
   # -- Disable personal orgs.
   personalOrgsDisabled: true
   # -- Enable Workspace Admins to invite users to the org and workspace.
   workspaceScopeOrgInvitesEnabled: false
+  # -- Require authentication on the GET /info endpoint. When enabled, unauthenticated
+  # requests to /info will receive a 401 and must supply a valid API key. The LangSmith
+  # SDK handles this automatically by retrying with credentials. Useful for deployments
+  # that must not expose instance configuration (version, feature flags, batch ingest
+  # config) to unauthenticated callers.
+  infoEndpointAuthRequired: false
 
   # -- hostname of the LangSmith installation. Used for redirects and LangSmith deployments. Required for OAuth and LangSmith Deployments. E.g langsmith.com
   hostname: ""
+  # -- Frontend origin for user-facing redirects (LANGSMITH_URL); defaults to hostname. Set only when the UI is served from a different origin than this deployment's API.
+  frontendHostname: ""
   # -- Base path for the LangSmith installation. Used to serve the app under a subpath like example.com/langsmith.
-  # WARNING: Changing basePath after LangGraph Platform deployments have been created will break existing deployments.
+  # WARNING: Changing basePath after LangSmith Deployments have been created will break existing deployments.
   # Existing deployments will need to be recreated for the new basePath to take effect.
   basePath: ""
 
@@ -225,6 +1000,18 @@ config:
     oauthIssuerUrl: ""
     oauthScopes: "email,profile,openid"  # Comma-separated list of scopes. We require at least 'email', 'profile', and 'openid'. Some OIDC providers require the 'offline_access' scope for refresh tokens.
     oauthSessionMaxSec: "86400"  # 24 hours. Maximum age of a session in seconds. Your session will attempt to refresh until the max age at which point you will be logged out.
+    # -- When true, percent-encode spaces in the OIDC authorization request as %20 instead of '+'. Enable for IdPs (e.g. SiteMinder) that reject '+'-encoded scope lists. Requires authType 'mixed' with an OAuth client secret.
+    urlEncodeScopeSpaces: false
+
+  # -- Ed25519/OKP JWKS (JSON) signing the OAuth AS / remote MCP (and LLM-auth-proxy)
+  # tokens; public keys are served at /.well-known/jwks.json. Set it here (stored in the
+  # chart secret) or as key `langsmith_signing_jwks` in config.existingSecretName. The
+  # remote MCP server / OAuth AS stay inert until this is set.
+  signingJwks: ""
+  # -- Optional issuer (iss claim) for tokens minted by the LLM auth proxy. Maps to
+  # LLM_AUTH_PROXY_ISSUER. Must match the jwtIssuer configured in the auth proxy chart.
+  # Left empty by default (not emitted); set it when using the LLM auth proxy.
+  llmAuthProxyIssuer: ""
   # -- TTL configuration
   # Optional. Used to set TTLS for longlived and shortlived objects.
   ttl:
@@ -247,11 +1034,15 @@ config:
     # Set this to change the threshold for payloads to be stored in blob storage
     # 'clickhouse.external.hybrid: true' overrides this to 0
     minBlobStorageSizeKb: "20"
-    # If you are using workload identity, you may not need to store the S3 credentials in the secrets.
+    # The following blob storage configuration values are for S3 and GCS and require blobStorage.engine = "S3" or "GCS"
+    # If you are using workload identity, you may not need to store the credentials in the secrets.
     # Instead, you will need to add the workload identity annotation to the backend and queue service accounts.
+    # For GCS with workload identity, leave accessKey and accessKeySecret empty to use Application Default Credentials.
+    # For GCS with HMAC keys, set accessKey and accessKeySecret to your GCS HMAC credentials.
     accessKey: ""
     accessKeySecret: ""
     bucketName: ""
+    # For GCS, set this to "https://storage.googleapis.com"
     apiURL: "https://s3.us-west-2.amazonaws.com"
     # Set this to true to use path style addressing for S3. This is required for some S3 compatible storage providers like MinIO.
     # If set to true, endpoint will be s3.<region>.amazonaws.com/bucket-name. If false, endpoint will be bucket-name.s3.<region>.amazonaws.com
@@ -282,6 +1073,15 @@ config:
     enabled: false
     logoUrl: ""
     coBrandingEnabled: true
+
+  # -- Custom error support message displayed on error pages (plain text).
+  # If empty, defaults to the built-in support messages linking to our Support Portal (https://support.langchain.com).
+  customErrorSupportMessage: ""
+
+  # -- Enables Google IAP (Identity-Aware Proxy) session handling in the frontend.
+  # When true, the frontend adds required IAP headers, uses credentialed fetches,
+  # and handles 401 re-auth via GCP's session refresh mechanism.
+  googleIapEnabled: false
 
   observability:
     tracing:
@@ -334,6 +1134,7 @@ aceBackend:
     annotations: {}
     podSecurityContext: {}
     securityContext: {}
+    lifecycle: {}
     resources:
       limits:
         cpu: 1000m
@@ -423,6 +1224,372 @@ aceBackend:
     annotations: {}
     automountServiceAccountToken: true
 
+smithdb:
+  # -- Deploy the in-chart SmithDB workloads.
+  enabled: false
+  # -- Name segment used for SmithDB resources.
+  name: "smithdb"
+  # -- Shared ServiceAccount for SmithDB workloads.
+  serviceAccount:
+    create: true
+    # -- Defaults to <release>-<smithdb.name>.
+    name: ""
+    labels: {}
+    annotations: {}
+    automountServiceAccountToken: true
+  # -- Extra env vars for every SmithDB workload.
+  commonEnv: []
+
+  config:
+    # -- Existing secret containing SmithDB metastore credentials.
+    existingSecretName: ""
+    metastore:
+      hostSecretKey: ""
+      databaseSecretKey: ""
+      usernameSecretKey: ""
+      passwordSecretKey: ""
+      port: "5432"
+      useSsl: false
+    observability:
+      logging:
+        # -- Optional SmithDB log filter. Empty uses the chart default: INFO,vortex=WARN.
+        level: ""
+      tracing:
+        # -- Enable OpenTelemetry tracing/log export for SmithDB components.
+        # SmithDB supports exporting OTLP over gRPC only.
+        enabled: false
+        # -- OTLP gRPC collector endpoint for SmithDB traces/logs.
+        endpoint: ""
+        # -- Extra OpenTelemetry resource attributes appended to SmithDB traces/logs.
+        extraResourceAttributes: {}
+    objectStore:
+      # -- Supported values: s3, gcs.
+      type: "s3"
+      bucket: ""
+      s3:
+        # -- Defaults to the SmithDB S3 client default when empty.
+        region: ""
+        endpoint: ""
+        # -- Keys in smithdb.config.existingSecretName for static S3 credentials.
+        # Set both to "" when using ambient cloud identity, such as IRSA.
+        accessKeyIdSecretKey: ""
+        secretAccessKeySecretKey: ""
+
+  langsmith:
+    dualIngest:
+      # -- Enables LangSmith run ingestion to also write to SmithDB. Requires smithdb.enabled.
+      enabled: false
+    frontend:
+      # -- Defaults the LangSmith UI to SmithDB endpoints for run queries. Requires smithdb.enabled.
+      useSmithDBEndpoints: false
+
+  query:
+    name: "query"
+    containerPort: 8060
+    containerGrpcPort: 8080
+    deployment:
+      replicas: 1
+      strategy:
+        type: RollingUpdate
+        rollingUpdate:
+          maxSurge: 1
+          maxUnavailable: 0
+      labels: {}
+      annotations: {}
+      podSecurityContext: {}
+      securityContext: {}
+      resources: {}
+      probes:
+        startupProbe:
+          httpGet:
+            path: /health
+            port: http
+          failureThreshold: 6
+          periodSeconds: 10
+          timeoutSeconds: 1
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: http
+          failureThreshold: 6
+          periodSeconds: 10
+          timeoutSeconds: 1
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: http
+          failureThreshold: 6
+          periodSeconds: 10
+          timeoutSeconds: 1
+      command:
+        - "./smithdb"
+        - "query"
+      extraEnv: []
+      extraContainerConfig: {}
+      sidecars: []
+      nodeSelector: {}
+      tolerations: []
+      affinity: {}
+      topologySpreadConstraints: []
+      volumes: []
+      volumeMounts: []
+      initContainers: []
+    service:
+      port: 8080
+      labels: {}
+      annotations: {}
+    pdb:
+      enabled: false
+      minAvailable: 1
+      labels: {}
+      annotations: {}
+
+  ingestion:
+    name: "ingestion"
+    containerPort: 8050
+    containerGrpcPort: 8082
+    deployment:
+      replicas: 1
+      strategy:
+        type: RollingUpdate
+        rollingUpdate:
+          maxSurge: 1
+          maxUnavailable: 0
+      labels: {}
+      annotations: {}
+      podSecurityContext: {}
+      securityContext: {}
+      resources: {}
+      probes:
+        startupProbe:
+          httpGet:
+            path: /health
+            port: http
+          failureThreshold: 6
+          periodSeconds: 10
+          timeoutSeconds: 1
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: http
+          failureThreshold: 6
+          periodSeconds: 10
+          timeoutSeconds: 1
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: http
+          failureThreshold: 6
+          periodSeconds: 10
+          timeoutSeconds: 1
+      command:
+        - "./smithdb"
+        - "ingestion"
+      terminationGracePeriodSeconds: 300
+      extraEnv: []
+      extraContainerConfig: {}
+      sidecars: []
+      nodeSelector: {}
+      tolerations: []
+      affinity: {}
+      topologySpreadConstraints: []
+      volumes: []
+      volumeMounts: []
+      initContainers: []
+    service:
+      port: 8082
+      labels: {}
+      annotations: {}
+    pdb:
+      enabled: false
+      minAvailable: 1
+      labels: {}
+      annotations: {}
+
+  compaction:
+    name: "compaction"
+    containerPort: 8070
+    containerGrpcPort: 8071
+    deployment:
+      replicas: 1
+      labels: {}
+      annotations: {}
+      podSecurityContext: {}
+      securityContext: {}
+      resources: {}
+      probes:
+        startupProbe:
+          httpGet:
+            path: /health
+            port: http
+          failureThreshold: 6
+          periodSeconds: 10
+          timeoutSeconds: 1
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: http
+          failureThreshold: 6
+          periodSeconds: 10
+          timeoutSeconds: 1
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: http
+          failureThreshold: 6
+          periodSeconds: 10
+          timeoutSeconds: 1
+      command:
+        - "./smithdb"
+        - "compaction"
+        - "scheduler"
+      extraEnv: []
+      extraContainerConfig: {}
+      sidecars: []
+      nodeSelector: {}
+      tolerations: []
+      affinity: {}
+      topologySpreadConstraints: []
+      volumes: []
+      volumeMounts: []
+      initContainers: []
+    service:
+      port: 8071
+      labels: {}
+      annotations: {}
+    pdb:
+      enabled: false
+      minAvailable: 1
+      labels: {}
+      annotations: {}
+
+  compactionWorker:
+    name: "compaction-worker"
+    containerPort: 9000
+    # -- Maximum concurrent jobs per compaction worker. Empty uses the SmithDB default.
+    maxConcurrentJobs: ""
+    deployment:
+      replicas: 1
+      labels: {}
+      annotations: {}
+      podSecurityContext: {}
+      securityContext: {}
+      terminationGracePeriodSeconds: 120
+      resources: {}
+      probes:
+        startupProbe:
+          httpGet:
+            path: /health
+            port: http
+          failureThreshold: 6
+          periodSeconds: 10
+          timeoutSeconds: 1
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: http
+          failureThreshold: 6
+          periodSeconds: 10
+          timeoutSeconds: 1
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: http
+          failureThreshold: 6
+          periodSeconds: 10
+          timeoutSeconds: 1
+      command:
+        - "./smithdb"
+        - "compaction"
+        - "worker"
+      extraEnv: []
+      extraContainerConfig: {}
+      sidecars: []
+      nodeSelector: {}
+      tolerations: []
+      affinity: {}
+      topologySpreadConstraints: []
+      volumes: []
+      volumeMounts: []
+      initContainers: []
+    pdb:
+      enabled: false
+      minAvailable: 1
+      labels: {}
+      annotations: {}
+
+  clusterManager:
+    name: "cluster-manager"
+    containerPort: 8090
+    containerGrpcPort: 8091
+    deployment:
+      replicas: 1
+      labels: {}
+      annotations: {}
+      podSecurityContext: {}
+      securityContext: {}
+      resources: {}
+      probes:
+        startupProbe:
+          httpGet:
+            path: /health
+            port: http
+          failureThreshold: 6
+          periodSeconds: 10
+          timeoutSeconds: 1
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: http
+          failureThreshold: 6
+          periodSeconds: 10
+          timeoutSeconds: 1
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: http
+          failureThreshold: 6
+          periodSeconds: 10
+          timeoutSeconds: 1
+      command:
+        - "./smithdb"
+        - "clustermanager"
+      extraEnv: []
+      extraContainerConfig: {}
+      sidecars: []
+      nodeSelector: {}
+      tolerations: []
+      affinity: {}
+      topologySpreadConstraints: []
+      volumes: []
+      volumeMounts: []
+      initContainers: []
+    service:
+      port: 8091
+      labels: {}
+      annotations: {}
+    pdb: {}
+
+  metastoreMigration:
+    name: "metastore-migration"
+    useSsl: false
+    command:
+      - "/usr/local/bin/smithdb-metastore-migrate-entrypoint.sh"
+    job:
+      ttlSecondsAfterFinished: 3600
+      backoffLimit: 0
+      activeDeadlineSeconds: 600
+      restartPolicy: Never
+      labels: {}
+      annotations: {}
+      podAnnotations: {}
+      podSecurityContext: {}
+      securityContext: {}
+      resources: {}
+      extraEnv: []
+      nodeSelector: {}
+      tolerations: []
+      affinity: {}
 
 backend:
   name: "backend"
@@ -442,6 +1609,7 @@ backend:
     annotations: {}
     podSecurityContext: {}
     securityContext: {}
+    lifecycle: {}
     resources:
       limits:
         cpu: 2000m
@@ -544,66 +1712,6 @@ backend:
     volumes: []
     volumeMounts: []
     # You can set this to null to disable the TTL for the backfill check job.
-    ttlSecondsAfterFinished: 600
-  feedbackConfigMigration:
-    enabled: false
-    # Helpful when running using helm template to avoid the job name conflict
-    randomizeName: false
-    labels: {}
-    annotations: {}
-    podSecurityContext: {}
-    securityContext: {}
-    resources:
-      limits:
-        cpu: 2000m
-        memory: 4Gi
-      requests:
-        cpu: 1000m
-        memory: 2Gi
-    command:
-      - "python"
-      - "scripts/jobs/migrate-feedback-config.pyc"
-    extraContainerConfig: {}
-    extraEnv: []
-    sidecars: []
-    initContainers: []
-    nodeSelector: {}
-    tolerations: []
-    topologySpreadConstraints: []
-    affinity: {}
-    volumes: []
-    volumeMounts: []
-    # You can set this to null to disable the TTL for the migrations job. Useful for some deployment setups.
-    ttlSecondsAfterFinished: 600
-  feedbackDataMigration:
-    enabled: false
-    # Helpful when running using helm template to avoid the job name conflict
-    randomizeName: false
-    labels: {}
-    annotations: {}
-    podSecurityContext: {}
-    securityContext: {}
-    resources:
-      limits:
-        cpu: 2000m
-        memory: 4Gi
-      requests:
-        cpu: 1000m
-        memory: 2Gi
-    command:
-      - "python"
-      - "scripts/jobs/migrate-feedback-to-postgres.pyc"
-    extraContainerConfig: {}
-    extraEnv: []
-    sidecars: []
-    initContainers: []
-    nodeSelector: {}
-    tolerations: []
-    topologySpreadConstraints: []
-    affinity: {}
-    volumes: []
-    volumeMounts: []
-    # You can set this to null to disable the TTL for the migrations job. Useful for some deployment setups.
     ttlSecondsAfterFinished: 600
   authBootstrap:
     # Helpful when running using helm template to avoid the job name conflict
@@ -739,7 +1847,12 @@ backend:
     volumeMounts: []
     ttlSecondsAfterFinished: 10
 
-  # Deploys bundled agents (Agent Builder, Insights) via LangSmith Deployments API
+  # DEPRECATED: the agentBootstrap flow (and the config.agentBuilder /
+  # config.insights / config.polly bundled-agent blocks it manages) is being
+  # phased out. New deployments should use the top-level fleet, insights, and
+  # polly blocks instead, which run as standard Helm-managed Deployments.
+  # These keys remain for backwards compatibility and may be removed in a
+  # future chart version.
   agentBootstrap:
     enabled: false
     randomizeName: false
@@ -806,8 +1919,13 @@ clickhouse:
   statefulSet:
     labels: {}
     annotations: {}
+    # -- Optional StatefulSet update strategy for the in-chart ClickHouse instance.
+    # -- Leave unset to keep the Kubernetes default RollingUpdate behavior.
+    updateStrategy: {}
     podSecurityContext: {}
     securityContext: {}
+    lifecycle: {}
+    terminationGracePeriodSeconds: 30
     resources:
 # For a production environment, we recommend increasing the CPU and memory limits to something like 16 cores and 64Gi.
 #      limits:
@@ -886,6 +2004,7 @@ clickhouse:
     port: 9363
 
 frontend:
+  enabled: true
   name: "frontend"
   containerPort: 8080
   existingConfigMapName: ""
@@ -926,6 +2045,7 @@ frontend:
     annotations: {}
     podSecurityContext: {}
     securityContext: {}
+    lifecycle: {}
     resources:
       limits:
         cpu: 1000m
@@ -1018,6 +2138,7 @@ frontend:
     automountServiceAccountToken: true
 
 hostBackend:
+  enabled: false
   name: "host-backend"
   containerPort: 1985
   # -- ArgoCD Rollouts configuration. If enabled, will create a Rollout resource instead of a Deployment. See https://argo-rollouts.readthedocs.io/
@@ -1034,6 +2155,7 @@ hostBackend:
     annotations: {}
     podSecurityContext: {}
     securityContext: {}
+    lifecycle: {}
     resources:
       limits:
         cpu: 1000m
@@ -1144,6 +2266,7 @@ listener:
     annotations: {}
     podSecurityContext: {}
     securityContext: {}
+    lifecycle: {}
     resources:
       limits:
         cpu: 2000m
@@ -1209,6 +2332,10 @@ listener:
       maxReplicaCount: 10
       targetCPUUtilizationPercentage: 50
       targetMemoryUtilizationPercentage: 80
+      queueTargetSize: "5"
+      fallback:
+        failureThreshold: 3
+        replicas: 2
       scaleDownStabilizationWindowSeconds: 1800
       scaleDownPolicy:
         value: 100
@@ -1250,6 +2377,7 @@ platformBackend:
     annotations: {}
     podSecurityContext: {}
     securityContext: {}
+    lifecycle: {}
     resources:
       limits:
         cpu: 2000m
@@ -1360,6 +2488,7 @@ operator:
     annotations: {}
     podSecurityContext: {}
     securityContext: {}
+    lifecycle: {}
     resources:
       limits:
         cpu: 2000m
@@ -1545,6 +2674,7 @@ playground:
     annotations: {}
     podSecurityContext: {}
     securityContext: {}
+    lifecycle: {}
     resources:
       limits:
         cpu: 1000m
@@ -1666,10 +2796,15 @@ postgres:
       keySecretKey: "tls.key"
   containerPort: 5432
   statefulSet:
+    # -- Optional StatefulSet update strategy for the in-chart PostgreSQL instance.
+    # Leave unset to keep the Kubernetes default RollingUpdate behavior.
+    updateStrategy: {}
     labels: {}
     annotations: {}
     podSecurityContext: {}
     securityContext: {}
+    lifecycle: {}
+    terminationGracePeriodSeconds: 30
     resources:
       # In a production environment, we strongly recommend an external Postgres database.
       limits:
@@ -1757,6 +2892,7 @@ queue:
     annotations: {}
     podSecurityContext: {}
     securityContext: {}
+    lifecycle: {}
     resources:
       limits:
         cpu: 2000m
@@ -1862,6 +2998,7 @@ ingestQueue:
     annotations: {}
     podSecurityContext: {}
     securityContext: {}
+    lifecycle: {}
     resources:
       limits:
         cpu: 2000m
@@ -1967,6 +3104,8 @@ redis:
       secretName: ""
       certSecretKey: "tls.crt"
       keySecretKey: "tls.key"
+    # This flag disables cluster-unsafe operations. Needed for Azure EnterpriseCluster, which connects with the standalone client, but requires cluster-safe operations
+    clusterSafeMode: false
     # Redis cluster configuration.
     cluster:
       enabled: false
@@ -1979,10 +3118,15 @@ redis:
       tlsEnabled: true
   containerPort: 6379
   statefulSet:
+    # -- Optional StatefulSet update strategy for the in-chart Redis instance.
+    # Leave unset to keep the Kubernetes default RollingUpdate behavior.
+    updateStrategy: {}
     labels: {}
     annotations: {}
     podSecurityContext: {}
     securityContext: {}
+    lifecycle: {}
+    terminationGracePeriodSeconds: 30
     # In a production environment, we strongly recommend an external Redis database.
     resources:
       limits:
@@ -2053,11 +3197,10 @@ redis:
     annotations: {}
     automountServiceAccountToken: true
 
-# Agent Builder Tool Server - provides MCP tool execution capabilities
-# Only runs when config.agentBuilder.enabled is true
-agentBuilderToolServer:
+# Fleet Tool Server - provides MCP tool execution capabilities
+fleetToolServer:
   enabled: true
-  name: "agent-builder-tool-server"
+  name: "fleet-tool-server"
   containerPort: 1989
   deployment:
     replicas: 1
@@ -2065,6 +3208,7 @@ agentBuilderToolServer:
     annotations: {}
     podSecurityContext: {}
     securityContext: {}
+    lifecycle: {}
     resources:
       limits:
         cpu: 2000m
@@ -2130,18 +3274,18 @@ agentBuilderToolServer:
     annotations: {}
     automountServiceAccountToken: true
 
-# Agent Builder Trigger Server - handles cron, Slack, and Gmail triggers
-# Only runs when config.agentBuilder.enabled is true
+# Fleet Trigger Server - handles cron, Slack, and Gmail triggers
 # NOTE: Currently only supports a single replica to prevent duplicate trigger executions
-agentBuilderTriggerServer:
+fleetTriggerServer:
   enabled: true
-  name: "agent-builder-trigger-server"
+  name: "fleet-trigger-server"
   containerPort: 1990
   deployment:
     labels: {}
     annotations: {}
     podSecurityContext: {}
     securityContext: {}
+    lifecycle: {}
     resources:
       limits:
         cpu: 2000m
@@ -2188,6 +3332,145 @@ agentBuilderTriggerServer:
     annotations: {}
     loadBalancerSourceRanges: []
     loadBalancerIP: ""
+  serviceAccount:
+    create: true
+    name: ""
+    labels: {}
+    annotations: {}
+    automountServiceAccountToken: true
+
+# Agent Gateway - proxy for agent traffic with guardrails (NER redaction via Presidio)
+# Optional, disabled by default. Not required for core LangSmith functionality. Private beta.
+agentGateway:
+  enabled: false
+  name: "agent-gateway"
+  containerPort: 8083
+  deployment:
+    replicas: 1
+    labels: {}
+    annotations: {}
+    podSecurityContext: {}
+    securityContext: {}
+    lifecycle: {}
+    resources:
+      limits:
+        cpu: 500m
+        memory: 512Mi
+      requests:
+        cpu: 100m
+        memory: 256Mi
+    command:
+      - "./agent_gateway_entrypoint.sh"
+    startupProbe:
+      httpGet:
+        path: /health
+        port: 8083
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 3
+    livenessProbe:
+      httpGet:
+        path: /health
+        port: 8083
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 3
+    readinessProbe:
+      httpGet:
+        path: /health
+        port: 8083
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 3
+    extraContainerConfig: {}
+    extraEnv: []
+    sidecars: []
+    initContainers: []
+    nodeSelector: {}
+    tolerations: []
+    affinity: {}
+    volumes: []
+    volumeMounts: []
+    terminationGracePeriodSeconds: 30
+  autoscaling:
+    enabled: false
+    createHpa: true
+    minReplicas: 1
+    maxReplicas: 5
+    targetCPUUtilizationPercentage: 50
+  service:
+    type: ClusterIP
+    port: 8083
+    labels: {}
+    annotations: {}
+  serviceAccount:
+    create: true
+    name: ""
+    labels: {}
+    annotations: {}
+    automountServiceAccountToken: true
+
+# Presidio Analyzer - Microsoft Presidio NER service for PII detection, used by the Agent Gateway
+# Optional, disabled by default. Not required for core LangSmith functionality. Private beta.
+presidioAnalyzer:
+  enabled: false
+  name: "presidio-analyzer"
+  containerPort: 3000
+  deployment:
+    replicas: 1
+    labels: {}
+    annotations: {}
+    podSecurityContext: {}
+    securityContext: {}
+    lifecycle: {}
+    resources:
+      limits:
+        cpu: 1
+        memory: 4Gi
+      requests:
+        cpu: 250m
+        memory: 2Gi
+    startupProbe:
+      httpGet:
+        path: /health
+        port: 3000
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 3
+    livenessProbe:
+      httpGet:
+        path: /health
+        port: 3000
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 3
+    readinessProbe:
+      httpGet:
+        path: /health
+        port: 3000
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 3
+    extraContainerConfig: {}
+    extraEnv: []
+    sidecars: []
+    initContainers: []
+    nodeSelector: {}
+    tolerations: []
+    affinity: {}
+    volumes: []
+    volumeMounts: []
+    terminationGracePeriodSeconds: 30
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 80
+  service:
+    type: ClusterIP
+    port: 3000
+    labels: {}
+    annotations: {}
   serviceAccount:
     create: true
     name: ""
