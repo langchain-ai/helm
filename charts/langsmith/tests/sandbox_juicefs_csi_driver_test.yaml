@@ -22,7 +22,97 @@ tests:
     template: sandboxes/juicefs-csi-driver/rbac.yaml
     asserts:
       - hasDocuments:
-          count: 6
+          count: 10
+
+  - it: should scope JuiceFS CSI controller mutations to the release namespace
+    values:
+      - ./values/sandboxes-enabled.yaml
+    template: sandboxes/juicefs-csi-driver/rbac.yaml
+    documentSelector:
+      path: $[?(@.kind == "Role")].metadata.name
+      value: juicefs-csi-external-provisioner-role
+    asserts:
+      - isKind:
+          of: Role
+      - equal:
+          path: metadata.name
+          value: juicefs-csi-external-provisioner-role
+      - equal:
+          path: metadata.namespace
+          value: NAMESPACE
+
+  - it: should scope JuiceFS CSI node mutations to the release namespace
+    values:
+      - ./values/sandboxes-enabled.yaml
+    template: sandboxes/juicefs-csi-driver/rbac.yaml
+    documentSelector:
+      path: $[?(@.kind == "Role")].metadata.name
+      value: juicefs-csi-external-node-service-role
+    asserts:
+      - isKind:
+          of: Role
+      - equal:
+          path: metadata.name
+          value: juicefs-csi-external-node-service-role
+      - equal:
+          path: metadata.namespace
+          value: NAMESPACE
+
+  - it: should not grant JuiceFS CSI node kubelet proxy access by default
+    values:
+      - ./values/sandboxes-enabled.yaml
+    template: sandboxes/juicefs-csi-driver/rbac.yaml
+    documentSelector:
+      path: $[?(@.kind == "ClusterRole")].metadata.name
+      value: juicefs-csi-external-node-service-role
+    asserts:
+      - isKind:
+          of: ClusterRole
+      - notContains:
+          path: rules
+          content:
+            apiGroups:
+              - ""
+            resources:
+              - nodes/proxy
+            verbs:
+              - "*"
+
+  - it: should not grant JuiceFS CSI controller cluster-wide secret access
+    values:
+      - ./values/sandboxes-enabled.yaml
+    template: sandboxes/juicefs-csi-driver/rbac.yaml
+    documentSelector:
+      path: $[?(@.kind == "ClusterRole")].metadata.name
+      value: juicefs-csi-external-provisioner-role
+    asserts:
+      - isKind:
+          of: ClusterRole
+      - notContains:
+          path: rules
+          content:
+            apiGroups:
+              - ""
+            resources:
+              - secrets
+
+  - it: should not grant JuiceFS CSI node cluster-wide pod exec access
+    values:
+      - ./values/sandboxes-enabled.yaml
+    template: sandboxes/juicefs-csi-driver/rbac.yaml
+    documentSelector:
+      path: $[?(@.kind == "ClusterRole")].metadata.name
+      value: juicefs-csi-external-node-service-role
+    asserts:
+      - isKind:
+          of: ClusterRole
+      - notContains:
+          path: rules
+          content:
+            apiGroups:
+              - ""
+            resources:
+              - pods/exec
 
   - it: should render the JuiceFS CSI config map when sandboxes are enabled
     values:
@@ -126,6 +216,9 @@ tests:
       - equal:
           path: spec.template.spec.containers[2].image
           value: mirror.example.com/sig-storage/livenessprobe:v2.12.0
+      - notContains:
+          path: spec.template.spec.containers[0].args
+          content: --cache-client-conf=true
 
   - it: should fail when the JuiceFS CSI driver image tag is missing
     values:

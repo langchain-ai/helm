@@ -47,7 +47,7 @@ spec:
             - --nodeid=$(NODE_NAME)
             - --leader-election
             - --provisioner=true
-            - --cache-client-conf=true
+            # Intentionally no --cache-client-conf=true: sandboxes use a static JuiceFS CE metaurl Secret, and enabling the optional refresh controllers would require broader Secret and pod exec RBAC.
             - --config=/etc/config/config.yaml
           env:
             - name: CSI_ENDPOINT
