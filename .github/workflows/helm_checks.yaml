@@ -50,6 +50,16 @@ jobs:
       - name: Run chart unittest
         run: helm unittest charts/${{ matrix.chart-name }}
 
+      - name: Free disk space for LangSmith chart install
+        if: matrix.chart-name == 'langsmith'
+        run: |
+          set -euxo pipefail
+          df -h
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /usr/local/share/boost
+          docker system prune -af
+          docker builder prune -af
+          df -h
+
       - name: Create kind cluster
         uses: helm/kind-action@v1.12.0
         with:
