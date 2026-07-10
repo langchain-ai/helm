@@ -374,7 +374,6 @@ The chart-managed frontend owns public API route rewrites for LangSmith services
 | images.juicefsCSIImage | object | `{"pullPolicy":"IfNotPresent","repository":"docker.io/juicedata/juicefs-csi-driver","tag":"v0.31.4"}` | JuiceFS CSI driver image. Only used when config.sandboxes.enabled is true. |
 | images.juicefsCSILivenessProbeImage | object | `{"pullPolicy":"IfNotPresent","repository":"registry.k8s.io/sig-storage/livenessprobe","tag":"v2.12.0"}` | JuiceFS CSI liveness probe sidecar image. Only used when config.sandboxes.enabled is true. |
 | images.juicefsCSINodeDriverRegistrarImage | object | `{"pullPolicy":"IfNotPresent","repository":"registry.k8s.io/sig-storage/csi-node-driver-registrar","tag":"v2.9.0"}` | JuiceFS CSI node-driver-registrar sidecar image. Only used when config.sandboxes.enabled is true. |
-| images.juicefsCSIResizerImage | object | `{"pullPolicy":"IfNotPresent","repository":"registry.k8s.io/sig-storage/csi-resizer","tag":"v1.9.0"}` | JuiceFS CSI resizer sidecar image. Only used when config.sandboxes.enabled is true. |
 | images.juicefsMountImage | object | `{"pullPolicy":"IfNotPresent","repository":"docker.io/juicedata/mount","tag":""}` | Optional JuiceFS CE mount image used by runtime mount pods. Set this when mirroring images for restricted networks. |
 | images.operatorImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.operatorImage.repository | string | `"docker.io/langchain/langgraph-operator"` |  |

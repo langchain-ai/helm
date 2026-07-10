@@ -196,8 +196,6 @@ tests:
       images.registry: mirror.example.com
       images.juicefsCSIImage.repository: juicedata/juicefs-csi-driver
       images.juicefsCSIImage.tag: v0.31.4
-      images.juicefsCSIResizerImage.repository: sig-storage/csi-resizer
-      images.juicefsCSIResizerImage.tag: v1.9.0
       images.juicefsCSILivenessProbeImage.repository: sig-storage/livenessprobe
       images.juicefsCSILivenessProbeImage.tag: v2.12.0
     template: sandboxes/juicefs-csi-driver/controller-statefulset.yaml
@@ -224,9 +222,6 @@ tests:
           pattern: "^[a-f0-9]{64}$"
       - equal:
           path: spec.template.spec.containers[1].image
-          value: mirror.example.com/sig-storage/csi-resizer:v1.9.0
-      - equal:
-          path: spec.template.spec.containers[2].image
           value: mirror.example.com/sig-storage/livenessprobe:v2.12.0
       - notContains:
           path: spec.template.spec.containers[0].args

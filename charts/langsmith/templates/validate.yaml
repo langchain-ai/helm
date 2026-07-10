@@ -125,7 +125,7 @@ AWS Marketplace Helm template verification).
 {{- if not .Values.images.sandboxHostImage.tag -}}
 {{- fail "images.sandboxHostImage.tag is required when config.sandboxes.enabled is true." -}}
 {{- end -}}
-{{- range $imageName := list "juicefsCSIImage" "juicefsCSINodeDriverRegistrarImage" "juicefsCSIResizerImage" "juicefsCSILivenessProbeImage" -}}
+{{- range $imageName := list "juicefsCSIImage" "juicefsCSINodeDriverRegistrarImage" "juicefsCSILivenessProbeImage" -}}
 {{- $image := index $.Values.images $imageName -}}
 {{- if not $image.repository -}}
 {{- fail (printf "images.%s.repository is required when config.sandboxes.enabled is true." $imageName) -}}

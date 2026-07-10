@@ -150,11 +150,6 @@ images:
     repository: "registry.k8s.io/sig-storage/csi-node-driver-registrar"
     pullPolicy: IfNotPresent
     tag: "v2.9.0"
-  # -- JuiceFS CSI resizer sidecar image. Only used when config.sandboxes.enabled is true.
-  juicefsCSIResizerImage:
-    repository: "registry.k8s.io/sig-storage/csi-resizer"
-    pullPolicy: IfNotPresent
-    tag: "v1.9.0"
   # -- JuiceFS CSI liveness probe sidecar image. Only used when config.sandboxes.enabled is true.
   juicefsCSILivenessProbeImage:
     repository: "registry.k8s.io/sig-storage/livenessprobe"

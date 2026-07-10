@@ -120,22 +120,6 @@ spec:
               name: jfs-root-dir
             - mountPath: /etc/config
               name: juicefs-config
-        - name: csi-resizer
-          image: {{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "juicefsCSIResizerImage") | quote }}
-          imagePullPolicy: {{ .Values.images.juicefsCSIResizerImage.pullPolicy }}
-          args:
-            - --csi-address=$(ADDRESS)
-            - --timeout=20s
-            - --leader-election
-            - --v=2
-          env:
-            - name: ADDRESS
-              value: /var/lib/csi/sockets/pluginproxy/csi.sock
-          securityContext:
-            runAsNonRoot: false
-          volumeMounts:
-            - mountPath: /var/lib/csi/sockets/pluginproxy/
-              name: socket-dir
         - name: liveness-probe
           image: {{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "juicefsCSILivenessProbeImage") | quote }}
           imagePullPolicy: {{ .Values.images.juicefsCSILivenessProbeImage.pullPolicy }}
