@@ -976,7 +976,7 @@ config:
         # -- JuiceFS Redis metadata URL. Redis metadata engines must use maxmemory-policy noeviction. For Redis Cluster, the `/DB` path is used by JuiceFS as a hash-tag key prefix rather than a Redis logical database.
         metaURL: ""
       csi:
-        # -- Name of the chart-managed JuiceFS CSI config Secret. The bundled JuiceFS CSI setup is intended only for JuiceFS PVs in the namespace where this chart is installed. Chart-managed Secret/config changes roll sandbox-host through checksum annotations, but externally managed Secret content and existing JuiceFS mount pods are not refreshed automatically; restart workloads that mount the JuiceFS PVC, or delete the affected JuiceFS mount pods so they are recreated with the updated Secret.
+        # -- Name of the chart-managed JuiceFS CSI config Secret. The bundled JuiceFS CSI setup is intended only for JuiceFS PVs in the namespace where this chart is installed. Chart-managed Secret/config changes roll only the JuiceFS CSI controller/node pods through checksum annotations. Helm cannot hash externally managed Secret contents or directly refresh CSI-created JuiceFS mount pods; delete affected JuiceFS mount pods so they are recreated with the updated Secret.
         configSecretName: "juicefs-csi-config"
         # -- Existing Secret containing JuiceFS CSI config keys `name`, `metaurl`, `storage`, and `bucket`. When set, this chart does not render the CSI config Secret and `config.sandboxes.juicefs.name`, `config.sandboxes.juicefs.storage`, `config.sandboxes.juicefs.bucket`, and `config.sandboxes.juicefs.redis.metaURL` are not used for the CSI config.
         existingSecretName: ""

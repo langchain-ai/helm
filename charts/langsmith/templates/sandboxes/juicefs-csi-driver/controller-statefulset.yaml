@@ -29,6 +29,7 @@ spec:
         app: juicefs-csi-controller
         {{- include "langsmith.sandboxes.juicefsCSISelectorLabels" . | nindent 8 }}
       annotations:
+        checksum/juicefs-csi-config: {{ include "langsmith.sandboxes.juicefsCSIConfigSecretChecksum" . | quote }}
         checksum/juicefs-csi-driver-config: {{ include "langsmith.sandboxes.juicefsCSIDriverConfigChecksum" . | quote }}
         {{- with $podAnnotations }}
         {{- toYaml . | nindent 8 }}
