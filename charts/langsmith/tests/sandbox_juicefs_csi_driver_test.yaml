@@ -318,8 +318,6 @@ tests:
       images.juicefsCSIImage.tag: v0.31.4
       images.juicefsCSINodeDriverRegistrarImage.repository: sig-storage/csi-node-driver-registrar
       images.juicefsCSINodeDriverRegistrarImage.tag: v2.9.0
-      images.juicefsCSILivenessProbeImage.repository: sig-storage/livenessprobe
-      images.juicefsCSILivenessProbeImage.tag: v2.12.0
       images.juicefsMountImage.repository: juicedata/mount
       images.juicefsMountImage.tag: ce-v1.3.0
     template: sandboxes/juicefs-csi-driver/node-daemonset.yaml
@@ -356,9 +354,14 @@ tests:
       - equal:
           path: spec.template.spec.containers[1].image
           value: mirror.example.com/sig-storage/csi-node-driver-registrar:v2.9.0
-      - equal:
-          path: spec.template.spec.containers[2].image
-          value: mirror.example.com/sig-storage/livenessprobe:v2.12.0
+      - matchRegex:
+          path: spec.template.spec.containers[0].livenessProbe.exec.command[2]
+          pattern: "--unix-socket /csi/csi\\.sock"
+      - matchRegex:
+          path: spec.template.spec.containers[0].livenessProbe.exec.command[2]
+          pattern: "csi\\.v1\\.Identity/Probe"
+      - notExists:
+          path: spec.template.spec.containers[2]
 
   - it: should render the JuiceFS CSI controller with mirrored images
     values:
@@ -367,8 +370,6 @@ tests:
       images.registry: mirror.example.com
       images.juicefsCSIImage.repository: juicedata/juicefs-csi-driver
       images.juicefsCSIImage.tag: v0.31.4
-      images.juicefsCSILivenessProbeImage.repository: sig-storage/livenessprobe
-      images.juicefsCSILivenessProbeImage.tag: v2.12.0
     template: sandboxes/juicefs-csi-driver/controller-statefulset.yaml
     asserts:
       - isKind:
@@ -391,9 +392,14 @@ tests:
       - matchRegex:
           path: spec.template.metadata.annotations["checksum/juicefs-csi-driver-config"]
           pattern: "^[a-f0-9]{64}$"
-      - equal:
-          path: spec.template.spec.containers[1].image
-          value: mirror.example.com/sig-storage/livenessprobe:v2.12.0
+      - matchRegex:
+          path: spec.template.spec.containers[0].livenessProbe.exec.command[2]
+          pattern: "--unix-socket /var/lib/csi/sockets/pluginproxy/csi\\.sock"
+      - matchRegex:
+          path: spec.template.spec.containers[0].livenessProbe.exec.command[2]
+          pattern: "csi\\.v1\\.Identity/Probe"
+      - notExists:
+          path: spec.template.spec.containers[1]
       - notContains:
           path: spec.template.spec.containers[0].args
           content: --cache-client-conf=true

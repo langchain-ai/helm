@@ -85,11 +85,25 @@ spec:
               value: "9567"
             - name: DRIVER_NAME
               value: {{ include "langsmith.sandboxes.juicefsCSIDriverName" . | quote }}
+          # CSI ProbeRequest is an empty protobuf message; call it directly over the plugin socket.
           livenessProbe:
             failureThreshold: 5
-            httpGet:
-              path: /healthz
-              port: 9909
+            exec:
+              command:
+                - /bin/sh
+                - -ec
+                - >-
+                  printf '\000\000\000\000\000' |
+                  curl --silent --show-error --max-time 1
+                  --http2-prior-knowledge
+                  --unix-socket /csi/csi.sock
+                  -H 'Content-Type: application/grpc'
+                  -H 'TE: trailers'
+                  --data-binary @-
+                  --dump-header -
+                  --output /dev/null
+                  http://localhost/csi.v1.Identity/Probe |
+                  grep -q '^grpc-status: 0'
             initialDelaySeconds: 10
             periodSeconds: 10
             timeoutSeconds: 3
@@ -101,8 +115,6 @@ spec:
               cpu: 100m
               memory: 512Mi
           ports:
-            - containerPort: 9909
-              protocol: TCP
             - containerPort: 9567
               name: metrics
               protocol: TCP
@@ -158,23 +170,6 @@ spec:
               name: plugin-dir
             - mountPath: /registration
               name: registration-dir
-        - name: liveness-probe
-          image: {{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "juicefsCSILivenessProbeImage") | quote }}
-          imagePullPolicy: {{ .Values.images.juicefsCSILivenessProbeImage.pullPolicy }}
-          args:
-            - --csi-address=$(ADDRESS)
-            - --health-port=$(HEALTH_PORT)
-          env:
-            - name: ADDRESS
-              value: /csi/csi.sock
-            - name: HEALTH_PORT
-              value: "9909"
-          securityContext:
-            privileged: false
-            runAsNonRoot: false
-          volumeMounts:
-            - mountPath: /csi
-              name: plugin-dir
       dnsPolicy: ClusterFirstWithHostNet
       priorityClassName: system-node-critical
       {{- with .Values.config.sandboxes.sandboxHost.deployment.tolerations }}
