@@ -35,12 +35,12 @@ data:
   {{- end }}
   LANGCHAIN_ENV: "local_kubernetes"
   LANGCHAIN_ENDPOINT: "/{{ if .Values.config.basePath }}{{ .Values.config.basePath }}/{{ end }}api/v1"
-  GO_ENDPOINT: "http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.platformBackend.service.port }}"
-  GO_ACE_ENDPOINT: "http://{{ include "langsmith.fullname" . }}-{{.Values.aceBackend.name}}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.aceBackend.service.port }}"
-  PLAYGROUND_ENDPOINT: "http://{{ include "langsmith.fullname" . }}-{{.Values.playground.name}}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.playground.service.port }}"
-  SMITH_BACKEND_ENDPOINT: "http://{{ include "langsmith.fullname" . }}-{{.Values.backend.name}}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.backend.service.port }}"
-  HOST_BACKEND_ENDPOINT: "http://{{ include "langsmith.fullname" . }}-{{.Values.hostBackend.name}}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.hostBackend.service.port }}"
-  LANGSMITH_AUTH_ENDPOINT: "http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.platformBackend.service.port }}"
+  GO_ENDPOINT: {{ include "langsmith.internalServiceEndpoint" (dict "root" . "key" "platformBackend" "name" .Values.platformBackend.name "namespace" (.Values.namespace | default .Release.Namespace) "port" .Values.platformBackend.service.port) | quote }}
+  GO_ACE_ENDPOINT: {{ include "langsmith.internalServiceEndpoint" (dict "root" . "key" "aceBackend" "name" .Values.aceBackend.name "namespace" (.Values.namespace | default .Release.Namespace) "port" .Values.aceBackend.service.port) | quote }}
+  PLAYGROUND_ENDPOINT: {{ include "langsmith.internalServiceEndpoint" (dict "root" . "key" "playground" "name" .Values.playground.name "namespace" (.Values.namespace | default .Release.Namespace) "port" .Values.playground.service.port) | quote }}
+  SMITH_BACKEND_ENDPOINT: {{ include "langsmith.internalServiceEndpoint" (dict "root" . "key" "backend" "name" .Values.backend.name "namespace" (.Values.namespace | default .Release.Namespace) "port" .Values.backend.service.port) | quote }}
+  HOST_BACKEND_ENDPOINT: {{ include "langsmith.internalServiceEndpoint" (dict "root" . "key" "hostBackend" "name" .Values.hostBackend.name "namespace" (.Values.namespace | default .Release.Namespace) "port" .Values.hostBackend.service.port) | quote }}
+  LANGSMITH_AUTH_ENDPOINT: {{ include "langsmith.internalServiceEndpoint" (dict "root" . "key" "platformBackend" "name" .Values.platformBackend.name "namespace" (.Values.namespace | default .Release.Namespace) "port" .Values.platformBackend.service.port) | quote }}
   {{- if and .Values.smithdb.enabled .Values.smithdb.langsmith.frontend.useSmithDBEndpoints }}
   {{- $smithdbQueryUrl := include "langsmith.smithdb.grpcServiceUrl" (dict "root" . "component" "query" "port" .Values.smithdb.query.service.port) }}
   SMITHDB_QUERY_SERVICE_URL: {{ $smithdbQueryUrl | quote }}
@@ -67,18 +67,10 @@ data:
   LLM_AUTH_PROXY_ISSUER: {{ .Values.config.llmAuthProxyIssuer | quote }}
   {{- end }}
   {{- if and .Values.fleet.enabled .Values.fleetTriggerServer.enabled }}
-  MCP_SERVER_URL: "http://{{ include "langsmith.fullname" . }}-{{ .Values.fleetToolServer.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.fleetToolServer.service.port }}"
+  MCP_SERVER_URL: {{ include "langsmith.internalServiceEndpoint" (dict "root" . "key" "fleetToolServer" "name" .Values.fleetToolServer.name "namespace" (.Values.namespace | default .Release.Namespace) "port" .Values.fleetToolServer.service.port) | quote }}
   {{- end }}
   {{- if .Values.config.deployment.enabled }}
-  {{- if not .Values.frontend.enabled }}
-  HOST_LANGCHAIN_API_ENDPOINT: "http://{{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.backend.service.port }}/api/v1"
-  {{- else }}
-  {{- if .Values.config.basePath }}
-  HOST_LANGCHAIN_API_ENDPOINT: "http://{{ include "langsmith.fullname" . }}-{{ .Values.frontend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.frontend.service.httpPort }}/{{ .Values.config.basePath}}/api/v1"
-  {{- else }}
-  HOST_LANGCHAIN_API_ENDPOINT: "http://{{ include "langsmith.fullname" . }}-{{ .Values.frontend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.frontend.service.httpPort }}/api/v1"
-  {{- end }}
-  {{- end }}
+  HOST_LANGCHAIN_API_ENDPOINT: {{ include "langsmith.internalHostLangchainApiEndpoint" . | quote }}
   {{- end }}
   FF_RUN_STATS_GROUP_BY_ENABLED_ALL: "true"
   SEPARATE_QUEUES_WITH_SINGLE_WORKER: '["host"]'
@@ -108,7 +100,7 @@ data:
   SELF_HOSTED_POLLY_ENABLED: "true"
   {{- end }}
   {{- if .Values.agentGateway.enabled }}
-  AGENT_GATEWAY_URL: "http://{{ include "langsmith.fullname" . }}-{{ .Values.agentGateway.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.agentGateway.service.port }}"
+  AGENT_GATEWAY_URL: {{ include "langsmith.internalServiceEndpoint" (dict "root" . "key" "agentGateway" "name" .Values.agentGateway.name "namespace" (.Values.namespace | default .Release.Namespace) "port" .Values.agentGateway.service.port) | quote }}
   {{- end }}
   # Usage backfill export gating
   {{- if .Values.config.superAdmins }}

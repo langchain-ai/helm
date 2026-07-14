@@ -54,6 +54,8 @@ commonDnsConfig:
   options:
     - name: ndots
       value: "4"
+# -- Optional URLs for core internal services. Empty values preserve Kubernetes service DNS.
+internalServiceUrls: {}
 # -- Kubernetes cluster domain. Only change if not using 'cluster.local'
 clusterDomain: "cluster.local"
 

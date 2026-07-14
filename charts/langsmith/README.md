@@ -664,6 +664,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | insights.redis.statefulSet.updateStrategy | object | `{}` | Optional StatefulSet update strategy for the in-chart Insights Redis instance. Leave unset to keep the Kubernetes default RollingUpdate behavior. |
 | insights.redis.statefulSet.volumeMounts | list | `[]` |  |
 | insights.redis.statefulSet.volumes | list | `[]` |  |
+| internalServiceUrls | object | `{}` | Optional URLs for core internal services. Empty values preserve Kubernetes service DNS. |
 | istioGateway.annotations | object | `{}` |  |
 | istioGateway.enabled | bool | `false` |  |
 | istioGateway.labels | object | `{}` |  |
