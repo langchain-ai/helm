@@ -62,6 +62,12 @@ spec:
               value: {{ .Values.smithdb.query.containerPort | quote }}
             - name: SMITHDB_QUERY__GRPC_PORT
               value: {{ .Values.smithdb.query.containerGrpcPort | quote }}
+            {{- if (index (default (dict) .Values.smithdb.query.deployment.resources.limits) "ephemeral-storage") }}
+            - name: SMITHDB_QUERY__VORTEX_CACHE__DISK_LIMIT
+              valueFrom:
+                resourceFieldRef:
+                  resource: limits.ephemeral-storage
+            {{- end }}
             {{- with $envVars }}
             {{- toYaml . | nindent 12 }}
             {{- end }}
