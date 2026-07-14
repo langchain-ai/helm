@@ -68,6 +68,12 @@ spec:
                 resourceFieldRef:
                   resource: limits.ephemeral-storage
             {{- end }}
+            {{- if (index (default (dict) .Values.smithdb.query.deployment.resources.limits) "memory") }}
+            - name: SMITHDB_QUERY__VORTEX_CACHE__MEMORY_LIMIT
+              valueFrom:
+                resourceFieldRef:
+                  resource: limits.memory
+            {{- end }}
             {{- with $envVars }}
             {{- toYaml . | nindent 12 }}
             {{- end }}
