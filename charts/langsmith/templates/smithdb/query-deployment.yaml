@@ -63,13 +63,13 @@ spec:
             - name: SMITHDB_QUERY__GRPC_PORT
               value: {{ .Values.smithdb.query.containerGrpcPort | quote }}
             {{- if (index (default (dict) .Values.smithdb.query.deployment.resources.limits) "ephemeral-storage") }}
-            - name: SMITHDB_QUERY__VORTEX_CACHE__DISK_LIMIT
+            - name: SMITHDB_QUERY__VORTEX_CACHE__DISK__LIMIT
               valueFrom:
                 resourceFieldRef:
                   resource: limits.ephemeral-storage
             {{- end }}
             {{- if (index (default (dict) .Values.smithdb.query.deployment.resources.limits) "memory") }}
-            - name: SMITHDB_QUERY__VORTEX_CACHE__MEMORY_LIMIT
+            - name: SMITHDB_QUERY__VORTEX_CACHE__MEMORY__LIMIT
               valueFrom:
                 resourceFieldRef:
                   resource: limits.memory

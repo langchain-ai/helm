@@ -56,11 +56,11 @@ tests:
       - notContains:
           path: spec.template.spec.containers[0].env
           content:
-            name: SMITHDB_QUERY__VORTEX_CACHE__DISK_LIMIT
+            name: SMITHDB_QUERY__VORTEX_CACHE__DISK__LIMIT
       - notContains:
           path: spec.template.spec.containers[0].env
           content:
-            name: SMITHDB_QUERY__VORTEX_CACHE__MEMORY_LIMIT
+            name: SMITHDB_QUERY__VORTEX_CACHE__MEMORY__LIMIT
 
   - it: should size the SmithDB query disk cache from its ephemeral storage limit
     values:
@@ -72,7 +72,7 @@ tests:
       - contains:
           path: spec.template.spec.containers[0].env
           content:
-            name: SMITHDB_QUERY__VORTEX_CACHE__DISK_LIMIT
+            name: SMITHDB_QUERY__VORTEX_CACHE__DISK__LIMIT
             valueFrom:
               resourceFieldRef:
                 resource: limits.ephemeral-storage
@@ -87,7 +87,7 @@ tests:
       - contains:
           path: spec.template.spec.containers[0].env
           content:
-            name: SMITHDB_QUERY__VORTEX_CACHE__MEMORY_LIMIT
+            name: SMITHDB_QUERY__VORTEX_CACHE__MEMORY__LIMIT
             valueFrom:
               resourceFieldRef:
                 resource: limits.memory
