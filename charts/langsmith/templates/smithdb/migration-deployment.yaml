@@ -1,8 +1,17 @@
 {{- if and .Values.smithdb.enabled .Values.smithdb.langsmith.migration.enabled }}
 {{- $envVars := concat (include "langsmith.smithdb.componentEnv" (dict "root" . "service" "MIGRATION" "displayName" "smithdb-migration") | fromYamlArray) .Values.smithdb.migration.deployment.extraEnv -}}
 {{- include "langsmith.detectDuplicates" $envVars -}}
-apiVersion: apps/v1
-kind: Deployment
+{{- $command := .Values.smithdb.migration.deployment.command | default (list "./smithdb" "migrate" "--self-hosted" "migrate-all") -}}
+{{- if .Values.smithdb.migration.startTime }}
+{{- $command = append $command "--start-time" -}}
+{{- $command = append $command .Values.smithdb.migration.startTime -}}
+{{- end }}
+{{- if .Values.smithdb.migration.endTime }}
+{{- $command = append $command "--end-time" -}}
+{{- $command = append $command .Values.smithdb.migration.endTime -}}
+{{- end }}
+apiVersion: batch/v1
+kind: Job
 metadata:
   name: {{ include "langsmith.smithdb.componentName" (dict "root" . "component" "migration") }}
   namespace: {{ .Values.namespace | default .Release.Namespace }}
@@ -18,11 +27,11 @@ metadata:
       {{- toYaml . | nindent 4 }}
     {{- end }}
 spec:
-  replicas: {{ ternary (int .Values.smithdb.migration.deployment.replicas) 0 .Values.smithdb.langsmith.migration.enabled }}
-  selector:
-    matchLabels:
-      {{- include "langsmith.selectorLabels" . | nindent 6 }}
-      app.kubernetes.io/component: {{ include "langsmith.smithdb.componentName" (dict "root" . "component" "migration") }}
+  backoffLimit: {{ .Values.smithdb.migration.job.backoffLimit }}
+  ttlSecondsAfterFinished: {{ .Values.smithdb.migration.job.ttlSecondsAfterFinished }}
+  {{- with .Values.smithdb.migration.job.activeDeadlineSeconds }}
+  activeDeadlineSeconds: {{ . }}
+  {{- end }}
   template:
     metadata:
       annotations:
@@ -37,6 +46,7 @@ spec:
           {{- toYaml . | nindent 8 }}
         {{- end }}
     spec:
+      restartPolicy: {{ .Values.smithdb.migration.job.restartPolicy }}
       terminationGracePeriodSeconds: {{ .Values.smithdb.migration.deployment.terminationGracePeriodSeconds }}
       {{- with .Values.images.imagePullSecrets }}
       imagePullSecrets:
@@ -52,10 +62,8 @@ spec:
       {{- end }}
       containers:
         - name: {{ .Values.smithdb.migration.name }}
-          {{- with .Values.smithdb.migration.deployment.command }}
           command:
-            {{- toYaml . | nindent 12 }}
-          {{- end }}
+            {{- toYaml $command | nindent 12 }}
           env:
             - name: SMITHDB_MIGRATION__HTTP_PORT
               value: {{ .Values.smithdb.migration.containerPort | quote }}

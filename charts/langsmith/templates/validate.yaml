@@ -243,9 +243,6 @@ AWS Marketplace Helm template verification).
 {{- if and .Values.smithdb.langsmith.migration.enabled .Values.smithdb.langsmith.lsmBackfill.enabled -}}
 {{- fail "Only one of smithdb.langsmith.migration.enabled or smithdb.langsmith.lsmBackfill.enabled can be true at the same time." -}}
 {{- end -}}
-{{- if and .Values.smithdb.langsmith.migration.enabled (not .Values.smithdb.langsmith.lsmBackfill.enabled) (lt (int .Values.smithdb.migration.deployment.replicas) 1) -}}
-{{- fail "smithdb.migration.deployment.replicas must be greater than 0 when smithdb.langsmith.migration.enabled is true." -}}
-{{- end -}}
 {{- if and .Values.smithdb.langsmith.migration.enabled (not .Values.smithdb.migration.taskdb.postgres.enabled) -}}
 {{- fail "smithdb.migration.taskdb.postgres.enabled must be true when smithdb.langsmith.migration.enabled is true." -}}
 {{- end -}}

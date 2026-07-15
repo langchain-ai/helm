@@ -253,15 +253,29 @@ tests:
     asserts:
       - template: smithdb/migration-deployment.yaml
         isKind:
-          of: Deployment
+          of: Job
       - template: smithdb/migration-deployment.yaml
         equal:
-          path: spec.replicas
-          value: 1
+          path: spec.template.spec.restartPolicy
+          value: Never
+      - template: smithdb/migration-deployment.yaml
+        equal:
+          path: spec.template.spec.containers[0].command
+          value:
+            - "./smithdb"
+            - "migrate"
+            - "--self-hosted"
+            - "migrate-all"
       - template: smithdb/migration-deployment.yaml
         equal:
           path: spec.template.spec.containers[0].image
           value: docker.io/langchain/smithdb:latest
+      - template: smithdb/migration-deployment.yaml
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_MIGRATION__WORKER_POOL__AUTO_CREATE_FEEDBACK_JOBS_ON_PROMOTION
+            value: "true"
       - template: smithdb/migration-deployment.yaml
         contains:
           path: spec.template.spec.containers[0].env
@@ -306,20 +320,29 @@ tests:
                 name: RELEASE-NAME-langsmith-smithdb-taskdb-postgres
                 key: postgres_password
 
-  - it: should allow tuning smithdb migration replicas
+  - it: should append migrate-all time bounds to the migration command
     values:
       - ./values/smithdb-enabled.yaml
     set:
       smithdb.langsmith.migration.enabled: true
       smithdb.langsmith.frontend.useSmithDBEndpoints: false
-      smithdb.migration.deployment.replicas: 2
+      smithdb.migration.startTime: "2024-01-01T00:00:00Z"
+      smithdb.migration.endTime: "2025-01-01T00:00:00Z"
       smithdb.migration.taskdb.postgres.enabled: true
       smithdb.migration.taskdb.postgres.auth.password: taskdb-password
     template: smithdb/migration-deployment.yaml
     asserts:
       - equal:
-          path: spec.replicas
-          value: 2
+          path: spec.template.spec.containers[0].command
+          value:
+            - "./smithdb"
+            - "migrate"
+            - "--self-hosted"
+            - "migrate-all"
+            - "--start-time"
+            - "2024-01-01T00:00:00Z"
+            - "--end-time"
+            - "2025-01-01T00:00:00Z"
 
   - it: should omit smithdb migration during lsm backfill
     values:

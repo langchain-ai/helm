@@ -1280,7 +1280,7 @@ smithdb:
       # -- Enables LangSmith run ingestion to also write to SmithDB. Requires smithdb.enabled.
       enabled: false
     migration:
-      # -- Runs the SmithDB migration phase and renders the migration Deployment plus taskdb Postgres resources.
+      # -- Runs the SmithDB migration phase and renders the one-shot migrate-all Job plus taskdb Postgres resources.
       # -- Detailed migration and taskdb configuration lives under smithdb.migration.
       enabled: false
     lsmBackfill:
@@ -1580,6 +1580,18 @@ smithdb:
   migration:
     name: "migration"
     containerPort: 9040
+    # -- Optional RFC3339 start bound for migrate-all (half-open window). Empty uses end - 400 days.
+    startTime: ""
+    # -- Optional RFC3339 end bound for migrate-all (half-open window). Empty uses now.
+    endTime: ""
+    job:
+      # -- Keep finished migrate-all Jobs around for a day so operators can inspect status/logs.
+      ttlSecondsAfterFinished: 86400
+      # -- Do not retry a failed migrate-all; failures should be inspected and re-run deliberately.
+      backoffLimit: 0
+      # -- Optional hard deadline for the Job. Leave unset for long-running full migrations.
+      activeDeadlineSeconds: null
+      restartPolicy: Never
     taskdb:
       postgres:
         # -- Enable Postgres for SmithDB migration task state. This is a separate database from
@@ -1670,18 +1682,24 @@ smithdb:
             size: 8Gi
             storageClassName: ""
     deployment:
-      replicas: 1
       labels: {}
       annotations: {}
       podSecurityContext: {}
       securityContext: {}
       terminationGracePeriodSeconds: 120
       resources: {}
+      # -- One-shot migrate-all: discover tenants, register non-overlapping jobs, drain the global
+      # -- queue, then exit. Override with `["./smithdb", "migrate", "--self-hosted", "run"]` for a forever daemon.
+      # -- `--self-hosted` selects self-hosted ClickHouse schema assumptions for runs migration queries.
       command:
-        - "tail"
-        - "-f"
-        - "/dev/null"
-      extraEnv: []
+        - "./smithdb"
+        - "migrate"
+        - "--self-hosted"
+        - "migrate-all"
+      extraEnv:
+        # -- Required for migrate-all to finish: each promoted run job enrolls feedback work.
+        - name: SMITHDB_MIGRATION__WORKER_POOL__AUTO_CREATE_FEEDBACK_JOBS_ON_PROMOTION
+          value: "true"
       extraContainerConfig: {}
       sidecars: []
       nodeSelector: {}
