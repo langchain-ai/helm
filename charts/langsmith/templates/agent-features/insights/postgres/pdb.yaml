@@ -1,0 +1,23 @@
+{{- if .Values.insights.enabled }}
+{{- if .Values.insights.postgres.pdb.enabled }}
+{{- $componentName := include "langsmith.agentFeatures.componentName" (dict "root" . "product" "insights" "component" "postgres") -}}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ $componentName }}
+  namespace: {{ .Values.namespace | default .Release.Namespace | quote }}
+  labels:
+    {{- include "langsmith.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "langsmith.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: {{ $componentName }}
+  {{- if hasKey .Values.insights.postgres.pdb "minAvailable" }}
+  minAvailable: {{ .Values.insights.postgres.pdb.minAvailable }}
+  {{- end }}
+  {{- if hasKey .Values.insights.postgres.pdb "maxUnavailable" }}
+  maxUnavailable: {{ .Values.insights.postgres.pdb.maxUnavailable }}
+  {{- end }}
+{{- end }}
+{{- end }}

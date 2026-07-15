@@ -1,0 +1,45 @@
+{{- if .Values.insights.enabled }}
+{{- if and .Values.insights.queue.enabled .Values.insights.queue.autoscaling.enabled .Values.insights.queue.autoscaling.keda.enabled }}
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: {{ include "langsmith.agentFeatures.fullname" (dict "root" . "product" "insights") }}-{{ .Values.insights.queue.name }}
+  namespace: {{ .Values.namespace | default .Release.Namespace | quote }}
+  labels:
+    {{- include "langsmith.labels" . | nindent 4 }}
+spec:
+  scaleTargetRef:
+    name: {{ include "langsmith.agentFeatures.fullname" (dict "root" . "product" "insights") }}-{{ .Values.insights.queue.name }}
+  minReplicaCount: {{ .Values.insights.queue.autoscaling.minReplicas | default 1 }}
+  maxReplicaCount: {{ .Values.insights.queue.autoscaling.maxReplicas | default 10 }}
+  pollingInterval: {{ .Values.insights.queue.autoscaling.keda.pollingInterval | default 30 }}
+  cooldownPeriod: {{ .Values.insights.queue.autoscaling.keda.cooldownPeriod | default 300 }}
+  advanced:
+    horizontalPodAutoscalerConfig:
+      behavior:
+        scaleDown:
+          stabilizationWindowSeconds: {{ .Values.insights.queue.autoscaling.keda.scaleDownStabilizationWindowSeconds | default 300 }}
+  triggers:
+    {{- if .Values.insights.queue.autoscaling.targetCPUUtilizationPercentage }}
+    - type: cpu
+      metricType: Utilization
+      metadata:
+        value: "{{ .Values.insights.queue.autoscaling.targetCPUUtilizationPercentage }}"
+    {{- end }}
+    {{- if .Values.insights.queue.autoscaling.targetMemoryUtilizationPercentage }}
+    - type: memory
+      metricType: Utilization
+      metadata:
+        value: "{{ .Values.insights.queue.autoscaling.targetMemoryUtilizationPercentage }}"
+    {{- end }}
+    - type: postgresql
+      metadata:
+        connectionFromEnv: "POSTGRES_URI"
+        query: "SELECT COUNT(*) FROM run WHERE status = 'pending'"
+        targetQueryValue: {{ .Values.insights.queue.numberOfJobsPerWorker | quote }}
+        activationTargetQueryValue: {{ .Values.insights.queue.numberOfJobsPerWorker | quote }}
+    {{- with .Values.insights.queue.autoscaling.keda.additionalTriggers }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+{{- end }}
+{{- end }}

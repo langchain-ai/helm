@@ -1,8 +1,13 @@
 # langgraph-dataplane
 
-![Version: 0.2.19](https://img.shields.io/badge/Version-0.2.19-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.13.9](https://img.shields.io/badge/AppVersion-0.13.9-informational?style=flat-square)
+![Version: 0.2.21](https://img.shields.io/badge/Version-0.2.21-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.13.9](https://img.shields.io/badge/AppVersion-0.13.9-informational?style=flat-square)
 
 Helm chart to deploy a langgraph dataplane on kubernetes.
+
+> [!WARNING]
+> **Legacy Hybrid Deployment — No Longer Supported for New Customers**
+>
+> This chart is the legacy version of the Hybrid deployment option. New customers are not supported going forward; existing customers will continue to be supported. New Hybrid deployments should use the [`langgraph-cloud`](../langgraph-cloud) chart instead — see the [Hybrid deployment documentation](https://docs.langchain.com/langsmith/hybrid) for more details.
 
 ## Deploying a LangGraph Dataplane
 
@@ -101,6 +106,7 @@ You can find the guide to deploy a LangGraph Dataplane [here](https://langchain-
 | config.enableLGPDeploymentHealthCheck | bool | `true` |  |
 | config.existingSecretName | string | `""` |  |
 | config.hostBackendUrl | string | `"https://api.host.langchain.com"` |  |
+| config.hostQueue | string | `"host"` | SAQ queue name used by the listener. When multiple installs of this chart share one Redis instance (e.g. a managed cache with DB-count limits), set this to a unique value per install to prevent SAQ queue collisions. |
 | config.langgraphListenerId | string | `""` |  |
 | config.langsmithApiKey | string | `""` |  |
 | config.langsmithWorkspaceId | string | `""` |  |
@@ -281,6 +287,7 @@ You can find the guide to deploy a LangGraph Dataplane [here](https://langchain-
 | redis.statefulSet.terminationGracePeriodSeconds | int | `30` |  |
 | redis.statefulSet.tolerations | list | `[]` |  |
 | redis.statefulSet.topologySpreadConstraints | list | `[]` |  |
+| redis.statefulSet.updateStrategy | object | `{}` | Optional StatefulSet update strategy for the in-chart Redis instance. Leave unset to keep the Kubernetes default RollingUpdate behavior. |
 | redis.statefulSet.volumeMounts | list | `[]` |  |
 | redis.statefulSet.volumes | list | `[]` |  |
 

@@ -10,6 +10,7 @@ metadata:
       {{- toYaml . | nindent 4 }}
     {{- end }}
   annotations:
+    "argocd.argoproj.io/sync-wave": "-2"
     {{- include "langsmith.annotations" . | nindent 4 }}
     {{- with .Values.redis.pdb.annotations }}
       {{- toYaml . | nindent 4 }}
@@ -19,10 +20,10 @@ spec:
     matchLabels:
       {{- include "langsmith.selectorLabels" . | nindent 6 }}
       app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-{{ .Values.redis.name }}
-  {{- if .Values.redis.pdb.minAvailable }}
+  {{- if hasKey .Values.redis.pdb "minAvailable" }}
   minAvailable: {{ .Values.redis.pdb.minAvailable }}
   {{- end }}
-  {{- if .Values.redis.pdb.maxUnavailable }}
+  {{- if hasKey .Values.redis.pdb "maxUnavailable" }}
   maxUnavailable: {{ .Values.redis.pdb.maxUnavailable }}
   {{- end }}
 {{- end }}

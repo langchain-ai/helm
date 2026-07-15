@@ -1,6 +1,8 @@
 suite: jwks uri configuration
 templates:
   - auth-proxy/config-map.yaml
+values:
+  - common-values.yaml
 tests:
   - it: should use local_jwks when only jwksJson is set
     set:

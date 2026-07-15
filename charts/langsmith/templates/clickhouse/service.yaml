@@ -11,6 +11,7 @@ metadata:
     {{- end }}
     app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-{{ .Values.clickhouse.name }}
   annotations:
+    "argocd.argoproj.io/sync-wave": "-2"
     {{- include "langsmith.annotations" . | nindent 4 }}
     {{- with.Values.clickhouse.service.annotations }}
       {{- toYaml . | nindent 4 }}

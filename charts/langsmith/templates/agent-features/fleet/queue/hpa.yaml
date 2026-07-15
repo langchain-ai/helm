@@ -1,0 +1,35 @@
+{{- if .Values.fleet.enabled }}
+{{- if and .Values.fleet.queue.enabled .Values.fleet.queue.autoscaling.enabled (not .Values.fleet.queue.autoscaling.keda.enabled) }}
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ include "langsmith.agentFeatures.fullname" (dict "root" . "product" "fleet") }}-{{ .Values.fleet.queue.name }}
+  namespace: {{ .Values.namespace | default .Release.Namespace | quote }}
+  labels:
+    {{- include "langsmith.labels" . | nindent 4 }}
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ include "langsmith.agentFeatures.fullname" (dict "root" . "product" "fleet") }}-{{ .Values.fleet.queue.name }}
+  minReplicas: {{ .Values.fleet.queue.autoscaling.minReplicas }}
+  maxReplicas: {{ .Values.fleet.queue.autoscaling.maxReplicas }}
+  metrics:
+    {{- if .Values.fleet.queue.autoscaling.targetCPUUtilizationPercentage }}
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.fleet.queue.autoscaling.targetCPUUtilizationPercentage }}
+    {{- end }}
+    {{- if .Values.fleet.queue.autoscaling.targetMemoryUtilizationPercentage }}
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.fleet.queue.autoscaling.targetMemoryUtilizationPercentage }}
+    {{- end }}
+{{- end }}
+{{- end }}

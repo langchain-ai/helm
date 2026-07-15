@@ -18,22 +18,44 @@ AWS Marketplace Helm template verification).
 
 {{- if not .Values.config.skipValidation -}}
 
-{{- /* Validate ingress configuration */ -}}
-# Fail if none of ingress, gateway, or istioGateway are enabled and LangSmith Deployment is enabled
-{{- if and (not .Values.ingress.enabled) (not .Values.gateway.enabled) (not .Values.istioGateway.enabled) .Values.config.deployment.enabled }}
-{{- fail "Either ingress, gateway, or istioGateway must be enabled if LangGraph Platform is enabled." -}}
+{{- /* Validate deprecated fleet server value keys */ -}}
+{{- if hasKey .Values "agentBuilderToolServer" -}}
+{{- fail "agentBuilderToolServer is deprecated. Please use fleetToolServer." -}}
+{{- end -}}
+{{- if hasKey .Values "agentBuilderTriggerServer" -}}
+{{- fail "agentBuilderTriggerServer is deprecated. Please use fleetTriggerServer." -}}
+{{- end -}}
+{{- if hasKey .Values.images "agentBuilderToolServerImage" -}}
+{{- fail "images.agentBuilderToolServerImage is deprecated. Please use images.fleetToolServerImage." -}}
+{{- end -}}
+{{- if hasKey .Values.images "agentBuilderTriggerServerImage" -}}
+{{- fail "images.agentBuilderTriggerServerImage is deprecated. Please use images.fleetTriggerServerImage." -}}
 {{- end -}}
 
-# Fail if Istio + LGP + basePath is set without a distinct LGP base path
-{{- if and .Values.istioGateway.enabled .Values.config.deployment.enabled .Values.config.basePath -}}
+{{- /* Validate ingress configuration */ -}}
+# Fail if none of ingress, gateway, or istioGateway are enabled and LangSmith Deployment is enabled with the chart-managed frontend
+{{- if and .Values.frontend.enabled (not .Values.ingress.enabled) (not .Values.gateway.enabled) (not .Values.istioGateway.enabled) .Values.config.deployment.enabled }}
+{{- fail "Either ingress, gateway, or istioGateway must be enabled if LangSmith Deployments is enabled." -}}
+{{- end -}}
+
+{{- /* Validate frontend configuration */ -}}
+# Fail if frontend is disabled while a chart-managed frontend route is enabled
+{{- if not .Values.frontend.enabled }}
+{{- if or .Values.ingress.enabled .Values.gateway.enabled -}}
+{{- fail "frontend.enabled must be true when ingress or gateway is enabled. These resources route traffic to the frontend service." -}}
+{{- end -}}
+{{- end -}}
+
+# Fail if Istio + LangSmith Deployments + basePath is set without a distinct deployments base path
+{{- if and .Values.istioGateway.enabled .Values.frontend.enabled .Values.config.deployment.enabled .Values.config.basePath -}}
   {{- if or (not .Values.config.deployment.basePath) (eq .Values.config.deployment.basePath .Values.config.basePath) -}}
-{{- fail "When istioGateway is enabled with LangGraph Platform and config.basePath is set, you must set config.deployment.basePath to a different value to avoid overlapping VirtualService prefixes. Istio does not deterministically guarantee longest-prefix routing across multiple VirtualServices." -}}
+{{- fail "When istioGateway is enabled with LangSmith Deployments and config.basePath is set, you must set config.deployment.basePath to a different value to avoid overlapping VirtualService prefixes. Istio does not deterministically guarantee longest-prefix routing across multiple VirtualServices." -}}
   {{- end -}}
 {{- end -}}
 
 # Fail if hostname is missing when deployment is enabled
 {{- if and .Values.config.deployment.enabled (not .Values.config.hostname) }}
-{{- fail "config.hostname is required when LangGraph Platform deployment is enabled." -}}
+{{- fail "config.hostname is required when LangSmith Deployments is enabled." -}}
 {{- end -}}
 
 # Fail if rootDomain is missing when deployment is enabled
@@ -177,6 +199,58 @@ AWS Marketplace Helm template verification).
 {{- fail "clickhouse.external.tls must be true when clickhouse.external.clientCert.secretName is set and the value is not being fetched from an existing secret." -}}
 {{- end -}}
 
+{{- /* Validate SmithDB configuration */ -}}
+{{- if .Values.smithdb.enabled -}}
+{{- if not .Values.smithdb.config.existingSecretName -}}
+{{- fail "smithdb.config.existingSecretName is required when smithdb.enabled is true." -}}
+{{- end -}}
+{{- range $keyName := list "hostSecretKey" "databaseSecretKey" "usernameSecretKey" "passwordSecretKey" -}}
+{{- $keyValue := get $.Values.smithdb.config.metastore $keyName -}}
+{{- if not $keyValue -}}
+{{- fail (printf "smithdb.config.metastore.%s is required when smithdb.enabled is true." $keyName) -}}
+{{- end -}}
+{{- end -}}
+{{- $objectStoreType := lower .Values.smithdb.config.objectStore.type -}}
+{{- if not (or (eq $objectStoreType "s3") (eq $objectStoreType "gcs")) -}}
+{{- fail "smithdb.config.objectStore.type must be one of [s3, gcs]." -}}
+{{- end -}}
+{{- if not .Values.smithdb.config.objectStore.bucket -}}
+{{- fail "smithdb.config.objectStore.bucket is required when smithdb.enabled is true." -}}
+{{- end -}}
+{{- $smithdbWorkloads := dict
+  "query" .Values.smithdb.query
+  "ingestion" .Values.smithdb.ingestion
+  "compaction" .Values.smithdb.compaction
+  "compactionWorker" .Values.smithdb.compactionWorker
+  "clusterManager" .Values.smithdb.clusterManager
+-}}
+{{- range $workloadName, $workload := $smithdbWorkloads -}}
+{{- if and $.Values.smithdb.enabled (lt (int $workload.deployment.replicas) 1) -}}
+{{- fail (printf "smithdb.%s.deployment.replicas must be greater than 0 when smithdb.enabled is true." $workloadName) -}}
+{{- end -}}
+{{- end -}}
+{{- $smithdbServiceWorkloads := dict
+  "query" .Values.smithdb.query
+  "ingestion" .Values.smithdb.ingestion
+  "compaction" .Values.smithdb.compaction
+  "clusterManager" .Values.smithdb.clusterManager
+-}}
+{{- range $workloadName, $workload := $smithdbServiceWorkloads -}}
+{{- if and $.Values.smithdb.enabled $workload.service.type (ne $workload.service.type "ClusterIP") -}}
+{{- fail (printf "smithdb.%s.service.type must be ClusterIP." $workloadName) -}}
+{{- end -}}
+{{- end -}}
+{{- if and .Values.smithdb.enabled (ne (toString .Values.smithdb.compactionWorker.maxConcurrentJobs) "") (lt (int .Values.smithdb.compactionWorker.maxConcurrentJobs) 1) -}}
+{{- fail "smithdb.compactionWorker.maxConcurrentJobs must be greater than 0 when set." -}}
+{{- end -}}
+{{- if and .Values.smithdb.langsmith.dualIngest.enabled (not .Values.smithdb.enabled) -}}
+{{- fail "smithdb.enabled must be true when smithdb.langsmith.dualIngest.enabled is true." -}}
+{{- end -}}
+{{- if and .Values.smithdb.langsmith.frontend.useSmithDBEndpoints (not .Values.smithdb.enabled) -}}
+{{- fail "smithdb.enabled must be true when smithdb.langsmith.frontend.useSmithDBEndpoints is true." -}}
+{{- end -}}
+{{- end -}}
+
 {{- /* Validate agent builder configuration */ -}}
 {{- if .Values.config.agentBuilder.enabled -}}
 {{- if and (not .Values.config.agentBuilder.encryptionKey) (not .Values.config.existingSecretName) -}}
@@ -187,20 +261,14 @@ AWS Marketplace Helm template verification).
 {{- end -}}
 {{- end -}}
 
-{{- /* Validate insights configuration */ -}}
-{{- if and .Values.config.insights.enabled (not .Values.config.deployment.enabled) -}}
-{{- fail "config.deployment.enabled must be true when Insights is enabled. Insights requires LangSmith Deployments." -}}
+{{- /* The bundled-agent bootstrap path was removed for Insights and Polly.
+       Reject any presence of config.insights / config.polly and direct
+       users at the top-level insights / polly blocks. */ -}}
+{{- if hasKey .Values.config "insights" -}}
+{{- fail "config.insights is no longer supported (the bundled-agent bootstrap path was removed in chart 0.15.1). Use the top-level insights block: insights.enabled, insights.encryptionKey, etc." -}}
 {{- end -}}
-{{- if and .Values.config.insights.enabled (not .Values.config.insights.encryptionKey) (not .Values.config.existingSecretName) -}}
-{{- fail "config.insights.encryptionKey is required when Insights is enabled. Generate one with: python -c \"from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())\"" -}}
-{{- end -}}
-
-{{- /* Validate polly configuration */ -}}
-{{- if and .Values.config.polly.enabled (not .Values.config.deployment.enabled) -}}
-{{- fail "config.deployment.enabled must be true when Polly is enabled. Polly requires LangSmith Deployments." -}}
-{{- end -}}
-{{- if and .Values.config.polly.enabled (not .Values.config.polly.encryptionKey) (not .Values.config.existingSecretName) -}}
-{{- fail "config.polly.encryptionKey is required when Polly is enabled. Generate one with: python -c \"from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())\"" -}}
+{{- if hasKey .Values.config "polly" -}}
+{{- fail "config.polly is no longer supported (the bundled-agent bootstrap path was removed in chart 0.15.1). Use the top-level polly block: polly.enabled, polly.encryptionKey, etc." -}}
 {{- end -}}
 
 {{- /* Validate autoscaling configuration for all services */ -}}
@@ -233,3 +301,60 @@ AWS Marketplace Helm template verification).
 {{- end -}}
 
 {{- end -}}{{- /* end skipValidation */ -}}
+
+{{- /* Validate agent feature (fleet/insights/polly) configuration */ -}}
+{{- $anyAgentEnabled := or .Values.fleet.enabled .Values.insights.enabled .Values.polly.enabled }}
+{{- $allPgUrls := list }}
+{{- /* Include the main LangSmith postgres URL if determinable */ -}}
+{{- if and .Values.postgres.external.enabled (not .Values.postgres.external.existingSecretName) }}
+{{- $mainPg := "" }}
+{{- if .Values.postgres.external.connectionUrl }}
+{{- $mainPg = trimAll " " .Values.postgres.external.connectionUrl }}
+{{- else if .Values.postgres.external.host }}
+{{- $mainPg = printf "postgres://%s:%s@%s:%s/%s?sslmode=disable" .Values.postgres.external.user .Values.postgres.external.password .Values.postgres.external.host (toString .Values.postgres.external.port) .Values.postgres.external.database }}
+{{- end }}
+{{- if $mainPg }}
+{{- $allPgUrls = append $allPgUrls $mainPg }}
+{{- end }}
+{{- end }}
+{{- $agentPairs := list (dict "n" "fleet") (dict "n" "insights") (dict "n" "polly") }}
+{{- range $pair := $agentPairs }}
+{{- $fn := index $pair "n" }}
+{{- $feat := index $.Values $fn }}
+{{- if $feat.enabled }}
+{{- if and (not $feat.encryptionKey) (not $.Values.config.existingSecretName) }}
+{{- fail (printf "%s.encryptionKey is required when %s.enabled is true (not needed if config.existingSecretName is set with the key already present)" $fn $fn) }}
+{{- end }}
+{{- if $feat.postgres.external.enabled }}
+{{- if not $feat.postgres.external.existingSecretName }}
+{{- $pg := "" }}
+{{- if $feat.postgres.external.connectionUrl }}
+{{- $pg = trimAll " " $feat.postgres.external.connectionUrl }}
+{{- else if not $feat.postgres.external.host }}
+{{- fail (printf "%s.postgres.external.host or connectionUrl or existingSecretName is required when %s.postgres.external.enabled is true" $fn $fn) }}
+{{- else }}
+{{- $pg = printf "postgres://%s:%s@%s:%s/%s?sslmode=disable" $feat.postgres.external.user $feat.postgres.external.password $feat.postgres.external.host (toString $feat.postgres.external.port) $feat.postgres.external.database }}
+{{- end }}
+{{- if $pg }}
+{{- $allPgUrls = append $allPgUrls $pg }}
+{{- end }}
+{{- end }}
+{{- end }}
+{{- end }}
+{{- end }}
+{{- if and (gt (len $allPgUrls) 0) (ne (len $allPgUrls) (len (uniq $allPgUrls))) }}
+{{- fail "All postgres connection URLs (langsmith, fleet, insights, polly) must be unique. Duplicate URLs were detected." }}
+{{- end }}
+
+{{- /* Validate per-agent redis configuration */ -}}
+{{- range $pair := $agentPairs }}
+{{- $fn := index $pair "n" }}
+{{- $feat := index $.Values $fn }}
+{{- if $feat.enabled }}
+{{- if $feat.redis.external.enabled }}
+{{- if and (not $feat.redis.external.connectionUrl) (not $feat.redis.external.existingSecretName) }}
+{{- fail (printf "%s.redis.external.connectionUrl or %s.redis.external.existingSecretName is required when %s.redis.external.enabled is true" $fn $fn $fn) }}
+{{- end }}
+{{- end }}
+{{- end }}
+{{- end }}

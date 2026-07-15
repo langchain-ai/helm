@@ -26,7 +26,8 @@ authProxy:
   enabled: true
   upstream: "https://api.openai.com"  # Replace with your upstream
   jwtIssuer: "langsmith"
-  jwtAudiences: []
+  jwtAudiences:
+    - "langsmith"
   jwksJson: ""  # Fill this in with your JWKS JSON
   streamIdleTimeout: "300s"
 

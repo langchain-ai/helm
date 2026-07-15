@@ -1,0 +1,162 @@
+{{- if .Values.insights.enabled }}
+{{- if not .Values.insights.redis.external.enabled }}
+{{- $componentName := include "langsmith.agentFeatures.componentName" (dict "root" . "product" "insights" "component" "redis") -}}
+{{- $volumes := concat .Values.commonVolumes .Values.insights.redis.statefulSet.volumes -}}
+{{- $volumeMounts := concat .Values.commonVolumeMounts .Values.insights.redis.statefulSet.volumeMounts -}}
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ $componentName }}
+  namespace: {{ .Values.namespace | default .Release.Namespace | quote }}
+  labels:
+    {{- include "langsmith.labels" . | nindent 4 }}
+    {{- with .Values.insights.redis.statefulSet.labels }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+  annotations:
+    {{- include "langsmith.annotations" . | nindent 4 }}
+    {{- with .Values.insights.redis.statefulSet.annotations }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  serviceName: {{ $componentName }}
+  replicas: 1
+  {{- with .Values.insights.redis.statefulSet.updateStrategy }}
+  updateStrategy:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "langsmith.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: {{ $componentName }}
+  template:
+    metadata:
+      {{- with .Values.insights.redis.statefulSet.annotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- with .Values.insights.redis.statefulSet.labels }}
+            {{- toYaml . | nindent 8 }}
+        {{- end }}
+        {{- include "langsmith.labels" . | nindent 8 }}
+        app.kubernetes.io/component: {{ $componentName }}
+    spec:
+      {{- with .Values.images.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if .Values.insights.redis.statefulSet.priorityClassName }}
+      priorityClassName: {{ .Values.insights.redis.statefulSet.priorityClassName }}
+      {{- end }}
+      terminationGracePeriodSeconds: {{ .Values.insights.redis.statefulSet.terminationGracePeriodSeconds }}
+      securityContext:
+        {{- toYaml .Values.insights.redis.statefulSet.podSecurityContext | nindent 8 }}
+      serviceAccountName: {{ $componentName }}
+      {{- include "langsmith.dnsConfig" . | nindent 6 }}
+      containers:
+        - name: {{ .Values.insights.redis.name }}
+          {{- with .Values.insights.redis.statefulSet.command }}
+          command:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- if .Values.insights.redis.statefulSet.extraEnv }}
+          env:
+            {{- toYaml .Values.insights.redis.statefulSet.extraEnv | nindent 12 }}
+          {{- end }}
+          image: {{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "redisImage") | quote }}
+          imagePullPolicy: {{ .Values.images.redisImage.pullPolicy }}
+          ports:
+            - name: redis
+              containerPort: {{ .Values.insights.redis.containerPort }}
+              protocol: TCP
+          startupProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - exec redis-cli ping
+            failureThreshold: 6
+            periodSeconds: 10
+            timeoutSeconds: 1
+          readinessProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - exec redis-cli ping
+            failureThreshold: 6
+            periodSeconds: 10
+            timeoutSeconds: 1
+          livenessProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - exec redis-cli ping
+            failureThreshold: 6
+            periodSeconds: 10
+            timeoutSeconds: 1
+          resources:
+            {{- toYaml .Values.insights.redis.statefulSet.resources | nindent 12 }}
+          securityContext:
+            {{- toYaml .Values.insights.redis.statefulSet.securityContext | nindent 12 }}
+          {{- with .Values.insights.redis.statefulSet.lifecycle }}
+          lifecycle:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            {{- with $volumeMounts }}
+              {{- toYaml . | nindent 12 }}
+            {{- end }}
+            {{- if .Values.insights.redis.statefulSet.persistence.enabled }}
+            - mountPath: /data
+              name: data
+            {{- end }}
+          {{- with .Values.insights.redis.statefulSet.extraContainerConfig }}
+            {{- toYaml . | nindent 10 }}
+          {{- end }}
+        {{- with .Values.insights.redis.statefulSet.sidecars }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- with .Values.insights.redis.statefulSet.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.insights.redis.statefulSet.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.insights.redis.statefulSet.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with $volumes }}
+      volumes:
+          {{- toYaml . | nindent 8 }}
+      {{- end }}
+ {{- if .Values.insights.redis.statefulSet.persistence.enabled }}
+  {{- with .Values.insights.redis.statefulSet.persistentVolumeClaimRetentionPolicy }}
+  persistentVolumeClaimRetentionPolicy:
+        {{- toYaml . | nindent 4 }}
+  {{- end }}
+  volumeClaimTemplates:
+    - apiVersion: v1
+      kind: PersistentVolumeClaim
+      metadata:
+        name: data
+        labels:
+          {{- include "langsmith.selectorLabels" . | nindent 10 }}
+          app.kubernetes.io/component: {{ $componentName }}
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: {{ .Values.insights.redis.statefulSet.persistence.size }}
+        {{- if .Values.insights.redis.statefulSet.persistence.storageClassName }}
+        storageClassName: {{ .Values.insights.redis.statefulSet.persistence.storageClassName }}
+        {{- end }}
+  {{- end }}
+{{- end }}
+{{- end }}

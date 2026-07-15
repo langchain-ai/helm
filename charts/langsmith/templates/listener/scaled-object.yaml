@@ -29,6 +29,8 @@ spec:
   initialCooldownPeriod: {{ .Values.listener.autoscaling.keda.initialCooldownPeriod }}
   minReplicaCount: {{ .Values.listener.autoscaling.keda.minReplicaCount }}
   maxReplicaCount: {{ .Values.listener.autoscaling.keda.maxReplicaCount }}
+  fallback:
+    {{- toYaml .Values.listener.autoscaling.keda.fallback | nindent 4 }}
   advanced:
     horizontalPodAutoscalerConfig:
       name: {{ include "langsmith.fullname" . }}-{{ .Values.listener.name }}
@@ -45,6 +47,12 @@ spec:
               value: {{ .Values.listener.autoscaling.keda.scaleUpPolicy.value }}
               periodSeconds: {{ .Values.listener.autoscaling.keda.scaleUpPolicy.periodSeconds }}
   triggers:
+    - type: metrics-api
+      metadata:
+        targetValue: "{{ .Values.listener.autoscaling.keda.queueTargetSize }}"
+        url: "http://{{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.backend.service.port }}/metrics/queue/host"
+        valueLocation: "queued"
+        format: "json"
     - type: cpu
       metricType: Utilization
       metadata:

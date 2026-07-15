@@ -1,9 +1,6 @@
 # Local development defaults for a disposable kind cluster.
 # Layer your own overrides with EXTRA_VALUES_FILE to test feature branches or app-specific config.
 
-studio:
-  enabled: false
-
 queue:
   enabled: false
 

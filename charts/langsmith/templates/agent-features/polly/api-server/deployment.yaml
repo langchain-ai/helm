@@ -1,0 +1,115 @@
+{{- if .Values.polly.enabled }}
+{{- $envVars := concat .Values.commonEnv (include "langsmith.commonEnv" . | fromYamlArray) (include "langsmith.polly.extraEnv" (dict "root" . "component" "apiServer") | fromYamlArray) .Values.polly.apiServer.deployment.extraEnv -}}
+{{- include "langsmith.detectDuplicates" $envVars -}}
+{{- $volumes := concat .Values.commonVolumes .Values.polly.apiServer.deployment.volumes (include "langsmith.tlsVolumes" . | fromYamlArray) -}}
+{{- $volumeMounts := concat .Values.commonVolumeMounts .Values.polly.apiServer.deployment.volumeMounts (include "langsmith.tlsVolumeMounts" . | fromYamlArray) -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "langsmith.agentFeatures.fullname" (dict "root" . "product" "polly") }}-{{ .Values.polly.apiServer.name }}
+  namespace: {{ .Values.namespace | default .Release.Namespace | quote }}
+  labels:
+    {{- include "langsmith.labels" . | nindent 4 }}
+    {{- with .Values.polly.apiServer.deployment.labels }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+  annotations:
+    {{- include "langsmith.annotations" . | nindent 4 }}
+    {{- with .Values.polly.apiServer.deployment.annotations }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  {{- if not .Values.polly.apiServer.autoscaling.enabled }}
+  replicas: {{ .Values.polly.apiServer.deployment.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "langsmith.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: {{ include "langsmith.agentFeatures.fullname" (dict "root" . "product" "polly") }}-{{ .Values.polly.apiServer.name }}
+  template:
+    metadata:
+      annotations:
+      {{- include "langsmith.commonPodAnnotations" . | nindent 8 }}
+      {{- with .Values.polly.apiServer.deployment.annotations }}
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- with .Values.polly.apiServer.deployment.labels }}
+            {{- toYaml . | nindent 8 }}
+        {{- end }}
+        {{- include "langsmith.labels" . | nindent 8 }}
+        app.kubernetes.io/component: {{ include "langsmith.agentFeatures.fullname" (dict "root" . "product" "polly") }}-{{ .Values.polly.apiServer.name }}
+    spec:
+      serviceAccountName: {{ include "pollyApiServer.serviceAccountName" . }}
+      {{- include "langsmith.dnsConfig" . | nindent 6 }}
+      {{- with .Values.images.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if .Values.polly.apiServer.deployment.priorityClassName }}
+      priorityClassName: {{ .Values.polly.apiServer.deployment.priorityClassName }}
+      {{- end }}
+      terminationGracePeriodSeconds: {{ .Values.polly.apiServer.deployment.terminationGracePeriodSeconds }}
+      securityContext:
+        {{- merge .Values.polly.apiServer.deployment.podSecurityContext (.Values.commonPodSecurityContext | default dict) | toYaml | nindent 8 }}
+      {{- $initContainers := concat (.Values.commonInitContainers | default list) (.Values.polly.apiServer.deployment.initContainers | default list) }}
+      {{- with $initContainers }}
+      initContainers:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: {{ .Values.polly.apiServer.name }}
+          env:
+            {{- with $envVars }}
+              {{- toYaml . | nindent 12 }}
+            {{- end }}
+          envFrom:
+            - configMapRef:
+                name: {{ include "langsmith.fullname" . }}-config
+            {{- with .Values.polly.apiServer.deployment.envFrom }}
+              {{- toYaml . | nindent 12 }}
+            {{- end }}
+          image: {{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "pollyAgentImage") | quote }}
+          imagePullPolicy: {{ .Values.images.pollyAgentImage.pullPolicy }}
+          ports:
+            - name: api-server
+              containerPort: {{ .Values.polly.apiServer.containerPort }}
+              protocol: TCP
+          startupProbe:
+            {{- toYaml .Values.polly.apiServer.deployment.startupProbe | nindent 12 }}
+          readinessProbe:
+            {{- toYaml .Values.polly.apiServer.deployment.readinessProbe | nindent 12 }}
+          livenessProbe:
+            {{- toYaml .Values.polly.apiServer.deployment.livenessProbe | nindent 12 }}
+          resources:
+            {{- toYaml .Values.polly.apiServer.deployment.resources | nindent 12 }}
+          securityContext:
+            {{- toYaml .Values.polly.apiServer.deployment.securityContext | nindent 12 }}
+          {{- with .Values.polly.apiServer.deployment.lifecycle }}
+          lifecycle:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with $volumeMounts }}
+          volumeMounts:
+              {{- toYaml . | nindent 12 }}
+          {{- end }}
+        {{- with .Values.polly.apiServer.deployment.sidecars }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- with .Values.polly.apiServer.deployment.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.polly.apiServer.deployment.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.polly.apiServer.deployment.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with $volumes }}
+      volumes:
+          {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}

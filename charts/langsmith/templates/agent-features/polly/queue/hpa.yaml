@@ -1,0 +1,35 @@
+{{- if .Values.polly.enabled }}
+{{- if and .Values.polly.queue.enabled .Values.polly.queue.autoscaling.enabled (not .Values.polly.queue.autoscaling.keda.enabled) }}
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ include "langsmith.agentFeatures.fullname" (dict "root" . "product" "polly") }}-{{ .Values.polly.queue.name }}
+  namespace: {{ .Values.namespace | default .Release.Namespace | quote }}
+  labels:
+    {{- include "langsmith.labels" . | nindent 4 }}
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ include "langsmith.agentFeatures.fullname" (dict "root" . "product" "polly") }}-{{ .Values.polly.queue.name }}
+  minReplicas: {{ .Values.polly.queue.autoscaling.minReplicas }}
+  maxReplicas: {{ .Values.polly.queue.autoscaling.maxReplicas }}
+  metrics:
+    {{- if .Values.polly.queue.autoscaling.targetCPUUtilizationPercentage }}
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.polly.queue.autoscaling.targetCPUUtilizationPercentage }}
+    {{- end }}
+    {{- if .Values.polly.queue.autoscaling.targetMemoryUtilizationPercentage }}
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.polly.queue.autoscaling.targetMemoryUtilizationPercentage }}
+    {{- end }}
+{{- end }}
+{{- end }}

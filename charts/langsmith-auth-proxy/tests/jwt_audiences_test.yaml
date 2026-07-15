@@ -1,0 +1,35 @@
+suite: jwtAudiences validation
+templates:
+  - auth-proxy/config-map.yaml
+tests:
+  - it: should fail when jwtAudiences is empty
+    set:
+      authProxy.upstream: "https://gateway.example.com"
+      authProxy.jwksJson: '{"keys":[{"kty":"RSA"}]}'
+      authProxy.jwtAudiences: []
+    asserts:
+      - failedTemplate:
+          errorMessage: "authProxy.jwtAudiences is required and must contain at least one audience"
+
+  - it: should render audiences when jwtAudiences has one entry
+    set:
+      authProxy.upstream: "https://gateway.example.com"
+      authProxy.jwksJson: '{"keys":[{"kty":"RSA"}]}'
+      authProxy.jwtAudiences:
+        - "my-audience"
+    asserts:
+      - matchRegex:
+          path: data["envoy.yaml"]
+          pattern: 'audiences:\s+- "my-audience"'
+
+  - it: should render multiple audiences
+    set:
+      authProxy.upstream: "https://gateway.example.com"
+      authProxy.jwksJson: '{"keys":[{"kty":"RSA"}]}'
+      authProxy.jwtAudiences:
+        - "audience-1"
+        - "audience-2"
+    asserts:
+      - matchRegex:
+          path: data["envoy.yaml"]
+          pattern: 'audiences:\s+- "audience-1"\s+- "audience-2"'

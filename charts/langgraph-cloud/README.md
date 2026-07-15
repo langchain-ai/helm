@@ -1,6 +1,6 @@
 # langgraph-cloud
 
-![Version: 0.2.6](https://img.shields.io/badge/Version-0.2.6-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.2.3](https://img.shields.io/badge/AppVersion-0.2.3-informational?style=flat-square)
+![Version: 0.3.2](https://img.shields.io/badge/Version-0.3.2-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.2.3](https://img.shields.io/badge/AppVersion-0.2.3-informational?style=flat-square)
 
 Helm chart to deploy the LangGraph Cloud application and all services it depends on.
 
@@ -339,6 +339,12 @@ If you are upgrading from a chart revision that used the old flat MongoDB values
 | commonVolumeMounts | list | `[]` | Common volume mounts added to all deployments/statefulsets. |
 | commonVolumes | list | `[]` | Common volumes added to all deployments/statefulsets. |
 | fullnameOverride | string | `""` | String to fully override `"langgraph-cloud.fullname"` |
+| gateway | object | `{"annotations":{},"basePath":"","enabled":false,"hostname":"","labels":{},"name":"","namespace":"","sectionName":""}` | Only one of ingress, gateway, or istioGateway can be enabled at the same time. |
+| gateway.basePath | string | `""` | WARNING: Changing basePath after deployment will break existing routes. |
+| gateway.hostname | string | `""` | Hostname for the HTTPRoute. If not set, the route will match all hostnames. |
+| gateway.name | string | `""` | Name of the Gateway resource to attach the HTTPRoute to. |
+| gateway.namespace | string | `""` | Namespace of the Gateway resource. If not set, the HTTPRoute will not specify a namespace for the parentRef. |
+| gateway.sectionName | string | `""` | Section name of the Gateway listener to attach to. |
 | images.apiServerImage.pullPolicy | string | `"Always"` |  |
 | images.apiServerImage.repository | string | `"docker.io/langchain/langgraph-api"` |  |
 | images.apiServerImage.tag | string | `"3.11-28c1407"` |  |
@@ -353,22 +359,24 @@ If you are upgrading from a chart revision that used the old flat MongoDB values
 | images.redisImage.repository | string | `"docker.io/redis"` |  |
 | images.redisImage.tag | string | `"6"` |  |
 | images.registry | string | `""` | If supplied, all children <image_name>.repository values will be prepended with this registry name + `/` |
-| images.studioImage.pullPolicy | string | `"Always"` |  |
-| images.studioImage.repository | string | `"docker.io/langchain/langgraph-debugger"` |  |
-| images.studioImage.tag | string | `"0.12.77"` |  |
 | ingress.annotations | object | `{}` |  |
 | ingress.enabled | bool | `false` |  |
 | ingress.hostname | string | `""` |  |
 | ingress.ingressClassName | string | `""` |  |
 | ingress.labels | object | `{}` |  |
-| ingress.studioHostname | string | `""` |  |
 | ingress.tls | list | `[]` |  |
+| istioGateway | object | `{"annotations":{},"basePath":"","enabled":false,"hostname":"","labels":{},"name":"","namespace":""}` | Only one of ingress, gateway, or istioGateway can be enabled at the same time. |
+| istioGateway.basePath | string | `""` | WARNING: Changing basePath after deployment will break existing routes. |
+| istioGateway.hostname | string | `""` | Hostname for the VirtualService. If not set, the VirtualService will match all hosts ("*"). |
+| istioGateway.name | string | `""` | Name of the Istio Gateway resource. |
+| istioGateway.namespace | string | `""` | Namespace of the Istio Gateway resource. |
 | mongo.enabled | bool | `false` | Enable MongoDB checkpointing. When `mongo.external.enabled` is false, the chart provisions a bundled single-node MongoDB replica set intended for local development, CI, and quickstarts. |
 | mongo.external.connectionUrl | string | `""` | MongoDB connection URL used when `mongo.enabled` and `mongo.external.enabled` are true. Must include the target database name and point at a replica set member or `mongos`. |
 | mongo.external.enabled | bool | `false` | Use an external MongoDB deployment instead of the chart-managed MongoDB instance. |
 | mongo.external.existingSecretName | string | `""` | Existing secret name containing the MongoDB connection URL. |
 | mongo.statefulSet.persistence.size | string | `"8Gi"` | Persistent volume size for the bundled MongoDB instance. |
 | mongo.statefulSet.resources | object | `{"limits":{"cpu":"2000m","memory":"4Gi"},"requests":{"cpu":"500m","memory":"1Gi"}}` | Resource requests and limits for the bundled MongoDB pod. |
+| mongo.statefulSet.updateStrategy | object | `{}` | Optional StatefulSet update strategy for the in-chart MongoDB instance. Leave unset to keep the Kubernetes default RollingUpdate behavior. |
 | nameOverride | string | `""` | Provide a name in place of `langgraph-cloud` for the chart |
 | namespace | string | `""` | Namespace to install the chart into. If not set, will use the namespace of the current context. |
 | queue.autoscaling.enabled | bool | `false` |  |
@@ -384,6 +392,7 @@ If you are upgrading from a chart revision that used the old flat MongoDB values
 | queue.deployment.annotations | object | `{}` |  |
 | queue.deployment.envFrom | list | `[]` |  |
 | queue.deployment.extraEnv | list | `[]` |  |
+| queue.deployment.extraPorts | list | `[]` |  |
 | queue.deployment.labels | object | `{}` |  |
 | queue.deployment.lifecycle | object | `{}` |  |
 | queue.deployment.livenessProbe.failureThreshold | int | `6` |  |
@@ -480,66 +489,6 @@ If you are upgrading from a chart revision that used the old flat MongoDB values
 | redis.serviceAccount.create | bool | `true` |  |
 | redis.serviceAccount.labels | object | `{}` |  |
 | redis.serviceAccount.name | string | `""` |  |
-| studio.autoscaling.enabled | bool | `false` |  |
-| studio.autoscaling.keda.cooldownPeriod | int | `300` |  |
-| studio.autoscaling.keda.enabled | bool | `false` |  |
-| studio.autoscaling.keda.pollingInterval | int | `30` |  |
-| studio.autoscaling.keda.scaleDownStabilizationWindowSeconds | int | `300` |  |
-| studio.autoscaling.maxReplicas | int | `5` |  |
-| studio.autoscaling.minReplicas | int | `1` |  |
-| studio.autoscaling.targetCPUUtilizationPercentage | int | `80` |  |
-| studio.containerPort | int | `3968` |  |
-| studio.deployment.affinity | object | `{}` |  |
-| studio.deployment.annotations | object | `{}` |  |
-| studio.deployment.extraEnv | list | `[]` |  |
-| studio.deployment.labels | object | `{}` |  |
-| studio.deployment.lifecycle | object | `{}` |  |
-| studio.deployment.livenessProbe.failureThreshold | int | `6` |  |
-| studio.deployment.livenessProbe.httpGet.path | string | `"/health"` |  |
-| studio.deployment.livenessProbe.httpGet.port | int | `3968` |  |
-| studio.deployment.livenessProbe.periodSeconds | int | `10` |  |
-| studio.deployment.livenessProbe.timeoutSeconds | int | `1` |  |
-| studio.deployment.nodeSelector | object | `{}` |  |
-| studio.deployment.podSecurityContext | object | `{}` |  |
-| studio.deployment.priorityClassName | string | `""` |  |
-| studio.deployment.readinessProbe.failureThreshold | int | `3` |  |
-| studio.deployment.readinessProbe.httpGet.path | string | `"/health"` |  |
-| studio.deployment.readinessProbe.httpGet.port | int | `3968` |  |
-| studio.deployment.readinessProbe.periodSeconds | int | `10` |  |
-| studio.deployment.readinessProbe.timeoutSeconds | int | `1` |  |
-| studio.deployment.replicaCount | int | `1` |  |
-| studio.deployment.resources.limits.cpu | string | `"1000m"` |  |
-| studio.deployment.resources.limits.memory | string | `"2Gi"` |  |
-| studio.deployment.resources.requests.cpu | string | `"500m"` |  |
-| studio.deployment.resources.requests.memory | string | `"1Gi"` |  |
-| studio.deployment.securityContext | object | `{}` |  |
-| studio.deployment.sidecars | list | `[]` |  |
-| studio.deployment.startupProbe.failureThreshold | int | `6` |  |
-| studio.deployment.startupProbe.httpGet.path | string | `"/health"` |  |
-| studio.deployment.startupProbe.httpGet.port | int | `3968` |  |
-| studio.deployment.startupProbe.periodSeconds | int | `10` |  |
-| studio.deployment.startupProbe.timeoutSeconds | int | `1` |  |
-| studio.deployment.terminationGracePeriodSeconds | int | `30` |  |
-| studio.deployment.tolerations | list | `[]` |  |
-| studio.deployment.volumeMounts | list | `[]` |  |
-| studio.deployment.volumes | list | `[]` |  |
-| studio.enabled | bool | `true` |  |
-| studio.localGraphUrl | string | `""` |  |
-| studio.name | string | `"studio"` |  |
-| studio.pdb.enabled | bool | `false` |  |
-| studio.pdb.minAvailable | int | `1` |  |
-| studio.service.annotations | object | `{}` |  |
-| studio.service.httpPort | int | `80` |  |
-| studio.service.httpsPort | int | `443` |  |
-| studio.service.labels | object | `{}` |  |
-| studio.service.loadBalancerIP | string | `""` |  |
-| studio.service.loadBalancerSourceRanges | list | `[]` |  |
-| studio.service.type | string | `"LoadBalancer"` |  |
-| studio.serviceAccount.annotations | object | `{}` |  |
-| studio.serviceAccount.automountServiceAccountToken | bool | `true` |  |
-| studio.serviceAccount.create | bool | `true` |  |
-| studio.serviceAccount.labels | object | `{}` |  |
-| studio.serviceAccount.name | string | `""` |  |
 
 ## Configs
 
@@ -553,6 +502,7 @@ If you are upgrading from a chart revision that used the old flat MongoDB values
 | config.httpMaxRequestBodyBytes | string | `""` | Set this to override the default limit. Requests exceeding this limit receive HTTP 413. |
 | config.langGraphCloudLicenseKey | string | `""` | Optional LangGraph Cloud license key loaded from the chart secret. |
 | config.numberOfJobsPerWorker | int | `10` |  |
+| config.skipValidation | bool | `false` | Skip chart validation checks (ingress/gateway mutual-exclusion and MongoDB config guards). Used for helm template verification (e.g. AWS Marketplace). |
 
 ## Api Server
 
@@ -672,6 +622,7 @@ If you are upgrading from a chart revision that used the old flat MongoDB values
 | postgres.statefulSet.sidecars | list | `[]` |  |
 | postgres.statefulSet.terminationGracePeriodSeconds | int | `30` |  |
 | postgres.statefulSet.tolerations | list | `[]` |  |
+| postgres.statefulSet.updateStrategy | object | `{}` | Optional StatefulSet update strategy for the in-chart PostgreSQL instance. Leave unset to keep the Kubernetes default RollingUpdate behavior. |
 | postgres.statefulSet.volumeMounts | list | `[]` |  |
 | postgres.statefulSet.volumes | list | `[]` |  |
 

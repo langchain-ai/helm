@@ -10,6 +10,10 @@ metadata:
 spec:
   serviceName: {{ include "langGraphCloud.mongoServiceName" . }}
   replicas: 1
+  {{- with .Values.mongo.statefulSet.updateStrategy }}
+  updateStrategy:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
   selector:
     matchLabels:
       {{- include "langGraphCloud.selectorLabels" . | nindent 6 }}

@@ -10,19 +10,20 @@
   value: /{{ . }}/api-host
 {{- end }}
 {{- /* Agent Builder OAuth and Trigger Server configuration */ -}}
-{{- if .Values.config.agentBuilder.enabled }}
-{{- if .Values.config.agentBuilder.oauthProviderOrgId }}
+{{- if or .Values.config.agentBuilder.enabled .Values.fleet.enabled }}
+{{- $oauthProviderOrgId := .Values.config.agentBuilder.oauthProviderOrgId | default .Values.fleet.oauth.providerOrgId }}
+{{- if $oauthProviderOrgId }}
 - name: AGENT_BUILDER_AUTH_PROVIDER_ORG_ID
-  value: {{ .Values.config.agentBuilder.oauthProviderOrgId | quote }}
+  value: {{ $oauthProviderOrgId | quote }}
 {{- end }}
-{{- if .Values.agentBuilderTriggerServer.enabled }}
+{{- if .Values.fleetTriggerServer.enabled }}
 - name: AGENT_BUILDER_TRIGGERS_API_URL
-  value: "http://{{ include "langsmith.fullname" . }}-{{ .Values.agentBuilderTriggerServer.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.agentBuilderTriggerServer.service.port }}/v1/triggers"
+  value: "http://{{ include "langsmith.fullname" . }}-{{ .Values.fleetTriggerServer.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.fleetTriggerServer.service.port }}/v1/triggers"
 {{- end }}
 {{- include "agentBuilderOAuthEnvVars" . }}
 {{- end }}
 {{- end -}}
-{{- $envVars := concat (include "langsmith.commonEnv" . | fromYamlArray ) (include "hostBackendEnvVars" . | fromYamlArray) .Values.hostBackend.deployment.extraEnv -}}
+{{- $envVars := concat .Values.commonEnv (include "langsmith.commonEnv" . | fromYamlArray) (include "hostBackendEnvVars" . | fromYamlArray) .Values.hostBackend.deployment.extraEnv -}}
 {{- include "langsmith.detectDuplicates" $envVars -}}
 {{- $volumes := concat .Values.commonVolumes .Values.hostBackend.deployment.volumes (include "langsmith.tlsVolumes" . | fromYamlArray) -}}
 {{- $volumeMounts := concat .Values.commonVolumeMounts .Values.hostBackend.deployment.volumeMounts (include "langsmith.tlsVolumeMounts" . | fromYamlArray) -}}

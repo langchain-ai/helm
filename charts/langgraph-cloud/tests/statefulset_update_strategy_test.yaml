@@ -1,0 +1,37 @@
+suite: StatefulSet updateStrategy rendering
+templates:
+  - postgres/stateful-set.yaml
+  - mongo/stateful-set.yaml
+tests:
+  # --- postgres ---
+  - it: postgres does not render updateStrategy by default
+    template: postgres/stateful-set.yaml
+    asserts:
+      - notExists:
+          path: spec.updateStrategy
+  - it: postgres renders a configured updateStrategy
+    template: postgres/stateful-set.yaml
+    set:
+      postgres.statefulSet.updateStrategy.type: OnDelete
+    asserts:
+      - equal:
+          path: spec.updateStrategy.type
+          value: OnDelete
+
+  # --- mongo ---
+  - it: mongo does not render updateStrategy by default
+    template: mongo/stateful-set.yaml
+    set:
+      mongo.enabled: true
+    asserts:
+      - notExists:
+          path: spec.updateStrategy
+  - it: mongo renders a configured updateStrategy
+    template: mongo/stateful-set.yaml
+    set:
+      mongo.enabled: true
+      mongo.statefulSet.updateStrategy.type: OnDelete
+    asserts:
+      - equal:
+          path: spec.updateStrategy.type
+          value: OnDelete

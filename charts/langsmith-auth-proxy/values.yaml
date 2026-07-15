@@ -42,7 +42,7 @@ authProxy:
   upstream: ""
   # -- JWT issuer claim to validate
   jwtIssuer: "langsmith"
-  # -- JWT audience claims to validate. Must match audiences in the signed JWT.
+  # -- (required) JWT audience claims to validate. Must match audiences in the signed JWT.
   jwtAudiences: []
   # -- JWKS JSON string containing the public keys for JWT validation.
   # Generate with the LangSmith JWKS tooling and paste the full JSON here.

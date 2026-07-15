@@ -1,0 +1,122 @@
+{{- if .Values.backend.rbac.create }}
+{{/*
+config.strictReadOnly forces every config.features.* flag off in one switch.
+$strict is read below wherever a feature flag would otherwise grant a write
+verb, so strictReadOnly=true can never leave a write verb behind because a
+flag was missed - the same $strict variable (computed the same way) also
+gates the MC_FEATURE_* env vars in templates/backend/statefulset.yaml, so the
+RBAC and the application-layer gate cannot drift apart.
+*/}}
+{{- $strict := .Values.config.strictReadOnly | default false }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "missionControl.fullname" . }}
+  labels:
+    {{- include "missionControl.labels" . | nindent 4 }}
+  {{- with (include "missionControl.annotations" .) }}
+  annotations:
+    {{- . | nindent 4 }}
+  {{- end }}
+rules:
+  # ── Read-only: monitoring, health, diagnostics ────────────────────────────
+  - apiGroups: [""]
+    resources:
+      - pods
+      - pods/log
+      - services
+      - endpoints
+      - configmaps
+      - serviceaccounts
+      - persistentvolumeclaims
+      - resourcequotas
+      - events
+      - namespaces
+      - nodes
+    verbs: ["get", "list", "watch"]
+
+  - apiGroups: ["storage.k8s.io"]
+    resources: ["storageclasses"]
+    verbs: ["get", "list", "watch"]
+
+  - apiGroups: ["metrics.k8s.io"]
+    resources: ["pods", "nodes"]
+    verbs: ["get", "list", "watch"]
+
+  - apiGroups: ["apps"]
+    resources:
+      - deployments
+      - deployments/status
+      - statefulsets
+      - replicasets
+      - daemonsets
+    verbs: ["get", "list", "watch"]
+
+  - apiGroups: ["batch"]
+    resources: ["jobs", "cronjobs"]
+    verbs: ["get", "list", "watch"]
+
+  - apiGroups: ["networking.k8s.io"]
+    resources: ["ingresses", "ingressclasses"]
+    verbs: ["get", "list", "watch"]
+
+  - apiGroups: ["autoscaling"]
+    resources: ["horizontalpodautoscalers"]
+    verbs: ["get", "list", "watch"]
+
+  - apiGroups: ["rbac.authorization.k8s.io"]
+    resources:
+      - roles
+      - rolebindings
+      - clusterroles
+      - clusterrolebindings
+    verbs: ["get", "list", "watch"]
+
+  - apiGroups: ["apiextensions.k8s.io"]
+    resources: ["customresourcedefinitions"]
+    verbs: ["get", "list", "watch"]
+
+  - apiGroups: ["apps.langchain.ai"]
+    resources: ["lgps", "lgps/finalizers", "lgps/status"]
+    verbs: ["get", "list", "watch"]
+
+  - apiGroups: ["keda.sh"]
+    resources: ["scaledobjects"]
+    verbs: ["get", "list", "watch"]
+
+  - apiGroups: ["gateway.networking.k8s.io"]
+    resources: ["httproutes"]
+    verbs: ["get", "list", "watch"]
+
+  - apiGroups: ["networking.istio.io"]
+    resources: ["virtualservices"]
+    verbs: ["get", "list", "watch"]
+
+  - apiGroups: ["coordination.k8s.io"]
+    resources: ["leases"]
+    verbs: ["get", "list", "watch"]
+
+  # ── Secrets: read-only for deploy/status discovery ────────────────────────
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["get", "list"]
+
+  # ── Deploy cluster-scoped resources (explicit opt-in) ─────────────────────
+  # Everything else (namespace-scoped secrets writes, auth setup, fixIssue,
+  # contention, adopt, and the bulk of the deploy feature) lives in the
+  # namespace-scoped Role - see templates/backend/role.yaml. This ClusterRole
+  # only carries the base read-only rules above plus this narrow cluster-scoped
+  # opt-in. `$strict` (config.strictReadOnly) forces this off even if an
+  # operator has explicitly set both deploy flags to true.
+  {{- if and .Values.config.features.deploy (default false .Values.config.features.deployClusterScopedResources) (not $strict) }}
+  - apiGroups: [""]
+    resources: ["namespaces"]
+    verbs: ["create"]
+  - apiGroups: ["rbac.authorization.k8s.io"]
+    resources: ["clusterroles", "clusterrolebindings"]
+    verbs: ["create", "update", "patch", "delete"]
+  - apiGroups: ["apiextensions.k8s.io"]
+    resources: ["customresourcedefinitions"]
+    verbs: ["create", "update", "patch", "delete"]
+  {{- end }}
+{{- end }}

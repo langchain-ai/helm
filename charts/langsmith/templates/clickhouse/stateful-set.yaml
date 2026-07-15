@@ -34,6 +34,7 @@ metadata:
       {{- toYaml . | nindent 4 }}
     {{- end }}
   annotations:
+    "argocd.argoproj.io/sync-wave": "-2"
     {{- include "langsmith.annotations" . | nindent 4 }}
     {{- with.Values.clickhouse.statefulSet.annotations }}
       {{- toYaml . | nindent 4 }}
@@ -41,6 +42,10 @@ metadata:
 spec:
   serviceName: {{ include "langsmith.fullname" . }}-{{ .Values.clickhouse.name }}
   replicas: 1
+  {{- with .Values.clickhouse.statefulSet.updateStrategy }}
+  updateStrategy:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
   selector:
     matchLabels:
       {{- include "langsmith.selectorLabels" . | nindent 6 }}

@@ -110,7 +110,7 @@ Template containing common environment variables that are used by several servic
       name: {{ include "langgraphDataplane.secretsName" . }}
       key: langsmith_api_key
 - name: HOST_QUEUE
-  value: "host"
+  value: {{ .Values.config.hostQueue | quote }}
 - name: HOST_WORKER_RECONCILIATION_CRON_ENABLED
   value: "true"
 - name: HOST_WORKER_EXTERNAL_ENABLED
