@@ -1,15 +1,6 @@
 {{- if and .Values.smithdb.enabled .Values.smithdb.langsmith.migration.enabled }}
 {{- $envVars := concat (include "langsmith.smithdb.componentEnv" (dict "root" . "service" "MIGRATION" "displayName" "smithdb-migration") | fromYamlArray) .Values.smithdb.migration.deployment.extraEnv -}}
 {{- include "langsmith.detectDuplicates" $envVars -}}
-{{- $command := .Values.smithdb.migration.deployment.command | default (list "./smithdb" "migrate" "--self-hosted" "migrate-all") -}}
-{{- if .Values.smithdb.migration.startTime }}
-{{- $command = append $command "--start-time" -}}
-{{- $command = append $command .Values.smithdb.migration.startTime -}}
-{{- end }}
-{{- if .Values.smithdb.migration.endTime }}
-{{- $command = append $command "--end-time" -}}
-{{- $command = append $command .Values.smithdb.migration.endTime -}}
-{{- end }}
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -63,7 +54,22 @@ spec:
       containers:
         - name: {{ .Values.smithdb.migration.name }}
           command:
-            {{- toYaml $command | nindent 12 }}
+            {{- with .Values.smithdb.migration.deployment.command }}
+            {{- toYaml . | nindent 12 }}
+            {{- else }}
+            - "./smithdb"
+            - "migrate"
+            - "--self-hosted"
+            - "migrate-all"
+            {{- end }}
+            {{- with .Values.smithdb.migration.startTime }}
+            - "--start-time"
+            - {{ . | quote }}
+            {{- end }}
+            {{- with .Values.smithdb.migration.endTime }}
+            - "--end-time"
+            - {{ . | quote }}
+            {{- end }}
           env:
             - name: SMITHDB_MIGRATION__HTTP_PORT
               value: {{ .Values.smithdb.migration.containerPort | quote }}
