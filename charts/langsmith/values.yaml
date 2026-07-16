@@ -1692,10 +1692,7 @@ smithdb:
       # -- register non-overlapping jobs, drain the global queue, and exit. Override for another migration mode.
       command:
         - "/usr/local/bin/smithdb-with-taskdb-migrations-entrypoint.sh"
-      extraEnv:
-        # -- Required for migrate-all to finish: each promoted run job enrolls feedback work.
-        - name: SMITHDB_MIGRATION__WORKER_POOL__AUTO_CREATE_FEEDBACK_JOBS_ON_PROMOTION
-          value: "true"
+      extraEnv: []
       extraContainerConfig: {}
       sidecars: []
       nodeSelector: {}

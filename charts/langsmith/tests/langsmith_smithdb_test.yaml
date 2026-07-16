@@ -313,12 +313,6 @@ tests:
         contains:
           path: spec.template.spec.containers[0].env
           content:
-            name: SMITHDB_MIGRATION__WORKER_POOL__AUTO_CREATE_FEEDBACK_JOBS_ON_PROMOTION
-            value: "true"
-      - template: smithdb/migration-job.yaml
-        contains:
-          path: spec.template.spec.containers[0].env
-          content:
             name: SMITHDB_MIGRATION__TASKDB__PASSWORD
             valueFrom:
               secretKeyRef:
