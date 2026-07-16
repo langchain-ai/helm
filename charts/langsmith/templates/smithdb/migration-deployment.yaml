@@ -60,10 +60,7 @@ spec:
             {{- with .Values.smithdb.migration.deployment.command }}
             {{- toYaml . | nindent 12 }}
             {{- else }}
-            - "./smithdb"
-            - "migrate"
-            - "--self-hosted"
-            - "migrate-all"
+            - "/usr/local/bin/smithdb-with-taskdb-migrations-entrypoint.sh"
             {{- end }}
             {{- if not .Values.clickhouse.external.tls }}
             - "--allow-insecure"

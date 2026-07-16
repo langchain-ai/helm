@@ -303,10 +303,7 @@ tests:
         equal:
           path: spec.template.spec.containers[0].command
           value:
-            - "./smithdb"
-            - "migrate"
-            - "--self-hosted"
-            - "migrate-all"
+            - "/usr/local/bin/smithdb-with-taskdb-migrations-entrypoint.sh"
             - "--allow-insecure"
       - template: smithdb/migration-deployment.yaml
         equal:
@@ -419,10 +416,7 @@ tests:
       - equal:
           path: spec.template.spec.containers[0].command
           value:
-            - "./smithdb"
-            - "migrate"
-            - "--self-hosted"
-            - "migrate-all"
+            - "/usr/local/bin/smithdb-with-taskdb-migrations-entrypoint.sh"
 
   - it: should append migrate-all time bounds to the migration command
     values:
@@ -439,10 +433,7 @@ tests:
       - equal:
           path: spec.template.spec.containers[0].command
           value:
-            - "./smithdb"
-            - "migrate"
-            - "--self-hosted"
-            - "migrate-all"
+            - "/usr/local/bin/smithdb-with-taskdb-migrations-entrypoint.sh"
             - "--allow-insecure"
             - "--start-time"
             - "2024-01-01T00:00:00Z"

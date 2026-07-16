@@ -1688,14 +1688,10 @@ smithdb:
       securityContext: {}
       terminationGracePeriodSeconds: 120
       resources: {}
-      # -- One-shot migrate-all: discover tenants, register non-overlapping jobs, drain the global
-      # -- queue, then exit. Override with `["./smithdb", "migrate", "--self-hosted", "run"]` for a forever daemon.
-      # -- `--self-hosted` selects self-hosted ClickHouse schema assumptions for runs migration queries.
+      # -- Runs taskdb schema migrations, then one-shot self-hosted migrate-all: discover tenants,
+      # -- register non-overlapping jobs, drain the global queue, and exit. Override for another migration mode.
       command:
-        - "./smithdb"
-        - "migrate"
-        - "--self-hosted"
-        - "migrate-all"
+        - "/usr/local/bin/smithdb-with-taskdb-migrations-entrypoint.sh"
       extraEnv:
         # -- Required for migrate-all to finish: each promoted run job enrolls feedback work.
         - name: SMITHDB_MIGRATION__WORKER_POOL__AUTO_CREATE_FEEDBACK_JOBS_ON_PROMOTION
