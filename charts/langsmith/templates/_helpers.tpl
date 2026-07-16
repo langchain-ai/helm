@@ -613,15 +613,6 @@ Args: root, service, displayName.
   value: {{ $displayName | quote }}
 - name: RUST_LOG
   value: {{ $logLevel | quote }}
-{{- if $tracingEnabled }}
-- name: OTEL_EXPORTER_OTLP_ENDPOINT
-  value: {{ $root.Values.smithdb.config.observability.tracing.endpoint | quote }}
-{{- /* SmithDB exports OTLP over gRPC. */}}
-- name: OTEL_EXPORTER_OTLP_PROTOCOL
-  value: "grpc"
-{{- end }}
-- name: OTEL_SERVICE_NAME
-  value: {{ $displayName | quote }}
 - name: NODE_IP
   valueFrom:
     fieldRef:
@@ -643,6 +634,15 @@ Args: root, service, displayName.
     fieldRef:
       fieldPath: status.podIP
 - name: CONTAINER_NAME
+  value: {{ $displayName | quote }}
+{{- if $tracingEnabled }}
+- name: OTEL_EXPORTER_OTLP_ENDPOINT
+  value: {{ $root.Values.smithdb.config.observability.tracing.endpoint | quote }}
+{{- /* SmithDB exports OTLP over gRPC. */}}
+- name: OTEL_EXPORTER_OTLP_PROTOCOL
+  value: "grpc"
+{{- end }}
+- name: OTEL_SERVICE_NAME
   value: {{ $displayName | quote }}
 - name: OTEL_RESOURCE_ATTRIBUTES
   value: {{ include "langsmith.smithdb.otelResourceAttributes" $root | quote }}

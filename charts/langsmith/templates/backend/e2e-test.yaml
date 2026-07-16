@@ -72,7 +72,7 @@ spec:
             {{- toYaml . | nindent 10 }}
           {{- end }}
         {{- with .Values.backend.e2eTest.sidecars }}
-          {{- toYaml . | nindent 10 }}
+          {{- toYaml . | nindent 8 }}
         {{- end }}
       {{- with .Values.backend.e2eTest.nodeSelector }}
       nodeSelector:
