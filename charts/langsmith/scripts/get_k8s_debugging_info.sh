@@ -2,7 +2,7 @@
 
 # Diagnostic collection for self-hosted LangSmith/LangGraph clusters.
 #
-# Usage: $0 --namespace <namespace> [--redact] [--exclude-logs] [--exclude-describe]
+# Usage: $0 --namespace <namespace> [--redact] [--exclude-logs] [--exclude-describe] [--pod-selector <label-selector>]
 #
 # Default: collects everything — kubectl describe, events, resources, pod
 # metrics, and pod logs (last 24h + previous on restart).
@@ -13,10 +13,15 @@
 #                      medical narratives inside log messages.
 # --exclude-logs     : skip pod log collection.
 # --exclude-describe : skip kubectl describe collection.
+# --pod-selector     : restrict describe/log collection to pods matching this
+#                      Kubernetes label selector (e.g. "app.kubernetes.io/component=fleet-queue").
+#                      Namespace-wide resources (summary, events, top pods, helm values)
+#                      are still collected in full. Omit for the default whole-namespace behavior.
 
 REDACT=0
 COLLECT_LOGS=1
 COLLECT_DESCRIBE=1
+POD_SELECTOR=""
 
 while [[ "$#" -gt 0 ]]; do
   case $1 in
@@ -24,13 +29,14 @@ while [[ "$#" -gt 0 ]]; do
     --redact)          REDACT=1 ;;
     --exclude-logs)    COLLECT_LOGS=0 ;;
     --exclude-describe) COLLECT_DESCRIBE=0 ;;
+    --pod-selector)    POD_SELECTOR="$2"; shift ;;
     *) echo "Unknown parameter passed: $1"; exit 1 ;;
   esac
   shift
 done
 
 if [[ -z "$NS" ]]; then
-  echo "Usage: $0 --namespace <namespace> [--redact] [--exclude-logs] [--exclude-describe]"
+  echo "Usage: $0 --namespace <namespace> [--redact] [--exclude-logs] [--exclude-describe] [--pod-selector <label-selector>]"
   exit 1
 fi
 
@@ -222,10 +228,18 @@ kubectl get events -n "$NS" --sort-by=.lastTimestamp > "$DIR/events.txt"
 echo "Pulling resource usage for all pods..."
 kubectl top pods -n "$NS" --containers > "$DIR/pod-resource-usage.txt"
 
-PODS=$(kubectl get pods -n "$NS" -o jsonpath='{.items[*].metadata.name}')
+if [[ -n "$POD_SELECTOR" ]]; then
+  echo "Restricting describe/log collection to pods matching selector: $POD_SELECTOR"
+  PODS=$(kubectl get pods -n "$NS" -l "$POD_SELECTOR" -o jsonpath='{.items[*].metadata.name}')
+  if [[ -z "$PODS" ]]; then
+    echo "Warning: no pods matched --pod-selector '$POD_SELECTOR' in namespace $NS." >&2
+  fi
+else
+  PODS=$(kubectl get pods -n "$NS" -o jsonpath='{.items[*].metadata.name}')
+fi
 
 if [[ "$COLLECT_DESCRIBE" -eq 1 ]]; then
-  echo "Pulling describe output for all pods..."
+  echo "Pulling describe output for matching pods..."
   mkdir -p "$DIR/describe"
   for POD in $PODS; do
     echo "  Describing pod $POD..."
@@ -236,7 +250,7 @@ else
 fi
 
 if [[ "$COLLECT_LOGS" -eq 1 ]]; then
-  echo "Pulling container logs for all pods (last 24h + previous on restart)..."
+  echo "Pulling container logs for matching pods (last 24h + previous on restart)..."
   mkdir -p "$DIR/logs"
   for POD in $PODS; do
     CONTAINERS=$(kubectl get pod "$POD" -n "$NS" -o jsonpath='{.spec.containers[*].name}')

@@ -97,31 +97,39 @@ spec:
             - name: ALLOWED_ORIGINS
               value: {{ .Values.config.auth.allowedOrigins | quote }}
             {{- end }}
+            {{/*
+            config.strictReadOnly forces every feature flag off in one switch;
+            $strict is computed identically here and in
+            templates/backend/cluster-role.yaml so the RBAC granted to the
+            ServiceAccount and the app-layer features.require() gate the
+            backend enforces can never drift apart.
+            */}}
+            {{- $strict := .Values.config.strictReadOnly | default false }}
             - name: MC_FEATURE_FIX_ISSUE
-              value: {{ ternary "true" "false" .Values.config.features.fixIssue | quote }}
+              value: {{ ternary "true" "false" (and .Values.config.features.fixIssue (not $strict)) | quote }}
             - name: MC_FEATURE_ADOPT
-              value: {{ ternary "true" "false" .Values.config.features.adopt | quote }}
+              value: {{ ternary "true" "false" (and .Values.config.features.adopt (not $strict)) | quote }}
             - name: MC_FEATURE_ALERTS
-              value: {{ ternary "true" "false" .Values.config.features.alerts | quote }}
+              value: {{ ternary "true" "false" (and .Values.config.features.alerts (not $strict)) | quote }}
             - name: MC_FEATURE_CHAT
-              value: {{ ternary "true" "false" .Values.config.features.chat | quote }}
+              value: {{ ternary "true" "false" (and .Values.config.features.chat (not $strict)) | quote }}
             - name: MC_FEATURE_DIAGNOSTICS
-              value: {{ ternary "true" "false" .Values.config.features.diagnostics | quote }}
+              value: {{ ternary "true" "false" (and .Values.config.features.diagnostics (not $strict)) | quote }}
             - name: MC_FEATURE_CONFIG_SAVE
-              value: {{ ternary "true" "false" .Values.config.features.configSave | quote }}
+              value: {{ ternary "true" "false" (and .Values.config.features.configSave (not $strict)) | quote }}
             - name: MC_FEATURE_DEPLOY
-              value: {{ ternary "true" "false" .Values.config.features.deploy | quote }}
-            - name: MC_FEATURE_DISCOVER
-              value: {{ ternary "true" "false" .Values.config.features.discover | quote }}
-            - name: MC_FEATURE_DBTOOLS
-              value: {{ ternary "true" "false" .Values.config.features.dbTools | quote }}
-            - name: MC_FEATURE_VALUES_OVERRIDE
-              value: {{ ternary "true" "false" .Values.config.features.valuesOverride | quote }}
-            - name: MC_FEATURE_CONTENTION
-              value: {{ ternary "true" "false" (default false .Values.config.features.contention) | quote }}
+              value: {{ ternary "true" "false" (and .Values.config.features.deploy (not $strict)) | quote }}
             - name: MC_FEATURE_DEPLOY_CLUSTER_SCOPED_RESOURCES
-              value: {{ ternary "true" "false" (default false .Values.config.features.deployClusterScopedResources) | quote }}
-            {{- if .Values.config.discoverNamespaces }}
+              value: {{ ternary "true" "false" (and (default false .Values.config.features.deployClusterScopedResources) (not $strict)) | quote }}
+            - name: MC_FEATURE_DISCOVER
+              value: {{ ternary "true" "false" (and .Values.config.features.discover (not $strict)) | quote }}
+            - name: MC_FEATURE_DBTOOLS
+              value: {{ ternary "true" "false" (and .Values.config.features.dbTools (not $strict)) | quote }}
+            - name: MC_FEATURE_VALUES_OVERRIDE
+              value: {{ ternary "true" "false" (and .Values.config.features.valuesOverride (not $strict)) | quote }}
+            - name: MC_FEATURE_CONTENTION
+              value: {{ ternary "true" "false" (and (default false .Values.config.features.contention) (not $strict)) | quote }}
+            {{- if and .Values.config.discoverNamespaces (not $strict) }}
             - name: DISCOVER_NAMESPACES
               value: {{ .Values.config.discoverNamespaces | quote }}
             {{- end }}

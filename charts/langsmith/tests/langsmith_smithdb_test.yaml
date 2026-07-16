@@ -57,6 +57,44 @@ tests:
           content:
             name: RUST_LOG
             value: INFO,vortex=WARN
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_QUERY__VORTEX_CACHE__DISK__LIMIT
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_QUERY__VORTEX_CACHE__MEMORY__LIMIT
+
+  - it: should size the SmithDB query disk cache from its ephemeral storage limit
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      smithdb.query.deployment.resources.limits.ephemeral-storage: 100Gi
+    template: smithdb/query-deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_QUERY__VORTEX_CACHE__DISK__LIMIT
+            valueFrom:
+              resourceFieldRef:
+                resource: limits.ephemeral-storage
+
+  - it: should size the SmithDB query memory cache from its memory limit
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      smithdb.query.deployment.resources.limits.memory: 16Gi
+    template: smithdb/query-deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_QUERY__VORTEX_CACHE__MEMORY__LIMIT
+            valueFrom:
+              resourceFieldRef:
+                resource: limits.memory
 
   - it: should allow overriding smithdb log level
     values:
