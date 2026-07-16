@@ -1596,7 +1596,7 @@ smithdb:
       postgres:
         # -- Enable Postgres for SmithDB migration task state. This is a separate database from
         # -- both the main LangSmith Postgres and the SmithDB metastore.
-        enabled: false
+        enabled: true
         name: "taskdb-postgres"
         containerPort: 5432
         # -- Credentials for the in-chart taskdb Postgres instance. Used only when external.enabled is false.
