@@ -1,6 +1,9 @@
 {{- if and .Values.smithdb.enabled .Values.smithdb.langsmith.migration.enabled }}
 {{- $envVars := concat (include "langsmith.smithdb.componentEnv" (dict "root" . "service" "MIGRATION" "displayName" "smithdb-migration") | fromYamlArray) .Values.smithdb.migration.deployment.extraEnv -}}
 {{- include "langsmith.detectDuplicates" $envVars -}}
+{{- $blobStorage := .Values.config.blobStorage -}}
+{{- $smithdbObjectStore := .Values.smithdb.config.objectStore -}}
+{{- $smithdbObjectStoreType := lower (default "s3" $smithdbObjectStore.type) -}}
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -62,6 +65,9 @@ spec:
             - "--self-hosted"
             - "migrate-all"
             {{- end }}
+            {{- if not .Values.clickhouse.external.tls }}
+            - "--allow-insecure"
+            {{- end }}
             {{- with .Values.smithdb.migration.startTime }}
             - "--start-time"
             - {{ . | quote }}
@@ -119,6 +125,101 @@ spec:
             - name: SMITHDB_MIGRATION__TASKDB__USE_SSL
               value: "false"
             {{- end }}
+            {{- end }}
+            - name: SMITHDB_MIGRATION__CLICKHOUSE__HOST
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "langsmith.clickhouseSecretsName" . }}
+                  key: {{ .Values.clickhouse.external.hostSecretKey }}
+                  optional: {{ .Values.config.disableSecretCreation }}
+            - name: SMITHDB_MIGRATION__CLICKHOUSE__PORT
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "langsmith.clickhouseSecretsName" . }}
+                  key: {{ .Values.clickhouse.external.portSecretKey }}
+                  optional: {{ .Values.config.disableSecretCreation }}
+            - name: SMITHDB_MIGRATION__CLICKHOUSE__DATABASE
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "langsmith.clickhouseSecretsName" . }}
+                  key: {{ .Values.clickhouse.external.databaseSecretKey }}
+                  optional: {{ .Values.config.disableSecretCreation }}
+            - name: SMITHDB_MIGRATION__CLICKHOUSE__USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "langsmith.clickhouseSecretsName" . }}
+                  key: {{ .Values.clickhouse.external.userSecretKey }}
+                  optional: {{ .Values.config.disableSecretCreation }}
+            - name: SMITHDB_MIGRATION__CLICKHOUSE__PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "langsmith.clickhouseSecretsName" . }}
+                  key: {{ .Values.clickhouse.external.passwordSecretKey }}
+                  optional: {{ .Values.config.disableSecretCreation }}
+            - name: SMITHDB_MIGRATION__BLOB_PREFIX_PATTERN
+              value: "__none__"
+            {{- if and $blobStorage.enabled (or (eq (lower $blobStorage.engine) "s3") (eq (lower $blobStorage.engine) "gcs")) }}
+            - name: SMITHDB_MIGRATION__BLOB_STORE_DEFAULT__TYPE
+              value: "s3"
+            - name: SMITHDB_MIGRATION__BLOB_STORE_DEFAULT__S3__BUCKET
+              value: {{ $blobStorage.bucketName | quote }}
+            - name: SMITHDB_MIGRATION__BLOB_STORE_DEFAULT__S3__ROOT_FOLDER
+              value: "/"
+            - name: SMITHDB_MIGRATION__BLOB_STORE_DEFAULT__S3__ENDPOINT
+              value: {{ $blobStorage.apiURL | quote }}
+            - name: SMITHDB_MIGRATION__BLOB_STORE_DEFAULT__S3__ALLOW_HTTP
+              value: {{ hasPrefix "http://" $blobStorage.apiURL | quote }}
+            - name: SMITHDB_MIGRATION__BLOB_STORE_DEFAULT__S3__ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "langsmith.secretsName" . }}
+                  key: blob_storage_access_key
+                  optional: true
+            - name: SMITHDB_MIGRATION__BLOB_STORE_DEFAULT__S3__SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "langsmith.secretsName" . }}
+                  key: blob_storage_access_key_secret
+                  optional: true
+            {{- end }}
+            - name: SMITHDB_MIGRATION__OUTPUT__OBJECT_STORE__TYPE
+              value: {{ $smithdbObjectStoreType | quote }}
+            {{- if eq $smithdbObjectStoreType "s3" }}
+            - name: SMITHDB_MIGRATION__OUTPUT__OBJECT_STORE__S3__BUCKET
+              value: {{ $smithdbObjectStore.bucket | quote }}
+            - name: SMITHDB_MIGRATION__OUTPUT__OBJECT_STORE__S3__ROOT_FOLDER
+              value: "smithdb"
+            {{- with $smithdbObjectStore.s3.region }}
+            - name: SMITHDB_MIGRATION__OUTPUT__OBJECT_STORE__S3__REGION
+              value: {{ . | quote }}
+            {{- end }}
+            {{- with $smithdbObjectStore.s3.endpoint }}
+            - name: SMITHDB_MIGRATION__OUTPUT__OBJECT_STORE__S3__ENDPOINT
+              value: {{ . | quote }}
+            {{- end }}
+            {{- if hasKey $smithdbObjectStore.s3 "allowHttp" }}
+            - name: SMITHDB_MIGRATION__OUTPUT__OBJECT_STORE__S3__ALLOW_HTTP
+              value: {{ $smithdbObjectStore.s3.allowHttp | quote }}
+            {{- end }}
+            {{- if $smithdbObjectStore.s3.accessKeyIdSecretKey }}
+            - name: SMITHDB_MIGRATION__OUTPUT__OBJECT_STORE__S3__ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.smithdb.config.existingSecretName }}
+                  key: {{ $smithdbObjectStore.s3.accessKeyIdSecretKey }}
+            {{- end }}
+            {{- if $smithdbObjectStore.s3.secretAccessKeySecretKey }}
+            - name: SMITHDB_MIGRATION__OUTPUT__OBJECT_STORE__S3__SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.smithdb.config.existingSecretName }}
+                  key: {{ $smithdbObjectStore.s3.secretAccessKeySecretKey }}
+            {{- end }}
+            {{- else if eq $smithdbObjectStoreType "gcs" }}
+            - name: SMITHDB_MIGRATION__OUTPUT__OBJECT_STORE__GCS__BUCKET
+              value: {{ $smithdbObjectStore.bucket | quote }}
+            - name: SMITHDB_MIGRATION__OUTPUT__OBJECT_STORE__GCS__ROOT_FOLDER
+              value: "smithdb"
             {{- end }}
             {{- toYaml $envVars | nindent 12 }}
           image: {{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "smithdbImage") | quote }}

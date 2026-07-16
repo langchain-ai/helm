@@ -279,6 +279,9 @@ tests:
     values:
       - ./values/smithdb-enabled.yaml
     set:
+      config.blobStorage.enabled: true
+      config.blobStorage.bucketName: langsmith-blob
+      config.blobStorage.apiURL: http://blob-store:9000
       smithdb.langsmith.migration.enabled: true
       smithdb.langsmith.frontend.useSmithDBEndpoints: false
       smithdb.migration.taskdb.postgres.enabled: true
@@ -304,6 +307,7 @@ tests:
             - "migrate"
             - "--self-hosted"
             - "migrate-all"
+            - "--allow-insecure"
       - template: smithdb/migration-deployment.yaml
         equal:
           path: spec.template.spec.containers[0].image
@@ -323,6 +327,49 @@ tests:
               secretKeyRef:
                 name: RELEASE-NAME-langsmith-smithdb-taskdb-postgres
                 key: postgres_password
+      - template: smithdb/migration-deployment.yaml
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_MIGRATION__CLICKHOUSE__HOST
+            valueFrom:
+              secretKeyRef:
+                name: RELEASE-NAME-langsmith-clickhouse
+                key: clickhouse_host
+                optional: false
+      - template: smithdb/migration-deployment.yaml
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_MIGRATION__CLICKHOUSE__USER
+            valueFrom:
+              secretKeyRef:
+                name: RELEASE-NAME-langsmith-clickhouse
+                key: clickhouse_user
+                optional: false
+      - template: smithdb/migration-deployment.yaml
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_MIGRATION__BLOB_PREFIX_PATTERN
+            value: __none__
+      - template: smithdb/migration-deployment.yaml
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_MIGRATION__BLOB_STORE_DEFAULT__S3__BUCKET
+            value: langsmith-blob
+      - template: smithdb/migration-deployment.yaml
+        notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_MIGRATION__BLOB_STORE_PREFIXED__TYPE
+      - template: smithdb/migration-deployment.yaml
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_MIGRATION__OUTPUT__OBJECT_STORE__S3__BUCKET
+            value: smithdb-bucket
       - template: smithdb/taskdb-postgres-secret.yaml
         isKind:
           of: Secret
@@ -358,6 +405,25 @@ tests:
                 name: RELEASE-NAME-langsmith-smithdb-taskdb-postgres
                 key: postgres_password
 
+  - it: should omit allow-insecure for TLS ClickHouse
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      clickhouse.external.tls: true
+      smithdb.langsmith.migration.enabled: true
+      smithdb.langsmith.frontend.useSmithDBEndpoints: false
+      smithdb.migration.taskdb.postgres.enabled: true
+      smithdb.migration.taskdb.postgres.auth.password: taskdb-password
+    template: smithdb/migration-deployment.yaml
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].command
+          value:
+            - "./smithdb"
+            - "migrate"
+            - "--self-hosted"
+            - "migrate-all"
+
   - it: should append migrate-all time bounds to the migration command
     values:
       - ./values/smithdb-enabled.yaml
@@ -377,6 +443,7 @@ tests:
             - "migrate"
             - "--self-hosted"
             - "migrate-all"
+            - "--allow-insecure"
             - "--start-time"
             - "2024-01-01T00:00:00Z"
             - "--end-time"
