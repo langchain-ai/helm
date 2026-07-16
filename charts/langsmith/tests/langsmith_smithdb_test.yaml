@@ -147,6 +147,21 @@ tests:
           path: data.SMITHDB_INGEST_ORGS_ROLLOUT_PCT
           value: "100"
 
+  - it: should configure SmithDB mutations through query for dual ingest without frontend endpoints
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      smithdb.langsmith.frontend.useSmithDBEndpoints: false
+    template: config-map.yaml
+    asserts:
+      - equal:
+          path: data.SMITHDB_MUTATIONS_SERVICE_URL
+          value: RELEASE-NAME-langsmith-smithdb-query.NAMESPACE.svc.cluster.local:8080
+      - notExists:
+          path: data.SMITHDB_QUERY_SERVICE_URL
+      - notExists:
+          path: data.SMITHDB_QUERY_ENABLED
+
   - it: should wire frontend SmithDB v2 endpoint flag when enabled
     values:
       - ./values/smithdb-enabled.yaml
