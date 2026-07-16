@@ -1,0 +1,19 @@
+charts/langsmith/tests/langsmith_smithdb_test.yaml
+  s_96fcd22e1ac53d::t_8a8416e776f7f4 16,176,270,290,295,298,302,308,312,318,327,337,347,353,359,364,414,431,449,511,532,541,547,556
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "af586b8f31230520284566d5ece5821575b34371",
+  "prompts": {},
+  "sessions": {
+    "s_96fcd22e1ac53d": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "2709e895-5250-4fd3-98b2-4327976ef449",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "ben11211 <nagengast@langchain.dev>"
+    }
+  }
+}
