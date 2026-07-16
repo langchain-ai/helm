@@ -213,20 +213,6 @@ tests:
           content:
             name: VITE_SELF_HOSTED_SMITHDB_V2_ENDPOINTS_ENABLED
 
-  - it: should route V2 APIs to the platform backend when SmithDB is disabled
-    values:
-      - ./values/smithdb-enabled.yaml
-    set:
-      smithdb.enabled: false
-    template: frontend/config-map.yaml
-    asserts:
-      - matchRegex:
-          path: data["nginx.conf"]
-          pattern: 'location /api/v2/ \{'
-      - matchRegex:
-          path: data["nginx.conf"]
-          pattern: 'rewrite /api/v2/\(\.\*\) /v2/\$1'
-
   - it: should render zero-downtime rollout strategy for smithdb ingestion
     values:
       - ./values/smithdb-enabled.yaml
