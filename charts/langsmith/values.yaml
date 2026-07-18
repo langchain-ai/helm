@@ -887,18 +887,19 @@ config:
   existingSecretName: ""
   disableSecretCreation: false
   langsmithLicenseKey: ""
-  # -- Data backend availability exposed to the LangSmith application.
+  # -- Data backend availability exposed to the LangSmith application. 
   dataMode:
-    smithdb:
-      # -- Sets SMITHDB_INGESTION_ENABLED for the LangSmith application.
-      ingestion: false
-      # -- Sets SMITHDB_QUERY_ENABLED for the LangSmith application.
-      query: false
     clickhouse:
-      # -- Sets CLICKHOUSE_INGESTION_ENABLED for the LangSmith application.
+      # -- Enable data ingestion to Clickhouse.
       ingestion: true
-      # -- Sets CLICKHOUSE_QUERY_ENABLED for the LangSmith application.
+      # -- Enable Clickhouse powered queries.
       query: true
+    # -- Requires SmithDB to be enabled.
+    smithdb:
+      # -- Enable data ingestion to SmithDB ingestion.
+      ingestion: false
+      # -- Enable SmithDB powered queries.
+      query: false
   # -- Configuration for LangSmith Deployments features
   deployment:
       # -- Optional. Used to enable the LangSmith Deployments feature. Requires additional setup. Refer to the documentation for more information.
