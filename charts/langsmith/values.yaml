@@ -1287,14 +1287,6 @@ smithdb:
         accessKeyIdSecretKey: ""
         secretAccessKeySecretKey: ""
 
-  langsmith:
-    dualIngest:
-      # -- Enables LangSmith run ingestion to also write to SmithDB. Requires smithdb.enabled.
-      enabled: false
-    frontend:
-      # -- Defaults the LangSmith UI to SmithDB endpoints for run queries. Requires smithdb.enabled.
-      useSmithDBEndpoints: false
-
   query:
     name: "query"
     containerPort: 8060

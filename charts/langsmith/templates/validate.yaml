@@ -243,12 +243,9 @@ AWS Marketplace Helm template verification).
 {{- if and .Values.smithdb.enabled (ne (toString .Values.smithdb.compactionWorker.maxConcurrentJobs) "") (lt (int .Values.smithdb.compactionWorker.maxConcurrentJobs) 1) -}}
 {{- fail "smithdb.compactionWorker.maxConcurrentJobs must be greater than 0 when set." -}}
 {{- end -}}
-{{- if and .Values.smithdb.langsmith.dualIngest.enabled (not .Values.smithdb.enabled) -}}
-{{- fail "smithdb.enabled must be true when smithdb.langsmith.dualIngest.enabled is true." -}}
 {{- end -}}
-{{- if and .Values.smithdb.langsmith.frontend.useSmithDBEndpoints (not .Values.smithdb.enabled) -}}
-{{- fail "smithdb.enabled must be true when smithdb.langsmith.frontend.useSmithDBEndpoints is true." -}}
-{{- end -}}
+{{- if and (or .Values.config.dataMode.smithdb.ingestion .Values.config.dataMode.smithdb.query) (not .Values.smithdb.enabled) -}}
+{{- fail "smithdb.enabled must be true when SmithDB ingestion or query is enabled in config.dataMode." -}}
 {{- end -}}
 
 {{- /* Validate agent builder configuration */ -}}

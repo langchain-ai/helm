@@ -3,9 +3,9 @@
   value: {{ .Values.insights.enabled | quote }}
 - name: VITE_SELF_HOSTED_POLLY_ENABLED
   value: {{ .Values.polly.enabled | quote }}
-{{- if and .Values.smithdb.enabled .Values.smithdb.langsmith.frontend.useSmithDBEndpoints }}
+{{- if .Values.config.dataMode.smithdb.query }}
 - name: VITE_SELF_HOSTED_SMITHDB_V2_ENDPOINTS_ENABLED
-  value: {{ .Values.smithdb.langsmith.frontend.useSmithDBEndpoints | quote }}
+  value: "true"
 {{- end }}
 {{- /* Agent Builder OAuth provider IDs for frontend */ -}}
 {{- $googleOAuth := .Values.config.agentBuilder.oauth.googleOAuthProvider | default .Values.fleet.oauth.googleOAuthProvider }}

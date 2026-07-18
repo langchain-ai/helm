@@ -176,11 +176,11 @@ tests:
           path: data.CLICKHOUSE_INGESTION_ENABLED
           value: "false"
 
-  - it: should configure SmithDB mutations through query for dual ingest without frontend endpoints
+  - it: should configure SmithDB ingestion without query endpoints
     values:
       - ./values/smithdb-enabled.yaml
     set:
-      smithdb.langsmith.frontend.useSmithDBEndpoints: false
+      config.dataMode.smithdb.query: false
     template: config-map.yaml
     asserts:
       - equal:
@@ -190,7 +190,7 @@ tests:
           path: data.SMITHDB_QUERY_SERVICE_URL
       - equal:
           path: data.SMITHDB_QUERY_ENABLED
-          value: "true"
+          value: "false"
 
   - it: should wire frontend SmithDB v2 endpoint flag when enabled
     values:
@@ -208,6 +208,8 @@ tests:
       - ./values/smithdb-enabled.yaml
     set:
       smithdb.enabled: false
+      config.dataMode.smithdb.query: false
+      config.dataMode.smithdb.ingestion: false
     templates:
       - smithdb/query-deployment.yaml
       - smithdb/ingestion-deployment.yaml
@@ -227,20 +229,22 @@ tests:
       - ./values/smithdb-enabled.yaml
     set:
       smithdb.enabled: false
+      config.dataMode.smithdb.query: false
+      config.dataMode.smithdb.ingestion: false
     template: config-map.yaml
     asserts:
       - notExists:
           path: data.SMITHDB_QUERY_SERVICE_URL
       - equal:
           path: data.SMITHDB_QUERY_ENABLED
-          value: "true"
+          value: "false"
       - notExists:
           path: data.SMITHDB_MUTATIONS_SERVICE_URL
       - notExists:
           path: data.SMITHDB_INGESTION_SERVICE_URL
       - equal:
           path: data.SMITHDB_INGESTION_ENABLED
-          value: "true"
+          value: "false"
       - notExists:
           path: data.SMITHDB_INGEST_ORGS_ROLLOUT_PCT
       - notExists:
@@ -253,6 +257,8 @@ tests:
       - ./values/smithdb-enabled.yaml
     set:
       smithdb.enabled: false
+      config.dataMode.smithdb.query: false
+      config.dataMode.smithdb.ingestion: false
     template: frontend/deployment.yaml
     asserts:
       - notContains:

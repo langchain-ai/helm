@@ -45,11 +45,11 @@ data:
   CLICKHOUSE_QUERY_ENABLED: {{ .Values.config.dataMode.clickhouse.query | quote }}
   SMITHDB_INGESTION_ENABLED: {{ .Values.config.dataMode.smithdb.ingestion | quote }}
   CLICKHOUSE_INGESTION_ENABLED: {{ .Values.config.dataMode.clickhouse.ingestion | quote }}
-  {{- if and .Values.smithdb.enabled .Values.smithdb.langsmith.frontend.useSmithDBEndpoints }}
+  {{- if .Values.config.dataMode.smithdb.query }}
   {{- $smithdbQueryUrl := include "langsmith.smithdb.grpcServiceUrl" (dict "root" . "component" "query" "port" .Values.smithdb.query.service.port) }}
   SMITHDB_QUERY_SERVICE_URL: {{ $smithdbQueryUrl | quote }}
   {{- end }}
-  {{- if and .Values.smithdb.enabled .Values.smithdb.langsmith.dualIngest.enabled }}
+  {{- if .Values.config.dataMode.smithdb.ingestion }}
   SMITHDB_MUTATIONS_SERVICE_URL: {{ include "langsmith.smithdb.grpcServiceUrl" (dict "root" . "component" "query" "port" .Values.smithdb.query.service.port) | quote }}
   SMITHDB_INGESTION_SERVICE_URL: {{ include "langsmith.smithdb.grpcServiceUrl" (dict "root" . "component" "ingestion" "port" .Values.smithdb.ingestion.service.port) | quote }}
   SMITHDB_INGEST_ORGS_ROLLOUT_PCT: "100"

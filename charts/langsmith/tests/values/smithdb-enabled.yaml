@@ -26,8 +26,3 @@ smithdb:
       passwordSecretKey: "smithdb_metastore_db_password"
     objectStore:
       bucket: "smithdb-bucket"
-  langsmith:
-    dualIngest:
-      enabled: true
-    frontend:
-      useSmithDBEndpoints: true
