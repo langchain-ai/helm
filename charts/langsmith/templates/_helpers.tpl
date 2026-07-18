@@ -499,6 +499,20 @@ SmithDB resource name prefix.
 {{- end }}
 
 {{/*
+Name of the secret containing credentials for the SmithDB migration taskdb Postgres.
+*/}}
+{{- define "langsmith.smithdb.taskdbPostgresSecretName" -}}
+{{- $taskdb := .Values.smithdb.migration.taskdb.postgres -}}
+{{- if and $taskdb.external.enabled $taskdb.external.existingSecretName }}
+{{- $taskdb.external.existingSecretName }}
+{{- else if and (not $taskdb.external.enabled) $taskdb.auth.existingSecretName }}
+{{- $taskdb.auth.existingSecretName }}
+{{- else }}
+{{- printf "%s-%s" (include "langsmith.smithdb.fullname" .) $taskdb.name | trunc 63 | trimSuffix "-" }}
+{{- end }}
+{{- end }}
+
+{{/*
 Name of a SmithDB component Service or Deployment.
 Args: root, component.
 */}}
