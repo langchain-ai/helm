@@ -135,10 +135,16 @@ tests:
           path: data.SMITHDB_QUERY_ENABLED
           value: "true"
       - equal:
+          path: data.CLICKHOUSE_QUERY_ENABLED
+          value: "true"
+      - equal:
           path: data.SMITHDB_INGESTION_SERVICE_URL
           value: RELEASE-NAME-langsmith-smithdb-ingestion.NAMESPACE.svc.cluster.local:8082
       - equal:
           path: data.SMITHDB_INGESTION_ENABLED
+          value: "true"
+      - equal:
+          path: data.CLICKHOUSE_INGESTION_ENABLED
           value: "true"
       - equal:
           path: data.SMITHDB_MUTATIONS_SERVICE_URL
@@ -146,6 +152,29 @@ tests:
       - equal:
           path: data.SMITHDB_INGEST_ORGS_ROLLOUT_PCT
           value: "100"
+
+  - it: should set query and ingestion flags from data mode
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      config.dataMode.smithdb.query: false
+      config.dataMode.smithdb.ingestion: false
+      config.dataMode.clickhouse.query: false
+      config.dataMode.clickhouse.ingestion: false
+    template: config-map.yaml
+    asserts:
+      - equal:
+          path: data.SMITHDB_QUERY_ENABLED
+          value: "false"
+      - equal:
+          path: data.SMITHDB_INGESTION_ENABLED
+          value: "false"
+      - equal:
+          path: data.CLICKHOUSE_QUERY_ENABLED
+          value: "false"
+      - equal:
+          path: data.CLICKHOUSE_INGESTION_ENABLED
+          value: "false"
 
   - it: should configure SmithDB mutations through query for dual ingest without frontend endpoints
     values:
@@ -159,8 +188,9 @@ tests:
           value: RELEASE-NAME-langsmith-smithdb-query.NAMESPACE.svc.cluster.local:8080
       - notExists:
           path: data.SMITHDB_QUERY_SERVICE_URL
-      - notExists:
+      - equal:
           path: data.SMITHDB_QUERY_ENABLED
+          value: "true"
 
   - it: should wire frontend SmithDB v2 endpoint flag when enabled
     values:
@@ -192,7 +222,7 @@ tests:
       - hasDocuments:
           count: 0
 
-  - it: should omit LangSmith SmithDB config when disabled
+  - it: should omit SmithDB service configuration when disabled
     values:
       - ./values/smithdb-enabled.yaml
     set:
@@ -201,14 +231,16 @@ tests:
     asserts:
       - notExists:
           path: data.SMITHDB_QUERY_SERVICE_URL
-      - notExists:
+      - equal:
           path: data.SMITHDB_QUERY_ENABLED
+          value: "true"
       - notExists:
           path: data.SMITHDB_MUTATIONS_SERVICE_URL
       - notExists:
           path: data.SMITHDB_INGESTION_SERVICE_URL
-      - notExists:
+      - equal:
           path: data.SMITHDB_INGESTION_ENABLED
+          value: "true"
       - notExists:
           path: data.SMITHDB_INGEST_ORGS_ROLLOUT_PCT
       - notExists:

@@ -2,6 +2,13 @@ config:
   langsmithLicenseKey: "YOUR_LICENSE_KEY"
   apiKeySalt: "YOUR_API_KEY_SALT"
   authType: "mixed"
+  dataMode:
+    smithdb:
+      ingestion: true
+      query: true
+    clickhouse:
+      ingestion: true
+      query: true
   basicAuth:
     enabled: true
     initialOrgAdminEmail: "youremail@corp.dev"
