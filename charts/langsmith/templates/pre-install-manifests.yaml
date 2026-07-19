@@ -6,6 +6,11 @@ manifests. Intended for prerequisites the chart consumes during install/upgrade
 materialized Kubernetes Secret is referenced via `config.existingSecretName`
 or the per-datastore `*.external.existingSecretName` values.
 
+By default, only resources listed in .Values.preInstallManifestsAllowedResources
+are rendered. Set .Values.preInstallManifestsAllowAnyResource=true only when
+the Helm values source is trusted and external controls (GitOps review, RBAC,
+admission policy) constrain what the Helm installer can create.
+
 Entry forms
 -----------
 Each entry may be a YAML object or a multi-line YAML string. Both are rendered
@@ -31,12 +36,24 @@ on every upgrade. For ExternalSecret entries, prefer
 ESO versions) so the materialized Secret survives upgrades and pods consuming
 it don't restart.
 */ -}}
+{{- $allowAnyResource := default false .Values.preInstallManifestsAllowAnyResource }}
+{{- $allowedResources := default (list) .Values.preInstallManifestsAllowedResources }}
 {{- range .Values.preInstallManifests }}
 {{- $manifest := . }}
 {{- if typeIs "string" $manifest }}
 {{-   $manifest = tpl . $ | fromYaml }}
 {{- else }}
 {{-   $manifest = tpl (toYaml .) $ | fromYaml }}
+{{- end }}
+{{- if not $manifest }}
+{{-   fail "preInstallManifests entries must render to a single Kubernetes resource" }}
+{{- end }}
+{{- $apiVersion := required "preInstallManifests entries must set apiVersion" $manifest.apiVersion }}
+{{- $kind := required "preInstallManifests entries must set kind" $manifest.kind }}
+{{- $apiGroup := ternary (regexReplaceAll "/.*$" $apiVersion "") "" (contains "/" $apiVersion) }}
+{{- $resource := printf "%s/%s" $apiGroup $kind }}
+{{- if and (not $allowAnyResource) (not (has $resource $allowedResources)) }}
+{{-   fail (printf "preInstallManifests resource %s (apiVersion %s) is not allowed; add it to preInstallManifestsAllowedResources or set preInstallManifestsAllowAnyResource=true for trusted self-hosted values" $resource $apiVersion) }}
 {{- end }}
 {{- $_ := set $manifest "metadata" (default (dict) $manifest.metadata) }}
 {{- $hookAnnotations := dict
