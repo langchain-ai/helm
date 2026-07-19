@@ -6,10 +6,9 @@ manifests. Intended for prerequisites the chart consumes during install/upgrade
 materialized Kubernetes Secret is referenced via `config.existingSecretName`
 or the per-datastore `*.external.existingSecretName` values.
 
-By default, only resources listed in .Values.preInstallManifestsAllowedResources
-are rendered. Set .Values.preInstallManifestsAllowAnyResource=true only when
-the Helm values source is trusted and external controls (GitOps review, RBAC,
-admission policy) constrain what the Helm installer can create.
+Only External Secrets Operator ExternalSecret resources are rendered. Arbitrary
+pre-install resources are intentionally not supported through Helm values because
+those resources would be applied with the Helm installer's Kubernetes privileges.
 
 Entry forms
 -----------
@@ -36,8 +35,7 @@ on every upgrade. For ExternalSecret entries, prefer
 ESO versions) so the materialized Secret survives upgrades and pods consuming
 it don't restart.
 */ -}}
-{{- $allowAnyResource := default false .Values.preInstallManifestsAllowAnyResource }}
-{{- $allowedResources := default (list) .Values.preInstallManifestsAllowedResources }}
+{{- $allowedResource := "external-secrets.io/ExternalSecret" }}
 {{- range .Values.preInstallManifests }}
 {{- $manifest := . }}
 {{- if typeIs "string" $manifest }}
@@ -52,8 +50,8 @@ it don't restart.
 {{- $kind := required "preInstallManifests entries must set kind" $manifest.kind }}
 {{- $apiGroup := ternary (regexReplaceAll "/.*$" $apiVersion "") "" (contains "/" $apiVersion) }}
 {{- $resource := printf "%s/%s" $apiGroup $kind }}
-{{- if and (not $allowAnyResource) (not (has $resource $allowedResources)) }}
-{{-   fail (printf "preInstallManifests resource %s (apiVersion %s) is not allowed; add it to preInstallManifestsAllowedResources or set preInstallManifestsAllowAnyResource=true for trusted self-hosted values" $resource $apiVersion) }}
+{{- if ne $resource $allowedResource }}
+{{-   fail (printf "preInstallManifests resource %s (apiVersion %s) is not allowed; only %s is supported" $resource $apiVersion $allowedResource) }}
 {{- end }}
 {{- $_ := set $manifest "metadata" (default (dict) $manifest.metadata) }}
 {{- $hookAnnotations := dict

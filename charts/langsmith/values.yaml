@@ -10,7 +10,7 @@ namespace: ""
 # -- are applied before the rest of the chart's resources. Typical use case is an
 # -- ExternalSecret that produces a Secret consumed via `config.existingSecretName`.
 # -- See `templates/pre-install-manifests.yaml` for entry forms, injected
-# -- annotations, idempotency rules, allowlist behavior, and caveats.
+# -- annotations, ExternalSecret-only validation, idempotency rules, and caveats.
 # Example:
 # preInstallManifests:
 #   - apiVersion: external-secrets.io/v1beta1
@@ -31,13 +31,6 @@ namespace: ""
 #             key: secret/langsmith/app
 #             property: langsmith_license_key
 preInstallManifests: []
-# -- Allowed `<apiGroup>/<kind>` values for `preInstallManifests`. Defaults to External Secrets Operator resources used to materialize Kubernetes Secrets before this chart consumes them. API versions are intentionally ignored so both v1beta1 and v1 External Secrets resources are accepted.
-preInstallManifestsAllowedResources:
-  - external-secrets.io/ExternalSecret
-  - external-secrets.io/SecretStore
-  - external-secrets.io/ClusterSecretStore
-# -- Allow `preInstallManifests` to render any Kubernetes resource. Set this only when Helm values are trusted and external controls (GitOps review, RBAC, admission policies) constrain what the Helm installer can create.
-preInstallManifestsAllowAnyResource: false
 # -- Annotations that will be applied to all resources created by the chart
 commonAnnotations: {}
 # -- Annotations that will be applied to all pods created by the chart
