@@ -10,7 +10,7 @@ namespace: ""
 # -- are applied before the rest of the chart's resources. Typical use case is an
 # -- ExternalSecret that produces a Secret consumed via `config.existingSecretName`.
 # -- See `templates/pre-install-manifests.yaml` for entry forms, injected
-# -- annotations, idempotency rules, and caveats.
+# -- annotations, ExternalSecret-only validation, idempotency rules, and caveats.
 # Example:
 # preInstallManifests:
 #   - apiVersion: external-secrets.io/v1beta1
