@@ -3,6 +3,22 @@
   value: "3"
 - name: "QUEUE_PORT"
   value: {{ .Values.ingestQueue.containerPort | quote }}
+{{- if .Values.config.sandboxes.enabled }}
+- name: SANDBOX_FEATURE_ENABLED
+  value: "true"
+- name: SANDBOX_RUNTIME_V2
+  value: "always"
+- name: SANDBOX_K8S_CLUSTER_NAME
+  value: {{ .Values.config.sandboxes.clusterName | quote }}
+- name: SANDBOX_QUEUE_PRIORITY
+  value: "1"
+- name: SANDBOX_X_SERVICE_AUTH_JWT_SECRET
+  valueFrom:
+    secretKeyRef:
+      name: {{ include "langsmith.secretsName" . }}
+      key: sandbox_x_service_auth_jwt_secret
+      optional: {{ .Values.config.disableSecretCreation }}
+{{- end }}
 {{- end -}}
 {{- if .Values.ingestQueue.enabled }}
 {{- $envVars := concat .Values.commonEnv (include "langsmith.commonEnv" . | fromYamlArray) (include "ingestQueueEnvVars" . | fromYamlArray) .Values.ingestQueue.deployment.extraEnv -}}

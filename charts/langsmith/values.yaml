@@ -135,6 +135,26 @@ images:
     repository: "mcr.microsoft.com/presidio-analyzer"
     pullPolicy: IfNotPresent
     tag: "2.2.354"
+  # -- sandbox-host image. Only used when config.sandboxes.enabled is true.
+  sandboxHostImage:
+    repository: "docker.io/langchain/sandbox-host"
+    pullPolicy: IfNotPresent
+    tag: ""
+  # -- JuiceFS CSI driver image. Only used when config.sandboxes.enabled is true.
+  juicefsCSIImage:
+    repository: "docker.io/juicedata/juicefs-csi-driver"
+    pullPolicy: IfNotPresent
+    tag: "v0.31.4"
+  # -- JuiceFS CSI node-driver-registrar sidecar image. Only used when config.sandboxes.enabled is true.
+  juicefsCSINodeDriverRegistrarImage:
+    repository: "registry.k8s.io/sig-storage/csi-node-driver-registrar"
+    pullPolicy: IfNotPresent
+    tag: "v2.9.0"
+  # -- Optional JuiceFS CE mount image used by runtime mount pods. Set this when mirroring images for restricted networks.
+  juicefsMountImage:
+    repository: "docker.io/juicedata/mount"
+    pullPolicy: IfNotPresent
+    tag: ""
 
 ingress:
   enabled: false
@@ -887,6 +907,8 @@ config:
   existingSecretName: ""
   disableSecretCreation: false
   langsmithLicenseKey: ""
+  # -- Runtime environment value rendered as LANGCHAIN_ENV for sandbox runtime components.
+  langchainEnv: "local_kubernetes"
   # -- Configuration for LangSmith Deployments features
   deployment:
       # -- Optional. Used to enable the LangSmith Deployments feature. Requires additional setup. Refer to the documentation for more information.
@@ -898,6 +920,130 @@ config:
     ingressHealthCheckEnabled: true
     # -- Lift the SaaS CPU/memory caps on LangSmith Deployment resource specs. Opt-in for self-hosted.
     uncappedResourcesEnabled: false
+
+  # -- LangSmith Sandboxes configuration. Disabled by default. When enabled, this installs sandbox runtime resources in the same namespace as the LangSmith release and wires the LangSmith API/frontend services to expose sandbox functionality.
+  # This supports the same-cluster sandbox-host architecture only.
+  # Self-hosted sandboxes are currently supported on AWS/EKS and GCP/GKE. Azure/AKS is supported by the base LangSmith chart, but not by sandboxes yet.
+  # Enabling sandboxes also installs the JuiceFS CSI driver. The CSI driver creates cluster-scoped resources, so only one sandbox-enabled LangSmith release should manage it per Kubernetes cluster. Do not enable sandboxes in multiple releases in the same cluster, or alongside an independently managed JuiceFS CSI installation, unless you have verified ownership of those cluster-scoped resources.
+  sandboxes:
+    enabled: false
+    # -- Logical Kubernetes cluster name sent to LangSmith sandbox workers.
+    clusterName: ""
+    # -- Shared service-auth secret override for LangSmith <-> sandbox runtime calls when this chart creates the LangSmith app Secret. If unset, the chart uses the configured API key salt or LangSmith license key as the chart-managed value.
+    # When config.existingSecretName is set, add key `sandbox_x_service_auth_jwt_secret` to that Secret instead.
+    xServiceAuthJwtSecret: ""
+    # -- Optional previous service-auth secret used during rotation. Used only when this chart creates the LangSmith app Secret.
+    # When config.existingSecretName is set, add optional key `sandbox_x_service_auth_jwt_secret_previous` to that Secret to enable rotation.
+    xServiceAuthJwtSecretPrevious: ""
+    # -- Required private JWK for sandbox callback signing when this chart creates the LangSmith app Secret.
+    # When config.existingSecretName is set, add key `sandbox_callback_signing_jwk` to that Secret instead.
+    callbackSigningJwk: ""
+    # -- Optional base URL used to generate browser/programmatic service URLs for HTTP services running inside sandboxes.
+    # When set, the chart renders SANDBOX_SERVICE_URLS for config.sandboxes.clusterName.
+    # Requires wildcard DNS and TLS for `*.<host>`. When ingress.enabled is true, the chart also adds a wildcard ingress rule to the LangSmith platform backend.
+    # Must be an http:// or https:// URL without a path, query string, or fragment. When ingress.enabled is true, the host must be a DNS hostname without a port.
+    serviceUrlBaseUrl: ""
+    limits:
+      maxCpuCores: 16
+      maxMemoryGb: 64
+      minEphemeralStorageGb: 1
+      maxEphemeralStorageGb: 100
+      maxSandboxes: 1000
+    proxyCa:
+      # -- generatedSecret creates a self-signed CA Secret with Helm and reuses it on live upgrades via lookup. In pure render/GitOps workflows where lookup cannot read the cluster, generatedSecret produces different cert material on each render; use existingSecret for deterministic manifests.
+      mode: "generatedSecret"
+      secretName: "smithbox-proxy-ca"
+      # -- Existing TLS Secret containing tls.crt and tls.key for the sandbox proxy CA. This Secret can be created manually, by cert-manager, or by another external process.
+      existingSecretName: ""
+    juicefs:
+      # -- JuiceFS volume name. Use a flat DNS-label-style name only; slashes and object-store subpaths are not supported here. JuiceFS stores objects under `<name>/` inside the configured bucket. Also used to scope JuiceFS CSI RBAC for the generated mount Secret, so keep it aligned with the `name` key when using an existing CSI config Secret.
+      name: "sandbox-juicefs"
+      # -- Object storage backend used by JuiceFS for sandboxes. Currently supported values are `s3` for AWS/EKS and `gs` for GCP/GKE. Azure-backed sandbox storage is not supported yet.
+      storage: "s3"
+      # -- Object storage bucket/root URL used by JuiceFS. For AWS S3, use a region-explicit endpoint such as `https://bucket-name.s3.us-west-2.amazonaws.com`; do not use the `s3://bucket-name` shorthand because JuiceFS then infers region with GetBucketLocation. For GCS, use `gs://bucket-name`. Use `config.sandboxes.juicefs.name` for JuiceFS volume isolation instead of deployment-specific bucket paths.
+      bucket: ""
+      redis:
+        # -- JuiceFS Redis metadata URL. Redis metadata engines must use maxmemory-policy noeviction. For Redis Cluster, the `/DB` path is used by JuiceFS as a hash-tag key prefix rather than a Redis logical database.
+        metaURL: ""
+      csi:
+        # -- Name of the chart-managed JuiceFS CSI config Secret. The bundled JuiceFS CSI setup is intended only for JuiceFS PVs in the namespace where this chart is installed. Chart-managed Secret/config changes roll only the JuiceFS CSI controller/node pods through checksum annotations. Helm cannot hash externally managed Secret contents or directly refresh CSI-created JuiceFS mount pods; delete affected JuiceFS mount pods so they are recreated with the updated Secret.
+        configSecretName: "juicefs-csi-config"
+        # -- Existing Secret containing JuiceFS CSI config keys `name`, `metaurl`, `storage`, and `bucket`. When set, this chart does not render the CSI config Secret and `config.sandboxes.juicefs.name`, `config.sandboxes.juicefs.storage`, `config.sandboxes.juicefs.bucket`, and `config.sandboxes.juicefs.redis.metaURL` are not used for the CSI config.
+        existingSecretName: ""
+        controller:
+          # -- Annotations applied to the JuiceFS CSI controller StatefulSet and pod template.
+          annotations: {}
+          serviceAccount:
+            # -- Annotations applied to the JuiceFS CSI controller ServiceAccount.
+            annotations: {}
+        node:
+          # -- Annotations applied to the JuiceFS CSI node DaemonSet and pod template.
+          annotations: {}
+          serviceAccount:
+            # -- Annotations applied to the JuiceFS CSI node ServiceAccount. Use this for workload identity annotations such as AWS IRSA or GCP Workload Identity.
+            annotations: {}
+        # -- Mount pod patches used by the JuiceFS CSI driver for sandbox volumes. Override only when tuning JuiceFS mount behavior or observability.
+        mountPodPatch:
+          - mountOptions:
+              - cache-dir=/var/cache/juicefs-csi
+              - cache-size=51200
+              - buffer-size=300
+              - prefetch=3
+              - metrics=0.0.0.0:9567
+            resources:
+              requests:
+                cpu: "2"
+                memory: 4Gi
+              limits:
+                cpu: "2"
+                memory: 4Gi
+          - pvcSelector:
+              matchLabels:
+                juicefs.langsmith.com/cache: ssd
+            mountOptions:
+              - cache-dir=/var/cache/juicefs-csi
+              - cache-size=307200
+        mountPath: "/juicefs"
+        pvName: "smithbox-juicefs-csi"
+        pvcName: "smithbox-juicefs-csi"
+    sandboxHost:
+      name: "sandbox-host"
+      containerPort: 19190
+      # -- Whether sandbox callback validation should allow private IP and localhost targets. This renders SSRF_ALLOW_PRIVATE_IPS_CALLBACKS for sandbox-host.
+      allowPrivateIPCallbacks: false
+      deployment:
+        labels: {}
+        annotations: {}
+        podAnnotations: {}
+        # -- Optional initial sandbox-host Deployment replica count. Leave null to let Kubernetes default the initial replica count and avoid Helm reconciling runtime scaling.
+        # Multiple sandbox-host replicas are kept one per node by chart-managed required pod anti-affinity on `kubernetes.io/hostname` plus the sandbox-host `hostPort`.
+        # The chart also uses a no-surge rolling update strategy (`maxSurge: 0`, `maxUnavailable: 1`) so image updates roll hosts one node at a time instead of creating unschedulable surge pods.
+        replicas: null
+        terminationGracePeriodSeconds: 300
+        # -- Node selector for sandbox-host pods. Empty uses the default selector `sandbox.langsmith.com/host=true`; set this map to replace the default if your sandbox node pool uses different labels.
+        nodeSelector: {}
+        # -- Tolerations for sandbox-host pods. The default expects sandbox-host nodes tainted `sandbox.langsmith.com/host=true:NoSchedule`; override this if your sandbox node pool uses different taints.
+        tolerations:
+          - key: sandbox.langsmith.com/host
+            operator: Equal
+            value: "true"
+            effect: NoSchedule
+        resources:
+          requests:
+            cpu: "2"
+            memory: 2Gi
+        securityContext:
+          privileged: true
+      serviceAccount:
+        create: true
+        name: ""
+        labels: {}
+        annotations: {}
+        automountServiceAccountToken: true
+      rbac:
+        create: true
+        labels: {}
+        annotations: {}
 
   # DEPRECATED: use the top-level fleet block (fleet/fleetToolServer/
   # fleetTriggerServer) instead. This bundled-agent path is managed by

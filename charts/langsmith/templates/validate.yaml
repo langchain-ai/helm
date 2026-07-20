@@ -117,6 +117,94 @@ AWS Marketplace Helm template verification).
 {{- end -}}
 {{- end -}}
 
+{{- /* Validate sandbox configuration */ -}}
+{{- if .Values.config.sandboxes.enabled -}}
+{{- if not .Values.images.sandboxHostImage.repository -}}
+{{- fail "images.sandboxHostImage.repository is required when config.sandboxes.enabled is true." -}}
+{{- end -}}
+{{- if not .Values.images.sandboxHostImage.tag -}}
+{{- fail "images.sandboxHostImage.tag is required when config.sandboxes.enabled is true." -}}
+{{- end -}}
+{{- range $imageName := list "juicefsCSIImage" "juicefsCSINodeDriverRegistrarImage" -}}
+{{- $image := index $.Values.images $imageName -}}
+{{- if not $image.repository -}}
+{{- fail (printf "images.%s.repository is required when config.sandboxes.enabled is true." $imageName) -}}
+{{- end -}}
+{{- if not $image.tag -}}
+{{- fail (printf "images.%s.tag is required when config.sandboxes.enabled is true." $imageName) -}}
+{{- end -}}
+{{- end -}}
+{{- if and .Values.images.juicefsMountImage.tag (not .Values.images.juicefsMountImage.repository) -}}
+{{- fail "images.juicefsMountImage.repository is required when images.juicefsMountImage.tag is set." -}}
+{{- end -}}
+{{- if not .Values.config.sandboxes.clusterName -}}
+{{- fail "config.sandboxes.clusterName is required when config.sandboxes.enabled is true." -}}
+{{- end -}}
+{{- $serviceUrlBaseUrl := .Values.config.sandboxes.serviceUrlBaseUrl | default "" -}}
+{{- if $serviceUrlBaseUrl -}}
+{{- if not (regexMatch "^https?://" $serviceUrlBaseUrl) -}}
+{{- fail "config.sandboxes.serviceUrlBaseUrl must start with http:// or https://." -}}
+{{- end -}}
+{{- if not (regexMatch "^https?://[^/?#]+$" $serviceUrlBaseUrl) -}}
+{{- fail "config.sandboxes.serviceUrlBaseUrl must not include a path, query string, or fragment." -}}
+{{- end -}}
+{{- $serviceUrlHost := regexReplaceAll "^https?://" $serviceUrlBaseUrl "" -}}
+{{- if and .Values.ingress.enabled (not (regexMatch "^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$" $serviceUrlHost)) -}}
+{{- fail "config.sandboxes.serviceUrlBaseUrl host must be a DNS hostname without a port when ingress.enabled is true." -}}
+{{- end -}}
+{{- end -}}
+{{- $juicefsCSI := .Values.config.sandboxes.juicefs.csi | default dict -}}
+{{- if not $juicefsCSI.existingSecretName -}}
+{{- $juicefsRedis := .Values.config.sandboxes.juicefs.redis | default dict -}}
+{{- if not $juicefsRedis.metaURL -}}
+{{- fail "config.sandboxes.juicefs.redis.metaURL is required when config.sandboxes.enabled is true and config.sandboxes.juicefs.csi.existingSecretName is not set." -}}
+{{- end -}}
+{{- $juicefsName := .Values.config.sandboxes.juicefs.name | default "" -}}
+{{- if not $juicefsName -}}
+{{- fail "config.sandboxes.juicefs.name is required when config.sandboxes.enabled is true and config.sandboxes.juicefs.csi.existingSecretName is not set." -}}
+{{- end -}}
+{{- if not (regexMatch "^[a-z0-9][a-z0-9-]{1,61}[a-z0-9]$" $juicefsName) -}}
+{{- fail "config.sandboxes.juicefs.name must be a DNS-label-style JuiceFS volume name: 3-63 characters, lowercase letters, numbers, and hyphens only. Do not use slashes or object-store subpaths here." -}}
+{{- end -}}
+{{- if not .Values.config.sandboxes.juicefs.bucket -}}
+{{- fail "config.sandboxes.juicefs.bucket is required when config.sandboxes.enabled is true and config.sandboxes.juicefs.csi.existingSecretName is not set." -}}
+{{- end -}}
+{{- $juicefsStorage := .Values.config.sandboxes.juicefs.storage | default "" -}}
+{{- $juicefsBucket := .Values.config.sandboxes.juicefs.bucket | default "" -}}
+{{- if not (or (eq $juicefsStorage "s3") (eq $juicefsStorage "gs")) -}}
+{{- fail "config.sandboxes.juicefs.storage currently supports only s3 for AWS/EKS and gs for GCP/GKE. Azure-backed sandbox storage is not supported yet." -}}
+{{- end -}}
+{{- if and (eq $juicefsStorage "s3") (hasPrefix "s3://" $juicefsBucket) -}}
+{{- fail "config.sandboxes.juicefs.bucket must use a region-explicit S3 endpoint URL such as https://bucket-name.s3.us-west-2.amazonaws.com when config.sandboxes.juicefs.storage is s3. The s3://bucket shorthand makes JuiceFS infer region with GetBucketLocation and is not supported." -}}
+{{- end -}}
+{{- if and (eq $juicefsStorage "s3") (not (regexMatch "^https?://" $juicefsBucket)) -}}
+{{- fail "config.sandboxes.juicefs.bucket must use an HTTP(S) S3 endpoint URL when config.sandboxes.juicefs.storage is s3." -}}
+{{- end -}}
+{{- end -}}
+{{- if and (not .Values.config.existingSecretName) (not .Values.config.disableSecretCreation) (not (include "langsmith.sandboxes.xServiceAuthJwtSecretValue" .)) -}}
+{{- fail "config.sandboxes.xServiceAuthJwtSecret is required when config.sandboxes.enabled is true and no chart-managed app secret value is available." -}}
+{{- end -}}
+{{- if and (not .Values.config.existingSecretName) (not .Values.config.disableSecretCreation) (not .Values.config.sandboxes.callbackSigningJwk) -}}
+{{- fail "config.sandboxes.callbackSigningJwk is required when config.sandboxes.enabled is true and the chart manages the LangSmith app Secret. When config.existingSecretName is set, add key sandbox_callback_signing_jwk to the existing Secret instead." -}}
+{{- end -}}
+{{- if and .Values.config.existingSecretName .Values.config.sandboxes.xServiceAuthJwtSecret -}}
+{{- fail "config.sandboxes.xServiceAuthJwtSecret cannot be used when config.existingSecretName is set. Add key sandbox_x_service_auth_jwt_secret to the existing Secret instead." -}}
+{{- end -}}
+{{- if and .Values.config.existingSecretName .Values.config.sandboxes.xServiceAuthJwtSecretPrevious -}}
+{{- fail "config.sandboxes.xServiceAuthJwtSecretPrevious cannot be used when config.existingSecretName is set. Add key sandbox_x_service_auth_jwt_secret_previous to the existing Secret instead." -}}
+{{- end -}}
+{{- if and .Values.config.existingSecretName .Values.config.sandboxes.callbackSigningJwk -}}
+{{- fail "config.sandboxes.callbackSigningJwk cannot be used when config.existingSecretName is set. Add key sandbox_callback_signing_jwk to the existing Secret instead." -}}
+{{- end -}}
+{{- $proxyCaMode := .Values.config.sandboxes.proxyCa.mode -}}
+{{- if not (or (eq $proxyCaMode "generatedSecret") (eq $proxyCaMode "existingSecret")) -}}
+{{- fail "config.sandboxes.proxyCa.mode must be one of generatedSecret or existingSecret." -}}
+{{- end -}}
+{{- if and (eq $proxyCaMode "existingSecret") (not .Values.config.sandboxes.proxyCa.existingSecretName) -}}
+{{- fail "config.sandboxes.proxyCa.existingSecretName is required when config.sandboxes.proxyCa.mode is existingSecret." -}}
+{{- end -}}
+{{- end -}}
+
 {{- /* Validate password requirements */ -}}
 {{- if and .Values.config.basicAuth.enabled (not .Values.config.existingSecretName) }}
 {{- $password := .Values.config.basicAuth.initialOrgAdminPassword -}}

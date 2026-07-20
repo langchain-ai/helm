@@ -1,0 +1,212 @@
+{{- if .Values.config.sandboxes.enabled }}
+{{- $namespace := .Values.namespace | default .Release.Namespace }}
+{{- $mountImage := include "langsmith.optionalImage" (dict "Values" .Values "Chart" .Chart "component" "juicefsMountImage") }}
+{{- $nodeAnnotations := .Values.config.sandboxes.juicefs.csi.node.annotations }}
+{{- $podAnnotations := mergeOverwrite (dict) (default dict .Values.commonPodAnnotations) $nodeAnnotations }}
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: juicefs-csi-node
+  namespace: {{ $namespace | quote }}
+  labels:
+    app: juicefs-csi-node
+    app.kubernetes.io/component: node
+    {{- include "langsmith.sandboxes.juicefsCSILabels" . | nindent 4 }}
+  {{- with $nodeAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  updateStrategy:
+    rollingUpdate:
+      maxUnavailable: 50%
+  selector:
+    matchLabels:
+      app: juicefs-csi-node
+      {{- include "langsmith.sandboxes.juicefsCSISelectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        app: juicefs-csi-node
+        {{- include "langsmith.sandboxes.juicefsCSISelectorLabels" . | nindent 8 }}
+      annotations:
+        checksum/juicefs-csi-config: {{ include "langsmith.sandboxes.juicefsCSIConfigSecretChecksum" . | quote }}
+        checksum/juicefs-csi-driver-config: {{ include "langsmith.sandboxes.juicefsCSIDriverConfigChecksum" . | quote }}
+        {{- with $podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      {{- with .Values.images.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: juicefs-plugin
+          image: {{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "juicefsCSIImage") | quote }}
+          imagePullPolicy: {{ .Values.images.juicefsCSIImage.pullPolicy }}
+          args:
+            - --endpoint=$(CSI_ENDPOINT)
+            - --logtostderr
+            - --nodeid=$(NODE_NAME)
+            - --enable-manager=true
+            - --config=/etc/config/config.yaml
+          env:
+            - name: CSI_ENDPOINT
+              value: unix:/csi/csi.sock
+            - name: NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: JUICEFS_MOUNT_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: HOST_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.hostIP
+            - name: KUBELET_PORT
+              value: "10250"
+            - name: JUICEFS_MOUNT_PATH
+              value: /var/lib/juicefs/volume
+            - name: JUICEFS_CONFIG_PATH
+              value: /var/lib/juicefs/config
+            - name: FS_SHARE_MOUNT
+              value: "true"
+            {{- if $mountImage }}
+            - name: JUICEFS_CE_MOUNT_IMAGE
+              value: {{ $mountImage | quote }}
+            {{- end }}
+            - name: JUICEFS_CSI_WEB_PORT
+              value: "9567"
+            - name: DRIVER_NAME
+              value: {{ include "langsmith.sandboxes.juicefsCSIDriverName" . | quote }}
+          # CSI ProbeRequest is an empty protobuf message; call it directly over the plugin socket.
+          livenessProbe:
+            failureThreshold: 5
+            exec:
+              command:
+                - /bin/sh
+                - -ec
+                - >-
+                  printf '\000\000\000\000\000' |
+                  curl --silent --show-error --max-time 1
+                  --http2-prior-knowledge
+                  --unix-socket /csi/csi.sock
+                  -H 'Content-Type: application/grpc'
+                  -H 'TE: trailers'
+                  --data-binary @-
+                  --dump-header -
+                  --output /dev/null
+                  http://localhost/csi.v1.Identity/Probe |
+                  grep -q '^grpc-status: 0'
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 3
+          resources:
+            limits:
+              cpu: 1000m
+              memory: 1Gi
+            requests:
+              cpu: 100m
+              memory: 512Mi
+          ports:
+            - containerPort: 9567
+              name: metrics
+              protocol: TCP
+          securityContext:
+            allowPrivilegeEscalation: true
+            privileged: true
+            runAsNonRoot: false
+          volumeMounts:
+            - mountPath: /var/lib/kubelet
+              mountPropagation: Bidirectional
+              name: kubelet-dir
+            - mountPath: /csi
+              name: plugin-dir
+            - mountPath: /dev
+              name: device-dir
+            - mountPath: /jfs
+              mountPropagation: Bidirectional
+              name: jfs-dir
+            - mountPath: /root/.juicefs
+              mountPropagation: Bidirectional
+              name: jfs-root-dir
+            - mountPath: /tmp
+              name: jfs-fuse-fd
+            - mountPath: /etc/config
+              name: juicefs-config
+        - name: node-driver-registrar
+          image: {{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "juicefsCSINodeDriverRegistrarImage") | quote }}
+          imagePullPolicy: {{ .Values.images.juicefsCSINodeDriverRegistrarImage.pullPolicy }}
+          args:
+            - --csi-address=$(ADDRESS)
+            - --kubelet-registration-path=$(DRIVER_REG_SOCK_PATH)
+            - --v=5
+            - --health-port=9809
+          ports:
+            - containerPort: 9809
+              name: healthz
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: healthz
+            initialDelaySeconds: 5
+            timeoutSeconds: 5
+          env:
+            - name: ADDRESS
+              value: /csi/csi.sock
+            - name: DRIVER_REG_SOCK_PATH
+              value: /var/lib/kubelet/csi-plugins/{{ include "langsmith.sandboxes.juicefsCSIDriverName" . }}/csi.sock
+          securityContext:
+            privileged: false
+            runAsNonRoot: false
+          volumeMounts:
+            - mountPath: /csi
+              name: plugin-dir
+            - mountPath: /registration
+              name: registration-dir
+      dnsPolicy: ClusterFirstWithHostNet
+      priorityClassName: system-node-critical
+      {{- with .Values.config.sandboxes.sandboxHost.deployment.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "langsmith.sandboxes.juicefsCSINodeServiceAccountName" . }}
+      volumes:
+        - hostPath:
+            path: /var/lib/kubelet
+            type: Directory
+          name: kubelet-dir
+        - hostPath:
+            path: /var/lib/kubelet/csi-plugins/{{ include "langsmith.sandboxes.juicefsCSIDriverName" . }}/
+            type: DirectoryOrCreate
+          name: plugin-dir
+        - hostPath:
+            path: /var/lib/kubelet/plugins_registry/
+            type: Directory
+          name: registration-dir
+        - hostPath:
+            path: /dev
+            type: Directory
+          name: device-dir
+        - hostPath:
+            path: /var/lib/juicefs/volume
+            type: DirectoryOrCreate
+          name: jfs-dir
+        - hostPath:
+            path: /var/lib/juicefs/config
+            type: DirectoryOrCreate
+          name: jfs-root-dir
+        - hostPath:
+            path: /var/run/juicefs-csi
+            type: DirectoryOrCreate
+          name: jfs-fuse-fd
+        - name: juicefs-config
+          configMap:
+            name: {{ include "langsmith.sandboxes.juicefsCSIConfigMapName" . }}
+{{- end }}

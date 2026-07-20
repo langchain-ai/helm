@@ -1,0 +1,27 @@
+config:
+  existingSecretName: langsmith-secrets
+  oauth:
+    enabled: true
+  authType: oauth
+  sandboxes:
+    enabled: true
+    clusterName: self-hosted-test
+    limits:
+      maxCpuCores: 16
+      maxMemoryGb: 64
+      minEphemeralStorageGb: 1
+      maxEphemeralStorageGb: 100
+      maxSandboxes: 1000
+    proxyCa:
+      mode: generatedSecret
+    juicefs:
+      name: sandbox-juicefs
+      storage: s3
+      bucket: https://langsmith-sandboxes-test.s3.us-west-2.amazonaws.com
+      redis:
+        metaURL: redis://langsmith-redis.default.svc.cluster.local:6379/1
+
+images:
+  sandboxHostImage:
+    repository: example.com/langsmith/sandbox-host
+    tag: test-sandbox-host

@@ -1,0 +1,5 @@
+platformBackend:
+  deployment:
+    extraEnv:
+      - name: SANDBOX_RUNTIME_V2
+        value: enabled

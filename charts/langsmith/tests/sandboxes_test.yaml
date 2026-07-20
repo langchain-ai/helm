@@ -1,0 +1,765 @@
+suite: self-hosted sandboxes
+templates:
+  - validate.yaml
+  - config-map.yaml
+  - secrets.yaml
+  - redis/secrets.yaml
+  - postgres/secrets.yaml
+  - clickhouse/secrets.yaml
+  - frontend/config-map.yaml
+  - frontend/deployment.yaml
+  - ingress.yaml
+  - platform-backend/deployment.yaml
+  - ingest-queue/deployment.yaml
+  - sandboxes/proxy-ca.yaml
+  - sandboxes/juicefs-csi.yaml
+  - sandboxes/sandbox-host-rbac.yaml
+  - sandboxes/sandbox-host-deployment.yaml
+tests:
+  - it: should not render sandbox runtime resources by default
+    set:
+      config.existingSecretName: langsmith-secrets
+      config.oauth.enabled: true
+      config.authType: oauth
+    templates:
+      - sandboxes/proxy-ca.yaml
+      - sandboxes/juicefs-csi.yaml
+      - sandboxes/sandbox-host-rbac.yaml
+      - sandboxes/sandbox-host-deployment.yaml
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: should wire platform backend sandbox environment when enabled
+    values:
+      - ./values/sandboxes-enabled.yaml
+    template: platform-backend/deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_FEATURE_ENABLED
+            value: "true"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_FRONTEND_ENABLED
+            value: "true"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_RUNTIME_V2
+            value: always
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: LANGSMITH_LICENSE_REQUIRED_CLAIMS
+            value: sandbox_enabled
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_K8S_CLUSTER_NAME
+            value: self-hosted-test
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_X_SERVICE_AUTH_JWT_SECRET
+            valueFrom:
+              secretKeyRef:
+                name: langsmith-secrets
+                key: sandbox_x_service_auth_jwt_secret
+                optional: false
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_SERVICE_URLS
+
+  - it: should derive sandbox service URLs from the service URL base URL
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      config.sandboxes.serviceUrlBaseUrl: https://sandbox-services.example.com
+    template: platform-backend/deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_SERVICE_URLS
+            value: '{"self-hosted-test":"https://sandbox-services.example.com"}'
+
+  - it: should not add a sandbox service URL ingress rule by default
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      config.hostname: langsmith.example.com
+      ingress.enabled: true
+      ingress.ingressClassName: nginx
+    template: ingress.yaml
+    asserts:
+      - notContains:
+          path: spec.rules
+          content:
+            host: "*.sandbox-services.example.com"
+
+  - it: should add a sandbox service URL ingress rule when using chart ingress
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      config.hostname: langsmith.example.com
+      config.sandboxes.serviceUrlBaseUrl: https://sandbox-services.example.com
+      ingress.enabled: true
+      ingress.ingressClassName: nginx
+    template: ingress.yaml
+    asserts:
+      - equal:
+          path: spec.rules[1].host
+          value: "*.sandbox-services.example.com"
+      - equal:
+          path: spec.rules[1].http.paths[0].path
+          value: /
+      - equal:
+          path: spec.rules[1].http.paths[0].pathType
+          value: Prefix
+      - equal:
+          path: spec.rules[1].http.paths[0].backend.service.name
+          value: RELEASE-NAME-langsmith-platform-backend
+      - equal:
+          path: spec.rules[1].http.paths[0].backend.service.port.number
+          value: 1986
+
+  - it: should wire optional sandbox keys from an existing LangSmith secret into platform backend
+    values:
+      - ./values/sandboxes-enabled.yaml
+    template: platform-backend/deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_X_SERVICE_AUTH_JWT_SECRET_PREVIOUS
+            valueFrom:
+              secretKeyRef:
+                name: langsmith-secrets
+                key: sandbox_x_service_auth_jwt_secret_previous
+                optional: true
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: LANGSMITH_SANDBOX_CALLBACK_SIGNING_JWK
+            valueFrom:
+              secretKeyRef:
+                name: langsmith-secrets
+                key: sandbox_callback_signing_jwk
+                optional: true
+
+  - it: should not set VITE_HOST_ENABLED when only sandboxes are enabled
+    values:
+      - ./values/sandboxes-enabled.yaml
+    template: frontend/deployment.yaml
+    asserts:
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: VITE_HOST_ENABLED
+            value: "1"
+
+  - it: should route sandbox v2 API traffic through the chart frontend
+    values:
+      - ./values/sandboxes-enabled.yaml
+    template: frontend/config-map.yaml
+    asserts:
+      - matchRegex:
+          path: data["nginx.conf"]
+          pattern: 'location /api/v2/sandboxes/'
+      - matchRegex:
+          path: data["nginx.conf"]
+          pattern: 'rewrite /api/v2/sandboxes/\(\.\*\) /v2/sandboxes/\$1'
+      - matchRegex:
+          path: data["nginx.conf"]
+          pattern: 'proxy_set_header Upgrade \$http_upgrade;'
+      - matchRegex:
+          path: data["nginx.conf"]
+          pattern: 'proxy_set_header Connection \$connection_upgrade;'
+
+  - it: should route sandbox v2 API traffic through the chart frontend with basePath
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      config.basePath: langsmith
+    template: frontend/config-map.yaml
+    asserts:
+      - matchRegex:
+          path: data["nginx.conf"]
+          pattern: 'location /langsmith/api/v2/sandboxes/'
+      - matchRegex:
+          path: data["nginx.conf"]
+          pattern: 'rewrite /langsmith/api/v2/sandboxes/\(\.\*\) /v2/sandboxes/\$1'
+
+  - it: should derive a relative platform endpoint for sandbox dataplane URLs
+    values:
+      - ./values/sandboxes-enabled.yaml
+    template: config-map.yaml
+    asserts:
+      - equal:
+          path: data.LANGCHAIN_PLATFORM_ENDPOINT
+          value: /api
+
+  - it: should derive a basePath-aware relative platform endpoint for sandbox dataplane URLs
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      config.basePath: langsmith
+    template: config-map.yaml
+    asserts:
+      - equal:
+          path: data.LANGCHAIN_PLATFORM_ENDPOINT
+          value: /langsmith/api
+
+  - it: should derive an absolute platform endpoint for sandbox dataplane URLs when hostname is set
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      config.hostname: langsmith.example.com
+    template: config-map.yaml
+    asserts:
+      - equal:
+          path: data.LANGCHAIN_PLATFORM_ENDPOINT
+          value: https://langsmith.example.com/api
+
+  - it: should allow sandboxes when the chart frontend is disabled
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      frontend.enabled: false
+    template: validate.yaml
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: should store sandbox auth material in the chart-managed LangSmith secret
+    set:
+      config.langsmithLicenseKey: test-license
+      config.apiKeySalt: test-api-key-salt
+      config.oauth.enabled: true
+      config.authType: oauth
+      config.sandboxes.enabled: true
+      config.sandboxes.clusterName: self-hosted-test
+      config.sandboxes.xServiceAuthJwtSecret: test-sandbox-jwt
+      config.sandboxes.callbackSigningJwk: test-callback-jwk
+      config.sandboxes.juicefs.redis.metaURL: redis://langsmith-redis.default.svc.cluster.local:6379/1
+      config.sandboxes.juicefs.bucket: https://langsmith-sandboxes-test.s3.us-west-2.amazonaws.com
+      images.sandboxHostImage.repository: example.com/langsmith/sandbox-host
+      images.sandboxHostImage.tag: test-sandbox-host
+      insights.encryptionKey: test-insights-encryption-key
+      polly.encryptionKey: test-polly-encryption-key
+    template: secrets.yaml
+    asserts:
+      - equal:
+          path: metadata.name
+          value: RELEASE-NAME-langsmith-secrets
+      - equal:
+          path: data.sandbox_x_service_auth_jwt_secret
+          value: dGVzdC1zYW5kYm94LWp3dA==
+      - equal:
+          path: data.sandbox_callback_signing_jwk
+          value: dGVzdC1jYWxsYmFjay1qd2s=
+
+  - it: should keep local_kubernetes LANGCHAIN_ENV in the shared config map
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      config.langchainEnv: chart-env
+    template: config-map.yaml
+    asserts:
+      - equal:
+          path: data.LANGCHAIN_ENV
+          value: local_kubernetes
+
+  - it: should wire ingest queue sandbox environment when enabled
+    values:
+      - ./values/sandboxes-enabled.yaml
+    template: ingest-queue/deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_FEATURE_ENABLED
+            value: "true"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_RUNTIME_V2
+            value: always
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_DEFAULT_BLUEPRINT_IMAGE
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_QUEUE_PRIORITY
+            value: "1"
+
+  - it: should use configured LANGCHAIN_ENV for sandbox-host
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      config.langchainEnv: chart-env
+    template: sandboxes/sandbox-host-deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: LANGCHAIN_ENV
+            value: chart-env
+
+  - it: should render sandbox-host with host network and rolling update rollout
+    values:
+      - ./values/sandboxes-enabled.yaml
+    template: sandboxes/sandbox-host-deployment.yaml
+    asserts:
+      - isKind:
+          of: Deployment
+      - equal:
+          path: metadata.name
+          value: sandbox-host
+      - equal:
+          path: metadata.namespace
+          value: NAMESPACE
+      - equal:
+          path: spec.strategy.type
+          value: RollingUpdate
+      - equal:
+          path: spec.strategy.rollingUpdate.maxSurge
+          value: 0
+      - equal:
+          path: spec.strategy.rollingUpdate.maxUnavailable
+          value: 1
+      - equal:
+          path: spec.template.spec.hostNetwork
+          value: true
+      - equal:
+          path: spec.template.spec.affinity.podAntiAffinity.requiredDuringSchedulingIgnoredDuringExecution[0].labelSelector.matchLabels.app
+          value: sandbox-host
+      - equal:
+          path: spec.template.spec.affinity.podAntiAffinity.requiredDuringSchedulingIgnoredDuringExecution[0].topologyKey
+          value: kubernetes.io/hostname
+      - equal:
+          path: spec.template.spec.containers[0].ports[0].hostPort
+          value: 19190
+      - notExists:
+          path: spec.template.metadata.annotations["checksum/juicefs-csi-config"]
+      - notExists:
+          path: spec.template.metadata.annotations["checksum/juicefs-csi-driver-config"]
+      - notExists:
+          path: spec.template.spec.containers[0].command
+      - equal:
+          path: spec.template.spec.nodeSelector
+          value:
+            sandbox.langsmith.com/host: "true"
+      - equal:
+          path: spec.template.spec.tolerations
+          value:
+            - key: sandbox.langsmith.com/host
+              operator: Equal
+              value: "true"
+              effect: NoSchedule
+      - contains:
+          path: spec.template.spec.containers[0].volumeMounts
+          content:
+            name: proxy-ca
+            mountPath: /certs
+            readOnly: true
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_X_SERVICE_AUTH_JWT_SECRET
+            valueFrom:
+              secretKeyRef:
+                name: langsmith-secrets
+                key: sandbox_x_service_auth_jwt_secret
+                optional: false
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: LANGSMITH_SANDBOX_CALLBACK_SIGNING_JWK
+            valueFrom:
+              secretKeyRef:
+                name: langsmith-secrets
+                key: sandbox_callback_signing_jwk
+                optional: true
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SSRF_ALLOW_PRIVATE_IPS_CALLBACKS
+            value: "false"
+
+  - it: should allow enabling private IP sandbox callbacks on sandbox-host
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      config.sandboxes.sandboxHost.allowPrivateIPCallbacks: true
+    template: sandboxes/sandbox-host-deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SSRF_ALLOW_PRIVATE_IPS_CALLBACKS
+            value: "true"
+
+  - it: should render custom sandbox-host RBAC metadata
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      config.sandboxes.sandboxHost.rbac.labels.review: requested
+      config.sandboxes.sandboxHost.rbac.annotations.review: requested
+    template: sandboxes/sandbox-host-rbac.yaml
+    documentIndex: 1
+    asserts:
+      - equal:
+          path: metadata.labels.review
+          value: requested
+      - equal:
+          path: metadata.annotations.review
+          value: requested
+
+  - it: should allow disabling sandbox-host RBAC resources
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      config.sandboxes.sandboxHost.rbac.create: false
+    template: sandboxes/sandbox-host-rbac.yaml
+    asserts:
+      - hasDocuments:
+          count: 1
+
+  - it: should render custom sandbox-host scheduling on sandbox-host
+    values:
+      - ./values/sandboxes-enabled.yaml
+      - ./values/sandboxes-custom-scheduling.yaml
+    template: sandboxes/sandbox-host-deployment.yaml
+    asserts:
+      - equal:
+          path: spec.template.spec.nodeSelector
+          value:
+            sandbox.example.com/pool: hosts
+      - equal:
+          path: spec.template.spec.tolerations
+          value:
+            - key: sandbox.example.com/pool
+              operator: Equal
+              value: hosts
+              effect: NoSchedule
+
+
+  - it: should render JuiceFS CSI config and host PVC when enabled
+    values:
+      - ./values/sandboxes-enabled.yaml
+    template: sandboxes/juicefs-csi.yaml
+    documentIndex: 0
+    asserts:
+      - isKind:
+          of: Secret
+      - equal:
+          path: stringData.name
+          value: sandbox-juicefs
+      - equal:
+          path: stringData.metaurl
+          value: redis://langsmith-redis.default.svc.cluster.local:6379/1
+
+  - it: should pre-bind JuiceFS PV to the release PVC
+    values:
+      - ./values/sandboxes-enabled.yaml
+    template: sandboxes/juicefs-csi.yaml
+    documentIndex: 1
+    asserts:
+      - isKind:
+          of: PersistentVolume
+      - equal:
+          path: spec.claimRef.namespace
+          value: NAMESPACE
+      - equal:
+          path: spec.claimRef.name
+          value: smithbox-juicefs-csi
+
+  - it: should bind JuiceFS PVC to the release PV
+    values:
+      - ./values/sandboxes-enabled.yaml
+    template: sandboxes/juicefs-csi.yaml
+    documentIndex: 2
+    asserts:
+      - isKind:
+          of: PersistentVolumeClaim
+      - equal:
+          path: spec.volumeName
+          value: smithbox-juicefs-csi
+
+  - it: should render JuiceFS CSI host PV when enabled
+    values:
+      - ./values/sandboxes-enabled.yaml
+    template: sandboxes/juicefs-csi.yaml
+    documentIndex: 3
+    asserts:
+      - isKind:
+          of: PersistentVolume
+      - equal:
+          path: metadata.name
+          value: smithbox-juicefs-csi-host
+      - equal:
+          path: spec.claimRef.namespace
+          value: NAMESPACE
+      - equal:
+          path: spec.claimRef.name
+          value: smithbox-juicefs-csi-host
+      - equal:
+          path: spec.csi.volumeHandle
+          value: smithbox-juicefs-csi-host
+      - equal:
+          path: spec.csi.driver
+          value: csi.juicefs.com
+      - equal:
+          path: spec.csi.nodePublishSecretRef.name
+          value: juicefs-csi-config
+      - equal:
+          path: spec.csi.nodePublishSecretRef.namespace
+          value: NAMESPACE
+
+  - it: should bind JuiceFS host PVC to the host PV
+    values:
+      - ./values/sandboxes-enabled.yaml
+    template: sandboxes/juicefs-csi.yaml
+    documentIndex: 4
+    asserts:
+      - isKind:
+          of: PersistentVolumeClaim
+      - equal:
+          path: spec.volumeName
+          value: smithbox-juicefs-csi-host
+
+  - it: should allow an externally managed JuiceFS CSI config Secret
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      config.sandboxes.juicefs.redis.metaURL: ""
+      config.sandboxes.juicefs.bucket: ""
+      config.sandboxes.juicefs.csi.existingSecretName: external-juicefs-csi-config
+    template: sandboxes/juicefs-csi.yaml
+    documentIndex: 2
+    asserts:
+      - isKind:
+          of: PersistentVolume
+      - equal:
+          path: metadata.name
+          value: smithbox-juicefs-csi-host
+      - equal:
+          path: spec.csi.nodePublishSecretRef.name
+          value: external-juicefs-csi-config
+      - equal:
+          path: spec.csi.nodePublishSecretRef.namespace
+          value: NAMESPACE
+
+  - it: should not require JuiceFS config values when using an externally managed CSI config Secret
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      config.sandboxes.juicefs.redis.metaURL: ""
+      config.sandboxes.juicefs.bucket: ""
+      config.sandboxes.juicefs.csi.existingSecretName: external-juicefs-csi-config
+    template: validate.yaml
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: should mount the derived JuiceFS host PVC on sandbox-host
+    values:
+      - ./values/sandboxes-enabled.yaml
+    template: sandboxes/sandbox-host-deployment.yaml
+    asserts:
+      - equal:
+          path: spec.template.spec.volumes[0].persistentVolumeClaim.claimName
+          value: smithbox-juicefs-csi-host
+
+  - it: should fail when sandboxes are enabled without image tags
+    set:
+      config.existingSecretName: langsmith-secrets
+      config.oauth.enabled: true
+      config.authType: oauth
+      config.sandboxes.enabled: true
+      config.sandboxes.juicefs.redis.metaURL: redis://langsmith-redis.default.svc.cluster.local:6379/1
+      config.sandboxes.juicefs.bucket: s3://langsmith-sandboxes-test
+      images.sandboxHostImage.repository: example.com/langsmith/sandbox-host
+    template: validate.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: "images.sandboxHostImage.tag is required when config.sandboxes.enabled is true."
+
+  - it: should fail when JuiceFS name is invalid
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      config.sandboxes.juicefs.name: Sandbox_JuiceFS
+    template: validate.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: "config.sandboxes.juicefs.name must be a DNS-label-style JuiceFS volume name: 3-63 characters, lowercase letters, numbers, and hyphens only. Do not use slashes or object-store subpaths here."
+
+  - it: should fail when JuiceFS name contains a slash
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      config.sandboxes.juicefs.name: sandbox/juicefs
+    template: validate.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: "config.sandboxes.juicefs.name must be a DNS-label-style JuiceFS volume name: 3-63 characters, lowercase letters, numbers, and hyphens only. Do not use slashes or object-store subpaths here."
+
+  - it: should fail when AWS JuiceFS bucket uses s3 shorthand
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      config.sandboxes.juicefs.storage: s3
+      config.sandboxes.juicefs.bucket: s3://langsmith-sandboxes-test
+    template: validate.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: "config.sandboxes.juicefs.bucket must use a region-explicit S3 endpoint URL such as https://bucket-name.s3.us-west-2.amazonaws.com when config.sandboxes.juicefs.storage is s3. The s3://bucket shorthand makes JuiceFS infer region with GetBucketLocation and is not supported."
+
+  - it: should allow GCP JuiceFS storage
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      config.sandboxes.juicefs.storage: gs
+      config.sandboxes.juicefs.bucket: gs://langsmith-sandboxes-test
+    template: validate.yaml
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: should fail when sandbox JuiceFS storage is unsupported
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      config.sandboxes.juicefs.storage: azure
+    template: validate.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: "config.sandboxes.juicefs.storage currently supports only s3 for AWS/EKS and gs for GCP/GKE. Azure-backed sandbox storage is not supported yet."
+
+  - it: should fail when sandbox service URL base URL does not use HTTP or HTTPS
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      config.sandboxes.serviceUrlBaseUrl: sandbox-services.example.com
+    template: validate.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: "config.sandboxes.serviceUrlBaseUrl must start with http:// or https://."
+
+  - it: should fail when sandbox service URL base URL contains a path
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      config.sandboxes.serviceUrlBaseUrl: https://sandbox-services.example.com/path
+    template: validate.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: "config.sandboxes.serviceUrlBaseUrl must not include a path, query string, or fragment."
+
+  - it: should fail when sandbox service URL base URL contains a query string
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      config.sandboxes.serviceUrlBaseUrl: https://sandbox-services.example.com?foo=bar
+    template: validate.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: "config.sandboxes.serviceUrlBaseUrl must not include a path, query string, or fragment."
+
+  - it: should fail when sandbox service URL base URL contains a fragment
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      config.sandboxes.serviceUrlBaseUrl: https://sandbox-services.example.com#fragment
+    template: validate.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: "config.sandboxes.serviceUrlBaseUrl must not include a path, query string, or fragment."
+
+  - it: should fail when chart ingress would render an invalid sandbox service URL host
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      config.sandboxes.serviceUrlBaseUrl: https://sandbox-services.example.com:8443
+      ingress.enabled: true
+    template: validate.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: "config.sandboxes.serviceUrlBaseUrl host must be a DNS hostname without a port when ingress.enabled is true."
+
+  - it: should fail when existing app Secret is used with chart-provided sandbox service auth secret
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      config.sandboxes.xServiceAuthJwtSecret: test-sandbox-jwt
+    template: validate.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: "config.sandboxes.xServiceAuthJwtSecret cannot be used when config.existingSecretName is set. Add key sandbox_x_service_auth_jwt_secret to the existing Secret instead."
+
+  - it: should fail when existing app Secret is used with chart-provided previous sandbox service auth secret
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      config.sandboxes.xServiceAuthJwtSecretPrevious: test-previous-sandbox-jwt
+    template: validate.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: "config.sandboxes.xServiceAuthJwtSecretPrevious cannot be used when config.existingSecretName is set. Add key sandbox_x_service_auth_jwt_secret_previous to the existing Secret instead."
+
+  - it: should fail when existing app Secret is used with chart-provided sandbox callback signing JWK
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      config.sandboxes.callbackSigningJwk: test-callback-jwk
+    template: validate.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: "config.sandboxes.callbackSigningJwk cannot be used when config.existingSecretName is set. Add key sandbox_callback_signing_jwk to the existing Secret instead."
+
+  - it: should fail when chart-managed app Secret is missing sandbox callback signing JWK
+    set:
+      config.langsmithLicenseKey: test-license
+      config.apiKeySalt: test-api-key-salt
+      config.oauth.enabled: true
+      config.authType: oauth
+      config.sandboxes.enabled: true
+      config.sandboxes.clusterName: self-hosted-test
+      config.sandboxes.xServiceAuthJwtSecret: test-sandbox-jwt
+      config.sandboxes.juicefs.redis.metaURL: redis://langsmith-redis.default.svc.cluster.local:6379/1
+      config.sandboxes.juicefs.bucket: https://langsmith-sandboxes-test.s3.us-west-2.amazonaws.com
+      images.sandboxHostImage.repository: example.com/langsmith/sandbox-host
+      images.sandboxHostImage.tag: test-sandbox-host
+      insights.encryptionKey: test-insights-encryption-key
+      polly.encryptionKey: test-polly-encryption-key
+    template: validate.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: "config.sandboxes.callbackSigningJwk is required when config.sandboxes.enabled is true and the chart manages the LangSmith app Secret. When config.existingSecretName is set, add key sandbox_callback_signing_jwk to the existing Secret instead."
+
+  - it: should fail when sandbox proxy CA mode is unsupported
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      config.sandboxes.proxyCa.mode: certManager
+    template: validate.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: "config.sandboxes.proxyCa.mode must be one of generatedSecret or existingSecret."
+
+  - it: should fail when raw sandbox env vars conflict with chart-managed platform env
+    values:
+      - ./values/sandboxes-enabled.yaml
+      - ./values/sandboxes-conflicting-env.yaml
+    template: platform-backend/deployment.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: "Duplicate keys detected: [SANDBOX_RUNTIME_V2]"
