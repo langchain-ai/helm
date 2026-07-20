@@ -316,6 +316,10 @@ tests:
           value: Never
       - template: smithdb/migration-job.yaml
         equal:
+          path: spec.backoffLimit
+          value: 3
+      - template: smithdb/migration-job.yaml
+        equal:
           path: spec.template.spec.containers[0].command
           value:
             - "/usr/local/bin/smithdb-with-taskdb-migrations-entrypoint.sh"

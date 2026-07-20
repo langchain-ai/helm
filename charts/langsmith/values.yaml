@@ -1587,8 +1587,8 @@ smithdb:
     job:
       # -- Keep finished migrate-all Jobs around for a day so operators can inspect status/logs.
       ttlSecondsAfterFinished: 86400
-      # -- Do not retry a failed migrate-all; failures should be inspected and re-run deliberately.
-      backoffLimit: 0
+      # -- Retry transient migration Job failures, including taskdb startup races.
+      backoffLimit: 3
       # -- Optional hard deadline for the Job. Leave unset for long-running full migrations.
       activeDeadlineSeconds: null
       restartPolicy: Never
