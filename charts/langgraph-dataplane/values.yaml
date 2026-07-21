@@ -34,7 +34,7 @@ images:
   listenerImage:
     repository: "docker.io/langchain/hosted-langserve-backend"
     pullPolicy: IfNotPresent
-    tag: "0.13.9"
+    tag: "0.13.44"
   redisImage:
     repository: "docker.io/redis"
     pullPolicy: IfNotPresent
@@ -42,7 +42,7 @@ images:
   operatorImage:
     repository: "docker.io/langchain/langgraph-operator"
     pullPolicy: IfNotPresent
-    tag: "0.1.36"
+    tag: "0.1.55"
 
 ingress:
   enabled: true
