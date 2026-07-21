@@ -25,31 +25,6 @@ tests:
       - failedTemplate:
           errorMessage: "smithdb.langsmith.ingestion.enabled must be true when smithdb.langsmith.migration.enabled is true."
 
-  - it: should reject lsm backfill before SmithDB ingestion is enabled
-    values:
-      - ./values/smithdb-enabled.yaml
-    set:
-      config.existingSecretName: langsmith-secret
-      smithdb.langsmith.ingestion.enabled: false
-      smithdb.langsmith.query.enabled: false
-      smithdb.langsmith.lsmBackfill.enabled: true
-    asserts:
-      - failedTemplate:
-          errorMessage: "smithdb.langsmith.ingestion.enabled must be true when smithdb.langsmith.lsmBackfill.enabled is true."
-
-  - it: should reject enabling migration and lsm backfill together
-    values:
-      - ./values/smithdb-enabled.yaml
-    set:
-      config.existingSecretName: langsmith-secret
-      smithdb.langsmith.query.enabled: false
-      smithdb.langsmith.migration.enabled: true
-      smithdb.langsmith.lsmBackfill.enabled: true
-      smithdb.migration.taskdb.postgres.enabled: true
-    asserts:
-      - failedTemplate:
-          errorMessage: "Only one of smithdb.langsmith.migration.enabled or smithdb.langsmith.lsmBackfill.enabled can be true at the same time."
-
   - it: should reject chart-managed taskdb postgres without a password
     values:
       - ./values/smithdb-enabled.yaml

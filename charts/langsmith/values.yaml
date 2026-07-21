@@ -1236,9 +1236,6 @@ smithdb:
       # -- Runs the SmithDB migration phase and renders the one-shot migrate-all Job plus taskdb Postgres resources.
       # -- Detailed migration and taskdb configuration lives under smithdb.migration.
       enabled: false
-    lsmBackfill:
-      # -- Runs the sequenced SmithDB LSM backfill phase. Requires smithdb.langsmith.migration.enabled to be false.
-      enabled: false
     query:
       # -- Enables SmithDB-powered queries. Requires smithdb.enabled.
       enabled: false

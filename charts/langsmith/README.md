@@ -1056,7 +1056,6 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | smithdb.ingestion.service.labels | object | `{}` |  |
 | smithdb.ingestion.service.port | int | `8082` |  |
 | smithdb.langsmith.ingestion.enabled | bool | `false` | Enables LangSmith run ingestion to also write to SmithDB. Requires smithdb.enabled. |
-| smithdb.langsmith.lsmBackfill.enabled | bool | `false` | Runs the sequenced SmithDB LSM backfill phase. Requires smithdb.langsmith.migration.enabled to be false. |
 | smithdb.langsmith.migration.enabled | bool | `false` | Runs the SmithDB migration phase and renders the one-shot migrate-all Job plus taskdb Postgres resources. Detailed migration and taskdb configuration lives under smithdb.migration. |
 | smithdb.langsmith.query.enabled | bool | `false` | Enables SmithDB-powered run queries. Requires smithdb.enabled. |
 | smithdb.metastoreMigration.command[0] | string | `"/usr/local/bin/smithdb-metastore-migrate-entrypoint.sh"` |  |

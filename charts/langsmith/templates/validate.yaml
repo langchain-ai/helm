@@ -232,9 +232,9 @@ AWS Marketplace Helm template verification).
 {{- fail (printf "smithdb.%s.deployment.replicas must be greater than 0 when smithdb.enabled is true." $workloadName) -}}
 {{- end -}}
 {{- end -}}
-{{- if or .Values.smithdb.langsmith.migration.enabled .Values.smithdb.langsmith.lsmBackfill.enabled -}}
+{{- if .Values.smithdb.langsmith.migration.enabled -}}
 {{- if lt (int .Values.smithdb.ingestion.deployment.replicas) 1 -}}
-{{- fail "smithdb.ingestion.deployment.replicas must be greater than 0 when smithdb.langsmith.migration.enabled or smithdb.langsmith.lsmBackfill.enabled is true." -}}
+{{- fail "smithdb.ingestion.deployment.replicas must be greater than 0 when smithdb.langsmith.migration.enabled is true." -}}
 {{- end -}}
 {{- end -}}
 {{- if and .Values.smithdb.langsmith.migration.enabled (not .Values.smithdb.langsmith.ingestion.enabled) -}}
@@ -242,12 +242,6 @@ AWS Marketplace Helm template verification).
 {{- end -}}
 {{- if and .Values.smithdb.langsmith.migration.enabled (not .Values.clickhouse.enabled) -}}
 {{- fail "clickhouse.enabled must be true when smithdb.langsmith.migration.enabled is true." -}}
-{{- end -}}
-{{- if and .Values.smithdb.langsmith.lsmBackfill.enabled (not .Values.smithdb.langsmith.ingestion.enabled) -}}
-{{- fail "smithdb.langsmith.ingestion.enabled must be true when smithdb.langsmith.lsmBackfill.enabled is true." -}}
-{{- end -}}
-{{- if and .Values.smithdb.langsmith.migration.enabled .Values.smithdb.langsmith.lsmBackfill.enabled -}}
-{{- fail "Only one of smithdb.langsmith.migration.enabled or smithdb.langsmith.lsmBackfill.enabled can be true at the same time." -}}
 {{- end -}}
 {{- if and .Values.smithdb.langsmith.migration.enabled (not .Values.smithdb.migration.taskdb.postgres.enabled) -}}
 {{- fail "smithdb.migration.taskdb.postgres.enabled must be true when smithdb.langsmith.migration.enabled is true." -}}
@@ -299,9 +293,6 @@ AWS Marketplace Helm template verification).
 {{- end -}}
 {{- if and .Values.smithdb.langsmith.migration.enabled (not .Values.smithdb.enabled) -}}
 {{- fail "smithdb.enabled must be true when smithdb.langsmith.migration.enabled is true." -}}
-{{- end -}}
-{{- if and .Values.smithdb.langsmith.lsmBackfill.enabled (not .Values.smithdb.enabled) -}}
-{{- fail "smithdb.enabled must be true when smithdb.langsmith.lsmBackfill.enabled is true." -}}
 {{- end -}}
 {{- if and .Values.smithdb.langsmith.ingestion.enabled (not .Values.smithdb.enabled) -}}
 {{- fail "smithdb.enabled must be true when smithdb.langsmith.ingestion.enabled is true." -}}
