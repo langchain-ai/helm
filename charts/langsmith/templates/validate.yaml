@@ -16,6 +16,19 @@ AWS Marketplace Helm template verification).
 ================================================================================
 */}}
 
+{{- /* Data mode flags are template predicates, so require real booleans even when optional validation is skipped. */ -}}
+{{- if not (kindIs "bool" .Values.clickhouse.enabled) -}}
+{{- fail "clickhouse.enabled must be a boolean. Do not quote true or false." -}}
+{{- end -}}
+{{- if not (kindIs "bool" .Values.smithdb.langsmith.ingestion.enabled) -}}
+{{- fail "smithdb.langsmith.ingestion.enabled must be a boolean. Do not quote true or false." -}}
+{{- end -}}
+{{- if not (kindIs "bool" .Values.smithdb.langsmith.migration.enabled) -}}
+{{- fail "smithdb.langsmith.migration.enabled must be a boolean. Do not quote true or false." -}}
+{{- end -}}
+{{- if not (kindIs "bool" .Values.smithdb.langsmith.query.enabled) -}}
+{{- fail "smithdb.langsmith.query.enabled must be a boolean. Do not quote true or false." -}}
+{{- end -}}
 {{- if not .Values.config.skipValidation -}}
 
 {{- /* Validate deprecated fleet server value keys */ -}}
@@ -30,6 +43,24 @@ AWS Marketplace Helm template verification).
 {{- end -}}
 {{- if hasKey .Values.images "agentBuilderTriggerServerImage" -}}
 {{- fail "images.agentBuilderTriggerServerImage is deprecated. Please use images.fleetTriggerServerImage." -}}
+{{- end -}}
+{{- if hasKey .Values.smithdb.langsmith "dualIngest" -}}
+{{- $legacySmithdbDualIngest := get .Values.smithdb.langsmith "dualIngest" -}}
+{{- if eq (lower (toString (get $legacySmithdbDualIngest "enabled"))) "true" -}}
+{{- fail "smithdb.langsmith.dualIngest.enabled is no longer supported. Use smithdb.langsmith.ingestion.enabled." -}}
+{{- end -}}
+{{- end -}}
+{{- if hasKey .Values.smithdb.langsmith "frontend" -}}
+{{- $legacySmithdbFrontend := get .Values.smithdb.langsmith "frontend" -}}
+{{- if eq (lower (toString (get $legacySmithdbFrontend "useSmithDBEndpoints"))) "true" -}}
+{{- fail "smithdb.langsmith.frontend.useSmithDBEndpoints is no longer supported. Use smithdb.langsmith.query.enabled." -}}
+{{- end -}}
+{{- end -}}
+{{- if hasKey .Values.smithdb.langsmith "lsmBackfill" -}}
+{{- $legacySmithdbLsmBackfill := get .Values.smithdb.langsmith "lsmBackfill" -}}
+{{- if eq (lower (toString (get $legacySmithdbLsmBackfill "enabled"))) "true" -}}
+{{- fail "smithdb.langsmith.lsmBackfill.enabled is no longer supported. Remove it and follow the SmithDB migration guidance for this chart version." -}}
+{{- end -}}
 {{- end -}}
 
 {{- /* Validate ingress configuration */ -}}

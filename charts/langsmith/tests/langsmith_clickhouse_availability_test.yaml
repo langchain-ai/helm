@@ -56,6 +56,11 @@ tests:
           path: spec.template.spec.containers[0].env
           content:
             name: CLICKHOUSE_PASSWORD
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: FF_CH_SEARCH_ENABLED
+            value: "false"
 
   - it: should disable ClickHouse application modes when disabled
     values:
@@ -76,11 +81,15 @@ tests:
       - equal:
           path: data.SMITHDB_QUERY_ENABLED
           value: "true"
+      - equal:
+          path: data.ENABLE_CLICKHOUSE_METRICS_CRON
+          value: "false"
 
   - it: should use external ClickHouse without in-chart resources
     set:
       clickhouse.external.enabled: true
       clickhouse.external.host: clickhouse.example.com
+      clickhouse.pdb.enabled: true
     templates:
       - clickhouse/config-map.yaml
       - clickhouse/pdb.yaml

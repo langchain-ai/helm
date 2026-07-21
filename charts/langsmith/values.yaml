@@ -1230,7 +1230,7 @@ smithdb:
   # -- LangSmith configuration for SmithDB.
   langsmith:
     ingestion:
-      # -- Enables LangSmith run ingestion to write to SmithDB. Requires smithdb.enabled.
+      # -- Enables LangSmith run ingestion via SmithDB. When ClickHouse is enabled, ingestion writes to both backends. Requires smithdb.enabled.
       enabled: false
     migration:
       # -- Runs the SmithDB migration phase and renders the one-shot migrate-all Job plus taskdb Postgres resources.
@@ -1978,11 +1978,12 @@ backend:
     ttlSecondsAfterFinished: 600
 
 clickhouse:
-  # -- Enable ClickHouse for ingestion and queries. Set clickhouse.external.enabled=true to use an external instance.
+  # -- Enable ClickHouse for ingestion and queries. To use an external instance, keep this true and set clickhouse.external.enabled=true.
   #
-  # WARNING: DISABLING CLICKHOUSE REMOVES THE IN-CHART CLICKHOUSE WORKLOAD ON THE NEXT HELM UPGRADE.
+  # WARNING: DISABLING CLICKHOUSE OR SWITCHING TO AN EXTERNAL INSTANCE REMOVES THE IN-CHART
+  # CLICKHOUSE WORKLOAD ON THE NEXT HELM UPGRADE.
   # BACK UP YOUR CLICKHOUSE DATA FIRST. DEPENDING ON YOUR STATEFULSET/PVC RETENTION CONFIGURATION,
-  # DISABLING CLICKHOUSE CAN PERMANENTLY DELETE DATA OR LEAVE IT ORPHANED AND INACCESSIBLE.
+  # THIS CAN PERMANENTLY DELETE DATA OR LEAVE IT ORPHANED AND INACCESSIBLE.
   enabled: true
   name: "clickhouse"
   disableSecretCreation: false

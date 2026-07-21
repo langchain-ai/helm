@@ -5,7 +5,7 @@
   value: {{ .Values.polly.enabled | quote }}
 {{- if .Values.smithdb.langsmith.query.enabled }}
 - name: VITE_SELF_HOSTED_SMITHDB_V2_ENDPOINTS_ENABLED
-  value: "true"
+  value: {{ .Values.smithdb.langsmith.query.enabled | quote }}
 {{- end }}
 {{- /* Agent Builder OAuth provider IDs for frontend */ -}}
 {{- $googleOAuth := .Values.config.agentBuilder.oauth.googleOAuthProvider | default .Values.fleet.oauth.googleOAuthProvider }}

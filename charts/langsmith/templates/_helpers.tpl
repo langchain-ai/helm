@@ -432,7 +432,7 @@ Template containing common environment variables that are used by several servic
 {{- end }}
 {{- end }}
 - name: FF_CH_SEARCH_ENABLED
-  value: {{ ternary "false" .Values.config.blobStorage.chSearchEnabled .Values.clickhouse.external.hybrid | quote }}
+  value: {{ and .Values.clickhouse.enabled (not .Values.clickhouse.external.hybrid) .Values.config.blobStorage.chSearchEnabled | quote }}
 {{ include "langsmith.conditionalEnvVarsResolved" . }}
 - name: REDIS_RUNS_EXPIRY_SECONDS
   value: {{ .Values.config.settings.redisRunsExpirySeconds | quote }}
