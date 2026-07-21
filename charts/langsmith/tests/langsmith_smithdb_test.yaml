@@ -173,6 +173,17 @@ tests:
           path: data.SMITHDB_QUERY_ENABLED
           value: "false"
 
+  - it: should wire frontend SmithDB v2 endpoint flag when enabled
+    values:
+      - ./values/smithdb-enabled.yaml
+    template: frontend/deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: VITE_SELF_HOSTED_SMITHDB_V2_ENDPOINTS_ENABLED
+            value: "true"
+
   - it: should skip all smithdb resources when disabled
     values:
       - ./values/smithdb-enabled.yaml
@@ -225,6 +236,20 @@ tests:
           path: data.SMITHDB_CLUSTER_MANAGER_ENABLED
       - notExists:
           path: data.SMITHDB_CLUSTER_MANAGER_URL
+
+  - it: should omit frontend SmithDB v2 endpoint flag when disabled
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      smithdb.enabled: false
+      smithdb.langsmith.ingestion.enabled: false
+      smithdb.langsmith.query.enabled: false
+    template: frontend/deployment.yaml
+    asserts:
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: VITE_SELF_HOSTED_SMITHDB_V2_ENDPOINTS_ENABLED
 
   - it: should render zero-downtime rollout strategy for smithdb ingestion
     values:
