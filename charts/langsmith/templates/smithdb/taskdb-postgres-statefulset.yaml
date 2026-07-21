@@ -1,0 +1,161 @@
+{{- $taskdb := .Values.smithdb.migration.taskdb.postgres -}}
+{{- if and .Values.smithdb.enabled .Values.smithdb.langsmith.migration.enabled $taskdb.enabled (not $taskdb.external.enabled) }}
+{{- $envVars := concat .Values.commonEnv $taskdb.statefulSet.extraEnv -}}
+{{- include "langsmith.detectDuplicates" $envVars -}}
+{{- $volumes := concat .Values.commonVolumes $taskdb.statefulSet.volumes -}}
+{{- $volumeMounts := concat .Values.commonVolumeMounts $taskdb.statefulSet.volumeMounts -}}
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "langsmith.smithdb.fullname" . }}-{{ $taskdb.name }}
+  namespace: {{ .Values.namespace | default .Release.Namespace }}
+  labels:
+    {{- include "langsmith.labels" . | nindent 4 }}
+    app.kubernetes.io/component: {{ include "langsmith.smithdb.fullname" . }}-{{ $taskdb.name }}
+    {{- with $taskdb.statefulSet.labels }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+  annotations:
+    {{- include "langsmith.annotations" . | nindent 4 }}
+    {{- with $taskdb.statefulSet.annotations }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  serviceName: {{ include "langsmith.smithdb.fullname" . }}-{{ $taskdb.name }}
+  replicas: 1
+  {{- with $taskdb.statefulSet.updateStrategy }}
+  updateStrategy:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "langsmith.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: {{ include "langsmith.smithdb.fullname" . }}-{{ $taskdb.name }}
+  template:
+    metadata:
+      annotations:
+        {{- include "langsmith.commonPodAnnotations" . | nindent 8 }}
+        {{- with $taskdb.statefulSet.annotations }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+      labels:
+        {{- include "langsmith.labels" . | nindent 8 }}
+        app.kubernetes.io/component: {{ include "langsmith.smithdb.fullname" . }}-{{ $taskdb.name }}
+        {{- with $taskdb.statefulSet.labels }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      terminationGracePeriodSeconds: {{ $taskdb.statefulSet.terminationGracePeriodSeconds }}
+      {{- with .Values.images.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{- include "langsmith.podSecurityContext" (dict "Values" .Values "componentSecurityContext" $taskdb.statefulSet.podSecurityContext) | nindent 8 }}
+      {{- include "langsmith.dnsConfig" . | nindent 6 }}
+      {{- with concat .Values.commonInitContainers $taskdb.statefulSet.initContainers }}
+      initContainers:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: {{ $taskdb.name }}
+          {{- with $taskdb.statefulSet.command }}
+          command:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          env:
+            - name: POSTGRES_DB
+              value: {{ $taskdb.auth.database | quote }}
+            - name: POSTGRES_USER
+              value: {{ $taskdb.auth.username | quote }}
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "langsmith.smithdb.taskdbPostgresSecretName" . }}
+                  key: {{ $taskdb.auth.passwordSecretKey }}
+            - name: PGDATA
+              value: /var/lib/postgresql/data/postgres
+            {{- with $envVars }}
+              {{- toYaml . | nindent 12 }}
+            {{- end }}
+          image: {{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "postgresImage") | quote }}
+          imagePullPolicy: {{ .Values.images.postgresImage.pullPolicy }}
+          ports:
+            - name: postgres
+              containerPort: {{ $taskdb.containerPort }}
+              protocol: TCP
+          {{- with $taskdb.statefulSet.startupProbe }}
+          startupProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with $taskdb.statefulSet.livenessProbe }}
+          livenessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with $taskdb.statefulSet.readinessProbe }}
+          readinessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          resources:
+            {{- toYaml $taskdb.statefulSet.resources | nindent 12 }}
+          securityContext:
+            {{- toYaml $taskdb.statefulSet.securityContext | nindent 12 }}
+          volumeMounts:
+            {{- with $volumeMounts }}
+              {{- toYaml . | nindent 12 }}
+            {{- end }}
+            {{- if $taskdb.statefulSet.persistence.enabled }}
+            - mountPath: /var/lib/postgresql/data
+              name: data
+              subPath: postgres
+            {{- end }}
+          {{- with $taskdb.statefulSet.extraContainerConfig }}
+            {{- toYaml . | nindent 10 }}
+          {{- end }}
+        {{- with $taskdb.statefulSet.sidecars }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- with $taskdb.statefulSet.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with $taskdb.statefulSet.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with $taskdb.statefulSet.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with $taskdb.statefulSet.topologySpreadConstraints }}
+      topologySpreadConstraints:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with $volumes }}
+      volumes:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+  {{- if $taskdb.statefulSet.persistence.enabled }}
+  {{- with $taskdb.statefulSet.persistentVolumeClaimRetentionPolicy }}
+  persistentVolumeClaimRetentionPolicy:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  volumeClaimTemplates:
+    - apiVersion: v1
+      kind: PersistentVolumeClaim
+      metadata:
+        name: data
+        labels:
+          {{- include "langsmith.selectorLabels" . | nindent 10 }}
+          app.kubernetes.io/component: {{ include "langsmith.smithdb.fullname" . }}-{{ $taskdb.name }}
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: {{ $taskdb.statefulSet.persistence.size }}
+        {{- if $taskdb.statefulSet.persistence.storageClassName }}
+        storageClassName: {{ $taskdb.statefulSet.persistence.storageClassName }}
+        {{- end }}
+  {{- end }}
+{{- end }}

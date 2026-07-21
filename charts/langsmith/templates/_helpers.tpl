@@ -499,6 +499,20 @@ SmithDB resource name prefix.
 {{- end }}
 
 {{/*
+Name of the secret containing credentials for the SmithDB migration taskdb Postgres.
+*/}}
+{{- define "langsmith.smithdb.taskdbPostgresSecretName" -}}
+{{- $taskdb := .Values.smithdb.migration.taskdb.postgres -}}
+{{- if and $taskdb.external.enabled $taskdb.external.existingSecretName }}
+{{- $taskdb.external.existingSecretName }}
+{{- else if and (not $taskdb.external.enabled) $taskdb.auth.existingSecretName }}
+{{- $taskdb.auth.existingSecretName }}
+{{- else }}
+{{- printf "%s-%s" (include "langsmith.smithdb.fullname" .) $taskdb.name | trunc 63 | trimSuffix "-" }}
+{{- end }}
+{{- end }}
+
+{{/*
 Name of a SmithDB component Service or Deployment.
 Args: root, component.
 */}}
@@ -613,15 +627,6 @@ Args: root, service, displayName.
   value: {{ $displayName | quote }}
 - name: RUST_LOG
   value: {{ $logLevel | quote }}
-{{- if $tracingEnabled }}
-- name: OTEL_EXPORTER_OTLP_ENDPOINT
-  value: {{ $root.Values.smithdb.config.observability.tracing.endpoint | quote }}
-{{- /* SmithDB exports OTLP over gRPC. */}}
-- name: OTEL_EXPORTER_OTLP_PROTOCOL
-  value: "grpc"
-{{- end }}
-- name: OTEL_SERVICE_NAME
-  value: {{ $displayName | quote }}
 - name: NODE_IP
   valueFrom:
     fieldRef:
@@ -643,6 +648,15 @@ Args: root, service, displayName.
     fieldRef:
       fieldPath: status.podIP
 - name: CONTAINER_NAME
+  value: {{ $displayName | quote }}
+{{- if $tracingEnabled }}
+- name: OTEL_EXPORTER_OTLP_ENDPOINT
+  value: {{ $root.Values.smithdb.config.observability.tracing.endpoint | quote }}
+{{- /* SmithDB exports OTLP over gRPC. */}}
+- name: OTEL_EXPORTER_OTLP_PROTOCOL
+  value: "grpc"
+{{- end }}
+- name: OTEL_SERVICE_NAME
   value: {{ $displayName | quote }}
 - name: OTEL_RESOURCE_ATTRIBUTES
   value: {{ include "langsmith.smithdb.otelResourceAttributes" $root | quote }}

@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.16.0-rc.12](https://img.shields.io/badge/Version-0.16.0--rc.12-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.16.13rc1](https://img.shields.io/badge/AppVersion-0.16.13rc1-informational?style=flat-square)
+![Version: 0.16.0-rc.13](https://img.shields.io/badge/Version-0.16.0--rc.13-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.16.13rc1](https://img.shields.io/badge/AppVersion-0.16.13rc1-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -862,7 +862,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | polly.redis.statefulSet.updateStrategy | object | `{}` | Optional StatefulSet update strategy for the in-chart Polly Redis instance. Leave unset to keep the Kubernetes default RollingUpdate behavior. |
 | polly.redis.statefulSet.volumeMounts | list | `[]` |  |
 | polly.redis.statefulSet.volumes | list | `[]` |  |
-| preInstallManifests | list | `[]` | annotations, idempotency rules, and caveats. Example: preInstallManifests:   - apiVersion: external-secrets.io/v1beta1     kind: ExternalSecret     metadata:       name: langsmith-app     spec:       refreshInterval: 1h       secretStoreRef:         name: vault-backend         kind: ClusterSecretStore       target:         name: langsmith-app-secret         creationPolicy: Orphan       data:         - secretKey: langsmith_license_key           remoteRef:             key: secret/langsmith/app             property: langsmith_license_key |
+| preInstallManifests | list | `[]` | annotations, ExternalSecret-only validation, idempotency rules, and caveats. Example: preInstallManifests:   - apiVersion: external-secrets.io/v1beta1     kind: ExternalSecret     metadata:       name: langsmith-app     spec:       refreshInterval: 1h       secretStoreRef:         name: vault-backend         kind: ClusterSecretStore       target:         name: langsmith-app-secret         creationPolicy: Orphan       data:         - secretKey: langsmith_license_key           remoteRef:             key: secret/langsmith/app             property: langsmith_license_key |
 | smithdb.clusterManager.containerGrpcPort | int | `8091` |  |
 | smithdb.clusterManager.containerPort | int | `8090` |  |
 | smithdb.clusterManager.deployment.affinity | object | `{}` |  |

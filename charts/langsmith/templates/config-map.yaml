@@ -45,9 +45,9 @@ data:
   {{- $smithdbQueryUrl := include "langsmith.smithdb.grpcServiceUrl" (dict "root" . "component" "query" "port" .Values.smithdb.query.service.port) }}
   SMITHDB_QUERY_SERVICE_URL: {{ $smithdbQueryUrl | quote }}
   SMITHDB_QUERY_ENABLED: "true"
-  SMITHDB_MUTATIONS_SERVICE_URL: {{ $smithdbQueryUrl | quote }}
   {{- end }}
   {{- if and .Values.smithdb.enabled .Values.smithdb.langsmith.dualIngest.enabled }}
+  SMITHDB_MUTATIONS_SERVICE_URL: {{ include "langsmith.smithdb.grpcServiceUrl" (dict "root" . "component" "query" "port" .Values.smithdb.query.service.port) | quote }}
   SMITHDB_INGESTION_SERVICE_URL: {{ include "langsmith.smithdb.grpcServiceUrl" (dict "root" . "component" "ingestion" "port" .Values.smithdb.ingestion.service.port) | quote }}
   SMITHDB_INGESTION_ENABLED: "true"
   SMITHDB_INGEST_ORGS_ROLLOUT_PCT: "100"

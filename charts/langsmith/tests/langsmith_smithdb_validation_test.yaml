@@ -1,0 +1,80 @@
+suite: test smithdb phase validation
+templates:
+  - validate.yaml
+tests:
+  - it: should reject smithdb without query replicas
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      config.existingSecretName: langsmith-secret
+      smithdb.query.deployment.replicas: 0
+    asserts:
+      - failedTemplate:
+          errorMessage: "smithdb.query.deployment.replicas must be greater than 0 when smithdb.enabled is true."
+
+  - it: should reject migration before dual ingest is enabled
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      config.existingSecretName: langsmith-secret
+      smithdb.langsmith.dualIngest.enabled: false
+      smithdb.langsmith.frontend.useSmithDBEndpoints: false
+      smithdb.langsmith.migration.enabled: true
+      smithdb.migration.taskdb.postgres.enabled: true
+    asserts:
+      - failedTemplate:
+          errorMessage: "smithdb.langsmith.dualIngest.enabled must be true when smithdb.langsmith.migration.enabled is true."
+
+  - it: should reject lsm backfill before dual ingest is enabled
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      config.existingSecretName: langsmith-secret
+      smithdb.langsmith.dualIngest.enabled: false
+      smithdb.langsmith.frontend.useSmithDBEndpoints: false
+      smithdb.langsmith.lsmBackfill.enabled: true
+    asserts:
+      - failedTemplate:
+          errorMessage: "smithdb.langsmith.dualIngest.enabled must be true when smithdb.langsmith.lsmBackfill.enabled is true."
+
+  - it: should reject enabling migration and lsm backfill together
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      config.existingSecretName: langsmith-secret
+      smithdb.langsmith.frontend.useSmithDBEndpoints: false
+      smithdb.langsmith.migration.enabled: true
+      smithdb.langsmith.lsmBackfill.enabled: true
+      smithdb.migration.taskdb.postgres.enabled: true
+    asserts:
+      - failedTemplate:
+          errorMessage: "Only one of smithdb.langsmith.migration.enabled or smithdb.langsmith.lsmBackfill.enabled can be true at the same time."
+
+  - it: should reject chart-managed taskdb postgres without a password
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      config.existingSecretName: langsmith-secret
+      smithdb.langsmith.frontend.useSmithDBEndpoints: false
+      smithdb.langsmith.migration.enabled: true
+      smithdb.migration.taskdb.postgres.enabled: true
+    asserts:
+      - failedTemplate:
+          errorMessage: "smithdb.migration.taskdb.postgres.auth.password is required when smithdb.migration.taskdb.postgres.enabled is true and auth.existingSecretName is not set."
+
+  - it: should reject external taskdb postgres without a password
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      config.existingSecretName: langsmith-secret
+      smithdb.langsmith.frontend.useSmithDBEndpoints: false
+      smithdb.langsmith.migration.enabled: true
+      smithdb.migration.taskdb.postgres.enabled: true
+      smithdb.migration.taskdb.postgres.external.enabled: true
+      smithdb.migration.taskdb.postgres.external.host: external-taskdb
+      smithdb.migration.taskdb.postgres.external.database: external_taskdb
+      smithdb.migration.taskdb.postgres.external.username: external_user
+    asserts:
+      - failedTemplate:
+          errorMessage: "smithdb.migration.taskdb.postgres.external.password is required when smithdb.migration.taskdb.postgres.external.enabled is true and external.existingSecretName is not set."
+

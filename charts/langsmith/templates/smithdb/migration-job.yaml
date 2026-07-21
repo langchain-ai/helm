@@ -1,0 +1,262 @@
+{{- if and .Values.smithdb.enabled .Values.smithdb.langsmith.migration.enabled }}
+{{- $envVars := concat (include "langsmith.smithdb.componentEnv" (dict "root" . "service" "MIGRATION" "displayName" "smithdb-migration") | fromYamlArray) .Values.smithdb.migration.deployment.extraEnv -}}
+{{- include "langsmith.detectDuplicates" $envVars -}}
+{{- $blobStorage := .Values.config.blobStorage -}}
+{{- $smithdbObjectStore := .Values.smithdb.config.objectStore -}}
+{{- $smithdbObjectStoreType := lower (default "s3" $smithdbObjectStore.type) -}}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "langsmith.smithdb.componentName" (dict "root" . "component" "migration") }}
+  namespace: {{ .Values.namespace | default .Release.Namespace }}
+  labels:
+    {{- include "langsmith.labels" . | nindent 4 }}
+    app.kubernetes.io/component: {{ include "langsmith.smithdb.componentName" (dict "root" . "component" "migration") }}
+    {{- with .Values.smithdb.migration.deployment.labels }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+  annotations:
+    {{- include "langsmith.annotations" . | nindent 4 }}
+    {{- with .Values.smithdb.migration.deployment.annotations }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  backoffLimit: {{ .Values.smithdb.migration.job.backoffLimit }}
+  ttlSecondsAfterFinished: {{ .Values.smithdb.migration.job.ttlSecondsAfterFinished }}
+  {{- with .Values.smithdb.migration.job.activeDeadlineSeconds }}
+  activeDeadlineSeconds: {{ . }}
+  {{- end }}
+  template:
+    metadata:
+      annotations:
+        {{- include "langsmith.commonPodAnnotations" . | nindent 8 }}
+        {{- with .Values.smithdb.migration.deployment.annotations }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+      labels:
+        {{- include "langsmith.labels" . | nindent 8 }}
+        app.kubernetes.io/component: {{ include "langsmith.smithdb.componentName" (dict "root" . "component" "migration") }}
+        {{- with .Values.smithdb.migration.deployment.labels }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      restartPolicy: {{ .Values.smithdb.migration.job.restartPolicy }}
+      terminationGracePeriodSeconds: {{ .Values.smithdb.migration.deployment.terminationGracePeriodSeconds }}
+      {{- with .Values.images.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.smithdb.migration.deployment.podSecurityContext | nindent 8 }}
+      serviceAccountName: {{ include "langsmith.smithdb.serviceAccountName" (dict "root" . "component" "migration") }}
+      {{- include "langsmith.dnsConfig" . | nindent 6 }}
+      {{- with .Values.smithdb.migration.deployment.initContainers }}
+      initContainers:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: {{ .Values.smithdb.migration.name }}
+          command:
+            {{- with .Values.smithdb.migration.deployment.command }}
+            {{- toYaml . | nindent 12 }}
+            {{- else }}
+            - "/usr/local/bin/smithdb-with-taskdb-migrations-entrypoint.sh"
+            {{- end }}
+            {{- if not .Values.clickhouse.external.tls }}
+            - "--allow-insecure"
+            {{- end }}
+            {{- with .Values.smithdb.migration.startTime }}
+            - "--start-time"
+            - {{ . | quote }}
+            {{- end }}
+            {{- with .Values.smithdb.migration.endTime }}
+            - "--end-time"
+            - {{ . | quote }}
+            {{- end }}
+          env:
+            - name: SMITHDB_MIGRATION__HTTP_PORT
+              value: {{ .Values.smithdb.migration.containerPort | quote }}
+            {{- if .Values.smithdb.migration.taskdb.postgres.enabled }}
+            {{- $taskdb := .Values.smithdb.migration.taskdb.postgres }}
+            {{- if $taskdb.external.enabled }}
+            - name: SMITHDB_MIGRATION__TASKDB__HOST
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "langsmith.smithdb.taskdbPostgresSecretName" . }}
+                  key: {{ $taskdb.external.hostSecretKey }}
+            - name: SMITHDB_MIGRATION__TASKDB__PORT
+              value: {{ $taskdb.external.port | quote }}
+            - name: SMITHDB_MIGRATION__TASKDB__DATABASE
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "langsmith.smithdb.taskdbPostgresSecretName" . }}
+                  key: {{ $taskdb.external.databaseSecretKey }}
+            - name: SMITHDB_MIGRATION__TASKDB__USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "langsmith.smithdb.taskdbPostgresSecretName" . }}
+                  key: {{ $taskdb.external.usernameSecretKey }}
+            - name: SMITHDB_MIGRATION__TASKDB__PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "langsmith.smithdb.taskdbPostgresSecretName" . }}
+                  key: {{ $taskdb.external.passwordSecretKey }}
+            - name: SMITHDB_MIGRATION__TASKDB__USE_SSL
+              value: {{ $taskdb.external.useSsl | quote }}
+            {{- else }}
+            {{- $taskdbServiceName := printf "%s-%s" (include "langsmith.smithdb.fullname" .) $taskdb.name | trunc 63 | trimSuffix "-" }}
+            {{- $taskdbHost := printf "%s.%s.svc.%s" $taskdbServiceName (.Values.namespace | default .Release.Namespace) .Values.clusterDomain }}
+            - name: SMITHDB_MIGRATION__TASKDB__HOST
+              value: {{ $taskdbHost | quote }}
+            - name: SMITHDB_MIGRATION__TASKDB__PORT
+              value: {{ $taskdb.service.port | quote }}
+            - name: SMITHDB_MIGRATION__TASKDB__DATABASE
+              value: {{ $taskdb.auth.database | quote }}
+            - name: SMITHDB_MIGRATION__TASKDB__USERNAME
+              value: {{ $taskdb.auth.username | quote }}
+            - name: SMITHDB_MIGRATION__TASKDB__PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "langsmith.smithdb.taskdbPostgresSecretName" . }}
+                  key: {{ $taskdb.auth.passwordSecretKey }}
+            - name: SMITHDB_MIGRATION__TASKDB__USE_SSL
+              value: "false"
+            {{- end }}
+            {{- end }}
+            - name: SMITHDB_MIGRATION__CLICKHOUSE__HOST
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "langsmith.clickhouseSecretsName" . }}
+                  key: {{ .Values.clickhouse.external.hostSecretKey }}
+                  optional: {{ .Values.config.disableSecretCreation }}
+            - name: SMITHDB_MIGRATION__CLICKHOUSE__PORT
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "langsmith.clickhouseSecretsName" . }}
+                  key: {{ .Values.clickhouse.external.portSecretKey }}
+                  optional: {{ .Values.config.disableSecretCreation }}
+            - name: SMITHDB_MIGRATION__CLICKHOUSE__DATABASE
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "langsmith.clickhouseSecretsName" . }}
+                  key: {{ .Values.clickhouse.external.databaseSecretKey }}
+                  optional: {{ .Values.config.disableSecretCreation }}
+            - name: SMITHDB_MIGRATION__CLICKHOUSE__USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "langsmith.clickhouseSecretsName" . }}
+                  key: {{ .Values.clickhouse.external.userSecretKey }}
+                  optional: {{ .Values.config.disableSecretCreation }}
+            - name: SMITHDB_MIGRATION__CLICKHOUSE__PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "langsmith.clickhouseSecretsName" . }}
+                  key: {{ .Values.clickhouse.external.passwordSecretKey }}
+                  optional: {{ .Values.config.disableSecretCreation }}
+            - name: SMITHDB_MIGRATION__BLOB_PREFIX_PATTERN
+              value: "__none__"
+            {{- if and $blobStorage.enabled (or (eq (lower $blobStorage.engine) "s3") (eq (lower $blobStorage.engine) "gcs")) }}
+            - name: SMITHDB_MIGRATION__BLOB_STORE_DEFAULT__TYPE
+              value: "s3"
+            - name: SMITHDB_MIGRATION__BLOB_STORE_DEFAULT__S3__BUCKET
+              value: {{ $blobStorage.bucketName | quote }}
+            - name: SMITHDB_MIGRATION__BLOB_STORE_DEFAULT__S3__ROOT_FOLDER
+              value: "/"
+            - name: SMITHDB_MIGRATION__BLOB_STORE_DEFAULT__S3__ENDPOINT
+              value: {{ $blobStorage.apiURL | quote }}
+            - name: SMITHDB_MIGRATION__BLOB_STORE_DEFAULT__S3__ALLOW_HTTP
+              value: {{ hasPrefix "http://" $blobStorage.apiURL | quote }}
+            - name: SMITHDB_MIGRATION__BLOB_STORE_DEFAULT__S3__ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "langsmith.secretsName" . }}
+                  key: blob_storage_access_key
+                  optional: true
+            - name: SMITHDB_MIGRATION__BLOB_STORE_DEFAULT__S3__SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "langsmith.secretsName" . }}
+                  key: blob_storage_access_key_secret
+                  optional: true
+            {{- end }}
+            - name: SMITHDB_MIGRATION__OUTPUT__OBJECT_STORE__TYPE
+              value: {{ $smithdbObjectStoreType | quote }}
+            {{- if eq $smithdbObjectStoreType "s3" }}
+            - name: SMITHDB_MIGRATION__OUTPUT__OBJECT_STORE__S3__BUCKET
+              value: {{ $smithdbObjectStore.bucket | quote }}
+            - name: SMITHDB_MIGRATION__OUTPUT__OBJECT_STORE__S3__ROOT_FOLDER
+              value: "smithdb"
+            {{- with $smithdbObjectStore.s3.region }}
+            - name: SMITHDB_MIGRATION__OUTPUT__OBJECT_STORE__S3__REGION
+              value: {{ . | quote }}
+            {{- end }}
+            {{- with $smithdbObjectStore.s3.endpoint }}
+            - name: SMITHDB_MIGRATION__OUTPUT__OBJECT_STORE__S3__ENDPOINT
+              value: {{ . | quote }}
+            {{- end }}
+            {{- if hasKey $smithdbObjectStore.s3 "allowHttp" }}
+            - name: SMITHDB_MIGRATION__OUTPUT__OBJECT_STORE__S3__ALLOW_HTTP
+              value: {{ $smithdbObjectStore.s3.allowHttp | quote }}
+            {{- end }}
+            {{- if $smithdbObjectStore.s3.accessKeyIdSecretKey }}
+            - name: SMITHDB_MIGRATION__OUTPUT__OBJECT_STORE__S3__ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.smithdb.config.existingSecretName }}
+                  key: {{ $smithdbObjectStore.s3.accessKeyIdSecretKey }}
+            {{- end }}
+            {{- if $smithdbObjectStore.s3.secretAccessKeySecretKey }}
+            - name: SMITHDB_MIGRATION__OUTPUT__OBJECT_STORE__S3__SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.smithdb.config.existingSecretName }}
+                  key: {{ $smithdbObjectStore.s3.secretAccessKeySecretKey }}
+            {{- end }}
+            {{- else if eq $smithdbObjectStoreType "gcs" }}
+            - name: SMITHDB_MIGRATION__OUTPUT__OBJECT_STORE__GCS__BUCKET
+              value: {{ $smithdbObjectStore.bucket | quote }}
+            - name: SMITHDB_MIGRATION__OUTPUT__OBJECT_STORE__GCS__ROOT_FOLDER
+              value: "smithdb"
+            {{- end }}
+            {{- toYaml $envVars | nindent 12 }}
+          image: {{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "smithdbImage") | quote }}
+          imagePullPolicy: {{ .Values.images.smithdbImage.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.smithdb.migration.containerPort }}
+              protocol: TCP
+          resources:
+            {{- toYaml .Values.smithdb.migration.deployment.resources | nindent 12 }}
+          securityContext:
+            {{- toYaml .Values.smithdb.migration.deployment.securityContext | nindent 12 }}
+          {{- with .Values.smithdb.migration.deployment.volumeMounts }}
+          volumeMounts:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.smithdb.migration.deployment.extraContainerConfig }}
+            {{- toYaml . | nindent 10 }}
+          {{- end }}
+        {{- with .Values.smithdb.migration.deployment.sidecars }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- with .Values.smithdb.migration.deployment.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.smithdb.migration.deployment.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.smithdb.migration.deployment.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.smithdb.migration.deployment.topologySpreadConstraints }}
+      topologySpreadConstraints:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.smithdb.migration.deployment.volumes }}
+      volumes:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}
