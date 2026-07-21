@@ -1,0 +1,105 @@
+suite: test ClickHouse availability
+templates:
+  - backend/deployment.yaml
+  - backend/clickhouse-migrations.yaml
+  - clickhouse/config-map.yaml
+  - clickhouse/pdb.yaml
+  - clickhouse/secrets.yaml
+  - clickhouse/service-account.yaml
+  - clickhouse/service.yaml
+  - clickhouse/stateful-set.yaml
+  - config-map.yaml
+  - secrets.yaml
+  - redis/secrets.yaml
+  - postgres/secrets.yaml
+  - frontend/config-map.yaml
+tests:
+  - it: should enable ClickHouse ingestion and queries by default
+    template: config-map.yaml
+    asserts:
+      - equal:
+          path: data.CLICKHOUSE_INGESTION_ENABLED
+          value: "true"
+      - equal:
+          path: data.CLICKHOUSE_QUERY_ENABLED
+          value: "true"
+
+  - it: should omit all in-chart ClickHouse resources when disabled
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      clickhouse.enabled: false
+    templates:
+      - backend/clickhouse-migrations.yaml
+      - clickhouse/config-map.yaml
+      - clickhouse/pdb.yaml
+      - clickhouse/secrets.yaml
+      - clickhouse/service-account.yaml
+      - clickhouse/service.yaml
+      - clickhouse/stateful-set.yaml
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: should omit ClickHouse connection environment when disabled
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      clickhouse.enabled: false
+    template: backend/deployment.yaml
+    asserts:
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: CLICKHOUSE_HOST
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: CLICKHOUSE_PASSWORD
+
+  - it: should disable ClickHouse application modes when disabled
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      clickhouse.enabled: false
+    template: config-map.yaml
+    asserts:
+      - equal:
+          path: data.CLICKHOUSE_INGESTION_ENABLED
+          value: "false"
+      - equal:
+          path: data.CLICKHOUSE_QUERY_ENABLED
+          value: "false"
+      - equal:
+          path: data.SMITHDB_INGESTION_ENABLED
+          value: "true"
+      - equal:
+          path: data.SMITHDB_QUERY_ENABLED
+          value: "true"
+
+  - it: should use external ClickHouse without in-chart resources
+    set:
+      clickhouse.external.enabled: true
+      clickhouse.external.host: clickhouse.example.com
+    templates:
+      - clickhouse/config-map.yaml
+      - clickhouse/pdb.yaml
+      - clickhouse/service-account.yaml
+      - clickhouse/service.yaml
+      - clickhouse/stateful-set.yaml
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: should keep ClickHouse application modes enabled for external ClickHouse
+    set:
+      clickhouse.external.enabled: true
+      clickhouse.external.host: clickhouse.example.com
+    template: config-map.yaml
+    asserts:
+      - equal:
+          path: data.CLICKHOUSE_INGESTION_ENABLED
+          value: "true"
+      - equal:
+          path: data.CLICKHOUSE_QUERY_ENABLED
+          value: "true"

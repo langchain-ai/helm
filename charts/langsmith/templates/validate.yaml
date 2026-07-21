@@ -195,8 +195,11 @@ AWS Marketplace Helm template verification).
 {{- end -}}
 
 {{- /* Validate clickhouse mTLS configuration */ -}}
-{{- if and .Values.clickhouse.external.clientCert.secretName (not .Values.clickhouse.external.existingSecretName) (not .Values.clickhouse.external.tls) -}}
+{{- if and .Values.clickhouse.enabled .Values.clickhouse.external.clientCert.secretName (not .Values.clickhouse.external.existingSecretName) (not .Values.clickhouse.external.tls) -}}
 {{- fail "clickhouse.external.tls must be true when clickhouse.external.clientCert.secretName is set and the value is not being fetched from an existing secret." -}}
+{{- end -}}
+{{- if and (not .Values.clickhouse.enabled) .Values.clickhouse.external.enabled -}}
+{{- fail "clickhouse.external.enabled must be false when clickhouse.enabled is false." -}}
 {{- end -}}
 
 {{- /* Validate SmithDB configuration */ -}}
@@ -234,11 +237,14 @@ AWS Marketplace Helm template verification).
 {{- fail "smithdb.ingestion.deployment.replicas must be greater than 0 when smithdb.langsmith.migration.enabled or smithdb.langsmith.lsmBackfill.enabled is true." -}}
 {{- end -}}
 {{- end -}}
-{{- if and .Values.smithdb.langsmith.migration.enabled (not .Values.smithdb.langsmith.dualIngest.enabled) -}}
-{{- fail "smithdb.langsmith.dualIngest.enabled must be true when smithdb.langsmith.migration.enabled is true." -}}
+{{- if and .Values.smithdb.langsmith.migration.enabled (not .Values.smithdb.langsmith.ingestion.enabled) -}}
+{{- fail "smithdb.langsmith.ingestion.enabled must be true when smithdb.langsmith.migration.enabled is true." -}}
 {{- end -}}
-{{- if and .Values.smithdb.langsmith.lsmBackfill.enabled (not .Values.smithdb.langsmith.dualIngest.enabled) -}}
-{{- fail "smithdb.langsmith.dualIngest.enabled must be true when smithdb.langsmith.lsmBackfill.enabled is true." -}}
+{{- if and .Values.smithdb.langsmith.migration.enabled (not .Values.clickhouse.enabled) -}}
+{{- fail "clickhouse.enabled must be true when smithdb.langsmith.migration.enabled is true." -}}
+{{- end -}}
+{{- if and .Values.smithdb.langsmith.lsmBackfill.enabled (not .Values.smithdb.langsmith.ingestion.enabled) -}}
+{{- fail "smithdb.langsmith.ingestion.enabled must be true when smithdb.langsmith.lsmBackfill.enabled is true." -}}
 {{- end -}}
 {{- if and .Values.smithdb.langsmith.migration.enabled .Values.smithdb.langsmith.lsmBackfill.enabled -}}
 {{- fail "Only one of smithdb.langsmith.migration.enabled or smithdb.langsmith.lsmBackfill.enabled can be true at the same time." -}}
@@ -290,12 +296,6 @@ AWS Marketplace Helm template verification).
 {{- if and .Values.smithdb.enabled (ne (toString .Values.smithdb.compactionWorker.maxConcurrentJobs) "") (lt (int .Values.smithdb.compactionWorker.maxConcurrentJobs) 1) -}}
 {{- fail "smithdb.compactionWorker.maxConcurrentJobs must be greater than 0 when set." -}}
 {{- end -}}
-{{- if and .Values.smithdb.langsmith.dualIngest.enabled (not .Values.smithdb.enabled) -}}
-{{- fail "smithdb.enabled must be true when smithdb.langsmith.dualIngest.enabled is true." -}}
-{{- end -}}
-{{- if and .Values.smithdb.langsmith.frontend.useSmithDBEndpoints (not .Values.smithdb.enabled) -}}
-{{- fail "smithdb.enabled must be true when smithdb.langsmith.frontend.useSmithDBEndpoints is true." -}}
-{{- end -}}
 {{- end -}}
 {{- if and .Values.smithdb.langsmith.migration.enabled (not .Values.smithdb.enabled) -}}
 {{- fail "smithdb.enabled must be true when smithdb.langsmith.migration.enabled is true." -}}
@@ -303,11 +303,17 @@ AWS Marketplace Helm template verification).
 {{- if and .Values.smithdb.langsmith.lsmBackfill.enabled (not .Values.smithdb.enabled) -}}
 {{- fail "smithdb.enabled must be true when smithdb.langsmith.lsmBackfill.enabled is true." -}}
 {{- end -}}
-{{- if and .Values.smithdb.langsmith.dualIngest.enabled (not .Values.smithdb.enabled) -}}
-{{- fail "smithdb.enabled must be true when smithdb.langsmith.dualIngest.enabled is true." -}}
+{{- if and .Values.smithdb.langsmith.ingestion.enabled (not .Values.smithdb.enabled) -}}
+{{- fail "smithdb.enabled must be true when smithdb.langsmith.ingestion.enabled is true." -}}
 {{- end -}}
-{{- if and .Values.smithdb.langsmith.frontend.useSmithDBEndpoints (not .Values.smithdb.enabled) -}}
-{{- fail "smithdb.enabled must be true when smithdb.langsmith.frontend.useSmithDBEndpoints is true." -}}
+{{- if and .Values.smithdb.langsmith.query.enabled (not .Values.smithdb.enabled) -}}
+{{- fail "smithdb.enabled must be true when smithdb.langsmith.query.enabled is true." -}}
+{{- end -}}
+{{- if not (or .Values.clickhouse.enabled .Values.smithdb.langsmith.ingestion.enabled) -}}
+{{- fail "At least one ingestion backend must be enabled: clickhouse.enabled or smithdb.langsmith.ingestion.enabled." -}}
+{{- end -}}
+{{- if not (or .Values.clickhouse.enabled .Values.smithdb.langsmith.query.enabled) -}}
+{{- fail "At least one query backend must be enabled: clickhouse.enabled or smithdb.langsmith.query.enabled." -}}
 {{- end -}}
 
 {{- /* Validate agent builder configuration */ -}}

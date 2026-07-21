@@ -1,4 +1,4 @@
-{{- if not .Values.clickhouse.external.enabled }}
+{{- if and .Values.clickhouse.enabled (not .Values.clickhouse.external.enabled) }}
 apiVersion: v1
 kind: Service
 metadata:

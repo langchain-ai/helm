@@ -139,10 +139,16 @@ tests:
           path: data.SMITHDB_QUERY_ENABLED
           value: "true"
       - equal:
+          path: data.CLICKHOUSE_QUERY_ENABLED
+          value: "true"
+      - equal:
           path: data.SMITHDB_INGESTION_SERVICE_URL
           value: RELEASE-NAME-langsmith-smithdb-ingestion.NAMESPACE.svc.cluster.local:8082
       - equal:
           path: data.SMITHDB_INGESTION_ENABLED
+          value: "true"
+      - equal:
+          path: data.CLICKHOUSE_INGESTION_ENABLED
           value: "true"
       - equal:
           path: data.SMITHDB_MUTATIONS_SERVICE_URL
@@ -151,11 +157,11 @@ tests:
           path: data.SMITHDB_INGEST_ORGS_ROLLOUT_PCT
           value: "100"
 
-  - it: should configure SmithDB mutations through query for dual ingest without frontend endpoints
+  - it: should configure SmithDB ingestion without SmithDB query endpoints
     values:
       - ./values/smithdb-enabled.yaml
     set:
-      smithdb.langsmith.frontend.useSmithDBEndpoints: false
+      smithdb.langsmith.query.enabled: false
     template: config-map.yaml
     asserts:
       - equal:
@@ -163,8 +169,9 @@ tests:
           value: RELEASE-NAME-langsmith-smithdb-query.NAMESPACE.svc.cluster.local:8080
       - notExists:
           path: data.SMITHDB_QUERY_SERVICE_URL
-      - notExists:
+      - equal:
           path: data.SMITHDB_QUERY_ENABLED
+          value: "false"
 
   - it: should wire frontend SmithDB v2 endpoint flag when enabled
     values:
@@ -182,6 +189,8 @@ tests:
       - ./values/smithdb-enabled.yaml
     set:
       smithdb.enabled: false
+      smithdb.langsmith.ingestion.enabled: false
+      smithdb.langsmith.query.enabled: false
     templates:
       - smithdb/query-deployment.yaml
       - smithdb/ingestion-deployment.yaml
@@ -205,18 +214,22 @@ tests:
       - ./values/smithdb-enabled.yaml
     set:
       smithdb.enabled: false
+      smithdb.langsmith.ingestion.enabled: false
+      smithdb.langsmith.query.enabled: false
     template: config-map.yaml
     asserts:
       - notExists:
           path: data.SMITHDB_QUERY_SERVICE_URL
-      - notExists:
+      - equal:
           path: data.SMITHDB_QUERY_ENABLED
+          value: "false"
       - notExists:
           path: data.SMITHDB_MUTATIONS_SERVICE_URL
       - notExists:
           path: data.SMITHDB_INGESTION_SERVICE_URL
-      - notExists:
+      - equal:
           path: data.SMITHDB_INGESTION_ENABLED
+          value: "false"
       - notExists:
           path: data.SMITHDB_INGEST_ORGS_ROLLOUT_PCT
       - notExists:
@@ -229,6 +242,8 @@ tests:
       - ./values/smithdb-enabled.yaml
     set:
       smithdb.enabled: false
+      smithdb.langsmith.ingestion.enabled: false
+      smithdb.langsmith.query.enabled: false
     template: frontend/deployment.yaml
     asserts:
       - notContains:
@@ -298,7 +313,7 @@ tests:
       config.blobStorage.bucketName: langsmith-blob
       config.blobStorage.apiURL: http://blob-store:9000
       smithdb.langsmith.migration.enabled: true
-      smithdb.langsmith.frontend.useSmithDBEndpoints: false
+      smithdb.langsmith.query.enabled: false
       smithdb.migration.taskdb.postgres.enabled: true
       smithdb.migration.taskdb.postgres.auth.password: taskdb-password
     templates:
@@ -417,7 +432,7 @@ tests:
     set:
       clickhouse.external.tls: true
       smithdb.langsmith.migration.enabled: true
-      smithdb.langsmith.frontend.useSmithDBEndpoints: false
+      smithdb.langsmith.query.enabled: false
       smithdb.migration.taskdb.postgres.enabled: true
       smithdb.migration.taskdb.postgres.auth.password: taskdb-password
     template: smithdb/migration-job.yaml
@@ -432,7 +447,7 @@ tests:
       - ./values/smithdb-enabled.yaml
     set:
       smithdb.langsmith.migration.enabled: true
-      smithdb.langsmith.frontend.useSmithDBEndpoints: false
+      smithdb.langsmith.query.enabled: false
       smithdb.migration.startTime: "2024-01-01T00:00:00Z"
       smithdb.migration.endTime: "2025-01-01T00:00:00Z"
       smithdb.migration.taskdb.postgres.enabled: true
@@ -453,7 +468,7 @@ tests:
     values:
       - ./values/smithdb-enabled.yaml
     set:
-      smithdb.langsmith.frontend.useSmithDBEndpoints: false
+      smithdb.langsmith.query.enabled: false
       smithdb.langsmith.lsmBackfill.enabled: true
     template: smithdb/migration-job.yaml
     asserts:
@@ -464,7 +479,7 @@ tests:
     values:
       - ./values/smithdb-enabled.yaml
     set:
-      smithdb.langsmith.frontend.useSmithDBEndpoints: false
+      smithdb.langsmith.query.enabled: false
       smithdb.langsmith.lsmBackfill.enabled: true
     template: smithdb/compaction-deployment.yaml
     asserts:
@@ -507,7 +522,7 @@ tests:
       - ./values/smithdb-enabled.yaml
     set:
       smithdb.langsmith.migration.enabled: true
-      smithdb.langsmith.frontend.useSmithDBEndpoints: false
+      smithdb.langsmith.query.enabled: false
       smithdb.migration.taskdb.postgres.enabled: true
       smithdb.migration.taskdb.postgres.external.enabled: true
       smithdb.migration.taskdb.postgres.external.host: external-taskdb

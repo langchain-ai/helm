@@ -20,7 +20,7 @@ smithdb:
     objectStore:
       bucket: "smithdb-bucket"
   langsmith:
-    dualIngest:
+    ingestion:
       enabled: true
-    frontend:
-      useSmithDBEndpoints: true
+    query:
+      enabled: true
