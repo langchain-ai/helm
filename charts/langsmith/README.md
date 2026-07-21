@@ -1505,7 +1505,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | clickhouse.containerHttpPort | int | `8123` |  |
 | clickhouse.containerNativePort | int | `9000` |  |
 | clickhouse.disableSecretCreation | bool | `false` |  |
-| clickhouse.enabled | bool | `true` | Enable ClickHouse for ingestion and queries. Keep this true when using an external instance. Disabling ClickHouse or switching to an external instance removes the in-chart workload on the next Helm upgrade and can permanently delete or orphan data; back up first. |
+| clickhouse.enabled | bool | `true` | Enable ClickHouse for ingestion and queries. Keep enabled when using external ClickHouse. Disabling ClickHouse or switching to an external instance DELETES the chart-managed workload on upgrade; back up its data first. |
 | clickhouse.external.clientCert.certSecretKey | string | `"tls.crt"` |  |
 | clickhouse.external.clientCert.keySecretKey | string | `"tls.key"` |  |
 | clickhouse.external.clientCert.secretName | string | `""` |  |

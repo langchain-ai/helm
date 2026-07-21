@@ -1978,12 +1978,10 @@ backend:
     ttlSecondsAfterFinished: 600
 
 clickhouse:
-  # -- Enable ClickHouse for ingestion and queries. To use an external instance, keep this true and set clickhouse.external.enabled=true.
+  # -- Enable ClickHouse for ingestion and queries. Keep enabled when using external ClickHouse.
   #
-  # WARNING: DISABLING CLICKHOUSE OR SWITCHING TO AN EXTERNAL INSTANCE REMOVES THE IN-CHART
-  # CLICKHOUSE WORKLOAD ON THE NEXT HELM UPGRADE.
-  # BACK UP YOUR CLICKHOUSE DATA FIRST. DEPENDING ON YOUR STATEFULSET/PVC RETENTION CONFIGURATION,
-  # THIS CAN PERMANENTLY DELETE DATA OR LEAVE IT ORPHANED AND INACCESSIBLE.
+  # WARNING: Disabling ClickHouse or switching to an external instance DELETES the chart-managed
+  # workload on upgrade. Back up its data first; PVCs may be deleted or left orphaned.
   enabled: true
   name: "clickhouse"
   disableSecretCreation: false
