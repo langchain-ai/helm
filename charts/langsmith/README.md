@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.16.0-rc.13](https://img.shields.io/badge/Version-0.16.0--rc.13-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.16.13rc1](https://img.shields.io/badge/AppVersion-0.16.13rc1-informational?style=flat-square)
+![Version: 0.16.0-rc.14](https://img.shields.io/badge/Version-0.16.0--rc.14-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.16.17rc1](https://img.shields.io/badge/AppVersion-0.16.17rc1-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -341,44 +341,44 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | gateway.sectionName | string | `""` |  |
 | images.aceBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.aceBackendImage.repository | string | `"docker.io/langchain/langsmith-ace-backend"` |  |
-| images.aceBackendImage.tag | string | `"0.16.13rc1"` |  |
+| images.aceBackendImage.tag | string | `"0.16.17rc1"` |  |
 | images.agentBuilderImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.agentBuilderImage.repository | string | `"docker.io/langchain/agent-builder-deep-agent"` |  |
-| images.agentBuilderImage.tag | string | `"0.16.13rc1"` |  |
+| images.agentBuilderImage.tag | string | `"0.16.17rc1"` |  |
 | images.backendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.backendImage.repository | string | `"docker.io/langchain/langsmith-backend"` |  |
-| images.backendImage.tag | string | `"0.16.13rc1"` |  |
+| images.backendImage.tag | string | `"0.16.17rc1"` |  |
 | images.clickhouseImage.pullPolicy | string | `"Always"` |  |
 | images.clickhouseImage.repository | string | `"docker.io/clickhouse/clickhouse-server"` |  |
 | images.clickhouseImage.tag | string | `"25.12"` |  |
 | images.fleetToolServerImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.fleetToolServerImage.repository | string | `"docker.io/langchain/agent-builder-tool-server"` |  |
-| images.fleetToolServerImage.tag | string | `"0.16.13rc1"` |  |
+| images.fleetToolServerImage.tag | string | `"0.16.17rc1"` |  |
 | images.fleetTriggerServerImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.fleetTriggerServerImage.repository | string | `"docker.io/langchain/agent-builder-trigger-server"` |  |
-| images.fleetTriggerServerImage.tag | string | `"0.16.13rc1"` |  |
+| images.fleetTriggerServerImage.tag | string | `"0.16.17rc1"` |  |
 | images.frontendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.frontendImage.repository | string | `"docker.io/langchain/langsmith-frontend"` |  |
-| images.frontendImage.tag | string | `"0.16.13rc1"` |  |
+| images.frontendImage.tag | string | `"0.16.17rc1"` |  |
 | images.hostBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.hostBackendImage.repository | string | `"docker.io/langchain/hosted-langserve-backend"` |  |
-| images.hostBackendImage.tag | string | `"0.16.13rc1"` |  |
+| images.hostBackendImage.tag | string | `"0.16.17rc1"` |  |
 | images.imagePullSecrets | list | `[]` | Secrets with credentials to pull images from a private registry. Specified as name: value. |
 | images.insightsAgentImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.insightsAgentImage.repository | string | `"docker.io/langchain/langsmith-clio"` |  |
-| images.insightsAgentImage.tag | string | `"0.16.13rc1"` |  |
+| images.insightsAgentImage.tag | string | `"0.16.17rc1"` |  |
 | images.operatorImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.operatorImage.repository | string | `"docker.io/langchain/langgraph-operator"` |  |
 | images.operatorImage.tag | string | `"0.1.47"` |  |
 | images.platformBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.platformBackendImage.repository | string | `"docker.io/langchain/langsmith-go-backend"` |  |
-| images.platformBackendImage.tag | string | `"0.16.13rc1"` |  |
+| images.platformBackendImage.tag | string | `"0.16.17rc1"` |  |
 | images.playgroundImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.playgroundImage.repository | string | `"docker.io/langchain/langsmith-playground"` |  |
-| images.playgroundImage.tag | string | `"0.16.13rc1"` |  |
+| images.playgroundImage.tag | string | `"0.16.17rc1"` |  |
 | images.pollyAgentImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.pollyAgentImage.repository | string | `"docker.io/langchain/langsmith-polly"` |  |
-| images.pollyAgentImage.tag | string | `"0.16.13rc1"` |  |
+| images.pollyAgentImage.tag | string | `"0.16.17rc1"` |  |
 | images.postgresImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.postgresImage.repository | string | `"docker.io/postgres"` |  |
 | images.postgresImage.tag | string | `"14.7"` |  |
@@ -1058,6 +1058,8 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | smithdb.ingestion.service.port | int | `8082` |  |
 | smithdb.langsmith.dualIngest.enabled | bool | `false` | Enables LangSmith run ingestion to also write to SmithDB. Requires smithdb.enabled. |
 | smithdb.langsmith.frontend.useSmithDBEndpoints | bool | `false` | Defaults the LangSmith UI to SmithDB endpoints for run queries. Requires smithdb.enabled. |
+| smithdb.langsmith.lsmBackfill.enabled | bool | `false` | Runs the sequenced SmithDB LSM backfill phase. Requires smithdb.langsmith.migration.enabled to be false. |
+| smithdb.langsmith.migration.enabled | bool | `false` | Detailed migration and taskdb configuration lives under smithdb.migration. |
 | smithdb.metastoreMigration.command[0] | string | `"/usr/local/bin/smithdb-metastore-migrate-entrypoint.sh"` |  |
 | smithdb.metastoreMigration.job.activeDeadlineSeconds | int | `600` |  |
 | smithdb.metastoreMigration.job.affinity | object | `{}` |  |
@@ -1075,6 +1077,82 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | smithdb.metastoreMigration.job.ttlSecondsAfterFinished | int | `3600` |  |
 | smithdb.metastoreMigration.name | string | `"metastore-migration"` |  |
 | smithdb.metastoreMigration.useSsl | bool | `false` |  |
+| smithdb.migration.containerPort | int | `9040` |  |
+| smithdb.migration.deployment.affinity | object | `{}` |  |
+| smithdb.migration.deployment.annotations | object | `{}` |  |
+| smithdb.migration.deployment.command | list | `["/usr/local/bin/smithdb-with-taskdb-migrations-entrypoint.sh"]` | register non-overlapping jobs, drain the global queue, and exit. Override for another migration mode. |
+| smithdb.migration.deployment.extraContainerConfig | object | `{}` |  |
+| smithdb.migration.deployment.extraEnv | list | `[]` |  |
+| smithdb.migration.deployment.initContainers | list | `[]` |  |
+| smithdb.migration.deployment.labels | object | `{}` |  |
+| smithdb.migration.deployment.nodeSelector | object | `{}` |  |
+| smithdb.migration.deployment.podSecurityContext | object | `{}` |  |
+| smithdb.migration.deployment.resources | object | `{}` |  |
+| smithdb.migration.deployment.securityContext | object | `{}` |  |
+| smithdb.migration.deployment.sidecars | list | `[]` |  |
+| smithdb.migration.deployment.terminationGracePeriodSeconds | int | `120` |  |
+| smithdb.migration.deployment.tolerations | list | `[]` |  |
+| smithdb.migration.deployment.topologySpreadConstraints | list | `[]` |  |
+| smithdb.migration.deployment.volumeMounts | list | `[]` |  |
+| smithdb.migration.deployment.volumes | list | `[]` |  |
+| smithdb.migration.endTime | string | `""` | Optional RFC3339 end bound for migrate-all (half-open window). Empty uses now. |
+| smithdb.migration.job.activeDeadlineSeconds | string | `nil` | Optional hard deadline for the Job. Leave unset for long-running full migrations. |
+| smithdb.migration.job.backoffLimit | int | `0` | Do not retry a failed migrate-all; failures should be inspected and re-run deliberately. |
+| smithdb.migration.job.restartPolicy | string | `"Never"` |  |
+| smithdb.migration.job.ttlSecondsAfterFinished | int | `86400` | Keep finished migrate-all Jobs around for a day so operators can inspect status/logs. |
+| smithdb.migration.name | string | `"migration"` |  |
+| smithdb.migration.startTime | string | `""` | Optional RFC3339 start bound for migrate-all (half-open window). Empty uses end - 400 days. |
+| smithdb.migration.taskdb.postgres.auth | object | `{"database":"smithdb_migration","existingSecretName":"","password":"","passwordSecretKey":"postgres_password","username":"postgres"}` | Credentials for the in-chart taskdb Postgres instance. Used only when external.enabled is false. |
+| smithdb.migration.taskdb.postgres.auth.existingSecretName | string | `""` | Existing secret containing taskdb Postgres credentials. If set, the chart does not create one. |
+| smithdb.migration.taskdb.postgres.auth.password | string | `""` | Password for the chart-managed taskdb Postgres instance. Required unless existingSecretName is set. |
+| smithdb.migration.taskdb.postgres.containerPort | int | `5432` |  |
+| smithdb.migration.taskdb.postgres.enabled | bool | `true` | both the main LangSmith Postgres and the SmithDB metastore. |
+| smithdb.migration.taskdb.postgres.external | object | `{"database":"smithdb_migration","databaseSecretKey":"postgres_db","enabled":false,"existingSecretName":"","host":"","hostSecretKey":"postgres_host","password":"","passwordSecretKey":"postgres_password","port":"5432","useSsl":false,"username":"postgres","usernameSecretKey":"postgres_user"}` | the SmithDB metastore. |
+| smithdb.migration.taskdb.postgres.external.existingSecretName | string | `""` | Existing secret containing external taskdb Postgres connection fields. If set, the chart does not create one. |
+| smithdb.migration.taskdb.postgres.name | string | `"taskdb-postgres"` |  |
+| smithdb.migration.taskdb.postgres.service.annotations | object | `{}` |  |
+| smithdb.migration.taskdb.postgres.service.labels | object | `{}` |  |
+| smithdb.migration.taskdb.postgres.service.port | int | `5432` |  |
+| smithdb.migration.taskdb.postgres.statefulSet.affinity | object | `{}` |  |
+| smithdb.migration.taskdb.postgres.statefulSet.annotations | object | `{}` |  |
+| smithdb.migration.taskdb.postgres.statefulSet.command | list | `[]` |  |
+| smithdb.migration.taskdb.postgres.statefulSet.extraContainerConfig | object | `{}` |  |
+| smithdb.migration.taskdb.postgres.statefulSet.extraEnv | list | `[]` |  |
+| smithdb.migration.taskdb.postgres.statefulSet.initContainers | list | `[]` |  |
+| smithdb.migration.taskdb.postgres.statefulSet.labels | object | `{}` |  |
+| smithdb.migration.taskdb.postgres.statefulSet.livenessProbe.exec.command[0] | string | `"/bin/sh"` |  |
+| smithdb.migration.taskdb.postgres.statefulSet.livenessProbe.exec.command[1] | string | `"-c"` |  |
+| smithdb.migration.taskdb.postgres.statefulSet.livenessProbe.exec.command[2] | string | `"exec pg_isready -d \"$POSTGRES_DB\" -U \"$POSTGRES_USER\""` |  |
+| smithdb.migration.taskdb.postgres.statefulSet.livenessProbe.failureThreshold | int | `6` |  |
+| smithdb.migration.taskdb.postgres.statefulSet.livenessProbe.periodSeconds | int | `10` |  |
+| smithdb.migration.taskdb.postgres.statefulSet.livenessProbe.timeoutSeconds | int | `1` |  |
+| smithdb.migration.taskdb.postgres.statefulSet.nodeSelector | object | `{}` |  |
+| smithdb.migration.taskdb.postgres.statefulSet.persistence.enabled | bool | `true` |  |
+| smithdb.migration.taskdb.postgres.statefulSet.persistence.size | string | `"8Gi"` |  |
+| smithdb.migration.taskdb.postgres.statefulSet.persistence.storageClassName | string | `""` |  |
+| smithdb.migration.taskdb.postgres.statefulSet.persistentVolumeClaimRetentionPolicy | object | `{}` |  |
+| smithdb.migration.taskdb.postgres.statefulSet.podSecurityContext | object | `{}` |  |
+| smithdb.migration.taskdb.postgres.statefulSet.readinessProbe.exec.command[0] | string | `"/bin/sh"` |  |
+| smithdb.migration.taskdb.postgres.statefulSet.readinessProbe.exec.command[1] | string | `"-c"` |  |
+| smithdb.migration.taskdb.postgres.statefulSet.readinessProbe.exec.command[2] | string | `"exec pg_isready -d \"$POSTGRES_DB\" -U \"$POSTGRES_USER\""` |  |
+| smithdb.migration.taskdb.postgres.statefulSet.readinessProbe.failureThreshold | int | `6` |  |
+| smithdb.migration.taskdb.postgres.statefulSet.readinessProbe.periodSeconds | int | `10` |  |
+| smithdb.migration.taskdb.postgres.statefulSet.readinessProbe.timeoutSeconds | int | `1` |  |
+| smithdb.migration.taskdb.postgres.statefulSet.resources | object | `{}` |  |
+| smithdb.migration.taskdb.postgres.statefulSet.securityContext | object | `{}` |  |
+| smithdb.migration.taskdb.postgres.statefulSet.sidecars | list | `[]` |  |
+| smithdb.migration.taskdb.postgres.statefulSet.startupProbe.exec.command[0] | string | `"/bin/sh"` |  |
+| smithdb.migration.taskdb.postgres.statefulSet.startupProbe.exec.command[1] | string | `"-c"` |  |
+| smithdb.migration.taskdb.postgres.statefulSet.startupProbe.exec.command[2] | string | `"exec pg_isready -d \"$POSTGRES_DB\" -U \"$POSTGRES_USER\""` |  |
+| smithdb.migration.taskdb.postgres.statefulSet.startupProbe.failureThreshold | int | `6` |  |
+| smithdb.migration.taskdb.postgres.statefulSet.startupProbe.periodSeconds | int | `10` |  |
+| smithdb.migration.taskdb.postgres.statefulSet.startupProbe.timeoutSeconds | int | `1` |  |
+| smithdb.migration.taskdb.postgres.statefulSet.terminationGracePeriodSeconds | int | `30` |  |
+| smithdb.migration.taskdb.postgres.statefulSet.tolerations | list | `[]` |  |
+| smithdb.migration.taskdb.postgres.statefulSet.topologySpreadConstraints | list | `[]` |  |
+| smithdb.migration.taskdb.postgres.statefulSet.updateStrategy | object | `{}` | Optional StatefulSet update strategy for the in-chart SmithDB taskdb Postgres instance. |
+| smithdb.migration.taskdb.postgres.statefulSet.volumeMounts | list | `[]` |  |
+| smithdb.migration.taskdb.postgres.statefulSet.volumes | list | `[]` |  |
 | smithdb.name | string | `"smithdb"` | Name segment used for SmithDB resources. |
 | smithdb.query.containerGrpcPort | int | `8080` |  |
 | smithdb.query.containerPort | int | `8060` |  |
