@@ -46,7 +46,7 @@ spec:
       serviceAccountName: {{ include "langsmith.smithdb.serviceAccountName" (dict "root" . "component" "compaction") }}
       terminationGracePeriodSeconds: {{ .Values.smithdb.compactionWorker.deployment.terminationGracePeriodSeconds }}
       {{- include "langsmith.dnsConfig" . | nindent 6 }}
-      {{- with concat (include "langsmith.smithdb.commonSidecars" . | fromYamlArray) .Values.smithdb.compactionWorker.deployment.initContainers }}
+      {{- with concat (include "langsmith.smithdb.commonInitContainers" . | fromYamlArray) .Values.smithdb.compactionWorker.deployment.initContainers }}
       initContainers:
         {{- toYaml . | nindent 8 }}
       {{- end }}

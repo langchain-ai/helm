@@ -537,16 +537,10 @@ Args: root.
 {{- end }}
 
 {{/*
-Common sidecars shared by every SmithDB workload.
+Common init containers shared by every SmithDB workload.
 */}}
-{{- define "langsmith.smithdb.commonSidecars" -}}
-{{- $sidecars := list -}}
-{{- range .Values.smithdb.commonSidecars -}}
-{{- $sidecar := deepCopy . -}}
-{{- $_ := set $sidecar "restartPolicy" "Always" -}}
-{{- $sidecars = append $sidecars $sidecar -}}
-{{- end -}}
-{{- toYaml $sidecars -}}
+{{- define "langsmith.smithdb.commonInitContainers" -}}
+{{- toYaml .Values.smithdb.commonInitContainers -}}
 {{- end }}
 
 {{/*

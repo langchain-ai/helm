@@ -78,27 +78,25 @@ tests:
       - failedTemplate:
           errorMessage: "smithdb.migration.taskdb.postgres.external.password is required when smithdb.migration.taskdb.postgres.external.enabled is true and external.existingSecretName is not set."
 
-  - it: should reject common sidecars without an image
+  - it: should reject common init containers without an image
     values:
       - ./values/smithdb-enabled.yaml
     set:
       config.existingSecretName: langsmith-secret
-      smithdb.commonSidecars:
+      smithdb.commonInitContainers:
         - name: proxy
     asserts:
       - failedTemplate:
-          errorMessage: "smithdb.commonSidecars[0].image is required."
+          errorMessage: "smithdb.commonInitContainers[0].image is required."
 
-  - it: should reject non-native common sidecar restart policies
+  - it: should reject non-object common init containers
     values:
       - ./values/smithdb-enabled.yaml
     set:
       config.existingSecretName: langsmith-secret
-      smithdb.commonSidecars:
-        - name: proxy
-          image: example.com/proxy:1.0.0
-          restartPolicy: Never
+      smithdb.commonInitContainers:
+        - proxy
     asserts:
       - failedTemplate:
-          errorMessage: "smithdb.commonSidecars[0].restartPolicy must be Always when set."
+          errorMessage: "smithdb.commonInitContainers[0] must be a container object."
 

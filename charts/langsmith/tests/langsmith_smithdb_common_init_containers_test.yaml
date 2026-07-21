@@ -1,4 +1,4 @@
-suite: test smithdb common sidecars
+suite: test smithdb common init containers
 templates:
   - smithdb/query-deployment.yaml
   - smithdb/cluster-manager-deployment.yaml
@@ -8,7 +8,7 @@ capabilities:
   majorVersion: 1
   minorVersion: 29
 tests:
-  - it: should omit common sidecars by default
+  - it: should omit common init containers by default
     values:
       - ./values/smithdb-enabled.yaml
     template: smithdb/query-deployment.yaml
@@ -16,11 +16,11 @@ tests:
       - notExists:
           path: spec.template.spec.initContainers
 
-  - it: should prepend common native sidecars to component init containers
+  - it: should prepend common init containers without forcing sidecar semantics
     values:
       - ./values/smithdb-enabled.yaml
     set:
-      smithdb.commonSidecars:
+      smithdb.commonInitContainers:
         - name: proxy
           image: example.com/proxy:1.0.0
           args:
@@ -37,33 +37,34 @@ tests:
             image: example.com/proxy:1.0.0
             args:
               - "--listen=127.0.0.1:5432"
-            restartPolicy: Always
       - equal:
           path: spec.template.spec.initContainers[1]
           value:
             name: setup
             image: example.com/setup:1.0.0
 
-  - it: should add common native sidecars to cluster manager
+  - it: should add common init containers to cluster manager
     values:
       - ./values/smithdb-enabled.yaml
     set:
-      smithdb.commonSidecars:
+      smithdb.commonInitContainers:
         - name: proxy
           image: example.com/proxy:1.0.0
+          restartPolicy: Always
     template: smithdb/cluster-manager-deployment.yaml
     asserts:
       - equal:
           path: spec.template.spec.initContainers[0].restartPolicy
           value: Always
 
-  - it: should add common native sidecars to the metastore migration job
+  - it: should add common init containers to the metastore migration job
     values:
       - ./values/smithdb-enabled.yaml
     set:
-      smithdb.commonSidecars:
+      smithdb.commonInitContainers:
         - name: proxy
           image: example.com/proxy:1.0.0
+          restartPolicy: Always
     template: smithdb/metastore-migration.yaml
     asserts:
       - equal:
@@ -76,7 +77,7 @@ tests:
             image: example.com/proxy:1.0.0
             restartPolicy: Always
 
-  - it: should add common native sidecars to the data migration job
+  - it: should add common init containers to the data migration job
     values:
       - ./values/smithdb-enabled.yaml
     set:
@@ -86,9 +87,10 @@ tests:
       smithdb.langsmith.migration.enabled: true
       smithdb.migration.taskdb.postgres.enabled: true
       smithdb.migration.taskdb.postgres.auth.password: taskdb-password
-      smithdb.commonSidecars:
+      smithdb.commonInitContainers:
         - name: proxy
           image: example.com/proxy:1.0.0
+          restartPolicy: Always
     template: smithdb/migration-job.yaml
     asserts:
       - equal:

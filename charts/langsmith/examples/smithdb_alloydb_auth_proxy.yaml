@@ -12,12 +12,12 @@ smithdb:
       # Configure Workload Identity for this Kubernetes ServiceAccount.
       iam.gke.io/gcp-service-account: smithdb@PROJECT_ID.iam.gserviceaccount.com
 
-  # The chart adds restartPolicy: Always and injects these containers into
-  # every SmithDB Pod.
-  commonSidecars:
+  # The chart injects these init containers into every SmithDB Pod.
+  commonInitContainers:
     - name: alloydb-auth-proxy
       image: gcr.io/alloydb-connectors/alloydb-auth-proxy:1.15.2
       imagePullPolicy: IfNotPresent
+      restartPolicy: Always
       args:
         - "--address=127.0.0.1"
         - "--port=5432"
