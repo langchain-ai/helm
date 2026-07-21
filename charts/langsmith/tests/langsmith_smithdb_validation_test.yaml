@@ -78,3 +78,25 @@ tests:
       - failedTemplate:
           errorMessage: "smithdb.migration.taskdb.postgres.external.password is required when smithdb.migration.taskdb.postgres.external.enabled is true and external.existingSecretName is not set."
 
+  - it: should reject common init containers without an image
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      config.existingSecretName: langsmith-secret
+      smithdb.commonInitContainers:
+        - name: proxy
+    asserts:
+      - failedTemplate:
+          errorMessage: "smithdb.commonInitContainers[0].image is required."
+
+  - it: should reject non-object common init containers
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      config.existingSecretName: langsmith-secret
+      smithdb.commonInitContainers:
+        - proxy
+    asserts:
+      - failedTemplate:
+          errorMessage: "smithdb.commonInitContainers[0] must be a container object."
+

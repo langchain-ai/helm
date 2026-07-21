@@ -201,6 +201,19 @@ AWS Marketplace Helm template verification).
 
 {{- /* Validate SmithDB configuration */ -}}
 {{- if .Values.smithdb.enabled -}}
+{{- if .Values.smithdb.commonInitContainers -}}
+{{- range $index, $initContainer := .Values.smithdb.commonInitContainers -}}
+{{- if not (kindIs "map" $initContainer) -}}
+{{- fail (printf "smithdb.commonInitContainers[%d] must be a container object." $index) -}}
+{{- end -}}
+{{- if not (get $initContainer "name") -}}
+{{- fail (printf "smithdb.commonInitContainers[%d].name is required." $index) -}}
+{{- end -}}
+{{- if not (get $initContainer "image") -}}
+{{- fail (printf "smithdb.commonInitContainers[%d].image is required." $index) -}}
+{{- end -}}
+{{- end -}}
+{{- end -}}
 {{- if not .Values.smithdb.config.existingSecretName -}}
 {{- fail "smithdb.config.existingSecretName is required when smithdb.enabled is true." -}}
 {{- end -}}

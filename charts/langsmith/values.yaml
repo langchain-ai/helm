@@ -1239,6 +1239,9 @@ smithdb:
     automountServiceAccountToken: true
   # -- Extra env vars for every SmithDB workload.
   commonEnv: []
+  # -- Common init containers added to every SmithDB component Deployment and Job.
+  # Set restartPolicy: Always to configure a Kubernetes sidecar container.
+  commonInitContainers: []
 
   config:
     # -- Existing secret containing SmithDB metastore credentials.

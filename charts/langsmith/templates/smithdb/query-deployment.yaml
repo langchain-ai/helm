@@ -47,7 +47,7 @@ spec:
         {{- toYaml .Values.smithdb.query.deployment.podSecurityContext | nindent 8 }}
       serviceAccountName: {{ include "langsmith.smithdb.serviceAccountName" (dict "root" . "component" "query") }}
       {{- include "langsmith.dnsConfig" . | nindent 6 }}
-      {{- with .Values.smithdb.query.deployment.initContainers }}
+      {{- with concat (include "langsmith.smithdb.commonInitContainers" . | fromYamlArray) .Values.smithdb.query.deployment.initContainers }}
       initContainers:
         {{- toYaml . | nindent 8 }}
       {{- end }}

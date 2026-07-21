@@ -1,0 +1,101 @@
+suite: test smithdb common init containers
+templates:
+  - smithdb/query-deployment.yaml
+  - smithdb/cluster-manager-deployment.yaml
+  - smithdb/migration-job.yaml
+  - smithdb/metastore-migration.yaml
+capabilities:
+  majorVersion: 1
+  minorVersion: 29
+tests:
+  - it: should omit common init containers by default
+    values:
+      - ./values/smithdb-enabled.yaml
+    template: smithdb/query-deployment.yaml
+    asserts:
+      - notExists:
+          path: spec.template.spec.initContainers
+
+  - it: should prepend common init containers without forcing sidecar semantics
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      smithdb.commonInitContainers:
+        - name: proxy
+          image: example.com/proxy:1.0.0
+          args:
+            - "--listen=127.0.0.1:5432"
+      smithdb.query.deployment.initContainers:
+        - name: setup
+          image: example.com/setup:1.0.0
+    template: smithdb/query-deployment.yaml
+    asserts:
+      - equal:
+          path: spec.template.spec.initContainers[0]
+          value:
+            name: proxy
+            image: example.com/proxy:1.0.0
+            args:
+              - "--listen=127.0.0.1:5432"
+      - equal:
+          path: spec.template.spec.initContainers[1]
+          value:
+            name: setup
+            image: example.com/setup:1.0.0
+
+  - it: should add common init containers to cluster manager
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      smithdb.commonInitContainers:
+        - name: proxy
+          image: example.com/proxy:1.0.0
+          restartPolicy: Always
+    template: smithdb/cluster-manager-deployment.yaml
+    asserts:
+      - equal:
+          path: spec.template.spec.initContainers[0].restartPolicy
+          value: Always
+
+  - it: should add common init containers to the metastore migration job
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      smithdb.commonInitContainers:
+        - name: proxy
+          image: example.com/proxy:1.0.0
+          restartPolicy: Always
+    template: smithdb/metastore-migration.yaml
+    asserts:
+      - equal:
+          path: spec.template.spec.restartPolicy
+          value: Never
+      - equal:
+          path: spec.template.spec.initContainers[0]
+          value:
+            name: proxy
+            image: example.com/proxy:1.0.0
+            restartPolicy: Always
+
+  - it: should add common init containers to the data migration job
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      config.blobStorage.enabled: true
+      config.blobStorage.bucketName: langsmith-blob
+      config.blobStorage.apiURL: http://blob-store:9000
+      smithdb.langsmith.migration.enabled: true
+      smithdb.migration.taskdb.postgres.enabled: true
+      smithdb.migration.taskdb.postgres.auth.password: taskdb-password
+      smithdb.commonInitContainers:
+        - name: proxy
+          image: example.com/proxy:1.0.0
+          restartPolicy: Always
+    template: smithdb/migration-job.yaml
+    asserts:
+      - equal:
+          path: spec.template.spec.restartPolicy
+          value: Never
+      - equal:
+          path: spec.template.spec.initContainers[0].restartPolicy
+          value: Always
