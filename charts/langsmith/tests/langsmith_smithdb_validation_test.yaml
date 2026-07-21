@@ -12,50 +12,25 @@ tests:
       - failedTemplate:
           errorMessage: "smithdb.query.deployment.replicas must be greater than 0 when smithdb.enabled is true."
 
-  - it: should reject migration before dual ingest is enabled
+  - it: should reject migration before SmithDB ingestion is enabled
     values:
       - ./values/smithdb-enabled.yaml
     set:
       config.existingSecretName: langsmith-secret
-      smithdb.langsmith.dualIngest.enabled: false
-      smithdb.langsmith.frontend.useSmithDBEndpoints: false
+      smithdb.langsmith.ingestion.enabled: false
+      smithdb.langsmith.query.enabled: false
       smithdb.langsmith.migration.enabled: true
       smithdb.migration.taskdb.postgres.enabled: true
     asserts:
       - failedTemplate:
-          errorMessage: "smithdb.langsmith.dualIngest.enabled must be true when smithdb.langsmith.migration.enabled is true."
-
-  - it: should reject lsm backfill before dual ingest is enabled
-    values:
-      - ./values/smithdb-enabled.yaml
-    set:
-      config.existingSecretName: langsmith-secret
-      smithdb.langsmith.dualIngest.enabled: false
-      smithdb.langsmith.frontend.useSmithDBEndpoints: false
-      smithdb.langsmith.lsmBackfill.enabled: true
-    asserts:
-      - failedTemplate:
-          errorMessage: "smithdb.langsmith.dualIngest.enabled must be true when smithdb.langsmith.lsmBackfill.enabled is true."
-
-  - it: should reject enabling migration and lsm backfill together
-    values:
-      - ./values/smithdb-enabled.yaml
-    set:
-      config.existingSecretName: langsmith-secret
-      smithdb.langsmith.frontend.useSmithDBEndpoints: false
-      smithdb.langsmith.migration.enabled: true
-      smithdb.langsmith.lsmBackfill.enabled: true
-      smithdb.migration.taskdb.postgres.enabled: true
-    asserts:
-      - failedTemplate:
-          errorMessage: "Only one of smithdb.langsmith.migration.enabled or smithdb.langsmith.lsmBackfill.enabled can be true at the same time."
+          errorMessage: "smithdb.langsmith.ingestion.enabled must be true when smithdb.langsmith.migration.enabled is true."
 
   - it: should reject chart-managed taskdb postgres without a password
     values:
       - ./values/smithdb-enabled.yaml
     set:
       config.existingSecretName: langsmith-secret
-      smithdb.langsmith.frontend.useSmithDBEndpoints: false
+      smithdb.langsmith.query.enabled: false
       smithdb.langsmith.migration.enabled: true
       smithdb.migration.taskdb.postgres.enabled: true
     asserts:
@@ -67,7 +42,7 @@ tests:
       - ./values/smithdb-enabled.yaml
     set:
       config.existingSecretName: langsmith-secret
-      smithdb.langsmith.frontend.useSmithDBEndpoints: false
+      smithdb.langsmith.query.enabled: false
       smithdb.langsmith.migration.enabled: true
       smithdb.migration.taskdb.postgres.enabled: true
       smithdb.migration.taskdb.postgres.external.enabled: true
@@ -77,6 +52,111 @@ tests:
     asserts:
       - failedTemplate:
           errorMessage: "smithdb.migration.taskdb.postgres.external.password is required when smithdb.migration.taskdb.postgres.external.enabled is true and external.existingSecretName is not set."
+
+  - it: should reject a configuration without an ingestion backend
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      config.existingSecretName: langsmith-secret
+      clickhouse.enabled: false
+      smithdb.langsmith.ingestion.enabled: false
+    asserts:
+      - failedTemplate:
+          errorMessage: "At least one ingestion backend must be enabled: clickhouse.enabled or smithdb.langsmith.ingestion.enabled."
+
+  - it: should reject a configuration without a query backend
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      config.existingSecretName: langsmith-secret
+      clickhouse.enabled: false
+      smithdb.langsmith.query.enabled: false
+    asserts:
+      - failedTemplate:
+          errorMessage: "At least one query backend must be enabled: clickhouse.enabled or smithdb.langsmith.query.enabled."
+
+  - it: should reject external ClickHouse when ClickHouse is disabled
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      config.existingSecretName: langsmith-secret
+      clickhouse.enabled: false
+      clickhouse.external.enabled: true
+    asserts:
+      - failedTemplate:
+          errorMessage: "clickhouse.external.enabled must be false when clickhouse.enabled is false."
+
+  - it: should reject SmithDB query routing when SmithDB is disabled
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      config.existingSecretName: langsmith-secret
+      smithdb.enabled: false
+      smithdb.langsmith.ingestion.enabled: false
+    asserts:
+      - failedTemplate:
+          errorMessage: "smithdb.enabled must be true when smithdb.langsmith.query.enabled is true."
+
+  - it: should reject a string ClickHouse enabled value even when validation is skipped
+    set:
+      config.skipValidation: true
+      clickhouse.enabled: "false"
+    asserts:
+      - failedTemplate:
+          errorMessage: "clickhouse.enabled must be a boolean. Do not quote true or false."
+
+  - it: should reject a string SmithDB ingestion enabled value
+    set:
+      smithdb.langsmith.ingestion.enabled: "false"
+    asserts:
+      - failedTemplate:
+          errorMessage: "smithdb.langsmith.ingestion.enabled must be a boolean. Do not quote true or false."
+
+  - it: should reject a string SmithDB migration enabled value
+    set:
+      smithdb.langsmith.migration.enabled: "false"
+    asserts:
+      - failedTemplate:
+          errorMessage: "smithdb.langsmith.migration.enabled must be a boolean. Do not quote true or false."
+
+  - it: should reject a string SmithDB query enabled value
+    set:
+      smithdb.langsmith.query.enabled: "false"
+    asserts:
+      - failedTemplate:
+          errorMessage: "smithdb.langsmith.query.enabled must be a boolean. Do not quote true or false."
+
+  - it: should reject the legacy SmithDB dual-ingest flag when enabled
+    set:
+      smithdb.langsmith.dualIngest.enabled: true
+    asserts:
+      - failedTemplate:
+          errorMessage: "smithdb.langsmith.dualIngest.enabled is no longer supported. Use smithdb.langsmith.ingestion.enabled."
+
+  - it: should reject the legacy SmithDB frontend query flag when enabled
+    set:
+      smithdb.langsmith.frontend.useSmithDBEndpoints: true
+    asserts:
+      - failedTemplate:
+          errorMessage: "smithdb.langsmith.frontend.useSmithDBEndpoints is no longer supported. Use smithdb.langsmith.query.enabled."
+
+  - it: should reject the legacy SmithDB LSM backfill flag when enabled
+    set:
+      smithdb.langsmith.lsmBackfill.enabled: true
+    asserts:
+      - failedTemplate:
+          errorMessage: "smithdb.langsmith.lsmBackfill.enabled is no longer supported. Remove it and follow the SmithDB migration guidance for this chart version."
+
+  - it: should reject SmithDB migration after ClickHouse is disabled
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      config.existingSecretName: langsmith-secret
+      clickhouse.enabled: false
+      smithdb.langsmith.migration.enabled: true
+    asserts:
+      - failedTemplate:
+          errorMessage: "clickhouse.enabled must be true when smithdb.langsmith.migration.enabled is true."
 
   - it: should reject common init containers without an image
     values:

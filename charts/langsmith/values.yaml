@@ -1227,6 +1227,18 @@ aceBackend:
 smithdb:
   # -- Deploy the in-chart SmithDB workloads.
   enabled: false
+  # -- LangSmith configuration for SmithDB.
+  langsmith:
+    ingestion:
+      # -- Enables LangSmith run ingestion via SmithDB. When ClickHouse is enabled, ingestion writes to both backends. Requires smithdb.enabled.
+      enabled: false
+    migration:
+      # -- Runs the SmithDB migration phase and renders the one-shot migrate-all Job plus taskdb Postgres resources.
+      # -- Detailed migration and taskdb configuration lives under smithdb.migration.
+      enabled: false
+    query:
+      # -- Enables SmithDB-powered queries. Requires smithdb.enabled.
+      enabled: false
   # -- Name segment used for SmithDB resources.
   name: "smithdb"
   # -- Shared ServiceAccount for SmithDB workloads.
@@ -1277,21 +1289,6 @@ smithdb:
         # Set both to "" when using ambient cloud identity, such as IRSA.
         accessKeyIdSecretKey: ""
         secretAccessKeySecretKey: ""
-
-  langsmith:
-    dualIngest:
-      # -- Enables LangSmith run ingestion to also write to SmithDB. Requires smithdb.enabled.
-      enabled: false
-    migration:
-      # -- Runs the SmithDB migration phase and renders the one-shot migrate-all Job plus taskdb Postgres resources.
-      # -- Detailed migration and taskdb configuration lives under smithdb.migration.
-      enabled: false
-    lsmBackfill:
-      # -- Runs the sequenced SmithDB LSM backfill phase. Requires smithdb.langsmith.migration.enabled to be false.
-      enabled: false
-    frontend:
-      # -- Defaults the LangSmith UI to SmithDB endpoints for run queries. Requires smithdb.enabled.
-      useSmithDBEndpoints: false
 
   query:
     name: "query"
@@ -1984,6 +1981,11 @@ backend:
     ttlSecondsAfterFinished: 600
 
 clickhouse:
+  # -- Enable ClickHouse for ingestion and queries. Keep enabled when using external ClickHouse.
+  #
+  # WARNING: Disabling ClickHouse or switching to an external instance DELETES the chart-managed
+  # workload on upgrade. Back up its data first; PVCs may be deleted or left orphaned.
+  enabled: true
   name: "clickhouse"
   disableSecretCreation: false
   config:

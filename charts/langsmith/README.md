@@ -1056,10 +1056,9 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | smithdb.ingestion.service.annotations | object | `{}` |  |
 | smithdb.ingestion.service.labels | object | `{}` |  |
 | smithdb.ingestion.service.port | int | `8082` |  |
-| smithdb.langsmith.dualIngest.enabled | bool | `false` | Enables LangSmith run ingestion to also write to SmithDB. Requires smithdb.enabled. |
-| smithdb.langsmith.frontend.useSmithDBEndpoints | bool | `false` | Defaults the LangSmith UI to SmithDB endpoints for run queries. Requires smithdb.enabled. |
-| smithdb.langsmith.lsmBackfill.enabled | bool | `false` | Runs the sequenced SmithDB LSM backfill phase. Requires smithdb.langsmith.migration.enabled to be false. |
-| smithdb.langsmith.migration.enabled | bool | `false` | Detailed migration and taskdb configuration lives under smithdb.migration. |
+| smithdb.langsmith.ingestion.enabled | bool | `false` | Enables LangSmith run ingestion via SmithDB. When ClickHouse is enabled, ingestion writes to both backends. Requires smithdb.enabled. |
+| smithdb.langsmith.migration.enabled | bool | `false` | Runs the SmithDB migration phase and renders the one-shot migrate-all Job plus taskdb Postgres resources. Detailed migration and taskdb configuration lives under smithdb.migration. |
+| smithdb.langsmith.query.enabled | bool | `false` | Enables SmithDB-powered run queries. Requires smithdb.enabled. |
 | smithdb.metastoreMigration.command[0] | string | `"/usr/local/bin/smithdb-metastore-migrate-entrypoint.sh"` |  |
 | smithdb.metastoreMigration.job.activeDeadlineSeconds | int | `600` |  |
 | smithdb.metastoreMigration.job.affinity | object | `{}` |  |
@@ -1583,6 +1582,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | clickhouse.containerHttpPort | int | `8123` |  |
 | clickhouse.containerNativePort | int | `9000` |  |
 | clickhouse.disableSecretCreation | bool | `false` |  |
+| clickhouse.enabled | bool | `true` | Enable ClickHouse for ingestion and queries. Keep enabled when using external ClickHouse. Disabling ClickHouse or switching to an external instance DELETES the chart-managed workload on upgrade; back up its data first. |
 | clickhouse.external.clientCert.certSecretKey | string | `"tls.crt"` |  |
 | clickhouse.external.clientCert.keySecretKey | string | `"tls.key"` |  |
 | clickhouse.external.clientCert.secretName | string | `""` |  |

@@ -41,15 +41,17 @@ data:
   SMITH_BACKEND_ENDPOINT: "http://{{ include "langsmith.fullname" . }}-{{.Values.backend.name}}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.backend.service.port }}"
   HOST_BACKEND_ENDPOINT: "http://{{ include "langsmith.fullname" . }}-{{.Values.hostBackend.name}}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.hostBackend.service.port }}"
   LANGSMITH_AUTH_ENDPOINT: "http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.platformBackend.service.port }}"
-  {{- if and .Values.smithdb.enabled .Values.smithdb.langsmith.frontend.useSmithDBEndpoints }}
+  CLICKHOUSE_INGESTION_ENABLED: {{ .Values.clickhouse.enabled | quote }}
+  CLICKHOUSE_QUERY_ENABLED: {{ .Values.clickhouse.enabled | quote }}
+  SMITHDB_INGESTION_ENABLED: {{ .Values.smithdb.langsmith.ingestion.enabled | quote }}
+  SMITHDB_QUERY_ENABLED: {{ .Values.smithdb.langsmith.query.enabled | quote }}
+  {{- if .Values.smithdb.langsmith.query.enabled }}
   {{- $smithdbQueryUrl := include "langsmith.smithdb.grpcServiceUrl" (dict "root" . "component" "query" "port" .Values.smithdb.query.service.port) }}
   SMITHDB_QUERY_SERVICE_URL: {{ $smithdbQueryUrl | quote }}
-  SMITHDB_QUERY_ENABLED: "true"
   {{- end }}
-  {{- if and .Values.smithdb.enabled .Values.smithdb.langsmith.dualIngest.enabled }}
+  {{- if .Values.smithdb.langsmith.ingestion.enabled }}
   SMITHDB_MUTATIONS_SERVICE_URL: {{ include "langsmith.smithdb.grpcServiceUrl" (dict "root" . "component" "query" "port" .Values.smithdb.query.service.port) | quote }}
   SMITHDB_INGESTION_SERVICE_URL: {{ include "langsmith.smithdb.grpcServiceUrl" (dict "root" . "component" "ingestion" "port" .Values.smithdb.ingestion.service.port) | quote }}
-  SMITHDB_INGESTION_ENABLED: "true"
   SMITHDB_INGEST_ORGS_ROLLOUT_PCT: "100"
   {{- end }}
   {{- if .Values.smithdb.enabled }}
@@ -95,7 +97,7 @@ data:
   # Self-hosted telemetry
   ENABLE_POSTGRES_METRICS_CRON: {{ ternary "true" "false" .Values.config.telemetry.metrics | quote }}
   ENABLE_REDIS_METRICS_CRON: {{ ternary "true" "false" .Values.config.telemetry.metrics | quote }}
-  ENABLE_CLICKHOUSE_METRICS_CRON: {{ ternary "true" "false" .Values.config.telemetry.metrics | quote }}
+  ENABLE_CLICKHOUSE_METRICS_CRON: {{ and .Values.clickhouse.enabled .Values.config.telemetry.metrics | quote }}
   BEACON_LOGGING_ENABLED: {{ ternary "true" "false" .Values.config.telemetry.logs | quote }}
   BEACON_METRICS_ENABLED: {{ ternary "true" "false" .Values.config.telemetry.metrics | quote }}
   BEACON_TRACING_ENABLED: {{ ternary "true" "false" .Values.config.telemetry.traces | quote }}
