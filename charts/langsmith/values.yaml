@@ -3516,6 +3516,8 @@ presidioAnalyzer:
   enabled: false
   name: "presidio-analyzer"
   containerPort: 3000
+  # -- Number of Gunicorn workers for the Presidio analyzer.
+  workers: 2
   deployment:
     replicas: 1
     labels: {}
