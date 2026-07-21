@@ -158,3 +158,25 @@ tests:
       - failedTemplate:
           errorMessage: "clickhouse.enabled must be true when smithdb.langsmith.migration.enabled is true."
 
+  - it: should reject common init containers without an image
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      config.existingSecretName: langsmith-secret
+      smithdb.commonInitContainers:
+        - name: proxy
+    asserts:
+      - failedTemplate:
+          errorMessage: "smithdb.commonInitContainers[0].image is required."
+
+  - it: should reject non-object common init containers
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      config.existingSecretName: langsmith-secret
+      smithdb.commonInitContainers:
+        - proxy
+    asserts:
+      - failedTemplate:
+          errorMessage: "smithdb.commonInitContainers[0] must be a container object."
+

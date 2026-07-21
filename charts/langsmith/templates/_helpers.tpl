@@ -539,6 +539,13 @@ Args: root.
 {{- end }}
 
 {{/*
+Common init containers shared by every SmithDB workload.
+*/}}
+{{- define "langsmith.smithdb.commonInitContainers" -}}
+{{- toYaml .Values.smithdb.commonInitContainers -}}
+{{- end }}
+
+{{/*
 SmithDB internal service URL used by LangSmith and SmithDB gRPC clients.
 Args: root, component, port.
 */}}

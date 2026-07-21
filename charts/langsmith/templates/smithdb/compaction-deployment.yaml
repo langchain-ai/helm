@@ -45,7 +45,7 @@ spec:
         {{- toYaml .Values.smithdb.compaction.deployment.podSecurityContext | nindent 8 }}
       serviceAccountName: {{ include "langsmith.smithdb.serviceAccountName" (dict "root" . "component" "compaction") }}
       {{- include "langsmith.dnsConfig" . | nindent 6 }}
-      {{- with .Values.smithdb.compaction.deployment.initContainers }}
+      {{- with concat (include "langsmith.smithdb.commonInitContainers" . | fromYamlArray) .Values.smithdb.compaction.deployment.initContainers }}
       initContainers:
         {{- toYaml . | nindent 8 }}
       {{- end }}
