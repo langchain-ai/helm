@@ -904,6 +904,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | smithdb.clusterManager.service.labels | object | `{}` |  |
 | smithdb.clusterManager.service.port | int | `8091` |  |
 | smithdb.commonEnv | list | `[]` | Extra env vars for every SmithDB workload. |
+| smithdb.commonSidecars | list | `[]` | Sidecar containers added to every SmithDB component Deployment and Job. The chart forces restartPolicy: Always. |
 | smithdb.compaction.containerGrpcPort | int | `8071` |  |
 | smithdb.compaction.containerPort | int | `8070` |  |
 | smithdb.compaction.deployment.affinity | object | `{}` |  |

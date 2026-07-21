@@ -537,6 +537,19 @@ Args: root.
 {{- end }}
 
 {{/*
+Common sidecars shared by every SmithDB workload.
+*/}}
+{{- define "langsmith.smithdb.commonSidecars" -}}
+{{- $sidecars := list -}}
+{{- range .Values.smithdb.commonSidecars -}}
+{{- $sidecar := deepCopy . -}}
+{{- $_ := set $sidecar "restartPolicy" "Always" -}}
+{{- $sidecars = append $sidecars $sidecar -}}
+{{- end -}}
+{{- toYaml $sidecars -}}
+{{- end }}
+
+{{/*
 SmithDB internal service URL used by LangSmith and SmithDB gRPC clients.
 Args: root, component, port.
 */}}

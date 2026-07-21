@@ -201,6 +201,22 @@ AWS Marketplace Helm template verification).
 
 {{- /* Validate SmithDB configuration */ -}}
 {{- if .Values.smithdb.enabled -}}
+{{- if .Values.smithdb.commonSidecars -}}
+{{- range $index, $sidecar := .Values.smithdb.commonSidecars -}}
+{{- if not (kindIs "map" $sidecar) -}}
+{{- fail (printf "smithdb.commonSidecars[%d] must be a container object." $index) -}}
+{{- end -}}
+{{- if not (get $sidecar "name") -}}
+{{- fail (printf "smithdb.commonSidecars[%d].name is required." $index) -}}
+{{- end -}}
+{{- if not (get $sidecar "image") -}}
+{{- fail (printf "smithdb.commonSidecars[%d].image is required." $index) -}}
+{{- end -}}
+{{- if and (hasKey $sidecar "restartPolicy") (ne (get $sidecar "restartPolicy") "Always") -}}
+{{- fail (printf "smithdb.commonSidecars[%d].restartPolicy must be Always when set." $index) -}}
+{{- end -}}
+{{- end -}}
+{{- end -}}
 {{- if not .Values.smithdb.config.existingSecretName -}}
 {{- fail "smithdb.config.existingSecretName is required when smithdb.enabled is true." -}}
 {{- end -}}

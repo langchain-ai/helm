@@ -1239,6 +1239,9 @@ smithdb:
     automountServiceAccountToken: true
   # -- Extra env vars for every SmithDB workload.
   commonEnv: []
+  # -- Sidecar containers added to every SmithDB component Deployment
+  # and Job. The chart forces restartPolicy: Always.
+  commonSidecars: []
 
   config:
     # -- Existing secret containing SmithDB metastore credentials.

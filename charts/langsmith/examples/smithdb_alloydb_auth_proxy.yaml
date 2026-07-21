@@ -1,0 +1,79 @@
+# SmithDB connects to the AlloyDB Auth Proxy over the Pod loopback interface.
+# The existing Secret must contain:
+#   smithdb_metastore_db_host: 127.0.0.1
+#   smithdb_metastore_db_name: <database>
+#   smithdb_metastore_db_username: <database user or IAM principal>
+#   smithdb_metastore_db_password: <database password, or an empty value for IAM authentication>
+smithdb:
+  enabled: true
+
+  serviceAccount:
+    annotations:
+      # Configure Workload Identity for this Kubernetes ServiceAccount.
+      iam.gke.io/gcp-service-account: smithdb@PROJECT_ID.iam.gserviceaccount.com
+
+  # The chart adds restartPolicy: Always and injects these containers into
+  # every SmithDB Pod.
+  commonSidecars:
+    - name: alloydb-auth-proxy
+      image: gcr.io/alloydb-connectors/alloydb-auth-proxy:1.15.2
+      imagePullPolicy: IfNotPresent
+      args:
+        - "--address=127.0.0.1"
+        - "--port=5432"
+        - "--structured-logs"
+        - "--health-check"
+        - "--http-address=0.0.0.0"
+        - "--http-port=9090"
+        # Uncomment to use AlloyDB IAM database authentication.
+        # - "--auto-iam-authn"
+        # Add --psc or --public-ip when not using the default private IP path.
+        - "projects/PROJECT_ID/locations/REGION/clusters/CLUSTER/instances/INSTANCE"
+      ports:
+        - name: proxy-health
+          containerPort: 9090
+          protocol: TCP
+      startupProbe:
+        httpGet:
+          path: /startup
+          port: proxy-health
+        failureThreshold: 30
+        periodSeconds: 2
+        timeoutSeconds: 1
+      readinessProbe:
+        httpGet:
+          path: /readiness
+          port: proxy-health
+        periodSeconds: 10
+        timeoutSeconds: 1
+      livenessProbe:
+        httpGet:
+          path: /liveness
+          port: proxy-health
+        periodSeconds: 10
+        timeoutSeconds: 1
+      resources:
+        requests:
+          cpu: "1"
+          memory: 2Gi
+      securityContext:
+        runAsNonRoot: true
+        allowPrivilegeEscalation: false
+        readOnlyRootFilesystem: true
+        capabilities:
+          drop:
+            - ALL
+
+  config:
+    existingSecretName: smithdb-metastore
+    metastore:
+      hostSecretKey: smithdb_metastore_db_host
+      databaseSecretKey: smithdb_metastore_db_name
+      usernameSecretKey: smithdb_metastore_db_username
+      passwordSecretKey: smithdb_metastore_db_password
+      port: "5432"
+      # The proxy provides TLS and identity verification to AlloyDB.
+      useSsl: false
+    objectStore:
+      type: gcs
+      bucket: SMITHDB_BUCKET
