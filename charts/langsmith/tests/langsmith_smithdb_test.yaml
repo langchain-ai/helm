@@ -53,14 +53,45 @@ tests:
           content:
             name: RUST_LOG
             value: INFO,vortex=WARN
-      - notContains:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_QUERY__EXECUTION_CONFIG__QUERY_TIMEOUT
+            value: "30s"
+      - contains:
           path: spec.template.spec.containers[0].env
           content:
             name: SMITHDB_QUERY__VORTEX_CACHE__DISK__LIMIT
-      - notContains:
+            valueFrom:
+              resourceFieldRef:
+                resource: limits.ephemeral-storage
+      - contains:
           path: spec.template.spec.containers[0].env
           content:
             name: SMITHDB_QUERY__VORTEX_CACHE__MEMORY__LIMIT
+            valueFrom:
+              resourceFieldRef:
+                resource: limits.memory
+      - equal:
+          path: spec.template.spec.containers[0].resources.requests.cpu
+          value: "4"
+      - equal:
+          path: spec.template.spec.containers[0].resources.requests.memory
+          value: "8Gi"
+      - equal:
+          path: spec.template.spec.containers[0].resources.requests.ephemeral-storage
+          value: "200Gi"
+      - contains:
+          path: spec.template.spec.volumes
+          content:
+            name: local-ssd-storage
+            emptyDir:
+              sizeLimit: 200Gi
+      - contains:
+          path: spec.template.spec.containers[0].volumeMounts
+          content:
+            name: local-ssd-storage
+            mountPath: /data
 
   - it: should size the SmithDB query disk cache from its ephemeral storage limit
     values:
@@ -317,6 +348,21 @@ tests:
           content:
             name: SMITHDB_CLUSTERMANAGER__SERVICES__QUERY__SLICE_REPLICATION_THRESHOLD
             value: "0.5"
+
+  - it: should default smithdb compaction-worker to two replicas
+    values:
+      - ./values/smithdb-enabled.yaml
+    template: smithdb/compaction-worker-deployment.yaml
+    asserts:
+      - equal:
+          path: spec.replicas
+          value: 2
+      - equal:
+          path: spec.template.spec.containers[0].resources.requests.cpu
+          value: "4"
+      - equal:
+          path: spec.template.spec.containers[0].resources.requests.ephemeral-storage
+          value: "100Gi"
 
   - it: should expose compaction worker concurrency as a value
     values:

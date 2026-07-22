@@ -1298,7 +1298,16 @@ smithdb:
       annotations: {}
       podSecurityContext: {}
       securityContext: {}
-      resources: {}
+      # -- Small-tier baseline. Override for larger deployments.
+      resources:
+        requests:
+          cpu: "4"
+          memory: "8Gi"
+          ephemeral-storage: "200Gi"
+        limits:
+          cpu: "4"
+          memory: "8Gi"
+          ephemeral-storage: "200Gi"
       probes:
         startupProbe:
           httpGet:
@@ -1324,15 +1333,26 @@ smithdb:
       command:
         - "./smithdb"
         - "query"
-      extraEnv: []
+      extraEnv:
+        - name: SMITHDB_QUERY__EXECUTION_CONFIG__QUERY_TIMEOUT
+          value: "30s"
+        - name: SMITHDB_QUERY__VORTEX_CACHE__SEGMENT_CACHE__DISK_PATH
+          value: "/data/segment"
+        - name: SMITHDB_QUERY__VORTEX_CACHE__FILTER_CACHE__DISK_PATH
+          value: "/data/filter"
       extraContainerConfig: {}
       sidecars: []
       nodeSelector: {}
       tolerations: []
       affinity: {}
       topologySpreadConstraints: []
-      volumes: []
-      volumeMounts: []
+      volumes:
+        - name: local-ssd-storage
+          emptyDir:
+            sizeLimit: 200Gi
+      volumeMounts:
+        - name: local-ssd-storage
+          mountPath: /data
       initContainers: []
     service:
       port: 8080
@@ -1359,7 +1379,16 @@ smithdb:
       annotations: {}
       podSecurityContext: {}
       securityContext: {}
-      resources: {}
+      # -- Small-tier baseline. Override for larger deployments.
+      resources:
+        requests:
+          cpu: "4"
+          memory: "8Gi"
+          ephemeral-storage: "100Gi"
+        limits:
+          cpu: "4"
+          memory: "8Gi"
+          ephemeral-storage: "100Gi"
       probes:
         startupProbe:
           httpGet:
@@ -1386,15 +1415,24 @@ smithdb:
         - "./smithdb"
         - "ingestion"
       terminationGracePeriodSeconds: 300
-      extraEnv: []
+      extraEnv:
+        - name: SMITHDB_INGESTION__PROCESSOR__FLUSH__DATA_DIR
+          value: "/data"
+        - name: SMITHDB_INGESTION__RUN_SEGMENT_MANAGER__FLUSH__DATA_DIR
+          value: "/data"
       extraContainerConfig: {}
       sidecars: []
       nodeSelector: {}
       tolerations: []
       affinity: {}
       topologySpreadConstraints: []
-      volumes: []
-      volumeMounts: []
+      volumes:
+        - name: local-ssd-storage
+          emptyDir:
+            sizeLimit: 100Gi
+      volumeMounts:
+        - name: local-ssd-storage
+          mountPath: /data
       initContainers: []
     service:
       port: 8082
@@ -1416,7 +1454,14 @@ smithdb:
       annotations: {}
       podSecurityContext: {}
       securityContext: {}
-      resources: {}
+      # -- Small-tier baseline. Override for larger deployments.
+      resources:
+        requests:
+          cpu: "500m"
+          memory: "1Gi"
+        limits:
+          cpu: "500m"
+          memory: "1Gi"
       probes:
         startupProbe:
           httpGet:
@@ -1469,13 +1514,22 @@ smithdb:
     # -- Maximum concurrent jobs per compaction worker. Empty uses the SmithDB default.
     maxConcurrentJobs: ""
     deployment:
-      replicas: 1
+      replicas: 2
       labels: {}
       annotations: {}
       podSecurityContext: {}
       securityContext: {}
       terminationGracePeriodSeconds: 120
-      resources: {}
+      # -- Small-tier baseline. Override for larger deployments.
+      resources:
+        requests:
+          cpu: "4"
+          memory: "8Gi"
+          ephemeral-storage: "100Gi"
+        limits:
+          cpu: "4"
+          memory: "8Gi"
+          ephemeral-storage: "100Gi"
       probes:
         startupProbe:
           httpGet:
@@ -1509,8 +1563,13 @@ smithdb:
       tolerations: []
       affinity: {}
       topologySpreadConstraints: []
-      volumes: []
-      volumeMounts: []
+      volumes:
+        - name: local-ssd-storage
+          emptyDir:
+            sizeLimit: 100Gi
+      volumeMounts:
+        - name: local-ssd-storage
+          mountPath: /data
       initContainers: []
     pdb:
       enabled: false
@@ -1560,7 +1619,14 @@ smithdb:
       annotations: {}
       podSecurityContext: {}
       securityContext: {}
-      resources: {}
+      # -- Small-tier baseline. Override for larger deployments.
+      resources:
+        requests:
+          cpu: "250m"
+          memory: "256Mi"
+        limits:
+          cpu: "250m"
+          memory: "256Mi"
       probes:
         startupProbe:
           httpGet:
