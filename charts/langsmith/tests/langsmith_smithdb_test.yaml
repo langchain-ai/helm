@@ -412,6 +412,12 @@ tests:
           path: metadata.name
           value: RELEASE-NAME-langsmith-smithdb-taskdb-postgres
       - template: smithdb/taskdb-postgres-statefulset.yaml
+        equal:
+          path: spec.persistentVolumeClaimRetentionPolicy
+          value:
+            whenDeleted: Delete
+            whenScaled: Retain
+      - template: smithdb/taskdb-postgres-statefulset.yaml
         contains:
           path: spec.template.spec.containers[0].env
           content:
@@ -420,6 +426,21 @@ tests:
               secretKeyRef:
                 name: RELEASE-NAME-langsmith-smithdb-taskdb-postgres
                 key: postgres_password
+
+  - it: should allow retaining the taskdb PVC when the StatefulSet is deleted
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      smithdb.langsmith.migration.enabled: true
+      smithdb.migration.taskdb.postgres.enabled: true
+      smithdb.migration.taskdb.postgres.statefulSet.persistentVolumeClaimRetentionPolicy.whenDeleted: Retain
+    template: smithdb/taskdb-postgres-statefulset.yaml
+    asserts:
+      - equal:
+          path: spec.persistentVolumeClaimRetentionPolicy
+          value:
+            whenDeleted: Retain
+            whenScaled: Retain
 
   - it: should omit allow-insecure for TLS ClickHouse
     values:
