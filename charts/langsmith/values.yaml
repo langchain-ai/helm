@@ -1334,8 +1334,6 @@ smithdb:
         - "./smithdb"
         - "query"
       extraEnv:
-        - name: SMITHDB_QUERY__EXECUTION_CONFIG__QUERY_TIMEOUT
-          value: "30s"
         - name: SMITHDB_QUERY__VORTEX_CACHE__SEGMENT_CACHE__DISK_PATH
           value: "/data/segment"
         - name: SMITHDB_QUERY__VORTEX_CACHE__FILTER_CACHE__DISK_PATH

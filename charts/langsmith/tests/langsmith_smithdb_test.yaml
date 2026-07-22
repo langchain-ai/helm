@@ -56,11 +56,6 @@ tests:
       - contains:
           path: spec.template.spec.containers[0].env
           content:
-            name: SMITHDB_QUERY__EXECUTION_CONFIG__QUERY_TIMEOUT
-            value: "30s"
-      - contains:
-          path: spec.template.spec.containers[0].env
-          content:
             name: SMITHDB_QUERY__VORTEX_CACHE__DISK__LIMIT
             valueFrom:
               resourceFieldRef:
