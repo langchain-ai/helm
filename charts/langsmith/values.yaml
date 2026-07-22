@@ -1298,7 +1298,7 @@ smithdb:
       annotations: {}
       podSecurityContext: {}
       securityContext: {}
-      # -- Small-tier baseline. Override for larger deployments.
+      # -- Starting baseline.
       resources:
         requests:
           cpu: "4"
@@ -1377,7 +1377,7 @@ smithdb:
       annotations: {}
       podSecurityContext: {}
       securityContext: {}
-      # -- Small-tier baseline. Override for larger deployments.
+      # -- Starting baseline.
       resources:
         requests:
           cpu: "4"
@@ -1452,7 +1452,7 @@ smithdb:
       annotations: {}
       podSecurityContext: {}
       securityContext: {}
-      # -- Small-tier baseline. Override for larger deployments.
+      # -- Starting baseline.
       resources:
         requests:
           cpu: "500m"
@@ -1518,7 +1518,7 @@ smithdb:
       podSecurityContext: {}
       securityContext: {}
       terminationGracePeriodSeconds: 120
-      # -- Small-tier baseline. Override for larger deployments.
+      # -- Starting baseline.
       resources:
         requests:
           cpu: "4"
@@ -1596,7 +1596,7 @@ smithdb:
       annotations: {}
       podSecurityContext: {}
       securityContext: {}
-      # -- Small-tier baseline. Override for larger deployments.
+      # -- Starting baseline.
       resources:
         requests:
           cpu: "250m"
