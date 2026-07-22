@@ -355,6 +355,8 @@ Template containing common environment variables that are used by several servic
   value: {{ .Values.config.userOrgCreationDisabled | quote }}
 - name: FF_PERSONAL_ORGS_DISABLED
   value: {{ .Values.config.personalOrgsDisabled | quote }}
+- name: PERSONAL_ORG_MAX_MONTHLY_TRACES
+  value: {{ .Values.config.personalOrgMaxMonthlyTraces | default -1 | quote }}
 {{- if .Values.config.ttl.enabled }}
 - name: FF_TRACE_TIERS_ENABLED
   value: {{ .Values.config.ttl.enabled | quote }}
