@@ -1129,7 +1129,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | smithdb.migration.taskdb.postgres.statefulSet.persistence.enabled | bool | `true` |  |
 | smithdb.migration.taskdb.postgres.statefulSet.persistence.size | string | `"8Gi"` |  |
 | smithdb.migration.taskdb.postgres.statefulSet.persistence.storageClassName | string | `""` |  |
-| smithdb.migration.taskdb.postgres.statefulSet.persistentVolumeClaimRetentionPolicy | object | `{}` |  |
+| smithdb.migration.taskdb.postgres.statefulSet.persistentVolumeClaimRetentionPolicy | object | `{"whenDeleted":"Delete","whenScaled":"Retain"}` | Delete the migration-scoped taskdb PVC when its StatefulSet is removed. |
 | smithdb.migration.taskdb.postgres.statefulSet.podSecurityContext | object | `{}` |  |
 | smithdb.migration.taskdb.postgres.statefulSet.readinessProbe.exec.command[0] | string | `"/bin/sh"` |  |
 | smithdb.migration.taskdb.postgres.statefulSet.readinessProbe.exec.command[1] | string | `"-c"` |  |

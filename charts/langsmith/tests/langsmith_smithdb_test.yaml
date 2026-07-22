@@ -153,9 +153,6 @@ tests:
       - equal:
           path: data.SMITHDB_MUTATIONS_SERVICE_URL
           value: RELEASE-NAME-langsmith-smithdb-query.NAMESPACE.svc.cluster.local:8080
-      - equal:
-          path: data.SMITHDB_INGEST_ORGS_ROLLOUT_PCT
-          value: "100"
 
   - it: should configure SmithDB ingestion without SmithDB query endpoints
     values:
@@ -230,8 +227,6 @@ tests:
       - equal:
           path: data.SMITHDB_INGESTION_ENABLED
           value: "false"
-      - notExists:
-          path: data.SMITHDB_INGEST_ORGS_ROLLOUT_PCT
       - notExists:
           path: data.SMITHDB_CLUSTER_MANAGER_ENABLED
       - notExists:
@@ -417,6 +412,12 @@ tests:
           path: metadata.name
           value: RELEASE-NAME-langsmith-smithdb-taskdb-postgres
       - template: smithdb/taskdb-postgres-statefulset.yaml
+        equal:
+          path: spec.persistentVolumeClaimRetentionPolicy
+          value:
+            whenDeleted: Delete
+            whenScaled: Retain
+      - template: smithdb/taskdb-postgres-statefulset.yaml
         contains:
           path: spec.template.spec.containers[0].env
           content:
@@ -425,6 +426,21 @@ tests:
               secretKeyRef:
                 name: RELEASE-NAME-langsmith-smithdb-taskdb-postgres
                 key: postgres_password
+
+  - it: should allow retaining the taskdb PVC when the StatefulSet is deleted
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      smithdb.langsmith.migration.enabled: true
+      smithdb.migration.taskdb.postgres.enabled: true
+      smithdb.migration.taskdb.postgres.statefulSet.persistentVolumeClaimRetentionPolicy.whenDeleted: Retain
+    template: smithdb/taskdb-postgres-statefulset.yaml
+    asserts:
+      - equal:
+          path: spec.persistentVolumeClaimRetentionPolicy
+          value:
+            whenDeleted: Retain
+            whenScaled: Retain
 
   - it: should omit allow-insecure for TLS ClickHouse
     values:
@@ -463,6 +479,42 @@ tests:
             - "2024-01-01T00:00:00Z"
             - "--end-time"
             - "2025-01-01T00:00:00Z"
+
+  - it: should enable sequenced lsm backfill while SmithDB ingestion is enabled without queries
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      smithdb.langsmith.query.enabled: false
+    template: smithdb/compaction-deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_COMPACTION__SEQUENCED_LSM_BACKFILL_ENABLED
+            value: "true"
+
+  - it: should omit sequenced lsm backfill when SmithDB queries are enabled
+    values:
+      - ./values/smithdb-enabled.yaml
+    template: smithdb/compaction-deployment.yaml
+    asserts:
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_COMPACTION__SEQUENCED_LSM_BACKFILL_ENABLED
+
+  - it: should omit sequenced lsm backfill when SmithDB ingestion is disabled
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      smithdb.langsmith.ingestion.enabled: false
+      smithdb.langsmith.query.enabled: false
+    template: smithdb/compaction-deployment.yaml
+    asserts:
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_COMPACTION__SEQUENCED_LSM_BACKFILL_ENABLED
 
   - it: should use an existing smithdb taskdb postgres secret when provided
     values:

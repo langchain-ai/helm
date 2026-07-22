@@ -1676,7 +1676,10 @@ smithdb:
           volumes: []
           volumeMounts: []
           initContainers: []
-          persistentVolumeClaimRetentionPolicy: {}
+          # -- Delete the migration-scoped taskdb PVC when its StatefulSet is removed.
+          persistentVolumeClaimRetentionPolicy:
+            whenDeleted: Delete
+            whenScaled: Retain
           persistence:
             enabled: true
             size: 8Gi
