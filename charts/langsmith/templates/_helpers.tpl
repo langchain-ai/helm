@@ -570,31 +570,6 @@ SmithDB cluster-manager client env vars. Args: root, service.
 {{- end }}
 
 {{/*
-SmithDB cluster-manager per-service ownership bounds.
-
-MAX_REPLICAS (max pods that may own a slice) is derived directly from each
-service's deployment.replicas so it cannot drift from the actual pod count.
-MIN_REPLICAS is fixed at 1, and replication thresholds are fixed at 0 so slices
-distribute across all owning nodes.
-*/}}
-{{- define "langsmith.smithdb.clusterManagerServicesEnv" -}}
-{{- $root := . -}}
-{{- $services := list (dict "env" "QUERY" "component" "query") (dict "env" "INGESTION" "component" "ingestion") -}}
-{{- range $svc := $services }}
-{{- $component := index $root.Values.smithdb $svc.component -}}
-{{- $prefix := printf "SMITHDB_CLUSTERMANAGER__SERVICES__%s" $svc.env }}
-- name: {{ $prefix }}__MIN_REPLICAS
-  value: "1"
-- name: {{ $prefix }}__MAX_REPLICAS
-  value: {{ $component.deployment.replicas | quote }}
-- name: {{ $prefix }}__REPLICATION_THRESHOLD
-  value: "0"
-- name: {{ $prefix }}__SLICE_REPLICATION_THRESHOLD
-  value: "0"
-{{ end -}}
-{{- end }}
-
-{{/*
 SmithDB component env vars.
 Args: root, service, displayName.
 */}}
