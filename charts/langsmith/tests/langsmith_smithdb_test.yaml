@@ -76,17 +76,6 @@ tests:
       - equal:
           path: spec.template.spec.containers[0].resources.requests.ephemeral-storage
           value: "200Gi"
-      - contains:
-          path: spec.template.spec.volumes
-          content:
-            name: local-ssd-storage
-            emptyDir:
-              sizeLimit: 200Gi
-      - contains:
-          path: spec.template.spec.containers[0].volumeMounts
-          content:
-            name: local-ssd-storage
-            mountPath: /data
 
   - it: should size the SmithDB query disk cache from its ephemeral storage limit
     values:

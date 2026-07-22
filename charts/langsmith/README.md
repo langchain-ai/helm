@@ -1105,10 +1105,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | smithdb.query.deployment.command[0] | string | `"./smithdb"` |  |
 | smithdb.query.deployment.command[1] | string | `"query"` |  |
 | smithdb.query.deployment.extraContainerConfig | object | `{}` |  |
-| smithdb.query.deployment.extraEnv[0].name | string | `"SMITHDB_QUERY__VORTEX_CACHE__SEGMENT_CACHE__DISK_PATH"` |  |
-| smithdb.query.deployment.extraEnv[0].value | string | `"/data/segment"` |  |
-| smithdb.query.deployment.extraEnv[1].name | string | `"SMITHDB_QUERY__VORTEX_CACHE__FILTER_CACHE__DISK_PATH"` |  |
-| smithdb.query.deployment.extraEnv[1].value | string | `"/data/filter"` |  |
+| smithdb.query.deployment.extraEnv | list | `[]` |  |
 | smithdb.query.deployment.initContainers | list | `[]` |  |
 | smithdb.query.deployment.labels | object | `{}` |  |
 | smithdb.query.deployment.nodeSelector | object | `{}` |  |
@@ -1142,10 +1139,8 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | smithdb.query.deployment.strategy.type | string | `"RollingUpdate"` |  |
 | smithdb.query.deployment.tolerations | list | `[]` |  |
 | smithdb.query.deployment.topologySpreadConstraints | list | `[]` |  |
-| smithdb.query.deployment.volumeMounts[0].mountPath | string | `"/data"` |  |
-| smithdb.query.deployment.volumeMounts[0].name | string | `"local-ssd-storage"` |  |
-| smithdb.query.deployment.volumes[0].emptyDir.sizeLimit | string | `"200Gi"` |  |
-| smithdb.query.deployment.volumes[0].name | string | `"local-ssd-storage"` |  |
+| smithdb.query.deployment.volumeMounts | list | `[]` |  |
+| smithdb.query.deployment.volumes | list | `[]` |  |
 | smithdb.query.name | string | `"query"` |  |
 | smithdb.query.pdb.annotations | object | `{}` |  |
 | smithdb.query.pdb.enabled | bool | `false` |  |

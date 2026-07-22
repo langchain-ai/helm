@@ -1332,24 +1332,15 @@ smithdb:
       command:
         - "./smithdb"
         - "query"
-      extraEnv:
-        - name: SMITHDB_QUERY__VORTEX_CACHE__SEGMENT_CACHE__DISK_PATH
-          value: "/data/segment"
-        - name: SMITHDB_QUERY__VORTEX_CACHE__FILTER_CACHE__DISK_PATH
-          value: "/data/filter"
+      extraEnv: []
       extraContainerConfig: {}
       sidecars: []
       nodeSelector: {}
       tolerations: []
       affinity: {}
       topologySpreadConstraints: []
-      volumes:
-        - name: local-ssd-storage
-          emptyDir:
-            sizeLimit: 200Gi
-      volumeMounts:
-        - name: local-ssd-storage
-          mountPath: /data
+      volumes: []
+      volumeMounts: []
       initContainers: []
     service:
       port: 8080
