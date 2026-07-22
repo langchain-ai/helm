@@ -311,38 +311,6 @@ tests:
           content:
             name: SMITHDB_CLUSTERMANAGER__SERVICES__COMPACTION__MAX_REPLICAS
 
-  - it: should allow overriding cluster-manager service replica and replication settings
-    values:
-      - ./values/smithdb-enabled.yaml
-    set:
-      smithdb.query.deployment.replicas: 4
-      smithdb.clusterManager.services.query.minReplicas: 2
-      smithdb.clusterManager.services.query.maxReplicas: 3
-      smithdb.clusterManager.services.query.replicationThreshold: 0
-      smithdb.clusterManager.services.query.sliceReplicationThreshold: 0.5
-    template: smithdb/cluster-manager-deployment.yaml
-    asserts:
-      - contains:
-          path: spec.template.spec.containers[0].env
-          content:
-            name: SMITHDB_CLUSTERMANAGER__SERVICES__QUERY__MIN_REPLICAS
-            value: "2"
-      - contains:
-          path: spec.template.spec.containers[0].env
-          content:
-            name: SMITHDB_CLUSTERMANAGER__SERVICES__QUERY__MAX_REPLICAS
-            value: "3"
-      - contains:
-          path: spec.template.spec.containers[0].env
-          content:
-            name: SMITHDB_CLUSTERMANAGER__SERVICES__QUERY__REPLICATION_THRESHOLD
-            value: "0"
-      - contains:
-          path: spec.template.spec.containers[0].env
-          content:
-            name: SMITHDB_CLUSTERMANAGER__SERVICES__QUERY__SLICE_REPLICATION_THRESHOLD
-            value: "0.5"
-
   - it: should default smithdb compaction-worker to two replicas
     values:
       - ./values/smithdb-enabled.yaml

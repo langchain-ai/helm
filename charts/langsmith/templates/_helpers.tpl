@@ -570,34 +570,27 @@ SmithDB cluster-manager client env vars. Args: root, service.
 {{- end }}
 
 {{/*
-SmithDB cluster-manager per-service replica / replication env vars.
+SmithDB cluster-manager per-service ownership bounds.
 
-Emits min/max replica bounds for query and ingestion. When
-maxReplicas is empty, defaults to that service's deployment.replicas so
-horizontally scaled pods can own the same slice. Replication thresholds
-are emitted when set (chart default is 0).
+MAX_REPLICAS (max pods that may own a slice) is derived directly from each
+service's deployment.replicas so it cannot drift from the actual pod count.
+MIN_REPLICAS is fixed at 1, and replication thresholds are fixed at 0 so slices
+distribute across all owning nodes.
 */}}
 {{- define "langsmith.smithdb.clusterManagerServicesEnv" -}}
 {{- $root := . -}}
-{{- $services := list (dict "key" "query" "env" "QUERY" "component" "query") (dict "key" "ingestion" "env" "INGESTION" "component" "ingestion") -}}
+{{- $services := list (dict "env" "QUERY" "component" "query") (dict "env" "INGESTION" "component" "ingestion") -}}
 {{- range $svc := $services }}
-{{- $cfg := index $root.Values.smithdb.clusterManager.services $svc.key -}}
 {{- $component := index $root.Values.smithdb $svc.component -}}
-{{- $minReplicas := default 1 $cfg.minReplicas -}}
-{{- $maxReplicas := default $component.deployment.replicas $cfg.maxReplicas -}}
 {{- $prefix := printf "SMITHDB_CLUSTERMANAGER__SERVICES__%s" $svc.env }}
 - name: {{ $prefix }}__MIN_REPLICAS
-  value: {{ $minReplicas | quote }}
+  value: "1"
 - name: {{ $prefix }}__MAX_REPLICAS
-  value: {{ $maxReplicas | quote }}
-{{- if ne (toString $cfg.replicationThreshold) "" }}
+  value: {{ $component.deployment.replicas | quote }}
 - name: {{ $prefix }}__REPLICATION_THRESHOLD
-  value: {{ $cfg.replicationThreshold | quote }}
-{{- end }}
-{{- if ne (toString $cfg.sliceReplicationThreshold) "" }}
+  value: "0"
 - name: {{ $prefix }}__SLICE_REPLICATION_THRESHOLD
-  value: {{ $cfg.sliceReplicationThreshold | quote }}
-{{- end }}
+  value: "0"
 {{ end -}}
 {{- end }}
 
