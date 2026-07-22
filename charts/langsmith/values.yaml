@@ -1579,37 +1579,21 @@ smithdb:
     name: "cluster-manager"
     containerPort: 8090
     containerGrpcPort: 8091
-    # -- Per-service slice replica bounds for the cluster manager.
-    # maxReplicas defaults to that service's deployment.replicas when empty.
-    # replicationThreshold / sliceReplicationThreshold default to SmithDB None
-    # (replication suppression disabled) when empty; set 0 to force distribution.
     services:
       query:
-        # -- Minimum number of query pods that may own a slice.
         minReplicas: 1
-        # -- Maximum number of query pods that may own a slice. Empty uses query.deployment.replicas.
         maxReplicas: ""
-        # -- Absolute load threshold above which AddRedundant is allowed. Empty = SmithDB default (None).
         replicationThreshold: ""
-        # -- Per-slice load threshold below which AddRedundant is suppressed. Empty = SmithDB default (None).
         sliceReplicationThreshold: ""
       ingestion:
-        # -- Minimum number of ingestion pods that may own a slice.
         minReplicas: 1
-        # -- Maximum number of ingestion pods that may own a slice. Empty uses ingestion.deployment.replicas.
         maxReplicas: ""
-        # -- Absolute load threshold above which AddRedundant is allowed. Empty = SmithDB default (None).
         replicationThreshold: ""
-        # -- Per-slice load threshold below which AddRedundant is suppressed. Empty = SmithDB default (None).
         sliceReplicationThreshold: ""
       compaction:
-        # -- Minimum number of compaction pods that may own a slice.
         minReplicas: 1
-        # -- Maximum number of compaction pods that may own a slice. Empty uses compaction.deployment.replicas.
         maxReplicas: ""
-        # -- Absolute load threshold above which AddRedundant is allowed. Empty = SmithDB default (None).
         replicationThreshold: ""
-        # -- Per-slice load threshold below which AddRedundant is suppressed. Empty = SmithDB default (None).
         sliceReplicationThreshold: ""
     deployment:
       replicas: 1

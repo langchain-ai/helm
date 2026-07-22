@@ -903,19 +903,18 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | smithdb.clusterManager.service.annotations | object | `{}` |  |
 | smithdb.clusterManager.service.labels | object | `{}` |  |
 | smithdb.clusterManager.service.port | int | `8091` |  |
-| smithdb.clusterManager.services | object | `{"compaction":{"maxReplicas":"","minReplicas":1,"replicationThreshold":"","sliceReplicationThreshold":""},"ingestion":{"maxReplicas":"","minReplicas":1,"replicationThreshold":"","sliceReplicationThreshold":""},"query":{"maxReplicas":"","minReplicas":1,"replicationThreshold":"","sliceReplicationThreshold":""}}` | Per-service slice replica bounds for the cluster manager. maxReplicas defaults to that service's deployment.replicas when empty. replicationThreshold / sliceReplicationThreshold default to SmithDB None (replication suppression disabled) when empty; set 0 to force distribution. |
-| smithdb.clusterManager.services.compaction.maxReplicas | string | `""` | Maximum number of compaction pods that may own a slice. Empty uses compaction.deployment.replicas. |
-| smithdb.clusterManager.services.compaction.minReplicas | int | `1` | Minimum number of compaction pods that may own a slice. |
-| smithdb.clusterManager.services.compaction.replicationThreshold | string | `""` | Absolute load threshold above which AddRedundant is allowed. Empty = SmithDB default (None). |
-| smithdb.clusterManager.services.compaction.sliceReplicationThreshold | string | `""` | Per-slice load threshold below which AddRedundant is suppressed. Empty = SmithDB default (None). |
-| smithdb.clusterManager.services.ingestion.maxReplicas | string | `""` | Maximum number of ingestion pods that may own a slice. Empty uses ingestion.deployment.replicas. |
-| smithdb.clusterManager.services.ingestion.minReplicas | int | `1` | Minimum number of ingestion pods that may own a slice. |
-| smithdb.clusterManager.services.ingestion.replicationThreshold | string | `""` | Absolute load threshold above which AddRedundant is allowed. Empty = SmithDB default (None). |
-| smithdb.clusterManager.services.ingestion.sliceReplicationThreshold | string | `""` | Per-slice load threshold below which AddRedundant is suppressed. Empty = SmithDB default (None). |
-| smithdb.clusterManager.services.query.maxReplicas | string | `""` | Maximum number of query pods that may own a slice. Empty uses query.deployment.replicas. |
-| smithdb.clusterManager.services.query.minReplicas | int | `1` | Minimum number of query pods that may own a slice. |
-| smithdb.clusterManager.services.query.replicationThreshold | string | `""` | Absolute load threshold above which AddRedundant is allowed. Empty = SmithDB default (None). |
-| smithdb.clusterManager.services.query.sliceReplicationThreshold | string | `""` | Per-slice load threshold below which AddRedundant is suppressed. Empty = SmithDB default (None). |
+| smithdb.clusterManager.services.compaction.maxReplicas | string | `""` |  |
+| smithdb.clusterManager.services.compaction.minReplicas | int | `1` |  |
+| smithdb.clusterManager.services.compaction.replicationThreshold | string | `""` |  |
+| smithdb.clusterManager.services.compaction.sliceReplicationThreshold | string | `""` |  |
+| smithdb.clusterManager.services.ingestion.maxReplicas | string | `""` |  |
+| smithdb.clusterManager.services.ingestion.minReplicas | int | `1` |  |
+| smithdb.clusterManager.services.ingestion.replicationThreshold | string | `""` |  |
+| smithdb.clusterManager.services.ingestion.sliceReplicationThreshold | string | `""` |  |
+| smithdb.clusterManager.services.query.maxReplicas | string | `""` |  |
+| smithdb.clusterManager.services.query.minReplicas | int | `1` |  |
+| smithdb.clusterManager.services.query.replicationThreshold | string | `""` |  |
+| smithdb.clusterManager.services.query.sliceReplicationThreshold | string | `""` |  |
 | smithdb.commonEnv | list | `[]` | Extra env vars for every SmithDB workload. |
 | smithdb.compaction.containerGrpcPort | int | `8071` |  |
 | smithdb.compaction.containerPort | int | `8070` |  |
