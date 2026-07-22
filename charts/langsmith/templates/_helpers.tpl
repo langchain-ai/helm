@@ -570,6 +570,39 @@ SmithDB cluster-manager client env vars. Args: root, service.
 {{- end }}
 
 {{/*
+SmithDB cluster-manager per-service replica / replication env vars.
+
+Emits min/max replica bounds for query, ingestion, and compaction. When
+maxReplicas is empty, defaults to that service's deployment.replicas so
+horizontally scaled pods can own the same slice. Optional replication
+thresholds are omitted when empty (SmithDB defaults them to None, which
+disables replication suppression).
+*/}}
+{{- define "langsmith.smithdb.clusterManagerServicesEnv" -}}
+{{- $root := . -}}
+{{- $services := list (dict "key" "query" "env" "QUERY" "component" "query") (dict "key" "ingestion" "env" "INGESTION" "component" "ingestion") (dict "key" "compaction" "env" "COMPACTION" "component" "compaction") -}}
+{{- range $svc := $services }}
+{{- $cfg := index $root.Values.smithdb.clusterManager.services $svc.key -}}
+{{- $component := index $root.Values.smithdb $svc.component -}}
+{{- $minReplicas := default 1 $cfg.minReplicas -}}
+{{- $maxReplicas := default $component.deployment.replicas $cfg.maxReplicas -}}
+{{- $prefix := printf "SMITHDB_CLUSTERMANAGER__SERVICES__%s" $svc.env }}
+- name: {{ $prefix }}__MIN_REPLICAS
+  value: {{ $minReplicas | quote }}
+- name: {{ $prefix }}__MAX_REPLICAS
+  value: {{ $maxReplicas | quote }}
+{{- if ne (toString $cfg.replicationThreshold) "" }}
+- name: {{ $prefix }}__REPLICATION_THRESHOLD
+  value: {{ $cfg.replicationThreshold | quote }}
+{{- end }}
+{{- if ne (toString $cfg.sliceReplicationThreshold) "" }}
+- name: {{ $prefix }}__SLICE_REPLICATION_THRESHOLD
+  value: {{ $cfg.sliceReplicationThreshold | quote }}
+{{- end }}
+{{ end -}}
+{{- end }}
+
+{{/*
 SmithDB component env vars.
 Args: root, service, displayName.
 */}}

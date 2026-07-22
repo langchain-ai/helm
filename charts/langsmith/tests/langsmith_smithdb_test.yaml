@@ -242,6 +242,82 @@ tests:
             name: SMITHDB_CLUSTERMANAGER__LOGGING__FORMAT
             value: console
 
+  - it: should default cluster-manager service max replicas to deployment replicas
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      smithdb.query.deployment.replicas: 4
+      smithdb.ingestion.deployment.replicas: 2
+      smithdb.compaction.deployment.replicas: 3
+    template: smithdb/cluster-manager-deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_CLUSTERMANAGER__SERVICES__QUERY__MIN_REPLICAS
+            value: "1"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_CLUSTERMANAGER__SERVICES__QUERY__MAX_REPLICAS
+            value: "4"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_CLUSTERMANAGER__SERVICES__INGESTION__MIN_REPLICAS
+            value: "1"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_CLUSTERMANAGER__SERVICES__INGESTION__MAX_REPLICAS
+            value: "2"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_CLUSTERMANAGER__SERVICES__COMPACTION__MIN_REPLICAS
+            value: "1"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_CLUSTERMANAGER__SERVICES__COMPACTION__MAX_REPLICAS
+            value: "3"
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_CLUSTERMANAGER__SERVICES__QUERY__REPLICATION_THRESHOLD
+
+  - it: should allow overriding cluster-manager service replica and replication settings
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      smithdb.query.deployment.replicas: 4
+      smithdb.clusterManager.services.query.minReplicas: 2
+      smithdb.clusterManager.services.query.maxReplicas: 3
+      smithdb.clusterManager.services.query.replicationThreshold: 0
+      smithdb.clusterManager.services.query.sliceReplicationThreshold: 0.5
+    template: smithdb/cluster-manager-deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_CLUSTERMANAGER__SERVICES__QUERY__MIN_REPLICAS
+            value: "2"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_CLUSTERMANAGER__SERVICES__QUERY__MAX_REPLICAS
+            value: "3"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_CLUSTERMANAGER__SERVICES__QUERY__REPLICATION_THRESHOLD
+            value: "0"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_CLUSTERMANAGER__SERVICES__QUERY__SLICE_REPLICATION_THRESHOLD
+            value: "0.5"
+
   - it: should expose compaction worker concurrency as a value
     values:
       - ./values/smithdb-enabled.yaml
