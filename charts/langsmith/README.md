@@ -891,7 +891,10 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | smithdb.clusterManager.deployment.probes.startupProbe.periodSeconds | int | `10` |  |
 | smithdb.clusterManager.deployment.probes.startupProbe.timeoutSeconds | int | `1` |  |
 | smithdb.clusterManager.deployment.replicas | int | `1` |  |
-| smithdb.clusterManager.deployment.resources | object | `{"limits":{"cpu":"250m","memory":"256Mi"},"requests":{"cpu":"250m","memory":"256Mi"}}` | Starting baseline. |
+| smithdb.clusterManager.deployment.resources.limits.cpu | string | `"250m"` |  |
+| smithdb.clusterManager.deployment.resources.limits.memory | string | `"256Mi"` |  |
+| smithdb.clusterManager.deployment.resources.requests.cpu | string | `"250m"` |  |
+| smithdb.clusterManager.deployment.resources.requests.memory | string | `"256Mi"` |  |
 | smithdb.clusterManager.deployment.securityContext | object | `{}` |  |
 | smithdb.clusterManager.deployment.sidecars | list | `[]` |  |
 | smithdb.clusterManager.deployment.tolerations | list | `[]` |  |
@@ -941,7 +944,10 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | smithdb.compaction.deployment.probes.startupProbe.periodSeconds | int | `10` |  |
 | smithdb.compaction.deployment.probes.startupProbe.timeoutSeconds | int | `1` |  |
 | smithdb.compaction.deployment.replicas | int | `1` |  |
-| smithdb.compaction.deployment.resources | object | `{"limits":{"cpu":"500m","memory":"1Gi"},"requests":{"cpu":"500m","memory":"1Gi"}}` | Starting baseline. |
+| smithdb.compaction.deployment.resources.limits.cpu | string | `"500m"` |  |
+| smithdb.compaction.deployment.resources.limits.memory | string | `"1Gi"` |  |
+| smithdb.compaction.deployment.resources.requests.cpu | string | `"500m"` |  |
+| smithdb.compaction.deployment.resources.requests.memory | string | `"1Gi"` |  |
 | smithdb.compaction.deployment.securityContext | object | `{}` |  |
 | smithdb.compaction.deployment.sidecars | list | `[]` |  |
 | smithdb.compaction.deployment.tolerations | list | `[]` |  |
@@ -984,7 +990,12 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | smithdb.compactionWorker.deployment.probes.startupProbe.periodSeconds | int | `10` |  |
 | smithdb.compactionWorker.deployment.probes.startupProbe.timeoutSeconds | int | `1` |  |
 | smithdb.compactionWorker.deployment.replicas | int | `2` |  |
-| smithdb.compactionWorker.deployment.resources | object | `{"limits":{"cpu":"4","ephemeral-storage":"100Gi","memory":"8Gi"},"requests":{"cpu":"4","ephemeral-storage":"100Gi","memory":"8Gi"}}` | Starting baseline. |
+| smithdb.compactionWorker.deployment.resources.limits.cpu | string | `"4"` |  |
+| smithdb.compactionWorker.deployment.resources.limits.ephemeral-storage | string | `"100Gi"` |  |
+| smithdb.compactionWorker.deployment.resources.limits.memory | string | `"8Gi"` |  |
+| smithdb.compactionWorker.deployment.resources.requests.cpu | string | `"4"` |  |
+| smithdb.compactionWorker.deployment.resources.requests.ephemeral-storage | string | `"100Gi"` |  |
+| smithdb.compactionWorker.deployment.resources.requests.memory | string | `"8Gi"` |  |
 | smithdb.compactionWorker.deployment.securityContext | object | `{}` |  |
 | smithdb.compactionWorker.deployment.sidecars | list | `[]` |  |
 | smithdb.compactionWorker.deployment.terminationGracePeriodSeconds | int | `120` |  |
@@ -1049,7 +1060,12 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | smithdb.ingestion.deployment.probes.startupProbe.periodSeconds | int | `10` |  |
 | smithdb.ingestion.deployment.probes.startupProbe.timeoutSeconds | int | `1` |  |
 | smithdb.ingestion.deployment.replicas | int | `1` |  |
-| smithdb.ingestion.deployment.resources | object | `{"limits":{"cpu":"4","ephemeral-storage":"100Gi","memory":"8Gi"},"requests":{"cpu":"4","ephemeral-storage":"100Gi","memory":"8Gi"}}` | Starting baseline. |
+| smithdb.ingestion.deployment.resources.limits.cpu | string | `"4"` |  |
+| smithdb.ingestion.deployment.resources.limits.ephemeral-storage | string | `"100Gi"` |  |
+| smithdb.ingestion.deployment.resources.limits.memory | string | `"8Gi"` |  |
+| smithdb.ingestion.deployment.resources.requests.cpu | string | `"4"` |  |
+| smithdb.ingestion.deployment.resources.requests.ephemeral-storage | string | `"100Gi"` |  |
+| smithdb.ingestion.deployment.resources.requests.memory | string | `"8Gi"` |  |
 | smithdb.ingestion.deployment.securityContext | object | `{}` |  |
 | smithdb.ingestion.deployment.sidecars | list | `[]` |  |
 | smithdb.ingestion.deployment.strategy.rollingUpdate.maxSurge | int | `1` |  |
@@ -1121,7 +1137,12 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | smithdb.query.deployment.probes.startupProbe.periodSeconds | int | `10` |  |
 | smithdb.query.deployment.probes.startupProbe.timeoutSeconds | int | `1` |  |
 | smithdb.query.deployment.replicas | int | `1` |  |
-| smithdb.query.deployment.resources | object | `{"limits":{"cpu":"4","ephemeral-storage":"200Gi","memory":"8Gi"},"requests":{"cpu":"4","ephemeral-storage":"200Gi","memory":"8Gi"}}` | Starting baseline. |
+| smithdb.query.deployment.resources.limits.cpu | string | `"4"` |  |
+| smithdb.query.deployment.resources.limits.ephemeral-storage | string | `"200Gi"` |  |
+| smithdb.query.deployment.resources.limits.memory | string | `"8Gi"` |  |
+| smithdb.query.deployment.resources.requests.cpu | string | `"4"` |  |
+| smithdb.query.deployment.resources.requests.ephemeral-storage | string | `"200Gi"` |  |
+| smithdb.query.deployment.resources.requests.memory | string | `"8Gi"` |  |
 | smithdb.query.deployment.securityContext | object | `{}` |  |
 | smithdb.query.deployment.sidecars | list | `[]` |  |
 | smithdb.query.deployment.strategy.rollingUpdate.maxSurge | int | `1` |  |

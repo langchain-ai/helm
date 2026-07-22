@@ -1298,7 +1298,6 @@ smithdb:
       annotations: {}
       podSecurityContext: {}
       securityContext: {}
-      # -- Starting baseline.
       resources:
         requests:
           cpu: "4"
@@ -1377,7 +1376,6 @@ smithdb:
       annotations: {}
       podSecurityContext: {}
       securityContext: {}
-      # -- Starting baseline.
       resources:
         requests:
           cpu: "4"
@@ -1452,7 +1450,6 @@ smithdb:
       annotations: {}
       podSecurityContext: {}
       securityContext: {}
-      # -- Starting baseline.
       resources:
         requests:
           cpu: "500m"
@@ -1518,7 +1515,6 @@ smithdb:
       podSecurityContext: {}
       securityContext: {}
       terminationGracePeriodSeconds: 120
-      # -- Starting baseline.
       resources:
         requests:
           cpu: "4"
@@ -1596,7 +1592,6 @@ smithdb:
       annotations: {}
       podSecurityContext: {}
       securityContext: {}
-      # -- Starting baseline.
       resources:
         requests:
           cpu: "250m"
