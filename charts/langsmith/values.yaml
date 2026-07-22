@@ -1590,11 +1590,6 @@ smithdb:
         maxReplicas: ""
         replicationThreshold: 0
         sliceReplicationThreshold: 0
-      compaction:
-        minReplicas: 1
-        maxReplicas: ""
-        replicationThreshold: 0
-        sliceReplicationThreshold: 0
     deployment:
       replicas: 1
       labels: {}

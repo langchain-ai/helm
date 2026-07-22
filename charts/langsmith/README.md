@@ -903,10 +903,6 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | smithdb.clusterManager.service.annotations | object | `{}` |  |
 | smithdb.clusterManager.service.labels | object | `{}` |  |
 | smithdb.clusterManager.service.port | int | `8091` |  |
-| smithdb.clusterManager.services.compaction.maxReplicas | string | `""` |  |
-| smithdb.clusterManager.services.compaction.minReplicas | int | `1` |  |
-| smithdb.clusterManager.services.compaction.replicationThreshold | int | `0` |  |
-| smithdb.clusterManager.services.compaction.sliceReplicationThreshold | int | `0` |  |
 | smithdb.clusterManager.services.ingestion.maxReplicas | string | `""` |  |
 | smithdb.clusterManager.services.ingestion.minReplicas | int | `1` |  |
 | smithdb.clusterManager.services.ingestion.replicationThreshold | int | `0` |  |

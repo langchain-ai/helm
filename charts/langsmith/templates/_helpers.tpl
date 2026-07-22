@@ -572,15 +572,14 @@ SmithDB cluster-manager client env vars. Args: root, service.
 {{/*
 SmithDB cluster-manager per-service replica / replication env vars.
 
-Emits min/max replica bounds for query, ingestion, and compaction. When
+Emits min/max replica bounds for query and ingestion. When
 maxReplicas is empty, defaults to that service's deployment.replicas so
-horizontally scaled pods can own the same slice. Optional replication
-thresholds are omitted when empty (SmithDB defaults them to None, which
-disables replication suppression).
+horizontally scaled pods can own the same slice. Replication thresholds
+are emitted when set (chart default is 0).
 */}}
 {{- define "langsmith.smithdb.clusterManagerServicesEnv" -}}
 {{- $root := . -}}
-{{- $services := list (dict "key" "query" "env" "QUERY" "component" "query") (dict "key" "ingestion" "env" "INGESTION" "component" "ingestion") (dict "key" "compaction" "env" "COMPACTION" "component" "compaction") -}}
+{{- $services := list (dict "key" "query" "env" "QUERY" "component" "query") (dict "key" "ingestion" "env" "INGESTION" "component" "ingestion") -}}
 {{- range $svc := $services }}
 {{- $cfg := index $root.Values.smithdb.clusterManager.services $svc.key -}}
 {{- $component := index $root.Values.smithdb $svc.component -}}
