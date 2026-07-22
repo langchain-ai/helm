@@ -153,9 +153,6 @@ tests:
       - equal:
           path: data.SMITHDB_MUTATIONS_SERVICE_URL
           value: RELEASE-NAME-langsmith-smithdb-query.NAMESPACE.svc.cluster.local:8080
-      - equal:
-          path: data.SMITHDB_INGEST_ORGS_ROLLOUT_PCT
-          value: "100"
 
   - it: should configure SmithDB ingestion without SmithDB query endpoints
     values:
@@ -230,8 +227,6 @@ tests:
       - equal:
           path: data.SMITHDB_INGESTION_ENABLED
           value: "false"
-      - notExists:
-          path: data.SMITHDB_INGEST_ORGS_ROLLOUT_PCT
       - notExists:
           path: data.SMITHDB_CLUSTER_MANAGER_ENABLED
       - notExists:
