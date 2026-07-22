@@ -905,16 +905,16 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | smithdb.clusterManager.service.port | int | `8091` |  |
 | smithdb.clusterManager.services.compaction.maxReplicas | string | `""` |  |
 | smithdb.clusterManager.services.compaction.minReplicas | int | `1` |  |
-| smithdb.clusterManager.services.compaction.replicationThreshold | string | `""` |  |
-| smithdb.clusterManager.services.compaction.sliceReplicationThreshold | string | `""` |  |
+| smithdb.clusterManager.services.compaction.replicationThreshold | int | `0` |  |
+| smithdb.clusterManager.services.compaction.sliceReplicationThreshold | int | `0` |  |
 | smithdb.clusterManager.services.ingestion.maxReplicas | string | `""` |  |
 | smithdb.clusterManager.services.ingestion.minReplicas | int | `1` |  |
-| smithdb.clusterManager.services.ingestion.replicationThreshold | string | `""` |  |
-| smithdb.clusterManager.services.ingestion.sliceReplicationThreshold | string | `""` |  |
+| smithdb.clusterManager.services.ingestion.replicationThreshold | int | `0` |  |
+| smithdb.clusterManager.services.ingestion.sliceReplicationThreshold | int | `0` |  |
 | smithdb.clusterManager.services.query.maxReplicas | string | `""` |  |
 | smithdb.clusterManager.services.query.minReplicas | int | `1` |  |
-| smithdb.clusterManager.services.query.replicationThreshold | string | `""` |  |
-| smithdb.clusterManager.services.query.sliceReplicationThreshold | string | `""` |  |
+| smithdb.clusterManager.services.query.replicationThreshold | int | `0` |  |
+| smithdb.clusterManager.services.query.sliceReplicationThreshold | int | `0` |  |
 | smithdb.commonEnv | list | `[]` | Extra env vars for every SmithDB workload. |
 | smithdb.compaction.containerGrpcPort | int | `8071` |  |
 | smithdb.compaction.containerPort | int | `8070` |  |
