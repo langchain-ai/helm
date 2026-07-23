@@ -57,14 +57,29 @@ tests:
           content:
             name: RUST_LOG
             value: INFO,vortex=WARN
-      - notContains:
+      - contains:
           path: spec.template.spec.containers[0].env
           content:
             name: SMITHDB_QUERY__VORTEX_CACHE__DISK__LIMIT
-      - notContains:
+            valueFrom:
+              resourceFieldRef:
+                resource: limits.ephemeral-storage
+      - contains:
           path: spec.template.spec.containers[0].env
           content:
             name: SMITHDB_QUERY__VORTEX_CACHE__MEMORY__LIMIT
+            valueFrom:
+              resourceFieldRef:
+                resource: limits.memory
+      - equal:
+          path: spec.template.spec.containers[0].resources.requests.cpu
+          value: "4"
+      - equal:
+          path: spec.template.spec.containers[0].resources.requests.memory
+          value: "8Gi"
+      - equal:
+          path: spec.template.spec.containers[0].resources.requests.ephemeral-storage
+          value: "200Gi"
 
   - it: should size the SmithDB query disk cache from its ephemeral storage limit
     values:
@@ -274,6 +289,64 @@ tests:
           content:
             name: SMITHDB_CLUSTERMANAGER__LOGGING__FORMAT
             value: console
+
+  - it: should default cluster-manager service max replicas to deployment replicas
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      smithdb.query.deployment.replicas: 4
+      smithdb.ingestion.deployment.replicas: 2
+    template: smithdb/cluster-manager-deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_CLUSTERMANAGER__SERVICES__QUERY__MIN_REPLICAS
+            value: "1"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_CLUSTERMANAGER__SERVICES__QUERY__MAX_REPLICAS
+            value: "4"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_CLUSTERMANAGER__SERVICES__INGESTION__MIN_REPLICAS
+            value: "1"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_CLUSTERMANAGER__SERVICES__INGESTION__MAX_REPLICAS
+            value: "2"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_CLUSTERMANAGER__SERVICES__QUERY__REPLICATION_THRESHOLD
+            value: "0"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_CLUSTERMANAGER__SERVICES__QUERY__SLICE_REPLICATION_THRESHOLD
+            value: "0"
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_CLUSTERMANAGER__SERVICES__COMPACTION__MAX_REPLICAS
+
+  - it: should default smithdb compaction-worker to two replicas
+    values:
+      - ./values/smithdb-enabled.yaml
+    template: smithdb/compaction-worker-deployment.yaml
+    asserts:
+      - equal:
+          path: spec.replicas
+          value: 2
+      - equal:
+          path: spec.template.spec.containers[0].resources.requests.cpu
+          value: "4"
+      - equal:
+          path: spec.template.spec.containers[0].resources.requests.ephemeral-storage
+          value: "100Gi"
 
   - it: should expose compaction worker concurrency as a value
     values:
