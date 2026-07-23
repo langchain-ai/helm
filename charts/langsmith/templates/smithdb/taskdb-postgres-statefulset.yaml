@@ -75,6 +75,8 @@ spec:
                   key: {{ $taskdb.auth.passwordSecretKey }}
             - name: PGDATA
               value: /var/lib/postgresql/data/postgres
+            - name: PGPORT
+              value: {{ $taskdb.containerPort | quote }}
             {{- with $envVars }}
               {{- toYaml . | nindent 12 }}
             {{- end }}

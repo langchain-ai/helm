@@ -395,8 +395,24 @@ tests:
           of: Job
       - template: smithdb/migration-job.yaml
         equal:
+          path: spec.parallelism
+          value: 1
+      - template: smithdb/migration-job.yaml
+        equal:
+          path: spec.backoffLimit
+          value: 3
+      - template: smithdb/migration-job.yaml
+        equal:
+          path: spec.ttlSecondsAfterFinished
+          value: 604800
+      - template: smithdb/migration-job.yaml
+        equal:
           path: spec.template.spec.restartPolicy
           value: Never
+      - template: smithdb/migration-job.yaml
+        equal:
+          path: spec.template.spec.containers[0].resources.requests.ephemeral-storage
+          value: 100Gi
       - template: smithdb/migration-job.yaml
         equal:
           path: spec.template.spec.containers[0].command
@@ -407,6 +423,12 @@ tests:
         equal:
           path: spec.template.spec.containers[0].image
           value: docker.io/langchain/smithdb:latest
+      - template: smithdb/migration-job.yaml
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_MIGRATION__TASKDB__PORT
+            value: "5433"
       - template: smithdb/migration-job.yaml
         contains:
           path: spec.template.spec.containers[0].env
@@ -477,6 +499,10 @@ tests:
         equal:
           path: metadata.name
           value: RELEASE-NAME-langsmith-smithdb-taskdb-postgres
+      - template: smithdb/taskdb-postgres-service.yaml
+        equal:
+          path: spec.ports[0].port
+          value: 5433
       - template: smithdb/taskdb-postgres-statefulset.yaml
         isKind:
           of: StatefulSet
@@ -491,6 +517,20 @@ tests:
             whenDeleted: Delete
             whenScaled: Retain
       - template: smithdb/taskdb-postgres-statefulset.yaml
+        equal:
+          path: spec.volumeClaimTemplates[0].spec.resources.requests.storage
+          value: 50Gi
+      - template: smithdb/taskdb-postgres-statefulset.yaml
+        equal:
+          path: spec.template.spec.containers[0].ports[0].containerPort
+          value: 5433
+      - template: smithdb/taskdb-postgres-statefulset.yaml
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: PGPORT
+            value: "5433"
+      - template: smithdb/taskdb-postgres-statefulset.yaml
         contains:
           path: spec.template.spec.containers[0].env
           content:
@@ -499,6 +539,20 @@ tests:
               secretKeyRef:
                 name: RELEASE-NAME-langsmith-smithdb-taskdb-postgres
                 key: postgres_password
+
+  - it: should configure smithdb migration parallelism
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      smithdb.langsmith.migration.enabled: true
+      smithdb.langsmith.query.enabled: false
+      smithdb.migration.job.parallelism: 5
+      smithdb.migration.taskdb.postgres.auth.password: taskdb-password
+    template: smithdb/migration-job.yaml
+    asserts:
+      - equal:
+          path: spec.parallelism
+          value: 5
 
   - it: should allow retaining the taskdb PVC when the StatefulSet is deleted
     values:

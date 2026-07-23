@@ -1635,10 +1635,12 @@ smithdb:
     # -- Optional RFC3339 end bound for migrate-all (half-open window). Empty uses now.
     endTime: ""
     job:
-      # -- Keep finished migrate-all Jobs around for a day so operators can inspect status/logs.
-      ttlSecondsAfterFinished: 86400
-      # -- Do not retry a failed migrate-all; failures should be inspected and re-run deliberately.
-      backoffLimit: 0
+      # -- Keep finished migrate-all Jobs around for seven days so operators can inspect status/logs.
+      ttlSecondsAfterFinished: 604800
+      # -- Maximum number of migration pods that run concurrently.
+      parallelism: 1
+      # -- Retry failed migrate-all pods up to this many times before marking the Job failed.
+      backoffLimit: 3
       # -- Optional hard deadline for the Job. Leave unset for long-running full migrations.
       activeDeadlineSeconds: null
       restartPolicy: Never
@@ -1648,7 +1650,7 @@ smithdb:
         # -- both the main LangSmith Postgres and the SmithDB metastore.
         enabled: true
         name: "taskdb-postgres"
-        containerPort: 5432
+        containerPort: 5433
         # -- Credentials for the in-chart taskdb Postgres instance. Used only when external.enabled is false.
         auth:
           database: "smithdb_migration"
@@ -1664,7 +1666,7 @@ smithdb:
         external:
           enabled: false
           host: ""
-          port: "5432"
+          port: "5433"
           database: "smithdb_migration"
           username: "postgres"
           password: ""
@@ -1676,7 +1678,7 @@ smithdb:
           usernameSecretKey: "postgres_user"
           passwordSecretKey: "postgres_password"
         service:
-          port: 5432
+          port: 5433
           labels: {}
           annotations: {}
         statefulSet:
@@ -1732,7 +1734,7 @@ smithdb:
             whenScaled: Retain
           persistence:
             enabled: true
-            size: 8Gi
+            size: 50Gi
             storageClassName: ""
     deployment:
       labels: {}
@@ -1740,7 +1742,15 @@ smithdb:
       podSecurityContext: {}
       securityContext: {}
       terminationGracePeriodSeconds: 120
-      resources: {}
+      resources:
+        requests:
+          cpu: "8"
+          memory: "16Gi"
+          ephemeral-storage: "100Gi"
+        limits:
+          cpu: "8"
+          memory: "16Gi"
+          ephemeral-storage: "100Gi"
       # -- Runs taskdb schema migrations, then one-shot self-hosted migrate-all: discover tenants,
       # -- register non-overlapping jobs, drain the global queue, and exit. Override for another migration mode.
       command:
