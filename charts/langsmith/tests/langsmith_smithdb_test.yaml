@@ -9,9 +9,12 @@ templates:
   - clickhouse/secrets.yaml
   - frontend/config-map.yaml
   - smithdb/query-deployment.yaml
+  - smithdb/query-hpa.yaml
   - smithdb/ingestion-deployment.yaml
+  - smithdb/ingestion-hpa.yaml
   - smithdb/compaction-deployment.yaml
   - smithdb/compaction-worker-deployment.yaml
+  - smithdb/compaction-worker-hpa.yaml
   - smithdb/cluster-manager-deployment.yaml
   - smithdb/migration-job.yaml
   - smithdb/taskdb-postgres-secret.yaml
@@ -332,6 +335,58 @@ tests:
           path: spec.template.spec.containers[0].env
           content:
             name: SMITHDB_CLUSTERMANAGER__SERVICES__COMPACTION__MAX_REPLICAS
+
+
+  - it: should derive cluster-manager service max replicas from autoscaling max when HPA enabled
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      smithdb.query.deployment.replicas: 1
+      smithdb.query.autoscaling.enabled: true
+      smithdb.query.autoscaling.minReplicas: 2
+      smithdb.query.autoscaling.maxReplicas: 6
+    template: smithdb/cluster-manager-deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_CLUSTERMANAGER__SERVICES__QUERY__MIN_REPLICAS
+            value: "1"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_CLUSTERMANAGER__SERVICES__QUERY__MAX_REPLICAS
+            value: "6"
+
+  - it: should render query HPA when autoscaling enabled
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      smithdb.query.autoscaling.enabled: true
+      smithdb.query.autoscaling.minReplicas: 1
+      smithdb.query.autoscaling.maxReplicas: 5
+      smithdb.query.autoscaling.targetCPUUtilizationPercentage: 40
+    template: smithdb/query-hpa.yaml
+    asserts:
+      - equal:
+          path: spec.minReplicas
+          value: 1
+      - equal:
+          path: spec.maxReplicas
+          value: 5
+      - equal:
+          path: spec.metrics[0].resource.target.averageUtilization
+          value: 40
+
+  - it: should omit query deployment replicas when autoscaling enabled
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      smithdb.query.autoscaling.enabled: true
+    template: smithdb/query-deployment.yaml
+    asserts:
+      - notExists:
+          path: spec.replicas
 
   - it: should default smithdb compaction-worker to two replicas
     values:

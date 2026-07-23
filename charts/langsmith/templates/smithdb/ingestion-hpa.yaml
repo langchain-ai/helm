@@ -1,0 +1,37 @@
+{{- if and .Values.smithdb.enabled (dig "autoscaling" "enabled" false .Values.smithdb.ingestion) }}
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ include "langsmith.smithdb.componentName" (dict "root" . "component" "ingestion") }}
+  namespace: {{ .Values.namespace | default .Release.Namespace }}
+  labels:
+    {{- include "langsmith.labels" . | nindent 4 }}
+    app.kubernetes.io/component: {{ include "langsmith.smithdb.componentName" (dict "root" . "component" "ingestion") }}
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ include "langsmith.smithdb.componentName" (dict "root" . "component" "ingestion") }}
+  minReplicas: {{ .Values.smithdb.ingestion.autoscaling.minReplicas }}
+  maxReplicas: {{ .Values.smithdb.ingestion.autoscaling.maxReplicas }}
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: {{ .Values.smithdb.ingestion.autoscaling.scaleUpStabilizationWindowSeconds }}
+      policies:
+        - type: Pods
+          value: {{ .Values.smithdb.ingestion.autoscaling.scalePodCount }}
+          periodSeconds: {{ .Values.smithdb.ingestion.autoscaling.scaleUpStabilizationWindowSeconds }}
+    scaleDown:
+      stabilizationWindowSeconds: {{ .Values.smithdb.ingestion.autoscaling.scaleDownStabilizationWindowSeconds }}
+      policies:
+        - type: Pods
+          value: {{ .Values.smithdb.ingestion.autoscaling.scalePodCount }}
+          periodSeconds: {{ .Values.smithdb.ingestion.autoscaling.scaleDownStabilizationWindowSeconds }}
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.smithdb.ingestion.autoscaling.targetCPUUtilizationPercentage }}
+{{- end }}
