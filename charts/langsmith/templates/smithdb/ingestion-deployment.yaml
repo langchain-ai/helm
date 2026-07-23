@@ -18,7 +18,9 @@ metadata:
       {{- toYaml . | nindent 4 }}
     {{- end }}
 spec:
+  {{- if not (dig "autoscaling" "enabled" false .Values.smithdb.ingestion) }}
   replicas: {{ .Values.smithdb.ingestion.deployment.replicas }}
+  {{- end }}
   strategy:
     {{- toYaml .Values.smithdb.ingestion.deployment.strategy | nindent 4 }}
   selector:
