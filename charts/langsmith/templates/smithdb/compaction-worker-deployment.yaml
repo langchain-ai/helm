@@ -18,7 +18,9 @@ metadata:
       {{- toYaml . | nindent 4 }}
     {{- end }}
 spec:
+  {{- if not (dig "autoscaling" "enabled" false .Values.smithdb.compactionWorker) }}
   replicas: {{ .Values.smithdb.compactionWorker.deployment.replicas }}
+  {{- end }}
   selector:
     matchLabels:
       {{- include "langsmith.selectorLabels" . | nindent 6 }}

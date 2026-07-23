@@ -955,6 +955,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | smithdb.compaction.service.annotations | object | `{}` |  |
 | smithdb.compaction.service.labels | object | `{}` |  |
 | smithdb.compaction.service.port | int | `8071` |  |
+| smithdb.compactionWorker.autoscaling | object | `{"enabled":true,"maxReplicas":10,"minReplicas":1,"scaleDownStabilizationWindowSeconds":300,"scalePodCount":1,"scaleUpStabilizationWindowSeconds":120,"targetCPUUtilizationPercentage":60}` |  |
 | smithdb.compactionWorker.containerPort | int | `9000` |  |
 | smithdb.compactionWorker.deployment.affinity | object | `{}` |  |
 | smithdb.compactionWorker.deployment.annotations | object | `{}` |  |
@@ -1022,6 +1023,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | smithdb.config.observability.tracing.endpoint | string | `""` | OTLP gRPC collector endpoint for SmithDB traces/logs. |
 | smithdb.config.observability.tracing.extraResourceAttributes | object | `{}` | Extra OpenTelemetry resource attributes appended to SmithDB traces/logs. |
 | smithdb.enabled | bool | `false` | Deploy the in-chart SmithDB workloads. |
+| smithdb.ingestion.autoscaling | object | `{"enabled":true,"maxReplicas":10,"minReplicas":1,"scaleDownStabilizationWindowSeconds":900,"scalePodCount":1,"scaleUpStabilizationWindowSeconds":300,"targetCPUUtilizationPercentage":45}` |  |
 | smithdb.ingestion.containerGrpcPort | int | `8082` |  |
 | smithdb.ingestion.containerPort | int | `8050` |  |
 | smithdb.ingestion.deployment.affinity | object | `{}` |  |
@@ -1177,6 +1179,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | smithdb.migration.taskdb.postgres.statefulSet.volumeMounts | list | `[]` |  |
 | smithdb.migration.taskdb.postgres.statefulSet.volumes | list | `[]` |  |
 | smithdb.name | string | `"smithdb"` | Name segment used for SmithDB resources. |
+| smithdb.query.autoscaling | object | `{"enabled":true,"maxReplicas":10,"minReplicas":1,"scaleDownStabilizationWindowSeconds":900,"scalePodCount":1,"scaleUpStabilizationWindowSeconds":300,"targetCPUUtilizationPercentage":40}` |  |
 | smithdb.query.containerGrpcPort | int | `8080` |  |
 | smithdb.query.containerPort | int | `8060` |  |
 | smithdb.query.deployment.affinity | object | `{}` |  |

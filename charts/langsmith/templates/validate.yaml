@@ -334,6 +334,22 @@ AWS Marketplace Helm template verification).
 {{- if and .Values.smithdb.enabled (ne (toString .Values.smithdb.compactionWorker.maxConcurrentJobs) "") (lt (int .Values.smithdb.compactionWorker.maxConcurrentJobs) 1) -}}
 {{- fail "smithdb.compactionWorker.maxConcurrentJobs must be greater than 0 when set." -}}
 {{- end -}}
+{{- $smithdbAutoscalingWorkloads := dict
+  "query" .Values.smithdb.query
+  "ingestion" .Values.smithdb.ingestion
+  "compactionWorker" .Values.smithdb.compactionWorker
+-}}
+{{- range $workloadName, $workload := $smithdbAutoscalingWorkloads -}}
+{{- $autoscaling := dig "autoscaling" (dict) $workload -}}
+{{- if and $.Values.smithdb.enabled (dig "enabled" false $autoscaling) -}}
+{{- if lt (int $autoscaling.minReplicas) 1 -}}
+{{- fail (printf "smithdb.%s.autoscaling.minReplicas must be greater than 0 when autoscaling is enabled." $workloadName) -}}
+{{- end -}}
+{{- if lt (int $autoscaling.maxReplicas) (int $autoscaling.minReplicas) -}}
+{{- fail (printf "smithdb.%s.autoscaling.maxReplicas must be >= minReplicas when autoscaling is enabled." $workloadName) -}}
+{{- end -}}
+{{- end -}}
+{{- end -}}
 {{- end -}}
 {{- if and .Values.smithdb.langsmith.migration.enabled (not .Values.smithdb.enabled) -}}
 {{- fail "smithdb.enabled must be true when smithdb.langsmith.migration.enabled is true." -}}
