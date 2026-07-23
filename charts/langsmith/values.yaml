@@ -1358,13 +1358,10 @@ smithdb:
       minAvailable: 1
       labels: {}
       annotations: {}
-    # -- CPU-based HPA for smithdb-query. When enabled, omit deployment.replicas
-    # from the Deployment; the cluster manager's query MAX_REPLICAS is derived
-    # from autoscaling.maxReplicas.
     autoscaling:
       enabled: false
       minReplicas: 1
-      maxReplicas: 5
+      maxReplicas: 10
       targetCPUUtilizationPercentage: 40
       scaleUpStabilizationWindowSeconds: 300
       scaleDownStabilizationWindowSeconds: 900
@@ -1448,14 +1445,10 @@ smithdb:
       minAvailable: 1
       labels: {}
       annotations: {}
-    # -- CPU-based HPA for smithdb-ingestion. When enabled, omit deployment.replicas
-    # from the Deployment; the cluster manager's ingestion MAX_REPLICAS is derived
-    # from autoscaling.maxReplicas. Default target is above typical single-pod
-    # baseline utilization so HPA can consolidate to minReplicas at idle.
     autoscaling:
       enabled: false
       minReplicas: 1
-      maxReplicas: 5
+      maxReplicas: 10
       targetCPUUtilizationPercentage: 45
       scaleUpStabilizationWindowSeconds: 300
       scaleDownStabilizationWindowSeconds: 900
@@ -1591,12 +1584,8 @@ smithdb:
       minAvailable: 1
       labels: {}
       annotations: {}
-    # -- CPU-based HPA for smithdb-compaction-worker. When enabled, omit
-    # deployment.replicas from the Deployment. Compaction is queue-driven; CPU
-    # is a coarse proxy (bursty jobs may not sustain utilization long enough to
-    # scale). Prefer tuning after observing backlog under your workload.
     autoscaling:
-      enabled: false
+      enabled: true
       minReplicas: 1
       maxReplicas: 10
       targetCPUUtilizationPercentage: 60

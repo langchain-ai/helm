@@ -388,14 +388,28 @@ tests:
       - notExists:
           path: spec.replicas
 
-  - it: should default smithdb compaction-worker to two replicas
+  - it: should enable compaction-worker HPA by default
+    values:
+      - ./values/smithdb-enabled.yaml
+    template: smithdb/compaction-worker-hpa.yaml
+    asserts:
+      - equal:
+          path: spec.minReplicas
+          value: 1
+      - equal:
+          path: spec.maxReplicas
+          value: 10
+      - equal:
+          path: spec.metrics[0].resource.target.averageUtilization
+          value: 60
+
+  - it: should omit compaction-worker deployment replicas when HPA enabled by default
     values:
       - ./values/smithdb-enabled.yaml
     template: smithdb/compaction-worker-deployment.yaml
     asserts:
-      - equal:
+      - notExists:
           path: spec.replicas
-          value: 2
       - equal:
           path: spec.template.spec.containers[0].resources.requests.cpu
           value: "4"
