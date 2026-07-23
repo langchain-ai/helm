@@ -57,14 +57,29 @@ tests:
           content:
             name: RUST_LOG
             value: INFO,vortex=WARN
-      - notContains:
+      - contains:
           path: spec.template.spec.containers[0].env
           content:
             name: SMITHDB_QUERY__VORTEX_CACHE__DISK__LIMIT
-      - notContains:
+            valueFrom:
+              resourceFieldRef:
+                resource: limits.ephemeral-storage
+      - contains:
           path: spec.template.spec.containers[0].env
           content:
             name: SMITHDB_QUERY__VORTEX_CACHE__MEMORY__LIMIT
+            valueFrom:
+              resourceFieldRef:
+                resource: limits.memory
+      - equal:
+          path: spec.template.spec.containers[0].resources.requests.cpu
+          value: "4"
+      - equal:
+          path: spec.template.spec.containers[0].resources.requests.memory
+          value: "8Gi"
+      - equal:
+          path: spec.template.spec.containers[0].resources.requests.ephemeral-storage
+          value: "200Gi"
 
   - it: should size the SmithDB query disk cache from its ephemeral storage limit
     values:
@@ -275,6 +290,64 @@ tests:
             name: SMITHDB_CLUSTERMANAGER__LOGGING__FORMAT
             value: console
 
+  - it: should default cluster-manager service max replicas to deployment replicas
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      smithdb.query.deployment.replicas: 4
+      smithdb.ingestion.deployment.replicas: 2
+    template: smithdb/cluster-manager-deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_CLUSTERMANAGER__SERVICES__QUERY__MIN_REPLICAS
+            value: "1"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_CLUSTERMANAGER__SERVICES__QUERY__MAX_REPLICAS
+            value: "4"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_CLUSTERMANAGER__SERVICES__INGESTION__MIN_REPLICAS
+            value: "1"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_CLUSTERMANAGER__SERVICES__INGESTION__MAX_REPLICAS
+            value: "2"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_CLUSTERMANAGER__SERVICES__QUERY__REPLICATION_THRESHOLD
+            value: "0"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_CLUSTERMANAGER__SERVICES__QUERY__SLICE_REPLICATION_THRESHOLD
+            value: "0"
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_CLUSTERMANAGER__SERVICES__COMPACTION__MAX_REPLICAS
+
+  - it: should default smithdb compaction-worker to two replicas
+    values:
+      - ./values/smithdb-enabled.yaml
+    template: smithdb/compaction-worker-deployment.yaml
+    asserts:
+      - equal:
+          path: spec.replicas
+          value: 2
+      - equal:
+          path: spec.template.spec.containers[0].resources.requests.cpu
+          value: "4"
+      - equal:
+          path: spec.template.spec.containers[0].resources.requests.ephemeral-storage
+          value: "100Gi"
+
   - it: should expose compaction worker concurrency as a value
     values:
       - ./values/smithdb-enabled.yaml
@@ -322,8 +395,24 @@ tests:
           of: Job
       - template: smithdb/migration-job.yaml
         equal:
+          path: spec.parallelism
+          value: 1
+      - template: smithdb/migration-job.yaml
+        equal:
+          path: spec.backoffLimit
+          value: 3
+      - template: smithdb/migration-job.yaml
+        equal:
+          path: spec.ttlSecondsAfterFinished
+          value: 604800
+      - template: smithdb/migration-job.yaml
+        equal:
           path: spec.template.spec.restartPolicy
           value: Never
+      - template: smithdb/migration-job.yaml
+        equal:
+          path: spec.template.spec.containers[0].resources.requests.ephemeral-storage
+          value: 100Gi
       - template: smithdb/migration-job.yaml
         equal:
           path: spec.template.spec.containers[0].command
@@ -334,6 +423,12 @@ tests:
         equal:
           path: spec.template.spec.containers[0].image
           value: docker.io/langchain/smithdb:latest
+      - template: smithdb/migration-job.yaml
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_MIGRATION__TASKDB__PORT
+            value: "5433"
       - template: smithdb/migration-job.yaml
         contains:
           path: spec.template.spec.containers[0].env
@@ -404,6 +499,10 @@ tests:
         equal:
           path: metadata.name
           value: RELEASE-NAME-langsmith-smithdb-taskdb-postgres
+      - template: smithdb/taskdb-postgres-service.yaml
+        equal:
+          path: spec.ports[0].port
+          value: 5433
       - template: smithdb/taskdb-postgres-statefulset.yaml
         isKind:
           of: StatefulSet
@@ -418,6 +517,20 @@ tests:
             whenDeleted: Delete
             whenScaled: Retain
       - template: smithdb/taskdb-postgres-statefulset.yaml
+        equal:
+          path: spec.volumeClaimTemplates[0].spec.resources.requests.storage
+          value: 50Gi
+      - template: smithdb/taskdb-postgres-statefulset.yaml
+        equal:
+          path: spec.template.spec.containers[0].ports[0].containerPort
+          value: 5433
+      - template: smithdb/taskdb-postgres-statefulset.yaml
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: PGPORT
+            value: "5433"
+      - template: smithdb/taskdb-postgres-statefulset.yaml
         contains:
           path: spec.template.spec.containers[0].env
           content:
@@ -426,6 +539,20 @@ tests:
               secretKeyRef:
                 name: RELEASE-NAME-langsmith-smithdb-taskdb-postgres
                 key: postgres_password
+
+  - it: should configure smithdb migration parallelism
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      smithdb.langsmith.migration.enabled: true
+      smithdb.langsmith.query.enabled: false
+      smithdb.migration.job.parallelism: 5
+      smithdb.migration.taskdb.postgres.auth.password: taskdb-password
+    template: smithdb/migration-job.yaml
+    asserts:
+      - equal:
+          path: spec.parallelism
+          value: 5
 
   - it: should allow retaining the taskdb PVC when the StatefulSet is deleted
     values:

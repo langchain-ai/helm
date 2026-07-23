@@ -891,7 +891,10 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | smithdb.clusterManager.deployment.probes.startupProbe.periodSeconds | int | `10` |  |
 | smithdb.clusterManager.deployment.probes.startupProbe.timeoutSeconds | int | `1` |  |
 | smithdb.clusterManager.deployment.replicas | int | `1` |  |
-| smithdb.clusterManager.deployment.resources | object | `{}` |  |
+| smithdb.clusterManager.deployment.resources.limits.cpu | string | `"250m"` |  |
+| smithdb.clusterManager.deployment.resources.limits.memory | string | `"256Mi"` |  |
+| smithdb.clusterManager.deployment.resources.requests.cpu | string | `"250m"` |  |
+| smithdb.clusterManager.deployment.resources.requests.memory | string | `"256Mi"` |  |
 | smithdb.clusterManager.deployment.securityContext | object | `{}` |  |
 | smithdb.clusterManager.deployment.sidecars | list | `[]` |  |
 | smithdb.clusterManager.deployment.tolerations | list | `[]` |  |
@@ -934,7 +937,10 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | smithdb.compaction.deployment.probes.startupProbe.periodSeconds | int | `10` |  |
 | smithdb.compaction.deployment.probes.startupProbe.timeoutSeconds | int | `1` |  |
 | smithdb.compaction.deployment.replicas | int | `1` |  |
-| smithdb.compaction.deployment.resources | object | `{}` |  |
+| smithdb.compaction.deployment.resources.limits.cpu | string | `"500m"` |  |
+| smithdb.compaction.deployment.resources.limits.memory | string | `"1Gi"` |  |
+| smithdb.compaction.deployment.resources.requests.cpu | string | `"500m"` |  |
+| smithdb.compaction.deployment.resources.requests.memory | string | `"1Gi"` |  |
 | smithdb.compaction.deployment.securityContext | object | `{}` |  |
 | smithdb.compaction.deployment.sidecars | list | `[]` |  |
 | smithdb.compaction.deployment.tolerations | list | `[]` |  |
@@ -976,15 +982,22 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | smithdb.compactionWorker.deployment.probes.startupProbe.httpGet.port | string | `"http"` |  |
 | smithdb.compactionWorker.deployment.probes.startupProbe.periodSeconds | int | `10` |  |
 | smithdb.compactionWorker.deployment.probes.startupProbe.timeoutSeconds | int | `1` |  |
-| smithdb.compactionWorker.deployment.replicas | int | `1` |  |
-| smithdb.compactionWorker.deployment.resources | object | `{}` |  |
+| smithdb.compactionWorker.deployment.replicas | int | `2` |  |
+| smithdb.compactionWorker.deployment.resources.limits.cpu | string | `"4"` |  |
+| smithdb.compactionWorker.deployment.resources.limits.ephemeral-storage | string | `"100Gi"` |  |
+| smithdb.compactionWorker.deployment.resources.limits.memory | string | `"8Gi"` |  |
+| smithdb.compactionWorker.deployment.resources.requests.cpu | string | `"4"` |  |
+| smithdb.compactionWorker.deployment.resources.requests.ephemeral-storage | string | `"100Gi"` |  |
+| smithdb.compactionWorker.deployment.resources.requests.memory | string | `"8Gi"` |  |
 | smithdb.compactionWorker.deployment.securityContext | object | `{}` |  |
 | smithdb.compactionWorker.deployment.sidecars | list | `[]` |  |
 | smithdb.compactionWorker.deployment.terminationGracePeriodSeconds | int | `120` |  |
 | smithdb.compactionWorker.deployment.tolerations | list | `[]` |  |
 | smithdb.compactionWorker.deployment.topologySpreadConstraints | list | `[]` |  |
-| smithdb.compactionWorker.deployment.volumeMounts | list | `[]` |  |
-| smithdb.compactionWorker.deployment.volumes | list | `[]` |  |
+| smithdb.compactionWorker.deployment.volumeMounts[0].mountPath | string | `"/data"` |  |
+| smithdb.compactionWorker.deployment.volumeMounts[0].name | string | `"local-ssd-storage"` |  |
+| smithdb.compactionWorker.deployment.volumes[0].emptyDir.sizeLimit | string | `"100Gi"` |  |
+| smithdb.compactionWorker.deployment.volumes[0].name | string | `"local-ssd-storage"` |  |
 | smithdb.compactionWorker.maxConcurrentJobs | string | `""` | Maximum concurrent jobs per compaction worker. Empty uses the SmithDB default. |
 | smithdb.compactionWorker.name | string | `"compaction-worker"` |  |
 | smithdb.compactionWorker.pdb.annotations | object | `{}` |  |
@@ -1016,7 +1029,10 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | smithdb.ingestion.deployment.command[0] | string | `"./smithdb"` |  |
 | smithdb.ingestion.deployment.command[1] | string | `"ingestion"` |  |
 | smithdb.ingestion.deployment.extraContainerConfig | object | `{}` |  |
-| smithdb.ingestion.deployment.extraEnv | list | `[]` |  |
+| smithdb.ingestion.deployment.extraEnv[0].name | string | `"SMITHDB_INGESTION__PROCESSOR__FLUSH__DATA_DIR"` |  |
+| smithdb.ingestion.deployment.extraEnv[0].value | string | `"/data"` |  |
+| smithdb.ingestion.deployment.extraEnv[1].name | string | `"SMITHDB_INGESTION__RUN_SEGMENT_MANAGER__FLUSH__DATA_DIR"` |  |
+| smithdb.ingestion.deployment.extraEnv[1].value | string | `"/data"` |  |
 | smithdb.ingestion.deployment.initContainers | list | `[]` |  |
 | smithdb.ingestion.deployment.labels | object | `{}` |  |
 | smithdb.ingestion.deployment.nodeSelector | object | `{}` |  |
@@ -1037,7 +1053,12 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | smithdb.ingestion.deployment.probes.startupProbe.periodSeconds | int | `10` |  |
 | smithdb.ingestion.deployment.probes.startupProbe.timeoutSeconds | int | `1` |  |
 | smithdb.ingestion.deployment.replicas | int | `1` |  |
-| smithdb.ingestion.deployment.resources | object | `{}` |  |
+| smithdb.ingestion.deployment.resources.limits.cpu | string | `"4"` |  |
+| smithdb.ingestion.deployment.resources.limits.ephemeral-storage | string | `"100Gi"` |  |
+| smithdb.ingestion.deployment.resources.limits.memory | string | `"8Gi"` |  |
+| smithdb.ingestion.deployment.resources.requests.cpu | string | `"4"` |  |
+| smithdb.ingestion.deployment.resources.requests.ephemeral-storage | string | `"100Gi"` |  |
+| smithdb.ingestion.deployment.resources.requests.memory | string | `"8Gi"` |  |
 | smithdb.ingestion.deployment.securityContext | object | `{}` |  |
 | smithdb.ingestion.deployment.sidecars | list | `[]` |  |
 | smithdb.ingestion.deployment.strategy.rollingUpdate.maxSurge | int | `1` |  |
@@ -1046,8 +1067,10 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | smithdb.ingestion.deployment.terminationGracePeriodSeconds | int | `300` |  |
 | smithdb.ingestion.deployment.tolerations | list | `[]` |  |
 | smithdb.ingestion.deployment.topologySpreadConstraints | list | `[]` |  |
-| smithdb.ingestion.deployment.volumeMounts | list | `[]` |  |
-| smithdb.ingestion.deployment.volumes | list | `[]` |  |
+| smithdb.ingestion.deployment.volumeMounts[0].mountPath | string | `"/data"` |  |
+| smithdb.ingestion.deployment.volumeMounts[0].name | string | `"local-ssd-storage"` |  |
+| smithdb.ingestion.deployment.volumes[0].emptyDir.sizeLimit | string | `"100Gi"` |  |
+| smithdb.ingestion.deployment.volumes[0].name | string | `"local-ssd-storage"` |  |
 | smithdb.ingestion.name | string | `"ingestion"` |  |
 | smithdb.ingestion.pdb.annotations | object | `{}` |  |
 | smithdb.ingestion.pdb.enabled | bool | `false` |  |
@@ -1086,7 +1109,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | smithdb.migration.deployment.labels | object | `{}` |  |
 | smithdb.migration.deployment.nodeSelector | object | `{}` |  |
 | smithdb.migration.deployment.podSecurityContext | object | `{}` |  |
-| smithdb.migration.deployment.resources | object | `{}` |  |
+| smithdb.migration.deployment.resources.requests.ephemeral-storage | string | `"100Gi"` |  |
 | smithdb.migration.deployment.securityContext | object | `{}` |  |
 | smithdb.migration.deployment.sidecars | list | `[]` |  |
 | smithdb.migration.deployment.terminationGracePeriodSeconds | int | `120` |  |
@@ -1096,22 +1119,23 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | smithdb.migration.deployment.volumes | list | `[]` |  |
 | smithdb.migration.endTime | string | `""` | Optional RFC3339 end bound for migrate-all (half-open window). Empty uses now. |
 | smithdb.migration.job.activeDeadlineSeconds | string | `nil` | Optional hard deadline for the Job. Leave unset for long-running full migrations. |
-| smithdb.migration.job.backoffLimit | int | `0` | Do not retry a failed migrate-all; failures should be inspected and re-run deliberately. |
+| smithdb.migration.job.backoffLimit | int | `3` | Retry failed migrate-all pods up to this many times before marking the Job failed. |
+| smithdb.migration.job.parallelism | int | `1` | Maximum number of migration pods that run concurrently. |
 | smithdb.migration.job.restartPolicy | string | `"Never"` |  |
-| smithdb.migration.job.ttlSecondsAfterFinished | int | `86400` | Keep finished migrate-all Jobs around for a day so operators can inspect status/logs. |
+| smithdb.migration.job.ttlSecondsAfterFinished | int | `604800` | Keep finished migrate-all Jobs around for seven days so operators can inspect status/logs. |
 | smithdb.migration.name | string | `"migration"` |  |
 | smithdb.migration.startTime | string | `""` | Optional RFC3339 start bound for migrate-all (half-open window). Empty uses end - 400 days. |
 | smithdb.migration.taskdb.postgres.auth | object | `{"database":"smithdb_migration","existingSecretName":"","password":"","passwordSecretKey":"postgres_password","username":"postgres"}` | Credentials for the in-chart taskdb Postgres instance. Used only when external.enabled is false. |
 | smithdb.migration.taskdb.postgres.auth.existingSecretName | string | `""` | Existing secret containing taskdb Postgres credentials. If set, the chart does not create one. |
 | smithdb.migration.taskdb.postgres.auth.password | string | `""` | Password for the chart-managed taskdb Postgres instance. Required unless existingSecretName is set. |
-| smithdb.migration.taskdb.postgres.containerPort | int | `5432` |  |
+| smithdb.migration.taskdb.postgres.containerPort | int | `5433` |  |
 | smithdb.migration.taskdb.postgres.enabled | bool | `true` | both the main LangSmith Postgres and the SmithDB metastore. |
-| smithdb.migration.taskdb.postgres.external | object | `{"database":"smithdb_migration","databaseSecretKey":"postgres_db","enabled":false,"existingSecretName":"","host":"","hostSecretKey":"postgres_host","password":"","passwordSecretKey":"postgres_password","port":"5432","useSsl":false,"username":"postgres","usernameSecretKey":"postgres_user"}` | the SmithDB metastore. |
+| smithdb.migration.taskdb.postgres.external | object | `{"database":"smithdb_migration","databaseSecretKey":"postgres_db","enabled":false,"existingSecretName":"","host":"","hostSecretKey":"postgres_host","password":"","passwordSecretKey":"postgres_password","port":"5433","useSsl":false,"username":"postgres","usernameSecretKey":"postgres_user"}` | the SmithDB metastore. |
 | smithdb.migration.taskdb.postgres.external.existingSecretName | string | `""` | Existing secret containing external taskdb Postgres connection fields. If set, the chart does not create one. |
 | smithdb.migration.taskdb.postgres.name | string | `"taskdb-postgres"` |  |
 | smithdb.migration.taskdb.postgres.service.annotations | object | `{}` |  |
 | smithdb.migration.taskdb.postgres.service.labels | object | `{}` |  |
-| smithdb.migration.taskdb.postgres.service.port | int | `5432` |  |
+| smithdb.migration.taskdb.postgres.service.port | int | `5433` |  |
 | smithdb.migration.taskdb.postgres.statefulSet.affinity | object | `{}` |  |
 | smithdb.migration.taskdb.postgres.statefulSet.annotations | object | `{}` |  |
 | smithdb.migration.taskdb.postgres.statefulSet.command | list | `[]` |  |
@@ -1127,7 +1151,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | smithdb.migration.taskdb.postgres.statefulSet.livenessProbe.timeoutSeconds | int | `1` |  |
 | smithdb.migration.taskdb.postgres.statefulSet.nodeSelector | object | `{}` |  |
 | smithdb.migration.taskdb.postgres.statefulSet.persistence.enabled | bool | `true` |  |
-| smithdb.migration.taskdb.postgres.statefulSet.persistence.size | string | `"8Gi"` |  |
+| smithdb.migration.taskdb.postgres.statefulSet.persistence.size | string | `"50Gi"` |  |
 | smithdb.migration.taskdb.postgres.statefulSet.persistence.storageClassName | string | `""` |  |
 | smithdb.migration.taskdb.postgres.statefulSet.persistentVolumeClaimRetentionPolicy | object | `{"whenDeleted":"Delete","whenScaled":"Retain"}` | Delete the migration-scoped taskdb PVC when its StatefulSet is removed. |
 | smithdb.migration.taskdb.postgres.statefulSet.podSecurityContext | object | `{}` |  |
@@ -1181,7 +1205,12 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | smithdb.query.deployment.probes.startupProbe.periodSeconds | int | `10` |  |
 | smithdb.query.deployment.probes.startupProbe.timeoutSeconds | int | `1` |  |
 | smithdb.query.deployment.replicas | int | `1` |  |
-| smithdb.query.deployment.resources | object | `{}` |  |
+| smithdb.query.deployment.resources.limits.cpu | string | `"4"` |  |
+| smithdb.query.deployment.resources.limits.ephemeral-storage | string | `"200Gi"` |  |
+| smithdb.query.deployment.resources.limits.memory | string | `"8Gi"` |  |
+| smithdb.query.deployment.resources.requests.cpu | string | `"4"` |  |
+| smithdb.query.deployment.resources.requests.ephemeral-storage | string | `"200Gi"` |  |
+| smithdb.query.deployment.resources.requests.memory | string | `"8Gi"` |  |
 | smithdb.query.deployment.securityContext | object | `{}` |  |
 | smithdb.query.deployment.sidecars | list | `[]` |  |
 | smithdb.query.deployment.strategy.rollingUpdate.maxSurge | int | `1` |  |

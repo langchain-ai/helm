@@ -21,6 +21,7 @@ metadata:
       {{- toYaml . | nindent 4 }}
     {{- end }}
 spec:
+  parallelism: {{ .Values.smithdb.migration.job.parallelism }}
   backoffLimit: {{ .Values.smithdb.migration.job.backoffLimit }}
   ttlSecondsAfterFinished: {{ .Values.smithdb.migration.job.ttlSecondsAfterFinished }}
   {{- with .Values.smithdb.migration.job.activeDeadlineSeconds }}
