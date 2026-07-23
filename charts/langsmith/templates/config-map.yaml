@@ -33,6 +33,7 @@ data:
   VITE_BACKEND_AUTH_TYPE: "none"
   AUTH_TYPE: "none"
   {{- end }}
+  OIDC_ALLOW_SUB_MIGRATION: {{ .Values.config.oauth.allowSubMigration | quote }}
   LANGCHAIN_ENV: "local_kubernetes"
   LANGCHAIN_ENDPOINT: "/{{ if .Values.config.basePath }}{{ .Values.config.basePath }}/{{ end }}api/v1"
   GO_ENDPOINT: "http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.platformBackend.service.port }}"
