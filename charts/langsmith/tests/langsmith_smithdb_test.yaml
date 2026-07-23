@@ -464,6 +464,7 @@ tests:
     values:
       - ./values/smithdb-enabled.yaml
     set:
+      images.smithdbImage.tag: test-tag
       config.blobStorage.enabled: true
       config.blobStorage.bucketName: langsmith-blob
       config.blobStorage.apiURL: http://blob-store:9000
@@ -509,7 +510,7 @@ tests:
       - template: smithdb/migration-job.yaml
         equal:
           path: spec.template.spec.containers[0].image
-          value: docker.io/langchain/smithdb:0.16.17rc1
+          value: docker.io/langchain/smithdb:test-tag
       - template: smithdb/migration-job.yaml
         contains:
           path: spec.template.spec.containers[0].env
