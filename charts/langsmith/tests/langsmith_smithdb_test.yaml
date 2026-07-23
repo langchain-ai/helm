@@ -509,7 +509,7 @@ tests:
       - template: smithdb/migration-job.yaml
         equal:
           path: spec.template.spec.containers[0].image
-          value: docker.io/langchain/smithdb:latest
+          value: docker.io/langchain/smithdb:0.16.17rc1
       - template: smithdb/migration-job.yaml
         contains:
           path: spec.template.spec.containers[0].env
