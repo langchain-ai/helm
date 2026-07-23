@@ -129,7 +129,7 @@ images:
   smithdbImage:
     repository: "docker.io/langchain/smithdb"
     pullPolicy: IfNotPresent
-    tag: "latest"
+    tag: "0.16.17rc1"
   # Optional: only mirror/pull when presidioAnalyzer.enabled is true
   presidioAnalyzerImage:
     repository: "mcr.microsoft.com/presidio-analyzer"
@@ -1226,6 +1226,8 @@ aceBackend:
 
 smithdb:
   # -- Deploy the in-chart SmithDB workloads.
+  # -- V16 supports SmithDB in beta. We do not support or recommend customers setting this up on their own.
+  # -- Please express interest via our Support Portal (https://support.langchain.com) and we will reach out promptly to ensure we can set you up for success with SmithDB.
   enabled: false
   # -- LangSmith configuration for SmithDB.
   langsmith:
