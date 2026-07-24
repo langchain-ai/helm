@@ -1855,6 +1855,11 @@ backend:
     terminationGracePeriodSeconds: 30
   migrations:
     enabled: true
+    # -- Gate DB-dependent services on migrations reaching head. Injects a no-RBAC
+    # -- initContainer that polls the database with `alembic current` until it is at
+    # -- head, so under plain `helm install` (which ignores argocd sync-waves) services
+    # -- start only after migrations complete. Auto-skipped when migrations.enabled is false.
+    waitForMigrations: true
     # Helpful when running using helm template to avoid the job name conflict
     randomizeName: false
     labels: {}

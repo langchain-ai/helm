@@ -68,7 +68,7 @@ spec:
       serviceAccountName: {{ include "listener.serviceAccountName" . }}
       {{- include "langsmith.dnsConfig" . | nindent 6 }}
       restartPolicy: Always
-      {{- with concat .Values.commonInitContainers .Values.listener.deployment.initContainers }}
+      {{- with concat (include "langsmith.waitForMigrations" (dict "root" . "env" $envVars "volumeMounts" $volumeMounts) | fromYamlArray) .Values.commonInitContainers .Values.listener.deployment.initContainers }}
       initContainers:
         {{- toYaml . | nindent 8 }}
       {{- end }}

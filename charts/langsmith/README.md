@@ -1597,6 +1597,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | backend.migrations.ttlSecondsAfterFinished | int | `600` |  |
 | backend.migrations.volumeMounts | list | `[]` |  |
 | backend.migrations.volumes | list | `[]` |  |
+| backend.migrations.waitForMigrations | bool | `true` | start only after migrations complete. Auto-skipped when migrations.enabled is false. |
 | backend.name | string | `"backend"` |  |
 | backend.pdb.annotations | object | `{}` |  |
 | backend.pdb.enabled | bool | `false` |  |

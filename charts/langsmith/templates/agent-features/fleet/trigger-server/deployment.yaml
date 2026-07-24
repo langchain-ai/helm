@@ -50,7 +50,7 @@ spec:
         {{- include "langsmith.podSecurityContext" (dict "Values" .Values "componentSecurityContext" .Values.fleetTriggerServer.deployment.podSecurityContext) | nindent 8 }}
       serviceAccountName: {{ include "fleetTriggerServer.serviceAccountName" . }}
       {{- include "langsmith.dnsConfig" . | nindent 6 }}
-      {{- with concat .Values.commonInitContainers .Values.fleetTriggerServer.deployment.initContainers }}
+      {{- with concat (include "langsmith.waitForMigrations" (dict "root" . "env" $envVars "volumeMounts" $volumeMounts) | fromYamlArray) .Values.commonInitContainers .Values.fleetTriggerServer.deployment.initContainers }}
       initContainers:
         {{- toYaml . | nindent 8 }}
       {{- end }}

@@ -1179,6 +1179,48 @@ Creates the image reference used for Langsmith deployments. If registry is speci
 
 {{- end -}}
 
+{{/*
+Init container that blocks a workload until database migrations are at head.
+Polls with `alembic current` from the backend image — no Kubernetes API access,
+so no RBAC is required. This reproduces the argocd sync-wave (migrations ->
+services) ordering under plain `helm install`, which ignores sync-waves.
+
+Call with the workload's own env + volumeMounts so the init container is an exact
+"same env / same mounts, different command" clone of the main container:
+  {{ include "langsmith.waitForMigrations" (dict "root" $ "env" $envVars "volumeMounts" $volumeMounts) }}
+Renders nothing when disabled.
+*/}}
+{{- define "langsmith.waitForMigrations" -}}
+{{- $root := .root -}}
+{{- if and $root.Values.backend.migrations.enabled $root.Values.backend.migrations.waitForMigrations -}}
+- name: wait-for-migrations
+  image: {{ include "langsmith.image" (dict "Values" $root.Values "Chart" $root.Chart "component" "backendImage") | quote }}
+  imagePullPolicy: {{ $root.Values.images.backendImage.pullPolicy }}
+  workingDir: /code/smith-backend
+  command:
+    - /bin/sh
+    - -c
+    - |
+      echo "Waiting for database migrations to reach head..."
+      until alembic current 2>/dev/null | grep -q '(head)'; do
+        echo "  migrations not applied yet; retrying in 3s"
+        sleep 3
+      done
+      echo "Database migrations are at head; starting."
+  {{- with .env }}
+  env:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  envFrom:
+    - configMapRef:
+        name: {{ include "langsmith.fullname" $root }}-config
+  {{- with .volumeMounts }}
+  volumeMounts:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+{{- end -}}
+{{- end -}}
+
 {{- define "langsmith.tlsVolumeMounts" -}}
 {{- $mounts := list -}}
 {{- if and .Values.config.customCa.secretName .Values.config.customCa.secretKey -}}
