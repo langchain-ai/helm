@@ -22,7 +22,7 @@ metadata:
     # Delete the previous job before creating a new one so each upgrade
     # attempt gets a fresh check result.
     "helm.sh/hook-delete-policy": before-hook-creation
-    "argocd.argoproj.io/hook": "PreSync"
+    "argocd.argoproj.io/hook": "Sync"
     "argocd.argoproj.io/sync-wave": "-2"
     "argocd.argoproj.io/hook-delete-policy": "BeforeHookCreation"
     {{- include "langsmith.annotations" . | nindent 4 }}
@@ -45,7 +45,7 @@ spec:
             {{- toYaml . | nindent 8 }}
         {{- end }}
         {{- include "langsmith.labels" . | nindent 8 }}
-        app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}
+        app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}-backfill-check
     spec:
       restartPolicy: Never
       {{- with .Values.images.imagePullSecrets }}
