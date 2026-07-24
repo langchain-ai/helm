@@ -1,0 +1,27 @@
+charts/langsmith/templates/_helpers.tpl
+  s_ee52300d943d97::t_7df9f395e4e114 1074-1078
+charts/langsmith/templates/agent-features/insights/api-server/deployment.yaml
+  s_ee52300d943d97::t_a52de42f51368f 72-73
+charts/langsmith/templates/agent-features/insights/queue/deployment.yaml
+  s_ee52300d943d97::t_f3ed73ff2ad6f9 74-75
+charts/langsmith/templates/config-map.yaml
+  s_ee52300d943d97::t_12cbb92aa19885 39-41
+charts/langsmith/values.yaml
+  s_ee52300d943d97::t_c12c893a4a2688 73-74,410-413
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "88e942683a181dc2595bc389d8d230161c44e58f",
+  "prompts": {},
+  "sessions": {
+    "s_ee52300d943d97": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "14993807-ebcf-4cce-902a-cf421d7d3c24",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Bagatur Askaryan <baskaryan@gmail.com>"
+    }
+  }
+}
