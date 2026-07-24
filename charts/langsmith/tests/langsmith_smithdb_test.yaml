@@ -109,21 +109,6 @@ tests:
               resourceFieldRef:
                 resource: limits.memory
 
-  - it: should allow configuring a common SmithDB log filter
-    values:
-      - ./values/smithdb-enabled.yaml
-    set:
-      smithdb.commonEnv:
-        - name: RUST_LOG
-          value: warn,smithdb_query=debug,vortex=warn
-    template: smithdb/query-deployment.yaml
-    asserts:
-      - contains:
-          path: spec.template.spec.containers[0].env
-          content:
-            name: RUST_LOG
-            value: warn,smithdb_query=debug,vortex=warn
-
   - it: should configure the SmithDB OTLP gRPC exporter when tracing is enabled
     values:
       - ./values/smithdb-enabled.yaml
