@@ -1289,7 +1289,6 @@ smithdb:
 
   query:
     name: "query"
-    # -- SmithDB query HTTP port.
     containerPort: 8060
     containerGrpcPort: 8080
     deployment:
@@ -1367,7 +1366,6 @@ smithdb:
 
   ingestion:
     name: "ingestion"
-    # -- SmithDB ingestion HTTP port.
     containerPort: 8050
     containerGrpcPort: 8082
     deployment:
@@ -1455,7 +1453,6 @@ smithdb:
 
   compaction:
     name: "compaction"
-    # -- SmithDB compaction HTTP port.
     containerPort: 8070
     containerGrpcPort: 8071
     deployment:
@@ -1519,7 +1516,6 @@ smithdb:
 
   compactionWorker:
     name: "compaction-worker"
-    # -- SmithDB compaction worker HTTP port.
     containerPort: 9000
     # -- Maximum concurrent jobs per compaction worker. Empty uses the SmithDB default.
     maxConcurrentJobs: ""
@@ -1596,7 +1592,6 @@ smithdb:
 
   clusterManager:
     name: "cluster-manager"
-    # -- SmithDB cluster manager HTTP port.
     containerPort: 8090
     containerGrpcPort: 8091
     deployment:
