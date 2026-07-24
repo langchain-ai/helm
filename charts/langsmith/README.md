@@ -1026,7 +1026,6 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | smithdb.config.objectStore.type | string | `"s3"` | Supported values: s3, gcs. |
 | smithdb.config.observability.logging.level | string | `""` | Optional SmithDB log filter. Empty uses the chart default: INFO,vortex=WARN. |
 | smithdb.config.observability.metrics.enabled | bool | `false` | Add Prometheus annotations that scrape each SmithDB component's /metrics endpoint on its containerPort. |
-| smithdb.config.observability.tracing.enabled | bool | `false` | Enable OpenTelemetry tracing/log export for SmithDB components. SmithDB supports exporting OTLP over gRPC only. |
 | smithdb.config.observability.tracing.endpoint | string | `""` | Optional SmithDB-specific OTLP gRPC exporter endpoint. Defaults to config.observability.tracing.endpoint; set this when the top-level endpoint uses OTLP HTTP. |
 | smithdb.config.observability.tracing.extraResourceAttributes | object | `{}` | Extra OpenTelemetry resource attributes appended to SmithDB traces/logs. |
 | smithdb.enabled | bool | `false` | Please express interest via our Support Portal (https://support.langchain.com) and we will reach out promptly to ensure we can set you up for success with SmithDB. |
@@ -1331,7 +1330,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | config.oauth.oauthScopes | string | `"email,profile,openid"` |  |
 | config.oauth.oauthSessionMaxSec | string | `"86400"` |  |
 | config.oauth.urlEncodeScopeSpaces | bool | `false` | When true, percent-encode spaces in the OIDC authorization request as %20 instead of '+'. Enable for IdPs (e.g. SiteMinder) that reject '+'-encoded scope lists. Requires authType 'mixed' with an OAuth client secret. |
-| config.observability.tracing.enabled | bool | `false` |  |
+| config.observability.tracing.enabled | bool | `false` | Enable OpenTelemetry tracing for LangSmith components, including SmithDB when enabled. |
 | config.observability.tracing.endpoint | string | `""` |  |
 | config.observability.tracing.env | string | `"ls_self_hosted"` |  |
 | config.observability.tracing.exporter | string | `"http"` |  |

@@ -644,7 +644,7 @@ Args: root, service, displayName.
 {{- $root := .root -}}
 {{- $prefix := printf "SMITHDB_%s" (upper .service) -}}
 {{- $displayName := .displayName -}}
-{{- $tracingEnabled := $root.Values.smithdb.config.observability.tracing.enabled -}}
+{{- $tracingEnabled := $root.Values.config.observability.tracing.enabled -}}
 {{- $tracingEndpoint := default $root.Values.config.observability.tracing.endpoint $root.Values.smithdb.config.observability.tracing.endpoint -}}
 {{- $logLevel := default "INFO,vortex=WARN" $root.Values.smithdb.config.observability.logging.level -}}
 - name: {{ $prefix }}__LOGGING__FORMAT

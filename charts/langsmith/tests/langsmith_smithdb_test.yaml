@@ -131,8 +131,8 @@ tests:
     values:
       - ./values/smithdb-enabled.yaml
     set:
+      config.observability.tracing.enabled: true
       config.observability.tracing.endpoint: http://default-otel-collector:4317
-      smithdb.config.observability.tracing.enabled: true
       smithdb.config.observability.tracing.endpoint: http://otel-collector:4317
     template: smithdb/query-deployment.yaml
     asserts:
@@ -161,11 +161,29 @@ tests:
     values:
       - ./values/smithdb-enabled.yaml
     set:
+      config.observability.tracing.enabled: true
       config.observability.tracing.endpoint: http://otel-collector:4317
-      smithdb.config.observability.tracing.enabled: true
     template: smithdb/query-deployment.yaml
     asserts:
       - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: OTEL_EXPORTER_OTLP_ENDPOINT
+            value: http://otel-collector:4317
+
+  - it: should keep SmithDB tracing disabled when chart-level tracing is disabled
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      smithdb.config.observability.tracing.endpoint: http://otel-collector:4317
+    template: smithdb/query-deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_QUERY__LOGGING__TRACING_ENABLED
+            value: "false"
+      - notContains:
           path: spec.template.spec.containers[0].env
           content:
             name: OTEL_EXPORTER_OTLP_ENDPOINT

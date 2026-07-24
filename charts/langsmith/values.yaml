@@ -1085,6 +1085,7 @@ config:
 
   observability:
     tracing:
+      # -- Enable OpenTelemetry tracing for LangSmith components, including SmithDB when enabled.
       enabled: false
       # Replace this with the endpoint of your trace collector. If you are using the LangSmith Observability helm chart, this will be the endpoint of the OTEL Gateway collector.
       endpoint: ""
@@ -1275,9 +1276,6 @@ smithdb:
         # -- Add Prometheus annotations that scrape each SmithDB component's /metrics endpoint on its containerPort.
         enabled: false
       tracing:
-        # -- Enable OpenTelemetry tracing/log export for SmithDB components.
-        # SmithDB supports exporting OTLP over gRPC only.
-        enabled: false
         # -- Optional SmithDB-specific OTLP gRPC exporter endpoint. Defaults to config.observability.tracing.endpoint; set this when the top-level endpoint uses OTLP HTTP.
         endpoint: ""
         # -- Extra OpenTelemetry resource attributes appended to SmithDB traces/logs.
