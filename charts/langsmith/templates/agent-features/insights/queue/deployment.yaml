@@ -71,8 +71,8 @@ spec:
             {{- with .Values.insights.queue.deployment.envFrom }}
               {{- toYaml . | nindent 12 }}
             {{- end }}
-          image: {{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "insightsAgentImage") | quote }}
-          imagePullPolicy: {{ .Values.images.insightsAgentImage.pullPolicy }}
+          image: {{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "insightsEngineImage") | quote }}
+          imagePullPolicy: {{ .Values.images.insightsEngineImage.pullPolicy }}
           ports:
             - name: queue
               containerPort: {{ .Values.insights.queue.containerPort }}

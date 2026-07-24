@@ -70,8 +70,8 @@ images:
     repository: "docker.io/langchain/langsmith-backend"
     pullPolicy: IfNotPresent
     tag: "0.16.19rc1"
-  insightsAgentImage:
-    repository: "docker.io/langchain/langsmith-clio"
+  insightsEngineImage:
+    repository: "docker.io/langchain/langsmith-insights-engine"
     pullPolicy: IfNotPresent
     tag: "0.16.19rc1"
   frontendImage:
@@ -407,6 +407,10 @@ fleet:
     pdb:
       enabled: false
       minAvailable: 1
+engine:
+  enabled: false
+  intelligenceBaseUrl: ""
+
 insights:
   enabled: true
   namePrefix: "standalone-insights"

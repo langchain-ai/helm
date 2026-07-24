@@ -1071,6 +1071,11 @@ Extra env vars for insights api-server and queue pods.
   (dict "name" "REDIS_URI" "valueFrom" (dict "secretKeyRef" (dict "name" (include "langsmith.agentFeatures.redisSecretName" (dict "root" $root "product" "insights")) "key" "redis_connection_url")))
   (dict "name" "LANGSMITH_TRACING" "value" "false")
 -}}
+{{- $out = append $out (dict "name" "SMITH_BACKEND_SERVICE_JWT_SECRET" "valueFrom" (dict "secretKeyRef" (dict "name" (include "langsmith.secretsName" $root) "key" "api_key_salt" "optional" $root.Values.config.disableSecretCreation))) -}}
+{{- $out = append $out (dict "name" "SMITH_GO_SERVICE_JWT_SECRET" "valueFrom" (dict "secretKeyRef" (dict "name" (include "langsmith.secretsName" $root) "key" "api_key_salt" "optional" $root.Values.config.disableSecretCreation))) -}}
+{{- if $root.Values.engine.enabled -}}
+{{- $out = append $out (dict "name" "ENGINE_INTELLIGENCE_BASE_URL" "value" $root.Values.engine.intelligenceBaseUrl) -}}
+{{- end -}}
 {{- if and (eq $componentName "apiServer") $feature.queue.enabled -}}
 {{- $out = append $out (dict "name" "N_JOBS_PER_WORKER" "value" "0") -}}
 {{- else -}}
