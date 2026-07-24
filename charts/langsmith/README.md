@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.16.0-rc.14](https://img.shields.io/badge/Version-0.16.0--rc.14-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.16.17rc1](https://img.shields.io/badge/AppVersion-0.16.17rc1-informational?style=flat-square)
+![Version: 0.16.0-rc.15](https://img.shields.io/badge/Version-0.16.0--rc.15-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.16.19rc1](https://img.shields.io/badge/AppVersion-0.16.19rc1-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -341,44 +341,44 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | gateway.sectionName | string | `""` |  |
 | images.aceBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.aceBackendImage.repository | string | `"docker.io/langchain/langsmith-ace-backend"` |  |
-| images.aceBackendImage.tag | string | `"0.16.17rc1"` |  |
+| images.aceBackendImage.tag | string | `"0.16.19rc1"` |  |
 | images.agentBuilderImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.agentBuilderImage.repository | string | `"docker.io/langchain/agent-builder-deep-agent"` |  |
-| images.agentBuilderImage.tag | string | `"0.16.17rc1"` |  |
+| images.agentBuilderImage.tag | string | `"0.16.19rc1"` |  |
 | images.backendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.backendImage.repository | string | `"docker.io/langchain/langsmith-backend"` |  |
-| images.backendImage.tag | string | `"0.16.17rc1"` |  |
+| images.backendImage.tag | string | `"0.16.19rc1"` |  |
 | images.clickhouseImage.pullPolicy | string | `"Always"` |  |
 | images.clickhouseImage.repository | string | `"docker.io/clickhouse/clickhouse-server"` |  |
 | images.clickhouseImage.tag | string | `"25.12"` |  |
 | images.fleetToolServerImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.fleetToolServerImage.repository | string | `"docker.io/langchain/agent-builder-tool-server"` |  |
-| images.fleetToolServerImage.tag | string | `"0.16.17rc1"` |  |
+| images.fleetToolServerImage.tag | string | `"0.16.19rc1"` |  |
 | images.fleetTriggerServerImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.fleetTriggerServerImage.repository | string | `"docker.io/langchain/agent-builder-trigger-server"` |  |
-| images.fleetTriggerServerImage.tag | string | `"0.16.17rc1"` |  |
+| images.fleetTriggerServerImage.tag | string | `"0.16.19rc1"` |  |
 | images.frontendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.frontendImage.repository | string | `"docker.io/langchain/langsmith-frontend"` |  |
-| images.frontendImage.tag | string | `"0.16.17rc1"` |  |
+| images.frontendImage.tag | string | `"0.16.19rc1"` |  |
 | images.hostBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.hostBackendImage.repository | string | `"docker.io/langchain/hosted-langserve-backend"` |  |
-| images.hostBackendImage.tag | string | `"0.16.17rc1"` |  |
+| images.hostBackendImage.tag | string | `"0.16.19rc1"` |  |
 | images.imagePullSecrets | list | `[]` | Secrets with credentials to pull images from a private registry. Specified as name: value. |
 | images.insightsAgentImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.insightsAgentImage.repository | string | `"docker.io/langchain/langsmith-clio"` |  |
-| images.insightsAgentImage.tag | string | `"0.16.17rc1"` |  |
+| images.insightsAgentImage.tag | string | `"0.16.19rc1"` |  |
 | images.operatorImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.operatorImage.repository | string | `"docker.io/langchain/langgraph-operator"` |  |
 | images.operatorImage.tag | string | `"0.1.47"` |  |
 | images.platformBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.platformBackendImage.repository | string | `"docker.io/langchain/langsmith-go-backend"` |  |
-| images.platformBackendImage.tag | string | `"0.16.17rc1"` |  |
+| images.platformBackendImage.tag | string | `"0.16.19rc1"` |  |
 | images.playgroundImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.playgroundImage.repository | string | `"docker.io/langchain/langsmith-playground"` |  |
-| images.playgroundImage.tag | string | `"0.16.17rc1"` |  |
+| images.playgroundImage.tag | string | `"0.16.19rc1"` |  |
 | images.pollyAgentImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.pollyAgentImage.repository | string | `"docker.io/langchain/langsmith-polly"` |  |
-| images.pollyAgentImage.tag | string | `"0.16.17rc1"` |  |
+| images.pollyAgentImage.tag | string | `"0.16.19rc1"` |  |
 | images.postgresImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.postgresImage.repository | string | `"docker.io/postgres"` |  |
 | images.postgresImage.tag | string | `"14.7"` |  |
@@ -391,7 +391,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | images.registry | string | `""` | If supplied, all children <image_name>.repository values will be prepended with this registry name + `/` |
 | images.smithdbImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.smithdbImage.repository | string | `"docker.io/langchain/smithdb"` |  |
-| images.smithdbImage.tag | string | `"latest"` |  |
+| images.smithdbImage.tag | string | `"0.16.19rc1"` |  |
 | ingestQueue.autoscaling.hpa.enabled | bool | `false` |  |
 | ingestQueue.autoscaling.hpa.maxReplicas | int | `10` |  |
 | ingestQueue.autoscaling.hpa.minReplicas | int | `3` |  |
@@ -955,7 +955,13 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | smithdb.compaction.service.annotations | object | `{}` |  |
 | smithdb.compaction.service.labels | object | `{}` |  |
 | smithdb.compaction.service.port | int | `8071` |  |
-| smithdb.compactionWorker.autoscaling | object | `{"enabled":true,"maxReplicas":10,"minReplicas":1,"scaleDownStabilizationWindowSeconds":300,"scalePodCount":1,"scaleUpStabilizationWindowSeconds":120,"targetCPUUtilizationPercentage":60}` |  |
+| smithdb.compactionWorker.autoscaling.enabled | bool | `true` |  |
+| smithdb.compactionWorker.autoscaling.maxReplicas | int | `10` |  |
+| smithdb.compactionWorker.autoscaling.minReplicas | int | `1` |  |
+| smithdb.compactionWorker.autoscaling.scaleDownStabilizationWindowSeconds | int | `300` |  |
+| smithdb.compactionWorker.autoscaling.scalePodCount | int | `1` |  |
+| smithdb.compactionWorker.autoscaling.scaleUpStabilizationWindowSeconds | int | `120` |  |
+| smithdb.compactionWorker.autoscaling.targetCPUUtilizationPercentage | int | `60` |  |
 | smithdb.compactionWorker.containerPort | int | `9000` |  |
 | smithdb.compactionWorker.deployment.affinity | object | `{}` |  |
 | smithdb.compactionWorker.deployment.annotations | object | `{}` |  |
@@ -1022,8 +1028,14 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | smithdb.config.observability.tracing.enabled | bool | `false` | Enable OpenTelemetry tracing/log export for SmithDB components. SmithDB supports exporting OTLP over gRPC only. |
 | smithdb.config.observability.tracing.endpoint | string | `""` | OTLP gRPC collector endpoint for SmithDB traces/logs. |
 | smithdb.config.observability.tracing.extraResourceAttributes | object | `{}` | Extra OpenTelemetry resource attributes appended to SmithDB traces/logs. |
-| smithdb.enabled | bool | `false` | Deploy the in-chart SmithDB workloads. |
-| smithdb.ingestion.autoscaling | object | `{"enabled":true,"maxReplicas":10,"minReplicas":1,"scaleDownStabilizationWindowSeconds":900,"scalePodCount":1,"scaleUpStabilizationWindowSeconds":300,"targetCPUUtilizationPercentage":45}` |  |
+| smithdb.enabled | bool | `false` | Please express interest via our Support Portal (https://support.langchain.com) and we will reach out promptly to ensure we can set you up for success with SmithDB. |
+| smithdb.ingestion.autoscaling.enabled | bool | `true` |  |
+| smithdb.ingestion.autoscaling.maxReplicas | int | `10` |  |
+| smithdb.ingestion.autoscaling.minReplicas | int | `1` |  |
+| smithdb.ingestion.autoscaling.scaleDownStabilizationWindowSeconds | int | `900` |  |
+| smithdb.ingestion.autoscaling.scalePodCount | int | `1` |  |
+| smithdb.ingestion.autoscaling.scaleUpStabilizationWindowSeconds | int | `300` |  |
+| smithdb.ingestion.autoscaling.targetCPUUtilizationPercentage | int | `45` |  |
 | smithdb.ingestion.containerGrpcPort | int | `8082` |  |
 | smithdb.ingestion.containerPort | int | `8050` |  |
 | smithdb.ingestion.deployment.affinity | object | `{}` |  |
@@ -1081,9 +1093,10 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | smithdb.ingestion.service.annotations | object | `{}` |  |
 | smithdb.ingestion.service.labels | object | `{}` |  |
 | smithdb.ingestion.service.port | int | `8082` |  |
+| smithdb.langsmith | object | `{"ingestion":{"enabled":false},"migration":{"enabled":false},"query":{"enabled":false}}` | LangSmith configuration for SmithDB. |
 | smithdb.langsmith.ingestion.enabled | bool | `false` | Enables LangSmith run ingestion via SmithDB. When ClickHouse is enabled, ingestion writes to both backends. Requires smithdb.enabled. |
-| smithdb.langsmith.migration.enabled | bool | `false` | Runs the SmithDB migration phase and renders the one-shot migrate-all Job plus taskdb Postgres resources. Detailed migration and taskdb configuration lives under smithdb.migration. |
-| smithdb.langsmith.query.enabled | bool | `false` | Enables SmithDB-powered run queries. Requires smithdb.enabled. |
+| smithdb.langsmith.migration.enabled | bool | `false` | Detailed migration and taskdb configuration lives under smithdb.migration. |
+| smithdb.langsmith.query.enabled | bool | `false` | Enables SmithDB-powered queries. Requires smithdb.enabled. |
 | smithdb.metastoreMigration.command[0] | string | `"/usr/local/bin/smithdb-metastore-migrate-entrypoint.sh"` |  |
 | smithdb.metastoreMigration.job.activeDeadlineSeconds | int | `600` |  |
 | smithdb.metastoreMigration.job.affinity | object | `{}` |  |
@@ -1111,7 +1124,12 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | smithdb.migration.deployment.labels | object | `{}` |  |
 | smithdb.migration.deployment.nodeSelector | object | `{}` |  |
 | smithdb.migration.deployment.podSecurityContext | object | `{}` |  |
+| smithdb.migration.deployment.resources.limits.cpu | string | `"8"` |  |
+| smithdb.migration.deployment.resources.limits.ephemeral-storage | string | `"100Gi"` |  |
+| smithdb.migration.deployment.resources.limits.memory | string | `"16Gi"` |  |
+| smithdb.migration.deployment.resources.requests.cpu | string | `"8"` |  |
 | smithdb.migration.deployment.resources.requests.ephemeral-storage | string | `"100Gi"` |  |
+| smithdb.migration.deployment.resources.requests.memory | string | `"16Gi"` |  |
 | smithdb.migration.deployment.securityContext | object | `{}` |  |
 | smithdb.migration.deployment.sidecars | list | `[]` |  |
 | smithdb.migration.deployment.terminationGracePeriodSeconds | int | `120` |  |
@@ -1179,7 +1197,13 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | smithdb.migration.taskdb.postgres.statefulSet.volumeMounts | list | `[]` |  |
 | smithdb.migration.taskdb.postgres.statefulSet.volumes | list | `[]` |  |
 | smithdb.name | string | `"smithdb"` | Name segment used for SmithDB resources. |
-| smithdb.query.autoscaling | object | `{"enabled":true,"maxReplicas":10,"minReplicas":1,"scaleDownStabilizationWindowSeconds":900,"scalePodCount":1,"scaleUpStabilizationWindowSeconds":300,"targetCPUUtilizationPercentage":40}` |  |
+| smithdb.query.autoscaling.enabled | bool | `true` |  |
+| smithdb.query.autoscaling.maxReplicas | int | `10` |  |
+| smithdb.query.autoscaling.minReplicas | int | `1` |  |
+| smithdb.query.autoscaling.scaleDownStabilizationWindowSeconds | int | `900` |  |
+| smithdb.query.autoscaling.scalePodCount | int | `1` |  |
+| smithdb.query.autoscaling.scaleUpStabilizationWindowSeconds | int | `300` |  |
+| smithdb.query.autoscaling.targetCPUUtilizationPercentage | int | `40` |  |
 | smithdb.query.containerGrpcPort | int | `8080` |  |
 | smithdb.query.containerPort | int | `8060` |  |
 | smithdb.query.deployment.affinity | object | `{}` |  |
@@ -1614,7 +1638,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | clickhouse.containerHttpPort | int | `8123` |  |
 | clickhouse.containerNativePort | int | `9000` |  |
 | clickhouse.disableSecretCreation | bool | `false` |  |
-| clickhouse.enabled | bool | `true` | Enable ClickHouse for ingestion and queries. Keep enabled when using external ClickHouse. Disabling ClickHouse or switching to an external instance DELETES the chart-managed workload on upgrade; back up its data first. |
+| clickhouse.enabled | bool | `true` | Enable ClickHouse for ingestion and queries. Keep enabled when using external ClickHouse.  WARNING: Disabling ClickHouse or switching to an external instance DELETES the chart-managed workload on upgrade. Back up its data first; PVCs may be deleted or left orphaned. |
 | clickhouse.external.clientCert.certSecretKey | string | `"tls.crt"` |  |
 | clickhouse.external.clientCert.keySecretKey | string | `"tls.key"` |  |
 | clickhouse.external.clientCert.secretName | string | `""` |  |
