@@ -18,7 +18,9 @@ metadata:
       {{- toYaml . | nindent 4 }}
     {{- end }}
 spec:
+  {{- if not (dig "autoscaling" "enabled" false .Values.smithdb.query) }}
   replicas: {{ .Values.smithdb.query.deployment.replicas }}
+  {{- end }}
   strategy:
     {{- toYaml .Values.smithdb.query.deployment.strategy | nindent 4 }}
   selector:
@@ -47,7 +49,7 @@ spec:
         {{- toYaml .Values.smithdb.query.deployment.podSecurityContext | nindent 8 }}
       serviceAccountName: {{ include "langsmith.smithdb.serviceAccountName" (dict "root" . "component" "query") }}
       {{- include "langsmith.dnsConfig" . | nindent 6 }}
-      {{- with .Values.smithdb.query.deployment.initContainers }}
+      {{- with concat (include "langsmith.smithdb.commonInitContainers" . | fromYamlArray) .Values.smithdb.query.deployment.initContainers }}
       initContainers:
         {{- toYaml . | nindent 8 }}
       {{- end }}
@@ -62,6 +64,18 @@ spec:
               value: {{ .Values.smithdb.query.containerPort | quote }}
             - name: SMITHDB_QUERY__GRPC_PORT
               value: {{ .Values.smithdb.query.containerGrpcPort | quote }}
+            {{- if (index (default (dict) .Values.smithdb.query.deployment.resources.limits) "ephemeral-storage") }}
+            - name: SMITHDB_QUERY__VORTEX_CACHE__DISK__LIMIT
+              valueFrom:
+                resourceFieldRef:
+                  resource: limits.ephemeral-storage
+            {{- end }}
+            {{- if (index (default (dict) .Values.smithdb.query.deployment.resources.limits) "memory") }}
+            - name: SMITHDB_QUERY__VORTEX_CACHE__MEMORY__LIMIT
+              valueFrom:
+                resourceFieldRef:
+                  resource: limits.memory
+            {{- end }}
             {{- with $envVars }}
             {{- toYaml . | nindent 12 }}
             {{- end }}

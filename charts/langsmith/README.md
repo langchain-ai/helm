@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.16.0-rc.12](https://img.shields.io/badge/Version-0.16.0--rc.12-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.16.13rc1](https://img.shields.io/badge/AppVersion-0.16.13rc1-informational?style=flat-square)
+![Version: 0.16.0-rc.15](https://img.shields.io/badge/Version-0.16.0--rc.15-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.16.19rc1](https://img.shields.io/badge/AppVersion-0.16.19rc1-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -341,44 +341,44 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | gateway.sectionName | string | `""` |  |
 | images.aceBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.aceBackendImage.repository | string | `"docker.io/langchain/langsmith-ace-backend"` |  |
-| images.aceBackendImage.tag | string | `"0.16.13rc1"` |  |
+| images.aceBackendImage.tag | string | `"0.16.19rc1"` |  |
 | images.agentBuilderImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.agentBuilderImage.repository | string | `"docker.io/langchain/agent-builder-deep-agent"` |  |
-| images.agentBuilderImage.tag | string | `"0.16.13rc1"` |  |
+| images.agentBuilderImage.tag | string | `"0.16.19rc1"` |  |
 | images.backendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.backendImage.repository | string | `"docker.io/langchain/langsmith-backend"` |  |
-| images.backendImage.tag | string | `"0.16.13rc1"` |  |
+| images.backendImage.tag | string | `"0.16.19rc1"` |  |
 | images.clickhouseImage.pullPolicy | string | `"Always"` |  |
 | images.clickhouseImage.repository | string | `"docker.io/clickhouse/clickhouse-server"` |  |
 | images.clickhouseImage.tag | string | `"25.12"` |  |
 | images.fleetToolServerImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.fleetToolServerImage.repository | string | `"docker.io/langchain/agent-builder-tool-server"` |  |
-| images.fleetToolServerImage.tag | string | `"0.16.13rc1"` |  |
+| images.fleetToolServerImage.tag | string | `"0.16.19rc1"` |  |
 | images.fleetTriggerServerImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.fleetTriggerServerImage.repository | string | `"docker.io/langchain/agent-builder-trigger-server"` |  |
-| images.fleetTriggerServerImage.tag | string | `"0.16.13rc1"` |  |
+| images.fleetTriggerServerImage.tag | string | `"0.16.19rc1"` |  |
 | images.frontendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.frontendImage.repository | string | `"docker.io/langchain/langsmith-frontend"` |  |
-| images.frontendImage.tag | string | `"0.16.13rc1"` |  |
+| images.frontendImage.tag | string | `"0.16.19rc1"` |  |
 | images.hostBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.hostBackendImage.repository | string | `"docker.io/langchain/hosted-langserve-backend"` |  |
-| images.hostBackendImage.tag | string | `"0.16.13rc1"` |  |
+| images.hostBackendImage.tag | string | `"0.16.19rc1"` |  |
 | images.imagePullSecrets | list | `[]` | Secrets with credentials to pull images from a private registry. Specified as name: value. |
 | images.insightsAgentImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.insightsAgentImage.repository | string | `"docker.io/langchain/langsmith-clio"` |  |
-| images.insightsAgentImage.tag | string | `"0.16.13rc1"` |  |
+| images.insightsAgentImage.tag | string | `"0.16.19rc1"` |  |
 | images.operatorImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.operatorImage.repository | string | `"docker.io/langchain/langgraph-operator"` |  |
 | images.operatorImage.tag | string | `"0.1.47"` |  |
 | images.platformBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.platformBackendImage.repository | string | `"docker.io/langchain/langsmith-go-backend"` |  |
-| images.platformBackendImage.tag | string | `"0.16.13rc1"` |  |
+| images.platformBackendImage.tag | string | `"0.16.19rc1"` |  |
 | images.playgroundImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.playgroundImage.repository | string | `"docker.io/langchain/langsmith-playground"` |  |
-| images.playgroundImage.tag | string | `"0.16.13rc1"` |  |
+| images.playgroundImage.tag | string | `"0.16.19rc1"` |  |
 | images.pollyAgentImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.pollyAgentImage.repository | string | `"docker.io/langchain/langsmith-polly"` |  |
-| images.pollyAgentImage.tag | string | `"0.16.13rc1"` |  |
+| images.pollyAgentImage.tag | string | `"0.16.19rc1"` |  |
 | images.postgresImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.postgresImage.repository | string | `"docker.io/postgres"` |  |
 | images.postgresImage.tag | string | `"14.7"` |  |
@@ -391,7 +391,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | images.registry | string | `""` | If supplied, all children <image_name>.repository values will be prepended with this registry name + `/` |
 | images.smithdbImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.smithdbImage.repository | string | `"docker.io/langchain/smithdb"` |  |
-| images.smithdbImage.tag | string | `"latest"` |  |
+| images.smithdbImage.tag | string | `"0.16.19rc1"` |  |
 | ingestQueue.autoscaling.hpa.enabled | bool | `false` |  |
 | ingestQueue.autoscaling.hpa.maxReplicas | int | `10` |  |
 | ingestQueue.autoscaling.hpa.minReplicas | int | `3` |  |
@@ -862,7 +862,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | polly.redis.statefulSet.updateStrategy | object | `{}` | Optional StatefulSet update strategy for the in-chart Polly Redis instance. Leave unset to keep the Kubernetes default RollingUpdate behavior. |
 | polly.redis.statefulSet.volumeMounts | list | `[]` |  |
 | polly.redis.statefulSet.volumes | list | `[]` |  |
-| preInstallManifests | list | `[]` | annotations, idempotency rules, and caveats. Example: preInstallManifests:   - apiVersion: external-secrets.io/v1beta1     kind: ExternalSecret     metadata:       name: langsmith-app     spec:       refreshInterval: 1h       secretStoreRef:         name: vault-backend         kind: ClusterSecretStore       target:         name: langsmith-app-secret         creationPolicy: Orphan       data:         - secretKey: langsmith_license_key           remoteRef:             key: secret/langsmith/app             property: langsmith_license_key |
+| preInstallManifests | list | `[]` | annotations, ExternalSecret-only validation, idempotency rules, and caveats. Example: preInstallManifests:   - apiVersion: external-secrets.io/v1beta1     kind: ExternalSecret     metadata:       name: langsmith-app     spec:       refreshInterval: 1h       secretStoreRef:         name: vault-backend         kind: ClusterSecretStore       target:         name: langsmith-app-secret         creationPolicy: Orphan       data:         - secretKey: langsmith_license_key           remoteRef:             key: secret/langsmith/app             property: langsmith_license_key |
 | smithdb.clusterManager.containerGrpcPort | int | `8091` |  |
 | smithdb.clusterManager.containerPort | int | `8090` |  |
 | smithdb.clusterManager.deployment.affinity | object | `{}` |  |
@@ -891,7 +891,10 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | smithdb.clusterManager.deployment.probes.startupProbe.periodSeconds | int | `10` |  |
 | smithdb.clusterManager.deployment.probes.startupProbe.timeoutSeconds | int | `1` |  |
 | smithdb.clusterManager.deployment.replicas | int | `1` |  |
-| smithdb.clusterManager.deployment.resources | object | `{}` |  |
+| smithdb.clusterManager.deployment.resources.limits.cpu | string | `"250m"` |  |
+| smithdb.clusterManager.deployment.resources.limits.memory | string | `"256Mi"` |  |
+| smithdb.clusterManager.deployment.resources.requests.cpu | string | `"250m"` |  |
+| smithdb.clusterManager.deployment.resources.requests.memory | string | `"256Mi"` |  |
 | smithdb.clusterManager.deployment.securityContext | object | `{}` |  |
 | smithdb.clusterManager.deployment.sidecars | list | `[]` |  |
 | smithdb.clusterManager.deployment.tolerations | list | `[]` |  |
@@ -904,6 +907,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | smithdb.clusterManager.service.labels | object | `{}` |  |
 | smithdb.clusterManager.service.port | int | `8091` |  |
 | smithdb.commonEnv | list | `[]` | Extra env vars for every SmithDB workload. |
+| smithdb.commonInitContainers | list | `[]` | Common init containers added to every SmithDB component Deployment and Job. Set restartPolicy: Always to configure a Kubernetes sidecar container. |
 | smithdb.compaction.containerGrpcPort | int | `8071` |  |
 | smithdb.compaction.containerPort | int | `8070` |  |
 | smithdb.compaction.deployment.affinity | object | `{}` |  |
@@ -933,7 +937,10 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | smithdb.compaction.deployment.probes.startupProbe.periodSeconds | int | `10` |  |
 | smithdb.compaction.deployment.probes.startupProbe.timeoutSeconds | int | `1` |  |
 | smithdb.compaction.deployment.replicas | int | `1` |  |
-| smithdb.compaction.deployment.resources | object | `{}` |  |
+| smithdb.compaction.deployment.resources.limits.cpu | string | `"500m"` |  |
+| smithdb.compaction.deployment.resources.limits.memory | string | `"1Gi"` |  |
+| smithdb.compaction.deployment.resources.requests.cpu | string | `"500m"` |  |
+| smithdb.compaction.deployment.resources.requests.memory | string | `"1Gi"` |  |
 | smithdb.compaction.deployment.securityContext | object | `{}` |  |
 | smithdb.compaction.deployment.sidecars | list | `[]` |  |
 | smithdb.compaction.deployment.tolerations | list | `[]` |  |
@@ -948,6 +955,13 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | smithdb.compaction.service.annotations | object | `{}` |  |
 | smithdb.compaction.service.labels | object | `{}` |  |
 | smithdb.compaction.service.port | int | `8071` |  |
+| smithdb.compactionWorker.autoscaling.enabled | bool | `true` |  |
+| smithdb.compactionWorker.autoscaling.maxReplicas | int | `10` |  |
+| smithdb.compactionWorker.autoscaling.minReplicas | int | `1` |  |
+| smithdb.compactionWorker.autoscaling.scaleDownStabilizationWindowSeconds | int | `300` |  |
+| smithdb.compactionWorker.autoscaling.scalePodCount | int | `1` |  |
+| smithdb.compactionWorker.autoscaling.scaleUpStabilizationWindowSeconds | int | `120` |  |
+| smithdb.compactionWorker.autoscaling.targetCPUUtilizationPercentage | int | `60` |  |
 | smithdb.compactionWorker.containerPort | int | `9000` |  |
 | smithdb.compactionWorker.deployment.affinity | object | `{}` |  |
 | smithdb.compactionWorker.deployment.annotations | object | `{}` |  |
@@ -975,15 +989,22 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | smithdb.compactionWorker.deployment.probes.startupProbe.httpGet.port | string | `"http"` |  |
 | smithdb.compactionWorker.deployment.probes.startupProbe.periodSeconds | int | `10` |  |
 | smithdb.compactionWorker.deployment.probes.startupProbe.timeoutSeconds | int | `1` |  |
-| smithdb.compactionWorker.deployment.replicas | int | `1` |  |
-| smithdb.compactionWorker.deployment.resources | object | `{}` |  |
+| smithdb.compactionWorker.deployment.replicas | int | `2` |  |
+| smithdb.compactionWorker.deployment.resources.limits.cpu | string | `"4"` |  |
+| smithdb.compactionWorker.deployment.resources.limits.ephemeral-storage | string | `"100Gi"` |  |
+| smithdb.compactionWorker.deployment.resources.limits.memory | string | `"8Gi"` |  |
+| smithdb.compactionWorker.deployment.resources.requests.cpu | string | `"4"` |  |
+| smithdb.compactionWorker.deployment.resources.requests.ephemeral-storage | string | `"100Gi"` |  |
+| smithdb.compactionWorker.deployment.resources.requests.memory | string | `"8Gi"` |  |
 | smithdb.compactionWorker.deployment.securityContext | object | `{}` |  |
 | smithdb.compactionWorker.deployment.sidecars | list | `[]` |  |
 | smithdb.compactionWorker.deployment.terminationGracePeriodSeconds | int | `120` |  |
 | smithdb.compactionWorker.deployment.tolerations | list | `[]` |  |
 | smithdb.compactionWorker.deployment.topologySpreadConstraints | list | `[]` |  |
-| smithdb.compactionWorker.deployment.volumeMounts | list | `[]` |  |
-| smithdb.compactionWorker.deployment.volumes | list | `[]` |  |
+| smithdb.compactionWorker.deployment.volumeMounts[0].mountPath | string | `"/data"` |  |
+| smithdb.compactionWorker.deployment.volumeMounts[0].name | string | `"local-ssd-storage"` |  |
+| smithdb.compactionWorker.deployment.volumes[0].emptyDir.sizeLimit | string | `"100Gi"` |  |
+| smithdb.compactionWorker.deployment.volumes[0].name | string | `"local-ssd-storage"` |  |
 | smithdb.compactionWorker.maxConcurrentJobs | string | `""` | Maximum concurrent jobs per compaction worker. Empty uses the SmithDB default. |
 | smithdb.compactionWorker.name | string | `"compaction-worker"` |  |
 | smithdb.compactionWorker.pdb.annotations | object | `{}` |  |
@@ -1007,7 +1028,14 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | smithdb.config.observability.tracing.enabled | bool | `false` | Enable OpenTelemetry tracing/log export for SmithDB components. SmithDB supports exporting OTLP over gRPC only. |
 | smithdb.config.observability.tracing.endpoint | string | `""` | OTLP gRPC collector endpoint for SmithDB traces/logs. |
 | smithdb.config.observability.tracing.extraResourceAttributes | object | `{}` | Extra OpenTelemetry resource attributes appended to SmithDB traces/logs. |
-| smithdb.enabled | bool | `false` | Deploy the in-chart SmithDB workloads. |
+| smithdb.enabled | bool | `false` | Please express interest via our Support Portal (https://support.langchain.com) and we will reach out promptly to ensure we can set you up for success with SmithDB. |
+| smithdb.ingestion.autoscaling.enabled | bool | `true` |  |
+| smithdb.ingestion.autoscaling.maxReplicas | int | `10` |  |
+| smithdb.ingestion.autoscaling.minReplicas | int | `1` |  |
+| smithdb.ingestion.autoscaling.scaleDownStabilizationWindowSeconds | int | `900` |  |
+| smithdb.ingestion.autoscaling.scalePodCount | int | `1` |  |
+| smithdb.ingestion.autoscaling.scaleUpStabilizationWindowSeconds | int | `300` |  |
+| smithdb.ingestion.autoscaling.targetCPUUtilizationPercentage | int | `45` |  |
 | smithdb.ingestion.containerGrpcPort | int | `8082` |  |
 | smithdb.ingestion.containerPort | int | `8050` |  |
 | smithdb.ingestion.deployment.affinity | object | `{}` |  |
@@ -1015,7 +1043,10 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | smithdb.ingestion.deployment.command[0] | string | `"./smithdb"` |  |
 | smithdb.ingestion.deployment.command[1] | string | `"ingestion"` |  |
 | smithdb.ingestion.deployment.extraContainerConfig | object | `{}` |  |
-| smithdb.ingestion.deployment.extraEnv | list | `[]` |  |
+| smithdb.ingestion.deployment.extraEnv[0].name | string | `"SMITHDB_INGESTION__PROCESSOR__FLUSH__DATA_DIR"` |  |
+| smithdb.ingestion.deployment.extraEnv[0].value | string | `"/data"` |  |
+| smithdb.ingestion.deployment.extraEnv[1].name | string | `"SMITHDB_INGESTION__RUN_SEGMENT_MANAGER__FLUSH__DATA_DIR"` |  |
+| smithdb.ingestion.deployment.extraEnv[1].value | string | `"/data"` |  |
 | smithdb.ingestion.deployment.initContainers | list | `[]` |  |
 | smithdb.ingestion.deployment.labels | object | `{}` |  |
 | smithdb.ingestion.deployment.nodeSelector | object | `{}` |  |
@@ -1036,7 +1067,12 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | smithdb.ingestion.deployment.probes.startupProbe.periodSeconds | int | `10` |  |
 | smithdb.ingestion.deployment.probes.startupProbe.timeoutSeconds | int | `1` |  |
 | smithdb.ingestion.deployment.replicas | int | `1` |  |
-| smithdb.ingestion.deployment.resources | object | `{}` |  |
+| smithdb.ingestion.deployment.resources.limits.cpu | string | `"4"` |  |
+| smithdb.ingestion.deployment.resources.limits.ephemeral-storage | string | `"100Gi"` |  |
+| smithdb.ingestion.deployment.resources.limits.memory | string | `"8Gi"` |  |
+| smithdb.ingestion.deployment.resources.requests.cpu | string | `"4"` |  |
+| smithdb.ingestion.deployment.resources.requests.ephemeral-storage | string | `"100Gi"` |  |
+| smithdb.ingestion.deployment.resources.requests.memory | string | `"8Gi"` |  |
 | smithdb.ingestion.deployment.securityContext | object | `{}` |  |
 | smithdb.ingestion.deployment.sidecars | list | `[]` |  |
 | smithdb.ingestion.deployment.strategy.rollingUpdate.maxSurge | int | `1` |  |
@@ -1045,8 +1081,10 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | smithdb.ingestion.deployment.terminationGracePeriodSeconds | int | `300` |  |
 | smithdb.ingestion.deployment.tolerations | list | `[]` |  |
 | smithdb.ingestion.deployment.topologySpreadConstraints | list | `[]` |  |
-| smithdb.ingestion.deployment.volumeMounts | list | `[]` |  |
-| smithdb.ingestion.deployment.volumes | list | `[]` |  |
+| smithdb.ingestion.deployment.volumeMounts[0].mountPath | string | `"/data"` |  |
+| smithdb.ingestion.deployment.volumeMounts[0].name | string | `"local-ssd-storage"` |  |
+| smithdb.ingestion.deployment.volumes[0].emptyDir.sizeLimit | string | `"100Gi"` |  |
+| smithdb.ingestion.deployment.volumes[0].name | string | `"local-ssd-storage"` |  |
 | smithdb.ingestion.name | string | `"ingestion"` |  |
 | smithdb.ingestion.pdb.annotations | object | `{}` |  |
 | smithdb.ingestion.pdb.enabled | bool | `false` |  |
@@ -1055,8 +1093,10 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | smithdb.ingestion.service.annotations | object | `{}` |  |
 | smithdb.ingestion.service.labels | object | `{}` |  |
 | smithdb.ingestion.service.port | int | `8082` |  |
-| smithdb.langsmith.dualIngest.enabled | bool | `false` | Enables LangSmith run ingestion to also write to SmithDB. Requires smithdb.enabled. |
-| smithdb.langsmith.frontend.useSmithDBEndpoints | bool | `false` | Defaults the LangSmith UI to SmithDB endpoints for run queries. Requires smithdb.enabled. |
+| smithdb.langsmith | object | `{"ingestion":{"enabled":false},"migration":{"enabled":false},"query":{"enabled":false}}` | LangSmith configuration for SmithDB. |
+| smithdb.langsmith.ingestion.enabled | bool | `false` | Enables LangSmith run ingestion via SmithDB. When ClickHouse is enabled, ingestion writes to both backends. Requires smithdb.enabled. |
+| smithdb.langsmith.migration.enabled | bool | `false` | Detailed migration and taskdb configuration lives under smithdb.migration. |
+| smithdb.langsmith.query.enabled | bool | `false` | Enables SmithDB-powered queries. Requires smithdb.enabled. |
 | smithdb.metastoreMigration.command[0] | string | `"/usr/local/bin/smithdb-metastore-migrate-entrypoint.sh"` |  |
 | smithdb.metastoreMigration.job.activeDeadlineSeconds | int | `600` |  |
 | smithdb.metastoreMigration.job.affinity | object | `{}` |  |
@@ -1074,7 +1114,96 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | smithdb.metastoreMigration.job.ttlSecondsAfterFinished | int | `3600` |  |
 | smithdb.metastoreMigration.name | string | `"metastore-migration"` |  |
 | smithdb.metastoreMigration.useSsl | bool | `false` |  |
+| smithdb.migration.containerPort | int | `9040` |  |
+| smithdb.migration.deployment.affinity | object | `{}` |  |
+| smithdb.migration.deployment.annotations | object | `{}` |  |
+| smithdb.migration.deployment.command | list | `["/usr/local/bin/smithdb-with-taskdb-migrations-entrypoint.sh"]` | register non-overlapping jobs, drain the global queue, and exit. Override for another migration mode. |
+| smithdb.migration.deployment.extraContainerConfig | object | `{}` |  |
+| smithdb.migration.deployment.extraEnv | list | `[]` |  |
+| smithdb.migration.deployment.initContainers | list | `[]` |  |
+| smithdb.migration.deployment.labels | object | `{}` |  |
+| smithdb.migration.deployment.nodeSelector | object | `{}` |  |
+| smithdb.migration.deployment.podSecurityContext | object | `{}` |  |
+| smithdb.migration.deployment.resources.limits.cpu | string | `"8"` |  |
+| smithdb.migration.deployment.resources.limits.ephemeral-storage | string | `"100Gi"` |  |
+| smithdb.migration.deployment.resources.limits.memory | string | `"16Gi"` |  |
+| smithdb.migration.deployment.resources.requests.cpu | string | `"8"` |  |
+| smithdb.migration.deployment.resources.requests.ephemeral-storage | string | `"100Gi"` |  |
+| smithdb.migration.deployment.resources.requests.memory | string | `"16Gi"` |  |
+| smithdb.migration.deployment.securityContext | object | `{}` |  |
+| smithdb.migration.deployment.sidecars | list | `[]` |  |
+| smithdb.migration.deployment.terminationGracePeriodSeconds | int | `120` |  |
+| smithdb.migration.deployment.tolerations | list | `[]` |  |
+| smithdb.migration.deployment.topologySpreadConstraints | list | `[]` |  |
+| smithdb.migration.deployment.volumeMounts | list | `[]` |  |
+| smithdb.migration.deployment.volumes | list | `[]` |  |
+| smithdb.migration.endTime | string | `""` | Optional RFC3339 end bound for migrate-all (half-open window). Empty uses now. |
+| smithdb.migration.job.activeDeadlineSeconds | string | `nil` | Optional hard deadline for the Job. Leave unset for long-running full migrations. |
+| smithdb.migration.job.backoffLimit | int | `3` | Retry failed migrate-all pods up to this many times before marking the Job failed. |
+| smithdb.migration.job.parallelism | int | `1` | Maximum number of migration pods that run concurrently. |
+| smithdb.migration.job.restartPolicy | string | `"Never"` |  |
+| smithdb.migration.job.ttlSecondsAfterFinished | int | `604800` | Keep finished migrate-all Jobs around for seven days so operators can inspect status/logs. |
+| smithdb.migration.name | string | `"migration"` |  |
+| smithdb.migration.startTime | string | `""` | Optional RFC3339 start bound for migrate-all (half-open window). Empty uses end - 400 days. |
+| smithdb.migration.taskdb.postgres.auth | object | `{"database":"smithdb_migration","existingSecretName":"","password":"","passwordSecretKey":"postgres_password","username":"postgres"}` | Credentials for the in-chart taskdb Postgres instance. Used only when external.enabled is false. |
+| smithdb.migration.taskdb.postgres.auth.existingSecretName | string | `""` | Existing secret containing taskdb Postgres credentials. If set, the chart does not create one. |
+| smithdb.migration.taskdb.postgres.auth.password | string | `""` | Password for the chart-managed taskdb Postgres instance. Required unless existingSecretName is set. |
+| smithdb.migration.taskdb.postgres.containerPort | int | `5433` |  |
+| smithdb.migration.taskdb.postgres.enabled | bool | `true` | both the main LangSmith Postgres and the SmithDB metastore. |
+| smithdb.migration.taskdb.postgres.external | object | `{"database":"smithdb_migration","databaseSecretKey":"postgres_db","enabled":false,"existingSecretName":"","host":"","hostSecretKey":"postgres_host","password":"","passwordSecretKey":"postgres_password","port":"5433","useSsl":false,"username":"postgres","usernameSecretKey":"postgres_user"}` | the SmithDB metastore. |
+| smithdb.migration.taskdb.postgres.external.existingSecretName | string | `""` | Existing secret containing external taskdb Postgres connection fields. If set, the chart does not create one. |
+| smithdb.migration.taskdb.postgres.name | string | `"taskdb-postgres"` |  |
+| smithdb.migration.taskdb.postgres.service.annotations | object | `{}` |  |
+| smithdb.migration.taskdb.postgres.service.labels | object | `{}` |  |
+| smithdb.migration.taskdb.postgres.service.port | int | `5433` |  |
+| smithdb.migration.taskdb.postgres.statefulSet.affinity | object | `{}` |  |
+| smithdb.migration.taskdb.postgres.statefulSet.annotations | object | `{}` |  |
+| smithdb.migration.taskdb.postgres.statefulSet.command | list | `[]` |  |
+| smithdb.migration.taskdb.postgres.statefulSet.extraContainerConfig | object | `{}` |  |
+| smithdb.migration.taskdb.postgres.statefulSet.extraEnv | list | `[]` |  |
+| smithdb.migration.taskdb.postgres.statefulSet.initContainers | list | `[]` |  |
+| smithdb.migration.taskdb.postgres.statefulSet.labels | object | `{}` |  |
+| smithdb.migration.taskdb.postgres.statefulSet.livenessProbe.exec.command[0] | string | `"/bin/sh"` |  |
+| smithdb.migration.taskdb.postgres.statefulSet.livenessProbe.exec.command[1] | string | `"-c"` |  |
+| smithdb.migration.taskdb.postgres.statefulSet.livenessProbe.exec.command[2] | string | `"exec pg_isready -d \"$POSTGRES_DB\" -U \"$POSTGRES_USER\""` |  |
+| smithdb.migration.taskdb.postgres.statefulSet.livenessProbe.failureThreshold | int | `6` |  |
+| smithdb.migration.taskdb.postgres.statefulSet.livenessProbe.periodSeconds | int | `10` |  |
+| smithdb.migration.taskdb.postgres.statefulSet.livenessProbe.timeoutSeconds | int | `1` |  |
+| smithdb.migration.taskdb.postgres.statefulSet.nodeSelector | object | `{}` |  |
+| smithdb.migration.taskdb.postgres.statefulSet.persistence.enabled | bool | `true` |  |
+| smithdb.migration.taskdb.postgres.statefulSet.persistence.size | string | `"50Gi"` |  |
+| smithdb.migration.taskdb.postgres.statefulSet.persistence.storageClassName | string | `""` |  |
+| smithdb.migration.taskdb.postgres.statefulSet.persistentVolumeClaimRetentionPolicy | object | `{"whenDeleted":"Delete","whenScaled":"Retain"}` | Delete the migration-scoped taskdb PVC when its StatefulSet is removed. |
+| smithdb.migration.taskdb.postgres.statefulSet.podSecurityContext | object | `{}` |  |
+| smithdb.migration.taskdb.postgres.statefulSet.readinessProbe.exec.command[0] | string | `"/bin/sh"` |  |
+| smithdb.migration.taskdb.postgres.statefulSet.readinessProbe.exec.command[1] | string | `"-c"` |  |
+| smithdb.migration.taskdb.postgres.statefulSet.readinessProbe.exec.command[2] | string | `"exec pg_isready -d \"$POSTGRES_DB\" -U \"$POSTGRES_USER\""` |  |
+| smithdb.migration.taskdb.postgres.statefulSet.readinessProbe.failureThreshold | int | `6` |  |
+| smithdb.migration.taskdb.postgres.statefulSet.readinessProbe.periodSeconds | int | `10` |  |
+| smithdb.migration.taskdb.postgres.statefulSet.readinessProbe.timeoutSeconds | int | `1` |  |
+| smithdb.migration.taskdb.postgres.statefulSet.resources | object | `{}` |  |
+| smithdb.migration.taskdb.postgres.statefulSet.securityContext | object | `{}` |  |
+| smithdb.migration.taskdb.postgres.statefulSet.sidecars | list | `[]` |  |
+| smithdb.migration.taskdb.postgres.statefulSet.startupProbe.exec.command[0] | string | `"/bin/sh"` |  |
+| smithdb.migration.taskdb.postgres.statefulSet.startupProbe.exec.command[1] | string | `"-c"` |  |
+| smithdb.migration.taskdb.postgres.statefulSet.startupProbe.exec.command[2] | string | `"exec pg_isready -d \"$POSTGRES_DB\" -U \"$POSTGRES_USER\""` |  |
+| smithdb.migration.taskdb.postgres.statefulSet.startupProbe.failureThreshold | int | `6` |  |
+| smithdb.migration.taskdb.postgres.statefulSet.startupProbe.periodSeconds | int | `10` |  |
+| smithdb.migration.taskdb.postgres.statefulSet.startupProbe.timeoutSeconds | int | `1` |  |
+| smithdb.migration.taskdb.postgres.statefulSet.terminationGracePeriodSeconds | int | `30` |  |
+| smithdb.migration.taskdb.postgres.statefulSet.tolerations | list | `[]` |  |
+| smithdb.migration.taskdb.postgres.statefulSet.topologySpreadConstraints | list | `[]` |  |
+| smithdb.migration.taskdb.postgres.statefulSet.updateStrategy | object | `{}` | Optional StatefulSet update strategy for the in-chart SmithDB taskdb Postgres instance. |
+| smithdb.migration.taskdb.postgres.statefulSet.volumeMounts | list | `[]` |  |
+| smithdb.migration.taskdb.postgres.statefulSet.volumes | list | `[]` |  |
 | smithdb.name | string | `"smithdb"` | Name segment used for SmithDB resources. |
+| smithdb.query.autoscaling.enabled | bool | `true` |  |
+| smithdb.query.autoscaling.maxReplicas | int | `10` |  |
+| smithdb.query.autoscaling.minReplicas | int | `1` |  |
+| smithdb.query.autoscaling.scaleDownStabilizationWindowSeconds | int | `900` |  |
+| smithdb.query.autoscaling.scalePodCount | int | `1` |  |
+| smithdb.query.autoscaling.scaleUpStabilizationWindowSeconds | int | `300` |  |
+| smithdb.query.autoscaling.targetCPUUtilizationPercentage | int | `40` |  |
 | smithdb.query.containerGrpcPort | int | `8080` |  |
 | smithdb.query.containerPort | int | `8060` |  |
 | smithdb.query.deployment.affinity | object | `{}` |  |
@@ -1103,7 +1232,12 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | smithdb.query.deployment.probes.startupProbe.periodSeconds | int | `10` |  |
 | smithdb.query.deployment.probes.startupProbe.timeoutSeconds | int | `1` |  |
 | smithdb.query.deployment.replicas | int | `1` |  |
-| smithdb.query.deployment.resources | object | `{}` |  |
+| smithdb.query.deployment.resources.limits.cpu | string | `"4"` |  |
+| smithdb.query.deployment.resources.limits.ephemeral-storage | string | `"200Gi"` |  |
+| smithdb.query.deployment.resources.limits.memory | string | `"8Gi"` |  |
+| smithdb.query.deployment.resources.requests.cpu | string | `"4"` |  |
+| smithdb.query.deployment.resources.requests.ephemeral-storage | string | `"200Gi"` |  |
+| smithdb.query.deployment.resources.requests.memory | string | `"8Gi"` |  |
 | smithdb.query.deployment.securityContext | object | `{}` |  |
 | smithdb.query.deployment.sidecars | list | `[]` |  |
 | smithdb.query.deployment.strategy.rollingUpdate.maxSurge | int | `1` |  |
@@ -1526,6 +1660,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | clickhouse.containerHttpPort | int | `8123` |  |
 | clickhouse.containerNativePort | int | `9000` |  |
 | clickhouse.disableSecretCreation | bool | `false` |  |
+| clickhouse.enabled | bool | `true` | Enable ClickHouse for ingestion and queries. Keep enabled when using external ClickHouse.  WARNING: Disabling ClickHouse or switching to an external instance DELETES the chart-managed workload on upgrade. Back up its data first; PVCs may be deleted or left orphaned. |
 | clickhouse.external.clientCert.certSecretKey | string | `"tls.crt"` |  |
 | clickhouse.external.clientCert.keySecretKey | string | `"tls.key"` |  |
 | clickhouse.external.clientCert.secretName | string | `""` |  |

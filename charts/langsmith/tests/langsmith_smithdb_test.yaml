@@ -9,10 +9,17 @@ templates:
   - clickhouse/secrets.yaml
   - frontend/config-map.yaml
   - smithdb/query-deployment.yaml
+  - smithdb/query-hpa.yaml
   - smithdb/ingestion-deployment.yaml
+  - smithdb/ingestion-hpa.yaml
   - smithdb/compaction-deployment.yaml
   - smithdb/compaction-worker-deployment.yaml
+  - smithdb/compaction-worker-hpa.yaml
   - smithdb/cluster-manager-deployment.yaml
+  - smithdb/migration-job.yaml
+  - smithdb/taskdb-postgres-secret.yaml
+  - smithdb/taskdb-postgres-service.yaml
+  - smithdb/taskdb-postgres-statefulset.yaml
   - smithdb/services.yaml
   - smithdb/pdbs.yaml
   - smithdb/service-account.yaml
@@ -53,6 +60,59 @@ tests:
           content:
             name: RUST_LOG
             value: INFO,vortex=WARN
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_QUERY__VORTEX_CACHE__DISK__LIMIT
+            valueFrom:
+              resourceFieldRef:
+                resource: limits.ephemeral-storage
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_QUERY__VORTEX_CACHE__MEMORY__LIMIT
+            valueFrom:
+              resourceFieldRef:
+                resource: limits.memory
+      - equal:
+          path: spec.template.spec.containers[0].resources.requests.cpu
+          value: "4"
+      - equal:
+          path: spec.template.spec.containers[0].resources.requests.memory
+          value: "8Gi"
+      - equal:
+          path: spec.template.spec.containers[0].resources.requests.ephemeral-storage
+          value: "200Gi"
+
+  - it: should size the SmithDB query disk cache from its ephemeral storage limit
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      smithdb.query.deployment.resources.limits.ephemeral-storage: 100Gi
+    template: smithdb/query-deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_QUERY__VORTEX_CACHE__DISK__LIMIT
+            valueFrom:
+              resourceFieldRef:
+                resource: limits.ephemeral-storage
+
+  - it: should size the SmithDB query memory cache from its memory limit
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      smithdb.query.deployment.resources.limits.memory: 16Gi
+    template: smithdb/query-deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_QUERY__VORTEX_CACHE__MEMORY__LIMIT
+            valueFrom:
+              resourceFieldRef:
+                resource: limits.memory
 
   - it: should allow overriding smithdb log level
     values:
@@ -97,17 +157,36 @@ tests:
           path: data.SMITHDB_QUERY_ENABLED
           value: "true"
       - equal:
+          path: data.CLICKHOUSE_QUERY_ENABLED
+          value: "true"
+      - equal:
           path: data.SMITHDB_INGESTION_SERVICE_URL
           value: RELEASE-NAME-langsmith-smithdb-ingestion.NAMESPACE.svc.cluster.local:8082
       - equal:
           path: data.SMITHDB_INGESTION_ENABLED
           value: "true"
       - equal:
+          path: data.CLICKHOUSE_INGESTION_ENABLED
+          value: "true"
+      - equal:
           path: data.SMITHDB_MUTATIONS_SERVICE_URL
           value: RELEASE-NAME-langsmith-smithdb-query.NAMESPACE.svc.cluster.local:8080
+
+  - it: should configure SmithDB ingestion without SmithDB query endpoints
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      smithdb.langsmith.query.enabled: false
+    template: config-map.yaml
+    asserts:
       - equal:
-          path: data.SMITHDB_INGEST_ORGS_ROLLOUT_PCT
-          value: "100"
+          path: data.SMITHDB_MUTATIONS_SERVICE_URL
+          value: RELEASE-NAME-langsmith-smithdb-query.NAMESPACE.svc.cluster.local:8080
+      - notExists:
+          path: data.SMITHDB_QUERY_SERVICE_URL
+      - equal:
+          path: data.SMITHDB_QUERY_ENABLED
+          value: "false"
 
   - it: should wire frontend SmithDB v2 endpoint flag when enabled
     values:
@@ -125,12 +204,18 @@ tests:
       - ./values/smithdb-enabled.yaml
     set:
       smithdb.enabled: false
+      smithdb.langsmith.ingestion.enabled: false
+      smithdb.langsmith.query.enabled: false
     templates:
       - smithdb/query-deployment.yaml
       - smithdb/ingestion-deployment.yaml
       - smithdb/compaction-deployment.yaml
       - smithdb/compaction-worker-deployment.yaml
       - smithdb/cluster-manager-deployment.yaml
+      - smithdb/migration-job.yaml
+      - smithdb/taskdb-postgres-secret.yaml
+      - smithdb/taskdb-postgres-service.yaml
+      - smithdb/taskdb-postgres-statefulset.yaml
       - smithdb/services.yaml
       - smithdb/pdbs.yaml
       - smithdb/service-account.yaml
@@ -144,20 +229,22 @@ tests:
       - ./values/smithdb-enabled.yaml
     set:
       smithdb.enabled: false
+      smithdb.langsmith.ingestion.enabled: false
+      smithdb.langsmith.query.enabled: false
     template: config-map.yaml
     asserts:
       - notExists:
           path: data.SMITHDB_QUERY_SERVICE_URL
-      - notExists:
+      - equal:
           path: data.SMITHDB_QUERY_ENABLED
+          value: "false"
       - notExists:
           path: data.SMITHDB_MUTATIONS_SERVICE_URL
       - notExists:
           path: data.SMITHDB_INGESTION_SERVICE_URL
-      - notExists:
+      - equal:
           path: data.SMITHDB_INGESTION_ENABLED
-      - notExists:
-          path: data.SMITHDB_INGEST_ORGS_ROLLOUT_PCT
+          value: "false"
       - notExists:
           path: data.SMITHDB_CLUSTER_MANAGER_ENABLED
       - notExists:
@@ -168,6 +255,8 @@ tests:
       - ./values/smithdb-enabled.yaml
     set:
       smithdb.enabled: false
+      smithdb.langsmith.ingestion.enabled: false
+      smithdb.langsmith.query.enabled: false
     template: frontend/deployment.yaml
     asserts:
       - notContains:
@@ -204,6 +293,148 @@ tests:
             name: SMITHDB_CLUSTERMANAGER__LOGGING__FORMAT
             value: console
 
+  - it: should default cluster-manager service max replicas to deployment replicas
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      smithdb.query.autoscaling.enabled: false
+      smithdb.ingestion.autoscaling.enabled: false
+      smithdb.query.deployment.replicas: 4
+      smithdb.ingestion.deployment.replicas: 2
+    template: smithdb/cluster-manager-deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_CLUSTERMANAGER__SERVICES__QUERY__MIN_REPLICAS
+            value: "1"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_CLUSTERMANAGER__SERVICES__QUERY__MAX_REPLICAS
+            value: "4"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_CLUSTERMANAGER__SERVICES__INGESTION__MIN_REPLICAS
+            value: "1"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_CLUSTERMANAGER__SERVICES__INGESTION__MAX_REPLICAS
+            value: "2"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_CLUSTERMANAGER__SERVICES__QUERY__REPLICATION_THRESHOLD
+            value: "0"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_CLUSTERMANAGER__SERVICES__QUERY__SLICE_REPLICATION_THRESHOLD
+            value: "0"
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_CLUSTERMANAGER__SERVICES__COMPACTION__MAX_REPLICAS
+
+
+  - it: should derive cluster-manager service max replicas from autoscaling max when HPA enabled
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      smithdb.query.deployment.replicas: 1
+      smithdb.query.autoscaling.enabled: true
+      smithdb.query.autoscaling.minReplicas: 2
+      smithdb.query.autoscaling.maxReplicas: 6
+    template: smithdb/cluster-manager-deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_CLUSTERMANAGER__SERVICES__QUERY__MIN_REPLICAS
+            value: "1"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_CLUSTERMANAGER__SERVICES__QUERY__MAX_REPLICAS
+            value: "6"
+
+  - it: should enable query HPA by default
+    values:
+      - ./values/smithdb-enabled.yaml
+    template: smithdb/query-hpa.yaml
+    asserts:
+      - equal:
+          path: spec.minReplicas
+          value: 1
+      - equal:
+          path: spec.maxReplicas
+          value: 10
+      - equal:
+          path: spec.metrics[0].resource.target.averageUtilization
+          value: 40
+
+  - it: should omit query deployment replicas when HPA enabled by default
+    values:
+      - ./values/smithdb-enabled.yaml
+    template: smithdb/query-deployment.yaml
+    asserts:
+      - notExists:
+          path: spec.replicas
+
+  - it: should enable ingestion HPA by default
+    values:
+      - ./values/smithdb-enabled.yaml
+    template: smithdb/ingestion-hpa.yaml
+    asserts:
+      - equal:
+          path: spec.minReplicas
+          value: 1
+      - equal:
+          path: spec.maxReplicas
+          value: 10
+      - equal:
+          path: spec.metrics[0].resource.target.averageUtilization
+          value: 45
+
+  - it: should omit ingestion deployment replicas when HPA enabled by default
+    values:
+      - ./values/smithdb-enabled.yaml
+    template: smithdb/ingestion-deployment.yaml
+    asserts:
+      - notExists:
+          path: spec.replicas
+
+  - it: should enable compaction-worker HPA by default
+    values:
+      - ./values/smithdb-enabled.yaml
+    template: smithdb/compaction-worker-hpa.yaml
+    asserts:
+      - equal:
+          path: spec.minReplicas
+          value: 1
+      - equal:
+          path: spec.maxReplicas
+          value: 10
+      - equal:
+          path: spec.metrics[0].resource.target.averageUtilization
+          value: 60
+
+  - it: should omit compaction-worker deployment replicas when HPA enabled by default
+    values:
+      - ./values/smithdb-enabled.yaml
+    template: smithdb/compaction-worker-deployment.yaml
+    asserts:
+      - notExists:
+          path: spec.replicas
+      - equal:
+          path: spec.template.spec.containers[0].resources.requests.cpu
+          value: "4"
+      - equal:
+          path: spec.template.spec.containers[0].resources.requests.ephemeral-storage
+          value: "100Gi"
+
   - it: should expose compaction worker concurrency as a value
     values:
       - ./values/smithdb-enabled.yaml
@@ -216,3 +447,378 @@ tests:
           content:
             name: SMITHDB_COMPACTION_WORKER__MAX_CONCURRENT_JOBS
             value: "8"
+
+  - it: should omit smithdb migration resources by default
+    values:
+      - ./values/smithdb-enabled.yaml
+    templates:
+      - smithdb/migration-job.yaml
+      - smithdb/taskdb-postgres-secret.yaml
+      - smithdb/taskdb-postgres-service.yaml
+      - smithdb/taskdb-postgres-statefulset.yaml
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: should render smithdb migration resources with chart-managed taskdb
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      images.smithdbImage.tag: test-tag
+      config.blobStorage.enabled: true
+      config.blobStorage.bucketName: langsmith-blob
+      config.blobStorage.apiURL: http://blob-store:9000
+      smithdb.langsmith.migration.enabled: true
+      smithdb.langsmith.query.enabled: false
+      smithdb.migration.taskdb.postgres.enabled: true
+      smithdb.migration.taskdb.postgres.auth.password: taskdb-password
+    templates:
+      - smithdb/migration-job.yaml
+      - smithdb/taskdb-postgres-secret.yaml
+      - smithdb/taskdb-postgres-service.yaml
+      - smithdb/taskdb-postgres-statefulset.yaml
+    asserts:
+      - template: smithdb/migration-job.yaml
+        isKind:
+          of: Job
+      - template: smithdb/migration-job.yaml
+        equal:
+          path: spec.parallelism
+          value: 1
+      - template: smithdb/migration-job.yaml
+        equal:
+          path: spec.backoffLimit
+          value: 3
+      - template: smithdb/migration-job.yaml
+        equal:
+          path: spec.ttlSecondsAfterFinished
+          value: 604800
+      - template: smithdb/migration-job.yaml
+        equal:
+          path: spec.template.spec.restartPolicy
+          value: Never
+      - template: smithdb/migration-job.yaml
+        equal:
+          path: spec.template.spec.containers[0].resources.requests.ephemeral-storage
+          value: 100Gi
+      - template: smithdb/migration-job.yaml
+        equal:
+          path: spec.template.spec.containers[0].command
+          value:
+            - "/usr/local/bin/smithdb-with-taskdb-migrations-entrypoint.sh"
+            - "--allow-insecure"
+      - template: smithdb/migration-job.yaml
+        equal:
+          path: spec.template.spec.containers[0].image
+          value: docker.io/langchain/smithdb:test-tag
+      - template: smithdb/migration-job.yaml
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_MIGRATION__TASKDB__PORT
+            value: "5433"
+      - template: smithdb/migration-job.yaml
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_MIGRATION__TASKDB__PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: RELEASE-NAME-langsmith-smithdb-taskdb-postgres
+                key: postgres_password
+      - template: smithdb/migration-job.yaml
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_MIGRATION__CLICKHOUSE__HOST
+            valueFrom:
+              secretKeyRef:
+                name: RELEASE-NAME-langsmith-clickhouse
+                key: clickhouse_host
+                optional: false
+      - template: smithdb/migration-job.yaml
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_MIGRATION__CLICKHOUSE__USER
+            valueFrom:
+              secretKeyRef:
+                name: RELEASE-NAME-langsmith-clickhouse
+                key: clickhouse_user
+                optional: false
+      - template: smithdb/migration-job.yaml
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_MIGRATION__BLOB_PREFIX_PATTERN
+            value: __none__
+      - template: smithdb/migration-job.yaml
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_MIGRATION__BLOB_STORE_DEFAULT__S3__BUCKET
+            value: langsmith-blob
+      - template: smithdb/migration-job.yaml
+        notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_MIGRATION__BLOB_STORE_PREFIXED__TYPE
+      - template: smithdb/migration-job.yaml
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_MIGRATION__OUTPUT__OBJECT_STORE__S3__BUCKET
+            value: smithdb-bucket
+      - template: smithdb/taskdb-postgres-secret.yaml
+        isKind:
+          of: Secret
+      - template: smithdb/taskdb-postgres-secret.yaml
+        equal:
+          path: metadata.name
+          value: RELEASE-NAME-langsmith-smithdb-taskdb-postgres
+      - template: smithdb/taskdb-postgres-secret.yaml
+        equal:
+          path: data.postgres_password
+          value: dGFza2RiLXBhc3N3b3Jk
+      - template: smithdb/taskdb-postgres-service.yaml
+        isKind:
+          of: Service
+      - template: smithdb/taskdb-postgres-service.yaml
+        equal:
+          path: metadata.name
+          value: RELEASE-NAME-langsmith-smithdb-taskdb-postgres
+      - template: smithdb/taskdb-postgres-service.yaml
+        equal:
+          path: spec.ports[0].port
+          value: 5433
+      - template: smithdb/taskdb-postgres-statefulset.yaml
+        isKind:
+          of: StatefulSet
+      - template: smithdb/taskdb-postgres-statefulset.yaml
+        equal:
+          path: metadata.name
+          value: RELEASE-NAME-langsmith-smithdb-taskdb-postgres
+      - template: smithdb/taskdb-postgres-statefulset.yaml
+        equal:
+          path: spec.persistentVolumeClaimRetentionPolicy
+          value:
+            whenDeleted: Delete
+            whenScaled: Retain
+      - template: smithdb/taskdb-postgres-statefulset.yaml
+        equal:
+          path: spec.volumeClaimTemplates[0].spec.resources.requests.storage
+          value: 50Gi
+      - template: smithdb/taskdb-postgres-statefulset.yaml
+        equal:
+          path: spec.template.spec.containers[0].ports[0].containerPort
+          value: 5433
+      - template: smithdb/taskdb-postgres-statefulset.yaml
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: PGPORT
+            value: "5433"
+      - template: smithdb/taskdb-postgres-statefulset.yaml
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: POSTGRES_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: RELEASE-NAME-langsmith-smithdb-taskdb-postgres
+                key: postgres_password
+
+  - it: should configure smithdb migration parallelism
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      smithdb.langsmith.migration.enabled: true
+      smithdb.langsmith.query.enabled: false
+      smithdb.migration.job.parallelism: 5
+      smithdb.migration.taskdb.postgres.auth.password: taskdb-password
+    template: smithdb/migration-job.yaml
+    asserts:
+      - equal:
+          path: spec.parallelism
+          value: 5
+
+  - it: should allow retaining the taskdb PVC when the StatefulSet is deleted
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      smithdb.langsmith.migration.enabled: true
+      smithdb.migration.taskdb.postgres.enabled: true
+      smithdb.migration.taskdb.postgres.statefulSet.persistentVolumeClaimRetentionPolicy.whenDeleted: Retain
+    template: smithdb/taskdb-postgres-statefulset.yaml
+    asserts:
+      - equal:
+          path: spec.persistentVolumeClaimRetentionPolicy
+          value:
+            whenDeleted: Retain
+            whenScaled: Retain
+
+  - it: should omit allow-insecure for TLS ClickHouse
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      clickhouse.external.tls: true
+      smithdb.langsmith.migration.enabled: true
+      smithdb.langsmith.query.enabled: false
+      smithdb.migration.taskdb.postgres.enabled: true
+      smithdb.migration.taskdb.postgres.auth.password: taskdb-password
+    template: smithdb/migration-job.yaml
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].command
+          value:
+            - "/usr/local/bin/smithdb-with-taskdb-migrations-entrypoint.sh"
+
+  - it: should append migrate-all time bounds to the migration command
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      smithdb.langsmith.migration.enabled: true
+      smithdb.langsmith.query.enabled: false
+      smithdb.migration.startTime: "2024-01-01T00:00:00Z"
+      smithdb.migration.endTime: "2025-01-01T00:00:00Z"
+      smithdb.migration.taskdb.postgres.enabled: true
+      smithdb.migration.taskdb.postgres.auth.password: taskdb-password
+    template: smithdb/migration-job.yaml
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].command
+          value:
+            - "/usr/local/bin/smithdb-with-taskdb-migrations-entrypoint.sh"
+            - "--allow-insecure"
+            - "--start-time"
+            - "2024-01-01T00:00:00Z"
+            - "--end-time"
+            - "2025-01-01T00:00:00Z"
+
+  - it: should enable sequenced lsm backfill while SmithDB ingestion is enabled without queries
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      smithdb.langsmith.query.enabled: false
+    template: smithdb/compaction-deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_COMPACTION__SEQUENCED_LSM_BACKFILL_ENABLED
+            value: "true"
+
+  - it: should omit sequenced lsm backfill when SmithDB queries are enabled
+    values:
+      - ./values/smithdb-enabled.yaml
+    template: smithdb/compaction-deployment.yaml
+    asserts:
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_COMPACTION__SEQUENCED_LSM_BACKFILL_ENABLED
+
+  - it: should omit sequenced lsm backfill when SmithDB ingestion is disabled
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      smithdb.langsmith.ingestion.enabled: false
+      smithdb.langsmith.query.enabled: false
+    template: smithdb/compaction-deployment.yaml
+    asserts:
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_COMPACTION__SEQUENCED_LSM_BACKFILL_ENABLED
+
+  - it: should use an existing smithdb taskdb postgres secret when provided
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      smithdb.langsmith.migration.enabled: true
+      smithdb.migration.taskdb.postgres.enabled: true
+      smithdb.migration.taskdb.postgres.auth.existingSecretName: smithdb-taskdb-secret
+    templates:
+      - smithdb/taskdb-postgres-secret.yaml
+      - smithdb/taskdb-postgres-statefulset.yaml
+    asserts:
+      - template: smithdb/taskdb-postgres-secret.yaml
+        hasDocuments:
+          count: 0
+      - template: smithdb/taskdb-postgres-statefulset.yaml
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: POSTGRES_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: smithdb-taskdb-secret
+                key: postgres_password
+
+  - it: should render smithdb migration with external taskdb postgres
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      smithdb.langsmith.migration.enabled: true
+      smithdb.langsmith.query.enabled: false
+      smithdb.migration.taskdb.postgres.enabled: true
+      smithdb.migration.taskdb.postgres.external.enabled: true
+      smithdb.migration.taskdb.postgres.external.host: external-taskdb
+      smithdb.migration.taskdb.postgres.external.port: "5433"
+      smithdb.migration.taskdb.postgres.external.database: external_taskdb
+      smithdb.migration.taskdb.postgres.external.username: external_user
+      smithdb.migration.taskdb.postgres.external.password: external-password
+      smithdb.migration.taskdb.postgres.external.useSsl: true
+    templates:
+      - smithdb/migration-job.yaml
+      - smithdb/taskdb-postgres-secret.yaml
+      - smithdb/taskdb-postgres-service.yaml
+      - smithdb/taskdb-postgres-statefulset.yaml
+    asserts:
+      - template: smithdb/taskdb-postgres-service.yaml
+        hasDocuments:
+          count: 0
+      - template: smithdb/taskdb-postgres-statefulset.yaml
+        hasDocuments:
+          count: 0
+      - template: smithdb/taskdb-postgres-secret.yaml
+        isKind:
+          of: Secret
+      - template: smithdb/taskdb-postgres-secret.yaml
+        equal:
+          path: metadata.name
+          value: RELEASE-NAME-langsmith-smithdb-taskdb-postgres
+      - template: smithdb/taskdb-postgres-secret.yaml
+        exists:
+          path: data.postgres_host
+      - template: smithdb/migration-job.yaml
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_MIGRATION__TASKDB__HOST
+            valueFrom:
+              secretKeyRef:
+                name: RELEASE-NAME-langsmith-smithdb-taskdb-postgres
+                key: postgres_host
+      - template: smithdb/migration-job.yaml
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_MIGRATION__TASKDB__PORT
+            value: "5433"
+      - template: smithdb/migration-job.yaml
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_MIGRATION__TASKDB__PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: RELEASE-NAME-langsmith-smithdb-taskdb-postgres
+                key: postgres_password
+      - template: smithdb/migration-job.yaml
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_MIGRATION__TASKDB__USE_SSL
+            value: "true"
+

@@ -10,7 +10,7 @@ namespace: ""
 # -- are applied before the rest of the chart's resources. Typical use case is an
 # -- ExternalSecret that produces a Secret consumed via `config.existingSecretName`.
 # -- See `templates/pre-install-manifests.yaml` for entry forms, injected
-# -- annotations, idempotency rules, and caveats.
+# -- annotations, ExternalSecret-only validation, idempotency rules, and caveats.
 # Example:
 # preInstallManifests:
 #   - apiVersion: external-secrets.io/v1beta1
@@ -65,23 +65,23 @@ images:
   aceBackendImage:
     repository: "docker.io/langchain/langsmith-ace-backend"
     pullPolicy: IfNotPresent
-    tag: "0.16.13rc1"
+    tag: "0.16.19rc1"
   backendImage:
     repository: "docker.io/langchain/langsmith-backend"
     pullPolicy: IfNotPresent
-    tag: "0.16.13rc1"
+    tag: "0.16.19rc1"
   insightsAgentImage:
     repository: "docker.io/langchain/langsmith-clio"
     pullPolicy: IfNotPresent
-    tag: "0.16.13rc1"
+    tag: "0.16.19rc1"
   frontendImage:
     repository: "docker.io/langchain/langsmith-frontend"
     pullPolicy: IfNotPresent
-    tag: "0.16.13rc1"
+    tag: "0.16.19rc1"
   hostBackendImage:
     repository: "docker.io/langchain/hosted-langserve-backend"
     pullPolicy: IfNotPresent
-    tag: "0.16.13rc1"
+    tag: "0.16.19rc1"
   operatorImage:
     repository: "docker.io/langchain/langgraph-operator"
     pullPolicy: IfNotPresent
@@ -89,11 +89,11 @@ images:
   platformBackendImage:
     repository: "docker.io/langchain/langsmith-go-backend"
     pullPolicy: IfNotPresent
-    tag: "0.16.13rc1"
+    tag: "0.16.19rc1"
   playgroundImage:
     repository: "docker.io/langchain/langsmith-playground"
     pullPolicy: IfNotPresent
-    tag: "0.16.13rc1"
+    tag: "0.16.19rc1"
   # For production environments, we strongly recommend connecting to a managed PostgreSQL instance instead of using the one provided by the chart.
   # Docs: https://docs.langchain.com/langsmith/self-host-external-postgres
   postgresImage:
@@ -113,23 +113,23 @@ images:
   fleetToolServerImage:
     repository: "docker.io/langchain/agent-builder-tool-server"
     pullPolicy: IfNotPresent
-    tag: "0.16.13rc1"
+    tag: "0.16.19rc1"
   fleetTriggerServerImage:
     repository: "docker.io/langchain/agent-builder-trigger-server"
     pullPolicy: IfNotPresent
-    tag: "0.16.13rc1"
+    tag: "0.16.19rc1"
   agentBuilderImage:
     repository: "docker.io/langchain/agent-builder-deep-agent"
     pullPolicy: IfNotPresent
-    tag: "0.16.13rc1"
+    tag: "0.16.19rc1"
   pollyAgentImage:
     repository: "docker.io/langchain/langsmith-polly"
     pullPolicy: IfNotPresent
-    tag: "0.16.13rc1"
+    tag: "0.16.19rc1"
   smithdbImage:
     repository: "docker.io/langchain/smithdb"
     pullPolicy: IfNotPresent
-    tag: "latest"
+    tag: "0.16.19rc1"
   # Optional: only mirror/pull when presidioAnalyzer.enabled is true
   presidioAnalyzerImage:
     repository: "mcr.microsoft.com/presidio-analyzer"
@@ -1226,7 +1226,21 @@ aceBackend:
 
 smithdb:
   # -- Deploy the in-chart SmithDB workloads.
+  # -- V16 supports SmithDB in beta. We do not support or recommend customers setting this up on their own.
+  # -- Please express interest via our Support Portal (https://support.langchain.com) and we will reach out promptly to ensure we can set you up for success with SmithDB.
   enabled: false
+  # -- LangSmith configuration for SmithDB.
+  langsmith:
+    ingestion:
+      # -- Enables LangSmith run ingestion via SmithDB. When ClickHouse is enabled, ingestion writes to both backends. Requires smithdb.enabled.
+      enabled: false
+    migration:
+      # -- Runs the SmithDB migration phase and renders the one-shot migrate-all Job plus taskdb Postgres resources.
+      # -- Detailed migration and taskdb configuration lives under smithdb.migration.
+      enabled: false
+    query:
+      # -- Enables SmithDB-powered queries. Requires smithdb.enabled.
+      enabled: false
   # -- Name segment used for SmithDB resources.
   name: "smithdb"
   # -- Shared ServiceAccount for SmithDB workloads.
@@ -1239,6 +1253,9 @@ smithdb:
     automountServiceAccountToken: true
   # -- Extra env vars for every SmithDB workload.
   commonEnv: []
+  # -- Common init containers added to every SmithDB component Deployment and Job.
+  # Set restartPolicy: Always to configure a Kubernetes sidecar container.
+  commonInitContainers: []
 
   config:
     # -- Existing secret containing SmithDB metastore credentials.
@@ -1275,14 +1292,6 @@ smithdb:
         accessKeyIdSecretKey: ""
         secretAccessKeySecretKey: ""
 
-  langsmith:
-    dualIngest:
-      # -- Enables LangSmith run ingestion to also write to SmithDB. Requires smithdb.enabled.
-      enabled: false
-    frontend:
-      # -- Defaults the LangSmith UI to SmithDB endpoints for run queries. Requires smithdb.enabled.
-      useSmithDBEndpoints: false
-
   query:
     name: "query"
     containerPort: 8060
@@ -1298,7 +1307,15 @@ smithdb:
       annotations: {}
       podSecurityContext: {}
       securityContext: {}
-      resources: {}
+      resources:
+        requests:
+          cpu: "4"
+          memory: "8Gi"
+          ephemeral-storage: "200Gi"
+        limits:
+          cpu: "4"
+          memory: "8Gi"
+          ephemeral-storage: "200Gi"
       probes:
         startupProbe:
           httpGet:
@@ -1343,6 +1360,14 @@ smithdb:
       minAvailable: 1
       labels: {}
       annotations: {}
+    autoscaling:
+      enabled: true
+      minReplicas: 1
+      maxReplicas: 10
+      targetCPUUtilizationPercentage: 40
+      scaleUpStabilizationWindowSeconds: 300
+      scaleDownStabilizationWindowSeconds: 900
+      scalePodCount: 1
 
   ingestion:
     name: "ingestion"
@@ -1359,7 +1384,15 @@ smithdb:
       annotations: {}
       podSecurityContext: {}
       securityContext: {}
-      resources: {}
+      resources:
+        requests:
+          cpu: "4"
+          memory: "8Gi"
+          ephemeral-storage: "100Gi"
+        limits:
+          cpu: "4"
+          memory: "8Gi"
+          ephemeral-storage: "100Gi"
       probes:
         startupProbe:
           httpGet:
@@ -1386,15 +1419,24 @@ smithdb:
         - "./smithdb"
         - "ingestion"
       terminationGracePeriodSeconds: 300
-      extraEnv: []
+      extraEnv:
+        - name: SMITHDB_INGESTION__PROCESSOR__FLUSH__DATA_DIR
+          value: "/data"
+        - name: SMITHDB_INGESTION__RUN_SEGMENT_MANAGER__FLUSH__DATA_DIR
+          value: "/data"
       extraContainerConfig: {}
       sidecars: []
       nodeSelector: {}
       tolerations: []
       affinity: {}
       topologySpreadConstraints: []
-      volumes: []
-      volumeMounts: []
+      volumes:
+        - name: local-ssd-storage
+          emptyDir:
+            sizeLimit: 100Gi
+      volumeMounts:
+        - name: local-ssd-storage
+          mountPath: /data
       initContainers: []
     service:
       port: 8082
@@ -1405,6 +1447,14 @@ smithdb:
       minAvailable: 1
       labels: {}
       annotations: {}
+    autoscaling:
+      enabled: true
+      minReplicas: 1
+      maxReplicas: 10
+      targetCPUUtilizationPercentage: 45
+      scaleUpStabilizationWindowSeconds: 300
+      scaleDownStabilizationWindowSeconds: 900
+      scalePodCount: 1
 
   compaction:
     name: "compaction"
@@ -1416,7 +1466,13 @@ smithdb:
       annotations: {}
       podSecurityContext: {}
       securityContext: {}
-      resources: {}
+      resources:
+        requests:
+          cpu: "500m"
+          memory: "1Gi"
+        limits:
+          cpu: "500m"
+          memory: "1Gi"
       probes:
         startupProbe:
           httpGet:
@@ -1469,13 +1525,21 @@ smithdb:
     # -- Maximum concurrent jobs per compaction worker. Empty uses the SmithDB default.
     maxConcurrentJobs: ""
     deployment:
-      replicas: 1
+      replicas: 2
       labels: {}
       annotations: {}
       podSecurityContext: {}
       securityContext: {}
       terminationGracePeriodSeconds: 120
-      resources: {}
+      resources:
+        requests:
+          cpu: "4"
+          memory: "8Gi"
+          ephemeral-storage: "100Gi"
+        limits:
+          cpu: "4"
+          memory: "8Gi"
+          ephemeral-storage: "100Gi"
       probes:
         startupProbe:
           httpGet:
@@ -1509,14 +1573,27 @@ smithdb:
       tolerations: []
       affinity: {}
       topologySpreadConstraints: []
-      volumes: []
-      volumeMounts: []
+      volumes:
+        - name: local-ssd-storage
+          emptyDir:
+            sizeLimit: 100Gi
+      volumeMounts:
+        - name: local-ssd-storage
+          mountPath: /data
       initContainers: []
     pdb:
       enabled: false
       minAvailable: 1
       labels: {}
       annotations: {}
+    autoscaling:
+      enabled: true
+      minReplicas: 1
+      maxReplicas: 10
+      targetCPUUtilizationPercentage: 60
+      scaleUpStabilizationWindowSeconds: 120
+      scaleDownStabilizationWindowSeconds: 300
+      scalePodCount: 1
 
   clusterManager:
     name: "cluster-manager"
@@ -1528,7 +1605,13 @@ smithdb:
       annotations: {}
       podSecurityContext: {}
       securityContext: {}
-      resources: {}
+      resources:
+        requests:
+          cpu: "250m"
+          memory: "256Mi"
+        limits:
+          cpu: "250m"
+          memory: "256Mi"
       probes:
         startupProbe:
           httpGet:
@@ -1569,6 +1652,145 @@ smithdb:
       labels: {}
       annotations: {}
     pdb: {}
+
+  migration:
+    name: "migration"
+    containerPort: 9040
+    # -- Optional RFC3339 start bound for migrate-all (half-open window). Empty uses end - 400 days.
+    startTime: ""
+    # -- Optional RFC3339 end bound for migrate-all (half-open window). Empty uses now.
+    endTime: ""
+    job:
+      # -- Keep finished migrate-all Jobs around for seven days so operators can inspect status/logs.
+      ttlSecondsAfterFinished: 604800
+      # -- Maximum number of migration pods that run concurrently.
+      parallelism: 1
+      # -- Retry failed migrate-all pods up to this many times before marking the Job failed.
+      backoffLimit: 3
+      # -- Optional hard deadline for the Job. Leave unset for long-running full migrations.
+      activeDeadlineSeconds: null
+      restartPolicy: Never
+    taskdb:
+      postgres:
+        # -- Enable Postgres for SmithDB migration task state. This is a separate database from
+        # -- both the main LangSmith Postgres and the SmithDB metastore.
+        enabled: true
+        name: "taskdb-postgres"
+        containerPort: 5433
+        # -- Credentials for the in-chart taskdb Postgres instance. Used only when external.enabled is false.
+        auth:
+          database: "smithdb_migration"
+          username: "postgres"
+          # -- Password for the chart-managed taskdb Postgres instance. Required unless existingSecretName is set.
+          password: ""
+          # -- Existing secret containing taskdb Postgres credentials. If set, the chart does not create one.
+          existingSecretName: ""
+          passwordSecretKey: "postgres_password"
+        # -- External Postgres configuration for SmithDB migration task state. Use this when taskdb
+        # -- should run outside the chart. Do not point this at the main LangSmith Postgres or
+        # -- the SmithDB metastore.
+        external:
+          enabled: false
+          host: ""
+          port: "5433"
+          database: "smithdb_migration"
+          username: "postgres"
+          password: ""
+          useSsl: false
+          # -- Existing secret containing external taskdb Postgres connection fields. If set, the chart does not create one.
+          existingSecretName: ""
+          hostSecretKey: "postgres_host"
+          databaseSecretKey: "postgres_db"
+          usernameSecretKey: "postgres_user"
+          passwordSecretKey: "postgres_password"
+        service:
+          port: 5433
+          labels: {}
+          annotations: {}
+        statefulSet:
+          # -- Optional StatefulSet update strategy for the in-chart SmithDB taskdb Postgres instance.
+          updateStrategy: {}
+          labels: {}
+          annotations: {}
+          podSecurityContext: {}
+          securityContext: {}
+          terminationGracePeriodSeconds: 30
+          resources: {}
+          startupProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - exec pg_isready -d "$POSTGRES_DB" -U "$POSTGRES_USER"
+            failureThreshold: 6
+            periodSeconds: 10
+            timeoutSeconds: 1
+          readinessProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - exec pg_isready -d "$POSTGRES_DB" -U "$POSTGRES_USER"
+            failureThreshold: 6
+            periodSeconds: 10
+            timeoutSeconds: 1
+          livenessProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - exec pg_isready -d "$POSTGRES_DB" -U "$POSTGRES_USER"
+            failureThreshold: 6
+            periodSeconds: 10
+            timeoutSeconds: 1
+          command: []
+          extraEnv: []
+          extraContainerConfig: {}
+          sidecars: []
+          nodeSelector: {}
+          tolerations: []
+          affinity: {}
+          topologySpreadConstraints: []
+          volumes: []
+          volumeMounts: []
+          initContainers: []
+          # -- Delete the migration-scoped taskdb PVC when its StatefulSet is removed.
+          persistentVolumeClaimRetentionPolicy:
+            whenDeleted: Delete
+            whenScaled: Retain
+          persistence:
+            enabled: true
+            size: 50Gi
+            storageClassName: ""
+    deployment:
+      labels: {}
+      annotations: {}
+      podSecurityContext: {}
+      securityContext: {}
+      terminationGracePeriodSeconds: 120
+      resources:
+        requests:
+          cpu: "8"
+          memory: "16Gi"
+          ephemeral-storage: "100Gi"
+        limits:
+          cpu: "8"
+          memory: "16Gi"
+          ephemeral-storage: "100Gi"
+      # -- Runs taskdb schema migrations, then one-shot self-hosted migrate-all: discover tenants,
+      # -- register non-overlapping jobs, drain the global queue, and exit. Override for another migration mode.
+      command:
+        - "/usr/local/bin/smithdb-with-taskdb-migrations-entrypoint.sh"
+      extraEnv: []
+      extraContainerConfig: {}
+      sidecars: []
+      nodeSelector: {}
+      tolerations: []
+      affinity: {}
+      topologySpreadConstraints: []
+      volumes: []
+      volumeMounts: []
+      initContainers: []
 
   metastoreMigration:
     name: "metastore-migration"
@@ -1881,6 +2103,11 @@ backend:
     ttlSecondsAfterFinished: 600
 
 clickhouse:
+  # -- Enable ClickHouse for ingestion and queries. Keep enabled when using external ClickHouse.
+  #
+  # WARNING: Disabling ClickHouse or switching to an external instance DELETES the chart-managed
+  # workload on upgrade. Back up its data first; PVCs may be deleted or left orphaned.
+  enabled: true
   name: "clickhouse"
   disableSecretCreation: false
   config:

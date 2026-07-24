@@ -1,0 +1,29 @@
+{{- $taskdb := .Values.smithdb.migration.taskdb.postgres -}}
+{{- if and .Values.smithdb.enabled .Values.smithdb.langsmith.migration.enabled $taskdb.enabled (not $taskdb.external.enabled) }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "langsmith.smithdb.fullname" . }}-{{ $taskdb.name }}
+  namespace: {{ .Values.namespace | default .Release.Namespace }}
+  labels:
+    {{- include "langsmith.labels" . | nindent 4 }}
+    app.kubernetes.io/component: {{ include "langsmith.smithdb.fullname" . }}-{{ $taskdb.name }}
+    {{- with $taskdb.service.labels }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+  annotations:
+    {{- include "langsmith.annotations" . | nindent 4 }}
+    {{- with $taskdb.service.annotations }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  type: ClusterIP
+  ports:
+    - name: postgres
+      port: {{ $taskdb.service.port }}
+      targetPort: postgres
+      protocol: TCP
+  selector:
+    {{- include "langsmith.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: {{ include "langsmith.smithdb.fullname" . }}-{{ $taskdb.name }}
+{{- end }}

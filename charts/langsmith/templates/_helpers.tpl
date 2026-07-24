@@ -251,6 +251,7 @@ Template containing common environment variables that are used by several servic
 - name: REDIS_IAM_AUTH_PROVIDER
   value: {{ .Values.redis.external.iamAuthProvider | quote }}
 {{- end }}
+{{- if .Values.clickhouse.enabled }}
 - name: CLICKHOUSE_HYBRID
   value: {{ .Values.clickhouse.external.hybrid | quote }}
 - name: CLICKHOUSE_DB
@@ -303,6 +304,7 @@ Template containing common environment variables that are used by several servic
 {{- end }}
 - name: CLICKHOUSE_CLUSTER
   value: {{ .Values.clickhouse.external.cluster | quote }}
+{{- end }}
 - name: LOG_LEVEL
   value: {{ .Values.config.logLevel | quote }}
 {{- if .Values.config.oauth.enabled }}
@@ -430,7 +432,7 @@ Template containing common environment variables that are used by several servic
 {{- end }}
 {{- end }}
 - name: FF_CH_SEARCH_ENABLED
-  value: {{ ternary "false" .Values.config.blobStorage.chSearchEnabled .Values.clickhouse.external.hybrid | quote }}
+  value: {{ and .Values.clickhouse.enabled (not .Values.clickhouse.external.hybrid) .Values.config.blobStorage.chSearchEnabled | quote }}
 {{ include "langsmith.conditionalEnvVarsResolved" . }}
 - name: REDIS_RUNS_EXPIRY_SECONDS
   value: {{ .Values.config.settings.redisRunsExpirySeconds | quote }}
@@ -499,6 +501,20 @@ SmithDB resource name prefix.
 {{- end }}
 
 {{/*
+Name of the secret containing credentials for the SmithDB migration taskdb Postgres.
+*/}}
+{{- define "langsmith.smithdb.taskdbPostgresSecretName" -}}
+{{- $taskdb := .Values.smithdb.migration.taskdb.postgres -}}
+{{- if and $taskdb.external.enabled $taskdb.external.existingSecretName }}
+{{- $taskdb.external.existingSecretName }}
+{{- else if and (not $taskdb.external.enabled) $taskdb.auth.existingSecretName }}
+{{- $taskdb.auth.existingSecretName }}
+{{- else }}
+{{- printf "%s-%s" (include "langsmith.smithdb.fullname" .) $taskdb.name | trunc 63 | trimSuffix "-" }}
+{{- end }}
+{{- end }}
+
+{{/*
 Name of a SmithDB component Service or Deployment.
 Args: root, component.
 */}}
@@ -520,6 +536,13 @@ Args: root.
 {{- else -}}
 {{- default "default" $root.Values.smithdb.serviceAccount.name }}
 {{- end -}}
+{{- end }}
+
+{{/*
+Common init containers shared by every SmithDB workload.
+*/}}
+{{- define "langsmith.smithdb.commonInitContainers" -}}
+{{- toYaml .Values.smithdb.commonInitContainers -}}
 {{- end }}
 
 {{/*
@@ -613,15 +636,6 @@ Args: root, service, displayName.
   value: {{ $displayName | quote }}
 - name: RUST_LOG
   value: {{ $logLevel | quote }}
-{{- if $tracingEnabled }}
-- name: OTEL_EXPORTER_OTLP_ENDPOINT
-  value: {{ $root.Values.smithdb.config.observability.tracing.endpoint | quote }}
-{{- /* SmithDB exports OTLP over gRPC. */}}
-- name: OTEL_EXPORTER_OTLP_PROTOCOL
-  value: "grpc"
-{{- end }}
-- name: OTEL_SERVICE_NAME
-  value: {{ $displayName | quote }}
 - name: NODE_IP
   valueFrom:
     fieldRef:
@@ -643,6 +657,15 @@ Args: root, service, displayName.
     fieldRef:
       fieldPath: status.podIP
 - name: CONTAINER_NAME
+  value: {{ $displayName | quote }}
+{{- if $tracingEnabled }}
+- name: OTEL_EXPORTER_OTLP_ENDPOINT
+  value: {{ $root.Values.smithdb.config.observability.tracing.endpoint | quote }}
+{{- /* SmithDB exports OTLP over gRPC. */}}
+- name: OTEL_EXPORTER_OTLP_PROTOCOL
+  value: "grpc"
+{{- end }}
+- name: OTEL_SERVICE_NAME
   value: {{ $displayName | quote }}
 - name: OTEL_RESOURCE_ATTRIBUTES
   value: {{ include "langsmith.smithdb.otelResourceAttributes" $root | quote }}
@@ -1138,7 +1161,7 @@ checksum/redis: {{ include (print $.Template.BasePath "/redis/secrets.yaml") . |
 {{- if not .Values.postgres.external.existingSecretName }}
 checksum/postgres: {{ include (print $.Template.BasePath "/postgres/secrets.yaml") . | sha256sum }}
 {{- end }}
-{{- if not .Values.clickhouse.external.existingSecretName }}
+{{- if and .Values.clickhouse.enabled (not .Values.clickhouse.external.existingSecretName) }}
 checksum/clickhouse: {{ include (print $.Template.BasePath "/clickhouse/secrets.yaml") . | sha256sum }}
 {{- end }}
 {{- end }}
@@ -1167,7 +1190,7 @@ Creates the image reference used for Langsmith deployments. If registry is speci
 {{- if .Values.postgres.external.clientCert.secretName -}}
 {{- $mounts = append $mounts (dict "name" "postgres-client-cert" "mountPath" "/etc/postgres/certs" "readOnly" true) -}}
 {{- end -}}
-{{- if .Values.clickhouse.external.clientCert.secretName -}}
+{{- if and .Values.clickhouse.enabled .Values.clickhouse.external.clientCert.secretName -}}
 {{- $mounts = append $mounts (dict "name" "clickhouse-client-cert" "mountPath" "/etc/clickhouse/certs" "readOnly" true) -}}
 {{- end -}}
 {{ $mounts | toYaml }}
@@ -1184,7 +1207,7 @@ Creates the image reference used for Langsmith deployments. If registry is speci
 {{- if .Values.postgres.external.clientCert.secretName -}}
 {{- $volumes = append $volumes (dict "name" "postgres-client-cert" "secret" (dict "secretName" .Values.postgres.external.clientCert.secretName "items" (list (dict "key" .Values.postgres.external.clientCert.certSecretKey "path" "client.crt" "mode" 0644) (dict "key" .Values.postgres.external.clientCert.keySecretKey "path" "client.key" "mode" 0640)))) -}}
 {{- end -}}
-{{- if .Values.clickhouse.external.clientCert.secretName -}}
+{{- if and .Values.clickhouse.enabled .Values.clickhouse.external.clientCert.secretName -}}
 {{- $volumes = append $volumes (dict "name" "clickhouse-client-cert" "secret" (dict "secretName" .Values.clickhouse.external.clientCert.secretName "items" (list (dict "key" .Values.clickhouse.external.clientCert.certSecretKey "path" "client.crt" "mode" 0644) (dict "key" .Values.clickhouse.external.clientCert.keySecretKey "path" "client.key" "mode" 0640)))) -}}
 {{- end -}}
 {{ $volumes | toYaml }}

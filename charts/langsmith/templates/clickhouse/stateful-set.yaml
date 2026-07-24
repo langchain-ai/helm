@@ -18,7 +18,7 @@
       key: clickhouse_password
       optional: {{ .Values.config.disableSecretCreation }}
 {{- end -}}
-{{- if not .Values.clickhouse.external.enabled }}
+{{- if and .Values.clickhouse.enabled (not .Values.clickhouse.external.enabled) }}
 {{- $envVars := concat .Values.commonEnv (include "clickhouseEnvVars" . | fromYamlArray) .Values.clickhouse.statefulSet.extraEnv -}}
 {{- include "langsmith.detectDuplicates" $envVars -}}
 {{- $volumes := concat .Values.commonVolumes .Values.clickhouse.statefulSet.volumes -}}
