@@ -1,0 +1,19 @@
+charts/langsmith/values.yaml
+  s_96fcd22e1ac53d::t_0a34cb0dedf5b1 1695
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "0a71d1dcc69e250e1f084958e6881c1522ab6a92",
+  "prompts": {},
+  "sessions": {
+    "s_96fcd22e1ac53d": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "2709e895-5250-4fd3-98b2-4327976ef449",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "ben11211 <nagengast@langchain.dev>"
+    }
+  }
+}

@@ -1,0 +1,37 @@
+charts/mission-control/templates/backend/statefulset.yaml
+  s_5f2b66f834c543::t_46d81d3595c6c8 100-107,109,111,113,115,117,119,121-123,125,127,129,131-132
+charts/mission-control/values.yaml
+  s_5f2b66f834c543::t_74abc8eb39862b 162-167,169-170,172-181
+  s_5f2b66f834c543::t_106120fa75fac9 62-63
+  s_5f2b66f834c543::t_d315daf32f583b 93
+  s_5f2b66f834c543::t_54ca2d57ccb0dd 18-31,43-47
+  s_5f2b66f834c543::t_fd518b4526416d 130,136
+charts/mission-control/templates/backend/cluster-role-binding.yaml
+  s_5f2b66f834c543::t_46d81d3595c6c8 1
+charts/mission-control/Chart.yaml
+  s_5f2b66f834c543::t_46d81d3595c6c8 4
+charts/mission-control/templates/backend/role-binding.yaml
+  s_5f2b66f834c543::t_46d81d3595c6c8 1-3
+charts/mission-control/templates/backend/role.yaml
+  s_5f2b66f834c543::t_46d81d3595c6c8 1-36,49-114,163
+charts/mission-control/templates/backend/cluster-role.yaml
+  s_5f2b66f834c543::t_46d81d3595c6c8 1-10,99,104-111
+charts/mission-control/README.md
+  s_5f2b66f834c543::t_46d81d3595c6c8 3,34,39,50-54,56,61,64,77,81-82,88,97,99-101,105,123,126
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "63d41774a264dff70a4c0aeed186c8957f30b505",
+  "prompts": {},
+  "sessions": {
+    "s_5f2b66f834c543": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "faf100d9-7b54-4a5b-9c8c-a42d182e50b6",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "gdibben <gethin.dibben@langchain.dev>"
+    }
+  }
+}

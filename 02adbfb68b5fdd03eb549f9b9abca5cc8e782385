@@ -1,0 +1,14 @@
+charts/langsmith/values.yaml
+  h_712f30a2a56c04 1599
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "02adbfb68b5fdd03eb549f9b9abca5cc8e782385",
+  "prompts": {},
+  "humans": {
+    "h_712f30a2a56c04": {
+      "author": "ben11211 <nagengast@langchain.dev>"
+    }
+  }
+}

@@ -1,0 +1,32 @@
+charts/langsmith/templates/smithdb/compaction-worker-deployment.yaml
+  s_ac1d566c41b46a::t_f4e9ad9b2f2e4f 3
+  s_ac1d566c41b46a::t_7b2f0a12001289 59-71
+charts/langsmith/templates/smithdb/compaction-deployment.yaml
+  s_ac1d566c41b46a::t_bc7109e282b08c 58-64
+  s_ac1d566c41b46a::t_0ede295ec357a2 3
+charts/langsmith/templates/smithdb/cluster-manager-deployment.yaml
+  s_ac1d566c41b46a::t_66146783024f5c 59-65
+  s_ac1d566c41b46a::t_3923de0a13d6dd 2
+charts/langsmith/templates/smithdb/query-deployment.yaml
+  s_ac1d566c41b46a::t_26e7b2c72987ef 2
+  s_ac1d566c41b46a::t_7edca390c6daeb 61-67
+charts/langsmith/templates/smithdb/ingestion-deployment.yaml
+  s_ac1d566c41b46a::t_ad25bd51b6872e 2
+  s_ac1d566c41b46a::t_bce54ffcd4d027 62-68
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "2b557f43c67cf94d86dbf431f7e0cb2aad64f65d",
+  "prompts": {},
+  "sessions": {
+    "s_ac1d566c41b46a": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "05af4313-6525-4e1f-b82d-5148af5c1a2c",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "ben11211 <nagengast@langchain.dev>"
+    }
+  }
+}
