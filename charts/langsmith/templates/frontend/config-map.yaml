@@ -146,6 +146,21 @@ data:
             proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.platformBackend.service.port }};
         }
 
+        # Bare /v2/ (no /api prefix). The langsmith-go SDK emits root-relative
+        # /v2/... query paths (correct on SaaS, where the api host IS the
+        # backend). Single-origin self-hosted only routes /api/* to backends, so
+        # those v2 calls would 404/405 without this. Forward to the same
+        # platform-backend as /api/v2/ above; the backend enforces its own
+        # API-key/tenant auth.
+        location /{{ .Values.config.basePath }}/v2/ {
+            rewrite /{{ .Values.config.basePath }}/v2/(.*) /v2/$1  break;
+            proxy_set_header Connection '';
+            proxy_http_version 1.1;
+            proxy_buffering off;
+            proxy_cache off;
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.platformBackend.service.port }};
+        }
+
         location /{{ .Values.config.basePath }}/api/v1/oauth/ {
             rewrite /{{ .Values.config.basePath }}/api/v1/oauth/(.*) /oauth/$1  break;
             proxy_set_header Connection '';
@@ -762,6 +777,18 @@ data:
 
         location /api/v2/ {
             rewrite /api/v2/(.*) /v2/$1  break;
+            proxy_set_header Connection '';
+            proxy_http_version 1.1;
+            proxy_buffering off;
+            proxy_cache off;
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.platformBackend.service.port }};
+        }
+
+        # Bare /v2/ (no /api prefix). The langsmith-go SDK emits root-relative
+        # /v2/... query paths (correct on SaaS, where the api host IS the
+        # backend); single-origin self-hosted only routes /api/* to backends,
+        # so those v2 calls 404/405 without this. Same target/auth as /api/v2/.
+        location /v2/ {
             proxy_set_header Connection '';
             proxy_http_version 1.1;
             proxy_buffering off;
