@@ -1,0 +1,12 @@
+smithdb:
+  config:
+    observability:
+      metrics:
+        enabled: true
+        path: "/metrics"
+        annotations:
+          "example.com/{{ .containerName }}": "{{ .component }}:{{ .metricsPort }}{{ .metricsPath }}"
+  query:
+    deployment:
+      annotations:
+        prometheus.io/path: "/query-metrics"

@@ -30,10 +30,7 @@ spec:
   template:
     metadata:
       annotations:
-        {{- include "langsmith.commonPodAnnotations" . | nindent 8 }}
-        {{- with .Values.smithdb.ingestion.deployment.annotations }}
-          {{- toYaml . | nindent 8 }}
-        {{- end }}
+        {{- include "langsmith.smithdb.podAnnotations" (dict "root" . "component" "ingestion") | nindent 8 }}
       labels:
         {{- include "langsmith.labels" . | nindent 8 }}
         app.kubernetes.io/component: {{ include "langsmith.smithdb.componentName" (dict "root" . "component" "ingestion") }}

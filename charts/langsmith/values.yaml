@@ -1271,6 +1271,15 @@ smithdb:
       logging:
         # -- Optional SmithDB log filter. Empty uses the chart default: INFO,vortex=WARN.
         level: ""
+      metrics:
+        # -- Add Prometheus scrape annotations to SmithDB component pods.
+        enabled: false
+        # -- HTTP path where SmithDB components expose Prometheus metrics.
+        path: "/metrics"
+        # -- Additional annotations for SmithDB component pods when metrics are enabled.
+        # Values and keys are evaluated as templates with component, containerName,
+        # metricsPath, and metricsPort in scope.
+        annotations: {}
       tracing:
         # -- Enable OpenTelemetry tracing/log export for SmithDB components.
         # SmithDB supports exporting OTLP over gRPC only.

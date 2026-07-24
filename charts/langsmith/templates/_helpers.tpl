@@ -608,6 +608,35 @@ Args: root, service, displayName.
 {{- end }}
 
 {{/*
+SmithDB pod annotations, including optional Prometheus scraping.
+Metrics annotations are evaluated as templates with component, containerName,
+metricsPath, and metricsPort in scope.
+Args: root, component.
+*/}}
+{{- define "langsmith.smithdb.podAnnotations" -}}
+{{- $root := .root -}}
+{{- $component := .component -}}
+{{- $componentValues := index $root.Values.smithdb $component -}}
+{{- $metrics := $root.Values.smithdb.config.observability.metrics -}}
+{{- $annotations := deepCopy (default (dict) $root.Values.commonPodAnnotations) -}}
+{{- if $metrics.enabled }}
+{{- $_ := set $annotations "prometheus.io/scrape" "true" -}}
+{{- $_ := set $annotations "prometheus.io/path" $metrics.path -}}
+{{- $_ := set $annotations "prometheus.io/port" (toString $componentValues.containerPort) -}}
+{{- $templateContext := merge (dict
+      "component" $component
+      "containerName" $componentValues.name
+      "metricsPath" $metrics.path
+      "metricsPort" $componentValues.containerPort
+    ) $root -}}
+{{- $metricsAnnotations := tpl (toYaml $metrics.annotations) $templateContext | fromYaml -}}
+{{- $annotations = mergeOverwrite $annotations (default (dict) $metricsAnnotations) -}}
+{{- end }}
+{{- $annotations = mergeOverwrite $annotations (default (dict) $componentValues.deployment.annotations) -}}
+{{- toYaml $annotations -}}
+{{- end }}
+
+{{/*
 SmithDB OTEL resource attributes.
 */}}
 {{- define "langsmith.smithdb.otelResourceAttributes" -}}

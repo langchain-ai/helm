@@ -127,6 +127,88 @@ tests:
             name: RUST_LOG
             value: warn,smithdb_query=debug,vortex=warn
 
+  - it: should not add SmithDB metrics annotations by default
+    values:
+      - ./values/smithdb-enabled.yaml
+    template: smithdb/query-deployment.yaml
+    asserts:
+      - notExists:
+          path: spec.template.metadata.annotations["prometheus.io/scrape"]
+
+  - it: should configure query metrics scraping and render custom annotations
+    values:
+      - ./values/smithdb-enabled.yaml
+      - ./values/smithdb-metrics.yaml
+    template: smithdb/query-deployment.yaml
+    asserts:
+      - equal:
+          path: spec.template.metadata.annotations["prometheus.io/scrape"]
+          value: "true"
+      - equal:
+          path: spec.template.metadata.annotations["prometheus.io/path"]
+          value: "/query-metrics"
+      - equal:
+          path: spec.template.metadata.annotations["prometheus.io/port"]
+          value: "8060"
+      - equal:
+          path: spec.template.metadata.annotations["example.com/query"]
+          value: "query:8060/metrics"
+
+  - it: should configure ingestion metrics scraping
+    values:
+      - ./values/smithdb-enabled.yaml
+      - ./values/smithdb-metrics.yaml
+    template: smithdb/ingestion-deployment.yaml
+    asserts:
+      - equal:
+          path: spec.template.metadata.annotations["prometheus.io/path"]
+          value: "/metrics"
+      - equal:
+          path: spec.template.metadata.annotations["prometheus.io/port"]
+          value: "8050"
+      - equal:
+          path: spec.template.metadata.annotations["example.com/ingestion"]
+          value: "ingestion:8050/metrics"
+
+  - it: should configure compaction metrics scraping
+    values:
+      - ./values/smithdb-enabled.yaml
+      - ./values/smithdb-metrics.yaml
+    template: smithdb/compaction-deployment.yaml
+    asserts:
+      - equal:
+          path: spec.template.metadata.annotations["prometheus.io/port"]
+          value: "8070"
+      - equal:
+          path: spec.template.metadata.annotations["example.com/compaction"]
+          value: "compaction:8070/metrics"
+
+  - it: should configure compaction worker metrics scraping
+    values:
+      - ./values/smithdb-enabled.yaml
+      - ./values/smithdb-metrics.yaml
+    template: smithdb/compaction-worker-deployment.yaml
+    asserts:
+      - equal:
+          path: spec.template.metadata.annotations["prometheus.io/port"]
+          value: "9000"
+      - equal:
+          path: spec.template.metadata.annotations["example.com/compaction-worker"]
+          value: "compactionWorker:9000/metrics"
+
+  - it: should configure cluster manager metrics scraping
+    values:
+      - ./values/smithdb-enabled.yaml
+      - ./values/smithdb-metrics.yaml
+    template: smithdb/cluster-manager-deployment.yaml
+    asserts:
+      - equal:
+          path: spec.template.metadata.annotations["prometheus.io/port"]
+          value: "8090"
+      - equal:
+          path: spec.template.metadata.annotations["example.com/cluster-manager"]
+          value: "clusterManager:8090/metrics"
+
   - it: should keep smithdb services internal
     values:
       - ./values/smithdb-enabled.yaml
