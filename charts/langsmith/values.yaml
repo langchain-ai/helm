@@ -410,6 +410,7 @@ fleet:
 engine:
   enabled: false
   intelligenceBaseUrl: ""
+  encryptionKey: ""
 
 insights:
   enabled: true
