@@ -1024,8 +1024,6 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | smithdb.config.objectStore.s3.region | string | `""` | Defaults to the SmithDB S3 client default when empty. |
 | smithdb.config.objectStore.s3.secretAccessKeySecretKey | string | `""` |  |
 | smithdb.config.objectStore.type | string | `"s3"` | Supported values: s3, gcs. |
-| smithdb.config.observability.tracing.endpoint | string | `""` | Optional SmithDB-specific OTLP gRPC exporter endpoint. Defaults to config.observability.tracing.endpoint; set this when the top-level endpoint uses OTLP HTTP. |
-| smithdb.config.observability.tracing.extraResourceAttributes | object | `{}` | Extra OpenTelemetry resource attributes appended to SmithDB traces/logs. |
 | smithdb.enabled | bool | `false` | Please express interest via our Support Portal (https://support.langchain.com) and we will reach out promptly to ensure we can set you up for success with SmithDB. |
 | smithdb.ingestion.autoscaling.enabled | bool | `true` |  |
 | smithdb.ingestion.autoscaling.maxReplicas | int | `10` |  |

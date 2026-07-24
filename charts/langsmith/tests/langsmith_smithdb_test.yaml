@@ -131,9 +131,7 @@ tests:
       config.observability.tracing.enabled: true
       config.observability.tracing.endpoint: http://default-otel-collector:4317
       config.observability.tracing.env: production
-      smithdb.config.observability.tracing.endpoint: http://otel-collector:4317
-      smithdb.config.observability.tracing.extraResourceAttributes:
-        service.namespace: langsmith
+      config.observability.tracing.exporter: grpc
     template: smithdb/query-deployment.yaml
     asserts:
       - contains:
@@ -150,7 +148,7 @@ tests:
           path: spec.template.spec.containers[0].env
           content:
             name: OTEL_EXPORTER_OTLP_ENDPOINT
-            value: http://otel-collector:4317
+            value: http://default-otel-collector:4317
       - contains:
           path: spec.template.spec.containers[0].env
           content:
@@ -160,45 +158,14 @@ tests:
           path: spec.template.spec.containers[0].env
           content:
             name: OTEL_RESOURCE_ATTRIBUTES
-            value: pod_name=$(POD_NAME),k8s.pod.name=$(POD_NAME),container_name=$(CONTAINER_NAME),k8s.container.name=$(CONTAINER_NAME),deployment.environment=production,service.namespace=langsmith
-
-  - it: should allow overriding the inherited deployment environment attribute
-    values:
-      - ./values/smithdb-enabled.yaml
-    set:
-      config.observability.tracing.enabled: true
-      config.observability.tracing.endpoint: http://otel-collector:4317
-      config.observability.tracing.env: inherited
-      smithdb.config.observability.tracing.extraResourceAttributes:
-        deployment.environment: smithdb
-    template: smithdb/query-deployment.yaml
-    asserts:
-      - contains:
-          path: spec.template.spec.containers[0].env
-          content:
-            name: OTEL_RESOURCE_ATTRIBUTES
-            value: pod_name=$(POD_NAME),k8s.pod.name=$(POD_NAME),container_name=$(CONTAINER_NAME),k8s.container.name=$(CONTAINER_NAME),deployment.environment=smithdb
-
-  - it: should use the top-level OTLP endpoint when no SmithDB exporter override is set
-    values:
-      - ./values/smithdb-enabled.yaml
-    set:
-      config.observability.tracing.enabled: true
-      config.observability.tracing.endpoint: http://otel-collector:4317
-      config.observability.tracing.exporter: grpc
-    template: smithdb/query-deployment.yaml
-    asserts:
-      - contains:
-          path: spec.template.spec.containers[0].env
-          content:
-            name: OTEL_EXPORTER_OTLP_ENDPOINT
-            value: http://otel-collector:4317
+            value: pod_name=$(POD_NAME),k8s.pod.name=$(POD_NAME),container_name=$(CONTAINER_NAME),k8s.container.name=$(CONTAINER_NAME),deployment.environment=production
 
   - it: should keep SmithDB tracing disabled when chart-level tracing is disabled
     values:
       - ./values/smithdb-enabled.yaml
     set:
-      smithdb.config.observability.tracing.endpoint: http://otel-collector:4317
+      config.observability.tracing.endpoint: http://otel-collector:4317
+      config.observability.tracing.exporter: grpc
     template: smithdb/query-deployment.yaml
     asserts:
       - contains:

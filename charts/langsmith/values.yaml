@@ -1268,12 +1268,6 @@ smithdb:
       passwordSecretKey: ""
       port: "5432"
       useSsl: false
-    observability:
-      tracing:
-        # -- Optional SmithDB-specific OTLP gRPC exporter endpoint. Defaults to config.observability.tracing.endpoint; set this when the top-level endpoint uses OTLP HTTP.
-        endpoint: ""
-        # -- Extra OpenTelemetry resource attributes appended to SmithDB traces/logs.
-        extraResourceAttributes: {}
     objectStore:
       # -- Supported values: s3, gcs.
       type: "s3"
