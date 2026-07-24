@@ -612,7 +612,11 @@ SmithDB OTEL resource attributes.
 */}}
 {{- define "langsmith.smithdb.otelResourceAttributes" -}}
 {{- $resourceAttributes := list "pod_name=$(POD_NAME)" "k8s.pod.name=$(POD_NAME)" "container_name=$(CONTAINER_NAME)" "k8s.container.name=$(CONTAINER_NAME)" -}}
-{{- range $key, $value := .Values.smithdb.config.observability.tracing.extraResourceAttributes }}
+{{- $extraResourceAttributes := default (dict) .Values.smithdb.config.observability.tracing.extraResourceAttributes -}}
+{{- if and .Values.config.observability.tracing.env (not (hasKey $extraResourceAttributes "deployment.environment")) }}
+{{- $resourceAttributes = append $resourceAttributes (printf "deployment.environment=%s" .Values.config.observability.tracing.env) -}}
+{{- end }}
+{{- range $key, $value := $extraResourceAttributes }}
 {{- $resourceAttributes = append $resourceAttributes (printf "%s=%s" $key (toString $value)) -}}
 {{- end }}
 {{- join "," $resourceAttributes -}}
@@ -626,8 +630,10 @@ Args: root, service, displayName.
 {{- $root := .root -}}
 {{- $prefix := printf "SMITHDB_%s" (upper .service) -}}
 {{- $displayName := .displayName -}}
-{{- $tracingEnabled := $root.Values.config.observability.tracing.enabled -}}
-{{- $tracingEndpoint := default $root.Values.config.observability.tracing.endpoint $root.Values.smithdb.config.observability.tracing.endpoint -}}
+{{- $tracingEndpointOverride := $root.Values.smithdb.config.observability.tracing.endpoint -}}
+{{- $grpcExporterAvailable := or (eq $root.Values.config.observability.tracing.exporter "grpc") (not (empty $tracingEndpointOverride)) -}}
+{{- $tracingEnabled := and $root.Values.config.observability.tracing.enabled $grpcExporterAvailable -}}
+{{- $tracingEndpoint := default $root.Values.config.observability.tracing.endpoint $tracingEndpointOverride -}}
 - name: {{ $prefix }}__LOGGING__FORMAT
   value: {{ ternary "opentelemetry" "console" $tracingEnabled | quote }}
 - name: {{ $prefix }}__LOGGING__TRACING_ENABLED

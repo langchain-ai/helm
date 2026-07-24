@@ -130,7 +130,10 @@ tests:
     set:
       config.observability.tracing.enabled: true
       config.observability.tracing.endpoint: http://default-otel-collector:4317
+      config.observability.tracing.env: production
       smithdb.config.observability.tracing.endpoint: http://otel-collector:4317
+      smithdb.config.observability.tracing.extraResourceAttributes:
+        service.namespace: langsmith
     template: smithdb/query-deployment.yaml
     asserts:
       - contains:
@@ -153,6 +156,28 @@ tests:
           content:
             name: OTEL_EXPORTER_OTLP_PROTOCOL
             value: grpc
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: OTEL_RESOURCE_ATTRIBUTES
+            value: pod_name=$(POD_NAME),k8s.pod.name=$(POD_NAME),container_name=$(CONTAINER_NAME),k8s.container.name=$(CONTAINER_NAME),deployment.environment=production,service.namespace=langsmith
+
+  - it: should allow overriding the inherited deployment environment attribute
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      config.observability.tracing.enabled: true
+      config.observability.tracing.endpoint: http://otel-collector:4317
+      config.observability.tracing.env: inherited
+      smithdb.config.observability.tracing.extraResourceAttributes:
+        deployment.environment: smithdb
+    template: smithdb/query-deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: OTEL_RESOURCE_ATTRIBUTES
+            value: pod_name=$(POD_NAME),k8s.pod.name=$(POD_NAME),container_name=$(CONTAINER_NAME),k8s.container.name=$(CONTAINER_NAME),deployment.environment=smithdb
 
   - it: should use the top-level OTLP endpoint when no SmithDB exporter override is set
     values:
@@ -160,6 +185,7 @@ tests:
     set:
       config.observability.tracing.enabled: true
       config.observability.tracing.endpoint: http://otel-collector:4317
+      config.observability.tracing.exporter: grpc
     template: smithdb/query-deployment.yaml
     asserts:
       - contains:
@@ -186,6 +212,31 @@ tests:
             name: OTEL_EXPORTER_OTLP_ENDPOINT
             value: http://otel-collector:4317
 
+  - it: should disable SmithDB tracing when the chart-level exporter uses OTLP HTTP
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      config.observability.tracing.enabled: true
+      config.observability.tracing.endpoint: http://otel-collector:4318/v1/traces
+      config.observability.tracing.exporter: http
+    template: smithdb/query-deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_QUERY__LOGGING__TRACING_ENABLED
+            value: "false"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_QUERY__LOGGING__FORMAT
+            value: console
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: OTEL_EXPORTER_OTLP_ENDPOINT
+            value: http://otel-collector:4318/v1/traces
+
   - it: should keep smithdb services internal
     values:
       - ./values/smithdb-enabled.yaml
@@ -203,6 +254,26 @@ tests:
           path: spec.loadBalancerSourceRanges
       - notExists:
           path: spec.loadBalancerIP
+
+  - it: should render user-provided SmithDB metrics annotations
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      smithdb.query.deployment.annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/path: /metrics
+        prometheus.io/port: "8060"
+    template: smithdb/query-deployment.yaml
+    asserts:
+      - equal:
+          path: spec.template.metadata.annotations["prometheus.io/scrape"]
+          value: "true"
+      - equal:
+          path: spec.template.metadata.annotations["prometheus.io/path"]
+          value: /metrics
+      - equal:
+          path: spec.template.metadata.annotations["prometheus.io/port"]
+          value: "8060"
 
   - it: should wire langsmith app config to smithdb when enabled
     values:
