@@ -30,7 +30,7 @@ tests:
       images.agentBuilderToolServerImage.tag: "test"
     asserts:
       - failedTemplate:
-          errorMessage: "images.agentBuilderToolServerImage is deprecated. Please use images.fleetToolServerImage."
+          errorMessage: "images.agentBuilderToolServerImage is deprecated: this workload now runs on the consolidated backend image. Configure images.backendImage instead (and mirror only that image)."
 
   - it: should fail when deprecated agentBuilderTriggerServerImage values are set
     set:
@@ -40,4 +40,54 @@ tests:
       images.agentBuilderTriggerServerImage.tag: "test"
     asserts:
       - failedTemplate:
-          errorMessage: "images.agentBuilderTriggerServerImage is deprecated. Please use images.fleetTriggerServerImage."
+          errorMessage: "images.agentBuilderTriggerServerImage is deprecated: this workload now runs on the consolidated backend image. Configure images.backendImage instead (and mirror only that image)."
+
+  - it: should fail when consolidated hostBackendImage values are set
+    set:
+      config.existingSecretName: "langsmith-secrets"
+      config.oauth.enabled: true
+      config.authType: "oauth"
+      images.hostBackendImage.tag: "test"
+    asserts:
+      - failedTemplate:
+          errorMessage: "images.hostBackendImage is deprecated: this workload now runs on the consolidated backend image. Configure images.backendImage instead (and mirror only that image)."
+
+  - it: should fail when consolidated platformBackendImage values are set
+    set:
+      config.existingSecretName: "langsmith-secrets"
+      config.oauth.enabled: true
+      config.authType: "oauth"
+      images.platformBackendImage.tag: "test"
+    asserts:
+      - failedTemplate:
+          errorMessage: "images.platformBackendImage is deprecated: this workload now runs on the consolidated backend image. Configure images.backendImage instead (and mirror only that image)."
+
+  - it: should fail when consolidated playgroundImage values are set
+    set:
+      config.existingSecretName: "langsmith-secrets"
+      config.oauth.enabled: true
+      config.authType: "oauth"
+      images.playgroundImage.tag: "test"
+    asserts:
+      - failedTemplate:
+          errorMessage: "images.playgroundImage is deprecated: this workload now runs on the consolidated backend image. Configure images.backendImage instead (and mirror only that image)."
+
+  - it: should fail when consolidated fleetToolServerImage values are set
+    set:
+      config.existingSecretName: "langsmith-secrets"
+      config.oauth.enabled: true
+      config.authType: "oauth"
+      images.fleetToolServerImage.tag: "test"
+    asserts:
+      - failedTemplate:
+          errorMessage: "images.fleetToolServerImage is deprecated: this workload now runs on the consolidated backend image. Configure images.backendImage instead (and mirror only that image)."
+
+  - it: should fail when consolidated fleetTriggerServerImage values are set
+    set:
+      config.existingSecretName: "langsmith-secrets"
+      config.oauth.enabled: true
+      config.authType: "oauth"
+      images.fleetTriggerServerImage.tag: "test"
+    asserts:
+      - failedTemplate:
+          errorMessage: "images.fleetTriggerServerImage is deprecated: this workload now runs on the consolidated backend image. Configure images.backendImage instead (and mirror only that image)."

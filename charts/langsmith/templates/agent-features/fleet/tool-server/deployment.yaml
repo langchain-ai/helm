@@ -51,12 +51,16 @@ spec:
         {{- include "langsmith.podSecurityContext" (dict "Values" .Values "componentSecurityContext" .Values.fleetToolServer.deployment.podSecurityContext) | nindent 8 }}
       serviceAccountName: {{ include "fleetToolServer.serviceAccountName" . }}
       {{- include "langsmith.dnsConfig" . | nindent 6 }}
-      {{- with concat .Values.commonInitContainers .Values.fleetToolServer.deployment.initContainers }}
+      {{- with concat (include "langsmith.waitForMigrations" (dict "root" . "env" $envVars "volumeMounts" $volumeMounts) | fromYamlArray) .Values.commonInitContainers .Values.fleetToolServer.deployment.initContainers }}
       initContainers:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       containers:
         - name: {{ .Values.fleetToolServer.name }}
+          {{- with .Values.fleetToolServer.deployment.command }}
+          command:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           env:
             {{- with $envVars }}
               {{- toYaml . | nindent 12 }}
@@ -64,8 +68,8 @@ spec:
           envFrom:
             - configMapRef:
                 name: {{ include "langsmith.fullname" . }}-config
-          image: {{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "fleetToolServerImage") | quote }}
-          imagePullPolicy: {{ .Values.images.fleetToolServerImage.pullPolicy }}
+          image: {{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "backendImage") | quote }}
+          imagePullPolicy: {{ .Values.images.backendImage.pullPolicy }}
           ports:
             - name: http
               containerPort: {{ .Values.fleetToolServer.containerPort }}

@@ -68,7 +68,7 @@ spec:
       serviceAccountName: {{ include "listener.serviceAccountName" . }}
       {{- include "langsmith.dnsConfig" . | nindent 6 }}
       restartPolicy: Always
-      {{- with concat .Values.commonInitContainers .Values.listener.deployment.initContainers }}
+      {{- with concat (include "langsmith.waitForMigrations" (dict "root" . "env" $envVars "volumeMounts" $volumeMounts) | fromYamlArray) .Values.commonInitContainers .Values.listener.deployment.initContainers }}
       initContainers:
         {{- toYaml . | nindent 8 }}
       {{- end }}
@@ -85,8 +85,8 @@ spec:
           envFrom:
             - configMapRef:
                 name: {{ include "langsmith.fullname" . }}-config
-          image: {{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "hostBackendImage") | quote }}
-          imagePullPolicy: {{ .Values.images.hostBackendImage.pullPolicy }}
+          image: {{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "backendImage") | quote }}
+          imagePullPolicy: {{ .Values.images.backendImage.pullPolicy }}
           ports:
             - name: listener
               containerPort: {{ .Values.listener.containerPort }}

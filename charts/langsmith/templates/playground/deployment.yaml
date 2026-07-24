@@ -81,8 +81,8 @@ spec:
           envFrom:
             - configMapRef:
                 name: {{ include "langsmith.fullname" . }}-config
-          image: {{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "playgroundImage") | quote }}
-          imagePullPolicy: {{ .Values.images.playgroundImage.pullPolicy }}
+          image: {{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "backendImage") | quote }}
+          imagePullPolicy: {{ .Values.images.backendImage.pullPolicy }}
           ports:
             - name: playground
               containerPort: {{ .Values.playground.containerPort }}

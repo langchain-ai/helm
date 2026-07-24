@@ -1,0 +1,48 @@
+suite: wait-for-migrations init container
+templates:
+  - platform-backend/deployment.yaml
+  - config-map.yaml
+  - frontend/config-map.yaml
+  - secrets.yaml
+  - redis/secrets.yaml
+  - postgres/secrets.yaml
+  - clickhouse/secrets.yaml
+tests:
+  - it: injects the wait-for-migrations init container by default
+    template: platform-backend/deployment.yaml
+    set:
+      config.existingSecretName: "langsmith-secrets"
+      config.skipValidation: true
+    asserts:
+      - equal:
+          path: spec.template.spec.initContainers[0].name
+          value: wait-for-migrations
+      - equal:
+          path: spec.template.spec.initContainers[0].workingDir
+          value: /code/smith-backend
+      - matchRegex:
+          path: spec.template.spec.initContainers[0].command[2]
+          pattern: "alembic current"
+      # carries the service's own env (same-env parity), not a hand-picked subset
+      - exists:
+          path: spec.template.spec.initContainers[0].env
+
+  - it: omits the init container when backend.migrations.waitForMigrations is false
+    template: platform-backend/deployment.yaml
+    set:
+      config.existingSecretName: "langsmith-secrets"
+      config.skipValidation: true
+      backend.migrations.waitForMigrations: false
+    asserts:
+      - notExists:
+          path: spec.template.spec.initContainers
+
+  - it: omits the init container when backend.migrations.enabled is false
+    template: platform-backend/deployment.yaml
+    set:
+      config.existingSecretName: "langsmith-secrets"
+      config.skipValidation: true
+      backend.migrations.enabled: false
+    asserts:
+      - notExists:
+          path: spec.template.spec.initContainers

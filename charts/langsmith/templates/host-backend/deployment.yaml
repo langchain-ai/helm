@@ -80,7 +80,7 @@ spec:
         {{- include "langsmith.podSecurityContext" (dict "Values" .Values "componentSecurityContext" .Values.hostBackend.deployment.podSecurityContext) | nindent 8 }}
       serviceAccountName: {{ include "hostBackend.serviceAccountName" . }}
       {{- include "langsmith.dnsConfig" . | nindent 6 }}
-      {{- with concat .Values.commonInitContainers .Values.hostBackend.deployment.initContainers }}
+      {{- with concat (include "langsmith.waitForMigrations" (dict "root" . "env" $envVars "volumeMounts" $volumeMounts) | fromYamlArray) .Values.commonInitContainers .Values.hostBackend.deployment.initContainers }}
       initContainers:
         {{- toYaml . | nindent 8 }}
       {{- end }}
@@ -97,8 +97,8 @@ spec:
           envFrom:
             - configMapRef:
                 name: {{ include "langsmith.fullname" . }}-config
-          image: {{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "hostBackendImage") | quote }}
-          imagePullPolicy: {{ .Values.images.hostBackendImage.pullPolicy }}
+          image: {{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "backendImage") | quote }}
+          imagePullPolicy: {{ .Values.images.backendImage.pullPolicy }}
           ports:
             - name: host-backend
               containerPort: {{ .Values.hostBackend.containerPort }}

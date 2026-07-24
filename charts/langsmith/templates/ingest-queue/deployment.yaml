@@ -62,7 +62,7 @@ spec:
       serviceAccountName: {{ include "ingestQueue.serviceAccountName" . }}
       {{- include "langsmith.dnsConfig" . | nindent 6 }}
       restartPolicy: Always
-      {{- with concat .Values.commonInitContainers .Values.ingestQueue.deployment.initContainers }}
+      {{- with concat (include "langsmith.waitForMigrations" (dict "root" . "env" $envVars "volumeMounts" $volumeMounts) | fromYamlArray) .Values.commonInitContainers .Values.ingestQueue.deployment.initContainers }}
       initContainers:
         {{- toYaml . | nindent 8 }}
       {{- end }}
@@ -84,8 +84,8 @@ spec:
                 name: {{ include "langsmith.fullname" . }}-agent-builder-config
                 optional: true
             {{- end }}
-          image: {{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "platformBackendImage") | quote }}
-          imagePullPolicy: {{ .Values.images.platformBackendImage.pullPolicy }}
+          image: {{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "backendImage") | quote }}
+          imagePullPolicy: {{ .Values.images.backendImage.pullPolicy }}
           ports:
             - name: ingest-queue
               containerPort: {{ .Values.ingestQueue.containerPort }}
