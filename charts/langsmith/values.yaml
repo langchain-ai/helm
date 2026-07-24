@@ -1269,12 +1269,6 @@ smithdb:
       port: "5432"
       useSsl: false
     observability:
-      logging:
-        # -- Optional SmithDB log filter. Empty uses the chart default: INFO,vortex=WARN.
-        level: ""
-      metrics:
-        # -- Add Prometheus annotations that scrape each SmithDB component's /metrics endpoint on its containerPort.
-        enabled: false
       tracing:
         # -- Optional SmithDB-specific OTLP gRPC exporter endpoint. Defaults to config.observability.tracing.endpoint; set this when the top-level endpoint uses OTLP HTTP.
         endpoint: ""

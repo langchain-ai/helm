@@ -58,11 +58,6 @@ tests:
       - contains:
           path: spec.template.spec.containers[0].env
           content:
-            name: RUST_LOG
-            value: INFO,vortex=WARN
-      - contains:
-          path: spec.template.spec.containers[0].env
-          content:
             name: SMITHDB_QUERY__VORTEX_CACHE__DISK__LIMIT
             valueFrom:
               resourceFieldRef:
@@ -114,11 +109,13 @@ tests:
               resourceFieldRef:
                 resource: limits.memory
 
-  - it: should allow overriding smithdb log level
+  - it: should allow configuring a common SmithDB log filter
     values:
       - ./values/smithdb-enabled.yaml
     set:
-      smithdb.config.observability.logging.level: warn,smithdb_query=debug,vortex=warn
+      smithdb.commonEnv:
+        - name: RUST_LOG
+          value: warn,smithdb_query=debug,vortex=warn
     template: smithdb/query-deployment.yaml
     asserts:
       - contains:
@@ -206,60 +203,6 @@ tests:
           path: spec.loadBalancerSourceRanges
       - notExists:
           path: spec.loadBalancerIP
-
-  - it: should add component-specific Prometheus pod scrape annotations
-    values:
-      - ./values/smithdb-enabled.yaml
-    set:
-      smithdb.config.observability.metrics.enabled: true
-    templates:
-      - smithdb/query-deployment.yaml
-      - smithdb/ingestion-deployment.yaml
-      - smithdb/compaction-deployment.yaml
-      - smithdb/compaction-worker-deployment.yaml
-      - smithdb/cluster-manager-deployment.yaml
-    asserts:
-      - template: smithdb/query-deployment.yaml
-        equal:
-          path: spec.template.metadata.annotations["prometheus.io/scrape"]
-          value: "true"
-      - template: smithdb/query-deployment.yaml
-        equal:
-          path: spec.template.metadata.annotations["prometheus.io/path"]
-          value: /metrics
-      - template: smithdb/query-deployment.yaml
-        equal:
-          path: spec.template.metadata.annotations["prometheus.io/port"]
-          value: "8060"
-      - template: smithdb/ingestion-deployment.yaml
-        equal:
-          path: spec.template.metadata.annotations["prometheus.io/port"]
-          value: "8050"
-      - template: smithdb/compaction-deployment.yaml
-        equal:
-          path: spec.template.metadata.annotations["prometheus.io/port"]
-          value: "8070"
-      - template: smithdb/compaction-worker-deployment.yaml
-        equal:
-          path: spec.template.metadata.annotations["prometheus.io/port"]
-          value: "9000"
-      - template: smithdb/cluster-manager-deployment.yaml
-        equal:
-          path: spec.template.metadata.annotations["prometheus.io/port"]
-          value: "8090"
-
-  - it: should allow component annotations to override generated scrape annotations
-    values:
-      - ./values/smithdb-enabled.yaml
-    set:
-      smithdb.config.observability.metrics.enabled: true
-      smithdb.query.deployment.annotations:
-        prometheus.io/scrape: "false"
-    template: smithdb/query-deployment.yaml
-    asserts:
-      - equal:
-          path: spec.template.metadata.annotations["prometheus.io/scrape"]
-          value: "false"
 
   - it: should wire langsmith app config to smithdb when enabled
     values:

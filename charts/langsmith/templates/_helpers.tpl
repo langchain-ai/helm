@@ -619,24 +619,6 @@ SmithDB OTEL resource attributes.
 {{- end }}
 
 {{/*
-SmithDB pod annotations, including optional Prometheus pod scraping.
-Component annotations take precedence over generated and common annotations.
-Args: root, component.
-*/}}
-{{- define "langsmith.smithdb.podAnnotations" -}}
-{{- $root := .root -}}
-{{- $componentValues := index $root.Values.smithdb .component -}}
-{{- $annotations := deepCopy (default (dict) $root.Values.commonPodAnnotations) -}}
-{{- if $root.Values.smithdb.config.observability.metrics.enabled }}
-{{- $_ := set $annotations "prometheus.io/scrape" "true" -}}
-{{- $_ := set $annotations "prometheus.io/path" "/metrics" -}}
-{{- $_ := set $annotations "prometheus.io/port" (toString $componentValues.containerPort) -}}
-{{- end }}
-{{- $annotations = mergeOverwrite $annotations (default (dict) $componentValues.deployment.annotations) -}}
-{{- toYaml $annotations -}}
-{{- end }}
-
-{{/*
 Common per-process SmithDB env: logging, OpenTelemetry, pod identity, allocator.
 Args: root, service, displayName.
 */}}
@@ -646,15 +628,12 @@ Args: root, service, displayName.
 {{- $displayName := .displayName -}}
 {{- $tracingEnabled := $root.Values.config.observability.tracing.enabled -}}
 {{- $tracingEndpoint := default $root.Values.config.observability.tracing.endpoint $root.Values.smithdb.config.observability.tracing.endpoint -}}
-{{- $logLevel := default "INFO,vortex=WARN" $root.Values.smithdb.config.observability.logging.level -}}
 - name: {{ $prefix }}__LOGGING__FORMAT
   value: {{ ternary "opentelemetry" "console" $tracingEnabled | quote }}
 - name: {{ $prefix }}__LOGGING__TRACING_ENABLED
   value: {{ $tracingEnabled | quote }}
 - name: {{ $prefix }}__LOGGING__SERVICE_NAME
   value: {{ $displayName | quote }}
-- name: RUST_LOG
-  value: {{ $logLevel | quote }}
 - name: NODE_IP
   valueFrom:
     fieldRef:
