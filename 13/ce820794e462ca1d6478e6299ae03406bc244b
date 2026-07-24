@@ -1,0 +1,38 @@
+charts/langsmith/templates/smithdb/compaction-worker-deployment.yaml
+  s_caeb4dd22a3008::t_f7cb29a9b5b426 31
+charts/langsmith/README.md
+  s_caeb4dd22a3008::t_dd673d80dba37c 1028-1030
+charts/langsmith/templates/smithdb/ingestion-deployment.yaml
+  s_caeb4dd22a3008::t_da5610c7de40c3 33
+charts/langsmith/values.yaml
+  s_caeb4dd22a3008::t_e22e17475856e2 1274-1282
+charts/langsmith/templates/smithdb/query-deployment.yaml
+  s_caeb4dd22a3008::t_138badb2fc9c0e 33
+charts/langsmith/tests/langsmith_smithdb_test.yaml
+  s_caeb4dd22a3008::t_9d39c24ac2c188 130-211
+charts/langsmith/tests/values/smithdb-metrics.yaml
+  s_caeb4dd22a3008::t_4def6766eecf7c 1-12
+charts/langsmith/templates/_helpers.tpl
+  s_caeb4dd22a3008::t_e3226d5ac90878 611-638
+  s_caeb4dd22a3008::t_d3ac44f8eea0e1 610
+charts/langsmith/templates/smithdb/compaction-deployment.yaml
+  s_caeb4dd22a3008::t_d0b78b423ed664 29
+charts/langsmith/templates/smithdb/cluster-manager-deployment.yaml
+  s_caeb4dd22a3008::t_0052a8004a8407 29
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "13ce820794e462ca1d6478e6299ae03406bc244b",
+  "prompts": {},
+  "sessions": {
+    "s_caeb4dd22a3008": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "1ec7b7b3-9668-4015-8978-27482eefc670",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "ben11211 <nagengast@langchain.dev>"
+    }
+  }
+}
