@@ -143,10 +143,10 @@ tests:
     asserts:
       - equal:
           path: spec.template.metadata.annotations["prometheus.io/scrape"]
-          value: "true"
+          value: "false"
       - equal:
           path: spec.template.metadata.annotations["prometheus.io/path"]
-          value: "/query-metrics"
+          value: "/metrics"
       - equal:
           path: spec.template.metadata.annotations["prometheus.io/port"]
           value: "8060"

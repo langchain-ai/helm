@@ -621,12 +621,12 @@ Args: root, component.
 {{- $annotations := deepCopy (default (dict) $root.Values.commonPodAnnotations) -}}
 {{- if $metrics.enabled }}
 {{- $_ := set $annotations "prometheus.io/scrape" "true" -}}
-{{- $_ := set $annotations "prometheus.io/path" $metrics.path -}}
+{{- $_ := set $annotations "prometheus.io/path" "/metrics" -}}
 {{- $_ := set $annotations "prometheus.io/port" (toString $componentValues.containerPort) -}}
 {{- $templateContext := merge (dict
       "component" $component
       "containerName" $componentValues.name
-      "metricsPath" $metrics.path
+      "metricsPath" "/metrics"
       "metricsPort" $componentValues.containerPort
     ) $root -}}
 {{- $metricsAnnotations := tpl (toYaml $metrics.annotations) $templateContext | fromYaml -}}

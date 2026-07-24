@@ -1027,7 +1027,6 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | smithdb.config.observability.logging.level | string | `""` | Optional SmithDB log filter. Empty uses the chart default: INFO,vortex=WARN. |
 | smithdb.config.observability.metrics.annotations | object | `{}` | Additional annotations for SmithDB component pods when metrics are enabled. Values and keys are evaluated as templates with component, containerName, metricsPath, and metricsPort in scope. |
 | smithdb.config.observability.metrics.enabled | bool | `false` | Add Prometheus scrape annotations to SmithDB component pods. |
-| smithdb.config.observability.metrics.path | string | `"/metrics"` | HTTP path where SmithDB components expose Prometheus metrics. |
 | smithdb.config.observability.tracing.enabled | bool | `false` | Enable OpenTelemetry tracing/log export for SmithDB components. SmithDB supports exporting OTLP over gRPC only. |
 | smithdb.config.observability.tracing.endpoint | string | `""` | OTLP gRPC collector endpoint for SmithDB traces/logs. |
 | smithdb.config.observability.tracing.extraResourceAttributes | object | `{}` | Extra OpenTelemetry resource attributes appended to SmithDB traces/logs. |

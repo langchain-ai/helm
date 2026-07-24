@@ -1274,8 +1274,6 @@ smithdb:
       metrics:
         # -- Add Prometheus scrape annotations to SmithDB component pods.
         enabled: false
-        # -- HTTP path where SmithDB components expose Prometheus metrics.
-        path: "/metrics"
         # -- Additional annotations for SmithDB component pods when metrics are enabled.
         # Values and keys are evaluated as templates with component, containerName,
         # metricsPath, and metricsPort in scope.
