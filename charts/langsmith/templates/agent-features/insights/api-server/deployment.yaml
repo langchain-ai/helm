@@ -69,8 +69,9 @@ spec:
             {{- with .Values.insights.apiServer.deployment.envFrom }}
               {{- toYaml . | nindent 12 }}
             {{- end }}
-          image: {{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "insightsAgentImage") | quote }}
-          imagePullPolicy: {{ .Values.images.insightsAgentImage.pullPolicy }}
+          {{- $imageComponent := ternary "insightsEngineImage" "insightsAgentImage" (default false .Values.engine.enabled) }}
+          image: {{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" $imageComponent) | quote }}
+          imagePullPolicy: {{ (index .Values.images $imageComponent).pullPolicy }}
           ports:
             - name: api-server
               containerPort: {{ .Values.insights.apiServer.containerPort }}

@@ -74,6 +74,13 @@ images:
     repository: "docker.io/langchain/langsmith-clio"
     pullPolicy: IfNotPresent
     tag: "0.16.19rc1"
+  # Co-hosted Insights+Engine image (serves both the `insights` and `engine` graphs).
+  # Used by the insights api-server when `engine.enabled=true`. Built by langchainplus
+  # CI (langsmith-insights-engine); see PR #31682.
+  insightsEngineImage:
+    repository: "docker.io/langchain/langsmith-insights-engine"
+    pullPolicy: IfNotPresent
+    tag: "0.16.19rc1"
   frontendImage:
     repository: "docker.io/langchain/langsmith-frontend"
     pullPolicy: IfNotPresent
@@ -407,6 +414,22 @@ fleet:
     pdb:
       enabled: false
       minAvailable: 1
+# Engine (Issues Agent) co-hosted with Insights in one deployment. When enabled, the
+# insights api-server runs the combined `insightsEngineImage` (serving both the
+# `insights` and `engine` graphs) instead of the clio-only image. Requires the
+# in-cluster sandbox runtime (config.sandboxes.enabled) and a LangSmith license
+# (Engine routes model calls to the hosted LSI service).
+engine:
+  enabled: false
+  # Hosted LangSmith Intelligence (LSI) base URL the Engine graph routes model calls to.
+  intelligenceBaseUrl: ""
+  # TODO(secret wiring — coordinate with the sandbox team's chart "service-auth secret
+  # references" work): ISSUES_AGENT_ENCRYPTION_KEY (must match platform-backend), the
+  # per-service X-Service-Key JWT secrets combined_auth verifies
+  # (SMITH_BACKEND_SERVICE_JWT_SECRET / SMITH_GO_SERVICE_JWT_SECRET), and
+  # FORGE_AGENT_LANGSMITH_API_KEY (smith-go -> deployment). Also open: snapshot
+  # provisioning (ISSUES_AGENT_SNAPSHOT_ID) and sandbox-client auth scheme.
+
 insights:
   enabled: true
   namePrefix: "standalone-insights"
