@@ -38,11 +38,11 @@ AWS Marketplace Helm template verification).
 {{- if hasKey .Values "agentBuilderTriggerServer" -}}
 {{- fail "agentBuilderTriggerServer is deprecated. Please use fleetTriggerServer." -}}
 {{- end -}}
-{{- if hasKey .Values.images "agentBuilderToolServerImage" -}}
-{{- fail "images.agentBuilderToolServerImage is deprecated. Please use images.fleetToolServerImage." -}}
+{{- /* Deprecated image keys: these workloads now run on the single consolidated backend image */ -}}
+{{- range $key := list "hostBackendImage" "platformBackendImage" "playgroundImage" "fleetToolServerImage" "fleetTriggerServerImage" "agentBuilderToolServerImage" "agentBuilderTriggerServerImage" -}}
+{{- if hasKey $.Values.images $key -}}
+{{- fail (printf "images.%s is deprecated: this workload now runs on the consolidated backend image. Configure images.backendImage instead (and mirror only that image)." $key) -}}
 {{- end -}}
-{{- if hasKey .Values.images "agentBuilderTriggerServerImage" -}}
-{{- fail "images.agentBuilderTriggerServerImage is deprecated. Please use images.fleetTriggerServerImage." -}}
 {{- end -}}
 {{- if hasKey .Values.smithdb.langsmith "dualIngest" -}}
 {{- $legacySmithdbDualIngest := get .Values.smithdb.langsmith "dualIngest" -}}
