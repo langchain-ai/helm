@@ -938,9 +938,9 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | smithdb.compaction.deployment.probes.startupProbe.timeoutSeconds | int | `1` |  |
 | smithdb.compaction.deployment.replicas | int | `1` |  |
 | smithdb.compaction.deployment.resources.limits.cpu | string | `"2"` |  |
-| smithdb.compaction.deployment.resources.limits.memory | string | `"1Gi"` |  |
+| smithdb.compaction.deployment.resources.limits.memory | string | `"4Gi"` |  |
 | smithdb.compaction.deployment.resources.requests.cpu | string | `"2"` |  |
-| smithdb.compaction.deployment.resources.requests.memory | string | `"1Gi"` |  |
+| smithdb.compaction.deployment.resources.requests.memory | string | `"4Gi"` |  |
 | smithdb.compaction.deployment.securityContext | object | `{}` |  |
 | smithdb.compaction.deployment.sidecars | list | `[]` |  |
 | smithdb.compaction.deployment.tolerations | list | `[]` |  |

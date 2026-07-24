@@ -1469,10 +1469,10 @@ smithdb:
       resources:
         requests:
           cpu: "2"
-          memory: "1Gi"
+          memory: "4Gi"
         limits:
           cpu: "2"
-          memory: "1Gi"
+          memory: "4Gi"
       probes:
         startupProbe:
           httpGet:
