@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.16.0-rc.15](https://img.shields.io/badge/Version-0.16.0--rc.15-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.16.19rc1](https://img.shields.io/badge/AppVersion-0.16.19rc1-informational?style=flat-square)
+![Version: 0.16.0-rc.16](https://img.shields.io/badge/Version-0.16.0--rc.16-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.16.19rc1](https://img.shields.io/badge/AppVersion-0.16.19rc1-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -232,6 +232,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | fleetToolServer.containerPort | int | `1989` |  |
 | fleetToolServer.deployment.affinity | object | `{}` |  |
 | fleetToolServer.deployment.annotations | object | `{}` |  |
+| fleetToolServer.deployment.command[0] | string | `"agent_builder_tool_server_entrypoint.sh"` |  |
 | fleetToolServer.deployment.extraContainerConfig | object | `{}` |  |
 | fleetToolServer.deployment.extraEnv | list | `[]` |  |
 | fleetToolServer.deployment.initContainers | list | `[]` |  |
@@ -286,6 +287,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | fleetTriggerServer.containerPort | int | `1990` |  |
 | fleetTriggerServer.deployment.affinity | object | `{}` |  |
 | fleetTriggerServer.deployment.annotations | object | `{}` |  |
+| fleetTriggerServer.deployment.command[0] | string | `"agent_builder_trigger_server_entrypoint.sh"` |  |
 | fleetTriggerServer.deployment.extraContainerConfig | object | `{}` |  |
 | fleetTriggerServer.deployment.extraEnv | list | `[]` |  |
 | fleetTriggerServer.deployment.initContainers | list | `[]` |  |
@@ -351,18 +353,9 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | images.clickhouseImage.pullPolicy | string | `"Always"` |  |
 | images.clickhouseImage.repository | string | `"docker.io/clickhouse/clickhouse-server"` |  |
 | images.clickhouseImage.tag | string | `"25.12"` |  |
-| images.fleetToolServerImage.pullPolicy | string | `"IfNotPresent"` |  |
-| images.fleetToolServerImage.repository | string | `"docker.io/langchain/agent-builder-tool-server"` |  |
-| images.fleetToolServerImage.tag | string | `"0.16.19rc1"` |  |
-| images.fleetTriggerServerImage.pullPolicy | string | `"IfNotPresent"` |  |
-| images.fleetTriggerServerImage.repository | string | `"docker.io/langchain/agent-builder-trigger-server"` |  |
-| images.fleetTriggerServerImage.tag | string | `"0.16.19rc1"` |  |
 | images.frontendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.frontendImage.repository | string | `"docker.io/langchain/langsmith-frontend"` |  |
 | images.frontendImage.tag | string | `"0.16.19rc1"` |  |
-| images.hostBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
-| images.hostBackendImage.repository | string | `"docker.io/langchain/hosted-langserve-backend"` |  |
-| images.hostBackendImage.tag | string | `"0.16.19rc1"` |  |
 | images.imagePullSecrets | list | `[]` | Secrets with credentials to pull images from a private registry. Specified as name: value. |
 | images.insightsAgentImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.insightsAgentImage.repository | string | `"docker.io/langchain/langsmith-clio"` |  |
@@ -370,12 +363,6 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | images.operatorImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.operatorImage.repository | string | `"docker.io/langchain/langgraph-operator"` |  |
 | images.operatorImage.tag | string | `"0.1.47"` |  |
-| images.platformBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
-| images.platformBackendImage.repository | string | `"docker.io/langchain/langsmith-go-backend"` |  |
-| images.platformBackendImage.tag | string | `"0.16.19rc1"` |  |
-| images.playgroundImage.pullPolicy | string | `"IfNotPresent"` |  |
-| images.playgroundImage.repository | string | `"docker.io/langchain/langsmith-playground"` |  |
-| images.playgroundImage.tag | string | `"0.16.19rc1"` |  |
 | images.pollyAgentImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.pollyAgentImage.repository | string | `"docker.io/langchain/langsmith-polly"` |  |
 | images.pollyAgentImage.tag | string | `"0.16.19rc1"` |  |
@@ -418,7 +405,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | ingestQueue.containerPort | int | `1989` |  |
 | ingestQueue.deployment.affinity | object | `{}` |  |
 | ingestQueue.deployment.annotations | object | `{}` |  |
-| ingestQueue.deployment.command[0] | string | `"./asynq_worker_entrypoint.sh"` |  |
+| ingestQueue.deployment.command[0] | string | `"asynq_worker_entrypoint.sh"` |  |
 | ingestQueue.deployment.extraContainerConfig | object | `{}` |  |
 | ingestQueue.deployment.extraEnv | list | `[]` |  |
 | ingestQueue.deployment.initContainers | list | `[]` |  |
@@ -1754,7 +1741,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | hostBackend.containerPort | int | `1985` |  |
 | hostBackend.deployment.affinity | object | `{}` |  |
 | hostBackend.deployment.annotations | object | `{}` |  |
-| hostBackend.deployment.command[0] | string | `"./entrypoint.sh"` |  |
+| hostBackend.deployment.command[0] | string | `"host_backend_entrypoint.sh"` |  |
 | hostBackend.deployment.extraContainerConfig | object | `{}` |  |
 | hostBackend.deployment.extraEnv | list | `[]` |  |
 | hostBackend.deployment.initContainers | list | `[]` |  |
@@ -1939,7 +1926,8 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | listener.containerPort | int | `8080` |  |
 | listener.deployment.affinity | object | `{}` |  |
 | listener.deployment.annotations | object | `{}` |  |
-| listener.deployment.command[0] | string | `"./listener_entrypoint.sh"` |  |
+| listener.deployment.command[0] | string | `"host_backend_entrypoint.sh"` |  |
+| listener.deployment.command[1] | string | `"./listener_entrypoint.sh"` |  |
 | listener.deployment.extraContainerConfig | object | `{}` |  |
 | listener.deployment.extraEnv | list | `[]` |  |
 | listener.deployment.initContainers | list | `[]` |  |
@@ -2003,7 +1991,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | agentGateway.containerPort | int | `8083` |  |
 | agentGateway.deployment.affinity | object | `{}` |  |
 | agentGateway.deployment.annotations | object | `{}` |  |
-| agentGateway.deployment.command[0] | string | `"./agent_gateway_entrypoint.sh"` |  |
+| agentGateway.deployment.command[0] | string | `"agent_gateway_entrypoint.sh"` |  |
 | agentGateway.deployment.extraContainerConfig | object | `{}` |  |
 | agentGateway.deployment.extraEnv | list | `[]` |  |
 | agentGateway.deployment.initContainers | list | `[]` |  |
@@ -2182,7 +2170,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | platformBackend.containerPort | int | `1986` |  |
 | platformBackend.deployment.affinity | object | `{}` |  |
 | platformBackend.deployment.annotations | object | `{}` |  |
-| platformBackend.deployment.command[0] | string | `"./entrypoint.sh"` |  |
+| platformBackend.deployment.command[0] | string | `"smith_go_entrypoint.sh"` |  |
 | platformBackend.deployment.extraContainerConfig | object | `{}` |  |
 | platformBackend.deployment.extraEnv | list | `[]` |  |
 | platformBackend.deployment.initContainers | list | `[]` |  |
@@ -2265,7 +2253,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | playground.containerPort | int | `1988` |  |
 | playground.deployment.affinity | object | `{}` |  |
 | playground.deployment.annotations | object | `{}` |  |
-| playground.deployment.command[0] | string | `"./entrypoint.sh"` |  |
+| playground.deployment.command[0] | string | `"smith_playground_entrypoint.sh"` |  |
 | playground.deployment.extraContainerConfig | object | `{}` |  |
 | playground.deployment.extraEnv | list | `[]` |  |
 | playground.deployment.initContainers | list | `[]` |  |

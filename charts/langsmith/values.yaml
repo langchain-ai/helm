@@ -78,22 +78,10 @@ images:
     repository: "docker.io/langchain/langsmith-frontend"
     pullPolicy: IfNotPresent
     tag: "0.16.19rc1"
-  hostBackendImage:
-    repository: "docker.io/langchain/hosted-langserve-backend"
-    pullPolicy: IfNotPresent
-    tag: "0.16.19rc1"
   operatorImage:
     repository: "docker.io/langchain/langgraph-operator"
     pullPolicy: IfNotPresent
     tag: "0.1.47"
-  platformBackendImage:
-    repository: "docker.io/langchain/langsmith-go-backend"
-    pullPolicy: IfNotPresent
-    tag: "0.16.19rc1"
-  playgroundImage:
-    repository: "docker.io/langchain/langsmith-playground"
-    pullPolicy: IfNotPresent
-    tag: "0.16.19rc1"
   # For production environments, we strongly recommend connecting to a managed PostgreSQL instance instead of using the one provided by the chart.
   # Docs: https://docs.langchain.com/langsmith/self-host-external-postgres
   postgresImage:
@@ -110,14 +98,6 @@ images:
     repository: "docker.io/clickhouse/clickhouse-server"
     pullPolicy: Always
     tag: "25.12"
-  fleetToolServerImage:
-    repository: "docker.io/langchain/agent-builder-tool-server"
-    pullPolicy: IfNotPresent
-    tag: "0.16.19rc1"
-  fleetTriggerServerImage:
-    repository: "docker.io/langchain/agent-builder-trigger-server"
-    pullPolicy: IfNotPresent
-    tag: "0.16.19rc1"
   agentBuilderImage:
     repository: "docker.io/langchain/agent-builder-deep-agent"
     pullPolicy: IfNotPresent
@@ -2358,7 +2338,7 @@ hostBackend:
         cpu: 200m
         memory: 1000Mi
     command:
-      - "./entrypoint.sh"
+      - "host_backend_entrypoint.sh"
     startupProbe:
       httpGet:
         path: /ok
@@ -2469,6 +2449,7 @@ listener:
         cpu: 1000m
         memory: 2Gi
     command:
+      - "host_backend_entrypoint.sh"
       - "./listener_entrypoint.sh"
     startupProbe:
       httpGet:
@@ -2580,7 +2561,7 @@ platformBackend:
         cpu: 1000m
         memory: 2Gi
     command:
-      - "./entrypoint.sh"
+      - "smith_go_entrypoint.sh"
     startupProbe:
       httpGet:
         path: /ok
@@ -2877,7 +2858,7 @@ playground:
         cpu: 500m
         memory: 1Gi
     command:
-      - "./entrypoint.sh"
+      - "smith_playground_entrypoint.sh"
     startupProbe:
       httpGet:
         path: /ok
@@ -3201,7 +3182,7 @@ ingestQueue:
         cpu: 1000m
         memory: 2Gi
     command:
-      - "./asynq_worker_entrypoint.sh"
+      - "asynq_worker_entrypoint.sh"
     startupProbe:
       httpGet:
         path: /health
@@ -3397,6 +3378,8 @@ fleetToolServer:
   name: "fleet-tool-server"
   containerPort: 1989
   deployment:
+    command:
+      - "agent_builder_tool_server_entrypoint.sh"
     replicas: 1
     labels: {}
     annotations: {}
@@ -3475,6 +3458,8 @@ fleetTriggerServer:
   name: "fleet-trigger-server"
   containerPort: 1990
   deployment:
+    command:
+      - "agent_builder_trigger_server_entrypoint.sh"
     labels: {}
     annotations: {}
     podSecurityContext: {}
@@ -3554,7 +3539,7 @@ agentGateway:
         cpu: 100m
         memory: 256Mi
     command:
-      - "./agent_gateway_entrypoint.sh"
+      - "agent_gateway_entrypoint.sh"
     startupProbe:
       httpGet:
         path: /health
