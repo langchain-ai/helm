@@ -1468,10 +1468,10 @@ smithdb:
       securityContext: {}
       resources:
         requests:
-          cpu: "500m"
+          cpu: "2"
           memory: "1Gi"
         limits:
-          cpu: "500m"
+          cpu: "2"
           memory: "1Gi"
       probes:
         startupProbe:
