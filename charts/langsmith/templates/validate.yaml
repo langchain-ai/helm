@@ -418,6 +418,13 @@ AWS Marketplace Helm template verification).
 
 {{- end -}}{{- /* end skipValidation */ -}}
 
+{{- /* Engine (co-hosted Insights+Engine) requires an encryption key when enabled. */ -}}
+{{- if .Values.engine.enabled }}
+{{- if and (not .Values.engine.encryptionKey) (not .Values.config.existingSecretName) }}
+{{- fail "engine.encryptionKey is required when engine.enabled is true (must match smith-go's ISSUES_AGENT_ENCRYPTION_KEY). Generate one with: python -c \"from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())\" (not needed if config.existingSecretName has engine_encryption_key)." }}
+{{- end }}
+{{- end }}
+
 {{- /* Validate agent feature (fleet/insights/polly) configuration */ -}}
 {{- $anyAgentEnabled := or .Values.fleet.enabled .Values.insights.enabled .Values.polly.enabled }}
 {{- $allPgUrls := list }}
