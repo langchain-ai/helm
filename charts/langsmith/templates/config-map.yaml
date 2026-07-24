@@ -37,8 +37,6 @@ data:
   LANGCHAIN_ENDPOINT: "/{{ if .Values.config.basePath }}{{ .Values.config.basePath }}/{{ end }}api/v1"
   GO_ENDPOINT: "http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.platformBackend.service.port }}"
   {{- if .Values.engine.enabled }}
-  # Engine (co-hosted) model access + orchestration. Model calls route to hosted LSI;
-  # smith-go dispatches Engine runs to the in-cluster co-hosted deployment.
   ENGINE_INTELLIGENCE_BASE_URL: {{ .Values.engine.intelligenceBaseUrl | quote }}
   FORGE_AGENT_LANGGRAPH_URL: "http://{{ include "langsmith.agentFeatures.fullname" (dict "root" . "product" "insights") }}-{{ .Values.insights.apiServer.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.insights.apiServer.service.httpPort }}"
   {{- end }}
