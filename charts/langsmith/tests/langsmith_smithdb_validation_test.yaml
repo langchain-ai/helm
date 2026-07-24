@@ -2,6 +2,16 @@ suite: test smithdb phase validation
 templates:
   - validate.yaml
 tests:
+  - it: should require an OTLP gRPC exporter endpoint when SmithDB tracing is enabled
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      config.existingSecretName: langsmith-secret
+      smithdb.config.observability.tracing.enabled: true
+    asserts:
+      - failedTemplate:
+          errorMessage: "When SmithDB tracing is enabled (smithdb.config.observability.tracing.enabled=true), provide an OTLP gRPC exporter endpoint in smithdb.config.observability.tracing.endpoint or config.observability.tracing.endpoint"
+
   - it: should reject smithdb without query replicas
     values:
       - ./values/smithdb-enabled.yaml

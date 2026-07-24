@@ -212,6 +212,10 @@ AWS Marketplace Helm template verification).
 {{- fail "When tracing is enabled (config.observability.tracing.enabled=true), config.observability.tracing.endpoint must be provided" -}}
 {{- end -}}
 
+{{- if and .Values.smithdb.enabled .Values.smithdb.config.observability.tracing.enabled (not (default .Values.config.observability.tracing.endpoint .Values.smithdb.config.observability.tracing.endpoint)) -}}
+{{- fail "When SmithDB tracing is enabled (smithdb.config.observability.tracing.enabled=true), provide an OTLP gRPC exporter endpoint in smithdb.config.observability.tracing.endpoint or config.observability.tracing.endpoint" -}}
+{{- end -}}
+
 {{- if and .Values.config.blobStorage.enabled (not .Values.config.blobStorage.engine) -}}
 {{- fail "When blob storage is enabled (config.blobStorage.enabled=true), config.blobStorage.engine must be one of [S3, GCS, Azure]" -}}
 {{- end -}}

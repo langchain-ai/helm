@@ -864,7 +864,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | polly.redis.statefulSet.volumes | list | `[]` |  |
 | preInstallManifests | list | `[]` | annotations, ExternalSecret-only validation, idempotency rules, and caveats. Example: preInstallManifests:   - apiVersion: external-secrets.io/v1beta1     kind: ExternalSecret     metadata:       name: langsmith-app     spec:       refreshInterval: 1h       secretStoreRef:         name: vault-backend         kind: ClusterSecretStore       target:         name: langsmith-app-secret         creationPolicy: Orphan       data:         - secretKey: langsmith_license_key           remoteRef:             key: secret/langsmith/app             property: langsmith_license_key |
 | smithdb.clusterManager.containerGrpcPort | int | `8091` |  |
-| smithdb.clusterManager.containerPort | int | `8090` |  |
+| smithdb.clusterManager.containerPort | int | `8090` | Port for the SmithDB cluster manager HTTP server, including the /metrics endpoint. |
 | smithdb.clusterManager.deployment.affinity | object | `{}` |  |
 | smithdb.clusterManager.deployment.annotations | object | `{}` |  |
 | smithdb.clusterManager.deployment.command[0] | string | `"./smithdb"` |  |
@@ -909,7 +909,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | smithdb.commonEnv | list | `[]` | Extra env vars for every SmithDB workload. |
 | smithdb.commonInitContainers | list | `[]` | Common init containers added to every SmithDB component Deployment and Job. Set restartPolicy: Always to configure a Kubernetes sidecar container. |
 | smithdb.compaction.containerGrpcPort | int | `8071` |  |
-| smithdb.compaction.containerPort | int | `8070` |  |
+| smithdb.compaction.containerPort | int | `8070` | Port for the SmithDB compaction HTTP server, including the /metrics endpoint. |
 | smithdb.compaction.deployment.affinity | object | `{}` |  |
 | smithdb.compaction.deployment.annotations | object | `{}` |  |
 | smithdb.compaction.deployment.command[0] | string | `"./smithdb"` |  |
@@ -962,7 +962,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | smithdb.compactionWorker.autoscaling.scalePodCount | int | `1` |  |
 | smithdb.compactionWorker.autoscaling.scaleUpStabilizationWindowSeconds | int | `120` |  |
 | smithdb.compactionWorker.autoscaling.targetCPUUtilizationPercentage | int | `60` |  |
-| smithdb.compactionWorker.containerPort | int | `9000` |  |
+| smithdb.compactionWorker.containerPort | int | `9000` | Port for the SmithDB compaction worker HTTP server, including the /metrics endpoint. |
 | smithdb.compactionWorker.deployment.affinity | object | `{}` |  |
 | smithdb.compactionWorker.deployment.annotations | object | `{}` |  |
 | smithdb.compactionWorker.deployment.command[0] | string | `"./smithdb"` |  |
@@ -1025,8 +1025,9 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | smithdb.config.objectStore.s3.secretAccessKeySecretKey | string | `""` |  |
 | smithdb.config.objectStore.type | string | `"s3"` | Supported values: s3, gcs. |
 | smithdb.config.observability.logging.level | string | `""` | Optional SmithDB log filter. Empty uses the chart default: INFO,vortex=WARN. |
+| smithdb.config.observability.metrics.enabled | bool | `false` | Add Prometheus annotations that scrape each SmithDB component's /metrics endpoint on its containerPort. |
 | smithdb.config.observability.tracing.enabled | bool | `false` | Enable OpenTelemetry tracing/log export for SmithDB components. SmithDB supports exporting OTLP over gRPC only. |
-| smithdb.config.observability.tracing.endpoint | string | `""` | OTLP gRPC collector endpoint for SmithDB traces/logs. |
+| smithdb.config.observability.tracing.endpoint | string | `""` | Optional SmithDB-specific OTLP gRPC exporter endpoint. Defaults to config.observability.tracing.endpoint; set this when the top-level endpoint uses OTLP HTTP. |
 | smithdb.config.observability.tracing.extraResourceAttributes | object | `{}` | Extra OpenTelemetry resource attributes appended to SmithDB traces/logs. |
 | smithdb.enabled | bool | `false` | Please express interest via our Support Portal (https://support.langchain.com) and we will reach out promptly to ensure we can set you up for success with SmithDB. |
 | smithdb.ingestion.autoscaling.enabled | bool | `true` |  |
@@ -1037,7 +1038,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | smithdb.ingestion.autoscaling.scaleUpStabilizationWindowSeconds | int | `300` |  |
 | smithdb.ingestion.autoscaling.targetCPUUtilizationPercentage | int | `45` |  |
 | smithdb.ingestion.containerGrpcPort | int | `8082` |  |
-| smithdb.ingestion.containerPort | int | `8050` |  |
+| smithdb.ingestion.containerPort | int | `8050` | Port for the SmithDB ingestion HTTP server, including the /metrics endpoint. |
 | smithdb.ingestion.deployment.affinity | object | `{}` |  |
 | smithdb.ingestion.deployment.annotations | object | `{}` |  |
 | smithdb.ingestion.deployment.command[0] | string | `"./smithdb"` |  |
@@ -1205,7 +1206,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | smithdb.query.autoscaling.scaleUpStabilizationWindowSeconds | int | `300` |  |
 | smithdb.query.autoscaling.targetCPUUtilizationPercentage | int | `40` |  |
 | smithdb.query.containerGrpcPort | int | `8080` |  |
-| smithdb.query.containerPort | int | `8060` |  |
+| smithdb.query.containerPort | int | `8060` | Port for the SmithDB query HTTP server, including the /metrics endpoint. |
 | smithdb.query.deployment.affinity | object | `{}` |  |
 | smithdb.query.deployment.annotations | object | `{}` |  |
 | smithdb.query.deployment.command[0] | string | `"./smithdb"` |  |

@@ -127,6 +127,50 @@ tests:
             name: RUST_LOG
             value: warn,smithdb_query=debug,vortex=warn
 
+  - it: should configure the SmithDB OTLP gRPC exporter when tracing is enabled
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      config.observability.tracing.endpoint: http://default-otel-collector:4317
+      smithdb.config.observability.tracing.enabled: true
+      smithdb.config.observability.tracing.endpoint: http://otel-collector:4317
+    template: smithdb/query-deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_QUERY__LOGGING__TRACING_ENABLED
+            value: "true"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_QUERY__LOGGING__FORMAT
+            value: opentelemetry
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: OTEL_EXPORTER_OTLP_ENDPOINT
+            value: http://otel-collector:4317
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: OTEL_EXPORTER_OTLP_PROTOCOL
+            value: grpc
+
+  - it: should use the top-level OTLP endpoint when no SmithDB exporter override is set
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      config.observability.tracing.endpoint: http://otel-collector:4317
+      smithdb.config.observability.tracing.enabled: true
+    template: smithdb/query-deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: OTEL_EXPORTER_OTLP_ENDPOINT
+            value: http://otel-collector:4317
+
   - it: should keep smithdb services internal
     values:
       - ./values/smithdb-enabled.yaml
@@ -144,6 +188,60 @@ tests:
           path: spec.loadBalancerSourceRanges
       - notExists:
           path: spec.loadBalancerIP
+
+  - it: should add component-specific Prometheus pod scrape annotations
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      smithdb.config.observability.metrics.enabled: true
+    templates:
+      - smithdb/query-deployment.yaml
+      - smithdb/ingestion-deployment.yaml
+      - smithdb/compaction-deployment.yaml
+      - smithdb/compaction-worker-deployment.yaml
+      - smithdb/cluster-manager-deployment.yaml
+    asserts:
+      - template: smithdb/query-deployment.yaml
+        equal:
+          path: spec.template.metadata.annotations["prometheus.io/scrape"]
+          value: "true"
+      - template: smithdb/query-deployment.yaml
+        equal:
+          path: spec.template.metadata.annotations["prometheus.io/path"]
+          value: /metrics
+      - template: smithdb/query-deployment.yaml
+        equal:
+          path: spec.template.metadata.annotations["prometheus.io/port"]
+          value: "8060"
+      - template: smithdb/ingestion-deployment.yaml
+        equal:
+          path: spec.template.metadata.annotations["prometheus.io/port"]
+          value: "8050"
+      - template: smithdb/compaction-deployment.yaml
+        equal:
+          path: spec.template.metadata.annotations["prometheus.io/port"]
+          value: "8070"
+      - template: smithdb/compaction-worker-deployment.yaml
+        equal:
+          path: spec.template.metadata.annotations["prometheus.io/port"]
+          value: "9000"
+      - template: smithdb/cluster-manager-deployment.yaml
+        equal:
+          path: spec.template.metadata.annotations["prometheus.io/port"]
+          value: "8090"
+
+  - it: should allow component annotations to override generated scrape annotations
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      smithdb.config.observability.metrics.enabled: true
+      smithdb.query.deployment.annotations:
+        prometheus.io/scrape: "false"
+    template: smithdb/query-deployment.yaml
+    asserts:
+      - equal:
+          path: spec.template.metadata.annotations["prometheus.io/scrape"]
+          value: "false"
 
   - it: should wire langsmith app config to smithdb when enabled
     values:
