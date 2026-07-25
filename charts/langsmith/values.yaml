@@ -65,23 +65,23 @@ images:
   aceBackendImage:
     repository: "docker.io/langchain/langsmith-ace-backend"
     pullPolicy: IfNotPresent
-    tag: "0.16.19rc1"
+    tag: "0.16.21rc1"
   backendImage:
     repository: "docker.io/langchain/langsmith-backend"
     pullPolicy: IfNotPresent
-    tag: "0.16.19rc1"
+    tag: "0.16.21rc1"
   insightsAgentImage:
     repository: "docker.io/langchain/langsmith-clio"
     pullPolicy: IfNotPresent
-    tag: "0.16.19rc1"
+    tag: "0.16.21rc1"
   frontendImage:
     repository: "docker.io/langchain/langsmith-frontend"
     pullPolicy: IfNotPresent
-    tag: "0.16.19rc1"
+    tag: "0.16.21rc1"
   hostBackendImage:
     repository: "docker.io/langchain/hosted-langserve-backend"
     pullPolicy: IfNotPresent
-    tag: "0.16.19rc1"
+    tag: "0.16.21rc1"
   operatorImage:
     repository: "docker.io/langchain/langgraph-operator"
     pullPolicy: IfNotPresent
@@ -89,11 +89,11 @@ images:
   platformBackendImage:
     repository: "docker.io/langchain/langsmith-go-backend"
     pullPolicy: IfNotPresent
-    tag: "0.16.19rc1"
+    tag: "0.16.21rc1"
   playgroundImage:
     repository: "docker.io/langchain/langsmith-playground"
     pullPolicy: IfNotPresent
-    tag: "0.16.19rc1"
+    tag: "0.16.21rc1"
   # For production environments, we strongly recommend connecting to a managed PostgreSQL instance instead of using the one provided by the chart.
   # Docs: https://docs.langchain.com/langsmith/self-host-external-postgres
   postgresImage:
@@ -113,23 +113,23 @@ images:
   fleetToolServerImage:
     repository: "docker.io/langchain/agent-builder-tool-server"
     pullPolicy: IfNotPresent
-    tag: "0.16.19rc1"
+    tag: "0.16.21rc1"
   fleetTriggerServerImage:
     repository: "docker.io/langchain/agent-builder-trigger-server"
     pullPolicy: IfNotPresent
-    tag: "0.16.19rc1"
+    tag: "0.16.21rc1"
   agentBuilderImage:
     repository: "docker.io/langchain/agent-builder-deep-agent"
     pullPolicy: IfNotPresent
-    tag: "0.16.19rc1"
+    tag: "0.16.21rc1"
   pollyAgentImage:
     repository: "docker.io/langchain/langsmith-polly"
     pullPolicy: IfNotPresent
-    tag: "0.16.19rc1"
+    tag: "0.16.21rc1"
   smithdbImage:
     repository: "docker.io/langchain/smithdb"
     pullPolicy: IfNotPresent
-    tag: "0.16.19rc1"
+    tag: "0.16.21rc1"
   # Optional: only mirror/pull when presidioAnalyzer.enabled is true
   presidioAnalyzerImage:
     repository: "mcr.microsoft.com/presidio-analyzer"
@@ -1227,7 +1227,7 @@ aceBackend:
 smithdb:
   # -- Deploy the in-chart SmithDB workloads.
   # -- V16 supports SmithDB in beta. We do not support or recommend customers setting this up on their own.
-  # -- Please express interest via our Support Portal (https://support.langchain.com) and we will reach out promptly to ensure we can set you up for success with SmithDB.
+  # -- Please express interest (https://www.langchain.com/smithdb-early-access-waitlist) and we will reach out promptly to ensure we can set you up for success with SmithDB.
   enabled: false
   # -- LangSmith configuration for SmithDB.
   langsmith:
@@ -1267,18 +1267,6 @@ smithdb:
       passwordSecretKey: ""
       port: "5432"
       useSsl: false
-    observability:
-      logging:
-        # -- Optional SmithDB log filter. Empty uses the chart default: INFO,vortex=WARN.
-        level: ""
-      tracing:
-        # -- Enable OpenTelemetry tracing/log export for SmithDB components.
-        # SmithDB supports exporting OTLP over gRPC only.
-        enabled: false
-        # -- OTLP gRPC collector endpoint for SmithDB traces/logs.
-        endpoint: ""
-        # -- Extra OpenTelemetry resource attributes appended to SmithDB traces/logs.
-        extraResourceAttributes: {}
     objectStore:
       # -- Supported values: s3, gcs.
       type: "s3"
@@ -1468,11 +1456,11 @@ smithdb:
       securityContext: {}
       resources:
         requests:
-          cpu: "500m"
-          memory: "1Gi"
+          cpu: "2"
+          memory: "4Gi"
         limits:
-          cpu: "500m"
-          memory: "1Gi"
+          cpu: "2"
+          memory: "4Gi"
       probes:
         startupProbe:
           httpGet:
