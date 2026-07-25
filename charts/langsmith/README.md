@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.16.0-rc.16](https://img.shields.io/badge/Version-0.16.0--rc.16-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.16.21rc1](https://img.shields.io/badge/AppVersion-0.16.21rc1-informational?style=flat-square)
+![Version: 0.16.0-rc.17](https://img.shields.io/badge/Version-0.16.0--rc.17-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.16.21rc1](https://img.shields.io/badge/AppVersion-0.16.21rc1-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -1424,27 +1424,6 @@ For information on how to use this chart, up-to-date release notes, and other gu
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| backend.agentBootstrap.affinity | object | `{}` |  |
-| backend.agentBootstrap.annotations | object | `{}` |  |
-| backend.agentBootstrap.enabled | bool | `false` |  |
-| backend.agentBootstrap.extraEnv | list | `[]` |  |
-| backend.agentBootstrap.labels | object | `{}` |  |
-| backend.agentBootstrap.nodeSelector | object | `{}` |  |
-| backend.agentBootstrap.podSecurityContext | object | `{}` |  |
-| backend.agentBootstrap.randomizeName | bool | `false` |  |
-| backend.agentBootstrap.resources.limits.cpu | string | `"500m"` |  |
-| backend.agentBootstrap.resources.limits.memory | string | `"512Mi"` |  |
-| backend.agentBootstrap.resources.requests.cpu | string | `"100m"` |  |
-| backend.agentBootstrap.resources.requests.memory | string | `"256Mi"` |  |
-| backend.agentBootstrap.securityContext | object | `{}` |  |
-| backend.agentBootstrap.serviceAccount.annotations | object | `{}` |  |
-| backend.agentBootstrap.serviceAccount.automountServiceAccountToken | bool | `true` |  |
-| backend.agentBootstrap.serviceAccount.create | bool | `true` |  |
-| backend.agentBootstrap.serviceAccount.labels | object | `{}` |  |
-| backend.agentBootstrap.serviceAccount.name | string | `""` |  |
-| backend.agentBootstrap.tolerations | list | `[]` |  |
-| backend.agentBootstrap.topologySpreadConstraints | list | `[]` |  |
-| backend.agentBootstrap.ttlSecondsAfterFinished | int | `600` |  |
 | backend.authBootstrap.affinity | object | `{}` |  |
 | backend.authBootstrap.annotations | object | `{}` |  |
 | backend.authBootstrap.command[0] | string | `"./auth_bootstrap_entrypoint.sh"` |  |

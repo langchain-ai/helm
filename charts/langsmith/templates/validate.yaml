@@ -38,6 +38,10 @@ AWS Marketplace Helm template verification).
 {{- if hasKey .Values "agentBuilderTriggerServer" -}}
 {{- fail "agentBuilderTriggerServer is deprecated. Please use fleetTriggerServer." -}}
 {{- end -}}
+{{- /* Removed: the bundled agent-bootstrap Job (backend.agentBootstrap). Standalone fleet/insights/polly deployments replace it. */ -}}
+{{- if hasKey .Values.backend "agentBootstrap" -}}
+{{- fail "backend.agentBootstrap has been removed: the bundled agent-bootstrap Job is no longer part of this chart. Standalone agents now run as the top-level fleet / insights / polly deployments. If you were relying on the bundled bootstrap, contact LangChain support for migration guidance, then remove backend.agentBootstrap from your values." -}}
+{{- end -}}
 {{- /* Deprecated image keys: these workloads now run on the single consolidated backend image */ -}}
 {{- range $key := list "hostBackendImage" "platformBackendImage" "playgroundImage" "fleetToolServerImage" "fleetTriggerServerImage" "agentBuilderToolServerImage" "agentBuilderTriggerServerImage" -}}
 {{- if hasKey $.Values.images $key -}}
