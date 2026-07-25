@@ -4,7 +4,7 @@ go 1.25.0
 
 require (
 	github.com/envoyproxy/go-control-plane/envoy v1.37.0
-	google.golang.org/grpc v1.82.0
+	google.golang.org/grpc v1.82.1
 )
 
 require (
