@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.16.0-rc.15](https://img.shields.io/badge/Version-0.16.0--rc.15-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.16.19rc1](https://img.shields.io/badge/AppVersion-0.16.19rc1-informational?style=flat-square)
+![Version: 0.16.0-rc.16](https://img.shields.io/badge/Version-0.16.0--rc.16-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.16.21rc1](https://img.shields.io/badge/AppVersion-0.16.21rc1-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -232,6 +232,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | fleetToolServer.containerPort | int | `1989` |  |
 | fleetToolServer.deployment.affinity | object | `{}` |  |
 | fleetToolServer.deployment.annotations | object | `{}` |  |
+| fleetToolServer.deployment.command[0] | string | `"agent_builder_tool_server_entrypoint.sh"` |  |
 | fleetToolServer.deployment.extraContainerConfig | object | `{}` |  |
 | fleetToolServer.deployment.extraEnv | list | `[]` |  |
 | fleetToolServer.deployment.initContainers | list | `[]` |  |
@@ -286,6 +287,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | fleetTriggerServer.containerPort | int | `1990` |  |
 | fleetTriggerServer.deployment.affinity | object | `{}` |  |
 | fleetTriggerServer.deployment.annotations | object | `{}` |  |
+| fleetTriggerServer.deployment.command[0] | string | `"agent_builder_trigger_server_entrypoint.sh"` |  |
 | fleetTriggerServer.deployment.extraContainerConfig | object | `{}` |  |
 | fleetTriggerServer.deployment.extraEnv | list | `[]` |  |
 | fleetTriggerServer.deployment.initContainers | list | `[]` |  |
@@ -341,44 +343,29 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | gateway.sectionName | string | `""` |  |
 | images.aceBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.aceBackendImage.repository | string | `"docker.io/langchain/langsmith-ace-backend"` |  |
-| images.aceBackendImage.tag | string | `"0.16.19rc1"` |  |
+| images.aceBackendImage.tag | string | `"0.16.21rc1"` |  |
 | images.agentBuilderImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.agentBuilderImage.repository | string | `"docker.io/langchain/agent-builder-deep-agent"` |  |
-| images.agentBuilderImage.tag | string | `"0.16.19rc1"` |  |
+| images.agentBuilderImage.tag | string | `"0.16.21rc1"` |  |
 | images.backendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.backendImage.repository | string | `"docker.io/langchain/langsmith-backend"` |  |
-| images.backendImage.tag | string | `"0.16.19rc1"` |  |
+| images.backendImage.tag | string | `"0.16.21rc1"` |  |
 | images.clickhouseImage.pullPolicy | string | `"Always"` |  |
 | images.clickhouseImage.repository | string | `"docker.io/clickhouse/clickhouse-server"` |  |
 | images.clickhouseImage.tag | string | `"25.12"` |  |
-| images.fleetToolServerImage.pullPolicy | string | `"IfNotPresent"` |  |
-| images.fleetToolServerImage.repository | string | `"docker.io/langchain/agent-builder-tool-server"` |  |
-| images.fleetToolServerImage.tag | string | `"0.16.19rc1"` |  |
-| images.fleetTriggerServerImage.pullPolicy | string | `"IfNotPresent"` |  |
-| images.fleetTriggerServerImage.repository | string | `"docker.io/langchain/agent-builder-trigger-server"` |  |
-| images.fleetTriggerServerImage.tag | string | `"0.16.19rc1"` |  |
 | images.frontendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.frontendImage.repository | string | `"docker.io/langchain/langsmith-frontend"` |  |
-| images.frontendImage.tag | string | `"0.16.19rc1"` |  |
-| images.hostBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
-| images.hostBackendImage.repository | string | `"docker.io/langchain/hosted-langserve-backend"` |  |
-| images.hostBackendImage.tag | string | `"0.16.19rc1"` |  |
+| images.frontendImage.tag | string | `"0.16.21rc1"` |  |
 | images.imagePullSecrets | list | `[]` | Secrets with credentials to pull images from a private registry. Specified as name: value. |
 | images.insightsAgentImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.insightsAgentImage.repository | string | `"docker.io/langchain/langsmith-clio"` |  |
-| images.insightsAgentImage.tag | string | `"0.16.19rc1"` |  |
+| images.insightsAgentImage.tag | string | `"0.16.21rc1"` |  |
 | images.operatorImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.operatorImage.repository | string | `"docker.io/langchain/langgraph-operator"` |  |
 | images.operatorImage.tag | string | `"0.1.47"` |  |
-| images.platformBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
-| images.platformBackendImage.repository | string | `"docker.io/langchain/langsmith-go-backend"` |  |
-| images.platformBackendImage.tag | string | `"0.16.19rc1"` |  |
-| images.playgroundImage.pullPolicy | string | `"IfNotPresent"` |  |
-| images.playgroundImage.repository | string | `"docker.io/langchain/langsmith-playground"` |  |
-| images.playgroundImage.tag | string | `"0.16.19rc1"` |  |
 | images.pollyAgentImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.pollyAgentImage.repository | string | `"docker.io/langchain/langsmith-polly"` |  |
-| images.pollyAgentImage.tag | string | `"0.16.19rc1"` |  |
+| images.pollyAgentImage.tag | string | `"0.16.21rc1"` |  |
 | images.postgresImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.postgresImage.repository | string | `"docker.io/postgres"` |  |
 | images.postgresImage.tag | string | `"14.7"` |  |
@@ -391,7 +378,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | images.registry | string | `""` | If supplied, all children <image_name>.repository values will be prepended with this registry name + `/` |
 | images.smithdbImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.smithdbImage.repository | string | `"docker.io/langchain/smithdb"` |  |
-| images.smithdbImage.tag | string | `"0.16.19rc1"` |  |
+| images.smithdbImage.tag | string | `"0.16.21rc1"` |  |
 | ingestQueue.autoscaling.hpa.enabled | bool | `false` |  |
 | ingestQueue.autoscaling.hpa.maxReplicas | int | `10` |  |
 | ingestQueue.autoscaling.hpa.minReplicas | int | `3` |  |
@@ -418,7 +405,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | ingestQueue.containerPort | int | `1989` |  |
 | ingestQueue.deployment.affinity | object | `{}` |  |
 | ingestQueue.deployment.annotations | object | `{}` |  |
-| ingestQueue.deployment.command[0] | string | `"./asynq_worker_entrypoint.sh"` |  |
+| ingestQueue.deployment.command[0] | string | `"asynq_worker_entrypoint.sh"` |  |
 | ingestQueue.deployment.extraContainerConfig | object | `{}` |  |
 | ingestQueue.deployment.extraEnv | list | `[]` |  |
 | ingestQueue.deployment.initContainers | list | `[]` |  |
@@ -937,10 +924,10 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | smithdb.compaction.deployment.probes.startupProbe.periodSeconds | int | `10` |  |
 | smithdb.compaction.deployment.probes.startupProbe.timeoutSeconds | int | `1` |  |
 | smithdb.compaction.deployment.replicas | int | `1` |  |
-| smithdb.compaction.deployment.resources.limits.cpu | string | `"500m"` |  |
-| smithdb.compaction.deployment.resources.limits.memory | string | `"1Gi"` |  |
-| smithdb.compaction.deployment.resources.requests.cpu | string | `"500m"` |  |
-| smithdb.compaction.deployment.resources.requests.memory | string | `"1Gi"` |  |
+| smithdb.compaction.deployment.resources.limits.cpu | string | `"2"` |  |
+| smithdb.compaction.deployment.resources.limits.memory | string | `"4Gi"` |  |
+| smithdb.compaction.deployment.resources.requests.cpu | string | `"2"` |  |
+| smithdb.compaction.deployment.resources.requests.memory | string | `"4Gi"` |  |
 | smithdb.compaction.deployment.securityContext | object | `{}` |  |
 | smithdb.compaction.deployment.sidecars | list | `[]` |  |
 | smithdb.compaction.deployment.tolerations | list | `[]` |  |
@@ -1024,11 +1011,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | smithdb.config.objectStore.s3.region | string | `""` | Defaults to the SmithDB S3 client default when empty. |
 | smithdb.config.objectStore.s3.secretAccessKeySecretKey | string | `""` |  |
 | smithdb.config.objectStore.type | string | `"s3"` | Supported values: s3, gcs. |
-| smithdb.config.observability.logging.level | string | `""` | Optional SmithDB log filter. Empty uses the chart default: INFO,vortex=WARN. |
-| smithdb.config.observability.tracing.enabled | bool | `false` | Enable OpenTelemetry tracing/log export for SmithDB components. SmithDB supports exporting OTLP over gRPC only. |
-| smithdb.config.observability.tracing.endpoint | string | `""` | OTLP gRPC collector endpoint for SmithDB traces/logs. |
-| smithdb.config.observability.tracing.extraResourceAttributes | object | `{}` | Extra OpenTelemetry resource attributes appended to SmithDB traces/logs. |
-| smithdb.enabled | bool | `false` | Please express interest via our Support Portal (https://support.langchain.com) and we will reach out promptly to ensure we can set you up for success with SmithDB. |
+| smithdb.enabled | bool | `false` | Please express interest (https://www.langchain.com/smithdb-early-access-waitlist) and we will reach out promptly to ensure we can set you up for success with SmithDB. |
 | smithdb.ingestion.autoscaling.enabled | bool | `true` |  |
 | smithdb.ingestion.autoscaling.maxReplicas | int | `10` |  |
 | smithdb.ingestion.autoscaling.minReplicas | int | `1` |  |
@@ -1776,7 +1759,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | hostBackend.containerPort | int | `1985` |  |
 | hostBackend.deployment.affinity | object | `{}` |  |
 | hostBackend.deployment.annotations | object | `{}` |  |
-| hostBackend.deployment.command[0] | string | `"./entrypoint.sh"` |  |
+| hostBackend.deployment.command[0] | string | `"host_backend_entrypoint.sh"` |  |
 | hostBackend.deployment.extraContainerConfig | object | `{}` |  |
 | hostBackend.deployment.extraEnv | list | `[]` |  |
 | hostBackend.deployment.initContainers | list | `[]` |  |
@@ -1961,7 +1944,8 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | listener.containerPort | int | `8080` |  |
 | listener.deployment.affinity | object | `{}` |  |
 | listener.deployment.annotations | object | `{}` |  |
-| listener.deployment.command[0] | string | `"./listener_entrypoint.sh"` |  |
+| listener.deployment.command[0] | string | `"host_backend_entrypoint.sh"` |  |
+| listener.deployment.command[1] | string | `"./listener_entrypoint.sh"` |  |
 | listener.deployment.extraContainerConfig | object | `{}` |  |
 | listener.deployment.extraEnv | list | `[]` |  |
 | listener.deployment.initContainers | list | `[]` |  |
@@ -2025,7 +2009,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | agentGateway.containerPort | int | `8083` |  |
 | agentGateway.deployment.affinity | object | `{}` |  |
 | agentGateway.deployment.annotations | object | `{}` |  |
-| agentGateway.deployment.command[0] | string | `"./agent_gateway_entrypoint.sh"` |  |
+| agentGateway.deployment.command[0] | string | `"agent_gateway_entrypoint.sh"` |  |
 | agentGateway.deployment.extraContainerConfig | object | `{}` |  |
 | agentGateway.deployment.extraEnv | list | `[]` |  |
 | agentGateway.deployment.initContainers | list | `[]` |  |
@@ -2204,7 +2188,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | platformBackend.containerPort | int | `1986` |  |
 | platformBackend.deployment.affinity | object | `{}` |  |
 | platformBackend.deployment.annotations | object | `{}` |  |
-| platformBackend.deployment.command[0] | string | `"./entrypoint.sh"` |  |
+| platformBackend.deployment.command[0] | string | `"smith_go_entrypoint.sh"` |  |
 | platformBackend.deployment.extraContainerConfig | object | `{}` |  |
 | platformBackend.deployment.extraEnv | list | `[]` |  |
 | platformBackend.deployment.initContainers | list | `[]` |  |
@@ -2287,7 +2271,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | playground.containerPort | int | `1988` |  |
 | playground.deployment.affinity | object | `{}` |  |
 | playground.deployment.annotations | object | `{}` |  |
-| playground.deployment.command[0] | string | `"./entrypoint.sh"` |  |
+| playground.deployment.command[0] | string | `"smith_playground_entrypoint.sh"` |  |
 | playground.deployment.extraContainerConfig | object | `{}` |  |
 | playground.deployment.extraEnv | list | `[]` |  |
 | playground.deployment.initContainers | list | `[]` |  |

@@ -56,6 +56,10 @@ spec:
       {{- end }}
       containers:
         - name: {{ .Values.fleetTriggerServer.name }}
+          {{- with .Values.fleetTriggerServer.deployment.command }}
+          command:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           env:
             {{- with $envVars }}
               {{- toYaml . | nindent 12 }}
@@ -68,8 +72,8 @@ spec:
                 name: {{ include "langsmith.fullname" . }}-agent-builder-config
                 optional: true
             {{- end }}
-          image: {{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "fleetTriggerServerImage") | quote }}
-          imagePullPolicy: {{ .Values.images.fleetTriggerServerImage.pullPolicy }}
+          image: {{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "backendImage") | quote }}
+          imagePullPolicy: {{ .Values.images.backendImage.pullPolicy }}
           ports:
             - name: http
               containerPort: {{ .Values.fleetTriggerServer.containerPort }}

@@ -612,9 +612,6 @@ SmithDB OTEL resource attributes.
 */}}
 {{- define "langsmith.smithdb.otelResourceAttributes" -}}
 {{- $resourceAttributes := list "pod_name=$(POD_NAME)" "k8s.pod.name=$(POD_NAME)" "container_name=$(CONTAINER_NAME)" "k8s.container.name=$(CONTAINER_NAME)" -}}
-{{- range $key, $value := .Values.smithdb.config.observability.tracing.extraResourceAttributes }}
-{{- $resourceAttributes = append $resourceAttributes (printf "%s=%s" $key (toString $value)) -}}
-{{- end }}
 {{- join "," $resourceAttributes -}}
 {{- end }}
 
@@ -626,16 +623,13 @@ Args: root, service, displayName.
 {{- $root := .root -}}
 {{- $prefix := printf "SMITHDB_%s" (upper .service) -}}
 {{- $displayName := .displayName -}}
-{{- $tracingEnabled := $root.Values.smithdb.config.observability.tracing.enabled -}}
-{{- $logLevel := default "INFO,vortex=WARN" $root.Values.smithdb.config.observability.logging.level -}}
+{{- $tracingEnabled := and $root.Values.config.observability.tracing.enabled (eq $root.Values.config.observability.tracing.exporter "grpc") -}}
 - name: {{ $prefix }}__LOGGING__FORMAT
   value: {{ ternary "opentelemetry" "console" $tracingEnabled | quote }}
 - name: {{ $prefix }}__LOGGING__TRACING_ENABLED
   value: {{ $tracingEnabled | quote }}
 - name: {{ $prefix }}__LOGGING__SERVICE_NAME
   value: {{ $displayName | quote }}
-- name: RUST_LOG
-  value: {{ $logLevel | quote }}
 - name: NODE_IP
   valueFrom:
     fieldRef:
@@ -660,7 +654,7 @@ Args: root, service, displayName.
   value: {{ $displayName | quote }}
 {{- if $tracingEnabled }}
 - name: OTEL_EXPORTER_OTLP_ENDPOINT
-  value: {{ $root.Values.smithdb.config.observability.tracing.endpoint | quote }}
+  value: {{ $root.Values.config.observability.tracing.endpoint | quote }}
 {{- /* SmithDB exports OTLP over gRPC. */}}
 - name: OTEL_EXPORTER_OTLP_PROTOCOL
   value: "grpc"
