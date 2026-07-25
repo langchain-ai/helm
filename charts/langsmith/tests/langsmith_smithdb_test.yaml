@@ -58,11 +58,6 @@ tests:
       - contains:
           path: spec.template.spec.containers[0].env
           content:
-            name: RUST_LOG
-            value: INFO,vortex=WARN
-      - contains:
-          path: spec.template.spec.containers[0].env
-          content:
             name: SMITHDB_QUERY__VORTEX_CACHE__DISK__LIMIT
             valueFrom:
               resourceFieldRef:
@@ -114,18 +109,84 @@ tests:
               resourceFieldRef:
                 resource: limits.memory
 
-  - it: should allow overriding smithdb log level
+  - it: should configure the SmithDB OTLP gRPC exporter when tracing is enabled
     values:
       - ./values/smithdb-enabled.yaml
     set:
-      smithdb.config.observability.logging.level: warn,smithdb_query=debug,vortex=warn
+      config.observability.tracing.enabled: true
+      config.observability.tracing.endpoint: http://default-otel-collector:4317
+      config.observability.tracing.exporter: grpc
     template: smithdb/query-deployment.yaml
     asserts:
       - contains:
           path: spec.template.spec.containers[0].env
           content:
-            name: RUST_LOG
-            value: warn,smithdb_query=debug,vortex=warn
+            name: SMITHDB_QUERY__LOGGING__TRACING_ENABLED
+            value: "true"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_QUERY__LOGGING__FORMAT
+            value: opentelemetry
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: OTEL_EXPORTER_OTLP_ENDPOINT
+            value: http://default-otel-collector:4317
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: OTEL_EXPORTER_OTLP_PROTOCOL
+            value: grpc
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: OTEL_RESOURCE_ATTRIBUTES
+            value: pod_name=$(POD_NAME),k8s.pod.name=$(POD_NAME),container_name=$(CONTAINER_NAME),k8s.container.name=$(CONTAINER_NAME)
+
+  - it: should keep SmithDB tracing disabled when chart-level tracing is disabled
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      config.observability.tracing.endpoint: http://otel-collector:4317
+      config.observability.tracing.exporter: grpc
+    template: smithdb/query-deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_QUERY__LOGGING__TRACING_ENABLED
+            value: "false"
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: OTEL_EXPORTER_OTLP_ENDPOINT
+            value: http://otel-collector:4317
+
+  - it: should disable SmithDB tracing when the chart-level exporter uses OTLP HTTP
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      config.observability.tracing.enabled: true
+      config.observability.tracing.endpoint: http://otel-collector:4318/v1/traces
+      config.observability.tracing.exporter: http
+    template: smithdb/query-deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_QUERY__LOGGING__TRACING_ENABLED
+            value: "false"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_QUERY__LOGGING__FORMAT
+            value: console
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: OTEL_EXPORTER_OTLP_ENDPOINT
+            value: http://otel-collector:4318/v1/traces
 
   - it: should keep smithdb services internal
     values:
@@ -144,6 +205,26 @@ tests:
           path: spec.loadBalancerSourceRanges
       - notExists:
           path: spec.loadBalancerIP
+
+  - it: should render user-provided SmithDB metrics annotations
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      smithdb.query.deployment.annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/path: /metrics
+        prometheus.io/port: "8060"
+    template: smithdb/query-deployment.yaml
+    asserts:
+      - equal:
+          path: spec.template.metadata.annotations["prometheus.io/scrape"]
+          value: "true"
+      - equal:
+          path: spec.template.metadata.annotations["prometheus.io/path"]
+          value: /metrics
+      - equal:
+          path: spec.template.metadata.annotations["prometheus.io/port"]
+          value: "8060"
 
   - it: should wire langsmith app config to smithdb when enabled
     values:

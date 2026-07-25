@@ -1267,18 +1267,6 @@ smithdb:
       passwordSecretKey: ""
       port: "5432"
       useSsl: false
-    observability:
-      logging:
-        # -- Optional SmithDB log filter. Empty uses the chart default: INFO,vortex=WARN.
-        level: ""
-      tracing:
-        # -- Enable OpenTelemetry tracing/log export for SmithDB components.
-        # SmithDB supports exporting OTLP over gRPC only.
-        enabled: false
-        # -- OTLP gRPC collector endpoint for SmithDB traces/logs.
-        endpoint: ""
-        # -- Extra OpenTelemetry resource attributes appended to SmithDB traces/logs.
-        extraResourceAttributes: {}
     objectStore:
       # -- Supported values: s3, gcs.
       type: "s3"
