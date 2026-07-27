@@ -56,6 +56,15 @@ data:
   {{- if .Values.smithdb.enabled }}
   SMITHDB_CLUSTER_MANAGER_ENABLED: "true"
   SMITHDB_CLUSTER_MANAGER_URL: {{ include "langsmith.smithdb.grpcServiceUrl" (dict "root" . "component" "clusterManager" "port" .Values.smithdb.clusterManager.service.port) | quote }}
+  SMITHDB_QUERY_SERVICE_MAX_CALL_RECV_MSG_SIZE: "1073741824"
+  SMITHDB_FEEDBACK_MUTATION_RPS_PER_KEY: "100"
+  SMITHDB_FEEDBACK_MUTATION_BURST_PER_KEY: "150"
+  SMITHDB_RULES_REDIS_READ_ENABLED: "true"
+  SMITHDB_RULES_THREAD_REDIS_READ_ENABLED: "true"
+  RUN_RULES_SMITHDB_RETRIEVER_TENANTS: '["*"]'
+  RUN_RULES_SMITHDB_RETRIEVER_PCT: "100"
+  RUN_RULES_SMITHDB_THREAD_RETRIEVER_TENANTS: '["*"]'
+  RUN_RULES_SMITHDB_THREAD_RETRIEVER_PCT: "100"
   {{- end }}
   {{- if .Values.config.hostname }}
   # Remote MCP server / OAuth Authorization Server (served under /api). The AS only
@@ -84,6 +93,8 @@ data:
   {{- end }}
   FF_RUN_STATS_GROUP_BY_ENABLED_ALL: "true"
   SEPARATE_QUEUES_WITH_SINGLE_WORKER: '["host"]'
+  RUN_RULES_REDIS_DEDUP_TENANTS: '["*"]'
+  RUN_RULES_LIMIT_RRA_RECORDS_PER_BATCH_TENANTS: '["*"]'
   {{- if .Values.config.observability.tracing.enabled }}
   OTEL_TRACING_ENABLED: "{{ .Values.config.observability.tracing.enabled }}"
   OTLP_ENDPOINT: "{{ .Values.config.observability.tracing.endpoint }}"
