@@ -137,6 +137,11 @@ spec:
             - mountPath: /etc/clickhouse-server/config.d/metrics_config.xml
               name: clickhouse-conf
               subPath: metrics_config.xml
+          {{- if .Values.clickhouse.config.systemLogTtlDays }}
+            - mountPath: /etc/clickhouse-server/config.d/system_logs.xml
+              name: clickhouse-conf
+              subPath: system_logs.xml
+          {{- end }}
           {{- with .Values.clickhouse.statefulSet.extraContainerConfig }}
             {{- toYaml . | nindent 10 }}
           {{- end }}
@@ -170,6 +175,10 @@ spec:
                 path: logging_config.xml
               - key: metrics_config.xml
                 path: metrics_config.xml
+              {{- if .Values.clickhouse.config.systemLogTtlDays }}
+              - key: system_logs.xml
+                path: system_logs.xml
+              {{- end }}
       {{- with $volumes }}
           {{- toYaml . | nindent 8 }}
       {{- end }}

@@ -67,4 +67,31 @@ data:
         <errors>true</errors>
       </prometheus>
     </clickhouse>
+{{- if .Values.clickhouse.config.systemLogTtlDays }}
+
+  system_logs.xml: |
+    <clickhouse>
+      {{- /* ClickHouse never expires its own log tables by default, so they grow
+             without bound until they fill the volume. */}}
+      {{- range $log := list "asynchronous_insert_log" "asynchronous_metric_log" "backup_log" "background_schedule_pool_log" "blob_storage_log" "error_log" "latency_log" "metric_log" "part_log" "processors_profile_log" "query_log" "query_metric_log" "query_thread_log" "query_views_log" "text_log" "trace_log" }}
+      <{{ $log }}>
+        <ttl>event_date + INTERVAL {{ $.Values.clickhouse.config.systemLogTtlDays }} DAY DELETE</ttl>
+      </{{ $log }}>
+      {{- end }}
+      {{- /* opentelemetry_span_log is the one log table ClickHouse ships an <engine>
+             for, and it rejects <ttl> alongside <engine> ("TTL parameters should be
+             specified directly inside 'engine'") by refusing to start. So restate the
+             stock engine with the TTL folded in. It has no event_date column and
+             sorts on finish time, which is why its engine is special in the first
+             place. Keep partition/order by in sync with ClickHouse's config.xml. */}}
+      <opentelemetry_span_log>
+        <engine>
+            engine MergeTree
+            partition by toYYYYMM(finish_date)
+            order by (finish_date, finish_time_us)
+            ttl finish_date + INTERVAL {{ .Values.clickhouse.config.systemLogTtlDays }} DAY DELETE
+        </engine>
+      </opentelemetry_span_log>
+    </clickhouse>
+{{- end }}
 {{- end }}
