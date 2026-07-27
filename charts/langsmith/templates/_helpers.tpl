@@ -612,9 +612,6 @@ SmithDB OTEL resource attributes.
 */}}
 {{- define "langsmith.smithdb.otelResourceAttributes" -}}
 {{- $resourceAttributes := list "pod_name=$(POD_NAME)" "k8s.pod.name=$(POD_NAME)" "container_name=$(CONTAINER_NAME)" "k8s.container.name=$(CONTAINER_NAME)" -}}
-{{- range $key, $value := .Values.smithdb.config.observability.tracing.extraResourceAttributes }}
-{{- $resourceAttributes = append $resourceAttributes (printf "%s=%s" $key (toString $value)) -}}
-{{- end }}
 {{- join "," $resourceAttributes -}}
 {{- end }}
 
@@ -626,16 +623,13 @@ Args: root, service, displayName.
 {{- $root := .root -}}
 {{- $prefix := printf "SMITHDB_%s" (upper .service) -}}
 {{- $displayName := .displayName -}}
-{{- $tracingEnabled := $root.Values.smithdb.config.observability.tracing.enabled -}}
-{{- $logLevel := default "INFO,vortex=WARN" $root.Values.smithdb.config.observability.logging.level -}}
+{{- $tracingEnabled := and $root.Values.config.observability.tracing.enabled (eq $root.Values.config.observability.tracing.exporter "grpc") -}}
 - name: {{ $prefix }}__LOGGING__FORMAT
   value: {{ ternary "opentelemetry" "console" $tracingEnabled | quote }}
 - name: {{ $prefix }}__LOGGING__TRACING_ENABLED
   value: {{ $tracingEnabled | quote }}
 - name: {{ $prefix }}__LOGGING__SERVICE_NAME
   value: {{ $displayName | quote }}
-- name: RUST_LOG
-  value: {{ $logLevel | quote }}
 - name: NODE_IP
   valueFrom:
     fieldRef:
@@ -660,7 +654,7 @@ Args: root, service, displayName.
   value: {{ $displayName | quote }}
 {{- if $tracingEnabled }}
 - name: OTEL_EXPORTER_OTLP_ENDPOINT
-  value: {{ $root.Values.smithdb.config.observability.tracing.endpoint | quote }}
+  value: {{ $root.Values.config.observability.tracing.endpoint | quote }}
 {{- /* SmithDB exports OTLP over gRPC. */}}
 - name: OTEL_EXPORTER_OTLP_PROTOCOL
   value: "grpc"
@@ -892,14 +886,6 @@ Args: root, service, displayName.
 {{- end -}}
 {{- end -}}
 
-{{- define "agentBootstrap.serviceAccountName" -}}
-{{- if .Values.backend.agentBootstrap.serviceAccount.create -}}
-    {{ default (printf "%s-%s" (include "langsmith.fullname" .) "agent-bootstrap") .Values.backend.agentBootstrap.serviceAccount.name | trunc 63 | trimSuffix "-" }}
-{{- else -}}
-    {{ default "default" .Values.backend.agentBootstrap.serviceAccount.name }}
-{{- end -}}
-{{- end -}}
-
 {{- define "fleetApiServer.serviceAccountName" -}}
 {{- if .Values.fleet.apiServer.serviceAccount.create -}}
     {{ default (printf "%s-%s" (include "langsmith.agentFeatures.fullname" (dict "root" . "product" "fleet")) .Values.fleet.apiServer.name) .Values.fleet.apiServer.serviceAccount.name | trunc 63 | trimSuffix "-" }}
@@ -1110,24 +1096,6 @@ Extra env vars for polly api-server and queue pods.
 {{- $out = append $out (dict "name" "N_JOBS_PER_WORKER" "value" (toString $feature.queue.numberOfJobsPerWorker)) -}}
 {{- end -}}
 {{- toYaml $out }}
-{{- end -}}
-
-{{- define "agentBootstrap.createAgentProducts" -}}
-{{- $createProducts := list }}
-{{- if .Values.config.agentBuilder.enabled }}
-{{- $createProducts = append $createProducts "agent_builder" }}
-{{- end }}
-{{ toYaml $createProducts }}
-{{- end -}}
-
-{{- define "agentBootstrap.destroyAgentProducts" -}}
-{{- $destroyProducts := list }}
-{{- if not .Values.config.agentBuilder.enabled }}
-{{- $destroyProducts = append $destroyProducts "agent_builder" }}
-{{- end }}
-{{- $destroyProducts = append $destroyProducts "insights" }}
-{{- $destroyProducts = append $destroyProducts "smith_polly" }}
-{{ toYaml $destroyProducts }}
 {{- end -}}
 
 {{/* Fail on duplicate keys in the inputted list of environment variables */}}
@@ -1356,6 +1324,8 @@ Served through the frontend at /mcp (or /<basePath>/mcp).
 {{/* Engine dispatch env for smith-go services (platform-backend + ingest-queue asynq worker) when engine is enabled. */}}
 {{- define "langsmith.engine.smithGoEnv" -}}
 {{- if .Values.engine.enabled }}
+- name: FORGE_AGENT_ASSISTANT_ID
+  value: "engine"
 - name: SMITH_GO_SERVICE_JWT_SECRET
   valueFrom:
     secretKeyRef:

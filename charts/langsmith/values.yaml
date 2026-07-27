@@ -65,35 +65,27 @@ images:
   aceBackendImage:
     repository: "docker.io/langchain/langsmith-ace-backend"
     pullPolicy: IfNotPresent
-    tag: "0.16.19rc1"
+    tag: "0.16.21rc1"
   backendImage:
     repository: "docker.io/langchain/langsmith-backend"
     pullPolicy: IfNotPresent
-    tag: "0.16.19rc1"
+    tag: "0.16.21rc1"
+  insightsAgentImage:
+    repository: "docker.io/langchain/langsmith-clio"
+    pullPolicy: IfNotPresent
+    tag: "0.16.21rc1"
   insightsEngineImage:
     repository: "docker.io/langchain/langsmith-insights-engine"
     pullPolicy: IfNotPresent
-    tag: "0.16.19rc1"
+    tag: "0.16.21rc1"
   frontendImage:
     repository: "docker.io/langchain/langsmith-frontend"
     pullPolicy: IfNotPresent
-    tag: "0.16.19rc1"
-  hostBackendImage:
-    repository: "docker.io/langchain/hosted-langserve-backend"
-    pullPolicy: IfNotPresent
-    tag: "0.16.19rc1"
+    tag: "0.16.21rc1"
   operatorImage:
     repository: "docker.io/langchain/langgraph-operator"
     pullPolicy: IfNotPresent
     tag: "0.1.47"
-  platformBackendImage:
-    repository: "docker.io/langchain/langsmith-go-backend"
-    pullPolicy: IfNotPresent
-    tag: "0.16.19rc1"
-  playgroundImage:
-    repository: "docker.io/langchain/langsmith-playground"
-    pullPolicy: IfNotPresent
-    tag: "0.16.19rc1"
   # For production environments, we strongly recommend connecting to a managed PostgreSQL instance instead of using the one provided by the chart.
   # Docs: https://docs.langchain.com/langsmith/self-host-external-postgres
   postgresImage:
@@ -110,26 +102,18 @@ images:
     repository: "docker.io/clickhouse/clickhouse-server"
     pullPolicy: Always
     tag: "25.12"
-  fleetToolServerImage:
-    repository: "docker.io/langchain/agent-builder-tool-server"
-    pullPolicy: IfNotPresent
-    tag: "0.16.19rc1"
-  fleetTriggerServerImage:
-    repository: "docker.io/langchain/agent-builder-trigger-server"
-    pullPolicy: IfNotPresent
-    tag: "0.16.19rc1"
   agentBuilderImage:
     repository: "docker.io/langchain/agent-builder-deep-agent"
     pullPolicy: IfNotPresent
-    tag: "0.16.19rc1"
+    tag: "0.16.21rc1"
   pollyAgentImage:
     repository: "docker.io/langchain/langsmith-polly"
     pullPolicy: IfNotPresent
-    tag: "0.16.19rc1"
+    tag: "0.16.21rc1"
   smithdbImage:
     repository: "docker.io/langchain/smithdb"
     pullPolicy: IfNotPresent
-    tag: "0.16.19rc1"
+    tag: "0.16.21rc1"
   # Optional: only mirror/pull when presidioAnalyzer.enabled is true
   presidioAnalyzerImage:
     repository: "mcr.microsoft.com/presidio-analyzer"
@@ -905,8 +889,8 @@ config:
     uncappedResourcesEnabled: false
 
   # DEPRECATED: use the top-level fleet block (fleet/fleetToolServer/
-  # fleetTriggerServer) instead. This bundled-agent path is managed by
-  # backend.agentBootstrap and is being phased out.
+  # fleetTriggerServer) instead. These keys are retained only as fallback
+  # defaults for the fleet block and may be removed in a future chart version.
   # Agent Builder configuration - UI for creating and managing agents
   # Requires config.deployment.enabled to be true
   agentBuilder:
@@ -1232,7 +1216,7 @@ aceBackend:
 smithdb:
   # -- Deploy the in-chart SmithDB workloads.
   # -- V16 supports SmithDB in beta. We do not support or recommend customers setting this up on their own.
-  # -- Please express interest via our Support Portal (https://support.langchain.com) and we will reach out promptly to ensure we can set you up for success with SmithDB.
+  # -- Please express interest (https://www.langchain.com/smithdb-early-access-waitlist) and we will reach out promptly to ensure we can set you up for success with SmithDB.
   enabled: false
   # -- LangSmith configuration for SmithDB.
   langsmith:
@@ -1272,18 +1256,6 @@ smithdb:
       passwordSecretKey: ""
       port: "5432"
       useSsl: false
-    observability:
-      logging:
-        # -- Optional SmithDB log filter. Empty uses the chart default: INFO,vortex=WARN.
-        level: ""
-      tracing:
-        # -- Enable OpenTelemetry tracing/log export for SmithDB components.
-        # SmithDB supports exporting OTLP over gRPC only.
-        enabled: false
-        # -- OTLP gRPC collector endpoint for SmithDB traces/logs.
-        endpoint: ""
-        # -- Extra OpenTelemetry resource attributes appended to SmithDB traces/logs.
-        extraResourceAttributes: {}
     objectStore:
       # -- Supported values: s3, gcs.
       type: "s3"
@@ -1473,11 +1445,11 @@ smithdb:
       securityContext: {}
       resources:
         requests:
-          cpu: "500m"
-          memory: "1Gi"
+          cpu: "2"
+          memory: "4Gi"
         limits:
-          cpu: "500m"
-          memory: "1Gi"
+          cpu: "2"
+          memory: "4Gi"
       probes:
         startupProbe:
           httpGet:
@@ -1907,6 +1879,39 @@ backend:
     volumeMounts: []
     # You can set this to null to disable the TTL for the migrations job. Useful for some deployment setups.
     ttlSecondsAfterFinished: 600
+  # Pre-upgrade check that blocks an upgrade if any asynq backfill jobs are
+  # still running.  Runs as a Helm pre-upgrade hook (ArgoCD PreSync) so that
+  # it executes BEFORE Alembic migrations on every upgrade attempt.
+  # Set enabled: false only if you need to bypass the check entirely.
+  backfillCheck:
+    enabled: true
+    # Helpful when running using helm template to avoid the job name conflict
+    randomizeName: false
+    labels: {}
+    annotations: {}
+    podSecurityContext: {}
+    securityContext: {}
+    resources:
+      limits:
+        cpu: 500m
+        memory: 512Mi
+      requests:
+        cpu: 100m
+        memory: 256Mi
+    command:
+      - "./backfill_check_entrypoint.sh"
+    extraContainerConfig: {}
+    extraEnv: []
+    sidecars: []
+    initContainers: []
+    nodeSelector: {}
+    tolerations: []
+    topologySpreadConstraints: []
+    affinity: {}
+    volumes: []
+    volumeMounts: []
+    # You can set this to null to disable the TTL for the backfill check job.
+    ttlSecondsAfterFinished: 600
   authBootstrap:
     # Helpful when running using helm template to avoid the job name conflict
     randomizeName: false
@@ -2040,39 +2045,6 @@ backend:
     volumes: []
     volumeMounts: []
     ttlSecondsAfterFinished: 10
-
-  # DEPRECATED: the agentBootstrap flow (and the config.agentBuilder /
-  # config.insights / config.polly bundled-agent blocks it manages) is being
-  # phased out. New deployments should use the top-level fleet, insights, and
-  # polly blocks instead, which run as standard Helm-managed Deployments.
-  # These keys remain for backwards compatibility and may be removed in a
-  # future chart version.
-  agentBootstrap:
-    enabled: false
-    randomizeName: false
-    serviceAccount:
-      create: true
-      name: ""
-      labels: {}
-      annotations: {}
-      automountServiceAccountToken: true
-    labels: {}
-    annotations: {}
-    podSecurityContext: {}
-    securityContext: {}
-    resources:
-      limits:
-        cpu: 500m
-        memory: 512Mi
-      requests:
-        cpu: 100m
-        memory: 256Mi
-    extraEnv: []
-    nodeSelector: {}
-    tolerations: []
-    topologySpreadConstraints: []
-    affinity: {}
-    ttlSecondsAfterFinished: 600
 
 clickhouse:
   # -- Enable ClickHouse for ingestion and queries. Keep enabled when using external ClickHouse.
@@ -2363,7 +2335,7 @@ hostBackend:
         cpu: 200m
         memory: 1000Mi
     command:
-      - "./entrypoint.sh"
+      - "host_backend_entrypoint.sh"
     startupProbe:
       httpGet:
         path: /ok
@@ -2474,6 +2446,7 @@ listener:
         cpu: 1000m
         memory: 2Gi
     command:
+      - "host_backend_entrypoint.sh"
       - "./listener_entrypoint.sh"
     startupProbe:
       httpGet:
@@ -2585,7 +2558,7 @@ platformBackend:
         cpu: 1000m
         memory: 2Gi
     command:
-      - "./entrypoint.sh"
+      - "smith_go_entrypoint.sh"
     startupProbe:
       httpGet:
         path: /ok
@@ -2882,7 +2855,7 @@ playground:
         cpu: 500m
         memory: 1Gi
     command:
-      - "./entrypoint.sh"
+      - "smith_playground_entrypoint.sh"
     startupProbe:
       httpGet:
         path: /ok
@@ -3206,7 +3179,7 @@ ingestQueue:
         cpu: 1000m
         memory: 2Gi
     command:
-      - "./asynq_worker_entrypoint.sh"
+      - "asynq_worker_entrypoint.sh"
     startupProbe:
       httpGet:
         path: /health
@@ -3402,6 +3375,8 @@ fleetToolServer:
   name: "fleet-tool-server"
   containerPort: 1989
   deployment:
+    command:
+      - "agent_builder_tool_server_entrypoint.sh"
     replicas: 1
     labels: {}
     annotations: {}
@@ -3480,6 +3455,8 @@ fleetTriggerServer:
   name: "fleet-trigger-server"
   containerPort: 1990
   deployment:
+    command:
+      - "agent_builder_trigger_server_entrypoint.sh"
     labels: {}
     annotations: {}
     podSecurityContext: {}
@@ -3559,7 +3536,7 @@ agentGateway:
         cpu: 100m
         memory: 256Mi
     command:
-      - "./agent_gateway_entrypoint.sh"
+      - "agent_gateway_entrypoint.sh"
     startupProbe:
       httpGet:
         path: /health
