@@ -395,10 +395,14 @@ engine:
   enabled: false
   intelligenceBaseUrl: ""
   encryptionKey: ""
+  # Prior key, accepted for decryption only, so encryptionKey can be rotated
+  # without failing runs encrypted just before the swap.
+  encryptionKeyPrevious: ""
 
 insights:
   enabled: true
   encryptionKey: ""
+  encryptionKeyPrevious: ""
 
 # Shared deployment for the Engine and Insights agents: one image serving both
 # graphs. Rendered when either insights.enabled or engine.enabled is true.
