@@ -1,0 +1,78 @@
+# Reference values for a stable SmithDB-only LangSmith deployment.
+#
+# Backend layout:
+#   - ClickHouse fully disabled (no ingestion, no query, no in-chart StatefulSet).
+#   - SmithDB is the sole ingestion and query backend.
+#
+# Feature-flag intent mirrors the "stable-smithdb" column of the internal
+# rollout matrix. Only flags that differ from the LangSmith app code defaults
+# are set here; anything matching the code default is intentionally omitted.
+#
+# Placeholders that operators MUST replace:
+#   - smithdb.config.existingSecretName -> your metastore secret
+#   - smithdb.config.objectStore.bucket -> your S3 (or GCS) bucket
+#
+# Render with:
+#   helm template <rel> charts/langsmith \
+#     -f <your-base-values.yaml> \
+#     -f charts/langsmith/examples/stable_smithdb.yaml
+
+clickhouse:
+  enabled: false
+
+smithdb:
+  enabled: true
+  langsmith:
+    ingestion:
+      enabled: true
+    query:
+      enabled: true
+  config:
+    existingSecretName: smithdb-metastore
+    metastore:
+      hostSecretKey: smithdb_metastore_db_host
+      databaseSecretKey: smithdb_metastore_db_name
+      usernameSecretKey: smithdb_metastore_db_username
+      passwordSecretKey: smithdb_metastore_db_password
+    objectStore:
+      type: s3
+      bucket: SMITHDB_BUCKET
+
+# Feature-flag envs the chart does not natively expose. Injected into each
+# LangSmith app service's Deployment via .deployment.extraEnv. The same set is
+# applied to every service that reads these flags at runtime; SmithDB workloads
+# do not need them (they read their own SMITHDB_* config).
+_smithdbFeatureFlags: &smithdbFeatureFlags
+  - name: SMITHDB_QUERY_SERVICE_MAX_CALL_RECV_MSG_SIZE
+    value: "1073741824"
+  - name: SMITHDB_FEEDBACK_MUTATION_RPS_PER_KEY
+    value: "100"
+  - name: SMITHDB_FEEDBACK_MUTATION_BURST_PER_KEY
+    value: "150"
+  - name: SMITHDB_RULES_REDIS_READ_ENABLED
+    value: "true"
+  - name: SMITHDB_RULES_THREAD_REDIS_READ_ENABLED
+    value: "true"
+  - name: RUN_RULES_SMITHDB_RETRIEVER_TENANTS
+    value: '["*"]'
+  - name: RUN_RULES_SMITHDB_RETRIEVER_PCT
+    value: "100"
+  - name: RUN_RULES_SMITHDB_THREAD_RETRIEVER_TENANTS
+    value: '["*"]'
+  - name: RUN_RULES_SMITHDB_THREAD_RETRIEVER_PCT
+    value: "100"
+  - name: RUN_RULES_TWO_POINTER_BACKFILL_TENANTS
+    value: '["*"]'
+
+backend:
+  deployment:
+    extraEnv: *smithdbFeatureFlags
+hostBackend:
+  deployment:
+    extraEnv: *smithdbFeatureFlags
+queue:
+  deployment:
+    extraEnv: *smithdbFeatureFlags
+ingestQueue:
+  deployment:
+    extraEnv: *smithdbFeatureFlags
