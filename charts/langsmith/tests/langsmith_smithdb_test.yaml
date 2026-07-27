@@ -109,12 +109,13 @@ tests:
               resourceFieldRef:
                 resource: limits.memory
 
-  - it: should configure the SmithDB OTLP gRPC exporter when tracing is enabled
+  - it: should derive the plaintext SmithDB OTLP endpoint from chart-level tracing
     values:
       - ./values/smithdb-enabled.yaml
     set:
       config.observability.tracing.enabled: true
-      config.observability.tracing.endpoint: http://default-otel-collector:4317
+      config.observability.tracing.endpoint: default-otel-collector:4317
+      config.observability.tracing.useTls: false
       config.observability.tracing.exporter: grpc
     template: smithdb/query-deployment.yaml
     asserts:
@@ -143,6 +144,51 @@ tests:
           content:
             name: OTEL_RESOURCE_ATTRIBUTES
             value: pod_name=$(POD_NAME),k8s.pod.name=$(POD_NAME),container_name=$(CONTAINER_NAME),k8s.container.name=$(CONTAINER_NAME)
+
+  - it: should preserve the bare endpoint for LangSmith services
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      config.observability.tracing.enabled: true
+      config.observability.tracing.endpoint: default-otel-collector:4317
+      config.observability.tracing.useTls: false
+      config.observability.tracing.exporter: grpc
+    template: config-map.yaml
+    asserts:
+      - equal:
+          path: data.OTLP_ENDPOINT
+          value: default-otel-collector:4317
+
+  - it: should derive the TLS SmithDB OTLP endpoint from chart-level tracing
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      config.observability.tracing.enabled: true
+      config.observability.tracing.endpoint: secure-otel-collector:4317
+      config.observability.tracing.useTls: true
+      config.observability.tracing.exporter: grpc
+    template: smithdb/query-deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_QUERY__LOGGING__TRACING_ENABLED
+            value: "true"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_QUERY__LOGGING__FORMAT
+            value: opentelemetry
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: OTEL_EXPORTER_OTLP_ENDPOINT
+            value: https://secure-otel-collector:4317
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: OTEL_EXPORTER_OTLP_PROTOCOL
+            value: grpc
 
   - it: should keep SmithDB tracing disabled when chart-level tracing is disabled
     values:
