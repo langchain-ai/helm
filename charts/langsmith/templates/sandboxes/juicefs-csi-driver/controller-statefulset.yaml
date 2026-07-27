@@ -1,0 +1,153 @@
+{{- if .Values.config.sandboxes.enabled }}
+{{- $namespace := .Values.namespace | default .Release.Namespace }}
+{{- $mountImage := include "langsmith.optionalImage" (dict "Values" .Values "Chart" .Chart "component" "juicefsMountImage") }}
+{{- $controllerAnnotations := .Values.config.sandboxes.juicefs.csi.controller.annotations }}
+{{- $podAnnotations := mergeOverwrite (dict) (default dict .Values.commonPodAnnotations) $controllerAnnotations }}
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: juicefs-csi-controller
+  namespace: {{ $namespace | quote }}
+  labels:
+    app: juicefs-csi-controller
+    app.kubernetes.io/component: controller
+    {{- include "langsmith.sandboxes.juicefsCSILabels" . | nindent 4 }}
+  {{- with $controllerAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: juicefs-csi-controller
+      {{- include "langsmith.sandboxes.juicefsCSISelectorLabels" . | nindent 6 }}
+  serviceName: juicefs-csi-controller
+  template:
+    metadata:
+      labels:
+        app: juicefs-csi-controller
+        {{- include "langsmith.sandboxes.juicefsCSISelectorLabels" . | nindent 8 }}
+      annotations:
+        checksum/juicefs-csi-config: {{ include "langsmith.sandboxes.juicefsCSIConfigSecretChecksum" . | quote }}
+        checksum/juicefs-csi-driver-config: {{ include "langsmith.sandboxes.juicefsCSIDriverConfigChecksum" . | quote }}
+        {{- with $podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      {{- with .Values.images.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: juicefs-plugin
+          image: {{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "juicefsCSIImage") | quote }}
+          imagePullPolicy: {{ .Values.images.juicefsCSIImage.pullPolicy }}
+          args:
+            - --endpoint=$(CSI_ENDPOINT)
+            - --logtostderr
+            - --nodeid=$(NODE_NAME)
+            - --leader-election
+            # Sandboxes use chart-managed static PVs/PVCs, so the built-in dynamic provisioner is intentionally not enabled.
+            # Intentionally no --cache-client-conf=true: sandboxes use a static JuiceFS CE metaurl Secret, and enabling the optional refresh controllers would require broader Secret and pod exec RBAC.
+            - --config=/etc/config/config.yaml
+          env:
+            - name: CSI_ENDPOINT
+              value: unix:///var/lib/csi/sockets/pluginproxy/csi.sock
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+            - name: JUICEFS_MOUNT_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: JUICEFS_MOUNT_PATH
+              value: /var/lib/juicefs/volume
+            - name: JUICEFS_CONFIG_PATH
+              value: /var/lib/juicefs/config
+            {{- if $mountImage }}
+            - name: JUICEFS_CE_MOUNT_IMAGE
+              value: {{ $mountImage | quote }}
+            {{- end }}
+            - name: JUICEFS_CSI_WEB_PORT
+              value: "9567"
+            - name: DRIVER_NAME
+              value: {{ include "langsmith.sandboxes.juicefsCSIDriverName" . | quote }}
+            - name: PROVISION_WORKER_THREADS
+              value: "100"
+          # CSI ProbeRequest is an empty protobuf message; call it directly over the plugin socket.
+          livenessProbe:
+            failureThreshold: 5
+            exec:
+              command:
+                - /bin/sh
+                - -ec
+                - >-
+                  printf '\000\000\000\000\000' |
+                  curl --silent --show-error --max-time 1
+                  --http2-prior-knowledge
+                  --unix-socket /var/lib/csi/sockets/pluginproxy/csi.sock
+                  -H 'Content-Type: application/grpc'
+                  -H 'TE: trailers'
+                  --data-binary @-
+                  --dump-header -
+                  --output /dev/null
+                  http://localhost/csi.v1.Identity/Probe |
+                  grep -q '^grpc-status: 0'
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 3
+          resources:
+            limits:
+              cpu: 1000m
+              memory: 1Gi
+            requests:
+              cpu: 100m
+              memory: 512Mi
+          ports:
+            - containerPort: 9567
+              name: metrics
+              protocol: TCP
+          securityContext:
+            capabilities:
+              add:
+                - SYS_ADMIN
+            allowPrivilegeEscalation: true
+            privileged: true
+            runAsNonRoot: false
+          volumeMounts:
+            - mountPath: /var/lib/csi/sockets/pluginproxy/
+              name: socket-dir
+            - mountPath: /jfs
+              mountPropagation: Bidirectional
+              name: jfs-dir
+            - mountPath: /root/.juicefs
+              mountPropagation: Bidirectional
+              name: jfs-root-dir
+            - mountPath: /etc/config
+              name: juicefs-config
+      priorityClassName: system-cluster-critical
+      tolerations:
+        - key: CriticalAddonsOnly
+          operator: Exists
+      serviceAccountName: {{ include "langsmith.sandboxes.juicefsCSIControllerServiceAccountName" . }}
+      volumes:
+        - emptyDir: {}
+          name: socket-dir
+        - hostPath:
+            path: /var/lib/juicefs/volume
+            type: DirectoryOrCreate
+          name: jfs-dir
+        - hostPath:
+            path: /var/lib/juicefs/config
+            type: DirectoryOrCreate
+          name: jfs-root-dir
+        - name: juicefs-config
+          configMap:
+            name: {{ include "langsmith.sandboxes.juicefsCSIConfigMapName" . }}
+{{- end }}

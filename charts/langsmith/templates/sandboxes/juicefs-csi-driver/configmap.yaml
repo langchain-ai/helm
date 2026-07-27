@@ -1,0 +1,17 @@
+{{- if .Values.config.sandboxes.enabled }}
+{{- $namespace := .Values.namespace | default .Release.Namespace }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "langsmith.sandboxes.juicefsCSIConfigMapName" . }}
+  namespace: {{ $namespace | quote }}
+  labels:
+    app.kubernetes.io/component: config
+    {{- include "langsmith.sandboxes.juicefsCSILabels" . | nindent 4 }}
+  annotations:
+    helm.sh/resource-policy: keep
+    {{- include "langsmith.sandboxes.juicefsCSIAnnotations" . | nindent 4 }}
+data:
+  config.yaml: |-
+{{ include "langsmith.sandboxes.juicefsCSIDriverConfig" . | indent 4 }}
+{{- end }}

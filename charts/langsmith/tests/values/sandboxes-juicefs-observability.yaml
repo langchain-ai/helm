@@ -1,0 +1,26 @@
+config:
+  sandboxes:
+    juicefs:
+      csi:
+        controller:
+          annotations:
+            prometheus.io/scrape: "true"
+            prometheus.io/path: /metrics
+            prometheus.io/port: "9567"
+        node:
+          annotations:
+            prometheus.io/scrape: "true"
+            prometheus.io/path: /metrics
+            prometheus.io/port: "9567"
+        mountPodPatch:
+          - labels:
+              admission.datadoghq.com/enabled: "false"
+            annotations:
+              ad.datadoghq.com/juicefs.logs: '[{"source":"juicefs","service":"juicefs-mount"}]'
+              prometheus.io/scrape: "true"
+              prometheus.io/path: /metrics
+              prometheus.io/port: "9567"
+            mountOptions:
+              - cache-dir=/var/cache/juicefs-csi
+              - cache-size=51200
+              - metrics=0.0.0.0:9567
