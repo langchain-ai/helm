@@ -1,6 +1,11 @@
 {{- define "agentGatewayEnvVars" -}}
 - name: PORT
   value: {{ .Values.agentGateway.containerPort | quote }}
+# The gateway resolves frontend bearer tokens against the auth service. It
+# reads AUTH_ENDPOINT (not LANGSMITH_AUTH_ENDPOINT) and panics at startup if
+# it is unset for any authType other than "none".
+- name: AUTH_ENDPOINT
+  value: "http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.platformBackend.service.port }}"
 {{- if .Values.presidioAnalyzer.enabled }}
 - name: PRESIDIO_ANALYZER_URL
   value: "http://{{ include "langsmith.fullname" . }}-{{ .Values.presidioAnalyzer.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.presidioAnalyzer.service.port }}"
