@@ -1640,6 +1640,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 |-----|------|---------|-------------|
 | clickhouse.config.allowSimdjson | bool | `true` |  |
 | clickhouse.config.logLevel | string | `"warning"` |  |
+| clickhouse.config.systemLogTtlDays | int | `30` |  |
 | clickhouse.containerHttpPort | int | `8123` |  |
 | clickhouse.containerNativePort | int | `9000` |  |
 | clickhouse.disableSecretCreation | bool | `false` |  |
@@ -1726,6 +1727,16 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | clickhouse.statefulSet.updateStrategy | object | `{}` | Leave unset to keep the Kubernetes default RollingUpdate behavior. |
 | clickhouse.statefulSet.volumeMounts | list | `[]` |  |
 | clickhouse.statefulSet.volumes | list | `[]` |  |
+| clickhouse.systemLogTtlJob.affinity | object | `{}` |  |
+| clickhouse.systemLogTtlJob.annotations | object | `{}` |  |
+| clickhouse.systemLogTtlJob.labels | object | `{}` |  |
+| clickhouse.systemLogTtlJob.nodeSelector | object | `{}` |  |
+| clickhouse.systemLogTtlJob.resources.limits.cpu | string | `"200m"` |  |
+| clickhouse.systemLogTtlJob.resources.limits.memory | string | `"256Mi"` |  |
+| clickhouse.systemLogTtlJob.resources.requests.cpu | string | `"50m"` |  |
+| clickhouse.systemLogTtlJob.resources.requests.memory | string | `"128Mi"` |  |
+| clickhouse.systemLogTtlJob.tolerations | list | `[]` |  |
+| clickhouse.systemLogTtlJob.ttlSecondsAfterFinished | int | `600` |  |
 
 ## E2E Test
 

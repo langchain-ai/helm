@@ -67,4 +67,21 @@ data:
         <errors>true</errors>
       </prometheus>
     </clickhouse>
+{{- if .Values.clickhouse.config.systemLogTtlDays }}
+
+  system_logs.xml: |
+    <clickhouse>
+      {{- /* ClickHouse never expires its own log tables by default, so they grow
+             without bound until they fill the volume. */}}
+      {{- range $log := list "asynchronous_insert_log" "asynchronous_metric_log" "backup_log" "background_schedule_pool_log" "blob_storage_log" "error_log" "latency_log" "metric_log" "part_log" "processors_profile_log" "query_log" "query_metric_log" "query_thread_log" "query_views_log" "text_log" "trace_log" }}
+      <{{ $log }}>
+        <ttl>event_date + INTERVAL {{ $.Values.clickhouse.config.systemLogTtlDays }} DAY DELETE</ttl>
+      </{{ $log }}>
+      {{- end }}
+      {{- /* opentelemetry_span_log has no event_date column; it dates on finish_date. */}}
+      <opentelemetry_span_log>
+        <ttl>finish_date + INTERVAL {{ .Values.clickhouse.config.systemLogTtlDays }} DAY DELETE</ttl>
+      </opentelemetry_span_log>
+    </clickhouse>
+{{- end }}
 {{- end }}
