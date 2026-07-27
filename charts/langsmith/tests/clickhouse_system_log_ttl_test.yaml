@@ -1,0 +1,95 @@
+suite: ClickHouse system log TTL
+templates:
+  - clickhouse/config-map.yaml
+  - clickhouse/system-log-ttl-job.yaml
+  - clickhouse/stateful-set.yaml
+tests:
+  - it: renders system_logs.xml with the configured retention
+    template: clickhouse/config-map.yaml
+    asserts:
+      - matchRegex:
+          path: data["system_logs.xml"]
+          pattern: "<query_log>\\s*<ttl>event_date \\+ INTERVAL 30 DAY DELETE</ttl>"
+
+  # ClickHouse ships an <engine> for this table and refuses to start if <ttl> is
+  # set alongside it, so the TTL has to live inside the engine spec.
+  - it: folds the TTL into the opentelemetry_span_log engine, dating on finish_date
+    template: clickhouse/config-map.yaml
+    asserts:
+      - matchRegex:
+          path: data["system_logs.xml"]
+          pattern: "<opentelemetry_span_log>\\s*<engine>"
+      - matchRegex:
+          path: data["system_logs.xml"]
+          pattern: "ttl finish_date \\+ INTERVAL 30 DAY DELETE\\s*</engine>"
+      - matchRegex:
+          path: data["system_logs.xml"]
+          pattern: "partition by toYYYYMM\\(finish_date\\)"
+      - notMatchRegex:
+          path: data["system_logs.xml"]
+          pattern: "<opentelemetry_span_log>\\s*<ttl>"
+
+  - it: honours a custom retention
+    template: clickhouse/config-map.yaml
+    set:
+      clickhouse.config.systemLogTtlDays: 7
+    asserts:
+      - matchRegex:
+          path: data["system_logs.xml"]
+          pattern: "<ttl>event_date \\+ INTERVAL 7 DAY DELETE</ttl>"
+
+  - it: omits system_logs.xml when retention is unset
+    template: clickhouse/config-map.yaml
+    set:
+      clickhouse.config.systemLogTtlDays: 0
+    asserts:
+      - notExists:
+          path: data["system_logs.xml"]
+
+  - it: mounts system_logs.xml into the ClickHouse container
+    template: clickhouse/stateful-set.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].volumeMounts
+          content:
+            mountPath: /etc/clickhouse-server/config.d/system_logs.xml
+            name: clickhouse-conf
+            subPath: system_logs.xml
+
+  - it: does not mount system_logs.xml when retention is unset
+    template: clickhouse/stateful-set.yaml
+    set:
+      clickhouse.config.systemLogTtlDays: 0
+    asserts:
+      - notContains:
+          path: spec.template.spec.containers[0].volumeMounts
+          content:
+            mountPath: /etc/clickhouse-server/config.d/system_logs.xml
+            name: clickhouse-conf
+            subPath: system_logs.xml
+
+  - it: renders the retroactive TTL job as a post-install/post-upgrade hook
+    template: clickhouse/system-log-ttl-job.yaml
+    asserts:
+      - equal:
+          path: metadata.annotations["helm.sh/hook"]
+          value: post-install, post-upgrade
+      - equal:
+          path: spec.template.spec.containers[0].env[4].value
+          value: "30"
+
+  - it: omits the retroactive TTL job when retention is unset
+    template: clickhouse/system-log-ttl-job.yaml
+    set:
+      clickhouse.config.systemLogTtlDays: 0
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: omits the retroactive TTL job when clickhouse is disabled
+    template: clickhouse/system-log-ttl-job.yaml
+    set:
+      clickhouse.enabled: false
+    asserts:
+      - hasDocuments:
+          count: 0

@@ -2081,6 +2081,27 @@ clickhouse:
   config:
     allowSimdjson: true
     logLevel: "warning"
+    # Retention for ClickHouse's own system.*_log tables. ClickHouse does not
+    # expire them by default, so they grow until they fill the data volume.
+    # Applied to new tables via server config and to existing tables by the
+    # systemLogTtlJob below. Set to 0/null to leave retention unmanaged.
+    systemLogTtlDays: 30
+  # Post-install/upgrade Job that applies systemLogTtlDays to system log tables
+  # that already exist. It never fails the release.
+  systemLogTtlJob:
+    ttlSecondsAfterFinished: 600
+    labels: {}
+    annotations: {}
+    nodeSelector: {}
+    tolerations: []
+    affinity: {}
+    resources:
+      limits:
+        cpu: 200m
+        memory: 256Mi
+      requests:
+        cpu: 50m
+        memory: 128Mi
   external:
     # If enabled, use the following values to connect to an external database. This will also disable the
     # creation of a clickhouse stateful-set and service.

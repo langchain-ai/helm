@@ -1,0 +1,110 @@
+{{- if and .Values.clickhouse.enabled .Values.clickhouse.config.systemLogTtlDays }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "langsmith.fullname" . }}-{{ .Values.clickhouse.name }}-log-ttl
+  namespace: {{ .Values.namespace | default .Release.Namespace }}
+  labels:
+    {{- include "langsmith.labels" . | nindent 4 }}
+    {{- with .Values.clickhouse.systemLogTtlJob.labels }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+  annotations:
+    # Runs after ClickHouse is serving. The server-side <ttl> config only takes
+    # effect for tables ClickHouse creates, so tables that already exist keep
+    # growing forever. This applies the same TTL to them retroactively.
+    "helm.sh/hook": post-install, post-upgrade
+    "helm.sh/hook-delete-policy": before-hook-creation
+    "argocd.argoproj.io/hook": "PostSync"
+    "argocd.argoproj.io/hook-delete-policy": "BeforeHookCreation"
+    {{- include "langsmith.annotations" . | nindent 4 }}
+    {{- with .Values.clickhouse.systemLogTtlJob.annotations }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  backoffLimit: 1
+  ttlSecondsAfterFinished: {{ .Values.clickhouse.systemLogTtlJob.ttlSecondsAfterFinished }}
+  template:
+    metadata:
+      labels:
+        {{- with .Values.clickhouse.systemLogTtlJob.labels }}
+            {{- toYaml . | nindent 8 }}
+        {{- end }}
+        {{- include "langsmith.labels" . | nindent 8 }}
+        app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-{{ .Values.clickhouse.name }}-log-ttl
+    spec:
+      restartPolicy: Never
+      {{- with .Values.images.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: log-ttl
+          image: {{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "clickhouseImage") | quote }}
+          imagePullPolicy: {{ .Values.images.clickhouseImage.pullPolicy }}
+          env:
+            - name: CLICKHOUSE_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "langsmith.clickhouseSecretsName" . }}
+                  key: clickhouse_host
+            - name: CLICKHOUSE_PORT
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "langsmith.clickhouseSecretsName" . }}
+                  key: clickhouse_native_port
+            - name: CLICKHOUSE_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "langsmith.clickhouseSecretsName" . }}
+                  key: clickhouse_user
+            - name: CLICKHOUSE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "langsmith.clickhouseSecretsName" . }}
+                  key: clickhouse_password
+            - name: TTL_DAYS
+              value: {{ .Values.clickhouse.config.systemLogTtlDays | quote }}
+          resources:
+            {{- toYaml .Values.clickhouse.systemLogTtlJob.resources | nindent 12 }}
+          command:
+            - /bin/bash
+            - -c
+            - |
+              # Deliberately never fails the release. A TTL that did not apply is
+              # a disk-space problem to chase later, not a reason to block an
+              # upgrade or leave the release in a failed state.
+              set -u
+              ch() {
+                clickhouse-client --host "$CLICKHOUSE_HOST" --port "$CLICKHOUSE_PORT" \
+                  --user "$CLICKHOUSE_USER" --password "$CLICKHOUSE_PASSWORD" "$@"
+              }
+              tables=$(ch --query "SELECT name FROM system.tables WHERE database='system' AND engine LIKE '%MergeTree' AND match(name, '_log\$') FORMAT TabSeparated" 2>/dev/null)
+              if [ -z "$tables" ]; then
+                echo "no system log tables found (ClickHouse unreachable or none present); nothing to do"
+                exit 0
+              fi
+              for t in $tables; do
+                # opentelemetry_span_log has no event_date column; it dates on finish_date.
+                col=event_date
+                [ "$t" = "opentelemetry_span_log" ] && col=finish_date
+                if ch --query "ALTER TABLE system.\`$t\` MODIFY TTL ${col} + INTERVAL ${TTL_DAYS} DAY DELETE" >/dev/null 2>&1; then
+                  echo "ttl applied: system.$t (${col} + ${TTL_DAYS}d)"
+                else
+                  echo "ttl skipped: system.$t"
+                fi
+              done
+              exit 0
+      {{- with .Values.clickhouse.systemLogTtlJob.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.clickhouse.systemLogTtlJob.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.clickhouse.systemLogTtlJob.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}
