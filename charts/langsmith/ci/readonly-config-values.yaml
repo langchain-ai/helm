@@ -120,6 +120,8 @@ fleet:
 insights:
   enabled: true
   encryptionKey: "rQ3qW2rSXP6YZF9N_O0Nga4GkQcW9a9tzFXAtJDVEJo="
+
+engineInsightsAgent:
   apiServer:
     deployment:
       resources:

@@ -70,12 +70,11 @@ images:
     repository: "docker.io/langchain/langsmith-backend"
     pullPolicy: IfNotPresent
     tag: "0.16.21rc1"
-  insightsAgentImage:
+  # Image for the shared Engine/Insights agent deployment. When engine.enabled
+  # is true this must point at the combined insights-engine image, which serves
+  # both the `insights` and `engine` graphs.
+  engineInsightsAgentImage:
     repository: "docker.io/langchain/langsmith-clio"
-    pullPolicy: IfNotPresent
-    tag: "0.16.21rc1"
-  insightsEngineImage:
-    repository: "docker.io/langchain/langsmith-insights-engine"
     pullPolicy: IfNotPresent
     tag: "0.16.21rc1"
   frontendImage:
@@ -398,8 +397,12 @@ engine:
 
 insights:
   enabled: true
-  namePrefix: "standalone-insights"
   encryptionKey: ""
+
+# Shared deployment for the Engine and Insights agents: one image serving both
+# graphs. Rendered when either insights.enabled or engine.enabled is true.
+engineInsightsAgent:
+  namePrefix: "standalone-insights"
   apiServer:
     name: "api-server"
     containerPort: 8000

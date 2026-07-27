@@ -1,44 +1,44 @@
-{{- if .Values.insights.enabled }}
-{{- $envVars := concat .Values.commonEnv (include "langsmith.commonEnv" . | fromYamlArray) (include "langsmith.insights.extraEnv" (dict "root" . "component" "apiServer") | fromYamlArray) .Values.insights.apiServer.deployment.extraEnv -}}
+{{- if or .Values.insights.enabled .Values.engine.enabled }}
+{{- $envVars := concat .Values.commonEnv (include "langsmith.commonEnv" . | fromYamlArray) (include "langsmith.insights.extraEnv" (dict "root" . "component" "apiServer") | fromYamlArray) .Values.engineInsightsAgent.apiServer.deployment.extraEnv -}}
 {{- include "langsmith.detectDuplicates" $envVars -}}
-{{- $volumes := concat .Values.commonVolumes .Values.insights.apiServer.deployment.volumes (include "langsmith.tlsVolumes" . | fromYamlArray) -}}
-{{- $volumeMounts := concat .Values.commonVolumeMounts .Values.insights.apiServer.deployment.volumeMounts (include "langsmith.tlsVolumeMounts" . | fromYamlArray) -}}
+{{- $volumes := concat .Values.commonVolumes .Values.engineInsightsAgent.apiServer.deployment.volumes (include "langsmith.tlsVolumes" . | fromYamlArray) -}}
+{{- $volumeMounts := concat .Values.commonVolumeMounts .Values.engineInsightsAgent.apiServer.deployment.volumeMounts (include "langsmith.tlsVolumeMounts" . | fromYamlArray) -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "langsmith.agentFeatures.fullname" (dict "root" . "product" "insights") }}-{{ .Values.insights.apiServer.name }}
+  name: {{ include "langsmith.agentFeatures.fullname" (dict "root" . "product" "engineInsightsAgent") }}-{{ .Values.engineInsightsAgent.apiServer.name }}
   namespace: {{ .Values.namespace | default .Release.Namespace | quote }}
   labels:
     {{- include "langsmith.labels" . | nindent 4 }}
-    {{- with .Values.insights.apiServer.deployment.labels }}
+    {{- with .Values.engineInsightsAgent.apiServer.deployment.labels }}
       {{- toYaml . | nindent 4 }}
     {{- end }}
   annotations:
     {{- include "langsmith.annotations" . | nindent 4 }}
-    {{- with .Values.insights.apiServer.deployment.annotations }}
+    {{- with .Values.engineInsightsAgent.apiServer.deployment.annotations }}
       {{- toYaml . | nindent 4 }}
     {{- end }}
 spec:
-  {{- if not .Values.insights.apiServer.autoscaling.enabled }}
-  replicas: {{ .Values.insights.apiServer.deployment.replicaCount }}
+  {{- if not .Values.engineInsightsAgent.apiServer.autoscaling.enabled }}
+  replicas: {{ .Values.engineInsightsAgent.apiServer.deployment.replicaCount }}
   {{- end }}
   selector:
     matchLabels:
       {{- include "langsmith.selectorLabels" . | nindent 6 }}
-      app.kubernetes.io/component: {{ include "langsmith.agentFeatures.fullname" (dict "root" . "product" "insights") }}-{{ .Values.insights.apiServer.name }}
+      app.kubernetes.io/component: {{ include "langsmith.agentFeatures.fullname" (dict "root" . "product" "engineInsightsAgent") }}-{{ .Values.engineInsightsAgent.apiServer.name }}
   template:
     metadata:
       annotations:
       {{- include "langsmith.commonPodAnnotations" . | nindent 8 }}
-      {{- with .Values.insights.apiServer.deployment.annotations }}
+      {{- with .Values.engineInsightsAgent.apiServer.deployment.annotations }}
         {{- toYaml . | nindent 8 }}
       {{- end }}
       labels:
-        {{- with .Values.insights.apiServer.deployment.labels }}
+        {{- with .Values.engineInsightsAgent.apiServer.deployment.labels }}
             {{- toYaml . | nindent 8 }}
         {{- end }}
         {{- include "langsmith.labels" . | nindent 8 }}
-        app.kubernetes.io/component: {{ include "langsmith.agentFeatures.fullname" (dict "root" . "product" "insights") }}-{{ .Values.insights.apiServer.name }}
+        app.kubernetes.io/component: {{ include "langsmith.agentFeatures.fullname" (dict "root" . "product" "engineInsightsAgent") }}-{{ .Values.engineInsightsAgent.apiServer.name }}
     spec:
       serviceAccountName: {{ include "insightsApiServer.serviceAccountName" . }}
       {{- include "langsmith.dnsConfig" . | nindent 6 }}
@@ -46,19 +46,19 @@ spec:
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- if .Values.insights.apiServer.deployment.priorityClassName }}
-      priorityClassName: {{ .Values.insights.apiServer.deployment.priorityClassName }}
+      {{- if .Values.engineInsightsAgent.apiServer.deployment.priorityClassName }}
+      priorityClassName: {{ .Values.engineInsightsAgent.apiServer.deployment.priorityClassName }}
       {{- end }}
-      terminationGracePeriodSeconds: {{ .Values.insights.apiServer.deployment.terminationGracePeriodSeconds }}
+      terminationGracePeriodSeconds: {{ .Values.engineInsightsAgent.apiServer.deployment.terminationGracePeriodSeconds }}
       securityContext:
-        {{- merge .Values.insights.apiServer.deployment.podSecurityContext (.Values.commonPodSecurityContext | default dict) | toYaml | nindent 8 }}
-      {{- $initContainers := concat (.Values.commonInitContainers | default list) (.Values.insights.apiServer.deployment.initContainers | default list) }}
+        {{- merge .Values.engineInsightsAgent.apiServer.deployment.podSecurityContext (.Values.commonPodSecurityContext | default dict) | toYaml | nindent 8 }}
+      {{- $initContainers := concat (.Values.commonInitContainers | default list) (.Values.engineInsightsAgent.apiServer.deployment.initContainers | default list) }}
       {{- with $initContainers }}
       initContainers:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       containers:
-        - name: {{ .Values.insights.apiServer.name }}
+        - name: {{ .Values.engineInsightsAgent.apiServer.name }}
           env:
             {{- with $envVars }}
               {{- toYaml . | nindent 12 }}
@@ -66,27 +66,26 @@ spec:
           envFrom:
             - configMapRef:
                 name: {{ include "langsmith.fullname" . }}-config
-            {{- with .Values.insights.apiServer.deployment.envFrom }}
+            {{- with .Values.engineInsightsAgent.apiServer.deployment.envFrom }}
               {{- toYaml . | nindent 12 }}
             {{- end }}
-          {{- $imgComponent := ternary "insightsEngineImage" "insightsAgentImage" .Values.engine.enabled }}
-          image: {{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" $imgComponent) | quote }}
-          imagePullPolicy: {{ (index .Values.images $imgComponent).pullPolicy }}
+          image: {{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "engineInsightsAgentImage") | quote }}
+          imagePullPolicy: {{ .Values.images.engineInsightsAgentImage.pullPolicy }}
           ports:
             - name: api-server
-              containerPort: {{ .Values.insights.apiServer.containerPort }}
+              containerPort: {{ .Values.engineInsightsAgent.apiServer.containerPort }}
               protocol: TCP
           startupProbe:
-            {{- toYaml .Values.insights.apiServer.deployment.startupProbe | nindent 12 }}
+            {{- toYaml .Values.engineInsightsAgent.apiServer.deployment.startupProbe | nindent 12 }}
           readinessProbe:
-            {{- toYaml .Values.insights.apiServer.deployment.readinessProbe | nindent 12 }}
+            {{- toYaml .Values.engineInsightsAgent.apiServer.deployment.readinessProbe | nindent 12 }}
           livenessProbe:
-            {{- toYaml .Values.insights.apiServer.deployment.livenessProbe | nindent 12 }}
+            {{- toYaml .Values.engineInsightsAgent.apiServer.deployment.livenessProbe | nindent 12 }}
           resources:
-            {{- toYaml .Values.insights.apiServer.deployment.resources | nindent 12 }}
+            {{- toYaml .Values.engineInsightsAgent.apiServer.deployment.resources | nindent 12 }}
           securityContext:
-            {{- toYaml .Values.insights.apiServer.deployment.securityContext | nindent 12 }}
-          {{- with .Values.insights.apiServer.deployment.lifecycle }}
+            {{- toYaml .Values.engineInsightsAgent.apiServer.deployment.securityContext | nindent 12 }}
+          {{- with .Values.engineInsightsAgent.apiServer.deployment.lifecycle }}
           lifecycle:
             {{- toYaml . | nindent 12 }}
           {{- end }}
@@ -94,18 +93,18 @@ spec:
           volumeMounts:
               {{- toYaml . | nindent 12 }}
           {{- end }}
-        {{- with .Values.insights.apiServer.deployment.sidecars }}
+        {{- with .Values.engineInsightsAgent.apiServer.deployment.sidecars }}
           {{- toYaml . | nindent 8 }}
         {{- end }}
-      {{- with .Values.insights.apiServer.deployment.nodeSelector }}
+      {{- with .Values.engineInsightsAgent.apiServer.deployment.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.insights.apiServer.deployment.affinity }}
+      {{- with .Values.engineInsightsAgent.apiServer.deployment.affinity }}
       affinity:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.insights.apiServer.deployment.tolerations }}
+      {{- with .Values.engineInsightsAgent.apiServer.deployment.tolerations }}
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
