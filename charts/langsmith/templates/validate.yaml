@@ -235,6 +235,9 @@ AWS Marketplace Helm template verification).
 
 {{- /* Validate SmithDB configuration */ -}}
 {{- if .Values.smithdb.enabled -}}
+{{- if and .Values.smithdb.config.observability.tracing.enabled .Values.config.observability.tracing.enabled (eq .Values.config.observability.tracing.exporter "grpc") .Values.config.observability.tracing.useTls -}}
+{{- fail "config.observability.tracing.useTls must be false when SmithDB OTLP/gRPC tracing is enabled; set smithdb.config.observability.tracing.enabled=false to disable SmithDB tracing." -}}
+{{- end -}}
 {{- if .Values.smithdb.commonInitContainers -}}
 {{- range $index, $initContainer := .Values.smithdb.commonInitContainers -}}
 {{- if not (kindIs "map" $initContainer) -}}

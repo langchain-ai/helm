@@ -1247,6 +1247,10 @@ smithdb:
       passwordSecretKey: ""
       port: "5432"
       useSsl: false
+    observability:
+      tracing:
+        # -- Enable SmithDB trace and log export when chart-level tracing uses OTLP/gRPC. SmithDB currently supports plaintext export only.
+        enabled: true
     objectStore:
       # -- Supported values: s3, gcs.
       type: "s3"

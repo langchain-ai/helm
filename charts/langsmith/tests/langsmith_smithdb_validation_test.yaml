@@ -2,6 +2,33 @@ suite: test smithdb phase validation
 templates:
   - validate.yaml
 tests:
+  - it: should reject TLS when SmithDB OTLP gRPC tracing is enabled
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      config.existingSecretName: langsmith-secret
+      config.observability.tracing.enabled: true
+      config.observability.tracing.endpoint: secure-otel-collector:4317
+      config.observability.tracing.exporter: grpc
+      config.observability.tracing.useTls: true
+    asserts:
+      - failedTemplate:
+          errorMessage: "config.observability.tracing.useTls must be false when SmithDB OTLP/gRPC tracing is enabled; set smithdb.config.observability.tracing.enabled=false to disable SmithDB tracing."
+
+  - it: should allow chart-level TLS when SmithDB tracing is disabled
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      config.existingSecretName: langsmith-secret
+      config.observability.tracing.enabled: true
+      config.observability.tracing.endpoint: secure-otel-collector:4317
+      config.observability.tracing.exporter: grpc
+      config.observability.tracing.useTls: true
+      smithdb.config.observability.tracing.enabled: false
+    asserts:
+      - hasDocuments:
+          count: 0
+
   - it: should reject smithdb without query replicas
     values:
       - ./values/smithdb-enabled.yaml

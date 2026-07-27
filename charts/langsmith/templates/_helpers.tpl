@@ -636,7 +636,7 @@ Args: root, service, displayName.
 {{- $root := .root -}}
 {{- $prefix := printf "SMITHDB_%s" (upper .service) -}}
 {{- $displayName := .displayName -}}
-{{- $tracingEnabled := and $root.Values.config.observability.tracing.enabled (eq $root.Values.config.observability.tracing.exporter "grpc") -}}
+{{- $tracingEnabled := and $root.Values.smithdb.config.observability.tracing.enabled $root.Values.config.observability.tracing.enabled (eq $root.Values.config.observability.tracing.exporter "grpc") -}}
 - name: {{ $prefix }}__LOGGING__FORMAT
   value: {{ ternary "opentelemetry" "console" $tracingEnabled | quote }}
 - name: {{ $prefix }}__LOGGING__TRACING_ENABLED
