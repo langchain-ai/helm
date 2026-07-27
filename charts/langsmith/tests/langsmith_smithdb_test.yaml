@@ -24,6 +24,11 @@ templates:
   - smithdb/pdbs.yaml
   - smithdb/service-account.yaml
   - smithdb/metastore-migration.yaml
+  - clickhouse/stateful-set.yaml
+  - clickhouse/service.yaml
+  - clickhouse/config-map.yaml
+  - clickhouse/service-account.yaml
+  - backend/clickhouse-migrations.yaml
 tests:
   - it: should render smithdb workloads when enabled
     values:
@@ -285,6 +290,98 @@ tests:
       - equal:
           path: data.RUN_RULES_LIMIT_RRA_RECORDS_PER_BATCH_TENANTS
           value: '["*"]'
+
+  - it: should render dual mode (ClickHouse + SmithDB both enabled)
+    values:
+      - ./values/smithdb-enabled.yaml
+    template: config-map.yaml
+    asserts:
+      - equal:
+          path: data.CLICKHOUSE_INGESTION_ENABLED
+          value: "true"
+      - equal:
+          path: data.CLICKHOUSE_QUERY_ENABLED
+          value: "true"
+      - equal:
+          path: data.SMITHDB_INGESTION_ENABLED
+          value: "true"
+      - equal:
+          path: data.SMITHDB_QUERY_ENABLED
+          value: "true"
+      - equal:
+          path: data.SMITHDB_CLUSTER_MANAGER_ENABLED
+          value: "true"
+      - equal:
+          path: data.SMITHDB_QUERY_SERVICE_MAX_CALL_RECV_MSG_SIZE
+          value: "1073741824"
+      - equal:
+          path: data.RUN_RULES_SMITHDB_RETRIEVER_TENANTS
+          value: '["*"]'
+      - equal:
+          path: data.RUN_RULES_SMITHDB_RETRIEVER_PCT
+          value: "100"
+      - equal:
+          path: data.RUN_RULES_REDIS_DEDUP_TENANTS
+          value: '["*"]'
+      - equal:
+          path: data.RUN_RULES_LIMIT_RRA_RECORDS_PER_BATCH_TENANTS
+          value: '["*"]'
+
+  - it: should render smithdb-only mode with ClickHouse fully disabled
+    values:
+      - ./values/smithdb-only.yaml
+    template: config-map.yaml
+    asserts:
+      - equal:
+          path: data.CLICKHOUSE_INGESTION_ENABLED
+          value: "false"
+      - equal:
+          path: data.CLICKHOUSE_QUERY_ENABLED
+          value: "false"
+      - equal:
+          path: data.SMITHDB_INGESTION_ENABLED
+          value: "true"
+      - equal:
+          path: data.SMITHDB_QUERY_ENABLED
+          value: "true"
+      - equal:
+          path: data.SMITHDB_CLUSTER_MANAGER_ENABLED
+          value: "true"
+      - equal:
+          path: data.SMITHDB_QUERY_SERVICE_MAX_CALL_RECV_MSG_SIZE
+          value: "1073741824"
+      - equal:
+          path: data.SMITHDB_FEEDBACK_MUTATION_RPS_PER_KEY
+          value: "100"
+      - equal:
+          path: data.SMITHDB_RULES_REDIS_READ_ENABLED
+          value: "true"
+      - equal:
+          path: data.RUN_RULES_SMITHDB_RETRIEVER_TENANTS
+          value: '["*"]'
+      - equal:
+          path: data.RUN_RULES_SMITHDB_RETRIEVER_PCT
+          value: "100"
+      - equal:
+          path: data.RUN_RULES_REDIS_DEDUP_TENANTS
+          value: '["*"]'
+      - equal:
+          path: data.RUN_RULES_LIMIT_RRA_RECORDS_PER_BATCH_TENANTS
+          value: '["*"]'
+
+  - it: should skip ClickHouse workloads in smithdb-only mode
+    values:
+      - ./values/smithdb-only.yaml
+    templates:
+      - clickhouse/stateful-set.yaml
+      - clickhouse/service.yaml
+      - clickhouse/config-map.yaml
+      - clickhouse/secrets.yaml
+      - clickhouse/service-account.yaml
+      - backend/clickhouse-migrations.yaml
+    asserts:
+      - hasDocuments:
+          count: 0
 
   - it: should configure SmithDB ingestion without SmithDB query endpoints
     values:
