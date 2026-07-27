@@ -621,10 +621,10 @@ OTEL_EXPORTER_OTLP_ENDPOINT consumed by SmithDB requires a URI scheme.
 */}}
 {{- define "langsmith.smithdb.otelEndpoint" -}}
 {{- $tracing := .Values.config.observability.tracing -}}
-{{- if regexMatch "^https?://" $tracing.endpoint -}}
+{{- if regexMatch "(?i)^https?://" $tracing.endpoint -}}
 {{- $tracing.endpoint -}}
 {{- else -}}
-{{- printf "%s://%s" (ternary "https" "http" $tracing.useTls) $tracing.endpoint -}}
+{{- printf "http://%s" $tracing.endpoint -}}
 {{- end -}}
 {{- end }}
 
@@ -636,7 +636,8 @@ Args: root, service, displayName.
 {{- $root := .root -}}
 {{- $prefix := printf "SMITHDB_%s" (upper .service) -}}
 {{- $displayName := .displayName -}}
-{{- $tracingEnabled := and $root.Values.smithdb.config.observability.tracing.enabled $root.Values.config.observability.tracing.enabled (eq $root.Values.config.observability.tracing.exporter "grpc") -}}
+{{- $tracing := $root.Values.config.observability.tracing -}}
+{{- $tracingEnabled := and $tracing.enabled (eq $tracing.exporter "grpc") (not $tracing.useTls) (not (regexMatch "(?i)^https://" $tracing.endpoint)) -}}
 - name: {{ $prefix }}__LOGGING__FORMAT
   value: {{ ternary "opentelemetry" "console" $tracingEnabled | quote }}
 - name: {{ $prefix }}__LOGGING__TRACING_ENABLED

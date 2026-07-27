@@ -1011,7 +1011,6 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | smithdb.config.objectStore.s3.region | string | `""` | Defaults to the SmithDB S3 client default when empty. |
 | smithdb.config.objectStore.s3.secretAccessKeySecretKey | string | `""` |  |
 | smithdb.config.objectStore.type | string | `"s3"` | Supported values: s3, gcs. |
-| smithdb.config.observability.tracing.enabled | bool | `true` | Enable SmithDB trace and log export when chart-level tracing uses OTLP/gRPC. SmithDB currently supports plaintext export only. |
 | smithdb.enabled | bool | `false` | Please express interest (https://www.langchain.com/smithdb-early-access-waitlist) and we will reach out promptly to ensure we can set you up for success with SmithDB. |
 | smithdb.ingestion.autoscaling.enabled | bool | `true` |  |
 | smithdb.ingestion.autoscaling.maxReplicas | int | `10` |  |
@@ -1318,7 +1317,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | config.observability.tracing.endpoint | string | `""` |  |
 | config.observability.tracing.env | string | `"ls_self_hosted"` |  |
 | config.observability.tracing.exporter | string | `"http"` |  |
-| config.observability.tracing.useTls | bool | `true` |  |
+| config.observability.tracing.useTls | bool | `true` | Use TLS for OTLP export. SmithDB trace and log export is disabled when this is true because SmithDB currently supports plaintext OTLP/gRPC only. |
 | config.orgAdminsInstallationUsageExportEnabled | bool | `false` | When true, any org admin can use the usage backfill export. |
 | config.personalOrgsDisabled | bool | `true` | Disable personal orgs. |
 | config.security | object | `{"cors":{"allowedOrigins":"*","allowedOriginsRegex":"","alwaysAllowPathsRegex":""}}` | Security configuration for CORS, headers, and other security-related settings. These settings control cross-origin access and help protect against common web vulnerabilities. |
