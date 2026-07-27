@@ -1,0 +1,36 @@
+charts/langsmith/tests/langsmith_smithdb_test.yaml
+  s_ca77884c19c2c4::t_a63850d707d50a 138-139,146-147
+  s_ca77884c19c2c4::t_e3031fc4f0619c 137,148,191,193,225,234,236,241,243
+  s_ca77884c19c2c4::t_1030e904f11e52 156-178
+charts/langsmith/tests/values/smithdb-enabled.yaml
+  s_ca77884c19c2c4::t_e0b87cc1144268 5,7-8,10-11
+  s_ca77884c19c2c4::t_de76502aa3b450 6,9
+charts/langsmith/templates/config-map.yaml
+  s_ca77884c19c2c4::t_931a5b8d969a6d 44-47
+charts/langsmith/values.yaml
+  s_ca77884c19c2c4::t_6674df913f5c2d 890-891,894,896,901
+  s_ca77884c19c2c4::t_0055e58bce2d47 892,897
+  h_712f30a2a56c04 899
+  s_ca77884c19c2c4::t_ab5cfe818124ab 893,895,898,900
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "8dfd45ba8cd9a378774bc745f8d9687fd551f509",
+  "prompts": {},
+  "humans": {
+    "h_712f30a2a56c04": {
+      "author": "ben11211 <nagengast@langchain.dev>"
+    }
+  },
+  "sessions": {
+    "s_ca77884c19c2c4": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "a33b1938-bc35-4d8b-95df-872813ffeedc",
+        "model": "gpt-5.6-terra"
+      },
+      "human_author": "ben11211 <nagengast@langchain.dev>"
+    }
+  }
+}

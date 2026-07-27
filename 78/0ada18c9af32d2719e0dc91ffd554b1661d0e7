@@ -1,0 +1,30 @@
+charts/langsmith/tests/langsmith_smithdb_test.yaml
+  s_caeb4dd22a3008::t_ec22d1b42381fd 112
+  s_caeb4dd22a3008::t_3bc4c0fac82148 116-118
+charts/langsmith/templates/smithdb/query-deployment.yaml
+  s_caeb4dd22a3008::t_fc46daaa2e011b 33-36
+charts/langsmith/templates/smithdb/ingestion-deployment.yaml
+  s_caeb4dd22a3008::t_b3eefecafa8631 33-36
+charts/langsmith/templates/smithdb/compaction-deployment.yaml
+  s_caeb4dd22a3008::t_5385f12bc65933 29-32
+charts/langsmith/templates/smithdb/compaction-worker-deployment.yaml
+  s_caeb4dd22a3008::t_9323fb9123cba6 31-34
+charts/langsmith/templates/smithdb/cluster-manager-deployment.yaml
+  s_caeb4dd22a3008::t_8dd5da77ebb928 29-32
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "780ada18c9af32d2719e0dc91ffd554b1661d0e7",
+  "prompts": {},
+  "sessions": {
+    "s_caeb4dd22a3008": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "1ec7b7b3-9668-4015-8978-27482eefc670",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "ben11211 <nagengast@langchain.dev>"
+    }
+  }
+}

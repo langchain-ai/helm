@@ -1,0 +1,19 @@
+charts/langsmith/templates/_helpers.tpl
+  s_c992bcaf1c2a94::t_73d38814d6bee6 624
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "d0d53542c353580f94e0b310cd9652a400fec2da",
+  "prompts": {},
+  "sessions": {
+    "s_c992bcaf1c2a94": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "784df1f9-c55f-43d3-a146-dd5ebbeb4945",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "ben11211 <nagengast@langchain.dev>"
+    }
+  }
+}

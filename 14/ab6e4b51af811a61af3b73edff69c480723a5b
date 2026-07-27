@@ -1,0 +1,46 @@
+charts/langsmith/values.yaml
+  s_e455596137ee76::t_941945b918b8f0 1233,1981,1983-1984,1986
+charts/langsmith/README.md
+  s_e455596137ee76::t_e1116bcc5c2bd3 1058,1508
+charts/langsmith/docs/UPGRADE.md
+  s_e455596137ee76::t_197e6899438421 18-35
+charts/langsmith/templates/frontend/deployment.yaml
+  s_e455596137ee76::t_51cb6a70bde394 8
+charts/langsmith/templates/clickhouse/pdb.yaml
+  s_e455596137ee76::t_319ff36946c687 1
+charts/langsmith/templates/validate.yaml
+  s_e455596137ee76::t_fa56dad2117c7a 50-51,56-57,62,64
+  s_e455596137ee76::t_194766df7cbfa7 19-31
+  s_e455596137ee76::t_8fa9d779626671 47-49,52-55,58-61,63
+charts/langsmith/examples/basic_external.yaml
+  s_e455596137ee76::t_401926e1beb522 24-25
+charts/langsmith/tests/langsmith_smithdb_validation_test.yaml
+  s_e455596137ee76::t_8966aad9c35b56 100-160
+charts/langsmith/templates/_helpers.tpl
+  s_e455596137ee76::t_c870cbdd12838d 435
+charts/langsmith/templates/config-map.yaml
+  s_e455596137ee76::t_b1049bf4218a85 100
+charts/langsmith/tests/langsmith_clickhouse_availability_test.yaml
+  s_e455596137ee76::t_62f70d78dd36f1 59-63,84-86,92
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "14ab6e4b51af811a61af3b73edff69c480723a5b",
+  "prompts": {},
+  "humans": {
+    "h_712f30a2a56c04": {
+      "author": "ben11211 <nagengast@langchain.dev>"
+    }
+  },
+  "sessions": {
+    "s_e455596137ee76": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "7147f3a9-907a-4e67-9048-d238e9f245cf",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "ben11211 <nagengast@langchain.dev>"
+    }
+  }
+}

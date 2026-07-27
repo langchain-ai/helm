@@ -1,0 +1,22 @@
+charts/langsmith/tests/langsmith_smithdb_test.yaml
+  s_a8f0733cbc4811::t_9a3a7be3e6a0a4 150
+  s_a8f0733cbc4811::t_b9392a3e197b71 151-164
+charts/langsmith/templates/config-map.yaml
+  s_a8f0733cbc4811::t_ba6907a2ab027e 50
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "f4030549981e9a37fb7ae418e6d08a70d49a32b6",
+  "prompts": {},
+  "sessions": {
+    "s_a8f0733cbc4811": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "768c9aed-3aa5-49b9-95de-ad954013e291",
+        "model": "gpt-5.6-terra"
+      },
+      "human_author": "ben11211 <nagengast@langchain.dev>"
+    }
+  }
+}

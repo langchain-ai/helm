@@ -1,0 +1,21 @@
+charts/langsmith/values.yaml
+  s_caeb4dd22a3008::t_683eab06293df4 1472,1475
+charts/langsmith/README.md
+  s_caeb4dd22a3008::t_c83fb0bbbaba9e 941,943
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "987d5001c7fe6cf8b53458ed5a0e83dab10e3725",
+  "prompts": {},
+  "sessions": {
+    "s_caeb4dd22a3008": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "1ec7b7b3-9668-4015-8978-27482eefc670",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "ben11211 <nagengast@langchain.dev>"
+    }
+  }
+}

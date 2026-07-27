@@ -1,0 +1,69 @@
+charts/langsmith/templates/config-map.yaml
+  s_ca77884c19c2c4::t_51d7b6501c4d11 44-45,47-48
+  s_ca77884c19c2c4::t_8a199c4ecb03c1 46,52
+charts/langsmith/templates/validate.yaml
+  s_ca77884c19c2c4::t_faa440d464d0d7 198,201-203,242,308-311,315-316
+  s_ca77884c19c2c4::t_2f404f45ba0651 240-241,246-247,306-307,312-313
+  s_ca77884c19c2c4::t_04f788d3055f57 243-244
+charts/langsmith/templates/clickhouse/service.yaml
+  s_ca77884c19c2c4::t_7e3a5048981343 1
+charts/langsmith/values.yaml
+  s_ca77884c19c2c4::t_cf2595b1ba6064 1984-1989
+  s_ca77884c19c2c4::t_21e6ee201e8c77 1231-1240,1244
+  h_712f30a2a56c04 1230,1241-1243
+charts/langsmith/templates/clickhouse/secrets.yaml
+  s_ca77884c19c2c4::t_8905eadaddf9ba 1
+charts/langsmith/templates/clickhouse/service-account.yaml
+  s_ca77884c19c2c4::t_bccd8c0fe55046 1
+charts/langsmith/tests/values/smithdb-enabled.yaml
+  s_ca77884c19c2c4::t_0ed48b89ad359e 25
+  s_ca77884c19c2c4::t_5c2b05353497db 23
+  s_ca77884c19c2c4::t_b525dddc1aa013 24
+charts/langsmith/tests/langsmith_smithdb_test.yaml
+  s_ca77884c19c2c4::t_67429255914248 160
+  s_ca77884c19c2c4::t_1423bca68cf2a3 164,316,435,450,471,482,525
+  s_ca77884c19c2c4::t_720ccbe72f6705 141,172,174,192-193,217-218,223,225,230,232,245-246
+  s_ca77884c19c2c4::t_99d92ed81b51a9 142-143,150-152
+charts/langsmith/templates/clickhouse/stateful-set.yaml
+  s_ca77884c19c2c4::t_4c4b562d6b19d6 21
+charts/langsmith/README.md
+  s_ca77884c19c2c4::t_c531377411e356 1509
+  s_ca77884c19c2c4::t_fe833f8fbafc2e 1058-1061
+charts/langsmith/templates/_helpers.tpl
+  s_ca77884c19c2c4::t_46ae94160fd26b 254,307,1157,1186,1203
+charts/langsmith/tests/langsmith_clickhouse_availability_test.yaml
+  s_ca77884c19c2c4::t_bcca258b092088 1-105
+charts/langsmith/templates/clickhouse/config-map.yaml
+  s_ca77884c19c2c4::t_1301eb0d2c142a 1
+charts/langsmith/templates/frontend/deployment.yaml
+  s_ca77884c19c2c4::t_b52a8ac9943701 6,8
+charts/langsmith/templates/clickhouse/pdb.yaml
+  s_ca77884c19c2c4::t_729616d219d2e3 1
+charts/langsmith/templates/backend/clickhouse-migrations.yaml
+  s_ca77884c19c2c4::t_51e8c38dfcf1cf 1
+charts/langsmith/tests/langsmith_smithdb_validation_test.yaml
+  s_ca77884c19c2c4::t_baabea18e5ebe0 21,34,45,58,70
+  s_ca77884c19c2c4::t_eeba2b27a61bac 15,20,26,28,33,38
+  s_ca77884c19c2c4::t_eab9e6d19bf767 81-124
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "4e3abd71c36a93d624ed1191099c76d188243f92",
+  "prompts": {},
+  "humans": {
+    "h_712f30a2a56c04": {
+      "author": "ben11211 <nagengast@langchain.dev>"
+    }
+  },
+  "sessions": {
+    "s_ca77884c19c2c4": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "a33b1938-bc35-4d8b-95df-872813ffeedc",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "ben11211 <nagengast@langchain.dev>"
+    }
+  }
+}

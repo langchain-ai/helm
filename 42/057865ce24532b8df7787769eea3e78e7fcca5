@@ -1,0 +1,31 @@
+charts/langsmith/templates/validate.yaml
+  s_c992bcaf1c2a94::t_e2e24757d4821b 242-243
+  s_c992bcaf1c2a94::t_4aceba6cb30411 244
+charts/langsmith/tests/langsmith_smithdb_validation_test.yaml
+  s_c992bcaf1c2a94::t_1432bbad01dd68 16-30
+  s_c992bcaf1c2a94::t_94b66e8e532a8c 5-15,31
+charts/langsmith/values.yaml
+  s_c992bcaf1c2a94::t_55497cdb1cd595 1250-1253
+charts/langsmith/README.md
+  s_c992bcaf1c2a94::t_012ed6366835fb 1014
+charts/langsmith/templates/_helpers.tpl
+  s_c992bcaf1c2a94::t_91c865c7937a1a 639
+charts/langsmith/tests/langsmith_smithdb_test.yaml
+  s_c992bcaf1c2a94::t_a5a38c9f2e1fc9 162,170,174-183
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "42057865ce24532b8df7787769eea3e78e7fcca5",
+  "prompts": {},
+  "sessions": {
+    "s_c992bcaf1c2a94": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "784df1f9-c55f-43d3-a146-dd5ebbeb4945",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "ben11211 <nagengast@langchain.dev>"
+    }
+  }
+}

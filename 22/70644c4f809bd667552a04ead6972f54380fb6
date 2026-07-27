@@ -1,0 +1,37 @@
+charts/langsmith/templates/smithdb/taskdb-postgres-statefulset.yaml
+  s_f6dc2ff4906e89::t_e3edcae4b8692d 78-79
+charts/langsmith/README.md
+  s_f6dc2ff4906e89::t_b5e8b5ac7ac462 1099-1100,1131
+  s_f6dc2ff4906e89::t_0b3b9070679255 1102
+  s_f6dc2ff4906e89::t_befc27e6b6cffc 1089
+  s_f6dc2ff4906e89::t_1006d4bc557911 1108,1110,1115
+charts/langsmith/values.yaml
+  s_f6dc2ff4906e89::t_a2515f036630f6 1590-1593,1687,1695-1696
+  s_f6dc2ff4906e89::t_d650a84dd363cf 1588-1589
+  s_f6dc2ff4906e89::t_4c8c3025ee25c9 1697
+  s_f6dc2ff4906e89::t_51fa2c1c39b805 1603,1619,1631
+charts/langsmith/tests/langsmith_smithdb_test.yaml
+  s_f6dc2ff4906e89::t_3a57911d059c1b 342
+  s_f6dc2ff4906e89::t_8b64e893df2315 324,340,354-358,429-432,450-459
+  s_f6dc2ff4906e89::t_5df10e5264bd8e 333-334
+  s_f6dc2ff4906e89::t_2a0d1bb1c1713b 323,325-332,339,341,353,446-449,470-482
+  s_f6dc2ff4906e89::t_52edadb778dc4b 483
+charts/langsmith/templates/smithdb/migration-job.yaml
+  s_f6dc2ff4906e89::t_372c3bfe8d53bc 24
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.15",
+  "base_commit_sha": "2270644c4f809bd667552a04ead6972f54380fb6",
+  "prompts": {},
+  "sessions": {
+    "s_f6dc2ff4906e89": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "9c3e5bb4-c384-4340-93ca-c069543dc5b3",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "ben11211 <nagengast@langchain.dev>"
+    }
+  }
+}
