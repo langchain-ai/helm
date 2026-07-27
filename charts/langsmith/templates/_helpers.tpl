@@ -1365,12 +1365,6 @@ Served through the frontend at /mcp (or /<basePath>/mcp).
       name: {{ include "langsmith.secretsName" . }}
       key: api_key_salt
       optional: {{ .Values.config.disableSecretCreation }}
-- name: FORGE_AGENT_LANGSMITH_API_KEY
-  valueFrom:
-    secretKeyRef:
-      name: {{ include "langsmith.secretsName" . }}
-      key: api_key_salt
-      optional: {{ .Values.config.disableSecretCreation }}
 - name: ISSUES_AGENT_ENCRYPTION_KEY
   valueFrom:
     secretKeyRef:
