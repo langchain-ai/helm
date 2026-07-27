@@ -22,6 +22,10 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | commonPodSecurityContext | object | `{}` | Common pod security context applied to all pods. Component-specific podSecurityContext values will be merged on top of this (component values take precedence). |
 | commonVolumeMounts | list | `[]` | Common volume mounts added to all deployments/statefulsets except for the playground/aceBackend services (which are sandboxed). |
 | commonVolumes | list | `[]` | Common volumes added to all deployments/statefulsets except for the playground/aceBackend services (which are sandboxed). |
+| engine.enabled | bool | `false` |  |
+| engine.encryptionKey | string | `""` |  |
+| engine.encryptionKeyPrevious | string | `""` |  |
+| engine.intelligenceBaseUrl | string | `""` |  |
 | fleet.apiServer.autoscaling.enabled | bool | `false` |  |
 | fleet.apiServer.autoscaling.keda.cooldownPeriod | int | `300` |  |
 | fleet.apiServer.autoscaling.keda.enabled | bool | `false` |  |
@@ -517,6 +521,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | engineInsightsAgent.apiServer.serviceAccount.name | string | `""` |  |
 | insights.enabled | bool | `true` |  |
 | insights.encryptionKey | string | `""` |  |
+| insights.encryptionKeyPrevious | string | `""` |  |
 | engineInsightsAgent.namePrefix | string | `"standalone-insights"` |  |
 | engineInsightsAgent.postgres.containerPort | int | `5432` |  |
 | engineInsightsAgent.postgres.external.connectionUrl | string | `""` |  |
