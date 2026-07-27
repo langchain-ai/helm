@@ -292,6 +292,7 @@ fleet:
     containerPort: 5432
     external:
       enabled: false
+      iamProvider: ""
       host: ""
       port: "5432"
       user: "postgres"
@@ -345,6 +346,7 @@ fleet:
     containerPort: 6379
     external:
       enabled: false
+      iamProvider: ""
       connectionUrl: ""
       existingSecretName: ""
     statefulSet:
@@ -529,6 +531,7 @@ insights:
     containerPort: 5432
     external:
       enabled: false
+      iamProvider: ""
       host: ""
       port: "5432"
       user: "postgres"
@@ -582,6 +585,7 @@ insights:
     containerPort: 6379
     external:
       enabled: false
+      iamProvider: ""
       connectionUrl: ""
       existingSecretName: ""
     statefulSet:
@@ -765,6 +769,7 @@ polly:
     containerPort: 5432
     external:
       enabled: false
+      iamProvider: ""
       host: ""
       port: "5432"
       user: "postgres"
@@ -818,6 +823,7 @@ polly:
     containerPort: 6379
     external:
       enabled: false
+      iamProvider: ""
       connectionUrl: ""
       existingSecretName: ""
     statefulSet:

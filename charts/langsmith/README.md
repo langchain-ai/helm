@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.16.0-rc.17](https://img.shields.io/badge/Version-0.16.0--rc.17-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.16.23rc1](https://img.shields.io/badge/AppVersion-0.16.23rc1-informational?style=flat-square)
+![Version: 0.16.0-rc.18](https://img.shields.io/badge/Version-0.16.0--rc.18-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.16.23rc1](https://img.shields.io/badge/AppVersion-0.16.23rc1-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -96,6 +96,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | fleet.postgres.external.enabled | bool | `false` |  |
 | fleet.postgres.external.existingSecretName | string | `""` |  |
 | fleet.postgres.external.host | string | `""` |  |
+| fleet.postgres.external.iamProvider | string | `""` |  |
 | fleet.postgres.external.password | string | `"postgres"` |  |
 | fleet.postgres.external.port | string | `"5432"` |  |
 | fleet.postgres.external.schema | string | `"public"` |  |
@@ -189,6 +190,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | fleet.redis.external.connectionUrl | string | `""` |  |
 | fleet.redis.external.enabled | bool | `false` |  |
 | fleet.redis.external.existingSecretName | string | `""` |  |
+| fleet.redis.external.iamProvider | string | `""` |  |
 | fleet.redis.name | string | `"redis"` |  |
 | fleet.redis.pdb.enabled | bool | `false` |  |
 | fleet.redis.pdb.minAvailable | int | `1` |  |
@@ -524,6 +526,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | insights.postgres.external.enabled | bool | `false` |  |
 | insights.postgres.external.existingSecretName | string | `""` |  |
 | insights.postgres.external.host | string | `""` |  |
+| insights.postgres.external.iamProvider | string | `""` |  |
 | insights.postgres.external.password | string | `"postgres"` |  |
 | insights.postgres.external.port | string | `"5432"` |  |
 | insights.postgres.external.schema | string | `"public"` |  |
@@ -617,6 +620,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | insights.redis.external.connectionUrl | string | `""` |  |
 | insights.redis.external.enabled | bool | `false` |  |
 | insights.redis.external.existingSecretName | string | `""` |  |
+| insights.redis.external.iamProvider | string | `""` |  |
 | insights.redis.name | string | `"redis"` |  |
 | insights.redis.pdb.enabled | bool | `false` |  |
 | insights.redis.pdb.minAvailable | int | `1` |  |
@@ -722,6 +726,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | polly.postgres.external.enabled | bool | `false` |  |
 | polly.postgres.external.existingSecretName | string | `""` |  |
 | polly.postgres.external.host | string | `""` |  |
+| polly.postgres.external.iamProvider | string | `""` |  |
 | polly.postgres.external.password | string | `"postgres"` |  |
 | polly.postgres.external.port | string | `"5432"` |  |
 | polly.postgres.external.schema | string | `"public"` |  |
@@ -815,6 +820,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | polly.redis.external.connectionUrl | string | `""` |  |
 | polly.redis.external.enabled | bool | `false` |  |
 | polly.redis.external.existingSecretName | string | `""` |  |
+| polly.redis.external.iamProvider | string | `""` |  |
 | polly.redis.name | string | `"redis"` |  |
 | polly.redis.pdb.enabled | bool | `false` |  |
 | polly.redis.pdb.minAvailable | int | `1` |  |
