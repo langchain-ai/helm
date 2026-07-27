@@ -1,0 +1,23 @@
+charts/langsmith/Chart.yaml
+  s_3f042086364105::t_0344f5191d099e 9
+charts/langsmith/values.yaml
+  s_3f042086364105::t_bdd80653ff621d 68,72,76,80,104,108,112
+charts/langsmith/README.md
+  s_3f042086364105::t_60d7766c91b94f 3,346,349,352,358,362,368,381
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "4ddd0d27d3fd6b394b69ecad7586d41c7bcab651",
+  "prompts": {},
+  "sessions": {
+    "s_3f042086364105": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "97accbd3-735d-494a-bf61-0556175c2605",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "ben11211 <nagengast@langchain.dev>"
+    }
+  }
+}
