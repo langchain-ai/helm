@@ -290,9 +290,9 @@ fleet:
   postgres:
     name: "postgres"
     containerPort: 5432
-    iamProvider: ""
     external:
       enabled: false
+      iamProvider: ""
       host: ""
       port: "5432"
       user: "postgres"
@@ -344,9 +344,9 @@ fleet:
   redis:
     name: "redis"
     containerPort: 6379
-    iamProvider: ""
     external:
       enabled: false
+      iamProvider: ""
       connectionUrl: ""
       existingSecretName: ""
     statefulSet:
@@ -529,9 +529,9 @@ insights:
   postgres:
     name: "postgres"
     containerPort: 5432
-    iamProvider: ""
     external:
       enabled: false
+      iamProvider: ""
       host: ""
       port: "5432"
       user: "postgres"
@@ -583,9 +583,9 @@ insights:
   redis:
     name: "redis"
     containerPort: 6379
-    iamProvider: ""
     external:
       enabled: false
+      iamProvider: ""
       connectionUrl: ""
       existingSecretName: ""
     statefulSet:
@@ -767,9 +767,9 @@ polly:
   postgres:
     name: "postgres"
     containerPort: 5432
-    iamProvider: ""
     external:
       enabled: false
+      iamProvider: ""
       host: ""
       port: "5432"
       user: "postgres"
@@ -821,9 +821,9 @@ polly:
   redis:
     name: "redis"
     containerPort: 6379
-    iamProvider: ""
     external:
       enabled: false
+      iamProvider: ""
       connectionUrl: ""
       existingSecretName: ""
     statefulSet:

@@ -11,12 +11,12 @@ set:
   config.existingSecretName: "langsmith-secrets"
   config.skipValidation: true
   fleet.enabled: true
-  fleet.postgres.iamProvider: "aws"
-  fleet.redis.iamProvider: "gcp"
-  insights.postgres.iamProvider: "azure"
-  insights.redis.iamProvider: "aws"
-  polly.postgres.iamProvider: "gcp"
-  polly.redis.iamProvider: "azure"
+  fleet.postgres.external.iamProvider: "aws"
+  fleet.redis.external.iamProvider: "gcp"
+  insights.postgres.external.iamProvider: "azure"
+  insights.redis.external.iamProvider: "aws"
+  polly.postgres.external.iamProvider: "gcp"
+  polly.redis.external.iamProvider: "azure"
 tests:
   - it: maps fleet IAM providers to the api-server
     template: agent-features/fleet/api-server/deployment.yaml
@@ -99,42 +99,42 @@ tests:
   - it: rejects an invalid fleet Postgres IAM provider
     template: validate.yaml
     set:
-      fleet.postgres.iamProvider: "AWS"
+      fleet.postgres.external.iamProvider: "AWS"
     asserts:
       - failedTemplate:
-          errorMessage: "fleet.postgres.iamProvider must be one of [azure, gcp, aws]"
+          errorMessage: "fleet.postgres.external.iamProvider must be one of [azure, gcp, aws]"
   - it: rejects an invalid fleet Redis IAM provider
     template: validate.yaml
     set:
-      fleet.redis.iamProvider: "AWS"
+      fleet.redis.external.iamProvider: "AWS"
     asserts:
       - failedTemplate:
-          errorMessage: "fleet.redis.iamProvider must be one of [azure, gcp, aws]"
+          errorMessage: "fleet.redis.external.iamProvider must be one of [azure, gcp, aws]"
   - it: rejects an invalid insights Postgres IAM provider
     template: validate.yaml
     set:
-      insights.postgres.iamProvider: "AWS"
+      insights.postgres.external.iamProvider: "AWS"
     asserts:
       - failedTemplate:
-          errorMessage: "insights.postgres.iamProvider must be one of [azure, gcp, aws]"
+          errorMessage: "insights.postgres.external.iamProvider must be one of [azure, gcp, aws]"
   - it: rejects an invalid insights Redis IAM provider
     template: validate.yaml
     set:
-      insights.redis.iamProvider: "AWS"
+      insights.redis.external.iamProvider: "AWS"
     asserts:
       - failedTemplate:
-          errorMessage: "insights.redis.iamProvider must be one of [azure, gcp, aws]"
+          errorMessage: "insights.redis.external.iamProvider must be one of [azure, gcp, aws]"
   - it: rejects an invalid polly Postgres IAM provider
     template: validate.yaml
     set:
-      polly.postgres.iamProvider: "AWS"
+      polly.postgres.external.iamProvider: "AWS"
     asserts:
       - failedTemplate:
-          errorMessage: "polly.postgres.iamProvider must be one of [azure, gcp, aws]"
+          errorMessage: "polly.postgres.external.iamProvider must be one of [azure, gcp, aws]"
   - it: rejects an invalid polly Redis IAM provider
     template: validate.yaml
     set:
-      polly.redis.iamProvider: "AWS"
+      polly.redis.external.iamProvider: "AWS"
     asserts:
       - failedTemplate:
-          errorMessage: "polly.redis.iamProvider must be one of [azure, gcp, aws]"
+          errorMessage: "polly.redis.external.iamProvider must be one of [azure, gcp, aws]"
