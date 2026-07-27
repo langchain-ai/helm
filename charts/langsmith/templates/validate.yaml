@@ -441,6 +441,13 @@ AWS Marketplace Helm template verification).
 {{- range $pair := $agentPairs }}
 {{- $fn := index $pair "n" }}
 {{- $feat := index $.Values $fn }}
+{{- range $database := list "postgres" "redis" }}
+{{- $databaseConfig := index $feat $database }}
+{{- $provider := $databaseConfig.iamProvider }}
+{{- if and $provider (not (has $provider (list "azure" "gcp" "aws"))) }}
+{{- fail (printf "%s.%s.iamProvider must be one of [azure, gcp, aws]" $fn $database) }}
+{{- end }}
+{{- end }}
 {{- if $feat.enabled }}
 {{- if and (not $feat.encryptionKey) (not $.Values.config.existingSecretName) }}
 {{- fail (printf "%s.encryptionKey is required when %s.enabled is true (not needed if config.existingSecretName is set with the key already present)" $fn $fn) }}
