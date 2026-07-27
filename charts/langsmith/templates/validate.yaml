@@ -443,9 +443,9 @@ AWS Marketplace Helm template verification).
 {{- $feat := index $.Values $fn }}
 {{- range $database := list "postgres" "redis" }}
 {{- $databaseConfig := index $feat $database }}
-{{- $provider := $databaseConfig.iamProvider }}
+{{- $provider := $databaseConfig.external.iamProvider }}
 {{- if and $provider (not (has $provider (list "azure" "gcp" "aws"))) }}
-{{- fail (printf "%s.%s.iamProvider must be one of [azure, gcp, aws]" $fn $database) }}
+{{- fail (printf "%s.%s.external.iamProvider must be one of [azure, gcp, aws]" $fn $database) }}
 {{- end }}
 {{- end }}
 {{- if $feat.enabled }}
