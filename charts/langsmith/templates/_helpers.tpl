@@ -637,7 +637,7 @@ Args: root, service, displayName.
 {{- $prefix := printf "SMITHDB_%s" (upper .service) -}}
 {{- $displayName := .displayName -}}
 {{- $tracing := $root.Values.config.observability.tracing -}}
-{{- $tracingEnabled := and $tracing.enabled (eq $tracing.exporter "grpc") (not $tracing.useTls) (not (regexMatch "(?i)^https://" $tracing.endpoint)) -}}
+{{- $tracingEnabled := and $tracing.enabled (eq $tracing.exporter "grpc") (not $tracing.useTls) -}}
 - name: {{ $prefix }}__LOGGING__FORMAT
   value: {{ ternary "opentelemetry" "console" $tracingEnabled | quote }}
 - name: {{ $prefix }}__LOGGING__TRACING_ENABLED

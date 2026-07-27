@@ -200,31 +200,6 @@ tests:
             name: OTEL_EXPORTER_OTLP_ENDPOINT
             value: http://explicit-otel-collector:4317
 
-  - it: should disable SmithDB tracing for an explicit HTTPS endpoint
-    values:
-      - ./values/smithdb-enabled.yaml
-    set:
-      config.observability.tracing.enabled: true
-      config.observability.tracing.endpoint: https://secure-otel-collector:4317
-      config.observability.tracing.useTls: false
-      config.observability.tracing.exporter: grpc
-    template: smithdb/query-deployment.yaml
-    asserts:
-      - contains:
-          path: spec.template.spec.containers[0].env
-          content:
-            name: SMITHDB_QUERY__LOGGING__TRACING_ENABLED
-            value: "false"
-      - contains:
-          path: spec.template.spec.containers[0].env
-          content:
-            name: SMITHDB_QUERY__LOGGING__FORMAT
-            value: console
-      - notContains:
-          path: spec.template.spec.containers[0].env
-          content:
-            name: OTEL_EXPORTER_OTLP_ENDPOINT
-
   - it: should keep SmithDB tracing disabled when chart-level tracing is disabled
     values:
       - ./values/smithdb-enabled.yaml
