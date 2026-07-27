@@ -69,8 +69,6 @@ data:
   {{- end }}
   {{- if and .Values.fleet.enabled .Values.fleetTriggerServer.enabled }}
   MCP_SERVER_URL: "http://{{ include "langsmith.fullname" . }}-{{ .Values.fleetToolServer.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.fleetToolServer.service.port }}"
-  # In-cluster URL for smith-go / fleet tool-server to reach the trigger server.
-  # Enables Fleet trigger proxy/client without requiring customers to set commonEnv.
   TRIGGER_SERVER_ENDPOINT: "http://{{ include "langsmith.fullname" . }}-{{ .Values.fleetTriggerServer.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.fleetTriggerServer.service.port }}"
   {{- end }}
   {{- if .Values.config.deployment.enabled }}
