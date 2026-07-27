@@ -1065,6 +1065,12 @@ Extra env vars for insights api-server and queue pods.
   (dict "name" "REDIS_URI" "valueFrom" (dict "secretKeyRef" (dict "name" (include "langsmith.agentFeatures.redisSecretName" (dict "root" $root "product" "insights")) "key" "redis_connection_url")))
   (dict "name" "LANGSMITH_TRACING" "value" "false")
 -}}
+{{- $out = append $out (dict "name" "SMITH_BACKEND_SERVICE_JWT_SECRET" "valueFrom" (dict "secretKeyRef" (dict "name" (include "langsmith.secretsName" $root) "key" "api_key_salt" "optional" $root.Values.config.disableSecretCreation))) -}}
+{{- $out = append $out (dict "name" "SMITH_GO_SERVICE_JWT_SECRET" "valueFrom" (dict "secretKeyRef" (dict "name" (include "langsmith.secretsName" $root) "key" "api_key_salt" "optional" $root.Values.config.disableSecretCreation))) -}}
+{{- if $root.Values.engine.enabled -}}
+{{- $out = append $out (dict "name" "ENGINE_INTELLIGENCE_BASE_URL" "value" $root.Values.engine.intelligenceBaseUrl) -}}
+{{- $out = append $out (dict "name" "ISSUES_AGENT_ENCRYPTION_KEY" "valueFrom" (dict "secretKeyRef" (dict "name" (include "langsmith.secretsName" $root) "key" "engine_encryption_key" "optional" $root.Values.config.disableSecretCreation))) -}}
+{{- end -}}
 {{- if and (eq $componentName "apiServer") $feature.queue.enabled -}}
 {{- $out = append $out (dict "name" "N_JOBS_PER_WORKER" "value" "0") -}}
 {{- else -}}
@@ -1338,5 +1344,31 @@ Served through the frontend at /mcp (or /<basePath>/mcp).
 {{- if $slackBotId }}
 - name: "AGENT_BUILDER_SLACK_BOT_ID"
   value: {{ $slackBotId | quote }}
+{{- end }}
+{{- end -}}
+
+{{/* Engine dispatch env for smith-go services (platform-backend + ingest-queue asynq worker) when engine is enabled. */}}
+{{- define "langsmith.engine.smithGoEnv" -}}
+{{- if .Values.engine.enabled }}
+- name: FORGE_AGENT_ASSISTANT_ID
+  value: "engine"
+- name: SMITH_GO_SERVICE_JWT_SECRET
+  valueFrom:
+    secretKeyRef:
+      name: {{ include "langsmith.secretsName" . }}
+      key: api_key_salt
+      optional: {{ .Values.config.disableSecretCreation }}
+- name: FORGE_AGENT_LANGSMITH_API_KEY
+  valueFrom:
+    secretKeyRef:
+      name: {{ include "langsmith.secretsName" . }}
+      key: api_key_salt
+      optional: {{ .Values.config.disableSecretCreation }}
+- name: ISSUES_AGENT_ENCRYPTION_KEY
+  valueFrom:
+    secretKeyRef:
+      name: {{ include "langsmith.secretsName" . }}
+      key: engine_encryption_key
+      optional: {{ .Values.config.disableSecretCreation }}
 {{- end }}
 {{- end -}}

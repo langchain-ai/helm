@@ -13,6 +13,7 @@
       name: {{ include "langsmith.secretsName" . }}
       key: langsmith_signing_jwks
       optional: true
+{{ include "langsmith.engine.smithGoEnv" . }}
 {{- end -}}
 {{- $envVars := concat .Values.commonEnv (include "langsmith.commonEnv" . | fromYamlArray) (include "platformBackendEnvVars" . | fromYamlArray) .Values.platformBackend.deployment.extraEnv -}}
 {{- include "langsmith.detectDuplicates" $envVars -}}

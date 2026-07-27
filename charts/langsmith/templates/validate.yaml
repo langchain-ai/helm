@@ -418,6 +418,19 @@ AWS Marketplace Helm template verification).
 
 {{- end -}}{{- /* end skipValidation */ -}}
 
+{{- /* Engine (co-hosted Insights+Engine) requires config when enabled. */ -}}
+{{- if .Values.engine.enabled }}
+{{- if not .Values.insights.enabled }}
+{{- fail "engine.enabled is true but insights.enabled is false: Engine co-hosts on the Insights LangGraph deployment (smith-go's FORGE_AGENT_LANGGRAPH_URL targets the insights api-server service). Enable insights to run Engine." }}
+{{- end }}
+{{- if and (not .Values.engine.encryptionKey) (not .Values.config.existingSecretName) }}
+{{- fail "engine.encryptionKey is required when engine.enabled is true (must match smith-go's ISSUES_AGENT_ENCRYPTION_KEY). Generate one with: python -c \"from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())\" (not needed if config.existingSecretName has engine_encryption_key)." }}
+{{- end }}
+{{- if not .Values.engine.intelligenceBaseUrl }}
+{{- fail "engine.intelligenceBaseUrl is required when engine.enabled is true: the self-hosted Engine has no ANTHROPIC_API_KEY and routes model calls through the LSI gateway for its cloud/region (e.g. AWS: https://beacon.aws.langchain.com/intelligence)." }}
+{{- end }}
+{{- end }}
+
 {{- /* Validate agent feature (fleet/insights/polly) configuration */ -}}
 {{- $anyAgentEnabled := or .Values.fleet.enabled .Values.insights.enabled .Values.polly.enabled }}
 {{- $allPgUrls := list }}

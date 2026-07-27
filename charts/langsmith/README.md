@@ -360,6 +360,9 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | images.insightsAgentImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.insightsAgentImage.repository | string | `"docker.io/langchain/langsmith-clio"` |  |
 | images.insightsAgentImage.tag | string | `"0.16.21rc1"` |  |
+| images.insightsEngineImage.pullPolicy | string | `"IfNotPresent"` |  |
+| images.insightsEngineImage.repository | string | `"docker.io/langchain/langsmith-insights-engine"` |  |
+| images.insightsEngineImage.tag | string | `"0.16.21rc1"` |  |
 | images.operatorImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.operatorImage.repository | string | `"docker.io/langchain/langgraph-operator"` |  |
 | images.operatorImage.tag | string | `"0.1.47"` |  |
