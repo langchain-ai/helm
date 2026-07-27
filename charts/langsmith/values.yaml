@@ -290,6 +290,7 @@ fleet:
   postgres:
     name: "postgres"
     containerPort: 5432
+    iamProvider: ""
     external:
       enabled: false
       host: ""
@@ -343,6 +344,7 @@ fleet:
   redis:
     name: "redis"
     containerPort: 6379
+    iamProvider: ""
     external:
       enabled: false
       connectionUrl: ""
@@ -527,6 +529,7 @@ insights:
   postgres:
     name: "postgres"
     containerPort: 5432
+    iamProvider: ""
     external:
       enabled: false
       host: ""
@@ -580,6 +583,7 @@ insights:
   redis:
     name: "redis"
     containerPort: 6379
+    iamProvider: ""
     external:
       enabled: false
       connectionUrl: ""
@@ -763,6 +767,7 @@ polly:
   postgres:
     name: "postgres"
     containerPort: 5432
+    iamProvider: ""
     external:
       enabled: false
       host: ""
@@ -816,6 +821,7 @@ polly:
   redis:
     name: "redis"
     containerPort: 6379
+    iamProvider: ""
     external:
       enabled: false
       connectionUrl: ""
