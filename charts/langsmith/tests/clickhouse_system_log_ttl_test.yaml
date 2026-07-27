@@ -11,12 +11,23 @@ tests:
           path: data["system_logs.xml"]
           pattern: "<query_log>\\s*<ttl>event_date \\+ INTERVAL 30 DAY DELETE</ttl>"
 
-  - it: dates opentelemetry_span_log on finish_date, not event_date
+  # ClickHouse ships an <engine> for this table and refuses to start if <ttl> is
+  # set alongside it, so the TTL has to live inside the engine spec.
+  - it: folds the TTL into the opentelemetry_span_log engine, dating on finish_date
     template: clickhouse/config-map.yaml
     asserts:
       - matchRegex:
           path: data["system_logs.xml"]
-          pattern: "<opentelemetry_span_log>\\s*<ttl>finish_date \\+ INTERVAL 30 DAY DELETE</ttl>"
+          pattern: "<opentelemetry_span_log>\\s*<engine>"
+      - matchRegex:
+          path: data["system_logs.xml"]
+          pattern: "ttl finish_date \\+ INTERVAL 30 DAY DELETE\\s*</engine>"
+      - matchRegex:
+          path: data["system_logs.xml"]
+          pattern: "partition by toYYYYMM\\(finish_date\\)"
+      - notMatchRegex:
+          path: data["system_logs.xml"]
+          pattern: "<opentelemetry_span_log>\\s*<ttl>"
 
   - it: honours a custom retention
     template: clickhouse/config-map.yaml

@@ -78,9 +78,19 @@ data:
         <ttl>event_date + INTERVAL {{ $.Values.clickhouse.config.systemLogTtlDays }} DAY DELETE</ttl>
       </{{ $log }}>
       {{- end }}
-      {{- /* opentelemetry_span_log has no event_date column; it dates on finish_date. */}}
+      {{- /* opentelemetry_span_log is the one log table ClickHouse ships an <engine>
+             for, and it rejects <ttl> alongside <engine> ("TTL parameters should be
+             specified directly inside 'engine'") by refusing to start. So restate the
+             stock engine with the TTL folded in. It has no event_date column and
+             sorts on finish time, which is why its engine is special in the first
+             place. Keep partition/order by in sync with ClickHouse's config.xml. */}}
       <opentelemetry_span_log>
-        <ttl>finish_date + INTERVAL {{ .Values.clickhouse.config.systemLogTtlDays }} DAY DELETE</ttl>
+        <engine>
+            engine MergeTree
+            partition by toYYYYMM(finish_date)
+            order by (finish_date, finish_time_us)
+            ttl finish_date + INTERVAL {{ .Values.clickhouse.config.systemLogTtlDays }} DAY DELETE
+        </engine>
       </opentelemetry_span_log>
     </clickhouse>
 {{- end }}
