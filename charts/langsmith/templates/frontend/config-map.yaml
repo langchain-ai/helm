@@ -469,7 +469,7 @@ data:
             proxy_http_version 1.1;
             proxy_buffering off;
             proxy_cache off;
-            proxy_pass http://{{ include "langsmith.agentFeatures.apiServerK8sServiceName" (dict "root" . "product" "insights") }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.insights.apiServer.service.httpPort }};
+            proxy_pass http://{{ include "langsmith.agentFeatures.apiServerK8sServiceName" (dict "root" . "product" "engineInsightsAgent") }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.engineInsightsAgent.apiServer.service.httpPort }};
         }
     {{- end }}
 
@@ -1193,7 +1193,7 @@ data:
             proxy_http_version 1.1;
             proxy_buffering off;
             proxy_cache off;
-            proxy_pass http://{{ include "langsmith.agentFeatures.apiServerK8sServiceName" (dict "root" . "product" "insights") }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.insights.apiServer.service.httpPort }};
+            proxy_pass http://{{ include "langsmith.agentFeatures.apiServerK8sServiceName" (dict "root" . "product" "engineInsightsAgent") }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.engineInsightsAgent.apiServer.service.httpPort }};
         }
     {{- end }}
 

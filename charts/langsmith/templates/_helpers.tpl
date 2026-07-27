@@ -911,18 +911,18 @@ Args: root, service, displayName.
 {{- end -}}
 
 {{- define "insightsApiServer.serviceAccountName" -}}
-{{- if .Values.insights.apiServer.serviceAccount.create -}}
-    {{ default (printf "%s-%s" (include "langsmith.agentFeatures.fullname" (dict "root" . "product" "insights")) .Values.insights.apiServer.name) .Values.insights.apiServer.serviceAccount.name | trunc 63 | trimSuffix "-" }}
+{{- if .Values.engineInsightsAgent.apiServer.serviceAccount.create -}}
+    {{ default (printf "%s-%s" (include "langsmith.agentFeatures.fullname" (dict "root" . "product" "engineInsightsAgent")) .Values.engineInsightsAgent.apiServer.name) .Values.engineInsightsAgent.apiServer.serviceAccount.name | trunc 63 | trimSuffix "-" }}
 {{- else -}}
-    {{ default "default" .Values.insights.apiServer.serviceAccount.name }}
+    {{ default "default" .Values.engineInsightsAgent.apiServer.serviceAccount.name }}
 {{- end -}}
 {{- end -}}
 
 {{- define "insightsQueue.serviceAccountName" -}}
-{{- if .Values.insights.queue.serviceAccount.create -}}
-    {{ default (printf "%s-%s" (include "langsmith.agentFeatures.fullname" (dict "root" . "product" "insights")) .Values.insights.queue.name) .Values.insights.queue.serviceAccount.name | trunc 63 | trimSuffix "-" }}
+{{- if .Values.engineInsightsAgent.queue.serviceAccount.create -}}
+    {{ default (printf "%s-%s" (include "langsmith.agentFeatures.fullname" (dict "root" . "product" "engineInsightsAgent")) .Values.engineInsightsAgent.queue.name) .Values.engineInsightsAgent.queue.serviceAccount.name | trunc 63 | trimSuffix "-" }}
 {{- else -}}
-    {{ default "default" .Values.insights.queue.serviceAccount.name }}
+    {{ default "default" .Values.engineInsightsAgent.queue.serviceAccount.name }}
 {{- end -}}
 {{- end -}}
 
@@ -1057,12 +1057,12 @@ Extra env vars for insights api-server and queue pods.
 {{- define "langsmith.insights.extraEnv" -}}
 {{- $root := index . "root" -}}
 {{- $componentName := index . "component" -}}
-{{- $feature := $root.Values.insights -}}
+{{- $feature := $root.Values.engineInsightsAgent -}}
 {{- $component := index $feature $componentName -}}
 {{- $out := list
   (dict "name" "PORT" "value" (toString $component.containerPort))
-  (dict "name" "POSTGRES_URI" "valueFrom" (dict "secretKeyRef" (dict "name" (include "langsmith.agentFeatures.postgresSecretName" (dict "root" $root "product" "insights")) "key" "postgres_connection_url")))
-  (dict "name" "REDIS_URI" "valueFrom" (dict "secretKeyRef" (dict "name" (include "langsmith.agentFeatures.redisSecretName" (dict "root" $root "product" "insights")) "key" "redis_connection_url")))
+  (dict "name" "POSTGRES_URI" "valueFrom" (dict "secretKeyRef" (dict "name" (include "langsmith.agentFeatures.postgresSecretName" (dict "root" $root "product" "engineInsightsAgent")) "key" "postgres_connection_url")))
+  (dict "name" "REDIS_URI" "valueFrom" (dict "secretKeyRef" (dict "name" (include "langsmith.agentFeatures.redisSecretName" (dict "root" $root "product" "engineInsightsAgent")) "key" "redis_connection_url")))
   (dict "name" "LANGSMITH_TRACING" "value" "false")
 -}}
 {{- $out = append $out (dict "name" "SMITH_BACKEND_SERVICE_JWT_SECRET" "valueFrom" (dict "secretKeyRef" (dict "name" (include "langsmith.secretsName" $root) "key" "api_key_salt" "optional" $root.Values.config.disableSecretCreation))) -}}
