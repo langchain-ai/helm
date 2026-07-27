@@ -1,0 +1,69 @@
+suite: TRIGGER_SERVER_ENDPOINT config-map wiring
+# insights/polly are enabled by default and would otherwise require encryption
+# keys to pass validate.yaml (which renders for every test).
+set:
+  insights.enabled: false
+  polly.enabled: false
+tests:
+  - it: sets TRIGGER_SERVER_ENDPOINT when fleet and trigger-server are enabled
+    template: templates/config-map.yaml
+    set:
+      config.existingSecretName: "langsmith-secrets"
+      config.oauth.enabled: true
+      config.authType: "oauth"
+      fleet.enabled: true
+      fleetTriggerServer.enabled: true
+    asserts:
+      - equal:
+          path: data.TRIGGER_SERVER_ENDPOINT
+          value: "http://RELEASE-NAME-langsmith-fleet-trigger-server.NAMESPACE.svc.cluster.local:1990"
+      - equal:
+          path: data.MCP_SERVER_URL
+          value: "http://RELEASE-NAME-langsmith-fleet-tool-server.NAMESPACE.svc.cluster.local:1989"
+
+  - it: respects custom release name, namespace, clusterDomain, and service port
+    template: templates/config-map.yaml
+    release:
+      name: acme
+      namespace: prod
+    set:
+      config.existingSecretName: "langsmith-secrets"
+      config.oauth.enabled: true
+      config.authType: "oauth"
+      fleet.enabled: true
+      fleetTriggerServer.enabled: true
+      fleetTriggerServer.name: "custom-trigger"
+      fleetTriggerServer.service.port: 2990
+      clusterDomain: "corp.local"
+    asserts:
+      - equal:
+          path: data.TRIGGER_SERVER_ENDPOINT
+          value: "http://acme-langsmith-custom-trigger.prod.svc.corp.local:2990"
+
+  - it: omits TRIGGER_SERVER_ENDPOINT when fleet is disabled
+    template: templates/config-map.yaml
+    set:
+      config.existingSecretName: "langsmith-secrets"
+      config.oauth.enabled: true
+      config.authType: "oauth"
+      fleet.enabled: false
+      fleetTriggerServer.enabled: true
+    asserts:
+      - notExists:
+          path: data.TRIGGER_SERVER_ENDPOINT
+      - notExists:
+          path: data.MCP_SERVER_URL
+
+  - it: omits TRIGGER_SERVER_ENDPOINT when trigger-server is disabled
+    template: templates/config-map.yaml
+    set:
+      config.existingSecretName: "langsmith-secrets"
+      config.oauth.enabled: true
+      config.authType: "oauth"
+      fleet.enabled: true
+      fleetTriggerServer.enabled: false
+    asserts:
+      - notExists:
+          path: data.TRIGGER_SERVER_ENDPOINT
+      - notExists:
+          path: data.MCP_SERVER_URL
