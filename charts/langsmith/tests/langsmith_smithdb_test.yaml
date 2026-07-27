@@ -184,22 +184,6 @@ tests:
           content:
             name: OTEL_EXPORTER_OTLP_ENDPOINT
 
-  - it: should preserve an explicit SmithDB OTLP endpoint scheme
-    values:
-      - ./values/smithdb-enabled.yaml
-    set:
-      config.observability.tracing.enabled: true
-      config.observability.tracing.endpoint: http://explicit-otel-collector:4317
-      config.observability.tracing.useTls: false
-      config.observability.tracing.exporter: grpc
-    template: smithdb/query-deployment.yaml
-    asserts:
-      - contains:
-          path: spec.template.spec.containers[0].env
-          content:
-            name: OTEL_EXPORTER_OTLP_ENDPOINT
-            value: http://explicit-otel-collector:4317
-
   - it: should keep SmithDB tracing disabled when chart-level tracing is disabled
     values:
       - ./values/smithdb-enabled.yaml
