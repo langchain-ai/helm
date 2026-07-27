@@ -1068,7 +1068,7 @@ config:
       enabled: false
       # Replace this with the endpoint of your trace collector. If you are using the LangSmith Observability helm chart, this will be the endpoint of the OTEL Gateway collector.
       endpoint: ""
-      # -- Use TLS for OTLP export. When true, SmithDB does not configure OTLP: traces are not exported, and logs are written to stdout using console format.
+      # -- Use TLS for OTLP export.
       useTls: true
       env: "ls_self_hosted"
       exporter: "http"

@@ -1317,7 +1317,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | config.observability.tracing.endpoint | string | `""` |  |
 | config.observability.tracing.env | string | `"ls_self_hosted"` |  |
 | config.observability.tracing.exporter | string | `"http"` |  |
-| config.observability.tracing.useTls | bool | `true` | Use TLS for OTLP export. When true, SmithDB does not configure OTLP: traces are not exported, and logs are written to stdout using console format. |
+| config.observability.tracing.useTls | bool | `true` | Use TLS for OTLP export. |
 | config.orgAdminsInstallationUsageExportEnabled | bool | `false` | When true, any org admin can use the usage backfill export. |
 | config.personalOrgsDisabled | bool | `true` | Disable personal orgs. |
 | config.security | object | `{"cors":{"allowedOrigins":"*","allowedOriginsRegex":"","alwaysAllowPathsRegex":""}}` | Security configuration for CORS, headers, and other security-related settings. These settings control cross-origin access and help protect against common web vulnerabilities. |

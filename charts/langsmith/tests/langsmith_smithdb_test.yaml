@@ -159,7 +159,7 @@ tests:
           path: data.OTLP_ENDPOINT
           value: default-otel-collector:4317
 
-  - it: should disable SmithDB tracing when chart-level tracing uses TLS
+  - it: should derive the TLS SmithDB OTLP endpoint from chart-level tracing
     values:
       - ./values/smithdb-enabled.yaml
     set:
@@ -173,16 +173,22 @@ tests:
           path: spec.template.spec.containers[0].env
           content:
             name: SMITHDB_QUERY__LOGGING__TRACING_ENABLED
-            value: "false"
+            value: "true"
       - contains:
           path: spec.template.spec.containers[0].env
           content:
             name: SMITHDB_QUERY__LOGGING__FORMAT
-            value: console
-      - notContains:
+            value: opentelemetry
+      - contains:
           path: spec.template.spec.containers[0].env
           content:
             name: OTEL_EXPORTER_OTLP_ENDPOINT
+            value: https://secure-otel-collector:4317
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: OTEL_EXPORTER_OTLP_PROTOCOL
+            value: grpc
 
   - it: should keep SmithDB tracing disabled when chart-level tracing is disabled
     values:
