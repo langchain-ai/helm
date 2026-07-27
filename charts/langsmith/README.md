@@ -100,6 +100,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | fleet.postgres.external.port | string | `"5432"` |  |
 | fleet.postgres.external.schema | string | `"public"` |  |
 | fleet.postgres.external.user | string | `"postgres"` |  |
+| fleet.postgres.iamProvider | string | `""` |  |
 | fleet.postgres.name | string | `"postgres"` |  |
 | fleet.postgres.pdb.enabled | bool | `false` |  |
 | fleet.postgres.pdb.minAvailable | int | `1` |  |
@@ -189,6 +190,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | fleet.redis.external.connectionUrl | string | `""` |  |
 | fleet.redis.external.enabled | bool | `false` |  |
 | fleet.redis.external.existingSecretName | string | `""` |  |
+| fleet.redis.iamProvider | string | `""` |  |
 | fleet.redis.name | string | `"redis"` |  |
 | fleet.redis.pdb.enabled | bool | `false` |  |
 | fleet.redis.pdb.minAvailable | int | `1` |  |
@@ -528,6 +530,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | insights.postgres.external.port | string | `"5432"` |  |
 | insights.postgres.external.schema | string | `"public"` |  |
 | insights.postgres.external.user | string | `"postgres"` |  |
+| insights.postgres.iamProvider | string | `""` |  |
 | insights.postgres.name | string | `"postgres"` |  |
 | insights.postgres.pdb.enabled | bool | `false` |  |
 | insights.postgres.pdb.minAvailable | int | `1` |  |
@@ -617,6 +620,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | insights.redis.external.connectionUrl | string | `""` |  |
 | insights.redis.external.enabled | bool | `false` |  |
 | insights.redis.external.existingSecretName | string | `""` |  |
+| insights.redis.iamProvider | string | `""` |  |
 | insights.redis.name | string | `"redis"` |  |
 | insights.redis.pdb.enabled | bool | `false` |  |
 | insights.redis.pdb.minAvailable | int | `1` |  |
@@ -726,6 +730,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | polly.postgres.external.port | string | `"5432"` |  |
 | polly.postgres.external.schema | string | `"public"` |  |
 | polly.postgres.external.user | string | `"postgres"` |  |
+| polly.postgres.iamProvider | string | `""` |  |
 | polly.postgres.name | string | `"postgres"` |  |
 | polly.postgres.pdb.enabled | bool | `false` |  |
 | polly.postgres.pdb.minAvailable | int | `1` |  |
@@ -815,6 +820,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | polly.redis.external.connectionUrl | string | `""` |  |
 | polly.redis.external.enabled | bool | `false` |  |
 | polly.redis.external.existingSecretName | string | `""` |  |
+| polly.redis.iamProvider | string | `""` |  |
 | polly.redis.name | string | `"redis"` |  |
 | polly.redis.pdb.enabled | bool | `false` |  |
 | polly.redis.pdb.minAvailable | int | `1` |  |

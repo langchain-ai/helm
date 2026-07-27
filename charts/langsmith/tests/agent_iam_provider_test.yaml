@@ -1,0 +1,95 @@
+suite: agent IAM provider environment variables
+templates:
+  - agent-features/fleet/api-server/deployment.yaml
+  - agent-features/fleet/queue/deployment.yaml
+  - agent-features/insights/api-server/deployment.yaml
+  - agent-features/insights/queue/deployment.yaml
+  - agent-features/polly/api-server/deployment.yaml
+  - agent-features/polly/queue/deployment.yaml
+set:
+  fleet.enabled: true
+  fleet.postgres.iamProvider: "fleet-postgres"
+  fleet.redis.iamProvider: "fleet-redis"
+  insights.postgres.iamProvider: "insights-postgres"
+  insights.redis.iamProvider: "insights-redis"
+  polly.postgres.iamProvider: "polly-postgres"
+  polly.redis.iamProvider: "polly-redis"
+tests:
+  - it: maps fleet IAM providers to the api-server
+    template: agent-features/fleet/api-server/deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: AGENT_POSTGRES_IAM_AUTH_PROVIDER
+            value: fleet-postgres
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: AGENT_REDIS_IAM_AUTH_PROVIDER
+            value: fleet-redis
+  - it: maps fleet IAM providers to the queue
+    template: agent-features/fleet/queue/deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: AGENT_POSTGRES_IAM_AUTH_PROVIDER
+            value: fleet-postgres
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: AGENT_REDIS_IAM_AUTH_PROVIDER
+            value: fleet-redis
+  - it: maps insights IAM providers to the api-server
+    template: agent-features/insights/api-server/deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: AGENT_POSTGRES_IAM_AUTH_PROVIDER
+            value: insights-postgres
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: AGENT_REDIS_IAM_AUTH_PROVIDER
+            value: insights-redis
+  - it: maps insights IAM providers to the queue
+    template: agent-features/insights/queue/deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: AGENT_POSTGRES_IAM_AUTH_PROVIDER
+            value: insights-postgres
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: AGENT_REDIS_IAM_AUTH_PROVIDER
+            value: insights-redis
+  - it: maps polly IAM providers to the api-server
+    template: agent-features/polly/api-server/deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: AGENT_POSTGRES_IAM_AUTH_PROVIDER
+            value: polly-postgres
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: AGENT_REDIS_IAM_AUTH_PROVIDER
+            value: polly-redis
+  - it: maps polly IAM providers to the queue
+    template: agent-features/polly/queue/deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: AGENT_POSTGRES_IAM_AUTH_PROVIDER
+            value: polly-postgres
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: AGENT_REDIS_IAM_AUTH_PROVIDER
+            value: polly-redis
