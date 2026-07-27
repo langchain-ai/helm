@@ -616,6 +616,19 @@ SmithDB OTEL resource attributes.
 {{- end }}
 
 {{/*
+SmithDB OTLP endpoint. The chart models TLS separately, while the standard
+OTEL_EXPORTER_OTLP_ENDPOINT consumed by SmithDB requires a URI scheme.
+*/}}
+{{- define "langsmith.smithdb.otelEndpoint" -}}
+{{- $tracing := .Values.config.observability.tracing -}}
+{{- if regexMatch "^https?://" $tracing.endpoint -}}
+{{- $tracing.endpoint -}}
+{{- else -}}
+{{- printf "%s://%s" (ternary "https" "http" $tracing.useTls) $tracing.endpoint -}}
+{{- end -}}
+{{- end }}
+
+{{/*
 Common per-process SmithDB env: logging, OpenTelemetry, pod identity, allocator.
 Args: root, service, displayName.
 */}}
@@ -654,7 +667,7 @@ Args: root, service, displayName.
   value: {{ $displayName | quote }}
 {{- if $tracingEnabled }}
 - name: OTEL_EXPORTER_OTLP_ENDPOINT
-  value: {{ $root.Values.config.observability.tracing.endpoint | quote }}
+  value: {{ include "langsmith.smithdb.otelEndpoint" $root | quote }}
 {{- /* SmithDB exports OTLP over gRPC. */}}
 - name: OTEL_EXPORTER_OTLP_PROTOCOL
   value: "grpc"
