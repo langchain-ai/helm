@@ -621,11 +621,7 @@ OTEL_EXPORTER_OTLP_ENDPOINT consumed by SmithDB requires a URI scheme.
 */}}
 {{- define "langsmith.smithdb.otelEndpoint" -}}
 {{- $tracing := .Values.config.observability.tracing -}}
-{{- if regexMatch "(?i)^https?://" $tracing.endpoint -}}
-{{- $tracing.endpoint -}}
-{{- else -}}
-{{- printf "http://%s" $tracing.endpoint -}}
-{{- end -}}
+{{- printf "http://%s" (trimPrefix "http://" $tracing.endpoint) -}}
 {{- end }}
 
 {{/*
