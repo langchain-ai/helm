@@ -65,19 +65,19 @@ images:
   aceBackendImage:
     repository: "docker.io/langchain/langsmith-ace-backend"
     pullPolicy: IfNotPresent
-    tag: "0.16.21rc1"
+    tag: "0.16.23rc1"
   backendImage:
     repository: "docker.io/langchain/langsmith-backend"
     pullPolicy: IfNotPresent
-    tag: "0.16.21rc1"
+    tag: "0.16.23rc1"
   insightsAgentImage:
     repository: "docker.io/langchain/langsmith-clio"
     pullPolicy: IfNotPresent
-    tag: "0.16.21rc1"
+    tag: "0.16.23rc1"
   frontendImage:
     repository: "docker.io/langchain/langsmith-frontend"
     pullPolicy: IfNotPresent
-    tag: "0.16.21rc1"
+    tag: "0.16.23rc1"
   operatorImage:
     repository: "docker.io/langchain/langgraph-operator"
     pullPolicy: IfNotPresent
@@ -101,15 +101,15 @@ images:
   agentBuilderImage:
     repository: "docker.io/langchain/agent-builder-deep-agent"
     pullPolicy: IfNotPresent
-    tag: "0.16.21rc1"
+    tag: "0.16.23rc1"
   pollyAgentImage:
     repository: "docker.io/langchain/langsmith-polly"
     pullPolicy: IfNotPresent
-    tag: "0.16.21rc1"
+    tag: "0.16.23rc1"
   smithdbImage:
     repository: "docker.io/langchain/smithdb"
     pullPolicy: IfNotPresent
-    tag: "0.16.21rc1"
+    tag: "0.16.23rc1"
   # Optional: only mirror/pull when presidioAnalyzer.enabled is true
   presidioAnalyzerImage:
     repository: "mcr.microsoft.com/presidio-analyzer"
@@ -292,6 +292,7 @@ fleet:
     containerPort: 5432
     external:
       enabled: false
+      iamProvider: ""
       host: ""
       port: "5432"
       user: "postgres"
@@ -345,6 +346,7 @@ fleet:
     containerPort: 6379
     external:
       enabled: false
+      iamProvider: ""
       connectionUrl: ""
       existingSecretName: ""
     statefulSet:
@@ -529,6 +531,7 @@ insights:
     containerPort: 5432
     external:
       enabled: false
+      iamProvider: ""
       host: ""
       port: "5432"
       user: "postgres"
@@ -582,6 +585,7 @@ insights:
     containerPort: 6379
     external:
       enabled: false
+      iamProvider: ""
       connectionUrl: ""
       existingSecretName: ""
     statefulSet:
@@ -765,6 +769,7 @@ polly:
     containerPort: 5432
     external:
       enabled: false
+      iamProvider: ""
       host: ""
       port: "5432"
       user: "postgres"
@@ -818,6 +823,7 @@ polly:
     containerPort: 6379
     external:
       enabled: false
+      iamProvider: ""
       connectionUrl: ""
       existingSecretName: ""
     statefulSet:
@@ -1068,6 +1074,7 @@ config:
       enabled: false
       # Replace this with the endpoint of your trace collector. If you are using the LangSmith Observability helm chart, this will be the endpoint of the OTEL Gateway collector.
       endpoint: ""
+      # -- Use TLS for OTLP export.
       useTls: true
       env: "ls_self_hosted"
       exporter: "http"

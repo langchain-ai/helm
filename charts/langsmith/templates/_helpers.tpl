@@ -616,6 +616,15 @@ SmithDB OTEL resource attributes.
 {{- end }}
 
 {{/*
+SmithDB OTLP endpoint. The chart models TLS separately, while the standard
+OTEL_EXPORTER_OTLP_ENDPOINT consumed by SmithDB requires a URI scheme.
+*/}}
+{{- define "langsmith.smithdb.otelEndpoint" -}}
+{{- $tracing := .Values.config.observability.tracing -}}
+{{- printf "%s://%s" (ternary "https" "http" $tracing.useTls) $tracing.endpoint -}}
+{{- end }}
+
+{{/*
 Common per-process SmithDB env: logging, OpenTelemetry, pod identity, allocator.
 Args: root, service, displayName.
 */}}
@@ -623,7 +632,8 @@ Args: root, service, displayName.
 {{- $root := .root -}}
 {{- $prefix := printf "SMITHDB_%s" (upper .service) -}}
 {{- $displayName := .displayName -}}
-{{- $tracingEnabled := and $root.Values.config.observability.tracing.enabled (eq $root.Values.config.observability.tracing.exporter "grpc") -}}
+{{- $tracing := $root.Values.config.observability.tracing -}}
+{{- $tracingEnabled := and $tracing.enabled (eq $tracing.exporter "grpc") -}}
 - name: {{ $prefix }}__LOGGING__FORMAT
   value: {{ ternary "opentelemetry" "console" $tracingEnabled | quote }}
 - name: {{ $prefix }}__LOGGING__TRACING_ENABLED
@@ -654,7 +664,7 @@ Args: root, service, displayName.
   value: {{ $displayName | quote }}
 {{- if $tracingEnabled }}
 - name: OTEL_EXPORTER_OTLP_ENDPOINT
-  value: {{ $root.Values.config.observability.tracing.endpoint | quote }}
+  value: {{ include "langsmith.smithdb.otelEndpoint" $root | quote }}
 {{- /* SmithDB exports OTLP over gRPC. */}}
 - name: OTEL_EXPORTER_OTLP_PROTOCOL
   value: "grpc"
@@ -1032,6 +1042,12 @@ Extra env vars for fleet api-server and queue pods.
   (dict "name" "SSRF_ALLOW_PRIVATE_IPS_TOOLS" "value" "true")
   (dict "name" "SSRF_ALLOW_K8S_INTERNAL" "value" "true")
 -}}
+{{- if $feature.postgres.external.iamProvider -}}
+{{- $out = append $out (dict "name" "AGENT_POSTGRES_IAM_AUTH_PROVIDER" "value" $feature.postgres.external.iamProvider) -}}
+{{- end -}}
+{{- if $feature.redis.external.iamProvider -}}
+{{- $out = append $out (dict "name" "AGENT_REDIS_IAM_AUTH_PROVIDER" "value" $feature.redis.external.iamProvider) -}}
+{{- end -}}
 {{- if and (eq $componentName "apiServer") $feature.queue.enabled -}}
 {{- $out = append $out (dict "name" "N_JOBS_PER_WORKER" "value" "0") -}}
 {{- else -}}
@@ -1057,6 +1073,12 @@ Extra env vars for insights api-server and queue pods.
   (dict "name" "REDIS_URI" "valueFrom" (dict "secretKeyRef" (dict "name" (include "langsmith.agentFeatures.redisSecretName" (dict "root" $root "product" "insights")) "key" "redis_connection_url")))
   (dict "name" "LANGSMITH_TRACING" "value" "false")
 -}}
+{{- if $feature.postgres.external.iamProvider -}}
+{{- $out = append $out (dict "name" "AGENT_POSTGRES_IAM_AUTH_PROVIDER" "value" $feature.postgres.external.iamProvider) -}}
+{{- end -}}
+{{- if $feature.redis.external.iamProvider -}}
+{{- $out = append $out (dict "name" "AGENT_REDIS_IAM_AUTH_PROVIDER" "value" $feature.redis.external.iamProvider) -}}
+{{- end -}}
 {{- if and (eq $componentName "apiServer") $feature.queue.enabled -}}
 {{- $out = append $out (dict "name" "N_JOBS_PER_WORKER" "value" "0") -}}
 {{- else -}}
@@ -1084,6 +1106,12 @@ Extra env vars for polly api-server and queue pods.
   (dict "name" "LANGSMITH_DISABLE_RUN_COMPRESSION" "value" "true")
   (dict "name" "LANGSMITH_TRACING" "value" (ternary "false" "true" $feature.enableTracing))
 -}}
+{{- if $feature.postgres.external.iamProvider -}}
+{{- $out = append $out (dict "name" "AGENT_POSTGRES_IAM_AUTH_PROVIDER" "value" $feature.postgres.external.iamProvider) -}}
+{{- end -}}
+{{- if $feature.redis.external.iamProvider -}}
+{{- $out = append $out (dict "name" "AGENT_REDIS_IAM_AUTH_PROVIDER" "value" $feature.redis.external.iamProvider) -}}
+{{- end -}}
 {{- if and (eq $componentName "apiServer") $feature.queue.enabled -}}
 {{- $out = append $out (dict "name" "N_JOBS_PER_WORKER" "value" "0") -}}
 {{- else -}}

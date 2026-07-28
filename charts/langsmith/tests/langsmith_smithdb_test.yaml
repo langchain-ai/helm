@@ -109,12 +109,13 @@ tests:
               resourceFieldRef:
                 resource: limits.memory
 
-  - it: should configure the SmithDB OTLP gRPC exporter when tracing is enabled
+  - it: should derive the plaintext SmithDB OTLP endpoint from chart-level tracing
     values:
       - ./values/smithdb-enabled.yaml
     set:
       config.observability.tracing.enabled: true
-      config.observability.tracing.endpoint: http://default-otel-collector:4317
+      config.observability.tracing.endpoint: default-otel-collector:4317
+      config.observability.tracing.useTls: false
       config.observability.tracing.exporter: grpc
     template: smithdb/query-deployment.yaml
     asserts:
@@ -143,6 +144,71 @@ tests:
           content:
             name: OTEL_RESOURCE_ATTRIBUTES
             value: pod_name=$(POD_NAME),k8s.pod.name=$(POD_NAME),container_name=$(CONTAINER_NAME),k8s.container.name=$(CONTAINER_NAME)
+
+  - it: should preserve the bare endpoint for LangSmith services
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      config.observability.tracing.enabled: true
+      config.observability.tracing.endpoint: default-otel-collector:4317
+      config.observability.tracing.useTls: false
+      config.observability.tracing.exporter: grpc
+    template: config-map.yaml
+    asserts:
+      - equal:
+          path: data.OTLP_ENDPOINT
+          value: default-otel-collector:4317
+      - equal:
+          path: data.OTEL_EXPORTER_OTLP_INSECURE
+          value: "true"
+
+  - it: should configure secure OTLP transport for LangSmith services
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      config.observability.tracing.enabled: true
+      config.observability.tracing.endpoint: secure-otel-collector:4317
+      config.observability.tracing.useTls: true
+      config.observability.tracing.exporter: grpc
+    template: config-map.yaml
+    asserts:
+      - equal:
+          path: data.OTLP_ENDPOINT
+          value: secure-otel-collector:4317
+      - equal:
+          path: data.OTEL_EXPORTER_OTLP_INSECURE
+          value: "false"
+
+  - it: should derive the TLS SmithDB OTLP endpoint from chart-level tracing
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      config.observability.tracing.enabled: true
+      config.observability.tracing.endpoint: secure-otel-collector:4317
+      config.observability.tracing.useTls: true
+      config.observability.tracing.exporter: grpc
+    template: smithdb/query-deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_QUERY__LOGGING__TRACING_ENABLED
+            value: "true"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_QUERY__LOGGING__FORMAT
+            value: opentelemetry
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: OTEL_EXPORTER_OTLP_ENDPOINT
+            value: https://secure-otel-collector:4317
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: OTEL_EXPORTER_OTLP_PROTOCOL
+            value: grpc
 
   - it: should keep SmithDB tracing disabled when chart-level tracing is disabled
     values:
@@ -252,6 +318,39 @@ tests:
       - equal:
           path: data.SMITHDB_MUTATIONS_SERVICE_URL
           value: RELEASE-NAME-langsmith-smithdb-query.NAMESPACE.svc.cluster.local:8080
+      - equal:
+          path: data.SMITHDB_QUERY_SERVICE_MAX_CALL_RECV_MSG_SIZE
+          value: "1073741824"
+      - equal:
+          path: data.SMITHDB_FEEDBACK_MUTATION_RPS_PER_KEY
+          value: "100"
+      - equal:
+          path: data.SMITHDB_FEEDBACK_MUTATION_BURST_PER_KEY
+          value: "150"
+      - equal:
+          path: data.SMITHDB_RULES_REDIS_READ_ENABLED
+          value: "true"
+      - equal:
+          path: data.SMITHDB_RULES_THREAD_REDIS_READ_ENABLED
+          value: "true"
+      - equal:
+          path: data.RUN_RULES_SMITHDB_RETRIEVER_TENANTS
+          value: '["*"]'
+      - equal:
+          path: data.RUN_RULES_SMITHDB_RETRIEVER_PCT
+          value: "100"
+      - equal:
+          path: data.RUN_RULES_SMITHDB_THREAD_RETRIEVER_TENANTS
+          value: '["*"]'
+      - equal:
+          path: data.RUN_RULES_SMITHDB_THREAD_RETRIEVER_PCT
+          value: "100"
+      - equal:
+          path: data.RUN_RULES_REDIS_DEDUP_TENANTS
+          value: '["*"]'
+      - equal:
+          path: data.RUN_RULES_LIMIT_RRA_RECORDS_PER_BATCH_TENANTS
+          value: '["*"]'
 
   - it: should configure SmithDB ingestion without SmithDB query endpoints
     values:
@@ -330,6 +429,26 @@ tests:
           path: data.SMITHDB_CLUSTER_MANAGER_ENABLED
       - notExists:
           path: data.SMITHDB_CLUSTER_MANAGER_URL
+      - notExists:
+          path: data.SMITHDB_QUERY_SERVICE_MAX_CALL_RECV_MSG_SIZE
+      - notExists:
+          path: data.SMITHDB_FEEDBACK_MUTATION_RPS_PER_KEY
+      - notExists:
+          path: data.SMITHDB_RULES_REDIS_READ_ENABLED
+      - notExists:
+          path: data.RUN_RULES_SMITHDB_RETRIEVER_TENANTS
+      - notExists:
+          path: data.RUN_RULES_SMITHDB_RETRIEVER_PCT
+      - notExists:
+          path: data.RUN_RULES_SMITHDB_THREAD_RETRIEVER_TENANTS
+      - notExists:
+          path: data.RUN_RULES_SMITHDB_THREAD_RETRIEVER_PCT
+      - equal:
+          path: data.RUN_RULES_REDIS_DEDUP_TENANTS
+          value: '["*"]'
+      - equal:
+          path: data.RUN_RULES_LIMIT_RRA_RECORDS_PER_BATCH_TENANTS
+          value: '["*"]'
 
   - it: should omit frontend SmithDB v2 endpoint flag when disabled
     values:
