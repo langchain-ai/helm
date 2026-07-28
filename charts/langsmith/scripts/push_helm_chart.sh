@@ -78,21 +78,21 @@ TMPDIR="$(mktemp -d)"
 trap 'rm -rf "$TMPDIR"' EXIT
 
 ###############################################################################
-# Extract or copy chart
+# Extract chart
 ###############################################################################
 if [[ "$CHART_PATH" == *.tgz ]]; then
     echo "--- Extracting chart from ${CHART_PATH} ---"
     tar -xzf "$CHART_PATH" -C "$TMPDIR"
 else
-    echo "--- Copying chart from ${CHART_PATH} ---"
-    CHART_SOURCE_DIR="$(cd "$CHART_PATH" && pwd)"
-    EXTRACTED_DIR="$TMPDIR/$(basename "$CHART_SOURCE_DIR")"
-    mkdir -p "$EXTRACTED_DIR"
-    tar -C "$CHART_SOURCE_DIR" -cf - . | tar -C "$EXTRACTED_DIR" -xf -
+    echo "--- Packaging chart from ${CHART_PATH} ---"
+    helm package "$CHART_PATH" --version "$VERSION" -d "$TMPDIR" > /dev/null
+    TGZ=$(ls "$TMPDIR"/*.tgz)
+    tar -xzf "$TGZ" -C "$TMPDIR"
+    rm "$TGZ"
 fi
 
 # Find the extracted chart directory
-EXTRACTED_DIR="${EXTRACTED_DIR:-$(find "$TMPDIR" -maxdepth 1 -mindepth 1 -type d | head -1)}"
+EXTRACTED_DIR=$(find "$TMPDIR" -maxdepth 1 -mindepth 1 -type d | head -1)
 ORIGINAL_NAME=$(basename "$EXTRACTED_DIR")
 
 ###############################################################################
@@ -104,11 +104,6 @@ if [[ "$ORIGINAL_NAME" != "$CHART_NAME" ]]; then
     rm -f "$EXTRACTED_DIR/Chart.yaml.bak"
     mv "$EXTRACTED_DIR" "$TMPDIR/$CHART_NAME"
     EXTRACTED_DIR="$TMPDIR/$CHART_NAME"
-fi
-
-if grep -q '^dependencies:' "$EXTRACTED_DIR/Chart.yaml"; then
-    echo "--- Building chart dependencies ---"
-    helm dependency build "$EXTRACTED_DIR" > /dev/null
 fi
 
 ###############################################################################

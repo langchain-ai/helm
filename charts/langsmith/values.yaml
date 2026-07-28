@@ -907,8 +907,6 @@ config:
   existingSecretName: ""
   disableSecretCreation: false
   langsmithLicenseKey: ""
-  # -- Runtime environment value rendered as LANGCHAIN_ENV for sandbox runtime components.
-  langchainEnv: "local_kubernetes"
   # -- Configuration for LangSmith Deployments features
   deployment:
       # -- Optional. Used to enable the LangSmith Deployments feature. Requires additional setup. Refer to the documentation for more information.
@@ -937,6 +935,8 @@ config:
     xServiceAuthJwtSecretPrevious: ""
     # -- Required private JWK for sandbox callback signing when this chart creates the LangSmith app Secret.
     # When config.existingSecretName is set, add key `sandbox_callback_signing_jwk` to that Secret instead.
+    # Signed egress callbacks also need config.hostname: it supplies the public issuer receivers use to fetch
+    # the verification key from `<issuer>/.well-known/jwks.json`. Without it, callback signing fails closed.
     callbackSigningJwk: ""
     # -- Optional base URL used to generate browser/programmatic service URLs for HTTP services running inside sandboxes.
     # When set, the chart renders SANDBOX_SERVICE_URLS for config.sandboxes.clusterName.
@@ -947,7 +947,7 @@ config:
       maxCpuCores: 16
       maxMemoryGb: 64
       minEphemeralStorageGb: 1
-      maxEphemeralStorageGb: 100
+      maxEphemeralStorageGib: 100
       maxSandboxes: 1000
     proxyCa:
       # -- generatedSecret creates a self-signed CA Secret with Helm and reuses it on live upgrades via lookup. In pure render/GitOps workflows where lookup cannot read the cluster, generatedSecret produces different cert material on each render; use existingSecret for deterministic manifests.
@@ -1007,6 +1007,7 @@ config:
         pvName: "smithbox-juicefs-csi"
         pvcName: "smithbox-juicefs-csi"
     sandboxHost:
+      # -- Name of the sandbox-host Deployment. Unlike other components this is not prefixed with the release fullname, because sandbox-host resolves its own Deployment by this fixed name. Do not change it.
       name: "sandbox-host"
       containerPort: 19190
       # -- Whether sandbox callback validation should allow private IP and localhost targets. This renders SSRF_ALLOW_PRIVATE_IPS_CALLBACKS for sandbox-host.
@@ -1015,10 +1016,10 @@ config:
         labels: {}
         annotations: {}
         podAnnotations: {}
-        # -- Optional initial sandbox-host Deployment replica count. Leave null to let Kubernetes default the initial replica count and avoid Helm reconciling runtime scaling.
-        # Multiple sandbox-host replicas are kept one per node by chart-managed required pod anti-affinity on `kubernetes.io/hostname` plus the sandbox-host `hostPort`.
+        # -- Number of sandbox-host replicas, i.e. how many sandbox nodes back the pool. Ignored when config.sandboxes.sandboxHost.autoscaling.enabled is true, so Helm does not fight the autoscaler on upgrades.
+        # Replicas are kept one per node by chart-managed required pod anti-affinity on `kubernetes.io/hostname` plus the sandbox-host `hostPort`, so this must not exceed the number of sandbox nodes.
         # The chart also uses a no-surge rolling update strategy (`maxSurge: 0`, `maxUnavailable: 1`) so image updates roll hosts one node at a time instead of creating unschedulable surge pods.
-        replicas: null
+        replicas: 1
         terminationGracePeriodSeconds: 300
         # -- Node selector for sandbox-host pods. Empty uses the default selector `sandbox.langsmith.com/host=true`; set this map to replace the default if your sandbox node pool uses different labels.
         nodeSelector: {}
@@ -1034,6 +1035,23 @@ config:
             memory: 2Gi
         securityContext:
           privileged: true
+        extraEnv: []
+      # -- Sandbox host pool autoscaling. There is no HPA or KEDA object here: the elected sandbox-host
+      # sizes the sandbox-host Deployment itself from observed pool load, because only it knows how much
+      # CPU is committed to live microVMs. The chart renders this config as Deployment annotations rather
+      # than pod env so retuning is an in-place patch that does not roll the hosts and tear down running
+      # sandboxes. Set `sandbox-host.smith.langchain.com/autoscale-override` on the Deployment manually to
+      # freeze (`off`) or pin (an integer) the pool as a break-glass; the chart never manages that key.
+      autoscaling:
+        enabled: false
+        minReplicas: 1
+        maxReplicas: 10
+        # -- Target share of pool CPU capacity committed to sandboxes before scaling up.
+        targetUtilizationPercent: 70
+        # -- Spare empty hosts kept above current demand so a sandbox create rarely waits for a cold node.
+        headroomHosts: 1
+        # -- Hold the replica target at its recent peak for this long before shrinking, so load dips do not thrash the pool.
+        scaleDownStabilizationSeconds: 300
       serviceAccount:
         create: true
         name: ""

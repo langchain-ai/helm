@@ -140,6 +140,15 @@ AWS Marketplace Helm template verification).
 {{- if not .Values.config.sandboxes.clusterName -}}
 {{- fail "config.sandboxes.clusterName is required when config.sandboxes.enabled is true." -}}
 {{- end -}}
+{{- $autoscaling := .Values.config.sandboxes.sandboxHost.autoscaling -}}
+{{- if $autoscaling.enabled -}}
+{{- if lt (int $autoscaling.minReplicas) 1 -}}
+{{- fail "config.sandboxes.sandboxHost.autoscaling.minReplicas must be at least 1." -}}
+{{- end -}}
+{{- if lt (int $autoscaling.maxReplicas) (int $autoscaling.minReplicas) -}}
+{{- fail "config.sandboxes.sandboxHost.autoscaling.maxReplicas must be greater than or equal to minReplicas." -}}
+{{- end -}}
+{{- end -}}
 {{- $serviceUrlBaseUrl := .Values.config.sandboxes.serviceUrlBaseUrl | default "" -}}
 {{- if $serviceUrlBaseUrl -}}
 {{- if not (regexMatch "^https?://" $serviceUrlBaseUrl) -}}

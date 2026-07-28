@@ -266,8 +266,6 @@ tests:
   - it: should keep local_kubernetes LANGCHAIN_ENV in the shared config map
     values:
       - ./values/sandboxes-enabled.yaml
-    set:
-      config.langchainEnv: chart-env
     template: config-map.yaml
     asserts:
       - equal:
@@ -299,18 +297,144 @@ tests:
             name: SANDBOX_QUEUE_PRIORITY
             value: "1"
 
-  - it: should use configured LANGCHAIN_ENV for sandbox-host
+  - it: should use the same LANGCHAIN_ENV for sandbox-host as the shared config map
     values:
       - ./values/sandboxes-enabled.yaml
-    set:
-      config.langchainEnv: chart-env
     template: sandboxes/sandbox-host-deployment.yaml
     asserts:
       - contains:
           path: spec.template.spec.containers[0].env
           content:
             name: LANGCHAIN_ENV
-            value: chart-env
+            value: local_kubernetes
+
+  - it: should sign sandbox callbacks with the public issuer when hostname is set
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      config.hostname: langsmith.example.com
+    template: sandboxes/sandbox-host-deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: OAUTH_AS_ISSUER
+            value: https://langsmith.example.com/api
+
+  - it: should omit the callback issuer when no public hostname is configured
+    values:
+      - ./values/sandboxes-enabled.yaml
+    template: sandboxes/sandbox-host-deployment.yaml
+    asserts:
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: OAUTH_AS_ISSUER
+          any: true
+
+  - it: should give sandbox-host the previous service auth secret for rotation
+    values:
+      - ./values/sandboxes-enabled.yaml
+    template: sandboxes/sandbox-host-deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_X_SERVICE_AUTH_JWT_SECRET_PREVIOUS
+            valueFrom:
+              secretKeyRef:
+                name: langsmith-secrets
+                key: sandbox_x_service_auth_jwt_secret_previous
+                optional: true
+
+  - it: should append sandbox-host extraEnv
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      config.sandboxes.sandboxHost.deployment.extraEnv:
+        - name: SANDBOX_HOST_JUICEFS_CLONE_CONCURRENCY
+          value: "40"
+    template: sandboxes/sandbox-host-deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_HOST_JUICEFS_CLONE_CONCURRENCY
+            value: "40"
+
+  - it: should hardcode replicas and disable pool autoscaling by default
+    values:
+      - ./values/sandboxes-enabled.yaml
+    template: sandboxes/sandbox-host-deployment.yaml
+    asserts:
+      - equal:
+          path: spec.replicas
+          value: 1
+      - equal:
+          path: metadata.annotations["sandbox-host.smith.langchain.com/autoscale-enabled"]
+          value: "false"
+
+  - it: should drop replicas and render autoscale annotations when pool autoscaling is enabled
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      config.sandboxes.sandboxHost.autoscaling:
+        enabled: true
+        minReplicas: 2
+        maxReplicas: 8
+        targetUtilizationPercent: 60
+        headroomHosts: 2
+        scaleDownStabilizationSeconds: 600
+    template: sandboxes/sandbox-host-deployment.yaml
+    asserts:
+      - isNull:
+          path: spec.replicas
+      - equal:
+          path: metadata.annotations["sandbox-host.smith.langchain.com/autoscale-enabled"]
+          value: "true"
+      - equal:
+          path: metadata.annotations["sandbox-host.smith.langchain.com/autoscale-min-replicas"]
+          value: "2"
+      - equal:
+          path: metadata.annotations["sandbox-host.smith.langchain.com/autoscale-max-replicas"]
+          value: "8"
+      - equal:
+          path: metadata.annotations["sandbox-host.smith.langchain.com/autoscale-target-utilization-percent"]
+          value: "60"
+      - equal:
+          path: metadata.annotations["sandbox-host.smith.langchain.com/autoscale-headroom-hosts"]
+          value: "2"
+      - equal:
+          path: metadata.annotations["sandbox-host.smith.langchain.com/autoscale-scale-down-stabilization-seconds"]
+          value: "600"
+
+  - it: should let the elected host read and scale its own Deployment
+    values:
+      - ./values/sandboxes-enabled.yaml
+    template: sandboxes/sandbox-host-rbac.yaml
+    documentIndex: 1
+    asserts:
+      - isKind:
+          of: Role
+      - contains:
+          path: rules
+          content:
+            apiGroups: ["apps"]
+            resources: ["deployments"]
+            resourceNames: ["sandbox-host"]
+            verbs: ["get", "patch"]
+
+  - it: should fail when autoscaling maxReplicas is below minReplicas
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      config.sandboxes.sandboxHost.autoscaling.enabled: true
+      config.sandboxes.sandboxHost.autoscaling.minReplicas: 5
+      config.sandboxes.sandboxHost.autoscaling.maxReplicas: 2
+    template: validate.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: "config.sandboxes.sandboxHost.autoscaling.maxReplicas must be greater than or equal to minReplicas."
 
   - it: should render sandbox-host with host network and rolling update rollout
     values:

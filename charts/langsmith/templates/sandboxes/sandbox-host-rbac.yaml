@@ -41,6 +41,16 @@ rules:
   - apiGroups: ["coordination.k8s.io"]
     resources: ["leases"]
     verbs: ["create", "get", "list", "watch", "update", "delete"]
+  # The elected host reads its own Deployment every reconcile to pick up the
+  # autoscale annotations, and patches replicas / pod deletion cost when
+  # config.sandboxes.sandboxHost.autoscaling.enabled is true.
+  - apiGroups: ["apps"]
+    resources: ["deployments"]
+    resourceNames: [{{ .Values.config.sandboxes.sandboxHost.name | quote }}]
+    verbs: ["get", "patch"]
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["patch"]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding

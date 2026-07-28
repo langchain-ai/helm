@@ -1,8 +1,23 @@
 {{- if .Values.config.sandboxes.enabled }}
 {{- $namespace := .Values.namespace | default .Release.Namespace }}
+{{- $autoscaling := .Values.config.sandboxes.sandboxHost.autoscaling }}
+{{- /* sandbox-host reads its autoscaler config from these Deployment annotations on every
+       reconcile, so retuning is an in-place patch that leaves running microVMs alone. */}}
+{{- $autoscaleAnnotations := dict
+  "sandbox-host.smith.langchain.com/autoscale-enabled" (printf "%v" $autoscaling.enabled)
+  "sandbox-host.smith.langchain.com/autoscale-min-replicas" (printf "%v" $autoscaling.minReplicas)
+  "sandbox-host.smith.langchain.com/autoscale-max-replicas" (printf "%v" $autoscaling.maxReplicas)
+  "sandbox-host.smith.langchain.com/autoscale-target-utilization-percent" (printf "%v" $autoscaling.targetUtilizationPercent)
+  "sandbox-host.smith.langchain.com/autoscale-headroom-hosts" (printf "%v" $autoscaling.headroomHosts)
+  "sandbox-host.smith.langchain.com/autoscale-scale-down-stabilization-seconds" (printf "%v" $autoscaling.scaleDownStabilizationSeconds)
+}}
+{{- $deploymentAnnotations := mergeOverwrite (dict) $autoscaleAnnotations (default dict .Values.config.sandboxes.sandboxHost.deployment.annotations) }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
+  # Unlike the rest of the chart this name is not prefixed with langsmith.fullname:
+  # the elected sandbox-host's autoscaler resolves its own Deployment by the fixed
+  # name "sandbox-host" in its own namespace.
   name: {{ .Values.config.sandboxes.sandboxHost.name }}
   namespace: {{ $namespace }}
   labels:
@@ -13,14 +28,12 @@ metadata:
     {{- end }}
   annotations:
     {{- include "langsmith.annotations" . | nindent 4 }}
-    {{- with .Values.config.sandboxes.sandboxHost.deployment.annotations }}
-      {{- toYaml . | nindent 4 }}
-    {{- end }}
+    {{- toYaml $deploymentAnnotations | nindent 4 }}
 spec:
   selector:
     matchLabels:
       app: sandbox-host
-  {{- if not (kindIs "invalid" .Values.config.sandboxes.sandboxHost.deployment.replicas) }}
+  {{- if not $autoscaling.enabled }}
   replicas: {{ .Values.config.sandboxes.sandboxHost.deployment.replicas }}
   {{- end }}
   strategy:
@@ -65,7 +78,7 @@ spec:
           imagePullPolicy: {{ .Values.images.sandboxHostImage.pullPolicy }}
           env:
             - name: LANGCHAIN_ENV
-              value: {{ .Values.config.langchainEnv | quote }}
+              value: "local_kubernetes"
             - name: POD_NAME
               valueFrom:
                 fieldRef:
@@ -88,6 +101,14 @@ spec:
                   name: {{ include "langsmith.secretsName" . }}
                   key: sandbox_x_service_auth_jwt_secret
                   optional: {{ .Values.config.disableSecretCreation }}
+            {{- if or (not (empty .Values.config.existingSecretName)) .Values.config.sandboxes.xServiceAuthJwtSecretPrevious }}
+            - name: SANDBOX_X_SERVICE_AUTH_JWT_SECRET_PREVIOUS
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "langsmith.secretsName" . }}
+                  key: sandbox_x_service_auth_jwt_secret_previous
+                  optional: {{ or .Values.config.disableSecretCreation (not (empty .Values.config.existingSecretName)) }}
+            {{- end }}
             - name: SANDBOX_HOST_PROXY_CA_DIR
               value: /certs
             {{- if or (not (empty .Values.config.existingSecretName)) .Values.config.sandboxes.callbackSigningJwk }}
@@ -98,8 +119,15 @@ spec:
                   key: sandbox_callback_signing_jwk
                   optional: true
             {{- end }}
+            {{- /* iss on signed egress callbacks. Must match the public issuer the shared
+                   ConfigMap advertises, because callback receivers discover the verification
+                   key at <issuer>/.well-known/jwks.json. Without config.hostname there is no
+                   public issuer to advertise, so leave it unset and let callback signing fail
+                   closed rather than minting tokens receivers cannot verify. */}}
+            {{- if .Values.config.hostname }}
             - name: OAUTH_AS_ISSUER
-              value: {{ include "langsmith.sandboxes.langsmithInternalEndpoint" . | quote }}
+              value: {{ include "langsmith.oauthAsIssuer" . | quote }}
+            {{- end }}
             - name: SSRF_ALLOW_PRIVATE_IPS_CALLBACKS
               value: {{ .Values.config.sandboxes.sandboxHost.allowPrivateIPCallbacks | quote }}
             - name: SANDBOX_CALLBACK_LOOPBACK_REWRITE
@@ -108,6 +136,9 @@ spec:
               value: {{ include "langsmith.sandboxes.langsmithInternalEndpoint" . | quote }}
             - name: SANDBOX_HOST_TERMINATION_GRACE_SECONDS
               value: {{ .Values.config.sandboxes.sandboxHost.deployment.terminationGracePeriodSeconds | quote }}
+            {{- with .Values.config.sandboxes.sandboxHost.deployment.extraEnv }}
+              {{- toYaml . | nindent 12 }}
+            {{- end }}
           ports:
             - name: http
               containerPort: {{ .Values.config.sandboxes.sandboxHost.containerPort }}

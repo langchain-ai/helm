@@ -10,7 +10,7 @@ config:
       maxCpuCores: 16
       maxMemoryGb: 64
       minEphemeralStorageGb: 1
-      maxEphemeralStorageGb: 100
+      maxEphemeralStorageGib: 100
       maxSandboxes: 1000
     proxyCa:
       mode: generatedSecret

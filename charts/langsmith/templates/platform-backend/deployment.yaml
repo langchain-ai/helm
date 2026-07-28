@@ -29,7 +29,7 @@
 - name: SANDBOX_MIN_EPHEMERAL_STORAGE_GB
   value: {{ .Values.config.sandboxes.limits.minEphemeralStorageGb | quote }}
 - name: SANDBOX_MAX_EPHEMERAL_STORAGE_GIB
-  value: {{ .Values.config.sandboxes.limits.maxEphemeralStorageGb | quote }}
+  value: {{ .Values.config.sandboxes.limits.maxEphemeralStorageGib | quote }}
 - name: SANDBOX_MAX_SANDBOXES
   value: {{ .Values.config.sandboxes.limits.maxSandboxes | quote }}
 {{- if .Values.config.sandboxes.serviceUrlBaseUrl }}
