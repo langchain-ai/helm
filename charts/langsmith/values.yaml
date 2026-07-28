@@ -927,12 +927,6 @@ config:
     enabled: false
     # -- Logical Kubernetes cluster name sent to LangSmith sandbox workers.
     clusterName: ""
-    # -- Shared service-auth secret override for LangSmith <-> sandbox runtime calls when this chart creates the LangSmith app Secret. If unset, the chart uses the configured API key salt or LangSmith license key as the chart-managed value.
-    # When config.existingSecretName is set, add key `sandbox_x_service_auth_jwt_secret` to that Secret instead.
-    xServiceAuthJwtSecret: ""
-    # -- Optional previous service-auth secret used during rotation. Used only when this chart creates the LangSmith app Secret.
-    # When config.existingSecretName is set, add optional key `sandbox_x_service_auth_jwt_secret_previous` to that Secret to enable rotation.
-    xServiceAuthJwtSecretPrevious: ""
     # -- Required private JWK for sandbox callback signing when this chart creates the LangSmith app Secret.
     # When config.existingSecretName is set, add key `sandbox_callback_signing_jwk` to that Secret instead.
     # Signed egress callbacks also need config.hostname: it supplies the public issuer receivers use to fetch
@@ -966,6 +960,12 @@ config:
         # -- JuiceFS Redis metadata URL. Redis metadata engines must use maxmemory-policy noeviction. For Redis Cluster, the `/DB` path is used by JuiceFS as a hash-tag key prefix rather than a Redis logical database.
         metaURL: ""
       csi:
+        # -- Install the bundled JuiceFS CSI driver. Set to false if this cluster already runs the
+        # JuiceFS CSI driver (for example via the upstream juicefs-csi-driver chart): the chart then
+        # renders only the sandbox PV/PVCs and the CSI config Secret and binds them to the existing
+        # driver. Leaving this true alongside an independent installation fails the install, because
+        # the bundled copy uses the same cluster-scoped CSIDriver and ClusterRole names as upstream.
+        install: true
         # -- Name of the chart-managed JuiceFS CSI config Secret. The bundled JuiceFS CSI setup is intended only for JuiceFS PVs in the namespace where this chart is installed. Chart-managed Secret/config changes roll only the JuiceFS CSI controller/node pods through checksum annotations. Helm cannot hash externally managed Secret contents or directly refresh CSI-created JuiceFS mount pods; delete affected JuiceFS mount pods so they are recreated with the updated Secret.
         configSecretName: "juicefs-csi-config"
         # -- Existing Secret containing JuiceFS CSI config keys `name`, `metaurl`, `storage`, and `bucket`. When set, this chart does not render the CSI config Secret and `config.sandboxes.juicefs.name`, `config.sandboxes.juicefs.storage`, `config.sandboxes.juicefs.bucket`, and `config.sandboxes.juicefs.redis.metaURL` are not used for the CSI config.
@@ -1038,10 +1038,10 @@ config:
         extraEnv: []
       # -- Sandbox host pool autoscaling. There is no HPA or KEDA object here: the elected sandbox-host
       # sizes the sandbox-host Deployment itself from observed pool load, because only it knows how much
-      # CPU is committed to live microVMs. The chart renders this config as Deployment annotations rather
-      # than pod env so retuning is an in-place patch that does not roll the hosts and tear down running
-      # sandboxes. Set `sandbox-host.smith.langchain.com/autoscale-override` on the Deployment manually to
-      # freeze (`off`) or pin (an integer) the pool as a break-glass; the chart never manages that key.
+      # CPU is committed to live microVMs. These values are the baseline the host boots with. The same
+      # knobs, plus `sandbox-host.smith.langchain.com/autoscale-override` to freeze (`off`) or pin (an
+      # integer) the pool, can be set as `sandbox-host.smith.langchain.com/autoscale-*` annotations on
+      # the Deployment for a live change that does not roll the hosts; the chart never manages those.
       autoscaling:
         enabled: false
         minReplicas: 1
@@ -1052,6 +1052,15 @@ config:
         headroomHosts: 1
         # -- Hold the replica target at its recent peak for this long before shrinking, so load dips do not thrash the pool.
         scaleDownStabilizationSeconds: 300
+      # -- Disruption budget for sandbox-host. Hosts are one-per-node and each drain suspends every
+      # microVM on that host, so cap concurrent voluntary evictions rather than letting a multi-node
+      # drain empty the pool at once. maxUnavailable is used instead of minAvailable because the pool
+      # size changes under the autoscaler.
+      pdb:
+        enabled: false
+        maxUnavailable: 1
+        labels: {}
+        annotations: {}
       serviceAccount:
         create: true
         name: ""

@@ -1,17 +1,6 @@
 {{- if .Values.config.sandboxes.enabled }}
 {{- $namespace := .Values.namespace | default .Release.Namespace }}
 {{- $autoscaling := .Values.config.sandboxes.sandboxHost.autoscaling }}
-{{- /* sandbox-host reads its autoscaler config from these Deployment annotations on every
-       reconcile, so retuning is an in-place patch that leaves running microVMs alone. */}}
-{{- $autoscaleAnnotations := dict
-  "sandbox-host.smith.langchain.com/autoscale-enabled" (printf "%v" $autoscaling.enabled)
-  "sandbox-host.smith.langchain.com/autoscale-min-replicas" (printf "%v" $autoscaling.minReplicas)
-  "sandbox-host.smith.langchain.com/autoscale-max-replicas" (printf "%v" $autoscaling.maxReplicas)
-  "sandbox-host.smith.langchain.com/autoscale-target-utilization-percent" (printf "%v" $autoscaling.targetUtilizationPercent)
-  "sandbox-host.smith.langchain.com/autoscale-headroom-hosts" (printf "%v" $autoscaling.headroomHosts)
-  "sandbox-host.smith.langchain.com/autoscale-scale-down-stabilization-seconds" (printf "%v" $autoscaling.scaleDownStabilizationSeconds)
-}}
-{{- $deploymentAnnotations := mergeOverwrite (dict) $autoscaleAnnotations (default dict .Values.config.sandboxes.sandboxHost.deployment.annotations) }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -28,7 +17,9 @@ metadata:
     {{- end }}
   annotations:
     {{- include "langsmith.annotations" . | nindent 4 }}
-    {{- toYaml $deploymentAnnotations | nindent 4 }}
+    {{- with .Values.config.sandboxes.sandboxHost.deployment.annotations }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
 spec:
   selector:
     matchLabels:
@@ -99,16 +90,8 @@ spec:
               valueFrom:
                 secretKeyRef:
                   name: {{ include "langsmith.secretsName" . }}
-                  key: sandbox_x_service_auth_jwt_secret
+                  key: api_key_salt
                   optional: {{ .Values.config.disableSecretCreation }}
-            {{- if or (not (empty .Values.config.existingSecretName)) .Values.config.sandboxes.xServiceAuthJwtSecretPrevious }}
-            - name: SANDBOX_X_SERVICE_AUTH_JWT_SECRET_PREVIOUS
-              valueFrom:
-                secretKeyRef:
-                  name: {{ include "langsmith.secretsName" . }}
-                  key: sandbox_x_service_auth_jwt_secret_previous
-                  optional: {{ or .Values.config.disableSecretCreation (not (empty .Values.config.existingSecretName)) }}
-            {{- end }}
             - name: SANDBOX_HOST_PROXY_CA_DIR
               value: /certs
             {{- if or (not (empty .Values.config.existingSecretName)) .Values.config.sandboxes.callbackSigningJwk }}
@@ -136,6 +119,25 @@ spec:
               value: {{ include "langsmith.sandboxes.langsmithInternalEndpoint" . | quote }}
             - name: SANDBOX_HOST_TERMINATION_GRACE_SECONDS
               value: {{ .Values.config.sandboxes.sandboxHost.deployment.terminationGracePeriodSeconds | quote }}
+            {{- /* Pool autoscaling: the elected host resizes this Deployment from the committed
+                   vCPU it reads off host Leases, and sets each pod's scale-down deletion cost so
+                   the emptiest host is evicted first. These are the baseline; the same knobs can
+                   be overridden live via sandbox-host.smith.langchain.com/autoscale-* annotations
+                   on the Deployment, which the chart does not manage. */}}
+            - name: SANDBOX_HOST_AUTOSCALE_ENABLED
+              value: {{ $autoscaling.enabled | quote }}
+            {{- if $autoscaling.enabled }}
+            - name: SANDBOX_HOST_AUTOSCALE_MIN_REPLICAS
+              value: {{ $autoscaling.minReplicas | quote }}
+            - name: SANDBOX_HOST_AUTOSCALE_MAX_REPLICAS
+              value: {{ $autoscaling.maxReplicas | quote }}
+            - name: SANDBOX_HOST_AUTOSCALE_TARGET_UTILIZATION_PERCENT
+              value: {{ $autoscaling.targetUtilizationPercent | quote }}
+            - name: SANDBOX_HOST_AUTOSCALE_HEADROOM_HOSTS
+              value: {{ $autoscaling.headroomHosts | quote }}
+            - name: SANDBOX_HOST_AUTOSCALE_SCALE_DOWN_STABILIZATION_SECONDS
+              value: {{ $autoscaling.scaleDownStabilizationSeconds | quote }}
+            {{- end }}
             {{- with .Values.config.sandboxes.sandboxHost.deployment.extraEnv }}
               {{- toYaml . | nindent 12 }}
             {{- end }}
@@ -144,6 +146,17 @@ spec:
               containerPort: {{ .Values.config.sandboxes.sandboxHost.containerPort }}
               hostPort: {{ .Values.config.sandboxes.sandboxHost.containerPort }}
               protocol: TCP
+          {{- /* The host binds this listener only after its engine, fence and lease loops are up,
+                 so accepting connections is the readiness signal. There is deliberately no liveness
+                 probe: a restart while the host is suspending microVMs to JuiceFS would destroy
+                 running sandboxes, and the rollout is already bounded by the no-surge strategy. */}}
+          readinessProbe:
+            tcpSocket:
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
           securityContext:
             {{- toYaml .Values.config.sandboxes.sandboxHost.deployment.securityContext | nindent 12 }}
           resources:

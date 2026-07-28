@@ -1231,13 +1231,6 @@ Sandbox proxy CA secret name in the LangSmith release namespace.
 {{- end -}}
 
 {{/*
-Sandbox service auth secret material for chart-created app/runtime Secrets.
-*/}}
-{{- define "langsmith.sandboxes.xServiceAuthJwtSecretValue" -}}
-{{- default (default .Values.config.langsmithLicenseKey .Values.config.apiKeySalt) .Values.config.sandboxes.xServiceAuthJwtSecret -}}
-{{- end -}}
-
-{{/*
 Internal LangSmith platform endpoint used by sandbox runtime callbacks.
 */}}
 {{- define "langsmith.sandboxes.langsmithInternalEndpoint" -}}

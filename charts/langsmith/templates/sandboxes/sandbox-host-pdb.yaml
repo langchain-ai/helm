@@ -1,0 +1,27 @@
+{{- if and .Values.config.sandboxes.enabled .Values.config.sandboxes.sandboxHost.pdb.enabled }}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ .Values.config.sandboxes.sandboxHost.name }}
+  namespace: {{ .Values.namespace | default .Release.Namespace }}
+  labels:
+    {{- include "langsmith.labels" . | nindent 4 }}
+    {{- with .Values.config.sandboxes.sandboxHost.pdb.labels }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+  annotations:
+    {{- include "langsmith.annotations" . | nindent 4 }}
+    {{- with .Values.config.sandboxes.sandboxHost.pdb.annotations }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  selector:
+    matchLabels:
+      app: sandbox-host
+  {{- if hasKey .Values.config.sandboxes.sandboxHost.pdb "minAvailable" }}
+  minAvailable: {{ .Values.config.sandboxes.sandboxHost.pdb.minAvailable }}
+  {{- end }}
+  {{- if hasKey .Values.config.sandboxes.sandboxHost.pdb "maxUnavailable" }}
+  maxUnavailable: {{ .Values.config.sandboxes.sandboxHost.pdb.maxUnavailable }}
+  {{- end }}
+{{- end }}
