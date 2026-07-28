@@ -1032,6 +1032,12 @@ Extra env vars for fleet api-server and queue pods.
   (dict "name" "SSRF_ALLOW_PRIVATE_IPS_TOOLS" "value" "true")
   (dict "name" "SSRF_ALLOW_K8S_INTERNAL" "value" "true")
 -}}
+{{- if $feature.postgres.external.iamProvider -}}
+{{- $out = append $out (dict "name" "AGENT_POSTGRES_IAM_AUTH_PROVIDER" "value" $feature.postgres.external.iamProvider) -}}
+{{- end -}}
+{{- if $feature.redis.external.iamProvider -}}
+{{- $out = append $out (dict "name" "AGENT_REDIS_IAM_AUTH_PROVIDER" "value" $feature.redis.external.iamProvider) -}}
+{{- end -}}
 {{- if and (eq $componentName "apiServer") $feature.queue.enabled -}}
 {{- $out = append $out (dict "name" "N_JOBS_PER_WORKER" "value" "0") -}}
 {{- else -}}
@@ -1057,6 +1063,12 @@ Extra env vars for insights api-server and queue pods.
   (dict "name" "REDIS_URI" "valueFrom" (dict "secretKeyRef" (dict "name" (include "langsmith.agentFeatures.redisSecretName" (dict "root" $root "product" "insights")) "key" "redis_connection_url")))
   (dict "name" "LANGSMITH_TRACING" "value" "false")
 -}}
+{{- if $feature.postgres.external.iamProvider -}}
+{{- $out = append $out (dict "name" "AGENT_POSTGRES_IAM_AUTH_PROVIDER" "value" $feature.postgres.external.iamProvider) -}}
+{{- end -}}
+{{- if $feature.redis.external.iamProvider -}}
+{{- $out = append $out (dict "name" "AGENT_REDIS_IAM_AUTH_PROVIDER" "value" $feature.redis.external.iamProvider) -}}
+{{- end -}}
 {{- if and (eq $componentName "apiServer") $feature.queue.enabled -}}
 {{- $out = append $out (dict "name" "N_JOBS_PER_WORKER" "value" "0") -}}
 {{- else -}}
@@ -1084,6 +1096,12 @@ Extra env vars for polly api-server and queue pods.
   (dict "name" "LANGSMITH_DISABLE_RUN_COMPRESSION" "value" "true")
   (dict "name" "LANGSMITH_TRACING" "value" (ternary "false" "true" $feature.enableTracing))
 -}}
+{{- if $feature.postgres.external.iamProvider -}}
+{{- $out = append $out (dict "name" "AGENT_POSTGRES_IAM_AUTH_PROVIDER" "value" $feature.postgres.external.iamProvider) -}}
+{{- end -}}
+{{- if $feature.redis.external.iamProvider -}}
+{{- $out = append $out (dict "name" "AGENT_REDIS_IAM_AUTH_PROVIDER" "value" $feature.redis.external.iamProvider) -}}
+{{- end -}}
 {{- if and (eq $componentName "apiServer") $feature.queue.enabled -}}
 {{- $out = append $out (dict "name" "N_JOBS_PER_WORKER" "value" "0") -}}
 {{- else -}}
