@@ -446,7 +446,7 @@ tests:
           content:
             apiGroups: ["apps"]
             resources: ["deployments"]
-            resourceNames: ["sandbox-host"]
+            resourceNames: ["RELEASE-NAME-langsmith-sandbox-host"]
             verbs: ["get", "patch"]
 
   - it: should fail when autoscaling maxReplicas is below minReplicas
@@ -470,7 +470,7 @@ tests:
           of: Deployment
       - equal:
           path: metadata.name
-          value: sandbox-host
+          value: RELEASE-NAME-langsmith-sandbox-host
       - equal:
           path: metadata.namespace
           value: NAMESPACE
@@ -922,13 +922,13 @@ tests:
           of: PodDisruptionBudget
       - equal:
           path: metadata.name
-          value: sandbox-host
+          value: RELEASE-NAME-langsmith-sandbox-host
       - equal:
           path: spec.maxUnavailable
           value: 1
       - equal:
-          path: spec.selector.matchLabels.app
-          value: sandbox-host
+          path: spec.selector.matchLabels["app.kubernetes.io/component"]
+          value: RELEASE-NAME-langsmith-sandbox-host
 
   - it: should skip the bundled JuiceFS CSI driver when the cluster already runs one
     values:
@@ -964,3 +964,42 @@ tests:
           of: CSIDriver
       - isNull:
           path: metadata.annotations["helm.sh/resource-policy"]
+
+  - it: should release-prefix the sandbox-host Deployment and tell the host its name
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      config.sandboxes.sandboxHost.name: hosts
+    templates:
+      - sandboxes/sandbox-host-deployment.yaml
+    asserts:
+      - equal:
+          path: metadata.name
+          value: RELEASE-NAME-langsmith-hosts
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_HOST_DEPLOYMENT_NAME
+            value: RELEASE-NAME-langsmith-hosts
+      - equal:
+          path: spec.selector.matchLabels["app.kubernetes.io/component"]
+          value: RELEASE-NAME-langsmith-hosts
+      - equal:
+          path: spec.template.spec.affinity.podAntiAffinity.requiredDuringSchedulingIgnoredDuringExecution[0].labelSelector.matchLabels.app
+          value: sandbox-host
+
+  - it: should scope the sandbox-host autoscaler RBAC to the release-prefixed Deployment
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      config.sandboxes.sandboxHost.name: hosts
+    template: sandboxes/sandbox-host-rbac.yaml
+    documentIndex: 1
+    asserts:
+      - contains:
+          path: rules
+          content:
+            apiGroups: ["apps"]
+            resources: ["deployments"]
+            resourceNames: ["RELEASE-NAME-langsmith-hosts"]
+            verbs: ["get", "patch"]

@@ -1007,7 +1007,7 @@ config:
         pvName: "smithbox-juicefs-csi"
         pvcName: "smithbox-juicefs-csi"
     sandboxHost:
-      # -- Name of the sandbox-host Deployment. Unlike other components this is not prefixed with the release fullname, because sandbox-host resolves its own Deployment by this fixed name. Do not change it.
+      # -- Component name for sandbox-host. The Deployment, PDB and RBAC are named `<release-fullname>-<name>`, so multiple releases can coexist. The chart passes the resulting name to the host as SANDBOX_HOST_DEPLOYMENT_NAME, which requires a sandbox-host image that reads it.
       name: "sandbox-host"
       containerPort: 19190
       # -- Whether sandbox callback validation should allow private IP and localhost targets. This renders SSRF_ALLOW_PRIVATE_IPS_CALLBACKS for sandbox-host.

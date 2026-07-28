@@ -4,10 +4,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  # Unlike the rest of the chart this name is not prefixed with langsmith.fullname:
-  # the elected sandbox-host's autoscaler resolves its own Deployment by the fixed
-  # name "sandbox-host" in its own namespace.
-  name: {{ .Values.config.sandboxes.sandboxHost.name }}
+  name: {{ include "langsmith.sandboxes.sandboxHostDeploymentName" . }}
   namespace: {{ $namespace }}
   labels:
     app: sandbox-host
@@ -23,7 +20,8 @@ metadata:
 spec:
   selector:
     matchLabels:
-      app: sandbox-host
+      {{- include "langsmith.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: {{ include "langsmith.sandboxes.sandboxHostDeploymentName" . }}
   {{- if not $autoscaling.enabled }}
   replicas: {{ .Values.config.sandboxes.sandboxHost.deployment.replicas }}
   {{- end }}
@@ -35,8 +33,12 @@ spec:
   template:
     metadata:
       labels:
+        # app: sandbox-host is intentionally release-independent: the pod anti-affinity below
+        # keys off it so hosts from different releases never land on the same node, where they
+        # would collide on hostPort and leave one pod permanently Pending.
         app: sandbox-host
         {{- include "langsmith.labels" . | nindent 8 }}
+        app.kubernetes.io/component: {{ include "langsmith.sandboxes.sandboxHostDeploymentName" . }}
       annotations:
         {{- include "langsmith.commonPodAnnotations" . | nindent 8 }}
         {{- with .Values.config.sandboxes.sandboxHost.deployment.podAnnotations }}
@@ -117,6 +119,10 @@ spec:
               value: "false"
             - name: LANGSMITH_SANDBOX_INTERNAL_ENDPOINT
               value: {{ include "langsmith.sandboxes.langsmithInternalEndpoint" . | quote }}
+            {{- /* The elected host resolves this Deployment by name to read its autoscale
+                   annotations and patch replicas, so it has to be told the release-prefixed name. */}}
+            - name: SANDBOX_HOST_DEPLOYMENT_NAME
+              value: {{ include "langsmith.sandboxes.sandboxHostDeploymentName" . | quote }}
             - name: SANDBOX_HOST_TERMINATION_GRACE_SECONDS
               value: {{ .Values.config.sandboxes.sandboxHost.deployment.terminationGracePeriodSeconds | quote }}
             {{- /* Pool autoscaling: the elected host resizes this Deployment from the committed
