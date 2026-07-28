@@ -896,14 +896,6 @@ Args: root, service, displayName.
 {{- end -}}
 {{- end -}}
 
-{{- define "agentBootstrap.serviceAccountName" -}}
-{{- if .Values.backend.agentBootstrap.serviceAccount.create -}}
-    {{ default (printf "%s-%s" (include "langsmith.fullname" .) "agent-bootstrap") .Values.backend.agentBootstrap.serviceAccount.name | trunc 63 | trimSuffix "-" }}
-{{- else -}}
-    {{ default "default" .Values.backend.agentBootstrap.serviceAccount.name }}
-{{- end -}}
-{{- end -}}
-
 {{- define "fleetApiServer.serviceAccountName" -}}
 {{- if .Values.fleet.apiServer.serviceAccount.create -}}
     {{ default (printf "%s-%s" (include "langsmith.agentFeatures.fullname" (dict "root" . "product" "fleet")) .Values.fleet.apiServer.name) .Values.fleet.apiServer.serviceAccount.name | trunc 63 | trimSuffix "-" }}
@@ -1126,24 +1118,6 @@ Extra env vars for polly api-server and queue pods.
 {{- $out = append $out (dict "name" "N_JOBS_PER_WORKER" "value" (toString $feature.queue.numberOfJobsPerWorker)) -}}
 {{- end -}}
 {{- toYaml $out }}
-{{- end -}}
-
-{{- define "agentBootstrap.createAgentProducts" -}}
-{{- $createProducts := list }}
-{{- if .Values.config.agentBuilder.enabled }}
-{{- $createProducts = append $createProducts "agent_builder" }}
-{{- end }}
-{{ toYaml $createProducts }}
-{{- end -}}
-
-{{- define "agentBootstrap.destroyAgentProducts" -}}
-{{- $destroyProducts := list }}
-{{- if not .Values.config.agentBuilder.enabled }}
-{{- $destroyProducts = append $destroyProducts "agent_builder" }}
-{{- end }}
-{{- $destroyProducts = append $destroyProducts "insights" }}
-{{- $destroyProducts = append $destroyProducts "smith_polly" }}
-{{ toYaml $destroyProducts }}
 {{- end -}}
 
 {{/* Fail on duplicate keys in the inputted list of environment variables */}}

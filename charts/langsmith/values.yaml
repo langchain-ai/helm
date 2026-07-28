@@ -886,8 +886,8 @@ config:
     uncappedResourcesEnabled: false
 
   # DEPRECATED: use the top-level fleet block (fleet/fleetToolServer/
-  # fleetTriggerServer) instead. This bundled-agent path is managed by
-  # backend.agentBootstrap and is being phased out.
+  # fleetTriggerServer) instead. These keys are retained only as fallback
+  # defaults for the fleet block and may be removed in a future chart version.
   # Agent Builder configuration - UI for creating and managing agents
   # Requires config.deployment.enabled to be true
   agentBuilder:
@@ -2043,39 +2043,6 @@ backend:
     volumes: []
     volumeMounts: []
     ttlSecondsAfterFinished: 10
-
-  # DEPRECATED: the agentBootstrap flow (and the config.agentBuilder /
-  # config.insights / config.polly bundled-agent blocks it manages) is being
-  # phased out. New deployments should use the top-level fleet, insights, and
-  # polly blocks instead, which run as standard Helm-managed Deployments.
-  # These keys remain for backwards compatibility and may be removed in a
-  # future chart version.
-  agentBootstrap:
-    enabled: false
-    randomizeName: false
-    serviceAccount:
-      create: true
-      name: ""
-      labels: {}
-      annotations: {}
-      automountServiceAccountToken: true
-    labels: {}
-    annotations: {}
-    podSecurityContext: {}
-    securityContext: {}
-    resources:
-      limits:
-        cpu: 500m
-        memory: 512Mi
-      requests:
-        cpu: 100m
-        memory: 256Mi
-    extraEnv: []
-    nodeSelector: {}
-    tolerations: []
-    topologySpreadConstraints: []
-    affinity: {}
-    ttlSecondsAfterFinished: 600
 
 clickhouse:
   # -- Enable ClickHouse for ingestion and queries. Keep enabled when using external ClickHouse.
