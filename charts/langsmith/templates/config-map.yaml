@@ -101,6 +101,7 @@ data:
   OTEL_ENVIRONMENT: "{{ .Values.config.observability.tracing.env }}"
   OTEL_EXPORTER: "{{ .Values.config.observability.tracing.exporter }}"
   OTEL_USE_TLS: "{{ .Values.config.observability.tracing.useTls }}"
+  OTEL_EXPORTER_OTLP_INSECURE: {{ (not .Values.config.observability.tracing.useTls) | quote }}
   {{- else }}
   OTEL_TRACING_ENABLED: "false"
   OTLP_ENDPOINT: ""

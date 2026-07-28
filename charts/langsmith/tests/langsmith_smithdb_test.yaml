@@ -158,6 +158,26 @@ tests:
       - equal:
           path: data.OTLP_ENDPOINT
           value: default-otel-collector:4317
+      - equal:
+          path: data.OTEL_EXPORTER_OTLP_INSECURE
+          value: "true"
+
+  - it: should configure secure OTLP transport for LangSmith services
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      config.observability.tracing.enabled: true
+      config.observability.tracing.endpoint: secure-otel-collector:4317
+      config.observability.tracing.useTls: true
+      config.observability.tracing.exporter: grpc
+    template: config-map.yaml
+    asserts:
+      - equal:
+          path: data.OTLP_ENDPOINT
+          value: secure-otel-collector:4317
+      - equal:
+          path: data.OTEL_EXPORTER_OTLP_INSECURE
+          value: "false"
 
   - it: should derive the TLS SmithDB OTLP endpoint from chart-level tracing
     values:
