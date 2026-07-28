@@ -1071,8 +1071,6 @@ Extra env vars for insights api-server and queue pods.
   (dict "name" "REDIS_URI" "valueFrom" (dict "secretKeyRef" (dict "name" (include "langsmith.agentFeatures.redisSecretName" (dict "root" $root "product" "engineInsightsAgent")) "key" "redis_connection_url")))
   (dict "name" "LANGSMITH_TRACING" "value" "false")
 -}}
-{{- $out = append $out (dict "name" "SMITH_BACKEND_SERVICE_JWT_SECRET" "valueFrom" (dict "secretKeyRef" (dict "name" (include "langsmith.secretsName" $root) "key" "api_key_salt" "optional" $root.Values.config.disableSecretCreation))) -}}
-{{- $out = append $out (dict "name" "SMITH_GO_SERVICE_JWT_SECRET" "valueFrom" (dict "secretKeyRef" (dict "name" (include "langsmith.secretsName" $root) "key" "api_key_salt" "optional" $root.Values.config.disableSecretCreation))) -}}
 {{- if $root.Values.engine.enabled -}}
 {{- $out = append $out (dict "name" "ENGINE_INTELLIGENCE_BASE_URL" "value" $root.Values.engine.intelligenceBaseUrl) -}}
 {{- $out = append $out (dict "name" "ISSUES_AGENT_ENCRYPTION_KEY" "valueFrom" (dict "secretKeyRef" (dict "name" (include "langsmith.secretsName" $root) "key" "engine_encryption_key" "optional" $root.Values.config.disableSecretCreation))) -}}
@@ -1569,12 +1567,6 @@ Served through the frontend at /mcp (or /<basePath>/mcp).
 {{- if .Values.engine.enabled }}
 - name: FORGE_AGENT_ASSISTANT_ID
   value: "engine"
-- name: SMITH_GO_SERVICE_JWT_SECRET
-  valueFrom:
-    secretKeyRef:
-      name: {{ include "langsmith.secretsName" . }}
-      key: api_key_salt
-      optional: {{ .Values.config.disableSecretCreation }}
 - name: ISSUES_AGENT_ENCRYPTION_KEY
   valueFrom:
     secretKeyRef:
