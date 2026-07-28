@@ -41,6 +41,11 @@ data:
   SMITH_BACKEND_ENDPOINT: "http://{{ include "langsmith.fullname" . }}-{{.Values.backend.name}}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.backend.service.port }}"
   HOST_BACKEND_ENDPOINT: "http://{{ include "langsmith.fullname" . }}-{{.Values.hostBackend.name}}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.hostBackend.service.port }}"
   LANGSMITH_AUTH_ENDPOINT: "http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.platformBackend.service.port }}"
+  # Distinct from LANGSMITH_AUTH_ENDPOINT: consumers that resolve auth against
+  # the auth service read AUTH_ENDPOINT. In a single-cluster install the auth
+  # service is the platform backend, so both point there. The agent gateway
+  # panics at startup without it for any authType other than "none".
+  AUTH_ENDPOINT: "http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.platformBackend.service.port }}"
   CLICKHOUSE_INGESTION_ENABLED: {{ .Values.clickhouse.enabled | quote }}
   CLICKHOUSE_QUERY_ENABLED: {{ .Values.clickhouse.enabled | quote }}
   SMITHDB_INGESTION_ENABLED: {{ .Values.smithdb.langsmith.ingestion.enabled | quote }}
