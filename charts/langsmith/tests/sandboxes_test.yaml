@@ -14,6 +14,7 @@ templates:
   - sandboxes/proxy-ca.yaml
   - sandboxes/juicefs-csi.yaml
   - sandboxes/sandbox-host-rbac.yaml
+  - sandboxes/sandbox-host-service-account.yaml
   - sandboxes/sandbox-host-deployment.yaml
   - sandboxes/sandbox-host-pdb.yaml
   - sandboxes/juicefs-csi-driver/csidriver.yaml
@@ -31,6 +32,7 @@ tests:
       - sandboxes/proxy-ca.yaml
       - sandboxes/juicefs-csi.yaml
       - sandboxes/sandbox-host-rbac.yaml
+      - sandboxes/sandbox-host-service-account.yaml
       - sandboxes/sandbox-host-deployment.yaml
     asserts:
       - hasDocuments:
@@ -437,7 +439,7 @@ tests:
     values:
       - ./values/sandboxes-enabled.yaml
     template: sandboxes/sandbox-host-rbac.yaml
-    documentIndex: 1
+    documentIndex: 0
     asserts:
       - isKind:
           of: Role
@@ -562,7 +564,7 @@ tests:
       config.sandboxes.sandboxHost.rbac.labels.review: requested
       config.sandboxes.sandboxHost.rbac.annotations.review: requested
     template: sandboxes/sandbox-host-rbac.yaml
-    documentIndex: 1
+    documentIndex: 0
     asserts:
       - equal:
           path: metadata.labels.review
@@ -579,7 +581,7 @@ tests:
     template: sandboxes/sandbox-host-rbac.yaml
     asserts:
       - hasDocuments:
-          count: 1
+          count: 0
 
   - it: should render custom sandbox-host scheduling on sandbox-host
     values:
@@ -1009,7 +1011,7 @@ tests:
     set:
       config.sandboxes.sandboxHost.name: hosts
     template: sandboxes/sandbox-host-rbac.yaml
-    documentIndex: 1
+    documentIndex: 0
     asserts:
       - contains:
           path: rules
@@ -1018,3 +1020,60 @@ tests:
             resources: ["deployments"]
             resourceNames: ["RELEASE-NAME-langsmith-hosts"]
             verbs: ["get", "patch"]
+
+  - it: should name the sandbox-host Role after the component like other rbac templates
+    values:
+      - ./values/sandboxes-enabled.yaml
+    template: sandboxes/sandbox-host-rbac.yaml
+    documentIndex: 0
+    asserts:
+      - isKind:
+          of: Role
+      - equal:
+          path: metadata.name
+          value: RELEASE-NAME-langsmith-sandbox-host
+      - equal:
+          path: metadata.namespace
+          value: NAMESPACE
+
+  - it: should bind the sandbox-host Role to its ServiceAccount
+    values:
+      - ./values/sandboxes-enabled.yaml
+    template: sandboxes/sandbox-host-rbac.yaml
+    documentIndex: 1
+    asserts:
+      - isKind:
+          of: RoleBinding
+      - equal:
+          path: roleRef.name
+          value: RELEASE-NAME-langsmith-sandbox-host
+      - equal:
+          path: subjects[0].name
+          value: RELEASE-NAME-langsmith-sandbox-host
+      - equal:
+          path: subjects[0].namespace
+          value: NAMESPACE
+
+  - it: should render the sandbox-host ServiceAccount from its own template
+    values:
+      - ./values/sandboxes-enabled.yaml
+    template: sandboxes/sandbox-host-service-account.yaml
+    asserts:
+      - isKind:
+          of: ServiceAccount
+      - equal:
+          path: metadata.name
+          value: RELEASE-NAME-langsmith-sandbox-host
+      - equal:
+          path: automountServiceAccountToken
+          value: true
+
+  - it: should skip the sandbox-host ServiceAccount when create is false
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      config.sandboxes.sandboxHost.serviceAccount.create: false
+    template: sandboxes/sandbox-host-service-account.yaml
+    asserts:
+      - hasDocuments:
+          count: 0
