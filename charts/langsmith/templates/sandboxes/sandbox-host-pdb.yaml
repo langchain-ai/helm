@@ -19,10 +19,10 @@ spec:
     matchLabels:
       {{- include "langsmith.selectorLabels" . | nindent 6 }}
       app.kubernetes.io/component: {{ include "langsmith.sandboxes.sandboxHostDeploymentName" . }}
+  {{- /* Only one may be set, so an explicit minAvailable wins over the default maxUnavailable. */}}
   {{- if hasKey .Values.config.sandboxes.sandboxHost.pdb "minAvailable" }}
   minAvailable: {{ .Values.config.sandboxes.sandboxHost.pdb.minAvailable }}
-  {{- end }}
-  {{- if hasKey .Values.config.sandboxes.sandboxHost.pdb "maxUnavailable" }}
+  {{- else if hasKey .Values.config.sandboxes.sandboxHost.pdb "maxUnavailable" }}
   maxUnavailable: {{ .Values.config.sandboxes.sandboxHost.pdb.maxUnavailable }}
   {{- end }}
 {{- end }}

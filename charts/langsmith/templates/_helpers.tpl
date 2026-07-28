@@ -1372,9 +1372,8 @@ Creates an optional image reference without falling back to Chart.AppVersion.
 {{- end -}}
 
 {{/*
-Sandbox-host Deployment name. Release-prefixed like every other component, so two
-releases can coexist in one cluster; the host learns it via SANDBOX_HOST_DEPLOYMENT_NAME
-because the elected host resolves its own Deployment by name to drive pool autoscaling.
+Sandbox-host Deployment name. The host is told this via SANDBOX_HOST_DEPLOYMENT_NAME,
+since it resolves its own Deployment by name to drive pool autoscaling.
 */}}
 {{- define "langsmith.sandboxes.sandboxHostDeploymentName" -}}
 {{- printf "%s-%s" (include "langsmith.fullname" .) .Values.config.sandboxes.sandboxHost.name | trunc 63 | trimSuffix "-" -}}

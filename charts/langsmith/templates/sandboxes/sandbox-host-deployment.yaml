@@ -33,9 +33,7 @@ spec:
   template:
     metadata:
       labels:
-        # app: sandbox-host is intentionally release-independent: the pod anti-affinity below
-        # keys off it so hosts from different releases never land on the same node, where they
-        # would collide on hostPort and leave one pod permanently Pending.
+        # Release-independent on purpose: the anti-affinity below keys off it, and hostPort is node-global.
         app: sandbox-host
         {{- include "langsmith.labels" . | nindent 8 }}
         app.kubernetes.io/component: {{ include "langsmith.sandboxes.sandboxHostDeploymentName" . }}
@@ -104,11 +102,8 @@ spec:
                   key: sandbox_callback_signing_jwk
                   optional: true
             {{- end }}
-            {{- /* iss on signed egress callbacks. Must match the public issuer the shared
-                   ConfigMap advertises, because callback receivers discover the verification
-                   key at <issuer>/.well-known/jwks.json. Without config.hostname there is no
-                   public issuer to advertise, so leave it unset and let callback signing fail
-                   closed rather than minting tokens receivers cannot verify. */}}
+            {{- /* Callback receivers fetch the verification key from <issuer>/.well-known/jwks.json,
+                   so this must be the public issuer. Unset without a hostname: signing fails closed. */}}
             {{- if .Values.config.hostname }}
             - name: OAUTH_AS_ISSUER
               value: {{ include "langsmith.oauthAsIssuer" . | quote }}
@@ -119,17 +114,11 @@ spec:
               value: "false"
             - name: LANGSMITH_SANDBOX_INTERNAL_ENDPOINT
               value: {{ include "langsmith.sandboxes.langsmithInternalEndpoint" . | quote }}
-            {{- /* The elected host resolves this Deployment by name to read its autoscale
-                   annotations and patch replicas, so it has to be told the release-prefixed name. */}}
             - name: SANDBOX_HOST_DEPLOYMENT_NAME
               value: {{ include "langsmith.sandboxes.sandboxHostDeploymentName" . | quote }}
             - name: SANDBOX_HOST_TERMINATION_GRACE_SECONDS
               value: {{ .Values.config.sandboxes.sandboxHost.deployment.terminationGracePeriodSeconds | quote }}
-            {{- /* Pool autoscaling: the elected host resizes this Deployment from the committed
-                   vCPU it reads off host Leases, and sets each pod's scale-down deletion cost so
-                   the emptiest host is evicted first. These are the baseline; the same knobs can
-                   be overridden live via sandbox-host.smith.langchain.com/autoscale-* annotations
-                   on the Deployment, which the chart does not manage. */}}
+            {{- /* Baseline only; sandbox-host.smith.langchain.com/autoscale-* annotations override it live. */}}
             - name: SANDBOX_HOST_AUTOSCALE_ENABLED
               value: {{ $autoscaling.enabled | quote }}
             {{- if $autoscaling.enabled }}
@@ -152,10 +141,8 @@ spec:
               containerPort: {{ .Values.config.sandboxes.sandboxHost.containerPort }}
               hostPort: {{ .Values.config.sandboxes.sandboxHost.containerPort }}
               protocol: TCP
-          {{- /* The host binds this listener only after its engine, fence and lease loops are up,
-                 so accepting connections is the readiness signal. There is deliberately no liveness
-                 probe: a restart while the host is suspending microVMs to JuiceFS would destroy
-                 running sandboxes, and the rollout is already bounded by the no-surge strategy. */}}
+          {{- /* The listener binds last, so accepting connections means started. No liveness probe:
+                 a restart mid-suspend would destroy running microVMs. */}}
           readinessProbe:
             tcpSocket:
               port: http

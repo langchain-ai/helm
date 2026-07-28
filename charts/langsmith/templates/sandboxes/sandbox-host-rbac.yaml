@@ -41,9 +41,7 @@ rules:
   - apiGroups: ["coordination.k8s.io"]
     resources: ["leases"]
     verbs: ["create", "get", "list", "watch", "update", "delete"]
-  # The elected host reads its own Deployment every reconcile to pick up the
-  # autoscale annotations, and patches replicas / pod deletion cost when
-  # config.sandboxes.sandboxHost.autoscaling.enabled is true.
+  # The elected host reads its own Deployment each reconcile and patches replicas / pod deletion cost.
   - apiGroups: ["apps"]
     resources: ["deployments"]
     resourceNames: [{{ include "langsmith.sandboxes.sandboxHostDeploymentName" . | quote }}]
