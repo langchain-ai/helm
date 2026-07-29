@@ -1391,10 +1391,10 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | aceBackend.deployment.readinessProbe.periodSeconds | int | `10` |  |
 | aceBackend.deployment.readinessProbe.timeoutSeconds | int | `1` |  |
 | aceBackend.deployment.replicas | int | `1` |  |
-| aceBackend.deployment.resources.limits.cpu | string | `"1000m"` |  |
-| aceBackend.deployment.resources.limits.memory | string | `"2Gi"` |  |
-| aceBackend.deployment.resources.requests.cpu | string | `"200m"` |  |
-| aceBackend.deployment.resources.requests.memory | string | `"1000Mi"` |  |
+| aceBackend.deployment.resources.limits.cpu | int | `2` |  |
+| aceBackend.deployment.resources.limits.memory | string | `"4000Mi"` |  |
+| aceBackend.deployment.resources.requests.cpu | int | `1` |  |
+| aceBackend.deployment.resources.requests.memory | string | `"2000Mi"` |  |
 | aceBackend.deployment.securityContext | object | `{}` |  |
 | aceBackend.deployment.sidecars | list | `[]` |  |
 | aceBackend.deployment.startupProbe.failureThreshold | int | `6` |  |
