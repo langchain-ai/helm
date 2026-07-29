@@ -98,8 +98,6 @@ listener:
   name: "listener"
   containerPort: 8080
   deployment:
-    # -- Optional priority class for the pod.
-    priorityClassName: ""
     autoRestart: true
     replicas: 1
     labels: {}
@@ -107,6 +105,7 @@ listener:
     podSecurityContext: {}
     securityContext: {}
     lifecycle: {}
+    priorityClassName: ""
     resources:
       limits:
         cpu: 2000m
@@ -180,8 +179,6 @@ operator:
   watchNamespaces: ""
   kedaEnabled: true
   deployment:
-    # -- Optional priority class for the pod.
-    priorityClassName: ""
     autoRestart: true
     replicas: 1
     labels: {}
@@ -189,6 +186,7 @@ operator:
     podSecurityContext: {}
     securityContext: {}
     lifecycle: {}
+    priorityClassName: ""
     resources:
       limits:
         cpu: 2000m

@@ -247,7 +247,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | fleetToolServer.deployment.livenessProbe.timeoutSeconds | int | `3` |  |
 | fleetToolServer.deployment.nodeSelector | object | `{}` |  |
 | fleetToolServer.deployment.podSecurityContext | object | `{}` |  |
-| fleetToolServer.deployment.priorityClassName | string | `""` | Optional priority class for the pod. |
+| fleetToolServer.deployment.priorityClassName | string | `""` |  |
 | fleetToolServer.deployment.readinessProbe.failureThreshold | int | `6` |  |
 | fleetToolServer.deployment.readinessProbe.httpGet.path | string | `"/health"` |  |
 | fleetToolServer.deployment.readinessProbe.httpGet.port | int | `1989` |  |
@@ -303,7 +303,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | fleetTriggerServer.deployment.livenessProbe.timeoutSeconds | int | `1` |  |
 | fleetTriggerServer.deployment.nodeSelector | object | `{}` |  |
 | fleetTriggerServer.deployment.podSecurityContext | object | `{}` |  |
-| fleetTriggerServer.deployment.priorityClassName | string | `""` | Optional priority class for the pod. |
+| fleetTriggerServer.deployment.priorityClassName | string | `""` |  |
 | fleetTriggerServer.deployment.readinessProbe.failureThreshold | int | `6` |  |
 | fleetTriggerServer.deployment.readinessProbe.httpGet.path | string | `"/health"` |  |
 | fleetTriggerServer.deployment.readinessProbe.httpGet.port | int | `1990` |  |
@@ -422,7 +422,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | ingestQueue.deployment.livenessProbe.timeoutSeconds | int | `1` |  |
 | ingestQueue.deployment.nodeSelector | object | `{}` |  |
 | ingestQueue.deployment.podSecurityContext | object | `{}` |  |
-| ingestQueue.deployment.priorityClassName | string | `""` | Optional priority class for the pod. |
+| ingestQueue.deployment.priorityClassName | string | `""` |  |
 | ingestQueue.deployment.readinessProbe.failureThreshold | int | `6` |  |
 | ingestQueue.deployment.readinessProbe.httpGet.path | string | `"/health"` |  |
 | ingestQueue.deployment.readinessProbe.httpGet.port | int | `1989` |  |
@@ -871,7 +871,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | smithdb.clusterManager.deployment.labels | object | `{}` |  |
 | smithdb.clusterManager.deployment.nodeSelector | object | `{}` |  |
 | smithdb.clusterManager.deployment.podSecurityContext | object | `{}` |  |
-| smithdb.clusterManager.deployment.priorityClassName | string | `""` | Optional priority class for the pod. |
+| smithdb.clusterManager.deployment.priorityClassName | string | `""` |  |
 | smithdb.clusterManager.deployment.probes.livenessProbe.failureThreshold | int | `6` |  |
 | smithdb.clusterManager.deployment.probes.livenessProbe.httpGet.path | string | `"/health"` |  |
 | smithdb.clusterManager.deployment.probes.livenessProbe.httpGet.port | string | `"http"` |  |
@@ -918,7 +918,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | smithdb.compaction.deployment.labels | object | `{}` |  |
 | smithdb.compaction.deployment.nodeSelector | object | `{}` |  |
 | smithdb.compaction.deployment.podSecurityContext | object | `{}` |  |
-| smithdb.compaction.deployment.priorityClassName | string | `""` | Optional priority class for the pod. |
+| smithdb.compaction.deployment.priorityClassName | string | `""` |  |
 | smithdb.compaction.deployment.probes.livenessProbe.failureThreshold | int | `6` |  |
 | smithdb.compaction.deployment.probes.livenessProbe.httpGet.path | string | `"/health"` |  |
 | smithdb.compaction.deployment.probes.livenessProbe.httpGet.port | string | `"http"` |  |
@@ -972,7 +972,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | smithdb.compactionWorker.deployment.labels | object | `{}` |  |
 | smithdb.compactionWorker.deployment.nodeSelector | object | `{}` |  |
 | smithdb.compactionWorker.deployment.podSecurityContext | object | `{}` |  |
-| smithdb.compactionWorker.deployment.priorityClassName | string | `""` | Optional priority class for the pod. |
+| smithdb.compactionWorker.deployment.priorityClassName | string | `""` |  |
 | smithdb.compactionWorker.deployment.probes.livenessProbe.failureThreshold | int | `6` |  |
 | smithdb.compactionWorker.deployment.probes.livenessProbe.httpGet.path | string | `"/health"` |  |
 | smithdb.compactionWorker.deployment.probes.livenessProbe.httpGet.port | string | `"http"` |  |
@@ -1046,7 +1046,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | smithdb.ingestion.deployment.labels | object | `{}` |  |
 | smithdb.ingestion.deployment.nodeSelector | object | `{}` |  |
 | smithdb.ingestion.deployment.podSecurityContext | object | `{}` |  |
-| smithdb.ingestion.deployment.priorityClassName | string | `""` | Optional priority class for the pod. |
+| smithdb.ingestion.deployment.priorityClassName | string | `""` |  |
 | smithdb.ingestion.deployment.probes.livenessProbe.failureThreshold | int | `6` |  |
 | smithdb.ingestion.deployment.probes.livenessProbe.httpGet.path | string | `"/health"` |  |
 | smithdb.ingestion.deployment.probes.livenessProbe.httpGet.port | string | `"http"` |  |
@@ -1216,7 +1216,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | smithdb.query.deployment.labels | object | `{}` |  |
 | smithdb.query.deployment.nodeSelector | object | `{}` |  |
 | smithdb.query.deployment.podSecurityContext | object | `{}` |  |
-| smithdb.query.deployment.priorityClassName | string | `""` | Optional priority class for the pod. |
+| smithdb.query.deployment.priorityClassName | string | `""` |  |
 | smithdb.query.deployment.probes.livenessProbe.failureThreshold | int | `6` |  |
 | smithdb.query.deployment.probes.livenessProbe.httpGet.path | string | `"/health"` |  |
 | smithdb.query.deployment.probes.livenessProbe.httpGet.port | string | `"http"` |  |
@@ -1397,7 +1397,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | aceBackend.deployment.livenessProbe.timeoutSeconds | int | `1` |  |
 | aceBackend.deployment.nodeSelector | object | `{}` |  |
 | aceBackend.deployment.podSecurityContext | object | `{}` |  |
-| aceBackend.deployment.priorityClassName | string | `""` | Optional priority class for the pod. |
+| aceBackend.deployment.priorityClassName | string | `""` |  |
 | aceBackend.deployment.readinessProbe.failureThreshold | int | `6` |  |
 | aceBackend.deployment.readinessProbe.httpGet.path | string | `"/ok"` |  |
 | aceBackend.deployment.readinessProbe.httpGet.port | int | `1987` |  |
@@ -1545,7 +1545,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | backend.deployment.livenessProbe.timeoutSeconds | int | `10` |  |
 | backend.deployment.nodeSelector | object | `{}` |  |
 | backend.deployment.podSecurityContext | object | `{}` |  |
-| backend.deployment.priorityClassName | string | `""` | Optional priority class for the pod. |
+| backend.deployment.priorityClassName | string | `""` |  |
 | backend.deployment.readinessProbe.failureThreshold | int | `6` |  |
 | backend.deployment.readinessProbe.httpGet.path | string | `"/health"` |  |
 | backend.deployment.readinessProbe.httpGet.port | int | `1984` |  |
@@ -1772,7 +1772,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | hostBackend.deployment.livenessProbe.timeoutSeconds | int | `1` |  |
 | hostBackend.deployment.nodeSelector | object | `{}` |  |
 | hostBackend.deployment.podSecurityContext | object | `{}` |  |
-| hostBackend.deployment.priorityClassName | string | `""` | Optional priority class for the pod. |
+| hostBackend.deployment.priorityClassName | string | `""` |  |
 | hostBackend.deployment.readinessProbe.failureThreshold | int | `6` |  |
 | hostBackend.deployment.readinessProbe.httpGet.path | string | `"/ok"` |  |
 | hostBackend.deployment.readinessProbe.httpGet.port | int | `1985` |  |
@@ -1860,7 +1860,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | frontend.deployment.livenessProbe.timeoutSeconds | int | `1` |  |
 | frontend.deployment.nodeSelector | object | `{}` |  |
 | frontend.deployment.podSecurityContext | object | `{}` |  |
-| frontend.deployment.priorityClassName | string | `""` | Optional priority class for the pod. |
+| frontend.deployment.priorityClassName | string | `""` |  |
 | frontend.deployment.readinessProbe.failureThreshold | int | `10` |  |
 | frontend.deployment.readinessProbe.httpGet.path | string | `"/health"` |  |
 | frontend.deployment.readinessProbe.httpGet.port | int | `8080` |  |
@@ -1961,7 +1961,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | listener.deployment.livenessProbe.timeoutSeconds | int | `60` |  |
 | listener.deployment.nodeSelector | object | `{}` |  |
 | listener.deployment.podSecurityContext | object | `{}` |  |
-| listener.deployment.priorityClassName | string | `""` | Optional priority class for the pod. |
+| listener.deployment.priorityClassName | string | `""` |  |
 | listener.deployment.readinessProbe.failureThreshold | int | `6` |  |
 | listener.deployment.readinessProbe.httpGet.path | string | `"/health"` |  |
 | listener.deployment.readinessProbe.httpGet.port | int | `8080` |  |
@@ -2025,7 +2025,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | agentGateway.deployment.livenessProbe.timeoutSeconds | int | `3` |  |
 | agentGateway.deployment.nodeSelector | object | `{}` |  |
 | agentGateway.deployment.podSecurityContext | object | `{}` |  |
-| agentGateway.deployment.priorityClassName | string | `""` | Optional priority class for the pod. |
+| agentGateway.deployment.priorityClassName | string | `""` |  |
 | agentGateway.deployment.readinessProbe.failureThreshold | int | `6` |  |
 | agentGateway.deployment.readinessProbe.httpGet.path | string | `"/health"` |  |
 | agentGateway.deployment.readinessProbe.httpGet.port | int | `8083` |  |
@@ -2082,7 +2082,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | presidioAnalyzer.deployment.livenessProbe.timeoutSeconds | int | `3` |  |
 | presidioAnalyzer.deployment.nodeSelector | object | `{}` |  |
 | presidioAnalyzer.deployment.podSecurityContext | object | `{}` |  |
-| presidioAnalyzer.deployment.priorityClassName | string | `""` | Optional priority class for the pod. |
+| presidioAnalyzer.deployment.priorityClassName | string | `""` |  |
 | presidioAnalyzer.deployment.readinessProbe.failureThreshold | int | `6` |  |
 | presidioAnalyzer.deployment.readinessProbe.httpGet.path | string | `"/health"` |  |
 | presidioAnalyzer.deployment.readinessProbe.httpGet.port | int | `3000` |  |
@@ -2130,7 +2130,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | operator.deployment.lifecycle | object | `{}` |  |
 | operator.deployment.nodeSelector | object | `{}` |  |
 | operator.deployment.podSecurityContext | object | `{}` |  |
-| operator.deployment.priorityClassName | string | `""` | Optional priority class for the pod. |
+| operator.deployment.priorityClassName | string | `""` |  |
 | operator.deployment.replicas | int | `1` |  |
 | operator.deployment.resources.limits.cpu | string | `"2000m"` |  |
 | operator.deployment.resources.limits.memory | string | `"4Gi"` |  |
@@ -2207,7 +2207,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | platformBackend.deployment.livenessProbe.timeoutSeconds | int | `1` |  |
 | platformBackend.deployment.nodeSelector | object | `{}` |  |
 | platformBackend.deployment.podSecurityContext | object | `{}` |  |
-| platformBackend.deployment.priorityClassName | string | `""` | Optional priority class for the pod. |
+| platformBackend.deployment.priorityClassName | string | `""` |  |
 | platformBackend.deployment.readinessProbe.failureThreshold | int | `6` |  |
 | platformBackend.deployment.readinessProbe.httpGet.path | string | `"/ok"` |  |
 | platformBackend.deployment.readinessProbe.httpGet.port | int | `1986` |  |
@@ -2291,7 +2291,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | playground.deployment.livenessProbe.timeoutSeconds | int | `1` |  |
 | playground.deployment.nodeSelector | object | `{}` |  |
 | playground.deployment.podSecurityContext | object | `{}` |  |
-| playground.deployment.priorityClassName | string | `""` | Optional priority class for the pod. |
+| playground.deployment.priorityClassName | string | `""` |  |
 | playground.deployment.readinessProbe.failureThreshold | int | `6` |  |
 | playground.deployment.readinessProbe.httpGet.path | string | `"/ok"` |  |
 | playground.deployment.readinessProbe.httpGet.port | int | `1988` |  |
@@ -2460,7 +2460,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | queue.deployment.livenessProbe.timeoutSeconds | int | `60` |  |
 | queue.deployment.nodeSelector | object | `{}` |  |
 | queue.deployment.podSecurityContext | object | `{}` |  |
-| queue.deployment.priorityClassName | string | `""` | Optional priority class for the pod. |
+| queue.deployment.priorityClassName | string | `""` |  |
 | queue.deployment.readinessProbe.failureThreshold | int | `6` |  |
 | queue.deployment.readinessProbe.httpGet.path | string | `"/health"` |  |
 | queue.deployment.readinessProbe.httpGet.port | int | `8080` |  |

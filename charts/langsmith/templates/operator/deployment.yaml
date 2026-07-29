@@ -42,15 +42,15 @@ spec:
         {{- toYaml . | nindent 8 }}
         {{- end }}
     spec:
-      {{- if .Values.operator.deployment.priorityClassName }}
-      priorityClassName: {{ .Values.operator.deployment.priorityClassName }}
-      {{- end }}
       serviceAccountName: {{ include "operator.serviceAccountName" . }}
       {{- include "langsmith.dnsConfig" . | nindent 6 }}
       automountServiceAccountToken: {{ .Values.operator.serviceAccount.automountServiceAccountToken }}
       {{- with .Values.images.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if .Values.operator.deployment.priorityClassName }}
+      priorityClassName: {{ .Values.operator.deployment.priorityClassName }}
       {{- end }}
       securityContext:
         {{- include "langsmith.podSecurityContext" (dict "Values" .Values "componentSecurityContext" .Values.operator.deployment.podSecurityContext) | nindent 8 }}

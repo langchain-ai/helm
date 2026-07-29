@@ -110,7 +110,7 @@ Equivalent to setting every flag above to `false` individually, but guaranteed n
 | diagnostics.persistence.storageClass | string | `""` | Leave empty to use the cluster default StorageClass. |
 | frontend.extraEnv | list | `[]` | Additional environment variables passed to the frontend container. |
 | frontend.podSecurityContext | object | `{}` | Pod-level security context. |
-| frontend.priorityClassName | string | `""` | Optional priority class for the pod. |
+| frontend.priorityClassName | string | `""` |  |
 | frontend.replicas | int | `1` | Replica count. |
 | frontend.resources.limits.cpu | string | `"200m"` |  |
 | frontend.resources.limits.memory | string | `"256Mi"` |  |

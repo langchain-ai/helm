@@ -1116,14 +1116,13 @@ aceBackend:
         steps:
           - setWeight: 100
   deployment:
-    # -- Optional priority class for the pod.
-    priorityClassName: ""
     replicas: 1
     labels: {}
     annotations: {}
     podSecurityContext: {}
     securityContext: {}
     lifecycle: {}
+    priorityClassName: ""
     resources:
       limits:
         cpu: 2
@@ -1274,8 +1273,6 @@ smithdb:
     containerPort: 8060
     containerGrpcPort: 8080
     deployment:
-      # -- Optional priority class for the pod.
-      priorityClassName: ""
       replicas: 1
       strategy:
         type: RollingUpdate
@@ -1286,6 +1283,7 @@ smithdb:
       annotations: {}
       podSecurityContext: {}
       securityContext: {}
+      priorityClassName: ""
       resources:
         requests:
           cpu: "4"
@@ -1353,8 +1351,6 @@ smithdb:
     containerPort: 8050
     containerGrpcPort: 8082
     deployment:
-      # -- Optional priority class for the pod.
-      priorityClassName: ""
       replicas: 1
       strategy:
         type: RollingUpdate
@@ -1365,6 +1361,7 @@ smithdb:
       annotations: {}
       podSecurityContext: {}
       securityContext: {}
+      priorityClassName: ""
       resources:
         requests:
           cpu: "4"
@@ -1442,13 +1439,12 @@ smithdb:
     containerPort: 8070
     containerGrpcPort: 8071
     deployment:
-      # -- Optional priority class for the pod.
-      priorityClassName: ""
       replicas: 1
       labels: {}
       annotations: {}
       podSecurityContext: {}
       securityContext: {}
+      priorityClassName: ""
       resources:
         requests:
           cpu: "2"
@@ -1508,13 +1504,12 @@ smithdb:
     # -- Maximum concurrent jobs per compaction worker. Empty uses the SmithDB default.
     maxConcurrentJobs: ""
     deployment:
-      # -- Optional priority class for the pod.
-      priorityClassName: ""
       replicas: 2
       labels: {}
       annotations: {}
       podSecurityContext: {}
       securityContext: {}
+      priorityClassName: ""
       terminationGracePeriodSeconds: 120
       resources:
         requests:
@@ -1585,13 +1580,12 @@ smithdb:
     containerPort: 8090
     containerGrpcPort: 8091
     deployment:
-      # -- Optional priority class for the pod.
-      priorityClassName: ""
       replicas: 1
       labels: {}
       annotations: {}
       podSecurityContext: {}
       securityContext: {}
+      priorityClassName: ""
       resources:
         requests:
           cpu: "250m"
@@ -1821,14 +1815,13 @@ backend:
         steps:
           - setWeight: 100
   deployment:
-    # -- Optional priority class for the pod.
-    priorityClassName: ""
     replicas: 2
     labels: {}
     annotations: {}
     podSecurityContext: {}
     securityContext: {}
     lifecycle: {}
+    priorityClassName: ""
     resources:
       limits:
         cpu: 2000m
@@ -2233,14 +2226,13 @@ frontend:
     # This is the path the key must be mounted to in the container.
     keyPath: ""
   deployment:
-    # -- Optional priority class for the pod.
-    priorityClassName: ""
     replicas: 1
     labels: {}
     annotations: {}
     podSecurityContext: {}
     securityContext: {}
     lifecycle: {}
+    priorityClassName: ""
     resources:
       limits:
         cpu: 1000m
@@ -2345,14 +2337,13 @@ hostBackend:
         steps:
           - setWeight: 100
   deployment:
-    # -- Optional priority class for the pod.
-    priorityClassName: ""
     replicas: 1
     labels: {}
     annotations: {}
     podSecurityContext: {}
     securityContext: {}
     lifecycle: {}
+    priorityClassName: ""
     resources:
       limits:
         cpu: 1000m
@@ -2458,14 +2449,13 @@ listener:
         steps:
           - setWeight: 100
   deployment:
-    # -- Optional priority class for the pod.
-    priorityClassName: ""
     replicas: 1
     labels: {}
     annotations: {}
     podSecurityContext: {}
     securityContext: {}
     lifecycle: {}
+    priorityClassName: ""
     resources:
       limits:
         cpu: 2000m
@@ -2572,14 +2562,13 @@ platformBackend:
         steps:
           - setWeight: 100
   deployment:
-    # -- Optional priority class for the pod.
-    priorityClassName: ""
     replicas: 3
     labels: {}
     annotations: {}
     podSecurityContext: {}
     securityContext: {}
     lifecycle: {}
+    priorityClassName: ""
     resources:
       limits:
         cpu: 2000m
@@ -2685,14 +2674,13 @@ operator:
         steps:
           - setWeight: 100
   deployment:
-    # -- Optional priority class for the pod.
-    priorityClassName: ""
     replicas: 1
     labels: {}
     annotations: {}
     podSecurityContext: {}
     securityContext: {}
     lifecycle: {}
+    priorityClassName: ""
     resources:
       limits:
         cpu: 2000m
@@ -2873,14 +2861,13 @@ playground:
         steps:
           - setWeight: 100
   deployment:
-    # -- Optional priority class for the pod.
-    priorityClassName: ""
     replicas: 1
     labels: {}
     annotations: {}
     podSecurityContext: {}
     securityContext: {}
     lifecycle: {}
+    priorityClassName: ""
     resources:
       limits:
         cpu: 1000m
@@ -3095,14 +3082,13 @@ queue:
         steps:
           - setWeight: 100
   deployment:
-    # -- Optional priority class for the pod.
-    priorityClassName: ""
     replicas: 1
     labels: {}
     annotations: {}
     podSecurityContext: {}
     securityContext: {}
     lifecycle: {}
+    priorityClassName: ""
     resources:
       limits:
         cpu: 2000m
@@ -3203,14 +3189,13 @@ ingestQueue:
         steps:
           - setWeight: 100
   deployment:
-    # -- Optional priority class for the pod.
-    priorityClassName: ""
     replicas: 3
     labels: {}
     annotations: {}
     podSecurityContext: {}
     securityContext: {}
     lifecycle: {}
+    priorityClassName: ""
     resources:
       limits:
         cpu: 2000m
@@ -3417,8 +3402,6 @@ fleetToolServer:
   name: "fleet-tool-server"
   containerPort: 1989
   deployment:
-    # -- Optional priority class for the pod.
-    priorityClassName: ""
     command:
       - "agent_builder_tool_server_entrypoint.sh"
     replicas: 1
@@ -3427,6 +3410,7 @@ fleetToolServer:
     podSecurityContext: {}
     securityContext: {}
     lifecycle: {}
+    priorityClassName: ""
     resources:
       limits:
         cpu: 2000m
@@ -3499,8 +3483,6 @@ fleetTriggerServer:
   name: "fleet-trigger-server"
   containerPort: 1990
   deployment:
-    # -- Optional priority class for the pod.
-    priorityClassName: ""
     command:
       - "agent_builder_trigger_server_entrypoint.sh"
     labels: {}
@@ -3508,6 +3490,7 @@ fleetTriggerServer:
     podSecurityContext: {}
     securityContext: {}
     lifecycle: {}
+    priorityClassName: ""
     resources:
       limits:
         cpu: 2000m
@@ -3568,14 +3551,13 @@ agentGateway:
   name: "agent-gateway"
   containerPort: 8083
   deployment:
-    # -- Optional priority class for the pod.
-    priorityClassName: ""
     replicas: 1
     labels: {}
     annotations: {}
     podSecurityContext: {}
     securityContext: {}
     lifecycle: {}
+    priorityClassName: ""
     resources:
       limits:
         cpu: 500m
@@ -3641,14 +3623,13 @@ presidioAnalyzer:
   name: "presidio-analyzer"
   containerPort: 3000
   deployment:
-    # -- Optional priority class for the pod.
-    priorityClassName: ""
     replicas: 1
     labels: {}
     annotations: {}
     podSecurityContext: {}
     securityContext: {}
     lifecycle: {}
+    priorityClassName: ""
     resources:
       limits:
         cpu: 1

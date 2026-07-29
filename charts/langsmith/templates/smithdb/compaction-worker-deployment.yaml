@@ -39,12 +39,12 @@ spec:
           {{- toYaml . | nindent 8 }}
         {{- end }}
     spec:
-      {{- if .Values.smithdb.compactionWorker.deployment.priorityClassName }}
-      priorityClassName: {{ .Values.smithdb.compactionWorker.deployment.priorityClassName }}
-      {{- end }}
       {{- with .Values.images.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if .Values.smithdb.compactionWorker.deployment.priorityClassName }}
+      priorityClassName: {{ .Values.smithdb.compactionWorker.deployment.priorityClassName }}
       {{- end }}
       securityContext:
         {{- toYaml .Values.smithdb.compactionWorker.deployment.podSecurityContext | nindent 8 }}

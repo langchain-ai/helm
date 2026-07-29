@@ -37,12 +37,12 @@ spec:
           {{- toYaml . | nindent 8 }}
         {{- end }}
     spec:
-      {{- if .Values.smithdb.clusterManager.deployment.priorityClassName }}
-      priorityClassName: {{ .Values.smithdb.clusterManager.deployment.priorityClassName }}
-      {{- end }}
       {{- with .Values.images.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if .Values.smithdb.clusterManager.deployment.priorityClassName }}
+      priorityClassName: {{ .Values.smithdb.clusterManager.deployment.priorityClassName }}
       {{- end }}
       securityContext:
         {{- toYaml .Values.smithdb.clusterManager.deployment.podSecurityContext | nindent 8 }}
