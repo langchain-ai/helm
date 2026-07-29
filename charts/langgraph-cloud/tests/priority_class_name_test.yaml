@@ -1,0 +1,19 @@
+suite: StatefulSet priorityClassName rendering
+templates:
+  - mongo/stateful-set.yaml
+tests:
+  - it: does not render MongoDB priorityClassName by default
+    set:
+      mongo.enabled: true
+    asserts:
+      - notExists:
+          path: spec.template.spec.priorityClassName
+
+  - it: renders a configured MongoDB priorityClassName
+    set:
+      mongo.enabled: true
+      mongo.statefulSet.priorityClassName: database-priority
+    asserts:
+      - equal:
+          path: spec.template.spec.priorityClassName
+          value: database-priority

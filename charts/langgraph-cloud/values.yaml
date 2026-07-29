@@ -412,6 +412,8 @@ mongo:
     # -- Existing secret name containing the MongoDB connection URL.
     existingSecretName: ""
   statefulSet:
+    # -- Optional priority class for the in-chart MongoDB pod.
+    priorityClassName: ""
     # -- Optional StatefulSet update strategy for the in-chart MongoDB instance.
     # Leave unset to keep the Kubernetes default RollingUpdate behavior.
     updateStrategy: {}

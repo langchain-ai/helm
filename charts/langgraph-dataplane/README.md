@@ -63,6 +63,7 @@ You can find the guide to deploy a LangGraph Dataplane [here](https://langchain-
 | operator.deployment.lifecycle | object | `{}` |  |
 | operator.deployment.nodeSelector | object | `{}` |  |
 | operator.deployment.podSecurityContext | object | `{}` |  |
+| operator.deployment.priorityClassName | string | `""` |  |
 | operator.deployment.replicas | int | `1` |  |
 | operator.deployment.resources.limits.cpu | string | `"2000m"` |  |
 | operator.deployment.resources.limits.memory | string | `"4Gi"` |  |
@@ -140,6 +141,7 @@ You can find the guide to deploy a LangGraph Dataplane [here](https://langchain-
 | listener.deployment.livenessProbe.timeoutSeconds | int | `60` |  |
 | listener.deployment.nodeSelector | object | `{}` |  |
 | listener.deployment.podSecurityContext | object | `{}` |  |
+| listener.deployment.priorityClassName | string | `""` |  |
 | listener.deployment.readinessProbe.failureThreshold | int | `6` |  |
 | listener.deployment.readinessProbe.httpGet.path | string | `"/health"` |  |
 | listener.deployment.readinessProbe.httpGet.port | int | `8080` |  |
@@ -188,6 +190,7 @@ You can find the guide to deploy a LangGraph Dataplane [here](https://langchain-
 | operator.deployment.lifecycle | object | `{}` |  |
 | operator.deployment.nodeSelector | object | `{}` |  |
 | operator.deployment.podSecurityContext | object | `{}` |  |
+| operator.deployment.priorityClassName | string | `""` |  |
 | operator.deployment.replicas | int | `1` |  |
 | operator.deployment.resources.limits.cpu | string | `"2000m"` |  |
 | operator.deployment.resources.limits.memory | string | `"4Gi"` |  |
@@ -266,6 +269,7 @@ You can find the guide to deploy a LangGraph Dataplane [here](https://langchain-
 | redis.statefulSet.persistence.storageClassName | string | `""` |  |
 | redis.statefulSet.persistentVolumeClaimRetentionPolicy | object | `{}` |  |
 | redis.statefulSet.podSecurityContext | object | `{}` |  |
+| redis.statefulSet.priorityClassName | string | `""` | Optional priority class for the in-chart Redis pod. |
 | redis.statefulSet.readinessProbe.exec.command[0] | string | `"/bin/sh"` |  |
 | redis.statefulSet.readinessProbe.exec.command[1] | string | `"-c"` |  |
 | redis.statefulSet.readinessProbe.exec.command[2] | string | `"exec redis-cli ping"` |  |

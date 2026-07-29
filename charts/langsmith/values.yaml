@@ -1122,6 +1122,7 @@ aceBackend:
     podSecurityContext: {}
     securityContext: {}
     lifecycle: {}
+    priorityClassName: ""
     resources:
       limits:
         cpu: 2
@@ -1282,6 +1283,7 @@ smithdb:
       annotations: {}
       podSecurityContext: {}
       securityContext: {}
+      priorityClassName: ""
       resources:
         requests:
           cpu: "4"
@@ -1359,6 +1361,7 @@ smithdb:
       annotations: {}
       podSecurityContext: {}
       securityContext: {}
+      priorityClassName: ""
       resources:
         requests:
           cpu: "4"
@@ -1441,6 +1444,7 @@ smithdb:
       annotations: {}
       podSecurityContext: {}
       securityContext: {}
+      priorityClassName: ""
       resources:
         requests:
           cpu: "2"
@@ -1505,6 +1509,7 @@ smithdb:
       annotations: {}
       podSecurityContext: {}
       securityContext: {}
+      priorityClassName: ""
       terminationGracePeriodSeconds: 120
       resources:
         requests:
@@ -1580,6 +1585,7 @@ smithdb:
       annotations: {}
       podSecurityContext: {}
       securityContext: {}
+      priorityClassName: ""
       resources:
         requests:
           cpu: "250m"
@@ -1683,6 +1689,8 @@ smithdb:
           labels: {}
           annotations: {}
         statefulSet:
+          # -- Optional priority class for the in-chart SmithDB taskdb Postgres pod.
+          priorityClassName: ""
           # -- Optional StatefulSet update strategy for the in-chart SmithDB taskdb Postgres instance.
           updateStrategy: {}
           labels: {}
@@ -1813,6 +1821,7 @@ backend:
     podSecurityContext: {}
     securityContext: {}
     lifecycle: {}
+    priorityClassName: ""
     resources:
       limits:
         cpu: 2000m
@@ -2094,6 +2103,8 @@ clickhouse:
   statefulSet:
     labels: {}
     annotations: {}
+    # -- Optional priority class for the in-chart ClickHouse pod.
+    priorityClassName: ""
     # -- Optional StatefulSet update strategy for the in-chart ClickHouse instance.
     # -- Leave unset to keep the Kubernetes default RollingUpdate behavior.
     updateStrategy: {}
@@ -2221,6 +2232,7 @@ frontend:
     podSecurityContext: {}
     securityContext: {}
     lifecycle: {}
+    priorityClassName: ""
     resources:
       limits:
         cpu: 1000m
@@ -2331,6 +2343,7 @@ hostBackend:
     podSecurityContext: {}
     securityContext: {}
     lifecycle: {}
+    priorityClassName: ""
     resources:
       limits:
         cpu: 1000m
@@ -2442,6 +2455,7 @@ listener:
     podSecurityContext: {}
     securityContext: {}
     lifecycle: {}
+    priorityClassName: ""
     resources:
       limits:
         cpu: 2000m
@@ -2554,6 +2568,7 @@ platformBackend:
     podSecurityContext: {}
     securityContext: {}
     lifecycle: {}
+    priorityClassName: ""
     resources:
       limits:
         cpu: 2000m
@@ -2665,6 +2680,7 @@ operator:
     podSecurityContext: {}
     securityContext: {}
     lifecycle: {}
+    priorityClassName: ""
     resources:
       limits:
         cpu: 2000m
@@ -2851,6 +2867,7 @@ playground:
     podSecurityContext: {}
     securityContext: {}
     lifecycle: {}
+    priorityClassName: ""
     resources:
       limits:
         cpu: 1000m
@@ -2972,6 +2989,8 @@ postgres:
       keySecretKey: "tls.key"
   containerPort: 5432
   statefulSet:
+    # -- Optional priority class for the in-chart PostgreSQL pod.
+    priorityClassName: ""
     # -- Optional StatefulSet update strategy for the in-chart PostgreSQL instance.
     # Leave unset to keep the Kubernetes default RollingUpdate behavior.
     updateStrategy: {}
@@ -3069,6 +3088,7 @@ queue:
     podSecurityContext: {}
     securityContext: {}
     lifecycle: {}
+    priorityClassName: ""
     resources:
       limits:
         cpu: 2000m
@@ -3175,6 +3195,7 @@ ingestQueue:
     podSecurityContext: {}
     securityContext: {}
     lifecycle: {}
+    priorityClassName: ""
     resources:
       limits:
         cpu: 2000m
@@ -3294,6 +3315,8 @@ redis:
       tlsEnabled: true
   containerPort: 6379
   statefulSet:
+    # -- Optional priority class for the in-chart Redis pod.
+    priorityClassName: ""
     # -- Optional StatefulSet update strategy for the in-chart Redis instance.
     # Leave unset to keep the Kubernetes default RollingUpdate behavior.
     updateStrategy: {}
@@ -3387,6 +3410,7 @@ fleetToolServer:
     podSecurityContext: {}
     securityContext: {}
     lifecycle: {}
+    priorityClassName: ""
     resources:
       limits:
         cpu: 2000m
@@ -3466,6 +3490,7 @@ fleetTriggerServer:
     podSecurityContext: {}
     securityContext: {}
     lifecycle: {}
+    priorityClassName: ""
     resources:
       limits:
         cpu: 2000m
@@ -3532,6 +3557,7 @@ agentGateway:
     podSecurityContext: {}
     securityContext: {}
     lifecycle: {}
+    priorityClassName: ""
     resources:
       limits:
         cpu: 500m
@@ -3603,6 +3629,7 @@ presidioAnalyzer:
     podSecurityContext: {}
     securityContext: {}
     lifecycle: {}
+    priorityClassName: ""
     resources:
       limits:
         cpu: 1
