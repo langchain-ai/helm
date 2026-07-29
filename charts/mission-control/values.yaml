@@ -141,6 +141,8 @@ images:
 backend:
   # -- Replica count. Set > 1 only when config.auth.jwtSecretKey is set so all pods validate each other's tokens.
   replicas: 1
+  # -- Optional priority class for the backend pod.
+  priorityClassName: ""
   # -- Pod-level security context.
   podSecurityContext: {}
   # -- Container-level security context.

@@ -159,6 +159,8 @@ loki:
 
 mimir:
   enabled: false
+  # -- Optional priority class for the Mimir pod.
+  priorityClassName: ""
   image:
     registry: docker.io
     repository: grafana/mimir

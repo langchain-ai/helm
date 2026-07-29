@@ -1164,6 +1164,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | smithdb.migration.taskdb.postgres.statefulSet.persistence.storageClassName | string | `""` |  |
 | smithdb.migration.taskdb.postgres.statefulSet.persistentVolumeClaimRetentionPolicy | object | `{"whenDeleted":"Delete","whenScaled":"Retain"}` | Delete the migration-scoped taskdb PVC when its StatefulSet is removed. |
 | smithdb.migration.taskdb.postgres.statefulSet.podSecurityContext | object | `{}` |  |
+| smithdb.migration.taskdb.postgres.statefulSet.priorityClassName | string | `""` | Optional priority class for the in-chart SmithDB taskdb Postgres pod. |
 | smithdb.migration.taskdb.postgres.statefulSet.readinessProbe.exec.command[0] | string | `"/bin/sh"` |  |
 | smithdb.migration.taskdb.postgres.statefulSet.readinessProbe.exec.command[1] | string | `"-c"` |  |
 | smithdb.migration.taskdb.postgres.statefulSet.readinessProbe.exec.command[2] | string | `"exec pg_isready -d \"$POSTGRES_DB\" -U \"$POSTGRES_USER\""` |  |
@@ -1692,6 +1693,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | clickhouse.statefulSet.persistence.storageClassName | string | `""` |  |
 | clickhouse.statefulSet.persistentVolumeClaimRetentionPolicy | object | `{}` |  |
 | clickhouse.statefulSet.podSecurityContext | object | `{}` |  |
+| clickhouse.statefulSet.priorityClassName | string | `""` | Optional priority class for the in-chart ClickHouse pod. |
 | clickhouse.statefulSet.readinessProbe.failureThreshold | int | `6` |  |
 | clickhouse.statefulSet.readinessProbe.httpGet.path | string | `"/ping"` |  |
 | clickhouse.statefulSet.readinessProbe.httpGet.port | int | `8123` |  |
@@ -2370,6 +2372,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | postgres.statefulSet.persistence.storageClassName | string | `""` |  |
 | postgres.statefulSet.persistentVolumeClaimRetentionPolicy | object | `{}` |  |
 | postgres.statefulSet.podSecurityContext | object | `{}` |  |
+| postgres.statefulSet.priorityClassName | string | `""` | Optional priority class for the in-chart PostgreSQL pod. |
 | postgres.statefulSet.readinessProbe.exec.command[0] | string | `"/bin/sh"` |  |
 | postgres.statefulSet.readinessProbe.exec.command[1] | string | `"-c"` |  |
 | postgres.statefulSet.readinessProbe.exec.command[2] | string | `"exec pg_isready -d postgres -U postgres"` |  |
@@ -2531,6 +2534,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | redis.statefulSet.persistence.storageClassName | string | `""` |  |
 | redis.statefulSet.persistentVolumeClaimRetentionPolicy | object | `{}` |  |
 | redis.statefulSet.podSecurityContext | object | `{}` |  |
+| redis.statefulSet.priorityClassName | string | `""` | Optional priority class for the in-chart Redis pod. |
 | redis.statefulSet.readinessProbe.exec.command[0] | string | `"/bin/sh"` |  |
 | redis.statefulSet.readinessProbe.exec.command[1] | string | `"-c"` |  |
 | redis.statefulSet.readinessProbe.exec.command[2] | string | `"exec redis-cli ping"` |  |
