@@ -360,6 +360,9 @@ tests:
       - equal:
           path: data.RUN_RULES_LIMIT_RRA_RECORDS_PER_BATCH_TENANTS
           value: '["*"]'
+      - equal:
+          path: data.RUN_RULES_MAX_BACKFILL_MINUTES_TO_PROCESS
+          value: "1440"
 
   - it: should configure SmithDB ingestion without SmithDB query endpoints
     values:
@@ -470,6 +473,9 @@ tests:
       - equal:
           path: data.RUN_RULES_LIMIT_RRA_RECORDS_PER_BATCH_TENANTS
           value: '["*"]'
+      - equal:
+          path: data.RUN_RULES_MAX_BACKFILL_MINUTES_TO_PROCESS
+          value: "1440"
 
   - it: should omit frontend SmithDB v2 endpoint flag when disabled
     values:

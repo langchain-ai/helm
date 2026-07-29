@@ -103,6 +103,7 @@ data:
   SEPARATE_QUEUES_WITH_SINGLE_WORKER: '["host"]'
   RUN_RULES_REDIS_DEDUP_TENANTS: '["*"]'
   RUN_RULES_LIMIT_RRA_RECORDS_PER_BATCH_TENANTS: '["*"]'
+  RUN_RULES_MAX_BACKFILL_MINUTES_TO_PROCESS: "1440"
   {{- if .Values.config.observability.tracing.enabled }}
   OTEL_TRACING_ENABLED: "{{ .Values.config.observability.tracing.enabled }}"
   OTLP_ENDPOINT: "{{ .Values.config.observability.tracing.endpoint }}"
