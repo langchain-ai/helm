@@ -814,6 +814,22 @@ tests:
           path: spec.template.spec.containers[0].ports[0].containerPort
           value: 5433
       - template: smithdb/taskdb-postgres-statefulset.yaml
+        equal:
+          path: spec.template.spec.containers[0].resources.requests.cpu
+          value: "2"
+      - template: smithdb/taskdb-postgres-statefulset.yaml
+        equal:
+          path: spec.template.spec.containers[0].resources.requests.memory
+          value: "4Gi"
+      - template: smithdb/taskdb-postgres-statefulset.yaml
+        equal:
+          path: spec.template.spec.containers[0].resources.limits.cpu
+          value: "4"
+      - template: smithdb/taskdb-postgres-statefulset.yaml
+        equal:
+          path: spec.template.spec.containers[0].resources.limits.memory
+          value: "8Gi"
+      - template: smithdb/taskdb-postgres-statefulset.yaml
         contains:
           path: spec.template.spec.containers[0].env
           content:
