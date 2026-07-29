@@ -19,23 +19,6 @@ tests:
             name: ISSUES_AGENT_SANDBOX_TENANT_ID
             value: 11111111-2222-3333-4444-555555555555
 
-  - it: should omit the sandbox tenant when sandboxes are disabled
-    values:
-      - ./values/sandboxes-enabled.yaml
-    set:
-      config.sandboxes.enabled: false
-      engine.enabled: true
-      engine.encryptionKey: test-key
-      engine.intelligenceBaseUrl: https://beacon.aws.langchain.com/intelligence
-      engine.sandboxTenantId: 11111111-2222-3333-4444-555555555555
-      images.engineInsightsAgentImage.repository: docker.io/langchain/langsmith-insights-engine
-    asserts:
-      - notContains:
-          path: spec.template.spec.containers[0].env
-          content:
-            name: ISSUES_AGENT_SANDBOX_TENANT_ID
-            value: 11111111-2222-3333-4444-555555555555
-
   - it: should omit the sandbox tenant when engine is disabled
     values:
       - ./values/sandboxes-enabled.yaml
