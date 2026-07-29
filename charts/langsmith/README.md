@@ -1170,7 +1170,10 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | smithdb.migration.taskdb.postgres.statefulSet.readinessProbe.failureThreshold | int | `6` |  |
 | smithdb.migration.taskdb.postgres.statefulSet.readinessProbe.periodSeconds | int | `10` |  |
 | smithdb.migration.taskdb.postgres.statefulSet.readinessProbe.timeoutSeconds | int | `1` |  |
-| smithdb.migration.taskdb.postgres.statefulSet.resources | object | `{}` |  |
+| smithdb.migration.taskdb.postgres.statefulSet.resources.limits.cpu | string | `"4"` |  |
+| smithdb.migration.taskdb.postgres.statefulSet.resources.limits.memory | string | `"8Gi"` |  |
+| smithdb.migration.taskdb.postgres.statefulSet.resources.requests.cpu | string | `"2"` |  |
+| smithdb.migration.taskdb.postgres.statefulSet.resources.requests.memory | string | `"4Gi"` |  |
 | smithdb.migration.taskdb.postgres.statefulSet.securityContext | object | `{}` |  |
 | smithdb.migration.taskdb.postgres.statefulSet.sidecars | list | `[]` |  |
 | smithdb.migration.taskdb.postgres.statefulSet.startupProbe.exec.command[0] | string | `"/bin/sh"` |  |
