@@ -123,6 +123,13 @@ images:
     repository: "docker.io/langchain/sandbox-host"
     pullPolicy: IfNotPresent
     tag: ""
+  # -- Engine sandbox base image. Not run as a workload: the Engine builds its
+  # sandbox snapshot from it on first use. Only used when engine.enabled and
+  # config.sandboxes.enabled are both true.
+  engineSandboxImage:
+    repository: "docker.io/langchain/engine-sandbox"
+    pullPolicy: IfNotPresent
+    tag: ""
   # -- JuiceFS CSI driver image. Only used when config.sandboxes.enabled is true.
   juicefsCSIImage:
     repository: "docker.io/juicedata/juicefs-csi-driver"
@@ -428,6 +435,10 @@ engine:
   # can be stopped by anyone with access, while each one runs agent-generated
   # code and holds a GitHub token for the repo under analysis.
   sandboxTenantId: ""
+  # -- Name of the sandbox snapshot Engine runs boot from. The Engine builds it
+  # from images.engineSandboxImage on first use if it is not already there, so
+  # this only needs changing to run two Engines off distinct snapshots.
+  snapshotName: "engine-sandbox"
 
 insights:
   enabled: true
