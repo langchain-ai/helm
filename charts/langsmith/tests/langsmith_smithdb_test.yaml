@@ -319,6 +319,9 @@ tests:
           path: data.SMITHDB_MUTATIONS_SERVICE_URL
           value: RELEASE-NAME-langsmith-smithdb-query.NAMESPACE.svc.cluster.local:8080
       - equal:
+          path: data.SMITHDB_UPGRADE_CRON_ENABLED
+          value: "true"
+      - equal:
           path: data.SMITHDB_QUERY_SERVICE_MAX_CALL_RECV_MSG_SIZE
           value: "1073741824"
       - equal:
@@ -429,6 +432,8 @@ tests:
           path: data.SMITHDB_CLUSTER_MANAGER_ENABLED
       - notExists:
           path: data.SMITHDB_CLUSTER_MANAGER_URL
+      - notExists:
+          path: data.SMITHDB_UPGRADE_CRON_ENABLED
       - notExists:
           path: data.SMITHDB_QUERY_SERVICE_MAX_CALL_RECV_MSG_SIZE
       - notExists:
