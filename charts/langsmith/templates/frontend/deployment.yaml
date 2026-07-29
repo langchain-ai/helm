@@ -156,6 +156,9 @@ spec:
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      {{- if .Values.frontend.deployment.priorityClassName }}
+      priorityClassName: {{ .Values.frontend.deployment.priorityClassName }}
+      {{- end }}
       securityContext:
         {{- include "langsmith.podSecurityContext" (dict "Values" .Values "componentSecurityContext" .Values.frontend.deployment.podSecurityContext) | nindent 8 }}
       serviceAccountName: {{ include "frontend.serviceAccountName" . }}

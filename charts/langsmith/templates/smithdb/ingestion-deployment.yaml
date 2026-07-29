@@ -46,6 +46,9 @@ spec:
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      {{- if .Values.smithdb.ingestion.deployment.priorityClassName }}
+      priorityClassName: {{ .Values.smithdb.ingestion.deployment.priorityClassName }}
+      {{- end }}
       securityContext:
         {{- toYaml .Values.smithdb.ingestion.deployment.podSecurityContext | nindent 8 }}
       serviceAccountName: {{ include "langsmith.smithdb.serviceAccountName" (dict "root" . "component" "ingestion") }}

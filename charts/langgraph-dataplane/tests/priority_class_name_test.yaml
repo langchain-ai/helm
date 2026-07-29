@@ -1,0 +1,16 @@
+suite: StatefulSet priorityClassName rendering
+templates:
+  - redis/stateful-set.yaml
+tests:
+  - it: does not render Redis priorityClassName by default
+    asserts:
+      - notExists:
+          path: spec.template.spec.priorityClassName
+
+  - it: renders a configured Redis priorityClassName
+    set:
+      redis.statefulSet.priorityClassName: database-priority
+    asserts:
+      - equal:
+          path: spec.template.spec.priorityClassName
+          value: database-priority
