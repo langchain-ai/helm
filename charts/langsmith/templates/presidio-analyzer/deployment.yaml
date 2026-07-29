@@ -1,5 +1,6 @@
 {{- if .Values.presidioAnalyzer.enabled }}
-{{- $envVars := concat .Values.commonEnv (include "langsmith.commonEnv" . | fromYamlArray) .Values.presidioAnalyzer.deployment.extraEnv -}}
+{{- $presidioWorkerEnv := list (dict "name" "WORKERS" "value" (toString .Values.presidioAnalyzer.workers)) -}}
+{{- $envVars := concat .Values.commonEnv (include "langsmith.commonEnv" . | fromYamlArray) $presidioWorkerEnv .Values.presidioAnalyzer.deployment.extraEnv -}}
 {{- $volumes := concat .Values.commonVolumes .Values.presidioAnalyzer.deployment.volumes (include "langsmith.tlsVolumes" . | fromYamlArray) -}}
 {{- $volumeMounts := concat .Values.commonVolumeMounts .Values.presidioAnalyzer.deployment.volumeMounts (include "langsmith.tlsVolumeMounts" . | fromYamlArray) -}}
 apiVersion: apps/v1
