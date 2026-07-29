@@ -1,0 +1,29 @@
+suite: Deployment priorityClassName rendering
+templates:
+  - listener/deployment.yaml
+  - operator/deployment.yaml
+  - operator/config-map.yaml
+tests:
+  - it: does not render listener priorityClassName by default
+    template: listener/deployment.yaml
+    asserts:
+      - notExists:
+          path: spec.template.spec.priorityClassName
+
+  - it: renders a configured listener priorityClassName
+    template: listener/deployment.yaml
+    set:
+      listener.deployment.priorityClassName: workload-priority
+    asserts:
+      - equal:
+          path: spec.template.spec.priorityClassName
+          value: workload-priority
+
+  - it: renders a configured operator priorityClassName
+    template: operator/deployment.yaml
+    set:
+      operator.deployment.priorityClassName: workload-priority
+    asserts:
+      - equal:
+          path: spec.template.spec.priorityClassName
+          value: workload-priority

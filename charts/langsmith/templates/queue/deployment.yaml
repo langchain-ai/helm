@@ -57,6 +57,9 @@ spec:
         {{- include "langsmith.labels" . | nindent 8 }}
         app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-{{ .Values.queue.name }}
     spec:
+      {{- if .Values.queue.deployment.priorityClassName }}
+      priorityClassName: {{ .Values.queue.deployment.priorityClassName }}
+      {{- end }}
       terminationGracePeriodSeconds: {{ .Values.queue.deployment.terminationGracePeriodSeconds }}
       {{- with .Values.images.imagePullSecrets }}
       imagePullSecrets:

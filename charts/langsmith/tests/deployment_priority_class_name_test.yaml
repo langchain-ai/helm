@@ -1,0 +1,234 @@
+suite: Deployment priorityClassName rendering
+templates:
+  - config-map.yaml
+  - secrets.yaml
+  - redis/secrets.yaml
+  - postgres/secrets.yaml
+  - clickhouse/secrets.yaml
+  - frontend/config-map.yaml
+  - operator/config-map.yaml
+  - ace-backend/deployment.yaml
+  - agent-features/fleet/tool-server/deployment.yaml
+  - agent-features/fleet/trigger-server/deployment.yaml
+  - agent-gateway/deployment.yaml
+  - backend/deployment.yaml
+  - frontend/deployment.yaml
+  - host-backend/deployment.yaml
+  - ingest-queue/deployment.yaml
+  - listener/deployment.yaml
+  - operator/deployment.yaml
+  - platform-backend/deployment.yaml
+  - playground/deployment.yaml
+  - presidio-analyzer/deployment.yaml
+  - queue/deployment.yaml
+  - smithdb/cluster-manager-deployment.yaml
+  - smithdb/compaction-deployment.yaml
+  - smithdb/compaction-worker-deployment.yaml
+  - smithdb/ingestion-deployment.yaml
+  - smithdb/query-deployment.yaml
+tests:
+  - it: does not render backend priorityClassName by default
+    template: backend/deployment.yaml
+    asserts:
+      - notExists:
+          path: spec.template.spec.priorityClassName
+
+  - it: renders a configured ACE backend priorityClassName
+    template: ace-backend/deployment.yaml
+    set:
+      aceBackend.deployment.priorityClassName: workload-priority
+    asserts:
+      - equal:
+          path: spec.template.spec.priorityClassName
+          value: workload-priority
+
+  - it: renders a configured fleet tool server priorityClassName
+    template: agent-features/fleet/tool-server/deployment.yaml
+    set:
+      config.agentBuilder.enabled: true
+      fleetToolServer.deployment.priorityClassName: workload-priority
+    asserts:
+      - equal:
+          path: spec.template.spec.priorityClassName
+          value: workload-priority
+
+  - it: renders a configured fleet trigger server priorityClassName
+    template: agent-features/fleet/trigger-server/deployment.yaml
+    set:
+      config.agentBuilder.enabled: true
+      fleetTriggerServer.deployment.priorityClassName: workload-priority
+    asserts:
+      - equal:
+          path: spec.template.spec.priorityClassName
+          value: workload-priority
+
+  - it: renders a configured agent gateway priorityClassName
+    template: agent-gateway/deployment.yaml
+    set:
+      agentGateway.enabled: true
+      agentGateway.deployment.priorityClassName: workload-priority
+    asserts:
+      - equal:
+          path: spec.template.spec.priorityClassName
+          value: workload-priority
+
+  - it: renders a configured backend priorityClassName
+    template: backend/deployment.yaml
+    set:
+      backend.deployment.priorityClassName: workload-priority
+    asserts:
+      - equal:
+          path: spec.template.spec.priorityClassName
+          value: workload-priority
+
+  - it: renders priorityClassName for a backend Rollout
+    template: backend/deployment.yaml
+    set:
+      backend.rollout.enabled: true
+      backend.deployment.priorityClassName: workload-priority
+    asserts:
+      - isKind:
+          of: Rollout
+      - equal:
+          path: spec.template.spec.priorityClassName
+          value: workload-priority
+
+  - it: renders a configured frontend priorityClassName
+    template: frontend/deployment.yaml
+    set:
+      frontend.deployment.priorityClassName: workload-priority
+    asserts:
+      - equal:
+          path: spec.template.spec.priorityClassName
+          value: workload-priority
+
+  - it: renders a configured host backend priorityClassName
+    template: host-backend/deployment.yaml
+    set:
+      hostBackend.enabled: true
+      hostBackend.deployment.priorityClassName: workload-priority
+    asserts:
+      - equal:
+          path: spec.template.spec.priorityClassName
+          value: workload-priority
+
+  - it: renders a configured ingest queue priorityClassName
+    template: ingest-queue/deployment.yaml
+    set:
+      ingestQueue.deployment.priorityClassName: workload-priority
+    asserts:
+      - equal:
+          path: spec.template.spec.priorityClassName
+          value: workload-priority
+
+  - it: renders a configured listener priorityClassName
+    template: listener/deployment.yaml
+    set:
+      config.deployment.enabled: true
+      listener.deployment.priorityClassName: workload-priority
+    asserts:
+      - equal:
+          path: spec.template.spec.priorityClassName
+          value: workload-priority
+
+  - it: renders a configured operator priorityClassName
+    template: operator/deployment.yaml
+    set:
+      config.deployment.enabled: true
+      operator.deployment.priorityClassName: workload-priority
+    asserts:
+      - equal:
+          path: spec.template.spec.priorityClassName
+          value: workload-priority
+
+  - it: renders a configured platform backend priorityClassName
+    template: platform-backend/deployment.yaml
+    set:
+      platformBackend.deployment.priorityClassName: workload-priority
+    asserts:
+      - equal:
+          path: spec.template.spec.priorityClassName
+          value: workload-priority
+
+  - it: renders a configured playground priorityClassName
+    template: playground/deployment.yaml
+    set:
+      playground.deployment.priorityClassName: workload-priority
+    asserts:
+      - equal:
+          path: spec.template.spec.priorityClassName
+          value: workload-priority
+
+  - it: renders a configured Presidio analyzer priorityClassName
+    template: presidio-analyzer/deployment.yaml
+    set:
+      presidioAnalyzer.enabled: true
+      presidioAnalyzer.deployment.priorityClassName: workload-priority
+    asserts:
+      - equal:
+          path: spec.template.spec.priorityClassName
+          value: workload-priority
+
+  - it: renders a configured queue priorityClassName
+    template: queue/deployment.yaml
+    set:
+      queue.deployment.priorityClassName: workload-priority
+    asserts:
+      - equal:
+          path: spec.template.spec.priorityClassName
+          value: workload-priority
+
+  - it: renders a configured SmithDB cluster manager priorityClassName
+    template: smithdb/cluster-manager-deployment.yaml
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      smithdb.clusterManager.deployment.priorityClassName: workload-priority
+    asserts:
+      - equal:
+          path: spec.template.spec.priorityClassName
+          value: workload-priority
+
+  - it: renders a configured SmithDB compaction priorityClassName
+    template: smithdb/compaction-deployment.yaml
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      smithdb.compaction.deployment.priorityClassName: workload-priority
+    asserts:
+      - equal:
+          path: spec.template.spec.priorityClassName
+          value: workload-priority
+
+  - it: renders a configured SmithDB compaction worker priorityClassName
+    template: smithdb/compaction-worker-deployment.yaml
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      smithdb.compactionWorker.deployment.priorityClassName: workload-priority
+    asserts:
+      - equal:
+          path: spec.template.spec.priorityClassName
+          value: workload-priority
+
+  - it: renders a configured SmithDB ingestion priorityClassName
+    template: smithdb/ingestion-deployment.yaml
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      smithdb.ingestion.deployment.priorityClassName: workload-priority
+    asserts:
+      - equal:
+          path: spec.template.spec.priorityClassName
+          value: workload-priority
+
+  - it: renders a configured SmithDB query priorityClassName
+    template: smithdb/query-deployment.yaml
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      smithdb.query.deployment.priorityClassName: workload-priority
+    asserts:
+      - equal:
+          path: spec.template.spec.priorityClassName
+          value: workload-priority

@@ -184,6 +184,8 @@ backend:
 
 # Frontend (static React app served by an HTTP server) component.
 frontend:
+  # -- Optional priority class for the pod.
+  priorityClassName: ""
   # -- Replica count.
   replicas: 1
   # -- Pod-level security context.

@@ -1116,6 +1116,8 @@ aceBackend:
         steps:
           - setWeight: 100
   deployment:
+    # -- Optional priority class for the pod.
+    priorityClassName: ""
     replicas: 1
     labels: {}
     annotations: {}
@@ -1272,6 +1274,8 @@ smithdb:
     containerPort: 8060
     containerGrpcPort: 8080
     deployment:
+      # -- Optional priority class for the pod.
+      priorityClassName: ""
       replicas: 1
       strategy:
         type: RollingUpdate
@@ -1349,6 +1353,8 @@ smithdb:
     containerPort: 8050
     containerGrpcPort: 8082
     deployment:
+      # -- Optional priority class for the pod.
+      priorityClassName: ""
       replicas: 1
       strategy:
         type: RollingUpdate
@@ -1436,6 +1442,8 @@ smithdb:
     containerPort: 8070
     containerGrpcPort: 8071
     deployment:
+      # -- Optional priority class for the pod.
+      priorityClassName: ""
       replicas: 1
       labels: {}
       annotations: {}
@@ -1500,6 +1508,8 @@ smithdb:
     # -- Maximum concurrent jobs per compaction worker. Empty uses the SmithDB default.
     maxConcurrentJobs: ""
     deployment:
+      # -- Optional priority class for the pod.
+      priorityClassName: ""
       replicas: 2
       labels: {}
       annotations: {}
@@ -1575,6 +1585,8 @@ smithdb:
     containerPort: 8090
     containerGrpcPort: 8091
     deployment:
+      # -- Optional priority class for the pod.
+      priorityClassName: ""
       replicas: 1
       labels: {}
       annotations: {}
@@ -1809,6 +1821,8 @@ backend:
         steps:
           - setWeight: 100
   deployment:
+    # -- Optional priority class for the pod.
+    priorityClassName: ""
     replicas: 2
     labels: {}
     annotations: {}
@@ -2219,6 +2233,8 @@ frontend:
     # This is the path the key must be mounted to in the container.
     keyPath: ""
   deployment:
+    # -- Optional priority class for the pod.
+    priorityClassName: ""
     replicas: 1
     labels: {}
     annotations: {}
@@ -2329,6 +2345,8 @@ hostBackend:
         steps:
           - setWeight: 100
   deployment:
+    # -- Optional priority class for the pod.
+    priorityClassName: ""
     replicas: 1
     labels: {}
     annotations: {}
@@ -2440,6 +2458,8 @@ listener:
         steps:
           - setWeight: 100
   deployment:
+    # -- Optional priority class for the pod.
+    priorityClassName: ""
     replicas: 1
     labels: {}
     annotations: {}
@@ -2552,6 +2572,8 @@ platformBackend:
         steps:
           - setWeight: 100
   deployment:
+    # -- Optional priority class for the pod.
+    priorityClassName: ""
     replicas: 3
     labels: {}
     annotations: {}
@@ -2663,6 +2685,8 @@ operator:
         steps:
           - setWeight: 100
   deployment:
+    # -- Optional priority class for the pod.
+    priorityClassName: ""
     replicas: 1
     labels: {}
     annotations: {}
@@ -2849,6 +2873,8 @@ playground:
         steps:
           - setWeight: 100
   deployment:
+    # -- Optional priority class for the pod.
+    priorityClassName: ""
     replicas: 1
     labels: {}
     annotations: {}
@@ -3069,6 +3095,8 @@ queue:
         steps:
           - setWeight: 100
   deployment:
+    # -- Optional priority class for the pod.
+    priorityClassName: ""
     replicas: 1
     labels: {}
     annotations: {}
@@ -3175,6 +3203,8 @@ ingestQueue:
         steps:
           - setWeight: 100
   deployment:
+    # -- Optional priority class for the pod.
+    priorityClassName: ""
     replicas: 3
     labels: {}
     annotations: {}
@@ -3387,6 +3417,8 @@ fleetToolServer:
   name: "fleet-tool-server"
   containerPort: 1989
   deployment:
+    # -- Optional priority class for the pod.
+    priorityClassName: ""
     command:
       - "agent_builder_tool_server_entrypoint.sh"
     replicas: 1
@@ -3467,6 +3499,8 @@ fleetTriggerServer:
   name: "fleet-trigger-server"
   containerPort: 1990
   deployment:
+    # -- Optional priority class for the pod.
+    priorityClassName: ""
     command:
       - "agent_builder_trigger_server_entrypoint.sh"
     labels: {}
@@ -3534,6 +3568,8 @@ agentGateway:
   name: "agent-gateway"
   containerPort: 8083
   deployment:
+    # -- Optional priority class for the pod.
+    priorityClassName: ""
     replicas: 1
     labels: {}
     annotations: {}
@@ -3605,6 +3641,8 @@ presidioAnalyzer:
   name: "presidio-analyzer"
   containerPort: 3000
   deployment:
+    # -- Optional priority class for the pod.
+    priorityClassName: ""
     replicas: 1
     labels: {}
     annotations: {}

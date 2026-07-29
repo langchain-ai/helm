@@ -37,6 +37,9 @@ spec:
         {{- toYaml . | nindent 8 }}
         {{- end }}
     spec:
+      {{- if .Values.operator.deployment.priorityClassName }}
+      priorityClassName: {{ .Values.operator.deployment.priorityClassName }}
+      {{- end }}
       serviceAccountName: {{ include "operator.serviceAccountName" . }}
       {{- include "langgraphDataplane.dnsConfig" . | nindent 6 }}
       automountServiceAccountToken: {{ .Values.operator.serviceAccount.automountServiceAccountToken }}

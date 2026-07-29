@@ -41,6 +41,9 @@ spec:
           {{- toYaml . | nindent 8 }}
         {{- end }}
     spec:
+      {{- if .Values.smithdb.ingestion.deployment.priorityClassName }}
+      priorityClassName: {{ .Values.smithdb.ingestion.deployment.priorityClassName }}
+      {{- end }}
       terminationGracePeriodSeconds: {{ .Values.smithdb.ingestion.deployment.terminationGracePeriodSeconds }}
       {{- with .Values.images.imagePullSecrets }}
       imagePullSecrets:
