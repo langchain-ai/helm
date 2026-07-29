@@ -59,6 +59,9 @@ spec:
         {{- include "langgraphDataplane.labels" . | nindent 8 }}
         app.kubernetes.io/component: {{ include "langgraphDataplane.fullname" . }}-{{ .Values.listener.name }}
     spec:
+      {{- if .Values.listener.deployment.priorityClassName }}
+      priorityClassName: {{ .Values.listener.deployment.priorityClassName }}
+      {{- end }}
       terminationGracePeriodSeconds: {{ .Values.listener.deployment.terminationGracePeriodSeconds }}
       {{- with .Values.images.imagePullSecrets }}
       imagePullSecrets:

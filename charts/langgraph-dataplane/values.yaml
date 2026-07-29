@@ -98,6 +98,8 @@ listener:
   name: "listener"
   containerPort: 8080
   deployment:
+    # -- Optional priority class for the pod.
+    priorityClassName: ""
     autoRestart: true
     replicas: 1
     labels: {}
@@ -178,6 +180,8 @@ operator:
   watchNamespaces: ""
   kedaEnabled: true
   deployment:
+    # -- Optional priority class for the pod.
+    priorityClassName: ""
     autoRestart: true
     replicas: 1
     labels: {}

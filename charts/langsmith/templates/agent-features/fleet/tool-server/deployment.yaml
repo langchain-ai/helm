@@ -42,6 +42,9 @@ spec:
         {{- include "langsmith.labels" . | nindent 8 }}
         app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-{{ .Values.fleetToolServer.name }}
     spec:
+      {{- if .Values.fleetToolServer.deployment.priorityClassName }}
+      priorityClassName: {{ .Values.fleetToolServer.deployment.priorityClassName }}
+      {{- end }}
       terminationGracePeriodSeconds: {{ .Values.fleetToolServer.deployment.terminationGracePeriodSeconds }}
       {{- with .Values.images.imagePullSecrets }}
       imagePullSecrets:

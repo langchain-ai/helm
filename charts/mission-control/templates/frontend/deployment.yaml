@@ -26,6 +26,9 @@ spec:
         {{- . | nindent 8 }}
       {{- end }}
     spec:
+      {{- if .Values.frontend.priorityClassName }}
+      priorityClassName: {{ .Values.frontend.priorityClassName }}
+      {{- end }}
       {{- with .Values.images.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
