@@ -154,14 +154,13 @@ authProxy:
         steps:
           - setWeight: 100
   deployment:
-    # -- Optional priority class for the pod.
-    priorityClassName: ""
     replicas: 1
     labels: {}
     annotations: {}
     podSecurityContext: {}
     securityContext: {}
     lifecycle: {}
+    priorityClassName: ""
     resources:
       limits:
         cpu: 500m

@@ -55,13 +55,13 @@ spec:
         {{- include "langsmith.labels" . | nindent 8 }}
         app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-{{ .Values.playground.name }}
     spec:
-      {{- if .Values.playground.deployment.priorityClassName }}
-      priorityClassName: {{ .Values.playground.deployment.priorityClassName }}
-      {{- end }}
       terminationGracePeriodSeconds: {{ .Values.playground.deployment.terminationGracePeriodSeconds }}
       {{- with .Values.images.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if .Values.playground.deployment.priorityClassName }}
+      priorityClassName: {{ .Values.playground.deployment.priorityClassName }}
       {{- end }}
       securityContext:
         {{- include "langsmith.podSecurityContext" (dict "Values" .Values "componentSecurityContext" .Values.playground.deployment.podSecurityContext) | nindent 8 }}

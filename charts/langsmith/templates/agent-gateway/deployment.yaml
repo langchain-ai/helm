@@ -49,13 +49,13 @@ spec:
         {{- include "langsmith.labels" . | nindent 8 }}
         app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-{{ .Values.agentGateway.name }}
     spec:
-      {{- if .Values.agentGateway.deployment.priorityClassName }}
-      priorityClassName: {{ .Values.agentGateway.deployment.priorityClassName }}
-      {{- end }}
       terminationGracePeriodSeconds: {{ .Values.agentGateway.deployment.terminationGracePeriodSeconds }}
       {{- with .Values.images.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if .Values.agentGateway.deployment.priorityClassName }}
+      priorityClassName: {{ .Values.agentGateway.deployment.priorityClassName }}
       {{- end }}
       securityContext:
         {{- include "langsmith.podSecurityContext" (dict "Values" .Values "componentSecurityContext" .Values.agentGateway.deployment.podSecurityContext) | nindent 8 }}

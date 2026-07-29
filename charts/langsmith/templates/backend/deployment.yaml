@@ -61,13 +61,13 @@ spec:
         {{- include "langsmith.labels" . | nindent 8 }}
         app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}
     spec:
-      {{- if .Values.backend.deployment.priorityClassName }}
-      priorityClassName: {{ .Values.backend.deployment.priorityClassName }}
-      {{- end }}
       terminationGracePeriodSeconds: {{ .Values.backend.deployment.terminationGracePeriodSeconds }}
       {{- with .Values.images.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if .Values.backend.deployment.priorityClassName }}
+      priorityClassName: {{ .Values.backend.deployment.priorityClassName }}
       {{- end }}
       securityContext:
         {{- include "langsmith.podSecurityContext" (dict "Values" .Values "componentSecurityContext" .Values.backend.deployment.podSecurityContext) | nindent 8 }}

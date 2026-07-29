@@ -41,13 +41,13 @@ spec:
           {{- toYaml . | nindent 8 }}
         {{- end }}
     spec:
-      {{- if .Values.smithdb.ingestion.deployment.priorityClassName }}
-      priorityClassName: {{ .Values.smithdb.ingestion.deployment.priorityClassName }}
-      {{- end }}
       terminationGracePeriodSeconds: {{ .Values.smithdb.ingestion.deployment.terminationGracePeriodSeconds }}
       {{- with .Values.images.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if .Values.smithdb.ingestion.deployment.priorityClassName }}
+      priorityClassName: {{ .Values.smithdb.ingestion.deployment.priorityClassName }}
       {{- end }}
       securityContext:
         {{- toYaml .Values.smithdb.ingestion.deployment.podSecurityContext | nindent 8 }}

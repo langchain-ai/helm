@@ -45,13 +45,13 @@ spec:
         {{- include "authProxy.labels" . | nindent 8 }}
         app.kubernetes.io/component: {{ include "authProxy.fullname" . }}-{{ .Values.authProxy.name }}
     spec:
-      {{- if .Values.authProxy.deployment.priorityClassName }}
-      priorityClassName: {{ .Values.authProxy.deployment.priorityClassName }}
-      {{- end }}
       terminationGracePeriodSeconds: {{ .Values.authProxy.deployment.terminationGracePeriodSeconds }}
       {{- with .Values.images.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if .Values.authProxy.deployment.priorityClassName }}
+      priorityClassName: {{ .Values.authProxy.deployment.priorityClassName }}
       {{- end }}
       securityContext:
         {{- include "authProxy.podSecurityContext" (dict "Values" .Values "componentSecurityContext" .Values.authProxy.deployment.podSecurityContext) | nindent 8 }}

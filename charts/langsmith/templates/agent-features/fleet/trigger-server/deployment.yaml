@@ -41,13 +41,13 @@ spec:
         {{- include "langsmith.labels" . | nindent 8 }}
         app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-{{ .Values.fleetTriggerServer.name }}
     spec:
-      {{- if .Values.fleetTriggerServer.deployment.priorityClassName }}
-      priorityClassName: {{ .Values.fleetTriggerServer.deployment.priorityClassName }}
-      {{- end }}
       terminationGracePeriodSeconds: {{ .Values.fleetTriggerServer.deployment.terminationGracePeriodSeconds }}
       {{- with .Values.images.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if .Values.fleetTriggerServer.deployment.priorityClassName }}
+      priorityClassName: {{ .Values.fleetTriggerServer.deployment.priorityClassName }}
       {{- end }}
       securityContext:
         {{- include "langsmith.podSecurityContext" (dict "Values" .Values "componentSecurityContext" .Values.fleetTriggerServer.deployment.podSecurityContext) | nindent 8 }}

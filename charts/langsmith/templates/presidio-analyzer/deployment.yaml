@@ -39,13 +39,13 @@ spec:
         {{- include "langsmith.labels" . | nindent 8 }}
         app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-{{ .Values.presidioAnalyzer.name }}
     spec:
-      {{- if .Values.presidioAnalyzer.deployment.priorityClassName }}
-      priorityClassName: {{ .Values.presidioAnalyzer.deployment.priorityClassName }}
-      {{- end }}
       terminationGracePeriodSeconds: {{ .Values.presidioAnalyzer.deployment.terminationGracePeriodSeconds }}
       {{- with .Values.images.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if .Values.presidioAnalyzer.deployment.priorityClassName }}
+      priorityClassName: {{ .Values.presidioAnalyzer.deployment.priorityClassName }}
       {{- end }}
       securityContext:
         {{- include "langsmith.podSecurityContext" (dict "Values" .Values "componentSecurityContext" .Values.presidioAnalyzer.deployment.podSecurityContext) | nindent 8 }}
