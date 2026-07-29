@@ -51,9 +51,9 @@ tests:
       images.engineInsightsAgentImage.repository: docker.io/langchain/langsmith-insights-engine
     asserts:
       - failedTemplate:
-          errorMessage: "engine.sandboxTenantId is required when engine.enabled and config.sandboxes.enabled are both true: the Engine signs its sandbox service key with this workspace id and smith-go rejects a service key without a tenant. Use a workspace reserved for the Engine — its sandboxes consume that workspace's sandbox quota and are visible to anyone with access to it."
+          errorMessage: "engine.sandboxTenantId is required when engine.enabled is true: the Engine signs its sandbox service key with this workspace id and smith-go rejects a service key without a tenant. Use a workspace reserved for the Engine — its sandboxes consume that workspace's sandbox quota and are visible to anyone with access to it."
 
-  - it: should not require a sandbox tenant when sandboxes are disabled
+  - it: should fail when engine is enabled without sandboxes
     values:
       - ./values/sandboxes-enabled.yaml
     set:
@@ -61,6 +61,8 @@ tests:
       engine.enabled: true
       engine.encryptionKey: test-key
       engine.intelligenceBaseUrl: https://beacon.aws.langchain.com/intelligence
+      engine.sandboxTenantId: 00000000-0000-0000-0000-000000000000
       images.engineInsightsAgentImage.repository: docker.io/langchain/langsmith-insights-engine
     asserts:
-      - notFailedTemplate: {}
+      - failedTemplate:
+          errorMessage: "engine.enabled is true but config.sandboxes.enabled is false: every Engine run executes in a sandbox, so Engine cannot run without them."
