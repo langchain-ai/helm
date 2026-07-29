@@ -1683,6 +1683,8 @@ smithdb:
           labels: {}
           annotations: {}
         statefulSet:
+          # -- Optional priority class for the in-chart SmithDB taskdb Postgres pod.
+          priorityClassName: ""
           # -- Optional StatefulSet update strategy for the in-chart SmithDB taskdb Postgres instance.
           updateStrategy: {}
           labels: {}
@@ -2094,6 +2096,8 @@ clickhouse:
   statefulSet:
     labels: {}
     annotations: {}
+    # -- Optional priority class for the in-chart ClickHouse pod.
+    priorityClassName: ""
     # -- Optional StatefulSet update strategy for the in-chart ClickHouse instance.
     # -- Leave unset to keep the Kubernetes default RollingUpdate behavior.
     updateStrategy: {}
@@ -2972,6 +2976,8 @@ postgres:
       keySecretKey: "tls.key"
   containerPort: 5432
   statefulSet:
+    # -- Optional priority class for the in-chart PostgreSQL pod.
+    priorityClassName: ""
     # -- Optional StatefulSet update strategy for the in-chart PostgreSQL instance.
     # Leave unset to keep the Kubernetes default RollingUpdate behavior.
     updateStrategy: {}
@@ -3294,6 +3300,8 @@ redis:
       tlsEnabled: true
   containerPort: 6379
   statefulSet:
+    # -- Optional priority class for the in-chart Redis pod.
+    priorityClassName: ""
     # -- Optional StatefulSet update strategy for the in-chart Redis instance.
     # Leave unset to keep the Kubernetes default RollingUpdate behavior.
     updateStrategy: {}

@@ -69,6 +69,7 @@ Equivalent to setting every flag above to `false` individually, but guaranteed n
 |-----|------|---------|-------------|
 | backend.extraEnv | list | `[]` | Additional environment variables passed to the backend container. |
 | backend.podSecurityContext | object | `{}` | Pod-level security context. |
+| backend.priorityClassName | string | `""` | Optional priority class for the backend pod. |
 | backend.replicas | int | `1` | Replica count. Set > 1 only when config.auth.jwtSecretKey is set so all pods validate each other's tokens. |
 | backend.resources.limits.cpu | string | `"500m"` |  |
 | backend.resources.limits.memory | string | `"512Mi"` |  |

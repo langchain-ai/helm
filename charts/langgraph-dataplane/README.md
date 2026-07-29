@@ -266,6 +266,7 @@ You can find the guide to deploy a LangGraph Dataplane [here](https://langchain-
 | redis.statefulSet.persistence.storageClassName | string | `""` |  |
 | redis.statefulSet.persistentVolumeClaimRetentionPolicy | object | `{}` |  |
 | redis.statefulSet.podSecurityContext | object | `{}` |  |
+| redis.statefulSet.priorityClassName | string | `""` | Optional priority class for the in-chart Redis pod. |
 | redis.statefulSet.readinessProbe.exec.command[0] | string | `"/bin/sh"` |  |
 | redis.statefulSet.readinessProbe.exec.command[1] | string | `"-c"` |  |
 | redis.statefulSet.readinessProbe.exec.command[2] | string | `"exec redis-cli ping"` |  |

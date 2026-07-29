@@ -389,6 +389,8 @@ redis:
     existingSecretName: ""
   containerPort: 6379
   statefulSet:
+    # -- Optional priority class for the in-chart Redis pod.
+    priorityClassName: ""
     # -- Optional StatefulSet update strategy for the in-chart Redis instance.
     # Leave unset to keep the Kubernetes default RollingUpdate behavior.
     updateStrategy: {}

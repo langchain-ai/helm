@@ -50,6 +50,9 @@ spec:
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      {{- if $taskdb.statefulSet.priorityClassName }}
+      priorityClassName: {{ $taskdb.statefulSet.priorityClassName }}
+      {{- end }}
       securityContext:
         {{- include "langsmith.podSecurityContext" (dict "Values" .Values "componentSecurityContext" $taskdb.statefulSet.podSecurityContext) | nindent 8 }}
       {{- include "langsmith.dnsConfig" . | nindent 6 }}
