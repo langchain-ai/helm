@@ -299,6 +299,12 @@ tests:
           path: data.SMITHDB_MUTATIONS_SERVICE_URL
           value: RELEASE-NAME-langsmith-smithdb-query.NAMESPACE.svc.cluster.local:8080
       - equal:
+          path: data.RULES_REDIS_TRACKING_ENABLED
+          value: "true"
+      - equal:
+          path: data.RULES_REDIS_TRACKING_MULTIPART_ENABLED
+          value: "true"
+      - equal:
           path: data.SMITHDB_UPGRADE_CRON_ENABLED
           value: "true"
       - equal:
@@ -350,6 +356,12 @@ tests:
       - equal:
           path: data.SMITHDB_QUERY_ENABLED
           value: "false"
+      - equal:
+          path: data.RULES_REDIS_TRACKING_ENABLED
+          value: "true"
+      - equal:
+          path: data.RULES_REDIS_TRACKING_MULTIPART_ENABLED
+          value: "true"
 
   - it: should wire frontend SmithDB v2 endpoint flag when enabled
     values:
@@ -412,6 +424,10 @@ tests:
           path: data.SMITHDB_CLUSTER_MANAGER_ENABLED
       - notExists:
           path: data.SMITHDB_CLUSTER_MANAGER_URL
+      - notExists:
+          path: data.RULES_REDIS_TRACKING_ENABLED
+      - notExists:
+          path: data.RULES_REDIS_TRACKING_MULTIPART_ENABLED
       - notExists:
           path: data.SMITHDB_UPGRADE_CRON_ENABLED
       - notExists:
