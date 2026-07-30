@@ -5,7 +5,6 @@ config:
   authType: oauth
   sandboxes:
     enabled: true
-    clusterName: self-hosted-test
     limits:
       maxCpuCores: 16
       maxMemoryGb: 64

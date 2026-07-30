@@ -8,8 +8,6 @@
   value: "true"
 - name: SANDBOX_RUNTIME_V2
   value: "always"
-- name: SANDBOX_K8S_CLUSTER_NAME
-  value: {{ .Values.config.sandboxes.clusterName | quote }}
 - name: SANDBOX_QUEUE_PRIORITY
   value: "1"
 - name: SANDBOX_X_SERVICE_AUTH_JWT_SECRET

@@ -20,8 +20,6 @@
   value: "true"
 - name: SANDBOX_RUNTIME_V2
   value: "always"
-- name: SANDBOX_K8S_CLUSTER_NAME
-  value: {{ .Values.config.sandboxes.clusterName | quote }}
 - name: SANDBOX_MAX_CPU_CORES
   value: {{ .Values.config.sandboxes.limits.maxCpuCores | quote }}
 - name: SANDBOX_MAX_MEMORY_GB
@@ -33,8 +31,10 @@
 - name: SANDBOX_MAX_SANDBOXES
   value: {{ .Values.config.sandboxes.limits.maxSandboxes | quote }}
 {{- if .Values.config.sandboxes.serviceUrlBaseUrl }}
+# Keyed by the cluster name the runtime resolves for itself when SANDBOX_K8S_CLUSTER_NAME is unset,
+# which is also what gets stored on each sandbox and looked up here.
 - name: SANDBOX_SERVICE_URLS
-  value: {{ dict .Values.config.sandboxes.clusterName .Values.config.sandboxes.serviceUrlBaseUrl | toJson | quote }}
+  value: {{ dict "incluster" .Values.config.sandboxes.serviceUrlBaseUrl | toJson | quote }}
 {{- end }}
 - name: SANDBOX_X_SERVICE_AUTH_JWT_SECRET
   valueFrom:
