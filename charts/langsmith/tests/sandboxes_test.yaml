@@ -197,6 +197,8 @@ tests:
   - it: should derive a relative platform endpoint for sandbox dataplane URLs
     values:
       - ./values/sandboxes-enabled.yaml
+    set:
+      config.hostname: ""
     template: config-map.yaml
     asserts:
       - equal:
@@ -207,6 +209,7 @@ tests:
     values:
       - ./values/sandboxes-enabled.yaml
     set:
+      config.hostname: ""
       config.basePath: langsmith
     template: config-map.yaml
     asserts:

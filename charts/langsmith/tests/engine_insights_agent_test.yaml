@@ -67,10 +67,11 @@ tests:
       - failedTemplate:
           errorMessage: "engine.enabled is true but config.sandboxes.enabled is false: every Engine run executes in a sandbox, so Engine cannot run without them."
 
-  - it: should fail when engine is enabled without a cli endpoint
+  - it: should fail when engine is enabled without a hostname
     values:
       - ./values/sandboxes-enabled.yaml
     set:
+      config.hostname: ""
       engine.enabled: true
       engine.encryptionKey: test-key
       engine.intelligenceBaseUrl: https://beacon.aws.langchain.com/intelligence
@@ -78,4 +79,33 @@ tests:
       images.engineInsightsAgentImage.repository: docker.io/langchain/langsmith-insights-engine
     asserts:
       - failedTemplate:
-          errorMessage: "engine.cliEndpoint is required when engine.enabled is true: the sandbox runs the langsmith CLI against this URL, so it must be the externally reachable LangSmith address (e.g. https://langsmith.example.com), not the in-cluster service. It is also the host the sandbox proxy allow-lists and injects credentials for."
+          errorMessage: "engine.enabled is true but config.hostname is not set: the sandbox runs the langsmith CLI against an externally reachable LangSmith URL, which is derived from it."
+
+  - it: should fail when engine is enabled and hostname is loopback
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      config.hostname: http://localhost:1980
+      engine.enabled: true
+      engine.encryptionKey: test-key
+      engine.intelligenceBaseUrl: https://beacon.aws.langchain.com/intelligence
+      engine.sandboxTenantId: 00000000-0000-0000-0000-000000000000
+      images.engineInsightsAgentImage.repository: docker.io/langchain/langsmith-insights-engine
+    asserts:
+      - failedTemplate:
+          errorMessage: "engine.enabled is true and config.hostname is \"http://localhost:1980\", which a sandbox cannot reach: it must be the externally reachable LangSmith address."
+
+  - it: should fail when engine is enabled and hostname is an in-cluster address
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      config.hostname: langsmith-frontend.default.svc.cluster.local
+      engine.enabled: true
+      engine.encryptionKey: test-key
+      engine.intelligenceBaseUrl: https://beacon.aws.langchain.com/intelligence
+      engine.sandboxTenantId: 00000000-0000-0000-0000-000000000000
+      images.engineInsightsAgentImage.repository: docker.io/langchain/langsmith-insights-engine
+    asserts:
+      - failedTemplate:
+          errorMessage: "engine.enabled is true and config.hostname is the in-cluster address \"langsmith-frontend.default.svc.cluster.local\", which a sandbox cannot reach: it must be the externally reachable LangSmith address."
+

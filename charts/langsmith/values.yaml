@@ -428,11 +428,6 @@ engine:
   # can be stopped by anyone with access, while each one runs agent-generated
   # code and holds a GitHub token for the repo under analysis.
   sandboxTenantId: ""
-  # Externally reachable LangSmith URL. The sandbox runs the langsmith CLI
-  # against this, so it must be routable from the sandbox network and is also
-  # what gets allow-listed and credential-injected by the sandbox proxy. The
-  # in-cluster service URL will not work.
-  cliEndpoint: ""
 
 insights:
   enabled: true
