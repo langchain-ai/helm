@@ -335,6 +335,9 @@ tests:
           path: data.RUN_RULES_SMITHDB_THREAD_RETRIEVER_PCT
           value: "100"
       - equal:
+          path: data.RUN_RULES_QUERY_LIMIT
+          value: "250"
+      - equal:
           path: data.RUN_RULES_REDIS_DEDUP_TENANTS
           value: '["*"]'
       - equal:
@@ -444,6 +447,8 @@ tests:
           path: data.RUN_RULES_SMITHDB_THREAD_RETRIEVER_TENANTS
       - notExists:
           path: data.RUN_RULES_SMITHDB_THREAD_RETRIEVER_PCT
+      - notExists:
+          path: data.RUN_RULES_QUERY_LIMIT
       - equal:
           path: data.RUN_RULES_REDIS_DEDUP_TENANTS
           value: '["*"]'
