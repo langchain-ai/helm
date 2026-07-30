@@ -139,9 +139,6 @@ AWS Marketplace Helm template verification).
 {{- fail "images.juicefsMountImage.repository is required when images.juicefsMountImage.tag is set." -}}
 {{- end -}}
 {{- end -}}
-{{- if not .Values.config.sandboxes.clusterName -}}
-{{- fail "config.sandboxes.clusterName is required when config.sandboxes.enabled is true." -}}
-{{- end -}}
 {{- $autoscaling := .Values.config.sandboxes.sandboxHost.autoscaling -}}
 {{- if $autoscaling.enabled -}}
 {{- if lt (int $autoscaling.minReplicas) 1 -}}

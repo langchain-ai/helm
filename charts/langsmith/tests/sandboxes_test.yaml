@@ -63,11 +63,11 @@ tests:
           content:
             name: LANGSMITH_LICENSE_REQUIRED_CLAIMS
             value: sandbox_enabled
-      - contains:
+      - notContains:
           path: spec.template.spec.containers[0].env
           content:
             name: SANDBOX_K8S_CLUSTER_NAME
-            value: self-hosted-test
+          any: true
       - contains:
           path: spec.template.spec.containers[0].env
           content:
@@ -93,7 +93,7 @@ tests:
           path: spec.template.spec.containers[0].env
           content:
             name: SANDBOX_SERVICE_URLS
-            value: '{"self-hosted-test":"https://sandbox-services.example.com"}'
+            value: '{"incluster":"https://sandbox-services.example.com"}'
 
   - it: should not add a sandbox service URL ingress rule by default
     values:
@@ -241,7 +241,6 @@ tests:
       config.oauth.enabled: true
       config.authType: oauth
       config.sandboxes.enabled: true
-      config.sandboxes.clusterName: self-hosted-test
       config.sandboxes.callbackSigningJwk: test-callback-jwk
       config.sandboxes.juicefs.redis.metaURL: redis://langsmith-redis.default.svc.cluster.local:6379/1
       config.sandboxes.juicefs.bucket: https://langsmith-sandboxes-test.s3.us-west-2.amazonaws.com
@@ -863,7 +862,6 @@ tests:
       config.oauth.enabled: true
       config.authType: oauth
       config.sandboxes.enabled: true
-      config.sandboxes.clusterName: self-hosted-test
       config.sandboxes.juicefs.redis.metaURL: redis://langsmith-redis.default.svc.cluster.local:6379/1
       config.sandboxes.juicefs.bucket: https://langsmith-sandboxes-test.s3.us-west-2.amazonaws.com
       images.sandboxHostImage.repository: example.com/langsmith/sandbox-host
@@ -1077,3 +1075,4 @@ tests:
     asserts:
       - hasDocuments:
           count: 0
+
