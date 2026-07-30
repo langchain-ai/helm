@@ -79,7 +79,7 @@ tests:
       images.engineInsightsAgentImage.repository: docker.io/langchain/langsmith-insights-engine
     asserts:
       - failedTemplate:
-          errorMessage: "engine.enabled is true but neither config.hostname nor engine.cliEndpoint is set: the sandbox runs the langsmith CLI against an externally reachable LangSmith URL, derived from config.hostname unless engine.cliEndpoint overrides it."
+          errorMessage: "engine.enabled is true but config.hostname is not set: the sandbox runs the langsmith CLI against an externally reachable LangSmith URL, which is derived from it."
 
   - it: should fail when engine is enabled and hostname is loopback
     values:
@@ -93,7 +93,7 @@ tests:
       images.engineInsightsAgentImage.repository: docker.io/langchain/langsmith-insights-engine
     asserts:
       - failedTemplate:
-          errorMessage: "engine.enabled is true and config.hostname is \"http://localhost:1980\", which a sandbox cannot reach: set engine.cliEndpoint to a LangSmith URL routable from the sandbox network (e.g. a tunnel to your local smith-go)."
+          errorMessage: "engine.enabled is true and config.hostname is \"http://localhost:1980\", which a sandbox cannot reach: it must be the externally reachable LangSmith address."
 
   - it: should fail when engine is enabled and hostname is an in-cluster address
     values:
@@ -107,18 +107,5 @@ tests:
       images.engineInsightsAgentImage.repository: docker.io/langchain/langsmith-insights-engine
     asserts:
       - failedTemplate:
-          errorMessage: "engine.enabled is true and config.hostname is the in-cluster address \"langsmith-frontend.default.svc.cluster.local\", which a sandbox cannot reach: set engine.cliEndpoint to the externally reachable LangSmith URL."
+          errorMessage: "engine.enabled is true and config.hostname is the in-cluster address \"langsmith-frontend.default.svc.cluster.local\", which a sandbox cannot reach: it must be the externally reachable LangSmith address."
 
-  - it: should accept a loopback hostname when engine.cliEndpoint overrides it
-    values:
-      - ./values/sandboxes-enabled.yaml
-    set:
-      config.hostname: http://localhost:1980
-      engine.enabled: true
-      engine.encryptionKey: test-key
-      engine.intelligenceBaseUrl: https://beacon.aws.langchain.com/intelligence
-      engine.sandboxTenantId: 00000000-0000-0000-0000-000000000000
-      engine.cliEndpoint: https://tunnel.example.com
-      images.engineInsightsAgentImage.repository: docker.io/langchain/langsmith-insights-engine
-    asserts:
-      - notFailedTemplate: {}

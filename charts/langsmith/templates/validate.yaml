@@ -531,16 +531,14 @@ AWS Marketplace Helm template verification).
 {{- if not .Values.config.sandboxes.enabled }}
 {{- fail "engine.enabled is true but config.sandboxes.enabled is false: every Engine run executes in a sandbox, so Engine cannot run without them." }}
 {{- end }}
-{{- if not .Values.engine.cliEndpoint }}
 {{- if not .Values.config.hostname }}
-{{- fail "engine.enabled is true but neither config.hostname nor engine.cliEndpoint is set: the sandbox runs the langsmith CLI against an externally reachable LangSmith URL, derived from config.hostname unless engine.cliEndpoint overrides it." }}
+{{- fail "engine.enabled is true but config.hostname is not set: the sandbox runs the langsmith CLI against an externally reachable LangSmith URL, which is derived from it." }}
 {{- end }}
 {{- if regexMatch "^(?:[a-zA-Z][a-zA-Z0-9+.-]*://)?(?:localhost|127\\.0\\.0\\.1|\\[::1\\])(?::[0-9]+)?(?:/.*)?$" .Values.config.hostname }}
-{{- fail (printf "engine.enabled is true and config.hostname is %q, which a sandbox cannot reach: set engine.cliEndpoint to a LangSmith URL routable from the sandbox network (e.g. a tunnel to your local smith-go)." .Values.config.hostname) }}
+{{- fail (printf "engine.enabled is true and config.hostname is %q, which a sandbox cannot reach: it must be the externally reachable LangSmith address." .Values.config.hostname) }}
 {{- end }}
 {{- if regexMatch "\\.svc(\\.[a-zA-Z0-9.-]+)?(:[0-9]+)?(/.*)?$" .Values.config.hostname }}
-{{- fail (printf "engine.enabled is true and config.hostname is the in-cluster address %q, which a sandbox cannot reach: set engine.cliEndpoint to the externally reachable LangSmith URL." .Values.config.hostname) }}
-{{- end }}
+{{- fail (printf "engine.enabled is true and config.hostname is the in-cluster address %q, which a sandbox cannot reach: it must be the externally reachable LangSmith address." .Values.config.hostname) }}
 {{- end }}
 {{- if not .Values.engine.sandboxTenantId }}
 {{- fail "engine.sandboxTenantId is required when engine.enabled is true: the Engine signs its sandbox service key with this workspace id and smith-go rejects a service key without a tenant. Use a workspace reserved for the Engine — its sandboxes consume that workspace's sandbox quota and are visible to anyone with access to it." }}
