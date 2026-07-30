@@ -73,6 +73,7 @@ data:
   RUN_RULES_SMITHDB_RETRIEVER_PCT: "100"
   RUN_RULES_SMITHDB_THREAD_RETRIEVER_TENANTS: '["*"]'
   RUN_RULES_SMITHDB_THREAD_RETRIEVER_PCT: "100"
+  RUN_RULES_QUERY_LIMIT: "250"
   {{- end }}
   {{- if .Values.config.hostname }}
   # Remote MCP server / OAuth Authorization Server (served under /api). The AS only
