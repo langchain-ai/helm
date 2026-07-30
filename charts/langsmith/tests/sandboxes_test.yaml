@@ -1076,3 +1076,53 @@ tests:
       - hasDocuments:
           count: 0
 
+
+  - it: should give the egress proxy an operator CA for origin verification
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      config.customCa.secretName: my-ca
+      config.customCa.secretKey: ca.crt
+    template: sandboxes/sandbox-host-deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_HOST_EGRESS_ORIGIN_CA_FILE
+            value: /etc/langsmith/egress-ca/ca.crt
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SSL_CERT_FILE
+          any: true
+      - contains:
+          path: spec.template.spec.containers[0].volumeMounts
+          content:
+            name: egress-origin-ca
+            mountPath: /etc/langsmith/egress-ca
+            readOnly: true
+      - contains:
+          path: spec.template.spec.volumes
+          content:
+            name: egress-origin-ca
+            secret:
+              secretName: my-ca
+              items:
+                - key: ca.crt
+                  path: ca.crt
+
+  - it: should not mount an egress origin CA when none is configured
+    values:
+      - ./values/sandboxes-enabled.yaml
+    template: sandboxes/sandbox-host-deployment.yaml
+    asserts:
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_HOST_EGRESS_ORIGIN_CA_FILE
+          any: true
+      - notContains:
+          path: spec.template.spec.volumes
+          content:
+            name: egress-origin-ca
+          any: true

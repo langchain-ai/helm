@@ -116,6 +116,21 @@ issuer and sandbox egress callbacks fail closed, since receivers fetch the verif
 Service auth between LangSmith and the sandbox runtime reuses `config.apiKeySalt`, the same secret
 the chart already uses for `X_SERVICE_AUTH_JWT_SECRET`. There is nothing extra to set.
 
+## Reaching internal HTTPS services from sandboxes
+
+Sandbox egress is intercepted by a MITM proxy on the host, so code inside a sandbox only ever
+validates the proxy's own CA — nothing in the guest needs your CA. The proxy is what verifies the
+real origin, and it does so against the system trust store.
+
+If sandboxes need to reach an internal service signed by your own CA, set `config.customCa`
+(`secretName` and `secretKey`). The chart mounts it for `sandbox-host` and points
+`SANDBOX_HOST_EGRESS_ORIGIN_CA_FILE` at it, which **adds** your CA to the proxy's trust pool
+rather than replacing it, so public HTTPS keeps working in the same sandbox. Requires a
+`sandbox-host` image containing that variable; an older image ignores it.
+
+A configured CA that cannot be read fails host startup, rather than starting with the CA silently
+absent.
+
 ## The JuiceFS CSI driver
 
 Enabling sandboxes also installs the JuiceFS CSI driver, which creates **cluster-scoped**
