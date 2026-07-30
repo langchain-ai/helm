@@ -1,6 +1,12 @@
 {{- if .Values.config.sandboxes.enabled }}
 {{- $namespace := .Values.namespace | default .Release.Namespace }}
 {{- $autoscaling := .Values.config.sandboxes.sandboxHost.autoscaling }}
+{{- /* Chart labels last so they win: the selector depends on them, and a duplicate
+       YAML key would make the manifest invalid rather than just being overridden. */}}
+{{- $labels := mergeOverwrite (dict)
+  (default dict .Values.config.sandboxes.sandboxHost.deployment.labels)
+  (include "langsmith.labels" . | fromYaml)
+  (dict "app.kubernetes.io/component" (include "langsmith.sandboxes.sandboxHostDeploymentName" .)) }}
 {{- $tlsVolumes := include "langsmith.tlsVolumes" . | fromYamlArray }}
 {{- $tlsVolumeMounts := include "langsmith.tlsVolumeMounts" . | fromYamlArray }}
 apiVersion: apps/v1
@@ -9,11 +15,7 @@ metadata:
   name: {{ include "langsmith.sandboxes.sandboxHostDeploymentName" . }}
   namespace: {{ $namespace }}
   labels:
-    {{- include "langsmith.labels" . | nindent 4 }}
-    app.kubernetes.io/component: {{ include "langsmith.sandboxes.sandboxHostDeploymentName" . }}
-    {{- with .Values.config.sandboxes.sandboxHost.deployment.labels }}
-      {{- toYaml . | nindent 4 }}
-    {{- end }}
+    {{- toYaml $labels | nindent 4 }}
   annotations:
     {{- include "langsmith.annotations" . | nindent 4 }}
     {{- with .Values.config.sandboxes.sandboxHost.deployment.annotations }}
@@ -35,8 +37,7 @@ spec:
   template:
     metadata:
       labels:
-        {{- include "langsmith.labels" . | nindent 8 }}
-        app.kubernetes.io/component: {{ include "langsmith.sandboxes.sandboxHostDeploymentName" . }}
+        {{- toYaml $labels | nindent 8 }}
       annotations:
         {{- include "langsmith.commonPodAnnotations" . | nindent 8 }}
         {{- with .Values.config.sandboxes.sandboxHost.deployment.podAnnotations }}
