@@ -65,22 +65,22 @@ images:
   aceBackendImage:
     repository: "docker.io/langchain/langsmith-ace-backend"
     pullPolicy: IfNotPresent
-    tag: "0.16.21rc1"
+    tag: "0.16.25rc1"
   backendImage:
     repository: "docker.io/langchain/langsmith-backend"
     pullPolicy: IfNotPresent
-    tag: "0.16.21rc1"
+    tag: "0.16.25rc1"
   # Image for the shared Engine/Insights agent deployment. When engine.enabled
   # is true this must point at the combined insights-engine image, which serves
   # both the `insights` and `engine` graphs.
   engineInsightsAgentImage:
     repository: "docker.io/langchain/langsmith-clio"
     pullPolicy: IfNotPresent
-    tag: "0.16.21rc1"
+    tag: "0.16.25rc1"
   frontendImage:
     repository: "docker.io/langchain/langsmith-frontend"
     pullPolicy: IfNotPresent
-    tag: "0.16.21rc1"
+    tag: "0.16.25rc1"
   operatorImage:
     repository: "docker.io/langchain/langgraph-operator"
     pullPolicy: IfNotPresent
@@ -104,15 +104,15 @@ images:
   agentBuilderImage:
     repository: "docker.io/langchain/agent-builder-deep-agent"
     pullPolicy: IfNotPresent
-    tag: "0.16.21rc1"
+    tag: "0.16.25rc1"
   pollyAgentImage:
     repository: "docker.io/langchain/langsmith-polly"
     pullPolicy: IfNotPresent
-    tag: "0.16.21rc1"
+    tag: "0.16.25rc1"
   smithdbImage:
     repository: "docker.io/langchain/smithdb"
     pullPolicy: IfNotPresent
-    tag: "0.16.21rc1"
+    tag: "0.16.25rc1"
   # Optional: only mirror/pull when presidioAnalyzer.enabled is true
   presidioAnalyzerImage:
     repository: "mcr.microsoft.com/presidio-analyzer"
@@ -315,6 +315,7 @@ fleet:
     containerPort: 5432
     external:
       enabled: false
+      iamProvider: ""
       host: ""
       port: "5432"
       user: "postgres"
@@ -368,6 +369,7 @@ fleet:
     containerPort: 6379
     external:
       enabled: false
+      iamProvider: ""
       connectionUrl: ""
       existingSecretName: ""
     statefulSet:
@@ -576,6 +578,7 @@ engineInsightsAgent:
     containerPort: 5432
     external:
       enabled: false
+      iamProvider: ""
       host: ""
       port: "5432"
       user: "postgres"
@@ -629,6 +632,7 @@ engineInsightsAgent:
     containerPort: 6379
     external:
       enabled: false
+      iamProvider: ""
       connectionUrl: ""
       existingSecretName: ""
     statefulSet:
@@ -812,6 +816,7 @@ polly:
     containerPort: 5432
     external:
       enabled: false
+      iamProvider: ""
       host: ""
       port: "5432"
       user: "postgres"
@@ -865,6 +870,7 @@ polly:
     containerPort: 6379
     external:
       enabled: false
+      iamProvider: ""
       connectionUrl: ""
       existingSecretName: ""
     statefulSet:
@@ -1053,8 +1059,8 @@ config:
         annotations: {}
 
   # DEPRECATED: use the top-level fleet block (fleet/fleetToolServer/
-  # fleetTriggerServer) instead. This bundled-agent path is managed by
-  # backend.agentBootstrap and is being phased out.
+  # fleetTriggerServer) instead. These keys are retained only as fallback
+  # defaults for the fleet block and may be removed in a future chart version.
   # Agent Builder configuration - UI for creating and managing agents
   # Requires config.deployment.enabled to be true
   agentBuilder:
@@ -1241,6 +1247,7 @@ config:
       enabled: false
       # Replace this with the endpoint of your trace collector. If you are using the LangSmith Observability helm chart, this will be the endpoint of the OTEL Gateway collector.
       endpoint: ""
+      # -- Use TLS for OTLP export.
       useTls: true
       env: "ls_self_hosted"
       exporter: "http"
@@ -1288,13 +1295,14 @@ aceBackend:
     podSecurityContext: {}
     securityContext: {}
     lifecycle: {}
+    priorityClassName: ""
     resources:
       limits:
-        cpu: 1000m
-        memory: 2Gi
+        cpu: 2
+        memory: 4000Mi
       requests:
-        cpu: 200m
-        memory: 1000Mi
+        cpu: 1
+        memory: 2000Mi
     command:
       - "./entrypoint.sh"
     startupProbe:
@@ -1448,6 +1456,7 @@ smithdb:
       annotations: {}
       podSecurityContext: {}
       securityContext: {}
+      priorityClassName: ""
       resources:
         requests:
           cpu: "4"
@@ -1525,6 +1534,7 @@ smithdb:
       annotations: {}
       podSecurityContext: {}
       securityContext: {}
+      priorityClassName: ""
       resources:
         requests:
           cpu: "4"
@@ -1607,6 +1617,7 @@ smithdb:
       annotations: {}
       podSecurityContext: {}
       securityContext: {}
+      priorityClassName: ""
       resources:
         requests:
           cpu: "2"
@@ -1671,6 +1682,7 @@ smithdb:
       annotations: {}
       podSecurityContext: {}
       securityContext: {}
+      priorityClassName: ""
       terminationGracePeriodSeconds: 120
       resources:
         requests:
@@ -1746,6 +1758,7 @@ smithdb:
       annotations: {}
       podSecurityContext: {}
       securityContext: {}
+      priorityClassName: ""
       resources:
         requests:
           cpu: "250m"
@@ -1849,6 +1862,8 @@ smithdb:
           labels: {}
           annotations: {}
         statefulSet:
+          # -- Optional priority class for the in-chart SmithDB taskdb Postgres pod.
+          priorityClassName: ""
           # -- Optional StatefulSet update strategy for the in-chart SmithDB taskdb Postgres instance.
           updateStrategy: {}
           labels: {}
@@ -1856,7 +1871,13 @@ smithdb:
           podSecurityContext: {}
           securityContext: {}
           terminationGracePeriodSeconds: 30
-          resources: {}
+          resources:
+            requests:
+              cpu: "2"
+              memory: "4Gi"
+            limits:
+              cpu: "4"
+              memory: "8Gi"
           startupProbe:
             exec:
               command:
@@ -1973,6 +1994,7 @@ backend:
     podSecurityContext: {}
     securityContext: {}
     lifecycle: {}
+    priorityClassName: ""
     resources:
       limits:
         cpu: 2000m
@@ -2210,39 +2232,6 @@ backend:
     volumeMounts: []
     ttlSecondsAfterFinished: 10
 
-  # DEPRECATED: the agentBootstrap flow (and the config.agentBuilder /
-  # config.insights / config.polly bundled-agent blocks it manages) is being
-  # phased out. New deployments should use the top-level fleet, insights, and
-  # polly blocks instead, which run as standard Helm-managed Deployments.
-  # These keys remain for backwards compatibility and may be removed in a
-  # future chart version.
-  agentBootstrap:
-    enabled: false
-    randomizeName: false
-    serviceAccount:
-      create: true
-      name: ""
-      labels: {}
-      annotations: {}
-      automountServiceAccountToken: true
-    labels: {}
-    annotations: {}
-    podSecurityContext: {}
-    securityContext: {}
-    resources:
-      limits:
-        cpu: 500m
-        memory: 512Mi
-      requests:
-        cpu: 100m
-        memory: 256Mi
-    extraEnv: []
-    nodeSelector: {}
-    tolerations: []
-    topologySpreadConstraints: []
-    affinity: {}
-    ttlSecondsAfterFinished: 600
-
 clickhouse:
   # -- Enable ClickHouse for ingestion and queries. Keep enabled when using external ClickHouse.
   #
@@ -2287,6 +2276,8 @@ clickhouse:
   statefulSet:
     labels: {}
     annotations: {}
+    # -- Optional priority class for the in-chart ClickHouse pod.
+    priorityClassName: ""
     # -- Optional StatefulSet update strategy for the in-chart ClickHouse instance.
     # -- Leave unset to keep the Kubernetes default RollingUpdate behavior.
     updateStrategy: {}
@@ -2414,6 +2405,7 @@ frontend:
     podSecurityContext: {}
     securityContext: {}
     lifecycle: {}
+    priorityClassName: ""
     resources:
       limits:
         cpu: 1000m
@@ -2524,6 +2516,7 @@ hostBackend:
     podSecurityContext: {}
     securityContext: {}
     lifecycle: {}
+    priorityClassName: ""
     resources:
       limits:
         cpu: 1000m
@@ -2635,6 +2628,7 @@ listener:
     podSecurityContext: {}
     securityContext: {}
     lifecycle: {}
+    priorityClassName: ""
     resources:
       limits:
         cpu: 2000m
@@ -2747,6 +2741,7 @@ platformBackend:
     podSecurityContext: {}
     securityContext: {}
     lifecycle: {}
+    priorityClassName: ""
     resources:
       limits:
         cpu: 2000m
@@ -2858,6 +2853,7 @@ operator:
     podSecurityContext: {}
     securityContext: {}
     lifecycle: {}
+    priorityClassName: ""
     resources:
       limits:
         cpu: 2000m
@@ -3044,6 +3040,7 @@ playground:
     podSecurityContext: {}
     securityContext: {}
     lifecycle: {}
+    priorityClassName: ""
     resources:
       limits:
         cpu: 1000m
@@ -3165,6 +3162,8 @@ postgres:
       keySecretKey: "tls.key"
   containerPort: 5432
   statefulSet:
+    # -- Optional priority class for the in-chart PostgreSQL pod.
+    priorityClassName: ""
     # -- Optional StatefulSet update strategy for the in-chart PostgreSQL instance.
     # Leave unset to keep the Kubernetes default RollingUpdate behavior.
     updateStrategy: {}
@@ -3262,6 +3261,7 @@ queue:
     podSecurityContext: {}
     securityContext: {}
     lifecycle: {}
+    priorityClassName: ""
     resources:
       limits:
         cpu: 2000m
@@ -3368,6 +3368,7 @@ ingestQueue:
     podSecurityContext: {}
     securityContext: {}
     lifecycle: {}
+    priorityClassName: ""
     resources:
       limits:
         cpu: 2000m
@@ -3487,6 +3488,8 @@ redis:
       tlsEnabled: true
   containerPort: 6379
   statefulSet:
+    # -- Optional priority class for the in-chart Redis pod.
+    priorityClassName: ""
     # -- Optional StatefulSet update strategy for the in-chart Redis instance.
     # Leave unset to keep the Kubernetes default RollingUpdate behavior.
     updateStrategy: {}
@@ -3580,6 +3583,7 @@ fleetToolServer:
     podSecurityContext: {}
     securityContext: {}
     lifecycle: {}
+    priorityClassName: ""
     resources:
       limits:
         cpu: 2000m
@@ -3659,6 +3663,7 @@ fleetTriggerServer:
     podSecurityContext: {}
     securityContext: {}
     lifecycle: {}
+    priorityClassName: ""
     resources:
       limits:
         cpu: 2000m
@@ -3725,6 +3730,7 @@ agentGateway:
     podSecurityContext: {}
     securityContext: {}
     lifecycle: {}
+    priorityClassName: ""
     resources:
       limits:
         cpu: 500m
@@ -3796,6 +3802,7 @@ presidioAnalyzer:
     podSecurityContext: {}
     securityContext: {}
     lifecycle: {}
+    priorityClassName: ""
     resources:
       limits:
         cpu: 1

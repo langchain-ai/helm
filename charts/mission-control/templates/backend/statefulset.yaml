@@ -28,6 +28,9 @@ spec:
       {{- end }}
     spec:
       serviceAccountName: {{ include "missionControl.serviceAccountName" . }}
+      {{- if .Values.backend.priorityClassName }}
+      priorityClassName: {{ .Values.backend.priorityClassName }}
+      {{- end }}
       {{- with .Values.images.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}

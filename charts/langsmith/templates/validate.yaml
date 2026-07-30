@@ -38,6 +38,10 @@ AWS Marketplace Helm template verification).
 {{- if hasKey .Values "agentBuilderTriggerServer" -}}
 {{- fail "agentBuilderTriggerServer is deprecated. Please use fleetTriggerServer." -}}
 {{- end -}}
+{{- /* Removed: the bundled agent-bootstrap Job (backend.agentBootstrap). Standalone fleet/insights/polly deployments replace it. */ -}}
+{{- if hasKey .Values.backend "agentBootstrap" -}}
+{{- fail "backend.agentBootstrap has been removed: the bundled agent-bootstrap Job is no longer part of this chart. Standalone agents now run as the top-level fleet / insights / polly deployments. If you were relying on the bundled bootstrap, contact LangChain support for migration guidance, then remove backend.agentBootstrap from your values." -}}
+{{- end -}}
 {{- /* Moved: Engine and Insights share one deployment, so its config lives in engineInsightsAgent. */ -}}
 {{- range $key := list "namePrefix" "apiServer" "queue" "postgres" "redis" -}}
 {{- if hasKey $.Values.insights $key -}}
@@ -570,6 +574,13 @@ AWS Marketplace Helm template verification).
 {{- $fn := index $pair "n" }}
 {{- $prod := index $.Values $fn }}
 {{- $feat := index $.Values (index $pair "cfg") }}
+{{- range $database := list "postgres" "redis" }}
+{{- $databaseConfig := index $feat $database }}
+{{- $provider := $databaseConfig.external.iamProvider }}
+{{- if and $provider (not (has $provider (list "azure" "gcp" "aws"))) }}
+{{- fail (printf "%s.%s.external.iamProvider must be one of [azure, gcp, aws]" (index $pair "cfg") $database) }}
+{{- end }}
+{{- end }}
 {{- if $prod.enabled }}
 {{- if and (not $prod.encryptionKey) (not $.Values.config.existingSecretName) }}
 {{- fail (printf "%s.encryptionKey is required when %s.enabled is true (not needed if config.existingSecretName is set with the key already present)" $fn $fn) }}

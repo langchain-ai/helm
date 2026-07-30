@@ -69,6 +69,9 @@ spec:
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      {{- if .Values.clickhouse.statefulSet.priorityClassName }}
+      priorityClassName: {{ .Values.clickhouse.statefulSet.priorityClassName }}
+      {{- end }}
       terminationGracePeriodSeconds: {{ .Values.clickhouse.statefulSet.terminationGracePeriodSeconds }}
       securityContext:
         {{- include "langsmith.podSecurityContext" (dict "Values" .Values "componentSecurityContext" .Values.clickhouse.statefulSet.podSecurityContext) | nindent 8 }}

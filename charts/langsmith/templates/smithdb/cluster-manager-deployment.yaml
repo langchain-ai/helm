@@ -41,6 +41,9 @@ spec:
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      {{- if .Values.smithdb.clusterManager.deployment.priorityClassName }}
+      priorityClassName: {{ .Values.smithdb.clusterManager.deployment.priorityClassName }}
+      {{- end }}
       securityContext:
         {{- toYaml .Values.smithdb.clusterManager.deployment.podSecurityContext | nindent 8 }}
       serviceAccountName: {{ include "langsmith.smithdb.serviceAccountName" (dict "root" . "component" "clusterManager") }}
