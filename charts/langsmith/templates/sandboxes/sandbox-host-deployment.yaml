@@ -1,9 +1,10 @@
 {{- if .Values.config.sandboxes.enabled }}
 {{- $namespace := .Values.namespace | default .Release.Namespace }}
 {{- $autoscaling := .Values.config.sandboxes.sandboxHost.autoscaling }}
-{{- /* Chart labels last so they win: the selector depends on them, and a duplicate
-       YAML key would make the manifest invalid rather than just being overridden. */}}
-{{- $labels := mergeOverwrite (dict)
+{{- /* app:<name> matches the other sandbox templates and is overridable via
+       deployment.labels. Chart labels come last so they win: the selector depends on
+       them, and a duplicate YAML key would make the manifest invalid outright. */}}
+{{- $labels := mergeOverwrite (dict "app" .Values.config.sandboxes.sandboxHost.name)
   (default dict .Values.config.sandboxes.sandboxHost.deployment.labels)
   (include "langsmith.labels" . | fromYaml)
   (dict "app.kubernetes.io/component" (include "langsmith.sandboxes.sandboxHostDeploymentName" .)) }}
