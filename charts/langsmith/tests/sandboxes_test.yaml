@@ -488,8 +488,8 @@ tests:
           path: spec.template.spec.hostNetwork
           value: true
       - equal:
-          path: spec.template.spec.affinity.podAntiAffinity.requiredDuringSchedulingIgnoredDuringExecution[0].labelSelector.matchLabels.app
-          value: sandbox-host
+          path: spec.template.spec.affinity.podAntiAffinity.requiredDuringSchedulingIgnoredDuringExecution[0].labelSelector.matchLabels["app.kubernetes.io/component"]
+          value: RELEASE-NAME-langsmith-sandbox-host
       - equal:
           path: spec.template.spec.affinity.podAntiAffinity.requiredDuringSchedulingIgnoredDuringExecution[0].topologyKey
           value: kubernetes.io/hostname
@@ -1000,8 +1000,8 @@ tests:
           path: spec.selector.matchLabels["app.kubernetes.io/component"]
           value: RELEASE-NAME-langsmith-hosts
       - equal:
-          path: spec.template.spec.affinity.podAntiAffinity.requiredDuringSchedulingIgnoredDuringExecution[0].labelSelector.matchLabels.app
-          value: sandbox-host
+          path: spec.template.spec.affinity.podAntiAffinity.requiredDuringSchedulingIgnoredDuringExecution[0].labelSelector.matchLabels["app.kubernetes.io/component"]
+          value: RELEASE-NAME-langsmith-hosts
 
   - it: should scope the sandbox-host autoscaler RBAC to the release-prefixed Deployment
     values:

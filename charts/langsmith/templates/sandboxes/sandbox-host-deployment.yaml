@@ -9,8 +9,8 @@ metadata:
   name: {{ include "langsmith.sandboxes.sandboxHostDeploymentName" . }}
   namespace: {{ $namespace }}
   labels:
-    app: sandbox-host
     {{- include "langsmith.labels" . | nindent 4 }}
+    app.kubernetes.io/component: {{ include "langsmith.sandboxes.sandboxHostDeploymentName" . }}
     {{- with .Values.config.sandboxes.sandboxHost.deployment.labels }}
       {{- toYaml . | nindent 4 }}
     {{- end }}
@@ -35,8 +35,6 @@ spec:
   template:
     metadata:
       labels:
-        # Release-independent on purpose: the anti-affinity below keys off it, and hostPort is node-global.
-        app: sandbox-host
         {{- include "langsmith.labels" . | nindent 8 }}
         app.kubernetes.io/component: {{ include "langsmith.sandboxes.sandboxHostDeploymentName" . }}
       annotations:
@@ -51,9 +49,12 @@ spec:
       affinity:
         podAntiAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
+            {{- /* One host per node. hostPort is the hard guarantee; this makes the intent
+                   explicit and keeps the scheduler from trying a node that is already taken. */}}
             - labelSelector:
                 matchLabels:
-                  app: sandbox-host
+                  {{- include "langsmith.selectorLabels" . | nindent 18 }}
+                  app.kubernetes.io/component: {{ include "langsmith.sandboxes.sandboxHostDeploymentName" . }}
               topologyKey: kubernetes.io/hostname
       {{- with .Values.images.imagePullSecrets }}
       imagePullSecrets:
