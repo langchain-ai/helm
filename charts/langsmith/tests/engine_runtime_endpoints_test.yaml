@@ -1,0 +1,63 @@
+suite: engine runtime endpoints
+templates:
+  - templates/validate.yaml
+  - templates/agent-features/insights/api-server/deployment.yaml
+  - templates/agent-features/insights/queue/deployment.yaml
+tests:
+  - it: should require a hostname when engine is enabled
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      engine.enabled: true
+      engine.encryptionKey: test-key
+      engine.intelligenceBaseUrl: https://beacon.aws.langchain.com/intelligence
+      engine.sandboxTenantId: test-tenant-id
+      images.engineInsightsAgentImage.repository: docker.io/langchain/langsmith-insights-engine
+    template: templates/validate.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: "config.hostname is required when engine.enabled is true: Engine sandbox CLI calls require an absolute LangSmith API endpoint."
+
+  - it: should wire absolute runtime endpoints into both engine pods
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      config.hostname: langsmith.example.com
+      config.basePath: langsmith
+      engine.enabled: true
+      engine.encryptionKey: test-key
+      engine.intelligenceBaseUrl: https://beacon.aws.langchain.com/intelligence
+      engine.sandboxTenantId: test-tenant-id
+      images.engineInsightsAgentImage.repository: docker.io/langchain/langsmith-insights-engine
+    templates:
+      - templates/agent-features/insights/api-server/deployment.yaml
+      - templates/agent-features/insights/queue/deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: LANGSMITH_SANDBOX_ENDPOINT
+            value: http://RELEASE-NAME-langsmith-platform-backend.NAMESPACE.svc.cluster.local:1986/v2/sandboxes
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: LANGSMITH_CLI_ENDPOINT
+            value: https://langsmith.example.com/langsmith/api
+
+  - it: should omit engine runtime endpoints when engine is disabled
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      insights.enabled: true
+    templates:
+      - templates/agent-features/insights/api-server/deployment.yaml
+      - templates/agent-features/insights/queue/deployment.yaml
+    asserts:
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: LANGSMITH_SANDBOX_ENDPOINT
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: LANGSMITH_CLI_ENDPOINT

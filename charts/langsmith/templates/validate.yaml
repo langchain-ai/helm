@@ -528,6 +528,9 @@ AWS Marketplace Helm template verification).
 {{- if not .Values.engine.intelligenceBaseUrl }}
 {{- fail "engine.intelligenceBaseUrl is required when engine.enabled is true: the self-hosted Engine has no ANTHROPIC_API_KEY and routes model calls through the LSI gateway for its cloud/region (e.g. AWS: https://beacon.aws.langchain.com/intelligence)." }}
 {{- end }}
+{{- if not .Values.config.hostname }}
+{{- fail "config.hostname is required when engine.enabled is true: Engine sandbox CLI calls require an absolute LangSmith API endpoint." }}
+{{- end }}
 {{- end }}
 
 {{- /* Validate agent feature (fleet/insights/polly) configuration */ -}}

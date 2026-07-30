@@ -1077,6 +1077,8 @@ Extra env vars for insights api-server and queue pods.
 {{- $out = append $out (dict "name" "ENGINE_INTELLIGENCE_BASE_URL" "value" $root.Values.engine.intelligenceBaseUrl) -}}
 {{- $out = append $out (dict "name" "ISSUES_AGENT_ENCRYPTION_KEY" "valueFrom" (dict "secretKeyRef" (dict "name" (include "langsmith.secretsName" $root) "key" "engine_encryption_key" "optional" $root.Values.config.disableSecretCreation))) -}}
 {{- $out = append $out (dict "name" "ISSUES_AGENT_ENCRYPTION_KEY_PREVIOUS" "valueFrom" (dict "secretKeyRef" (dict "name" (include "langsmith.secretsName" $root) "key" "engine_encryption_key_previous" "optional" true))) -}}
+{{- $out = append $out (dict "name" "LANGSMITH_SANDBOX_ENDPOINT" "value" (printf "%s/v2/sandboxes" (include "langsmith.sandboxes.langsmithInternalEndpoint" $root))) -}}
+{{- $out = append $out (dict "name" "LANGSMITH_CLI_ENDPOINT" "value" (include "langsmith.sandboxes.platformEndpoint" $root)) -}}
 {{- end -}}
 {{- if and (eq $componentName "apiServer") $feature.queue.enabled -}}
 {{- $out = append $out (dict "name" "N_JOBS_PER_WORKER" "value" "0") -}}
