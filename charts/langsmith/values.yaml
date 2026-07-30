@@ -929,7 +929,7 @@ config:
     clusterName: ""
     # -- Required private JWK for sandbox callback signing when this chart creates the LangSmith app Secret.
     # When config.existingSecretName is set, add key `sandbox_callback_signing_jwk` to that Secret instead.
-    # Signed egress callbacks also need config.hostname for the public issuer; without it, signing fails closed.
+    # Also needs config.hostname for the public issuer; without it, signing fails closed.
     callbackSigningJwk: ""
     # -- Optional base URL used to generate browser/programmatic service URLs for HTTP services running inside sandboxes.
     # When set, the chart renders SANDBOX_SERVICE_URLS for config.sandboxes.clusterName.
@@ -959,9 +959,7 @@ config:
         # -- JuiceFS Redis metadata URL. Redis metadata engines must use maxmemory-policy noeviction. For Redis Cluster, the `/DB` path is used by JuiceFS as a hash-tag key prefix rather than a Redis logical database.
         metaURL: ""
       csi:
-        # -- Install the bundled JuiceFS CSI driver. Set to false when the cluster already runs one: the chart
-        # then renders only the sandbox PV/PVCs and CSI config Secret and binds them to the existing driver.
-        # Leaving it true alongside an independent installation fails the install on the shared upstream names.
+        # -- Install the bundled JuiceFS CSI driver. Set to false when the cluster already runs one; the chart then renders only the sandbox PV/PVCs and CSI config Secret, bound to the existing driver.
         install: true
         # -- Name of the chart-managed JuiceFS CSI config Secret. The bundled JuiceFS CSI setup is intended only for JuiceFS PVs in the namespace where this chart is installed. Chart-managed Secret/config changes roll only the JuiceFS CSI controller/node pods through checksum annotations. Helm cannot hash externally managed Secret contents or directly refresh CSI-created JuiceFS mount pods; delete affected JuiceFS mount pods so they are recreated with the updated Secret.
         configSecretName: "juicefs-csi-config"
@@ -1004,7 +1002,7 @@ config:
         pvName: "smithbox-juicefs-csi"
         pvcName: "smithbox-juicefs-csi"
     sandboxHost:
-      # -- Component name for sandbox-host. The Deployment, PDB and RBAC are named `<release-fullname>-<name>`, so multiple releases can coexist. The chart passes the resulting name to the host as SANDBOX_HOST_DEPLOYMENT_NAME, which requires a sandbox-host image that reads it.
+      # -- Component name for sandbox-host. Resources are named `<release-fullname>-<name>`, which the chart passes to the host as SANDBOX_HOST_DEPLOYMENT_NAME.
       name: "sandbox-host"
       containerPort: 19190
       # -- Whether sandbox callback validation should allow private IP and localhost targets. This renders SSRF_ALLOW_PRIVATE_IPS_CALLBACKS for sandbox-host.
@@ -1013,9 +1011,7 @@ config:
         labels: {}
         annotations: {}
         podAnnotations: {}
-        # -- Number of sandbox-host replicas, i.e. how many sandbox nodes back the pool. Ignored when autoscaling is enabled.
-        # Hosts are one per node (required anti-affinity on `kubernetes.io/hostname` plus `hostPort`), so this must not exceed the sandbox node count.
-        # Image updates roll one node at a time (`maxSurge: 0`), since a surge pod could never schedule.
+        # -- Number of sandbox-host replicas, i.e. sandbox nodes backing the pool. One host per node, so do not exceed the node count. Ignored when autoscaling is enabled.
         replicas: 1
         terminationGracePeriodSeconds: 300
         # -- Node selector for sandbox-host pods. Empty uses the default selector `sandbox.langsmith.com/host=true`; set this map to replace the default if your sandbox node pool uses different labels.
@@ -1033,10 +1029,7 @@ config:
         securityContext:
           privileged: true
         extraEnv: []
-      # -- Sandbox host pool autoscaling. There is no HPA or KEDA object: the elected sandbox-host sizes the
-      # Deployment itself, since only it knows how much CPU is committed to live microVMs. These are the
-      # baseline; `sandbox-host.smith.langchain.com/autoscale-*` annotations on the Deployment (including
-      # `autoscale-override` to freeze or pin the pool) override them live and are never managed by the chart.
+      # -- Sandbox host pool autoscaling. There is no HPA or KEDA object: the elected sandbox-host resizes the Deployment itself. Unmanaged `sandbox-host.smith.langchain.com/autoscale-*` annotations override these live.
       autoscaling:
         enabled: false
         minReplicas: 1
@@ -1045,12 +1038,9 @@ config:
         targetUtilizationPercent: 70
         # -- Spare empty hosts kept above current demand so a sandbox create rarely waits for a cold node.
         headroomHosts: 1
-        # -- Hold the replica target at its recent peak for this long before shrinking, so load dips do not thrash the pool.
+        # -- Hold the replica target at its recent peak this long before shrinking, so load dips do not thrash the pool.
         scaleDownStabilizationSeconds: 300
-      # -- Disruption budget for sandbox-host. Each drain suspends every microVM on that host, so cap
-      # concurrent evictions rather than letting a multi-node drain empty the pool at once. maxUnavailable
-      # rather than minAvailable, since the pool size moves under the autoscaler and a small pool must stay
-      # drainable. Setting minAvailable overrides it.
+      # -- Disruption budget for sandbox-host, capping concurrent evictions since each drain suspends every microVM on that host. maxUnavailable keeps a small pool drainable; setting minAvailable overrides it.
       pdb:
         enabled: false
         maxUnavailable: 1
