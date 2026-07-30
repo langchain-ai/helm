@@ -428,12 +428,6 @@ engine:
   # can be stopped by anyone with access, while each one runs agent-generated
   # code and holds a GitHub token for the repo under analysis.
   sandboxTenantId: ""
-  # -- Override for the LangSmith URL the sandbox runs the langsmith CLI
-  # against. Defaults to <config.hostname>/api. Set this only when that is not
-  # routable from the sandbox network (e.g. a tunnel to a local smith-go); an
-  # in-cluster service URL will not work. The sandbox proxy allow-lists this
-  # host and injects LangSmith credentials for it.
-  cliEndpoint: ""
 
 insights:
   enabled: true

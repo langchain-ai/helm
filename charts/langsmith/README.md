@@ -26,7 +26,6 @@ The chart-managed frontend owns public API route rewrites for LangSmith services
 | commonPodSecurityContext | object | `{}` | Common pod security context applied to all pods. Component-specific podSecurityContext values will be merged on top of this (component values take precedence). |
 | commonVolumeMounts | list | `[]` | Common volume mounts added to all deployments/statefulsets except for the playground/aceBackend services (which are sandboxed). |
 | commonVolumes | list | `[]` | Common volumes added to all deployments/statefulsets except for the playground/aceBackend services (which are sandboxed). |
-| engine.cliEndpoint | string | `""` | Override for the LangSmith URL the sandbox runs the langsmith CLI against. Defaults to <config.hostname>/api. Set this only when that is not routable from the sandbox network (e.g. a tunnel to a local smith-go); an in-cluster service URL will not work. The sandbox proxy allow-lists this host and injects LangSmith credentials for it. |
 | engine.enabled | bool | `false` |  |
 | engine.encryptionKey | string | `""` |  |
 | engine.encryptionKeyPrevious | string | `""` |  |
