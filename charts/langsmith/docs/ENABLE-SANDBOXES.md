@@ -98,7 +98,6 @@ config:
   hostname: langsmith.example.com   # supplies the public issuer for signed sandbox callbacks
   sandboxes:
     enabled: true
-    clusterName: my-cluster         # logical name reported to LangSmith
     callbackSigningJwk: '{...}'     # private JWK; or key sandbox_callback_signing_jwk in your existing Secret
     juicefs:
       bucket: https://my-bucket.s3.us-west-2.amazonaws.com
