@@ -1076,3 +1076,49 @@ tests:
       - hasDocuments:
           count: 0
 
+
+  - it: should trust a custom CA bundle in sandbox-host
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      config.customCa.secretName: my-ca
+      config.customCa.secretKey: ca.crt
+    template: sandboxes/sandbox-host-deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SSL_CERT_FILE
+            value: /etc/ssl/certs/custom-ca-certificates.crt
+      - contains:
+          path: spec.template.spec.containers[0].volumeMounts
+          content:
+            name: langsmith-custom-ca
+            mountPath: /etc/ssl/certs/custom-ca-certificates.crt
+            subPath: ca-certificates.crt
+            readOnly: true
+      - contains:
+          path: spec.template.spec.volumes
+          content:
+            name: langsmith-custom-ca
+            secret:
+              secretName: my-ca
+              items:
+                - key: ca.crt
+                  path: ca-certificates.crt
+
+  - it: should not mount a custom CA in sandbox-host by default
+    values:
+      - ./values/sandboxes-enabled.yaml
+    template: sandboxes/sandbox-host-deployment.yaml
+    asserts:
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SSL_CERT_FILE
+          any: true
+      - notContains:
+          path: spec.template.spec.volumes
+          content:
+            name: langsmith-custom-ca
+          any: true

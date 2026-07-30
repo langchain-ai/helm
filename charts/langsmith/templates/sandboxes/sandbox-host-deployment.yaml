@@ -1,6 +1,8 @@
 {{- if .Values.config.sandboxes.enabled }}
 {{- $namespace := .Values.namespace | default .Release.Namespace }}
 {{- $autoscaling := .Values.config.sandboxes.sandboxHost.autoscaling }}
+{{- $tlsVolumes := include "langsmith.tlsVolumes" . | fromYamlArray }}
+{{- $tlsVolumeMounts := include "langsmith.tlsVolumeMounts" . | fromYamlArray }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -94,6 +96,10 @@ spec:
                   optional: {{ .Values.config.disableSecretCreation }}
             - name: SANDBOX_HOST_PROXY_CA_DIR
               value: /certs
+            {{- if and .Values.config.customCa.secretName .Values.config.customCa.secretKey }}
+            - name: SSL_CERT_FILE
+              value: /etc/ssl/certs/custom-ca-certificates.crt
+            {{- end }}
             {{- if or (not (empty .Values.config.existingSecretName)) .Values.config.sandboxes.callbackSigningJwk }}
             - name: LANGSMITH_SANDBOX_CALLBACK_SIGNING_JWK
               valueFrom:
@@ -160,6 +166,9 @@ spec:
             - name: proxy-ca
               mountPath: /certs
               readOnly: true
+            {{- with $tlsVolumeMounts }}
+              {{- toYaml . | nindent 12 }}
+            {{- end }}
       volumes:
         - name: juicefs
           persistentVolumeClaim:
@@ -171,5 +180,8 @@ spec:
           hostPath:
             path: /var/lib/sandbox-host
             type: DirectoryOrCreate
+        {{- with $tlsVolumes }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
       terminationGracePeriodSeconds: {{ .Values.config.sandboxes.sandboxHost.deployment.terminationGracePeriodSeconds }}
 {{- end }}
