@@ -1,0 +1,81 @@
+suite: engine sandbox CLI endpoint
+templates:
+  - templates/agent-features/insights/api-server/deployment.yaml
+  - templates/agent-features/insights/queue/deployment.yaml
+tests:
+  - it: should derive the CLI endpoint from config.hostname
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      engine.enabled: true
+      engine.encryptionKey: test-key
+      engine.intelligenceBaseUrl: https://beacon.aws.langchain.com/intelligence
+      engine.sandboxTenantId: 00000000-0000-0000-0000-000000000000
+      images.engineInsightsAgentImage.repository: docker.io/langchain/langsmith-insights-engine
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: LANGSMITH_CLI_ENDPOINT
+            value: https://langsmith.example.com/api
+
+  - it: should include config.basePath in the derived CLI endpoint
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      config.basePath: /langsmith
+      engine.enabled: true
+      engine.encryptionKey: test-key
+      engine.intelligenceBaseUrl: https://beacon.aws.langchain.com/intelligence
+      engine.sandboxTenantId: 00000000-0000-0000-0000-000000000000
+      images.engineInsightsAgentImage.repository: docker.io/langchain/langsmith-insights-engine
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: LANGSMITH_CLI_ENDPOINT
+            value: https://langsmith.example.com/langsmith/api
+
+  - it: should keep the scheme when config.hostname already has one
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      config.hostname: http://langsmith.internal.example.com
+      engine.enabled: true
+      engine.encryptionKey: test-key
+      engine.intelligenceBaseUrl: https://beacon.aws.langchain.com/intelligence
+      engine.sandboxTenantId: 00000000-0000-0000-0000-000000000000
+      images.engineInsightsAgentImage.repository: docker.io/langchain/langsmith-insights-engine
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: LANGSMITH_CLI_ENDPOINT
+            value: http://langsmith.internal.example.com/api
+
+  - it: should prefer engine.cliEndpoint over the derived value
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      engine.enabled: true
+      engine.encryptionKey: test-key
+      engine.intelligenceBaseUrl: https://beacon.aws.langchain.com/intelligence
+      engine.sandboxTenantId: 00000000-0000-0000-0000-000000000000
+      engine.cliEndpoint: https://tunnel.example.com
+      images.engineInsightsAgentImage.repository: docker.io/langchain/langsmith-insights-engine
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: LANGSMITH_CLI_ENDPOINT
+            value: https://tunnel.example.com
+
+  - it: should omit the CLI endpoint when engine is disabled
+    values:
+      - ./values/sandboxes-enabled.yaml
+    asserts:
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: LANGSMITH_CLI_ENDPOINT
+            value: https://langsmith.example.com/api

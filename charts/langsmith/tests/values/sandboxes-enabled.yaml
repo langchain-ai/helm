@@ -1,5 +1,6 @@
 config:
   existingSecretName: langsmith-secrets
+  hostname: langsmith.example.com
   oauth:
     enabled: true
   authType: oauth

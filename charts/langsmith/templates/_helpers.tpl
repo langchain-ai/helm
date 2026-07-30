@@ -1079,7 +1079,7 @@ Extra env vars for insights api-server and queue pods.
 {{- $out = append $out (dict "name" "ISSUES_AGENT_ENCRYPTION_KEY_PREVIOUS" "valueFrom" (dict "secretKeyRef" (dict "name" (include "langsmith.secretsName" $root) "key" "engine_encryption_key_previous" "optional" true))) -}}
 {{- $out = append $out (dict "name" "ISSUES_AGENT_SANDBOX_TENANT_ID" "value" $root.Values.engine.sandboxTenantId) -}}
 {{- $out = append $out (dict "name" "LANGSMITH_SANDBOX_ENDPOINT" "value" (printf "http://%s-%s.%s.svc.%s:%v/v2/sandboxes" (include "langsmith.fullname" $root) $root.Values.platformBackend.name (default $root.Release.Namespace $root.Values.namespace) $root.Values.clusterDomain $root.Values.platformBackend.service.port)) -}}
-{{- $out = append $out (dict "name" "LANGSMITH_CLI_ENDPOINT" "value" $root.Values.engine.cliEndpoint) -}}
+{{- $out = append $out (dict "name" "LANGSMITH_CLI_ENDPOINT" "value" (include "langsmith.engine.cliEndpoint" $root)) -}}
 {{- end -}}
 {{- if and (eq $componentName "apiServer") $feature.queue.enabled -}}
 {{- $out = append $out (dict "name" "N_JOBS_PER_WORKER" "value" "0") -}}
@@ -1468,6 +1468,20 @@ When hostname is unset, keep this relative so browser callers use the same origi
   {{- printf "/%s/api" $basePath -}}
 {{- else -}}
   /api
+{{- end -}}
+{{- end -}}
+
+{{/*
+LangSmith URL the Engine's sandboxes run the langsmith CLI against. Defaults to
+the public API endpoint; engine.cliEndpoint overrides it for a host the sandbox
+network can reach but config.hostname doesn't name (e.g. a tunnel to a local
+smith-go). validate.yaml rejects a config.hostname no sandbox could reach.
+*/}}
+{{- define "langsmith.engine.cliEndpoint" -}}
+{{- if .Values.engine.cliEndpoint -}}
+{{- .Values.engine.cliEndpoint -}}
+{{- else -}}
+{{- include "langsmith.sandboxes.platformEndpoint" . -}}
 {{- end -}}
 {{- end -}}
 
