@@ -16,7 +16,7 @@ metadata:
       {{- toYaml . | nindent 4 }}
     {{- end }}
 rules:
-# Host liveness leases, and the leader election that picks the observing host.
+# Host liveness leases + leader election.
 - apiGroups:
   - coordination.k8s.io
   resources:
@@ -28,7 +28,7 @@ rules:
   - list
   - update
   - watch
-# The elected host reads its own Deployment each reconcile and patches replicas.
+# The elected host reads and resizes its own Deployment.
 - apiGroups:
   - apps
   resources:
@@ -38,7 +38,7 @@ rules:
   verbs:
   - get
   - patch
-# Scale-down deletion cost, so the emptiest host is evicted first.
+# Pod deletion cost, so the emptiest host is evicted first.
 - apiGroups:
   - ""
   resources:

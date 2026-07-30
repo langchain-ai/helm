@@ -102,8 +102,7 @@ spec:
                   key: sandbox_callback_signing_jwk
                   optional: true
             {{- end }}
-            {{- /* Callback receivers fetch the verification key from <issuer>/.well-known/jwks.json,
-                   so this must be the public issuer. Unset without a hostname: signing fails closed. */}}
+            {{- /* Must be the public issuer: receivers fetch the key from <issuer>/.well-known/jwks.json. */}}
             {{- if .Values.config.hostname }}
             - name: OAUTH_AS_ISSUER
               value: {{ include "langsmith.oauthAsIssuer" . | quote }}
@@ -141,8 +140,7 @@ spec:
               containerPort: {{ .Values.config.sandboxes.sandboxHost.containerPort }}
               hostPort: {{ .Values.config.sandboxes.sandboxHost.containerPort }}
               protocol: TCP
-          {{- /* The listener binds last, so accepting connections means started. No liveness probe:
-                 a restart mid-suspend would destroy running microVMs. */}}
+          {{- /* No liveness probe: a restart mid-suspend would destroy running microVMs. */}}
           readinessProbe:
             tcpSocket:
               port: http
