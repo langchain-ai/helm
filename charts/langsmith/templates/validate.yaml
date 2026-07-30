@@ -125,6 +125,7 @@ AWS Marketplace Helm template verification).
 {{- if not .Values.images.sandboxHostImage.tag -}}
 {{- fail "images.sandboxHostImage.tag is required when config.sandboxes.enabled is true." -}}
 {{- end -}}
+{{- if .Values.config.sandboxes.juicefs.csi.install -}}
 {{- range $imageName := list "juicefsCSIImage" "juicefsCSINodeDriverRegistrarImage" -}}
 {{- $image := index $.Values.images $imageName -}}
 {{- if not $image.repository -}}
@@ -137,8 +138,18 @@ AWS Marketplace Helm template verification).
 {{- if and .Values.images.juicefsMountImage.tag (not .Values.images.juicefsMountImage.repository) -}}
 {{- fail "images.juicefsMountImage.repository is required when images.juicefsMountImage.tag is set." -}}
 {{- end -}}
+{{- end -}}
 {{- if not .Values.config.sandboxes.clusterName -}}
 {{- fail "config.sandboxes.clusterName is required when config.sandboxes.enabled is true." -}}
+{{- end -}}
+{{- $autoscaling := .Values.config.sandboxes.sandboxHost.autoscaling -}}
+{{- if $autoscaling.enabled -}}
+{{- if lt (int $autoscaling.minReplicas) 1 -}}
+{{- fail "config.sandboxes.sandboxHost.autoscaling.minReplicas must be at least 1." -}}
+{{- end -}}
+{{- if lt (int $autoscaling.maxReplicas) (int $autoscaling.minReplicas) -}}
+{{- fail "config.sandboxes.sandboxHost.autoscaling.maxReplicas must be greater than or equal to minReplicas." -}}
+{{- end -}}
 {{- end -}}
 {{- $serviceUrlBaseUrl := .Values.config.sandboxes.serviceUrlBaseUrl | default "" -}}
 {{- if $serviceUrlBaseUrl -}}
@@ -181,17 +192,8 @@ AWS Marketplace Helm template verification).
 {{- fail "config.sandboxes.juicefs.bucket must use an HTTP(S) S3 endpoint URL when config.sandboxes.juicefs.storage is s3." -}}
 {{- end -}}
 {{- end -}}
-{{- if and (not .Values.config.existingSecretName) (not .Values.config.disableSecretCreation) (not (include "langsmith.sandboxes.xServiceAuthJwtSecretValue" .)) -}}
-{{- fail "config.sandboxes.xServiceAuthJwtSecret is required when config.sandboxes.enabled is true and no chart-managed app secret value is available." -}}
-{{- end -}}
 {{- if and (not .Values.config.existingSecretName) (not .Values.config.disableSecretCreation) (not .Values.config.sandboxes.callbackSigningJwk) -}}
 {{- fail "config.sandboxes.callbackSigningJwk is required when config.sandboxes.enabled is true and the chart manages the LangSmith app Secret. When config.existingSecretName is set, add key sandbox_callback_signing_jwk to the existing Secret instead." -}}
-{{- end -}}
-{{- if and .Values.config.existingSecretName .Values.config.sandboxes.xServiceAuthJwtSecret -}}
-{{- fail "config.sandboxes.xServiceAuthJwtSecret cannot be used when config.existingSecretName is set. Add key sandbox_x_service_auth_jwt_secret to the existing Secret instead." -}}
-{{- end -}}
-{{- if and .Values.config.existingSecretName .Values.config.sandboxes.xServiceAuthJwtSecretPrevious -}}
-{{- fail "config.sandboxes.xServiceAuthJwtSecretPrevious cannot be used when config.existingSecretName is set. Add key sandbox_x_service_auth_jwt_secret_previous to the existing Secret instead." -}}
 {{- end -}}
 {{- if and .Values.config.existingSecretName .Values.config.sandboxes.callbackSigningJwk -}}
 {{- fail "config.sandboxes.callbackSigningJwk cannot be used when config.existingSecretName is set. Add key sandbox_callback_signing_jwk to the existing Secret instead." -}}

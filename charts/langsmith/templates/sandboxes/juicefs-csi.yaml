@@ -39,8 +39,11 @@ spec:
     driver: {{ include "langsmith.sandboxes.juicefsCSIDriverName" . }}
     volumeHandle: {{ .Values.config.sandboxes.juicefs.csi.pvName }}
     fsType: juicefs
+    {{- /* An externally managed driver runs mount pods under its own ServiceAccount. */}}
+    {{- if .Values.config.sandboxes.juicefs.csi.install }}
     volumeAttributes:
       juicefs/mount-service-account: {{ include "langsmith.sandboxes.juicefsCSINodeServiceAccountName" . }}
+    {{- end }}
     nodePublishSecretRef:
       name: {{ include "langsmith.sandboxes.juicefsCSIConfigSecretName" . }}
       namespace: {{ $namespace }}
@@ -86,8 +89,10 @@ spec:
     driver: {{ include "langsmith.sandboxes.juicefsCSIDriverName" . }}
     volumeHandle: {{ include "langsmith.sandboxes.juicefsHostPVName" . }}
     fsType: juicefs
+    {{- if .Values.config.sandboxes.juicefs.csi.install }}
     volumeAttributes:
       juicefs/mount-service-account: {{ include "langsmith.sandboxes.juicefsCSINodeServiceAccountName" . }}
+    {{- end }}
     nodePublishSecretRef:
       name: {{ include "langsmith.sandboxes.juicefsCSIConfigSecretName" . }}
       namespace: {{ $namespace }}

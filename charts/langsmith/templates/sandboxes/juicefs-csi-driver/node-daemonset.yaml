@@ -1,4 +1,5 @@
-{{- if .Values.config.sandboxes.enabled }}
+{{- /* Vendored from the upstream juicefs-csi-driver chart; re-sync when bumping images.juicefsCSIImage. */}}
+{{- if and .Values.config.sandboxes.enabled .Values.config.sandboxes.juicefs.csi.install }}
 {{- $namespace := .Values.namespace | default .Release.Namespace }}
 {{- $mountImage := include "langsmith.optionalImage" (dict "Values" .Values "Chart" .Chart "component" "juicefsMountImage") }}
 {{- $nodeAnnotations := .Values.config.sandboxes.juicefs.csi.node.annotations }}

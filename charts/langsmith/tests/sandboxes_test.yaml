@@ -14,7 +14,14 @@ templates:
   - sandboxes/proxy-ca.yaml
   - sandboxes/juicefs-csi.yaml
   - sandboxes/sandbox-host-rbac.yaml
+  - sandboxes/sandbox-host-service-account.yaml
   - sandboxes/sandbox-host-deployment.yaml
+  - sandboxes/sandbox-host-pdb.yaml
+  - sandboxes/juicefs-csi-driver/csidriver.yaml
+  - sandboxes/juicefs-csi-driver/rbac.yaml
+  - sandboxes/juicefs-csi-driver/controller-statefulset.yaml
+  - sandboxes/juicefs-csi-driver/node-daemonset.yaml
+  - sandboxes/juicefs-csi-driver/configmap.yaml
 tests:
   - it: should not render sandbox runtime resources by default
     set:
@@ -25,6 +32,7 @@ tests:
       - sandboxes/proxy-ca.yaml
       - sandboxes/juicefs-csi.yaml
       - sandboxes/sandbox-host-rbac.yaml
+      - sandboxes/sandbox-host-service-account.yaml
       - sandboxes/sandbox-host-deployment.yaml
     asserts:
       - hasDocuments:
@@ -67,7 +75,7 @@ tests:
             valueFrom:
               secretKeyRef:
                 name: langsmith-secrets
-                key: sandbox_x_service_auth_jwt_secret
+                key: api_key_salt
                 optional: false
       - notContains:
           path: spec.template.spec.containers[0].env
@@ -127,20 +135,11 @@ tests:
           path: spec.rules[1].http.paths[0].backend.service.port.number
           value: 1986
 
-  - it: should wire optional sandbox keys from an existing LangSmith secret into platform backend
+  - it: should wire the sandbox callback signing JWK from an existing LangSmith secret into platform backend
     values:
       - ./values/sandboxes-enabled.yaml
     template: platform-backend/deployment.yaml
     asserts:
-      - contains:
-          path: spec.template.spec.containers[0].env
-          content:
-            name: SANDBOX_X_SERVICE_AUTH_JWT_SECRET_PREVIOUS
-            valueFrom:
-              secretKeyRef:
-                name: langsmith-secrets
-                key: sandbox_x_service_auth_jwt_secret_previous
-                optional: true
       - contains:
           path: spec.template.spec.containers[0].env
           content:
@@ -243,7 +242,6 @@ tests:
       config.authType: oauth
       config.sandboxes.enabled: true
       config.sandboxes.clusterName: self-hosted-test
-      config.sandboxes.xServiceAuthJwtSecret: test-sandbox-jwt
       config.sandboxes.callbackSigningJwk: test-callback-jwk
       config.sandboxes.juicefs.redis.metaURL: redis://langsmith-redis.default.svc.cluster.local:6379/1
       config.sandboxes.juicefs.bucket: https://langsmith-sandboxes-test.s3.us-west-2.amazonaws.com
@@ -257,8 +255,10 @@ tests:
           path: metadata.name
           value: RELEASE-NAME-langsmith-secrets
       - equal:
+          path: data.api_key_salt
+          value: dGVzdC1hcGkta2V5LXNhbHQ=
+      - notExists:
           path: data.sandbox_x_service_auth_jwt_secret
-          value: dGVzdC1zYW5kYm94LWp3dA==
       - equal:
           path: data.sandbox_callback_signing_jwk
           value: dGVzdC1jYWxsYmFjay1qd2s=
@@ -266,8 +266,6 @@ tests:
   - it: should keep local_kubernetes LANGCHAIN_ENV in the shared config map
     values:
       - ./values/sandboxes-enabled.yaml
-    set:
-      config.langchainEnv: chart-env
     template: config-map.yaml
     asserts:
       - equal:
@@ -299,18 +297,171 @@ tests:
             name: SANDBOX_QUEUE_PRIORITY
             value: "1"
 
-  - it: should use configured LANGCHAIN_ENV for sandbox-host
+  - it: should use the same LANGCHAIN_ENV for sandbox-host as the shared config map
     values:
       - ./values/sandboxes-enabled.yaml
-    set:
-      config.langchainEnv: chart-env
     template: sandboxes/sandbox-host-deployment.yaml
     asserts:
       - contains:
           path: spec.template.spec.containers[0].env
           content:
             name: LANGCHAIN_ENV
-            value: chart-env
+            value: local_kubernetes
+
+  - it: should sign sandbox callbacks with the public issuer when hostname is set
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      config.hostname: langsmith.example.com
+    template: sandboxes/sandbox-host-deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: OAUTH_AS_ISSUER
+            value: https://langsmith.example.com/api
+
+  - it: should omit the callback issuer when no public hostname is configured
+    values:
+      - ./values/sandboxes-enabled.yaml
+    template: sandboxes/sandbox-host-deployment.yaml
+    asserts:
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: OAUTH_AS_ISSUER
+          any: true
+
+  - it: should source sandbox service auth from the shared api key salt
+    values:
+      - ./values/sandboxes-enabled.yaml
+    templates:
+      - sandboxes/sandbox-host-deployment.yaml
+      - platform-backend/deployment.yaml
+      - ingest-queue/deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_X_SERVICE_AUTH_JWT_SECRET
+            valueFrom:
+              secretKeyRef:
+                name: langsmith-secrets
+                key: api_key_salt
+                optional: false
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_X_SERVICE_AUTH_JWT_SECRET_PREVIOUS
+          any: true
+
+  - it: should append sandbox-host extraEnv
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      config.sandboxes.sandboxHost.deployment.extraEnv:
+        - name: SANDBOX_HOST_JUICEFS_CLONE_CONCURRENCY
+          value: "40"
+    template: sandboxes/sandbox-host-deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_HOST_JUICEFS_CLONE_CONCURRENCY
+            value: "40"
+
+  - it: should hardcode replicas and disable pool autoscaling by default
+    values:
+      - ./values/sandboxes-enabled.yaml
+    template: sandboxes/sandbox-host-deployment.yaml
+    asserts:
+      - equal:
+          path: spec.replicas
+          value: 1
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_HOST_AUTOSCALE_ENABLED
+            value: "false"
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_HOST_AUTOSCALE_MIN_REPLICAS
+          any: true
+
+  - it: should drop replicas and render autoscale env when pool autoscaling is enabled
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      config.sandboxes.sandboxHost.autoscaling:
+        enabled: true
+        minReplicas: 2
+        maxReplicas: 8
+        targetUtilizationPercent: 60
+        headroomHosts: 2
+        scaleDownStabilizationSeconds: 600
+    template: sandboxes/sandbox-host-deployment.yaml
+    asserts:
+      - isNull:
+          path: spec.replicas
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_HOST_AUTOSCALE_ENABLED
+            value: "true"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_HOST_AUTOSCALE_MIN_REPLICAS
+            value: "2"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_HOST_AUTOSCALE_MAX_REPLICAS
+            value: "8"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_HOST_AUTOSCALE_TARGET_UTILIZATION_PERCENT
+            value: "60"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_HOST_AUTOSCALE_HEADROOM_HOSTS
+            value: "2"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_HOST_AUTOSCALE_SCALE_DOWN_STABILIZATION_SECONDS
+            value: "600"
+
+  - it: should let the elected host read and scale its own Deployment
+    values:
+      - ./values/sandboxes-enabled.yaml
+    template: sandboxes/sandbox-host-rbac.yaml
+    documentIndex: 0
+    asserts:
+      - isKind:
+          of: Role
+      - contains:
+          path: rules
+          content:
+            apiGroups: ["apps"]
+            resources: ["deployments"]
+            resourceNames: ["RELEASE-NAME-langsmith-sandbox-host"]
+            verbs: ["get", "patch"]
+
+  - it: should fail when autoscaling maxReplicas is below minReplicas
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      config.sandboxes.sandboxHost.autoscaling.enabled: true
+      config.sandboxes.sandboxHost.autoscaling.minReplicas: 5
+      config.sandboxes.sandboxHost.autoscaling.maxReplicas: 2
+    template: validate.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: "config.sandboxes.sandboxHost.autoscaling.maxReplicas must be greater than or equal to minReplicas."
 
   - it: should render sandbox-host with host network and rolling update rollout
     values:
@@ -321,7 +472,7 @@ tests:
           of: Deployment
       - equal:
           path: metadata.name
-          value: sandbox-host
+          value: RELEASE-NAME-langsmith-sandbox-host
       - equal:
           path: metadata.namespace
           value: NAMESPACE
@@ -376,7 +527,7 @@ tests:
             valueFrom:
               secretKeyRef:
                 name: langsmith-secrets
-                key: sandbox_x_service_auth_jwt_secret
+                key: api_key_salt
                 optional: false
       - contains:
           path: spec.template.spec.containers[0].env
@@ -413,7 +564,7 @@ tests:
       config.sandboxes.sandboxHost.rbac.labels.review: requested
       config.sandboxes.sandboxHost.rbac.annotations.review: requested
     template: sandboxes/sandbox-host-rbac.yaml
-    documentIndex: 1
+    documentIndex: 0
     asserts:
       - equal:
           path: metadata.labels.review
@@ -430,7 +581,7 @@ tests:
     template: sandboxes/sandbox-host-rbac.yaml
     asserts:
       - hasDocuments:
-          count: 1
+          count: 0
 
   - it: should render custom sandbox-host scheduling on sandbox-host
     values:
@@ -695,26 +846,6 @@ tests:
       - failedTemplate:
           errorMessage: "config.sandboxes.serviceUrlBaseUrl host must be a DNS hostname without a port when ingress.enabled is true."
 
-  - it: should fail when existing app Secret is used with chart-provided sandbox service auth secret
-    values:
-      - ./values/sandboxes-enabled.yaml
-    set:
-      config.sandboxes.xServiceAuthJwtSecret: test-sandbox-jwt
-    template: validate.yaml
-    asserts:
-      - failedTemplate:
-          errorMessage: "config.sandboxes.xServiceAuthJwtSecret cannot be used when config.existingSecretName is set. Add key sandbox_x_service_auth_jwt_secret to the existing Secret instead."
-
-  - it: should fail when existing app Secret is used with chart-provided previous sandbox service auth secret
-    values:
-      - ./values/sandboxes-enabled.yaml
-    set:
-      config.sandboxes.xServiceAuthJwtSecretPrevious: test-previous-sandbox-jwt
-    template: validate.yaml
-    asserts:
-      - failedTemplate:
-          errorMessage: "config.sandboxes.xServiceAuthJwtSecretPrevious cannot be used when config.existingSecretName is set. Add key sandbox_x_service_auth_jwt_secret_previous to the existing Secret instead."
-
   - it: should fail when existing app Secret is used with chart-provided sandbox callback signing JWK
     values:
       - ./values/sandboxes-enabled.yaml
@@ -733,7 +864,6 @@ tests:
       config.authType: oauth
       config.sandboxes.enabled: true
       config.sandboxes.clusterName: self-hosted-test
-      config.sandboxes.xServiceAuthJwtSecret: test-sandbox-jwt
       config.sandboxes.juicefs.redis.metaURL: redis://langsmith-redis.default.svc.cluster.local:6379/1
       config.sandboxes.juicefs.bucket: https://langsmith-sandboxes-test.s3.us-west-2.amazonaws.com
       images.sandboxHostImage.repository: example.com/langsmith/sandbox-host
@@ -763,3 +893,187 @@ tests:
     asserts:
       - failedTemplate:
           errorMessage: "Duplicate keys detected: [SANDBOX_RUNTIME_V2]"
+
+  - it: should gate sandbox-host readiness on the host listener without a liveness probe
+    values:
+      - ./values/sandboxes-enabled.yaml
+    template: sandboxes/sandbox-host-deployment.yaml
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].readinessProbe.tcpSocket.port
+          value: http
+      - isNull:
+          path: spec.template.spec.containers[0].livenessProbe
+
+  - it: should not render a sandbox-host PDB by default
+    values:
+      - ./values/sandboxes-enabled.yaml
+    template: sandboxes/sandbox-host-pdb.yaml
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: should cap concurrent sandbox-host evictions when the PDB is enabled
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      config.sandboxes.sandboxHost.pdb.enabled: true
+    template: sandboxes/sandbox-host-pdb.yaml
+    asserts:
+      - isKind:
+          of: PodDisruptionBudget
+      - equal:
+          path: metadata.name
+          value: RELEASE-NAME-langsmith-sandbox-host
+      - equal:
+          path: spec.maxUnavailable
+          value: 1
+      - equal:
+          path: spec.selector.matchLabels["app.kubernetes.io/component"]
+          value: RELEASE-NAME-langsmith-sandbox-host
+
+  - it: should let minAvailable replace maxUnavailable in the sandbox-host PDB
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      config.sandboxes.sandboxHost.pdb:
+        enabled: true
+        minAvailable: 2
+    template: sandboxes/sandbox-host-pdb.yaml
+    asserts:
+      - equal:
+          path: spec.minAvailable
+          value: 2
+      - isNull:
+          path: spec.maxUnavailable
+
+  - it: should skip the bundled JuiceFS CSI driver when the cluster already runs one
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      config.sandboxes.juicefs.csi.install: false
+    templates:
+      - sandboxes/juicefs-csi-driver/csidriver.yaml
+      - sandboxes/juicefs-csi-driver/rbac.yaml
+      - sandboxes/juicefs-csi-driver/controller-statefulset.yaml
+      - sandboxes/juicefs-csi-driver/node-daemonset.yaml
+      - sandboxes/juicefs-csi-driver/configmap.yaml
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: should still render sandbox volumes when the bundled JuiceFS CSI driver is skipped
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      config.sandboxes.juicefs.csi.install: false
+    template: sandboxes/juicefs-csi.yaml
+    asserts:
+      - hasDocuments:
+          count: 5
+
+  - it: should not keep the CSIDriver behind on uninstall
+    values:
+      - ./values/sandboxes-enabled.yaml
+    template: sandboxes/juicefs-csi-driver/csidriver.yaml
+    asserts:
+      - isKind:
+          of: CSIDriver
+      - isNull:
+          path: metadata.annotations["helm.sh/resource-policy"]
+
+  - it: should release-prefix the sandbox-host Deployment and tell the host its name
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      config.sandboxes.sandboxHost.name: hosts
+    templates:
+      - sandboxes/sandbox-host-deployment.yaml
+    asserts:
+      - equal:
+          path: metadata.name
+          value: RELEASE-NAME-langsmith-hosts
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_HOST_DEPLOYMENT_NAME
+            value: RELEASE-NAME-langsmith-hosts
+      - equal:
+          path: spec.selector.matchLabels["app.kubernetes.io/component"]
+          value: RELEASE-NAME-langsmith-hosts
+      - equal:
+          path: spec.template.spec.affinity.podAntiAffinity.requiredDuringSchedulingIgnoredDuringExecution[0].labelSelector.matchLabels.app
+          value: sandbox-host
+
+  - it: should scope the sandbox-host autoscaler RBAC to the release-prefixed Deployment
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      config.sandboxes.sandboxHost.name: hosts
+    template: sandboxes/sandbox-host-rbac.yaml
+    documentIndex: 0
+    asserts:
+      - contains:
+          path: rules
+          content:
+            apiGroups: ["apps"]
+            resources: ["deployments"]
+            resourceNames: ["RELEASE-NAME-langsmith-hosts"]
+            verbs: ["get", "patch"]
+
+  - it: should name the sandbox-host Role after the component like other rbac templates
+    values:
+      - ./values/sandboxes-enabled.yaml
+    template: sandboxes/sandbox-host-rbac.yaml
+    documentIndex: 0
+    asserts:
+      - isKind:
+          of: Role
+      - equal:
+          path: metadata.name
+          value: RELEASE-NAME-langsmith-sandbox-host
+      - equal:
+          path: metadata.namespace
+          value: NAMESPACE
+
+  - it: should bind the sandbox-host Role to its ServiceAccount
+    values:
+      - ./values/sandboxes-enabled.yaml
+    template: sandboxes/sandbox-host-rbac.yaml
+    documentIndex: 1
+    asserts:
+      - isKind:
+          of: RoleBinding
+      - equal:
+          path: roleRef.name
+          value: RELEASE-NAME-langsmith-sandbox-host
+      - equal:
+          path: subjects[0].name
+          value: RELEASE-NAME-langsmith-sandbox-host
+      - equal:
+          path: subjects[0].namespace
+          value: NAMESPACE
+
+  - it: should render the sandbox-host ServiceAccount from its own template
+    values:
+      - ./values/sandboxes-enabled.yaml
+    template: sandboxes/sandbox-host-service-account.yaml
+    asserts:
+      - isKind:
+          of: ServiceAccount
+      - equal:
+          path: metadata.name
+          value: RELEASE-NAME-langsmith-sandbox-host
+      - equal:
+          path: automountServiceAccountToken
+          value: true
+
+  - it: should skip the sandbox-host ServiceAccount when create is false
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      config.sandboxes.sandboxHost.serviceAccount.create: false
+    template: sandboxes/sandbox-host-service-account.yaml
+    asserts:
+      - hasDocuments:
+          count: 0

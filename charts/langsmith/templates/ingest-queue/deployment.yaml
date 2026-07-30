@@ -16,7 +16,7 @@
   valueFrom:
     secretKeyRef:
       name: {{ include "langsmith.secretsName" . }}
-      key: sandbox_x_service_auth_jwt_secret
+      key: api_key_salt
       optional: {{ .Values.config.disableSecretCreation }}
 {{- end }}
 {{- end -}}

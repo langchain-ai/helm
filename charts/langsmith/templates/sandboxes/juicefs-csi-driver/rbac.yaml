@@ -1,4 +1,5 @@
-{{- if .Values.config.sandboxes.enabled }}
+{{- /* Vendored from the upstream juicefs-csi-driver chart; re-sync when bumping images.juicefsCSIImage. */}}
+{{- if and .Values.config.sandboxes.enabled .Values.config.sandboxes.juicefs.csi.install }}
 {{- $namespace := .Values.namespace | default .Release.Namespace }}
 {{- $controllerServiceAccountAnnotations := mergeOverwrite (dict) (include "langsmith.sandboxes.juicefsCSIAnnotations" . | fromYaml) (default dict .Values.config.sandboxes.juicefs.csi.controller.serviceAccount.annotations) }}
 {{- $nodeServiceAccountAnnotations := mergeOverwrite (dict) (include "langsmith.sandboxes.juicefsCSIAnnotations" . | fromYaml) (default dict .Values.config.sandboxes.juicefs.csi.node.serviceAccount.annotations) }}

@@ -1231,13 +1231,6 @@ Sandbox proxy CA secret name in the LangSmith release namespace.
 {{- end -}}
 
 {{/*
-Sandbox service auth secret material for chart-created app/runtime Secrets.
-*/}}
-{{- define "langsmith.sandboxes.xServiceAuthJwtSecretValue" -}}
-{{- default (default .Values.config.langsmithLicenseKey .Values.config.apiKeySalt) .Values.config.sandboxes.xServiceAuthJwtSecret -}}
-{{- end -}}
-
-{{/*
 Internal LangSmith platform endpoint used by sandbox runtime callbacks.
 */}}
 {{- define "langsmith.sandboxes.langsmithInternalEndpoint" -}}
@@ -1379,11 +1372,19 @@ Creates an optional image reference without falling back to Chart.AppVersion.
 {{- end -}}
 
 {{/*
+Sandbox-host Deployment name. The host is told this via SANDBOX_HOST_DEPLOYMENT_NAME,
+since it resolves its own Deployment by name to drive pool autoscaling.
+*/}}
+{{- define "langsmith.sandboxes.sandboxHostDeploymentName" -}}
+{{- printf "%s-%s" (include "langsmith.fullname" .) .Values.config.sandboxes.sandboxHost.name | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+
+{{/*
 Sandbox service account names.
 */}}
 {{- define "langsmith.sandboxes.sandboxHostServiceAccountName" -}}
 {{- if .Values.config.sandboxes.sandboxHost.serviceAccount.create -}}
-{{- default .Values.config.sandboxes.sandboxHost.name .Values.config.sandboxes.sandboxHost.serviceAccount.name | trunc 63 | trimSuffix "-" -}}
+{{- default (include "langsmith.sandboxes.sandboxHostDeploymentName" .) .Values.config.sandboxes.sandboxHost.serviceAccount.name | trunc 63 | trimSuffix "-" -}}
 {{- else -}}
 {{- default "default" .Values.config.sandboxes.sandboxHost.serviceAccount.name -}}
 {{- end -}}

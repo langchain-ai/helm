@@ -1,9 +1,10 @@
 {{- if .Values.config.sandboxes.enabled }}
 {{- $namespace := .Values.namespace | default .Release.Namespace }}
+{{- $autoscaling := .Values.config.sandboxes.sandboxHost.autoscaling }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ .Values.config.sandboxes.sandboxHost.name }}
+  name: {{ include "langsmith.sandboxes.sandboxHostDeploymentName" . }}
   namespace: {{ $namespace }}
   labels:
     app: sandbox-host
@@ -19,8 +20,9 @@ metadata:
 spec:
   selector:
     matchLabels:
-      app: sandbox-host
-  {{- if not (kindIs "invalid" .Values.config.sandboxes.sandboxHost.deployment.replicas) }}
+      {{- include "langsmith.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: {{ include "langsmith.sandboxes.sandboxHostDeploymentName" . }}
+  {{- if not $autoscaling.enabled }}
   replicas: {{ .Values.config.sandboxes.sandboxHost.deployment.replicas }}
   {{- end }}
   strategy:
@@ -31,8 +33,10 @@ spec:
   template:
     metadata:
       labels:
+        # Release-independent on purpose: the anti-affinity below keys off it, and hostPort is node-global.
         app: sandbox-host
         {{- include "langsmith.labels" . | nindent 8 }}
+        app.kubernetes.io/component: {{ include "langsmith.sandboxes.sandboxHostDeploymentName" . }}
       annotations:
         {{- include "langsmith.commonPodAnnotations" . | nindent 8 }}
         {{- with .Values.config.sandboxes.sandboxHost.deployment.podAnnotations }}
@@ -65,7 +69,7 @@ spec:
           imagePullPolicy: {{ .Values.images.sandboxHostImage.pullPolicy }}
           env:
             - name: LANGCHAIN_ENV
-              value: {{ .Values.config.langchainEnv | quote }}
+              value: "local_kubernetes"
             - name: POD_NAME
               valueFrom:
                 fieldRef:
@@ -86,7 +90,7 @@ spec:
               valueFrom:
                 secretKeyRef:
                   name: {{ include "langsmith.secretsName" . }}
-                  key: sandbox_x_service_auth_jwt_secret
+                  key: api_key_salt
                   optional: {{ .Values.config.disableSecretCreation }}
             - name: SANDBOX_HOST_PROXY_CA_DIR
               value: /certs
@@ -98,21 +102,52 @@ spec:
                   key: sandbox_callback_signing_jwk
                   optional: true
             {{- end }}
+            {{- /* Must be the public issuer: receivers fetch the key from <issuer>/.well-known/jwks.json. */}}
+            {{- if .Values.config.hostname }}
             - name: OAUTH_AS_ISSUER
-              value: {{ include "langsmith.sandboxes.langsmithInternalEndpoint" . | quote }}
+              value: {{ include "langsmith.oauthAsIssuer" . | quote }}
+            {{- end }}
             - name: SSRF_ALLOW_PRIVATE_IPS_CALLBACKS
               value: {{ .Values.config.sandboxes.sandboxHost.allowPrivateIPCallbacks | quote }}
             - name: SANDBOX_CALLBACK_LOOPBACK_REWRITE
               value: "false"
             - name: LANGSMITH_SANDBOX_INTERNAL_ENDPOINT
               value: {{ include "langsmith.sandboxes.langsmithInternalEndpoint" . | quote }}
+            - name: SANDBOX_HOST_DEPLOYMENT_NAME
+              value: {{ include "langsmith.sandboxes.sandboxHostDeploymentName" . | quote }}
             - name: SANDBOX_HOST_TERMINATION_GRACE_SECONDS
               value: {{ .Values.config.sandboxes.sandboxHost.deployment.terminationGracePeriodSeconds | quote }}
+            {{- /* Baseline only; sandbox-host.smith.langchain.com/autoscale-* annotations override it live. */}}
+            - name: SANDBOX_HOST_AUTOSCALE_ENABLED
+              value: {{ $autoscaling.enabled | quote }}
+            {{- if $autoscaling.enabled }}
+            - name: SANDBOX_HOST_AUTOSCALE_MIN_REPLICAS
+              value: {{ $autoscaling.minReplicas | quote }}
+            - name: SANDBOX_HOST_AUTOSCALE_MAX_REPLICAS
+              value: {{ $autoscaling.maxReplicas | quote }}
+            - name: SANDBOX_HOST_AUTOSCALE_TARGET_UTILIZATION_PERCENT
+              value: {{ $autoscaling.targetUtilizationPercent | quote }}
+            - name: SANDBOX_HOST_AUTOSCALE_HEADROOM_HOSTS
+              value: {{ $autoscaling.headroomHosts | quote }}
+            - name: SANDBOX_HOST_AUTOSCALE_SCALE_DOWN_STABILIZATION_SECONDS
+              value: {{ $autoscaling.scaleDownStabilizationSeconds | quote }}
+            {{- end }}
+            {{- with .Values.config.sandboxes.sandboxHost.deployment.extraEnv }}
+              {{- toYaml . | nindent 12 }}
+            {{- end }}
           ports:
             - name: http
               containerPort: {{ .Values.config.sandboxes.sandboxHost.containerPort }}
               hostPort: {{ .Values.config.sandboxes.sandboxHost.containerPort }}
               protocol: TCP
+          {{- /* No liveness probe: a restart mid-suspend would destroy running microVMs. */}}
+          readinessProbe:
+            tcpSocket:
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
           securityContext:
             {{- toYaml .Values.config.sandboxes.sandboxHost.deployment.securityContext | nindent 12 }}
           resources:
