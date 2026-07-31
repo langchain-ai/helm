@@ -12,7 +12,7 @@ backfill_txns AS (
   SET backfill_id = backfill_info.backfill_id,
       backfilled_at = backfill_info.backfilled_at
   FROM backfill_info
-  WHERE tc.status IN ('pending', 'todo', 'should_retry', 'failed')
+  WHERE tc.status IN ('pending', 'todo', 'should_retry', 'failed', 'needs_backfill')
     AND tc.source = 'local'
   RETURNING *
 )
