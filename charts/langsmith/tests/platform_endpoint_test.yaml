@@ -1,4 +1,4 @@
-suite: LANGCHAIN_PLATFORM_ENDPOINT shared config
+suite: shared platform endpoint config
 # smith-go builds the Engine run webhook callback URL from
 # LANGCHAIN_PLATFORM_ENDPOINT, falling back to LANGCHAIN_ENDPOINT ("/api/v1")
 # when it is unset. langgraph-api rejects run creation with HTTP 422 when the
@@ -38,3 +38,26 @@ tests:
     asserts:
       - notExists:
           path: data.LANGCHAIN_PLATFORM_ENDPOINT
+
+  - it: should derive the intelligence endpoint from the Engine URL
+    set:
+      engine.enabled: true
+      engine.intelligenceBaseUrl: https://beacon.aws.langchain.com/intelligence
+    asserts:
+      - equal:
+          path: data.SMITH_INTELLIGENCE_ENDPOINT
+          value: "https://beacon.aws.langchain.com"
+
+  - it: should handle a trailing slash on the Engine URL
+    set:
+      engine.enabled: true
+      engine.intelligenceBaseUrl: https://beacon.aws.langchain.com/intelligence/
+    asserts:
+      - equal:
+          path: data.SMITH_INTELLIGENCE_ENDPOINT
+          value: "https://beacon.aws.langchain.com"
+
+  - it: should omit the intelligence endpoint when Engine is disabled
+    asserts:
+      - notExists:
+          path: data.SMITH_INTELLIGENCE_ENDPOINT
