@@ -1,9 +1,7 @@
 {{- if .Values.sandboxes.enabled }}
 {{- $namespace := .Values.namespace | default .Release.Namespace }}
 {{- $autoscaling := .Values.sandboxes.sandboxHost.autoscaling }}
-{{- /* app:<name> matches the other sandbox templates and is overridable via
-       deployment.labels. Chart labels come last so they win: the selector depends on
-       them, and a duplicate YAML key would make the manifest invalid outright. */}}
+{{- /* Chart labels last so they win; the selector depends on them. */}}
 {{- $labels := mergeOverwrite (dict "app" .Values.sandboxes.sandboxHost.name)
   (default dict .Values.sandboxes.sandboxHost.deployment.labels)
   (include "langsmith.labels" . | fromYaml)
@@ -57,8 +55,7 @@ spec:
       affinity:
         podAntiAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
-            {{- /* One host per node. hostPort is the hard guarantee; this makes the intent
-                   explicit and keeps the scheduler from trying a node that is already taken. */}}
+            {{- /* One host per node; hostPort enforces it regardless. */}}
             - labelSelector:
                 matchLabels:
                   {{- include "langsmith.selectorLabels" . | nindent 18 }}
@@ -123,13 +120,12 @@ spec:
                   key: sandbox_callback_signing_jwk
                   optional: true
             {{- end }}
-            {{- /* Must be the public issuer: receivers fetch the key from <issuer>/.well-known/jwks.json. */}}
+            {{- /* Receivers fetch the key from <issuer>/.well-known/jwks.json. */}}
             {{- if .Values.config.hostname }}
             - name: OAUTH_AS_ISSUER
               value: {{ include "langsmith.oauthAsIssuer" . | quote }}
             {{- end }}
-            {{- /* Self-hosted sandboxes legitimately call private addresses; SaaS is the
-                   deployment that blocks them. Matches the SSRF_ALLOW_PRIVATE_IPS_* convention. */}}
+            {{- /* Self-hosted reaches private addresses; SaaS is what blocks them. */}}
             - name: SSRF_ALLOW_PRIVATE_IPS_CALLBACKS
               value: "true"
             - name: SANDBOX_CALLBACK_LOOPBACK_REWRITE
@@ -140,7 +136,7 @@ spec:
               value: {{ printf "%s-%s" (include "langsmith.fullname" .) .Values.sandboxes.sandboxHost.name | quote }}
             - name: SANDBOX_HOST_TERMINATION_GRACE_SECONDS
               value: {{ .Values.sandboxes.sandboxHost.deployment.terminationGracePeriodSeconds | quote }}
-            {{- /* Baseline only; sandbox-host.smith.langchain.com/autoscale-* annotations override it live. */}}
+            {{- /* Baseline; autoscale-* annotations override it live. */}}
             - name: SANDBOX_HOST_AUTOSCALE_ENABLED
               value: {{ $autoscaling.enabled | quote }}
             {{- if $autoscaling.enabled }}
@@ -158,9 +154,7 @@ spec:
             {{- with .Values.sandboxes.sandboxHost.deployment.extraEnv }}
               {{- toYaml . | nindent 12 }}
             {{- end }}
-          {{- /* Fixed: the host's listen address and JuiceFS root are compiled defaults, so a
-                 configurable value here would be advertised to Kubernetes and silently ignored
-                 by the host. See SANDBOX_HOST_LISTEN_ADDR / SANDBOX_HOST_JUICEFS_MOUNT_PATH. */}}
+          {{- /* Fixed: the host's own defaults. SANDBOX_HOST_LISTEN_ADDR is not set. */}}
           ports:
             - name: http
               containerPort: 19190

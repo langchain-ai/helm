@@ -39,7 +39,7 @@ spec:
     driver: {{ include "langsmith.sandboxes.juicefsCSIDriverName" . }}
     volumeHandle: {{ .Values.sandboxes.juicefs.csi.pvName }}
     fsType: juicefs
-    {{- /* An externally managed driver runs mount pods under its own ServiceAccount. */}}
+    {{- /* An external driver uses its own mount ServiceAccount. */}}
     {{- if .Values.sandboxes.juicefs.csi.install }}
     volumeAttributes:
       juicefs/mount-service-account: {{ include "langsmith.sandboxes.juicefsCSINodeServiceAccountName" . }}

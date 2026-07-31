@@ -196,39 +196,33 @@ tests:
   - it: should derive a relative platform endpoint for sandbox dataplane URLs
     values:
       - ./values/sandboxes-enabled.yaml
-    template: platform-backend/deployment.yaml
+    template: config-map.yaml
     asserts:
-      - contains:
-          path: spec.template.spec.containers[0].env
-          content:
-            name: LANGSMITH_PUBLIC_API_ENDPOINT
-            value: /api
+      - equal:
+          path: data.LANGSMITH_PUBLIC_API_ENDPOINT
+          value: /api
 
   - it: should derive a basePath-aware relative platform endpoint for sandbox dataplane URLs
     values:
       - ./values/sandboxes-enabled.yaml
     set:
       config.basePath: langsmith
-    template: platform-backend/deployment.yaml
+    template: config-map.yaml
     asserts:
-      - contains:
-          path: spec.template.spec.containers[0].env
-          content:
-            name: LANGSMITH_PUBLIC_API_ENDPOINT
-            value: /langsmith/api
+      - equal:
+          path: data.LANGSMITH_PUBLIC_API_ENDPOINT
+          value: /langsmith/api
 
   - it: should derive an absolute platform endpoint for sandbox dataplane URLs when hostname is set
     values:
       - ./values/sandboxes-enabled.yaml
     set:
       config.hostname: langsmith.example.com
-    template: platform-backend/deployment.yaml
+    template: config-map.yaml
     asserts:
-      - contains:
-          path: spec.template.spec.containers[0].env
-          content:
-            name: LANGSMITH_PUBLIC_API_ENDPOINT
-            value: https://langsmith.example.com/api
+      - equal:
+          path: data.LANGSMITH_PUBLIC_API_ENDPOINT
+          value: https://langsmith.example.com/api
 
   - it: should allow sandboxes when the chart frontend is disabled
     values:
@@ -1134,9 +1128,11 @@ tests:
             name: juicefs
             mountPath: /juicefs
 
-  - it: should keep the platform endpoint off the shared config map
-    values:
-      - ./values/sandboxes-enabled.yaml
+  - it: should not render the public API endpoint when sandboxes are off
+    set:
+      config.existingSecretName: langsmith-secrets
+      config.oauth.enabled: true
+      config.authType: oauth
     template: config-map.yaml
     asserts:
       - isNull:

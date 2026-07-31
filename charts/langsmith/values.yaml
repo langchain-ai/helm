@@ -184,14 +184,9 @@ istioGateway:
 # -- LangSmith Sandboxes. Same-cluster sandbox-host architecture, on AWS/EKS or GCP/GKE. Also installs the JuiceFS CSI driver, whose cluster-scoped resources only one release per cluster may own.
 sandboxes:
   enabled: false
-  # -- Required private JWK for sandbox callback signing when this chart creates the LangSmith app Secret.
-  # When config.existingSecretName is set, add key `sandbox_callback_signing_jwk` to that Secret instead.
-  # Also needs config.hostname for the public issuer; without it, signing fails closed.
+  # -- Private JWK signing sandbox callbacks, or key `sandbox_callback_signing_jwk` in config.existingSecretName. Needs config.hostname for the issuer, or signing fails closed.
   callbackSigningJwk: ""
-  # -- Optional base URL used to generate browser/programmatic service URLs for HTTP services running inside sandboxes.
-  # When set, the chart renders SANDBOX_SERVICE_URLS for the in-cluster sandbox runtime.
-  # Requires wildcard DNS and TLS for `*.<host>`. When ingress.enabled is true, the chart also adds a wildcard ingress rule to the LangSmith platform backend.
-  # Must be an http:// or https:// URL without a path, query string, or fragment. When ingress.enabled is true, the host must be a DNS hostname without a port.
+  # -- Base URL for reaching HTTP services inside sandboxes. Needs wildcard DNS and TLS for `*.<host>`; with ingress.enabled the chart adds the wildcard rule. http(s) origin only, no path.
   serviceUrlBaseUrl: ""
   quotas:
     maxCpuCores: 16
@@ -267,10 +262,7 @@ sandboxes:
       # -- Number of sandbox-host replicas, i.e. sandbox nodes backing the pool. One host per node, so do not exceed the node count. Ignored when autoscaling is enabled.
       replicas: 1
       terminationGracePeriodSeconds: 300
-      # -- Node selector for sandbox-host pods. Required when sandboxes are enabled: host pods must
-      # land on KVM-capable nodes, and a toleration alone permits that without attracting them.
-      # Label your sandbox pool `sandbox.langsmith.com/host=true` and set that here, or match
-      # whatever labels your pool already carries.
+      # -- Node selector for sandbox-host pods. Required: host pods must land on KVM-capable nodes, and a toleration alone does not attract them there.
       nodeSelector: {}
       # -- Tolerations for sandbox-host pods. The default expects sandbox-host nodes tainted `sandbox.langsmith.com/host=true:NoSchedule`; override this if your sandbox node pool uses different taints.
       tolerations:
@@ -282,9 +274,7 @@ sandboxes:
         requests:
           cpu: "2"
           memory: 2Gi
-      # -- Container security context. sandbox-host must stay privileged: it creates network
-      # namespaces, programs iptables, and propagates mounts for the JuiceFS volume. A read-only
-      # root filesystem will not work either, since it unpacks the guest tools image on startup.
+      # -- Container security context. Must stay privileged, with a writable root: the host needs netns, iptables and mount propagation, and unpacks the guest tools image.
       securityContext:
         privileged: true
       podSecurityContext: {}
@@ -293,9 +283,7 @@ sandboxes:
       volumeMounts: []
       initContainers: []
       sidecars: []
-      # -- Readiness probe. The host binds its listener only once its engine, fence and lease loops
-      # are up, so accepting connections is the signal a rollout should wait on. There is
-      # deliberately no liveness probe: a restart mid-suspend would destroy running microVMs.
+      # -- Readiness probe. The host binds its listener last, so accepting connections gates the rollout. No liveness probe: a restart mid-suspend destroys running microVMs.
       readinessProbe:
         tcpSocket:
           port: http

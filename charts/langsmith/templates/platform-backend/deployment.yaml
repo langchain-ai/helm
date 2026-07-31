@@ -14,11 +14,6 @@
       key: langsmith_signing_jwks
       optional: true
 {{- if .Values.sandboxes.enabled }}
-{{- /* Read only by the sandbox dataplane URL builder, so setting it cannot move the
-       download links, SCIM refs, webhook callbacks or MCP URLs that
-       LANGCHAIN_PLATFORM_ENDPOINT also feeds. Requires an image with the variable. */}}
-- name: LANGSMITH_PUBLIC_API_ENDPOINT
-  value: {{ include "langsmith.sandboxes.publicApiEndpoint" . | quote }}
 - name: SANDBOX_FRONTEND_ENABLED
   value: "true"
 - name: SANDBOX_MAX_CPU_CORES
@@ -32,8 +27,7 @@
 - name: SANDBOX_MAX_SANDBOXES
   value: {{ .Values.sandboxes.quotas.maxSandboxes | quote }}
 {{- if .Values.sandboxes.serviceUrlBaseUrl }}
-{{- /* Keyed by the cluster name the runtime resolves for itself when SANDBOX_K8S_CLUSTER_NAME is
-       unset, which is also what gets stored on each sandbox and looked up here. */}}
+{{- /* Keyed by the name the runtime resolves and stores on each sandbox. */}}
 - name: SANDBOX_SERVICE_URLS
   value: {{ dict "incluster" .Values.sandboxes.serviceUrlBaseUrl | toJson | quote }}
 {{- end }}

@@ -1399,30 +1399,11 @@ which default to http:// for local development.
 {{- end -}}
 
 {{/*
-Public API base for sandbox dataplane URLs: scheme, host, any base path, and the /api
-prefix. Relative when no hostname is configured, so browser callers use their own origin.
-*/}}
-{{- define "langsmith.sandboxes.publicApiEndpoint" -}}
-{{- $basePath := trimAll "/" (default "" .Values.config.basePath) -}}
-{{- if .Values.config.hostname -}}
-  {{- $baseURL := include "langsmith.hostnameWithProtocol" . | trimSuffix "/" -}}
-  {{- if $basePath -}}
-    {{- printf "%s/%s/api" $baseURL $basePath -}}
-  {{- else -}}
-    {{- printf "%s/api" $baseURL -}}
-  {{- end -}}
-{{- else if $basePath -}}
-  {{- printf "/%s/api" $basePath -}}
-{{- else -}}
-  /api
-{{- end -}}
-{{- end -}}
-
-{{/*
 OAuth Authorization Server issuer URL advertised to remote MCP clients.
 Derived from <hostnameWithProtocol>[/basePath]/api. The /api path is fixed because the
 frontend nginx routes are hardcoded to it; host and scheme come from config.hostname.
 */}}
+{{- /* Also the public API base: same scheme, host, base path and /api prefix. */ -}}
 {{- define "langsmith.oauthAsIssuer" -}}
 {{- include "langsmith.hostnameWithProtocol" . }}{{- with .Values.config.basePath }}/{{ . }}{{- end }}/api
 {{- end -}}
