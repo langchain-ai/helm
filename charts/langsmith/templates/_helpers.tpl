@@ -491,6 +491,18 @@ Template containing common environment variables that are used by several servic
       key: polly_encryption_key
       optional: false
 {{- end }}
+{{- if .Values.sandboxes.enabled }}
+- name: SANDBOX_FEATURE_ENABLED
+  value: "true"
+- name: SANDBOX_RUNTIME_V2
+  value: "always"
+- name: SANDBOX_X_SERVICE_AUTH_JWT_SECRET
+  valueFrom:
+    secretKeyRef:
+      name: {{ include "langsmith.secretsName" . }}
+      key: api_key_salt
+      optional: {{ .Values.config.disableSecretCreation }}
+{{- end }}
 {{- end }}
 
 {{/*
@@ -1230,6 +1242,164 @@ Falls back to config.hostname when config.frontendHostname is unset.
 {{- end -}}
 
 {{/*
+Host portion of sandboxes.serviceUrlBaseUrl.
+*/}}
+{{- define "langsmith.sandboxes.serviceUrlHost" -}}
+{{- if .Values.sandboxes.serviceUrlBaseUrl -}}
+{{- regexReplaceAll "^https?://" .Values.sandboxes.serviceUrlBaseUrl "" -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Sandbox proxy CA secret name in the LangSmith release namespace.
+*/}}
+{{- define "langsmith.sandboxes.proxyCaSecretName" -}}
+{{- if eq .Values.sandboxes.proxyCa.mode "existingSecret" -}}
+{{- .Values.sandboxes.proxyCa.existingSecretName -}}
+{{- else -}}
+{{- default "smithbox-proxy-ca" .Values.sandboxes.proxyCa.secretName -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+In-cluster platform-backend URL. Also rendered as GO_ENDPOINT in the shared ConfigMap.
+*/}}
+{{- define "langsmith.platformBackendEndpoint" -}}
+{{- printf "http://%s-%s.%s.svc.%s:%v" (include "langsmith.fullname" .) .Values.platformBackend.name (.Values.namespace | default .Release.Namespace) .Values.clusterDomain .Values.platformBackend.service.port -}}
+{{- end -}}
+
+{{/*
+Name for the JuiceFS CSI config Secret.
+*/}}
+{{- define "langsmith.sandboxes.juicefsCSIConfigSecretName" -}}
+{{- default .Values.sandboxes.juicefs.csi.configSecretName .Values.sandboxes.juicefs.csi.existingSecretName -}}
+{{- end -}}
+
+{{/*
+Known JuiceFS CSI Secret names used by sandbox static volumes. Secret creates
+cannot be scoped by resourceNames, but read/update/delete verbs can.
+*/}}
+{{- define "langsmith.sandboxes.juicefsCSISecretResourceNames" -}}
+{{- $names := list
+  (include "langsmith.sandboxes.juicefsCSIConfigSecretName" .)
+  (printf "juicefs-%s-secret" .Values.sandboxes.juicefs.name)
+  (printf "juicefs-%s-secret" .Values.sandboxes.juicefs.csi.pvName)
+  (printf "juicefs-%s-secret" (include "langsmith.sandboxes.juicefsHostPVName" .))
+-}}
+{{- $resourceNames := list -}}
+{{- range ($names | compact | uniq) -}}
+{{- $resourceNames = append $resourceNames (printf "- %q" .) -}}
+{{- end -}}
+{{- join "\n" $resourceNames -}}
+{{- end -}}
+
+{{/*
+Rendered JuiceFS CSI config Secret data for chart-managed sandbox volumes.
+*/}}
+{{- define "langsmith.sandboxes.juicefsCSIConfigSecretData" -}}
+{{- $juicefsRedis := .Values.sandboxes.juicefs.redis | default dict -}}
+name: {{ .Values.sandboxes.juicefs.name | quote }}
+metaurl: {{ $juicefsRedis.metaURL | quote }}
+storage: {{ .Values.sandboxes.juicefs.storage | quote }}
+bucket: {{ .Values.sandboxes.juicefs.bucket | quote }}
+{{- end -}}
+
+{{/*
+Checksum for the JuiceFS CSI config Secret known to Helm. Existing Secrets use
+the Secret name only because Helm cannot safely hash live external Secret data.
+*/}}
+{{- define "langsmith.sandboxes.juicefsCSIConfigSecretChecksum" -}}
+{{- if .Values.sandboxes.juicefs.csi.existingSecretName -}}
+{{- printf "existing:%s" (include "langsmith.sandboxes.juicefsCSIConfigSecretName" .) | sha256sum -}}
+{{- else -}}
+{{- include "langsmith.sandboxes.juicefsCSIConfigSecretData" . | sha256sum -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Derived JuiceFS CSI PV/PVC names for the sandbox-host mount.
+*/}}
+{{- define "langsmith.sandboxes.juicefsHostPVName" -}}
+{{- printf "%s-host" .Values.sandboxes.juicefs.csi.pvName -}}
+{{- end -}}
+
+{{- define "langsmith.sandboxes.juicefsHostPVCName" -}}
+{{- printf "%s-host" .Values.sandboxes.juicefs.csi.pvcName -}}
+{{- end -}}
+
+{{/*
+JuiceFS CSI names used by self-hosted sandboxes.
+*/}}
+{{- define "langsmith.sandboxes.juicefsCSIDriverName" -}}
+csi.juicefs.com
+{{- end -}}
+
+{{- define "langsmith.sandboxes.juicefsCSISelectorLabels" -}}
+app.kubernetes.io/name: juicefs-csi-driver
+app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end -}}
+
+{{- define "langsmith.sandboxes.juicefsCSILabels" -}}
+{{- if .Values.commonLabels }}
+{{ toYaml .Values.commonLabels }}
+{{- end }}
+helm.sh/chart: {{ include "langsmith.chart" . }}
+{{ include "langsmith.sandboxes.juicefsCSISelectorLabels" . }}
+{{- if .Chart.AppVersion }}
+app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+{{- end }}
+app.kubernetes.io/managed-by: {{ .Release.Service }}
+{{- end -}}
+
+{{- define "langsmith.sandboxes.juicefsCSIAnnotations" -}}
+{{- if .Values.commonAnnotations }}
+{{ toYaml .Values.commonAnnotations }}
+{{- end }}
+helm.sh/chart: {{ include "langsmith.chart" . }}
+{{ include "langsmith.sandboxes.juicefsCSISelectorLabels" . }}
+{{- if .Chart.AppVersion }}
+app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+{{- end }}
+app.kubernetes.io/managed-by: {{ .Release.Service }}
+{{- end -}}
+
+{{- define "langsmith.sandboxes.juicefsCSIControllerServiceAccountName" -}}
+juicefs-csi-controller-sa
+{{- end -}}
+
+{{- define "langsmith.sandboxes.juicefsCSINodeServiceAccountName" -}}
+juicefs-csi-node-sa
+{{- end -}}
+
+{{- define "langsmith.sandboxes.juicefsCSIConfigMapName" -}}
+{{- printf "%s-juicefs-csi-driver-config" (include "langsmith.fullname" .) | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+
+{{/*
+Rendered JuiceFS CSI driver config file.
+*/}}
+{{- define "langsmith.sandboxes.juicefsCSIDriverConfig" -}}
+enableNodeSelector: false
+mountPodPatch:
+{{- toYaml .Values.sandboxes.juicefs.csi.mountPodPatch | nindent 2 }}
+{{- end -}}
+
+{{- define "langsmith.sandboxes.juicefsCSIDriverConfigChecksum" -}}
+{{- include "langsmith.sandboxes.juicefsCSIDriverConfig" . | sha256sum -}}
+{{- end -}}
+
+{{/*
+Sandbox service account names.
+*/}}
+{{- define "langsmith.sandboxes.sandboxHostServiceAccountName" -}}
+{{- if .Values.sandboxes.sandboxHost.serviceAccount.create -}}
+{{- default (printf "%s-%s" (include "langsmith.fullname" .) .Values.sandboxes.sandboxHost.name) .Values.sandboxes.sandboxHost.serviceAccount.name | trunc 63 | trimSuffix "-" -}}
+{{- else -}}
+{{- default "default" .Values.sandboxes.sandboxHost.serviceAccount.name -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
 Return config.hostname as an absolute URL.
 If no scheme is provided, default to https://, except localhost-style hosts
 which default to http:// for local development.
@@ -1245,6 +1415,15 @@ which default to http:// for local development.
     {{- printf "https://%s" $hostname -}}
   {{- end -}}
 {{- end -}}
+{{- end -}}
+
+{{/*
+Public API base: scheme, host, any base path, and the /api prefix. Derived from
+config.hostname; relative when unset so browser callers use their own origin. Equal to the
+OAuth issuer today, but kept separate so either can change on its own.
+*/}}
+{{- define "langsmith.publicApiEndpoint" -}}
+{{- include "langsmith.hostnameWithProtocol" . }}{{- with .Values.config.basePath }}/{{ . }}{{- end }}/api
 {{- end -}}
 
 {{/*

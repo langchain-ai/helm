@@ -13,6 +13,33 @@
       name: {{ include "langsmith.secretsName" . }}
       key: langsmith_signing_jwks
       optional: true
+{{- if .Values.sandboxes.enabled }}
+- name: SANDBOX_FRONTEND_ENABLED
+  value: "true"
+- name: SANDBOX_MAX_CPU_CORES
+  value: {{ .Values.sandboxes.quotas.maxCpuCores | quote }}
+- name: SANDBOX_MAX_MEMORY_GB
+  value: {{ .Values.sandboxes.quotas.maxMemoryGb | quote }}
+- name: SANDBOX_MIN_EPHEMERAL_STORAGE_GB
+  value: {{ .Values.sandboxes.quotas.minEphemeralStorageGb | quote }}
+- name: SANDBOX_MAX_EPHEMERAL_STORAGE_GIB
+  value: {{ .Values.sandboxes.quotas.maxEphemeralStorageGib | quote }}
+- name: SANDBOX_MAX_SANDBOXES
+  value: {{ .Values.sandboxes.quotas.maxSandboxes | quote }}
+{{- if .Values.sandboxes.serviceUrlBaseUrl }}
+{{- /* Keyed by the name the runtime resolves and stores on each sandbox. */}}
+- name: SANDBOX_SERVICE_URLS
+  value: {{ dict "incluster" .Values.sandboxes.serviceUrlBaseUrl | toJson | quote }}
+{{- end }}
+{{- if or (not (empty .Values.config.existingSecretName)) .Values.sandboxes.callbackSigningJwk }}
+- name: LANGSMITH_SANDBOX_CALLBACK_SIGNING_JWK
+  valueFrom:
+    secretKeyRef:
+      name: {{ include "langsmith.secretsName" . }}
+      key: sandbox_callback_signing_jwk
+      optional: true
+{{- end }}
+{{- end }}
 {{- end -}}
 {{- $envVars := concat .Values.commonEnv (include "langsmith.commonEnv" . | fromYamlArray) (include "platformBackendEnvVars" . | fromYamlArray) .Values.platformBackend.deployment.extraEnv -}}
 {{- include "langsmith.detectDuplicates" $envVars -}}

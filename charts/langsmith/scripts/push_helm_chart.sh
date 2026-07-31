@@ -78,7 +78,7 @@ TMPDIR="$(mktemp -d)"
 trap 'rm -rf "$TMPDIR"' EXIT
 
 ###############################################################################
-# Extract or copy chart
+# Extract chart
 ###############################################################################
 if [[ "$CHART_PATH" == *.tgz ]]; then
     echo "--- Extracting chart from ${CHART_PATH} ---"
@@ -145,6 +145,7 @@ image_map = {
     'docker.io/langchain/agent-builder-tool-server': 'agent-builder-tool-server',
     'docker.io/langchain/agent-builder-trigger-server': 'agent-builder-trigger-server',
     'docker.io/langchain/agent-builder-deep-agent': 'agent-builder-deep-agent',
+    'docker.io/langchain/sandbox-host': 'sandbox-host',
 }
 
 lines = content.split('\n')
@@ -161,11 +162,11 @@ while i < len(lines):
             i += 1
             while i < len(lines):
                 tag_line = lines[i]
-                tag_match = re.match(r'^(\s+tag:\s*)"(.+)"', tag_line)
+                tag_match = re.match(r'^(\s+tag:\s*)"(.*)"', tag_line)
                 if tag_match:
                     indent = tag_match.group(1)
                     old_tag = tag_match.group(2)
-                    new_tag = f'{tag_prefix}-{old_tag}'
+                    new_tag = f'{tag_prefix}-{old_tag}' if old_tag else old_tag
                     result.append(f'{indent}"{new_tag}"')
                     matched = True
                     break
@@ -187,7 +188,7 @@ PYEOF
 # Package and push
 ###############################################################################
 echo "--- Packaging ${CHART_NAME} ---"
-helm package "$EXTRACTED_DIR" -d "$TMPDIR" > /dev/null
+helm package "$EXTRACTED_DIR" --version "$VERSION" -d "$TMPDIR" > /dev/null
 CHART_TGZ="$TMPDIR/${CHART_NAME}-${VERSION}.tgz"
 
 OCI_URL="oci://${REGISTRY}/${NAMESPACE}"
