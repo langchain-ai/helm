@@ -1128,15 +1128,17 @@ tests:
             name: juicefs
             mountPath: /juicefs
 
-  - it: should not render the public API endpoint when sandboxes are off
+  - it: should render the public API endpoint even with sandboxes off
     set:
       config.existingSecretName: langsmith-secrets
       config.oauth.enabled: true
       config.authType: oauth
+      config.hostname: langsmith.example.com
     template: config-map.yaml
     asserts:
-      - isNull:
+      - equal:
           path: data.LANGSMITH_PUBLIC_API_ENDPOINT
+          value: https://langsmith.example.com/api
 
   - it: should accept the standard sandbox-host deployment knobs
     values:
