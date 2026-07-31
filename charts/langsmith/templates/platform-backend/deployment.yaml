@@ -14,6 +14,10 @@
       key: langsmith_signing_jwks
       optional: true
 {{- if .Values.config.sandboxes.enabled }}
+{{- /* Only platform-backend needs this: the sandbox handler builds each sandbox's
+       dataplane URL from it. Kept off the shared ConfigMap so it does not reach every service. */}}
+- name: LANGCHAIN_PLATFORM_ENDPOINT
+  value: {{ include "langsmith.sandboxes.platformEndpoint" . | quote }}
 - name: SANDBOX_FEATURE_ENABLED
   value: "true"
 - name: SANDBOX_FRONTEND_ENABLED
