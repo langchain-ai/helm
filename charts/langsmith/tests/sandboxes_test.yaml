@@ -201,7 +201,7 @@ tests:
       - contains:
           path: spec.template.spec.containers[0].env
           content:
-            name: LANGCHAIN_PLATFORM_ENDPOINT
+            name: LANGSMITH_PUBLIC_API_ENDPOINT
             value: /api
 
   - it: should derive a basePath-aware relative platform endpoint for sandbox dataplane URLs
@@ -214,7 +214,7 @@ tests:
       - contains:
           path: spec.template.spec.containers[0].env
           content:
-            name: LANGCHAIN_PLATFORM_ENDPOINT
+            name: LANGSMITH_PUBLIC_API_ENDPOINT
             value: /langsmith/api
 
   - it: should derive an absolute platform endpoint for sandbox dataplane URLs when hostname is set
@@ -227,7 +227,7 @@ tests:
       - contains:
           path: spec.template.spec.containers[0].env
           content:
-            name: LANGCHAIN_PLATFORM_ENDPOINT
+            name: LANGSMITH_PUBLIC_API_ENDPOINT
             value: https://langsmith.example.com/api
 
   - it: should allow sandboxes when the chart frontend is disabled
@@ -1137,4 +1137,4 @@ tests:
     template: config-map.yaml
     asserts:
       - isNull:
-          path: data.LANGCHAIN_PLATFORM_ENDPOINT
+          path: data.LANGSMITH_PUBLIC_API_ENDPOINT

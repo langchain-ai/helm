@@ -1399,10 +1399,10 @@ which default to http:// for local development.
 {{- end -}}
 
 {{/*
-Public API endpoint used by sandbox runtime-v2 dataplane URLs.
-When hostname is unset, keep this relative so browser callers use the same origin.
+Public API base for sandbox dataplane URLs: scheme, host, any base path, and the /api
+prefix. Relative when no hostname is configured, so browser callers use their own origin.
 */}}
-{{- define "langsmith.sandboxes.platformEndpoint" -}}
+{{- define "langsmith.sandboxes.publicApiEndpoint" -}}
 {{- $basePath := trimAll "/" (default "" .Values.config.basePath) -}}
 {{- if .Values.config.hostname -}}
   {{- $baseURL := include "langsmith.hostnameWithProtocol" . | trimSuffix "/" -}}

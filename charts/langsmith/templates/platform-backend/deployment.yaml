@@ -14,10 +14,11 @@
       key: langsmith_signing_jwks
       optional: true
 {{- if .Values.config.sandboxes.enabled }}
-{{- /* Only platform-backend needs this: the sandbox handler builds each sandbox's
-       dataplane URL from it. Kept off the shared ConfigMap so it does not reach every service. */}}
-- name: LANGCHAIN_PLATFORM_ENDPOINT
-  value: {{ include "langsmith.sandboxes.platformEndpoint" . | quote }}
+{{- /* Read only by the sandbox dataplane URL builder, so setting it cannot move the
+       download links, SCIM refs, webhook callbacks or MCP URLs that
+       LANGCHAIN_PLATFORM_ENDPOINT also feeds. Requires an image with the variable. */}}
+- name: LANGSMITH_PUBLIC_API_ENDPOINT
+  value: {{ include "langsmith.sandboxes.publicApiEndpoint" . | quote }}
 - name: SANDBOX_FRONTEND_ENABLED
   value: "true"
 - name: SANDBOX_MAX_CPU_CORES
