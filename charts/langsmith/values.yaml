@@ -996,13 +996,11 @@ config:
             mountOptions:
               - cache-dir=/var/cache/juicefs-csi
               - cache-size=307200
-        mountPath: "/juicefs"
         pvName: "smithbox-juicefs-csi"
         pvcName: "smithbox-juicefs-csi"
     sandboxHost:
       # -- Component name for sandbox-host. Resources are named `<release-fullname>-<name>`, which the chart passes to the host as SANDBOX_HOST_DEPLOYMENT_NAME.
       name: "sandbox-host"
-      containerPort: 19190
       # -- Whether sandbox callback validation should allow private IP and localhost targets. This renders SSRF_ALLOW_PRIVATE_IPS_CALLBACKS for sandbox-host.
       allowPrivateIPCallbacks: false
       deployment:

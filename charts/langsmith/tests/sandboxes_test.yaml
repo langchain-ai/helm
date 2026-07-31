@@ -1187,3 +1187,23 @@ tests:
       - equal:
           path: spec.template.metadata.labels.app
           value: hosts
+
+  - it: should pin the sandbox-host port and JuiceFS mount, ignoring stale overrides
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      config.sandboxes.sandboxHost.containerPort: 19200
+      config.sandboxes.juicefs.csi.mountPath: /elsewhere
+    template: sandboxes/sandbox-host-deployment.yaml
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].ports[0].containerPort
+          value: 19190
+      - equal:
+          path: spec.template.spec.containers[0].ports[0].hostPort
+          value: 19190
+      - contains:
+          path: spec.template.spec.containers[0].volumeMounts
+          content:
+            name: juicefs
+            mountPath: /juicefs

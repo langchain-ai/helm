@@ -144,10 +144,13 @@ spec:
             {{- with .Values.config.sandboxes.sandboxHost.deployment.extraEnv }}
               {{- toYaml . | nindent 12 }}
             {{- end }}
+          {{- /* Fixed: the host's listen address and JuiceFS root are compiled defaults, so a
+                 configurable value here would be advertised to Kubernetes and silently ignored
+                 by the host. See SANDBOX_HOST_LISTEN_ADDR / SANDBOX_HOST_JUICEFS_MOUNT_PATH. */}}
           ports:
             - name: http
-              containerPort: {{ .Values.config.sandboxes.sandboxHost.containerPort }}
-              hostPort: {{ .Values.config.sandboxes.sandboxHost.containerPort }}
+              containerPort: 19190
+              hostPort: 19190
               protocol: TCP
           {{- /* No liveness probe: a restart mid-suspend would destroy running microVMs. */}}
           readinessProbe:
@@ -163,7 +166,7 @@ spec:
             {{- toYaml .Values.config.sandboxes.sandboxHost.deployment.resources | nindent 12 }}
           volumeMounts:
             - name: juicefs
-              mountPath: {{ .Values.config.sandboxes.juicefs.csi.mountPath }}
+              mountPath: /juicefs
             - name: host-bin
               mountPath: /host-bin
             - name: proxy-ca
