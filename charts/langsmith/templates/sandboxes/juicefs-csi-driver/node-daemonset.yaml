@@ -1,7 +1,8 @@
-{{- if .Values.config.sandboxes.enabled }}
+{{- /* Vendored from the upstream juicefs-csi-driver chart; re-sync when bumping images.juicefsCSIImage. */}}
+{{- if and .Values.sandboxes.enabled .Values.sandboxes.juicefs.csi.install }}
 {{- $namespace := .Values.namespace | default .Release.Namespace }}
-{{- $mountImage := include "langsmith.optionalImage" (dict "Values" .Values "Chart" .Chart "component" "juicefsMountImage") }}
-{{- $nodeAnnotations := .Values.config.sandboxes.juicefs.csi.node.annotations }}
+{{- $mountImage := include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "juicefsMountImage") }}
+{{- $nodeAnnotations := .Values.sandboxes.juicefs.csi.node.annotations }}
 {{- $podAnnotations := mergeOverwrite (dict) (default dict .Values.commonPodAnnotations) $nodeAnnotations }}
 apiVersion: apps/v1
 kind: DaemonSet
@@ -77,10 +78,8 @@ spec:
               value: /var/lib/juicefs/config
             - name: FS_SHARE_MOUNT
               value: "true"
-            {{- if $mountImage }}
             - name: JUICEFS_CE_MOUNT_IMAGE
               value: {{ $mountImage | quote }}
-            {{- end }}
             - name: JUICEFS_CSI_WEB_PORT
               value: "9567"
             - name: DRIVER_NAME
@@ -172,7 +171,7 @@ spec:
               name: registration-dir
       dnsPolicy: ClusterFirstWithHostNet
       priorityClassName: system-node-critical
-      {{- with .Values.config.sandboxes.sandboxHost.deployment.tolerations }}
+      {{- with .Values.sandboxes.sandboxHost.deployment.tolerations }}
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}

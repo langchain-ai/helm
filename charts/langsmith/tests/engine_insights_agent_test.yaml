@@ -45,6 +45,7 @@ tests:
     values:
       - ./values/sandboxes-enabled.yaml
     set:
+      config.hostname: langsmith.example.com
       engine.enabled: true
       engine.encryptionKey: test-key
       engine.intelligenceBaseUrl: https://beacon.aws.langchain.com/intelligence
@@ -57,7 +58,8 @@ tests:
     values:
       - ./values/sandboxes-enabled.yaml
     set:
-      config.sandboxes.enabled: false
+      config.hostname: langsmith.example.com
+      sandboxes.enabled: false
       engine.enabled: true
       engine.encryptionKey: test-key
       engine.intelligenceBaseUrl: https://beacon.aws.langchain.com/intelligence
@@ -65,7 +67,7 @@ tests:
       images.engineInsightsAgentImage.repository: docker.io/langchain/langsmith-insights-engine
     asserts:
       - failedTemplate:
-          errorMessage: "engine.enabled is true but config.sandboxes.enabled is false: every Engine run executes in a sandbox, so Engine cannot run without them."
+          errorMessage: "engine.enabled is true but sandboxes.enabled is false: every Engine run executes in a sandbox, so Engine cannot run without them."
 
   - it: should fail when engine is enabled without a hostname
     values:

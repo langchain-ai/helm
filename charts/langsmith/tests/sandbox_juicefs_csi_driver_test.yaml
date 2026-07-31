@@ -137,7 +137,7 @@ tests:
     values:
       - ./values/sandboxes-enabled.yaml
     set:
-      config.sandboxes.juicefs.csi.controller.serviceAccount.annotations.iam\.gke\.io/gcp-service-account: juicefs-controller@example.iam.gserviceaccount.com
+      sandboxes.juicefs.csi.controller.serviceAccount.annotations.iam\.gke\.io/gcp-service-account: juicefs-controller@example.iam.gserviceaccount.com
     template: sandboxes/juicefs-csi-driver/rbac.yaml
     documentSelector:
       path: $[?(@.kind == "ServiceAccount")].metadata.name
@@ -156,7 +156,7 @@ tests:
     values:
       - ./values/sandboxes-enabled.yaml
     set:
-      config.sandboxes.juicefs.csi.node.serviceAccount.annotations.eks\.amazonaws\.com/role-arn: arn:aws:iam::123456789012:role/juicefs-csi-node
+      sandboxes.juicefs.csi.node.serviceAccount.annotations.eks\.amazonaws\.com/role-arn: arn:aws:iam::123456789012:role/juicefs-csi-node
     template: sandboxes/juicefs-csi-driver/rbac.yaml
     documentSelector:
       path: $[?(@.kind == "ServiceAccount")].metadata.name
@@ -415,7 +415,7 @@ tests:
     template: validate.yaml
     asserts:
       - failedTemplate:
-          errorMessage: "images.juicefsCSIImage.tag is required when config.sandboxes.enabled is true."
+          errorMessage: "images.juicefsCSIImage.tag is required when sandboxes.enabled is true."
 
   - it: should render JuiceFS CSI node observability annotations
     values:

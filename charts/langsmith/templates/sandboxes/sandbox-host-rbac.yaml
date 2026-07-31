@@ -1,60 +1,64 @@
-{{- if .Values.config.sandboxes.enabled }}
+{{- if and .Values.sandboxes.enabled .Values.sandboxes.sandboxHost.rbac.create }}
 {{- $namespace := .Values.namespace | default .Release.Namespace }}
-{{- if .Values.config.sandboxes.sandboxHost.serviceAccount.create }}
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: {{ include "langsmith.sandboxes.sandboxHostServiceAccountName" . }}
-  namespace: {{ $namespace }}
-  labels:
-    {{- include "langsmith.labels" . | nindent 4 }}
-    {{- with .Values.config.sandboxes.sandboxHost.serviceAccount.labels }}
-      {{- toYaml . | nindent 4 }}
-    {{- end }}
-  annotations:
-    {{- include "langsmith.annotations" . | nindent 4 }}
-    {{- with .Values.config.sandboxes.sandboxHost.serviceAccount.annotations }}
-      {{- toYaml . | nindent 4 }}
-    {{- end }}
-automountServiceAccountToken: {{ .Values.config.sandboxes.sandboxHost.serviceAccount.automountServiceAccountToken }}
-{{- if .Values.config.sandboxes.sandboxHost.rbac.create }}
----
-{{- end }}
-{{- end }}
-{{- if .Values.config.sandboxes.sandboxHost.rbac.create }}
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
-  name: sandbox-host-lease
+  name: {{ include "langsmith.fullname" . }}-{{ .Values.sandboxes.sandboxHost.name }}
   namespace: {{ $namespace }}
   labels:
     {{- include "langsmith.labels" . | nindent 4 }}
-    {{- with .Values.config.sandboxes.sandboxHost.rbac.labels }}
+    {{- with .Values.sandboxes.sandboxHost.rbac.labels }}
       {{- toYaml . | nindent 4 }}
     {{- end }}
   annotations:
     {{- include "langsmith.annotations" . | nindent 4 }}
-    {{- with .Values.config.sandboxes.sandboxHost.rbac.annotations }}
+    {{- with .Values.sandboxes.sandboxHost.rbac.annotations }}
       {{- toYaml . | nindent 4 }}
     {{- end }}
 rules:
-  - apiGroups: ["coordination.k8s.io"]
-    resources: ["leases"]
-    verbs: ["create", "get", "list", "watch", "update", "delete"]
+# Host liveness leases + leader election.
+- apiGroups:
+  - coordination.k8s.io
+  resources:
+  - leases
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - update
+  - watch
+# The elected host reads and resizes its own Deployment.
+- apiGroups:
+  - apps
+  resources:
+  - deployments
+  resourceNames:
+  - {{ include "langsmith.fullname" . }}-{{ .Values.sandboxes.sandboxHost.name }}
+  verbs:
+  - get
+  - patch
+# Pod deletion cost, so the emptiest host is evicted first.
+- apiGroups:
+  - ""
+  resources:
+  - pods
+  verbs:
+  - patch
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: sandbox-host-lease
+  name: {{ include "langsmith.fullname" . }}-{{ .Values.sandboxes.sandboxHost.name }}
   namespace: {{ $namespace }}
   labels:
     {{- include "langsmith.labels" . | nindent 4 }}
-    {{- with .Values.config.sandboxes.sandboxHost.rbac.labels }}
+    {{- with .Values.sandboxes.sandboxHost.rbac.labels }}
       {{- toYaml . | nindent 4 }}
     {{- end }}
   annotations:
     {{- include "langsmith.annotations" . | nindent 4 }}
-    {{- with .Values.config.sandboxes.sandboxHost.rbac.annotations }}
+    {{- with .Values.sandboxes.sandboxHost.rbac.annotations }}
       {{- toYaml . | nindent 4 }}
     {{- end }}
 subjects:
@@ -62,8 +66,7 @@ subjects:
     name: {{ include "langsmith.sandboxes.sandboxHostServiceAccountName" . }}
     namespace: {{ $namespace }}
 roleRef:
-  apiGroup: rbac.authorization.k8s.io
   kind: Role
-  name: sandbox-host-lease
-{{- end }}
+  name: {{ include "langsmith.fullname" . }}-{{ .Values.sandboxes.sandboxHost.name }}
+  apiGroup: rbac.authorization.k8s.io
 {{- end }}

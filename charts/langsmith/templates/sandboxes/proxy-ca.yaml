@@ -1,4 +1,4 @@
-{{- if and .Values.config.sandboxes.enabled (eq .Values.config.sandboxes.proxyCa.mode "generatedSecret") }}
+{{- if and .Values.sandboxes.enabled (eq .Values.sandboxes.proxyCa.mode "generatedSecret") }}
 {{- $name := include "langsmith.sandboxes.proxyCaSecretName" . -}}
 {{- $namespace := .Values.namespace | default .Release.Namespace -}}
 {{- $existing := lookup "v1" "Secret" $namespace $name -}}

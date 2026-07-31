@@ -1,0 +1,29 @@
+suite: legacy config.sandboxes values
+templates:
+  - validate.yaml
+tests:
+  - it: should fail when sandbox values are still under config.sandboxes
+    set:
+      config.existingSecretName: langsmith-secrets
+      config.oauth.enabled: true
+      config.authType: oauth
+      config.sandboxes.enabled: true
+    asserts:
+      - failedTemplate:
+          errorPattern: "config\\.sandboxes has moved to a top-level sandboxes: block"
+
+  - it: should fail even when the legacy block only carries unrelated keys
+    set:
+      config.existingSecretName: langsmith-secrets
+      config.oauth.enabled: true
+      config.authType: oauth
+      config.sandboxes.juicefs.bucket: https://b.s3.us-west-2.amazonaws.com
+    asserts:
+      - failedTemplate:
+          errorPattern: "config\\.sandboxes has moved to a top-level sandboxes: block"
+
+  - it: should not fail when sandbox values use the new top-level path
+    values:
+      - ./values/sandboxes-enabled.yaml
+    asserts:
+      - notFailedTemplate: {}

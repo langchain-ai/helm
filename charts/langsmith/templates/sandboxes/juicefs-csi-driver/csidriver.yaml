@@ -1,4 +1,5 @@
-{{- if .Values.config.sandboxes.enabled }}
+{{- /* Vendored from the upstream juicefs-csi-driver chart; re-sync when bumping images.juicefsCSIImage. */}}
+{{- if and .Values.sandboxes.enabled .Values.sandboxes.juicefs.csi.install }}
 apiVersion: storage.k8s.io/v1
 kind: CSIDriver
 metadata:
@@ -7,7 +8,6 @@ metadata:
     app.kubernetes.io/component: driver
     {{- include "langsmith.sandboxes.juicefsCSILabels" . | nindent 4 }}
   annotations:
-    helm.sh/resource-policy: keep
     {{- include "langsmith.sandboxes.juicefsCSIAnnotations" . | nindent 4 }}
 spec:
   attachRequired: false
