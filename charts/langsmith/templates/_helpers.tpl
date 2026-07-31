@@ -489,7 +489,7 @@ Template containing common environment variables that are used by several servic
       key: polly_encryption_key
       optional: false
 {{- end }}
-{{- if .Values.config.sandboxes.enabled }}
+{{- if .Values.sandboxes.enabled }}
 - name: SANDBOX_FEATURE_ENABLED
   value: "true"
 - name: SANDBOX_RUNTIME_V2
@@ -1223,11 +1223,11 @@ Falls back to config.hostname when config.frontendHostname is unset.
 {{- end -}}
 
 {{/*
-Host portion of config.sandboxes.serviceUrlBaseUrl.
+Host portion of sandboxes.serviceUrlBaseUrl.
 */}}
 {{- define "langsmith.sandboxes.serviceUrlHost" -}}
-{{- if .Values.config.sandboxes.serviceUrlBaseUrl -}}
-{{- regexReplaceAll "^https?://" .Values.config.sandboxes.serviceUrlBaseUrl "" -}}
+{{- if .Values.sandboxes.serviceUrlBaseUrl -}}
+{{- regexReplaceAll "^https?://" .Values.sandboxes.serviceUrlBaseUrl "" -}}
 {{- end -}}
 {{- end -}}
 
@@ -1235,10 +1235,10 @@ Host portion of config.sandboxes.serviceUrlBaseUrl.
 Sandbox proxy CA secret name in the LangSmith release namespace.
 */}}
 {{- define "langsmith.sandboxes.proxyCaSecretName" -}}
-{{- if eq .Values.config.sandboxes.proxyCa.mode "existingSecret" -}}
-{{- .Values.config.sandboxes.proxyCa.existingSecretName -}}
+{{- if eq .Values.sandboxes.proxyCa.mode "existingSecret" -}}
+{{- .Values.sandboxes.proxyCa.existingSecretName -}}
 {{- else -}}
-{{- default "smithbox-proxy-ca" .Values.config.sandboxes.proxyCa.secretName -}}
+{{- default "smithbox-proxy-ca" .Values.sandboxes.proxyCa.secretName -}}
 {{- end -}}
 {{- end -}}
 
@@ -1253,7 +1253,7 @@ In-cluster platform-backend URL. Also rendered as GO_ENDPOINT in the shared Conf
 Name for the JuiceFS CSI config Secret.
 */}}
 {{- define "langsmith.sandboxes.juicefsCSIConfigSecretName" -}}
-{{- default .Values.config.sandboxes.juicefs.csi.configSecretName .Values.config.sandboxes.juicefs.csi.existingSecretName -}}
+{{- default .Values.sandboxes.juicefs.csi.configSecretName .Values.sandboxes.juicefs.csi.existingSecretName -}}
 {{- end -}}
 
 {{/*
@@ -1263,8 +1263,8 @@ cannot be scoped by resourceNames, but read/update/delete verbs can.
 {{- define "langsmith.sandboxes.juicefsCSISecretResourceNames" -}}
 {{- $names := list
   (include "langsmith.sandboxes.juicefsCSIConfigSecretName" .)
-  (printf "juicefs-%s-secret" .Values.config.sandboxes.juicefs.name)
-  (printf "juicefs-%s-secret" .Values.config.sandboxes.juicefs.csi.pvName)
+  (printf "juicefs-%s-secret" .Values.sandboxes.juicefs.name)
+  (printf "juicefs-%s-secret" .Values.sandboxes.juicefs.csi.pvName)
   (printf "juicefs-%s-secret" (include "langsmith.sandboxes.juicefsHostPVName" .))
 -}}
 {{- $resourceNames := list -}}
@@ -1278,11 +1278,11 @@ cannot be scoped by resourceNames, but read/update/delete verbs can.
 Rendered JuiceFS CSI config Secret data for chart-managed sandbox volumes.
 */}}
 {{- define "langsmith.sandboxes.juicefsCSIConfigSecretData" -}}
-{{- $juicefsRedis := .Values.config.sandboxes.juicefs.redis | default dict -}}
-name: {{ .Values.config.sandboxes.juicefs.name | quote }}
+{{- $juicefsRedis := .Values.sandboxes.juicefs.redis | default dict -}}
+name: {{ .Values.sandboxes.juicefs.name | quote }}
 metaurl: {{ $juicefsRedis.metaURL | quote }}
-storage: {{ .Values.config.sandboxes.juicefs.storage | quote }}
-bucket: {{ .Values.config.sandboxes.juicefs.bucket | quote }}
+storage: {{ .Values.sandboxes.juicefs.storage | quote }}
+bucket: {{ .Values.sandboxes.juicefs.bucket | quote }}
 {{- end -}}
 
 {{/*
@@ -1290,7 +1290,7 @@ Checksum for the JuiceFS CSI config Secret known to Helm. Existing Secrets use
 the Secret name only because Helm cannot safely hash live external Secret data.
 */}}
 {{- define "langsmith.sandboxes.juicefsCSIConfigSecretChecksum" -}}
-{{- if .Values.config.sandboxes.juicefs.csi.existingSecretName -}}
+{{- if .Values.sandboxes.juicefs.csi.existingSecretName -}}
 {{- printf "existing:%s" (include "langsmith.sandboxes.juicefsCSIConfigSecretName" .) | sha256sum -}}
 {{- else -}}
 {{- include "langsmith.sandboxes.juicefsCSIConfigSecretData" . | sha256sum -}}
@@ -1301,11 +1301,11 @@ the Secret name only because Helm cannot safely hash live external Secret data.
 Derived JuiceFS CSI PV/PVC names for the sandbox-host mount.
 */}}
 {{- define "langsmith.sandboxes.juicefsHostPVName" -}}
-{{- printf "%s-host" .Values.config.sandboxes.juicefs.csi.pvName -}}
+{{- printf "%s-host" .Values.sandboxes.juicefs.csi.pvName -}}
 {{- end -}}
 
 {{- define "langsmith.sandboxes.juicefsHostPVCName" -}}
-{{- printf "%s-host" .Values.config.sandboxes.juicefs.csi.pvcName -}}
+{{- printf "%s-host" .Values.sandboxes.juicefs.csi.pvcName -}}
 {{- end -}}
 
 {{/*
@@ -1362,7 +1362,7 @@ Rendered JuiceFS CSI driver config file.
 {{- define "langsmith.sandboxes.juicefsCSIDriverConfig" -}}
 enableNodeSelector: false
 mountPodPatch:
-{{- toYaml .Values.config.sandboxes.juicefs.csi.mountPodPatch | nindent 2 }}
+{{- toYaml .Values.sandboxes.juicefs.csi.mountPodPatch | nindent 2 }}
 {{- end -}}
 
 {{- define "langsmith.sandboxes.juicefsCSIDriverConfigChecksum" -}}
@@ -1373,10 +1373,10 @@ mountPodPatch:
 Sandbox service account names.
 */}}
 {{- define "langsmith.sandboxes.sandboxHostServiceAccountName" -}}
-{{- if .Values.config.sandboxes.sandboxHost.serviceAccount.create -}}
-{{- default (printf "%s-%s" (include "langsmith.fullname" .) .Values.config.sandboxes.sandboxHost.name) .Values.config.sandboxes.sandboxHost.serviceAccount.name | trunc 63 | trimSuffix "-" -}}
+{{- if .Values.sandboxes.sandboxHost.serviceAccount.create -}}
+{{- default (printf "%s-%s" (include "langsmith.fullname" .) .Values.sandboxes.sandboxHost.name) .Values.sandboxes.sandboxHost.serviceAccount.name | trunc 63 | trimSuffix "-" -}}
 {{- else -}}
-{{- default "default" .Values.config.sandboxes.sandboxHost.serviceAccount.name -}}
+{{- default "default" .Values.sandboxes.sandboxHost.serviceAccount.name -}}
 {{- end -}}
 {{- end -}}
 

@@ -86,7 +86,7 @@ tests:
     values:
       - ./values/sandboxes-enabled.yaml
     set:
-      config.sandboxes.serviceUrlBaseUrl: https://sandbox-services.example.com
+      sandboxes.serviceUrlBaseUrl: https://sandbox-services.example.com
     template: platform-backend/deployment.yaml
     asserts:
       - contains:
@@ -114,7 +114,7 @@ tests:
       - ./values/sandboxes-enabled.yaml
     set:
       config.hostname: langsmith.example.com
-      config.sandboxes.serviceUrlBaseUrl: https://sandbox-services.example.com
+      sandboxes.serviceUrlBaseUrl: https://sandbox-services.example.com
       ingress.enabled: true
       ingress.ingressClassName: nginx
     template: ingress.yaml
@@ -246,10 +246,10 @@ tests:
       config.apiKeySalt: test-api-key-salt
       config.oauth.enabled: true
       config.authType: oauth
-      config.sandboxes.enabled: true
-      config.sandboxes.callbackSigningJwk: test-callback-jwk
-      config.sandboxes.juicefs.redis.metaURL: redis://langsmith-redis.default.svc.cluster.local:6379/1
-      config.sandboxes.juicefs.bucket: https://langsmith-sandboxes-test.s3.us-west-2.amazonaws.com
+      sandboxes.enabled: true
+      sandboxes.callbackSigningJwk: test-callback-jwk
+      sandboxes.juicefs.redis.metaURL: redis://langsmith-redis.default.svc.cluster.local:6379/1
+      sandboxes.juicefs.bucket: https://langsmith-sandboxes-test.s3.us-west-2.amazonaws.com
       images.sandboxHostImage.repository: example.com/langsmith/sandbox-host
       images.sandboxHostImage.tag: test-sandbox-host
       insights.encryptionKey: test-insights-encryption-key
@@ -364,7 +364,7 @@ tests:
     values:
       - ./values/sandboxes-enabled.yaml
     set:
-      config.sandboxes.sandboxHost.deployment.extraEnv:
+      sandboxes.sandboxHost.deployment.extraEnv:
         - name: SANDBOX_HOST_JUICEFS_CLONE_CONCURRENCY
           value: "40"
     template: sandboxes/sandbox-host-deployment.yaml
@@ -398,7 +398,7 @@ tests:
     values:
       - ./values/sandboxes-enabled.yaml
     set:
-      config.sandboxes.sandboxHost.autoscaling:
+      sandboxes.sandboxHost.autoscaling:
         enabled: true
         minReplicas: 2
         maxReplicas: 8
@@ -460,13 +460,13 @@ tests:
     values:
       - ./values/sandboxes-enabled.yaml
     set:
-      config.sandboxes.sandboxHost.autoscaling.enabled: true
-      config.sandboxes.sandboxHost.autoscaling.minReplicas: 5
-      config.sandboxes.sandboxHost.autoscaling.maxReplicas: 2
+      sandboxes.sandboxHost.autoscaling.enabled: true
+      sandboxes.sandboxHost.autoscaling.minReplicas: 5
+      sandboxes.sandboxHost.autoscaling.maxReplicas: 2
     template: validate.yaml
     asserts:
       - failedTemplate:
-          errorMessage: "config.sandboxes.sandboxHost.autoscaling.maxReplicas must be greater than or equal to minReplicas."
+          errorMessage: "sandboxes.sandboxHost.autoscaling.maxReplicas must be greater than or equal to minReplicas."
 
   - it: should always allow private IP sandbox callbacks
     values:
@@ -483,8 +483,8 @@ tests:
     values:
       - ./values/sandboxes-enabled.yaml
     set:
-      config.sandboxes.sandboxHost.rbac.labels.review: requested
-      config.sandboxes.sandboxHost.rbac.annotations.review: requested
+      sandboxes.sandboxHost.rbac.labels.review: requested
+      sandboxes.sandboxHost.rbac.annotations.review: requested
     template: sandboxes/sandbox-host-rbac.yaml
     documentIndex: 0
     asserts:
@@ -499,7 +499,7 @@ tests:
     values:
       - ./values/sandboxes-enabled.yaml
     set:
-      config.sandboxes.sandboxHost.rbac.create: false
+      sandboxes.sandboxHost.rbac.create: false
     template: sandboxes/sandbox-host-rbac.yaml
     asserts:
       - hasDocuments:
@@ -612,9 +612,9 @@ tests:
     values:
       - ./values/sandboxes-enabled.yaml
     set:
-      config.sandboxes.juicefs.redis.metaURL: ""
-      config.sandboxes.juicefs.bucket: ""
-      config.sandboxes.juicefs.csi.existingSecretName: external-juicefs-csi-config
+      sandboxes.juicefs.redis.metaURL: ""
+      sandboxes.juicefs.bucket: ""
+      sandboxes.juicefs.csi.existingSecretName: external-juicefs-csi-config
     template: sandboxes/juicefs-csi.yaml
     documentIndex: 2
     asserts:
@@ -634,9 +634,9 @@ tests:
     values:
       - ./values/sandboxes-enabled.yaml
     set:
-      config.sandboxes.juicefs.redis.metaURL: ""
-      config.sandboxes.juicefs.bucket: ""
-      config.sandboxes.juicefs.csi.existingSecretName: external-juicefs-csi-config
+      sandboxes.juicefs.redis.metaURL: ""
+      sandboxes.juicefs.bucket: ""
+      sandboxes.juicefs.csi.existingSecretName: external-juicefs-csi-config
     template: validate.yaml
     asserts:
       - hasDocuments:
@@ -656,52 +656,52 @@ tests:
       config.existingSecretName: langsmith-secrets
       config.oauth.enabled: true
       config.authType: oauth
-      config.sandboxes.enabled: true
-      config.sandboxes.juicefs.redis.metaURL: redis://langsmith-redis.default.svc.cluster.local:6379/1
-      config.sandboxes.juicefs.bucket: s3://langsmith-sandboxes-test
+      sandboxes.enabled: true
+      sandboxes.juicefs.redis.metaURL: redis://langsmith-redis.default.svc.cluster.local:6379/1
+      sandboxes.juicefs.bucket: s3://langsmith-sandboxes-test
       images.sandboxHostImage.repository: example.com/langsmith/sandbox-host
     template: validate.yaml
     asserts:
       - failedTemplate:
-          errorMessage: "images.sandboxHostImage.tag is required when config.sandboxes.enabled is true."
+          errorMessage: "images.sandboxHostImage.tag is required when sandboxes.enabled is true."
 
   - it: should fail when JuiceFS name is invalid
     values:
       - ./values/sandboxes-enabled.yaml
     set:
-      config.sandboxes.juicefs.name: Sandbox_JuiceFS
+      sandboxes.juicefs.name: Sandbox_JuiceFS
     template: validate.yaml
     asserts:
       - failedTemplate:
-          errorMessage: "config.sandboxes.juicefs.name must be a DNS-label-style JuiceFS volume name: 3-63 characters, lowercase letters, numbers, and hyphens only. Do not use slashes or object-store subpaths here."
+          errorMessage: "sandboxes.juicefs.name must be a DNS-label-style JuiceFS volume name: 3-63 characters, lowercase letters, numbers, and hyphens only. Do not use slashes or object-store subpaths here."
 
   - it: should fail when JuiceFS name contains a slash
     values:
       - ./values/sandboxes-enabled.yaml
     set:
-      config.sandboxes.juicefs.name: sandbox/juicefs
+      sandboxes.juicefs.name: sandbox/juicefs
     template: validate.yaml
     asserts:
       - failedTemplate:
-          errorMessage: "config.sandboxes.juicefs.name must be a DNS-label-style JuiceFS volume name: 3-63 characters, lowercase letters, numbers, and hyphens only. Do not use slashes or object-store subpaths here."
+          errorMessage: "sandboxes.juicefs.name must be a DNS-label-style JuiceFS volume name: 3-63 characters, lowercase letters, numbers, and hyphens only. Do not use slashes or object-store subpaths here."
 
   - it: should fail when AWS JuiceFS bucket uses s3 shorthand
     values:
       - ./values/sandboxes-enabled.yaml
     set:
-      config.sandboxes.juicefs.storage: s3
-      config.sandboxes.juicefs.bucket: s3://langsmith-sandboxes-test
+      sandboxes.juicefs.storage: s3
+      sandboxes.juicefs.bucket: s3://langsmith-sandboxes-test
     template: validate.yaml
     asserts:
       - failedTemplate:
-          errorMessage: "config.sandboxes.juicefs.bucket must use a region-explicit S3 endpoint URL such as https://bucket-name.s3.us-west-2.amazonaws.com when config.sandboxes.juicefs.storage is s3. The s3://bucket shorthand makes JuiceFS infer region with GetBucketLocation and is not supported."
+          errorMessage: "sandboxes.juicefs.bucket must use a region-explicit S3 endpoint URL such as https://bucket-name.s3.us-west-2.amazonaws.com when sandboxes.juicefs.storage is s3. The s3://bucket shorthand makes JuiceFS infer region with GetBucketLocation and is not supported."
 
   - it: should allow GCP JuiceFS storage
     values:
       - ./values/sandboxes-enabled.yaml
     set:
-      config.sandboxes.juicefs.storage: gs
-      config.sandboxes.juicefs.bucket: gs://langsmith-sandboxes-test
+      sandboxes.juicefs.storage: gs
+      sandboxes.juicefs.bucket: gs://langsmith-sandboxes-test
     template: validate.yaml
     asserts:
       - hasDocuments:
@@ -711,72 +711,72 @@ tests:
     values:
       - ./values/sandboxes-enabled.yaml
     set:
-      config.sandboxes.juicefs.storage: azure
+      sandboxes.juicefs.storage: azure
     template: validate.yaml
     asserts:
       - failedTemplate:
-          errorMessage: "config.sandboxes.juicefs.storage currently supports only s3 for AWS/EKS and gs for GCP/GKE. Azure-backed sandbox storage is not supported yet."
+          errorMessage: "sandboxes.juicefs.storage currently supports only s3 for AWS/EKS and gs for GCP/GKE. Azure-backed sandbox storage is not supported yet."
 
   - it: should fail when sandbox service URL base URL does not use HTTP or HTTPS
     values:
       - ./values/sandboxes-enabled.yaml
     set:
-      config.sandboxes.serviceUrlBaseUrl: sandbox-services.example.com
+      sandboxes.serviceUrlBaseUrl: sandbox-services.example.com
     template: validate.yaml
     asserts:
       - failedTemplate:
-          errorMessage: "config.sandboxes.serviceUrlBaseUrl must start with http:// or https://."
+          errorMessage: "sandboxes.serviceUrlBaseUrl must start with http:// or https://."
 
   - it: should fail when sandbox service URL base URL contains a path
     values:
       - ./values/sandboxes-enabled.yaml
     set:
-      config.sandboxes.serviceUrlBaseUrl: https://sandbox-services.example.com/path
+      sandboxes.serviceUrlBaseUrl: https://sandbox-services.example.com/path
     template: validate.yaml
     asserts:
       - failedTemplate:
-          errorMessage: "config.sandboxes.serviceUrlBaseUrl must not include a path, query string, or fragment."
+          errorMessage: "sandboxes.serviceUrlBaseUrl must not include a path, query string, or fragment."
 
   - it: should fail when sandbox service URL base URL contains a query string
     values:
       - ./values/sandboxes-enabled.yaml
     set:
-      config.sandboxes.serviceUrlBaseUrl: https://sandbox-services.example.com?foo=bar
+      sandboxes.serviceUrlBaseUrl: https://sandbox-services.example.com?foo=bar
     template: validate.yaml
     asserts:
       - failedTemplate:
-          errorMessage: "config.sandboxes.serviceUrlBaseUrl must not include a path, query string, or fragment."
+          errorMessage: "sandboxes.serviceUrlBaseUrl must not include a path, query string, or fragment."
 
   - it: should fail when sandbox service URL base URL contains a fragment
     values:
       - ./values/sandboxes-enabled.yaml
     set:
-      config.sandboxes.serviceUrlBaseUrl: https://sandbox-services.example.com#fragment
+      sandboxes.serviceUrlBaseUrl: https://sandbox-services.example.com#fragment
     template: validate.yaml
     asserts:
       - failedTemplate:
-          errorMessage: "config.sandboxes.serviceUrlBaseUrl must not include a path, query string, or fragment."
+          errorMessage: "sandboxes.serviceUrlBaseUrl must not include a path, query string, or fragment."
 
   - it: should fail when chart ingress would render an invalid sandbox service URL host
     values:
       - ./values/sandboxes-enabled.yaml
     set:
-      config.sandboxes.serviceUrlBaseUrl: https://sandbox-services.example.com:8443
+      sandboxes.serviceUrlBaseUrl: https://sandbox-services.example.com:8443
       ingress.enabled: true
     template: validate.yaml
     asserts:
       - failedTemplate:
-          errorMessage: "config.sandboxes.serviceUrlBaseUrl host must be a DNS hostname without a port when ingress.enabled is true."
+          errorMessage: "sandboxes.serviceUrlBaseUrl host must be a DNS hostname without a port when ingress.enabled is true."
 
   - it: should fail when existing app Secret is used with chart-provided sandbox callback signing JWK
     values:
       - ./values/sandboxes-enabled.yaml
     set:
-      config.sandboxes.callbackSigningJwk: test-callback-jwk
+      sandboxes.callbackSigningJwk: test-callback-jwk
     template: validate.yaml
     asserts:
       - failedTemplate:
-          errorMessage: "config.sandboxes.callbackSigningJwk cannot be used when config.existingSecretName is set. Add key sandbox_callback_signing_jwk to the existing Secret instead."
+          errorMessage: "sandboxes.callbackSigningJwk cannot be used when config.existingSecretName is set. Add key sandbox_callback_signing_jwk to the existing Secret instead."
 
   - it: should fail when chart-managed app Secret is missing sandbox callback signing JWK
     set:
@@ -784,9 +784,9 @@ tests:
       config.apiKeySalt: test-api-key-salt
       config.oauth.enabled: true
       config.authType: oauth
-      config.sandboxes.enabled: true
-      config.sandboxes.juicefs.redis.metaURL: redis://langsmith-redis.default.svc.cluster.local:6379/1
-      config.sandboxes.juicefs.bucket: https://langsmith-sandboxes-test.s3.us-west-2.amazonaws.com
+      sandboxes.enabled: true
+      sandboxes.juicefs.redis.metaURL: redis://langsmith-redis.default.svc.cluster.local:6379/1
+      sandboxes.juicefs.bucket: https://langsmith-sandboxes-test.s3.us-west-2.amazonaws.com
       images.sandboxHostImage.repository: example.com/langsmith/sandbox-host
       images.sandboxHostImage.tag: test-sandbox-host
       insights.encryptionKey: test-insights-encryption-key
@@ -794,17 +794,17 @@ tests:
     template: validate.yaml
     asserts:
       - failedTemplate:
-          errorMessage: "config.sandboxes.callbackSigningJwk is required when config.sandboxes.enabled is true and the chart manages the LangSmith app Secret. When config.existingSecretName is set, add key sandbox_callback_signing_jwk to the existing Secret instead."
+          errorMessage: "sandboxes.callbackSigningJwk is required when sandboxes.enabled is true and the chart manages the LangSmith app Secret. When config.existingSecretName is set, add key sandbox_callback_signing_jwk to the existing Secret instead."
 
   - it: should fail when sandbox proxy CA mode is unsupported
     values:
       - ./values/sandboxes-enabled.yaml
     set:
-      config.sandboxes.proxyCa.mode: certManager
+      sandboxes.proxyCa.mode: certManager
     template: validate.yaml
     asserts:
       - failedTemplate:
-          errorMessage: "config.sandboxes.proxyCa.mode must be one of generatedSecret or existingSecret."
+          errorMessage: "sandboxes.proxyCa.mode must be one of generatedSecret or existingSecret."
 
   - it: should fail when raw sandbox env vars conflict with chart-managed platform env
     values:
@@ -838,7 +838,7 @@ tests:
     values:
       - ./values/sandboxes-enabled.yaml
     set:
-      config.sandboxes.sandboxHost.pdb.enabled: true
+      sandboxes.sandboxHost.pdb.enabled: true
     template: sandboxes/sandbox-host-pdb.yaml
     asserts:
       - isKind:
@@ -857,7 +857,7 @@ tests:
     values:
       - ./values/sandboxes-enabled.yaml
     set:
-      config.sandboxes.sandboxHost.pdb:
+      sandboxes.sandboxHost.pdb:
         enabled: true
         minAvailable: 2
     template: sandboxes/sandbox-host-pdb.yaml
@@ -872,7 +872,7 @@ tests:
     values:
       - ./values/sandboxes-enabled.yaml
     set:
-      config.sandboxes.juicefs.csi.install: false
+      sandboxes.juicefs.csi.install: false
     templates:
       - sandboxes/juicefs-csi-driver/csidriver.yaml
       - sandboxes/juicefs-csi-driver/rbac.yaml
@@ -887,7 +887,7 @@ tests:
     values:
       - ./values/sandboxes-enabled.yaml
     set:
-      config.sandboxes.juicefs.csi.install: false
+      sandboxes.juicefs.csi.install: false
     template: sandboxes/juicefs-csi.yaml
     asserts:
       - hasDocuments:
@@ -907,7 +907,7 @@ tests:
     values:
       - ./values/sandboxes-enabled.yaml
     set:
-      config.sandboxes.sandboxHost.name: hosts
+      sandboxes.sandboxHost.name: hosts
     templates:
       - sandboxes/sandbox-host-deployment.yaml
     asserts:
@@ -930,7 +930,7 @@ tests:
     values:
       - ./values/sandboxes-enabled.yaml
     set:
-      config.sandboxes.sandboxHost.name: hosts
+      sandboxes.sandboxHost.name: hosts
     template: sandboxes/sandbox-host-rbac.yaml
     documentIndex: 0
     asserts:
@@ -993,7 +993,7 @@ tests:
     values:
       - ./values/sandboxes-enabled.yaml
     set:
-      config.sandboxes.sandboxHost.serviceAccount.create: false
+      sandboxes.sandboxHost.serviceAccount.create: false
     template: sandboxes/sandbox-host-service-account.yaml
     asserts:
       - hasDocuments:
@@ -1050,7 +1050,7 @@ tests:
     values:
       - ./values/sandboxes-enabled.yaml
     set:
-      config.sandboxes.sandboxHost.deployment.labels:
+      sandboxes.sandboxHost.deployment.labels:
         app: my-sandbox-host
         team: infra
     template: sandboxes/sandbox-host-deployment.yaml
@@ -1076,7 +1076,7 @@ tests:
     values:
       - ./values/sandboxes-enabled.yaml
     set:
-      config.sandboxes.sandboxHost.deployment.labels:
+      sandboxes.sandboxHost.deployment.labels:
         app.kubernetes.io/component: hijacked
         app.kubernetes.io/name: hijacked
     template: sandboxes/sandbox-host-deployment.yaml
@@ -1104,7 +1104,7 @@ tests:
     values:
       - ./values/sandboxes-enabled.yaml
     set:
-      config.sandboxes.sandboxHost.name: hosts
+      sandboxes.sandboxHost.name: hosts
     template: sandboxes/sandbox-host-deployment.yaml
     asserts:
       - equal:
@@ -1115,8 +1115,8 @@ tests:
     values:
       - ./values/sandboxes-enabled.yaml
     set:
-      config.sandboxes.sandboxHost.containerPort: 19200
-      config.sandboxes.juicefs.csi.mountPath: /elsewhere
+      sandboxes.sandboxHost.containerPort: 19200
+      sandboxes.juicefs.csi.mountPath: /elsewhere
     template: sandboxes/sandbox-host-deployment.yaml
     asserts:
       - equal:

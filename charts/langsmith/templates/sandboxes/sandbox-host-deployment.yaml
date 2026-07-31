@@ -1,34 +1,34 @@
-{{- if .Values.config.sandboxes.enabled }}
+{{- if .Values.sandboxes.enabled }}
 {{- $namespace := .Values.namespace | default .Release.Namespace }}
-{{- $autoscaling := .Values.config.sandboxes.sandboxHost.autoscaling }}
+{{- $autoscaling := .Values.sandboxes.sandboxHost.autoscaling }}
 {{- /* app:<name> matches the other sandbox templates and is overridable via
        deployment.labels. Chart labels come last so they win: the selector depends on
        them, and a duplicate YAML key would make the manifest invalid outright. */}}
-{{- $labels := mergeOverwrite (dict "app" .Values.config.sandboxes.sandboxHost.name)
-  (default dict .Values.config.sandboxes.sandboxHost.deployment.labels)
+{{- $labels := mergeOverwrite (dict "app" .Values.sandboxes.sandboxHost.name)
+  (default dict .Values.sandboxes.sandboxHost.deployment.labels)
   (include "langsmith.labels" . | fromYaml)
-  (dict "app.kubernetes.io/component" (printf "%s-%s" (include "langsmith.fullname" .) .Values.config.sandboxes.sandboxHost.name)) }}
+  (dict "app.kubernetes.io/component" (printf "%s-%s" (include "langsmith.fullname" .) .Values.sandboxes.sandboxHost.name)) }}
 {{- $tlsVolumes := include "langsmith.tlsVolumes" . | fromYamlArray }}
 {{- $tlsVolumeMounts := include "langsmith.tlsVolumeMounts" . | fromYamlArray }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "langsmith.fullname" . }}-{{ .Values.config.sandboxes.sandboxHost.name }}
+  name: {{ include "langsmith.fullname" . }}-{{ .Values.sandboxes.sandboxHost.name }}
   namespace: {{ $namespace }}
   labels:
     {{- toYaml $labels | nindent 4 }}
   annotations:
     {{- include "langsmith.annotations" . | nindent 4 }}
-    {{- with .Values.config.sandboxes.sandboxHost.deployment.annotations }}
+    {{- with .Values.sandboxes.sandboxHost.deployment.annotations }}
       {{- toYaml . | nindent 4 }}
     {{- end }}
 spec:
   selector:
     matchLabels:
       {{- include "langsmith.selectorLabels" . | nindent 6 }}
-      app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-{{ .Values.config.sandboxes.sandboxHost.name }}
+      app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-{{ .Values.sandboxes.sandboxHost.name }}
   {{- if not $autoscaling.enabled }}
-  replicas: {{ .Values.config.sandboxes.sandboxHost.deployment.replicas }}
+  replicas: {{ .Values.sandboxes.sandboxHost.deployment.replicas }}
   {{- end }}
   strategy:
     type: RollingUpdate
@@ -41,7 +41,7 @@ spec:
         {{- toYaml $labels | nindent 8 }}
       annotations:
         {{- include "langsmith.commonPodAnnotations" . | nindent 8 }}
-        {{- with .Values.config.sandboxes.sandboxHost.deployment.podAnnotations }}
+        {{- with .Values.sandboxes.sandboxHost.deployment.podAnnotations }}
           {{- toYaml . | nindent 8 }}
         {{- end }}
     spec:
@@ -56,17 +56,17 @@ spec:
             - labelSelector:
                 matchLabels:
                   {{- include "langsmith.selectorLabels" . | nindent 18 }}
-                  app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-{{ .Values.config.sandboxes.sandboxHost.name }}
+                  app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-{{ .Values.sandboxes.sandboxHost.name }}
               topologyKey: kubernetes.io/hostname
       {{- with .Values.images.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.config.sandboxes.sandboxHost.deployment.nodeSelector }}
+      {{- with .Values.sandboxes.sandboxHost.deployment.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.config.sandboxes.sandboxHost.deployment.tolerations }}
+      {{- with .Values.sandboxes.sandboxHost.deployment.tolerations }}
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
@@ -105,7 +105,7 @@ spec:
             - name: SSL_CERT_FILE
               value: /etc/ssl/certs/custom-ca-certificates.crt
             {{- end }}
-            {{- if or (not (empty .Values.config.existingSecretName)) .Values.config.sandboxes.callbackSigningJwk }}
+            {{- if or (not (empty .Values.config.existingSecretName)) .Values.sandboxes.callbackSigningJwk }}
             - name: LANGSMITH_SANDBOX_CALLBACK_SIGNING_JWK
               valueFrom:
                 secretKeyRef:
@@ -127,9 +127,9 @@ spec:
             - name: LANGSMITH_SANDBOX_INTERNAL_ENDPOINT
               value: {{ include "langsmith.platformBackendEndpoint" . | quote }}
             - name: SANDBOX_HOST_DEPLOYMENT_NAME
-              value: {{ printf "%s-%s" (include "langsmith.fullname" .) .Values.config.sandboxes.sandboxHost.name | quote }}
+              value: {{ printf "%s-%s" (include "langsmith.fullname" .) .Values.sandboxes.sandboxHost.name | quote }}
             - name: SANDBOX_HOST_TERMINATION_GRACE_SECONDS
-              value: {{ .Values.config.sandboxes.sandboxHost.deployment.terminationGracePeriodSeconds | quote }}
+              value: {{ .Values.sandboxes.sandboxHost.deployment.terminationGracePeriodSeconds | quote }}
             {{- /* Baseline only; sandbox-host.smith.langchain.com/autoscale-* annotations override it live. */}}
             - name: SANDBOX_HOST_AUTOSCALE_ENABLED
               value: {{ $autoscaling.enabled | quote }}
@@ -145,7 +145,7 @@ spec:
             - name: SANDBOX_HOST_AUTOSCALE_SCALE_DOWN_STABILIZATION_SECONDS
               value: {{ $autoscaling.scaleDownStabilizationSeconds | quote }}
             {{- end }}
-            {{- with .Values.config.sandboxes.sandboxHost.deployment.extraEnv }}
+            {{- with .Values.sandboxes.sandboxHost.deployment.extraEnv }}
               {{- toYaml . | nindent 12 }}
             {{- end }}
           {{- /* Fixed: the host's listen address and JuiceFS root are compiled defaults, so a
@@ -165,9 +165,9 @@ spec:
             timeoutSeconds: 3
             failureThreshold: 3
           securityContext:
-            {{- toYaml .Values.config.sandboxes.sandboxHost.deployment.securityContext | nindent 12 }}
+            {{- toYaml .Values.sandboxes.sandboxHost.deployment.securityContext | nindent 12 }}
           resources:
-            {{- toYaml .Values.config.sandboxes.sandboxHost.deployment.resources | nindent 12 }}
+            {{- toYaml .Values.sandboxes.sandboxHost.deployment.resources | nindent 12 }}
           volumeMounts:
             - name: juicefs
               mountPath: /juicefs
@@ -193,5 +193,5 @@ spec:
         {{- with $tlsVolumes }}
           {{- toYaml . | nindent 8 }}
         {{- end }}
-      terminationGracePeriodSeconds: {{ .Values.config.sandboxes.sandboxHost.deployment.terminationGracePeriodSeconds }}
+      terminationGracePeriodSeconds: {{ .Values.sandboxes.sandboxHost.deployment.terminationGracePeriodSeconds }}
 {{- end }}

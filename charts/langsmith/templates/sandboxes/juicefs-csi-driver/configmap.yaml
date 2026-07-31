@@ -1,5 +1,5 @@
 {{- /* Vendored from the upstream juicefs-csi-driver chart; re-sync when bumping images.juicefsCSIImage. */}}
-{{- if and .Values.config.sandboxes.enabled .Values.config.sandboxes.juicefs.csi.install }}
+{{- if and .Values.sandboxes.enabled .Values.sandboxes.juicefs.csi.install }}
 {{- $namespace := .Values.namespace | default .Release.Namespace }}
 apiVersion: v1
 kind: ConfigMap
