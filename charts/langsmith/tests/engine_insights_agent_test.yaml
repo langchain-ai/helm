@@ -41,7 +41,7 @@ tests:
       - failedTemplate:
           errorMessage: "engine.intelligenceBaseUrl is required when engine.enabled is true: the self-hosted Engine has no ANTHROPIC_API_KEY and routes model calls through the LSI gateway for its cloud/region (e.g. AWS: https://beacon.aws.langchain.com/intelligence)."
 
-  - it: should fail when engine and sandboxes are enabled without a sandbox tenant
+  - it: should render without a sandbox tenant, which smith-go resolves
     values:
       - ./values/sandboxes-enabled.yaml
     set:
@@ -51,8 +51,7 @@ tests:
       engine.intelligenceBaseUrl: https://beacon.aws.langchain.com/intelligence
       images.engineInsightsAgentImage.repository: docker.io/langchain/langsmith-insights-engine
     asserts:
-      - failedTemplate:
-          errorMessage: "engine.sandboxTenantId is required when engine.enabled is true: the Engine signs its sandbox service key with this workspace id and smith-go rejects a service key without a tenant. Use a workspace reserved for the Engine — its sandboxes consume that workspace's sandbox quota and are visible to anyone with access to it."
+      - notFailedTemplate: {}
 
   - it: should fail when engine is enabled without sandboxes
     values:

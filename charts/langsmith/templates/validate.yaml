@@ -558,9 +558,6 @@ AWS Marketplace Helm template verification).
 {{- if regexMatch "\\.svc(\\.[a-zA-Z0-9.-]+)?(:[0-9]+)?(/.*)?$" .Values.config.hostname }}
 {{- fail (printf "engine.enabled is true and config.hostname is the in-cluster address %q, which a sandbox cannot reach: it must be the externally reachable LangSmith address." .Values.config.hostname) }}
 {{- end }}
-{{- if not .Values.engine.sandboxTenantId }}
-{{- fail "engine.sandboxTenantId is required when engine.enabled is true: the Engine signs its sandbox service key with this workspace id and smith-go rejects a service key without a tenant. Use a workspace reserved for the Engine — its sandboxes consume that workspace's sandbox quota and are visible to anyone with access to it." }}
-{{- end }}
 {{- end }}
 
 {{- /* Validate agent feature (fleet/insights/polly) configuration */ -}}

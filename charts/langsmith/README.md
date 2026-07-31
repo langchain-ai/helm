@@ -30,7 +30,7 @@ The chart-managed frontend owns public API route rewrites for LangSmith services
 | engine.encryptionKey | string | `""` |  |
 | engine.encryptionKeyPrevious | string | `""` |  |
 | engine.intelligenceBaseUrl | string | `""` |  |
-| engine.sandboxTenantId | string | `""` | Workspace id that owns Engine sandboxes. Required when sandboxes are enabled: the Engine signs a service key with this tenant and smith-go rejects one without it.  Use a workspace reserved for the Engine, not one people work in. Sandboxes land in this workspace, so they consume its sandbox quota — an Engine run can be refused because the workspace is at its cap, and Engine sandboxes count against a cap bought for other work. They are also listed in it and can be stopped by anyone with access, while each one runs agent-generated code and holds a GitHub token for the repo under analysis. |
+| engine.sandboxTenantId | string | `""` | Override for the workspace that owns Engine sandboxes. Optional: smith-go resolves the install's workspace when this is unset, and only declines when the install has more than one non-personal org.  Use a workspace reserved for the Engine, not one people work in. Sandboxes land in this workspace, so they consume its sandbox quota — an Engine run can be refused because the workspace is at its cap, and Engine sandboxes count against a cap bought for other work. They are also listed in it and can be stopped by anyone with access, while each one runs agent-generated code and holds a GitHub token for the repo under analysis. |
 | engineInsightsAgent.apiServer.autoscaling.enabled | bool | `false` |  |
 | engineInsightsAgent.apiServer.autoscaling.keda.cooldownPeriod | int | `300` |  |
 | engineInsightsAgent.apiServer.autoscaling.keda.enabled | bool | `false` |  |
