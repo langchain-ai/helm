@@ -557,9 +557,9 @@ engine:
   # Prior key, accepted for decryption only, so encryptionKey can be rotated
   # without failing runs encrypted just before the swap.
   encryptionKeyPrevious: ""
-  # -- Workspace id that owns Engine sandboxes. Required when sandboxes are
-  # enabled: the Engine signs a service key with this tenant and smith-go
-  # rejects one without it.
+  # -- Override for the workspace that owns Engine sandboxes. Optional: smith-go
+  # resolves the install's workspace when this is unset, and only declines when
+  # the install has more than one non-personal org.
   #
   # Use a workspace reserved for the Engine, not one people work in. Sandboxes
   # land in this workspace, so they consume its sandbox quota — an Engine run
