@@ -1,0 +1,40 @@
+suite: LANGCHAIN_PLATFORM_ENDPOINT shared config
+# smith-go builds the Engine run webhook callback URL from
+# LANGCHAIN_PLATFORM_ENDPOINT, falling back to LANGCHAIN_ENDPOINT ("/api/v1")
+# when it is unset. langgraph-api rejects run creation with HTTP 422 when the
+# webhook is relative, so dropping this variable breaks every non-shadow
+# Engine run. It also backs signed download links, SCIM $refs, and MCP
+# resource URLs.
+templates:
+  - templates/config-map.yaml
+tests:
+  - it: should be absolute when sandboxes are enabled
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      config.hostname: https://langsmith.example.com
+    asserts:
+      - equal:
+          path: data.LANGCHAIN_PLATFORM_ENDPOINT
+          value: "https://langsmith.example.com/api"
+
+  - it: should include the base path when one is set
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      config.hostname: https://langsmith.example.com
+      config.basePath: langsmith
+    asserts:
+      - equal:
+          path: data.LANGCHAIN_PLATFORM_ENDPOINT
+          value: "https://langsmith.example.com/langsmith/api"
+
+  - it: should not be set when sandboxes are disabled
+    set:
+      config.existingSecretName: langsmith-secrets
+      config.oauth.enabled: true
+      config.authType: oauth
+      config.hostname: https://langsmith.example.com
+    asserts:
+      - notExists:
+          path: data.LANGCHAIN_PLATFORM_ENDPOINT

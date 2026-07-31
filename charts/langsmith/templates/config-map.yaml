@@ -36,6 +36,9 @@ data:
   LANGCHAIN_ENV: "local_kubernetes"
   LANGCHAIN_ENDPOINT: "/{{ if .Values.config.basePath }}{{ .Values.config.basePath }}/{{ end }}api/v1"
   {{- if .Values.sandboxes.enabled }}
+  {{- /* smith-go builds the Engine run webhook callback from this; a relative
+         value makes langgraph-api reject run creation as a loopback webhook. */}}
+  LANGCHAIN_PLATFORM_ENDPOINT: {{ include "langsmith.publicApiEndpoint" . | quote }}
   {{- end }}
   GO_ENDPOINT: {{ include "langsmith.platformBackendEndpoint" . | quote }}
   LANGSMITH_PUBLIC_API_ENDPOINT: {{ include "langsmith.publicApiEndpoint" . | quote }}
