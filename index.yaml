@@ -1495,6 +1495,20 @@ entries:
     version: 0.16.0-rc.26
   - apiVersion: v2
     appVersion: 0.16.30rc1
+    created: "2026-07-31T19:47:58.110912696Z"
+    description: Helm chart to deploy the langsmith application and all services it
+      depends on.
+    digest: 901ea82c40a0335fefd203f3bdcfb8eaebe40e5f894915e90548ec2278173114
+    maintainers:
+    - email: ankush@langchain.dev
+      name: Ankush
+    name: langsmith
+    type: application
+    urls:
+    - https://github.com/langchain-ai/helm/releases/download/langsmith-0.16.0-rc.26/langsmith-0.16.0-rc.26.tgz
+    version: 0.16.0-rc.26
+  - apiVersion: v2
+    appVersion: 0.16.30rc1
     created: "2026-07-31T05:27:16.743546669Z"
     description: Helm chart to deploy the langsmith application and all services it
       depends on.
@@ -7983,4 +7997,4 @@ entries:
     urls:
     - https://github.com/langchain-ai/helm/releases/download/open-gpts-0.1.0/open-gpts-0.1.0.tgz
     version: 0.1.0
-generated: "2026-07-31T17:25:09.907136044Z"
+generated: "2026-07-31T19:47:58.112253315Z"
