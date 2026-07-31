@@ -1138,3 +1138,77 @@ tests:
     asserts:
       - isNull:
           path: data.LANGSMITH_PUBLIC_API_ENDPOINT
+
+  - it: should accept the standard sandbox-host deployment knobs
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      sandboxes.sandboxHost.deployment.podSecurityContext:
+        fsGroup: 2000
+      sandboxes.sandboxHost.deployment.volumes:
+        - name: extra
+          emptyDir: {}
+      sandboxes.sandboxHost.deployment.volumeMounts:
+        - name: extra
+          mountPath: /extra
+      sandboxes.sandboxHost.deployment.initContainers:
+        - name: warm
+          image: busybox
+      sandboxes.sandboxHost.deployment.sidecars:
+        - name: shipper
+          image: busybox
+    template: sandboxes/sandbox-host-deployment.yaml
+    asserts:
+      - equal:
+          path: spec.template.spec.securityContext.fsGroup
+          value: 2000
+      - contains:
+          path: spec.template.spec.volumes
+          content:
+            name: extra
+            emptyDir: {}
+      - contains:
+          path: spec.template.spec.containers[0].volumeMounts
+          content:
+            name: extra
+            mountPath: /extra
+      - equal:
+          path: spec.template.spec.initContainers[0].name
+          value: warm
+      - equal:
+          path: spec.template.spec.containers[1].name
+          value: shipper
+
+  - it: should let the readiness probe be tuned
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      sandboxes.sandboxHost.deployment.readinessProbe.initialDelaySeconds: 60
+    template: sandboxes/sandbox-host-deployment.yaml
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].readinessProbe.initialDelaySeconds
+          value: 60
+      - equal:
+          path: spec.template.spec.containers[0].readinessProbe.tcpSocket.port
+          value: http
+
+  - it: should refuse to run sandbox-host unprivileged
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      sandboxes.sandboxHost.deployment.securityContext.privileged: false
+    template: validate.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: "sandboxes.sandboxHost.deployment.securityContext.privileged must be true: sandbox-host manages microVMs, network namespaces and mounts."
+
+  - it: should refuse a read-only root filesystem for sandbox-host
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      sandboxes.sandboxHost.deployment.securityContext.readOnlyRootFilesystem: true
+    template: validate.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: "sandboxes.sandboxHost.deployment.securityContext.readOnlyRootFilesystem must not be true: sandbox-host unpacks the guest tools image on startup."

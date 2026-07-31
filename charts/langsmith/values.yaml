@@ -280,9 +280,27 @@ sandboxes:
         requests:
           cpu: "2"
           memory: 2Gi
+      # -- Container security context. sandbox-host must stay privileged: it creates network
+      # namespaces, programs iptables, and propagates mounts for the JuiceFS volume. A read-only
+      # root filesystem will not work either, since it unpacks the guest tools image on startup.
       securityContext:
         privileged: true
+      podSecurityContext: {}
       extraEnv: []
+      volumes: []
+      volumeMounts: []
+      initContainers: []
+      sidecars: []
+      # -- Readiness probe. The host binds its listener only once its engine, fence and lease loops
+      # are up, so accepting connections is the signal a rollout should wait on. There is
+      # deliberately no liveness probe: a restart mid-suspend would destroy running microVMs.
+      readinessProbe:
+        tcpSocket:
+          port: http
+        initialDelaySeconds: 5
+        periodSeconds: 10
+        timeoutSeconds: 3
+        failureThreshold: 3
     # -- Sandbox host pool autoscaling. There is no HPA or KEDA object: the elected sandbox-host resizes the Deployment itself. Unmanaged `sandbox-host.smith.langchain.com/autoscale-*` annotations override these live.
     autoscaling:
       enabled: false

@@ -10,6 +10,8 @@
   (dict "app.kubernetes.io/component" (printf "%s-%s" (include "langsmith.fullname" .) .Values.sandboxes.sandboxHost.name)) }}
 {{- $tlsVolumes := include "langsmith.tlsVolumes" . | fromYamlArray }}
 {{- $tlsVolumeMounts := include "langsmith.tlsVolumeMounts" . | fromYamlArray }}
+{{- $extraVolumes := concat .Values.commonVolumes .Values.sandboxes.sandboxHost.deployment.volumes }}
+{{- $extraVolumeMounts := concat .Values.commonVolumeMounts .Values.sandboxes.sandboxHost.deployment.volumeMounts }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -45,6 +47,10 @@ spec:
           {{- toYaml . | nindent 8 }}
         {{- end }}
     spec:
+      {{- with include "langsmith.podSecurityContext" (dict "Values" .Values "componentSecurityContext" .Values.sandboxes.sandboxHost.deployment.podSecurityContext) }}
+      securityContext:
+        {{- . | nindent 8 }}
+      {{- end }}
       hostNetwork: true
       dnsPolicy: ClusterFirstWithHostNet
       serviceAccountName: {{ include "langsmith.sandboxes.sandboxHostServiceAccountName" . }}
@@ -68,6 +74,10 @@ spec:
       {{- end }}
       {{- with .Values.sandboxes.sandboxHost.deployment.tolerations }}
       tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with concat .Values.commonInitContainers .Values.sandboxes.sandboxHost.deployment.initContainers }}
+      initContainers:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       containers:
@@ -156,14 +166,10 @@ spec:
               containerPort: 19190
               hostPort: 19190
               protocol: TCP
-          {{- /* No liveness probe: a restart mid-suspend would destroy running microVMs. */}}
+          {{- with .Values.sandboxes.sandboxHost.deployment.readinessProbe }}
           readinessProbe:
-            tcpSocket:
-              port: http
-            initialDelaySeconds: 5
-            periodSeconds: 10
-            timeoutSeconds: 3
-            failureThreshold: 3
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           securityContext:
             {{- toYaml .Values.sandboxes.sandboxHost.deployment.securityContext | nindent 12 }}
           resources:
@@ -176,9 +182,12 @@ spec:
             - name: proxy-ca
               mountPath: /certs
               readOnly: true
-            {{- with $tlsVolumeMounts }}
+            {{- with concat $tlsVolumeMounts $extraVolumeMounts }}
               {{- toYaml . | nindent 12 }}
             {{- end }}
+        {{- with .Values.sandboxes.sandboxHost.deployment.sidecars }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
       volumes:
         - name: juicefs
           persistentVolumeClaim:
@@ -190,7 +199,7 @@ spec:
           hostPath:
             path: /var/lib/sandbox-host
             type: DirectoryOrCreate
-        {{- with $tlsVolumes }}
+        {{- with concat $tlsVolumes $extraVolumes }}
           {{- toYaml . | nindent 8 }}
         {{- end }}
       terminationGracePeriodSeconds: {{ .Values.sandboxes.sandboxHost.deployment.terminationGracePeriodSeconds }}

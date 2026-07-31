@@ -139,6 +139,14 @@ AWS Marketplace Helm template verification).
 {{- fail "images.juicefsMountImage.repository is required when images.juicefsMountImage.tag is set." -}}
 {{- end -}}
 {{- end -}}
+{{- /* The host creates network namespaces, programs iptables and propagates the JuiceFS
+       mount, so it cannot run unprivileged. Fail here rather than CrashLoop. */ -}}
+{{- if and (hasKey .Values.sandboxes.sandboxHost.deployment.securityContext "privileged") (not .Values.sandboxes.sandboxHost.deployment.securityContext.privileged) -}}
+{{- fail "sandboxes.sandboxHost.deployment.securityContext.privileged must be true: sandbox-host manages microVMs, network namespaces and mounts." -}}
+{{- end -}}
+{{- if .Values.sandboxes.sandboxHost.deployment.securityContext.readOnlyRootFilesystem -}}
+{{- fail "sandboxes.sandboxHost.deployment.securityContext.readOnlyRootFilesystem must not be true: sandbox-host unpacks the guest tools image on startup." -}}
+{{- end -}}
 {{- $autoscaling := .Values.sandboxes.sandboxHost.autoscaling -}}
 {{- if $autoscaling.enabled -}}
 {{- if lt (int $autoscaling.minReplicas) 1 -}}
