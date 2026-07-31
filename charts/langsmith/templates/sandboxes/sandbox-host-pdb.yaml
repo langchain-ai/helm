@@ -2,7 +2,7 @@
 apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
-  name: {{ include "langsmith.sandboxes.sandboxHostDeploymentName" . }}
+  name: {{ include "langsmith.fullname" . }}-{{ .Values.config.sandboxes.sandboxHost.name }}
   namespace: {{ .Values.namespace | default .Release.Namespace }}
   labels:
     {{- include "langsmith.labels" . | nindent 4 }}
@@ -18,7 +18,7 @@ spec:
   selector:
     matchLabels:
       {{- include "langsmith.selectorLabels" . | nindent 6 }}
-      app.kubernetes.io/component: {{ include "langsmith.sandboxes.sandboxHostDeploymentName" . }}
+      app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-{{ .Values.config.sandboxes.sandboxHost.name }}
   {{- /* Only one may be set, so an explicit minAvailable wins over the default maxUnavailable. */}}
   {{- if hasKey .Values.config.sandboxes.sandboxHost.pdb "minAvailable" }}
   minAvailable: {{ .Values.config.sandboxes.sandboxHost.pdb.minAvailable }}

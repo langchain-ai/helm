@@ -1358,33 +1358,11 @@ mountPodPatch:
 {{- end -}}
 
 {{/*
-Creates an optional image reference without falling back to Chart.AppVersion.
-*/}}
-{{- define "langsmith.optionalImage" -}}
-{{- $imageConfig := index .Values.images .component -}}
-{{- if and $imageConfig.repository $imageConfig.tag -}}
-{{- if .Values.images.registry -}}
-{{ .Values.images.registry }}/{{ $imageConfig.repository }}:{{ $imageConfig.tag }}
-{{- else -}}
-{{ $imageConfig.repository }}:{{ $imageConfig.tag }}
-{{- end -}}
-{{- end -}}
-{{- end -}}
-
-{{/*
-Sandbox-host Deployment name. The host is told this via SANDBOX_HOST_DEPLOYMENT_NAME,
-since it resolves its own Deployment by name to drive pool autoscaling.
-*/}}
-{{- define "langsmith.sandboxes.sandboxHostDeploymentName" -}}
-{{- printf "%s-%s" (include "langsmith.fullname" .) .Values.config.sandboxes.sandboxHost.name | trunc 63 | trimSuffix "-" -}}
-{{- end -}}
-
-{{/*
 Sandbox service account names.
 */}}
 {{- define "langsmith.sandboxes.sandboxHostServiceAccountName" -}}
 {{- if .Values.config.sandboxes.sandboxHost.serviceAccount.create -}}
-{{- default (include "langsmith.sandboxes.sandboxHostDeploymentName" .) .Values.config.sandboxes.sandboxHost.serviceAccount.name | trunc 63 | trimSuffix "-" -}}
+{{- default (printf "%s-%s" (include "langsmith.fullname" .) .Values.config.sandboxes.sandboxHost.name) .Values.config.sandboxes.sandboxHost.serviceAccount.name | trunc 63 | trimSuffix "-" -}}
 {{- else -}}
 {{- default "default" .Values.config.sandboxes.sandboxHost.serviceAccount.name -}}
 {{- end -}}

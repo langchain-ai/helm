@@ -3,7 +3,7 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
-  name: {{ include "langsmith.sandboxes.sandboxHostDeploymentName" . }}
+  name: {{ include "langsmith.fullname" . }}-{{ .Values.config.sandboxes.sandboxHost.name }}
   namespace: {{ $namespace }}
   labels:
     {{- include "langsmith.labels" . | nindent 4 }}
@@ -34,7 +34,7 @@ rules:
   resources:
   - deployments
   resourceNames:
-  - {{ include "langsmith.sandboxes.sandboxHostDeploymentName" . }}
+  - {{ include "langsmith.fullname" . }}-{{ .Values.config.sandboxes.sandboxHost.name }}
   verbs:
   - get
   - patch
@@ -49,7 +49,7 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: {{ include "langsmith.sandboxes.sandboxHostDeploymentName" . }}
+  name: {{ include "langsmith.fullname" . }}-{{ .Values.config.sandboxes.sandboxHost.name }}
   namespace: {{ $namespace }}
   labels:
     {{- include "langsmith.labels" . | nindent 4 }}
@@ -67,6 +67,6 @@ subjects:
     namespace: {{ $namespace }}
 roleRef:
   kind: Role
-  name: {{ include "langsmith.sandboxes.sandboxHostDeploymentName" . }}
+  name: {{ include "langsmith.fullname" . }}-{{ .Values.config.sandboxes.sandboxHost.name }}
   apiGroup: rbac.authorization.k8s.io
 {{- end }}

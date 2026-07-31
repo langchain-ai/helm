@@ -150,11 +150,11 @@ images:
     repository: "registry.k8s.io/sig-storage/csi-node-driver-registrar"
     pullPolicy: IfNotPresent
     tag: "v2.9.0"
-  # -- Optional JuiceFS CE mount image used by runtime mount pods. Set this when mirroring images for restricted networks.
+  # -- JuiceFS CE mount image used by the runtime mount pods the CSI driver creates. Only used when config.sandboxes.enabled is true.
   juicefsMountImage:
     repository: "docker.io/juicedata/mount"
     pullPolicy: IfNotPresent
-    tag: ""
+    tag: "ce-v1.3.0"
 
 ingress:
   enabled: false
