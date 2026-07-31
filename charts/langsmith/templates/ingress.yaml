@@ -34,7 +34,7 @@ spec:
             name: {{ include "langsmith.fullname" . }}-{{ .Values.frontend.name }}
             port:
               number: {{ .Values.frontend.service.httpPort }}
-  {{- if and .Values.config.sandboxes.enabled .Values.config.sandboxes.serviceUrlBaseUrl }}
+  {{- if and .Values.sandboxes.enabled .Values.sandboxes.serviceUrlBaseUrl }}
   - host: {{ printf "*.%s" (include "langsmith.sandboxes.serviceUrlHost" .) | quote }}
     http:
       paths:

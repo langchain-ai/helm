@@ -137,7 +137,7 @@ data:
             proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.platformBackend.service.port }};
         }
 
-        {{- if .Values.config.sandboxes.enabled }}
+        {{- if .Values.sandboxes.enabled }}
         location /{{ .Values.config.basePath }}/api/v2/sandboxes/ {
             rewrite /{{ .Values.config.basePath }}/api/v2/sandboxes/(.*) /v2/sandboxes/$1  break;
             proxy_set_header Upgrade $http_upgrade;
@@ -772,7 +772,7 @@ data:
             proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.platformBackend.service.port }};
         }
 
-        {{- if .Values.config.sandboxes.enabled }}
+        {{- if .Values.sandboxes.enabled }}
         location /api/v2/sandboxes/ {
             rewrite /api/v2/sandboxes/(.*) /v2/sandboxes/$1  break;
             proxy_set_header Upgrade $http_upgrade;

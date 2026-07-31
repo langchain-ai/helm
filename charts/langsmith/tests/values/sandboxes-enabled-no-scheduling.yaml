@@ -11,10 +11,6 @@ images:
 
 sandboxes:
   enabled: true
-  sandboxHost:
-    deployment:
-      nodeSelector:
-        sandbox.langsmith.com/host: "true"
   quotas:
     maxCpuCores: 16
     maxMemoryGb: 64
