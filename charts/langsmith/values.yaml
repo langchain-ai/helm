@@ -242,6 +242,7 @@ sandboxes:
       # -- Number of sandbox-host replicas, i.e. sandbox nodes backing the pool. One host per node, so do not exceed the node count. Ignored when autoscaling is enabled.
       replicas: 1
       terminationGracePeriodSeconds: 300
+      priorityClassName: ""
       # -- Node selector for sandbox-host pods. Required: host pods must land on KVM-capable nodes, and a toleration alone does not attract them there.
       nodeSelector: {}
       # -- Tolerations for sandbox-host pods. The default expects sandbox-host nodes tainted `sandbox.langsmith.com/host=true:NoSchedule`; override this if your sandbox node pool uses different taints.

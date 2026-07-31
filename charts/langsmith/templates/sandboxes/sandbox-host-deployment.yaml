@@ -65,6 +65,9 @@ spec:
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      {{- with .Values.sandboxes.sandboxHost.deployment.priorityClassName }}
+      priorityClassName: {{ . }}
+      {{- end }}
       {{- with .Values.sandboxes.sandboxHost.deployment.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

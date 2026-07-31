@@ -1213,3 +1213,22 @@ tests:
     asserts:
       - failedTemplate:
           errorMessage: "sandboxes.sandboxHost.deployment.securityContext.readOnlyRootFilesystem must not be true: sandbox-host unpacks the guest tools image on startup."
+
+  - it: does not render the sandbox-host priorityClassName by default
+    values:
+      - values/sandboxes-enabled.yaml
+    template: sandboxes/sandbox-host-deployment.yaml
+    asserts:
+      - notExists:
+          path: spec.template.spec.priorityClassName
+
+  - it: renders a configured sandbox-host priorityClassName
+    values:
+      - values/sandboxes-enabled.yaml
+    set:
+      sandboxes.sandboxHost.deployment.priorityClassName: system-node-critical
+    template: sandboxes/sandbox-host-deployment.yaml
+    asserts:
+      - equal:
+          path: spec.template.spec.priorityClassName
+          value: system-node-critical
