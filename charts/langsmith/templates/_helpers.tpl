@@ -1231,9 +1231,9 @@ Sandbox proxy CA secret name in the LangSmith release namespace.
 {{- end -}}
 
 {{/*
-Internal LangSmith platform endpoint used by sandbox runtime callbacks.
+In-cluster platform-backend URL. Also rendered as GO_ENDPOINT in the shared ConfigMap.
 */}}
-{{- define "langsmith.sandboxes.langsmithInternalEndpoint" -}}
+{{- define "langsmith.platformBackendEndpoint" -}}
 {{- printf "http://%s-%s.%s.svc.%s:%v" (include "langsmith.fullname" .) .Values.platformBackend.name (.Values.namespace | default .Release.Namespace) .Values.clusterDomain .Values.platformBackend.service.port -}}
 {{- end -}}
 
@@ -1387,17 +1387,6 @@ Sandbox service account names.
 {{- default (include "langsmith.sandboxes.sandboxHostDeploymentName" .) .Values.config.sandboxes.sandboxHost.serviceAccount.name | trunc 63 | trimSuffix "-" -}}
 {{- else -}}
 {{- default "default" .Values.config.sandboxes.sandboxHost.serviceAccount.name -}}
-{{- end -}}
-{{- end -}}
-
-{{/*
-Node selector for sandbox-host pods.
-*/}}
-{{- define "langsmith.sandboxes.sandboxHostNodeSelector" -}}
-{{- if .Values.config.sandboxes.sandboxHost.deployment.nodeSelector -}}
-{{- toYaml .Values.config.sandboxes.sandboxHost.deployment.nodeSelector -}}
-{{- else -}}
-sandbox.langsmith.com/host: "true"
 {{- end -}}
 {{- end -}}
 

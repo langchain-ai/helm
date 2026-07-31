@@ -5,7 +5,7 @@ config:
   authType: oauth
   sandboxes:
     enabled: true
-    limits:
+    quotas:
       maxCpuCores: 16
       maxMemoryGb: 64
       minEphemeralStorageGb: 1

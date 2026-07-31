@@ -62,8 +62,10 @@ spec:
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      {{- with .Values.config.sandboxes.sandboxHost.deployment.nodeSelector }}
       nodeSelector:
-        {{- include "langsmith.sandboxes.sandboxHostNodeSelector" . | nindent 8 }}
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       {{- with .Values.config.sandboxes.sandboxHost.deployment.tolerations }}
       tolerations:
         {{- toYaml . | nindent 8 }}
@@ -116,12 +118,14 @@ spec:
             - name: OAUTH_AS_ISSUER
               value: {{ include "langsmith.oauthAsIssuer" . | quote }}
             {{- end }}
+            {{- /* Self-hosted sandboxes legitimately call private addresses; SaaS is the
+                   deployment that blocks them. Matches the SSRF_ALLOW_PRIVATE_IPS_* convention. */}}
             - name: SSRF_ALLOW_PRIVATE_IPS_CALLBACKS
-              value: {{ .Values.config.sandboxes.sandboxHost.allowPrivateIPCallbacks | quote }}
+              value: "true"
             - name: SANDBOX_CALLBACK_LOOPBACK_REWRITE
               value: "false"
             - name: LANGSMITH_SANDBOX_INTERNAL_ENDPOINT
-              value: {{ include "langsmith.sandboxes.langsmithInternalEndpoint" . | quote }}
+              value: {{ include "langsmith.platformBackendEndpoint" . | quote }}
             - name: SANDBOX_HOST_DEPLOYMENT_NAME
               value: {{ include "langsmith.sandboxes.sandboxHostDeploymentName" . | quote }}
             - name: SANDBOX_HOST_TERMINATION_GRACE_SECONDS
