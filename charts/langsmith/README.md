@@ -8,6 +8,10 @@ Helm chart to deploy the langsmith application and all services it depends on.
 
 For information on how to use this chart, up-to-date release notes, and other guides please check out the [documentation.](https://docs.langchain.com/langsmith/kubernetes)
 
+## Frontend Routing
+
+The chart-managed frontend owns public API route rewrites for LangSmith services and enabled features. If `frontend.enabled=false`, provide equivalent routing in the external frontend or reverse proxy for every enabled feature, including any configured `config.basePath` prefix and WebSocket upgrade handling where required.
+
 ## General parameters
 
 | Key | Type | Default | Description |
@@ -22,6 +26,204 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | commonPodSecurityContext | object | `{}` | Common pod security context applied to all pods. Component-specific podSecurityContext values will be merged on top of this (component values take precedence). |
 | commonVolumeMounts | list | `[]` | Common volume mounts added to all deployments/statefulsets except for the playground/aceBackend services (which are sandboxed). |
 | commonVolumes | list | `[]` | Common volumes added to all deployments/statefulsets except for the playground/aceBackend services (which are sandboxed). |
+| engine.enabled | bool | `false` |  |
+| engine.encryptionKey | string | `""` |  |
+| engine.encryptionKeyPrevious | string | `""` |  |
+| engine.intelligenceBaseUrl | string | `""` |  |
+| engine.sandboxTenantId | string | `""` | Workspace id that owns Engine sandboxes. Required when sandboxes are enabled: the Engine signs a service key with this tenant and smith-go rejects one without it.  Use a workspace reserved for the Engine, not one people work in. Sandboxes land in this workspace, so they consume its sandbox quota — an Engine run can be refused because the workspace is at its cap, and Engine sandboxes count against a cap bought for other work. They are also listed in it and can be stopped by anyone with access, while each one runs agent-generated code and holds a GitHub token for the repo under analysis. |
+| engineInsightsAgent.apiServer.autoscaling.enabled | bool | `false` |  |
+| engineInsightsAgent.apiServer.autoscaling.keda.cooldownPeriod | int | `300` |  |
+| engineInsightsAgent.apiServer.autoscaling.keda.enabled | bool | `false` |  |
+| engineInsightsAgent.apiServer.autoscaling.keda.pollingInterval | int | `30` |  |
+| engineInsightsAgent.apiServer.autoscaling.keda.scaleDownStabilizationWindowSeconds | int | `300` |  |
+| engineInsightsAgent.apiServer.autoscaling.maxReplicas | int | `5` |  |
+| engineInsightsAgent.apiServer.autoscaling.minReplicas | int | `1` |  |
+| engineInsightsAgent.apiServer.autoscaling.targetCPUUtilizationPercentage | int | `80` |  |
+| engineInsightsAgent.apiServer.containerPort | int | `8000` |  |
+| engineInsightsAgent.apiServer.deployment.affinity | object | `{}` |  |
+| engineInsightsAgent.apiServer.deployment.annotations | object | `{}` |  |
+| engineInsightsAgent.apiServer.deployment.envFrom | list | `[]` |  |
+| engineInsightsAgent.apiServer.deployment.extraEnv | list | `[]` |  |
+| engineInsightsAgent.apiServer.deployment.initContainers | list | `[]` |  |
+| engineInsightsAgent.apiServer.deployment.labels | object | `{}` |  |
+| engineInsightsAgent.apiServer.deployment.lifecycle | object | `{}` |  |
+| engineInsightsAgent.apiServer.deployment.livenessProbe.exec | string | `nil` |  |
+| engineInsightsAgent.apiServer.deployment.livenessProbe.failureThreshold | int | `6` |  |
+| engineInsightsAgent.apiServer.deployment.livenessProbe.httpGet.path | string | `"/ok?check_db=0"` |  |
+| engineInsightsAgent.apiServer.deployment.livenessProbe.httpGet.port | int | `8000` |  |
+| engineInsightsAgent.apiServer.deployment.livenessProbe.periodSeconds | int | `10` |  |
+| engineInsightsAgent.apiServer.deployment.livenessProbe.timeoutSeconds | int | `1` |  |
+| engineInsightsAgent.apiServer.deployment.nodeSelector | object | `{}` |  |
+| engineInsightsAgent.apiServer.deployment.podSecurityContext | object | `{}` |  |
+| engineInsightsAgent.apiServer.deployment.priorityClassName | string | `""` |  |
+| engineInsightsAgent.apiServer.deployment.readinessProbe.exec | string | `nil` |  |
+| engineInsightsAgent.apiServer.deployment.readinessProbe.failureThreshold | int | `3` |  |
+| engineInsightsAgent.apiServer.deployment.readinessProbe.httpGet.path | string | `"/ok?check_db=0"` |  |
+| engineInsightsAgent.apiServer.deployment.readinessProbe.httpGet.port | int | `8000` |  |
+| engineInsightsAgent.apiServer.deployment.readinessProbe.periodSeconds | int | `10` |  |
+| engineInsightsAgent.apiServer.deployment.readinessProbe.timeoutSeconds | int | `1` |  |
+| engineInsightsAgent.apiServer.deployment.replicaCount | int | `1` |  |
+| engineInsightsAgent.apiServer.deployment.resources | object | `{}` |  |
+| engineInsightsAgent.apiServer.deployment.securityContext | object | `{}` |  |
+| engineInsightsAgent.apiServer.deployment.sidecars | list | `[]` |  |
+| engineInsightsAgent.apiServer.deployment.startupProbe.exec | string | `nil` |  |
+| engineInsightsAgent.apiServer.deployment.startupProbe.failureThreshold | int | `6` |  |
+| engineInsightsAgent.apiServer.deployment.startupProbe.httpGet.path | string | `"/ok?check_db=1"` |  |
+| engineInsightsAgent.apiServer.deployment.startupProbe.httpGet.port | int | `8000` |  |
+| engineInsightsAgent.apiServer.deployment.startupProbe.periodSeconds | int | `10` |  |
+| engineInsightsAgent.apiServer.deployment.startupProbe.timeoutSeconds | int | `1` |  |
+| engineInsightsAgent.apiServer.deployment.terminationGracePeriodSeconds | int | `30` |  |
+| engineInsightsAgent.apiServer.deployment.tolerations | list | `[]` |  |
+| engineInsightsAgent.apiServer.deployment.volumeMounts | list | `[]` |  |
+| engineInsightsAgent.apiServer.deployment.volumes | list | `[]` |  |
+| engineInsightsAgent.apiServer.name | string | `"api-server"` |  |
+| engineInsightsAgent.apiServer.pdb.enabled | bool | `false` |  |
+| engineInsightsAgent.apiServer.pdb.minAvailable | int | `1` |  |
+| engineInsightsAgent.apiServer.service.annotations | object | `{}` |  |
+| engineInsightsAgent.apiServer.service.httpPort | int | `80` |  |
+| engineInsightsAgent.apiServer.service.labels | object | `{}` |  |
+| engineInsightsAgent.apiServer.service.type | string | `"ClusterIP"` |  |
+| engineInsightsAgent.apiServer.serviceAccount.annotations | object | `{}` |  |
+| engineInsightsAgent.apiServer.serviceAccount.automountServiceAccountToken | bool | `true` |  |
+| engineInsightsAgent.apiServer.serviceAccount.create | bool | `true` |  |
+| engineInsightsAgent.apiServer.serviceAccount.labels | object | `{}` |  |
+| engineInsightsAgent.apiServer.serviceAccount.name | string | `""` |  |
+| engineInsightsAgent.namePrefix | string | `"standalone-insights"` |  |
+| engineInsightsAgent.postgres.containerPort | int | `5432` |  |
+| engineInsightsAgent.postgres.external.connectionUrl | string | `""` |  |
+| engineInsightsAgent.postgres.external.database | string | `"postgres"` |  |
+| engineInsightsAgent.postgres.external.enabled | bool | `false` |  |
+| engineInsightsAgent.postgres.external.existingSecretName | string | `""` |  |
+| engineInsightsAgent.postgres.external.host | string | `""` |  |
+| engineInsightsAgent.postgres.external.iamProvider | string | `""` |  |
+| engineInsightsAgent.postgres.external.password | string | `"postgres"` |  |
+| engineInsightsAgent.postgres.external.port | string | `"5432"` |  |
+| engineInsightsAgent.postgres.external.schema | string | `"public"` |  |
+| engineInsightsAgent.postgres.external.user | string | `"postgres"` |  |
+| engineInsightsAgent.postgres.name | string | `"postgres"` |  |
+| engineInsightsAgent.postgres.pdb.enabled | bool | `false` |  |
+| engineInsightsAgent.postgres.pdb.minAvailable | int | `1` |  |
+| engineInsightsAgent.postgres.service.annotations | object | `{}` |  |
+| engineInsightsAgent.postgres.service.labels | object | `{}` |  |
+| engineInsightsAgent.postgres.service.port | int | `5432` |  |
+| engineInsightsAgent.postgres.service.type | string | `"ClusterIP"` |  |
+| engineInsightsAgent.postgres.serviceAccount.annotations | object | `{}` |  |
+| engineInsightsAgent.postgres.serviceAccount.automountServiceAccountToken | bool | `true` |  |
+| engineInsightsAgent.postgres.serviceAccount.create | bool | `true` |  |
+| engineInsightsAgent.postgres.serviceAccount.labels | object | `{}` |  |
+| engineInsightsAgent.postgres.serviceAccount.name | string | `""` |  |
+| engineInsightsAgent.postgres.statefulSet.affinity | object | `{}` |  |
+| engineInsightsAgent.postgres.statefulSet.annotations | object | `{}` |  |
+| engineInsightsAgent.postgres.statefulSet.command | list | `[]` |  |
+| engineInsightsAgent.postgres.statefulSet.extraContainerConfig | object | `{}` |  |
+| engineInsightsAgent.postgres.statefulSet.extraEnv | list | `[]` |  |
+| engineInsightsAgent.postgres.statefulSet.labels | object | `{}` |  |
+| engineInsightsAgent.postgres.statefulSet.lifecycle | object | `{}` |  |
+| engineInsightsAgent.postgres.statefulSet.nodeSelector | object | `{}` |  |
+| engineInsightsAgent.postgres.statefulSet.persistence.enabled | bool | `true` |  |
+| engineInsightsAgent.postgres.statefulSet.persistence.size | string | `"8Gi"` |  |
+| engineInsightsAgent.postgres.statefulSet.persistence.storageClassName | string | `""` |  |
+| engineInsightsAgent.postgres.statefulSet.persistentVolumeClaimRetentionPolicy | object | `{}` |  |
+| engineInsightsAgent.postgres.statefulSet.podSecurityContext | object | `{}` |  |
+| engineInsightsAgent.postgres.statefulSet.priorityClassName | string | `""` |  |
+| engineInsightsAgent.postgres.statefulSet.resources | object | `{}` |  |
+| engineInsightsAgent.postgres.statefulSet.securityContext | object | `{}` |  |
+| engineInsightsAgent.postgres.statefulSet.sidecars | list | `[]` |  |
+| engineInsightsAgent.postgres.statefulSet.terminationGracePeriodSeconds | int | `30` |  |
+| engineInsightsAgent.postgres.statefulSet.tolerations | list | `[]` |  |
+| engineInsightsAgent.postgres.statefulSet.updateStrategy | object | `{}` | Optional StatefulSet update strategy for the in-chart Insights PostgreSQL instance. Leave unset to keep the Kubernetes default RollingUpdate behavior. |
+| engineInsightsAgent.postgres.statefulSet.volumeMounts | list | `[]` |  |
+| engineInsightsAgent.postgres.statefulSet.volumes | list | `[]` |  |
+| engineInsightsAgent.queue.autoscaling.enabled | bool | `false` |  |
+| engineInsightsAgent.queue.autoscaling.keda.cooldownPeriod | int | `300` |  |
+| engineInsightsAgent.queue.autoscaling.keda.enabled | bool | `false` |  |
+| engineInsightsAgent.queue.autoscaling.keda.pollingInterval | int | `30` |  |
+| engineInsightsAgent.queue.autoscaling.keda.scaleDownStabilizationWindowSeconds | int | `300` |  |
+| engineInsightsAgent.queue.autoscaling.maxReplicas | int | `5` |  |
+| engineInsightsAgent.queue.autoscaling.minReplicas | int | `1` |  |
+| engineInsightsAgent.queue.autoscaling.targetCPUUtilizationPercentage | int | `80` |  |
+| engineInsightsAgent.queue.containerPort | int | `8000` |  |
+| engineInsightsAgent.queue.deployment.affinity | object | `{}` |  |
+| engineInsightsAgent.queue.deployment.annotations | object | `{}` |  |
+| engineInsightsAgent.queue.deployment.envFrom | list | `[]` |  |
+| engineInsightsAgent.queue.deployment.extraEnv | list | `[]` |  |
+| engineInsightsAgent.queue.deployment.labels | object | `{}` |  |
+| engineInsightsAgent.queue.deployment.lifecycle | object | `{}` |  |
+| engineInsightsAgent.queue.deployment.livenessProbe.failureThreshold | int | `6` |  |
+| engineInsightsAgent.queue.deployment.livenessProbe.httpGet.path | string | `"/ok"` |  |
+| engineInsightsAgent.queue.deployment.livenessProbe.httpGet.port | int | `8000` |  |
+| engineInsightsAgent.queue.deployment.livenessProbe.periodSeconds | int | `10` |  |
+| engineInsightsAgent.queue.deployment.livenessProbe.timeoutSeconds | int | `1` |  |
+| engineInsightsAgent.queue.deployment.nodeSelector | object | `{}` |  |
+| engineInsightsAgent.queue.deployment.podSecurityContext | object | `{}` |  |
+| engineInsightsAgent.queue.deployment.priorityClassName | string | `""` |  |
+| engineInsightsAgent.queue.deployment.readinessProbe.failureThreshold | int | `6` |  |
+| engineInsightsAgent.queue.deployment.readinessProbe.httpGet.path | string | `"/ok"` |  |
+| engineInsightsAgent.queue.deployment.readinessProbe.httpGet.port | int | `8000` |  |
+| engineInsightsAgent.queue.deployment.readinessProbe.periodSeconds | int | `10` |  |
+| engineInsightsAgent.queue.deployment.readinessProbe.timeoutSeconds | int | `1` |  |
+| engineInsightsAgent.queue.deployment.replicaCount | int | `1` |  |
+| engineInsightsAgent.queue.deployment.resources | object | `{}` |  |
+| engineInsightsAgent.queue.deployment.securityContext | object | `{}` |  |
+| engineInsightsAgent.queue.deployment.sidecars | list | `[]` |  |
+| engineInsightsAgent.queue.deployment.startupProbe.failureThreshold | int | `6` |  |
+| engineInsightsAgent.queue.deployment.startupProbe.httpGet.path | string | `"/ok"` |  |
+| engineInsightsAgent.queue.deployment.startupProbe.httpGet.port | int | `8000` |  |
+| engineInsightsAgent.queue.deployment.startupProbe.periodSeconds | int | `10` |  |
+| engineInsightsAgent.queue.deployment.startupProbe.timeoutSeconds | int | `1` |  |
+| engineInsightsAgent.queue.deployment.terminationGracePeriodSeconds | int | `30` |  |
+| engineInsightsAgent.queue.deployment.tolerations | list | `[]` |  |
+| engineInsightsAgent.queue.deployment.volumeMounts | list | `[]` |  |
+| engineInsightsAgent.queue.deployment.volumes | list | `[]` |  |
+| engineInsightsAgent.queue.enabled | bool | `true` |  |
+| engineInsightsAgent.queue.name | string | `"queue"` |  |
+| engineInsightsAgent.queue.numberOfJobsPerWorker | int | `10` |  |
+| engineInsightsAgent.queue.pdb.enabled | bool | `false` |  |
+| engineInsightsAgent.queue.pdb.minAvailable | int | `1` |  |
+| engineInsightsAgent.queue.serviceAccount.annotations | object | `{}` |  |
+| engineInsightsAgent.queue.serviceAccount.automountServiceAccountToken | bool | `true` |  |
+| engineInsightsAgent.queue.serviceAccount.create | bool | `true` |  |
+| engineInsightsAgent.queue.serviceAccount.labels | object | `{}` |  |
+| engineInsightsAgent.queue.serviceAccount.name | string | `""` |  |
+| engineInsightsAgent.redis.containerPort | int | `6379` |  |
+| engineInsightsAgent.redis.external.connectionUrl | string | `""` |  |
+| engineInsightsAgent.redis.external.enabled | bool | `false` |  |
+| engineInsightsAgent.redis.external.existingSecretName | string | `""` |  |
+| engineInsightsAgent.redis.external.iamProvider | string | `""` |  |
+| engineInsightsAgent.redis.name | string | `"redis"` |  |
+| engineInsightsAgent.redis.pdb.enabled | bool | `false` |  |
+| engineInsightsAgent.redis.pdb.minAvailable | int | `1` |  |
+| engineInsightsAgent.redis.service.annotations | object | `{}` |  |
+| engineInsightsAgent.redis.service.labels | object | `{}` |  |
+| engineInsightsAgent.redis.service.port | int | `6379` |  |
+| engineInsightsAgent.redis.service.type | string | `"ClusterIP"` |  |
+| engineInsightsAgent.redis.serviceAccount.annotations | object | `{}` |  |
+| engineInsightsAgent.redis.serviceAccount.automountServiceAccountToken | bool | `true` |  |
+| engineInsightsAgent.redis.serviceAccount.create | bool | `true` |  |
+| engineInsightsAgent.redis.serviceAccount.labels | object | `{}` |  |
+| engineInsightsAgent.redis.serviceAccount.name | string | `""` |  |
+| engineInsightsAgent.redis.statefulSet.affinity | object | `{}` |  |
+| engineInsightsAgent.redis.statefulSet.annotations | object | `{}` |  |
+| engineInsightsAgent.redis.statefulSet.command | list | `[]` |  |
+| engineInsightsAgent.redis.statefulSet.extraContainerConfig | object | `{}` |  |
+| engineInsightsAgent.redis.statefulSet.extraEnv | list | `[]` |  |
+| engineInsightsAgent.redis.statefulSet.labels | object | `{}` |  |
+| engineInsightsAgent.redis.statefulSet.lifecycle | object | `{}` |  |
+| engineInsightsAgent.redis.statefulSet.nodeSelector | object | `{}` |  |
+| engineInsightsAgent.redis.statefulSet.persistence.enabled | bool | `true` |  |
+| engineInsightsAgent.redis.statefulSet.persistence.size | string | `"8Gi"` |  |
+| engineInsightsAgent.redis.statefulSet.persistence.storageClassName | string | `""` |  |
+| engineInsightsAgent.redis.statefulSet.persistentVolumeClaimRetentionPolicy | object | `{}` |  |
+| engineInsightsAgent.redis.statefulSet.podSecurityContext | object | `{}` |  |
+| engineInsightsAgent.redis.statefulSet.priorityClassName | string | `""` |  |
+| engineInsightsAgent.redis.statefulSet.resources | object | `{}` |  |
+| engineInsightsAgent.redis.statefulSet.securityContext | object | `{}` |  |
+| engineInsightsAgent.redis.statefulSet.sidecars | list | `[]` |  |
+| engineInsightsAgent.redis.statefulSet.terminationGracePeriodSeconds | int | `30` |  |
+| engineInsightsAgent.redis.statefulSet.tolerations | list | `[]` |  |
+| engineInsightsAgent.redis.statefulSet.updateStrategy | object | `{}` | Optional StatefulSet update strategy for the in-chart Insights Redis instance. Leave unset to keep the Kubernetes default RollingUpdate behavior. |
+| engineInsightsAgent.redis.statefulSet.volumeMounts | list | `[]` |  |
+| engineInsightsAgent.redis.statefulSet.volumes | list | `[]` |  |
 | fleet.apiServer.autoscaling.enabled | bool | `false` |  |
 | fleet.apiServer.autoscaling.keda.cooldownPeriod | int | `300` |  |
 | fleet.apiServer.autoscaling.keda.enabled | bool | `false` |  |
@@ -357,13 +559,16 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | images.clickhouseImage.pullPolicy | string | `"Always"` |  |
 | images.clickhouseImage.repository | string | `"docker.io/clickhouse/clickhouse-server"` |  |
 | images.clickhouseImage.tag | string | `"25.12"` |  |
+| images.engineInsightsAgentImage.pullPolicy | string | `"IfNotPresent"` |  |
+| images.engineInsightsAgentImage.repository | string | `"docker.io/langchain/langsmith-clio"` |  |
+| images.engineInsightsAgentImage.tag | string | `"0.16.27rc1"` |  |
 | images.frontendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.frontendImage.repository | string | `"docker.io/langchain/langsmith-frontend"` |  |
 | images.frontendImage.tag | string | `"0.16.27rc1"` |  |
 | images.imagePullSecrets | list | `[]` | Secrets with credentials to pull images from a private registry. Specified as name: value. |
-| images.insightsAgentImage.pullPolicy | string | `"IfNotPresent"` |  |
-| images.insightsAgentImage.repository | string | `"docker.io/langchain/langsmith-clio"` |  |
-| images.insightsAgentImage.tag | string | `"0.16.27rc1"` |  |
+| images.juicefsCSIImage | object | `{"pullPolicy":"IfNotPresent","repository":"docker.io/juicedata/juicefs-csi-driver","tag":"v0.31.4"}` | JuiceFS CSI driver image. Only used when config.sandboxes.enabled is true. |
+| images.juicefsCSINodeDriverRegistrarImage | object | `{"pullPolicy":"IfNotPresent","repository":"registry.k8s.io/sig-storage/csi-node-driver-registrar","tag":"v2.9.0"}` | JuiceFS CSI node-driver-registrar sidecar image. Only used when config.sandboxes.enabled is true. |
+| images.juicefsMountImage | object | `{"pullPolicy":"IfNotPresent","repository":"docker.io/juicedata/mount","tag":""}` | Optional JuiceFS CE mount image used by runtime mount pods. Set this when mirroring images for restricted networks. |
 | images.operatorImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.operatorImage.repository | string | `"docker.io/langchain/langgraph-operator"` |  |
 | images.operatorImage.tag | string | `"0.1.47"` |  |
@@ -380,6 +585,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | images.redisImage.repository | string | `"docker.io/redis"` |  |
 | images.redisImage.tag | string | `"7"` |  |
 | images.registry | string | `""` | If supplied, all children <image_name>.repository values will be prepended with this registry name + `/` |
+| images.sandboxHostImage | object | `{"pullPolicy":"IfNotPresent","repository":"docker.io/langchain/sandbox-host","tag":""}` | sandbox-host image. Only used when config.sandboxes.enabled is true. |
 | images.smithdbImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.smithdbImage.repository | string | `"docker.io/langchain/smithdb"` |  |
 | images.smithdbImage.tag | string | `"0.16.27rc1"` |  |
@@ -463,201 +669,9 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | ingress.ingressClassName | string | `""` |  |
 | ingress.labels | object | `{}` |  |
 | ingress.tls | list | `[]` |  |
-| insights.apiServer.autoscaling.enabled | bool | `false` |  |
-| insights.apiServer.autoscaling.keda.cooldownPeriod | int | `300` |  |
-| insights.apiServer.autoscaling.keda.enabled | bool | `false` |  |
-| insights.apiServer.autoscaling.keda.pollingInterval | int | `30` |  |
-| insights.apiServer.autoscaling.keda.scaleDownStabilizationWindowSeconds | int | `300` |  |
-| insights.apiServer.autoscaling.maxReplicas | int | `5` |  |
-| insights.apiServer.autoscaling.minReplicas | int | `1` |  |
-| insights.apiServer.autoscaling.targetCPUUtilizationPercentage | int | `80` |  |
-| insights.apiServer.containerPort | int | `8000` |  |
-| insights.apiServer.deployment.affinity | object | `{}` |  |
-| insights.apiServer.deployment.annotations | object | `{}` |  |
-| insights.apiServer.deployment.envFrom | list | `[]` |  |
-| insights.apiServer.deployment.extraEnv | list | `[]` |  |
-| insights.apiServer.deployment.initContainers | list | `[]` |  |
-| insights.apiServer.deployment.labels | object | `{}` |  |
-| insights.apiServer.deployment.lifecycle | object | `{}` |  |
-| insights.apiServer.deployment.livenessProbe.exec | string | `nil` |  |
-| insights.apiServer.deployment.livenessProbe.failureThreshold | int | `6` |  |
-| insights.apiServer.deployment.livenessProbe.httpGet.path | string | `"/ok?check_db=0"` |  |
-| insights.apiServer.deployment.livenessProbe.httpGet.port | int | `8000` |  |
-| insights.apiServer.deployment.livenessProbe.periodSeconds | int | `10` |  |
-| insights.apiServer.deployment.livenessProbe.timeoutSeconds | int | `1` |  |
-| insights.apiServer.deployment.nodeSelector | object | `{}` |  |
-| insights.apiServer.deployment.podSecurityContext | object | `{}` |  |
-| insights.apiServer.deployment.priorityClassName | string | `""` |  |
-| insights.apiServer.deployment.readinessProbe.exec | string | `nil` |  |
-| insights.apiServer.deployment.readinessProbe.failureThreshold | int | `3` |  |
-| insights.apiServer.deployment.readinessProbe.httpGet.path | string | `"/ok?check_db=0"` |  |
-| insights.apiServer.deployment.readinessProbe.httpGet.port | int | `8000` |  |
-| insights.apiServer.deployment.readinessProbe.periodSeconds | int | `10` |  |
-| insights.apiServer.deployment.readinessProbe.timeoutSeconds | int | `1` |  |
-| insights.apiServer.deployment.replicaCount | int | `1` |  |
-| insights.apiServer.deployment.resources | object | `{}` |  |
-| insights.apiServer.deployment.securityContext | object | `{}` |  |
-| insights.apiServer.deployment.sidecars | list | `[]` |  |
-| insights.apiServer.deployment.startupProbe.exec | string | `nil` |  |
-| insights.apiServer.deployment.startupProbe.failureThreshold | int | `6` |  |
-| insights.apiServer.deployment.startupProbe.httpGet.path | string | `"/ok?check_db=1"` |  |
-| insights.apiServer.deployment.startupProbe.httpGet.port | int | `8000` |  |
-| insights.apiServer.deployment.startupProbe.periodSeconds | int | `10` |  |
-| insights.apiServer.deployment.startupProbe.timeoutSeconds | int | `1` |  |
-| insights.apiServer.deployment.terminationGracePeriodSeconds | int | `30` |  |
-| insights.apiServer.deployment.tolerations | list | `[]` |  |
-| insights.apiServer.deployment.volumeMounts | list | `[]` |  |
-| insights.apiServer.deployment.volumes | list | `[]` |  |
-| insights.apiServer.name | string | `"api-server"` |  |
-| insights.apiServer.pdb.enabled | bool | `false` |  |
-| insights.apiServer.pdb.minAvailable | int | `1` |  |
-| insights.apiServer.service.annotations | object | `{}` |  |
-| insights.apiServer.service.httpPort | int | `80` |  |
-| insights.apiServer.service.labels | object | `{}` |  |
-| insights.apiServer.service.type | string | `"ClusterIP"` |  |
-| insights.apiServer.serviceAccount.annotations | object | `{}` |  |
-| insights.apiServer.serviceAccount.automountServiceAccountToken | bool | `true` |  |
-| insights.apiServer.serviceAccount.create | bool | `true` |  |
-| insights.apiServer.serviceAccount.labels | object | `{}` |  |
-| insights.apiServer.serviceAccount.name | string | `""` |  |
 | insights.enabled | bool | `true` |  |
 | insights.encryptionKey | string | `""` |  |
-| insights.namePrefix | string | `"standalone-insights"` |  |
-| insights.postgres.containerPort | int | `5432` |  |
-| insights.postgres.external.connectionUrl | string | `""` |  |
-| insights.postgres.external.database | string | `"postgres"` |  |
-| insights.postgres.external.enabled | bool | `false` |  |
-| insights.postgres.external.existingSecretName | string | `""` |  |
-| insights.postgres.external.host | string | `""` |  |
-| insights.postgres.external.iamProvider | string | `""` |  |
-| insights.postgres.external.password | string | `"postgres"` |  |
-| insights.postgres.external.port | string | `"5432"` |  |
-| insights.postgres.external.schema | string | `"public"` |  |
-| insights.postgres.external.user | string | `"postgres"` |  |
-| insights.postgres.name | string | `"postgres"` |  |
-| insights.postgres.pdb.enabled | bool | `false` |  |
-| insights.postgres.pdb.minAvailable | int | `1` |  |
-| insights.postgres.service.annotations | object | `{}` |  |
-| insights.postgres.service.labels | object | `{}` |  |
-| insights.postgres.service.port | int | `5432` |  |
-| insights.postgres.service.type | string | `"ClusterIP"` |  |
-| insights.postgres.serviceAccount.annotations | object | `{}` |  |
-| insights.postgres.serviceAccount.automountServiceAccountToken | bool | `true` |  |
-| insights.postgres.serviceAccount.create | bool | `true` |  |
-| insights.postgres.serviceAccount.labels | object | `{}` |  |
-| insights.postgres.serviceAccount.name | string | `""` |  |
-| insights.postgres.statefulSet.affinity | object | `{}` |  |
-| insights.postgres.statefulSet.annotations | object | `{}` |  |
-| insights.postgres.statefulSet.command | list | `[]` |  |
-| insights.postgres.statefulSet.extraContainerConfig | object | `{}` |  |
-| insights.postgres.statefulSet.extraEnv | list | `[]` |  |
-| insights.postgres.statefulSet.labels | object | `{}` |  |
-| insights.postgres.statefulSet.lifecycle | object | `{}` |  |
-| insights.postgres.statefulSet.nodeSelector | object | `{}` |  |
-| insights.postgres.statefulSet.persistence.enabled | bool | `true` |  |
-| insights.postgres.statefulSet.persistence.size | string | `"8Gi"` |  |
-| insights.postgres.statefulSet.persistence.storageClassName | string | `""` |  |
-| insights.postgres.statefulSet.persistentVolumeClaimRetentionPolicy | object | `{}` |  |
-| insights.postgres.statefulSet.podSecurityContext | object | `{}` |  |
-| insights.postgres.statefulSet.priorityClassName | string | `""` |  |
-| insights.postgres.statefulSet.resources | object | `{}` |  |
-| insights.postgres.statefulSet.securityContext | object | `{}` |  |
-| insights.postgres.statefulSet.sidecars | list | `[]` |  |
-| insights.postgres.statefulSet.terminationGracePeriodSeconds | int | `30` |  |
-| insights.postgres.statefulSet.tolerations | list | `[]` |  |
-| insights.postgres.statefulSet.updateStrategy | object | `{}` | Optional StatefulSet update strategy for the in-chart Insights PostgreSQL instance. Leave unset to keep the Kubernetes default RollingUpdate behavior. |
-| insights.postgres.statefulSet.volumeMounts | list | `[]` |  |
-| insights.postgres.statefulSet.volumes | list | `[]` |  |
-| insights.queue.autoscaling.enabled | bool | `false` |  |
-| insights.queue.autoscaling.keda.cooldownPeriod | int | `300` |  |
-| insights.queue.autoscaling.keda.enabled | bool | `false` |  |
-| insights.queue.autoscaling.keda.pollingInterval | int | `30` |  |
-| insights.queue.autoscaling.keda.scaleDownStabilizationWindowSeconds | int | `300` |  |
-| insights.queue.autoscaling.maxReplicas | int | `5` |  |
-| insights.queue.autoscaling.minReplicas | int | `1` |  |
-| insights.queue.autoscaling.targetCPUUtilizationPercentage | int | `80` |  |
-| insights.queue.containerPort | int | `8000` |  |
-| insights.queue.deployment.affinity | object | `{}` |  |
-| insights.queue.deployment.annotations | object | `{}` |  |
-| insights.queue.deployment.envFrom | list | `[]` |  |
-| insights.queue.deployment.extraEnv | list | `[]` |  |
-| insights.queue.deployment.labels | object | `{}` |  |
-| insights.queue.deployment.lifecycle | object | `{}` |  |
-| insights.queue.deployment.livenessProbe.failureThreshold | int | `6` |  |
-| insights.queue.deployment.livenessProbe.httpGet.path | string | `"/ok"` |  |
-| insights.queue.deployment.livenessProbe.httpGet.port | int | `8000` |  |
-| insights.queue.deployment.livenessProbe.periodSeconds | int | `10` |  |
-| insights.queue.deployment.livenessProbe.timeoutSeconds | int | `1` |  |
-| insights.queue.deployment.nodeSelector | object | `{}` |  |
-| insights.queue.deployment.podSecurityContext | object | `{}` |  |
-| insights.queue.deployment.priorityClassName | string | `""` |  |
-| insights.queue.deployment.readinessProbe.failureThreshold | int | `6` |  |
-| insights.queue.deployment.readinessProbe.httpGet.path | string | `"/ok"` |  |
-| insights.queue.deployment.readinessProbe.httpGet.port | int | `8000` |  |
-| insights.queue.deployment.readinessProbe.periodSeconds | int | `10` |  |
-| insights.queue.deployment.readinessProbe.timeoutSeconds | int | `1` |  |
-| insights.queue.deployment.replicaCount | int | `1` |  |
-| insights.queue.deployment.resources | object | `{}` |  |
-| insights.queue.deployment.securityContext | object | `{}` |  |
-| insights.queue.deployment.sidecars | list | `[]` |  |
-| insights.queue.deployment.startupProbe.failureThreshold | int | `6` |  |
-| insights.queue.deployment.startupProbe.httpGet.path | string | `"/ok"` |  |
-| insights.queue.deployment.startupProbe.httpGet.port | int | `8000` |  |
-| insights.queue.deployment.startupProbe.periodSeconds | int | `10` |  |
-| insights.queue.deployment.startupProbe.timeoutSeconds | int | `1` |  |
-| insights.queue.deployment.terminationGracePeriodSeconds | int | `30` |  |
-| insights.queue.deployment.tolerations | list | `[]` |  |
-| insights.queue.deployment.volumeMounts | list | `[]` |  |
-| insights.queue.deployment.volumes | list | `[]` |  |
-| insights.queue.enabled | bool | `true` |  |
-| insights.queue.name | string | `"queue"` |  |
-| insights.queue.numberOfJobsPerWorker | int | `10` |  |
-| insights.queue.pdb.enabled | bool | `false` |  |
-| insights.queue.pdb.minAvailable | int | `1` |  |
-| insights.queue.serviceAccount.annotations | object | `{}` |  |
-| insights.queue.serviceAccount.automountServiceAccountToken | bool | `true` |  |
-| insights.queue.serviceAccount.create | bool | `true` |  |
-| insights.queue.serviceAccount.labels | object | `{}` |  |
-| insights.queue.serviceAccount.name | string | `""` |  |
-| insights.redis.containerPort | int | `6379` |  |
-| insights.redis.external.connectionUrl | string | `""` |  |
-| insights.redis.external.enabled | bool | `false` |  |
-| insights.redis.external.existingSecretName | string | `""` |  |
-| insights.redis.external.iamProvider | string | `""` |  |
-| insights.redis.name | string | `"redis"` |  |
-| insights.redis.pdb.enabled | bool | `false` |  |
-| insights.redis.pdb.minAvailable | int | `1` |  |
-| insights.redis.service.annotations | object | `{}` |  |
-| insights.redis.service.labels | object | `{}` |  |
-| insights.redis.service.port | int | `6379` |  |
-| insights.redis.service.type | string | `"ClusterIP"` |  |
-| insights.redis.serviceAccount.annotations | object | `{}` |  |
-| insights.redis.serviceAccount.automountServiceAccountToken | bool | `true` |  |
-| insights.redis.serviceAccount.create | bool | `true` |  |
-| insights.redis.serviceAccount.labels | object | `{}` |  |
-| insights.redis.serviceAccount.name | string | `""` |  |
-| insights.redis.statefulSet.affinity | object | `{}` |  |
-| insights.redis.statefulSet.annotations | object | `{}` |  |
-| insights.redis.statefulSet.command | list | `[]` |  |
-| insights.redis.statefulSet.extraContainerConfig | object | `{}` |  |
-| insights.redis.statefulSet.extraEnv | list | `[]` |  |
-| insights.redis.statefulSet.labels | object | `{}` |  |
-| insights.redis.statefulSet.lifecycle | object | `{}` |  |
-| insights.redis.statefulSet.nodeSelector | object | `{}` |  |
-| insights.redis.statefulSet.persistence.enabled | bool | `true` |  |
-| insights.redis.statefulSet.persistence.size | string | `"8Gi"` |  |
-| insights.redis.statefulSet.persistence.storageClassName | string | `""` |  |
-| insights.redis.statefulSet.persistentVolumeClaimRetentionPolicy | object | `{}` |  |
-| insights.redis.statefulSet.podSecurityContext | object | `{}` |  |
-| insights.redis.statefulSet.priorityClassName | string | `""` |  |
-| insights.redis.statefulSet.resources | object | `{}` |  |
-| insights.redis.statefulSet.securityContext | object | `{}` |  |
-| insights.redis.statefulSet.sidecars | list | `[]` |  |
-| insights.redis.statefulSet.terminationGracePeriodSeconds | int | `30` |  |
-| insights.redis.statefulSet.tolerations | list | `[]` |  |
-| insights.redis.statefulSet.updateStrategy | object | `{}` | Optional StatefulSet update strategy for the in-chart Insights Redis instance. Leave unset to keep the Kubernetes default RollingUpdate behavior. |
-| insights.redis.statefulSet.volumeMounts | list | `[]` |  |
-| insights.redis.statefulSet.volumes | list | `[]` |  |
+| insights.encryptionKeyPrevious | string | `""` |  |
 | istioGateway.annotations | object | `{}` |  |
 | istioGateway.enabled | bool | `false` |  |
 | istioGateway.labels | object | `{}` |  |
@@ -1321,6 +1335,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | config.infoEndpointAuthRequired | bool | `false` | Require authentication on the GET /info endpoint. When enabled, unauthenticated requests to /info will receive a 401 and must supply a valid API key. The LangSmith SDK handles this automatically by retrying with credentials. Useful for deployments that must not expose instance configuration (version, feature flags, batch ingest config) to unauthenticated callers. |
 | config.initialOrgAdminEmail | string | `""` |  |
 | config.initialOrgName | string | `"Default"` | Initial org name to be provisioned. |
+| config.langchainEnv | string | `"local_kubernetes"` | Runtime environment value rendered as LANGCHAIN_ENV for sandbox runtime components. |
 | config.langsmithLicenseKey | string | `""` |  |
 | config.llmAuthProxyIssuer | string | `""` | Optional issuer (iss claim) for tokens minted by the LLM auth proxy. Maps to LLM_AUTH_PROXY_ISSUER. Must match the jwtIssuer configured in the auth proxy chart. Left empty by default (not emitted); set it when using the LLM auth proxy. |
 | config.logLevel | string | `"info"` |  |
@@ -1338,6 +1353,29 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | config.observability.tracing.useTls | bool | `true` | Use TLS for OTLP export. |
 | config.orgAdminsInstallationUsageExportEnabled | bool | `false` | When true, any org admin can use the usage backfill export. |
 | config.personalOrgsDisabled | bool | `true` | Disable personal orgs. |
+| config.sandboxes | object | `{"callbackSigningJwk":"","clusterName":"","enabled":false,"juicefs":{"bucket":"","csi":{"configSecretName":"juicefs-csi-config","controller":{"annotations":{},"serviceAccount":{"annotations":{}}},"existingSecretName":"","mountPath":"/juicefs","mountPodPatch":[{"mountOptions":["cache-dir=/var/cache/juicefs-csi","cache-size=51200","buffer-size=300","prefetch=3","metrics=0.0.0.0:9567"],"resources":{"limits":{"cpu":"2","memory":"4Gi"},"requests":{"cpu":"2","memory":"4Gi"}}},{"mountOptions":["cache-dir=/var/cache/juicefs-csi","cache-size=307200"],"pvcSelector":{"matchLabels":{"juicefs.langsmith.com/cache":"ssd"}}}],"node":{"annotations":{},"serviceAccount":{"annotations":{}}},"pvName":"smithbox-juicefs-csi","pvcName":"smithbox-juicefs-csi"},"name":"sandbox-juicefs","redis":{"metaURL":""},"storage":"s3"},"limits":{"maxCpuCores":16,"maxEphemeralStorageGb":100,"maxMemoryGb":64,"maxSandboxes":1000,"minEphemeralStorageGb":1},"proxyCa":{"existingSecretName":"","mode":"generatedSecret","secretName":"smithbox-proxy-ca"},"sandboxHost":{"allowPrivateIPCallbacks":false,"containerPort":19190,"deployment":{"annotations":{},"labels":{},"nodeSelector":{},"podAnnotations":{},"replicas":null,"resources":{"requests":{"cpu":"2","memory":"2Gi"}},"securityContext":{"privileged":true},"terminationGracePeriodSeconds":300,"tolerations":[{"effect":"NoSchedule","key":"sandbox.langsmith.com/host","operator":"Equal","value":"true"}]},"name":"sandbox-host","rbac":{"annotations":{},"create":true,"labels":{}},"serviceAccount":{"annotations":{},"automountServiceAccountToken":true,"create":true,"labels":{},"name":""}},"serviceUrlBaseUrl":"","xServiceAuthJwtSecret":"","xServiceAuthJwtSecretPrevious":""}` | LangSmith Sandboxes configuration. Disabled by default. When enabled, this installs sandbox runtime resources in the same namespace as the LangSmith release and wires the LangSmith API/frontend services to expose sandbox functionality. This supports the same-cluster sandbox-host architecture only. Self-hosted sandboxes are currently supported on AWS/EKS and GCP/GKE. Azure/AKS is supported by the base LangSmith chart, but not by sandboxes yet. Enabling sandboxes also installs the JuiceFS CSI driver. The CSI driver creates cluster-scoped resources, so only one sandbox-enabled LangSmith release should manage it per Kubernetes cluster. Do not enable sandboxes in multiple releases in the same cluster, or alongside an independently managed JuiceFS CSI installation, unless you have verified ownership of those cluster-scoped resources. |
+| config.sandboxes.callbackSigningJwk | string | `""` | Required private JWK for sandbox callback signing when this chart creates the LangSmith app Secret. When config.existingSecretName is set, add key `sandbox_callback_signing_jwk` to that Secret instead. |
+| config.sandboxes.clusterName | string | `""` | Logical Kubernetes cluster name sent to LangSmith sandbox workers. |
+| config.sandboxes.juicefs.bucket | string | `""` | Object storage bucket/root URL used by JuiceFS. For AWS S3, use a region-explicit endpoint such as `https://bucket-name.s3.us-west-2.amazonaws.com`; do not use the `s3://bucket-name` shorthand because JuiceFS then infers region with GetBucketLocation. For GCS, use `gs://bucket-name`. Use `config.sandboxes.juicefs.name` for JuiceFS volume isolation instead of deployment-specific bucket paths. |
+| config.sandboxes.juicefs.csi.configSecretName | string | `"juicefs-csi-config"` | Name of the chart-managed JuiceFS CSI config Secret. The bundled JuiceFS CSI setup is intended only for JuiceFS PVs in the namespace where this chart is installed. Chart-managed Secret/config changes roll only the JuiceFS CSI controller/node pods through checksum annotations. Helm cannot hash externally managed Secret contents or directly refresh CSI-created JuiceFS mount pods; delete affected JuiceFS mount pods so they are recreated with the updated Secret. |
+| config.sandboxes.juicefs.csi.controller.annotations | object | `{}` | Annotations applied to the JuiceFS CSI controller StatefulSet and pod template. |
+| config.sandboxes.juicefs.csi.controller.serviceAccount.annotations | object | `{}` | Annotations applied to the JuiceFS CSI controller ServiceAccount. |
+| config.sandboxes.juicefs.csi.existingSecretName | string | `""` | Existing Secret containing JuiceFS CSI config keys `name`, `metaurl`, `storage`, and `bucket`. When set, this chart does not render the CSI config Secret and `config.sandboxes.juicefs.name`, `config.sandboxes.juicefs.storage`, `config.sandboxes.juicefs.bucket`, and `config.sandboxes.juicefs.redis.metaURL` are not used for the CSI config. |
+| config.sandboxes.juicefs.csi.mountPodPatch | list | `[{"mountOptions":["cache-dir=/var/cache/juicefs-csi","cache-size=51200","buffer-size=300","prefetch=3","metrics=0.0.0.0:9567"],"resources":{"limits":{"cpu":"2","memory":"4Gi"},"requests":{"cpu":"2","memory":"4Gi"}}},{"mountOptions":["cache-dir=/var/cache/juicefs-csi","cache-size=307200"],"pvcSelector":{"matchLabels":{"juicefs.langsmith.com/cache":"ssd"}}}]` | Mount pod patches used by the JuiceFS CSI driver for sandbox volumes. Override only when tuning JuiceFS mount behavior or observability. |
+| config.sandboxes.juicefs.csi.node.annotations | object | `{}` | Annotations applied to the JuiceFS CSI node DaemonSet and pod template. |
+| config.sandboxes.juicefs.csi.node.serviceAccount.annotations | object | `{}` | Annotations applied to the JuiceFS CSI node ServiceAccount. Use this for workload identity annotations such as AWS IRSA or GCP Workload Identity. |
+| config.sandboxes.juicefs.name | string | `"sandbox-juicefs"` | JuiceFS volume name. Use a flat DNS-label-style name only; slashes and object-store subpaths are not supported here. JuiceFS stores objects under `<name>/` inside the configured bucket. Also used to scope JuiceFS CSI RBAC for the generated mount Secret, so keep it aligned with the `name` key when using an existing CSI config Secret. |
+| config.sandboxes.juicefs.redis.metaURL | string | `""` | JuiceFS Redis metadata URL. Redis metadata engines must use maxmemory-policy noeviction. For Redis Cluster, the `/DB` path is used by JuiceFS as a hash-tag key prefix rather than a Redis logical database. |
+| config.sandboxes.juicefs.storage | string | `"s3"` | Object storage backend used by JuiceFS for sandboxes. Currently supported values are `s3` for AWS/EKS and `gs` for GCP/GKE. Azure-backed sandbox storage is not supported yet. |
+| config.sandboxes.proxyCa.existingSecretName | string | `""` | Existing TLS Secret containing tls.crt and tls.key for the sandbox proxy CA. This Secret can be created manually, by cert-manager, or by another external process. |
+| config.sandboxes.proxyCa.mode | string | `"generatedSecret"` | generatedSecret creates a self-signed CA Secret with Helm and reuses it on live upgrades via lookup. In pure render/GitOps workflows where lookup cannot read the cluster, generatedSecret produces different cert material on each render; use existingSecret for deterministic manifests. |
+| config.sandboxes.sandboxHost.allowPrivateIPCallbacks | bool | `false` | Whether sandbox callback validation should allow private IP and localhost targets. This renders SSRF_ALLOW_PRIVATE_IPS_CALLBACKS for sandbox-host. |
+| config.sandboxes.sandboxHost.deployment.nodeSelector | object | `{}` | Node selector for sandbox-host pods. Empty uses the default selector `sandbox.langsmith.com/host=true`; set this map to replace the default if your sandbox node pool uses different labels. |
+| config.sandboxes.sandboxHost.deployment.replicas | string | `nil` | Optional initial sandbox-host Deployment replica count. Leave null to let Kubernetes default the initial replica count and avoid Helm reconciling runtime scaling. Multiple sandbox-host replicas are kept one per node by chart-managed required pod anti-affinity on `kubernetes.io/hostname` plus the sandbox-host `hostPort`. The chart also uses a no-surge rolling update strategy (`maxSurge: 0`, `maxUnavailable: 1`) so image updates roll hosts one node at a time instead of creating unschedulable surge pods. |
+| config.sandboxes.sandboxHost.deployment.tolerations | list | `[{"effect":"NoSchedule","key":"sandbox.langsmith.com/host","operator":"Equal","value":"true"}]` | Tolerations for sandbox-host pods. The default expects sandbox-host nodes tainted `sandbox.langsmith.com/host=true:NoSchedule`; override this if your sandbox node pool uses different taints. |
+| config.sandboxes.serviceUrlBaseUrl | string | `""` | Optional base URL used to generate browser/programmatic service URLs for HTTP services running inside sandboxes. When set, the chart renders SANDBOX_SERVICE_URLS for config.sandboxes.clusterName. Requires wildcard DNS and TLS for `*.<host>`. When ingress.enabled is true, the chart also adds a wildcard ingress rule to the LangSmith platform backend. Must be an http:// or https:// URL without a path, query string, or fragment. When ingress.enabled is true, the host must be a DNS hostname without a port. |
+| config.sandboxes.xServiceAuthJwtSecret | string | `""` | Shared service-auth secret override for LangSmith <-> sandbox runtime calls when this chart creates the LangSmith app Secret. If unset, the chart uses the configured API key salt or LangSmith license key as the chart-managed value. When config.existingSecretName is set, add key `sandbox_x_service_auth_jwt_secret` to that Secret instead. |
+| config.sandboxes.xServiceAuthJwtSecretPrevious | string | `""` | Optional previous service-auth secret used during rotation. Used only when this chart creates the LangSmith app Secret. When config.existingSecretName is set, add optional key `sandbox_x_service_auth_jwt_secret_previous` to that Secret to enable rotation. |
 | config.security | object | `{"cors":{"allowedOrigins":"*","allowedOriginsRegex":"","alwaysAllowPathsRegex":""}}` | Security configuration for CORS, headers, and other security-related settings. These settings control cross-origin access and help protect against common web vulnerabilities. |
 | config.security.cors | object | `{"allowedOrigins":"*","allowedOriginsRegex":"","alwaysAllowPathsRegex":""}` | CORS (Cross-Origin Resource Sharing) configuration. Controls which origins can make requests to the LangSmith API. By default, CORS is permissive. For production deployments, you should restrict this. |
 | config.security.cors.allowedOrigins | string | `"*"` | Comma-separated list of allowed origins. Use "*" to allow all origins (not recommended for production). Example: "https://app.example.com,https://admin.example.com" If allowedOriginsRegex is set, this value is ignored. |

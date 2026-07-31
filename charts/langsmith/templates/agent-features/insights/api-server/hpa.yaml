@@ -1,9 +1,9 @@
-{{- if .Values.insights.enabled }}
-{{- if and .Values.insights.apiServer.autoscaling.enabled (not .Values.insights.apiServer.autoscaling.keda.enabled) }}
+{{- if or .Values.insights.enabled .Values.engine.enabled }}
+{{- if and .Values.engineInsightsAgent.apiServer.autoscaling.enabled (not .Values.engineInsightsAgent.apiServer.autoscaling.keda.enabled) }}
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
-  name: {{ include "langsmith.agentFeatures.fullname" (dict "root" . "product" "insights") }}-{{ .Values.insights.apiServer.name }}
+  name: {{ include "langsmith.agentFeatures.fullname" (dict "root" . "product" "engineInsightsAgent") }}-{{ .Values.engineInsightsAgent.apiServer.name }}
   namespace: {{ .Values.namespace | default .Release.Namespace | quote }}
   labels:
     {{- include "langsmith.labels" . | nindent 4 }}
@@ -11,25 +11,25 @@ spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
-    name: {{ include "langsmith.agentFeatures.fullname" (dict "root" . "product" "insights") }}-{{ .Values.insights.apiServer.name }}
-  minReplicas: {{ .Values.insights.apiServer.autoscaling.minReplicas }}
-  maxReplicas: {{ .Values.insights.apiServer.autoscaling.maxReplicas }}
+    name: {{ include "langsmith.agentFeatures.fullname" (dict "root" . "product" "engineInsightsAgent") }}-{{ .Values.engineInsightsAgent.apiServer.name }}
+  minReplicas: {{ .Values.engineInsightsAgent.apiServer.autoscaling.minReplicas }}
+  maxReplicas: {{ .Values.engineInsightsAgent.apiServer.autoscaling.maxReplicas }}
   metrics:
-    {{- if .Values.insights.apiServer.autoscaling.targetCPUUtilizationPercentage }}
+    {{- if .Values.engineInsightsAgent.apiServer.autoscaling.targetCPUUtilizationPercentage }}
     - type: Resource
       resource:
         name: cpu
         target:
           type: Utilization
-          averageUtilization: {{ .Values.insights.apiServer.autoscaling.targetCPUUtilizationPercentage }}
+          averageUtilization: {{ .Values.engineInsightsAgent.apiServer.autoscaling.targetCPUUtilizationPercentage }}
     {{- end }}
-    {{- if .Values.insights.apiServer.autoscaling.targetMemoryUtilizationPercentage }}
+    {{- if .Values.engineInsightsAgent.apiServer.autoscaling.targetMemoryUtilizationPercentage }}
     - type: Resource
       resource:
         name: memory
         target:
           type: Utilization
-          averageUtilization: {{ .Values.insights.apiServer.autoscaling.targetMemoryUtilizationPercentage }}
+          averageUtilization: {{ .Values.engineInsightsAgent.apiServer.autoscaling.targetMemoryUtilizationPercentage }}
     {{- end }}
 {{- end }}
 {{- end }}

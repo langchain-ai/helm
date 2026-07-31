@@ -1,46 +1,46 @@
-{{- if .Values.insights.enabled }}
-{{- if and .Values.insights.apiServer.autoscaling.enabled .Values.insights.apiServer.autoscaling.keda.enabled }}
+{{- if or .Values.insights.enabled .Values.engine.enabled }}
+{{- if and .Values.engineInsightsAgent.apiServer.autoscaling.enabled .Values.engineInsightsAgent.apiServer.autoscaling.keda.enabled }}
 apiVersion: keda.sh/v1alpha1
 kind: ScaledObject
 metadata:
-  name: {{ include "langsmith.agentFeatures.fullname" (dict "root" . "product" "insights") }}-{{ .Values.insights.apiServer.name }}
+  name: {{ include "langsmith.agentFeatures.fullname" (dict "root" . "product" "engineInsightsAgent") }}-{{ .Values.engineInsightsAgent.apiServer.name }}
   namespace: {{ .Values.namespace | default .Release.Namespace | quote }}
   labels:
     {{- include "langsmith.labels" . | nindent 4 }}
 spec:
   scaleTargetRef:
-    name: {{ include "langsmith.agentFeatures.fullname" (dict "root" . "product" "insights") }}-{{ .Values.insights.apiServer.name }}
-  minReplicaCount: {{ .Values.insights.apiServer.autoscaling.minReplicas | default 1 }}
-  maxReplicaCount: {{ .Values.insights.apiServer.autoscaling.maxReplicas | default 10 }}
-  pollingInterval: {{ .Values.insights.apiServer.autoscaling.keda.pollingInterval | default 30 }}
-  cooldownPeriod: {{ .Values.insights.apiServer.autoscaling.keda.cooldownPeriod | default 300 }}
+    name: {{ include "langsmith.agentFeatures.fullname" (dict "root" . "product" "engineInsightsAgent") }}-{{ .Values.engineInsightsAgent.apiServer.name }}
+  minReplicaCount: {{ .Values.engineInsightsAgent.apiServer.autoscaling.minReplicas | default 1 }}
+  maxReplicaCount: {{ .Values.engineInsightsAgent.apiServer.autoscaling.maxReplicas | default 10 }}
+  pollingInterval: {{ .Values.engineInsightsAgent.apiServer.autoscaling.keda.pollingInterval | default 30 }}
+  cooldownPeriod: {{ .Values.engineInsightsAgent.apiServer.autoscaling.keda.cooldownPeriod | default 300 }}
   advanced:
     horizontalPodAutoscalerConfig:
       behavior:
         scaleDown:
-          stabilizationWindowSeconds: {{ .Values.insights.apiServer.autoscaling.keda.scaleDownStabilizationWindowSeconds | default 300 }}
+          stabilizationWindowSeconds: {{ .Values.engineInsightsAgent.apiServer.autoscaling.keda.scaleDownStabilizationWindowSeconds | default 300 }}
   triggers:
-    {{- if .Values.insights.apiServer.autoscaling.targetCPUUtilizationPercentage }}
+    {{- if .Values.engineInsightsAgent.apiServer.autoscaling.targetCPUUtilizationPercentage }}
     - type: cpu
       metricType: Utilization
       metadata:
-        value: "{{ .Values.insights.apiServer.autoscaling.targetCPUUtilizationPercentage }}"
+        value: "{{ .Values.engineInsightsAgent.apiServer.autoscaling.targetCPUUtilizationPercentage }}"
     {{- end }}
-    {{- if .Values.insights.apiServer.autoscaling.targetMemoryUtilizationPercentage }}
+    {{- if .Values.engineInsightsAgent.apiServer.autoscaling.targetMemoryUtilizationPercentage }}
     - type: memory
       metricType: Utilization
       metadata:
-        value: "{{ .Values.insights.apiServer.autoscaling.targetMemoryUtilizationPercentage }}"
+        value: "{{ .Values.engineInsightsAgent.apiServer.autoscaling.targetMemoryUtilizationPercentage }}"
     {{- end }}
-    {{- if not .Values.insights.queue.enabled }}
+    {{- if not .Values.engineInsightsAgent.queue.enabled }}
     - type: postgresql
       metadata:
         connectionFromEnv: "POSTGRES_URI"
         query: "SELECT COUNT(*) FROM run WHERE status = 'pending'"
-        targetQueryValue: {{ .Values.insights.queue.numberOfJobsPerWorker | quote }}
-        activationTargetQueryValue: {{ .Values.insights.queue.numberOfJobsPerWorker | quote }}
+        targetQueryValue: {{ .Values.engineInsightsAgent.queue.numberOfJobsPerWorker | quote }}
+        activationTargetQueryValue: {{ .Values.engineInsightsAgent.queue.numberOfJobsPerWorker | quote }}
     {{- end }}
-    {{- with .Values.insights.apiServer.autoscaling.keda.additionalTriggers }}
+    {{- with .Values.engineInsightsAgent.apiServer.autoscaling.keda.additionalTriggers }}
     {{- toYaml . | nindent 4 }}
     {{- end }}
 {{- end }}

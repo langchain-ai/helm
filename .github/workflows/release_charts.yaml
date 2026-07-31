@@ -30,7 +30,11 @@ jobs:
         run: |
           helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
           helm repo add grafana https://grafana.github.io/helm-charts
+          helm repo add juicedata https://juicedata.github.io/charts/
           helm repo update
+
+      - name: Build chart dependencies
+        run: helm dependency build charts/langsmith
 
       - name: Run chart-releaser
         uses: helm/chart-releaser-action@v1.5.0

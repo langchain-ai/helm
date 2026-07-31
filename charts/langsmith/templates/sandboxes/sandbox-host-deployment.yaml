@@ -1,0 +1,140 @@
+{{- if .Values.config.sandboxes.enabled }}
+{{- $namespace := .Values.namespace | default .Release.Namespace }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.config.sandboxes.sandboxHost.name }}
+  namespace: {{ $namespace }}
+  labels:
+    app: sandbox-host
+    {{- include "langsmith.labels" . | nindent 4 }}
+    {{- with .Values.config.sandboxes.sandboxHost.deployment.labels }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+  annotations:
+    {{- include "langsmith.annotations" . | nindent 4 }}
+    {{- with .Values.config.sandboxes.sandboxHost.deployment.annotations }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  selector:
+    matchLabels:
+      app: sandbox-host
+  {{- if not (kindIs "invalid" .Values.config.sandboxes.sandboxHost.deployment.replicas) }}
+  replicas: {{ .Values.config.sandboxes.sandboxHost.deployment.replicas }}
+  {{- end }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 0
+      maxUnavailable: 1
+  template:
+    metadata:
+      labels:
+        app: sandbox-host
+        {{- include "langsmith.labels" . | nindent 8 }}
+      annotations:
+        {{- include "langsmith.commonPodAnnotations" . | nindent 8 }}
+        {{- with .Values.config.sandboxes.sandboxHost.deployment.podAnnotations }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      serviceAccountName: {{ include "langsmith.sandboxes.sandboxHostServiceAccountName" . }}
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchLabels:
+                  app: sandbox-host
+              topologyKey: kubernetes.io/hostname
+      {{- with .Values.images.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      nodeSelector:
+        {{- include "langsmith.sandboxes.sandboxHostNodeSelector" . | nindent 8 }}
+      {{- with .Values.config.sandboxes.sandboxHost.deployment.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: sandbox-host
+          image: {{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "sandboxHostImage") | quote }}
+          imagePullPolicy: {{ .Values.images.sandboxHostImage.pullPolicy }}
+          env:
+            - name: LANGCHAIN_ENV
+              value: {{ .Values.config.langchainEnv | quote }}
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: POD_UID
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.uid
+            - name: POD_HOST_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.hostIP
+            - name: SANDBOX_X_SERVICE_AUTH_JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "langsmith.secretsName" . }}
+                  key: sandbox_x_service_auth_jwt_secret
+                  optional: {{ .Values.config.disableSecretCreation }}
+            - name: SANDBOX_HOST_PROXY_CA_DIR
+              value: /certs
+            {{- if or (not (empty .Values.config.existingSecretName)) .Values.config.sandboxes.callbackSigningJwk }}
+            - name: LANGSMITH_SANDBOX_CALLBACK_SIGNING_JWK
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "langsmith.secretsName" . }}
+                  key: sandbox_callback_signing_jwk
+                  optional: true
+            {{- end }}
+            - name: OAUTH_AS_ISSUER
+              value: {{ include "langsmith.sandboxes.langsmithInternalEndpoint" . | quote }}
+            - name: SSRF_ALLOW_PRIVATE_IPS_CALLBACKS
+              value: {{ .Values.config.sandboxes.sandboxHost.allowPrivateIPCallbacks | quote }}
+            - name: SANDBOX_CALLBACK_LOOPBACK_REWRITE
+              value: "false"
+            - name: LANGSMITH_SANDBOX_INTERNAL_ENDPOINT
+              value: {{ include "langsmith.sandboxes.langsmithInternalEndpoint" . | quote }}
+            - name: SANDBOX_HOST_TERMINATION_GRACE_SECONDS
+              value: {{ .Values.config.sandboxes.sandboxHost.deployment.terminationGracePeriodSeconds | quote }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.config.sandboxes.sandboxHost.containerPort }}
+              hostPort: {{ .Values.config.sandboxes.sandboxHost.containerPort }}
+              protocol: TCP
+          securityContext:
+            {{- toYaml .Values.config.sandboxes.sandboxHost.deployment.securityContext | nindent 12 }}
+          resources:
+            {{- toYaml .Values.config.sandboxes.sandboxHost.deployment.resources | nindent 12 }}
+          volumeMounts:
+            - name: juicefs
+              mountPath: {{ .Values.config.sandboxes.juicefs.csi.mountPath }}
+            - name: host-bin
+              mountPath: /host-bin
+            - name: proxy-ca
+              mountPath: /certs
+              readOnly: true
+      volumes:
+        - name: juicefs
+          persistentVolumeClaim:
+            claimName: {{ include "langsmith.sandboxes.juicefsHostPVCName" . }}
+        - name: proxy-ca
+          secret:
+            secretName: {{ include "langsmith.sandboxes.proxyCaSecretName" . }}
+        - name: host-bin
+          hostPath:
+            path: /var/lib/sandbox-host
+            type: DirectoryOrCreate
+      terminationGracePeriodSeconds: {{ .Values.config.sandboxes.sandboxHost.deployment.terminationGracePeriodSeconds }}
+{{- end }}

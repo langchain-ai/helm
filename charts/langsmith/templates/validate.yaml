@@ -42,6 +42,17 @@ AWS Marketplace Helm template verification).
 {{- if hasKey .Values.backend "agentBootstrap" -}}
 {{- fail "backend.agentBootstrap has been removed: the bundled agent-bootstrap Job is no longer part of this chart. Standalone agents now run as the top-level fleet / insights / polly deployments. If you were relying on the bundled bootstrap, contact LangChain support for migration guidance, then remove backend.agentBootstrap from your values." -}}
 {{- end -}}
+{{- /* Moved: Engine and Insights share one deployment, so its config lives in engineInsightsAgent. */ -}}
+{{- range $key := list "namePrefix" "apiServer" "queue" "postgres" "redis" -}}
+{{- if hasKey $.Values.insights $key -}}
+{{- fail (printf "insights.%s has moved to engineInsightsAgent.%s: Engine and Insights now run on one shared deployment, so its scaling, database and resource settings live in the engineInsightsAgent block. Move insights.%s to engineInsightsAgent.%s. insights.enabled and insights.encryptionKey stay where they are." $key $key $key $key) -}}
+{{- end -}}
+{{- end -}}
+{{- range $key := list "insightsAgentImage" "insightsEngineImage" -}}
+{{- if hasKey $.Values.images $key -}}
+{{- fail (printf "images.%s has moved to images.engineInsightsAgentImage: Engine and Insights run on one image. Set images.engineInsightsAgentImage instead." $key) -}}
+{{- end -}}
+{{- end -}}
 {{- /* Deprecated image keys: these workloads now run on the single consolidated backend image */ -}}
 {{- range $key := list "hostBackendImage" "platformBackendImage" "playgroundImage" "fleetToolServerImage" "fleetTriggerServerImage" "agentBuilderToolServerImage" "agentBuilderTriggerServerImage" -}}
 {{- if hasKey $.Values.images $key -}}
@@ -149,6 +160,94 @@ AWS Marketplace Helm template verification).
 {{- if .Values.redis.external.cluster.enabled -}}
 {{- if not .Values.redis.external.enabled -}}
 {{- fail "redis.external.enabled must be true when redis.external.cluster.enabled is true." -}}
+{{- end -}}
+{{- end -}}
+
+{{- /* Validate sandbox configuration */ -}}
+{{- if .Values.config.sandboxes.enabled -}}
+{{- if not .Values.images.sandboxHostImage.repository -}}
+{{- fail "images.sandboxHostImage.repository is required when config.sandboxes.enabled is true." -}}
+{{- end -}}
+{{- if not .Values.images.sandboxHostImage.tag -}}
+{{- fail "images.sandboxHostImage.tag is required when config.sandboxes.enabled is true." -}}
+{{- end -}}
+{{- range $imageName := list "juicefsCSIImage" "juicefsCSINodeDriverRegistrarImage" -}}
+{{- $image := index $.Values.images $imageName -}}
+{{- if not $image.repository -}}
+{{- fail (printf "images.%s.repository is required when config.sandboxes.enabled is true." $imageName) -}}
+{{- end -}}
+{{- if not $image.tag -}}
+{{- fail (printf "images.%s.tag is required when config.sandboxes.enabled is true." $imageName) -}}
+{{- end -}}
+{{- end -}}
+{{- if and .Values.images.juicefsMountImage.tag (not .Values.images.juicefsMountImage.repository) -}}
+{{- fail "images.juicefsMountImage.repository is required when images.juicefsMountImage.tag is set." -}}
+{{- end -}}
+{{- if not .Values.config.sandboxes.clusterName -}}
+{{- fail "config.sandboxes.clusterName is required when config.sandboxes.enabled is true." -}}
+{{- end -}}
+{{- $serviceUrlBaseUrl := .Values.config.sandboxes.serviceUrlBaseUrl | default "" -}}
+{{- if $serviceUrlBaseUrl -}}
+{{- if not (regexMatch "^https?://" $serviceUrlBaseUrl) -}}
+{{- fail "config.sandboxes.serviceUrlBaseUrl must start with http:// or https://." -}}
+{{- end -}}
+{{- if not (regexMatch "^https?://[^/?#]+$" $serviceUrlBaseUrl) -}}
+{{- fail "config.sandboxes.serviceUrlBaseUrl must not include a path, query string, or fragment." -}}
+{{- end -}}
+{{- $serviceUrlHost := regexReplaceAll "^https?://" $serviceUrlBaseUrl "" -}}
+{{- if and .Values.ingress.enabled (not (regexMatch "^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$" $serviceUrlHost)) -}}
+{{- fail "config.sandboxes.serviceUrlBaseUrl host must be a DNS hostname without a port when ingress.enabled is true." -}}
+{{- end -}}
+{{- end -}}
+{{- $juicefsCSI := .Values.config.sandboxes.juicefs.csi | default dict -}}
+{{- if not $juicefsCSI.existingSecretName -}}
+{{- $juicefsRedis := .Values.config.sandboxes.juicefs.redis | default dict -}}
+{{- if not $juicefsRedis.metaURL -}}
+{{- fail "config.sandboxes.juicefs.redis.metaURL is required when config.sandboxes.enabled is true and config.sandboxes.juicefs.csi.existingSecretName is not set." -}}
+{{- end -}}
+{{- $juicefsName := .Values.config.sandboxes.juicefs.name | default "" -}}
+{{- if not $juicefsName -}}
+{{- fail "config.sandboxes.juicefs.name is required when config.sandboxes.enabled is true and config.sandboxes.juicefs.csi.existingSecretName is not set." -}}
+{{- end -}}
+{{- if not (regexMatch "^[a-z0-9][a-z0-9-]{1,61}[a-z0-9]$" $juicefsName) -}}
+{{- fail "config.sandboxes.juicefs.name must be a DNS-label-style JuiceFS volume name: 3-63 characters, lowercase letters, numbers, and hyphens only. Do not use slashes or object-store subpaths here." -}}
+{{- end -}}
+{{- if not .Values.config.sandboxes.juicefs.bucket -}}
+{{- fail "config.sandboxes.juicefs.bucket is required when config.sandboxes.enabled is true and config.sandboxes.juicefs.csi.existingSecretName is not set." -}}
+{{- end -}}
+{{- $juicefsStorage := .Values.config.sandboxes.juicefs.storage | default "" -}}
+{{- $juicefsBucket := .Values.config.sandboxes.juicefs.bucket | default "" -}}
+{{- if not (or (eq $juicefsStorage "s3") (eq $juicefsStorage "gs")) -}}
+{{- fail "config.sandboxes.juicefs.storage currently supports only s3 for AWS/EKS and gs for GCP/GKE. Azure-backed sandbox storage is not supported yet." -}}
+{{- end -}}
+{{- if and (eq $juicefsStorage "s3") (hasPrefix "s3://" $juicefsBucket) -}}
+{{- fail "config.sandboxes.juicefs.bucket must use a region-explicit S3 endpoint URL such as https://bucket-name.s3.us-west-2.amazonaws.com when config.sandboxes.juicefs.storage is s3. The s3://bucket shorthand makes JuiceFS infer region with GetBucketLocation and is not supported." -}}
+{{- end -}}
+{{- if and (eq $juicefsStorage "s3") (not (regexMatch "^https?://" $juicefsBucket)) -}}
+{{- fail "config.sandboxes.juicefs.bucket must use an HTTP(S) S3 endpoint URL when config.sandboxes.juicefs.storage is s3." -}}
+{{- end -}}
+{{- end -}}
+{{- if and (not .Values.config.existingSecretName) (not .Values.config.disableSecretCreation) (not (include "langsmith.sandboxes.xServiceAuthJwtSecretValue" .)) -}}
+{{- fail "config.sandboxes.xServiceAuthJwtSecret is required when config.sandboxes.enabled is true and no chart-managed app secret value is available." -}}
+{{- end -}}
+{{- if and (not .Values.config.existingSecretName) (not .Values.config.disableSecretCreation) (not .Values.config.sandboxes.callbackSigningJwk) -}}
+{{- fail "config.sandboxes.callbackSigningJwk is required when config.sandboxes.enabled is true and the chart manages the LangSmith app Secret. When config.existingSecretName is set, add key sandbox_callback_signing_jwk to the existing Secret instead." -}}
+{{- end -}}
+{{- if and .Values.config.existingSecretName .Values.config.sandboxes.xServiceAuthJwtSecret -}}
+{{- fail "config.sandboxes.xServiceAuthJwtSecret cannot be used when config.existingSecretName is set. Add key sandbox_x_service_auth_jwt_secret to the existing Secret instead." -}}
+{{- end -}}
+{{- if and .Values.config.existingSecretName .Values.config.sandboxes.xServiceAuthJwtSecretPrevious -}}
+{{- fail "config.sandboxes.xServiceAuthJwtSecretPrevious cannot be used when config.existingSecretName is set. Add key sandbox_x_service_auth_jwt_secret_previous to the existing Secret instead." -}}
+{{- end -}}
+{{- if and .Values.config.existingSecretName .Values.config.sandboxes.callbackSigningJwk -}}
+{{- fail "config.sandboxes.callbackSigningJwk cannot be used when config.existingSecretName is set. Add key sandbox_callback_signing_jwk to the existing Secret instead." -}}
+{{- end -}}
+{{- $proxyCaMode := .Values.config.sandboxes.proxyCa.mode -}}
+{{- if not (or (eq $proxyCaMode "generatedSecret") (eq $proxyCaMode "existingSecret")) -}}
+{{- fail "config.sandboxes.proxyCa.mode must be one of generatedSecret or existingSecret." -}}
+{{- end -}}
+{{- if and (eq $proxyCaMode "existingSecret") (not .Values.config.sandboxes.proxyCa.existingSecretName) -}}
+{{- fail "config.sandboxes.proxyCa.existingSecretName is required when config.sandboxes.proxyCa.mode is existingSecret." -}}
 {{- end -}}
 {{- end -}}
 
@@ -422,6 +521,34 @@ AWS Marketplace Helm template verification).
 
 {{- end -}}{{- /* end skipValidation */ -}}
 
+{{- /* Engine (co-hosted Insights+Engine) requires config when enabled. */ -}}
+{{- if .Values.engine.enabled }}
+{{- if not (contains "insights-engine" .Values.images.engineInsightsAgentImage.repository) }}
+{{- fail (printf "engine.enabled is true but images.engineInsightsAgentImage.repository is %q: Engine requires the combined insights-engine image, which serves both the `insights` and `engine` graphs. Point it at langsmith-insights-engine (or your mirror of it)." .Values.images.engineInsightsAgentImage.repository) }}
+{{- end }}
+{{- if and (not .Values.engine.encryptionKey) (not .Values.config.existingSecretName) }}
+{{- fail "engine.encryptionKey is required when engine.enabled is true (must match smith-go's ISSUES_AGENT_ENCRYPTION_KEY). Generate one with: python -c \"from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())\" (not needed if config.existingSecretName has engine_encryption_key)." }}
+{{- end }}
+{{- if not .Values.engine.intelligenceBaseUrl }}
+{{- fail "engine.intelligenceBaseUrl is required when engine.enabled is true: the self-hosted Engine has no ANTHROPIC_API_KEY and routes model calls through the LSI gateway for its cloud/region (e.g. AWS: https://beacon.aws.langchain.com/intelligence)." }}
+{{- end }}
+{{- if not .Values.config.sandboxes.enabled }}
+{{- fail "engine.enabled is true but config.sandboxes.enabled is false: every Engine run executes in a sandbox, so Engine cannot run without them." }}
+{{- end }}
+{{- if not .Values.config.hostname }}
+{{- fail "engine.enabled is true but config.hostname is not set: the sandbox runs the langsmith CLI against an externally reachable LangSmith URL, which is derived from it." }}
+{{- end }}
+{{- if regexMatch "^(?:[a-zA-Z][a-zA-Z0-9+.-]*://)?(?:localhost|127\\.0\\.0\\.1|\\[::1\\])(?::[0-9]+)?(?:/.*)?$" .Values.config.hostname }}
+{{- fail (printf "engine.enabled is true and config.hostname is %q, which a sandbox cannot reach: it must be the externally reachable LangSmith address." .Values.config.hostname) }}
+{{- end }}
+{{- if regexMatch "\\.svc(\\.[a-zA-Z0-9.-]+)?(:[0-9]+)?(/.*)?$" .Values.config.hostname }}
+{{- fail (printf "engine.enabled is true and config.hostname is the in-cluster address %q, which a sandbox cannot reach: it must be the externally reachable LangSmith address." .Values.config.hostname) }}
+{{- end }}
+{{- if not .Values.engine.sandboxTenantId }}
+{{- fail "engine.sandboxTenantId is required when engine.enabled is true: the Engine signs its sandbox service key with this workspace id and smith-go rejects a service key without a tenant. Use a workspace reserved for the Engine — its sandboxes consume that workspace's sandbox quota and are visible to anyone with access to it." }}
+{{- end }}
+{{- end }}
+
 {{- /* Validate agent feature (fleet/insights/polly) configuration */ -}}
 {{- $anyAgentEnabled := or .Values.fleet.enabled .Values.insights.enabled .Values.polly.enabled }}
 {{- $allPgUrls := list }}
@@ -437,21 +564,29 @@ AWS Marketplace Helm template verification).
 {{- $allPgUrls = append $allPgUrls $mainPg }}
 {{- end }}
 {{- end }}
-{{- $agentPairs := list (dict "n" "fleet") (dict "n" "insights") (dict "n" "polly") }}
+{{- /* Engine and Insights share one deployment ("engineInsightsAgent"), so the
+       encryption key is per product while postgres/redis are per deployment. */ -}}
+{{- $agentPairs := list
+  (dict "n" "fleet" "cfg" "fleet" "on" $.Values.fleet.enabled)
+  (dict "n" "insights" "cfg" "engineInsightsAgent" "on" (or $.Values.insights.enabled $.Values.engine.enabled))
+  (dict "n" "polly" "cfg" "polly" "on" $.Values.polly.enabled) }}
 {{- range $pair := $agentPairs }}
 {{- $fn := index $pair "n" }}
-{{- $feat := index $.Values $fn }}
+{{- $prod := index $.Values $fn }}
+{{- $feat := index $.Values (index $pair "cfg") }}
 {{- range $database := list "postgres" "redis" }}
 {{- $databaseConfig := index $feat $database }}
 {{- $provider := $databaseConfig.external.iamProvider }}
 {{- if and $provider (not (has $provider (list "azure" "gcp" "aws"))) }}
-{{- fail (printf "%s.%s.external.iamProvider must be one of [azure, gcp, aws]" $fn $database) }}
+{{- fail (printf "%s.%s.external.iamProvider must be one of [azure, gcp, aws]" (index $pair "cfg") $database) }}
 {{- end }}
 {{- end }}
-{{- if $feat.enabled }}
-{{- if and (not $feat.encryptionKey) (not $.Values.config.existingSecretName) }}
+{{- if $prod.enabled }}
+{{- if and (not $prod.encryptionKey) (not $.Values.config.existingSecretName) }}
 {{- fail (printf "%s.encryptionKey is required when %s.enabled is true (not needed if config.existingSecretName is set with the key already present)" $fn $fn) }}
 {{- end }}
+{{- end }}
+{{- if index $pair "on" }}
 {{- if $feat.postgres.external.enabled }}
 {{- if not $feat.postgres.external.existingSecretName }}
 {{- $pg := "" }}
@@ -476,8 +611,8 @@ AWS Marketplace Helm template verification).
 {{- /* Validate per-agent redis configuration */ -}}
 {{- range $pair := $agentPairs }}
 {{- $fn := index $pair "n" }}
-{{- $feat := index $.Values $fn }}
-{{- if $feat.enabled }}
+{{- $feat := index $.Values (index $pair "cfg") }}
+{{- if index $pair "on" }}
 {{- if $feat.redis.external.enabled }}
 {{- if and (not $feat.redis.external.connectionUrl) (not $feat.redis.external.existingSecretName) }}
 {{- fail (printf "%s.redis.external.connectionUrl or %s.redis.external.existingSecretName is required when %s.redis.external.enabled is true" $fn $fn $fn) }}
