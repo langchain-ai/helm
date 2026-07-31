@@ -247,6 +247,7 @@ tests:
       config.oauth.enabled: true
       config.authType: oauth
       sandboxes.enabled: true
+      sandboxes.sandboxHost.deployment.nodeSelector.sandbox\.langsmith\.com/host: "true"
       sandboxes.callbackSigningJwk: test-callback-jwk
       sandboxes.juicefs.redis.metaURL: redis://langsmith-redis.default.svc.cluster.local:6379/1
       sandboxes.juicefs.bucket: https://langsmith-sandboxes-test.s3.us-west-2.amazonaws.com
@@ -507,7 +508,7 @@ tests:
 
   - it: should render custom sandbox-host scheduling on sandbox-host
     values:
-      - ./values/sandboxes-enabled.yaml
+      - ./values/sandboxes-enabled-no-scheduling.yaml
       - ./values/sandboxes-custom-scheduling.yaml
     template: sandboxes/sandbox-host-deployment.yaml
     asserts:
@@ -657,6 +658,7 @@ tests:
       config.oauth.enabled: true
       config.authType: oauth
       sandboxes.enabled: true
+      sandboxes.sandboxHost.deployment.nodeSelector.sandbox\.langsmith\.com/host: "true"
       sandboxes.juicefs.redis.metaURL: redis://langsmith-redis.default.svc.cluster.local:6379/1
       sandboxes.juicefs.bucket: s3://langsmith-sandboxes-test
       images.sandboxHostImage.repository: example.com/langsmith/sandbox-host
@@ -785,6 +787,7 @@ tests:
       config.oauth.enabled: true
       config.authType: oauth
       sandboxes.enabled: true
+      sandboxes.sandboxHost.deployment.nodeSelector.sandbox\.langsmith\.com/host: "true"
       sandboxes.juicefs.redis.metaURL: redis://langsmith-redis.default.svc.cluster.local:6379/1
       sandboxes.juicefs.bucket: https://langsmith-sandboxes-test.s3.us-west-2.amazonaws.com
       images.sandboxHostImage.repository: example.com/langsmith/sandbox-host

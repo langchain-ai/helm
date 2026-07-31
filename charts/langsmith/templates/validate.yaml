@@ -147,6 +147,9 @@ AWS Marketplace Helm template verification).
 {{- if .Values.sandboxes.sandboxHost.deployment.securityContext.readOnlyRootFilesystem -}}
 {{- fail "sandboxes.sandboxHost.deployment.securityContext.readOnlyRootFilesystem must not be true: sandbox-host unpacks the guest tools image on startup." -}}
 {{- end -}}
+{{- if not .Values.sandboxes.sandboxHost.deployment.nodeSelector -}}
+{{- fail "sandboxes.sandboxHost.deployment.nodeSelector is required when sandboxes.enabled is true: sandbox-host must be pinned to KVM-capable nodes, and its toleration alone does not attract it there." -}}
+{{- end -}}
 {{- $autoscaling := .Values.sandboxes.sandboxHost.autoscaling -}}
 {{- if $autoscaling.enabled -}}
 {{- if lt (int $autoscaling.minReplicas) 1 -}}

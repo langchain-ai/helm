@@ -2,8 +2,6 @@ sandboxes:
   sandboxHost:
     deployment:
       nodeSelector:
-        # Helm merges maps, so drop the chart default explicitly.
-        sandbox.langsmith.com/host: null
         sandbox.example.com/pool: hosts
       tolerations:
         - key: sandbox.example.com/pool
