@@ -3,7 +3,10 @@
   value: "3"
 - name: "QUEUE_PORT"
   value: {{ .Values.ingestQueue.containerPort | quote }}
-{{ include "langsmith.sandboxes.ingestQueueEnv" . }}
+{{- if .Values.config.sandboxes.enabled }}
+- name: SANDBOX_QUEUE_PRIORITY
+  value: "1"
+{{- end }}
 {{- end -}}
 {{- if .Values.ingestQueue.enabled }}
 {{- $envVars := concat .Values.commonEnv (include "langsmith.commonEnv" . | fromYamlArray) (include "ingestQueueEnvVars" . | fromYamlArray) .Values.ingestQueue.deployment.extraEnv -}}

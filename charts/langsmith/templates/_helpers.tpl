@@ -489,6 +489,18 @@ Template containing common environment variables that are used by several servic
       key: polly_encryption_key
       optional: false
 {{- end }}
+{{- if .Values.config.sandboxes.enabled }}
+- name: SANDBOX_FEATURE_ENABLED
+  value: "true"
+- name: SANDBOX_RUNTIME_V2
+  value: "always"
+- name: SANDBOX_X_SERVICE_AUTH_JWT_SECRET
+  valueFrom:
+    secretKeyRef:
+      name: {{ include "langsmith.secretsName" . }}
+      key: api_key_salt
+      optional: {{ .Values.config.disableSecretCreation }}
+{{- end }}
 {{- end }}
 
 {{/*
@@ -1355,72 +1367,6 @@ mountPodPatch:
 
 {{- define "langsmith.sandboxes.juicefsCSIDriverConfigChecksum" -}}
 {{- include "langsmith.sandboxes.juicefsCSIDriverConfig" . | sha256sum -}}
-{{- end -}}
-
-{{/*
-Sandbox env shared by the LangSmith services that talk to the sandbox runtime.
-*/}}
-{{- define "langsmith.sandboxes.sharedEnv" -}}
-- name: SANDBOX_FEATURE_ENABLED
-  value: "true"
-- name: SANDBOX_RUNTIME_V2
-  value: "always"
-- name: SANDBOX_X_SERVICE_AUTH_JWT_SECRET
-  valueFrom:
-    secretKeyRef:
-      name: {{ include "langsmith.secretsName" . }}
-      key: api_key_salt
-      optional: {{ .Values.config.disableSecretCreation }}
-{{- end -}}
-
-{{/*
-Sandbox env for platform-backend, which serves the sandbox API.
-*/}}
-{{- define "langsmith.sandboxes.platformBackendEnv" -}}
-{{- if .Values.config.sandboxes.enabled -}}
-{{- include "langsmith.sandboxes.sharedEnv" . }}
-{{- /* Only platform-backend needs this: the sandbox handler builds each sandbox's
-       dataplane URL from it. Kept off the shared ConfigMap so it does not reach every service. */}}
-- name: LANGCHAIN_PLATFORM_ENDPOINT
-  value: {{ include "langsmith.sandboxes.platformEndpoint" . | quote }}
-- name: SANDBOX_FRONTEND_ENABLED
-  value: "true"
-- name: SANDBOX_MAX_CPU_CORES
-  value: {{ .Values.config.sandboxes.quotas.maxCpuCores | quote }}
-- name: SANDBOX_MAX_MEMORY_GB
-  value: {{ .Values.config.sandboxes.quotas.maxMemoryGb | quote }}
-- name: SANDBOX_MIN_EPHEMERAL_STORAGE_GB
-  value: {{ .Values.config.sandboxes.quotas.minEphemeralStorageGb | quote }}
-- name: SANDBOX_MAX_EPHEMERAL_STORAGE_GIB
-  value: {{ .Values.config.sandboxes.quotas.maxEphemeralStorageGib | quote }}
-- name: SANDBOX_MAX_SANDBOXES
-  value: {{ .Values.config.sandboxes.quotas.maxSandboxes | quote }}
-{{- if .Values.config.sandboxes.serviceUrlBaseUrl }}
-{{- /* Keyed by the cluster name the runtime resolves for itself when SANDBOX_K8S_CLUSTER_NAME is unset,
-       which is also what gets stored on each sandbox and looked up here. */}}
-- name: SANDBOX_SERVICE_URLS
-  value: {{ dict "incluster" .Values.config.sandboxes.serviceUrlBaseUrl | toJson | quote }}
-{{- end }}
-{{- if or (not (empty .Values.config.existingSecretName)) .Values.config.sandboxes.callbackSigningJwk }}
-- name: LANGSMITH_SANDBOX_CALLBACK_SIGNING_JWK
-  valueFrom:
-    secretKeyRef:
-      name: {{ include "langsmith.secretsName" . }}
-      key: sandbox_callback_signing_jwk
-      optional: true
-{{- end }}
-{{- end -}}
-{{- end -}}
-
-{{/*
-Sandbox env for the ingest queue, which runs the sandbox asynq handlers.
-*/}}
-{{- define "langsmith.sandboxes.ingestQueueEnv" -}}
-{{- if .Values.config.sandboxes.enabled -}}
-{{- include "langsmith.sandboxes.sharedEnv" . }}
-- name: SANDBOX_QUEUE_PRIORITY
-  value: "1"
-{{- end -}}
 {{- end -}}
 
 {{/*
