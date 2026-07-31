@@ -1399,11 +1399,19 @@ which default to http:// for local development.
 {{- end -}}
 
 {{/*
+Public API base: scheme, host, any base path, and the /api prefix. Derived from
+config.hostname; relative when unset so browser callers use their own origin. Equal to the
+OAuth issuer today, but kept separate so either can change on its own.
+*/}}
+{{- define "langsmith.publicApiEndpoint" -}}
+{{- include "langsmith.hostnameWithProtocol" . }}{{- with .Values.config.basePath }}/{{ . }}{{- end }}/api
+{{- end -}}
+
+{{/*
 OAuth Authorization Server issuer URL advertised to remote MCP clients.
 Derived from <hostnameWithProtocol>[/basePath]/api. The /api path is fixed because the
 frontend nginx routes are hardcoded to it; host and scheme come from config.hostname.
 */}}
-{{- /* Also the public API base: same scheme, host, base path and /api prefix. */ -}}
 {{- define "langsmith.oauthAsIssuer" -}}
 {{- include "langsmith.hostnameWithProtocol" . }}{{- with .Values.config.basePath }}/{{ . }}{{- end }}/api
 {{- end -}}
