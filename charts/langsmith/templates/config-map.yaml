@@ -43,6 +43,7 @@ data:
   GO_ENDPOINT: {{ include "langsmith.platformBackendEndpoint" . | quote }}
   LANGSMITH_PUBLIC_API_ENDPOINT: {{ include "langsmith.publicApiEndpoint" . | quote }}
   {{- if .Values.engine.enabled }}
+  SMITH_INTELLIGENCE_ENDPOINT: {{ .Values.engine.intelligenceBaseUrl | trimSuffix "/" | trimSuffix "/intelligence" | quote }}
   FORGE_AGENT_LANGGRAPH_URL: "http://{{ include "langsmith.agentFeatures.fullname" (dict "root" . "product" "engineInsightsAgent") }}-{{ .Values.engineInsightsAgent.apiServer.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.engineInsightsAgent.apiServer.service.httpPort }}"
   {{- end }}
   GO_ACE_ENDPOINT: "http://{{ include "langsmith.fullname" . }}-{{.Values.aceBackend.name}}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.aceBackend.service.port }}"
