@@ -93,6 +93,7 @@ Control which phases are sent to the transformer via `processingMode`:
 | authProxy.deployment.livenessProbe.timeoutSeconds | int | `1` |  |
 | authProxy.deployment.nodeSelector | object | `{}` |  |
 | authProxy.deployment.podSecurityContext | object | `{}` |  |
+| authProxy.deployment.priorityClassName | string | `""` |  |
 | authProxy.deployment.readinessProbe.failureThreshold | int | `6` |  |
 | authProxy.deployment.readinessProbe.httpGet.path | string | `"/healthz"` |  |
 | authProxy.deployment.readinessProbe.httpGet.port | int | `10000` |  |

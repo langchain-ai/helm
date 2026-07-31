@@ -25,6 +25,9 @@ spec:
         {{- toYaml .Values.mimir.podAnnotations | nindent 8 }}
         {{- end }}
     spec:
+      {{- if .Values.mimir.priorityClassName }}
+      priorityClassName: {{ .Values.mimir.priorityClassName }}
+      {{- end }}
       containers:
         - name: mimir
           image: {{ .Values.mimir.image.registry }}/{{ .Values.mimir.image.repository }}{{ if .Values.mimir.image.tag }}:{{ .Values.mimir.image.tag }}{{ end }}

@@ -1,0 +1,37 @@
+{{- if and .Values.smithdb.enabled (dig "autoscaling" "enabled" false .Values.smithdb.compactionWorker) }}
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ include "langsmith.smithdb.componentName" (dict "root" . "component" "compactionWorker") }}
+  namespace: {{ .Values.namespace | default .Release.Namespace }}
+  labels:
+    {{- include "langsmith.labels" . | nindent 4 }}
+    app.kubernetes.io/component: {{ include "langsmith.smithdb.componentName" (dict "root" . "component" "compactionWorker") }}
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ include "langsmith.smithdb.componentName" (dict "root" . "component" "compactionWorker") }}
+  minReplicas: {{ .Values.smithdb.compactionWorker.autoscaling.minReplicas }}
+  maxReplicas: {{ .Values.smithdb.compactionWorker.autoscaling.maxReplicas }}
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: {{ .Values.smithdb.compactionWorker.autoscaling.scaleUpStabilizationWindowSeconds }}
+      policies:
+        - type: Pods
+          value: {{ .Values.smithdb.compactionWorker.autoscaling.scalePodCount }}
+          periodSeconds: {{ .Values.smithdb.compactionWorker.autoscaling.scaleUpStabilizationWindowSeconds }}
+    scaleDown:
+      stabilizationWindowSeconds: {{ .Values.smithdb.compactionWorker.autoscaling.scaleDownStabilizationWindowSeconds }}
+      policies:
+        - type: Pods
+          value: {{ .Values.smithdb.compactionWorker.autoscaling.scalePodCount }}
+          periodSeconds: {{ .Values.smithdb.compactionWorker.autoscaling.scaleDownStabilizationWindowSeconds }}
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.smithdb.compactionWorker.autoscaling.targetCPUUtilizationPercentage }}
+{{- end }}

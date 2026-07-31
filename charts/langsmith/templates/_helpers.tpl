@@ -251,6 +251,7 @@ Template containing common environment variables that are used by several servic
 - name: REDIS_IAM_AUTH_PROVIDER
   value: {{ .Values.redis.external.iamAuthProvider | quote }}
 {{- end }}
+{{- if .Values.clickhouse.enabled }}
 - name: CLICKHOUSE_HYBRID
   value: {{ .Values.clickhouse.external.hybrid | quote }}
 - name: CLICKHOUSE_DB
@@ -303,6 +304,7 @@ Template containing common environment variables that are used by several servic
 {{- end }}
 - name: CLICKHOUSE_CLUSTER
   value: {{ .Values.clickhouse.external.cluster | quote }}
+{{- end }}
 - name: LOG_LEVEL
   value: {{ .Values.config.logLevel | quote }}
 {{- if .Values.config.oauth.enabled }}
@@ -430,7 +432,7 @@ Template containing common environment variables that are used by several servic
 {{- end }}
 {{- end }}
 - name: FF_CH_SEARCH_ENABLED
-  value: {{ ternary "false" .Values.config.blobStorage.chSearchEnabled .Values.clickhouse.external.hybrid | quote }}
+  value: {{ and .Values.clickhouse.enabled (not .Values.clickhouse.external.hybrid) .Values.config.blobStorage.chSearchEnabled | quote }}
 {{ include "langsmith.conditionalEnvVarsResolved" . }}
 - name: REDIS_RUNS_EXPIRY_SECONDS
   value: {{ .Values.config.settings.redisRunsExpirySeconds | quote }}
@@ -511,6 +513,20 @@ SmithDB resource name prefix.
 {{- end }}
 
 {{/*
+Name of the secret containing credentials for the SmithDB migration taskdb Postgres.
+*/}}
+{{- define "langsmith.smithdb.taskdbPostgresSecretName" -}}
+{{- $taskdb := .Values.smithdb.migration.taskdb.postgres -}}
+{{- if and $taskdb.external.enabled $taskdb.external.existingSecretName }}
+{{- $taskdb.external.existingSecretName }}
+{{- else if and (not $taskdb.external.enabled) $taskdb.auth.existingSecretName }}
+{{- $taskdb.auth.existingSecretName }}
+{{- else }}
+{{- printf "%s-%s" (include "langsmith.smithdb.fullname" .) $taskdb.name | trunc 63 | trimSuffix "-" }}
+{{- end }}
+{{- end }}
+
+{{/*
 Name of a SmithDB component Service or Deployment.
 Args: root, component.
 */}}
@@ -532,6 +548,13 @@ Args: root.
 {{- else -}}
 {{- default "default" $root.Values.smithdb.serviceAccount.name }}
 {{- end -}}
+{{- end }}
+
+{{/*
+Common init containers shared by every SmithDB workload.
+*/}}
+{{- define "langsmith.smithdb.commonInitContainers" -}}
+{{- toYaml .Values.smithdb.commonInitContainers -}}
 {{- end }}
 
 {{/*
@@ -601,10 +624,16 @@ SmithDB OTEL resource attributes.
 */}}
 {{- define "langsmith.smithdb.otelResourceAttributes" -}}
 {{- $resourceAttributes := list "pod_name=$(POD_NAME)" "k8s.pod.name=$(POD_NAME)" "container_name=$(CONTAINER_NAME)" "k8s.container.name=$(CONTAINER_NAME)" -}}
-{{- range $key, $value := .Values.smithdb.config.observability.tracing.extraResourceAttributes }}
-{{- $resourceAttributes = append $resourceAttributes (printf "%s=%s" $key (toString $value)) -}}
-{{- end }}
 {{- join "," $resourceAttributes -}}
+{{- end }}
+
+{{/*
+SmithDB OTLP endpoint. The chart models TLS separately, while the standard
+OTEL_EXPORTER_OTLP_ENDPOINT consumed by SmithDB requires a URI scheme.
+*/}}
+{{- define "langsmith.smithdb.otelEndpoint" -}}
+{{- $tracing := .Values.config.observability.tracing -}}
+{{- printf "%s://%s" (ternary "https" "http" $tracing.useTls) $tracing.endpoint -}}
 {{- end }}
 
 {{/*
@@ -615,16 +644,14 @@ Args: root, service, displayName.
 {{- $root := .root -}}
 {{- $prefix := printf "SMITHDB_%s" (upper .service) -}}
 {{- $displayName := .displayName -}}
-{{- $tracingEnabled := $root.Values.smithdb.config.observability.tracing.enabled -}}
-{{- $logLevel := default "INFO,vortex=WARN" $root.Values.smithdb.config.observability.logging.level -}}
+{{- $tracing := $root.Values.config.observability.tracing -}}
+{{- $tracingEnabled := and $tracing.enabled (eq $tracing.exporter "grpc") -}}
 - name: {{ $prefix }}__LOGGING__FORMAT
   value: {{ ternary "opentelemetry" "console" $tracingEnabled | quote }}
 - name: {{ $prefix }}__LOGGING__TRACING_ENABLED
   value: {{ $tracingEnabled | quote }}
 - name: {{ $prefix }}__LOGGING__SERVICE_NAME
   value: {{ $displayName | quote }}
-- name: RUST_LOG
-  value: {{ $logLevel | quote }}
 - name: NODE_IP
   valueFrom:
     fieldRef:
@@ -649,7 +676,7 @@ Args: root, service, displayName.
   value: {{ $displayName | quote }}
 {{- if $tracingEnabled }}
 - name: OTEL_EXPORTER_OTLP_ENDPOINT
-  value: {{ $root.Values.smithdb.config.observability.tracing.endpoint | quote }}
+  value: {{ include "langsmith.smithdb.otelEndpoint" $root | quote }}
 {{- /* SmithDB exports OTLP over gRPC. */}}
 - name: OTEL_EXPORTER_OTLP_PROTOCOL
   value: "grpc"
@@ -881,14 +908,6 @@ Args: root, service, displayName.
 {{- end -}}
 {{- end -}}
 
-{{- define "agentBootstrap.serviceAccountName" -}}
-{{- if .Values.backend.agentBootstrap.serviceAccount.create -}}
-    {{ default (printf "%s-%s" (include "langsmith.fullname" .) "agent-bootstrap") .Values.backend.agentBootstrap.serviceAccount.name | trunc 63 | trimSuffix "-" }}
-{{- else -}}
-    {{ default "default" .Values.backend.agentBootstrap.serviceAccount.name }}
-{{- end -}}
-{{- end -}}
-
 {{- define "fleetApiServer.serviceAccountName" -}}
 {{- if .Values.fleet.apiServer.serviceAccount.create -}}
     {{ default (printf "%s-%s" (include "langsmith.agentFeatures.fullname" (dict "root" . "product" "fleet")) .Values.fleet.apiServer.name) .Values.fleet.apiServer.serviceAccount.name | trunc 63 | trimSuffix "-" }}
@@ -1035,6 +1054,12 @@ Extra env vars for fleet api-server and queue pods.
   (dict "name" "SSRF_ALLOW_PRIVATE_IPS_TOOLS" "value" "true")
   (dict "name" "SSRF_ALLOW_K8S_INTERNAL" "value" "true")
 -}}
+{{- if $feature.postgres.external.iamProvider -}}
+{{- $out = append $out (dict "name" "AGENT_POSTGRES_IAM_AUTH_PROVIDER" "value" $feature.postgres.external.iamProvider) -}}
+{{- end -}}
+{{- if $feature.redis.external.iamProvider -}}
+{{- $out = append $out (dict "name" "AGENT_REDIS_IAM_AUTH_PROVIDER" "value" $feature.redis.external.iamProvider) -}}
+{{- end -}}
 {{- if and (eq $componentName "apiServer") $feature.queue.enabled -}}
 {{- $out = append $out (dict "name" "N_JOBS_PER_WORKER" "value" "0") -}}
 {{- else -}}
@@ -1060,6 +1085,12 @@ Extra env vars for insights api-server and queue pods.
   (dict "name" "REDIS_URI" "valueFrom" (dict "secretKeyRef" (dict "name" (include "langsmith.agentFeatures.redisSecretName" (dict "root" $root "product" "insights")) "key" "redis_connection_url")))
   (dict "name" "LANGSMITH_TRACING" "value" "false")
 -}}
+{{- if $feature.postgres.external.iamProvider -}}
+{{- $out = append $out (dict "name" "AGENT_POSTGRES_IAM_AUTH_PROVIDER" "value" $feature.postgres.external.iamProvider) -}}
+{{- end -}}
+{{- if $feature.redis.external.iamProvider -}}
+{{- $out = append $out (dict "name" "AGENT_REDIS_IAM_AUTH_PROVIDER" "value" $feature.redis.external.iamProvider) -}}
+{{- end -}}
 {{- if and (eq $componentName "apiServer") $feature.queue.enabled -}}
 {{- $out = append $out (dict "name" "N_JOBS_PER_WORKER" "value" "0") -}}
 {{- else -}}
@@ -1087,30 +1118,18 @@ Extra env vars for polly api-server and queue pods.
   (dict "name" "LANGSMITH_DISABLE_RUN_COMPRESSION" "value" "true")
   (dict "name" "LANGSMITH_TRACING" "value" (ternary "false" "true" $feature.enableTracing))
 -}}
+{{- if $feature.postgres.external.iamProvider -}}
+{{- $out = append $out (dict "name" "AGENT_POSTGRES_IAM_AUTH_PROVIDER" "value" $feature.postgres.external.iamProvider) -}}
+{{- end -}}
+{{- if $feature.redis.external.iamProvider -}}
+{{- $out = append $out (dict "name" "AGENT_REDIS_IAM_AUTH_PROVIDER" "value" $feature.redis.external.iamProvider) -}}
+{{- end -}}
 {{- if and (eq $componentName "apiServer") $feature.queue.enabled -}}
 {{- $out = append $out (dict "name" "N_JOBS_PER_WORKER" "value" "0") -}}
 {{- else -}}
 {{- $out = append $out (dict "name" "N_JOBS_PER_WORKER" "value" (toString $feature.queue.numberOfJobsPerWorker)) -}}
 {{- end -}}
 {{- toYaml $out }}
-{{- end -}}
-
-{{- define "agentBootstrap.createAgentProducts" -}}
-{{- $createProducts := list }}
-{{- if .Values.config.agentBuilder.enabled }}
-{{- $createProducts = append $createProducts "agent_builder" }}
-{{- end }}
-{{ toYaml $createProducts }}
-{{- end -}}
-
-{{- define "agentBootstrap.destroyAgentProducts" -}}
-{{- $destroyProducts := list }}
-{{- if not .Values.config.agentBuilder.enabled }}
-{{- $destroyProducts = append $destroyProducts "agent_builder" }}
-{{- end }}
-{{- $destroyProducts = append $destroyProducts "insights" }}
-{{- $destroyProducts = append $destroyProducts "smith_polly" }}
-{{ toYaml $destroyProducts }}
 {{- end -}}
 
 {{/* Fail on duplicate keys in the inputted list of environment variables */}}
@@ -1150,7 +1169,7 @@ checksum/redis: {{ include (print $.Template.BasePath "/redis/secrets.yaml") . |
 {{- if not .Values.postgres.external.existingSecretName }}
 checksum/postgres: {{ include (print $.Template.BasePath "/postgres/secrets.yaml") . | sha256sum }}
 {{- end }}
-{{- if not .Values.clickhouse.external.existingSecretName }}
+{{- if and .Values.clickhouse.enabled (not .Values.clickhouse.external.existingSecretName) }}
 checksum/clickhouse: {{ include (print $.Template.BasePath "/clickhouse/secrets.yaml") . | sha256sum }}
 {{- end }}
 {{- end }}
@@ -1179,7 +1198,7 @@ Creates the image reference used for Langsmith deployments. If registry is speci
 {{- if .Values.postgres.external.clientCert.secretName -}}
 {{- $mounts = append $mounts (dict "name" "postgres-client-cert" "mountPath" "/etc/postgres/certs" "readOnly" true) -}}
 {{- end -}}
-{{- if .Values.clickhouse.external.clientCert.secretName -}}
+{{- if and .Values.clickhouse.enabled .Values.clickhouse.external.clientCert.secretName -}}
 {{- $mounts = append $mounts (dict "name" "clickhouse-client-cert" "mountPath" "/etc/clickhouse/certs" "readOnly" true) -}}
 {{- end -}}
 {{ $mounts | toYaml }}
@@ -1196,7 +1215,7 @@ Creates the image reference used for Langsmith deployments. If registry is speci
 {{- if .Values.postgres.external.clientCert.secretName -}}
 {{- $volumes = append $volumes (dict "name" "postgres-client-cert" "secret" (dict "secretName" .Values.postgres.external.clientCert.secretName "items" (list (dict "key" .Values.postgres.external.clientCert.certSecretKey "path" "client.crt" "mode" 0644) (dict "key" .Values.postgres.external.clientCert.keySecretKey "path" "client.key" "mode" 0640)))) -}}
 {{- end -}}
-{{- if .Values.clickhouse.external.clientCert.secretName -}}
+{{- if and .Values.clickhouse.enabled .Values.clickhouse.external.clientCert.secretName -}}
 {{- $volumes = append $volumes (dict "name" "clickhouse-client-cert" "secret" (dict "secretName" .Values.clickhouse.external.clientCert.secretName "items" (list (dict "key" .Values.clickhouse.external.clientCert.certSecretKey "path" "client.crt" "mode" 0644) (dict "key" .Values.clickhouse.external.clientCert.keySecretKey "path" "client.key" "mode" 0640)))) -}}
 {{- end -}}
 {{ $volumes | toYaml }}

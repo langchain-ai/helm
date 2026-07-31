@@ -18,7 +18,9 @@ metadata:
       {{- toYaml . | nindent 4 }}
     {{- end }}
 spec:
+  {{- if not (dig "autoscaling" "enabled" false .Values.smithdb.compactionWorker) }}
   replicas: {{ .Values.smithdb.compactionWorker.deployment.replicas }}
+  {{- end }}
   selector:
     matchLabels:
       {{- include "langsmith.selectorLabels" . | nindent 6 }}
@@ -41,12 +43,15 @@ spec:
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      {{- if .Values.smithdb.compactionWorker.deployment.priorityClassName }}
+      priorityClassName: {{ .Values.smithdb.compactionWorker.deployment.priorityClassName }}
+      {{- end }}
       securityContext:
         {{- toYaml .Values.smithdb.compactionWorker.deployment.podSecurityContext | nindent 8 }}
       serviceAccountName: {{ include "langsmith.smithdb.serviceAccountName" (dict "root" . "component" "compaction") }}
       terminationGracePeriodSeconds: {{ .Values.smithdb.compactionWorker.deployment.terminationGracePeriodSeconds }}
       {{- include "langsmith.dnsConfig" . | nindent 6 }}
-      {{- with .Values.smithdb.compactionWorker.deployment.initContainers }}
+      {{- with concat (include "langsmith.smithdb.commonInitContainers" . | fromYamlArray) .Values.smithdb.compactionWorker.deployment.initContainers }}
       initContainers:
         {{- toYaml . | nindent 8 }}
       {{- end }}

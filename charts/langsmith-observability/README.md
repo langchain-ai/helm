@@ -161,6 +161,7 @@ Values for Loki Single Binary: `https://github.com/grafana/loki/blob/main/produc
 | mimir.persistence.storageClass | string | `""` |  |
 | mimir.podAnnotations | object | `{}` |  |
 | mimir.podSecurityContext | object | `{}` |  |
+| mimir.priorityClassName | string | `""` | Optional priority class for the Mimir pod. |
 | mimir.readinessProbe.failureThreshold | int | `3` |  |
 | mimir.readinessProbe.httpGet.path | string | `"/ready"` |  |
 | mimir.readinessProbe.httpGet.port | string | `"http"` |  |

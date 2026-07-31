@@ -54,6 +54,9 @@ spec:
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      {{- if .Values.aceBackend.deployment.priorityClassName }}
+      priorityClassName: {{ .Values.aceBackend.deployment.priorityClassName }}
+      {{- end }}
       securityContext:
         {{- include "langsmith.podSecurityContext" (dict "Values" .Values "componentSecurityContext" .Values.aceBackend.deployment.podSecurityContext) | nindent 8 }}
       serviceAccountName: {{ include "aceBackend.serviceAccountName" . }}

@@ -54,6 +54,9 @@ spec:
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      {{- if .Values.agentGateway.deployment.priorityClassName }}
+      priorityClassName: {{ .Values.agentGateway.deployment.priorityClassName }}
+      {{- end }}
       securityContext:
         {{- include "langsmith.podSecurityContext" (dict "Values" .Values "componentSecurityContext" .Values.agentGateway.deployment.podSecurityContext) | nindent 8 }}
       serviceAccountName: {{ include "agentGateway.serviceAccountName" . }}
@@ -75,8 +78,8 @@ spec:
           envFrom:
             - configMapRef:
                 name: {{ include "langsmith.fullname" . }}-config
-          image: {{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "platformBackendImage") | quote }}
-          imagePullPolicy: {{ .Values.images.platformBackendImage.pullPolicy }}
+          image: {{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "backendImage") | quote }}
+          imagePullPolicy: {{ .Values.images.backendImage.pullPolicy }}
           ports:
             - name: http
               containerPort: {{ .Values.agentGateway.containerPort }}

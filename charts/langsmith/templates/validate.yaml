@@ -16,6 +16,19 @@ AWS Marketplace Helm template verification).
 ================================================================================
 */}}
 
+{{- /* Data mode flags are template predicates, so require real booleans even when optional validation is skipped. */ -}}
+{{- if not (kindIs "bool" .Values.clickhouse.enabled) -}}
+{{- fail "clickhouse.enabled must be a boolean. Do not quote true or false." -}}
+{{- end -}}
+{{- if not (kindIs "bool" .Values.smithdb.langsmith.ingestion.enabled) -}}
+{{- fail "smithdb.langsmith.ingestion.enabled must be a boolean. Do not quote true or false." -}}
+{{- end -}}
+{{- if not (kindIs "bool" .Values.smithdb.langsmith.migration.enabled) -}}
+{{- fail "smithdb.langsmith.migration.enabled must be a boolean. Do not quote true or false." -}}
+{{- end -}}
+{{- if not (kindIs "bool" .Values.smithdb.langsmith.query.enabled) -}}
+{{- fail "smithdb.langsmith.query.enabled must be a boolean. Do not quote true or false." -}}
+{{- end -}}
 {{- if not .Values.config.skipValidation -}}
 
 {{- /* Validate deprecated fleet server value keys */ -}}
@@ -25,11 +38,33 @@ AWS Marketplace Helm template verification).
 {{- if hasKey .Values "agentBuilderTriggerServer" -}}
 {{- fail "agentBuilderTriggerServer is deprecated. Please use fleetTriggerServer." -}}
 {{- end -}}
-{{- if hasKey .Values.images "agentBuilderToolServerImage" -}}
-{{- fail "images.agentBuilderToolServerImage is deprecated. Please use images.fleetToolServerImage." -}}
+{{- /* Removed: the bundled agent-bootstrap Job (backend.agentBootstrap). Standalone fleet/insights/polly deployments replace it. */ -}}
+{{- if hasKey .Values.backend "agentBootstrap" -}}
+{{- fail "backend.agentBootstrap has been removed: the bundled agent-bootstrap Job is no longer part of this chart. Standalone agents now run as the top-level fleet / insights / polly deployments. If you were relying on the bundled bootstrap, contact LangChain support for migration guidance, then remove backend.agentBootstrap from your values." -}}
 {{- end -}}
-{{- if hasKey .Values.images "agentBuilderTriggerServerImage" -}}
-{{- fail "images.agentBuilderTriggerServerImage is deprecated. Please use images.fleetTriggerServerImage." -}}
+{{- /* Deprecated image keys: these workloads now run on the single consolidated backend image */ -}}
+{{- range $key := list "hostBackendImage" "platformBackendImage" "playgroundImage" "fleetToolServerImage" "fleetTriggerServerImage" "agentBuilderToolServerImage" "agentBuilderTriggerServerImage" -}}
+{{- if hasKey $.Values.images $key -}}
+{{- fail (printf "images.%s is deprecated: this workload now runs on the consolidated backend image. Configure images.backendImage instead (and mirror only that image)." $key) -}}
+{{- end -}}
+{{- end -}}
+{{- if hasKey .Values.smithdb.langsmith "dualIngest" -}}
+{{- $legacySmithdbDualIngest := get .Values.smithdb.langsmith "dualIngest" -}}
+{{- if eq (lower (toString (get $legacySmithdbDualIngest "enabled"))) "true" -}}
+{{- fail "smithdb.langsmith.dualIngest.enabled is no longer supported. Use smithdb.langsmith.ingestion.enabled." -}}
+{{- end -}}
+{{- end -}}
+{{- if hasKey .Values.smithdb.langsmith "frontend" -}}
+{{- $legacySmithdbFrontend := get .Values.smithdb.langsmith "frontend" -}}
+{{- if eq (lower (toString (get $legacySmithdbFrontend "useSmithDBEndpoints"))) "true" -}}
+{{- fail "smithdb.langsmith.frontend.useSmithDBEndpoints is no longer supported. Use smithdb.langsmith.query.enabled." -}}
+{{- end -}}
+{{- end -}}
+{{- if hasKey .Values.smithdb.langsmith "lsmBackfill" -}}
+{{- $legacySmithdbLsmBackfill := get .Values.smithdb.langsmith "lsmBackfill" -}}
+{{- if eq (lower (toString (get $legacySmithdbLsmBackfill "enabled"))) "true" -}}
+{{- fail "smithdb.langsmith.lsmBackfill.enabled is no longer supported. Remove it and follow the SmithDB migration guidance for this chart version." -}}
+{{- end -}}
 {{- end -}}
 
 {{- /* Validate ingress configuration */ -}}
@@ -292,12 +327,28 @@ AWS Marketplace Helm template verification).
 {{- end -}}
 
 {{- /* Validate clickhouse mTLS configuration */ -}}
-{{- if and .Values.clickhouse.external.clientCert.secretName (not .Values.clickhouse.external.existingSecretName) (not .Values.clickhouse.external.tls) -}}
+{{- if and .Values.clickhouse.enabled .Values.clickhouse.external.clientCert.secretName (not .Values.clickhouse.external.existingSecretName) (not .Values.clickhouse.external.tls) -}}
 {{- fail "clickhouse.external.tls must be true when clickhouse.external.clientCert.secretName is set and the value is not being fetched from an existing secret." -}}
+{{- end -}}
+{{- if and (not .Values.clickhouse.enabled) .Values.clickhouse.external.enabled -}}
+{{- fail "clickhouse.external.enabled must be false when clickhouse.enabled is false." -}}
 {{- end -}}
 
 {{- /* Validate SmithDB configuration */ -}}
 {{- if .Values.smithdb.enabled -}}
+{{- if .Values.smithdb.commonInitContainers -}}
+{{- range $index, $initContainer := .Values.smithdb.commonInitContainers -}}
+{{- if not (kindIs "map" $initContainer) -}}
+{{- fail (printf "smithdb.commonInitContainers[%d] must be a container object." $index) -}}
+{{- end -}}
+{{- if not (get $initContainer "name") -}}
+{{- fail (printf "smithdb.commonInitContainers[%d].name is required." $index) -}}
+{{- end -}}
+{{- if not (get $initContainer "image") -}}
+{{- fail (printf "smithdb.commonInitContainers[%d].image is required." $index) -}}
+{{- end -}}
+{{- end -}}
+{{- end -}}
 {{- if not .Values.smithdb.config.existingSecretName -}}
 {{- fail "smithdb.config.existingSecretName is required when smithdb.enabled is true." -}}
 {{- end -}}
@@ -314,16 +365,60 @@ AWS Marketplace Helm template verification).
 {{- if not .Values.smithdb.config.objectStore.bucket -}}
 {{- fail "smithdb.config.objectStore.bucket is required when smithdb.enabled is true." -}}
 {{- end -}}
-{{- $smithdbWorkloads := dict
+{{- $smithdbRequiredWorkloads := dict
   "query" .Values.smithdb.query
   "ingestion" .Values.smithdb.ingestion
   "compaction" .Values.smithdb.compaction
   "compactionWorker" .Values.smithdb.compactionWorker
   "clusterManager" .Values.smithdb.clusterManager
 -}}
-{{- range $workloadName, $workload := $smithdbWorkloads -}}
+{{- range $workloadName, $workload := $smithdbRequiredWorkloads -}}
 {{- if and $.Values.smithdb.enabled (lt (int $workload.deployment.replicas) 1) -}}
 {{- fail (printf "smithdb.%s.deployment.replicas must be greater than 0 when smithdb.enabled is true." $workloadName) -}}
+{{- end -}}
+{{- end -}}
+{{- if .Values.smithdb.langsmith.migration.enabled -}}
+{{- if lt (int .Values.smithdb.ingestion.deployment.replicas) 1 -}}
+{{- fail "smithdb.ingestion.deployment.replicas must be greater than 0 when smithdb.langsmith.migration.enabled is true." -}}
+{{- end -}}
+{{- end -}}
+{{- if and .Values.smithdb.langsmith.migration.enabled (not .Values.smithdb.langsmith.ingestion.enabled) -}}
+{{- fail "smithdb.langsmith.ingestion.enabled must be true when smithdb.langsmith.migration.enabled is true." -}}
+{{- end -}}
+{{- if and .Values.smithdb.langsmith.migration.enabled (not .Values.clickhouse.enabled) -}}
+{{- fail "clickhouse.enabled must be true when smithdb.langsmith.migration.enabled is true." -}}
+{{- end -}}
+{{- if and .Values.smithdb.langsmith.migration.enabled (not .Values.smithdb.migration.taskdb.postgres.enabled) -}}
+{{- fail "smithdb.migration.taskdb.postgres.enabled must be true when smithdb.langsmith.migration.enabled is true." -}}
+{{- end -}}
+{{- $taskdb := .Values.smithdb.migration.taskdb.postgres -}}
+{{- if and .Values.smithdb.langsmith.migration.enabled $taskdb.enabled -}}
+{{- if $taskdb.external.enabled -}}
+{{- if not $taskdb.external.port -}}
+{{- fail "smithdb.migration.taskdb.postgres.external.port is required when smithdb.migration.taskdb.postgres.external.enabled is true." -}}
+{{- end -}}
+{{- if $taskdb.external.existingSecretName -}}
+{{- range $keyName := list "hostSecretKey" "databaseSecretKey" "usernameSecretKey" "passwordSecretKey" -}}
+{{- $keyValue := get $taskdb.external $keyName -}}
+{{- if not $keyValue -}}
+{{- fail (printf "smithdb.migration.taskdb.postgres.external.%s is required when smithdb.migration.taskdb.postgres.external.existingSecretName is set." $keyName) -}}
+{{- end -}}
+{{- end -}}
+{{- else -}}
+{{- range $keyName := list "host" "database" "username" "password" -}}
+{{- $keyValue := get $taskdb.external $keyName -}}
+{{- if not $keyValue -}}
+{{- fail (printf "smithdb.migration.taskdb.postgres.external.%s is required when smithdb.migration.taskdb.postgres.external.enabled is true and external.existingSecretName is not set." $keyName) -}}
+{{- end -}}
+{{- end -}}
+{{- end -}}
+{{- else -}}
+{{- if not $taskdb.auth.passwordSecretKey -}}
+{{- fail "smithdb.migration.taskdb.postgres.auth.passwordSecretKey is required when smithdb.migration.taskdb.postgres.enabled is true." -}}
+{{- end -}}
+{{- if and (not $taskdb.auth.existingSecretName) (not $taskdb.auth.password) -}}
+{{- fail "smithdb.migration.taskdb.postgres.auth.password is required when smithdb.migration.taskdb.postgres.enabled is true and auth.existingSecretName is not set." -}}
+{{- end -}}
 {{- end -}}
 {{- end -}}
 {{- $smithdbServiceWorkloads := dict
@@ -340,12 +435,37 @@ AWS Marketplace Helm template verification).
 {{- if and .Values.smithdb.enabled (ne (toString .Values.smithdb.compactionWorker.maxConcurrentJobs) "") (lt (int .Values.smithdb.compactionWorker.maxConcurrentJobs) 1) -}}
 {{- fail "smithdb.compactionWorker.maxConcurrentJobs must be greater than 0 when set." -}}
 {{- end -}}
-{{- if and .Values.smithdb.langsmith.dualIngest.enabled (not .Values.smithdb.enabled) -}}
-{{- fail "smithdb.enabled must be true when smithdb.langsmith.dualIngest.enabled is true." -}}
+{{- $smithdbAutoscalingWorkloads := dict
+  "query" .Values.smithdb.query
+  "ingestion" .Values.smithdb.ingestion
+  "compactionWorker" .Values.smithdb.compactionWorker
+-}}
+{{- range $workloadName, $workload := $smithdbAutoscalingWorkloads -}}
+{{- $autoscaling := dig "autoscaling" (dict) $workload -}}
+{{- if and $.Values.smithdb.enabled (dig "enabled" false $autoscaling) -}}
+{{- if lt (int $autoscaling.minReplicas) 1 -}}
+{{- fail (printf "smithdb.%s.autoscaling.minReplicas must be greater than 0 when autoscaling is enabled." $workloadName) -}}
 {{- end -}}
-{{- if and .Values.smithdb.langsmith.frontend.useSmithDBEndpoints (not .Values.smithdb.enabled) -}}
-{{- fail "smithdb.enabled must be true when smithdb.langsmith.frontend.useSmithDBEndpoints is true." -}}
+{{- if lt (int $autoscaling.maxReplicas) (int $autoscaling.minReplicas) -}}
+{{- fail (printf "smithdb.%s.autoscaling.maxReplicas must be >= minReplicas when autoscaling is enabled." $workloadName) -}}
 {{- end -}}
+{{- end -}}
+{{- end -}}
+{{- end -}}
+{{- if and .Values.smithdb.langsmith.migration.enabled (not .Values.smithdb.enabled) -}}
+{{- fail "smithdb.enabled must be true when smithdb.langsmith.migration.enabled is true." -}}
+{{- end -}}
+{{- if and .Values.smithdb.langsmith.ingestion.enabled (not .Values.smithdb.enabled) -}}
+{{- fail "smithdb.enabled must be true when smithdb.langsmith.ingestion.enabled is true." -}}
+{{- end -}}
+{{- if and .Values.smithdb.langsmith.query.enabled (not .Values.smithdb.enabled) -}}
+{{- fail "smithdb.enabled must be true when smithdb.langsmith.query.enabled is true." -}}
+{{- end -}}
+{{- if not (or .Values.clickhouse.enabled .Values.smithdb.langsmith.ingestion.enabled) -}}
+{{- fail "At least one ingestion backend must be enabled: clickhouse.enabled or smithdb.langsmith.ingestion.enabled." -}}
+{{- end -}}
+{{- if not (or .Values.clickhouse.enabled .Values.smithdb.langsmith.query.enabled) -}}
+{{- fail "At least one query backend must be enabled: clickhouse.enabled or smithdb.langsmith.query.enabled." -}}
 {{- end -}}
 
 {{- /* Validate agent builder configuration */ -}}
@@ -418,6 +538,13 @@ AWS Marketplace Helm template verification).
 {{- range $pair := $agentPairs }}
 {{- $fn := index $pair "n" }}
 {{- $feat := index $.Values $fn }}
+{{- range $database := list "postgres" "redis" }}
+{{- $databaseConfig := index $feat $database }}
+{{- $provider := $databaseConfig.external.iamProvider }}
+{{- if and $provider (not (has $provider (list "azure" "gcp" "aws"))) }}
+{{- fail (printf "%s.%s.external.iamProvider must be one of [azure, gcp, aws]" $fn $database) }}
+{{- end }}
+{{- end }}
 {{- if $feat.enabled }}
 {{- if and (not $feat.encryptionKey) (not $.Values.config.existingSecretName) }}
 {{- fail (printf "%s.encryptionKey is required when %s.enabled is true (not needed if config.existingSecretName is set with the key already present)" $fn $fn) }}

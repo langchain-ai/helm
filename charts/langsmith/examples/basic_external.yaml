@@ -21,6 +21,8 @@ redis:
     # existingSecretName: "redis-secret" Can also put the above into a secret if you want to avoid putting the connection string in the values file.
 
 clickhouse:
+  # Keep enabled true when using an external ClickHouse instance.
+  enabled: true
   external:
     enabled: true
     user: "default"
