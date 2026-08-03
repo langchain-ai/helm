@@ -142,6 +142,8 @@ spec:
         - name: node-driver-registrar
           image: {{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "juicefsCSINodeDriverRegistrarImage") | quote }}
           imagePullPolicy: {{ .Values.images.juicefsCSINodeDriverRegistrarImage.pullPolicy }}
+          command:
+            - /csi-node-driver-registrar
           args:
             - --csi-address=$(ADDRESS)
             - --kubelet-registration-path=$(DRIVER_REG_SOCK_PATH)

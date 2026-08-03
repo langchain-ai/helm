@@ -354,6 +354,10 @@ tests:
       - equal:
           path: spec.template.spec.containers[1].image
           value: mirror.example.com/sig-storage/csi-node-driver-registrar:v2.9.0
+      - equal:
+          path: spec.template.spec.containers[1].command
+          value:
+            - /csi-node-driver-registrar
       - matchRegex:
           path: spec.template.spec.containers[0].livenessProbe.exec.command[2]
           pattern: "--unix-socket /csi/csi\\.sock"
