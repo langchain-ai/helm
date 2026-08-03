@@ -551,8 +551,19 @@ fleet:
       enabled: false
       minAvailable: 1
 engine:
+  # -- Enable the LangSmith Engine. Requires sandboxes.enabled, an externally
+  # reachable config.hostname, and images.engineInsightsAgentImage pointed at
+  # langsmith-insights-engine. See the Engine section of this README.
   enabled: false
+  # -- LangSmith Intelligence gateway the Engine routes model calls through.
+  # Required when engine.enabled: a self-hosted install has no
+  # ANTHROPIC_API_KEY, and the Engine authenticates with the license key.
+  # Use https://beacon.aws.langchain.com/intelligence.
   intelligenceBaseUrl: ""
+  # -- Fernet key for the payloads smith-go passes to the Engine. Required when
+  # engine.enabled, and must match smith-go's ISSUES_AGENT_ENCRYPTION_KEY.
+  # Generate with:
+  # python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
   encryptionKey: ""
   # Prior key, accepted for decryption only, so encryptionKey can be rotated
   # without failing runs encrypted just before the swap.

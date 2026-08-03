@@ -12,6 +12,24 @@ For information on how to use this chart, up-to-date release notes, and other gu
 
 The chart-managed frontend owns public API route rewrites for LangSmith services and enabled features. If `frontend.enabled=false`, provide equivalent routing in the external frontend or reverse proxy for every enabled feature, including any configured `config.basePath` prefix and WebSocket upgrade handling where required.
 
+## Engine
+
+The Engine is off by default. `engine.enabled=true` requires all of the following, and the chart refuses to render if any is missing:
+
+| Setting | Why |
+|---|---|
+| `sandboxes.enabled=true` | Every Engine run executes in a sandbox. |
+| `images.engineInsightsAgentImage.repository` = `docker.io/langchain/langsmith-insights-engine` | Engine needs the combined image serving both the `insights` and `engine` graphs. The default, `langsmith-clio`, serves only `insights`. |
+| `engine.intelligenceBaseUrl` | A self-hosted install has no `ANTHROPIC_API_KEY`; the Engine routes model calls through the LangSmith Intelligence gateway and authenticates with your license key. Use `https://beacon.aws.langchain.com/intelligence`. |
+| `engine.encryptionKey` | Decrypts the payloads smith-go passes to the Engine. Must match smith-go's `ISSUES_AGENT_ENCRYPTION_KEY`. |
+| `config.hostname` | Sandboxes run the `langsmith` CLI against your install from outside the cluster, so this must be externally reachable — not a loopback or in-cluster address. |
+
+Two things worth planning for before you enable it:
+
+**Sandbox nodes.** Sandboxes are Firecracker microVMs, so `sandboxes.sandboxHost.deployment.nodeSelector` must place host pods on KVM-capable nodes — bare-metal instances, or instance types with nested virtualization explicitly enabled. Sandbox images are published for `linux/amd64` only. A dedicated, tainted node pool is the usual arrangement, since rolling a sandbox-host pod suspends every microVM on it.
+
+**Which workspace owns the sandboxes.** By default smith-go resolves the install's workspace, which works when there is exactly one non-personal organization. With more than one it declines rather than guess, and you must set `engine.sandboxTenantId` explicitly. Prefer a workspace reserved for the Engine: its sandboxes consume that workspace's quota and are visible to anyone with access to it.
+
 {{ template "chart.requirementsSection" . }}
 
 ## General parameters
