@@ -175,6 +175,22 @@ Set config.skipValidation to true to bypass these checks (e.g. for helm template
 {{- end }}
 
 {{/*
+Validates trusted browser origins used for credentialed CORS.
+*/}}
+{{- define "langGraphCloud.validateCorsAllowOrigins" -}}
+{{- if not .Values.config.skipValidation -}}
+{{- range .Values.config.corsAllowOrigins -}}
+{{- if eq . "*" -}}
+{{- fail "config.corsAllowOrigins must contain exact origins; wildcard origins cannot support credentialed CORS" -}}
+{{- end -}}
+{{- if not (regexMatch `^https?://[^/]+$` .) -}}
+{{- fail (printf "config.corsAllowOrigins entry %q must be an exact http(s) origin without a path or trailing slash" .) -}}
+{{- end -}}
+{{- end -}}
+{{- end -}}
+{{- end }}
+
+{{/*
 Environment variables used to default agent server checkpointers without overriding app-level LANGGRAPH_CHECKPOINTER.
 */}}
 {{- define "langGraphCloud.checkpointerEnv" -}}

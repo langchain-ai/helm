@@ -1,4 +1,5 @@
 {{- $volumes := concat .Values.commonVolumes .Values.apiServer.deployment.volumes -}}
+{{- include "langGraphCloud.validateCorsAllowOrigins" . -}}
 {{- $volumeMounts := concat .Values.commonVolumeMounts .Values.apiServer.deployment.volumeMounts -}}
 {{- $checkpointerEnv := include "langGraphCloud.checkpointerEnv" . -}}
 apiVersion: apps/v1
@@ -101,6 +102,10 @@ spec:
             {{- if .Values.config.httpMaxRequestBodyBytes }}
             - name: HTTP_MAX_REQUEST_BODY_BYTES
               value: {{ .Values.config.httpMaxRequestBodyBytes | quote }}
+            {{- end }}
+            {{- with .Values.config.corsAllowOrigins }}
+            - name: CORS_ALLOW_ORIGINS
+              value: {{ join "," . | quote }}
             {{- end }}
             {{- with .Values.apiServer.deployment.extraEnv }}
               {{- toYaml . | nindent 12 }}
