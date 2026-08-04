@@ -91,6 +91,7 @@ if $INCLUDE_SANDBOXES; then
 
     IMAGES+=(
         "docker.io/langchain/sandbox-host:${VERSION}"
+        "docker.io/langchain/sandbox-juicefs:${VERSION}"
     )
 fi
 

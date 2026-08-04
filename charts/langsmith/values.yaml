@@ -123,21 +123,11 @@ images:
     repository: "docker.io/langchain/sandbox-host"
     pullPolicy: IfNotPresent
     tag: ""
-  # -- JuiceFS CSI driver image. Only used when config.sandboxes.enabled is true.
-  juicefsCSIImage:
-    repository: "docker.io/juicedata/juicefs-csi-driver"
+  # -- Sandbox JuiceFS image containing the CSI driver, node-driver-registrar, and mount binaries. Only used when sandboxes.enabled is true.
+  juicefsImage:
+    repository: "docker.io/langchain/sandbox-juicefs"
     pullPolicy: IfNotPresent
-    tag: "v0.31.4"
-  # -- JuiceFS CSI node-driver-registrar sidecar image. Only used when config.sandboxes.enabled is true.
-  juicefsCSINodeDriverRegistrarImage:
-    repository: "registry.k8s.io/sig-storage/csi-node-driver-registrar"
-    pullPolicy: IfNotPresent
-    tag: "v2.9.0"
-  # -- Optional JuiceFS CE mount image used by runtime mount pods. Set this when mirroring images for restricted networks.
-  juicefsMountImage:
-    repository: "docker.io/juicedata/mount"
-    pullPolicy: IfNotPresent
-    tag: "ce-v1.3.0"
+    tag: ""
 
 ingress:
   enabled: false

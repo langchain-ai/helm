@@ -1,4 +1,4 @@
-{{- /* Vendored from the upstream juicefs-csi-driver chart; re-sync when bumping images.juicefsCSIImage. */}}
+{{- /* Vendored from the upstream juicefs-csi-driver chart; re-sync when bumping images.juicefsImage. */}}
 {{- if and .Values.sandboxes.enabled .Values.sandboxes.juicefs.csi.install }}
 apiVersion: storage.k8s.io/v1
 kind: CSIDriver

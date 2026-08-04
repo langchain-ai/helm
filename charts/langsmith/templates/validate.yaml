@@ -177,17 +177,11 @@ AWS Marketplace Helm template verification).
 {{- fail "images.sandboxHostImage.tag is required when sandboxes.enabled is true." -}}
 {{- end -}}
 {{- if .Values.sandboxes.juicefs.csi.install -}}
-{{- range $imageName := list "juicefsCSIImage" "juicefsCSINodeDriverRegistrarImage" -}}
-{{- $image := index $.Values.images $imageName -}}
-{{- if not $image.repository -}}
-{{- fail (printf "images.%s.repository is required when sandboxes.enabled is true." $imageName) -}}
+{{- if not .Values.images.juicefsImage.repository -}}
+{{- fail "images.juicefsImage.repository is required when sandboxes.enabled is true." -}}
 {{- end -}}
-{{- if not $image.tag -}}
-{{- fail (printf "images.%s.tag is required when sandboxes.enabled is true." $imageName) -}}
-{{- end -}}
-{{- end -}}
-{{- if and .Values.images.juicefsMountImage.tag (not .Values.images.juicefsMountImage.repository) -}}
-{{- fail "images.juicefsMountImage.repository is required when images.juicefsMountImage.tag is set." -}}
+{{- if not .Values.images.juicefsImage.tag -}}
+{{- fail "images.juicefsImage.tag is required when sandboxes.enabled is true." -}}
 {{- end -}}
 {{- end -}}
 {{- /* The host needs netns, iptables and mount propagation. Fail here, not at CrashLoop. */ -}}

@@ -1,7 +1,7 @@
-{{- /* Vendored from the upstream juicefs-csi-driver chart; re-sync when bumping images.juicefsCSIImage. */}}
+{{- /* Vendored from the upstream juicefs-csi-driver chart; re-sync when bumping images.juicefsImage. */}}
 {{- if and .Values.sandboxes.enabled .Values.sandboxes.juicefs.csi.install }}
 {{- $namespace := .Values.namespace | default .Release.Namespace }}
-{{- $mountImage := include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "juicefsMountImage") }}
+{{- $juicefsImage := include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "juicefsImage") }}
 {{- $controllerAnnotations := .Values.sandboxes.juicefs.csi.controller.annotations }}
 {{- $podAnnotations := mergeOverwrite (dict) (default dict .Values.commonPodAnnotations) $controllerAnnotations }}
 apiVersion: apps/v1
@@ -42,8 +42,8 @@ spec:
       {{- end }}
       containers:
         - name: juicefs-plugin
-          image: {{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "juicefsCSIImage") | quote }}
-          imagePullPolicy: {{ .Values.images.juicefsCSIImage.pullPolicy }}
+          image: {{ $juicefsImage | quote }}
+          imagePullPolicy: {{ .Values.images.juicefsImage.pullPolicy }}
           args:
             - --endpoint=$(CSI_ENDPOINT)
             - --logtostderr
@@ -72,7 +72,7 @@ spec:
             - name: JUICEFS_CONFIG_PATH
               value: /var/lib/juicefs/config
             - name: JUICEFS_CE_MOUNT_IMAGE
-              value: {{ $mountImage | quote }}
+              value: {{ $juicefsImage | quote }}
             - name: JUICEFS_CSI_WEB_PORT
               value: "9567"
             - name: DRIVER_NAME
