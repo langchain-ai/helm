@@ -133,6 +133,7 @@ data:
   {{- end }}
   {{- if .Values.agentGateway.enabled }}
   AGENT_GATEWAY_URL: "http://{{ include "langsmith.fullname" . }}-{{ .Values.agentGateway.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.agentGateway.service.port }}"
+  DEFAULT_ORG_FEATURE_LLM_GATEWAY_ENABLED: "true"
   {{- end }}
   # Usage backfill export gating
   {{- if .Values.config.superAdmins }}
