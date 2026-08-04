@@ -46,6 +46,9 @@ spec:
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      {{- if .Values.fleetTriggerServer.deployment.priorityClassName }}
+      priorityClassName: {{ .Values.fleetTriggerServer.deployment.priorityClassName }}
+      {{- end }}
       securityContext:
         {{- include "langsmith.podSecurityContext" (dict "Values" .Values "componentSecurityContext" .Values.fleetTriggerServer.deployment.podSecurityContext) | nindent 8 }}
       serviceAccountName: {{ include "fleetTriggerServer.serviceAccountName" . }}
@@ -56,6 +59,10 @@ spec:
       {{- end }}
       containers:
         - name: {{ .Values.fleetTriggerServer.name }}
+          {{- with .Values.fleetTriggerServer.deployment.command }}
+          command:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           env:
             {{- with $envVars }}
               {{- toYaml . | nindent 12 }}
@@ -63,13 +70,8 @@ spec:
           envFrom:
             - configMapRef:
                 name: {{ include "langsmith.fullname" . }}-config
-            {{- if and .Values.backend.agentBootstrap.enabled .Values.config.agentBuilder.enabled }}
-            - configMapRef:
-                name: {{ include "langsmith.fullname" . }}-agent-builder-config
-                optional: true
-            {{- end }}
-          image: {{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "fleetTriggerServerImage") | quote }}
-          imagePullPolicy: {{ .Values.images.fleetTriggerServerImage.pullPolicy }}
+          image: {{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "backendImage") | quote }}
+          imagePullPolicy: {{ .Values.images.backendImage.pullPolicy }}
           ports:
             - name: http
               containerPort: {{ .Values.fleetTriggerServer.containerPort }}

@@ -1,0 +1,17 @@
+{{- /* Vendored from the upstream juicefs-csi-driver chart; re-sync when bumping images.juicefsCSIImage. */}}
+{{- if and .Values.sandboxes.enabled .Values.sandboxes.juicefs.csi.install }}
+{{- $namespace := .Values.namespace | default .Release.Namespace }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "langsmith.sandboxes.juicefsCSIConfigMapName" . }}
+  namespace: {{ $namespace | quote }}
+  labels:
+    app.kubernetes.io/component: config
+    {{- include "langsmith.sandboxes.juicefsCSILabels" . | nindent 4 }}
+  annotations:
+    {{- include "langsmith.sandboxes.juicefsCSIAnnotations" . | nindent 4 }}
+data:
+  config.yaml: |-
+{{ include "langsmith.sandboxes.juicefsCSIDriverConfig" . | indent 4 }}
+{{- end }}

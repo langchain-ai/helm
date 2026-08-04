@@ -1,0 +1,21 @@
+{{- /* Vendored from the upstream juicefs-csi-driver chart; re-sync when bumping images.juicefsCSIImage. */}}
+{{- if and .Values.sandboxes.enabled .Values.sandboxes.juicefs.csi.install }}
+apiVersion: storage.k8s.io/v1
+kind: CSIDriver
+metadata:
+  name: {{ include "langsmith.sandboxes.juicefsCSIDriverName" . }}
+  labels:
+    app.kubernetes.io/component: driver
+    {{- include "langsmith.sandboxes.juicefsCSILabels" . | nindent 4 }}
+  annotations:
+    {{- include "langsmith.sandboxes.juicefsCSIAnnotations" . | nindent 4 }}
+spec:
+  attachRequired: false
+  fsGroupPolicy: ReadWriteOnceWithFSType
+  podInfoOnMount: true
+  requiresRepublish: false
+  seLinuxMount: false
+  storageCapacity: false
+  volumeLifecycleModes:
+    - Persistent
+{{- end }}

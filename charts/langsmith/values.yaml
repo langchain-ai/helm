@@ -6,6 +6,31 @@ nameOverride: ""
 fullnameOverride: ""
 # -- Namespace to install the chart into. If not set, will use the namespace of the current context.
 namespace: ""
+# -- Prerequisite manifests rendered as Helm pre-install / pre-upgrade hooks so they
+# -- are applied before the rest of the chart's resources. Typical use case is an
+# -- ExternalSecret that produces a Secret consumed via `config.existingSecretName`.
+# -- See `templates/pre-install-manifests.yaml` for entry forms, injected
+# -- annotations, ExternalSecret-only validation, idempotency rules, and caveats.
+# Example:
+# preInstallManifests:
+#   - apiVersion: external-secrets.io/v1beta1
+#     kind: ExternalSecret
+#     metadata:
+#       name: langsmith-app
+#     spec:
+#       refreshInterval: 1h
+#       secretStoreRef:
+#         name: vault-backend
+#         kind: ClusterSecretStore
+#       target:
+#         name: langsmith-app-secret
+#         creationPolicy: Orphan
+#       data:
+#         - secretKey: langsmith_license_key
+#           remoteRef:
+#             key: secret/langsmith/app
+#             property: langsmith_license_key
+preInstallManifests: []
 # -- Annotations that will be applied to all resources created by the chart
 commonAnnotations: {}
 # -- Annotations that will be applied to all pods created by the chart
@@ -40,35 +65,23 @@ images:
   aceBackendImage:
     repository: "docker.io/langchain/langsmith-ace-backend"
     pullPolicy: IfNotPresent
-    tag: "0.16.1rc1"
+    tag: "0.17.1rc1"
   backendImage:
     repository: "docker.io/langchain/langsmith-backend"
     pullPolicy: IfNotPresent
-    tag: "0.16.1rc1"
+    tag: "0.17.1rc1"
   insightsAgentImage:
     repository: "docker.io/langchain/langsmith-clio"
     pullPolicy: IfNotPresent
-    tag: "0.16.1rc1"
+    tag: "0.17.1rc1"
   frontendImage:
     repository: "docker.io/langchain/langsmith-frontend"
     pullPolicy: IfNotPresent
-    tag: "0.16.1rc1"
-  hostBackendImage:
-    repository: "docker.io/langchain/hosted-langserve-backend"
-    pullPolicy: IfNotPresent
-    tag: "0.16.1rc1"
+    tag: "0.17.1rc1"
   operatorImage:
     repository: "docker.io/langchain/langgraph-operator"
     pullPolicy: IfNotPresent
     tag: "0.1.47"
-  platformBackendImage:
-    repository: "docker.io/langchain/langsmith-go-backend"
-    pullPolicy: IfNotPresent
-    tag: "0.16.1rc1"
-  playgroundImage:
-    repository: "docker.io/langchain/langsmith-playground"
-    pullPolicy: IfNotPresent
-    tag: "0.16.1rc1"
   # For production environments, we strongly recommend connecting to a managed PostgreSQL instance instead of using the one provided by the chart.
   # Docs: https://docs.langchain.com/langsmith/self-host-external-postgres
   postgresImage:
@@ -85,27 +98,43 @@ images:
     repository: "docker.io/clickhouse/clickhouse-server"
     pullPolicy: Always
     tag: "25.12"
-  fleetToolServerImage:
-    repository: "docker.io/langchain/agent-builder-tool-server"
-    pullPolicy: IfNotPresent
-    tag: "0.16.1rc1"
-  fleetTriggerServerImage:
-    repository: "docker.io/langchain/agent-builder-trigger-server"
-    pullPolicy: IfNotPresent
-    tag: "0.16.1rc1"
   agentBuilderImage:
     repository: "docker.io/langchain/agent-builder-deep-agent"
     pullPolicy: IfNotPresent
-    tag: "0.16.1rc1"
+    tag: "0.17.1rc1"
   pollyAgentImage:
     repository: "docker.io/langchain/langsmith-polly"
     pullPolicy: IfNotPresent
-    tag: "0.16.1rc1"
+    tag: "0.17.1rc1"
+  smithdbImage:
+    repository: "docker.io/langchain/smithdb"
+    pullPolicy: IfNotPresent
+    tag: "0.17.1rc1"
   # Optional: only mirror/pull when presidioAnalyzer.enabled is true
   presidioAnalyzerImage:
     repository: "mcr.microsoft.com/presidio-analyzer"
     pullPolicy: IfNotPresent
     tag: "2.2.354"
+  # -- sandbox-host image. Only used when sandboxes.enabled is true.
+  sandboxHostImage:
+    repository: "docker.io/langchain/sandbox-host"
+    pullPolicy: IfNotPresent
+    tag: ""
+  # -- JuiceFS CSI driver image. Only used when sandboxes.enabled is true.
+  juicefsCSIImage:
+    repository: "docker.io/juicedata/juicefs-csi-driver"
+    pullPolicy: IfNotPresent
+    tag: "v0.31.4"
+  # -- JuiceFS CSI node-driver-registrar sidecar image. Only used when sandboxes.enabled is true.
+  juicefsCSINodeDriverRegistrarImage:
+    repository: "registry.k8s.io/sig-storage/csi-node-driver-registrar"
+    pullPolicy: IfNotPresent
+    tag: "v2.9.0"
+  # -- JuiceFS CE mount image used by the runtime mount pods the CSI driver creates. Only used when sandboxes.enabled is true.
+  juicefsMountImage:
+    repository: "docker.io/juicedata/mount"
+    pullPolicy: IfNotPresent
+    tag: "ce-v1.3.0"
 
 ingress:
   enabled: false
@@ -132,6 +161,145 @@ istioGateway:
   labels: {}
 
 
+# -- LangSmith Sandboxes. Same-cluster sandbox-host architecture, on AWS/EKS or GCP/GKE. Also installs the JuiceFS CSI driver, whose cluster-scoped resources only one release per cluster may own.
+sandboxes:
+  enabled: false
+  # -- Private JWK signing sandbox callbacks, or key `sandbox_callback_signing_jwk` in config.existingSecretName. Needs config.hostname for the issuer, or signing fails closed.
+  callbackSigningJwk: ""
+  # -- Base URL for reaching HTTP services inside sandboxes. Needs wildcard DNS and TLS for `*.<host>`; with ingress.enabled the chart adds the wildcard rule. http(s) origin only, no path.
+  serviceUrlBaseUrl: ""
+  quotas:
+    maxCpuCores: 16
+    maxMemoryGb: 64
+    minEphemeralStorageGb: 1
+    maxEphemeralStorageGib: 100
+    maxSandboxes: 1000
+  proxyCa:
+    # -- generatedSecret creates a self-signed CA Secret with Helm and reuses it on live upgrades via lookup. In pure render/GitOps workflows where lookup cannot read the cluster, generatedSecret produces different cert material on each render; use existingSecret for deterministic manifests.
+    mode: "generatedSecret"
+    secretName: "smithbox-proxy-ca"
+    # -- Existing TLS Secret containing tls.crt and tls.key for the sandbox proxy CA. This Secret can be created manually, by cert-manager, or by another external process.
+    existingSecretName: ""
+  juicefs:
+    # -- JuiceFS volume name. Use a flat DNS-label-style name only; slashes and object-store subpaths are not supported here. JuiceFS stores objects under `<name>/` inside the configured bucket. Also used to scope JuiceFS CSI RBAC for the generated mount Secret, so keep it aligned with the `name` key when using an existing CSI config Secret.
+    name: "sandbox-juicefs"
+    # -- Object storage backend used by JuiceFS for sandboxes. Currently supported values are `s3` for AWS/EKS and `gs` for GCP/GKE. Azure-backed sandbox storage is not supported yet.
+    storage: "s3"
+    # -- Object storage bucket/root URL used by JuiceFS. For AWS S3, use a region-explicit endpoint such as `https://bucket-name.s3.us-west-2.amazonaws.com`; do not use the `s3://bucket-name` shorthand because JuiceFS then infers region with GetBucketLocation. For GCS, use `gs://bucket-name`. Use `sandboxes.juicefs.name` for JuiceFS volume isolation instead of deployment-specific bucket paths.
+    bucket: ""
+    redis:
+      # -- JuiceFS Redis metadata URL. Redis metadata engines must use maxmemory-policy noeviction. For Redis Cluster, the `/DB` path is used by JuiceFS as a hash-tag key prefix rather than a Redis logical database.
+      metaURL: ""
+    csi:
+      # -- Install the bundled JuiceFS CSI driver. Set to false when the cluster already runs one; the chart then renders only the sandbox PV/PVCs and CSI config Secret, bound to the existing driver.
+      install: true
+      # -- Name of the chart-managed JuiceFS CSI config Secret. The bundled JuiceFS CSI setup is intended only for JuiceFS PVs in the namespace where this chart is installed. Chart-managed Secret/config changes roll only the JuiceFS CSI controller/node pods through checksum annotations. Helm cannot hash externally managed Secret contents or directly refresh CSI-created JuiceFS mount pods; delete affected JuiceFS mount pods so they are recreated with the updated Secret.
+      configSecretName: "juicefs-csi-config"
+      # -- Existing Secret containing JuiceFS CSI config keys `name`, `metaurl`, `storage`, and `bucket`. When set, this chart does not render the CSI config Secret and `sandboxes.juicefs.name`, `sandboxes.juicefs.storage`, `sandboxes.juicefs.bucket`, and `sandboxes.juicefs.redis.metaURL` are not used for the CSI config.
+      existingSecretName: ""
+      controller:
+        # -- Annotations applied to the JuiceFS CSI controller StatefulSet and pod template.
+        annotations: {}
+        serviceAccount:
+          # -- Annotations applied to the JuiceFS CSI controller ServiceAccount.
+          annotations: {}
+      node:
+        # -- Annotations applied to the JuiceFS CSI node DaemonSet and pod template.
+        annotations: {}
+        serviceAccount:
+          # -- Annotations applied to the JuiceFS CSI node ServiceAccount. Use this for workload identity annotations such as AWS IRSA or GCP Workload Identity.
+          annotations: {}
+      # -- Mount pod patches used by the JuiceFS CSI driver for sandbox volumes. Override only when tuning JuiceFS mount behavior or observability.
+      mountPodPatch:
+        - mountOptions:
+            - cache-dir=/var/cache/juicefs-csi
+            - cache-size=51200
+            - buffer-size=300
+            - prefetch=3
+            - metrics=0.0.0.0:9567
+          resources:
+            requests:
+              cpu: "2"
+              memory: 4Gi
+            limits:
+              cpu: "2"
+              memory: 4Gi
+        - pvcSelector:
+            matchLabels:
+              juicefs.langsmith.com/cache: ssd
+          mountOptions:
+            - cache-dir=/var/cache/juicefs-csi
+            - cache-size=307200
+      pvName: "smithbox-juicefs-csi"
+      pvcName: "smithbox-juicefs-csi"
+  sandboxHost:
+    # -- Component name for sandbox-host. Resources are named `<release-fullname>-<name>`, which the chart passes to the host as SANDBOX_HOST_DEPLOYMENT_NAME.
+    name: "sandbox-host"
+    deployment:
+      labels: {}
+      annotations: {}
+      podAnnotations: {}
+      # -- Number of sandbox-host replicas, i.e. sandbox nodes backing the pool. One host per node, so do not exceed the node count. Ignored when autoscaling is enabled.
+      replicas: 1
+      terminationGracePeriodSeconds: 300
+      priorityClassName: ""
+      # -- Node selector for sandbox-host pods. Required: host pods must land on KVM-capable nodes, and a toleration alone does not attract them there.
+      nodeSelector: {}
+      # -- Tolerations for sandbox-host pods. The default expects sandbox-host nodes tainted `sandbox.langsmith.com/host=true:NoSchedule`; override this if your sandbox node pool uses different taints.
+      tolerations:
+        - key: sandbox.langsmith.com/host
+          operator: Equal
+          value: "true"
+          effect: NoSchedule
+      resources:
+        requests:
+          cpu: "2"
+          memory: 2Gi
+      # -- Container security context. Must stay privileged, with a writable root: the host needs netns, iptables and mount propagation, and unpacks the guest tools image.
+      securityContext:
+        privileged: true
+      podSecurityContext: {}
+      extraEnv: []
+      volumes: []
+      volumeMounts: []
+      initContainers: []
+      sidecars: []
+      # -- Readiness probe. The host binds its listener last, so accepting connections gates the rollout. No liveness probe: a restart mid-suspend destroys running microVMs.
+      readinessProbe:
+        tcpSocket:
+          port: http
+        initialDelaySeconds: 5
+        periodSeconds: 10
+        timeoutSeconds: 3
+        failureThreshold: 3
+    # -- Sandbox host pool autoscaling. There is no HPA or KEDA object: the elected sandbox-host resizes the Deployment itself. Unmanaged `sandbox-host.smith.langchain.com/autoscale-*` annotations override these live.
+    autoscaling:
+      enabled: false
+      minReplicas: 1
+      maxReplicas: 10
+      # -- Target share of pool CPU capacity committed to sandboxes before scaling up.
+      targetUtilizationPercent: 70
+      # -- Spare empty hosts kept above current demand so a sandbox create rarely waits for a cold node.
+      headroomHosts: 1
+      # -- Hold the replica target at its recent peak this long before shrinking, so load dips do not thrash the pool.
+      scaleDownStabilizationSeconds: 300
+    # -- Disruption budget for sandbox-host, capping concurrent evictions since each drain suspends every microVM on that host. maxUnavailable keeps a small pool drainable; setting minAvailable overrides it.
+    pdb:
+      enabled: false
+      maxUnavailable: 1
+      labels: {}
+      annotations: {}
+    serviceAccount:
+      create: true
+      name: ""
+      labels: {}
+      annotations: {}
+      automountServiceAccountToken: true
+    rbac:
+      create: true
+      labels: {}
+      annotations: {}
+
 fleet:
   enabled: false
   namePrefix: "standalone-fleet"
@@ -145,6 +313,7 @@ fleet:
     linearOAuthProvider: ""
     githubOAuthProvider: ""
     microsoftOAuthProvider: ""
+    salesforceOAuthProvider: ""
     slackSigningSecret: ""
     slackBotId: ""
   apiServer:
@@ -282,6 +451,7 @@ fleet:
     containerPort: 5432
     external:
       enabled: false
+      iamProvider: ""
       host: ""
       port: "5432"
       user: "postgres"
@@ -335,6 +505,7 @@ fleet:
     containerPort: 6379
     external:
       enabled: false
+      iamProvider: ""
       connectionUrl: ""
       existingSecretName: ""
     statefulSet:
@@ -519,6 +690,7 @@ insights:
     containerPort: 5432
     external:
       enabled: false
+      iamProvider: ""
       host: ""
       port: "5432"
       user: "postgres"
@@ -572,6 +744,7 @@ insights:
     containerPort: 6379
     external:
       enabled: false
+      iamProvider: ""
       connectionUrl: ""
       existingSecretName: ""
     statefulSet:
@@ -755,6 +928,7 @@ polly:
     containerPort: 5432
     external:
       enabled: false
+      iamProvider: ""
       host: ""
       port: "5432"
       user: "postgres"
@@ -808,6 +982,7 @@ polly:
     containerPort: 6379
     external:
       enabled: false
+      iamProvider: ""
       connectionUrl: ""
       existingSecretName: ""
     statefulSet:
@@ -866,10 +1041,13 @@ config:
     tlsEnabled: true
     # Disable this if there is restricted access to the external facing ingress endpoint for your agent(s) from inside of your kubernetes cluster.
     ingressHealthCheckEnabled: true
+    # -- Lift the SaaS CPU/memory caps on LangSmith Deployment resource specs. Opt-in for self-hosted.
+    uncappedResourcesEnabled: false
+
 
   # DEPRECATED: use the top-level fleet block (fleet/fleetToolServer/
-  # fleetTriggerServer) instead. This bundled-agent path is managed by
-  # backend.agentBootstrap and is being phased out.
+  # fleetTriggerServer) instead. These keys are retained only as fallback
+  # defaults for the fleet block and may be removed in a future chart version.
   # Agent Builder configuration - UI for creating and managing agents
   # Requires config.deployment.enabled to be true
   agentBuilder:
@@ -888,12 +1066,14 @@ config:
     # - linearOAuthProvider: Linear tools
     # - githubOAuthProvider: GitHub tools
     # - microsoftOAuthProvider: Outlook, Teams, SharePoint tools + Outlook trigger
+    # - salesforceOAuthProvider: Salesforce tools
     oauth:
       googleOAuthProvider: ""
       linkedinOAuthProvider: ""
       linearOAuthProvider: ""
       githubOAuthProvider: ""
       microsoftOAuthProvider: ""
+      salesforceOAuthProvider: ""
       slackOAuthProvider: ""
       slackSigningSecret: ""
       slackBotId: ""
@@ -945,6 +1125,8 @@ config:
 
   # -- hostname of the LangSmith installation. Used for redirects and LangSmith deployments. Required for OAuth and LangSmith Deployments. E.g langsmith.com
   hostname: ""
+  # -- Frontend origin for user-facing redirects (LANGSMITH_URL); defaults to hostname. Set only when the UI is served from a different origin than this deployment's API.
+  frontendHostname: ""
   # -- Base path for the LangSmith installation. Used to serve the app under a subpath like example.com/langsmith.
   # WARNING: Changing basePath after LangSmith Deployments have been created will break existing deployments.
   # Existing deployments will need to be recreated for the new basePath to take effect.
@@ -964,6 +1146,8 @@ config:
     oauthIssuerUrl: ""
     oauthScopes: "email,profile,openid"  # Comma-separated list of scopes. We require at least 'email', 'profile', and 'openid'. Some OIDC providers require the 'offline_access' scope for refresh tokens.
     oauthSessionMaxSec: "86400"  # 24 hours. Maximum age of a session in seconds. Your session will attempt to refresh until the max age at which point you will be logged out.
+    # -- When true, percent-encode spaces in the OIDC authorization request as %20 instead of '+'. Enable for IdPs (e.g. SiteMinder) that reject '+'-encoded scope lists. Requires authType 'mixed' with an OAuth client secret.
+    urlEncodeScopeSpaces: false
 
   # -- Ed25519/OKP JWKS (JSON) signing the OAuth AS / remote MCP (and LLM-auth-proxy)
   # tokens; public keys are served at /.well-known/jwks.json. Set it here (stored in the
@@ -1037,7 +1221,7 @@ config:
     coBrandingEnabled: true
 
   # -- Custom error support message displayed on error pages (plain text).
-  # If empty, defaults to the built-in support messages with support@langchain.dev links.
+  # If empty, defaults to the built-in support messages linking to our Support Portal (https://support.langchain.com).
   customErrorSupportMessage: ""
 
   # -- Enables Google IAP (Identity-Aware Proxy) session handling in the frontend.
@@ -1050,6 +1234,7 @@ config:
       enabled: false
       # Replace this with the endpoint of your trace collector. If you are using the LangSmith Observability helm chart, this will be the endpoint of the OTEL Gateway collector.
       endpoint: ""
+      # -- Use TLS for OTLP export.
       useTls: true
       env: "ls_self_hosted"
       exporter: "http"
@@ -1097,13 +1282,14 @@ aceBackend:
     podSecurityContext: {}
     securityContext: {}
     lifecycle: {}
+    priorityClassName: ""
     resources:
       limits:
-        cpu: 1000m
-        memory: 2Gi
+        cpu: 2
+        memory: 4000Mi
       requests:
-        cpu: 200m
-        memory: 1000Mi
+        cpu: 1
+        memory: 2000Mi
     command:
       - "./entrypoint.sh"
     startupProbe:
@@ -1186,6 +1372,595 @@ aceBackend:
     annotations: {}
     automountServiceAccountToken: true
 
+smithdb:
+  # -- Deploy the in-chart SmithDB workloads.
+  # -- V16 supports SmithDB in beta. We do not support or recommend customers setting this up on their own.
+  # -- Please express interest (https://www.langchain.com/smithdb-early-access-waitlist) and we will reach out promptly to ensure we can set you up for success with SmithDB.
+  enabled: false
+  # -- LangSmith configuration for SmithDB.
+  langsmith:
+    ingestion:
+      # -- Enables LangSmith run ingestion via SmithDB. When ClickHouse is enabled, ingestion writes to both backends. Requires smithdb.enabled.
+      enabled: false
+    migration:
+      # -- Runs the SmithDB migration phase and renders the one-shot migrate-all Job plus taskdb Postgres resources.
+      # -- Detailed migration and taskdb configuration lives under smithdb.migration.
+      enabled: false
+    query:
+      # -- Enables SmithDB-powered queries. Requires smithdb.enabled.
+      enabled: false
+  # -- Name segment used for SmithDB resources.
+  name: "smithdb"
+  # -- Shared ServiceAccount for SmithDB workloads.
+  serviceAccount:
+    create: true
+    # -- Defaults to <release>-<smithdb.name>.
+    name: ""
+    labels: {}
+    annotations: {}
+    automountServiceAccountToken: true
+  # -- Extra env vars for every SmithDB workload.
+  commonEnv: []
+  # -- Common init containers added to every SmithDB component Deployment and Job.
+  # Set restartPolicy: Always to configure a Kubernetes sidecar container.
+  commonInitContainers: []
+
+  config:
+    # -- Existing secret containing SmithDB metastore credentials.
+    existingSecretName: ""
+    metastore:
+      hostSecretKey: ""
+      databaseSecretKey: ""
+      usernameSecretKey: ""
+      passwordSecretKey: ""
+      port: "5432"
+      useSsl: false
+    objectStore:
+      # -- Supported values: s3, gcs.
+      type: "s3"
+      bucket: ""
+      s3:
+        # -- Defaults to the SmithDB S3 client default when empty.
+        region: ""
+        endpoint: ""
+        # -- Keys in smithdb.config.existingSecretName for static S3 credentials.
+        # Set both to "" when using ambient cloud identity, such as IRSA.
+        accessKeyIdSecretKey: ""
+        secretAccessKeySecretKey: ""
+
+  query:
+    name: "query"
+    containerPort: 8060
+    containerGrpcPort: 8080
+    deployment:
+      replicas: 1
+      strategy:
+        type: RollingUpdate
+        rollingUpdate:
+          maxSurge: 1
+          maxUnavailable: 0
+      labels: {}
+      annotations: {}
+      podSecurityContext: {}
+      securityContext: {}
+      priorityClassName: ""
+      resources:
+        requests:
+          cpu: "4"
+          memory: "8Gi"
+          ephemeral-storage: "200Gi"
+        limits:
+          cpu: "4"
+          memory: "8Gi"
+          ephemeral-storage: "200Gi"
+      probes:
+        startupProbe:
+          httpGet:
+            path: /health
+            port: http
+          failureThreshold: 6
+          periodSeconds: 10
+          timeoutSeconds: 1
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: http
+          failureThreshold: 6
+          periodSeconds: 10
+          timeoutSeconds: 1
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: http
+          failureThreshold: 6
+          periodSeconds: 10
+          timeoutSeconds: 1
+      command:
+        - "./smithdb"
+        - "query"
+      extraEnv: []
+      extraContainerConfig: {}
+      sidecars: []
+      nodeSelector: {}
+      tolerations: []
+      affinity: {}
+      topologySpreadConstraints: []
+      volumes: []
+      volumeMounts: []
+      initContainers: []
+    service:
+      port: 8080
+      labels: {}
+      annotations: {}
+    pdb:
+      enabled: false
+      minAvailable: 1
+      labels: {}
+      annotations: {}
+    autoscaling:
+      enabled: true
+      minReplicas: 1
+      maxReplicas: 10
+      targetCPUUtilizationPercentage: 40
+      scaleUpStabilizationWindowSeconds: 300
+      scaleDownStabilizationWindowSeconds: 900
+      scalePodCount: 1
+
+  ingestion:
+    name: "ingestion"
+    containerPort: 8050
+    containerGrpcPort: 8082
+    deployment:
+      replicas: 1
+      strategy:
+        type: RollingUpdate
+        rollingUpdate:
+          maxSurge: 1
+          maxUnavailable: 0
+      labels: {}
+      annotations: {}
+      podSecurityContext: {}
+      securityContext: {}
+      priorityClassName: ""
+      resources:
+        requests:
+          cpu: "4"
+          memory: "8Gi"
+          ephemeral-storage: "100Gi"
+        limits:
+          cpu: "4"
+          memory: "8Gi"
+          ephemeral-storage: "100Gi"
+      probes:
+        startupProbe:
+          httpGet:
+            path: /health
+            port: http
+          failureThreshold: 6
+          periodSeconds: 10
+          timeoutSeconds: 1
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: http
+          failureThreshold: 6
+          periodSeconds: 10
+          timeoutSeconds: 1
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: http
+          failureThreshold: 6
+          periodSeconds: 10
+          timeoutSeconds: 1
+      command:
+        - "./smithdb"
+        - "ingestion"
+      terminationGracePeriodSeconds: 300
+      extraEnv:
+        - name: SMITHDB_INGESTION__PROCESSOR__FLUSH__DATA_DIR
+          value: "/data"
+        - name: SMITHDB_INGESTION__RUN_SEGMENT_MANAGER__FLUSH__DATA_DIR
+          value: "/data"
+      extraContainerConfig: {}
+      sidecars: []
+      nodeSelector: {}
+      tolerations: []
+      affinity: {}
+      topologySpreadConstraints: []
+      volumes:
+        - name: local-ssd-storage
+          emptyDir:
+            sizeLimit: 100Gi
+      volumeMounts:
+        - name: local-ssd-storage
+          mountPath: /data
+      initContainers: []
+    service:
+      port: 8082
+      labels: {}
+      annotations: {}
+    pdb:
+      enabled: false
+      minAvailable: 1
+      labels: {}
+      annotations: {}
+    autoscaling:
+      enabled: true
+      minReplicas: 1
+      maxReplicas: 10
+      targetCPUUtilizationPercentage: 45
+      scaleUpStabilizationWindowSeconds: 300
+      scaleDownStabilizationWindowSeconds: 900
+      scalePodCount: 1
+
+  compaction:
+    name: "compaction"
+    containerPort: 8070
+    containerGrpcPort: 8071
+    deployment:
+      replicas: 1
+      labels: {}
+      annotations: {}
+      podSecurityContext: {}
+      securityContext: {}
+      priorityClassName: ""
+      resources:
+        requests:
+          cpu: "2"
+          memory: "4Gi"
+        limits:
+          cpu: "2"
+          memory: "4Gi"
+      probes:
+        startupProbe:
+          httpGet:
+            path: /health
+            port: http
+          failureThreshold: 6
+          periodSeconds: 10
+          timeoutSeconds: 1
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: http
+          failureThreshold: 6
+          periodSeconds: 10
+          timeoutSeconds: 1
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: http
+          failureThreshold: 6
+          periodSeconds: 10
+          timeoutSeconds: 1
+      command:
+        - "./smithdb"
+        - "compaction"
+        - "scheduler"
+      extraEnv: []
+      extraContainerConfig: {}
+      sidecars: []
+      nodeSelector: {}
+      tolerations: []
+      affinity: {}
+      topologySpreadConstraints: []
+      volumes: []
+      volumeMounts: []
+      initContainers: []
+    service:
+      port: 8071
+      labels: {}
+      annotations: {}
+    pdb:
+      enabled: false
+      minAvailable: 1
+      labels: {}
+      annotations: {}
+
+  compactionWorker:
+    name: "compaction-worker"
+    containerPort: 9000
+    # -- Maximum concurrent jobs per compaction worker. Empty uses the SmithDB default.
+    maxConcurrentJobs: ""
+    deployment:
+      replicas: 2
+      labels: {}
+      annotations: {}
+      podSecurityContext: {}
+      securityContext: {}
+      priorityClassName: ""
+      terminationGracePeriodSeconds: 120
+      resources:
+        requests:
+          cpu: "4"
+          memory: "8Gi"
+          ephemeral-storage: "100Gi"
+        limits:
+          cpu: "4"
+          memory: "8Gi"
+          ephemeral-storage: "100Gi"
+      probes:
+        startupProbe:
+          httpGet:
+            path: /health
+            port: http
+          failureThreshold: 6
+          periodSeconds: 10
+          timeoutSeconds: 1
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: http
+          failureThreshold: 6
+          periodSeconds: 10
+          timeoutSeconds: 1
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: http
+          failureThreshold: 6
+          periodSeconds: 10
+          timeoutSeconds: 1
+      command:
+        - "./smithdb"
+        - "compaction"
+        - "worker"
+      extraEnv: []
+      extraContainerConfig: {}
+      sidecars: []
+      nodeSelector: {}
+      tolerations: []
+      affinity: {}
+      topologySpreadConstraints: []
+      volumes:
+        - name: local-ssd-storage
+          emptyDir:
+            sizeLimit: 100Gi
+      volumeMounts:
+        - name: local-ssd-storage
+          mountPath: /data
+      initContainers: []
+    pdb:
+      enabled: false
+      minAvailable: 1
+      labels: {}
+      annotations: {}
+    autoscaling:
+      enabled: true
+      minReplicas: 1
+      maxReplicas: 10
+      targetCPUUtilizationPercentage: 60
+      scaleUpStabilizationWindowSeconds: 120
+      scaleDownStabilizationWindowSeconds: 300
+      scalePodCount: 1
+
+  clusterManager:
+    name: "cluster-manager"
+    containerPort: 8090
+    containerGrpcPort: 8091
+    deployment:
+      replicas: 1
+      labels: {}
+      annotations: {}
+      podSecurityContext: {}
+      securityContext: {}
+      priorityClassName: ""
+      resources:
+        requests:
+          cpu: "250m"
+          memory: "256Mi"
+        limits:
+          cpu: "250m"
+          memory: "256Mi"
+      probes:
+        startupProbe:
+          httpGet:
+            path: /health
+            port: http
+          failureThreshold: 6
+          periodSeconds: 10
+          timeoutSeconds: 1
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: http
+          failureThreshold: 6
+          periodSeconds: 10
+          timeoutSeconds: 1
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: http
+          failureThreshold: 6
+          periodSeconds: 10
+          timeoutSeconds: 1
+      command:
+        - "./smithdb"
+        - "clustermanager"
+      extraEnv: []
+      extraContainerConfig: {}
+      sidecars: []
+      nodeSelector: {}
+      tolerations: []
+      affinity: {}
+      topologySpreadConstraints: []
+      volumes: []
+      volumeMounts: []
+      initContainers: []
+    service:
+      port: 8091
+      labels: {}
+      annotations: {}
+    pdb: {}
+
+  migration:
+    name: "migration"
+    containerPort: 9040
+    # -- Optional RFC3339 start bound for migrate-all (half-open window). Empty uses end - 400 days.
+    startTime: ""
+    # -- Optional RFC3339 end bound for migrate-all (half-open window). Empty uses now.
+    endTime: ""
+    job:
+      # -- Keep finished migrate-all Jobs around for seven days so operators can inspect status/logs.
+      ttlSecondsAfterFinished: 604800
+      # -- Maximum number of migration pods that run concurrently.
+      parallelism: 1
+      # -- Retry failed migrate-all pods up to this many times before marking the Job failed.
+      backoffLimit: 3
+      # -- Optional hard deadline for the Job. Leave unset for long-running full migrations.
+      activeDeadlineSeconds: null
+      restartPolicy: Never
+    taskdb:
+      postgres:
+        # -- Enable Postgres for SmithDB migration task state. This is a separate database from
+        # -- both the main LangSmith Postgres and the SmithDB metastore.
+        enabled: true
+        name: "taskdb-postgres"
+        containerPort: 5433
+        # -- Credentials for the in-chart taskdb Postgres instance. Used only when external.enabled is false.
+        auth:
+          database: "smithdb_migration"
+          username: "postgres"
+          # -- Password for the chart-managed taskdb Postgres instance. Required unless existingSecretName is set.
+          password: ""
+          # -- Existing secret containing taskdb Postgres credentials. If set, the chart does not create one.
+          existingSecretName: ""
+          passwordSecretKey: "postgres_password"
+        # -- External Postgres configuration for SmithDB migration task state. Use this when taskdb
+        # -- should run outside the chart. Do not point this at the main LangSmith Postgres or
+        # -- the SmithDB metastore.
+        external:
+          enabled: false
+          host: ""
+          port: "5433"
+          database: "smithdb_migration"
+          username: "postgres"
+          password: ""
+          useSsl: false
+          # -- Existing secret containing external taskdb Postgres connection fields. If set, the chart does not create one.
+          existingSecretName: ""
+          hostSecretKey: "postgres_host"
+          databaseSecretKey: "postgres_db"
+          usernameSecretKey: "postgres_user"
+          passwordSecretKey: "postgres_password"
+        service:
+          port: 5433
+          labels: {}
+          annotations: {}
+        statefulSet:
+          # -- Optional priority class for the in-chart SmithDB taskdb Postgres pod.
+          priorityClassName: ""
+          # -- Optional StatefulSet update strategy for the in-chart SmithDB taskdb Postgres instance.
+          updateStrategy: {}
+          labels: {}
+          annotations: {}
+          podSecurityContext: {}
+          securityContext: {}
+          terminationGracePeriodSeconds: 30
+          resources:
+            requests:
+              cpu: "2"
+              memory: "4Gi"
+            limits:
+              cpu: "4"
+              memory: "8Gi"
+          startupProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - exec pg_isready -d "$POSTGRES_DB" -U "$POSTGRES_USER"
+            failureThreshold: 6
+            periodSeconds: 10
+            timeoutSeconds: 1
+          readinessProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - exec pg_isready -d "$POSTGRES_DB" -U "$POSTGRES_USER"
+            failureThreshold: 6
+            periodSeconds: 10
+            timeoutSeconds: 1
+          livenessProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - exec pg_isready -d "$POSTGRES_DB" -U "$POSTGRES_USER"
+            failureThreshold: 6
+            periodSeconds: 10
+            timeoutSeconds: 1
+          command: []
+          extraEnv: []
+          extraContainerConfig: {}
+          sidecars: []
+          nodeSelector: {}
+          tolerations: []
+          affinity: {}
+          topologySpreadConstraints: []
+          volumes: []
+          volumeMounts: []
+          initContainers: []
+          # -- Delete the migration-scoped taskdb PVC when its StatefulSet is removed.
+          persistentVolumeClaimRetentionPolicy:
+            whenDeleted: Delete
+            whenScaled: Retain
+          persistence:
+            enabled: true
+            size: 50Gi
+            storageClassName: ""
+    deployment:
+      labels: {}
+      annotations: {}
+      podSecurityContext: {}
+      securityContext: {}
+      terminationGracePeriodSeconds: 120
+      resources:
+        requests:
+          cpu: "8"
+          memory: "16Gi"
+          ephemeral-storage: "100Gi"
+        limits:
+          cpu: "8"
+          memory: "16Gi"
+          ephemeral-storage: "100Gi"
+      # -- Runs taskdb schema migrations, then one-shot self-hosted migrate-all: discover tenants,
+      # -- register non-overlapping jobs, drain the global queue, and exit. Override for another migration mode.
+      command:
+        - "/usr/local/bin/smithdb-with-taskdb-migrations-entrypoint.sh"
+      extraEnv: []
+      extraContainerConfig: {}
+      sidecars: []
+      nodeSelector: {}
+      tolerations: []
+      affinity: {}
+      topologySpreadConstraints: []
+      volumes: []
+      volumeMounts: []
+      initContainers: []
+
+  metastoreMigration:
+    name: "metastore-migration"
+    useSsl: false
+    command:
+      - "/usr/local/bin/smithdb-metastore-migrate-entrypoint.sh"
+    job:
+      ttlSecondsAfterFinished: 3600
+      backoffLimit: 0
+      activeDeadlineSeconds: 600
+      restartPolicy: Never
+      labels: {}
+      annotations: {}
+      podAnnotations: {}
+      podSecurityContext: {}
+      securityContext: {}
+      resources: {}
+      extraEnv: []
+      nodeSelector: {}
+      tolerations: []
+      affinity: {}
 
 backend:
   name: "backend"
@@ -1206,6 +1981,7 @@ backend:
     podSecurityContext: {}
     securityContext: {}
     lifecycle: {}
+    priorityClassName: ""
     resources:
       limits:
         cpu: 2000m
@@ -1275,6 +2051,39 @@ backend:
     volumes: []
     volumeMounts: []
     # You can set this to null to disable the TTL for the migrations job. Useful for some deployment setups.
+    ttlSecondsAfterFinished: 600
+  # Pre-upgrade check that blocks an upgrade if any asynq backfill jobs are
+  # still running.  Runs as a Helm pre-upgrade hook (ArgoCD PreSync) so that
+  # it executes BEFORE Alembic migrations on every upgrade attempt.
+  # Set enabled: false only if you need to bypass the check entirely.
+  backfillCheck:
+    enabled: true
+    # Helpful when running using helm template to avoid the job name conflict
+    randomizeName: false
+    labels: {}
+    annotations: {}
+    podSecurityContext: {}
+    securityContext: {}
+    resources:
+      limits:
+        cpu: 500m
+        memory: 512Mi
+      requests:
+        cpu: 100m
+        memory: 256Mi
+    command:
+      - "./backfill_check_entrypoint.sh"
+    extraContainerConfig: {}
+    extraEnv: []
+    sidecars: []
+    initContainers: []
+    nodeSelector: {}
+    tolerations: []
+    topologySpreadConstraints: []
+    affinity: {}
+    volumes: []
+    volumeMounts: []
+    # You can set this to null to disable the TTL for the backfill check job.
     ttlSecondsAfterFinished: 600
   authBootstrap:
     # Helpful when running using helm template to avoid the job name conflict
@@ -1410,40 +2219,12 @@ backend:
     volumeMounts: []
     ttlSecondsAfterFinished: 10
 
-  # DEPRECATED: the agentBootstrap flow (and the config.agentBuilder /
-  # config.insights / config.polly bundled-agent blocks it manages) is being
-  # phased out. New deployments should use the top-level fleet, insights, and
-  # polly blocks instead, which run as standard Helm-managed Deployments.
-  # These keys remain for backwards compatibility and may be removed in a
-  # future chart version.
-  agentBootstrap:
-    enabled: false
-    randomizeName: false
-    serviceAccount:
-      create: true
-      name: ""
-      labels: {}
-      annotations: {}
-      automountServiceAccountToken: true
-    labels: {}
-    annotations: {}
-    podSecurityContext: {}
-    securityContext: {}
-    resources:
-      limits:
-        cpu: 500m
-        memory: 512Mi
-      requests:
-        cpu: 100m
-        memory: 256Mi
-    extraEnv: []
-    nodeSelector: {}
-    tolerations: []
-    topologySpreadConstraints: []
-    affinity: {}
-    ttlSecondsAfterFinished: 600
-
 clickhouse:
+  # -- Enable ClickHouse for ingestion and queries. Keep enabled when using external ClickHouse.
+  #
+  # WARNING: Disabling ClickHouse or switching to an external instance DELETES the chart-managed
+  # workload on upgrade. Back up its data first; PVCs may be deleted or left orphaned.
+  enabled: true
   name: "clickhouse"
   disableSecretCreation: false
   config:
@@ -1482,6 +2263,8 @@ clickhouse:
   statefulSet:
     labels: {}
     annotations: {}
+    # -- Optional priority class for the in-chart ClickHouse pod.
+    priorityClassName: ""
     # -- Optional StatefulSet update strategy for the in-chart ClickHouse instance.
     # -- Leave unset to keep the Kubernetes default RollingUpdate behavior.
     updateStrategy: {}
@@ -1609,6 +2392,7 @@ frontend:
     podSecurityContext: {}
     securityContext: {}
     lifecycle: {}
+    priorityClassName: ""
     resources:
       limits:
         cpu: 1000m
@@ -1719,6 +2503,7 @@ hostBackend:
     podSecurityContext: {}
     securityContext: {}
     lifecycle: {}
+    priorityClassName: ""
     resources:
       limits:
         cpu: 1000m
@@ -1727,7 +2512,7 @@ hostBackend:
         cpu: 200m
         memory: 1000Mi
     command:
-      - "./entrypoint.sh"
+      - "host_backend_entrypoint.sh"
     startupProbe:
       httpGet:
         path: /ok
@@ -1830,6 +2615,7 @@ listener:
     podSecurityContext: {}
     securityContext: {}
     lifecycle: {}
+    priorityClassName: ""
     resources:
       limits:
         cpu: 2000m
@@ -1838,6 +2624,7 @@ listener:
         cpu: 1000m
         memory: 2Gi
     command:
+      - "host_backend_entrypoint.sh"
       - "./listener_entrypoint.sh"
     startupProbe:
       httpGet:
@@ -1941,6 +2728,7 @@ platformBackend:
     podSecurityContext: {}
     securityContext: {}
     lifecycle: {}
+    priorityClassName: ""
     resources:
       limits:
         cpu: 2000m
@@ -1949,7 +2737,7 @@ platformBackend:
         cpu: 1000m
         memory: 2Gi
     command:
-      - "./entrypoint.sh"
+      - "smith_go_entrypoint.sh"
     startupProbe:
       httpGet:
         path: /ok
@@ -2052,6 +2840,7 @@ operator:
     podSecurityContext: {}
     securityContext: {}
     lifecycle: {}
+    priorityClassName: ""
     resources:
       limits:
         cpu: 2000m
@@ -2238,6 +3027,7 @@ playground:
     podSecurityContext: {}
     securityContext: {}
     lifecycle: {}
+    priorityClassName: ""
     resources:
       limits:
         cpu: 1000m
@@ -2246,7 +3036,7 @@ playground:
         cpu: 500m
         memory: 1Gi
     command:
-      - "./entrypoint.sh"
+      - "smith_playground_entrypoint.sh"
     startupProbe:
       httpGet:
         path: /ok
@@ -2359,6 +3149,8 @@ postgres:
       keySecretKey: "tls.key"
   containerPort: 5432
   statefulSet:
+    # -- Optional priority class for the in-chart PostgreSQL pod.
+    priorityClassName: ""
     # -- Optional StatefulSet update strategy for the in-chart PostgreSQL instance.
     # Leave unset to keep the Kubernetes default RollingUpdate behavior.
     updateStrategy: {}
@@ -2456,6 +3248,7 @@ queue:
     podSecurityContext: {}
     securityContext: {}
     lifecycle: {}
+    priorityClassName: ""
     resources:
       limits:
         cpu: 2000m
@@ -2562,6 +3355,7 @@ ingestQueue:
     podSecurityContext: {}
     securityContext: {}
     lifecycle: {}
+    priorityClassName: ""
     resources:
       limits:
         cpu: 2000m
@@ -2570,7 +3364,7 @@ ingestQueue:
         cpu: 1000m
         memory: 2Gi
     command:
-      - "./asynq_worker_entrypoint.sh"
+      - "asynq_worker_entrypoint.sh"
     startupProbe:
       httpGet:
         path: /health
@@ -2681,6 +3475,8 @@ redis:
       tlsEnabled: true
   containerPort: 6379
   statefulSet:
+    # -- Optional priority class for the in-chart Redis pod.
+    priorityClassName: ""
     # -- Optional StatefulSet update strategy for the in-chart Redis instance.
     # Leave unset to keep the Kubernetes default RollingUpdate behavior.
     updateStrategy: {}
@@ -2766,12 +3562,15 @@ fleetToolServer:
   name: "fleet-tool-server"
   containerPort: 1989
   deployment:
+    command:
+      - "agent_builder_tool_server_entrypoint.sh"
     replicas: 1
     labels: {}
     annotations: {}
     podSecurityContext: {}
     securityContext: {}
     lifecycle: {}
+    priorityClassName: ""
     resources:
       limits:
         cpu: 2000m
@@ -2844,11 +3643,14 @@ fleetTriggerServer:
   name: "fleet-trigger-server"
   containerPort: 1990
   deployment:
+    command:
+      - "agent_builder_trigger_server_entrypoint.sh"
     labels: {}
     annotations: {}
     podSecurityContext: {}
     securityContext: {}
     lifecycle: {}
+    priorityClassName: ""
     resources:
       limits:
         cpu: 2000m
@@ -2915,6 +3717,7 @@ agentGateway:
     podSecurityContext: {}
     securityContext: {}
     lifecycle: {}
+    priorityClassName: ""
     resources:
       limits:
         cpu: 500m
@@ -2923,7 +3726,7 @@ agentGateway:
         cpu: 100m
         memory: 256Mi
     command:
-      - "./agent_gateway_entrypoint.sh"
+      - "agent_gateway_entrypoint.sh"
     startupProbe:
       httpGet:
         path: /health
@@ -2986,6 +3789,7 @@ presidioAnalyzer:
     podSecurityContext: {}
     securityContext: {}
     lifecycle: {}
+    priorityClassName: ""
     resources:
       limits:
         cpu: 1

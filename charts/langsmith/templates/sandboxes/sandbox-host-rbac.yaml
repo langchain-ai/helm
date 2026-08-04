@@ -1,0 +1,72 @@
+{{- if and .Values.sandboxes.enabled .Values.sandboxes.sandboxHost.rbac.create }}
+{{- $namespace := .Values.namespace | default .Release.Namespace }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ include "langsmith.fullname" . }}-{{ .Values.sandboxes.sandboxHost.name }}
+  namespace: {{ $namespace }}
+  labels:
+    {{- include "langsmith.labels" . | nindent 4 }}
+    {{- with .Values.sandboxes.sandboxHost.rbac.labels }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+  annotations:
+    {{- include "langsmith.annotations" . | nindent 4 }}
+    {{- with .Values.sandboxes.sandboxHost.rbac.annotations }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+rules:
+# Host liveness leases + leader election.
+- apiGroups:
+  - coordination.k8s.io
+  resources:
+  - leases
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - update
+  - watch
+# The elected host reads and resizes its own Deployment.
+- apiGroups:
+  - apps
+  resources:
+  - deployments
+  resourceNames:
+  - {{ include "langsmith.fullname" . }}-{{ .Values.sandboxes.sandboxHost.name }}
+  verbs:
+  - get
+  - patch
+# Pod deletion cost, so the emptiest host is evicted first.
+- apiGroups:
+  - ""
+  resources:
+  - pods
+  verbs:
+  - patch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ include "langsmith.fullname" . }}-{{ .Values.sandboxes.sandboxHost.name }}
+  namespace: {{ $namespace }}
+  labels:
+    {{- include "langsmith.labels" . | nindent 4 }}
+    {{- with .Values.sandboxes.sandboxHost.rbac.labels }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+  annotations:
+    {{- include "langsmith.annotations" . | nindent 4 }}
+    {{- with .Values.sandboxes.sandboxHost.rbac.annotations }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "langsmith.sandboxes.sandboxHostServiceAccountName" . }}
+    namespace: {{ $namespace }}
+roleRef:
+  kind: Role
+  name: {{ include "langsmith.fullname" . }}-{{ .Values.sandboxes.sandboxHost.name }}
+  apiGroup: rbac.authorization.k8s.io
+{{- end }}

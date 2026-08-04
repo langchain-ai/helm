@@ -1,0 +1,138 @@
+{{- if .Values.smithdb.enabled }}
+{{- $envVars := concat .Values.commonEnv .Values.smithdb.commonEnv .Values.smithdb.clusterManager.deployment.extraEnv -}}
+{{- include "langsmith.detectDuplicates" $envVars -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "langsmith.smithdb.componentName" (dict "root" . "component" "clusterManager") }}
+  namespace: {{ .Values.namespace | default .Release.Namespace }}
+  labels:
+    {{- include "langsmith.labels" . | nindent 4 }}
+    app.kubernetes.io/component: {{ include "langsmith.smithdb.componentName" (dict "root" . "component" "clusterManager") }}
+    {{- with .Values.smithdb.clusterManager.deployment.labels }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+  annotations:
+    {{- include "langsmith.annotations" . | nindent 4 }}
+    {{- with .Values.smithdb.clusterManager.deployment.annotations }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  replicas: {{ .Values.smithdb.clusterManager.deployment.replicas }}
+  selector:
+    matchLabels:
+      {{- include "langsmith.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: {{ include "langsmith.smithdb.componentName" (dict "root" . "component" "clusterManager") }}
+  template:
+    metadata:
+      annotations:
+        {{- include "langsmith.commonPodAnnotations" . | nindent 8 }}
+        {{- with .Values.smithdb.clusterManager.deployment.annotations }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+      labels:
+        {{- include "langsmith.labels" . | nindent 8 }}
+        app.kubernetes.io/component: {{ include "langsmith.smithdb.componentName" (dict "root" . "component" "clusterManager") }}
+        {{- with .Values.smithdb.clusterManager.deployment.labels }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      {{- with .Values.images.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if .Values.smithdb.clusterManager.deployment.priorityClassName }}
+      priorityClassName: {{ .Values.smithdb.clusterManager.deployment.priorityClassName }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.smithdb.clusterManager.deployment.podSecurityContext | nindent 8 }}
+      serviceAccountName: {{ include "langsmith.smithdb.serviceAccountName" (dict "root" . "component" "clusterManager") }}
+      {{- include "langsmith.dnsConfig" . | nindent 6 }}
+      {{- with concat (include "langsmith.smithdb.commonInitContainers" . | fromYamlArray) .Values.smithdb.clusterManager.deployment.initContainers }}
+      initContainers:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: {{ .Values.smithdb.clusterManager.name }}
+          {{- with .Values.smithdb.clusterManager.deployment.command }}
+          command:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          env:
+            - name: SMITHDB_CLUSTERMANAGER__HTTP_PORT
+              value: {{ .Values.smithdb.clusterManager.containerPort | quote }}
+            - name: SMITHDB_CLUSTERMANAGER__GRPC_PORT
+              value: {{ .Values.smithdb.clusterManager.containerGrpcPort | quote }}
+            {{- include "langsmith.smithdb.baseEnv" (dict "root" . "service" "CLUSTERMANAGER" "displayName" "smithdb-clustermanager") | nindent 12 }}
+            {{/*
+            Per-service cluster-manager ownership bounds. MAX_REPLICAS is derived
+            from each service's replica settings so it cannot drift from the actual
+            pod count: autoscaling.maxReplicas when that service's HPA is enabled,
+            otherwise deployment.replicas. MIN_REPLICAS is fixed at 1, and
+            replication thresholds are fixed at 0 so slices distribute across all
+            owning nodes.
+            */}}
+            {{- range $svc := list (dict "env" "QUERY" "component" "query") (dict "env" "INGESTION" "component" "ingestion") }}
+            {{- $component := index $.Values.smithdb $svc.component }}
+            {{- $hpaEnabled := dig "autoscaling" "enabled" false $component }}
+            {{- $maxReplicas := ternary (dig "autoscaling" "maxReplicas" $component.deployment.replicas $component) $component.deployment.replicas $hpaEnabled }}
+            {{- $prefix := printf "SMITHDB_CLUSTERMANAGER__SERVICES__%s" $svc.env }}
+            - name: {{ $prefix }}__MIN_REPLICAS
+              value: "1"
+            - name: {{ $prefix }}__MAX_REPLICAS
+              value: {{ $maxReplicas | quote }}
+            - name: {{ $prefix }}__REPLICATION_THRESHOLD
+              value: "0"
+            - name: {{ $prefix }}__SLICE_REPLICATION_THRESHOLD
+              value: "0"
+            {{- end }}
+            {{- with $envVars }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          image: {{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "smithdbImage") | quote }}
+          imagePullPolicy: {{ .Values.images.smithdbImage.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.smithdb.clusterManager.containerPort }}
+              protocol: TCP
+            - name: grpc
+              containerPort: {{ .Values.smithdb.clusterManager.containerGrpcPort }}
+              protocol: TCP
+          {{- with .Values.smithdb.clusterManager.deployment.probes }}
+            {{- toYaml . | nindent 10 }}
+          {{- end }}
+          resources:
+            {{- toYaml .Values.smithdb.clusterManager.deployment.resources | nindent 12 }}
+          securityContext:
+            {{- toYaml .Values.smithdb.clusterManager.deployment.securityContext | nindent 12 }}
+          {{- with .Values.smithdb.clusterManager.deployment.volumeMounts }}
+          volumeMounts:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.smithdb.clusterManager.deployment.extraContainerConfig }}
+            {{- toYaml . | nindent 10 }}
+          {{- end }}
+        {{- with .Values.smithdb.clusterManager.deployment.sidecars }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- with .Values.smithdb.clusterManager.deployment.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.smithdb.clusterManager.deployment.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.smithdb.clusterManager.deployment.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.smithdb.clusterManager.deployment.topologySpreadConstraints }}
+      topologySpreadConstraints:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.smithdb.clusterManager.deployment.volumes }}
+      volumes:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}

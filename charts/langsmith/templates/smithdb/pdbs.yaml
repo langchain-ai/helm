@@ -1,0 +1,30 @@
+{{- if .Values.smithdb.enabled }}
+{{- range $component := list "query" "ingestion" "compaction" "compactionWorker" "clusterManager" }}
+{{- $componentValues := index $.Values.smithdb $component }}
+{{- if $componentValues.pdb.enabled }}
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "langsmith.smithdb.componentName" (dict "root" $ "component" $component) }}
+  namespace: {{ $.Values.namespace | default $.Release.Namespace }}
+  labels:
+    {{- include "langsmith.labels" $ | nindent 4 }}
+    app.kubernetes.io/component: {{ include "langsmith.smithdb.componentName" (dict "root" $ "component" $component) }}
+    {{- with $componentValues.pdb.labels }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+  annotations:
+    {{- include "langsmith.annotations" $ | nindent 4 }}
+    {{- with $componentValues.pdb.annotations }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  minAvailable: {{ $componentValues.pdb.minAvailable }}
+  selector:
+    matchLabels:
+      {{- include "langsmith.selectorLabels" $ | nindent 6 }}
+      app.kubernetes.io/component: {{ include "langsmith.smithdb.componentName" (dict "root" $ "component" $component) }}
+{{- end }}
+{{- end }}
+{{- end }}

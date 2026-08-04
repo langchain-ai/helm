@@ -46,6 +46,9 @@ spec:
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      {{- if .Values.redis.statefulSet.priorityClassName }}
+      priorityClassName: {{ .Values.redis.statefulSet.priorityClassName }}
+      {{- end }}
       terminationGracePeriodSeconds: {{ .Values.redis.statefulSet.terminationGracePeriodSeconds }}
       securityContext:
         {{- toYaml .Values.redis.statefulSet.podSecurityContext | nindent 8 }}

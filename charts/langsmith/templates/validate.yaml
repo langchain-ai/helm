@@ -16,6 +16,19 @@ AWS Marketplace Helm template verification).
 ================================================================================
 */}}
 
+{{- /* Data mode flags are template predicates, so require real booleans even when optional validation is skipped. */ -}}
+{{- if not (kindIs "bool" .Values.clickhouse.enabled) -}}
+{{- fail "clickhouse.enabled must be a boolean. Do not quote true or false." -}}
+{{- end -}}
+{{- if not (kindIs "bool" .Values.smithdb.langsmith.ingestion.enabled) -}}
+{{- fail "smithdb.langsmith.ingestion.enabled must be a boolean. Do not quote true or false." -}}
+{{- end -}}
+{{- if not (kindIs "bool" .Values.smithdb.langsmith.migration.enabled) -}}
+{{- fail "smithdb.langsmith.migration.enabled must be a boolean. Do not quote true or false." -}}
+{{- end -}}
+{{- if not (kindIs "bool" .Values.smithdb.langsmith.query.enabled) -}}
+{{- fail "smithdb.langsmith.query.enabled must be a boolean. Do not quote true or false." -}}
+{{- end -}}
 {{- if not .Values.config.skipValidation -}}
 
 {{- /* Validate deprecated fleet server value keys */ -}}
@@ -25,11 +38,33 @@ AWS Marketplace Helm template verification).
 {{- if hasKey .Values "agentBuilderTriggerServer" -}}
 {{- fail "agentBuilderTriggerServer is deprecated. Please use fleetTriggerServer." -}}
 {{- end -}}
-{{- if hasKey .Values.images "agentBuilderToolServerImage" -}}
-{{- fail "images.agentBuilderToolServerImage is deprecated. Please use images.fleetToolServerImage." -}}
+{{- /* Removed: the bundled agent-bootstrap Job (backend.agentBootstrap). Standalone fleet/insights/polly deployments replace it. */ -}}
+{{- if hasKey .Values.backend "agentBootstrap" -}}
+{{- fail "backend.agentBootstrap has been removed: the bundled agent-bootstrap Job is no longer part of this chart. Standalone agents now run as the top-level fleet / insights / polly deployments. If you were relying on the bundled bootstrap, contact LangChain support for migration guidance, then remove backend.agentBootstrap from your values." -}}
 {{- end -}}
-{{- if hasKey .Values.images "agentBuilderTriggerServerImage" -}}
-{{- fail "images.agentBuilderTriggerServerImage is deprecated. Please use images.fleetTriggerServerImage." -}}
+{{- /* Deprecated image keys: these workloads now run on the single consolidated backend image */ -}}
+{{- range $key := list "hostBackendImage" "platformBackendImage" "playgroundImage" "fleetToolServerImage" "fleetTriggerServerImage" "agentBuilderToolServerImage" "agentBuilderTriggerServerImage" -}}
+{{- if hasKey $.Values.images $key -}}
+{{- fail (printf "images.%s is deprecated: this workload now runs on the consolidated backend image. Configure images.backendImage instead (and mirror only that image)." $key) -}}
+{{- end -}}
+{{- end -}}
+{{- if hasKey .Values.smithdb.langsmith "dualIngest" -}}
+{{- $legacySmithdbDualIngest := get .Values.smithdb.langsmith "dualIngest" -}}
+{{- if eq (lower (toString (get $legacySmithdbDualIngest "enabled"))) "true" -}}
+{{- fail "smithdb.langsmith.dualIngest.enabled is no longer supported. Use smithdb.langsmith.ingestion.enabled." -}}
+{{- end -}}
+{{- end -}}
+{{- if hasKey .Values.smithdb.langsmith "frontend" -}}
+{{- $legacySmithdbFrontend := get .Values.smithdb.langsmith "frontend" -}}
+{{- if eq (lower (toString (get $legacySmithdbFrontend "useSmithDBEndpoints"))) "true" -}}
+{{- fail "smithdb.langsmith.frontend.useSmithDBEndpoints is no longer supported. Use smithdb.langsmith.query.enabled." -}}
+{{- end -}}
+{{- end -}}
+{{- if hasKey .Values.smithdb.langsmith "lsmBackfill" -}}
+{{- $legacySmithdbLsmBackfill := get .Values.smithdb.langsmith "lsmBackfill" -}}
+{{- if eq (lower (toString (get $legacySmithdbLsmBackfill "enabled"))) "true" -}}
+{{- fail "smithdb.langsmith.lsmBackfill.enabled is no longer supported. Remove it and follow the SmithDB migration guidance for this chart version." -}}
+{{- end -}}
 {{- end -}}
 
 {{- /* Validate ingress configuration */ -}}
@@ -117,6 +152,103 @@ AWS Marketplace Helm template verification).
 {{- end -}}
 {{- end -}}
 
+{{- /* Validate sandbox configuration */ -}}
+{{- if .Values.sandboxes.enabled -}}
+{{- if not .Values.images.sandboxHostImage.repository -}}
+{{- fail "images.sandboxHostImage.repository is required when sandboxes.enabled is true." -}}
+{{- end -}}
+{{- if not .Values.images.sandboxHostImage.tag -}}
+{{- fail "images.sandboxHostImage.tag is required when sandboxes.enabled is true." -}}
+{{- end -}}
+{{- if .Values.sandboxes.juicefs.csi.install -}}
+{{- range $imageName := list "juicefsCSIImage" "juicefsCSINodeDriverRegistrarImage" -}}
+{{- $image := index $.Values.images $imageName -}}
+{{- if not $image.repository -}}
+{{- fail (printf "images.%s.repository is required when sandboxes.enabled is true." $imageName) -}}
+{{- end -}}
+{{- if not $image.tag -}}
+{{- fail (printf "images.%s.tag is required when sandboxes.enabled is true." $imageName) -}}
+{{- end -}}
+{{- end -}}
+{{- if and .Values.images.juicefsMountImage.tag (not .Values.images.juicefsMountImage.repository) -}}
+{{- fail "images.juicefsMountImage.repository is required when images.juicefsMountImage.tag is set." -}}
+{{- end -}}
+{{- end -}}
+{{- /* The host needs netns, iptables and mount propagation. Fail here, not at CrashLoop. */ -}}
+{{- if and (hasKey .Values.sandboxes.sandboxHost.deployment.securityContext "privileged") (not .Values.sandboxes.sandboxHost.deployment.securityContext.privileged) -}}
+{{- fail "sandboxes.sandboxHost.deployment.securityContext.privileged must be true: sandbox-host manages microVMs, network namespaces and mounts." -}}
+{{- end -}}
+{{- if .Values.sandboxes.sandboxHost.deployment.securityContext.readOnlyRootFilesystem -}}
+{{- fail "sandboxes.sandboxHost.deployment.securityContext.readOnlyRootFilesystem must not be true: sandbox-host unpacks the guest tools image on startup." -}}
+{{- end -}}
+{{- if not .Values.sandboxes.sandboxHost.deployment.nodeSelector -}}
+{{- fail "sandboxes.sandboxHost.deployment.nodeSelector is required when sandboxes.enabled is true: sandbox-host must be pinned to KVM-capable nodes, and its toleration alone does not attract it there." -}}
+{{- end -}}
+{{- $autoscaling := .Values.sandboxes.sandboxHost.autoscaling -}}
+{{- if $autoscaling.enabled -}}
+{{- if lt (int $autoscaling.minReplicas) 1 -}}
+{{- fail "sandboxes.sandboxHost.autoscaling.minReplicas must be at least 1." -}}
+{{- end -}}
+{{- if lt (int $autoscaling.maxReplicas) (int $autoscaling.minReplicas) -}}
+{{- fail "sandboxes.sandboxHost.autoscaling.maxReplicas must be greater than or equal to minReplicas." -}}
+{{- end -}}
+{{- end -}}
+{{- $serviceUrlBaseUrl := .Values.sandboxes.serviceUrlBaseUrl | default "" -}}
+{{- if $serviceUrlBaseUrl -}}
+{{- if not (regexMatch "^https?://" $serviceUrlBaseUrl) -}}
+{{- fail "sandboxes.serviceUrlBaseUrl must start with http:// or https://." -}}
+{{- end -}}
+{{- if not (regexMatch "^https?://[^/?#]+$" $serviceUrlBaseUrl) -}}
+{{- fail "sandboxes.serviceUrlBaseUrl must not include a path, query string, or fragment." -}}
+{{- end -}}
+{{- $serviceUrlHost := regexReplaceAll "^https?://" $serviceUrlBaseUrl "" -}}
+{{- if and .Values.ingress.enabled (not (regexMatch "^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$" $serviceUrlHost)) -}}
+{{- fail "sandboxes.serviceUrlBaseUrl host must be a DNS hostname without a port when ingress.enabled is true." -}}
+{{- end -}}
+{{- end -}}
+{{- $juicefsCSI := .Values.sandboxes.juicefs.csi | default dict -}}
+{{- if not $juicefsCSI.existingSecretName -}}
+{{- $juicefsRedis := .Values.sandboxes.juicefs.redis | default dict -}}
+{{- if not $juicefsRedis.metaURL -}}
+{{- fail "sandboxes.juicefs.redis.metaURL is required when sandboxes.enabled is true and sandboxes.juicefs.csi.existingSecretName is not set." -}}
+{{- end -}}
+{{- $juicefsName := .Values.sandboxes.juicefs.name | default "" -}}
+{{- if not $juicefsName -}}
+{{- fail "sandboxes.juicefs.name is required when sandboxes.enabled is true and sandboxes.juicefs.csi.existingSecretName is not set." -}}
+{{- end -}}
+{{- if not (regexMatch "^[a-z0-9][a-z0-9-]{1,61}[a-z0-9]$" $juicefsName) -}}
+{{- fail "sandboxes.juicefs.name must be a DNS-label-style JuiceFS volume name: 3-63 characters, lowercase letters, numbers, and hyphens only. Do not use slashes or object-store subpaths here." -}}
+{{- end -}}
+{{- if not .Values.sandboxes.juicefs.bucket -}}
+{{- fail "sandboxes.juicefs.bucket is required when sandboxes.enabled is true and sandboxes.juicefs.csi.existingSecretName is not set." -}}
+{{- end -}}
+{{- $juicefsStorage := .Values.sandboxes.juicefs.storage | default "" -}}
+{{- $juicefsBucket := .Values.sandboxes.juicefs.bucket | default "" -}}
+{{- if not (or (eq $juicefsStorage "s3") (eq $juicefsStorage "gs")) -}}
+{{- fail "sandboxes.juicefs.storage currently supports only s3 for AWS/EKS and gs for GCP/GKE. Azure-backed sandbox storage is not supported yet." -}}
+{{- end -}}
+{{- if and (eq $juicefsStorage "s3") (hasPrefix "s3://" $juicefsBucket) -}}
+{{- fail "sandboxes.juicefs.bucket must use a region-explicit S3 endpoint URL such as https://bucket-name.s3.us-west-2.amazonaws.com when sandboxes.juicefs.storage is s3. The s3://bucket shorthand makes JuiceFS infer region with GetBucketLocation and is not supported." -}}
+{{- end -}}
+{{- if and (eq $juicefsStorage "s3") (not (regexMatch "^https?://" $juicefsBucket)) -}}
+{{- fail "sandboxes.juicefs.bucket must use an HTTP(S) S3 endpoint URL when sandboxes.juicefs.storage is s3." -}}
+{{- end -}}
+{{- end -}}
+{{- if and (not .Values.config.existingSecretName) (not .Values.config.disableSecretCreation) (not .Values.sandboxes.callbackSigningJwk) -}}
+{{- fail "sandboxes.callbackSigningJwk is required when sandboxes.enabled is true and the chart manages the LangSmith app Secret. When config.existingSecretName is set, add key sandbox_callback_signing_jwk to the existing Secret instead." -}}
+{{- end -}}
+{{- if and .Values.config.existingSecretName .Values.sandboxes.callbackSigningJwk -}}
+{{- fail "sandboxes.callbackSigningJwk cannot be used when config.existingSecretName is set. Add key sandbox_callback_signing_jwk to the existing Secret instead." -}}
+{{- end -}}
+{{- $proxyCaMode := .Values.sandboxes.proxyCa.mode -}}
+{{- if not (or (eq $proxyCaMode "generatedSecret") (eq $proxyCaMode "existingSecret")) -}}
+{{- fail "sandboxes.proxyCa.mode must be one of generatedSecret or existingSecret." -}}
+{{- end -}}
+{{- if and (eq $proxyCaMode "existingSecret") (not .Values.sandboxes.proxyCa.existingSecretName) -}}
+{{- fail "sandboxes.proxyCa.existingSecretName is required when sandboxes.proxyCa.mode is existingSecret." -}}
+{{- end -}}
+{{- end -}}
+
 {{- /* Validate password requirements */ -}}
 {{- if and .Values.config.basicAuth.enabled (not .Values.config.existingSecretName) }}
 {{- $password := .Values.config.basicAuth.initialOrgAdminPassword -}}
@@ -195,8 +327,145 @@ AWS Marketplace Helm template verification).
 {{- end -}}
 
 {{- /* Validate clickhouse mTLS configuration */ -}}
-{{- if and .Values.clickhouse.external.clientCert.secretName (not .Values.clickhouse.external.existingSecretName) (not .Values.clickhouse.external.tls) -}}
+{{- if and .Values.clickhouse.enabled .Values.clickhouse.external.clientCert.secretName (not .Values.clickhouse.external.existingSecretName) (not .Values.clickhouse.external.tls) -}}
 {{- fail "clickhouse.external.tls must be true when clickhouse.external.clientCert.secretName is set and the value is not being fetched from an existing secret." -}}
+{{- end -}}
+{{- if and (not .Values.clickhouse.enabled) .Values.clickhouse.external.enabled -}}
+{{- fail "clickhouse.external.enabled must be false when clickhouse.enabled is false." -}}
+{{- end -}}
+
+{{- /* Validate SmithDB configuration */ -}}
+{{- if .Values.smithdb.enabled -}}
+{{- if .Values.smithdb.commonInitContainers -}}
+{{- range $index, $initContainer := .Values.smithdb.commonInitContainers -}}
+{{- if not (kindIs "map" $initContainer) -}}
+{{- fail (printf "smithdb.commonInitContainers[%d] must be a container object." $index) -}}
+{{- end -}}
+{{- if not (get $initContainer "name") -}}
+{{- fail (printf "smithdb.commonInitContainers[%d].name is required." $index) -}}
+{{- end -}}
+{{- if not (get $initContainer "image") -}}
+{{- fail (printf "smithdb.commonInitContainers[%d].image is required." $index) -}}
+{{- end -}}
+{{- end -}}
+{{- end -}}
+{{- if not .Values.smithdb.config.existingSecretName -}}
+{{- fail "smithdb.config.existingSecretName is required when smithdb.enabled is true." -}}
+{{- end -}}
+{{- range $keyName := list "hostSecretKey" "databaseSecretKey" "usernameSecretKey" "passwordSecretKey" -}}
+{{- $keyValue := get $.Values.smithdb.config.metastore $keyName -}}
+{{- if not $keyValue -}}
+{{- fail (printf "smithdb.config.metastore.%s is required when smithdb.enabled is true." $keyName) -}}
+{{- end -}}
+{{- end -}}
+{{- $objectStoreType := lower .Values.smithdb.config.objectStore.type -}}
+{{- if not (or (eq $objectStoreType "s3") (eq $objectStoreType "gcs")) -}}
+{{- fail "smithdb.config.objectStore.type must be one of [s3, gcs]." -}}
+{{- end -}}
+{{- if not .Values.smithdb.config.objectStore.bucket -}}
+{{- fail "smithdb.config.objectStore.bucket is required when smithdb.enabled is true." -}}
+{{- end -}}
+{{- $smithdbRequiredWorkloads := dict
+  "query" .Values.smithdb.query
+  "ingestion" .Values.smithdb.ingestion
+  "compaction" .Values.smithdb.compaction
+  "compactionWorker" .Values.smithdb.compactionWorker
+  "clusterManager" .Values.smithdb.clusterManager
+-}}
+{{- range $workloadName, $workload := $smithdbRequiredWorkloads -}}
+{{- if and $.Values.smithdb.enabled (lt (int $workload.deployment.replicas) 1) -}}
+{{- fail (printf "smithdb.%s.deployment.replicas must be greater than 0 when smithdb.enabled is true." $workloadName) -}}
+{{- end -}}
+{{- end -}}
+{{- if .Values.smithdb.langsmith.migration.enabled -}}
+{{- if lt (int .Values.smithdb.ingestion.deployment.replicas) 1 -}}
+{{- fail "smithdb.ingestion.deployment.replicas must be greater than 0 when smithdb.langsmith.migration.enabled is true." -}}
+{{- end -}}
+{{- end -}}
+{{- if and .Values.smithdb.langsmith.migration.enabled (not .Values.smithdb.langsmith.ingestion.enabled) -}}
+{{- fail "smithdb.langsmith.ingestion.enabled must be true when smithdb.langsmith.migration.enabled is true." -}}
+{{- end -}}
+{{- if and .Values.smithdb.langsmith.migration.enabled (not .Values.clickhouse.enabled) -}}
+{{- fail "clickhouse.enabled must be true when smithdb.langsmith.migration.enabled is true." -}}
+{{- end -}}
+{{- if and .Values.smithdb.langsmith.migration.enabled (not .Values.smithdb.migration.taskdb.postgres.enabled) -}}
+{{- fail "smithdb.migration.taskdb.postgres.enabled must be true when smithdb.langsmith.migration.enabled is true." -}}
+{{- end -}}
+{{- $taskdb := .Values.smithdb.migration.taskdb.postgres -}}
+{{- if and .Values.smithdb.langsmith.migration.enabled $taskdb.enabled -}}
+{{- if $taskdb.external.enabled -}}
+{{- if not $taskdb.external.port -}}
+{{- fail "smithdb.migration.taskdb.postgres.external.port is required when smithdb.migration.taskdb.postgres.external.enabled is true." -}}
+{{- end -}}
+{{- if $taskdb.external.existingSecretName -}}
+{{- range $keyName := list "hostSecretKey" "databaseSecretKey" "usernameSecretKey" "passwordSecretKey" -}}
+{{- $keyValue := get $taskdb.external $keyName -}}
+{{- if not $keyValue -}}
+{{- fail (printf "smithdb.migration.taskdb.postgres.external.%s is required when smithdb.migration.taskdb.postgres.external.existingSecretName is set." $keyName) -}}
+{{- end -}}
+{{- end -}}
+{{- else -}}
+{{- range $keyName := list "host" "database" "username" "password" -}}
+{{- $keyValue := get $taskdb.external $keyName -}}
+{{- if not $keyValue -}}
+{{- fail (printf "smithdb.migration.taskdb.postgres.external.%s is required when smithdb.migration.taskdb.postgres.external.enabled is true and external.existingSecretName is not set." $keyName) -}}
+{{- end -}}
+{{- end -}}
+{{- end -}}
+{{- else -}}
+{{- if not $taskdb.auth.passwordSecretKey -}}
+{{- fail "smithdb.migration.taskdb.postgres.auth.passwordSecretKey is required when smithdb.migration.taskdb.postgres.enabled is true." -}}
+{{- end -}}
+{{- if and (not $taskdb.auth.existingSecretName) (not $taskdb.auth.password) -}}
+{{- fail "smithdb.migration.taskdb.postgres.auth.password is required when smithdb.migration.taskdb.postgres.enabled is true and auth.existingSecretName is not set." -}}
+{{- end -}}
+{{- end -}}
+{{- end -}}
+{{- $smithdbServiceWorkloads := dict
+  "query" .Values.smithdb.query
+  "ingestion" .Values.smithdb.ingestion
+  "compaction" .Values.smithdb.compaction
+  "clusterManager" .Values.smithdb.clusterManager
+-}}
+{{- range $workloadName, $workload := $smithdbServiceWorkloads -}}
+{{- if and $.Values.smithdb.enabled $workload.service.type (ne $workload.service.type "ClusterIP") -}}
+{{- fail (printf "smithdb.%s.service.type must be ClusterIP." $workloadName) -}}
+{{- end -}}
+{{- end -}}
+{{- if and .Values.smithdb.enabled (ne (toString .Values.smithdb.compactionWorker.maxConcurrentJobs) "") (lt (int .Values.smithdb.compactionWorker.maxConcurrentJobs) 1) -}}
+{{- fail "smithdb.compactionWorker.maxConcurrentJobs must be greater than 0 when set." -}}
+{{- end -}}
+{{- $smithdbAutoscalingWorkloads := dict
+  "query" .Values.smithdb.query
+  "ingestion" .Values.smithdb.ingestion
+  "compactionWorker" .Values.smithdb.compactionWorker
+-}}
+{{- range $workloadName, $workload := $smithdbAutoscalingWorkloads -}}
+{{- $autoscaling := dig "autoscaling" (dict) $workload -}}
+{{- if and $.Values.smithdb.enabled (dig "enabled" false $autoscaling) -}}
+{{- if lt (int $autoscaling.minReplicas) 1 -}}
+{{- fail (printf "smithdb.%s.autoscaling.minReplicas must be greater than 0 when autoscaling is enabled." $workloadName) -}}
+{{- end -}}
+{{- if lt (int $autoscaling.maxReplicas) (int $autoscaling.minReplicas) -}}
+{{- fail (printf "smithdb.%s.autoscaling.maxReplicas must be >= minReplicas when autoscaling is enabled." $workloadName) -}}
+{{- end -}}
+{{- end -}}
+{{- end -}}
+{{- end -}}
+{{- if and .Values.smithdb.langsmith.migration.enabled (not .Values.smithdb.enabled) -}}
+{{- fail "smithdb.enabled must be true when smithdb.langsmith.migration.enabled is true." -}}
+{{- end -}}
+{{- if and .Values.smithdb.langsmith.ingestion.enabled (not .Values.smithdb.enabled) -}}
+{{- fail "smithdb.enabled must be true when smithdb.langsmith.ingestion.enabled is true." -}}
+{{- end -}}
+{{- if and .Values.smithdb.langsmith.query.enabled (not .Values.smithdb.enabled) -}}
+{{- fail "smithdb.enabled must be true when smithdb.langsmith.query.enabled is true." -}}
+{{- end -}}
+{{- if not (or .Values.clickhouse.enabled .Values.smithdb.langsmith.ingestion.enabled) -}}
+{{- fail "At least one ingestion backend must be enabled: clickhouse.enabled or smithdb.langsmith.ingestion.enabled." -}}
+{{- end -}}
+{{- if not (or .Values.clickhouse.enabled .Values.smithdb.langsmith.query.enabled) -}}
+{{- fail "At least one query backend must be enabled: clickhouse.enabled or smithdb.langsmith.query.enabled." -}}
 {{- end -}}
 
 {{- /* Validate agent builder configuration */ -}}
@@ -269,6 +538,13 @@ AWS Marketplace Helm template verification).
 {{- range $pair := $agentPairs }}
 {{- $fn := index $pair "n" }}
 {{- $feat := index $.Values $fn }}
+{{- range $database := list "postgres" "redis" }}
+{{- $databaseConfig := index $feat $database }}
+{{- $provider := $databaseConfig.external.iamProvider }}
+{{- if and $provider (not (has $provider (list "azure" "gcp" "aws"))) }}
+{{- fail (printf "%s.%s.external.iamProvider must be one of [azure, gcp, aws]" $fn $database) }}
+{{- end }}
+{{- end }}
 {{- if $feat.enabled }}
 {{- if and (not $feat.encryptionKey) (not $.Values.config.existingSecretName) }}
 {{- fail (printf "%s.encryptionKey is required when %s.enabled is true (not needed if config.existingSecretName is set with the key already present)" $fn $fn) }}

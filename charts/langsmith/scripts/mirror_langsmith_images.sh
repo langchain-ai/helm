@@ -9,6 +9,7 @@
 #
 # Examples:
 # ./mirror_langsmith_images.sh --registry myregistry --version 0.10.66 --platform linux/arm64
+# ./mirror_langsmith_images.sh --registry myregistry --version 0.16.0 --include-sandboxes --platform linux/amd64
 # ./mirror_langsmith_images.sh --registry 709825985650.dkr.ecr.us-east-1.amazonaws.com \
 #     --dest-repo langchain/langchain-repository --version 0.10.67 --platform linux/amd64 --dry-run
 
@@ -27,16 +28,18 @@ OPERATOR_VERSION=""
 PLATFORM="linux/amd64"
 DRY_RUN=false
 DEST_REPO=""
+INCLUDE_SANDBOXES=false
 
 usage() {
     cat <<EOF
-Usage: $0 --registry <registry-prefix> [--dest-repo <repo>] [--version <version>] [--platform linux/arm64] [--dry-run]
+Usage: $0 --registry <registry-prefix> [--dest-repo <repo>] [--version <version>] [--platform linux/arm64] [--include-sandboxes] [--dry-run]
 
     --registry  Mandatory. Destination registry (e.g. myregistry or 12345678.dkr.ecr.us-east-1.amazonaws.com)
     --dest-repo Single destination repo (e.g. langchain/langchain_repository). Tags become <image-name>-<version>.
     --version            Version to use for LangSmith images (default: $DEFAULT_VERSION)
     --operator-version   Version for langgraph-operator (default: $DEFAULT_OPERATOR_VERSION)
     --platform           Architecture to pull (default: linux/amd64)
+    --include-sandboxes  Also mirror sandbox runtime images. Requires --platform linux/amd64.
     --dry-run            Only print the docker commands
 EOF
     exit 1
@@ -49,6 +52,7 @@ while [[ $# -gt 0 ]]; do
         --version) VERSION="$2"; shift 2 ;;
         --operator-version) OPERATOR_VERSION="$2"; shift 2 ;;
         --platform) PLATFORM="$2"; shift 2 ;;
+        --include-sandboxes) INCLUDE_SANDBOXES=true; shift ;;
         --dry-run) DRY_RUN=true; shift ;;
         *) usage ;;
     esac
@@ -78,10 +82,22 @@ IMAGES=(
     "docker.io/clickhouse/clickhouse-server:25.12"
 )
 
+if $INCLUDE_SANDBOXES; then
+    if [[ "$PLATFORM" != "linux/amd64" ]]; then
+        echo "ERROR: --include-sandboxes requires --platform linux/amd64 because sandbox runtime images are only published for amd64." >&2
+        exit 1
+    fi
+
+    IMAGES+=(
+        "docker.io/langchain/sandbox-host:${VERSION}"
+    )
+fi
+
 echo "Using version: ${VERSION}"
 echo "Registry: ${REGISTRY}"
 [[ -n $DEST_REPO ]] && echo "Dest repo: ${DEST_REPO}"
 echo "Platform: ${PLATFORM}"
+echo "Include sandboxes: ${INCLUDE_SANDBOXES}"
 echo "Dry-run: ${DRY_RUN}"
 echo
 

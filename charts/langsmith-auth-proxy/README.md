@@ -1,6 +1,6 @@
 # langsmith-auth-proxy
 
-![Version: 0.0.10](https://img.shields.io/badge/Version-0.0.10-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.37.0](https://img.shields.io/badge/AppVersion-1.37.0-informational?style=flat-square)
+![Version: 0.0.11](https://img.shields.io/badge/Version-0.0.11-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.37.0](https://img.shields.io/badge/AppVersion-1.37.0-informational?style=flat-square)
 
 Helm chart to deploy the langsmith auth-proxy application.
 
@@ -93,6 +93,7 @@ Control which phases are sent to the transformer via `processingMode`:
 | authProxy.deployment.livenessProbe.timeoutSeconds | int | `1` |  |
 | authProxy.deployment.nodeSelector | object | `{}` |  |
 | authProxy.deployment.podSecurityContext | object | `{}` |  |
+| authProxy.deployment.priorityClassName | string | `""` |  |
 | authProxy.deployment.readinessProbe.failureThreshold | int | `6` |  |
 | authProxy.deployment.readinessProbe.httpGet.path | string | `"/healthz"` |  |
 | authProxy.deployment.readinessProbe.httpGet.port | int | `10000` |  |

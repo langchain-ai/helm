@@ -3,6 +3,10 @@
   value: {{ .Values.insights.enabled | quote }}
 - name: VITE_SELF_HOSTED_POLLY_ENABLED
   value: {{ .Values.polly.enabled | quote }}
+{{- if .Values.smithdb.langsmith.query.enabled }}
+- name: VITE_SELF_HOSTED_SMITHDB_V2_ENDPOINTS_ENABLED
+  value: {{ .Values.smithdb.langsmith.query.enabled | quote }}
+{{- end }}
 {{- /* Agent Builder OAuth provider IDs for frontend */ -}}
 {{- $googleOAuth := .Values.config.agentBuilder.oauth.googleOAuthProvider | default .Values.fleet.oauth.googleOAuthProvider }}
 {{- $slackOAuth := .Values.config.agentBuilder.oauth.slackOAuthProvider | default .Values.fleet.oauth.slackOAuthProvider }}
@@ -152,6 +156,9 @@ spec:
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      {{- if .Values.frontend.deployment.priorityClassName }}
+      priorityClassName: {{ .Values.frontend.deployment.priorityClassName }}
+      {{- end }}
       securityContext:
         {{- include "langsmith.podSecurityContext" (dict "Values" .Values "componentSecurityContext" .Values.frontend.deployment.podSecurityContext) | nindent 8 }}
       serviceAccountName: {{ include "frontend.serviceAccountName" . }}
@@ -173,11 +180,6 @@ spec:
           envFrom:
             - configMapRef:
                 name: {{ include "langsmith.fullname" . }}-config
-            {{- if and .Values.backend.agentBootstrap.enabled .Values.config.agentBuilder.enabled }}
-            - configMapRef:
-                name: {{ include "langsmith.fullname" . }}-agent-builder-config
-                optional: true
-            {{- end }}
           image: {{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "frontendImage") | quote }}
           imagePullPolicy: {{ .Values.images.frontendImage.pullPolicy }}
           ports:
