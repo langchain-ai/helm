@@ -61,6 +61,11 @@ SED_ARGS=(
   # Env-var / kv / JSON sensitive assignments
   -e 's/((PASSWORD|PASSWD|TOKEN|SECRET|API[_-]?KEY|APIKEY|ACCESS[_-]?KEY|PRIVATE[_-]?KEY|CREDENTIAL|AUTH)[A-Z0-9_-]*[[:space:]]*=[[:space:]]*)[^[:space:]"'"'"']+/\1***REDACTED***/gi'
   -e 's/("(password|passwd|token|secret|api[_-]?key|apikey|access[_-]?key|private[_-]?key|credential|auth)[A-Za-z0-9_-]*"[[:space:]]*:[[:space:]]*")[^"]+/\1***REDACTED***/gi'
+  # JWK/JOSE private key material (RFC 7518 short field names — "d", and the
+  # RSA CRT components — don't match the key-name patterns above). Scoped to
+  # lines that also contain "kty" so a JWK's own key set isn't confused with
+  # unrelated short field names elsewhere in the bundle.
+  -e '/"kty"/ s/("(d|p|q|dp|dq|qi)"[[:space:]]*:[[:space:]]*")[^"]+/\1***REDACTED***/gi'
   # Sensitive HTTP headers
   -e 's/("(x-service-key|x-api-key|x-auth-token|x-access-token|x-authorization|x-csrf-token|cookie|set-cookie)"[[:space:]]*:[[:space:]]*")[^"]+/\1***REDACTED***/gi'
   # Tenant / user / customer / patient identifiers in headers
