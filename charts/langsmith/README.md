@@ -560,7 +560,7 @@ The chart-managed frontend owns public API route rewrites for LangSmith services
 | images.clickhouseImage.repository | string | `"docker.io/clickhouse/clickhouse-server"` |  |
 | images.clickhouseImage.tag | string | `"25.12"` |  |
 | images.engineInsightsAgentImage.pullPolicy | string | `"IfNotPresent"` |  |
-| images.engineInsightsAgentImage.repository | string | `"docker.io/langchain/langsmith-clio"` |  |
+| images.engineInsightsAgentImage.repository | string | `"docker.io/langchain/langsmith-insights-engine"` |  |
 | images.engineInsightsAgentImage.tag | string | `"0.16.32rc1"` |  |
 | images.frontendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.frontendImage.repository | string | `"docker.io/langchain/langsmith-frontend"` |  |

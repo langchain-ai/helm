@@ -1,0 +1,26 @@
+suite: engine/insights shared deployment image
+# One image serves both graphs, so enabling Engine is engine.enabled alone —
+# no accompanying image change, which is what the validate.yaml guard exists
+# to catch for installs that pinned the insights-only image in their values.
+templates:
+  - templates/agent-features/insights/api-server/deployment.yaml
+  - templates/agent-features/insights/queue/deployment.yaml
+tests:
+  - it: should default to the combined image with insights alone
+    asserts:
+      - matchRegex:
+          path: spec.template.spec.containers[0].image
+          pattern: langsmith-insights-engine
+
+  - it: should need no image change to enable Engine
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      engine.enabled: true
+      engine.encryptionKey: test-key
+      engine.intelligenceBaseUrl: https://beacon.aws.langchain.com/intelligence
+      config.hostname: https://langsmith.example.com
+    asserts:
+      - matchRegex:
+          path: spec.template.spec.containers[0].image
+          pattern: langsmith-insights-engine
