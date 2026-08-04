@@ -1,0 +1,19 @@
+suite: agent gateway shared configuration
+set:
+  config.existingSecretName: langsmith-secrets
+  config.skipValidation: true
+tests:
+  - it: enables the LLM gateway feature when the agent gateway is enabled
+    template: templates/config-map.yaml
+    set:
+      agentGateway.enabled: true
+    asserts:
+      - equal:
+          path: data.DEFAULT_ORG_FEATURE_LLM_GATEWAY_ENABLED
+          value: "true"
+
+  - it: leaves the LLM gateway feature disabled when the agent gateway is disabled
+    template: templates/config-map.yaml
+    asserts:
+      - notExists:
+          path: data.DEFAULT_ORG_FEATURE_LLM_GATEWAY_ENABLED
