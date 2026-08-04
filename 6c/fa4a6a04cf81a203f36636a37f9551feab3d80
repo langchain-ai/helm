@@ -1,0 +1,23 @@
+charts/langsmith/values.yaml
+  s_ee52300d943d97::t_9f360b29a08c65 73-75,77
+charts/langsmith/tests/engine_insights_agent_image_test.yaml
+  s_ee52300d943d97::t_919c836201f23d 1-26
+charts/langsmith/README.md
+  s_ee52300d943d97::t_7011a0c9b031a2 563
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.20",
+  "base_commit_sha": "6cfa4a6a04cf81a203f36636a37f9551feab3d80",
+  "prompts": {},
+  "sessions": {
+    "s_ee52300d943d97": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "14993807-ebcf-4cce-902a-cf421d7d3c24",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Bagatur Askaryan <baskaryan@gmail.com>"
+    }
+  }
+}
