@@ -12,6 +12,24 @@ For information on how to use this chart, up-to-date release notes, and other gu
 
 The chart-managed frontend owns public API route rewrites for LangSmith services and enabled features. If `frontend.enabled=false`, provide equivalent routing in the external frontend or reverse proxy for every enabled feature, including any configured `config.basePath` prefix and WebSocket upgrade handling where required.
 
+## Engine
+
+LangSmith Engine is off by default. `engine.enabled=true` requires all of the following, and the chart refuses to render if any is missing:
+
+| Setting | Why |
+|---|---|
+| `sandboxes.enabled=true` | Every Engine run executes in a sandbox. |
+| `images.engineInsightsAgentImage.repository` = `docker.io/langchain/langsmith-insights-engine` | Engine needs the combined image serving both the `insights` and `engine` graphs. |
+| `engine.intelligenceBaseUrl` | The Engine routes model calls through the LangSmith Intelligence gateway and authenticates with your license key. Use `https://beacon.aws.langchain.com/intelligence`. |
+| `engine.encryptionKey` | Decrypts the payloads smith-go passes to the Engine. Must match smith-go's `ISSUES_AGENT_ENCRYPTION_KEY`. |
+| `config.hostname` | Sandboxes run the `langsmith` CLI against your install from outside the cluster, so this must be externally reachable — not a loopback or in-cluster address. |
+
+Two things worth planning for before you enable it:
+
+**Sandbox nodes.** Sandboxes are Firecracker microVMs, so `sandboxes.sandboxHost.deployment.nodeSelector` must place host pods on KVM-capable nodes — bare-metal instances, or instance types with nested virtualization explicitly enabled. Sandbox images are published for `linux/amd64` only. A dedicated, tainted node pool is the usual arrangement, since rolling a sandbox-host pod suspends every microVM on it.
+
+**Which workspace owns the sandboxes.** By default smith-go resolves the install's workspace, which works when there is exactly one non-personal organization. With more than one it declines rather than guess, and you must set `engine.sandboxTenantId` explicitly. Prefer a workspace reserved for the Engine: its sandboxes are visible to anyone with access to it.
+
 ## General parameters
 
 | Key | Type | Default | Description |
@@ -26,10 +44,10 @@ The chart-managed frontend owns public API route rewrites for LangSmith services
 | commonPodSecurityContext | object | `{}` | Common pod security context applied to all pods. Component-specific podSecurityContext values will be merged on top of this (component values take precedence). |
 | commonVolumeMounts | list | `[]` | Common volume mounts added to all deployments/statefulsets except for the playground/aceBackend services (which are sandboxed). |
 | commonVolumes | list | `[]` | Common volumes added to all deployments/statefulsets except for the playground/aceBackend services (which are sandboxed). |
-| engine.enabled | bool | `false` |  |
-| engine.encryptionKey | string | `""` |  |
+| engine.enabled | bool | `false` | Enable the LangSmith Engine. Requires sandboxes.enabled, an externally reachable config.hostname, and images.engineInsightsAgentImage pointed at langsmith-insights-engine. See the Engine section of this README. |
+| engine.encryptionKey | string | `""` | Fernet key for the payloads smith-go passes to the Engine. Required when engine.enabled, and must match smith-go's ISSUES_AGENT_ENCRYPTION_KEY. Generate with: python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())" |
 | engine.encryptionKeyPrevious | string | `""` |  |
-| engine.intelligenceBaseUrl | string | `""` |  |
+| engine.intelligenceBaseUrl | string | `""` | LangSmith Intelligence gateway the Engine routes model calls through, authenticating with the license key. Required when engine.enabled. Use https://beacon.aws.langchain.com/intelligence. |
 | engine.sandboxTenantId | string | `""` | Override for the workspace that owns Engine sandboxes. Optional: smith-go resolves the install's workspace when this is unset, and only declines when the install has more than one non-personal org.  Use a workspace reserved for the Engine, not one people work in. Sandboxes land in this workspace, so they consume its sandbox quota — an Engine run can be refused because the workspace is at its cap, and Engine sandboxes count against a cap bought for other work. They are also listed in it and can be stopped by anyone with access, while each one runs agent-generated code and holds a GitHub token for the repo under analysis. |
 | engineInsightsAgent.apiServer.autoscaling.enabled | bool | `false` |  |
 | engineInsightsAgent.apiServer.autoscaling.keda.cooldownPeriod | int | `300` |  |
