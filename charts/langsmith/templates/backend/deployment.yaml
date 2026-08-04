@@ -12,9 +12,6 @@
 {{- if .Values.insights.enabled }}
 - name: CLIO_LANGGRAPH_URL
   value: "http://{{ include "langsmith.agentFeatures.apiServerK8sServiceName" (dict "root" . "product" "engineInsightsAgent") }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.engineInsightsAgent.apiServer.service.httpPort }}"
-{{- /* Follows the image, not engine.enabled: the combined image names its
-       graphs `insights` and `engine`, and lc_config still defaults to the
-       `agent` graph that only the retired clio image had. */}}
 - name: CLIO_ASSISTANT_ID
   value: "insights"
 {{- end }}
