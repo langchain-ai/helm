@@ -70,11 +70,11 @@ images:
     repository: "docker.io/langchain/langsmith-backend"
     pullPolicy: IfNotPresent
     tag: "0.16.32rc1"
-  # Image for the shared Engine/Insights agent deployment. When engine.enabled
-  # is true this must point at the combined insights-engine image, which serves
-  # both the `insights` and `engine` graphs.
+  # Image for the shared Engine/Insights agent deployment. Serves both the
+  # `insights` and `engine` graphs; which of them run is set by insights.enabled
+  # and engine.enabled.
   engineInsightsAgentImage:
-    repository: "docker.io/langchain/langsmith-clio"
+    repository: "docker.io/langchain/langsmith-insights-engine"
     pullPolicy: IfNotPresent
     tag: "0.16.32rc1"
   frontendImage:
