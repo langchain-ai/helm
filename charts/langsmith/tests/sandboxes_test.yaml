@@ -247,6 +247,8 @@ tests:
       sandboxes.juicefs.bucket: https://langsmith-sandboxes-test.s3.us-west-2.amazonaws.com
       images.sandboxHostImage.repository: example.com/langsmith/sandbox-host
       images.sandboxHostImage.tag: test-sandbox-host
+      images.juicefsImage.repository: example.com/langsmith/sandbox-juicefs
+      images.juicefsImage.tag: test-sandbox-juicefs
       insights.encryptionKey: test-insights-encryption-key
       polly.encryptionKey: test-polly-encryption-key
     template: secrets.yaml
@@ -786,6 +788,8 @@ tests:
       sandboxes.juicefs.bucket: https://langsmith-sandboxes-test.s3.us-west-2.amazonaws.com
       images.sandboxHostImage.repository: example.com/langsmith/sandbox-host
       images.sandboxHostImage.tag: test-sandbox-host
+      images.juicefsImage.repository: example.com/langsmith/sandbox-juicefs
+      images.juicefsImage.tag: test-sandbox-juicefs
       insights.encryptionKey: test-insights-encryption-key
       polly.encryptionKey: test-polly-encryption-key
     template: validate.yaml

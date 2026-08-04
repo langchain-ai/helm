@@ -364,9 +364,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | images.insightsAgentImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.insightsAgentImage.repository | string | `"docker.io/langchain/langsmith-clio"` |  |
 | images.insightsAgentImage.tag | string | `"0.17.1rc1"` |  |
-| images.juicefsCSIImage | object | `{"pullPolicy":"IfNotPresent","repository":"docker.io/juicedata/juicefs-csi-driver","tag":"v0.31.4"}` | JuiceFS CSI driver image. Only used when sandboxes.enabled is true. |
-| images.juicefsCSINodeDriverRegistrarImage | object | `{"pullPolicy":"IfNotPresent","repository":"registry.k8s.io/sig-storage/csi-node-driver-registrar","tag":"v2.9.0"}` | JuiceFS CSI node-driver-registrar sidecar image. Only used when sandboxes.enabled is true. |
-| images.juicefsMountImage | object | `{"pullPolicy":"IfNotPresent","repository":"docker.io/juicedata/mount","tag":"ce-v1.3.0"}` | JuiceFS CE mount image used by the runtime mount pods the CSI driver creates. Only used when sandboxes.enabled is true. |
+| images.juicefsImage | object | `{"pullPolicy":"IfNotPresent","repository":"docker.io/langchain/sandbox-juicefs","tag":""}` | Sandbox JuiceFS image containing the CSI driver, node-driver-registrar, and mount binaries. Only used when sandboxes.enabled is true. |
 | images.operatorImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.operatorImage.repository | string | `"docker.io/langchain/langgraph-operator"` |  |
 | images.operatorImage.tag | string | `"0.1.47"` |  |

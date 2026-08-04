@@ -1,7 +1,7 @@
-{{- /* Vendored from the upstream juicefs-csi-driver chart; re-sync when bumping images.juicefsCSIImage. */}}
+{{- /* Vendored from the upstream juicefs-csi-driver chart; re-sync when bumping images.juicefsImage. */}}
 {{- if and .Values.sandboxes.enabled .Values.sandboxes.juicefs.csi.install }}
 {{- $namespace := .Values.namespace | default .Release.Namespace }}
-{{- $mountImage := include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "juicefsMountImage") }}
+{{- $juicefsImage := include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "juicefsImage") }}
 {{- $nodeAnnotations := .Values.sandboxes.juicefs.csi.node.annotations }}
 {{- $podAnnotations := mergeOverwrite (dict) (default dict .Values.commonPodAnnotations) $nodeAnnotations }}
 apiVersion: apps/v1
@@ -43,8 +43,8 @@ spec:
       {{- end }}
       containers:
         - name: juicefs-plugin
-          image: {{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "juicefsCSIImage") | quote }}
-          imagePullPolicy: {{ .Values.images.juicefsCSIImage.pullPolicy }}
+          image: {{ $juicefsImage | quote }}
+          imagePullPolicy: {{ .Values.images.juicefsImage.pullPolicy }}
           args:
             - --endpoint=$(CSI_ENDPOINT)
             - --logtostderr
@@ -79,7 +79,7 @@ spec:
             - name: FS_SHARE_MOUNT
               value: "true"
             - name: JUICEFS_CE_MOUNT_IMAGE
-              value: {{ $mountImage | quote }}
+              value: {{ $juicefsImage | quote }}
             - name: JUICEFS_CSI_WEB_PORT
               value: "9567"
             - name: DRIVER_NAME
@@ -140,8 +140,8 @@ spec:
             - mountPath: /etc/config
               name: juicefs-config
         - name: node-driver-registrar
-          image: {{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "juicefsCSINodeDriverRegistrarImage") | quote }}
-          imagePullPolicy: {{ .Values.images.juicefsCSINodeDriverRegistrarImage.pullPolicy }}
+          image: {{ $juicefsImage | quote }}
+          imagePullPolicy: {{ .Values.images.juicefsImage.pullPolicy }}
           command:
             - /csi-node-driver-registrar
           args:

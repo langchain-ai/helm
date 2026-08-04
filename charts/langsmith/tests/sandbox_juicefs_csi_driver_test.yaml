@@ -307,19 +307,15 @@ tests:
           path: metadata.name
           value: csi.juicefs.com
 
-  - it: should render the JuiceFS CSI node daemonset with mirrored images
+  - it: should render every JuiceFS CSI node role with the mirrored image
     values:
       - ./values/sandboxes-enabled.yaml
     set:
       images.registry: mirror.example.com
       images.imagePullSecrets:
         - name: mirror-pull-secret
-      images.juicefsCSIImage.repository: juicedata/juicefs-csi-driver
-      images.juicefsCSIImage.tag: v0.31.4
-      images.juicefsCSINodeDriverRegistrarImage.repository: sig-storage/csi-node-driver-registrar
-      images.juicefsCSINodeDriverRegistrarImage.tag: v2.9.0
-      images.juicefsMountImage.repository: juicedata/mount
-      images.juicefsMountImage.tag: ce-v1.3.0
+      images.juicefsImage.repository: langchain/sandbox-juicefs
+      images.juicefsImage.tag: test-juicefs
     template: sandboxes/juicefs-csi-driver/node-daemonset.yaml
     asserts:
       - isKind:
@@ -339,7 +335,7 @@ tests:
             - name: mirror-pull-secret
       - equal:
           path: spec.template.spec.containers[0].image
-          value: mirror.example.com/juicedata/juicefs-csi-driver:v0.31.4
+          value: mirror.example.com/langchain/sandbox-juicefs:test-juicefs
       - matchRegex:
           path: spec.template.metadata.annotations["checksum/juicefs-csi-config"]
           pattern: "^[a-f0-9]{64}$"
@@ -350,10 +346,10 @@ tests:
           path: spec.template.spec.containers[0].env
           content:
             name: JUICEFS_CE_MOUNT_IMAGE
-            value: mirror.example.com/juicedata/mount:ce-v1.3.0
+            value: mirror.example.com/langchain/sandbox-juicefs:test-juicefs
       - equal:
           path: spec.template.spec.containers[1].image
-          value: mirror.example.com/sig-storage/csi-node-driver-registrar:v2.9.0
+          value: mirror.example.com/langchain/sandbox-juicefs:test-juicefs
       - equal:
           path: spec.template.spec.containers[1].command
           value:
@@ -367,13 +363,13 @@ tests:
       - notExists:
           path: spec.template.spec.containers[2]
 
-  - it: should render the JuiceFS CSI controller with mirrored images
+  - it: should render every JuiceFS CSI controller role with the mirrored image
     values:
       - ./values/sandboxes-enabled.yaml
     set:
       images.registry: mirror.example.com
-      images.juicefsCSIImage.repository: juicedata/juicefs-csi-driver
-      images.juicefsCSIImage.tag: v0.31.4
+      images.juicefsImage.repository: langchain/sandbox-juicefs
+      images.juicefsImage.tag: test-juicefs
     template: sandboxes/juicefs-csi-driver/controller-statefulset.yaml
     asserts:
       - isKind:
@@ -389,7 +385,12 @@ tests:
           value: juicefs-csi-driver
       - equal:
           path: spec.template.spec.containers[0].image
-          value: mirror.example.com/juicedata/juicefs-csi-driver:v0.31.4
+          value: mirror.example.com/langchain/sandbox-juicefs:test-juicefs
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: JUICEFS_CE_MOUNT_IMAGE
+            value: mirror.example.com/langchain/sandbox-juicefs:test-juicefs
       - matchRegex:
           path: spec.template.metadata.annotations["checksum/juicefs-csi-config"]
           pattern: "^[a-f0-9]{64}$"
@@ -411,15 +412,15 @@ tests:
           path: spec.template.spec.containers[0].args
           content: --provisioner=true
 
-  - it: should fail when the JuiceFS CSI driver image tag is missing
+  - it: should fail when the unified JuiceFS image tag is missing
     values:
       - ./values/sandboxes-enabled.yaml
     set:
-      images.juicefsCSIImage.tag: ""
+      images.juicefsImage.tag: ""
     template: validate.yaml
     asserts:
       - failedTemplate:
-          errorMessage: "images.juicefsCSIImage.tag is required when sandboxes.enabled is true."
+          errorMessage: "images.juicefsImage.tag is required when sandboxes.enabled is true."
 
   - it: should render JuiceFS CSI node observability annotations
     values:
