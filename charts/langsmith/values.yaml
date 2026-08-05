@@ -70,9 +70,8 @@ images:
     repository: "docker.io/langchain/langsmith-backend"
     pullPolicy: IfNotPresent
     tag: "0.17.1rc1"
-  # Image for the shared Engine/Insights agent deployment. Serves both the
-  # `insights` and `engine` graphs; which of them run is set by insights.enabled
-  # and engine.enabled.
+  # Serves both the `insights` and `engine` graphs; insights.enabled and
+  # engine.enabled pick which of them run.
   engineInsightsAgentImage:
     repository: "docker.io/langchain/langsmith-insights-engine"
     pullPolicy: IfNotPresent
@@ -552,42 +551,27 @@ fleet:
       enabled: false
       minAvailable: 1
 engine:
-  # -- Enable the LangSmith Engine. Requires sandboxes.enabled, an externally
-  # reachable config.hostname, and images.engineInsightsAgentImage pointed at
-  # langsmith-insights-engine. See the Engine section of this README.
+  # -- Enable the LangSmith Engine. See the Engine section of this README for what it requires.
   enabled: false
-  # -- LangSmith Intelligence gateway the Engine routes model calls through,
-  # authenticating with the license key. Required when engine.enabled.
-  # Use https://beacon.aws.langchain.com/intelligence.
+  # -- LangSmith Intelligence gateway for Engine model calls, authenticated with the
+  # license key. Required when engine.enabled. Use https://beacon.aws.langchain.com/intelligence.
   intelligenceBaseUrl: ""
   # -- Fernet key for the payloads smith-go passes to the Engine. Required when
   # engine.enabled, and must match smith-go's ISSUES_AGENT_ENCRYPTION_KEY.
-  # Generate with:
-  # python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
   encryptionKey: ""
-  # Prior key, accepted for decryption only, so encryptionKey can be rotated
-  # without failing runs encrypted just before the swap.
+  # Prior key, accepted for decryption only, so encryptionKey can be rotated.
   encryptionKeyPrevious: ""
-  # -- Override for the workspace that owns Engine sandboxes. Optional: smith-go
-  # resolves the install's workspace when this is unset, and only declines when
-  # the install has more than one non-personal org.
-  #
-  # Use a workspace reserved for the Engine, not one people work in. Sandboxes
-  # land in this workspace, so they consume its sandbox quota — an Engine run
-  # can be refused because the workspace is at its cap, and Engine sandboxes
-  # count against a cap bought for other work. They are also listed in it and
-  # can be stopped by anyone with access, while each one runs agent-generated
-  # code and holds a GitHub token for the repo under analysis.
+  # -- Workspace that owns Engine sandboxes. Optional: smith-go resolves the install's
+  # workspace unless there is more than one non-personal org. Prefer one reserved for
+  # the Engine — its sandboxes are visible to anyone with access to it.
   sandboxTenantId: ""
-
 
 insights:
   enabled: true
   encryptionKey: ""
   encryptionKeyPrevious: ""
 
-# Shared deployment for the Engine and Insights agents: one image serving both
-# graphs. Rendered when either insights.enabled or engine.enabled is true.
+# Shared Engine/Insights deployment. Rendered when either is enabled.
 engineInsightsAgent:
   namePrefix: "standalone-insights"
   apiServer:
