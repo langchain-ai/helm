@@ -16,6 +16,13 @@ tests:
       - failedTemplate:
           errorMessage: "images.insightsEngineImage has moved to images.engineInsightsAgentImage: Engine and Insights run on one image. Set images.engineInsightsAgentImage instead."
 
+  - it: should fail on the clio image even with engine disabled
+    set:
+      images.engineInsightsAgentImage.repository: docker.io/langchain/langsmith-clio
+    asserts:
+      - failedTemplate:
+          errorMessage: "images.engineInsightsAgentImage.repository is \"docker.io/langchain/langsmith-clio\": Insights and Engine run on the combined langsmith-insights-engine image, which serves both the `insights` and `engine` graphs. langsmith-clio is no longer supported. Point it at langsmith-insights-engine (or your mirror of it)."
+
   - it: should fail when engine is enabled without the combined image
     set:
       config.existingSecretName: langsmith-secrets
@@ -27,7 +34,26 @@ tests:
       images.engineInsightsAgentImage.repository: docker.io/langchain/langsmith-clio
     asserts:
       - failedTemplate:
-          errorMessage: "engine.enabled is true but images.engineInsightsAgentImage.repository is \"docker.io/langchain/langsmith-clio\": Engine requires the combined insights-engine image, which serves both the `insights` and `engine` graphs. Point it at langsmith-insights-engine (or your mirror of it)."
+          errorMessage: "images.engineInsightsAgentImage.repository is \"docker.io/langchain/langsmith-clio\": Insights and Engine run on the combined langsmith-insights-engine image, which serves both the `insights` and `engine` graphs. langsmith-clio is no longer supported. Point it at langsmith-insights-engine (or your mirror of it)."
+
+  - it: should accept a mirror that keeps the image name
+    set:
+      config.existingSecretName: langsmith-secrets
+      config.oauth.enabled: true
+      config.authType: oauth
+      images.engineInsightsAgentImage.repository: registry.example.com/mirror/langsmith-insights-engine
+    asserts:
+      - notFailedTemplate: {}
+
+  - it: should accept the marketplace layout, where the name is in the tag
+    set:
+      config.existingSecretName: langsmith-secrets
+      config.oauth.enabled: true
+      config.authType: oauth
+      images.engineInsightsAgentImage.repository: 709825985650.dkr.ecr.us-east-1.amazonaws.com/langchain/langsmith
+      images.engineInsightsAgentImage.tag: langsmith-insights-engine-0.16.32
+    asserts:
+      - notFailedTemplate: {}
 
   - it: should fail when engine is enabled without an intelligence base URL
     set:

@@ -63,7 +63,7 @@ CONTAINER_IMAGES=$(cat <<EOF
 [
     "${REGISTRY}/${REPO}:langsmith-ace-backend-${VERSION}",
     "${REGISTRY}/${REPO}:langsmith-backend-${VERSION}",
-    "${REGISTRY}/${REPO}:langsmith-clio-${VERSION}",
+    "${REGISTRY}/${REPO}:langsmith-insights-engine-${VERSION}",
     "${REGISTRY}/${REPO}:langsmith-frontend-${VERSION}",
     "${REGISTRY}/${REPO}:hosted-langserve-backend-${VERSION}",
     "${REGISTRY}/${REPO}:langgraph-operator-${OPERATOR_VERSION}",
