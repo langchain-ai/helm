@@ -174,7 +174,7 @@ step_prereqs() {
 
 Missing Kubernetes permissions for install.
 
-Mission Control installs a ServiceAccount, ClusterRole, and ClusterRoleBinding.
+Mission Control installs a ServiceAccount, ClusterRole/ClusterRoleBinding, and namespace Role/RoleBinding.
 Ask a cluster admin to run this installer, or grant an installer role that can create:
 - clusterroles
 - clusterrolebindings
@@ -303,7 +303,8 @@ config:
     configSave: true
     discover: true
     dbTools: true
-    deploy: true
+    deploy: false
+    deployClusterScopedResources: false
     valuesOverride: true
     # Contention Insights is opt-in: set to true to gain new RBAC verbs
     # (configmap update/delete on `mission-control-contention-config`;
