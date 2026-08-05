@@ -1,0 +1,138 @@
+suite: engine/insights shared deployment values
+templates:
+  - templates/validate.yaml
+tests:
+  - it: should fail when a moved insights key is still set
+    set:
+      insights.apiServer.name: api-server
+    asserts:
+      - failedTemplate:
+          errorMessage: "insights.apiServer has moved to engineInsightsAgent.apiServer: Engine and Insights now run on one shared deployment, so its scaling, database and resource settings live in the engineInsightsAgent block. Move insights.apiServer to engineInsightsAgent.apiServer. insights.enabled and insights.encryptionKey stay where they are."
+
+  - it: should fail when a removed image key is still set
+    set:
+      images.insightsEngineImage.repository: docker.io/langchain/langsmith-insights-engine
+    asserts:
+      - failedTemplate:
+          errorMessage: "images.insightsEngineImage has moved to images.engineInsightsAgentImage: Engine and Insights run on one image. Set images.engineInsightsAgentImage instead."
+
+  - it: should fail on the clio image even with engine disabled
+    set:
+      images.engineInsightsAgentImage.repository: docker.io/langchain/langsmith-clio
+    asserts:
+      - failedTemplate:
+          errorMessage: "images.engineInsightsAgentImage.repository is \"docker.io/langchain/langsmith-clio\": Insights and Engine run on the combined langsmith-insights-engine image, which serves both the `insights` and `engine` graphs. langsmith-clio is no longer supported. Point it at langsmith-insights-engine (or your mirror of it)."
+
+  - it: should fail when engine is enabled without the combined image
+    set:
+      config.existingSecretName: langsmith-secrets
+      config.oauth.enabled: true
+      config.authType: oauth
+      engine.enabled: true
+      engine.encryptionKey: test-key
+      engine.intelligenceBaseUrl: https://beacon.aws.langchain.com/intelligence
+      images.engineInsightsAgentImage.repository: docker.io/langchain/langsmith-clio
+    asserts:
+      - failedTemplate:
+          errorMessage: "images.engineInsightsAgentImage.repository is \"docker.io/langchain/langsmith-clio\": Insights and Engine run on the combined langsmith-insights-engine image, which serves both the `insights` and `engine` graphs. langsmith-clio is no longer supported. Point it at langsmith-insights-engine (or your mirror of it)."
+
+  - it: should accept a mirror that keeps the image name
+    set:
+      config.existingSecretName: langsmith-secrets
+      config.oauth.enabled: true
+      config.authType: oauth
+      images.engineInsightsAgentImage.repository: registry.example.com/mirror/langsmith-insights-engine
+    asserts:
+      - notFailedTemplate: {}
+
+  - it: should accept the marketplace layout, where the name is in the tag
+    set:
+      config.existingSecretName: langsmith-secrets
+      config.oauth.enabled: true
+      config.authType: oauth
+      images.engineInsightsAgentImage.repository: 709825985650.dkr.ecr.us-east-1.amazonaws.com/langchain/langsmith
+      images.engineInsightsAgentImage.tag: langsmith-insights-engine-0.16.32
+    asserts:
+      - notFailedTemplate: {}
+
+  - it: should fail when engine is enabled without an intelligence base URL
+    set:
+      config.existingSecretName: langsmith-secrets
+      config.oauth.enabled: true
+      config.authType: oauth
+      engine.enabled: true
+      engine.encryptionKey: test-key
+      images.engineInsightsAgentImage.repository: docker.io/langchain/langsmith-insights-engine
+    asserts:
+      - failedTemplate:
+          errorMessage: "engine.intelligenceBaseUrl is required when engine.enabled is true: the self-hosted Engine has no ANTHROPIC_API_KEY and routes model calls through the LSI gateway for its cloud/region (e.g. AWS: https://beacon.aws.langchain.com/intelligence)."
+
+  - it: should render without a sandbox tenant, which smith-go resolves
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      config.hostname: langsmith.example.com
+      engine.enabled: true
+      engine.encryptionKey: test-key
+      engine.intelligenceBaseUrl: https://beacon.aws.langchain.com/intelligence
+      images.engineInsightsAgentImage.repository: docker.io/langchain/langsmith-insights-engine
+    asserts:
+      - notFailedTemplate: {}
+
+  - it: should fail when engine is enabled without sandboxes
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      config.hostname: langsmith.example.com
+      sandboxes.enabled: false
+      engine.enabled: true
+      engine.encryptionKey: test-key
+      engine.intelligenceBaseUrl: https://beacon.aws.langchain.com/intelligence
+      engine.sandboxTenantId: 00000000-0000-0000-0000-000000000000
+      images.engineInsightsAgentImage.repository: docker.io/langchain/langsmith-insights-engine
+    asserts:
+      - failedTemplate:
+          errorMessage: "engine.enabled is true but sandboxes.enabled is false: every Engine run executes in a sandbox, so Engine cannot run without them."
+
+  - it: should fail when engine is enabled without a hostname
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      config.hostname: ""
+      engine.enabled: true
+      engine.encryptionKey: test-key
+      engine.intelligenceBaseUrl: https://beacon.aws.langchain.com/intelligence
+      engine.sandboxTenantId: 00000000-0000-0000-0000-000000000000
+      images.engineInsightsAgentImage.repository: docker.io/langchain/langsmith-insights-engine
+    asserts:
+      - failedTemplate:
+          errorMessage: "engine.enabled is true but config.hostname is not set: the sandbox runs the langsmith CLI against an externally reachable LangSmith URL, which is derived from it."
+
+  - it: should fail when engine is enabled and hostname is loopback
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      config.hostname: http://localhost:1980
+      engine.enabled: true
+      engine.encryptionKey: test-key
+      engine.intelligenceBaseUrl: https://beacon.aws.langchain.com/intelligence
+      engine.sandboxTenantId: 00000000-0000-0000-0000-000000000000
+      images.engineInsightsAgentImage.repository: docker.io/langchain/langsmith-insights-engine
+    asserts:
+      - failedTemplate:
+          errorMessage: "engine.enabled is true and config.hostname is \"http://localhost:1980\", which a sandbox cannot reach: it must be the externally reachable LangSmith address."
+
+  - it: should fail when engine is enabled and hostname is an in-cluster address
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      config.hostname: langsmith-frontend.default.svc.cluster.local
+      engine.enabled: true
+      engine.encryptionKey: test-key
+      engine.intelligenceBaseUrl: https://beacon.aws.langchain.com/intelligence
+      engine.sandboxTenantId: 00000000-0000-0000-0000-000000000000
+      images.engineInsightsAgentImage.repository: docker.io/langchain/langsmith-insights-engine
+    asserts:
+      - failedTemplate:
+          errorMessage: "engine.enabled is true and config.hostname is the in-cluster address \"langsmith-frontend.default.svc.cluster.local\", which a sandbox cannot reach: it must be the externally reachable LangSmith address."
+

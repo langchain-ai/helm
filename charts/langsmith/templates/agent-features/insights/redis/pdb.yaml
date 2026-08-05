@@ -1,6 +1,6 @@
-{{- if .Values.insights.enabled }}
-{{- if .Values.insights.redis.pdb.enabled }}
-{{- $componentName := include "langsmith.agentFeatures.componentName" (dict "root" . "product" "insights" "component" "redis") -}}
+{{- if or .Values.insights.enabled .Values.engine.enabled }}
+{{- if .Values.engineInsightsAgent.redis.pdb.enabled }}
+{{- $componentName := include "langsmith.agentFeatures.componentName" (dict "root" . "product" "engineInsightsAgent" "component" "redis") -}}
 apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
@@ -13,11 +13,11 @@ spec:
     matchLabels:
       {{- include "langsmith.selectorLabels" . | nindent 6 }}
       app.kubernetes.io/component: {{ $componentName }}
-  {{- if hasKey .Values.insights.redis.pdb "minAvailable" }}
-  minAvailable: {{ .Values.insights.redis.pdb.minAvailable }}
+  {{- if hasKey .Values.engineInsightsAgent.redis.pdb "minAvailable" }}
+  minAvailable: {{ .Values.engineInsightsAgent.redis.pdb.minAvailable }}
   {{- end }}
-  {{- if hasKey .Values.insights.redis.pdb "maxUnavailable" }}
-  maxUnavailable: {{ .Values.insights.redis.pdb.maxUnavailable }}
+  {{- if hasKey .Values.engineInsightsAgent.redis.pdb "maxUnavailable" }}
+  maxUnavailable: {{ .Values.engineInsightsAgent.redis.pdb.maxUnavailable }}
   {{- end }}
 {{- end }}
 {{- end }}

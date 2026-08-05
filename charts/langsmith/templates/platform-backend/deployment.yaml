@@ -13,6 +13,7 @@
       name: {{ include "langsmith.secretsName" . }}
       key: langsmith_signing_jwks
       optional: true
+{{ include "langsmith.engine.smithGoEnv" . }}
 {{- if .Values.sandboxes.enabled }}
 - name: SANDBOX_FRONTEND_ENABLED
   value: "true"
