@@ -209,8 +209,6 @@ sandboxes:
         serviceAccount:
           # -- Annotations applied to the JuiceFS CSI node ServiceAccount. Use this for workload identity annotations such as AWS IRSA or GCP Workload Identity.
           annotations: {}
-      # -- Cache uploaded blocks for immediate same-node rereads on the SSD-selected JuiceFS mount pod patch.
-      cacheLargeWrite: true
       # -- Mount pod patches used by the JuiceFS CSI driver for sandbox volumes. Override only when tuning JuiceFS mount behavior or observability.
       mountPodPatch:
         - mountOptions:
@@ -232,6 +230,7 @@ sandboxes:
           mountOptions:
             - cache-dir=/var/cache/juicefs-csi
             - cache-size=307200
+            - cache-large-write
       pvName: "smithbox-juicefs-csi"
       pvcName: "smithbox-juicefs-csi"
   sandboxHost:

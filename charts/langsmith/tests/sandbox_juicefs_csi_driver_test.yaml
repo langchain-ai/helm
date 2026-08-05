@@ -296,23 +296,12 @@ tests:
           path: metadata.name
           value: RELEASE-NAME-langsmith-juicefs-csi-driver-config
 
-  - it: should cache large writes for SSD-backed mount pods by default
+  - it: should cache large writes for SSD-backed mount pods
     values:
       - ./values/sandboxes-enabled.yaml
     template: sandboxes/juicefs-csi-driver/configmap.yaml
     asserts:
       - matchRegex:
-          path: data["config.yaml"]
-          pattern: "cache-large-write"
-
-  - it: should allow disabling the large-write cache
-    values:
-      - ./values/sandboxes-enabled.yaml
-    set:
-      sandboxes.juicefs.csi.cacheLargeWrite: false
-    template: sandboxes/juicefs-csi-driver/configmap.yaml
-    asserts:
-      - notMatchRegex:
           path: data["config.yaml"]
           pattern: "cache-large-write"
 

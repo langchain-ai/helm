@@ -1379,21 +1379,9 @@ juicefs-csi-node-sa
 Rendered JuiceFS CSI driver config file.
 */}}
 {{- define "langsmith.sandboxes.juicefsCSIDriverConfig" -}}
-{{- $mountPodPatch := deepCopy .Values.sandboxes.juicefs.csi.mountPodPatch -}}
-{{- if .Values.sandboxes.juicefs.csi.cacheLargeWrite -}}
-{{- range $patch := $mountPodPatch -}}
-{{- $selectorLabels := dig "pvcSelector" "matchLabels" (dict) $patch -}}
-{{- if eq (get $selectorLabels "juicefs.langsmith.com/cache") "ssd" -}}
-{{- $mountOptions := default (list) (get $patch "mountOptions") -}}
-{{- if not (has "cache-large-write" $mountOptions) -}}
-{{- $_ := set $patch "mountOptions" (append $mountOptions "cache-large-write") -}}
-{{- end -}}
-{{- end -}}
-{{- end -}}
-{{- end -}}
 enableNodeSelector: false
 mountPodPatch:
-{{- toYaml $mountPodPatch | nindent 2 }}
+{{- toYaml .Values.sandboxes.juicefs.csi.mountPodPatch | nindent 2 }}
 {{- end -}}
 
 {{- define "langsmith.sandboxes.juicefsCSIDriverConfigChecksum" -}}
