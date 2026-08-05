@@ -61,3 +61,19 @@ tests:
     asserts:
       - notExists:
           path: data.SMITH_INTELLIGENCE_ENDPOINT
+
+  # Org-level Engine enrollment defaults on for the self-hosted plan tier, so an
+  # install that never deployed Engine must be opted out explicitly.
+  - it: should disable Engine enrollment by default when Engine is off
+    asserts:
+      - equal:
+          path: data.DEFAULT_ORG_FEATURE_ENGINE_DEFAULT_ENABLED
+          value: "false"
+
+  - it: should leave Engine enrollment alone when Engine is on
+    set:
+      engine.enabled: true
+      engine.intelligenceBaseUrl: https://beacon.aws.langchain.com/intelligence
+    asserts:
+      - notExists:
+          path: data.DEFAULT_ORG_FEATURE_ENGINE_DEFAULT_ENABLED
