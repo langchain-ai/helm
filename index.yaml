@@ -1439,6 +1439,20 @@ entries:
     version: 0.17.0-rc.3
   - apiVersion: v2
     appVersion: 0.17.1rc1
+    created: "2026-08-05T10:47:14.217758085Z"
+    description: Helm chart to deploy the langsmith application and all services it
+      depends on.
+    digest: 1bb2b08160ec17a25671f4b02c84b99730ad96875f7e00b88d575212c4cf9529
+    maintainers:
+    - email: ankush@langchain.dev
+      name: Ankush
+    name: langsmith
+    type: application
+    urls:
+    - https://github.com/langchain-ai/helm/releases/download/langsmith-0.17.0-rc.3/langsmith-0.17.0-rc.3.tgz
+    version: 0.17.0-rc.3
+  - apiVersion: v2
+    appVersion: 0.17.1rc1
     created: "2026-07-27T21:18:29.321181952Z"
     description: Helm chart to deploy the langsmith application and all services it
       depends on.
@@ -8092,6 +8106,15 @@ entries:
     version: 0.1.0
   mission-control:
   - apiVersion: v2
+    appVersion: 1.2.4
+    created: "2026-08-05T10:47:14.62929081Z"
+    description: Mission Control to deploy and manage Langsmith in EKS
+    digest: 13473a4ee1bb8e1a04d40977a7a393aa1c1593dc381e53872c746c567906175d
+    name: mission-control
+    urls:
+    - https://github.com/langchain-ai/helm/releases/download/mission-control-1.2.3/mission-control-1.2.3.tgz
+    version: 1.2.3
+  - apiVersion: v2
     appVersion: 1.2.0
     created: "2026-07-09T12:45:24.901158699Z"
     description: Mission Control to deploy and manage Langsmith in EKS
@@ -8179,4 +8202,4 @@ entries:
     urls:
     - https://github.com/langchain-ai/helm/releases/download/open-gpts-0.1.0/open-gpts-0.1.0.tgz
     version: 0.1.0
-generated: "2026-08-05T05:28:37.159070825Z"
+generated: "2026-08-05T10:47:14.630845401Z"
