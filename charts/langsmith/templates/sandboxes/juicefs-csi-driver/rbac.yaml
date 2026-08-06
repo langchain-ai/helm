@@ -246,6 +246,16 @@ rules:
       - pods/log
     verbs:
       - get
+  {{- if .Values.sandboxes.juicefs.csi.mountPodReplacementRequestId }}
+  # JuiceFS smooth recreation sends SIGHUP to the existing mount process so it
+  # can hand the live FUSE file descriptor to the replacement mount pod.
+  - apiGroups:
+      - ""
+    resources:
+      - pods/exec
+    verbs:
+      - create
+  {{- end }}
   - apiGroups:
       - ""
     resources:

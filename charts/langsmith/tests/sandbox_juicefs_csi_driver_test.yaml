@@ -6,6 +6,7 @@ templates:
   - sandboxes/juicefs-csi-driver/node-daemonset.yaml
   - sandboxes/juicefs-csi-driver/controller-statefulset.yaml
   - sandboxes/juicefs-csi-driver/csidriver.yaml
+  - sandboxes/juicefs-csi-driver/mount-pod-replacement.yaml
 tests:
   - it: should not render inline JuiceFS CSI resources by default
     set:
@@ -113,7 +114,7 @@ tests:
               - patch
               - delete
 
-  - it: should not grant JuiceFS CSI node namespace pod exec access
+  - it: should not grant pod exec access without a smooth replacement request
     values:
       - ./values/sandboxes-enabled.yaml
     template: sandboxes/juicefs-csi-driver/rbac.yaml
@@ -132,6 +133,242 @@ tests:
               - pods/exec
             verbs:
               - create
+
+  - it: should grant only namespaced pod exec access during a smooth replacement request
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      images.juicefsImage.tag: ce-v1.3.1-test
+      sandboxes.juicefs.csi.mountPodReplacementRequestId: test-1
+    template: sandboxes/juicefs-csi-driver/rbac.yaml
+    release:
+      upgrade: true
+    documentSelector:
+      path: $[?(@.kind == "Role")].metadata.name
+      value: juicefs-csi-external-node-service-role
+    asserts:
+      - isKind:
+          of: Role
+      - contains:
+          path: rules
+          content:
+            apiGroups:
+              - ""
+            resources:
+              - pods/exec
+            verbs:
+              - create
+
+  - it: should not render mount replacement resources without a request ID
+    values:
+      - ./values/sandboxes-enabled.yaml
+    template: sandboxes/juicefs-csi-driver/mount-pod-replacement.yaml
+    release:
+      upgrade: true
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: should render one smooth replacement job for the sandbox mount pod
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      images.juicefsImage.tag: ce-v1.3.1-test
+      sandboxes.juicefs.csi.mountPodReplacementRequestId: test-1
+    template: sandboxes/juicefs-csi-driver/mount-pod-replacement.yaml
+    release:
+      name: test
+      upgrade: true
+    kubernetesProvider:
+      scheme:
+        "v1/Pod":
+          gvr:
+            version: v1
+            resource: pods
+          namespaced: true
+      objects:
+        - apiVersion: v1
+          kind: Pod
+          metadata:
+            name: juicefs-sandbox-node-sandbox-juicefs-abc123
+            namespace: NAMESPACE
+            labels:
+              app.kubernetes.io/name: juicefs-mount
+              volume-id: sandbox-juicefs
+          spec:
+            nodeName: sandbox-node
+            tolerations:
+              - key: sandbox.langsmith.com/host
+                operator: Equal
+                value: "true"
+                effect: NoSchedule
+        - apiVersion: v1
+          kind: Pod
+          metadata:
+            name: juicefs-other-node-unrelated-volume-def456
+            namespace: NAMESPACE
+            labels:
+              app.kubernetes.io/name: juicefs-mount
+              volume-id: unrelated-volume
+          spec:
+            nodeName: other-node
+    documentSelector:
+      path: spec.template.spec.containers[0].name
+      value: smooth-recreate
+    asserts:
+      - isKind:
+          of: Job
+      - equal:
+          path: metadata.annotations["helm.sh/hook"]
+          value: post-upgrade
+      - equal:
+          path: metadata.annotations["helm.sh/hook-weight"]
+          value: "5"
+      - equal:
+          path: spec.template.spec.automountServiceAccountToken
+          value: false
+      - equal:
+          path: spec.template.spec.nodeName
+          value: sandbox-node
+      - equal:
+          path: spec.template.spec.containers[0].image
+          value: example.com/langsmith/sandbox-juicefs:ce-v1.3.1-test
+      - equal:
+          path: spec.template.spec.containers[0].env[1].value
+          value: juicefs-sandbox-node-sandbox-juicefs-abc123
+      - matchRegex:
+          path: spec.template.spec.containers[0].args[0]
+          pattern: "POD-SUCCESS"
+      - equal:
+          path: spec.template.spec.volumes[0].hostPath.path
+          value: /var/run/juicefs-csi
+      - contains:
+          path: spec.template.spec.tolerations
+          content:
+            key: sandbox.langsmith.com/host
+            operator: Equal
+            value: "true"
+            effect: NoSchedule
+
+  - it: should mark a replacement request complete only after mount jobs
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      images.juicefsImage.tag: ce-v1.3.1-test
+      sandboxes.juicefs.csi.mountPodReplacementRequestId: test-1
+    template: sandboxes/juicefs-csi-driver/mount-pod-replacement.yaml
+    release:
+      name: test
+      upgrade: true
+    kubernetesProvider:
+      scheme:
+        "v1/Pod":
+          gvr:
+            version: v1
+            resource: pods
+          namespaced: true
+      objects:
+        - apiVersion: v1
+          kind: Pod
+          metadata:
+            name: juicefs-sandbox-node-sandbox-juicefs-abc123
+            namespace: NAMESPACE
+            labels:
+              app.kubernetes.io/name: juicefs-mount
+              volume-id: sandbox-juicefs
+          spec:
+            nodeName: sandbox-node
+    documentSelector:
+      path: spec.template.spec.containers[0].name
+      value: mark-complete
+    asserts:
+      - isKind:
+          of: Job
+      - equal:
+          path: metadata.annotations["helm.sh/hook-weight"]
+          value: "6"
+      - equal:
+          path: spec.template.spec.serviceAccountName
+          value: test-langsmith-juicefs-mount-replacement
+      - equal:
+          path: spec.template.spec.containers[0].env[2].value
+          value: test-langsmith-juicefs-mount-replacement
+
+  - it: should scope replacement state mutation to its ConfigMap
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      images.juicefsImage.tag: ce-v1.3.1-test
+      sandboxes.juicefs.csi.mountPodReplacementRequestId: test-1
+    template: sandboxes/juicefs-csi-driver/mount-pod-replacement.yaml
+    release:
+      name: test
+      upgrade: true
+    documentSelector:
+      path: $[?(@.kind == "Role")].metadata.name
+      value: test-langsmith-juicefs-mount-replacement
+    asserts:
+      - contains:
+          path: rules
+          content:
+            apiGroups:
+              - ""
+            resources:
+              - configmaps
+            resourceNames:
+              - test-langsmith-juicefs-mount-replacement
+            verbs:
+              - patch
+
+  - it: should not rerender replacement jobs for a completed request
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      images.juicefsImage.tag: ce-v1.3.1-test
+      sandboxes.juicefs.csi.mountPodReplacementRequestId: test-1
+    template: sandboxes/juicefs-csi-driver/mount-pod-replacement.yaml
+    release:
+      name: test
+      upgrade: true
+    kubernetesProvider:
+      scheme:
+        "v1/ConfigMap":
+          gvr:
+            version: v1
+            resource: configmaps
+          namespaced: true
+        "v1/Pod":
+          gvr:
+            version: v1
+            resource: pods
+          namespaced: true
+      objects:
+        - apiVersion: v1
+          kind: ConfigMap
+          metadata:
+            name: test-langsmith-juicefs-mount-replacement
+            namespace: NAMESPACE
+          data:
+            requestedRequestHash: ed1e1dcf971990c1b89676ae785436106f7548b1ae41d174ca9d3bfb9661a477
+            completedRequestHash: ed1e1dcf971990c1b89676ae785436106f7548b1ae41d174ca9d3bfb9661a477
+        - apiVersion: v1
+          kind: Pod
+          metadata:
+            name: juicefs-sandbox-node-sandbox-juicefs-abc123
+            namespace: NAMESPACE
+            labels:
+              app.kubernetes.io/name: juicefs-mount
+              volume-id: sandbox-juicefs
+          spec:
+            nodeName: sandbox-node
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: ConfigMap
+      - equal:
+          path: data.completedRequestHash
+          value: ed1e1dcf971990c1b89676ae785436106f7548b1ae41d174ca9d3bfb9661a477
 
   - it: should render JuiceFS CSI controller ServiceAccount annotations
     values:

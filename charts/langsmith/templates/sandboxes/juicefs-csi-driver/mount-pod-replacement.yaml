@@ -1,0 +1,262 @@
+{{- /*
+Opt-in replacement of CSI-created JuiceFS mount pods using JuiceFS's smooth FUSE
+handoff. This intentionally uses lookup and Helm post-upgrade hooks: mount pods
+are live cluster resources, not objects owned by this release. Render-only/GitOps
+workflows must leave mountPodReplacementRequestId empty.
+*/ -}}
+{{- if and .Values.sandboxes.enabled .Values.sandboxes.juicefs.csi.install .Values.sandboxes.juicefs.csi.mountPodReplacementRequestId .Release.IsUpgrade -}}
+{{- $root := . -}}
+{{- $namespace := .Values.namespace | default .Release.Namespace -}}
+{{- $requestHash := sha256sum (.Values.sandboxes.juicefs.csi.mountPodReplacementRequestId | toString) -}}
+{{- $requestHashShort := trunc 12 $requestHash -}}
+{{- $stateName := printf "%s-juicefs-mount-replacement" (include "langsmith.fullname" .) | trunc 63 | trimSuffix "-" -}}
+{{- $serviceAccountName := printf "%s-juicefs-mount-replacement" (include "langsmith.fullname" .) | trunc 63 | trimSuffix "-" -}}
+{{- $existingState := lookup "v1" "ConfigMap" $namespace $stateName -}}
+{{- $completedRequestHash := "" -}}
+{{- if and $existingState (eq (dig "data" "requestedRequestHash" "" $existingState) $requestHash) -}}
+{{- $completedRequestHash = dig "data" "completedRequestHash" "" $existingState -}}
+{{- end -}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ $stateName }}
+  namespace: {{ $namespace | quote }}
+  labels:
+    app.kubernetes.io/component: juicefs-mount-replacement
+    {{- include "langsmith.sandboxes.juicefsCSILabels" . | nindent 4 }}
+data:
+  requestedRequestHash: {{ $requestHash | quote }}
+  completedRequestHash: {{ $completedRequestHash | quote }}
+{{- if ne $completedRequestHash $requestHash }}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ $serviceAccountName }}
+  namespace: {{ $namespace | quote }}
+  labels:
+    app.kubernetes.io/component: juicefs-mount-replacement
+    {{- include "langsmith.sandboxes.juicefsCSILabels" . | nindent 4 }}
+automountServiceAccountToken: true
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ $serviceAccountName }}
+  namespace: {{ $namespace | quote }}
+  labels:
+    app.kubernetes.io/component: juicefs-mount-replacement
+    {{- include "langsmith.sandboxes.juicefsCSILabels" . | nindent 4 }}
+rules:
+  - apiGroups:
+      - ""
+    resources:
+      - configmaps
+    resourceNames:
+      - {{ $stateName }}
+    verbs:
+      - patch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ $serviceAccountName }}
+  namespace: {{ $namespace | quote }}
+  labels:
+    app.kubernetes.io/component: juicefs-mount-replacement
+    {{- include "langsmith.sandboxes.juicefsCSILabels" . | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ $serviceAccountName }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ $serviceAccountName }}
+    namespace: {{ $namespace | quote }}
+{{- $mountPods := dict -}}
+{{- $podList := lookup "v1" "Pod" $namespace "" -}}
+{{- if $podList -}}
+{{- range $pod := (get $podList "items") -}}
+{{- $labels := get $pod.metadata "labels" | default dict -}}
+{{- if and (eq (get $labels "app.kubernetes.io/name") "juicefs-mount") (eq (get $labels "volume-id") $root.Values.sandboxes.juicefs.name) -}}
+{{- $_ := set $mountPods $pod.metadata.name $pod -}}
+{{- end -}}
+{{- end -}}
+{{- end -}}
+{{- range $mountPodName := keys $mountPods | sortAlpha -}}
+{{- $mountPod := get $mountPods $mountPodName -}}
+{{- $nodeName := $mountPod.spec.nodeName -}}
+{{- $podHashShort := sha256sum $mountPodName | trunc 8 -}}
+{{- $namePrefix := include "langsmith.fullname" $root | trunc 27 | trimSuffix "-" -}}
+{{- $jobName := printf "%s-jfs-replace-%s-%s" $namePrefix $requestHashShort $podHashShort | trunc 63 | trimSuffix "-" -}}
+{{ printf "\n---\n" -}}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ $jobName }}
+  namespace: {{ $namespace | quote }}
+  labels:
+    app.kubernetes.io/component: juicefs-mount-replacement
+    {{- include "langsmith.sandboxes.juicefsCSILabels" $root | nindent 4 }}
+  annotations:
+    "helm.sh/hook": post-upgrade
+    "helm.sh/hook-weight": "5"
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+spec:
+  activeDeadlineSeconds: 1800
+  backoffLimit: 0
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/component: juicefs-mount-replacement
+        app.kubernetes.io/instance: {{ $root.Release.Name }}
+    spec:
+      automountServiceAccountToken: false
+      nodeName: {{ $nodeName | quote }}
+      restartPolicy: Never
+      {{- with $root.Values.images.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with $mountPod.spec.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: smooth-recreate
+          image: {{ include "langsmith.image" (dict "Values" $root.Values "Chart" $root.Chart "component" "juicefsImage") | quote }}
+          imagePullPolicy: {{ $root.Values.images.juicefsImage.pullPolicy }}
+          command:
+            - /bin/sh
+            - -ec
+          args:
+            - |
+              attempt=0
+              until [ -S /tmp/juicefs-csi-shutdown.sock ]; do
+                attempt=$((attempt + 1))
+                if [ "$attempt" -ge 150 ]; then
+                  echo "timed out waiting for the JuiceFS CSI shutdown socket" >&2
+                  exit 1
+                fi
+                sleep 2
+              done
+              if ! output=$(/usr/local/bin/juicefs-csi-driver upgrade "$MOUNT_POD_NAME" --recreate 2>&1); then
+                printf '%s\n' "$output" >&2
+                exit 1
+              fi
+              printf '%s\n' "$output"
+              case "$output" in
+                *POD-SUCCESS*) ;;
+                *)
+                  echo "JuiceFS did not report a successful smooth mount-pod replacement" >&2
+                  exit 1
+                  ;;
+              esac
+          env:
+            - name: JUICEFS_MOUNT_NAMESPACE
+              value: {{ $namespace | quote }}
+            - name: MOUNT_POD_NAME
+              value: {{ $mountPodName | quote }}
+            - name: NODE_NAME
+              value: {{ $nodeName | quote }}
+          resources:
+            limits:
+              cpu: 100m
+              memory: 128Mi
+            requests:
+              cpu: 10m
+              memory: 32Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            readOnlyRootFilesystem: true
+            runAsNonRoot: false
+            runAsUser: 0
+          volumeMounts:
+            - mountPath: /tmp
+              name: juicefs-fuse-fd
+      volumes:
+        - hostPath:
+            path: /var/run/juicefs-csi
+            type: Directory
+          name: juicefs-fuse-fd
+{{- end }}
+{{- if gt (len $mountPods) 0 }}
+{{- $namePrefix := include "langsmith.fullname" . | trunc 34 | trimSuffix "-" -}}
+{{- $markerJobName := printf "%s-jfs-mark-%s" $namePrefix $requestHashShort | trunc 63 | trimSuffix "-" -}}
+{{ printf "\n---\n" -}}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ $markerJobName }}
+  namespace: {{ $namespace | quote }}
+  labels:
+    app.kubernetes.io/component: juicefs-mount-replacement
+    {{- include "langsmith.sandboxes.juicefsCSILabels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": post-upgrade
+    "helm.sh/hook-weight": "6"
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+spec:
+  activeDeadlineSeconds: 300
+  backoffLimit: 0
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/component: juicefs-mount-replacement-marker
+        app.kubernetes.io/instance: {{ .Release.Name }}
+    spec:
+      restartPolicy: Never
+      serviceAccountName: {{ $serviceAccountName }}
+      {{- with .Values.images.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: mark-complete
+          image: {{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "juicefsImage") | quote }}
+          imagePullPolicy: {{ .Values.images.juicefsImage.pullPolicy }}
+          command:
+            - /bin/sh
+            - -ec
+          args:
+            - |
+              token=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)
+              api="https://${KUBERNETES_SERVICE_HOST}:${KUBERNETES_SERVICE_PORT_HTTPS}"
+              curl --fail --silent --show-error \
+                --cacert /var/run/secrets/kubernetes.io/serviceaccount/ca.crt \
+                --request PATCH \
+                --header "Authorization: Bearer ${token}" \
+                --header "Content-Type: application/merge-patch+json" \
+                --data "{\"data\":{\"completedRequestHash\":\"${COMPLETED_REQUEST_HASH}\"}}" \
+                "${api}/api/v1/namespaces/${POD_NAMESPACE}/configmaps/${STATE_CONFIG_MAP}"
+          env:
+            - name: COMPLETED_REQUEST_HASH
+              value: {{ $requestHash | quote }}
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: STATE_CONFIG_MAP
+              value: {{ $stateName | quote }}
+          resources:
+            limits:
+              cpu: 100m
+              memory: 64Mi
+            requests:
+              cpu: 10m
+              memory: 16Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            readOnlyRootFilesystem: true
+            runAsGroup: 65532
+            runAsNonRoot: true
+            runAsUser: 65532
+{{- end }}
+{{- end }}
+{{- end }}

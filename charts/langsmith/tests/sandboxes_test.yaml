@@ -715,6 +715,69 @@ tests:
       - failedTemplate:
           errorMessage: "sandboxes.juicefs.storage currently supports only s3 for AWS/EKS and gs for GCP/GKE. Azure-backed sandbox storage is not supported yet."
 
+  - it: should reject a mount replacement request during installation
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      images.juicefsImage.tag: ce-v1.3.1-test
+      sandboxes.juicefs.csi.mountPodReplacementRequestId: test-1
+    template: validate.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: "sandboxes.juicefs.csi.mountPodReplacementRequestId is only supported during a direct helm upgrade."
+
+  - it: should reject a mount replacement request for an external CSI driver
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      images.juicefsImage.tag: ce-v1.3.1-test
+      sandboxes.juicefs.csi.install: false
+      sandboxes.juicefs.csi.mountPodReplacementRequestId: test-1
+    template: validate.yaml
+    release:
+      upgrade: true
+    asserts:
+      - failedTemplate:
+          errorMessage: "sandboxes.juicefs.csi.mountPodReplacementRequestId requires sandboxes.juicefs.csi.install=true because the chart can only coordinate its bundled JuiceFS CSI driver."
+
+  - it: should reject a mount replacement request with a non-JuiceFS image tag
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      sandboxes.juicefs.csi.mountPodReplacementRequestId: test-1
+    template: validate.yaml
+    release:
+      upgrade: true
+    asserts:
+      - failedTemplate:
+          errorMessage: "images.juicefsImage.tag must start with a JuiceFS CE version such as ce-v1.3.1 when sandboxes.juicefs.csi.mountPodReplacementRequestId is set."
+
+  - it: should reject a mount replacement request with an old JuiceFS client
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      images.juicefsImage.tag: ce-v1.2.0-test
+      sandboxes.juicefs.csi.mountPodReplacementRequestId: test-1
+    template: validate.yaml
+    release:
+      upgrade: true
+    asserts:
+      - failedTemplate:
+          errorMessage: "images.juicefsImage.tag must use JuiceFS CE version 1.2.1 or newer when sandboxes.juicefs.csi.mountPodReplacementRequestId is set."
+
+  - it: should allow a mount replacement request with a compatible JuiceFS client
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      images.juicefsImage.tag: ce-v1.2.1-test
+      sandboxes.juicefs.csi.mountPodReplacementRequestId: test-1
+    template: validate.yaml
+    release:
+      upgrade: true
+    asserts:
+      - hasDocuments:
+          count: 0
+
   - it: should fail when sandbox service URL base URL does not use HTTP or HTTPS
     values:
       - ./values/sandboxes-enabled.yaml

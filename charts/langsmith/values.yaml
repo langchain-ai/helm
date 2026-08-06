@@ -185,10 +185,12 @@ sandboxes:
     csi:
       # -- Install the bundled JuiceFS CSI driver. Set to false when the cluster already runs one; the chart then renders only the sandbox PV/PVCs and CSI config Secret, bound to the existing driver.
       install: true
-      # -- Name of the chart-managed JuiceFS CSI config Secret. The bundled JuiceFS CSI setup is intended only for JuiceFS PVs in the namespace where this chart is installed. Chart-managed Secret/config changes roll only the JuiceFS CSI controller/node pods through checksum annotations. Helm cannot hash externally managed Secret contents or directly refresh CSI-created JuiceFS mount pods; delete affected JuiceFS mount pods so they are recreated with the updated Secret.
+      # -- Name of the chart-managed JuiceFS CSI config Secret. The bundled JuiceFS CSI setup is intended only for JuiceFS PVs in the namespace where this chart is installed. Chart-managed Secret/config changes roll only the JuiceFS CSI controller/node pods through checksum annotations. Helm cannot hash externally managed Secret contents, and raw deletion of a JuiceFS mount pod disconnects existing sandbox mounts.
       configSecretName: "juicefs-csi-config"
       # -- Existing Secret containing JuiceFS CSI config keys `name`, `metaurl`, `storage`, and `bucket`. When set, this chart does not render the CSI config Secret and `sandboxes.juicefs.name`, `sandboxes.juicefs.storage`, `sandboxes.juicefs.bucket`, and `sandboxes.juicefs.redis.metaURL` are not used for the CSI config.
       existingSecretName: ""
+      # -- One-shot request ID for smoothly recreating existing sandbox JuiceFS mount pods after applying CSI config or image changes. Leave empty during normal upgrades. Set a new unique value only for a direct `helm upgrade --wait` so the updated CSI node pods are ready before replacement starts; Helm discovers the live mount pods with `lookup`, temporarily grants the CSI node ServiceAccount namespaced `pods/exec`, recreates each mount pod through JuiceFS's FUSE handoff, and records completion so the same request is not repeated. Clear the value after a successful replacement to remove the temporary RBAC and state resources. Render-only/GitOps workflows cannot perform this live operation. The current and target mount images must use a JuiceFS-compatible `ce-v1.2.1` or newer tag.
+      mountPodReplacementRequestId: ""
       controller:
         # -- Annotations applied to the JuiceFS CSI controller StatefulSet and pod template.
         annotations: {}

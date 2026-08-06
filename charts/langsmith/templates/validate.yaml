@@ -182,12 +182,29 @@ AWS Marketplace Helm template verification).
 {{- if not .Values.images.sandboxHostImage.tag -}}
 {{- fail "images.sandboxHostImage.tag is required when sandboxes.enabled is true." -}}
 {{- end -}}
+{{- $mountPodReplacementRequestId := .Values.sandboxes.juicefs.csi.mountPodReplacementRequestId | default "" -}}
+{{- if and $mountPodReplacementRequestId (not .Values.sandboxes.juicefs.csi.install) -}}
+{{- fail "sandboxes.juicefs.csi.mountPodReplacementRequestId requires sandboxes.juicefs.csi.install=true because the chart can only coordinate its bundled JuiceFS CSI driver." -}}
+{{- end -}}
 {{- if .Values.sandboxes.juicefs.csi.install -}}
 {{- if not .Values.images.juicefsImage.repository -}}
 {{- fail "images.juicefsImage.repository is required when sandboxes.enabled is true." -}}
 {{- end -}}
 {{- if not .Values.images.juicefsImage.tag -}}
 {{- fail "images.juicefsImage.tag is required when sandboxes.enabled is true." -}}
+{{- end -}}
+{{- if $mountPodReplacementRequestId -}}
+{{- if not .Release.IsUpgrade -}}
+{{- fail "sandboxes.juicefs.csi.mountPodReplacementRequestId is only supported during a direct helm upgrade." -}}
+{{- end -}}
+{{- $juicefsVersionTag := regexFind "^ce-v[0-9]+\\.[0-9]+\\.[0-9]+" (.Values.images.juicefsImage.tag | toString) -}}
+{{- if not $juicefsVersionTag -}}
+{{- fail "images.juicefsImage.tag must start with a JuiceFS CE version such as ce-v1.3.1 when sandboxes.juicefs.csi.mountPodReplacementRequestId is set." -}}
+{{- end -}}
+{{- $juicefsVersion := trimPrefix "ce-v" $juicefsVersionTag -}}
+{{- if not (semverCompare ">=1.2.1-0" $juicefsVersion) -}}
+{{- fail "images.juicefsImage.tag must use JuiceFS CE version 1.2.1 or newer when sandboxes.juicefs.csi.mountPodReplacementRequestId is set." -}}
+{{- end -}}
 {{- end -}}
 {{- end -}}
 {{- /* The host needs netns, iptables and mount propagation. Fail here, not at CrashLoop. */ -}}
