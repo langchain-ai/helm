@@ -1,0 +1,85 @@
+suite: engine/insights shared deployment image
+# One image serves both graphs, so enabling Engine is engine.enabled alone —
+# no accompanying image change, which is what the validate.yaml guard exists
+# to catch for installs that pinned the insights-only image in their values.
+templates:
+  - templates/agent-features/insights/api-server/deployment.yaml
+  - templates/agent-features/insights/queue/deployment.yaml
+  - templates/backend/deployment.yaml
+  - templates/queue/deployment.yaml
+  # Pulled in by langsmith.checksumAnnotations on the backend and queue.
+  - templates/config-map.yaml
+  - templates/frontend/config-map.yaml
+  - templates/secrets.yaml
+  - templates/redis/secrets.yaml
+  - templates/postgres/secrets.yaml
+  - templates/clickhouse/secrets.yaml
+tests:
+  - it: should default to the combined image with insights alone
+    templates:
+      - templates/agent-features/insights/api-server/deployment.yaml
+      - templates/agent-features/insights/queue/deployment.yaml
+    asserts:
+      - matchRegex:
+          path: spec.template.spec.containers[0].image
+          pattern: langsmith-insights-engine
+
+  - it: should need no image change to enable Engine
+    templates:
+      - templates/agent-features/insights/api-server/deployment.yaml
+      - templates/agent-features/insights/queue/deployment.yaml
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      engine.enabled: true
+      engine.encryptionKey: test-key
+      engine.intelligenceBaseUrl: https://beacon.aws.langchain.com/intelligence
+      config.hostname: https://langsmith.example.com
+    asserts:
+      - matchRegex:
+          path: spec.template.spec.containers[0].image
+          pattern: langsmith-insights-engine
+
+  # The combined image has no `agent` graph, so its consumers must name
+  # `insights` whether or not Engine is enabled.
+  - it: should name the insights graph with engine disabled
+    templates:
+      - templates/backend/deployment.yaml
+      - templates/queue/deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: CLIO_ASSISTANT_ID
+            value: "insights"
+
+  - it: should name the insights graph with engine enabled
+    templates:
+      - templates/backend/deployment.yaml
+      - templates/queue/deployment.yaml
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      engine.enabled: true
+      engine.encryptionKey: test-key
+      engine.intelligenceBaseUrl: https://beacon.aws.langchain.com/intelligence
+      config.hostname: https://langsmith.example.com
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: CLIO_ASSISTANT_ID
+            value: "insights"
+
+  - it: should not name a graph when insights is disabled
+    templates:
+      - templates/backend/deployment.yaml
+      - templates/queue/deployment.yaml
+    set:
+      insights.enabled: false
+    asserts:
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: CLIO_ASSISTANT_ID
+            value: "insights"

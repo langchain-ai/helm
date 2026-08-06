@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.16.0-rc.27](https://img.shields.io/badge/Version-0.16.0--rc.27-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.16.31rc1](https://img.shields.io/badge/AppVersion-0.16.31rc1-informational?style=flat-square)
+![Version: 0.16.0](https://img.shields.io/badge/Version-0.16.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.16.34](https://img.shields.io/badge/AppVersion-0.16.34-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -11,6 +11,24 @@ For information on how to use this chart, up-to-date release notes, and other gu
 ## Frontend Routing
 
 The chart-managed frontend owns public API route rewrites for LangSmith services and enabled features. If `frontend.enabled=false`, provide equivalent routing in the external frontend or reverse proxy for every enabled feature, including any configured `config.basePath` prefix and WebSocket upgrade handling where required.
+
+## Engine
+
+LangSmith Engine is off by default. `engine.enabled=true` requires all of the following, and the chart refuses to render if any is missing:
+
+| Setting | Why |
+|---|---|
+| `sandboxes.enabled=true` | Every Engine run executes in a sandbox. |
+| `images.engineInsightsAgentImage.repository` = `docker.io/langchain/langsmith-insights-engine` | Engine needs the combined image serving both the `insights` and `engine` graphs. |
+| `engine.intelligenceBaseUrl` | The Engine routes model calls through the LangSmith Intelligence gateway and authenticates with your license key. Use `https://beacon.aws.langchain.com/intelligence`. |
+| `engine.encryptionKey` | Decrypts the payloads smith-go passes to the Engine. Must match smith-go's `ISSUES_AGENT_ENCRYPTION_KEY`. |
+| `config.hostname` | Sandboxes run the `langsmith` CLI against your install from outside the cluster, so this must be externally reachable — not a loopback or in-cluster address. |
+
+Two things worth planning for before you enable it:
+
+**Sandbox nodes.** Sandboxes are Firecracker microVMs, so `sandboxes.sandboxHost.deployment.nodeSelector` must place host pods on KVM-capable nodes — bare-metal instances, or instance types with nested virtualization explicitly enabled. Sandbox images are published for `linux/amd64` only. A dedicated, tainted node pool is the usual arrangement, since rolling a sandbox-host pod suspends every microVM on it.
+
+**Which workspace owns the sandboxes.** By default smith-go resolves the install's workspace, which works when there is exactly one non-personal organization. With more than one it declines rather than guess, and you must set `engine.sandboxTenantId` explicitly. Prefer a workspace reserved for the Engine: its sandboxes are visible to anyone with access to it.
 
 ## General parameters
 
@@ -26,10 +44,10 @@ The chart-managed frontend owns public API route rewrites for LangSmith services
 | commonPodSecurityContext | object | `{}` | Common pod security context applied to all pods. Component-specific podSecurityContext values will be merged on top of this (component values take precedence). |
 | commonVolumeMounts | list | `[]` | Common volume mounts added to all deployments/statefulsets except for the playground/aceBackend services (which are sandboxed). |
 | commonVolumes | list | `[]` | Common volumes added to all deployments/statefulsets except for the playground/aceBackend services (which are sandboxed). |
-| engine.enabled | bool | `false` |  |
-| engine.encryptionKey | string | `""` |  |
+| engine.enabled | bool | `false` | Enable the LangSmith Engine. Requires sandboxes.enabled, an externally reachable config.hostname, and images.engineInsightsAgentImage pointed at langsmith-insights-engine. See the Engine section of this README. |
+| engine.encryptionKey | string | `""` | Fernet key for the payloads smith-go passes to the Engine. Required when engine.enabled, and must match smith-go's ISSUES_AGENT_ENCRYPTION_KEY. Generate with: python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())" |
 | engine.encryptionKeyPrevious | string | `""` |  |
-| engine.intelligenceBaseUrl | string | `""` |  |
+| engine.intelligenceBaseUrl | string | `""` | LangSmith Intelligence gateway the Engine routes model calls through, authenticating with the license key. Required when engine.enabled. Use https://beacon.aws.langchain.com/intelligence. |
 | engine.sandboxTenantId | string | `""` | Override for the workspace that owns Engine sandboxes. Optional: smith-go resolves the install's workspace when this is unset, and only declines when the install has more than one non-personal org.  Use a workspace reserved for the Engine, not one people work in. Sandboxes land in this workspace, so they consume its sandbox quota — an Engine run can be refused because the workspace is at its cap, and Engine sandboxes count against a cap bought for other work. They are also listed in it and can be stopped by anyone with access, while each one runs agent-generated code and holds a GitHub token for the repo under analysis. |
 | engineInsightsAgent.apiServer.autoscaling.enabled | bool | `false` |  |
 | engineInsightsAgent.apiServer.autoscaling.keda.cooldownPeriod | int | `300` |  |
@@ -549,22 +567,22 @@ The chart-managed frontend owns public API route rewrites for LangSmith services
 | gateway.sectionName | string | `""` |  |
 | images.aceBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.aceBackendImage.repository | string | `"docker.io/langchain/langsmith-ace-backend"` |  |
-| images.aceBackendImage.tag | string | `"0.16.31rc1"` |  |
+| images.aceBackendImage.tag | string | `"0.16.34"` |  |
 | images.agentBuilderImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.agentBuilderImage.repository | string | `"docker.io/langchain/agent-builder-deep-agent"` |  |
-| images.agentBuilderImage.tag | string | `"0.16.31rc1"` |  |
+| images.agentBuilderImage.tag | string | `"0.16.34"` |  |
 | images.backendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.backendImage.repository | string | `"docker.io/langchain/langsmith-backend"` |  |
-| images.backendImage.tag | string | `"0.16.31rc1"` |  |
+| images.backendImage.tag | string | `"0.16.34"` |  |
 | images.clickhouseImage.pullPolicy | string | `"Always"` |  |
 | images.clickhouseImage.repository | string | `"docker.io/clickhouse/clickhouse-server"` |  |
 | images.clickhouseImage.tag | string | `"25.12"` |  |
 | images.engineInsightsAgentImage.pullPolicy | string | `"IfNotPresent"` |  |
-| images.engineInsightsAgentImage.repository | string | `"docker.io/langchain/langsmith-clio"` |  |
-| images.engineInsightsAgentImage.tag | string | `"0.16.31rc1"` |  |
+| images.engineInsightsAgentImage.repository | string | `"docker.io/langchain/langsmith-insights-engine"` |  |
+| images.engineInsightsAgentImage.tag | string | `"0.16.34"` |  |
 | images.frontendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.frontendImage.repository | string | `"docker.io/langchain/langsmith-frontend"` |  |
-| images.frontendImage.tag | string | `"0.16.31rc1"` |  |
+| images.frontendImage.tag | string | `"0.16.34"` |  |
 | images.imagePullSecrets | list | `[]` | Secrets with credentials to pull images from a private registry. Specified as name: value. |
 | images.juicefsCSIImage | object | `{"pullPolicy":"IfNotPresent","repository":"docker.io/juicedata/juicefs-csi-driver","tag":"v0.31.4"}` | JuiceFS CSI driver image. Only used when config.sandboxes.enabled is true. |
 | images.juicefsCSINodeDriverRegistrarImage | object | `{"pullPolicy":"IfNotPresent","repository":"registry.k8s.io/sig-storage/csi-node-driver-registrar","tag":"v2.9.0"}` | JuiceFS CSI node-driver-registrar sidecar image. Only used when config.sandboxes.enabled is true. |
@@ -574,7 +592,7 @@ The chart-managed frontend owns public API route rewrites for LangSmith services
 | images.operatorImage.tag | string | `"0.1.47"` |  |
 | images.pollyAgentImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.pollyAgentImage.repository | string | `"docker.io/langchain/langsmith-polly"` |  |
-| images.pollyAgentImage.tag | string | `"0.16.31rc1"` |  |
+| images.pollyAgentImage.tag | string | `"0.16.34"` |  |
 | images.postgresImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.postgresImage.repository | string | `"docker.io/postgres"` |  |
 | images.postgresImage.tag | string | `"14.7"` |  |
@@ -588,7 +606,7 @@ The chart-managed frontend owns public API route rewrites for LangSmith services
 | images.sandboxHostImage | object | `{"pullPolicy":"IfNotPresent","repository":"docker.io/langchain/sandbox-host","tag":""}` | sandbox-host image. Only used when config.sandboxes.enabled is true. |
 | images.smithdbImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.smithdbImage.repository | string | `"docker.io/langchain/smithdb"` |  |
-| images.smithdbImage.tag | string | `"0.16.31rc1"` |  |
+| images.smithdbImage.tag | string | `"0.16.34"` |  |
 | ingestQueue.autoscaling.hpa.enabled | bool | `false` |  |
 | ingestQueue.autoscaling.hpa.maxReplicas | int | `10` |  |
 | ingestQueue.autoscaling.hpa.minReplicas | int | `3` |  |
