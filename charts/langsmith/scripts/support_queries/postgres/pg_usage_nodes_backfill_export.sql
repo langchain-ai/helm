@@ -34,5 +34,5 @@ SELECT
     :'customer_id' AS customer_id,
     :'customer_name' AS customer_name
 FROM backfill_txns bt
-JOIN tenants t ON bt.tenant_id = t.id
+LEFT JOIN tenants t ON bt.tenant_id = t.id
 ORDER BY bt.received_at DESC;

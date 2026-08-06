@@ -16,5 +16,5 @@ SELECT
     rm.backfilled_at,
     t.organization_id
 FROM remote_metrics rm
-JOIN tenants t ON rm.tenant_id = t.id
+LEFT JOIN tenants t ON rm.tenant_id = t.id
 ORDER BY rm.received_at DESC;
