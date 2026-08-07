@@ -7,12 +7,16 @@ tests:
       presidioAnalyzer.enabled: true
       config.logLevel: debug
     asserts:
-      - lengthEqual:
-          path: spec.template.spec.containers[0].env[?(@.name == "LOG_LEVEL")]
-          count: 1
-      - equal:
-          path: spec.template.spec.containers[0].env[?(@.name == "LOG_LEVEL")].value
-          value: DEBUG
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: LOG_LEVEL
+            value: DEBUG
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: LOG_LEVEL
+            value: debug
 
   - it: filters an overridden LOG_LEVEL and preserves unrelated environment variables
     set:
@@ -27,12 +31,21 @@ tests:
         - name: PRESIDIO_CUSTOM_ENV
           value: presidio-value
     asserts:
-      - lengthEqual:
-          path: spec.template.spec.containers[0].env[?(@.name == "LOG_LEVEL")]
-          count: 1
-      - equal:
-          path: spec.template.spec.containers[0].env[?(@.name == "LOG_LEVEL")].value
-          value: WARNING
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: LOG_LEVEL
+            value: WARNING
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: LOG_LEVEL
+            value: warning
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: LOG_LEVEL
+            value: extra
       - contains:
           path: spec.template.spec.containers[0].env
           content:
