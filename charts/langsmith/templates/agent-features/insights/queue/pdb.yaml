@@ -1,9 +1,9 @@
-{{- if .Values.insights.enabled }}
-{{- if .Values.insights.queue.pdb.enabled }}
+{{- if or .Values.insights.enabled .Values.engine.enabled }}
+{{- if .Values.engineInsightsAgent.queue.pdb.enabled }}
 apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
-  name: {{ include "langsmith.agentFeatures.fullname" (dict "root" . "product" "insights") }}-{{ .Values.insights.queue.name }}
+  name: {{ include "langsmith.agentFeatures.fullname" (dict "root" . "product" "engineInsightsAgent") }}-{{ .Values.engineInsightsAgent.queue.name }}
   namespace: {{ .Values.namespace | default .Release.Namespace | quote }}
   labels:
     {{- include "langsmith.labels" . | nindent 4 }}
@@ -11,12 +11,12 @@ spec:
   selector:
     matchLabels:
       {{- include "langsmith.selectorLabels" . | nindent 6 }}
-      app.kubernetes.io/component: {{ include "langsmith.agentFeatures.fullname" (dict "root" . "product" "insights") }}-{{ .Values.insights.queue.name }}
-  {{- if hasKey .Values.insights.queue.pdb "minAvailable" }}
-  minAvailable: {{ .Values.insights.queue.pdb.minAvailable }}
+      app.kubernetes.io/component: {{ include "langsmith.agentFeatures.fullname" (dict "root" . "product" "engineInsightsAgent") }}-{{ .Values.engineInsightsAgent.queue.name }}
+  {{- if hasKey .Values.engineInsightsAgent.queue.pdb "minAvailable" }}
+  minAvailable: {{ .Values.engineInsightsAgent.queue.pdb.minAvailable }}
   {{- end }}
-  {{- if hasKey .Values.insights.queue.pdb "maxUnavailable" }}
-  maxUnavailable: {{ .Values.insights.queue.pdb.maxUnavailable }}
+  {{- if hasKey .Values.engineInsightsAgent.queue.pdb "maxUnavailable" }}
+  maxUnavailable: {{ .Values.engineInsightsAgent.queue.pdb.maxUnavailable }}
   {{- end }}
 {{- end }}
 {{- end }}

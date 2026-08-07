@@ -3,6 +3,7 @@
   value: "3"
 - name: "QUEUE_PORT"
   value: {{ .Values.ingestQueue.containerPort | quote }}
+{{ include "langsmith.engine.smithGoEnv" . }}
 {{- if .Values.sandboxes.enabled }}
 - name: SANDBOX_QUEUE_PRIORITY
   value: "1"

@@ -1,0 +1,22 @@
+suite: engine sandbox CLI endpoint
+templates:
+  - templates/agent-features/insights/api-server/deployment.yaml
+  - templates/agent-features/insights/queue/deployment.yaml
+tests:
+  # The agent derives it from LANGCHAIN_PLATFORM_ENDPOINT, which the shared
+  # config map already carries, so the chart sets no CLI-specific variable.
+  - it: should not set a CLI endpoint on either engine pod
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      engine.enabled: true
+      engine.encryptionKey: test-key
+      engine.intelligenceBaseUrl: https://beacon.aws.langchain.com/intelligence
+      engine.sandboxTenantId: 00000000-0000-0000-0000-000000000000
+      images.engineInsightsAgentImage.repository: docker.io/langchain/langsmith-insights-engine
+    asserts:
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: LANGSMITH_CLI_ENDPOINT
+          any: true
