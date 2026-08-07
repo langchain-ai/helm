@@ -31,11 +31,8 @@ backfill_txns AS (
 SELECT
     bt.*,
     t.organization_id,
-    t.display_name AS workspace_name,
-    o.display_name AS organization_name,
     :'customer_id' AS customer_id,
     :'customer_name' AS customer_name
 FROM backfill_txns bt
-JOIN tenants t ON bt.tenant_id = t.id
-JOIN organizations o ON o.id = t.organization_id
+LEFT JOIN tenants t ON bt.tenant_id = t.id
 ORDER BY bt.received_at DESC;
