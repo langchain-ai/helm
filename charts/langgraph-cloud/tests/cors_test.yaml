@@ -1,0 +1,38 @@
+suite: API server CORS configuration
+templates:
+  - api-server/deployment.yaml
+tests:
+  - it: does not configure allowed origins by default
+    asserts:
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: CORS_ALLOW_ORIGINS
+
+  - it: renders trusted browser origins as a comma-separated environment variable
+    set:
+      config.corsAllowOrigins:
+        - https://langsmith.example.com
+        - http://localhost:3000
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: CORS_ALLOW_ORIGINS
+            value: https://langsmith.example.com,http://localhost:3000
+
+  - it: rejects wildcard origins
+    set:
+      config.corsAllowOrigins:
+        - "*"
+    asserts:
+      - failedTemplate:
+          errorMessage: "config.corsAllowOrigins must contain exact origins; wildcard origins cannot support credentialed CORS"
+
+  - it: rejects origins with paths
+    set:
+      config.corsAllowOrigins:
+        - https://langsmith.example.com/path
+    asserts:
+      - failedTemplate:
+          errorMessage: 'config.corsAllowOrigins entry "https://langsmith.example.com/path" must be an exact http(s) origin without a path or trailing slash'

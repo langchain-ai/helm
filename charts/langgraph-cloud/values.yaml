@@ -64,6 +64,10 @@ config:
     enabled: false
     langSmithAuthEndpoint: ""
     langSmithTenantId: ""
+  # -- Trusted browser origins allowed to make credentialed cross-origin requests to the API server.
+  # Use exact origins including scheme and optional port, for example https://langsmith.example.com.
+  # Wildcard origins are rejected because they cannot safely support cookie authentication.
+  corsAllowOrigins: []
 
 ingress:
   enabled: false

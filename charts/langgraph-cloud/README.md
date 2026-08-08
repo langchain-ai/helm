@@ -499,6 +499,7 @@ If you are upgrading from a chart revision that used the old flat MongoDB values
 | config.auth.enabled | bool | `false` |  |
 | config.auth.langSmithAuthEndpoint | string | `""` |  |
 | config.auth.langSmithTenantId | string | `""` |  |
+| config.corsAllowOrigins | list | `[]` | Trusted browser origins allowed to make credentialed cross-origin requests to the API server. Use exact origins including scheme and optional port, for example https://langsmith.example.com. Wildcard origins are rejected because they cannot safely support cookie authentication. |
 | config.existingSecretName | string | `""` |  |
 | config.httpMaxRequestBodyBytes | string | `""` | Set this to override the default limit. Requests exceeding this limit receive HTTP 413. |
 | config.langGraphCloudLicenseKey | string | `""` | Optional LangGraph Cloud license key loaded from the chart secret. |
