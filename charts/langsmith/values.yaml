@@ -1417,6 +1417,9 @@ smithdb:
       passwordSecretKey: ""
       # -- Cloud IAM auth for the metastore (e.g. "aws"). Empty disables IAM and uses passwordSecretKey.
       iamAuthProvider: ""
+      # -- Optional IAM database username. When set, overrides usernameSecretKey for SmithDB
+      # connections (useful when the secret still holds the master user for break-glass).
+      iamUsername: ""
       port: "5432"
       useSsl: false
     objectStore:

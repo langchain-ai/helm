@@ -756,10 +756,14 @@ Args: root, service, displayName.
       name: {{ $root.Values.smithdb.config.existingSecretName }}
       key: {{ $root.Values.smithdb.config.metastore.databaseSecretKey }}
 - name: {{ $prefix }}__METASTORE__USERNAME
+{{- if $root.Values.smithdb.config.metastore.iamUsername }}
+  value: {{ $root.Values.smithdb.config.metastore.iamUsername | quote }}
+{{- else }}
   valueFrom:
     secretKeyRef:
       name: {{ $root.Values.smithdb.config.existingSecretName }}
       key: {{ $root.Values.smithdb.config.metastore.usernameSecretKey }}
+{{- end }}
 {{- if $root.Values.smithdb.config.metastore.passwordSecretKey }}
 - name: {{ $prefix }}__METASTORE__PASSWORD
   valueFrom:
