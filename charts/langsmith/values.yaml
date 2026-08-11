@@ -1485,9 +1485,6 @@ smithdb:
       tolerations: []
       affinity: {}
       topologySpreadConstraints: []
-      # The Vortex disk cache writes to /data. Without a writable mount the
-      # cache silently degrades to memory-only and every miss goes to object
-      # storage. Keep sizeLimit aligned with resources.limits.ephemeral-storage.
       volumes:
         - name: local-ssd-storage
           emptyDir:
