@@ -2,9 +2,6 @@
 {{- $cfg := .Values.smithdb.config -}}
 {{- $secret := $cfg.existingSecretName -}}
 {{- $useIam := $cfg.metastore.iamAuthProvider -}}
-{{- /* Password installs keep the bash/refinery entrypoint + DATABASE_* env.
-     IAM installs use `smithdb metastore-migrate` with the same METASTORE__*
-     config shape as runtime services. Explicit command overrides still win. */ -}}
 {{- $defaultPasswordCommand := list "/usr/local/bin/smithdb-metastore-migrate-entrypoint.sh" -}}
 {{- $defaultIamCommand := list "./smithdb" "metastore-migrate" -}}
 {{- $command := .Values.smithdb.metastoreMigration.command -}}

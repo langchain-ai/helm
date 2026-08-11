@@ -230,7 +230,6 @@ sandboxes:
           mountOptions:
             - cache-dir=/var/cache/juicefs-csi
             - cache-size=307200
-            - cache-large-write
       pvName: "smithbox-juicefs-csi"
       pvcName: "smithbox-juicefs-csi"
   sandboxHost:
@@ -1413,12 +1412,8 @@ smithdb:
       hostSecretKey: ""
       databaseSecretKey: ""
       usernameSecretKey: ""
-      # -- Leave empty when using iamAuthProvider so pods do not mount a static password.
       passwordSecretKey: ""
-      # -- Cloud IAM auth for the metastore (e.g. "aws"). Empty disables IAM and uses passwordSecretKey.
       iamAuthProvider: ""
-      # -- Optional IAM database username. When set, overrides usernameSecretKey for SmithDB
-      # connections (useful when the secret still holds the master user for break-glass).
       iamUsername: ""
       port: "5432"
       useSsl: false
@@ -1955,10 +1950,6 @@ smithdb:
 
   metastoreMigration:
     name: "metastore-migration"
-    # -- Replaces the image ENTRYPOINT.
-    # Password installs: bash/refinery entrypoint (default).
-    # When smithdb.config.metastore.iamAuthProvider is set and this still has
-    # the default value, the chart switches to `./smithdb metastore-migrate`.
     command:
       - "/usr/local/bin/smithdb-metastore-migrate-entrypoint.sh"
     job:
