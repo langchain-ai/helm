@@ -760,11 +760,23 @@ Args: root, service, displayName.
     secretKeyRef:
       name: {{ $root.Values.smithdb.config.existingSecretName }}
       key: {{ $root.Values.smithdb.config.metastore.usernameSecretKey }}
+{{- if $root.Values.smithdb.config.metastore.passwordSecretKey }}
 - name: {{ $prefix }}__METASTORE__PASSWORD
   valueFrom:
     secretKeyRef:
       name: {{ $root.Values.smithdb.config.existingSecretName }}
       key: {{ $root.Values.smithdb.config.metastore.passwordSecretKey }}
+{{- end }}
+{{- with $root.Values.smithdb.config.metastore.iamAuthProvider }}
+- name: {{ $prefix }}__METASTORE__IAM_AUTH_PROVIDER
+  value: {{ . | quote }}
+{{- end }}
+{{- if and (eq $root.Values.smithdb.config.metastore.iamAuthProvider "aws") $root.Values.smithdb.config.objectStore.s3.region }}
+- name: AWS_REGION
+  value: {{ $root.Values.smithdb.config.objectStore.s3.region | quote }}
+- name: AWS_DEFAULT_REGION
+  value: {{ $root.Values.smithdb.config.objectStore.s3.region | quote }}
+{{- end }}
 - name: {{ $prefix }}__METASTORE__USE_SSL
   value: {{ $root.Values.smithdb.config.metastore.useSsl | quote }}
 {{ include "langsmith.smithdb.baseEnv" (dict "root" $root "service" $service "displayName" $displayName) }}
