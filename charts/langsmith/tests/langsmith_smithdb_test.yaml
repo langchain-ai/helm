@@ -79,6 +79,19 @@ tests:
           path: spec.template.spec.containers[0].resources.requests.ephemeral-storage
           value: "200Gi"
 
+  - it: should enable TLS for metastore migrations when metastore TLS is enabled
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      smithdb.config.metastore.useSsl: true
+    template: smithdb/metastore-migration.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: DATABASE_USE_SSL
+            value: "true"
+
   - it: should size the SmithDB query disk cache from its ephemeral storage limit
     values:
       - ./values/smithdb-enabled.yaml
@@ -108,6 +121,23 @@ tests:
             valueFrom:
               resourceFieldRef:
                 resource: limits.memory
+
+  - it: should back the SmithDB query disk cache with a writable /data volume
+    values:
+      - ./values/smithdb-enabled.yaml
+    template: smithdb/query-deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.volumes
+          content:
+            name: local-ssd-storage
+            emptyDir:
+              sizeLimit: 200Gi
+      - contains:
+          path: spec.template.spec.containers[0].volumeMounts
+          content:
+            name: local-ssd-storage
+            mountPath: /data
 
   - it: should derive the plaintext SmithDB OTLP endpoint from chart-level tracing
     values:
