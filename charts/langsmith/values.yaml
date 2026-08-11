@@ -1486,8 +1486,13 @@ smithdb:
       tolerations: []
       affinity: {}
       topologySpreadConstraints: []
-      volumes: []
-      volumeMounts: []
+      volumes:
+        - name: local-ssd-storage
+          emptyDir:
+            sizeLimit: 200Gi
+      volumeMounts:
+        - name: local-ssd-storage
+          mountPath: /data
       initContainers: []
     service:
       port: 8080

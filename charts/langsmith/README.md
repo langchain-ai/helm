@@ -1278,8 +1278,10 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | smithdb.query.deployment.strategy.type | string | `"RollingUpdate"` |  |
 | smithdb.query.deployment.tolerations | list | `[]` |  |
 | smithdb.query.deployment.topologySpreadConstraints | list | `[]` |  |
-| smithdb.query.deployment.volumeMounts | list | `[]` |  |
-| smithdb.query.deployment.volumes | list | `[]` |  |
+| smithdb.query.deployment.volumeMounts[0].mountPath | string | `"/data"` |  |
+| smithdb.query.deployment.volumeMounts[0].name | string | `"local-ssd-storage"` |  |
+| smithdb.query.deployment.volumes[0].emptyDir.sizeLimit | string | `"200Gi"` |  |
+| smithdb.query.deployment.volumes[0].name | string | `"local-ssd-storage"` |  |
 | smithdb.query.name | string | `"query"` |  |
 | smithdb.query.pdb.annotations | object | `{}` |  |
 | smithdb.query.pdb.enabled | bool | `false` |  |

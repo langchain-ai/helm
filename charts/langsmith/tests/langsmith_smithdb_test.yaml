@@ -109,6 +109,23 @@ tests:
               resourceFieldRef:
                 resource: limits.memory
 
+  - it: should back the SmithDB query disk cache with a writable /data volume
+    values:
+      - ./values/smithdb-enabled.yaml
+    template: smithdb/query-deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.volumes
+          content:
+            name: local-ssd-storage
+            emptyDir:
+              sizeLimit: 200Gi
+      - contains:
+          path: spec.template.spec.containers[0].volumeMounts
+          content:
+            name: local-ssd-storage
+            mountPath: /data
+
   - it: should derive the plaintext SmithDB OTLP endpoint from chart-level tracing
     values:
       - ./values/smithdb-enabled.yaml
