@@ -1952,7 +1952,8 @@ smithdb:
   metastoreMigration:
     name: "metastore-migration"
     command:
-      - "/usr/local/bin/smithdb-metastore-migrate-entrypoint.sh"
+      - "./smithdb"
+      - "metastore-migrate"
     job:
       ttlSecondsAfterFinished: 3600
       backoffLimit: 0
