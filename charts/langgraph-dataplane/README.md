@@ -1,6 +1,6 @@
 # langgraph-dataplane
 
-![Version: 0.2.21](https://img.shields.io/badge/Version-0.2.21-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.13.9](https://img.shields.io/badge/AppVersion-0.13.9-informational?style=flat-square)
+![Version: 0.2.22](https://img.shields.io/badge/Version-0.2.22-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.13.9](https://img.shields.io/badge/AppVersion-0.13.9-informational?style=flat-square)
 
 Helm chart to deploy a langgraph dataplane on kubernetes.
 
@@ -29,8 +29,8 @@ You can find the guide to deploy a LangGraph Dataplane [here](https://langchain-
 | gateway | object | `{"basePath":"","enabled":false,"hostname":"","name":"","namespace":""}` | Whether to use the Gateway API for ingress. Will create an HTTPRoute for each LangGraph platform deployment. Recommended for production use / if deploying multiple releases in the same cluster. |
 | images.imagePullSecrets | list | `[]` | Secrets with credentials to pull images from a private registry. Specified as name: value. |
 | images.listenerImage.pullPolicy | string | `"IfNotPresent"` |  |
-| images.listenerImage.repository | string | `"docker.io/langchain/hosted-langserve-backend"` |  |
-| images.listenerImage.tag | string | `"0.13.9"` |  |
+| images.listenerImage.repository | string | `"docker.io/langchain/langsmith-backend"` |  |
+| images.listenerImage.tag | string | `"0.16.36"` |  |
 | images.operatorImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.operatorImage.repository | string | `"docker.io/langchain/langgraph-operator"` |  |
 | images.operatorImage.tag | string | `"0.1.36"` |  |
@@ -128,7 +128,8 @@ You can find the guide to deploy a LangGraph Dataplane [here](https://langchain-
 | listener.deployment.affinity | object | `{}` |  |
 | listener.deployment.annotations | object | `{}` |  |
 | listener.deployment.autoRestart | bool | `true` |  |
-| listener.deployment.command[0] | string | `"./listener_entrypoint.sh"` |  |
+| listener.deployment.command[0] | string | `"host_backend_entrypoint.sh"` |  |
+| listener.deployment.command[1] | string | `"./listener_entrypoint.sh"` |  |
 | listener.deployment.extraContainerConfig | object | `{}` |  |
 | listener.deployment.extraEnv | list | `[]` |  |
 | listener.deployment.labels | object | `{}` |  |
