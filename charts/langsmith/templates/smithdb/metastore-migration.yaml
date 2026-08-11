@@ -7,7 +7,7 @@
   (dict "name" "DATABASE_NAME" "valueFrom" (dict "secretKeyRef" (dict "name" $secret "key" $cfg.metastore.databaseSecretKey)))
   (dict "name" "DATABASE_USERNAME" "valueFrom" (dict "secretKeyRef" (dict "name" $secret "key" $cfg.metastore.usernameSecretKey)))
   (dict "name" "DATABASE_PASSWORD" "valueFrom" (dict "secretKeyRef" (dict "name" $secret "key" $cfg.metastore.passwordSecretKey)))
-  (dict "name" "DATABASE_USE_SSL" "value" (.Values.smithdb.metastoreMigration.useSsl | toString))
+  (dict "name" "DATABASE_USE_SSL" "value" ($cfg.metastore.useSsl | toString))
 -}}
 {{- $envVars = concat $envVars .Values.smithdb.metastoreMigration.job.extraEnv -}}
 {{- include "langsmith.detectDuplicates" $envVars -}}

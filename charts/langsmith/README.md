@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.16.2](https://img.shields.io/badge/Version-0.16.2-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.16.36](https://img.shields.io/badge/AppVersion-0.16.36-informational?style=flat-square)
+![Version: 0.16.3](https://img.shields.io/badge/Version-0.16.3-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.16.36](https://img.shields.io/badge/AppVersion-0.16.36-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -1198,7 +1198,6 @@ Two things worth planning for before you enable it:
 | smithdb.metastoreMigration.job.tolerations | list | `[]` |  |
 | smithdb.metastoreMigration.job.ttlSecondsAfterFinished | int | `3600` |  |
 | smithdb.metastoreMigration.name | string | `"metastore-migration"` |  |
-| smithdb.metastoreMigration.useSsl | bool | `false` |  |
 | smithdb.migration.containerPort | int | `9040` |  |
 | smithdb.migration.deployment.affinity | object | `{}` |  |
 | smithdb.migration.deployment.annotations | object | `{}` |  |
@@ -1335,8 +1334,10 @@ Two things worth planning for before you enable it:
 | smithdb.query.deployment.strategy.type | string | `"RollingUpdate"` |  |
 | smithdb.query.deployment.tolerations | list | `[]` |  |
 | smithdb.query.deployment.topologySpreadConstraints | list | `[]` |  |
-| smithdb.query.deployment.volumeMounts | list | `[]` |  |
-| smithdb.query.deployment.volumes | list | `[]` |  |
+| smithdb.query.deployment.volumeMounts[0].mountPath | string | `"/data"` |  |
+| smithdb.query.deployment.volumeMounts[0].name | string | `"local-ssd-storage"` |  |
+| smithdb.query.deployment.volumes[0].emptyDir.sizeLimit | string | `"200Gi"` |  |
+| smithdb.query.deployment.volumes[0].name | string | `"local-ssd-storage"` |  |
 | smithdb.query.name | string | `"query"` |  |
 | smithdb.query.pdb.annotations | object | `{}` |  |
 | smithdb.query.pdb.enabled | bool | `false` |  |
