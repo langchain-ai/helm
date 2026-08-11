@@ -369,7 +369,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | images.juicefsMountImage | object | `{"pullPolicy":"IfNotPresent","repository":"docker.io/juicedata/mount","tag":"ce-v1.3.0"}` | JuiceFS CE mount image used by the runtime mount pods the CSI driver creates. Only used when sandboxes.enabled is true. |
 | images.operatorImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.operatorImage.repository | string | `"docker.io/langchain/langgraph-operator"` |  |
-| images.operatorImage.tag | string | `"0.1.47"` |  |
+| images.operatorImage.tag | string | `"0.1.59"` |  |
 | images.pollyAgentImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.pollyAgentImage.repository | string | `"docker.io/langchain/langsmith-polly"` |  |
 | images.pollyAgentImage.tag | string | `"0.17.1rc1"` |  |

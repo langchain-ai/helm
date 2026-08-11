@@ -5,3 +5,16 @@ test*.yaml
 charts/langsmith-observability/charts/*
 test*.csv
 .tmp/
+
+# Local environments and secrets
+.env
+.env.*
+*.pem
+*.key
+*.crt
+credentials.json
+
+# Dependency and Python caches
+node_modules/
+__pycache__/
+.venv/

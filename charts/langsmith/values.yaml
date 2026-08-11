@@ -81,7 +81,7 @@ images:
   operatorImage:
     repository: "docker.io/langchain/langgraph-operator"
     pullPolicy: IfNotPresent
-    tag: "0.1.47"
+    tag: "0.1.59"
   # For production environments, we strongly recommend connecting to a managed PostgreSQL instance instead of using the one provided by the chart.
   # Docs: https://docs.langchain.com/langsmith/self-host-external-postgres
   postgresImage:
