@@ -1,0 +1,19 @@
+charts/mission-control/Chart.yaml
+  s_ba1be30ef8ade1::t_48d46d78b5c69b 4-5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.21",
+  "base_commit_sha": "d7151134bf736b9ad6cd550f268295f874528c77",
+  "prompts": {},
+  "sessions": {
+    "s_ba1be30ef8ade1": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "23af6fcf-37d8-4679-a379-e6ffc50e06cb",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "gdibben <gethin.dibben@langchain.dev>"
+    }
+  }
+}
