@@ -230,6 +230,7 @@ sandboxes:
           mountOptions:
             - cache-dir=/var/cache/juicefs-csi
             - cache-size=307200
+            - cache-large-write
       pvName: "smithbox-juicefs-csi"
       pvcName: "smithbox-juicefs-csi"
   sandboxHost:
