@@ -1045,6 +1045,8 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | smithdb.config.existingSecretName | string | `""` | Existing secret containing SmithDB metastore credentials. |
 | smithdb.config.metastore.databaseSecretKey | string | `""` |  |
 | smithdb.config.metastore.hostSecretKey | string | `""` |  |
+| smithdb.config.metastore.iamAuthProvider | string | `""` |  |
+| smithdb.config.metastore.iamUsername | string | `""` |  |
 | smithdb.config.metastore.passwordSecretKey | string | `""` |  |
 | smithdb.config.metastore.port | string | `"5432"` |  |
 | smithdb.config.metastore.useSsl | bool | `false` |  |
@@ -1125,7 +1127,8 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | smithdb.langsmith.ingestion.enabled | bool | `false` | Enables LangSmith run ingestion via SmithDB. When ClickHouse is enabled, ingestion writes to both backends. Requires smithdb.enabled. |
 | smithdb.langsmith.migration.enabled | bool | `false` | Detailed migration and taskdb configuration lives under smithdb.migration. |
 | smithdb.langsmith.query.enabled | bool | `false` | Enables SmithDB-powered queries. Requires smithdb.enabled. |
-| smithdb.metastoreMigration.command[0] | string | `"/usr/local/bin/smithdb-metastore-migrate-entrypoint.sh"` |  |
+| smithdb.metastoreMigration.command[0] | string | `"./smithdb"` |  |
+| smithdb.metastoreMigration.command[1] | string | `"metastore-migrate"` |  |
 | smithdb.metastoreMigration.job.activeDeadlineSeconds | int | `600` |  |
 | smithdb.metastoreMigration.job.affinity | object | `{}` |  |
 | smithdb.metastoreMigration.job.annotations | object | `{}` |  |
