@@ -1,41 +1,34 @@
-suite: frontend nginx run ingest proxying
+suite: frontend nginx request buffering
 templates:
   - frontend/config-map.yaml
 tests:
-  - it: streams run ingest bodies to the backend instead of spooling them to disk
+  - it: disables request buffering once at server scope so every route inherits it
     asserts:
       - matchRegex:
           path: data["nginx.conf"]
-          pattern: 'location = /api/v1/runs/multipart \{[^}]*proxy_request_buffering off;'
-      - matchRegex:
+          pattern: 'proxy_send_timeout \d+;\n\s*proxy_request_buffering off;'
+      # inherited from the server block; never repeated per location
+      - notMatchRegex:
           path: data["nginx.conf"]
-          pattern: 'location = /api/v1/runs/batch \{[^}]*proxy_request_buffering off;'
-      - matchRegex:
-          path: data["nginx.conf"]
-          pattern: 'location = /api/runs/multipart \{[^}]*proxy_request_buffering off;'
-      - matchRegex:
-          path: data["nginx.conf"]
-          pattern: 'location = /api/runs/batch \{[^}]*proxy_request_buffering off;'
+          pattern: 'location [^\n]*\{[^}]*proxy_request_buffering'
 
-  - it: streams run ingest bodies when a basePath is configured
+  - it: disables request buffering when a basePath is configured
     set:
       config.basePath: "langsmith"
     asserts:
       - matchRegex:
           path: data["nginx.conf"]
-          pattern: 'location = /langsmith/api/v1/runs/multipart \{[^}]*proxy_request_buffering off;'
-      - matchRegex:
-          path: data["nginx.conf"]
-          pattern: 'location = /langsmith/api/v1/runs/batch \{[^}]*proxy_request_buffering off;'
-      - matchRegex:
-          path: data["nginx.conf"]
-          pattern: 'location = /langsmith/api/runs/multipart \{[^}]*proxy_request_buffering off;'
-      - matchRegex:
-          path: data["nginx.conf"]
-          pattern: 'location = /langsmith/api/runs/batch \{[^}]*proxy_request_buffering off;'
-
-  - it: leaves request buffering on for other proxied routes
-    asserts:
+          pattern: 'proxy_send_timeout \d+;\n\s*proxy_request_buffering off;'
       - notMatchRegex:
           path: data["nginx.conf"]
-          pattern: 'location = /api/v1/runs \{[^}]*proxy_request_buffering off;'
+          pattern: 'location [^\n]*\{[^}]*proxy_request_buffering'
+
+  - it: disables request buffering on the ssl server block
+    set:
+      frontend.ssl.enabled: true
+      frontend.ssl.certificatePath: /certs/tls.crt
+      frontend.ssl.keyPath: /certs/tls.key
+    asserts:
+      - matchRegex:
+          path: data["nginx.conf"]
+          pattern: 'proxy_send_timeout \d+;\n\s*proxy_request_buffering off;'
