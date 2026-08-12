@@ -32,9 +32,9 @@ images:
    # -- Secrets with credentials to pull images from a private registry. Specified as name: value.
   imagePullSecrets: []
   listenerImage:
-    repository: "docker.io/langchain/hosted-langserve-backend"
+    repository: "docker.io/langchain/langsmith-backend"
     pullPolicy: IfNotPresent
-    tag: "0.13.9"
+    tag: "0.16.36"
   redisImage:
     repository: "docker.io/redis"
     pullPolicy: IfNotPresent
@@ -114,6 +114,7 @@ listener:
         cpu: 1000m
         memory: 2Gi
     command:
+      - "host_backend_entrypoint.sh"
       - "./listener_entrypoint.sh"
     startupProbe:
       httpGet:
