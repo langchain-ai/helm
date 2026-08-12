@@ -77,6 +77,7 @@ data:
         proxy_read_timeout {{ .Values.frontend.proxyReadTimeout }};
         proxy_connect_timeout {{ .Values.frontend.proxyConnectTimeout }};
         proxy_send_timeout {{ .Values.frontend.proxyWriteTimeout }};
+        proxy_request_buffering off;
         keepalive_timeout {{ .Values.frontend.keepAliveTimeout }};
 
         add_header Content-Security-Policy "{{ .Values.frontend.cspHeader }}" always;
@@ -231,7 +232,6 @@ data:
             rewrite /{{ .Values.config.basePath }}/api/v1/runs/multipart /runs/multipart  break;
             proxy_set_header Connection '';
             proxy_http_version 1.1;
-            proxy_request_buffering off;
             proxy_buffering off;
             proxy_cache off;
             proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.platformBackend.service.port }};
@@ -241,7 +241,6 @@ data:
             rewrite /{{ .Values.config.basePath }}/api/v1/runs/batch /runs/batch  break;
             proxy_set_header Connection '';
             proxy_http_version 1.1;
-            proxy_request_buffering off;
             proxy_buffering off;
             proxy_cache off;
             proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.platformBackend.service.port }};
@@ -514,7 +513,6 @@ data:
             rewrite /{{ .Values.config.basePath }}/api/runs/multipart /runs/multipart  break;
             proxy_set_header Connection '';
             proxy_http_version 1.1;
-            proxy_request_buffering off;
             proxy_buffering off;
             proxy_cache off;
             proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.platformBackend.service.port }};
@@ -524,7 +522,6 @@ data:
             rewrite /{{ .Values.config.basePath }}/api/runs/batch /runs/batch  break;
             proxy_set_header Connection '';
             proxy_http_version 1.1;
-            proxy_request_buffering off;
             proxy_buffering off;
             proxy_cache off;
             proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.platformBackend.service.port }};
@@ -696,6 +693,7 @@ data:
         proxy_read_timeout {{ .Values.frontend.proxyReadTimeout }};
         proxy_connect_timeout {{ .Values.frontend.proxyConnectTimeout }};
         proxy_send_timeout {{ .Values.frontend.proxyWriteTimeout }};
+        proxy_request_buffering off;
         keepalive_timeout {{ .Values.frontend.keepAliveTimeout }};
 
         add_header Content-Security-Policy "{{ .Values.frontend.cspHeader }}" always;
@@ -865,7 +863,6 @@ data:
             rewrite /api/v1/runs/multipart /runs/multipart  break;
             proxy_set_header Connection '';
             proxy_http_version 1.1;
-            proxy_request_buffering off;
             proxy_buffering off;
             proxy_cache off;
             proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.platformBackend.service.port }};
@@ -875,7 +872,6 @@ data:
             rewrite /api/v1/runs/batch /runs/batch  break;
             proxy_set_header Connection '';
             proxy_http_version 1.1;
-            proxy_request_buffering off;
             proxy_buffering off;
             proxy_cache off;
             proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.platformBackend.service.port }};
@@ -1077,7 +1073,6 @@ data:
             rewrite /api/runs/multipart /runs/multipart  break;
             proxy_set_header Connection '';
             proxy_http_version 1.1;
-            proxy_request_buffering off;
             proxy_buffering off;
             proxy_cache off;
             proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.platformBackend.service.port }};
@@ -1087,7 +1082,6 @@ data:
             rewrite /api/runs/batch /runs/batch  break;
             proxy_set_header Connection '';
             proxy_http_version 1.1;
-            proxy_request_buffering off;
             proxy_buffering off;
             proxy_cache off;
             proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.platformBackend.service.port }};
