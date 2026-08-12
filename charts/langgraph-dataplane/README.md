@@ -33,7 +33,7 @@ You can find the guide to deploy a LangGraph Dataplane [here](https://langchain-
 | images.listenerImage.tag | string | `"0.13.9"` |  |
 | images.operatorImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.operatorImage.repository | string | `"docker.io/langchain/langgraph-operator"` |  |
-| images.operatorImage.tag | string | `"0.1.36"` |  |
+| images.operatorImage.tag | string | `"0.1.59"` |  |
 | images.redisImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.redisImage.repository | string | `"docker.io/redis"` |  |
 | images.redisImage.tag | string | `"7"` |  |

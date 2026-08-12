@@ -1098,6 +1098,56 @@ spec:
                 additionalProperties:
                   type: string
                 type: object
+              managedResources:
+                description: ManagedResources defines namespaced Kubernetes resources
+                  owned by this LGP.
+                minProperties: 1
+                properties:
+                  secretProviderClass:
+                    description: SecretProviderClass creates one Secrets Store CSI
+                      Driver resource.
+                    properties:
+                      name:
+                        description: Name is the SecretProviderClass metadata.name.
+                        maxLength: 253
+                        minLength: 1
+                        type: string
+                      parameters:
+                        additionalProperties:
+                          type: string
+                        description: |-
+                          Parameters are passed directly to the Azure provider. Values remain
+                          strings so multiline provider configuration such as objects is preserved.
+                        minProperties: 1
+                        type: object
+                      provider:
+                        description: Provider is the Secrets Store CSI provider. Only
+                          Azure is supported.
+                        enum:
+                        - azure
+                        type: string
+                    required:
+                    - name
+                    - parameters
+                    - provider
+                    type: object
+                  serviceAccount:
+                    description: |-
+                      ServiceAccount creates a ServiceAccount named <lgp-name>-sa and configures
+                      all LGP pods to use it.
+                    properties:
+                      annotations:
+                        additionalProperties:
+                          type: string
+                        description: Annotations applied to the managed ServiceAccount.
+                        type: object
+                      automountServiceAccountToken:
+                        description: |-
+                          AutomountServiceAccountToken controls automatic token mounting for pods
+                          using the managed ServiceAccount.
+                        type: boolean
+                    type: object
+                type: object
               nodeSelector:
                 additionalProperties:
                   type: string
