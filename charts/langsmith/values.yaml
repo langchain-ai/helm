@@ -1450,6 +1450,8 @@ smithdb:
       databaseSecretKey: ""
       usernameSecretKey: ""
       passwordSecretKey: ""
+      iamAuthProvider: ""
+      iamUsername: ""
       port: "5432"
       useSsl: false
     objectStore:
@@ -1986,7 +1988,8 @@ smithdb:
   metastoreMigration:
     name: "metastore-migration"
     command:
-      - "/usr/local/bin/smithdb-metastore-migrate-entrypoint.sh"
+      - "./smithdb"
+      - "metastore-migrate"
     job:
       ttlSecondsAfterFinished: 3600
       backoffLimit: 0
