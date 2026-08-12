@@ -1,0 +1,34 @@
+suite: frontend nginx request buffering
+templates:
+  - frontend/config-map.yaml
+tests:
+  - it: disables request buffering once at server scope so every route inherits it
+    asserts:
+      - matchRegex:
+          path: data["nginx.conf"]
+          pattern: 'proxy_send_timeout \d+;\n\s*proxy_request_buffering off;'
+      # inherited from the server block; never repeated per location
+      - notMatchRegex:
+          path: data["nginx.conf"]
+          pattern: 'location [^\n]*\{[^}]*proxy_request_buffering'
+
+  - it: disables request buffering when a basePath is configured
+    set:
+      config.basePath: "langsmith"
+    asserts:
+      - matchRegex:
+          path: data["nginx.conf"]
+          pattern: 'proxy_send_timeout \d+;\n\s*proxy_request_buffering off;'
+      - notMatchRegex:
+          path: data["nginx.conf"]
+          pattern: 'location [^\n]*\{[^}]*proxy_request_buffering'
+
+  - it: disables request buffering on the ssl server block
+    set:
+      frontend.ssl.enabled: true
+      frontend.ssl.certificatePath: /certs/tls.crt
+      frontend.ssl.keyPath: /certs/tls.key
+    asserts:
+      - matchRegex:
+          path: data["nginx.conf"]
+          pattern: 'proxy_send_timeout \d+;\n\s*proxy_request_buffering off;'
