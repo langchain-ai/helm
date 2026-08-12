@@ -13,8 +13,3 @@ test*.csv
 *.key
 *.crt
 credentials.json
-
-# Dependency and Python caches
-node_modules/
-__pycache__/
-.venv/
