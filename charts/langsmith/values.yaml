@@ -122,7 +122,7 @@ images:
   sandboxHostImage:
     repository: "docker.io/langchain/sandbox-host"
     pullPolicy: IfNotPresent
-    tag: ""
+    tag: "0.16.36"
   # -- JuiceFS CSI driver image. Only used when config.sandboxes.enabled is true.
   juicefsCSIImage:
     repository: "docker.io/juicedata/juicefs-csi-driver"
