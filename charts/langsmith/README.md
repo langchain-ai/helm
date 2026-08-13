@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.17.0-rc.5](https://img.shields.io/badge/Version-0.17.0--rc.5-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.17.1rc1](https://img.shields.io/badge/AppVersion-0.17.1rc1-informational?style=flat-square)
+![Version: 0.17.0-rc.7](https://img.shields.io/badge/Version-0.17.0--rc.7-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.17.1rc1](https://img.shields.io/badge/AppVersion-0.17.1rc1-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -383,7 +383,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | images.redisImage.repository | string | `"docker.io/redis"` |  |
 | images.redisImage.tag | string | `"7"` |  |
 | images.registry | string | `""` | If supplied, all children <image_name>.repository values will be prepended with this registry name + `/` |
-| images.sandboxHostImage | object | `{"pullPolicy":"IfNotPresent","repository":"docker.io/langchain/sandbox-host","tag":""}` | sandbox-host image. Only used when sandboxes.enabled is true. |
+| images.sandboxHostImage | object | `{"pullPolicy":"IfNotPresent","repository":"docker.io/langchain/sandbox-host","tag":"0.17.1rc1"}` | sandbox-host image. Only used when sandboxes.enabled is true. |
 | images.smithdbImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.smithdbImage.repository | string | `"docker.io/langchain/smithdb"` |  |
 | images.smithdbImage.tag | string | `"0.17.1rc1"` |  |
