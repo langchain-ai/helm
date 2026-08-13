@@ -10,11 +10,48 @@
 # *_backfill_export.sql / *_backfill_update.sql scripts (those mutate rows) nor
 # the non-usage pg_get_* support queries.
 
+usage() {
+    cat <<'EOF'
+Run every read-only pg_usage_*_full_export.sql support query in one shot, write
+one CSV per usage dataset, then (if tar is available) bundle them into a single
+.tar.gz for transfer. Wraps run_support_query_pg.sh, which handles the DB
+connection and PGPASSWORD. Only *_full_export.sql scripts are run — never the
+mutating *_backfill_* scripts.
+
+Usage:
+  run_all_full_exports_pg.sh <postgres_url> [--output-dir <dir>] [--debug]
+  run_all_full_exports_pg.sh --help
+
+Arguments:
+  <postgres_url>      postgres://user:password@host:port/database
+                      Explicit port, no query string (URL-encode any special
+                      characters in the password). For the bundled Postgres this
+                      is postgres://postgres:postgres@localhost:5432/postgres —
+                      port-forward first:
+                        kubectl port-forward svc/langsmith-postgres 5432:5432
+
+Options:
+  --output-dir <dir>  Directory for the per-dataset CSVs
+                      (default: ./langsmith-usage-export). Bundled as <dir>.tar.gz.
+  --debug             Verbose psql output.
+  -h, --help          Show this help and exit.
+
+Output — one CSV per dataset:
+  traces, nodes, agent_builder, snapshots,
+  langchain_usage, sandbox, engine_intelligence, engine_issues_agent
+
+If a dataset's table is absent on an older deployment, that export is skipped
+with a warning and the rest continue; the script exits non-zero if any failed.
+
+Example:
+  sh run_all_full_exports_pg.sh "postgres://postgres:postgres@localhost:5432/postgres"
+EOF
+}
+
 print_usage_and_exit() {
-    echo "Error: $1"
-    echo "Usage: $0 <postgres_url> [--output-dir <dir>] [--debug]"
-    echo "Example: $0 postgres://username:password@host:port/database --output-dir ./langsmith-usage-export"
-    echo "Note: <postgres_url> must be postgres://user:password@host:port/database (explicit port, no query string), same as run_support_query_pg.sh."
+    echo "Error: $1" >&2
+    echo >&2
+    usage >&2
     exit 1
 }
 
@@ -24,6 +61,10 @@ debug=""
 
 while [ $# -gt 0 ]; do
     case "$1" in
+        -h|--help)
+            usage
+            exit 0
+            ;;
         --output-dir)
             [ -n "$2" ] || print_usage_and_exit "Missing value for --output-dir"
             output_dir="$2"
