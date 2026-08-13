@@ -86,10 +86,15 @@ tests:
       smithdb.config.metastore.useSsl: true
     template: smithdb/metastore-migration.yaml
     asserts:
+      - equal:
+          path: spec.template.spec.containers[0].command
+          value:
+            - ./smithdb
+            - metastore-migrate
       - contains:
           path: spec.template.spec.containers[0].env
           content:
-            name: DATABASE_USE_SSL
+            name: SMITHDB_METASTORE_MIGRATE__METASTORE__USE_SSL
             value: "true"
 
   - it: should size the SmithDB query disk cache from its ephemeral storage limit
