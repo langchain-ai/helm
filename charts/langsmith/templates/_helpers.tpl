@@ -681,6 +681,9 @@ Args: root, service, displayName.
 - name: OTEL_EXPORTER_OTLP_PROTOCOL
   value: "grpc"
 {{- end }}
+{{- /* Beacon phone-home for BYOC/self-hosted. BEACON_ENDPOINT / DATA_PLANE_* come from commonEnv. */}}
+- name: BEACON_LOGGING_ENABLED
+  value: {{ $root.Values.config.telemetry.logs | quote }}
 - name: OTEL_SERVICE_NAME
   value: {{ $displayName | quote }}
 - name: OTEL_RESOURCE_ATTRIBUTES
