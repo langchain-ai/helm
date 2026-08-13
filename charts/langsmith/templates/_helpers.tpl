@@ -784,8 +784,6 @@ Args: root, service, displayName.
 {{- if and (eq $root.Values.smithdb.config.metastore.iamAuthProvider "aws") $root.Values.smithdb.config.objectStore.s3.region }}
 - name: AWS_REGION
   value: {{ $root.Values.smithdb.config.objectStore.s3.region | quote }}
-- name: AWS_DEFAULT_REGION
-  value: {{ $root.Values.smithdb.config.objectStore.s3.region | quote }}
 {{- end }}
 - name: {{ $prefix }}__METASTORE__USE_SSL
   value: {{ $root.Values.smithdb.config.metastore.useSsl | quote }}
