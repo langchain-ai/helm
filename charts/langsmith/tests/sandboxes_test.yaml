@@ -645,6 +645,11 @@ tests:
       - equal:
           path: spec.template.spec.volumes[0].persistentVolumeClaim.claimName
           value: smithbox-juicefs-csi-host
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_HOST_JUICEFS_META_URL_FILE
+          any: true
 
   - it: should let sandbox-host own the JuiceFS mount
     values:
