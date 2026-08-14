@@ -2,6 +2,7 @@
 {{- $envVars := concat (include "langsmith.smithdb.componentEnv" (dict "root" . "service" "MIGRATION" "displayName" "smithdb-migration") | fromYamlArray) .Values.smithdb.migration.deployment.extraEnv -}}
 {{- include "langsmith.detectDuplicates" $envVars -}}
 {{- $blobStorage := .Values.config.blobStorage -}}
+{{- $blobStorageEngine := lower $blobStorage.engine -}}
 {{- $smithdbObjectStore := .Values.smithdb.config.objectStore -}}
 {{- $smithdbObjectStoreType := lower (default "s3" $smithdbObjectStore.type) -}}
 apiVersion: batch/v1
@@ -156,7 +157,7 @@ spec:
                   optional: {{ .Values.config.disableSecretCreation }}
             - name: SMITHDB_MIGRATION__BLOB_PREFIX_PATTERN
               value: "__none__"
-            {{- if and $blobStorage.enabled (or (eq (lower $blobStorage.engine) "s3") (eq (lower $blobStorage.engine) "gcs")) }}
+            {{- if and $blobStorage.enabled (eq $blobStorageEngine "s3") }}
             - name: SMITHDB_MIGRATION__BLOB_STORE_DEFAULT__TYPE
               value: "s3"
             - name: SMITHDB_MIGRATION__BLOB_STORE_DEFAULT__S3__BUCKET
@@ -179,6 +180,13 @@ spec:
                   name: {{ include "langsmith.secretsName" . }}
                   key: blob_storage_access_key_secret
                   optional: true
+            {{- else if and $blobStorage.enabled (eq $blobStorageEngine "gcs") }}
+            - name: SMITHDB_MIGRATION__BLOB_STORE_DEFAULT__TYPE
+              value: "gcs"
+            - name: SMITHDB_MIGRATION__BLOB_STORE_DEFAULT__GCS__BUCKET
+              value: {{ $blobStorage.bucketName | quote }}
+            - name: SMITHDB_MIGRATION__BLOB_STORE_DEFAULT__GCS__ROOT_FOLDER
+              value: "/"
             {{- end }}
             - name: SMITHDB_MIGRATION__OUTPUT__OBJECT_STORE__TYPE
               value: {{ $smithdbObjectStoreType | quote }}
