@@ -192,6 +192,17 @@ sandboxes:
     redis:
       # -- JuiceFS Redis metadata URL. Redis metadata engines must use maxmemory-policy noeviction. For Redis Cluster, the `/DB` path is used by JuiceFS as a hash-tag key prefix rather than a Redis logical database.
       metaURL: ""
+    # -- Let sandbox-host own its JuiceFS mount instead of consuming the CSI host PVC. Keep the CSI resources installed during migration so disabling this restores the previous mount path.
+    hostMount:
+      enabled: false
+      cache:
+        # -- Optional node-local cache directory prepared on every sandbox-host node. When empty, the cache uses an emptyDir volume.
+        hostPath: ""
+        # -- Optional size limit for the cache emptyDir. Ignored when hostPath is set.
+        sizeLimit: ""
+      # -- Complete JuiceFS CLI mount options, serialized to sandbox-host as a JSON array. Positional arguments and writeback mode are rejected by sandbox-host.
+      mountOptions:
+        - --cache-dir=/var/cache/juicefs
     csi:
       # -- Install the bundled JuiceFS CSI driver. Set to false when the cluster already runs one; the chart then renders only the sandbox PV/PVCs and CSI config Secret, bound to the existing driver.
       install: true

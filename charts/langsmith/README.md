@@ -28,6 +28,8 @@ Two things worth planning for before you enable it:
 
 **Sandbox nodes.** Sandboxes are Firecracker microVMs, so `sandboxes.sandboxHost.deployment.nodeSelector` must place host pods on KVM-capable nodes — bare-metal instances, or instance types with nested virtualization explicitly enabled. Sandbox images are published for `linux/amd64` only. A dedicated, tainted node pool is the usual arrangement, since rolling a sandbox-host pod suspends every microVM on it.
 
+**Host-owned JuiceFS mount.** `sandboxes.juicefs.hostMount.enabled` moves the sandbox-host mount from its CSI PVC into the sandbox-host process. The existing JuiceFS config Secret supplies only the `metaurl` key, and the CSI resources remain installed for rollback: disabling the option restores the prior PVC mount. Configure `hostMount.cache.hostPath` only when every sandbox-host node has that directory prepared; otherwise the chart uses an `emptyDir` cache.
+
 **Which workspace owns the sandboxes.** By default smith-go resolves the install's workspace, which works when there is exactly one non-personal organization. With more than one it declines rather than guess, and you must set `engine.sandboxTenantId` explicitly. Prefer a workspace reserved for the Engine: its sandboxes are visible to anyone with access to it.
 
 ## General parameters
@@ -904,6 +906,10 @@ Two things worth planning for before you enable it:
 | sandboxes.juicefs.csi.node.serviceAccount.annotations | object | `{}` | Annotations applied to the JuiceFS CSI node ServiceAccount. Use this for workload identity annotations such as AWS IRSA or GCP Workload Identity. |
 | sandboxes.juicefs.csi.pvName | string | `"smithbox-juicefs-csi"` |  |
 | sandboxes.juicefs.csi.pvcName | string | `"smithbox-juicefs-csi"` |  |
+| sandboxes.juicefs.hostMount | object | `{"cache":{"hostPath":"","sizeLimit":""},"enabled":false,"mountOptions":["--cache-dir=/var/cache/juicefs"]}` | Let sandbox-host own its JuiceFS mount instead of consuming the CSI host PVC. Keep the CSI resources installed during migration so disabling this restores the previous mount path. |
+| sandboxes.juicefs.hostMount.cache.hostPath | string | `""` | Optional node-local cache directory prepared on every sandbox-host node. When empty, the cache uses an emptyDir volume. |
+| sandboxes.juicefs.hostMount.cache.sizeLimit | string | `""` | Optional size limit for the cache emptyDir. Ignored when hostPath is set. |
+| sandboxes.juicefs.hostMount.mountOptions | list | `["--cache-dir=/var/cache/juicefs"]` | Complete JuiceFS CLI mount options, serialized to sandbox-host as a JSON array. Positional arguments and writeback mode are rejected by sandbox-host. |
 | sandboxes.juicefs.name | string | `"sandbox-juicefs"` | JuiceFS volume name. Use a flat DNS-label-style name only; slashes and object-store subpaths are not supported here. JuiceFS stores objects under `<name>/` inside the configured bucket. Also used to scope JuiceFS CSI RBAC for the generated mount Secret, so keep it aligned with the `name` key when using an existing CSI config Secret. |
 | sandboxes.juicefs.redis.metaURL | string | `""` | JuiceFS Redis metadata URL. Redis metadata engines must use maxmemory-policy noeviction. For Redis Cluster, the `/DB` path is used by JuiceFS as a hash-tag key prefix rather than a Redis logical database. |
 | sandboxes.juicefs.storage | string | `"s3"` | Object storage backend used by JuiceFS for sandboxes. Currently supported values are `s3` for AWS/EKS and `gs` for GCP/GKE. Azure-backed sandbox storage is not supported yet. |

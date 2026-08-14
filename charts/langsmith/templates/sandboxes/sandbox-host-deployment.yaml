@@ -41,6 +41,9 @@ spec:
         {{- toYaml $labels | nindent 8 }}
       annotations:
         {{- include "langsmith.commonPodAnnotations" . | nindent 8 }}
+        {{- if .Values.sandboxes.juicefs.hostMount.enabled }}
+        checksum/juicefs-csi-config: {{ include "langsmith.sandboxes.juicefsCSIConfigSecretChecksum" . }}
+        {{- end }}
         {{- with .Values.sandboxes.sandboxHost.deployment.podAnnotations }}
           {{- toYaml . | nindent 8 }}
         {{- end }}
@@ -139,6 +142,12 @@ spec:
               value: {{ printf "%s-%s" (include "langsmith.fullname" .) .Values.sandboxes.sandboxHost.name | quote }}
             - name: SANDBOX_HOST_TERMINATION_GRACE_SECONDS
               value: {{ .Values.sandboxes.sandboxHost.deployment.terminationGracePeriodSeconds | quote }}
+            {{- if .Values.sandboxes.juicefs.hostMount.enabled }}
+            - name: SANDBOX_HOST_JUICEFS_META_URL_FILE
+              value: /run/secrets/juicefs/metaurl
+            - name: SANDBOX_HOST_JUICEFS_MOUNT_OPTIONS
+              value: {{ .Values.sandboxes.juicefs.hostMount.mountOptions | toJson | quote }}
+            {{- end }}
             {{- /* Baseline; autoscale-* annotations override it live. */}}
             - name: SANDBOX_HOST_AUTOSCALE_ENABLED
               value: {{ $autoscaling.enabled | quote }}
@@ -174,6 +183,13 @@ spec:
           volumeMounts:
             - name: juicefs
               mountPath: /juicefs
+            {{- if .Values.sandboxes.juicefs.hostMount.enabled }}
+            - name: juicefs-cache
+              mountPath: /var/cache/juicefs
+            - name: juicefs-meta
+              mountPath: /run/secrets/juicefs
+              readOnly: true
+            {{- end }}
             - name: host-bin
               mountPath: /host-bin
             - name: proxy-ca
@@ -187,8 +203,33 @@ spec:
         {{- end }}
       volumes:
         - name: juicefs
+          {{- if .Values.sandboxes.juicefs.hostMount.enabled }}
+          # Writable mount target. sandbox-host mounts JuiceFS over this directory.
+          emptyDir: {}
+          {{- else }}
           persistentVolumeClaim:
             claimName: {{ include "langsmith.sandboxes.juicefsHostPVCName" . }}
+          {{- end }}
+        {{- if .Values.sandboxes.juicefs.hostMount.enabled }}
+        - name: juicefs-cache
+          {{- if .Values.sandboxes.juicefs.hostMount.cache.hostPath }}
+          hostPath:
+            path: {{ .Values.sandboxes.juicefs.hostMount.cache.hostPath | quote }}
+            type: Directory
+          {{- else if .Values.sandboxes.juicefs.hostMount.cache.sizeLimit }}
+          emptyDir:
+            sizeLimit: {{ .Values.sandboxes.juicefs.hostMount.cache.sizeLimit | quote }}
+          {{- else }}
+          emptyDir: {}
+          {{- end }}
+        - name: juicefs-meta
+          secret:
+            secretName: {{ include "langsmith.sandboxes.juicefsCSIConfigSecretName" . }}
+            defaultMode: 0400
+            items:
+              - key: metaurl
+                path: metaurl
+        {{- end }}
         - name: proxy-ca
           secret:
             secretName: {{ include "langsmith.sandboxes.proxyCaSecretName" . }}

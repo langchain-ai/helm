@@ -645,6 +645,79 @@ tests:
       - equal:
           path: spec.template.spec.volumes[0].persistentVolumeClaim.claimName
           value: smithbox-juicefs-csi-host
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_HOST_JUICEFS_META_URL_FILE
+          any: true
+
+  - it: should let sandbox-host own the JuiceFS mount without consuming the host PVC
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      sandboxes.juicefs.csi.existingSecretName: external-juicefs-csi-config
+      sandboxes.juicefs.hostMount.enabled: true
+      sandboxes.juicefs.hostMount.cache.hostPath: /mnt/juicefs-cache0
+      sandboxes.juicefs.hostMount.mountOptions:
+        - --cache-dir=/var/cache/juicefs
+        - --cache-size=307200
+        - --cache-large-write
+    template: sandboxes/sandbox-host-deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_HOST_JUICEFS_META_URL_FILE
+            value: /run/secrets/juicefs/metaurl
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_HOST_JUICEFS_MOUNT_OPTIONS
+            value: '["--cache-dir=/var/cache/juicefs","--cache-size=307200","--cache-large-write"]'
+      - isNotNull:
+          path: spec.template.spec.volumes[0].emptyDir
+      - isNull:
+          path: spec.template.spec.volumes[0].persistentVolumeClaim
+      - equal:
+          path: spec.template.spec.volumes[1].hostPath.path
+          value: /mnt/juicefs-cache0
+      - equal:
+          path: spec.template.spec.volumes[1].hostPath.type
+          value: Directory
+      - equal:
+          path: spec.template.spec.volumes[2].secret.secretName
+          value: external-juicefs-csi-config
+      - equal:
+          path: spec.template.spec.volumes[2].secret.defaultMode
+          value: 256
+      - equal:
+          path: spec.template.spec.volumes[2].secret.items[0]
+          value:
+            key: metaurl
+            path: metaurl
+
+  - it: should use an emptyDir cache when host-owned JuiceFS has no host path
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      sandboxes.juicefs.hostMount.enabled: true
+      sandboxes.juicefs.hostMount.cache.sizeLimit: 320Gi
+    template: sandboxes/sandbox-host-deployment.yaml
+    asserts:
+      - equal:
+          path: spec.template.spec.volumes[1].emptyDir.sizeLimit
+          value: 320Gi
+
+  - it: should reject a relative host-owned JuiceFS cache path
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      sandboxes.juicefs.hostMount.enabled: true
+      sandboxes.juicefs.hostMount.cache.hostPath: mnt/juicefs-cache0
+    template: validate.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: "sandboxes.juicefs.hostMount.cache.hostPath must be an absolute path."
 
   - it: should fail when sandboxes are enabled without image tags
     set:

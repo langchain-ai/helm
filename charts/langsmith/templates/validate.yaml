@@ -206,6 +206,10 @@ AWS Marketplace Helm template verification).
 {{- if not .Values.sandboxes.sandboxHost.deployment.nodeSelector -}}
 {{- fail "sandboxes.sandboxHost.deployment.nodeSelector is required when sandboxes.enabled is true: sandbox-host must be pinned to KVM-capable nodes, and its toleration alone does not attract it there." -}}
 {{- end -}}
+{{- $hostMount := .Values.sandboxes.juicefs.hostMount -}}
+{{- if and $hostMount.enabled $hostMount.cache.hostPath (not (hasPrefix "/" $hostMount.cache.hostPath)) -}}
+{{- fail "sandboxes.juicefs.hostMount.cache.hostPath must be an absolute path." -}}
+{{- end -}}
 {{- $autoscaling := .Values.sandboxes.sandboxHost.autoscaling -}}
 {{- if $autoscaling.enabled -}}
 {{- if lt (int $autoscaling.minReplicas) 1 -}}
