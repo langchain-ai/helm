@@ -666,7 +666,7 @@ tests:
       - contains:
           path: spec.template.spec.containers[0].volumeMounts
           content:
-            name: juicefs-cache
+            name: juicefs-cache-0
             mountPath: /var/cache/juicefs
       - contains:
           path: spec.template.spec.containers[0].volumeMounts
@@ -680,8 +680,10 @@ tests:
       - isNull:
           path: spec.template.spec.volumes[0].persistentVolumeClaim
       - equal:
-          path: spec.template.spec.volumes[1].emptyDir
-          value: {}
+          path: spec.template.spec.volumes[1].hostPath
+          value:
+            path: /var/cache/juicefs
+            type: DirectoryOrCreate
       - equal:
           path: spec.template.spec.volumes[2].secret.secretName
           value: juicefs-csi-config
@@ -707,15 +709,17 @@ tests:
           path: spec.template.spec.volumes[2].secret.secretName
           value: external-juicefs-config
 
-  - it: should configure the host-owned JuiceFS cache
+  - it: should configure multiple host-owned JuiceFS cache directories
     values:
       - ./values/sandboxes-enabled.yaml
     set:
       sandboxes.juicefs.hostMount.enabled: true
-      sandboxes.juicefs.hostMount.cacheSizeLimit: 320Gi
+      sandboxes.juicefs.hostMount.cacheDirs:
+        - /mnt/juicefs-cache0
+        - /mnt/juicefs-cache1
+        - /mnt/juicefs-cache2
       sandboxes.juicefs.hostMount.mountOptions:
-        - --cache-dir=/var/cache/juicefs
-        - --cache-size=307200
+        - --cache-size=2457600
         - --cache-large-write
         - --prefetch=6
     template: sandboxes/sandbox-host-deployment.yaml
@@ -724,10 +728,98 @@ tests:
           path: spec.template.spec.containers[0].env
           content:
             name: SANDBOX_HOST_JUICEFS_MOUNT_OPTIONS
-            value: '["--cache-dir=/var/cache/juicefs","--cache-size=307200","--cache-large-write","--prefetch=6"]'
+            value: '["--cache-dir=/mnt/juicefs-cache0:/mnt/juicefs-cache1:/mnt/juicefs-cache2","--cache-size=2457600","--cache-large-write","--prefetch=6"]'
+      - contains:
+          path: spec.template.spec.containers[0].volumeMounts
+          content:
+            name: juicefs-cache-0
+            mountPath: /mnt/juicefs-cache0
+      - contains:
+          path: spec.template.spec.containers[0].volumeMounts
+          content:
+            name: juicefs-cache-1
+            mountPath: /mnt/juicefs-cache1
+      - contains:
+          path: spec.template.spec.containers[0].volumeMounts
+          content:
+            name: juicefs-cache-2
+            mountPath: /mnt/juicefs-cache2
       - equal:
-          path: spec.template.spec.volumes[1].emptyDir.sizeLimit
-          value: 320Gi
+          path: spec.template.spec.volumes[1].hostPath
+          value:
+            path: /mnt/juicefs-cache0
+            type: DirectoryOrCreate
+      - equal:
+          path: spec.template.spec.volumes[2].hostPath
+          value:
+            path: /mnt/juicefs-cache1
+            type: DirectoryOrCreate
+      - equal:
+          path: spec.template.spec.volumes[3].hostPath
+          value:
+            path: /mnt/juicefs-cache2
+            type: DirectoryOrCreate
+
+  - it: should require a host-owned JuiceFS cache directory
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      sandboxes.juicefs.hostMount.enabled: true
+      sandboxes.juicefs.hostMount.cacheDirs: []
+    template: validate.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: "sandboxes.juicefs.hostMount.cacheDirs must contain at least one node host path when hostMount.enabled is true."
+
+  - it: should reject a relative host-owned JuiceFS cache directory
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      sandboxes.juicefs.hostMount.enabled: true
+      sandboxes.juicefs.hostMount.cacheDirs:
+        - var/cache/juicefs
+    template: validate.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: 'sandboxes.juicefs.hostMount.cacheDirs entry "var/cache/juicefs" must be an absolute path other than /.'
+
+  - it: should reject a host-owned JuiceFS cache directory containing the JuiceFS separator
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      sandboxes.juicefs.hostMount.enabled: true
+      sandboxes.juicefs.hostMount.cacheDirs:
+        - /mnt/cache:secondary
+    template: validate.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: "sandboxes.juicefs.hostMount.cacheDirs entry \"/mnt/cache:secondary\" must not contain ':' because JuiceFS uses it as the cache directory separator."
+
+  - it: should reject duplicate host-owned JuiceFS cache directories
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      sandboxes.juicefs.hostMount.enabled: true
+      sandboxes.juicefs.hostMount.cacheDirs:
+        - /mnt/juicefs-cache
+        - /mnt/juicefs-cache
+    template: validate.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: 'sandboxes.juicefs.hostMount.cacheDirs contains duplicate path "/mnt/juicefs-cache".'
+
+  - it: should reject a raw JuiceFS cache-dir mount option
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      sandboxes.juicefs.hostMount.enabled: true
+      sandboxes.juicefs.hostMount.mountOptions:
+        - --cache-dir=/tmp/juicefs-cache
+        - --cache-size=51200
+    template: validate.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: "sandboxes.juicefs.hostMount.mountOptions must not set --cache-dir; configure sandboxes.juicefs.hostMount.cacheDirs instead."
 
   - it: should retain CSI resources during host-owned mount migration
     values:

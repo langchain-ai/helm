@@ -236,11 +236,11 @@ sandboxes:
     hostMount:
       # -- Let sandbox-host mount JuiceFS directly instead of consuming the CSI host PVC. CSI resources remain installed for rollback; disabling this restores the existing PVC-backed path.
       enabled: false
-      # -- Maximum node-local emptyDir space available to the JuiceFS cache. Empty leaves the emptyDir uncapped; JuiceFS still enforces cache-size from mountOptions.
-      cacheSizeLimit: ""
-      # -- Complete JuiceFS CLI options passed to sandbox-host. The defaults use a conservative 50 GiB node-local cache; tune this and cacheSizeLimit together for the sandbox node pool.
+      # -- Node host paths used for the JuiceFS cache. Each path is mounted into sandbox-host and combined into one JuiceFS cache-dir option. Back these paths with node-local storage; their contents survive pod rollouts on the same node but not node replacement.
+      cacheDirs:
+        - /var/cache/juicefs
+      # -- Additional JuiceFS CLI options passed to sandbox-host. The chart derives cache-dir from cacheDirs; do not set it here. The default cache-size is a conservative 50 GiB shared across the configured directories.
       mountOptions:
-        - --cache-dir=/var/cache/juicefs
         - --cache-size=51200
         - --cache-large-write
   sandboxHost:

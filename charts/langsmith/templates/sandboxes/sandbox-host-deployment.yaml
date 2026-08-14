@@ -154,7 +154,7 @@ spec:
             - name: SANDBOX_HOST_JUICEFS_META_URL_FILE
               value: /run/secrets/juicefs/metaurl
             - name: SANDBOX_HOST_JUICEFS_MOUNT_OPTIONS
-              value: {{ $hostMount.mountOptions | toJson | quote }}
+              value: {{ concat (list (printf "--cache-dir=%s" (join ":" $hostMount.cacheDirs))) $hostMount.mountOptions | toJson | quote }}
             {{- end }}
             {{- /* Baseline; autoscale-* annotations override it live. */}}
             - name: SANDBOX_HOST_AUTOSCALE_ENABLED
@@ -192,8 +192,10 @@ spec:
             - name: juicefs
               mountPath: /juicefs
             {{- if $hostMount.enabled }}
-            - name: juicefs-cache
-              mountPath: /var/cache/juicefs
+            {{- range $index, $cacheDir := $hostMount.cacheDirs }}
+            - name: juicefs-cache-{{ $index }}
+              mountPath: {{ $cacheDir | quote }}
+            {{- end }}
             - name: juicefs-meta
               mountPath: /run/secrets/juicefs
               readOnly: true
@@ -219,13 +221,12 @@ spec:
             claimName: {{ include "langsmith.sandboxes.juicefsHostPVCName" . }}
           {{- end }}
         {{- if $hostMount.enabled }}
-        - name: juicefs-cache
-          {{- if $hostMount.cacheSizeLimit }}
-          emptyDir:
-            sizeLimit: {{ $hostMount.cacheSizeLimit | quote }}
-          {{- else }}
-          emptyDir: {}
-          {{- end }}
+        {{- range $index, $cacheDir := $hostMount.cacheDirs }}
+        - name: juicefs-cache-{{ $index }}
+          hostPath:
+            path: {{ $cacheDir | quote }}
+            type: DirectoryOrCreate
+        {{- end }}
         - name: juicefs-meta
           secret:
             secretName: {{ include "langsmith.sandboxes.juicefsCSIConfigSecretName" . }}

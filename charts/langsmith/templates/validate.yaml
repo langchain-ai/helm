@@ -234,6 +234,33 @@ AWS Marketplace Helm template verification).
 {{- fail "sandboxes.juicefs.bucket must use an HTTP(S) S3 endpoint URL when sandboxes.juicefs.storage is s3." -}}
 {{- end -}}
 {{- end -}}
+{{- $hostMount := .Values.sandboxes.juicefs.hostMount -}}
+{{- if $hostMount.enabled -}}
+{{- if not $hostMount.cacheDirs -}}
+{{- fail "sandboxes.juicefs.hostMount.cacheDirs must contain at least one node host path when hostMount.enabled is true." -}}
+{{- end -}}
+{{- $cacheDirsSeen := dict -}}
+{{- range $cacheDir := $hostMount.cacheDirs -}}
+{{- if not (kindIs "string" $cacheDir) -}}
+{{- fail "sandboxes.juicefs.hostMount.cacheDirs entries must be strings." -}}
+{{- end -}}
+{{- if or (eq $cacheDir "/") (not (hasPrefix "/" $cacheDir)) -}}
+{{- fail (printf "sandboxes.juicefs.hostMount.cacheDirs entry %q must be an absolute path other than /." $cacheDir) -}}
+{{- end -}}
+{{- if contains ":" $cacheDir -}}
+{{- fail (printf "sandboxes.juicefs.hostMount.cacheDirs entry %q must not contain ':' because JuiceFS uses it as the cache directory separator." $cacheDir) -}}
+{{- end -}}
+{{- if hasKey $cacheDirsSeen $cacheDir -}}
+{{- fail (printf "sandboxes.juicefs.hostMount.cacheDirs contains duplicate path %q." $cacheDir) -}}
+{{- end -}}
+{{- $_ := set $cacheDirsSeen $cacheDir true -}}
+{{- end -}}
+{{- range $mountOption := $hostMount.mountOptions -}}
+{{- if regexMatch "^--cache-dir($|=)" $mountOption -}}
+{{- fail "sandboxes.juicefs.hostMount.mountOptions must not set --cache-dir; configure sandboxes.juicefs.hostMount.cacheDirs instead." -}}
+{{- end -}}
+{{- end -}}
+{{- end -}}
 {{- if and (not .Values.config.existingSecretName) (not .Values.config.disableSecretCreation) (not .Values.sandboxes.callbackSigningJwk) -}}
 {{- fail "sandboxes.callbackSigningJwk is required when sandboxes.enabled is true and the chart manages the LangSmith app Secret. When config.existingSecretName is set, add key sandbox_callback_signing_jwk to the existing Secret instead." -}}
 {{- end -}}
