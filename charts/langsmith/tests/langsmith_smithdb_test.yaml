@@ -97,6 +97,85 @@ tests:
             name: SMITHDB_METASTORE_MIGRATE__METASTORE__USE_SSL
             value: "true"
 
+  - it: skips chart AWS_DEFAULT_REGION when commonEnv already sets it
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      commonEnv:
+        - name: AWS_DEFAULT_REGION
+          value: us-east-2
+        - name: COMMON_CUSTOM_ENV
+          value: keep-me
+      smithdb.config.metastore.iamAuthProvider: aws
+      smithdb.config.metastore.useSsl: true
+      smithdb.config.metastore.passwordSecretKey: ""
+      smithdb.config.objectStore.s3.region: us-west-1
+    template: smithdb/query-deployment.yaml
+    asserts:
+      - isKind:
+          of: Deployment
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: AWS_DEFAULT_REGION
+            value: us-east-2
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: AWS_REGION
+            value: us-west-1
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: AWS_DEFAULT_REGION
+            value: us-west-1
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: COMMON_CUSTOM_ENV
+            value: keep-me
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_QUERY__METASTORE__IAM_AUTH_PROVIDER
+            value: aws
+
+  - it: skips chart AWS region env when metastore migrate extraEnv already sets it
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      smithdb.metastoreMigration.job.extraEnv:
+        - name: AWS_DEFAULT_REGION
+          value: us-east-2
+        - name: MIGRATE_CUSTOM_ENV
+          value: keep-me
+      smithdb.config.metastore.iamAuthProvider: aws
+      smithdb.config.metastore.useSsl: true
+      smithdb.config.metastore.passwordSecretKey: ""
+      smithdb.config.objectStore.s3.region: us-west-1
+    template: smithdb/metastore-migration.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: AWS_DEFAULT_REGION
+            value: us-east-2
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: AWS_REGION
+            value: us-west-1
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: AWS_DEFAULT_REGION
+            value: us-west-1
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: MIGRATE_CUSTOM_ENV
+            value: keep-me
+
   - it: should size the SmithDB query disk cache from its ephemeral storage limit
     values:
       - ./values/smithdb-enabled.yaml

@@ -1,5 +1,6 @@
 {{- if .Values.smithdb.enabled }}
-{{- $envVars := concat (include "langsmith.smithdb.serviceEnv" (dict "root" . "service" "METASTORE_MIGRATE" "displayName" "smithdb-metastore-migrate") | fromYamlArray) .Values.smithdb.metastoreMigration.job.extraEnv -}}
+{{- $envOverrides := .Values.smithdb.metastoreMigration.job.extraEnv -}}
+{{- $envVars := concat (include "langsmith.smithdb.serviceEnv" (dict "root" . "service" "METASTORE_MIGRATE" "displayName" "smithdb-metastore-migrate" "envOverrides" $envOverrides) | fromYamlArray) $envOverrides -}}
 {{- include "langsmith.detectDuplicates" $envVars -}}
 apiVersion: batch/v1
 kind: Job
