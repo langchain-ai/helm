@@ -193,9 +193,9 @@ sandboxes:
     csi:
       # -- Install the bundled JuiceFS CSI driver. Set to false when the cluster already runs one; the chart then renders only the sandbox PV/PVCs and CSI config Secret, bound to the existing driver.
       install: true
-      # -- Name of the chart-managed JuiceFS CSI config Secret. The bundled JuiceFS CSI setup is intended only for JuiceFS PVs in the namespace where this chart is installed. Chart-managed Secret/config changes roll only the JuiceFS CSI controller/node pods through checksum annotations. Helm cannot hash externally managed Secret contents or directly refresh CSI-created JuiceFS mount pods; delete affected JuiceFS mount pods so they are recreated with the updated Secret.
+      # -- Name of the chart-managed JuiceFS config Secret. The bundled JuiceFS CSI setup is intended only for JuiceFS PVs in the namespace where this chart is installed. Chart-managed changes roll the CSI controller/node pods and, when hostMount.enabled is true, sandbox-host through checksum annotations. Helm cannot hash externally managed Secret contents or directly refresh CSI-created JuiceFS mount pods; roll affected workloads after changing external Secret data.
       configSecretName: "juicefs-csi-config"
-      # -- Existing Secret containing JuiceFS CSI config keys `name`, `metaurl`, `storage`, and `bucket`. When set, this chart does not render the CSI config Secret and `sandboxes.juicefs.name`, `sandboxes.juicefs.storage`, `sandboxes.juicefs.bucket`, and `sandboxes.juicefs.redis.metaURL` are not used for the CSI config.
+      # -- Existing Secret containing JuiceFS config keys `name`, `metaurl`, `storage`, and `bucket`. When set, this chart does not render the config Secret and `sandboxes.juicefs.name`, `sandboxes.juicefs.storage`, `sandboxes.juicefs.bucket`, and `sandboxes.juicefs.redis.metaURL` are not used for it. Host-owned mode mounts only its `metaurl` key; roll sandbox-host after updating externally managed Secret data.
       existingSecretName: ""
       controller:
         # -- Annotations applied to the JuiceFS CSI controller StatefulSet and pod template.
@@ -207,7 +207,7 @@ sandboxes:
         # -- Annotations applied to the JuiceFS CSI node DaemonSet and pod template.
         annotations: {}
         serviceAccount:
-          # -- Annotations applied to the JuiceFS CSI node ServiceAccount. Use this for workload identity annotations such as AWS IRSA or GCP Workload Identity.
+          # -- Annotations applied to the JuiceFS CSI node ServiceAccount. In CSI-backed mode, use this for workload identity annotations such as AWS IRSA or GCP Workload Identity.
           annotations: {}
       # -- Mount pod patches used by the JuiceFS CSI driver for sandbox volumes. Override only when tuning JuiceFS mount behavior or observability.
       mountPodPatch:
@@ -233,6 +233,16 @@ sandboxes:
             - cache-large-write
       pvName: "smithbox-juicefs-csi"
       pvcName: "smithbox-juicefs-csi"
+    hostMount:
+      # -- Let sandbox-host mount JuiceFS directly instead of consuming the CSI host PVC. CSI resources remain installed for rollback; disabling this restores the existing PVC-backed path.
+      enabled: false
+      # -- Maximum node-local emptyDir space available to the JuiceFS cache. Empty leaves the emptyDir uncapped; JuiceFS still enforces cache-size from mountOptions.
+      cacheSizeLimit: ""
+      # -- Complete JuiceFS CLI options passed to sandbox-host. The defaults use a conservative 50 GiB node-local cache; tune this and cacheSizeLimit together for the sandbox node pool.
+      mountOptions:
+        - --cache-dir=/var/cache/juicefs
+        - --cache-size=51200
+        - --cache-large-write
   sandboxHost:
     # -- Component name for sandbox-host. Resources are named `<release-fullname>-<name>`, which the chart passes to the host as SANDBOX_HOST_DEPLOYMENT_NAME.
     name: "sandbox-host"
@@ -252,6 +262,7 @@ sandboxes:
           operator: Equal
           value: "true"
           effect: NoSchedule
+      # -- Resource requests and limits for sandbox-host. In host-owned JuiceFS mode, include the CPU and memory previously reserved for the CSI mount pod.
       resources:
         requests:
           cpu: "2"
@@ -294,6 +305,7 @@ sandboxes:
       create: true
       name: ""
       labels: {}
+      # -- Annotations applied to the sandbox-host ServiceAccount. When sandboxes.juicefs.hostMount.enabled is true, attach the AWS IRSA or GCP Workload Identity that grants access to the JuiceFS object-storage bucket here.
       annotations: {}
       automountServiceAccountToken: true
     rbac:

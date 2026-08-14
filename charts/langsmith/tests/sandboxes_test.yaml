@@ -646,6 +646,112 @@ tests:
           path: spec.template.spec.volumes[0].persistentVolumeClaim.claimName
           value: smithbox-juicefs-csi-host
 
+  - it: should let sandbox-host own the JuiceFS mount
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      sandboxes.juicefs.hostMount.enabled: true
+    template: sandboxes/sandbox-host-deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_HOST_JUICEFS_META_URL_FILE
+            value: /run/secrets/juicefs/metaurl
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_HOST_JUICEFS_MOUNT_OPTIONS
+            value: '["--cache-dir=/var/cache/juicefs","--cache-size=51200","--cache-large-write"]'
+      - contains:
+          path: spec.template.spec.containers[0].volumeMounts
+          content:
+            name: juicefs-cache
+            mountPath: /var/cache/juicefs
+      - contains:
+          path: spec.template.spec.containers[0].volumeMounts
+          content:
+            name: juicefs-meta
+            mountPath: /run/secrets/juicefs
+            readOnly: true
+      - equal:
+          path: spec.template.spec.volumes[0].emptyDir
+          value: {}
+      - isNull:
+          path: spec.template.spec.volumes[0].persistentVolumeClaim
+      - equal:
+          path: spec.template.spec.volumes[1].emptyDir
+          value: {}
+      - equal:
+          path: spec.template.spec.volumes[2].secret.secretName
+          value: juicefs-csi-config
+      - equal:
+          path: spec.template.spec.volumes[2].secret.items[0]
+          value:
+            key: metaurl
+            path: metaurl
+      - isNotEmpty:
+          path: spec.template.metadata.annotations["checksum/juicefs-config"]
+
+  - it: should use the external JuiceFS config Secret for a host-owned mount
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      sandboxes.juicefs.hostMount.enabled: true
+      sandboxes.juicefs.redis.metaURL: ""
+      sandboxes.juicefs.bucket: ""
+      sandboxes.juicefs.csi.existingSecretName: external-juicefs-config
+    template: sandboxes/sandbox-host-deployment.yaml
+    asserts:
+      - equal:
+          path: spec.template.spec.volumes[2].secret.secretName
+          value: external-juicefs-config
+
+  - it: should configure the host-owned JuiceFS cache
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      sandboxes.juicefs.hostMount.enabled: true
+      sandboxes.juicefs.hostMount.cacheSizeLimit: 320Gi
+      sandboxes.juicefs.hostMount.mountOptions:
+        - --cache-dir=/var/cache/juicefs
+        - --cache-size=307200
+        - --cache-large-write
+        - --prefetch=6
+    template: sandboxes/sandbox-host-deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_HOST_JUICEFS_MOUNT_OPTIONS
+            value: '["--cache-dir=/var/cache/juicefs","--cache-size=307200","--cache-large-write","--prefetch=6"]'
+      - equal:
+          path: spec.template.spec.volumes[1].emptyDir.sizeLimit
+          value: 320Gi
+
+  - it: should retain CSI resources during host-owned mount migration
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      sandboxes.juicefs.hostMount.enabled: true
+    template: sandboxes/juicefs-csi.yaml
+    asserts:
+      - hasDocuments:
+          count: 5
+
+  - it: should reject raw env that conflicts with host-owned JuiceFS configuration
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      sandboxes.juicefs.hostMount.enabled: true
+      sandboxes.sandboxHost.deployment.extraEnv:
+        - name: SANDBOX_HOST_JUICEFS_META_URL_FILE
+          value: /custom/metaurl
+    template: sandboxes/sandbox-host-deployment.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: "Duplicate keys detected: [SANDBOX_HOST_JUICEFS_META_URL_FILE]"
+
   - it: should fail when sandboxes are enabled without image tags
     set:
       config.existingSecretName: langsmith-secrets
