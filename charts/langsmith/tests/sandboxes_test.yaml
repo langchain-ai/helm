@@ -783,6 +783,18 @@ tests:
       - failedTemplate:
           errorMessage: 'sandboxes.juicefs.hostMount.cacheDirs entry "var/cache/juicefs" must be an absolute path other than /.'
 
+  - it: should reject an unnormalized host-owned JuiceFS cache directory
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      sandboxes.juicefs.hostMount.enabled: true
+      sandboxes.juicefs.hostMount.cacheDirs:
+        - /mnt/cache/../juicefs
+    template: validate.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: 'sandboxes.juicefs.hostMount.cacheDirs entry "/mnt/cache/../juicefs" must be a normalized path without dot segments, parent traversal, repeated separators, or a trailing slash.'
+
   - it: should reject a host-owned JuiceFS cache directory containing the JuiceFS separator
     values:
       - ./values/sandboxes-enabled.yaml

@@ -247,6 +247,9 @@ AWS Marketplace Helm template verification).
 {{- if or (eq $cacheDir "/") (not (hasPrefix "/" $cacheDir)) -}}
 {{- fail (printf "sandboxes.juicefs.hostMount.cacheDirs entry %q must be an absolute path other than /." $cacheDir) -}}
 {{- end -}}
+{{- if ne (clean $cacheDir) $cacheDir -}}
+{{- fail (printf "sandboxes.juicefs.hostMount.cacheDirs entry %q must be a normalized path without dot segments, parent traversal, repeated separators, or a trailing slash." $cacheDir) -}}
+{{- end -}}
 {{- if contains ":" $cacheDir -}}
 {{- fail (printf "sandboxes.juicefs.hostMount.cacheDirs entry %q must not contain ':' because JuiceFS uses it as the cache directory separator." $cacheDir) -}}
 {{- end -}}
