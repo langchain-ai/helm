@@ -1,6 +1,14 @@
 {{- if .Values.sandboxes.enabled }}
 {{- $namespace := .Values.namespace | default .Release.Namespace }}
 {{- $autoscaling := .Values.sandboxes.sandboxHost.autoscaling }}
+{{- $hostMount := .Values.sandboxes.juicefs.hostMount }}
+{{- if $hostMount.enabled }}
+{{- $managedHostMountEnv := list
+  (dict "name" "SANDBOX_HOST_JUICEFS_META_URL_FILE")
+  (dict "name" "SANDBOX_HOST_JUICEFS_MOUNT_OPTIONS")
+-}}
+{{- include "langsmith.detectDuplicates" (concat $managedHostMountEnv .Values.sandboxes.sandboxHost.deployment.extraEnv) }}
+{{- end }}
 {{- /* Chart labels last so they win; the selector depends on them. */}}
 {{- $labels := mergeOverwrite (dict "app" .Values.sandboxes.sandboxHost.name)
   (default dict .Values.sandboxes.sandboxHost.deployment.labels)
@@ -41,8 +49,8 @@ spec:
         {{- toYaml $labels | nindent 8 }}
       annotations:
         {{- include "langsmith.commonPodAnnotations" . | nindent 8 }}
-        {{- if .Values.sandboxes.juicefs.hostMount.enabled }}
-        checksum/juicefs-csi-config: {{ include "langsmith.sandboxes.juicefsCSIConfigSecretChecksum" . }}
+        {{- if $hostMount.enabled }}
+        checksum/juicefs-config: {{ include "langsmith.sandboxes.juicefsCSIConfigSecretChecksum" . | quote }}
         {{- end }}
         {{- with .Values.sandboxes.sandboxHost.deployment.podAnnotations }}
           {{- toYaml . | nindent 8 }}
@@ -142,11 +150,11 @@ spec:
               value: {{ printf "%s-%s" (include "langsmith.fullname" .) .Values.sandboxes.sandboxHost.name | quote }}
             - name: SANDBOX_HOST_TERMINATION_GRACE_SECONDS
               value: {{ .Values.sandboxes.sandboxHost.deployment.terminationGracePeriodSeconds | quote }}
-            {{- if .Values.sandboxes.juicefs.hostMount.enabled }}
+            {{- if $hostMount.enabled }}
             - name: SANDBOX_HOST_JUICEFS_META_URL_FILE
               value: /run/secrets/juicefs/metaurl
             - name: SANDBOX_HOST_JUICEFS_MOUNT_OPTIONS
-              value: {{ .Values.sandboxes.juicefs.hostMount.mountOptions | toJson | quote }}
+              value: {{ concat (list (printf "--cache-dir=%s" (join ":" $hostMount.cacheDirs))) $hostMount.mountOptions | toJson | quote }}
             {{- end }}
             {{- /* Baseline; autoscale-* annotations override it live. */}}
             - name: SANDBOX_HOST_AUTOSCALE_ENABLED
@@ -183,9 +191,11 @@ spec:
           volumeMounts:
             - name: juicefs
               mountPath: /juicefs
-            {{- if .Values.sandboxes.juicefs.hostMount.enabled }}
-            - name: juicefs-cache
-              mountPath: /var/cache/juicefs
+            {{- if $hostMount.enabled }}
+            {{- range $index, $cacheDir := $hostMount.cacheDirs }}
+            - name: juicefs-cache-{{ $index }}
+              mountPath: {{ $cacheDir | quote }}
+            {{- end }}
             - name: juicefs-meta
               mountPath: /run/secrets/juicefs
               readOnly: true
@@ -203,25 +213,20 @@ spec:
         {{- end }}
       volumes:
         - name: juicefs
-          {{- if .Values.sandboxes.juicefs.hostMount.enabled }}
+          {{- if $hostMount.enabled }}
           # Writable mount target. sandbox-host mounts JuiceFS over this directory.
           emptyDir: {}
           {{- else }}
           persistentVolumeClaim:
             claimName: {{ include "langsmith.sandboxes.juicefsHostPVCName" . }}
           {{- end }}
-        {{- if .Values.sandboxes.juicefs.hostMount.enabled }}
-        - name: juicefs-cache
-          {{- if .Values.sandboxes.juicefs.hostMount.cache.hostPath }}
+        {{- if $hostMount.enabled }}
+        {{- range $index, $cacheDir := $hostMount.cacheDirs }}
+        - name: juicefs-cache-{{ $index }}
           hostPath:
-            path: {{ .Values.sandboxes.juicefs.hostMount.cache.hostPath | quote }}
-            type: Directory
-          {{- else if .Values.sandboxes.juicefs.hostMount.cache.sizeLimit }}
-          emptyDir:
-            sizeLimit: {{ .Values.sandboxes.juicefs.hostMount.cache.sizeLimit | quote }}
-          {{- else }}
-          emptyDir: {}
-          {{- end }}
+            path: {{ $cacheDir | quote }}
+            type: DirectoryOrCreate
+        {{- end }}
         - name: juicefs-meta
           secret:
             secretName: {{ include "langsmith.sandboxes.juicefsCSIConfigSecretName" . }}

@@ -206,10 +206,6 @@ AWS Marketplace Helm template verification).
 {{- if not .Values.sandboxes.sandboxHost.deployment.nodeSelector -}}
 {{- fail "sandboxes.sandboxHost.deployment.nodeSelector is required when sandboxes.enabled is true: sandbox-host must be pinned to KVM-capable nodes, and its toleration alone does not attract it there." -}}
 {{- end -}}
-{{- $hostMount := .Values.sandboxes.juicefs.hostMount -}}
-{{- if and $hostMount.enabled $hostMount.cache.hostPath (not (hasPrefix "/" $hostMount.cache.hostPath)) -}}
-{{- fail "sandboxes.juicefs.hostMount.cache.hostPath must be an absolute path." -}}
-{{- end -}}
 {{- $autoscaling := .Values.sandboxes.sandboxHost.autoscaling -}}
 {{- if $autoscaling.enabled -}}
 {{- if lt (int $autoscaling.minReplicas) 1 -}}
@@ -258,6 +254,36 @@ AWS Marketplace Helm template verification).
 {{- end -}}
 {{- if and (eq $juicefsStorage "s3") (not (regexMatch "^https?://" $juicefsBucket)) -}}
 {{- fail "sandboxes.juicefs.bucket must use an HTTP(S) S3 endpoint URL when sandboxes.juicefs.storage is s3." -}}
+{{- end -}}
+{{- end -}}
+{{- $hostMount := .Values.sandboxes.juicefs.hostMount -}}
+{{- if $hostMount.enabled -}}
+{{- if not $hostMount.cacheDirs -}}
+{{- fail "sandboxes.juicefs.hostMount.cacheDirs must contain at least one node host path when hostMount.enabled is true." -}}
+{{- end -}}
+{{- $cacheDirsSeen := dict -}}
+{{- range $cacheDir := $hostMount.cacheDirs -}}
+{{- if not (kindIs "string" $cacheDir) -}}
+{{- fail "sandboxes.juicefs.hostMount.cacheDirs entries must be strings." -}}
+{{- end -}}
+{{- if or (eq $cacheDir "/") (not (hasPrefix "/" $cacheDir)) -}}
+{{- fail (printf "sandboxes.juicefs.hostMount.cacheDirs entry %q must be an absolute path other than /." $cacheDir) -}}
+{{- end -}}
+{{- if ne (clean $cacheDir) $cacheDir -}}
+{{- fail (printf "sandboxes.juicefs.hostMount.cacheDirs entry %q must be a normalized path without dot segments, parent traversal, repeated separators, or a trailing slash." $cacheDir) -}}
+{{- end -}}
+{{- if contains ":" $cacheDir -}}
+{{- fail (printf "sandboxes.juicefs.hostMount.cacheDirs entry %q must not contain ':' because JuiceFS uses it as the cache directory separator." $cacheDir) -}}
+{{- end -}}
+{{- if hasKey $cacheDirsSeen $cacheDir -}}
+{{- fail (printf "sandboxes.juicefs.hostMount.cacheDirs contains duplicate path %q." $cacheDir) -}}
+{{- end -}}
+{{- $_ := set $cacheDirsSeen $cacheDir true -}}
+{{- end -}}
+{{- range $mountOption := $hostMount.mountOptions -}}
+{{- if regexMatch "^--cache-dir($|=)" $mountOption -}}
+{{- fail "sandboxes.juicefs.hostMount.mountOptions must not set --cache-dir; configure sandboxes.juicefs.hostMount.cacheDirs instead." -}}
+{{- end -}}
 {{- end -}}
 {{- end -}}
 {{- if and (not .Values.config.existingSecretName) (not .Values.config.disableSecretCreation) (not .Values.sandboxes.callbackSigningJwk) -}}
