@@ -611,11 +611,12 @@ Args: root, service, displayName.
 {{- define "langsmith.smithdb.componentEnv" -}}
 {{- $root := .root -}}
 {{- $service := .service -}}
-{{- $envVars := include "langsmith.smithdb.serviceEnv" (dict "root" $root "service" $service "displayName" .displayName) | fromYamlArray -}}
+{{- $envOverrides := concat $root.Values.commonEnv $root.Values.smithdb.commonEnv -}}
+{{- $envVars := include "langsmith.smithdb.serviceEnv" (dict "root" $root "service" $service "displayName" .displayName "envOverrides" $envOverrides) | fromYamlArray -}}
 {{- if $root.Values.smithdb.enabled }}
 {{- $envVars = concat $envVars (include "langsmith.smithdb.clusterManagerClientEnv" (dict "root" $root "service" $service) | fromYamlArray) -}}
 {{- end }}
-{{- $envVars = concat $envVars $root.Values.commonEnv $root.Values.smithdb.commonEnv -}}
+{{- $envVars = concat $envVars $envOverrides -}}
 {{- toYaml $envVars }}
 {{- end }}
 
@@ -775,11 +776,19 @@ Args: root, service, displayName.
 - name: {{ $prefix }}__METASTORE__IAM_AUTH_PROVIDER
   value: {{ . | quote }}
 {{- end }}
+{{- $envOverrideKeys := list -}}
+{{- range $envVar := .envOverrides | default (list) -}}
+{{- $envOverrideKeys = append $envOverrideKeys $envVar.name -}}
+{{- end }}
 {{- if and (eq $root.Values.smithdb.config.metastore.iamAuthProvider "aws") $root.Values.smithdb.config.objectStore.s3.region }}
+{{- if not (has "AWS_REGION" $envOverrideKeys) }}
 - name: AWS_REGION
   value: {{ $root.Values.smithdb.config.objectStore.s3.region | quote }}
+{{- end }}
+{{- if not (has "AWS_DEFAULT_REGION" $envOverrideKeys) }}
 - name: AWS_DEFAULT_REGION
   value: {{ $root.Values.smithdb.config.objectStore.s3.region | quote }}
+{{- end }}
 {{- end }}
 - name: {{ $prefix }}__METASTORE__USE_SSL
   value: {{ $root.Values.smithdb.config.metastore.useSsl | quote }}
