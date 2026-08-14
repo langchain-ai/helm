@@ -1,0 +1,19 @@
+charts/langsmith/templates/smithdb/migration-job.yaml
+  s_d71c43d4e8ef1a::t_8d558918f5bd1c 159,182
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "ef907336d30657a2bf4a5f67f1516e0c94dac6ec",
+  "prompts": {},
+  "sessions": {
+    "s_d71c43d4e8ef1a": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "6f875763-9910-43b9-a45f-eb5f4f3b8f70",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "ben11211 <nagengast@langchain.dev>"
+    }
+  }
+}
