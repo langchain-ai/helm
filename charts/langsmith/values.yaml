@@ -1267,7 +1267,8 @@ config:
 aceBackend:
   name: "ace-backend"
   containerPort: 1987
-  bindAddress: "0.0.0.0"
+  # -- Address the ace-backend listener binds to. Empty lets the service bind every interface, which answers on IPv4 and IPv6. Set a single address only to restrict the listener.
+  bindAddress: ""
   # -- ArgoCD Rollouts configuration. If enabled, will create a Rollout resource instead of a Deployment. See https://argo-rollouts.readthedocs.io/
   rollout:
     enabled: false

@@ -1,0 +1,75 @@
+suite: dual-stack listeners
+templates:
+  - config-map.yaml
+  - secrets.yaml
+  - redis/secrets.yaml
+  - postgres/secrets.yaml
+  - clickhouse/secrets.yaml
+  - frontend/config-map.yaml
+  - operator/config-map.yaml
+  - ace-backend/deployment.yaml
+  - backend/deployment.yaml
+  - host-backend/deployment.yaml
+  - playground/deployment.yaml
+set:
+  config.existingSecretName: "langsmith-secrets"
+  config.skipValidation: true
+tests:
+  # The services bind every interface by default. The chart must not pin a
+  # family, so it must not render BIND_ADDRESS with an address in it.
+  - it: leaves the ace-backend listener unpinned by default
+    template: ace-backend/deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: BIND_ADDRESS
+            value: ""
+
+  - it: passes a pinned ace-backend address through when one is set
+    template: ace-backend/deployment.yaml
+    set:
+      aceBackend.bindAddress: "::1"
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: BIND_ADDRESS
+            value: "::1"
+
+  - it: sets no BIND_ADDRESS on the backend, so its entrypoint default applies
+    template: backend/deployment.yaml
+    asserts:
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: BIND_ADDRESS
+          any: true
+
+  - it: sets no BIND_ADDRESS on host-backend, so its entrypoint default applies
+    template: host-backend/deployment.yaml
+    asserts:
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: BIND_ADDRESS
+          any: true
+
+  - it: sets no BIND_ADDRESS on the playground, so its entrypoint default applies
+    template: playground/deployment.yaml
+    asserts:
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: BIND_ADDRESS
+          any: true
+
+  - it: gives nginx a listener for each address family
+    template: frontend/config-map.yaml
+    asserts:
+      - matchRegex:
+          path: data["nginx.conf"]
+          pattern: "listen       8080;"
+      - matchRegex:
+          path: data["nginx.conf"]
+          pattern: 'listen  \[::\]:8080;'
