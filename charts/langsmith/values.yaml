@@ -1191,6 +1191,8 @@ config:
     bucketName: ""
     # For GCS, set this to "https://storage.googleapis.com"
     apiURL: "https://s3.us-west-2.amazonaws.com"
+    # -- AWS region for S3 request signing.
+    region: ""
     # Set this to true to use path style addressing for S3. This is required for some S3 compatible storage providers like MinIO.
     # If set to true, endpoint will be s3.<region>.amazonaws.com/bucket-name. If false, endpoint will be bucket-name.s3.<region>.amazonaws.com
     s3UsePathStyle: false

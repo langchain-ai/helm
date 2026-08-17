@@ -709,6 +709,7 @@ tests:
       config.blobStorage.enabled: true
       config.blobStorage.bucketName: langsmith-blob
       config.blobStorage.apiURL: http://blob-store:9000
+      config.blobStorage.region: us-west-2
       smithdb.langsmith.migration.enabled: true
       smithdb.langsmith.query.enabled: false
       smithdb.migration.taskdb.postgres.enabled: true
@@ -799,6 +800,12 @@ tests:
           content:
             name: SMITHDB_MIGRATION__BLOB_STORE_DEFAULT__S3__BUCKET
             value: langsmith-blob
+      - template: smithdb/migration-job.yaml
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_MIGRATION__BLOB_STORE_DEFAULT__S3__REGION
+            value: us-west-2
       - template: smithdb/migration-job.yaml
         notContains:
           path: spec.template.spec.containers[0].env

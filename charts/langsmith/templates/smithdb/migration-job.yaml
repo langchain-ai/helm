@@ -167,6 +167,10 @@ spec:
               value: {{ $blobStorage.apiURL | quote }}
             - name: SMITHDB_MIGRATION__BLOB_STORE_DEFAULT__S3__ALLOW_HTTP
               value: {{ hasPrefix "http://" $blobStorage.apiURL | quote }}
+            {{- with $blobStorage.region }}
+            - name: SMITHDB_MIGRATION__BLOB_STORE_DEFAULT__S3__REGION
+              value: {{ . | quote }}
+            {{- end }}
             - name: SMITHDB_MIGRATION__BLOB_STORE_DEFAULT__S3__ACCESS_KEY_ID
               valueFrom:
                 secretKeyRef:
