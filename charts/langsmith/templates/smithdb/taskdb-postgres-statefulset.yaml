@@ -1,4 +1,5 @@
 {{- $taskdb := .Values.smithdb.migration.taskdb.postgres -}}
+{{- $maxConnections := mul (add (int .Values.smithdb.migration.job.parallelism) 1) (int $taskdb.maxConnectionsPerMigrationPod) -}}
 {{- if and .Values.smithdb.enabled .Values.smithdb.langsmith.migration.enabled $taskdb.enabled (not $taskdb.external.enabled) }}
 {{- $envVars := concat .Values.commonEnv $taskdb.statefulSet.extraEnv -}}
 {{- include "langsmith.detectDuplicates" $envVars -}}
@@ -66,6 +67,9 @@ spec:
           command:
             {{- toYaml . | nindent 12 }}
           {{- end }}
+          args:
+            - "-c"
+            - "max_connections={{ $maxConnections }}"
           env:
             - name: POSTGRES_DB
               value: {{ $taskdb.auth.database | quote }}
