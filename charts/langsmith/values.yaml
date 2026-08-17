@@ -1849,6 +1849,8 @@ smithdb:
       # -- Keep finished migrate-all Jobs around for seven days so operators can inspect status/logs.
       ttlSecondsAfterFinished: 604800
       # -- Maximum number of migration pods that run concurrently.
+      # -- Capped at 20 by chart validation. Beyond that, scale TaskDB vertically (CPU/memory)
+      # -- rather than adding more migration pods.
       parallelism: 1
       # -- Retry failed migrate-all pods up to this many times before marking the Job failed.
       backoffLimit: 3
@@ -1860,9 +1862,10 @@ smithdb:
         # -- Enable Postgres for SmithDB migration task state. This is a separate database from
         # -- both the main LangSmith Postgres and the SmithDB metastore.
         enabled: true
-        # -- Maximum TaskDB connections opened by each migration pod. The chart-managed Postgres
-        # -- server allows this many connections for every parallel pod plus one pod of headroom.
-        maxConnectionsPerMigrationPod: 25
+        # -- Maximum TaskDB connections opened by each migration pod. Sized for concurrent short
+        # -- Postgres ops, not worker count. The chart-managed Postgres server allows this many
+        # -- connections for every parallel pod plus one pod of headroom.
+        maxConnectionsPerMigrationPod: 10
         name: "taskdb-postgres"
         containerPort: 5433
         # -- Credentials for the in-chart taskdb Postgres instance. Used only when external.enabled is false.
