@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.16.7](https://img.shields.io/badge/Version-0.16.7-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.16.38](https://img.shields.io/badge/AppVersion-0.16.38-informational?style=flat-square)
+![Version: 0.16.8](https://img.shields.io/badge/Version-0.16.8-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.16.39](https://img.shields.io/badge/AppVersion-0.16.39-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -567,22 +567,22 @@ Two things worth planning for before you enable it:
 | gateway.sectionName | string | `""` |  |
 | images.aceBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.aceBackendImage.repository | string | `"docker.io/langchain/langsmith-ace-backend"` |  |
-| images.aceBackendImage.tag | string | `"0.16.38"` |  |
+| images.aceBackendImage.tag | string | `"0.16.39"` |  |
 | images.agentBuilderImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.agentBuilderImage.repository | string | `"docker.io/langchain/agent-builder-deep-agent"` |  |
-| images.agentBuilderImage.tag | string | `"0.16.38"` |  |
+| images.agentBuilderImage.tag | string | `"0.16.39"` |  |
 | images.backendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.backendImage.repository | string | `"docker.io/langchain/langsmith-backend"` |  |
-| images.backendImage.tag | string | `"0.16.38"` |  |
+| images.backendImage.tag | string | `"0.16.39"` |  |
 | images.clickhouseImage.pullPolicy | string | `"Always"` |  |
 | images.clickhouseImage.repository | string | `"docker.io/clickhouse/clickhouse-server"` |  |
 | images.clickhouseImage.tag | string | `"25.12"` |  |
 | images.engineInsightsAgentImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.engineInsightsAgentImage.repository | string | `"docker.io/langchain/langsmith-insights-engine"` |  |
-| images.engineInsightsAgentImage.tag | string | `"0.16.38"` |  |
+| images.engineInsightsAgentImage.tag | string | `"0.16.39"` |  |
 | images.frontendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.frontendImage.repository | string | `"docker.io/langchain/langsmith-frontend"` |  |
-| images.frontendImage.tag | string | `"0.16.38"` |  |
+| images.frontendImage.tag | string | `"0.16.39"` |  |
 | images.imagePullSecrets | list | `[]` | Secrets with credentials to pull images from a private registry. Specified as name: value. |
 | images.juicefsCSIImage | object | `{"pullPolicy":"IfNotPresent","repository":"docker.io/juicedata/juicefs-csi-driver","tag":"v0.31.4"}` | JuiceFS CSI driver image. Only used when config.sandboxes.enabled is true. |
 | images.juicefsCSINodeDriverRegistrarImage | object | `{"pullPolicy":"IfNotPresent","repository":"registry.k8s.io/sig-storage/csi-node-driver-registrar","tag":"v2.9.0"}` | JuiceFS CSI node-driver-registrar sidecar image. Only used when config.sandboxes.enabled is true. |
@@ -592,7 +592,7 @@ Two things worth planning for before you enable it:
 | images.operatorImage.tag | string | `"0.1.47"` |  |
 | images.pollyAgentImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.pollyAgentImage.repository | string | `"docker.io/langchain/langsmith-polly"` |  |
-| images.pollyAgentImage.tag | string | `"0.16.38"` |  |
+| images.pollyAgentImage.tag | string | `"0.16.39"` |  |
 | images.postgresImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.postgresImage.repository | string | `"docker.io/postgres"` |  |
 | images.postgresImage.tag | string | `"14.7"` |  |
@@ -606,7 +606,7 @@ Two things worth planning for before you enable it:
 | images.sandboxHostImage | object | `{"pullPolicy":"IfNotPresent","repository":"docker.io/langchain/sandbox-host","tag":""}` | sandbox-host image. Only used when config.sandboxes.enabled is true. |
 | images.smithdbImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.smithdbImage.repository | string | `"docker.io/langchain/smithdb"` |  |
-| images.smithdbImage.tag | string | `"0.16.38"` |  |
+| images.smithdbImage.tag | string | `"0.16.39"` |  |
 | ingestQueue.autoscaling.hpa.enabled | bool | `false` |  |
 | ingestQueue.autoscaling.hpa.maxReplicas | int | `10` |  |
 | ingestQueue.autoscaling.hpa.minReplicas | int | `3` |  |
@@ -1227,7 +1227,7 @@ Two things worth planning for before you enable it:
 | smithdb.migration.endTime | string | `""` | Optional RFC3339 end bound for migrate-all (half-open window). Empty uses now. |
 | smithdb.migration.job.activeDeadlineSeconds | string | `nil` | Optional hard deadline for the Job. Leave unset for long-running full migrations. |
 | smithdb.migration.job.backoffLimit | int | `3` | Retry failed migrate-all pods up to this many times before marking the Job failed. |
-| smithdb.migration.job.parallelism | int | `1` | Maximum number of migration pods that run concurrently. |
+| smithdb.migration.job.parallelism | int | `1` | migration pods. |
 | smithdb.migration.job.restartPolicy | string | `"Never"` |  |
 | smithdb.migration.job.ttlSecondsAfterFinished | int | `604800` | Keep finished migrate-all Jobs around for seven days so operators can inspect status/logs. |
 | smithdb.migration.name | string | `"migration"` |  |
@@ -1239,6 +1239,7 @@ Two things worth planning for before you enable it:
 | smithdb.migration.taskdb.postgres.enabled | bool | `true` | both the main LangSmith Postgres and the SmithDB metastore. |
 | smithdb.migration.taskdb.postgres.external | object | `{"database":"smithdb_migration","databaseSecretKey":"postgres_db","enabled":false,"existingSecretName":"","host":"","hostSecretKey":"postgres_host","password":"","passwordSecretKey":"postgres_password","port":"5433","useSsl":false,"username":"postgres","usernameSecretKey":"postgres_user"}` | the SmithDB metastore. |
 | smithdb.migration.taskdb.postgres.external.existingSecretName | string | `""` | Existing secret containing external taskdb Postgres connection fields. If set, the chart does not create one. |
+| smithdb.migration.taskdb.postgres.maxConnectionsPerMigrationPod | int | `10` | connections for every parallel pod plus one pod of headroom. |
 | smithdb.migration.taskdb.postgres.name | string | `"taskdb-postgres"` |  |
 | smithdb.migration.taskdb.postgres.service.annotations | object | `{}` |  |
 | smithdb.migration.taskdb.postgres.service.labels | object | `{}` |  |
