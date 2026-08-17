@@ -37,6 +37,30 @@ tests:
       - failedTemplate:
           errorMessage: "smithdb.migration.taskdb.postgres.auth.password is required when smithdb.migration.taskdb.postgres.enabled is true and auth.existingSecretName is not set."
 
+  - it: should reject non-positive migration parallelism
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      config.existingSecretName: langsmith-secret
+      smithdb.langsmith.query.enabled: false
+      smithdb.langsmith.migration.enabled: true
+      smithdb.migration.job.parallelism: 0
+    asserts:
+      - failedTemplate:
+          errorMessage: "smithdb.migration.job.parallelism must be greater than 0 when smithdb migration is enabled."
+
+  - it: should reject non-positive taskdb connections per migration pod
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      config.existingSecretName: langsmith-secret
+      smithdb.langsmith.query.enabled: false
+      smithdb.langsmith.migration.enabled: true
+      smithdb.migration.taskdb.postgres.maxConnectionsPerMigrationPod: 0
+    asserts:
+      - failedTemplate:
+          errorMessage: "smithdb.migration.taskdb.postgres.maxConnectionsPerMigrationPod must be greater than 0."
+
   - it: should reject external taskdb postgres without a password
     values:
       - ./values/smithdb-enabled.yaml

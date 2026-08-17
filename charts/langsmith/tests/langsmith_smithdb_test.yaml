@@ -782,6 +782,12 @@ tests:
         contains:
           path: spec.template.spec.containers[0].env
           content:
+            name: SMITHDB_MIGRATION__TASKDB__MAX_CONNECTIONS
+            value: "10"
+      - template: smithdb/migration-job.yaml
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
             name: SMITHDB_MIGRATION__TASKDB__PORT
             value: "5433"
       - template: smithdb/migration-job.yaml
@@ -877,6 +883,12 @@ tests:
           value: 50Gi
       - template: smithdb/taskdb-postgres-statefulset.yaml
         equal:
+          path: spec.template.spec.containers[0].args
+          value:
+            - "-c"
+            - "max_connections=20"
+      - template: smithdb/taskdb-postgres-statefulset.yaml
+        equal:
           path: spec.template.spec.containers[0].ports[0].containerPort
           value: 5433
       - template: smithdb/taskdb-postgres-statefulset.yaml
@@ -956,11 +968,20 @@ tests:
       smithdb.langsmith.query.enabled: false
       smithdb.migration.job.parallelism: 5
       smithdb.migration.taskdb.postgres.auth.password: taskdb-password
-    template: smithdb/migration-job.yaml
+    templates:
+      - smithdb/migration-job.yaml
+      - smithdb/taskdb-postgres-statefulset.yaml
     asserts:
-      - equal:
+      - template: smithdb/migration-job.yaml
+        equal:
           path: spec.parallelism
           value: 5
+      - template: smithdb/taskdb-postgres-statefulset.yaml
+        equal:
+          path: spec.template.spec.containers[0].args
+          value:
+            - "-c"
+            - "max_connections=60"
 
   - it: should allow retaining the taskdb PVC when the StatefulSet is deleted
     values:

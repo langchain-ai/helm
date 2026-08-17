@@ -79,6 +79,8 @@ spec:
               value: {{ .Values.smithdb.migration.containerPort | quote }}
             {{- if .Values.smithdb.migration.taskdb.postgres.enabled }}
             {{- $taskdb := .Values.smithdb.migration.taskdb.postgres }}
+            - name: SMITHDB_MIGRATION__TASKDB__MAX_CONNECTIONS
+              value: {{ $taskdb.maxConnectionsPerMigrationPod | quote }}
             {{- if $taskdb.external.enabled }}
             - name: SMITHDB_MIGRATION__TASKDB__HOST
               valueFrom:
