@@ -757,7 +757,7 @@ tests:
           path: spec.template.spec.containers[0].env
           content:
             name: SMITHDB_MIGRATION__TASKDB__MAX_CONNECTIONS
-            value: "20"
+            value: "25"
       - template: smithdb/migration-job.yaml
         contains:
           path: spec.template.spec.containers[0].env
@@ -860,7 +860,7 @@ tests:
           path: spec.template.spec.containers[0].args
           value:
             - "-c"
-            - "max_connections=40"
+            - "max_connections=50"
       - template: smithdb/taskdb-postgres-statefulset.yaml
         equal:
           path: spec.template.spec.containers[0].ports[0].containerPort
@@ -955,7 +955,7 @@ tests:
           path: spec.template.spec.containers[0].args
           value:
             - "-c"
-            - "max_connections=120"
+            - "max_connections=150"
 
   - it: should allow retaining the taskdb PVC when the StatefulSet is deleted
     values:
