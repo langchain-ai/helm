@@ -403,9 +403,6 @@ AWS Marketplace Helm template verification).
 {{- if lt (int .Values.smithdb.migration.job.parallelism) 1 -}}
 {{- fail "smithdb.migration.job.parallelism must be greater than 0 when smithdb migration is enabled." -}}
 {{- end -}}
-{{- if gt (int .Values.smithdb.migration.job.parallelism) 20 -}}
-{{- fail "smithdb.migration.job.parallelism must be at most 20. Beyond that, scale TaskDB vertically (CPU/memory) rather than increasing migration Job parallelism further." -}}
-{{- end -}}
 {{- if lt (int $taskdb.maxConnectionsPerMigrationPod) 1 -}}
 {{- fail "smithdb.migration.taskdb.postgres.maxConnectionsPerMigrationPod must be greater than 0." -}}
 {{- end -}}

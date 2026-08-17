@@ -49,18 +49,6 @@ tests:
       - failedTemplate:
           errorMessage: "smithdb.migration.job.parallelism must be greater than 0 when smithdb migration is enabled."
 
-  - it: should reject migration parallelism above 20
-    values:
-      - ./values/smithdb-enabled.yaml
-    set:
-      config.existingSecretName: langsmith-secret
-      smithdb.langsmith.query.enabled: false
-      smithdb.langsmith.migration.enabled: true
-      smithdb.migration.job.parallelism: 21
-    asserts:
-      - failedTemplate:
-          errorMessage: "smithdb.migration.job.parallelism must be at most 20. Beyond that, scale TaskDB vertically (CPU/memory) rather than increasing migration Job parallelism further."
-
   - it: should reject non-positive taskdb connections per migration pod
     values:
       - ./values/smithdb-enabled.yaml

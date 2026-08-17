@@ -1813,8 +1813,8 @@ smithdb:
       # -- Keep finished migrate-all Jobs around for seven days so operators can inspect status/logs.
       ttlSecondsAfterFinished: 604800
       # -- Maximum number of migration pods that run concurrently.
-      # -- Capped at 20 by chart validation. Beyond that, scale TaskDB vertically (CPU/memory)
-      # -- rather than adding more migration pods.
+      # -- Above ~20, prefer scaling TaskDB vertically (CPU/memory) rather than adding more
+      # -- migration pods.
       parallelism: 1
       # -- Retry failed migrate-all pods up to this many times before marking the Job failed.
       backoffLimit: 3
