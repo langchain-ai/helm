@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.16.9](https://img.shields.io/badge/Version-0.16.9-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.16.41](https://img.shields.io/badge/AppVersion-0.16.41-informational?style=flat-square)
+![Version: 0.16.8](https://img.shields.io/badge/Version-0.16.8-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.16.41](https://img.shields.io/badge/AppVersion-0.16.41-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -1227,7 +1227,7 @@ Two things worth planning for before you enable it:
 | smithdb.migration.endTime | string | `""` | Optional RFC3339 end bound for migrate-all (half-open window). Empty uses now. |
 | smithdb.migration.job.activeDeadlineSeconds | string | `nil` | Optional hard deadline for the Job. Leave unset for long-running full migrations. |
 | smithdb.migration.job.backoffLimit | int | `3` | Retry failed migrate-all pods up to this many times before marking the Job failed. |
-| smithdb.migration.job.parallelism | int | `1` | migration pods. |
+| smithdb.migration.job.parallelism | int | `1` | Maximum number of migration pods that run concurrently. |
 | smithdb.migration.job.restartPolicy | string | `"Never"` |  |
 | smithdb.migration.job.ttlSecondsAfterFinished | int | `604800` | Keep finished migrate-all Jobs around for seven days so operators can inspect status/logs. |
 | smithdb.migration.name | string | `"migration"` |  |
@@ -1239,7 +1239,6 @@ Two things worth planning for before you enable it:
 | smithdb.migration.taskdb.postgres.enabled | bool | `true` | both the main LangSmith Postgres and the SmithDB metastore. |
 | smithdb.migration.taskdb.postgres.external | object | `{"database":"smithdb_migration","databaseSecretKey":"postgres_db","enabled":false,"existingSecretName":"","host":"","hostSecretKey":"postgres_host","password":"","passwordSecretKey":"postgres_password","port":"5433","useSsl":false,"username":"postgres","usernameSecretKey":"postgres_user"}` | the SmithDB metastore. |
 | smithdb.migration.taskdb.postgres.external.existingSecretName | string | `""` | Existing secret containing external taskdb Postgres connection fields. If set, the chart does not create one. |
-| smithdb.migration.taskdb.postgres.maxConnectionsPerMigrationPod | int | `10` | connections for every parallel pod plus one pod of headroom. |
 | smithdb.migration.taskdb.postgres.name | string | `"taskdb-postgres"` |  |
 | smithdb.migration.taskdb.postgres.service.annotations | object | `{}` |  |
 | smithdb.migration.taskdb.postgres.service.labels | object | `{}` |  |
