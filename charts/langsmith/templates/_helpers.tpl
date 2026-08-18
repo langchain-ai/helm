@@ -505,6 +505,16 @@ Template containing common environment variables that are used by several servic
 {{- end }}
 {{- end }}
 
+{{/* Compute NUM_WORKERS from a CPU limit (cores or millicores). */}}
+{{- define "langsmith.smithdb.migrationNumWorkers" -}}
+{{- $cpu := toString . -}}
+{{- $cores := float64 $cpu -}}
+{{- if hasSuffix "m" $cpu -}}
+{{- $cores = mulf (float64 (trimSuffix "m" $cpu)) 0.001 -}}
+{{- end -}}
+{{- max 1 (int (floor (mulf $cores 0.75))) -}}
+{{- end }}
+
 {{/*
 SmithDB resource name prefix.
 */}}

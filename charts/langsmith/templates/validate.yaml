@@ -414,6 +414,12 @@ AWS Marketplace Helm template verification).
 {{- end -}}
 {{- $taskdb := .Values.smithdb.migration.taskdb.postgres -}}
 {{- if and .Values.smithdb.langsmith.migration.enabled $taskdb.enabled -}}
+{{- if lt (int .Values.smithdb.migration.job.parallelism) 1 -}}
+{{- fail "smithdb.migration.job.parallelism must be greater than 0 when smithdb migration is enabled." -}}
+{{- end -}}
+{{- if lt (int $taskdb.maxConnectionsPerMigrationPod) 1 -}}
+{{- fail "smithdb.migration.taskdb.postgres.maxConnectionsPerMigrationPod must be greater than 0." -}}
+{{- end -}}
 {{- if $taskdb.external.enabled -}}
 {{- if not $taskdb.external.port -}}
 {{- fail "smithdb.migration.taskdb.postgres.external.port is required when smithdb.migration.taskdb.postgres.external.enabled is true." -}}
