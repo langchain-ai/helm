@@ -1212,6 +1212,8 @@ config:
   settings:
     # -- Optional. Be very careful when lowering this value as it can result in runs being lost if your queue is down/not processing items fast enough.
     redisRunsExpirySeconds: "21600"  # 6 hours
+    # -- Seconds an outbound automation rule or prompt webhook may take to respond before it times out. LangSmith Cloud uses 10; self-hosted keeps 5 so that upgrading does not change how long a rules worker slot is held. Raise this if your webhook endpoint needs longer to respond.
+    webhookRequestTimeoutSec: "5"
 
   # -- Custom logo configuration.
   # If enabled, the logoUrl and coBrandingEnabled values must be provided.

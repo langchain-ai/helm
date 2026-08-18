@@ -436,6 +436,8 @@ Template containing common environment variables that are used by several servic
 {{ include "langsmith.conditionalEnvVarsResolved" . }}
 - name: REDIS_RUNS_EXPIRY_SECONDS
   value: {{ .Values.config.settings.redisRunsExpirySeconds | quote }}
+- name: WEBHOOK_REQUEST_TIMEOUT_SEC
+  value: {{ .Values.config.settings.webhookRequestTimeoutSec | quote }}
 - name: LANGGRAPH_CLOUD_LICENSE_KEY
   valueFrom:
     secretKeyRef:
