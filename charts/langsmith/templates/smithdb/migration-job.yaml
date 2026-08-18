@@ -77,6 +77,17 @@ spec:
           env:
             - name: SMITHDB_MIGRATION__HTTP_PORT
               value: {{ .Values.smithdb.migration.containerPort | quote }}
+            {{- if (index (default (dict) .Values.smithdb.migration.deployment.resources.limits) "cpu") }}
+            - name: SMITHDB_MIGRATION__WORKER_POOL__NUM_WORKERS
+              valueFrom:
+                resourceFieldRef:
+                  resource: limits.cpu
+                  divisor: 1334m
+            {{- end }}
+            {{- if (index (default (dict) .Values.smithdb.migration.deployment.resources.limits) "memory") }}
+            - name: SMITHDB_MIGRATION__WORKER_POOL__MEMORY_QUOTA
+              value: {{ include "langsmith.smithdb.memoryQuota" (index .Values.smithdb.migration.deployment.resources.limits "memory") | quote }}
+            {{- end }}
             {{- if .Values.smithdb.migration.taskdb.postgres.enabled }}
             {{- $taskdb := .Values.smithdb.migration.taskdb.postgres }}
             - name: SMITHDB_MIGRATION__TASKDB__MAX_CONNECTIONS

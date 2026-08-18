@@ -505,6 +505,28 @@ Template containing common environment variables that are used by several servic
 {{- end }}
 {{- end }}
 
+{{/* Scale a Kubernetes memory quantity to 75% and format it for SmithDB. */}}
+{{- define "langsmith.smithdb.memoryQuota" -}}
+{{- $limit := toString . -}}
+{{- $numberPattern := `(?:[0-9]+(?:\.[0-9]*)?|\.[0-9]+)` -}}
+{{- $quantityPattern := printf "^%s(?:Ki|Mi|Gi|Ti|Pi|Ei|[kKMGTPE])?$" $numberPattern -}}
+{{- if regexMatch $quantityPattern $limit -}}
+{{- $amountText := regexFind (printf "^%s" $numberPattern) $limit -}}
+{{- $unit := trimPrefix $amountText $limit -}}
+{{- $amount := mulf (float64 $amountText) 0.75 -}}
+{{- if eq $unit "" -}}
+{{- printf "%.0f" (ceil $amount) -}}
+{{- else -}}
+{{- $byteSizeUnits := dict "k" "kB" "K" "KB" "M" "MB" "G" "GB" "T" "TB" "P" "PB" "E" "EB" "Ki" "KiB" "Mi" "MiB" "Gi" "GiB" "Ti" "TiB" "Pi" "PiB" "Ei" "EiB" -}}
+{{- printf "%g%s" $amount (index $byteSizeUnits $unit) -}}
+{{- end -}}
+{{- else if regexMatch (printf "^%s[eE][+-]?[0-9]+$" $numberPattern) $limit -}}
+{{- printf "%.0f" (ceil (mulf (float64 $limit) 0.75)) -}}
+{{- else -}}
+{{- fail (printf "smithdb.migration.deployment.resources.limits.memory must be a Kubernetes memory quantity, got %q" $limit) -}}
+{{- end -}}
+{{- end }}
+
 {{/*
 SmithDB resource name prefix.
 */}}
