@@ -783,7 +783,7 @@ tests:
           path: spec.template.spec.containers[0].env
           content:
             name: SMITHDB_MIGRATION__WORKER_POOL__NUM_WORKERS
-            value: "4"
+            value: "6"
       - template: smithdb/migration-job.yaml
         contains:
           path: spec.template.spec.containers[0].env
@@ -949,7 +949,7 @@ tests:
           path: spec.template.spec.containers[0].env
           content:
             name: SMITHDB_MIGRATION__WORKER_POOL__NUM_WORKERS
-            value: "2"
+            value: "3"
 
   - it: should use native GCS for migration source blobs with workload identity
     values:
