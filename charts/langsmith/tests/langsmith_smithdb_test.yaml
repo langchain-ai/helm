@@ -788,12 +788,6 @@ tests:
         contains:
           path: spec.template.spec.containers[0].env
           content:
-            name: SMITHDB_MIGRATION__WORKER_POOL__PAGINATION_LIMIT
-            value: "25000"
-      - template: smithdb/migration-job.yaml
-        contains:
-          path: spec.template.spec.containers[0].env
-          content:
             name: SMITHDB_MIGRATION__TASKDB__MAX_CONNECTIONS
             value: "10"
       - template: smithdb/migration-job.yaml
