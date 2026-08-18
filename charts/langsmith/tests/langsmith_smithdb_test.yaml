@@ -783,7 +783,13 @@ tests:
           path: spec.template.spec.containers[0].env
           content:
             name: SMITHDB_MIGRATION__WORKER_POOL__NUM_WORKERS
-            value: "6"
+            value: "4"
+      - template: smithdb/migration-job.yaml
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_MIGRATION__WORKER_POOL__PAGINATION_LIMIT
+            value: "25000"
       - template: smithdb/migration-job.yaml
         contains:
           path: spec.template.spec.containers[0].env
@@ -943,7 +949,7 @@ tests:
           path: spec.template.spec.containers[0].env
           content:
             name: SMITHDB_MIGRATION__WORKER_POOL__NUM_WORKERS
-            value: "3"
+            value: "2"
 
   - it: should use native GCS for migration source blobs with workload identity
     values:

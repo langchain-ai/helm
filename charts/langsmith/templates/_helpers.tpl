@@ -518,7 +518,7 @@ Template containing common environment variables that are used by several servic
 {{- if hasSuffix "m" $cpu -}}
 {{- $cores = mulf (float64 (trimSuffix "m" $cpu)) 0.001 -}}
 {{- end -}}
-{{- max 1 (int (floor (mulf $cores 0.75))) -}}
+{{- max 1 (int (floor (mulf $cores 0.5))) -}}
 {{- end }}
 
 {{/*
