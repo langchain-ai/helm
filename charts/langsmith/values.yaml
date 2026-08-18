@@ -118,26 +118,11 @@ images:
     repository: "mcr.microsoft.com/presidio-analyzer"
     pullPolicy: IfNotPresent
     tag: "2.2.354"
-  # -- sandbox-host image. Only used when config.sandboxes.enabled is true.
+  # -- sandbox-host image. Only used when sandboxes.enabled is true.
   sandboxHostImage:
     repository: "docker.io/langchain/sandbox-host"
     pullPolicy: IfNotPresent
     tag: ""
-  # -- JuiceFS CSI driver image. Only used when config.sandboxes.enabled is true.
-  juicefsCSIImage:
-    repository: "docker.io/juicedata/juicefs-csi-driver"
-    pullPolicy: IfNotPresent
-    tag: "v0.31.4"
-  # -- JuiceFS CSI node-driver-registrar sidecar image. Only used when config.sandboxes.enabled is true.
-  juicefsCSINodeDriverRegistrarImage:
-    repository: "registry.k8s.io/sig-storage/csi-node-driver-registrar"
-    pullPolicy: IfNotPresent
-    tag: "v2.9.0"
-  # -- Optional JuiceFS CE mount image used by runtime mount pods. Set this when mirroring images for restricted networks.
-  juicefsMountImage:
-    repository: "docker.io/juicedata/mount"
-    pullPolicy: IfNotPresent
-    tag: "ce-v1.3.0"
 
 ingress:
   enabled: false
@@ -163,7 +148,7 @@ istioGateway:
   annotations: {}
   labels: {}
 
-
+# -- LangSmith Sandboxes. Same-cluster sandbox-host architecture on AWS/EKS or GCP/GKE. sandbox-host mounts JuiceFS directly, and a singleton Job formats fresh JuiceFS metadata before hosts start serving.
 sandboxes:
   enabled: false
   # -- Private JWK signing sandbox callbacks, or key `sandbox_callback_signing_jwk` in config.existingSecretName. Needs config.hostname for the issuer, or signing fails closed.
@@ -183,7 +168,7 @@ sandboxes:
     # -- Existing TLS Secret containing tls.crt and tls.key for the sandbox proxy CA. This Secret can be created manually, by cert-manager, or by another external process.
     existingSecretName: ""
   juicefs:
-    # -- JuiceFS volume name. Use a flat DNS-label-style name only; slashes and object-store subpaths are not supported here. JuiceFS stores objects under `<name>/` inside the configured bucket. Also used to scope JuiceFS CSI RBAC for the generated mount Secret, so keep it aligned with the `name` key when using an existing CSI config Secret.
+    # -- JuiceFS volume name. Use a flat DNS-label-style name only; slashes and object-store subpaths are not supported here. JuiceFS stores objects under `<name>/` inside the configured bucket.
     name: "sandbox-juicefs"
     # -- Object storage backend used by JuiceFS for sandboxes. Currently supported values are `s3` for AWS/EKS and `gs` for GCP/GKE. Azure-backed sandbox storage is not supported yet.
     storage: "s3"
@@ -192,52 +177,9 @@ sandboxes:
     redis:
       # -- JuiceFS Redis metadata URL. Redis metadata engines must use maxmemory-policy noeviction. For Redis Cluster, the `/DB` path is used by JuiceFS as a hash-tag key prefix rather than a Redis logical database.
       metaURL: ""
-    csi:
-      # -- Install the bundled JuiceFS CSI driver. Set to false when the cluster already runs one; the chart then renders only the sandbox PV/PVCs and CSI config Secret, bound to the existing driver.
-      install: true
-      # -- Name of the chart-managed JuiceFS config Secret. The bundled JuiceFS CSI setup is intended only for JuiceFS PVs in the namespace where this chart is installed. Chart-managed changes roll the CSI controller/node pods and, when hostMount.enabled is true, sandbox-host through checksum annotations. Helm cannot hash externally managed Secret contents or directly refresh CSI-created JuiceFS mount pods; roll affected workloads after changing external Secret data.
-      configSecretName: "juicefs-csi-config"
-      # -- Existing Secret containing JuiceFS config keys `name`, `metaurl`, `storage`, and `bucket`. When set, this chart does not render the config Secret and `sandboxes.juicefs.name`, `sandboxes.juicefs.storage`, `sandboxes.juicefs.bucket`, and `sandboxes.juicefs.redis.metaURL` are not used for it. Host-owned mode mounts only its `metaurl` key; roll sandbox-host after updating externally managed Secret data.
-      existingSecretName: ""
-      controller:
-        # -- Annotations applied to the JuiceFS CSI controller StatefulSet and pod template.
-        annotations: {}
-        serviceAccount:
-          # -- Annotations applied to the JuiceFS CSI controller ServiceAccount.
-          annotations: {}
-      node:
-        # -- Annotations applied to the JuiceFS CSI node DaemonSet and pod template.
-        annotations: {}
-        serviceAccount:
-          # -- Annotations applied to the JuiceFS CSI node ServiceAccount. In CSI-backed mode, use this for workload identity annotations such as AWS IRSA or GCP Workload Identity.
-          annotations: {}
-      # -- Mount pod patches used by the JuiceFS CSI driver for sandbox volumes. Override only when tuning JuiceFS mount behavior or observability.
-      mountPodPatch:
-        - mountOptions:
-            - cache-dir=/var/cache/juicefs-csi
-            - cache-size=51200
-            - buffer-size=300
-            - prefetch=3
-            - metrics=0.0.0.0:9567
-          resources:
-            requests:
-              cpu: "2"
-              memory: 4Gi
-            limits:
-              cpu: "2"
-              memory: 4Gi
-        - pvcSelector:
-            matchLabels:
-              juicefs.langsmith.com/cache: ssd
-          mountOptions:
-            - cache-dir=/var/cache/juicefs-csi
-            - cache-size=307200
-            - cache-large-write
-      pvName: "smithbox-juicefs-csi"
-      pvcName: "smithbox-juicefs-csi"
+    # -- Existing Secret containing JuiceFS config keys `name`, `metaurl`, `storage`, and `bucket`. The formatter Job reads all four keys; sandbox-host receives only `metaurl`. When set, the chart does not create the config Secret and the corresponding values above are ignored. Rotate the Secret name to rerun formatting; roll sandbox-host after changing data in place.
+    existingSecretName: ""
     hostMount:
-      # -- Let sandbox-host mount JuiceFS directly instead of consuming the CSI host PVC. CSI resources remain installed for rollback; disabling this restores the existing PVC-backed path.
-      enabled: false
       # -- Node host paths used for the JuiceFS cache. Each path is mounted into sandbox-host and combined into one JuiceFS cache-dir option. Back these paths with node-local storage; their contents survive pod rollouts on the same node but not node replacement.
       cacheDirs:
         - /var/cache/juicefs
@@ -264,7 +206,7 @@ sandboxes:
           operator: Equal
           value: "true"
           effect: NoSchedule
-      # -- Resource requests and limits for sandbox-host. In host-owned JuiceFS mode, include the CPU and memory previously reserved for the CSI mount pod.
+      # -- Resource requests and limits for sandbox-host. Include the CPU and memory required by its JuiceFS mount process.
       resources:
         requests:
           cpu: "2"
@@ -307,7 +249,7 @@ sandboxes:
       create: true
       name: ""
       labels: {}
-      # -- Annotations applied to the sandbox-host ServiceAccount. When sandboxes.juicefs.hostMount.enabled is true, attach the AWS IRSA or GCP Workload Identity that grants access to the JuiceFS object-storage bucket here.
+      # -- Annotations applied to the sandbox-host ServiceAccount. Attach the AWS IRSA or GCP Workload Identity that grants access to the JuiceFS object-storage bucket here.
       annotations: {}
       automountServiceAccountToken: true
     rbac:
@@ -1095,10 +1037,6 @@ config:
     # -- Lift the SaaS CPU/memory caps on LangSmith Deployment resource specs. Opt-in for self-hosted.
     uncappedResourcesEnabled: false
 
-  # -- LangSmith Sandboxes configuration. Disabled by default. When enabled, this installs sandbox runtime resources in the same namespace as the LangSmith release and wires the LangSmith API/frontend services to expose sandbox functionality.
-  # This supports the same-cluster sandbox-host architecture only.
-  # Self-hosted sandboxes are currently supported on AWS/EKS and GCP/GKE. Azure/AKS is supported by the base LangSmith chart, but not by sandboxes yet.
-  # Enabling sandboxes also installs the JuiceFS CSI driver. The CSI driver creates cluster-scoped resources, so only one sandbox-enabled LangSmith release should manage it per Kubernetes cluster. Do not enable sandboxes in multiple releases in the same cluster, or alongside an independently managed JuiceFS CSI installation, unless you have verified ownership of those cluster-scoped resources.
   agentBuilder:
     enabled: false
     # Fernet encryption key for Agent Builder secrets. Required when enabled.

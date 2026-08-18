@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.16.5](https://img.shields.io/badge/Version-0.16.5-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.16.37](https://img.shields.io/badge/AppVersion-0.16.37-informational?style=flat-square)
+![Version: 0.16.6](https://img.shields.io/badge/Version-0.16.6-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.16.37](https://img.shields.io/badge/AppVersion-0.16.37-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -28,7 +28,7 @@ Two things worth planning for before you enable it:
 
 **Sandbox nodes.** Sandboxes are Firecracker microVMs, so `sandboxes.sandboxHost.deployment.nodeSelector` must place host pods on KVM-capable nodes — bare-metal instances, or instance types with nested virtualization explicitly enabled. Sandbox images are published for `linux/amd64` only. A dedicated, tainted node pool is the usual arrangement, since rolling a sandbox-host pod suspends every microVM on it.
 
-**Host-owned JuiceFS mount.** `sandboxes.juicefs.hostMount.enabled` moves the sandbox-host mount from its CSI PVC into the sandbox-host process. The existing JuiceFS config Secret supplies only the `metaurl` key, and the CSI resources remain installed for rollback: disabling the option restores the prior PVC mount. Configure `hostMount.cacheDirs` with one or more node paths backed by the intended cache storage. The cache survives sandbox-host pod rollouts on the same node but remains disposable on node replacement.
+**Host-owned JuiceFS mount.** sandbox-host mounts JuiceFS directly; the chart does not install the JuiceFS CSI driver or create sandbox PVs/PVCs. A singleton Job uses the sandbox-host image to format fresh metadata from the four-key JuiceFS config Secret, while sandbox-host receives only `metaurl` and waits for that metadata before mounting. Configure `sandboxes.juicefs.hostMount.cacheDirs` with one or more node paths backed by the intended cache storage. The cache survives sandbox-host pod rollouts on the same node but remains disposable on node replacement.
 
 **Which workspace owns the sandboxes.** By default smith-go resolves the install's workspace, which works when there is exactly one non-personal organization. With more than one it declines rather than guess, and you must set `engine.sandboxTenantId` explicitly. Prefer a workspace reserved for the Engine: its sandboxes are visible to anyone with access to it.
 
@@ -586,9 +586,6 @@ Two things worth planning for before you enable it:
 | images.frontendImage.repository | string | `"docker.io/langchain/langsmith-frontend"` |  |
 | images.frontendImage.tag | string | `"0.16.37"` |  |
 | images.imagePullSecrets | list | `[]` | Secrets with credentials to pull images from a private registry. Specified as name: value. |
-| images.juicefsCSIImage | object | `{"pullPolicy":"IfNotPresent","repository":"docker.io/juicedata/juicefs-csi-driver","tag":"v0.31.4"}` | JuiceFS CSI driver image. Only used when config.sandboxes.enabled is true. |
-| images.juicefsCSINodeDriverRegistrarImage | object | `{"pullPolicy":"IfNotPresent","repository":"registry.k8s.io/sig-storage/csi-node-driver-registrar","tag":"v2.9.0"}` | JuiceFS CSI node-driver-registrar sidecar image. Only used when config.sandboxes.enabled is true. |
-| images.juicefsMountImage | object | `{"pullPolicy":"IfNotPresent","repository":"docker.io/juicedata/mount","tag":"ce-v1.3.0"}` | Optional JuiceFS CE mount image used by runtime mount pods. Set this when mirroring images for restricted networks. |
 | images.operatorImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.operatorImage.repository | string | `"docker.io/langchain/langgraph-operator"` |  |
 | images.operatorImage.tag | string | `"0.1.47"` |  |
@@ -605,7 +602,7 @@ Two things worth planning for before you enable it:
 | images.redisImage.repository | string | `"docker.io/redis"` |  |
 | images.redisImage.tag | string | `"7"` |  |
 | images.registry | string | `""` | If supplied, all children <image_name>.repository values will be prepended with this registry name + `/` |
-| images.sandboxHostImage | object | `{"pullPolicy":"IfNotPresent","repository":"docker.io/langchain/sandbox-host","tag":""}` | sandbox-host image. Only used when config.sandboxes.enabled is true. |
+| images.sandboxHostImage | object | `{"pullPolicy":"IfNotPresent","repository":"docker.io/langchain/sandbox-host","tag":""}` | sandbox-host image. Only used when sandboxes.enabled is true. |
 | images.smithdbImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.smithdbImage.repository | string | `"docker.io/langchain/smithdb"` |  |
 | images.smithdbImage.tag | string | `"0.16.37"` |  |
@@ -893,64 +890,30 @@ Two things worth planning for before you enable it:
 | polly.redis.statefulSet.volumeMounts | list | `[]` |  |
 | polly.redis.statefulSet.volumes | list | `[]` |  |
 | preInstallManifests | list | `[]` | annotations, ExternalSecret-only validation, idempotency rules, and caveats. Example: preInstallManifests:   - apiVersion: external-secrets.io/v1beta1     kind: ExternalSecret     metadata:       name: langsmith-app     spec:       refreshInterval: 1h       secretStoreRef:         name: vault-backend         kind: ClusterSecretStore       target:         name: langsmith-app-secret         creationPolicy: Orphan       data:         - secretKey: langsmith_license_key           remoteRef:             key: secret/langsmith/app             property: langsmith_license_key |
+| sandboxes | object | `{"callbackSigningJwk":"","enabled":false,"juicefs":{"bucket":"","existingSecretName":"","hostMount":{"cacheDirs":["/var/cache/juicefs"],"mountOptions":["--cache-size=51200","--cache-large-write"]},"name":"sandbox-juicefs","redis":{"metaURL":""},"storage":"s3"},"proxyCa":{"existingSecretName":"","mode":"generatedSecret","secretName":"smithbox-proxy-ca"},"quotas":{"maxCpuCores":16,"maxEphemeralStorageGib":100,"maxMemoryGb":64,"maxSandboxes":1000,"minEphemeralStorageGb":1},"sandboxHost":{"autoscaling":{"enabled":false,"headroomHosts":1,"maxReplicas":10,"minReplicas":1,"scaleDownStabilizationSeconds":300,"targetUtilizationPercent":70},"deployment":{"annotations":{},"extraEnv":[],"initContainers":[],"labels":{},"nodeSelector":{},"podAnnotations":{},"podSecurityContext":{},"priorityClassName":"","readinessProbe":{"failureThreshold":3,"initialDelaySeconds":5,"periodSeconds":10,"tcpSocket":{"port":"http"},"timeoutSeconds":3},"replicas":1,"resources":{"requests":{"cpu":"2","memory":"2Gi"}},"securityContext":{"privileged":true},"sidecars":[],"terminationGracePeriodSeconds":300,"tolerations":[{"effect":"NoSchedule","key":"sandbox.langsmith.com/host","operator":"Equal","value":"true"}],"volumeMounts":[],"volumes":[]},"name":"sandbox-host","pdb":{"annotations":{},"enabled":false,"labels":{},"maxUnavailable":1},"rbac":{"annotations":{},"create":true,"labels":{}},"serviceAccount":{"annotations":{},"automountServiceAccountToken":true,"create":true,"labels":{},"name":""}},"serviceUrlBaseUrl":""}` | LangSmith Sandboxes. Same-cluster sandbox-host architecture on AWS/EKS or GCP/GKE. sandbox-host mounts JuiceFS directly, and a singleton Job formats fresh JuiceFS metadata before hosts start serving. |
 | sandboxes.callbackSigningJwk | string | `""` | Private JWK signing sandbox callbacks, or key `sandbox_callback_signing_jwk` in config.existingSecretName. Needs config.hostname for the issuer, or signing fails closed. |
-| sandboxes.enabled | bool | `false` |  |
 | sandboxes.juicefs.bucket | string | `""` | Object storage bucket/root URL used by JuiceFS. For AWS S3, use a region-explicit endpoint such as `https://bucket-name.s3.us-west-2.amazonaws.com`; do not use the `s3://bucket-name` shorthand because JuiceFS then infers region with GetBucketLocation. For GCS, use `gs://bucket-name`. Use `sandboxes.juicefs.name` for JuiceFS volume isolation instead of deployment-specific bucket paths. |
-| sandboxes.juicefs.csi.configSecretName | string | `"juicefs-csi-config"` | Name of the chart-managed JuiceFS config Secret. The bundled JuiceFS CSI setup is intended only for JuiceFS PVs in the namespace where this chart is installed. Chart-managed changes roll the CSI controller/node pods and, when hostMount.enabled is true, sandbox-host through checksum annotations. Helm cannot hash externally managed Secret contents or directly refresh CSI-created JuiceFS mount pods; roll affected workloads after changing external Secret data. |
-| sandboxes.juicefs.csi.controller.annotations | object | `{}` | Annotations applied to the JuiceFS CSI controller StatefulSet and pod template. |
-| sandboxes.juicefs.csi.controller.serviceAccount.annotations | object | `{}` | Annotations applied to the JuiceFS CSI controller ServiceAccount. |
-| sandboxes.juicefs.csi.existingSecretName | string | `""` | Existing Secret containing JuiceFS config keys `name`, `metaurl`, `storage`, and `bucket`. When set, this chart does not render the config Secret and `sandboxes.juicefs.name`, `sandboxes.juicefs.storage`, `sandboxes.juicefs.bucket`, and `sandboxes.juicefs.redis.metaURL` are not used for it. Host-owned mode mounts only its `metaurl` key; roll sandbox-host after updating externally managed Secret data. |
-| sandboxes.juicefs.csi.install | bool | `true` | Install the bundled JuiceFS CSI driver. Set to false when the cluster already runs one; the chart then renders only the sandbox PV/PVCs and CSI config Secret, bound to the existing driver. |
-| sandboxes.juicefs.csi.mountPodPatch | list | `[{"mountOptions":["cache-dir=/var/cache/juicefs-csi","cache-size=51200","buffer-size=300","prefetch=3","metrics=0.0.0.0:9567"],"resources":{"limits":{"cpu":"2","memory":"4Gi"},"requests":{"cpu":"2","memory":"4Gi"}}},{"mountOptions":["cache-dir=/var/cache/juicefs-csi","cache-size=307200","cache-large-write"],"pvcSelector":{"matchLabels":{"juicefs.langsmith.com/cache":"ssd"}}}]` | Mount pod patches used by the JuiceFS CSI driver for sandbox volumes. Override only when tuning JuiceFS mount behavior or observability. |
-| sandboxes.juicefs.csi.node.annotations | object | `{}` | Annotations applied to the JuiceFS CSI node DaemonSet and pod template. |
-| sandboxes.juicefs.csi.node.serviceAccount.annotations | object | `{}` | Annotations applied to the JuiceFS CSI node ServiceAccount. In CSI-backed mode, use this for workload identity annotations such as AWS IRSA or GCP Workload Identity. |
-| sandboxes.juicefs.csi.pvName | string | `"smithbox-juicefs-csi"` |  |
-| sandboxes.juicefs.csi.pvcName | string | `"smithbox-juicefs-csi"` |  |
+| sandboxes.juicefs.existingSecretName | string | `""` | Existing Secret containing JuiceFS config keys `name`, `metaurl`, `storage`, and `bucket`. The formatter Job reads all four keys; sandbox-host receives only `metaurl`. When set, the chart does not create the config Secret and the corresponding values above are ignored. Rotate the Secret name to rerun formatting; roll sandbox-host after changing data in place. |
 | sandboxes.juicefs.hostMount.cacheDirs | list | `["/var/cache/juicefs"]` | Node host paths used for the JuiceFS cache. Each path is mounted into sandbox-host and combined into one JuiceFS cache-dir option. Back these paths with node-local storage; their contents survive pod rollouts on the same node but not node replacement. |
-| sandboxes.juicefs.hostMount.enabled | bool | `false` | Let sandbox-host mount JuiceFS directly instead of consuming the CSI host PVC. CSI resources remain installed for rollback; disabling this restores the existing PVC-backed path. |
 | sandboxes.juicefs.hostMount.mountOptions | list | `["--cache-size=51200","--cache-large-write"]` | Additional JuiceFS CLI options passed to sandbox-host. The chart derives cache-dir from cacheDirs; do not set it here. The default cache-size is a conservative 50 GiB shared across the configured directories. |
-| sandboxes.juicefs.name | string | `"sandbox-juicefs"` | JuiceFS volume name. Use a flat DNS-label-style name only; slashes and object-store subpaths are not supported here. JuiceFS stores objects under `<name>/` inside the configured bucket. Also used to scope JuiceFS CSI RBAC for the generated mount Secret, so keep it aligned with the `name` key when using an existing CSI config Secret. |
+| sandboxes.juicefs.name | string | `"sandbox-juicefs"` | JuiceFS volume name. Use a flat DNS-label-style name only; slashes and object-store subpaths are not supported here. JuiceFS stores objects under `<name>/` inside the configured bucket. |
 | sandboxes.juicefs.redis.metaURL | string | `""` | JuiceFS Redis metadata URL. Redis metadata engines must use maxmemory-policy noeviction. For Redis Cluster, the `/DB` path is used by JuiceFS as a hash-tag key prefix rather than a Redis logical database. |
 | sandboxes.juicefs.storage | string | `"s3"` | Object storage backend used by JuiceFS for sandboxes. Currently supported values are `s3` for AWS/EKS and `gs` for GCP/GKE. Azure-backed sandbox storage is not supported yet. |
 | sandboxes.proxyCa.existingSecretName | string | `""` | Existing TLS Secret containing tls.crt and tls.key for the sandbox proxy CA. This Secret can be created manually, by cert-manager, or by another external process. |
 | sandboxes.proxyCa.mode | string | `"generatedSecret"` | generatedSecret creates a self-signed CA Secret with Helm and reuses it on live upgrades via lookup. In pure render/GitOps workflows where lookup cannot read the cluster, generatedSecret produces different cert material on each render; use existingSecret for deterministic manifests. |
-| sandboxes.proxyCa.secretName | string | `"smithbox-proxy-ca"` |  |
-| sandboxes.quotas.maxCpuCores | int | `16` |  |
-| sandboxes.quotas.maxEphemeralStorageGib | int | `100` |  |
-| sandboxes.quotas.maxMemoryGb | int | `64` |  |
-| sandboxes.quotas.maxSandboxes | int | `1000` |  |
-| sandboxes.quotas.minEphemeralStorageGb | int | `1` |  |
 | sandboxes.sandboxHost.autoscaling | object | `{"enabled":false,"headroomHosts":1,"maxReplicas":10,"minReplicas":1,"scaleDownStabilizationSeconds":300,"targetUtilizationPercent":70}` | Sandbox host pool autoscaling. There is no HPA or KEDA object: the elected sandbox-host resizes the Deployment itself. Unmanaged `sandbox-host.smith.langchain.com/autoscale-*` annotations override these live. |
 | sandboxes.sandboxHost.autoscaling.headroomHosts | int | `1` | Spare empty hosts kept above current demand so a sandbox create rarely waits for a cold node. |
 | sandboxes.sandboxHost.autoscaling.scaleDownStabilizationSeconds | int | `300` | Hold the replica target at its recent peak this long before shrinking, so load dips do not thrash the pool. |
 | sandboxes.sandboxHost.autoscaling.targetUtilizationPercent | int | `70` | Target share of pool CPU capacity committed to sandboxes before scaling up. |
-| sandboxes.sandboxHost.deployment.annotations | object | `{}` |  |
-| sandboxes.sandboxHost.deployment.extraEnv | list | `[]` |  |
-| sandboxes.sandboxHost.deployment.initContainers | list | `[]` |  |
-| sandboxes.sandboxHost.deployment.labels | object | `{}` |  |
 | sandboxes.sandboxHost.deployment.nodeSelector | object | `{}` | Node selector for sandbox-host pods. Required: host pods must land on KVM-capable nodes, and a toleration alone does not attract them there. |
-| sandboxes.sandboxHost.deployment.podAnnotations | object | `{}` |  |
-| sandboxes.sandboxHost.deployment.podSecurityContext | object | `{}` |  |
-| sandboxes.sandboxHost.deployment.priorityClassName | string | `""` |  |
 | sandboxes.sandboxHost.deployment.readinessProbe | object | `{"failureThreshold":3,"initialDelaySeconds":5,"periodSeconds":10,"tcpSocket":{"port":"http"},"timeoutSeconds":3}` | Readiness probe. The host binds its listener last, so accepting connections gates the rollout. No liveness probe: a restart mid-suspend destroys running microVMs. |
 | sandboxes.sandboxHost.deployment.replicas | int | `1` | Number of sandbox-host replicas, i.e. sandbox nodes backing the pool. One host per node, so do not exceed the node count. Ignored when autoscaling is enabled. |
-| sandboxes.sandboxHost.deployment.resources | object | `{"requests":{"cpu":"2","memory":"2Gi"}}` | Resource requests and limits for sandbox-host. In host-owned JuiceFS mode, include the CPU and memory previously reserved for the CSI mount pod. |
+| sandboxes.sandboxHost.deployment.resources | object | `{"requests":{"cpu":"2","memory":"2Gi"}}` | Resource requests and limits for sandbox-host. Include the CPU and memory required by its JuiceFS mount process. |
 | sandboxes.sandboxHost.deployment.securityContext | object | `{"privileged":true}` | Container security context. Must stay privileged, with a writable root: the host needs netns, iptables and mount propagation, and unpacks the guest tools image. |
-| sandboxes.sandboxHost.deployment.sidecars | list | `[]` |  |
-| sandboxes.sandboxHost.deployment.terminationGracePeriodSeconds | int | `300` |  |
 | sandboxes.sandboxHost.deployment.tolerations | list | `[{"effect":"NoSchedule","key":"sandbox.langsmith.com/host","operator":"Equal","value":"true"}]` | Tolerations for sandbox-host pods. The default expects sandbox-host nodes tainted `sandbox.langsmith.com/host=true:NoSchedule`; override this if your sandbox node pool uses different taints. |
-| sandboxes.sandboxHost.deployment.volumeMounts | list | `[]` |  |
-| sandboxes.sandboxHost.deployment.volumes | list | `[]` |  |
 | sandboxes.sandboxHost.name | string | `"sandbox-host"` | Component name for sandbox-host. Resources are named `<release-fullname>-<name>`, which the chart passes to the host as SANDBOX_HOST_DEPLOYMENT_NAME. |
 | sandboxes.sandboxHost.pdb | object | `{"annotations":{},"enabled":false,"labels":{},"maxUnavailable":1}` | Disruption budget for sandbox-host, capping concurrent evictions since each drain suspends every microVM on that host. maxUnavailable keeps a small pool drainable; setting minAvailable overrides it. |
-| sandboxes.sandboxHost.rbac.annotations | object | `{}` |  |
-| sandboxes.sandboxHost.rbac.create | bool | `true` |  |
-| sandboxes.sandboxHost.rbac.labels | object | `{}` |  |
-| sandboxes.sandboxHost.serviceAccount.annotations | object | `{}` | Annotations applied to the sandbox-host ServiceAccount. When sandboxes.juicefs.hostMount.enabled is true, attach the AWS IRSA or GCP Workload Identity that grants access to the JuiceFS object-storage bucket here. |
-| sandboxes.sandboxHost.serviceAccount.automountServiceAccountToken | bool | `true` |  |
-| sandboxes.sandboxHost.serviceAccount.create | bool | `true` |  |
-| sandboxes.sandboxHost.serviceAccount.labels | object | `{}` |  |
-| sandboxes.sandboxHost.serviceAccount.name | string | `""` |  |
+| sandboxes.sandboxHost.serviceAccount.annotations | object | `{}` | Annotations applied to the sandbox-host ServiceAccount. Attach the AWS IRSA or GCP Workload Identity that grants access to the JuiceFS object-storage bucket here. |
 | sandboxes.serviceUrlBaseUrl | string | `""` | Base URL for reaching HTTP services inside sandboxes. Needs wildcard DNS and TLS for `*.<host>`; with ingress.enabled the chart adds the wildcard rule. http(s) origin only, no path. |
 | smithdb.clusterManager.containerGrpcPort | int | `8091` |  |
 | smithdb.clusterManager.containerPort | int | `8090` |  |
@@ -1360,7 +1323,25 @@ Two things worth planning for before you enable it:
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| config.agentBuilder | object | `{"agent":{"extraEnv":{},"resources":{"cpu":2,"cpuLimit":4,"maxScale":5,"memoryLimitMb":8192,"memoryMb":4096,"minScale":1}},"enabled":false,"encryptionKey":"","oauth":{"githubOAuthProvider":"","googleOAuthProvider":"","linearOAuthProvider":"","linkedinOAuthProvider":"","microsoftOAuthProvider":"","salesforceOAuthProvider":"","slackBotId":"","slackOAuthProvider":"","slackSigningSecret":""},"oauthProviderOrgId":""}` | LangSmith Sandboxes configuration. Disabled by default. When enabled, this installs sandbox runtime resources in the same namespace as the LangSmith release and wires the LangSmith API/frontend services to expose sandbox functionality. This supports the same-cluster sandbox-host architecture only. Self-hosted sandboxes are currently supported on AWS/EKS and GCP/GKE. Azure/AKS is supported by the base LangSmith chart, but not by sandboxes yet. Enabling sandboxes also installs the JuiceFS CSI driver. The CSI driver creates cluster-scoped resources, so only one sandbox-enabled LangSmith release should manage it per Kubernetes cluster. Do not enable sandboxes in multiple releases in the same cluster, or alongside an independently managed JuiceFS CSI installation, unless you have verified ownership of those cluster-scoped resources. |
+| config.agentBuilder.agent.extraEnv | object | `{}` |  |
+| config.agentBuilder.agent.resources.cpu | int | `2` |  |
+| config.agentBuilder.agent.resources.cpuLimit | int | `4` |  |
+| config.agentBuilder.agent.resources.maxScale | int | `5` |  |
+| config.agentBuilder.agent.resources.memoryLimitMb | int | `8192` |  |
+| config.agentBuilder.agent.resources.memoryMb | int | `4096` |  |
+| config.agentBuilder.agent.resources.minScale | int | `1` |  |
+| config.agentBuilder.enabled | bool | `false` |  |
+| config.agentBuilder.encryptionKey | string | `""` |  |
+| config.agentBuilder.oauth.githubOAuthProvider | string | `""` |  |
+| config.agentBuilder.oauth.googleOAuthProvider | string | `""` |  |
+| config.agentBuilder.oauth.linearOAuthProvider | string | `""` |  |
+| config.agentBuilder.oauth.linkedinOAuthProvider | string | `""` |  |
+| config.agentBuilder.oauth.microsoftOAuthProvider | string | `""` |  |
+| config.agentBuilder.oauth.salesforceOAuthProvider | string | `""` |  |
+| config.agentBuilder.oauth.slackBotId | string | `""` |  |
+| config.agentBuilder.oauth.slackOAuthProvider | string | `""` |  |
+| config.agentBuilder.oauth.slackSigningSecret | string | `""` |  |
+| config.agentBuilder.oauthProviderOrgId | string | `""` |  |
 | config.apiKeySalt | string | `""` | Salt used to generate the API key. Should be a random string. |
 | config.authType | string | `""` | Must be 'oauth' for OAuth with PKCE, 'mixed' for basic auth or OAuth without PKCE |
 | config.basePath | string | `""` | Base path for the LangSmith installation. Used to serve the app under a subpath like example.com/langsmith. WARNING: Changing basePath after LangSmith Deployments have been created will break existing deployments. Existing deployments will need to be recreated for the new basePath to take effect. |

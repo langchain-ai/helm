@@ -182,20 +182,6 @@ AWS Marketplace Helm template verification).
 {{- if not .Values.images.sandboxHostImage.tag -}}
 {{- fail "images.sandboxHostImage.tag is required when sandboxes.enabled is true." -}}
 {{- end -}}
-{{- if .Values.sandboxes.juicefs.csi.install -}}
-{{- range $imageName := list "juicefsCSIImage" "juicefsCSINodeDriverRegistrarImage" -}}
-{{- $image := index $.Values.images $imageName -}}
-{{- if not $image.repository -}}
-{{- fail (printf "images.%s.repository is required when sandboxes.enabled is true." $imageName) -}}
-{{- end -}}
-{{- if not $image.tag -}}
-{{- fail (printf "images.%s.tag is required when sandboxes.enabled is true." $imageName) -}}
-{{- end -}}
-{{- end -}}
-{{- if and .Values.images.juicefsMountImage.tag (not .Values.images.juicefsMountImage.repository) -}}
-{{- fail "images.juicefsMountImage.repository is required when images.juicefsMountImage.tag is set." -}}
-{{- end -}}
-{{- end -}}
 {{- /* The host needs netns, iptables and mount propagation. Fail here, not at CrashLoop. */ -}}
 {{- if and (hasKey .Values.sandboxes.sandboxHost.deployment.securityContext "privileged") (not .Values.sandboxes.sandboxHost.deployment.securityContext.privileged) -}}
 {{- fail "sandboxes.sandboxHost.deployment.securityContext.privileged must be true: sandbox-host manages microVMs, network namespaces and mounts." -}}
@@ -228,21 +214,21 @@ AWS Marketplace Helm template verification).
 {{- fail "sandboxes.serviceUrlBaseUrl host must be a DNS hostname without a port when ingress.enabled is true." -}}
 {{- end -}}
 {{- end -}}
-{{- $juicefsCSI := .Values.sandboxes.juicefs.csi | default dict -}}
-{{- if not $juicefsCSI.existingSecretName -}}
+{{- $juicefs := .Values.sandboxes.juicefs | default dict -}}
+{{- if not $juicefs.existingSecretName -}}
 {{- $juicefsRedis := .Values.sandboxes.juicefs.redis | default dict -}}
 {{- if not $juicefsRedis.metaURL -}}
-{{- fail "sandboxes.juicefs.redis.metaURL is required when sandboxes.enabled is true and sandboxes.juicefs.csi.existingSecretName is not set." -}}
+{{- fail "sandboxes.juicefs.redis.metaURL is required when sandboxes.enabled is true and sandboxes.juicefs.existingSecretName is not set." -}}
 {{- end -}}
 {{- $juicefsName := .Values.sandboxes.juicefs.name | default "" -}}
 {{- if not $juicefsName -}}
-{{- fail "sandboxes.juicefs.name is required when sandboxes.enabled is true and sandboxes.juicefs.csi.existingSecretName is not set." -}}
+{{- fail "sandboxes.juicefs.name is required when sandboxes.enabled is true and sandboxes.juicefs.existingSecretName is not set." -}}
 {{- end -}}
 {{- if not (regexMatch "^[a-z0-9][a-z0-9-]{1,61}[a-z0-9]$" $juicefsName) -}}
 {{- fail "sandboxes.juicefs.name must be a DNS-label-style JuiceFS volume name: 3-63 characters, lowercase letters, numbers, and hyphens only. Do not use slashes or object-store subpaths here." -}}
 {{- end -}}
 {{- if not .Values.sandboxes.juicefs.bucket -}}
-{{- fail "sandboxes.juicefs.bucket is required when sandboxes.enabled is true and sandboxes.juicefs.csi.existingSecretName is not set." -}}
+{{- fail "sandboxes.juicefs.bucket is required when sandboxes.enabled is true and sandboxes.juicefs.existingSecretName is not set." -}}
 {{- end -}}
 {{- $juicefsStorage := .Values.sandboxes.juicefs.storage | default "" -}}
 {{- $juicefsBucket := .Values.sandboxes.juicefs.bucket | default "" -}}
@@ -257,9 +243,8 @@ AWS Marketplace Helm template verification).
 {{- end -}}
 {{- end -}}
 {{- $hostMount := .Values.sandboxes.juicefs.hostMount -}}
-{{- if $hostMount.enabled -}}
 {{- if not $hostMount.cacheDirs -}}
-{{- fail "sandboxes.juicefs.hostMount.cacheDirs must contain at least one node host path when hostMount.enabled is true." -}}
+{{- fail "sandboxes.juicefs.hostMount.cacheDirs must contain at least one node host path when sandboxes.enabled is true." -}}
 {{- end -}}
 {{- $cacheDirsSeen := dict -}}
 {{- range $cacheDir := $hostMount.cacheDirs -}}
@@ -283,7 +268,6 @@ AWS Marketplace Helm template verification).
 {{- range $mountOption := $hostMount.mountOptions -}}
 {{- if regexMatch "^--cache-dir($|=)" $mountOption -}}
 {{- fail "sandboxes.juicefs.hostMount.mountOptions must not set --cache-dir; configure sandboxes.juicefs.hostMount.cacheDirs instead." -}}
-{{- end -}}
 {{- end -}}
 {{- end -}}
 {{- if and (not .Values.config.existingSecretName) (not .Values.config.disableSecretCreation) (not .Values.sandboxes.callbackSigningJwk) -}}
