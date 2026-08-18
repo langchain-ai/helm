@@ -756,6 +756,12 @@ tests:
         contains:
           path: spec.template.spec.containers[0].env
           content:
+            name: SMITHDB_MIGRATION__WORKER_POOL__NUM_WORKERS
+            value: "6"
+      - template: smithdb/migration-job.yaml
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
             name: SMITHDB_MIGRATION__TASKDB__MAX_CONNECTIONS
             value: "10"
       - template: smithdb/migration-job.yaml
@@ -896,6 +902,22 @@ tests:
               secretKeyRef:
                 name: RELEASE-NAME-langsmith-smithdb-taskdb-postgres
                 key: postgres_password
+
+  - it: should derive migration workers from a millicore CPU limit
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      smithdb.langsmith.migration.enabled: true
+      smithdb.langsmith.query.enabled: false
+      smithdb.migration.deployment.resources.limits.cpu: 4000m
+      smithdb.migration.taskdb.postgres.auth.password: taskdb-password
+    template: smithdb/migration-job.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_MIGRATION__WORKER_POOL__NUM_WORKERS
+            value: "3"
 
   - it: should use native GCS for migration source blobs with workload identity
     values:
