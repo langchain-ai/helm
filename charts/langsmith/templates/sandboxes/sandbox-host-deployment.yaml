@@ -2,13 +2,11 @@
 {{- $namespace := .Values.namespace | default .Release.Namespace }}
 {{- $autoscaling := .Values.sandboxes.sandboxHost.autoscaling }}
 {{- $hostMount := .Values.sandboxes.juicefs.hostMount }}
-{{- if $hostMount.enabled }}
 {{- $managedHostMountEnv := list
   (dict "name" "SANDBOX_HOST_JUICEFS_META_URL_FILE")
   (dict "name" "SANDBOX_HOST_JUICEFS_MOUNT_OPTIONS")
 -}}
 {{- include "langsmith.detectDuplicates" (concat $managedHostMountEnv .Values.sandboxes.sandboxHost.deployment.extraEnv) }}
-{{- end }}
 {{- /* Chart labels last so they win; the selector depends on them. */}}
 {{- $labels := mergeOverwrite (dict "app" .Values.sandboxes.sandboxHost.name)
   (default dict .Values.sandboxes.sandboxHost.deployment.labels)
@@ -49,9 +47,7 @@ spec:
         {{- toYaml $labels | nindent 8 }}
       annotations:
         {{- include "langsmith.commonPodAnnotations" . | nindent 8 }}
-        {{- if $hostMount.enabled }}
-        checksum/juicefs-config: {{ include "langsmith.sandboxes.juicefsCSIConfigSecretChecksum" . | quote }}
-        {{- end }}
+        checksum/juicefs-config: {{ include "langsmith.sandboxes.juicefsConfigSecretChecksum" . | quote }}
         {{- with .Values.sandboxes.sandboxHost.deployment.podAnnotations }}
           {{- toYaml . | nindent 8 }}
         {{- end }}
@@ -150,12 +146,10 @@ spec:
               value: {{ printf "%s-%s" (include "langsmith.fullname" .) .Values.sandboxes.sandboxHost.name | quote }}
             - name: SANDBOX_HOST_TERMINATION_GRACE_SECONDS
               value: {{ .Values.sandboxes.sandboxHost.deployment.terminationGracePeriodSeconds | quote }}
-            {{- if $hostMount.enabled }}
             - name: SANDBOX_HOST_JUICEFS_META_URL_FILE
               value: /run/secrets/juicefs/metaurl
             - name: SANDBOX_HOST_JUICEFS_MOUNT_OPTIONS
               value: {{ concat (list (printf "--cache-dir=%s" (join ":" $hostMount.cacheDirs))) $hostMount.mountOptions | toJson | quote }}
-            {{- end }}
             {{- /* Baseline; autoscale-* annotations override it live. */}}
             - name: SANDBOX_HOST_AUTOSCALE_ENABLED
               value: {{ $autoscaling.enabled | quote }}
@@ -191,7 +185,6 @@ spec:
           volumeMounts:
             - name: juicefs
               mountPath: /juicefs
-            {{- if $hostMount.enabled }}
             {{- range $index, $cacheDir := $hostMount.cacheDirs }}
             - name: juicefs-cache-{{ $index }}
               mountPath: {{ $cacheDir | quote }}
@@ -199,7 +192,6 @@ spec:
             - name: juicefs-meta
               mountPath: /run/secrets/juicefs
               readOnly: true
-            {{- end }}
             - name: host-bin
               mountPath: /host-bin
             - name: proxy-ca
@@ -213,14 +205,8 @@ spec:
         {{- end }}
       volumes:
         - name: juicefs
-          {{- if $hostMount.enabled }}
           # Writable mount target. sandbox-host mounts JuiceFS over this directory.
           emptyDir: {}
-          {{- else }}
-          persistentVolumeClaim:
-            claimName: {{ include "langsmith.sandboxes.juicefsHostPVCName" . }}
-          {{- end }}
-        {{- if $hostMount.enabled }}
         {{- range $index, $cacheDir := $hostMount.cacheDirs }}
         - name: juicefs-cache-{{ $index }}
           hostPath:
@@ -229,12 +215,11 @@ spec:
         {{- end }}
         - name: juicefs-meta
           secret:
-            secretName: {{ include "langsmith.sandboxes.juicefsCSIConfigSecretName" . }}
+            secretName: {{ include "langsmith.sandboxes.juicefsConfigSecretName" . }}
             defaultMode: 0400
             items:
               - key: metaurl
                 path: metaurl
-        {{- end }}
         - name: proxy-ca
           secret:
             secretName: {{ include "langsmith.sandboxes.proxyCaSecretName" . }}
