@@ -84,8 +84,10 @@ tests:
       - ./values/smithdb-enabled.yaml
     set:
       config.existingSecretName: langsmith-runtime
-      config.telemetry.endpoint: https://dev.beacon.langchain.com
       config.telemetry.logs: true
+      commonEnv:
+        - name: BEACON_ENDPOINT
+          value: https://dev.beacon.langchain.com
     template: smithdb/query-deployment.yaml
     asserts:
       - contains:
@@ -113,23 +115,19 @@ tests:
                 key: langsmith_license_key
                 optional: false
 
-  - it: should disable SmithDB Beacon log export with self-hosted log telemetry
+  - it: should omit SmithDB Beacon configuration without an explicit endpoint
     values:
       - ./values/smithdb-enabled.yaml
-    set:
-      config.telemetry.logs: false
     template: smithdb/cluster-manager-deployment.yaml
     asserts:
-      - contains:
+      - notContains:
           path: spec.template.spec.containers[0].env
           content:
             name: BEACON_LOGGING_ENABLED
-            value: "false"
-      - contains:
+      - notContains:
           path: spec.template.spec.containers[0].env
           content:
-            name: PHONE_HOME_ENABLED
-            value: "false"
+            name: LANGSMITH_LICENSE_KEY
 
   - it: should enable TLS for metastore migrations when metastore TLS is enabled
     values:
