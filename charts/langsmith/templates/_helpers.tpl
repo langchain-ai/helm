@@ -650,24 +650,18 @@ OTEL_EXPORTER_OTLP_ENDPOINT consumed by SmithDB requires a URI scheme.
 SmithDB Beacon log export environment.
 */}}
 {{- define "langsmith.smithdb.beaconEnv" -}}
-{{- $beaconEndpointConfigured := false -}}
-{{- range $envVar := concat .Values.commonEnv .Values.smithdb.commonEnv -}}
-{{- if eq $envVar.name "BEACON_ENDPOINT" -}}
-{{- $beaconEndpointConfigured = true -}}
-{{- end -}}
-{{- end -}}
-{{- if $beaconEndpointConfigured }}
 - name: BEACON_LOGGING_ENABLED
   value: {{ .Values.config.telemetry.logs | quote }}
+- name: BEACON_TRACING_ENABLED
+  value: {{ .Values.config.telemetry.traces | quote }}
 - name: PHONE_HOME_ENABLED
-  value: {{ .Values.config.telemetry.logs | quote }}
+  value: {{ or .Values.config.telemetry.logs .Values.config.telemetry.traces | quote }}
 - name: LANGSMITH_LICENSE_KEY
   valueFrom:
     secretKeyRef:
       name: {{ include "langsmith.secretsName" . }}
       key: langsmith_license_key
       optional: {{ .Values.config.disableSecretCreation }}
-{{- end }}
 {{- end }}
 
 {{/*
