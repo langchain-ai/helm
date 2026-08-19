@@ -1,5 +1,11 @@
 {{- if .Values.presidioAnalyzer.enabled }}
 {{- $envVars := concat .Values.commonEnv (include "langsmith.commonEnv" . | fromYamlArray) .Values.presidioAnalyzer.deployment.extraEnv -}}
+{{- $presidioEnvVars := list -}}
+{{- range $envVar := $envVars -}}
+{{- if ne $envVar.name "LOG_LEVEL" -}}
+{{- $presidioEnvVars = append $presidioEnvVars $envVar -}}
+{{- end -}}
+{{- end -}}
 {{- $volumes := concat .Values.commonVolumes .Values.presidioAnalyzer.deployment.volumes (include "langsmith.tlsVolumes" . | fromYamlArray) -}}
 {{- $volumeMounts := concat .Values.commonVolumeMounts .Values.presidioAnalyzer.deployment.volumeMounts (include "langsmith.tlsVolumeMounts" . | fromYamlArray) -}}
 apiVersion: apps/v1
@@ -58,7 +64,7 @@ spec:
       containers:
         - name: {{ .Values.presidioAnalyzer.name }}
           env:
-            {{- with $envVars }}
+            {{- with $presidioEnvVars }}
             {{- toYaml . | nindent 12 }}
             {{- end }}
             - name: LOG_LEVEL

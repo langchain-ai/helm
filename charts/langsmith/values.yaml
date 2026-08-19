@@ -65,21 +65,21 @@ images:
   aceBackendImage:
     repository: "docker.io/langchain/langsmith-ace-backend"
     pullPolicy: IfNotPresent
-    tag: "0.17.1rc1"
+    tag: "0.17.10rc1"
   backendImage:
     repository: "docker.io/langchain/langsmith-backend"
     pullPolicy: IfNotPresent
-    tag: "0.17.1rc1"
+    tag: "0.17.10rc1"
   # Serves both the `insights` and `engine` graphs; insights.enabled and
   # engine.enabled pick which of them run.
   engineInsightsAgentImage:
     repository: "docker.io/langchain/langsmith-insights-engine"
     pullPolicy: IfNotPresent
-    tag: "0.17.1rc1"
+    tag: "0.17.10rc1"
   frontendImage:
     repository: "docker.io/langchain/langsmith-frontend"
     pullPolicy: IfNotPresent
-    tag: "0.17.1rc1"
+    tag: "0.17.10rc1"
   operatorImage:
     repository: "docker.io/langchain/langgraph-operator"
     pullPolicy: IfNotPresent
@@ -103,15 +103,15 @@ images:
   agentBuilderImage:
     repository: "docker.io/langchain/agent-builder-deep-agent"
     pullPolicy: IfNotPresent
-    tag: "0.17.1rc1"
+    tag: "0.17.10rc1"
   pollyAgentImage:
     repository: "docker.io/langchain/langsmith-polly"
     pullPolicy: IfNotPresent
-    tag: "0.17.1rc1"
+    tag: "0.17.10rc1"
   smithdbImage:
     repository: "docker.io/langchain/smithdb"
     pullPolicy: IfNotPresent
-    tag: "0.17.1rc1"
+    tag: "0.17.10rc1"
   # Optional: only mirror/pull when presidioAnalyzer.enabled is true
   presidioAnalyzerImage:
     repository: "mcr.microsoft.com/presidio-analyzer"
@@ -1289,7 +1289,6 @@ config:
 aceBackend:
   name: "ace-backend"
   containerPort: 1987
-  bindAddress: "0.0.0.0"
   # -- ArgoCD Rollouts configuration. If enabled, will create a Rollout resource instead of a Deployment. See https://argo-rollouts.readthedocs.io/
   rollout:
     enabled: false
@@ -1436,6 +1435,8 @@ smithdb:
       databaseSecretKey: ""
       usernameSecretKey: ""
       passwordSecretKey: ""
+      iamAuthProvider: ""
+      iamUsername: ""
       port: "5432"
       useSsl: false
     objectStore:
@@ -1508,8 +1509,13 @@ smithdb:
       tolerations: []
       affinity: {}
       topologySpreadConstraints: []
-      volumes: []
-      volumeMounts: []
+      volumes:
+        - name: local-ssd-storage
+          emptyDir:
+            sizeLimit: 200Gi
+      volumeMounts:
+        - name: local-ssd-storage
+          mountPath: /data
       initContainers: []
     service:
       port: 8080
@@ -1828,6 +1834,8 @@ smithdb:
       # -- Keep finished migrate-all Jobs around for seven days so operators can inspect status/logs.
       ttlSecondsAfterFinished: 604800
       # -- Maximum number of migration pods that run concurrently.
+      # -- Above ~20, prefer scaling TaskDB vertically (CPU/memory) rather than adding more
+      # -- migration pods.
       parallelism: 1
       # -- Retry failed migrate-all pods up to this many times before marking the Job failed.
       backoffLimit: 3
@@ -1839,6 +1847,10 @@ smithdb:
         # -- Enable Postgres for SmithDB migration task state. This is a separate database from
         # -- both the main LangSmith Postgres and the SmithDB metastore.
         enabled: true
+        # -- Maximum TaskDB connections opened by each migration pod. Sized for concurrent short
+        # -- Postgres ops, not worker count. The chart-managed Postgres server allows this many
+        # -- connections for every parallel pod plus one pod of headroom.
+        maxConnectionsPerMigrationPod: 10
         name: "taskdb-postgres"
         containerPort: 5433
         # -- Credentials for the in-chart taskdb Postgres instance. Used only when external.enabled is false.
@@ -1943,11 +1955,11 @@ smithdb:
       resources:
         requests:
           cpu: "8"
-          memory: "16Gi"
+          memory: "32Gi"
           ephemeral-storage: "100Gi"
         limits:
           cpu: "8"
-          memory: "16Gi"
+          memory: "32Gi"
           ephemeral-storage: "100Gi"
       # -- Runs taskdb schema migrations, then one-shot self-hosted migrate-all: discover tenants,
       # -- register non-overlapping jobs, drain the global queue, and exit. Override for another migration mode.
@@ -1966,9 +1978,9 @@ smithdb:
 
   metastoreMigration:
     name: "metastore-migration"
-    useSsl: false
     command:
-      - "/usr/local/bin/smithdb-metastore-migrate-entrypoint.sh"
+      - "./smithdb"
+      - "metastore-migrate"
     job:
       ttlSecondsAfterFinished: 3600
       backoffLimit: 0

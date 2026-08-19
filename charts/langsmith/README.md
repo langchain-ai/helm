@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.17.0-rc.3](https://img.shields.io/badge/Version-0.17.0--rc.3-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.17.1rc1](https://img.shields.io/badge/AppVersion-0.17.1rc1-informational?style=flat-square)
+![Version: 0.17.0-rc.8](https://img.shields.io/badge/Version-0.17.0--rc.8-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.17.10rc1](https://img.shields.io/badge/AppVersion-0.17.10rc1-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -563,22 +563,22 @@ Two things worth planning for before you enable it:
 | gateway.sectionName | string | `""` |  |
 | images.aceBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.aceBackendImage.repository | string | `"docker.io/langchain/langsmith-ace-backend"` |  |
-| images.aceBackendImage.tag | string | `"0.17.1rc1"` |  |
+| images.aceBackendImage.tag | string | `"0.17.10rc1"` |  |
 | images.agentBuilderImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.agentBuilderImage.repository | string | `"docker.io/langchain/agent-builder-deep-agent"` |  |
-| images.agentBuilderImage.tag | string | `"0.17.1rc1"` |  |
+| images.agentBuilderImage.tag | string | `"0.17.10rc1"` |  |
 | images.backendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.backendImage.repository | string | `"docker.io/langchain/langsmith-backend"` |  |
-| images.backendImage.tag | string | `"0.17.1rc1"` |  |
+| images.backendImage.tag | string | `"0.17.10rc1"` |  |
 | images.clickhouseImage.pullPolicy | string | `"Always"` |  |
 | images.clickhouseImage.repository | string | `"docker.io/clickhouse/clickhouse-server"` |  |
 | images.clickhouseImage.tag | string | `"25.12"` |  |
 | images.engineInsightsAgentImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.engineInsightsAgentImage.repository | string | `"docker.io/langchain/langsmith-insights-engine"` |  |
-| images.engineInsightsAgentImage.tag | string | `"0.17.1rc1"` |  |
+| images.engineInsightsAgentImage.tag | string | `"0.17.10rc1"` |  |
 | images.frontendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.frontendImage.repository | string | `"docker.io/langchain/langsmith-frontend"` |  |
-| images.frontendImage.tag | string | `"0.17.1rc1"` |  |
+| images.frontendImage.tag | string | `"0.17.10rc1"` |  |
 | images.imagePullSecrets | list | `[]` | Secrets with credentials to pull images from a private registry. Specified as name: value. |
 | images.juicefsCSIImage | object | `{"pullPolicy":"IfNotPresent","repository":"docker.io/juicedata/juicefs-csi-driver","tag":"v0.31.4"}` | JuiceFS CSI driver image. Only used when sandboxes.enabled is true. |
 | images.juicefsCSINodeDriverRegistrarImage | object | `{"pullPolicy":"IfNotPresent","repository":"registry.k8s.io/sig-storage/csi-node-driver-registrar","tag":"v2.9.0"}` | JuiceFS CSI node-driver-registrar sidecar image. Only used when sandboxes.enabled is true. |
@@ -588,7 +588,7 @@ Two things worth planning for before you enable it:
 | images.operatorImage.tag | string | `"0.1.47"` |  |
 | images.pollyAgentImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.pollyAgentImage.repository | string | `"docker.io/langchain/langsmith-polly"` |  |
-| images.pollyAgentImage.tag | string | `"0.17.1rc1"` |  |
+| images.pollyAgentImage.tag | string | `"0.17.10rc1"` |  |
 | images.postgresImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.postgresImage.repository | string | `"docker.io/postgres"` |  |
 | images.postgresImage.tag | string | `"14.7"` |  |
@@ -602,7 +602,7 @@ Two things worth planning for before you enable it:
 | images.sandboxHostImage | object | `{"pullPolicy":"IfNotPresent","repository":"docker.io/langchain/sandbox-host","tag":""}` | sandbox-host image. Only used when sandboxes.enabled is true. |
 | images.smithdbImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.smithdbImage.repository | string | `"docker.io/langchain/smithdb"` |  |
-| images.smithdbImage.tag | string | `"0.17.1rc1"` |  |
+| images.smithdbImage.tag | string | `"0.17.10rc1"` |  |
 | ingestQueue.autoscaling.hpa.enabled | bool | `false` |  |
 | ingestQueue.autoscaling.hpa.maxReplicas | int | `10` |  |
 | ingestQueue.autoscaling.hpa.minReplicas | int | `3` |  |
@@ -1069,6 +1069,8 @@ Two things worth planning for before you enable it:
 | smithdb.config.existingSecretName | string | `""` | Existing secret containing SmithDB metastore credentials. |
 | smithdb.config.metastore.databaseSecretKey | string | `""` |  |
 | smithdb.config.metastore.hostSecretKey | string | `""` |  |
+| smithdb.config.metastore.iamAuthProvider | string | `""` |  |
+| smithdb.config.metastore.iamUsername | string | `""` |  |
 | smithdb.config.metastore.passwordSecretKey | string | `""` |  |
 | smithdb.config.metastore.port | string | `"5432"` |  |
 | smithdb.config.metastore.useSsl | bool | `false` |  |
@@ -1149,7 +1151,8 @@ Two things worth planning for before you enable it:
 | smithdb.langsmith.ingestion.enabled | bool | `false` | Enables LangSmith run ingestion via SmithDB. When ClickHouse is enabled, ingestion writes to both backends. Requires smithdb.enabled. |
 | smithdb.langsmith.migration.enabled | bool | `false` | Detailed migration and taskdb configuration lives under smithdb.migration. |
 | smithdb.langsmith.query.enabled | bool | `false` | Enables SmithDB-powered queries. Requires smithdb.enabled. |
-| smithdb.metastoreMigration.command[0] | string | `"/usr/local/bin/smithdb-metastore-migrate-entrypoint.sh"` |  |
+| smithdb.metastoreMigration.command[0] | string | `"./smithdb"` |  |
+| smithdb.metastoreMigration.command[1] | string | `"metastore-migrate"` |  |
 | smithdb.metastoreMigration.job.activeDeadlineSeconds | int | `600` |  |
 | smithdb.metastoreMigration.job.affinity | object | `{}` |  |
 | smithdb.metastoreMigration.job.annotations | object | `{}` |  |
@@ -1165,7 +1168,6 @@ Two things worth planning for before you enable it:
 | smithdb.metastoreMigration.job.tolerations | list | `[]` |  |
 | smithdb.metastoreMigration.job.ttlSecondsAfterFinished | int | `3600` |  |
 | smithdb.metastoreMigration.name | string | `"metastore-migration"` |  |
-| smithdb.metastoreMigration.useSsl | bool | `false` |  |
 | smithdb.migration.containerPort | int | `9040` |  |
 | smithdb.migration.deployment.affinity | object | `{}` |  |
 | smithdb.migration.deployment.annotations | object | `{}` |  |
@@ -1178,10 +1180,10 @@ Two things worth planning for before you enable it:
 | smithdb.migration.deployment.podSecurityContext | object | `{}` |  |
 | smithdb.migration.deployment.resources.limits.cpu | string | `"8"` |  |
 | smithdb.migration.deployment.resources.limits.ephemeral-storage | string | `"100Gi"` |  |
-| smithdb.migration.deployment.resources.limits.memory | string | `"16Gi"` |  |
+| smithdb.migration.deployment.resources.limits.memory | string | `"32Gi"` |  |
 | smithdb.migration.deployment.resources.requests.cpu | string | `"8"` |  |
 | smithdb.migration.deployment.resources.requests.ephemeral-storage | string | `"100Gi"` |  |
-| smithdb.migration.deployment.resources.requests.memory | string | `"16Gi"` |  |
+| smithdb.migration.deployment.resources.requests.memory | string | `"32Gi"` |  |
 | smithdb.migration.deployment.securityContext | object | `{}` |  |
 | smithdb.migration.deployment.sidecars | list | `[]` |  |
 | smithdb.migration.deployment.terminationGracePeriodSeconds | int | `120` |  |
@@ -1192,7 +1194,7 @@ Two things worth planning for before you enable it:
 | smithdb.migration.endTime | string | `""` | Optional RFC3339 end bound for migrate-all (half-open window). Empty uses now. |
 | smithdb.migration.job.activeDeadlineSeconds | string | `nil` | Optional hard deadline for the Job. Leave unset for long-running full migrations. |
 | smithdb.migration.job.backoffLimit | int | `3` | Retry failed migrate-all pods up to this many times before marking the Job failed. |
-| smithdb.migration.job.parallelism | int | `1` | Maximum number of migration pods that run concurrently. |
+| smithdb.migration.job.parallelism | int | `1` | migration pods. |
 | smithdb.migration.job.restartPolicy | string | `"Never"` |  |
 | smithdb.migration.job.ttlSecondsAfterFinished | int | `604800` | Keep finished migrate-all Jobs around for seven days so operators can inspect status/logs. |
 | smithdb.migration.name | string | `"migration"` |  |
@@ -1204,6 +1206,7 @@ Two things worth planning for before you enable it:
 | smithdb.migration.taskdb.postgres.enabled | bool | `true` | both the main LangSmith Postgres and the SmithDB metastore. |
 | smithdb.migration.taskdb.postgres.external | object | `{"database":"smithdb_migration","databaseSecretKey":"postgres_db","enabled":false,"existingSecretName":"","host":"","hostSecretKey":"postgres_host","password":"","passwordSecretKey":"postgres_password","port":"5433","useSsl":false,"username":"postgres","usernameSecretKey":"postgres_user"}` | the SmithDB metastore. |
 | smithdb.migration.taskdb.postgres.external.existingSecretName | string | `""` | Existing secret containing external taskdb Postgres connection fields. If set, the chart does not create one. |
+| smithdb.migration.taskdb.postgres.maxConnectionsPerMigrationPod | int | `10` | connections for every parallel pod plus one pod of headroom. |
 | smithdb.migration.taskdb.postgres.name | string | `"taskdb-postgres"` |  |
 | smithdb.migration.taskdb.postgres.service.annotations | object | `{}` |  |
 | smithdb.migration.taskdb.postgres.service.labels | object | `{}` |  |
@@ -1302,8 +1305,10 @@ Two things worth planning for before you enable it:
 | smithdb.query.deployment.strategy.type | string | `"RollingUpdate"` |  |
 | smithdb.query.deployment.tolerations | list | `[]` |  |
 | smithdb.query.deployment.topologySpreadConstraints | list | `[]` |  |
-| smithdb.query.deployment.volumeMounts | list | `[]` |  |
-| smithdb.query.deployment.volumes | list | `[]` |  |
+| smithdb.query.deployment.volumeMounts[0].mountPath | string | `"/data"` |  |
+| smithdb.query.deployment.volumeMounts[0].name | string | `"local-ssd-storage"` |  |
+| smithdb.query.deployment.volumes[0].emptyDir.sizeLimit | string | `"200Gi"` |  |
+| smithdb.query.deployment.volumes[0].name | string | `"local-ssd-storage"` |  |
 | smithdb.query.name | string | `"query"` |  |
 | smithdb.query.pdb.annotations | object | `{}` |  |
 | smithdb.query.pdb.enabled | bool | `false` |  |
@@ -1436,7 +1441,6 @@ Two things worth planning for before you enable it:
 | aceBackend.autoscaling.keda.scaleUpPolicy.value | int | `100` |  |
 | aceBackend.autoscaling.keda.targetCPUUtilizationPercentage | int | `50` |  |
 | aceBackend.autoscaling.keda.targetMemoryUtilizationPercentage | int | `80` |  |
-| aceBackend.bindAddress | string | `"0.0.0.0"` |  |
 | aceBackend.containerPort | int | `1987` |  |
 | aceBackend.deployment.affinity | object | `{}` |  |
 | aceBackend.deployment.annotations | object | `{}` |  |

@@ -79,6 +79,24 @@ tests:
           path: spec.template.spec.containers[0].resources.requests.ephemeral-storage
           value: "200Gi"
 
+  - it: should enable TLS for metastore migrations when metastore TLS is enabled
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      smithdb.config.metastore.useSsl: true
+    template: smithdb/metastore-migration.yaml
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].command
+          value:
+            - ./smithdb
+            - metastore-migrate
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_METASTORE_MIGRATE__METASTORE__USE_SSL
+            value: "true"
+
   - it: should size the SmithDB query disk cache from its ephemeral storage limit
     values:
       - ./values/smithdb-enabled.yaml
@@ -108,6 +126,23 @@ tests:
             valueFrom:
               resourceFieldRef:
                 resource: limits.memory
+
+  - it: should back the SmithDB query disk cache with a writable /data volume
+    values:
+      - ./values/smithdb-enabled.yaml
+    template: smithdb/query-deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.volumes
+          content:
+            name: local-ssd-storage
+            emptyDir:
+              sizeLimit: 200Gi
+      - contains:
+          path: spec.template.spec.containers[0].volumeMounts
+          content:
+            name: local-ssd-storage
+            mountPath: /data
 
   - it: should derive the plaintext SmithDB OTLP endpoint from chart-level tracing
     values:
@@ -721,6 +756,18 @@ tests:
         contains:
           path: spec.template.spec.containers[0].env
           content:
+            name: SMITHDB_MIGRATION__WORKER_POOL__NUM_WORKERS
+            value: "6"
+      - template: smithdb/migration-job.yaml
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_MIGRATION__TASKDB__MAX_CONNECTIONS
+            value: "10"
+      - template: smithdb/migration-job.yaml
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
             name: SMITHDB_MIGRATION__TASKDB__PORT
             value: "5433"
       - template: smithdb/migration-job.yaml
@@ -816,6 +863,12 @@ tests:
           value: 50Gi
       - template: smithdb/taskdb-postgres-statefulset.yaml
         equal:
+          path: spec.template.spec.containers[0].args
+          value:
+            - "-c"
+            - "max_connections=20"
+      - template: smithdb/taskdb-postgres-statefulset.yaml
+        equal:
           path: spec.template.spec.containers[0].ports[0].containerPort
           value: 5433
       - template: smithdb/taskdb-postgres-statefulset.yaml
@@ -850,6 +903,59 @@ tests:
                 name: RELEASE-NAME-langsmith-smithdb-taskdb-postgres
                 key: postgres_password
 
+  - it: should derive migration workers from a millicore CPU limit
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      smithdb.langsmith.migration.enabled: true
+      smithdb.langsmith.query.enabled: false
+      smithdb.migration.deployment.resources.limits.cpu: 4000m
+      smithdb.migration.taskdb.postgres.auth.password: taskdb-password
+    template: smithdb/migration-job.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_MIGRATION__WORKER_POOL__NUM_WORKERS
+            value: "3"
+
+  - it: should use native GCS for migration source blobs with workload identity
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      config.blobStorage.enabled: true
+      config.blobStorage.engine: GCS
+      config.blobStorage.bucketName: langsmith-gcs-blob
+      config.blobStorage.apiURL: https://storage.googleapis.com
+      smithdb.langsmith.migration.enabled: true
+      smithdb.langsmith.query.enabled: false
+      smithdb.migration.taskdb.postgres.auth.password: taskdb-password
+    template: smithdb/migration-job.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_MIGRATION__BLOB_STORE_DEFAULT__TYPE
+            value: gcs
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_MIGRATION__BLOB_STORE_DEFAULT__GCS__BUCKET
+            value: langsmith-gcs-blob
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_MIGRATION__BLOB_STORE_DEFAULT__GCS__ROOT_FOLDER
+            value: /
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_MIGRATION__BLOB_STORE_DEFAULT__S3__BUCKET
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_MIGRATION__BLOB_STORE_DEFAULT__S3__ACCESS_KEY_ID
+
   - it: should configure smithdb migration parallelism
     values:
       - ./values/smithdb-enabled.yaml
@@ -858,11 +964,20 @@ tests:
       smithdb.langsmith.query.enabled: false
       smithdb.migration.job.parallelism: 5
       smithdb.migration.taskdb.postgres.auth.password: taskdb-password
-    template: smithdb/migration-job.yaml
+    templates:
+      - smithdb/migration-job.yaml
+      - smithdb/taskdb-postgres-statefulset.yaml
     asserts:
-      - equal:
+      - template: smithdb/migration-job.yaml
+        equal:
           path: spec.parallelism
           value: 5
+      - template: smithdb/taskdb-postgres-statefulset.yaml
+        equal:
+          path: spec.template.spec.containers[0].args
+          value:
+            - "-c"
+            - "max_connections=60"
 
   - it: should allow retaining the taskdb PVC when the StatefulSet is deleted
     values:

@@ -369,11 +369,18 @@ AWS Marketplace Helm template verification).
 {{- if not .Values.smithdb.config.existingSecretName -}}
 {{- fail "smithdb.config.existingSecretName is required when smithdb.enabled is true." -}}
 {{- end -}}
-{{- range $keyName := list "hostSecretKey" "databaseSecretKey" "usernameSecretKey" "passwordSecretKey" -}}
+{{- range $keyName := list "hostSecretKey" "databaseSecretKey" "usernameSecretKey" -}}
 {{- $keyValue := get $.Values.smithdb.config.metastore $keyName -}}
 {{- if not $keyValue -}}
 {{- fail (printf "smithdb.config.metastore.%s is required when smithdb.enabled is true." $keyName) -}}
 {{- end -}}
+{{- end -}}
+{{- $iamAuthProvider := .Values.smithdb.config.metastore.iamAuthProvider -}}
+{{- if and (not .Values.smithdb.config.metastore.passwordSecretKey) (not $iamAuthProvider) -}}
+{{- fail "smithdb.config.metastore.passwordSecretKey is required when smithdb.enabled is true unless smithdb.config.metastore.iamAuthProvider is set." -}}
+{{- end -}}
+{{- if and $iamAuthProvider (not .Values.smithdb.config.metastore.useSsl) -}}
+{{- fail "smithdb.config.metastore.useSsl must be true when smithdb.config.metastore.iamAuthProvider is set." -}}
 {{- end -}}
 {{- $objectStoreType := lower .Values.smithdb.config.objectStore.type -}}
 {{- if not (or (eq $objectStoreType "s3") (eq $objectStoreType "gcs")) -}}
@@ -410,6 +417,12 @@ AWS Marketplace Helm template verification).
 {{- end -}}
 {{- $taskdb := .Values.smithdb.migration.taskdb.postgres -}}
 {{- if and .Values.smithdb.langsmith.migration.enabled $taskdb.enabled -}}
+{{- if lt (int .Values.smithdb.migration.job.parallelism) 1 -}}
+{{- fail "smithdb.migration.job.parallelism must be greater than 0 when smithdb migration is enabled." -}}
+{{- end -}}
+{{- if lt (int $taskdb.maxConnectionsPerMigrationPod) 1 -}}
+{{- fail "smithdb.migration.taskdb.postgres.maxConnectionsPerMigrationPod must be greater than 0." -}}
+{{- end -}}
 {{- if $taskdb.external.enabled -}}
 {{- if not $taskdb.external.port -}}
 {{- fail "smithdb.migration.taskdb.postgres.external.port is required when smithdb.migration.taskdb.postgres.external.enabled is true." -}}
