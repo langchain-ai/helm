@@ -1171,6 +1171,8 @@ config:
 
   telemetry:
     # -- Optional. These values are used to send telemetry to the LangChain team to assist with troubleshooting.
+    # -- Beacon API base URL used for self-hosted telemetry.
+    endpoint: "https://beacon.langchain.com"
     logs: true
     metrics: true
     traces: true
