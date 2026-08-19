@@ -1416,7 +1416,6 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | aceBackend.autoscaling.keda.scaleUpPolicy.value | int | `100` |  |
 | aceBackend.autoscaling.keda.targetCPUUtilizationPercentage | int | `50` |  |
 | aceBackend.autoscaling.keda.targetMemoryUtilizationPercentage | int | `80` |  |
-| aceBackend.bindAddress | string | `"0.0.0.0"` |  |
 | aceBackend.containerPort | int | `1987` |  |
 | aceBackend.deployment.affinity | object | `{}` |  |
 | aceBackend.deployment.annotations | object | `{}` |  |
