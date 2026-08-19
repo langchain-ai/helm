@@ -1,6 +1,6 @@
-{{- if .Values.insights.enabled }}
-{{- if not .Values.insights.redis.external.enabled }}
-{{- $componentName := include "langsmith.agentFeatures.componentName" (dict "root" . "product" "insights" "component" "redis") -}}
+{{- if or .Values.insights.enabled .Values.engine.enabled }}
+{{- if not .Values.engineInsightsAgent.redis.external.enabled }}
+{{- $componentName := include "langsmith.agentFeatures.componentName" (dict "root" . "product" "engineInsightsAgent" "component" "redis") -}}
 apiVersion: v1
 kind: Service
 metadata:
@@ -8,19 +8,19 @@ metadata:
   namespace: {{ .Values.namespace | default .Release.Namespace | quote }}
   labels:
     {{- include "langsmith.labels" . | nindent 4 }}
-    {{- with .Values.insights.redis.service.labels }}
+    {{- with .Values.engineInsightsAgent.redis.service.labels }}
       {{- toYaml . | nindent 4 }}
     {{- end }}
   annotations:
     {{- include "langsmith.annotations" . | nindent 4 }}
-    {{- with .Values.insights.redis.service.annotations }}
+    {{- with .Values.engineInsightsAgent.redis.service.annotations }}
       {{- toYaml . | nindent 4 }}
     {{- end }}
 spec:
-  type: {{ .Values.insights.redis.service.type }}
+  type: {{ .Values.engineInsightsAgent.redis.service.type }}
   ports:
     - name: redis
-      port: {{ .Values.insights.redis.service.port }}
+      port: {{ .Values.engineInsightsAgent.redis.service.port }}
       targetPort: redis
       protocol: TCP
   selector:

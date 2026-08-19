@@ -70,8 +70,10 @@ images:
     repository: "docker.io/langchain/langsmith-backend"
     pullPolicy: IfNotPresent
     tag: "0.17.10rc1"
-  insightsAgentImage:
-    repository: "docker.io/langchain/langsmith-clio"
+  # Serves both the `insights` and `engine` graphs; insights.enabled and
+  # engine.enabled pick which of them run.
+  engineInsightsAgentImage:
+    repository: "docker.io/langchain/langsmith-insights-engine"
     pullPolicy: IfNotPresent
     tag: "0.17.10rc1"
   frontendImage:
@@ -549,10 +551,30 @@ fleet:
     pdb:
       enabled: false
       minAvailable: 1
+engine:
+  # -- Enable the LangSmith Engine. See the Engine section of this README for what it requires.
+  enabled: false
+  # -- LangSmith Intelligence gateway for Engine model calls, authenticated with the
+  # license key. Required when engine.enabled. Use https://beacon.aws.langchain.com/intelligence.
+  intelligenceBaseUrl: ""
+  # -- Fernet key for the payloads smith-go passes to the Engine. Required when
+  # engine.enabled, and must match smith-go's ISSUES_AGENT_ENCRYPTION_KEY.
+  encryptionKey: ""
+  # Prior key, accepted for decryption only, so encryptionKey can be rotated.
+  encryptionKeyPrevious: ""
+  # -- Workspace that owns Engine sandboxes. Optional: smith-go resolves the install's
+  # workspace unless there is more than one non-personal org. Prefer one reserved for
+  # the Engine — its sandboxes are visible to anyone with access to it.
+  sandboxTenantId: ""
+
 insights:
   enabled: true
-  namePrefix: "standalone-insights"
   encryptionKey: ""
+  encryptionKeyPrevious: ""
+
+# Shared Engine/Insights deployment. Rendered when either is enabled.
+engineInsightsAgent:
+  namePrefix: "standalone-insights"
   apiServer:
     name: "api-server"
     containerPort: 8000

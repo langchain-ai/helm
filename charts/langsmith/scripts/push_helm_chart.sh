@@ -133,7 +133,7 @@ with open(values_path, 'r') as f:
 image_map = {
     'docker.io/langchain/langsmith-ace-backend': 'langsmith-ace-backend',
     'docker.io/langchain/langsmith-backend': 'langsmith-backend',
-    'docker.io/langchain/langsmith-clio': 'langsmith-clio',
+    'docker.io/langchain/langsmith-insights-engine': 'langsmith-insights-engine',
     'docker.io/langchain/langsmith-frontend': 'langsmith-frontend',
     'docker.io/langchain/hosted-langserve-backend': 'hosted-langserve-backend',
     'docker.io/langchain/langgraph-operator': 'langgraph-operator',
