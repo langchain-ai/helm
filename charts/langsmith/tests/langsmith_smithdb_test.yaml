@@ -262,7 +262,7 @@ tests:
           path: spec.template.spec.containers[0].env
           content:
             name: SMITHDB_QUERY__LOGGING__FORMAT
-            value: console
+            value: json
       - notContains:
           path: spec.template.spec.containers[0].env
           content:
@@ -532,7 +532,7 @@ tests:
           path: spec.template.spec.containers[0].env
           content:
             name: SMITHDB_CLUSTERMANAGER__LOGGING__FORMAT
-            value: console
+            value: json
 
   - it: should default cluster-manager service max replicas to deployment replicas
     values:
