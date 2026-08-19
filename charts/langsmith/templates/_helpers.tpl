@@ -1349,6 +1349,19 @@ Sandbox service account names.
 {{- end -}}
 
 {{/*
+Minimal environment for the JuiceFS formatter. The sandbox-host binary imports
+LangSmith configuration at process startup, but formatting does not need the
+application ConfigMap or its secret-backed settings.
+*/}}
+{{- define "langsmith.sandboxes.juicefsFormatJobEnv" -}}
+- name: LANGCHAIN_ENV
+  valueFrom:
+    configMapKeyRef:
+      name: {{ include "langsmith.fullname" . }}-config
+      key: LANGCHAIN_ENV
+{{- end -}}
+
+{{/*
 Name for the immutable JuiceFS format Job. Include every value used in its pod
 template so Helm creates a new Job instead of attempting to patch one.
 */}}
@@ -1359,6 +1372,7 @@ template so Helm creates a new Job instead of attempting to patch one.
   "image" (include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "sandboxHostImage"))
   "pullPolicy" .Values.images.sandboxHostImage.pullPolicy
   "pullSecrets" .Values.images.imagePullSecrets
+  "env" (include "langsmith.sandboxes.juicefsFormatJobEnv" .)
   "serviceAccount" (include "langsmith.sandboxes.sandboxHostServiceAccountName" .)
   "nodeSelector" .Values.sandboxes.sandboxHost.deployment.nodeSelector
   "tolerations" .Values.sandboxes.sandboxHost.deployment.tolerations
