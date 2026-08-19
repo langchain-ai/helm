@@ -640,6 +640,9 @@ SmithDB OTEL resource attributes.
 */}}
 {{- define "langsmith.smithdb.otelResourceAttributes" -}}
 {{- $resourceAttributes := list "pod_name=$(POD_NAME)" "k8s.pod.name=$(POD_NAME)" "container_name=$(CONTAINER_NAME)" "k8s.container.name=$(CONTAINER_NAME)" -}}
+{{- range $key, $value := .Values.config.observability.tracing.extraResourceAttributes -}}
+{{- $resourceAttributes = append $resourceAttributes (printf "%s=%v" $key $value) -}}
+{{- end -}}
 {{- join "," $resourceAttributes -}}
 {{- end }}
 
