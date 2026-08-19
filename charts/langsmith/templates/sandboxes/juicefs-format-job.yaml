@@ -44,6 +44,9 @@ spec:
             - /opt/sandbox-host/bin/sandbox-host
           args:
             - --internal-juicefs-format
+          envFrom:
+            - configMapRef:
+                name: {{ include "langsmith.fullname" . }}-config
           securityContext:
             allowPrivilegeEscalation: false
             capabilities:

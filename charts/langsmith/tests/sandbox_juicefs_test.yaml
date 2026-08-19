@@ -84,6 +84,9 @@ tests:
           value:
             - --internal-juicefs-format
       - equal:
+          path: spec.template.spec.containers[0].envFrom[0].configMapRef.name
+          value: RELEASE-NAME-langsmith-config
+      - equal:
           path: spec.template.spec.containers[0].volumeMounts[0]
           value:
             name: juicefs-config
