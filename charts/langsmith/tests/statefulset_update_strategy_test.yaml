@@ -51,7 +51,7 @@ tests:
     template: agent-features/insights/redis/statefulset.yaml
     set:
       insights.enabled: true
-      insights.redis.statefulSet.updateStrategy.type: OnDelete
+      engineInsightsAgent.redis.statefulSet.updateStrategy.type: OnDelete
     asserts:
       - equal:
           path: spec.updateStrategy.type
@@ -69,7 +69,7 @@ tests:
     template: agent-features/insights/postgres/statefulset.yaml
     set:
       insights.enabled: true
-      insights.postgres.statefulSet.updateStrategy.type: OnDelete
+      engineInsightsAgent.postgres.statefulSet.updateStrategy.type: OnDelete
     asserts:
       - equal:
           path: spec.updateStrategy.type

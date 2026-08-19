@@ -42,6 +42,23 @@ AWS Marketplace Helm template verification).
 {{- if hasKey .Values.backend "agentBootstrap" -}}
 {{- fail "backend.agentBootstrap has been removed: the bundled agent-bootstrap Job is no longer part of this chart. Standalone agents now run as the top-level fleet / insights / polly deployments. If you were relying on the bundled bootstrap, contact LangChain support for migration guidance, then remove backend.agentBootstrap from your values." -}}
 {{- end -}}
+{{- /* Moved: Engine and Insights share one deployment, so its config lives in engineInsightsAgent. */ -}}
+{{- range $key := list "namePrefix" "apiServer" "queue" "postgres" "redis" -}}
+{{- if hasKey $.Values.insights $key -}}
+{{- fail (printf "insights.%s has moved to engineInsightsAgent.%s: Engine and Insights now run on one shared deployment, so its scaling, database and resource settings live in the engineInsightsAgent block. Move insights.%s to engineInsightsAgent.%s. insights.enabled and insights.encryptionKey stay where they are." $key $key $key $key) -}}
+{{- end -}}
+{{- end -}}
+{{- range $key := list "insightsAgentImage" "insightsEngineImage" -}}
+{{- if hasKey $.Values.images $key -}}
+{{- fail (printf "images.%s has moved to images.engineInsightsAgentImage: Engine and Insights run on one image. Set images.engineInsightsAgentImage instead." $key) -}}
+{{- end -}}
+{{- end -}}
+{{- /* The tag arm matches the AWS Marketplace layout, where every image shares
+       one repo and the name moves into the tag. */ -}}
+{{- $engineInsightsImage := .Values.images.engineInsightsAgentImage -}}
+{{- if not (or (contains "insights-engine" $engineInsightsImage.repository) (hasPrefix "langsmith-insights-engine-" ($engineInsightsImage.tag | default ""))) -}}
+{{- fail (printf "images.engineInsightsAgentImage.repository is %q: Insights and Engine run on the combined langsmith-insights-engine image, which serves both the `insights` and `engine` graphs. langsmith-clio is no longer supported. Point it at langsmith-insights-engine (or your mirror of it)." $engineInsightsImage.repository) -}}
+{{- end -}}
 {{- /* Deprecated image keys: these workloads now run on the single consolidated backend image */ -}}
 {{- range $key := list "hostBackendImage" "platformBackendImage" "playgroundImage" "fleetToolServerImage" "fleetTriggerServerImage" "agentBuilderToolServerImage" "agentBuilderTriggerServerImage" -}}
 {{- if hasKey $.Values.images $key -}}
@@ -546,6 +563,28 @@ AWS Marketplace Helm template verification).
 
 {{- end -}}{{- /* end skipValidation */ -}}
 
+{{- /* Engine (co-hosted Insights+Engine) requires config when enabled. */ -}}
+{{- if .Values.engine.enabled }}
+{{- if and (not .Values.engine.encryptionKey) (not .Values.config.existingSecretName) }}
+{{- fail "engine.encryptionKey is required when engine.enabled is true (must match smith-go's ISSUES_AGENT_ENCRYPTION_KEY). Generate one with: python -c \"from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())\" (not needed if config.existingSecretName has engine_encryption_key)." }}
+{{- end }}
+{{- if not .Values.engine.intelligenceBaseUrl }}
+{{- fail "engine.intelligenceBaseUrl is required when engine.enabled is true: the self-hosted Engine has no ANTHROPIC_API_KEY and routes model calls through the LSI gateway for its cloud/region (e.g. AWS: https://beacon.aws.langchain.com/intelligence)." }}
+{{- end }}
+{{- if not .Values.sandboxes.enabled }}
+{{- fail "engine.enabled is true but sandboxes.enabled is false: every Engine run executes in a sandbox, so Engine cannot run without them." }}
+{{- end }}
+{{- if not .Values.config.hostname }}
+{{- fail "engine.enabled is true but config.hostname is not set: the sandbox runs the langsmith CLI against an externally reachable LangSmith URL, which is derived from it." }}
+{{- end }}
+{{- if regexMatch "^(?:[a-zA-Z][a-zA-Z0-9+.-]*://)?(?:localhost|127\\.0\\.0\\.1|\\[::1\\])(?::[0-9]+)?(?:/.*)?$" .Values.config.hostname }}
+{{- fail (printf "engine.enabled is true and config.hostname is %q, which a sandbox cannot reach: it must be the externally reachable LangSmith address." .Values.config.hostname) }}
+{{- end }}
+{{- if regexMatch "\\.svc(\\.[a-zA-Z0-9.-]+)?(:[0-9]+)?(/.*)?$" .Values.config.hostname }}
+{{- fail (printf "engine.enabled is true and config.hostname is the in-cluster address %q, which a sandbox cannot reach: it must be the externally reachable LangSmith address." .Values.config.hostname) }}
+{{- end }}
+{{- end }}
+
 {{- /* Validate agent feature (fleet/insights/polly) configuration */ -}}
 {{- $anyAgentEnabled := or .Values.fleet.enabled .Values.insights.enabled .Values.polly.enabled }}
 {{- $allPgUrls := list }}
@@ -561,21 +600,27 @@ AWS Marketplace Helm template verification).
 {{- $allPgUrls = append $allPgUrls $mainPg }}
 {{- end }}
 {{- end }}
-{{- $agentPairs := list (dict "n" "fleet") (dict "n" "insights") (dict "n" "polly") }}
+{{- $agentPairs := list
+  (dict "n" "fleet" "cfg" "fleet" "on" $.Values.fleet.enabled)
+  (dict "n" "insights" "cfg" "engineInsightsAgent" "on" (or $.Values.insights.enabled $.Values.engine.enabled))
+  (dict "n" "polly" "cfg" "polly" "on" $.Values.polly.enabled) }}
 {{- range $pair := $agentPairs }}
 {{- $fn := index $pair "n" }}
-{{- $feat := index $.Values $fn }}
+{{- $prod := index $.Values $fn }}
+{{- $feat := index $.Values (index $pair "cfg") }}
 {{- range $database := list "postgres" "redis" }}
 {{- $databaseConfig := index $feat $database }}
 {{- $provider := $databaseConfig.external.iamProvider }}
 {{- if and $provider (not (has $provider (list "azure" "gcp" "aws"))) }}
-{{- fail (printf "%s.%s.external.iamProvider must be one of [azure, gcp, aws]" $fn $database) }}
+{{- fail (printf "%s.%s.external.iamProvider must be one of [azure, gcp, aws]" (index $pair "cfg") $database) }}
 {{- end }}
 {{- end }}
-{{- if $feat.enabled }}
-{{- if and (not $feat.encryptionKey) (not $.Values.config.existingSecretName) }}
+{{- if $prod.enabled }}
+{{- if and (not $prod.encryptionKey) (not $.Values.config.existingSecretName) }}
 {{- fail (printf "%s.encryptionKey is required when %s.enabled is true (not needed if config.existingSecretName is set with the key already present)" $fn $fn) }}
 {{- end }}
+{{- end }}
+{{- if index $pair "on" }}
 {{- if $feat.postgres.external.enabled }}
 {{- if not $feat.postgres.external.existingSecretName }}
 {{- $pg := "" }}
@@ -600,8 +645,8 @@ AWS Marketplace Helm template verification).
 {{- /* Validate per-agent redis configuration */ -}}
 {{- range $pair := $agentPairs }}
 {{- $fn := index $pair "n" }}
-{{- $feat := index $.Values $fn }}
-{{- if $feat.enabled }}
+{{- $feat := index $.Values (index $pair "cfg") }}
+{{- if index $pair "on" }}
 {{- if $feat.redis.external.enabled }}
 {{- if and (not $feat.redis.external.connectionUrl) (not $feat.redis.external.existingSecretName) }}
 {{- fail (printf "%s.redis.external.connectionUrl or %s.redis.external.existingSecretName is required when %s.redis.external.enabled is true" $fn $fn $fn) }}
