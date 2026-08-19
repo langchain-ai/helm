@@ -1267,7 +1267,6 @@ config:
 aceBackend:
   name: "ace-backend"
   containerPort: 1987
-  bindAddress: "0.0.0.0"
   # -- ArgoCD Rollouts configuration. If enabled, will create a Rollout resource instead of a Deployment. See https://argo-rollouts.readthedocs.io/
   rollout:
     enabled: false

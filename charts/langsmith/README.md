@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.17.0-rc.7](https://img.shields.io/badge/Version-0.17.0--rc.7-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.17.10rc1](https://img.shields.io/badge/AppVersion-0.17.10rc1-informational?style=flat-square)
+![Version: 0.17.0-rc.8](https://img.shields.io/badge/Version-0.17.0--rc.8-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.17.10rc1](https://img.shields.io/badge/AppVersion-0.17.10rc1-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -1417,7 +1417,6 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | aceBackend.autoscaling.keda.scaleUpPolicy.value | int | `100` |  |
 | aceBackend.autoscaling.keda.targetCPUUtilizationPercentage | int | `50` |  |
 | aceBackend.autoscaling.keda.targetMemoryUtilizationPercentage | int | `80` |  |
-| aceBackend.bindAddress | string | `"0.0.0.0"` |  |
 | aceBackend.containerPort | int | `1987` |  |
 | aceBackend.deployment.affinity | object | `{}` |  |
 | aceBackend.deployment.annotations | object | `{}` |  |
