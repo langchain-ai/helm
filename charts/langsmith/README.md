@@ -1384,8 +1384,7 @@ For information on how to use this chart, up-to-date release notes, and other gu
 | config.signingJwks | string | `""` | Ed25519/OKP JWKS (JSON) signing the OAuth AS / remote MCP (and LLM-auth-proxy) tokens; public keys are served at /.well-known/jwks.json. Set it here (stored in the chart secret) or as key `langsmith_signing_jwks` in config.existingSecretName. The remote MCP server / OAuth AS stay inert until this is set. |
 | config.skipValidation | bool | `false` | Skip validation checks in validate.yaml. Used by AWS Marketplace for helm template verification. |
 | config.superAdmins | list | `[]` | Email addresses of super admins who can export usage data. These are the only users allowed to use the usage backfill export unless orgAdminsInstallationUsageExportEnabled is set. |
-| config.telemetry.endpoint | string | `"https://beacon.langchain.com"` | Beacon API base URL used for self-hosted telemetry. |
-| config.telemetry.logs | bool | `true` |  |
+| config.telemetry.logs | bool | `true` | Optional. These values are used to send telemetry to the LangChain team to assist with troubleshooting. |
 | config.telemetry.metrics | bool | `true` |  |
 | config.telemetry.traces | bool | `true` |  |
 | config.ttl | object | `{"enabled":true,"ttl_period_seconds":{"longlived":"34560000","shortlived":"1209600"}}` | TTL configuration Optional. Used to set TTLS for longlived and shortlived objects. |
