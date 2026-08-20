@@ -766,7 +766,10 @@ tests:
           path: spec.replicas
       - equal:
           path: spec.template.spec.containers[0].resources.requests.cpu
-          value: "4"
+          value: "8"
+      - equal:
+          path: spec.template.spec.containers[0].resources.requests.memory
+          value: "16Gi"
       - equal:
           path: spec.template.spec.containers[0].resources.requests.ephemeral-storage
           value: "100Gi"
