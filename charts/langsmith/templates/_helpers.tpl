@@ -1327,34 +1327,16 @@ In-cluster platform-backend URL. Also rendered as GO_ENDPOINT in the shared Conf
 {{- end -}}
 
 {{/*
-Name for the JuiceFS CSI config Secret.
+Name for the JuiceFS config Secret.
 */}}
-{{- define "langsmith.sandboxes.juicefsCSIConfigSecretName" -}}
-{{- default .Values.sandboxes.juicefs.csi.configSecretName .Values.sandboxes.juicefs.csi.existingSecretName -}}
+{{- define "langsmith.sandboxes.juicefsConfigSecretName" -}}
+{{- default (printf "%s-juicefs-config" (include "langsmith.fullname" .)) .Values.sandboxes.juicefs.existingSecretName | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 
 {{/*
-Known JuiceFS CSI Secret names used by sandbox static volumes. Secret creates
-cannot be scoped by resourceNames, but read/update/delete verbs can.
+Rendered JuiceFS config Secret data for chart-managed sandbox volumes.
 */}}
-{{- define "langsmith.sandboxes.juicefsCSISecretResourceNames" -}}
-{{- $names := list
-  (include "langsmith.sandboxes.juicefsCSIConfigSecretName" .)
-  (printf "juicefs-%s-secret" .Values.sandboxes.juicefs.name)
-  (printf "juicefs-%s-secret" .Values.sandboxes.juicefs.csi.pvName)
-  (printf "juicefs-%s-secret" (include "langsmith.sandboxes.juicefsHostPVName" .))
--}}
-{{- $resourceNames := list -}}
-{{- range ($names | compact | uniq) -}}
-{{- $resourceNames = append $resourceNames (printf "- %q" .) -}}
-{{- end -}}
-{{- join "\n" $resourceNames -}}
-{{- end -}}
-
-{{/*
-Rendered JuiceFS CSI config Secret data for chart-managed sandbox volumes.
-*/}}
-{{- define "langsmith.sandboxes.juicefsCSIConfigSecretData" -}}
+{{- define "langsmith.sandboxes.juicefsConfigSecretData" -}}
 {{- $juicefsRedis := .Values.sandboxes.juicefs.redis | default dict -}}
 name: {{ .Values.sandboxes.juicefs.name | quote }}
 metaurl: {{ $juicefsRedis.metaURL | quote }}
@@ -1363,87 +1345,15 @@ bucket: {{ .Values.sandboxes.juicefs.bucket | quote }}
 {{- end -}}
 
 {{/*
-Checksum for the JuiceFS CSI config Secret known to Helm. Existing Secrets use
+Checksum for the JuiceFS config Secret known to Helm. Existing Secrets use
 the Secret name only because Helm cannot safely hash live external Secret data.
 */}}
-{{- define "langsmith.sandboxes.juicefsCSIConfigSecretChecksum" -}}
-{{- if .Values.sandboxes.juicefs.csi.existingSecretName -}}
-{{- printf "existing:%s" (include "langsmith.sandboxes.juicefsCSIConfigSecretName" .) | sha256sum -}}
+{{- define "langsmith.sandboxes.juicefsConfigSecretChecksum" -}}
+{{- if .Values.sandboxes.juicefs.existingSecretName -}}
+{{- printf "existing:%s" (include "langsmith.sandboxes.juicefsConfigSecretName" .) | sha256sum -}}
 {{- else -}}
-{{- include "langsmith.sandboxes.juicefsCSIConfigSecretData" . | sha256sum -}}
+{{- include "langsmith.sandboxes.juicefsConfigSecretData" . | sha256sum -}}
 {{- end -}}
-{{- end -}}
-
-{{/*
-Derived JuiceFS CSI PV/PVC names for the sandbox-host mount.
-*/}}
-{{- define "langsmith.sandboxes.juicefsHostPVName" -}}
-{{- printf "%s-host" .Values.sandboxes.juicefs.csi.pvName -}}
-{{- end -}}
-
-{{- define "langsmith.sandboxes.juicefsHostPVCName" -}}
-{{- printf "%s-host" .Values.sandboxes.juicefs.csi.pvcName -}}
-{{- end -}}
-
-{{/*
-JuiceFS CSI names used by self-hosted sandboxes.
-*/}}
-{{- define "langsmith.sandboxes.juicefsCSIDriverName" -}}
-csi.juicefs.com
-{{- end -}}
-
-{{- define "langsmith.sandboxes.juicefsCSISelectorLabels" -}}
-app.kubernetes.io/name: juicefs-csi-driver
-app.kubernetes.io/instance: {{ .Release.Name }}
-{{- end -}}
-
-{{- define "langsmith.sandboxes.juicefsCSILabels" -}}
-{{- if .Values.commonLabels }}
-{{ toYaml .Values.commonLabels }}
-{{- end }}
-helm.sh/chart: {{ include "langsmith.chart" . }}
-{{ include "langsmith.sandboxes.juicefsCSISelectorLabels" . }}
-{{- if .Chart.AppVersion }}
-app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
-{{- end }}
-app.kubernetes.io/managed-by: {{ .Release.Service }}
-{{- end -}}
-
-{{- define "langsmith.sandboxes.juicefsCSIAnnotations" -}}
-{{- if .Values.commonAnnotations }}
-{{ toYaml .Values.commonAnnotations }}
-{{- end }}
-helm.sh/chart: {{ include "langsmith.chart" . }}
-{{ include "langsmith.sandboxes.juicefsCSISelectorLabels" . }}
-{{- if .Chart.AppVersion }}
-app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
-{{- end }}
-app.kubernetes.io/managed-by: {{ .Release.Service }}
-{{- end -}}
-
-{{- define "langsmith.sandboxes.juicefsCSIControllerServiceAccountName" -}}
-juicefs-csi-controller-sa
-{{- end -}}
-
-{{- define "langsmith.sandboxes.juicefsCSINodeServiceAccountName" -}}
-juicefs-csi-node-sa
-{{- end -}}
-
-{{- define "langsmith.sandboxes.juicefsCSIConfigMapName" -}}
-{{- printf "%s-juicefs-csi-driver-config" (include "langsmith.fullname" .) | trunc 63 | trimSuffix "-" -}}
-{{- end -}}
-
-{{/*
-Rendered JuiceFS CSI driver config file.
-*/}}
-{{- define "langsmith.sandboxes.juicefsCSIDriverConfig" -}}
-enableNodeSelector: false
-mountPodPatch:
-{{- toYaml .Values.sandboxes.juicefs.csi.mountPodPatch | nindent 2 }}
-{{- end -}}
-
-{{- define "langsmith.sandboxes.juicefsCSIDriverConfigChecksum" -}}
-{{- include "langsmith.sandboxes.juicefsCSIDriverConfig" . | sha256sum -}}
 {{- end -}}
 
 {{/*
@@ -1455,6 +1365,38 @@ Sandbox service account names.
 {{- else -}}
 {{- default "default" .Values.sandboxes.sandboxHost.serviceAccount.name -}}
 {{- end -}}
+{{- end -}}
+
+{{/*
+Minimal environment for the JuiceFS formatter. The sandbox-host binary imports
+LangSmith configuration at process startup, but formatting does not need the
+application ConfigMap or its secret-backed settings.
+*/}}
+{{- define "langsmith.sandboxes.juicefsFormatJobEnv" -}}
+- name: LANGCHAIN_ENV
+  valueFrom:
+    configMapKeyRef:
+      name: {{ include "langsmith.fullname" . }}-config
+      key: LANGCHAIN_ENV
+{{- end -}}
+
+{{/*
+Name for the immutable JuiceFS format Job. Include every value used in its pod
+template so Helm creates a new Job instead of attempting to patch one.
+*/}}
+{{- define "langsmith.sandboxes.juicefsFormatJobName" -}}
+{{- $inputs := dict
+  "chartVersion" .Chart.Version
+  "config" (include "langsmith.sandboxes.juicefsConfigSecretChecksum" .)
+  "image" (include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "sandboxHostImage"))
+  "pullPolicy" .Values.images.sandboxHostImage.pullPolicy
+  "pullSecrets" .Values.images.imagePullSecrets
+  "env" (include "langsmith.sandboxes.juicefsFormatJobEnv" .)
+  "serviceAccount" (include "langsmith.sandboxes.sandboxHostServiceAccountName" .)
+  "nodeSelector" .Values.sandboxes.sandboxHost.deployment.nodeSelector
+  "tolerations" .Values.sandboxes.sandboxHost.deployment.tolerations
+-}}
+{{- printf "%s-juicefs-format-%s" (include "langsmith.fullname" .) (toJson $inputs | sha256sum | trunc 8) | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 
 {{/*

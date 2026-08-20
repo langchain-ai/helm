@@ -1,0 +1,67 @@
+{{- if .Values.sandboxes.enabled }}
+{{- $namespace := .Values.namespace | default .Release.Namespace }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "langsmith.sandboxes.juicefsFormatJobName" . }}
+  namespace: {{ $namespace }}
+  labels:
+    {{- include "langsmith.labels" . | nindent 4 }}
+    app.kubernetes.io/component: juicefs-format
+  annotations:
+    "argocd.argoproj.io/sync-wave": "-1"
+    {{- include "langsmith.annotations" . | nindent 4 }}
+spec:
+  completions: 1
+  parallelism: 1
+  backoffLimit: 3
+  activeDeadlineSeconds: 300
+  template:
+    metadata:
+      labels:
+        {{- include "langsmith.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: juicefs-format
+    spec:
+      serviceAccountName: {{ include "langsmith.sandboxes.sandboxHostServiceAccountName" . }}
+      restartPolicy: Never
+      {{- with .Values.images.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.sandboxes.sandboxHost.deployment.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.sandboxes.sandboxHost.deployment.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: juicefs-format
+          image: {{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "sandboxHostImage") | quote }}
+          imagePullPolicy: {{ .Values.images.sandboxHostImage.pullPolicy }}
+          command:
+            - /opt/sandbox-host/bin/sandbox-host
+          args:
+            - --internal-juicefs-format
+          env:
+            {{- include "langsmith.sandboxes.juicefsFormatJobEnv" . | nindent 12 }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+          volumeMounts:
+            - name: juicefs-config
+              mountPath: /run/secrets/juicefs
+              readOnly: true
+      volumes:
+        - name: juicefs-config
+          secret:
+            secretName: {{ include "langsmith.sandboxes.juicefsConfigSecretName" . }}
+            defaultMode: 0400
+{{- end }}
