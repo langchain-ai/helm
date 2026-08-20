@@ -79,6 +79,101 @@ tests:
           path: spec.template.spec.containers[0].resources.requests.ephemeral-storage
           value: "200Gi"
 
+  - it: should configure SmithDB Beacon log export with the LangSmith license secret
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      config.existingSecretName: langsmith-runtime
+      config.telemetry.logs: true
+      config.telemetry.traces: false
+      commonEnv:
+        - name: BEACON_ENDPOINT
+          value: https://dev.beacon.langchain.com
+    template: smithdb/query-deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: BEACON_LOGGING_ENABLED
+            value: "true"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: PHONE_HOME_ENABLED
+            value: "true"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: BEACON_TRACING_ENABLED
+            value: "false"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: BEACON_ENDPOINT
+            value: https://dev.beacon.langchain.com
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: LANGSMITH_LICENSE_KEY
+            valueFrom:
+              secretKeyRef:
+                name: langsmith-runtime
+                key: langsmith_license_key
+                optional: false
+
+  - it: should use SmithDB's default Beacon endpoint when no override is configured
+    values:
+      - ./values/smithdb-enabled.yaml
+    template: smithdb/cluster-manager-deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: BEACON_LOGGING_ENABLED
+            value: "true"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: BEACON_TRACING_ENABLED
+            value: "true"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: LANGSMITH_LICENSE_KEY
+            valueFrom:
+              secretKeyRef:
+                name: RELEASE-NAME-langsmith-secrets
+                key: langsmith_license_key
+                optional: false
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: BEACON_ENDPOINT
+
+  - it: should enable Beacon phone-home when traces are enabled without logs
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      config.telemetry.logs: false
+      config.telemetry.traces: true
+    template: smithdb/query-deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: BEACON_LOGGING_ENABLED
+            value: "false"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: BEACON_TRACING_ENABLED
+            value: "true"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: PHONE_HOME_ENABLED
+            value: "true"
+
   - it: should enable TLS for metastore migrations when metastore TLS is enabled
     values:
       - ./values/smithdb-enabled.yaml
@@ -1184,4 +1279,3 @@ tests:
           content:
             name: SMITHDB_MIGRATION__TASKDB__USE_SSL
             value: "true"
-
