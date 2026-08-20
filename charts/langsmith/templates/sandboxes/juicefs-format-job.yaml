@@ -1,19 +1,23 @@
 {{- if .Values.sandboxes.enabled }}
 {{- $namespace := .Values.namespace | default .Release.Namespace }}
-{{- $labels := mergeOverwrite (dict)
-  (default dict .Values.sandboxes.sandboxHost.deployment.labels)
-  (include "langsmith.labels" . | fromYaml)
-  (dict "app.kubernetes.io/component" "juicefs-format") }}
+{{- $juicefsFormatJob := .Values.sandboxes.juicefsFormatJob | default dict }}
 apiVersion: batch/v1
 kind: Job
 metadata:
   name: {{ include "langsmith.sandboxes.juicefsFormatJobName" . }}
   namespace: {{ $namespace }}
   labels:
-    {{- toYaml $labels | nindent 4 }}
+    {{- include "langsmith.labels" . | nindent 4 }}
+    app.kubernetes.io/component: juicefs-format
+    {{- with $juicefsFormatJob.labels }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
   annotations:
     "argocd.argoproj.io/sync-wave": "-1"
     {{- include "langsmith.annotations" . | nindent 4 }}
+    {{- with $juicefsFormatJob.annotations }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
 spec:
   completions: 1
   parallelism: 1
@@ -21,8 +25,16 @@ spec:
   activeDeadlineSeconds: 300
   template:
     metadata:
+      {{- with $juicefsFormatJob.annotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       labels:
-        {{- toYaml $labels | nindent 8 }}
+        {{- include "langsmith.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: juicefs-format
+        {{- with $juicefsFormatJob.labels }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
     spec:
       serviceAccountName: {{ include "langsmith.sandboxes.sandboxHostServiceAccountName" . }}
       restartPolicy: Never

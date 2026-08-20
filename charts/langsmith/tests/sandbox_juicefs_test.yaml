@@ -103,12 +103,14 @@ tests:
           path: spec.template.spec.volumes[0].secret.secretName
           value: RELEASE-NAME-langsmith-juicefs-config
 
-  - it: should give the formatter Job and pod the sandbox-host labels
+  - it: should add labels and annotations to the formatter Job and pod
     values:
       - ./values/sandboxes-enabled.yaml
     set:
-      sandboxes.sandboxHost.deployment.labels:
+      sandboxes.juicefsFormatJob.labels:
         azure.workload.identity/use: "true"
+      sandboxes.juicefsFormatJob.annotations:
+        example.com/owner: platform
     template: sandboxes/juicefs-format-job.yaml
     asserts:
       - equal:
@@ -117,6 +119,25 @@ tests:
       - equal:
           path: spec.template.metadata.labels["azure.workload.identity/use"]
           value: "true"
+      - equal:
+          path: metadata.annotations["example.com/owner"]
+          value: platform
+      - equal:
+          path: spec.template.metadata.annotations["example.com/owner"]
+          value: platform
+
+  - it: should render without formatter Job settings from older chart values
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      sandboxes.juicefsFormatJob: null
+    template: sandboxes/juicefs-format-job.yaml
+    asserts:
+      - isKind:
+          of: Job
+      - equal:
+          path: spec.template.metadata.labels["app.kubernetes.io/component"]
+          value: juicefs-format
 
   - it: should let sandbox-host own the JuiceFS mount
     values:
