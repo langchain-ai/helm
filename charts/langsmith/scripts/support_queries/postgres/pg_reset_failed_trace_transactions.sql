@@ -38,24 +38,69 @@ where source = 'local'
 group by status
 order by status;
 
--- 2. The re-queue itself. Reports how many rows it changed.
+-- 2. The re-queue itself, in chunks so it reports progress rather than looking
+--    hung. psql prints each NOTICE as it arrives.
 --
 --    status = 'failed' is matched explicitly rather than excluding other states,
 --    so rows that are already sent, already reconciled, or deliberately not
 --    reported are never touched. Rows attached to a backfill_id are skipped
 --    because they are already part of a manual reconciliation.
-with requeued as (
-update trace_count_transactions
-set status = 'pending',
-    num_failed_send_attempts = 0
-where status = 'failed'
-  and backfill_id is null
-  and source = 'local'
-  and num_failed_send_attempts > 0
-  and interval_start >= :'window_start'
-  and interval_start <  :'window_end'
-  and extract(epoch from insertion_time_range_start)::bigint % 3600 = 0
-  and insertion_time_range_end = insertion_time_range_start + interval '1 hour'
-  returning 1
-)
-select count(*) as rows_requeued from requeued;
+--
+--    statement_timeout is cleared for this session only. A default of a minute or
+--    two will otherwise kill the update part-way and roll all of it back.
+set statement_timeout = 0;
+
+-- psql does not substitute :'vars' inside a $$-quoted body, so pass them through
+-- session settings instead.
+select set_config('requeue.window_start', :'window_start', false),
+       set_config('requeue.window_end',   :'window_end',   false);
+
+do $$
+declare
+    window_start timestamptz := current_setting('requeue.window_start')::timestamptz;
+    window_end   timestamptz := current_setting('requeue.window_end')::timestamptz;
+    batch_size   int := 50000;
+    in_batch     bigint;
+    requeued     bigint := 0;
+    expected     bigint;
+begin
+    select count(*) into expected
+    from trace_count_transactions
+    where status = 'failed'
+      and backfill_id is null
+      and source = 'local'
+      and num_failed_send_attempts > 0
+      and interval_start >= window_start
+      and interval_start <  window_end
+      and extract(epoch from insertion_time_range_start)::bigint % 3600 = 0
+      and insertion_time_range_end = insertion_time_range_start + interval '1 hour';
+
+    raise notice 'rows to re-queue: %', expected;
+
+    loop
+        update trace_count_transactions
+        set status = 'pending',
+            num_failed_send_attempts = 0
+        where id in (
+            select id
+            from trace_count_transactions
+            where status = 'failed'
+              and backfill_id is null
+              and source = 'local'
+              and num_failed_send_attempts > 0
+              and interval_start >= window_start
+              and interval_start <  window_end
+              and extract(epoch from insertion_time_range_start)::bigint % 3600 = 0
+              and insertion_time_range_end = insertion_time_range_start + interval '1 hour'
+            limit batch_size
+        );
+
+        get diagnostics in_batch = row_count;
+        exit when in_batch = 0;
+
+        requeued := requeued + in_batch;
+        raise notice 're-queued % of %', requeued, expected;
+    end loop;
+
+    raise notice 'done. re-queued % rows', requeued;
+end $$;
