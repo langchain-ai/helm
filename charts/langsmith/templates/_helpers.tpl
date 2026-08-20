@@ -1392,6 +1392,7 @@ template so Helm creates a new Job instead of attempting to patch one.
   "pullPolicy" .Values.images.sandboxHostImage.pullPolicy
   "pullSecrets" .Values.images.imagePullSecrets
   "env" (include "langsmith.sandboxes.juicefsFormatJobEnv" .)
+  "labels" .Values.sandboxes.sandboxHost.deployment.labels
   "serviceAccount" (include "langsmith.sandboxes.sandboxHostServiceAccountName" .)
   "nodeSelector" .Values.sandboxes.sandboxHost.deployment.nodeSelector
   "tolerations" .Values.sandboxes.sandboxHost.deployment.tolerations

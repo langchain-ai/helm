@@ -103,6 +103,21 @@ tests:
           path: spec.template.spec.volumes[0].secret.secretName
           value: RELEASE-NAME-langsmith-juicefs-config
 
+  - it: should give the formatter Job and pod the sandbox-host labels
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      sandboxes.sandboxHost.deployment.labels:
+        azure.workload.identity/use: "true"
+    template: sandboxes/juicefs-format-job.yaml
+    asserts:
+      - equal:
+          path: metadata.labels["azure.workload.identity/use"]
+          value: "true"
+      - equal:
+          path: spec.template.metadata.labels["azure.workload.identity/use"]
+          value: "true"
+
   - it: should let sandbox-host own the JuiceFS mount
     values:
       - ./values/sandboxes-enabled.yaml
