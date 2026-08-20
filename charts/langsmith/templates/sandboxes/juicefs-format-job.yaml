@@ -15,9 +15,6 @@ metadata:
   annotations:
     "argocd.argoproj.io/sync-wave": "-1"
     {{- include "langsmith.annotations" . | nindent 4 }}
-    {{- with $juicefsFormatJob.annotations }}
-      {{- toYaml . | nindent 4 }}
-    {{- end }}
 spec:
   completions: 1
   parallelism: 1
@@ -25,10 +22,6 @@ spec:
   activeDeadlineSeconds: 300
   template:
     metadata:
-      {{- with $juicefsFormatJob.annotations }}
-      annotations:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
       labels:
         {{- include "langsmith.selectorLabels" . | nindent 8 }}
         app.kubernetes.io/component: juicefs-format

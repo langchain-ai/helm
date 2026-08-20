@@ -190,8 +190,6 @@ sandboxes:
   juicefsFormatJob:
     # -- Additional labels applied to the JuiceFS formatter Job and pod.
     labels: {}
-    # -- Additional annotations applied to the JuiceFS formatter Job and pod. Changing this renames the Job, so the formatter runs again.
-    annotations: {}
   sandboxHost:
     # -- Component name for sandbox-host. Resources are named `<release-fullname>-<name>`, which the chart passes to the host as SANDBOX_HOST_DEPLOYMENT_NAME.
     name: "sandbox-host"
