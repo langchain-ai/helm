@@ -65,6 +65,14 @@ AWS Marketplace Helm template verification).
 {{- fail (printf "images.%s is deprecated: this workload now runs on the consolidated backend image. Configure images.backendImage instead (and mirror only that image)." $key) -}}
 {{- end -}}
 {{- end -}}
+{{- range $key := list "juicefsCSIImage" "juicefsCSINodeDriverRegistrarImage" "juicefsMountImage" -}}
+{{- if hasKey $.Values.images $key -}}
+{{- fail (printf "images.%s was removed in v17 with the bundled JuiceFS CSI driver. Remove it; sandbox-host now owns the JuiceFS mount and uses images.sandboxHostImage." $key) -}}
+{{- end -}}
+{{- end -}}
+{{- if hasKey .Values.sandboxes.juicefs "csi" -}}
+{{- fail "sandboxes.juicefs.csi was removed in v17 because sandbox-host now owns the JuiceFS mount. Move csi.existingSecretName to sandboxes.juicefs.existingSecretName, replace csi.mountPodPatch with sandboxes.juicefs.hostMount.cacheDirs and mountOptions, move csi.node.serviceAccount.annotations to sandboxes.sandboxHost.serviceAccount.annotations, then remove sandboxes.juicefs.csi." -}}
+{{- end -}}
 {{- if hasKey .Values.smithdb.langsmith "dualIngest" -}}
 {{- $legacySmithdbDualIngest := get .Values.smithdb.langsmith "dualIngest" -}}
 {{- if eq (lower (toString (get $legacySmithdbDualIngest "enabled"))) "true" -}}
@@ -237,12 +245,15 @@ AWS Marketplace Helm template verification).
 {{- fail "sandboxes.juicefs.bucket must use an HTTP(S) S3 endpoint URL when sandboxes.juicefs.storage is s3." -}}
 {{- end -}}
 {{- end -}}
-{{- $hostMount := .Values.sandboxes.juicefs.hostMount -}}
-{{- if not $hostMount.cacheDirs -}}
+{{- $hostMount := get $juicefs "hostMount" -}}
+{{- if not (kindIs "map" $hostMount) -}}
+{{- fail "sandboxes.juicefs.hostMount is required when sandboxes.enabled is true. Configure hostMount.cacheDirs and hostMount.mountOptions for the v17 sandbox-host-owned JuiceFS mount." -}}
+{{- end -}}
+{{- if not (get $hostMount "cacheDirs") -}}
 {{- fail "sandboxes.juicefs.hostMount.cacheDirs must contain at least one node host path when sandboxes.enabled is true." -}}
 {{- end -}}
 {{- $cacheDirsSeen := dict -}}
-{{- range $cacheDir := $hostMount.cacheDirs -}}
+{{- range $cacheDir := get $hostMount "cacheDirs" -}}
 {{- if not (kindIs "string" $cacheDir) -}}
 {{- fail "sandboxes.juicefs.hostMount.cacheDirs entries must be strings." -}}
 {{- end -}}
@@ -260,7 +271,7 @@ AWS Marketplace Helm template verification).
 {{- end -}}
 {{- $_ := set $cacheDirsSeen $cacheDir true -}}
 {{- end -}}
-{{- range $mountOption := $hostMount.mountOptions -}}
+{{- range $mountOption := get $hostMount "mountOptions" -}}
 {{- if regexMatch "^--cache-dir($|=)" $mountOption -}}
 {{- fail "sandboxes.juicefs.hostMount.mountOptions must not set --cache-dir; configure sandboxes.juicefs.hostMount.cacheDirs instead." -}}
 {{- end -}}
