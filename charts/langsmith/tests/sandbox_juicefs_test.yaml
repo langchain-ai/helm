@@ -103,12 +103,42 @@ tests:
           path: spec.template.spec.volumes[0].secret.secretName
           value: RELEASE-NAME-langsmith-juicefs-config
 
-  - it: should add labels to the formatter pod
+  - it: should configure the formatter Job and pod
     values:
       - ./values/sandboxes-enabled.yaml
     set:
       sandboxes.juicefsFormatJob.labels:
         azure.workload.identity/use: "true"
+      sandboxes.juicefsFormatJob.annotations:
+        example.com/owner: platform
+      sandboxes.juicefsFormatJob.podSecurityContext:
+        runAsNonRoot: true
+      sandboxes.juicefsFormatJob.securityContext:
+        readOnlyRootFilesystem: true
+      sandboxes.juicefsFormatJob.resources:
+        limits:
+          cpu: 500m
+          memory: 256Mi
+        requests:
+          cpu: 200m
+          memory: 192Mi
+      sandboxes.juicefsFormatJob.nodeSelector:
+        workload: juicefs-format
+      sandboxes.juicefsFormatJob.tolerations:
+        - key: workload
+          operator: Equal
+          value: juicefs-format
+          effect: NoSchedule
+      sandboxes.juicefsFormatJob.affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 1
+              preference:
+                matchExpressions:
+                  - key: workload
+                    operator: In
+                    values:
+                      - juicefs-format
     template: sandboxes/juicefs-format-job.yaml
     asserts:
       - isNull:
@@ -116,6 +146,33 @@ tests:
       - equal:
           path: spec.template.metadata.labels["azure.workload.identity/use"]
           value: "true"
+      - equal:
+          path: metadata.annotations["example.com/owner"]
+          value: platform
+      - equal:
+          path: spec.template.metadata.annotations["example.com/owner"]
+          value: platform
+      - equal:
+          path: spec.template.spec.securityContext.runAsNonRoot
+          value: true
+      - equal:
+          path: spec.template.spec.containers[0].securityContext.readOnlyRootFilesystem
+          value: true
+      - equal:
+          path: spec.template.spec.containers[0].resources.limits.cpu
+          value: 500m
+      - equal:
+          path: spec.template.spec.containers[0].resources.requests.memory
+          value: 192Mi
+      - equal:
+          path: spec.template.spec.nodeSelector.workload
+          value: juicefs-format
+      - equal:
+          path: spec.template.spec.tolerations[0].key
+          value: workload
+      - equal:
+          path: spec.template.spec.affinity.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution[0].preference.matchExpressions[0].values[0]
+          value: juicefs-format
   - it: should let sandbox-host own the JuiceFS mount
     values:
       - ./values/sandboxes-enabled.yaml
