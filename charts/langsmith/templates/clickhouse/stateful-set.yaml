@@ -140,6 +140,9 @@ spec:
             - mountPath: /etc/clickhouse-server/config.d/metrics_config.xml
               name: clickhouse-conf
               subPath: metrics_config.xml
+            - mountPath: /etc/clickhouse-server/config.d/telemetry_config.xml
+              name: clickhouse-conf
+              subPath: telemetry_config.xml
           {{- with .Values.clickhouse.statefulSet.extraContainerConfig }}
             {{- toYaml . | nindent 10 }}
           {{- end }}
@@ -173,6 +176,8 @@ spec:
                 path: logging_config.xml
               - key: metrics_config.xml
                 path: metrics_config.xml
+              - key: telemetry_config.xml
+                path: telemetry_config.xml
       {{- with $volumes }}
           {{- toYaml . | nindent 8 }}
       {{- end }}
