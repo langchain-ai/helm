@@ -653,6 +653,24 @@ OTEL_EXPORTER_OTLP_ENDPOINT consumed by SmithDB requires a URI scheme.
 {{- end }}
 
 {{/*
+SmithDB Beacon log export environment.
+*/}}
+{{- define "langsmith.smithdb.beaconEnv" -}}
+- name: BEACON_LOGGING_ENABLED
+  value: {{ .Values.config.telemetry.logs | quote }}
+- name: BEACON_TRACING_ENABLED
+  value: {{ .Values.config.telemetry.traces | quote }}
+- name: PHONE_HOME_ENABLED
+  value: {{ or .Values.config.telemetry.logs .Values.config.telemetry.traces | quote }}
+- name: LANGSMITH_LICENSE_KEY
+  valueFrom:
+    secretKeyRef:
+      name: {{ include "langsmith.secretsName" . }}
+      key: langsmith_license_key
+      optional: {{ .Values.config.disableSecretCreation }}
+{{- end }}
+
+{{/*
 Common per-process SmithDB env: logging, OpenTelemetry, pod identity, allocator.
 Args: root, service, displayName.
 */}}
@@ -701,6 +719,7 @@ Args: root, service, displayName.
   value: {{ $displayName | quote }}
 - name: OTEL_RESOURCE_ATTRIBUTES
   value: {{ include "langsmith.smithdb.otelResourceAttributes" $root | quote }}
+{{ include "langsmith.smithdb.beaconEnv" $root }}
 - name: _RJEM_MALLOC_CONF
   value: "prof:true,prof_active:false,lg_prof_sample:19"
 {{- end }}
