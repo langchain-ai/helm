@@ -40,6 +40,7 @@ order by status;
 --    so rows that are already sent, already reconciled, or deliberately not
 --    reported are never touched. Rows attached to a backfill_id are skipped
 --    because they are already part of a manual reconciliation.
+with requeued as (
 update trace_count_transactions
 set status = 'pending',
     num_failed_send_attempts = 0
@@ -50,4 +51,7 @@ where status = 'failed'
   and interval_start >= :'window_start'
   and interval_start <  :'window_end'
   and extract(epoch from insertion_time_range_start)::bigint % 3600 = 0
-  and insertion_time_range_end = insertion_time_range_start + interval '1 hour';
+  and insertion_time_range_end = insertion_time_range_start + interval '1 hour'
+  returning 1
+)
+select count(*) as rows_requeued from requeued;
