@@ -1,6 +1,6 @@
 # mission-control
 
-![Version: 1.2.3](https://img.shields.io/badge/Version-1.2.3-informational?style=flat-square) ![AppVersion: 1.2.4](https://img.shields.io/badge/AppVersion-1.2.4-informational?style=flat-square)
+![Version: 1.2.6](https://img.shields.io/badge/Version-1.2.6-informational?style=flat-square) ![AppVersion: 1.2.6](https://img.shields.io/badge/AppVersion-1.2.6-informational?style=flat-square)
 
 Mission Control to deploy and manage Langsmith in EKS
 
@@ -153,8 +153,11 @@ helm install mission-control langchain/mission-control \
 | images.frontendImage.tag | string | `"latest"` | Frontend image tag. Defaults to `latest`; pin to a specific release like `1.2.2` for reproducible deploys. Versioned tags are published alongside `latest` on every release. |
 | images.imagePullSecrets | list | `[{"name":"regcred"}]` | Image pull secrets used by all components. |
 | images.registry | string | `""` | If supplied, all child <image>.repository values will be prepended with this registry name + `/` |
-| ingress.enabled | bool | `false` |  |
-| ingress.host | string | `""` |  |
+| ingress.annotations | object | `{}` | Controller-specific annotations (e.g. ALB/AGIC/nginx annotations, cert ARNs). Merged with commonAnnotations; these take precedence on key conflicts. |
+| ingress.enabled | bool | `false` | Expose Mission Control through an ingress controller instead of port-forwarding. |
+| ingress.host | string | `""` | Hostname for the Ingress rule, e.g. mission-control.example.com. Point a DNS CNAME/A record at your ingress controller's address once enabled. |
+| ingress.ingressClassName | string | `""` | IngressClass to use (e.g. `nginx`, `alb`, `azure/application-gateway`). Leave empty to use the cluster's default IngressClass. |
+| ingress.tls | list | `[]` | Optional TLS configuration, e.g.: tls:   - hosts: ["mission-control.example.com"]     secretName: mission-control-tls |
 | nameOverride | string | `""` | Provide a name in place of `mission-control` |
 | namespace | string | `""` | Namespace to install the chart into. If not set, will use the namespace of the current context. |
 

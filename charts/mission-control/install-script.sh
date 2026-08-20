@@ -285,6 +285,9 @@ frontend:
 ingress:
   enabled: false
   host: ""
+  ingressClassName: ""
+  annotations: {}
+  tls: []
 
 config:
   auth:

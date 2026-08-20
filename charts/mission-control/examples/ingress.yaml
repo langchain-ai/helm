@@ -7,3 +7,22 @@
 ingress:
   enabled: true
   host: mission-control.example.com
+
+  # Uncomment and adjust for your ingress controller:
+
+  # AKS with Application Gateway Ingress Controller (AGIC):
+  # ingressClassName: azure/application-gateway
+  # annotations:
+  #   appgw.ingress.kubernetes.io/ssl-redirect: "true"
+
+  # EKS with the AWS Load Balancer Controller (ALB):
+  # ingressClassName: alb
+  # annotations:
+  #   alb.ingress.kubernetes.io/scheme: internal
+  #   alb.ingress.kubernetes.io/target-type: ip
+
+  # ingress-nginx (any cluster):
+  # ingressClassName: nginx
+  # tls:
+  #   - hosts: ["mission-control.example.com"]
+  #     secretName: mission-control-tls

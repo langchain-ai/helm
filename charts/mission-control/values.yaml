@@ -204,10 +204,25 @@ frontend:
     type: ClusterIP
     port: 3000
 
-# Optional ingress; disabled by default.
+# Optional ingress; disabled by default. Alternative to kubectl port-forward
+# for reaching the Mission Control console - see docs/installation.md.
 ingress:
+  # -- Expose Mission Control through an ingress controller instead of port-forwarding.
   enabled: false
+  # -- Hostname for the Ingress rule, e.g. mission-control.example.com. Point a DNS
+  # CNAME/A record at your ingress controller's address once enabled.
   host: ""
+  # -- IngressClass to use (e.g. `nginx`, `alb`, `azure/application-gateway`). Leave
+  # empty to use the cluster's default IngressClass.
+  ingressClassName: ""
+  # -- Controller-specific annotations (e.g. ALB/AGIC/nginx annotations, cert ARNs).
+  # Merged with commonAnnotations; these take precedence on key conflicts.
+  annotations: {}
+  # -- Optional TLS configuration, e.g.:
+  # tls:
+  #   - hosts: ["mission-control.example.com"]
+  #     secretName: mission-control-tls
+  tls: []
 
 # Diagnostic-bundle storage. The backend always writes bundles to /tmp/mc_diagnostics.
 # The backend runs as a StatefulSet so persistence can be toggled by including or
