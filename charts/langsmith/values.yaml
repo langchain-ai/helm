@@ -1239,8 +1239,6 @@ config:
       useTls: true
       env: "ls_self_hosted"
       exporter: "http"
-      # -- Additional OpenTelemetry resource attributes applied to SmithDB workloads.
-      extraResourceAttributes: {}
 
   customCa:
     # -- Optional. Used to set a file containing trusted CA certificates. Make sure to also include a public CA to access beacon and playground.
