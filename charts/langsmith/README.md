@@ -1411,7 +1411,6 @@ Two things worth planning for before you enable it:
 | config.observability.tracing.endpoint | string | `""` |  |
 | config.observability.tracing.env | string | `"ls_self_hosted"` |  |
 | config.observability.tracing.exporter | string | `"http"` |  |
-| config.observability.tracing.extraResourceAttributes | object | `{}` | Additional OpenTelemetry resource attributes applied to SmithDB workloads. |
 | config.observability.tracing.useTls | bool | `true` | Use TLS for OTLP export. |
 | config.orgAdminsInstallationUsageExportEnabled | bool | `false` | When true, any org admin can use the usage backfill export. |
 | config.personalOrgsDisabled | bool | `true` | Disable personal orgs. |

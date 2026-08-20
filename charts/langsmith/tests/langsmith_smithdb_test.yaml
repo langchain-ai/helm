@@ -247,8 +247,6 @@ tests:
       config.observability.tracing.endpoint: default-otel-collector:4317
       config.observability.tracing.useTls: false
       config.observability.tracing.exporter: grpc
-      config.observability.tracing.extraResourceAttributes:
-        service.version: preview-abcdef0
     template: smithdb/query-deployment.yaml
     asserts:
       - contains:
@@ -275,7 +273,7 @@ tests:
           path: spec.template.spec.containers[0].env
           content:
             name: OTEL_RESOURCE_ATTRIBUTES
-            value: pod_name=$(POD_NAME),k8s.pod.name=$(POD_NAME),container_name=$(CONTAINER_NAME),k8s.container.name=$(CONTAINER_NAME),service.version=preview-abcdef0
+            value: pod_name=$(POD_NAME),k8s.pod.name=$(POD_NAME),container_name=$(CONTAINER_NAME),k8s.container.name=$(CONTAINER_NAME)
 
   - it: should preserve the bare endpoint for LangSmith services
     values:
