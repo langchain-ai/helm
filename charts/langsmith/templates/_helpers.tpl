@@ -1385,7 +1385,6 @@ Name for the immutable JuiceFS format Job. Include every value used in its pod
 template so Helm creates a new Job instead of attempting to patch one.
 */}}
 {{- define "langsmith.sandboxes.juicefsFormatJobName" -}}
-{{- $juicefsFormatJob := .Values.sandboxes.juicefsFormatJob | default dict -}}
 {{- $inputs := dict
   "chartVersion" .Chart.Version
   "config" (include "langsmith.sandboxes.juicefsConfigSecretChecksum" .)
@@ -1393,7 +1392,7 @@ template so Helm creates a new Job instead of attempting to patch one.
   "pullPolicy" .Values.images.sandboxHostImage.pullPolicy
   "pullSecrets" .Values.images.imagePullSecrets
   "env" (include "langsmith.sandboxes.juicefsFormatJobEnv" .)
-  "labels" (default dict $juicefsFormatJob.labels)
+  "labels" (default dict (index (.Values.sandboxes.juicefsFormatJob | default dict) "labels"))
   "serviceAccount" (include "langsmith.sandboxes.sandboxHostServiceAccountName" .)
   "nodeSelector" .Values.sandboxes.sandboxHost.deployment.nodeSelector
   "tolerations" .Values.sandboxes.sandboxHost.deployment.tolerations
