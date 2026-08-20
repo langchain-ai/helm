@@ -4,6 +4,53 @@ templates:
   # config-map.yaml is loaded so the StatefulSet's checksum/config `include` resolves.
   - clickhouse/config-map.yaml
 tests:
+  - it: configures bounded ClickHouse system log retention
+    template: clickhouse/config-map.yaml
+    asserts:
+      - matchRegex:
+          path: data["telemetry_config.xml"]
+          pattern: '<trace_log remove="1"/>'
+      - matchRegex:
+          path: data["telemetry_config.xml"]
+          pattern: '<metric_log remove="1"/>'
+      - matchRegex:
+          path: data["telemetry_config.xml"]
+          pattern: '<asynchronous_metric_log remove="1"/>'
+      - matchRegex:
+          path: data["telemetry_config.xml"]
+          pattern: '<query_metric_log remove="1"/>'
+      - matchRegex:
+          path: data["telemetry_config.xml"]
+          pattern: '<background_schedule_pool_log remove="1"/>'
+      - matchRegex:
+          path: data["telemetry_config.xml"]
+          pattern: '<query_log>[[:space:]]*<ttl>event_date \+ INTERVAL 3 DAY</ttl>[[:space:]]*</query_log>'
+      - matchRegex:
+          path: data["telemetry_config.xml"]
+          pattern: '<part_log>[[:space:]]*<ttl>event_date \+ INTERVAL 3 DAY</ttl>[[:space:]]*</part_log>'
+      - matchRegex:
+          path: data["telemetry_config.xml"]
+          pattern: '<text_log>[[:space:]]*<ttl>event_date \+ INTERVAL 3 DAY</ttl>[[:space:]]*</text_log>'
+      - matchRegex:
+          path: data["telemetry_config.xml"]
+          pattern: '<error_log>[[:space:]]*<ttl>event_date \+ INTERVAL 3 DAY</ttl>[[:space:]]*</error_log>'
+      - matchRegex:
+          path: data["telemetry_config.xml"]
+          pattern: '<processors_profile_log>[[:space:]]*<ttl>event_date \+ INTERVAL 3 DAY</ttl>[[:space:]]*</processors_profile_log>'
+      - matchRegex:
+          path: data["telemetry_config.xml"]
+          pattern: '<query_views_log>[[:space:]]*<ttl>event_date \+ INTERVAL 3 DAY</ttl>[[:space:]]*</query_views_log>'
+
+  - it: mounts the ClickHouse telemetry configuration
+    template: clickhouse/stateful-set.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].volumeMounts
+          content:
+            mountPath: /etc/clickhouse-server/config.d/telemetry_config.xml
+            name: clickhouse-conf
+            subPath: telemetry_config.xml
+
   - it: does not render updateStrategy by default
     template: clickhouse/stateful-set.yaml
     asserts:
