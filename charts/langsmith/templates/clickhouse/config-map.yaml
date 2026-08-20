@@ -67,4 +67,34 @@ data:
         <errors>true</errors>
       </prometheus>
     </clickhouse>
+
+  telemetry_config.xml: |
+    <clickhouse>
+      <!-- Disable high-churn introspection logs that can consume significant CPU and disk while idle. -->
+      <trace_log remove="1"/>
+      <metric_log remove="1"/>
+      <asynchronous_metric_log remove="1"/>
+      <query_metric_log remove="1"/>
+      <background_schedule_pool_log remove="1"/>
+
+      <!-- Retain useful operational logs while preventing unbounded growth on the ClickHouse PVC. -->
+      <query_log>
+        <ttl>event_date + INTERVAL 3 DAY</ttl>
+      </query_log>
+      <part_log>
+        <ttl>event_date + INTERVAL 3 DAY</ttl>
+      </part_log>
+      <text_log>
+        <ttl>event_date + INTERVAL 3 DAY</ttl>
+      </text_log>
+      <error_log>
+        <ttl>event_date + INTERVAL 3 DAY</ttl>
+      </error_log>
+      <processors_profile_log>
+        <ttl>event_date + INTERVAL 3 DAY</ttl>
+      </processors_profile_log>
+      <query_views_log>
+        <ttl>event_date + INTERVAL 3 DAY</ttl>
+      </query_views_log>
+    </clickhouse>
 {{- end }}
