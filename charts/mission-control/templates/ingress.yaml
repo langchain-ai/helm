@@ -6,11 +6,19 @@ metadata:
   namespace: {{ .Values.namespace | default .Release.Namespace }}
   labels:
     {{- include "missionControl.labels" . | nindent 4 }}
-  {{- with (include "missionControl.annotations" .) }}
+  {{- $ingressAnnotations := merge (.Values.ingress.annotations | default dict) (.Values.commonAnnotations | default dict) }}
+  {{- if $ingressAnnotations }}
   annotations:
-    {{- . | nindent 4 }}
+    {{- toYaml $ingressAnnotations | nindent 4 }}
   {{- end }}
 spec:
+  {{- if .Values.ingress.ingressClassName }}
+  ingressClassName: {{ .Values.ingress.ingressClassName | quote }}
+  {{- end }}
+  {{- with .Values.ingress.tls }}
+  tls:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
   rules:
     - host: {{ .Values.ingress.host | quote }}
       http:
