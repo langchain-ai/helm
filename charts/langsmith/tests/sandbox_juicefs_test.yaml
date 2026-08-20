@@ -103,7 +103,7 @@ tests:
           path: spec.template.spec.volumes[0].secret.secretName
           value: RELEASE-NAME-langsmith-juicefs-config
 
-  - it: should add labels to the formatter Job and pod
+  - it: should add labels to the formatter pod
     values:
       - ./values/sandboxes-enabled.yaml
     set:
@@ -111,9 +111,8 @@ tests:
         azure.workload.identity/use: "true"
     template: sandboxes/juicefs-format-job.yaml
     asserts:
-      - equal:
+      - isNull:
           path: metadata.labels["azure.workload.identity/use"]
-          value: "true"
       - equal:
           path: spec.template.metadata.labels["azure.workload.identity/use"]
           value: "true"

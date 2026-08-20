@@ -188,7 +188,7 @@ sandboxes:
         - --cache-size=51200
         - --cache-large-write
   juicefsFormatJob:
-    # -- Additional labels applied to the JuiceFS formatter Job and pod.
+    # -- Additional labels applied to the JuiceFS formatter pod.
     labels: {}
   sandboxHost:
     # -- Component name for sandbox-host. Resources are named `<release-fullname>-<name>`, which the chart passes to the host as SANDBOX_HOST_DEPLOYMENT_NAME.

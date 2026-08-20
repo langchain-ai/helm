@@ -8,9 +8,6 @@ metadata:
   labels:
     {{- include "langsmith.labels" . | nindent 4 }}
     app.kubernetes.io/component: juicefs-format
-    {{- with (index (.Values.sandboxes.juicefsFormatJob | default dict) "labels") }}
-      {{- toYaml . | nindent 4 }}
-    {{- end }}
   annotations:
     "argocd.argoproj.io/sync-wave": "-1"
     {{- include "langsmith.annotations" . | nindent 4 }}
