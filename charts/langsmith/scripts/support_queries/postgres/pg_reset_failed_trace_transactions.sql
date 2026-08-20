@@ -4,8 +4,12 @@
 -- Run once against the deployment's Postgres. Safe to re-run: rows already
 -- re-queued no longer match, so a second run reports 0.
 --
--- The affected window defaults to the values below. Override either bound with
--- -v window_start=2026-07-20T00:00:00Z -v window_end=2026-08-19T00:00:00Z
+-- Usage, from the scripts directory:
+--   sh run_support_query_pg.sh "postgres://USER:PASS@HOST:PORT/DB" \
+--     --input support_queries/postgres/pg_reset_failed_trace_transactions.sql
+--
+-- The affected window defaults to the values below. Override either bound by
+-- appending -v window_start=2026-07-20T00:00:00Z
 --
 -- No restart needed. The reporter picks the rows up on its next scheduled run,
 -- then moves them to 'sent'. Use query 1 afterwards to watch that happen.
