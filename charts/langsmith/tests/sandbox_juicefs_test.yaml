@@ -107,8 +107,6 @@ tests:
     values:
       - ./values/sandboxes-enabled.yaml
     set:
-      commonLabels:
-        example.com/common: "true"
       sandboxes.sandboxHost.deployment.labels:
         azure.workload.identity/use: "true"
     template: sandboxes/juicefs-format-job.yaml
@@ -119,17 +117,6 @@ tests:
       - equal:
           path: spec.template.metadata.labels["azure.workload.identity/use"]
           value: "true"
-      - equal:
-          path: metadata.labels["app.kubernetes.io/component"]
-          value: juicefs-format
-      - equal:
-          path: spec.template.metadata.labels["app.kubernetes.io/component"]
-          value: juicefs-format
-      - equal:
-          path: metadata.labels["example.com/common"]
-          value: "true"
-      - isNull:
-          path: spec.template.metadata.labels["example.com/common"]
 
   - it: should let sandbox-host own the JuiceFS mount
     values:

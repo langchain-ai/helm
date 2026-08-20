@@ -1,22 +1,16 @@
 {{- if .Values.sandboxes.enabled }}
 {{- $namespace := .Values.namespace | default .Release.Namespace }}
-{{- $customLabels := omit
+{{- $labels := mergeOverwrite (dict)
   (default dict .Values.sandboxes.sandboxHost.deployment.labels)
-  "app.kubernetes.io/component" }}
-{{- $jobLabels := mergeOverwrite (dict)
-  $customLabels
-  (include "langsmith.labels" . | fromYaml) }}
-{{- $podLabels := mergeOverwrite (dict)
-  $customLabels
-  (include "langsmith.selectorLabels" . | fromYaml) }}
+  (include "langsmith.labels" . | fromYaml)
+  (dict "app.kubernetes.io/component" "juicefs-format") }}
 apiVersion: batch/v1
 kind: Job
 metadata:
   name: {{ include "langsmith.sandboxes.juicefsFormatJobName" . }}
   namespace: {{ $namespace }}
   labels:
-    {{- toYaml $jobLabels | nindent 4 }}
-    app.kubernetes.io/component: juicefs-format
+    {{- toYaml $labels | nindent 4 }}
   annotations:
     "argocd.argoproj.io/sync-wave": "-1"
     {{- include "langsmith.annotations" . | nindent 4 }}
@@ -28,8 +22,7 @@ spec:
   template:
     metadata:
       labels:
-        {{- toYaml $podLabels | nindent 8 }}
-        app.kubernetes.io/component: juicefs-format
+        {{- toYaml $labels | nindent 8 }}
     spec:
       serviceAccountName: {{ include "langsmith.sandboxes.sandboxHostServiceAccountName" . }}
       restartPolicy: Never
