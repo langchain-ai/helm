@@ -1385,6 +1385,7 @@ Name for the immutable JuiceFS format Job. Include every value used in its pod
 template so Helm creates a new Job instead of attempting to patch one.
 */}}
 {{- define "langsmith.sandboxes.juicefsFormatJobName" -}}
+{{- $juicefsFormatJob := .Values.sandboxes.juicefsFormatJob -}}
 {{- $inputs := dict
   "chartVersion" .Chart.Version
   "config" (include "langsmith.sandboxes.juicefsConfigSecretChecksum" .)
@@ -1392,9 +1393,15 @@ template so Helm creates a new Job instead of attempting to patch one.
   "pullPolicy" .Values.images.sandboxHostImage.pullPolicy
   "pullSecrets" .Values.images.imagePullSecrets
   "env" (include "langsmith.sandboxes.juicefsFormatJobEnv" .)
+  "labels" $juicefsFormatJob.labels
+  "annotations" $juicefsFormatJob.annotations
+  "podSecurityContext" (include "langsmith.podSecurityContext" (dict "Values" .Values "componentSecurityContext" $juicefsFormatJob.podSecurityContext))
+  "securityContext" $juicefsFormatJob.securityContext
+  "resources" $juicefsFormatJob.resources
   "serviceAccount" (include "langsmith.sandboxes.sandboxHostServiceAccountName" .)
-  "nodeSelector" .Values.sandboxes.sandboxHost.deployment.nodeSelector
-  "tolerations" .Values.sandboxes.sandboxHost.deployment.tolerations
+  "nodeSelector" (default .Values.sandboxes.sandboxHost.deployment.nodeSelector $juicefsFormatJob.nodeSelector)
+  "tolerations" (default .Values.sandboxes.sandboxHost.deployment.tolerations $juicefsFormatJob.tolerations)
+  "affinity" $juicefsFormatJob.affinity
 -}}
 {{- printf "%s-juicefs-format-%s" (include "langsmith.fullname" .) (toJson $inputs | sha256sum | trunc 8) | trunc 63 | trimSuffix "-" -}}
 {{- end -}}

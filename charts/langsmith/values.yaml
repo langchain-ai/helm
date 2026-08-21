@@ -187,6 +187,30 @@ sandboxes:
       mountOptions:
         - --cache-size=51200
         - --cache-large-write
+  juicefsFormatJob:
+    # -- Additional labels applied to the JuiceFS formatter pod.
+    labels: {}
+    # -- Additional annotations applied to the JuiceFS formatter Job and pod.
+    annotations: {}
+    # -- Pod security context for the JuiceFS formatter pod.
+    podSecurityContext: {}
+    # -- Container security context for the JuiceFS formatter container.
+    securityContext:
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop:
+          - ALL
+    # -- Resource requests and limits for the JuiceFS formatter container.
+    resources:
+      requests:
+        cpu: 100m
+        memory: 128Mi
+    # -- Node selector for the JuiceFS formatter pod. Defaults to the sandbox-host node selector when empty.
+    nodeSelector: {}
+    # -- Tolerations for the JuiceFS formatter pod. Defaults to the sandbox-host tolerations when empty.
+    tolerations: []
+    # -- Affinity rules for the JuiceFS formatter pod.
+    affinity: {}
   sandboxHost:
     # -- Component name for sandbox-host. Resources are named `<release-fullname>-<name>`, which the chart passes to the host as SANDBOX_HOST_DEPLOYMENT_NAME.
     name: "sandbox-host"

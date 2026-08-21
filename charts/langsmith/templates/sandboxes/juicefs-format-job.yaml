@@ -1,5 +1,6 @@
 {{- if .Values.sandboxes.enabled }}
 {{- $namespace := .Values.namespace | default .Release.Namespace }}
+{{- $juicefsFormatJob := .Values.sandboxes.juicefsFormatJob }}
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -11,6 +12,9 @@ metadata:
   annotations:
     "argocd.argoproj.io/sync-wave": "-1"
     {{- include "langsmith.annotations" . | nindent 4 }}
+    {{- with $juicefsFormatJob.annotations }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
 spec:
   completions: 1
   parallelism: 1
@@ -18,21 +22,34 @@ spec:
   activeDeadlineSeconds: 300
   template:
     metadata:
+      {{- with $juicefsFormatJob.annotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       labels:
         {{- include "langsmith.selectorLabels" . | nindent 8 }}
         app.kubernetes.io/component: juicefs-format
+        {{- with $juicefsFormatJob.labels }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
     spec:
       serviceAccountName: {{ include "langsmith.sandboxes.sandboxHostServiceAccountName" . }}
       restartPolicy: Never
+      securityContext:
+        {{- include "langsmith.podSecurityContext" (dict "Values" .Values "componentSecurityContext" $juicefsFormatJob.podSecurityContext) | nindent 8 }}
       {{- with .Values.images.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.sandboxes.sandboxHost.deployment.nodeSelector }}
+      {{- with (default .Values.sandboxes.sandboxHost.deployment.nodeSelector $juicefsFormatJob.nodeSelector) }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.sandboxes.sandboxHost.deployment.tolerations }}
+      {{- with $juicefsFormatJob.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with (default .Values.sandboxes.sandboxHost.deployment.tolerations $juicefsFormatJob.tolerations) }}
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
@@ -47,14 +64,9 @@ spec:
           env:
             {{- include "langsmith.sandboxes.juicefsFormatJobEnv" . | nindent 12 }}
           securityContext:
-            allowPrivilegeEscalation: false
-            capabilities:
-              drop:
-                - ALL
+            {{- toYaml $juicefsFormatJob.securityContext | nindent 12 }}
           resources:
-            requests:
-              cpu: 100m
-              memory: 128Mi
+            {{- toYaml $juicefsFormatJob.resources | nindent 12 }}
           volumeMounts:
             - name: juicefs-config
               mountPath: /run/secrets/juicefs
