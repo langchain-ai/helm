@@ -4,6 +4,7 @@ on:
   push:
     branches: [main]
   pull_request:
+  merge_group:
   workflow_dispatch:
 
 permissions:
@@ -39,6 +40,9 @@ jobs:
         run: |
           helm repo add langchain https://langchain-ai.github.io/helm/
           helm repo update
+
+      - name: Check changed chart versions
+        run: ct lint --target-branch ${{ github.event.repository.default_branch }}
 
       - name: Run chart-testing (lint)
         run: ct lint --target-branch ${{ github.event.repository.default_branch }} --charts charts/${{ matrix.chart-name }}
