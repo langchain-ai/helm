@@ -631,7 +631,22 @@ Args: root, service, displayName.
 {{- if $root.Values.smithdb.enabled }}
 {{- $envVars = concat $envVars (include "langsmith.smithdb.clusterManagerClientEnv" (dict "root" $root "service" $service) | fromYamlArray) -}}
 {{- end }}
-{{- $envVars = concat $envVars $root.Values.commonEnv $root.Values.smithdb.commonEnv -}}
+{{- $seen := dict -}}
+{{- range $envVars }}
+{{- $_ := set $seen .name true -}}
+{{- end }}
+{{- range $root.Values.commonEnv }}
+{{- if not (hasKey $seen .name) }}
+{{- $envVars = append $envVars . -}}
+{{- $_ := set $seen .name true -}}
+{{- end }}
+{{- end }}
+{{- range $root.Values.smithdb.commonEnv }}
+{{- if not (hasKey $seen .name) }}
+{{- $envVars = append $envVars . -}}
+{{- $_ := set $seen .name true -}}
+{{- end }}
+{{- end }}
 {{- toYaml $envVars }}
 {{- end }}
 
@@ -667,7 +682,9 @@ SmithDB Beacon log export environment.
     secretKeyRef:
       name: {{ include "langsmith.secretsName" . }}
       key: langsmith_license_key
-      optional: {{ .Values.config.disableSecretCreation }}
+      # BYOC existing secrets authenticate Beacon with DATA_PLANE_JWT_SECRET
+      # and do not store langsmith_license_key.
+      optional: {{ or .Values.config.disableSecretCreation (ne (default "" .Values.config.existingSecretName) "") }}
 {{- end }}
 
 {{/*
