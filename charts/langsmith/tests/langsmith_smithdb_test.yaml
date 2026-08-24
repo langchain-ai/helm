@@ -913,6 +913,16 @@ tests:
         notContains:
           path: spec.template.spec.containers[0].env
           content:
+            name: SMITHDB_MIGRATION__BLOB_STORE_DEFAULT__S3__ACCESS_KEY_ID
+      - template: smithdb/migration-job.yaml
+        notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_MIGRATION__BLOB_STORE_DEFAULT__S3__SECRET_ACCESS_KEY
+      - template: smithdb/migration-job.yaml
+        notContains:
+          path: spec.template.spec.containers[0].env
+          content:
             name: SMITHDB_MIGRATION__BLOB_STORE_PREFIXED__TYPE
       - template: smithdb/migration-job.yaml
         contains:
@@ -1000,6 +1010,41 @@ tests:
               secretKeyRef:
                 name: RELEASE-NAME-langsmith-smithdb-taskdb-postgres
                 key: postgres_password
+
+  - it: should mount smithdb migration blob store access keys when configured
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      images.smithdbImage.tag: test-tag
+      config.blobStorage.enabled: true
+      config.blobStorage.bucketName: langsmith-blob
+      config.blobStorage.apiURL: http://blob-store:9000
+      config.blobStorage.accessKey: blob-access-key
+      config.blobStorage.accessKeySecret: blob-secret-key
+      smithdb.langsmith.migration.enabled: true
+      smithdb.langsmith.query.enabled: false
+      smithdb.migration.taskdb.postgres.enabled: true
+      smithdb.migration.taskdb.postgres.auth.password: taskdb-password
+    template: smithdb/migration-job.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_MIGRATION__BLOB_STORE_DEFAULT__S3__ACCESS_KEY_ID
+            valueFrom:
+              secretKeyRef:
+                name: RELEASE-NAME-langsmith-secrets
+                key: blob_storage_access_key
+                optional: true
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_MIGRATION__BLOB_STORE_DEFAULT__S3__SECRET_ACCESS_KEY
+            valueFrom:
+              secretKeyRef:
+                name: RELEASE-NAME-langsmith-secrets
+                key: blob_storage_access_key_secret
+                optional: true
 
   - it: should derive migration workers from a millicore CPU limit
     values:
