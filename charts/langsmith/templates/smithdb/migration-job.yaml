@@ -173,6 +173,8 @@ spec:
               value: {{ $blobStorage.apiURL | quote }}
             - name: SMITHDB_MIGRATION__BLOB_STORE_DEFAULT__S3__ALLOW_HTTP
               value: {{ hasPrefix "http://" $blobStorage.apiURL | quote }}
+            {{- /* Empty keys become static "" credentials in SmithDB and break IRSA/Pod Identity. */}}
+            {{- if or $blobStorage.accessKey $blobStorage.accessKeySecret }}
             - name: SMITHDB_MIGRATION__BLOB_STORE_DEFAULT__S3__ACCESS_KEY_ID
               valueFrom:
                 secretKeyRef:
@@ -185,6 +187,7 @@ spec:
                   name: {{ include "langsmith.secretsName" . }}
                   key: blob_storage_access_key_secret
                   optional: true
+            {{- end }}
             {{- else if and $blobStorage.enabled (eq (lower $blobStorage.engine) "gcs") }}
             - name: SMITHDB_MIGRATION__BLOB_STORE_DEFAULT__TYPE
               value: "gcs"
