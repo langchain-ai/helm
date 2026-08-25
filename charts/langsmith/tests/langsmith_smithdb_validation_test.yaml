@@ -2,6 +2,16 @@ suite: test smithdb phase validation
 templates:
   - validate.yaml
 tests:
+  - it: should reject Azure object storage without an account name
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      config.existingSecretName: langsmith-secret
+      smithdb.config.objectStore.type: azure
+    asserts:
+      - failedTemplate:
+          errorMessage: "smithdb.config.objectStore.azure.accountName is required when smithdb.config.objectStore.type is azure."
+
   - it: should reject smithdb without query replicas
     values:
       - ./values/smithdb-enabled.yaml
@@ -203,4 +213,3 @@ tests:
     asserts:
       - failedTemplate:
           errorMessage: "smithdb.commonInitContainers[0] must be a container object."
-

@@ -773,11 +773,33 @@ Args: root, service, displayName.
   value: {{ $root.Values.smithdb.config.objectStore.bucket | quote }}
 - name: {{ $prefix }}__OBJECT_STORE__GCS__ROOT_FOLDER
   value: {{ $objectStoreRootFolder | quote }}
+{{- else if eq $objectStoreType "azure" }}
+- name: {{ $prefix }}__OBJECT_STORE__AZURE__CONTAINER
+  value: {{ $root.Values.smithdb.config.objectStore.bucket | quote }}
+- name: {{ $prefix }}__OBJECT_STORE__AZURE__ROOT_FOLDER
+  value: {{ $objectStoreRootFolder | quote }}
+- name: {{ $prefix }}__OBJECT_STORE__AZURE__ACCOUNT_NAME
+  value: {{ $root.Values.smithdb.config.objectStore.azure.accountName | quote }}
+{{- with $root.Values.smithdb.config.objectStore.azure.endpoint }}
+- name: {{ $prefix }}__OBJECT_STORE__AZURE__ENDPOINT
+  value: {{ . | quote }}
+{{- end }}
+{{- if hasKey $root.Values.smithdb.config.objectStore.azure "allowHttp" }}
+- name: {{ $prefix }}__OBJECT_STORE__AZURE__ALLOW_HTTP
+  value: {{ $root.Values.smithdb.config.objectStore.azure.allowHttp | quote }}
+{{- end }}
+{{- if $root.Values.smithdb.config.objectStore.azure.accessKeySecretKey }}
+- name: {{ $prefix }}__OBJECT_STORE__AZURE__ACCESS_KEY
+  valueFrom:
+    secretKeyRef:
+      name: {{ $root.Values.smithdb.config.existingSecretName }}
+      key: {{ $root.Values.smithdb.config.objectStore.azure.accessKeySecretKey }}
+{{- end }}
 {{- end }}
 - name: {{ $prefix }}__METASTORE__TYPE
   value: "postgres"
 - name: {{ $prefix }}__METASTORE__DEFAULT_URI
-  value: {{ ternary "s3://" "gs://" (eq $objectStoreType "s3") | quote }}
+  value: {{ get (dict "s3" "s3://" "gcs" "gs://" "azure" "az://") $objectStoreType | quote }}
 - name: {{ $prefix }}__METASTORE__HOST
   valueFrom:
     secretKeyRef:

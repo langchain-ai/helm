@@ -397,11 +397,14 @@ AWS Marketplace Helm template verification).
 {{- fail "smithdb.config.metastore.useSsl must be true when smithdb.config.metastore.iamAuthProvider is set." -}}
 {{- end -}}
 {{- $objectStoreType := lower .Values.smithdb.config.objectStore.type -}}
-{{- if not (or (eq $objectStoreType "s3") (eq $objectStoreType "gcs")) -}}
-{{- fail "smithdb.config.objectStore.type must be one of [s3, gcs]." -}}
+{{- if not (or (eq $objectStoreType "s3") (eq $objectStoreType "gcs") (eq $objectStoreType "azure")) -}}
+{{- fail "smithdb.config.objectStore.type must be one of [s3, gcs, azure]." -}}
 {{- end -}}
 {{- if not .Values.smithdb.config.objectStore.bucket -}}
 {{- fail "smithdb.config.objectStore.bucket is required when smithdb.enabled is true." -}}
+{{- end -}}
+{{- if and (eq $objectStoreType "azure") (not .Values.smithdb.config.objectStore.azure.accountName) -}}
+{{- fail "smithdb.config.objectStore.azure.accountName is required when smithdb.config.objectStore.type is azure." -}}
 {{- end -}}
 {{- $smithdbRequiredWorkloads := dict
   "query" .Values.smithdb.query

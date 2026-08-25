@@ -231,6 +231,28 @@ spec:
               value: {{ $smithdbObjectStore.bucket | quote }}
             - name: SMITHDB_MIGRATION__OUTPUT__OBJECT_STORE__GCS__ROOT_FOLDER
               value: "smithdb"
+            {{- else if eq $smithdbObjectStoreType "azure" }}
+            - name: SMITHDB_MIGRATION__OUTPUT__OBJECT_STORE__AZURE__CONTAINER
+              value: {{ $smithdbObjectStore.bucket | quote }}
+            - name: SMITHDB_MIGRATION__OUTPUT__OBJECT_STORE__AZURE__ROOT_FOLDER
+              value: "smithdb"
+            - name: SMITHDB_MIGRATION__OUTPUT__OBJECT_STORE__AZURE__ACCOUNT_NAME
+              value: {{ $smithdbObjectStore.azure.accountName | quote }}
+            {{- with $smithdbObjectStore.azure.endpoint }}
+            - name: SMITHDB_MIGRATION__OUTPUT__OBJECT_STORE__AZURE__ENDPOINT
+              value: {{ . | quote }}
+            {{- end }}
+            {{- if hasKey $smithdbObjectStore.azure "allowHttp" }}
+            - name: SMITHDB_MIGRATION__OUTPUT__OBJECT_STORE__AZURE__ALLOW_HTTP
+              value: {{ $smithdbObjectStore.azure.allowHttp | quote }}
+            {{- end }}
+            {{- if $smithdbObjectStore.azure.accessKeySecretKey }}
+            - name: SMITHDB_MIGRATION__OUTPUT__OBJECT_STORE__AZURE__ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.smithdb.config.existingSecretName }}
+                  key: {{ $smithdbObjectStore.azure.accessKeySecretKey }}
+            {{- end }}
             {{- end }}
             {{- toYaml $envVars | nindent 12 }}
           image: {{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "smithdbImage") | quote }}
