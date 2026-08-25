@@ -26,6 +26,18 @@ Two things worth planning for before you enable it:
 
 **Which workspace owns the sandboxes.** By default smith-go resolves the install's workspace, which works when there is exactly one non-personal organization. With more than one it declines rather than guess, and you must set `engine.sandboxTenantId` explicitly. Prefer a workspace reserved for the Engine: its sandboxes are visible to anyone with access to it.
 
+## SmithDB scaling tiers
+
+`smithdb.scalingTier` selects per-replica CPU, memory, and ephemeral-storage requests and limits for the SmithDB workloads. The default tier is `small`. A non-empty `resources` block on an individual component replaces that component's tier resources.
+
+| Component | Small | Medium | Large |
+|---|---|---|---|
+| Query | 4 CPU, 8Gi memory, 200Gi ephemeral | 28 CPU, 48Gi memory, 200Gi ephemeral | 28 CPU, 50Gi memory, 1000Gi ephemeral |
+| Ingestion | 4 CPU, 8Gi memory, 100Gi ephemeral | 16 CPU, 32Gi memory, 100Gi ephemeral | 56 CPU, 150Gi memory, 1000Gi ephemeral |
+| Compaction | 2 CPU, 4Gi memory | 4 CPU, 8Gi memory | 8 CPU, 16Gi memory |
+| Compaction worker | 8 CPU, 16Gi memory, 100Gi ephemeral | 16 CPU, 32Gi memory, 100Gi ephemeral | 28 CPU, 50Gi memory, 300Gi ephemeral |
+| Cluster manager | 250m CPU, 256Mi memory | 250m CPU, 256Mi memory | 2 CPU, 2Gi memory |
+
 ## General parameters
 
 | Key | Type | Default | Description |
@@ -1288,7 +1300,6 @@ Two things worth planning for before you enable it:
 | smithdb.query.service.labels | object | `{}` |  |
 | smithdb.query.service.port | int | `8080` |  |
 | smithdb.scalingTier | string | `"small"` | Resource sizing tier for SmithDB workloads. Supported values: small, medium, large. A non-empty resources block on a component replaces that component's tier resources. |
-| smithdb.scalingTiers | object | `{"large":{"clusterManager":{"cpu":"2","memory":"2Gi"},"compaction":{"cpu":"8","memory":"16Gi"},"compactionWorker":{"cpu":"28","ephemeral-storage":"300Gi","memory":"50Gi"},"ingestion":{"cpu":"56","ephemeral-storage":"1000Gi","memory":"150Gi"},"query":{"cpu":"28","ephemeral-storage":"1000Gi","memory":"50Gi"}},"medium":{"clusterManager":{"cpu":"250m","memory":"256Mi"},"compaction":{"cpu":"4","memory":"8Gi"},"compactionWorker":{"cpu":"16","ephemeral-storage":"100Gi","memory":"32Gi"},"ingestion":{"cpu":"16","ephemeral-storage":"100Gi","memory":"32Gi"},"query":{"cpu":"28","ephemeral-storage":"200Gi","memory":"48Gi"}},"small":{"clusterManager":{"cpu":"250m","memory":"256Mi"},"compaction":{"cpu":"2","memory":"4Gi"},"compactionWorker":{"cpu":"8","ephemeral-storage":"100Gi","memory":"16Gi"},"ingestion":{"cpu":"4","ephemeral-storage":"100Gi","memory":"8Gi"},"query":{"cpu":"4","ephemeral-storage":"200Gi","memory":"8Gi"}}}` | Per-component resource sizes for each SmithDB scaling tier. |
 | smithdb.serviceAccount | object | `{"annotations":{},"automountServiceAccountToken":true,"create":true,"labels":{},"name":""}` | Shared ServiceAccount for SmithDB workloads. |
 | smithdb.serviceAccount.name | string | `""` | Defaults to <release>-<smithdb.name>. |
 
