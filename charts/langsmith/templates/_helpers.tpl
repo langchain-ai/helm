@@ -519,7 +519,8 @@ Args: root, component.
 {{- define "langsmith.smithdb.resources" -}}
 {{- $root := .root -}}
 {{- $component := .component -}}
-{{- $componentResources := (index $root.Values.smithdb $component).deployment.resources -}}
+{{- $deployment := (index $root.Values.smithdb $component).deployment -}}
+{{- $componentResources := get $deployment "resources" -}}
 {{- if $componentResources -}}
 {{- toYaml $componentResources -}}
 {{- else -}}

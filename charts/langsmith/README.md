@@ -946,7 +946,6 @@ Two things worth planning for before you enable it:
 | smithdb.clusterManager.deployment.probes.startupProbe.periodSeconds | int | `10` |  |
 | smithdb.clusterManager.deployment.probes.startupProbe.timeoutSeconds | int | `1` |  |
 | smithdb.clusterManager.deployment.replicas | int | `1` |  |
-| smithdb.clusterManager.deployment.resources | object | `{}` |  |
 | smithdb.clusterManager.deployment.securityContext | object | `{}` |  |
 | smithdb.clusterManager.deployment.sidecars | list | `[]` |  |
 | smithdb.clusterManager.deployment.tolerations | list | `[]` |  |
@@ -990,7 +989,6 @@ Two things worth planning for before you enable it:
 | smithdb.compaction.deployment.probes.startupProbe.periodSeconds | int | `10` |  |
 | smithdb.compaction.deployment.probes.startupProbe.timeoutSeconds | int | `1` |  |
 | smithdb.compaction.deployment.replicas | int | `1` |  |
-| smithdb.compaction.deployment.resources | object | `{}` |  |
 | smithdb.compaction.deployment.securityContext | object | `{}` |  |
 | smithdb.compaction.deployment.sidecars | list | `[]` |  |
 | smithdb.compaction.deployment.tolerations | list | `[]` |  |
@@ -1041,7 +1039,6 @@ Two things worth planning for before you enable it:
 | smithdb.compactionWorker.deployment.probes.startupProbe.periodSeconds | int | `10` |  |
 | smithdb.compactionWorker.deployment.probes.startupProbe.timeoutSeconds | int | `1` |  |
 | smithdb.compactionWorker.deployment.replicas | int | `2` |  |
-| smithdb.compactionWorker.deployment.resources | object | `{}` |  |
 | smithdb.compactionWorker.deployment.securityContext | object | `{}` |  |
 | smithdb.compactionWorker.deployment.sidecars | list | `[]` |  |
 | smithdb.compactionWorker.deployment.terminationGracePeriodSeconds | int | `120` |  |
@@ -1110,7 +1107,6 @@ Two things worth planning for before you enable it:
 | smithdb.ingestion.deployment.probes.startupProbe.periodSeconds | int | `10` |  |
 | smithdb.ingestion.deployment.probes.startupProbe.timeoutSeconds | int | `1` |  |
 | smithdb.ingestion.deployment.replicas | int | `1` |  |
-| smithdb.ingestion.deployment.resources | object | `{}` |  |
 | smithdb.ingestion.deployment.securityContext | object | `{}` |  |
 | smithdb.ingestion.deployment.sidecars | list | `[]` |  |
 | smithdb.ingestion.deployment.strategy.rollingUpdate.maxSurge | int | `1` |  |
@@ -1274,7 +1270,6 @@ Two things worth planning for before you enable it:
 | smithdb.query.deployment.probes.startupProbe.periodSeconds | int | `10` |  |
 | smithdb.query.deployment.probes.startupProbe.timeoutSeconds | int | `1` |  |
 | smithdb.query.deployment.replicas | int | `1` |  |
-| smithdb.query.deployment.resources | object | `{}` |  |
 | smithdb.query.deployment.securityContext | object | `{}` |  |
 | smithdb.query.deployment.sidecars | list | `[]` |  |
 | smithdb.query.deployment.strategy.rollingUpdate.maxSurge | int | `1` |  |

@@ -1449,7 +1449,6 @@ smithdb:
       podSecurityContext: {}
       securityContext: {}
       priorityClassName: ""
-      resources: {}
       probes:
         startupProbe:
           httpGet:
@@ -1520,7 +1519,6 @@ smithdb:
       podSecurityContext: {}
       securityContext: {}
       priorityClassName: ""
-      resources: {}
       probes:
         startupProbe:
           httpGet:
@@ -1591,7 +1589,6 @@ smithdb:
       podSecurityContext: {}
       securityContext: {}
       priorityClassName: ""
-      resources: {}
       probes:
         startupProbe:
           httpGet:
@@ -1651,7 +1648,6 @@ smithdb:
       securityContext: {}
       priorityClassName: ""
       terminationGracePeriodSeconds: 120
-      resources: {}
       probes:
         startupProbe:
           httpGet:
@@ -1714,7 +1710,6 @@ smithdb:
       podSecurityContext: {}
       securityContext: {}
       priorityClassName: ""
-      resources: {}
       probes:
         startupProbe:
           httpGet:
