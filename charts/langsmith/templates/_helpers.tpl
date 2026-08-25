@@ -513,7 +513,7 @@ Template containing common environment variables that are used by several servic
 
 {{/*
 Resolve a SmithDB component's resources. An explicit non-empty component resources
-block replaces the selected tier wholesale.
+block replaces the selected tier resources.
 Args: root, component.
 */}}
 {{- define "langsmith.smithdb.resources" -}}
@@ -524,26 +524,7 @@ Args: root, component.
 {{- if $componentResources -}}
 {{- toYaml $componentResources -}}
 {{- else -}}
-{{- $tiers := dict
-  "small" (dict
-    "query" (dict "cpu" "4" "memory" "8Gi" "ephemeral-storage" "200Gi")
-    "ingestion" (dict "cpu" "4" "memory" "8Gi" "ephemeral-storage" "100Gi")
-    "compaction" (dict "cpu" "2" "memory" "4Gi")
-    "compactionWorker" (dict "cpu" "8" "memory" "16Gi" "ephemeral-storage" "100Gi")
-    "clusterManager" (dict "cpu" "250m" "memory" "256Mi"))
-  "medium" (dict
-    "query" (dict "cpu" "28" "memory" "48Gi" "ephemeral-storage" "200Gi")
-    "ingestion" (dict "cpu" "16" "memory" "32Gi" "ephemeral-storage" "100Gi")
-    "compaction" (dict "cpu" "4" "memory" "8Gi")
-    "compactionWorker" (dict "cpu" "16" "memory" "32Gi" "ephemeral-storage" "100Gi")
-    "clusterManager" (dict "cpu" "250m" "memory" "256Mi"))
-  "large" (dict
-    "query" (dict "cpu" "28" "memory" "50Gi" "ephemeral-storage" "1000Gi")
-    "ingestion" (dict "cpu" "56" "memory" "150Gi" "ephemeral-storage" "1000Gi")
-    "compaction" (dict "cpu" "8" "memory" "16Gi")
-    "compactionWorker" (dict "cpu" "28" "memory" "50Gi" "ephemeral-storage" "300Gi")
-    "clusterManager" (dict "cpu" "2" "memory" "2Gi")) -}}
-{{- $resources := index (index $tiers $root.Values.smithdb.scalingTier) $component -}}
+{{- $resources := index (index $root.Values.smithdb.scalingTiers $root.Values.smithdb.scalingTier) $component -}}
 {{- toYaml (dict "requests" $resources "limits" $resources) -}}
 {{- end -}}
 {{- end }}
@@ -552,7 +533,7 @@ Args: root, component.
 Resolve volumes for a disk-using SmithDB component. When the volumes key is
 omitted, generate the standard emptyDir and align its size limit with the
 resolved ephemeral-storage limit. A user-provided list, including [], replaces
-the generated volumes wholesale.
+the generated volumes.
 Args: root, component, resources.
 */}}
 {{- define "langsmith.smithdb.volumes" -}}

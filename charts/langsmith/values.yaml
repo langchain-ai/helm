@@ -1380,6 +1380,65 @@ smithdb:
   # -- Resource sizing tier for SmithDB workloads. Supported values: small, medium, large.
   # A non-empty resources block on a component replaces that component's tier resources.
   scalingTier: "small"
+  # -- Per-component resource sizes for each SmithDB scaling tier.
+  scalingTiers:
+    small:
+      query:
+        cpu: "4"
+        memory: "8Gi"
+        ephemeral-storage: "200Gi"
+      ingestion:
+        cpu: "4"
+        memory: "8Gi"
+        ephemeral-storage: "100Gi"
+      compaction:
+        cpu: "2"
+        memory: "4Gi"
+      compactionWorker:
+        cpu: "8"
+        memory: "16Gi"
+        ephemeral-storage: "100Gi"
+      clusterManager:
+        cpu: "250m"
+        memory: "256Mi"
+    medium:
+      query:
+        cpu: "28"
+        memory: "48Gi"
+        ephemeral-storage: "200Gi"
+      ingestion:
+        cpu: "16"
+        memory: "32Gi"
+        ephemeral-storage: "100Gi"
+      compaction:
+        cpu: "4"
+        memory: "8Gi"
+      compactionWorker:
+        cpu: "16"
+        memory: "32Gi"
+        ephemeral-storage: "100Gi"
+      clusterManager:
+        cpu: "250m"
+        memory: "256Mi"
+    large:
+      query:
+        cpu: "28"
+        memory: "50Gi"
+        ephemeral-storage: "1000Gi"
+      ingestion:
+        cpu: "56"
+        memory: "150Gi"
+        ephemeral-storage: "1000Gi"
+      compaction:
+        cpu: "8"
+        memory: "16Gi"
+      compactionWorker:
+        cpu: "28"
+        memory: "50Gi"
+        ephemeral-storage: "300Gi"
+      clusterManager:
+        cpu: "2"
+        memory: "2Gi"
   # -- LangSmith configuration for SmithDB.
   langsmith:
     ingestion:
