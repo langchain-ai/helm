@@ -1377,6 +1377,9 @@ smithdb:
   # -- V16 supports SmithDB in beta. We do not support or recommend customers setting this up on their own.
   # -- Please express interest (https://www.langchain.com/smithdb-early-access-waitlist) and we will reach out promptly to ensure we can set you up for success with SmithDB.
   enabled: false
+  # -- Resource sizing tier for SmithDB workloads. Supported values: small, medium, large.
+  # A non-empty resources block on a component replaces that component's tier resources.
+  scalingTier: "small"
   # -- LangSmith configuration for SmithDB.
   langsmith:
     ingestion:
@@ -1446,15 +1449,7 @@ smithdb:
       podSecurityContext: {}
       securityContext: {}
       priorityClassName: ""
-      resources:
-        requests:
-          cpu: "4"
-          memory: "8Gi"
-          ephemeral-storage: "200Gi"
-        limits:
-          cpu: "4"
-          memory: "8Gi"
-          ephemeral-storage: "200Gi"
+      resources: {}
       probes:
         startupProbe:
           httpGet:
@@ -1487,10 +1482,6 @@ smithdb:
       tolerations: []
       affinity: {}
       topologySpreadConstraints: []
-      volumes:
-        - name: local-ssd-storage
-          emptyDir:
-            sizeLimit: 200Gi
       volumeMounts:
         - name: local-ssd-storage
           mountPath: /data
@@ -1529,15 +1520,7 @@ smithdb:
       podSecurityContext: {}
       securityContext: {}
       priorityClassName: ""
-      resources:
-        requests:
-          cpu: "4"
-          memory: "8Gi"
-          ephemeral-storage: "100Gi"
-        limits:
-          cpu: "4"
-          memory: "8Gi"
-          ephemeral-storage: "100Gi"
+      resources: {}
       probes:
         startupProbe:
           httpGet:
@@ -1575,10 +1558,6 @@ smithdb:
       tolerations: []
       affinity: {}
       topologySpreadConstraints: []
-      volumes:
-        - name: local-ssd-storage
-          emptyDir:
-            sizeLimit: 100Gi
       volumeMounts:
         - name: local-ssd-storage
           mountPath: /data
@@ -1612,13 +1591,7 @@ smithdb:
       podSecurityContext: {}
       securityContext: {}
       priorityClassName: ""
-      resources:
-        requests:
-          cpu: "2"
-          memory: "4Gi"
-        limits:
-          cpu: "2"
-          memory: "4Gi"
+      resources: {}
       probes:
         startupProbe:
           httpGet:
@@ -1678,15 +1651,7 @@ smithdb:
       securityContext: {}
       priorityClassName: ""
       terminationGracePeriodSeconds: 120
-      resources:
-        requests:
-          cpu: "8"
-          memory: "16Gi"
-          ephemeral-storage: "100Gi"
-        limits:
-          cpu: "8"
-          memory: "16Gi"
-          ephemeral-storage: "100Gi"
+      resources: {}
       probes:
         startupProbe:
           httpGet:
@@ -1720,10 +1685,6 @@ smithdb:
       tolerations: []
       affinity: {}
       topologySpreadConstraints: []
-      volumes:
-        - name: local-ssd-storage
-          emptyDir:
-            sizeLimit: 100Gi
       volumeMounts:
         - name: local-ssd-storage
           mountPath: /data
@@ -1753,13 +1714,7 @@ smithdb:
       podSecurityContext: {}
       securityContext: {}
       priorityClassName: ""
-      resources:
-        requests:
-          cpu: "250m"
-          memory: "256Mi"
-        limits:
-          cpu: "250m"
-          memory: "256Mi"
+      resources: {}
       probes:
         startupProbe:
           httpGet:

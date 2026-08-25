@@ -29,6 +29,9 @@ AWS Marketplace Helm template verification).
 {{- if not (kindIs "bool" .Values.smithdb.langsmith.query.enabled) -}}
 {{- fail "smithdb.langsmith.query.enabled must be a boolean. Do not quote true or false." -}}
 {{- end -}}
+{{- if not (has .Values.smithdb.scalingTier (list "small" "medium" "large")) -}}
+{{- fail "smithdb.scalingTier must be one of: small, medium, large." -}}
+{{- end -}}
 {{- if not .Values.config.skipValidation -}}
 
 {{- /* Validate deprecated fleet server value keys */ -}}

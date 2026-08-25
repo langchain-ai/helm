@@ -79,6 +79,96 @@ tests:
           path: spec.template.spec.containers[0].resources.requests.ephemeral-storage
           value: "200Gi"
 
+  - it: should apply the selected SmithDB resource tier
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      smithdb.scalingTier: medium
+    template: smithdb/query-deployment.yaml
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].resources
+          value:
+            requests:
+              cpu: "28"
+              memory: "48Gi"
+              ephemeral-storage: "200Gi"
+            limits:
+              cpu: "28"
+              memory: "48Gi"
+              ephemeral-storage: "200Gi"
+      - equal:
+          path: spec.template.spec.volumes[0]
+          value:
+            name: local-ssd-storage
+            emptyDir:
+              sizeLimit: "200Gi"
+
+  - it: should use the large SmithDB ingestion resources
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      smithdb.scalingTier: large
+    template: smithdb/ingestion-deployment.yaml
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].resources.requests.cpu
+          value: "56"
+      - equal:
+          path: spec.template.spec.containers[0].resources.requests.memory
+          value: "150Gi"
+      - equal:
+          path: spec.template.spec.containers[0].resources.requests.ephemeral-storage
+          value: "1000Gi"
+      - equal:
+          path: spec.template.spec.volumes[0].emptyDir.sizeLimit
+          value: "1000Gi"
+
+  - it: should replace tier resources with an explicit component resources block
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      smithdb.scalingTier: large
+      smithdb.query.deployment.resources.requests.cpu: 750m
+      smithdb.query.deployment.resources.limits.cpu: "1"
+    template: smithdb/query-deployment.yaml
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].resources
+          value:
+            requests:
+              cpu: 750m
+            limits:
+              cpu: "1"
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_QUERY__VORTEX_CACHE__DISK__LIMIT
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_QUERY__VORTEX_CACHE__MEMORY__LIMIT
+      - notExists:
+          path: spec.template.spec.volumes[0].emptyDir.sizeLimit
+
+  - it: should replace generated tier volumes with explicit component volumes
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      smithdb.scalingTier: large
+      smithdb.query.deployment.volumes:
+        - name: local-ssd-storage
+          emptyDir:
+            sizeLimit: 500Gi
+    template: smithdb/query-deployment.yaml
+    asserts:
+      - equal:
+          path: spec.template.spec.volumes
+          value:
+            - name: local-ssd-storage
+              emptyDir:
+                sizeLimit: 500Gi
+
   - it: should configure SmithDB Beacon log export with the LangSmith license secret
     values:
       - ./values/smithdb-enabled.yaml
