@@ -552,12 +552,7 @@ AWS Marketplace Helm template verification).
 {{- end -}}
 {{- end -}}
 
-{{- /* The SmithDB compaction worker retains autoscaling.enabled as a legacy HPA alias. */ -}}
-{{- $compactionWorkerHpaEnabled := .Values.smithdb.compactionWorker.autoscaling.enabled -}}
-{{- if kindIs "bool" .Values.smithdb.compactionWorker.autoscaling.hpa.enabled -}}
-{{- $compactionWorkerHpaEnabled = .Values.smithdb.compactionWorker.autoscaling.hpa.enabled -}}
-{{- end -}}
-{{- if and $compactionWorkerHpaEnabled .Values.smithdb.compactionWorker.autoscaling.keda.enabled -}}
+{{- if and .Values.smithdb.compactionWorker.autoscaling.hpa.enabled .Values.smithdb.compactionWorker.autoscaling.keda.enabled -}}
 {{- fail "Only one of smithdb.compactionWorker.autoscaling.hpa.enabled or smithdb.compactionWorker.autoscaling.keda.enabled can be enabled at the same time. Set hpa.enabled to false when enabling KEDA." -}}
 {{- end -}}
 

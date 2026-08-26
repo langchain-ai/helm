@@ -1,4 +1,4 @@
-{{- if and .Values.smithdb.enabled .Values.smithdb.compactionWorker.autoscaling.keda.enabled }}
+{{- if and .Values.smithdb.enabled .Values.smithdb.compactionWorker.autoscaling.enabled .Values.smithdb.compactionWorker.autoscaling.keda.enabled }}
 apiVersion: keda.sh/v1alpha1
 kind: ScaledObject
 metadata:

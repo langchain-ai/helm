@@ -1771,7 +1771,7 @@ smithdb:
       labels: {}
       annotations: {}
     autoscaling:
-      # -- Legacy HPA enablement setting. Retained for backwards compatibility; hpa.enabled takes precedence when set.
+      # -- Enable compaction worker autoscaling. Retained as the master switch for backwards compatibility.
       enabled: true
       minReplicas: 1
       maxReplicas: 10
@@ -1780,8 +1780,8 @@ smithdb:
       scaleDownStabilizationWindowSeconds: 300
       scalePodCount: 1
       hpa:
-        # -- Enable HPA scaling. Null inherits the legacy autoscaling.enabled value.
-        enabled: null
+        # -- Enable HPA scaling when autoscaling.enabled is true.
+        enabled: true
       # -- KEDA scaling based on pending compaction jobs and CPU. Requires KEDA to be installed in the cluster.
       keda:
         enabled: false
