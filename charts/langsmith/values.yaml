@@ -1694,15 +1694,15 @@ smithdb:
       labels: {}
       annotations: {}
     autoscaling:
-      minReplicas: 1
-      maxReplicas: 10
-      targetCPUUtilizationPercentage: 60
-      scaleUpStabilizationWindowSeconds: 120
-      scaleDownStabilizationWindowSeconds: 300
-      scalePodCount: 1
       hpa:
         # -- Enable HPA scaling.
         enabled: true
+        minReplicas: 1
+        maxReplicas: 10
+        targetCPUUtilizationPercentage: 60
+        scaleUpStabilizationWindowSeconds: 120
+        scaleDownStabilizationWindowSeconds: 300
+        scalePodCount: 1
       # -- KEDA scaling based on pending compaction jobs and CPU. Requires KEDA to be installed in the cluster.
       keda:
         enabled: false
@@ -1711,6 +1711,12 @@ smithdb:
         pollingInterval: 30
         cooldownPeriod: 300
         initialCooldownPeriod: 0
+        minReplicaCount: 1
+        maxReplicaCount: 10
+        targetCPUUtilizationPercentage: 60
+        scaleUpStabilizationWindowSeconds: 120
+        scaleDownStabilizationWindowSeconds: 300
+        scalePodCount: 1
         # -- Number of pending compaction jobs per worker.
         pendingJobsThreshold: "60"
 

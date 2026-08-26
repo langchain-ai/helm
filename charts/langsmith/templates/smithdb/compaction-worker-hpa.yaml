@@ -12,26 +12,26 @@ spec:
     apiVersion: apps/v1
     kind: Deployment
     name: {{ include "langsmith.smithdb.componentName" (dict "root" . "component" "compactionWorker") }}
-  minReplicas: {{ .Values.smithdb.compactionWorker.autoscaling.minReplicas }}
-  maxReplicas: {{ .Values.smithdb.compactionWorker.autoscaling.maxReplicas }}
+  minReplicas: {{ .Values.smithdb.compactionWorker.autoscaling.hpa.minReplicas }}
+  maxReplicas: {{ .Values.smithdb.compactionWorker.autoscaling.hpa.maxReplicas }}
   behavior:
     scaleUp:
-      stabilizationWindowSeconds: {{ .Values.smithdb.compactionWorker.autoscaling.scaleUpStabilizationWindowSeconds }}
+      stabilizationWindowSeconds: {{ .Values.smithdb.compactionWorker.autoscaling.hpa.scaleUpStabilizationWindowSeconds }}
       policies:
         - type: Pods
-          value: {{ .Values.smithdb.compactionWorker.autoscaling.scalePodCount }}
-          periodSeconds: {{ .Values.smithdb.compactionWorker.autoscaling.scaleUpStabilizationWindowSeconds }}
+          value: {{ .Values.smithdb.compactionWorker.autoscaling.hpa.scalePodCount }}
+          periodSeconds: {{ .Values.smithdb.compactionWorker.autoscaling.hpa.scaleUpStabilizationWindowSeconds }}
     scaleDown:
-      stabilizationWindowSeconds: {{ .Values.smithdb.compactionWorker.autoscaling.scaleDownStabilizationWindowSeconds }}
+      stabilizationWindowSeconds: {{ .Values.smithdb.compactionWorker.autoscaling.hpa.scaleDownStabilizationWindowSeconds }}
       policies:
         - type: Pods
-          value: {{ .Values.smithdb.compactionWorker.autoscaling.scalePodCount }}
-          periodSeconds: {{ .Values.smithdb.compactionWorker.autoscaling.scaleDownStabilizationWindowSeconds }}
+          value: {{ .Values.smithdb.compactionWorker.autoscaling.hpa.scalePodCount }}
+          periodSeconds: {{ .Values.smithdb.compactionWorker.autoscaling.hpa.scaleDownStabilizationWindowSeconds }}
   metrics:
     - type: Resource
       resource:
         name: cpu
         target:
           type: Utilization
-          averageUtilization: {{ .Values.smithdb.compactionWorker.autoscaling.targetCPUUtilizationPercentage }}
+          averageUtilization: {{ .Values.smithdb.compactionWorker.autoscaling.hpa.targetCPUUtilizationPercentage }}
 {{- end }}
