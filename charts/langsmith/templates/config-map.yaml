@@ -69,7 +69,9 @@ data:
   SMITHDB_QUERY_SERVICE_URL: {{ $smithdbQueryUrl | quote }}
   {{- end }}
   {{- if .Values.smithdb.langsmith.ingestion.enabled }}
-  SMITHDB_MUTATIONS_SERVICE_URL: {{ include "langsmith.smithdb.grpcServiceUrl" (dict "root" . "component" "query" "port" .Values.smithdb.query.service.port) | quote }}
+  {{- $mutationsComponent := ternary "mutations" "query" .Values.smithdb.mutations.enabled }}
+  {{- $mutationsValues := index .Values.smithdb $mutationsComponent }}
+  SMITHDB_MUTATIONS_SERVICE_URL: {{ include "langsmith.smithdb.grpcServiceUrl" (dict "root" . "component" $mutationsComponent "port" $mutationsValues.service.port) | quote }}
   SMITHDB_INGESTION_SERVICE_URL: {{ include "langsmith.smithdb.grpcServiceUrl" (dict "root" . "component" "ingestion" "port" .Values.smithdb.ingestion.service.port) | quote }}
   RULES_REDIS_TRACKING_ENABLED: "true"
   RULES_REDIS_TRACKING_MULTIPART_ENABLED: "true"
@@ -88,6 +90,14 @@ data:
   RUN_RULES_SMITHDB_THREAD_RETRIEVER_TENANTS: '["*"]'
   RUN_RULES_SMITHDB_THREAD_RETRIEVER_PCT: "100"
   RUN_RULES_QUERY_LIMIT: "250"
+  {{- if .Values.smithdb.runRules.enabled }}
+  SMITHDB_RUN_RULES_SERVICE_URL: {{ include "langsmith.smithdb.grpcServiceUrl" (dict "root" . "component" "runRules" "port" .Values.smithdb.runRules.service.port) | quote }}
+  SMITHDB_INTERNAL_QUERY_SERVICE_URL: {{ include "langsmith.smithdb.grpcServiceUrl" (dict "root" . "component" "runRules" "port" .Values.smithdb.runRules.service.port) | quote }}
+  {{- end }}
+  {{- if .Values.smithdb.statsQuery.enabled }}
+  SMITHDB_STATS_QUERY_SERVICE_URL: {{ include "langsmith.smithdb.grpcServiceUrl" (dict "root" . "component" "statsQuery" "port" .Values.smithdb.statsQuery.service.port) | quote }}
+  SMITHDB_STATS_QUERY_SERVICE_MAX_CALL_RECV_MSG_SIZE: "1073741824"
+  {{- end }}
   {{- end }}
   {{- if .Values.config.hostname }}
   # Remote MCP server / OAuth Authorization Server (served under /api). The AS only

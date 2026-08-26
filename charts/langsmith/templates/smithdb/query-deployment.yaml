@@ -1,4 +1,4 @@
-{{- if .Values.smithdb.enabled }}
+{{- if and .Values.smithdb.enabled .Values.smithdb.query.enabled }}
 {{- $resources := include "langsmith.smithdb.resources" (dict "root" . "component" "query") | fromYaml -}}
 {{- $envVars := concat (include "langsmith.smithdb.componentEnv" (dict "root" . "service" "QUERY" "displayName" "smithdb-query") | fromYamlArray) .Values.smithdb.query.deployment.extraEnv -}}
 {{- include "langsmith.detectDuplicates" $envVars -}}

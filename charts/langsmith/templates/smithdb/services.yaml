@@ -1,6 +1,7 @@
 {{- if .Values.smithdb.enabled }}
-{{- range $component := list "query" "ingestion" "compaction" "clusterManager" }}
+{{- range $component := list "query" "mutations" "runRules" "statsQuery" "ingestion" "compaction" "clusterManager" }}
 {{- $componentValues := index $.Values.smithdb $component }}
+{{- if dig "enabled" true $componentValues }}
 ---
 apiVersion: v1
 kind: Service
@@ -34,5 +35,6 @@ spec:
   selector:
     {{- include "langsmith.selectorLabels" $ | nindent 4 }}
     app.kubernetes.io/component: {{ include "langsmith.smithdb.componentName" (dict "root" $ "component" $component) }}
+{{- end }}
 {{- end }}
 {{- end }}
