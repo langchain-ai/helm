@@ -1,8 +1,4 @@
-{{- $hpaEnabled := dig "autoscaling" "enabled" false .Values.smithdb.compactionWorker -}}
-{{- if kindIs "bool" .Values.smithdb.compactionWorker.autoscaling.hpa.enabled -}}
-{{- $hpaEnabled = .Values.smithdb.compactionWorker.autoscaling.hpa.enabled -}}
-{{- end -}}
-{{- if and .Values.smithdb.enabled $hpaEnabled }}
+{{- if and .Values.smithdb.enabled .Values.smithdb.compactionWorker.autoscaling.enabled .Values.smithdb.compactionWorker.autoscaling.hpa.enabled }}
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
