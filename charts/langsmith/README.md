@@ -1043,14 +1043,14 @@ Two things worth planning for before you enable it:
 | smithdb.compaction.service.labels | object | `{}` |  |
 | smithdb.compaction.service.port | int | `8071` |  |
 | smithdb.compactionWorker.autoscaling.hpa.enabled | bool | `true` | Enable HPA scaling. |
-| smithdb.compactionWorker.autoscaling.keda | object | `{"annotations":{},"cooldownPeriod":300,"enabled":false,"initialCooldownPeriod":0,"labels":{},"pendingJobsThreshold":"60","pollingInterval":30}` | KEDA scaling based on pending compaction jobs and CPU. Requires KEDA to be installed in the cluster. |
+| smithdb.compactionWorker.autoscaling.hpa.maxReplicas | int | `10` |  |
+| smithdb.compactionWorker.autoscaling.hpa.minReplicas | int | `1` |  |
+| smithdb.compactionWorker.autoscaling.hpa.scaleDownStabilizationWindowSeconds | int | `300` |  |
+| smithdb.compactionWorker.autoscaling.hpa.scalePodCount | int | `1` |  |
+| smithdb.compactionWorker.autoscaling.hpa.scaleUpStabilizationWindowSeconds | int | `120` |  |
+| smithdb.compactionWorker.autoscaling.hpa.targetCPUUtilizationPercentage | int | `60` |  |
+| smithdb.compactionWorker.autoscaling.keda | object | `{"annotations":{},"cooldownPeriod":300,"enabled":false,"initialCooldownPeriod":0,"labels":{},"maxReplicaCount":10,"minReplicaCount":1,"pendingJobsThreshold":"60","pollingInterval":30,"scaleDownStabilizationWindowSeconds":300,"scalePodCount":1,"scaleUpStabilizationWindowSeconds":120,"targetCPUUtilizationPercentage":60}` | KEDA scaling based on pending compaction jobs and CPU. Requires KEDA to be installed in the cluster. |
 | smithdb.compactionWorker.autoscaling.keda.pendingJobsThreshold | string | `"60"` | Number of pending compaction jobs per worker. |
-| smithdb.compactionWorker.autoscaling.maxReplicas | int | `10` |  |
-| smithdb.compactionWorker.autoscaling.minReplicas | int | `1` |  |
-| smithdb.compactionWorker.autoscaling.scaleDownStabilizationWindowSeconds | int | `300` |  |
-| smithdb.compactionWorker.autoscaling.scalePodCount | int | `1` |  |
-| smithdb.compactionWorker.autoscaling.scaleUpStabilizationWindowSeconds | int | `120` |  |
-| smithdb.compactionWorker.autoscaling.targetCPUUtilizationPercentage | int | `60` |  |
 | smithdb.compactionWorker.containerPort | int | `9000` |  |
 | smithdb.compactionWorker.deployment.affinity | object | `{}` |  |
 | smithdb.compactionWorker.deployment.annotations | object | `{}` |  |
