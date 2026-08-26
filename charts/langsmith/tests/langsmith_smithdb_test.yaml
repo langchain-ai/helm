@@ -908,11 +908,11 @@ tests:
       - notExists:
           path: spec.replicas
 
-  - it: should honor the legacy compaction-worker autoscaling master switch
+  - it: should render compaction-worker replicas when autoscaling is disabled
     values:
       - ./values/smithdb-enabled.yaml
     set:
-      smithdb.compactionWorker.autoscaling.enabled: false
+      smithdb.compactionWorker.autoscaling.hpa.enabled: false
     template: smithdb/compaction-worker-deployment.yaml
     asserts:
       - equal:

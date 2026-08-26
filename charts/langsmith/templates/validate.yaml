@@ -549,6 +549,7 @@ AWS Marketplace Helm template verification).
   "playground" .Values.playground.autoscaling
   "queue" .Values.queue.autoscaling
   "ingestQueue" .Values.ingestQueue.autoscaling
+  "smithdb.compactionWorker" .Values.smithdb.compactionWorker.autoscaling
 -}}
 {{- range $serviceName, $autoscaling := $autoscalingServices -}}
 {{- /* Validate that both HPA and KEDA are not enabled at the same time */ -}}
@@ -565,10 +566,6 @@ AWS Marketplace Helm template verification).
 {{- if hasKey $autoscaling "enabled" -}}
 {{- fail (printf "%s.autoscaling.enabled is deprecated. Please use %s.autoscaling.hpa.enabled and/or %s.autoscaling.keda.enabled instead." $serviceName $serviceName $serviceName) -}}
 {{- end -}}
-{{- end -}}
-
-{{- if and .Values.smithdb.compactionWorker.autoscaling.hpa.enabled .Values.smithdb.compactionWorker.autoscaling.keda.enabled -}}
-{{- fail "Only one of smithdb.compactionWorker.autoscaling.hpa.enabled or smithdb.compactionWorker.autoscaling.keda.enabled can be enabled at the same time. Set hpa.enabled to false when enabling KEDA." -}}
 {{- end -}}
 
 {{- end -}}{{- /* end skipValidation */ -}}
