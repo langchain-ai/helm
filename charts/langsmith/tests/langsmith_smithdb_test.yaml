@@ -15,6 +15,7 @@ templates:
   - smithdb/compaction-deployment.yaml
   - smithdb/compaction-worker-deployment.yaml
   - smithdb/compaction-worker-hpa.yaml
+  - smithdb/compaction-worker-scaled-object.yaml
   - smithdb/cluster-manager-deployment.yaml
   - smithdb/migration-job.yaml
   - smithdb/taskdb-postgres-secret.yaml
@@ -863,6 +864,60 @@ tests:
       - equal:
           path: spec.template.spec.containers[0].resources.requests.ephemeral-storage
           value: "100Gi"
+
+  - it: should enable compaction-worker KEDA scaling from pending jobs and CPU
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      smithdb.compactionWorker.autoscaling.hpa.enabled: false
+      smithdb.compactionWorker.autoscaling.keda.enabled: true
+    template: smithdb/compaction-worker-scaled-object.yaml
+    asserts:
+      - isKind:
+          of: ScaledObject
+      - equal:
+          path: spec.minReplicaCount
+          value: 1
+      - equal:
+          path: spec.maxReplicaCount
+          value: 10
+      - equal:
+          path: spec.triggers[0].type
+          value: metrics-api
+      - equal:
+          path: spec.triggers[0].metadata.url
+          value: http://RELEASE-NAME-langsmith-smithdb-compaction.NAMESPACE.svc.cluster.local:8070/metrics/jobs
+      - equal:
+          path: spec.triggers[0].metadata.valueLocation
+          value: pending
+      - equal:
+          path: spec.triggers[0].metadata.targetValue
+          value: "60"
+      - equal:
+          path: spec.triggers[1].type
+          value: cpu
+
+  - it: should omit compaction-worker deployment replicas when KEDA is enabled
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      smithdb.compactionWorker.autoscaling.hpa.enabled: false
+      smithdb.compactionWorker.autoscaling.keda.enabled: true
+    template: smithdb/compaction-worker-deployment.yaml
+    asserts:
+      - notExists:
+          path: spec.replicas
+
+  - it: should honor explicit compaction-worker HPA disablement over the legacy setting
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      smithdb.compactionWorker.autoscaling.hpa.enabled: false
+    template: smithdb/compaction-worker-deployment.yaml
+    asserts:
+      - equal:
+          path: spec.replicas
+          value: 2
 
   - it: should expose compaction worker concurrency as a value
     values:

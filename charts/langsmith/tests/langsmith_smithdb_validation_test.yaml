@@ -9,6 +9,17 @@ tests:
       - failedTemplate:
           errorMessage: "smithdb.resourceTier must be one of: small, medium, large."
 
+  - it: should reject compaction-worker HPA and KEDA being enabled together
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      config.existingSecretName: langsmith-secret
+      smithdb.compactionWorker.autoscaling.hpa.enabled: true
+      smithdb.compactionWorker.autoscaling.keda.enabled: true
+    asserts:
+      - failedTemplate:
+          errorMessage: "Only one of smithdb.compactionWorker.autoscaling.hpa.enabled or smithdb.compactionWorker.autoscaling.keda.enabled can be enabled at the same time. Set hpa.enabled to false when enabling KEDA."
+
   - it: should reject smithdb without query replicas
     values:
       - ./values/smithdb-enabled.yaml
