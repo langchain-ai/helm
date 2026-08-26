@@ -18,7 +18,7 @@ metadata:
       {{- toYaml . | nindent 4 }}
     {{- end }}
 spec:
-  {{- if not (and .Values.smithdb.compactionWorker.autoscaling.enabled (or .Values.smithdb.compactionWorker.autoscaling.hpa.enabled .Values.smithdb.compactionWorker.autoscaling.keda.enabled)) }}
+  {{- if not (or .Values.smithdb.compactionWorker.autoscaling.hpa.enabled .Values.smithdb.compactionWorker.autoscaling.keda.enabled) }}
   replicas: {{ .Values.smithdb.compactionWorker.deployment.replicas }}
   {{- end }}
   selector:

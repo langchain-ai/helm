@@ -1042,8 +1042,7 @@ Two things worth planning for before you enable it:
 | smithdb.compaction.service.annotations | object | `{}` |  |
 | smithdb.compaction.service.labels | object | `{}` |  |
 | smithdb.compaction.service.port | int | `8071` |  |
-| smithdb.compactionWorker.autoscaling.enabled | bool | `true` | Enable compaction worker autoscaling. Retained as the master switch for backwards compatibility. |
-| smithdb.compactionWorker.autoscaling.hpa.enabled | bool | `true` | Enable HPA scaling when autoscaling.enabled is true. |
+| smithdb.compactionWorker.autoscaling.hpa.enabled | bool | `true` | Enable HPA scaling. |
 | smithdb.compactionWorker.autoscaling.keda | object | `{"annotations":{},"cooldownPeriod":300,"enabled":false,"initialCooldownPeriod":0,"labels":{},"pendingJobsThreshold":"60","pollingInterval":30}` | KEDA scaling based on pending compaction jobs and CPU. Requires KEDA to be installed in the cluster. |
 | smithdb.compactionWorker.autoscaling.keda.pendingJobsThreshold | string | `"60"` | Number of pending compaction jobs per worker. |
 | smithdb.compactionWorker.autoscaling.maxReplicas | int | `10` |  |

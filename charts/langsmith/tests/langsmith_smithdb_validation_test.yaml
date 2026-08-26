@@ -11,7 +11,7 @@ tests:
       smithdb.compactionWorker.autoscaling.keda.enabled: true
     asserts:
       - failedTemplate:
-          errorMessage: "Only one of smithdb.compactionWorker.autoscaling.hpa.enabled or smithdb.compactionWorker.autoscaling.keda.enabled can be enabled at the same time. Set hpa.enabled to false when enabling KEDA."
+          errorMessage: "Only one of smithdb.compactionWorker.autoscaling.hpa.enabled or smithdb.compactionWorker.autoscaling.keda.enabled can be enabled at the same time."
 
   - it: should reject smithdb without query replicas
     values:
