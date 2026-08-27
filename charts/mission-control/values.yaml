@@ -171,6 +171,8 @@ backend:
     # -- Name of the ServiceAccount to use. Required when `create: false`;
     # optional override of the generated name otherwise.
     name: ""
+    # -- Whether to automatically mount the ServiceAccount token.
+    automountServiceAccountToken: true
   rbac:
     # -- When true (default) the chart creates the ClusterRole and
     # ClusterRoleBinding granting the backend ServiceAccount (see

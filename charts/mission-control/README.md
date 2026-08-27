@@ -1,6 +1,6 @@
 # mission-control
 
-![Version: 1.2.6](https://img.shields.io/badge/Version-1.2.6-informational?style=flat-square) ![AppVersion: 1.2.6](https://img.shields.io/badge/AppVersion-1.2.6-informational?style=flat-square)
+![Version: 1.2.7](https://img.shields.io/badge/Version-1.2.7-informational?style=flat-square) ![AppVersion: 1.2.6](https://img.shields.io/badge/AppVersion-1.2.6-informational?style=flat-square)
 
 Mission Control to deploy and manage Langsmith in EKS
 
@@ -104,6 +104,7 @@ helm install mission-control langchain/mission-control \
 | backend.securityContext | object | `{}` | Container-level security context. |
 | backend.service.port | int | `8000` |  |
 | backend.service.type | string | `"ClusterIP"` | Internal Service type; port-forward is the default access path. |
+| backend.serviceAccount.automountServiceAccountToken | bool | `true` | Whether to automatically mount the ServiceAccount token. |
 | backend.serviceAccount.create | bool | `true` | When true (default) the chart creates the ServiceAccount object. Set to false to bring your own ServiceAccount - e.g. one your platform Terraform/IaC already annotated for IRSA or GKE Workload Identity - and supply its name via `name` below. This is independent of `rbac.create`: you can bring your own ServiceAccount while still letting this chart manage the ClusterRole/ClusterRoleBinding bound to it. |
 | backend.serviceAccount.name | string | `""` | Name of the ServiceAccount to use. Required when `create: false`; optional override of the generated name otherwise. |
 | commonAnnotations | object | `{}` | Annotations that will be applied to all resources created by the chart |
