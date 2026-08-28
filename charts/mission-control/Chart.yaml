@@ -1,8 +1,8 @@
 apiVersion: v2
 name: mission-control
 maintainers:
-  - name: Mukil
-    email: mukil@langchain.dev
+  - name: Gethin Dibben
+    email: gethin.dibben@langchain.dev
 description: Mission Control to deploy and manage Langsmith in EKS
 version: 1.2.7
 appVersion: "1.2.6"
