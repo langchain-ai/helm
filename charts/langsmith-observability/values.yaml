@@ -79,7 +79,7 @@ loki:
   enabled: false
   deploymentMode: SingleBinary
   singleBinary:
-    replicas: 1 # If you use more than 1 replica, you need to use object storage (minio or s3/gcs...)
+    replicas: 1  # If you use more than 1 replica, you need to use object storage (minio or s3/gcs...)
     persistence:
       enabled: true
       size: 10Gi
@@ -94,7 +94,7 @@ loki:
   loki:
     auth_enabled: false
     commonConfig:
-     replication_factor: 1
+      replication_factor: 1
     storage:
       type: filesystem
       filesystem:
@@ -117,7 +117,7 @@ loki:
       volume_enabled: true
     ruler:
       enable_api: true
-  
+
   # Canary is testing containers, so disable.
   lokiCanary:
     enabled: false
@@ -127,7 +127,7 @@ loki:
   # Disable minio since we use filesystem.
   minio:
     enabled: false
-  
+
   # Zero out replica counts of other deployment modes.
   backend:
     replicas: 0
@@ -244,7 +244,7 @@ otelCollector:
   image:
     repository: otel/opentelemetry-collector-contrib
     tag: "0.123.0"
-  
+
   serviceAccounts:
     - "langsmith-ace-backend"
     - "langsmith-backend"
@@ -307,7 +307,7 @@ redis-exporter:
   labels: {}
   extraArgs: {}
 
-    
+
 # ======================== Tempo ========================
 
 # Values for Tempo: https://github.com/grafana/helm-charts/blob/main/charts/tempo/values.yaml
