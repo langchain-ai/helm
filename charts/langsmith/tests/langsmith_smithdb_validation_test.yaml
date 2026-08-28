@@ -2,6 +2,13 @@ suite: test smithdb phase validation
 templates:
   - validate.yaml
 tests:
+  - it: should reject an unsupported SmithDB resource tier
+    set:
+      smithdb.resourceTier: extra-large
+    asserts:
+      - failedTemplate:
+          errorMessage: "smithdb.resourceTier must be one of: small, medium, large."
+
   - it: should reject smithdb without query replicas
     values:
       - ./values/smithdb-enabled.yaml
@@ -203,4 +210,3 @@ tests:
     asserts:
       - failedTemplate:
           errorMessage: "smithdb.commonInitContainers[0] must be a container object."
-

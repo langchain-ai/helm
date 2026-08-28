@@ -1,4 +1,5 @@
 {{- if .Values.smithdb.enabled }}
+{{- $resources := include "langsmith.smithdb.resources" (dict "root" . "component" "clusterManager") | fromYaml -}}
 {{- $envVars := concat .Values.commonEnv .Values.smithdb.commonEnv .Values.smithdb.clusterManager.deployment.extraEnv -}}
 {{- include "langsmith.detectDuplicates" $envVars -}}
 apiVersion: apps/v1
@@ -102,7 +103,7 @@ spec:
             {{- toYaml . | nindent 10 }}
           {{- end }}
           resources:
-            {{- toYaml .Values.smithdb.clusterManager.deployment.resources | nindent 12 }}
+            {{- toYaml $resources | nindent 12 }}
           securityContext:
             {{- toYaml .Values.smithdb.clusterManager.deployment.securityContext | nindent 12 }}
           {{- with .Values.smithdb.clusterManager.deployment.volumeMounts }}
