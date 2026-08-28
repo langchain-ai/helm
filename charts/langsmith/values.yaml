@@ -1377,10 +1377,8 @@ smithdb:
   # -- V16 supports SmithDB in beta. We do not support or recommend customers setting this up on their own.
   # -- Please express interest (https://www.langchain.com/smithdb-early-access-waitlist) and we will reach out promptly to ensure we can set you up for success with SmithDB.
   enabled: false
-  # -- Per-replica resource tier for SmithDB workloads. Supported values: small, medium, large.
-  # A non-empty component resources block replaces its tier resources. For disk-backed components,
-  # the resolved ephemeral-storage limit also sizes the generated emptyDir unless volumes is set.
-  # This setting does not configure replicas or autoscaling.
+  # -- Per-replica resource tier for SmithDB runtime components.
+  # Supported values: small, medium, large. See the README for sizing and override behavior.
   scaleTier: "small"
   # -- LangSmith configuration for SmithDB.
   langsmith:

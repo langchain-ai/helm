@@ -28,7 +28,9 @@ Two things worth planning for before you enable it:
 
 ## SmithDB scale tiers
 
-`smithdb.scaleTier` selects per-replica CPU, memory, and ephemeral-storage requests and limits for the SmithDB workloads. The default tier is `small`. It does not configure replicas or autoscaling. A non-empty `resources` block on an individual component replaces that component's tier resources. For disk-backed components, the resolved `limits.ephemeral-storage` also sizes the generated `emptyDir`. An explicit `volumes` list replaces the generated volume.
+`smithdb.scaleTier` selects the default per-replica resource sizes shown below. The default is `small`. For components that use local disk, the tier's ephemeral-storage limit also sets the generated `emptyDir.sizeLimit`.
+
+Replica counts and autoscaling remain controlled by each component's `deployment.replicas` and `autoscaling` settings. Explicit component `resources` or `volumes` settings take precedence over the tier defaults.
 
 | Component | Small | Medium | Large |
 |---|---|---|---|
@@ -1299,7 +1301,7 @@ Two things worth planning for before you enable it:
 | smithdb.query.service.annotations | object | `{}` |  |
 | smithdb.query.service.labels | object | `{}` |  |
 | smithdb.query.service.port | int | `8080` |  |
-| smithdb.scaleTier | string | `"small"` | Per-replica resource tier for SmithDB workloads. Supported values: small, medium, large. A non-empty component resources block replaces its tier resources. For disk-backed components, the resolved ephemeral-storage limit also sizes the generated emptyDir unless volumes is set. This setting does not configure replicas or autoscaling. |
+| smithdb.scaleTier | string | `"small"` | Per-replica resource tier for SmithDB runtime components. Supported values: small, medium, large. See the README for sizing and override behavior. |
 | smithdb.serviceAccount | object | `{"annotations":{},"automountServiceAccountToken":true,"create":true,"labels":{},"name":""}` | Shared ServiceAccount for SmithDB workloads. |
 | smithdb.serviceAccount.name | string | `""` | Defaults to <release>-<smithdb.name>. |
 
