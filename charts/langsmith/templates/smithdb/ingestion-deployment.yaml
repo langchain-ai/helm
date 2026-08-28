@@ -1,4 +1,5 @@
 {{- if .Values.smithdb.enabled }}
+{{- $resources := include "langsmith.smithdb.resources" (dict "root" . "component" "ingestion") | fromYaml -}}
 {{- $envVars := concat (include "langsmith.smithdb.componentEnv" (dict "root" . "service" "INGESTION" "displayName" "smithdb-ingestion") | fromYamlArray) .Values.smithdb.ingestion.deployment.extraEnv -}}
 {{- include "langsmith.detectDuplicates" $envVars -}}
 apiVersion: apps/v1
@@ -84,7 +85,7 @@ spec:
             {{- toYaml . | nindent 10 }}
           {{- end }}
           resources:
-            {{- toYaml .Values.smithdb.ingestion.deployment.resources | nindent 12 }}
+            {{- toYaml $resources | nindent 12 }}
           securityContext:
             {{- toYaml .Values.smithdb.ingestion.deployment.securityContext | nindent 12 }}
           {{- with .Values.smithdb.ingestion.deployment.volumeMounts }}
@@ -113,7 +114,7 @@ spec:
       topologySpreadConstraints:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.smithdb.ingestion.deployment.volumes }}
+      {{- with (include "langsmith.smithdb.volumes" (dict "root" . "component" "ingestion" "resources" $resources) | fromYamlArray) }}
       volumes:
         {{- toYaml . | nindent 8 }}
       {{- end }}
