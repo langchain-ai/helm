@@ -1,4 +1,5 @@
 {{- if .Values.smithdb.enabled }}
+{{- $resources := include "langsmith.smithdb.resources" (dict "root" . "component" "compaction") | fromYaml -}}
 {{- $envVars := concat (include "langsmith.smithdb.componentEnv" (dict "root" . "service" "COMPACTION" "displayName" "smithdb-compaction") | fromYamlArray) .Values.smithdb.compaction.deployment.extraEnv -}}
 {{- include "langsmith.detectDuplicates" $envVars -}}
 apiVersion: apps/v1
@@ -83,7 +84,7 @@ spec:
             {{- toYaml . | nindent 10 }}
           {{- end }}
           resources:
-            {{- toYaml .Values.smithdb.compaction.deployment.resources | nindent 12 }}
+            {{- toYaml $resources | nindent 12 }}
           securityContext:
             {{- toYaml .Values.smithdb.compaction.deployment.securityContext | nindent 12 }}
           {{- with .Values.smithdb.compaction.deployment.volumeMounts }}

@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.17.0-rc.13](https://img.shields.io/badge/Version-0.17.0--rc.13-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.17.14rc1](https://img.shields.io/badge/AppVersion-0.17.14rc1-informational?style=flat-square)
+![Version: 0.17.0-rc.14](https://img.shields.io/badge/Version-0.17.0--rc.14-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.17.14rc1](https://img.shields.io/badge/AppVersion-0.17.14rc1-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -25,6 +25,20 @@ Two things worth planning for before you enable it:
 **Sandbox nodes.** Sandboxes are Firecracker microVMs, so `sandboxes.sandboxHost.deployment.nodeSelector` must place host pods on KVM-capable nodes — bare-metal instances, or instance types with nested virtualization explicitly enabled. Sandbox images are published for `linux/amd64` only. A dedicated, tainted node pool is the usual arrangement, since rolling a sandbox-host pod suspends every microVM on it.
 
 **Which workspace owns the sandboxes.** By default smith-go resolves the install's workspace, which works when there is exactly one non-personal organization. With more than one it declines rather than guess, and you must set `engine.sandboxTenantId` explicitly. Prefer a workspace reserved for the Engine: its sandboxes are visible to anyone with access to it.
+
+## SmithDB resource tiers
+
+`smithdb.resourceTier` selects the default per-replica resource sizes shown below. The default is `small`. For components that use local disk, the tier's ephemeral-storage limit also sets the generated `emptyDir.sizeLimit`.
+
+Replica counts and autoscaling remain controlled by each component's `deployment.replicas` and `autoscaling` settings. Explicit component `resources` or `volumes` settings take precedence over the tier defaults.
+
+| Component | Small | Medium | Large |
+|---|---|---|---|
+| Query | 4 CPU, 8Gi memory, 200Gi ephemeral | 28 CPU, 48Gi memory, 200Gi ephemeral | 28 CPU, 50Gi memory, 1000Gi ephemeral |
+| Ingestion | 4 CPU, 8Gi memory, 100Gi ephemeral | 16 CPU, 32Gi memory, 100Gi ephemeral | 56 CPU, 150Gi memory, 1000Gi ephemeral |
+| Compaction | 2 CPU, 4Gi memory | 4 CPU, 8Gi memory | 8 CPU, 16Gi memory |
+| Compaction worker | 8 CPU, 16Gi memory, 100Gi ephemeral | 16 CPU, 32Gi memory, 100Gi ephemeral | 28 CPU, 50Gi memory, 300Gi ephemeral |
+| Cluster manager | 250m CPU, 256Mi memory | 250m CPU, 256Mi memory | 2 CPU, 2Gi memory |
 
 ## General parameters
 
@@ -946,10 +960,6 @@ Two things worth planning for before you enable it:
 | smithdb.clusterManager.deployment.probes.startupProbe.periodSeconds | int | `10` |  |
 | smithdb.clusterManager.deployment.probes.startupProbe.timeoutSeconds | int | `1` |  |
 | smithdb.clusterManager.deployment.replicas | int | `1` |  |
-| smithdb.clusterManager.deployment.resources.limits.cpu | string | `"250m"` |  |
-| smithdb.clusterManager.deployment.resources.limits.memory | string | `"256Mi"` |  |
-| smithdb.clusterManager.deployment.resources.requests.cpu | string | `"250m"` |  |
-| smithdb.clusterManager.deployment.resources.requests.memory | string | `"256Mi"` |  |
 | smithdb.clusterManager.deployment.securityContext | object | `{}` |  |
 | smithdb.clusterManager.deployment.sidecars | list | `[]` |  |
 | smithdb.clusterManager.deployment.tolerations | list | `[]` |  |
@@ -993,10 +1003,6 @@ Two things worth planning for before you enable it:
 | smithdb.compaction.deployment.probes.startupProbe.periodSeconds | int | `10` |  |
 | smithdb.compaction.deployment.probes.startupProbe.timeoutSeconds | int | `1` |  |
 | smithdb.compaction.deployment.replicas | int | `1` |  |
-| smithdb.compaction.deployment.resources.limits.cpu | string | `"2"` |  |
-| smithdb.compaction.deployment.resources.limits.memory | string | `"4Gi"` |  |
-| smithdb.compaction.deployment.resources.requests.cpu | string | `"2"` |  |
-| smithdb.compaction.deployment.resources.requests.memory | string | `"4Gi"` |  |
 | smithdb.compaction.deployment.securityContext | object | `{}` |  |
 | smithdb.compaction.deployment.sidecars | list | `[]` |  |
 | smithdb.compaction.deployment.tolerations | list | `[]` |  |
@@ -1047,12 +1053,6 @@ Two things worth planning for before you enable it:
 | smithdb.compactionWorker.deployment.probes.startupProbe.periodSeconds | int | `10` |  |
 | smithdb.compactionWorker.deployment.probes.startupProbe.timeoutSeconds | int | `1` |  |
 | smithdb.compactionWorker.deployment.replicas | int | `2` |  |
-| smithdb.compactionWorker.deployment.resources.limits.cpu | string | `"8"` |  |
-| smithdb.compactionWorker.deployment.resources.limits.ephemeral-storage | string | `"100Gi"` |  |
-| smithdb.compactionWorker.deployment.resources.limits.memory | string | `"16Gi"` |  |
-| smithdb.compactionWorker.deployment.resources.requests.cpu | string | `"8"` |  |
-| smithdb.compactionWorker.deployment.resources.requests.ephemeral-storage | string | `"100Gi"` |  |
-| smithdb.compactionWorker.deployment.resources.requests.memory | string | `"16Gi"` |  |
 | smithdb.compactionWorker.deployment.securityContext | object | `{}` |  |
 | smithdb.compactionWorker.deployment.sidecars | list | `[]` |  |
 | smithdb.compactionWorker.deployment.terminationGracePeriodSeconds | int | `120` |  |
@@ -1060,8 +1060,6 @@ Two things worth planning for before you enable it:
 | smithdb.compactionWorker.deployment.topologySpreadConstraints | list | `[]` |  |
 | smithdb.compactionWorker.deployment.volumeMounts[0].mountPath | string | `"/data"` |  |
 | smithdb.compactionWorker.deployment.volumeMounts[0].name | string | `"local-ssd-storage"` |  |
-| smithdb.compactionWorker.deployment.volumes[0].emptyDir.sizeLimit | string | `"100Gi"` |  |
-| smithdb.compactionWorker.deployment.volumes[0].name | string | `"local-ssd-storage"` |  |
 | smithdb.compactionWorker.maxConcurrentJobs | string | `""` | Maximum concurrent jobs per compaction worker. Empty uses the SmithDB default. |
 | smithdb.compactionWorker.name | string | `"compaction-worker"` |  |
 | smithdb.compactionWorker.pdb.annotations | object | `{}` |  |
@@ -1123,12 +1121,6 @@ Two things worth planning for before you enable it:
 | smithdb.ingestion.deployment.probes.startupProbe.periodSeconds | int | `10` |  |
 | smithdb.ingestion.deployment.probes.startupProbe.timeoutSeconds | int | `1` |  |
 | smithdb.ingestion.deployment.replicas | int | `1` |  |
-| smithdb.ingestion.deployment.resources.limits.cpu | string | `"4"` |  |
-| smithdb.ingestion.deployment.resources.limits.ephemeral-storage | string | `"100Gi"` |  |
-| smithdb.ingestion.deployment.resources.limits.memory | string | `"8Gi"` |  |
-| smithdb.ingestion.deployment.resources.requests.cpu | string | `"4"` |  |
-| smithdb.ingestion.deployment.resources.requests.ephemeral-storage | string | `"100Gi"` |  |
-| smithdb.ingestion.deployment.resources.requests.memory | string | `"8Gi"` |  |
 | smithdb.ingestion.deployment.securityContext | object | `{}` |  |
 | smithdb.ingestion.deployment.sidecars | list | `[]` |  |
 | smithdb.ingestion.deployment.strategy.rollingUpdate.maxSurge | int | `1` |  |
@@ -1139,8 +1131,6 @@ Two things worth planning for before you enable it:
 | smithdb.ingestion.deployment.topologySpreadConstraints | list | `[]` |  |
 | smithdb.ingestion.deployment.volumeMounts[0].mountPath | string | `"/data"` |  |
 | smithdb.ingestion.deployment.volumeMounts[0].name | string | `"local-ssd-storage"` |  |
-| smithdb.ingestion.deployment.volumes[0].emptyDir.sizeLimit | string | `"100Gi"` |  |
-| smithdb.ingestion.deployment.volumes[0].name | string | `"local-ssd-storage"` |  |
 | smithdb.ingestion.name | string | `"ingestion"` |  |
 | smithdb.ingestion.pdb.annotations | object | `{}` |  |
 | smithdb.ingestion.pdb.enabled | bool | `false` |  |
@@ -1294,12 +1284,6 @@ Two things worth planning for before you enable it:
 | smithdb.query.deployment.probes.startupProbe.periodSeconds | int | `10` |  |
 | smithdb.query.deployment.probes.startupProbe.timeoutSeconds | int | `1` |  |
 | smithdb.query.deployment.replicas | int | `1` |  |
-| smithdb.query.deployment.resources.limits.cpu | string | `"4"` |  |
-| smithdb.query.deployment.resources.limits.ephemeral-storage | string | `"200Gi"` |  |
-| smithdb.query.deployment.resources.limits.memory | string | `"8Gi"` |  |
-| smithdb.query.deployment.resources.requests.cpu | string | `"4"` |  |
-| smithdb.query.deployment.resources.requests.ephemeral-storage | string | `"200Gi"` |  |
-| smithdb.query.deployment.resources.requests.memory | string | `"8Gi"` |  |
 | smithdb.query.deployment.securityContext | object | `{}` |  |
 | smithdb.query.deployment.sidecars | list | `[]` |  |
 | smithdb.query.deployment.strategy.rollingUpdate.maxSurge | int | `1` |  |
@@ -1309,8 +1293,6 @@ Two things worth planning for before you enable it:
 | smithdb.query.deployment.topologySpreadConstraints | list | `[]` |  |
 | smithdb.query.deployment.volumeMounts[0].mountPath | string | `"/data"` |  |
 | smithdb.query.deployment.volumeMounts[0].name | string | `"local-ssd-storage"` |  |
-| smithdb.query.deployment.volumes[0].emptyDir.sizeLimit | string | `"200Gi"` |  |
-| smithdb.query.deployment.volumes[0].name | string | `"local-ssd-storage"` |  |
 | smithdb.query.name | string | `"query"` |  |
 | smithdb.query.pdb.annotations | object | `{}` |  |
 | smithdb.query.pdb.enabled | bool | `false` |  |
@@ -1319,6 +1301,7 @@ Two things worth planning for before you enable it:
 | smithdb.query.service.annotations | object | `{}` |  |
 | smithdb.query.service.labels | object | `{}` |  |
 | smithdb.query.service.port | int | `8080` |  |
+| smithdb.resourceTier | string | `"small"` | Per-replica resource tier for SmithDB runtime components. Supported values: small, medium, large. See the README for sizing and override behavior. |
 | smithdb.serviceAccount | object | `{"annotations":{},"automountServiceAccountToken":true,"create":true,"labels":{},"name":""}` | Shared ServiceAccount for SmithDB workloads. |
 | smithdb.serviceAccount.name | string | `""` | Defaults to <release>-<smithdb.name>. |
 
