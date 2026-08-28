@@ -28,9 +28,9 @@ Two things worth planning for before you enable it:
 
 **Which workspace owns the sandboxes.** By default smith-go resolves the install's workspace, which works when there is exactly one non-personal organization. With more than one it declines rather than guess, and you must set `engine.sandboxTenantId` explicitly. Prefer a workspace reserved for the Engine: its sandboxes are visible to anyone with access to it.
 
-## SmithDB scaling tiers
+## SmithDB scale tiers
 
-`smithdb.scalingTier` selects per-replica CPU, memory, and ephemeral-storage requests and limits for the SmithDB workloads. The default tier is `small`. A non-empty `resources` block on an individual component replaces that component's tier resources.
+`smithdb.scaleTier` selects per-replica CPU, memory, and ephemeral-storage requests and limits for the SmithDB workloads. The default tier is `small`. It does not configure replicas or autoscaling. A non-empty `resources` block on an individual component replaces that component's tier resources. For disk-backed components, the resolved `limits.ephemeral-storage` also sizes the generated `emptyDir`. An explicit `volumes` list replaces the generated volume.
 
 | Component | Small | Medium | Large |
 |---|---|---|---|

@@ -543,7 +543,7 @@ Args: root, component.
     "compaction" (dict "cpu" "8" "memory" "16Gi")
     "compactionWorker" (dict "cpu" "28" "memory" "50Gi" "ephemeral-storage" "300Gi")
     "clusterManager" (dict "cpu" "2" "memory" "2Gi")) -}}
-{{- $resources := index (index $tiers $root.Values.smithdb.scalingTier) $component -}}
+{{- $resources := index (index $tiers $root.Values.smithdb.scaleTier) $component -}}
 {{- toYaml (dict "requests" $resources "limits" $resources) -}}
 {{- end -}}
 {{- end }}
