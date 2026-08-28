@@ -26,9 +26,9 @@ Two things worth planning for before you enable it:
 
 **Which workspace owns the sandboxes.** By default smith-go resolves the install's workspace, which works when there is exactly one non-personal organization. With more than one it declines rather than guess, and you must set `engine.sandboxTenantId` explicitly. Prefer a workspace reserved for the Engine: its sandboxes are visible to anyone with access to it.
 
-## SmithDB scale tiers
+## SmithDB resource tiers
 
-`smithdb.scaleTier` selects the default per-replica resource sizes shown below. The default is `small`. For components that use local disk, the tier's ephemeral-storage limit also sets the generated `emptyDir.sizeLimit`.
+`smithdb.resourceTier` selects the default per-replica resource sizes shown below. The default is `small`. For components that use local disk, the tier's ephemeral-storage limit also sets the generated `emptyDir.sizeLimit`.
 
 Replica counts and autoscaling remain controlled by each component's `deployment.replicas` and `autoscaling` settings. Explicit component `resources` or `volumes` settings take precedence over the tier defaults.
 
@@ -1301,7 +1301,7 @@ Replica counts and autoscaling remain controlled by each component's `deployment
 | smithdb.query.service.annotations | object | `{}` |  |
 | smithdb.query.service.labels | object | `{}` |  |
 | smithdb.query.service.port | int | `8080` |  |
-| smithdb.scaleTier | string | `"small"` | Per-replica resource tier for SmithDB runtime components. Supported values: small, medium, large. See the README for sizing and override behavior. |
+| smithdb.resourceTier | string | `"small"` | Per-replica resource tier for SmithDB runtime components. Supported values: small, medium, large. See the README for sizing and override behavior. |
 | smithdb.serviceAccount | object | `{"annotations":{},"automountServiceAccountToken":true,"create":true,"labels":{},"name":""}` | Shared ServiceAccount for SmithDB workloads. |
 | smithdb.serviceAccount.name | string | `""` | Defaults to <release>-<smithdb.name>. |
 

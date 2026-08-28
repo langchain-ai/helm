@@ -1379,7 +1379,7 @@ smithdb:
   enabled: false
   # -- Per-replica resource tier for SmithDB runtime components.
   # Supported values: small, medium, large. See the README for sizing and override behavior.
-  scaleTier: "small"
+  resourceTier: "small"
   # -- LangSmith configuration for SmithDB.
   langsmith:
     ingestion:

@@ -83,7 +83,7 @@ tests:
     values:
       - ./values/smithdb-enabled.yaml
     set:
-      smithdb.scaleTier: medium
+      smithdb.resourceTier: medium
     template: smithdb/query-deployment.yaml
     asserts:
       - equal:
@@ -108,7 +108,7 @@ tests:
     values:
       - ./values/smithdb-enabled.yaml
     set:
-      smithdb.scaleTier: large
+      smithdb.resourceTier: large
     template: smithdb/ingestion-deployment.yaml
     asserts:
       - equal:
@@ -128,7 +128,7 @@ tests:
     values:
       - ./values/smithdb-enabled.yaml
     set:
-      smithdb.scaleTier: large
+      smithdb.resourceTier: large
       smithdb.query.deployment.resources.requests.cpu: 750m
       smithdb.query.deployment.resources.limits.cpu: "1"
     template: smithdb/query-deployment.yaml
@@ -155,7 +155,7 @@ tests:
     values:
       - ./values/smithdb-enabled.yaml
     set:
-      smithdb.scaleTier: large
+      smithdb.resourceTier: large
       smithdb.query.deployment.volumes:
         - name: local-ssd-storage
           emptyDir:
