@@ -245,6 +245,38 @@ tests:
       - hasDocuments:
           count: 0
 
+  - it: should reject the removed v16 JuiceFS CSI settings even when sandboxes are disabled
+    set:
+      sandboxes.juicefs.csi.existingSecretName: external-juicefs-config
+    template: validate.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: "sandboxes.juicefs.csi was removed in v17 because sandbox-host now owns the JuiceFS mount. Move csi.existingSecretName to sandboxes.juicefs.existingSecretName, replace csi.mountPodPatch with sandboxes.juicefs.hostMount.cacheDirs and mountOptions, move csi.node.serviceAccount.annotations to sandboxes.sandboxHost.serviceAccount.annotations, then remove sandboxes.juicefs.csi."
+
+  - it: should reject the removed JuiceFS CSI driver image setting
+    set:
+      images.juicefsCSIImage.repository: example.com/juicefs-csi-driver
+    template: validate.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: "images.juicefsCSIImage was removed in v17 with the bundled JuiceFS CSI driver. Remove it; sandbox-host now owns the JuiceFS mount and uses images.sandboxHostImage."
+
+  - it: should reject the removed JuiceFS CSI registrar image setting
+    set:
+      images.juicefsCSINodeDriverRegistrarImage.repository: example.com/csi-node-driver-registrar
+    template: validate.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: "images.juicefsCSINodeDriverRegistrarImage was removed in v17 with the bundled JuiceFS CSI driver. Remove it; sandbox-host now owns the JuiceFS mount and uses images.sandboxHostImage."
+
+  - it: should reject the removed JuiceFS mount image setting
+    set:
+      images.juicefsMountImage.repository: example.com/juicefs-mount
+    template: validate.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: "images.juicefsMountImage was removed in v17 with the bundled JuiceFS CSI driver. Remove it; sandbox-host now owns the JuiceFS mount and uses images.sandboxHostImage."
+
   - it: should configure multiple node-local cache directories
     values:
       - ./values/sandboxes-enabled.yaml
