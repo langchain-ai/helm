@@ -582,7 +582,30 @@ tests:
     template: validate.yaml
     asserts:
       - failedTemplate:
-          errorMessage: "sandboxes.juicefs.storage currently supports only s3 for AWS/EKS and gs for GCP/GKE. Azure-backed sandbox storage is not supported yet."
+          errorMessage: "sandboxes.juicefs.storage supports only s3 for AWS/EKS, gs for GCP/GKE, and wasb for Azure/AKS."
+
+  - it: should fail when Azure JuiceFS storage has no account name
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      sandboxes.juicefs.storage: wasb
+      sandboxes.juicefs.bucket: https://sandbox-juicefs.core.windows.net
+    template: validate.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: "sandboxes.juicefs.storageAccountName is required when sandboxes.juicefs.storage is wasb."
+
+  - it: should allow Azure JuiceFS storage with an account name
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      sandboxes.juicefs.storage: wasb
+      sandboxes.juicefs.bucket: https://sandbox-juicefs.core.windows.net
+      sandboxes.juicefs.storageAccountName: sandboxstorage
+    template: validate.yaml
+    asserts:
+      - hasDocuments:
+          count: 0
 
   - it: should fail when sandbox service URL base URL does not use HTTP or HTTPS
     values:

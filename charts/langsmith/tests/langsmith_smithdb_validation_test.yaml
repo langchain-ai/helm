@@ -11,6 +11,12 @@ tests:
     asserts:
       - failedTemplate:
           errorMessage: "smithdb.config.objectStore.azure.accountName is required when smithdb.config.objectStore.type is azure."
+  - it: should reject an unsupported SmithDB resource tier
+    set:
+      smithdb.resourceTier: extra-large
+    asserts:
+      - failedTemplate:
+          errorMessage: "smithdb.resourceTier must be one of: small, medium, large."
 
   - it: should reject smithdb without query replicas
     values:

@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.17.0-rc.14](https://img.shields.io/badge/Version-0.17.0--rc.14-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.17.14rc1](https://img.shields.io/badge/AppVersion-0.17.14rc1-informational?style=flat-square)
+![Version: 0.17.0-rc.16](https://img.shields.io/badge/Version-0.17.0--rc.16-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.17.14rc1](https://img.shields.io/badge/AppVersion-0.17.14rc1-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -25,6 +25,20 @@ Two things worth planning for before you enable it:
 **Sandbox nodes.** Sandboxes are Firecracker microVMs, so `sandboxes.sandboxHost.deployment.nodeSelector` must place host pods on KVM-capable nodes — bare-metal instances, or instance types with nested virtualization explicitly enabled. Sandbox images are published for `linux/amd64` only. A dedicated, tainted node pool is the usual arrangement, since rolling a sandbox-host pod suspends every microVM on it.
 
 **Which workspace owns the sandboxes.** By default smith-go resolves the install's workspace, which works when there is exactly one non-personal organization. With more than one it declines rather than guess, and you must set `engine.sandboxTenantId` explicitly. Prefer a workspace reserved for the Engine: its sandboxes are visible to anyone with access to it.
+
+## SmithDB resource tiers
+
+`smithdb.resourceTier` selects the default per-replica resource sizes shown below. The default is `small`. For components that use local disk, the tier's ephemeral-storage limit also sets the generated `emptyDir.sizeLimit`.
+
+Replica counts and autoscaling remain controlled by each component's `deployment.replicas` and `autoscaling` settings. Explicit component `resources` or `volumes` settings take precedence over the tier defaults.
+
+| Component | Small | Medium | Large |
+|---|---|---|---|
+| Query | 4 CPU, 8Gi memory, 200Gi ephemeral | 28 CPU, 48Gi memory, 200Gi ephemeral | 28 CPU, 50Gi memory, 1000Gi ephemeral |
+| Ingestion | 4 CPU, 8Gi memory, 100Gi ephemeral | 16 CPU, 32Gi memory, 100Gi ephemeral | 56 CPU, 150Gi memory, 1000Gi ephemeral |
+| Compaction | 2 CPU, 4Gi memory | 4 CPU, 8Gi memory | 8 CPU, 16Gi memory |
+| Compaction worker | 8 CPU, 16Gi memory, 100Gi ephemeral | 16 CPU, 32Gi memory, 100Gi ephemeral | 28 CPU, 50Gi memory, 300Gi ephemeral |
+| Cluster manager | 250m CPU, 256Mi memory | 250m CPU, 256Mi memory | 2 CPU, 2Gi memory |
 
 ## General parameters
 
@@ -884,18 +898,19 @@ Two things worth planning for before you enable it:
 | polly.redis.statefulSet.volumeMounts | list | `[]` |  |
 | polly.redis.statefulSet.volumes | list | `[]` |  |
 | preInstallManifests | list | `[]` | annotations, ExternalSecret-only validation, idempotency rules, and caveats. Example: preInstallManifests:   - apiVersion: external-secrets.io/v1beta1     kind: ExternalSecret     metadata:       name: langsmith-app     spec:       refreshInterval: 1h       secretStoreRef:         name: vault-backend         kind: ClusterSecretStore       target:         name: langsmith-app-secret         creationPolicy: Orphan       data:         - secretKey: langsmith_license_key           remoteRef:             key: secret/langsmith/app             property: langsmith_license_key |
-| sandboxes | object | `{"callbackSigningJwk":"","enabled":false,"juicefs":{"bucket":"","existingSecretName":"","hostMount":{"cacheDirs":["/var/cache/juicefs"],"mountOptions":["--cache-size=51200","--cache-large-write"]},"name":"sandbox-juicefs","redis":{"metaURL":""},"storage":"s3"},"juicefsFormatJob":{"affinity":{},"annotations":{},"labels":{},"nodeSelector":{},"podSecurityContext":{},"resources":{"requests":{"cpu":"100m","memory":"128Mi"}},"securityContext":{"allowPrivilegeEscalation":false,"capabilities":{"drop":["ALL"]}},"tolerations":[]},"proxyCa":{"existingSecretName":"","mode":"generatedSecret","secretName":"smithbox-proxy-ca"},"quotas":{"maxCpuCores":16,"maxEphemeralStorageGib":100,"maxMemoryGb":64,"maxSandboxes":1000,"minEphemeralStorageGb":1},"sandboxHost":{"autoscaling":{"enabled":false,"headroomHosts":1,"maxReplicas":10,"minReplicas":1,"scaleDownStabilizationSeconds":300,"targetUtilizationPercent":70},"deployment":{"annotations":{},"extraEnv":[],"initContainers":[],"labels":{},"nodeSelector":{},"podAnnotations":{},"podSecurityContext":{},"priorityClassName":"","readinessProbe":{"failureThreshold":3,"initialDelaySeconds":5,"periodSeconds":10,"tcpSocket":{"port":"http"},"timeoutSeconds":3},"replicas":1,"resources":{"requests":{"cpu":"2","memory":"2Gi"}},"securityContext":{"privileged":true},"sidecars":[],"terminationGracePeriodSeconds":300,"tolerations":[{"effect":"NoSchedule","key":"sandbox.langsmith.com/host","operator":"Equal","value":"true"}],"volumeMounts":[],"volumes":[]},"name":"sandbox-host","pdb":{"annotations":{},"enabled":false,"labels":{},"maxUnavailable":1},"rbac":{"annotations":{},"create":true,"labels":{}},"serviceAccount":{"annotations":{},"automountServiceAccountToken":true,"create":true,"labels":{},"name":""}},"serviceUrlBaseUrl":""}` | LangSmith Sandboxes. Same-cluster sandbox-host architecture on AWS/EKS or GCP/GKE. sandbox-host mounts JuiceFS directly, and a singleton Job formats fresh JuiceFS metadata before hosts start serving. |
+| sandboxes | object | `{"callbackSigningJwk":"","enabled":false,"juicefs":{"bucket":"","existingSecretName":"","hostMount":{"cacheDirs":["/var/cache/juicefs"],"mountOptions":["--cache-size=51200","--cache-large-write"]},"name":"sandbox-juicefs","redis":{"metaURL":""},"storage":"s3","storageAccountName":""},"juicefsFormatJob":{"affinity":{},"annotations":{},"labels":{},"nodeSelector":{},"podSecurityContext":{},"resources":{"requests":{"cpu":"100m","memory":"128Mi"}},"securityContext":{"allowPrivilegeEscalation":false,"capabilities":{"drop":["ALL"]}},"tolerations":[]},"proxyCa":{"existingSecretName":"","mode":"generatedSecret","secretName":"smithbox-proxy-ca"},"quotas":{"maxCpuCores":16,"maxEphemeralStorageGib":100,"maxMemoryGb":64,"maxSandboxes":1000,"minEphemeralStorageGb":1},"sandboxHost":{"autoscaling":{"enabled":false,"headroomHosts":1,"maxReplicas":10,"minReplicas":1,"scaleDownStabilizationSeconds":300,"targetUtilizationPercent":70},"deployment":{"annotations":{},"extraEnv":[],"initContainers":[],"labels":{},"nodeSelector":{},"podAnnotations":{},"podSecurityContext":{},"priorityClassName":"","readinessProbe":{"failureThreshold":3,"initialDelaySeconds":5,"periodSeconds":10,"tcpSocket":{"port":"http"},"timeoutSeconds":3},"replicas":1,"resources":{"requests":{"cpu":"2","memory":"2Gi"}},"securityContext":{"privileged":true},"sidecars":[],"terminationGracePeriodSeconds":300,"tolerations":[{"effect":"NoSchedule","key":"sandbox.langsmith.com/host","operator":"Equal","value":"true"}],"volumeMounts":[],"volumes":[]},"name":"sandbox-host","pdb":{"annotations":{},"enabled":false,"labels":{},"maxUnavailable":1},"rbac":{"annotations":{},"create":true,"labels":{}},"serviceAccount":{"annotations":{},"automountServiceAccountToken":true,"create":true,"labels":{},"name":""}},"serviceUrlBaseUrl":""}` | LangSmith Sandboxes. Same-cluster sandbox-host architecture on AWS/EKS, GCP/GKE, or Azure/AKS. sandbox-host mounts JuiceFS directly, and a singleton Job formats fresh JuiceFS metadata before hosts start serving. |
 | sandboxes.callbackSigningJwk | string | `""` | Private JWK signing sandbox callbacks, or key `sandbox_callback_signing_jwk` in config.existingSecretName. Needs config.hostname for the issuer, or signing fails closed. |
 | sandboxes.juicefs.bucket | string | `""` | Object storage bucket/root URL used by JuiceFS. For AWS S3, use a region-explicit endpoint such as `https://bucket-name.s3.us-west-2.amazonaws.com`; do not use the `s3://bucket-name` shorthand because JuiceFS then infers region with GetBucketLocation. For GCS, use `gs://bucket-name`. Use `sandboxes.juicefs.name` for JuiceFS volume isolation instead of deployment-specific bucket paths. |
-| sandboxes.juicefs.existingSecretName | string | `""` | Existing Secret containing JuiceFS config keys `name`, `metaurl`, `storage`, and `bucket`. The formatter Job reads all four keys; sandbox-host receives only `metaurl`. When set, the chart does not create the config Secret and the corresponding values above are ignored. Rotate the Secret name to rerun formatting; roll sandbox-host after changing data in place. |
+| sandboxes.juicefs.existingSecretName | string | `""` | Existing Secret containing JuiceFS config keys `name`, `metaurl`, `storage`, and `bucket`. For Azure Blob Storage, set `access-key` to the storage account name. Set `secret-key` only for account-key authentication. The formatter Job reads the Secret; sandbox-host receives only `metaurl`. When set, the chart does not create the config Secret and the corresponding values above are ignored. Rotate the Secret name to rerun formatting; roll sandbox-host after changing data in place. |
 | sandboxes.juicefs.hostMount.cacheDirs | list | `["/var/cache/juicefs"]` | Node host paths used for the JuiceFS cache. Each path is mounted into sandbox-host and combined into one JuiceFS cache-dir option. Back these paths with node-local storage; their contents survive pod rollouts on the same node but not node replacement. |
 | sandboxes.juicefs.hostMount.mountOptions | list | `["--cache-size=51200","--cache-large-write"]` | Additional JuiceFS CLI options passed to sandbox-host. The chart derives cache-dir from cacheDirs; do not set it here. The default cache-size is a conservative 50 GiB shared across the configured directories. |
 | sandboxes.juicefs.name | string | `"sandbox-juicefs"` | JuiceFS volume name. Use a flat DNS-label-style name only; slashes and object-store subpaths are not supported here. JuiceFS stores objects under `<name>/` inside the configured bucket. |
 | sandboxes.juicefs.redis.metaURL | string | `""` | JuiceFS Redis metadata URL. Redis metadata engines must use maxmemory-policy noeviction. For Redis Cluster, the `/DB` path is used by JuiceFS as a hash-tag key prefix rather than a Redis logical database. |
-| sandboxes.juicefs.storage | string | `"s3"` | Object storage backend used by JuiceFS for sandboxes. Currently supported values are `s3` for AWS/EKS and `gs` for GCP/GKE. Azure-backed sandbox storage is not supported yet. |
+| sandboxes.juicefs.storage | string | `"s3"` | Object storage backend used by JuiceFS for sandboxes. Supported values are `s3` for AWS/EKS, `gs` for GCP/GKE, and `wasb` for Azure/AKS. |
+| sandboxes.juicefs.storageAccountName | string | `""` | Azure storage account name used by JuiceFS. Required when sandboxes.juicefs.storage is `wasb`. |
 | sandboxes.juicefsFormatJob.affinity | object | `{}` | Affinity rules for the JuiceFS formatter pod. |
 | sandboxes.juicefsFormatJob.annotations | object | `{}` | Additional annotations applied to the JuiceFS formatter Job and pod. |
-| sandboxes.juicefsFormatJob.labels | object | `{}` | Additional labels applied to the JuiceFS formatter pod. |
+| sandboxes.juicefsFormatJob.labels | object | `{}` | Additional labels applied to the JuiceFS formatter pod. For Azure Workload Identity, set `azure.workload.identity/use` to `true`. |
 | sandboxes.juicefsFormatJob.nodeSelector | object | `{}` | Node selector for the JuiceFS formatter pod. Defaults to the sandbox-host node selector when empty. |
 | sandboxes.juicefsFormatJob.podSecurityContext | object | `{}` | Pod security context for the JuiceFS formatter pod. |
 | sandboxes.juicefsFormatJob.resources | object | `{"requests":{"cpu":"100m","memory":"128Mi"}}` | Resource requests and limits for the JuiceFS formatter container. |
@@ -907,6 +922,7 @@ Two things worth planning for before you enable it:
 | sandboxes.sandboxHost.autoscaling.headroomHosts | int | `1` | Spare empty hosts kept above current demand so a sandbox create rarely waits for a cold node. |
 | sandboxes.sandboxHost.autoscaling.scaleDownStabilizationSeconds | int | `300` | Hold the replica target at its recent peak this long before shrinking, so load dips do not thrash the pool. |
 | sandboxes.sandboxHost.autoscaling.targetUtilizationPercent | int | `70` | Target share of pool CPU capacity committed to sandboxes before scaling up. |
+| sandboxes.sandboxHost.deployment.labels | object | `{}` | Additional labels applied to the sandbox-host Deployment and pod. For Azure Workload Identity, set `azure.workload.identity/use` to `true`. |
 | sandboxes.sandboxHost.deployment.nodeSelector | object | `{}` | Node selector for sandbox-host pods. Required: host pods must land on KVM-capable nodes, and a toleration alone does not attract them there. |
 | sandboxes.sandboxHost.deployment.readinessProbe | object | `{"failureThreshold":3,"initialDelaySeconds":5,"periodSeconds":10,"tcpSocket":{"port":"http"},"timeoutSeconds":3}` | Readiness probe. The host binds its listener last, so accepting connections gates the rollout. No liveness probe: a restart mid-suspend destroys running microVMs. |
 | sandboxes.sandboxHost.deployment.replicas | int | `1` | Number of sandbox-host replicas, i.e. sandbox nodes backing the pool. One host per node, so do not exceed the node count. Ignored when autoscaling is enabled. |
@@ -915,7 +931,7 @@ Two things worth planning for before you enable it:
 | sandboxes.sandboxHost.deployment.tolerations | list | `[{"effect":"NoSchedule","key":"sandbox.langsmith.com/host","operator":"Equal","value":"true"}]` | Tolerations for sandbox-host pods. The default expects sandbox-host nodes tainted `sandbox.langsmith.com/host=true:NoSchedule`; override this if your sandbox node pool uses different taints. |
 | sandboxes.sandboxHost.name | string | `"sandbox-host"` | Component name for sandbox-host. Resources are named `<release-fullname>-<name>`, which the chart passes to the host as SANDBOX_HOST_DEPLOYMENT_NAME. |
 | sandboxes.sandboxHost.pdb | object | `{"annotations":{},"enabled":false,"labels":{},"maxUnavailable":1}` | Disruption budget for sandbox-host, capping concurrent evictions since each drain suspends every microVM on that host. maxUnavailable keeps a small pool drainable; setting minAvailable overrides it. |
-| sandboxes.sandboxHost.serviceAccount.annotations | object | `{}` | Annotations applied to the sandbox-host ServiceAccount. Attach the AWS IRSA or GCP Workload Identity that grants access to the JuiceFS object-storage bucket here. |
+| sandboxes.sandboxHost.serviceAccount.annotations | object | `{}` | Annotations applied to the sandbox-host ServiceAccount. Attach the AWS IRSA, GCP Workload Identity, or Azure Workload Identity that grants access to the JuiceFS object-storage bucket here. |
 | sandboxes.serviceUrlBaseUrl | string | `""` | Base URL for reaching HTTP services inside sandboxes. Needs wildcard DNS and TLS for `*.<host>`; with ingress.enabled the chart adds the wildcard rule. http(s) origin only, no path. |
 | smithdb.clusterManager.containerGrpcPort | int | `8091` |  |
 | smithdb.clusterManager.containerPort | int | `8090` |  |
@@ -946,10 +962,6 @@ Two things worth planning for before you enable it:
 | smithdb.clusterManager.deployment.probes.startupProbe.periodSeconds | int | `10` |  |
 | smithdb.clusterManager.deployment.probes.startupProbe.timeoutSeconds | int | `1` |  |
 | smithdb.clusterManager.deployment.replicas | int | `1` |  |
-| smithdb.clusterManager.deployment.resources.limits.cpu | string | `"250m"` |  |
-| smithdb.clusterManager.deployment.resources.limits.memory | string | `"256Mi"` |  |
-| smithdb.clusterManager.deployment.resources.requests.cpu | string | `"250m"` |  |
-| smithdb.clusterManager.deployment.resources.requests.memory | string | `"256Mi"` |  |
 | smithdb.clusterManager.deployment.securityContext | object | `{}` |  |
 | smithdb.clusterManager.deployment.sidecars | list | `[]` |  |
 | smithdb.clusterManager.deployment.tolerations | list | `[]` |  |
@@ -993,10 +1005,6 @@ Two things worth planning for before you enable it:
 | smithdb.compaction.deployment.probes.startupProbe.periodSeconds | int | `10` |  |
 | smithdb.compaction.deployment.probes.startupProbe.timeoutSeconds | int | `1` |  |
 | smithdb.compaction.deployment.replicas | int | `1` |  |
-| smithdb.compaction.deployment.resources.limits.cpu | string | `"2"` |  |
-| smithdb.compaction.deployment.resources.limits.memory | string | `"4Gi"` |  |
-| smithdb.compaction.deployment.resources.requests.cpu | string | `"2"` |  |
-| smithdb.compaction.deployment.resources.requests.memory | string | `"4Gi"` |  |
 | smithdb.compaction.deployment.securityContext | object | `{}` |  |
 | smithdb.compaction.deployment.sidecars | list | `[]` |  |
 | smithdb.compaction.deployment.tolerations | list | `[]` |  |
@@ -1047,12 +1055,6 @@ Two things worth planning for before you enable it:
 | smithdb.compactionWorker.deployment.probes.startupProbe.periodSeconds | int | `10` |  |
 | smithdb.compactionWorker.deployment.probes.startupProbe.timeoutSeconds | int | `1` |  |
 | smithdb.compactionWorker.deployment.replicas | int | `2` |  |
-| smithdb.compactionWorker.deployment.resources.limits.cpu | string | `"8"` |  |
-| smithdb.compactionWorker.deployment.resources.limits.ephemeral-storage | string | `"100Gi"` |  |
-| smithdb.compactionWorker.deployment.resources.limits.memory | string | `"16Gi"` |  |
-| smithdb.compactionWorker.deployment.resources.requests.cpu | string | `"8"` |  |
-| smithdb.compactionWorker.deployment.resources.requests.ephemeral-storage | string | `"100Gi"` |  |
-| smithdb.compactionWorker.deployment.resources.requests.memory | string | `"16Gi"` |  |
 | smithdb.compactionWorker.deployment.securityContext | object | `{}` |  |
 | smithdb.compactionWorker.deployment.sidecars | list | `[]` |  |
 | smithdb.compactionWorker.deployment.terminationGracePeriodSeconds | int | `120` |  |
@@ -1060,8 +1062,6 @@ Two things worth planning for before you enable it:
 | smithdb.compactionWorker.deployment.topologySpreadConstraints | list | `[]` |  |
 | smithdb.compactionWorker.deployment.volumeMounts[0].mountPath | string | `"/data"` |  |
 | smithdb.compactionWorker.deployment.volumeMounts[0].name | string | `"local-ssd-storage"` |  |
-| smithdb.compactionWorker.deployment.volumes[0].emptyDir.sizeLimit | string | `"100Gi"` |  |
-| smithdb.compactionWorker.deployment.volumes[0].name | string | `"local-ssd-storage"` |  |
 | smithdb.compactionWorker.maxConcurrentJobs | string | `""` | Maximum concurrent jobs per compaction worker. Empty uses the SmithDB default. |
 | smithdb.compactionWorker.name | string | `"compaction-worker"` |  |
 | smithdb.compactionWorker.pdb.annotations | object | `{}` |  |
@@ -1127,12 +1127,6 @@ Two things worth planning for before you enable it:
 | smithdb.ingestion.deployment.probes.startupProbe.periodSeconds | int | `10` |  |
 | smithdb.ingestion.deployment.probes.startupProbe.timeoutSeconds | int | `1` |  |
 | smithdb.ingestion.deployment.replicas | int | `1` |  |
-| smithdb.ingestion.deployment.resources.limits.cpu | string | `"4"` |  |
-| smithdb.ingestion.deployment.resources.limits.ephemeral-storage | string | `"100Gi"` |  |
-| smithdb.ingestion.deployment.resources.limits.memory | string | `"8Gi"` |  |
-| smithdb.ingestion.deployment.resources.requests.cpu | string | `"4"` |  |
-| smithdb.ingestion.deployment.resources.requests.ephemeral-storage | string | `"100Gi"` |  |
-| smithdb.ingestion.deployment.resources.requests.memory | string | `"8Gi"` |  |
 | smithdb.ingestion.deployment.securityContext | object | `{}` |  |
 | smithdb.ingestion.deployment.sidecars | list | `[]` |  |
 | smithdb.ingestion.deployment.strategy.rollingUpdate.maxSurge | int | `1` |  |
@@ -1143,8 +1137,6 @@ Two things worth planning for before you enable it:
 | smithdb.ingestion.deployment.topologySpreadConstraints | list | `[]` |  |
 | smithdb.ingestion.deployment.volumeMounts[0].mountPath | string | `"/data"` |  |
 | smithdb.ingestion.deployment.volumeMounts[0].name | string | `"local-ssd-storage"` |  |
-| smithdb.ingestion.deployment.volumes[0].emptyDir.sizeLimit | string | `"100Gi"` |  |
-| smithdb.ingestion.deployment.volumes[0].name | string | `"local-ssd-storage"` |  |
 | smithdb.ingestion.name | string | `"ingestion"` |  |
 | smithdb.ingestion.pdb.annotations | object | `{}` |  |
 | smithdb.ingestion.pdb.enabled | bool | `false` |  |
@@ -1298,12 +1290,6 @@ Two things worth planning for before you enable it:
 | smithdb.query.deployment.probes.startupProbe.periodSeconds | int | `10` |  |
 | smithdb.query.deployment.probes.startupProbe.timeoutSeconds | int | `1` |  |
 | smithdb.query.deployment.replicas | int | `1` |  |
-| smithdb.query.deployment.resources.limits.cpu | string | `"4"` |  |
-| smithdb.query.deployment.resources.limits.ephemeral-storage | string | `"200Gi"` |  |
-| smithdb.query.deployment.resources.limits.memory | string | `"8Gi"` |  |
-| smithdb.query.deployment.resources.requests.cpu | string | `"4"` |  |
-| smithdb.query.deployment.resources.requests.ephemeral-storage | string | `"200Gi"` |  |
-| smithdb.query.deployment.resources.requests.memory | string | `"8Gi"` |  |
 | smithdb.query.deployment.securityContext | object | `{}` |  |
 | smithdb.query.deployment.sidecars | list | `[]` |  |
 | smithdb.query.deployment.strategy.rollingUpdate.maxSurge | int | `1` |  |
@@ -1313,8 +1299,6 @@ Two things worth planning for before you enable it:
 | smithdb.query.deployment.topologySpreadConstraints | list | `[]` |  |
 | smithdb.query.deployment.volumeMounts[0].mountPath | string | `"/data"` |  |
 | smithdb.query.deployment.volumeMounts[0].name | string | `"local-ssd-storage"` |  |
-| smithdb.query.deployment.volumes[0].emptyDir.sizeLimit | string | `"200Gi"` |  |
-| smithdb.query.deployment.volumes[0].name | string | `"local-ssd-storage"` |  |
 | smithdb.query.name | string | `"query"` |  |
 | smithdb.query.pdb.annotations | object | `{}` |  |
 | smithdb.query.pdb.enabled | bool | `false` |  |
@@ -1323,6 +1307,7 @@ Two things worth planning for before you enable it:
 | smithdb.query.service.annotations | object | `{}` |  |
 | smithdb.query.service.labels | object | `{}` |  |
 | smithdb.query.service.port | int | `8080` |  |
+| smithdb.resourceTier | string | `"small"` | Per-replica resource tier for SmithDB runtime components. Supported values: small, medium, large. See the README for sizing and override behavior. |
 | smithdb.serviceAccount | object | `{"annotations":{},"automountServiceAccountToken":true,"create":true,"labels":{},"name":""}` | Shared ServiceAccount for SmithDB workloads. |
 | smithdb.serviceAccount.name | string | `""` | Defaults to <release>-<smithdb.name>. |
 
