@@ -4,6 +4,7 @@ templates:
   - sandboxes/juicefs-config.yaml
   - sandboxes/juicefs-format-job.yaml
   - sandboxes/sandbox-host-deployment.yaml
+  - sandboxes/sandbox-host-service-account.yaml
 tests:
   - it: should not render JuiceFS resources when sandboxes are disabled
     set:
@@ -38,6 +39,26 @@ tests:
             metaurl: redis://langsmith-redis.default.svc.cluster.local:6379/1
             storage: s3
             bucket: https://langsmith-sandboxes-test.s3.us-west-2.amazonaws.com
+
+  - it: should render the Azure JuiceFS config Secret
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      sandboxes.juicefs.storage: wasb
+      sandboxes.juicefs.bucket: https://sandbox-juicefs.core.windows.net
+      sandboxes.juicefs.storageAccountName: sandboxstorage
+    template: sandboxes/juicefs-config.yaml
+    asserts:
+      - isKind:
+          of: Secret
+      - equal:
+          path: stringData
+          value:
+            name: sandbox-juicefs
+            metaurl: redis://langsmith-redis.default.svc.cluster.local:6379/1
+            storage: wasb
+            bucket: https://sandbox-juicefs.core.windows.net
+            access-key: sandboxstorage
 
   - it: should format JuiceFS once with the sandbox-host image
     values:
@@ -244,6 +265,50 @@ tests:
     asserts:
       - hasDocuments:
           count: 0
+
+  - it: should configure Azure Workload Identity with an external JuiceFS Secret
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      sandboxes.juicefs.storage: wasb
+      sandboxes.juicefs.redis.metaURL: ""
+      sandboxes.juicefs.bucket: ""
+      sandboxes.juicefs.existingSecretName: azure-juicefs-config
+      sandboxes.juicefsFormatJob.labels:
+        azure.workload.identity/use: "true"
+      sandboxes.sandboxHost.deployment.labels:
+        azure.workload.identity/use: "true"
+      sandboxes.sandboxHost.serviceAccount.annotations:
+        azure.workload.identity/client-id: test-client-id
+    templates:
+      - sandboxes/juicefs-config.yaml
+      - sandboxes/juicefs-format-job.yaml
+      - sandboxes/sandbox-host-deployment.yaml
+      - sandboxes/sandbox-host-service-account.yaml
+    asserts:
+      - hasDocuments:
+          count: 0
+        template: sandboxes/juicefs-config.yaml
+      - equal:
+          path: spec.template.spec.volumes[0].secret.secretName
+          value: azure-juicefs-config
+        template: sandboxes/juicefs-format-job.yaml
+      - equal:
+          path: spec.template.metadata.labels["azure.workload.identity/use"]
+          value: "true"
+        template: sandboxes/juicefs-format-job.yaml
+      - equal:
+          path: spec.template.spec.volumes[2].secret.secretName
+          value: azure-juicefs-config
+        template: sandboxes/sandbox-host-deployment.yaml
+      - equal:
+          path: spec.template.metadata.labels["azure.workload.identity/use"]
+          value: "true"
+        template: sandboxes/sandbox-host-deployment.yaml
+      - equal:
+          path: metadata.annotations["azure.workload.identity/client-id"]
+          value: test-client-id
+        template: sandboxes/sandbox-host-service-account.yaml
 
   - it: should configure multiple node-local cache directories
     values:
