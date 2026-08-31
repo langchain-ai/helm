@@ -148,7 +148,7 @@ istioGateway:
   labels: {}
 
 
-# -- LangSmith Sandboxes. Same-cluster sandbox-host architecture on AWS/EKS or GCP/GKE. sandbox-host mounts JuiceFS directly, and a singleton Job formats fresh JuiceFS metadata before hosts start serving.
+# -- LangSmith Sandboxes. Same-cluster sandbox-host architecture on AWS/EKS, GCP/GKE, or Azure/AKS. sandbox-host mounts JuiceFS directly, and a singleton Job formats fresh JuiceFS metadata before hosts start serving.
 sandboxes:
   enabled: false
   # -- Private JWK signing sandbox callbacks, or key `sandbox_callback_signing_jwk` in config.existingSecretName. Needs config.hostname for the issuer, or signing fails closed.
@@ -170,14 +170,16 @@ sandboxes:
   juicefs:
     # -- JuiceFS volume name. Use a flat DNS-label-style name only; slashes and object-store subpaths are not supported here. JuiceFS stores objects under `<name>/` inside the configured bucket.
     name: "sandbox-juicefs"
-    # -- Object storage backend used by JuiceFS for sandboxes. Currently supported values are `s3` for AWS/EKS and `gs` for GCP/GKE. Azure-backed sandbox storage is not supported yet.
+    # -- Object storage backend used by JuiceFS for sandboxes. Supported values are `s3` for AWS/EKS, `gs` for GCP/GKE, and `wasb` for Azure/AKS.
     storage: "s3"
     # -- Object storage bucket/root URL used by JuiceFS. For AWS S3, use a region-explicit endpoint such as `https://bucket-name.s3.us-west-2.amazonaws.com`; do not use the `s3://bucket-name` shorthand because JuiceFS then infers region with GetBucketLocation. For GCS, use `gs://bucket-name`. Use `sandboxes.juicefs.name` for JuiceFS volume isolation instead of deployment-specific bucket paths.
     bucket: ""
+    # -- Azure storage account name used by JuiceFS. Required when sandboxes.juicefs.storage is `wasb`.
+    accessKey: ""
     redis:
       # -- JuiceFS Redis metadata URL. Redis metadata engines must use maxmemory-policy noeviction. For Redis Cluster, the `/DB` path is used by JuiceFS as a hash-tag key prefix rather than a Redis logical database.
       metaURL: ""
-    # -- Existing Secret containing JuiceFS config keys `name`, `metaurl`, `storage`, and `bucket`. The formatter Job reads all four keys; sandbox-host receives only `metaurl`. When set, the chart does not create the config Secret and the corresponding values above are ignored. Rotate the Secret name to rerun formatting; roll sandbox-host after changing data in place.
+    # -- Existing Secret containing JuiceFS config keys `name`, `metaurl`, `storage`, and `bucket`. For Azure Blob Storage, set `access-key` to the storage account name. Set `secret-key` only for account-key authentication. The formatter Job reads the Secret; sandbox-host receives only `metaurl`. When set, the chart does not create the config Secret and the corresponding values above are ignored. Rotate the Secret name to rerun formatting; roll sandbox-host after changing data in place.
     existingSecretName: ""
     hostMount:
       # -- Node host paths used for the JuiceFS cache. Each path is mounted into sandbox-host and combined into one JuiceFS cache-dir option. Back these paths with node-local storage; their contents survive pod rollouts on the same node but not node replacement.
@@ -188,7 +190,7 @@ sandboxes:
         - --cache-size=51200
         - --cache-large-write
   juicefsFormatJob:
-    # -- Additional labels applied to the JuiceFS formatter pod.
+    # -- Additional labels applied to the JuiceFS formatter pod. For Azure Workload Identity, set `azure.workload.identity/use` to `true`.
     labels: {}
     # -- Additional annotations applied to the JuiceFS formatter Job and pod.
     annotations: {}
@@ -215,6 +217,7 @@ sandboxes:
     # -- Component name for sandbox-host. Resources are named `<release-fullname>-<name>`, which the chart passes to the host as SANDBOX_HOST_DEPLOYMENT_NAME.
     name: "sandbox-host"
     deployment:
+      # -- Additional labels applied to the sandbox-host Deployment and pod. For Azure Workload Identity, set `azure.workload.identity/use` to `true`.
       labels: {}
       annotations: {}
       podAnnotations: {}
@@ -273,7 +276,7 @@ sandboxes:
       create: true
       name: ""
       labels: {}
-      # -- Annotations applied to the sandbox-host ServiceAccount. Attach the AWS IRSA or GCP Workload Identity that grants access to the JuiceFS object-storage bucket here.
+      # -- Annotations applied to the sandbox-host ServiceAccount. Attach the AWS IRSA, GCP Workload Identity, or Azure Workload Identity that grants access to the JuiceFS object-storage bucket here.
       annotations: {}
       automountServiceAccountToken: true
     rbac:
