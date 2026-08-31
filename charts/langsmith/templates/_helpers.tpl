@@ -1402,7 +1402,7 @@ metaurl: {{ $juicefsRedis.metaURL | quote }}
 storage: {{ .Values.sandboxes.juicefs.storage | quote }}
 bucket: {{ .Values.sandboxes.juicefs.bucket | quote }}
 {{- if eq .Values.sandboxes.juicefs.storage "wasb" }}
-access-key: {{ .Values.sandboxes.juicefs.accessKey | quote }}
+access-key: {{ .Values.sandboxes.juicefs.storageAccountName | quote }}
 {{- end }}
 {{- end -}}
 

@@ -46,7 +46,7 @@ tests:
     set:
       sandboxes.juicefs.storage: wasb
       sandboxes.juicefs.bucket: https://sandbox-juicefs.core.windows.net
-      sandboxes.juicefs.accessKey: sandboxstorage
+      sandboxes.juicefs.storageAccountName: sandboxstorage
     template: sandboxes/juicefs-config.yaml
     asserts:
       - isKind:

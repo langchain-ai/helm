@@ -233,8 +233,8 @@ AWS Marketplace Helm template verification).
 {{- if not (or (eq $juicefsStorage "s3") (eq $juicefsStorage "gs") (eq $juicefsStorage "wasb")) -}}
 {{- fail "sandboxes.juicefs.storage supports only s3 for AWS/EKS, gs for GCP/GKE, and wasb for Azure/AKS." -}}
 {{- end -}}
-{{- if and (eq $juicefsStorage "wasb") (not .Values.sandboxes.juicefs.accessKey) -}}
-{{- fail "sandboxes.juicefs.accessKey is required and must contain the Azure storage account name when sandboxes.juicefs.storage is wasb." -}}
+{{- if and (eq $juicefsStorage "wasb") (not .Values.sandboxes.juicefs.storageAccountName) -}}
+{{- fail "sandboxes.juicefs.storageAccountName is required when sandboxes.juicefs.storage is wasb." -}}
 {{- end -}}
 {{- if and (eq $juicefsStorage "s3") (hasPrefix "s3://" $juicefsBucket) -}}
 {{- fail "sandboxes.juicefs.bucket must use a region-explicit S3 endpoint URL such as https://bucket-name.s3.us-west-2.amazonaws.com when sandboxes.juicefs.storage is s3. The s3://bucket shorthand makes JuiceFS infer region with GetBucketLocation and is not supported." -}}

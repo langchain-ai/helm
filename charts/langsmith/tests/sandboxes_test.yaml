@@ -593,7 +593,7 @@ tests:
     template: validate.yaml
     asserts:
       - failedTemplate:
-          errorMessage: "sandboxes.juicefs.accessKey is required and must contain the Azure storage account name when sandboxes.juicefs.storage is wasb."
+          errorMessage: "sandboxes.juicefs.storageAccountName is required when sandboxes.juicefs.storage is wasb."
 
   - it: should allow Azure JuiceFS storage with an account name
     values:
@@ -601,7 +601,7 @@ tests:
     set:
       sandboxes.juicefs.storage: wasb
       sandboxes.juicefs.bucket: https://sandbox-juicefs.core.windows.net
-      sandboxes.juicefs.accessKey: sandboxstorage
+      sandboxes.juicefs.storageAccountName: sandboxstorage
     template: validate.yaml
     asserts:
       - hasDocuments:
