@@ -1162,8 +1162,14 @@ Extra env vars for fleet api-server and queue pods.
   (dict "name" "LANGSMITH_LICENSE_REQUIRED_CLAIMS" "value" "agent_builder_enabled")
   (dict "name" "SSRF_ALLOW_PRIVATE_IPS_MCP_SERVERS" "value" "true")
   (dict "name" "SSRF_ALLOW_PRIVATE_IPS_TOOLS" "value" "true")
-  (dict "name" "SSRF_ALLOW_K8S_INTERNAL" "value" "true")
 -}}
+{{- $commonEnvKeys := list -}}
+{{- range $root.Values.commonEnv -}}
+{{- $commonEnvKeys = append $commonEnvKeys .name -}}
+{{- end -}}
+{{- if not (has "SSRF_ALLOW_K8S_INTERNAL" $commonEnvKeys) -}}
+{{- $out = append $out (dict "name" "SSRF_ALLOW_K8S_INTERNAL" "value" "true") -}}
+{{- end -}}
 {{- if $feature.postgres.external.iamProvider -}}
 {{- $out = append $out (dict "name" "AGENT_POSTGRES_IAM_AUTH_PROVIDER" "value" $feature.postgres.external.iamProvider) -}}
 {{- end -}}
