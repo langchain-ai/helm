@@ -489,7 +489,7 @@ AWS Marketplace Helm template verification).
 {{- $legacyCompactionWorkerAutoscalingKeys := list "enabled" "minReplicas" "maxReplicas" "targetCPUUtilizationPercentage" "scaleUpStabilizationWindowSeconds" "scaleDownStabilizationWindowSeconds" "scalePodCount" "createHpa" "type" -}}
 {{- range $legacyCompactionWorkerAutoscalingKeys -}}
 {{- if and $.Values.smithdb.enabled (hasKey $cwAutoscaling .) -}}
-{{- fail (printf "smithdb.compactionWorker.autoscaling.%s is no longer supported. Compaction-worker autoscaling now uses nested blocks: set autoscaling.hpa.enabled with hpa.minReplicas, hpa.maxReplicas, and related hpa.* fields for chart-managed HPA, or autoscaling.keda.enabled with keda.minReplicaCount, keda.maxReplicaCount, keda.pendingJobsThreshold, and related keda.* fields for KEDA scaling on pending compaction jobs and CPU. Only one scaler can be enabled at a time." .) -}}
+{{- fail (printf "smithdb.compactionWorker.autoscaling.%s is no longer supported. Use autoscaling.hpa.* for chart-managed HPA or autoscaling.keda.* for KEDA; only one scaler can be enabled at a time." .) -}}
 {{- end -}}
 {{- end -}}
 {{- if and .Values.smithdb.enabled $cwAutoscaling.hpa.enabled (dig "keda" "enabled" false $cwAutoscaling) -}}
