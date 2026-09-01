@@ -1372,6 +1372,7 @@ Replica counts and autoscaling remain controlled by each component's `deployment
 | config.langsmithLicenseKey | string | `""` |  |
 | config.llmAuthProxyIssuer | string | `""` | Optional issuer (iss claim) for tokens minted by the LLM auth proxy. Maps to LLM_AUTH_PROXY_ISSUER. Must match the jwtIssuer configured in the auth proxy chart. Left empty by default (not emitted); set it when using the LLM auth proxy. |
 | config.logLevel | string | `"info"` |  |
+| config.oauth.allowSubMigration | bool | `false` | When true, re-link an existing custom-OIDC user to a new identity provider by matched email when their sub claim changes after an IdP switch (e.g. Google to Okta), instead of failing login. Self-hosted only; off by default; requires the IdP to assert a verified email (email_verified=true). SCIM users with a conflicting externalId are still refused and realign through SCIM. |
 | config.oauth.enabled | bool | `false` |  |
 | config.oauth.oauthClientId | string | `""` |  |
 | config.oauth.oauthClientSecret | string | `""` | Client secret requires authType to be 'mixed' and hostname to be present |
