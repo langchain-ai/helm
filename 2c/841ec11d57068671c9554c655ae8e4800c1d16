@@ -1,0 +1,19 @@
+charts/langsmith/Chart.yaml
+  s_9be978a092eeea::t_c8d6d3a0a6aea9 8
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "2c841ec11d57068671c9554c655ae8e4800c1d16",
+  "prompts": {},
+  "sessions": {
+    "s_9be978a092eeea": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "42ec1e46-92fe-4e8b-81ab-675a7e50a4af",
+        "model": "auto-smart"
+      },
+      "human_author": "ben11211 <nagengast@langchain.dev>"
+    }
+  }
+}
