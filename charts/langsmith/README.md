@@ -1,10 +1,6 @@
 # langsmith
 
-<<<<<<< HEAD
-![Version: 0.17.0-rc.17](https://img.shields.io/badge/Version-0.17.0--rc.17-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.17.17rc1](https://img.shields.io/badge/AppVersion-0.17.17rc1-informational?style=flat-square)
-=======
-![Version: 0.17.0-rc.18](https://img.shields.io/badge/Version-0.17.0--rc.18-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.17.14rc1](https://img.shields.io/badge/AppVersion-0.17.14rc1-informational?style=flat-square)
->>>>>>> 73edff69 (Normalize SmithDB query and ingestion autoscaling to hpa nested layout.)
+![Version: 0.17.0-rc.19](https://img.shields.io/badge/Version-0.17.0--rc.19-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.17.17rc1](https://img.shields.io/badge/AppVersion-0.17.17rc1-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -1023,15 +1019,26 @@ Replica counts and autoscaling remain controlled by each component's `deployment
 | smithdb.compaction.service.annotations | object | `{}` |  |
 | smithdb.compaction.service.labels | object | `{}` |  |
 | smithdb.compaction.service.port | int | `8071` |  |
-| smithdb.compactionWorker.autoscaling.hpa.enabled | bool | `true` | Enable HPA scaling. |
+| smithdb.compactionWorker.autoscaling.hpa.enabled | bool | `true` |  |
 | smithdb.compactionWorker.autoscaling.hpa.maxReplicas | int | `10` |  |
 | smithdb.compactionWorker.autoscaling.hpa.minReplicas | int | `1` |  |
 | smithdb.compactionWorker.autoscaling.hpa.scaleDownStabilizationWindowSeconds | int | `300` |  |
 | smithdb.compactionWorker.autoscaling.hpa.scalePodCount | int | `1` |  |
 | smithdb.compactionWorker.autoscaling.hpa.scaleUpStabilizationWindowSeconds | int | `120` |  |
 | smithdb.compactionWorker.autoscaling.hpa.targetCPUUtilizationPercentage | int | `60` |  |
-| smithdb.compactionWorker.autoscaling.keda | object | `{"annotations":{},"cooldownPeriod":300,"enabled":false,"initialCooldownPeriod":0,"labels":{},"maxReplicaCount":10,"minReplicaCount":1,"pendingJobsThreshold":"60","pollingInterval":30,"scaleDownStabilizationWindowSeconds":300,"scalePodCount":1,"scaleUpStabilizationWindowSeconds":120,"targetCPUUtilizationPercentage":60}` | KEDA scaling based on pending compaction jobs and CPU. Requires KEDA to be installed in the cluster. |
+| smithdb.compactionWorker.autoscaling.keda.annotations | object | `{}` |  |
+| smithdb.compactionWorker.autoscaling.keda.cooldownPeriod | int | `300` |  |
+| smithdb.compactionWorker.autoscaling.keda.enabled | bool | `false` |  |
+| smithdb.compactionWorker.autoscaling.keda.initialCooldownPeriod | int | `0` |  |
+| smithdb.compactionWorker.autoscaling.keda.labels | object | `{}` |  |
+| smithdb.compactionWorker.autoscaling.keda.maxReplicaCount | int | `10` |  |
+| smithdb.compactionWorker.autoscaling.keda.minReplicaCount | int | `1` |  |
 | smithdb.compactionWorker.autoscaling.keda.pendingJobsThreshold | string | `"60"` | Number of pending compaction jobs per worker. |
+| smithdb.compactionWorker.autoscaling.keda.pollingInterval | int | `30` |  |
+| smithdb.compactionWorker.autoscaling.keda.scaleDownStabilizationWindowSeconds | int | `300` |  |
+| smithdb.compactionWorker.autoscaling.keda.scalePodCount | int | `1` |  |
+| smithdb.compactionWorker.autoscaling.keda.scaleUpStabilizationWindowSeconds | int | `120` |  |
+| smithdb.compactionWorker.autoscaling.keda.targetCPUUtilizationPercentage | int | `60` |  |
 | smithdb.compactionWorker.containerPort | int | `9000` |  |
 | smithdb.compactionWorker.deployment.affinity | object | `{}` |  |
 | smithdb.compactionWorker.deployment.annotations | object | `{}` |  |
