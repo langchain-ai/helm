@@ -20,6 +20,26 @@ tests:
       - failedTemplate:
           errorMessage: "Only one of smithdb.compactionWorker.autoscaling.hpa.enabled or smithdb.compactionWorker.autoscaling.keda.enabled can be enabled at the same time."
 
+  - it: should reject legacy flat compaction-worker autoscaling.enabled
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      config.existingSecretName: langsmith-secret
+      smithdb.compactionWorker.autoscaling.enabled: true
+    asserts:
+      - failedTemplate:
+          errorMessage: "smithdb.compactionWorker.autoscaling.enabled is no longer supported. Compaction-worker autoscaling now uses nested blocks: set autoscaling.hpa.enabled with hpa.minReplicas, hpa.maxReplicas, and related hpa.* fields for chart-managed HPA, or autoscaling.keda.enabled with keda.minReplicaCount, keda.maxReplicaCount, keda.pendingJobsThreshold, and related keda.* fields for KEDA scaling on pending compaction jobs and CPU. Only one scaler can be enabled at a time."
+
+  - it: should reject legacy flat compaction-worker autoscaling minReplicas
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      config.existingSecretName: langsmith-secret
+      smithdb.compactionWorker.autoscaling.minReplicas: 2
+    asserts:
+      - failedTemplate:
+          errorMessage: "smithdb.compactionWorker.autoscaling.minReplicas is no longer supported. Compaction-worker autoscaling now uses nested blocks: set autoscaling.hpa.enabled with hpa.minReplicas, hpa.maxReplicas, and related hpa.* fields for chart-managed HPA, or autoscaling.keda.enabled with keda.minReplicaCount, keda.maxReplicaCount, keda.pendingJobsThreshold, and related keda.* fields for KEDA scaling on pending compaction jobs and CPU. Only one scaler can be enabled at a time."
+
   - it: should reject smithdb without query replicas
     values:
       - ./values/smithdb-enabled.yaml

@@ -485,10 +485,19 @@ AWS Marketplace Helm template verification).
 {{- if and .Values.smithdb.enabled (ne (toString .Values.smithdb.compactionWorker.maxConcurrentJobs) "") (lt (int .Values.smithdb.compactionWorker.maxConcurrentJobs) 1) -}}
 {{- fail "smithdb.compactionWorker.maxConcurrentJobs must be greater than 0 when set." -}}
 {{- end -}}
+{{- $cwAutoscaling := .Values.smithdb.compactionWorker.autoscaling -}}
+{{- $legacyCompactionWorkerAutoscalingKeys := list "enabled" "minReplicas" "maxReplicas" "targetCPUUtilizationPercentage" "scaleUpStabilizationWindowSeconds" "scaleDownStabilizationWindowSeconds" "scalePodCount" "createHpa" "type" -}}
+{{- range $legacyCompactionWorkerAutoscalingKeys -}}
+{{- if and $.Values.smithdb.enabled (hasKey $cwAutoscaling .) -}}
+{{- fail (printf "smithdb.compactionWorker.autoscaling.%s is no longer supported. Compaction-worker autoscaling now uses nested blocks: set autoscaling.hpa.enabled with hpa.minReplicas, hpa.maxReplicas, and related hpa.* fields for chart-managed HPA, or autoscaling.keda.enabled with keda.minReplicaCount, keda.maxReplicaCount, keda.pendingJobsThreshold, and related keda.* fields for KEDA scaling on pending compaction jobs and CPU. Only one scaler can be enabled at a time." .) -}}
+{{- end -}}
+{{- end -}}
+{{- if and .Values.smithdb.enabled $cwAutoscaling.hpa.enabled $cwAutoscaling.keda.enabled -}}
+{{- fail "Only one of smithdb.compactionWorker.autoscaling.hpa.enabled or smithdb.compactionWorker.autoscaling.keda.enabled can be enabled at the same time." -}}
+{{- end -}}
 {{- $smithdbAutoscalingWorkloads := dict
   "query" .Values.smithdb.query
   "ingestion" .Values.smithdb.ingestion
-  "compactionWorker" .Values.smithdb.compactionWorker
 -}}
 {{- range $workloadName, $workload := $smithdbAutoscalingWorkloads -}}
 {{- $autoscaling := dig "autoscaling" (dict) $workload -}}
@@ -549,7 +558,6 @@ AWS Marketplace Helm template verification).
   "playground" .Values.playground.autoscaling
   "queue" .Values.queue.autoscaling
   "ingestQueue" .Values.ingestQueue.autoscaling
-  "smithdb.compactionWorker" .Values.smithdb.compactionWorker.autoscaling
 -}}
 {{- range $serviceName, $autoscaling := $autoscalingServices -}}
 {{- /* Validate that both HPA and KEDA are not enabled at the same time */ -}}
