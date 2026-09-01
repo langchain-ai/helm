@@ -1693,9 +1693,10 @@ smithdb:
       minAvailable: 1
       labels: {}
       annotations: {}
+    # Autoscaling configuration. Either HPA or KEDA can be enabled, not both.
     autoscaling:
+      # HPA-specific configuration
       hpa:
-        # -- Enable HPA scaling.
         enabled: true
         minReplicas: 1
         maxReplicas: 10
@@ -1703,7 +1704,8 @@ smithdb:
         scaleUpStabilizationWindowSeconds: 120
         scaleDownStabilizationWindowSeconds: 300
         scalePodCount: 1
-      # -- KEDA scaling based on pending compaction jobs and CPU. Requires KEDA to be installed in the cluster.
+      # KEDA ScaledObject configuration. See https://keda.sh/docs/2.18/reference/scaledobject-spec
+      # These are some recommended default values. You can tweak them to your needs, using the docs above.
       keda:
         enabled: false
         labels: {}
