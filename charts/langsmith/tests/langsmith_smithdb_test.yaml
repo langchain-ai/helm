@@ -1212,6 +1212,59 @@ tests:
             name: SMITHDB_MIGRATION__OUTPUT__OBJECT_STORE__AZURE__ACCOUNT_NAME
             value: smithdbstorage
 
+  - it: should use native Azure Blob Storage for migration source blobs
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      config.blobStorage.enabled: true
+      config.blobStorage.engine: Azure
+      config.blobStorage.azureStorageAccountName: langsmithstorage
+      config.blobStorage.azureStorageContainerName: langsmith-traces
+      config.blobStorage.azureStorageServiceUrlOverride: http://azurite:10000/langsmithstorage
+      smithdb.langsmith.migration.enabled: true
+      smithdb.langsmith.query.enabled: false
+      smithdb.migration.taskdb.postgres.auth.password: taskdb-password
+    template: smithdb/migration-job.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_MIGRATION__BLOB_STORE_DEFAULT__TYPE
+            value: azure
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_MIGRATION__BLOB_STORE_DEFAULT__AZURE__CONTAINER
+            value: langsmith-traces
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_MIGRATION__BLOB_STORE_DEFAULT__AZURE__ACCOUNT_NAME
+            value: langsmithstorage
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_MIGRATION__BLOB_STORE_DEFAULT__AZURE__ENDPOINT
+            value: http://azurite:10000/langsmithstorage
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_MIGRATION__BLOB_STORE_DEFAULT__AZURE__ALLOW_HTTP
+            value: "true"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_MIGRATION__BLOB_STORE_DEFAULT__AZURE__ACCESS_KEY
+            valueFrom:
+              secretKeyRef:
+                name: RELEASE-NAME-langsmith-secrets
+                key: azure_storage_account_key
+                optional: true
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_MIGRATION__BLOB_STORE_DEFAULT__S3__BUCKET
+
   - it: should configure smithdb migration parallelism
     values:
       - ./values/smithdb-enabled.yaml

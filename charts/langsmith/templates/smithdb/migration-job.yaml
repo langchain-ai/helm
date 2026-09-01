@@ -192,6 +192,27 @@ spec:
               value: {{ $blobStorage.bucketName | quote }}
             - name: SMITHDB_MIGRATION__BLOB_STORE_DEFAULT__GCS__ROOT_FOLDER
               value: "/"
+            {{- else if and $blobStorage.enabled (eq (lower $blobStorage.engine) "azure") }}
+            - name: SMITHDB_MIGRATION__BLOB_STORE_DEFAULT__TYPE
+              value: "azure"
+            - name: SMITHDB_MIGRATION__BLOB_STORE_DEFAULT__AZURE__CONTAINER
+              value: {{ $blobStorage.azureStorageContainerName | quote }}
+            - name: SMITHDB_MIGRATION__BLOB_STORE_DEFAULT__AZURE__ROOT_FOLDER
+              value: "/"
+            - name: SMITHDB_MIGRATION__BLOB_STORE_DEFAULT__AZURE__ACCOUNT_NAME
+              value: {{ $blobStorage.azureStorageAccountName | quote }}
+            {{- with $blobStorage.azureStorageServiceUrlOverride }}
+            - name: SMITHDB_MIGRATION__BLOB_STORE_DEFAULT__AZURE__ENDPOINT
+              value: {{ . | quote }}
+            - name: SMITHDB_MIGRATION__BLOB_STORE_DEFAULT__AZURE__ALLOW_HTTP
+              value: {{ hasPrefix "http://" . | quote }}
+            {{- end }}
+            - name: SMITHDB_MIGRATION__BLOB_STORE_DEFAULT__AZURE__ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "langsmith.secretsName" . }}
+                  key: azure_storage_account_key
+                  optional: true
             {{- end }}
             - name: SMITHDB_MIGRATION__OUTPUT__OBJECT_STORE__TYPE
               value: {{ $smithdbObjectStoreType | quote }}
