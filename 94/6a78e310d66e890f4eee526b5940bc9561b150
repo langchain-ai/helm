@@ -15,6 +15,7 @@ charts/langsmith/templates/smithdb/query-deployment.yaml
   s_9be978a092eeea::t_381f92e1b0538c 22
 charts/langsmith/tests/langsmith_smithdb_validation_test.yaml
   s_9be978a092eeea::t_4e8f5d0849fd9b 64-67,69-70,74-78,80-81,83-93
+  s_9be978a092eeea::t_161f05307063af 63,68,71-73,79,82
 charts/langsmith/tests/langsmith_smithdb_query_services_test.yaml
   s_9be978a092eeea::t_b820c9f3fbdad5 64
 charts/langsmith/templates/smithdb/query-services-hpas.yaml
