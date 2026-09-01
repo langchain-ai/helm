@@ -492,21 +492,28 @@ AWS Marketplace Helm template verification).
 {{- fail (printf "smithdb.compactionWorker.autoscaling.%s is no longer supported. Compaction-worker autoscaling now uses nested blocks: set autoscaling.hpa.enabled with hpa.minReplicas, hpa.maxReplicas, and related hpa.* fields for chart-managed HPA, or autoscaling.keda.enabled with keda.minReplicaCount, keda.maxReplicaCount, keda.pendingJobsThreshold, and related keda.* fields for KEDA scaling on pending compaction jobs and CPU. Only one scaler can be enabled at a time." .) -}}
 {{- end -}}
 {{- end -}}
-{{- if and .Values.smithdb.enabled $cwAutoscaling.hpa.enabled $cwAutoscaling.keda.enabled -}}
+{{- if and .Values.smithdb.enabled $cwAutoscaling.hpa.enabled (dig "keda" "enabled" false $cwAutoscaling) -}}
 {{- fail "Only one of smithdb.compactionWorker.autoscaling.hpa.enabled or smithdb.compactionWorker.autoscaling.keda.enabled can be enabled at the same time." -}}
 {{- end -}}
-{{- $smithdbAutoscalingWorkloads := dict
+{{- $legacySmithdbHpaAutoscalingKeys := list "enabled" "minReplicas" "maxReplicas" "targetCPUUtilizationPercentage" "scaleUpStabilizationWindowSeconds" "scaleDownStabilizationWindowSeconds" "scalePodCount" "createHpa" "type" -}}
+{{- $smithdbHpaAutoscalingWorkloads := dict
   "query" .Values.smithdb.query
   "ingestion" .Values.smithdb.ingestion
 -}}
-{{- range $workloadName, $workload := $smithdbAutoscalingWorkloads -}}
+{{- range $workloadName, $workload := $smithdbHpaAutoscalingWorkloads -}}
 {{- $autoscaling := dig "autoscaling" (dict) $workload -}}
-{{- if and $.Values.smithdb.enabled (dig "enabled" false $autoscaling) -}}
-{{- if lt (int $autoscaling.minReplicas) 1 -}}
-{{- fail (printf "smithdb.%s.autoscaling.minReplicas must be greater than 0 when autoscaling is enabled." $workloadName) -}}
+{{- range $legacySmithdbHpaAutoscalingKeys -}}
+{{- if and $.Values.smithdb.enabled (hasKey $autoscaling .) -}}
+{{- fail (printf "smithdb.%s.autoscaling.%s is no longer supported. Use autoscaling.hpa.enabled with hpa.minReplicas, hpa.maxReplicas, and related hpa.* fields." $workloadName .) -}}
 {{- end -}}
-{{- if lt (int $autoscaling.maxReplicas) (int $autoscaling.minReplicas) -}}
-{{- fail (printf "smithdb.%s.autoscaling.maxReplicas must be >= minReplicas when autoscaling is enabled." $workloadName) -}}
+{{- end -}}
+{{- $hpa := dig "hpa" (dict) $autoscaling -}}
+{{- if and $.Values.smithdb.enabled (dig "enabled" false $hpa) -}}
+{{- if lt (int $hpa.minReplicas) 1 -}}
+{{- fail (printf "smithdb.%s.autoscaling.hpa.minReplicas must be greater than 0 when autoscaling.hpa.enabled is true." $workloadName) -}}
+{{- end -}}
+{{- if lt (int $hpa.maxReplicas) (int $hpa.minReplicas) -}}
+{{- fail (printf "smithdb.%s.autoscaling.hpa.maxReplicas must be >= hpa.minReplicas when autoscaling.hpa.enabled is true." $workloadName) -}}
 {{- end -}}
 {{- end -}}
 {{- end -}}

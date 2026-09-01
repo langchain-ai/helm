@@ -1,6 +1,10 @@
 # langsmith
 
+<<<<<<< HEAD
 ![Version: 0.17.0-rc.17](https://img.shields.io/badge/Version-0.17.0--rc.17-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.17.17rc1](https://img.shields.io/badge/AppVersion-0.17.17rc1-informational?style=flat-square)
+=======
+![Version: 0.17.0-rc.18](https://img.shields.io/badge/Version-0.17.0--rc.18-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.17.14rc1](https://img.shields.io/badge/AppVersion-0.17.14rc1-informational?style=flat-square)
+>>>>>>> 73edff69 (Normalize SmithDB query and ingestion autoscaling to hpa nested layout.)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -1086,13 +1090,13 @@ Replica counts and autoscaling remain controlled by each component's `deployment
 | smithdb.config.objectStore.s3.secretAccessKeySecretKey | string | `""` |  |
 | smithdb.config.objectStore.type | string | `"s3"` | Supported values: s3, gcs. |
 | smithdb.enabled | bool | `false` | Please express interest (https://www.langchain.com/smithdb-early-access-waitlist) and we will reach out promptly to ensure we can set you up for success with SmithDB. |
-| smithdb.ingestion.autoscaling.enabled | bool | `true` |  |
-| smithdb.ingestion.autoscaling.maxReplicas | int | `10` |  |
-| smithdb.ingestion.autoscaling.minReplicas | int | `1` |  |
-| smithdb.ingestion.autoscaling.scaleDownStabilizationWindowSeconds | int | `900` |  |
-| smithdb.ingestion.autoscaling.scalePodCount | int | `1` |  |
-| smithdb.ingestion.autoscaling.scaleUpStabilizationWindowSeconds | int | `300` |  |
-| smithdb.ingestion.autoscaling.targetCPUUtilizationPercentage | int | `45` |  |
+| smithdb.ingestion.autoscaling.hpa.enabled | bool | `true` |  |
+| smithdb.ingestion.autoscaling.hpa.maxReplicas | int | `10` |  |
+| smithdb.ingestion.autoscaling.hpa.minReplicas | int | `1` |  |
+| smithdb.ingestion.autoscaling.hpa.scaleDownStabilizationWindowSeconds | int | `900` |  |
+| smithdb.ingestion.autoscaling.hpa.scalePodCount | int | `1` |  |
+| smithdb.ingestion.autoscaling.hpa.scaleUpStabilizationWindowSeconds | int | `300` |  |
+| smithdb.ingestion.autoscaling.hpa.targetCPUUtilizationPercentage | int | `45` |  |
 | smithdb.ingestion.containerGrpcPort | int | `8082` |  |
 | smithdb.ingestion.containerPort | int | `8050` |  |
 | smithdb.ingestion.deployment.affinity | object | `{}` |  |
@@ -1252,13 +1256,13 @@ Replica counts and autoscaling remain controlled by each component's `deployment
 | smithdb.migration.taskdb.postgres.statefulSet.volumeMounts | list | `[]` |  |
 | smithdb.migration.taskdb.postgres.statefulSet.volumes | list | `[]` |  |
 | smithdb.name | string | `"smithdb"` | Name segment used for SmithDB resources. |
-| smithdb.query.autoscaling.enabled | bool | `true` |  |
-| smithdb.query.autoscaling.maxReplicas | int | `10` |  |
-| smithdb.query.autoscaling.minReplicas | int | `1` |  |
-| smithdb.query.autoscaling.scaleDownStabilizationWindowSeconds | int | `900` |  |
-| smithdb.query.autoscaling.scalePodCount | int | `1` |  |
-| smithdb.query.autoscaling.scaleUpStabilizationWindowSeconds | int | `300` |  |
-| smithdb.query.autoscaling.targetCPUUtilizationPercentage | int | `40` |  |
+| smithdb.query.autoscaling.hpa.enabled | bool | `true` |  |
+| smithdb.query.autoscaling.hpa.maxReplicas | int | `10` |  |
+| smithdb.query.autoscaling.hpa.minReplicas | int | `1` |  |
+| smithdb.query.autoscaling.hpa.scaleDownStabilizationWindowSeconds | int | `900` |  |
+| smithdb.query.autoscaling.hpa.scalePodCount | int | `1` |  |
+| smithdb.query.autoscaling.hpa.scaleUpStabilizationWindowSeconds | int | `300` |  |
+| smithdb.query.autoscaling.hpa.targetCPUUtilizationPercentage | int | `40` |  |
 | smithdb.query.containerGrpcPort | int | `8080` |  |
 | smithdb.query.containerPort | int | `8060` |  |
 | smithdb.query.deployment.affinity | object | `{}` |  |

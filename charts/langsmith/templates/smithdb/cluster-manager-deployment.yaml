@@ -75,8 +75,8 @@ spec:
             */}}
             {{- range $svc := list (dict "env" "QUERY" "component" "query") (dict "env" "INGESTION" "component" "ingestion") }}
             {{- $component := index $.Values.smithdb $svc.component }}
-            {{- $hpaEnabled := dig "autoscaling" "enabled" false $component }}
-            {{- $maxReplicas := ternary (dig "autoscaling" "maxReplicas" $component.deployment.replicas $component) $component.deployment.replicas $hpaEnabled }}
+            {{- $hpaEnabled := dig "autoscaling" "hpa" "enabled" false $component }}
+            {{- $maxReplicas := ternary (dig "autoscaling" "hpa" "maxReplicas" $component.deployment.replicas $component) $component.deployment.replicas $hpaEnabled }}
             {{- $prefix := printf "SMITHDB_CLUSTERMANAGER__SERVICES__%s" $svc.env }}
             - name: {{ $prefix }}__MIN_REPLICAS
               value: "1"

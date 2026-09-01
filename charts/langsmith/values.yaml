@@ -1498,13 +1498,14 @@ smithdb:
       labels: {}
       annotations: {}
     autoscaling:
-      enabled: true
-      minReplicas: 1
-      maxReplicas: 10
-      targetCPUUtilizationPercentage: 40
-      scaleUpStabilizationWindowSeconds: 300
-      scaleDownStabilizationWindowSeconds: 900
-      scalePodCount: 1
+      hpa:
+        enabled: true
+        minReplicas: 1
+        maxReplicas: 10
+        targetCPUUtilizationPercentage: 40
+        scaleUpStabilizationWindowSeconds: 300
+        scaleDownStabilizationWindowSeconds: 900
+        scalePodCount: 1
 
   ingestion:
     name: "ingestion"
@@ -1573,13 +1574,14 @@ smithdb:
       labels: {}
       annotations: {}
     autoscaling:
-      enabled: true
-      minReplicas: 1
-      maxReplicas: 10
-      targetCPUUtilizationPercentage: 45
-      scaleUpStabilizationWindowSeconds: 300
-      scaleDownStabilizationWindowSeconds: 900
-      scalePodCount: 1
+      hpa:
+        enabled: true
+        minReplicas: 1
+        maxReplicas: 10
+        targetCPUUtilizationPercentage: 45
+        scaleUpStabilizationWindowSeconds: 300
+        scaleDownStabilizationWindowSeconds: 900
+        scalePodCount: 1
 
   compaction:
     name: "compaction"
