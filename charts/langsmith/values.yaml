@@ -1498,13 +1498,14 @@ smithdb:
       labels: {}
       annotations: {}
     autoscaling:
-      enabled: true
-      minReplicas: 1
-      maxReplicas: 10
-      targetCPUUtilizationPercentage: 40
-      scaleUpStabilizationWindowSeconds: 300
-      scaleDownStabilizationWindowSeconds: 900
-      scalePodCount: 1
+      hpa:
+        enabled: true
+        minReplicas: 1
+        maxReplicas: 10
+        targetCPUUtilizationPercentage: 40
+        scaleUpStabilizationWindowSeconds: 300
+        scaleDownStabilizationWindowSeconds: 900
+        scalePodCount: 1
 
   ingestion:
     name: "ingestion"
@@ -1573,13 +1574,14 @@ smithdb:
       labels: {}
       annotations: {}
     autoscaling:
-      enabled: true
-      minReplicas: 1
-      maxReplicas: 10
-      targetCPUUtilizationPercentage: 45
-      scaleUpStabilizationWindowSeconds: 300
-      scaleDownStabilizationWindowSeconds: 900
-      scalePodCount: 1
+      hpa:
+        enabled: true
+        minReplicas: 1
+        maxReplicas: 10
+        targetCPUUtilizationPercentage: 45
+        scaleUpStabilizationWindowSeconds: 300
+        scaleDownStabilizationWindowSeconds: 900
+        scalePodCount: 1
 
   compaction:
     name: "compaction"
@@ -1693,14 +1695,34 @@ smithdb:
       minAvailable: 1
       labels: {}
       annotations: {}
+    # Autoscaling configuration. Either HPA or KEDA can be enabled, not both.
     autoscaling:
-      enabled: true
-      minReplicas: 1
-      maxReplicas: 10
-      targetCPUUtilizationPercentage: 60
-      scaleUpStabilizationWindowSeconds: 120
-      scaleDownStabilizationWindowSeconds: 300
-      scalePodCount: 1
+      # HPA-specific configuration
+      hpa:
+        enabled: true
+        minReplicas: 1
+        maxReplicas: 10
+        targetCPUUtilizationPercentage: 60
+        scaleUpStabilizationWindowSeconds: 120
+        scaleDownStabilizationWindowSeconds: 300
+        scalePodCount: 1
+      # KEDA ScaledObject configuration. See https://keda.sh/docs/2.18/reference/scaledobject-spec
+      # These are some recommended default values. You can tweak them to your needs, using the docs above.
+      keda:
+        enabled: false
+        labels: {}
+        annotations: {}
+        pollingInterval: 30
+        cooldownPeriod: 300
+        initialCooldownPeriod: 0
+        minReplicaCount: 1
+        maxReplicaCount: 10
+        targetCPUUtilizationPercentage: 60
+        scaleUpStabilizationWindowSeconds: 120
+        scaleDownStabilizationWindowSeconds: 300
+        scalePodCount: 1
+        # -- Number of pending compaction jobs per worker.
+        pendingJobsThreshold: "60"
 
   clusterManager:
     name: "cluster-manager"

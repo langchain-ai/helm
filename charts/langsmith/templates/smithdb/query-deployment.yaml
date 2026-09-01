@@ -19,7 +19,7 @@ metadata:
       {{- toYaml . | nindent 4 }}
     {{- end }}
 spec:
-  {{- if not (dig "autoscaling" "enabled" false .Values.smithdb.query) }}
+  {{- if not .Values.smithdb.query.autoscaling.hpa.enabled }}
   replicas: {{ .Values.smithdb.query.deployment.replicas }}
   {{- end }}
   strategy:

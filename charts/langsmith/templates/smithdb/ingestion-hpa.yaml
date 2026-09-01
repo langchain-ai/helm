@@ -1,4 +1,4 @@
-{{- if and .Values.smithdb.enabled (dig "autoscaling" "enabled" false .Values.smithdb.ingestion) }}
+{{- if and .Values.smithdb.enabled .Values.smithdb.ingestion.autoscaling.hpa.enabled }}
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
@@ -12,26 +12,26 @@ spec:
     apiVersion: apps/v1
     kind: Deployment
     name: {{ include "langsmith.smithdb.componentName" (dict "root" . "component" "ingestion") }}
-  minReplicas: {{ .Values.smithdb.ingestion.autoscaling.minReplicas }}
-  maxReplicas: {{ .Values.smithdb.ingestion.autoscaling.maxReplicas }}
+  minReplicas: {{ .Values.smithdb.ingestion.autoscaling.hpa.minReplicas }}
+  maxReplicas: {{ .Values.smithdb.ingestion.autoscaling.hpa.maxReplicas }}
   behavior:
     scaleUp:
-      stabilizationWindowSeconds: {{ .Values.smithdb.ingestion.autoscaling.scaleUpStabilizationWindowSeconds }}
+      stabilizationWindowSeconds: {{ .Values.smithdb.ingestion.autoscaling.hpa.scaleUpStabilizationWindowSeconds }}
       policies:
         - type: Pods
-          value: {{ .Values.smithdb.ingestion.autoscaling.scalePodCount }}
-          periodSeconds: {{ .Values.smithdb.ingestion.autoscaling.scaleUpStabilizationWindowSeconds }}
+          value: {{ .Values.smithdb.ingestion.autoscaling.hpa.scalePodCount }}
+          periodSeconds: {{ .Values.smithdb.ingestion.autoscaling.hpa.scaleUpStabilizationWindowSeconds }}
     scaleDown:
-      stabilizationWindowSeconds: {{ .Values.smithdb.ingestion.autoscaling.scaleDownStabilizationWindowSeconds }}
+      stabilizationWindowSeconds: {{ .Values.smithdb.ingestion.autoscaling.hpa.scaleDownStabilizationWindowSeconds }}
       policies:
         - type: Pods
-          value: {{ .Values.smithdb.ingestion.autoscaling.scalePodCount }}
-          periodSeconds: {{ .Values.smithdb.ingestion.autoscaling.scaleDownStabilizationWindowSeconds }}
+          value: {{ .Values.smithdb.ingestion.autoscaling.hpa.scalePodCount }}
+          periodSeconds: {{ .Values.smithdb.ingestion.autoscaling.hpa.scaleDownStabilizationWindowSeconds }}
   metrics:
     - type: Resource
       resource:
         name: cpu
         target:
           type: Utilization
-          averageUtilization: {{ .Values.smithdb.ingestion.autoscaling.targetCPUUtilizationPercentage }}
+          averageUtilization: {{ .Values.smithdb.ingestion.autoscaling.hpa.targetCPUUtilizationPercentage }}
 {{- end }}

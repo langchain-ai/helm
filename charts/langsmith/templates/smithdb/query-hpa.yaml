@@ -1,4 +1,4 @@
-{{- if and .Values.smithdb.enabled (dig "autoscaling" "enabled" false .Values.smithdb.query) }}
+{{- if and .Values.smithdb.enabled .Values.smithdb.query.autoscaling.hpa.enabled }}
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
@@ -12,26 +12,26 @@ spec:
     apiVersion: apps/v1
     kind: Deployment
     name: {{ include "langsmith.smithdb.componentName" (dict "root" . "component" "query") }}
-  minReplicas: {{ .Values.smithdb.query.autoscaling.minReplicas }}
-  maxReplicas: {{ .Values.smithdb.query.autoscaling.maxReplicas }}
+  minReplicas: {{ .Values.smithdb.query.autoscaling.hpa.minReplicas }}
+  maxReplicas: {{ .Values.smithdb.query.autoscaling.hpa.maxReplicas }}
   behavior:
     scaleUp:
-      stabilizationWindowSeconds: {{ .Values.smithdb.query.autoscaling.scaleUpStabilizationWindowSeconds }}
+      stabilizationWindowSeconds: {{ .Values.smithdb.query.autoscaling.hpa.scaleUpStabilizationWindowSeconds }}
       policies:
         - type: Pods
-          value: {{ .Values.smithdb.query.autoscaling.scalePodCount }}
-          periodSeconds: {{ .Values.smithdb.query.autoscaling.scaleUpStabilizationWindowSeconds }}
+          value: {{ .Values.smithdb.query.autoscaling.hpa.scalePodCount }}
+          periodSeconds: {{ .Values.smithdb.query.autoscaling.hpa.scaleUpStabilizationWindowSeconds }}
     scaleDown:
-      stabilizationWindowSeconds: {{ .Values.smithdb.query.autoscaling.scaleDownStabilizationWindowSeconds }}
+      stabilizationWindowSeconds: {{ .Values.smithdb.query.autoscaling.hpa.scaleDownStabilizationWindowSeconds }}
       policies:
         - type: Pods
-          value: {{ .Values.smithdb.query.autoscaling.scalePodCount }}
-          periodSeconds: {{ .Values.smithdb.query.autoscaling.scaleDownStabilizationWindowSeconds }}
+          value: {{ .Values.smithdb.query.autoscaling.hpa.scalePodCount }}
+          periodSeconds: {{ .Values.smithdb.query.autoscaling.hpa.scaleDownStabilizationWindowSeconds }}
   metrics:
     - type: Resource
       resource:
         name: cpu
         target:
           type: Utilization
-          averageUtilization: {{ .Values.smithdb.query.autoscaling.targetCPUUtilizationPercentage }}
+          averageUtilization: {{ .Values.smithdb.query.autoscaling.hpa.targetCPUUtilizationPercentage }}
 {{- end }}
