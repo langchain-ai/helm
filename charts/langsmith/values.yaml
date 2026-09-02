@@ -1413,6 +1413,12 @@ smithdb:
   # Set restartPolicy: Always to configure a Kubernetes sidecar container.
   commonInitContainers: []
 
+  recoveryStrategy:
+    # -- Enable recovery for superseded SmithDB data.
+    enabled: false
+    # -- Minimum time superseded SmithDB data remains available for recovery.
+    retentionWindow: "12h"
+
   config:
     # -- Existing secret containing SmithDB metastore credentials.
     existingSecretName: ""
