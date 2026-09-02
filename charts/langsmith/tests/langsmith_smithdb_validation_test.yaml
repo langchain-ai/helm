@@ -60,16 +60,6 @@ tests:
       - failedTemplate:
           errorMessage: "smithdb.ingestion.autoscaling.minReplicas is no longer supported. Use autoscaling.hpa.enabled with hpa.minReplicas, hpa.maxReplicas, and related hpa.* fields."
 
-  - it: should reject disabling the query workload
-    values:
-      - ./values/smithdb-enabled.yaml
-    set:
-      config.existingSecretName: langsmith-secret
-      smithdb.query.enabled: false
-    asserts:
-      - failedTemplate:
-          errorMessage: "smithdb.query.enabled cannot be false. The query workload is always deployed when smithdb.enabled is true. mutations, runRules, and statsQuery are additive and do not replace query."
-
   - it: should reject non-positive replicas for an enabled separate query workload
     values:
       - ./values/smithdb-enabled.yaml
