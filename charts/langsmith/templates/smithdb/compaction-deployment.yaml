@@ -69,6 +69,12 @@ spec:
             - name: SMITHDB_COMPACTION__SEQUENCED_LSM_BACKFILL_ENABLED
               value: "true"
             {{- end }}
+            - name: SMITHDB_COMPACTION__LARGE_FIELD_DELETE__ENABLE_LARGE_FIELD_VERSIONED_PATHS
+              value: {{ .Values.smithdb.recoveryStrategy.enabled | quote }}
+            {{- if .Values.smithdb.recoveryStrategy.enabled }}
+            - name: SMITHDB_COMPACTION__RECOVERY_WINDOW_SLA
+              value: {{ .Values.smithdb.recoveryStrategy.retentionWindow | quote }}
+            {{- end }}
             {{- with $envVars }}
             {{- toYaml . | nindent 12 }}
             {{- end }}

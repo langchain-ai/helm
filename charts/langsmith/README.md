@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.17.0-rc.31](https://img.shields.io/badge/Version-0.17.0--rc.31-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.17.24rc1](https://img.shields.io/badge/AppVersion-0.17.24rc1-informational?style=flat-square)
+![Version: 0.17.0-rc.32](https://img.shields.io/badge/Version-0.17.0--rc.32-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.17.24rc1](https://img.shields.io/badge/AppVersion-0.17.24rc1-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -1385,6 +1385,8 @@ The query disk cache limit is set automatically from the PVC storage request or,
 | smithdb.query.service.annotations | object | `{}` |  |
 | smithdb.query.service.labels | object | `{}` |  |
 | smithdb.query.service.port | int | `8080` |  |
+| smithdb.recoveryStrategy.enabled | bool | `false` | Enable recovery for superseded SmithDB data. |
+| smithdb.recoveryStrategy.retentionWindow | string | `"12h"` | Minimum time superseded SmithDB data remains available for recovery. |
 | smithdb.resourceTier | string | `"small"` | Per-replica CPU, memory, and cache volume size for SmithDB runtime components: small, medium, or large. See the README. |
 | smithdb.runRules.autoscaling.hpa.enabled | bool | `true` |  |
 | smithdb.runRules.autoscaling.hpa.maxReplicas | int | `5` |  |
