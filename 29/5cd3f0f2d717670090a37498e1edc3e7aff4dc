@@ -30,6 +30,10 @@ charts/langsmith/values.yaml
   s_9be978a092eeea::t_5061f5863f83d0 1788-1795
   s_9be978a092eeea::t_e132c398d126fc 1502-1509
   s_9be978a092eeea::t_5f68d0deea01fd 1642-1649
+charts/langsmith/Chart.yaml
+  s_9be978a092eeea::t_8dba4c853a2ae6 8
+charts/langsmith/README.md
+  s_9be978a092eeea::t_64eca23dae7f97 3
 ---
 {
   "schema_version": "authorship/3.0.0",
