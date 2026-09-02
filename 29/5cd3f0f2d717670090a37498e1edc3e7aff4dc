@@ -1,0 +1,49 @@
+charts/langsmith/templates/smithdb/ingestion-deployment.yaml
+  s_9be978a092eeea::t_9175cfc651ea61 22
+charts/langsmith/templates/smithdb/query-hpa.yaml
+  s_9be978a092eeea::t_66525417921ea2 1,15-16,19,22-23,25,28-29,36
+charts/langsmith/templates/smithdb/cluster-manager-deployment.yaml
+  s_9be978a092eeea::t_3f9828ccbf0e92 71,78-79
+charts/langsmith/tests/langsmith_smithdb_test.yaml
+  s_9be978a092eeea::t_43e0b72591513b 774-776
+  s_9be978a092eeea::t_50f8e4a7249e65 727-728
+charts/langsmith/templates/_helpers.tpl
+  s_9be978a092eeea::t_8b5a13af77497c 546-550
+charts/langsmith/templates/smithdb/query-deployment.yaml
+  s_9be978a092eeea::t_381f92e1b0538c 22
+charts/langsmith/tests/langsmith_smithdb_validation_test.yaml
+  s_9be978a092eeea::t_4e8f5d0849fd9b 64-67,69-70,74-78,80-81,83-93
+  s_9be978a092eeea::t_161f05307063af 63,68,71-73,79,82
+charts/langsmith/tests/langsmith_smithdb_query_services_test.yaml
+  s_9be978a092eeea::t_b820c9f3fbdad5 64
+charts/langsmith/templates/smithdb/query-services-hpas.yaml
+  s_9be978a092eeea::t_996668f45f9502 4-41
+charts/langsmith/templates/smithdb/ingestion-hpa.yaml
+  s_9be978a092eeea::t_4dbc338e8eb218 1,15-16,19,22-23,25,28-29,36
+charts/langsmith/templates/smithdb/query-services-deployments.yaml
+  s_9be978a092eeea::t_c24feea9b105d9 8-137
+charts/langsmith/templates/validate.yaml
+  s_9be978a092eeea::t_50a614e4bb1ab6 504-505,507-509,512,514-526
+charts/langsmith/values.yaml
+  s_9be978a092eeea::t_908eedaa66b7ca 1712-1719
+  s_9be978a092eeea::t_d9b87d7a8bf69f 1572-1579
+  s_9be978a092eeea::t_5061f5863f83d0 1788-1795
+  s_9be978a092eeea::t_e132c398d126fc 1502-1509
+  s_9be978a092eeea::t_5f68d0deea01fd 1642-1649
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "295cd3f0f2d717670090a37498e1edc3e7aff4dc",
+  "prompts": {},
+  "sessions": {
+    "s_9be978a092eeea": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "42ec1e46-92fe-4e8b-81ab-675a7e50a4af",
+        "model": "auto-smart"
+      },
+      "human_author": "ben11211 <nagengast@langchain.dev>"
+    }
+  }
+}
