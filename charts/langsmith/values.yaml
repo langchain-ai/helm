@@ -1572,7 +1572,7 @@ smithdb:
       hpa:
         enabled: false
         minReplicas: 1
-        maxReplicas: 4
+        maxReplicas: 5
         targetCPUUtilizationPercentage: 50
         scaleUpStabilizationWindowSeconds: 300
         scaleDownStabilizationWindowSeconds: 900
@@ -1642,7 +1642,7 @@ smithdb:
       hpa:
         enabled: false
         minReplicas: 1
-        maxReplicas: 10
+        maxReplicas: 5
         targetCPUUtilizationPercentage: 50
         scaleUpStabilizationWindowSeconds: 90
         scaleDownStabilizationWindowSeconds: 900

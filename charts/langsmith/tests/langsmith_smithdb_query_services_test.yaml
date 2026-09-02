@@ -71,7 +71,7 @@ tests:
           value: RELEASE-NAME-langsmith-smithdb-mutations
       - equal:
           path: spec.maxReplicas
-          value: 4
+          value: 5
       - equal:
           path: spec.metrics[0].resource.target.averageUtilization
           value: 50
