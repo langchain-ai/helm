@@ -61,7 +61,6 @@ tests:
       - ./values/smithdb-enabled.yaml
     set:
       smithdb.mutations.enabled: true
-      smithdb.mutations.autoscaling.hpa.enabled: true
     template: smithdb/query-services-hpas.yaml
     asserts:
       - hasDocuments:

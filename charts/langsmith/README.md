@@ -1262,7 +1262,7 @@ Replica counts and autoscaling remain controlled by each component's `deployment
 | smithdb.migration.taskdb.postgres.statefulSet.updateStrategy | object | `{}` | Optional StatefulSet update strategy for the in-chart SmithDB taskdb Postgres instance. |
 | smithdb.migration.taskdb.postgres.statefulSet.volumeMounts | list | `[]` |  |
 | smithdb.migration.taskdb.postgres.statefulSet.volumes | list | `[]` |  |
-| smithdb.mutations.autoscaling.hpa.enabled | bool | `false` |  |
+| smithdb.mutations.autoscaling.hpa.enabled | bool | `true` |  |
 | smithdb.mutations.autoscaling.hpa.maxReplicas | int | `5` |  |
 | smithdb.mutations.autoscaling.hpa.minReplicas | int | `1` |  |
 | smithdb.mutations.autoscaling.hpa.scaleDownStabilizationWindowSeconds | int | `900` |  |
@@ -1372,7 +1372,7 @@ Replica counts and autoscaling remain controlled by each component's `deployment
 | smithdb.query.service.labels | object | `{}` |  |
 | smithdb.query.service.port | int | `8080` |  |
 | smithdb.resourceTier | string | `"small"` | Per-replica resource tier for SmithDB runtime components. Supported values: small, medium, large. See the README for sizing and override behavior. |
-| smithdb.runRules.autoscaling.hpa.enabled | bool | `false` |  |
+| smithdb.runRules.autoscaling.hpa.enabled | bool | `true` |  |
 | smithdb.runRules.autoscaling.hpa.maxReplicas | int | `5` |  |
 | smithdb.runRules.autoscaling.hpa.minReplicas | int | `1` |  |
 | smithdb.runRules.autoscaling.hpa.scaleDownStabilizationWindowSeconds | int | `900` |  |
@@ -1428,7 +1428,7 @@ Replica counts and autoscaling remain controlled by each component's `deployment
 | smithdb.runRules.service.port | int | `8080` |  |
 | smithdb.serviceAccount | object | `{"annotations":{},"automountServiceAccountToken":true,"create":true,"labels":{},"name":""}` | Shared ServiceAccount for SmithDB workloads. |
 | smithdb.serviceAccount.name | string | `""` | Defaults to <release>-<smithdb.name>. |
-| smithdb.statsQuery.autoscaling.hpa.enabled | bool | `false` |  |
+| smithdb.statsQuery.autoscaling.hpa.enabled | bool | `true` |  |
 | smithdb.statsQuery.autoscaling.hpa.maxReplicas | int | `5` |  |
 | smithdb.statsQuery.autoscaling.hpa.minReplicas | int | `1` |  |
 | smithdb.statsQuery.autoscaling.hpa.scaleDownStabilizationWindowSeconds | int | `900` |  |
