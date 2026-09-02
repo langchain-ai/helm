@@ -60,6 +60,28 @@ tests:
       - failedTemplate:
           errorMessage: "smithdb.ingestion.autoscaling.minReplicas is no longer supported. Use autoscaling.hpa.enabled with hpa.minReplicas, hpa.maxReplicas, and related hpa.* fields."
 
+  - it: should reject non-positive replicas for an enabled separate query workload
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      config.existingSecretName: langsmith-secret
+      smithdb.mutations.enabled: true
+      smithdb.mutations.deployment.replicas: 0
+    asserts:
+      - failedTemplate:
+          errorMessage: "smithdb.mutations.deployment.replicas must be greater than 0 when smithdb.enabled is true."
+
+  - it: should reject legacy flat mutations autoscaling.enabled
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      config.existingSecretName: langsmith-secret
+      smithdb.mutations.enabled: true
+      smithdb.mutations.autoscaling.enabled: true
+    asserts:
+      - failedTemplate:
+          errorMessage: "smithdb.mutations.autoscaling.enabled is no longer supported. Use autoscaling.hpa.enabled with hpa.minReplicas, hpa.maxReplicas, and related hpa.* fields."
+
   - it: should reject smithdb without query replicas
     values:
       - ./values/smithdb-enabled.yaml
