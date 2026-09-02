@@ -526,11 +526,8 @@ AWS Marketplace Helm template verification).
 {{- end -}}
 {{- end -}}
 {{- end -}}
-{{- if and .Values.smithdb.enabled .Values.smithdb.langsmith.query.enabled (not .Values.smithdb.query.enabled) -}}
-{{- fail "smithdb.query.enabled must be true when smithdb.langsmith.query.enabled is true." -}}
-{{- end -}}
-{{- if and .Values.smithdb.enabled .Values.smithdb.langsmith.ingestion.enabled (not .Values.smithdb.mutations.enabled) (not .Values.smithdb.query.enabled) -}}
-{{- fail "smithdb.query.enabled or smithdb.mutations.enabled must be true when smithdb.langsmith.ingestion.enabled is true." -}}
+{{- if and .Values.smithdb.enabled (hasKey .Values.smithdb.query "enabled") (not .Values.smithdb.query.enabled) -}}
+{{- fail "smithdb.query.enabled cannot be false. The query workload is always deployed when smithdb.enabled is true. mutations, runRules, and statsQuery are additive and do not replace query." -}}
 {{- end -}}
 {{- end -}}
 {{- if and .Values.smithdb.langsmith.migration.enabled (not .Values.smithdb.enabled) -}}

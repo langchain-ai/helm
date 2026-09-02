@@ -1362,7 +1362,6 @@ Replica counts and autoscaling remain controlled by each component's `deployment
 | smithdb.query.deployment.topologySpreadConstraints | list | `[]` |  |
 | smithdb.query.deployment.volumeMounts[0].mountPath | string | `"/data"` |  |
 | smithdb.query.deployment.volumeMounts[0].name | string | `"local-ssd-storage"` |  |
-| smithdb.query.enabled | bool | `true` |  |
 | smithdb.query.name | string | `"query"` |  |
 | smithdb.query.pdb.annotations | object | `{}` |  |
 | smithdb.query.pdb.enabled | bool | `false` |  |

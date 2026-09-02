@@ -1437,7 +1437,6 @@ smithdb:
         secretAccessKeySecretKey: ""
 
   query:
-    enabled: true
     name: "query"
     containerPort: 8060
     containerGrpcPort: 8080
