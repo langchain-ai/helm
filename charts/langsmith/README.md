@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.17.0-rc.21](https://img.shields.io/badge/Version-0.17.0--rc.21-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.17.18rc1](https://img.shields.io/badge/AppVersion-0.17.18rc1-informational?style=flat-square)
+![Version: 0.17.0-rc.22](https://img.shields.io/badge/Version-0.17.0--rc.22-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.17.18rc1](https://img.shields.io/badge/AppVersion-0.17.18rc1-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -1090,12 +1090,16 @@ Replica counts and autoscaling remain controlled by each component's `deployment
 | smithdb.config.metastore.port | string | `"5432"` |  |
 | smithdb.config.metastore.useSsl | bool | `false` |  |
 | smithdb.config.metastore.usernameSecretKey | string | `""` |  |
+| smithdb.config.objectStore.azure.accessKeySecretKey | string | `""` | Key in smithdb.config.existingSecretName for a storage account access key. Leave empty when using Azure Workload Identity. |
+| smithdb.config.objectStore.azure.accountName | string | `""` | Azure Storage account name. Required when type is azure. |
+| smithdb.config.objectStore.azure.allowHttp | bool | `false` | Allow plain HTTP for endpoint overrides, such as local emulators. |
+| smithdb.config.objectStore.azure.endpoint | string | `""` | Optional Azure Blob service endpoint override. |
 | smithdb.config.objectStore.bucket | string | `""` |  |
 | smithdb.config.objectStore.s3.accessKeyIdSecretKey | string | `""` | Keys in smithdb.config.existingSecretName for static S3 credentials. Set both to "" when using ambient cloud identity, such as IRSA. |
 | smithdb.config.objectStore.s3.endpoint | string | `""` |  |
 | smithdb.config.objectStore.s3.region | string | `""` | Defaults to the SmithDB S3 client default when empty. |
 | smithdb.config.objectStore.s3.secretAccessKeySecretKey | string | `""` |  |
-| smithdb.config.objectStore.type | string | `"s3"` | Supported values: s3, gcs. |
+| smithdb.config.objectStore.type | string | `"s3"` | Supported values: s3, gcs, azure. |
 | smithdb.enabled | bool | `false` | Please express interest (https://www.langchain.com/smithdb-early-access-waitlist) and we will reach out promptly to ensure we can set you up for success with SmithDB. |
 | smithdb.ingestion.autoscaling.hpa.enabled | bool | `true` |  |
 | smithdb.ingestion.autoscaling.hpa.maxReplicas | int | `10` |  |

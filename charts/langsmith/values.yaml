@@ -1424,7 +1424,7 @@ smithdb:
       port: "5432"
       useSsl: false
     objectStore:
-      # -- Supported values: s3, gcs.
+      # -- Supported values: s3, gcs, azure.
       type: "s3"
       bucket: ""
       s3:
@@ -1435,6 +1435,16 @@ smithdb:
         # Set both to "" when using ambient cloud identity, such as IRSA.
         accessKeyIdSecretKey: ""
         secretAccessKeySecretKey: ""
+      azure:
+        # -- Azure Storage account name. Required when type is azure.
+        accountName: ""
+        # -- Optional Azure Blob service endpoint override.
+        endpoint: ""
+        # -- Allow plain HTTP for endpoint overrides, such as local emulators.
+        allowHttp: false
+        # -- Key in smithdb.config.existingSecretName for a storage account access key.
+        # Leave empty when using Azure Workload Identity.
+        accessKeySecretKey: ""
 
   query:
     name: "query"
