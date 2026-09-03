@@ -1,0 +1,155 @@
+suite: test smithdb separate query services
+templates:
+  - config-map.yaml
+  - smithdb/query-services-deployments.yaml
+  - smithdb/query-services-hpas.yaml
+  - smithdb/services.yaml
+  - smithdb/pdbs.yaml
+tests:
+  - it: should disable separate query services by default
+    values:
+      - ./values/smithdb-enabled.yaml
+    templates:
+      - smithdb/query-services-deployments.yaml
+      - smithdb/query-services-hpas.yaml
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: should render all enabled separate query deployments
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      smithdb.mutations.enabled: true
+      smithdb.runRules.enabled: true
+      smithdb.statsQuery.enabled: true
+    template: smithdb/query-services-deployments.yaml
+    asserts:
+      - hasDocuments:
+          count: 3
+      - equal:
+          path: metadata.name
+          value: RELEASE-NAME-langsmith-smithdb-mutations
+        documentIndex: 0
+      - equal:
+          path: metadata.name
+          value: RELEASE-NAME-langsmith-smithdb-run-rules
+        documentIndex: 1
+      - equal:
+          path: metadata.name
+          value: RELEASE-NAME-langsmith-smithdb-stats-query
+        documentIndex: 2
+      - equal:
+          path: spec.template.spec.containers[0].command
+          value: ["./smithdb", "query"]
+        documentIndex: 2
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_QUERY__GRPC_PORT
+            value: "8080"
+        documentIndex: 1
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_QUERY__CLUSTER_MANAGER__SERVICE_TYPE
+            value: rules_query
+        documentIndex: 1
+
+  - it: should render an HPA for an enabled separate query service
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      smithdb.mutations.enabled: true
+    template: smithdb/query-services-hpas.yaml
+    asserts:
+      - hasDocuments:
+          count: 1
+      - equal:
+          path: metadata.name
+          value: RELEASE-NAME-langsmith-smithdb-mutations
+      - equal:
+          path: spec.maxReplicas
+          value: 5
+      - equal:
+          path: spec.metrics[0].resource.target.averageUtilization
+          value: 50
+
+  - it: should render services for enabled separate query workloads
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      smithdb.mutations.enabled: true
+      smithdb.runRules.enabled: true
+      smithdb.statsQuery.enabled: true
+    template: smithdb/services.yaml
+    asserts:
+      - equal:
+          path: metadata.name
+          value: RELEASE-NAME-langsmith-smithdb-mutations
+        documentIndex: 1
+      - equal:
+          path: metadata.name
+          value: RELEASE-NAME-langsmith-smithdb-run-rules
+        documentIndex: 2
+      - equal:
+          path: metadata.name
+          value: RELEASE-NAME-langsmith-smithdb-stats-query
+        documentIndex: 3
+
+  - it: should render a PDB for an enabled separate query workload
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      smithdb.statsQuery.enabled: true
+      smithdb.statsQuery.pdb.enabled: true
+    template: smithdb/pdbs.yaml
+    asserts:
+      - hasDocuments:
+          count: 1
+      - equal:
+          path: metadata.name
+          value: RELEASE-NAME-langsmith-smithdb-stats-query
+      - equal:
+          path: spec.minAvailable
+          value: 1
+
+  - it: should automatically route LangSmith to enabled separate query services
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      smithdb.mutations.enabled: true
+      smithdb.runRules.enabled: true
+      smithdb.statsQuery.enabled: true
+    template: config-map.yaml
+    asserts:
+      - equal:
+          path: data.SMITHDB_MUTATIONS_SERVICE_URL
+          value: RELEASE-NAME-langsmith-smithdb-mutations.NAMESPACE.svc.cluster.local:8080
+      - equal:
+          path: data.SMITHDB_RUN_RULES_SERVICE_URL
+          value: RELEASE-NAME-langsmith-smithdb-run-rules.NAMESPACE.svc.cluster.local:8080
+      - equal:
+          path: data.SMITHDB_INTERNAL_QUERY_SERVICE_URL
+          value: RELEASE-NAME-langsmith-smithdb-run-rules.NAMESPACE.svc.cluster.local:8080
+      - equal:
+          path: data.SMITHDB_STATS_QUERY_SERVICE_URL
+          value: RELEASE-NAME-langsmith-smithdb-stats-query.NAMESPACE.svc.cluster.local:8080
+      - equal:
+          path: data.SMITHDB_STATS_QUERY_SERVICE_MAX_CALL_RECV_MSG_SIZE
+          value: "1073741824"
+
+  - it: should keep routing mutations to query when separate services are disabled
+    values:
+      - ./values/smithdb-enabled.yaml
+    template: config-map.yaml
+    asserts:
+      - equal:
+          path: data.SMITHDB_MUTATIONS_SERVICE_URL
+          value: RELEASE-NAME-langsmith-smithdb-query.NAMESPACE.svc.cluster.local:8080
+      - notExists:
+          path: data.SMITHDB_RUN_RULES_SERVICE_URL
+      - notExists:
+          path: data.SMITHDB_INTERNAL_QUERY_SERVICE_URL
+      - notExists:
+          path: data.SMITHDB_STATS_QUERY_SERVICE_URL

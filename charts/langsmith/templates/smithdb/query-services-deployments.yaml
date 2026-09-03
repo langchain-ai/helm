@@ -1,0 +1,143 @@
+{{- if .Values.smithdb.enabled }}
+{{- range $component := list "mutations" "runRules" "statsQuery" }}
+{{ $componentValues := index $.Values.smithdb $component }}
+{{- if $componentValues.enabled }}
+{{- $componentName := include "langsmith.smithdb.componentName" (dict "root" $ "component" $component) }}
+{{- $displayName := printf "smithdb-%s" $componentValues.name }}
+{{- $clusterManagerServiceTypes := dict "mutations" "mutations" "runRules" "rules_query" "statsQuery" "stats_query" }}
+{{- $resources := include "langsmith.smithdb.resources" (dict "root" $ "component" $component) | fromYaml -}}
+{{- $envVars := concat (include "langsmith.smithdb.componentEnv" (dict "root" $ "service" "QUERY" "displayName" $displayName) | fromYamlArray) $componentValues.deployment.extraEnv -}}
+{{- include "langsmith.detectDuplicates" $envVars -}}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $componentName }}
+  namespace: {{ $.Values.namespace | default $.Release.Namespace }}
+  labels:
+    {{- include "langsmith.labels" $ | nindent 4 }}
+    app.kubernetes.io/component: {{ $componentName }}
+    {{- with $componentValues.deployment.labels }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+  annotations:
+    {{- include "langsmith.annotations" $ | nindent 4 }}
+    {{- with $componentValues.deployment.annotations }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  {{- if not $componentValues.autoscaling.hpa.enabled }}
+  replicas: {{ $componentValues.deployment.replicas }}
+  {{- end }}
+  strategy:
+    {{- toYaml $componentValues.deployment.strategy | nindent 4 }}
+  selector:
+    matchLabels:
+      {{- include "langsmith.selectorLabels" $ | nindent 6 }}
+      app.kubernetes.io/component: {{ $componentName }}
+  template:
+    metadata:
+      annotations:
+        {{- include "langsmith.commonPodAnnotations" $ | nindent 8 }}
+        {{- with $componentValues.deployment.annotations }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+      labels:
+        {{- include "langsmith.labels" $ | nindent 8 }}
+        app.kubernetes.io/component: {{ $componentName }}
+        {{- with $componentValues.deployment.labels }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      {{- with $.Values.images.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with $componentValues.deployment.priorityClassName }}
+      priorityClassName: {{ . }}
+      {{- end }}
+      securityContext:
+        {{- toYaml $componentValues.deployment.podSecurityContext | nindent 8 }}
+      serviceAccountName: {{ include "langsmith.smithdb.serviceAccountName" (dict "root" $) }}
+      {{- include "langsmith.dnsConfig" $ | nindent 6 }}
+      {{- with concat (include "langsmith.smithdb.commonInitContainers" $ | fromYamlArray) $componentValues.deployment.initContainers }}
+      initContainers:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: {{ $componentValues.name }}
+          {{- with $componentValues.deployment.command }}
+          command:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          env:
+            - name: SMITHDB_QUERY__HTTP_PORT
+              value: {{ $componentValues.containerPort | quote }}
+            - name: SMITHDB_QUERY__GRPC_PORT
+              value: {{ $componentValues.containerGrpcPort | quote }}
+            - name: SMITHDB_QUERY__CLUSTER_MANAGER__SERVICE_TYPE
+              value: {{ index $clusterManagerServiceTypes $component | quote }}
+            {{- if (index (default (dict) $resources.limits) "ephemeral-storage") }}
+            - name: SMITHDB_QUERY__VORTEX_CACHE__DISK__LIMIT
+              valueFrom:
+                resourceFieldRef:
+                  resource: limits.ephemeral-storage
+            {{- end }}
+            {{- if (index (default (dict) $resources.limits) "memory") }}
+            - name: SMITHDB_QUERY__VORTEX_CACHE__MEMORY__LIMIT
+              valueFrom:
+                resourceFieldRef:
+                  resource: limits.memory
+            {{- end }}
+            {{- with $envVars }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          image: {{ include "langsmith.image" (dict "Values" $.Values "Chart" $.Chart "component" "smithdbImage") | quote }}
+          imagePullPolicy: {{ $.Values.images.smithdbImage.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ $componentValues.containerPort }}
+              protocol: TCP
+            - name: grpc
+              containerPort: {{ $componentValues.containerGrpcPort }}
+              protocol: TCP
+          {{- with $componentValues.deployment.probes }}
+            {{- toYaml . | nindent 10 }}
+          {{- end }}
+          resources:
+            {{- toYaml $resources | nindent 12 }}
+          securityContext:
+            {{- toYaml $componentValues.deployment.securityContext | nindent 12 }}
+          {{- with $componentValues.deployment.volumeMounts }}
+          volumeMounts:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with $componentValues.deployment.extraContainerConfig }}
+            {{- toYaml . | nindent 10 }}
+          {{- end }}
+        {{- with $componentValues.deployment.sidecars }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- with $componentValues.deployment.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with $componentValues.deployment.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with $componentValues.deployment.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with $componentValues.deployment.topologySpreadConstraints }}
+      topologySpreadConstraints:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with (include "langsmith.smithdb.volumes" (dict "root" $ "component" $component "resources" $resources) | fromYamlArray) }}
+      volumes:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}
+{{- end }}
+{{- end }}

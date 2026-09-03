@@ -68,15 +68,15 @@ spec:
             {{/*
             Per-service cluster-manager ownership bounds. MAX_REPLICAS is derived
             from each service's replica settings so it cannot drift from the actual
-            pod count: autoscaling.maxReplicas when that service's HPA is enabled,
+            pod count: autoscaling.hpa.maxReplicas when that service's HPA is enabled,
             otherwise deployment.replicas. MIN_REPLICAS is fixed at 1, and
             replication thresholds are fixed at 0 so slices distribute across all
             owning nodes.
             */}}
             {{- range $svc := list (dict "env" "QUERY" "component" "query") (dict "env" "INGESTION" "component" "ingestion") }}
             {{- $component := index $.Values.smithdb $svc.component }}
-            {{- $hpaEnabled := dig "autoscaling" "enabled" false $component }}
-            {{- $maxReplicas := ternary (dig "autoscaling" "maxReplicas" $component.deployment.replicas $component) $component.deployment.replicas $hpaEnabled }}
+            {{- $hpaEnabled := dig "autoscaling" "hpa" "enabled" false $component }}
+            {{- $maxReplicas := ternary (dig "autoscaling" "hpa" "maxReplicas" $component.deployment.replicas $component) $component.deployment.replicas $hpaEnabled }}
             {{- $prefix := printf "SMITHDB_CLUSTERMANAGER__SERVICES__%s" $svc.env }}
             - name: {{ $prefix }}__MIN_REPLICAS
               value: "1"

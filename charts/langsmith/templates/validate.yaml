@@ -412,15 +412,18 @@ AWS Marketplace Helm template verification).
 {{- if and (eq $objectStoreType "azure") (not .Values.smithdb.config.objectStore.azure.accountName) -}}
 {{- fail "smithdb.config.objectStore.azure.accountName is required when smithdb.config.objectStore.type is azure." -}}
 {{- end -}}
-{{- $smithdbRequiredWorkloads := dict
+{{- $smithdbWorkloads := dict
   "query" .Values.smithdb.query
+  "mutations" .Values.smithdb.mutations
+  "runRules" .Values.smithdb.runRules
+  "statsQuery" .Values.smithdb.statsQuery
   "ingestion" .Values.smithdb.ingestion
   "compaction" .Values.smithdb.compaction
   "compactionWorker" .Values.smithdb.compactionWorker
   "clusterManager" .Values.smithdb.clusterManager
 -}}
-{{- range $workloadName, $workload := $smithdbRequiredWorkloads -}}
-{{- if and $.Values.smithdb.enabled (lt (int $workload.deployment.replicas) 1) -}}
+{{- range $workloadName, $workload := $smithdbWorkloads -}}
+{{- if and $.Values.smithdb.enabled (dig "enabled" true $workload) (lt (int $workload.deployment.replicas) 1) -}}
 {{- fail (printf "smithdb.%s.deployment.replicas must be greater than 0 when smithdb.enabled is true." $workloadName) -}}
 {{- end -}}
 {{- end -}}
@@ -476,31 +479,53 @@ AWS Marketplace Helm template verification).
 {{- end -}}
 {{- $smithdbServiceWorkloads := dict
   "query" .Values.smithdb.query
+  "mutations" .Values.smithdb.mutations
+  "runRules" .Values.smithdb.runRules
+  "statsQuery" .Values.smithdb.statsQuery
   "ingestion" .Values.smithdb.ingestion
   "compaction" .Values.smithdb.compaction
   "clusterManager" .Values.smithdb.clusterManager
 -}}
 {{- range $workloadName, $workload := $smithdbServiceWorkloads -}}
-{{- if and $.Values.smithdb.enabled $workload.service.type (ne $workload.service.type "ClusterIP") -}}
+{{- if and $.Values.smithdb.enabled (dig "enabled" true $workload) $workload.service.type (ne $workload.service.type "ClusterIP") -}}
 {{- fail (printf "smithdb.%s.service.type must be ClusterIP." $workloadName) -}}
 {{- end -}}
 {{- end -}}
 {{- if and .Values.smithdb.enabled (ne (toString .Values.smithdb.compactionWorker.maxConcurrentJobs) "") (lt (int .Values.smithdb.compactionWorker.maxConcurrentJobs) 1) -}}
 {{- fail "smithdb.compactionWorker.maxConcurrentJobs must be greater than 0 when set." -}}
 {{- end -}}
-{{- $smithdbAutoscalingWorkloads := dict
-  "query" .Values.smithdb.query
-  "ingestion" .Values.smithdb.ingestion
-  "compactionWorker" .Values.smithdb.compactionWorker
--}}
-{{- range $workloadName, $workload := $smithdbAutoscalingWorkloads -}}
-{{- $autoscaling := dig "autoscaling" (dict) $workload -}}
-{{- if and $.Values.smithdb.enabled (dig "enabled" false $autoscaling) -}}
-{{- if lt (int $autoscaling.minReplicas) 1 -}}
-{{- fail (printf "smithdb.%s.autoscaling.minReplicas must be greater than 0 when autoscaling is enabled." $workloadName) -}}
+{{- $cwAutoscaling := .Values.smithdb.compactionWorker.autoscaling -}}
+{{- $legacyCompactionWorkerAutoscalingKeys := list "enabled" "minReplicas" "maxReplicas" "targetCPUUtilizationPercentage" "scaleUpStabilizationWindowSeconds" "scaleDownStabilizationWindowSeconds" "scalePodCount" "createHpa" "type" -}}
+{{- range $legacyCompactionWorkerAutoscalingKeys -}}
+{{- if and $.Values.smithdb.enabled (hasKey $cwAutoscaling .) -}}
+{{- fail (printf "smithdb.compactionWorker.autoscaling.%s is no longer supported. Use autoscaling.hpa.* for chart-managed HPA or autoscaling.keda.* for KEDA; only one scaler can be enabled at a time." .) -}}
 {{- end -}}
-{{- if lt (int $autoscaling.maxReplicas) (int $autoscaling.minReplicas) -}}
-{{- fail (printf "smithdb.%s.autoscaling.maxReplicas must be >= minReplicas when autoscaling is enabled." $workloadName) -}}
+{{- end -}}
+{{- if and .Values.smithdb.enabled $cwAutoscaling.hpa.enabled (dig "keda" "enabled" false $cwAutoscaling) -}}
+{{- fail "Only one of smithdb.compactionWorker.autoscaling.hpa.enabled or smithdb.compactionWorker.autoscaling.keda.enabled can be enabled at the same time." -}}
+{{- end -}}
+{{- $legacySmithdbHpaAutoscalingKeys := list "enabled" "minReplicas" "maxReplicas" "targetCPUUtilizationPercentage" "scaleUpStabilizationWindowSeconds" "scaleDownStabilizationWindowSeconds" "scalePodCount" "createHpa" "type" -}}
+{{- $smithdbHpaAutoscalingWorkloads := dict
+  "query" .Values.smithdb.query
+  "mutations" .Values.smithdb.mutations
+  "runRules" .Values.smithdb.runRules
+  "statsQuery" .Values.smithdb.statsQuery
+  "ingestion" .Values.smithdb.ingestion
+-}}
+{{- range $workloadName, $workload := $smithdbHpaAutoscalingWorkloads -}}
+{{- $autoscaling := dig "autoscaling" (dict) $workload -}}
+{{- range $legacySmithdbHpaAutoscalingKeys -}}
+{{- if and $.Values.smithdb.enabled (hasKey $autoscaling .) -}}
+{{- fail (printf "smithdb.%s.autoscaling.%s is no longer supported. Use autoscaling.hpa.enabled with hpa.minReplicas, hpa.maxReplicas, and related hpa.* fields." $workloadName .) -}}
+{{- end -}}
+{{- end -}}
+{{- $hpa := dig "hpa" (dict) $autoscaling -}}
+{{- if and $.Values.smithdb.enabled (dig "enabled" true $workload) (dig "enabled" false $hpa) -}}
+{{- if lt (int $hpa.minReplicas) 1 -}}
+{{- fail (printf "smithdb.%s.autoscaling.hpa.minReplicas must be greater than 0 when autoscaling.hpa.enabled is true." $workloadName) -}}
+{{- end -}}
+{{- if lt (int $hpa.maxReplicas) (int $hpa.minReplicas) -}}
+{{- fail (printf "smithdb.%s.autoscaling.hpa.maxReplicas must be >= hpa.minReplicas when autoscaling.hpa.enabled is true." $workloadName) -}}
 {{- end -}}
 {{- end -}}
 {{- end -}}

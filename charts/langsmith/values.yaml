@@ -65,21 +65,21 @@ images:
   aceBackendImage:
     repository: "docker.io/langchain/langsmith-ace-backend"
     pullPolicy: IfNotPresent
-    tag: "0.17.14rc1"
+    tag: "0.17.18rc1"
   backendImage:
     repository: "docker.io/langchain/langsmith-backend"
     pullPolicy: IfNotPresent
-    tag: "0.17.14rc1"
+    tag: "0.17.18rc1"
   # Serves both the `insights` and `engine` graphs; insights.enabled and
   # engine.enabled pick which of them run.
   engineInsightsAgentImage:
     repository: "docker.io/langchain/langsmith-insights-engine"
     pullPolicy: IfNotPresent
-    tag: "0.17.14rc1"
+    tag: "0.17.18rc1"
   frontendImage:
     repository: "docker.io/langchain/langsmith-frontend"
     pullPolicy: IfNotPresent
-    tag: "0.17.14rc1"
+    tag: "0.17.18rc1"
   operatorImage:
     repository: "docker.io/langchain/langgraph-operator"
     pullPolicy: IfNotPresent
@@ -103,15 +103,15 @@ images:
   agentBuilderImage:
     repository: "docker.io/langchain/agent-builder-deep-agent"
     pullPolicy: IfNotPresent
-    tag: "0.17.14rc1"
+    tag: "0.17.18rc1"
   pollyAgentImage:
     repository: "docker.io/langchain/langsmith-polly"
     pullPolicy: IfNotPresent
-    tag: "0.17.14rc1"
+    tag: "0.17.18rc1"
   smithdbImage:
     repository: "docker.io/langchain/smithdb"
     pullPolicy: IfNotPresent
-    tag: "0.17.14rc1"
+    tag: "0.17.18rc1"
   # Optional: only mirror/pull when presidioAnalyzer.enabled is true
   presidioAnalyzerImage:
     repository: "mcr.microsoft.com/presidio-analyzer"
@@ -1508,13 +1508,224 @@ smithdb:
       labels: {}
       annotations: {}
     autoscaling:
-      enabled: true
-      minReplicas: 1
-      maxReplicas: 10
-      targetCPUUtilizationPercentage: 40
-      scaleUpStabilizationWindowSeconds: 300
-      scaleDownStabilizationWindowSeconds: 900
-      scalePodCount: 1
+      hpa:
+        enabled: true
+        minReplicas: 1
+        maxReplicas: 10
+        targetCPUUtilizationPercentage: 40
+        scaleUpStabilizationWindowSeconds: 300
+        scaleDownStabilizationWindowSeconds: 900
+        scalePodCount: 1
+
+  mutations:
+    enabled: false
+    name: "mutations"
+    containerPort: 8060
+    containerGrpcPort: 8080
+    deployment:
+      replicas: 1
+      strategy:
+        type: RollingUpdate
+        rollingUpdate:
+          maxSurge: 1
+          maxUnavailable: 0
+      labels: {}
+      annotations: {}
+      podSecurityContext: {}
+      securityContext: {}
+      priorityClassName: ""
+      probes:
+        startupProbe:
+          httpGet:
+            path: /health
+            port: http
+          failureThreshold: 6
+          periodSeconds: 10
+          timeoutSeconds: 1
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: http
+          failureThreshold: 6
+          periodSeconds: 10
+          timeoutSeconds: 1
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: http
+          failureThreshold: 6
+          periodSeconds: 10
+          timeoutSeconds: 1
+      command: ["./smithdb", "query"]
+      extraEnv: []
+      extraContainerConfig: {}
+      sidecars: []
+      nodeSelector: {}
+      tolerations: []
+      affinity: {}
+      topologySpreadConstraints: []
+      volumeMounts:
+        - name: local-ssd-storage
+          mountPath: /data
+      initContainers: []
+    service:
+      port: 8080
+      labels: {}
+      annotations: {}
+    pdb:
+      enabled: false
+      minAvailable: 1
+      labels: {}
+      annotations: {}
+    autoscaling:
+      hpa:
+        enabled: true
+        minReplicas: 1
+        maxReplicas: 5
+        targetCPUUtilizationPercentage: 50
+        scaleUpStabilizationWindowSeconds: 300
+        scaleDownStabilizationWindowSeconds: 900
+        scalePodCount: 1
+
+  runRules:
+    enabled: false
+    name: "run-rules"
+    containerPort: 8060
+    containerGrpcPort: 8080
+    deployment:
+      replicas: 1
+      strategy:
+        type: RollingUpdate
+        rollingUpdate:
+          maxSurge: 1
+          maxUnavailable: 0
+      labels: {}
+      annotations: {}
+      podSecurityContext: {}
+      securityContext: {}
+      priorityClassName: ""
+      probes:
+        startupProbe:
+          httpGet:
+            path: /health
+            port: http
+          failureThreshold: 6
+          periodSeconds: 10
+          timeoutSeconds: 1
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: http
+          failureThreshold: 6
+          periodSeconds: 10
+          timeoutSeconds: 1
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: http
+          failureThreshold: 6
+          periodSeconds: 10
+          timeoutSeconds: 1
+      command: ["./smithdb", "query"]
+      extraEnv: []
+      extraContainerConfig: {}
+      sidecars: []
+      nodeSelector: {}
+      tolerations: []
+      affinity: {}
+      topologySpreadConstraints: []
+      volumeMounts:
+        - name: local-ssd-storage
+          mountPath: /data
+      initContainers: []
+    service:
+      port: 8080
+      labels: {}
+      annotations: {}
+    pdb:
+      enabled: false
+      minAvailable: 1
+      labels: {}
+      annotations: {}
+    autoscaling:
+      hpa:
+        enabled: true
+        minReplicas: 1
+        maxReplicas: 5
+        targetCPUUtilizationPercentage: 50
+        scaleUpStabilizationWindowSeconds: 90
+        scaleDownStabilizationWindowSeconds: 900
+        scalePodCount: 1
+
+  statsQuery:
+    enabled: false
+    name: "stats-query"
+    containerPort: 8060
+    containerGrpcPort: 8080
+    deployment:
+      replicas: 1
+      strategy:
+        type: RollingUpdate
+        rollingUpdate:
+          maxSurge: 1
+          maxUnavailable: 0
+      labels: {}
+      annotations: {}
+      podSecurityContext: {}
+      securityContext: {}
+      priorityClassName: ""
+      probes:
+        startupProbe:
+          httpGet:
+            path: /health
+            port: http
+          failureThreshold: 6
+          periodSeconds: 10
+          timeoutSeconds: 1
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: http
+          failureThreshold: 6
+          periodSeconds: 10
+          timeoutSeconds: 1
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: http
+          failureThreshold: 6
+          periodSeconds: 10
+          timeoutSeconds: 1
+      command: ["./smithdb", "query"]
+      extraEnv: []
+      extraContainerConfig: {}
+      sidecars: []
+      nodeSelector: {}
+      tolerations: []
+      affinity: {}
+      topologySpreadConstraints: []
+      volumeMounts:
+        - name: local-ssd-storage
+          mountPath: /data
+      initContainers: []
+    service:
+      port: 8080
+      labels: {}
+      annotations: {}
+    pdb:
+      enabled: false
+      minAvailable: 1
+      labels: {}
+      annotations: {}
+    autoscaling:
+      hpa:
+        enabled: true
+        minReplicas: 1
+        maxReplicas: 5
+        targetCPUUtilizationPercentage: 40
+        scaleUpStabilizationWindowSeconds: 300
+        scaleDownStabilizationWindowSeconds: 900
+        scalePodCount: 1
 
   ingestion:
     name: "ingestion"
@@ -1583,13 +1794,14 @@ smithdb:
       labels: {}
       annotations: {}
     autoscaling:
-      enabled: true
-      minReplicas: 1
-      maxReplicas: 10
-      targetCPUUtilizationPercentage: 45
-      scaleUpStabilizationWindowSeconds: 300
-      scaleDownStabilizationWindowSeconds: 900
-      scalePodCount: 1
+      hpa:
+        enabled: true
+        minReplicas: 1
+        maxReplicas: 10
+        targetCPUUtilizationPercentage: 45
+        scaleUpStabilizationWindowSeconds: 300
+        scaleDownStabilizationWindowSeconds: 900
+        scalePodCount: 1
 
   compaction:
     name: "compaction"
@@ -1703,14 +1915,34 @@ smithdb:
       minAvailable: 1
       labels: {}
       annotations: {}
+    # Autoscaling configuration. Either HPA or KEDA can be enabled, not both.
     autoscaling:
-      enabled: true
-      minReplicas: 1
-      maxReplicas: 10
-      targetCPUUtilizationPercentage: 60
-      scaleUpStabilizationWindowSeconds: 120
-      scaleDownStabilizationWindowSeconds: 300
-      scalePodCount: 1
+      # HPA-specific configuration
+      hpa:
+        enabled: true
+        minReplicas: 1
+        maxReplicas: 10
+        targetCPUUtilizationPercentage: 60
+        scaleUpStabilizationWindowSeconds: 120
+        scaleDownStabilizationWindowSeconds: 300
+        scalePodCount: 1
+      # KEDA ScaledObject configuration. See https://keda.sh/docs/2.18/reference/scaledobject-spec
+      # These are some recommended default values. You can tweak them to your needs, using the docs above.
+      keda:
+        enabled: false
+        labels: {}
+        annotations: {}
+        pollingInterval: 30
+        cooldownPeriod: 300
+        initialCooldownPeriod: 0
+        minReplicaCount: 1
+        maxReplicaCount: 10
+        targetCPUUtilizationPercentage: 60
+        scaleUpStabilizationWindowSeconds: 120
+        scaleDownStabilizationWindowSeconds: 300
+        scalePodCount: 1
+        # -- Number of pending compaction jobs per worker.
+        pendingJobsThreshold: "60"
 
   clusterManager:
     name: "cluster-manager"
