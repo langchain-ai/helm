@@ -1,7 +1,7 @@
 {{- if .Values.smithdb.enabled }}
-{{- range $component := list "query" "ingestion" "compaction" "compactionWorker" "clusterManager" }}
+{{- range $component := list "query" "mutations" "runRules" "statsQuery" "ingestion" "compaction" "compactionWorker" "clusterManager" }}
 {{- $componentValues := index $.Values.smithdb $component }}
-{{- if $componentValues.pdb.enabled }}
+{{- if and (dig "enabled" true $componentValues) $componentValues.pdb.enabled }}
 ---
 apiVersion: policy/v1
 kind: PodDisruptionBudget

@@ -1511,6 +1511,216 @@ smithdb:
         scaleDownStabilizationWindowSeconds: 900
         scalePodCount: 1
 
+  mutations:
+    enabled: false
+    name: "mutations"
+    containerPort: 8060
+    containerGrpcPort: 8080
+    deployment:
+      replicas: 1
+      strategy:
+        type: RollingUpdate
+        rollingUpdate:
+          maxSurge: 1
+          maxUnavailable: 0
+      labels: {}
+      annotations: {}
+      podSecurityContext: {}
+      securityContext: {}
+      priorityClassName: ""
+      probes:
+        startupProbe:
+          httpGet:
+            path: /health
+            port: http
+          failureThreshold: 6
+          periodSeconds: 10
+          timeoutSeconds: 1
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: http
+          failureThreshold: 6
+          periodSeconds: 10
+          timeoutSeconds: 1
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: http
+          failureThreshold: 6
+          periodSeconds: 10
+          timeoutSeconds: 1
+      command: ["./smithdb", "query"]
+      extraEnv: []
+      extraContainerConfig: {}
+      sidecars: []
+      nodeSelector: {}
+      tolerations: []
+      affinity: {}
+      topologySpreadConstraints: []
+      volumeMounts:
+        - name: local-ssd-storage
+          mountPath: /data
+      initContainers: []
+    service:
+      port: 8080
+      labels: {}
+      annotations: {}
+    pdb:
+      enabled: false
+      minAvailable: 1
+      labels: {}
+      annotations: {}
+    autoscaling:
+      hpa:
+        enabled: true
+        minReplicas: 1
+        maxReplicas: 5
+        targetCPUUtilizationPercentage: 50
+        scaleUpStabilizationWindowSeconds: 300
+        scaleDownStabilizationWindowSeconds: 900
+        scalePodCount: 1
+
+  runRules:
+    enabled: false
+    name: "run-rules"
+    containerPort: 8060
+    containerGrpcPort: 8080
+    deployment:
+      replicas: 1
+      strategy:
+        type: RollingUpdate
+        rollingUpdate:
+          maxSurge: 1
+          maxUnavailable: 0
+      labels: {}
+      annotations: {}
+      podSecurityContext: {}
+      securityContext: {}
+      priorityClassName: ""
+      probes:
+        startupProbe:
+          httpGet:
+            path: /health
+            port: http
+          failureThreshold: 6
+          periodSeconds: 10
+          timeoutSeconds: 1
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: http
+          failureThreshold: 6
+          periodSeconds: 10
+          timeoutSeconds: 1
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: http
+          failureThreshold: 6
+          periodSeconds: 10
+          timeoutSeconds: 1
+      command: ["./smithdb", "query"]
+      extraEnv: []
+      extraContainerConfig: {}
+      sidecars: []
+      nodeSelector: {}
+      tolerations: []
+      affinity: {}
+      topologySpreadConstraints: []
+      volumeMounts:
+        - name: local-ssd-storage
+          mountPath: /data
+      initContainers: []
+    service:
+      port: 8080
+      labels: {}
+      annotations: {}
+    pdb:
+      enabled: false
+      minAvailable: 1
+      labels: {}
+      annotations: {}
+    autoscaling:
+      hpa:
+        enabled: true
+        minReplicas: 1
+        maxReplicas: 5
+        targetCPUUtilizationPercentage: 50
+        scaleUpStabilizationWindowSeconds: 90
+        scaleDownStabilizationWindowSeconds: 900
+        scalePodCount: 1
+
+  statsQuery:
+    enabled: false
+    name: "stats-query"
+    containerPort: 8060
+    containerGrpcPort: 8080
+    deployment:
+      replicas: 1
+      strategy:
+        type: RollingUpdate
+        rollingUpdate:
+          maxSurge: 1
+          maxUnavailable: 0
+      labels: {}
+      annotations: {}
+      podSecurityContext: {}
+      securityContext: {}
+      priorityClassName: ""
+      probes:
+        startupProbe:
+          httpGet:
+            path: /health
+            port: http
+          failureThreshold: 6
+          periodSeconds: 10
+          timeoutSeconds: 1
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: http
+          failureThreshold: 6
+          periodSeconds: 10
+          timeoutSeconds: 1
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: http
+          failureThreshold: 6
+          periodSeconds: 10
+          timeoutSeconds: 1
+      command: ["./smithdb", "query"]
+      extraEnv: []
+      extraContainerConfig: {}
+      sidecars: []
+      nodeSelector: {}
+      tolerations: []
+      affinity: {}
+      topologySpreadConstraints: []
+      volumeMounts:
+        - name: local-ssd-storage
+          mountPath: /data
+      initContainers: []
+    service:
+      port: 8080
+      labels: {}
+      annotations: {}
+    pdb:
+      enabled: false
+      minAvailable: 1
+      labels: {}
+      annotations: {}
+    autoscaling:
+      hpa:
+        enabled: true
+        minReplicas: 1
+        maxReplicas: 5
+        targetCPUUtilizationPercentage: 40
+        scaleUpStabilizationWindowSeconds: 300
+        scaleDownStabilizationWindowSeconds: 900
+        scalePodCount: 1
+
   ingestion:
     name: "ingestion"
     containerPort: 8050
