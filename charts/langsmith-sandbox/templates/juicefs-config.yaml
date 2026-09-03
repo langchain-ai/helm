@@ -1,0 +1,15 @@
+{{- if and .Values.sandboxHost.enabled (not .Values.juicefs.existingSecretName) }}
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ include "langsmithSandbox.juicefsConfigSecretName" . }}
+  namespace: {{ include "langsmithSandbox.namespace" . }}
+  labels:
+    {{- include "langsmithSandbox.labels" . | nindent 4 }}
+  annotations:
+    "argocd.argoproj.io/sync-wave": "-2"
+    {{- include "langsmithSandbox.annotations" . | nindent 4 }}
+type: Opaque
+stringData:
+{{ include "langsmithSandbox.juicefsConfigSecretData" . | indent 2 }}
+{{- end }}

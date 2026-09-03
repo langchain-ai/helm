@@ -1,0 +1,47 @@
+{{- if and .Values.sandboxHost.enabled .Values.sandboxHost.rbac.create }}
+{{- $namespace := include "langsmithSandbox.namespace" . }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ include "langsmithSandbox.sandboxHostFullname" . }}
+  namespace: {{ $namespace }}
+  labels:
+    {{- include "langsmithSandbox.labels" . | nindent 4 }}
+    {{- with .Values.sandboxHost.rbac.labels }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+  annotations:
+    {{- include "langsmithSandbox.annotations" . | nindent 4 }}
+    {{- with .Values.sandboxHost.rbac.annotations }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+rules:
+  - apiGroups: ["coordination.k8s.io"]
+    resources: ["leases"]
+    verbs: ["create", "delete", "get", "list", "update", "watch"]
+  - apiGroups: ["apps"]
+    resources: ["deployments"]
+    resourceNames: [{{ include "langsmithSandbox.sandboxHostFullname" . | quote }}]
+    verbs: ["get", "patch"]
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["patch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ include "langsmithSandbox.sandboxHostFullname" . }}
+  namespace: {{ $namespace }}
+  labels:
+    {{- include "langsmithSandbox.labels" . | nindent 4 }}
+  annotations:
+    {{- include "langsmithSandbox.annotations" . | nindent 4 }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "langsmithSandbox.serviceAccountName" . }}
+    namespace: {{ $namespace }}
+roleRef:
+  kind: Role
+  name: {{ include "langsmithSandbox.sandboxHostFullname" . }}
+  apiGroup: rbac.authorization.k8s.io
+{{- end }}

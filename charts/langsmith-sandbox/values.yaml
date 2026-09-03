@@ -1,0 +1,162 @@
+# Default values for the LangSmith sandbox runtime chart.
+
+# -- Provide a name in place of `langsmith-sandbox`.
+nameOverride: ""
+# -- String to fully override the chart's generated name.
+fullnameOverride: ""
+# -- Namespace to install into. Defaults to the Helm release namespace.
+namespace: ""
+# -- Annotations applied to all resources.
+commonAnnotations: {}
+# -- Labels applied to all resources.
+commonLabels: {}
+# -- Annotations applied to all pods.
+commonPodAnnotations: {}
+# -- Pod security context merged into component-specific pod security contexts.
+commonPodSecurityContext: {}
+
+images:
+  # -- Optional registry prepended to the sandbox-host repository.
+  registry: ""
+  # -- Image pull secrets for sandbox-host and the JuiceFS formatter.
+  imagePullSecrets: []
+  sandboxHost:
+    repository: "docker.io/langchain/sandbox-host"
+    pullPolicy: IfNotPresent
+    tag: ""
+
+platform:
+  # -- Externally reachable LangSmith API base used for host observations and lifecycle callbacks, including the `/api` prefix.
+  endpoint: ""
+  # -- Issuer placed in sandbox callback JWTs. Defaults to platform.endpoint.
+  callbackIssuer: ""
+
+serviceAuth:
+  # -- Existing Secret containing only the shared sandbox service-auth key and callback-signing JWK. The values must match the LangSmith control-plane Secret.
+  existingSecretName: ""
+  # -- Secret key containing the value used as SANDBOX_X_SERVICE_AUTH_JWT_SECRET.
+  secretKey: "api_key_salt"
+  # -- Secret key containing the Ed25519 private JWK used to sign sandbox callbacks.
+  callbackSigningJwkSecretKey: "sandbox_callback_signing_jwk"
+  # -- Optional Secret key containing the previous service-auth key during rotation.
+  previousSecretKey: ""
+
+customCa:
+  # -- Existing Secret containing a CA certificate trusted when sandbox-host calls the LangSmith API.
+  existingSecretName: ""
+  # -- Key within customCa.existingSecretName containing the CA certificate.
+  secretKey: ""
+
+proxyCa:
+  # -- generatedSecret creates and reuses a self-signed sandbox proxy CA; existingSecret uses a Secret managed outside this chart.
+  mode: "generatedSecret"
+  secretName: "smithbox-proxy-ca"
+  # -- Existing TLS Secret containing tls.crt and tls.key.
+  existingSecretName: ""
+
+juicefs:
+  # -- JuiceFS volume name used for sandbox snapshots and filesystem state.
+  name: "sandbox-juicefs"
+  # -- Object storage backend: s3, gs, or wasb.
+  storage: "s3"
+  # -- Object storage bucket or root URL.
+  bucket: ""
+  # -- Azure storage account name. Required when storage is wasb.
+  storageAccountName: ""
+  redis:
+    # -- JuiceFS Redis metadata URL. The Redis maxmemory policy must be noeviction.
+    metaURL: ""
+  # -- Existing Secret containing name, metaurl, storage, bucket, and optional access-key/secret-key entries.
+  existingSecretName: ""
+  hostMount:
+    # -- Node-local paths used for the JuiceFS cache.
+    cacheDirs:
+      - /var/cache/juicefs
+    # -- Additional JuiceFS mount options. Configure cacheDirs instead of passing --cache-dir here.
+    mountOptions:
+      - --cache-size=51200
+      - --cache-large-write
+
+juicefsFormatJob:
+  labels: {}
+  annotations: {}
+  podSecurityContext: {}
+  securityContext:
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+        - ALL
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+sandboxHost:
+  # -- Deploy the sandbox-host runtime and supporting resources.
+  enabled: false
+  name: "sandbox-host"
+  deployment:
+    labels: {}
+    annotations: {}
+    podAnnotations: {}
+    replicas: 1
+    terminationGracePeriodSeconds: 300
+    priorityClassName: ""
+    # -- Node selector for KVM-capable linux/amd64 nodes.
+    nodeSelector: {}
+    tolerations:
+      - key: sandbox.langsmith.com/host
+        operator: Equal
+        value: "true"
+        effect: NoSchedule
+    resources:
+      requests:
+        cpu: "2"
+        memory: 2Gi
+    securityContext:
+      privileged: true
+    podSecurityContext: {}
+    extraEnv: []
+    volumes: []
+    volumeMounts: []
+    initContainers: []
+    sidecars: []
+    readinessProbe:
+      tcpSocket:
+        port: http
+      initialDelaySeconds: 5
+      periodSeconds: 10
+      timeoutSeconds: 3
+      failureThreshold: 3
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 10
+    targetUtilizationPercent: 70
+    headroomHosts: 1
+    scaleDownStabilizationSeconds: 300
+  pdb:
+    enabled: false
+    maxUnavailable: 1
+    labels: {}
+    annotations: {}
+  serviceAccount:
+    create: true
+    name: ""
+    labels: {}
+    annotations: {}
+    automountServiceAccountToken: true
+  rbac:
+    create: true
+    labels: {}
+    annotations: {}
+  ingress:
+    # -- Expose one authenticated entry point for control planes that cannot route directly to sandbox node IPs on port 19190.
+    enabled: false
+    ingressClassName: ""
+    host: ""
+    annotations: {}
+    tls: []

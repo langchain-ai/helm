@@ -1,0 +1,33 @@
+{{- if and .Values.sandboxHost.enabled .Values.sandboxHost.ingress.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "langsmithSandbox.sandboxHostFullname" . }}
+  namespace: {{ include "langsmithSandbox.namespace" . }}
+  labels:
+    {{- include "langsmithSandbox.labels" . | nindent 4 }}
+  annotations:
+    {{- include "langsmithSandbox.annotations" . | nindent 4 }}
+    {{- with .Values.sandboxHost.ingress.annotations }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  {{- with .Values.sandboxHost.ingress.ingressClassName }}
+  ingressClassName: {{ . }}
+  {{- end }}
+  {{- with .Values.sandboxHost.ingress.tls }}
+  tls:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  rules:
+    - host: {{ .Values.sandboxHost.ingress.host | quote }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "langsmithSandbox.sandboxHostFullname" . }}
+                port:
+                  number: 19190
+{{- end }}

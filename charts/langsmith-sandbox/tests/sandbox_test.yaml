@@ -1,0 +1,212 @@
+suite: separate-cluster sandbox runtime
+templates:
+  - validate.yaml
+  - proxy-ca.yaml
+  - juicefs-config.yaml
+  - juicefs-format-job.yaml
+  - sandbox-host-service-account.yaml
+  - sandbox-host-rbac.yaml
+  - sandbox-host-deployment.yaml
+  - sandbox-host-pdb.yaml
+  - sandbox-host-service.yaml
+  - sandbox-host-ingress.yaml
+tests:
+  - it: should render no runtime resources when disabled
+    set:
+      sandboxHost.enabled: false
+    templates:
+      - proxy-ca.yaml
+      - juicefs-config.yaml
+      - juicefs-format-job.yaml
+      - sandbox-host-service-account.yaml
+      - sandbox-host-rbac.yaml
+      - sandbox-host-deployment.yaml
+      - sandbox-host-pdb.yaml
+      - sandbox-host-service.yaml
+      - sandbox-host-ingress.yaml
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: should configure a host to report to the external LangSmith API
+    values:
+      - ./values/enabled.yaml
+    template: sandbox-host-deployment.yaml
+    asserts:
+      - isKind:
+          of: Deployment
+      - equal:
+          path: metadata.name
+          value: RELEASE-NAME-langsmith-sandbox-sandbox-host
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: LANGSMITH_SANDBOX_INTERNAL_ENDPOINT
+            value: https://langsmith.example.com/api
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: OAUTH_AS_ISSUER
+            value: https://langsmith.example.com/api
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_X_SERVICE_AUTH_JWT_SECRET
+            valueFrom:
+              secretKeyRef:
+                name: langsmith-sandbox-runtime
+                key: api_key_salt
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: LANGSMITH_SANDBOX_CALLBACK_SIGNING_JWK
+            valueFrom:
+              secretKeyRef:
+                name: langsmith-sandbox-runtime
+                key: sandbox_callback_signing_jwk
+      - equal:
+          path: spec.template.spec.hostNetwork
+          value: true
+      - equal:
+          path: spec.template.spec.containers[0].ports[0].hostPort
+          value: 19190
+
+  - it: should keep host ingress disabled by default
+    values:
+      - ./values/enabled.yaml
+    templates:
+      - sandbox-host-service.yaml
+      - sandbox-host-ingress.yaml
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: should expose the authenticated host pool through an optional ingress
+    values:
+      - ./values/enabled.yaml
+    set:
+      sandboxHost.ingress.enabled: true
+      sandboxHost.ingress.ingressClassName: nginx
+      sandboxHost.ingress.host: sandbox-host.example.com
+    templates:
+      - sandbox-host-service.yaml
+      - sandbox-host-ingress.yaml
+    asserts:
+      - isKind:
+          of: Service
+        template: sandbox-host-service.yaml
+      - equal:
+          path: spec.ports[0].port
+          value: 19190
+        template: sandbox-host-service.yaml
+      - isKind:
+          of: Ingress
+        template: sandbox-host-ingress.yaml
+      - equal:
+          path: spec.rules[0].host
+          value: sandbox-host.example.com
+        template: sandbox-host-ingress.yaml
+      - equal:
+          path: spec.rules[0].http.paths[0].backend.service.name
+          value: RELEASE-NAME-langsmith-sandbox-sandbox-host
+        template: sandbox-host-ingress.yaml
+
+  - it: should use the existing JuiceFS Secret for formatting and mounting
+    values:
+      - ./values/enabled.yaml
+    set:
+      juicefs.redis.metaURL: ""
+      juicefs.bucket: ""
+      juicefs.existingSecretName: external-juicefs-config
+    templates:
+      - juicefs-config.yaml
+      - juicefs-format-job.yaml
+      - sandbox-host-deployment.yaml
+    asserts:
+      - hasDocuments:
+          count: 0
+        template: juicefs-config.yaml
+      - equal:
+          path: spec.template.spec.volumes[0].secret.secretName
+          value: external-juicefs-config
+        template: juicefs-format-job.yaml
+      - equal:
+          path: spec.template.spec.volumes[2].secret.secretName
+          value: external-juicefs-config
+        template: sandbox-host-deployment.yaml
+
+  - it: should grant the elected host access only to its Deployment
+    values:
+      - ./values/enabled.yaml
+    template: sandbox-host-rbac.yaml
+    documentIndex: 0
+    asserts:
+      - contains:
+          path: rules
+          content:
+            apiGroups: ["apps"]
+            resources: ["deployments"]
+            resourceNames: ["RELEASE-NAME-langsmith-sandbox-sandbox-host"]
+            verbs: ["get", "patch"]
+
+  - it: should set LANGCHAIN_ENV directly on the formatter
+    values:
+      - ./values/enabled.yaml
+    template: juicefs-format-job.yaml
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].env
+          value:
+            - name: LANGCHAIN_ENV
+              value: local_kubernetes
+
+  - it: should require a minimal existing service-auth Secret
+    values:
+      - ./values/enabled.yaml
+    set:
+      serviceAuth.existingSecretName: ""
+    template: validate.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: "serviceAuth.existingSecretName is required when sandboxHost.enabled is true."
+
+  - it: should require an absolute platform endpoint
+    values:
+      - ./values/enabled.yaml
+    set:
+      platform.endpoint: /api
+    template: validate.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: "platform.endpoint must be an absolute HTTP(S) URL without a query string or fragment."
+
+  - it: should require the public API prefix on the platform endpoint
+    values:
+      - ./values/enabled.yaml
+    set:
+      platform.endpoint: https://langsmith.example.com
+    template: validate.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: "platform.endpoint must include the externally reachable LangSmith /api prefix."
+
+  - it: should render the optional sandbox-host disruption budget
+    values:
+      - ./values/enabled.yaml
+    set:
+      sandboxHost.pdb.enabled: true
+    template: sandbox-host-pdb.yaml
+    asserts:
+      - isKind:
+          of: PodDisruptionBudget
+      - equal:
+          path: spec.maxUnavailable
+          value: 1
+
+  - it: should require KVM host scheduling
+    values:
+      - ./values/no-scheduling.yaml
+    template: validate.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: "sandboxHost.deployment.nodeSelector is required: sandbox-host must be pinned to KVM-capable nodes."

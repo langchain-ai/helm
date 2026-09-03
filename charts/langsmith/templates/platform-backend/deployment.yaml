@@ -32,6 +32,10 @@
 - name: SANDBOX_SERVICE_URLS
   value: {{ dict "incluster" .Values.sandboxes.serviceUrlBaseUrl | toJson | quote }}
 {{- end }}
+{{- with .Values.sandboxes.hostIngressEndpoint }}
+- name: SANDBOX_HOST_INGRESS_ENDPOINT
+  value: {{ . | quote }}
+{{- end }}
 {{- if or (not (empty .Values.config.existingSecretName)) .Values.sandboxes.callbackSigningJwk }}
 - name: LANGSMITH_SANDBOX_CALLBACK_SIGNING_JWK
   valueFrom:

@@ -35,6 +35,96 @@ tests:
       - hasDocuments:
           count: 0
 
+  - it: should not render embedded runtime resources in separate-cluster mode
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      config.hostname: langsmith.example.com
+      sandboxes.deploymentMode: separateCluster
+    templates:
+      - sandboxes/proxy-ca.yaml
+      - sandboxes/juicefs-config.yaml
+      - sandboxes/juicefs-format-job.yaml
+      - sandboxes/sandbox-host-rbac.yaml
+      - sandboxes/sandbox-host-service-account.yaml
+      - sandboxes/sandbox-host-deployment.yaml
+      - sandboxes/sandbox-host-pdb.yaml
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: should not require embedded runtime configuration in separate-cluster mode
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      config.hostname: langsmith.example.com
+      sandboxes.deploymentMode: separateCluster
+      images.sandboxHostImage.repository: ""
+      images.sandboxHostImage.tag: ""
+      sandboxes.sandboxHost.deployment.nodeSelector: {}
+      sandboxes.juicefs.redis.metaURL: ""
+      sandboxes.juicefs.bucket: ""
+    template: validate.yaml
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: should wire a separate sandbox-host ingress into smith-go services
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      config.hostname: langsmith.example.com
+      sandboxes.deploymentMode: separateCluster
+      sandboxes.hostIngressEndpoint: https://sandbox-host.example.com
+    templates:
+      - platform-backend/deployment.yaml
+      - ingest-queue/deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_HOST_INGRESS_ENDPOINT
+            value: https://sandbox-host.example.com
+        template: platform-backend/deployment.yaml
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_HOST_INGRESS_ENDPOINT
+            value: https://sandbox-host.example.com
+        template: ingest-queue/deployment.yaml
+
+  - it: should require a public hostname in separate-cluster mode
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      sandboxes.deploymentMode: separateCluster
+    template: validate.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: "config.hostname is required when sandboxes.deploymentMode is separateCluster so sandbox-host can reach the LangSmith API."
+
+  - it: should reject an unknown sandbox deployment mode
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      sandboxes.deploymentMode: remote
+    template: validate.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: "sandboxes.deploymentMode must be one of sameCluster or separateCluster."
+
+  - it: should reject a sandbox-host ingress endpoint with a path
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      config.hostname: langsmith.example.com
+      sandboxes.deploymentMode: separateCluster
+      sandboxes.hostIngressEndpoint: https://sandbox-host.example.com/rpc
+    template: validate.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: "sandboxes.hostIngressEndpoint must be an http(s) origin without a path, query string, or fragment."
+
   - it: should wire platform backend sandbox environment when enabled
     values:
       - ./values/sandboxes-enabled.yaml
@@ -131,6 +221,24 @@ tests:
       - equal:
           path: spec.rules[1].http.paths[0].backend.service.port.number
           value: 1986
+
+  - it: should keep sandbox service URL ingress on the core cluster in separate-cluster mode
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      config.hostname: langsmith.example.com
+      sandboxes.deploymentMode: separateCluster
+      sandboxes.serviceUrlBaseUrl: https://sandbox-services.example.com
+      ingress.enabled: true
+      ingress.ingressClassName: nginx
+    template: ingress.yaml
+    asserts:
+      - equal:
+          path: spec.rules[1].host
+          value: "*.sandbox-services.example.com"
+      - equal:
+          path: spec.rules[1].http.paths[0].backend.service.name
+          value: RELEASE-NAME-langsmith-platform-backend
 
   - it: should wire the sandbox callback signing JWK from an existing LangSmith secret into platform backend
     values:
