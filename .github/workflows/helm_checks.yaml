@@ -112,7 +112,10 @@ jobs:
           helm repo update
 
           helm install redis-tls bitnami/redis \
+            --version 22.0.7 \
             --namespace default \
+            --set image.repository=bitnamilegacy/redis \
+            --set image.tag=8.2.1-debian-12-r0 \
             --set auth.enabled=false \
             --set master.persistence.enabled=false \
             --set replica.replicaCount=0 \
