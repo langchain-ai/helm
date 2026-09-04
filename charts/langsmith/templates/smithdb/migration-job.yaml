@@ -192,6 +192,27 @@ spec:
               value: {{ $blobStorage.bucketName | quote }}
             - name: SMITHDB_MIGRATION__BLOB_STORE_DEFAULT__GCS__ROOT_FOLDER
               value: "/"
+            {{- else if and $blobStorage.enabled (eq (lower $blobStorage.engine) "azure") }}
+            - name: SMITHDB_MIGRATION__BLOB_STORE_DEFAULT__TYPE
+              value: "azure"
+            - name: SMITHDB_MIGRATION__BLOB_STORE_DEFAULT__AZURE__CONTAINER
+              value: {{ $blobStorage.azureStorageContainerName | quote }}
+            - name: SMITHDB_MIGRATION__BLOB_STORE_DEFAULT__AZURE__ROOT_FOLDER
+              value: "/"
+            - name: SMITHDB_MIGRATION__BLOB_STORE_DEFAULT__AZURE__ACCOUNT_NAME
+              value: {{ $blobStorage.azureStorageAccountName | quote }}
+            {{- with $blobStorage.azureStorageServiceUrlOverride }}
+            - name: SMITHDB_MIGRATION__BLOB_STORE_DEFAULT__AZURE__ENDPOINT
+              value: {{ . | quote }}
+            - name: SMITHDB_MIGRATION__BLOB_STORE_DEFAULT__AZURE__ALLOW_HTTP
+              value: {{ hasPrefix "http://" . | quote }}
+            {{- end }}
+            - name: SMITHDB_MIGRATION__BLOB_STORE_DEFAULT__AZURE__ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "langsmith.secretsName" . }}
+                  key: azure_storage_account_key
+                  optional: true
             {{- end }}
             - name: SMITHDB_MIGRATION__OUTPUT__OBJECT_STORE__TYPE
               value: {{ $smithdbObjectStoreType | quote }}
@@ -231,6 +252,28 @@ spec:
               value: {{ $smithdbObjectStore.bucket | quote }}
             - name: SMITHDB_MIGRATION__OUTPUT__OBJECT_STORE__GCS__ROOT_FOLDER
               value: "smithdb"
+            {{- else if eq $smithdbObjectStoreType "azure" }}
+            - name: SMITHDB_MIGRATION__OUTPUT__OBJECT_STORE__AZURE__CONTAINER
+              value: {{ $smithdbObjectStore.bucket | quote }}
+            - name: SMITHDB_MIGRATION__OUTPUT__OBJECT_STORE__AZURE__ROOT_FOLDER
+              value: "smithdb"
+            - name: SMITHDB_MIGRATION__OUTPUT__OBJECT_STORE__AZURE__ACCOUNT_NAME
+              value: {{ $smithdbObjectStore.azure.accountName | quote }}
+            {{- with $smithdbObjectStore.azure.endpoint }}
+            - name: SMITHDB_MIGRATION__OUTPUT__OBJECT_STORE__AZURE__ENDPOINT
+              value: {{ . | quote }}
+            {{- end }}
+            {{- if hasKey $smithdbObjectStore.azure "allowHttp" }}
+            - name: SMITHDB_MIGRATION__OUTPUT__OBJECT_STORE__AZURE__ALLOW_HTTP
+              value: {{ $smithdbObjectStore.azure.allowHttp | quote }}
+            {{- end }}
+            {{- if $smithdbObjectStore.azure.accessKeySecretKey }}
+            - name: SMITHDB_MIGRATION__OUTPUT__OBJECT_STORE__AZURE__ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.smithdb.config.existingSecretName }}
+                  key: {{ $smithdbObjectStore.azure.accessKeySecretKey }}
+            {{- end }}
             {{- end }}
             {{- toYaml $envVars | nindent 12 }}
           image: {{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "smithdbImage") | quote }}
