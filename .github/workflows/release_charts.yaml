@@ -5,6 +5,12 @@ on:
     branches:
       - main
       - '*-stable'
+  workflow_dispatch:
+    inputs:
+      dry_run_cve_diff:
+        description: 'Compute the CVE diff but do not include it in the bot trigger payload'
+        type: boolean
+        default: false
 
 permissions: write-all
 
@@ -39,9 +45,116 @@ jobs:
           CR_SKIP_EXISTING: true
           GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
 
-      - name: Trigger self-hosted changelog bot
+      # CVE diff: scan langsmith-backend at the previous and new appVersion
+      # tags, then send the fixed-CVE delta to the changelog bot. Public images
+      # on Docker Hub, so no docker login required. Trivy errors do not fail
+      # the release (continue-on-error). Scope is langsmith-backend only for
+      # v1; siblings (langsmith-go-backend, langsmith-frontend, ...) can be
+      # added as additional matrix entries once this lands.
+      - name: Determine appVersions for CVE diff
+        id: versions
         run: |
+          set -euo pipefail
+          chart=charts/langsmith/Chart.yaml
+          new=$(awk '/^appVersion:/ {gsub(/"/,"",$2); print $2}' "$chart")
+          prev=$(git show HEAD~1:"$chart" 2>/dev/null | awk '/^appVersion:/ {gsub(/"/,"",$2); print $2}' || true)
+          echo "prev=$prev" >> "$GITHUB_OUTPUT"
+          echo "new=$new"  >> "$GITHUB_OUTPUT"
+          if [ -z "$prev" ] || [ -z "$new" ] || [ "$prev" = "$new" ]; then
+            echo "[INFO] Skipping CVE diff (prev='$prev' new='$new')"
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "[INFO] Will diff langsmith-backend $prev -> $new"
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Scan previous langsmith-backend image
+        if: steps.versions.outputs.skip == 'false'
+        uses: aquasecurity/trivy-action@0.28.0
+        continue-on-error: true
+        with:
+          image-ref: docker.io/langchain/langsmith-backend:${{ steps.versions.outputs.prev }}
+          severity: HIGH,CRITICAL
+          format: json
+          output: before.json
+          exit-code: '0'
+          ignore-unfixed: false
+          vuln-type: 'os,library'
+
+      - name: Scan new langsmith-backend image
+        if: steps.versions.outputs.skip == 'false'
+        uses: aquasecurity/trivy-action@0.28.0
+        continue-on-error: true
+        with:
+          image-ref: docker.io/langchain/langsmith-backend:${{ steps.versions.outputs.new }}
+          severity: HIGH,CRITICAL
+          format: json
+          output: after.json
+          exit-code: '0'
+          ignore-unfixed: false
+          vuln-type: 'os,library'
+
+      - name: Compute fixed CVEs
+        if: steps.versions.outputs.skip == 'false'
+        id: diff
+        run: |
+          set -euo pipefail
+          if [ ! -s before.json ] || [ ! -s after.json ]; then
+            echo "[WARN] One or both Trivy scans produced no output; emitting empty fixed_cves.json"
+            echo "[]" > fixed_cves.json
+            echo "count=0" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          python3 - <<'PY'
+          import json, pathlib
+          def collect(p):
+              try:
+                  data = json.loads(pathlib.Path(p).read_text())
+              except Exception as exc:
+                  print(f"[WARN] could not parse {p}: {exc.__class__.__name__}")
+                  return {}
+              seen = {}
+              for r in data.get('Results') or []:
+                  for v in r.get('Vulnerabilities') or []:
+                      vid = v.get('VulnerabilityID')
+                      if vid and vid not in seen:
+                          seen[vid] = {
+                              'id': vid,
+                              'severity': v.get('Severity', '') or '',
+                              'package': v.get('PkgName', '') or '',
+                          }
+              return seen
+          before = collect('before.json')
+          after  = collect('after.json')
+          fixed = [before[k] for k in before if k not in after]
+          pathlib.Path('fixed_cves.json').write_text(json.dumps(fixed, indent=2))
+          print(f"[INFO] Fixed CVEs (HIGH+CRITICAL): {len(fixed)}")
+          PY
+          cat fixed_cves.json
+          echo "count=$(jq 'length' fixed_cves.json)" >> "$GITHUB_OUTPUT"
+
+      - name: Trigger self-hosted changelog bot
+        env:
+          DRY_RUN: ${{ github.event.inputs.dry_run_cve_diff || 'false' }}
+          NEW_APP_VERSION: ${{ steps.versions.outputs.new }}
+          DIFF_RAN: ${{ steps.diff.outcome == 'success' }}
+          FIXED_COUNT: ${{ steps.diff.outputs.count || '0' }}
+        run: |
+          set -euo pipefail
+          payload=$(mktemp)
+          echo '{}' > "$payload"
+          if [ "$DIFF_RAN" = "true" ] && [ "$FIXED_COUNT" -gt 0 ]; then
+            if [ "$DRY_RUN" = "true" ]; then
+              echo "[INFO] dry_run_cve_diff=true; skipping CVE payload (would have included $FIXED_COUNT CVE(s))"
+              cat fixed_cves.json
+            else
+              jq -n --arg v "$NEW_APP_VERSION" --slurpfile cves fixed_cves.json \
+                '{fixed_cves_by_app_version: {($v): $cves[0]}}' > "$payload"
+              echo "[INFO] Posting fixed_cves payload for app_version=$NEW_APP_VERSION ($FIXED_COUNT CVE(s))"
+            fi
+          fi
           curl -X POST "${{ secrets.HELM_CHANGELOG_BOT_URL }}/trigger" \
             -H "X-Api-Key: ${{ secrets.LANGSMITH_API_KEY }}" \
             -H "Content-Type: application/json" \
+            --data-binary "@$payload" \
             --fail --silent --show-error
