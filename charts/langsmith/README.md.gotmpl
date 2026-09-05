@@ -10,6 +10,15 @@ For information on how to use this chart, up-to-date release notes, and other gu
 
 {{ template "chart.requirementsSection" . }}
 
+## Sandboxes
+
+Sandboxes support two deployment topologies:
+
+- `sandboxes.deploymentMode=sameCluster` is the default and preserves the existing behavior: this chart deploys `sandbox-host` alongside LangSmith on dedicated KVM-capable nodes.
+- `sandboxes.deploymentMode=separateCluster` keeps the sandbox API and control plane in this release but omits the runtime resources. Install the `langsmith-sandbox` chart in the sandbox cluster and give it an externally reachable LangSmith API endpoint plus a minimal existing Secret containing the shared sandbox service-auth key and callback-signing JWK.
+
+When the clusters have routed private networking, leave `sandboxes.hostIngressEndpoint` empty and allow the LangSmith cluster to reach sandbox node IPs on TCP port 19190. Otherwise, expose the runtime chart's authenticated host ingress and set its HTTP(S) origin as `sandboxes.hostIngressEndpoint`.
+
 ## Engine
 
 LangSmith Engine is off by default. `engine.enabled=true` requires all of the following, and the chart refuses to render if any is missing:

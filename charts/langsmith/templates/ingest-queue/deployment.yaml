@@ -7,6 +7,10 @@
 {{- if .Values.sandboxes.enabled }}
 - name: SANDBOX_QUEUE_PRIORITY
   value: "1"
+{{- with .Values.sandboxes.hostIngressEndpoint }}
+- name: SANDBOX_HOST_INGRESS_ENDPOINT
+  value: {{ . | quote }}
+{{- end }}
 {{- end }}
 {{- end -}}
 {{- if .Values.ingestQueue.enabled }}

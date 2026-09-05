@@ -1,0 +1,78 @@
+{{- if .Values.sandboxHost.enabled }}
+{{- $job := .Values.juicefsFormatJob }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "langsmithSandbox.juicefsFormatJobName" . }}
+  namespace: {{ include "langsmithSandbox.namespace" . }}
+  labels:
+    {{- include "langsmithSandbox.labels" . | nindent 4 }}
+    app.kubernetes.io/component: juicefs-format
+  annotations:
+    "argocd.argoproj.io/sync-wave": "-1"
+    {{- include "langsmithSandbox.annotations" . | nindent 4 }}
+    {{- with $job.annotations }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  completions: 1
+  parallelism: 1
+  backoffLimit: 3
+  activeDeadlineSeconds: 300
+  template:
+    metadata:
+      annotations:
+        {{- include "langsmithSandbox.commonPodAnnotations" . | nindent 8 }}
+        {{- with $job.annotations }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+      labels:
+        {{- include "langsmithSandbox.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: juicefs-format
+        {{- with $job.labels }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      serviceAccountName: {{ include "langsmithSandbox.serviceAccountName" . }}
+      restartPolicy: Never
+      securityContext:
+        {{- include "langsmithSandbox.podSecurityContext" (dict "Values" .Values "componentSecurityContext" $job.podSecurityContext) | nindent 8 }}
+      {{- with .Values.images.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with (default .Values.sandboxHost.deployment.nodeSelector $job.nodeSelector) }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with $job.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with (default .Values.sandboxHost.deployment.tolerations $job.tolerations) }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: juicefs-format
+          image: {{ include "langsmithSandbox.image" . | quote }}
+          imagePullPolicy: {{ .Values.images.sandboxHost.pullPolicy }}
+          command: ["/opt/sandbox-host/bin/sandbox-host"]
+          args: ["--internal-juicefs-format"]
+          env:
+            - name: LANGCHAIN_ENV
+              value: "local_kubernetes"
+          securityContext:
+            {{- toYaml $job.securityContext | nindent 12 }}
+          resources:
+            {{- toYaml $job.resources | nindent 12 }}
+          volumeMounts:
+            - name: juicefs-config
+              mountPath: /run/secrets/juicefs
+              readOnly: true
+      volumes:
+        - name: juicefs-config
+          secret:
+            secretName: {{ include "langsmithSandbox.juicefsConfigSecretName" . }}
+            defaultMode: 0400
+{{- end }}

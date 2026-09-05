@@ -148,9 +148,13 @@ istioGateway:
   labels: {}
 
 
-# -- LangSmith Sandboxes. Same-cluster sandbox-host architecture on AWS/EKS, GCP/GKE, or Azure/AKS. sandbox-host mounts JuiceFS directly, and a singleton Job formats fresh JuiceFS metadata before hosts start serving.
+# -- LangSmith Sandboxes on AWS/EKS, GCP/GKE, or Azure/AKS. The default deploys sandbox-host in this cluster; separateCluster deploys the runtime with the langsmith-sandbox chart.
 sandboxes:
   enabled: false
+  # -- Sandbox runtime topology. sameCluster preserves the existing embedded sandbox-host deployment. separateCluster keeps the sandbox control plane here and expects a separate langsmith-sandbox release.
+  deploymentMode: "sameCluster"
+  # -- Optional URL through which the LangSmith control plane reaches sandbox-host in a separate cluster. Leave empty when cluster networks are routed and node IPs are reachable on port 19190. http(s) origin only, no path.
+  hostIngressEndpoint: ""
   # -- Private JWK signing sandbox callbacks, or key `sandbox_callback_signing_jwk` in config.existingSecretName. Needs config.hostname for the issuer, or signing fails closed.
   callbackSigningJwk: ""
   # -- Base URL for reaching HTTP services inside sandboxes. Needs wildcard DNS and TLS for `*.<host>`; with ingress.enabled the chart adds the wildcard rule. http(s) origin only, no path.

@@ -1,4 +1,4 @@
-{{- if and .Values.sandboxes.enabled .Values.sandboxes.sandboxHost.pdb.enabled }}
+{{- if and .Values.sandboxes.enabled (eq .Values.sandboxes.deploymentMode "sameCluster") .Values.sandboxes.sandboxHost.pdb.enabled }}
 apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
