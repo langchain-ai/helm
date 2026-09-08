@@ -6,7 +6,9 @@
   (dict "name" "SANDBOX_HOST_JUICEFS_META_URL_FILE")
   (dict "name" "SANDBOX_HOST_JUICEFS_MOUNT_OPTIONS")
 -}}
-{{- include "langsmith.detectDuplicates" (concat $managedHostMountEnv .Values.sandboxes.sandboxHost.deployment.extraEnv) }}
+{{- /* commonEnv joins the check so an operator-supplied var that collides with a
+managed one fails at render rather than silently winning by list order. */}}
+{{- include "langsmith.detectDuplicates" (concat $managedHostMountEnv .Values.commonEnv .Values.sandboxes.sandboxHost.deployment.extraEnv) }}
 {{- /* Chart labels last so they win; the selector depends on them. */}}
 {{- $labels := mergeOverwrite (dict "app" .Values.sandboxes.sandboxHost.name)
   (default dict .Values.sandboxes.sandboxHost.deployment.labels)
@@ -58,6 +60,7 @@ spec:
       {{- end }}
       hostNetwork: true
       dnsPolicy: ClusterFirstWithHostNet
+      {{- include "langsmith.dnsConfig" . | nindent 6 }}
       serviceAccountName: {{ include "langsmith.sandboxes.sandboxHostServiceAccountName" . }}
       affinity:
         podAntiAffinity:
@@ -165,7 +168,7 @@ spec:
             - name: SANDBOX_HOST_AUTOSCALE_SCALE_DOWN_STABILIZATION_SECONDS
               value: {{ $autoscaling.scaleDownStabilizationSeconds | quote }}
             {{- end }}
-            {{- with .Values.sandboxes.sandboxHost.deployment.extraEnv }}
+            {{- with concat .Values.commonEnv .Values.sandboxes.sandboxHost.deployment.extraEnv }}
               {{- toYaml . | nindent 12 }}
             {{- end }}
           {{- /* Fixed: the host's own defaults. SANDBOX_HOST_LISTEN_ADDR is not set. */}}

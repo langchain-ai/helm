@@ -1199,3 +1199,54 @@ tests:
       - equal:
           path: spec.template.spec.priorityClassName
           value: system-node-critical
+  # sandbox-host was the only pod spec in this chart that ignored commonDnsConfig
+  # and commonEnv. It resolves the external LangSmith API on every callback, so
+  # it needs the same DNS hook as its siblings.
+  - it: should apply commonDnsConfig to sandbox-host like every other pod
+    values:
+      - ./values/sandboxes-enabled.yaml
+    template: sandboxes/sandbox-host-deployment.yaml
+    asserts:
+      - equal:
+          path: spec.template.spec.dnsConfig.options[0].name
+          value: ndots
+      - equal:
+          path: spec.template.spec.dnsConfig.options[0].value
+          value: "4"
+
+  - it: should omit sandbox-host dnsConfig when commonDnsConfig is cleared
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      commonDnsConfig: null
+    template: sandboxes/sandbox-host-deployment.yaml
+    asserts:
+      - notExists:
+          path: spec.template.spec.dnsConfig
+
+  - it: should add commonEnv to sandbox-host
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      commonEnv:
+        - name: HTTPS_PROXY
+          value: http://proxy.internal:3128
+    template: sandboxes/sandbox-host-deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: HTTPS_PROXY
+            value: http://proxy.internal:3128
+
+  - it: should reject a sandbox-host commonEnv var that collides with a managed one
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      commonEnv:
+        - name: SANDBOX_HOST_JUICEFS_MOUNT_OPTIONS
+          value: "[]"
+    template: sandboxes/sandbox-host-deployment.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: "Duplicate keys detected: [SANDBOX_HOST_JUICEFS_MOUNT_OPTIONS]"
