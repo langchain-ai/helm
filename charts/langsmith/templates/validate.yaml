@@ -86,6 +86,10 @@ AWS Marketplace Helm template verification).
 {{- fail "smithdb.langsmith.lsmBackfill.enabled is no longer supported. Remove it and follow the SmithDB migration guidance for this chart version." -}}
 {{- end -}}
 {{- end -}}
+{{- /* Moved: the SmithDB migration workload is a Job, so its pod/container tuning lives under smithdb.migration.job. */ -}}
+{{- if hasKey .Values.smithdb.migration "deployment" -}}
+{{- fail "As of v17, the migration workload is configured under smithdb.migration.job. Configuration must be moved from smithdb.migration.deployment to smithdb.migration.job." -}}
+{{- end -}}
 
 {{- /* Validate ingress configuration */ -}}
 # Fail if none of ingress, gateway, or istioGateway are enabled and LangSmith Deployment is enabled with the chart-managed frontend

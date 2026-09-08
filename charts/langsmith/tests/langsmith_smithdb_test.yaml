@@ -1192,7 +1192,7 @@ tests:
     set:
       smithdb.langsmith.migration.enabled: true
       smithdb.langsmith.query.enabled: false
-      smithdb.migration.deployment.resources.limits.cpu: 4000m
+      smithdb.migration.job.resources.limits.cpu: 4000m
       smithdb.migration.taskdb.postgres.auth.password: taskdb-password
     template: smithdb/migration-job.yaml
     asserts:
