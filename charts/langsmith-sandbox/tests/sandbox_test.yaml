@@ -190,6 +190,37 @@ tests:
       - failedTemplate:
           errorMessage: "platform.endpoint must include the externally reachable LangSmith /api prefix."
 
+  # The sandbox IRSA role trusts one ServiceAccount by name (Terraform:
+  # sandbox_service_account_name, written into these values by init-values.sh).
+  # If this stops being honored, IRSA fails at runtime with a WebIdentityErr
+  # that points nowhere near the chart, so pin the behavior here.
+  - it: should name the sandbox-host ServiceAccount from serviceAccount.name
+    values:
+      - ./values/enabled.yaml
+    set:
+      sandboxHost.serviceAccount.name: sandbox-host
+    templates:
+      - sandbox-host-service-account.yaml
+      - sandbox-host-deployment.yaml
+    asserts:
+      - equal:
+          path: metadata.name
+          value: sandbox-host
+        template: sandbox-host-service-account.yaml
+      - equal:
+          path: spec.template.spec.serviceAccountName
+          value: sandbox-host
+        template: sandbox-host-deployment.yaml
+
+  - it: should fall back to the release-prefixed ServiceAccount name when unset
+    values:
+      - ./values/enabled.yaml
+    template: sandbox-host-service-account.yaml
+    asserts:
+      - equal:
+          path: metadata.name
+          value: RELEASE-NAME-langsmith-sandbox-sandbox-host
+
   - it: should render the optional sandbox-host disruption budget
     values:
       - ./values/enabled.yaml
