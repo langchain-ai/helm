@@ -8,12 +8,16 @@
   (dict "name" "SANDBOX_HOST_JUICEFS_META_URL_FILE")
   (dict "name" "SANDBOX_HOST_JUICEFS_MOUNT_OPTIONS")
 -}}
-{{- include "langsmithSandbox.detectDuplicates" (concat $managedEnv .Values.sandboxHost.deployment.extraEnv) }}
+{{- /* commonEnv joins the check so an operator-supplied var that collides with a
+managed one fails at render rather than silently winning by list order. */}}
+{{- include "langsmithSandbox.detectDuplicates" (concat $managedEnv .Values.commonEnv .Values.sandboxHost.deployment.extraEnv) }}
 {{- $labels := mergeOverwrite (dict "app" .Values.sandboxHost.name)
   (default dict .Values.sandboxHost.deployment.labels)
   (include "langsmithSandbox.labels" . | fromYaml)
   (dict "app.kubernetes.io/component" (include "langsmithSandbox.sandboxHostFullname" .)) }}
 {{- $callbackIssuer := .Values.platform.callbackIssuer | default .Values.platform.endpoint }}
+{{- $extraVolumes := concat .Values.commonVolumes .Values.sandboxHost.deployment.volumes }}
+{{- $extraVolumeMounts := concat .Values.commonVolumeMounts .Values.sandboxHost.deployment.volumeMounts }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -54,6 +58,7 @@ spec:
         {{- include "langsmithSandbox.podSecurityContext" (dict "Values" .Values "componentSecurityContext" .Values.sandboxHost.deployment.podSecurityContext) | nindent 8 }}
       hostNetwork: true
       dnsPolicy: ClusterFirstWithHostNet
+      {{- include "langsmithSandbox.dnsConfig" . | nindent 6 }}
       serviceAccountName: {{ include "langsmithSandbox.serviceAccountName" . }}
       affinity:
         podAntiAffinity:
@@ -78,7 +83,7 @@ spec:
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.sandboxHost.deployment.initContainers }}
+      {{- with concat .Values.commonInitContainers .Values.sandboxHost.deployment.initContainers }}
       initContainers:
         {{- toYaml . | nindent 8 }}
       {{- end }}
@@ -159,7 +164,7 @@ spec:
             - name: SSL_CERT_FILE
               value: /etc/ssl/certs/custom-ca-certificates.crt
             {{- end }}
-            {{- with .Values.sandboxHost.deployment.extraEnv }}
+            {{- with concat .Values.commonEnv .Values.sandboxHost.deployment.extraEnv }}
               {{- toYaml . | nindent 12 }}
             {{- end }}
           ports:
@@ -196,7 +201,7 @@ spec:
               subPath: ca-certificates.crt
               readOnly: true
             {{- end }}
-            {{- with .Values.sandboxHost.deployment.volumeMounts }}
+            {{- with $extraVolumeMounts }}
               {{- toYaml . | nindent 12 }}
             {{- end }}
         {{- with .Values.sandboxHost.deployment.sidecars }}
@@ -233,7 +238,7 @@ spec:
               - key: {{ .Values.customCa.secretKey }}
                 path: ca-certificates.crt
         {{- end }}
-        {{- with .Values.sandboxHost.deployment.volumes }}
+        {{- with $extraVolumes }}
           {{- toYaml . | nindent 8 }}
         {{- end }}
       terminationGracePeriodSeconds: {{ .Values.sandboxHost.deployment.terminationGracePeriodSeconds }}

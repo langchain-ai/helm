@@ -1,6 +1,6 @@
 # langsmith-sandbox
 
-![Version: 0.1.0-rc.1](https://img.shields.io/badge/Version-0.1.0--rc.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.17.18rc1](https://img.shields.io/badge/AppVersion-0.17.18rc1-informational?style=flat-square)
+![Version: 0.1.0-rc.2](https://img.shields.io/badge/Version-0.1.0--rc.2-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.17.18rc1](https://img.shields.io/badge/AppVersion-0.17.18rc1-informational?style=flat-square)
 
 Helm chart to deploy the LangSmith sandbox runtime in a dedicated Kubernetes cluster.
 
@@ -21,9 +21,14 @@ By default, the LangSmith control plane connects directly to the node IPs advert
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
 | commonAnnotations | object | `{}` | Annotations applied to all resources. |
+| commonDnsConfig | object | `{"options":[{"name":"ndots","value":"4"}]}` | DNS configuration applied to every sandbox runtime pod, including the JuiceFS formatter. sandbox-host resolves the external LangSmith API on each callback, so this is the hook for pointing at a specific resolver or trimming search-domain expansion. Set to null to inherit the Kubernetes defaults. |
+| commonEnv | list | `[]` | Environment variables added to sandbox-host. Applied before sandboxHost.deployment.extraEnv, and rejected at render time if a name collides with one the chart manages. |
+| commonInitContainers | list | `[]` | Init containers added to sandbox-host. Not applied to the JuiceFS formatter. |
 | commonLabels | object | `{}` | Labels applied to all resources. |
 | commonPodAnnotations | object | `{}` | Annotations applied to all pods. |
 | commonPodSecurityContext | object | `{}` | Pod security context merged into component-specific pod security contexts. |
+| commonVolumeMounts | list | `[]` | Volume mounts added to sandbox-host. Not applied to the JuiceFS formatter. |
+| commonVolumes | list | `[]` | Volumes added to sandbox-host. Not applied to the JuiceFS formatter, which is a one-shot Job with a fixed spec. |
 | customCa.existingSecretName | string | `""` | Existing Secret containing a CA certificate trusted when sandbox-host calls the LangSmith API. |
 | customCa.secretKey | string | `""` | Key within customCa.existingSecretName containing the CA certificate. |
 | fullnameOverride | string | `""` | String to fully override the chart's generated name. |

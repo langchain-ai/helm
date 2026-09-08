@@ -241,3 +241,124 @@ tests:
     asserts:
       - failedTemplate:
           errorMessage: "sandboxHost.deployment.nodeSelector is required: sandbox-host must be pinned to KVM-capable nodes."
+  # helm.sh/chart is a label value and therefore capped at 63 characters. Pin the
+  # truncation with a version whose build metadata pushes the untruncated string
+  # to 66, so dropping the helper fails here rather than at apply time.
+  - it: should truncate the chart label to a valid length
+    chart:
+      version: 0.1.0-rc.1+build.20260101120000.abcdef0123456789
+    values:
+      - ./values/enabled.yaml
+    template: sandbox-host-deployment.yaml
+    asserts:
+      - equal:
+          path: metadata.labels["helm.sh/chart"]
+          value: langsmith-sandbox-0.1.0-rc.1_build.20260101120000.abcdef0123456
+
+  - it: should apply commonDnsConfig to sandbox-host and the JuiceFS formatter
+    values:
+      - ./values/enabled.yaml
+    templates:
+      - sandbox-host-deployment.yaml
+      - juicefs-format-job.yaml
+    asserts:
+      - equal:
+          path: spec.template.spec.dnsConfig.options[0].name
+          value: ndots
+      - equal:
+          path: spec.template.spec.dnsConfig.options[0].value
+          value: "4"
+
+  - it: should omit dnsConfig when commonDnsConfig is cleared
+    values:
+      - ./values/enabled.yaml
+    set:
+      commonDnsConfig: null
+    templates:
+      - sandbox-host-deployment.yaml
+      - juicefs-format-job.yaml
+    asserts:
+      - notExists:
+          path: spec.template.spec.dnsConfig
+
+  # A Job's spec.template is immutable, so a dnsConfig change has to move the
+  # formatter's name or the next upgrade fails on the immutable field instead of
+  # rolling a fresh formatter. These two pin the default hash and the changed
+  # hash, so dropping dnsConfig from the name inputs collapses them and fails
+  # here. The chart version is pinned because it is itself a hash input —
+  # otherwise every release bump would invalidate both expectations.
+  - it: should name the JuiceFS formatter from its pod spec inputs
+    chart:
+      version: 0.0.0-test
+    values:
+      - ./values/enabled.yaml
+    template: juicefs-format-job.yaml
+    asserts:
+      - equal:
+          path: metadata.name
+          value: RELEASE-NAME-langsmith-sandbox-juicefs-format-138047bf
+
+  - it: should rename the JuiceFS formatter when commonDnsConfig changes
+    chart:
+      version: 0.0.0-test
+    values:
+      - ./values/enabled.yaml
+    set:
+      commonDnsConfig:
+        options:
+          - name: ndots
+            value: "1"
+    template: juicefs-format-job.yaml
+    asserts:
+      - equal:
+          path: metadata.name
+          value: RELEASE-NAME-langsmith-sandbox-juicefs-format-67cdd3d1
+
+  - it: should add commonEnv, volumes, mounts, and init containers to sandbox-host
+    values:
+      - ./values/enabled.yaml
+    set:
+      commonEnv:
+        - name: HTTPS_PROXY
+          value: http://proxy.internal:3128
+      commonVolumes:
+        - name: extra
+          emptyDir: {}
+      commonVolumeMounts:
+        - name: extra
+          mountPath: /extra
+      commonInitContainers:
+        - name: warm
+          image: busybox
+    template: sandbox-host-deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: HTTPS_PROXY
+            value: http://proxy.internal:3128
+      - contains:
+          path: spec.template.spec.volumes
+          content:
+            name: extra
+            emptyDir: {}
+      - contains:
+          path: spec.template.spec.containers[0].volumeMounts
+          content:
+            name: extra
+            mountPath: /extra
+      - equal:
+          path: spec.template.spec.initContainers[0].name
+          value: warm
+
+  - it: should reject a commonEnv var that collides with a chart-managed one
+    values:
+      - ./values/enabled.yaml
+    set:
+      commonEnv:
+        - name: LANGSMITH_SANDBOX_INTERNAL_ENDPOINT
+          value: http://elsewhere
+    template: sandbox-host-deployment.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: "Duplicate keys detected: [LANGSMITH_SANDBOX_INTERNAL_ENDPOINT]"

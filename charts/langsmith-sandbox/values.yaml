@@ -14,6 +14,25 @@ commonLabels: {}
 commonPodAnnotations: {}
 # -- Pod security context merged into component-specific pod security contexts.
 commonPodSecurityContext: {}
+# -- Environment variables added to sandbox-host. Applied before
+# sandboxHost.deployment.extraEnv, and rejected at render time if a name
+# collides with one the chart manages.
+commonEnv: []
+# -- Volumes added to sandbox-host. Not applied to the JuiceFS formatter, which
+# is a one-shot Job with a fixed spec.
+commonVolumes: []
+# -- Volume mounts added to sandbox-host. Not applied to the JuiceFS formatter.
+commonVolumeMounts: []
+# -- Init containers added to sandbox-host. Not applied to the JuiceFS formatter.
+commonInitContainers: []
+# -- DNS configuration applied to every sandbox runtime pod, including the
+# JuiceFS formatter. sandbox-host resolves the external LangSmith API on each
+# callback, so this is the hook for pointing at a specific resolver or trimming
+# search-domain expansion. Set to null to inherit the Kubernetes defaults.
+commonDnsConfig:
+  options:
+    - name: ndots
+      value: "4"
 
 images:
   # -- Optional registry prepended to the sandbox-host repository.

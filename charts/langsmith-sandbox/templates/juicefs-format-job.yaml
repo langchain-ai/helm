@@ -34,6 +34,7 @@ spec:
         {{- end }}
     spec:
       serviceAccountName: {{ include "langsmithSandbox.serviceAccountName" . }}
+      {{- include "langsmithSandbox.dnsConfig" . | nindent 6 }}
       restartPolicy: Never
       securityContext:
         {{- include "langsmithSandbox.podSecurityContext" (dict "Values" .Values "componentSecurityContext" $job.podSecurityContext) | nindent 8 }}

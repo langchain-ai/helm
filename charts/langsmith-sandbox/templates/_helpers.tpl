@@ -19,13 +19,21 @@
 {{- .Values.namespace | default .Release.Namespace -}}
 {{- end -}}
 
+{{- /* helm.sh/chart is a label value, so it is capped at 63 characters. A chart
+version carrying SemVer build metadata can exceed that once "+" becomes "_",
+which renders an invalid object the API server rejects. Truncate as the sibling
+charts do rather than inlining the printf. */}}
+{{- define "langsmithSandbox.chart" -}}
+{{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" }}
+{{- end }}
+
 {{- define "langsmithSandbox.selectorLabels" -}}
 app.kubernetes.io/name: {{ include "langsmithSandbox.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end -}}
 
 {{- define "langsmithSandbox.labels" -}}
-helm.sh/chart: {{ printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" }}
+helm.sh/chart: {{ include "langsmithSandbox.chart" . }}
 {{ include "langsmithSandbox.selectorLabels" . }}
 app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{- with .Values.commonLabels }}
@@ -48,6 +56,13 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{- define "langsmithSandbox.podSecurityContext" -}}
 {{- $merged := merge .componentSecurityContext .Values.commonPodSecurityContext -}}
 {{- toYaml $merged -}}
+{{- end -}}
+
+{{- define "langsmithSandbox.dnsConfig" -}}
+{{- if .Values.commonDnsConfig }}
+dnsConfig:
+  {{- toYaml .Values.commonDnsConfig | nindent 2 }}
+{{- end }}
 {{- end -}}
 
 {{- define "langsmithSandbox.image" -}}
@@ -104,6 +119,10 @@ access-key: {{ .Values.juicefs.storageAccountName | quote }}
 {{- end -}}
 {{- end -}}
 
+{{- /* A Job's spec.template is immutable, so every value that lands in the pod
+spec has to be part of the name hash. Otherwise changing one leaves the name
+fixed and the next helm upgrade fails on the immutable field instead of rolling
+a fresh formatter. */}}
 {{- define "langsmithSandbox.juicefsFormatJobName" -}}
 {{- $job := .Values.juicefsFormatJob -}}
 {{- $inputs := dict
@@ -121,6 +140,7 @@ access-key: {{ .Values.juicefs.storageAccountName | quote }}
   "nodeSelector" (default .Values.sandboxHost.deployment.nodeSelector $job.nodeSelector)
   "tolerations" (default .Values.sandboxHost.deployment.tolerations $job.tolerations)
   "affinity" $job.affinity
+  "dnsConfig" (include "langsmithSandbox.dnsConfig" .)
 -}}
 {{- printf "%s-juicefs-format-%s" (include "langsmithSandbox.fullname" .) (toJson $inputs | sha256sum | trunc 8) | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
