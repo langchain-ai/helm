@@ -1,0 +1,16 @@
+platform:
+  endpoint: https://langsmith.example.com/api
+serviceAuth:
+  existingSecretName: langsmith-sandbox-runtime
+images:
+  sandboxHost:
+    repository: example.com/langsmith/sandbox-host
+    tag: test-sandbox-host
+juicefs:
+  name: sandbox-juicefs
+  storage: s3
+  bucket: https://langsmith-sandboxes-test.s3.us-west-2.amazonaws.com
+  redis:
+    metaURL: redis://sandbox-juicefs-redis.example.com:6379/0
+sandboxHost:
+  enabled: true

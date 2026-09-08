@@ -1,0 +1,19 @@
+{{ template "chart.header" . }}
+
+{{ template "chart.versionBadge" . }}{{ template "chart.typeBadge" . }}{{ template "chart.appVersionBadge" . }}
+
+{{ template "chart.description" . }}
+
+## Usage
+
+Install this chart in a dedicated sandbox cluster with `sandboxHost.enabled=true` while the main `langsmith` chart uses `sandboxes.enabled=true` and `sandboxes.deploymentMode=separateCluster`.
+
+The sandbox cluster must have KVM-capable `linux/amd64` nodes, network access to the LangSmith API, a JuiceFS metadata Redis using `noeviction`, and object-storage access. Set `platform.endpoint` to the externally reachable LangSmith API base including `/api`.
+
+Create a minimal Secret in the sandbox namespace containing the same sandbox service-auth value and callback-signing JWK used by the LangSmith control plane, then set `serviceAuth.existingSecretName`. Do not copy the entire LangSmith application Secret into the sandbox cluster.
+
+For GitOps workflows that render without live cluster access, set `proxyCa.mode=existingSecret`. The default `generatedSecret` mode uses Helm `lookup` to preserve the CA, which pure render workflows cannot do.
+
+By default, the LangSmith control plane connects directly to the node IPs advertised by sandbox-host on TCP port 19190. If the cluster networks are not routed, enable `sandboxHost.ingress` and configure the resulting HTTP(S) origin as `sandboxes.hostIngressEndpoint` in the main `langsmith` chart.
+
+{{ template "chart.valuesSection" . }}

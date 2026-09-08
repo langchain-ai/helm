@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        chart-name: [ "langgraph-cloud", "langsmith", "langsmith-auth-proxy" ]
+        chart-name: [ "langgraph-cloud", "langsmith", "langsmith-auth-proxy", "langsmith-sandbox" ]
 
     steps:
       - name: Checkout

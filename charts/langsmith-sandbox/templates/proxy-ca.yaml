@@ -1,6 +1,6 @@
-{{- if and .Values.sandboxes.enabled (eq .Values.sandboxes.deploymentMode "sameCluster") (eq .Values.sandboxes.proxyCa.mode "generatedSecret") }}
-{{- $name := include "langsmith.sandboxes.proxyCaSecretName" . -}}
-{{- $namespace := .Values.namespace | default .Release.Namespace -}}
+{{- if and .Values.sandboxHost.enabled (eq .Values.proxyCa.mode "generatedSecret") }}
+{{- $name := include "langsmithSandbox.proxyCaSecretName" . -}}
+{{- $namespace := include "langsmithSandbox.namespace" . -}}
 {{- $existing := lookup "v1" "Secret" $namespace $name -}}
 apiVersion: v1
 kind: Secret
@@ -8,10 +8,10 @@ metadata:
   name: {{ $name }}
   namespace: {{ $namespace }}
   labels:
-    {{- include "langsmith.labels" . | nindent 4 }}
+    {{- include "langsmithSandbox.labels" . | nindent 4 }}
   annotations:
     "argocd.argoproj.io/sync-wave": "-2"
-    {{- include "langsmith.annotations" . | nindent 4 }}
+    {{- include "langsmithSandbox.annotations" . | nindent 4 }}
 type: kubernetes.io/tls
 data:
   {{- if $existing }}
