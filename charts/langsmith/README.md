@@ -1173,6 +1173,8 @@ Replica counts and autoscaling remain controlled by each component's `deployment
 | smithdb.metastoreMigration.job.nodeSelector | object | `{}` |  |
 | smithdb.metastoreMigration.job.podAnnotations | object | `{}` |  |
 | smithdb.metastoreMigration.job.podSecurityContext | object | `{}` |  |
+| smithdb.metastoreMigration.job.resources.limits.cpu | string | `"1000m"` |  |
+| smithdb.metastoreMigration.job.resources.limits.memory | string | `"1Gi"` |  |
 | smithdb.metastoreMigration.job.resources.requests.cpu | string | `"200m"` |  |
 | smithdb.metastoreMigration.job.resources.requests.memory | string | `"500Mi"` |  |
 | smithdb.metastoreMigration.job.restartPolicy | string | `"Never"` |  |
