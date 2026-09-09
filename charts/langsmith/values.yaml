@@ -1956,7 +1956,10 @@ smithdb:
       podAnnotations: {}
       podSecurityContext: {}
       securityContext: {}
-      resources: {}
+      resources:
+        requests:
+          cpu: 200m
+          memory: 500Mi
       extraEnv: []
       nodeSelector: {}
       tolerations: []
