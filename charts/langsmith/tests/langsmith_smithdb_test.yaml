@@ -972,6 +972,24 @@ tests:
             name: SMITHDB_COMPACTION_WORKER__MAX_CONCURRENT_JOBS
             value: "8"
 
+  - it: should set metastore migration resources
+    values:
+      - ./values/smithdb-enabled.yaml
+    template: smithdb/metastore-migration.yaml
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].resources.requests.cpu
+          value: 250m
+      - equal:
+          path: spec.template.spec.containers[0].resources.requests.memory
+          value: 256Mi
+      - equal:
+          path: spec.template.spec.containers[0].resources.limits.cpu
+          value: 500m
+      - equal:
+          path: spec.template.spec.containers[0].resources.limits.memory
+          value: 512Mi
+
   - it: should omit smithdb migration resources by default
     values:
       - ./values/smithdb-enabled.yaml
