@@ -49,6 +49,16 @@ tests:
       - failedTemplate:
           errorMessage: "smithdb.compactionWorker.autoscaling.minReplicas is no longer supported. Use autoscaling.hpa.* for chart-managed HPA or autoscaling.keda.* for KEDA; only one scaler can be enabled at a time."
 
+  - it: should reject legacy smithdb.migration.deployment values
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      config.existingSecretName: langsmith-secret
+      smithdb.migration.deployment.resources.limits.cpu: 4000m
+    asserts:
+      - failedTemplate:
+          errorMessage: "As of v17, the migration workload is configured under smithdb.migration.job. Configuration must be moved from smithdb.migration.deployment to smithdb.migration.job."
+
   - it: should reject legacy flat query autoscaling.enabled
     values:
       - ./values/smithdb-enabled.yaml

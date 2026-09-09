@@ -2015,6 +2015,34 @@ smithdb:
       # -- Optional hard deadline for the Job. Leave unset for long-running full migrations.
       activeDeadlineSeconds: null
       restartPolicy: Never
+      labels: {}
+      annotations: {}
+      podSecurityContext: {}
+      securityContext: {}
+      terminationGracePeriodSeconds: 120
+      resources:
+        requests:
+          cpu: "8"
+          memory: "32Gi"
+          ephemeral-storage: "100Gi"
+        limits:
+          cpu: "8"
+          memory: "32Gi"
+          ephemeral-storage: "100Gi"
+      # -- Runs taskdb schema migrations, then one-shot self-hosted migrate-all: discover tenants,
+      # -- register non-overlapping jobs, drain the global queue, and exit. Override for another migration mode.
+      command:
+        - "/usr/local/bin/smithdb-with-taskdb-migrations-entrypoint.sh"
+      extraEnv: []
+      extraContainerConfig: {}
+      sidecars: []
+      nodeSelector: {}
+      tolerations: []
+      affinity: {}
+      topologySpreadConstraints: []
+      volumes: []
+      volumeMounts: []
+      initContainers: []
     taskdb:
       postgres:
         # -- Enable Postgres for SmithDB migration task state. This is a separate database from
@@ -2119,35 +2147,6 @@ smithdb:
             enabled: true
             size: 50Gi
             storageClassName: ""
-    deployment:
-      labels: {}
-      annotations: {}
-      podSecurityContext: {}
-      securityContext: {}
-      terminationGracePeriodSeconds: 120
-      resources:
-        requests:
-          cpu: "8"
-          memory: "32Gi"
-          ephemeral-storage: "100Gi"
-        limits:
-          cpu: "8"
-          memory: "32Gi"
-          ephemeral-storage: "100Gi"
-      # -- Runs taskdb schema migrations, then one-shot self-hosted migrate-all: discover tenants,
-      # -- register non-overlapping jobs, drain the global queue, and exit. Override for another migration mode.
-      command:
-        - "/usr/local/bin/smithdb-with-taskdb-migrations-entrypoint.sh"
-      extraEnv: []
-      extraContainerConfig: {}
-      sidecars: []
-      nodeSelector: {}
-      tolerations: []
-      affinity: {}
-      topologySpreadConstraints: []
-      volumes: []
-      volumeMounts: []
-      initContainers: []
 
   metastoreMigration:
     name: "metastore-migration"

@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.17.0-rc.23](https://img.shields.io/badge/Version-0.17.0--rc.23-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.17.20rc1](https://img.shields.io/badge/AppVersion-0.17.20rc1-informational?style=flat-square)
+![Version: 0.17.0-rc.24](https://img.shields.io/badge/Version-0.17.0--rc.24-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.17.20rc1](https://img.shields.io/badge/AppVersion-0.17.20rc1-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -1180,34 +1180,34 @@ Replica counts and autoscaling remain controlled by each component's `deployment
 | smithdb.metastoreMigration.job.ttlSecondsAfterFinished | int | `3600` |  |
 | smithdb.metastoreMigration.name | string | `"metastore-migration"` |  |
 | smithdb.migration.containerPort | int | `9040` |  |
-| smithdb.migration.deployment.affinity | object | `{}` |  |
-| smithdb.migration.deployment.annotations | object | `{}` |  |
-| smithdb.migration.deployment.command | list | `["/usr/local/bin/smithdb-with-taskdb-migrations-entrypoint.sh"]` | register non-overlapping jobs, drain the global queue, and exit. Override for another migration mode. |
-| smithdb.migration.deployment.extraContainerConfig | object | `{}` |  |
-| smithdb.migration.deployment.extraEnv | list | `[]` |  |
-| smithdb.migration.deployment.initContainers | list | `[]` |  |
-| smithdb.migration.deployment.labels | object | `{}` |  |
-| smithdb.migration.deployment.nodeSelector | object | `{}` |  |
-| smithdb.migration.deployment.podSecurityContext | object | `{}` |  |
-| smithdb.migration.deployment.resources.limits.cpu | string | `"8"` |  |
-| smithdb.migration.deployment.resources.limits.ephemeral-storage | string | `"100Gi"` |  |
-| smithdb.migration.deployment.resources.limits.memory | string | `"32Gi"` |  |
-| smithdb.migration.deployment.resources.requests.cpu | string | `"8"` |  |
-| smithdb.migration.deployment.resources.requests.ephemeral-storage | string | `"100Gi"` |  |
-| smithdb.migration.deployment.resources.requests.memory | string | `"32Gi"` |  |
-| smithdb.migration.deployment.securityContext | object | `{}` |  |
-| smithdb.migration.deployment.sidecars | list | `[]` |  |
-| smithdb.migration.deployment.terminationGracePeriodSeconds | int | `120` |  |
-| smithdb.migration.deployment.tolerations | list | `[]` |  |
-| smithdb.migration.deployment.topologySpreadConstraints | list | `[]` |  |
-| smithdb.migration.deployment.volumeMounts | list | `[]` |  |
-| smithdb.migration.deployment.volumes | list | `[]` |  |
 | smithdb.migration.endTime | string | `""` | Optional RFC3339 end bound for migrate-all (half-open window). Empty uses now. |
 | smithdb.migration.job.activeDeadlineSeconds | string | `nil` | Optional hard deadline for the Job. Leave unset for long-running full migrations. |
+| smithdb.migration.job.affinity | object | `{}` |  |
+| smithdb.migration.job.annotations | object | `{}` |  |
 | smithdb.migration.job.backoffLimit | int | `3` | Retry failed migrate-all pods up to this many times before marking the Job failed. |
+| smithdb.migration.job.command | list | `["/usr/local/bin/smithdb-with-taskdb-migrations-entrypoint.sh"]` | register non-overlapping jobs, drain the global queue, and exit. Override for another migration mode. |
+| smithdb.migration.job.extraContainerConfig | object | `{}` |  |
+| smithdb.migration.job.extraEnv | list | `[]` |  |
+| smithdb.migration.job.initContainers | list | `[]` |  |
+| smithdb.migration.job.labels | object | `{}` |  |
+| smithdb.migration.job.nodeSelector | object | `{}` |  |
 | smithdb.migration.job.parallelism | int | `1` | migration pods. |
+| smithdb.migration.job.podSecurityContext | object | `{}` |  |
+| smithdb.migration.job.resources.limits.cpu | string | `"8"` |  |
+| smithdb.migration.job.resources.limits.ephemeral-storage | string | `"100Gi"` |  |
+| smithdb.migration.job.resources.limits.memory | string | `"32Gi"` |  |
+| smithdb.migration.job.resources.requests.cpu | string | `"8"` |  |
+| smithdb.migration.job.resources.requests.ephemeral-storage | string | `"100Gi"` |  |
+| smithdb.migration.job.resources.requests.memory | string | `"32Gi"` |  |
 | smithdb.migration.job.restartPolicy | string | `"Never"` |  |
+| smithdb.migration.job.securityContext | object | `{}` |  |
+| smithdb.migration.job.sidecars | list | `[]` |  |
+| smithdb.migration.job.terminationGracePeriodSeconds | int | `120` |  |
+| smithdb.migration.job.tolerations | list | `[]` |  |
+| smithdb.migration.job.topologySpreadConstraints | list | `[]` |  |
 | smithdb.migration.job.ttlSecondsAfterFinished | int | `604800` | Keep finished migrate-all Jobs around for seven days so operators can inspect status/logs. |
+| smithdb.migration.job.volumeMounts | list | `[]` |  |
+| smithdb.migration.job.volumes | list | `[]` |  |
 | smithdb.migration.name | string | `"migration"` |  |
 | smithdb.migration.startTime | string | `""` | Optional RFC3339 start bound for migrate-all (half-open window). Empty uses end - 400 days. |
 | smithdb.migration.taskdb.postgres.auth | object | `{"database":"smithdb_migration","existingSecretName":"","password":"","passwordSecretKey":"postgres_password","username":"postgres"}` | Credentials for the in-chart taskdb Postgres instance. Used only when external.enabled is false. |

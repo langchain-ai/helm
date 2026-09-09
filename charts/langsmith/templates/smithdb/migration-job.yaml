@@ -1,5 +1,5 @@
 {{- if and .Values.smithdb.enabled .Values.smithdb.langsmith.migration.enabled }}
-{{- $envVars := concat (include "langsmith.smithdb.componentEnv" (dict "root" . "service" "MIGRATION" "displayName" "smithdb-migration") | fromYamlArray) .Values.smithdb.migration.deployment.extraEnv -}}
+{{- $envVars := concat (include "langsmith.smithdb.componentEnv" (dict "root" . "service" "MIGRATION" "displayName" "smithdb-migration") | fromYamlArray) .Values.smithdb.migration.job.extraEnv -}}
 {{- include "langsmith.detectDuplicates" $envVars -}}
 {{- $blobStorage := .Values.config.blobStorage -}}
 {{- $smithdbObjectStore := .Values.smithdb.config.objectStore -}}
@@ -12,12 +12,12 @@ metadata:
   labels:
     {{- include "langsmith.labels" . | nindent 4 }}
     app.kubernetes.io/component: {{ include "langsmith.smithdb.componentName" (dict "root" . "component" "migration") }}
-    {{- with .Values.smithdb.migration.deployment.labels }}
+    {{- with .Values.smithdb.migration.job.labels }}
       {{- toYaml . | nindent 4 }}
     {{- end }}
   annotations:
     {{- include "langsmith.annotations" . | nindent 4 }}
-    {{- with .Values.smithdb.migration.deployment.annotations }}
+    {{- with .Values.smithdb.migration.job.annotations }}
       {{- toYaml . | nindent 4 }}
     {{- end }}
 spec:
@@ -31,34 +31,34 @@ spec:
     metadata:
       annotations:
         {{- include "langsmith.commonPodAnnotations" . | nindent 8 }}
-        {{- with .Values.smithdb.migration.deployment.annotations }}
+        {{- with .Values.smithdb.migration.job.annotations }}
           {{- toYaml . | nindent 8 }}
         {{- end }}
       labels:
         {{- include "langsmith.labels" . | nindent 8 }}
         app.kubernetes.io/component: {{ include "langsmith.smithdb.componentName" (dict "root" . "component" "migration") }}
-        {{- with .Values.smithdb.migration.deployment.labels }}
+        {{- with .Values.smithdb.migration.job.labels }}
           {{- toYaml . | nindent 8 }}
         {{- end }}
     spec:
       restartPolicy: {{ .Values.smithdb.migration.job.restartPolicy }}
-      terminationGracePeriodSeconds: {{ .Values.smithdb.migration.deployment.terminationGracePeriodSeconds }}
+      terminationGracePeriodSeconds: {{ .Values.smithdb.migration.job.terminationGracePeriodSeconds }}
       {{- with .Values.images.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       securityContext:
-        {{- toYaml .Values.smithdb.migration.deployment.podSecurityContext | nindent 8 }}
+        {{- toYaml .Values.smithdb.migration.job.podSecurityContext | nindent 8 }}
       serviceAccountName: {{ include "langsmith.smithdb.serviceAccountName" (dict "root" . "component" "migration") }}
       {{- include "langsmith.dnsConfig" . | nindent 6 }}
-      {{- with concat (include "langsmith.smithdb.commonInitContainers" . | fromYamlArray) .Values.smithdb.migration.deployment.initContainers }}
+      {{- with concat (include "langsmith.smithdb.commonInitContainers" . | fromYamlArray) .Values.smithdb.migration.job.initContainers }}
       initContainers:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       containers:
         - name: {{ .Values.smithdb.migration.name }}
           command:
-            {{- with .Values.smithdb.migration.deployment.command }}
+            {{- with .Values.smithdb.migration.job.command }}
             {{- toYaml . | nindent 12 }}
             {{- else }}
             - "/usr/local/bin/smithdb-with-taskdb-migrations-entrypoint.sh"
@@ -77,7 +77,7 @@ spec:
           env:
             - name: SMITHDB_MIGRATION__HTTP_PORT
               value: {{ .Values.smithdb.migration.containerPort | quote }}
-            {{- with (index (default (dict) .Values.smithdb.migration.deployment.resources.limits) "cpu") }}
+            {{- with (index (default (dict) .Values.smithdb.migration.job.resources.limits) "cpu") }}
             - name: SMITHDB_MIGRATION__WORKER_POOL__NUM_WORKERS
               value: {{ include "langsmith.smithdb.migrationNumWorkers" . | quote }}
             {{- end }}
@@ -283,36 +283,36 @@ spec:
               containerPort: {{ .Values.smithdb.migration.containerPort }}
               protocol: TCP
           resources:
-            {{- toYaml .Values.smithdb.migration.deployment.resources | nindent 12 }}
+            {{- toYaml .Values.smithdb.migration.job.resources | nindent 12 }}
           securityContext:
-            {{- toYaml .Values.smithdb.migration.deployment.securityContext | nindent 12 }}
-          {{- with .Values.smithdb.migration.deployment.volumeMounts }}
+            {{- toYaml .Values.smithdb.migration.job.securityContext | nindent 12 }}
+          {{- with .Values.smithdb.migration.job.volumeMounts }}
           volumeMounts:
             {{- toYaml . | nindent 12 }}
           {{- end }}
-          {{- with .Values.smithdb.migration.deployment.extraContainerConfig }}
+          {{- with .Values.smithdb.migration.job.extraContainerConfig }}
             {{- toYaml . | nindent 10 }}
           {{- end }}
-        {{- with .Values.smithdb.migration.deployment.sidecars }}
+        {{- with .Values.smithdb.migration.job.sidecars }}
           {{- toYaml . | nindent 8 }}
         {{- end }}
-      {{- with .Values.smithdb.migration.deployment.nodeSelector }}
+      {{- with .Values.smithdb.migration.job.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.smithdb.migration.deployment.affinity }}
+      {{- with .Values.smithdb.migration.job.affinity }}
       affinity:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.smithdb.migration.deployment.tolerations }}
+      {{- with .Values.smithdb.migration.job.tolerations }}
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.smithdb.migration.deployment.topologySpreadConstraints }}
+      {{- with .Values.smithdb.migration.job.topologySpreadConstraints }}
       topologySpreadConstraints:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.smithdb.migration.deployment.volumes }}
+      {{- with .Values.smithdb.migration.job.volumes }}
       volumes:
         {{- toYaml . | nindent 8 }}
       {{- end }}
