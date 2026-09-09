@@ -3548,6 +3548,11 @@ ingestQueue:
   enabled: true
   name: "ingest-queue"
   containerPort: 1989
+  # -- Priority of the `adhoc` asynq queue for this worker. This is the only Go
+  # asynq worker in the chart, so a value of 0 makes it skip the queue entirely
+  # and Engine runs and platform cron jobs are enqueued but never processed.
+  # Set to 0 only to deliberately stop draining the queue.
+  adhocQueuePriority: 1
   # -- ArgoCD Rollouts configuration. If enabled, will create a Rollout resource instead of a Deployment. See https://argo-rollouts.readthedocs.io/
   rollout:
     enabled: false

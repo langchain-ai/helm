@@ -1,0 +1,39 @@
+suite: adhoc queue priority
+templates:
+  - config-map.yaml
+  - secrets.yaml
+  - redis/secrets.yaml
+  - postgres/secrets.yaml
+  - clickhouse/secrets.yaml
+  - frontend/config-map.yaml
+  - ingest-queue/deployment.yaml
+tests:
+  - it: should give the adhoc queue a positive priority by default
+    template: ingest-queue/deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: "GO_ADHOC_QUEUE_PRIORITY"
+            value: "1"
+
+  - it: should allow operators to stop draining the adhoc queue
+    set:
+      ingestQueue.adhocQueuePriority: 0
+    template: ingest-queue/deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: "GO_ADHOC_QUEUE_PRIORITY"
+            value: "0"
+
+  - it: should fail when an operator also sets the priority via extraEnv
+    set:
+      ingestQueue.deployment.extraEnv:
+        - name: GO_ADHOC_QUEUE_PRIORITY
+          value: "1"
+    template: ingest-queue/deployment.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: "Duplicate keys detected: [GO_ADHOC_QUEUE_PRIORITY]"
