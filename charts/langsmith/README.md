@@ -1100,7 +1100,7 @@ Replica counts and autoscaling remain controlled by each component's `deployment
 | smithdb.config.objectStore.s3.region | string | `""` | Defaults to the SmithDB S3 client default when empty. |
 | smithdb.config.objectStore.s3.secretAccessKeySecretKey | string | `""` |  |
 | smithdb.config.objectStore.type | string | `"s3"` | Supported values: s3, gcs, azure. |
-| smithdb.enabled | bool | `false` | Documentation: https://docs.langchain.com/langsmith/self-host-smithdb |
+| smithdb.enabled | bool | `false` | SmithDB is opt-in. Setup guide: https://docs.langchain.com/langsmith/self-host-smithdb. Users are encouraged to reach out to LangChain support (https://support.langchain.com/) before enabling it. |
 | smithdb.ingestion.autoscaling.hpa.enabled | bool | `true` |  |
 | smithdb.ingestion.autoscaling.hpa.maxReplicas | int | `10` |  |
 | smithdb.ingestion.autoscaling.hpa.minReplicas | int | `1` |  |
