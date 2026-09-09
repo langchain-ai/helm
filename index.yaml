@@ -8648,6 +8648,19 @@ entries:
   langsmith-auth-proxy:
   - apiVersion: v2
     appVersion: 1.37.0
+    created: "2026-09-09T06:12:18.664441529Z"
+    description: Helm chart to deploy the langsmith auth-proxy application.
+    digest: d96fced9c2f7244b946eedeb6b222f51919d50a2edcc85dc5aabf5c955a51b98
+    maintainers:
+    - email: brian@langchain.dev
+      name: Brian
+    name: langsmith-auth-proxy
+    type: application
+    urls:
+    - https://github.com/langchain-ai/helm/releases/download/langsmith-auth-proxy-0.0.14/langsmith-auth-proxy-0.0.14.tgz
+    version: 0.0.14
+  - apiVersion: v2
+    appVersion: 1.37.0
     created: "2026-09-05T19:10:37.044986044Z"
     description: Helm chart to deploy the langsmith auth-proxy application.
     digest: c53b57f0506b556c5b6f7030a38fbe58c76bd77c17fd6ed0fb5b46323fdad97c
@@ -9086,4 +9099,4 @@ entries:
     urls:
     - https://github.com/langchain-ai/helm/releases/download/open-gpts-0.1.0/open-gpts-0.1.0.tgz
     version: 0.1.0
-generated: "2026-09-09T00:19:20.918378469Z"
+generated: "2026-09-09T06:12:18.665172309Z"
