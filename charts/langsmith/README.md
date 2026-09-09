@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.16.16](https://img.shields.io/badge/Version-0.16.16-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.16.50](https://img.shields.io/badge/AppVersion-0.16.50-informational?style=flat-square)
+![Version: 0.16.17](https://img.shields.io/badge/Version-0.16.17-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.16.50](https://img.shields.io/badge/AppVersion-0.16.50-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -1185,7 +1185,10 @@ Replica counts and autoscaling remain controlled by each component's `deployment
 | smithdb.metastoreMigration.job.nodeSelector | object | `{}` |  |
 | smithdb.metastoreMigration.job.podAnnotations | object | `{}` |  |
 | smithdb.metastoreMigration.job.podSecurityContext | object | `{}` |  |
-| smithdb.metastoreMigration.job.resources | object | `{}` |  |
+| smithdb.metastoreMigration.job.resources.limits.cpu | string | `"500m"` |  |
+| smithdb.metastoreMigration.job.resources.limits.memory | string | `"512Mi"` |  |
+| smithdb.metastoreMigration.job.resources.requests.cpu | string | `"250m"` |  |
+| smithdb.metastoreMigration.job.resources.requests.memory | string | `"256Mi"` |  |
 | smithdb.metastoreMigration.job.restartPolicy | string | `"Never"` |  |
 | smithdb.metastoreMigration.job.securityContext | object | `{}` |  |
 | smithdb.metastoreMigration.job.tolerations | list | `[]` |  |
