@@ -1,0 +1,45 @@
+charts/langsmith/tests/langsmith_smithdb_test.yaml
+  s_631c2a457dd42e::t_f308893d97db65 774-776
+  s_631c2a457dd42e::t_750050fff60815 727-728
+charts/langsmith/templates/smithdb/cluster-manager-deployment.yaml
+  s_631c2a457dd42e::t_eac9f4bb4f0bcb 78-79
+charts/langsmith/Chart.yaml
+  s_631c2a457dd42e::t_f309b9e6750f83 8
+charts/langsmith/templates/smithdb/compaction-worker-deployment.yaml
+  s_631c2a457dd42e::t_91dd281e7f57f9 22
+charts/langsmith/tests/langsmith_smithdb_validation_test.yaml
+  s_631c2a457dd42e::t_84b3e9d207de86 43-62
+charts/langsmith/templates/smithdb/query-deployment.yaml
+  s_631c2a457dd42e::t_dca86d53db0fd5 22
+charts/langsmith/templates/smithdb/ingestion-deployment.yaml
+  s_631c2a457dd42e::t_993bc23c570a4d 22
+charts/langsmith/templates/smithdb/query-hpa.yaml
+  s_631c2a457dd42e::t_f8b00c1255b45a 1
+  s_631c2a457dd42e::t_5b82914adb5871 15-16,19,22-23,25,28-29,36
+charts/langsmith/templates/smithdb/ingestion-hpa.yaml
+  s_631c2a457dd42e::t_69556d73c915ea 1
+  s_631c2a457dd42e::t_fe567a0bea5154 15-16,19,22-23,25,28-29,36
+charts/langsmith/templates/validate.yaml
+  s_631c2a457dd42e::t_9bfd9397e9b494 495,498-499,503,505-507,509-516
+charts/langsmith/values.yaml
+  s_631c2a457dd42e::t_04e8eb5e1af4b5 1501-1508
+  s_631c2a457dd42e::t_3a962507f09219 1577-1584
+charts/langsmith/README.md
+  s_631c2a457dd42e::t_2cc69c73743265 3,1100-1106,1266-1272
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "73edff6955cf0752140f725a3ebde09b58106c43",
+  "prompts": {},
+  "sessions": {
+    "s_631c2a457dd42e": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "b0a542dd-be30-4f33-8c8b-62b2a79b0e58",
+        "model": "auto-smart"
+      },
+      "human_author": "ben11211 <nagengast@langchain.dev>"
+    }
+  }
+}
