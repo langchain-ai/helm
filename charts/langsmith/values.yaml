@@ -1377,8 +1377,7 @@ aceBackend:
 
 smithdb:
   # -- Deploy the in-chart SmithDB workloads.
-  # -- V16 supports SmithDB in beta. We do not support or recommend customers setting this up on their own.
-  # -- Please express interest (https://www.langchain.com/smithdb-early-access-waitlist) and we will reach out promptly to ensure we can set you up for success with SmithDB.
+  # -- SmithDB is opt-in. Setup guide: https://docs.langchain.com/langsmith/self-host-smithdb. Users are encouraged to reach out to LangChain support (https://support.langchain.com/) before enabling it.
   enabled: false
   # -- Per-replica resource tier for SmithDB runtime components.
   # Supported values: small, medium, large. See the README for sizing and override behavior.
