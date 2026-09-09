@@ -979,16 +979,16 @@ tests:
     asserts:
       - equal:
           path: spec.template.spec.containers[0].resources.requests.cpu
-          value: 200m
+          value: 250m
       - equal:
           path: spec.template.spec.containers[0].resources.requests.memory
-          value: 500Mi
+          value: 256Mi
       - equal:
           path: spec.template.spec.containers[0].resources.limits.cpu
-          value: 1000m
+          value: 500m
       - equal:
           path: spec.template.spec.containers[0].resources.limits.memory
-          value: 1Gi
+          value: 512Mi
 
   - it: should omit smithdb migration resources by default
     values:

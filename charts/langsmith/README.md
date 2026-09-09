@@ -1173,10 +1173,10 @@ Replica counts and autoscaling remain controlled by each component's `deployment
 | smithdb.metastoreMigration.job.nodeSelector | object | `{}` |  |
 | smithdb.metastoreMigration.job.podAnnotations | object | `{}` |  |
 | smithdb.metastoreMigration.job.podSecurityContext | object | `{}` |  |
-| smithdb.metastoreMigration.job.resources.limits.cpu | string | `"1000m"` |  |
-| smithdb.metastoreMigration.job.resources.limits.memory | string | `"1Gi"` |  |
-| smithdb.metastoreMigration.job.resources.requests.cpu | string | `"200m"` |  |
-| smithdb.metastoreMigration.job.resources.requests.memory | string | `"500Mi"` |  |
+| smithdb.metastoreMigration.job.resources.limits.cpu | string | `"500m"` |  |
+| smithdb.metastoreMigration.job.resources.limits.memory | string | `"512Mi"` |  |
+| smithdb.metastoreMigration.job.resources.requests.cpu | string | `"250m"` |  |
+| smithdb.metastoreMigration.job.resources.requests.memory | string | `"256Mi"` |  |
 | smithdb.metastoreMigration.job.restartPolicy | string | `"Never"` |  |
 | smithdb.metastoreMigration.job.securityContext | object | `{}` |  |
 | smithdb.metastoreMigration.job.tolerations | list | `[]` |  |
