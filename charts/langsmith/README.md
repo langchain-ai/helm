@@ -1097,7 +1097,7 @@ Replica counts and autoscaling remain controlled by each component's `deployment
 | smithdb.config.objectStore.bucket | string | `""` |  |
 | smithdb.config.objectStore.s3.accessKeyIdSecretKey | string | `""` | Keys in smithdb.config.existingSecretName for static S3 credentials. Set both to "" when using ambient cloud identity, such as IRSA. |
 | smithdb.config.objectStore.s3.endpoint | string | `""` |  |
-| smithdb.config.objectStore.s3.kmsEncryptionEnabled | bool | `false` | Send SSE-KMS encryption headers on S3 writes. Mirrors config.blobStorage.kmsEncryptionEnabled. |
+| smithdb.config.objectStore.s3.kmsEncryptionEnabled | bool | `false` | Send SSE-KMS encryption headers on S3 writes. Same semantics as config.blobStorage.kmsEncryptionEnabled. |
 | smithdb.config.objectStore.s3.kmsKeyArn | string | `""` | KMS key ARN for SSE-KMS. When empty, S3 encrypts with the AWS managed aws/s3 key, not the bucket default key. |
 | smithdb.config.objectStore.s3.region | string | `""` | Defaults to the SmithDB S3 client default when empty. |
 | smithdb.config.objectStore.s3.secretAccessKeySecretKey | string | `""` |  |
