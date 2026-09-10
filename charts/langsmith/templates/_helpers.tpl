@@ -574,10 +574,10 @@ Args: root, component.
 
 {{/*
 Resolve volumes for a disk-using SmithDB component. When the volumes key is
-omitted, generate a per-pod generic ephemeral volume on the cluster default
-StorageClass, sized from the tier cache size. A user-provided list, including [],
-replaces the generated volumes; use it to select a StorageClass or to cache on
-local SSD through an emptyDir.
+omitted, generate a per-pod generic ephemeral volume sized from the tier cache
+size, on smithdb.cache.storageClassName or the cluster default StorageClass.
+A user-provided list, including [], replaces the generated volumes; use it to
+cache on local SSD through an emptyDir or to configure one component differently.
 Args: root, component.
 */}}
 {{- define "langsmith.smithdb.volumes" -}}
@@ -590,6 +590,9 @@ Args: root, component.
     volumeClaimTemplate:
       spec:
         accessModes: ["ReadWriteOnce"]
+        {{- with .root.Values.smithdb.cache.storageClassName }}
+        storageClassName: {{ . }}
+        {{- end }}
         resources:
           requests:
             storage: {{ include "langsmith.smithdb.cacheSize" . }}

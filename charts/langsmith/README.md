@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.17.0-rc.25](https://img.shields.io/badge/Version-0.17.0--rc.25-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.17.20rc1](https://img.shields.io/badge/AppVersion-0.17.20rc1-informational?style=flat-square)
+![Version: 0.17.0-rc.26](https://img.shields.io/badge/Version-0.17.0--rc.26-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.17.20rc1](https://img.shields.io/badge/AppVersion-0.17.20rc1-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -30,12 +30,9 @@ Two things worth planning for before you enable it:
 
 `smithdb.resourceTier` selects the default per-replica sizes shown below. The default is `small`. CPU and memory become the component's requests and limits. Cache is the size of the volume that query, ingestion, and compaction worker mount at `/data`.
 
-By default the cache is a per-pod [generic ephemeral volume](https://kubernetes.io/docs/concepts/storage/ephemeral-volumes/#generic-ephemeral-volumes) on the cluster default StorageClass, created with the pod and deleted with it. Cluster default StorageClasses are usually baseline performance; for the cache, provision at least 7000 IOPS and 1000 MiB/s. The SmithDB pods run as UID 1001, and the disk-using components default `podSecurityContext.fsGroup` to `1001` so they can write to a freshly provisioned volume.
+By default the cache is a per-pod [generic ephemeral volume](https://kubernetes.io/docs/concepts/storage/ephemeral-volumes/#generic-ephemeral-volumes), created with the pod and deleted with it. Set `smithdb.cache.storageClassName` to choose its StorageClass; when empty, the cluster default StorageClass applies. Cluster default StorageClasses are usually baseline performance; for the cache, provision at least 7000 IOPS and 1000 MiB/s. The SmithDB pods run as UID 1001, and the disk-using components default `podSecurityContext.fsGroup` to `1001` so they can write to a freshly provisioned volume.
 
-Set `deployment.volumes` on a component to replace the generated volume. Keep the volume name `local-ssd-storage`, which the default `volumeMounts` reference. Two common overrides:
-
-- A generic ephemeral volume with `storageClassName` set, to use a tuned StorageClass.
-- An `emptyDir` with `sizeLimit`, plus matching `ephemeral-storage` requests and limits in `deployment.resources`, to cache on local SSD node storage.
+Set `deployment.volumes` on a component to replace the generated volume entirely, for example to give one component a different StorageClass or size, or to cache on local SSD node storage with an `emptyDir` plus matching `ephemeral-storage` requests and limits in `deployment.resources`. Keep the volume name `local-ssd-storage`, which the default `volumeMounts` reference.
 
 Replica counts and autoscaling remain controlled by each component's `deployment.replicas` and `autoscaling` settings. Explicit component `resources` or `volumes` settings take precedence over the tier defaults. The query disk cache limit follows the tier cache size unless the component sets an `ephemeral-storage` limit, in which case it follows that limit.
 
@@ -940,6 +937,7 @@ Replica counts and autoscaling remain controlled by each component's `deployment
 | sandboxes.sandboxHost.pdb | object | `{"annotations":{},"enabled":false,"labels":{},"maxUnavailable":1}` | Disruption budget for sandbox-host, capping concurrent evictions since each drain suspends every microVM on that host. maxUnavailable keeps a small pool drainable; setting minAvailable overrides it. |
 | sandboxes.sandboxHost.serviceAccount.annotations | object | `{}` | Annotations applied to the sandbox-host ServiceAccount. Attach the AWS IRSA, GCP Workload Identity, or Azure Workload Identity that grants access to the JuiceFS object-storage bucket here. |
 | sandboxes.serviceUrlBaseUrl | string | `""` | Base URL for reaching HTTP services inside sandboxes. Needs wildcard DNS and TLS for `*.<host>`; with ingress.enabled the chart adds the wildcard rule. http(s) origin only, no path. |
+| smithdb.cache.storageClassName | string | `""` | StorageClass for the per-pod cache volumes of query, ingestion, and compaction worker. Empty uses the cluster default StorageClass. A component's deployment.volumes replaces the generated volume entirely. |
 | smithdb.clusterManager.containerGrpcPort | int | `8091` |  |
 | smithdb.clusterManager.containerPort | int | `8090` |  |
 | smithdb.clusterManager.deployment.affinity | object | `{}` |  |
@@ -1384,7 +1382,7 @@ Replica counts and autoscaling remain controlled by each component's `deployment
 | smithdb.query.service.annotations | object | `{}` |  |
 | smithdb.query.service.labels | object | `{}` |  |
 | smithdb.query.service.port | int | `8080` |  |
-| smithdb.resourceTier | string | `"small"` | Per-replica resource tier for SmithDB runtime components: CPU, memory, and cache volume size. Supported values: small, medium, large. The cache is a per-pod volume on the cluster default StorageClass; set deployment.volumes on a component to choose a StorageClass or to use local SSD. See the README. |
+| smithdb.resourceTier | string | `"small"` | Per-replica resource tier for SmithDB runtime components: CPU, memory, and cache volume size. Supported values: small, medium, large. The cache is a per-pod volume on the cluster default StorageClass; set deployment.volumes on a component to replace the generated volume, for example to use local SSD. See the README. |
 | smithdb.runRules.autoscaling.hpa.enabled | bool | `true` |  |
 | smithdb.runRules.autoscaling.hpa.maxReplicas | int | `5` |  |
 | smithdb.runRules.autoscaling.hpa.minReplicas | int | `1` |  |

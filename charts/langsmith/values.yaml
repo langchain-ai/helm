@@ -1381,8 +1381,11 @@ smithdb:
   enabled: false
   # -- Per-replica resource tier for SmithDB runtime components: CPU, memory, and cache volume size.
   # Supported values: small, medium, large. The cache is a per-pod volume on the cluster default StorageClass;
-  # set deployment.volumes on a component to choose a StorageClass or to use local SSD. See the README.
+  # set deployment.volumes on a component to replace the generated volume, for example to use local SSD. See the README.
   resourceTier: "small"
+  cache:
+    # -- StorageClass for the per-pod cache volumes of query, ingestion, and compaction worker. Empty uses the cluster default StorageClass. A component's deployment.volumes replaces the generated volume entirely.
+    storageClassName: ""
   # -- LangSmith configuration for SmithDB.
   langsmith:
     ingestion:

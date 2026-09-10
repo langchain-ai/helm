@@ -217,6 +217,49 @@ tests:
               emptyDir:
                 sizeLimit: 500Gi
 
+  - it: should apply the global cache StorageClass to generated cache volumes
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      smithdb.cache.storageClassName: smithdb-cache
+    template: smithdb/ingestion-deployment.yaml
+    asserts:
+      - equal:
+          path: spec.template.spec.volumes[0].ephemeral.volumeClaimTemplate.spec.storageClassName
+          value: smithdb-cache
+
+  - it: should omit storageClassName from generated cache volumes by default
+    values:
+      - ./values/smithdb-enabled.yaml
+    template: smithdb/ingestion-deployment.yaml
+    asserts:
+      - notExists:
+          path: spec.template.spec.volumes[0].ephemeral.volumeClaimTemplate.spec.storageClassName
+
+  - it: should let a component volumes override replace the global cache StorageClass
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      smithdb.cache.storageClassName: smithdb-cache
+      smithdb.query.deployment.volumes:
+        - name: local-ssd-storage
+          ephemeral:
+            volumeClaimTemplate:
+              spec:
+                accessModes: ["ReadWriteOnce"]
+                storageClassName: query-cache
+                resources:
+                  requests:
+                    storage: 500Gi
+    template: smithdb/query-deployment.yaml
+    asserts:
+      - equal:
+          path: spec.template.spec.volumes[0].ephemeral.volumeClaimTemplate.spec.storageClassName
+          value: query-cache
+      - equal:
+          path: spec.template.spec.volumes[0].ephemeral.volumeClaimTemplate.spec.resources.requests.storage
+          value: 500Gi
+
   - it: should cache on local SSD when a component sets an emptyDir and ephemeral-storage limit
     values:
       - ./values/smithdb-enabled.yaml
