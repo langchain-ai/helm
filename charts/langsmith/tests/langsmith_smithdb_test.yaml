@@ -60,9 +60,7 @@ tests:
           path: spec.template.spec.containers[0].env
           content:
             name: SMITHDB_QUERY__VORTEX_CACHE__DISK__LIMIT
-            valueFrom:
-              resourceFieldRef:
-                resource: limits.ephemeral-storage
+            value: "200Gi"
       - contains:
           path: spec.template.spec.containers[0].env
           content:
@@ -76,9 +74,22 @@ tests:
       - equal:
           path: spec.template.spec.containers[0].resources.requests.memory
           value: "8Gi"
-      - equal:
+      - notExists:
           path: spec.template.spec.containers[0].resources.requests.ephemeral-storage
-          value: "200Gi"
+      - equal:
+          path: spec.template.spec.volumes[0]
+          value:
+            name: local-ssd-storage
+            ephemeral:
+              volumeClaimTemplate:
+                spec:
+                  accessModes: ["ReadWriteOnce"]
+                  resources:
+                    requests:
+                      storage: 200Gi
+      - equal:
+          path: spec.template.spec.securityContext.fsGroup
+          value: 1001
 
   - it: should configure Azure Blob Storage for SmithDB
     values:
@@ -133,17 +144,12 @@ tests:
             requests:
               cpu: "28"
               memory: "48Gi"
-              ephemeral-storage: "200Gi"
             limits:
               cpu: "28"
               memory: "48Gi"
-              ephemeral-storage: "200Gi"
       - equal:
-          path: spec.template.spec.volumes[0]
-          value:
-            name: local-ssd-storage
-            emptyDir:
-              sizeLimit: "200Gi"
+          path: spec.template.spec.volumes[0].ephemeral.volumeClaimTemplate.spec.resources.requests.storage
+          value: 200Gi
 
   - it: should use the large SmithDB ingestion resources
     values:
@@ -158,12 +164,11 @@ tests:
       - equal:
           path: spec.template.spec.containers[0].resources.requests.memory
           value: "150Gi"
-      - equal:
+      - notExists:
           path: spec.template.spec.containers[0].resources.requests.ephemeral-storage
-          value: "1000Gi"
       - equal:
-          path: spec.template.spec.volumes[0].emptyDir.sizeLimit
-          value: "1000Gi"
+          path: spec.template.spec.volumes[0].ephemeral.volumeClaimTemplate.spec.resources.requests.storage
+          value: 1000Gi
 
   - it: should replace tier resources with an explicit component resources block
     values:
@@ -181,16 +186,18 @@ tests:
               cpu: 750m
             limits:
               cpu: "1"
-      - notContains:
+      - contains:
           path: spec.template.spec.containers[0].env
           content:
             name: SMITHDB_QUERY__VORTEX_CACHE__DISK__LIMIT
+            value: "1000Gi"
       - notContains:
           path: spec.template.spec.containers[0].env
           content:
             name: SMITHDB_QUERY__VORTEX_CACHE__MEMORY__LIMIT
-      - notExists:
-          path: spec.template.spec.volumes[0].emptyDir.sizeLimit
+      - equal:
+          path: spec.template.spec.volumes[0].ephemeral.volumeClaimTemplate.spec.resources.requests.storage
+          value: 1000Gi
 
   - it: should replace generated tier volumes with explicit component volumes
     values:
@@ -209,6 +216,39 @@ tests:
             - name: local-ssd-storage
               emptyDir:
                 sizeLimit: 500Gi
+
+  - it: should cache on local SSD when a component sets an emptyDir and ephemeral-storage limit
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      smithdb.query.deployment.resources:
+        requests:
+          cpu: "4"
+          memory: "8Gi"
+          ephemeral-storage: 200Gi
+        limits:
+          cpu: "4"
+          memory: "8Gi"
+          ephemeral-storage: 200Gi
+      smithdb.query.deployment.volumes:
+        - name: local-ssd-storage
+          emptyDir:
+            sizeLimit: 200Gi
+    template: smithdb/query-deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_QUERY__VORTEX_CACHE__DISK__LIMIT
+            valueFrom:
+              resourceFieldRef:
+                resource: limits.ephemeral-storage
+      - equal:
+          path: spec.template.spec.volumes
+          value:
+            - name: local-ssd-storage
+              emptyDir:
+                sizeLimit: 200Gi
 
   - it: should configure SmithDB Beacon log export with the LangSmith license secret
     values:
@@ -362,8 +402,13 @@ tests:
           path: spec.template.spec.volumes
           content:
             name: local-ssd-storage
-            emptyDir:
-              sizeLimit: 200Gi
+            ephemeral:
+              volumeClaimTemplate:
+                spec:
+                  accessModes: ["ReadWriteOnce"]
+                  resources:
+                    requests:
+                      storage: 200Gi
       - contains:
           path: spec.template.spec.containers[0].volumeMounts
           content:
@@ -902,8 +947,8 @@ tests:
           path: spec.template.spec.containers[0].resources.requests.memory
           value: "16Gi"
       - equal:
-          path: spec.template.spec.containers[0].resources.requests.ephemeral-storage
-          value: "100Gi"
+          path: spec.template.spec.volumes[0].ephemeral.volumeClaimTemplate.spec.resources.requests.storage
+          value: 100Gi
 
   - it: should enable compaction-worker KEDA scaling from pending jobs and CPU
     values:

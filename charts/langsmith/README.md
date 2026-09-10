@@ -28,16 +28,23 @@ Two things worth planning for before you enable it:
 
 ## SmithDB resource tiers
 
-`smithdb.resourceTier` selects the default per-replica resource sizes shown below. The default is `small`. For components that use local disk, the tier's ephemeral-storage limit also sets the generated `emptyDir.sizeLimit`.
+`smithdb.resourceTier` selects the default per-replica sizes shown below. The default is `small`. CPU and memory become the component's requests and limits. Cache is the size of the volume that query, ingestion, and compaction worker mount at `/data`.
 
-Replica counts and autoscaling remain controlled by each component's `deployment.replicas` and `autoscaling` settings. Explicit component `resources` or `volumes` settings take precedence over the tier defaults.
+By default the cache is a per-pod [generic ephemeral volume](https://kubernetes.io/docs/concepts/storage/ephemeral-volumes/#generic-ephemeral-volumes) on the cluster default StorageClass, created with the pod and deleted with it. Cluster default StorageClasses are usually baseline performance; for the cache, provision at least 7000 IOPS and 1000 MiB/s. The SmithDB pods run as UID 1001, and the disk-using components default `podSecurityContext.fsGroup` to `1001` so they can write to a freshly provisioned volume.
+
+Set `deployment.volumes` on a component to replace the generated volume. Keep the volume name `local-ssd-storage`, which the default `volumeMounts` reference. Two common overrides:
+
+- A generic ephemeral volume with `storageClassName` set, to use a tuned StorageClass.
+- An `emptyDir` with `sizeLimit`, plus matching `ephemeral-storage` requests and limits in `deployment.resources`, to cache on local SSD node storage.
+
+Replica counts and autoscaling remain controlled by each component's `deployment.replicas` and `autoscaling` settings. Explicit component `resources` or `volumes` settings take precedence over the tier defaults. The query disk cache limit follows the tier cache size unless the component sets an `ephemeral-storage` limit, in which case it follows that limit.
 
 | Component | Small | Medium | Large |
 |---|---|---|---|
-| Query | 4 CPU, 8Gi memory, 200Gi ephemeral | 28 CPU, 48Gi memory, 200Gi ephemeral | 28 CPU, 50Gi memory, 1000Gi ephemeral |
-| Ingestion | 4 CPU, 8Gi memory, 100Gi ephemeral | 16 CPU, 32Gi memory, 100Gi ephemeral | 56 CPU, 150Gi memory, 1000Gi ephemeral |
+| Query | 4 CPU, 8Gi memory, 200Gi cache | 28 CPU, 48Gi memory, 200Gi cache | 28 CPU, 50Gi memory, 1000Gi cache |
+| Ingestion | 4 CPU, 8Gi memory, 100Gi cache | 16 CPU, 32Gi memory, 100Gi cache | 56 CPU, 150Gi memory, 1000Gi cache |
 | Compaction | 2 CPU, 4Gi memory | 4 CPU, 8Gi memory | 8 CPU, 16Gi memory |
-| Compaction worker | 8 CPU, 16Gi memory, 100Gi ephemeral | 16 CPU, 32Gi memory, 100Gi ephemeral | 28 CPU, 50Gi memory, 300Gi ephemeral |
+| Compaction worker | 8 CPU, 16Gi memory, 100Gi cache | 16 CPU, 32Gi memory, 100Gi cache | 28 CPU, 50Gi memory, 300Gi cache |
 | Cluster manager | 250m CPU, 256Mi memory | 250m CPU, 256Mi memory | 2 CPU, 2Gi memory |
 
 ## General parameters
@@ -1050,7 +1057,7 @@ Replica counts and autoscaling remain controlled by each component's `deployment
 | smithdb.compactionWorker.deployment.initContainers | list | `[]` |  |
 | smithdb.compactionWorker.deployment.labels | object | `{}` |  |
 | smithdb.compactionWorker.deployment.nodeSelector | object | `{}` |  |
-| smithdb.compactionWorker.deployment.podSecurityContext | object | `{}` |  |
+| smithdb.compactionWorker.deployment.podSecurityContext.fsGroup | int | `1001` |  |
 | smithdb.compactionWorker.deployment.priorityClassName | string | `""` |  |
 | smithdb.compactionWorker.deployment.probes.livenessProbe.failureThreshold | int | `6` |  |
 | smithdb.compactionWorker.deployment.probes.livenessProbe.httpGet.path | string | `"/health"` |  |
@@ -1122,7 +1129,7 @@ Replica counts and autoscaling remain controlled by each component's `deployment
 | smithdb.ingestion.deployment.initContainers | list | `[]` |  |
 | smithdb.ingestion.deployment.labels | object | `{}` |  |
 | smithdb.ingestion.deployment.nodeSelector | object | `{}` |  |
-| smithdb.ingestion.deployment.podSecurityContext | object | `{}` |  |
+| smithdb.ingestion.deployment.podSecurityContext.fsGroup | int | `1001` |  |
 | smithdb.ingestion.deployment.priorityClassName | string | `""` |  |
 | smithdb.ingestion.deployment.probes.livenessProbe.failureThreshold | int | `6` |  |
 | smithdb.ingestion.deployment.probes.livenessProbe.httpGet.path | string | `"/health"` |  |
@@ -1287,7 +1294,7 @@ Replica counts and autoscaling remain controlled by each component's `deployment
 | smithdb.mutations.deployment.initContainers | list | `[]` |  |
 | smithdb.mutations.deployment.labels | object | `{}` |  |
 | smithdb.mutations.deployment.nodeSelector | object | `{}` |  |
-| smithdb.mutations.deployment.podSecurityContext | object | `{}` |  |
+| smithdb.mutations.deployment.podSecurityContext.fsGroup | int | `1001` |  |
 | smithdb.mutations.deployment.priorityClassName | string | `""` |  |
 | smithdb.mutations.deployment.probes.livenessProbe.failureThreshold | int | `6` |  |
 | smithdb.mutations.deployment.probes.livenessProbe.httpGet.path | string | `"/health"` |  |
@@ -1342,7 +1349,7 @@ Replica counts and autoscaling remain controlled by each component's `deployment
 | smithdb.query.deployment.initContainers | list | `[]` |  |
 | smithdb.query.deployment.labels | object | `{}` |  |
 | smithdb.query.deployment.nodeSelector | object | `{}` |  |
-| smithdb.query.deployment.podSecurityContext | object | `{}` |  |
+| smithdb.query.deployment.podSecurityContext.fsGroup | int | `1001` |  |
 | smithdb.query.deployment.priorityClassName | string | `""` |  |
 | smithdb.query.deployment.probes.livenessProbe.failureThreshold | int | `6` |  |
 | smithdb.query.deployment.probes.livenessProbe.httpGet.path | string | `"/health"` |  |
@@ -1377,7 +1384,7 @@ Replica counts and autoscaling remain controlled by each component's `deployment
 | smithdb.query.service.annotations | object | `{}` |  |
 | smithdb.query.service.labels | object | `{}` |  |
 | smithdb.query.service.port | int | `8080` |  |
-| smithdb.resourceTier | string | `"small"` | Per-replica resource tier for SmithDB runtime components. Supported values: small, medium, large. See the README for sizing and override behavior. |
+| smithdb.resourceTier | string | `"small"` | Per-replica resource tier for SmithDB runtime components: CPU, memory, and cache volume size. Supported values: small, medium, large. The cache is a per-pod volume on the cluster default StorageClass; set deployment.volumes on a component to choose a StorageClass or to use local SSD. See the README. |
 | smithdb.runRules.autoscaling.hpa.enabled | bool | `true` |  |
 | smithdb.runRules.autoscaling.hpa.maxReplicas | int | `5` |  |
 | smithdb.runRules.autoscaling.hpa.minReplicas | int | `1` |  |
@@ -1396,7 +1403,7 @@ Replica counts and autoscaling remain controlled by each component's `deployment
 | smithdb.runRules.deployment.initContainers | list | `[]` |  |
 | smithdb.runRules.deployment.labels | object | `{}` |  |
 | smithdb.runRules.deployment.nodeSelector | object | `{}` |  |
-| smithdb.runRules.deployment.podSecurityContext | object | `{}` |  |
+| smithdb.runRules.deployment.podSecurityContext.fsGroup | int | `1001` |  |
 | smithdb.runRules.deployment.priorityClassName | string | `""` |  |
 | smithdb.runRules.deployment.probes.livenessProbe.failureThreshold | int | `6` |  |
 | smithdb.runRules.deployment.probes.livenessProbe.httpGet.path | string | `"/health"` |  |
@@ -1452,7 +1459,7 @@ Replica counts and autoscaling remain controlled by each component's `deployment
 | smithdb.statsQuery.deployment.initContainers | list | `[]` |  |
 | smithdb.statsQuery.deployment.labels | object | `{}` |  |
 | smithdb.statsQuery.deployment.nodeSelector | object | `{}` |  |
-| smithdb.statsQuery.deployment.podSecurityContext | object | `{}` |  |
+| smithdb.statsQuery.deployment.podSecurityContext.fsGroup | int | `1001` |  |
 | smithdb.statsQuery.deployment.priorityClassName | string | `""` |  |
 | smithdb.statsQuery.deployment.probes.livenessProbe.failureThreshold | int | `6` |  |
 | smithdb.statsQuery.deployment.probes.livenessProbe.httpGet.path | string | `"/health"` |  |

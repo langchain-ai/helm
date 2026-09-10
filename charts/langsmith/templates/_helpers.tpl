@@ -512,65 +512,87 @@ Template containing common environment variables that are used by several servic
 {{- end }}
 
 {{/*
+SmithDB per-replica tier sizes. cpu and memory become requests and limits.
+cache is the cache volume size for components that cache data on disk.
+Unknown components fall back to the query sizes.
+Args: root, component.
+*/}}
+{{- define "langsmith.smithdb.tierResources" -}}
+{{- $root := .root -}}
+{{- $tiers := dict
+  "small" (dict
+    "query" (dict "cpu" "4" "memory" "8Gi" "cache" "200Gi")
+    "ingestion" (dict "cpu" "4" "memory" "8Gi" "cache" "100Gi")
+    "compaction" (dict "cpu" "2" "memory" "4Gi")
+    "compactionWorker" (dict "cpu" "8" "memory" "16Gi" "cache" "100Gi")
+    "clusterManager" (dict "cpu" "250m" "memory" "256Mi"))
+  "medium" (dict
+    "query" (dict "cpu" "28" "memory" "48Gi" "cache" "200Gi")
+    "ingestion" (dict "cpu" "16" "memory" "32Gi" "cache" "100Gi")
+    "compaction" (dict "cpu" "4" "memory" "8Gi")
+    "compactionWorker" (dict "cpu" "16" "memory" "32Gi" "cache" "100Gi")
+    "clusterManager" (dict "cpu" "250m" "memory" "256Mi"))
+  "large" (dict
+    "query" (dict "cpu" "28" "memory" "50Gi" "cache" "1000Gi")
+    "ingestion" (dict "cpu" "56" "memory" "150Gi" "cache" "1000Gi")
+    "compaction" (dict "cpu" "8" "memory" "16Gi")
+    "compactionWorker" (dict "cpu" "28" "memory" "50Gi" "cache" "300Gi")
+    "clusterManager" (dict "cpu" "2" "memory" "2Gi")) -}}
+{{- $tier := index $tiers $root.Values.smithdb.resourceTier -}}
+{{- $resources := index $tier .component -}}
+{{- if not $resources -}}
+{{- $resources = index $tier "query" -}}
+{{- end -}}
+{{- toYaml $resources -}}
+{{- end }}
+
+{{/*
 Resolve a SmithDB component's resources. An explicit non-empty component resources
-block replaces the selected tier resources.
+block replaces the selected tier resources. Tier resources never include
+ephemeral-storage: the cache lives on the volume from langsmith.smithdb.volumes.
 Args: root, component.
 */}}
 {{- define "langsmith.smithdb.resources" -}}
-{{- $root := .root -}}
-{{- $component := .component -}}
-{{- $deployment := (index $root.Values.smithdb $component).deployment -}}
+{{- $deployment := (index .root.Values.smithdb .component).deployment -}}
 {{- $componentResources := get $deployment "resources" -}}
 {{- if $componentResources -}}
 {{- toYaml $componentResources -}}
 {{- else -}}
-{{- $tiers := dict
-  "small" (dict
-    "query" (dict "cpu" "4" "memory" "8Gi" "ephemeral-storage" "200Gi")
-    "ingestion" (dict "cpu" "4" "memory" "8Gi" "ephemeral-storage" "100Gi")
-    "compaction" (dict "cpu" "2" "memory" "4Gi")
-    "compactionWorker" (dict "cpu" "8" "memory" "16Gi" "ephemeral-storage" "100Gi")
-    "clusterManager" (dict "cpu" "250m" "memory" "256Mi"))
-  "medium" (dict
-    "query" (dict "cpu" "28" "memory" "48Gi" "ephemeral-storage" "200Gi")
-    "ingestion" (dict "cpu" "16" "memory" "32Gi" "ephemeral-storage" "100Gi")
-    "compaction" (dict "cpu" "4" "memory" "8Gi")
-    "compactionWorker" (dict "cpu" "16" "memory" "32Gi" "ephemeral-storage" "100Gi")
-    "clusterManager" (dict "cpu" "250m" "memory" "256Mi"))
-  "large" (dict
-    "query" (dict "cpu" "28" "memory" "50Gi" "ephemeral-storage" "1000Gi")
-    "ingestion" (dict "cpu" "56" "memory" "150Gi" "ephemeral-storage" "1000Gi")
-    "compaction" (dict "cpu" "8" "memory" "16Gi")
-    "compactionWorker" (dict "cpu" "28" "memory" "50Gi" "ephemeral-storage" "300Gi")
-    "clusterManager" (dict "cpu" "2" "memory" "2Gi")) -}}
-{{- $tier := index $tiers $root.Values.smithdb.resourceTier -}}
-{{- $resources := index $tier $component -}}
-{{- if not $resources -}}
-{{- $resources = index $tier "query" -}}
-{{- end -}}
+{{- $resources := omit (include "langsmith.smithdb.tierResources" . | fromYaml) "cache" -}}
 {{- toYaml (dict "requests" $resources "limits" $resources) -}}
 {{- end -}}
 {{- end }}
 
 {{/*
+Cache volume size for a disk-using SmithDB component, from the selected tier.
+Empty for components without a cache.
+Args: root, component.
+*/}}
+{{- define "langsmith.smithdb.cacheSize" -}}
+{{- get (include "langsmith.smithdb.tierResources" . | fromYaml) "cache" -}}
+{{- end }}
+
+{{/*
 Resolve volumes for a disk-using SmithDB component. When the volumes key is
-omitted, generate the standard emptyDir and align its size limit with the
-resolved ephemeral-storage limit. A user-provided list, including [], replaces
-the generated volumes.
-Args: root, component, resources.
+omitted, generate a per-pod generic ephemeral volume on the cluster default
+StorageClass, sized from the tier cache size. A user-provided list, including [],
+replaces the generated volumes; use it to select a StorageClass or to cache on
+local SSD through an emptyDir.
+Args: root, component.
 */}}
 {{- define "langsmith.smithdb.volumes" -}}
-{{- $root := .root -}}
-{{- $deployment := (index $root.Values.smithdb .component).deployment -}}
+{{- $deployment := (index .root.Values.smithdb .component).deployment -}}
 {{- if hasKey $deployment "volumes" -}}
 {{- toYaml $deployment.volumes -}}
 {{- else -}}
-{{- $ephemeralStorage := index (default (dict) .resources.limits) "ephemeral-storage" -}}
 - name: local-ssd-storage
-  emptyDir:
-    {{- with $ephemeralStorage }}
-    sizeLimit: {{ . }}
-    {{- end }}
+  ephemeral:
+    volumeClaimTemplate:
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: {{ include "langsmith.smithdb.cacheSize" . }}
 {{- end -}}
 {{- end }}
 
