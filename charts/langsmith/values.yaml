@@ -1379,8 +1379,9 @@ smithdb:
   # -- Deploy the in-chart SmithDB workloads.
   # -- SmithDB is opt-in. Setup guide: https://docs.langchain.com/langsmith/self-host-smithdb. Users are encouraged to reach out to LangChain support (https://support.langchain.com/) before enabling it.
   enabled: false
-  # -- Per-replica resource tier for SmithDB runtime components.
-  # Supported values: small, medium, large. See the README for sizing and override behavior.
+  # -- Per-replica resource tier for SmithDB runtime components: CPU, memory, and cache volume size.
+  # Supported values: small, medium, large. The cache is a per-pod volume on the cluster default StorageClass;
+  # set deployment.volumes on a component to choose a StorageClass or to use local SSD. See the README.
   resourceTier: "small"
   # -- LangSmith configuration for SmithDB.
   langsmith:
@@ -1458,7 +1459,8 @@ smithdb:
           maxUnavailable: 0
       labels: {}
       annotations: {}
-      podSecurityContext: {}
+      podSecurityContext:
+        fsGroup: 1001
       securityContext: {}
       priorityClassName: ""
       probes:
@@ -1530,7 +1532,8 @@ smithdb:
           maxUnavailable: 0
       labels: {}
       annotations: {}
-      podSecurityContext: {}
+      podSecurityContext:
+        fsGroup: 1001
       securityContext: {}
       priorityClassName: ""
       probes:
@@ -1600,7 +1603,8 @@ smithdb:
           maxUnavailable: 0
       labels: {}
       annotations: {}
-      podSecurityContext: {}
+      podSecurityContext:
+        fsGroup: 1001
       securityContext: {}
       priorityClassName: ""
       probes:
@@ -1670,7 +1674,8 @@ smithdb:
           maxUnavailable: 0
       labels: {}
       annotations: {}
-      podSecurityContext: {}
+      podSecurityContext:
+        fsGroup: 1001
       securityContext: {}
       priorityClassName: ""
       probes:
@@ -1739,7 +1744,8 @@ smithdb:
           maxUnavailable: 0
       labels: {}
       annotations: {}
-      podSecurityContext: {}
+      podSecurityContext:
+        fsGroup: 1001
       securityContext: {}
       priorityClassName: ""
       probes:
@@ -1868,7 +1874,8 @@ smithdb:
       replicas: 2
       labels: {}
       annotations: {}
-      podSecurityContext: {}
+      podSecurityContext:
+        fsGroup: 1001
       securityContext: {}
       priorityClassName: ""
       terminationGracePeriodSeconds: 120
