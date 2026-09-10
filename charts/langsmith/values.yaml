@@ -1379,12 +1379,10 @@ smithdb:
   # -- Deploy the in-chart SmithDB workloads.
   # -- SmithDB is opt-in. Setup guide: https://docs.langchain.com/langsmith/self-host-smithdb. Users are encouraged to reach out to LangChain support (https://support.langchain.com/) before enabling it.
   enabled: false
-  # -- Per-replica resource tier for SmithDB runtime components: CPU, memory, and cache volume size.
-  # Supported values: small, medium, large. The cache is a per-pod volume on the cluster default StorageClass;
-  # set deployment.volumes on a component to replace the generated volume, for example to use local SSD. See the README.
+  # -- Per-replica CPU, memory, and cache volume size for SmithDB runtime components: small, medium, or large. See the README.
   resourceTier: "small"
   cache:
-    # -- StorageClass for the per-pod cache volumes of query, ingestion, and compaction worker. Empty uses the cluster default StorageClass. A component's deployment.volumes replaces the generated volume entirely.
+    # -- StorageClass for the generated SmithDB cache volumes. Empty uses the cluster default. A component's deployment.volumes replaces the generated volume.
     storageClassName: ""
   # -- LangSmith configuration for SmithDB.
   langsmith:

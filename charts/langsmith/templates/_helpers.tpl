@@ -512,9 +512,7 @@ Template containing common environment variables that are used by several servic
 {{- end }}
 
 {{/*
-SmithDB per-replica tier sizes. cpu and memory become requests and limits.
-cache is the cache volume size for components that cache data on disk.
-Unknown components fall back to the query sizes.
+Per-replica sizes for the selected SmithDB tier. Unknown components use the query sizes.
 Args: root, component.
 */}}
 {{- define "langsmith.smithdb.tierResources" -}}
@@ -547,9 +545,7 @@ Args: root, component.
 {{- end }}
 
 {{/*
-Resolve a SmithDB component's resources. An explicit non-empty component resources
-block replaces the selected tier resources. Tier resources never include
-ephemeral-storage: the cache lives on the volume from langsmith.smithdb.volumes.
+Resolve a SmithDB component's resources. An explicit component resources block replaces the tier.
 Args: root, component.
 */}}
 {{- define "langsmith.smithdb.resources" -}}
@@ -564,8 +560,7 @@ Args: root, component.
 {{- end }}
 
 {{/*
-Cache volume size for a disk-using SmithDB component, from the selected tier.
-Empty for components without a cache.
+Tier cache volume size for a SmithDB component. Empty for components without a cache.
 Args: root, component.
 */}}
 {{- define "langsmith.smithdb.cacheSize" -}}
@@ -573,11 +568,9 @@ Args: root, component.
 {{- end }}
 
 {{/*
-Resolve volumes for a disk-using SmithDB component. When the volumes key is
-omitted, generate a per-pod generic ephemeral volume sized from the tier cache
-size, on smithdb.cache.storageClassName or the cluster default StorageClass.
-A user-provided list, including [], replaces the generated volumes; use it to
-cache on local SSD through an emptyDir or to configure one component differently.
+Resolve volumes for a disk-using SmithDB component. Without a volumes key, generate a per-pod
+ephemeral volume sized from the tier on smithdb.cache.storageClassName. A user-provided list,
+including [], replaces it.
 Args: root, component.
 */}}
 {{- define "langsmith.smithdb.volumes" -}}

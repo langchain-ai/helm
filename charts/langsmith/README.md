@@ -937,7 +937,7 @@ Replica counts and autoscaling remain controlled by each component's `deployment
 | sandboxes.sandboxHost.pdb | object | `{"annotations":{},"enabled":false,"labels":{},"maxUnavailable":1}` | Disruption budget for sandbox-host, capping concurrent evictions since each drain suspends every microVM on that host. maxUnavailable keeps a small pool drainable; setting minAvailable overrides it. |
 | sandboxes.sandboxHost.serviceAccount.annotations | object | `{}` | Annotations applied to the sandbox-host ServiceAccount. Attach the AWS IRSA, GCP Workload Identity, or Azure Workload Identity that grants access to the JuiceFS object-storage bucket here. |
 | sandboxes.serviceUrlBaseUrl | string | `""` | Base URL for reaching HTTP services inside sandboxes. Needs wildcard DNS and TLS for `*.<host>`; with ingress.enabled the chart adds the wildcard rule. http(s) origin only, no path. |
-| smithdb.cache.storageClassName | string | `""` | StorageClass for the per-pod cache volumes of query, ingestion, and compaction worker. Empty uses the cluster default StorageClass. A component's deployment.volumes replaces the generated volume entirely. |
+| smithdb.cache.storageClassName | string | `""` | StorageClass for the generated SmithDB cache volumes. Empty uses the cluster default. A component's deployment.volumes replaces the generated volume. |
 | smithdb.clusterManager.containerGrpcPort | int | `8091` |  |
 | smithdb.clusterManager.containerPort | int | `8090` |  |
 | smithdb.clusterManager.deployment.affinity | object | `{}` |  |
@@ -1382,7 +1382,7 @@ Replica counts and autoscaling remain controlled by each component's `deployment
 | smithdb.query.service.annotations | object | `{}` |  |
 | smithdb.query.service.labels | object | `{}` |  |
 | smithdb.query.service.port | int | `8080` |  |
-| smithdb.resourceTier | string | `"small"` | Per-replica resource tier for SmithDB runtime components: CPU, memory, and cache volume size. Supported values: small, medium, large. The cache is a per-pod volume on the cluster default StorageClass; set deployment.volumes on a component to replace the generated volume, for example to use local SSD. See the README. |
+| smithdb.resourceTier | string | `"small"` | Per-replica CPU, memory, and cache volume size for SmithDB runtime components: small, medium, or large. See the README. |
 | smithdb.runRules.autoscaling.hpa.enabled | bool | `true` |  |
 | smithdb.runRules.autoscaling.hpa.maxReplicas | int | `5` |  |
 | smithdb.runRules.autoscaling.hpa.minReplicas | int | `1` |  |
