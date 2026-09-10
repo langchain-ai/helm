@@ -831,6 +831,14 @@ Args: root, service, displayName.
       name: {{ $root.Values.smithdb.config.existingSecretName }}
       key: {{ $root.Values.smithdb.config.objectStore.s3.secretAccessKeySecretKey }}
 {{- end }}
+{{- if $root.Values.smithdb.config.objectStore.s3.kmsEncryptionEnabled }}
+- name: {{ $prefix }}__OBJECT_STORE__S3__KMS_ENCRYPTION_ENABLED
+  value: {{ $root.Values.smithdb.config.objectStore.s3.kmsEncryptionEnabled | quote }}
+{{- with $root.Values.smithdb.config.objectStore.s3.kmsKeyArn }}
+- name: {{ $prefix }}__OBJECT_STORE__S3__KMS_KEY_ARN
+  value: {{ . | quote }}
+{{- end }}
+{{- end }}
 {{- else if eq $objectStoreType "gcs" }}
 - name: {{ $prefix }}__OBJECT_STORE__GCS__BUCKET
   value: {{ $root.Values.smithdb.config.objectStore.bucket | quote }}
