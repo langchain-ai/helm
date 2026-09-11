@@ -1379,9 +1379,11 @@ smithdb:
   # -- Deploy the in-chart SmithDB workloads.
   # -- SmithDB is opt-in. Setup guide: https://docs.langchain.com/langsmith/self-host-smithdb. Users are encouraged to reach out to LangChain support (https://support.langchain.com/) before enabling it.
   enabled: false
-  # -- Per-replica resource tier for SmithDB runtime components.
-  # Supported values: small, medium, large. See the README for sizing and override behavior.
+  # -- Per-replica CPU, memory, and cache volume size for SmithDB runtime components: small, medium, or large. See the README.
   resourceTier: "small"
+  cache:
+    # -- StorageClass for the generated SmithDB cache volumes. Empty uses the cluster default. A component's deployment.volumes replaces the generated volume.
+    storageClassName: ""
   # -- LangSmith configuration for SmithDB.
   langsmith:
     ingestion:
@@ -1458,7 +1460,8 @@ smithdb:
           maxUnavailable: 0
       labels: {}
       annotations: {}
-      podSecurityContext: {}
+      podSecurityContext:
+        fsGroup: 1001
       securityContext: {}
       priorityClassName: ""
       probes:
@@ -1494,7 +1497,7 @@ smithdb:
       affinity: {}
       topologySpreadConstraints: []
       volumeMounts:
-        - name: local-ssd-storage
+        - name: cache
           mountPath: /data
       initContainers: []
     service:
@@ -1530,7 +1533,8 @@ smithdb:
           maxUnavailable: 0
       labels: {}
       annotations: {}
-      podSecurityContext: {}
+      podSecurityContext:
+        fsGroup: 1001
       securityContext: {}
       priorityClassName: ""
       probes:
@@ -1564,7 +1568,7 @@ smithdb:
       affinity: {}
       topologySpreadConstraints: []
       volumeMounts:
-        - name: local-ssd-storage
+        - name: cache
           mountPath: /data
       initContainers: []
     service:
@@ -1600,7 +1604,8 @@ smithdb:
           maxUnavailable: 0
       labels: {}
       annotations: {}
-      podSecurityContext: {}
+      podSecurityContext:
+        fsGroup: 1001
       securityContext: {}
       priorityClassName: ""
       probes:
@@ -1634,7 +1639,7 @@ smithdb:
       affinity: {}
       topologySpreadConstraints: []
       volumeMounts:
-        - name: local-ssd-storage
+        - name: cache
           mountPath: /data
       initContainers: []
     service:
@@ -1670,7 +1675,8 @@ smithdb:
           maxUnavailable: 0
       labels: {}
       annotations: {}
-      podSecurityContext: {}
+      podSecurityContext:
+        fsGroup: 1001
       securityContext: {}
       priorityClassName: ""
       probes:
@@ -1704,7 +1710,7 @@ smithdb:
       affinity: {}
       topologySpreadConstraints: []
       volumeMounts:
-        - name: local-ssd-storage
+        - name: cache
           mountPath: /data
       initContainers: []
     service:
@@ -1739,7 +1745,8 @@ smithdb:
           maxUnavailable: 0
       labels: {}
       annotations: {}
-      podSecurityContext: {}
+      podSecurityContext:
+        fsGroup: 1001
       securityContext: {}
       priorityClassName: ""
       probes:
@@ -1780,7 +1787,7 @@ smithdb:
       affinity: {}
       topologySpreadConstraints: []
       volumeMounts:
-        - name: local-ssd-storage
+        - name: cache
           mountPath: /data
       initContainers: []
     service:
@@ -1868,7 +1875,8 @@ smithdb:
       replicas: 2
       labels: {}
       annotations: {}
-      podSecurityContext: {}
+      podSecurityContext:
+        fsGroup: 1001
       securityContext: {}
       priorityClassName: ""
       terminationGracePeriodSeconds: 120
@@ -1906,7 +1914,7 @@ smithdb:
       affinity: {}
       topologySpreadConstraints: []
       volumeMounts:
-        - name: local-ssd-storage
+        - name: cache
           mountPath: /data
       initContainers: []
     pdb:
