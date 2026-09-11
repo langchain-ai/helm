@@ -568,6 +568,26 @@ Args: root, component.
 {{- end }}
 
 {{/*
+Query cache limit from the resolved cache volume. Both generated and custom inline
+PVCs carry their size in the claim template; emptyDir uses the container limit.
+Args: component, volumes, resources.
+*/}}
+{{- define "langsmith.smithdb.queryCacheLimit" -}}
+{{- range .volumes -}}
+{{- if eq .name "cache" -}}
+{{- if hasKey . "ephemeral" -}}
+value: {{ required (printf "smithdb.%s cache volume requires requests.storage." $.component) (dig "ephemeral" "volumeClaimTemplate" "spec" "resources" "requests" "storage" "" .) | quote }}
+{{- else if hasKey . "emptyDir" -}}
+{{- $_ := required (printf "smithdb.%s.deployment.resources.limits.ephemeral-storage is required for an emptyDir cache." $.component) (index (default (dict) $.resources.limits) "ephemeral-storage") -}}
+valueFrom:
+  resourceFieldRef:
+    resource: limits.ephemeral-storage
+{{- end -}}
+{{- end -}}
+{{- end -}}
+{{- end }}
+
+{{/*
 Resolve volumes for a disk-using SmithDB component. Without a volumes key, generate a per-pod
 ephemeral volume sized from the tier on smithdb.cache.storageClassName. A user-provided list,
 including [], replaces it.
@@ -575,10 +595,20 @@ Args: root, component.
 */}}
 {{- define "langsmith.smithdb.volumes" -}}
 {{- $deployment := (index .root.Values.smithdb .component).deployment -}}
+{{- range $deployment.volumeMounts -}}
+{{- if and (eq .mountPath "/data") (ne .name "cache") -}}
+{{- fail (printf "smithdb.%s cache volume mounted at /data must be named cache." $.component) -}}
+{{- end -}}
+{{- end -}}
 {{- if hasKey $deployment "volumes" -}}
+{{- range $deployment.volumes -}}
+{{- if and (eq .name "cache") (not (or (hasKey . "emptyDir") (hasKey . "ephemeral"))) -}}
+{{- fail (printf "smithdb.%s cache volume must use emptyDir or ephemeral.volumeClaimTemplate; existing PVC references are not supported." $.component) -}}
+{{- end -}}
+{{- end -}}
 {{- toYaml $deployment.volumes -}}
 {{- else -}}
-- name: local-ssd-storage
+- name: cache
   ephemeral:
     volumeClaimTemplate:
       spec:

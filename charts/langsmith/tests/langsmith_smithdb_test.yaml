@@ -79,7 +79,7 @@ tests:
       - equal:
           path: spec.template.spec.volumes[0]
           value:
-            name: local-ssd-storage
+            name: cache
             ephemeral:
               volumeClaimTemplate:
                 spec:
@@ -204,8 +204,9 @@ tests:
       - ./values/smithdb-enabled.yaml
     set:
       smithdb.resourceTier: large
+      smithdb.query.deployment.resources.limits.ephemeral-storage: 500Gi
       smithdb.query.deployment.volumes:
-        - name: local-ssd-storage
+        - name: cache
           emptyDir:
             sizeLimit: 500Gi
     template: smithdb/query-deployment.yaml
@@ -213,7 +214,7 @@ tests:
       - equal:
           path: spec.template.spec.volumes
           value:
-            - name: local-ssd-storage
+            - name: cache
               emptyDir:
                 sizeLimit: 500Gi
 
@@ -242,7 +243,7 @@ tests:
     set:
       smithdb.cache.storageClassName: smithdb-cache
       smithdb.query.deployment.volumes:
-        - name: local-ssd-storage
+        - name: cache
           ephemeral:
             volumeClaimTemplate:
               spec:
@@ -260,7 +261,7 @@ tests:
           path: spec.template.spec.volumes[0].ephemeral.volumeClaimTemplate.spec.resources.requests.storage
           value: 500Gi
 
-  - it: should cache on local SSD when a component sets an emptyDir and ephemeral-storage limit
+  - it: should automatically configure the local SSD cache budget
     values:
       - ./values/smithdb-enabled.yaml
     set:
@@ -274,7 +275,7 @@ tests:
           memory: "8Gi"
           ephemeral-storage: 200Gi
       smithdb.query.deployment.volumes:
-        - name: local-ssd-storage
+        - name: cache
           emptyDir:
             sizeLimit: 200Gi
     template: smithdb/query-deployment.yaml
@@ -289,7 +290,7 @@ tests:
       - equal:
           path: spec.template.spec.volumes
           value:
-            - name: local-ssd-storage
+            - name: cache
               emptyDir:
                 sizeLimit: 200Gi
 
@@ -406,20 +407,21 @@ tests:
             name: SMITHDB_METASTORE_MIGRATE__METASTORE__USE_SSL
             value: "true"
 
-  - it: should size the SmithDB query disk cache from its ephemeral storage limit
+  - it: should size the generated PVC cache independently of node ephemeral storage
     values:
       - ./values/smithdb-enabled.yaml
     set:
-      smithdb.query.deployment.resources.limits.ephemeral-storage: 100Gi
+      smithdb.query.deployment.resources.limits.ephemeral-storage: 500Gi
     template: smithdb/query-deployment.yaml
     asserts:
       - contains:
           path: spec.template.spec.containers[0].env
           content:
             name: SMITHDB_QUERY__VORTEX_CACHE__DISK__LIMIT
-            valueFrom:
-              resourceFieldRef:
-                resource: limits.ephemeral-storage
+            value: "200Gi"
+      - equal:
+          path: spec.template.spec.volumes[0].ephemeral.volumeClaimTemplate.spec.resources.requests.storage
+          value: 200Gi
 
   - it: should size the SmithDB query memory cache from its memory limit
     values:
@@ -444,7 +446,7 @@ tests:
       - contains:
           path: spec.template.spec.volumes
           content:
-            name: local-ssd-storage
+            name: cache
             ephemeral:
               volumeClaimTemplate:
                 spec:
@@ -455,7 +457,7 @@ tests:
       - contains:
           path: spec.template.spec.containers[0].volumeMounts
           content:
-            name: local-ssd-storage
+            name: cache
             mountPath: /data
 
   - it: should derive the plaintext SmithDB OTLP endpoint from chart-level tracing

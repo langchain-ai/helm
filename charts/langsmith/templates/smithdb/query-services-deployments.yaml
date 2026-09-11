@@ -6,9 +6,13 @@
 {{- $displayName := printf "smithdb-%s" $componentValues.name }}
 {{- $clusterManagerServiceTypes := dict "mutations" "mutations" "runRules" "rules_query" "statsQuery" "stats_query" }}
 {{- $resources := include "langsmith.smithdb.resources" (dict "root" $ "component" $component) | fromYaml -}}
-{{- $cacheSize := include "langsmith.smithdb.cacheSize" (dict "root" $ "component" $component) -}}
+{{- $volumes := include "langsmith.smithdb.volumes" (dict "root" $ "component" $component) | fromYamlArray -}}
 {{- $envVars := concat (include "langsmith.smithdb.componentEnv" (dict "root" $ "service" "QUERY" "displayName" $displayName) | fromYamlArray) $componentValues.deployment.extraEnv -}}
 {{- include "langsmith.detectDuplicates" $envVars -}}
+{{- $hasDiskCacheLimit := false -}}
+{{- range $envVars -}}
+{{- $hasDiskCacheLimit = or $hasDiskCacheLimit (eq .name "SMITHDB_QUERY__VORTEX_CACHE__DISK__LIMIT") -}}
+{{- end -}}
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -78,14 +82,11 @@ spec:
               value: {{ $componentValues.containerGrpcPort | quote }}
             - name: SMITHDB_QUERY__CLUSTER_MANAGER__SERVICE_TYPE
               value: {{ index $clusterManagerServiceTypes $component | quote }}
-            {{- if (index (default (dict) $resources.limits) "ephemeral-storage") }}
+            {{- if not $hasDiskCacheLimit }}
+            {{- with (include "langsmith.smithdb.queryCacheLimit" (dict "component" $component "volumes" $volumes "resources" $resources)) }}
             - name: SMITHDB_QUERY__VORTEX_CACHE__DISK__LIMIT
-              valueFrom:
-                resourceFieldRef:
-                  resource: limits.ephemeral-storage
-            {{- else if $cacheSize }}
-            - name: SMITHDB_QUERY__VORTEX_CACHE__DISK__LIMIT
-              value: {{ $cacheSize | quote }}
+              {{- . | nindent 14 }}
+            {{- end }}
             {{- end }}
             {{- if (index (default (dict) $resources.limits) "memory") }}
             - name: SMITHDB_QUERY__VORTEX_CACHE__MEMORY__LIMIT
@@ -138,7 +139,7 @@ spec:
       topologySpreadConstraints:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with (include "langsmith.smithdb.volumes" (dict "root" $ "component" $component) | fromYamlArray) }}
+      {{- with $volumes }}
       volumes:
         {{- toYaml . | nindent 8 }}
       {{- end }}
