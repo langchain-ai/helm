@@ -48,3 +48,27 @@ sh run_support_query_pg.sh "postgres://postgres:postgres@localhost:5432/postgres
 ```
 
 which will output the count of daily traces by workspace ID and organization ID.  To extract this to a file add the flag `--output path/to/file.csv`
+
+### Exporting all usage data at once
+
+To export every usage dataset in one command — instead of running each
+`pg_usage_*_full_export.sql` individually — use `run_all_full_exports_pg.sh`. It
+runs all read-only full-export queries, writes one CSV per dataset, and (if
+`tar` is available) bundles them into a single `.tar.gz` for transfer. It only
+runs the read-only `*_full_export.sql` scripts, never the `*_backfill_*` ones.
+
+```bash
+sh run_all_full_exports_pg.sh <postgres_url>
+```
+
+For example, if you are using the bundled version with port-forwarding:
+
+```bash
+sh run_all_full_exports_pg.sh "postgres://postgres:postgres@localhost:5432/postgres"
+```
+
+This writes one CSV per dataset into `./langsmith-usage-export/` (`traces`,
+`nodes`, `agent_builder`, `snapshots`, `langchain_usage`, `sandbox`,
+`engine_intelligence`, `engine_issues_agent`) and bundles
+`./langsmith-usage-export.tar.gz`. Pass `--output-dir <dir>` to change the
+location, `--debug` for verbose psql output, or `--help` for full usage.
