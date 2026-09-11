@@ -28,13 +28,9 @@ Two things worth planning for before you enable it:
 
 ## SmithDB resource tiers
 
-`smithdb.resourceTier` selects the default per-replica sizes shown below. The default is `small`. CPU and memory become the component's requests and limits. Cache is the size of the volume that query, ingestion, and compaction worker mount at `/data`.
+`smithdb.resourceTier` sets per-replica CPU, memory, and cache size for SmithDB components. The default is `small`. Query, ingestion, and compaction worker mount the cache at `/data` as a per-pod [generic ephemeral volume](https://kubernetes.io/docs/concepts/storage/ephemeral-volumes/#generic-ephemeral-volumes) on `smithdb.cache.storageClassName`, or the cluster default StorageClass when empty. Provision that StorageClass with at least 7000 IOPS and 1000 MiB/s.
 
-By default the cache is a per-pod [generic ephemeral volume](https://kubernetes.io/docs/concepts/storage/ephemeral-volumes/#generic-ephemeral-volumes), created with the pod and deleted with it. Set `smithdb.cache.storageClassName` to choose its StorageClass; when empty, the cluster default StorageClass applies. Cluster default StorageClasses are usually baseline performance; for the cache, provision at least 7000 IOPS and 1000 MiB/s. The SmithDB pods run as UID 1001, and the disk-using components default `podSecurityContext.fsGroup` to `1001` so they can write to a freshly provisioned volume.
-
-Set `deployment.volumes` on a component to replace the generated volume entirely, for example to give one component a different StorageClass or size, or to cache on local SSD node storage with an `emptyDir` plus matching `ephemeral-storage` requests and limits in `deployment.resources`. Keep the volume name `local-ssd-storage`, which the default `volumeMounts` reference.
-
-Replica counts and autoscaling remain controlled by each component's `deployment.replicas` and `autoscaling` settings. Explicit component `resources` or `volumes` settings take precedence over the tier defaults. The query disk cache limit follows the tier cache size unless the component sets an `ephemeral-storage` limit, in which case it follows that limit.
+Explicit component `resources` or `volumes` replace the tier values. To cache on local SSD, set an `emptyDir` volume named `local-ssd-storage` and matching `ephemeral-storage` requests and limits, which also set the query disk cache limit. Replica counts and autoscaling are configured per component.
 
 | Component | Small | Medium | Large |
 |---|---|---|---|
