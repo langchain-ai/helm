@@ -1498,7 +1498,7 @@ smithdb:
       affinity: {}
       topologySpreadConstraints: []
       volumeMounts:
-        - name: local-ssd-storage
+        - name: cache
           mountPath: /data
       initContainers: []
     service:
@@ -1569,7 +1569,7 @@ smithdb:
       affinity: {}
       topologySpreadConstraints: []
       volumeMounts:
-        - name: local-ssd-storage
+        - name: cache
           mountPath: /data
       initContainers: []
     service:
@@ -1640,7 +1640,7 @@ smithdb:
       affinity: {}
       topologySpreadConstraints: []
       volumeMounts:
-        - name: local-ssd-storage
+        - name: cache
           mountPath: /data
       initContainers: []
     service:
@@ -1711,7 +1711,7 @@ smithdb:
       affinity: {}
       topologySpreadConstraints: []
       volumeMounts:
-        - name: local-ssd-storage
+        - name: cache
           mountPath: /data
       initContainers: []
     service:
@@ -1788,7 +1788,7 @@ smithdb:
       affinity: {}
       topologySpreadConstraints: []
       volumeMounts:
-        - name: local-ssd-storage
+        - name: cache
           mountPath: /data
       initContainers: []
     service:
@@ -1915,7 +1915,7 @@ smithdb:
       affinity: {}
       topologySpreadConstraints: []
       volumeMounts:
-        - name: local-ssd-storage
+        - name: cache
           mountPath: /data
       initContainers: []
     pdb:

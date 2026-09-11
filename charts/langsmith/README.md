@@ -28,9 +28,11 @@ Two things worth planning for before you enable it:
 
 ## SmithDB resource tiers
 
-`smithdb.resourceTier` sets per-replica CPU, memory, and cache size for SmithDB components. The default is `small`. Query, ingestion, and compaction worker mount the cache at `/data` as a per-pod [generic ephemeral volume](https://kubernetes.io/docs/concepts/storage/ephemeral-volumes/#generic-ephemeral-volumes) on `smithdb.cache.storageClassName`, or the cluster default StorageClass when empty. Provision that StorageClass with at least 7000 IOPS and 1000 MiB/s.
+`smithdb.resourceTier` sets per-replica CPU, memory, and cache size for SmithDB components. The default is `small`. Query, ingestion, and compaction worker mount a volume named `cache` at `/data` as a per-pod [generic ephemeral volume](https://kubernetes.io/docs/concepts/storage/ephemeral-volumes/#generic-ephemeral-volumes) on `smithdb.cache.storageClassName`, or the cluster default StorageClass when empty. Provision that StorageClass with at least 7000 IOPS and 1000 MiB/s.
 
-Explicit component `resources` or `volumes` replace the tier values. To cache on local SSD, set an `emptyDir` volume named `local-ssd-storage` and matching `ephemeral-storage` requests and limits, which also set the query disk cache limit. Replica counts and autoscaling are configured per component.
+Explicit component `resources` or `volumes` replace the tier values. Cache overrides must be named `cache` and use an `emptyDir` or inline ephemeral PVC; existing PVCs are unsupported. To cache on local SSD, set matching `emptyDir.sizeLimit` and `ephemeral-storage` requests and limits.
+
+The query disk cache limit is set automatically from the PVC storage request or, for `emptyDir`, the container's `ephemeral-storage` limit. Enabled `mutations`, `runRules`, and `statsQuery` use the query tier. Replica counts and autoscaling are configured per component.
 
 | Component | Small | Medium | Large |
 |---|---|---|---|
@@ -39,6 +41,8 @@ Explicit component `resources` or `volumes` replace the tier values. To cache on
 | Compaction | 2 CPU, 4Gi memory | 4 CPU, 8Gi memory | 8 CPU, 16Gi memory |
 | Compaction worker | 8 CPU, 16Gi memory, 100Gi cache | 16 CPU, 32Gi memory, 100Gi cache | 28 CPU, 50Gi memory, 300Gi cache |
 | Cluster manager | 250m CPU, 256Mi memory | 250m CPU, 256Mi memory | 2 CPU, 2Gi memory |
+
+**0.17 upgrade:** default caches switch from `emptyDir` to per-pod PVCs. Configure local SSD overrides before upgrading and rename custom volume and mount references from `local-ssd-storage` to `cache`.
 
 ## General parameters
 
@@ -1075,7 +1079,7 @@ Explicit component `resources` or `volumes` replace the tier values. To cache on
 | smithdb.compactionWorker.deployment.tolerations | list | `[]` |  |
 | smithdb.compactionWorker.deployment.topologySpreadConstraints | list | `[]` |  |
 | smithdb.compactionWorker.deployment.volumeMounts[0].mountPath | string | `"/data"` |  |
-| smithdb.compactionWorker.deployment.volumeMounts[0].name | string | `"local-ssd-storage"` |  |
+| smithdb.compactionWorker.deployment.volumeMounts[0].name | string | `"cache"` |  |
 | smithdb.compactionWorker.maxConcurrentJobs | string | `""` | Maximum concurrent jobs per compaction worker. Empty uses the SmithDB default. |
 | smithdb.compactionWorker.name | string | `"compaction-worker"` |  |
 | smithdb.compactionWorker.pdb.annotations | object | `{}` |  |
@@ -1150,7 +1154,7 @@ Explicit component `resources` or `volumes` replace the tier values. To cache on
 | smithdb.ingestion.deployment.tolerations | list | `[]` |  |
 | smithdb.ingestion.deployment.topologySpreadConstraints | list | `[]` |  |
 | smithdb.ingestion.deployment.volumeMounts[0].mountPath | string | `"/data"` |  |
-| smithdb.ingestion.deployment.volumeMounts[0].name | string | `"local-ssd-storage"` |  |
+| smithdb.ingestion.deployment.volumeMounts[0].name | string | `"cache"` |  |
 | smithdb.ingestion.name | string | `"ingestion"` |  |
 | smithdb.ingestion.pdb.annotations | object | `{}` |  |
 | smithdb.ingestion.pdb.enabled | bool | `false` |  |
@@ -1314,7 +1318,7 @@ Explicit component `resources` or `volumes` replace the tier values. To cache on
 | smithdb.mutations.deployment.tolerations | list | `[]` |  |
 | smithdb.mutations.deployment.topologySpreadConstraints | list | `[]` |  |
 | smithdb.mutations.deployment.volumeMounts[0].mountPath | string | `"/data"` |  |
-| smithdb.mutations.deployment.volumeMounts[0].name | string | `"local-ssd-storage"` |  |
+| smithdb.mutations.deployment.volumeMounts[0].name | string | `"cache"` |  |
 | smithdb.mutations.enabled | bool | `false` |  |
 | smithdb.mutations.name | string | `"mutations"` |  |
 | smithdb.mutations.pdb.annotations | object | `{}` |  |
@@ -1369,7 +1373,7 @@ Explicit component `resources` or `volumes` replace the tier values. To cache on
 | smithdb.query.deployment.tolerations | list | `[]` |  |
 | smithdb.query.deployment.topologySpreadConstraints | list | `[]` |  |
 | smithdb.query.deployment.volumeMounts[0].mountPath | string | `"/data"` |  |
-| smithdb.query.deployment.volumeMounts[0].name | string | `"local-ssd-storage"` |  |
+| smithdb.query.deployment.volumeMounts[0].name | string | `"cache"` |  |
 | smithdb.query.name | string | `"query"` |  |
 | smithdb.query.pdb.annotations | object | `{}` |  |
 | smithdb.query.pdb.enabled | bool | `false` |  |
@@ -1423,7 +1427,7 @@ Explicit component `resources` or `volumes` replace the tier values. To cache on
 | smithdb.runRules.deployment.tolerations | list | `[]` |  |
 | smithdb.runRules.deployment.topologySpreadConstraints | list | `[]` |  |
 | smithdb.runRules.deployment.volumeMounts[0].mountPath | string | `"/data"` |  |
-| smithdb.runRules.deployment.volumeMounts[0].name | string | `"local-ssd-storage"` |  |
+| smithdb.runRules.deployment.volumeMounts[0].name | string | `"cache"` |  |
 | smithdb.runRules.enabled | bool | `false` |  |
 | smithdb.runRules.name | string | `"run-rules"` |  |
 | smithdb.runRules.pdb.annotations | object | `{}` |  |
@@ -1479,7 +1483,7 @@ Explicit component `resources` or `volumes` replace the tier values. To cache on
 | smithdb.statsQuery.deployment.tolerations | list | `[]` |  |
 | smithdb.statsQuery.deployment.topologySpreadConstraints | list | `[]` |  |
 | smithdb.statsQuery.deployment.volumeMounts[0].mountPath | string | `"/data"` |  |
-| smithdb.statsQuery.deployment.volumeMounts[0].name | string | `"local-ssd-storage"` |  |
+| smithdb.statsQuery.deployment.volumeMounts[0].name | string | `"cache"` |  |
 | smithdb.statsQuery.enabled | bool | `false` |  |
 | smithdb.statsQuery.name | string | `"stats-query"` |  |
 | smithdb.statsQuery.pdb.annotations | object | `{}` |  |
