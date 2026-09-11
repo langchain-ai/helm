@@ -1,7 +1,6 @@
 # langsmith
 
-![Version: 0.16.18](https://img.shields.io/badge/Version-0.16.18-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.16.52](https://img.shields.io/badge/AppVersion-0.16.52-informational?style=flat-square)
-
+![Version: 0.16.19](https://img.shields.io/badge/Version-0.16.19-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.16.52](https://img.shields.io/badge/AppVersion-0.16.52-informational?style=flat-square)
 Helm chart to deploy the langsmith application and all services it depends on.
 
 ## Documentation
@@ -1109,6 +1108,8 @@ Replica counts and autoscaling remain controlled by each component's `deployment
 | smithdb.config.objectStore.bucket | string | `""` |  |
 | smithdb.config.objectStore.s3.accessKeyIdSecretKey | string | `""` | Keys in smithdb.config.existingSecretName for static S3 credentials. Set both to "" when using ambient cloud identity, such as IRSA. |
 | smithdb.config.objectStore.s3.endpoint | string | `""` |  |
+| smithdb.config.objectStore.s3.kmsEncryptionEnabled | bool | `false` | Send SSE-KMS encryption headers on S3 writes. Same semantics as config.blobStorage.kmsEncryptionEnabled. |
+| smithdb.config.objectStore.s3.kmsKeyArn | string | `""` | KMS key ARN for SSE-KMS. When empty, S3 encrypts with the AWS managed aws/s3 key, not the bucket default key. |
 | smithdb.config.objectStore.s3.region | string | `""` | Defaults to the SmithDB S3 client default when empty. |
 | smithdb.config.objectStore.s3.secretAccessKeySecretKey | string | `""` |  |
 | smithdb.config.objectStore.type | string | `"s3"` | Supported values: s3, gcs. |

@@ -620,6 +620,62 @@ tests:
             name: VITE_SELF_HOSTED_SMITHDB_V2_ENDPOINTS_ENABLED
             value: "true"
 
+  - it: should send SSE-KMS encryption env for S3 when enabled
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      smithdb.config.objectStore.s3.kmsEncryptionEnabled: true
+      smithdb.config.objectStore.s3.kmsKeyArn: arn:aws:kms:us-west-2:123456789012:key/smithdb
+    template: smithdb/query-deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_QUERY__OBJECT_STORE__S3__KMS_ENCRYPTION_ENABLED
+            value: "true"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_QUERY__OBJECT_STORE__S3__KMS_KEY_ARN
+            value: arn:aws:kms:us-west-2:123456789012:key/smithdb
+  - it: should omit SSE-KMS encryption env for S3 by default
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      smithdb.config.objectStore.s3.kmsKeyArn: arn:aws:kms:us-west-2:123456789012:key/smithdb
+    template: smithdb/query-deployment.yaml
+    asserts:
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_QUERY__OBJECT_STORE__S3__KMS_ENCRYPTION_ENABLED
+            value: "true"
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_QUERY__OBJECT_STORE__S3__KMS_KEY_ARN
+            value: arn:aws:kms:us-west-2:123456789012:key/smithdb
+  - it: should send SSE-KMS encryption env for the S3 migration output
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      smithdb.config.objectStore.s3.kmsEncryptionEnabled: true
+      smithdb.config.objectStore.s3.kmsKeyArn: arn:aws:kms:us-west-2:123456789012:key/smithdb
+      smithdb.langsmith.migration.enabled: true
+      smithdb.langsmith.query.enabled: false
+      smithdb.migration.taskdb.postgres.auth.password: taskdb-password
+    template: smithdb/migration-job.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_MIGRATION__OUTPUT__OBJECT_STORE__S3__KMS_ENCRYPTION_ENABLED
+            value: "true"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_MIGRATION__OUTPUT__OBJECT_STORE__S3__KMS_KEY_ARN
+            value: arn:aws:kms:us-west-2:123456789012:key/smithdb
   - it: should skip all smithdb resources when disabled
     values:
       - ./values/smithdb-enabled.yaml

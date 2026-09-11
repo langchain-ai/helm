@@ -226,6 +226,14 @@ spec:
                   name: {{ .Values.smithdb.config.existingSecretName }}
                   key: {{ $smithdbObjectStore.s3.secretAccessKeySecretKey }}
             {{- end }}
+            {{- if $smithdbObjectStore.s3.kmsEncryptionEnabled }}
+            - name: SMITHDB_MIGRATION__OUTPUT__OBJECT_STORE__S3__KMS_ENCRYPTION_ENABLED
+              value: {{ $smithdbObjectStore.s3.kmsEncryptionEnabled | quote }}
+            {{- with $smithdbObjectStore.s3.kmsKeyArn }}
+            - name: SMITHDB_MIGRATION__OUTPUT__OBJECT_STORE__S3__KMS_KEY_ARN
+              value: {{ . | quote }}
+            {{- end }}
+            {{- end }}
             {{- else if eq $smithdbObjectStoreType "gcs" }}
             - name: SMITHDB_MIGRATION__OUTPUT__OBJECT_STORE__GCS__BUCKET
               value: {{ $smithdbObjectStore.bucket | quote }}

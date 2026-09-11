@@ -1469,6 +1469,10 @@ smithdb:
         # Set both to "" when using ambient cloud identity, such as IRSA.
         accessKeyIdSecretKey: ""
         secretAccessKeySecretKey: ""
+        # -- Send SSE-KMS encryption headers on S3 writes. Same semantics as config.blobStorage.kmsEncryptionEnabled.
+        kmsEncryptionEnabled: false
+        # -- KMS key ARN for SSE-KMS. When empty, S3 encrypts with the AWS managed aws/s3 key, not the bucket default key.
+        kmsKeyArn: ""
 
   query:
     name: "query"
