@@ -1,7 +1,12 @@
 {{- if .Values.smithdb.enabled }}
 {{- $resources := include "langsmith.smithdb.resources" (dict "root" . "component" "query") | fromYaml -}}
+{{- $volumes := include "langsmith.smithdb.volumes" (dict "root" . "component" "query") | fromYamlArray -}}
 {{- $envVars := concat (include "langsmith.smithdb.componentEnv" (dict "root" . "service" "QUERY" "displayName" "smithdb-query") | fromYamlArray) .Values.smithdb.query.deployment.extraEnv -}}
 {{- include "langsmith.detectDuplicates" $envVars -}}
+{{- $hasDiskCacheLimit := false -}}
+{{- range $envVars -}}
+{{- $hasDiskCacheLimit = or $hasDiskCacheLimit (eq .name "SMITHDB_QUERY__VORTEX_CACHE__DISK__LIMIT") -}}
+{{- end -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -68,11 +73,11 @@ spec:
               value: {{ .Values.smithdb.query.containerPort | quote }}
             - name: SMITHDB_QUERY__GRPC_PORT
               value: {{ .Values.smithdb.query.containerGrpcPort | quote }}
-            {{- if (index (default (dict) $resources.limits) "ephemeral-storage") }}
+            {{- if not $hasDiskCacheLimit }}
+            {{- with (include "langsmith.smithdb.queryCacheLimit" (dict "component" "query" "volumes" $volumes "resources" $resources)) }}
             - name: SMITHDB_QUERY__VORTEX_CACHE__DISK__LIMIT
-              valueFrom:
-                resourceFieldRef:
-                  resource: limits.ephemeral-storage
+              {{- . | nindent 14 }}
+            {{- end }}
             {{- end }}
             {{- if (index (default (dict) $resources.limits) "memory") }}
             - name: SMITHDB_QUERY__VORTEX_CACHE__MEMORY__LIMIT
@@ -125,7 +130,7 @@ spec:
       topologySpreadConstraints:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with (include "langsmith.smithdb.volumes" (dict "root" . "component" "query" "resources" $resources) | fromYamlArray) }}
+      {{- with $volumes }}
       volumes:
         {{- toYaml . | nindent 8 }}
       {{- end }}

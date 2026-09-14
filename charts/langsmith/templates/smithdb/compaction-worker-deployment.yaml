@@ -115,7 +115,7 @@ spec:
       topologySpreadConstraints:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with (include "langsmith.smithdb.volumes" (dict "root" . "component" "compactionWorker" "resources" $resources) | fromYamlArray) }}
+      {{- with (include "langsmith.smithdb.volumes" (dict "root" . "component" "compactionWorker") | fromYamlArray) }}
       volumes:
         {{- toYaml . | nindent 8 }}
       {{- end }}
