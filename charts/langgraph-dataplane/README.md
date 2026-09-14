@@ -39,7 +39,7 @@ When `config.watchNamespaces` (or `operator.watchNamespaces`) restricts the oper
 | images.listenerImage.tag | string | `"0.16.36"` |  |
 | images.operatorImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.operatorImage.repository | string | `"docker.io/langchain/langgraph-operator"` |  |
-| images.operatorImage.tag | string | `"0.1.36"` |  |
+| images.operatorImage.tag | string | `"0.1.60"` |  |
 | images.redisImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.redisImage.repository | string | `"docker.io/redis"` |  |
 | images.redisImage.tag | string | `"7"` |  |
