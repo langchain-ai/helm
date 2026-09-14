@@ -14,12 +14,6 @@ Helm chart to deploy a langgraph dataplane on kubernetes.
 This chart deploys a LangGraph Dataplane, which is a component of the LangGraph Platform. The Dataplane is responsible for executing and managing LangGraph applications.
 You can find the guide to deploy a LangGraph Dataplane [here](https://langchain-ai.github.io/langgraph/cloud/deployment/self_hosted_data_plane/).
 
-## Operator RBAC
-
-The operator RBAC supports operator 0.1.60 with scale-to-zero disabled. It includes PodDisruptionBudget management and read-only (`get`, `list`, `watch`) NetworkPolicy access because the operator always watches NetworkPolicies. It does not grant NetworkPolicy writes or access to ReferenceGrants, InterceptorRoutes, or Secrets. Existing permissions, including VirtualService management, are preserved.
-
-When `config.watchNamespaces` (or `operator.watchNamespaces`) restricts the operator to specific namespaces, the chart creates a Role and RoleBinding in each watched namespace. Otherwise, it creates a ClusterRole and ClusterRoleBinding.
-
 ## General parameters
 
 | Key | Type | Default | Description |

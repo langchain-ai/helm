@@ -8,12 +8,6 @@ Helm chart to deploy the langsmith application and all services it depends on.
 
 For information on how to use this chart, up-to-date release notes, and other guides please check out the [documentation.](https://docs.langchain.com/langsmith/kubernetes)
 
-## Operator RBAC
-
-The operator RBAC supports operator 0.1.60 with scale-to-zero disabled. It includes PodDisruptionBudget management and read-only (`get`, `list`, `watch`) NetworkPolicy access because the operator always watches NetworkPolicies. It does not grant NetworkPolicy writes or access to ReferenceGrants, InterceptorRoutes, or Secrets. Existing permissions, including VirtualService management, are preserved.
-
-When `operator.watchNamespaces` restricts the operator to specific namespaces, the chart creates a Role and RoleBinding in each watched namespace. Otherwise, it creates a ClusterRole and ClusterRoleBinding.
-
 ## Engine
 
 LangSmith Engine is off by default. `engine.enabled=true` requires all of the following, and the chart refuses to render if any is missing:
