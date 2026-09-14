@@ -64,7 +64,7 @@ spec:
               value: {{ .Values.smithdb.clusterManager.containerPort | quote }}
             - name: SMITHDB_CLUSTERMANAGER__GRPC_PORT
               value: {{ .Values.smithdb.clusterManager.containerGrpcPort | quote }}
-            {{- include "langsmith.smithdb.baseEnv" (dict "root" . "service" "CLUSTERMANAGER" "displayName" "smithdb-clustermanager") | nindent 12 }}
+            {{- include "langsmith.smithdb.baseEnv" (dict "root" . "service" "CLUSTERMANAGER" "displayName" "smithdb-clustermanager" "commonEnv" (concat .Values.commonEnv .Values.smithdb.commonEnv)) | nindent 12 }}
             {{/*
             Per-service cluster-manager ownership bounds. MAX_REPLICAS is derived
             from each service's replica settings so it cannot drift from the actual

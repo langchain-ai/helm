@@ -1,6 +1,6 @@
 # langgraph-dataplane
 
-![Version: 0.2.23](https://img.shields.io/badge/Version-0.2.23-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.16.36](https://img.shields.io/badge/AppVersion-0.16.36-informational?style=flat-square)
+![Version: 0.2.24](https://img.shields.io/badge/Version-0.2.24-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.16.36](https://img.shields.io/badge/AppVersion-0.16.36-informational?style=flat-square)
 
 Helm chart to deploy a langgraph dataplane on kubernetes.
 
@@ -33,7 +33,7 @@ You can find the guide to deploy a LangGraph Dataplane [here](https://langchain-
 | images.listenerImage.tag | string | `"0.16.36"` |  |
 | images.operatorImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.operatorImage.repository | string | `"docker.io/langchain/langgraph-operator"` |  |
-| images.operatorImage.tag | string | `"0.1.36"` |  |
+| images.operatorImage.tag | string | `"0.1.60"` |  |
 | images.redisImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.redisImage.repository | string | `"docker.io/redis"` |  |
 | images.redisImage.tag | string | `"7"` |  |

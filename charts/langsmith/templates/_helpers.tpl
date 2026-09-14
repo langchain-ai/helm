@@ -690,11 +690,12 @@ Args: root, service, displayName.
 {{- define "langsmith.smithdb.componentEnv" -}}
 {{- $root := .root -}}
 {{- $service := .service -}}
-{{- $envVars := include "langsmith.smithdb.serviceEnv" (dict "root" $root "service" $service "displayName" .displayName) | fromYamlArray -}}
+{{- $commonEnv := concat $root.Values.commonEnv $root.Values.smithdb.commonEnv -}}
+{{- $envVars := include "langsmith.smithdb.serviceEnv" (dict "root" $root "service" $service "displayName" .displayName "commonEnv" $commonEnv) | fromYamlArray -}}
 {{- if $root.Values.smithdb.enabled }}
 {{- $envVars = concat $envVars (include "langsmith.smithdb.clusterManagerClientEnv" (dict "root" $root "service" $service) | fromYamlArray) -}}
 {{- end }}
-{{- $envVars = concat $envVars $root.Values.commonEnv $root.Values.smithdb.commonEnv -}}
+{{- $envVars = concat $envVars $commonEnv -}}
 {{- toYaml $envVars }}
 {{- end }}
 
@@ -716,26 +717,38 @@ OTEL_EXPORTER_OTLP_ENDPOINT consumed by SmithDB requires a URI scheme.
 {{- end }}
 
 {{/*
-SmithDB Beacon log export environment.
+SmithDB Beacon log export environment. Explicit commonEnv entries override defaults.
+Args: root, commonEnv (optional).
 */}}
 {{- define "langsmith.smithdb.beaconEnv" -}}
+{{- $root := .root -}}
+{{- $commonEnvKeys := list -}}
+{{- range .commonEnv -}}
+{{- $commonEnvKeys = append $commonEnvKeys .name -}}
+{{- end -}}
+{{- if not (has "BEACON_LOGGING_ENABLED" $commonEnvKeys) }}
 - name: BEACON_LOGGING_ENABLED
-  value: {{ .Values.config.telemetry.logs | quote }}
+  value: {{ $root.Values.config.telemetry.logs | quote }}
+{{- end }}
+{{- if not (has "BEACON_TRACING_ENABLED" $commonEnvKeys) }}
 - name: BEACON_TRACING_ENABLED
-  value: {{ .Values.config.telemetry.traces | quote }}
+  value: {{ $root.Values.config.telemetry.traces | quote }}
+{{- end }}
+{{- if not (has "PHONE_HOME_ENABLED" $commonEnvKeys) }}
 - name: PHONE_HOME_ENABLED
-  value: {{ or .Values.config.telemetry.logs .Values.config.telemetry.traces | quote }}
+  value: {{ or $root.Values.config.telemetry.logs $root.Values.config.telemetry.traces | quote }}
+{{- end }}
 - name: LANGSMITH_LICENSE_KEY
   valueFrom:
     secretKeyRef:
-      name: {{ include "langsmith.secretsName" . }}
+      name: {{ include "langsmith.secretsName" $root }}
       key: langsmith_license_key
-      optional: {{ .Values.config.disableSecretCreation }}
+      optional: {{ $root.Values.config.disableSecretCreation }}
 {{- end }}
 
 {{/*
 Common per-process SmithDB env: logging, OpenTelemetry, pod identity, allocator.
-Args: root, service, displayName.
+Args: root, service, displayName, commonEnv (optional).
 */}}
 {{- define "langsmith.smithdb.baseEnv" -}}
 {{- $root := .root -}}
@@ -782,14 +795,14 @@ Args: root, service, displayName.
   value: {{ $displayName | quote }}
 - name: OTEL_RESOURCE_ATTRIBUTES
   value: {{ include "langsmith.smithdb.otelResourceAttributes" $root | quote }}
-{{ include "langsmith.smithdb.beaconEnv" $root }}
+{{ include "langsmith.smithdb.beaconEnv" (dict "root" $root "commonEnv" .commonEnv) }}
 - name: _RJEM_MALLOC_CONF
   value: "prof:true,prof_active:false,lg_prof_sample:19"
 {{- end }}
 
 {{/*
 Shared SmithDB service env vars (object store + metastore + base env).
-Args: root, service, displayName.
+Args: root, service, displayName, commonEnv (optional).
 */}}
 {{- define "langsmith.smithdb.serviceEnv" -}}
 {{- $root := .root -}}
@@ -911,7 +924,7 @@ Args: root, service, displayName.
 {{- end }}
 - name: {{ $prefix }}__METASTORE__USE_SSL
   value: {{ $root.Values.smithdb.config.metastore.useSsl | quote }}
-{{ include "langsmith.smithdb.baseEnv" (dict "root" $root "service" $service "displayName" $displayName) }}
+{{ include "langsmith.smithdb.baseEnv" (dict "root" $root "service" $service "displayName" $displayName "commonEnv" .commonEnv) }}
 {{- end }}
 
 
