@@ -16,9 +16,9 @@ You can find the guide to deploy a LangGraph Dataplane [here](https://langchain-
 
 ## Operator RBAC
 
-The operator RBAC includes the permissions required by [operator 0.1.60](https://github.com/langchain-ai/lgp-operator/blob/69167de/config/rbac/role.yaml), including PodDisruptionBudgets, NetworkPolicies, InterceptorRoutes, and ReferenceGrants. Secret access is limited to `get`, `create`, and `patch`.
+The operator RBAC supports operator 0.1.60 with scale-to-zero disabled. It includes PodDisruptionBudget management and read-only (`get`, `list`, `watch`) NetworkPolicy access because the operator always watches NetworkPolicies. It does not grant NetworkPolicy writes or access to ReferenceGrants, InterceptorRoutes, VirtualServices, or Secrets.
 
-When `config.watchNamespaces` (or `operator.watchNamespaces`) restricts the operator to specific namespaces, the chart creates a Role and RoleBinding in each watched namespace. For Gateway API HTTP scaling, ReferenceGrants are created in the KEDA interceptor service namespace. If that namespace is outside the watched namespaces, separately provision a Role there granting `get`, `list`, `watch`, `create`, `update`, `patch`, and `delete` on `referencegrants` in the `gateway.networking.k8s.io` API group, with a RoleBinding to the operator ServiceAccount in its installation namespace. The chart does not create this additional binding. Cluster-wide installations already cover the interceptor namespace.
+When `config.watchNamespaces` (or `operator.watchNamespaces`) restricts the operator to specific namespaces, the chart creates a Role and RoleBinding in each watched namespace. Otherwise, it creates a ClusterRole and ClusterRoleBinding.
 
 ## General parameters
 
