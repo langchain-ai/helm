@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.17.0-rc.26](https://img.shields.io/badge/Version-0.17.0--rc.26-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.17.24rc1](https://img.shields.io/badge/AppVersion-0.17.24rc1-informational?style=flat-square)
+![Version: 0.17.0-rc.27](https://img.shields.io/badge/Version-0.17.0--rc.27-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.17.24rc1](https://img.shields.io/badge/AppVersion-0.17.24rc1-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -596,7 +596,7 @@ Replica counts and autoscaling remain controlled by each component's `deployment
 | images.imagePullSecrets | list | `[]` | Secrets with credentials to pull images from a private registry. Specified as name: value. |
 | images.operatorImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.operatorImage.repository | string | `"docker.io/langchain/langgraph-operator"` |  |
-| images.operatorImage.tag | string | `"0.1.47"` |  |
+| images.operatorImage.tag | string | `"0.1.60"` |  |
 | images.pollyAgentImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.pollyAgentImage.repository | string | `"docker.io/langchain/langsmith-polly"` |  |
 | images.pollyAgentImage.tag | string | `"0.17.24rc1"` |  |
