@@ -1,12 +1,18 @@
 # langsmith
 
-![Version: 0.17.0-rc.25](https://img.shields.io/badge/Version-0.17.0--rc.25-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.17.20rc1](https://img.shields.io/badge/AppVersion-0.17.20rc1-informational?style=flat-square)
+![Version: 0.17.0-rc.26](https://img.shields.io/badge/Version-0.17.0--rc.26-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.17.20rc1](https://img.shields.io/badge/AppVersion-0.17.20rc1-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
 ## Documentation
 
 For information on how to use this chart, up-to-date release notes, and other guides please check out the [documentation.](https://docs.langchain.com/langsmith/kubernetes)
+
+## Operator RBAC
+
+The operator RBAC includes the permissions required by [operator 0.1.60](https://github.com/langchain-ai/lgp-operator/blob/69167de/config/rbac/role.yaml), including PodDisruptionBudgets, NetworkPolicies, InterceptorRoutes, and ReferenceGrants. Secret access is limited to `get`, `create`, and `patch`.
+
+When `operator.watchNamespaces` restricts the operator to specific namespaces, the chart creates a Role and RoleBinding in each watched namespace. For Gateway API HTTP scaling, ReferenceGrants are created in the KEDA interceptor service namespace. If that namespace is outside the watched namespaces, separately provision a Role there granting `get`, `list`, `watch`, `create`, `update`, `patch`, and `delete` on `referencegrants` in the `gateway.networking.k8s.io` API group, with a RoleBinding to the operator ServiceAccount in its installation namespace. The chart does not create this additional binding. Cluster-wide installations already cover the interceptor namespace.
 
 ## Engine
 

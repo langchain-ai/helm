@@ -1,6 +1,6 @@
 # langgraph-dataplane
 
-![Version: 0.2.23](https://img.shields.io/badge/Version-0.2.23-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.16.36](https://img.shields.io/badge/AppVersion-0.16.36-informational?style=flat-square)
+![Version: 0.2.24](https://img.shields.io/badge/Version-0.2.24-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.16.36](https://img.shields.io/badge/AppVersion-0.16.36-informational?style=flat-square)
 
 Helm chart to deploy a langgraph dataplane on kubernetes.
 
@@ -13,6 +13,12 @@ Helm chart to deploy a langgraph dataplane on kubernetes.
 
 This chart deploys a LangGraph Dataplane, which is a component of the LangGraph Platform. The Dataplane is responsible for executing and managing LangGraph applications.
 You can find the guide to deploy a LangGraph Dataplane [here](https://langchain-ai.github.io/langgraph/cloud/deployment/self_hosted_data_plane/).
+
+## Operator RBAC
+
+The operator RBAC includes the permissions required by [operator 0.1.60](https://github.com/langchain-ai/lgp-operator/blob/69167de/config/rbac/role.yaml), including PodDisruptionBudgets, NetworkPolicies, InterceptorRoutes, and ReferenceGrants. Secret access is limited to `get`, `create`, and `patch`.
+
+When `config.watchNamespaces` (or `operator.watchNamespaces`) restricts the operator to specific namespaces, the chart creates a Role and RoleBinding in each watched namespace. For Gateway API HTTP scaling, ReferenceGrants are created in the KEDA interceptor service namespace. If that namespace is outside the watched namespaces, separately provision a Role there granting `get`, `list`, `watch`, `create`, `update`, `patch`, and `delete` on `referencegrants` in the `gateway.networking.k8s.io` API group, with a RoleBinding to the operator ServiceAccount in its installation namespace. The chart does not create this additional binding. Cluster-wide installations already cover the interceptor namespace.
 
 ## General parameters
 
