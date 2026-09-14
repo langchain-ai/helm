@@ -1,0 +1,125 @@
+suite: SmithDB common telemetry overrides
+templates:
+  - smithdb/query-deployment.yaml
+  - smithdb/ingestion-deployment.yaml
+  - smithdb/compaction-deployment.yaml
+  - smithdb/compaction-worker-deployment.yaml
+  - smithdb/cluster-manager-deployment.yaml
+tests:
+  - it: should honor explicit telemetry settings from commonEnv
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      commonEnv:
+        - name: PHONE_HOME_ENABLED
+          value: 'false'
+        - name: BEACON_LOGGING_ENABLED
+          value: 'false'
+        - name: BEACON_TRACING_ENABLED
+          value: 'false'
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: PHONE_HOME_ENABLED
+            value: 'false'
+          count: 1
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: BEACON_LOGGING_ENABLED
+            value: 'false'
+          count: 1
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: BEACON_TRACING_ENABLED
+            value: 'false'
+          count: 1
+  - it: should honor explicit telemetry settings from smithdb.commonEnv
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      smithdb.commonEnv:
+        - name: PHONE_HOME_ENABLED
+          value: 'false'
+        - name: BEACON_LOGGING_ENABLED
+          value: 'false'
+        - name: BEACON_TRACING_ENABLED
+          value: 'false'
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: PHONE_HOME_ENABLED
+            value: 'false'
+          count: 1
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: BEACON_LOGGING_ENABLED
+            value: 'false'
+          count: 1
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: BEACON_TRACING_ENABLED
+            value: 'false'
+          count: 1
+  - it: should preserve telemetry valueFrom overrides and unspecified defaults
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      commonEnv:
+        - name: PHONE_HOME_ENABLED
+          valueFrom:
+            configMapKeyRef:
+              name: telemetry
+              key: enabled
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: PHONE_HOME_ENABLED
+            valueFrom:
+              configMapKeyRef:
+                name: telemetry
+                key: enabled
+          count: 1
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: BEACON_LOGGING_ENABLED
+            value: 'true'
+          count: 1
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: BEACON_TRACING_ENABLED
+            value: 'true'
+          count: 1
+  - it: should reject duplicate explicit telemetry settings
+    template: smithdb/query-deployment.yaml
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      commonEnv:
+        - name: PHONE_HOME_ENABLED
+          value: 'false'
+      smithdb.commonEnv:
+        - name: PHONE_HOME_ENABLED
+          value: 'true'
+    asserts:
+      - failedTemplate:
+          errorMessage: 'Duplicate keys detected: [PHONE_HOME_ENABLED]'
+  - it: should still reject overrides of unrelated generated environment variables
+    template: smithdb/query-deployment.yaml
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      commonEnv:
+        - name: SMITHDB_QUERY__CLUSTER_MANAGER__ENABLED
+          value: 'false'
+    asserts:
+      - failedTemplate:
+          errorMessage: 'Duplicate keys detected: [SMITHDB_QUERY__CLUSTER_MANAGER__ENABLED]'

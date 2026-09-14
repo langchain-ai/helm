@@ -684,6 +684,25 @@ SmithDB cluster-manager client env vars. Args: root, service.
 {{- end }}
 
 {{/*
+Keep generated SmithDB telemetry defaults only when commonEnv does not override them.
+Args: envVars, commonEnv.
+*/}}
+{{- define "langsmith.smithdb.telemetryDefaults" -}}
+{{- $commonEnvKeys := list -}}
+{{- range .commonEnv -}}
+{{- $commonEnvKeys = append $commonEnvKeys .name -}}
+{{- end -}}
+{{- $telemetryKeys := list "PHONE_HOME_ENABLED" "BEACON_LOGGING_ENABLED" "BEACON_TRACING_ENABLED" -}}
+{{- $resolved := list -}}
+{{- range .envVars -}}
+{{- if not (and (has .name $telemetryKeys) (has .name $commonEnvKeys)) -}}
+{{- $resolved = append $resolved . -}}
+{{- end -}}
+{{- end -}}
+{{- toYaml $resolved -}}
+{{- end -}}
+
+{{/*
 SmithDB component env vars.
 Args: root, service, displayName.
 */}}
@@ -694,7 +713,9 @@ Args: root, service, displayName.
 {{- if $root.Values.smithdb.enabled }}
 {{- $envVars = concat $envVars (include "langsmith.smithdb.clusterManagerClientEnv" (dict "root" $root "service" $service) | fromYamlArray) -}}
 {{- end }}
-{{- $envVars = concat $envVars $root.Values.commonEnv $root.Values.smithdb.commonEnv -}}
+{{- $commonEnv := concat $root.Values.commonEnv $root.Values.smithdb.commonEnv -}}
+{{- $envVars = include "langsmith.smithdb.telemetryDefaults" (dict "envVars" $envVars "commonEnv" $commonEnv) | fromYamlArray -}}
+{{- $envVars = concat $envVars $commonEnv -}}
 {{- toYaml $envVars }}
 {{- end }}
 
