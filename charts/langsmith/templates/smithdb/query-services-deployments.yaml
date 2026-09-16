@@ -64,6 +64,7 @@ spec:
       securityContext:
         {{- toYaml $componentValues.deployment.podSecurityContext | nindent 8 }}
       serviceAccountName: {{ include "langsmith.smithdb.serviceAccountName" (dict "root" $) }}
+      automountServiceAccountToken: {{ $.Values.smithdb.serviceAccount.automountServiceAccountToken }}
       {{- include "langsmith.dnsConfig" $ | nindent 6 }}
       {{- with concat (include "langsmith.smithdb.commonInitContainers" $ | fromYamlArray) $componentValues.deployment.initContainers }}
       initContainers:

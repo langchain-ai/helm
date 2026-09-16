@@ -38,6 +38,7 @@ spec:
         app.kubernetes.io/component: {{ include "langGraphCloud.fullname" . }}-{{ .Values.apiServer.name }}
     spec:
       serviceAccountName: {{ include "apiServer.serviceAccountName" . }}
+      automountServiceAccountToken: {{ .Values.apiServer.serviceAccount.automountServiceAccountToken }}
       {{- include "langGraphCloud.dnsConfig" . | nindent 6 }}
       {{- with .Values.images.imagePullSecrets }}
       imagePullSecrets:

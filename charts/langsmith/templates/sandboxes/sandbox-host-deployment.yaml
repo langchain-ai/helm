@@ -59,6 +59,7 @@ spec:
       hostNetwork: true
       dnsPolicy: ClusterFirstWithHostNet
       serviceAccountName: {{ include "langsmith.sandboxes.sandboxHostServiceAccountName" . }}
+      automountServiceAccountToken: {{ .Values.sandboxes.sandboxHost.serviceAccount.automountServiceAccountToken }}
       affinity:
         podAntiAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:

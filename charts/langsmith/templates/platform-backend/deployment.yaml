@@ -100,6 +100,7 @@ spec:
       securityContext:
         {{- include "langsmith.podSecurityContext" (dict "Values" .Values "componentSecurityContext" .Values.platformBackend.deployment.podSecurityContext) | nindent 8 }}
       serviceAccountName: {{ include "platformBackend.serviceAccountName" . }}
+      automountServiceAccountToken: {{ .Values.platformBackend.serviceAccount.automountServiceAccountToken }}
       {{- include "langsmith.dnsConfig" . | nindent 6 }}
       {{- with concat .Values.commonInitContainers .Values.platformBackend.deployment.initContainers }}
       initContainers:
