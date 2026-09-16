@@ -138,6 +138,7 @@ tests:
       - ./values/sandboxes-enabled.yaml
     set:
       sandboxes.juicefs.csi.controller.serviceAccount.annotations.iam\.gke\.io/gcp-service-account: juicefs-controller@example.iam.gserviceaccount.com
+      sandboxes.juicefs.csi.controller.serviceAccount.automountServiceAccountToken: false
     template: sandboxes/juicefs-csi-driver/rbac.yaml
     documentSelector:
       path: $[?(@.kind == "ServiceAccount")].metadata.name
@@ -151,12 +152,16 @@ tests:
       - equal:
           path: metadata.annotations["app.kubernetes.io/name"]
           value: juicefs-csi-driver
+      - equal:
+          path: automountServiceAccountToken
+          value: false
 
   - it: should render JuiceFS CSI node ServiceAccount annotations
     values:
       - ./values/sandboxes-enabled.yaml
     set:
       sandboxes.juicefs.csi.node.serviceAccount.annotations.eks\.amazonaws\.com/role-arn: arn:aws:iam::123456789012:role/juicefs-csi-node
+      sandboxes.juicefs.csi.node.serviceAccount.automountServiceAccountToken: false
     template: sandboxes/juicefs-csi-driver/rbac.yaml
     documentSelector:
       path: $[?(@.kind == "ServiceAccount")].metadata.name
@@ -170,6 +175,9 @@ tests:
       - equal:
           path: metadata.annotations["app.kubernetes.io/name"]
           value: juicefs-csi-driver
+      - equal:
+          path: automountServiceAccountToken
+          value: false
 
   - it: should not grant JuiceFS CSI node kubelet proxy access by default
     values:

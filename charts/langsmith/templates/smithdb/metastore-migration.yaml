@@ -47,6 +47,7 @@ spec:
       securityContext:
         {{- toYaml .Values.smithdb.metastoreMigration.job.podSecurityContext | nindent 8 }}
       serviceAccountName: {{ include "langsmith.smithdb.serviceAccountName" (dict "root" . "component" "metastoreMigration") }}
+      automountServiceAccountToken: {{ .Values.smithdb.serviceAccount.automountServiceAccountToken }}
       {{- with include "langsmith.smithdb.commonInitContainers" . | fromYamlArray }}
       initContainers:
         {{- toYaml . | nindent 8 }}
