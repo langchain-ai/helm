@@ -1,0 +1,9 @@
+apiVersion: v2
+name: langsmith-connector
+maintainers:
+  - name: Mukil
+    email: mukil@langchain.dev
+description: Helm chart for the LangSmith tunnel connector. It runs inside your network and connects outbound to LangSmith so LangSmith products can reach your private services.
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
