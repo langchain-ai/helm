@@ -74,7 +74,7 @@ Common pod annotations
 Merge commonPodSecurityContext with the connector podSecurityContext; connector values win.
 */}}
 {{- define "connector.podSecurityContext" -}}
-{{- $merged := merge (deepCopy .Values.connector.podSecurityContext) .Values.commonPodSecurityContext -}}
+{{- $merged := merge (deepCopy (.Values.connector.podSecurityContext | default dict)) (.Values.commonPodSecurityContext | default dict) -}}
 {{- toYaml $merged -}}
 {{- end -}}
 

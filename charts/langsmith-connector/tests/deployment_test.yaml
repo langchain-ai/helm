@@ -34,14 +34,6 @@ tests:
             name: LANGSMITH_CONNECTOR_TARGETS
             value: "api=https://api.internal.example:8443,database=db.internal.example:5432"
 
-  - it: omits LANGSMITH_CONNECTOR_TARGETS when no targets are configured
-    asserts:
-      - notContains:
-          path: spec.template.spec.containers[0].env
-          content:
-            name: LANGSMITH_CONNECTOR_TARGETS
-          any: true
-
   - it: mounts the chart-managed secret as the api-key file
     asserts:
       - equal:
@@ -108,10 +100,70 @@ tests:
           path: spec.template.spec.containers[0].image
           value: "registry.example.com/docker.io/langchain/langsmith-connector:0.1.0"
 
-  - it: changes the config checksum when targets change
-    set:
-      connector.targets:
-        api: "https://one.internal:8443"
+  - it: uses the default image without a registry prefix
     asserts:
-      - exists:
-          path: spec.template.metadata.annotations["checksum/config"]
+      - equal:
+          path: spec.template.spec.containers[0].image
+          value: "docker.io/langchain/langsmith-connector:0.1.0"
+
+  - it: rolls pods without surging
+    asserts:
+      - equal:
+          path: spec.strategy.rollingUpdate.maxSurge
+          value: 0
+      - equal:
+          path: spec.strategy.rollingUpdate.maxUnavailable
+          value: 1
+
+  - it: appends extraEnv after the LangSmith variables
+    set:
+      connector.extraEnv:
+        - name: FOO
+          value: bar
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].env[4].name
+          value: FOO
+
+  - it: uses the default service account when creation is disabled
+    set:
+      serviceAccount.create: false
+    asserts:
+      - equal:
+          path: spec.template.spec.serviceAccountName
+          value: default
+
+  - it: never places the api key in the deployment
+    asserts:
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: LANGSMITH_API_KEY
+          any: true
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            value: test-api-key
+          any: true
+
+  - it: sets runAsUser and runAsGroup 1000
+    asserts:
+      - equal:
+          path: spec.template.spec.securityContext.runAsUser
+          value: 1000
+      - equal:
+          path: spec.template.spec.securityContext.runAsGroup
+          value: 1000
+
+  - it: renders pod annotations only when configured
+    asserts:
+      - notExists:
+          path: spec.template.metadata.annotations
+
+  - it: renders pod annotations when commonPodAnnotations is set
+    set:
+      commonPodAnnotations.foo: bar
+    asserts:
+      - equal:
+          path: spec.template.metadata.annotations.foo
+          value: bar

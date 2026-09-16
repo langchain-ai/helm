@@ -11,8 +11,6 @@ Check that it connected:
 Then open Settings -> Tunnels in LangSmith. The connection shows as connected and lists these targets:
 {{- range $name, $address := .Values.connector.targets }}
   - {{ $name }}
-{{- else }}
-  (none configured; set connector.targets)
 {{- end }}
 
 HTTP and HTTPS targets are reachable from LangSmith products. TCP targets register but are not yet reachable from LangSmith.
