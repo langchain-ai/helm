@@ -1,27 +1,14 @@
 #!/usr/bin/env bash
 # mirror_langsmith_images.sh
-# Pull each image, retag it, and push to a destination registry.
-#
-# Ensure that you have logged into the destination registry if credentials are required.
-#
-# Default mode: retag as <REGISTRY>/<original-repo>:<tag>
-# Marketplace mode (--dest-repo): retag as <REGISTRY>/<dest-repo>:<image-name>-<tag>
-#
-# Examples:
-# ./mirror_langsmith_images.sh --registry myregistry --version 0.10.66 --platform linux/arm64
-# ./mirror_langsmith_images.sh --registry myregistry --version 0.16.0 --include-sandboxes --platform linux/amd64
-# ./mirror_langsmith_images.sh --registry 709825985650.dkr.ecr.us-east-1.amazonaws.com \
-#     --dest-repo langchain/langchain-repository --version 0.10.67 --platform linux/amd64 --dry-run
+# Mirror the images configured by the LangSmith chart to a destination registry.
 
 set -euo pipefail
 
-# Default version
-DEFAULT_VERSION="0.13.9"
-DEFAULT_OPERATOR_VERSION="0.1.37"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+VALUES_FILE="${SCRIPT_DIR}/../values.yaml"
+CHART_FILE="${SCRIPT_DIR}/../Chart.yaml"
+CONSOLIDATED_VERSION="0.16.21"
 
-###############################################################################
-# CLI parsing
-###############################################################################
 REGISTRY=""
 VERSION=""
 OPERATOR_VERSION=""
@@ -32,15 +19,15 @@ INCLUDE_SANDBOXES=false
 
 usage() {
     cat <<EOF
-Usage: $0 --registry <registry-prefix> [--dest-repo <repo>] [--version <version>] [--platform linux/arm64] [--include-sandboxes] [--dry-run]
+Usage: $0 --registry <registry-prefix> [--dest-repo <repo>] [--version <version>] [--operator-version <version>] [--platform linux/arm64] [--include-sandboxes] [--dry-run]
 
-    --registry  Mandatory. Destination registry (e.g. myregistry or 12345678.dkr.ecr.us-east-1.amazonaws.com)
-    --dest-repo Single destination repo (e.g. langchain/langchain_repository). Tags become <image-name>-<version>.
-    --version            Version to use for LangSmith images (default: $DEFAULT_VERSION)
-    --operator-version   Version for langgraph-operator (default: $DEFAULT_OPERATOR_VERSION)
-    --platform           Architecture to pull (default: linux/amd64)
-    --include-sandboxes  Also mirror sandbox runtime images. Requires --platform linux/amd64.
-    --dry-run            Only print the docker commands
+    --registry            Mandatory. Destination registry (e.g. myregistry or 12345678.dkr.ecr.us-east-1.amazonaws.com)
+    --dest-repo           Single destination repo (e.g. langchain/langchain_repository). Tags become <image-name>-<version>.
+    --version             Override the tag for LangSmith application images
+    --operator-version    Override the tag for langgraph-operator
+    --platform            Architecture to pull (default: linux/amd64)
+    --include-sandboxes   Also mirror sandbox runtime images. Requires --platform linux/amd64.
+    --dry-run             Only print the docker commands
 EOF
     exit 1
 }
@@ -59,51 +46,109 @@ while [[ $# -gt 0 ]]; do
 done
 
 [[ -z $REGISTRY ]] && { echo "ERROR: --registry is required"; usage; }
+[[ -f $VALUES_FILE ]] || { echo "ERROR: values.yaml not found at ${VALUES_FILE}" >&2; exit 1; }
+[[ -f $CHART_FILE ]] || { echo "ERROR: Chart.yaml not found at ${CHART_FILE}" >&2; exit 1; }
 
-# Use provided version or default
-VERSION="${VERSION:-$DEFAULT_VERSION}"
-OPERATOR_VERSION="${OPERATOR_VERSION:-$DEFAULT_OPERATOR_VERSION}"
-
-# Build images array with the specified version
-IMAGES=(
-    "docker.io/langchain/langsmith-ace-backend:${VERSION}"
-    "docker.io/langchain/langsmith-backend:${VERSION}"
-    "docker.io/langchain/langsmith-insights-engine:${VERSION}"
-    "docker.io/langchain/langsmith-frontend:${VERSION}"
-    "docker.io/langchain/hosted-langserve-backend:${VERSION}"
-    "docker.io/langchain/langgraph-operator:${OPERATOR_VERSION}"
-    "docker.io/langchain/langsmith-go-backend:${VERSION}"
-    "docker.io/langchain/langsmith-playground:${VERSION}"
-    "docker.io/langchain/agent-builder-tool-server:${VERSION}"
-    "docker.io/langchain/agent-builder-trigger-server:${VERSION}"
-    "docker.io/langchain/agent-builder-deep-agent:${VERSION}"
-    "docker.io/postgres:15.15"
-    "docker.io/redis:8"
-    "docker.io/clickhouse/clickhouse-server:25.12"
-)
-
-if $INCLUDE_SANDBOXES; then
-    if [[ "$PLATFORM" != "linux/amd64" ]]; then
-        echo "ERROR: --include-sandboxes requires --platform linux/amd64 because sandbox runtime images are only published for amd64." >&2
-        exit 1
-    fi
-
-    IMAGES+=(
-        "docker.io/langchain/sandbox-host:${VERSION}"
-    )
+if $INCLUDE_SANDBOXES && [[ $PLATFORM != "linux/amd64" ]]; then
+    echo "ERROR: --include-sandboxes requires --platform linux/amd64 because sandbox runtime images are only published for amd64." >&2
+    exit 1
 fi
 
-echo "Using version: ${VERSION}"
+CHART_APP_VERSION=""
+while IFS= read -r line; do
+    if [[ $line =~ ^appVersion:[[:space:]]*\"?([^\"[:space:]#]+) ]]; then
+        CHART_APP_VERSION="${BASH_REMATCH[1]}"
+        break
+    fi
+done < "$CHART_FILE"
+
+[[ -n $CHART_APP_VERSION ]] || { echo "ERROR: appVersion not found in ${CHART_FILE}" >&2; exit 1; }
+
+version_before() {
+    local version=$1
+    local minimum=$2
+    local version_major version_minor version_patch
+    local minimum_major minimum_minor minimum_patch
+
+    [[ $version =~ ^v?([0-9]+)\.([0-9]+)\.([0-9]+) ]] || return 1
+    version_major=${BASH_REMATCH[1]}
+    version_minor=${BASH_REMATCH[2]}
+    version_patch=${BASH_REMATCH[3]}
+    [[ $minimum =~ ^v?([0-9]+)\.([0-9]+)\.([0-9]+) ]]
+    minimum_major=${BASH_REMATCH[1]}
+    minimum_minor=${BASH_REMATCH[2]}
+    minimum_patch=${BASH_REMATCH[3]}
+
+    (( 10#$version_major < 10#$minimum_major )) && return 0
+    (( 10#$version_major > 10#$minimum_major )) && return 1
+    (( 10#$version_minor < 10#$minimum_minor )) && return 0
+    (( 10#$version_minor > 10#$minimum_minor )) && return 1
+    (( 10#$version_patch < 10#$minimum_patch ))
+}
+
+IMAGES=()
+
+add_image() {
+    IMAGES+=("${1}:${2}")
+}
+
+in_images=false
+image_key=""
+current_repo=""
+while IFS= read -r line; do
+    if [[ $line == "images:" ]]; then
+        in_images=true
+        continue
+    fi
+    $in_images || continue
+    [[ $line =~ ^[^[:space:]#] ]] && break
+
+    if [[ $line =~ ^[[:space:]]{2}([[:alnum:]_]+Image):[[:space:]]*$ ]]; then
+        image_key="${BASH_REMATCH[1]}"
+        current_repo=""
+    elif [[ -n $image_key && $line =~ ^[[:space:]]{4}repository:[[:space:]]*\"([^\"]+)\" ]]; then
+        current_repo="${BASH_REMATCH[1]}"
+    elif [[ -n $current_repo && $line =~ ^[[:space:]]{4}tag:[[:space:]]*\"([^\"]*)\" ]]; then
+        tag="${BASH_REMATCH[1]}"
+        if [[ $current_repo == "docker.io/langchain/langgraph-operator" ]]; then
+            tag="${OPERATOR_VERSION:-$tag}"
+        elif [[ $current_repo == docker.io/langchain/* ]]; then
+            tag="${VERSION:-${tag:-$CHART_APP_VERSION}}"
+        fi
+
+        if [[ $image_key != "sandboxHostImage" ]] || $INCLUDE_SANDBOXES; then
+            [[ -n $tag ]] || { echo "ERROR: no tag configured for ${image_key}" >&2; exit 1; }
+            add_image "$current_repo" "$tag"
+        fi
+        image_key=""
+        current_repo=""
+    fi
+done < "$VALUES_FILE"
+
+APP_VERSION="${VERSION:-$CHART_APP_VERSION}"
+if version_before "$APP_VERSION" "$CONSOLIDATED_VERSION"; then
+    for legacy_repository in \
+        docker.io/langchain/langsmith-go-backend \
+        docker.io/langchain/langsmith-playground \
+        docker.io/langchain/hosted-langserve-backend \
+        docker.io/langchain/agent-builder-tool-server \
+        docker.io/langchain/agent-builder-trigger-server; do
+        add_image "$legacy_repository" "$APP_VERSION"
+    done
+fi
+
+[[ ${#IMAGES[@]} -gt 0 ]] || { echo "ERROR: no images found in ${VALUES_FILE}" >&2; exit 1; }
+
+echo "App version: ${APP_VERSION}"
 echo "Registry: ${REGISTRY}"
 [[ -n $DEST_REPO ]] && echo "Dest repo: ${DEST_REPO}"
 echo "Platform: ${PLATFORM}"
 echo "Include sandboxes: ${INCLUDE_SANDBOXES}"
 echo "Dry-run: ${DRY_RUN}"
+echo "Images (${#IMAGES[@]}):"
+printf '  %s\n' "${IMAGES[@]}"
 echo
 
-###############################################################################
-# Helper to echo or execute a docker command
-###############################################################################
 run_cmd() {
     if $DRY_RUN; then
         printf '[DRY-RUN] %q' "$1"
@@ -115,20 +160,15 @@ run_cmd() {
     fi
 }
 
-###############################################################################
-# Main loop
-###############################################################################
 for SRC in "${IMAGES[@]}"; do
-    repo_tag=${SRC#*/}        # strip first path element (docker.io/…)
-    tag=${repo_tag##*:}       # version tag
+    repo_tag=${SRC#*/}
+    tag=${repo_tag##*:}
 
     if [[ -n $DEST_REPO ]]; then
-        # Marketplace mode: all images → single repo, tag = <image-name>-<version>
-        image_name=${repo_tag%%:*}    # e.g. langchain/langsmith-backend
-        image_name=${image_name##*/}  # e.g. langsmith-backend
+        image_name=${repo_tag%%:*}
+        image_name=${image_name##*/}
         DEST="${REGISTRY}/${DEST_REPO}:${image_name}-${tag}"
     else
-        # Default mode: preserve original repo structure
         repo=${repo_tag%%:*}
         DEST="${REGISTRY}/${repo}:${tag}"
     fi
@@ -140,4 +180,4 @@ for SRC in "${IMAGES[@]}"; do
     echo
 done
 
-echo "✓ All images processed."
+echo "All images processed."
