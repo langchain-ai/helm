@@ -1,0 +1,83 @@
+# -- Provide a name in place of `langsmith-connector`
+nameOverride: ""
+# -- String to fully override `"connector.fullname"`
+fullnameOverride: ""
+# -- Namespace to install the chart into. If not set, will use the namespace of the current context.
+namespace: ""
+# -- Annotations that will be applied to all resources created by the chart
+commonAnnotations: {}
+# -- Annotations that will be applied to all pods created by the chart
+commonPodAnnotations: {}
+# -- Labels that will be applied to all resources created by the chart
+commonLabels: {}
+# -- Common pod security context applied to all pods. `connector.podSecurityContext` is merged on top of this (connector values take precedence).
+commonPodSecurityContext: {}
+# -- Common DNS configuration applied to all pods. Reduces DNS query amplification in Kubernetes by
+# -- ensuring service FQDNs (which have 4 dots) are resolved directly without search domain expansion.
+# -- Set to null to disable and use Kubernetes defaults (ndots: 5).
+commonDnsConfig:
+  options:
+    - name: ndots
+      value: "4"
+
+images:
+  # -- If supplied, all children <image_name>.repository values will be prepended with this registry name + `/`
+  registry: ""
+  imagePullSecrets: []
+  connectorImage:
+    repository: "docker.io/langchain/langsmith-connector"
+    pullPolicy: IfNotPresent
+    tag: "0.1.0"
+
+connector:
+  # -- LangSmith API URL. Self-hosted installs use their own API origin, including any `/api` prefix.
+  endpoint: "https://api.smith.langchain.com"
+  # -- (required) The tunnel's connection ID, copied from Settings -> Tunnels in LangSmith.
+  connectionId: ""
+  # -- Target name to address. HTTP targets carry a scheme (`https://svc.internal:8443`); TCP targets are `host:port`.
+  # Each entry becomes part of LANGSMITH_CONNECTOR_TARGETS.
+  targets: {}
+  # -- LangSmith API key with the `connections:connect` permission. Creates a chart-managed Secret.
+  # Mutually exclusive with `existingSecret`.
+  apiKey: ""
+  # -- Name of an existing Secret holding the API key. Mutually exclusive with `apiKey`.
+  existingSecret: ""
+  # -- Key inside `existingSecret` that holds the API key.
+  existingSecretKey: "api-key"
+  # -- Number of connector pods. One pod already holds two redundant sessions to LangSmith.
+  replicas: 1
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 500m
+      memory: 256Mi
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  # -- Pod-level security context, merged over `commonPodSecurityContext`.
+  podSecurityContext:
+    runAsNonRoot: true
+    seccompProfile:
+      type: RuntimeDefault
+  # -- Container-level security context.
+  securityContext:
+    allowPrivilegeEscalation: false
+    readOnlyRootFilesystem: true
+    capabilities:
+      drop:
+        - ALL
+  # -- Covers the connector's 30 second drain grace on SIGTERM.
+  terminationGracePeriodSeconds: 45
+  # -- Additional environment variables for the connector container.
+  extraEnv: []
+  # -- Labels added to the Deployment and its pods.
+  labels: {}
+  # -- Annotations added to the Deployment and its pods.
+  annotations: {}
+
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
