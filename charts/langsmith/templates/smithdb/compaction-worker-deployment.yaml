@@ -50,6 +50,7 @@ spec:
       securityContext:
         {{- toYaml .Values.smithdb.compactionWorker.deployment.podSecurityContext | nindent 8 }}
       serviceAccountName: {{ include "langsmith.smithdb.serviceAccountName" (dict "root" . "component" "compaction") }}
+      automountServiceAccountToken: {{ .Values.smithdb.serviceAccount.automountServiceAccountToken }}
       terminationGracePeriodSeconds: {{ .Values.smithdb.compactionWorker.deployment.terminationGracePeriodSeconds }}
       {{- include "langsmith.dnsConfig" . | nindent 6 }}
       {{- with concat (include "langsmith.smithdb.commonInitContainers" . | fromYamlArray) .Values.smithdb.compactionWorker.deployment.initContainers }}

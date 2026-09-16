@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.16.22](https://img.shields.io/badge/Version-0.16.22-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.16.55](https://img.shields.io/badge/AppVersion-0.16.55-informational?style=flat-square)
+![Version: 0.16.23](https://img.shields.io/badge/Version-0.16.23-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.16.55](https://img.shields.io/badge/AppVersion-0.16.55-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -911,11 +911,13 @@ Replica counts and autoscaling remain controlled by each component's `deployment
 | sandboxes.juicefs.csi.configSecretName | string | `"juicefs-csi-config"` | Name of the chart-managed JuiceFS CSI config Secret. The bundled JuiceFS CSI setup is intended only for JuiceFS PVs in the namespace where this chart is installed. Chart-managed Secret/config changes roll only the JuiceFS CSI controller/node pods through checksum annotations. Helm cannot hash externally managed Secret contents or directly refresh CSI-created JuiceFS mount pods; delete affected JuiceFS mount pods so they are recreated with the updated Secret. |
 | sandboxes.juicefs.csi.controller.annotations | object | `{}` | Annotations applied to the JuiceFS CSI controller StatefulSet and pod template. |
 | sandboxes.juicefs.csi.controller.serviceAccount.annotations | object | `{}` | Annotations applied to the JuiceFS CSI controller ServiceAccount. |
+| sandboxes.juicefs.csi.controller.serviceAccount.automountServiceAccountToken | bool | `true` | Controls whether the JuiceFS CSI controller pods automatically mount a ServiceAccount token. |
 | sandboxes.juicefs.csi.existingSecretName | string | `""` | Existing Secret containing JuiceFS CSI config keys `name`, `metaurl`, `storage`, and `bucket`. When set, this chart does not render the CSI config Secret and `sandboxes.juicefs.name`, `sandboxes.juicefs.storage`, `sandboxes.juicefs.bucket`, and `sandboxes.juicefs.redis.metaURL` are not used for the CSI config. |
 | sandboxes.juicefs.csi.install | bool | `true` | Install the bundled JuiceFS CSI driver. Set to false when the cluster already runs one; the chart then renders only the sandbox PV/PVCs and CSI config Secret, bound to the existing driver. |
 | sandboxes.juicefs.csi.mountPodPatch | list | `[{"mountOptions":["cache-dir=/var/cache/juicefs-csi","cache-size=51200","buffer-size=300","prefetch=3","metrics=0.0.0.0:9567"],"resources":{"limits":{"cpu":"2","memory":"4Gi"},"requests":{"cpu":"2","memory":"4Gi"}}},{"mountOptions":["cache-dir=/var/cache/juicefs-csi","cache-size=307200","cache-large-write"],"pvcSelector":{"matchLabels":{"juicefs.langsmith.com/cache":"ssd"}}}]` | Mount pod patches used by the JuiceFS CSI driver for sandbox volumes. Override only when tuning JuiceFS mount behavior or observability. |
 | sandboxes.juicefs.csi.node.annotations | object | `{}` | Annotations applied to the JuiceFS CSI node DaemonSet and pod template. |
 | sandboxes.juicefs.csi.node.serviceAccount.annotations | object | `{}` | Annotations applied to the JuiceFS CSI node ServiceAccount. Use this for workload identity annotations such as AWS IRSA or GCP Workload Identity. |
+| sandboxes.juicefs.csi.node.serviceAccount.automountServiceAccountToken | bool | `true` | Controls whether the JuiceFS CSI node pods automatically mount a ServiceAccount token. |
 | sandboxes.juicefs.csi.pvName | string | `"smithbox-juicefs-csi"` |  |
 | sandboxes.juicefs.csi.pvcName | string | `"smithbox-juicefs-csi"` |  |
 | sandboxes.juicefs.name | string | `"sandbox-juicefs"` | JuiceFS volume name. Use a flat DNS-label-style name only; slashes and object-store subpaths are not supported here. JuiceFS stores objects under `<name>/` inside the configured bucket. Also used to scope JuiceFS CSI RBAC for the generated mount Secret, so keep it aligned with the `name` key when using an existing CSI config Secret. |

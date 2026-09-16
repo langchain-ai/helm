@@ -135,6 +135,7 @@ spec:
         - key: CriticalAddonsOnly
           operator: Exists
       serviceAccountName: {{ include "langsmith.sandboxes.juicefsCSIControllerServiceAccountName" . }}
+      automountServiceAccountToken: {{ .Values.sandboxes.juicefs.csi.controller.serviceAccount.automountServiceAccountToken }}
       volumes:
         - emptyDir: {}
           name: socket-dir

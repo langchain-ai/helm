@@ -13,6 +13,7 @@ metadata:
     {{- include "langsmith.sandboxes.juicefsCSILabels" . | nindent 4 }}
   annotations:
     {{- toYaml $controllerServiceAccountAnnotations | nindent 4 }}
+automountServiceAccountToken: {{ .Values.sandboxes.juicefs.csi.controller.serviceAccount.automountServiceAccountToken }}
 ---
 apiVersion: v1
 kind: ServiceAccount
@@ -24,6 +25,7 @@ metadata:
     {{- include "langsmith.sandboxes.juicefsCSILabels" . | nindent 4 }}
   annotations:
     {{- toYaml $nodeServiceAccountAnnotations | nindent 4 }}
+automountServiceAccountToken: {{ .Values.sandboxes.juicefs.csi.node.serviceAccount.automountServiceAccountToken }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
