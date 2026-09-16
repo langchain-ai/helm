@@ -46,6 +46,7 @@ spec:
           {{- toYaml . | nindent 8 }}
         {{- end }}
     spec:
+      automountServiceAccountToken: {{ $taskdb.statefulSet.automountServiceAccountToken }}
       terminationGracePeriodSeconds: {{ $taskdb.statefulSet.terminationGracePeriodSeconds }}
       {{- with .Values.images.imagePullSecrets }}
       imagePullSecrets:
