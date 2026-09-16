@@ -70,6 +70,7 @@ spec:
       securityContext:
         {{- include "langsmith.podSecurityContext" (dict "Values" .Values "componentSecurityContext" .Values.queue.deployment.podSecurityContext) | nindent 8 }}
       serviceAccountName: {{ include "queue.serviceAccountName" . }}
+      automountServiceAccountToken: {{ .Values.queue.serviceAccount.automountServiceAccountToken }}
       {{- include "langsmith.dnsConfig" . | nindent 6 }}
       restartPolicy: Always
       {{- with concat .Values.commonInitContainers .Values.queue.deployment.initContainers }}

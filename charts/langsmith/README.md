@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.17.0-rc.29](https://img.shields.io/badge/Version-0.17.0--rc.29-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.17.24rc1](https://img.shields.io/badge/AppVersion-0.17.24rc1-informational?style=flat-square)
+![Version: 0.17.0-rc.31](https://img.shields.io/badge/Version-0.17.0--rc.31-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.17.24rc1](https://img.shields.io/badge/AppVersion-0.17.24rc1-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -1234,6 +1234,7 @@ The query disk cache limit is set automatically from the PVC storage request or,
 | smithdb.migration.taskdb.postgres.service.port | int | `5433` |  |
 | smithdb.migration.taskdb.postgres.statefulSet.affinity | object | `{}` |  |
 | smithdb.migration.taskdb.postgres.statefulSet.annotations | object | `{}` |  |
+| smithdb.migration.taskdb.postgres.statefulSet.automountServiceAccountToken | bool | `true` | Controls whether the in-chart taskdb Postgres pod automatically mounts a ServiceAccount token. |
 | smithdb.migration.taskdb.postgres.statefulSet.command | list | `[]` |  |
 | smithdb.migration.taskdb.postgres.statefulSet.extraContainerConfig | object | `{}` |  |
 | smithdb.migration.taskdb.postgres.statefulSet.extraEnv | list | `[]` |  |

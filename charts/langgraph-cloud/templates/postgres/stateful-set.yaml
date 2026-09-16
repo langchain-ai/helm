@@ -51,6 +51,7 @@ spec:
       securityContext:
         {{- toYaml .Values.postgres.statefulSet.podSecurityContext | nindent 8 }}
       serviceAccountName: {{ include "postgres.serviceAccountName" . }}
+      automountServiceAccountToken: {{ .Values.postgres.serviceAccount.automountServiceAccountToken }}
       {{- include "langGraphCloud.dnsConfig" . | nindent 6 }}
       containers:
         - name: {{ .Values.postgres.name }}
