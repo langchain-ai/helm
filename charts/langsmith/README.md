@@ -1234,6 +1234,7 @@ The query disk cache limit is set automatically from the PVC storage request or,
 | smithdb.migration.taskdb.postgres.service.port | int | `5433` |  |
 | smithdb.migration.taskdb.postgres.statefulSet.affinity | object | `{}` |  |
 | smithdb.migration.taskdb.postgres.statefulSet.annotations | object | `{}` |  |
+| smithdb.migration.taskdb.postgres.statefulSet.automountServiceAccountToken | bool | `true` | Controls whether the in-chart taskdb Postgres pod automatically mounts a ServiceAccount token. |
 | smithdb.migration.taskdb.postgres.statefulSet.command | list | `[]` |  |
 | smithdb.migration.taskdb.postgres.statefulSet.extraContainerConfig | object | `{}` |  |
 | smithdb.migration.taskdb.postgres.statefulSet.extraEnv | list | `[]` |  |

@@ -374,6 +374,7 @@ If you are upgrading from a chart revision that used the old flat MongoDB values
 | mongo.external.connectionUrl | string | `""` | MongoDB connection URL used when `mongo.enabled` and `mongo.external.enabled` are true. Must include the target database name and point at a replica set member or `mongos`. |
 | mongo.external.enabled | bool | `false` | Use an external MongoDB deployment instead of the chart-managed MongoDB instance. |
 | mongo.external.existingSecretName | string | `""` | Existing secret name containing the MongoDB connection URL. |
+| mongo.statefulSet.automountServiceAccountToken | bool | `true` | Controls whether the bundled MongoDB pod automatically mounts a ServiceAccount token. |
 | mongo.statefulSet.persistence.size | string | `"8Gi"` | Persistent volume size for the bundled MongoDB instance. |
 | mongo.statefulSet.priorityClassName | string | `""` | Optional priority class for the in-chart MongoDB pod. |
 | mongo.statefulSet.resources | object | `{"limits":{"cpu":"2000m","memory":"4Gi"},"requests":{"cpu":"500m","memory":"1Gi"}}` | Resource requests and limits for the bundled MongoDB pod. |

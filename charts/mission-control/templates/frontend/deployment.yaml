@@ -26,6 +26,7 @@ spec:
         {{- . | nindent 8 }}
       {{- end }}
     spec:
+      automountServiceAccountToken: {{ .Values.frontend.automountServiceAccountToken }}
       {{- with .Values.images.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}

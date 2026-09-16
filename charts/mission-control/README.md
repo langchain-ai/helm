@@ -134,6 +134,7 @@ helm install mission-control langchain/mission-control \
 | diagnostics.persistence.enabled | bool | `false` |  |
 | diagnostics.persistence.size | string | `"1Gi"` |  |
 | diagnostics.persistence.storageClass | string | `""` | Leave empty to use the cluster default StorageClass. |
+| frontend.automountServiceAccountToken | bool | `true` | Controls whether the frontend pod automatically mounts a ServiceAccount token. |
 | frontend.extraEnv | list | `[]` | Additional environment variables passed to the frontend container. |
 | frontend.podSecurityContext | object | `{}` | Pod-level security context. |
 | frontend.priorityClassName | string | `""` |  |

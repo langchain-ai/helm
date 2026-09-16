@@ -186,6 +186,8 @@ backend:
 
 # Frontend (static React app served by an HTTP server) component.
 frontend:
+  # -- Controls whether the frontend pod automatically mounts a ServiceAccount token.
+  automountServiceAccountToken: true
   # -- Replica count.
   replicas: 1
   # -- Pod-level security context.
