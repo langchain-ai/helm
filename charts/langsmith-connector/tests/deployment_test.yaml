@@ -1,0 +1,117 @@
+suite: connector deployment
+templates:
+  - deployment.yaml
+values:
+  - common-values.yaml
+tests:
+  - it: renders the four LangSmith env vars from values
+    set:
+      connector.endpoint: "https://langsmith.example.com/api"
+      connector.targets:
+        database: "db.internal.example:5432"
+        api: "https://api.internal.example:8443"
+    asserts:
+      - isKind:
+          of: Deployment
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: LANGSMITH_ENDPOINT
+            value: "https://langsmith.example.com/api"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: LANGSMITH_CONNECTION_ID
+            value: "0f7e5f1c-1b2d-4c3e-8a9b-0c1d2e3f4a5b"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: LANGSMITH_API_KEY_FILE
+            value: /var/run/secrets/langsmith/api-key
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: LANGSMITH_CONNECTOR_TARGETS
+            value: "api=https://api.internal.example:8443,database=db.internal.example:5432"
+
+  - it: omits LANGSMITH_CONNECTOR_TARGETS when no targets are configured
+    asserts:
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: LANGSMITH_CONNECTOR_TARGETS
+          any: true
+
+  - it: mounts the chart-managed secret as the api-key file
+    asserts:
+      - equal:
+          path: spec.template.spec.volumes[0].secret.secretName
+          value: RELEASE-NAME-langsmith-connector
+      - equal:
+          path: spec.template.spec.volumes[0].secret.items[0].key
+          value: api-key
+      - equal:
+          path: spec.template.spec.containers[0].volumeMounts[0].mountPath
+          value: /var/run/secrets/langsmith
+      - equal:
+          path: spec.template.spec.containers[0].volumeMounts[0].readOnly
+          value: true
+
+  - it: mounts an existing secret with its configured key
+    set:
+      connector.apiKey: ""
+      connector.existingSecret: "my-langsmith"
+      connector.existingSecretKey: "LANGSMITH_API_KEY"
+    asserts:
+      - equal:
+          path: spec.template.spec.volumes[0].secret.secretName
+          value: my-langsmith
+      - equal:
+          path: spec.template.spec.volumes[0].secret.items[0].key
+          value: LANGSMITH_API_KEY
+      - equal:
+          path: spec.template.spec.volumes[0].secret.items[0].path
+          value: api-key
+
+  - it: exposes no ports and defines no probes
+    asserts:
+      - notExists:
+          path: spec.template.spec.containers[0].ports
+      - notExists:
+          path: spec.template.spec.containers[0].livenessProbe
+      - notExists:
+          path: spec.template.spec.containers[0].readinessProbe
+
+  - it: runs hardened and without a service account token
+    asserts:
+      - equal:
+          path: spec.template.spec.automountServiceAccountToken
+          value: false
+      - equal:
+          path: spec.template.spec.securityContext.runAsNonRoot
+          value: true
+      - equal:
+          path: spec.template.spec.containers[0].securityContext.readOnlyRootFilesystem
+          value: true
+      - equal:
+          path: spec.template.spec.containers[0].securityContext.allowPrivilegeEscalation
+          value: false
+      - equal:
+          path: spec.template.spec.terminationGracePeriodSeconds
+          value: 45
+
+  - it: uses the image from values with the registry prefix
+    set:
+      images.registry: "registry.example.com"
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].image
+          value: "registry.example.com/docker.io/langchain/langsmith-connector:0.1.0"
+
+  - it: changes the config checksum when targets change
+    set:
+      connector.targets:
+        api: "https://one.internal:8443"
+    asserts:
+      - exists:
+          path: spec.template.metadata.annotations["checksum/config"]
