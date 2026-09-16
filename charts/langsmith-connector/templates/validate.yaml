@@ -1,0 +1,17 @@
+{{- /*
+Fails rendering for configuration the connector itself would reject at startup,
+so mistakes surface at install time instead of as a crash loop. Renders nothing.
+*/ -}}
+{{- $c := .Values.connector -}}
+{{- if not $c.connectionId -}}
+{{- fail "connector.connectionId is required. Copy it from Settings -> Tunnels in LangSmith." -}}
+{{- end -}}
+{{- if not (regexMatch "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$" $c.connectionId) -}}
+{{- fail (printf "connector.connectionId must be a UUID, got %q." $c.connectionId) -}}
+{{- end -}}
+{{- if and $c.apiKey $c.existingSecret -}}
+{{- fail "Set only one of connector.apiKey or connector.existingSecret." -}}
+{{- end -}}
+{{- if and (not $c.apiKey) (not $c.existingSecret) -}}
+{{- fail "Set connector.apiKey or connector.existingSecret so the connector can authenticate to LangSmith." -}}
+{{- end -}}

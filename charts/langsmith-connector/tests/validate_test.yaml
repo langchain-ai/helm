@@ -1,0 +1,41 @@
+suite: configuration validation
+templates:
+  - validate.yaml
+tests:
+  - it: fails when connectionId is empty
+    set:
+      connector.apiKey: "k"
+    asserts:
+      - failedTemplate:
+          errorPattern: "connector.connectionId is required"
+
+  - it: fails when connectionId is not a UUID
+    set:
+      connector.connectionId: "not-a-uuid"
+      connector.apiKey: "k"
+    asserts:
+      - failedTemplate:
+          errorPattern: "connector.connectionId must be a UUID"
+
+  - it: fails when neither apiKey nor existingSecret is set
+    set:
+      connector.connectionId: "0f7e5f1c-1b2d-4c3e-8a9b-0c1d2e3f4a5b"
+    asserts:
+      - failedTemplate:
+          errorPattern: "Set connector.apiKey or connector.existingSecret"
+
+  - it: fails when both apiKey and existingSecret are set
+    set:
+      connector.connectionId: "0f7e5f1c-1b2d-4c3e-8a9b-0c1d2e3f4a5b"
+      connector.apiKey: "k"
+      connector.existingSecret: "s"
+    asserts:
+      - failedTemplate:
+          errorPattern: "Set only one of connector.apiKey or connector.existingSecret"
+
+  - it: renders nothing when configuration is valid
+    values:
+      - common-values.yaml
+    asserts:
+      - hasDocuments:
+          count: 0
