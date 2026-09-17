@@ -30,11 +30,11 @@ helm install langsmith-connector langchain/langsmith-connector \
 To keep the API key out of Helm values, create a Secret and reference it:
 
 ```bash
-kubectl -n langsmith-connector create secret generic langsmith-connector-key --from-literal=api-key=<api key>
+kubectl -n langsmith-connector create secret generic langsmith-connector-key --from-literal=langsmith_api_key=<api key>
 helm install langsmith-connector langchain/langsmith-connector \
   --namespace langsmith-connector \
   --set connector.connectionId=<connection id> \
-  --set connector.existingSecret=langsmith-connector-key \
+  --set connector.existingSecretName=langsmith-connector-key \
   --set connector.targets.api=https://api.internal.example:8443
 ```
 

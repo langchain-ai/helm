@@ -51,13 +51,12 @@ connector:
   # -- (required) Target name to address. HTTP targets carry a scheme (`https://svc.internal:8443`); TCP targets are `host:port`.
   # At least one target is required; the connector exits when the map is empty. Each entry becomes part of LANGSMITH_CONNECTOR_TARGETS.
   targets: {}
-  # -- LangSmith API key with the `connections:connect` permission. Creates a chart-managed Secret.
-  # Mutually exclusive with `existingSecret`.
+  # -- LangSmith API key with the `connections:connect` permission, stored in the chart-managed Secret. Required unless existingSecretName is set.
   apiKey: ""
-  # -- Name of an existing Secret holding the API key. Mutually exclusive with `apiKey`.
-  existingSecret: ""
-  # -- Key inside `existingSecret` that holds the API key.
-  existingSecretKey: "api-key"
+  # -- Existing secret containing the LangSmith API key. If set, the chart does not create one.
+  existingSecretName: ""
+  # -- Key inside the Secret that holds the API key; also the file name under /var/run/secrets/langsmith.
+  apiKeySecretKey: "langsmith_api_key"
   deployment:
     # -- One pod already holds two redundant sessions to LangSmith.
     replicas: 1

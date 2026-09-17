@@ -9,15 +9,15 @@ so mistakes surface at install time instead of as a crash loop. Renders nothing.
 {{- if not (regexMatch "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$" $c.connectionId) -}}
 {{- fail (printf "connector.connectionId must be a UUID, got %q." $c.connectionId) -}}
 {{- end -}}
-{{- if and $c.apiKey $c.existingSecret -}}
-{{- fail "Set only one of connector.apiKey or connector.existingSecret." -}}
+{{- if and $c.apiKey $c.existingSecretName -}}
+{{- fail "Set only one of connector.apiKey or connector.existingSecretName." -}}
 {{- end -}}
-{{- if and (not $c.apiKey) (not $c.existingSecret) -}}
-{{- fail "Set connector.apiKey or connector.existingSecret so the connector can authenticate to LangSmith." -}}
+{{- if and (not $c.apiKey) (not $c.existingSecretName) -}}
+{{- fail "Set connector.apiKey or connector.existingSecretName so the connector can authenticate to LangSmith." -}}
+{{- end -}}
+{{- if not $c.apiKeySecretKey -}}
+{{- fail "connector.apiKeySecretKey must name the key that holds the API key." -}}
 {{- end -}}
 {{- if not $c.targets -}}
 {{- fail "connector.targets must name at least one target, for example --set connector.targets.api=https://svc.internal:8443. The connector exits when the target map is empty." -}}
-{{- end -}}
-{{- if and $c.existingSecret (not $c.existingSecretKey) -}}
-{{- fail "connector.existingSecretKey must name the key inside connector.existingSecret that holds the API key." -}}
 {{- end -}}

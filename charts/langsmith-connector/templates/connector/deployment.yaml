@@ -6,15 +6,15 @@
 - name: LANGSMITH_CONNECTOR_TARGETS
   value: {{ include "connector.targetsEnv" . | quote }}
 - name: LANGSMITH_API_KEY_FILE
-  value: /var/run/secrets/langsmith/api-key
+  value: /var/run/secrets/langsmith/{{ .Values.connector.apiKeySecretKey }}
 {{- end -}}
 {{- define "connectorVolumes" -}}
 - name: langsmith-api-key
   secret:
     secretName: {{ include "connector.secretName" . }}
     items:
-      - key: {{ include "connector.secretKey" . }}
-        path: api-key
+      - key: {{ .Values.connector.apiKeySecretKey }}
+        path: {{ .Values.connector.apiKeySecretKey }}
 {{- end -}}
 {{- define "connectorVolumeMounts" -}}
 - name: langsmith-api-key

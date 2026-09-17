@@ -30,7 +30,7 @@ tests:
           path: spec.template.spec.containers[0].env
           content:
             name: LANGSMITH_API_KEY_FILE
-            value: /var/run/secrets/langsmith/api-key
+            value: /var/run/secrets/langsmith/langsmith_api_key
       - contains:
           path: spec.template.spec.containers[0].env
           content:
@@ -53,7 +53,7 @@ tests:
           path: spec.template.spec.containers[0].env[5].name
           value: EXTRA
 
-  - it: mounts the chart-managed secret as the api-key file
+  - it: mounts the chart-managed secret as the api key file
     asserts:
       - contains:
           path: spec.template.spec.volumes
@@ -62,8 +62,8 @@ tests:
             secret:
               secretName: RELEASE-NAME-langsmith-connector-connector
               items:
-                - key: api-key
-                  path: api-key
+                - key: langsmith_api_key
+                  path: langsmith_api_key
       - contains:
           path: spec.template.spec.containers[0].volumeMounts
           content:
@@ -74,8 +74,8 @@ tests:
   - it: mounts an existing secret with its configured key
     set:
       connector.apiKey: ""
-      connector.existingSecret: "my-langsmith"
-      connector.existingSecretKey: "LANGSMITH_API_KEY"
+      connector.existingSecretName: "my-langsmith"
+      connector.apiKeySecretKey: "LANGSMITH_API_KEY"
     asserts:
       - contains:
           path: spec.template.spec.volumes
@@ -85,7 +85,7 @@ tests:
               secretName: my-langsmith
               items:
                 - key: LANGSMITH_API_KEY
-                  path: api-key
+                  path: LANGSMITH_API_KEY
 
   - it: appends commonVolumes and commonVolumeMounts
     set:

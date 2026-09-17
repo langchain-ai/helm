@@ -120,21 +120,10 @@ dnsConfig:
 Secret that holds the LangSmith API key: the operator's existing Secret, or the chart-managed one.
 */}}
 {{- define "connector.secretName" -}}
-{{- if .Values.connector.existingSecret -}}
-{{ .Values.connector.existingSecret }}
+{{- if .Values.connector.existingSecretName -}}
+{{ .Values.connector.existingSecretName }}
 {{- else -}}
 {{ include "connector.fullname" . }}-{{ .Values.connector.name }}
-{{- end -}}
-{{- end -}}
-
-{{/*
-Key inside that Secret. The chart-managed Secret always uses "api-key".
-*/}}
-{{- define "connector.secretKey" -}}
-{{- if .Values.connector.existingSecret -}}
-{{ .Values.connector.existingSecretKey }}
-{{- else -}}
-api-key
 {{- end -}}
 {{- end -}}
 
