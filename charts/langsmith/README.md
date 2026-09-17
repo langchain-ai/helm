@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.17.0-rc.29](https://img.shields.io/badge/Version-0.17.0--rc.29-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.17.24rc1](https://img.shields.io/badge/AppVersion-0.17.24rc1-informational?style=flat-square)
+![Version: 0.17.0-rc.33](https://img.shields.io/badge/Version-0.17.0--rc.33-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.17.25rc1](https://img.shields.io/badge/AppVersion-0.17.25rc1-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -581,29 +581,29 @@ The query disk cache limit is set automatically from the PVC storage request or,
 | gateway.sectionName | string | `""` |  |
 | images.aceBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.aceBackendImage.repository | string | `"docker.io/langchain/langsmith-ace-backend"` |  |
-| images.aceBackendImage.tag | string | `"0.17.24rc1"` |  |
+| images.aceBackendImage.tag | string | `"0.17.25rc1"` |  |
 | images.agentBuilderImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.agentBuilderImage.repository | string | `"docker.io/langchain/agent-builder-deep-agent"` |  |
-| images.agentBuilderImage.tag | string | `"0.17.24rc1"` |  |
+| images.agentBuilderImage.tag | string | `"0.17.25rc1"` |  |
 | images.backendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.backendImage.repository | string | `"docker.io/langchain/langsmith-backend"` |  |
-| images.backendImage.tag | string | `"0.17.24rc1"` |  |
+| images.backendImage.tag | string | `"0.17.25rc1"` |  |
 | images.clickhouseImage.pullPolicy | string | `"Always"` |  |
 | images.clickhouseImage.repository | string | `"docker.io/clickhouse/clickhouse-server"` |  |
 | images.clickhouseImage.tag | string | `"25.12"` |  |
 | images.engineInsightsAgentImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.engineInsightsAgentImage.repository | string | `"docker.io/langchain/langsmith-insights-engine"` |  |
-| images.engineInsightsAgentImage.tag | string | `"0.17.24rc1"` |  |
+| images.engineInsightsAgentImage.tag | string | `"0.17.25rc1"` |  |
 | images.frontendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.frontendImage.repository | string | `"docker.io/langchain/langsmith-frontend"` |  |
-| images.frontendImage.tag | string | `"0.17.24rc1"` |  |
+| images.frontendImage.tag | string | `"0.17.25rc1"` |  |
 | images.imagePullSecrets | list | `[]` | Secrets with credentials to pull images from a private registry. Specified as name: value. |
 | images.operatorImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.operatorImage.repository | string | `"docker.io/langchain/langgraph-operator"` |  |
 | images.operatorImage.tag | string | `"0.1.60"` |  |
 | images.pollyAgentImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.pollyAgentImage.repository | string | `"docker.io/langchain/langsmith-polly"` |  |
-| images.pollyAgentImage.tag | string | `"0.17.24rc1"` |  |
+| images.pollyAgentImage.tag | string | `"0.17.25rc1"` |  |
 | images.postgresImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.postgresImage.repository | string | `"docker.io/postgres"` |  |
 | images.postgresImage.tag | string | `"14.7"` |  |
@@ -617,7 +617,7 @@ The query disk cache limit is set automatically from the PVC storage request or,
 | images.sandboxHostImage | object | `{"pullPolicy":"IfNotPresent","repository":"docker.io/langchain/sandbox-host","tag":""}` | sandbox-host image. Only used when sandboxes.enabled is true. |
 | images.smithdbImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.smithdbImage.repository | string | `"docker.io/langchain/smithdb"` |  |
-| images.smithdbImage.tag | string | `"0.17.24rc1"` |  |
+| images.smithdbImage.tag | string | `"0.17.25rc1"` |  |
 | ingestQueue.autoscaling.hpa.enabled | bool | `false` |  |
 | ingestQueue.autoscaling.hpa.maxReplicas | int | `10` |  |
 | ingestQueue.autoscaling.hpa.minReplicas | int | `3` |  |
@@ -1234,6 +1234,7 @@ The query disk cache limit is set automatically from the PVC storage request or,
 | smithdb.migration.taskdb.postgres.service.port | int | `5433` |  |
 | smithdb.migration.taskdb.postgres.statefulSet.affinity | object | `{}` |  |
 | smithdb.migration.taskdb.postgres.statefulSet.annotations | object | `{}` |  |
+| smithdb.migration.taskdb.postgres.statefulSet.automountServiceAccountToken | bool | `true` | Controls whether the in-chart taskdb Postgres pod automatically mounts a ServiceAccount token. |
 | smithdb.migration.taskdb.postgres.statefulSet.command | list | `[]` |  |
 | smithdb.migration.taskdb.postgres.statefulSet.extraContainerConfig | object | `{}` |  |
 | smithdb.migration.taskdb.postgres.statefulSet.extraEnv | list | `[]` |  |
@@ -1384,6 +1385,8 @@ The query disk cache limit is set automatically from the PVC storage request or,
 | smithdb.query.service.annotations | object | `{}` |  |
 | smithdb.query.service.labels | object | `{}` |  |
 | smithdb.query.service.port | int | `8080` |  |
+| smithdb.recoveryStrategy.enabled | bool | `false` | Enable recovery for superseded SmithDB data. |
+| smithdb.recoveryStrategy.retentionWindow | string | `"12h"` | Minimum time superseded SmithDB data remains available for recovery. |
 | smithdb.resourceTier | string | `"small"` | Per-replica CPU, memory, and cache volume size for SmithDB runtime components: small, medium, or large. See the README. |
 | smithdb.runRules.autoscaling.hpa.enabled | bool | `true` |  |
 | smithdb.runRules.autoscaling.hpa.maxReplicas | int | `5` |  |

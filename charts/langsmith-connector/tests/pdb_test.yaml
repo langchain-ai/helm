@@ -1,0 +1,35 @@
+suite: connector pdb
+templates:
+  - connector/pdb.yaml
+values:
+  - common-values.yaml
+tests:
+  - it: renders nothing by default
+    asserts:
+      - hasDocuments:
+          count: 0
+  - it: renders minAvailable when enabled
+    set:
+      connector.pdb.enabled: true
+    asserts:
+      - isKind:
+          of: PodDisruptionBudget
+      - equal:
+          path: spec.minAvailable
+          value: 1
+      - notExists:
+          path: spec.maxUnavailable
+      - equal:
+          path: spec.selector.matchLabels["app.kubernetes.io/component"]
+          value: RELEASE-NAME-langsmith-connector-connector
+  - it: renders maxUnavailable when minAvailable is removed
+    set:
+      connector.pdb.enabled: true
+      connector.pdb.minAvailable: null
+      connector.pdb.maxUnavailable: 0
+    asserts:
+      - equal:
+          path: spec.maxUnavailable
+          value: 0
+      - notExists:
+          path: spec.minAvailable

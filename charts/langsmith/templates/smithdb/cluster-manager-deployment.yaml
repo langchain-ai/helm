@@ -48,6 +48,7 @@ spec:
       securityContext:
         {{- toYaml .Values.smithdb.clusterManager.deployment.podSecurityContext | nindent 8 }}
       serviceAccountName: {{ include "langsmith.smithdb.serviceAccountName" (dict "root" . "component" "clusterManager") }}
+      automountServiceAccountToken: {{ .Values.smithdb.serviceAccount.automountServiceAccountToken }}
       {{- include "langsmith.dnsConfig" . | nindent 6 }}
       {{- with concat (include "langsmith.smithdb.commonInitContainers" . | fromYamlArray) .Values.smithdb.clusterManager.deployment.initContainers }}
       initContainers:

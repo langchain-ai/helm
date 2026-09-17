@@ -48,6 +48,7 @@ spec:
       securityContext:
         {{- toYaml .Values.smithdb.compaction.deployment.podSecurityContext | nindent 8 }}
       serviceAccountName: {{ include "langsmith.smithdb.serviceAccountName" (dict "root" . "component" "compaction") }}
+      automountServiceAccountToken: {{ .Values.smithdb.serviceAccount.automountServiceAccountToken }}
       {{- include "langsmith.dnsConfig" . | nindent 6 }}
       {{- with concat (include "langsmith.smithdb.commonInitContainers" . | fromYamlArray) .Values.smithdb.compaction.deployment.initContainers }}
       initContainers:
@@ -67,6 +68,12 @@ spec:
             {{- if and .Values.smithdb.langsmith.ingestion.enabled (not .Values.smithdb.langsmith.query.enabled) }}
             - name: SMITHDB_COMPACTION__SEQUENCED_LSM_BACKFILL_ENABLED
               value: "true"
+            {{- end }}
+            - name: SMITHDB_COMPACTION__LARGE_FIELD_DELETE__ENABLE_LARGE_FIELD_VERSIONED_PATHS
+              value: {{ .Values.smithdb.recoveryStrategy.enabled | quote }}
+            {{- if .Values.smithdb.recoveryStrategy.enabled }}
+            - name: SMITHDB_COMPACTION__RECOVERY_WINDOW_SLA
+              value: {{ .Values.smithdb.recoveryStrategy.retentionWindow | quote }}
             {{- end }}
             {{- with $envVars }}
             {{- toYaml . | nindent 12 }}

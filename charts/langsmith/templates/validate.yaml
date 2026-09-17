@@ -29,6 +29,9 @@ AWS Marketplace Helm template verification).
 {{- if not (kindIs "bool" .Values.smithdb.langsmith.query.enabled) -}}
 {{- fail "smithdb.langsmith.query.enabled must be a boolean. Do not quote true or false." -}}
 {{- end -}}
+{{- if not (kindIs "bool" .Values.smithdb.recoveryStrategy.enabled) -}}
+{{- fail "smithdb.recoveryStrategy.enabled must be a boolean. Do not quote true or false." -}}
+{{- end -}}
 {{- if not (has .Values.smithdb.resourceTier (list "small" "medium" "large")) -}}
 {{- fail "smithdb.resourceTier must be one of: small, medium, large." -}}
 {{- end -}}
@@ -430,6 +433,9 @@ AWS Marketplace Helm template verification).
 {{- if and $.Values.smithdb.enabled (dig "enabled" true $workload) (lt (int $workload.deployment.replicas) 1) -}}
 {{- fail (printf "smithdb.%s.deployment.replicas must be greater than 0 when smithdb.enabled is true." $workloadName) -}}
 {{- end -}}
+{{- end -}}
+{{- if and .Values.smithdb.enabled .Values.smithdb.recoveryStrategy.enabled (or (not (kindIs "string" .Values.smithdb.recoveryStrategy.retentionWindow)) (empty .Values.smithdb.recoveryStrategy.retentionWindow)) -}}
+{{- fail "smithdb.recoveryStrategy.retentionWindow must be a non-empty duration string when smithdb.recoveryStrategy.enabled is true." -}}
 {{- end -}}
 {{- if .Values.smithdb.langsmith.migration.enabled -}}
 {{- if lt (int .Values.smithdb.ingestion.deployment.replicas) 1 -}}
