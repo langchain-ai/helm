@@ -1,20 +1,20 @@
 {{- define "connectorEnvVars" -}}
 - name: LANGSMITH_ENDPOINT
-  value: {{ .Values.connector.endpoint | quote }}
+  value: {{ .Values.config.endpoint | quote }}
 - name: LANGSMITH_CONNECTION_ID
-  value: {{ .Values.connector.connectionId | quote }}
+  value: {{ .Values.config.connectionId | quote }}
 - name: LANGSMITH_CONNECTOR_TARGETS
   value: {{ include "connector.targetsEnv" . | quote }}
 - name: LANGSMITH_API_KEY_FILE
-  value: /var/run/secrets/langsmith/{{ .Values.connector.apiKeySecretKey }}
+  value: /var/run/secrets/langsmith/{{ .Values.config.apiKeySecretKey }}
 {{- end -}}
 {{- define "connectorVolumes" -}}
 - name: langsmith-api-key
   secret:
-    secretName: {{ include "connector.secretName" . }}
+    secretName: {{ include "connector.secretsName" . }}
     items:
-      - key: {{ .Values.connector.apiKeySecretKey }}
-        path: {{ .Values.connector.apiKeySecretKey }}
+      - key: {{ .Values.config.apiKeySecretKey }}
+        path: {{ .Values.config.apiKeySecretKey }}
 {{- end -}}
 {{- define "connectorVolumeMounts" -}}
 - name: langsmith-api-key

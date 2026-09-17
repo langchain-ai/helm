@@ -4,56 +4,56 @@ templates:
 tests:
   - it: fails when connectionId is empty
     set:
-      connector.apiKey: "k"
-      connector.targets.api: "https://a.internal:1"
+      config.apiKey: "k"
+      config.targets.api: "https://a.internal:1"
     asserts:
       - failedTemplate:
-          errorPattern: "connector.connectionId is required"
+          errorPattern: "config.connectionId is required"
 
   - it: fails when connectionId is not a UUID
     set:
-      connector.connectionId: "not-a-uuid"
-      connector.apiKey: "k"
-      connector.targets.api: "https://a.internal:1"
+      config.connectionId: "not-a-uuid"
+      config.apiKey: "k"
+      config.targets.api: "https://a.internal:1"
     asserts:
       - failedTemplate:
-          errorPattern: "connector.connectionId must be a UUID"
+          errorPattern: "config.connectionId must be a UUID"
 
   - it: fails when neither apiKey nor existingSecretName is set
     set:
-      connector.connectionId: "0f7e5f1c-1b2d-4c3e-8a9b-0c1d2e3f4a5b"
-      connector.targets.api: "https://a.internal:1"
+      config.connectionId: "0f7e5f1c-1b2d-4c3e-8a9b-0c1d2e3f4a5b"
+      config.targets.api: "https://a.internal:1"
     asserts:
       - failedTemplate:
-          errorPattern: "Set connector.apiKey or connector.existingSecretName"
+          errorPattern: "Set config.apiKey or config.existingSecretName"
 
   - it: fails when both apiKey and existingSecretName are set
     set:
-      connector.connectionId: "0f7e5f1c-1b2d-4c3e-8a9b-0c1d2e3f4a5b"
-      connector.apiKey: "k"
-      connector.existingSecretName: "s"
-      connector.targets.api: "https://a.internal:1"
+      config.connectionId: "0f7e5f1c-1b2d-4c3e-8a9b-0c1d2e3f4a5b"
+      config.apiKey: "k"
+      config.existingSecretName: "s"
+      config.targets.api: "https://a.internal:1"
     asserts:
       - failedTemplate:
-          errorPattern: "Set only one of connector.apiKey or connector.existingSecretName"
+          errorPattern: "Set only one of config.apiKey or config.existingSecretName"
 
   - it: fails when targets is empty
     set:
-      connector.connectionId: "0f7e5f1c-1b2d-4c3e-8a9b-0c1d2e3f4a5b"
-      connector.apiKey: "k"
+      config.connectionId: "0f7e5f1c-1b2d-4c3e-8a9b-0c1d2e3f4a5b"
+      config.apiKey: "k"
     asserts:
       - failedTemplate:
-          errorPattern: "connector.targets must name at least one target"
+          errorPattern: "config.targets must name at least one target"
 
   - it: fails when apiKeySecretKey is empty
     set:
-      connector.connectionId: "0f7e5f1c-1b2d-4c3e-8a9b-0c1d2e3f4a5b"
-      connector.existingSecretName: "s"
-      connector.apiKeySecretKey: ""
-      connector.targets.api: "x"
+      config.connectionId: "0f7e5f1c-1b2d-4c3e-8a9b-0c1d2e3f4a5b"
+      config.existingSecretName: "s"
+      config.apiKeySecretKey: ""
+      config.targets.api: "x"
     asserts:
       - failedTemplate:
-          errorPattern: "connector.apiKeySecretKey must name the key"
+          errorPattern: "config.apiKeySecretKey must name the key"
 
   - it: renders nothing when configuration is valid
     values:

@@ -117,22 +117,23 @@ dnsConfig:
 {{- end -}}
 
 {{/*
-Secret that holds the LangSmith API key: the operator's existing Secret, or the chart-managed one.
+Name of the secret containing the LangSmith API key. This can be overridden by a secret created by
+the user or some other secret provisioning mechanism.
 */}}
-{{- define "connector.secretName" -}}
-{{- if .Values.connector.existingSecretName -}}
-{{ .Values.connector.existingSecretName }}
-{{- else -}}
-{{ include "connector.fullname" . }}-{{ .Values.connector.name }}
-{{- end -}}
-{{- end -}}
+{{- define "connector.secretsName" -}}
+{{- if .Values.config.existingSecretName }}
+{{- .Values.config.existingSecretName }}
+{{- else }}
+{{- include "connector.fullname" . }}-secrets
+{{- end }}
+{{- end }}
 
 {{/*
 LANGSMITH_CONNECTOR_TARGETS: "name=address" pairs joined by commas, in sorted name order.
 */}}
 {{- define "connector.targetsEnv" -}}
 {{- $pairs := list -}}
-{{- range $name, $address := .Values.connector.targets -}}
+{{- range $name, $address := .Values.config.targets -}}
 {{- $pairs = append $pairs (printf "%s=%s" $name $address) -}}
 {{- end -}}
 {{- join "," $pairs -}}

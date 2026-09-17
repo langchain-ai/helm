@@ -1,6 +1,6 @@
 # CI values for chart-testing. The connection ID is a placeholder; the pod runs
 # and retries its outbound dial, which is Ready without probes.
-connector:
+config:
   connectionId: "0f7e5f1c-1b2d-4c3e-8a9b-0c1d2e3f4a5b"
   apiKey: "ci-placeholder"
   targets:

@@ -21,10 +21,10 @@ helm repo update
 
 helm install langsmith-connector langchain/langsmith-connector \
   --namespace langsmith-connector --create-namespace \
-  --set connector.connectionId=<connection id> \
-  --set connector.apiKey=<api key> \
-  --set connector.targets.api=https://api.internal.example:8443 \
-  --set connector.targets.database=db.internal.example:5432
+  --set config.connectionId=<connection id> \
+  --set config.apiKey=<api key> \
+  --set config.targets.api=https://api.internal.example:8443 \
+  --set config.targets.database=db.internal.example:5432
 ```
 
 To keep the API key out of Helm values, create a Secret and reference it:
@@ -33,14 +33,14 @@ To keep the API key out of Helm values, create a Secret and reference it:
 kubectl -n langsmith-connector create secret generic langsmith-connector-key --from-literal=langsmith_api_key=<api key>
 helm install langsmith-connector langchain/langsmith-connector \
   --namespace langsmith-connector \
-  --set connector.connectionId=<connection id> \
-  --set connector.existingSecretName=langsmith-connector-key \
-  --set connector.targets.api=https://api.internal.example:8443
+  --set config.connectionId=<connection id> \
+  --set config.existingSecretName=langsmith-connector-key \
+  --set config.targets.api=https://api.internal.example:8443
 ```
 
 The key is mounted as a file and re-read on every reconnect, so rotating the Secret needs no restart.
 
-Self-hosted LangSmith: set `connector.endpoint` to your API origin, including any `/api` prefix.
+Self-hosted LangSmith: set `config.endpoint` to your API origin, including any `/api` prefix.
 
 ## Values
 

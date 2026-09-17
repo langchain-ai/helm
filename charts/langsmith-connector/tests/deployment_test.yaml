@@ -6,8 +6,8 @@ values:
 tests:
   - it: renders the four LangSmith env vars from values
     set:
-      connector.endpoint: "https://langsmith.example.com/api"
-      connector.targets:
+      config.endpoint: "https://langsmith.example.com/api"
+      config.targets:
         database: "db.internal.example:5432"
         api: "https://api.internal.example:8443"
     asserts:
@@ -60,7 +60,7 @@ tests:
           content:
             name: langsmith-api-key
             secret:
-              secretName: RELEASE-NAME-langsmith-connector-connector
+              secretName: RELEASE-NAME-langsmith-connector-secrets
               items:
                 - key: langsmith_api_key
                   path: langsmith_api_key
@@ -73,9 +73,9 @@ tests:
 
   - it: mounts an existing secret with its configured key
     set:
-      connector.apiKey: ""
-      connector.existingSecretName: "my-langsmith"
-      connector.apiKeySecretKey: "LANGSMITH_API_KEY"
+      config.apiKey: ""
+      config.existingSecretName: "my-langsmith"
+      config.apiKeySecretKey: "LANGSMITH_API_KEY"
     asserts:
       - contains:
           path: spec.template.spec.volumes

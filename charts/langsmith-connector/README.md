@@ -21,10 +21,10 @@ helm repo update
 
 helm install langsmith-connector langchain/langsmith-connector \
   --namespace langsmith-connector --create-namespace \
-  --set connector.connectionId=<connection id> \
-  --set connector.apiKey=<api key> \
-  --set connector.targets.api=https://api.internal.example:8443 \
-  --set connector.targets.database=db.internal.example:5432
+  --set config.connectionId=<connection id> \
+  --set config.apiKey=<api key> \
+  --set config.targets.api=https://api.internal.example:8443 \
+  --set config.targets.database=db.internal.example:5432
 ```
 
 To keep the API key out of Helm values, create a Secret and reference it:
@@ -33,14 +33,14 @@ To keep the API key out of Helm values, create a Secret and reference it:
 kubectl -n langsmith-connector create secret generic langsmith-connector-key --from-literal=langsmith_api_key=<api key>
 helm install langsmith-connector langchain/langsmith-connector \
   --namespace langsmith-connector \
-  --set connector.connectionId=<connection id> \
-  --set connector.existingSecretName=langsmith-connector-key \
-  --set connector.targets.api=https://api.internal.example:8443
+  --set config.connectionId=<connection id> \
+  --set config.existingSecretName=langsmith-connector-key \
+  --set config.targets.api=https://api.internal.example:8443
 ```
 
 The key is mounted as a file and re-read on every reconnect, so rotating the Secret needs no restart.
 
-Self-hosted LangSmith: set `connector.endpoint` to your API origin, including any `/api` prefix.
+Self-hosted LangSmith: set `config.endpoint` to your API origin, including any `/api` prefix.
 
 ## Values
 
@@ -55,9 +55,12 @@ Self-hosted LangSmith: set `connector.endpoint` to your API origin, including an
 | commonPodSecurityContext | object | `{}` | Common pod security context applied to all pods. Component-specific podSecurityContext values will be merged on top of this (component values take precedence). |
 | commonVolumeMounts | list | `[]` | Common volume mounts added to the connector deployment. |
 | commonVolumes | list | `[]` | Common volumes added to the connector deployment. |
-| connector.apiKey | string | `""` | LangSmith API key with the `connections:connect` permission, stored in the chart-managed Secret. Required unless existingSecretName is set. |
-| connector.apiKeySecretKey | string | `"langsmith_api_key"` | Key inside the Secret that holds the API key; also the file name under /var/run/secrets/langsmith. |
-| connector.connectionId | required | `""` | The tunnel's connection ID, copied from Settings -> Tunnels in LangSmith. |
+| config.apiKey | string | `""` | LangSmith API key with the `connections:connect` permission, stored in the chart-managed Secret. Required unless existingSecretName is set. |
+| config.apiKeySecretKey | string | `"langsmith_api_key"` | Key inside the Secret that holds the API key; also the file name under /var/run/secrets/langsmith. |
+| config.connectionId | required | `""` | The tunnel's connection ID, copied from Settings -> Tunnels in LangSmith. |
+| config.endpoint | string | `"https://api.smith.langchain.com"` | LangSmith API URL. Self-hosted installs use their own API origin, including any `/api` prefix. |
+| config.existingSecretName | string | `""` | Existing secret containing the LangSmith API key. If set, the chart does not create one. |
+| config.targets | required | `{}` | Target name to address. HTTP targets carry a scheme (`https://svc.internal:8443`); TCP targets are `host:port`. At least one target is required; the connector exits when the map is empty. Each entry becomes part of LANGSMITH_CONNECTOR_TARGETS. |
 | connector.deployment.affinity | object | `{}` |  |
 | connector.deployment.annotations | object | `{}` |  |
 | connector.deployment.command | list | `[]` | Overrides the image entrypoint. Leave empty to run the connector. |
@@ -84,8 +87,6 @@ Self-hosted LangSmith: set `connector.endpoint` to your API origin, including an
 | connector.deployment.topologySpreadConstraints | list | `[]` |  |
 | connector.deployment.volumeMounts | list | `[]` |  |
 | connector.deployment.volumes | list | `[]` |  |
-| connector.endpoint | string | `"https://api.smith.langchain.com"` | LangSmith API URL. Self-hosted installs use their own API origin, including any `/api` prefix. |
-| connector.existingSecretName | string | `""` | Existing secret containing the LangSmith API key. If set, the chart does not create one. |
 | connector.name | string | `"connector"` |  |
 | connector.pdb.annotations | object | `{}` |  |
 | connector.pdb.enabled | bool | `false` |  |
@@ -96,7 +97,6 @@ Self-hosted LangSmith: set `connector.endpoint` to your API origin, including an
 | connector.serviceAccount.create | bool | `true` |  |
 | connector.serviceAccount.labels | object | `{}` |  |
 | connector.serviceAccount.name | string | `""` |  |
-| connector.targets | required | `{}` | Target name to address. HTTP targets carry a scheme (`https://svc.internal:8443`); TCP targets are `host:port`. At least one target is required; the connector exits when the map is empty. Each entry becomes part of LANGSMITH_CONNECTOR_TARGETS. |
 | fullnameOverride | string | `""` | String to fully override `"connector.fullname"` |
 | images.connectorImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.connectorImage.repository | string | `"docker.io/langchain/langsmith-connector"` |  |

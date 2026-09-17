@@ -1,5 +1,5 @@
 # Shared base values for unit tests. Every suite includes this to satisfy validation.
-connector:
+config:
   connectionId: "0f7e5f1c-1b2d-4c3e-8a9b-0c1d2e3f4a5b"
   apiKey: "test-api-key"
   targets:

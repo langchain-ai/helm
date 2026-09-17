@@ -2,22 +2,22 @@
 Fails rendering for configuration the connector itself would reject at startup,
 so mistakes surface at install time instead of as a crash loop. Renders nothing.
 */ -}}
-{{- $c := .Values.connector -}}
+{{- $c := .Values.config -}}
 {{- if not $c.connectionId -}}
-{{- fail "connector.connectionId is required. Copy it from Settings -> Tunnels in LangSmith." -}}
+{{- fail "config.connectionId is required. Copy it from Settings -> Tunnels in LangSmith." -}}
 {{- end -}}
 {{- if not (regexMatch "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$" $c.connectionId) -}}
-{{- fail (printf "connector.connectionId must be a UUID, got %q." $c.connectionId) -}}
+{{- fail (printf "config.connectionId must be a UUID, got %q." $c.connectionId) -}}
 {{- end -}}
 {{- if and $c.apiKey $c.existingSecretName -}}
-{{- fail "Set only one of connector.apiKey or connector.existingSecretName." -}}
+{{- fail "Set only one of config.apiKey or config.existingSecretName." -}}
 {{- end -}}
 {{- if and (not $c.apiKey) (not $c.existingSecretName) -}}
-{{- fail "Set connector.apiKey or connector.existingSecretName so the connector can authenticate to LangSmith." -}}
+{{- fail "Set config.apiKey or config.existingSecretName so the connector can authenticate to LangSmith." -}}
 {{- end -}}
 {{- if not $c.apiKeySecretKey -}}
-{{- fail "connector.apiKeySecretKey must name the key that holds the API key." -}}
+{{- fail "config.apiKeySecretKey must name the key that holds the API key." -}}
 {{- end -}}
 {{- if not $c.targets -}}
-{{- fail "connector.targets must name at least one target, for example --set connector.targets.api=https://svc.internal:8443. The connector exits when the target map is empty." -}}
+{{- fail "config.targets must name at least one target, for example --set config.targets.api=https://svc.internal:8443. The connector exits when the target map is empty." -}}
 {{- end -}}
