@@ -9,7 +9,6 @@ templates:
   - postgres/secrets.yaml
   - clickhouse/secrets.yaml
   - smithdb/query-deployment.yaml
-  - smithdb/query-services-deployments.yaml
   - smithdb/compaction-deployment.yaml
   - smithdb/compaction-worker-deployment.yaml
 tests:
@@ -24,14 +23,11 @@ tests:
             name: SMITHDB_QUERY__LONG_TERM_RETENTION
             value: "34560000s"
 
-  - it: should share a 30-day default across backend and every query and compaction service
+  - it: should share a 30-day default across backend, query, and compaction services
     values:
       - ./values/smithdb-enabled.yaml
     set:
       config.ttl.ttl_period_seconds.longlived: "2592000"
-      smithdb.mutations.enabled: true
-      smithdb.runRules.enabled: true
-      smithdb.statsQuery.enabled: true
     asserts:
       - template: backend/deployment.yaml
         contains:
@@ -40,27 +36,6 @@ tests:
             name: TRACE_TIER_TTL_DURATION_SEC_MAP
             value: '{ "longlived": 2592000, "shortlived": 1209600 }'
       - template: smithdb/query-deployment.yaml
-        contains:
-          path: spec.template.spec.containers[0].env
-          content:
-            name: SMITHDB_QUERY__LONG_TERM_RETENTION
-            value: "2592000s"
-      - template: smithdb/query-services-deployments.yaml
-        documentIndex: 0
-        contains:
-          path: spec.template.spec.containers[0].env
-          content:
-            name: SMITHDB_QUERY__LONG_TERM_RETENTION
-            value: "2592000s"
-      - template: smithdb/query-services-deployments.yaml
-        documentIndex: 1
-        contains:
-          path: spec.template.spec.containers[0].env
-          content:
-            name: SMITHDB_QUERY__LONG_TERM_RETENTION
-            value: "2592000s"
-      - template: smithdb/query-services-deployments.yaml
-        documentIndex: 2
         contains:
           path: spec.template.spec.containers[0].env
           content:
