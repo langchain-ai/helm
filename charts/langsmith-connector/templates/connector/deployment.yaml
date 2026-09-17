@@ -1,0 +1,132 @@
+{{- define "connectorEnvVars" -}}
+- name: LANGSMITH_ENDPOINT
+  value: {{ .Values.connector.endpoint | quote }}
+- name: LANGSMITH_CONNECTION_ID
+  value: {{ .Values.connector.connectionId | quote }}
+- name: LANGSMITH_CONNECTOR_TARGETS
+  value: {{ include "connector.targetsEnv" . | quote }}
+- name: LANGSMITH_API_KEY_FILE
+  value: /var/run/secrets/langsmith/api-key
+{{- end -}}
+{{- define "connectorVolumes" -}}
+- name: langsmith-api-key
+  secret:
+    secretName: {{ include "connector.secretName" . }}
+    items:
+      - key: {{ include "connector.secretKey" . }}
+        path: api-key
+{{- end -}}
+{{- define "connectorVolumeMounts" -}}
+- name: langsmith-api-key
+  mountPath: /var/run/secrets/langsmith
+  readOnly: true
+{{- end -}}
+{{- $envVars := concat .Values.commonEnv (include "connectorEnvVars" . | fromYamlArray) .Values.connector.deployment.extraEnv -}}
+{{- $volumes := concat .Values.commonVolumes .Values.connector.deployment.volumes (include "connectorVolumes" . | fromYamlArray) -}}
+{{- $volumeMounts := concat .Values.commonVolumeMounts .Values.connector.deployment.volumeMounts (include "connectorVolumeMounts" . | fromYamlArray) -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "connector.fullname" . }}-{{ .Values.connector.name }}
+  namespace: {{ .Values.namespace | default .Release.Namespace }}
+  labels:
+    {{- include "connector.labels" . | nindent 4 }}
+    {{- with .Values.connector.deployment.labels }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+  annotations:
+    {{- include "connector.annotations" . | nindent 4 }}
+    {{- with .Values.connector.deployment.annotations }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  replicas: {{ .Values.connector.deployment.replicas }}
+  {{- with .Values.connector.deployment.strategy }}
+  strategy:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "connector.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: {{ include "connector.fullname" . }}-{{ .Values.connector.name }}
+  template:
+    metadata:
+      annotations:
+      {{- include "connector.commonPodAnnotations" . | nindent 8 }}
+      {{- with .Values.connector.deployment.annotations }}
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- with .Values.connector.deployment.labels }}
+            {{- toYaml . | nindent 8 }}
+        {{- end }}
+        {{- include "connector.labels" . | nindent 8 }}
+        app.kubernetes.io/component: {{ include "connector.fullname" . }}-{{ .Values.connector.name }}
+    spec:
+      terminationGracePeriodSeconds: {{ .Values.connector.deployment.terminationGracePeriodSeconds }}
+      {{- with .Values.images.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if .Values.connector.deployment.priorityClassName }}
+      priorityClassName: {{ .Values.connector.deployment.priorityClassName }}
+      {{- end }}
+      securityContext:
+        {{- include "connector.podSecurityContext" (dict "Values" .Values "componentSecurityContext" .Values.connector.deployment.podSecurityContext) | nindent 8 }}
+      serviceAccountName: {{ include "connector.serviceAccountName" . }}
+      automountServiceAccountToken: {{ .Values.connector.serviceAccount.automountServiceAccountToken }}
+      {{- include "connector.dnsConfig" . | nindent 6 }}
+      {{- with concat .Values.commonInitContainers .Values.connector.deployment.initContainers }}
+      initContainers:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: {{ .Values.connector.name }}
+          {{- with .Values.connector.deployment.command }}
+          command:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          env:
+            {{- with $envVars }}
+              {{- toYaml . | nindent 12 }}
+            {{- end }}
+          image: {{ include "connector.image" (dict "Values" .Values "Chart" .Chart "component" "connectorImage") | quote }}
+          imagePullPolicy: {{ .Values.images.connectorImage.pullPolicy }}
+          resources:
+            {{- toYaml .Values.connector.deployment.resources | nindent 12 }}
+          securityContext:
+            {{- toYaml .Values.connector.deployment.securityContext | nindent 12 }}
+          {{- with .Values.connector.deployment.lifecycle }}
+          lifecycle:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with $volumeMounts }}
+          volumeMounts:
+              {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.connector.deployment.extraContainerConfig }}
+            {{- toYaml . | nindent 10 }}
+          {{- end }}
+        {{- with .Values.connector.deployment.sidecars }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- with .Values.connector.deployment.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.connector.deployment.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.connector.deployment.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.connector.deployment.topologySpreadConstraints }}
+      topologySpreadConstraints:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with $volumes }}
+      volumes:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

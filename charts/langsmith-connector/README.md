@@ -48,29 +48,55 @@ Self-hosted LangSmith: set `connector.endpoint` to your API origin, including an
 |-----|------|---------|-------------|
 | commonAnnotations | object | `{}` | Annotations that will be applied to all resources created by the chart |
 | commonDnsConfig | object | `{"options":[{"name":"ndots","value":"4"}]}` | Common DNS configuration applied to all pods. Reduces DNS query amplification in Kubernetes by ensuring service FQDNs (which have 4 dots) are resolved directly without search domain expansion. Set to null to disable and use Kubernetes defaults (ndots: 5). |
+| commonEnv | list | `[]` | Common environment variables added to the connector deployment. Be careful not to override values already specified by the chart. |
+| commonInitContainers | list | `[]` | Common init containers added to the connector deployment. |
 | commonLabels | object | `{}` | Labels that will be applied to all resources created by the chart |
 | commonPodAnnotations | object | `{}` | Annotations that will be applied to all pods created by the chart |
-| commonPodSecurityContext | object | `{}` | Common pod security context applied to all pods. `connector.podSecurityContext` is merged on top of this (connector values take precedence). |
-| connector.affinity | object | `{}` |  |
-| connector.annotations | object | `{}` | Annotations added to the Deployment and its pods. |
+| commonPodSecurityContext | object | `{}` | Common pod security context applied to all pods. Component-specific podSecurityContext values will be merged on top of this (component values take precedence). |
+| commonVolumeMounts | list | `[]` | Common volume mounts added to the connector deployment. |
+| commonVolumes | list | `[]` | Common volumes added to the connector deployment. |
 | connector.apiKey | string | `""` | LangSmith API key with the `connections:connect` permission. Creates a chart-managed Secret. Mutually exclusive with `existingSecret`. |
 | connector.connectionId | required | `""` | The tunnel's connection ID, copied from Settings -> Tunnels in LangSmith. |
+| connector.deployment.affinity | object | `{}` |  |
+| connector.deployment.annotations | object | `{}` |  |
+| connector.deployment.command | list | `[]` | Overrides the image entrypoint. Leave empty to run the connector. |
+| connector.deployment.extraContainerConfig | object | `{}` |  |
+| connector.deployment.extraEnv | list | `[]` |  |
+| connector.deployment.initContainers | list | `[]` |  |
+| connector.deployment.labels | object | `{}` |  |
+| connector.deployment.lifecycle | object | `{}` |  |
+| connector.deployment.nodeSelector | object | `{}` |  |
+| connector.deployment.podSecurityContext | object | `{"runAsGroup":1000,"runAsNonRoot":true,"runAsUser":1000,"seccompProfile":{"type":"RuntimeDefault"}}` | Merged over commonPodSecurityContext. The image runs as UID 1000. |
+| connector.deployment.priorityClassName | string | `""` |  |
+| connector.deployment.replicas | int | `1` | One pod already holds two redundant sessions to LangSmith. |
+| connector.deployment.resources.limits.cpu | string | `"500m"` |  |
+| connector.deployment.resources.limits.memory | string | `"256Mi"` |  |
+| connector.deployment.resources.requests.cpu | string | `"50m"` |  |
+| connector.deployment.resources.requests.memory | string | `"64Mi"` |  |
+| connector.deployment.securityContext.allowPrivilegeEscalation | bool | `false` |  |
+| connector.deployment.securityContext.capabilities.drop[0] | string | `"ALL"` |  |
+| connector.deployment.securityContext.readOnlyRootFilesystem | bool | `true` |  |
+| connector.deployment.sidecars | list | `[]` |  |
+| connector.deployment.strategy | object | `{"rollingUpdate":{"maxSurge":0,"maxUnavailable":1},"type":"RollingUpdate"}` | The tunnel edge rejects a new connector whose target map differs from a still-connected one, so the old pod must leave before the new one registers. Do not set this to an empty map. |
+| connector.deployment.terminationGracePeriodSeconds | int | `45` | Covers the connector's 30 second drain grace on SIGTERM. |
+| connector.deployment.tolerations | list | `[]` |  |
+| connector.deployment.topologySpreadConstraints | list | `[]` |  |
+| connector.deployment.volumeMounts | list | `[]` |  |
+| connector.deployment.volumes | list | `[]` |  |
 | connector.endpoint | string | `"https://api.smith.langchain.com"` | LangSmith API URL. Self-hosted installs use their own API origin, including any `/api` prefix. |
 | connector.existingSecret | string | `""` | Name of an existing Secret holding the API key. Mutually exclusive with `apiKey`. |
 | connector.existingSecretKey | string | `"api-key"` | Key inside `existingSecret` that holds the API key. |
-| connector.extraEnv | list | `[]` | Additional environment variables for the connector container. |
-| connector.labels | object | `{}` | Labels added to the Deployment and its pods. |
-| connector.nodeSelector | object | `{}` |  |
-| connector.podSecurityContext | object | `{"runAsGroup":1000,"runAsNonRoot":true,"runAsUser":1000,"seccompProfile":{"type":"RuntimeDefault"}}` | Pod-level security context, merged over commonPodSecurityContext. The image runs as UID 1000. |
-| connector.replicas | int | `1` | Number of connector pods. One pod already holds two redundant sessions to LangSmith. |
-| connector.resources.limits.cpu | string | `"500m"` |  |
-| connector.resources.limits.memory | string | `"256Mi"` |  |
-| connector.resources.requests.cpu | string | `"50m"` |  |
-| connector.resources.requests.memory | string | `"64Mi"` |  |
-| connector.securityContext | object | `{"allowPrivilegeEscalation":false,"capabilities":{"drop":["ALL"]},"readOnlyRootFilesystem":true}` | Container-level security context. |
+| connector.name | string | `"connector"` |  |
+| connector.pdb.annotations | object | `{}` |  |
+| connector.pdb.enabled | bool | `false` |  |
+| connector.pdb.labels | object | `{}` |  |
+| connector.pdb.minAvailable | int | `1` |  |
+| connector.serviceAccount.annotations | object | `{}` |  |
+| connector.serviceAccount.automountServiceAccountToken | bool | `false` |  |
+| connector.serviceAccount.create | bool | `true` |  |
+| connector.serviceAccount.labels | object | `{}` |  |
+| connector.serviceAccount.name | string | `""` |  |
 | connector.targets | required | `{}` | Target name to address. HTTP targets carry a scheme (`https://svc.internal:8443`); TCP targets are `host:port`. At least one target is required; the connector exits when the map is empty. Each entry becomes part of LANGSMITH_CONNECTOR_TARGETS. |
-| connector.terminationGracePeriodSeconds | int | `45` | Covers the connector's 30 second drain grace on SIGTERM. |
-| connector.tolerations | list | `[]` |  |
 | fullnameOverride | string | `""` | String to fully override `"connector.fullname"` |
 | images.connectorImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.connectorImage.repository | string | `"docker.io/langchain/langsmith-connector"` |  |
@@ -79,9 +105,6 @@ Self-hosted LangSmith: set `connector.endpoint` to your API origin, including an
 | images.registry | string | `""` | If supplied, all children <image_name>.repository values will be prepended with this registry name + `/` |
 | nameOverride | string | `""` | Provide a name in place of `langsmith-connector` |
 | namespace | string | `""` | Namespace to install the chart into. If not set, will use the namespace of the current context. |
-| serviceAccount.annotations | object | `{}` |  |
-| serviceAccount.create | bool | `true` |  |
-| serviceAccount.name | string | `""` |  |
 
 ## Maintainers
 

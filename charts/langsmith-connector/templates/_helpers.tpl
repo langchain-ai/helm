@@ -6,7 +6,9 @@ Expand the name of the chart.
 {{- end }}
 
 {{/*
-Create a default fully qualified app name, truncated to 63 characters.
+Create a default fully qualified app name.
+We truncate at 63 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
+If release name contains chart name it will be used as a full name.
 */}}
 {{- define "connector.fullname" -}}
 {{- if .Values.fullnameOverride }}
@@ -22,18 +24,10 @@ Create a default fully qualified app name, truncated to 63 characters.
 {{- end }}
 
 {{/*
-Chart name and version as used by the chart label.
+Create chart name and version as used by the chart label.
 */}}
 {{- define "connector.chart" -}}
 {{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" }}
-{{- end }}
-
-{{/*
-Selector labels
-*/}}
-{{- define "connector.selectorLabels" -}}
-app.kubernetes.io/name: {{ include "connector.name" . }}
-app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
 
 {{/*
@@ -59,6 +53,11 @@ Common annotations
 {{ toYaml .Values.commonAnnotations }}
 {{- end }}
 helm.sh/chart: {{ include "connector.chart" . }}
+{{ include "connector.selectorLabels" . }}
+{{- if .Chart.AppVersion }}
+app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+{{- end }}
+app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{- end }}
 
 {{/*
@@ -71,28 +70,36 @@ Common pod annotations
 {{- end }}
 
 {{/*
-Merge commonPodSecurityContext with the connector podSecurityContext; connector values win.
+Selector labels
+*/}}
+{{- define "connector.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "connector.name" . }}
+app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end }}
+
+{{/*
+Template for merging commonPodSecurityContext with component-specific podSecurityContext.
+Component-specific values take precedence over common values.
 */}}
 {{- define "connector.podSecurityContext" -}}
-{{- $merged := merge (deepCopy (.Values.connector.podSecurityContext | default dict)) (.Values.commonPodSecurityContext | default dict) -}}
+{{- $merged := merge (deepCopy (.componentSecurityContext | default dict)) (.Values.commonPodSecurityContext | default dict) -}}
 {{- toYaml $merged -}}
 {{- end -}}
 
 {{/*
-Image reference. If images.registry is set it is prepended with a '/'.
+Creates the image reference used for deployments. If registry is specified, concatenate it, along with a '/'.
 */}}
 {{- define "connector.image" -}}
-{{- $imageConfig := .Values.images.connectorImage -}}
-{{- $tag := $imageConfig.tag | default .Chart.AppVersion -}}
+{{- $imageConfig := index .Values.images .component -}}
 {{- if .Values.images.registry -}}
-{{ .Values.images.registry }}/{{ $imageConfig.repository }}:{{ $tag }}
+{{ .Values.images.registry }}/{{ $imageConfig.repository }}:{{ $imageConfig.tag | default .Chart.AppVersion }}
 {{- else -}}
-{{ $imageConfig.repository }}:{{ $tag }}
+{{ $imageConfig.repository }}:{{ $imageConfig.tag | default .Chart.AppVersion }}
 {{- end -}}
 {{- end -}}
 
 {{/*
-DNS configuration for all pods when commonDnsConfig is set.
+Common DNS configuration for all pods. When commonDnsConfig is set, it will be applied to all pods.
 */}}
 {{- define "connector.dnsConfig" -}}
 {{- if .Values.commonDnsConfig }}
@@ -102,10 +109,10 @@ dnsConfig:
 {{- end }}
 
 {{- define "connector.serviceAccountName" -}}
-{{- if .Values.serviceAccount.create -}}
-{{ default (include "connector.fullname" .) .Values.serviceAccount.name | trunc 63 | trimSuffix "-" }}
+{{- if .Values.connector.serviceAccount.create -}}
+    {{ default (printf "%s-%s" (include "connector.fullname" .) .Values.connector.name) .Values.connector.serviceAccount.name | trunc 63 | trimSuffix "-" }}
 {{- else -}}
-{{ default "default" .Values.serviceAccount.name }}
+    {{ default "default" .Values.connector.serviceAccount.name }}
 {{- end -}}
 {{- end -}}
 
@@ -116,7 +123,7 @@ Secret that holds the LangSmith API key: the operator's existing Secret, or the 
 {{- if .Values.connector.existingSecret -}}
 {{ .Values.connector.existingSecret }}
 {{- else -}}
-{{ include "connector.fullname" . }}
+{{ include "connector.fullname" . }}-{{ .Values.connector.name }}
 {{- end -}}
 {{- end -}}
 

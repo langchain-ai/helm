@@ -1,3 +1,5 @@
+# Default values for the langsmith-connector helm chart. Refer to documentation on individual values for help with configuration.
+
 # -- Provide a name in place of `langsmith-connector`
 nameOverride: ""
 # -- String to fully override `"connector.fullname"`
@@ -10,7 +12,15 @@ commonAnnotations: {}
 commonPodAnnotations: {}
 # -- Labels that will be applied to all resources created by the chart
 commonLabels: {}
-# -- Common pod security context applied to all pods. `connector.podSecurityContext` is merged on top of this (connector values take precedence).
+# -- Common environment variables added to the connector deployment. Be careful not to override values already specified by the chart.
+commonEnv: []
+# -- Common volumes added to the connector deployment.
+commonVolumes: []
+# -- Common volume mounts added to the connector deployment.
+commonVolumeMounts: []
+# -- Common init containers added to the connector deployment.
+commonInitContainers: []
+# -- Common pod security context applied to all pods. Component-specific podSecurityContext values will be merged on top of this (component values take precedence).
 commonPodSecurityContext: {}
 # -- Common DNS configuration applied to all pods. Reduces DNS query amplification in Kubernetes by
 # ensuring service FQDNs (which have 4 dots) are resolved directly without search domain expansion.
@@ -29,7 +39,11 @@ images:
     pullPolicy: IfNotPresent
     tag: "0.1.0"
 
+# The connector runs inside your network and keeps an outbound WebSocket to LangSmith.
+# It exposes no ports, so there is no Service and no HTTP probe: a misconfigured
+# connector exits at startup and a connected one retries until stopped.
 connector:
+  name: "connector"
   # -- LangSmith API URL. Self-hosted installs use their own API origin, including any `/api` prefix.
   endpoint: "https://api.smith.langchain.com"
   # -- (required) The tunnel's connection ID, copied from Settings -> Tunnels in LangSmith.
@@ -44,42 +58,62 @@ connector:
   existingSecret: ""
   # -- Key inside `existingSecret` that holds the API key.
   existingSecretKey: "api-key"
-  # -- Number of connector pods. One pod already holds two redundant sessions to LangSmith.
-  replicas: 1
-  resources:
-    requests:
-      cpu: 50m
-      memory: 64Mi
-    limits:
-      cpu: 500m
-      memory: 256Mi
-  nodeSelector: {}
-  tolerations: []
-  affinity: {}
-  # -- Pod-level security context, merged over commonPodSecurityContext. The image runs as UID 1000.
-  podSecurityContext:
-    runAsNonRoot: true
-    runAsUser: 1000
-    runAsGroup: 1000
-    seccompProfile:
-      type: RuntimeDefault
-  # -- Container-level security context.
-  securityContext:
-    allowPrivilegeEscalation: false
-    readOnlyRootFilesystem: true
-    capabilities:
-      drop:
-        - ALL
-  # -- Covers the connector's 30 second drain grace on SIGTERM.
-  terminationGracePeriodSeconds: 45
-  # -- Additional environment variables for the connector container.
-  extraEnv: []
-  # -- Labels added to the Deployment and its pods.
-  labels: {}
-  # -- Annotations added to the Deployment and its pods.
-  annotations: {}
-
-serviceAccount:
-  create: true
-  annotations: {}
-  name: ""
+  deployment:
+    # -- One pod already holds two redundant sessions to LangSmith.
+    replicas: 1
+    labels: {}
+    annotations: {}
+    # -- Merged over commonPodSecurityContext. The image runs as UID 1000.
+    podSecurityContext:
+      runAsNonRoot: true
+      runAsUser: 1000
+      runAsGroup: 1000
+      seccompProfile:
+        type: RuntimeDefault
+    securityContext:
+      allowPrivilegeEscalation: false
+      readOnlyRootFilesystem: true
+      capabilities:
+        drop:
+          - ALL
+    lifecycle: {}
+    priorityClassName: ""
+    resources:
+      limits:
+        cpu: 500m
+        memory: 256Mi
+      requests:
+        cpu: 50m
+        memory: 64Mi
+    # -- Overrides the image entrypoint. Leave empty to run the connector.
+    command: []
+    # -- The tunnel edge rejects a new connector whose target map differs from a still-connected one,
+    # so the old pod must leave before the new one registers. Do not set this to an empty map.
+    strategy:
+      type: RollingUpdate
+      rollingUpdate:
+        maxSurge: 0
+        maxUnavailable: 1
+    extraContainerConfig: {}
+    extraEnv: []
+    sidecars: []
+    initContainers: []
+    nodeSelector: {}
+    tolerations: []
+    topologySpreadConstraints: []
+    affinity: {}
+    volumes: []
+    volumeMounts: []
+    # -- Covers the connector's 30 second drain grace on SIGTERM.
+    terminationGracePeriodSeconds: 45
+  pdb:
+    enabled: false
+    minAvailable: 1
+    labels: {}
+    annotations: {}
+  serviceAccount:
+    create: true
+    name: ""
+    labels: {}
+    annotations: {}
+    automountServiceAccountToken: false

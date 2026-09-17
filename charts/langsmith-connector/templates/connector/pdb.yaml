@@ -1,0 +1,28 @@
+{{- if .Values.connector.pdb.enabled }}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "connector.fullname" . }}-{{ .Values.connector.name }}
+  namespace: {{ .Values.namespace | default .Release.Namespace }}
+  labels:
+    {{- include "connector.labels" . | nindent 4 }}
+    {{- with .Values.connector.pdb.labels }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+  annotations:
+    {{- include "connector.annotations" . | nindent 4 }}
+    {{- with .Values.connector.pdb.annotations }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "connector.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: {{ include "connector.fullname" . }}-{{ .Values.connector.name }}
+  {{- if hasKey .Values.connector.pdb "minAvailable" }}
+  minAvailable: {{ .Values.connector.pdb.minAvailable }}
+  {{- end }}
+  {{- if hasKey .Values.connector.pdb "maxUnavailable" }}
+  maxUnavailable: {{ .Values.connector.pdb.maxUnavailable }}
+  {{- end }}
+{{- end }}
