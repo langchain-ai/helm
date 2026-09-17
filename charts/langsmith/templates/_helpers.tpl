@@ -742,18 +742,6 @@ Args: root, service, displayName.
 {{- $envVars := include "langsmith.smithdb.serviceEnv" (dict "root" $root "service" $service "displayName" .displayName "commonEnv" $commonEnv) | fromYamlArray -}}
 {{- if $root.Values.smithdb.enabled }}
 {{- $envVars = concat $envVars (include "langsmith.smithdb.clusterManagerClientEnv" (dict "root" $root "service" $service) | fromYamlArray) -}}
-{{- if $root.Values.config.ttl.enabled }}
-{{- $retentionEnvNames := dict
-  "QUERY" "SMITHDB_QUERY__LONG_TERM_RETENTION"
-  "COMPACTION" "SMITHDB_COMPACTION__EXECUTOR__LONG_TERM_RETENTION"
-  "COMPACTION_WORKER" "SMITHDB_COMPACTION_WORKER__EXECUTOR__LONG_TERM_RETENTION"
--}}
-{{- with get $retentionEnvNames (upper $service) }}
-{{- /* SmithDB Duration fields require a unit; the backend consumes bare seconds. */}}
-{{- $retention := printf "%ss" (toString $root.Values.config.ttl.ttl_period_seconds.longlived) -}}
-{{- $envVars = append $envVars (dict "name" . "value" $retention) -}}
-{{- end }}
-{{- end }}
 {{- end }}
 {{- $envVars = concat $envVars $commonEnv -}}
 {{- toYaml $envVars }}

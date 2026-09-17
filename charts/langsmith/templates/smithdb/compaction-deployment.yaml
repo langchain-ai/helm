@@ -65,6 +65,10 @@ spec:
               value: {{ .Values.smithdb.compaction.containerPort | quote }}
             - name: SMITHDB_COMPACTION__GRPC_PORT
               value: {{ .Values.smithdb.compaction.containerGrpcPort | quote }}
+            {{- if .Values.config.ttl.enabled }}
+            - name: SMITHDB_COMPACTION__EXECUTOR__LONG_TERM_RETENTION
+              value: {{ printf "%ss" (toString .Values.config.ttl.ttl_period_seconds.longlived) | quote }}
+            {{- end }}
             {{- if and .Values.smithdb.langsmith.ingestion.enabled (not .Values.smithdb.langsmith.query.enabled) }}
             - name: SMITHDB_COMPACTION__SEQUENCED_LSM_BACKFILL_ENABLED
               value: "true"
