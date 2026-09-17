@@ -1,0 +1,19 @@
+charts/langsmith/Chart.yaml
+  s_7ba3c209ec24fe::t_c67e26991beb6b 8
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "8350d951351b5b9342960d5cd153f24a26106663",
+  "prompts": {},
+  "sessions": {
+    "s_7ba3c209ec24fe": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f7033267-645d-40b2-95b6-febef26674bc",
+        "model": "claude-opus-5"
+      },
+      "human_author": "lutan-langchain <lucy.tan@langchain.dev>"
+    }
+  }
+}
