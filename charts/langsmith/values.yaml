@@ -2097,6 +2097,8 @@ smithdb:
           labels: {}
           annotations: {}
         statefulSet:
+          # -- Controls whether the in-chart taskdb Postgres pod automatically mounts a ServiceAccount token.
+          automountServiceAccountToken: true
           # -- Optional priority class for the in-chart SmithDB taskdb Postgres pod.
           priorityClassName: ""
           # -- Optional StatefulSet update strategy for the in-chart SmithDB taskdb Postgres instance.

@@ -159,6 +159,8 @@ loki:
 
 mimir:
   enabled: false
+  # -- Controls whether the Mimir pod automatically mounts a ServiceAccount token.
+  automountServiceAccountToken: true
   # -- Optional priority class for the Mimir pod.
   priorityClassName: ""
   image:
