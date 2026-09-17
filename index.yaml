@@ -3,6 +3,20 @@ entries:
   langgraph-cloud:
   - apiVersion: v2
     appVersion: 0.2.3
+    created: "2026-09-17T06:46:25.654634328Z"
+    description: Helm chart to deploy the LangGraph Cloud application and all services
+      it depends on.
+    digest: 31dab99c9b1c6ddfb8672a4a9a287a044d50bb628665c641eb2b1170833df953
+    maintainers:
+    - email: ankush@langchain.dev
+      name: Ankush
+    name: langgraph-cloud
+    type: application
+    urls:
+    - https://github.com/langchain-ai/helm/releases/download/langgraph-cloud-0.3.4/langgraph-cloud-0.3.4.tgz
+    version: 0.3.4
+  - apiVersion: v2
+    appVersion: 0.2.3
     created: "2026-08-28T21:19:50.035608244Z"
     description: Helm chart to deploy the LangGraph Cloud application and all services
       it depends on.
@@ -436,6 +450,19 @@ entries:
     - https://github.com/langchain-ai/helm/releases/download/langgraph-cloud-0.1.0/langgraph-cloud-0.1.0.tgz
     version: 0.1.0
   langgraph-dataplane:
+  - apiVersion: v2
+    appVersion: 0.16.36
+    created: "2026-09-17T06:46:25.965125164Z"
+    description: Helm chart to deploy a langgraph dataplane on kubernetes.
+    digest: d036936f5ae26ec5e513ddb6afb2038f5de03a3bb80ce95f83ae89c2152d52eb
+    maintainers:
+    - email: ankush@langchain.dev
+      name: Ankush
+    name: langgraph-dataplane
+    type: application
+    urls:
+    - https://github.com/langchain-ai/helm/releases/download/langgraph-dataplane-0.2.25/langgraph-dataplane-0.2.25.tgz
+    version: 0.2.25
   - apiVersion: v2
     appVersion: 0.16.36
     created: "2026-09-14T18:27:14.769274017Z"
@@ -1322,6 +1349,20 @@ entries:
     - https://github.com/langchain-ai/helm/releases/download/langgraph-operator-0.1.0/langgraph-operator-0.1.0.tgz
     version: 0.1.0
   langsmith:
+  - apiVersion: v2
+    appVersion: 0.17.24rc1
+    created: "2026-09-17T06:46:26.178050962Z"
+    description: Helm chart to deploy the langsmith application and all services it
+      depends on.
+    digest: 6318ab05bdb80327bba7747361638bae9df27bbd54493daf5b80d17721865613
+    maintainers:
+    - email: ankush@langchain.dev
+      name: Ankush
+    name: langsmith
+    type: application
+    urls:
+    - https://github.com/langchain-ai/helm/releases/download/langsmith-0.17.0-rc.31/langsmith-0.17.0-rc.31.tgz
+    version: 0.17.0-rc.31
   - apiVersion: v2
     appVersion: 0.17.24rc1
     created: "2026-09-15T23:31:37.799845881Z"
@@ -8843,6 +8884,19 @@ entries:
   langsmith-auth-proxy:
   - apiVersion: v2
     appVersion: 1.37.0
+    created: "2026-09-17T06:46:26.323539678Z"
+    description: Helm chart to deploy the langsmith auth-proxy application.
+    digest: 1effb01e99020901a81ecf6895524f6a6408f1fcd239b53dec7915e6da06f0af
+    maintainers:
+    - email: brian@langchain.dev
+      name: Brian
+    name: langsmith-auth-proxy
+    type: application
+    urls:
+    - https://github.com/langchain-ai/helm/releases/download/langsmith-auth-proxy-0.0.15/langsmith-auth-proxy-0.0.15.tgz
+    version: 0.0.15
+  - apiVersion: v2
+    appVersion: 1.37.0
     created: "2026-09-09T06:12:18.664441529Z"
     description: Helm chart to deploy the langsmith auth-proxy application.
     digest: d96fced9c2f7244b946eedeb6b222f51919d50a2edcc85dc5aabf5c955a51b98
@@ -9042,6 +9096,52 @@ entries:
   langsmith-observability:
   - apiVersion: v2
     appVersion: 0.2.0
+    created: "2026-09-17T06:46:26.489473851Z"
+    dependencies:
+    - alias: postgres-exporter
+      condition: postgres-exporter.enabled
+      name: prometheus-postgres-exporter
+      repository: https://prometheus-community.github.io/helm-charts
+      version: 6.10.2
+    - alias: redis-exporter
+      condition: redis-exporter.enabled
+      name: prometheus-redis-exporter
+      repository: https://prometheus-community.github.io/helm-charts
+      version: 6.11.0
+    - alias: nginx-exporter
+      condition: nginx-exporter.enabled
+      name: prometheus-nginx-exporter
+      repository: https://prometheus-community.github.io/helm-charts
+      version: 1.6.0
+    - alias: kube-state-metrics
+      condition: kube-state-metrics.enabled
+      name: kube-state-metrics
+      repository: https://prometheus-community.github.io/helm-charts
+      version: 5.37.0
+    - condition: grafana.enabled
+      name: grafana
+      repository: https://grafana.github.io/helm-charts
+      version: 9.2.6
+    - condition: loki.enabled
+      name: loki
+      repository: https://grafana.github.io/helm-charts
+      version: 6.30.1
+    - alias: tempo
+      condition: tempo.enabled
+      name: tempo
+      repository: https://grafana.github.io/helm-charts
+      version: 1.23.1
+    deprecated: true
+    description: (DEPRECATED) This chart is deprecated and will be removed in a future
+      version. Please use your own observability stack.
+    digest: 0ed235c356416ef22ec22d1acdf51ffa72167c3ae7a2abae06335427170aced4
+    name: langsmith-observability
+    type: application
+    urls:
+    - https://github.com/langchain-ai/helm/releases/download/langsmith-observability-0.2.2/langsmith-observability-0.2.2.tgz
+    version: 0.2.2
+  - apiVersion: v2
+    appVersion: 0.2.0
     created: "2026-08-28T21:19:50.829872952Z"
     dependencies:
     - alias: postgres-exporter
@@ -9185,6 +9285,18 @@ entries:
   mission-control:
   - apiVersion: v2
     appVersion: 1.2.6
+    created: "2026-09-17T06:46:26.665109534Z"
+    description: Mission Control to deploy and manage Langsmith in EKS
+    digest: 9eb5fe6c8e8a5ace73db8f17eb56b09ec1d21af0e18b35ba70ddd07392335a6c
+    maintainers:
+    - email: gethin.dibben@langchain.dev
+      name: gethin-langchain
+    name: mission-control
+    urls:
+    - https://github.com/langchain-ai/helm/releases/download/mission-control-1.2.8/mission-control-1.2.8.tgz
+    version: 1.2.8
+  - apiVersion: v2
+    appVersion: 1.2.6
     created: "2026-08-28T21:19:51.000246224Z"
     description: Mission Control to deploy and manage Langsmith in EKS
     digest: 5041b0e7a4633b54728d4c2cbc0c4fe7de6e186db3fb2b5c3692b7b8ac842abc
@@ -9310,4 +9422,4 @@ entries:
     urls:
     - https://github.com/langchain-ai/helm/releases/download/open-gpts-0.1.0/open-gpts-0.1.0.tgz
     version: 0.1.0
-generated: "2026-09-17T05:43:01.089603288Z"
+generated: "2026-09-17T06:46:26.668282693Z"
