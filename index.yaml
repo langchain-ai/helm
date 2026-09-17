@@ -9023,6 +9023,22 @@ entries:
     urls:
     - https://github.com/langchain-ai/helm/releases/download/langsmith-auth-proxy-0.0.1/langsmith-auth-proxy-0.0.1.tgz
     version: 0.0.1
+  langsmith-connector:
+  - apiVersion: v2
+    appVersion: 0.1.0
+    created: "2026-09-17T05:43:01.088533734Z"
+    description: Helm chart for the LangSmith tunnel connector. It runs inside your
+      network and connects outbound to LangSmith so LangSmith products can reach your
+      private services.
+    digest: 13eb866eb274122dcfcdd71c4af9eb75e20eaf86792a35a33d4b3f53cfc8c48b
+    maintainers:
+    - email: mukil@langchain.dev
+      name: Mukil
+    name: langsmith-connector
+    type: application
+    urls:
+    - https://github.com/langchain-ai/helm/releases/download/langsmith-connector-0.1.0/langsmith-connector-0.1.0.tgz
+    version: 0.1.0
   langsmith-observability:
   - apiVersion: v2
     appVersion: 0.2.0
@@ -9294,4 +9310,4 @@ entries:
     urls:
     - https://github.com/langchain-ai/helm/releases/download/open-gpts-0.1.0/open-gpts-0.1.0.tgz
     version: 0.1.0
-generated: "2026-09-15T23:31:37.801912217Z"
+generated: "2026-09-17T05:43:01.089603288Z"
