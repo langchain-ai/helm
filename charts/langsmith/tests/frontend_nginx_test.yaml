@@ -1,7 +1,31 @@
-suite: frontend nginx request buffering
+suite: frontend nginx routing and request buffering
 templates:
   - frontend/config-map.yaml
 tests:
+  - it: routes MDA API requests to the platform backend without response buffering
+    release:
+      name: langsmith
+      namespace: mda-test
+    asserts:
+      - matchRegex:
+          path: data["nginx.conf"]
+          pattern: 'location /api/v1/mda/ \{\s+rewrite /api/v1/mda/\(\.\*\) /v1/mda/\$1\s+break;[^}]*proxy_buffering off;[^}]*proxy_cache off;[^}]*proxy_pass http://langsmith-platform-backend\.mda-test\.svc\.cluster\.local:1986;'
+
+  - it: strips the base path and routes MDA requests to the configured platform service
+    release:
+      name: langsmith
+      namespace: ignored-namespace
+    set:
+      config.basePath: langsmith/dev
+      namespace: agents
+      clusterDomain: custom.local
+      platformBackend.name: custom-platform
+      platformBackend.service.port: 8080
+    asserts:
+      - matchRegex:
+          path: data["nginx.conf"]
+          pattern: 'location /langsmith/dev/api/v1/mda/ \{\s+rewrite /langsmith/dev/api/v1/mda/\(\.\*\) /v1/mda/\$1\s+break;[^}]*proxy_buffering off;[^}]*proxy_cache off;[^}]*proxy_pass http://langsmith-custom-platform\.agents\.svc\.custom\.local:8080;'
+
   - it: disables request buffering once at server scope so every route inherits it
     asserts:
       - matchRegex:
