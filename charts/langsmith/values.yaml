@@ -1968,9 +1968,15 @@ smithdb:
           cpu: 250m
           memory: 256Mi
       extraEnv: []
+      extraContainerConfig: {}
+      sidecars: []
       nodeSelector: {}
       tolerations: []
       affinity: {}
+      topologySpreadConstraints: []
+      volumes: []
+      volumeMounts: []
+      initContainers: []
 
 backend:
   name: "backend"

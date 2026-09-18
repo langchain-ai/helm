@@ -1182,7 +1182,9 @@ Replica counts and autoscaling remain controlled by each component's `deployment
 | smithdb.metastoreMigration.job.affinity | object | `{}` |  |
 | smithdb.metastoreMigration.job.annotations | object | `{}` |  |
 | smithdb.metastoreMigration.job.backoffLimit | int | `0` |  |
+| smithdb.metastoreMigration.job.extraContainerConfig | object | `{}` |  |
 | smithdb.metastoreMigration.job.extraEnv | list | `[]` |  |
+| smithdb.metastoreMigration.job.initContainers | list | `[]` |  |
 | smithdb.metastoreMigration.job.labels | object | `{}` |  |
 | smithdb.metastoreMigration.job.nodeSelector | object | `{}` |  |
 | smithdb.metastoreMigration.job.podAnnotations | object | `{}` |  |
@@ -1193,8 +1195,12 @@ Replica counts and autoscaling remain controlled by each component's `deployment
 | smithdb.metastoreMigration.job.resources.requests.memory | string | `"256Mi"` |  |
 | smithdb.metastoreMigration.job.restartPolicy | string | `"Never"` |  |
 | smithdb.metastoreMigration.job.securityContext | object | `{}` |  |
+| smithdb.metastoreMigration.job.sidecars | list | `[]` |  |
 | smithdb.metastoreMigration.job.tolerations | list | `[]` |  |
+| smithdb.metastoreMigration.job.topologySpreadConstraints | list | `[]` |  |
 | smithdb.metastoreMigration.job.ttlSecondsAfterFinished | int | `3600` |  |
+| smithdb.metastoreMigration.job.volumeMounts | list | `[]` |  |
+| smithdb.metastoreMigration.job.volumes | list | `[]` |  |
 | smithdb.metastoreMigration.name | string | `"metastore-migration"` |  |
 | smithdb.migration.containerPort | int | `9040` |  |
 | smithdb.migration.deployment.affinity | object | `{}` |  |
