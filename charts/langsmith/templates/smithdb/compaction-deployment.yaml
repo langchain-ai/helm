@@ -45,6 +45,7 @@ spec:
       {{- if .Values.smithdb.compaction.deployment.priorityClassName }}
       priorityClassName: {{ .Values.smithdb.compaction.deployment.priorityClassName }}
       {{- end }}
+      terminationGracePeriodSeconds: {{ .Values.smithdb.compaction.deployment.terminationGracePeriodSeconds }}
       securityContext:
         {{- toYaml .Values.smithdb.compaction.deployment.podSecurityContext | nindent 8 }}
       serviceAccountName: {{ include "langsmith.smithdb.serviceAccountName" (dict "root" . "component" "compaction") }}
@@ -98,7 +99,7 @@ spec:
             {{- toYaml $resources | nindent 12 }}
           securityContext:
             {{- toYaml .Values.smithdb.compaction.deployment.securityContext | nindent 12 }}
-          {{- with .Values.smithdb.compaction.deployment.volumeMounts }}
+          {{- with concat .Values.commonVolumeMounts .Values.smithdb.compaction.deployment.volumeMounts }}
           volumeMounts:
             {{- toYaml . | nindent 12 }}
           {{- end }}
@@ -124,7 +125,7 @@ spec:
       topologySpreadConstraints:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.smithdb.compaction.deployment.volumes }}
+      {{- with concat .Values.commonVolumes .Values.smithdb.compaction.deployment.volumes }}
       volumes:
         {{- toYaml . | nindent 8 }}
       {{- end }}

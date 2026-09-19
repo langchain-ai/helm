@@ -94,7 +94,7 @@ spec:
             {{- toYaml $resources | nindent 12 }}
           securityContext:
             {{- toYaml .Values.smithdb.compactionWorker.deployment.securityContext | nindent 12 }}
-          {{- with .Values.smithdb.compactionWorker.deployment.volumeMounts }}
+          {{- with concat .Values.commonVolumeMounts .Values.smithdb.compactionWorker.deployment.volumeMounts }}
           volumeMounts:
             {{- toYaml . | nindent 12 }}
           {{- end }}
@@ -120,7 +120,7 @@ spec:
       topologySpreadConstraints:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with (include "langsmith.smithdb.volumes" (dict "root" . "component" "compactionWorker") | fromYamlArray) }}
+      {{- with concat .Values.commonVolumes (include "langsmith.smithdb.volumes" (dict "root" . "component" "compactionWorker") | fromYamlArray) }}
       volumes:
         {{- toYaml . | nindent 8 }}
       {{- end }}

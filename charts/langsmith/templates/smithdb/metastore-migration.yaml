@@ -35,14 +35,19 @@ spec:
           {{- toYaml . | nindent 8 }}
         {{- end }}
       annotations:
+        {{- include "langsmith.commonPodAnnotations" . | nindent 8 }}
         {{- with .Values.smithdb.metastoreMigration.job.podAnnotations }}
           {{- toYaml . | nindent 8 }}
         {{- end }}
     spec:
       restartPolicy: {{ .Values.smithdb.metastoreMigration.job.restartPolicy }}
+      terminationGracePeriodSeconds: {{ .Values.smithdb.metastoreMigration.job.terminationGracePeriodSeconds }}
       {{- with .Values.images.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if .Values.smithdb.metastoreMigration.job.priorityClassName }}
+      priorityClassName: {{ .Values.smithdb.metastoreMigration.job.priorityClassName }}
       {{- end }}
       securityContext:
         {{- toYaml .Values.smithdb.metastoreMigration.job.podSecurityContext | nindent 8 }}
@@ -67,7 +72,7 @@ spec:
             {{- toYaml .Values.smithdb.metastoreMigration.job.resources | nindent 12 }}
           securityContext:
             {{- toYaml .Values.smithdb.metastoreMigration.job.securityContext | nindent 12 }}
-          {{- with .Values.smithdb.metastoreMigration.job.volumeMounts }}
+          {{- with concat .Values.commonVolumeMounts .Values.smithdb.metastoreMigration.job.volumeMounts }}
           volumeMounts:
             {{- toYaml . | nindent 12 }}
           {{- end }}
@@ -93,7 +98,7 @@ spec:
       topologySpreadConstraints:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.smithdb.metastoreMigration.job.volumes }}
+      {{- with concat .Values.commonVolumes .Values.smithdb.metastoreMigration.job.volumes }}
       volumes:
         {{- toYaml . | nindent 8 }}
       {{- end }}

@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.17.0-rc.35](https://img.shields.io/badge/Version-0.17.0--rc.35-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.17.25rc1](https://img.shields.io/badge/AppVersion-0.17.25rc1-informational?style=flat-square)
+![Version: 0.17.0-rc.36](https://img.shields.io/badge/Version-0.17.0--rc.36-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.17.25rc1](https://img.shields.io/badge/AppVersion-0.17.25rc1-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -969,6 +969,7 @@ The query disk cache limit is set automatically from the PVC storage request or,
 | smithdb.clusterManager.deployment.replicas | int | `1` |  |
 | smithdb.clusterManager.deployment.securityContext | object | `{}` |  |
 | smithdb.clusterManager.deployment.sidecars | list | `[]` |  |
+| smithdb.clusterManager.deployment.terminationGracePeriodSeconds | int | `30` |  |
 | smithdb.clusterManager.deployment.tolerations | list | `[]` |  |
 | smithdb.clusterManager.deployment.topologySpreadConstraints | list | `[]` |  |
 | smithdb.clusterManager.deployment.volumeMounts | list | `[]` |  |
@@ -1012,6 +1013,7 @@ The query disk cache limit is set automatically from the PVC storage request or,
 | smithdb.compaction.deployment.replicas | int | `1` |  |
 | smithdb.compaction.deployment.securityContext | object | `{}` |  |
 | smithdb.compaction.deployment.sidecars | list | `[]` |  |
+| smithdb.compaction.deployment.terminationGracePeriodSeconds | int | `30` |  |
 | smithdb.compaction.deployment.tolerations | list | `[]` |  |
 | smithdb.compaction.deployment.topologySpreadConstraints | list | `[]` |  |
 | smithdb.compaction.deployment.volumeMounts | list | `[]` |  |
@@ -1182,6 +1184,7 @@ The query disk cache limit is set automatically from the PVC storage request or,
 | smithdb.metastoreMigration.job.nodeSelector | object | `{}` |  |
 | smithdb.metastoreMigration.job.podAnnotations | object | `{}` |  |
 | smithdb.metastoreMigration.job.podSecurityContext | object | `{}` |  |
+| smithdb.metastoreMigration.job.priorityClassName | string | `""` |  |
 | smithdb.metastoreMigration.job.resources.limits.cpu | string | `"500m"` |  |
 | smithdb.metastoreMigration.job.resources.limits.memory | string | `"512Mi"` |  |
 | smithdb.metastoreMigration.job.resources.requests.cpu | string | `"250m"` |  |
@@ -1189,6 +1192,7 @@ The query disk cache limit is set automatically from the PVC storage request or,
 | smithdb.metastoreMigration.job.restartPolicy | string | `"Never"` |  |
 | smithdb.metastoreMigration.job.securityContext | object | `{}` |  |
 | smithdb.metastoreMigration.job.sidecars | list | `[]` |  |
+| smithdb.metastoreMigration.job.terminationGracePeriodSeconds | int | `30` |  |
 | smithdb.metastoreMigration.job.tolerations | list | `[]` |  |
 | smithdb.metastoreMigration.job.topologySpreadConstraints | list | `[]` |  |
 | smithdb.metastoreMigration.job.ttlSecondsAfterFinished | int | `3600` |  |
@@ -1209,6 +1213,7 @@ The query disk cache limit is set automatically from the PVC storage request or,
 | smithdb.migration.job.nodeSelector | object | `{}` |  |
 | smithdb.migration.job.parallelism | int | `1` | migration pods. |
 | smithdb.migration.job.podSecurityContext | object | `{}` |  |
+| smithdb.migration.job.priorityClassName | string | `""` |  |
 | smithdb.migration.job.resources.limits.cpu | string | `"8"` |  |
 | smithdb.migration.job.resources.limits.ephemeral-storage | string | `"100Gi"` |  |
 | smithdb.migration.job.resources.limits.memory | string | `"32Gi"` |  |
@@ -1324,6 +1329,7 @@ The query disk cache limit is set automatically from the PVC storage request or,
 | smithdb.mutations.deployment.strategy.rollingUpdate.maxSurge | int | `1` |  |
 | smithdb.mutations.deployment.strategy.rollingUpdate.maxUnavailable | int | `0` |  |
 | smithdb.mutations.deployment.strategy.type | string | `"RollingUpdate"` |  |
+| smithdb.mutations.deployment.terminationGracePeriodSeconds | int | `30` |  |
 | smithdb.mutations.deployment.tolerations | list | `[]` |  |
 | smithdb.mutations.deployment.topologySpreadConstraints | list | `[]` |  |
 | smithdb.mutations.deployment.volumeMounts[0].mountPath | string | `"/data"` |  |
@@ -1379,6 +1385,7 @@ The query disk cache limit is set automatically from the PVC storage request or,
 | smithdb.query.deployment.strategy.rollingUpdate.maxSurge | int | `1` |  |
 | smithdb.query.deployment.strategy.rollingUpdate.maxUnavailable | int | `0` |  |
 | smithdb.query.deployment.strategy.type | string | `"RollingUpdate"` |  |
+| smithdb.query.deployment.terminationGracePeriodSeconds | int | `30` |  |
 | smithdb.query.deployment.tolerations | list | `[]` |  |
 | smithdb.query.deployment.topologySpreadConstraints | list | `[]` |  |
 | smithdb.query.deployment.volumeMounts[0].mountPath | string | `"/data"` |  |
@@ -1435,6 +1442,7 @@ The query disk cache limit is set automatically from the PVC storage request or,
 | smithdb.runRules.deployment.strategy.rollingUpdate.maxSurge | int | `1` |  |
 | smithdb.runRules.deployment.strategy.rollingUpdate.maxUnavailable | int | `0` |  |
 | smithdb.runRules.deployment.strategy.type | string | `"RollingUpdate"` |  |
+| smithdb.runRules.deployment.terminationGracePeriodSeconds | int | `30` |  |
 | smithdb.runRules.deployment.tolerations | list | `[]` |  |
 | smithdb.runRules.deployment.topologySpreadConstraints | list | `[]` |  |
 | smithdb.runRules.deployment.volumeMounts[0].mountPath | string | `"/data"` |  |
@@ -1491,6 +1499,7 @@ The query disk cache limit is set automatically from the PVC storage request or,
 | smithdb.statsQuery.deployment.strategy.rollingUpdate.maxSurge | int | `1` |  |
 | smithdb.statsQuery.deployment.strategy.rollingUpdate.maxUnavailable | int | `0` |  |
 | smithdb.statsQuery.deployment.strategy.type | string | `"RollingUpdate"` |  |
+| smithdb.statsQuery.deployment.terminationGracePeriodSeconds | int | `30` |  |
 | smithdb.statsQuery.deployment.tolerations | list | `[]` |  |
 | smithdb.statsQuery.deployment.topologySpreadConstraints | list | `[]` |  |
 | smithdb.statsQuery.deployment.volumeMounts[0].mountPath | string | `"/data"` |  |

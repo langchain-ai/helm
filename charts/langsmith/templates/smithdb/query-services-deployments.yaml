@@ -6,7 +6,7 @@
 {{- $displayName := printf "smithdb-%s" $componentValues.name }}
 {{- $clusterManagerServiceTypes := dict "mutations" "mutations" "runRules" "rules_query" "statsQuery" "stats_query" }}
 {{- $resources := include "langsmith.smithdb.resources" (dict "root" $ "component" $component) | fromYaml -}}
-{{- $volumes := include "langsmith.smithdb.volumes" (dict "root" $ "component" $component) | fromYamlArray -}}
+{{- $volumes := concat $.Values.commonVolumes (include "langsmith.smithdb.volumes" (dict "root" $ "component" $component) | fromYamlArray) -}}
 {{- $envVars := concat (include "langsmith.smithdb.componentEnv" (dict "root" $ "service" "QUERY" "displayName" $displayName) | fromYamlArray) $componentValues.deployment.extraEnv -}}
 {{- include "langsmith.detectDuplicates" $envVars -}}
 {{- $hasDiskCacheLimit := false -}}
@@ -61,6 +61,7 @@ spec:
       {{- with $componentValues.deployment.priorityClassName }}
       priorityClassName: {{ . }}
       {{- end }}
+      terminationGracePeriodSeconds: {{ $componentValues.deployment.terminationGracePeriodSeconds }}
       securityContext:
         {{- toYaml $componentValues.deployment.podSecurityContext | nindent 8 }}
       serviceAccountName: {{ include "langsmith.smithdb.serviceAccountName" (dict "root" $) }}
@@ -118,7 +119,7 @@ spec:
             {{- toYaml $resources | nindent 12 }}
           securityContext:
             {{- toYaml $componentValues.deployment.securityContext | nindent 12 }}
-          {{- with $componentValues.deployment.volumeMounts }}
+          {{- with concat $.Values.commonVolumeMounts $componentValues.deployment.volumeMounts }}
           volumeMounts:
             {{- toYaml . | nindent 12 }}
           {{- end }}
