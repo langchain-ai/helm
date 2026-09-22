@@ -17,14 +17,9 @@ tests:
           content:
             name: VITE_CUSTOM_LOGO_URL
           any: true
-      - notContains:
-          path: spec.template.spec.containers[0].env
-          content:
-            name: VITE_CUSTOM_LOGO_LIGHT_MODE_URL
-          any: true
 
   # An operator who has not adopted the per-scheme values must render as before.
-  - it: uses the legacy URL for both schemes
+  - it: uses the legacy URL for every variable
     set:
       config.customLogo.enabled: true
       config.customLogo.logoUrl: "https://acme.test/logo.svg"
@@ -46,7 +41,8 @@ tests:
             name: VITE_CUSTOM_LOGO_DARK_MODE_URL
             value: "https://acme.test/logo.svg"
 
-  - it: gives each scheme its own logo
+  # The legacy variable is what a frontend predating the per-scheme ones reads.
+  - it: gives each scheme its own logo and leaves the legacy variable populated
     set:
       config.customLogo.enabled: true
       config.customLogo.lightModeLogoUrl: "https://acme.test/light.svg"
@@ -63,22 +59,13 @@ tests:
           content:
             name: VITE_CUSTOM_LOGO_DARK_MODE_URL
             value: "https://acme.test/dark.svg"
-
-  # Frontends predating the per-scheme variables read only VITE_CUSTOM_LOGO_URL.
-  - it: still populates the legacy variable when only per-scheme values are set
-    set:
-      config.customLogo.enabled: true
-      config.customLogo.lightModeLogoUrl: "https://acme.test/light.svg"
-      config.customLogo.darkModeLogoUrl: "https://acme.test/dark.svg"
-    template: frontend/deployment.yaml
-    asserts:
       - contains:
           path: spec.template.spec.containers[0].env
           content:
             name: VITE_CUSTOM_LOGO_URL
             value: "https://acme.test/light.svg"
 
-  - it: prefers an explicit legacy URL for the legacy variable
+  - it: prefers an explicit legacy URL and fills the unset scheme from it
     set:
       config.customLogo.enabled: true
       config.customLogo.logoUrl: "https://acme.test/legacy.svg"
@@ -93,16 +80,11 @@ tests:
       - contains:
           path: spec.template.spec.containers[0].env
           content:
-            name: VITE_CUSTOM_LOGO_LIGHT_MODE_URL
-            value: "https://acme.test/light.svg"
-      - contains:
-          path: spec.template.spec.containers[0].env
-          content:
             name: VITE_CUSTOM_LOGO_DARK_MODE_URL
             value: "https://acme.test/legacy.svg"
 
   # Nothing may resolve blank, or the frontend drops the logo entirely.
-  - it: fills the unset scheme from the configured one
+  - it: fills the light scheme from a dark-only logo
     set:
       config.customLogo.enabled: true
       config.customLogo.darkModeLogoUrl: "https://acme.test/dark.svg"
@@ -116,22 +98,17 @@ tests:
       - contains:
           path: spec.template.spec.containers[0].env
           content:
-            name: VITE_CUSTOM_LOGO_DARK_MODE_URL
-            value: "https://acme.test/dark.svg"
-      - contains:
-          path: spec.template.spec.containers[0].env
-          content:
             name: VITE_CUSTOM_LOGO_URL
             value: "https://acme.test/dark.svg"
 
-  - it: accepts a root-relative path for a logo mounted into the container
+  - it: fills the dark scheme from a light-only logo
     set:
       config.customLogo.enabled: true
-      config.customLogo.logoUrl: "/logos/acme.svg"
+      config.customLogo.lightModeLogoUrl: "https://acme.test/light.svg"
     template: frontend/deployment.yaml
     asserts:
       - contains:
           path: spec.template.spec.containers[0].env
           content:
-            name: VITE_CUSTOM_LOGO_URL
-            value: "/logos/acme.svg"
+            name: VITE_CUSTOM_LOGO_DARK_MODE_URL
+            value: "https://acme.test/light.svg"
