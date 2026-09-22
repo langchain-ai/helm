@@ -1,0 +1,14 @@
+charts/langsmith/Chart.yaml
+  h_2819e3b1f121bf 8
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "d0436256e8340b5136a6adea5dbf588787df3006",
+  "prompts": {},
+  "humans": {
+    "h_2819e3b1f121bf": {
+      "author": "Brian Vander Schaaf <brian@langchain.dev>"
+    }
+  }
+}
