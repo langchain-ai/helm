@@ -1217,11 +1217,18 @@ config:
     redisRunsExpirySeconds: "21600"  # 6 hours
 
   # -- Custom logo configuration.
-  # If enabled, the logoUrl and coBrandingEnabled values must be provided.
-  # The logoUrl must be a valid URL to an image like png, jpg, or svg. Co-branding will show LangSmith and customer logos side by side.
+  # If enabled, set either logoUrl, or lightModeLogoUrl and darkModeLogoUrl to use a different
+  # logo per color scheme. The light and dark values name the scheme the logo is shown in, so
+  # darkModeLogoUrl is the logo drawn on a dark background. Setting only one of the three uses
+  # it in both schemes, so the logo never disappears when a user switches theme.
+  # Each value is a URL to an image like png, jpg, or svg, or a root-relative path such as
+  # /logos/acme.svg for a file mounted into the frontend container. Data URIs are rejected.
+  # Co-branding shows the LangSmith and customer logos side by side, and is currently always on.
   customLogo:
     enabled: false
     logoUrl: ""
+    lightModeLogoUrl: ""
+    darkModeLogoUrl: ""
     coBrandingEnabled: true
 
   # -- Custom error support message displayed on error pages (plain text).

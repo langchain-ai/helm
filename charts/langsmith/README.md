@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.17.0-rc.36](https://img.shields.io/badge/Version-0.17.0--rc.36-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.17.25rc1](https://img.shields.io/badge/AppVersion-0.17.25rc1-informational?style=flat-square)
+![Version: 0.17.0-rc.38](https://img.shields.io/badge/Version-0.17.0--rc.38-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.17.25rc1](https://img.shields.io/badge/AppVersion-0.17.25rc1-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -1562,7 +1562,7 @@ The query disk cache limit is set automatically from the PVC storage request or,
 | config.customCa.secretKey | string | `""` |  |
 | config.customCa.secretName | string | `""` | Optional. Used to set a file containing trusted CA certificates. Make sure to also include a public CA to access beacon and playground. |
 | config.customErrorSupportMessage | string | `""` | Custom error support message displayed on error pages (plain text). If empty, defaults to the built-in support messages linking to our Support Portal (https://support.langchain.com). |
-| config.customLogo | object | `{"coBrandingEnabled":true,"enabled":false,"logoUrl":""}` | Custom logo configuration. If enabled, the logoUrl and coBrandingEnabled values must be provided. The logoUrl must be a valid URL to an image like png, jpg, or svg. Co-branding will show LangSmith and customer logos side by side. |
+| config.customLogo | object | `{"coBrandingEnabled":true,"darkModeLogoUrl":"","enabled":false,"lightModeLogoUrl":"","logoUrl":""}` | Custom logo configuration. If enabled, set either logoUrl, or lightModeLogoUrl and darkModeLogoUrl to use a different logo per color scheme. The light and dark values name the scheme the logo is shown in, so darkModeLogoUrl is the logo drawn on a dark background. Setting only one of the three uses it in both schemes, so the logo never disappears when a user switches theme. Each value is a URL to an image like png, jpg, or svg, or a root-relative path such as /logos/acme.svg for a file mounted into the frontend container. Data URIs are rejected. Co-branding shows the LangSmith and customer logos side by side, and is currently always on. |
 | config.defaultWorkspaceName | string | `"Workspace 1"` | Default workspace name to be provisioned when org is created. |
 | config.deployment | object | `{"basePath":"","enabled":false,"ingressHealthCheckEnabled":true,"tlsEnabled":true,"uncappedResourcesEnabled":false}` | Configuration for LangSmith Deployments features |
 | config.deployment.basePath | string | `""` | Base path for LangSmith Deployments routes managed by the operator. |
