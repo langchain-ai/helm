@@ -47,6 +47,9 @@ spec:
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      {{- if .Values.smithdb.migration.job.priorityClassName }}
+      priorityClassName: {{ .Values.smithdb.migration.job.priorityClassName }}
+      {{- end }}
       securityContext:
         {{- toYaml .Values.smithdb.migration.job.podSecurityContext | nindent 8 }}
       serviceAccountName: {{ include "langsmith.smithdb.serviceAccountName" (dict "root" . "component" "migration") }}
@@ -295,7 +298,7 @@ spec:
             {{- toYaml .Values.smithdb.migration.job.resources | nindent 12 }}
           securityContext:
             {{- toYaml .Values.smithdb.migration.job.securityContext | nindent 12 }}
-          {{- with .Values.smithdb.migration.job.volumeMounts }}
+          {{- with concat .Values.commonVolumeMounts .Values.smithdb.migration.job.volumeMounts }}
           volumeMounts:
             {{- toYaml . | nindent 12 }}
           {{- end }}
@@ -321,7 +324,7 @@ spec:
       topologySpreadConstraints:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.smithdb.migration.job.volumes }}
+      {{- with concat .Values.commonVolumes .Values.smithdb.migration.job.volumes }}
       volumes:
         {{- toYaml . | nindent 8 }}
       {{- end }}

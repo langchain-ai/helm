@@ -588,38 +588,54 @@ valueFrom:
 {{- end }}
 
 {{/*
-Resolve volumes for a disk-using SmithDB component. Without a volumes key, generate a per-pod
-ephemeral volume sized from the tier on smithdb.cache.storageClassName. A user-provided list,
-including [], replaces it.
+Default per-pod ephemeral cache volume for a disk-using SmithDB component, sized from the tier.
+Args: root, component.
+*/}}
+{{- define "langsmith.smithdb.defaultCacheVolume" -}}
+name: cache
+ephemeral:
+  volumeClaimTemplate:
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      {{- with .root.Values.smithdb.cache.storageClassName }}
+      storageClassName: {{ . }}
+      {{- end }}
+      resources:
+        requests:
+          storage: {{ include "langsmith.smithdb.cacheSize" . }}
+{{- end }}
+
+{{/*
+Resolve volumes for a disk-using SmithDB component. The user's deployment.volumes list is used
+as given. When the container still mounts a volume named cache and the list does not define one,
+the default cache volume is prepended, so extra volumes can be added without restating the cache.
 Args: root, component.
 */}}
 {{- define "langsmith.smithdb.volumes" -}}
 {{- $deployment := (index .root.Values.smithdb .component).deployment -}}
+{{- $mountsCache := false -}}
 {{- range $deployment.volumeMounts -}}
 {{- if and (eq .mountPath "/data") (ne .name "cache") -}}
 {{- fail (printf "smithdb.%s cache volume mounted at /data must be named cache." $.component) -}}
 {{- end -}}
+{{- if eq .name "cache" -}}
+{{- $mountsCache = true -}}
 {{- end -}}
-{{- if hasKey $deployment "volumes" -}}
-{{- range $deployment.volumes -}}
-{{- if and (eq .name "cache") (not (or (hasKey . "emptyDir") (hasKey . "ephemeral"))) -}}
+{{- end -}}
+{{- $volumes := default (list) $deployment.volumes -}}
+{{- $hasCache := false -}}
+{{- range $volumes -}}
+{{- if eq .name "cache" -}}
+{{- $hasCache = true -}}
+{{- if not (or (hasKey . "emptyDir") (hasKey . "ephemeral")) -}}
 {{- fail (printf "smithdb.%s cache volume must use emptyDir or ephemeral.volumeClaimTemplate; existing PVC references are not supported." $.component) -}}
 {{- end -}}
 {{- end -}}
-{{- toYaml $deployment.volumes -}}
-{{- else -}}
-- name: cache
-  ephemeral:
-    volumeClaimTemplate:
-      spec:
-        accessModes: ["ReadWriteOnce"]
-        {{- with .root.Values.smithdb.cache.storageClassName }}
-        storageClassName: {{ . }}
-        {{- end }}
-        resources:
-          requests:
-            storage: {{ include "langsmith.smithdb.cacheSize" . }}
 {{- end -}}
+{{- if and $mountsCache (not $hasCache) -}}
+{{- $volumes = prepend $volumes (include "langsmith.smithdb.defaultCacheVolume" . | fromYaml) -}}
+{{- end -}}
+{{- toYaml $volumes -}}
 {{- end }}
 
 {{/* Compute NUM_WORKERS from a CPU limit (cores or millicores). */}}

@@ -1475,6 +1475,7 @@ smithdb:
         fsGroup: 1001
       securityContext: {}
       priorityClassName: ""
+      terminationGracePeriodSeconds: 30
       probes:
         startupProbe:
           httpGet:
@@ -1548,6 +1549,7 @@ smithdb:
         fsGroup: 1001
       securityContext: {}
       priorityClassName: ""
+      terminationGracePeriodSeconds: 30
       probes:
         startupProbe:
           httpGet:
@@ -1619,6 +1621,7 @@ smithdb:
         fsGroup: 1001
       securityContext: {}
       priorityClassName: ""
+      terminationGracePeriodSeconds: 30
       probes:
         startupProbe:
           httpGet:
@@ -1690,6 +1693,7 @@ smithdb:
         fsGroup: 1001
       securityContext: {}
       priorityClassName: ""
+      terminationGracePeriodSeconds: 30
       probes:
         startupProbe:
           httpGet:
@@ -1831,6 +1835,7 @@ smithdb:
       podSecurityContext: {}
       securityContext: {}
       priorityClassName: ""
+      terminationGracePeriodSeconds: 30
       probes:
         startupProbe:
           httpGet:
@@ -1973,6 +1978,7 @@ smithdb:
       podSecurityContext: {}
       securityContext: {}
       priorityClassName: ""
+      terminationGracePeriodSeconds: 30
       probes:
         startupProbe:
           httpGet:
@@ -2033,6 +2039,7 @@ smithdb:
       # -- Optional hard deadline for the Job. Leave unset for long-running full migrations.
       activeDeadlineSeconds: null
       restartPolicy: Never
+      priorityClassName: ""
       labels: {}
       annotations: {}
       podSecurityContext: {}
@@ -2178,6 +2185,8 @@ smithdb:
       backoffLimit: 0
       activeDeadlineSeconds: 600
       restartPolicy: Never
+      priorityClassName: ""
+      terminationGracePeriodSeconds: 30
       labels: {}
       annotations: {}
       podAnnotations: {}
@@ -2191,9 +2200,15 @@ smithdb:
           cpu: 250m
           memory: 256Mi
       extraEnv: []
+      extraContainerConfig: {}
+      sidecars: []
       nodeSelector: {}
       tolerations: []
       affinity: {}
+      topologySpreadConstraints: []
+      volumes: []
+      volumeMounts: []
+      initContainers: []
 
 backend:
   name: "backend"

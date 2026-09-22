@@ -45,6 +45,7 @@ spec:
       {{- if .Values.smithdb.compaction.deployment.priorityClassName }}
       priorityClassName: {{ .Values.smithdb.compaction.deployment.priorityClassName }}
       {{- end }}
+      terminationGracePeriodSeconds: {{ .Values.smithdb.compaction.deployment.terminationGracePeriodSeconds }}
       securityContext:
         {{- toYaml .Values.smithdb.compaction.deployment.podSecurityContext | nindent 8 }}
       serviceAccountName: {{ include "langsmith.smithdb.serviceAccountName" (dict "root" . "component" "compaction") }}
@@ -65,6 +66,10 @@ spec:
               value: {{ .Values.smithdb.compaction.containerPort | quote }}
             - name: SMITHDB_COMPACTION__GRPC_PORT
               value: {{ .Values.smithdb.compaction.containerGrpcPort | quote }}
+            {{- if .Values.config.ttl.enabled }}
+            - name: SMITHDB_COMPACTION__EXECUTOR__LONG_TERM_RETENTION
+              value: {{ printf "%ss" (toString .Values.config.ttl.ttl_period_seconds.longlived) | quote }}
+            {{- end }}
             {{- if and .Values.smithdb.langsmith.ingestion.enabled (not .Values.smithdb.langsmith.query.enabled) }}
             - name: SMITHDB_COMPACTION__SEQUENCED_LSM_BACKFILL_ENABLED
               value: "true"
@@ -94,7 +99,7 @@ spec:
             {{- toYaml $resources | nindent 12 }}
           securityContext:
             {{- toYaml .Values.smithdb.compaction.deployment.securityContext | nindent 12 }}
-          {{- with .Values.smithdb.compaction.deployment.volumeMounts }}
+          {{- with concat .Values.commonVolumeMounts .Values.smithdb.compaction.deployment.volumeMounts }}
           volumeMounts:
             {{- toYaml . | nindent 12 }}
           {{- end }}
@@ -120,7 +125,7 @@ spec:
       topologySpreadConstraints:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.smithdb.compaction.deployment.volumes }}
+      {{- with concat .Values.commonVolumes .Values.smithdb.compaction.deployment.volumes }}
       volumes:
         {{- toYaml . | nindent 8 }}
       {{- end }}

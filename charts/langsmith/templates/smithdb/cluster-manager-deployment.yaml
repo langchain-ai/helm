@@ -45,6 +45,7 @@ spec:
       {{- if .Values.smithdb.clusterManager.deployment.priorityClassName }}
       priorityClassName: {{ .Values.smithdb.clusterManager.deployment.priorityClassName }}
       {{- end }}
+      terminationGracePeriodSeconds: {{ .Values.smithdb.clusterManager.deployment.terminationGracePeriodSeconds }}
       securityContext:
         {{- toYaml .Values.smithdb.clusterManager.deployment.podSecurityContext | nindent 8 }}
       serviceAccountName: {{ include "langsmith.smithdb.serviceAccountName" (dict "root" . "component" "clusterManager") }}
@@ -107,7 +108,7 @@ spec:
             {{- toYaml $resources | nindent 12 }}
           securityContext:
             {{- toYaml .Values.smithdb.clusterManager.deployment.securityContext | nindent 12 }}
-          {{- with .Values.smithdb.clusterManager.deployment.volumeMounts }}
+          {{- with concat .Values.commonVolumeMounts .Values.smithdb.clusterManager.deployment.volumeMounts }}
           volumeMounts:
             {{- toYaml . | nindent 12 }}
           {{- end }}
@@ -133,7 +134,7 @@ spec:
       topologySpreadConstraints:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.smithdb.clusterManager.deployment.volumes }}
+      {{- with concat .Values.commonVolumes .Values.smithdb.clusterManager.deployment.volumes }}
       volumes:
         {{- toYaml . | nindent 8 }}
       {{- end }}

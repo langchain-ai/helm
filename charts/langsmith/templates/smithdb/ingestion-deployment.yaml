@@ -89,7 +89,7 @@ spec:
             {{- toYaml $resources | nindent 12 }}
           securityContext:
             {{- toYaml .Values.smithdb.ingestion.deployment.securityContext | nindent 12 }}
-          {{- with .Values.smithdb.ingestion.deployment.volumeMounts }}
+          {{- with concat .Values.commonVolumeMounts .Values.smithdb.ingestion.deployment.volumeMounts }}
           volumeMounts:
             {{- toYaml . | nindent 12 }}
           {{- end }}
@@ -115,7 +115,7 @@ spec:
       topologySpreadConstraints:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with (include "langsmith.smithdb.volumes" (dict "root" . "component" "ingestion") | fromYamlArray) }}
+      {{- with concat .Values.commonVolumes (include "langsmith.smithdb.volumes" (dict "root" . "component" "ingestion") | fromYamlArray) }}
       volumes:
         {{- toYaml . | nindent 8 }}
       {{- end }}
