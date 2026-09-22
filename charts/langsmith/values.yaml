@@ -2857,6 +2857,8 @@ listener:
         steps:
           - setWeight: 100
   deployment:
+    # -- Maximum Redis connections per pod. Keep replicas x this value below your Redis maxclients.
+    redisMaxConnections: 250
     replicas: 1
     labels: {}
     annotations: {}
@@ -3490,6 +3492,8 @@ queue:
         steps:
           - setWeight: 100
   deployment:
+    # -- Maximum Redis connections per pod. Keep replicas x this value below your Redis maxclients.
+    redisMaxConnections: 250
     replicas: 1
     labels: {}
     annotations: {}

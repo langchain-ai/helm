@@ -1,6 +1,6 @@
 {{- define "listenerEnvVars" -}}
 - name: "REDIS_MAX_CONNECTIONS"
-  value: "250"
+  value: {{ .Values.listener.deployment.redisMaxConnections | default 250 | quote }}
 - name: "ASYNCPG_POOL_MAX_SIZE"
   value: "3"
 - name: "PORT"

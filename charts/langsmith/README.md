@@ -2221,6 +2221,7 @@ The query disk cache limit is set automatically from the PVC storage request or,
 | listener.deployment.readinessProbe.httpGet.port | int | `8080` |  |
 | listener.deployment.readinessProbe.periodSeconds | int | `10` |  |
 | listener.deployment.readinessProbe.timeoutSeconds | int | `10` |  |
+| listener.deployment.redisMaxConnections | int | `250` | Maximum Redis connections per pod. Keep replicas x this value below your Redis maxclients. |
 | listener.deployment.replicas | int | `1` |  |
 | listener.deployment.resources.limits.cpu | string | `"2000m"` |  |
 | listener.deployment.resources.limits.memory | string | `"4Gi"` |  |
@@ -2720,6 +2721,7 @@ The query disk cache limit is set automatically from the PVC storage request or,
 | queue.deployment.readinessProbe.httpGet.port | int | `8080` |  |
 | queue.deployment.readinessProbe.periodSeconds | int | `10` |  |
 | queue.deployment.readinessProbe.timeoutSeconds | int | `10` |  |
+| queue.deployment.redisMaxConnections | int | `250` | Maximum Redis connections per pod. Keep replicas x this value below your Redis maxclients. |
 | queue.deployment.replicas | int | `1` |  |
 | queue.deployment.resources.limits.cpu | string | `"2000m"` |  |
 | queue.deployment.resources.limits.memory | string | `"4Gi"` |  |
