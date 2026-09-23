@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.17.0-rc.38](https://img.shields.io/badge/Version-0.17.0--rc.38-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.17.25rc1](https://img.shields.io/badge/AppVersion-0.17.25rc1-informational?style=flat-square)
+![Version: 0.17.0-rc.40](https://img.shields.io/badge/Version-0.17.0--rc.40-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.17.25rc1](https://img.shields.io/badge/AppVersion-0.17.25rc1-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -979,7 +979,7 @@ The query disk cache limit is set automatically from the PVC storage request or,
 | smithdb.clusterManager.service.annotations | object | `{}` |  |
 | smithdb.clusterManager.service.labels | object | `{}` |  |
 | smithdb.clusterManager.service.port | int | `8091` |  |
-| smithdb.commonEnv | list | `[]` | Extra env vars for every SmithDB workload. |
+| smithdb.commonEnv | list | `[]` | Extra env vars for every SmithDB workload. Overrides chart-managed env vars of the same name. A name set here and in a component's extraEnv fails the render. |
 | smithdb.commonInitContainers | list | `[]` | Common init containers added to every SmithDB component Deployment and Job. Set restartPolicy: Always to configure a Kubernetes sidecar container. |
 | smithdb.compaction.containerGrpcPort | int | `8071` |  |
 | smithdb.compaction.containerPort | int | `8070` |  |
@@ -1562,7 +1562,7 @@ The query disk cache limit is set automatically from the PVC storage request or,
 | config.customCa.secretKey | string | `""` |  |
 | config.customCa.secretName | string | `""` | Optional. Used to set a file containing trusted CA certificates. Make sure to also include a public CA to access beacon and playground. |
 | config.customErrorSupportMessage | string | `""` | Custom error support message displayed on error pages (plain text). If empty, defaults to the built-in support messages linking to our Support Portal (https://support.langchain.com). |
-| config.customLogo | object | `{"coBrandingEnabled":true,"darkModeLogoUrl":"","enabled":false,"lightModeLogoUrl":"","logoUrl":""}` | Custom logo configuration. If enabled, set either logoUrl, or lightModeLogoUrl and darkModeLogoUrl to use a different logo per color scheme. Setting only one of the three uses it in both schemes. Each must be a valid URL to an image like png, jpg, or svg. Co-branding shows the LangSmith and customer logos side by side. |
+| config.customLogo | object | `{"coBrandingEnabled":true,"darkModeLogoUrl":"","enabled":false,"lightModeLogoUrl":"","logoUrl":""}` | Custom logo configuration. If enabled, set either logoUrl, or lightModeLogoUrl and darkModeLogoUrl to use a different logo per color scheme. Setting only one of the three uses it in both schemes. Each value is a URL to an image like png, jpg, or svg. Co-branding shows the LangSmith and customer logos side by side. |
 | config.defaultWorkspaceName | string | `"Workspace 1"` | Default workspace name to be provisioned when org is created. |
 | config.deployment | object | `{"basePath":"","enabled":false,"ingressHealthCheckEnabled":true,"tlsEnabled":true,"uncappedResourcesEnabled":false}` | Configuration for LangSmith Deployments features |
 | config.deployment.basePath | string | `""` | Base path for LangSmith Deployments routes managed by the operator. |

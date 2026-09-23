@@ -1,7 +1,6 @@
 {{- if .Values.smithdb.enabled }}
 {{- $resources := include "langsmith.smithdb.resources" (dict "root" . "component" "compactionWorker") | fromYaml -}}
-{{- $envVars := concat (include "langsmith.smithdb.componentEnv" (dict "root" . "service" "COMPACTION_WORKER" "displayName" "smithdb-compaction-worker") | fromYamlArray) .Values.smithdb.compactionWorker.deployment.extraEnv -}}
-{{- include "langsmith.detectDuplicates" $envVars -}}
+{{- $envVars := include "langsmith.mergeEnv" (dict "commonEnv" (concat .Values.commonEnv .Values.smithdb.commonEnv) "chart" (include "langsmith.smithdb.componentEnv" (dict "root" . "service" "COMPACTION_WORKER" "displayName" "smithdb-compaction-worker") | fromYamlArray) "extraEnv" .Values.smithdb.compactionWorker.deployment.extraEnv) | fromYamlArray -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:

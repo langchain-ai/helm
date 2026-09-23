@@ -7,8 +7,7 @@
 {{- $clusterManagerServiceTypes := dict "mutations" "mutations" "runRules" "rules_query" "statsQuery" "stats_query" }}
 {{- $resources := include "langsmith.smithdb.resources" (dict "root" $ "component" $component) | fromYaml -}}
 {{- $volumes := concat $.Values.commonVolumes (include "langsmith.smithdb.volumes" (dict "root" $ "component" $component) | fromYamlArray) -}}
-{{- $envVars := concat (include "langsmith.smithdb.componentEnv" (dict "root" $ "service" "QUERY" "displayName" $displayName) | fromYamlArray) $componentValues.deployment.extraEnv -}}
-{{- include "langsmith.detectDuplicates" $envVars -}}
+{{- $envVars := include "langsmith.mergeEnv" (dict "commonEnv" (concat $.Values.commonEnv $.Values.smithdb.commonEnv) "chart" (include "langsmith.smithdb.componentEnv" (dict "root" $ "service" "QUERY" "displayName" $displayName) | fromYamlArray) "extraEnv" $componentValues.deployment.extraEnv) | fromYamlArray -}}
 {{- $hasDiskCacheLimit := false -}}
 {{- range $envVars -}}
 {{- $hasDiskCacheLimit = or $hasDiskCacheLimit (eq .name "SMITHDB_QUERY__VORTEX_CACHE__DISK__LIMIT") -}}
