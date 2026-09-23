@@ -1,0 +1,30 @@
+suite: Common DNS policy rendering
+templates:
+  - frontend/deployment.yaml
+  - config-map.yaml
+  - frontend/config-map.yaml
+  - secrets.yaml
+  - redis/secrets.yaml
+  - postgres/secrets.yaml
+  - clickhouse/secrets.yaml
+tests:
+  - it: omits dnsPolicy when it is not configured
+    template: frontend/deployment.yaml
+    asserts:
+      - notExists:
+          path: spec.template.spec.dnsPolicy
+
+  - it: renders dnsPolicy with custom nameservers
+    template: frontend/deployment.yaml
+    set:
+      commonDnsPolicy: None
+      commonDnsConfig:
+        nameservers:
+          - 10.0.0.2
+    asserts:
+      - equal:
+          path: spec.template.spec.dnsPolicy
+          value: None
+      - equal:
+          path: spec.template.spec.dnsConfig.nameservers[0]
+          value: 10.0.0.2
