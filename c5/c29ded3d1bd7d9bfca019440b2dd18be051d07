@@ -1,0 +1,30 @@
+charts/langsmith/templates/_helpers.tpl
+  s_cb69c97da132b3::t_45a06247c5fbc9 823-826
+charts/langsmith/README.md
+  s_cb69c97da132b3::t_1a5d10883af895 1202
+  s_cb69c97da132b3::t_c4387323715038 3,1566
+charts/langsmith/Chart.yaml
+  s_cb69c97da132b3::t_45a06247c5fbc9 8
+charts/langsmith/tests/langsmith_smithdb_metrics_mode_test.yaml
+  s_cb69c97da132b3::t_45a06247c5fbc9 1-3,6,8-14,16-24,26-33
+  s_cb69c97da132b3::t_fcf311352a564c 4-5,7,15,25
+charts/langsmith/values.yaml
+  s_cb69c97da132b3::t_1a5d10883af895 1417
+  s_cb69c97da132b3::t_45a06247c5fbc9 1416,1418
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "c5c29ded3d1bd7d9bfca019440b2dd18be051d07",
+  "prompts": {},
+  "sessions": {
+    "s_cb69c97da132b3": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "982cf9eb-e3c9-4251-af86-c38f5b81d538",
+        "model": "claude-fable-5-1"
+      },
+      "human_author": null
+    }
+  }
+}
