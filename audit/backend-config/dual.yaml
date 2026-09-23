@@ -1,0 +1,23 @@
+# dual backend config: clickhouse + smithdb both enabled for ingestion/query
+clickhouse:
+  enabled: true
+
+smithdb:
+  enabled: true
+  langsmith:
+    ingestion:
+      enabled: true
+    query:
+      enabled: true
+    migration:
+      enabled: false
+  config:
+    existingSecretName: "smithdb-metastore"
+    metastore:
+      hostSecretKey: "host"
+      databaseSecretKey: "database"
+      usernameSecretKey: "username"
+      passwordSecretKey: "password"
+    objectStore:
+      type: "s3"
+      bucket: "smithdb-audit"
