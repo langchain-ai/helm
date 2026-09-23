@@ -2640,13 +2640,12 @@ The query disk cache limit is set automatically from the PVC storage request or,
 | postgres.statefulSet.livenessProbe.periodSeconds | int | `10` |  |
 | postgres.statefulSet.livenessProbe.timeoutSeconds | int | `1` |  |
 | postgres.statefulSet.nodeSelector | object | `{}` |  |
-| postgres.statefulSet.persistence.dataSource | object | `{}` | Populate a new in-chart Postgres volume from an existing VolumeSnapshot. Ignored when volumeSnapshot.snapshotHandle is set. Kubernetes rejects changes to this field on an existing StatefulSet. |
 | postgres.statefulSet.persistence.enabled | bool | `true` |  |
 | postgres.statefulSet.persistence.size | string | `"8Gi"` |  |
 | postgres.statefulSet.persistence.storageClassName | string | `""` |  |
-| postgres.statefulSet.persistence.volumeSnapshot.deletionPolicy | string | `"Retain"` | Retain keeps the underlying snapshot when the release is deleted. Delete removes it. |
-| postgres.statefulSet.persistence.volumeSnapshot.driver | string | `""` | CSI driver for the VolumeSnapshotContent. Required when snapshotHandle is set. GKE uses pd.csi.storage.gke.io. |
-| postgres.statefulSet.persistence.volumeSnapshot.snapshotHandle | string | `""` | CSI snapshot handle, such as projects/PROJECT/global/snapshots/NAME. When set, the chart creates a VolumeSnapshot and uses it as the Postgres dataSource. Only applies when the StatefulSet is first created. |
+| postgres.statefulSet.persistence.volumeSnapshot.deletionPolicy | string | `"Retain"` |  |
+| postgres.statefulSet.persistence.volumeSnapshot.driver | string | `""` |  |
+| postgres.statefulSet.persistence.volumeSnapshot.snapshotHandle | string | `""` | CSI snapshot handle. Restores a new in-chart Postgres volume from it. |
 | postgres.statefulSet.persistentVolumeClaimRetentionPolicy | object | `{}` |  |
 | postgres.statefulSet.podSecurityContext | object | `{}` |  |
 | postgres.statefulSet.priorityClassName | string | `""` | Optional priority class for the in-chart PostgreSQL pod. |

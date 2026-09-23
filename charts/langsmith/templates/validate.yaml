@@ -700,9 +700,6 @@ AWS Marketplace Helm template verification).
 {{- if not (has $pgSnapshot.deletionPolicy (list "Retain" "Delete")) }}
 {{- fail "postgres.statefulSet.persistence.volumeSnapshot.deletionPolicy must be Retain or Delete" }}
 {{- end }}
-{{- if not (empty .Values.postgres.statefulSet.persistence.dataSource) }}
-{{- fail "set either postgres.statefulSet.persistence.dataSource or postgres.statefulSet.persistence.volumeSnapshot.snapshotHandle, not both" }}
-{{- end }}
 {{- end }}
 
 {{- /* Validate per-agent redis configuration */ -}}

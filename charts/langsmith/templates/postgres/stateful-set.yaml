@@ -181,9 +181,6 @@ spec:
           apiGroup: snapshot.storage.k8s.io
           kind: VolumeSnapshot
           name: {{ include "langsmith.postgres.volumeSnapshotName" . }}
-        {{- else if not (empty .Values.postgres.statefulSet.persistence.dataSource) }}
-        dataSource:
-          {{- toYaml .Values.postgres.statefulSet.persistence.dataSource | nindent 10 }}
         {{- end }}
   {{- end }}
 {{- end}}

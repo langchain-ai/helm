@@ -80,17 +80,6 @@ tests:
         equal:
           path: spec.source.volumeSnapshotContentName
           value: langsmith-postgres-preview
-  - it: passes through an explicit dataSource
-    set:
-      postgres.statefulSet.persistence.dataSource:
-        apiGroup: snapshot.storage.k8s.io
-        kind: VolumeSnapshot
-        name: existing-snapshot
-    template: postgres/stateful-set.yaml
-    asserts:
-      - equal:
-          path: spec.volumeClaimTemplates[0].spec.dataSource.name
-          value: existing-snapshot
   - it: rejects a snapshot handle without a driver
     set:
       postgres.statefulSet.persistence.volumeSnapshot.snapshotHandle: projects/example/global/snapshots/seed
@@ -98,15 +87,3 @@ tests:
     asserts:
       - failedTemplate:
           errorMessage: postgres.statefulSet.persistence.volumeSnapshot.driver is required when snapshotHandle is set
-  - it: rejects setting both dataSource and a snapshot handle
-    set:
-      postgres.statefulSet.persistence.volumeSnapshot.snapshotHandle: projects/example/global/snapshots/seed
-      postgres.statefulSet.persistence.volumeSnapshot.driver: pd.csi.storage.gke.io
-      postgres.statefulSet.persistence.dataSource:
-        apiGroup: snapshot.storage.k8s.io
-        kind: VolumeSnapshot
-        name: existing-snapshot
-    template: validate.yaml
-    asserts:
-      - failedTemplate:
-          errorMessage: set either postgres.statefulSet.persistence.dataSource or postgres.statefulSet.persistence.volumeSnapshot.snapshotHandle, not both
