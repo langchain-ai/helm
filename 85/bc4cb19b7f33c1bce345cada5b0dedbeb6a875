@@ -1,0 +1,23 @@
+charts/langsmith/Chart.yaml
+  s_cfb45b2352ab88::t_f89e068dba6bf6 8-9
+charts/langsmith/values.yaml
+  s_cfb45b2352ab88::t_2dec59dd04fb06 68,72,76,80,104,108,112
+charts/langsmith/README.md
+  s_cfb45b2352ab88::t_198bbce4aa5e5f 3,348,351,354,360,364,370,383
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "85bc4cb19b7f33c1bce345cada5b0dedbeb6a875",
+  "prompts": {},
+  "sessions": {
+    "s_cfb45b2352ab88": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "d6476e88-82f9-4306-85ee-7678d657018b",
+        "model": "composer-2.5"
+      },
+      "human_author": "ben11211 <nagengast@langchain.dev>"
+    }
+  }
+}

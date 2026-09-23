@@ -1,0 +1,37 @@
+charts/langsmith/Chart.yaml
+  s_ed01dbceeafc67::t_d89d618d2166e1 8
+charts/langsmith/README.md
+  s_ed01dbceeafc67::t_4c95cad7183092 31,33-40,44-45,47,1060,1132,1297,1352,1387,1406,1462
+charts/langsmith/README.md.gotmpl
+  s_ed01dbceeafc67::t_989aa0b4647279 33,35-42,46-47,49
+charts/langsmith/templates/_helpers.tpl
+  s_ed01dbceeafc67::t_d4eb4049fdb214 515-517,520,524-525,527,530-531,533,536-537,539,542,546-561,566-574,577-581,584,589-595
+charts/langsmith/templates/smithdb/compaction-worker-deployment.yaml
+  s_ed01dbceeafc67::t_6e170b043bc3e7 118
+charts/langsmith/templates/smithdb/ingestion-deployment.yaml
+  s_ed01dbceeafc67::t_9acc7412dbe4aa 117
+charts/langsmith/templates/smithdb/query-deployment.yaml
+  s_ed01dbceeafc67::t_45ee97f6d15773 3,77-79,132
+charts/langsmith/templates/smithdb/query-services-deployments.yaml
+  s_ed01dbceeafc67::t_31c453294254a9 9,86-88,141
+charts/langsmith/tests/langsmith_smithdb_test.yaml
+  s_ed01dbceeafc67::t_3db4613670edba 63,77,79-92,151-152,167,170-171,189,193,198-200,220-252,405-411,950-951
+charts/langsmith/values.yaml
+  s_ed01dbceeafc67::t_c2dee74b83686b 1382-1384,1462-1463,1535-1536,1606-1607,1677-1678,1747-1748,1877-1878
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "47d8f12ddbef238bde83b7175d2685f566d4ecfe",
+  "prompts": {},
+  "sessions": {
+    "s_ed01dbceeafc67": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a81ccc60-8635-4eed-bf2b-f11ee99c576d",
+        "model": "claude-fable-5-1"
+      },
+      "human_author": "ben11211 <nagengast@langchain.dev>"
+    }
+  }
+}

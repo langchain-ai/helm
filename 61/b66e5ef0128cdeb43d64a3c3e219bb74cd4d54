@@ -1,0 +1,39 @@
+charts/langsmith/templates/smithdb/migration-job.yaml
+  s_bd69bd7c104108::t_ee61dbbdd581ca 80
+  s_bd69bd7c104108::t_3ad697c221af01 82,87
+  s_aa804e36d9470a::t_f88661d4397ac8 83-86
+  s_bd69bd7c104108::t_a8585e4cfb9184 81
+charts/langsmith/tests/langsmith_smithdb_test.yaml
+  s_aa804e36d9470a::t_dd7378977305e4 786-789
+  s_bd69bd7c104108::t_0e8585541eaf19 785,790
+  s_bd69bd7c104108::t_a9d228b3dc614a 782-784
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "61b66e5ef0128cdeb43d64a3c3e219bb74cd4d54",
+  "prompts": {},
+  "humans": {
+    "h_712f30a2a56c04": {
+      "author": "ben11211 <nagengast@langchain.dev>"
+    }
+  },
+  "sessions": {
+    "s_aa804e36d9470a": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "85d556aa-0b66-4158-bf3b-5cb1fe7cb6f0",
+        "model": "auto-smart"
+      },
+      "human_author": "ben11211 <nagengast@langchain.dev>"
+    },
+    "s_bd69bd7c104108": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "04971580-b2c4-43e9-a749-1711d8ba1e3e",
+        "model": "auto-smart"
+      },
+      "human_author": "ben11211 <nagengast@langchain.dev>"
+    }
+  }
+}

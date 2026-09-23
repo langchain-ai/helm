@@ -1,0 +1,119 @@
+charts/langsmith/templates/presidio-analyzer/deployment.yaml
+  s_cb69c97da132b3::t_83aef41e92aff3 2
+charts/langsmith/templates/listener/deployment.yaml
+  s_cb69c97da132b3::t_5b25f15c195f2e 13
+charts/langsmith/templates/agent-features/fleet/trigger-server/deployment.yaml
+  s_cb69c97da132b3::t_5b25f15c195f2e 2
+charts/langsmith/templates/smithdb/taskdb-postgres-statefulset.yaml
+  s_cb69c97da132b3::t_19eb8aa2324398 1-17,21,91
+charts/langsmith/templates/agent-features/insights/api-server/deployment.yaml
+  s_cb69c97da132b3::t_5b25f15c195f2e 2
+charts/langsmith/templates/backend/clickhouse-migrations.yaml
+  s_cb69c97da132b3::t_5b25f15c195f2e 2
+charts/langsmith/tests/remote_mcp_test.yaml
+  s_cb69c97da132b3::t_5b25f15c195f2e 100-102,104-105,119-135
+charts/langsmith/templates/smithdb/ingestion-deployment.yaml
+  s_cb69c97da132b3::t_19eb8aa2324398 1-7,10,75
+charts/langsmith/templates/platform-backend/deployment.yaml
+  s_cb69c97da132b3::t_5b25f15c195f2e 45
+  s_cb69c97da132b3::t_107388a9203b04 9
+charts/langsmith/templates/smithdb/query-services-deployments.yaml
+  s_cb69c97da132b3::t_19eb8aa2324398 10,76
+charts/langsmith/templates/ingest-queue/deployment.yaml
+  s_cb69c97da132b3::t_5b25f15c195f2e 13
+charts/langsmith/templates/clickhouse/stateful-set.yaml
+  s_cb69c97da132b3::t_5b25f15c195f2e 22
+charts/langsmith/tests/sandboxes_test.yaml
+  s_cb69c97da132b3::t_5b25f15c195f2e 700,706-715
+charts/langsmith/templates/postgres/stateful-set.yaml
+  s_cb69c97da132b3::t_5b25f15c195f2e 24
+charts/langsmith/templates/backend/backfill-check.yaml
+  s_cb69c97da132b3::t_5b25f15c195f2e 2
+charts/langsmith/templates/smithdb/compaction-deployment.yaml
+  s_cb69c97da132b3::t_19eb8aa2324398 1-21,24,85
+charts/langsmith/tests/env_overrides_test.yaml
+  s_cb69c97da132b3::t_5b25f15c195f2e 4,7,10-11,13-16,18-19,21,24-25,27-30,32-33,35,51-52,54,56-57
+  s_cb69c97da132b3::t_78dcda1b0bc32f 1,5-6,8-9,12,17,22-23,26,31,49-50,53,55,58
+  s_cb69c97da132b3::t_c21f73540e8ba0 2-3,20,34
+  s_cb69c97da132b3::t_19eb8aa2324398 36-48
+charts/langsmith/templates/smithdb/cluster-manager-deployment.yaml
+  s_cb69c97da132b3::t_8cd972b4b7ad51 2-5
+  s_cb69c97da132b3::t_5b25f15c195f2e 92
+  s_cb69c97da132b3::t_19eb8aa2324398 1,6-28,31
+charts/langsmith/templates/smithdb/query-deployment.yaml
+  s_cb69c97da132b3::t_19eb8aa2324398 4,69
+charts/langsmith/templates/queue/deployment.yaml
+  s_cb69c97da132b3::t_5b25f15c195f2e 15
+charts/langsmith/templates/_helpers.tpl
+  s_cb69c97da132b3::t_76d7eebc8ad0cc 408-413
+  s_cb69c97da132b3::t_107388a9203b04 548-549,817,1384-1387
+  s_cb69c97da132b3::t_fc5caab30e8f9f 550-577
+  s_cb69c97da132b3::t_5b25f15c195f2e 547,765,790,794,796,798,802,804,809,818,859,866,988,1383,1388-1405
+  s_cb69c97da132b3::t_0cd76e1f72fb46 808,819
+  s_cb69c97da132b3::t_53967078a411e3 1406
+charts/langsmith/templates/agent-features/fleet/api-server/deployment.yaml
+  s_cb69c97da132b3::t_5b25f15c195f2e 2
+charts/langsmith/templates/agent-gateway/deployment.yaml
+  s_cb69c97da132b3::t_5b25f15c195f2e 10
+charts/langsmith/templates/playground/deployment.yaml
+  s_cb69c97da132b3::t_5b25f15c195f2e 11
+charts/langsmith/templates/agent-features/fleet/queue/deployment.yaml
+  s_cb69c97da132b3::t_5b25f15c195f2e 3
+charts/langsmith/templates/agent-features/polly/api-server/deployment.yaml
+  s_cb69c97da132b3::t_5b25f15c195f2e 2
+charts/langsmith/templates/backend/postgres-migrations.yaml
+  s_cb69c97da132b3::t_5b25f15c195f2e 2
+charts/langsmith/templates/agent-features/fleet/tool-server/deployment.yaml
+  s_cb69c97da132b3::t_5b25f15c195f2e 2
+charts/langsmith/values.yaml
+  s_cb69c97da132b3::t_107388a9203b04 40,1414
+charts/langsmith/templates/backend/e2e-test.yaml
+  s_cb69c97da132b3::t_83aef41e92aff3 2
+charts/langsmith/templates/agent-features/insights/queue/deployment.yaml
+  s_cb69c97da132b3::t_5b25f15c195f2e 3
+charts/langsmith/templates/backend/auth-bootstrap.yaml
+  s_cb69c97da132b3::t_5b25f15c195f2e 17
+charts/langsmith/templates/smithdb/metastore-migration.yaml
+  s_cb69c97da132b3::t_5b25f15c195f2e 2
+charts/langsmith/Chart.yaml
+  s_cb69c97da132b3::t_45a06247c5fbc9 8
+charts/langsmith/templates/redis/stateful-set.yaml
+  s_cb69c97da132b3::t_5b25f15c195f2e 2
+charts/langsmith/templates/agent-features/polly/queue/deployment.yaml
+  s_cb69c97da132b3::t_5b25f15c195f2e 3
+charts/langsmith/tests/langsmith_smithdb_metrics_mode_test.yaml
+  s_cb69c97da132b3::t_fcf311352a564c 4-5
+  s_cb69c97da132b3::t_78dcda1b0bc32f 1,7,11
+  s_cb69c97da132b3::t_45a06247c5fbc9 2-3,6,8-10
+charts/langsmith/templates/host-backend/deployment.yaml
+  s_cb69c97da132b3::t_5b25f15c195f2e 26
+charts/langsmith/templates/smithdb/migration-job.yaml
+  s_cb69c97da132b3::t_19eb8aa2324398 1,5-216
+charts/langsmith/templates/smithdb/compaction-worker-deployment.yaml
+  s_cb69c97da132b3::t_19eb8aa2324398 1-17,20,83
+charts/langsmith/README.md
+  s_cb69c97da132b3::t_107388a9203b04 54,982
+  s_cb69c97da132b3::t_c4387323715038 3,1565
+charts/langsmith/templates/backend/deployment.yaml
+  s_cb69c97da132b3::t_5b25f15c195f2e 19
+charts/langsmith/templates/frontend/deployment.yaml
+  s_cb69c97da132b3::t_5b25f15c195f2e 91
+charts/langsmith/templates/ace-backend/deployment.yaml
+  s_cb69c97da132b3::t_5b25f15c195f2e 5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "9f42787a338a8fc164231afa22d0dc894138b582",
+  "prompts": {},
+  "sessions": {
+    "s_cb69c97da132b3": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "982cf9eb-e3c9-4251-af86-c38f5b81d538",
+        "model": "claude-fable-5-1"
+      },
+      "human_author": null
+    }
+  }
+}

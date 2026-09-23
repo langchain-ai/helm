@@ -1,0 +1,16 @@
+charts/langsmith/templates/config-map.yaml
+  h_2819e3b1f121bf 161-163
+charts/langsmith/tests/agent_gateway_test.yaml
+  h_2819e3b1f121bf 20-34
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "4b29e514ed53feb90942cc7ef9953b92ef59648a",
+  "prompts": {},
+  "humans": {
+    "h_2819e3b1f121bf": {
+      "author": "Brian Vander Schaaf <brian@langchain.dev>"
+    }
+  }
+}

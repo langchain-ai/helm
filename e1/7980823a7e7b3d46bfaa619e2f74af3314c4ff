@@ -1,0 +1,25 @@
+charts/langsmith/Chart.yaml
+  s_2e13a709353800::t_3ed464fc755542 8
+charts/langsmith/templates/ingest-queue/deployment.yaml
+  s_2e13a709353800::t_6511941c5da2c4 6-7
+charts/langsmith/tests/adhoc_queue_priority_test.yaml
+  s_2e13a709353800::t_dfd92f0730987f 1-39
+charts/langsmith/values.yaml
+  s_2e13a709353800::t_18db056abca100 3551-3555
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "e17980823a7e7b3d46bfaa619e2f74af3314c4ff",
+  "prompts": {},
+  "sessions": {
+    "s_2e13a709353800": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "3a28acfa-e10f-417c-9f5a-2ecef1a4a529",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Bagatur Askaryan <baskaryan@gmail.com>"
+    }
+  }
+}

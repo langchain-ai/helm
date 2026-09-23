@@ -1,0 +1,29 @@
+charts/mission-control/examples/ingress.yaml
+  s_98bd75be83dafa::t_191783bfd3b9d9 10-28
+charts/mission-control/README.md
+  s_98bd75be83dafa::t_5915307f1941e8 3,156-160
+charts/mission-control/values.yaml
+  s_98bd75be83dafa::t_d12ed1ae3fafac 207-208,210,212-213,215-225
+charts/mission-control/Chart.yaml
+  s_98bd75be83dafa::t_92fc747d7860e0 4-5
+charts/mission-control/templates/ingress.yaml
+  s_98bd75be83dafa::t_9a0a4fd612fb12 9-10,12,15-21
+charts/mission-control/install-script.sh
+  s_98bd75be83dafa::t_47319d9e9138e1 288-290
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "ef6ec7f2c722b0accc4a078889e81a4cc92cba15",
+  "prompts": {},
+  "sessions": {
+    "s_98bd75be83dafa": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad83bdb6-efd7-4f97-9f2c-280228374c90",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "gdibben <gethin.dibben@langchain.dev>"
+    }
+  }
+}

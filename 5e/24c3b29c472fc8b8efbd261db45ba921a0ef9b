@@ -1,0 +1,30 @@
+charts/mission-control/README.md
+  s_94677c5854d1a7::t_1c2403833cef9b 3,64-89,98,107,114,123,125-126,130-131,150,153
+charts/mission-control/install-script.sh
+  s_94677c5854d1a7::t_bfcc1d21c14765 306-307
+  s_94677c5854d1a7::t_59445868ef7a1f 177
+charts/mission-control/Chart.yaml
+  s_94677c5854d1a7::t_a5f1f06a853d07 4-5
+charts/mission-control/templates/backend/role.yaml
+  s_94677c5854d1a7::t_e6b3c36137667d 35
+charts/mission-control/README.md.gotmpl
+  s_94677c5854d1a7::t_e75757be1f97b9 39,50-54,56,61,64
+  s_94677c5854d1a7::t_2ce2f9b4e55b35 34
+  s_94677c5854d1a7::t_9733112cb27f20 65
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.21",
+  "base_commit_sha": "5e24c3b29c472fc8b8efbd261db45ba921a0ef9b",
+  "prompts": {},
+  "sessions": {
+    "s_94677c5854d1a7": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "b8d5b7db-d8bd-438a-b164-0d3f8305292f",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "gdibben <gethin.dibben@langchain.dev>"
+    }
+  }
+}

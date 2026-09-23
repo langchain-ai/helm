@@ -1,0 +1,14 @@
+charts/langsmith/templates/smithdb/metastore-migration.yaml
+  h_712f30a2a56c04 2
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "d641e2673a51e1c43b804011e2932364fec8973e",
+  "prompts": {},
+  "humans": {
+    "h_712f30a2a56c04": {
+      "author": "ben11211 <nagengast@langchain.dev>"
+    }
+  }
+}

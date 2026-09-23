@@ -1,0 +1,68 @@
+charts/langsmith/values.yaml
+  s_d45b7bef931df4::t_2cf30b99c4a43a 68,72,78,82,106,110,114
+  s_d45b7bef931df4::t_f4e7fb1142cfc2 1438-1439,1512-1518,1837-1838,1850-1853,1958,1962,1982-1983
+.gitignore
+  s_d45b7bef931df4::t_6eba11d87c5c88 8-16
+charts/langgraph-dataplane/Chart.yaml
+  s_d45b7bef931df4::t_cdcf39674a25c3 8-9
+charts/langgraph-dataplane/README.md
+  s_d45b7bef931df4::t_b526e0a42feb87 3,32-33,131-132
+charts/langgraph-dataplane/values.yaml
+  s_d45b7bef931df4::t_d1742c740c9b6d 35,37,117
+charts/langsmith/Chart.yaml
+  s_d45b7bef931df4::t_81b96d9c240587 8-9
+charts/langsmith/README.md
+  s_d45b7bef931df4::t_b8f7aa346ae387 3,566,569,572,578,581,591,605,1072-1073,1154-1155,1183,1186,1197,1209,1308-1311
+charts/langsmith/scripts/support_queries/postgres/pg_usage_agent_builder_full_export.sql
+  s_d45b7bef931df4::t_00a19d5a75cddc 4
+charts/langsmith/scripts/support_queries/postgres/pg_usage_nodes_backfill_export.sql
+  s_d45b7bef931df4::t_65eb037174be15 37
+charts/langsmith/scripts/support_queries/postgres/pg_usage_nodes_backfill_update.sql
+  s_d45b7bef931df4::t_18347282506244 25
+charts/langsmith/scripts/support_queries/postgres/pg_usage_nodes_full_export.sql
+  s_d45b7bef931df4::t_52b793ad4a643d 17,19
+charts/langsmith/scripts/support_queries/postgres/pg_usage_traces_backfill_update.sql
+  s_d45b7bef931df4::t_ffca39b10f7999 12
+charts/langsmith/scripts/support_queries/postgres/pg_usage_traces_full_export.sql
+  s_d45b7bef931df4::t_49c24fb9040146 4
+charts/langsmith/templates/_helpers.tpl
+  s_d45b7bef931df4::t_f0f1712c3d0477 514-523,775-777,782-783,789-799
+charts/langsmith/templates/frontend/config-map.yaml
+  s_d45b7bef931df4::t_654e4f5676dd7a 80,696
+charts/langsmith/templates/presidio-analyzer/deployment.yaml
+  s_d45b7bef931df4::t_ea6ebfb9c7871e 3-8,67
+charts/langsmith/templates/smithdb/metastore-migration.yaml
+  s_d45b7bef931df4::t_17199acadf20d7 2
+charts/langsmith/templates/smithdb/migration-job.yaml
+  s_d45b7bef931df4::t_035bd04a30db99 80-83,86-87,165,188-194
+charts/langsmith/templates/smithdb/taskdb-postgres-statefulset.yaml
+  s_d45b7bef931df4::t_875dfbf18b1da8 2,70-72
+charts/langsmith/templates/validate.yaml
+  s_d45b7bef931df4::t_cf10efb2573faf 372,378-384,420-425
+charts/langsmith/tests/frontend_nginx_test.yaml
+  s_d45b7bef931df4::t_09ad87dc507ef9 1-34
+charts/langsmith/tests/langsmith_smithdb_test.yaml
+  s_d45b7bef931df4::t_676c25c6288bd6 82-99,130-146,755-766,864-869,906-958,967-969,971-972,975-980
+charts/langsmith/tests/langsmith_smithdb_validation_test.yaml
+  s_d45b7bef931df4::t_c4e1326bff3d82 40-63
+charts/langsmith/tests/presidio_analyzer_test.yaml
+  s_d45b7bef931df4::t_7d8633643d39e9 1-58
+charts/mission-control/Chart.yaml
+  s_d45b7bef931df4::t_e8e227081438b5 4-5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "96f28698bd357a01a5cf2dd80b840d542a421e26",
+  "prompts": {},
+  "sessions": {
+    "s_d45b7bef931df4": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "15107398-a68a-4fef-8f8e-f3fce84e1695",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Bagatur Askaryan <baskaryan@gmail.com>"
+    }
+  }
+}
