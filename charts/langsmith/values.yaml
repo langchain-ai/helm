@@ -1411,7 +1411,7 @@ smithdb:
     labels: {}
     annotations: {}
     automountServiceAccountToken: true
-  # -- Extra env vars for every SmithDB workload.
+  # -- Extra env vars for every SmithDB workload. Overrides chart-managed env vars of the same name. A name set here and in a component's extraEnv fails the render.
   commonEnv: []
   # -- Common init containers added to every SmithDB component Deployment and Job.
   # Set restartPolicy: Always to configure a Kubernetes sidecar container.
