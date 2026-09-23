@@ -3465,6 +3465,15 @@ postgres:
       enabled: true
       size: 8Gi
       storageClassName: ""
+      # -- Populate a new in-chart Postgres volume from an existing VolumeSnapshot. Ignored when volumeSnapshot.snapshotHandle is set. Kubernetes rejects changes to this field on an existing StatefulSet.
+      dataSource: {}
+      volumeSnapshot:
+        # -- CSI snapshot handle, such as projects/PROJECT/global/snapshots/NAME. When set, the chart creates a VolumeSnapshot and uses it as the Postgres dataSource. Only applies when the StatefulSet is first created.
+        snapshotHandle: ""
+        # -- CSI driver for the VolumeSnapshotContent. Required when snapshotHandle is set. GKE uses pd.csi.storage.gke.io.
+        driver: ""
+        # -- Retain keeps the underlying snapshot when the release is deleted. Delete removes it.
+        deletionPolicy: Retain
   pdb:
     enabled: false
     minAvailable: 1

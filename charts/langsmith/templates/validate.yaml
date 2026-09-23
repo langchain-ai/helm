@@ -686,6 +686,25 @@ AWS Marketplace Helm template verification).
 {{- fail "All postgres connection URLs (langsmith, fleet, insights, polly) must be unique. Duplicate URLs were detected." }}
 {{- end }}
 
+{{- $pgSnapshot := .Values.postgres.statefulSet.persistence.volumeSnapshot }}
+{{- if $pgSnapshot.snapshotHandle }}
+{{- if .Values.postgres.external.enabled }}
+{{- fail "postgres.statefulSet.persistence.volumeSnapshot.snapshotHandle cannot be set when postgres.external.enabled is true" }}
+{{- end }}
+{{- if not .Values.postgres.statefulSet.persistence.enabled }}
+{{- fail "postgres.statefulSet.persistence.enabled must be true when postgres.statefulSet.persistence.volumeSnapshot.snapshotHandle is set" }}
+{{- end }}
+{{- if not $pgSnapshot.driver }}
+{{- fail "postgres.statefulSet.persistence.volumeSnapshot.driver is required when snapshotHandle is set" }}
+{{- end }}
+{{- if not (has $pgSnapshot.deletionPolicy (list "Retain" "Delete")) }}
+{{- fail "postgres.statefulSet.persistence.volumeSnapshot.deletionPolicy must be Retain or Delete" }}
+{{- end }}
+{{- if not (empty .Values.postgres.statefulSet.persistence.dataSource) }}
+{{- fail "set either postgres.statefulSet.persistence.dataSource or postgres.statefulSet.persistence.volumeSnapshot.snapshotHandle, not both" }}
+{{- end }}
+{{- end }}
+
 {{- /* Validate per-agent redis configuration */ -}}
 {{- range $pair := $agentPairs }}
 {{- $fn := index $pair "n" }}

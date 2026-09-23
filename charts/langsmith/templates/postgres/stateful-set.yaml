@@ -176,5 +176,14 @@ spec:
         {{- if .Values.postgres.statefulSet.persistence.storageClassName }}
         storageClassName: {{ .Values.postgres.statefulSet.persistence.storageClassName }}
         {{- end }}
+        {{- if .Values.postgres.statefulSet.persistence.volumeSnapshot.snapshotHandle }}
+        dataSource:
+          apiGroup: snapshot.storage.k8s.io
+          kind: VolumeSnapshot
+          name: {{ include "langsmith.postgres.volumeSnapshotName" . }}
+        {{- else if not (empty .Values.postgres.statefulSet.persistence.dataSource) }}
+        dataSource:
+          {{- toYaml .Values.postgres.statefulSet.persistence.dataSource | nindent 10 }}
+        {{- end }}
   {{- end }}
 {{- end}}

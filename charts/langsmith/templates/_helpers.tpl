@@ -102,6 +102,21 @@ the user or some other secret provisioning mechanism
 {{- end }}
 
 {{/*
+Namespaced VolumeSnapshot used as the in-chart Postgres dataSource.
+*/}}
+{{- define "langsmith.postgres.volumeSnapshotName" -}}
+{{- printf "%s-postgres" (include "langsmith.fullname" .) -}}
+{{- end }}
+
+{{/*
+Cluster-scoped VolumeSnapshotContent. Includes the release namespace because
+the content name must be unique across installs that share a fullname.
+*/}}
+{{- define "langsmith.postgres.volumeSnapshotContentName" -}}
+{{- printf "%s-%s" (include "langsmith.postgres.volumeSnapshotName" .) .Release.Namespace | trunc 253 | trimSuffix "-" -}}
+{{- end }}
+
+{{/*
 Name of the secret containing the secrets for redis. This can be overridden by a secrets file created by
 the user or some other secret provisioning mechanism
 */}}
