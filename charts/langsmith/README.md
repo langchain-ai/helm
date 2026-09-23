@@ -2643,6 +2643,9 @@ The query disk cache limit is set automatically from the PVC storage request or,
 | postgres.statefulSet.persistence.enabled | bool | `true` |  |
 | postgres.statefulSet.persistence.size | string | `"8Gi"` |  |
 | postgres.statefulSet.persistence.storageClassName | string | `""` |  |
+| postgres.statefulSet.persistence.volumeSnapshot.deletionPolicy | string | `"Retain"` |  |
+| postgres.statefulSet.persistence.volumeSnapshot.driver | string | `""` |  |
+| postgres.statefulSet.persistence.volumeSnapshot.snapshotHandle | string | `""` | CSI snapshot handle. Restores a new in-chart Postgres volume from it. |
 | postgres.statefulSet.persistentVolumeClaimRetentionPolicy | object | `{}` |  |
 | postgres.statefulSet.podSecurityContext | object | `{}` |  |
 | postgres.statefulSet.priorityClassName | string | `""` | Optional priority class for the in-chart PostgreSQL pod. |

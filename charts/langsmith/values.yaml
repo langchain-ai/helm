@@ -3465,6 +3465,11 @@ postgres:
       enabled: true
       size: 8Gi
       storageClassName: ""
+      volumeSnapshot:
+        # -- CSI snapshot handle. Restores a new in-chart Postgres volume from it.
+        snapshotHandle: ""
+        driver: ""
+        deletionPolicy: Retain
   pdb:
     enabled: false
     minAvailable: 1
