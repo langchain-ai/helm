@@ -1,0 +1,19 @@
+charts/langsmith/templates/smithdb/metastore-migration.yaml
+  s_193930474d41b5::t_99bc863b37bc5a 2
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "b96a1cb63ffca52e87ddc3d2a7636d22028909c1",
+  "prompts": {},
+  "sessions": {
+    "s_193930474d41b5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "2cc9e8b3-f981-453c-97f4-98a4798b0b14",
+        "model": "claude-fable-5-1"
+      },
+      "human_author": "ben11211 <nagengast@langchain.dev>"
+    }
+  }
+}

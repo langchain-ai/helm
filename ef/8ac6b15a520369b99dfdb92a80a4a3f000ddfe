@@ -1,0 +1,51 @@
+charts/langsmith/templates/smithdb/query-deployment.yaml
+  s_cb69c97da132b3::t_041f73d8c9ffb6 4
+charts/langsmith/templates/smithdb/cluster-manager-deployment.yaml
+  s_cb69c97da132b3::t_5b25f15c195f2e 68
+  s_cb69c97da132b3::t_041f73d8c9ffb6 3
+charts/langsmith/values.yaml
+  s_cb69c97da132b3::t_107388a9203b04 1414
+charts/langsmith/templates/smithdb/ingestion-deployment.yaml
+  s_cb69c97da132b3::t_041f73d8c9ffb6 3
+charts/langsmith/templates/smithdb/taskdb-postgres-statefulset.yaml
+  s_cb69c97da132b3::t_041f73d8c9ffb6 4
+charts/langsmith/README.md
+  s_cb69c97da132b3::t_c4387323715038 3,1565
+  s_cb69c97da132b3::t_107388a9203b04 982
+charts/langsmith/templates/smithdb/compaction-deployment.yaml
+  s_cb69c97da132b3::t_041f73d8c9ffb6 3
+charts/langsmith/Chart.yaml
+  s_cb69c97da132b3::t_45a06247c5fbc9 8
+charts/langsmith/templates/smithdb/query-services-deployments.yaml
+  s_cb69c97da132b3::t_041f73d8c9ffb6 10
+charts/langsmith/templates/smithdb/metastore-migration.yaml
+  s_cb69c97da132b3::t_5b25f15c195f2e 2
+charts/langsmith/templates/smithdb/migration-job.yaml
+  s_cb69c97da132b3::t_041f73d8c9ffb6 2
+charts/langsmith/templates/_helpers.tpl
+  s_cb69c97da132b3::t_107388a9203b04 809,1377-1379
+  s_cb69c97da132b3::t_5b25f15c195f2e 757,782,786,788,790,794,796,801,810,851,858,980,1375,1380-1397
+  s_cb69c97da132b3::t_4c122fe0119f33 1376
+  s_cb69c97da132b3::t_53967078a411e3 1398
+  s_cb69c97da132b3::t_0cd76e1f72fb46 800,811
+charts/langsmith/templates/smithdb/compaction-worker-deployment.yaml
+  s_cb69c97da132b3::t_041f73d8c9ffb6 3
+charts/langsmith/tests/langsmith_smithdb_env_test.yaml
+  s_cb69c97da132b3::t_4c122fe0119f33 1-45
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "ef8ac6b15a520369b99dfdb92a80a4a3f000ddfe",
+  "prompts": {},
+  "sessions": {
+    "s_cb69c97da132b3": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "982cf9eb-e3c9-4251-af86-c38f5b81d538",
+        "model": "claude-fable-5-1"
+      },
+      "human_author": null
+    }
+  }
+}

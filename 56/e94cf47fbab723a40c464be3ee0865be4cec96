@@ -1,0 +1,18 @@
+charts/langsmith/README.md
+  h_712f30a2a56c04 1178,1180,1191,1193,1195-1196
+charts/langsmith/templates/smithdb/metastore-migration.yaml
+  h_712f30a2a56c04 51-52,70-79,92-99
+charts/langsmith/values.yaml
+  h_712f30a2a56c04 2194-2195,2199-2202
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "56e94cf47fbab723a40c464be3ee0865be4cec96",
+  "prompts": {},
+  "humans": {
+    "h_712f30a2a56c04": {
+      "author": "ben11211 <nagengast@langchain.dev>"
+    }
+  }
+}

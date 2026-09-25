@@ -1,0 +1,21 @@
+charts/langsmith/README.md
+  s_b0c576a588a888::t_bf04fc147c7199 1103
+charts/langsmith/values.yaml
+  s_b0c576a588a888::t_f6ed5661fa9c39 1380
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "513431e2665082adea3ac4a851ae14bedded4e34",
+  "prompts": {},
+  "sessions": {
+    "s_b0c576a588a888": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "s_b0c576a588a888",
+        "model": "unknown"
+      },
+      "human_author": "ben11211 <nagengast@langchain.dev>"
+    }
+  }
+}
