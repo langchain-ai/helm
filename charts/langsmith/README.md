@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.17.0-rc.36](https://img.shields.io/badge/Version-0.17.0--rc.36-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.17.25rc1](https://img.shields.io/badge/AppVersion-0.17.25rc1-informational?style=flat-square)
+![Version: 0.17.0-rc.42](https://img.shields.io/badge/Version-0.17.0--rc.42-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.17.28rc1](https://img.shields.io/badge/AppVersion-0.17.28rc1-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -581,29 +581,29 @@ The query disk cache limit is set automatically from the PVC storage request or,
 | gateway.sectionName | string | `""` |  |
 | images.aceBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.aceBackendImage.repository | string | `"docker.io/langchain/langsmith-ace-backend"` |  |
-| images.aceBackendImage.tag | string | `"0.17.25rc1"` |  |
+| images.aceBackendImage.tag | string | `"0.17.28rc1"` |  |
 | images.agentBuilderImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.agentBuilderImage.repository | string | `"docker.io/langchain/agent-builder-deep-agent"` |  |
-| images.agentBuilderImage.tag | string | `"0.17.25rc1"` |  |
+| images.agentBuilderImage.tag | string | `"0.17.28rc1"` |  |
 | images.backendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.backendImage.repository | string | `"docker.io/langchain/langsmith-backend"` |  |
-| images.backendImage.tag | string | `"0.17.25rc1"` |  |
+| images.backendImage.tag | string | `"0.17.28rc1"` |  |
 | images.clickhouseImage.pullPolicy | string | `"Always"` |  |
 | images.clickhouseImage.repository | string | `"docker.io/clickhouse/clickhouse-server"` |  |
 | images.clickhouseImage.tag | string | `"25.12"` |  |
 | images.engineInsightsAgentImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.engineInsightsAgentImage.repository | string | `"docker.io/langchain/langsmith-insights-engine"` |  |
-| images.engineInsightsAgentImage.tag | string | `"0.17.25rc1"` |  |
+| images.engineInsightsAgentImage.tag | string | `"0.17.28rc1"` |  |
 | images.frontendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.frontendImage.repository | string | `"docker.io/langchain/langsmith-frontend"` |  |
-| images.frontendImage.tag | string | `"0.17.25rc1"` |  |
+| images.frontendImage.tag | string | `"0.17.28rc1"` |  |
 | images.imagePullSecrets | list | `[]` | Secrets with credentials to pull images from a private registry. Specified as name: value. |
 | images.operatorImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.operatorImage.repository | string | `"docker.io/langchain/langgraph-operator"` |  |
 | images.operatorImage.tag | string | `"0.1.60"` |  |
 | images.pollyAgentImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.pollyAgentImage.repository | string | `"docker.io/langchain/langsmith-polly"` |  |
-| images.pollyAgentImage.tag | string | `"0.17.25rc1"` |  |
+| images.pollyAgentImage.tag | string | `"0.17.28rc1"` |  |
 | images.postgresImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.postgresImage.repository | string | `"docker.io/postgres"` |  |
 | images.postgresImage.tag | string | `"14.7"` |  |
@@ -617,7 +617,7 @@ The query disk cache limit is set automatically from the PVC storage request or,
 | images.sandboxHostImage | object | `{"pullPolicy":"IfNotPresent","repository":"docker.io/langchain/sandbox-host","tag":""}` | sandbox-host image. Only used when sandboxes.enabled is true. |
 | images.smithdbImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.smithdbImage.repository | string | `"docker.io/langchain/smithdb"` |  |
-| images.smithdbImage.tag | string | `"0.17.25rc1"` |  |
+| images.smithdbImage.tag | string | `"0.17.28rc1"` |  |
 | ingestQueue.autoscaling.hpa.enabled | bool | `false` |  |
 | ingestQueue.autoscaling.hpa.maxReplicas | int | `10` |  |
 | ingestQueue.autoscaling.hpa.minReplicas | int | `3` |  |
@@ -979,7 +979,7 @@ The query disk cache limit is set automatically from the PVC storage request or,
 | smithdb.clusterManager.service.annotations | object | `{}` |  |
 | smithdb.clusterManager.service.labels | object | `{}` |  |
 | smithdb.clusterManager.service.port | int | `8091` |  |
-| smithdb.commonEnv | list | `[]` | Extra env vars for every SmithDB workload. |
+| smithdb.commonEnv | list | `[]` | Extra env vars for every SmithDB workload. Overrides chart-managed env vars of the same name. A name set here and in a component's extraEnv fails the render. |
 | smithdb.commonInitContainers | list | `[]` | Common init containers added to every SmithDB component Deployment and Job. Set restartPolicy: Always to configure a Kubernetes sidecar container. |
 | smithdb.compaction.containerGrpcPort | int | `8071` |  |
 | smithdb.compaction.containerPort | int | `8070` |  |
@@ -1562,7 +1562,7 @@ The query disk cache limit is set automatically from the PVC storage request or,
 | config.customCa.secretKey | string | `""` |  |
 | config.customCa.secretName | string | `""` | Optional. Used to set a file containing trusted CA certificates. Make sure to also include a public CA to access beacon and playground. |
 | config.customErrorSupportMessage | string | `""` | Custom error support message displayed on error pages (plain text). If empty, defaults to the built-in support messages linking to our Support Portal (https://support.langchain.com). |
-| config.customLogo | object | `{"coBrandingEnabled":true,"enabled":false,"logoUrl":""}` | Custom logo configuration. If enabled, the logoUrl and coBrandingEnabled values must be provided. The logoUrl must be a valid URL to an image like png, jpg, or svg. Co-branding will show LangSmith and customer logos side by side. |
+| config.customLogo | object | `{"coBrandingEnabled":true,"darkModeLogoUrl":"","enabled":false,"lightModeLogoUrl":"","logoUrl":""}` | Custom logo configuration. If enabled, set either logoUrl, or lightModeLogoUrl and darkModeLogoUrl to use a different logo per color scheme. Setting only one of the three uses it in both schemes. Each value is a URL to an image like png, jpg, or svg. Co-branding shows the LangSmith and customer logos side by side. |
 | config.defaultWorkspaceName | string | `"Workspace 1"` | Default workspace name to be provisioned when org is created. |
 | config.deployment | object | `{"basePath":"","enabled":false,"ingressHealthCheckEnabled":true,"tlsEnabled":true,"uncappedResourcesEnabled":false}` | Configuration for LangSmith Deployments features |
 | config.deployment.basePath | string | `""` | Base path for LangSmith Deployments routes managed by the operator. |
@@ -2221,6 +2221,7 @@ The query disk cache limit is set automatically from the PVC storage request or,
 | listener.deployment.readinessProbe.httpGet.port | int | `8080` |  |
 | listener.deployment.readinessProbe.periodSeconds | int | `10` |  |
 | listener.deployment.readinessProbe.timeoutSeconds | int | `10` |  |
+| listener.deployment.redisMaxConnections | int | `250` | Maximum Redis connections per pod. Keep replicas x this value below your Redis maxclients. |
 | listener.deployment.replicas | int | `1` |  |
 | listener.deployment.resources.limits.cpu | string | `"2000m"` |  |
 | listener.deployment.resources.limits.memory | string | `"4Gi"` |  |
@@ -2642,6 +2643,9 @@ The query disk cache limit is set automatically from the PVC storage request or,
 | postgres.statefulSet.persistence.enabled | bool | `true` |  |
 | postgres.statefulSet.persistence.size | string | `"8Gi"` |  |
 | postgres.statefulSet.persistence.storageClassName | string | `""` |  |
+| postgres.statefulSet.persistence.volumeSnapshot.deletionPolicy | string | `"Retain"` |  |
+| postgres.statefulSet.persistence.volumeSnapshot.driver | string | `""` |  |
+| postgres.statefulSet.persistence.volumeSnapshot.snapshotHandle | string | `""` | CSI snapshot handle. Restores a new in-chart Postgres volume from it. |
 | postgres.statefulSet.persistentVolumeClaimRetentionPolicy | object | `{}` |  |
 | postgres.statefulSet.podSecurityContext | object | `{}` |  |
 | postgres.statefulSet.priorityClassName | string | `""` | Optional priority class for the in-chart PostgreSQL pod. |
@@ -2720,6 +2724,7 @@ The query disk cache limit is set automatically from the PVC storage request or,
 | queue.deployment.readinessProbe.httpGet.port | int | `8080` |  |
 | queue.deployment.readinessProbe.periodSeconds | int | `10` |  |
 | queue.deployment.readinessProbe.timeoutSeconds | int | `10` |  |
+| queue.deployment.redisMaxConnections | int | `250` | Maximum Redis connections per pod. Keep replicas x this value below your Redis maxclients. |
 | queue.deployment.replicas | int | `1` |  |
 | queue.deployment.resources.limits.cpu | string | `"2000m"` |  |
 | queue.deployment.resources.limits.memory | string | `"4Gi"` |  |

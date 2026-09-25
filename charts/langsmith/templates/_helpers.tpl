@@ -102,6 +102,21 @@ the user or some other secret provisioning mechanism
 {{- end }}
 
 {{/*
+Namespaced VolumeSnapshot used as the in-chart Postgres dataSource.
+*/}}
+{{- define "langsmith.postgres.volumeSnapshotName" -}}
+{{- printf "%s-postgres" (include "langsmith.fullname" .) -}}
+{{- end }}
+
+{{/*
+Cluster-scoped VolumeSnapshotContent. Includes the release namespace because
+the content name must be unique across installs that share a fullname.
+*/}}
+{{- define "langsmith.postgres.volumeSnapshotContentName" -}}
+{{- printf "%s-%s" (include "langsmith.postgres.volumeSnapshotName" .) .Release.Namespace | trunc 253 | trimSuffix "-" -}}
+{{- end }}
+
+{{/*
 Name of the secret containing the secrets for redis. This can be overridden by a secrets file created by
 the user or some other secret provisioning mechanism
 */}}
@@ -754,12 +769,10 @@ Args: root, service, displayName.
 {{- define "langsmith.smithdb.componentEnv" -}}
 {{- $root := .root -}}
 {{- $service := .service -}}
-{{- $commonEnv := concat $root.Values.commonEnv $root.Values.smithdb.commonEnv -}}
-{{- $envVars := include "langsmith.smithdb.serviceEnv" (dict "root" $root "service" $service "displayName" .displayName "commonEnv" $commonEnv) | fromYamlArray -}}
+{{- $envVars := include "langsmith.smithdb.serviceEnv" (dict "root" $root "service" $service "displayName" .displayName) | fromYamlArray -}}
 {{- if $root.Values.smithdb.enabled }}
 {{- $envVars = concat $envVars (include "langsmith.smithdb.clusterManagerClientEnv" (dict "root" $root "service" $service) | fromYamlArray) -}}
 {{- end }}
-{{- $envVars = concat $envVars $commonEnv -}}
 {{- toYaml $envVars }}
 {{- end }}
 
@@ -781,38 +794,26 @@ OTEL_EXPORTER_OTLP_ENDPOINT consumed by SmithDB requires a URI scheme.
 {{- end }}
 
 {{/*
-SmithDB Beacon log export environment. Explicit commonEnv entries override defaults.
-Args: root, commonEnv (optional).
+SmithDB Beacon log export environment.
 */}}
 {{- define "langsmith.smithdb.beaconEnv" -}}
-{{- $root := .root -}}
-{{- $commonEnvKeys := list -}}
-{{- range .commonEnv -}}
-{{- $commonEnvKeys = append $commonEnvKeys .name -}}
-{{- end -}}
-{{- if not (has "BEACON_LOGGING_ENABLED" $commonEnvKeys) }}
 - name: BEACON_LOGGING_ENABLED
-  value: {{ $root.Values.config.telemetry.logs | quote }}
-{{- end }}
-{{- if not (has "BEACON_TRACING_ENABLED" $commonEnvKeys) }}
+  value: {{ .Values.config.telemetry.logs | quote }}
 - name: BEACON_TRACING_ENABLED
-  value: {{ $root.Values.config.telemetry.traces | quote }}
-{{- end }}
-{{- if not (has "PHONE_HOME_ENABLED" $commonEnvKeys) }}
+  value: {{ .Values.config.telemetry.traces | quote }}
 - name: PHONE_HOME_ENABLED
-  value: {{ or $root.Values.config.telemetry.logs $root.Values.config.telemetry.traces | quote }}
-{{- end }}
+  value: {{ or .Values.config.telemetry.logs .Values.config.telemetry.traces | quote }}
 - name: LANGSMITH_LICENSE_KEY
   valueFrom:
     secretKeyRef:
-      name: {{ include "langsmith.secretsName" $root }}
+      name: {{ include "langsmith.secretsName" . }}
       key: langsmith_license_key
-      optional: {{ $root.Values.config.disableSecretCreation }}
+      optional: {{ .Values.config.disableSecretCreation }}
 {{- end }}
 
 {{/*
-Common per-process SmithDB env: logging, OpenTelemetry, pod identity, allocator.
-Args: root, service, displayName, commonEnv (optional).
+Common per-process SmithDB env: metrics profile, logging, OpenTelemetry, pod identity, allocator.
+Args: root, service, displayName.
 */}}
 {{- define "langsmith.smithdb.baseEnv" -}}
 {{- $root := .root -}}
@@ -820,6 +821,9 @@ Args: root, service, displayName, commonEnv (optional).
 {{- $displayName := .displayName -}}
 {{- $tracing := $root.Values.config.observability.tracing -}}
 {{- $tracingEnabled := and $tracing.enabled (eq $tracing.exporter "grpc") -}}
+{{- /* Override with <prefix>__METRICS__MODE=all in commonEnv or extraEnv. */}}
+- name: {{ $prefix }}__METRICS__MODE
+  value: "critical"
 - name: {{ $prefix }}__LOGGING__FORMAT
   value: {{ ternary "opentelemetry" "json" $tracingEnabled | quote }}
 - name: {{ $prefix }}__LOGGING__TRACING_ENABLED
@@ -859,14 +863,14 @@ Args: root, service, displayName, commonEnv (optional).
   value: {{ $displayName | quote }}
 - name: OTEL_RESOURCE_ATTRIBUTES
   value: {{ include "langsmith.smithdb.otelResourceAttributes" $root | quote }}
-{{ include "langsmith.smithdb.beaconEnv" (dict "root" $root "commonEnv" .commonEnv) }}
+{{ include "langsmith.smithdb.beaconEnv" $root }}
 - name: _RJEM_MALLOC_CONF
   value: "prof:true,prof_active:false,lg_prof_sample:19"
 {{- end }}
 
 {{/*
 Shared SmithDB service env vars (object store + metastore + base env).
-Args: root, service, displayName, commonEnv (optional).
+Args: root, service, displayName.
 */}}
 {{- define "langsmith.smithdb.serviceEnv" -}}
 {{- $root := .root -}}
@@ -988,7 +992,7 @@ Args: root, service, displayName, commonEnv (optional).
 {{- end }}
 - name: {{ $prefix }}__METASTORE__USE_SSL
   value: {{ $root.Values.smithdb.config.metastore.useSsl | quote }}
-{{ include "langsmith.smithdb.baseEnv" (dict "root" $root "service" $service "displayName" $displayName "commonEnv" .commonEnv) }}
+{{ include "langsmith.smithdb.baseEnv" (dict "root" $root "service" $service "displayName" $displayName) }}
 {{- end }}
 
 
@@ -1381,6 +1385,31 @@ Extra env vars for polly api-server and queue pods.
 {{- if gt (len $duplicates) 0 }}
   {{ fail (printf "Duplicate keys detected: %v" $duplicates) }}
 {{- end }}
+{{- end -}}
+
+{{/*
+Env list for a SmithDB container. Operator env (commonEnv, extraEnv) takes precedence over
+chart env: a chart entry with the same name is omitted. The same name in both commonEnv and
+extraEnv fails the render. Emitted as commonEnv, chart, extraEnv; only $(VAR) references
+depend on the order.
+Args: chart, commonEnv, extraEnv (optional lists).
+*/}}
+{{- define "langsmith.mergeEnv" -}}
+{{- $commonEnv := default list .commonEnv -}}
+{{- $extraEnv := default list .extraEnv -}}
+{{- $operatorEnv := concat $commonEnv $extraEnv -}}
+{{- include "langsmith.detectDuplicates" $operatorEnv -}}
+{{- $overridden := list -}}
+{{- range $operatorEnv -}}
+{{- $overridden = append $overridden .name -}}
+{{- end -}}
+{{- $chart := list -}}
+{{- range default list .chart -}}
+{{- if not (has .name $overridden) -}}
+{{- $chart = append $chart . -}}
+{{- end -}}
+{{- end -}}
+{{- toYaml (concat $commonEnv $chart $extraEnv) -}}
 {{- end -}}
 
 {{- define "langsmith.checksumAnnotations"}}

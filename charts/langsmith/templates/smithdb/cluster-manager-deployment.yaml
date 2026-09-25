@@ -1,7 +1,6 @@
 {{- if .Values.smithdb.enabled }}
 {{- $resources := include "langsmith.smithdb.resources" (dict "root" . "component" "clusterManager") | fromYaml -}}
-{{- $envVars := concat .Values.commonEnv .Values.smithdb.commonEnv .Values.smithdb.clusterManager.deployment.extraEnv -}}
-{{- include "langsmith.detectDuplicates" $envVars -}}
+{{- $envVars := include "langsmith.mergeEnv" (dict "commonEnv" (concat .Values.commonEnv .Values.smithdb.commonEnv) "chart" (include "langsmith.smithdb.baseEnv" (dict "root" . "service" "CLUSTERMANAGER" "displayName" "smithdb-clustermanager") | fromYamlArray) "extraEnv" .Values.smithdb.clusterManager.deployment.extraEnv) | fromYamlArray -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -66,7 +65,7 @@ spec:
               value: {{ .Values.smithdb.clusterManager.containerPort | quote }}
             - name: SMITHDB_CLUSTERMANAGER__GRPC_PORT
               value: {{ .Values.smithdb.clusterManager.containerGrpcPort | quote }}
-            {{- include "langsmith.smithdb.baseEnv" (dict "root" . "service" "CLUSTERMANAGER" "displayName" "smithdb-clustermanager" "commonEnv" (concat .Values.commonEnv .Values.smithdb.commonEnv)) | nindent 12 }}
+            {{- toYaml $envVars | nindent 12 }}
             {{/*
             Per-service cluster-manager ownership bounds. MAX_REPLICAS is derived
             from each service's replica settings so it cannot drift from the actual
@@ -88,9 +87,6 @@ spec:
               value: "0"
             - name: {{ $prefix }}__SLICE_REPLICATION_THRESHOLD
               value: "0"
-            {{- end }}
-            {{- with $envVars }}
-            {{- toYaml . | nindent 12 }}
             {{- end }}
           image: {{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "smithdbImage") | quote }}
           imagePullPolicy: {{ .Values.images.smithdbImage.pullPolicy }}

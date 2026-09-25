@@ -42,8 +42,16 @@
   value: {{ .Values.config.basePath }}
 {{- end }}
 {{- if .Values.config.customLogo.enabled }}
+{{- $light := .Values.config.customLogo.lightModeLogoUrl | default .Values.config.customLogo.logoUrl | default .Values.config.customLogo.darkModeLogoUrl }}
+{{- $dark := .Values.config.customLogo.darkModeLogoUrl | default .Values.config.customLogo.logoUrl | default .Values.config.customLogo.lightModeLogoUrl }}
+{{- /* Frontends older than the light/dark variants read only VITE_CUSTOM_LOGO_URL, so
+       keep it populated to leave them showing one logo rather than none. */}}
 - name: VITE_CUSTOM_LOGO_URL
-  value: {{ .Values.config.customLogo.logoUrl | quote }}
+  value: {{ .Values.config.customLogo.logoUrl | default $light | quote }}
+- name: VITE_CUSTOM_LOGO_LIGHT_MODE_URL
+  value: {{ $light | quote }}
+- name: VITE_CUSTOM_LOGO_DARK_MODE_URL
+  value: {{ $dark | quote }}
 - name: VITE_CO_BRANDING_ENABLED
   value: {{ .Values.config.customLogo.coBrandingEnabled | quote }}
 {{- end }}
