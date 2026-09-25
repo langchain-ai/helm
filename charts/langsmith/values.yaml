@@ -2981,7 +2981,12 @@ platformBackend:
     annotations: {}
     podSecurityContext: {}
     securityContext: {}
-    lifecycle: {}
+    lifecycle:
+      preStop:
+        exec:
+          command:
+            - sleep
+            - "10"
     priorityClassName: ""
     resources:
       limits:
@@ -3023,7 +3028,7 @@ platformBackend:
     affinity: {}
     volumes: []
     volumeMounts: []
-    terminationGracePeriodSeconds: 30
+    terminationGracePeriodSeconds: 60
   # Autoscaling configuration. Either HPA or KEDA can be enabled, not both.
   autoscaling:
     # HPA-specific configuration
