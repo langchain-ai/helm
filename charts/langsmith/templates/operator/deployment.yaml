@@ -119,6 +119,8 @@ spec:
           {{- toYaml . | nindent 10 }}
         {{- end }}
         env:
+          - name: LGP_EXTRA_MANIFESTS_ENABLED
+            value: {{ .Values.extraManifests.enabled | quote }}
           - name: WATCH_NAMESPACE
             value: {{ .Values.operator.watchNamespaces | quote }}
           - name: KEDA_ENABLED
