@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.17.0-rc.42](https://img.shields.io/badge/Version-0.17.0--rc.42-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.17.28rc1](https://img.shields.io/badge/AppVersion-0.17.28rc1-informational?style=flat-square)
+![Version: 0.17.0-rc.43](https://img.shields.io/badge/Version-0.17.0--rc.43-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.17.28rc1](https://img.shields.io/badge/AppVersion-0.17.28rc1-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -2454,7 +2454,7 @@ The query disk cache limit is set automatically from the PVC storage request or,
 | platformBackend.deployment.extraEnv | list | `[]` |  |
 | platformBackend.deployment.initContainers | list | `[]` |  |
 | platformBackend.deployment.labels | object | `{}` |  |
-| platformBackend.deployment.lifecycle | object | `{}` |  |
+| platformBackend.deployment.lifecycle | object | `{"preStop":{"exec":{"command":["sleep","10"]}}}` | Lifecycle hooks. Default preStop sleep drains Service endpoints before the process receives SIGTERM, avoiding nginx 502s (connection refused) during HPA scale-down. |
 | platformBackend.deployment.livenessProbe.failureThreshold | int | `6` |  |
 | platformBackend.deployment.livenessProbe.httpGet.path | string | `"/ok"` |  |
 | platformBackend.deployment.livenessProbe.httpGet.port | int | `1986` |  |
@@ -2480,7 +2480,7 @@ The query disk cache limit is set automatically from the PVC storage request or,
 | platformBackend.deployment.startupProbe.httpGet.port | int | `1986` |  |
 | platformBackend.deployment.startupProbe.periodSeconds | int | `10` |  |
 | platformBackend.deployment.startupProbe.timeoutSeconds | int | `1` |  |
-| platformBackend.deployment.terminationGracePeriodSeconds | int | `30` |  |
+| platformBackend.deployment.terminationGracePeriodSeconds | int | `60` | Must exceed preStop duration plus app graceful-shutdown time. |
 | platformBackend.deployment.tolerations | list | `[]` |  |
 | platformBackend.deployment.topologySpreadConstraints | list | `[]` |  |
 | platformBackend.deployment.volumeMounts | list | `[]` |  |
