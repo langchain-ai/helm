@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.17.0-rc.42](https://img.shields.io/badge/Version-0.17.0--rc.42-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.17.28rc1](https://img.shields.io/badge/AppVersion-0.17.28rc1-informational?style=flat-square)
+![Version: 0.17.0-rc.43](https://img.shields.io/badge/Version-0.17.0--rc.43-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.17.28rc1](https://img.shields.io/badge/AppVersion-0.17.28rc1-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -43,6 +43,18 @@ The query disk cache limit is set automatically from the PVC storage request or,
 | Cluster manager | 250m CPU, 256Mi memory | 250m CPU, 256Mi memory | 2 CPU, 2Gi memory |
 
 **0.17 upgrade:** default caches switch from `emptyDir` to per-pod PVCs. Configure local SSD overrides before upgrading and rename custom volume and mount references from `local-ssd-storage` to `cache`.
+
+## Extra manifests
+
+`extraManifests.enabled` defaults to `false`. Set it to `true` to enable supported extra deployment manifests, with `config.deployment.enabled=true` and the operator enabled. The chart passes `LGP_EXTRA_MANIFESTS_ENABLED` to the operator and, through the shared ConfigMap, to the host backend, bundled listener, and platform backend. The API supports bundled-operator deployments on standalone self-hosted installations only; deployments assigned to a remote listener are unsupported. `/info` advertises the installation capability only when self-hosted, not in data-plane mode, and enabled.
+
+**Coordinated upgrade required:** before opting in, deploy supporting operator, host backend, listener, and platform backend images together with the matching LGP CRD that preserves `spec.extraManifests` and the operator inventory. Older listeners are unsupported. This chart change does not update image tags or establish that its default images support the feature; do not enable it with older images. Do not override the flag independently through environment values.
+
+Only `v1/ServiceAccount` and `secrets-store.csi.x-k8s.io/v1/SecretProviderClass` are supported. Enabling the feature adds only SecretProviderClass `get`, `list`, `create`, `patch`, and `delete` permissions to the operator; ServiceAccount lifecycle permissions already exist. It does not add Secret or RBAC management permissions. With `operator.rbac.create=false`, provision these permissions yourself. Watched namespaces retain separate Roles and RoleBindings; an empty watch namespace setting retains the existing cluster-wide scope.
+
+The operator assigns resources to the deployment namespace. Isolate mutually untrusted deployments in separate namespaces, and scope workload identities and external grants to that namespace and ServiceAccount. Kubernetes ownership tracking is not an isolation boundary against workloads sharing a namespace. For Azure Key Vault, install the Secrets Store CSI driver and Azure provider, configure Azure Workload Identity and the federated identity credential (FIC), and grant the identity access to the required Key Vault objects. This chart does not install those prerequisites or change Azure access.
+
+Turning the flag off stops extra-resource apply, drift repair, and pruning while preserving stored configuration and inventory. Clear resources explicitly while enabled. Deleting the parent deployment can still trigger Kubernetes garbage collection through owner references.
 
 ## General parameters
 
@@ -572,6 +584,7 @@ The query disk cache limit is set automatically from the PVC storage request or,
 | fleetTriggerServer.serviceAccount.create | bool | `true` |  |
 | fleetTriggerServer.serviceAccount.labels | object | `{}` |  |
 | fleetTriggerServer.serviceAccount.name | string | `""` |  |
+| extraManifests.enabled | bool | `false` | Enable deployment ServiceAccount and SecretProviderClass manifests. Requires coordinated supporting images and CRD; see the Extra manifests section. |
 | fullnameOverride | string | `""` | String to fully override `"langsmith.fullname"` |
 | gateway.annotations | object | `{}` |  |
 | gateway.enabled | bool | `false` |  |

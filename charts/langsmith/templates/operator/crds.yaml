@@ -1085,6 +1085,15 @@ spec:
                     description: Storage size in Gi for the database
                     type: integer
                 type: object
+              extraManifests:
+                description: ExtraManifests are ServiceAccounts and SecretProviderClasses
+                  applied in this LGP's namespace.
+                items:
+                  type: object
+                  x-kubernetes-preserve-unknown-fields: true
+                maxItems: 16
+                type: array
+                x-kubernetes-preserve-unknown-fields: true
               ingress:
                 description: Ingress configuration
                 properties:
@@ -6305,6 +6314,36 @@ spec:
               endpoint:
                 description: Endpoint is the endpoint of the service
                 type: string
+              extraManifests:
+                description: ExtraManifests is the operator-owned inventory, protected
+                  by the status subresource.
+                items:
+                  description: ExtraManifestStatus records an extra object's identity,
+                    never its payload.
+                  properties:
+                    apiVersion:
+                      type: string
+                    kind:
+                      type: string
+                    name:
+                      type: string
+                    token:
+                      description: Token is persisted before creation to recover a
+                        successful create whose UID write failed.
+                      type: string
+                    uid:
+                      description: |-
+                        UID is a type that holds unique ID values, including UUIDs.  Because we
+                        don't ONLY use UUIDs, this is an alias to string.  Being a type captures
+                        intent and helps make sure that UIDs and names do not get conflated.
+                      type: string
+                  required:
+                  - apiVersion
+                  - kind
+                  - name
+                  - token
+                  type: object
+                type: array
               lastCreatedReplicaSet:
                 description: LastCreatedReplicaSet stores the reference to the most
                   recently created replicaset

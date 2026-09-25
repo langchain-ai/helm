@@ -19,6 +19,18 @@ metadata:
       {{- toYaml . | nindent 4 }}
     {{- end }}
 rules:
+{{- if $.Values.extraManifests.enabled }}
+- apiGroups:
+  - secrets-store.csi.x-k8s.io
+  resources:
+  - secretproviderclasses
+  verbs:
+  - get
+  - list
+  - create
+  - patch
+  - delete
+{{- end }}
 - apiGroups:
   - apps
   resources:
@@ -212,6 +224,18 @@ metadata:
       {{- toYaml . | nindent 4 }}
     {{- end }}
 rules:
+{{- if .Values.extraManifests.enabled }}
+- apiGroups:
+  - secrets-store.csi.x-k8s.io
+  resources:
+  - secretproviderclasses
+  verbs:
+  - get
+  - list
+  - create
+  - patch
+  - delete
+{{- end }}
 - apiGroups:
   - apps
   resources:
