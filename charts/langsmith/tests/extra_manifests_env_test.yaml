@@ -1,0 +1,53 @@
+suite: Extra manifests capability
+templates:
+  - operator/deployment.yaml
+  - config-map.yaml
+  - operator/config-map.yaml
+set:
+  config.deployment.enabled: true
+  config.existingSecretName: chart-test-secret
+  config.skipValidation: true
+tests:
+  - it: leaves the operator capability off by default
+    template: operator/deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: LGP_EXTRA_MANIFESTS_ENABLED
+            value: "false"
+  - it: leaves the shared backend capability off by default
+    template: config-map.yaml
+    asserts:
+      - equal:
+          path: data.LGP_EXTRA_MANIFESTS_ENABLED
+          value: "false"
+  - it: enables the operator capability explicitly
+    template: operator/deployment.yaml
+    set:
+      extraManifests.enabled: true
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: LGP_EXTRA_MANIFESTS_ENABLED
+            value: "true"
+  - it: enables the shared self-hosted backend capability explicitly
+    template: config-map.yaml
+    set:
+      extraManifests.enabled: true
+    asserts:
+      - equal:
+          path: data.LGP_EXTRA_MANIFESTS_ENABLED
+          value: "true"
+      - equal:
+          path: data.IS_SELF_HOSTED
+          value: "true"
+  - it: does not enable a disabled operator
+    template: operator/deployment.yaml
+    set:
+      extraManifests.enabled: true
+      operator.enabled: false
+    asserts:
+      - hasDocuments:
+          count: 0

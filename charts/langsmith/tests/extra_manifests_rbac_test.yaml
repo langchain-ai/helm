@@ -1,0 +1,83 @@
+suite: Extra manifests operator RBAC
+release:
+  namespace: chart-test
+templates:
+  - operator/rbac.yaml
+set:
+  config.deployment.enabled: true
+tests:
+  - it: grants no SecretProviderClass access by default
+    asserts:
+      - notContains:
+          path: rules
+          content:
+            apiGroups: ["secrets-store.csi.x-k8s.io"]
+          any: true
+        documentIndex: 0
+  - it: grants only the required SecretProviderClass verbs when enabled
+    set:
+      extraManifests.enabled: true
+    asserts:
+      - contains:
+          path: rules
+          content: &spcRule
+            apiGroups: ["secrets-store.csi.x-k8s.io"]
+            resources: ["secretproviderclasses"]
+            verbs: ["get", "list", "create", "patch", "delete"]
+        documentIndex: 0
+      - notContains:
+          path: rules
+          content: *spcRule
+        documentIndex: 2
+  - it: leaves namespace-scoped access off by default
+    set:
+      operator.watchNamespaces: "team-a, team-b"
+    asserts:
+      - notContains:
+          path: rules
+          content:
+            apiGroups: ["secrets-store.csi.x-k8s.io"]
+          any: true
+        documentIndex: 0
+      - notContains:
+          path: rules
+          content:
+            apiGroups: ["secrets-store.csi.x-k8s.io"]
+          any: true
+        documentIndex: 2
+  - it: grants access inside each watched namespace without a ClusterRole
+    set:
+      operator.watchNamespaces: "team-a, team-b"
+      extraManifests.enabled: true
+    asserts:
+      - hasDocuments:
+          count: 6
+      - isKind:
+          of: Role
+        documentIndex: 0
+      - equal:
+          path: metadata.namespace
+          value: team-a
+        documentIndex: 0
+      - contains:
+          path: rules
+          content: *spcRule
+        documentIndex: 0
+      - isKind:
+          of: Role
+        documentIndex: 2
+      - equal:
+          path: metadata.namespace
+          value: team-b
+        documentIndex: 2
+      - contains:
+          path: rules
+          content: *spcRule
+        documentIndex: 2
+  - it: does not create RBAC when managed externally
+    set:
+      extraManifests.enabled: true
+      operator.rbac.create: false
+    asserts:
+      - hasDocuments:
+          count: 0
