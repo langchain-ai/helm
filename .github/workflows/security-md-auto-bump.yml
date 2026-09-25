@@ -1,0 +1,142 @@
+name: Auto-bump SECURITY.md on langsmith GA
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  bump:
+    # Only langsmith-* GA tags. Exclude all RC tags.
+    if: |
+      startsWith(github.event.release.tag_name, 'langsmith-') &&
+      !contains(github.event.release.tag_name, '-rc.')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Extract chart version from release tag
+        id: chart
+        # tag_name is passed via env (never interpolated into the script body)
+        # to avoid shell injection; it is shape-checked before any further use.
+        env:
+          TAG: ${{ github.event.release.tag_name }}
+        run: |
+          set -euo pipefail
+          CHART_VERSION="${TAG#langsmith-}"
+          # Defensive: must be a real semver-shaped string, no spaces, no quotes
+          if ! echo "$CHART_VERSION" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+(\.[0-9]+)?$'; then
+            echo "Refusing to proceed: chart version '${CHART_VERSION}' does not look like a release version" >&2
+            exit 1
+          fi
+          echo "version=${CHART_VERSION}" >> "$GITHUB_OUTPUT"
+
+      - name: Read appVersion from Chart.yaml at the release tag
+        id: app
+        env:
+          TAG: ${{ github.event.release.tag_name }}
+        run: |
+          set -euo pipefail
+          # Validate the tag shape before using it to build a git ref, so a
+          # malformed tag can never expand into an unexpected ref/path.
+          if ! echo "$TAG" | grep -qE '^langsmith-[0-9]+\.[0-9]+\.[0-9]+(\.[0-9]+)?$'; then
+            echo "Refusing to proceed: tag '${TAG}' is not a langsmith GA tag" >&2
+            exit 1
+          fi
+          APP_VERSION=$(git show "refs/tags/${TAG}:charts/langsmith/Chart.yaml" | awk '/^appVersion:/ {print $2}' | tr -d '"' | tr -d "'")
+          if ! echo "$APP_VERSION" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+(\.[0-9]+)?$'; then
+            echo "Refusing to proceed: appVersion '${APP_VERSION}' does not look like a real version" >&2
+            exit 1
+          fi
+          echo "version=${APP_VERSION}" >> "$GITHUB_OUTPUT"
+
+      - name: Update SECURITY.md between markers only
+        env:
+          CHART_VERSION: ${{ steps.chart.outputs.version }}
+          APP_VERSION: ${{ steps.app.outputs.version }}
+        run: |
+          set -euo pipefail
+          export TODAY=$(date -u +%Y-%m-%d)
+          python3 - <<'PYEOF'
+          import os
+          import re
+
+          chart = os.environ["CHART_VERSION"]
+          app = os.environ["APP_VERSION"]
+          today = os.environ["TODAY"] if "TODAY" in os.environ else __import__("datetime").datetime.utcnow().strftime("%Y-%m-%d")
+
+          with open("SECURITY.md", "r") as f:
+              content = f.read()
+
+          def replace_between(content, marker, new_inner):
+              pattern = re.compile(
+                  rf"(<!-- BEGIN: {re.escape(marker)} -->)(.*?)(<!-- END: {re.escape(marker)} -->)",
+                  re.DOTALL,
+              )
+              if not pattern.search(content):
+                  raise SystemExit(f"Marker block '{marker}' not found in SECURITY.md; refusing to silently no-op")
+              return pattern.sub(lambda m: f"{m.group(1)}\n{new_inner}\n{m.group(3)}", content)
+
+          content = replace_between(
+              content,
+              "current-chart",
+              f"**Latest release covered:** chart `langsmith-{chart}` / images tagged `{app}`",
+          )
+          content = replace_between(
+              content,
+              "last-updated",
+              f"**Last updated:** {today}",
+          )
+          content = replace_between(
+              content,
+              "reporting-example",
+              f"1. The chart and `appVersion` you are deployed on (e.g., chart `langsmith-{chart}` / `appVersion {app}`)",
+          )
+
+          with open("SECURITY.md", "w") as f:
+              f.write(content)
+          PYEOF
+
+      - name: Verify only marker blocks changed
+        run: |
+          set -euo pipefail
+          # Confirm marker counts are still exactly 6
+          MARKER_COUNT=$(grep -cE "^<!-- (BEGIN|END): (current-chart|last-updated|reporting-example) -->$" SECURITY.md || true)
+          if [ "$MARKER_COUNT" -ne 6 ]; then
+            echo "Marker count is ${MARKER_COUNT}, expected 6. Refusing to commit." >&2
+            exit 1
+          fi
+          # Confirm historical worked example is untouched
+          if ! grep -q "langsmith-0.14.6.*langsmith-backend:0.14.9" SECURITY.md; then
+            echo "Historical worked example (0.14.6 -> 0.14.9) is missing — refusing to commit; check whether the workflow accidentally touched it." >&2
+            exit 1
+          fi
+
+      - name: Open PR with changes
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ github.event.release.tag_name }}
+        run: |
+          set -euo pipefail
+          BRANCH="auto/security-md-bump-${TAG}"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if git diff --quiet SECURITY.md; then
+            echo "No changes to SECURITY.md — skipping PR."
+            exit 0
+          fi
+          git checkout -b "${BRANCH}"
+          git add SECURITY.md
+          git commit -m "docs: auto-bump SECURITY.md for ${TAG}"
+          git push origin "${BRANCH}"
+          gh pr create \
+            --title "docs: auto-bump SECURITY.md for ${TAG}" \
+            --body "Automated PR from .github/workflows/security-md-auto-bump.yml. Triggered by release ${TAG}. Only content between BEGIN/END marker comments was modified. Historical worked example (0.14.6 → 0.14.9) is preserved." \
+            --label "automated" \
+            --label "documentation"
