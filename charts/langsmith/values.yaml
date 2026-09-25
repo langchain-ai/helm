@@ -2981,8 +2981,6 @@ platformBackend:
     annotations: {}
     podSecurityContext: {}
     securityContext: {}
-    # -- Lifecycle hooks. Default preStop sleep drains Service endpoints before the process
-    # receives SIGTERM, avoiding nginx 502s (connection refused) during HPA scale-down.
     lifecycle:
       preStop:
         exec:
@@ -3030,7 +3028,6 @@ platformBackend:
     affinity: {}
     volumes: []
     volumeMounts: []
-    # -- Must exceed preStop duration plus app graceful-shutdown time.
     terminationGracePeriodSeconds: 60
   # Autoscaling configuration. Either HPA or KEDA can be enabled, not both.
   autoscaling:

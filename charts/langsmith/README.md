@@ -2454,7 +2454,8 @@ The query disk cache limit is set automatically from the PVC storage request or,
 | platformBackend.deployment.extraEnv | list | `[]` |  |
 | platformBackend.deployment.initContainers | list | `[]` |  |
 | platformBackend.deployment.labels | object | `{}` |  |
-| platformBackend.deployment.lifecycle | object | `{"preStop":{"exec":{"command":["sleep","10"]}}}` | Lifecycle hooks. Default preStop sleep drains Service endpoints before the process receives SIGTERM, avoiding nginx 502s (connection refused) during HPA scale-down. |
+| platformBackend.deployment.lifecycle.preStop.exec.command[0] | string | `"sleep"` |  |
+| platformBackend.deployment.lifecycle.preStop.exec.command[1] | string | `"10"` |  |
 | platformBackend.deployment.livenessProbe.failureThreshold | int | `6` |  |
 | platformBackend.deployment.livenessProbe.httpGet.path | string | `"/ok"` |  |
 | platformBackend.deployment.livenessProbe.httpGet.port | int | `1986` |  |
@@ -2480,7 +2481,7 @@ The query disk cache limit is set automatically from the PVC storage request or,
 | platformBackend.deployment.startupProbe.httpGet.port | int | `1986` |  |
 | platformBackend.deployment.startupProbe.periodSeconds | int | `10` |  |
 | platformBackend.deployment.startupProbe.timeoutSeconds | int | `1` |  |
-| platformBackend.deployment.terminationGracePeriodSeconds | int | `60` | Must exceed preStop duration plus app graceful-shutdown time. |
+| platformBackend.deployment.terminationGracePeriodSeconds | int | `60` |  |
 | platformBackend.deployment.tolerations | list | `[]` |  |
 | platformBackend.deployment.topologySpreadConstraints | list | `[]` |  |
 | platformBackend.deployment.volumeMounts | list | `[]` |  |
