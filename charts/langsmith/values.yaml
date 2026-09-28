@@ -327,7 +327,7 @@ fleet:
           path: /ok?check_db=1
           port: 8000
         failureThreshold: 6
-        periodSeconds: 10
+        periodSeconds: 20
         timeoutSeconds: 1
       readinessProbe:
         httpGet:
@@ -395,7 +395,7 @@ fleet:
           path: "/ok"
           port: 8000
         failureThreshold: 6
-        periodSeconds: 10
+        periodSeconds: 20
         timeoutSeconds: 1
       readinessProbe:
         httpGet:
