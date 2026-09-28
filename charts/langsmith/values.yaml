@@ -1810,6 +1810,8 @@ smithdb:
       backoffLimit: 3
       # -- Optional hard deadline for the Job. Leave unset for long-running full migrations.
       activeDeadlineSeconds: null
+      # -- Pause migrate-all without removing taskdb: true terminates running migration pods but keeps the Job and taskdb state; set back to false to resume. The pod template stays immutable while paused.
+      suspend: false
       restartPolicy: Never
     taskdb:
       postgres:

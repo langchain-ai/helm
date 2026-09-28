@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.16.34](https://img.shields.io/badge/Version-0.16.34-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.16.67](https://img.shields.io/badge/AppVersion-0.16.67-informational?style=flat-square)
+![Version: 0.16.35](https://img.shields.io/badge/Version-0.16.35-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.16.67](https://img.shields.io/badge/AppVersion-0.16.67-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -1230,6 +1230,7 @@ Replica counts and autoscaling remain controlled by each component's `deployment
 | smithdb.migration.job.backoffLimit | int | `3` | Retry failed migrate-all pods up to this many times before marking the Job failed. |
 | smithdb.migration.job.parallelism | int | `1` | migration pods. |
 | smithdb.migration.job.restartPolicy | string | `"Never"` |  |
+| smithdb.migration.job.suspend | bool | `false` | Pause migrate-all without removing taskdb: true terminates running migration pods but keeps the Job and taskdb state; set back to false to resume. The pod template stays immutable while paused. |
 | smithdb.migration.job.ttlSecondsAfterFinished | int | `604800` | Keep finished migrate-all Jobs around for seven days so operators can inspect status/logs. |
 | smithdb.migration.name | string | `"migration"` |  |
 | smithdb.migration.startTime | string | `""` | Optional RFC3339 start bound for migrate-all (half-open window). Empty uses end - 400 days. |
