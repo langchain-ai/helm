@@ -1223,7 +1223,7 @@ The query disk cache limit is set automatically from the PVC storage request or,
 | smithdb.migration.job.restartPolicy | string | `"Never"` |  |
 | smithdb.migration.job.securityContext | object | `{}` |  |
 | smithdb.migration.job.sidecars | list | `[]` |  |
-| smithdb.migration.job.suspend | bool | `false` | Pause migrate-all without removing taskdb: true terminates running migration pods but keeps the Job and taskdb state; set back to false to resume. The pod template stays immutable while paused. |
+| smithdb.migration.job.suspend | bool | `false` | Pause migrate-all: terminates migration pods but keeps the Job and taskdb. Set false to resume. |
 | smithdb.migration.job.terminationGracePeriodSeconds | int | `120` |  |
 | smithdb.migration.job.tolerations | list | `[]` |  |
 | smithdb.migration.job.topologySpreadConstraints | list | `[]` |  |
