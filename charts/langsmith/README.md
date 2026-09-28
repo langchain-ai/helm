@@ -289,10 +289,10 @@ The query disk cache limit is set automatically from the PVC storage request or,
 | fleet.apiServer.deployment.resources | object | `{}` |  |
 | fleet.apiServer.deployment.securityContext | object | `{}` |  |
 | fleet.apiServer.deployment.sidecars | list | `[]` |  |
-| fleet.apiServer.deployment.startupProbe.failureThreshold | int | `6` |  |
+| fleet.apiServer.deployment.startupProbe.failureThreshold | int | `12` |  |
 | fleet.apiServer.deployment.startupProbe.httpGet.path | string | `"/ok?check_db=1"` |  |
 | fleet.apiServer.deployment.startupProbe.httpGet.port | int | `8000` |  |
-| fleet.apiServer.deployment.startupProbe.periodSeconds | int | `20` |  |
+| fleet.apiServer.deployment.startupProbe.periodSeconds | int | `10` |  |
 | fleet.apiServer.deployment.startupProbe.timeoutSeconds | int | `1` |  |
 | fleet.apiServer.deployment.terminationGracePeriodSeconds | int | `30` |  |
 | fleet.apiServer.deployment.tolerations | list | `[]` |  |
@@ -401,10 +401,10 @@ The query disk cache limit is set automatically from the PVC storage request or,
 | fleet.queue.deployment.resources | object | `{}` |  |
 | fleet.queue.deployment.securityContext | object | `{}` |  |
 | fleet.queue.deployment.sidecars | list | `[]` |  |
-| fleet.queue.deployment.startupProbe.failureThreshold | int | `6` |  |
+| fleet.queue.deployment.startupProbe.failureThreshold | int | `12` |  |
 | fleet.queue.deployment.startupProbe.httpGet.path | string | `"/ok"` |  |
 | fleet.queue.deployment.startupProbe.httpGet.port | int | `8000` |  |
-| fleet.queue.deployment.startupProbe.periodSeconds | int | `20` |  |
+| fleet.queue.deployment.startupProbe.periodSeconds | int | `10` |  |
 | fleet.queue.deployment.startupProbe.timeoutSeconds | int | `1` |  |
 | fleet.queue.deployment.terminationGracePeriodSeconds | int | `30` |  |
 | fleet.queue.deployment.tolerations | list | `[]` |  |
