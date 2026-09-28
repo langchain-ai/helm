@@ -121,7 +121,7 @@ images:
   sandboxHostImage:
     repository: "docker.io/langchain/sandbox-host"
     pullPolicy: IfNotPresent
-    tag: ""
+    tag: "0.17.28rc1"
 
 ingress:
   enabled: false
