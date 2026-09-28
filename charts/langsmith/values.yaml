@@ -57,6 +57,10 @@ commonDnsConfig:
 # -- Kubernetes cluster domain. Only change if not using 'cluster.local'
 clusterDomain: "cluster.local"
 
+extraManifests:
+  # -- Enable deployment ServiceAccount and SecretProviderClass manifests. Requires coordinated supporting images and CRD; see the Extra manifests section.
+  enabled: false
+
 images:
    # -- If supplied, all children <image_name>.repository values will be prepended with this registry name + `/`
   registry: ""
