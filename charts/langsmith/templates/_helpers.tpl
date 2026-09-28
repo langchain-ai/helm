@@ -102,6 +102,21 @@ the user or some other secret provisioning mechanism
 {{- end }}
 
 {{/*
+Namespaced VolumeSnapshot used as the in-chart Postgres dataSource.
+*/}}
+{{- define "langsmith.postgres.volumeSnapshotName" -}}
+{{- printf "%s-postgres" (include "langsmith.fullname" .) -}}
+{{- end }}
+
+{{/*
+Cluster-scoped VolumeSnapshotContent. Includes the release namespace because
+the content name must be unique across installs that share a fullname.
+*/}}
+{{- define "langsmith.postgres.volumeSnapshotContentName" -}}
+{{- printf "%s-%s" (include "langsmith.postgres.volumeSnapshotName" .) .Release.Namespace | trunc 253 | trimSuffix "-" -}}
+{{- end }}
+
+{{/*
 Name of the secret containing the secrets for redis. This can be overridden by a secrets file created by
 the user or some other secret provisioning mechanism
 */}}
@@ -512,66 +527,130 @@ Template containing common environment variables that are used by several servic
 {{- end }}
 
 {{/*
-Resolve a SmithDB component's resources. An explicit non-empty component resources
-block replaces the selected tier resources.
+Per-replica sizes for the selected SmithDB tier. Unknown components use the query sizes.
+Args: root, component.
+*/}}
+{{- define "langsmith.smithdb.tierResources" -}}
+{{- $root := .root -}}
+{{- $tiers := dict
+  "small" (dict
+    "query" (dict "cpu" "4" "memory" "8Gi" "cache" "200Gi")
+    "ingestion" (dict "cpu" "4" "memory" "8Gi" "cache" "100Gi")
+    "compaction" (dict "cpu" "2" "memory" "4Gi")
+    "compactionWorker" (dict "cpu" "8" "memory" "16Gi" "cache" "100Gi")
+    "clusterManager" (dict "cpu" "250m" "memory" "256Mi"))
+  "medium" (dict
+    "query" (dict "cpu" "28" "memory" "48Gi" "cache" "200Gi")
+    "ingestion" (dict "cpu" "16" "memory" "32Gi" "cache" "100Gi")
+    "compaction" (dict "cpu" "4" "memory" "8Gi")
+    "compactionWorker" (dict "cpu" "16" "memory" "32Gi" "cache" "100Gi")
+    "clusterManager" (dict "cpu" "250m" "memory" "256Mi"))
+  "large" (dict
+    "query" (dict "cpu" "28" "memory" "50Gi" "cache" "1000Gi")
+    "ingestion" (dict "cpu" "56" "memory" "150Gi" "cache" "1000Gi")
+    "compaction" (dict "cpu" "8" "memory" "16Gi")
+    "compactionWorker" (dict "cpu" "28" "memory" "50Gi" "cache" "300Gi")
+    "clusterManager" (dict "cpu" "2" "memory" "2Gi")) -}}
+{{- $tier := index $tiers $root.Values.smithdb.resourceTier -}}
+{{- $resources := index $tier .component -}}
+{{- if not $resources -}}
+{{- $resources = index $tier "query" -}}
+{{- end -}}
+{{- toYaml $resources -}}
+{{- end }}
+
+{{/*
+Resolve a SmithDB component's resources. An explicit component resources block replaces the tier.
 Args: root, component.
 */}}
 {{- define "langsmith.smithdb.resources" -}}
-{{- $root := .root -}}
-{{- $component := .component -}}
-{{- $deployment := (index $root.Values.smithdb $component).deployment -}}
+{{- $deployment := (index .root.Values.smithdb .component).deployment -}}
 {{- $componentResources := get $deployment "resources" -}}
 {{- if $componentResources -}}
 {{- toYaml $componentResources -}}
 {{- else -}}
-{{- $tiers := dict
-  "small" (dict
-    "query" (dict "cpu" "4" "memory" "8Gi" "ephemeral-storage" "200Gi")
-    "ingestion" (dict "cpu" "4" "memory" "8Gi" "ephemeral-storage" "100Gi")
-    "compaction" (dict "cpu" "2" "memory" "4Gi")
-    "compactionWorker" (dict "cpu" "8" "memory" "16Gi" "ephemeral-storage" "100Gi")
-    "clusterManager" (dict "cpu" "250m" "memory" "256Mi"))
-  "medium" (dict
-    "query" (dict "cpu" "28" "memory" "48Gi" "ephemeral-storage" "200Gi")
-    "ingestion" (dict "cpu" "16" "memory" "32Gi" "ephemeral-storage" "100Gi")
-    "compaction" (dict "cpu" "4" "memory" "8Gi")
-    "compactionWorker" (dict "cpu" "16" "memory" "32Gi" "ephemeral-storage" "100Gi")
-    "clusterManager" (dict "cpu" "250m" "memory" "256Mi"))
-  "large" (dict
-    "query" (dict "cpu" "28" "memory" "50Gi" "ephemeral-storage" "1000Gi")
-    "ingestion" (dict "cpu" "56" "memory" "150Gi" "ephemeral-storage" "1000Gi")
-    "compaction" (dict "cpu" "8" "memory" "16Gi")
-    "compactionWorker" (dict "cpu" "28" "memory" "50Gi" "ephemeral-storage" "300Gi")
-    "clusterManager" (dict "cpu" "2" "memory" "2Gi")) -}}
-{{- $tier := index $tiers $root.Values.smithdb.resourceTier -}}
-{{- $resources := index $tier $component -}}
-{{- if not $resources -}}
-{{- $resources = index $tier "query" -}}
-{{- end -}}
+{{- $resources := omit (include "langsmith.smithdb.tierResources" . | fromYaml) "cache" -}}
 {{- toYaml (dict "requests" $resources "limits" $resources) -}}
 {{- end -}}
 {{- end }}
 
 {{/*
-Resolve volumes for a disk-using SmithDB component. When the volumes key is
-omitted, generate the standard emptyDir and align its size limit with the
-resolved ephemeral-storage limit. A user-provided list, including [], replaces
-the generated volumes.
-Args: root, component, resources.
+Tier cache volume size for a SmithDB component. Empty for components without a cache.
+Args: root, component.
+*/}}
+{{- define "langsmith.smithdb.cacheSize" -}}
+{{- get (include "langsmith.smithdb.tierResources" . | fromYaml) "cache" -}}
+{{- end }}
+
+{{/*
+Query cache limit from the resolved cache volume. Both generated and custom inline
+PVCs carry their size in the claim template; emptyDir uses the container limit.
+Args: component, volumes, resources.
+*/}}
+{{- define "langsmith.smithdb.queryCacheLimit" -}}
+{{- range .volumes -}}
+{{- if eq .name "cache" -}}
+{{- if hasKey . "ephemeral" -}}
+value: {{ required (printf "smithdb.%s cache volume requires requests.storage." $.component) (dig "ephemeral" "volumeClaimTemplate" "spec" "resources" "requests" "storage" "" .) | quote }}
+{{- else if hasKey . "emptyDir" -}}
+{{- $_ := required (printf "smithdb.%s.deployment.resources.limits.ephemeral-storage is required for an emptyDir cache." $.component) (index (default (dict) $.resources.limits) "ephemeral-storage") -}}
+valueFrom:
+  resourceFieldRef:
+    resource: limits.ephemeral-storage
+{{- end -}}
+{{- end -}}
+{{- end -}}
+{{- end }}
+
+{{/*
+Default per-pod ephemeral cache volume for a disk-using SmithDB component, sized from the tier.
+Args: root, component.
+*/}}
+{{- define "langsmith.smithdb.defaultCacheVolume" -}}
+name: cache
+ephemeral:
+  volumeClaimTemplate:
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      {{- with .root.Values.smithdb.cache.storageClassName }}
+      storageClassName: {{ . }}
+      {{- end }}
+      resources:
+        requests:
+          storage: {{ include "langsmith.smithdb.cacheSize" . }}
+{{- end }}
+
+{{/*
+Resolve volumes for a disk-using SmithDB component. The user's deployment.volumes list is used
+as given. When the container still mounts a volume named cache and the list does not define one,
+the default cache volume is prepended, so extra volumes can be added without restating the cache.
+Args: root, component.
 */}}
 {{- define "langsmith.smithdb.volumes" -}}
-{{- $root := .root -}}
-{{- $deployment := (index $root.Values.smithdb .component).deployment -}}
-{{- if hasKey $deployment "volumes" -}}
-{{- toYaml $deployment.volumes -}}
-{{- else -}}
-{{- $ephemeralStorage := index (default (dict) .resources.limits) "ephemeral-storage" -}}
-- name: local-ssd-storage
-  emptyDir:
-    {{- with $ephemeralStorage }}
-    sizeLimit: {{ . }}
-    {{- end }}
+{{- $deployment := (index .root.Values.smithdb .component).deployment -}}
+{{- $mountsCache := false -}}
+{{- range $deployment.volumeMounts -}}
+{{- if and (eq .mountPath "/data") (ne .name "cache") -}}
+{{- fail (printf "smithdb.%s cache volume mounted at /data must be named cache." $.component) -}}
 {{- end -}}
+{{- if eq .name "cache" -}}
+{{- $mountsCache = true -}}
+{{- end -}}
+{{- end -}}
+{{- $volumes := default (list) $deployment.volumes -}}
+{{- $hasCache := false -}}
+{{- range $volumes -}}
+{{- if eq .name "cache" -}}
+{{- $hasCache = true -}}
+{{- if not (or (hasKey . "emptyDir") (hasKey . "ephemeral")) -}}
+{{- fail (printf "smithdb.%s cache volume must use emptyDir or ephemeral.volumeClaimTemplate; existing PVC references are not supported." $.component) -}}
+{{- end -}}
+{{- end -}}
+{{- end -}}
+{{- if and $mountsCache (not $hasCache) -}}
+{{- $volumes = prepend $volumes (include "langsmith.smithdb.defaultCacheVolume" . | fromYaml) -}}
+{{- end -}}
+{{- toYaml $volumes -}}
 {{- end }}
 
 {{/* Compute NUM_WORKERS from a CPU limit (cores or millicores). */}}
@@ -694,7 +773,6 @@ Args: root, service, displayName.
 {{- if $root.Values.smithdb.enabled }}
 {{- $envVars = concat $envVars (include "langsmith.smithdb.clusterManagerClientEnv" (dict "root" $root "service" $service) | fromYamlArray) -}}
 {{- end }}
-{{- $envVars = concat $envVars $root.Values.commonEnv $root.Values.smithdb.commonEnv -}}
 {{- toYaml $envVars }}
 {{- end }}
 
@@ -734,7 +812,7 @@ SmithDB Beacon log export environment.
 {{- end }}
 
 {{/*
-Common per-process SmithDB env: logging, OpenTelemetry, pod identity, allocator.
+Common per-process SmithDB env: metrics profile, logging, OpenTelemetry, pod identity, allocator.
 Args: root, service, displayName.
 */}}
 {{- define "langsmith.smithdb.baseEnv" -}}
@@ -743,6 +821,9 @@ Args: root, service, displayName.
 {{- $displayName := .displayName -}}
 {{- $tracing := $root.Values.config.observability.tracing -}}
 {{- $tracingEnabled := and $tracing.enabled (eq $tracing.exporter "grpc") -}}
+{{- /* Override with <prefix>__METRICS__MODE=all in commonEnv or extraEnv. */}}
+- name: {{ $prefix }}__METRICS__MODE
+  value: "critical"
 - name: {{ $prefix }}__LOGGING__FORMAT
   value: {{ ternary "opentelemetry" "json" $tracingEnabled | quote }}
 - name: {{ $prefix }}__LOGGING__TRACING_ENABLED
@@ -830,6 +911,14 @@ Args: root, service, displayName.
     secretKeyRef:
       name: {{ $root.Values.smithdb.config.existingSecretName }}
       key: {{ $root.Values.smithdb.config.objectStore.s3.secretAccessKeySecretKey }}
+{{- end }}
+{{- if $root.Values.smithdb.config.objectStore.s3.kmsEncryptionEnabled }}
+- name: {{ $prefix }}__OBJECT_STORE__S3__KMS_ENCRYPTION_ENABLED
+  value: {{ $root.Values.smithdb.config.objectStore.s3.kmsEncryptionEnabled | quote }}
+{{- with $root.Values.smithdb.config.objectStore.s3.kmsKeyArn }}
+- name: {{ $prefix }}__OBJECT_STORE__S3__KMS_KEY_ARN
+  value: {{ . | quote }}
+{{- end }}
 {{- end }}
 {{- else if eq $objectStoreType "gcs" }}
 - name: {{ $prefix }}__OBJECT_STORE__GCS__BUCKET
@@ -1296,6 +1385,31 @@ Extra env vars for polly api-server and queue pods.
 {{- if gt (len $duplicates) 0 }}
   {{ fail (printf "Duplicate keys detected: %v" $duplicates) }}
 {{- end }}
+{{- end -}}
+
+{{/*
+Env list for a SmithDB container. Operator env (commonEnv, extraEnv) takes precedence over
+chart env: a chart entry with the same name is omitted. The same name in both commonEnv and
+extraEnv fails the render. Emitted as commonEnv, chart, extraEnv; only $(VAR) references
+depend on the order.
+Args: chart, commonEnv, extraEnv (optional lists).
+*/}}
+{{- define "langsmith.mergeEnv" -}}
+{{- $commonEnv := default list .commonEnv -}}
+{{- $extraEnv := default list .extraEnv -}}
+{{- $operatorEnv := concat $commonEnv $extraEnv -}}
+{{- include "langsmith.detectDuplicates" $operatorEnv -}}
+{{- $overridden := list -}}
+{{- range $operatorEnv -}}
+{{- $overridden = append $overridden .name -}}
+{{- end -}}
+{{- $chart := list -}}
+{{- range default list .chart -}}
+{{- if not (has .name $overridden) -}}
+{{- $chart = append $chart . -}}
+{{- end -}}
+{{- end -}}
+{{- toYaml (concat $commonEnv $chart $extraEnv) -}}
 {{- end -}}
 
 {{- define "langsmith.checksumAnnotations"}}

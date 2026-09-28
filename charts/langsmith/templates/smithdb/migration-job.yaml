@@ -1,6 +1,5 @@
 {{- if and .Values.smithdb.enabled .Values.smithdb.langsmith.migration.enabled }}
-{{- $envVars := concat (include "langsmith.smithdb.componentEnv" (dict "root" . "service" "MIGRATION" "displayName" "smithdb-migration") | fromYamlArray) .Values.smithdb.migration.job.extraEnv -}}
-{{- include "langsmith.detectDuplicates" $envVars -}}
+{{- $envVars := include "langsmith.mergeEnv" (dict "commonEnv" (concat .Values.commonEnv .Values.smithdb.commonEnv) "chart" (include "langsmith.smithdb.componentEnv" (dict "root" . "service" "MIGRATION" "displayName" "smithdb-migration") | fromYamlArray) "extraEnv" .Values.smithdb.migration.job.extraEnv) | fromYamlArray -}}
 {{- $blobStorage := .Values.config.blobStorage -}}
 {{- $smithdbObjectStore := .Values.smithdb.config.objectStore -}}
 {{- $smithdbObjectStoreType := lower (default "s3" $smithdbObjectStore.type) -}}
@@ -47,9 +46,13 @@ spec:
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      {{- if .Values.smithdb.migration.job.priorityClassName }}
+      priorityClassName: {{ .Values.smithdb.migration.job.priorityClassName }}
+      {{- end }}
       securityContext:
         {{- toYaml .Values.smithdb.migration.job.podSecurityContext | nindent 8 }}
       serviceAccountName: {{ include "langsmith.smithdb.serviceAccountName" (dict "root" . "component" "migration") }}
+      automountServiceAccountToken: {{ .Values.smithdb.serviceAccount.automountServiceAccountToken }}
       {{- include "langsmith.dnsConfig" . | nindent 6 }}
       {{- with concat (include "langsmith.smithdb.commonInitContainers" . | fromYamlArray) .Values.smithdb.migration.job.initContainers }}
       initContainers:
@@ -247,6 +250,14 @@ spec:
                   name: {{ .Values.smithdb.config.existingSecretName }}
                   key: {{ $smithdbObjectStore.s3.secretAccessKeySecretKey }}
             {{- end }}
+            {{- if $smithdbObjectStore.s3.kmsEncryptionEnabled }}
+            - name: SMITHDB_MIGRATION__OUTPUT__OBJECT_STORE__S3__KMS_ENCRYPTION_ENABLED
+              value: {{ $smithdbObjectStore.s3.kmsEncryptionEnabled | quote }}
+            {{- with $smithdbObjectStore.s3.kmsKeyArn }}
+            - name: SMITHDB_MIGRATION__OUTPUT__OBJECT_STORE__S3__KMS_KEY_ARN
+              value: {{ . | quote }}
+            {{- end }}
+            {{- end }}
             {{- else if eq $smithdbObjectStoreType "gcs" }}
             - name: SMITHDB_MIGRATION__OUTPUT__OBJECT_STORE__GCS__BUCKET
               value: {{ $smithdbObjectStore.bucket | quote }}
@@ -286,7 +297,7 @@ spec:
             {{- toYaml .Values.smithdb.migration.job.resources | nindent 12 }}
           securityContext:
             {{- toYaml .Values.smithdb.migration.job.securityContext | nindent 12 }}
-          {{- with .Values.smithdb.migration.job.volumeMounts }}
+          {{- with concat .Values.commonVolumeMounts .Values.smithdb.migration.job.volumeMounts }}
           volumeMounts:
             {{- toYaml . | nindent 12 }}
           {{- end }}
@@ -312,7 +323,7 @@ spec:
       topologySpreadConstraints:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.smithdb.migration.job.volumes }}
+      {{- with concat .Values.commonVolumes .Values.smithdb.migration.job.volumes }}
       volumes:
         {{- toYaml . | nindent 8 }}
       {{- end }}

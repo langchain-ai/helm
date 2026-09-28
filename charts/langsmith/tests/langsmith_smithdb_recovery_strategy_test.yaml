@@ -1,0 +1,36 @@
+suite: test SmithDB recovery strategy
+templates:
+  - smithdb/compaction-deployment.yaml
+tests:
+  - it: should explicitly keep versioned paths disabled by default on V17
+    values:
+      - ./values/smithdb-enabled.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_COMPACTION__LARGE_FIELD_DELETE__ENABLE_LARGE_FIELD_VERSIONED_PATHS
+            value: "false"
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_COMPACTION__RECOVERY_WINDOW_SLA
+            value: "12h"
+
+  - it: should enable versioned paths and configure the retention window after opt-in
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      smithdb.recoveryStrategy.enabled: true
+      smithdb.recoveryStrategy.retentionWindow: 24h
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_COMPACTION__LARGE_FIELD_DELETE__ENABLE_LARGE_FIELD_VERSIONED_PATHS
+            value: "true"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_COMPACTION__RECOVERY_WINDOW_SLA
+            value: "24h"

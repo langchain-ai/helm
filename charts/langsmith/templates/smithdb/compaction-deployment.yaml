@@ -1,7 +1,6 @@
 {{- if .Values.smithdb.enabled }}
 {{- $resources := include "langsmith.smithdb.resources" (dict "root" . "component" "compaction") | fromYaml -}}
-{{- $envVars := concat (include "langsmith.smithdb.componentEnv" (dict "root" . "service" "COMPACTION" "displayName" "smithdb-compaction") | fromYamlArray) .Values.smithdb.compaction.deployment.extraEnv -}}
-{{- include "langsmith.detectDuplicates" $envVars -}}
+{{- $envVars := include "langsmith.mergeEnv" (dict "commonEnv" (concat .Values.commonEnv .Values.smithdb.commonEnv) "chart" (include "langsmith.smithdb.componentEnv" (dict "root" . "service" "COMPACTION" "displayName" "smithdb-compaction") | fromYamlArray) "extraEnv" .Values.smithdb.compaction.deployment.extraEnv) | fromYamlArray -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -45,9 +44,11 @@ spec:
       {{- if .Values.smithdb.compaction.deployment.priorityClassName }}
       priorityClassName: {{ .Values.smithdb.compaction.deployment.priorityClassName }}
       {{- end }}
+      terminationGracePeriodSeconds: {{ .Values.smithdb.compaction.deployment.terminationGracePeriodSeconds }}
       securityContext:
         {{- toYaml .Values.smithdb.compaction.deployment.podSecurityContext | nindent 8 }}
       serviceAccountName: {{ include "langsmith.smithdb.serviceAccountName" (dict "root" . "component" "compaction") }}
+      automountServiceAccountToken: {{ .Values.smithdb.serviceAccount.automountServiceAccountToken }}
       {{- include "langsmith.dnsConfig" . | nindent 6 }}
       {{- with concat (include "langsmith.smithdb.commonInitContainers" . | fromYamlArray) .Values.smithdb.compaction.deployment.initContainers }}
       initContainers:
@@ -64,9 +65,19 @@ spec:
               value: {{ .Values.smithdb.compaction.containerPort | quote }}
             - name: SMITHDB_COMPACTION__GRPC_PORT
               value: {{ .Values.smithdb.compaction.containerGrpcPort | quote }}
+            {{- if .Values.config.ttl.enabled }}
+            - name: SMITHDB_COMPACTION__EXECUTOR__LONG_TERM_RETENTION
+              value: {{ printf "%ss" (toString .Values.config.ttl.ttl_period_seconds.longlived) | quote }}
+            {{- end }}
             {{- if and .Values.smithdb.langsmith.ingestion.enabled (not .Values.smithdb.langsmith.query.enabled) }}
             - name: SMITHDB_COMPACTION__SEQUENCED_LSM_BACKFILL_ENABLED
               value: "true"
+            {{- end }}
+            - name: SMITHDB_COMPACTION__LARGE_FIELD_DELETE__ENABLE_LARGE_FIELD_VERSIONED_PATHS
+              value: {{ .Values.smithdb.recoveryStrategy.enabled | quote }}
+            {{- if .Values.smithdb.recoveryStrategy.enabled }}
+            - name: SMITHDB_COMPACTION__RECOVERY_WINDOW_SLA
+              value: {{ .Values.smithdb.recoveryStrategy.retentionWindow | quote }}
             {{- end }}
             {{- with $envVars }}
             {{- toYaml . | nindent 12 }}
@@ -87,7 +98,7 @@ spec:
             {{- toYaml $resources | nindent 12 }}
           securityContext:
             {{- toYaml .Values.smithdb.compaction.deployment.securityContext | nindent 12 }}
-          {{- with .Values.smithdb.compaction.deployment.volumeMounts }}
+          {{- with concat .Values.commonVolumeMounts .Values.smithdb.compaction.deployment.volumeMounts }}
           volumeMounts:
             {{- toYaml . | nindent 12 }}
           {{- end }}
@@ -113,7 +124,7 @@ spec:
       topologySpreadConstraints:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.smithdb.compaction.deployment.volumes }}
+      {{- with concat .Values.commonVolumes .Values.smithdb.compaction.deployment.volumes }}
       volumes:
         {{- toYaml . | nindent 8 }}
       {{- end }}

@@ -249,6 +249,24 @@ tests:
       - failedTemplate:
           errorMessage: "smithdb.langsmith.query.enabled must be a boolean. Do not quote true or false."
 
+  - it: should reject a string SmithDB recovery strategy enabled value
+    set:
+      smithdb.recoveryStrategy.enabled: "false"
+    asserts:
+      - failedTemplate:
+          errorMessage: "smithdb.recoveryStrategy.enabled must be a boolean. Do not quote true or false."
+
+  - it: should reject an empty recovery retention window when enabled
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      config.existingSecretName: langsmith-secret
+      smithdb.recoveryStrategy.enabled: true
+      smithdb.recoveryStrategy.retentionWindow: ""
+    asserts:
+      - failedTemplate:
+          errorMessage: "smithdb.recoveryStrategy.retentionWindow must be a non-empty duration string when smithdb.recoveryStrategy.enabled is true."
+
   - it: should reject the legacy SmithDB dual-ingest flag when enabled
     set:
       smithdb.langsmith.dualIngest.enabled: true

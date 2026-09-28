@@ -1,0 +1,209 @@
+suite: test smithdb cache volume budgets
+templates:
+- smithdb/query-deployment.yaml
+- smithdb/query-services-deployments.yaml
+tests:
+- it: should keep all generated PVC cache budgets independent of node storage
+  values:
+  - ./values/smithdb-enabled.yaml
+  set:
+    smithdb.mutations.enabled: true
+    smithdb.runRules.enabled: true
+    smithdb.statsQuery.enabled: true
+    smithdb.query.deployment.resources: &id001
+      requests:
+        cpu: '4'
+        memory: 8Gi
+      limits:
+        cpu: '4'
+        memory: 8Gi
+        ephemeral-storage: 500Gi
+    smithdb.mutations.deployment.resources: *id001
+    smithdb.runRules.deployment.resources: *id001
+    smithdb.statsQuery.deployment.resources: *id001
+  asserts:
+  - contains:
+      path: spec.template.spec.containers[0].env
+      content:
+        name: SMITHDB_QUERY__VORTEX_CACHE__DISK__LIMIT
+        value: 200Gi
+  - notContains:
+      path: spec.template.spec.containers[0].env
+      content: &id003
+        name: SMITHDB_QUERY__VORTEX_CACHE__DISK__LIMIT
+        valueFrom:
+          resourceFieldRef:
+            resource: limits.ephemeral-storage
+  - equal:
+      path: spec.template.spec.volumes[0].name
+      value: cache
+  - equal:
+      path: spec.template.spec.volumes[0].ephemeral.volumeClaimTemplate.spec.resources.requests.storage
+      value: 200Gi
+- it: should automatically size local SSD caches from the container limit
+  values:
+  - ./values/smithdb-enabled.yaml
+  set:
+    smithdb.mutations.enabled: true
+    smithdb.runRules.enabled: true
+    smithdb.statsQuery.enabled: true
+    smithdb.query.deployment.resources: *id001
+    smithdb.query.deployment.volumes: &id002
+    - name: cache
+      emptyDir:
+        sizeLimit: 500Gi
+    smithdb.mutations.deployment.resources: *id001
+    smithdb.mutations.deployment.volumes: *id002
+    smithdb.runRules.deployment.resources: *id001
+    smithdb.runRules.deployment.volumes: *id002
+    smithdb.statsQuery.deployment.resources: *id001
+    smithdb.statsQuery.deployment.volumes: *id002
+  asserts:
+  - contains:
+      path: spec.template.spec.containers[0].env
+      content: *id003
+  - notContains:
+      path: spec.template.spec.containers[0].env
+      content:
+        name: SMITHDB_QUERY__VORTEX_CACHE__DISK__LIMIT
+        value: 200Gi
+- it: should automatically size inline PVC caches from their storage requests
+  values:
+  - ./values/smithdb-enabled.yaml
+  set:
+    smithdb.mutations.enabled: true
+    smithdb.runRules.enabled: true
+    smithdb.statsQuery.enabled: true
+    smithdb.query.deployment.resources: *id001
+    smithdb.query.deployment.volumes: &id004
+    - &id005
+      name: cache
+      ephemeral:
+        volumeClaimTemplate:
+          spec:
+            accessModes:
+            - ReadWriteOnce
+            resources:
+              requests:
+                storage: 50Gi
+    smithdb.mutations.deployment.resources: *id001
+    smithdb.mutations.deployment.volumes: *id004
+    smithdb.runRules.deployment.resources: *id001
+    smithdb.runRules.deployment.volumes: *id004
+    smithdb.statsQuery.deployment.resources: *id001
+    smithdb.statsQuery.deployment.volumes: *id004
+  asserts:
+  - contains:
+      path: spec.template.spec.containers[0].env
+      content:
+        name: SMITHDB_QUERY__VORTEX_CACHE__DISK__LIMIT
+        value: 50Gi
+  - notContains:
+      path: spec.template.spec.containers[0].env
+      content: *id003
+  - equal:
+      path: spec.template.spec.volumes[0].ephemeral.volumeClaimTemplate.spec.resources.requests.storage
+      value: 50Gi
+- it: should preserve an explicit custom PVC cache budget
+  values:
+  - ./values/smithdb-enabled.yaml
+  set:
+    smithdb.mutations.enabled: true
+    smithdb.runRules.enabled: true
+    smithdb.statsQuery.enabled: true
+    smithdb.query.deployment.resources: *id001
+    smithdb.query.deployment.volumes: &id006
+    - *id005
+    smithdb.query.deployment.extraEnv: &id007
+    - name: SMITHDB_QUERY__VORTEX_CACHE__DISK__LIMIT
+      value: 40Gi
+    smithdb.mutations.deployment.resources: *id001
+    smithdb.mutations.deployment.volumes: *id006
+    smithdb.mutations.deployment.extraEnv: *id007
+    smithdb.runRules.deployment.resources: *id001
+    smithdb.runRules.deployment.volumes: *id006
+    smithdb.runRules.deployment.extraEnv: *id007
+    smithdb.statsQuery.deployment.resources: *id001
+    smithdb.statsQuery.deployment.volumes: *id006
+    smithdb.statsQuery.deployment.extraEnv: *id007
+  asserts:
+  - contains:
+      path: spec.template.spec.containers[0].env
+      content:
+        name: SMITHDB_QUERY__VORTEX_CACHE__DISK__LIMIT
+        value: 40Gi
+  - notContains:
+      path: spec.template.spec.containers[0].env
+      content: *id003
+  - notContains:
+      path: spec.template.spec.containers[0].env
+      content:
+        name: SMITHDB_QUERY__VORTEX_CACHE__DISK__LIMIT
+        value: 50Gi
+- it: should honor a shared explicit budget without a generated duplicate
+  values:
+  - ./values/smithdb-enabled.yaml
+  set:
+    smithdb.mutations.enabled: true
+    smithdb.runRules.enabled: true
+    smithdb.statsQuery.enabled: true
+    smithdb.query.deployment.resources: *id001
+    smithdb.mutations.deployment.resources: *id001
+    smithdb.runRules.deployment.resources: *id001
+    smithdb.statsQuery.deployment.resources: *id001
+    smithdb.commonEnv:
+    - name: SMITHDB_QUERY__VORTEX_CACHE__DISK__LIMIT
+      value: 40Gi
+  asserts:
+  - contains:
+      path: spec.template.spec.containers[0].env
+      content:
+        name: SMITHDB_QUERY__VORTEX_CACHE__DISK__LIMIT
+        value: 40Gi
+  - notContains:
+      path: spec.template.spec.containers[0].env
+      content: *id003
+  - notContains:
+      path: spec.template.spec.containers[0].env
+      content:
+        name: SMITHDB_QUERY__VORTEX_CACHE__DISK__LIMIT
+        value: 200Gi
+- it: should preserve an explicit empty volume list
+  values:
+  - ./values/smithdb-enabled.yaml
+  set:
+    smithdb.mutations.enabled: true
+    smithdb.runRules.enabled: true
+    smithdb.statsQuery.enabled: true
+    smithdb.query.deployment.resources: *id001
+    smithdb.query.deployment.volumes: &id008 []
+    smithdb.query.deployment.volumeMounts: &id009 []
+    smithdb.mutations.deployment.resources: *id001
+    smithdb.mutations.deployment.volumes: *id008
+    smithdb.mutations.deployment.volumeMounts: *id009
+    smithdb.runRules.deployment.resources: *id001
+    smithdb.runRules.deployment.volumes: *id008
+    smithdb.runRules.deployment.volumeMounts: *id009
+    smithdb.statsQuery.deployment.resources: *id001
+    smithdb.statsQuery.deployment.volumes: *id008
+    smithdb.statsQuery.deployment.volumeMounts: *id009
+  asserts:
+  - notContains:
+      path: spec.template.spec.containers[0].env
+      content:
+        name: SMITHDB_QUERY__VORTEX_CACHE__DISK__LIMIT
+  - notExists:
+      path: spec.template.spec.volumes
+- it: should reject an existing PVC used as the cache
+  template: smithdb/query-deployment.yaml
+  values:
+  - ./values/smithdb-enabled.yaml
+  set:
+    smithdb.query.deployment.volumes:
+    - name: cache
+      persistentVolumeClaim:
+        claimName: existing-cache
+  asserts:
+  - failedTemplate:
+      errorMessage: smithdb.query cache volume must use emptyDir or ephemeral.volumeClaimTemplate; existing PVC references
+        are not supported.

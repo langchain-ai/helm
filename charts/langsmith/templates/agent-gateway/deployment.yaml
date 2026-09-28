@@ -60,6 +60,7 @@ spec:
       securityContext:
         {{- include "langsmith.podSecurityContext" (dict "Values" .Values "componentSecurityContext" .Values.agentGateway.deployment.podSecurityContext) | nindent 8 }}
       serviceAccountName: {{ include "agentGateway.serviceAccountName" . }}
+      automountServiceAccountToken: {{ .Values.agentGateway.serviceAccount.automountServiceAccountToken }}
       {{- include "langsmith.dnsConfig" . | nindent 6 }}
       {{- with concat .Values.commonInitContainers .Values.agentGateway.deployment.initContainers }}
       initContainers:

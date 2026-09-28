@@ -48,6 +48,7 @@ spec:
       securityContext:
         {{- include "langsmith.podSecurityContext" (dict "Values" .Values "componentSecurityContext" .Values.backend.clickhouseMigrations.podSecurityContext) | nindent 8 }}
       serviceAccountName: {{ include "backend.serviceAccountName" . }}
+      automountServiceAccountToken: {{ .Values.backend.serviceAccount.automountServiceAccountToken }}
       {{- with concat .Values.commonInitContainers .Values.backend.clickhouseMigrations.initContainers }}
       initContainers:
         {{- toYaml . | nindent 8 }}

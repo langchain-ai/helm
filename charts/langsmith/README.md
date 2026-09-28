@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.17.0-rc.25](https://img.shields.io/badge/Version-0.17.0--rc.25-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.17.20rc1](https://img.shields.io/badge/AppVersion-0.17.20rc1-informational?style=flat-square)
+![Version: 0.17.0-rc.42](https://img.shields.io/badge/Version-0.17.0--rc.42-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.17.28rc1](https://img.shields.io/badge/AppVersion-0.17.28rc1-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -28,17 +28,21 @@ Two things worth planning for before you enable it:
 
 ## SmithDB resource tiers
 
-`smithdb.resourceTier` selects the default per-replica resource sizes shown below. The default is `small`. For components that use local disk, the tier's ephemeral-storage limit also sets the generated `emptyDir.sizeLimit`.
+`smithdb.resourceTier` sets per-replica CPU, memory, and cache size for SmithDB components. The default is `small`. Query, ingestion, and compaction worker mount a volume named `cache` at `/data` as a per-pod [generic ephemeral volume](https://kubernetes.io/docs/concepts/storage/ephemeral-volumes/#generic-ephemeral-volumes) on `smithdb.cache.storageClassName`, or the cluster default StorageClass when empty. Provision that StorageClass with at least 7000 IOPS and 1000 MiB/s.
 
-Replica counts and autoscaling remain controlled by each component's `deployment.replicas` and `autoscaling` settings. Explicit component `resources` or `volumes` settings take precedence over the tier defaults.
+Explicit component `resources` or `volumes` replace the tier values. Cache overrides must be named `cache` and use an `emptyDir` or inline ephemeral PVC; existing PVCs are unsupported. To cache on local SSD, set matching `emptyDir.sizeLimit` and `ephemeral-storage` requests and limits.
+
+The query disk cache limit is set automatically from the PVC storage request or, for `emptyDir`, the container's `ephemeral-storage` limit. Enabled `mutations`, `runRules`, and `statsQuery` use the query tier. Replica counts and autoscaling are configured per component.
 
 | Component | Small | Medium | Large |
 |---|---|---|---|
-| Query | 4 CPU, 8Gi memory, 200Gi ephemeral | 28 CPU, 48Gi memory, 200Gi ephemeral | 28 CPU, 50Gi memory, 1000Gi ephemeral |
-| Ingestion | 4 CPU, 8Gi memory, 100Gi ephemeral | 16 CPU, 32Gi memory, 100Gi ephemeral | 56 CPU, 150Gi memory, 1000Gi ephemeral |
+| Query | 4 CPU, 8Gi memory, 200Gi cache | 28 CPU, 48Gi memory, 200Gi cache | 28 CPU, 50Gi memory, 1000Gi cache |
+| Ingestion | 4 CPU, 8Gi memory, 100Gi cache | 16 CPU, 32Gi memory, 100Gi cache | 56 CPU, 150Gi memory, 1000Gi cache |
 | Compaction | 2 CPU, 4Gi memory | 4 CPU, 8Gi memory | 8 CPU, 16Gi memory |
-| Compaction worker | 8 CPU, 16Gi memory, 100Gi ephemeral | 16 CPU, 32Gi memory, 100Gi ephemeral | 28 CPU, 50Gi memory, 300Gi ephemeral |
+| Compaction worker | 8 CPU, 16Gi memory, 100Gi cache | 16 CPU, 32Gi memory, 100Gi cache | 28 CPU, 50Gi memory, 300Gi cache |
 | Cluster manager | 250m CPU, 256Mi memory | 250m CPU, 256Mi memory | 2 CPU, 2Gi memory |
+
+**0.17 upgrade:** default caches switch from `emptyDir` to per-pod PVCs. Configure local SSD overrides before upgrading and rename custom volume and mount references from `local-ssd-storage` to `cache`.
 
 ## General parameters
 
@@ -577,29 +581,29 @@ Replica counts and autoscaling remain controlled by each component's `deployment
 | gateway.sectionName | string | `""` |  |
 | images.aceBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.aceBackendImage.repository | string | `"docker.io/langchain/langsmith-ace-backend"` |  |
-| images.aceBackendImage.tag | string | `"0.17.20rc1"` |  |
+| images.aceBackendImage.tag | string | `"0.17.28rc1"` |  |
 | images.agentBuilderImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.agentBuilderImage.repository | string | `"docker.io/langchain/agent-builder-deep-agent"` |  |
-| images.agentBuilderImage.tag | string | `"0.17.20rc1"` |  |
+| images.agentBuilderImage.tag | string | `"0.17.28rc1"` |  |
 | images.backendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.backendImage.repository | string | `"docker.io/langchain/langsmith-backend"` |  |
-| images.backendImage.tag | string | `"0.17.20rc1"` |  |
+| images.backendImage.tag | string | `"0.17.28rc1"` |  |
 | images.clickhouseImage.pullPolicy | string | `"Always"` |  |
 | images.clickhouseImage.repository | string | `"docker.io/clickhouse/clickhouse-server"` |  |
 | images.clickhouseImage.tag | string | `"25.12"` |  |
 | images.engineInsightsAgentImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.engineInsightsAgentImage.repository | string | `"docker.io/langchain/langsmith-insights-engine"` |  |
-| images.engineInsightsAgentImage.tag | string | `"0.17.20rc1"` |  |
+| images.engineInsightsAgentImage.tag | string | `"0.17.28rc1"` |  |
 | images.frontendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.frontendImage.repository | string | `"docker.io/langchain/langsmith-frontend"` |  |
-| images.frontendImage.tag | string | `"0.17.20rc1"` |  |
+| images.frontendImage.tag | string | `"0.17.28rc1"` |  |
 | images.imagePullSecrets | list | `[]` | Secrets with credentials to pull images from a private registry. Specified as name: value. |
 | images.operatorImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.operatorImage.repository | string | `"docker.io/langchain/langgraph-operator"` |  |
-| images.operatorImage.tag | string | `"0.1.47"` |  |
+| images.operatorImage.tag | string | `"0.1.60"` |  |
 | images.pollyAgentImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.pollyAgentImage.repository | string | `"docker.io/langchain/langsmith-polly"` |  |
-| images.pollyAgentImage.tag | string | `"0.17.20rc1"` |  |
+| images.pollyAgentImage.tag | string | `"0.17.28rc1"` |  |
 | images.postgresImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.postgresImage.repository | string | `"docker.io/postgres"` |  |
 | images.postgresImage.tag | string | `"14.7"` |  |
@@ -613,7 +617,7 @@ Replica counts and autoscaling remain controlled by each component's `deployment
 | images.sandboxHostImage | object | `{"pullPolicy":"IfNotPresent","repository":"docker.io/langchain/sandbox-host","tag":""}` | sandbox-host image. Only used when sandboxes.enabled is true. |
 | images.smithdbImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.smithdbImage.repository | string | `"docker.io/langchain/smithdb"` |  |
-| images.smithdbImage.tag | string | `"0.17.20rc1"` |  |
+| images.smithdbImage.tag | string | `"0.17.28rc1"` |  |
 | ingestQueue.autoscaling.hpa.enabled | bool | `false` |  |
 | ingestQueue.autoscaling.hpa.maxReplicas | int | `10` |  |
 | ingestQueue.autoscaling.hpa.minReplicas | int | `3` |  |
@@ -933,6 +937,7 @@ Replica counts and autoscaling remain controlled by each component's `deployment
 | sandboxes.sandboxHost.pdb | object | `{"annotations":{},"enabled":false,"labels":{},"maxUnavailable":1}` | Disruption budget for sandbox-host, capping concurrent evictions since each drain suspends every microVM on that host. maxUnavailable keeps a small pool drainable; setting minAvailable overrides it. |
 | sandboxes.sandboxHost.serviceAccount.annotations | object | `{}` | Annotations applied to the sandbox-host ServiceAccount. Attach the AWS IRSA, GCP Workload Identity, or Azure Workload Identity that grants access to the JuiceFS object-storage bucket here. |
 | sandboxes.serviceUrlBaseUrl | string | `""` | Base URL for reaching HTTP services inside sandboxes. Needs wildcard DNS and TLS for `*.<host>`; with ingress.enabled the chart adds the wildcard rule. http(s) origin only, no path. |
+| smithdb.cache.storageClassName | string | `""` | StorageClass for the generated SmithDB cache volumes. Empty uses the cluster default. A component's deployment.volumes replaces the generated volume. |
 | smithdb.clusterManager.containerGrpcPort | int | `8091` |  |
 | smithdb.clusterManager.containerPort | int | `8090` |  |
 | smithdb.clusterManager.deployment.affinity | object | `{}` |  |
@@ -964,6 +969,7 @@ Replica counts and autoscaling remain controlled by each component's `deployment
 | smithdb.clusterManager.deployment.replicas | int | `1` |  |
 | smithdb.clusterManager.deployment.securityContext | object | `{}` |  |
 | smithdb.clusterManager.deployment.sidecars | list | `[]` |  |
+| smithdb.clusterManager.deployment.terminationGracePeriodSeconds | int | `30` |  |
 | smithdb.clusterManager.deployment.tolerations | list | `[]` |  |
 | smithdb.clusterManager.deployment.topologySpreadConstraints | list | `[]` |  |
 | smithdb.clusterManager.deployment.volumeMounts | list | `[]` |  |
@@ -973,7 +979,7 @@ Replica counts and autoscaling remain controlled by each component's `deployment
 | smithdb.clusterManager.service.annotations | object | `{}` |  |
 | smithdb.clusterManager.service.labels | object | `{}` |  |
 | smithdb.clusterManager.service.port | int | `8091` |  |
-| smithdb.commonEnv | list | `[]` | Extra env vars for every SmithDB workload. |
+| smithdb.commonEnv | list | `[]` | Extra env vars for every SmithDB workload. Overrides chart-managed env vars of the same name. A name set here and in a component's extraEnv fails the render. |
 | smithdb.commonInitContainers | list | `[]` | Common init containers added to every SmithDB component Deployment and Job. Set restartPolicy: Always to configure a Kubernetes sidecar container. |
 | smithdb.compaction.containerGrpcPort | int | `8071` |  |
 | smithdb.compaction.containerPort | int | `8070` |  |
@@ -1007,6 +1013,7 @@ Replica counts and autoscaling remain controlled by each component's `deployment
 | smithdb.compaction.deployment.replicas | int | `1` |  |
 | smithdb.compaction.deployment.securityContext | object | `{}` |  |
 | smithdb.compaction.deployment.sidecars | list | `[]` |  |
+| smithdb.compaction.deployment.terminationGracePeriodSeconds | int | `30` |  |
 | smithdb.compaction.deployment.tolerations | list | `[]` |  |
 | smithdb.compaction.deployment.topologySpreadConstraints | list | `[]` |  |
 | smithdb.compaction.deployment.volumeMounts | list | `[]` |  |
@@ -1050,7 +1057,7 @@ Replica counts and autoscaling remain controlled by each component's `deployment
 | smithdb.compactionWorker.deployment.initContainers | list | `[]` |  |
 | smithdb.compactionWorker.deployment.labels | object | `{}` |  |
 | smithdb.compactionWorker.deployment.nodeSelector | object | `{}` |  |
-| smithdb.compactionWorker.deployment.podSecurityContext | object | `{}` |  |
+| smithdb.compactionWorker.deployment.podSecurityContext.fsGroup | int | `1001` |  |
 | smithdb.compactionWorker.deployment.priorityClassName | string | `""` |  |
 | smithdb.compactionWorker.deployment.probes.livenessProbe.failureThreshold | int | `6` |  |
 | smithdb.compactionWorker.deployment.probes.livenessProbe.httpGet.path | string | `"/health"` |  |
@@ -1074,7 +1081,7 @@ Replica counts and autoscaling remain controlled by each component's `deployment
 | smithdb.compactionWorker.deployment.tolerations | list | `[]` |  |
 | smithdb.compactionWorker.deployment.topologySpreadConstraints | list | `[]` |  |
 | smithdb.compactionWorker.deployment.volumeMounts[0].mountPath | string | `"/data"` |  |
-| smithdb.compactionWorker.deployment.volumeMounts[0].name | string | `"local-ssd-storage"` |  |
+| smithdb.compactionWorker.deployment.volumeMounts[0].name | string | `"cache"` |  |
 | smithdb.compactionWorker.maxConcurrentJobs | string | `""` | Maximum concurrent jobs per compaction worker. Empty uses the SmithDB default. |
 | smithdb.compactionWorker.name | string | `"compaction-worker"` |  |
 | smithdb.compactionWorker.pdb.annotations | object | `{}` |  |
@@ -1097,6 +1104,8 @@ Replica counts and autoscaling remain controlled by each component's `deployment
 | smithdb.config.objectStore.bucket | string | `""` |  |
 | smithdb.config.objectStore.s3.accessKeyIdSecretKey | string | `""` | Keys in smithdb.config.existingSecretName for static S3 credentials. Set both to "" when using ambient cloud identity, such as IRSA. |
 | smithdb.config.objectStore.s3.endpoint | string | `""` |  |
+| smithdb.config.objectStore.s3.kmsEncryptionEnabled | bool | `false` | Send SSE-KMS encryption headers on S3 writes. Same semantics as config.blobStorage.kmsEncryptionEnabled. |
+| smithdb.config.objectStore.s3.kmsKeyArn | string | `""` | KMS key ARN for SSE-KMS. When empty, S3 encrypts with the AWS managed aws/s3 key, not the bucket default key. |
 | smithdb.config.objectStore.s3.region | string | `""` | Defaults to the SmithDB S3 client default when empty. |
 | smithdb.config.objectStore.s3.secretAccessKeySecretKey | string | `""` |  |
 | smithdb.config.objectStore.type | string | `"s3"` | Supported values: s3, gcs, azure. |
@@ -1122,7 +1131,7 @@ Replica counts and autoscaling remain controlled by each component's `deployment
 | smithdb.ingestion.deployment.initContainers | list | `[]` |  |
 | smithdb.ingestion.deployment.labels | object | `{}` |  |
 | smithdb.ingestion.deployment.nodeSelector | object | `{}` |  |
-| smithdb.ingestion.deployment.podSecurityContext | object | `{}` |  |
+| smithdb.ingestion.deployment.podSecurityContext.fsGroup | int | `1001` |  |
 | smithdb.ingestion.deployment.priorityClassName | string | `""` |  |
 | smithdb.ingestion.deployment.probes.livenessProbe.failureThreshold | int | `6` |  |
 | smithdb.ingestion.deployment.probes.livenessProbe.httpGet.path | string | `"/health"` |  |
@@ -1149,7 +1158,7 @@ Replica counts and autoscaling remain controlled by each component's `deployment
 | smithdb.ingestion.deployment.tolerations | list | `[]` |  |
 | smithdb.ingestion.deployment.topologySpreadConstraints | list | `[]` |  |
 | smithdb.ingestion.deployment.volumeMounts[0].mountPath | string | `"/data"` |  |
-| smithdb.ingestion.deployment.volumeMounts[0].name | string | `"local-ssd-storage"` |  |
+| smithdb.ingestion.deployment.volumeMounts[0].name | string | `"cache"` |  |
 | smithdb.ingestion.name | string | `"ingestion"` |  |
 | smithdb.ingestion.pdb.annotations | object | `{}` |  |
 | smithdb.ingestion.pdb.enabled | bool | `false` |  |
@@ -1168,19 +1177,27 @@ Replica counts and autoscaling remain controlled by each component's `deployment
 | smithdb.metastoreMigration.job.affinity | object | `{}` |  |
 | smithdb.metastoreMigration.job.annotations | object | `{}` |  |
 | smithdb.metastoreMigration.job.backoffLimit | int | `0` |  |
+| smithdb.metastoreMigration.job.extraContainerConfig | object | `{}` |  |
 | smithdb.metastoreMigration.job.extraEnv | list | `[]` |  |
+| smithdb.metastoreMigration.job.initContainers | list | `[]` |  |
 | smithdb.metastoreMigration.job.labels | object | `{}` |  |
 | smithdb.metastoreMigration.job.nodeSelector | object | `{}` |  |
 | smithdb.metastoreMigration.job.podAnnotations | object | `{}` |  |
 | smithdb.metastoreMigration.job.podSecurityContext | object | `{}` |  |
+| smithdb.metastoreMigration.job.priorityClassName | string | `""` |  |
 | smithdb.metastoreMigration.job.resources.limits.cpu | string | `"500m"` |  |
 | smithdb.metastoreMigration.job.resources.limits.memory | string | `"512Mi"` |  |
 | smithdb.metastoreMigration.job.resources.requests.cpu | string | `"250m"` |  |
 | smithdb.metastoreMigration.job.resources.requests.memory | string | `"256Mi"` |  |
 | smithdb.metastoreMigration.job.restartPolicy | string | `"Never"` |  |
 | smithdb.metastoreMigration.job.securityContext | object | `{}` |  |
+| smithdb.metastoreMigration.job.sidecars | list | `[]` |  |
+| smithdb.metastoreMigration.job.terminationGracePeriodSeconds | int | `30` |  |
 | smithdb.metastoreMigration.job.tolerations | list | `[]` |  |
+| smithdb.metastoreMigration.job.topologySpreadConstraints | list | `[]` |  |
 | smithdb.metastoreMigration.job.ttlSecondsAfterFinished | int | `3600` |  |
+| smithdb.metastoreMigration.job.volumeMounts | list | `[]` |  |
+| smithdb.metastoreMigration.job.volumes | list | `[]` |  |
 | smithdb.metastoreMigration.name | string | `"metastore-migration"` |  |
 | smithdb.migration.containerPort | int | `9040` |  |
 | smithdb.migration.endTime | string | `""` | Optional RFC3339 end bound for migrate-all (half-open window). Empty uses now. |
@@ -1196,6 +1213,7 @@ Replica counts and autoscaling remain controlled by each component's `deployment
 | smithdb.migration.job.nodeSelector | object | `{}` |  |
 | smithdb.migration.job.parallelism | int | `1` | migration pods. |
 | smithdb.migration.job.podSecurityContext | object | `{}` |  |
+| smithdb.migration.job.priorityClassName | string | `""` |  |
 | smithdb.migration.job.resources.limits.cpu | string | `"8"` |  |
 | smithdb.migration.job.resources.limits.ephemeral-storage | string | `"100Gi"` |  |
 | smithdb.migration.job.resources.limits.memory | string | `"32Gi"` |  |
@@ -1227,6 +1245,7 @@ Replica counts and autoscaling remain controlled by each component's `deployment
 | smithdb.migration.taskdb.postgres.service.port | int | `5433` |  |
 | smithdb.migration.taskdb.postgres.statefulSet.affinity | object | `{}` |  |
 | smithdb.migration.taskdb.postgres.statefulSet.annotations | object | `{}` |  |
+| smithdb.migration.taskdb.postgres.statefulSet.automountServiceAccountToken | bool | `true` | Controls whether the in-chart taskdb Postgres pod automatically mounts a ServiceAccount token. |
 | smithdb.migration.taskdb.postgres.statefulSet.command | list | `[]` |  |
 | smithdb.migration.taskdb.postgres.statefulSet.extraContainerConfig | object | `{}` |  |
 | smithdb.migration.taskdb.postgres.statefulSet.extraEnv | list | `[]` |  |
@@ -1287,7 +1306,7 @@ Replica counts and autoscaling remain controlled by each component's `deployment
 | smithdb.mutations.deployment.initContainers | list | `[]` |  |
 | smithdb.mutations.deployment.labels | object | `{}` |  |
 | smithdb.mutations.deployment.nodeSelector | object | `{}` |  |
-| smithdb.mutations.deployment.podSecurityContext | object | `{}` |  |
+| smithdb.mutations.deployment.podSecurityContext.fsGroup | int | `1001` |  |
 | smithdb.mutations.deployment.priorityClassName | string | `""` |  |
 | smithdb.mutations.deployment.probes.livenessProbe.failureThreshold | int | `6` |  |
 | smithdb.mutations.deployment.probes.livenessProbe.httpGet.path | string | `"/health"` |  |
@@ -1310,10 +1329,11 @@ Replica counts and autoscaling remain controlled by each component's `deployment
 | smithdb.mutations.deployment.strategy.rollingUpdate.maxSurge | int | `1` |  |
 | smithdb.mutations.deployment.strategy.rollingUpdate.maxUnavailable | int | `0` |  |
 | smithdb.mutations.deployment.strategy.type | string | `"RollingUpdate"` |  |
+| smithdb.mutations.deployment.terminationGracePeriodSeconds | int | `30` |  |
 | smithdb.mutations.deployment.tolerations | list | `[]` |  |
 | smithdb.mutations.deployment.topologySpreadConstraints | list | `[]` |  |
 | smithdb.mutations.deployment.volumeMounts[0].mountPath | string | `"/data"` |  |
-| smithdb.mutations.deployment.volumeMounts[0].name | string | `"local-ssd-storage"` |  |
+| smithdb.mutations.deployment.volumeMounts[0].name | string | `"cache"` |  |
 | smithdb.mutations.enabled | bool | `false` |  |
 | smithdb.mutations.name | string | `"mutations"` |  |
 | smithdb.mutations.pdb.annotations | object | `{}` |  |
@@ -1342,7 +1362,7 @@ Replica counts and autoscaling remain controlled by each component's `deployment
 | smithdb.query.deployment.initContainers | list | `[]` |  |
 | smithdb.query.deployment.labels | object | `{}` |  |
 | smithdb.query.deployment.nodeSelector | object | `{}` |  |
-| smithdb.query.deployment.podSecurityContext | object | `{}` |  |
+| smithdb.query.deployment.podSecurityContext.fsGroup | int | `1001` |  |
 | smithdb.query.deployment.priorityClassName | string | `""` |  |
 | smithdb.query.deployment.probes.livenessProbe.failureThreshold | int | `6` |  |
 | smithdb.query.deployment.probes.livenessProbe.httpGet.path | string | `"/health"` |  |
@@ -1365,10 +1385,11 @@ Replica counts and autoscaling remain controlled by each component's `deployment
 | smithdb.query.deployment.strategy.rollingUpdate.maxSurge | int | `1` |  |
 | smithdb.query.deployment.strategy.rollingUpdate.maxUnavailable | int | `0` |  |
 | smithdb.query.deployment.strategy.type | string | `"RollingUpdate"` |  |
+| smithdb.query.deployment.terminationGracePeriodSeconds | int | `30` |  |
 | smithdb.query.deployment.tolerations | list | `[]` |  |
 | smithdb.query.deployment.topologySpreadConstraints | list | `[]` |  |
 | smithdb.query.deployment.volumeMounts[0].mountPath | string | `"/data"` |  |
-| smithdb.query.deployment.volumeMounts[0].name | string | `"local-ssd-storage"` |  |
+| smithdb.query.deployment.volumeMounts[0].name | string | `"cache"` |  |
 | smithdb.query.name | string | `"query"` |  |
 | smithdb.query.pdb.annotations | object | `{}` |  |
 | smithdb.query.pdb.enabled | bool | `false` |  |
@@ -1377,7 +1398,9 @@ Replica counts and autoscaling remain controlled by each component's `deployment
 | smithdb.query.service.annotations | object | `{}` |  |
 | smithdb.query.service.labels | object | `{}` |  |
 | smithdb.query.service.port | int | `8080` |  |
-| smithdb.resourceTier | string | `"small"` | Per-replica resource tier for SmithDB runtime components. Supported values: small, medium, large. See the README for sizing and override behavior. |
+| smithdb.recoveryStrategy.enabled | bool | `false` | Enable recovery for superseded SmithDB data. |
+| smithdb.recoveryStrategy.retentionWindow | string | `"12h"` | Minimum time superseded SmithDB data remains available for recovery. |
+| smithdb.resourceTier | string | `"small"` | Per-replica CPU, memory, and cache volume size for SmithDB runtime components: small, medium, or large. See the README. |
 | smithdb.runRules.autoscaling.hpa.enabled | bool | `true` |  |
 | smithdb.runRules.autoscaling.hpa.maxReplicas | int | `5` |  |
 | smithdb.runRules.autoscaling.hpa.minReplicas | int | `1` |  |
@@ -1396,7 +1419,7 @@ Replica counts and autoscaling remain controlled by each component's `deployment
 | smithdb.runRules.deployment.initContainers | list | `[]` |  |
 | smithdb.runRules.deployment.labels | object | `{}` |  |
 | smithdb.runRules.deployment.nodeSelector | object | `{}` |  |
-| smithdb.runRules.deployment.podSecurityContext | object | `{}` |  |
+| smithdb.runRules.deployment.podSecurityContext.fsGroup | int | `1001` |  |
 | smithdb.runRules.deployment.priorityClassName | string | `""` |  |
 | smithdb.runRules.deployment.probes.livenessProbe.failureThreshold | int | `6` |  |
 | smithdb.runRules.deployment.probes.livenessProbe.httpGet.path | string | `"/health"` |  |
@@ -1419,10 +1442,11 @@ Replica counts and autoscaling remain controlled by each component's `deployment
 | smithdb.runRules.deployment.strategy.rollingUpdate.maxSurge | int | `1` |  |
 | smithdb.runRules.deployment.strategy.rollingUpdate.maxUnavailable | int | `0` |  |
 | smithdb.runRules.deployment.strategy.type | string | `"RollingUpdate"` |  |
+| smithdb.runRules.deployment.terminationGracePeriodSeconds | int | `30` |  |
 | smithdb.runRules.deployment.tolerations | list | `[]` |  |
 | smithdb.runRules.deployment.topologySpreadConstraints | list | `[]` |  |
 | smithdb.runRules.deployment.volumeMounts[0].mountPath | string | `"/data"` |  |
-| smithdb.runRules.deployment.volumeMounts[0].name | string | `"local-ssd-storage"` |  |
+| smithdb.runRules.deployment.volumeMounts[0].name | string | `"cache"` |  |
 | smithdb.runRules.enabled | bool | `false` |  |
 | smithdb.runRules.name | string | `"run-rules"` |  |
 | smithdb.runRules.pdb.annotations | object | `{}` |  |
@@ -1452,7 +1476,7 @@ Replica counts and autoscaling remain controlled by each component's `deployment
 | smithdb.statsQuery.deployment.initContainers | list | `[]` |  |
 | smithdb.statsQuery.deployment.labels | object | `{}` |  |
 | smithdb.statsQuery.deployment.nodeSelector | object | `{}` |  |
-| smithdb.statsQuery.deployment.podSecurityContext | object | `{}` |  |
+| smithdb.statsQuery.deployment.podSecurityContext.fsGroup | int | `1001` |  |
 | smithdb.statsQuery.deployment.priorityClassName | string | `""` |  |
 | smithdb.statsQuery.deployment.probes.livenessProbe.failureThreshold | int | `6` |  |
 | smithdb.statsQuery.deployment.probes.livenessProbe.httpGet.path | string | `"/health"` |  |
@@ -1475,10 +1499,11 @@ Replica counts and autoscaling remain controlled by each component's `deployment
 | smithdb.statsQuery.deployment.strategy.rollingUpdate.maxSurge | int | `1` |  |
 | smithdb.statsQuery.deployment.strategy.rollingUpdate.maxUnavailable | int | `0` |  |
 | smithdb.statsQuery.deployment.strategy.type | string | `"RollingUpdate"` |  |
+| smithdb.statsQuery.deployment.terminationGracePeriodSeconds | int | `30` |  |
 | smithdb.statsQuery.deployment.tolerations | list | `[]` |  |
 | smithdb.statsQuery.deployment.topologySpreadConstraints | list | `[]` |  |
 | smithdb.statsQuery.deployment.volumeMounts[0].mountPath | string | `"/data"` |  |
-| smithdb.statsQuery.deployment.volumeMounts[0].name | string | `"local-ssd-storage"` |  |
+| smithdb.statsQuery.deployment.volumeMounts[0].name | string | `"cache"` |  |
 | smithdb.statsQuery.enabled | bool | `false` |  |
 | smithdb.statsQuery.name | string | `"stats-query"` |  |
 | smithdb.statsQuery.pdb.annotations | object | `{}` |  |
@@ -1537,7 +1562,7 @@ Replica counts and autoscaling remain controlled by each component's `deployment
 | config.customCa.secretKey | string | `""` |  |
 | config.customCa.secretName | string | `""` | Optional. Used to set a file containing trusted CA certificates. Make sure to also include a public CA to access beacon and playground. |
 | config.customErrorSupportMessage | string | `""` | Custom error support message displayed on error pages (plain text). If empty, defaults to the built-in support messages linking to our Support Portal (https://support.langchain.com). |
-| config.customLogo | object | `{"coBrandingEnabled":true,"enabled":false,"logoUrl":""}` | Custom logo configuration. If enabled, the logoUrl and coBrandingEnabled values must be provided. The logoUrl must be a valid URL to an image like png, jpg, or svg. Co-branding will show LangSmith and customer logos side by side. |
+| config.customLogo | object | `{"coBrandingEnabled":true,"darkModeLogoUrl":"","enabled":false,"lightModeLogoUrl":"","logoUrl":""}` | Custom logo configuration. If enabled, set either logoUrl, or lightModeLogoUrl and darkModeLogoUrl to use a different logo per color scheme. Setting only one of the three uses it in both schemes. Each value is a URL to an image like png, jpg, or svg. Co-branding shows the LangSmith and customer logos side by side. |
 | config.defaultWorkspaceName | string | `"Workspace 1"` | Default workspace name to be provisioned when org is created. |
 | config.deployment | object | `{"basePath":"","enabled":false,"ingressHealthCheckEnabled":true,"tlsEnabled":true,"uncappedResourcesEnabled":false}` | Configuration for LangSmith Deployments features |
 | config.deployment.basePath | string | `""` | Base path for LangSmith Deployments routes managed by the operator. |
@@ -2196,6 +2221,7 @@ Replica counts and autoscaling remain controlled by each component's `deployment
 | listener.deployment.readinessProbe.httpGet.port | int | `8080` |  |
 | listener.deployment.readinessProbe.periodSeconds | int | `10` |  |
 | listener.deployment.readinessProbe.timeoutSeconds | int | `10` |  |
+| listener.deployment.redisMaxConnections | int | `250` | Maximum Redis connections per pod. Keep replicas x this value below your Redis maxclients. |
 | listener.deployment.replicas | int | `1` |  |
 | listener.deployment.resources.limits.cpu | string | `"2000m"` |  |
 | listener.deployment.resources.limits.memory | string | `"4Gi"` |  |
@@ -2617,6 +2643,9 @@ Replica counts and autoscaling remain controlled by each component's `deployment
 | postgres.statefulSet.persistence.enabled | bool | `true` |  |
 | postgres.statefulSet.persistence.size | string | `"8Gi"` |  |
 | postgres.statefulSet.persistence.storageClassName | string | `""` |  |
+| postgres.statefulSet.persistence.volumeSnapshot.deletionPolicy | string | `"Retain"` |  |
+| postgres.statefulSet.persistence.volumeSnapshot.driver | string | `""` |  |
+| postgres.statefulSet.persistence.volumeSnapshot.snapshotHandle | string | `""` | CSI snapshot handle. Restores a new in-chart Postgres volume from it. |
 | postgres.statefulSet.persistentVolumeClaimRetentionPolicy | object | `{}` |  |
 | postgres.statefulSet.podSecurityContext | object | `{}` |  |
 | postgres.statefulSet.priorityClassName | string | `""` | Optional priority class for the in-chart PostgreSQL pod. |
@@ -2695,6 +2724,7 @@ Replica counts and autoscaling remain controlled by each component's `deployment
 | queue.deployment.readinessProbe.httpGet.port | int | `8080` |  |
 | queue.deployment.readinessProbe.periodSeconds | int | `10` |  |
 | queue.deployment.readinessProbe.timeoutSeconds | int | `10` |  |
+| queue.deployment.redisMaxConnections | int | `250` | Maximum Redis connections per pod. Keep replicas x this value below your Redis maxclients. |
 | queue.deployment.replicas | int | `1` |  |
 | queue.deployment.resources.limits.cpu | string | `"2000m"` |  |
 | queue.deployment.resources.limits.memory | string | `"4Gi"` |  |

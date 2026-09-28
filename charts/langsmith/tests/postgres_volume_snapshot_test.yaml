@@ -1,0 +1,89 @@
+suite: Postgres volume snapshot
+templates:
+  - postgres/stateful-set.yaml
+  - postgres/volume-snapshot.yaml
+  - validate.yaml
+release:
+  name: langsmith
+  namespace: preview
+set:
+  config.existingSecretName: langsmith-secrets
+  config.authType: mixed
+  config.oauth.enabled: true
+  config.initialOrgAdminEmail: admin@example.com
+tests:
+  - it: does not set a postgres dataSource by default
+    template: postgres/stateful-set.yaml
+    asserts:
+      - notExists:
+          path: spec.volumeClaimTemplates[0].spec.dataSource
+  - it: does not render snapshot objects by default
+    template: postgres/volume-snapshot.yaml
+    asserts:
+      - hasDocuments:
+          count: 0
+  - it: restores postgres from a snapshot handle
+    set:
+      postgres.statefulSet.persistence.volumeSnapshot.snapshotHandle: projects/langchain-dev/global/snapshots/langsmith-sh-preview-postgres-seed
+      postgres.statefulSet.persistence.volumeSnapshot.driver: pd.csi.storage.gke.io
+    template: postgres/stateful-set.yaml
+    asserts:
+      - equal:
+          path: spec.volumeClaimTemplates[0].spec.dataSource
+          value:
+            apiGroup: snapshot.storage.k8s.io
+            kind: VolumeSnapshot
+            name: langsmith-postgres
+  - it: renders a retained snapshot content
+    set:
+      postgres.statefulSet.persistence.volumeSnapshot.snapshotHandle: projects/langchain-dev/global/snapshots/langsmith-sh-preview-postgres-seed
+      postgres.statefulSet.persistence.volumeSnapshot.driver: pd.csi.storage.gke.io
+    template: postgres/volume-snapshot.yaml
+    asserts:
+      - documentIndex: 0
+        isKind:
+          of: VolumeSnapshotContent
+      - documentIndex: 0
+        equal:
+          path: metadata.name
+          value: langsmith-postgres-preview
+      - documentIndex: 0
+        equal:
+          path: spec.deletionPolicy
+          value: Retain
+      - documentIndex: 0
+        equal:
+          path: spec.driver
+          value: pd.csi.storage.gke.io
+      - documentIndex: 0
+        equal:
+          path: spec.source.snapshotHandle
+          value: projects/langchain-dev/global/snapshots/langsmith-sh-preview-postgres-seed
+      - documentIndex: 0
+        equal:
+          path: spec.volumeSnapshotRef.namespace
+          value: preview
+  - it: renders the volume snapshot
+    set:
+      postgres.statefulSet.persistence.volumeSnapshot.snapshotHandle: projects/langchain-dev/global/snapshots/langsmith-sh-preview-postgres-seed
+      postgres.statefulSet.persistence.volumeSnapshot.driver: pd.csi.storage.gke.io
+    template: postgres/volume-snapshot.yaml
+    asserts:
+      - documentIndex: 1
+        isKind:
+          of: VolumeSnapshot
+      - documentIndex: 1
+        equal:
+          path: metadata.name
+          value: langsmith-postgres
+      - documentIndex: 1
+        equal:
+          path: spec.source.volumeSnapshotContentName
+          value: langsmith-postgres-preview
+  - it: rejects a snapshot handle without a driver
+    set:
+      postgres.statefulSet.persistence.volumeSnapshot.snapshotHandle: projects/example/global/snapshots/seed
+    template: validate.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: postgres.statefulSet.persistence.volumeSnapshot.driver is required when snapshotHandle is set

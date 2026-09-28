@@ -24,6 +24,7 @@ spec:
         {{- include "langGraphCloud.labels" . | nindent 8 }}
         app.kubernetes.io/component: {{ include "langGraphCloud.mongoServiceName" . }}
     spec:
+      automountServiceAccountToken: {{ .Values.mongo.statefulSet.automountServiceAccountToken }}
       {{- with .Values.images.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}

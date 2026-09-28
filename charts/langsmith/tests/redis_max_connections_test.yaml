@@ -1,0 +1,64 @@
+suite: REDIS_MAX_CONNECTIONS rendering for queue and listener
+templates:
+  - config-map.yaml
+  - secrets.yaml
+  - redis/secrets.yaml
+  - postgres/secrets.yaml
+  - clickhouse/secrets.yaml
+  - frontend/config-map.yaml
+  - operator/config-map.yaml
+  - queue/deployment.yaml
+  - listener/deployment.yaml
+tests:
+  - it: renders the queue default of 250 when redisMaxConnections is not set
+    template: queue/deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: REDIS_MAX_CONNECTIONS
+            value: "250"
+
+  - it: renders a configured queue redisMaxConnections
+    template: queue/deployment.yaml
+    set:
+      queue.deployment.redisMaxConnections: 50
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: REDIS_MAX_CONNECTIONS
+            value: "50"
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: REDIS_MAX_CONNECTIONS
+            value: "250"
+
+  - it: renders the listener default of 250 when redisMaxConnections is not set
+    template: listener/deployment.yaml
+    set:
+      config.deployment.enabled: true
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: REDIS_MAX_CONNECTIONS
+            value: "250"
+
+  - it: renders a configured listener redisMaxConnections
+    template: listener/deployment.yaml
+    set:
+      config.deployment.enabled: true
+      listener.deployment.redisMaxConnections: 50
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: REDIS_MAX_CONNECTIONS
+            value: "50"
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: REDIS_MAX_CONNECTIONS
+            value: "250"

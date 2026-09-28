@@ -65,25 +65,25 @@ images:
   aceBackendImage:
     repository: "docker.io/langchain/langsmith-ace-backend"
     pullPolicy: IfNotPresent
-    tag: "0.17.20rc1"
+    tag: "0.17.28rc1"
   backendImage:
     repository: "docker.io/langchain/langsmith-backend"
     pullPolicy: IfNotPresent
-    tag: "0.17.20rc1"
+    tag: "0.17.28rc1"
   # Serves both the `insights` and `engine` graphs; insights.enabled and
   # engine.enabled pick which of them run.
   engineInsightsAgentImage:
     repository: "docker.io/langchain/langsmith-insights-engine"
     pullPolicy: IfNotPresent
-    tag: "0.17.20rc1"
+    tag: "0.17.28rc1"
   frontendImage:
     repository: "docker.io/langchain/langsmith-frontend"
     pullPolicy: IfNotPresent
-    tag: "0.17.20rc1"
+    tag: "0.17.28rc1"
   operatorImage:
     repository: "docker.io/langchain/langgraph-operator"
     pullPolicy: IfNotPresent
-    tag: "0.1.47"
+    tag: "0.1.60"
   # For production environments, we strongly recommend connecting to a managed PostgreSQL instance instead of using the one provided by the chart.
   # Docs: https://docs.langchain.com/langsmith/self-host-external-postgres
   postgresImage:
@@ -103,15 +103,15 @@ images:
   agentBuilderImage:
     repository: "docker.io/langchain/agent-builder-deep-agent"
     pullPolicy: IfNotPresent
-    tag: "0.17.20rc1"
+    tag: "0.17.28rc1"
   pollyAgentImage:
     repository: "docker.io/langchain/langsmith-polly"
     pullPolicy: IfNotPresent
-    tag: "0.17.20rc1"
+    tag: "0.17.28rc1"
   smithdbImage:
     repository: "docker.io/langchain/smithdb"
     pullPolicy: IfNotPresent
-    tag: "0.17.20rc1"
+    tag: "0.17.28rc1"
   # Optional: only mirror/pull when presidioAnalyzer.enabled is true
   presidioAnalyzerImage:
     repository: "mcr.microsoft.com/presidio-analyzer"
@@ -1217,11 +1217,15 @@ config:
     redisRunsExpirySeconds: "21600"  # 6 hours
 
   # -- Custom logo configuration.
-  # If enabled, the logoUrl and coBrandingEnabled values must be provided.
-  # The logoUrl must be a valid URL to an image like png, jpg, or svg. Co-branding will show LangSmith and customer logos side by side.
+  # If enabled, set either logoUrl, or lightModeLogoUrl and darkModeLogoUrl to use a different
+  # logo per color scheme. Setting only one of the three uses it in both schemes.
+  # Each value is a URL to an image like png, jpg, or svg. Co-branding shows the LangSmith and
+  # customer logos side by side.
   customLogo:
     enabled: false
     logoUrl: ""
+    lightModeLogoUrl: ""
+    darkModeLogoUrl: ""
     coBrandingEnabled: true
 
   # -- Custom error support message displayed on error pages (plain text).
@@ -1379,9 +1383,11 @@ smithdb:
   # -- Deploy the in-chart SmithDB workloads.
   # -- SmithDB is opt-in. Setup guide: https://docs.langchain.com/langsmith/self-host-smithdb. Users are encouraged to reach out to LangChain support (https://support.langchain.com/) before enabling it.
   enabled: false
-  # -- Per-replica resource tier for SmithDB runtime components.
-  # Supported values: small, medium, large. See the README for sizing and override behavior.
+  # -- Per-replica CPU, memory, and cache volume size for SmithDB runtime components: small, medium, or large. See the README.
   resourceTier: "small"
+  cache:
+    # -- StorageClass for the generated SmithDB cache volumes. Empty uses the cluster default. A component's deployment.volumes replaces the generated volume.
+    storageClassName: ""
   # -- LangSmith configuration for SmithDB.
   langsmith:
     ingestion:
@@ -1404,11 +1410,17 @@ smithdb:
     labels: {}
     annotations: {}
     automountServiceAccountToken: true
-  # -- Extra env vars for every SmithDB workload.
+  # -- Extra env vars for every SmithDB workload. Overrides chart-managed env vars of the same name. A name set here and in a component's extraEnv fails the render.
   commonEnv: []
   # -- Common init containers added to every SmithDB component Deployment and Job.
   # Set restartPolicy: Always to configure a Kubernetes sidecar container.
   commonInitContainers: []
+
+  recoveryStrategy:
+    # -- Enable recovery for superseded SmithDB data.
+    enabled: false
+    # -- Minimum time superseded SmithDB data remains available for recovery.
+    retentionWindow: "12h"
 
   config:
     # -- Existing secret containing SmithDB metastore credentials.
@@ -1434,6 +1446,10 @@ smithdb:
         # Set both to "" when using ambient cloud identity, such as IRSA.
         accessKeyIdSecretKey: ""
         secretAccessKeySecretKey: ""
+        # -- Send SSE-KMS encryption headers on S3 writes. Same semantics as config.blobStorage.kmsEncryptionEnabled.
+        kmsEncryptionEnabled: false
+        # -- KMS key ARN for SSE-KMS. When empty, S3 encrypts with the AWS managed aws/s3 key, not the bucket default key.
+        kmsKeyArn: ""
       azure:
         # -- Azure Storage account name. Required when type is azure.
         accountName: ""
@@ -1458,9 +1474,11 @@ smithdb:
           maxUnavailable: 0
       labels: {}
       annotations: {}
-      podSecurityContext: {}
+      podSecurityContext:
+        fsGroup: 1001
       securityContext: {}
       priorityClassName: ""
+      terminationGracePeriodSeconds: 30
       probes:
         startupProbe:
           httpGet:
@@ -1494,7 +1512,7 @@ smithdb:
       affinity: {}
       topologySpreadConstraints: []
       volumeMounts:
-        - name: local-ssd-storage
+        - name: cache
           mountPath: /data
       initContainers: []
     service:
@@ -1530,9 +1548,11 @@ smithdb:
           maxUnavailable: 0
       labels: {}
       annotations: {}
-      podSecurityContext: {}
+      podSecurityContext:
+        fsGroup: 1001
       securityContext: {}
       priorityClassName: ""
+      terminationGracePeriodSeconds: 30
       probes:
         startupProbe:
           httpGet:
@@ -1564,7 +1584,7 @@ smithdb:
       affinity: {}
       topologySpreadConstraints: []
       volumeMounts:
-        - name: local-ssd-storage
+        - name: cache
           mountPath: /data
       initContainers: []
     service:
@@ -1600,9 +1620,11 @@ smithdb:
           maxUnavailable: 0
       labels: {}
       annotations: {}
-      podSecurityContext: {}
+      podSecurityContext:
+        fsGroup: 1001
       securityContext: {}
       priorityClassName: ""
+      terminationGracePeriodSeconds: 30
       probes:
         startupProbe:
           httpGet:
@@ -1634,7 +1656,7 @@ smithdb:
       affinity: {}
       topologySpreadConstraints: []
       volumeMounts:
-        - name: local-ssd-storage
+        - name: cache
           mountPath: /data
       initContainers: []
     service:
@@ -1670,9 +1692,11 @@ smithdb:
           maxUnavailable: 0
       labels: {}
       annotations: {}
-      podSecurityContext: {}
+      podSecurityContext:
+        fsGroup: 1001
       securityContext: {}
       priorityClassName: ""
+      terminationGracePeriodSeconds: 30
       probes:
         startupProbe:
           httpGet:
@@ -1704,7 +1728,7 @@ smithdb:
       affinity: {}
       topologySpreadConstraints: []
       volumeMounts:
-        - name: local-ssd-storage
+        - name: cache
           mountPath: /data
       initContainers: []
     service:
@@ -1739,7 +1763,8 @@ smithdb:
           maxUnavailable: 0
       labels: {}
       annotations: {}
-      podSecurityContext: {}
+      podSecurityContext:
+        fsGroup: 1001
       securityContext: {}
       priorityClassName: ""
       probes:
@@ -1780,7 +1805,7 @@ smithdb:
       affinity: {}
       topologySpreadConstraints: []
       volumeMounts:
-        - name: local-ssd-storage
+        - name: cache
           mountPath: /data
       initContainers: []
     service:
@@ -1813,6 +1838,7 @@ smithdb:
       podSecurityContext: {}
       securityContext: {}
       priorityClassName: ""
+      terminationGracePeriodSeconds: 30
       probes:
         startupProbe:
           httpGet:
@@ -1868,7 +1894,8 @@ smithdb:
       replicas: 2
       labels: {}
       annotations: {}
-      podSecurityContext: {}
+      podSecurityContext:
+        fsGroup: 1001
       securityContext: {}
       priorityClassName: ""
       terminationGracePeriodSeconds: 120
@@ -1906,7 +1933,7 @@ smithdb:
       affinity: {}
       topologySpreadConstraints: []
       volumeMounts:
-        - name: local-ssd-storage
+        - name: cache
           mountPath: /data
       initContainers: []
     pdb:
@@ -1954,6 +1981,7 @@ smithdb:
       podSecurityContext: {}
       securityContext: {}
       priorityClassName: ""
+      terminationGracePeriodSeconds: 30
       probes:
         startupProbe:
           httpGet:
@@ -2014,6 +2042,7 @@ smithdb:
       # -- Optional hard deadline for the Job. Leave unset for long-running full migrations.
       activeDeadlineSeconds: null
       restartPolicy: Never
+      priorityClassName: ""
       labels: {}
       annotations: {}
       podSecurityContext: {}
@@ -2084,6 +2113,8 @@ smithdb:
           labels: {}
           annotations: {}
         statefulSet:
+          # -- Controls whether the in-chart taskdb Postgres pod automatically mounts a ServiceAccount token.
+          automountServiceAccountToken: true
           # -- Optional priority class for the in-chart SmithDB taskdb Postgres pod.
           priorityClassName: ""
           # -- Optional StatefulSet update strategy for the in-chart SmithDB taskdb Postgres instance.
@@ -2157,6 +2188,8 @@ smithdb:
       backoffLimit: 0
       activeDeadlineSeconds: 600
       restartPolicy: Never
+      priorityClassName: ""
+      terminationGracePeriodSeconds: 30
       labels: {}
       annotations: {}
       podAnnotations: {}
@@ -2170,9 +2203,15 @@ smithdb:
           cpu: 250m
           memory: 256Mi
       extraEnv: []
+      extraContainerConfig: {}
+      sidecars: []
       nodeSelector: {}
       tolerations: []
       affinity: {}
+      topologySpreadConstraints: []
+      volumes: []
+      volumeMounts: []
+      initContainers: []
 
 backend:
   name: "backend"
@@ -2821,6 +2860,8 @@ listener:
         steps:
           - setWeight: 100
   deployment:
+    # -- Maximum Redis connections per pod. Keep replicas x this value below your Redis maxclients.
+    redisMaxConnections: 250
     replicas: 1
     labels: {}
     annotations: {}
@@ -3423,6 +3464,11 @@ postgres:
       enabled: true
       size: 8Gi
       storageClassName: ""
+      volumeSnapshot:
+        # -- CSI snapshot handle. Restores a new in-chart Postgres volume from it.
+        snapshotHandle: ""
+        driver: ""
+        deletionPolicy: Retain
   pdb:
     enabled: false
     minAvailable: 1
@@ -3454,6 +3500,8 @@ queue:
         steps:
           - setWeight: 100
   deployment:
+    # -- Maximum Redis connections per pod. Keep replicas x this value below your Redis maxclients.
+    redisMaxConnections: 250
     replicas: 1
     labels: {}
     annotations: {}

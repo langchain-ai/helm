@@ -53,6 +53,7 @@ spec:
       securityContext:
         {{- include "langsmith.podSecurityContext" (dict "Values" .Values "componentSecurityContext" .Values.fleetToolServer.deployment.podSecurityContext) | nindent 8 }}
       serviceAccountName: {{ include "fleetToolServer.serviceAccountName" . }}
+      automountServiceAccountToken: {{ .Values.fleetToolServer.serviceAccount.automountServiceAccountToken }}
       {{- include "langsmith.dnsConfig" . | nindent 6 }}
       {{- with concat .Values.commonInitContainers .Values.fleetToolServer.deployment.initContainers }}
       initContainers:

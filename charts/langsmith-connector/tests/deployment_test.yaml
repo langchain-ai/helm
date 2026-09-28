@@ -1,0 +1,218 @@
+suite: connector deployment
+templates:
+  - connector/deployment.yaml
+values:
+  - common-values.yaml
+tests:
+  - it: renders the four LangSmith env vars from values
+    set:
+      config.endpoint: "https://langsmith.example.com/api"
+      config.targets:
+        database: "db.internal.example:5432"
+        api: "https://api.internal.example:8443"
+    asserts:
+      - isKind:
+          of: Deployment
+      - equal:
+          path: metadata.name
+          value: RELEASE-NAME-langsmith-connector-connector
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: LANGSMITH_ENDPOINT
+            value: "https://langsmith.example.com/api"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: LANGSMITH_CONNECTION_ID
+            value: "0f7e5f1c-1b2d-4c3e-8a9b-0c1d2e3f4a5b"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: LANGSMITH_API_KEY_FILE
+            value: /var/run/secrets/langsmith/langsmith_api_key
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: LANGSMITH_CONNECTOR_TARGETS
+            value: "api=https://api.internal.example:8443,database=db.internal.example:5432"
+
+  - it: places commonEnv before chart env and extraEnv after it
+    set:
+      commonEnv:
+        - name: COMMON
+          value: first
+      connector.deployment.extraEnv:
+        - name: EXTRA
+          value: last
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].env[0].name
+          value: COMMON
+      - equal:
+          path: spec.template.spec.containers[0].env[5].name
+          value: EXTRA
+
+  - it: mounts the chart-managed secret as the api key file
+    asserts:
+      - contains:
+          path: spec.template.spec.volumes
+          content:
+            name: langsmith-api-key
+            secret:
+              secretName: RELEASE-NAME-langsmith-connector-secrets
+              items:
+                - key: langsmith_api_key
+                  path: langsmith_api_key
+      - contains:
+          path: spec.template.spec.containers[0].volumeMounts
+          content:
+            name: langsmith-api-key
+            mountPath: /var/run/secrets/langsmith
+            readOnly: true
+
+  - it: mounts an existing secret with its configured key
+    set:
+      config.apiKey: ""
+      config.existingSecretName: "my-langsmith"
+      config.apiKeySecretKey: "LANGSMITH_API_KEY"
+    asserts:
+      - contains:
+          path: spec.template.spec.volumes
+          content:
+            name: langsmith-api-key
+            secret:
+              secretName: my-langsmith
+              items:
+                - key: LANGSMITH_API_KEY
+                  path: LANGSMITH_API_KEY
+
+  - it: appends commonVolumes and commonVolumeMounts
+    set:
+      commonVolumes:
+        - name: extra-ca
+          configMap:
+            name: corp-ca
+      commonVolumeMounts:
+        - name: extra-ca
+          mountPath: /etc/ssl/corp
+    asserts:
+      - contains:
+          path: spec.template.spec.volumes
+          content:
+            name: extra-ca
+            configMap:
+              name: corp-ca
+      - contains:
+          path: spec.template.spec.containers[0].volumeMounts
+          content:
+            name: extra-ca
+            mountPath: /etc/ssl/corp
+
+  - it: exposes no ports and defines no probes
+    asserts:
+      - notExists:
+          path: spec.template.spec.containers[0].ports
+      - notExists:
+          path: spec.template.spec.containers[0].livenessProbe
+      - notExists:
+          path: spec.template.spec.containers[0].readinessProbe
+
+  - it: runs hardened, without a service account token, and replaces pods without surging
+    asserts:
+      - equal:
+          path: spec.template.spec.automountServiceAccountToken
+          value: false
+      - equal:
+          path: spec.template.spec.serviceAccountName
+          value: RELEASE-NAME-langsmith-connector-connector
+      - equal:
+          path: spec.template.spec.securityContext.runAsNonRoot
+          value: true
+      - equal:
+          path: spec.template.spec.securityContext.runAsUser
+          value: 1000
+      - equal:
+          path: spec.template.spec.containers[0].securityContext.readOnlyRootFilesystem
+          value: true
+      - equal:
+          path: spec.template.spec.containers[0].securityContext.allowPrivilegeEscalation
+          value: false
+      - equal:
+          path: spec.template.spec.terminationGracePeriodSeconds
+          value: 45
+      - equal:
+          path: spec.strategy.rollingUpdate.maxSurge
+          value: 0
+      - equal:
+          path: spec.strategy.rollingUpdate.maxUnavailable
+          value: 1
+
+  - it: merges commonPodSecurityContext under the component security context
+    set:
+      commonPodSecurityContext:
+        fsGroup: 2000
+        runAsUser: 3000
+    asserts:
+      - equal:
+          path: spec.template.spec.securityContext.fsGroup
+          value: 2000
+      - equal:
+          path: spec.template.spec.securityContext.runAsUser
+          value: 1000
+
+  - it: uses the default image and honours a registry prefix
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].image
+          value: "docker.io/langchain/langsmith-connector:0.1.0"
+  - it: prefixes the image with images.registry
+    set:
+      images.registry: "registry.example.com"
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].image
+          value: "registry.example.com/docker.io/langchain/langsmith-connector:0.1.0"
+
+  - it: uses the default service account when creation is disabled
+    set:
+      connector.serviceAccount.create: false
+    asserts:
+      - equal:
+          path: spec.template.spec.serviceAccountName
+          value: default
+
+  - it: applies common and component labels and annotations to the pod
+    set:
+      commonLabels:
+        team: infra
+      commonPodAnnotations:
+        foo: bar
+      connector.deployment.labels:
+        tier: connector
+    asserts:
+      - equal:
+          path: spec.template.metadata.labels.team
+          value: infra
+      - equal:
+          path: spec.template.metadata.labels.tier
+          value: connector
+      - equal:
+          path: spec.template.metadata.annotations.foo
+          value: bar
+      - equal:
+          path: spec.selector.matchLabels["app.kubernetes.io/component"]
+          value: RELEASE-NAME-langsmith-connector-connector
+
+  - it: never places the api key in the deployment
+    asserts:
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: LANGSMITH_API_KEY
+          any: true
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            value: test-api-key
+          any: true

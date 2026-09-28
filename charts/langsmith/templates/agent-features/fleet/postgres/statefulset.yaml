@@ -53,6 +53,7 @@ spec:
       securityContext:
         {{- toYaml .Values.fleet.postgres.statefulSet.podSecurityContext | nindent 8 }}
       serviceAccountName: {{ $componentName }}
+      automountServiceAccountToken: {{ .Values.fleet.postgres.serviceAccount.automountServiceAccountToken }}
       {{- include "langsmith.dnsConfig" . | nindent 6 }}
       containers:
         - name: {{ .Values.fleet.postgres.name }}

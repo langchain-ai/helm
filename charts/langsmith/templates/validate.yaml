@@ -29,6 +29,9 @@ AWS Marketplace Helm template verification).
 {{- if not (kindIs "bool" .Values.smithdb.langsmith.query.enabled) -}}
 {{- fail "smithdb.langsmith.query.enabled must be a boolean. Do not quote true or false." -}}
 {{- end -}}
+{{- if not (kindIs "bool" .Values.smithdb.recoveryStrategy.enabled) -}}
+{{- fail "smithdb.recoveryStrategy.enabled must be a boolean. Do not quote true or false." -}}
+{{- end -}}
 {{- if not (has .Values.smithdb.resourceTier (list "small" "medium" "large")) -}}
 {{- fail "smithdb.resourceTier must be one of: small, medium, large." -}}
 {{- end -}}
@@ -431,6 +434,9 @@ AWS Marketplace Helm template verification).
 {{- fail (printf "smithdb.%s.deployment.replicas must be greater than 0 when smithdb.enabled is true." $workloadName) -}}
 {{- end -}}
 {{- end -}}
+{{- if and .Values.smithdb.enabled .Values.smithdb.recoveryStrategy.enabled (or (not (kindIs "string" .Values.smithdb.recoveryStrategy.retentionWindow)) (empty .Values.smithdb.recoveryStrategy.retentionWindow)) -}}
+{{- fail "smithdb.recoveryStrategy.retentionWindow must be a non-empty duration string when smithdb.recoveryStrategy.enabled is true." -}}
+{{- end -}}
 {{- if .Values.smithdb.langsmith.migration.enabled -}}
 {{- if lt (int .Values.smithdb.ingestion.deployment.replicas) 1 -}}
 {{- fail "smithdb.ingestion.deployment.replicas must be greater than 0 when smithdb.langsmith.migration.enabled is true." -}}
@@ -678,6 +684,22 @@ AWS Marketplace Helm template verification).
 {{- end }}
 {{- if and (gt (len $allPgUrls) 0) (ne (len $allPgUrls) (len (uniq $allPgUrls))) }}
 {{- fail "All postgres connection URLs (langsmith, fleet, insights, polly) must be unique. Duplicate URLs were detected." }}
+{{- end }}
+
+{{- $pgSnapshot := .Values.postgres.statefulSet.persistence.volumeSnapshot }}
+{{- if $pgSnapshot.snapshotHandle }}
+{{- if .Values.postgres.external.enabled }}
+{{- fail "postgres.statefulSet.persistence.volumeSnapshot.snapshotHandle cannot be set when postgres.external.enabled is true" }}
+{{- end }}
+{{- if not .Values.postgres.statefulSet.persistence.enabled }}
+{{- fail "postgres.statefulSet.persistence.enabled must be true when postgres.statefulSet.persistence.volumeSnapshot.snapshotHandle is set" }}
+{{- end }}
+{{- if not $pgSnapshot.driver }}
+{{- fail "postgres.statefulSet.persistence.volumeSnapshot.driver is required when snapshotHandle is set" }}
+{{- end }}
+{{- if not (has $pgSnapshot.deletionPolicy (list "Retain" "Delete")) }}
+{{- fail "postgres.statefulSet.persistence.volumeSnapshot.deletionPolicy must be Retain or Delete" }}
+{{- end }}
 {{- end }}
 
 {{- /* Validate per-agent redis configuration */ -}}

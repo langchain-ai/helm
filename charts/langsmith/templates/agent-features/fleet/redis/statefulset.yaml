@@ -53,6 +53,7 @@ spec:
       securityContext:
         {{- toYaml .Values.fleet.redis.statefulSet.podSecurityContext | nindent 8 }}
       serviceAccountName: {{ $componentName }}
+      automountServiceAccountToken: {{ .Values.fleet.redis.serviceAccount.automountServiceAccountToken }}
       {{- include "langsmith.dnsConfig" . | nindent 6 }}
       containers:
         - name: {{ .Values.fleet.redis.name }}
