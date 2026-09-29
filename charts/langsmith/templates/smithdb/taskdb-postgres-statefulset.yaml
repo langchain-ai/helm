@@ -45,7 +45,7 @@ spec:
           {{- toYaml . | nindent 8 }}
         {{- end }}
     spec:
-      serviceAccountName: {{ include "langsmith.smithdb.taskdbPostgres.serviceAccountName" . }}
+      serviceAccountName: {{ include "langsmith.smithdb.taskdbPostgresServiceAccountName" . }}
       automountServiceAccountToken: {{ $taskdb.statefulSet.automountServiceAccountToken }}
       terminationGracePeriodSeconds: {{ $taskdb.statefulSet.terminationGracePeriodSeconds }}
       {{- with .Values.images.imagePullSecrets }}

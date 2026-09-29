@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.17.0-rc.45](https://img.shields.io/badge/Version-0.17.0--rc.45-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.17.28rc1](https://img.shields.io/badge/AppVersion-0.17.28rc1-informational?style=flat-square)
+![Version: 0.17.0-rc.46](https://img.shields.io/badge/Version-0.17.0--rc.46-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.17.28rc1](https://img.shields.io/badge/AppVersion-0.17.28rc1-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -1243,7 +1243,8 @@ The query disk cache limit is set automatically from the PVC storage request or,
 | smithdb.migration.taskdb.postgres.service.annotations | object | `{}` |  |
 | smithdb.migration.taskdb.postgres.service.labels | object | `{}` |  |
 | smithdb.migration.taskdb.postgres.service.port | int | `5433` |  |
-| smithdb.migration.taskdb.postgres.serviceAccount | object | `{"annotations":{},"create":true,"labels":{},"name":""}` | Dedicated ServiceAccount for the in-chart taskdb Postgres pod. Kept separate from smithdb.serviceAccount so taskdb does not inherit SmithDB's cloud identity. Set create: false and name to use an existing ServiceAccount (e.g. one bound to an OpenShift SCC). |
+| smithdb.migration.taskdb.postgres.serviceAccount | object | `{"annotations":{},"create":true,"labels":{},"name":""}` | ServiceAccount for the in-chart taskdb Postgres pod. |
+| smithdb.migration.taskdb.postgres.serviceAccount.name | string | `""` | Defaults to <release>-<smithdb.name>-<smithdb.migration.taskdb.postgres.name>. |
 | smithdb.migration.taskdb.postgres.statefulSet.affinity | object | `{}` |  |
 | smithdb.migration.taskdb.postgres.statefulSet.annotations | object | `{}` |  |
 | smithdb.migration.taskdb.postgres.statefulSet.automountServiceAccountToken | bool | `true` | Controls whether the in-chart taskdb Postgres pod automatically mounts a ServiceAccount token. |
