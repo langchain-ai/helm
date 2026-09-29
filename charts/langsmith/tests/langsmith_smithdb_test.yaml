@@ -1507,6 +1507,47 @@ tests:
             - "-c"
             - "max_connections=60"
 
+  - it: should not suspend the smithdb migration Job by default
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      smithdb.langsmith.migration.enabled: true
+      smithdb.langsmith.query.enabled: false
+      smithdb.migration.taskdb.postgres.auth.password: taskdb-password
+    template: smithdb/migration-job.yaml
+    asserts:
+      - equal:
+          path: spec.suspend
+          value: false
+
+  - it: should suspend the smithdb migration Job while keeping taskdb
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      smithdb.langsmith.migration.enabled: true
+      smithdb.langsmith.query.enabled: false
+      smithdb.migration.job.suspend: true
+      smithdb.migration.taskdb.postgres.auth.password: taskdb-password
+    templates:
+      - smithdb/migration-job.yaml
+      - smithdb/taskdb-postgres-statefulset.yaml
+      - smithdb/taskdb-postgres-service.yaml
+      - smithdb/taskdb-postgres-secret.yaml
+    asserts:
+      - template: smithdb/migration-job.yaml
+        equal:
+          path: spec.suspend
+          value: true
+      - template: smithdb/taskdb-postgres-statefulset.yaml
+        hasDocuments:
+          count: 1
+      - template: smithdb/taskdb-postgres-service.yaml
+        hasDocuments:
+          count: 1
+      - template: smithdb/taskdb-postgres-secret.yaml
+        hasDocuments:
+          count: 1
+
   - it: should allow retaining the taskdb PVC when the StatefulSet is deleted
     values:
       - ./values/smithdb-enabled.yaml
