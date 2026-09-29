@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.17.0-rc.45](https://img.shields.io/badge/Version-0.17.0--rc.45-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.17.29rc1](https://img.shields.io/badge/AppVersion-0.17.29rc1-informational?style=flat-square)
+![Version: 0.17.0-rc.48](https://img.shields.io/badge/Version-0.17.0--rc.48-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.17.29rc1](https://img.shields.io/badge/AppVersion-0.17.29rc1-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -1223,6 +1223,7 @@ The query disk cache limit is set automatically from the PVC storage request or,
 | smithdb.migration.job.restartPolicy | string | `"Never"` |  |
 | smithdb.migration.job.securityContext | object | `{}` |  |
 | smithdb.migration.job.sidecars | list | `[]` |  |
+| smithdb.migration.job.suspend | bool | `false` | Pause migrate-all: terminates migration pods but keeps the Job and taskdb. Set false to resume. |
 | smithdb.migration.job.terminationGracePeriodSeconds | int | `120` |  |
 | smithdb.migration.job.tolerations | list | `[]` |  |
 | smithdb.migration.job.topologySpreadConstraints | list | `[]` |  |

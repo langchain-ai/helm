@@ -23,6 +23,7 @@ spec:
   parallelism: {{ .Values.smithdb.migration.job.parallelism }}
   backoffLimit: {{ .Values.smithdb.migration.job.backoffLimit }}
   ttlSecondsAfterFinished: {{ .Values.smithdb.migration.job.ttlSecondsAfterFinished }}
+  suspend: {{ .Values.smithdb.migration.job.suspend }}
   {{- with .Values.smithdb.migration.job.activeDeadlineSeconds }}
   activeDeadlineSeconds: {{ . }}
   {{- end }}
