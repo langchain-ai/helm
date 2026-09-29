@@ -3014,6 +3014,7 @@ platformBackend:
       failureThreshold: 6
       periodSeconds: 10
       timeoutSeconds: 1
+    # -- With trajectoryBackend.enabled, the chart uses HTTP /ready on the named platform port and preserves these probe timing settings.
     readinessProbe:
       httpGet:
         path: /ok
@@ -3972,6 +3973,20 @@ fleetTriggerServer:
     labels: {}
     annotations: {}
     automountServiceAccountToken: true
+
+# Trajectory Backend - internal gRPC listener embedded in platformBackend.
+trajectoryBackend:
+  # -- Enable embedded trajectory processing. Requires SmithDB query routing; shares platformBackend resources and scaling.
+  enabled: true
+  # -- Name segment for the internal ClusterIP Service.
+  name: "trajectory-backend"
+  # -- Embedded gRPC listener port on platformBackend Pods; must differ from platformBackend.containerPort.
+  containerPort: 8086
+  service:
+    # -- Internal Service port advertised to trajectory callers.
+    port: 8086
+    labels: {}
+    annotations: {}
 
 # Agent Gateway - proxy for agent traffic with guardrails (NER redaction via Presidio)
 # Optional, disabled by default. Not required for core LangSmith functionality. Private beta.
