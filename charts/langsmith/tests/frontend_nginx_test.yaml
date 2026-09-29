@@ -1,7 +1,27 @@
-suite: frontend nginx request buffering
+suite: frontend nginx routing and request buffering
 templates:
   - frontend/config-map.yaml
 tests:
+  - it: routes the trajectory prefix to platform-backend without a base path
+    asserts:
+      - matchRegex:
+          path: data["nginx.conf"]
+          pattern: 'location /api/v1/trajectory \{\s*rewrite \^/api/v1/trajectory\(\.\*\)\$ /v1/trajectory\$1 break;[^}]*proxy_pass http://[^}]*-platform-backend\.'
+      - notMatchRegex:
+          path: data["nginx.conf"]
+          pattern: 'location = /api/v1/trajectory/navigation'
+
+  - it: routes the trajectory prefix to platform-backend with a base path
+    set:
+      config.basePath: langsmith
+    asserts:
+      - matchRegex:
+          path: data["nginx.conf"]
+          pattern: 'location /langsmith/api/v1/trajectory \{\s*rewrite \^/langsmith/api/v1/trajectory\(\.\*\)\$ /v1/trajectory\$1 break;[^}]*proxy_pass http://[^}]*-platform-backend\.'
+      - notMatchRegex:
+          path: data["nginx.conf"]
+          pattern: 'location = /langsmith/api/v1/trajectory/navigation'
+
   - it: disables request buffering once at server scope so every route inherits it
     asserts:
       - matchRegex:
