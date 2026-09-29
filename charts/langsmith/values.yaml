@@ -326,7 +326,7 @@ fleet:
         httpGet:
           path: /ok?check_db=1
           port: 8000
-        failureThreshold: 6
+        failureThreshold: 12
         periodSeconds: 10
         timeoutSeconds: 1
       readinessProbe:
@@ -394,7 +394,7 @@ fleet:
         httpGet:
           path: "/ok"
           port: 8000
-        failureThreshold: 6
+        failureThreshold: 12
         periodSeconds: 10
         timeoutSeconds: 1
       readinessProbe:
@@ -2041,6 +2041,8 @@ smithdb:
       backoffLimit: 3
       # -- Optional hard deadline for the Job. Leave unset for long-running full migrations.
       activeDeadlineSeconds: null
+      # -- Pause migrate-all: terminates migration pods but keeps the Job and taskdb. Set false to resume.
+      suspend: false
       restartPolicy: Never
       priorityClassName: ""
       labels: {}
@@ -2980,7 +2982,12 @@ platformBackend:
     annotations: {}
     podSecurityContext: {}
     securityContext: {}
-    lifecycle: {}
+    lifecycle:
+      preStop:
+        exec:
+          command:
+            - sleep
+            - "10"
     priorityClassName: ""
     resources:
       limits:
@@ -3022,7 +3029,7 @@ platformBackend:
     affinity: {}
     volumes: []
     volumeMounts: []
-    terminationGracePeriodSeconds: 30
+    terminationGracePeriodSeconds: 60
   # Autoscaling configuration. Either HPA or KEDA can be enabled, not both.
   autoscaling:
     # HPA-specific configuration

@@ -136,6 +136,13 @@ tests:
       - failedTemplate:
           errorMessage: "smithdb.migration.taskdb.postgres.auth.password is required when smithdb.migration.taskdb.postgres.enabled is true and auth.existingSecretName is not set."
 
+  - it: should reject a quoted migration Job suspend value
+    set:
+      smithdb.migration.job.suspend: "true"
+    asserts:
+      - failedTemplate:
+          errorMessage: "smithdb.migration.job.suspend must be a boolean. Do not quote true or false."
+
   - it: should reject non-positive migration parallelism
     values:
       - ./values/smithdb-enabled.yaml
