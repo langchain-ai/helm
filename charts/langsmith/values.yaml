@@ -177,7 +177,7 @@ sandboxes:
     # -- Azure storage account name used by JuiceFS. Required when sandboxes.juicefs.storage is `wasb`.
     storageAccountName: ""
     redis:
-      # -- JuiceFS Redis metadata URL. Redis metadata engines must use maxmemory-policy noeviction. For Redis Cluster, the `/DB` path is used by JuiceFS as a hash-tag key prefix rather than a Redis logical database.
+      # -- JuiceFS Redis metadata URL. Redis metadata engines must use maxmemory-policy noeviction. For Redis Cluster, the `/DB` path is used by JuiceFS as a hash-tag key prefix rather than a Redis logical database. For Entra ID authentication to Azure Managed Redis, use `rediss://<host>:10000/<db>?auth-provider=azure` with no username or password, and enable Azure Workload Identity on sandbox-host and the formatter Job.
       metaURL: ""
     # -- Existing Secret containing JuiceFS config keys `name`, `metaurl`, `storage`, and `bucket`. For Azure Blob Storage, set `access-key` to the storage account name. Set `secret-key` only for account-key authentication. The formatter Job reads the Secret; sandbox-host receives only `metaurl`. When set, the chart does not create the config Secret and the corresponding values above are ignored. Rotate the Secret name to rerun formatting; roll sandbox-host after changing data in place.
     existingSecretName: ""
