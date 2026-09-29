@@ -26,6 +26,9 @@ AWS Marketplace Helm template verification).
 {{- if not (kindIs "bool" .Values.smithdb.langsmith.migration.enabled) -}}
 {{- fail "smithdb.langsmith.migration.enabled must be a boolean. Do not quote true or false." -}}
 {{- end -}}
+{{- if not (kindIs "bool" .Values.smithdb.migration.job.suspend) -}}
+{{- fail "smithdb.migration.job.suspend must be a boolean. Do not quote true or false." -}}
+{{- end -}}
 {{- if not (kindIs "bool" .Values.smithdb.langsmith.query.enabled) -}}
 {{- fail "smithdb.langsmith.query.enabled must be a boolean. Do not quote true or false." -}}
 {{- end -}}
