@@ -142,6 +142,7 @@ tests:
     asserts:
       - failedTemplate:
           errorMessage: "smithdb.migration.job.suspend must be a boolean. Do not quote true or false."
+
   - it: should reject non-positive migration parallelism
     values:
       - ./values/smithdb-enabled.yaml
