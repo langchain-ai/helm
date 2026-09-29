@@ -602,6 +602,18 @@ Name of the secret containing credentials for the SmithDB migration taskdb Postg
 {{- end }}
 
 {{/*
+Name of the service account for the SmithDB migration taskdb Postgres.
+*/}}
+{{- define "langsmith.smithdb.taskdbPostgresServiceAccountName" -}}
+{{- $taskdb := .Values.smithdb.migration.taskdb.postgres -}}
+{{- if $taskdb.serviceAccount.create -}}
+{{- default (printf "%s-%s" (include "langsmith.smithdb.fullname" .) $taskdb.name) $taskdb.serviceAccount.name | trunc 63 | trimSuffix "-" }}
+{{- else -}}
+{{- default "default" $taskdb.serviceAccount.name }}
+{{- end -}}
+{{- end }}
+
+{{/*
 Name of a SmithDB component Service or Deployment.
 Args: root, component.
 */}}
