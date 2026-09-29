@@ -2113,6 +2113,14 @@ smithdb:
           port: 5433
           labels: {}
           annotations: {}
+        # -- Dedicated ServiceAccount for the in-chart taskdb Postgres pod. Kept separate from
+        # smithdb.serviceAccount so taskdb does not inherit SmithDB's cloud identity. Set create: false
+        # and name to use an existing ServiceAccount (e.g. one bound to an OpenShift SCC).
+        serviceAccount:
+          create: true
+          name: ""
+          labels: {}
+          annotations: {}
         statefulSet:
           # -- Controls whether the in-chart taskdb Postgres pod automatically mounts a ServiceAccount token.
           automountServiceAccountToken: true

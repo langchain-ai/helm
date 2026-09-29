@@ -1243,6 +1243,7 @@ The query disk cache limit is set automatically from the PVC storage request or,
 | smithdb.migration.taskdb.postgres.service.annotations | object | `{}` |  |
 | smithdb.migration.taskdb.postgres.service.labels | object | `{}` |  |
 | smithdb.migration.taskdb.postgres.service.port | int | `5433` |  |
+| smithdb.migration.taskdb.postgres.serviceAccount | object | `{"annotations":{},"create":true,"labels":{},"name":""}` | Dedicated ServiceAccount for the in-chart taskdb Postgres pod. Kept separate from smithdb.serviceAccount so taskdb does not inherit SmithDB's cloud identity. Set create: false and name to use an existing ServiceAccount (e.g. one bound to an OpenShift SCC). |
 | smithdb.migration.taskdb.postgres.statefulSet.affinity | object | `{}` |  |
 | smithdb.migration.taskdb.postgres.statefulSet.annotations | object | `{}` |  |
 | smithdb.migration.taskdb.postgres.statefulSet.automountServiceAccountToken | bool | `true` | Controls whether the in-chart taskdb Postgres pod automatically mounts a ServiceAccount token. |

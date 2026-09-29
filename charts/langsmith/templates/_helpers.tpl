@@ -711,6 +711,19 @@ Args: root.
 {{/*
 Common init containers shared by every SmithDB workload.
 */}}
+{{/*
+ServiceAccount for the in-chart SmithDB migration taskdb Postgres. Intentionally separate
+from langsmith.smithdb.serviceAccountName so taskdb does not inherit SmithDB's identity.
+*/}}
+{{- define "langsmith.smithdb.taskdbPostgres.serviceAccountName" -}}
+{{- $taskdb := .Values.smithdb.migration.taskdb.postgres -}}
+{{- if $taskdb.serviceAccount.create -}}
+{{- default (printf "%s-%s" (include "langsmith.smithdb.fullname" .) $taskdb.name) $taskdb.serviceAccount.name | trunc 63 | trimSuffix "-" }}
+{{- else -}}
+{{- default "default" $taskdb.serviceAccount.name }}
+{{- end -}}
+{{- end }}
+
 {{- define "langsmith.smithdb.commonInitContainers" -}}
 {{- toYaml .Values.smithdb.commonInitContainers -}}
 {{- end }}
