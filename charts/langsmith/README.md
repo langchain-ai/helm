@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.17.0-rc.52](https://img.shields.io/badge/Version-0.17.0--rc.52-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.17.28rc1](https://img.shields.io/badge/AppVersion-0.17.28rc1-informational?style=flat-square)
+![Version: 0.17.0-rc.53](https://img.shields.io/badge/Version-0.17.0--rc.53-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.17.28rc1](https://img.shields.io/badge/AppVersion-0.17.28rc1-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -25,6 +25,14 @@ Two things worth planning for before you enable it:
 **Sandbox nodes.** Sandboxes are Firecracker microVMs, so `sandboxes.sandboxHost.deployment.nodeSelector` must place host pods on KVM-capable nodes — bare-metal instances, or instance types with nested virtualization explicitly enabled. Sandbox images are published for `linux/amd64` only. A dedicated, tainted node pool is the usual arrangement, since rolling a sandbox-host pod suspends every microVM on it.
 
 **Which workspace owns the sandboxes.** By default smith-go resolves the install's workspace, which works when there is exactly one non-personal organization. With more than one it declines rather than guess, and you must set `engine.sandboxTenantId` explicitly. Prefer a workspace reserved for the Engine: its sandboxes are visible to anyone with access to it.
+
+## Sandbox quotas
+
+When `sandboxes.enabled=true`, configure sandbox admission limits through `sandboxes.quotas.maxSandboxes`, `maxCpuCores`, and `maxMemoryGb`. The chart supplies the corresponding `DEFAULT_ORG_FEATURE_MAX_SANDBOXES`, `DEFAULT_ORG_FEATURE_MAX_SANDBOX_CPU`, and `DEFAULT_ORG_FEATURE_MAX_SANDBOX_MEMORY` variables in the shared ConfigMap, in addition to the platform backend's existing `SANDBOX_MAX_*` fallback variables. Memory is expressed in GiB: `maxMemoryGb: 64` becomes `64Gi` in the org configuration.
+
+These org quota variables apply across the installation and take precedence over stored org quota values on authenticated requests. Explicit entries in `commonEnv` or a component's `deployment.extraEnv` override the shared ConfigMap for that component. Use consistent overrides across services that resolve authentication. Quotas do not provision sandbox-host nodes or reserve CPU, memory, or storage capacity.
+
+**Upgrade note:** older charts could enforce application defaults of 10 sandboxes, 200 CPU cores, and 400 GiB instead of the chart defaults of 1000 sandboxes, 16 CPU cores, and 64 GiB. Before upgrading, inspect the effective limits and usage at `GET /api/v2/sandboxes/usage` for each workspace and configure quotas appropriate for the available capacity. Applying the chart values can lower CPU or memory limits and reject subsequent sandbox creates or starts. Allow auth caches to refresh after the backend rollout before checking the new limits. Application version `0.16.61` resolves automatic-wake limits separately from raw org database configuration and the fallback variables; explicit database overrides can still differ from authenticated limits in that version.
 
 ## SmithDB resource tiers
 
