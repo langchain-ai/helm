@@ -82,6 +82,155 @@ tests:
           content:
             name: SANDBOX_SERVICE_URLS
 
+  - it: should omit sandbox org quotas when sandboxes are disabled
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      sandboxes.enabled: false
+    template: config-map.yaml
+    asserts:
+      - notExists:
+          path: data.DEFAULT_ORG_FEATURE_MAX_SANDBOXES
+      - notExists:
+          path: data.DEFAULT_ORG_FEATURE_MAX_SANDBOX_CPU
+      - notExists:
+          path: data.DEFAULT_ORG_FEATURE_MAX_SANDBOX_MEMORY
+
+  - it: should expose sandbox quotas as shared org defaults
+    values:
+      - ./values/sandboxes-enabled.yaml
+    template: config-map.yaml
+    asserts:
+      - equal:
+          path: data.DEFAULT_ORG_FEATURE_MAX_SANDBOXES
+          value: "1000"
+      - equal:
+          path: data.DEFAULT_ORG_FEATURE_MAX_SANDBOX_CPU
+          value: "16"
+      - equal:
+          path: data.DEFAULT_ORG_FEATURE_MAX_SANDBOX_MEMORY
+          value: "64Gi"
+
+  - it: should preserve custom sandbox quotas and fractional resource units
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      sandboxes.quotas.maxSandboxes: 37
+      sandboxes.quotas.maxCpuCores: 3.5
+      sandboxes.quotas.maxMemoryGb: 7.25
+    template: config-map.yaml
+    asserts:
+      - equal:
+          path: data.DEFAULT_ORG_FEATURE_MAX_SANDBOXES
+          value: "37"
+      - equal:
+          path: data.DEFAULT_ORG_FEATURE_MAX_SANDBOX_CPU
+          value: "3.5"
+      - equal:
+          path: data.DEFAULT_ORG_FEATURE_MAX_SANDBOX_MEMORY
+          value: "7.25Gi"
+
+  - it: should retain legacy sandbox quota environment variables
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      sandboxes.quotas.maxSandboxes: 37
+      sandboxes.quotas.maxCpuCores: 3.5
+      sandboxes.quotas.maxMemoryGb: 7.25
+    template: platform-backend/deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_MAX_SANDBOXES
+            value: "37"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_MAX_CPU_CORES
+            value: "3.5"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_MAX_MEMORY_GB
+            value: "7.25"
+
+  - it: should preserve common sandbox org quota overrides over the shared config map
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      commonEnv:
+        - name: DEFAULT_ORG_FEATURE_MAX_SANDBOXES
+          value: "1500"
+        - name: DEFAULT_ORG_FEATURE_MAX_SANDBOX_CPU
+          value: "24"
+        - name: DEFAULT_ORG_FEATURE_MAX_SANDBOX_MEMORY
+          value: "96Gi"
+    templates:
+      - platform-backend/deployment.yaml
+      - ingest-queue/deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].envFrom
+          content:
+            configMapRef:
+              name: RELEASE-NAME-langsmith-config
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: DEFAULT_ORG_FEATURE_MAX_SANDBOXES
+            value: "1500"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: DEFAULT_ORG_FEATURE_MAX_SANDBOX_CPU
+            value: "24"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: DEFAULT_ORG_FEATURE_MAX_SANDBOX_MEMORY
+            value: "96Gi"
+
+  - it: should preserve platform backend sandbox org quota overrides including valueFrom
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      platformBackend.deployment.extraEnv:
+        - name: DEFAULT_ORG_FEATURE_MAX_SANDBOXES
+          value: "1500"
+        - name: DEFAULT_ORG_FEATURE_MAX_SANDBOX_CPU
+          value: "24"
+        - name: DEFAULT_ORG_FEATURE_MAX_SANDBOX_MEMORY
+          valueFrom:
+            configMapKeyRef:
+              name: custom-sandbox-quotas
+              key: memory
+    template: platform-backend/deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].envFrom
+          content:
+            configMapRef:
+              name: RELEASE-NAME-langsmith-config
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: DEFAULT_ORG_FEATURE_MAX_SANDBOXES
+            value: "1500"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: DEFAULT_ORG_FEATURE_MAX_SANDBOX_CPU
+            value: "24"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: DEFAULT_ORG_FEATURE_MAX_SANDBOX_MEMORY
+            valueFrom:
+              configMapKeyRef:
+                name: custom-sandbox-quotas
+                key: memory
+
   - it: should derive sandbox service URLs from the service URL base URL
     values:
       - ./values/sandboxes-enabled.yaml
