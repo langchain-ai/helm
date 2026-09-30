@@ -5,7 +5,7 @@
 - name: TRAJECTORY_GRPC_ENABLED
   value: "true"
 - name: TRAJECTORY_GRPC_PORT
-  value: {{ .Values.trajectoryBackend.containerPort | quote }}
+  value: "8086"
 {{- end }}
 {{- with .Values.config.basePath }}
 - name: DOCS_PREFIX
@@ -138,7 +138,7 @@ spec:
               protocol: TCP
           {{- if eq (include "langsmith.trajectoryEnabled" .) "true" }}
             - name: grpc
-              containerPort: {{ .Values.trajectoryBackend.containerPort }}
+              containerPort: 8086
               protocol: TCP
           {{- end }}
           {{- with .Values.platformBackend.deployment.startupProbe }}

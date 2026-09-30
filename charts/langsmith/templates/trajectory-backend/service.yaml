@@ -2,22 +2,16 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "langsmith.fullname" . }}-{{ .Values.trajectoryBackend.name }}
+  name: {{ include "langsmith.fullname" . }}-trajectory-backend
   namespace: {{ .Values.namespace | default .Release.Namespace }}
   labels:
     {{- include "langsmith.labels" . | nindent 4 }}
-    {{- with .Values.trajectoryBackend.service.labels }}
-      {{- toYaml . | nindent 4 }}
-    {{- end }}
   annotations:
     {{- include "langsmith.annotations" . | nindent 4 }}
-    {{- with .Values.trajectoryBackend.service.annotations }}
-      {{- toYaml . | nindent 4 }}
-    {{- end }}
 spec:
   type: ClusterIP
   ports:
-    - port: {{ .Values.trajectoryBackend.service.port }}
+    - port: 8086
       targetPort: grpc
       protocol: TCP
       name: grpc
