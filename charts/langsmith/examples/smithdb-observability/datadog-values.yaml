@@ -1,4 +1,4 @@
-# Datadog Autodiscovery annotations for SmithDB and the LangSmith ingest queue.
+# Datadog Autodiscovery annotations for SmithDB, the LangSmith ingest queue, and platform-backend.
 # Apply alongside your LangSmith values: helm upgrade ... -f values.yaml -f datadog-values.yaml
 # The dashboard in datadog-dashboard.json expects these exact check settings.
 
@@ -104,12 +104,25 @@ ingestQueue:
             "instances": [
               {
                 "openmetrics_endpoint": "http://%%host%%:1989/metrics",
-                "metrics": [
-                  "langsmith_ingestion_.*_latency_seconds",
-                  "langsmith_asynq_ingestion_queue_pending"
-                ],
+                "metrics": ["langsmith_ingestion_.*_latency_seconds"],
                 "histogram_buckets_as_distributions": true,
                 "collect_counters_with_distributions": true
+              }
+            ]
+          }
+        }
+
+platformBackend:
+  deployment:
+    annotations:
+      ad.datadoghq.com/platform-backend.checks: |
+        {
+          "openmetrics": {
+            "init_config": {},
+            "instances": [
+              {
+                "openmetrics_endpoint": "http://%%host%%:1986/metrics",
+                "metrics": ["langsmith_asynq_ingestion_queue_pending"]
               }
             ]
           }

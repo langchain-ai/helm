@@ -19,7 +19,7 @@ Datadog and Grafana dashboards for SmithDB on self-hosted LangSmith. For what ea
    - **Datadog**: Create a dashboard, open its settings, select **Import dashboard JSON**, and select `datadog-dashboard.json`.
    - **Grafana**: Go to **Dashboards** > **New** > **Import**, upload `grafana-dashboard.json`, and select your Prometheus data source.
 
-Both values files also scrape the ingest queue on port 1989, which serves the `langsmith_*` metrics.
+Both values files also scrape the LangSmith ingest queue (port 1989) and platform-backend (port 1986), which serve the `langsmith_*` metrics.
 
 ## Metric names
 

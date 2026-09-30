@@ -1,4 +1,4 @@
-# Prometheus scrape annotations for SmithDB and the LangSmith ingest queue.
+# Prometheus scrape annotations for SmithDB, the LangSmith ingest queue, and platform-backend.
 # Apply alongside your LangSmith values: helm upgrade ... -f values.yaml -f prometheus-values.yaml
 
 smithdb:
@@ -39,3 +39,10 @@ ingestQueue:
       prometheus.io/scrape: "true"
       prometheus.io/path: "/metrics"
       prometheus.io/port: "1989"
+
+platformBackend:
+  deployment:
+    annotations:
+      prometheus.io/scrape: "true"
+      prometheus.io/path: "/metrics"
+      prometheus.io/port: "1986"
