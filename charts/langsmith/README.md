@@ -52,14 +52,9 @@ The query disk cache limit is set automatically from the PVC storage request or,
 
 ## Trajectory backend
 
-Online evaluations on trajectories use an internal gRPC listener in `platformBackend` on port `8086`, enabled by default only when both `smithdb.enabled` and `smithdb.langsmith.query.enabled` are true. Otherwise, no trajectory listener, Service, or endpoint is configured. It shares the HTTP backend's SmithDB routing, resources, and scaling; readiness uses `/ready` while active.
+Online evaluations on trajectories use an internal gRPC listener in `platformBackend` on port `8086`, enabled when both `smithdb.enabled` and `smithdb.langsmith.query.enabled` are true. Otherwise, no trajectory listener, Service, or endpoint is configured. It shares the HTTP backend's SmithDB routing, resources, and scaling; readiness uses `/ready` while active.
 
-Requires a backend image with embedded trajectory support. To opt out even with SmithDB queries enabled:
-
-```yaml
-trajectoryBackend:
-  enabled: false
-```
+Requires a backend image with embedded trajectory support.
 
 The trajectory Service is cluster-internal; no public route is added. Trajectory processing can be memory intensive, consider setting [GOMEMLIMIT](https://pkg.go.dev/runtime#hdr-Environment_Variables) relative to your memory limit to mitigate OOMKilled errors for this service. If setting `GOMEMLIMIT` through `platformBackend.deployment.extraEnv`, account for the combined HTTP and trajectory workload and leave headroom below the container memory limit.
 
@@ -1536,7 +1531,6 @@ The trajectory Service is cluster-internal; no public route is added. Trajectory
 | smithdb.statsQuery.service.labels | object | `{}` |  |
 | smithdb.statsQuery.service.port | int | `8080` |  |
 | trajectoryBackend.containerPort | int | `8086` | Embedded gRPC listener port on platformBackend Pods; must differ from platformBackend.containerPort. |
-| trajectoryBackend.enabled | bool | `true` | Enable embedded trajectory processing when smithdb.enabled and smithdb.langsmith.query.enabled are true; shares platformBackend resources and scaling. |
 | trajectoryBackend.name | string | `"trajectory-backend"` | Name segment for the internal ClusterIP Service. |
 | trajectoryBackend.service.annotations | object | `{}` |  |
 | trajectoryBackend.service.labels | object | `{}` |  |

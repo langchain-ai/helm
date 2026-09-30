@@ -189,7 +189,7 @@ dnsConfig:
 {{- end }}
 
 {{- define "langsmith.trajectoryEnabled" -}}
-{{- and .Values.trajectoryBackend.enabled .Values.smithdb.enabled .Values.smithdb.langsmith.query.enabled -}}
+{{- and .Values.smithdb.enabled .Values.smithdb.langsmith.query.enabled -}}
 {{- end -}}
 
 {{/*
