@@ -106,10 +106,10 @@ tests:
           value: "1000"
       - equal:
           path: data.DEFAULT_ORG_FEATURE_MAX_SANDBOX_CPU
-          value: "16"
+          value: "200"
       - equal:
           path: data.DEFAULT_ORG_FEATURE_MAX_SANDBOX_MEMORY
-          value: "64Gi"
+          value: "400Gi"
 
   - it: should preserve custom sandbox quotas and fractional resource units
     values:

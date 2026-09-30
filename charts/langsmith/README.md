@@ -32,11 +32,9 @@ Two things worth planning for before you enable it:
 
 ## Sandbox quotas
 
-When `sandboxes.enabled=true`, configure sandbox admission limits through `sandboxes.quotas.maxSandboxes`, `maxCpuCores`, and `maxMemoryGb`. The chart supplies the corresponding `DEFAULT_ORG_FEATURE_MAX_SANDBOXES`, `DEFAULT_ORG_FEATURE_MAX_SANDBOX_CPU`, and `DEFAULT_ORG_FEATURE_MAX_SANDBOX_MEMORY` variables in the shared ConfigMap, in addition to the platform backend's existing `SANDBOX_MAX_*` fallback variables. Memory is expressed in GiB: `maxMemoryGb: 64` becomes `64Gi` in the org configuration.
+When `sandboxes.enabled=true`, configure limits under `sandboxes.quotas`: `maxSandboxes` (default 1000), `maxCpuCores` (200), and `maxMemoryGb` (400 GiB). These limits do not provision cluster capacity.
 
-These org quota variables apply across the installation and take precedence over stored org quota values on authenticated requests. Explicit entries in `commonEnv` or a component's `deployment.extraEnv` override the shared ConfigMap for that component. Use consistent overrides across services that resolve authentication. Quotas do not provision sandbox-host nodes or reserve CPU, memory, or storage capacity.
-
-**Upgrade note:** older charts could enforce application defaults of 10 sandboxes, 200 CPU cores, and 400 GiB instead of the chart defaults of 1000 sandboxes, 16 CPU cores, and 64 GiB. Before upgrading, inspect the effective limits and usage at `GET /api/v2/sandboxes/usage` for each workspace and configure quotas appropriate for the available capacity. Applying the chart values can lower CPU or memory limits and reject subsequent sandbox creates or starts. Allow auth caches to refresh after the backend rollout before checking the new limits. Application version `0.16.61` resolves automatic-wake limits separately from raw org database configuration and the fallback variables; explicit database overrides can still differ from authenticated limits in that version.
+**Compatibility:** Configured sandbox quotas now apply to authenticated requests. Review existing Helm and organization-level quota overrides before upgrading.
 
 ## SmithDB resource tiers
 
@@ -932,9 +930,9 @@ Replica counts and autoscaling remain controlled by each component's `deployment
 | sandboxes.proxyCa.existingSecretName | string | `""` | Existing TLS Secret containing tls.crt and tls.key for the sandbox proxy CA. This Secret can be created manually, by cert-manager, or by another external process. |
 | sandboxes.proxyCa.mode | string | `"generatedSecret"` | generatedSecret creates a self-signed CA Secret with Helm and reuses it on live upgrades via lookup. In pure render/GitOps workflows where lookup cannot read the cluster, generatedSecret produces different cert material on each render; use existingSecret for deterministic manifests. |
 | sandboxes.proxyCa.secretName | string | `"smithbox-proxy-ca"` |  |
-| sandboxes.quotas.maxCpuCores | int | `16` |  |
+| sandboxes.quotas.maxCpuCores | int | `200` |  |
 | sandboxes.quotas.maxEphemeralStorageGib | int | `100` |  |
-| sandboxes.quotas.maxMemoryGb | int | `64` |  |
+| sandboxes.quotas.maxMemoryGb | int | `400` |  |
 | sandboxes.quotas.maxSandboxes | int | `1000` |  |
 | sandboxes.quotas.minEphemeralStorageGb | int | `1` |  |
 | sandboxes.sandboxHost.autoscaling | object | `{"enabled":false,"headroomHosts":1,"maxReplicas":10,"minReplicas":1,"scaleDownStabilizationSeconds":300,"targetUtilizationPercent":70}` | Sandbox host pool autoscaling. There is no HPA or KEDA object: the elected sandbox-host resizes the Deployment itself. Unmanaged `sandbox-host.smith.langchain.com/autoscale-*` annotations override these live. |
