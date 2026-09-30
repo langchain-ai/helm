@@ -55,9 +55,9 @@ The query disk cache limit is set automatically from the PVC storage request or,
 
 ## Trajectory backend
 
-Online evaluations on trajectories use an internal gRPC listener in `platformBackend`, enabled by default on port `8086`. It shares the HTTP backend's SmithDB query routing, resources, and scaling. Platform-backend readiness uses `/ready` to cover both listeners.
+Online evaluations on trajectories use an internal gRPC listener in `platformBackend` on port `8086`, enabled by default only when both `smithdb.enabled` and `smithdb.langsmith.query.enabled` are true. Otherwise, no trajectory listener, Service, or endpoint is configured. It shares the HTTP backend's SmithDB routing, resources, and scaling; readiness uses `/ready` while active.
 
-Requires a backend image with embedded trajectory support and configured SmithDB query routing. To disable:
+Requires a backend image with embedded trajectory support. To opt out even with SmithDB queries enabled:
 
 ```yaml
 trajectoryBackend:

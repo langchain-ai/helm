@@ -52,16 +52,16 @@ The query disk cache limit is set automatically from the PVC storage request or,
 
 ## Trajectory backend
 
-Online evaluations on trajectories use an internal gRPC listener in `platformBackend`, enabled by default on port `8086`. It shares the HTTP backend's SmithDB query routing, resources, and scaling. Platform-backend readiness uses `/ready` to cover both listeners.
+Online evaluations on trajectories use an internal gRPC listener in `platformBackend` on port `8086`, enabled by default only when both `smithdb.enabled` and `smithdb.langsmith.query.enabled` are true. Otherwise, no trajectory listener, Service, or endpoint is configured. It shares the HTTP backend's SmithDB routing, resources, and scaling; readiness uses `/ready` while active.
 
-Requires a backend image with embedded trajectory support and configured SmithDB query routing. To disable:
+Requires a backend image with embedded trajectory support. To opt out even with SmithDB queries enabled:
 
 ```yaml
 trajectoryBackend:
   enabled: false
 ```
 
-The trajectory Service is cluster-internal; no public route is added. If setting `GOMEMLIMIT` through `platformBackend.deployment.extraEnv`, account for the combined HTTP and trajectory workload and leave headroom below the container memory limit.
+The trajectory Service is cluster-internal; no public route is added. Trajectory processing can be memory intensive, consider setting [GOMEMLIMIT](https://pkg.go.dev/runtime#hdr-Environment_Variables) relative to your memory limit to mitigate OOMKilled errors for this service. If setting `GOMEMLIMIT` through `platformBackend.deployment.extraEnv`, account for the combined HTTP and trajectory workload and leave headroom below the container memory limit.
 
 ## General parameters
 
@@ -1536,7 +1536,7 @@ The trajectory Service is cluster-internal; no public route is added. If setting
 | smithdb.statsQuery.service.labels | object | `{}` |  |
 | smithdb.statsQuery.service.port | int | `8080` |  |
 | trajectoryBackend.containerPort | int | `8086` | Embedded gRPC listener port on platformBackend Pods; must differ from platformBackend.containerPort. |
-| trajectoryBackend.enabled | bool | `true` | Enable embedded trajectory processing. Requires SmithDB query routing; shares platformBackend resources and scaling. |
+| trajectoryBackend.enabled | bool | `true` | Enable embedded trajectory processing when smithdb.enabled and smithdb.langsmith.query.enabled are true; shares platformBackend resources and scaling. |
 | trajectoryBackend.name | string | `"trajectory-backend"` | Name segment for the internal ClusterIP Service. |
 | trajectoryBackend.service.annotations | object | `{}` |  |
 | trajectoryBackend.service.labels | object | `{}` |  |
@@ -2492,7 +2492,7 @@ The trajectory Service is cluster-internal; no public route is added. If setting
 | platformBackend.deployment.nodeSelector | object | `{}` |  |
 | platformBackend.deployment.podSecurityContext | object | `{}` |  |
 | platformBackend.deployment.priorityClassName | string | `""` |  |
-| platformBackend.deployment.readinessProbe | object | `{"failureThreshold":6,"httpGet":{"path":"/ok","port":1986},"periodSeconds":10,"timeoutSeconds":1}` | With trajectoryBackend.enabled, the chart uses HTTP /ready on the named platform port and preserves these probe timing settings. |
+| platformBackend.deployment.readinessProbe | object | `{"failureThreshold":6,"httpGet":{"path":"/ok","port":1986},"periodSeconds":10,"timeoutSeconds":1}` | When embedded trajectory processing is active, uses HTTP /ready on the named platform port and preserves these probe timing settings. |
 | platformBackend.deployment.replicas | int | `3` |  |
 | platformBackend.deployment.resources.limits.cpu | string | `"2000m"` |  |
 | platformBackend.deployment.resources.limits.memory | string | `"4Gi"` |  |
