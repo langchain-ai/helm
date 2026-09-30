@@ -1,0 +1,61 @@
+suite: engine usage recording env
+templates:
+  - config-map.yaml
+  - secrets.yaml
+  - redis/secrets.yaml
+  - postgres/secrets.yaml
+  - clickhouse/secrets.yaml
+  - frontend/config-map.yaml
+  - operator/config-map.yaml
+  - platform-backend/deployment.yaml
+  - ingest-queue/deployment.yaml
+  - agent-features/insights/api-server/deployment.yaml
+  - agent-features/insights/queue/deployment.yaml
+tests:
+  - it: should share the service-auth secret between smith-go and the engine pods
+    templates:
+      - platform-backend/deployment.yaml
+      - ingest-queue/deployment.yaml
+      - agent-features/insights/api-server/deployment.yaml
+      - agent-features/insights/queue/deployment.yaml
+    set:
+      engine.enabled: true
+      engine.encryptionKey: test-key
+      engine.intelligenceBaseUrl: https://beacon.aws.langchain.com/intelligence
+      images.engineInsightsAgentImage.repository: docker.io/langchain/langsmith-insights-engine
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: ISSUES_AGENT_X_SERVICE_AUTH_JWT_SECRET
+            valueFrom:
+              secretKeyRef:
+                name: RELEASE-NAME-langsmith-secrets
+                key: api_key_salt
+                optional: false
+
+  - it: should sweep recorded usage in the smith-go services
+    templates:
+      - platform-backend/deployment.yaml
+      - ingest-queue/deployment.yaml
+    set:
+      engine.enabled: true
+      engine.encryptionKey: test-key
+      engine.intelligenceBaseUrl: https://beacon.aws.langchain.com/intelligence
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: ISSUES_AGENT_USAGE_SWEEP_CRON_ENABLED
+            value: "true"
+
+  - it: should leave usage recording off when engine is disabled
+    templates:
+      - platform-backend/deployment.yaml
+      - ingest-queue/deployment.yaml
+    asserts:
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: ISSUES_AGENT_USAGE_SWEEP_CRON_ENABLED
+            value: "true"
