@@ -2114,6 +2114,13 @@ smithdb:
           port: 5433
           labels: {}
           annotations: {}
+        # -- ServiceAccount for the in-chart taskdb Postgres pod.
+        serviceAccount:
+          create: true
+          # -- Defaults to <release>-<smithdb.name>-<smithdb.migration.taskdb.postgres.name>.
+          name: ""
+          labels: {}
+          annotations: {}
         statefulSet:
           # -- Controls whether the in-chart taskdb Postgres pod automatically mounts a ServiceAccount token.
           automountServiceAccountToken: true
