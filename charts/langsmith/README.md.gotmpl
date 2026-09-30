@@ -32,6 +32,12 @@ Two things worth planning for before you enable it:
 
 {{ template "chart.requirementsSection" . }}
 
+## Sandbox quotas
+
+When `sandboxes.enabled=true`, configure limits under `sandboxes.quotas`: `maxSandboxes` (default 1000), `maxCpuCores` (200), and `maxMemoryGb` (400 GiB). These limits do not provision cluster capacity.
+
+**Compatibility:** Configured sandbox quotas now apply to authenticated requests. Review existing Helm and organization-level quota overrides before upgrading.
+
 ## SmithDB resource tiers
 
 `smithdb.resourceTier` selects the default per-replica resource sizes shown below. The default is `small`. For components that use local disk, the tier's ephemeral-storage limit also sets the generated `emptyDir.sizeLimit`.

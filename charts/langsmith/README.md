@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.16.35](https://img.shields.io/badge/Version-0.16.35-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.16.67](https://img.shields.io/badge/AppVersion-0.16.67-informational?style=flat-square)
+![Version: 0.16.36](https://img.shields.io/badge/Version-0.16.36-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.16.67](https://img.shields.io/badge/AppVersion-0.16.67-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -29,6 +29,12 @@ Two things worth planning for before you enable it:
 **Sandbox nodes.** Sandboxes are Firecracker microVMs, so `sandboxes.sandboxHost.deployment.nodeSelector` must place host pods on KVM-capable nodes — bare-metal instances, or instance types with nested virtualization explicitly enabled. Sandbox images are published for `linux/amd64` only. A dedicated, tainted node pool is the usual arrangement, since rolling a sandbox-host pod suspends every microVM on it.
 
 **Which workspace owns the sandboxes.** By default smith-go resolves the install's workspace, which works when there is exactly one non-personal organization. With more than one it declines rather than guess, and you must set `engine.sandboxTenantId` explicitly. Prefer a workspace reserved for the Engine: its sandboxes are visible to anyone with access to it.
+
+## Sandbox quotas
+
+When `sandboxes.enabled=true`, configure limits under `sandboxes.quotas`: `maxSandboxes` (default 1000), `maxCpuCores` (200), and `maxMemoryGb` (400 GiB). These limits do not provision cluster capacity.
+
+**Compatibility:** Configured sandbox quotas now apply to authenticated requests. Review existing Helm and organization-level quota overrides before upgrading.
 
 ## SmithDB resource tiers
 
@@ -924,9 +930,9 @@ Replica counts and autoscaling remain controlled by each component's `deployment
 | sandboxes.proxyCa.existingSecretName | string | `""` | Existing TLS Secret containing tls.crt and tls.key for the sandbox proxy CA. This Secret can be created manually, by cert-manager, or by another external process. |
 | sandboxes.proxyCa.mode | string | `"generatedSecret"` | generatedSecret creates a self-signed CA Secret with Helm and reuses it on live upgrades via lookup. In pure render/GitOps workflows where lookup cannot read the cluster, generatedSecret produces different cert material on each render; use existingSecret for deterministic manifests. |
 | sandboxes.proxyCa.secretName | string | `"smithbox-proxy-ca"` |  |
-| sandboxes.quotas.maxCpuCores | int | `16` |  |
+| sandboxes.quotas.maxCpuCores | int | `200` |  |
 | sandboxes.quotas.maxEphemeralStorageGib | int | `100` |  |
-| sandboxes.quotas.maxMemoryGb | int | `64` |  |
+| sandboxes.quotas.maxMemoryGb | int | `400` |  |
 | sandboxes.quotas.maxSandboxes | int | `1000` |  |
 | sandboxes.quotas.minEphemeralStorageGb | int | `1` |  |
 | sandboxes.sandboxHost.autoscaling | object | `{"enabled":false,"headroomHosts":1,"maxReplicas":10,"minReplicas":1,"scaleDownStabilizationSeconds":300,"targetUtilizationPercent":70}` | Sandbox host pool autoscaling. There is no HPA or KEDA object: the elected sandbox-host resizes the Deployment itself. Unmanaged `sandbox-host.smith.langchain.com/autoscale-*` annotations override these live. |
