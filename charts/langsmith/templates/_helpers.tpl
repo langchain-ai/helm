@@ -198,7 +198,7 @@ Template containing common environment variables that are used by several servic
 {{- define "langsmith.commonEnv" -}}
 {{- if eq (include "langsmith.trajectoryEnabled" .) "true" }}
 - name: TRAJECTORY_BACKEND_SERVICE_URL
-  value: "{{ include "langsmith.fullname" . }}-{{ .Values.trajectoryBackend.name }}:{{ .Values.trajectoryBackend.service.port }}"
+  value: "{{ include "langsmith.fullname" . }}-trajectory-backend:8086"
 {{- end }}
 - name: POSTGRES_DATABASE_URI
   valueFrom:

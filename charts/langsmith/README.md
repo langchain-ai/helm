@@ -54,8 +54,6 @@ The query disk cache limit is set automatically from the PVC storage request or,
 
 Online evaluations on trajectories use an internal gRPC listener in `platformBackend` on port `8086`, enabled when both `smithdb.enabled` and `smithdb.langsmith.query.enabled` are true. Otherwise, no trajectory listener, Service, or endpoint is configured. It shares the HTTP backend's SmithDB routing, resources, and scaling; readiness uses `/ready` while active.
 
-Requires a backend image with embedded trajectory support.
-
 The trajectory Service is cluster-internal; no public route is added. Trajectory processing can be memory intensive, consider setting [GOMEMLIMIT](https://pkg.go.dev/runtime#hdr-Environment_Variables) relative to your memory limit to mitigate OOMKilled errors for this service. If setting `GOMEMLIMIT` through `platformBackend.deployment.extraEnv`, account for the combined HTTP and trajectory workload and leave headroom below the container memory limit.
 
 ## General parameters
@@ -1530,11 +1528,6 @@ The trajectory Service is cluster-internal; no public route is added. Trajectory
 | smithdb.statsQuery.service.annotations | object | `{}` |  |
 | smithdb.statsQuery.service.labels | object | `{}` |  |
 | smithdb.statsQuery.service.port | int | `8080` |  |
-| trajectoryBackend.containerPort | int | `8086` | Embedded gRPC listener port on platformBackend Pods; must differ from platformBackend.containerPort. |
-| trajectoryBackend.name | string | `"trajectory-backend"` | Name segment for the internal ClusterIP Service. |
-| trajectoryBackend.service.annotations | object | `{}` |  |
-| trajectoryBackend.service.labels | object | `{}` |  |
-| trajectoryBackend.service.port | int | `8086` | Internal Service port advertised to trajectory callers. |
 
 ## Configs
 
@@ -2486,7 +2479,11 @@ The trajectory Service is cluster-internal; no public route is added. Trajectory
 | platformBackend.deployment.nodeSelector | object | `{}` |  |
 | platformBackend.deployment.podSecurityContext | object | `{}` |  |
 | platformBackend.deployment.priorityClassName | string | `""` |  |
-| platformBackend.deployment.readinessProbe | object | `{"failureThreshold":6,"httpGet":{"path":"/ok","port":1986},"periodSeconds":10,"timeoutSeconds":1}` | When embedded trajectory processing is active, uses HTTP /ready on the named platform port and preserves these probe timing settings. |
+| platformBackend.deployment.readinessProbe.failureThreshold | int | `6` |  |
+| platformBackend.deployment.readinessProbe.httpGet.path | string | `"/ok"` |  |
+| platformBackend.deployment.readinessProbe.httpGet.port | int | `1986` |  |
+| platformBackend.deployment.readinessProbe.periodSeconds | int | `10` |  |
+| platformBackend.deployment.readinessProbe.timeoutSeconds | int | `1` |  |
 | platformBackend.deployment.replicas | int | `3` |  |
 | platformBackend.deployment.resources.limits.cpu | string | `"2000m"` |  |
 | platformBackend.deployment.resources.limits.memory | string | `"4Gi"` |  |
