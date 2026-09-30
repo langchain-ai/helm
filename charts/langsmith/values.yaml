@@ -3976,8 +3976,6 @@ fleetTriggerServer:
 
 # Trajectory Backend - internal gRPC listener embedded in platformBackend.
 trajectoryBackend:
-  # -- Enable embedded trajectory processing when smithdb.enabled and smithdb.langsmith.query.enabled are true; shares platformBackend resources and scaling.
-  enabled: true
   # -- Name segment for the internal ClusterIP Service.
   name: "trajectory-backend"
   # -- Embedded gRPC listener port on platformBackend Pods; must differ from platformBackend.containerPort.
