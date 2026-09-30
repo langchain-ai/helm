@@ -188,11 +188,15 @@ dnsConfig:
 {{- end }}
 {{- end }}
 
+{{- define "langsmith.trajectoryEnabled" -}}
+{{- and .Values.trajectoryBackend.enabled .Values.smithdb.enabled .Values.smithdb.langsmith.query.enabled -}}
+{{- end -}}
+
 {{/*
 Template containing common environment variables that are used by several services.
 */}}
 {{- define "langsmith.commonEnv" -}}
-{{- if .Values.trajectoryBackend.enabled }}
+{{- if eq (include "langsmith.trajectoryEnabled" .) "true" }}
 - name: TRAJECTORY_BACKEND_SERVICE_URL
   value: "{{ include "langsmith.fullname" . }}-{{ .Values.trajectoryBackend.name }}:{{ .Values.trajectoryBackend.service.port }}"
 {{- end }}

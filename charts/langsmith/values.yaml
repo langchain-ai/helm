@@ -3014,7 +3014,7 @@ platformBackend:
       failureThreshold: 6
       periodSeconds: 10
       timeoutSeconds: 1
-    # -- With trajectoryBackend.enabled, the chart uses HTTP /ready on the named platform port and preserves these probe timing settings.
+    # -- When embedded trajectory processing is active, uses HTTP /ready on the named platform port and preserves these probe timing settings.
     readinessProbe:
       httpGet:
         path: /ok
@@ -3976,7 +3976,7 @@ fleetTriggerServer:
 
 # Trajectory Backend - internal gRPC listener embedded in platformBackend.
 trajectoryBackend:
-  # -- Enable embedded trajectory processing. Requires SmithDB query routing; shares platformBackend resources and scaling.
+  # -- Enable embedded trajectory processing when smithdb.enabled and smithdb.langsmith.query.enabled are true; shares platformBackend resources and scaling.
   enabled: true
   # -- Name segment for the internal ClusterIP Service.
   name: "trajectory-backend"

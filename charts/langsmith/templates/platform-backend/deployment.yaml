@@ -1,7 +1,7 @@
 {{- define "platformBackendEnvVars" -}}
 - name: PORT
   value: {{ .Values.platformBackend.containerPort | quote }}
-{{- if .Values.trajectoryBackend.enabled }}
+{{- if eq (include "langsmith.trajectoryEnabled" .) "true" }}
 - name: TRAJECTORY_GRPC_ENABLED
   value: "true"
 - name: TRAJECTORY_GRPC_PORT
@@ -53,7 +53,7 @@
 {{- $volumes := concat .Values.commonVolumes .Values.platformBackend.deployment.volumes (include "langsmith.tlsVolumes" . | fromYamlArray) -}}
 {{- $volumeMounts := concat .Values.commonVolumeMounts .Values.platformBackend.deployment.volumeMounts (include "langsmith.tlsVolumeMounts" . | fromYamlArray) -}}
 {{- $readinessProbe := .Values.platformBackend.deployment.readinessProbe }}
-{{- if .Values.trajectoryBackend.enabled }}
+{{- if eq (include "langsmith.trajectoryEnabled" .) "true" }}
 {{- /* Embedded gRPC readiness is part of the shared process's HTTP /ready endpoint. */}}
 {{- $readinessProbe = mergeOverwrite (omit (default dict $readinessProbe) "exec" "tcpSocket" "grpc" "httpGet") (dict "httpGet" (dict "path" "/ready" "port" "platform")) }}
 {{- end }}
@@ -136,7 +136,7 @@ spec:
             - name: platform
               containerPort: {{ .Values.platformBackend.containerPort }}
               protocol: TCP
-          {{- if .Values.trajectoryBackend.enabled }}
+          {{- if eq (include "langsmith.trajectoryEnabled" .) "true" }}
             - name: grpc
               containerPort: {{ .Values.trajectoryBackend.containerPort }}
               protocol: TCP
