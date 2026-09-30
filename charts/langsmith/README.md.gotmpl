@@ -28,6 +28,12 @@ Two things worth planning for before you enable it:
 
 **Which workspace owns the sandboxes.** By default smith-go resolves the install's workspace, which works when there is exactly one non-personal organization. With more than one it declines rather than guess, and you must set `engine.sandboxTenantId` explicitly. Prefer a workspace reserved for the Engine: its sandboxes are visible to anyone with access to it.
 
+## Sandbox quotas
+
+When `sandboxes.enabled=true`, configure limits under `sandboxes.quotas`: `maxSandboxes` (default 1000), `maxCpuCores` (200), and `maxMemoryGb` (400 GiB). These limits do not provision cluster capacity.
+
+**Compatibility:** Configured sandbox quotas now apply to authenticated requests. Review existing Helm and organization-level quota overrides before upgrading.
+
 ## SmithDB resource tiers
 
 `smithdb.resourceTier` sets per-replica CPU, memory, and cache size for SmithDB components. The default is `small`. Query, ingestion, and compaction worker mount a volume named `cache` at `/data` as a per-pod [generic ephemeral volume](https://kubernetes.io/docs/concepts/storage/ephemeral-volumes/#generic-ephemeral-volumes) on `smithdb.cache.storageClassName`, or the cluster default StorageClass when empty. Provision that StorageClass with at least 7000 IOPS and 1000 MiB/s.

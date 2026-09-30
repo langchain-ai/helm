@@ -156,8 +156,8 @@ sandboxes:
   # -- Base URL for reaching HTTP services inside sandboxes. Needs wildcard DNS and TLS for `*.<host>`; with ingress.enabled the chart adds the wildcard rule. http(s) origin only, no path.
   serviceUrlBaseUrl: ""
   quotas:
-    maxCpuCores: 16
-    maxMemoryGb: 64
+    maxCpuCores: 200
+    maxMemoryGb: 400
     minEphemeralStorageGb: 1
     maxEphemeralStorageGib: 100
     maxSandboxes: 1000
