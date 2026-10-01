@@ -1,7 +1,11 @@
 # Security & CVE Transparency
 
-**Latest release covered:** chart `langsmith-0.14.6` / images tagged `0.14.9`
-**Last updated:** 2026-05-19
+<!-- BEGIN: current-chart -->
+**Latest release covered:** chart `langsmith-0.15.0` / images tagged `0.15.8`
+<!-- END: current-chart -->
+<!-- BEGIN: last-updated -->
+**Last updated:** 2026-05-28
+<!-- END: last-updated -->
 **Maintainer contact:** security@langchain.dev
 
 > **Chart version vs. image tag.** The Helm chart and the container images use
@@ -10,6 +14,8 @@
 > is the tag your scanner will report against the running images
 > (`docker.io/langchain/langsmith-backend:0.14.9`, etc.). Both are listed in
 > the heading above so you can match either side to the CVE table below.
+> (The current GA release follows the same pattern: chart `langsmith-0.15.0`
+> ships images tagged `0.15.8`.)
 
 ## Covered images
 
@@ -79,9 +85,20 @@ To consume a patched image, bump the chart version when upgrading the langsmith 
 
 Patched CVEs for each release are tracked as auto-generated security fix bullets in the corresponding release entry of the [self-hosted changelog](https://docs.langchain.com/langsmith/self-hosted-changelog). The changelog is the single source of truth for "what CVEs were fixed in version X." This document covers the standing security posture (image inventory, false-positive registry, SLAs, reporting flow) that is not version-specific.
 
+> **Chart version is not the image tag.** The changelog lists fixes by Helm chart version (e.g., `langsmith-0.14.6`). The image tag containing the fix is the chart's `appVersion`, which is different (e.g., `0.14.9`). To pull a patched image: find the chart version in the changelog, look up that chart's `appVersion` in [`charts/langsmith/Chart.yaml`](https://github.com/langchain-ai/helm/blob/main/charts/langsmith/Chart.yaml) at the matching release tag, then pull `docker.io/langchain/<image>:<appVersion>` — not the chart number.
+>
+> **Verified example:** chart `langsmith-0.14.6` shipped images tagged `0.14.9`. Pulling `langsmith-backend:0.14.6` does not clear these CVEs (Mako and python-multipart still vulnerable in this tag); pulling `langsmith-backend:0.14.9` does.
+
 ---
 
 ## Scanner noise — Chainguard base images
+
+> **Before closing any finding here, check your scanner's `Status` field.**
+>
+> - **`Status: fixed`** with an upgrade version available → NOT a false positive. The patch exists in a newer image; rebuild/pull the patched tag, do not close.
+> - **`Status: will_not_fix`** → eligible for close-with-confidence if a pattern below matches, verified against the [Chainguard advisory feed](https://images.chainguard.dev/security).
+> - **`Status: affected`** (no fix listed) → eligible only if a pattern below cites a specific advisory marking the CVE as not exploitable in the running image.
+> - **Any other status, or no pattern match below** → report to security@langchain.dev.
 
 Several of the images above are built on [Chainguard](https://www.chainguard.dev/)
 Wolfi-based minimal base images. Chainguard maintains its own security advisory
@@ -161,7 +178,9 @@ If you have a finding that is not addressed above, please report it to:
 filing a report — this lets us reproduce your scanner output against the exact
 image you are running:
 
-1. The chart and `appVersion` you are deployed on (e.g., chart `langsmith-0.14.6` / `appVersion 0.14.9`)
+<!-- BEGIN: reporting-example -->
+1. The chart and `appVersion` you are deployed on (e.g., chart `langsmith-0.15.0` / `appVersion 0.15.8`)
+<!-- END: reporting-example -->
 2. The full image reference including digest **if available**, or tag and pull timestamp. Example to retrieve the digest:
    `docker inspect <image> --format '{{.RepoDigests}}'` →
    `langchain/langsmith-backend@sha256:...`
