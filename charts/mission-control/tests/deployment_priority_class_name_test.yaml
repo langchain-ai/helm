@@ -1,0 +1,16 @@
+suite: Deployment priorityClassName rendering
+templates:
+  - frontend/deployment.yaml
+tests:
+  - it: does not render frontend priorityClassName by default
+    asserts:
+      - notExists:
+          path: spec.template.spec.priorityClassName
+
+  - it: renders a configured frontend priorityClassName
+    set:
+      frontend.priorityClassName: workload-priority
+    asserts:
+      - equal:
+          path: spec.template.spec.priorityClassName
+          value: workload-priority

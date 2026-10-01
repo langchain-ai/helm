@@ -1,8 +1,13 @@
 # langgraph-dataplane
 
-![Version: 0.2.20](https://img.shields.io/badge/Version-0.2.20-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.13.9](https://img.shields.io/badge/AppVersion-0.13.9-informational?style=flat-square)
+![Version: 0.2.25](https://img.shields.io/badge/Version-0.2.25-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.16.36](https://img.shields.io/badge/AppVersion-0.16.36-informational?style=flat-square)
 
 Helm chart to deploy a langgraph dataplane on kubernetes.
+
+> [!WARNING]
+> **Legacy Hybrid Deployment — No Longer Supported for New Customers**
+>
+> This chart is the legacy version of the Hybrid deployment option. New customers are not supported going forward; existing customers will continue to be supported. New Hybrid deployments should use the [`langgraph-cloud`](../langgraph-cloud) chart instead — see the [Hybrid deployment documentation](https://docs.langchain.com/langsmith/hybrid) for more details.
 
 ## Deploying a LangGraph Dataplane
 
@@ -24,11 +29,11 @@ You can find the guide to deploy a LangGraph Dataplane [here](https://langchain-
 | gateway | object | `{"basePath":"","enabled":false,"hostname":"","name":"","namespace":""}` | Whether to use the Gateway API for ingress. Will create an HTTPRoute for each LangGraph platform deployment. Recommended for production use / if deploying multiple releases in the same cluster. |
 | images.imagePullSecrets | list | `[]` | Secrets with credentials to pull images from a private registry. Specified as name: value. |
 | images.listenerImage.pullPolicy | string | `"IfNotPresent"` |  |
-| images.listenerImage.repository | string | `"docker.io/langchain/hosted-langserve-backend"` |  |
-| images.listenerImage.tag | string | `"0.13.9"` |  |
+| images.listenerImage.repository | string | `"docker.io/langchain/langsmith-backend"` |  |
+| images.listenerImage.tag | string | `"0.16.36"` |  |
 | images.operatorImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.operatorImage.repository | string | `"docker.io/langchain/langgraph-operator"` |  |
-| images.operatorImage.tag | string | `"0.1.36"` |  |
+| images.operatorImage.tag | string | `"0.1.60"` |  |
 | images.redisImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.redisImage.repository | string | `"docker.io/redis"` |  |
 | images.redisImage.tag | string | `"7"` |  |
@@ -58,6 +63,7 @@ You can find the guide to deploy a LangGraph Dataplane [here](https://langchain-
 | operator.deployment.lifecycle | object | `{}` |  |
 | operator.deployment.nodeSelector | object | `{}` |  |
 | operator.deployment.podSecurityContext | object | `{}` |  |
+| operator.deployment.priorityClassName | string | `""` |  |
 | operator.deployment.replicas | int | `1` |  |
 | operator.deployment.resources.limits.cpu | string | `"2000m"` |  |
 | operator.deployment.resources.limits.memory | string | `"4Gi"` |  |
@@ -122,7 +128,8 @@ You can find the guide to deploy a LangGraph Dataplane [here](https://langchain-
 | listener.deployment.affinity | object | `{}` |  |
 | listener.deployment.annotations | object | `{}` |  |
 | listener.deployment.autoRestart | bool | `true` |  |
-| listener.deployment.command[0] | string | `"./listener_entrypoint.sh"` |  |
+| listener.deployment.command[0] | string | `"host_backend_entrypoint.sh"` |  |
+| listener.deployment.command[1] | string | `"./listener_entrypoint.sh"` |  |
 | listener.deployment.extraContainerConfig | object | `{}` |  |
 | listener.deployment.extraEnv | list | `[]` |  |
 | listener.deployment.labels | object | `{}` |  |
@@ -135,6 +142,7 @@ You can find the guide to deploy a LangGraph Dataplane [here](https://langchain-
 | listener.deployment.livenessProbe.timeoutSeconds | int | `60` |  |
 | listener.deployment.nodeSelector | object | `{}` |  |
 | listener.deployment.podSecurityContext | object | `{}` |  |
+| listener.deployment.priorityClassName | string | `""` |  |
 | listener.deployment.readinessProbe.failureThreshold | int | `6` |  |
 | listener.deployment.readinessProbe.httpGet.path | string | `"/health"` |  |
 | listener.deployment.readinessProbe.httpGet.port | int | `8080` |  |
@@ -183,6 +191,7 @@ You can find the guide to deploy a LangGraph Dataplane [here](https://langchain-
 | operator.deployment.lifecycle | object | `{}` |  |
 | operator.deployment.nodeSelector | object | `{}` |  |
 | operator.deployment.podSecurityContext | object | `{}` |  |
+| operator.deployment.priorityClassName | string | `""` |  |
 | operator.deployment.replicas | int | `1` |  |
 | operator.deployment.resources.limits.cpu | string | `"2000m"` |  |
 | operator.deployment.resources.limits.memory | string | `"4Gi"` |  |
@@ -261,6 +270,7 @@ You can find the guide to deploy a LangGraph Dataplane [here](https://langchain-
 | redis.statefulSet.persistence.storageClassName | string | `""` |  |
 | redis.statefulSet.persistentVolumeClaimRetentionPolicy | object | `{}` |  |
 | redis.statefulSet.podSecurityContext | object | `{}` |  |
+| redis.statefulSet.priorityClassName | string | `""` | Optional priority class for the in-chart Redis pod. |
 | redis.statefulSet.readinessProbe.exec.command[0] | string | `"/bin/sh"` |  |
 | redis.statefulSet.readinessProbe.exec.command[1] | string | `"-c"` |  |
 | redis.statefulSet.readinessProbe.exec.command[2] | string | `"exec redis-cli ping"` |  |
@@ -282,6 +292,7 @@ You can find the guide to deploy a LangGraph Dataplane [here](https://langchain-
 | redis.statefulSet.terminationGracePeriodSeconds | int | `30` |  |
 | redis.statefulSet.tolerations | list | `[]` |  |
 | redis.statefulSet.topologySpreadConstraints | list | `[]` |  |
+| redis.statefulSet.updateStrategy | object | `{}` | Optional StatefulSet update strategy for the in-chart Redis instance. Leave unset to keep the Kubernetes default RollingUpdate behavior. |
 | redis.statefulSet.volumeMounts | list | `[]` |  |
 | redis.statefulSet.volumes | list | `[]` |  |
 

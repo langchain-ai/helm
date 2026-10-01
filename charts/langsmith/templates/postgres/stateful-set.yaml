@@ -44,6 +44,10 @@ metadata:
 spec:
   serviceName: {{ include "langsmith.fullname" . }}-{{ .Values.postgres.name }}
   replicas: 1
+  {{- with .Values.postgres.statefulSet.updateStrategy }}
+  updateStrategy:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
   selector:
     matchLabels:
       {{- include "langsmith.selectorLabels" . | nindent 6 }}
@@ -66,10 +70,14 @@ spec:
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      {{- if .Values.postgres.statefulSet.priorityClassName }}
+      priorityClassName: {{ .Values.postgres.statefulSet.priorityClassName }}
+      {{- end }}
       terminationGracePeriodSeconds: {{ .Values.postgres.statefulSet.terminationGracePeriodSeconds }}
       securityContext:
         {{- include "langsmith.podSecurityContext" (dict "Values" .Values "componentSecurityContext" .Values.postgres.statefulSet.podSecurityContext) | nindent 8 }}
       serviceAccountName: {{ include "postgres.serviceAccountName" . }}
+      automountServiceAccountToken: {{ .Values.postgres.serviceAccount.automountServiceAccountToken }}
       {{- include "langsmith.dnsConfig" . | nindent 6 }}
       {{- with concat .Values.commonInitContainers .Values.postgres.statefulSet.initContainers }}
       initContainers:
@@ -167,6 +175,12 @@ spec:
             storage: {{ .Values.postgres.statefulSet.persistence.size }}
         {{- if .Values.postgres.statefulSet.persistence.storageClassName }}
         storageClassName: {{ .Values.postgres.statefulSet.persistence.storageClassName }}
+        {{- end }}
+        {{- if .Values.postgres.statefulSet.persistence.volumeSnapshot.snapshotHandle }}
+        dataSource:
+          apiGroup: snapshot.storage.k8s.io
+          kind: VolumeSnapshot
+          name: {{ include "langsmith.postgres.volumeSnapshotName" . }}
         {{- end }}
   {{- end }}
 {{- end}}

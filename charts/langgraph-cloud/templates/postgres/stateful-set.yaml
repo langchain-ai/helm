@@ -19,6 +19,10 @@ metadata:
 spec:
   serviceName: {{ include "langGraphCloud.fullname" . }}-{{ .Values.postgres.name }}
   replicas: 1
+  {{- with .Values.postgres.statefulSet.updateStrategy }}
+  updateStrategy:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
   selector:
     matchLabels:
       {{- include "langGraphCloud.selectorLabels" . | nindent 6 }}
@@ -47,6 +51,7 @@ spec:
       securityContext:
         {{- toYaml .Values.postgres.statefulSet.podSecurityContext | nindent 8 }}
       serviceAccountName: {{ include "postgres.serviceAccountName" . }}
+      automountServiceAccountToken: {{ .Values.postgres.serviceAccount.automountServiceAccountToken }}
       {{- include "langGraphCloud.dnsConfig" . | nindent 6 }}
       containers:
         - name: {{ .Values.postgres.name }}

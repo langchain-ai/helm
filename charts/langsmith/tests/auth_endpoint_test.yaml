@@ -1,0 +1,97 @@
+suite: AUTH_ENDPOINT shared config
+# insights/polly are enabled by default on this chart and would otherwise require
+# encryption keys to pass validate.yaml (which renders for every test). validate
+# also requires a license, a salt, and one of basic auth / OAuth to be enabled.
+#
+# The suite default is mixed + OAuth with basic auth off: the combination that
+# crash-looped the gateway, because it is the one where the gateway cannot build
+# a local auth handler and must resolve tokens against AUTH_ENDPOINT instead.
+set:
+  insights.enabled: false
+  polly.enabled: false
+  config.langsmithLicenseKey: "lic"
+  config.apiKeySalt: "salt"
+  config.oauth.enabled: true
+  config.authType: "mixed"
+tests:
+  - it: points AUTH_ENDPOINT at the platform backend
+    template: templates/config-map.yaml
+    asserts:
+      - equal:
+          path: data.AUTH_TYPE
+          value: "mixed"
+      - equal:
+          path: data.BASIC_AUTH_ENABLED
+          value: "false"
+      - equal:
+          path: data.AUTH_ENDPOINT
+          value: "http://RELEASE-NAME-langsmith-platform-backend.NAMESPACE.svc.cluster.local:1986"
+
+  # AUTH_ENDPOINT must resolve to the same service as LANGSMITH_AUTH_ENDPOINT.
+  # They are separate keys read by different consumers, so nothing else keeps
+  # them in sync.
+  - it: matches LANGSMITH_AUTH_ENDPOINT
+    template: templates/config-map.yaml
+    asserts:
+      - equal:
+          path: data.LANGSMITH_AUTH_ENDPOINT
+          value: "http://RELEASE-NAME-langsmith-platform-backend.NAMESPACE.svc.cluster.local:1986"
+      - equal:
+          path: data.AUTH_ENDPOINT
+          value: "http://RELEASE-NAME-langsmith-platform-backend.NAMESPACE.svc.cluster.local:1986"
+
+  # The authType if/else chain sits directly above these keys; the next three
+  # cases pin AUTH_ENDPOINT outside it so no branch can drop it.
+  - it: is set under oauth authType
+    template: templates/config-map.yaml
+    set:
+      config.authType: "oauth"
+    asserts:
+      - equal:
+          path: data.AUTH_TYPE
+          value: "oauth"
+      - equal:
+          path: data.AUTH_ENDPOINT
+          value: "http://RELEASE-NAME-langsmith-platform-backend.NAMESPACE.svc.cluster.local:1986"
+
+  - it: is set under mixed authType with basic auth
+    template: templates/config-map.yaml
+    set:
+      config.oauth.enabled: false
+      config.basicAuth.enabled: true
+      config.initialOrgAdminEmail: "admin@example.com"
+      config.basicAuth.initialOrgAdminPassword: "TestLangSmith123!"
+    asserts:
+      - equal:
+          path: data.AUTH_TYPE
+          value: "mixed"
+      - equal:
+          path: data.BASIC_AUTH_ENABLED
+          value: "true"
+      - equal:
+          path: data.AUTH_ENDPOINT
+          value: "http://RELEASE-NAME-langsmith-platform-backend.NAMESPACE.svc.cluster.local:1986"
+
+  - it: honours a custom platform-backend name, port and clusterDomain
+    template: templates/config-map.yaml
+    set:
+      clusterDomain: cluster.example
+      platformBackend.name: pb
+      platformBackend.service.port: 9999
+    asserts:
+      - equal:
+          path: data.AUTH_ENDPOINT
+          value: "http://RELEASE-NAME-langsmith-pb.NAMESPACE.svc.cluster.example:9999"
+
+  # The gateway reads AUTH_ENDPOINT from the shared ConfigMap via envFrom rather
+  # than an inline env entry, so that reference is what delivers it.
+  - it: is delivered to the agent gateway via envFrom
+    template: templates/agent-gateway/deployment.yaml
+    set:
+      agentGateway.enabled: true
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].envFrom
+          content:
+            configMapRef:
+              name: RELEASE-NAME-langsmith-config

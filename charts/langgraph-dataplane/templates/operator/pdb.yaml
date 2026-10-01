@@ -12,10 +12,10 @@ spec:
       app.kubernetes.io/name: {{ include "langgraphDataplane.name" . }}
       app.kubernetes.io/instance: {{ .Release.Name }}
       app.kubernetes.io/component: {{ include "langgraphDataplane.fullname" . }}-{{ .Values.operator.name }}
-  {{- if .Values.operator.pdb.minAvailable }}
+  {{- if hasKey .Values.operator.pdb "minAvailable" }}
   minAvailable: {{ .Values.operator.pdb.minAvailable }}
   {{- end }}
-  {{- if .Values.operator.pdb.maxUnavailable }}
+  {{- if hasKey .Values.operator.pdb "maxUnavailable" }}
   maxUnavailable: {{ .Values.operator.pdb.maxUnavailable }}
   {{- end }}
 {{- end }}

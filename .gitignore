@@ -5,3 +5,12 @@ test*.yaml
 charts/langsmith-observability/charts/*
 test*.csv
 .tmp/
+.env
+.env.*
+*.pem
+*.key
+*.crt
+credentials.json
+node_modules/
+__pycache__/
+.venv/

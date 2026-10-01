@@ -1,0 +1,140 @@
+suite: agent IAM provider environment variables
+templates:
+  - agent-features/fleet/api-server/deployment.yaml
+  - agent-features/fleet/queue/deployment.yaml
+  - agent-features/insights/api-server/deployment.yaml
+  - agent-features/insights/queue/deployment.yaml
+  - agent-features/polly/api-server/deployment.yaml
+  - agent-features/polly/queue/deployment.yaml
+  - validate.yaml
+set:
+  config.existingSecretName: "langsmith-secrets"
+  config.skipValidation: true
+  fleet.enabled: true
+  fleet.postgres.external.iamProvider: "aws"
+  fleet.redis.external.iamProvider: "gcp"
+  engineInsightsAgent.postgres.external.iamProvider: "azure"
+  engineInsightsAgent.redis.external.iamProvider: "aws"
+  polly.postgres.external.iamProvider: "gcp"
+  polly.redis.external.iamProvider: "azure"
+tests:
+  - it: maps fleet IAM providers to the api-server
+    template: agent-features/fleet/api-server/deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: AGENT_POSTGRES_IAM_AUTH_PROVIDER
+            value: aws
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: AGENT_REDIS_IAM_AUTH_PROVIDER
+            value: gcp
+  - it: maps fleet IAM providers to the queue
+    template: agent-features/fleet/queue/deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: AGENT_POSTGRES_IAM_AUTH_PROVIDER
+            value: aws
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: AGENT_REDIS_IAM_AUTH_PROVIDER
+            value: gcp
+  - it: maps insights IAM providers to the api-server
+    template: agent-features/insights/api-server/deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: AGENT_POSTGRES_IAM_AUTH_PROVIDER
+            value: azure
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: AGENT_REDIS_IAM_AUTH_PROVIDER
+            value: aws
+  - it: maps insights IAM providers to the queue
+    template: agent-features/insights/queue/deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: AGENT_POSTGRES_IAM_AUTH_PROVIDER
+            value: azure
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: AGENT_REDIS_IAM_AUTH_PROVIDER
+            value: aws
+  - it: maps polly IAM providers to the api-server
+    template: agent-features/polly/api-server/deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: AGENT_POSTGRES_IAM_AUTH_PROVIDER
+            value: gcp
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: AGENT_REDIS_IAM_AUTH_PROVIDER
+            value: azure
+  - it: maps polly IAM providers to the queue
+    template: agent-features/polly/queue/deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: AGENT_POSTGRES_IAM_AUTH_PROVIDER
+            value: gcp
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: AGENT_REDIS_IAM_AUTH_PROVIDER
+            value: azure
+  - it: rejects an invalid fleet Postgres IAM provider
+    template: validate.yaml
+    set:
+      fleet.postgres.external.iamProvider: "AWS"
+    asserts:
+      - failedTemplate:
+          errorMessage: "fleet.postgres.external.iamProvider must be one of [azure, gcp, aws]"
+  - it: rejects an invalid fleet Redis IAM provider
+    template: validate.yaml
+    set:
+      fleet.redis.external.iamProvider: "AWS"
+    asserts:
+      - failedTemplate:
+          errorMessage: "fleet.redis.external.iamProvider must be one of [azure, gcp, aws]"
+  - it: rejects an invalid insights Postgres IAM provider
+    template: validate.yaml
+    set:
+      engineInsightsAgent.postgres.external.iamProvider: "AWS"
+    asserts:
+      - failedTemplate:
+          errorMessage: "engineInsightsAgent.postgres.external.iamProvider must be one of [azure, gcp, aws]"
+  - it: rejects an invalid insights Redis IAM provider
+    template: validate.yaml
+    set:
+      engineInsightsAgent.redis.external.iamProvider: "AWS"
+    asserts:
+      - failedTemplate:
+          errorMessage: "engineInsightsAgent.redis.external.iamProvider must be one of [azure, gcp, aws]"
+  - it: rejects an invalid polly Postgres IAM provider
+    template: validate.yaml
+    set:
+      polly.postgres.external.iamProvider: "AWS"
+    asserts:
+      - failedTemplate:
+          errorMessage: "polly.postgres.external.iamProvider must be one of [azure, gcp, aws]"
+  - it: rejects an invalid polly Redis IAM provider
+    template: validate.yaml
+    set:
+      polly.redis.external.iamProvider: "AWS"
+    asserts:
+      - failedTemplate:
+          errorMessage: "polly.redis.external.iamProvider must be one of [azure, gcp, aws]"

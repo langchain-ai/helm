@@ -1,5 +1,5 @@
- # Langchain Helm Charts
- 
+# Langchain Helm Charts
+
 This repository contains Helm charts for deploying Langchain applications on Kubernetes.
 
 ## Adding the Langchain Helm repository
@@ -9,6 +9,10 @@ To add the Langchain Helm repository to your Helm client, run the following comm
 ```bash
 helm repo add langchain https://langchain-ai.github.io/helm/
 ```
+
+## Security
+
+See [SECURITY.md](./SECURITY.md) for security policy, scanner triage guidance, and CVE reporting.
 
 ## License
 

@@ -102,6 +102,21 @@ the user or some other secret provisioning mechanism
 {{- end }}
 
 {{/*
+Namespaced VolumeSnapshot used as the in-chart Postgres dataSource.
+*/}}
+{{- define "langsmith.postgres.volumeSnapshotName" -}}
+{{- printf "%s-postgres" (include "langsmith.fullname" .) -}}
+{{- end }}
+
+{{/*
+Cluster-scoped VolumeSnapshotContent. Includes the release namespace because
+the content name must be unique across installs that share a fullname.
+*/}}
+{{- define "langsmith.postgres.volumeSnapshotContentName" -}}
+{{- printf "%s-%s" (include "langsmith.postgres.volumeSnapshotName" .) .Release.Namespace | trunc 253 | trimSuffix "-" -}}
+{{- end }}
+
+{{/*
 Name of the secret containing the secrets for redis. This can be overridden by a secrets file created by
 the user or some other secret provisioning mechanism
 */}}
@@ -197,10 +212,19 @@ Template containing common environment variables that are used by several servic
 {{- end }}
 {{- if .Values.config.hostname }}
 - name: LANGSMITH_URL
-  value: {{ include "langsmith.hostnameWithoutProtocol" . }}{{- with .Values.config.basePath }}/{{ . }}{{- end }}
+  value: {{ include "langsmith.frontendHostnameWithoutProtocol" . }}{{- with .Values.config.basePath }}/{{ . }}{{- end }}
 - name: HOST_BACKEND_ENDPOINT_PUBLIC
   value: {{ .Values.config.hostname }}/api-host
 {{- end }}
+{{- if .Values.fleet.enabled }}
+{{- $ns := .Values.namespace | default .Release.Namespace -}}
+{{- $cd := .Values.clusterDomain -}}
+{{- $fleetApi := printf "http://%s.%s.svc.%s:%v" (include "langsmith.agentFeatures.apiServerK8sServiceName" (dict "root" . "product" "fleet")) $ns $cd .Values.fleet.apiServer.service.httpPort }}
+- name: LANGGRAPH_DEPLOYMENT_URL
+  value: {{ $fleetApi | quote }}
+{{- end }}
+- name: FLEET_FEATURE_ENABLED
+  value: {{ .Values.fleet.enabled | quote }}
 - name: REDIS_CLUSTER_ENABLED
   value: {{ .Values.redis.external.cluster.enabled | quote }}
 {{- if .Values.redis.external.cluster.enabled }}
@@ -242,6 +266,7 @@ Template containing common environment variables that are used by several servic
 - name: REDIS_IAM_AUTH_PROVIDER
   value: {{ .Values.redis.external.iamAuthProvider | quote }}
 {{- end }}
+{{- if .Values.clickhouse.enabled }}
 - name: CLICKHOUSE_HYBRID
   value: {{ .Values.clickhouse.external.hybrid | quote }}
 - name: CLICKHOUSE_DB
@@ -294,6 +319,7 @@ Template containing common environment variables that are used by several servic
 {{- end }}
 - name: CLICKHOUSE_CLUSTER
   value: {{ .Values.clickhouse.external.cluster | quote }}
+{{- end }}
 - name: LOG_LEVEL
   value: {{ .Values.config.logLevel | quote }}
 {{- if .Values.config.oauth.enabled }}
@@ -421,17 +447,17 @@ Template containing common environment variables that are used by several servic
 {{- end }}
 {{- end }}
 - name: FF_CH_SEARCH_ENABLED
-  value: {{ ternary "false" .Values.config.blobStorage.chSearchEnabled .Values.clickhouse.external.hybrid | quote }}
+  value: {{ and .Values.clickhouse.enabled (not .Values.clickhouse.external.hybrid) .Values.config.blobStorage.chSearchEnabled | quote }}
 {{ include "langsmith.conditionalEnvVarsResolved" . }}
 - name: REDIS_RUNS_EXPIRY_SECONDS
   value: {{ .Values.config.settings.redisRunsExpirySeconds | quote }}
-{{- if .Values.config.deployment.enabled }}
 - name: LANGGRAPH_CLOUD_LICENSE_KEY
   valueFrom:
     secretKeyRef:
       name: {{ include "langsmith.secretsName" . }}
       key: langsmith_license_key
       optional: {{ .Values.config.disableSecretCreation }}
+{{- if .Values.config.deployment.enabled }}
 - name: HOST_QUEUE
   value: "host"
 - name: HOST_WORKER_RECONCILIATION_CRON_ENABLED
@@ -443,6 +469,8 @@ Template containing common environment variables that are used by several servic
 {{- end }}
 - name: ENABLE_LGP_DEPLOYMENT_HEALTH_CHECK
   value: {{ .Values.config.deployment.ingressHealthCheckEnabled | quote }}
+- name: ENABLE_UNCAPPED_LGP_DEPLOYMENT_RESOURCES
+  value: {{ .Values.config.deployment.uncappedResourcesEnabled | quote }}
 {{- if and .Values.config.customCa.secretName .Values.config.customCa.secretKey }}
 - name: SSL_CERT_FILE
   value: /etc/ssl/certs/custom-ca-certificates.crt
@@ -455,22 +483,28 @@ Template containing common environment variables that are used by several servic
 - name: FF_PERSIST_BATCHED_RUNS_SUCCESS_LOGGING
   value: "true"
 {{- end }}
-{{- if .Values.config.agentBuilder.enabled }}
+{{- if or .Values.config.agentBuilder.enabled .Values.fleet.enabled }}
 - name: AGENT_BUILDER_ENCRYPTION_KEY
   valueFrom:
     secretKeyRef:
       name: {{ include "langsmith.secretsName" . }}
       key: agent_builder_encryption_key
 {{- end }}
-{{- if .Values.config.insights.enabled }}
+{{- if .Values.insights.enabled }}
 - name: CLIO_ENCRYPTION_KEY
   valueFrom:
     secretKeyRef:
       name: {{ include "langsmith.secretsName" . }}
       key: insights_encryption_key
       optional: false
+- name: CLIO_ENCRYPTION_KEY_PREVIOUS
+  valueFrom:
+    secretKeyRef:
+      name: {{ include "langsmith.secretsName" . }}
+      key: insights_encryption_key_previous
+      optional: true
 {{- end }}
-{{- if .Values.config.polly.enabled }}
+{{- if .Values.polly.enabled }}
 - name: POLLY_ENCRYPTION_KEY
   valueFrom:
     secretKeyRef:
@@ -478,6 +512,499 @@ Template containing common environment variables that are used by several servic
       key: polly_encryption_key
       optional: false
 {{- end }}
+{{- if .Values.sandboxes.enabled }}
+- name: SANDBOX_FEATURE_ENABLED
+  value: "true"
+- name: SANDBOX_RUNTIME_V2
+  value: "always"
+- name: SANDBOX_X_SERVICE_AUTH_JWT_SECRET
+  valueFrom:
+    secretKeyRef:
+      name: {{ include "langsmith.secretsName" . }}
+      key: api_key_salt
+      optional: {{ .Values.config.disableSecretCreation }}
+{{- end }}
+{{- end }}
+
+{{/*
+Per-replica sizes for the selected SmithDB tier. Unknown components use the query sizes.
+Args: root, component.
+*/}}
+{{- define "langsmith.smithdb.tierResources" -}}
+{{- $root := .root -}}
+{{- $tiers := dict
+  "small" (dict
+    "query" (dict "cpu" "4" "memory" "8Gi" "cache" "200Gi")
+    "ingestion" (dict "cpu" "4" "memory" "8Gi" "cache" "100Gi")
+    "compaction" (dict "cpu" "2" "memory" "4Gi")
+    "compactionWorker" (dict "cpu" "8" "memory" "16Gi" "cache" "100Gi")
+    "clusterManager" (dict "cpu" "250m" "memory" "256Mi"))
+  "medium" (dict
+    "query" (dict "cpu" "28" "memory" "48Gi" "cache" "200Gi")
+    "ingestion" (dict "cpu" "16" "memory" "32Gi" "cache" "100Gi")
+    "compaction" (dict "cpu" "4" "memory" "8Gi")
+    "compactionWorker" (dict "cpu" "16" "memory" "32Gi" "cache" "100Gi")
+    "clusterManager" (dict "cpu" "250m" "memory" "256Mi"))
+  "large" (dict
+    "query" (dict "cpu" "28" "memory" "50Gi" "cache" "1000Gi")
+    "ingestion" (dict "cpu" "56" "memory" "150Gi" "cache" "1000Gi")
+    "compaction" (dict "cpu" "8" "memory" "16Gi")
+    "compactionWorker" (dict "cpu" "28" "memory" "50Gi" "cache" "300Gi")
+    "clusterManager" (dict "cpu" "2" "memory" "2Gi")) -}}
+{{- $tier := index $tiers $root.Values.smithdb.resourceTier -}}
+{{- $resources := index $tier .component -}}
+{{- if not $resources -}}
+{{- $resources = index $tier "query" -}}
+{{- end -}}
+{{- toYaml $resources -}}
+{{- end }}
+
+{{/*
+Resolve a SmithDB component's resources. An explicit component resources block replaces the tier.
+Args: root, component.
+*/}}
+{{- define "langsmith.smithdb.resources" -}}
+{{- $deployment := (index .root.Values.smithdb .component).deployment -}}
+{{- $componentResources := get $deployment "resources" -}}
+{{- if $componentResources -}}
+{{- toYaml $componentResources -}}
+{{- else -}}
+{{- $resources := omit (include "langsmith.smithdb.tierResources" . | fromYaml) "cache" -}}
+{{- toYaml (dict "requests" $resources "limits" $resources) -}}
+{{- end -}}
+{{- end }}
+
+{{/*
+Tier cache volume size for a SmithDB component. Empty for components without a cache.
+Args: root, component.
+*/}}
+{{- define "langsmith.smithdb.cacheSize" -}}
+{{- get (include "langsmith.smithdb.tierResources" . | fromYaml) "cache" -}}
+{{- end }}
+
+{{/*
+Query cache limit from the resolved cache volume. Both generated and custom inline
+PVCs carry their size in the claim template; emptyDir uses the container limit.
+Args: component, volumes, resources.
+*/}}
+{{- define "langsmith.smithdb.queryCacheLimit" -}}
+{{- range .volumes -}}
+{{- if eq .name "cache" -}}
+{{- if hasKey . "ephemeral" -}}
+value: {{ required (printf "smithdb.%s cache volume requires requests.storage." $.component) (dig "ephemeral" "volumeClaimTemplate" "spec" "resources" "requests" "storage" "" .) | quote }}
+{{- else if hasKey . "emptyDir" -}}
+{{- $_ := required (printf "smithdb.%s.deployment.resources.limits.ephemeral-storage is required for an emptyDir cache." $.component) (index (default (dict) $.resources.limits) "ephemeral-storage") -}}
+valueFrom:
+  resourceFieldRef:
+    resource: limits.ephemeral-storage
+{{- end -}}
+{{- end -}}
+{{- end -}}
+{{- end }}
+
+{{/*
+Default per-pod ephemeral cache volume for a disk-using SmithDB component, sized from the tier.
+Args: root, component.
+*/}}
+{{- define "langsmith.smithdb.defaultCacheVolume" -}}
+name: cache
+ephemeral:
+  volumeClaimTemplate:
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      {{- with .root.Values.smithdb.cache.storageClassName }}
+      storageClassName: {{ . }}
+      {{- end }}
+      resources:
+        requests:
+          storage: {{ include "langsmith.smithdb.cacheSize" . }}
+{{- end }}
+
+{{/*
+Resolve volumes for a disk-using SmithDB component. The user's deployment.volumes list is used
+as given. When the container still mounts a volume named cache and the list does not define one,
+the default cache volume is prepended, so extra volumes can be added without restating the cache.
+Args: root, component.
+*/}}
+{{- define "langsmith.smithdb.volumes" -}}
+{{- $deployment := (index .root.Values.smithdb .component).deployment -}}
+{{- $mountsCache := false -}}
+{{- range $deployment.volumeMounts -}}
+{{- if and (eq .mountPath "/data") (ne .name "cache") -}}
+{{- fail (printf "smithdb.%s cache volume mounted at /data must be named cache." $.component) -}}
+{{- end -}}
+{{- if eq .name "cache" -}}
+{{- $mountsCache = true -}}
+{{- end -}}
+{{- end -}}
+{{- $volumes := default (list) $deployment.volumes -}}
+{{- $hasCache := false -}}
+{{- range $volumes -}}
+{{- if eq .name "cache" -}}
+{{- $hasCache = true -}}
+{{- if not (or (hasKey . "emptyDir") (hasKey . "ephemeral")) -}}
+{{- fail (printf "smithdb.%s cache volume must use emptyDir or ephemeral.volumeClaimTemplate; existing PVC references are not supported." $.component) -}}
+{{- end -}}
+{{- end -}}
+{{- end -}}
+{{- if and $mountsCache (not $hasCache) -}}
+{{- $volumes = prepend $volumes (include "langsmith.smithdb.defaultCacheVolume" . | fromYaml) -}}
+{{- end -}}
+{{- toYaml $volumes -}}
+{{- end }}
+
+{{/* Compute NUM_WORKERS from a CPU limit (cores or millicores). */}}
+{{- define "langsmith.smithdb.migrationNumWorkers" -}}
+{{- $cpu := toString . -}}
+{{- $cores := float64 $cpu -}}
+{{- if hasSuffix "m" $cpu -}}
+{{- $cores = mulf (float64 (trimSuffix "m" $cpu)) 0.001 -}}
+{{- end -}}
+{{- max 1 (int (floor (mulf $cores 0.75))) -}}
+{{- end }}
+
+{{/*
+SmithDB resource name prefix.
+*/}}
+{{- define "langsmith.smithdb.fullname" -}}
+{{- printf "%s-%s" (include "langsmith.fullname" .) .Values.smithdb.name | trunc 63 | trimSuffix "-" }}
+{{- end }}
+
+{{/*
+Name of the secret containing credentials for the SmithDB migration taskdb Postgres.
+*/}}
+{{- define "langsmith.smithdb.taskdbPostgresSecretName" -}}
+{{- $taskdb := .Values.smithdb.migration.taskdb.postgres -}}
+{{- if and $taskdb.external.enabled $taskdb.external.existingSecretName }}
+{{- $taskdb.external.existingSecretName }}
+{{- else if and (not $taskdb.external.enabled) $taskdb.auth.existingSecretName }}
+{{- $taskdb.auth.existingSecretName }}
+{{- else }}
+{{- printf "%s-%s" (include "langsmith.smithdb.fullname" .) $taskdb.name | trunc 63 | trimSuffix "-" }}
+{{- end }}
+{{- end }}
+
+{{/*
+Name of the service account for the SmithDB migration taskdb Postgres.
+*/}}
+{{- define "langsmith.smithdb.taskdbPostgresServiceAccountName" -}}
+{{- $taskdb := .Values.smithdb.migration.taskdb.postgres -}}
+{{- if $taskdb.serviceAccount.create -}}
+{{- default (printf "%s-%s" (include "langsmith.smithdb.fullname" .) $taskdb.name) $taskdb.serviceAccount.name | trunc 63 | trimSuffix "-" }}
+{{- else -}}
+{{- default "default" $taskdb.serviceAccount.name }}
+{{- end -}}
+{{- end }}
+
+{{/*
+Name of a SmithDB component Service or Deployment.
+Args: root, component.
+*/}}
+{{- define "langsmith.smithdb.componentName" -}}
+{{- $root := .root -}}
+{{- $component := .component -}}
+{{- $componentValues := index $root.Values.smithdb $component -}}
+{{- printf "%s-%s" (include "langsmith.smithdb.fullname" $root) $componentValues.name | trunc 63 | trimSuffix "-" }}
+{{- end }}
+
+{{/*
+Name of the shared SmithDB service account.
+Args: root.
+*/}}
+{{- define "langsmith.smithdb.serviceAccountName" -}}
+{{- $root := .root -}}
+{{- if $root.Values.smithdb.serviceAccount.create -}}
+{{- default (include "langsmith.smithdb.fullname" $root) $root.Values.smithdb.serviceAccount.name | trunc 63 | trimSuffix "-" }}
+{{- else -}}
+{{- default "default" $root.Values.smithdb.serviceAccount.name }}
+{{- end -}}
+{{- end }}
+
+{{/*
+Common init containers shared by every SmithDB workload.
+*/}}
+{{- define "langsmith.smithdb.commonInitContainers" -}}
+{{- toYaml .Values.smithdb.commonInitContainers -}}
+{{- end }}
+
+{{/*
+SmithDB internal service URL used by LangSmith and SmithDB gRPC clients.
+Args: root, component, port.
+*/}}
+{{- define "langsmith.smithdb.grpcServiceUrl" -}}
+{{- $root := .root -}}
+{{- $component := .component -}}
+{{- $port := .port -}}
+{{- printf "%s.%s.svc.%s:%v" (include "langsmith.smithdb.componentName" (dict "root" $root "component" $component)) ($root.Values.namespace | default $root.Release.Namespace) $root.Values.clusterDomain $port }}
+{{- end }}
+
+{{/*
+SmithDB HTTP-style endpoint used by SmithDB workloads for internal component calls.
+Args: root, component, port.
+*/}}
+{{- define "langsmith.smithdb.httpServiceUrl" -}}
+{{- printf "http://%s" (include "langsmith.smithdb.grpcServiceUrl" .) }}
+{{- end }}
+
+{{/*
+SmithDB cluster-manager HTTP endpoint used by SmithDB services.
+*/}}
+{{- define "langsmith.smithdb.clusterManagerHttpEndpoint" -}}
+{{- include "langsmith.smithdb.httpServiceUrl" (dict "root" . "component" "clusterManager" "port" .Values.smithdb.clusterManager.service.port) }}
+{{- end }}
+
+{{/*
+SmithDB cluster-manager client env vars. Args: root, service.
+*/}}
+{{- define "langsmith.smithdb.clusterManagerClientEnv" -}}
+{{- $root := .root -}}
+{{- $service := upper .service -}}
+{{- $prefix := printf "SMITHDB_%s__CLUSTER_MANAGER" $service -}}
+- name: {{ $prefix }}__ENABLED
+  value: "true"
+- name: {{ $prefix }}__ENDPOINT
+  value: {{ include "langsmith.smithdb.clusterManagerHttpEndpoint" $root | quote }}
+- name: {{ $prefix }}__STATUS_INTERVAL
+  value: "1s"
+- name: {{ $prefix }}__RETRY_DELAY
+  value: "1s"
+- name: {{ $prefix }}__STATUS_BUFFER_SIZE
+  value: "32"
+- name: {{ $prefix }}__CONNECT_TIMEOUT
+  value: "1s"
+{{- end }}
+
+{{/*
+SmithDB component env vars.
+Args: root, service, displayName.
+*/}}
+{{- define "langsmith.smithdb.componentEnv" -}}
+{{- $root := .root -}}
+{{- $service := .service -}}
+{{- $envVars := include "langsmith.smithdb.serviceEnv" (dict "root" $root "service" $service "displayName" .displayName) | fromYamlArray -}}
+{{- if $root.Values.smithdb.enabled }}
+{{- $envVars = concat $envVars (include "langsmith.smithdb.clusterManagerClientEnv" (dict "root" $root "service" $service) | fromYamlArray) -}}
+{{- end }}
+{{- toYaml $envVars }}
+{{- end }}
+
+{{/*
+SmithDB OTEL resource attributes.
+*/}}
+{{- define "langsmith.smithdb.otelResourceAttributes" -}}
+{{- $resourceAttributes := list "pod_name=$(POD_NAME)" "k8s.pod.name=$(POD_NAME)" "container_name=$(CONTAINER_NAME)" "k8s.container.name=$(CONTAINER_NAME)" -}}
+{{- join "," $resourceAttributes -}}
+{{- end }}
+
+{{/*
+SmithDB OTLP endpoint. The chart models TLS separately, while the standard
+OTEL_EXPORTER_OTLP_ENDPOINT consumed by SmithDB requires a URI scheme.
+*/}}
+{{- define "langsmith.smithdb.otelEndpoint" -}}
+{{- $tracing := .Values.config.observability.tracing -}}
+{{- printf "%s://%s" (ternary "https" "http" $tracing.useTls) $tracing.endpoint -}}
+{{- end }}
+
+{{/*
+SmithDB Beacon log export environment.
+*/}}
+{{- define "langsmith.smithdb.beaconEnv" -}}
+- name: BEACON_LOGGING_ENABLED
+  value: {{ .Values.config.telemetry.logs | quote }}
+- name: BEACON_TRACING_ENABLED
+  value: {{ .Values.config.telemetry.traces | quote }}
+- name: PHONE_HOME_ENABLED
+  value: {{ or .Values.config.telemetry.logs .Values.config.telemetry.traces | quote }}
+- name: LANGSMITH_LICENSE_KEY
+  valueFrom:
+    secretKeyRef:
+      name: {{ include "langsmith.secretsName" . }}
+      key: langsmith_license_key
+      optional: {{ .Values.config.disableSecretCreation }}
+{{- end }}
+
+{{/*
+Common per-process SmithDB env: metrics profile, logging, OpenTelemetry, pod identity, allocator.
+Args: root, service, displayName.
+*/}}
+{{- define "langsmith.smithdb.baseEnv" -}}
+{{- $root := .root -}}
+{{- $prefix := printf "SMITHDB_%s" (upper .service) -}}
+{{- $displayName := .displayName -}}
+{{- $tracing := $root.Values.config.observability.tracing -}}
+{{- $tracingEnabled := and $tracing.enabled (eq $tracing.exporter "grpc") -}}
+{{- /* Override with <prefix>__METRICS__MODE=all in commonEnv or extraEnv. */}}
+- name: {{ $prefix }}__METRICS__MODE
+  value: "critical"
+- name: {{ $prefix }}__LOGGING__FORMAT
+  value: {{ ternary "opentelemetry" "json" $tracingEnabled | quote }}
+- name: {{ $prefix }}__LOGGING__TRACING_ENABLED
+  value: {{ $tracingEnabled | quote }}
+- name: {{ $prefix }}__LOGGING__SERVICE_NAME
+  value: {{ $displayName | quote }}
+- name: NODE_IP
+  valueFrom:
+    fieldRef:
+      fieldPath: status.hostIP
+- name: NODE_NAME
+  valueFrom:
+    fieldRef:
+      fieldPath: spec.nodeName
+- name: POD_NAME
+  valueFrom:
+    fieldRef:
+      fieldPath: metadata.name
+- name: POD_UID
+  valueFrom:
+    fieldRef:
+      fieldPath: metadata.uid
+- name: POD_IP
+  valueFrom:
+    fieldRef:
+      fieldPath: status.podIP
+- name: CONTAINER_NAME
+  value: {{ $displayName | quote }}
+{{- if $tracingEnabled }}
+- name: OTEL_EXPORTER_OTLP_ENDPOINT
+  value: {{ include "langsmith.smithdb.otelEndpoint" $root | quote }}
+{{- /* SmithDB exports OTLP over gRPC. */}}
+- name: OTEL_EXPORTER_OTLP_PROTOCOL
+  value: "grpc"
+{{- end }}
+- name: OTEL_SERVICE_NAME
+  value: {{ $displayName | quote }}
+- name: OTEL_RESOURCE_ATTRIBUTES
+  value: {{ include "langsmith.smithdb.otelResourceAttributes" $root | quote }}
+{{ include "langsmith.smithdb.beaconEnv" $root }}
+- name: _RJEM_MALLOC_CONF
+  value: "prof:true,prof_active:false,lg_prof_sample:19"
+{{- end }}
+
+{{/*
+Shared SmithDB service env vars (object store + metastore + base env).
+Args: root, service, displayName.
+*/}}
+{{- define "langsmith.smithdb.serviceEnv" -}}
+{{- $root := .root -}}
+{{- $service := .service -}}
+{{- $displayName := .displayName -}}
+{{- $prefix := printf "SMITHDB_%s" (upper $service) -}}
+{{- $objectStoreType := lower (default "s3" $root.Values.smithdb.config.objectStore.type) -}}
+{{- $objectStoreRootFolder := "smithdb" -}}
+- name: {{ $prefix }}__OBJECT_STORE__TYPE
+  value: {{ $objectStoreType | quote }}
+{{- if eq $objectStoreType "s3" }}
+- name: {{ $prefix }}__OBJECT_STORE__S3__BUCKET
+  value: {{ $root.Values.smithdb.config.objectStore.bucket | quote }}
+- name: {{ $prefix }}__OBJECT_STORE__S3__ROOT_FOLDER
+  value: {{ $objectStoreRootFolder | quote }}
+{{- with $root.Values.smithdb.config.objectStore.s3.region }}
+- name: {{ $prefix }}__OBJECT_STORE__S3__REGION
+  value: {{ . | quote }}
+{{- end }}
+{{- with $root.Values.smithdb.config.objectStore.s3.endpoint }}
+- name: {{ $prefix }}__OBJECT_STORE__S3__ENDPOINT
+  value: {{ . | quote }}
+{{- end }}
+{{- if hasKey $root.Values.smithdb.config.objectStore.s3 "allowHttp" }}
+- name: {{ $prefix }}__OBJECT_STORE__S3__ALLOW_HTTP
+  value: {{ $root.Values.smithdb.config.objectStore.s3.allowHttp | quote }}
+{{- end }}
+{{- if $root.Values.smithdb.config.objectStore.s3.accessKeyIdSecretKey }}
+- name: {{ $prefix }}__OBJECT_STORE__S3__ACCESS_KEY_ID
+  valueFrom:
+    secretKeyRef:
+      name: {{ $root.Values.smithdb.config.existingSecretName }}
+      key: {{ $root.Values.smithdb.config.objectStore.s3.accessKeyIdSecretKey }}
+{{- end }}
+{{- if $root.Values.smithdb.config.objectStore.s3.secretAccessKeySecretKey }}
+- name: {{ $prefix }}__OBJECT_STORE__S3__SECRET_ACCESS_KEY
+  valueFrom:
+    secretKeyRef:
+      name: {{ $root.Values.smithdb.config.existingSecretName }}
+      key: {{ $root.Values.smithdb.config.objectStore.s3.secretAccessKeySecretKey }}
+{{- end }}
+{{- if $root.Values.smithdb.config.objectStore.s3.kmsEncryptionEnabled }}
+- name: {{ $prefix }}__OBJECT_STORE__S3__KMS_ENCRYPTION_ENABLED
+  value: {{ $root.Values.smithdb.config.objectStore.s3.kmsEncryptionEnabled | quote }}
+{{- with $root.Values.smithdb.config.objectStore.s3.kmsKeyArn }}
+- name: {{ $prefix }}__OBJECT_STORE__S3__KMS_KEY_ARN
+  value: {{ . | quote }}
+{{- end }}
+{{- end }}
+{{- else if eq $objectStoreType "gcs" }}
+- name: {{ $prefix }}__OBJECT_STORE__GCS__BUCKET
+  value: {{ $root.Values.smithdb.config.objectStore.bucket | quote }}
+- name: {{ $prefix }}__OBJECT_STORE__GCS__ROOT_FOLDER
+  value: {{ $objectStoreRootFolder | quote }}
+{{- else if eq $objectStoreType "azure" }}
+- name: {{ $prefix }}__OBJECT_STORE__AZURE__CONTAINER
+  value: {{ $root.Values.smithdb.config.objectStore.bucket | quote }}
+- name: {{ $prefix }}__OBJECT_STORE__AZURE__ROOT_FOLDER
+  value: {{ $objectStoreRootFolder | quote }}
+- name: {{ $prefix }}__OBJECT_STORE__AZURE__ACCOUNT_NAME
+  value: {{ $root.Values.smithdb.config.objectStore.azure.accountName | quote }}
+{{- with $root.Values.smithdb.config.objectStore.azure.endpoint }}
+- name: {{ $prefix }}__OBJECT_STORE__AZURE__ENDPOINT
+  value: {{ . | quote }}
+{{- end }}
+{{- if hasKey $root.Values.smithdb.config.objectStore.azure "allowHttp" }}
+- name: {{ $prefix }}__OBJECT_STORE__AZURE__ALLOW_HTTP
+  value: {{ $root.Values.smithdb.config.objectStore.azure.allowHttp | quote }}
+{{- end }}
+{{- if $root.Values.smithdb.config.objectStore.azure.accessKeySecretKey }}
+- name: {{ $prefix }}__OBJECT_STORE__AZURE__ACCESS_KEY
+  valueFrom:
+    secretKeyRef:
+      name: {{ $root.Values.smithdb.config.existingSecretName }}
+      key: {{ $root.Values.smithdb.config.objectStore.azure.accessKeySecretKey }}
+{{- end }}
+{{- end }}
+- name: {{ $prefix }}__METASTORE__TYPE
+  value: "postgres"
+- name: {{ $prefix }}__METASTORE__DEFAULT_URI
+  value: {{ get (dict "s3" "s3://" "gcs" "gs://" "azure" "az://") $objectStoreType | quote }}
+- name: {{ $prefix }}__METASTORE__HOST
+  valueFrom:
+    secretKeyRef:
+      name: {{ $root.Values.smithdb.config.existingSecretName }}
+      key: {{ $root.Values.smithdb.config.metastore.hostSecretKey }}
+- name: {{ $prefix }}__METASTORE__PORT
+  value: {{ $root.Values.smithdb.config.metastore.port | quote }}
+- name: {{ $prefix }}__METASTORE__DATABASE
+  valueFrom:
+    secretKeyRef:
+      name: {{ $root.Values.smithdb.config.existingSecretName }}
+      key: {{ $root.Values.smithdb.config.metastore.databaseSecretKey }}
+- name: {{ $prefix }}__METASTORE__USERNAME
+{{- if $root.Values.smithdb.config.metastore.iamUsername }}
+  value: {{ $root.Values.smithdb.config.metastore.iamUsername | quote }}
+{{- else }}
+  valueFrom:
+    secretKeyRef:
+      name: {{ $root.Values.smithdb.config.existingSecretName }}
+      key: {{ $root.Values.smithdb.config.metastore.usernameSecretKey }}
+{{- end }}
+{{- if $root.Values.smithdb.config.metastore.passwordSecretKey }}
+- name: {{ $prefix }}__METASTORE__PASSWORD
+  valueFrom:
+    secretKeyRef:
+      name: {{ $root.Values.smithdb.config.existingSecretName }}
+      key: {{ $root.Values.smithdb.config.metastore.passwordSecretKey }}
+{{- end }}
+{{- with $root.Values.smithdb.config.metastore.iamAuthProvider }}
+- name: {{ $prefix }}__METASTORE__IAM_AUTH_PROVIDER
+  value: {{ . | quote }}
+{{- end }}
+{{- if and (eq $root.Values.smithdb.config.metastore.iamAuthProvider "aws") $root.Values.smithdb.config.objectStore.s3.region }}
+- name: AWS_REGION
+  value: {{ $root.Values.smithdb.config.objectStore.s3.region | quote }}
+- name: AWS_DEFAULT_REGION
+  value: {{ $root.Values.smithdb.config.objectStore.s3.region | quote }}
+{{- end }}
+- name: {{ $prefix }}__METASTORE__USE_SSL
+  value: {{ $root.Values.smithdb.config.metastore.useSsl | quote }}
+{{ include "langsmith.smithdb.baseEnv" (dict "root" $root "service" $service "displayName" $displayName) }}
 {{- end }}
 
 
@@ -586,56 +1113,268 @@ Template containing common environment variables that are used by several servic
 {{- end -}}
 {{- end -}}
 
-{{- define "agentBuilderToolServer.serviceAccountName" -}}
-{{- if .Values.agentBuilderToolServer.serviceAccount.create -}}
-    {{ default (printf "%s-%s" (include "langsmith.fullname" .) .Values.agentBuilderToolServer.name) .Values.agentBuilderToolServer.serviceAccount.name | trunc 63 | trimSuffix "-" }}
+{{- define "fleetToolServer.serviceAccountName" -}}
+{{- if .Values.fleetToolServer.serviceAccount.create -}}
+    {{ default (printf "%s-%s" (include "langsmith.fullname" .) .Values.fleetToolServer.name) .Values.fleetToolServer.serviceAccount.name | trunc 63 | trimSuffix "-" }}
 {{- else -}}
-    {{ default "default" .Values.agentBuilderToolServer.serviceAccount.name }}
+    {{ default "default" .Values.fleetToolServer.serviceAccount.name }}
 {{- end -}}
 {{- end -}}
 
-{{- define "agentBuilderTriggerServer.serviceAccountName" -}}
-{{- if .Values.agentBuilderTriggerServer.serviceAccount.create -}}
-    {{ default (printf "%s-%s" (include "langsmith.fullname" .) .Values.agentBuilderTriggerServer.name) .Values.agentBuilderTriggerServer.serviceAccount.name | trunc 63 | trimSuffix "-" }}
+{{- define "fleetTriggerServer.serviceAccountName" -}}
+{{- if .Values.fleetTriggerServer.serviceAccount.create -}}
+    {{ default (printf "%s-%s" (include "langsmith.fullname" .) .Values.fleetTriggerServer.name) .Values.fleetTriggerServer.serviceAccount.name | trunc 63 | trimSuffix "-" }}
 {{- else -}}
-    {{ default "default" .Values.agentBuilderTriggerServer.serviceAccount.name }}
+    {{ default "default" .Values.fleetTriggerServer.serviceAccount.name }}
 {{- end -}}
 {{- end -}}
 
-{{- define "agentBootstrap.serviceAccountName" -}}
-{{- if .Values.backend.agentBootstrap.serviceAccount.create -}}
-    {{ default (printf "%s-%s" (include "langsmith.fullname" .) "agent-bootstrap") .Values.backend.agentBootstrap.serviceAccount.name | trunc 63 | trimSuffix "-" }}
+{{- define "agentGateway.serviceAccountName" -}}
+{{- if .Values.agentGateway.serviceAccount.create -}}
+    {{ default (printf "%s-%s" (include "langsmith.fullname" .) .Values.agentGateway.name) .Values.agentGateway.serviceAccount.name | trunc 63 | trimSuffix "-" }}
 {{- else -}}
-    {{ default "default" .Values.backend.agentBootstrap.serviceAccount.name }}
+    {{ default "default" .Values.agentGateway.serviceAccount.name }}
 {{- end -}}
 {{- end -}}
 
-{{- define "agentBootstrap.createAgentProducts" -}}
-{{- $createProducts := list }}
-{{- if .Values.config.agentBuilder.enabled }}
-{{- $createProducts = append $createProducts "agent_builder" }}
-{{- end }}
-{{- if .Values.config.insights.enabled }}
-{{- $createProducts = append $createProducts "insights" }}
-{{- end }}
-{{- if .Values.config.polly.enabled }}
-{{- $createProducts = append $createProducts "smith_polly" }}
-{{- end }}
-{{ toYaml $createProducts }}
+{{- define "presidioAnalyzer.serviceAccountName" -}}
+{{- if .Values.presidioAnalyzer.serviceAccount.create -}}
+    {{ default (printf "%s-%s" (include "langsmith.fullname" .) .Values.presidioAnalyzer.name) .Values.presidioAnalyzer.serviceAccount.name | trunc 63 | trimSuffix "-" }}
+{{- else -}}
+    {{ default "default" .Values.presidioAnalyzer.serviceAccount.name }}
+{{- end -}}
 {{- end -}}
 
-{{- define "agentBootstrap.destroyAgentProducts" -}}
-{{- $destroyProducts := list }}
-{{- if not .Values.config.agentBuilder.enabled }}
-{{- $destroyProducts = append $destroyProducts "agent_builder" }}
+{{- define "fleetApiServer.serviceAccountName" -}}
+{{- if .Values.fleet.apiServer.serviceAccount.create -}}
+    {{ default (printf "%s-%s" (include "langsmith.agentFeatures.fullname" (dict "root" . "product" "fleet")) .Values.fleet.apiServer.name) .Values.fleet.apiServer.serviceAccount.name | trunc 63 | trimSuffix "-" }}
+{{- else -}}
+    {{ default "default" .Values.fleet.apiServer.serviceAccount.name }}
+{{- end -}}
+{{- end -}}
+
+{{- define "fleetQueue.serviceAccountName" -}}
+{{- if .Values.fleet.queue.serviceAccount.create -}}
+    {{ default (printf "%s-%s" (include "langsmith.agentFeatures.fullname" (dict "root" . "product" "fleet")) .Values.fleet.queue.name) .Values.fleet.queue.serviceAccount.name | trunc 63 | trimSuffix "-" }}
+{{- else -}}
+    {{ default "default" .Values.fleet.queue.serviceAccount.name }}
+{{- end -}}
+{{- end -}}
+
+{{- define "insightsApiServer.serviceAccountName" -}}
+{{- if .Values.engineInsightsAgent.apiServer.serviceAccount.create -}}
+    {{ default (printf "%s-%s" (include "langsmith.agentFeatures.fullname" (dict "root" . "product" "engineInsightsAgent")) .Values.engineInsightsAgent.apiServer.name) .Values.engineInsightsAgent.apiServer.serviceAccount.name | trunc 63 | trimSuffix "-" }}
+{{- else -}}
+    {{ default "default" .Values.engineInsightsAgent.apiServer.serviceAccount.name }}
+{{- end -}}
+{{- end -}}
+
+{{- define "insightsQueue.serviceAccountName" -}}
+{{- if .Values.engineInsightsAgent.queue.serviceAccount.create -}}
+    {{ default (printf "%s-%s" (include "langsmith.agentFeatures.fullname" (dict "root" . "product" "engineInsightsAgent")) .Values.engineInsightsAgent.queue.name) .Values.engineInsightsAgent.queue.serviceAccount.name | trunc 63 | trimSuffix "-" }}
+{{- else -}}
+    {{ default "default" .Values.engineInsightsAgent.queue.serviceAccount.name }}
+{{- end -}}
+{{- end -}}
+
+{{- define "pollyApiServer.serviceAccountName" -}}
+{{- if .Values.polly.apiServer.serviceAccount.create -}}
+    {{ default (printf "%s-%s" (include "langsmith.agentFeatures.fullname" (dict "root" . "product" "polly")) .Values.polly.apiServer.name) .Values.polly.apiServer.serviceAccount.name | trunc 63 | trimSuffix "-" }}
+{{- else -}}
+    {{ default "default" .Values.polly.apiServer.serviceAccount.name }}
+{{- end -}}
+{{- end -}}
+
+{{- define "pollyQueue.serviceAccountName" -}}
+{{- if .Values.polly.queue.serviceAccount.create -}}
+    {{ default (printf "%s-%s" (include "langsmith.agentFeatures.fullname" (dict "root" . "product" "polly")) .Values.polly.queue.name) .Values.polly.queue.serviceAccount.name | trunc 63 | trimSuffix "-" }}
+{{- else -}}
+    {{ default "default" .Values.polly.queue.serviceAccount.name }}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Fullname prefix for a given agent feature product.
+Usage: include "langsmith.agentFeatures.fullname" (dict "root" . "product" "fleet")
+Produces: <release>-<namePrefix>  e.g. "langsmith-fleet"
+*/}}
+{{- define "langsmith.agentFeatures.fullname" -}}
+{{- $root := index . "root" }}
+{{- $product := index . "product" }}
+{{- $prefix := (index $root.Values $product).namePrefix }}
+{{- printf "%s-%s" (include "langsmith.fullname" $root) $prefix | trunc 63 | trimSuffix "-" }}
+{{- end -}}
+
+{{/*
+Component name for StatefulSet-backed agent feature resources.
+Kept to 52 chars so Kubernetes can append a 10-char controller revision hash
+as a label value without exceeding the 63-char label limit.
+Usage: include "langsmith.agentFeatures.componentName" (dict "root" . "product" "fleet" "component" "postgres")
+*/}}
+{{- define "langsmith.agentFeatures.componentName" -}}
+{{- $root := index . "root" -}}
+{{- $product := index . "product" -}}
+{{- $componentName := index . "component" -}}
+{{- $feature := index $root.Values $product -}}
+{{- $component := index $feature $componentName -}}
+{{- $suffix := printf "%s-%s" $feature.namePrefix $component.name -}}
+{{- $prefixMaxLen := int (sub 51 (len $suffix)) -}}
+{{- $prefix := include "langsmith.fullname" $root | trunc $prefixMaxLen | trimSuffix "-" -}}
+{{- printf "%s-%s" $prefix $suffix -}}
+{{- end -}}
+
+{{/*
+Postgres secret name for a given product.
+Usage: include "langsmith.agentFeatures.postgresSecretName" (dict "root" . "product" "fleet")
+*/}}
+{{- define "langsmith.agentFeatures.postgresSecretName" -}}
+{{- $root := index . "root" }}
+{{- $product := index . "product" }}
+{{- $pg := (index $root.Values $product).postgres }}
+{{- if $pg.external.existingSecretName }}
+{{- $pg.external.existingSecretName }}
+{{- else }}
+{{- include "langsmith.agentFeatures.fullname" . }}-postgres
 {{- end }}
-{{- if not .Values.config.insights.enabled }}
-{{- $destroyProducts = append $destroyProducts "insights" }}
+{{- end -}}
+
+{{/*
+Redis secret name for a given product.
+Usage: include "langsmith.agentFeatures.redisSecretName" (dict "root" . "product" "fleet")
+*/}}
+{{- define "langsmith.agentFeatures.redisSecretName" -}}
+{{- $root := index . "root" }}
+{{- $product := index . "product" }}
+{{- $redis := (index $root.Values $product).redis }}
+{{- if $redis.external.existingSecretName }}
+{{- $redis.external.existingSecretName }}
+{{- else }}
+{{- include "langsmith.agentFeatures.fullname" . }}-redis
 {{- end }}
-{{- if not .Values.config.polly.enabled }}
-{{- $destroyProducts = append $destroyProducts "smith_polly" }}
+{{- end -}}
+
+{{/*
+FQDN for an agent feature's api-server Service (used by frontend nginx proxy_pass).
+Usage: include "langsmith.agentFeatures.apiServerK8sServiceName" (dict "root" . "product" "fleet")
+*/}}
+{{- define "langsmith.agentFeatures.apiServerK8sServiceName" -}}
+{{- $root := index . "root" }}
+{{- $product := index . "product" }}
+{{- $feat := index $root.Values $product }}
+{{- printf "%s-%s" (include "langsmith.agentFeatures.fullname" .) $feat.apiServer.name }}
+{{- end -}}
+
+{{/*
+URL path prefix for agent feature routes (handles basePath).
+*/}}
+{{- define "langsmith.agentFeatures.agentPathPrefix" -}}
+{{- $root := index . "root" }}
+{{- $segment := index . "segment" }}
+{{- $bp := trimAll "/" (default "" $root.Values.config.basePath) -}}
+{{- if $bp -}}/{{ $bp }}/agents/{{ $segment }}{{- else -}}/agents/{{ $segment }}{{- end -}}
+{{- end -}}
+
+{{/*
+Extra env vars for fleet api-server and queue pods.
+*/}}
+{{- define "langsmith.fleet.extraEnv" -}}
+{{- $root := index . "root" -}}
+{{- $componentName := index . "component" -}}
+{{- $feature := $root.Values.fleet -}}
+{{- $component := index $feature $componentName -}}
+{{- $out := list
+  (dict "name" "PORT" "value" (toString $component.containerPort))
+  (dict "name" "POSTGRES_URI" "valueFrom" (dict "secretKeyRef" (dict "name" (include "langsmith.agentFeatures.postgresSecretName" (dict "root" $root "product" "fleet")) "key" "postgres_connection_url")))
+  (dict "name" "REDIS_URI" "valueFrom" (dict "secretKeyRef" (dict "name" (include "langsmith.agentFeatures.redisSecretName" (dict "root" $root "product" "fleet")) "key" "redis_connection_url")))
+  (dict "name" "LANGSMITH_LICENSE_REQUIRED_CLAIMS" "value" "agent_builder_enabled")
+  (dict "name" "SSRF_ALLOW_PRIVATE_IPS_MCP_SERVERS" "value" "true")
+  (dict "name" "SSRF_ALLOW_PRIVATE_IPS_TOOLS" "value" "true")
+  (dict "name" "SSRF_ALLOW_K8S_INTERNAL" "value" "true")
+-}}
+{{- if $feature.postgres.external.iamProvider -}}
+{{- $out = append $out (dict "name" "AGENT_POSTGRES_IAM_AUTH_PROVIDER" "value" $feature.postgres.external.iamProvider) -}}
+{{- end -}}
+{{- if $feature.redis.external.iamProvider -}}
+{{- $out = append $out (dict "name" "AGENT_REDIS_IAM_AUTH_PROVIDER" "value" $feature.redis.external.iamProvider) -}}
+{{- end -}}
+{{- if and (eq $componentName "apiServer") $feature.queue.enabled -}}
+{{- $out = append $out (dict "name" "N_JOBS_PER_WORKER" "value" "0") -}}
+{{- else -}}
+{{- $out = append $out (dict "name" "N_JOBS_PER_WORKER" "value" (toString $feature.queue.numberOfJobsPerWorker)) -}}
+{{- end -}}
+{{- if $feature.enableTracing }}
+{{- $out = append $out (dict "name" "TENANT_AWARE_TRACING_ENABLED" "value" "true") }}
 {{- end }}
-{{ toYaml $destroyProducts }}
+{{- toYaml $out }}
+{{- end -}}
+
+{{/*
+Extra env vars for insights api-server and queue pods.
+*/}}
+{{- define "langsmith.insights.extraEnv" -}}
+{{- $root := index . "root" -}}
+{{- $componentName := index . "component" -}}
+{{- $feature := $root.Values.engineInsightsAgent -}}
+{{- $component := index $feature $componentName -}}
+{{- $out := list
+  (dict "name" "PORT" "value" (toString $component.containerPort))
+  (dict "name" "POSTGRES_URI" "valueFrom" (dict "secretKeyRef" (dict "name" (include "langsmith.agentFeatures.postgresSecretName" (dict "root" $root "product" "engineInsightsAgent")) "key" "postgres_connection_url")))
+  (dict "name" "REDIS_URI" "valueFrom" (dict "secretKeyRef" (dict "name" (include "langsmith.agentFeatures.redisSecretName" (dict "root" $root "product" "engineInsightsAgent")) "key" "redis_connection_url")))
+  (dict "name" "LANGSMITH_TRACING" "value" "false")
+-}}
+{{- if $feature.postgres.external.iamProvider -}}
+{{- $out = append $out (dict "name" "AGENT_POSTGRES_IAM_AUTH_PROVIDER" "value" $feature.postgres.external.iamProvider) -}}
+{{- end -}}
+{{- if $feature.redis.external.iamProvider -}}
+{{- $out = append $out (dict "name" "AGENT_REDIS_IAM_AUTH_PROVIDER" "value" $feature.redis.external.iamProvider) -}}
+{{- end -}}
+{{- if $root.Values.engine.enabled -}}
+{{- $out = append $out (dict "name" "ENGINE_INTELLIGENCE_BASE_URL" "value" $root.Values.engine.intelligenceBaseUrl) -}}
+{{- $out = append $out (dict "name" "ISSUES_AGENT_ENCRYPTION_KEY" "valueFrom" (dict "secretKeyRef" (dict "name" (include "langsmith.secretsName" $root) "key" "engine_encryption_key" "optional" $root.Values.config.disableSecretCreation))) -}}
+{{- $out = append $out (dict "name" "ISSUES_AGENT_ENCRYPTION_KEY_PREVIOUS" "valueFrom" (dict "secretKeyRef" (dict "name" (include "langsmith.secretsName" $root) "key" "engine_encryption_key_previous" "optional" true))) -}}
+{{- $out = append $out (dict "name" "ISSUES_AGENT_X_SERVICE_AUTH_JWT_SECRET" "valueFrom" (dict "secretKeyRef" (dict "name" (include "langsmith.secretsName" $root) "key" "api_key_salt" "optional" $root.Values.config.disableSecretCreation))) -}}
+{{- $out = append $out (dict "name" "ISSUES_AGENT_SANDBOX_TENANT_ID" "value" $root.Values.engine.sandboxTenantId) -}}
+{{- $out = append $out (dict "name" "LANGSMITH_SANDBOX_ENDPOINT" "value" (printf "http://%s-%s.%s.svc.%s:%v/v2/sandboxes" (include "langsmith.fullname" $root) $root.Values.platformBackend.name (default $root.Release.Namespace $root.Values.namespace) $root.Values.clusterDomain $root.Values.platformBackend.service.port)) -}}
+{{- end -}}
+{{- if and (eq $componentName "apiServer") $feature.queue.enabled -}}
+{{- $out = append $out (dict "name" "N_JOBS_PER_WORKER" "value" "0") -}}
+{{- else -}}
+{{- $out = append $out (dict "name" "N_JOBS_PER_WORKER" "value" (toString $feature.queue.numberOfJobsPerWorker)) -}}
+{{- end -}}
+{{- toYaml $out }}
+{{- end -}}
+
+{{/*
+Extra env vars for polly api-server and queue pods.
+*/}}
+{{- define "langsmith.polly.extraEnv" -}}
+{{- $root := index . "root" -}}
+{{- $componentName := index . "component" -}}
+{{- $feature := $root.Values.polly -}}
+{{- $component := index $feature $componentName -}}
+{{- $ns := $root.Values.namespace | default $root.Release.Namespace -}}
+{{- $cd := $root.Values.clusterDomain -}}
+{{- $backend := printf "http://%s-%s.%s.svc.%s:%v" (include "langsmith.fullname" $root) $root.Values.backend.name $ns $cd $root.Values.backend.service.port -}}
+{{- $out := list
+  (dict "name" "PORT" "value" (toString $component.containerPort))
+  (dict "name" "POSTGRES_URI" "valueFrom" (dict "secretKeyRef" (dict "name" (include "langsmith.agentFeatures.postgresSecretName" (dict "root" $root "product" "polly")) "key" "postgres_connection_url")))
+  (dict "name" "REDIS_URI" "valueFrom" (dict "secretKeyRef" (dict "name" (include "langsmith.agentFeatures.redisSecretName" (dict "root" $root "product" "polly")) "key" "redis_connection_url")))
+  (dict "name" "LANGSMITH_ENDPOINT" "value" $backend)
+  (dict "name" "LANGSMITH_DISABLE_RUN_COMPRESSION" "value" "true")
+  (dict "name" "LANGSMITH_TRACING" "value" (ternary "false" "true" $feature.enableTracing))
+-}}
+{{- if $feature.postgres.external.iamProvider -}}
+{{- $out = append $out (dict "name" "AGENT_POSTGRES_IAM_AUTH_PROVIDER" "value" $feature.postgres.external.iamProvider) -}}
+{{- end -}}
+{{- if $feature.redis.external.iamProvider -}}
+{{- $out = append $out (dict "name" "AGENT_REDIS_IAM_AUTH_PROVIDER" "value" $feature.redis.external.iamProvider) -}}
+{{- end -}}
+{{- if and (eq $componentName "apiServer") $feature.queue.enabled -}}
+{{- $out = append $out (dict "name" "N_JOBS_PER_WORKER" "value" "0") -}}
+{{- else -}}
+{{- $out = append $out (dict "name" "N_JOBS_PER_WORKER" "value" (toString $feature.queue.numberOfJobsPerWorker)) -}}
+{{- end -}}
+{{- toYaml $out }}
 {{- end -}}
 
 {{/* Fail on duplicate keys in the inputted list of environment variables */}}
@@ -661,6 +1400,31 @@ Template containing common environment variables that are used by several servic
 {{- end }}
 {{- end -}}
 
+{{/*
+Env list for a SmithDB container. Operator env (commonEnv, extraEnv) takes precedence over
+chart env: a chart entry with the same name is omitted. The same name in both commonEnv and
+extraEnv fails the render. Emitted as commonEnv, chart, extraEnv; only $(VAR) references
+depend on the order.
+Args: chart, commonEnv, extraEnv (optional lists).
+*/}}
+{{- define "langsmith.mergeEnv" -}}
+{{- $commonEnv := default list .commonEnv -}}
+{{- $extraEnv := default list .extraEnv -}}
+{{- $operatorEnv := concat $commonEnv $extraEnv -}}
+{{- include "langsmith.detectDuplicates" $operatorEnv -}}
+{{- $overridden := list -}}
+{{- range $operatorEnv -}}
+{{- $overridden = append $overridden .name -}}
+{{- end -}}
+{{- $chart := list -}}
+{{- range default list .chart -}}
+{{- if not (has .name $overridden) -}}
+{{- $chart = append $chart . -}}
+{{- end -}}
+{{- end -}}
+{{- toYaml (concat $commonEnv $chart $extraEnv) -}}
+{{- end -}}
+
 {{- define "langsmith.checksumAnnotations"}}
 checksum/config: {{ include (print $.Template.BasePath "/config-map.yaml") . | sha256sum }}
 {{- if .Values.frontend.enabled }}
@@ -675,7 +1439,7 @@ checksum/redis: {{ include (print $.Template.BasePath "/redis/secrets.yaml") . |
 {{- if not .Values.postgres.external.existingSecretName }}
 checksum/postgres: {{ include (print $.Template.BasePath "/postgres/secrets.yaml") . | sha256sum }}
 {{- end }}
-{{- if not .Values.clickhouse.external.existingSecretName }}
+{{- if and .Values.clickhouse.enabled (not .Values.clickhouse.external.existingSecretName) }}
 checksum/clickhouse: {{ include (print $.Template.BasePath "/clickhouse/secrets.yaml") . | sha256sum }}
 {{- end }}
 {{- end }}
@@ -704,7 +1468,7 @@ Creates the image reference used for Langsmith deployments. If registry is speci
 {{- if .Values.postgres.external.clientCert.secretName -}}
 {{- $mounts = append $mounts (dict "name" "postgres-client-cert" "mountPath" "/etc/postgres/certs" "readOnly" true) -}}
 {{- end -}}
-{{- if .Values.clickhouse.external.clientCert.secretName -}}
+{{- if and .Values.clickhouse.enabled .Values.clickhouse.external.clientCert.secretName -}}
 {{- $mounts = append $mounts (dict "name" "clickhouse-client-cert" "mountPath" "/etc/clickhouse/certs" "readOnly" true) -}}
 {{- end -}}
 {{ $mounts | toYaml }}
@@ -721,7 +1485,7 @@ Creates the image reference used for Langsmith deployments. If registry is speci
 {{- if .Values.postgres.external.clientCert.secretName -}}
 {{- $volumes = append $volumes (dict "name" "postgres-client-cert" "secret" (dict "secretName" .Values.postgres.external.clientCert.secretName "items" (list (dict "key" .Values.postgres.external.clientCert.certSecretKey "path" "client.crt" "mode" 0644) (dict "key" .Values.postgres.external.clientCert.keySecretKey "path" "client.key" "mode" 0640)))) -}}
 {{- end -}}
-{{- if .Values.clickhouse.external.clientCert.secretName -}}
+{{- if and .Values.clickhouse.enabled .Values.clickhouse.external.clientCert.secretName -}}
 {{- $volumes = append $volumes (dict "name" "clickhouse-client-cert" "secret" (dict "secretName" .Values.clickhouse.external.clientCert.secretName "items" (list (dict "key" .Values.clickhouse.external.clientCert.certSecretKey "path" "client.crt" "mode" 0644) (dict "key" .Values.clickhouse.external.clientCert.keySecretKey "path" "client.key" "mode" 0640)))) -}}
 {{- end -}}
 {{ $volumes | toYaml }}
@@ -734,6 +1498,127 @@ Strip protocol (http://, https://, etc.) from hostname
 {{- if .Values.config.hostname -}}
 {{- regexReplaceAll "^[a-zA-Z][a-zA-Z0-9+.-]*://" .Values.config.hostname "" -}}
 {{- end -}}
+{{- end -}}
+
+{{/*
+Frontend origin for user-facing redirects (LANGSMITH_URL), scheme stripped.
+Falls back to config.hostname when config.frontendHostname is unset.
+*/}}
+{{- define "langsmith.frontendHostnameWithoutProtocol" -}}
+{{- $host := .Values.config.frontendHostname | default .Values.config.hostname -}}
+{{- if $host -}}
+{{- regexReplaceAll "^[a-zA-Z][a-zA-Z0-9+.-]*://" $host "" -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Host portion of sandboxes.serviceUrlBaseUrl.
+*/}}
+{{- define "langsmith.sandboxes.serviceUrlHost" -}}
+{{- if .Values.sandboxes.serviceUrlBaseUrl -}}
+{{- regexReplaceAll "^https?://" .Values.sandboxes.serviceUrlBaseUrl "" -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Sandbox proxy CA secret name in the LangSmith release namespace.
+*/}}
+{{- define "langsmith.sandboxes.proxyCaSecretName" -}}
+{{- if eq .Values.sandboxes.proxyCa.mode "existingSecret" -}}
+{{- .Values.sandboxes.proxyCa.existingSecretName -}}
+{{- else -}}
+{{- default "smithbox-proxy-ca" .Values.sandboxes.proxyCa.secretName -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+In-cluster platform-backend URL. Also rendered as GO_ENDPOINT in the shared ConfigMap.
+*/}}
+{{- define "langsmith.platformBackendEndpoint" -}}
+{{- printf "http://%s-%s.%s.svc.%s:%v" (include "langsmith.fullname" .) .Values.platformBackend.name (.Values.namespace | default .Release.Namespace) .Values.clusterDomain .Values.platformBackend.service.port -}}
+{{- end -}}
+
+{{/*
+Name for the JuiceFS config Secret.
+*/}}
+{{- define "langsmith.sandboxes.juicefsConfigSecretName" -}}
+{{- default (printf "%s-juicefs-config" (include "langsmith.fullname" .)) .Values.sandboxes.juicefs.existingSecretName | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+
+{{/*
+Rendered JuiceFS config Secret data for chart-managed sandbox volumes.
+*/}}
+{{- define "langsmith.sandboxes.juicefsConfigSecretData" -}}
+{{- $juicefsRedis := .Values.sandboxes.juicefs.redis | default dict -}}
+name: {{ .Values.sandboxes.juicefs.name | quote }}
+metaurl: {{ $juicefsRedis.metaURL | quote }}
+storage: {{ .Values.sandboxes.juicefs.storage | quote }}
+bucket: {{ .Values.sandboxes.juicefs.bucket | quote }}
+{{- if eq .Values.sandboxes.juicefs.storage "wasb" }}
+access-key: {{ .Values.sandboxes.juicefs.storageAccountName | quote }}
+{{- end }}
+{{- end -}}
+
+{{/*
+Checksum for the JuiceFS config Secret known to Helm. Existing Secrets use
+the Secret name only because Helm cannot safely hash live external Secret data.
+*/}}
+{{- define "langsmith.sandboxes.juicefsConfigSecretChecksum" -}}
+{{- if .Values.sandboxes.juicefs.existingSecretName -}}
+{{- printf "existing:%s" (include "langsmith.sandboxes.juicefsConfigSecretName" .) | sha256sum -}}
+{{- else -}}
+{{- include "langsmith.sandboxes.juicefsConfigSecretData" . | sha256sum -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Sandbox service account names.
+*/}}
+{{- define "langsmith.sandboxes.sandboxHostServiceAccountName" -}}
+{{- if .Values.sandboxes.sandboxHost.serviceAccount.create -}}
+{{- default (printf "%s-%s" (include "langsmith.fullname" .) .Values.sandboxes.sandboxHost.name) .Values.sandboxes.sandboxHost.serviceAccount.name | trunc 63 | trimSuffix "-" -}}
+{{- else -}}
+{{- default "default" .Values.sandboxes.sandboxHost.serviceAccount.name -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Minimal environment for the JuiceFS formatter. The sandbox-host binary imports
+LangSmith configuration at process startup, but formatting does not need the
+application ConfigMap or its secret-backed settings.
+*/}}
+{{- define "langsmith.sandboxes.juicefsFormatJobEnv" -}}
+- name: LANGCHAIN_ENV
+  valueFrom:
+    configMapKeyRef:
+      name: {{ include "langsmith.fullname" . }}-config
+      key: LANGCHAIN_ENV
+{{- end -}}
+
+{{/*
+Name for the immutable JuiceFS format Job. Include every value used in its pod
+template so Helm creates a new Job instead of attempting to patch one.
+*/}}
+{{- define "langsmith.sandboxes.juicefsFormatJobName" -}}
+{{- $juicefsFormatJob := .Values.sandboxes.juicefsFormatJob -}}
+{{- $inputs := dict
+  "chartVersion" .Chart.Version
+  "config" (include "langsmith.sandboxes.juicefsConfigSecretChecksum" .)
+  "image" (include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "sandboxHostImage"))
+  "pullPolicy" .Values.images.sandboxHostImage.pullPolicy
+  "pullSecrets" .Values.images.imagePullSecrets
+  "env" (include "langsmith.sandboxes.juicefsFormatJobEnv" .)
+  "labels" $juicefsFormatJob.labels
+  "annotations" $juicefsFormatJob.annotations
+  "podSecurityContext" (include "langsmith.podSecurityContext" (dict "Values" .Values "componentSecurityContext" $juicefsFormatJob.podSecurityContext))
+  "securityContext" $juicefsFormatJob.securityContext
+  "resources" $juicefsFormatJob.resources
+  "serviceAccount" (include "langsmith.sandboxes.sandboxHostServiceAccountName" .)
+  "nodeSelector" (default .Values.sandboxes.sandboxHost.deployment.nodeSelector $juicefsFormatJob.nodeSelector)
+  "tolerations" (default .Values.sandboxes.sandboxHost.deployment.tolerations $juicefsFormatJob.tolerations)
+  "affinity" $juicefsFormatJob.affinity
+-}}
+{{- printf "%s-juicefs-format-%s" (include "langsmith.fullname" .) (toJson $inputs | sha256sum | trunc 8) | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 
 {{/*
@@ -755,11 +1640,29 @@ which default to http:// for local development.
 {{- end -}}
 
 {{/*
+Public API base: scheme, host, any base path, and the /api prefix. Derived from
+config.hostname; relative when unset so browser callers use their own origin. Equal to the
+OAuth issuer today, but kept separate so either can change on its own.
+*/}}
+{{- define "langsmith.publicApiEndpoint" -}}
+{{- include "langsmith.hostnameWithProtocol" . }}{{- with .Values.config.basePath }}/{{ . }}{{- end }}/api
+{{- end -}}
+
+{{/*
+OAuth Authorization Server issuer URL advertised to remote MCP clients.
+Derived from <hostnameWithProtocol>[/basePath]/api. The /api path is fixed because the
+frontend nginx routes are hardcoded to it; host and scheme come from config.hostname.
+*/}}
+{{- define "langsmith.oauthAsIssuer" -}}
+{{- include "langsmith.hostnameWithProtocol" . }}{{- with .Values.config.basePath }}/{{ . }}{{- end }}/api
+{{- end -}}
+
+{{/*
 Public URL for the default Agent Builder MCP server.
 Served through the frontend at /mcp (or /<basePath>/mcp).
 */}}
 {{- define "langsmith.defaultMcpServerUrl" -}}
-{{- if and .Values.config.agentBuilder.enabled .Values.config.hostname -}}
+{{- if and (or .Values.config.agentBuilder.enabled .Values.fleet.enabled) .Values.config.hostname -}}
   {{- $baseURL := include "langsmith.hostnameWithProtocol" . | trimSuffix "/" -}}
   {{- $basePath := trimAll "/" (default "" .Values.config.basePath) -}}
   {{- if $basePath -}}
@@ -771,50 +1674,94 @@ Served through the frontend at /mcp (or /<basePath>/mcp).
 {{- end -}}
 
 {{- define "agentBuilderOAuthEnvVars" -}}
-{{- if .Values.config.agentBuilder.oauth.googleOAuthProvider }}
+{{- $googleOAuth := .Values.config.agentBuilder.oauth.googleOAuthProvider | default .Values.fleet.oauth.googleOAuthProvider }}
+{{- $slackOAuth := .Values.config.agentBuilder.oauth.slackOAuthProvider | default .Values.fleet.oauth.slackOAuthProvider }}
+{{- $linkedinOAuth := .Values.config.agentBuilder.oauth.linkedinOAuthProvider | default .Values.fleet.oauth.linkedinOAuthProvider }}
+{{- $linearOAuth := .Values.config.agentBuilder.oauth.linearOAuthProvider | default .Values.fleet.oauth.linearOAuthProvider }}
+{{- $githubOAuth := .Values.config.agentBuilder.oauth.githubOAuthProvider | default .Values.fleet.oauth.githubOAuthProvider }}
+{{- $microsoftOAuth := .Values.config.agentBuilder.oauth.microsoftOAuthProvider | default .Values.fleet.oauth.microsoftOAuthProvider }}
+{{- $salesforceOAuth := .Values.config.agentBuilder.oauth.salesforceOAuthProvider | default .Values.fleet.oauth.salesforceOAuthProvider }}
+{{- if $googleOAuth }}
 - name: "GOOGLE_OAUTH_PROVIDER"
-  value: {{ .Values.config.agentBuilder.oauth.googleOAuthProvider | quote }}
+  value: {{ $googleOAuth | quote }}
 {{- end }}
-{{- if .Values.config.agentBuilder.oauth.slackOAuthProvider }}
+{{- if $slackOAuth }}
 - name: "SLACK_OAUTH_PROVIDER"
-  value: {{ .Values.config.agentBuilder.oauth.slackOAuthProvider | quote }}
+  value: {{ $slackOAuth | quote }}
 {{- end }}
-{{- if .Values.config.agentBuilder.oauth.linkedinOAuthProvider }}
+{{- if $linkedinOAuth }}
 - name: "LINKEDIN_OAUTH_PROVIDER"
-  value: {{ .Values.config.agentBuilder.oauth.linkedinOAuthProvider | quote }}
+  value: {{ $linkedinOAuth | quote }}
 {{- end }}
-{{- if .Values.config.agentBuilder.oauth.linearOAuthProvider }}
+{{- if $linearOAuth }}
 - name: "LINEAR_OAUTH_PROVIDER"
-  value: {{ .Values.config.agentBuilder.oauth.linearOAuthProvider | quote }}
+  value: {{ $linearOAuth | quote }}
 {{- end }}
-{{- if .Values.config.agentBuilder.oauth.githubOAuthProvider }}
+{{- if $githubOAuth }}
 - name: "GITHUB_OAUTH_PROVIDER"
-  value: {{ .Values.config.agentBuilder.oauth.githubOAuthProvider | quote }}
+  value: {{ $githubOAuth | quote }}
 {{- end }}
-{{- if .Values.config.agentBuilder.oauth.microsoftOAuthProvider }}
+{{- if $microsoftOAuth }}
 - name: "MICROSOFT_OAUTH_PROVIDER"
-  value: {{ .Values.config.agentBuilder.oauth.microsoftOAuthProvider | quote }}
+  value: {{ $microsoftOAuth | quote }}
+{{- end }}
+{{- if $salesforceOAuth }}
+- name: "SALESFORCE_OAUTH_PROVIDER"
+  value: {{ $salesforceOAuth | quote }}
 {{- end }}
 {{- end -}}
 
-{{- define "agentBuilderToolServerEnvVars" -}}
+{{- define "fleetToolServerEnvVars" -}}
 - name: "PORT"
-  value: "{{ .Values.agentBuilderToolServer.containerPort }}"
+  value: "{{ .Values.fleetToolServer.containerPort }}"
 {{- include "agentBuilderOAuthEnvVars" . }}
 {{- end -}}
 
-{{- define "agentBuilderTriggerServerEnvVars" -}}
+{{- define "fleetTriggerServerEnvVars" -}}
+{{- $ns := .Values.namespace | default .Release.Namespace -}}
+{{- $cd := .Values.clusterDomain -}}
 - name: "PORT"
-  value: "{{ .Values.agentBuilderTriggerServer.containerPort }}"
+  value: "{{ .Values.fleetTriggerServer.containerPort }}"
 - name: "TRIGGER_SERVER_HOST_API_URL"
-  value: "http://{{ include "langsmith.fullname" . }}-{{ .Values.hostBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.hostBackend.service.port }}"
-{{- include "agentBuilderOAuthEnvVars" . }}
-{{- if .Values.config.agentBuilder.oauth.slackSigningSecret }}
-- name: "SLACK_SIGNING_SECRET"
-  value: {{ .Values.config.agentBuilder.oauth.slackSigningSecret | quote }}
+  value: "http://{{ include "langsmith.fullname" . }}-{{ .Values.hostBackend.name }}.{{ $ns }}.svc.{{ $cd }}:{{ .Values.hostBackend.service.port }}"
+{{- if .Values.fleet.enabled }}
+{{- $fleetApi := printf "http://%s.%s.svc.%s:%v" (include "langsmith.agentFeatures.apiServerK8sServiceName" (dict "root" . "product" "fleet")) $ns $cd .Values.fleet.apiServer.service.httpPort }}
+- name: "LANGGRAPH_API_URL"
+  value: {{ $fleetApi | quote }}
+- name: "LANGGRAPH_API_URL_PUBLIC"
+  value: {{ $fleetApi | quote }}
 {{- end }}
-{{- if .Values.config.agentBuilder.oauth.slackBotId }}
+{{- include "agentBuilderOAuthEnvVars" . }}
+{{- $slackSigningSecret := .Values.config.agentBuilder.oauth.slackSigningSecret | default .Values.fleet.oauth.slackSigningSecret }}
+{{- $slackBotId := .Values.config.agentBuilder.oauth.slackBotId | default .Values.fleet.oauth.slackBotId }}
+{{- if $slackSigningSecret }}
+- name: "SLACK_SIGNING_SECRET"
+  value: {{ $slackSigningSecret | quote }}
+{{- end }}
+{{- if $slackBotId }}
 - name: "AGENT_BUILDER_SLACK_BOT_ID"
-  value: {{ .Values.config.agentBuilder.oauth.slackBotId | quote }}
+  value: {{ $slackBotId | quote }}
+{{- end }}
+{{- end -}}
+
+{{/* Engine dispatch env for smith-go services (platform-backend + ingest-queue asynq worker) when engine is enabled. */}}
+{{- define "langsmith.engine.smithGoEnv" -}}
+{{- if .Values.engine.enabled }}
+- name: FORGE_AGENT_ASSISTANT_ID
+  value: "engine"
+- name: ISSUES_AGENT_ENCRYPTION_KEY
+  valueFrom:
+    secretKeyRef:
+      name: {{ include "langsmith.secretsName" . }}
+      key: engine_encryption_key
+      optional: {{ .Values.config.disableSecretCreation }}
+- name: ISSUES_AGENT_X_SERVICE_AUTH_JWT_SECRET
+  valueFrom:
+    secretKeyRef:
+      name: {{ include "langsmith.secretsName" . }}
+      key: api_key_salt
+      optional: {{ .Values.config.disableSecretCreation }}
+- name: ISSUES_AGENT_USAGE_SWEEP_CRON_ENABLED
+  value: "true"
 {{- end }}
 {{- end -}}

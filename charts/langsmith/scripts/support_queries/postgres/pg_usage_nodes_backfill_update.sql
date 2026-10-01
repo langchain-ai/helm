@@ -22,10 +22,6 @@ WITH backfilled_txns AS (
       backfilled_at
 )
 SELECT
-    bt.*,
-    t.display_name AS workspace_name,
-    o.display_name AS organization_name
+    bt.*
 FROM backfilled_txns bt
-JOIN tenants t ON bt.tenant_id = t.id
-JOIN organizations o ON o.id = t.organization_id
 ORDER BY bt.received_at DESC;

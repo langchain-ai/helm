@@ -50,9 +50,13 @@ spec:
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      {{- if .Values.authProxy.deployment.priorityClassName }}
+      priorityClassName: {{ .Values.authProxy.deployment.priorityClassName }}
+      {{- end }}
       securityContext:
         {{- include "authProxy.podSecurityContext" (dict "Values" .Values "componentSecurityContext" .Values.authProxy.deployment.podSecurityContext) | nindent 8 }}
       serviceAccountName: {{ include "authProxy.serviceAccountName" . }}
+      automountServiceAccountToken: {{ .Values.authProxy.serviceAccount.automountServiceAccountToken }}
       {{- include "authProxy.dnsConfig" . | nindent 6 }}
       {{- with .Values.authProxy.deployment.initContainers }}
       initContainers:

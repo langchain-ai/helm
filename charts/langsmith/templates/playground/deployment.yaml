@@ -60,9 +60,13 @@ spec:
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      {{- if .Values.playground.deployment.priorityClassName }}
+      priorityClassName: {{ .Values.playground.deployment.priorityClassName }}
+      {{- end }}
       securityContext:
         {{- include "langsmith.podSecurityContext" (dict "Values" .Values "componentSecurityContext" .Values.playground.deployment.podSecurityContext) | nindent 8 }}
       serviceAccountName: {{ include "playground.serviceAccountName" . }}
+      automountServiceAccountToken: {{ .Values.playground.serviceAccount.automountServiceAccountToken }}
       {{- include "langsmith.dnsConfig" . | nindent 6 }}
       {{- with .Values.playground.deployment.initContainers }}
       initContainers:
@@ -81,8 +85,8 @@ spec:
           envFrom:
             - configMapRef:
                 name: {{ include "langsmith.fullname" . }}-config
-          image: {{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "playgroundImage") | quote }}
-          imagePullPolicy: {{ .Values.images.playgroundImage.pullPolicy }}
+          image: {{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "backendImage") | quote }}
+          imagePullPolicy: {{ .Values.images.backendImage.pullPolicy }}
           ports:
             - name: playground
               containerPort: {{ .Values.playground.containerPort }}

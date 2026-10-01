@@ -1,0 +1,36 @@
+suite: PDB minAvailable/maxUnavailable rendering
+templates:
+  - backend/pdb.yaml
+tests:
+  - it: renders default minAvailable of 1 when nothing is overridden
+    set:
+      backend.pdb.enabled: true
+    asserts:
+      - equal:
+          path: spec.minAvailable
+          value: 1
+      - notExists:
+          path: spec.maxUnavailable
+
+  - it: renders minAvailable when explicitly set to 0
+    set:
+      backend.pdb.enabled: true
+      backend.pdb.minAvailable: 0
+    asserts:
+      - equal:
+          path: spec.minAvailable
+          value: 0
+      - notExists:
+          path: spec.maxUnavailable
+
+  - it: renders maxUnavailable set to 0 when minAvailable is removed
+    set:
+      backend.pdb.enabled: true
+      backend.pdb.minAvailable: null
+      backend.pdb.maxUnavailable: 0
+    asserts:
+      - equal:
+          path: spec.maxUnavailable
+          value: 0
+      - notExists:
+          path: spec.minAvailable

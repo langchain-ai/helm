@@ -1,0 +1,47 @@
+{{- if .Values.polly.enabled }}
+{{- if and .Values.polly.apiServer.autoscaling.enabled .Values.polly.apiServer.autoscaling.keda.enabled }}
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: {{ include "langsmith.agentFeatures.fullname" (dict "root" . "product" "polly") }}-{{ .Values.polly.apiServer.name }}
+  namespace: {{ .Values.namespace | default .Release.Namespace | quote }}
+  labels:
+    {{- include "langsmith.labels" . | nindent 4 }}
+spec:
+  scaleTargetRef:
+    name: {{ include "langsmith.agentFeatures.fullname" (dict "root" . "product" "polly") }}-{{ .Values.polly.apiServer.name }}
+  minReplicaCount: {{ .Values.polly.apiServer.autoscaling.minReplicas | default 1 }}
+  maxReplicaCount: {{ .Values.polly.apiServer.autoscaling.maxReplicas | default 10 }}
+  pollingInterval: {{ .Values.polly.apiServer.autoscaling.keda.pollingInterval | default 30 }}
+  cooldownPeriod: {{ .Values.polly.apiServer.autoscaling.keda.cooldownPeriod | default 300 }}
+  advanced:
+    horizontalPodAutoscalerConfig:
+      behavior:
+        scaleDown:
+          stabilizationWindowSeconds: {{ .Values.polly.apiServer.autoscaling.keda.scaleDownStabilizationWindowSeconds | default 300 }}
+  triggers:
+    {{- if .Values.polly.apiServer.autoscaling.targetCPUUtilizationPercentage }}
+    - type: cpu
+      metricType: Utilization
+      metadata:
+        value: "{{ .Values.polly.apiServer.autoscaling.targetCPUUtilizationPercentage }}"
+    {{- end }}
+    {{- if .Values.polly.apiServer.autoscaling.targetMemoryUtilizationPercentage }}
+    - type: memory
+      metricType: Utilization
+      metadata:
+        value: "{{ .Values.polly.apiServer.autoscaling.targetMemoryUtilizationPercentage }}"
+    {{- end }}
+    {{- if not .Values.polly.queue.enabled }}
+    - type: postgresql
+      metadata:
+        connectionFromEnv: "POSTGRES_URI"
+        query: "SELECT COUNT(*) FROM run WHERE status = 'pending'"
+        targetQueryValue: {{ .Values.polly.queue.numberOfJobsPerWorker | quote }}
+        activationTargetQueryValue: {{ .Values.polly.queue.numberOfJobsPerWorker | quote }}
+    {{- end }}
+    {{- with .Values.polly.apiServer.autoscaling.keda.additionalTriggers }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+{{- end }}
+{{- end }}

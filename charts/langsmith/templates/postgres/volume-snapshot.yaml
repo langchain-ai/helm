@@ -1,0 +1,33 @@
+{{- if and (not .Values.postgres.external.enabled) .Values.postgres.statefulSet.persistence.enabled .Values.postgres.statefulSet.persistence.volumeSnapshot.snapshotHandle }}
+apiVersion: snapshot.storage.k8s.io/v1
+kind: VolumeSnapshotContent
+metadata:
+  name: {{ include "langsmith.postgres.volumeSnapshotContentName" . }}
+  labels:
+    {{- include "langsmith.labels" . | nindent 4 }}
+    app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-{{ .Values.postgres.name }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "-6"
+spec:
+  deletionPolicy: {{ .Values.postgres.statefulSet.persistence.volumeSnapshot.deletionPolicy }}
+  driver: {{ .Values.postgres.statefulSet.persistence.volumeSnapshot.driver | quote }}
+  source:
+    snapshotHandle: {{ .Values.postgres.statefulSet.persistence.volumeSnapshot.snapshotHandle | quote }}
+  volumeSnapshotRef:
+    name: {{ include "langsmith.postgres.volumeSnapshotName" . }}
+    namespace: {{ .Release.Namespace }}
+---
+apiVersion: snapshot.storage.k8s.io/v1
+kind: VolumeSnapshot
+metadata:
+  name: {{ include "langsmith.postgres.volumeSnapshotName" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "langsmith.labels" . | nindent 4 }}
+    app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-{{ .Values.postgres.name }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "-6"
+spec:
+  source:
+    volumeSnapshotContentName: {{ include "langsmith.postgres.volumeSnapshotContentName" . }}
+{{- end }}

@@ -1,0 +1,16 @@
+suite: StatefulSet priorityClassName rendering
+templates:
+  - backend/statefulset.yaml
+tests:
+  - it: does not render backend priorityClassName by default
+    asserts:
+      - notExists:
+          path: spec.template.spec.priorityClassName
+
+  - it: renders a configured backend priorityClassName
+    set:
+      backend.priorityClassName: backend-priority
+    asserts:
+      - equal:
+          path: spec.template.spec.priorityClassName
+          value: backend-priority

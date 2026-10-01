@@ -1,8 +1,6 @@
 {{- define "aceBackendEnvVars" -}}
 - name: PORT
   value: {{ .Values.aceBackend.containerPort | quote }}
-- name: BIND_ADDRESS
-  value: {{ .Values.aceBackend.bindAddress | quote }}
 {{- end -}}
 {{- $envVars := concat (include "aceBackendEnvVars" . | fromYamlArray) .Values.aceBackend.deployment.extraEnv -}}
 {{- include "langsmith.detectDuplicates" $envVars -}}
@@ -54,9 +52,13 @@ spec:
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      {{- if .Values.aceBackend.deployment.priorityClassName }}
+      priorityClassName: {{ .Values.aceBackend.deployment.priorityClassName }}
+      {{- end }}
       securityContext:
         {{- include "langsmith.podSecurityContext" (dict "Values" .Values "componentSecurityContext" .Values.aceBackend.deployment.podSecurityContext) | nindent 8 }}
       serviceAccountName: {{ include "aceBackend.serviceAccountName" . }}
+      automountServiceAccountToken: {{ .Values.aceBackend.serviceAccount.automountServiceAccountToken }}
       {{- include "langsmith.dnsConfig" . | nindent 6 }}
       {{- with .Values.aceBackend.deployment.initContainers }}
       initContainers:

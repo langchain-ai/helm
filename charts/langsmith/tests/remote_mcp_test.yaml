@@ -1,0 +1,208 @@
+suite: remote MCP server / OAuth Authorization Server config
+# insights/polly are enabled by default on this chart and would otherwise require
+# encryption keys to pass validate.yaml (which renders for every test).
+set:
+  insights.enabled: false
+  polly.enabled: false
+tests:
+  # --- Shared config (env): OAuth AS is enabled whenever a hostname is set ---
+  - it: sets OAUTH_AS env when a hostname is configured
+    template: templates/config-map.yaml
+    set:
+      config.langsmithLicenseKey: "lic"
+      config.apiKeySalt: "salt"
+      config.oauth.enabled: true
+      config.authType: "oauth"
+      config.hostname: "langsmith.example.com"
+    asserts:
+      - equal:
+          path: data.OAUTH_AS_ENABLED
+          value: "true"
+      - equal:
+          path: data.OAUTH_AS_ISSUER
+          value: "https://langsmith.example.com/api"
+
+  - it: folds basePath into the derived issuer
+    template: templates/config-map.yaml
+    set:
+      config.langsmithLicenseKey: "lic"
+      config.apiKeySalt: "salt"
+      config.oauth.enabled: true
+      config.authType: "oauth"
+      config.hostname: "langsmith.example.com"
+      config.basePath: "langsmith"
+    asserts:
+      - equal:
+          path: data.OAUTH_AS_ISSUER
+          value: "https://langsmith.example.com/langsmith/api"
+
+  - it: emits LLM_AUTH_PROXY_ISSUER when configured
+    template: templates/config-map.yaml
+    set:
+      config.langsmithLicenseKey: "lic"
+      config.apiKeySalt: "salt"
+      config.oauth.enabled: true
+      config.authType: "oauth"
+      config.hostname: "langsmith.example.com"
+      config.llmAuthProxyIssuer: "langsmith"
+    asserts:
+      - equal:
+          path: data.LLM_AUTH_PROXY_ISSUER
+          value: "langsmith"
+
+  - it: omits LLM_AUTH_PROXY_ISSUER when not configured
+    template: templates/config-map.yaml
+    set:
+      config.langsmithLicenseKey: "lic"
+      config.apiKeySalt: "salt"
+      config.oauth.enabled: true
+      config.authType: "oauth"
+      config.hostname: "langsmith.example.com"
+    asserts:
+      - notExists:
+          path: data.LLM_AUTH_PROXY_ISSUER
+
+  - it: omits OAUTH_AS env when no hostname is set
+    template: templates/config-map.yaml
+    set:
+      config.existingSecretName: "langsmith-existing-secrets"
+      config.oauth.enabled: true
+      config.authType: "oauth"
+    asserts:
+      - notExists:
+          path: data.OAUTH_AS_ENABLED
+      - notExists:
+          path: data.OAUTH_AS_ISSUER
+
+  # --- Signing JWKS env is always wired and optional (like api_key_salt) ---
+  - it: always wires LANGSMITH_SIGNING_JWKS optionally into platform-backend
+    template: templates/platform-backend/deployment.yaml
+    release:
+      name: ls
+    set:
+      config.langsmithLicenseKey: "lic"
+      config.apiKeySalt: "salt"
+      config.oauth.enabled: true
+      config.authType: "oauth"
+      config.hostname: "langsmith.example.com"
+      # signingJwks intentionally not set — the env must still be wired, optionally.
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: LANGSMITH_SIGNING_JWKS
+            valueFrom:
+              secretKeyRef:
+                name: ls-langsmith-secrets
+                key: langsmith_signing_jwks
+                optional: true
+
+  - it: fails on duplicate when an operator sets LANGSMITH_SIGNING_JWKS manually via extraEnv
+    # The chart always wires LANGSMITH_SIGNING_JWKS from the secret, so a manual copy in
+    # extraEnv produces a duplicate env var, caught by langsmith.detectDuplicates.
+    template: templates/platform-backend/deployment.yaml
+    set:
+      config.langsmithLicenseKey: "lic"
+      config.apiKeySalt: "salt"
+      config.oauth.enabled: true
+      config.authType: "oauth"
+      config.hostname: "langsmith.example.com"
+      platformBackend.deployment.extraEnv:
+        - name: LANGSMITH_SIGNING_JWKS
+          valueFrom:
+            secretKeyRef:
+              name: my-own-secret
+              key: langsmith_signing_jwks
+    asserts:
+      - failedTemplate:
+          errorMessage: "Duplicate keys detected: [LANGSMITH_SIGNING_JWKS]"
+
+  - it: sources LANGSMITH_SIGNING_JWKS from config.existingSecretName when set
+    template: templates/platform-backend/deployment.yaml
+    set:
+      config.existingSecretName: "langsmith-existing-secrets"
+      config.oauth.enabled: true
+      config.authType: "oauth"
+      config.hostname: "langsmith.example.com"
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: LANGSMITH_SIGNING_JWKS
+            valueFrom:
+              secretKeyRef:
+                name: langsmith-existing-secrets
+                key: langsmith_signing_jwks
+                optional: true
+
+  # --- Chart-managed secret stores the inline value (like api_key_salt) ---
+  - it: stores the inline signing JWKS in the managed secret (base64)
+    template: templates/secrets.yaml
+    set:
+      config.langsmithLicenseKey: "lic"
+      config.apiKeySalt: "salt"
+      config.oauth.enabled: true
+      config.authType: "oauth"
+      config.hostname: "langsmith.example.com"
+      config.signingJwks: "abc"
+    asserts:
+      - equal:
+          path: data.langsmith_signing_jwks
+          value: "YWJj" # base64("abc")
+
+  # --- nginx routing follows hostname ---
+  - it: adds /api MCP + OAuth + well-known routes when a hostname is set
+    template: templates/frontend/config-map.yaml
+    set:
+      frontend.enabled: true
+      config.langsmithLicenseKey: "lic"
+      config.apiKeySalt: "salt"
+      config.oauth.enabled: true
+      config.authType: "oauth"
+      config.hostname: "langsmith.example.com"
+    asserts:
+      - matchRegex:
+          path: data["nginx.conf"]
+          pattern: "location /api/mcp"
+      - matchRegex:
+          path: data["nginx.conf"]
+          pattern: "location /api/oauth/"
+      - matchRegex:
+          path: data["nginx.conf"]
+          pattern: "location = /.well-known/oauth-authorization-server/api"
+      - matchRegex:
+          path: data["nginx.conf"]
+          pattern: "location = /api/.well-known/oauth-protected-resource/mcp"
+
+  - it: omits the /api MCP routes when no hostname is set
+    template: templates/frontend/config-map.yaml
+    set:
+      frontend.enabled: true
+      config.existingSecretName: "langsmith-existing-secrets"
+      config.oauth.enabled: true
+      config.authType: "oauth"
+    asserts:
+      - notMatchRegex:
+          path: data["nginx.conf"]
+          pattern: "location /api/mcp"
+      - notMatchRegex:
+          path: data["nginx.conf"]
+          pattern: "oauth-authorization-server/api"
+
+  - it: prefixes the /api MCP routes with basePath
+    template: templates/frontend/config-map.yaml
+    set:
+      frontend.enabled: true
+      config.langsmithLicenseKey: "lic"
+      config.apiKeySalt: "salt"
+      config.oauth.enabled: true
+      config.authType: "oauth"
+      config.hostname: "langsmith.example.com"
+      config.basePath: "langsmith"
+    asserts:
+      - matchRegex:
+          path: data["nginx.conf"]
+          pattern: "location /langsmith/api/mcp"
+      - matchRegex:
+          path: data["nginx.conf"]
+          pattern: "location = /.well-known/oauth-authorization-server/langsmith/api"

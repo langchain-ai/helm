@@ -44,6 +44,7 @@ spec:
       securityContext:
         {{- include "langsmith.podSecurityContext" (dict "Values" .Values "componentSecurityContext" .Values.backend.e2eTest.podSecurityContext) | nindent 8 }}
       serviceAccountName: {{ include "backend.serviceAccountName" . }}
+      automountServiceAccountToken: {{ .Values.backend.serviceAccount.automountServiceAccountToken }}
       {{- with concat .Values.commonInitContainers .Values.backend.e2eTest.initContainers }}
       initContainers:
         {{- toYaml . | nindent 8 }}
@@ -72,7 +73,7 @@ spec:
             {{- toYaml . | nindent 10 }}
           {{- end }}
         {{- with .Values.backend.e2eTest.sidecars }}
-          {{- toYaml . | nindent 10 }}
+          {{- toYaml . | nindent 8 }}
         {{- end }}
       {{- with .Values.backend.e2eTest.nodeSelector }}
       nodeSelector:

@@ -12,10 +12,10 @@ spec:
       app.kubernetes.io/name: {{ include "langgraphDataplane.name" . }}
       app.kubernetes.io/instance: {{ .Release.Name }}
       app.kubernetes.io/component: {{ .Values.redis.name }}
-  {{- if .Values.redis.pdb.minAvailable }}
+  {{- if hasKey .Values.redis.pdb "minAvailable" }}
   minAvailable: {{ .Values.redis.pdb.minAvailable }}
   {{- end }}
-  {{- if .Values.redis.pdb.maxUnavailable }}
+  {{- if hasKey .Values.redis.pdb "maxUnavailable" }}
   maxUnavailable: {{ .Values.redis.pdb.maxUnavailable }}
   {{- end }}
 {{- end }}

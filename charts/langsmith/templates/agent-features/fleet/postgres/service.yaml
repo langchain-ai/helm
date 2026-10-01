@@ -1,0 +1,30 @@
+{{- if .Values.fleet.enabled }}
+{{- if not .Values.fleet.postgres.external.enabled }}
+{{- $componentName := include "langsmith.agentFeatures.componentName" (dict "root" . "product" "fleet" "component" "postgres") -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $componentName }}
+  namespace: {{ .Values.namespace | default .Release.Namespace | quote }}
+  labels:
+    {{- include "langsmith.labels" . | nindent 4 }}
+    {{- with .Values.fleet.postgres.service.labels }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+  annotations:
+    {{- include "langsmith.annotations" . | nindent 4 }}
+    {{- with .Values.fleet.postgres.service.annotations }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  type: {{ .Values.fleet.postgres.service.type }}
+  ports:
+    - name: postgres
+      port: {{ .Values.fleet.postgres.service.port }}
+      targetPort: postgres
+      protocol: TCP
+  selector:
+    {{- include "langsmith.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: {{ $componentName }}
+  {{- end }}
+{{- end }}

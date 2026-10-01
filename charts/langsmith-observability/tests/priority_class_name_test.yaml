@@ -1,0 +1,22 @@
+suite: StatefulSet priorityClassName rendering
+templates:
+  - mimir/stateful-set.yaml
+  - mimir/config-map.yaml
+tests:
+  - it: does not render Mimir priorityClassName by default
+    template: mimir/stateful-set.yaml
+    set:
+      mimir.enabled: true
+    asserts:
+      - notExists:
+          path: spec.template.spec.priorityClassName
+
+  - it: renders a configured Mimir priorityClassName
+    template: mimir/stateful-set.yaml
+    set:
+      mimir.enabled: true
+      mimir.priorityClassName: observability-priority
+    asserts:
+      - equal:
+          path: spec.template.spec.priorityClassName
+          value: observability-priority

@@ -11,10 +11,10 @@ spec:
     matchLabels:
       {{- include "langGraphCloud.selectorLabels" . | nindent 6 }}
       app.kubernetes.io/component: {{ include "langGraphCloud.fullname" . }}-{{ .Values.apiServer.name }}
-  {{- if .Values.apiServer.pdb.minAvailable }}
+  {{- if hasKey .Values.apiServer.pdb "minAvailable" }}
   minAvailable: {{ .Values.apiServer.pdb.minAvailable }}
   {{- end }}
-  {{- if .Values.apiServer.pdb.maxUnavailable }}
+  {{- if hasKey .Values.apiServer.pdb "maxUnavailable" }}
   maxUnavailable: {{ .Values.apiServer.pdb.maxUnavailable }}
   {{- end }}
 {{- end }}

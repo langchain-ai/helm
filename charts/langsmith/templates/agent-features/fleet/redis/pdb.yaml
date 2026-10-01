@@ -1,0 +1,23 @@
+{{- if .Values.fleet.enabled }}
+{{- if .Values.fleet.redis.pdb.enabled }}
+{{- $componentName := include "langsmith.agentFeatures.componentName" (dict "root" . "product" "fleet" "component" "redis") -}}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ $componentName }}
+  namespace: {{ .Values.namespace | default .Release.Namespace | quote }}
+  labels:
+    {{- include "langsmith.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "langsmith.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: {{ $componentName }}
+  {{- if hasKey .Values.fleet.redis.pdb "minAvailable" }}
+  minAvailable: {{ .Values.fleet.redis.pdb.minAvailable }}
+  {{- end }}
+  {{- if hasKey .Values.fleet.redis.pdb "maxUnavailable" }}
+  maxUnavailable: {{ .Values.fleet.redis.pdb.maxUnavailable }}
+  {{- end }}
+{{- end }}
+{{- end }}

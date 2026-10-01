@@ -1,0 +1,33 @@
+suite: Deployment priorityClassName rendering
+templates:
+  - auth-proxy/config-map.yaml
+  - auth-proxy/deployment.yaml
+values:
+  - common-values.yaml
+tests:
+  - it: does not render auth proxy priorityClassName by default
+    template: auth-proxy/deployment.yaml
+    asserts:
+      - notExists:
+          path: spec.template.spec.priorityClassName
+
+  - it: renders a configured auth proxy priorityClassName
+    template: auth-proxy/deployment.yaml
+    set:
+      authProxy.deployment.priorityClassName: workload-priority
+    asserts:
+      - equal:
+          path: spec.template.spec.priorityClassName
+          value: workload-priority
+
+  - it: renders priorityClassName for an auth proxy Rollout
+    template: auth-proxy/deployment.yaml
+    set:
+      authProxy.rollout.enabled: true
+      authProxy.deployment.priorityClassName: workload-priority
+    asserts:
+      - isKind:
+          of: Rollout
+      - equal:
+          path: spec.template.spec.priorityClassName
+          value: workload-priority

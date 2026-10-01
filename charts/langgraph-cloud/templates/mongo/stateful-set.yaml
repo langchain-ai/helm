@@ -10,6 +10,10 @@ metadata:
 spec:
   serviceName: {{ include "langGraphCloud.mongoServiceName" . }}
   replicas: 1
+  {{- with .Values.mongo.statefulSet.updateStrategy }}
+  updateStrategy:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
   selector:
     matchLabels:
       {{- include "langGraphCloud.selectorLabels" . | nindent 6 }}
@@ -20,9 +24,13 @@ spec:
         {{- include "langGraphCloud.labels" . | nindent 8 }}
         app.kubernetes.io/component: {{ include "langGraphCloud.mongoServiceName" . }}
     spec:
+      automountServiceAccountToken: {{ .Values.mongo.statefulSet.automountServiceAccountToken }}
       {{- with .Values.images.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if .Values.mongo.statefulSet.priorityClassName }}
+      priorityClassName: {{ .Values.mongo.statefulSet.priorityClassName }}
       {{- end }}
       terminationGracePeriodSeconds: 30
       {{- include "langGraphCloud.dnsConfig" . | nindent 6 }}

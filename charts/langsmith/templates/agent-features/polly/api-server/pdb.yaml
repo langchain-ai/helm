@@ -1,0 +1,22 @@
+{{- if .Values.polly.enabled }}
+{{- if .Values.polly.apiServer.pdb.enabled }}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "langsmith.agentFeatures.fullname" (dict "root" . "product" "polly") }}-{{ .Values.polly.apiServer.name }}
+  namespace: {{ .Values.namespace | default .Release.Namespace | quote }}
+  labels:
+    {{- include "langsmith.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "langsmith.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: {{ include "langsmith.agentFeatures.fullname" (dict "root" . "product" "polly") }}-{{ .Values.polly.apiServer.name }}
+  {{- if hasKey .Values.polly.apiServer.pdb "minAvailable" }}
+  minAvailable: {{ .Values.polly.apiServer.pdb.minAvailable }}
+  {{- end }}
+  {{- if hasKey .Values.polly.apiServer.pdb "maxUnavailable" }}
+  maxUnavailable: {{ .Values.polly.apiServer.pdb.maxUnavailable }}
+  {{- end }}
+{{- end }}
+{{- end }}

@@ -1,0 +1,329 @@
+suite: test smithdb phase validation
+templates:
+  - validate.yaml
+tests:
+  - it: should reject Azure object storage without an account name
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      config.existingSecretName: langsmith-secret
+      smithdb.config.objectStore.type: azure
+    asserts:
+      - failedTemplate:
+          errorMessage: "smithdb.config.objectStore.azure.accountName is required when smithdb.config.objectStore.type is azure."
+  - it: should reject an unsupported SmithDB resource tier
+    set:
+      smithdb.resourceTier: extra-large
+    asserts:
+      - failedTemplate:
+          errorMessage: "smithdb.resourceTier must be one of: small, medium, large."
+
+  - it: should reject compaction-worker HPA and KEDA being enabled together
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      config.existingSecretName: langsmith-secret
+      smithdb.compactionWorker.autoscaling.hpa.enabled: true
+      smithdb.compactionWorker.autoscaling.keda.enabled: true
+    asserts:
+      - failedTemplate:
+          errorMessage: "Only one of smithdb.compactionWorker.autoscaling.hpa.enabled or smithdb.compactionWorker.autoscaling.keda.enabled can be enabled at the same time."
+
+  - it: should reject legacy flat compaction-worker autoscaling.enabled
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      config.existingSecretName: langsmith-secret
+      smithdb.compactionWorker.autoscaling.enabled: true
+    asserts:
+      - failedTemplate:
+          errorMessage: "smithdb.compactionWorker.autoscaling.enabled is no longer supported. Use autoscaling.hpa.* for chart-managed HPA or autoscaling.keda.* for KEDA; only one scaler can be enabled at a time."
+
+  - it: should reject legacy flat compaction-worker autoscaling minReplicas
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      config.existingSecretName: langsmith-secret
+      smithdb.compactionWorker.autoscaling.minReplicas: 2
+    asserts:
+      - failedTemplate:
+          errorMessage: "smithdb.compactionWorker.autoscaling.minReplicas is no longer supported. Use autoscaling.hpa.* for chart-managed HPA or autoscaling.keda.* for KEDA; only one scaler can be enabled at a time."
+
+  - it: should reject legacy smithdb.migration.deployment values
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      config.existingSecretName: langsmith-secret
+      smithdb.migration.deployment.resources.limits.cpu: 4000m
+    asserts:
+      - failedTemplate:
+          errorMessage: "As of v17, the migration workload is configured under smithdb.migration.job. Configuration must be moved from smithdb.migration.deployment to smithdb.migration.job."
+
+  - it: should reject legacy flat query autoscaling.enabled
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      config.existingSecretName: langsmith-secret
+      smithdb.query.autoscaling.enabled: true
+    asserts:
+      - failedTemplate:
+          errorMessage: "smithdb.query.autoscaling.enabled is no longer supported. Use autoscaling.hpa.enabled with hpa.minReplicas, hpa.maxReplicas, and related hpa.* fields."
+
+  - it: should reject legacy flat ingestion autoscaling minReplicas
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      config.existingSecretName: langsmith-secret
+      smithdb.ingestion.autoscaling.minReplicas: 2
+    asserts:
+      - failedTemplate:
+          errorMessage: "smithdb.ingestion.autoscaling.minReplicas is no longer supported. Use autoscaling.hpa.enabled with hpa.minReplicas, hpa.maxReplicas, and related hpa.* fields."
+
+  - it: should reject non-positive replicas for an enabled separate query workload
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      config.existingSecretName: langsmith-secret
+      smithdb.mutations.enabled: true
+      smithdb.mutations.deployment.replicas: 0
+    asserts:
+      - failedTemplate:
+          errorMessage: "smithdb.mutations.deployment.replicas must be greater than 0 when smithdb.enabled is true."
+
+  - it: should reject legacy flat mutations autoscaling.enabled
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      config.existingSecretName: langsmith-secret
+      smithdb.mutations.enabled: true
+      smithdb.mutations.autoscaling.enabled: true
+    asserts:
+      - failedTemplate:
+          errorMessage: "smithdb.mutations.autoscaling.enabled is no longer supported. Use autoscaling.hpa.enabled with hpa.minReplicas, hpa.maxReplicas, and related hpa.* fields."
+
+  - it: should reject smithdb without query replicas
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      config.existingSecretName: langsmith-secret
+      smithdb.query.deployment.replicas: 0
+    asserts:
+      - failedTemplate:
+          errorMessage: "smithdb.query.deployment.replicas must be greater than 0 when smithdb.enabled is true."
+
+  - it: should reject migration before SmithDB ingestion is enabled
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      config.existingSecretName: langsmith-secret
+      smithdb.langsmith.ingestion.enabled: false
+      smithdb.langsmith.query.enabled: false
+      smithdb.langsmith.migration.enabled: true
+      smithdb.migration.taskdb.postgres.enabled: true
+    asserts:
+      - failedTemplate:
+          errorMessage: "smithdb.langsmith.ingestion.enabled must be true when smithdb.langsmith.migration.enabled is true."
+
+  - it: should reject chart-managed taskdb postgres without a password
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      config.existingSecretName: langsmith-secret
+      smithdb.langsmith.query.enabled: false
+      smithdb.langsmith.migration.enabled: true
+      smithdb.migration.taskdb.postgres.enabled: true
+    asserts:
+      - failedTemplate:
+          errorMessage: "smithdb.migration.taskdb.postgres.auth.password is required when smithdb.migration.taskdb.postgres.enabled is true and auth.existingSecretName is not set."
+
+  - it: should reject a quoted migration Job suspend value
+    set:
+      smithdb.migration.job.suspend: "true"
+    asserts:
+      - failedTemplate:
+          errorMessage: "smithdb.migration.job.suspend must be a boolean. Do not quote true or false."
+
+  - it: should reject non-positive migration parallelism
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      config.existingSecretName: langsmith-secret
+      smithdb.langsmith.query.enabled: false
+      smithdb.langsmith.migration.enabled: true
+      smithdb.migration.job.parallelism: 0
+    asserts:
+      - failedTemplate:
+          errorMessage: "smithdb.migration.job.parallelism must be greater than 0 when smithdb migration is enabled."
+
+  - it: should reject non-positive taskdb connections per migration pod
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      config.existingSecretName: langsmith-secret
+      smithdb.langsmith.query.enabled: false
+      smithdb.langsmith.migration.enabled: true
+      smithdb.migration.taskdb.postgres.maxConnectionsPerMigrationPod: 0
+    asserts:
+      - failedTemplate:
+          errorMessage: "smithdb.migration.taskdb.postgres.maxConnectionsPerMigrationPod must be greater than 0."
+
+  - it: should reject external taskdb postgres without a password
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      config.existingSecretName: langsmith-secret
+      smithdb.langsmith.query.enabled: false
+      smithdb.langsmith.migration.enabled: true
+      smithdb.migration.taskdb.postgres.enabled: true
+      smithdb.migration.taskdb.postgres.external.enabled: true
+      smithdb.migration.taskdb.postgres.external.host: external-taskdb
+      smithdb.migration.taskdb.postgres.external.database: external_taskdb
+      smithdb.migration.taskdb.postgres.external.username: external_user
+    asserts:
+      - failedTemplate:
+          errorMessage: "smithdb.migration.taskdb.postgres.external.password is required when smithdb.migration.taskdb.postgres.external.enabled is true and external.existingSecretName is not set."
+
+  - it: should reject a configuration without an ingestion backend
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      config.existingSecretName: langsmith-secret
+      clickhouse.enabled: false
+      smithdb.langsmith.ingestion.enabled: false
+    asserts:
+      - failedTemplate:
+          errorMessage: "At least one ingestion backend must be enabled: clickhouse.enabled or smithdb.langsmith.ingestion.enabled."
+
+  - it: should reject a configuration without a query backend
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      config.existingSecretName: langsmith-secret
+      clickhouse.enabled: false
+      smithdb.langsmith.query.enabled: false
+    asserts:
+      - failedTemplate:
+          errorMessage: "At least one query backend must be enabled: clickhouse.enabled or smithdb.langsmith.query.enabled."
+
+  - it: should reject external ClickHouse when ClickHouse is disabled
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      config.existingSecretName: langsmith-secret
+      clickhouse.enabled: false
+      clickhouse.external.enabled: true
+    asserts:
+      - failedTemplate:
+          errorMessage: "clickhouse.external.enabled must be false when clickhouse.enabled is false."
+
+  - it: should reject SmithDB query routing when SmithDB is disabled
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      config.existingSecretName: langsmith-secret
+      smithdb.enabled: false
+      smithdb.langsmith.ingestion.enabled: false
+    asserts:
+      - failedTemplate:
+          errorMessage: "smithdb.enabled must be true when smithdb.langsmith.query.enabled is true."
+
+  - it: should reject a string ClickHouse enabled value even when validation is skipped
+    set:
+      config.skipValidation: true
+      clickhouse.enabled: "false"
+    asserts:
+      - failedTemplate:
+          errorMessage: "clickhouse.enabled must be a boolean. Do not quote true or false."
+
+  - it: should reject a string SmithDB ingestion enabled value
+    set:
+      smithdb.langsmith.ingestion.enabled: "false"
+    asserts:
+      - failedTemplate:
+          errorMessage: "smithdb.langsmith.ingestion.enabled must be a boolean. Do not quote true or false."
+
+  - it: should reject a string SmithDB migration enabled value
+    set:
+      smithdb.langsmith.migration.enabled: "false"
+    asserts:
+      - failedTemplate:
+          errorMessage: "smithdb.langsmith.migration.enabled must be a boolean. Do not quote true or false."
+
+  - it: should reject a string SmithDB query enabled value
+    set:
+      smithdb.langsmith.query.enabled: "false"
+    asserts:
+      - failedTemplate:
+          errorMessage: "smithdb.langsmith.query.enabled must be a boolean. Do not quote true or false."
+
+  - it: should reject a string SmithDB recovery strategy enabled value
+    set:
+      smithdb.recoveryStrategy.enabled: "false"
+    asserts:
+      - failedTemplate:
+          errorMessage: "smithdb.recoveryStrategy.enabled must be a boolean. Do not quote true or false."
+
+  - it: should reject an empty recovery retention window when enabled
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      config.existingSecretName: langsmith-secret
+      smithdb.recoveryStrategy.enabled: true
+      smithdb.recoveryStrategy.retentionWindow: ""
+    asserts:
+      - failedTemplate:
+          errorMessage: "smithdb.recoveryStrategy.retentionWindow must be a non-empty duration string when smithdb.recoveryStrategy.enabled is true."
+
+  - it: should reject the legacy SmithDB dual-ingest flag when enabled
+    set:
+      smithdb.langsmith.dualIngest.enabled: true
+    asserts:
+      - failedTemplate:
+          errorMessage: "smithdb.langsmith.dualIngest.enabled is no longer supported. Use smithdb.langsmith.ingestion.enabled."
+
+  - it: should reject the legacy SmithDB frontend query flag when enabled
+    set:
+      smithdb.langsmith.frontend.useSmithDBEndpoints: true
+    asserts:
+      - failedTemplate:
+          errorMessage: "smithdb.langsmith.frontend.useSmithDBEndpoints is no longer supported. Use smithdb.langsmith.query.enabled."
+
+  - it: should reject the legacy SmithDB LSM backfill flag when enabled
+    set:
+      smithdb.langsmith.lsmBackfill.enabled: true
+    asserts:
+      - failedTemplate:
+          errorMessage: "smithdb.langsmith.lsmBackfill.enabled is no longer supported. Remove it and follow the SmithDB migration guidance for this chart version."
+
+  - it: should reject SmithDB migration after ClickHouse is disabled
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      config.existingSecretName: langsmith-secret
+      clickhouse.enabled: false
+      smithdb.langsmith.migration.enabled: true
+    asserts:
+      - failedTemplate:
+          errorMessage: "clickhouse.enabled must be true when smithdb.langsmith.migration.enabled is true."
+
+  - it: should reject common init containers without an image
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      config.existingSecretName: langsmith-secret
+      smithdb.commonInitContainers:
+        - name: proxy
+    asserts:
+      - failedTemplate:
+          errorMessage: "smithdb.commonInitContainers[0].image is required."
+
+  - it: should reject non-object common init containers
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      config.existingSecretName: langsmith-secret
+      smithdb.commonInitContainers:
+        - proxy
+    asserts:
+      - failedTemplate:
+          errorMessage: "smithdb.commonInitContainers[0] must be a container object."

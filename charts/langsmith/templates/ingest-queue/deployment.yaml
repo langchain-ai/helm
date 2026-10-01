@@ -3,6 +3,11 @@
   value: "3"
 - name: "QUEUE_PORT"
   value: {{ .Values.ingestQueue.containerPort | quote }}
+{{ include "langsmith.engine.smithGoEnv" . }}
+{{- if .Values.sandboxes.enabled }}
+- name: SANDBOX_QUEUE_PRIORITY
+  value: "1"
+{{- end }}
 {{- end -}}
 {{- if .Values.ingestQueue.enabled }}
 {{- $envVars := concat .Values.commonEnv (include "langsmith.commonEnv" . | fromYamlArray) (include "ingestQueueEnvVars" . | fromYamlArray) .Values.ingestQueue.deployment.extraEnv -}}
@@ -57,9 +62,13 @@ spec:
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      {{- if .Values.ingestQueue.deployment.priorityClassName }}
+      priorityClassName: {{ .Values.ingestQueue.deployment.priorityClassName }}
+      {{- end }}
       securityContext:
         {{- include "langsmith.podSecurityContext" (dict "Values" .Values "componentSecurityContext" .Values.ingestQueue.deployment.podSecurityContext) | nindent 8 }}
       serviceAccountName: {{ include "ingestQueue.serviceAccountName" . }}
+      automountServiceAccountToken: {{ .Values.ingestQueue.serviceAccount.automountServiceAccountToken }}
       {{- include "langsmith.dnsConfig" . | nindent 6 }}
       restartPolicy: Always
       {{- with concat .Values.commonInitContainers .Values.ingestQueue.deployment.initContainers }}
@@ -79,11 +88,8 @@ spec:
           envFrom:
             - configMapRef:
                 name: {{ include "langsmith.fullname" . }}-config
-            - configMapRef:
-                name: {{ include "langsmith.fullname" . }}-agent-builder-config
-                optional: true
-          image: {{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "platformBackendImage") | quote }}
-          imagePullPolicy: {{ .Values.images.platformBackendImage.pullPolicy }}
+          image: {{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "backendImage") | quote }}
+          imagePullPolicy: {{ .Values.images.backendImage.pullPolicy }}
           ports:
             - name: ingest-queue
               containerPort: {{ .Values.ingestQueue.containerPort }}

@@ -1,0 +1,55 @@
+{{- if and .Values.smithdb.enabled .Values.smithdb.compactionWorker.autoscaling.keda.enabled }}
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: {{ include "langsmith.smithdb.componentName" (dict "root" . "component" "compactionWorker") }}
+  namespace: {{ .Values.namespace | default .Release.Namespace }}
+  labels:
+    {{- include "langsmith.labels" . | nindent 4 }}
+    app.kubernetes.io/component: {{ include "langsmith.smithdb.componentName" (dict "root" . "component" "compactionWorker") }}
+    {{- with .Values.smithdb.compactionWorker.autoscaling.keda.labels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  annotations:
+    scaledobject.keda.sh/transfer-hpa-ownership: "true"
+    {{- with .Values.smithdb.compactionWorker.autoscaling.keda.annotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ include "langsmith.smithdb.componentName" (dict "root" . "component" "compactionWorker") }}
+  pollingInterval: {{ .Values.smithdb.compactionWorker.autoscaling.keda.pollingInterval }}
+  cooldownPeriod: {{ .Values.smithdb.compactionWorker.autoscaling.keda.cooldownPeriod }}
+  initialCooldownPeriod: {{ .Values.smithdb.compactionWorker.autoscaling.keda.initialCooldownPeriod }}
+  minReplicaCount: {{ .Values.smithdb.compactionWorker.autoscaling.keda.minReplicaCount }}
+  maxReplicaCount: {{ .Values.smithdb.compactionWorker.autoscaling.keda.maxReplicaCount }}
+  advanced:
+    horizontalPodAutoscalerConfig:
+      name: {{ include "langsmith.smithdb.componentName" (dict "root" . "component" "compactionWorker") }}
+      behavior:
+        scaleUp:
+          stabilizationWindowSeconds: {{ .Values.smithdb.compactionWorker.autoscaling.keda.scaleUpStabilizationWindowSeconds }}
+          policies:
+            - type: Pods
+              value: {{ .Values.smithdb.compactionWorker.autoscaling.keda.scalePodCount }}
+              periodSeconds: {{ .Values.smithdb.compactionWorker.autoscaling.keda.scaleUpStabilizationWindowSeconds }}
+        scaleDown:
+          stabilizationWindowSeconds: {{ .Values.smithdb.compactionWorker.autoscaling.keda.scaleDownStabilizationWindowSeconds }}
+          policies:
+            - type: Pods
+              value: {{ .Values.smithdb.compactionWorker.autoscaling.keda.scalePodCount }}
+              periodSeconds: {{ .Values.smithdb.compactionWorker.autoscaling.keda.scaleDownStabilizationWindowSeconds }}
+  triggers:
+    - type: metrics-api
+      metadata:
+        targetValue: {{ .Values.smithdb.compactionWorker.autoscaling.keda.pendingJobsThreshold | quote }}
+        url: "http://{{ include "langsmith.smithdb.componentName" (dict "root" . "component" "compaction") }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.smithdb.compaction.containerPort }}/metrics/jobs"
+        valueLocation: "pending"
+        format: "json"
+    - type: cpu
+      metricType: Utilization
+      metadata:
+        value: {{ .Values.smithdb.compactionWorker.autoscaling.keda.targetCPUUtilizationPercentage | quote }}
+{{- end }}

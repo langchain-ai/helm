@@ -50,7 +50,7 @@ spec:
             {{- toYaml . | nindent 8 }}
         {{- end }}
         {{- include "langsmith.labels" . | nindent 8 }}
-        app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}
+        app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}-auth-bootstrap
     spec:
       restartPolicy: Never
       {{- with .Values.images.imagePullSecrets }}
@@ -60,6 +60,7 @@ spec:
       securityContext:
         {{- include "langsmith.podSecurityContext" (dict "Values" .Values "componentSecurityContext" .Values.backend.authBootstrap.podSecurityContext) | nindent 8 }}
       serviceAccountName: {{ include "backend.serviceAccountName" . }}
+      automountServiceAccountToken: {{ .Values.backend.serviceAccount.automountServiceAccountToken }}
       {{- with concat .Values.commonInitContainers .Values.backend.authBootstrap.initContainers }}
       initContainers:
         {{- toYaml . | nindent 8 }}

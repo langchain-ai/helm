@@ -1,0 +1,58 @@
+suite: Presidio Analyzer deployment
+templates:
+  - presidio-analyzer/deployment.yaml
+tests:
+  - it: renders one uppercase LOG_LEVEL
+    set:
+      presidioAnalyzer.enabled: true
+      config.logLevel: debug
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: LOG_LEVEL
+            value: DEBUG
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: LOG_LEVEL
+            value: debug
+
+  - it: filters an overridden LOG_LEVEL and preserves unrelated environment variables
+    set:
+      presidioAnalyzer.enabled: true
+      config.logLevel: warning
+      commonEnv:
+        - name: COMMON_CUSTOM_ENV
+          value: common-value
+      presidioAnalyzer.deployment.extraEnv:
+        - name: LOG_LEVEL
+          value: extra
+        - name: PRESIDIO_CUSTOM_ENV
+          value: presidio-value
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: LOG_LEVEL
+            value: WARNING
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: LOG_LEVEL
+            value: warning
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: LOG_LEVEL
+            value: extra
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: COMMON_CUSTOM_ENV
+            value: common-value
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: PRESIDIO_CUSTOM_ENV
+            value: presidio-value

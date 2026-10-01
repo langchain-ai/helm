@@ -1,0 +1,45 @@
+{{- if .Values.fleet.enabled }}
+{{- if and .Values.fleet.queue.enabled .Values.fleet.queue.autoscaling.enabled .Values.fleet.queue.autoscaling.keda.enabled }}
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: {{ include "langsmith.agentFeatures.fullname" (dict "root" . "product" "fleet") }}-{{ .Values.fleet.queue.name }}
+  namespace: {{ .Values.namespace | default .Release.Namespace | quote }}
+  labels:
+    {{- include "langsmith.labels" . | nindent 4 }}
+spec:
+  scaleTargetRef:
+    name: {{ include "langsmith.agentFeatures.fullname" (dict "root" . "product" "fleet") }}-{{ .Values.fleet.queue.name }}
+  minReplicaCount: {{ .Values.fleet.queue.autoscaling.minReplicas | default 1 }}
+  maxReplicaCount: {{ .Values.fleet.queue.autoscaling.maxReplicas | default 10 }}
+  pollingInterval: {{ .Values.fleet.queue.autoscaling.keda.pollingInterval | default 30 }}
+  cooldownPeriod: {{ .Values.fleet.queue.autoscaling.keda.cooldownPeriod | default 300 }}
+  advanced:
+    horizontalPodAutoscalerConfig:
+      behavior:
+        scaleDown:
+          stabilizationWindowSeconds: {{ .Values.fleet.queue.autoscaling.keda.scaleDownStabilizationWindowSeconds | default 300 }}
+  triggers:
+    {{- if .Values.fleet.queue.autoscaling.targetCPUUtilizationPercentage }}
+    - type: cpu
+      metricType: Utilization
+      metadata:
+        value: "{{ .Values.fleet.queue.autoscaling.targetCPUUtilizationPercentage }}"
+    {{- end }}
+    {{- if .Values.fleet.queue.autoscaling.targetMemoryUtilizationPercentage }}
+    - type: memory
+      metricType: Utilization
+      metadata:
+        value: "{{ .Values.fleet.queue.autoscaling.targetMemoryUtilizationPercentage }}"
+    {{- end }}
+    - type: postgresql
+      metadata:
+        connectionFromEnv: "POSTGRES_URI"
+        query: "SELECT COUNT(*) FROM run WHERE status = 'pending'"
+        targetQueryValue: {{ .Values.fleet.queue.numberOfJobsPerWorker | quote }}
+        activationTargetQueryValue: {{ .Values.fleet.queue.numberOfJobsPerWorker | quote }}
+    {{- with .Values.fleet.queue.autoscaling.keda.additionalTriggers }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+{{- end }}
+{{- end }}

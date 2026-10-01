@@ -10,14 +10,15 @@
   value: /{{ . }}/api-host
 {{- end }}
 {{- /* Agent Builder OAuth and Trigger Server configuration */ -}}
-{{- if .Values.config.agentBuilder.enabled }}
-{{- if .Values.config.agentBuilder.oauthProviderOrgId }}
+{{- if or .Values.config.agentBuilder.enabled .Values.fleet.enabled }}
+{{- $oauthProviderOrgId := .Values.config.agentBuilder.oauthProviderOrgId | default .Values.fleet.oauth.providerOrgId }}
+{{- if $oauthProviderOrgId }}
 - name: AGENT_BUILDER_AUTH_PROVIDER_ORG_ID
-  value: {{ .Values.config.agentBuilder.oauthProviderOrgId | quote }}
+  value: {{ $oauthProviderOrgId | quote }}
 {{- end }}
-{{- if .Values.agentBuilderTriggerServer.enabled }}
+{{- if .Values.fleetTriggerServer.enabled }}
 - name: AGENT_BUILDER_TRIGGERS_API_URL
-  value: "http://{{ include "langsmith.fullname" . }}-{{ .Values.agentBuilderTriggerServer.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.agentBuilderTriggerServer.service.port }}/v1/triggers"
+  value: "http://{{ include "langsmith.fullname" . }}-{{ .Values.fleetTriggerServer.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.fleetTriggerServer.service.port }}/v1/triggers"
 {{- end }}
 {{- include "agentBuilderOAuthEnvVars" . }}
 {{- end }}
@@ -75,9 +76,13 @@ spec:
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      {{- if .Values.hostBackend.deployment.priorityClassName }}
+      priorityClassName: {{ .Values.hostBackend.deployment.priorityClassName }}
+      {{- end }}
       securityContext:
         {{- include "langsmith.podSecurityContext" (dict "Values" .Values "componentSecurityContext" .Values.hostBackend.deployment.podSecurityContext) | nindent 8 }}
       serviceAccountName: {{ include "hostBackend.serviceAccountName" . }}
+      automountServiceAccountToken: {{ .Values.hostBackend.serviceAccount.automountServiceAccountToken }}
       {{- include "langsmith.dnsConfig" . | nindent 6 }}
       {{- with concat .Values.commonInitContainers .Values.hostBackend.deployment.initContainers }}
       initContainers:
@@ -96,8 +101,8 @@ spec:
           envFrom:
             - configMapRef:
                 name: {{ include "langsmith.fullname" . }}-config
-          image: {{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "hostBackendImage") | quote }}
-          imagePullPolicy: {{ .Values.images.hostBackendImage.pullPolicy }}
+          image: {{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "backendImage") | quote }}
+          imagePullPolicy: {{ .Values.images.backendImage.pullPolicy }}
           ports:
             - name: host-backend
               containerPort: {{ .Values.hostBackend.containerPort }}

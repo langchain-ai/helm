@@ -1,4 +1,4 @@
-{{- if .Values.backend.clickhouseMigrations.enabled }}
+{{- if and .Values.clickhouse.enabled .Values.backend.clickhouseMigrations.enabled }}
 {{- $envVars := concat .Values.commonEnv (include "langsmith.commonEnv" . | fromYamlArray) .Values.backend.clickhouseMigrations.extraEnv -}}
 {{- include "langsmith.detectDuplicates" $envVars -}}
 {{- $volumes := concat .Values.commonVolumes .Values.backend.clickhouseMigrations.volumes (include "langsmith.tlsVolumes" . | fromYamlArray) -}}
@@ -48,6 +48,7 @@ spec:
       securityContext:
         {{- include "langsmith.podSecurityContext" (dict "Values" .Values "componentSecurityContext" .Values.backend.clickhouseMigrations.podSecurityContext) | nindent 8 }}
       serviceAccountName: {{ include "backend.serviceAccountName" . }}
+      automountServiceAccountToken: {{ .Values.backend.serviceAccount.automountServiceAccountToken }}
       {{- with concat .Values.commonInitContainers .Values.backend.clickhouseMigrations.initContainers }}
       initContainers:
         {{- toYaml . | nindent 8 }}

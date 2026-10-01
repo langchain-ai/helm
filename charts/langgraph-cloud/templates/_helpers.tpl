@@ -152,8 +152,10 @@ MongoDB connection URL used by the chart-managed checkpointer default.
 
 {{/*
 Validates MongoDB provisioning and default-checkpointer settings.
+Set config.skipValidation to true to bypass these checks (e.g. for helm template verification).
 */}}
 {{- define "langGraphCloud.validateMongoConfiguration" -}}
+{{- if not .Values.config.skipValidation -}}
 {{- if and (hasKey .Values.mongo "resources") (not (empty .Values.mongo.resources)) -}}
 {{- fail "mongo.resources has moved to mongo.statefulSet.resources; update your values file to use the new path" -}}
 {{- end -}}
@@ -169,6 +171,7 @@ Validates MongoDB provisioning and default-checkpointer settings.
 {{- if and .Values.mongo.enabled (not .Values.mongo.external.enabled) (empty .Values.mongo.statefulSet.persistence.size) -}}
 {{- fail "mongo.statefulSet.persistence.size must be set when mongo.enabled=true and using the bundled MongoDB instance" -}}
 {{- end -}}
+{{- end -}}{{- /* end skipValidation */ -}}
 {{- end }}
 
 {{/*
@@ -221,8 +224,11 @@ Environment variables used to default agent server checkpointers without overrid
 
 {{/*
 Validates that at most one ingress mechanism is enabled and that required fields are set.
+Set config.skipValidation to true to bypass these checks (e.g. for Ingress + Gateway
+coexistence or helm template verification).
 */}}
 {{- define "langGraphCloud.validateIngress" -}}
+{{- if not .Values.config.skipValidation -}}
 {{- $enabledCount := 0 -}}
 {{- if .Values.ingress.enabled }}{{ $enabledCount = add1 $enabledCount }}{{- end -}}
 {{- if .Values.gateway.enabled }}{{ $enabledCount = add1 $enabledCount }}{{- end -}}
@@ -239,6 +245,7 @@ Validates that at most one ingress mechanism is enabled and that required fields
 {{- if and .Values.ingress.enabled (empty .Values.ingress.hostname) }}
 {{- fail "ingress.hostname must be set when ingress.enabled=true" -}}
 {{- end -}}
+{{- end -}}{{- /* end skipValidation */ -}}
 {{- end -}}
 
 {{/*

@@ -22,6 +22,10 @@ metadata:
 spec:
   serviceName: {{ include "langsmith.fullname" . }}-{{ .Values.redis.name }}
   replicas: 1
+  {{- with .Values.redis.statefulSet.updateStrategy }}
+  updateStrategy:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
   selector:
     matchLabels:
       {{- include "langsmith.selectorLabels" . | nindent 6 }}
@@ -44,10 +48,14 @@ spec:
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      {{- if .Values.redis.statefulSet.priorityClassName }}
+      priorityClassName: {{ .Values.redis.statefulSet.priorityClassName }}
+      {{- end }}
       terminationGracePeriodSeconds: {{ .Values.redis.statefulSet.terminationGracePeriodSeconds }}
       securityContext:
         {{- include "langsmith.podSecurityContext" (dict "Values" .Values "componentSecurityContext" .Values.redis.statefulSet.podSecurityContext) | nindent 8 }}
       serviceAccountName: {{ include "redis.serviceAccountName" . }}
+      automountServiceAccountToken: {{ .Values.redis.serviceAccount.automountServiceAccountToken }}
       {{- include "langsmith.dnsConfig" . | nindent 6 }}
       {{- with concat .Values.commonInitContainers .Values.redis.statefulSet.initContainers }}
       initContainers:

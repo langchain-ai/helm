@@ -1,24 +1,27 @@
 {{- define "frontendEnvVars" -}}
-{{- with .Values.config.insights }}
 - name: VITE_SELF_HOSTED_CLIO_ENABLED
-  value: {{ .enabled | quote }}
-{{- end }}
-{{- with .Values.config.polly }}
+  value: {{ .Values.insights.enabled | quote }}
 - name: VITE_SELF_HOSTED_POLLY_ENABLED
-  value: {{ .enabled | quote }}
+  value: {{ .Values.polly.enabled | quote }}
+{{- if .Values.smithdb.langsmith.query.enabled }}
+- name: VITE_SELF_HOSTED_SMITHDB_V2_ENDPOINTS_ENABLED
+  value: {{ .Values.smithdb.langsmith.query.enabled | quote }}
 {{- end }}
 {{- /* Agent Builder OAuth provider IDs for frontend */ -}}
-{{- if .Values.config.agentBuilder.oauth.googleOAuthProvider }}
+{{- $googleOAuth := .Values.config.agentBuilder.oauth.googleOAuthProvider | default .Values.fleet.oauth.googleOAuthProvider }}
+{{- $slackOAuth := .Values.config.agentBuilder.oauth.slackOAuthProvider | default .Values.fleet.oauth.slackOAuthProvider }}
+{{- $githubOAuth := .Values.config.agentBuilder.oauth.githubOAuthProvider | default .Values.fleet.oauth.githubOAuthProvider }}
+{{- if $googleOAuth }}
 - name: VITE_GOOGLE_OAUTH_PROVIDER
-  value: {{ .Values.config.agentBuilder.oauth.googleOAuthProvider | quote }}
+  value: {{ $googleOAuth | quote }}
 {{- end }}
-{{- if .Values.config.agentBuilder.oauth.slackOAuthProvider }}
+{{- if $slackOAuth }}
 - name: VITE_SLACK_OAUTH_PROVIDER
-  value: {{ .Values.config.agentBuilder.oauth.slackOAuthProvider | quote }}
+  value: {{ $slackOAuth | quote }}
 {{- end }}
-{{- if .Values.config.agentBuilder.oauth.githubOAuthProvider }}
+{{- if $githubOAuth }}
 - name: VITE_GITHUB_OAUTH_PROVIDER
-  value: {{ .Values.config.agentBuilder.oauth.githubOAuthProvider | quote }}
+  value: {{ $githubOAuth | quote }}
 {{- end }}
 {{- if .Values.config.oauth.enabled }}
 - name: VITE_OAUTH_CLIENT_ID
@@ -39,8 +42,16 @@
   value: {{ .Values.config.basePath }}
 {{- end }}
 {{- if .Values.config.customLogo.enabled }}
+{{- $light := .Values.config.customLogo.lightModeLogoUrl | default .Values.config.customLogo.logoUrl | default .Values.config.customLogo.darkModeLogoUrl }}
+{{- $dark := .Values.config.customLogo.darkModeLogoUrl | default .Values.config.customLogo.logoUrl | default .Values.config.customLogo.lightModeLogoUrl }}
+{{- /* Frontends older than the light/dark variants read only VITE_CUSTOM_LOGO_URL, so
+       keep it populated to leave them showing one logo rather than none. */}}
 - name: VITE_CUSTOM_LOGO_URL
-  value: {{ .Values.config.customLogo.logoUrl | quote }}
+  value: {{ .Values.config.customLogo.logoUrl | default $light | quote }}
+- name: VITE_CUSTOM_LOGO_LIGHT_MODE_URL
+  value: {{ $light | quote }}
+- name: VITE_CUSTOM_LOGO_DARK_MODE_URL
+  value: {{ $dark | quote }}
 - name: VITE_CO_BRANDING_ENABLED
   value: {{ .Values.config.customLogo.coBrandingEnabled | quote }}
 {{- end }}
@@ -55,6 +66,25 @@
 {{- if .Values.config.googleIapEnabled }}
 - name: VITE_GOOGLE_IAP_ENABLED
   value: "true"
+{{- end }}
+{{- /* When using agentFeatures (standalone), inject the VITE vars that the bootstrap configmaps would otherwise provide */ -}}
+{{- if and .Values.fleet.enabled .Values.config.hostname }}
+{{- $baseURL := include "langsmith.hostnameWithProtocol" . | trimSuffix "/" }}
+{{- $agentPath := include "langsmith.agentFeatures.agentPathPrefix" (dict "root" . "segment" "fleet") }}
+- name: VITE_AGENT_BUILDER_DEPLOYMENT_URL_PUBLIC
+  value: {{ printf "%s%s" $baseURL $agentPath | quote }}
+- name: LANGGRAPH_API_URL_PUBLIC
+  value: {{ printf "%s%s" $baseURL $agentPath | quote }}
+- name: VITE_AGENT_BUILDER_MCP_SERVER_URL
+  value: {{ printf "%s/mcp" $baseURL | quote }}
+- name: VITE_AGENT_BUILDER_TRIGGERS_API_URL
+  value: {{ $baseURL | quote }}
+{{- end }}
+{{- if and .Values.polly.enabled .Values.config.hostname }}
+{{- $baseURL := include "langsmith.hostnameWithProtocol" . | trimSuffix "/" }}
+{{- $agentPath := include "langsmith.agentFeatures.agentPathPrefix" (dict "root" . "segment" "polly") }}
+- name: VITE_POLLY_DEPLOYMENT_URL
+  value: {{ printf "%s%s" $baseURL $agentPath | quote }}
 {{- end }}
 {{- end -}}
 {{- if .Values.frontend.enabled }}
@@ -134,9 +164,13 @@ spec:
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      {{- if .Values.frontend.deployment.priorityClassName }}
+      priorityClassName: {{ .Values.frontend.deployment.priorityClassName }}
+      {{- end }}
       securityContext:
         {{- include "langsmith.podSecurityContext" (dict "Values" .Values "componentSecurityContext" .Values.frontend.deployment.podSecurityContext) | nindent 8 }}
       serviceAccountName: {{ include "frontend.serviceAccountName" . }}
+      automountServiceAccountToken: {{ .Values.frontend.serviceAccount.automountServiceAccountToken }}
       {{- include "langsmith.dnsConfig" . | nindent 6 }}
       {{- with concat .Values.commonInitContainers .Values.frontend.deployment.initContainers }}
       initContainers:
@@ -155,16 +189,6 @@ spec:
           envFrom:
             - configMapRef:
                 name: {{ include "langsmith.fullname" . }}-config
-            {{- if .Values.config.agentBuilder.enabled }}
-            - configMapRef:
-                name: {{ include "langsmith.fullname" . }}-agent-builder-config
-                optional: true
-            {{- end }}
-            {{- if .Values.config.polly.enabled }}
-            - configMapRef:
-                name: {{ include "langsmith.fullname" . }}-polly-config
-                optional: true
-            {{- end }}
           image: {{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "frontendImage") | quote }}
           imagePullPolicy: {{ .Values.images.frontendImage.pullPolicy }}
           ports:

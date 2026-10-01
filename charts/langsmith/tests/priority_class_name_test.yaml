@@ -1,0 +1,76 @@
+suite: StatefulSet priorityClassName rendering
+templates:
+  - clickhouse/stateful-set.yaml
+  - clickhouse/config-map.yaml
+  - postgres/stateful-set.yaml
+  - redis/stateful-set.yaml
+  - smithdb/taskdb-postgres-statefulset.yaml
+tests:
+  - it: does not render ClickHouse priorityClassName by default
+    template: clickhouse/stateful-set.yaml
+    asserts:
+      - notExists:
+          path: spec.template.spec.priorityClassName
+
+  - it: renders a configured ClickHouse priorityClassName
+    template: clickhouse/stateful-set.yaml
+    set:
+      clickhouse.statefulSet.priorityClassName: database-priority
+    asserts:
+      - equal:
+          path: spec.template.spec.priorityClassName
+          value: database-priority
+
+  - it: does not render PostgreSQL priorityClassName by default
+    template: postgres/stateful-set.yaml
+    asserts:
+      - notExists:
+          path: spec.template.spec.priorityClassName
+
+  - it: renders a configured PostgreSQL priorityClassName
+    template: postgres/stateful-set.yaml
+    set:
+      postgres.statefulSet.priorityClassName: database-priority
+    asserts:
+      - equal:
+          path: spec.template.spec.priorityClassName
+          value: database-priority
+
+  - it: does not render Redis priorityClassName by default
+    template: redis/stateful-set.yaml
+    asserts:
+      - notExists:
+          path: spec.template.spec.priorityClassName
+
+  - it: renders a configured Redis priorityClassName
+    template: redis/stateful-set.yaml
+    set:
+      redis.statefulSet.priorityClassName: database-priority
+    asserts:
+      - equal:
+          path: spec.template.spec.priorityClassName
+          value: database-priority
+
+  - it: does not render SmithDB taskdb priorityClassName by default
+    template: smithdb/taskdb-postgres-statefulset.yaml
+    set:
+      smithdb.enabled: true
+      smithdb.langsmith.migration.enabled: true
+      smithdb.migration.taskdb.postgres.enabled: true
+      smithdb.migration.taskdb.postgres.auth.password: taskdb-password
+    asserts:
+      - notExists:
+          path: spec.template.spec.priorityClassName
+
+  - it: renders a configured SmithDB taskdb priorityClassName
+    template: smithdb/taskdb-postgres-statefulset.yaml
+    set:
+      smithdb.enabled: true
+      smithdb.langsmith.migration.enabled: true
+      smithdb.migration.taskdb.postgres.enabled: true
+      smithdb.migration.taskdb.postgres.auth.password: taskdb-password
+      smithdb.migration.taskdb.postgres.statefulSet.priorityClassName: database-priority
+    asserts:
+      - equal:
+          path: spec.template.spec.priorityClassName
+          value: database-priority

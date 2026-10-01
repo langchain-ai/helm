@@ -82,3 +82,11 @@ clickhouse:
       requests:
         cpu: 200m
         memory: 500Mi
+
+# Insights and Polly default to enabled in chart 0.15.1, but this CI fixture
+# focuses on the custom-CA + external-Redis path; disable both to keep the
+# kind cluster lean and avoid requiring encryption keys.
+insights:
+  enabled: false
+polly:
+  enabled: false

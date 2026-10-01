@@ -19,10 +19,10 @@ spec:
     matchLabels:
       {{- include "authProxy.selectorLabels" . | nindent 6 }}
       app.kubernetes.io/component: {{ include "authProxy.fullname" . }}-{{ .Values.authProxy.name }}
-  {{- if .Values.authProxy.pdb.minAvailable }}
+  {{- if hasKey .Values.authProxy.pdb "minAvailable" }}
   minAvailable: {{ .Values.authProxy.pdb.minAvailable }}
   {{- end }}
-  {{- if .Values.authProxy.pdb.maxUnavailable }}
+  {{- if hasKey .Values.authProxy.pdb "maxUnavailable" }}
   maxUnavailable: {{ .Values.authProxy.pdb.maxUnavailable }}
   {{- end }}
 {{- end }}

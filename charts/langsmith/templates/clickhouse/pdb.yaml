@@ -1,4 +1,4 @@
-{{- if .Values.clickhouse.pdb.enabled }}
+{{- if and .Values.clickhouse.enabled (not .Values.clickhouse.external.enabled) .Values.clickhouse.pdb.enabled }}
 apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
@@ -20,10 +20,10 @@ spec:
     matchLabels:
       {{- include "langsmith.selectorLabels" . | nindent 6 }}
       app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-{{ .Values.clickhouse.name }}
-  {{- if .Values.clickhouse.pdb.minAvailable }}
+  {{- if hasKey .Values.clickhouse.pdb "minAvailable" }}
   minAvailable: {{ .Values.clickhouse.pdb.minAvailable }}
   {{- end }}
-  {{- if .Values.clickhouse.pdb.maxUnavailable }}
+  {{- if hasKey .Values.clickhouse.pdb "maxUnavailable" }}
   maxUnavailable: {{ .Values.clickhouse.pdb.maxUnavailable }}
   {{- end }}
 {{- end }}
