@@ -21,6 +21,8 @@ LangSmith Engine is off by default. `engine.enabled=true` requires all of the fo
 | `engine.encryptionKey` | Decrypts the payloads smith-go passes to the Engine. Must match smith-go's `ISSUES_AGENT_ENCRYPTION_KEY`. |
 | `config.hostname` | Sandboxes run the `langsmith` CLI against your install from outside the cluster, so this must be externally reachable — not a loopback or in-cluster address. |
 
+Enabling Engine also starts the integration service and exposes its `/api-host` routes for GitHub enrollment. This does not enable LangSmith Deployments or grant its Kubernetes resource-management permissions.
+
 Things worth planning for before you enable it:
 
 **LangSmith Intelligence.** `engine.intelligenceBaseUrl` defaults to `https://beacon.langchain.com/intelligence`, where Engine reports usage on your own model providers, authenticated with your license key. To also let Engine run on LangSmith Intelligence's models, set it to `https://beacon.aws.langchain.com/intelligence` and select LangSmith Intelligence under **Settings > Engine > Model providers**. Air-gapped installs with an offline license set it to `""`; Engine then runs only on your own model providers, and its usage goes out through **Settings > Usage export**.

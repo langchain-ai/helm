@@ -1,0 +1,106 @@
+suite: Engine GitHub integration routing
+templates:
+  - templates/host-backend/deployment.yaml
+  - templates/host-backend/service.yaml
+  - templates/host-backend/service-account.yaml
+  - templates/host-backend/rbac.yaml
+  - templates/frontend/config-map.yaml
+  - templates/frontend/deployment.yaml
+values:
+  - ./values/sandboxes-enabled.yaml
+set:
+  config.hostname: langsmith.example.com
+  config.deployment.enabled: false
+  hostBackend.enabled: false
+  engine.enabled: true
+  engine.encryptionKey: test-key
+  engine.intelligenceBaseUrl: https://beacon.langchain.com/intelligence
+tests:
+  - it: serves GitHub enrollment without enabling Deployments or its Kubernetes permissions
+    asserts:
+      - hasDocuments:
+          count: 1
+        template: templates/host-backend/deployment.yaml
+      - hasDocuments:
+          count: 1
+        template: templates/host-backend/service.yaml
+      - hasDocuments:
+          count: 1
+        template: templates/host-backend/service-account.yaml
+      - hasDocuments:
+          count: 0
+        template: templates/host-backend/rbac.yaml
+      - matchRegex:
+          path: data["nginx.conf"]
+          pattern: 'location /api-host \{[^}]*rewrite /api-host/\(\.\*\) /\$1  break;[^}]*proxy_pass http://[^}]*-host-backend\.'
+        template: templates/frontend/config-map.yaml
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: VITE_HOST_ENABLED
+          any: true
+        template: templates/frontend/deployment.yaml
+
+  - it: preserves the configured base path for GitHub enrollment and API documentation
+    set:
+      config.basePath: langsmith
+    asserts:
+      - matchRegex:
+          path: data["nginx.conf"]
+          pattern: 'location /langsmith/api-host \{[^}]*rewrite /langsmith/api-host/\(\.\*\) /\$1  break;[^}]*proxy_pass http://[^}]*-host-backend\.'
+        template: templates/frontend/config-map.yaml
+      - matchRegex:
+          path: data["nginx.conf"]
+          pattern: 'location = /langsmith/api-host/docs \{[^}]*proxy_pass http://[^}]*-host-backend\.'
+        template: templates/frontend/config-map.yaml
+
+  - it: keeps integration resources and routes absent when all consumers are disabled
+    set:
+      engine.enabled: false
+    asserts:
+      - hasDocuments:
+          count: 0
+        template: templates/host-backend/deployment.yaml
+      - hasDocuments:
+          count: 0
+        template: templates/host-backend/service.yaml
+      - hasDocuments:
+          count: 0
+        template: templates/host-backend/service-account.yaml
+      - notMatchRegex:
+          path: data["nginx.conf"]
+          pattern: 'location /api-host'
+        template: templates/frontend/config-map.yaml
+
+  - it: exposes routes when the integration service is explicitly enabled
+    set:
+      engine.enabled: false
+      hostBackend.enabled: true
+    asserts:
+      - hasDocuments:
+          count: 1
+        template: templates/host-backend/deployment.yaml
+      - matchRegex:
+          path: data["nginx.conf"]
+          pattern: 'location /api-host \{[^}]*proxy_pass http://[^}]*-host-backend\.'
+        template: templates/frontend/config-map.yaml
+
+  - it: preserves Deployments routing and UI when Deployments is enabled
+    set:
+      engine.enabled: false
+      config.deployment.enabled: true
+      ingress.enabled: true
+    asserts:
+      - hasDocuments:
+          count: 1
+        template: templates/host-backend/deployment.yaml
+      - matchRegex:
+          path: data["nginx.conf"]
+          pattern: 'location /api-host \{[^}]*proxy_pass http://[^}]*-host-backend\.'
+        template: templates/frontend/config-map.yaml
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: VITE_HOST_ENABLED
+            value: "1"
+        template: templates/frontend/deployment.yaml

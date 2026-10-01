@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.18.0-rc.4](https://img.shields.io/badge/Version-0.18.0--rc.4-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.18.2rc1](https://img.shields.io/badge/AppVersion-0.18.2rc1-informational?style=flat-square)
+![Version: 0.18.0-rc.5](https://img.shields.io/badge/Version-0.18.0--rc.5-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.18.2rc1](https://img.shields.io/badge/AppVersion-0.18.2rc1-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -18,6 +18,8 @@ LangSmith Engine is off by default. `engine.enabled=true` requires all of the fo
 | `images.engineInsightsAgentImage.repository` = `docker.io/langchain/langsmith-insights-engine` | Engine needs the combined image serving both the `insights` and `engine` graphs. |
 | `engine.encryptionKey` | Decrypts the payloads smith-go passes to the Engine. Must match smith-go's `ISSUES_AGENT_ENCRYPTION_KEY`. |
 | `config.hostname` | Sandboxes run the `langsmith` CLI against your install from outside the cluster, so this must be externally reachable — not a loopback or in-cluster address. |
+
+Enabling Engine also starts the integration service and exposes its `/api-host` routes for GitHub enrollment. This does not enable LangSmith Deployments or grant its Kubernetes resource-management permissions.
 
 Things worth planning for before you enable it:
 
