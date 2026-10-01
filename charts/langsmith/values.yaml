@@ -537,7 +537,8 @@ engine:
   enabled: false
   # -- LangSmith Intelligence endpoint, authenticated with the license key. Engine reports
   # usage on your own model providers here. The default records usage only; to also run
-  # Engine on LangSmith Intelligence's models, use https://beacon.aws.langchain.com/intelligence.
+  # Engine on LangSmith Intelligence's models, use https://beacon.aws.langchain.com/intelligence
+  # and select LangSmith Intelligence under Settings > Engine > Model providers.
   # Air-gapped installs with an offline license set this to "" and send Engine usage from
   # Settings > Usage export.
   intelligenceBaseUrl: "https://beacon.langchain.com/intelligence"

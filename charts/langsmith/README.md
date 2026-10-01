@@ -21,7 +21,7 @@ LangSmith Engine is off by default. `engine.enabled=true` requires all of the fo
 
 Things worth planning for before you enable it:
 
-**LangSmith Intelligence.** `engine.intelligenceBaseUrl` defaults to `https://beacon.langchain.com/intelligence`, where Engine reports usage on your own model providers, authenticated with your license key. To also let Engine run on LangSmith Intelligence's models, set it to `https://beacon.aws.langchain.com/intelligence`. Air-gapped installs with an offline license set it to `""`; Engine then runs only on your own model providers, and its usage goes out through **Settings > Usage export**.
+**LangSmith Intelligence.** `engine.intelligenceBaseUrl` defaults to `https://beacon.langchain.com/intelligence`, where Engine reports usage on your own model providers, authenticated with your license key. To also let Engine run on LangSmith Intelligence's models, set it to `https://beacon.aws.langchain.com/intelligence` and select LangSmith Intelligence under **Settings > Engine > Model providers**. Air-gapped installs with an offline license set it to `""`; Engine then runs only on your own model providers, and its usage goes out through **Settings > Usage export**.
 
 **Sandbox nodes.** Sandboxes are Firecracker microVMs, so `sandboxes.sandboxHost.deployment.nodeSelector` must place host pods on KVM-capable nodes — bare-metal instances, or instance types with nested virtualization explicitly enabled. Sandbox images are published for `linux/amd64` only. A dedicated, tainted node pool is the usual arrangement, since rolling a sandbox-host pod suspends every microVM on it.
 
@@ -74,7 +74,7 @@ The trajectory Service is cluster-internal; no public route is added. Trajectory
 | engine.enabled | bool | `false` | Enable the LangSmith Engine. See the Engine section of this README for what it requires. |
 | engine.encryptionKey | string | `""` | Fernet key for the payloads smith-go passes to the Engine. Required when engine.enabled, and must match smith-go's ISSUES_AGENT_ENCRYPTION_KEY. |
 | engine.encryptionKeyPrevious | string | `""` |  |
-| engine.intelligenceBaseUrl | string | `"https://beacon.langchain.com/intelligence"` | LangSmith Intelligence endpoint, authenticated with the license key. Engine reports usage on your own model providers here. The default records usage only; to also run Engine on LangSmith Intelligence's models, use https://beacon.aws.langchain.com/intelligence. Air-gapped installs with an offline license set this to "" and send Engine usage from Settings > Usage export. |
+| engine.intelligenceBaseUrl | string | `"https://beacon.langchain.com/intelligence"` | LangSmith Intelligence endpoint, authenticated with the license key. Engine reports usage on your own model providers here. The default records usage only; to also run Engine on LangSmith Intelligence's models, use https://beacon.aws.langchain.com/intelligence and select LangSmith Intelligence under Settings > Engine > Model providers. Air-gapped installs with an offline license set this to "" and send Engine usage from Settings > Usage export. |
 | engine.sandboxTenantId | string | `""` | Workspace that owns Engine sandboxes. Optional: smith-go resolves the install's workspace unless there is more than one non-personal org. Prefer one reserved for the Engine — its sandboxes are visible to anyone with access to it. |
 | engineInsightsAgent.apiServer.autoscaling.enabled | bool | `false` |  |
 | engineInsightsAgent.apiServer.autoscaling.keda.cooldownPeriod | int | `300` |  |
