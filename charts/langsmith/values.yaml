@@ -47,6 +47,8 @@ commonVolumeMounts: []
 commonInitContainers: []
 # -- Common pod security context applied to all pods. Component-specific podSecurityContext values will be merged on top of this (component values take precedence).
 commonPodSecurityContext: {}
+# -- DNS policy applied to all pods. Set to "None" with commonDnsConfig.nameservers to use custom DNS resolvers.
+commonDnsPolicy: ""
 # -- Common DNS configuration applied to all pods. Reduces DNS query amplification in Kubernetes by
 # -- ensuring service FQDNs (which have 4 dots) are resolved directly without search domain expansion.
 # -- Set to null to disable and use Kubernetes defaults (ndots: 5).
