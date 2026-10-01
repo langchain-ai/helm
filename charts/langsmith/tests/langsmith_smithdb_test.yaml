@@ -209,7 +209,7 @@ tests:
               secretKeyRef:
                 name: langsmith-runtime
                 key: langsmith_license_key
-                optional: false
+                optional: true
 
   - it: should use SmithDB's default Beacon endpoint when no override is configured
     values:
@@ -239,6 +239,43 @@ tests:
           path: spec.template.spec.containers[0].env
           content:
             name: BEACON_ENDPOINT
+
+  - it: should skip duplicate commonEnv keys already set by SmithDB Beacon env
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      commonEnv:
+        - name: PHONE_HOME_ENABLED
+          value: "true"
+        - name: BEACON_ENDPOINT
+          value: https://beacon.langchain.com
+      smithdb.commonEnv:
+        - name: BEACON_LOGGING_ENABLED
+          value: "true"
+        - name: AWS_REGION
+          value: us-west-2
+    template: smithdb/query-deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: PHONE_HOME_ENABLED
+            value: "true"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: BEACON_LOGGING_ENABLED
+            value: "true"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: AWS_REGION
+            value: us-west-2
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: BEACON_ENDPOINT
+            value: https://beacon.langchain.com
 
   - it: should enable Beacon phone-home when traces are enabled without logs
     values:
