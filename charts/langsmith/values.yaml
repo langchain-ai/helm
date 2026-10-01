@@ -65,21 +65,21 @@ images:
   aceBackendImage:
     repository: "docker.io/langchain/langsmith-ace-backend"
     pullPolicy: IfNotPresent
-    tag: "0.17.29rc2"
+    tag: "0.17.29rc5"
   backendImage:
     repository: "docker.io/langchain/langsmith-backend"
     pullPolicy: IfNotPresent
-    tag: "0.17.29rc2"
+    tag: "0.17.29rc5"
   # Serves both the `insights` and `engine` graphs; insights.enabled and
   # engine.enabled pick which of them run.
   engineInsightsAgentImage:
     repository: "docker.io/langchain/langsmith-insights-engine"
     pullPolicy: IfNotPresent
-    tag: "0.17.29rc2"
+    tag: "0.17.29rc5"
   frontendImage:
     repository: "docker.io/langchain/langsmith-frontend"
     pullPolicy: IfNotPresent
-    tag: "0.17.29rc2"
+    tag: "0.17.29rc5"
   operatorImage:
     repository: "docker.io/langchain/langgraph-operator"
     pullPolicy: IfNotPresent
@@ -103,15 +103,15 @@ images:
   agentBuilderImage:
     repository: "docker.io/langchain/agent-builder-deep-agent"
     pullPolicy: IfNotPresent
-    tag: "0.17.29rc2"
+    tag: "0.17.29rc5"
   pollyAgentImage:
     repository: "docker.io/langchain/langsmith-polly"
     pullPolicy: IfNotPresent
-    tag: "0.17.29rc2"
+    tag: "0.17.29rc5"
   smithdbImage:
     repository: "docker.io/langchain/smithdb"
     pullPolicy: IfNotPresent
-    tag: "0.17.29rc2"
+    tag: "0.17.29rc5"
   # Optional: only mirror/pull when presidioAnalyzer.enabled is true
   presidioAnalyzerImage:
     repository: "mcr.microsoft.com/presidio-analyzer"
@@ -121,7 +121,7 @@ images:
   sandboxHostImage:
     repository: "docker.io/langchain/sandbox-host"
     pullPolicy: IfNotPresent
-    tag: "0.17.29rc2"
+    tag: "0.17.29rc5"
 
 ingress:
   enabled: false
@@ -1932,9 +1932,12 @@ smithdb:
       tolerations: []
       affinity: {}
       topologySpreadConstraints: []
+      # -- The compaction worker writes scratch files for index rebuilds to the system temp
+      # -- directory, so the cache volume is mounted at /tmp. This also keeps compaction working
+      # -- on clusters that enforce a read-only root filesystem.
       volumeMounts:
         - name: cache
-          mountPath: /data
+          mountPath: /tmp
       initContainers: []
     pdb:
       enabled: false

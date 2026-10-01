@@ -188,10 +188,18 @@ dnsConfig:
 {{- end }}
 {{- end }}
 
+{{- define "langsmith.trajectoryEnabled" -}}
+{{- and .Values.smithdb.enabled .Values.smithdb.langsmith.query.enabled -}}
+{{- end -}}
+
 {{/*
 Template containing common environment variables that are used by several services.
 */}}
 {{- define "langsmith.commonEnv" -}}
+{{- if eq (include "langsmith.trajectoryEnabled" .) "true" }}
+- name: TRAJECTORY_BACKEND_SERVICE_URL
+  value: "{{ include "langsmith.fullname" . }}-trajectory-backend:8086"
+{{- end }}
 - name: POSTGRES_DATABASE_URI
   valueFrom:
     secretKeyRef:
