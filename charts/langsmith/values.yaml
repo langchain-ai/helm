@@ -1932,9 +1932,12 @@ smithdb:
       tolerations: []
       affinity: {}
       topologySpreadConstraints: []
+      # -- The compaction worker writes scratch files for index rebuilds to the system temp
+      # -- directory, so the cache volume is mounted at /tmp. This also keeps compaction working
+      # -- on clusters that enforce a read-only root filesystem.
       volumeMounts:
         - name: cache
-          mountPath: /data
+          mountPath: /tmp
       initContainers: []
     pdb:
       enabled: false

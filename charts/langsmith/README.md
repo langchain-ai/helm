@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.17.0-rc.57](https://img.shields.io/badge/Version-0.17.0--rc.57-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.17.29rc4](https://img.shields.io/badge/AppVersion-0.17.29rc4-informational?style=flat-square)
+![Version: 0.17.0-rc.58](https://img.shields.io/badge/Version-0.17.0--rc.58-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.17.29rc4](https://img.shields.io/badge/AppVersion-0.17.29rc4-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -1092,7 +1092,7 @@ The trajectory Service is cluster-internal; no public route is added. Trajectory
 | smithdb.compactionWorker.deployment.terminationGracePeriodSeconds | int | `120` |  |
 | smithdb.compactionWorker.deployment.tolerations | list | `[]` |  |
 | smithdb.compactionWorker.deployment.topologySpreadConstraints | list | `[]` |  |
-| smithdb.compactionWorker.deployment.volumeMounts[0].mountPath | string | `"/data"` |  |
+| smithdb.compactionWorker.deployment.volumeMounts[0].mountPath | string | `"/tmp"` |  |
 | smithdb.compactionWorker.deployment.volumeMounts[0].name | string | `"cache"` |  |
 | smithdb.compactionWorker.maxConcurrentJobs | string | `""` | Maximum concurrent jobs per compaction worker. Empty uses the SmithDB default. |
 | smithdb.compactionWorker.name | string | `"compaction-worker"` |  |

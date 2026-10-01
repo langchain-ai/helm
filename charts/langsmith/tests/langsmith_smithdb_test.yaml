@@ -207,6 +207,23 @@ tests:
           path: spec.template.spec.volumes[0].ephemeral.volumeClaimTemplate.spec.resources.requests.storage
           value: 200Gi
 
+  - it: should mount the compaction-worker cache volume at /tmp for scratch files
+    values:
+      - ./values/smithdb-enabled.yaml
+    template: smithdb/compaction-worker-deployment.yaml
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].volumeMounts[0]
+          value:
+            name: cache
+            mountPath: /tmp
+      - equal:
+          path: spec.template.spec.volumes[0].name
+          value: cache
+      - equal:
+          path: spec.template.spec.volumes[0].ephemeral.volumeClaimTemplate.spec.resources.requests.storage
+          value: 100Gi
+
   - it: should use the large SmithDB ingestion resources
     values:
       - ./values/smithdb-enabled.yaml
