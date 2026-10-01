@@ -1,5 +1,6 @@
 suite: Engine GitHub integration routing
 templates:
+  - templates/config-map.yaml
   - templates/host-backend/deployment.yaml
   - templates/host-backend/service.yaml
   - templates/host-backend/service-account.yaml
