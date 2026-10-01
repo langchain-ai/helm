@@ -1092,7 +1092,7 @@ The trajectory Service is cluster-internal; no public route is added. Trajectory
 | smithdb.compactionWorker.deployment.terminationGracePeriodSeconds | int | `120` |  |
 | smithdb.compactionWorker.deployment.tolerations | list | `[]` |  |
 | smithdb.compactionWorker.deployment.topologySpreadConstraints | list | `[]` |  |
-| smithdb.compactionWorker.deployment.volumeMounts[0].mountPath | string | `"/data"` |  |
+| smithdb.compactionWorker.deployment.volumeMounts[0].mountPath | string | `"/tmp"` |  |
 | smithdb.compactionWorker.deployment.volumeMounts[0].name | string | `"cache"` |  |
 | smithdb.compactionWorker.maxConcurrentJobs | string | `""` | Maximum concurrent jobs per compaction worker. Empty uses the SmithDB default. |
 | smithdb.compactionWorker.name | string | `"compaction-worker"` |  |
