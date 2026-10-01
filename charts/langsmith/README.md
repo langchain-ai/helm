@@ -1095,7 +1095,7 @@ Replica counts and autoscaling remain controlled by each component's `deployment
 | smithdb.compactionWorker.deployment.terminationGracePeriodSeconds | int | `120` |  |
 | smithdb.compactionWorker.deployment.tolerations | list | `[]` |  |
 | smithdb.compactionWorker.deployment.topologySpreadConstraints | list | `[]` |  |
-| smithdb.compactionWorker.deployment.volumeMounts[0].mountPath | string | `"/data"` |  |
+| smithdb.compactionWorker.deployment.volumeMounts[0].mountPath | string | `"/tmp"` |  |
 | smithdb.compactionWorker.deployment.volumeMounts[0].name | string | `"local-ssd-storage"` |  |
 | smithdb.compactionWorker.maxConcurrentJobs | string | `""` | Maximum concurrent jobs per compaction worker. Empty uses the SmithDB default. |
 | smithdb.compactionWorker.name | string | `"compaction-worker"` |  |

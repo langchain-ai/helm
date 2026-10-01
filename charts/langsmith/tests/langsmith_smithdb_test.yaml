@@ -104,6 +104,23 @@ tests:
             emptyDir:
               sizeLimit: "200Gi"
 
+  - it: should mount the compaction-worker cache volume at /tmp for scratch files
+    values:
+      - ./values/smithdb-enabled.yaml
+    template: smithdb/compaction-worker-deployment.yaml
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].volumeMounts[0]
+          value:
+            name: local-ssd-storage
+            mountPath: /tmp
+      - equal:
+          path: spec.template.spec.volumes[0]
+          value:
+            name: local-ssd-storage
+            emptyDir:
+              sizeLimit: "100Gi"
+
   - it: should use the large SmithDB ingestion resources
     values:
       - ./values/smithdb-enabled.yaml
