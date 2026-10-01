@@ -48,6 +48,23 @@ tests:
           path: data.SMITH_INTELLIGENCE_ENDPOINT
           value: "https://beacon.aws.langchain.com"
 
+  - it: should default the intelligence endpoint
+    set:
+      engine.enabled: true
+    asserts:
+      - equal:
+          path: data.SMITH_INTELLIGENCE_ENDPOINT
+          value: "https://beacon.langchain.com"
+
+  - it: should leave the intelligence endpoint empty when the Engine URL is cleared
+    set:
+      engine.enabled: true
+      engine.intelligenceBaseUrl: ""
+    asserts:
+      - equal:
+          path: data.SMITH_INTELLIGENCE_ENDPOINT
+          value: ""
+
   - it: should handle a trailing slash on the Engine URL
     set:
       engine.enabled: true

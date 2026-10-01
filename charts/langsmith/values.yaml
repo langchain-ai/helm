@@ -535,9 +535,13 @@ fleet:
 engine:
   # -- Enable the LangSmith Engine. See the Engine section of this README for what it requires.
   enabled: false
-  # -- LangSmith Intelligence gateway for Engine model calls, authenticated with the
-  # license key. Required when engine.enabled. Use https://beacon.aws.langchain.com/intelligence.
-  intelligenceBaseUrl: ""
+  # -- LangSmith Intelligence endpoint, authenticated with the license key. Engine reports
+  # usage on your own model providers here. The default records usage only; to also run
+  # Engine on LangSmith Intelligence's models, use https://beacon.aws.langchain.com/intelligence
+  # and select LangSmith Intelligence under Settings > Engine > Model providers.
+  # Air-gapped installs with an offline license set this to "" and send Engine usage from
+  # Settings > Usage export.
+  intelligenceBaseUrl: "https://beacon.langchain.com/intelligence"
   # -- Fernet key for the payloads smith-go passes to the Engine. Required when
   # engine.enabled, and must match smith-go's ISSUES_AGENT_ENCRYPTION_KEY.
   encryptionKey: ""
