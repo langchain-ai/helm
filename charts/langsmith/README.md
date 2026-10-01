@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.17.0-rc.59](https://img.shields.io/badge/Version-0.17.0--rc.59-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.17.29rc5](https://img.shields.io/badge/AppVersion-0.17.29rc5-informational?style=flat-square)
+![Version: 0.17.0-rc.60](https://img.shields.io/badge/Version-0.17.0--rc.60-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.17.29rc6](https://img.shields.io/badge/AppVersion-0.17.29rc6-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -16,11 +16,14 @@ LangSmith Engine is off by default. `engine.enabled=true` requires all of the fo
 |---|---|
 | `sandboxes.enabled=true` | Every Engine run executes in a sandbox. |
 | `images.engineInsightsAgentImage.repository` = `docker.io/langchain/langsmith-insights-engine` | Engine needs the combined image serving both the `insights` and `engine` graphs. |
-| `engine.intelligenceBaseUrl` | The Engine routes model calls through the LangSmith Intelligence gateway and authenticates with your license key. Use `https://beacon.aws.langchain.com/intelligence`. |
 | `engine.encryptionKey` | Decrypts the payloads smith-go passes to the Engine. Must match smith-go's `ISSUES_AGENT_ENCRYPTION_KEY`. |
 | `config.hostname` | Sandboxes run the `langsmith` CLI against your install from outside the cluster, so this must be externally reachable — not a loopback or in-cluster address. |
 
-Two things worth planning for before you enable it:
+Enabling Engine also starts the integration service and exposes its `/api-host` routes for GitHub enrollment. This does not enable LangSmith Deployments or grant its Kubernetes resource-management permissions.
+
+Things worth planning for before you enable it:
+
+**LangSmith Intelligence.** `engine.intelligenceBaseUrl` defaults to `https://beacon.langchain.com/intelligence`, where Engine reports usage on your own model providers, authenticated with your license key. To also let Engine run on LangSmith Intelligence's models, set it to `https://beacon.aws.langchain.com/intelligence` and select LangSmith Intelligence under **Settings > Engine > Model providers**. Air-gapped installs with an offline license set it to `""`; Engine then runs only on your own model providers, and its usage goes out through **Settings > Usage export**.
 
 **Sandbox nodes.** Sandboxes are Firecracker microVMs, so `sandboxes.sandboxHost.deployment.nodeSelector` must place host pods on KVM-capable nodes — bare-metal instances, or instance types with nested virtualization explicitly enabled. Sandbox images are published for `linux/amd64` only. A dedicated, tainted node pool is the usual arrangement, since rolling a sandbox-host pod suspends every microVM on it.
 
@@ -73,7 +76,7 @@ The trajectory Service is cluster-internal; no public route is added. Trajectory
 | engine.enabled | bool | `false` | Enable the LangSmith Engine. See the Engine section of this README for what it requires. |
 | engine.encryptionKey | string | `""` | Fernet key for the payloads smith-go passes to the Engine. Required when engine.enabled, and must match smith-go's ISSUES_AGENT_ENCRYPTION_KEY. |
 | engine.encryptionKeyPrevious | string | `""` |  |
-| engine.intelligenceBaseUrl | string | `""` | LangSmith Intelligence gateway for Engine model calls, authenticated with the license key. Required when engine.enabled. Use https://beacon.aws.langchain.com/intelligence. |
+| engine.intelligenceBaseUrl | string | `"https://beacon.langchain.com/intelligence"` | LangSmith Intelligence endpoint, authenticated with the license key. Engine reports usage on your own model providers here. The default records usage only; to also run Engine on LangSmith Intelligence's models, use https://beacon.aws.langchain.com/intelligence and select LangSmith Intelligence under Settings > Engine > Model providers. Air-gapped installs with an offline license set this to "" and send Engine usage from Settings > Usage export. |
 | engine.sandboxTenantId | string | `""` | Workspace that owns Engine sandboxes. Optional: smith-go resolves the install's workspace unless there is more than one non-personal org. Prefer one reserved for the Engine — its sandboxes are visible to anyone with access to it. |
 | engineInsightsAgent.apiServer.autoscaling.enabled | bool | `false` |  |
 | engineInsightsAgent.apiServer.autoscaling.keda.cooldownPeriod | int | `300` |  |
@@ -593,29 +596,29 @@ The trajectory Service is cluster-internal; no public route is added. Trajectory
 | gateway.sectionName | string | `""` |  |
 | images.aceBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.aceBackendImage.repository | string | `"docker.io/langchain/langsmith-ace-backend"` |  |
-| images.aceBackendImage.tag | string | `"0.17.29rc5"` |  |
+| images.aceBackendImage.tag | string | `"0.17.29rc6"` |  |
 | images.agentBuilderImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.agentBuilderImage.repository | string | `"docker.io/langchain/agent-builder-deep-agent"` |  |
-| images.agentBuilderImage.tag | string | `"0.17.29rc5"` |  |
+| images.agentBuilderImage.tag | string | `"0.17.29rc6"` |  |
 | images.backendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.backendImage.repository | string | `"docker.io/langchain/langsmith-backend"` |  |
-| images.backendImage.tag | string | `"0.17.29rc5"` |  |
+| images.backendImage.tag | string | `"0.17.29rc6"` |  |
 | images.clickhouseImage.pullPolicy | string | `"Always"` |  |
 | images.clickhouseImage.repository | string | `"docker.io/clickhouse/clickhouse-server"` |  |
 | images.clickhouseImage.tag | string | `"25.12"` |  |
 | images.engineInsightsAgentImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.engineInsightsAgentImage.repository | string | `"docker.io/langchain/langsmith-insights-engine"` |  |
-| images.engineInsightsAgentImage.tag | string | `"0.17.29rc5"` |  |
+| images.engineInsightsAgentImage.tag | string | `"0.17.29rc6"` |  |
 | images.frontendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.frontendImage.repository | string | `"docker.io/langchain/langsmith-frontend"` |  |
-| images.frontendImage.tag | string | `"0.17.29rc5"` |  |
+| images.frontendImage.tag | string | `"0.17.29rc6"` |  |
 | images.imagePullSecrets | list | `[]` | Secrets with credentials to pull images from a private registry. Specified as name: value. |
 | images.operatorImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.operatorImage.repository | string | `"docker.io/langchain/langgraph-operator"` |  |
 | images.operatorImage.tag | string | `"0.1.60"` |  |
 | images.pollyAgentImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.pollyAgentImage.repository | string | `"docker.io/langchain/langsmith-polly"` |  |
-| images.pollyAgentImage.tag | string | `"0.17.29rc5"` |  |
+| images.pollyAgentImage.tag | string | `"0.17.29rc6"` |  |
 | images.postgresImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.postgresImage.repository | string | `"docker.io/postgres"` |  |
 | images.postgresImage.tag | string | `"14.7"` |  |
@@ -626,10 +629,10 @@ The trajectory Service is cluster-internal; no public route is added. Trajectory
 | images.redisImage.repository | string | `"docker.io/redis"` |  |
 | images.redisImage.tag | string | `"7"` |  |
 | images.registry | string | `""` | If supplied, all children <image_name>.repository values will be prepended with this registry name + `/` |
-| images.sandboxHostImage | object | `{"pullPolicy":"IfNotPresent","repository":"docker.io/langchain/sandbox-host","tag":"0.17.29rc5"}` | sandbox-host image. Only used when sandboxes.enabled is true. |
+| images.sandboxHostImage | object | `{"pullPolicy":"IfNotPresent","repository":"docker.io/langchain/sandbox-host","tag":"0.17.29rc6"}` | sandbox-host image. Only used when sandboxes.enabled is true. |
 | images.smithdbImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.smithdbImage.repository | string | `"docker.io/langchain/smithdb"` |  |
-| images.smithdbImage.tag | string | `"0.17.29rc5"` |  |
+| images.smithdbImage.tag | string | `"0.17.29rc6"` |  |
 | ingestQueue.autoscaling.hpa.enabled | bool | `false` |  |
 | ingestQueue.autoscaling.hpa.maxReplicas | int | `10` |  |
 | ingestQueue.autoscaling.hpa.minReplicas | int | `3` |  |

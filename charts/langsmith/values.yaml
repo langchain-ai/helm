@@ -65,21 +65,21 @@ images:
   aceBackendImage:
     repository: "docker.io/langchain/langsmith-ace-backend"
     pullPolicy: IfNotPresent
-    tag: "0.17.29rc5"
+    tag: "0.17.29rc6"
   backendImage:
     repository: "docker.io/langchain/langsmith-backend"
     pullPolicy: IfNotPresent
-    tag: "0.17.29rc5"
+    tag: "0.17.29rc6"
   # Serves both the `insights` and `engine` graphs; insights.enabled and
   # engine.enabled pick which of them run.
   engineInsightsAgentImage:
     repository: "docker.io/langchain/langsmith-insights-engine"
     pullPolicy: IfNotPresent
-    tag: "0.17.29rc5"
+    tag: "0.17.29rc6"
   frontendImage:
     repository: "docker.io/langchain/langsmith-frontend"
     pullPolicy: IfNotPresent
-    tag: "0.17.29rc5"
+    tag: "0.17.29rc6"
   operatorImage:
     repository: "docker.io/langchain/langgraph-operator"
     pullPolicy: IfNotPresent
@@ -103,15 +103,15 @@ images:
   agentBuilderImage:
     repository: "docker.io/langchain/agent-builder-deep-agent"
     pullPolicy: IfNotPresent
-    tag: "0.17.29rc5"
+    tag: "0.17.29rc6"
   pollyAgentImage:
     repository: "docker.io/langchain/langsmith-polly"
     pullPolicy: IfNotPresent
-    tag: "0.17.29rc5"
+    tag: "0.17.29rc6"
   smithdbImage:
     repository: "docker.io/langchain/smithdb"
     pullPolicy: IfNotPresent
-    tag: "0.17.29rc5"
+    tag: "0.17.29rc6"
   # Optional: only mirror/pull when presidioAnalyzer.enabled is true
   presidioAnalyzerImage:
     repository: "mcr.microsoft.com/presidio-analyzer"
@@ -121,7 +121,7 @@ images:
   sandboxHostImage:
     repository: "docker.io/langchain/sandbox-host"
     pullPolicy: IfNotPresent
-    tag: "0.17.29rc5"
+    tag: "0.17.29rc6"
 
 ingress:
   enabled: false
@@ -535,9 +535,13 @@ fleet:
 engine:
   # -- Enable the LangSmith Engine. See the Engine section of this README for what it requires.
   enabled: false
-  # -- LangSmith Intelligence gateway for Engine model calls, authenticated with the
-  # license key. Required when engine.enabled. Use https://beacon.aws.langchain.com/intelligence.
-  intelligenceBaseUrl: ""
+  # -- LangSmith Intelligence endpoint, authenticated with the license key. Engine reports
+  # usage on your own model providers here. The default records usage only; to also run
+  # Engine on LangSmith Intelligence's models, use https://beacon.aws.langchain.com/intelligence
+  # and select LangSmith Intelligence under Settings > Engine > Model providers.
+  # Air-gapped installs with an offline license set this to "" and send Engine usage from
+  # Settings > Usage export.
+  intelligenceBaseUrl: "https://beacon.langchain.com/intelligence"
   # -- Fernet key for the payloads smith-go passes to the Engine. Required when
   # engine.enabled, and must match smith-go's ISSUES_AGENT_ENCRYPTION_KEY.
   encryptionKey: ""
