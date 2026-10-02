@@ -551,6 +551,12 @@ engine:
   # workspace unless there is more than one non-personal org. Prefer one reserved for
   # the Engine — its sandboxes are visible to anyone with access to it.
   sandboxTenantId: ""
+  # -- Model providers Engine can call with its pods' cloud identity instead of credentials
+  # saved in Settings > Engine > Model providers: any of bedrock, vertex, azure. A listed
+  # provider counts as configured without credentials, so any organization admin can select
+  # it. Grant the identity through engineInsightsAgent.apiServer.serviceAccount.annotations
+  # and engineInsightsAgent.queue.serviceAccount.annotations, scoped to the models Engine uses.
+  workloadIdentityProviders: []
 
 insights:
   enabled: true
