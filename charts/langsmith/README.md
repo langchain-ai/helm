@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.18.0-rc.4](https://img.shields.io/badge/Version-0.18.0--rc.4-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.18.2rc1](https://img.shields.io/badge/AppVersion-0.18.2rc1-informational?style=flat-square)
+![Version: 0.18.0-rc.5](https://img.shields.io/badge/Version-0.18.0--rc.5-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.18.2rc1](https://img.shields.io/badge/AppVersion-0.18.2rc1-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -17,6 +17,7 @@ LangSmith Engine is off by default. `engine.enabled=true` requires all of the fo
 | `sandboxes.enabled=true` | Every Engine run executes in a sandbox. |
 | `images.engineInsightsAgentImage.repository` = `docker.io/langchain/langsmith-insights-engine` | Engine needs the combined image serving both the `insights` and `engine` graphs. |
 | `engine.encryptionKey` | Decrypts the payloads smith-go passes to the Engine. Must match smith-go's `ISSUES_AGENT_ENCRYPTION_KEY`. |
+| `engine.usageSigningSecret` | Signs Engine usage reports sent to smith-go. Use at least 32 random characters. |
 | `config.hostname` | Sandboxes run the `langsmith` CLI against your install from outside the cluster, so this must be externally reachable — not a loopback or in-cluster address. |
 
 Things worth planning for before you enable it:
@@ -76,6 +77,7 @@ The trajectory Service is cluster-internal; no public route is added. Trajectory
 | engine.encryptionKeyPrevious | string | `""` |  |
 | engine.intelligenceBaseUrl | string | `"https://beacon.langchain.com/intelligence"` | LangSmith Intelligence endpoint, authenticated with the license key. Engine reports usage on your own model providers here. The default records usage only; to also run Engine on LangSmith Intelligence's models, use https://beacon.aws.langchain.com/intelligence and select LangSmith Intelligence under Settings > Engine > Model providers. Air-gapped installs with an offline license set this to "" and send Engine usage from Settings > Usage export. |
 | engine.sandboxTenantId | string | `""` | Workspace that owns Engine sandboxes. Optional: smith-go resolves the install's workspace unless there is more than one non-personal org. Prefer one reserved for the Engine — its sandboxes are visible to anyone with access to it. |
+| engine.usageSigningSecret | string | `""` | Dedicated HS256 secret for Engine usage reports sent to smith-go. Use at least 32 random characters. With config.existingSecretName, add the key engine_usage_signing_secret to that Secret instead. |
 | engineInsightsAgent.apiServer.autoscaling.enabled | bool | `false` |  |
 | engineInsightsAgent.apiServer.autoscaling.keda.cooldownPeriod | int | `300` |  |
 | engineInsightsAgent.apiServer.autoscaling.keda.enabled | bool | `false` |  |

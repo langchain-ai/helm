@@ -615,6 +615,15 @@ AWS Marketplace Helm template verification).
 {{- if and (not .Values.engine.encryptionKey) (not .Values.config.existingSecretName) }}
 {{- fail "engine.encryptionKey is required when engine.enabled is true (must match smith-go's ISSUES_AGENT_ENCRYPTION_KEY). Generate one with: python -c \"from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())\" (not needed if config.existingSecretName has engine_encryption_key)." }}
 {{- end }}
+{{- if and (not .Values.engine.usageSigningSecret) (not .Values.config.existingSecretName) }}
+{{- fail "engine.usageSigningSecret is required when engine.enabled is true. Generate one with: openssl rand -hex 32 (not needed if config.existingSecretName has engine_usage_signing_secret)." }}
+{{- end }}
+{{- if and .Values.engine.usageSigningSecret (lt (len .Values.engine.usageSigningSecret) 32) }}
+{{- fail "engine.usageSigningSecret must contain at least 32 characters." }}
+{{- end }}
+{{- if and .Values.config.existingSecretName .Values.engine.usageSigningSecret }}
+{{- fail "engine.usageSigningSecret cannot be used when config.existingSecretName is set. Add key engine_usage_signing_secret to the existing Secret instead." }}
+{{- end }}
 {{- if not .Values.sandboxes.enabled }}
 {{- fail "engine.enabled is true but sandboxes.enabled is false: every Engine run executes in a sandbox, so Engine cannot run without them." }}
 {{- end }}
