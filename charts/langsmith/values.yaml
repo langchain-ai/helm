@@ -1431,7 +1431,7 @@ smithdb:
   commonInitContainers: []
 
   recoveryStrategy:
-    # -- Enable recovery for superseded SmithDB data.
+    # -- Enable recovery for SmithDB data. Enable only after the v17 upgrade completes, in a separate upgrade. Cannot be disabled once enabled.
     enabled: false
     # -- Minimum time superseded SmithDB data remains available for recovery.
     retentionWindow: "12h"
@@ -1946,9 +1946,6 @@ smithdb:
       tolerations: []
       affinity: {}
       topologySpreadConstraints: []
-      # -- The compaction worker writes scratch files for index rebuilds to the system temp
-      # -- directory, so the cache volume is mounted at /tmp. This also keeps compaction working
-      # -- on clusters that enforce a read-only root filesystem.
       volumeMounts:
         - name: cache
           mountPath: /tmp
