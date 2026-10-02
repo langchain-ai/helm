@@ -1417,7 +1417,7 @@ The trajectory Service is cluster-internal; no public route is added. Trajectory
 | smithdb.query.service.annotations | object | `{}` |  |
 | smithdb.query.service.labels | object | `{}` |  |
 | smithdb.query.service.port | int | `8080` |  |
-| smithdb.recoveryStrategy.enabled | bool | `false` | Enable recovery for superseded SmithDB data. |
+| smithdb.recoveryStrategy.enabled | bool | `false` | Enable recovery for SmithDB data. Enable only after the v17 upgrade completes, in a separate upgrade. Cannot be disabled once enabled. |
 | smithdb.recoveryStrategy.retentionWindow | string | `"12h"` | Minimum time superseded SmithDB data remains available for recovery. |
 | smithdb.resourceTier | string | `"small"` | Per-replica CPU, memory, and cache volume size for SmithDB runtime components: small, medium, or large. See the README. |
 | smithdb.runRules.autoscaling.hpa.enabled | bool | `true` |  |
