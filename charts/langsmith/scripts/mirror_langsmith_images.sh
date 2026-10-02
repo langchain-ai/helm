@@ -93,6 +93,7 @@ fi
 
 APP_VERSION=$(sed -n 's/^appVersion: *"\{0,1\}\([^"]*\)"\{0,1\} *$/\1/p' "$CHART_DIR/Chart.yaml")
 VERSION="${VERSION:-$APP_VERSION}"
+[[ -n $VERSION ]] || { echo "ERROR: could not read appVersion from ${CHART_DIR}/Chart.yaml; pass --version" >&2; exit 1; }
 
 ###############################################################################
 # Image list, read from the images: block of values.yaml
@@ -105,14 +106,32 @@ list_chart_images() {
         /^images:/ { in_images = 1; next }
         in_images && /^[^ #]/ { flush(); exit }
         !in_images || /^ *#/ { next }
-        /^  [A-Za-z0-9]+: *$/ { flush(); key = $1; sub(/:$/, "", key); repo = ""; tag = ""; next }
+        /^  [A-Za-z0-9_-]+: *(#.*)?$/ { flush(); key = $1; sub(/:$/, "", key); repo = ""; tag = ""; next }
         /^    repository:/ { repo = $2; gsub(/"/, "", repo) }
         /^    tag:/ { tag = $2; gsub(/"/, "", tag) }
         END { if (in_images) flush() }
     ' "$CHART_DIR/values.yaml"
 }
 
+# Print "operatorTemplate <repository> <tag>" for each literal image in operator.templates, such as
+# the Postgres and Redis the operator creates for each deployment.
+list_operator_template_images() {
+    awk '
+        /^operator:/ { in_operator = 1; next }
+        in_operator && /^[^ #]/ { exit }
+        in_operator && /^  [A-Za-z]/ { in_templates = ($1 == "templates:"); next }
+        in_templates && $1 == "image:" && $2 !~ /\$/ {
+            image = $2; gsub(/"/, "", image)
+            i = match(image, /:[^:\/]*$/)
+            if (i) { repo = substr(image, 1, i - 1); tag = substr(image, i + 1) } else { repo = image; tag = "latest" }
+            if (repo !~ /^[^\/]*[.:][^\/]*\//) repo = "docker.io/" repo
+            print "operatorTemplate", repo, tag
+        }
+    ' "$CHART_DIR/values.yaml"
+}
+
 IMAGES=()
+SEEN=" "
 NO_FIPS_VARIANT=()
 
 while read -r key repo tag; do
@@ -136,8 +155,10 @@ while read -r key repo tag; do
         fi
     fi
 
+    [[ $SEEN == *" ${repo}:${tag} "* ]] && continue
+    SEEN+="${repo}:${tag} "
     IMAGES+=("${repo}:${tag}")
-done < <(list_chart_images)
+done < <(list_chart_images; list_operator_template_images)
 
 if [[ ${#IMAGES[@]} -eq 0 ]]; then
     echo "ERROR: found no images under images: in ${CHART_DIR}/values.yaml" >&2
