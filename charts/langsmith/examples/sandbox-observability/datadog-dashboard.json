@@ -1,0 +1,2935 @@
+{
+  "title": "Self-hosted Sandbox Vitals",
+  "description": "Sandbox host capacity, lifecycle, execution, resources, networking, and health. APM, JuiceFS, and cloud storage sections require their own telemetry collection. Import into your own Datadog organization.",
+  "layout_type": "ordered",
+  "reflow_type": "auto",
+  "template_variables": [
+    {
+      "name": "env",
+      "prefix": "env",
+      "available_values": [],
+      "default": "*"
+    },
+    {
+      "name": "cluster",
+      "prefix": "kube_cluster_name",
+      "available_values": [],
+      "default": "*"
+    },
+    {
+      "name": "namespace",
+      "prefix": "kube_namespace",
+      "available_values": [],
+      "default": "*"
+    },
+    {
+      "name": "api_service",
+      "prefix": "service",
+      "available_values": [],
+      "default": "platform-backend"
+    },
+    {
+      "name": "gcs_bucket",
+      "prefix": "bucket_name",
+      "available_values": [],
+      "default": "replace-with-bucket-name"
+    },
+    {
+      "name": "s3_bucket",
+      "prefix": "bucketname",
+      "available_values": [],
+      "default": "replace-with-bucket-name"
+    }
+  ],
+  "widgets": [
+    {
+      "definition": {
+        "type": "note",
+        "content": "Import this dashboard into the Datadog organization that receives your own deployment's telemetry. Filters select data; they are not access controls. Select your env, cluster, and namespace after import. Wildcard defaults also work when those tags are absent. Configure their prefixes to match your collector. Collection configuration and compatibility requirements are in the accompanying README. Optional sections can remain empty until their integrations are configured.",
+        "background_color": "transparent",
+        "font_size": "14",
+        "text_align": "left",
+        "has_padding": true
+      }
+    },
+    {
+      "definition": {
+        "type": "group",
+        "title": "Fleet and capacity",
+        "layout_type": "ordered",
+        "widgets": [
+          {
+            "definition": {
+              "type": "note",
+              "content": "Pool gauges are emitted by the elected host leader. Ready-host and CPU-capacity observations remain available with autoscaling disabled; the desired-replica target is updated only when scaling is active. Commitment is assigned capacity, not measured utilization.",
+              "background_color": "transparent",
+              "font_size": "14",
+              "text_align": "left",
+              "has_padding": true
+            }
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "Live sandboxes by cluster",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "q"
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "q",
+                      "query": "sum:langsmith_sandbox_host_live_sandboxes{$env,$cluster,$namespace} by {kube_cluster_name}"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "display_type": "line"
+                }
+              ],
+              "show_legend": true,
+              "legend_layout": "auto"
+            }
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "Host pool: ready vs desired replicas",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "q",
+                      "alias": "ready"
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "q",
+                      "query": "sum:langsmith_sandbox_host_pool_ready_hosts{$env,$cluster,$namespace}"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "display_type": "line"
+                },
+                {
+                  "formulas": [
+                    {
+                      "formula": "q",
+                      "alias": "desired"
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "q",
+                      "query": "sum:langsmith_sandbox_host_pool_desired_replicas{$env,$cluster,$namespace}"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "display_type": "line"
+                }
+              ],
+              "show_legend": true,
+              "legend_layout": "auto"
+            }
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "Pool CPU commitment (%)",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "100 * assigned / capacity"
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "assigned",
+                      "query": "sum:langsmith_sandbox_host_pool_assigned_cpu_millicores{$env,$cluster,$namespace} by {kube_cluster_name}"
+                    },
+                    {
+                      "data_source": "metrics",
+                      "name": "capacity",
+                      "query": "sum:langsmith_sandbox_host_pool_capacity_cpu_millicores{$env,$cluster,$namespace} by {kube_cluster_name}"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "display_type": "line"
+                }
+              ],
+              "show_legend": true,
+              "legend_layout": "auto"
+            }
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "Host memory commitment (%)",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "100 * assigned / capacity"
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "assigned",
+                      "query": "sum:langsmith_sandbox_host_assigned_memory_mib{$env,$cluster,$namespace} by {kube_cluster_name}"
+                    },
+                    {
+                      "data_source": "metrics",
+                      "name": "capacity",
+                      "query": "sum:langsmith_sandbox_host_capacity_memory_mib{$env,$cluster,$namespace} by {kube_cluster_name}"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "display_type": "line"
+                }
+              ],
+              "show_legend": true,
+              "legend_layout": "auto"
+            }
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "Live sandboxes by host",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "q"
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "q",
+                      "query": "avg:langsmith_sandbox_host_live_sandboxes{$env,$cluster,$namespace} by {host}"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "display_type": "line"
+                }
+              ],
+              "show_legend": true,
+              "legend_layout": "auto"
+            }
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "Hosts per build",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "q"
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "q",
+                      "query": "sum:langsmith_sandbox_host_build_info{$env,$cluster,$namespace} by {version}"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "display_type": "line"
+                }
+              ],
+              "show_legend": true,
+              "legend_layout": "auto"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "definition": {
+        "type": "group",
+        "title": "Lifecycle operations",
+        "layout_type": "ordered",
+        "widgets": [
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "Operations/s by operation",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "q"
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "q",
+                      "query": "sum:langsmith_sandbox_host_operations.count{$env,$cluster,$namespace} by {operation}.as_rate()"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "display_type": "line"
+                }
+              ],
+              "show_legend": true,
+              "legend_layout": "auto"
+            }
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "Operations/s by outcome",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "q"
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "q",
+                      "query": "sum:langsmith_sandbox_host_operations.count{$env,$cluster,$namespace} by {outcome}.as_rate()"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "display_type": "line"
+                }
+              ],
+              "show_legend": true,
+              "legend_layout": "auto"
+            }
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "Operation error rate (%)",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "100 * errors / total"
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "errors",
+                      "query": "sum:langsmith_sandbox_host_operations.count{$env,$cluster,$namespace,outcome:error} by {operation}.as_count()"
+                    },
+                    {
+                      "data_source": "metrics",
+                      "name": "total",
+                      "query": "sum:langsmith_sandbox_host_operations.count{$env,$cluster,$namespace} by {operation}.as_count()"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "display_type": "line"
+                }
+              ],
+              "show_legend": true,
+              "legend_layout": "auto"
+            }
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "Failures by stage and operation",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "q"
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "q",
+                      "query": "sum:langsmith_sandbox_host_operations.count{$env,$cluster,$namespace,!failed_stage:} by {failed_stage,operation}.as_rate()"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "display_type": "line"
+                }
+              ],
+              "show_legend": true,
+              "legend_layout": "auto"
+            }
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "Reference lock contention/s",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "q"
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "q",
+                      "query": "sum:langsmith_sandbox_host_ref_lock_contention.count{$env,$cluster,$namespace} by {operation}.as_rate()"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "display_type": "line"
+                }
+              ],
+              "show_legend": true,
+              "legend_layout": "auto"
+            }
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "Reference lock wait (mean ms)",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "1000 * total / samples"
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "total",
+                      "query": "sum:langsmith_sandbox_host_ref_lock_wait_seconds.sum{$env,$cluster,$namespace} by {operation}.as_count()"
+                    },
+                    {
+                      "data_source": "metrics",
+                      "name": "samples",
+                      "query": "sum:langsmith_sandbox_host_ref_lock_wait_seconds.count{$env,$cluster,$namespace} by {operation}.as_count()"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "display_type": "line"
+                }
+              ],
+              "show_legend": true,
+              "legend_layout": "auto"
+            }
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "create: mean duration (ms)",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "1000 * total / samples"
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "total",
+                      "query": "sum:langsmith_sandbox_host_operation_duration_seconds.sum{$env,$cluster,$namespace,operation:create} by {outcome}.as_count()"
+                    },
+                    {
+                      "data_source": "metrics",
+                      "name": "samples",
+                      "query": "sum:langsmith_sandbox_host_operation_duration_seconds.count{$env,$cluster,$namespace,operation:create} by {outcome}.as_count()"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "display_type": "line"
+                }
+              ],
+              "show_legend": true,
+              "legend_layout": "auto"
+            }
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "start: mean duration (ms)",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "1000 * total / samples"
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "total",
+                      "query": "sum:langsmith_sandbox_host_operation_duration_seconds.sum{$env,$cluster,$namespace,operation:start} by {outcome}.as_count()"
+                    },
+                    {
+                      "data_source": "metrics",
+                      "name": "samples",
+                      "query": "sum:langsmith_sandbox_host_operation_duration_seconds.count{$env,$cluster,$namespace,operation:start} by {outcome}.as_count()"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "display_type": "line"
+                }
+              ],
+              "show_legend": true,
+              "legend_layout": "auto"
+            }
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "stop_suspend: mean duration (ms)",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "1000 * total / samples"
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "total",
+                      "query": "sum:langsmith_sandbox_host_operation_duration_seconds.sum{$env,$cluster,$namespace,operation:stop_suspend} by {outcome}.as_count()"
+                    },
+                    {
+                      "data_source": "metrics",
+                      "name": "samples",
+                      "query": "sum:langsmith_sandbox_host_operation_duration_seconds.count{$env,$cluster,$namespace,operation:stop_suspend} by {outcome}.as_count()"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "display_type": "line"
+                }
+              ],
+              "show_legend": true,
+              "legend_layout": "auto"
+            }
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "stop_discard: mean duration (ms)",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "1000 * total / samples"
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "total",
+                      "query": "sum:langsmith_sandbox_host_operation_duration_seconds.sum{$env,$cluster,$namespace,operation:stop_discard} by {outcome}.as_count()"
+                    },
+                    {
+                      "data_source": "metrics",
+                      "name": "samples",
+                      "query": "sum:langsmith_sandbox_host_operation_duration_seconds.count{$env,$cluster,$namespace,operation:stop_discard} by {outcome}.as_count()"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "display_type": "line"
+                }
+              ],
+              "show_legend": true,
+              "legend_layout": "auto"
+            }
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "delete: mean duration (ms)",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "1000 * total / samples"
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "total",
+                      "query": "sum:langsmith_sandbox_host_operation_duration_seconds.sum{$env,$cluster,$namespace,operation:delete} by {outcome}.as_count()"
+                    },
+                    {
+                      "data_source": "metrics",
+                      "name": "samples",
+                      "query": "sum:langsmith_sandbox_host_operation_duration_seconds.count{$env,$cluster,$namespace,operation:delete} by {outcome}.as_count()"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "display_type": "line"
+                }
+              ],
+              "show_legend": true,
+              "legend_layout": "auto"
+            }
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "snapshot: mean duration (ms)",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "1000 * total / samples"
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "total",
+                      "query": "sum:langsmith_sandbox_host_operation_duration_seconds.sum{$env,$cluster,$namespace,operation:snapshot} by {outcome}.as_count()"
+                    },
+                    {
+                      "data_source": "metrics",
+                      "name": "samples",
+                      "query": "sum:langsmith_sandbox_host_operation_duration_seconds.count{$env,$cluster,$namespace,operation:snapshot} by {outcome}.as_count()"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "display_type": "line"
+                }
+              ],
+              "show_legend": true,
+              "legend_layout": "auto"
+            }
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "export: mean duration (ms)",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "1000 * total / samples"
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "total",
+                      "query": "sum:langsmith_sandbox_host_operation_duration_seconds.sum{$env,$cluster,$namespace,operation:export} by {outcome}.as_count()"
+                    },
+                    {
+                      "data_source": "metrics",
+                      "name": "samples",
+                      "query": "sum:langsmith_sandbox_host_operation_duration_seconds.count{$env,$cluster,$namespace,operation:export} by {outcome}.as_count()"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "display_type": "line"
+                }
+              ],
+              "show_legend": true,
+              "legend_layout": "auto"
+            }
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "build: mean duration (ms)",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "1000 * total / samples"
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "total",
+                      "query": "sum:langsmith_sandbox_host_operation_duration_seconds.sum{$env,$cluster,$namespace,operation:build} by {outcome}.as_count()"
+                    },
+                    {
+                      "data_source": "metrics",
+                      "name": "samples",
+                      "query": "sum:langsmith_sandbox_host_operation_duration_seconds.count{$env,$cluster,$namespace,operation:build} by {outcome}.as_count()"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "display_type": "line"
+                }
+              ],
+              "show_legend": true,
+              "legend_layout": "auto"
+            }
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "reboot: mean duration (ms)",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "1000 * total / samples"
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "total",
+                      "query": "sum:langsmith_sandbox_host_operation_duration_seconds.sum{$env,$cluster,$namespace,operation:reboot} by {outcome}.as_count()"
+                    },
+                    {
+                      "data_source": "metrics",
+                      "name": "samples",
+                      "query": "sum:langsmith_sandbox_host_operation_duration_seconds.count{$env,$cluster,$namespace,operation:reboot} by {outcome}.as_count()"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "display_type": "line"
+                }
+              ],
+              "show_legend": true,
+              "legend_layout": "auto"
+            }
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "create: stage duration (mean ms)",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "1000 * total / samples"
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "total",
+                      "query": "sum:langsmith_sandbox_host_stage_duration_seconds.sum{$env,$cluster,$namespace,operation:create} by {stage}.as_count()"
+                    },
+                    {
+                      "data_source": "metrics",
+                      "name": "samples",
+                      "query": "sum:langsmith_sandbox_host_stage_duration_seconds.count{$env,$cluster,$namespace,operation:create} by {stage}.as_count()"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "display_type": "line"
+                }
+              ],
+              "show_legend": true,
+              "legend_layout": "auto"
+            }
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "start: stage duration (mean ms)",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "1000 * total / samples"
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "total",
+                      "query": "sum:langsmith_sandbox_host_stage_duration_seconds.sum{$env,$cluster,$namespace,operation:start} by {stage}.as_count()"
+                    },
+                    {
+                      "data_source": "metrics",
+                      "name": "samples",
+                      "query": "sum:langsmith_sandbox_host_stage_duration_seconds.count{$env,$cluster,$namespace,operation:start} by {stage}.as_count()"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "display_type": "line"
+                }
+              ],
+              "show_legend": true,
+              "legend_layout": "auto"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "definition": {
+        "type": "group",
+        "title": "Boot path",
+        "layout_type": "ordered",
+        "widgets": [
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "Boots/s by memory source",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "q"
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "q",
+                      "query": "sum:langsmith_sandbox_host_boot_mode.count{$env,$cluster,$namespace} by {mode}.as_rate()"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "display_type": "line"
+                }
+              ],
+              "show_legend": true,
+              "legend_layout": "auto"
+            }
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "Warm-image hit rate (%)",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "100 * warm / boots"
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "warm",
+                      "query": "sum:langsmith_sandbox_host_boot_mode.count{$env,$cluster,$namespace,mode:zygote}.as_count()"
+                    },
+                    {
+                      "data_source": "metrics",
+                      "name": "boots",
+                      "query": "sum:langsmith_sandbox_host_boot_mode.count{$env,$cluster,$namespace}.as_count()"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "display_type": "line"
+                }
+              ],
+              "show_legend": true,
+              "legend_layout": "auto"
+            }
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "Warm-image captures/s by outcome",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "q"
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "q",
+                      "query": "sum:langsmith_sandbox_host_zygote_capture.count{$env,$cluster,$namespace} by {outcome}.as_rate()"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "display_type": "line"
+                }
+              ],
+              "show_legend": true,
+              "legend_layout": "auto"
+            }
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "Warm-image capture duration (mean ms)",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "1000 * total / samples"
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "total",
+                      "query": "sum:langsmith_sandbox_host_zygote_capture_duration_seconds.sum{$env,$cluster,$namespace}.as_count()"
+                    },
+                    {
+                      "data_source": "metrics",
+                      "name": "samples",
+                      "query": "sum:langsmith_sandbox_host_zygote_capture_duration_seconds.count{$env,$cluster,$namespace}.as_count()"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "display_type": "line"
+                }
+              ],
+              "show_legend": true,
+              "legend_layout": "auto"
+            }
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "Startup provisioning (mean ms)",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "1000 * total / samples"
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "total",
+                      "query": "sum:langsmith_sandbox_host_startup_provision_duration_seconds.sum{$env,$cluster,$namespace,outcome:ok} by {step}.as_count()"
+                    },
+                    {
+                      "data_source": "metrics",
+                      "name": "samples",
+                      "query": "sum:langsmith_sandbox_host_startup_provision_duration_seconds.count{$env,$cluster,$namespace,outcome:ok} by {step}.as_count()"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "display_type": "line"
+                }
+              ],
+              "show_legend": true,
+              "legend_layout": "auto"
+            }
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "Startup provisioning errors/s",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "q"
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "q",
+                      "query": "sum:langsmith_sandbox_host_startup_provision_duration_seconds.count{$env,$cluster,$namespace,outcome:error} by {step}.as_rate()"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "display_type": "line"
+                }
+              ],
+              "show_legend": true,
+              "legend_layout": "auto"
+            }
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "Clone slot wait (mean ms)",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "1000 * total / samples"
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "total",
+                      "query": "sum:langsmith_sandbox_host_clone_slot_wait_seconds.sum{$env,$cluster,$namespace} by {clone_type}.as_count()"
+                    },
+                    {
+                      "data_source": "metrics",
+                      "name": "samples",
+                      "query": "sum:langsmith_sandbox_host_clone_slot_wait_seconds.count{$env,$cluster,$namespace} by {clone_type}.as_count()"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "display_type": "line"
+                }
+              ],
+              "show_legend": true,
+              "legend_layout": "auto"
+            }
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "Host boot to ready (mean ms)",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "1000 * total / samples"
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "total",
+                      "query": "sum:langsmith_sandbox_host_boot_to_ready_seconds.sum{$env,$cluster,$namespace} by {kube_cluster_name}.as_count()"
+                    },
+                    {
+                      "data_source": "metrics",
+                      "name": "samples",
+                      "query": "sum:langsmith_sandbox_host_boot_to_ready_seconds.count{$env,$cluster,$namespace} by {kube_cluster_name}.as_count()"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "display_type": "line"
+                }
+              ],
+              "show_legend": true,
+              "legend_layout": "auto"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "definition": {
+        "type": "group",
+        "title": "Guest runtime and data path",
+        "layout_type": "ordered",
+        "widgets": [
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "Guest proxy requests/s",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "q"
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "q",
+                      "query": "sum:langsmith_sandbox_host_guest_requests.count{$env,$cluster,$namespace} by {status}.as_rate()"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "display_type": "line"
+                }
+              ],
+              "show_legend": true,
+              "legend_layout": "auto"
+            }
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "Guest request duration (mean ms)",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "1000 * total / samples"
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "total",
+                      "query": "sum:langsmith_sandbox_host_guest_request_duration_seconds.sum{$env,$cluster,$namespace} by {route}.as_count()"
+                    },
+                    {
+                      "data_source": "metrics",
+                      "name": "samples",
+                      "query": "sum:langsmith_sandbox_host_guest_request_duration_seconds.count{$env,$cluster,$namespace} by {route}.as_count()"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "display_type": "line"
+                }
+              ],
+              "show_legend": true,
+              "legend_layout": "auto"
+            }
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "Guest requests in flight",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "q"
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "q",
+                      "query": "sum:langsmith_sandbox_host_guest_requests_in_flight{$env,$cluster,$namespace} by {kube_cluster_name}"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "display_type": "line"
+                }
+              ],
+              "show_legend": true,
+              "legend_layout": "auto"
+            }
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "Guest request rejects/s",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "q"
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "q",
+                      "query": "sum:langsmith_sandbox_host_guest_request_rejects.count{$env,$cluster,$namespace} by {reason}.as_rate()"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "display_type": "line"
+                }
+              ],
+              "show_legend": true,
+              "legend_layout": "auto"
+            }
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "No-target requests/s",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "q"
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "q",
+                      "query": "sum:langsmith_sandbox_host_guest_no_target.count{$env,$cluster,$namespace} by {route}.as_rate()"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "display_type": "line"
+                }
+              ],
+              "show_legend": true,
+              "legend_layout": "auto"
+            }
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "Inter-host forwards/s",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "q"
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "q",
+                      "query": "sum:langsmith_sandbox_host_forward.count{$env,$cluster,$namespace}.as_rate()"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "display_type": "line"
+                }
+              ],
+              "show_legend": true,
+              "legend_layout": "auto"
+            }
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "Inter-host forward failures/s",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "q"
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "q",
+                      "query": "sum:langsmith_sandbox_host_forward_failures.count{$env,$cluster,$namespace} by {reason}.as_rate()"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "display_type": "line"
+                }
+              ],
+              "show_legend": true,
+              "legend_layout": "auto"
+            }
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "Idle stops/s",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "q"
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "q",
+                      "query": "sum:langsmith_sandbox_host_idle_stops.count{$env,$cluster,$namespace}.as_rate()"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "display_type": "line"
+                }
+              ],
+              "show_legend": true,
+              "legend_layout": "auto"
+            }
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "Firecracker exits/s",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "q"
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "q",
+                      "query": "sum:langsmith_sandbox_host_vm_exits.count{$env,$cluster,$namespace} by {reason}.as_rate()"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "display_type": "line"
+                }
+              ],
+              "show_legend": true,
+              "legend_layout": "auto"
+            }
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "VM lifetime (mean s)",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "total / samples"
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "total",
+                      "query": "sum:langsmith_sandbox_host_vm_lifetime_seconds.sum{$env,$cluster,$namespace} by {outcome}.as_count()"
+                    },
+                    {
+                      "data_source": "metrics",
+                      "name": "samples",
+                      "query": "sum:langsmith_sandbox_host_vm_lifetime_seconds.count{$env,$cluster,$namespace} by {outcome}.as_count()"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "display_type": "line"
+                }
+              ],
+              "show_legend": true,
+              "legend_layout": "auto"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "definition": {
+        "type": "group",
+        "title": "Guest resources",
+        "layout_type": "ordered",
+        "widgets": [
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "Guest CPU cores in use vs committed",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "q",
+                      "alias": "in use"
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "q",
+                      "query": "sum:langsmith_sandbox_host_sandbox_cpu_seconds.count{$env,$cluster,$namespace}.as_rate()"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "display_type": "line"
+                },
+                {
+                  "formulas": [
+                    {
+                      "formula": "assigned / 1000",
+                      "alias": "committed"
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "assigned",
+                      "query": "sum:langsmith_sandbox_host_assigned_cpu_millicores{$env,$cluster,$namespace}"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "display_type": "line"
+                }
+              ],
+              "show_legend": true,
+              "legend_layout": "auto"
+            }
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "CPU throttled vs pressure-stalled (seconds/s)",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "q",
+                      "alias": "throttled"
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "q",
+                      "query": "sum:langsmith_sandbox_host_sandbox_cpu_throttled_seconds.count{$env,$cluster,$namespace}.as_rate()"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "display_type": "line"
+                },
+                {
+                  "formulas": [
+                    {
+                      "formula": "q",
+                      "alias": "pressure stall"
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "q",
+                      "query": "sum:langsmith_sandbox_host_sandbox_cpu_stall_seconds.count{$env,$cluster,$namespace}.as_rate()"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "display_type": "line"
+                }
+              ],
+              "show_legend": true,
+              "legend_layout": "auto"
+            }
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "Guest memory (bytes)",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "q",
+                      "alias": "resident"
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "q",
+                      "query": "sum:langsmith_sandbox_host_sandbox_memory_rss_bytes{$env,$cluster,$namespace}"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "display_type": "line"
+                },
+                {
+                  "formulas": [
+                    {
+                      "formula": "q",
+                      "alias": "returned to host"
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "q",
+                      "query": "sum:langsmith_sandbox_host_sandbox_memory_returned_bytes{$env,$cluster,$namespace}"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "display_type": "line"
+                }
+              ],
+              "show_legend": true,
+              "legend_layout": "auto"
+            }
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "Free-page-hint reclaim (bytes/s)",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "q"
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "q",
+                      "query": "sum:langsmith_sandbox_host_free_page_hint_reclaimed_bytes.sum{$env,$cluster,$namespace}.as_rate()"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "display_type": "line"
+                }
+              ],
+              "show_legend": true,
+              "legend_layout": "auto"
+            }
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "Guest network throughput (bytes/s)",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "q",
+                      "alias": "receive"
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "q",
+                      "query": "sum:langsmith_sandbox_host_sandbox_network_receive_bytes.count{$env,$cluster,$namespace}.as_rate()"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "display_type": "line"
+                },
+                {
+                  "formulas": [
+                    {
+                      "formula": "q",
+                      "alias": "transmit"
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "q",
+                      "query": "sum:langsmith_sandbox_host_sandbox_network_transmit_bytes.count{$env,$cluster,$namespace}.as_rate()"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "display_type": "line"
+                }
+              ],
+              "show_legend": true,
+              "legend_layout": "auto"
+            }
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "Dropped packets/s",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "q"
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "q",
+                      "query": "sum:langsmith_sandbox_host_sandbox_network_dropped_packets.count{$env,$cluster,$namespace} by {direction}.as_rate()"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "display_type": "line"
+                }
+              ],
+              "show_legend": true,
+              "legend_layout": "auto"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "definition": {
+        "type": "group",
+        "title": "Egress proxy and DNS",
+        "layout_type": "ordered",
+        "widgets": [
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "Egress requests/s",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "q"
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "q",
+                      "query": "sum:langsmith_sandbox_egress_proxy_requests.count{$env,$cluster,$namespace} by {path}.as_rate()"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "display_type": "line"
+                }
+              ],
+              "show_legend": true,
+              "legend_layout": "auto"
+            }
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "Blocked egress/s",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "q"
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "q",
+                      "query": "sum:langsmith_sandbox_egress_proxy_blocked.count{$env,$cluster,$namespace} by {reason}.as_rate()"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "display_type": "line"
+                }
+              ],
+              "show_legend": true,
+              "legend_layout": "auto"
+            }
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "Egress fault rate (%, excluding allowlist denials)",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "100 * faults / total"
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "faults",
+                      "query": "sum:langsmith_sandbox_egress_proxy_blocked.count{$env,$cluster,$namespace,!reason:access_denied}.as_count()"
+                    },
+                    {
+                      "data_source": "metrics",
+                      "name": "total",
+                      "query": "sum:langsmith_sandbox_egress_proxy_requests.count{$env,$cluster,$namespace}.as_count()"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "display_type": "line"
+                }
+              ],
+              "show_legend": true,
+              "legend_layout": "auto"
+            }
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "Egress upstream failures/s",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "q"
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "q",
+                      "query": "sum:langsmith_sandbox_egress_proxy_upstream_failures.count{$env,$cluster,$namespace} by {reason}.as_rate()"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "display_type": "line"
+                }
+              ],
+              "show_legend": true,
+              "legend_layout": "auto"
+            }
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "Egress throughput (bytes/s)",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "q"
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "q",
+                      "query": "sum:langsmith_sandbox_egress_proxy_bytes.count{$env,$cluster,$namespace} by {path,direction}.as_rate()"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "display_type": "line"
+                }
+              ],
+              "show_legend": true,
+              "legend_layout": "auto"
+            }
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "Inspected upstream time to headers (mean ms)",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "1000 * total / samples"
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "total",
+                      "query": "sum:langsmith_sandbox_egress_proxy_mitm_upstream_duration_seconds.sum{$env,$cluster,$namespace}.as_count()"
+                    },
+                    {
+                      "data_source": "metrics",
+                      "name": "samples",
+                      "query": "sum:langsmith_sandbox_egress_proxy_mitm_upstream_duration_seconds.count{$env,$cluster,$namespace}.as_count()"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "display_type": "line"
+                }
+              ],
+              "show_legend": true,
+              "legend_layout": "auto"
+            }
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "DNS queries/s",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "q"
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "q",
+                      "query": "sum:langsmith_sandbox_egress_dns_queries.count{$env,$cluster,$namespace} by {rcode}.as_rate()"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "display_type": "line"
+                }
+              ],
+              "show_legend": true,
+              "legend_layout": "auto"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "definition": {
+        "type": "group",
+        "title": "Health",
+        "layout_type": "ordered",
+        "widgets": [
+          {
+            "definition": {
+              "type": "note",
+              "content": "An empty failure series can mean no events, an unsupported metric, or missing collection. Check live-sandbox and mount-ready gauges before interpreting missing data. Failures immediately before process exit may not be scraped.",
+              "background_color": "transparent",
+              "font_size": "14",
+              "text_align": "left",
+              "has_padding": true
+            }
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "Lease staleness (s), maximum across hosts",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "q"
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "q",
+                      "query": "max:langsmith_sandbox_host_lease_stale_seconds{$env,$cluster,$namespace} by {kube_cluster_name}"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "display_type": "line"
+                }
+              ],
+              "show_legend": true,
+              "legend_layout": "auto"
+            }
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "JuiceFS mount ready (1 = ready)",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "q"
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "q",
+                      "query": "min:langsmith_sandbox_host_juicefs_mount_ready{$env,$cluster,$namespace} by {kube_cluster_name}"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "display_type": "line"
+                }
+              ],
+              "show_legend": true,
+              "legend_layout": "auto"
+            }
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "Leader transitions/s",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "q"
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "q",
+                      "query": "sum:langsmith_sandbox_host_leader_transitions.count{$env,$cluster,$namespace} by {event}.as_rate()"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "display_type": "line"
+                }
+              ],
+              "show_legend": true,
+              "legend_layout": "auto"
+            }
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "lease renew failures (count)",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "q"
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "q",
+                      "query": "sum:langsmith_sandbox_host_lease_renew_failures.count{$env,$cluster,$namespace}.as_count()"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "display_type": "line"
+                }
+              ],
+              "show_legend": true,
+              "legend_layout": "auto"
+            }
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "boot failure memory invalidation (count)",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "q"
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "q",
+                      "query": "sum:langsmith_sandbox_host_boot_failure_memory_invalidation.count{$env,$cluster,$namespace}.as_count()"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "display_type": "line"
+                }
+              ],
+              "show_legend": true,
+              "legend_layout": "auto"
+            }
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "zygote unusable fallback (count)",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "q"
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "q",
+                      "query": "sum:langsmith_sandbox_host_zygote_unusable_fallback.count{$env,$cluster,$namespace}.as_count()"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "display_type": "line"
+                }
+              ],
+              "show_legend": true,
+              "legend_layout": "auto"
+            }
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "clone slot abandoned (count)",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "q"
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "q",
+                      "query": "sum:langsmith_sandbox_host_clone_slot_abandoned.count{$env,$cluster,$namespace}.as_count()"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "display_type": "line"
+                }
+              ],
+              "show_legend": true,
+              "legend_layout": "auto"
+            }
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "guestd recycle (count)",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "q"
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "q",
+                      "query": "sum:langsmith_sandbox_host_guestd_recycle.count{$env,$cluster,$namespace}.as_count()"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "display_type": "line"
+                }
+              ],
+              "show_legend": true,
+              "legend_layout": "auto"
+            }
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "forward failures (count)",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "q"
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "q",
+                      "query": "sum:langsmith_sandbox_host_forward_failures.count{$env,$cluster,$namespace}.as_count()"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "display_type": "line"
+                }
+              ],
+              "show_legend": true,
+              "legend_layout": "auto"
+            }
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "sandbox memory sample failures (count)",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "q"
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "q",
+                      "query": "sum:langsmith_sandbox_host_sandbox_memory_sample_failures.count{$env,$cluster,$namespace}.as_count()"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "display_type": "line"
+                }
+              ],
+              "show_legend": true,
+              "legend_layout": "auto"
+            }
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "sandbox network sample failures (count)",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "q"
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "q",
+                      "query": "sum:langsmith_sandbox_host_sandbox_network_sample_failures.count{$env,$cluster,$namespace}.as_count()"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "display_type": "line"
+                }
+              ],
+              "show_legend": true,
+              "legend_layout": "auto"
+            }
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "guest log dropped entries (count)",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "q"
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "q",
+                      "query": "sum:langsmith_sandbox_host_guest_log_dropped_entries.count{$env,$cluster,$namespace}.as_count()"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "display_type": "line"
+                }
+              ],
+              "show_legend": true,
+              "legend_layout": "auto"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "definition": {
+        "type": "group",
+        "title": "Exec (API metrics optional)",
+        "layout_type": "ordered",
+        "widgets": [
+          {
+            "definition": {
+              "type": "note",
+              "content": "Host command metrics use the host scrape and host filters. API execution metrics are optional APM data and use only env and api_service. WebSocket duration measures connection lifetime, not command latency.",
+              "background_color": "transparent",
+              "font_size": "14",
+              "text_align": "left",
+              "has_padding": true
+            }
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "Commands/s by class",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "q"
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "q",
+                      "query": "sum:langsmith_sandbox_host_exec_commands.count{$env,$cluster,$namespace} by {command_class}.as_rate()"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "display_type": "line"
+                }
+              ],
+              "show_legend": true,
+              "legend_layout": "auto"
+            }
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "Commands/s by transport",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "q"
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "q",
+                      "query": "sum:langsmith_sandbox_host_exec_commands.count{$env,$cluster,$namespace} by {transport}.as_rate()"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "display_type": "line"
+                }
+              ],
+              "show_legend": true,
+              "legend_layout": "auto"
+            }
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "Command runtime (mean ms)",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "1000 * total / samples"
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "total",
+                      "query": "sum:langsmith_sandbox_host_exec_command_duration_seconds.sum{$env,$cluster,$namespace} by {command_class}.as_count()"
+                    },
+                    {
+                      "data_source": "metrics",
+                      "name": "samples",
+                      "query": "sum:langsmith_sandbox_host_exec_command_duration_seconds.count{$env,$cluster,$namespace} by {command_class}.as_count()"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "display_type": "line"
+                }
+              ],
+              "show_legend": true,
+              "legend_layout": "auto"
+            }
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "API exec requests by transport",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "q",
+                      "alias": "http"
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "q",
+                      "query": "sum:trace.http.request.hits{$env,$api_service,resource_name:post_/v2/sandboxes/_sandbox_id_/execute}.as_count()"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "display_type": "line"
+                },
+                {
+                  "formulas": [
+                    {
+                      "formula": "q",
+                      "alias": "websocket"
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "q",
+                      "query": "sum:trace.http.request.hits{$env,$api_service,resource_name:get_/v2/sandboxes/_sandbox_id_/execute/ws}.as_count()"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "display_type": "line"
+                }
+              ],
+              "show_legend": true,
+              "legend_layout": "auto"
+            }
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "API exec HTTP latency (ms)",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "1000 * q",
+                      "alias": "p50"
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "q",
+                      "query": "p50:trace.http.request{$env,$api_service,resource_name:post_/v2/sandboxes/_sandbox_id_/execute}"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "display_type": "line"
+                },
+                {
+                  "formulas": [
+                    {
+                      "formula": "1000 * q",
+                      "alias": "p95"
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "q",
+                      "query": "p95:trace.http.request{$env,$api_service,resource_name:post_/v2/sandboxes/_sandbox_id_/execute}"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "display_type": "line"
+                },
+                {
+                  "formulas": [
+                    {
+                      "formula": "1000 * q",
+                      "alias": "p99"
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "q",
+                      "query": "p99:trace.http.request{$env,$api_service,resource_name:post_/v2/sandboxes/_sandbox_id_/execute}"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "display_type": "line"
+                }
+              ],
+              "show_legend": true,
+              "legend_layout": "auto"
+            }
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "API exec WebSocket lifetime (s)",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "q"
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "q",
+                      "query": "p95:trace.http.request{$env,$api_service,resource_name:get_/v2/sandboxes/_sandbox_id_/execute/ws}"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "display_type": "line"
+                }
+              ],
+              "show_legend": true,
+              "legend_layout": "auto"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "definition": {
+        "type": "group",
+        "title": "Sandbox API (optional APM)",
+        "layout_type": "ordered",
+        "widgets": [
+          {
+            "definition": {
+              "type": "note",
+              "content": "Optional: requires Datadog APM trace.http.request metrics for your API service. Select exactly one api_service to avoid double counting. Only env and api_service filter this group; host cluster and namespace filters do not apply. OTLP span names can produce different metric/resource names; adapt queries to the names in your account.",
+              "background_color": "transparent",
+              "font_size": "14",
+              "text_align": "left",
+              "has_padding": true
+            }
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "API requests by status code",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "q"
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "q",
+                      "query": "sum:trace.http.request.hits{$env,$api_service,resource_name:*sandboxes*} by {http.status_code}.as_count()"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "display_type": "line"
+                }
+              ],
+              "show_legend": true,
+              "legend_layout": "auto"
+            }
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "API 5xx by endpoint",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "q"
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "q",
+                      "query": "sum:trace.http.request.hits{$env,$api_service,resource_name:*sandboxes*,http.status_code:5*} by {resource_name}.as_count()"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "display_type": "line"
+                }
+              ],
+              "show_legend": true,
+              "legend_layout": "auto"
+            }
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "API 4xx by endpoint (excluding 404 and client disconnects)",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "q"
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "q",
+                      "query": "sum:trace.http.request.hits{$env,$api_service,resource_name:*sandboxes*,http.status_code:4*,!http.status_code:404,!http.status_code:499} by {resource_name}.as_count()"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "display_type": "line"
+                }
+              ],
+              "show_legend": true,
+              "legend_layout": "auto"
+            }
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "Create sandbox requests by status code",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "q"
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "q",
+                      "query": "sum:trace.http.request.hits{$env,$api_service,resource_name:post_/v2/sandboxes/boxes} by {http.status_code}.as_count()"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "display_type": "line"
+                }
+              ],
+              "show_legend": true,
+              "legend_layout": "auto"
+            }
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "API request latency (ms)",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "1000 * q",
+                      "alias": "p50"
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "q",
+                      "query": "p50:trace.http.request{$env,$api_service,resource_name:*sandboxes*}"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "display_type": "line"
+                },
+                {
+                  "formulas": [
+                    {
+                      "formula": "1000 * q",
+                      "alias": "p95"
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "q",
+                      "query": "p95:trace.http.request{$env,$api_service,resource_name:*sandboxes*}"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "display_type": "line"
+                },
+                {
+                  "formulas": [
+                    {
+                      "formula": "1000 * q",
+                      "alias": "p99"
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "q",
+                      "query": "p99:trace.http.request{$env,$api_service,resource_name:*sandboxes*}"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "display_type": "line"
+                }
+              ],
+              "show_legend": true,
+              "legend_layout": "auto"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "definition": {
+        "type": "group",
+        "title": "JuiceFS (optional mount metrics)",
+        "layout_type": "ordered",
+        "widgets": [
+          {
+            "definition": {
+              "type": "note",
+              "content": "Optional: scrape the JuiceFS mount's own /metrics endpoint in addition to sandbox-host. The host /metrics endpoint does not export juicefs_* metrics. Used space is logical/apparent size, not physical object storage consumption; copy-on-write files and sparse images make these different.",
+              "background_color": "transparent",
+              "font_size": "14",
+              "text_align": "left",
+              "has_padding": true
+            }
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "JuiceFS logical used space (bytes)",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "q"
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "q",
+                      "query": "avg:juicefs_used_space{$env,$cluster,$namespace} by {kube_cluster_name}"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "display_type": "line"
+                }
+              ],
+              "show_legend": true,
+              "legend_layout": "auto"
+            }
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "JuiceFS inodes used",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "q"
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "q",
+                      "query": "avg:juicefs_used_inodes{$env,$cluster,$namespace} by {kube_cluster_name}"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "display_type": "line"
+                }
+              ],
+              "show_legend": true,
+              "legend_layout": "auto"
+            }
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "Metadata operations/s",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "q"
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "q",
+                      "query": "sum:juicefs_meta_ops.count{$env,$cluster,$namespace} by {method}.as_rate()"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "display_type": "line"
+                }
+              ],
+              "show_legend": true,
+              "legend_layout": "auto"
+            }
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "Metadata operation latency (mean ms)",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "1000 * total / samples"
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "total",
+                      "query": "sum:juicefs_meta_ops_durations_histogram_seconds.sum{$env,$cluster,$namespace} by {kube_cluster_name}.as_count()"
+                    },
+                    {
+                      "data_source": "metrics",
+                      "name": "samples",
+                      "query": "sum:juicefs_meta_ops_durations_histogram_seconds.count{$env,$cluster,$namespace} by {kube_cluster_name}.as_count()"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "display_type": "line"
+                }
+              ],
+              "show_legend": true,
+              "legend_layout": "auto"
+            }
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "Metadata operation latency by method (mean ms)",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "1000 * seconds / ops"
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "seconds",
+                      "query": "sum:juicefs_meta_ops_duration_seconds.count{$env,$cluster,$namespace} by {method}.as_count()"
+                    },
+                    {
+                      "data_source": "metrics",
+                      "name": "ops",
+                      "query": "sum:juicefs_meta_ops.count{$env,$cluster,$namespace} by {method}.as_count()"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "display_type": "line"
+                }
+              ],
+              "show_legend": true,
+              "legend_layout": "auto"
+            }
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "Redis transaction latency (mean ms)",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "1000 * total / samples"
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "total",
+                      "query": "sum:juicefs_transaction_durations_histogram_seconds.sum{$env,$cluster,$namespace} by {kube_cluster_name}.as_count()"
+                    },
+                    {
+                      "data_source": "metrics",
+                      "name": "samples",
+                      "query": "sum:juicefs_transaction_durations_histogram_seconds.count{$env,$cluster,$namespace} by {kube_cluster_name}.as_count()"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "display_type": "line"
+                }
+              ],
+              "show_legend": true,
+              "legend_layout": "auto"
+            }
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "Redis transaction restarts/s",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "q"
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "q",
+                      "query": "sum:juicefs_transaction_restart.count{$env,$cluster,$namespace} by {method}.as_rate()"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "display_type": "line"
+                }
+              ],
+              "show_legend": true,
+              "legend_layout": "auto"
+            }
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "Object store request errors/s",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "q"
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "q",
+                      "query": "sum:juicefs_object_request_errors.count{$env,$cluster,$namespace}.as_rate()"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "display_type": "line"
+                }
+              ],
+              "show_legend": true,
+              "legend_layout": "auto"
+            }
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "Object store latency (mean ms)",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "1000 * total / samples"
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "total",
+                      "query": "sum:juicefs_object_request_durations_histogram_seconds.sum{$env,$cluster,$namespace} by {kube_cluster_name}.as_count()"
+                    },
+                    {
+                      "data_source": "metrics",
+                      "name": "samples",
+                      "query": "sum:juicefs_object_request_durations_histogram_seconds.count{$env,$cluster,$namespace} by {kube_cluster_name}.as_count()"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "display_type": "line"
+                }
+              ],
+              "show_legend": true,
+              "legend_layout": "auto"
+            }
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "Staging backlog (bytes)",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "q"
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "q",
+                      "query": "avg:juicefs_staging_block_bytes{$env,$cluster,$namespace}"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "display_type": "line"
+                }
+              ],
+              "show_legend": true,
+              "legend_layout": "auto"
+            }
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "Block cache hit rate (%)",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "100 * hits / (hits + misses)"
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "hits",
+                      "query": "sum:juicefs_blockcache_hits.count{$env,$cluster,$namespace}.as_count()"
+                    },
+                    {
+                      "data_source": "metrics",
+                      "name": "misses",
+                      "query": "sum:juicefs_blockcache_miss.count{$env,$cluster,$namespace}.as_count()"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "display_type": "line"
+                }
+              ],
+              "show_legend": true,
+              "legend_layout": "auto"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "definition": {
+        "type": "group",
+        "title": "Object storage (optional cloud integration)",
+        "layout_type": "ordered",
+        "widgets": [
+          {
+            "definition": {
+              "type": "note",
+              "content": "Optional: requires the Datadog AWS or GCP storage integration. Replace gcs_bucket or s3_bucket with the exact bucket name. These queries ignore env, cluster, and namespace because cloud metrics need not carry Kubernetes tags. The placeholder defaults intentionally select no bucket. Remove unused provider widgets; Azure Blob Storage is not covered by these queries.",
+              "background_color": "transparent",
+              "font_size": "14",
+              "text_align": "left",
+              "has_padding": true
+            }
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "GCS stored bytes",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "q"
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "q",
+                      "query": "avg:gcp.storage.storage.total_bytes{$gcs_bucket} by {bucket_name}"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "display_type": "line"
+                }
+              ],
+              "show_legend": true,
+              "legend_layout": "auto"
+            }
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "GCS object count",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "q"
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "q",
+                      "query": "avg:gcp.storage.storage.object_count{$gcs_bucket} by {bucket_name}"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "display_type": "line"
+                }
+              ],
+              "show_legend": true,
+              "legend_layout": "auto"
+            }
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "S3 stored bytes",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "q"
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "q",
+                      "query": "avg:aws.s3.bucket_size_bytes{$s3_bucket} by {bucketname}"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "display_type": "line"
+                }
+              ],
+              "show_legend": true,
+              "legend_layout": "auto"
+            }
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "S3 object count",
+              "requests": [
+                {
+                  "formulas": [
+                    {
+                      "formula": "q"
+                    }
+                  ],
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "q",
+                      "query": "avg:aws.s3.number_of_objects{$s3_bucket} by {bucketname}"
+                    }
+                  ],
+                  "response_format": "timeseries",
+                  "display_type": "line"
+                }
+              ],
+              "show_legend": true,
+              "legend_layout": "auto"
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

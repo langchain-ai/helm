@@ -55,6 +55,12 @@ jobs:
       - name: Run chart unittest
         run: helm unittest charts/${{ matrix.chart-name }}
 
+      - name: Check sandbox dashboard
+        if: matrix.chart-name == 'langsmith'
+        run: |
+          python3 charts/langsmith/examples/sandbox-observability/generate_dashboard.py --check
+          python3 -m unittest discover -s charts/langsmith/examples/sandbox-observability -p 'test_*.py'
+
       - name: Create kind cluster
         uses: helm/kind-action@v1.12.0
         with:

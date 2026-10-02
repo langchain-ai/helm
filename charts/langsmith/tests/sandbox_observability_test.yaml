@@ -1,0 +1,49 @@
+suite: sandbox Datadog collection example
+templates:
+  - sandboxes/sandbox-host-deployment.yaml
+tests:
+  - it: does not enable sandbox hosts when applying monitoring values
+    values:
+      - ../examples/sandbox-observability/datadog-values.yaml
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: places the host check on the pod without changing mount options
+    values:
+      - ./values/sandboxes-enabled.yaml
+      - ../examples/sandbox-observability/datadog-values.yaml
+    set:
+      sandboxes.sandboxHost.deployment.podAnnotations.example: retained
+      sandboxes.juicefs.hostMount.mountOptions:
+        - --cache-size=1024
+    asserts:
+      - equal:
+          path: spec.template.metadata.annotations.example
+          value: retained
+      - matchRegex:
+          path: spec.template.metadata.annotations["ad.datadoghq.com/sandbox-host.checks"]
+          pattern: '"openmetrics_endpoint": "http://%%host%%:19190/metrics"'
+      - notMatchRegex:
+          path: spec.template.metadata.annotations["ad.datadoghq.com/sandbox-host.checks"]
+          pattern: '9567'
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_HOST_JUICEFS_MOUNT_OPTIONS
+            value: '["--cache-dir=/var/cache/juicefs","--cache-size=1024"]'
+
+  - it: retains the host check when opting into JuiceFS collection
+    values:
+      - ./values/sandboxes-enabled.yaml
+      - ../examples/sandbox-observability/datadog-juicefs-values.yaml
+    asserts:
+      - matchRegex:
+          path: spec.template.metadata.annotations["ad.datadoghq.com/sandbox-host.checks"]
+          pattern: '"openmetrics_endpoint": "http://%%host%%:19190/metrics"'
+      - matchRegex:
+          path: spec.template.metadata.annotations["ad.datadoghq.com/sandbox-host.checks"]
+          pattern: '"openmetrics_endpoint": "http://%%host%%:9567/metrics"'
+      - notMatchRegex:
+          path: spec.template.spec.containers[0].env[?(@.name == "SANDBOX_HOST_JUICEFS_MOUNT_OPTIONS")].value
+          pattern: 'metrics='

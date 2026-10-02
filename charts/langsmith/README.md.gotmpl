@@ -29,6 +29,10 @@ Things worth planning for before you enable it:
 
 **Which workspace owns the sandboxes.** By default smith-go resolves the install's workspace, which works when there is exactly one non-personal organization. With more than one it declines rather than guess, and you must set `engine.sandboxTenantId` explicitly. Prefer a workspace reserved for the Engine: its sandboxes are visible to anyone with access to it.
 
+## Sandbox observability
+
+For a Datadog dashboard and optional OpenMetrics collection values for an existing self-hosted sandbox deployment, see the [sandbox observability example](examples/sandbox-observability/README.md). Import the dashboard into your own Datadog organization. The example documents telemetry prerequisites, installation filters, and optional API, JuiceFS, and cloud storage metrics.
+
 ## Sandbox quotas
 
 When `sandboxes.enabled=true`, configure limits under `sandboxes.quotas`: `maxSandboxes` (default 1000), `maxCpuCores` (200), and `maxMemoryGb` (400 GiB). These limits do not provision cluster capacity.
