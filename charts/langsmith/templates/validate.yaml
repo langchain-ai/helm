@@ -628,6 +628,16 @@ AWS Marketplace Helm template verification).
 {{- fail (printf "engine.enabled is true and config.hostname is the in-cluster address %q, which a sandbox cannot reach: it must be the externally reachable LangSmith address." .Values.config.hostname) }}
 {{- end }}
 {{- end }}
+{{- $seenWorkloadIdentity := list }}
+{{- range .Values.engine.workloadIdentityProviders }}
+{{- if not (has . (list "bedrock" "vertex" "azure")) }}
+{{- fail (printf "engine.workloadIdentityProviders contains %q: allowed providers are bedrock, vertex and azure." (toString .)) }}
+{{- end }}
+{{- if has . $seenWorkloadIdentity }}
+{{- fail (printf "engine.workloadIdentityProviders lists %q more than once." .) }}
+{{- end }}
+{{- $seenWorkloadIdentity = append $seenWorkloadIdentity . }}
+{{- end }}
 
 {{- /* Validate agent feature (fleet/insights/polly) configuration */ -}}
 {{- $anyAgentEnabled := or .Values.fleet.enabled .Values.insights.enabled .Values.polly.enabled }}
