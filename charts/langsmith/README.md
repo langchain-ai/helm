@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.17.0-rc.63](https://img.shields.io/badge/Version-0.17.0--rc.63-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.17.29rc7](https://img.shields.io/badge/AppVersion-0.17.29rc7-informational?style=flat-square)
+![Version: 0.17.0-rc.64](https://img.shields.io/badge/Version-0.17.0--rc.64-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.17.29rc7](https://img.shields.io/badge/AppVersion-0.17.29rc7-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -1417,7 +1417,7 @@ The trajectory Service is cluster-internal; no public route is added. Trajectory
 | smithdb.query.service.annotations | object | `{}` |  |
 | smithdb.query.service.labels | object | `{}` |  |
 | smithdb.query.service.port | int | `8080` |  |
-| smithdb.recoveryStrategy.enabled | bool | `false` | Enable recovery for superseded SmithDB data. |
+| smithdb.recoveryStrategy.enabled | bool | `false` | Enable recovery for SmithDB data. Enable only on an installation already running v17 or later. Requires metastore backups. |
 | smithdb.recoveryStrategy.retentionWindow | string | `"12h"` | Minimum time superseded SmithDB data remains available for recovery. |
 | smithdb.resourceTier | string | `"small"` | Per-replica CPU, memory, and cache volume size for SmithDB runtime components: small, medium, or large. See the README. |
 | smithdb.runRules.autoscaling.hpa.enabled | bool | `true` |  |
