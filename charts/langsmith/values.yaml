@@ -1431,7 +1431,7 @@ smithdb:
   commonInitContainers: []
 
   recoveryStrategy:
-    # -- Enable recovery for SmithDB data. Enable only on an installation already running v17 or later.
+    # -- Enable recovery for SmithDB data. Enable only on an installation already running v17 or later. Requires metastore backups.
     enabled: false
     # -- Minimum time superseded SmithDB data remains available for recovery.
     retentionWindow: "12h"
