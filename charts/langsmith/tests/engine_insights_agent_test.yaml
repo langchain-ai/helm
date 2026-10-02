@@ -55,17 +55,18 @@ tests:
     asserts:
       - notFailedTemplate: {}
 
-  - it: should fail when engine is enabled without an intelligence base URL
+  # Air-gapped installs with an offline license run without LangSmith Intelligence.
+  - it: should render without an intelligence base URL
+    values:
+      - ./values/sandboxes-enabled.yaml
     set:
-      config.existingSecretName: langsmith-secrets
-      config.oauth.enabled: true
-      config.authType: oauth
+      config.hostname: langsmith.example.com
       engine.enabled: true
       engine.encryptionKey: test-key
+      engine.intelligenceBaseUrl: ""
       images.engineInsightsAgentImage.repository: docker.io/langchain/langsmith-insights-engine
     asserts:
-      - failedTemplate:
-          errorMessage: "engine.intelligenceBaseUrl is required when engine.enabled is true: the self-hosted Engine has no ANTHROPIC_API_KEY and routes model calls through the LSI gateway for its cloud/region (e.g. AWS: https://beacon.aws.langchain.com/intelligence)."
+      - notFailedTemplate: {}
 
   - it: should render without a sandbox tenant, which smith-go resolves
     values:

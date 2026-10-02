@@ -1771,5 +1771,9 @@ Served through the frontend at /mcp (or /<basePath>/mcp).
       optional: {{ .Values.config.disableSecretCreation }}
 - name: ISSUES_AGENT_USAGE_SWEEP_CRON_ENABLED
   value: "true"
+{{- with .Values.engine.workloadIdentityProviders }}
+- name: ENGINE_WORKLOAD_IDENTITY_PROVIDERS
+  value: {{ toJson . | quote }}
+{{- end }}
 {{- end }}
 {{- end -}}
