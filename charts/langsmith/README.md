@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.17.0-rc.64](https://img.shields.io/badge/Version-0.17.0--rc.64-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.17.29rc7](https://img.shields.io/badge/AppVersion-0.17.29rc7-informational?style=flat-square)
+![Version: 0.17.0-rc.65](https://img.shields.io/badge/Version-0.17.0--rc.65-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.17.29rc11](https://img.shields.io/badge/AppVersion-0.17.29rc11-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -597,29 +597,29 @@ The trajectory Service is cluster-internal; no public route is added. Trajectory
 | gateway.sectionName | string | `""` |  |
 | images.aceBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.aceBackendImage.repository | string | `"docker.io/langchain/langsmith-ace-backend"` |  |
-| images.aceBackendImage.tag | string | `"0.17.29rc7"` |  |
+| images.aceBackendImage.tag | string | `"0.17.29rc11"` |  |
 | images.agentBuilderImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.agentBuilderImage.repository | string | `"docker.io/langchain/agent-builder-deep-agent"` |  |
-| images.agentBuilderImage.tag | string | `"0.17.29rc7"` |  |
+| images.agentBuilderImage.tag | string | `"0.17.29rc11"` |  |
 | images.backendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.backendImage.repository | string | `"docker.io/langchain/langsmith-backend"` |  |
-| images.backendImage.tag | string | `"0.17.29rc7"` |  |
+| images.backendImage.tag | string | `"0.17.29rc11"` |  |
 | images.clickhouseImage.pullPolicy | string | `"Always"` |  |
 | images.clickhouseImage.repository | string | `"docker.io/clickhouse/clickhouse-server"` |  |
 | images.clickhouseImage.tag | string | `"25.12"` |  |
 | images.engineInsightsAgentImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.engineInsightsAgentImage.repository | string | `"docker.io/langchain/langsmith-insights-engine"` |  |
-| images.engineInsightsAgentImage.tag | string | `"0.17.29rc7"` |  |
+| images.engineInsightsAgentImage.tag | string | `"0.17.29rc11"` |  |
 | images.frontendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.frontendImage.repository | string | `"docker.io/langchain/langsmith-frontend"` |  |
-| images.frontendImage.tag | string | `"0.17.29rc7"` |  |
+| images.frontendImage.tag | string | `"0.17.29rc11"` |  |
 | images.imagePullSecrets | list | `[]` | Secrets with credentials to pull images from a private registry. Specified as name: value. |
 | images.operatorImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.operatorImage.repository | string | `"docker.io/langchain/langgraph-operator"` |  |
 | images.operatorImage.tag | string | `"0.1.60"` |  |
 | images.pollyAgentImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.pollyAgentImage.repository | string | `"docker.io/langchain/langsmith-polly"` |  |
-| images.pollyAgentImage.tag | string | `"0.17.29rc7"` |  |
+| images.pollyAgentImage.tag | string | `"0.17.29rc11"` |  |
 | images.postgresImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.postgresImage.repository | string | `"docker.io/postgres"` |  |
 | images.postgresImage.tag | string | `"14.7"` |  |
@@ -630,10 +630,10 @@ The trajectory Service is cluster-internal; no public route is added. Trajectory
 | images.redisImage.repository | string | `"docker.io/redis"` |  |
 | images.redisImage.tag | string | `"7"` |  |
 | images.registry | string | `""` | If supplied, all children <image_name>.repository values will be prepended with this registry name + `/` |
-| images.sandboxHostImage | object | `{"pullPolicy":"IfNotPresent","repository":"docker.io/langchain/sandbox-host","tag":"0.17.29rc7"}` | sandbox-host image. Only used when sandboxes.enabled is true. |
+| images.sandboxHostImage | object | `{"pullPolicy":"IfNotPresent","repository":"docker.io/langchain/sandbox-host","tag":"0.17.29rc11"}` | sandbox-host image. Only used when sandboxes.enabled is true. |
 | images.smithdbImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.smithdbImage.repository | string | `"docker.io/langchain/smithdb"` |  |
-| images.smithdbImage.tag | string | `"0.17.29rc7"` |  |
+| images.smithdbImage.tag | string | `"0.17.29rc11"` |  |
 | ingestQueue.autoscaling.hpa.enabled | bool | `false` |  |
 | ingestQueue.autoscaling.hpa.maxReplicas | int | `10` |  |
 | ingestQueue.autoscaling.hpa.minReplicas | int | `3` |  |
