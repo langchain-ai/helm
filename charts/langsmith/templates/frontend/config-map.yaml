@@ -18,7 +18,7 @@ data:
 
     map $uri $frontend_cache_control {
         default "";
-        {{ printf "~^/%s/assets/(?:[^/]+-[A-Za-z0-9_-]{8}|[A-Za-z0-9_-]{14})\\.(?:js|css)$" (.Values.config.basePath | regexQuoteMeta) | quote }} "public, max-age=31536000, immutable";
+        {{ printf "~^/%s/assets/(?:[^/]+-[A-Za-z0-9_-]{8}|[A-Za-z0-9_-]{14})\\.[A-Za-z0-9]+$" (.Values.config.basePath | regexQuoteMeta) | quote }} "public, max-age=31536000, immutable";
         {{ printf "/%s/index.html" .Values.config.basePath | quote }} "no-store";
     }
 
@@ -633,8 +633,10 @@ data:
         location ^~ /{{ .Values.config.basePath }}/assets/ {
             root /tmp;
             try_files $uri =404;
+            # Serve the .gz files the frontend image writes next to each asset; compress on the fly otherwise.
+            gzip_static on;
             gzip on;
-            gzip_types application/javascript text/javascript text/css;
+            gzip_types application/javascript text/javascript text/css application/wasm image/svg+xml application/json;
             gzip_vary on;
             gzip_proxied any;
             gzip_min_length 1024;
@@ -661,7 +663,7 @@ data:
 
     map $uri $frontend_cache_control {
         default "";
-        "~^/assets/(?:[^/]+-[A-Za-z0-9_-]{8}|[A-Za-z0-9_-]{14})\\.(?:js|css)$" "public, max-age=31536000, immutable";
+        "~^/assets/(?:[^/]+-[A-Za-z0-9_-]{8}|[A-Za-z0-9_-]{14})\\.[A-Za-z0-9]+$" "public, max-age=31536000, immutable";
         /index.html "no-store";
     }
 
@@ -740,8 +742,10 @@ data:
         location ^~ /assets/ {
             root /tmp/build;
             try_files $uri =404;
+            # Serve the .gz files the frontend image writes next to each asset; compress on the fly otherwise.
+            gzip_static on;
             gzip on;
-            gzip_types application/javascript text/javascript text/css;
+            gzip_types application/javascript text/javascript text/css application/wasm image/svg+xml application/json;
             gzip_vary on;
             gzip_proxied any;
             gzip_min_length 1024;
