@@ -65,21 +65,21 @@ images:
   aceBackendImage:
     repository: "docker.io/langchain/langsmith-ace-backend"
     pullPolicy: IfNotPresent
-    tag: "0.18.2rc1"
+    tag: "0.18.4rc1"
   backendImage:
     repository: "docker.io/langchain/langsmith-backend"
     pullPolicy: IfNotPresent
-    tag: "0.18.2rc1"
+    tag: "0.18.4rc1"
   # Serves both the `insights` and `engine` graphs; insights.enabled and
   # engine.enabled pick which of them run.
   engineInsightsAgentImage:
     repository: "docker.io/langchain/langsmith-insights-engine"
     pullPolicy: IfNotPresent
-    tag: "0.18.2rc1"
+    tag: "0.18.4rc1"
   frontendImage:
     repository: "docker.io/langchain/langsmith-frontend"
     pullPolicy: IfNotPresent
-    tag: "0.18.2rc1"
+    tag: "0.18.4rc1"
   operatorImage:
     repository: "docker.io/langchain/langgraph-operator"
     pullPolicy: IfNotPresent
@@ -103,15 +103,15 @@ images:
   agentBuilderImage:
     repository: "docker.io/langchain/agent-builder-deep-agent"
     pullPolicy: IfNotPresent
-    tag: "0.18.2rc1"
+    tag: "0.18.4rc1"
   pollyAgentImage:
     repository: "docker.io/langchain/langsmith-polly"
     pullPolicy: IfNotPresent
-    tag: "0.18.2rc1"
+    tag: "0.18.4rc1"
   smithdbImage:
     repository: "docker.io/langchain/smithdb"
     pullPolicy: IfNotPresent
-    tag: "0.18.2rc1"
+    tag: "0.18.4rc1"
   # Optional: only mirror/pull when presidioAnalyzer.enabled is true
   presidioAnalyzerImage:
     repository: "mcr.microsoft.com/presidio-analyzer"
@@ -547,6 +547,10 @@ engine:
   encryptionKey: ""
   # Prior key, accepted for decryption only, so encryptionKey can be rotated.
   encryptionKeyPrevious: ""
+  # -- Dedicated HS256 secret for Engine usage reports sent to smith-go. Use at
+  # least 32 random characters. With config.existingSecretName, add the key
+  # engine_usage_signing_secret to that Secret instead.
+  usageSigningSecret: ""
   # -- Workspace that owns Engine sandboxes. Optional: smith-go resolves the install's
   # workspace unless there is more than one non-personal org. Prefer one reserved for
   # the Engine — its sandboxes are visible to anyone with access to it.
@@ -1427,7 +1431,7 @@ smithdb:
   commonInitContainers: []
 
   recoveryStrategy:
-    # -- Enable recovery for superseded SmithDB data.
+    # -- Enable recovery for SmithDB data. Enable only on an installation already running v17 or later. Requires metastore backups.
     enabled: false
     # -- Minimum time superseded SmithDB data remains available for recovery.
     retentionWindow: "12h"
@@ -1942,9 +1946,6 @@ smithdb:
       tolerations: []
       affinity: {}
       topologySpreadConstraints: []
-      # -- The compaction worker writes scratch files for index rebuilds to the system temp
-      # -- directory, so the cache volume is mounted at /tmp. This also keeps compaction working
-      # -- on clusters that enforce a read-only root filesystem.
       volumeMounts:
         - name: cache
           mountPath: /tmp

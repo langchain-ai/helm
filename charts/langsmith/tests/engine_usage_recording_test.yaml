@@ -21,6 +21,7 @@ tests:
     set:
       engine.enabled: true
       engine.encryptionKey: test-key
+      engine.usageSigningSecret: 0123456789abcdef0123456789abcdef
       engine.intelligenceBaseUrl: https://beacon.aws.langchain.com/intelligence
       images.engineInsightsAgentImage.repository: docker.io/langchain/langsmith-insights-engine
     asserts:
@@ -31,7 +32,38 @@ tests:
             valueFrom:
               secretKeyRef:
                 name: RELEASE-NAME-langsmith-secrets
-                key: api_key_salt
+                key: engine_usage_signing_secret
+                optional: false
+
+  - it: should store the dedicated signing secret in the chart-managed Secret
+    template: secrets.yaml
+    set:
+      engine.usageSigningSecret: 0123456789abcdef0123456789abcdef
+    asserts:
+      - equal:
+          path: data.engine_usage_signing_secret
+          value: MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=
+
+  - it: should use the dedicated key from an existing Secret
+    templates:
+      - platform-backend/deployment.yaml
+      - ingest-queue/deployment.yaml
+      - agent-features/insights/api-server/deployment.yaml
+      - agent-features/insights/queue/deployment.yaml
+    set:
+      config.existingSecretName: customer-managed-secrets
+      engine.enabled: true
+      engine.intelligenceBaseUrl: https://beacon.aws.langchain.com/intelligence
+      images.engineInsightsAgentImage.repository: docker.io/langchain/langsmith-insights-engine
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: ISSUES_AGENT_X_SERVICE_AUTH_JWT_SECRET
+            valueFrom:
+              secretKeyRef:
+                name: customer-managed-secrets
+                key: engine_usage_signing_secret
                 optional: false
 
   - it: should sweep recorded usage in the smith-go services
