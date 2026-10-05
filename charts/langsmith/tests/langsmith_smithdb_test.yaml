@@ -1744,3 +1744,81 @@ tests:
           content:
             name: SMITHDB_MIGRATION__TASKDB__USE_SSL
             value: "true"
+
+  - it: should render smithdb migration with IAM-authenticated external taskdb postgres
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      smithdb.langsmith.migration.enabled: true
+      smithdb.langsmith.query.enabled: false
+      smithdb.migration.taskdb.postgres.enabled: true
+      smithdb.migration.taskdb.postgres.external.enabled: true
+      smithdb.migration.taskdb.postgres.external.host: taskdb.cluster.us-west-2.rds.amazonaws.com
+      smithdb.migration.taskdb.postgres.external.database: smithdb_migration
+      smithdb.migration.taskdb.postgres.external.useSsl: true
+      smithdb.migration.taskdb.postgres.external.iamAuthProvider: aws
+      smithdb.migration.taskdb.postgres.external.iamUsername: smithdb_migration_iam
+    templates:
+      - smithdb/migration-job.yaml
+      - smithdb/taskdb-postgres-secret.yaml
+    asserts:
+      - template: smithdb/taskdb-postgres-secret.yaml
+        exists:
+          path: data.postgres_host
+      - template: smithdb/taskdb-postgres-secret.yaml
+        notExists:
+          path: data.postgres_password
+      - template: smithdb/migration-job.yaml
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_MIGRATION__TASKDB__USERNAME
+            value: smithdb_migration_iam
+      - template: smithdb/migration-job.yaml
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_MIGRATION__TASKDB__IAM_AUTH_PROVIDER
+            value: aws
+      - template: smithdb/migration-job.yaml
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_MIGRATION__TASKDB__USE_SSL
+            value: "true"
+      - template: smithdb/migration-job.yaml
+        notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_MIGRATION__TASKDB__PASSWORD
+          any: true
+
+  - it: should keep the secret username for Azure IAM taskdb postgres
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      smithdb.langsmith.migration.enabled: true
+      smithdb.langsmith.query.enabled: false
+      smithdb.migration.taskdb.postgres.enabled: true
+      smithdb.migration.taskdb.postgres.external.enabled: true
+      smithdb.migration.taskdb.postgres.external.host: taskdb.postgres.database.azure.com
+      smithdb.migration.taskdb.postgres.external.database: smithdb_migration
+      smithdb.migration.taskdb.postgres.external.username: smithdb-identity
+      smithdb.migration.taskdb.postgres.external.useSsl: true
+      smithdb.migration.taskdb.postgres.external.iamAuthProvider: azure
+    templates:
+      - smithdb/migration-job.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_MIGRATION__TASKDB__USERNAME
+            valueFrom:
+              secretKeyRef:
+                name: RELEASE-NAME-langsmith-smithdb-taskdb-postgres
+                key: postgres_user
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_MIGRATION__TASKDB__IAM_AUTH_PROVIDER
+            value: azure

@@ -103,15 +103,24 @@ spec:
                   name: {{ include "langsmith.smithdb.taskdbPostgresSecretName" . }}
                   key: {{ $taskdb.external.databaseSecretKey }}
             - name: SMITHDB_MIGRATION__TASKDB__USERNAME
+            {{- if $taskdb.external.iamUsername }}
+              value: {{ $taskdb.external.iamUsername | quote }}
+            {{- else }}
               valueFrom:
                 secretKeyRef:
                   name: {{ include "langsmith.smithdb.taskdbPostgresSecretName" . }}
                   key: {{ $taskdb.external.usernameSecretKey }}
+            {{- end }}
+            {{- if $taskdb.external.iamAuthProvider }}
+            - name: SMITHDB_MIGRATION__TASKDB__IAM_AUTH_PROVIDER
+              value: {{ $taskdb.external.iamAuthProvider | quote }}
+            {{- else }}
             - name: SMITHDB_MIGRATION__TASKDB__PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: {{ include "langsmith.smithdb.taskdbPostgresSecretName" . }}
                   key: {{ $taskdb.external.passwordSecretKey }}
+            {{- end }}
             - name: SMITHDB_MIGRATION__TASKDB__USE_SSL
               value: {{ $taskdb.external.useSsl | quote }}
             {{- else }}

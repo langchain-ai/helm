@@ -327,3 +327,60 @@ tests:
     asserts:
       - failedTemplate:
           errorMessage: "smithdb.commonInitContainers[0] must be a container object."
+
+  - it: should reject an unsupported taskdb IAM auth provider
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      config.existingSecretName: langsmith-secret
+      smithdb.langsmith.query.enabled: false
+      smithdb.langsmith.migration.enabled: true
+      smithdb.migration.taskdb.postgres.external.enabled: true
+      smithdb.migration.taskdb.postgres.external.host: external-taskdb
+      smithdb.migration.taskdb.postgres.external.useSsl: true
+      smithdb.migration.taskdb.postgres.external.iamAuthProvider: gcp
+    asserts:
+      - failedTemplate:
+          errorPattern: 'smithdb.migration.taskdb.postgres.external.iamAuthProvider must be one of \[aws, azure\], got "gcp"'
+
+  - it: should reject taskdb IAM auth without SSL
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      config.existingSecretName: langsmith-secret
+      smithdb.langsmith.query.enabled: false
+      smithdb.langsmith.migration.enabled: true
+      smithdb.migration.taskdb.postgres.external.enabled: true
+      smithdb.migration.taskdb.postgres.external.host: external-taskdb
+      smithdb.migration.taskdb.postgres.external.iamAuthProvider: aws
+    asserts:
+      - failedTemplate:
+          errorMessage: "smithdb.migration.taskdb.postgres.external.useSsl must be true when smithdb.migration.taskdb.postgres.external.iamAuthProvider is set."
+
+  - it: should reject taskdb IAM auth for the chart-managed taskdb
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      config.existingSecretName: langsmith-secret
+      smithdb.langsmith.query.enabled: false
+      smithdb.langsmith.migration.enabled: true
+      smithdb.migration.taskdb.postgres.auth.password: taskdb-password
+      smithdb.migration.taskdb.postgres.external.iamAuthProvider: aws
+    asserts:
+      - failedTemplate:
+          errorMessage: "smithdb.migration.taskdb.postgres.external.iamAuthProvider requires smithdb.migration.taskdb.postgres.external.enabled to be true."
+
+  - it: should still require the taskdb host when IAM auth drops the password requirement
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      config.existingSecretName: langsmith-secret
+      smithdb.langsmith.query.enabled: false
+      smithdb.langsmith.migration.enabled: true
+      smithdb.migration.taskdb.postgres.external.enabled: true
+      smithdb.migration.taskdb.postgres.external.useSsl: true
+      smithdb.migration.taskdb.postgres.external.iamAuthProvider: aws
+      smithdb.migration.taskdb.postgres.external.iamUsername: smithdb_migration_iam
+    asserts:
+      - failedTemplate:
+          errorMessage: "smithdb.migration.taskdb.postgres.external.host is required when smithdb.migration.taskdb.postgres.external.enabled is true and external.existingSecretName is not set."

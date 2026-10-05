@@ -462,19 +462,41 @@ AWS Marketplace Helm template verification).
 {{- if lt (int $taskdb.maxConnectionsPerMigrationPod) 1 -}}
 {{- fail "smithdb.migration.taskdb.postgres.maxConnectionsPerMigrationPod must be greater than 0." -}}
 {{- end -}}
+{{- $taskdbIamAuthProvider := $taskdb.external.iamAuthProvider -}}
+{{- if and $taskdbIamAuthProvider (not $taskdb.external.enabled) -}}
+{{- fail "smithdb.migration.taskdb.postgres.external.iamAuthProvider requires smithdb.migration.taskdb.postgres.external.enabled to be true." -}}
+{{- end -}}
 {{- if $taskdb.external.enabled -}}
 {{- if not $taskdb.external.port -}}
 {{- fail "smithdb.migration.taskdb.postgres.external.port is required when smithdb.migration.taskdb.postgres.external.enabled is true." -}}
 {{- end -}}
+{{- if $taskdbIamAuthProvider -}}
+{{- if not (has $taskdbIamAuthProvider (list "aws" "azure")) -}}
+{{- fail (printf "smithdb.migration.taskdb.postgres.external.iamAuthProvider must be one of [aws, azure], got %q. GCP uses the Cloud SQL or AlloyDB Auth Proxy sidecar instead." (toString $taskdbIamAuthProvider)) -}}
+{{- end -}}
+{{- if not $taskdb.external.useSsl -}}
+{{- fail "smithdb.migration.taskdb.postgres.external.useSsl must be true when smithdb.migration.taskdb.postgres.external.iamAuthProvider is set." -}}
+{{- end -}}
+{{- end -}}
+{{- $taskdbSecretKeys := list "hostSecretKey" "databaseSecretKey" -}}
+{{- $taskdbValues := list "host" "database" -}}
+{{- if not $taskdb.external.iamUsername -}}
+{{- $taskdbSecretKeys = append $taskdbSecretKeys "usernameSecretKey" -}}
+{{- $taskdbValues = append $taskdbValues "username" -}}
+{{- end -}}
+{{- if not $taskdbIamAuthProvider -}}
+{{- $taskdbSecretKeys = append $taskdbSecretKeys "passwordSecretKey" -}}
+{{- $taskdbValues = append $taskdbValues "password" -}}
+{{- end -}}
 {{- if $taskdb.external.existingSecretName -}}
-{{- range $keyName := list "hostSecretKey" "databaseSecretKey" "usernameSecretKey" "passwordSecretKey" -}}
+{{- range $keyName := $taskdbSecretKeys -}}
 {{- $keyValue := get $taskdb.external $keyName -}}
 {{- if not $keyValue -}}
 {{- fail (printf "smithdb.migration.taskdb.postgres.external.%s is required when smithdb.migration.taskdb.postgres.external.existingSecretName is set." $keyName) -}}
 {{- end -}}
 {{- end -}}
 {{- else -}}
-{{- range $keyName := list "host" "database" "username" "password" -}}
+{{- range $keyName := $taskdbValues -}}
 {{- $keyValue := get $taskdb.external $keyName -}}
 {{- if not $keyValue -}}
 {{- fail (printf "smithdb.migration.taskdb.postgres.external.%s is required when smithdb.migration.taskdb.postgres.external.enabled is true and external.existingSecretName is not set." $keyName) -}}

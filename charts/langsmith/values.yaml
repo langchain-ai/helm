@@ -2118,6 +2118,10 @@ smithdb:
           username: "postgres"
           password: ""
           useSsl: false
+          # -- Cloud IAM authentication for the external taskdb: aws (RDS IAM) or azure (workload identity). Requires useSsl and connects as the migration Job's ServiceAccount identity; the password is not used.
+          iamAuthProvider: ""
+          # -- Database role to connect as when iamAuthProvider is set. Overrides username and usernameSecretKey.
+          iamUsername: ""
           # -- Existing secret containing external taskdb Postgres connection fields. If set, the chart does not create one.
           existingSecretName: ""
           hostSecretKey: "postgres_host"
