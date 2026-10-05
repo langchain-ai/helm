@@ -74,6 +74,8 @@ data:
 
         server_name  localhost;
         client_max_body_size {{ .Values.frontend.maxBodySize }};
+        large_client_header_buffers {{ .Values.frontend.largeClientHeaderBuffers }};
+        client_header_buffer_size {{ .Values.frontend.clientHeaderBufferSize }};
         proxy_read_timeout {{ .Values.frontend.proxyReadTimeout }};
         proxy_connect_timeout {{ .Values.frontend.proxyConnectTimeout }};
         proxy_send_timeout {{ .Values.frontend.proxyWriteTimeout }};
@@ -699,6 +701,8 @@ data:
 
         server_name  localhost;
         client_max_body_size {{ .Values.frontend.maxBodySize }};
+        large_client_header_buffers {{ .Values.frontend.largeClientHeaderBuffers }};
+        client_header_buffer_size {{ .Values.frontend.clientHeaderBufferSize }};
         proxy_read_timeout {{ .Values.frontend.proxyReadTimeout }};
         proxy_connect_timeout {{ .Values.frontend.proxyConnectTimeout }};
         proxy_send_timeout {{ .Values.frontend.proxyWriteTimeout }};

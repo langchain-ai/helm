@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.17.1](https://img.shields.io/badge/Version-0.17.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.17.30](https://img.shields.io/badge/AppVersion-0.17.30-informational?style=flat-square)
+![Version: 0.17.2](https://img.shields.io/badge/Version-0.17.2-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.17.30](https://img.shields.io/badge/AppVersion-0.17.30-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -2161,6 +2161,8 @@ The trajectory Service is cluster-internal; no public route is added. Trajectory
 | frontend.includeNonce | bool | `false` |  |
 | frontend.ipv6Enabled | bool | `true` |  |
 | frontend.keepAliveTimeout | string | `"75"` |  |
+| frontend.clientHeaderBufferSize | string | `"1k"` | Size of the nginx buffer for reading request headers. |
+| frontend.largeClientHeaderBuffers | string | `"4 8k"` | Number and size of nginx buffers for large request headers and cookies. |
 | frontend.maxBodySize | string | `"25M"` |  |
 | frontend.name | string | `"frontend"` |  |
 | frontend.pdb.annotations | object | `{}` |  |
