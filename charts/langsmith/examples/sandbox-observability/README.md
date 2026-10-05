@@ -41,9 +41,18 @@ Create a dashboard in Datadog and use its JSON import action to import `datadog-
 | `gcs_bucket` | `bucket_name` | Optional GCS metrics |
 | `s3_bucket` | `bucketname` | Optional S3 metrics |
 
-Host filters start at `*`, so missing environment or cluster tags do not hide all data. The example explicitly attaches `kube_namespace` through Autodiscovery. Configure the Agent's cluster name and environment tags, then select your installation's values. If your collector uses another cluster tag, change the `cluster` variable's prefix and the `by {kube_cluster_name}` clauses in the dashboard queries together.
+Host filters start at `*`. Select one environment, cluster, and namespace before reading pool counts; those counts describe one pool, not a multi-pool total. The example explicitly attaches `kube_namespace` through Autodiscovery. Configure the Agent's cluster name and environment tags, then select your installation's values. If your collector uses another cluster tag, change the `cluster` variable's prefix and the `by {kube_cluster_name}` clauses in the dashboard queries together.
 
 Select exactly one `api_service` that emits your sandbox API spans. Selecting all services can count the same request more than once. APM widgets intentionally ignore the host cluster and namespace filters. In a shared Datadog organization, use an environment/service combination that identifies the intended deployment.
+
+## Read the panels
+
+The dashboard uses two columns, with fleet, public API, and execution panels near the top.
+
+- **Fleet snapshots:** Live sandbox counts, ready-host counts, and the host ranking use five-minute windows, shown by the `5m` badge. Per-host samples align for up to 60 seconds. Ready/desired pool counts use `max` without interpolation so successive leaders do not add together. These counts require one selected cluster and namespace.
+- **Historical views:** Other charts and totals follow the dashboard's selected range. Request and operation rankings show totals. The public HTTP latency ranking uses the whole-window p95 rather than averaging interval percentiles.
+- **Failure attribution:** Operation error totals include errors without a stage label. The separate unstaged-error total preserves these failures when the recorded-stage ranking has no data.
+- **Legend statistics:** `AVG` and `MAX` summarize plotted buckets, not event-weighted statistics over the entire selected range. Host histograms show mean durations; their charts are not percentile estimates.
 
 ## Add optional telemetry
 
@@ -59,7 +68,9 @@ For a different address, port, or an externally managed mount, configure the che
 
 ### API and execution traces
 
-The API widgets require Datadog APM metrics named `trace.http.request` and `trace.http.request.hits`. This dashboard uses request hits and latency, not application Prometheus metrics, for those widgets. Configure your existing tracing pipeline using [Export LangSmith telemetry](https://docs.langchain.com/langsmith/export-backend).
+The API widgets use Datadog APM metrics named `trace.http.request`, `trace.http.request.hits`, and `trace.http.request.errors`, not application Prometheus metrics. Configure your existing tracing pipeline using [Export LangSmith telemetry](https://docs.langchain.com/langsmith/export-backend).
+
+Public API panels cover `/v2/sandboxes` routes and exclude internal reporting endpoints. Internal reporting has its own optional section. HTTP latency and endpoint latency rankings exclude WebSocket, streaming execution, tunnel, and service-proxy traffic; separate panels show those durations in seconds. APM request errors and HTTP 5xx responses remain separate signals.
 
 Check metric names, service names, and `resource_name` tags in your account. OTLP instrumentation can generate different names; adapt the APM queries if needed. Scraping host metrics alone does not populate the API widgets. Host-side command counts and duration remain available without APM.
 
