@@ -1595,24 +1595,15 @@ Minimal environment for the JuiceFS formatter. The sandbox-host binary imports
 LangSmith configuration at process startup, but formatting does not need the
 application ConfigMap or its secret-backed settings.
 */}}
-{{/*
-JuiceFS Redis IAM auth env, shared by sandbox-host and the formatter Job.
-*/}}
-{{- define "langsmith.sandboxes.juicefsRedisIAMEnv" -}}
-{{- with (.Values.sandboxes.juicefs.redis | default dict).iamAuthProvider -}}
-- name: SANDBOX_HOST_JUICEFS_REDIS_IAM_AUTH_PROVIDER
-  value: {{ . | quote }}
-{{- end }}
-{{- end -}}
-
 {{- define "langsmith.sandboxes.juicefsFormatJobEnv" -}}
 - name: LANGCHAIN_ENV
   valueFrom:
     configMapKeyRef:
       name: {{ include "langsmith.fullname" . }}-config
       key: LANGCHAIN_ENV
-{{- with include "langsmith.sandboxes.juicefsRedisIAMEnv" . }}
-{{ . }}
+{{- with (.Values.sandboxes.juicefs.redis | default dict).iamAuthProvider }}
+- name: SANDBOX_HOST_JUICEFS_REDIS_IAM_AUTH_PROVIDER
+  value: {{ . | quote }}
 {{- end }}
 {{- end -}}
 
