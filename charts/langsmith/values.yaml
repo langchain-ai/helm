@@ -177,9 +177,9 @@ sandboxes:
     # -- Azure storage account name used by JuiceFS. Required when sandboxes.juicefs.storage is `wasb`.
     storageAccountName: ""
     redis:
-      # -- JuiceFS Redis metadata URL. Redis metadata engines must use maxmemory-policy noeviction. For Redis Cluster, the `/DB` path is used by JuiceFS as a hash-tag key prefix rather than a Redis logical database. For Microsoft Entra ID authentication to Azure Managed Redis, set `iamAuthProvider` to `azure` and use `rediss://<host>:10000/0`.
+      # -- JuiceFS Redis metadata URL. Redis metadata engines must use maxmemory-policy noeviction. For Redis Cluster, the `/DB` path is used by JuiceFS as a hash-tag key prefix rather than a Redis logical database.
       metaURL: ""
-      # -- IAM authentication provider for the JuiceFS Redis metadata engine. Valid values: "" and "azure". With `azure`, sandbox-host and the formatter Job use Microsoft Entra ID through Azure Workload Identity: set the `azure.workload.identity/use: "true"` label in `sandboxes.sandboxHost.deployment.labels` and `sandboxes.juicefsFormatJob.labels`, and the client-id annotation in `sandboxes.sandboxHost.serviceAccount.annotations`. Use `rediss://<host>:10000/0` with no password; Azure Managed Redis does not support SELECT, so use DB 0. The username is optional; JuiceFS uses the token `oid` claim. The identity needs a data access policy on the Redis instance. Does not inherit `redis.external.iamAuthProvider`. `?auth-provider=azure` in `metaURL` still works.
+      # -- IAM authentication provider for the JuiceFS Redis. Valid values: "" and "azure". Uses workload identity on sandbox-host and the formatter Job.
       iamAuthProvider: ""
     # -- Existing Secret containing JuiceFS config keys `name`, `metaurl`, `storage`, and `bucket`. For Azure Blob Storage, set `access-key` to the storage account name. Set `secret-key` only for account-key authentication. The formatter Job reads the Secret; sandbox-host receives only `metaurl`. When set, the chart does not create the config Secret and the corresponding values above are ignored. Rotate the Secret name to rerun formatting; roll sandbox-host after changing data in place.
     existingSecretName: ""
