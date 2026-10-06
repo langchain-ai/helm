@@ -537,7 +537,7 @@ fleet:
 engine:
   # -- Enable the LangSmith Engine. See the Engine section of this README for what it requires.
   enabled: false
-  # -- Skip only Engine's requirement for sandboxes.enabled. Use when a working sandbox installation is configured outside this Helm release. Does not configure sandbox resources or bypass other validation.
+  # -- Skip Engine's requirement for sandboxes.enabled in BYOC deployments, where sandboxes are managed outside this Helm release.
   skipSandboxValidation: false
   # -- LangSmith Intelligence endpoint, authenticated with the license key. Engine reports
   # usage on your own model providers here. The default records usage only; to also run
