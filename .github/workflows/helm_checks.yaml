@@ -53,7 +53,13 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           REPO: ${{ github.repository }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
+          MERGE_GROUP_REF: ${{ github.event.merge_group.head_ref }}
         run: |
+          # Merge queue runs have no PR in the payload; the queue branch is named
+          # gh-readonly-queue/<base>/pr-<number>-<sha> after the PR at the top of the group.
+          if [ -z "$PR_NUMBER" ] && [[ "$MERGE_GROUP_REF" =~ /pr-([0-9]+)- ]]; then
+            PR_NUMBER="${BASH_REMATCH[1]}"
+          fi
           # Read labels live rather than from the event payload so that re-running the
           # job after adding the label picks it up.
           check=true
