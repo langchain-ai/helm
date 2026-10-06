@@ -371,3 +371,65 @@ tests:
     asserts:
       - failedTemplate:
           errorMessage: "Duplicate keys detected: [SANDBOX_HOST_JUICEFS_META_URL_FILE]"
+
+  - it: should pass the JuiceFS Redis IAM auth provider to sandbox-host and the formatter Job
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      sandboxes.juicefs.redis.metaURL: rediss://sandbox-redis.westus2.redis.azure.net:10000/0
+      sandboxes.juicefs.redis.iamAuthProvider: azure
+    templates:
+      - validate.yaml
+      - sandboxes/juicefs-format-job.yaml
+      - sandboxes/sandbox-host-deployment.yaml
+    asserts:
+      - hasDocuments:
+          count: 0
+        template: validate.yaml
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_HOST_JUICEFS_REDIS_IAM_AUTH_PROVIDER
+            value: azure
+        template: sandboxes/juicefs-format-job.yaml
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_HOST_JUICEFS_REDIS_IAM_AUTH_PROVIDER
+            value: azure
+        template: sandboxes/sandbox-host-deployment.yaml
+
+  - it: should not set the JuiceFS Redis IAM auth provider env by default
+    values:
+      - ./values/sandboxes-enabled.yaml
+    templates:
+      - sandboxes/juicefs-format-job.yaml
+      - sandboxes/sandbox-host-deployment.yaml
+    asserts:
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_HOST_JUICEFS_REDIS_IAM_AUTH_PROVIDER
+          any: true
+
+  - it: should reject an unsupported JuiceFS Redis IAM auth provider
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      sandboxes.juicefs.redis.iamAuthProvider: gcp
+    template: validate.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: 'sandboxes.juicefs.redis.iamAuthProvider "gcp" is not supported. Valid values are "" and "azure".'
+
+  - it: should reserve the JuiceFS Redis IAM auth provider env name
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      sandboxes.sandboxHost.deployment.extraEnv:
+        - name: SANDBOX_HOST_JUICEFS_REDIS_IAM_AUTH_PROVIDER
+          value: azure
+    template: sandboxes/sandbox-host-deployment.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: "Duplicate keys detected: [SANDBOX_HOST_JUICEFS_REDIS_IAM_AUTH_PROVIDER]"
