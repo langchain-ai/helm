@@ -18,8 +18,28 @@ data:
 
     map $uri $frontend_cache_control {
         default "";
-        {{ printf "~^/%s/assets/(?:[^/]+-[A-Za-z0-9_-]{8}|[A-Za-z0-9_-]{14})\\.[A-Za-z0-9]+$" (.Values.config.basePath | regexQuoteMeta) | quote }} "public, max-age=31536000, immutable";
+        {{ printf "~^/%s/assets/(?:brotli-compressed/)?(?:[^/]+-[A-Za-z0-9_-]{8}|[A-Za-z0-9_-]{14})\\.[A-Za-z0-9]+$" (.Values.config.basePath | regexQuoteMeta) | quote }} "public, max-age=31536000, immutable";
         {{ printf "/%s/index.html" .Values.config.basePath | quote }} "no-store";
+    }
+
+    map $http_accept_encoding $frontend_brotli {
+        default "";
+        "~*(?:^|,)\\s*br\\s*(?:;\\s*q=(?:1(?:\\.0{0,3})?|0\\.[0-9]*[1-9][0-9]*)\\s*)?(?:,|$)" br;
+    }
+
+    map "$frontend_brotli:$uri" $frontend_brotli_file {
+        default "";
+        ~^br:/{{ .Values.config.basePath }}/assets/(.+)$ /{{ .Values.config.basePath }}/assets/brotli-compressed/$1;
+    }
+
+    map $uri $frontend_content_encoding {
+        default "";
+        ~^/{{ .Values.config.basePath }}/assets/brotli-compressed/ br;
+    }
+
+    map $uri $frontend_vary {
+        default "";
+        ~^/{{ .Values.config.basePath }}/assets/ Accept-Encoding;
     }
 
     proxy_ssl_server_name on;
@@ -87,6 +107,8 @@ data:
         keepalive_timeout {{ .Values.frontend.keepAliveTimeout }};
 
         add_header Cache-Control $frontend_cache_control;
+        add_header Content-Encoding $frontend_content_encoding;
+        add_header Vary $frontend_vary;
         add_header Content-Security-Policy "{{ .Values.frontend.cspHeader }}" always;
         add_header X-Frame-Options "SAMEORIGIN" always;
         add_header X-Content-Type-Options "nosniff" always;
@@ -630,17 +652,26 @@ data:
         }
     {{- end }}
 
+        location ^~ /{{ .Values.config.basePath }}/assets/brotli-compressed/ {
+            internal;
+            root /tmp;
+            try_files $uri =404;
+            gzip off;
+        }
+
         location ^~ /{{ .Values.config.basePath }}/assets/ {
             root /tmp;
+            if (-f /tmp$frontend_brotli_file) {
+                rewrite ^/{{ .Values.config.basePath }}/assets/(.+)$ /{{ .Values.config.basePath }}/assets/brotli-compressed/$1 last;
+            }
             try_files $uri =404;
             # Serve the .gz files the frontend image writes next to each asset; compress on the fly otherwise.
             gzip_static on;
             gzip on;
             gzip_types application/javascript text/javascript text/css application/wasm image/svg+xml application/json;
-            gzip_vary on;
+            gzip_vary off;
             gzip_proxied any;
             gzip_min_length 1024;
-            gzip_comp_level 6;
         }
 
         location = /{{ .Values.config.basePath }} {
@@ -663,8 +694,28 @@ data:
 
     map $uri $frontend_cache_control {
         default "";
-        "~^/assets/(?:[^/]+-[A-Za-z0-9_-]{8}|[A-Za-z0-9_-]{14})\\.[A-Za-z0-9]+$" "public, max-age=31536000, immutable";
+        "~^/assets/(?:brotli-compressed/)?(?:[^/]+-[A-Za-z0-9_-]{8}|[A-Za-z0-9_-]{14})\\.[A-Za-z0-9]+$" "public, max-age=31536000, immutable";
         /index.html "no-store";
+    }
+
+    map $http_accept_encoding $frontend_brotli {
+        default "";
+        "~*(?:^|,)\\s*br\\s*(?:;\\s*q=(?:1(?:\\.0{0,3})?|0\\.[0-9]*[1-9][0-9]*)\\s*)?(?:,|$)" br;
+    }
+
+    map "$frontend_brotli:$uri" $frontend_brotli_file {
+        default "";
+        ~^br:/assets/(.+)$ /assets/brotli-compressed/$1;
+    }
+
+    map $uri $frontend_content_encoding {
+        default "";
+        ~^/assets/brotli-compressed/ br;
+    }
+
+    map $uri $frontend_vary {
+        default "";
+        ~^/assets/ Accept-Encoding;
     }
 
     proxy_ssl_server_name on;
@@ -732,6 +783,8 @@ data:
         keepalive_timeout {{ .Values.frontend.keepAliveTimeout }};
 
         add_header Cache-Control $frontend_cache_control;
+        add_header Content-Encoding $frontend_content_encoding;
+        add_header Vary $frontend_vary;
         add_header Content-Security-Policy "{{ .Values.frontend.cspHeader }}" always;
         add_header X-Frame-Options "SAMEORIGIN" always;
         add_header X-Content-Type-Options "nosniff" always;
@@ -739,17 +792,26 @@ data:
 
         access_log /dev/stdout cache_log_json;
 
+        location ^~ /assets/brotli-compressed/ {
+            internal;
+            root /tmp/build;
+            try_files $uri =404;
+            gzip off;
+        }
+
         location ^~ /assets/ {
             root /tmp/build;
+            if (-f /tmp/build$frontend_brotli_file) {
+                rewrite ^/assets/(.+)$ /assets/brotli-compressed/$1 last;
+            }
             try_files $uri =404;
             # Serve the .gz files the frontend image writes next to each asset; compress on the fly otherwise.
             gzip_static on;
             gzip on;
             gzip_types application/javascript text/javascript text/css application/wasm image/svg+xml application/json;
-            gzip_vary on;
+            gzip_vary off;
             gzip_proxied any;
             gzip_min_length 1024;
-            gzip_comp_level 6;
         }
 
         {{- if .Values.frontend.includeNonce }}
