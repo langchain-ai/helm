@@ -151,9 +151,6 @@ istioGateway:
 # -- LangSmith Sandboxes. Same-cluster sandbox-host architecture on AWS/EKS, GCP/GKE, or Azure/AKS. sandbox-host mounts JuiceFS directly, and a singleton Job formats fresh JuiceFS metadata before hosts start serving.
 sandboxes:
   enabled: false
-  external:
-    # -- Use an existing sandbox installation managed outside this Helm release. Requires sandboxes.enabled=false and a working sandbox API on this LangSmith installation, including authentication, routing, and queue configuration.
-    enabled: false
   # -- Private JWK signing sandbox callbacks, or key `sandbox_callback_signing_jwk` in config.existingSecretName. Needs config.hostname for the issuer, or signing fails closed.
   callbackSigningJwk: ""
   # -- Base URL for reaching HTTP services inside sandboxes. Needs wildcard DNS and TLS for `*.<host>`; with ingress.enabled the chart adds the wildcard rule. http(s) origin only, no path.
@@ -540,6 +537,8 @@ fleet:
 engine:
   # -- Enable the LangSmith Engine. See the Engine section of this README for what it requires.
   enabled: false
+  # -- Skip only Engine's requirement for sandboxes.enabled. Use when a working sandbox installation is configured outside this Helm release. Does not configure sandbox resources or bypass other validation.
+  skipSandboxValidation: false
   # -- LangSmith Intelligence endpoint, authenticated with the license key. Engine reports
   # usage on your own model providers here. The default records usage only; to also run
   # Engine on LangSmith Intelligence's models, use https://beacon.aws.langchain.com/intelligence

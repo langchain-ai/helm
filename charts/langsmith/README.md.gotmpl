@@ -16,7 +16,7 @@ LangSmith Engine is off by default. `engine.enabled=true` requires all of the fo
 
 | Setting | Why |
 |---|---|
-| `sandboxes.enabled=true` or `sandboxes.external.enabled=true` | Every Engine run executes in a sandbox. |
+| `sandboxes.enabled=true` | Every Engine run executes in a sandbox. Set `engine.skipSandboxValidation=true` only when sandboxes are configured outside this Helm release. |
 | `images.engineInsightsAgentImage.repository` = `docker.io/langchain/langsmith-insights-engine` | Engine needs the combined image serving both the `insights` and `engine` graphs. |
 | `engine.encryptionKey` | Decrypts the payloads smith-go passes to the Engine. Must match smith-go's `ISSUES_AGENT_ENCRYPTION_KEY`. |
 | `engine.usageSigningSecret` | Signs Engine usage reports sent to smith-go. Use at least 32 random characters. |
@@ -26,7 +26,7 @@ Things worth planning for before you enable it:
 
 **LangSmith Intelligence.** `engine.intelligenceBaseUrl` defaults to `https://beacon.langchain.com/intelligence`, where Engine reports usage on your own model providers, authenticated with your license key. To also let Engine run on LangSmith Intelligence's models, set it to `https://beacon.aws.langchain.com/intelligence` and select LangSmith Intelligence under **Settings > Engine > Model providers**. Air-gapped installs with an offline license set it to `""`; Engine then runs only on your own model providers, and its usage goes out through **Settings > Usage export**.
 
-**Externally managed sandboxes.** Set `sandboxes.external.enabled=true` and leave `sandboxes.enabled=false` when sandbox infrastructure is managed outside this Helm release. This permits Engine to use the existing sandbox API on this LangSmith installation; it does not deploy sandbox resources or configure the sandbox backend, authentication, routing, or queues. Those must already be configured by the external manager. Engine continues to call the local platform-backend sandbox API. Set `engine.sandboxTenantId` when the workspace cannot be resolved automatically.
+**Externally managed sandboxes.** Set `engine.skipSandboxValidation=true` and leave `sandboxes.enabled=false` when sandbox infrastructure is managed outside this Helm release. This skips only Engine's check for `sandboxes.enabled`; key, hostname, and chart-managed sandbox validation remain enforced. It does not deploy sandbox resources or configure the sandbox backend, authentication, routing, or queues. Those must already be configured by the external manager. Engine continues to call the local platform-backend sandbox API. Set `engine.sandboxTenantId` when the workspace cannot be resolved automatically.
 
 **Sandbox nodes.** Sandboxes are Firecracker microVMs, so `sandboxes.sandboxHost.deployment.nodeSelector` must place host pods on KVM-capable nodes — bare-metal instances, or instance types with nested virtualization explicitly enabled. Sandbox images are published for `linux/amd64` only. A dedicated, tainted node pool is the usual arrangement, since rolling a sandbox-host pod suspends every microVM on it.
 

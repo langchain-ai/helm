@@ -1,4 +1,4 @@
-suite: engine with externally managed sandboxes
+suite: engine sandbox validation override
 templates:
   - templates/**/*.yaml
 set:
@@ -8,21 +8,37 @@ set:
   config.hostname: https://langsmith.example.com
   engine.enabled: true
   engine.sandboxTenantId: 11111111-2222-3333-4444-555555555555
-  sandboxes.external.enabled: true
+  engine.skipSandboxValidation: true
 tests:
   - it: should accept external sandboxes without chart-managed host configuration
     template: templates/validate.yaml
     asserts:
       - notFailedTemplate: {}
 
-  - it: should reject both sandbox modes even when general validation is skipped
+  - it: should require sandboxes when the override is disabled
     template: templates/validate.yaml
     set:
-      config.skipValidation: true
-      sandboxes.enabled: true
+      engine.skipSandboxValidation: false
     asserts:
       - failedTemplate:
-          errorMessage: "sandboxes.enabled and sandboxes.external.enabled are mutually exclusive: choose chart-managed or externally managed sandboxes."
+          errorMessage: "engine.enabled is true but sandboxes.enabled is false: every Engine run executes in a sandbox, so Engine cannot run without them."
+
+  - it: should still validate chart-managed sandbox configuration
+    template: templates/validate.yaml
+    set:
+      sandboxes.enabled: true
+      images.sandboxHostImage.tag: ""
+    asserts:
+      - failedTemplate:
+          errorMessage: "images.sandboxHostImage.tag is required when sandboxes.enabled is true."
+
+  - it: should still reject a loopback hostname
+    template: templates/validate.yaml
+    set:
+      config.hostname: localhost
+    asserts:
+      - failedTemplate:
+          errorMessage: 'engine.enabled is true and config.hostname is "localhost", which a sandbox cannot reach: it must be the externally reachable LangSmith address.'
 
   - it: should not deploy sandbox infrastructure
     templates:
