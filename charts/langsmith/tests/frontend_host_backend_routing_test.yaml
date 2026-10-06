@@ -1,0 +1,78 @@
+suite: frontend host backend routing
+templates:
+  - frontend/config-map.yaml
+tests:
+  - it: omits host backend routes when both features are disabled
+    set:
+      config.deployment.enabled: false
+      hostBackend.enabled: false
+    asserts: &noHostRoutes
+      - notMatchRegex:
+          path: data["nginx.conf"]
+          pattern: 'location [^\n]*api-host'
+
+  - it: omits host backend routes under a base path when both features are disabled
+    set:
+      config.basePath: langsmith
+      config.deployment.enabled: false
+      hostBackend.enabled: false
+    asserts: *noHostRoutes
+
+  - it: routes host backend requests without enabling Deployments
+    set:
+      config.deployment.enabled: false
+      hostBackend.enabled: true
+    asserts: &rootHostRoutes
+      - matchRegex:
+          path: data["nginx.conf"]
+          pattern: 'location /api-host \{\s*rewrite /api-host/\(\.\*\) /\$1\s+break;[^}]*proxy_pass http://[^}]*-host-backend\.[^}]*;'
+      - matchRegex:
+          path: data["nginx.conf"]
+          pattern: 'location = /api-host/docs \{[^}]*proxy_pass http://[^}]*-host-backend\.'
+      - matchRegex:
+          path: data["nginx.conf"]
+          pattern: 'location = /api-host/redoc \{[^}]*proxy_pass http://[^}]*-host-backend\.'
+      - matchRegex:
+          path: data["nginx.conf"]
+          pattern: 'location = /api-host/openapi\.json \{[^}]*proxy_pass http://[^}]*-host-backend\.'
+
+  - it: routes host backend requests under a base path without enabling Deployments
+    set:
+      config.basePath: langsmith
+      config.deployment.enabled: false
+      hostBackend.enabled: true
+    asserts: &basePathHostRoutes
+      - matchRegex:
+          path: data["nginx.conf"]
+          pattern: 'location /langsmith/api-host \{\s*rewrite /langsmith/api-host/\(\.\*\) /\$1\s+break;[^}]*proxy_pass http://[^}]*-host-backend\.[^}]*;'
+      - matchRegex:
+          path: data["nginx.conf"]
+          pattern: 'location = /langsmith/api-host/docs \{[^}]*proxy_pass http://[^}]*-host-backend\.'
+      - matchRegex:
+          path: data["nginx.conf"]
+          pattern: 'location = /langsmith/api-host/redoc \{[^}]*proxy_pass http://[^}]*-host-backend\.'
+      - matchRegex:
+          path: data["nginx.conf"]
+          pattern: 'location = /langsmith/api-host/openapi\.json \{[^}]*proxy_pass http://[^}]*-host-backend\.'
+      - notMatchRegex:
+          path: data["nginx.conf"]
+          pattern: 'location (=? )?/api-host'
+
+  - it: preserves host backend routes for Deployments without explicit host backend enablement
+    set:
+      config.deployment.enabled: true
+      hostBackend.enabled: false
+    asserts: *rootHostRoutes
+
+  - it: preserves host backend routes under a base path for Deployments
+    set:
+      config.basePath: langsmith
+      config.deployment.enabled: true
+      hostBackend.enabled: false
+    asserts: *basePathHostRoutes
+
+  - it: routes host backend requests when both features are enabled
+    set:
+      config.deployment.enabled: true
+      hostBackend.enabled: true
+    asserts: *rootHostRoutes
