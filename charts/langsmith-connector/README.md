@@ -1,6 +1,6 @@
 # langsmith-connector
 
-![Version: 0.1.0](https://img.shields.io/badge/Version-0.1.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.1.0](https://img.shields.io/badge/AppVersion-0.1.0-informational?style=flat-square)
+![Version: 0.2.0](https://img.shields.io/badge/Version-0.2.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.2.0](https://img.shields.io/badge/AppVersion-0.2.0-informational?style=flat-square)
 
 Helm chart for the LangSmith tunnel connector. It runs inside your network and connects outbound to LangSmith so LangSmith products can reach your private services.
 
@@ -100,7 +100,7 @@ Self-hosted LangSmith: set `config.endpoint` to your API origin, including any `
 | fullnameOverride | string | `""` | String to fully override `"connector.fullname"` |
 | images.connectorImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.connectorImage.repository | string | `"docker.io/langchain/langsmith-connector"` |  |
-| images.connectorImage.tag | string | `"0.1.0"` |  |
+| images.connectorImage.tag | string | `"0.2.0"` |  |
 | images.imagePullSecrets | list | `[]` |  |
 | images.registry | string | `""` | If supplied, all children <image_name>.repository values will be prepended with this registry name + `/` |
 | nameOverride | string | `""` | Provide a name in place of `langsmith-connector` |

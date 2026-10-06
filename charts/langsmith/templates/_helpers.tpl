@@ -1601,6 +1601,10 @@ application ConfigMap or its secret-backed settings.
     configMapKeyRef:
       name: {{ include "langsmith.fullname" . }}-config
       key: LANGCHAIN_ENV
+{{- with (.Values.sandboxes.juicefs.redis | default dict).iamAuthProvider }}
+- name: SANDBOX_HOST_JUICEFS_REDIS_IAM_AUTH_PROVIDER
+  value: {{ . | quote }}
+{{- end }}
 {{- end -}}
 
 {{/*
