@@ -36,11 +36,14 @@ When `sandboxes.enabled=true`, configure limits under `sandboxes.quotas`: `maxSa
 
 ## SmithDB resource tiers
 
-`smithdb.resourceTier` sets per-replica CPU, memory, and cache size for SmithDB components. The default is `small`. Query, ingestion, and compaction worker mount a volume named `cache` at `/data` as a per-pod [generic ephemeral volume](https://kubernetes.io/docs/concepts/storage/ephemeral-volumes/#generic-ephemeral-volumes) on `smithdb.cache.storageClassName`, or the cluster default StorageClass when empty. Provision that StorageClass with at least 7000 IOPS and 1000 MiB/s.
+`smithdb.resourceTier` sets per-replica CPU, memory, and cache size for SmithDB components. The default is `small`. Query, ingestion, and compaction worker mount a per-pod volume named `cache` sized from the tier, or from the component's `cache.size` when set.
 
-Explicit component `resources` or `volumes` replace the tier values. Cache overrides must be named `cache` and use an `emptyDir` or inline ephemeral PVC; existing PVCs are unsupported. To cache on local SSD, set matching `emptyDir.sizeLimit` and `ephemeral-storage` requests and limits.
+`smithdb.cache.type` selects the cache backing store:
 
-The query disk cache limit is set automatically from the PVC storage request or, for `emptyDir`, the container's `ephemeral-storage` limit. Enabled `mutations`, `runRules`, and `statsQuery` use the query tier. Replica counts and autoscaling are configured per component.
+- `pvc` (default): a per-pod [generic ephemeral volume](https://kubernetes.io/docs/concepts/storage/ephemeral-volumes/#generic-ephemeral-volumes) on `smithdb.cache.storageClassName`, or the cluster default StorageClass when empty. Provision that StorageClass with at least 7000 IOPS and 1000 MiB/s.
+- `emptyDir`: the node's ephemeral storage, for nodes whose ephemeral storage is on local SSD. The chart sets `emptyDir.sizeLimit` to the cache size and adds matching `ephemeral-storage` requests and limits to the tier resources.
+
+An explicit component `resources` block replaces the tier values. Component `volumes` are added after the generated `cache` volume and must not define their own `cache`. The query disk cache limit is set to the cache size. Enabled `mutations`, `runRules`, and `statsQuery` use the query tier. Replica counts and autoscaling are configured per component.
 
 | Component | Small | Medium | Large |
 |---|---|---|---|
@@ -50,7 +53,7 @@ The query disk cache limit is set automatically from the PVC storage request or,
 | Compaction worker | 8 CPU, 16Gi memory, 100Gi cache | 16 CPU, 32Gi memory, 100Gi cache | 28 CPU, 50Gi memory, 300Gi cache |
 | Cluster manager | 250m CPU, 256Mi memory | 250m CPU, 256Mi memory | 2 CPU, 2Gi memory |
 
-**0.17 upgrade:** default caches switch from `emptyDir` to per-pod PVCs. Configure local SSD overrides before upgrading and rename custom volume and mount references from `local-ssd-storage` to `cache`.
+**0.17 upgrade:** default caches switch from `emptyDir` to per-pod PVCs. Set `smithdb.cache.type: emptyDir` before upgrading to keep local SSD caches, and remove custom `local-ssd-storage` volumes and mounts.
 
 ## Trajectory backend
 
@@ -953,7 +956,8 @@ The trajectory Service is cluster-internal; no public route is added. Trajectory
 | sandboxes.sandboxHost.pdb | object | `{"annotations":{},"enabled":false,"labels":{},"maxUnavailable":1}` | Disruption budget for sandbox-host, capping concurrent evictions since each drain suspends every microVM on that host. maxUnavailable keeps a small pool drainable; setting minAvailable overrides it. |
 | sandboxes.sandboxHost.serviceAccount.annotations | object | `{}` | Annotations applied to the sandbox-host ServiceAccount. Attach the AWS IRSA, GCP Workload Identity, or Azure Workload Identity that grants access to the JuiceFS object-storage bucket here. |
 | sandboxes.serviceUrlBaseUrl | string | `""` | Base URL for reaching HTTP services inside sandboxes. Needs wildcard DNS and TLS for `*.<host>`; with ingress.enabled the chart adds the wildcard rule. http(s) origin only, no path. |
-| smithdb.cache.storageClassName | string | `""` | StorageClass for the generated SmithDB cache volumes. Empty uses the cluster default. A component's deployment.volumes replaces the generated volume. |
+| smithdb.cache.storageClassName | string | `""` | StorageClass for pvc cache volumes. Empty uses the cluster default. |
+| smithdb.cache.type | string | `"pvc"` | Backing store for the SmithDB cache volume: pvc or emptyDir. pvc provisions a per-pod generic ephemeral PVC; emptyDir uses the node's ephemeral storage. The size comes from smithdb.resourceTier. |
 | smithdb.clusterManager.containerGrpcPort | int | `8091` |  |
 | smithdb.clusterManager.containerPort | int | `8090` |  |
 | smithdb.clusterManager.deployment.affinity | object | `{}` |  |
@@ -1062,6 +1066,7 @@ The trajectory Service is cluster-internal; no public route is added. Trajectory
 | smithdb.compactionWorker.autoscaling.keda.scalePodCount | int | `1` |  |
 | smithdb.compactionWorker.autoscaling.keda.scaleUpStabilizationWindowSeconds | int | `120` |  |
 | smithdb.compactionWorker.autoscaling.keda.targetCPUUtilizationPercentage | int | `60` |  |
+| smithdb.compactionWorker.cache.size | string | `""` | Cache volume size for this component. Empty uses the smithdb.resourceTier value. |
 | smithdb.compactionWorker.containerPort | int | `9000` |  |
 | smithdb.compactionWorker.deployment.affinity | object | `{}` |  |
 | smithdb.compactionWorker.deployment.annotations | object | `{}` |  |
@@ -1133,6 +1138,7 @@ The trajectory Service is cluster-internal; no public route is added. Trajectory
 | smithdb.ingestion.autoscaling.hpa.scalePodCount | int | `1` |  |
 | smithdb.ingestion.autoscaling.hpa.scaleUpStabilizationWindowSeconds | int | `300` |  |
 | smithdb.ingestion.autoscaling.hpa.targetCPUUtilizationPercentage | int | `45` |  |
+| smithdb.ingestion.cache.size | string | `""` | Cache volume size for this component. Empty uses the smithdb.resourceTier value. |
 | smithdb.ingestion.containerGrpcPort | int | `8082` |  |
 | smithdb.ingestion.containerPort | int | `8050` |  |
 | smithdb.ingestion.deployment.affinity | object | `{}` |  |
@@ -1314,6 +1320,7 @@ The trajectory Service is cluster-internal; no public route is added. Trajectory
 | smithdb.mutations.autoscaling.hpa.scalePodCount | int | `1` |  |
 | smithdb.mutations.autoscaling.hpa.scaleUpStabilizationWindowSeconds | int | `300` |  |
 | smithdb.mutations.autoscaling.hpa.targetCPUUtilizationPercentage | int | `50` |  |
+| smithdb.mutations.cache.size | string | `""` | Cache volume size for this component. Empty uses the smithdb.resourceTier value. |
 | smithdb.mutations.containerGrpcPort | int | `8080` |  |
 | smithdb.mutations.containerPort | int | `8060` |  |
 | smithdb.mutations.deployment.affinity | object | `{}` |  |
@@ -1370,6 +1377,7 @@ The trajectory Service is cluster-internal; no public route is added. Trajectory
 | smithdb.query.autoscaling.hpa.scalePodCount | int | `1` |  |
 | smithdb.query.autoscaling.hpa.scaleUpStabilizationWindowSeconds | int | `300` |  |
 | smithdb.query.autoscaling.hpa.targetCPUUtilizationPercentage | int | `40` |  |
+| smithdb.query.cache.size | string | `""` | Cache volume size for this component. Empty uses the smithdb.resourceTier value. |
 | smithdb.query.containerGrpcPort | int | `8080` |  |
 | smithdb.query.containerPort | int | `8060` |  |
 | smithdb.query.deployment.affinity | object | `{}` |  |
@@ -1427,6 +1435,7 @@ The trajectory Service is cluster-internal; no public route is added. Trajectory
 | smithdb.runRules.autoscaling.hpa.scalePodCount | int | `1` |  |
 | smithdb.runRules.autoscaling.hpa.scaleUpStabilizationWindowSeconds | int | `90` |  |
 | smithdb.runRules.autoscaling.hpa.targetCPUUtilizationPercentage | int | `50` |  |
+| smithdb.runRules.cache.size | string | `""` | Cache volume size for this component. Empty uses the smithdb.resourceTier value. |
 | smithdb.runRules.containerGrpcPort | int | `8080` |  |
 | smithdb.runRules.containerPort | int | `8060` |  |
 | smithdb.runRules.deployment.affinity | object | `{}` |  |
@@ -1484,6 +1493,7 @@ The trajectory Service is cluster-internal; no public route is added. Trajectory
 | smithdb.statsQuery.autoscaling.hpa.scalePodCount | int | `1` |  |
 | smithdb.statsQuery.autoscaling.hpa.scaleUpStabilizationWindowSeconds | int | `300` |  |
 | smithdb.statsQuery.autoscaling.hpa.targetCPUUtilizationPercentage | int | `40` |  |
+| smithdb.statsQuery.cache.size | string | `""` | Cache volume size for this component. Empty uses the smithdb.resourceTier value. |
 | smithdb.statsQuery.containerGrpcPort | int | `8080` |  |
 | smithdb.statsQuery.containerPort | int | `8060` |  |
 | smithdb.statsQuery.deployment.affinity | object | `{}` |  |
