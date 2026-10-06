@@ -1212,7 +1212,7 @@ Replica counts and autoscaling remain controlled by each component's `deployment
 | smithdb.migration.deployment.annotations | object | `{}` |  |
 | smithdb.migration.deployment.command | list | `["/usr/local/bin/smithdb-with-taskdb-migrations-entrypoint.sh"]` | register non-overlapping jobs, drain the global queue, and exit. Override for another migration mode. |
 | smithdb.migration.deployment.extraContainerConfig | object | `{}` |  |
-| smithdb.migration.deployment.extraEnv | list | `[]` |  |
+| smithdb.migration.deployment.extraEnv | list | `[{"name":"SMITHDB_MIGRATION__MAX_CONCURRENT_FETCHES","value":"500"},{"name":"SMITHDB_MIGRATION__WORKER_POOL__PAGINATION_LIMIT","value":"25000"}]` |  |
 | smithdb.migration.deployment.initContainers | list | `[]` |  |
 | smithdb.migration.deployment.labels | object | `{}` |  |
 | smithdb.migration.deployment.nodeSelector | object | `{}` |  |
