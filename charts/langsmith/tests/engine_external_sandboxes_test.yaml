@@ -1,0 +1,74 @@
+suite: engine with externally managed sandboxes
+templates:
+  - templates/**/*.yaml
+set:
+  config.existingSecretName: langsmith-secrets
+  config.oauth.enabled: true
+  config.authType: oauth
+  config.hostname: https://langsmith.example.com
+  engine.enabled: true
+  engine.sandboxTenantId: 11111111-2222-3333-4444-555555555555
+  sandboxes.external.enabled: true
+tests:
+  - it: should accept external sandboxes without chart-managed host configuration
+    template: templates/validate.yaml
+    asserts:
+      - notFailedTemplate: {}
+
+  - it: should reject both sandbox modes even when general validation is skipped
+    template: templates/validate.yaml
+    set:
+      config.skipValidation: true
+      sandboxes.enabled: true
+    asserts:
+      - failedTemplate:
+          errorMessage: "sandboxes.enabled and sandboxes.external.enabled are mutually exclusive: choose chart-managed or externally managed sandboxes."
+
+  - it: should not deploy sandbox infrastructure
+    templates:
+      - templates/sandboxes/sandbox-host-deployment.yaml
+      - templates/sandboxes/sandbox-host-rbac.yaml
+      - templates/sandboxes/sandbox-host-service-account.yaml
+      - templates/sandboxes/sandbox-host-pdb.yaml
+      - templates/sandboxes/juicefs-config.yaml
+      - templates/sandboxes/juicefs-format-job.yaml
+      - templates/sandboxes/proxy-ca.yaml
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: should configure the local sandbox API and workspace on both Engine pods
+    templates:
+      - templates/agent-features/insights/api-server/deployment.yaml
+      - templates/agent-features/insights/queue/deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: ISSUES_AGENT_SANDBOX_TENANT_ID
+            value: 11111111-2222-3333-4444-555555555555
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: LANGSMITH_SANDBOX_ENDPOINT
+            value: http://RELEASE-NAME-langsmith-platform-backend.NAMESPACE.svc.cluster.local:1986/v2/sandboxes
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: ISSUES_AGENT_X_SERVICE_AUTH_JWT_SECRET
+            valueFrom:
+              secretKeyRef:
+                name: langsmith-secrets
+                key: engine_usage_signing_secret
+                optional: false
+
+  - it: should configure an absolute Engine callback without sandbox quota defaults
+    template: templates/config-map.yaml
+    set:
+      config.basePath: langsmith
+    asserts:
+      - equal:
+          path: data.LANGCHAIN_PLATFORM_ENDPOINT
+          value: https://langsmith.example.com/langsmith/api
+      - notExists:
+          path: data.DEFAULT_ORG_FEATURE_MAX_SANDBOXES

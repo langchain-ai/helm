@@ -151,6 +151,9 @@ istioGateway:
 # -- LangSmith Sandboxes. Same-cluster sandbox-host architecture on AWS/EKS, GCP/GKE, or Azure/AKS. sandbox-host mounts JuiceFS directly, and a singleton Job formats fresh JuiceFS metadata before hosts start serving.
 sandboxes:
   enabled: false
+  external:
+    # -- Use an existing sandbox installation managed outside this Helm release. Requires sandboxes.enabled=false and a working sandbox API on this LangSmith installation, including authentication, routing, and queue configuration.
+    enabled: false
   # -- Private JWK signing sandbox callbacks, or key `sandbox_callback_signing_jwk` in config.existingSecretName. Needs config.hostname for the issuer, or signing fails closed.
   callbackSigningJwk: ""
   # -- Base URL for reaching HTTP services inside sandboxes. Needs wildcard DNS and TLS for `*.<host>`; with ingress.enabled the chart adds the wildcard rule. http(s) origin only, no path.

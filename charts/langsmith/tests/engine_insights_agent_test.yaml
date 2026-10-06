@@ -116,7 +116,7 @@ tests:
       images.engineInsightsAgentImage.repository: docker.io/langchain/langsmith-insights-engine
     asserts:
       - failedTemplate:
-          errorMessage: "engine.enabled is true but sandboxes.enabled is false: every Engine run executes in a sandbox, so Engine cannot run without them."
+          errorMessage: "engine.enabled requires sandboxes.enabled or sandboxes.external.enabled: every Engine run executes in a sandbox."
 
   - it: should fail when engine is enabled without a hostname
     values:

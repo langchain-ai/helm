@@ -37,10 +37,12 @@ data:
   LANGCHAIN_ENDPOINT: "/{{ if .Values.config.basePath }}{{ .Values.config.basePath }}/{{ end }}api/v1"
   GO_ENDPOINT: {{ include "langsmith.platformBackendEndpoint" . | quote }}
   LANGSMITH_PUBLIC_API_ENDPOINT: {{ include "langsmith.publicApiEndpoint" . | quote }}
-  {{- if .Values.sandboxes.enabled }}
+  {{- if or .Values.sandboxes.enabled .Values.engine.enabled }}
   {{- /* smith-go builds the Engine run webhook callback from this; a relative
          value makes langgraph-api reject run creation as a loopback webhook. */}}
   LANGCHAIN_PLATFORM_ENDPOINT: {{ include "langsmith.publicApiEndpoint" . | quote }}
+  {{- end }}
+  {{- if .Values.sandboxes.enabled }}
   DEFAULT_ORG_FEATURE_MAX_SANDBOXES: {{ .Values.sandboxes.quotas.maxSandboxes | quote }}
   DEFAULT_ORG_FEATURE_MAX_SANDBOX_CPU: {{ .Values.sandboxes.quotas.maxCpuCores | quote }}
   DEFAULT_ORG_FEATURE_MAX_SANDBOX_MEMORY: {{ printf "%vGi" .Values.sandboxes.quotas.maxMemoryGb | quote }}

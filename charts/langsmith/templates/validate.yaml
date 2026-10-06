@@ -614,6 +614,10 @@ AWS Marketplace Helm template verification).
 
 {{- end -}}{{- /* end skipValidation */ -}}
 
+{{- if and .Values.sandboxes.enabled .Values.sandboxes.external.enabled }}
+{{- fail "sandboxes.enabled and sandboxes.external.enabled are mutually exclusive: choose chart-managed or externally managed sandboxes." }}
+{{- end }}
+
 {{- /* Engine (co-hosted Insights+Engine) requires config when enabled. */ -}}
 {{- if .Values.engine.enabled }}
 {{- if and (not .Values.engine.encryptionKey) (not .Values.config.existingSecretName) }}
@@ -645,8 +649,8 @@ template and GitOps renders, so those skip this check. */ -}}
 {{- if and .Values.config.existingSecretName .Values.engine.usageSigningSecret }}
 {{- fail "engine.usageSigningSecret cannot be used when config.existingSecretName is set. Add key engine_usage_signing_secret to the existing Secret instead." }}
 {{- end }}
-{{- if not .Values.sandboxes.enabled }}
-{{- fail "engine.enabled is true but sandboxes.enabled is false: every Engine run executes in a sandbox, so Engine cannot run without them." }}
+{{- if not (or .Values.sandboxes.enabled .Values.sandboxes.external.enabled) }}
+{{- fail "engine.enabled requires sandboxes.enabled or sandboxes.external.enabled: every Engine run executes in a sandbox." }}
 {{- end }}
 {{- if not .Values.config.hostname }}
 {{- fail "engine.enabled is true but config.hostname is not set: the sandbox runs the langsmith CLI against an externally reachable LangSmith URL, which is derived from it." }}
