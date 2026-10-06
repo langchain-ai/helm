@@ -223,6 +223,10 @@ AWS Marketplace Helm template verification).
 {{- end -}}
 {{- end -}}
 {{- $juicefs := .Values.sandboxes.juicefs | default dict -}}
+{{- $juicefsRedisIamAuthProvider := toString ((.Values.sandboxes.juicefs.redis | default dict).iamAuthProvider | default "") -}}
+{{- if not (has $juicefsRedisIamAuthProvider (list "" "azure")) -}}
+{{- fail (printf "sandboxes.juicefs.redis.iamAuthProvider %q is not supported. Valid values are \"\" and \"azure\"." $juicefsRedisIamAuthProvider) -}}
+{{- end -}}
 {{- if not $juicefs.existingSecretName -}}
 {{- $juicefsRedis := .Values.sandboxes.juicefs.redis | default dict -}}
 {{- if not $juicefsRedis.metaURL -}}
@@ -641,7 +645,7 @@ template and GitOps renders, so those skip this check. */ -}}
 {{- if and .Values.config.existingSecretName .Values.engine.usageSigningSecret }}
 {{- fail "engine.usageSigningSecret cannot be used when config.existingSecretName is set. Add key engine_usage_signing_secret to the existing Secret instead." }}
 {{- end }}
-{{- if not .Values.sandboxes.enabled }}
+{{- if and (not .Values.sandboxes.enabled) (not .Values.engine.skipSandboxValidation) }}
 {{- fail "engine.enabled is true but sandboxes.enabled is false: every Engine run executes in a sandbox, so Engine cannot run without them." }}
 {{- end }}
 {{- if not .Values.config.hostname }}

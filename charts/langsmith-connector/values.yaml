@@ -37,7 +37,7 @@ images:
   connectorImage:
     repository: "docker.io/langchain/langsmith-connector"
     pullPolicy: IfNotPresent
-    tag: "0.1.0"
+    tag: "0.2.0"
 
 config:
   # -- LangSmith API URL. Self-hosted installs use their own API origin, including any `/api` prefix.

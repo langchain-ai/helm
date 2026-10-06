@@ -1,5 +1,7 @@
 # SmithDB observability
 
+For the unified, tabbed LangSmith dashboards, use the [LangSmith observability bundle](../langsmith-observability/README.md). The downloads in this directory remain available for compatibility, including the Classic Grafana dashboard for older installations. Their definitions and collection settings are maintained in the unified bundle's SmithDB component and reproduced here by its generator.
+
 Datadog and Grafana dashboards for SmithDB on self-hosted LangSmith. For what each metric means, see the [SmithDB metrics reference](https://docs.langchain.com/langsmith/self-host-smithdb-metrics).
 
 | Stack | Dashboard | Values |

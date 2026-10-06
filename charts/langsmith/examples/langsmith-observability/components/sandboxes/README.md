@@ -1,6 +1,6 @@
 # Sandbox observability
 
-Import the Sandbox Vitals dashboard into the Datadog organization that receives telemetry from your self-hosted LangSmith deployment. It covers host capacity, lifecycle operations, boot latency, guest resources, execution, networking, and host health. APM, JuiceFS mount metrics, and cloud storage metrics are optional sections with separate collection requirements.
+Import the [unified dashboard](../../datadog-dashboard.json) and open its Sandboxes tab into the Datadog organization that receives telemetry from your self-hosted LangSmith deployment. It covers host capacity, lifecycle operations, boot latency, guest resources, execution, networking, and host health. APM, JuiceFS mount metrics, and cloud storage metrics are optional sections with separate collection requirements.
 
 The dashboard contains queries, not telemetry or access to a hosted dashboard. Its filters are not access controls. Use your Datadog organization's permissions to control who can view your data.
 
@@ -14,7 +14,7 @@ The dashboard contains queries, not telemetry or access to a hosted dashboard. I
 
 ## Collect host metrics
 
-1. Download `datadog-dashboard.json` and `datadog-values.yaml` from this directory. The values file adds one OpenMetrics check on each sandbox-host pod. It does not install Datadog, enable sandboxes, change credentials, or create network resources.
+1. Download the [unified dashboard](../../datadog-dashboard.json) and `datadog-values.yaml` from this directory. The values file adds one OpenMetrics check on each sandbox-host pod. It does not install Datadog, enable sandboxes, change credentials, or create network resources.
 2. Merge the check into your existing Autodiscovery configuration if the annotation already exists. A Helm string value replaces the whole annotation, not individual JSON instances. Avoid scraping port `19190` a second time through another OpenMetrics check or Prometheus Autodiscovery rule.
 3. Apply the values alongside your existing release values, using the same chart version you currently run:
 
@@ -35,13 +35,13 @@ Create a dashboard in Datadog and use its JSON import action to import `datadog-
 | Variable | Tag | Applies to |
 | --- | --- | --- |
 | `env` | `env` | Host, JuiceFS, and APM metrics |
-| `cluster` | `kube_cluster_name` | Host and JuiceFS metrics |
-| `namespace` | `kube_namespace` | Host and JuiceFS metrics |
+| `sandbox_cluster` | `kube_cluster_name` | Host and JuiceFS metrics |
+| `sandbox_namespace` | `kube_namespace` | Host and JuiceFS metrics |
 | `api_service` | `service` | Optional APM metrics; defaults to `platform-backend` |
 | `gcs_bucket` | `bucket_name` | Optional GCS metrics |
 | `s3_bucket` | `bucketname` | Optional S3 metrics |
 
-Host filters start at `*`. Select one environment, cluster, and namespace before reading pool counts; those counts describe one pool, not a multi-pool total. The example explicitly attaches `kube_namespace` through Autodiscovery. Configure the Agent's cluster name and environment tags, then select your installation's values. If your collector uses another cluster tag, change the `cluster` variable's prefix and the `by {kube_cluster_name}` clauses in the dashboard queries together.
+Host filters start at `*`. Select one environment, cluster, and namespace before reading pool counts; those counts describe one pool, not a multi-pool total. The example explicitly attaches `kube_namespace` through Autodiscovery. Configure the Agent's cluster name and environment tags, then select your installation's values. If your collector uses another cluster tag, change the `sandbox_cluster` variable's prefix and the `by {kube_cluster_name}` clauses in the dashboard queries together.
 
 Select exactly one `api_service` that emits your sandbox API spans. Selecting all services can count the same request more than once. APM widgets intentionally ignore the host cluster and namespace filters. In a shared Datadog organization, use an environment/service combination that identifies the intended deployment.
 
@@ -90,14 +90,14 @@ Remove unused provider widgets. Azure Blob Storage requires a separate provider-
 
 ## Maintain the definition
 
-`generate_dashboard.py` is the public, curated source for the JSON. It has no external dependencies and does not read a Datadog export, credentials, or a private repository. Update metric definitions here and regenerate the artifact rather than publishing a raw dashboard API response. Keep author metadata, account IDs, tenant rankings, private links, and deployment-specific filters out of the public definition.
+`datadog.py` is the public, curated source for the Sandbox panels. The bundle's `generate_dashboards.py` composes the unified JSON. It has no external dependencies and does not read a Datadog export, credentials, or a private repository. Update metric definitions here and regenerate the artifact rather than publishing a raw dashboard API response. Keep author metadata, account IDs, tenant rankings, private links, and deployment-specific filters out of the public definition.
 
 From the repository root:
 
 ```bash
-python3 charts/langsmith/examples/sandbox-observability/generate_dashboard.py
-python3 charts/langsmith/examples/sandbox-observability/generate_dashboard.py --check
-python3 -m unittest discover -s charts/langsmith/examples/sandbox-observability -p 'test_*.py'
+python3 charts/langsmith/examples/langsmith-observability/generate_dashboards.py
+python3 charts/langsmith/examples/langsmith-observability/generate_dashboards.py --check
+python3 -m unittest discover -s charts/langsmith/examples/langsmith-observability/components/sandboxes -p 'test_*.py'
 helm unittest -f 'tests/sandbox_observability_test.yaml' charts/langsmith
 ```
 

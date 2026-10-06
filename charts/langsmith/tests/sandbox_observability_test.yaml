@@ -4,7 +4,7 @@ templates:
 tests:
   - it: does not enable sandbox hosts when applying monitoring values
     values:
-      - ../examples/sandbox-observability/datadog-values.yaml
+      - ../examples/langsmith-observability/components/sandboxes/datadog-values.yaml
     asserts:
       - hasDocuments:
           count: 0
@@ -12,7 +12,7 @@ tests:
   - it: places the host check on the pod without changing mount options
     values:
       - ./values/sandboxes-enabled.yaml
-      - ../examples/sandbox-observability/datadog-values.yaml
+      - ../examples/langsmith-observability/components/sandboxes/datadog-values.yaml
     set:
       sandboxes.sandboxHost.deployment.podAnnotations.example: retained
       sandboxes.juicefs.hostMount.mountOptions:
@@ -36,7 +36,7 @@ tests:
   - it: retains the host check when opting into JuiceFS collection
     values:
       - ./values/sandboxes-enabled.yaml
-      - ../examples/sandbox-observability/datadog-juicefs-values.yaml
+      - ../examples/langsmith-observability/components/sandboxes/datadog-juicefs-values.yaml
     asserts:
       - matchRegex:
           path: spec.template.metadata.annotations["ad.datadoghq.com/sandbox-host.checks"]

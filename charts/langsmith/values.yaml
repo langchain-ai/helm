@@ -179,6 +179,8 @@ sandboxes:
     redis:
       # -- JuiceFS Redis metadata URL. Redis metadata engines must use maxmemory-policy noeviction. For Redis Cluster, the `/DB` path is used by JuiceFS as a hash-tag key prefix rather than a Redis logical database.
       metaURL: ""
+      # -- IAM authentication provider for the JuiceFS Redis. Valid values: "" and "azure". Uses workload identity on sandbox-host and the formatter Job.
+      iamAuthProvider: ""
     # -- Existing Secret containing JuiceFS config keys `name`, `metaurl`, `storage`, and `bucket`. For Azure Blob Storage, set `access-key` to the storage account name. Set `secret-key` only for account-key authentication. The formatter Job reads the Secret; sandbox-host receives only `metaurl`. When set, the chart does not create the config Secret and the corresponding values above are ignored. Rotate the Secret name to rerun formatting; roll sandbox-host after changing data in place.
     existingSecretName: ""
     hostMount:
@@ -535,6 +537,8 @@ fleet:
 engine:
   # -- Enable the LangSmith Engine. See the Engine section of this README for what it requires.
   enabled: false
+  # -- Skip Engine's requirement for sandboxes.enabled in BYOC deployments, where sandboxes are managed outside this Helm release.
+  skipSandboxValidation: false
   # -- LangSmith Intelligence endpoint, authenticated with the license key. Engine reports
   # usage on your own model providers here. The default records usage only; to also run
   # Engine on LangSmith Intelligence's models, use https://beacon.aws.langchain.com/intelligence
@@ -4008,11 +4012,11 @@ agentGateway:
     priorityClassName: ""
     resources:
       limits:
-        cpu: 500m
-        memory: 512Mi
+        cpu: 2
+        memory: 2Gi
       requests:
-        cpu: 100m
-        memory: 256Mi
+        cpu: 1
+        memory: 1Gi
     command:
       - "agent_gateway_entrypoint.sh"
     startupProbe:
@@ -4047,11 +4051,12 @@ agentGateway:
     volumeMounts: []
     terminationGracePeriodSeconds: 30
   autoscaling:
-    enabled: false
+    enabled: true
     createHpa: true
     minReplicas: 1
     maxReplicas: 5
     targetCPUUtilizationPercentage: 50
+    targetMemoryUtilizationPercentage: 70
   service:
     type: ClusterIP
     port: 8083

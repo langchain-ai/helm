@@ -2,7 +2,7 @@ import json
 import re
 import unittest
 
-from generate_dashboard import build_dashboard
+from datadog import build_dashboard
 
 
 def definitions(widgets):
