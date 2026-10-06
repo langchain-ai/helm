@@ -30,6 +30,10 @@ Things worth planning for before you enable it:
 
 **Which workspace owns the sandboxes.** By default smith-go resolves the install's workspace, which works when there is exactly one non-personal organization. With more than one it declines rather than guess, and you must set `engine.sandboxTenantId` explicitly. Prefer a workspace reserved for the Engine: its sandboxes are visible to anyone with access to it.
 
+## Observability dashboards
+
+For tabbed Datadog and Grafana dashboards and component collection examples, see the [LangSmith observability bundle](examples/langsmith-observability/README.md). Import these definitions into your own monitoring instance. Existing standalone SmithDB downloads remain available for compatibility.
+
 ## Sandbox quotas
 
 When `sandboxes.enabled=true`, configure limits under `sandboxes.quotas`: `maxSandboxes` (default 1000), `maxCpuCores` (200), and `maxMemoryGb` (400 GiB). These limits do not provision cluster capacity.
