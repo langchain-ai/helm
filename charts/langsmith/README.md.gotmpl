@@ -19,6 +19,7 @@ LangSmith Engine is off by default. `engine.enabled=true` requires all of the fo
 | `sandboxes.enabled=true` | Every Engine run executes in a sandbox. |
 | `images.engineInsightsAgentImage.repository` = `docker.io/langchain/langsmith-insights-engine` | Engine needs the combined image serving both the `insights` and `engine` graphs. |
 | `engine.encryptionKey` | Decrypts the payloads smith-go passes to the Engine. Must match smith-go's `ISSUES_AGENT_ENCRYPTION_KEY`. |
+| `engine.usageSigningSecret` | Signs Engine usage reports sent to smith-go. Use at least 32 random characters. |
 | `config.hostname` | Sandboxes run the `langsmith` CLI against your install from outside the cluster, so this must be externally reachable — not a loopback or in-cluster address. |
 
 Things worth planning for before you enable it:

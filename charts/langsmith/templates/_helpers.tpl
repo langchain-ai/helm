@@ -1340,7 +1340,7 @@ Extra env vars for insights api-server and queue pods.
 {{- $out = append $out (dict "name" "ENGINE_INTELLIGENCE_BASE_URL" "value" $root.Values.engine.intelligenceBaseUrl) -}}
 {{- $out = append $out (dict "name" "ISSUES_AGENT_ENCRYPTION_KEY" "valueFrom" (dict "secretKeyRef" (dict "name" (include "langsmith.secretsName" $root) "key" "engine_encryption_key" "optional" $root.Values.config.disableSecretCreation))) -}}
 {{- $out = append $out (dict "name" "ISSUES_AGENT_ENCRYPTION_KEY_PREVIOUS" "valueFrom" (dict "secretKeyRef" (dict "name" (include "langsmith.secretsName" $root) "key" "engine_encryption_key_previous" "optional" true))) -}}
-{{- $out = append $out (dict "name" "ISSUES_AGENT_X_SERVICE_AUTH_JWT_SECRET" "valueFrom" (dict "secretKeyRef" (dict "name" (include "langsmith.secretsName" $root) "key" "api_key_salt" "optional" $root.Values.config.disableSecretCreation))) -}}
+{{- $out = append $out (dict "name" "ISSUES_AGENT_X_SERVICE_AUTH_JWT_SECRET" "valueFrom" (dict "secretKeyRef" (dict "name" (include "langsmith.secretsName" $root) "key" "engine_usage_signing_secret" "optional" $root.Values.config.disableSecretCreation))) -}}
 {{- $out = append $out (dict "name" "ISSUES_AGENT_SANDBOX_TENANT_ID" "value" $root.Values.engine.sandboxTenantId) -}}
 {{- $out = append $out (dict "name" "LANGSMITH_SANDBOX_ENDPOINT" "value" (printf "http://%s-%s.%s.svc.%s:%v/v2/sandboxes" (include "langsmith.fullname" $root) $root.Values.platformBackend.name (default $root.Release.Namespace $root.Values.namespace) $root.Values.clusterDomain $root.Values.platformBackend.service.port)) -}}
 {{- end -}}
@@ -1601,6 +1601,10 @@ application ConfigMap or its secret-backed settings.
     configMapKeyRef:
       name: {{ include "langsmith.fullname" . }}-config
       key: LANGCHAIN_ENV
+{{- with (.Values.sandboxes.juicefs.redis | default dict).iamAuthProvider }}
+- name: SANDBOX_HOST_JUICEFS_REDIS_IAM_AUTH_PROVIDER
+  value: {{ . | quote }}
+{{- end }}
 {{- end -}}
 
 {{/*
@@ -1767,7 +1771,7 @@ Served through the frontend at /mcp (or /<basePath>/mcp).
   valueFrom:
     secretKeyRef:
       name: {{ include "langsmith.secretsName" . }}
-      key: api_key_salt
+      key: engine_usage_signing_secret
       optional: {{ .Values.config.disableSecretCreation }}
 - name: ISSUES_AGENT_USAGE_SWEEP_CRON_ENABLED
   value: "true"
