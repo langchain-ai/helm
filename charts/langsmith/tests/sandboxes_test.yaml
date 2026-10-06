@@ -1258,3 +1258,97 @@ tests:
           content:
             name: CUSTOM_APPS_SERVICE_SANDBOXES_ENABLED
           any: true
+
+  - it: should not route sandbox egress through an upstream proxy by default
+    values:
+      - ./values/sandboxes-enabled.yaml
+    template: sandboxes/sandbox-host-deployment.yaml
+    asserts:
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_EGRESS_UPSTREAM_PROXY_URL
+          any: true
+
+  - it: should route sandbox egress through the auth proxy http proxy
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      sandboxes.authProxy.httpProxy.enabled: true
+      sandboxes.authProxy.httpProxy.host: proxy.corp.internal
+      sandboxes.authProxy.httpProxy.noProxy:
+        - git.corp.internal
+        - .svc.corp.internal
+    template: sandboxes/sandbox-host-deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_EGRESS_UPSTREAM_PROXY_URL
+            value: http://proxy.corp.internal:3128
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_EGRESS_UPSTREAM_PROXY_NO_PROXY
+            value: git.corp.internal,.svc.corp.internal
+
+  - it: should trust config.customCa for an https upstream proxy
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      config.customCa.secretName: my-ca
+      config.customCa.secretKey: ca.crt
+      sandboxes.authProxy.httpProxy.enabled: true
+      sandboxes.authProxy.httpProxy.scheme: https
+      sandboxes.authProxy.httpProxy.host: fd00::10
+      sandboxes.authProxy.httpProxy.port: 8443
+    template: sandboxes/sandbox-host-deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_EGRESS_UPSTREAM_PROXY_URL
+            value: https://[fd00::10]:8443
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SSL_CERT_FILE
+            value: /etc/ssl/certs/custom-ca-certificates.crt
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_EGRESS_UPSTREAM_PROXY_NO_PROXY
+          any: true
+
+  - it: should fail when the auth proxy http proxy has no host
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      sandboxes.authProxy.httpProxy.enabled: true
+    template: validate.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: "sandboxes.authProxy.httpProxy.host is required when sandboxes.authProxy.httpProxy.enabled is true."
+
+  - it: should fail when the auth proxy http proxy host is a URL
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      sandboxes.authProxy.httpProxy.enabled: true
+      sandboxes.authProxy.httpProxy.host: http://user:pass@proxy.corp.internal
+    template: validate.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: "sandboxes.authProxy.httpProxy.host must be a bare hostname or IP address, without scheme, credentials, or path."
+
+  - it: should fail when the auth proxy http proxy scheme is unsupported
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      sandboxes.authProxy.httpProxy.enabled: true
+      sandboxes.authProxy.httpProxy.host: proxy.corp.internal
+      sandboxes.authProxy.httpProxy.scheme: socks5
+    template: validate.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: "sandboxes.authProxy.httpProxy.scheme must be http or https."

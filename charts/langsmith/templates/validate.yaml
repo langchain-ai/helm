@@ -222,6 +222,22 @@ AWS Marketplace Helm template verification).
 {{- fail "sandboxes.serviceUrlBaseUrl host must be a DNS hostname without a port when ingress.enabled is true." -}}
 {{- end -}}
 {{- end -}}
+{{- $httpProxy := ((.Values.sandboxes.authProxy | default dict).httpProxy) | default dict -}}
+{{- if $httpProxy.enabled -}}
+{{- if not (has ($httpProxy.scheme | default "http") (list "http" "https")) -}}
+{{- fail "sandboxes.authProxy.httpProxy.scheme must be http or https." -}}
+{{- end -}}
+{{- if not $httpProxy.host -}}
+{{- fail "sandboxes.authProxy.httpProxy.host is required when sandboxes.authProxy.httpProxy.enabled is true." -}}
+{{- end -}}
+{{- if regexMatch "[/@?#\\s]" $httpProxy.host -}}
+{{- fail "sandboxes.authProxy.httpProxy.host must be a bare hostname or IP address, without scheme, credentials, or path." -}}
+{{- end -}}
+{{- $httpProxyPort := int ($httpProxy.port | default 3128) -}}
+{{- if or (lt $httpProxyPort 1) (gt $httpProxyPort 65535) -}}
+{{- fail "sandboxes.authProxy.httpProxy.port must be between 1 and 65535." -}}
+{{- end -}}
+{{- end -}}
 {{- $juicefs := .Values.sandboxes.juicefs | default dict -}}
 {{- $juicefsRedisIamAuthProvider := toString ((.Values.sandboxes.juicefs.redis | default dict).iamAuthProvider | default "") -}}
 {{- if not (has $juicefsRedisIamAuthProvider (list "" "azure" "gcp")) -}}
