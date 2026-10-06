@@ -22,4 +22,12 @@ spec:
           type: Utilization
           averageUtilization: {{ .Values.agentGateway.autoscaling.targetCPUUtilizationPercentage }}
     {{- end }}
+    {{- if .Values.agentGateway.autoscaling.targetMemoryUtilizationPercentage }}
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.agentGateway.autoscaling.targetMemoryUtilizationPercentage }}
+    {{- end }}
 {{- end }}

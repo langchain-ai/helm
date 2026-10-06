@@ -2279,10 +2279,11 @@ The trajectory Service is cluster-internal; no public route is added. Trajectory
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
 | agentGateway.autoscaling.createHpa | bool | `true` |  |
-| agentGateway.autoscaling.enabled | bool | `false` |  |
+| agentGateway.autoscaling.enabled | bool | `true` |  |
 | agentGateway.autoscaling.maxReplicas | int | `5` |  |
 | agentGateway.autoscaling.minReplicas | int | `1` |  |
 | agentGateway.autoscaling.targetCPUUtilizationPercentage | int | `50` |  |
+| agentGateway.autoscaling.targetMemoryUtilizationPercentage | int | `70` |  |
 | agentGateway.containerPort | int | `8083` |  |
 | agentGateway.deployment.affinity | object | `{}` |  |
 | agentGateway.deployment.annotations | object | `{}` |  |
@@ -2306,10 +2307,10 @@ The trajectory Service is cluster-internal; no public route is added. Trajectory
 | agentGateway.deployment.readinessProbe.periodSeconds | int | `10` |  |
 | agentGateway.deployment.readinessProbe.timeoutSeconds | int | `3` |  |
 | agentGateway.deployment.replicas | int | `1` |  |
-| agentGateway.deployment.resources.limits.cpu | string | `"500m"` |  |
-| agentGateway.deployment.resources.limits.memory | string | `"512Mi"` |  |
-| agentGateway.deployment.resources.requests.cpu | string | `"100m"` |  |
-| agentGateway.deployment.resources.requests.memory | string | `"256Mi"` |  |
+| agentGateway.deployment.resources.limits.cpu | int | `2` |  |
+| agentGateway.deployment.resources.limits.memory | string | `"2Gi"` |  |
+| agentGateway.deployment.resources.requests.cpu | int | `1` |  |
+| agentGateway.deployment.resources.requests.memory | string | `"1Gi"` |  |
 | agentGateway.deployment.securityContext | object | `{}` |  |
 | agentGateway.deployment.sidecars | list | `[]` |  |
 | agentGateway.deployment.startupProbe.failureThreshold | int | `6` |  |
