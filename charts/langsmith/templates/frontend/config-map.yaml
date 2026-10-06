@@ -29,17 +29,17 @@ data:
 
     map "$frontend_brotli:$uri" $frontend_brotli_file {
         default "";
-        ~^br:/{{ .Values.config.basePath }}/assets/(.+)$ /{{ .Values.config.basePath }}/assets/brotli-compressed/$1;
+        ~^br:/{{ .Values.config.basePath | regexQuoteMeta }}/assets/(.+)$ /{{ .Values.config.basePath }}/assets/brotli-compressed/$1;
     }
 
     map $uri $frontend_content_encoding {
         default "";
-        ~^/{{ .Values.config.basePath }}/assets/brotli-compressed/ br;
+        ~^/{{ .Values.config.basePath | regexQuoteMeta }}/assets/brotli-compressed/ br;
     }
 
     map $uri $frontend_vary {
         default "";
-        ~^/{{ .Values.config.basePath }}/assets/ Accept-Encoding;
+        ~^/{{ .Values.config.basePath | regexQuoteMeta }}/assets/ Accept-Encoding;
     }
 
     proxy_ssl_server_name on;
@@ -662,7 +662,7 @@ data:
         location ^~ /{{ .Values.config.basePath }}/assets/ {
             root /tmp;
             if (-f /tmp$frontend_brotli_file) {
-                rewrite ^/{{ .Values.config.basePath }}/assets/(.+)$ /{{ .Values.config.basePath }}/assets/brotli-compressed/$1 last;
+                rewrite ^/{{ .Values.config.basePath | regexQuoteMeta }}/assets/(.+)$ /{{ .Values.config.basePath }}/assets/brotli-compressed/$1 last;
             }
             try_files $uri =404;
             # Serve the .gz files the frontend image writes next to each asset; compress on the fly otherwise.
