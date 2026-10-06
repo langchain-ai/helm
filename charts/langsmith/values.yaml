@@ -2079,7 +2079,11 @@ smithdb:
       # -- register non-overlapping jobs, drain the global queue, and exit. Override for another migration mode.
       command:
         - "/usr/local/bin/smithdb-with-taskdb-migrations-entrypoint.sh"
-      extraEnv: []
+      extraEnv:
+        - name: SMITHDB_MIGRATION__MAX_CONCURRENT_FETCHES
+          value: "500"
+        - name: SMITHDB_MIGRATION__WORKER_POOL__PAGINATION_LIMIT
+          value: "25000"
       extraContainerConfig: {}
       sidecars: []
       nodeSelector: {}
