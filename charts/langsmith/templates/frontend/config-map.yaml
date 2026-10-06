@@ -438,7 +438,7 @@ data:
             proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.backend.service.port }};
         }
 
-    {{- if .Values.config.deployment.enabled }}
+    {{- if or .Values.config.deployment.enabled .Values.hostBackend.enabled }}
         location /{{ .Values.config.basePath }}/api-host {
             rewrite /{{ .Values.config.basePath }}/api-host/(.*) /$1  break;
             proxy_set_header Connection '';
@@ -597,7 +597,7 @@ data:
             proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.backend.service.port }};
         }
 
-    {{- if .Values.config.deployment.enabled }}
+    {{- if or .Values.config.deployment.enabled .Values.hostBackend.enabled }}
         location = /{{ .Values.config.basePath }}/api-host/docs {
             proxy_set_header Connection '';
             proxy_http_version 1.1;
@@ -1076,7 +1076,7 @@ data:
             proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.backend.service.port }};
         }
 
-    {{- if .Values.config.deployment.enabled }}
+    {{- if or .Values.config.deployment.enabled .Values.hostBackend.enabled }}
         location /api-host {
             rewrite /api-host/(.*) /$1  break;
             proxy_set_header Connection '';
@@ -1166,7 +1166,7 @@ data:
             proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.backend.service.port }};
         }
 
-    {{- if .Values.config.deployment.enabled }}
+    {{- if or .Values.config.deployment.enabled .Values.hostBackend.enabled }}
         location = /api-host/docs {
             proxy_set_header Connection '';
             proxy_http_version 1.1;
