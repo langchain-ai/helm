@@ -52,3 +52,61 @@ tests:
       - matchRegex:
           path: data["nginx.conf"]
           pattern: 'proxy_send_timeout \d+;\n\s*proxy_request_buffering off;'
+
+  - it: compresses static assets and preserves security headers without a base path
+    asserts:
+      - matchRegex:
+          path: data["nginx.conf"]
+          pattern: 'location \^~ /assets/ \{\s*root /tmp/build;\s*try_files \$uri =404;\s*(?:#[^\n]*\s*)?gzip_static on;\s*gzip on;\s*gzip_types application/javascript text/javascript text/css application/wasm image/svg\+xml application/json;\s*gzip_vary on;\s*gzip_proxied any;\s*gzip_min_length 1024;'
+      - notMatchRegex:
+          path: data["nginx.conf"]
+          pattern: 'location [^\n]*\{[^}]*add_header Cache-Control'
+      - matchRegex:
+          path: data["nginx.conf"]
+          pattern: 'add_header Cache-Control \$frontend_cache_control;\s*add_header Content-Security-Policy'
+      - matchRegex:
+          path: data["nginx.conf"]
+          pattern: '/index\.html "no-store";'
+      - matchRegex:
+          path: data["nginx.conf"]
+          pattern: 'map \$uri \$frontend_cache_control \{\s*default "";'
+      - matchRegex:
+          path: data["nginx.conf"]
+          pattern: '/assets/" "public, max-age=31536000, immutable";'
+
+  - it: compresses static assets and preserves security headers with a base path
+    set:
+      config.basePath: langsmith
+    asserts:
+      - matchRegex:
+          path: data["nginx.conf"]
+          pattern: 'location \^~ /langsmith/assets/ \{\s*root /tmp;\s*try_files \$uri =404;\s*(?:#[^\n]*\s*)?gzip_static on;\s*gzip on;\s*gzip_types application/javascript text/javascript text/css application/wasm image/svg\+xml application/json;\s*gzip_vary on;\s*gzip_proxied any;\s*gzip_min_length 1024;'
+      - notMatchRegex:
+          path: data["nginx.conf"]
+          pattern: 'location [^\n]*\{[^}]*add_header Cache-Control'
+      - matchRegex:
+          path: data["nginx.conf"]
+          pattern: 'add_header Cache-Control \$frontend_cache_control;\s*add_header Content-Security-Policy'
+      - matchRegex:
+          path: data["nginx.conf"]
+          pattern: '/langsmith/index\.html" "no-store";'
+      - matchRegex:
+          path: data["nginx.conf"]
+          pattern: 'map \$uri \$frontend_cache_control \{\s*default "";'
+      - matchRegex:
+          path: data["nginx.conf"]
+          pattern: '/assets/" "public, max-age=31536000, immutable";'
+
+  - it: keeps nonce substitution for HTML while serving assets independently
+    set:
+      frontend.includeNonce: true
+    asserts:
+      - matchRegex:
+          path: data["nginx.conf"]
+          pattern: 'sub_filter ''%%NONCE%%'' \$request_id;'
+      - matchRegex:
+          path: data["nginx.conf"]
+          pattern: 'location \^~ /assets/'
+      - notMatchRegex:
+          path: data["nginx.conf"]
+          pattern: 'brotli'
