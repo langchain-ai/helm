@@ -1,0 +1,77 @@
+charts/langsmith/templates/_helpers.tpl
+  s_ee52300d943d97::t_0fd14c9df7df3f 1327-1328
+  s_ee52300d943d97::t_bfdbc766db8a0f 626,657
+charts/langsmith/values.yaml
+  s_ee52300d943d97::t_6feeae75ee011a 68,72,75-76,80,84,108,112,116
+  s_043184e8d5977f::t_edf7c6130d44f0 73-74,892-893,1219,1448-1449,1451-1452,1882-1914,2338,2449,2561,2858,3182,3378-3379,3458-3459,3539
+charts/langsmith/README.md
+  s_ee52300d943d97::t_256020323914bf 365
+  s_ee52300d943d97::t_815beb45870c39 3,235,290,346,349,352,358,360-362,371,384,411,930-933,1017,1472-1493,1744,1929-1930,1994,2173,2256
+charts/langsmith/templates/agent-features/insights/api-server/deployment.yaml
+  s_ee52300d943d97::t_a28a1228a63593 72-74
+charts/langsmith/templates/queue/deployment.yaml
+  s_ee52300d943d97::t_e52c4e8061e413 11-14
+charts/langsmith/templates/agent-features/insights/queue/deployment.yaml
+  s_ee52300d943d97::t_559cc5a21d414d 74-76
+charts/langsmith/templates/validate.yaml
+  s_ee52300d943d97::t_efd850f409431a 427-429
+  s_043184e8d5977f::t_fb3dfec0f34606 41-48
+charts/langsmith/templates/backend/deployment.yaml
+  s_ee52300d943d97::t_1482e6cca26bee 15-18
+charts/langsmith-auth-proxy/e2e/transformer/go.mod
+  s_ee52300d943d97::t_01d49a00c95cc8 7
+charts/langsmith-auth-proxy/e2e/transformer/go.sum
+  s_ee52300d943d97::t_c83a0f12fab384 43-44
+charts/langsmith/Chart.yaml
+  s_ee52300d943d97::t_8975c9aa40af16 8-9
+charts/langsmith/templates/agent-features/fleet/tool-server/deployment.yaml
+  s_ee52300d943d97::t_d3585bee882aed 60-63,71-72
+charts/langsmith/templates/agent-features/fleet/trigger-server/deployment.yaml
+  s_ee52300d943d97::t_083d66a24b8555 59-62,70-71
+charts/langsmith/templates/agent-gateway/deployment.yaml
+  s_ee52300d943d97::t_038f7b8a7a7f93 78-79
+charts/langsmith/templates/backend/auth-bootstrap.yaml
+  s_ee52300d943d97::t_2173e0961c7d5a 53
+charts/langsmith/templates/backend/backfill-check.yaml
+  s_ee52300d943d97::t_4936c795d36941 1-5,9,13,17-23,25-29,33-36,39,41-45,47-48,50,56-59,63-64,66-67,69-70,77-78,80,82,87-108
+charts/langsmith/templates/frontend/config-map.yaml
+  s_ee52300d943d97::t_44b3a7bc181e70 149-163,787-798
+charts/langsmith/templates/host-backend/deployment.yaml
+  s_ee52300d943d97::t_a8bb86890229b1 100-101
+charts/langsmith/templates/ingest-queue/deployment.yaml
+  s_ee52300d943d97::t_7b2dd0fccf2571 83-84
+charts/langsmith/templates/listener/deployment.yaml
+  s_ee52300d943d97::t_9ce11a1544abfb 88-89
+charts/langsmith/templates/platform-backend/deployment.yaml
+  s_ee52300d943d97::t_8d19cb0d991a36 91-92
+charts/langsmith/templates/playground/deployment.yaml
+  s_ee52300d943d97::t_aa83443a7928ee 84-85
+charts/langsmith/tests/fleet_server_values_test.yaml
+  s_ee52300d943d97::t_e51bb2678ba075 33,43-93
+charts/langsmith/tests/langsmith_smithdb_test.yaml
+  s_ee52300d943d97::t_abb4daf063c3cd 112,116-118,124-189,209-228
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "f94bf9a97f125317666685d744eed4d6a3aabbea",
+  "prompts": {},
+  "sessions": {
+    "s_043184e8d5977f": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "2e088f5a-9091-4ff1-ab33-38c641e1817f",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Bagatur Askaryan <baskaryan@gmail.com>"
+    },
+    "s_ee52300d943d97": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "14993807-ebcf-4cce-902a-cf421d7d3c24",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Bagatur Askaryan <baskaryan@gmail.com>"
+    }
+  }
+}

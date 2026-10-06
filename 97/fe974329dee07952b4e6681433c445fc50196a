@@ -1,0 +1,39 @@
+charts/langgraph-dataplane/Chart.yaml
+  s_8ed562bff1f3bf::t_0c8f7369b4107c 8
+charts/langgraph-dataplane/README.md
+  s_8ed562bff1f3bf::t_dd92a8e80a1cab 3,36
+charts/langgraph-dataplane/templates/operator/rbac.yaml
+  s_8ed562bff1f3bf::t_b7d279518eb50c 104-123,297-316
+charts/langgraph-dataplane/values.yaml
+  s_8ed562bff1f3bf::t_9b1acb90c5376b 45
+charts/langsmith/Chart.yaml
+  s_8ed562bff1f3bf::t_5bf243a712fa8e 8-9
+charts/langsmith/README.md
+  s_8ed562bff1f3bf::t_3cda90afc18afc 3,580,583,586,592,595,599,602,616
+charts/langsmith/ci/readonly-config-values.yaml
+  s_8ed562bff1f3bf::t_0ec163852fcd7d 519-521
+charts/langsmith/templates/_helpers.tpl
+  s_8ed562bff1f3bf::t_02e3da9d9d82c6 693-694,698,720-721,724-729,731-733,735-737,739-740,744,746,751,798,805,927
+charts/langsmith/templates/operator/rbac.yaml
+  s_8ed562bff1f3bf::t_0ca3adde236dcb 104-123,297-316
+charts/langsmith/templates/smithdb/cluster-manager-deployment.yaml
+  s_8ed562bff1f3bf::t_82a1cc4cab9f09 67
+charts/langsmith/values.yaml
+  s_8ed562bff1f3bf::t_4bf037338887be 68,72,78,82,86,106,110,114
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "97fe974329dee07952b4e6681433c445fc50196a",
+  "prompts": {},
+  "sessions": {
+    "s_8ed562bff1f3bf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "91adc97f-ba65-4651-933e-a1d0faf9abfc",
+        "model": "claude-fable-5-1"
+      },
+      "human_author": "ben11211 <nagengast@langchain.dev>"
+    }
+  }
+}

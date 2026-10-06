@@ -1,0 +1,135 @@
+charts/langgraph-cloud/README.md
+  s_ee52300d943d97::t_4534aeb96283be 378
+charts/langgraph-cloud/templates/mongo/stateful-set.yaml
+  s_ee52300d943d97::t_a19b4269ebd656 31-33
+charts/langgraph-cloud/tests/priority_class_name_test.yaml
+  s_ee52300d943d97::t_950979ef9cd35c 1,3,5,7,9-10,12,14-15,17-19
+charts/langgraph-cloud/values.yaml
+  s_ee52300d943d97::t_888586563cfeea 415-416
+charts/langgraph-dataplane/README.md
+  s_ee52300d943d97::t_662f2f7de62a31 66,144,193,272
+charts/langgraph-dataplane/templates/listener/deployment.yaml
+  s_ee52300d943d97::t_ecd560ccbc01a5 67-69
+charts/langgraph-dataplane/templates/operator/deployment.yaml
+  s_ee52300d943d97::t_d56ad7f8cfbe66 47-49
+charts/langgraph-dataplane/templates/redis/stateful-set.yaml
+  s_ee52300d943d97::t_dd2d65e7264d3b 49-51
+charts/langgraph-dataplane/tests/deployment_priority_class_name_test.yaml
+  s_ee52300d943d97::t_d212277cc6876c 1-29
+charts/langgraph-dataplane/tests/priority_class_name_test.yaml
+  s_ee52300d943d97::t_7f14bef67a5c58 1-16
+charts/langgraph-dataplane/values.yaml
+  s_ee52300d943d97::t_8a82f135477841 108,189,394-395
+charts/langsmith-auth-proxy/README.md
+  s_ee52300d943d97::t_ebfe6b68c37488 96
+charts/langsmith-auth-proxy/templates/auth-proxy/deployment.yaml
+  s_ee52300d943d97::t_376270c95b8bde 53-55
+charts/langsmith-auth-proxy/tests/priority_class_name_test.yaml
+  s_ee52300d943d97::t_a92fbcfdcbae5c 1-33
+charts/langsmith-auth-proxy/values.yaml
+  s_ee52300d943d97::t_05036ed4fe6b6a 163
+charts/langsmith-observability/README.md
+  s_ee52300d943d97::t_57194685230408 164
+charts/langsmith-observability/templates/mimir/stateful-set.yaml
+  s_ee52300d943d97::t_c4ceaf16b49ddf 28-30
+charts/langsmith-observability/tests/priority_class_name_test.yaml
+  s_ee52300d943d97::t_fa57b7aeabdfbf 1-22
+charts/langsmith-observability/values.yaml
+  s_ee52300d943d97::t_69ed499ca4e5e7 162-163
+charts/langsmith/Chart.yaml
+  s_ee52300d943d97::t_2ffbc03b5e49b4 8-9
+charts/langsmith/README.md
+  s_ee52300d943d97::t_370521b750afba 3,34-226,301,395,452,508,552,555,558,564,567,577,591,631,746,840,888,935,989,1063,1188,1195-1198,1233,1353,1356,1362,1366-1367,1438,1445-1448,1586,1744,1813,1901,2002,2066,2123,2171,2248,2332,2431,2501,2594
+charts/langsmith/templates/_helpers.tpl
+  s_ee52300d943d97::t_719303d7ee7d1f 624-632,641-642,673,1051-1056,1082-1087,1124-1129
+charts/langsmith/templates/ace-backend/deployment.yaml
+  s_ee52300d943d97::t_a939d5b67e0325 57-59
+charts/langsmith/templates/agent-features/fleet/tool-server/deployment.yaml
+  s_ee52300d943d97::t_e354b9e154557a 50-52
+charts/langsmith/templates/agent-features/fleet/trigger-server/deployment.yaml
+  s_ee52300d943d97::t_91ef57cd2c174a 49-51
+charts/langsmith/templates/agent-gateway/deployment.yaml
+  s_ee52300d943d97::t_505263ba2fa120 57-59
+charts/langsmith/templates/backend/deployment.yaml
+  s_ee52300d943d97::t_ef70f682cee8c3 73-75
+charts/langsmith/templates/clickhouse/stateful-set.yaml
+  s_ee52300d943d97::t_f48c926ada9af1 72-74
+charts/langsmith/templates/config-map.yaml
+  s_ee52300d943d97::t_2dacb9f15cdce1 50-54,66-67,72-82,96,111-113,120
+charts/langsmith/templates/frontend/deployment.yaml
+  s_ee52300d943d97::t_8fba1e2354f858 159-161
+charts/langsmith/templates/host-backend/deployment.yaml
+  s_ee52300d943d97::t_b91563a75af980 79-81
+charts/langsmith/templates/ingest-queue/deployment.yaml
+  s_ee52300d943d97::t_0ede04aaa203aa 77-79
+charts/langsmith/templates/listener/deployment.yaml
+  s_ee52300d943d97::t_9b563a0ef97d86 66-68
+charts/langsmith/templates/operator/deployment.yaml
+  s_ee52300d943d97::t_b049c5f6bd633c 52-54
+charts/langsmith/templates/platform-backend/deployment.yaml
+  s_ee52300d943d97::t_ba4864b0652daa 116-118
+charts/langsmith/templates/playground/deployment.yaml
+  s_ee52300d943d97::t_f807ca76178aee 63-65
+charts/langsmith/templates/postgres/stateful-set.yaml
+  s_ee52300d943d97::t_79db1525691a19 73-75
+charts/langsmith/templates/presidio-analyzer/deployment.yaml
+  s_ee52300d943d97::t_12dd80c23012d7 47-49
+charts/langsmith/templates/queue/deployment.yaml
+  s_ee52300d943d97::t_61ce5c6af6cdb7 69-71
+charts/langsmith/templates/redis/stateful-set.yaml
+  s_ee52300d943d97::t_43c0d6fcc631a2 51-53
+charts/langsmith/templates/smithdb/cluster-manager-deployment.yaml
+  s_ee52300d943d97::t_681b530ac493a0 44-46
+charts/langsmith/templates/smithdb/compaction-deployment.yaml
+  s_ee52300d943d97::t_b6d2c9673a4c66 44-46
+charts/langsmith/templates/smithdb/compaction-worker-deployment.yaml
+  s_ee52300d943d97::t_be703f72589080 46-48
+charts/langsmith/templates/smithdb/ingestion-deployment.yaml
+  s_ee52300d943d97::t_452ad9a8f47e42 49-51
+charts/langsmith/templates/smithdb/query-deployment.yaml
+  s_ee52300d943d97::t_8e07b0045144ba 48-50
+charts/langsmith/templates/smithdb/taskdb-postgres-statefulset.yaml
+  s_ee52300d943d97::t_d69dad0ee104f0 53-55
+charts/langsmith/templates/validate.yaml
+  s_ee52300d943d97::t_cea22f01d0a8b0 41-44,577-583
+charts/langsmith/tests/agent_iam_provider_test.yaml
+  s_ee52300d943d97::t_0ab3f41ebde41b 1-140
+charts/langsmith/tests/auth_endpoint_test.yaml
+  s_ee52300d943d97::t_22193fc36a06d0 1-97
+charts/langsmith/tests/deployment_priority_class_name_test.yaml
+  s_ee52300d943d97::t_e57e01792fd29b 1-234
+charts/langsmith/tests/langsmith_smithdb_test.yaml
+  s_ee52300d943d97::t_31eabbdc5f89dc 112,117-118,148-212,321-368,385-390,453-483,847-862
+charts/langsmith/tests/priority_class_name_test.yaml
+  s_ee52300d943d97::t_e6ef830987747e 1-76
+charts/langsmith/values.yaml
+  s_ee52300d943d97::t_863e8e3bda4554 68,72,79,83,107,111,115,318,372,581,635,819,873,1062-1063,1250,1298,1301-1302,1304-1305,1459,1537,1620,1685,1761,1865-1866,1874-1880,1997,2279-2280,2408,2519,2631,2744,2856,3043,3165-3166,3264,3371,3491-3492,3586,3666,3733,3805
+charts/mission-control/README.md
+  s_ee52300d943d97::t_43b2269782992e 72,113
+charts/mission-control/templates/backend/statefulset.yaml
+  s_ee52300d943d97::t_827d48104d949f 31-33
+charts/mission-control/templates/frontend/deployment.yaml
+  s_ee52300d943d97::t_0b52a8c82a12ba 33-35
+charts/mission-control/tests/deployment_priority_class_name_test.yaml
+  s_ee52300d943d97::t_2dc7a35619acf1 1-16
+charts/mission-control/tests/priority_class_name_test.yaml
+  s_ee52300d943d97::t_a8c30fca7a0fe9 1-16
+charts/mission-control/values.yaml
+  s_ee52300d943d97::t_bad277798eb0d4 144-145,193
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.18",
+  "base_commit_sha": "66b22a9cf7b85e3c52fd5dfeeedeba12ab3bc02d",
+  "prompts": {},
+  "sessions": {
+    "s_ee52300d943d97": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "14993807-ebcf-4cce-902a-cf421d7d3c24",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Bagatur Askaryan <baskaryan@gmail.com>"
+    }
+  }
+}

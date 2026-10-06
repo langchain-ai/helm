@@ -1,0 +1,25 @@
+charts/langsmith/templates/_helpers.tpl
+  s_aa804e36d9470a::t_55f300381fa0f6 525-537
+  s_aa804e36d9470a::t_ff01cb2fb92d66 524
+charts/langsmith/templates/smithdb/migration-job.yaml
+  s_aa804e36d9470a::t_74a00a12fadff6 82
+charts/langsmith/tests/langsmith_smithdb_test.yaml
+  s_aa804e36d9470a::t_0b6bb76a3a4dc4 786
+  s_aa804e36d9470a::t_efcfeaf14dbd4f 932-947
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "0a9dd927d1861048d646755e4098395b8ddec9a1",
+  "prompts": {},
+  "sessions": {
+    "s_aa804e36d9470a": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "85d556aa-0b66-4158-bf3b-5cb1fe7cb6f0",
+        "model": "auto-smart"
+      },
+      "human_author": "ben11211 <nagengast@langchain.dev>"
+    }
+  }
+}

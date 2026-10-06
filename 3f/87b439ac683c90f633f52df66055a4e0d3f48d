@@ -1,0 +1,35 @@
+charts/langsmith/values.yaml
+  s_ee52300d943d97::t_a6addf6374ac3b 431-435
+charts/langsmith/templates/validate.yaml
+  s_ee52300d943d97::t_985e41220210c1 535-543
+charts/langsmith/tests/values/sandboxes-enabled.yaml
+  s_ee52300d943d97::t_c10ee11ee2fcdb 3
+charts/langsmith/templates/_helpers.tpl
+  s_ee52300d943d97::t_b62512b4d86a88 1082
+  s_ee52300d943d97::t_ea8b98001f6ec6 1475-1487
+  s_ee52300d943d97::t_6d4d85d80de905 1474
+charts/langsmith/tests/engine_insights_agent_test.yaml
+  s_ee52300d943d97::t_b3b44e18c50b56 70,74,82-124
+charts/langsmith/tests/engine_cli_endpoint_test.yaml
+  s_ee52300d943d97::t_3cad985d85a6ee 1-81
+charts/langsmith/README.md
+  s_ee52300d943d97::t_27ea67f425c66d 29,34-225,1339,1345,1349-1350
+charts/langsmith/tests/sandboxes_test.yaml
+  s_ee52300d943d97::t_c3993adc36daf2 200-201,212
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.18",
+  "base_commit_sha": "3f87b439ac683c90f633f52df66055a4e0d3f48d",
+  "prompts": {},
+  "sessions": {
+    "s_ee52300d943d97": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "14993807-ebcf-4cce-902a-cf421d7d3c24",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Bagatur Askaryan <baskaryan@gmail.com>"
+    }
+  }
+}

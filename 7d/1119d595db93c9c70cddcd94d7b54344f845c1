@@ -1,0 +1,82 @@
+charts/langsmith/templates/_helpers.tpl
+  s_732b9d7bad370a::t_ba348159823500 570,576
+  s_732b9d7bad370a::t_9a4afb8c2dd0ed 522,533
+charts/langsmith/templates/validate.yaml
+  s_732b9d7bad370a::t_458f52ed8e16e0 228-229,239,243,246-247,249-250
+charts/langsmith/templates/smithdb/compaction-worker-deployment.yaml
+  s_732b9d7bad370a::t_9d544d59c5318d 10,65
+  s_732b9d7bad370a::t_804ed7011b3bdf 1
+  s_732b9d7bad370a::t_e9df0bb6403627 11
+  s_732b9d7bad370a::t_fa7972823379be 2,8,19,25,43,74-76
+charts/langsmith/templates/smithdb/pdbs.yaml
+  s_732b9d7bad370a::t_a0bd1ba315c9a3 12,18
+  s_732b9d7bad370a::t_874f9587489654 2
+  s_732b9d7bad370a::t_dc4a767405bad5 4
+charts/langsmith/templates/smithdb/query-deployment.yaml
+  s_732b9d7bad370a::t_b8f93c4d212bad 2-5
+  s_732b9d7bad370a::t_b979d24012809e 6
+  s_732b9d7bad370a::t_ca87bd2e5e5d11 1
+  s_732b9d7bad370a::t_ed39cf0db6997a 14,20,40,75-77
+charts/langsmith/templates/smithdb/ingestion-deployment.yaml
+  s_732b9d7bad370a::t_43b7d9e0e9a481 2-5
+  s_732b9d7bad370a::t_d376bd35d4fdbc 1
+  s_732b9d7bad370a::t_7b40f6711356ab 6
+  s_732b9d7bad370a::t_411f23f9435b10 14,20,40,76-78
+charts/langsmith/templates/smithdb/services.yaml
+  s_732b9d7bad370a::t_697c7f4b217cb7 11,17
+charts/langsmith/templates/config-map.yaml
+  s_732b9d7bad370a::t_dfe1f8b8b3980b 52
+charts/langsmith/tests/langsmith_smithdb_test.yaml
+  s_732b9d7bad370a::t_a2076505f37f7f 17,117,122-131,136-166
+charts/langsmith/templates/smithdb/cluster-manager-deployment.yaml
+  s_732b9d7bad370a::t_d852bdb085ee2b 2-6
+  s_732b9d7bad370a::t_9c2e944955f367 14,20,38,73-75
+  s_732b9d7bad370a::t_e8d55f6ca2e534 1
+charts/langsmith/templates/smithdb/metastore-migration.yaml
+  s_732b9d7bad370a::t_ccd3deb6ff7084 1
+  s_732b9d7bad370a::t_9d15952ffa64a5 20,29,42
+charts/langsmith/templates/smithdb/compaction-deployment.yaml
+  s_732b9d7bad370a::t_7cbe9620b08677 15,21,39,72-74
+  s_732b9d7bad370a::t_56cf4e62fb047b 1
+  s_732b9d7bad370a::t_1bc2c5ffe8a03b 2-5,7
+  s_732b9d7bad370a::t_f25774c8bc20c0 6,60
+charts/langsmith/values.yaml
+  s_732b9d7bad370a::t_a452da1fc8c3fe 1420,1476-1477
+  s_732b9d7bad370a::t_dea5d9798bd625 1488-1490
+  s_732b9d7bad370a::t_1c30dedeb3b955 1240,1243
+  s_732b9d7bad370a::t_28b02a1c7e0c37 1308,1366,1421,1528
+  s_732b9d7bad370a::t_862bf081ce54cd 1281-1282,1284-1305,1341-1342,1344-1362,1394-1395,1397-1418,1450-1451,1454-1475,1502-1503,1505-1526,1557-1558
+  h_712f30a2a56c04 1241
+  s_ac1d566c41b46a::t_44314f3d021fa0 1419
+charts/langsmith/templates/smithdb/service-account.yaml
+  s_732b9d7bad370a::t_616c7c729cb097 9,18
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "7d1119d595db93c9c70cddcd94d7b54344f845c1",
+  "prompts": {},
+  "humans": {
+    "h_712f30a2a56c04": {
+      "author": "ben11211 <nagengast@langchain.dev>"
+    }
+  },
+  "sessions": {
+    "s_732b9d7bad370a": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "2a660fae-bd67-44bf-ab32-e13cdd136452",
+        "model": "gpt-5.5"
+      },
+      "human_author": "ben11211 <nagengast@langchain.dev>"
+    },
+    "s_ac1d566c41b46a": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "05af4313-6525-4e1f-b82d-5148af5c1a2c",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": null
+    }
+  }
+}

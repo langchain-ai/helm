@@ -1,0 +1,23 @@
+charts/langsmith/values.yaml
+  s_193930474d41b5::t_86a2b6d0909e2e 1971-1972,1976-1979
+charts/langsmith/README.md
+  s_193930474d41b5::t_86a2b6d0909e2e 1185,1187,1198,1200,1202-1203
+charts/langsmith/templates/smithdb/metastore-migration.yaml
+  s_193930474d41b5::t_86a2b6d0909e2e 50-51,69-78,91-98
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "b31497b775c5a0d8a9f40dec697b9fa9081de377",
+  "prompts": {},
+  "sessions": {
+    "s_193930474d41b5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "2cc9e8b3-f981-453c-97f4-98a4798b0b14",
+        "model": "claude-fable-5-1"
+      },
+      "human_author": "ben11211 <nagengast@langchain.dev>"
+    }
+  }
+}

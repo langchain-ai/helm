@@ -1,0 +1,19 @@
+charts/langsmith/Chart.yaml
+  s_2f042f4683c9ec::t_8c7131951ed383 8
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "906f9bc64c7a6905608ec9348557e7f75b85cb04",
+  "prompts": {},
+  "sessions": {
+    "s_2f042f4683c9ec": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "5e128f38-c236-49e2-814f-2e3f76993bf3",
+        "model": "grok-4.7"
+      },
+      "human_author": "Joaquin Borggio <joaquin@langchain.dev>"
+    }
+  }
+}

@@ -1,0 +1,23 @@
+charts/langsmith/templates/config-map.yaml
+  s_b31668fd359dfa::t_6267f047098ad7 72-74
+charts/langsmith/Chart.yaml
+  s_b31668fd359dfa::t_f0d4166524a48a 8
+charts/langsmith/tests/trigger_server_endpoint_test.yaml
+  s_b31668fd359dfa::t_c207c98281232c 1-69
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "76b5c5a78d49df4094c5c0ed2704e30aea1e2852",
+  "prompts": {},
+  "sessions": {
+    "s_b31668fd359dfa": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "7870e10f-02be-4883-99a7-85a9ba1814ef",
+        "model": "grok-4.5"
+      },
+      "human_author": "Joaquin Borggio <joaquin@langchain.dev>"
+    }
+  }
+}

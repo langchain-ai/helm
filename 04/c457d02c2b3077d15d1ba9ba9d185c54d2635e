@@ -1,0 +1,19 @@
+charts/langsmith/templates/validate.yaml
+  s_ee52300d943d97::t_461c28e6ccf8b2 421-427
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "04c457d02c2b3077d15d1ba9ba9d185c54d2635e",
+  "prompts": {},
+  "sessions": {
+    "s_ee52300d943d97": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "14993807-ebcf-4cce-902a-cf421d7d3c24",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Bagatur Askaryan <baskaryan@gmail.com>"
+    }
+  }
+}

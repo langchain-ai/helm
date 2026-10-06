@@ -1,0 +1,14 @@
+charts/langsmith/Chart.yaml
+  h_e9f9f02ec48ac9 8
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "4388cc1119ac18382278e36d492366b0508f24cf",
+  "prompts": {},
+  "humans": {
+    "h_e9f9f02ec48ac9": {
+      "author": "Joaquin Borggio <joaquin@langchain.dev>"
+    }
+  }
+}

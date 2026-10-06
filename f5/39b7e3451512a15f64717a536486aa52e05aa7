@@ -1,0 +1,21 @@
+charts/langsmith/templates/smithdb/query-deployment.yaml
+  s_207a85af8b6e70::t_21a11633fa69e1 66,72
+charts/langsmith/tests/langsmith_smithdb_test.yaml
+  s_207a85af8b6e70::t_c5c496457339e5 59,63,75,90
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "f539b7e3451512a15f64717a536486aa52e05aa7",
+  "prompts": {},
+  "sessions": {
+    "s_207a85af8b6e70": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "b27680fb-a7af-4b0d-85a1-d1b2a39ec7ed",
+        "model": "gpt-5.6-terra"
+      },
+      "human_author": "ben11211 <nagengast@langchain.dev>"
+    }
+  }
+}

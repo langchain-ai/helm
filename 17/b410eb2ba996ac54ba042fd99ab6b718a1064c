@@ -1,0 +1,23 @@
+charts/langsmith/templates/smithdb/compaction-deployment.yaml
+  s_e455596137ee76::t_6243ea6e73595d 63
+  s_e455596137ee76::t_296f3d67538550 64-66
+charts/langsmith/tests/langsmith_smithdb_test.yaml
+  s_e455596137ee76::t_2b517f8e431165 467,471,480,483-495
+  s_e455596137ee76::t_46d7bd9e672913 468-470,472-479,481-482,496-502
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.15",
+  "base_commit_sha": "17b410eb2ba996ac54ba042fd99ab6b718a1064c",
+  "prompts": {},
+  "sessions": {
+    "s_e455596137ee76": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "7147f3a9-907a-4e67-9048-d238e9f245cf",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "ben11211 <nagengast@langchain.dev>"
+    }
+  }
+}

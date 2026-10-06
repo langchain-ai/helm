@@ -1,0 +1,27 @@
+charts/langsmith/README.md
+  s_a584a87f9ee9d8::t_943bc25721c07f 3
+  s_a584a87f9ee9d8::t_85d24f357eada3 2457-2458,2484
+charts/langsmith/tests/platform_backend_lifecycle_test.yaml
+  s_a584a87f9ee9d8::t_71c89b529e69da 3-9,13,25
+  s_a584a87f9ee9d8::t_bb0ae757b5e088 1-2,10-12,14-24,26-50
+charts/langsmith/values.yaml
+  s_a584a87f9ee9d8::t_12369b74234255 2984-2989,3031
+charts/langsmith/Chart.yaml
+  s_a584a87f9ee9d8::t_c96917fbacd1ab 8
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "6e01a7fafe594011aa8819c35c2bee43f32398ef",
+  "prompts": {},
+  "sessions": {
+    "s_a584a87f9ee9d8": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "3c14fb4d-b8aa-4733-9e0f-aedb604fd911",
+        "model": "auto-smart"
+      },
+      "human_author": "Joaquin Borggio <joaquin@langchain.dev>"
+    }
+  }
+}

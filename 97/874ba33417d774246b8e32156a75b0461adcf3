@@ -1,0 +1,23 @@
+charts/langsmith/tests/langsmith_smithdb_test.yaml
+  s_febab705cf0ebd::t_02dcc4931bfc75 210-226
+charts/langsmith/values.yaml
+  s_febab705cf0ebd::t_02dcc4931bfc75 1935-1937,1940
+charts/langsmith/README.md
+  s_febab705cf0ebd::t_02dcc4931bfc75 1095
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "97874ba33417d774246b8e32156a75b0461adcf3",
+  "prompts": {},
+  "sessions": {
+    "s_febab705cf0ebd": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "57040c24-7150-4131-9a61-a57c23e4b5ee",
+        "model": "claude-fable-5-1"
+      },
+      "human_author": "ben11211 <nagengast@langchain.dev>"
+    }
+  }
+}

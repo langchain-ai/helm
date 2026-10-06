@@ -1,0 +1,85 @@
+charts/langsmith/templates/validate.yaml
+  s_043184e8d5977f::t_e5a05dc74518d6 162-249
+charts/langsmith/tests/values/sandboxes-juicefs-observability.yaml
+  s_043184e8d5977f::t_e5a05dc74518d6 1-26
+charts/langsmith/README.md
+  s_043184e8d5977f::t_f30bc690ec1df0 374
+  s_043184e8d5977f::t_56d8abb0484c5d 371-373
+  s_043184e8d5977f::t_caaab59c8236a0 11-14,391,1320,1338-1358
+charts/langsmith/templates/sandboxes/juicefs-csi-driver/configmap.yaml
+  s_043184e8d5977f::t_e5a05dc74518d6 1-17
+charts/langsmith/tests/values/sandboxes-enabled.yaml
+  s_043184e8d5977f::t_e5a05dc74518d6 1-27
+charts/langsmith/templates/sandboxes/juicefs-csi.yaml
+  s_043184e8d5977f::t_e5a05dc74518d6 1-115
+charts/langsmith/templates/_helpers.tpl
+  s_043184e8d5977f::t_e5a05dc74518d6 1243-1432,1451-1469
+  s_043184e8d5977f::t_a7c1676347e520 1470
+charts/langsmith/templates/secrets.yaml
+  s_043184e8d5977f::t_e5a05dc74518d6 31-35
+.github/workflows/release_charts.yaml
+  s_043184e8d5977f::t_e5a05dc74518d6 33,36-37
+  s_043184e8d5977f::t_6187bdac17fab2 38
+charts/langsmith/README.md.gotmpl
+  s_043184e8d5977f::t_e5a05dc74518d6 11-14
+charts/langsmith/templates/sandboxes/juicefs-csi-driver/node-daemonset.yaml
+  s_043184e8d5977f::t_e5a05dc74518d6 1-212
+charts/langsmith/templates/frontend/config-map.yaml
+  s_043184e8d5977f::t_e5a05dc74518d6 140-151,775-785
+  s_043184e8d5977f::t_1eb49a803ea8f5 786
+charts/langsmith/templates/sandboxes/proxy-ca.yaml
+  s_043184e8d5977f::t_e5a05dc74518d6 1-25
+charts/langsmith/templates/sandboxes/juicefs-csi-driver/controller-statefulset.yaml
+  s_043184e8d5977f::t_e5a05dc74518d6 1-153
+charts/langsmith/tests/sandboxes_test.yaml
+  s_043184e8d5977f::t_e5a05dc74518d6 1-765
+charts/langsmith/scripts/mirror_langsmith_images.sh
+  s_043184e8d5977f::t_e5a05dc74518d6 12,31,35,42,55,85-95,100
+charts/langsmith/scripts/push_helm_chart.sh
+  s_043184e8d5977f::t_e5a05dc74518d6 87-91,95,109-113,153,170,174,196
+charts/langsmith/templates/sandboxes/juicefs-csi-driver/rbac.yaml
+  s_043184e8d5977f::t_e5a05dc74518d6 1-362
+charts/langsmith/values.yaml
+  s_043184e8d5977f::t_e5a05dc74518d6 121-140,906-907,920-1042
+  s_043184e8d5977f::t_185a325184a5eb 1043
+charts/langsmith/tests/values/sandboxes-conflicting-env.yaml
+  s_043184e8d5977f::t_e5a05dc74518d6 1-5
+charts/langsmith/templates/sandboxes/sandbox-host-rbac.yaml
+  s_043184e8d5977f::t_e5a05dc74518d6 1-69
+charts/langsmith/tests/values/sandboxes-custom-scheduling.yaml
+  s_043184e8d5977f::t_e5a05dc74518d6 1-11
+.github/workflows/helm_checks.yaml
+  s_043184e8d5977f::t_e5a05dc74518d6 41
+.gitignore
+  s_043184e8d5977f::t_e5a05dc74518d6 5,9-20
+charts/langsmith/templates/ingress.yaml
+  s_043184e8d5977f::t_e5a05dc74518d6 37-48
+charts/langsmith/templates/config-map.yaml
+  s_043184e8d5977f::t_e5a05dc74518d6 38-40
+charts/langsmith/templates/sandboxes/juicefs-csi-driver/csidriver.yaml
+  s_043184e8d5977f::t_e5a05dc74518d6 1-21
+charts/langsmith/templates/sandboxes/sandbox-host-deployment.yaml
+  s_043184e8d5977f::t_e5a05dc74518d6 1-140
+charts/langsmith/templates/ingest-queue/deployment.yaml
+  s_043184e8d5977f::t_e5a05dc74518d6 7-22
+charts/langsmith/tests/sandbox_juicefs_csi_driver_test.yaml
+  s_043184e8d5977f::t_e5a05dc74518d6 1-457
+charts/langsmith/templates/platform-backend/deployment.yaml
+  s_043184e8d5977f::t_e5a05dc74518d6 17-62
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "98a1a26fc55c2316ebad0c9763638849e0d08096",
+  "prompts": {},
+  "sessions": {
+    "s_043184e8d5977f": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "2e088f5a-9091-4ff1-ab33-38c641e1817f",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Bagatur Askaryan <baskaryan@gmail.com>"
+    }
+  }
+}

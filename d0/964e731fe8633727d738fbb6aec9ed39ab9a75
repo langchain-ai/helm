@@ -1,0 +1,55 @@
+charts/langsmith/templates/smithdb/metastore-migration.yaml
+  s_3aeec9605703b2::t_16467892b33894 60-63
+charts/langsmith/tests/langsmith_smithdb_validation_test.yaml
+  s_3aeec9605703b2::t_35aef4199af8f1 81-104
+charts/langsmith/templates/smithdb/compaction-worker-deployment.yaml
+  s_3aeec9605703b2::t_72fc9fd6a6513d 49
+charts/langsmith/values.yaml
+  s_3aeec9605703b2::t_bf7f615216c634 1244
+  s_3aeec9605703b2::t_597cd1bf6a6e32 1243
+  h_712f30a2a56c04 1242
+charts/langsmith/templates/smithdb/ingestion-deployment.yaml
+  s_3aeec9605703b2::t_4b05a7ba0aba15 51
+charts/langsmith/tests/langsmith_smithdb_common_sidecars_test.yaml
+  s_3aeec9605703b2::t_f72b38e623e61c 5,78-99
+  s_3aeec9605703b2::t_54bdf516a0b8e1 1-4,6-77
+charts/langsmith/README.md
+  s_3aeec9605703b2::t_23b9034109a34b 907
+charts/langsmith/templates/smithdb/compaction-deployment.yaml
+  s_3aeec9605703b2::t_c3ca20b269184d 48
+charts/langsmith/templates/smithdb/query-deployment.yaml
+  s_3aeec9605703b2::t_0fc00e085aaf46 50
+charts/langsmith/examples/smithdb_alloydb_auth_proxy.yaml
+  s_3aeec9605703b2::t_60d455d9c245d1 15-16
+  s_3aeec9605703b2::t_e2a6046a1287b8 1-14,17-79
+charts/langsmith/templates/_helpers.tpl
+  h_712f30a2a56c04 540
+  s_3aeec9605703b2::t_005fccd8be84fe 541-551
+charts/langsmith/templates/validate.yaml
+  s_3aeec9605703b2::t_bc304c4cec3951 204-219
+charts/langsmith/templates/smithdb/migration-job.yaml
+  s_3aeec9605703b2::t_1db29c89eab4fa 53
+charts/langsmith/templates/smithdb/cluster-manager-deployment.yaml
+  s_3aeec9605703b2::t_05bc4a441c3d9d 48
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "d0964e731fe8633727d738fbb6aec9ed39ab9a75",
+  "prompts": {},
+  "humans": {
+    "h_712f30a2a56c04": {
+      "author": "ben11211 <nagengast@langchain.dev>"
+    }
+  },
+  "sessions": {
+    "s_3aeec9605703b2": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "f49cb69d-4d4d-4b82-b92d-49b77cef05d4",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "ben11211 <nagengast@langchain.dev>"
+    }
+  }
+}

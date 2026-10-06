@@ -1,0 +1,22 @@
+charts/langsmith/Chart.yaml
+  s_631c2a457dd42e::t_386707075f87aa 8
+charts/langsmith/README.md
+  s_631c2a457dd42e::t_1e71dfb5381771 3
+  s_631c2a457dd42e::t_d222398ff30dc8 1022,1029-1035,1037-1041
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "97cc1f00ee55cf68d68d26d9a866ce17b12af166",
+  "prompts": {},
+  "sessions": {
+    "s_631c2a457dd42e": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "b0a542dd-be30-4f33-8c8b-62b2a79b0e58",
+        "model": "auto-smart"
+      },
+      "human_author": "ben11211 <nagengast@langchain.dev>"
+    }
+  }
+}

@@ -1,0 +1,26 @@
+charts/langsmith/values.yaml
+  s_f71a0b5e6e69d1::t_d16ada3215c467 1170,1172
+charts/langsmith/templates/_helpers.tpl
+  s_f71a0b5e6e69d1::t_d16ada3215c467 745-756
+charts/langsmith/Chart.yaml
+  s_f71a0b5e6e69d1::t_d16ada3215c467 8
+charts/langsmith/tests/langsmith_smithdb_retention_test.yaml
+  s_f71a0b5e6e69d1::t_a57a0b6468a840 24
+  s_f71a0b5e6e69d1::t_d16ada3215c467 1-23,25-93
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "f4b7bd665a915f6ddb294330dd6b38bf09d922d5",
+  "prompts": {},
+  "sessions": {
+    "s_f71a0b5e6e69d1": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a0a724-48c8-7781-b9f2-b08451339538",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "ben11211 <nagengast@langchain.dev>"
+    }
+  }
+}

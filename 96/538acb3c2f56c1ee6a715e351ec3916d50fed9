@@ -1,0 +1,19 @@
+charts/langsmith/README.md
+  s_caeb4dd22a3008::t_9311d8355ad83a 867,912,965,1038,1206
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "96538acb3c2f56c1ee6a715e351ec3916d50fed9",
+  "prompts": {},
+  "sessions": {
+    "s_caeb4dd22a3008": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "1ec7b7b3-9668-4015-8978-27482eefc670",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "ben11211 <nagengast@langchain.dev>"
+    }
+  }
+}

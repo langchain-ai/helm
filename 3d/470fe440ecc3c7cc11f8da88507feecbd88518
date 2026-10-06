@@ -1,0 +1,23 @@
+charts/langsmith/templates/config-map.yaml
+  s_68c14ee09ccbe3::t_95d80635ac1860 76
+charts/langsmith/tests/langsmith_smithdb_test.yaml
+  s_68c14ee09ccbe3::t_dba33599763842 338-339
+  s_68c14ee09ccbe3::t_301e5d045a4fb7 450-451
+  s_68c14ee09ccbe3::t_37b34df6c9d4f3 337
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "3d470fe440ecc3c7cc11f8da88507feecbd88518",
+  "prompts": {},
+  "sessions": {
+    "s_68c14ee09ccbe3": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79024c53-abc3-491b-842c-de6e45463370",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Alex Kira <alex.kira@gmail.com>"
+    }
+  }
+}

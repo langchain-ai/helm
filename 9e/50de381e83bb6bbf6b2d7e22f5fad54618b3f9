@@ -1,0 +1,19 @@
+charts/langsmith/tests/langsmith_smithdb_retention_test.yaml
+  s_055cd364136886::t_4949803c53d8b5 26
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "9e50de381e83bb6bbf6b2d7e22f5fad54618b3f9",
+  "prompts": {},
+  "sessions": {
+    "s_055cd364136886": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a33ff317-29c7-4b2f-a8eb-477f3f54c49c",
+        "model": "claude-fable-5-1"
+      },
+      "human_author": "ben11211 <nagengast@langchain.dev>"
+    }
+  }
+}

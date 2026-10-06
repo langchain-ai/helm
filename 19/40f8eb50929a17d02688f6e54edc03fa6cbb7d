@@ -1,0 +1,22 @@
+charts/mission-control/templates/backend/role.yaml
+  s_5f2b66f834c543::t_054f6b7132372e 61-62
+  s_5f2b66f834c543::t_7c0ed7494fcc26 9
+charts/mission-control/templates/backend/role-binding.yaml
+  s_5f2b66f834c543::t_e4c01ce65860ac 2
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "1940f8eb50929a17d02688f6e54edc03fa6cbb7d",
+  "prompts": {},
+  "sessions": {
+    "s_5f2b66f834c543": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "faf100d9-7b54-4a5b-9c8c-a42d182e50b6",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "gdibben <gethin.dibben@langchain.dev>"
+    }
+  }
+}

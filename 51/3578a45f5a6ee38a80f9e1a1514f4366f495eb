@@ -1,0 +1,23 @@
+charts/langsmith/tests/langsmith_smithdb_test.yaml
+  s_a0f04f9c94a8e7::t_ac3c8fe17d6052 103-104,157-158
+  s_a0f04f9c94a8e7::t_8ad07b9eb994ea 97-98,151-152
+charts/langsmith/templates/config-map.yaml
+  s_a0f04f9c94a8e7::t_82ef2c220f31dc 51
+  s_a0f04f9c94a8e7::t_4ed2be9c2dc40a 46
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.11",
+  "base_commit_sha": "513578a45f5a6ee38a80f9e1a1514f4366f495eb",
+  "prompts": {},
+  "sessions": {
+    "s_a0f04f9c94a8e7": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "759c41f5-d00b-478e-962a-87ca0b073032",
+        "model": "gpt-5.5"
+      },
+      "human_author": "ben11211 <nagengast@langchain.dev>"
+    }
+  }
+}

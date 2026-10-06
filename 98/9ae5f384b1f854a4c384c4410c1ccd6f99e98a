@@ -1,0 +1,83 @@
+charts/langsmith/templates/validate.yaml
+  s_ee52300d943d97::t_c7acbbf4f2fd0a 41-51,434-435,460-465,468-471,474-475,500-501
+charts/langsmith/templates/agent-features/insights/queue/deployment.yaml
+  s_ee52300d943d97::t_c7acbbf4f2fd0a 1-3,5-6,10,14,19,23-24,29,34,38,42,50-51,53,55,61,71,74-75,78,81,83,85,87,89-90,98,101,105,109
+charts/langsmith/templates/agent-features/insights/queue/pdb.yaml
+  s_ee52300d943d97::t_c7acbbf4f2fd0a 1-2,6,14-16,18-19
+charts/langsmith/templates/agent-features/insights/redis/secrets.yaml
+  s_ee52300d943d97::t_c7acbbf4f2fd0a 1-3,7,14-15,17
+charts/langsmith/tests/engine_insights_agent_test.yaml
+  s_ee52300d943d97::t_061890c79fa0c1 1-36
+charts/langsmith/templates/agent-features/insights/api-server/service.yaml
+  s_ee52300d943d97::t_c7acbbf4f2fd0a 1,5,9,14,18,21,26
+charts/langsmith/templates/agent-features/insights/api-server/serviceaccount.yaml
+  s_ee52300d943d97::t_c7acbbf4f2fd0a 1-2,10,15
+charts/langsmith/templates/agent-features/insights/postgres/secrets.yaml
+  s_ee52300d943d97::t_c7acbbf4f2fd0a 1-3,7,14-16,18,21-24
+charts/langsmith/templates/config-map.yaml
+  s_ee52300d943d97::t_c7acbbf4f2fd0a 40
+charts/langsmith/templates/agent-features/insights/postgres/pdb.yaml
+  s_ee52300d943d97::t_c7acbbf4f2fd0a 1-3,16-17,19-20
+charts/langsmith/templates/agent-features/insights/queue/scaled-object.yaml
+  s_ee52300d943d97::t_c7acbbf4f2fd0a 1-2,6,12-16,21,23,27,29,33,39-41
+charts/langsmith/templates/agent-features/insights/queue/serviceaccount.yaml
+  s_ee52300d943d97::t_c7acbbf4f2fd0a 1-2,10,15
+charts/langsmith/templates/queue/deployment.yaml
+  s_ee52300d943d97::t_c7acbbf4f2fd0a 10
+charts/langsmith/README.md
+  s_ee52300d943d97::t_c7acbbf4f2fd0a 356-358,461-517,520-653
+charts/langsmith/templates/agent-features/insights/api-server/deployment.yaml
+  s_ee52300d943d97::t_c7acbbf4f2fd0a 1-2,4-5,9,13,18,22-23,28,33,37,41,49-50,52,54-55,61,69,72-73,76,79,81,83,85,87-88,96,99,103,107
+charts/langsmith/templates/agent-features/insights/redis/pdb.yaml
+  s_ee52300d943d97::t_c7acbbf4f2fd0a 1-3,16-17,19-20
+charts/langsmith/templates/_helpers.tpl
+  s_ee52300d943d97::t_c7acbbf4f2fd0a 914-915,917,922-923,925,1060,1064-1065
+charts/langsmith/templates/agent-features/insights/api-server/pdb.yaml
+  s_ee52300d943d97::t_c7acbbf4f2fd0a 1-2,6,14-16,18-19
+charts/langsmith/templates/agent-features/insights/queue/hpa.yaml
+  s_ee52300d943d97::t_c7acbbf4f2fd0a 1-2,6,14-16,18,24,26,32
+charts/langsmith/templates/frontend/config-map.yaml
+  s_ee52300d943d97::t_c7acbbf4f2fd0a 472,1196
+charts/langsmith/values.yaml
+  s_ee52300d943d97::t_c7acbbf4f2fd0a 73-76,401-405
+charts/langsmith/templates/agent-features/insights/redis/serviceaccount.yaml
+  s_ee52300d943d97::t_c7acbbf4f2fd0a 1-3,11,16
+charts/langsmith/templates/agent-features/insights/postgres/service.yaml
+  s_ee52300d943d97::t_c7acbbf4f2fd0a 1-3,11,16,20,23
+charts/langsmith/templates/agent-features/insights/api-server/hpa.yaml
+  s_ee52300d943d97::t_c7acbbf4f2fd0a 1-2,6,14-16,18,24,26,32
+charts/langsmith/templates/agent-features/insights/redis/statefulset.yaml
+  s_ee52300d943d97::t_c7acbbf4f2fd0a 1-5,13,18,24,34,39,49-50,52,54,58-59,63,65,71,101,103-104,112,116,119,122,126,130,138-139,156-158
+charts/langsmith/templates/agent-features/insights/postgres/statefulset.yaml
+  s_ee52300d943d97::t_c7acbbf4f2fd0a 1-5,13,18,24,34,39,49-50,52,54,58-59,67,72,77,81,88,118,120-121,129,134,137,140,144,148,156-157,175-177
+charts/langsmith/templates/agent-features/insights/api-server/scaled-object.yaml
+  s_ee52300d943d97::t_c7acbbf4f2fd0a 1-2,6,12-16,21,23,27,29,33,35,40-41,43
+charts/langsmith/templates/agent-features/insights/redis/service.yaml
+  s_ee52300d943d97::t_c7acbbf4f2fd0a 1-3,11,16,20,23
+charts/langsmith/templates/agent-features/insights/postgres/serviceaccount.yaml
+  s_ee52300d943d97::t_c7acbbf4f2fd0a 1-3,11,16
+charts/langsmith/templates/backend/deployment.yaml
+  s_ee52300d943d97::t_c7acbbf4f2fd0a 14
+charts/langsmith/ci/lightweight-config-values.yaml
+  s_ee52300d943d97::t_53f023d114a479 44-45
+charts/langsmith/ci/readonly-config-values.yaml
+  s_ee52300d943d97::t_c41c1cb500168b 123-124
+charts/langsmith/tests/statefulset_update_strategy_test.yaml
+  s_ee52300d943d97::t_693ee3a25af577 54,72
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "989ae5f384b1f854a4c384c4410c1ccd6f99e98a",
+  "prompts": {},
+  "sessions": {
+    "s_ee52300d943d97": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "14993807-ebcf-4cce-902a-cf421d7d3c24",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Bagatur Askaryan <baskaryan@gmail.com>"
+    }
+  }
+}

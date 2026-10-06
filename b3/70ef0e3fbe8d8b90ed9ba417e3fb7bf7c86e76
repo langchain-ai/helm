@@ -1,0 +1,20 @@
+charts/langsmith/templates/frontend/config-map.yaml
+  s_043184e8d5977f::t_9d7bed328c3978 788-790
+  s_043184e8d5977f::t_5cc256d55c3bda 150-152
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "b370ef0e3fbe8d8b90ed9ba417e3fb7bf7c86e76",
+  "prompts": {},
+  "sessions": {
+    "s_043184e8d5977f": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "2e088f5a-9091-4ff1-ab33-38c641e1817f",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Bagatur Askaryan <baskaryan@gmail.com>"
+    }
+  }
+}

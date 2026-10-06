@@ -1,0 +1,26 @@
+charts/langsmith/tests/langsmith_smithdb_test.yaml
+  s_5535fed495cc92::t_32b2511c9bf475 191-206
+charts/langsmith/templates/_helpers.tpl
+  s_5535fed495cc92::t_4cac2841f36139 598
+  s_5535fed495cc92::t_2ec5370a8c3244 597,600,623-630,635-642,647-648,652-653
+  s_5535fed495cc92::t_13da4fe5cdeae2 602,612-622,631-634,643-646,649-651,654-661
+  s_5535fed495cc92::t_f0c63f65dd2845 729
+charts/langsmith/templates/smithdb/cluster-manager-deployment.yaml
+  s_5535fed495cc92::t_80403cd1400b31 63
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "dac16e220e31b60d06c37e34dae07d548fbd7053",
+  "prompts": {},
+  "sessions": {
+    "s_5535fed495cc92": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "f8c383f6-707b-40d8-9b5e-d7879e48a3eb",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "ben11211 <nagengast@langchain.dev>"
+    }
+  }
+}

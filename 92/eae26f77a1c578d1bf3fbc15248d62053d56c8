@@ -1,0 +1,37 @@
+charts/langsmith/values.yaml
+  s_bccc6a736ea509::t_7968a01a5da2bf 998
+  s_0b851478122414::t_3c813c97cc4d0e 999
+charts/langsmith/README.md
+  s_0b851478122414::t_798b37562ba698 3,1188
+charts/langsmith/templates/_helpers.tpl
+  s_bccc6a736ea509::t_3a7e2f394efb47 211-212
+  s_bccc6a736ea509::t_aead66a176332f 1191-1200
+  s_bccc6a736ea509::t_b0f90b0748faa0 200
+  s_bccc6a736ea509::t_a5b74be4418f5c 1190
+charts/langsmith/Chart.yaml
+  s_0b851478122414::t_3a117c06d64fac 8
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "92eae26f77a1c578d1bf3fbc15248d62053d56c8",
+  "prompts": {},
+  "sessions": {
+    "s_0b851478122414": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "e7f896f8-2bdb-4de7-8262-e76017807202",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Joaquin Borggio <joaquin@langchain.dev>"
+    },
+    "s_bccc6a736ea509": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a8427612-d36c-4912-9745-bf5cb769a861",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Joaquin Borggio <joaquin@langchain.dev>"
+    }
+  }
+}

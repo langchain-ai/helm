@@ -1,0 +1,25 @@
+charts/mission-control/templates/backend/role.yaml
+  s_5f2b66f834c543::t_f3720e1676d957 36
+charts/mission-control/templates/backend/cluster-role-binding.yaml
+  s_5f2b66f834c543::t_346bc85e790e4e 1
+charts/mission-control/templates/backend/cluster-role.yaml
+  s_5f2b66f834c543::t_f231c93fbff839 1
+charts/mission-control/templates/backend/role-binding.yaml
+  s_5f2b66f834c543::t_ab508b8e652476 3
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "2e4204145e3391c7a32bbf95e0fee6520dd7815a",
+  "prompts": {},
+  "sessions": {
+    "s_5f2b66f834c543": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "faf100d9-7b54-4a5b-9c8c-a42d182e50b6",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "gdibben <gethin.dibben@langchain.dev>"
+    }
+  }
+}

@@ -1,0 +1,88 @@
+charts/langsmith/templates/validate.yaml
+  s_86ce9723413f15::t_8a9190fbf19694 252-274,277,279-280
+  s_a02fb95fb93971::t_7dc8372976f5a8 220,227,233-236,246-248,251
+  s_a02fb95fb93971::t_eadd75f848ae11 232,281,303-314
+  s_a02fb95fb93971::t_27227a09e4b5a4 249-250,275
+  s_86ce9723413f15::t_0475c8faf130c8 276,278
+  s_a02fb95fb93971::t_b805d4aa0e4842 237-245
+charts/langsmith/tests/langsmith_smithdb_test.yaml
+  s_a02fb95fb93971::t_30bf6ea5232450 16,18-19,138,140-141,211,213-214,220,223,225-228,237,243-244,247-249,284-285,287-293,295,298-303,305-307,309-311,314-318,320-331,349-355
+  s_86ce9723413f15::t_a393eb133cdd33 357-423
+  s_a02fb95fb93971::t_1ed453d26bf813 229,294,308,319,356
+  s_86ce9723413f15::t_d4d39eec82da16 224,232-236,238-242,245-246,250-283
+  s_86ce9723413f15::t_c413d796f26bba 212,215-219,221-222,231,297,304,312-313,337
+  s_a02fb95fb93971::t_a46594d24b1552 230,296
+  s_86ce9723413f15::t_abab0d4f191076 17,139,286,332-336,338-348
+charts/langsmith/tests/langsmith_smithdb_validation_test.yaml
+  s_86ce9723413f15::t_0f5e4a49697eae 53-64
+  s_86ce9723413f15::t_b65eb09607467f 5-14
+  s_86ce9723413f15::t_1cd2d9eb298b8d 65-80
+  s_a02fb95fb93971::t_abd77facf19cea 23,48
+  s_a02fb95fb93971::t_be6d489af1031d 1-4,15-22,24-47,49-52
+charts/langsmith/templates/_helpers.tpl
+  s_86ce9723413f15::t_4fb9c5e0a897f9 500-503,507-512
+  s_86ce9723413f15::t_6529dd2aaf76a6 504-506
+  s_86ce9723413f15::t_28acb009c3540c 499
+charts/langsmith/templates/smithdb/taskdb-postgres-secret.yaml
+  s_86ce9723413f15::t_095e59027923d2 1,4-15,22,24,26
+  s_86ce9723413f15::t_6ebb46ca5b7922 2-3,16-21,25
+  s_86ce9723413f15::t_d6712132b7000f 23
+charts/langsmith/templates/smithdb/taskdb-postgres-statefulset.yaml
+  s_a02fb95fb93971::t_aafa05c2161683 4-66,81-161
+  s_86ce9723413f15::t_798099ac6f5753 2
+  s_a02fb95fb93971::t_d7dd341db17e38 3,67-73,75-80
+  s_a02fb95fb93971::t_4080bd83e0b59a 1
+  s_86ce9723413f15::t_0e0e8af319219e 74
+charts/langsmith/templates/smithdb/migration-deployment.yaml
+  s_86ce9723413f15::t_f92e70e00296bf 103
+  s_a02fb95fb93971::t_7ebc19e9d5a524 62-63
+  s_86ce9723413f15::t_236cbae6012f65 1
+  s_a02fb95fb93971::t_a9e9f6a90daa7e 3-20,22-59,109-150
+  s_a02fb95fb93971::t_e0ed4b7b1c9874 21,90-91
+  s_86ce9723413f15::t_55d3a91e2f87bd 64-89,107
+  s_a02fb95fb93971::t_98eec086aaed48 2,60-61,92-102,104-106,108
+charts/langsmith/templates/smithdb/compaction-deployment.yaml
+  s_a02fb95fb93971::t_fd85e989574291 62-65
+charts/langsmith/values.yaml
+  s_86ce9723413f15::t_bd99cd3028b6cf 1595-1596,1600,1608-1624
+  s_a02fb95fb93971::t_4a4aaf194da68b 1691-1693
+  s_86ce9723413f15::t_240091f893c9b1 1305
+  s_a02fb95fb93971::t_5d70047cac9011 145-148,1300,1303-1304,1306,1590-1592,1682-1690,1694-1703
+  s_86ce9723413f15::t_d53f9c9610bc4b 1301-1302
+  s_a02fb95fb93971::t_5e4d82178458e0 1593-1594,1597-1599,1601-1603,1607,1625-1681
+  s_86ce9723413f15::t_0f969fe8c2961b 1604-1606
+  s_a02fb95fb93971::t_2c2667b019d4d4 1704
+charts/langsmith/templates/smithdb/taskdb-postgres-service.yaml
+  s_86ce9723413f15::t_ed12d0ba1a470f 2
+  s_a02fb95fb93971::t_b7ece822bc6be5 3-5,7-9,12-15,17-22,24-27,29
+  s_a02fb95fb93971::t_81d357680dd8c6 1,6,10-11,16,23,28
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "2996a797412e5e6ac4445124638b37b9b2c6994f",
+  "prompts": {},
+  "humans": {
+    "h_712f30a2a56c04": {
+      "author": "ben11211 <nagengast@langchain.dev>"
+    }
+  },
+  "sessions": {
+    "s_86ce9723413f15": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "957ad83f-cff0-4650-a3e8-aa030cb658b3",
+        "model": "gpt-5.5"
+      },
+      "human_author": "ben11211 <nagengast@langchain.dev>"
+    },
+    "s_a02fb95fb93971": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "1c7da6cd-2a57-45ec-b23c-943406d4ad9b",
+        "model": "gpt-5.5"
+      },
+      "human_author": "ben11211 <nagengast@langchain.dev>"
+    }
+  }
+}

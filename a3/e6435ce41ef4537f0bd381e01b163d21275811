@@ -1,0 +1,33 @@
+charts/mission-control/values.yaml
+  s_c4e57c5dd05835::t_c9af5bdcb116b8 89-94
+charts/mission-control/templates/backend/statefulset.yaml
+  s_c4e57c5dd05835::t_0084f3d03a5949 122-123
+charts/mission-control/README.md.gotmpl
+  s_c4e57c5dd05835::t_2be9411098d9f2 51
+charts/mission-control/README.md
+  s_c4e57c5dd05835::t_3290f2e2517317 3,51,125
+charts/mission-control/templates/backend/role.yaml
+  s_c4e57c5dd05835::t_dc60abb2b2a8c3 1-67
+charts/mission-control/templates/backend/role-binding.yaml
+  s_c4e57c5dd05835::t_47a8041611660a 1-21
+charts/mission-control/Chart.yaml
+  s_c4e57c5dd05835::t_c359b134d21bc7 4
+charts/mission-control/templates/backend/cluster-role.yaml
+  s_c4e57c5dd05835::t_a29a4f4a4f2c84 237-239,241-245,250
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "a3e6435ce41ef4537f0bd381e01b163d21275811",
+  "prompts": {},
+  "sessions": {
+    "s_c4e57c5dd05835": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "89c0d9b2-2bac-4fd6-a873-a9d4f12def93",
+        "model": "claude-sonnet-4-6"
+      },
+      "human_author": "gdibben <gethin.dibben@langchain.dev>"
+    }
+  }
+}
