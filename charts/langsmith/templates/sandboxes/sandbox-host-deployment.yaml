@@ -5,6 +5,7 @@
 {{- $managedHostMountEnv := list
   (dict "name" "SANDBOX_HOST_JUICEFS_META_URL_FILE")
   (dict "name" "SANDBOX_HOST_JUICEFS_MOUNT_OPTIONS")
+  (dict "name" "SANDBOX_HOST_JUICEFS_REDIS_IAM_AUTH_PROVIDER")
 -}}
 {{- include "langsmith.detectDuplicates" (concat $managedHostMountEnv .Values.sandboxes.sandboxHost.deployment.extraEnv) }}
 {{- /* Chart labels last so they win; the selector depends on them. */}}
@@ -151,6 +152,10 @@ spec:
               value: /run/secrets/juicefs/metaurl
             - name: SANDBOX_HOST_JUICEFS_MOUNT_OPTIONS
               value: {{ concat (list (printf "--cache-dir=%s" (join ":" $hostMount.cacheDirs))) $hostMount.mountOptions | toJson | quote }}
+            {{- with (.Values.sandboxes.juicefs.redis | default dict).iamAuthProvider }}
+            - name: SANDBOX_HOST_JUICEFS_REDIS_IAM_AUTH_PROVIDER
+              value: {{ . | quote }}
+            {{- end }}
             {{- /* Baseline; autoscale-* annotations override it live. */}}
             - name: SANDBOX_HOST_AUTOSCALE_ENABLED
               value: {{ $autoscaling.enabled | quote }}
