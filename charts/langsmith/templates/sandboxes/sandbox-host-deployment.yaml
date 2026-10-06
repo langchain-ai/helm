@@ -141,6 +141,17 @@ spec:
               value: "true"
             - name: SANDBOX_CALLBACK_LOOPBACK_REWRITE
               value: "false"
+            {{- with (.Values.sandboxes.authProxy | default dict).httpProxy }}
+            {{- if .enabled }}
+            {{- /* An https proxy is verified against SSL_CERT_FILE, i.e. config.customCa, when set. */}}
+            - name: SANDBOX_EGRESS_UPSTREAM_PROXY_URL
+              value: {{ include "langsmith.sandboxes.httpProxyURL" $ | quote }}
+            {{- with .noProxy }}
+            - name: SANDBOX_EGRESS_UPSTREAM_PROXY_NO_PROXY
+              value: {{ join "," . | quote }}
+            {{- end }}
+            {{- end }}
+            {{- end }}
             - name: LANGSMITH_SANDBOX_INTERNAL_ENDPOINT
               value: {{ include "langsmith.platformBackendEndpoint" . | quote }}
             - name: SANDBOX_HOST_DEPLOYMENT_NAME
