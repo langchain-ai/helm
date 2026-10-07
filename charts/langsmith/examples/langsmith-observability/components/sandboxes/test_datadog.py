@@ -2,7 +2,7 @@ import json
 import re
 import unittest
 
-from datadog import build_dashboard
+from datadog import build_dashboard, layout
 
 
 def definitions(widgets):
@@ -233,7 +233,7 @@ class DashboardTests(unittest.TestCase):
                     if item.get("title") == "Guest CPU cores in use vs committed":
                         self.assertEqual(unit.get("label"), "cores")
 
-    def test_two_column_layout_and_api_order(self):
+    def test_mixed_width_layout_bounds_and_api_order(self):
         self.assertEqual(self.dashboard["reflow_type"], "fixed")
         groups = [
             item
@@ -243,14 +243,24 @@ class DashboardTests(unittest.TestCase):
         self.assertTrue(groups[0]["definition"]["title"].startswith("Fleet"))
         self.assertTrue(groups[1]["definition"]["title"].startswith("Sandbox API"))
         self.assertTrue(groups[2]["definition"]["title"].startswith("Exec"))
+        widths = set()
         for group in groups:
             widgets = group["definition"]["widgets"]
+            rows = {}
             for index, widget in enumerate(widgets):
                 self.assertNotIn("id", widget)
                 a = widget["layout"]
+                self.assertGreaterEqual(a["x"], 0)
+                self.assertGreaterEqual(a["y"], 0)
+                self.assertGreater(a["height"], 0)
+                self.assertIn(a["width"], (3, 4, 6, 8, 12))
+                self.assertLessEqual(a["x"] + a["width"], 12)
+                self.assertLessEqual(
+                    a["y"] + a["height"], group["layout"]["height"] - 1
+                )
+                rows[a["y"]] = rows.get(a["y"], 0) + a["width"]
                 if widget["definition"]["type"] != "note":
-                    self.assertEqual(a["width"], 6)
-                    self.assertIn(a["x"], (0, 6))
+                    widths.add(a["width"])
                 for other in widgets[index + 1 :]:
                     b = other["layout"]
                     overlaps = (
@@ -260,6 +270,32 @@ class DashboardTests(unittest.TestCase):
                         and b["y"] < a["y"] + a["height"]
                     )
                     self.assertFalse(overlaps)
+            self.assertTrue(all(width == 12 for width in rows.values()))
+        self.assertTrue({3, 4, 6, 8, 12}.issubset(widths))
+
+    def test_filtered_rows_reflow_without_changing_panels(self):
+        panels = [
+            {
+                "definition": {"type": "timeseries", "title": title},
+                "layout": {"x": index * 4, "y": 8, "width": 4, "height": 4},
+            }
+            for index, title in enumerate(("A", "B", "C"))
+        ]
+        retained = panels[:2]
+        self.assertEqual(layout(retained), 4)
+        self.assertEqual(
+            [item["layout"] for item in retained],
+            [
+                {"x": 0, "y": 0, "width": 6, "height": 4},
+                {"x": 6, "y": 0, "width": 6, "height": 4},
+            ],
+        )
+        self.assertEqual([item["definition"]["title"] for item in retained], ["A", "B"])
+
+    def test_invalid_row_plans_are_rejected(self):
+        for rows in (((6,),), ((0, 12),), ((4, 4, 4),), (("wide",),)):
+            with self.subTest(rows=rows), self.assertRaises(ValueError):
+                layout([{"definition": {"type": "timeseries"}}], rows)
 
 
 if __name__ == "__main__":

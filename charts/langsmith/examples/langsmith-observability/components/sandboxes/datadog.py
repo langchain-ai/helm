@@ -10,6 +10,46 @@ HOST = "langsmith_sandbox_host"
 POOL = "langsmith_sandbox_host_pool"
 EGRESS = "langsmith_sandbox_egress_proxy"
 DNS = "langsmith_sandbox_egress_dns"
+SECTION_ROWS = {
+    "Fleet and capacity": ((6, 6), (6, 6), (6, 6), (8, 4)),
+    "Sandbox API (public v2, optional APM)": (
+        (4, 8),
+        (8, 4),
+        (8, 4),
+        (8, 4),
+        (12,),
+        (4, 4, 4),
+        (4, 8),
+        (12,),
+        (12,),
+        (6, 6),
+    ),
+    "Exec (API metrics optional)": ((4, 4, 4), (6, 6), (6, 6), (4, 4, 4), (6, 6)),
+    "Lifecycle operations": (
+        (6, 6),
+        (6, 6),
+        (4, 8),
+        (4, 4, 4),
+        (4, 4, 4),
+        (4, 4, 4),
+        (4, 4, 4),
+        (6, 6),
+    ),
+    "Boot path": ((4, 4, 4), (4, 4, 4), (6, 6)),
+    "Guest runtime and data path": ((4, 8), (6, 6), (4, 4, 4), (6, 6), (6, 6)),
+    "Guest resources": ((4, 4, 4), (6, 6), (8, 4)),
+    "Egress proxy and DNS": ((4, 4, 4), (6, 6), (6, 6)),
+    "JuiceFS storage (optional mount metrics)": ((4, 4, 4),),
+    "JuiceFS metadata and cache (optional mount metrics)": (
+        (8, 4),
+        (8, 4),
+        (6, 6),
+        (3, 3, 3, 3),
+    ),
+    "Health and failure counters": ((4, 8), (6, 6)),
+    "Runtime reporting (internal APM)": ((6, 6), (4, 8), (4, 8)),
+    "Object storage (optional cloud integration)": ((3, 3, 3, 3),),
+}
 
 
 def query(name, aggregation="sum", scope=SCOPE, by="", rollup=""):
@@ -151,26 +191,47 @@ def group(title, widgets, color):
     }
 
 
-def layout(widgets):
-    x = y = row_height = 0
-    for widget in widgets:
-        kind = widget["definition"]["type"]
-        if kind == "note":
-            if x:
-                y += row_height
-                x = row_height = 0
-            widget["layout"] = {"x": 0, "y": y, "width": 12, "height": 1}
-            y += 1
-            continue
-        height = 1 if kind == "query_value" else 5 if kind == "toplist" else 4
-        widget["layout"] = {"x": x, "y": y, "width": 6, "height": height}
-        row_height = max(row_height, height)
-        x += 6
-        if x == 12:
-            x = 0
-            y += row_height
-            row_height = 0
-    return y + row_height
+def layout(widgets, rows=None):
+    allowed = (3, 4, 6, 8, 12)
+    if rows is not None:
+        panels = [item for item in widgets if item["definition"]["type"] != "note"]
+        if sum(len(row) for row in rows) != len(panels):
+            raise ValueError("Section row plan must include every data panel")
+        if any(
+            any(type(width) is not int or width not in allowed for width in row)
+            or sum(row) != 12
+            for row in rows
+        ):
+            raise ValueError("Section rows must fill the 12-column grid")
+        planned = [
+            [(item, 12)] for item in widgets if item["definition"]["type"] == "note"
+        ]
+        offset = 0
+        for widths in rows:
+            planned.append(list(zip(panels[offset : offset + len(widths)], widths)))
+            offset += len(widths)
+    else:
+        retained = {}
+        for item in widgets:
+            position = item["layout"]
+            retained.setdefault(position["y"], []).append((item, position["width"]))
+        planned = [retained[y] for y in sorted(retained)]
+    heights = {"note": 2, "query_value": 2, "timeseries": 4, "toplist": 5}
+    y = 0
+    for row in planned:
+        if any(type(width) is not int or width not in allowed for _, width in row):
+            raise ValueError("Unsupported panel width")
+        total = sum(width for _, width in row)
+        if not total or any(12 * width % total for _, width in row):
+            raise ValueError("Retained panels must fit an integral grid")
+        height = max(heights[item["definition"]["type"]] for item, _ in row)
+        x = 0
+        for item, width in row:
+            width = 12 * width // total
+            item["layout"] = {"x": x, "y": y, "width": width, "height": height}
+            x += width
+        y += height
+    return y
 
 
 def section_fleet_and_capacity():
@@ -2062,7 +2123,9 @@ def build_dashboard():
     for widget in widgets:
         definition = widget["definition"]
         height = (
-            layout(definition["widgets"]) + 1 if definition["type"] == "group" else 1
+            layout(definition["widgets"], SECTION_ROWS[definition["title"]]) + 1
+            if definition["type"] == "group"
+            else 2
         )
         widget["layout"] = {"x": 0, "y": y, "width": 12, "height": height}
         y += height
