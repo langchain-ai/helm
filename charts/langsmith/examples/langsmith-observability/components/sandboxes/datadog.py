@@ -138,11 +138,12 @@ def note(content):
     }
 
 
-def group(title, widgets):
+def group(title, widgets, color):
     return {
         "definition": {
             "type": "group",
             "title": title,
+            "background_color": color,
             "layout_type": "ordered",
             "show_title": True,
             "widgets": widgets,
@@ -2015,32 +2016,46 @@ def build_dashboard():
         note(
             "Import into your own Datadog organization and select one env, cluster and namespace for pool counts. Filters select data, not access rights. Fleet snapshots use 5m; other charts and totals follow the dashboard range. HTTP ranking uses whole-window p95. Legend AVG/MAX summarize plotted buckets. See the accompanying README for collection and optional integrations."
         ),
-        group("Fleet and capacity", section_fleet_and_capacity()),
+        group("Fleet and capacity", section_fleet_and_capacity(), "gray"),
         group(
             "Sandbox API (public v2, optional APM)",
             section_sandbox_api_public_v2_optional_apm(),
+            "purple",
         ),
-        group("Exec (API metrics optional)", section_exec_api_metrics_optional()),
-        group("Lifecycle operations", section_lifecycle_operations()),
-        group("Boot path", section_boot_path()),
-        group("Guest runtime and data path", section_guest_runtime_and_data_path()),
-        group("Guest resources", section_guest_resources()),
-        group("Egress proxy and DNS", section_egress_proxy_and_dns()),
+        group(
+            "Exec (API metrics optional)", section_exec_api_metrics_optional(), "green"
+        ),
+        group("Lifecycle operations", section_lifecycle_operations(), "blue"),
+        group("Boot path", section_boot_path(), "orange"),
+        group(
+            "Guest runtime and data path",
+            section_guest_runtime_and_data_path(),
+            "purple",
+        ),
+        group("Guest resources", section_guest_resources(), "green"),
+        group("Egress proxy and DNS", section_egress_proxy_and_dns(), "orange"),
         group(
             "JuiceFS storage (optional mount metrics)",
             section_juicefs_storage_optional_mount_metrics(),
+            "blue",
         ),
         group(
             "JuiceFS metadata and cache (optional mount metrics)",
             section_juicefs_metadata_and_cache_optional_mount_metrics(),
+            "blue",
         ),
-        group("Health and failure counters", section_health_and_failure_counters()),
         group(
-            "Runtime reporting (internal APM)", section_runtime_reporting_internal_apm()
+            "Health and failure counters", section_health_and_failure_counters(), "pink"
+        ),
+        group(
+            "Runtime reporting (internal APM)",
+            section_runtime_reporting_internal_apm(),
+            "purple",
         ),
         group(
             "Object storage (optional cloud integration)",
             section_object_storage_optional_cloud_integration(),
+            "gray",
         ),
     ]
     y = 0

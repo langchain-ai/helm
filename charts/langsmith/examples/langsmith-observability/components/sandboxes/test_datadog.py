@@ -23,6 +23,19 @@ class DashboardTests(unittest.TestCase):
             for query in request["queries"]
         ]
 
+    def test_sections_use_native_header_colors_and_visible_titles(self):
+        groups = [item for item in self.definitions if item["type"] == "group"]
+        colors = set()
+        for group in groups:
+            self.assertTrue(group["show_title"])
+            self.assertTrue(group["title"])
+            self.assertIn(
+                group.get("background_color"),
+                {"gray", "purple", "blue", "green", "orange", "pink"},
+            )
+            colors.add(group["background_color"])
+        self.assertGreater(len(colors), 1)
+
     def test_import_has_no_account_metadata_or_tenant_breakdowns(self):
         self.assertEqual(
             set(self.dashboard),

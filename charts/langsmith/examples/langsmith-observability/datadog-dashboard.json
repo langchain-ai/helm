@@ -1865,6 +1865,7 @@
       "definition": {
         "type": "group",
         "title": "Fleet and capacity",
+        "background_color": "gray",
         "layout_type": "ordered",
         "show_title": true,
         "widgets": [
@@ -2336,6 +2337,7 @@
       "definition": {
         "type": "group",
         "title": "Sandbox API (public v2, optional APM)",
+        "background_color": "purple",
         "layout_type": "ordered",
         "show_title": true,
         "widgets": [
@@ -3798,6 +3800,7 @@
       "definition": {
         "type": "group",
         "title": "Exec (API metrics optional)",
+        "background_color": "green",
         "layout_type": "ordered",
         "show_title": true,
         "widgets": [
@@ -4602,6 +4605,7 @@
       "definition": {
         "type": "group",
         "title": "Lifecycle operations",
+        "background_color": "blue",
         "layout_type": "ordered",
         "show_title": true,
         "widgets": [
@@ -5743,6 +5747,7 @@
       "definition": {
         "type": "group",
         "title": "Boot path",
+        "background_color": "orange",
         "layout_type": "ordered",
         "show_title": true,
         "widgets": [
@@ -6228,6 +6233,7 @@
       "definition": {
         "type": "group",
         "title": "Guest runtime and data path",
+        "background_color": "purple",
         "layout_type": "ordered",
         "show_title": true,
         "widgets": [
@@ -7037,6 +7043,7 @@
       "definition": {
         "type": "group",
         "title": "Guest resources",
+        "background_color": "green",
         "layout_type": "ordered",
         "show_title": true,
         "widgets": [
@@ -7536,6 +7543,7 @@
       "definition": {
         "type": "group",
         "title": "Egress proxy and DNS",
+        "background_color": "orange",
         "layout_type": "ordered",
         "show_title": true,
         "widgets": [
@@ -7937,6 +7945,7 @@
       "definition": {
         "type": "group",
         "title": "JuiceFS storage (optional mount metrics)",
+        "background_color": "blue",
         "layout_type": "ordered",
         "show_title": true,
         "widgets": [
@@ -8121,6 +8130,7 @@
       "definition": {
         "type": "group",
         "title": "JuiceFS metadata and cache (optional mount metrics)",
+        "background_color": "blue",
         "layout_type": "ordered",
         "show_title": true,
         "widgets": [
@@ -8710,6 +8720,7 @@
       "definition": {
         "type": "group",
         "title": "Health and failure counters",
+        "background_color": "pink",
         "layout_type": "ordered",
         "show_title": true,
         "widgets": [
@@ -9173,6 +9184,7 @@
       "definition": {
         "type": "group",
         "title": "Runtime reporting (internal APM)",
+        "background_color": "purple",
         "layout_type": "ordered",
         "show_title": true,
         "widgets": [
@@ -9564,6 +9576,7 @@
       "definition": {
         "type": "group",
         "title": "Object storage (optional cloud integration)",
+        "background_color": "gray",
         "layout_type": "ordered",
         "show_title": true,
         "widgets": [
