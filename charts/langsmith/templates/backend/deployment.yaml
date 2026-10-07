@@ -10,7 +10,7 @@
   value: {{ . | quote }}
 {{- end }}
 {{- if .Values.engine.enabled }}
-- name: SELF_HOSTED_ENGINE_ENABLED
+- name: ENGINE_ENABLED
   value: "true"
 - name: ENGINE_SANDBOX_TENANT_ID
   value: {{ .Values.engine.sandboxTenantId | quote }}

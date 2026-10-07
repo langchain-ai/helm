@@ -53,7 +53,7 @@ tests:
       - contains:
           path: spec.template.spec.containers[0].env
           content:
-            name: SELF_HOSTED_ENGINE_ENABLED
+            name: ENGINE_ENABLED
             value: "true"
       - contains:
           path: spec.template.spec.containers[0].env
@@ -67,7 +67,7 @@ tests:
       - notContains:
           path: spec.template.spec.containers[0].env
           content:
-            name: SELF_HOSTED_ENGINE_ENABLED
+            name: ENGINE_ENABLED
             value: "true"
       - notContains:
           path: spec.template.spec.containers[0].env
