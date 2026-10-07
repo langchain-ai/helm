@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.18.0-rc.14](https://img.shields.io/badge/Version-0.18.0--rc.14-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.18.4rc1](https://img.shields.io/badge/AppVersion-0.18.4rc1-informational?style=flat-square)
+![Version: 0.18.0-rc.15](https://img.shields.io/badge/Version-0.18.0--rc.15-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.18.4rc1](https://img.shields.io/badge/AppVersion-0.18.4rc1-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -30,7 +30,7 @@ Things worth planning for before you enable it:
 
 ## Observability dashboards
 
-For tabbed Datadog and Grafana dashboards and component collection examples, see the [LangSmith observability bundle](examples/langsmith-observability/README.md). Import these definitions into your own monitoring instance. Existing standalone SmithDB downloads remain available for compatibility.
+For tabbed Datadog and Grafana dashboards and component collection examples, see the [LangSmith observability bundle](examples/langsmith-observability/README.md). Import these definitions into your own monitoring instance. The standalone Classic-format SmithDB Grafana dashboard is available in the same bundle. The former SmithDB directory retains only a README pointing to the new download paths.
 
 ## Sandbox quotas
 
@@ -2122,6 +2122,7 @@ The trajectory Service is cluster-internal; no public route is added. Trajectory
 | frontend.autoscaling.keda.scaleUpPolicy.value | int | `100` |  |
 | frontend.autoscaling.keda.targetCPUUtilizationPercentage | int | `50` |  |
 | frontend.autoscaling.keda.targetMemoryUtilizationPercentage | int | `80` |  |
+| frontend.clientHeaderBufferSize | string | `"1k"` |  |
 | frontend.containerPort | int | `8080` |  |
 | frontend.cspHeader | string | `"frame-ancestors 'self'; object-src 'none'"` |  |
 | frontend.deployment.affinity | object | `{}` |  |
@@ -2167,6 +2168,7 @@ The trajectory Service is cluster-internal; no public route is added. Trajectory
 | frontend.includeNonce | bool | `false` |  |
 | frontend.ipv6Enabled | bool | `true` |  |
 | frontend.keepAliveTimeout | string | `"75"` |  |
+| frontend.largeClientHeaderBuffers | string | `"4 8k"` |  |
 | frontend.maxBodySize | string | `"25M"` |  |
 | frontend.name | string | `"frontend"` |  |
 | frontend.pdb.annotations | object | `{}` |  |
