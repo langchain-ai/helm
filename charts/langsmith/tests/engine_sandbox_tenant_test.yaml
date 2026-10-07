@@ -58,7 +58,7 @@ tests:
       - contains:
           path: spec.template.spec.containers[0].env
           content:
-            name: ISSUES_AGENT_SANDBOX_TENANT_ID
+            name: ENGINE_SANDBOX_TENANT_ID
             value: 11111111-2222-3333-4444-555555555555
 
   - it: should leave the backend deletion guard disabled when engine is disabled
@@ -72,5 +72,5 @@ tests:
       - notContains:
           path: spec.template.spec.containers[0].env
           content:
-            name: ISSUES_AGENT_SANDBOX_TENANT_ID
+            name: ENGINE_SANDBOX_TENANT_ID
             value: ""
