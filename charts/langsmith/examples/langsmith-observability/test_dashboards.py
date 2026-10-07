@@ -1,14 +1,15 @@
 from copy import deepcopy
 import json
 from pathlib import Path
+import shutil
 import subprocess
+import sys
 import tarfile
 import tempfile
 import unittest
 import uuid
 
 from generate_dashboards import (
-    artifacts,
     build_dashboards,
     datadog_dashboard,
     grafana_dashboard,
@@ -141,20 +142,28 @@ class DashboardTests(unittest.TestCase):
             if variable["type"] == "query":
                 self.assertEqual(variable["query"], new["spec"]["query"]["spec"])
 
-    def test_legacy_downloads_are_identical_to_component_sources(self):
-        outputs = artifacts()
-        for backend in ("datadog", "grafana"):
-            self.assertEqual(
-                outputs[
-                    local_path(f"../smithdb-observability/{backend}-dashboard.json")
-                ],
-                local_path(f"components/smithdb/{backend}.json").read_text(),
+    def test_generation_is_self_contained_without_legacy_downloads(self):
+        with tempfile.TemporaryDirectory(prefix="langsmith-dashboards-") as directory:
+            bundle = Path(directory) / "bundle"
+            shutil.copytree(
+                local_path("components"),
+                bundle / "components",
+                ignore=shutil.ignore_patterns("__pycache__"),
             )
-        for name in ("datadog-values.yaml", "prometheus-values.yaml"):
-            self.assertEqual(
-                outputs[local_path("../smithdb-observability/" + name)],
-                local_path("components/smithdb/" + name).read_text(),
-            )
+            script = bundle / "generate_dashboards.py"
+            shutil.copyfile(local_path("generate_dashboards.py"), script)
+            for args in ([], ["--check"]):
+                result = subprocess.run(
+                    [sys.executable, str(script), *args],
+                    cwd=directory,
+                    capture_output=True,
+                    text=True,
+                    timeout=30,
+                )
+                self.assertEqual(result.returncode, 0, result.stderr)
+            for name, expected in build_dashboards().items():
+                self.assertEqual(json.loads((bundle / name).read_text()), expected)
+            self.assertFalse((Path(directory) / "smithdb-observability").exists())
 
     def test_exports_are_reproducible_and_account_neutral(self):
         self.assertEqual(build_dashboards(), build_dashboards())
@@ -240,8 +249,13 @@ class DashboardTests(unittest.TestCase):
             self.assertTrue(
                 any(name.startswith("langsmith/templates/") for name in names)
             )
-            self.assertIn(
-                "langsmith/examples/smithdb-observability/grafana-dashboard.json", names
+            self.assertIn("langsmith/examples/smithdb-observability/README.md", names)
+            self.assertFalse(
+                any(
+                    name.startswith("langsmith/examples/smithdb-observability/")
+                    and name.endswith((".json", ".yaml"))
+                    for name in names
+                )
             )
             self.assertFalse(
                 any(
@@ -253,8 +267,9 @@ class DashboardTests(unittest.TestCase):
     def test_inputs_and_output_paths_are_bounded(self):
         with self.assertRaises(ValueError):
             load_source("../../outside", "grafana")
-        with self.assertRaises(ValueError):
-            local_path("../../../../outside.json")
+        for path in ("../outside.json", "../../../../outside.json"):
+            with self.subTest(path=path), self.assertRaises(ValueError):
+                local_path(path)
 
 
 if __name__ == "__main__":
