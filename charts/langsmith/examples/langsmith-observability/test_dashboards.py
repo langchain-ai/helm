@@ -53,6 +53,59 @@ class DashboardTests(unittest.TestCase):
         ids = [item["id"] for item in widgets(actual["widgets"])]
         self.assertEqual(len(ids), len(set(ids)))
 
+    def test_custom_smithdb_prefix_changes_only_metric_names_and_prefix_note(self):
+        baseline = build_dashboards()
+        self.assertEqual(baseline, build_dashboards("smithdb."))
+        source = load_source("smithdb", "datadog")
+        for prefix in ("custom_smithdb.", "company.metrics.smithdb.", ""):
+            with self.subTest(prefix=prefix):
+                actual = build_dashboards(prefix)
+                self.assertEqual(
+                    actual["grafana-dashboard.json"], baseline["grafana-dashboard.json"]
+                )
+                normalized = deepcopy(actual["datadog-dashboard.json"])
+                changed = 0
+                for before, after in zip(
+                    widgets(baseline["datadog-dashboard.json"]["widgets"]),
+                    widgets(normalized["widgets"]),
+                ):
+                    old = before["definition"]
+                    new = after["definition"]
+                    if (
+                        old["type"] == "note"
+                        and "Metrics are queried under the `smithdb.` prefix."
+                        in old.get("content", "")
+                    ):
+                        self.assertIn(
+                            f"`{prefix}`" if prefix else "without a prefix",
+                            new["content"],
+                        )
+                        new["content"] = old["content"]
+                    for old_request, new_request in zip(
+                        old.get("requests", []), new.get("requests", [])
+                    ):
+                        for old_query, new_query in zip(
+                            old_request.get("queries", []),
+                            new_request.get("queries", []),
+                        ):
+                            if old_query["data_source"] != "metrics":
+                                continue
+                            head, tail = old_query["query"].split("{", 1)
+                            aggregation, metric = head.split(":", 1)
+                            if not metric.startswith("smithdb."):
+                                continue
+                            new_head, new_tail = new_query["query"].split("{", 1)
+                            self.assertEqual(
+                                new_head,
+                                aggregation + ":" + prefix + metric[len("smithdb.") :],
+                            )
+                            self.assertEqual(new_tail, tail)
+                            new_query["query"] = old_query["query"]
+                            changed += 1
+                self.assertGreater(changed, 0)
+                self.assertEqual(normalized, baseline["datadog-dashboard.json"])
+        self.assertEqual(load_source("smithdb", "datadog"), source)
+
     def test_datadog_shares_cluster_without_changing_query_tag_keys(self):
         components = []
         for prefix in ("cluster_name", "kube_cluster_name"):
@@ -148,17 +201,64 @@ class DashboardTests(unittest.TestCase):
             )
             script = bundle / "generate_dashboards.py"
             shutil.copyfile(local_path("generate_dashboards.py"), script)
-            for args in ([], ["--check"]):
+            component = bundle / "components/smithdb/datadog.json"
+            original_source = component.read_bytes()
+            for prefix in ("custom_smithdb.", "", "smithdb."):
+                for check in ([], ["--check"]):
+                    result = subprocess.run(
+                        [
+                            sys.executable,
+                            str(script),
+                            "--smithdb-metrics-prefix",
+                            prefix,
+                            *check,
+                        ],
+                        cwd=directory,
+                        capture_output=True,
+                        text=True,
+                        timeout=30,
+                    )
+                    self.assertEqual(result.returncode, 0, result.stderr)
+                for name, expected in build_dashboards(prefix).items():
+                    self.assertEqual(json.loads((bundle / name).read_text()), expected)
+            original_outputs = {
+                name: (bundle / name).read_bytes() for name in build_dashboards()
+            }
+            for prefix in (
+                "custom",
+                ".custom.",
+                "9custom.",
+                "custom..metrics.",
+                "custom,{env:prod}.",
+                "custom\nmetrics.",
+                "a" * 101 + ".",
+            ):
                 result = subprocess.run(
-                    [sys.executable, str(script), *args],
+                    [sys.executable, str(script), "--smithdb-metrics-prefix", prefix],
                     cwd=directory,
                     capture_output=True,
                     text=True,
                     timeout=30,
                 )
-                self.assertEqual(result.returncode, 0, result.stderr)
-            for name, expected in build_dashboards().items():
-                self.assertEqual(json.loads((bundle / name).read_text()), expected)
+                self.assertNotEqual(result.returncode, 0)
+                self.assertIn("--smithdb-metrics-prefix", result.stderr)
+                for name, data in original_outputs.items():
+                    self.assertEqual((bundle / name).read_bytes(), data)
+            mismatch = subprocess.run(
+                [
+                    sys.executable,
+                    str(script),
+                    "--smithdb-metrics-prefix",
+                    "custom_smithdb.",
+                    "--check",
+                ],
+                cwd=directory,
+                capture_output=True,
+                text=True,
+                timeout=30,
+            )
+            self.assertNotEqual(mismatch.returncode, 0)
+            self.assertEqual(component.read_bytes(), original_source)
             self.assertFalse((Path(directory) / "smithdb-observability").exists())
 
     def test_exports_are_reproducible_and_account_neutral(self):
@@ -217,11 +317,9 @@ class DashboardTests(unittest.TestCase):
             self.assertTrue(
                 any(name.startswith("langsmith/templates/") for name in names)
             )
-            self.assertIn("langsmith/examples/smithdb-observability/README.md", names)
             self.assertFalse(
                 any(
                     name.startswith("langsmith/examples/smithdb-observability/")
-                    and name.endswith((".json", ".yaml"))
                     for name in names
                 )
             )

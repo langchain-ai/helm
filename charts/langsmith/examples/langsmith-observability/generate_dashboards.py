@@ -27,6 +27,49 @@ def load_source(component, backend):
     return json.loads(path.read_text())
 
 
+def validate_metric_prefix(value):
+    if len(value) > 100 or (
+        value
+        and not re.fullmatch(r"[A-Za-z][A-Za-z0-9_]*(?:\.[A-Za-z0-9_]+)*\.", value)
+    ):
+        raise argparse.ArgumentTypeError(
+            "use an empty prefix or a dot-terminated metric namespace of at most 100 ASCII letters, digits, underscores, and dots, starting with a letter"
+        )
+    return value
+
+
+def smithdb_datadog(metrics_prefix="smithdb."):
+    prefix = validate_metric_prefix(metrics_prefix)
+    source = load_source("smithdb", "datadog")
+    if prefix == "smithdb.":
+        return source
+    pending = list(source["widgets"])
+    while pending:
+        definition = pending.pop()["definition"]
+        pending.extend(definition.get("widgets", []))
+        for request in definition.get("requests", []):
+            for query in request.get("queries", []):
+                if query.get("data_source") == "metrics":
+                    query["query"] = re.sub(
+                        r"^([A-Za-z0-9_]+:)smithdb\.",
+                        lambda match: match[1] + prefix,
+                        query["query"],
+                    )
+    note = source["widgets"][0]["definition"]
+    scope = (
+        f"SmithDB metrics are queried under the `{prefix}` prefix."
+        if prefix
+        else "SmithDB metrics are queried without a prefix."
+    )
+    note["content"] = (
+        note["content"].split("\n", 1)[0]
+        + "\n"
+        + scope
+        + " Configure your collector to match. `langsmith_*` metrics are emitted by LangSmith and carry no prefix."
+    )
+    return source
+
+
 def merge_variables(existing, incoming):
     for variable in incoming:
         name = variable.get("name", variable.get("spec", {}).get("name"))
@@ -355,10 +398,10 @@ def grafana_dashboard(components):
     }
 
 
-def build_dashboards():
+def build_dashboards(smithdb_metrics_prefix="smithdb."):
     return {
         "datadog-dashboard.json": datadog_dashboard(
-            [("SmithDB", load_source("smithdb", "datadog"))]
+            [("SmithDB", smithdb_datadog(smithdb_metrics_prefix))]
         ),
         "grafana-dashboard.json": grafana_dashboard(
             [("SmithDB", load_source("smithdb", "grafana"))]
@@ -366,18 +409,25 @@ def build_dashboards():
     }
 
 
-def artifacts():
+def artifacts(smithdb_metrics_prefix="smithdb."):
     return {
         local_path(name): json.dumps(value, indent=2) + "\n"
-        for name, value in build_dashboards().items()
+        for name, value in build_dashboards(smithdb_metrics_prefix).items()
     }
 
 
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--check", action="store_true")
+    parser.add_argument(
+        "--smithdb-metrics-prefix",
+        default="smithdb.",
+        type=validate_metric_prefix,
+        metavar="PREFIX",
+        help="Datadog SmithDB metric prefix, including its trailing dot (default: smithdb.); use an empty value for no prefix",
+    )
     args = parser.parse_args()
-    for path, text in artifacts().items():
+    for path, text in artifacts(args.smithdb_metrics_prefix).items():
         if args.check:
             if not path.exists() or path.read_text() != text:
                 raise SystemExit(
