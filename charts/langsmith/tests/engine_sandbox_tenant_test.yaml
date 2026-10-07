@@ -3,6 +3,13 @@ templates:
   - templates/backend/deployment.yaml
   - templates/agent-features/insights/api-server/deployment.yaml
   - templates/agent-features/insights/queue/deployment.yaml
+  # Pulled in by langsmith.checksumAnnotations on the backend.
+  - templates/config-map.yaml
+  - templates/frontend/config-map.yaml
+  - templates/secrets.yaml
+  - templates/redis/secrets.yaml
+  - templates/postgres/secrets.yaml
+  - templates/clickhouse/secrets.yaml
 tests:
   - it: should pass the sandbox tenant to both engine pods
     templates:
