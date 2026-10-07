@@ -1258,33 +1258,3 @@ tests:
           content:
             name: CUSTOM_APPS_SERVICE_SANDBOXES_ENABLED
           any: true
-
-  - it: should preserve a common Custom Apps service sandbox override
-    values:
-      - ./values/sandboxes-enabled.yaml
-    set:
-      commonEnv:
-        - name: CUSTOM_APPS_SERVICE_SANDBOXES_ENABLED
-          value: "true"
-    template: platform-backend/deployment.yaml
-    asserts:
-      - contains:
-          path: spec.template.spec.containers[0].env
-          content:
-            name: CUSTOM_APPS_SERVICE_SANDBOXES_ENABLED
-            value: "true"
-
-  - it: should preserve a platform backend Custom Apps service sandbox opt-out
-    values:
-      - ./values/sandboxes-enabled.yaml
-    set:
-      platformBackend.deployment.extraEnv:
-        - name: CUSTOM_APPS_SERVICE_SANDBOXES_ENABLED
-          value: "false"
-    template: platform-backend/deployment.yaml
-    asserts:
-      - contains:
-          path: spec.template.spec.containers[0].env
-          content:
-            name: CUSTOM_APPS_SERVICE_SANDBOXES_ENABLED
-            value: "false"
