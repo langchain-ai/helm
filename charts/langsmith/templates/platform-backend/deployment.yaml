@@ -21,6 +21,16 @@
       optional: true
 {{ include "langsmith.engine.smithGoEnv" . }}
 {{- if .Values.sandboxes.enabled }}
+{{- $customAppsFlagOverridden := false }}
+{{- range concat .Values.commonEnv .Values.platformBackend.deployment.extraEnv }}
+{{- if eq .name "CUSTOM_APPS_SERVICE_SANDBOXES_ENABLED" }}
+{{- $customAppsFlagOverridden = true }}
+{{- end }}
+{{- end }}
+{{- if not $customAppsFlagOverridden }}
+- name: CUSTOM_APPS_SERVICE_SANDBOXES_ENABLED
+  value: "true"
+{{- end }}
 - name: SANDBOX_FRONTEND_ENABLED
   value: "true"
 - name: SANDBOX_MAX_CPU_CORES
