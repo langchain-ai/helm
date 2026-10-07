@@ -38,6 +38,16 @@ AWS Marketplace Helm template verification).
 {{- if not (has .Values.smithdb.resourceTier (list "small" "medium" "large")) -}}
 {{- fail "smithdb.resourceTier must be one of: small, medium, large." -}}
 {{- end -}}
+{{- if not (has .Values.smithdb.cache.type (list "pvc" "emptyDir")) -}}
+{{- fail "smithdb.cache.type must be one of: pvc, emptyDir." -}}
+{{- end -}}
+{{- range $component := list "query" "mutations" "runRules" "statsQuery" "ingestion" "compaction" "compactionWorker" "clusterManager" -}}
+{{- range (default (list) (index $.Values.smithdb $component).deployment.volumes) -}}
+{{- if eq .name "cache" -}}
+{{- fail (printf "smithdb.%s.deployment.volumes must not define a volume named cache. Set smithdb.cache.type instead." $component) -}}
+{{- end -}}
+{{- end -}}
+{{- end -}}
 {{- if not .Values.config.skipValidation -}}
 
 {{- /* Validate deprecated fleet server value keys */ -}}

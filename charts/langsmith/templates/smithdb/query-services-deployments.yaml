@@ -87,11 +87,9 @@ spec:
             {{- end }}
             - name: SMITHDB_QUERY__CLUSTER_MANAGER__SERVICE_TYPE
               value: {{ index $clusterManagerServiceTypes $component | quote }}
-            {{- if not $hasDiskCacheLimit }}
-            {{- with (include "langsmith.smithdb.queryCacheLimit" (dict "component" $component "volumes" $volumes "resources" $resources)) }}
+            {{- if and (not $hasDiskCacheLimit) (include "langsmith.smithdb.mountsCache" (dict "root" $ "component" $component)) }}
             - name: SMITHDB_QUERY__VORTEX_CACHE__DISK__LIMIT
-              {{- . | nindent 14 }}
-            {{- end }}
+              value: {{ include "langsmith.smithdb.cacheSize" (dict "root" $ "component" $component) | quote }}
             {{- end }}
             {{- if (index (default (dict) $resources.limits) "memory") }}
             - name: SMITHDB_QUERY__VORTEX_CACHE__MEMORY__LIMIT

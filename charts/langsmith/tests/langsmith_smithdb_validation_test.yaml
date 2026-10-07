@@ -17,6 +17,24 @@ tests:
     asserts:
       - failedTemplate:
           errorMessage: "smithdb.resourceTier must be one of: small, medium, large."
+  - it: should reject a component volume named cache
+    values:
+    - ./values/smithdb-enabled.yaml
+    set:
+      smithdb.query.deployment.volumes:
+      - name: cache
+        emptyDir: {}
+    asserts:
+    - failedTemplate:
+        errorMessage: smithdb.query.deployment.volumes must not define a volume named cache. Set smithdb.cache.type instead.
+  - it: should reject an unknown cache type
+    values:
+    - ./values/smithdb-enabled.yaml
+    set:
+      smithdb.cache.type: hostPath
+    asserts:
+    - failedTemplate:
+        errorMessage: "smithdb.cache.type must be one of: pvc, emptyDir."
 
   - it: should reject compaction-worker HPA and KEDA being enabled together
     values:

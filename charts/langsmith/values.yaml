@@ -1404,7 +1404,9 @@ smithdb:
   # -- Per-replica CPU, memory, and cache volume size for SmithDB runtime components: small, medium, or large. See the README.
   resourceTier: "small"
   cache:
-    # -- StorageClass for the generated SmithDB cache volumes. Empty uses the cluster default. A component's deployment.volumes replaces the generated volume.
+    # -- Backing store for the SmithDB cache volume: pvc or emptyDir. pvc provisions a per-pod generic ephemeral PVC; emptyDir uses the node's ephemeral storage. The size comes from smithdb.resourceTier.
+    type: "pvc"
+    # -- StorageClass for pvc cache volumes. Empty uses the cluster default.
     storageClassName: ""
   # -- LangSmith configuration for SmithDB.
   langsmith:
@@ -1483,6 +1485,9 @@ smithdb:
     name: "query"
     containerPort: 8060
     containerGrpcPort: 8080
+    cache:
+      # -- Cache volume size for this component. Empty uses the smithdb.resourceTier value.
+      size: ""
     deployment:
       replicas: 1
       strategy:
@@ -1557,6 +1562,9 @@ smithdb:
     name: "mutations"
     containerPort: 8060
     containerGrpcPort: 8080
+    cache:
+      # -- Cache volume size for this component. Empty uses the smithdb.resourceTier value.
+      size: ""
     deployment:
       replicas: 1
       strategy:
@@ -1629,6 +1637,9 @@ smithdb:
     name: "run-rules"
     containerPort: 8060
     containerGrpcPort: 8080
+    cache:
+      # -- Cache volume size for this component. Empty uses the smithdb.resourceTier value.
+      size: ""
     deployment:
       replicas: 1
       strategy:
@@ -1701,6 +1712,9 @@ smithdb:
     name: "stats-query"
     containerPort: 8060
     containerGrpcPort: 8080
+    cache:
+      # -- Cache volume size for this component. Empty uses the smithdb.resourceTier value.
+      size: ""
     deployment:
       replicas: 1
       strategy:
@@ -1772,6 +1786,9 @@ smithdb:
     name: "ingestion"
     containerPort: 8050
     containerGrpcPort: 8082
+    cache:
+      # -- Cache volume size for this component. Empty uses the smithdb.resourceTier value.
+      size: ""
     deployment:
       replicas: 1
       strategy:
@@ -1908,6 +1925,9 @@ smithdb:
     containerPort: 9000
     # -- Maximum concurrent jobs per compaction worker. Empty uses the SmithDB default.
     maxConcurrentJobs: ""
+    cache:
+      # -- Cache volume size for this component. Empty uses the smithdb.resourceTier value.
+      size: ""
     deployment:
       replicas: 2
       labels: {}
