@@ -47,7 +47,7 @@ Select exactly one `api_service` that emits your sandbox API spans. Selecting al
 
 ## Read the panels
 
-The dashboard uses curated mixed-width rows, with fleet, public API, and execution panels near the top. Compact trends share three-panel rows; short, single-series storage charts can share four. Dense charts use half-width panels, while long-label rankings receive two-thirds or full width. Headline cards remain paired where the section has only two. Notes span the row.
+The dashboard uses curated mixed-width rows, with fleet, public API, and execution panels near the top. Compact trends share three-panel rows. Dense charts and storage comparisons use half-width panels, while long-label rankings receive two-thirds or full width. The grid supports up to four headline cards per row; existing headline cards remain paired where the section has only two. Notes span the row.
 
 - **Fleet snapshots:** Live sandbox counts, ready-host counts, and the host ranking use five-minute windows, shown by the `5m` badge. Per-host samples align for up to 60 seconds. Ready/desired pool counts use `max` without interpolation so successive leaders do not add together. These counts require one selected cluster and namespace.
 - **Historical views:** Other charts and totals follow the dashboard's selected range. Request and operation rankings show totals. The public HTTP latency ranking uses the whole-window p95 rather than averaging interval percentiles.

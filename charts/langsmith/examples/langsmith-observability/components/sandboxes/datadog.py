@@ -45,11 +45,12 @@ SECTION_ROWS = {
         (8, 4),
         (8, 4),
         (6, 6),
-        (3, 3, 3, 3),
+        (6, 6),
+        (6, 6),
     ),
     "Health and failure counters": ((4, 8), (6, 6)),
     "Runtime reporting (internal APM)": ((6, 6), (4, 8), (4, 8)),
-    "Object storage (optional cloud integration)": ((3, 3, 3, 3),),
+    "Object storage (optional cloud integration)": ((6, 6), (6, 6)),
 }
 
 

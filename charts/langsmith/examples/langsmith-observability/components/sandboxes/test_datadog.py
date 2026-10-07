@@ -271,7 +271,13 @@ class DashboardTests(unittest.TestCase):
                     )
                     self.assertFalse(overlaps)
             self.assertTrue(all(width == 12 for width in rows.values()))
-        self.assertTrue({3, 4, 6, 8, 12}.issubset(widths))
+        self.assertTrue({4, 6, 8, 12}.issubset(widths))
+
+    def test_four_headline_cards_can_share_a_row(self):
+        panels = [{"definition": {"type": "query_value"}} for _ in range(4)]
+        self.assertEqual(layout(panels, ((3, 3, 3, 3),)), 2)
+        self.assertEqual([item["layout"]["x"] for item in panels], [0, 3, 6, 9])
+        self.assertTrue(all(item["layout"]["width"] == 3 for item in panels))
 
     def test_filtered_rows_reflow_without_changing_panels(self):
         panels = [
