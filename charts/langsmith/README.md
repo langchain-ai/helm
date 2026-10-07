@@ -305,7 +305,7 @@ The trajectory Service is cluster-internal; no public route is added. Trajectory
 | fleet.apiServer.deployment.resources | object | `{}` |  |
 | fleet.apiServer.deployment.securityContext | object | `{}` |  |
 | fleet.apiServer.deployment.sidecars | list | `[]` |  |
-| fleet.apiServer.deployment.startupProbe.failureThreshold | int | `6` |  |
+| fleet.apiServer.deployment.startupProbe.failureThreshold | int | `12` |  |
 | fleet.apiServer.deployment.startupProbe.httpGet.path | string | `"/ok?check_db=1"` |  |
 | fleet.apiServer.deployment.startupProbe.httpGet.port | int | `8000` |  |
 | fleet.apiServer.deployment.startupProbe.periodSeconds | int | `10` |  |
@@ -417,7 +417,7 @@ The trajectory Service is cluster-internal; no public route is added. Trajectory
 | fleet.queue.deployment.resources | object | `{}` |  |
 | fleet.queue.deployment.securityContext | object | `{}` |  |
 | fleet.queue.deployment.sidecars | list | `[]` |  |
-| fleet.queue.deployment.startupProbe.failureThreshold | int | `6` |  |
+| fleet.queue.deployment.startupProbe.failureThreshold | int | `12` |  |
 | fleet.queue.deployment.startupProbe.httpGet.path | string | `"/ok"` |  |
 | fleet.queue.deployment.startupProbe.httpGet.port | int | `8000` |  |
 | fleet.queue.deployment.startupProbe.periodSeconds | int | `10` |  |
