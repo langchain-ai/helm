@@ -25,7 +25,7 @@ SmithDB's examples also collect LangSmith ingest-queue metrics on port `1989` an
 
 ## Import and filter
 
-- **Datadog:** Import the JSON into a new dashboard using its JSON import action. Select `env`, `cluster`, and `namespace`. The SmithDB cluster filter uses the `cluster_name` tag; namespace uses `kube_namespace`. Configure your collection tags or adjust the filter prefixes to match your account.
+- **Datadog:** Import the JSON into a new dashboard using its JSON import action. Select `env`, `cluster`, and `namespace`. The cluster picker discovers values from `cluster_name`; queries use `$cluster.value` with their component's explicit tag key. You can change the picker's tag key without retagging metrics or changing those query keys, provided the selected cluster names match. Namespace uses `kube_namespace`.
 - **Grafana:** Import the V2 resource JSON into Grafana 13 or later. Select the Prometheus data source and namespace. Groupings and panels live inside the SmithDB tab.
 
 Missing data can indicate absent collection, incompatible metric names, or filter mismatches. Check scraper health and a continuously emitted metric before interpreting an empty error panel.

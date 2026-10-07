@@ -94,7 +94,7 @@
                       "aggregator": "last",
                       "data_source": "metrics",
                       "name": "q1",
-                      "query": "p95:smithdb.server_requests_duration{$env,$cluster,$namespace,path:/query.queryservice/*}"
+                      "query": "p95:smithdb.server_requests_duration{$env,cluster_name:$cluster.value,$namespace,path:/query.queryservice/*}"
                     }
                   ],
                   "response_format": "scalar"
@@ -135,7 +135,7 @@
                       "aggregator": "last",
                       "data_source": "metrics",
                       "name": "q1",
-                      "query": "p95:smithdb.ingest_batch_latency{$env,$cluster,$namespace}"
+                      "query": "p95:smithdb.ingest_batch_latency{$env,cluster_name:$cluster.value,$namespace}"
                     }
                   ],
                   "response_format": "scalar"
@@ -170,7 +170,7 @@
                       "aggregator": "last",
                       "data_source": "metrics",
                       "name": "q1",
-                      "query": "sum:smithdb.ingest_pending_segment_entry_count{$env,$cluster,$namespace}"
+                      "query": "sum:smithdb.ingest_pending_segment_entry_count{$env,cluster_name:$cluster.value,$namespace}"
                     }
                   ],
                   "response_format": "scalar"
@@ -205,7 +205,7 @@
                       "aggregator": "last",
                       "data_source": "metrics",
                       "name": "q1",
-                      "query": "sum:smithdb.compaction_queue_job_count{$env,$cluster,$namespace,status:pending}"
+                      "query": "sum:smithdb.compaction_queue_job_count{$env,cluster_name:$cluster.value,$namespace,status:pending}"
                     }
                   ],
                   "response_format": "scalar"
@@ -240,7 +240,7 @@
                       "aggregator": "sum",
                       "data_source": "metrics",
                       "name": "q1",
-                      "query": "sum:smithdb.query_fanout_limit_exceeded.count{$env,$cluster,$namespace}.as_count()"
+                      "query": "sum:smithdb.query_fanout_limit_exceeded.count{$env,cluster_name:$cluster.value,$namespace}.as_count()"
                     }
                   ],
                   "response_format": "scalar"
@@ -275,7 +275,7 @@
                       "aggregator": "sum",
                       "data_source": "metrics",
                       "name": "q1",
-                      "query": "sum:smithdb.ingest_flush_count.count{$env,$cluster,$namespace,status:failure}.as_count()"
+                      "query": "sum:smithdb.ingest_flush_count.count{$env,cluster_name:$cluster.value,$namespace,status:failure}.as_count()"
                     }
                   ],
                   "response_format": "scalar"
@@ -310,7 +310,7 @@
                       "aggregator": "sum",
                       "data_source": "metrics",
                       "name": "q1",
-                      "query": "sum:smithdb.compaction_job_completion.count{$env,$cluster,$namespace,status:failure}.as_count()"
+                      "query": "sum:smithdb.compaction_job_completion.count{$env,cluster_name:$cluster.value,$namespace,status:failure}.as_count()"
                     }
                   ],
                   "response_format": "scalar"
@@ -345,7 +345,7 @@
                       "aggregator": "sum",
                       "data_source": "metrics",
                       "name": "q1",
-                      "query": "sum:smithdb.object_store_op_duration.count{$env,$cluster,$namespace,result:error}.as_count()"
+                      "query": "sum:smithdb.object_store_op_duration.count{$env,cluster_name:$cluster.value,$namespace,result:error}.as_count()"
                     }
                   ],
                   "response_format": "scalar"
@@ -427,7 +427,7 @@
                     {
                       "data_source": "metrics",
                       "name": "q1",
-                      "query": "p95:langsmith_ingestion_e2e_latency_seconds{$env,$cluster,$namespace} by {store}"
+                      "query": "p95:langsmith_ingestion_e2e_latency_seconds{$env,cluster_name:$cluster.value,$namespace} by {store}"
                     }
                   ],
                   "response_format": "timeseries",
@@ -487,12 +487,12 @@
                     {
                       "data_source": "metrics",
                       "name": "q1",
-                      "query": "p95:langsmith_ingestion_api_to_worker_latency_seconds{$env,$cluster,$namespace,store:smithdb}"
+                      "query": "p95:langsmith_ingestion_api_to_worker_latency_seconds{$env,cluster_name:$cluster.value,$namespace,store:smithdb}"
                     },
                     {
                       "data_source": "metrics",
                       "name": "q2",
-                      "query": "p95:langsmith_ingestion_worker_to_store_latency_seconds{$env,$cluster,$namespace,store:smithdb}"
+                      "query": "p95:langsmith_ingestion_worker_to_store_latency_seconds{$env,cluster_name:$cluster.value,$namespace,store:smithdb}"
                     }
                   ],
                   "response_format": "timeseries",
@@ -535,7 +535,7 @@
                     {
                       "data_source": "metrics",
                       "name": "q1",
-                      "query": "max:langsmith_asynq_ingestion_queue_pending{$env,$cluster,$namespace}"
+                      "query": "max:langsmith_asynq_ingestion_queue_pending{$env,cluster_name:$cluster.value,$namespace}"
                     }
                   ],
                   "response_format": "timeseries",
@@ -642,17 +642,17 @@
                     {
                       "data_source": "metrics",
                       "name": "q1",
-                      "query": "p50:smithdb.ingest_batch_latency{$env,$cluster,$namespace}"
+                      "query": "p50:smithdb.ingest_batch_latency{$env,cluster_name:$cluster.value,$namespace}"
                     },
                     {
                       "data_source": "metrics",
                       "name": "q2",
-                      "query": "p95:smithdb.ingest_batch_latency{$env,$cluster,$namespace}"
+                      "query": "p95:smithdb.ingest_batch_latency{$env,cluster_name:$cluster.value,$namespace}"
                     },
                     {
                       "data_source": "metrics",
                       "name": "q3",
-                      "query": "p99:smithdb.ingest_batch_latency{$env,$cluster,$namespace}"
+                      "query": "p99:smithdb.ingest_batch_latency{$env,cluster_name:$cluster.value,$namespace}"
                     }
                   ],
                   "response_format": "timeseries",
@@ -695,7 +695,7 @@
                     {
                       "data_source": "metrics",
                       "name": "q1",
-                      "query": "sum:smithdb.ingest_pending_segment_entry_count{$env,$cluster,$namespace} by {level}"
+                      "query": "sum:smithdb.ingest_pending_segment_entry_count{$env,cluster_name:$cluster.value,$namespace} by {level}"
                     }
                   ],
                   "response_format": "timeseries",
@@ -738,7 +738,7 @@
                     {
                       "data_source": "metrics",
                       "name": "q1",
-                      "query": "sum:smithdb.ingest_flush_count.count{$env,$cluster,$namespace} by {status}.as_count()"
+                      "query": "sum:smithdb.ingest_flush_count.count{$env,cluster_name:$cluster.value,$namespace} by {status}.as_count()"
                     }
                   ],
                   "response_format": "timeseries",
@@ -787,7 +787,7 @@
                     {
                       "data_source": "metrics",
                       "name": "q1",
-                      "query": "p95:smithdb.ingest_flush_duration{$env,$cluster,$namespace} by {level}"
+                      "query": "p95:smithdb.ingest_flush_duration{$env,cluster_name:$cluster.value,$namespace} by {level}"
                     }
                   ],
                   "response_format": "timeseries",
@@ -830,7 +830,7 @@
                     {
                       "data_source": "metrics",
                       "name": "q1",
-                      "query": "sum:smithdb.ingest_flush_reason.count{$env,$cluster,$namespace} by {reason,level}.as_count()"
+                      "query": "sum:smithdb.ingest_flush_reason.count{$env,cluster_name:$cluster.value,$namespace} by {reason,level}.as_count()"
                     }
                   ],
                   "response_format": "timeseries",
@@ -878,12 +878,12 @@
                     {
                       "data_source": "metrics",
                       "name": "q1",
-                      "query": "max:smithdb.semaphore_permits_in_use{$env,$cluster,$namespace}"
+                      "query": "max:smithdb.semaphore_permits_in_use{$env,cluster_name:$cluster.value,$namespace}"
                     },
                     {
                       "data_source": "metrics",
                       "name": "q2",
-                      "query": "max:smithdb.semaphore_max_permits{$env,$cluster,$namespace}"
+                      "query": "max:smithdb.semaphore_max_permits{$env,cluster_name:$cluster.value,$namespace}"
                     }
                   ],
                   "response_format": "timeseries",
@@ -969,7 +969,7 @@
                     {
                       "data_source": "metrics",
                       "name": "q1",
-                      "query": "p95:smithdb.server_requests_duration{$env,$cluster,$namespace,path:/query.queryservice/*} by {path}"
+                      "query": "p95:smithdb.server_requests_duration{$env,cluster_name:$cluster.value,$namespace,path:/query.queryservice/*} by {path}"
                     }
                   ],
                   "response_format": "timeseries",
@@ -1012,7 +1012,7 @@
                     {
                       "data_source": "metrics",
                       "name": "q1",
-                      "query": "sum:smithdb.server_requests_duration.count{$env,$cluster,$namespace,path:/query.queryservice/*} by {status}.as_count()"
+                      "query": "sum:smithdb.server_requests_duration.count{$env,cluster_name:$cluster.value,$namespace,path:/query.queryservice/*} by {status}.as_count()"
                     }
                   ],
                   "response_format": "timeseries",
@@ -1055,7 +1055,7 @@
                     {
                       "data_source": "metrics",
                       "name": "q1",
-                      "query": "p95:smithdb.query_fanout_partitions{$env,$cluster,$namespace} by {query_type}"
+                      "query": "p95:smithdb.query_fanout_partitions{$env,cluster_name:$cluster.value,$namespace} by {query_type}"
                     }
                   ],
                   "response_format": "timeseries",
@@ -1098,7 +1098,7 @@
                     {
                       "data_source": "metrics",
                       "name": "q1",
-                      "query": "sum:smithdb.query_fanout_limit_exceeded.count{$env,$cluster,$namespace} by {query_type}.as_count()"
+                      "query": "sum:smithdb.query_fanout_limit_exceeded.count{$env,cluster_name:$cluster.value,$namespace} by {query_type}.as_count()"
                     }
                   ],
                   "response_format": "timeseries",
@@ -1147,7 +1147,7 @@
                     {
                       "data_source": "metrics",
                       "name": "q1",
-                      "query": "p99:smithdb.query_execution_max_mem_used_bytes{$env,$cluster,$namespace} by {query_source_name}"
+                      "query": "p99:smithdb.query_execution_max_mem_used_bytes{$env,cluster_name:$cluster.value,$namespace} by {query_source_name}"
                     }
                   ],
                   "response_format": "timeseries",
@@ -1228,7 +1228,7 @@
                     {
                       "data_source": "metrics",
                       "name": "q1",
-                      "query": "sum:smithdb.compaction_queue_job_count{$env,$cluster,$namespace,status:pending} by {job_kind}"
+                      "query": "sum:smithdb.compaction_queue_job_count{$env,cluster_name:$cluster.value,$namespace,status:pending} by {job_kind}"
                     }
                   ],
                   "response_format": "timeseries",
@@ -1271,7 +1271,7 @@
                     {
                       "data_source": "metrics",
                       "name": "q1",
-                      "query": "sum:smithdb.compaction_job_completion.count{$env,$cluster,$namespace} by {status}.as_count()"
+                      "query": "sum:smithdb.compaction_job_completion.count{$env,cluster_name:$cluster.value,$namespace} by {status}.as_count()"
                     }
                   ],
                   "response_format": "timeseries",
@@ -1314,7 +1314,7 @@
                     {
                       "data_source": "metrics",
                       "name": "q1",
-                      "query": "sum:smithdb.compaction_job_completion.count{$env,$cluster,$namespace,status:failure} by {job_kind}.as_count()"
+                      "query": "sum:smithdb.compaction_job_completion.count{$env,cluster_name:$cluster.value,$namespace,status:failure} by {job_kind}.as_count()"
                     }
                   ],
                   "response_format": "timeseries",
@@ -1363,7 +1363,7 @@
                     {
                       "data_source": "metrics",
                       "name": "q1",
-                      "query": "p95:smithdb.compaction_job_latency_seconds{$env,$cluster,$namespace} by {job_kind}"
+                      "query": "p95:smithdb.compaction_job_latency_seconds{$env,cluster_name:$cluster.value,$namespace} by {job_kind}"
                     }
                   ],
                   "response_format": "timeseries",
@@ -1411,12 +1411,12 @@
                     {
                       "data_source": "metrics",
                       "name": "q1",
-                      "query": "sum:smithdb.compaction_worker_capacity_used{$env,$cluster,$namespace}"
+                      "query": "sum:smithdb.compaction_worker_capacity_used{$env,cluster_name:$cluster.value,$namespace}"
                     },
                     {
                       "data_source": "metrics",
                       "name": "q2",
-                      "query": "sum:smithdb.compaction_worker_capacity_limit{$env,$cluster,$namespace}"
+                      "query": "sum:smithdb.compaction_worker_capacity_limit{$env,cluster_name:$cluster.value,$namespace}"
                     }
                   ],
                   "response_format": "timeseries",
@@ -1464,12 +1464,12 @@
                     {
                       "data_source": "metrics",
                       "name": "q1",
-                      "query": "sum:smithdb.compaction_jobs_scheduled.count{$env,$cluster,$namespace}.as_count()"
+                      "query": "sum:smithdb.compaction_jobs_scheduled.count{$env,cluster_name:$cluster.value,$namespace}.as_count()"
                     },
                     {
                       "data_source": "metrics",
                       "name": "q2",
-                      "query": "sum:smithdb.compaction_jobs_executed.count{$env,$cluster,$namespace}.as_count()"
+                      "query": "sum:smithdb.compaction_jobs_executed.count{$env,cluster_name:$cluster.value,$namespace}.as_count()"
                     }
                   ],
                   "response_format": "timeseries",
@@ -1555,7 +1555,7 @@
                     {
                       "data_source": "metrics",
                       "name": "q1",
-                      "query": "p95:smithdb.object_store_op_duration{$env,$cluster,$namespace} by {op}"
+                      "query": "p95:smithdb.object_store_op_duration{$env,cluster_name:$cluster.value,$namespace} by {op}"
                     }
                   ],
                   "response_format": "timeseries",
@@ -1598,7 +1598,7 @@
                     {
                       "data_source": "metrics",
                       "name": "q1",
-                      "query": "sum:smithdb.object_store_op_duration.count{$env,$cluster,$namespace,result:error} by {op}.as_count()"
+                      "query": "sum:smithdb.object_store_op_duration.count{$env,cluster_name:$cluster.value,$namespace,result:error} by {op}.as_count()"
                     }
                   ],
                   "response_format": "timeseries",
@@ -1647,7 +1647,7 @@
                     {
                       "data_source": "metrics",
                       "name": "q1",
-                      "query": "max:smithdb.sys_jemalloc_resident_bytes{$env,$cluster,$namespace} by {kube_deployment}"
+                      "query": "max:smithdb.sys_jemalloc_resident_bytes{$env,cluster_name:$cluster.value,$namespace} by {kube_deployment}"
                     }
                   ],
                   "response_format": "timeseries",
@@ -1744,7 +1744,7 @@
                       ],
                       "name": "q1",
                       "search": {
-                        "query": "service:smithdb* status:error $env $cluster $namespace"
+                        "query": "service:smithdb* status:error $env cluster_name:$cluster.value $namespace"
                       }
                     }
                   ],
@@ -1774,7 +1774,7 @@
                   "response_format": "event_list",
                   "query": {
                     "data_source": "logs_stream",
-                    "query_string": "service:smithdb* status:error $env $cluster $namespace",
+                    "query_string": "service:smithdb* status:error $env cluster_name:$cluster.value $namespace",
                     "indexes": [],
                     "storage": "hot",
                     "sort": {

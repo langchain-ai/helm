@@ -36,7 +36,12 @@ class DashboardTests(unittest.TestCase):
     def test_datadog_preserves_smithdb_widgets_and_filters(self):
         source = load_source("smithdb", "datadog")
         actual = build_dashboards()["datadog-dashboard.json"]
-        self.assertEqual(without_ids(actual["widgets"]), without_ids(source["widgets"]))
+        expected = json.loads(
+            json.dumps(source["widgets"]).replace(
+                "$cluster", "cluster_name:$cluster.value"
+            )
+        )
+        self.assertEqual(without_ids(actual["widgets"]), without_ids(expected))
         self.assertEqual(actual["template_variables"], source["template_variables"])
         self.assertEqual(len(actual["tabs"]), 1)
         self.assertEqual(actual["tabs"][0]["name"], "SmithDB")
@@ -46,6 +51,43 @@ class DashboardTests(unittest.TestCase):
         )
         ids = [item["id"] for item in widgets(actual["widgets"])]
         self.assertEqual(len(ids), len(set(ids)))
+
+    def test_datadog_shares_cluster_without_changing_query_tag_keys(self):
+        components = []
+        for prefix in ("cluster_name", "kube_cluster_name"):
+            components.append(
+                (
+                    prefix,
+                    {
+                        "template_variables": [
+                            {"name": "cluster", "prefix": prefix, "default": "*"}
+                        ],
+                        "widgets": [
+                            {
+                                "definition": {
+                                    "type": "note",
+                                    "content": "$cluster $cluster.value $cluster_name",
+                                }
+                            }
+                        ],
+                    },
+                )
+            )
+        dashboard = datadog_dashboard(components)
+        self.assertEqual(len(dashboard["template_variables"]), 1)
+        self.assertEqual(
+            [item["definition"]["content"] for item in dashboard["widgets"]],
+            [
+                "cluster_name:$cluster.value $cluster.value $cluster_name",
+                "kube_cluster_name:$cluster.value $cluster.value $cluster_name",
+            ],
+        )
+        self.assertEqual(
+            components[1][1]["template_variables"][0]["prefix"], "kube_cluster_name"
+        )
+        components[1][1]["template_variables"][0]["default"] = "different-default"
+        with self.assertRaisesRegex(ValueError, "Conflicting"):
+            datadog_dashboard(components)
 
     def test_tab_composition_keeps_existing_component_stable(self):
         source = load_source("smithdb", "datadog")
