@@ -10,6 +10,7 @@ Download these files from the repository, not the Helm chart archive. The unifie
 | --- | --- | --- |
 | Datadog | [datadog-dashboard.json](datadog-dashboard.json) | Datadog dashboard tabs and the component's collection settings |
 | Grafana | [grafana-dashboard.json](grafana-dashboard.json) | Grafana 13 or later, with a Prometheus data source; V2 dashboard resource format |
+| Grafana (SmithDB only) | [components/smithdb/grafana.json](components/smithdb/grafana.json) | Existing standalone Classic-format dashboard for installations without native tabs |
 
 The SmithDB tab covers ingestion, queries, compaction, storage, memory, and the LangSmith ingestion path. For metric definitions, see the [SmithDB metrics reference](https://docs.langchain.com/langsmith/self-host-smithdb-metrics).
 
@@ -34,11 +35,11 @@ Missing data can indicate absent collection, incompatible metric names, or filte
 
 Back up the existing dashboard before importing a replacement. Datadog JSON import replaces dashboard content, including local customizations. Grafana's unified dashboard has a different UID from the legacy SmithDB dashboard, so importing it does not intentionally replace the legacy dashboard. Review the import destination before saving.
 
-The [legacy SmithDB downloads](../smithdb-observability/README.md) remain available with their existing contents and filenames. In particular, the Classic Grafana export remains available for installations that cannot use the new tabbed format. The deprecated `langsmith-observability` Helm chart is unrelated to this example bundle and is not required.
+The former `smithdb-observability/` directory now contains only a [signpost to this bundle](../smithdb-observability/README.md). Its duplicate JSON and YAML files have been removed; update bookmarks and automation to the new paths. The unchanged [standalone SmithDB Grafana JSON](components/smithdb/grafana.json) remains available in Classic format for installations without native tabs. This file contains SmithDB panels only. The deprecated `langsmith-observability` Helm chart is unrelated to this example bundle and is not required.
 
 ## Maintain the definitions
 
-Edit component sources under `components/`. `generate_dashboards.py` composes the unified artifacts and refreshes legacy SmithDB compatibility files. Widget and tab identifiers are generated locally and deterministically; they are not copied from a Datadog account. The generator runs offline with Python's standard library and accepts no dashboard export, URL, or credentials.
+Edit component sources under `components/`. `generate_dashboards.py` produces only the two unified dashboard JSON files in this directory. Widget and tab identifiers are generated locally and deterministically; they are not copied from a Datadog account. The generator runs offline with Python's standard library and accepts no dashboard export, URL, or credentials.
 
 From the repository root:
 
@@ -48,4 +49,4 @@ python3 charts/langsmith/examples/langsmith-observability/generate_dashboards.py
 python3 -m unittest discover -s charts/langsmith/examples/langsmith-observability -p 'test_*.py'
 ```
 
-Tests verify metric queries and visualization settings survive composition, tab references resolve, incompatible filter definitions are rejected, and legacy downloads remain unchanged.
+Tests verify metric queries and visualization settings survive composition, tab references resolve, incompatible filter definitions are rejected, and generation is self-contained within the bundle.

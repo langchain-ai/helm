@@ -14,7 +14,7 @@ DESCRIPTION = "Operational dashboards for your own LangSmith deployment. Each co
 
 def local_path(relative):
     path = (ROOT / relative).resolve()
-    path.relative_to(ROOT.parent)
+    path.relative_to(ROOT)
     return path
 
 
@@ -367,19 +367,10 @@ def build_dashboards():
 
 
 def artifacts():
-    result = {
+    return {
         local_path(name): json.dumps(value, indent=2) + "\n"
         for name, value in build_dashboards().items()
     }
-    for backend in ("datadog", "grafana"):
-        result[local_path(f"../smithdb-observability/{backend}-dashboard.json")] = (
-            local_path(f"components/smithdb/{backend}.json").read_text()
-        )
-    for name in ("datadog-values.yaml", "prometheus-values.yaml"):
-        result[local_path("../smithdb-observability/" + name)] = local_path(
-            "components/smithdb/" + name
-        ).read_text()
-    return result
 
 
 def main():

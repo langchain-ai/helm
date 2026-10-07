@@ -1,35 +1,15 @@
-# SmithDB observability
+# SmithDB observability has moved
 
-For the unified, tabbed LangSmith dashboards, use the [LangSmith observability bundle](../langsmith-observability/README.md). The downloads in this directory remain available for compatibility, including the Classic Grafana dashboard for older installations. Their definitions and collection settings are maintained in the unified bundle's SmithDB component and reproduced here by its generator.
+Use the [LangSmith observability bundle](../langsmith-observability/README.md) for dashboard imports, collection settings, and update guidance. This directory retains only this signpost; its former JSON and YAML downloads have moved to the unified bundle.
 
-Datadog and Grafana dashboards for SmithDB on self-hosted LangSmith. For what each metric means, see the [SmithDB metrics reference](https://docs.langchain.com/langsmith/self-host-smithdb-metrics).
+| Download | New location |
+| --- | --- |
+| Unified Datadog dashboard | [datadog-dashboard.json](../langsmith-observability/datadog-dashboard.json) |
+| Unified Grafana 13+ dashboard | [grafana-dashboard.json](../langsmith-observability/grafana-dashboard.json) |
+| Standalone SmithDB Grafana dashboard (Classic format) | [components/smithdb/grafana.json](../langsmith-observability/components/smithdb/grafana.json) |
+| Datadog collection values | [components/smithdb/datadog-values.yaml](../langsmith-observability/components/smithdb/datadog-values.yaml) |
+| Prometheus collection values | [components/smithdb/prometheus-values.yaml](../langsmith-observability/components/smithdb/prometheus-values.yaml) |
 
-| Stack | Dashboard | Values |
-| --- | --- | --- |
-| Datadog | `datadog-dashboard.json` | `datadog-values.yaml` (Autodiscovery annotations) |
-| Prometheus and Grafana | `grafana-dashboard.json` | `prometheus-values.yaml` (scrape annotations) |
+Update bookmarks and automation that use the old file URLs. This README does not redirect file downloads. Dashboards already imported into your monitoring instance are unaffected.
 
-## Set up
-
-1. Apply the values file for your stack with your existing values:
-
-   ```bash
-   helm upgrade langsmith langchain/langsmith --version <version> -n <namespace> -f values.yaml -f datadog-values.yaml
-   ```
-
-2. Import the dashboard:
-   - **Datadog**: Create a dashboard, open its settings, select **Import dashboard JSON**, and select `datadog-dashboard.json`.
-   - **Grafana**: Go to **Dashboards** > **New** > **Import**, upload `grafana-dashboard.json`, and select your Prometheus data source.
-
-Both values files also scrape the LangSmith ingest queue (port 1989) and platform-backend (port 1986), which serve the `langsmith_*` metrics.
-
-## Metric names
-
-The Datadog dashboard expects the check settings in `datadog-values.yaml`:
-
-- `namespace: smithdb` prefixes SmithDB metrics with `smithdb.`. LangSmith `langsmith_*` metrics have no prefix.
-- `histogram_buckets_as_distributions` and `collect_counters_with_distributions` send histograms as distributions with `.count` and `.sum`.
-
-The Grafana dashboard uses metric names as exposed on `/metrics`, and filters on a `namespace` label.
-
-If you collect these metrics another way, names can differ. For Datadog, replace `smithdb.` in the dashboard JSON with your prefix before importing. The Datadog **Errors** group queries logs with `service:smithdb*`.
+Download these assets from the repository, not the Helm chart archive. For metric meanings, see the [SmithDB metrics reference](https://docs.langchain.com/langsmith/self-host-smithdb-metrics).
