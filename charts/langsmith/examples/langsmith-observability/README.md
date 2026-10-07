@@ -4,6 +4,8 @@ Import one LangSmith Self-Hosted dashboard into your own Datadog or Grafana inst
 
 ## Downloads
 
+Download these files from the repository, not the Helm chart archive. The unified example bundle is excluded from chart packaging so dashboard source and JSON do not inflate Helm's release Secret. Generation and query checks still run against the repository files.
+
 | Platform | Dashboard | Requirement |
 | --- | --- | --- |
 | Datadog | [datadog-dashboard.json](datadog-dashboard.json) | Datadog dashboard tabs and the component's collection settings |

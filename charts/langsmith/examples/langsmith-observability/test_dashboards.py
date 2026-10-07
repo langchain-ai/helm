@@ -1,5 +1,9 @@
 from copy import deepcopy
 import json
+from pathlib import Path
+import subprocess
+import tarfile
+import tempfile
 import unittest
 import uuid
 
@@ -143,6 +147,34 @@ class DashboardTests(unittest.TestCase):
         source["panels"][1]["panels"] = [{}]
         with self.assertRaisesRegex(ValueError, "Nested Classic"):
             grafana_dashboard([("SmithDB", source)])
+
+    def test_dashboard_downloads_do_not_inflate_helm_release_storage(self):
+        chart = Path(__file__).resolve().parents[2]
+        with tempfile.TemporaryDirectory(prefix="langsmith-chart-") as directory:
+            subprocess.run(
+                ["helm", "package", str(chart), "--destination", directory],
+                check=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                timeout=30,
+            )
+            packages = list(Path(directory).glob("*.tgz"))
+            self.assertEqual(len(packages), 1)
+            with tarfile.open(packages[0], "r:gz") as archive:
+                names = archive.getnames()
+            self.assertIn("langsmith/Chart.yaml", names)
+            self.assertTrue(
+                any(name.startswith("langsmith/templates/") for name in names)
+            )
+            self.assertIn(
+                "langsmith/examples/smithdb-observability/grafana-dashboard.json", names
+            )
+            self.assertFalse(
+                any(
+                    name.startswith("langsmith/examples/langsmith-observability/")
+                    for name in names
+                )
+            )
 
     def test_inputs_and_output_paths_are_bounded(self):
         with self.assertRaises(ValueError):
