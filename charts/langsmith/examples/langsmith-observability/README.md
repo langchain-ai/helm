@@ -13,7 +13,7 @@ Download these files from the repository, not the Helm chart archive. The unifie
 
 The SmithDB tab covers ingestion, queries, compaction, storage, memory, and the LangSmith ingestion path. For metric definitions, see the [SmithDB metrics reference](https://docs.langchain.com/langsmith/self-host-smithdb-metrics).
 
-The Datadog Sandboxes tab adds host capacity, lifecycle, execution, resources, networking, health, and optional APM, JuiceFS, and cloud storage panels. See the [Sandbox collection guide](components/sandboxes/README.md). Sandbox host filters are `sandbox_cluster` (`kube_cluster_name`) and `sandbox_namespace` (`kube_namespace`), independently of SmithDB's `cluster` and `namespace`. APM uses only `env` and `api_service`; cloud panels use their bucket selectors. Select one Sandbox cluster and namespace for pool counts. Grafana Sandbox coverage is not included in this layer.
+The Datadog Sandboxes tab adds host capacity, lifecycle, execution, resources, networking, health, and optional APM, JuiceFS, and cloud storage panels. See the [Sandbox collection guide](components/sandboxes/README.md). Both tabs share `env`, `cluster`, and `namespace`. Cluster queries retain their original tag keys: `cluster_name` for SmithDB and `kube_cluster_name` for Sandbox hosts and JuiceFS. Both use `kube_namespace` for namespace. APM uses only `env` and `api_service`; cloud panels use their bucket selectors. Select one Sandbox cluster and namespace for pool counts. Grafana Sandbox coverage is not included in this layer.
 
 ## Collect component metrics
 
@@ -28,7 +28,7 @@ SmithDB's examples also collect LangSmith ingest-queue metrics on port `1989` an
 
 ## Import and filter
 
-- **Datadog:** Import the JSON into a new dashboard using its JSON import action. Select `env`, `cluster`, and `namespace`. The SmithDB cluster filter uses the `cluster_name` tag; namespace uses `kube_namespace`. Configure your collection tags or adjust the filter prefixes to match your account.
+- **Datadog:** Import the JSON into a new dashboard using its JSON import action. Select `env`, `cluster`, and `namespace`. The cluster picker discovers values from `cluster_name`; queries use `$cluster.value` with their component's explicit tag key. You can change the picker's tag key without retagging metrics or changing those query keys, provided the selected cluster names match. Namespace uses `kube_namespace`.
 - **Grafana:** Import the V2 resource JSON into Grafana 13 or later. Select the Prometheus data source and namespace. Groupings and panels live inside the SmithDB tab.
 
 Missing data can indicate absent collection, incompatible metric names, or filter mismatches. Check scraper health and a continuously emitted metric before interpreting an empty error panel.

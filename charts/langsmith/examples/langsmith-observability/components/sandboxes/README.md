@@ -35,13 +35,13 @@ Create a dashboard in Datadog and use its JSON import action to import `datadog-
 | Variable | Tag | Applies to |
 | --- | --- | --- |
 | `env` | `env` | Host, JuiceFS, and APM metrics |
-| `sandbox_cluster` | `kube_cluster_name` | Host and JuiceFS metrics |
-| `sandbox_namespace` | `kube_namespace` | Host and JuiceFS metrics |
+| `cluster` | `kube_cluster_name:$cluster.value` | Host and JuiceFS metrics; selection shared with SmithDB |
+| `namespace` | `kube_namespace` | Host and JuiceFS metrics; selection shared with SmithDB |
 | `api_service` | `service` | Optional APM metrics; defaults to `platform-backend` |
 | `gcs_bucket` | `bucket_name` | Optional GCS metrics |
 | `s3_bucket` | `bucketname` | Optional S3 metrics |
 
-Host filters start at `*`. Select one environment, cluster, and namespace before reading pool counts; those counts describe one pool, not a multi-pool total. The example explicitly attaches `kube_namespace` through Autodiscovery. Configure the Agent's cluster name and environment tags, then select your installation's values. If your collector uses another cluster tag, change the `sandbox_cluster` variable's prefix and the `by {kube_cluster_name}` clauses in the dashboard queries together.
+Host filters start at `*`. Select one environment, cluster, and namespace before reading pool counts; those counts describe one pool, not a multi-pool total. The example explicitly attaches `kube_namespace` through Autodiscovery. Configure the Agent's cluster name and environment tags, then select your installation's values. The shared cluster picker discovers values from `cluster_name` by default. If your account exposes only `kube_cluster_name`, change the picker's prefix to that key; explicit query keys remain unchanged. Both tag keys must use the same cluster-name values. If your Sandbox metrics use a different tag key, change their explicit query filters and group-by clauses as well. You can select both component namespaces when they differ, but pool counts still require one selected Sandbox pool. API and bucket selectors remain secondary controls in Datadog's additional-variable menu.
 
 Select exactly one `api_service` that emits your sandbox API spans. Selecting all services can count the same request more than once. APM widgets intentionally ignore the host cluster and namespace filters. In a shared Datadog organization, use an environment/service combination that identifies the intended deployment.
 

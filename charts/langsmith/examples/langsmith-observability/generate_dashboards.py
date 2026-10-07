@@ -3,6 +3,7 @@ from copy import deepcopy
 import itertools
 import json
 from pathlib import Path
+import re
 import uuid
 
 
@@ -61,10 +62,29 @@ def datadog_dashboard(components):
         "widgets": [],
         "tabs": [],
     }
+    cluster_picker = None
     for index, (name, source) in enumerate(components):
+        variables = deepcopy(source["template_variables"])
         widgets = deepcopy(source["widgets"])
+        for variable in variables:
+            if variable["name"] != "cluster":
+                continue
+            prefix = variable.get("prefix")
+            if not isinstance(prefix, str) or not re.fullmatch(
+                r"[a-zA-Z_][a-zA-Z0-9_.-]*", prefix
+            ):
+                raise ValueError("Cluster requires an explicit tag key")
+            widgets = json.loads(
+                re.sub(
+                    r"\$cluster(?![\w.])",
+                    prefix + ":$cluster.value",
+                    json.dumps(widgets),
+                )
+            )
+            cluster_picker = cluster_picker or prefix
+            variable["prefix"] = cluster_picker
         assign_widget_ids(widgets, itertools.count((index + 1) * 10000))
-        merge_variables(dashboard["template_variables"], source["template_variables"])
+        merge_variables(dashboard["template_variables"], variables)
         dashboard["widgets"].extend(widgets)
         dashboard["tabs"].append(
             {
@@ -338,24 +358,7 @@ def grafana_dashboard(components):
 def sandbox_datadog():
     from components.sandboxes.datadog import build_dashboard
 
-    source = build_dashboard()
-
-    def rename(value):
-        if isinstance(value, dict):
-            return {key: rename(item) for key, item in value.items()}
-        if isinstance(value, list):
-            return [rename(item) for item in value]
-        if isinstance(value, str):
-            return value.replace("$cluster", "$sandbox_cluster").replace(
-                "$namespace", "$sandbox_namespace"
-            )
-        return value
-
-    source["widgets"] = rename(source["widgets"])
-    for variable in source["template_variables"]:
-        if variable["name"] in ("cluster", "namespace"):
-            variable["name"] = "sandbox_" + variable["name"]
-    return source
+    return build_dashboard()
 
 
 def build_dashboards():

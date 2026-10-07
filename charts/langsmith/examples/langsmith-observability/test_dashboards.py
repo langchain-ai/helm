@@ -40,7 +40,12 @@ class DashboardTests(unittest.TestCase):
         smithdb_widgets = [
             item for item in actual["widgets"] if item["id"] in smithdb_ids
         ]
-        self.assertEqual(without_ids(smithdb_widgets), without_ids(source["widgets"]))
+        expected = json.loads(
+            json.dumps(source["widgets"]).replace(
+                "$cluster", "cluster_name:$cluster.value"
+            )
+        )
+        self.assertEqual(without_ids(smithdb_widgets), without_ids(expected))
         for variable in source["template_variables"]:
             self.assertIn(variable, actual["template_variables"])
         self.assertEqual(actual["tabs"][0]["name"], "SmithDB")
@@ -50,6 +55,43 @@ class DashboardTests(unittest.TestCase):
         )
         ids = [item["id"] for item in widgets(actual["widgets"])]
         self.assertEqual(len(ids), len(set(ids)))
+
+    def test_datadog_shares_cluster_without_changing_query_tag_keys(self):
+        components = []
+        for prefix in ("cluster_name", "kube_cluster_name"):
+            components.append(
+                (
+                    prefix,
+                    {
+                        "template_variables": [
+                            {"name": "cluster", "prefix": prefix, "default": "*"}
+                        ],
+                        "widgets": [
+                            {
+                                "definition": {
+                                    "type": "note",
+                                    "content": "$cluster $cluster.value $cluster_name",
+                                }
+                            }
+                        ],
+                    },
+                )
+            )
+        dashboard = datadog_dashboard(components)
+        self.assertEqual(len(dashboard["template_variables"]), 1)
+        self.assertEqual(
+            [item["definition"]["content"] for item in dashboard["widgets"]],
+            [
+                "cluster_name:$cluster.value $cluster.value $cluster_name",
+                "kube_cluster_name:$cluster.value $cluster.value $cluster_name",
+            ],
+        )
+        self.assertEqual(
+            components[1][1]["template_variables"][0]["prefix"], "kube_cluster_name"
+        )
+        components[1][1]["template_variables"][0]["default"] = "different-default"
+        with self.assertRaisesRegex(ValueError, "Conflicting"):
+            datadog_dashboard(components)
 
     def test_tab_composition_keeps_existing_component_stable(self):
         source = load_source("smithdb", "datadog")
@@ -161,14 +203,24 @@ class DashboardTests(unittest.TestCase):
             item["name"]: item["prefix"] for item in actual["template_variables"]
         }
         self.assertEqual(variables["cluster"], "cluster_name")
-        self.assertEqual(variables["sandbox_cluster"], "kube_cluster_name")
-        self.assertEqual(variables["sandbox_namespace"], "kube_namespace")
+        self.assertEqual(variables["namespace"], "kube_namespace")
+        self.assertNotIn("sandbox_cluster", variables)
+        self.assertNotIn("sandbox_namespace", variables)
+        self.assertEqual(len(variables), len(actual["template_variables"]))
         ids = actual["tabs"][1]["widget_ids"]
         data = [widget for widget in widgets(actual["widgets"]) if widget["id"] in ids]
         text = json.dumps(data)
-        self.assertIn("$sandbox_cluster", text)
-        self.assertNotIn("$cluster", text)
-        self.assertNotIn("$namespace", text)
+        self.assertIn("kube_cluster_name:$cluster.value", text)
+        self.assertIn("$namespace", text)
+        for widget in widgets(data):
+            for request in widget["definition"].get("requests", []):
+                for query in request.get("queries", []):
+                    if any(
+                        metric in query["query"]
+                        for metric in ("trace.http.", "gcp.storage.", "aws.s3.")
+                    ):
+                        self.assertNotIn("$cluster", query["query"])
+                        self.assertNotIn("$namespace", query["query"])
 
     def test_dashboard_downloads_do_not_inflate_helm_release_storage(self):
         chart = Path(__file__).resolve().parents[2]

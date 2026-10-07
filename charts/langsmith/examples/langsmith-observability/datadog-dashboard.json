@@ -23,18 +23,6 @@
       "default": "*"
     },
     {
-      "name": "sandbox_cluster",
-      "prefix": "kube_cluster_name",
-      "available_values": [],
-      "default": "*"
-    },
-    {
-      "name": "sandbox_namespace",
-      "prefix": "kube_namespace",
-      "available_values": [],
-      "default": "*"
-    },
-    {
       "name": "api_service",
       "prefix": "service",
       "available_values": [],
@@ -124,7 +112,7 @@
                       "aggregator": "last",
                       "data_source": "metrics",
                       "name": "q1",
-                      "query": "p95:smithdb.server_requests_duration{$env,$cluster,$namespace,path:/query.queryservice/*}"
+                      "query": "p95:smithdb.server_requests_duration{$env,cluster_name:$cluster.value,$namespace,path:/query.queryservice/*}"
                     }
                   ],
                   "response_format": "scalar"
@@ -165,7 +153,7 @@
                       "aggregator": "last",
                       "data_source": "metrics",
                       "name": "q1",
-                      "query": "p95:smithdb.ingest_batch_latency{$env,$cluster,$namespace}"
+                      "query": "p95:smithdb.ingest_batch_latency{$env,cluster_name:$cluster.value,$namespace}"
                     }
                   ],
                   "response_format": "scalar"
@@ -200,7 +188,7 @@
                       "aggregator": "last",
                       "data_source": "metrics",
                       "name": "q1",
-                      "query": "sum:smithdb.ingest_pending_segment_entry_count{$env,$cluster,$namespace}"
+                      "query": "sum:smithdb.ingest_pending_segment_entry_count{$env,cluster_name:$cluster.value,$namespace}"
                     }
                   ],
                   "response_format": "scalar"
@@ -235,7 +223,7 @@
                       "aggregator": "last",
                       "data_source": "metrics",
                       "name": "q1",
-                      "query": "sum:smithdb.compaction_queue_job_count{$env,$cluster,$namespace,status:pending}"
+                      "query": "sum:smithdb.compaction_queue_job_count{$env,cluster_name:$cluster.value,$namespace,status:pending}"
                     }
                   ],
                   "response_format": "scalar"
@@ -270,7 +258,7 @@
                       "aggregator": "sum",
                       "data_source": "metrics",
                       "name": "q1",
-                      "query": "sum:smithdb.query_fanout_limit_exceeded.count{$env,$cluster,$namespace}.as_count()"
+                      "query": "sum:smithdb.query_fanout_limit_exceeded.count{$env,cluster_name:$cluster.value,$namespace}.as_count()"
                     }
                   ],
                   "response_format": "scalar"
@@ -305,7 +293,7 @@
                       "aggregator": "sum",
                       "data_source": "metrics",
                       "name": "q1",
-                      "query": "sum:smithdb.ingest_flush_count.count{$env,$cluster,$namespace,status:failure}.as_count()"
+                      "query": "sum:smithdb.ingest_flush_count.count{$env,cluster_name:$cluster.value,$namespace,status:failure}.as_count()"
                     }
                   ],
                   "response_format": "scalar"
@@ -340,7 +328,7 @@
                       "aggregator": "sum",
                       "data_source": "metrics",
                       "name": "q1",
-                      "query": "sum:smithdb.compaction_job_completion.count{$env,$cluster,$namespace,status:failure}.as_count()"
+                      "query": "sum:smithdb.compaction_job_completion.count{$env,cluster_name:$cluster.value,$namespace,status:failure}.as_count()"
                     }
                   ],
                   "response_format": "scalar"
@@ -375,7 +363,7 @@
                       "aggregator": "sum",
                       "data_source": "metrics",
                       "name": "q1",
-                      "query": "sum:smithdb.object_store_op_duration.count{$env,$cluster,$namespace,result:error}.as_count()"
+                      "query": "sum:smithdb.object_store_op_duration.count{$env,cluster_name:$cluster.value,$namespace,result:error}.as_count()"
                     }
                   ],
                   "response_format": "scalar"
@@ -457,7 +445,7 @@
                     {
                       "data_source": "metrics",
                       "name": "q1",
-                      "query": "p95:langsmith_ingestion_e2e_latency_seconds{$env,$cluster,$namespace} by {store}"
+                      "query": "p95:langsmith_ingestion_e2e_latency_seconds{$env,cluster_name:$cluster.value,$namespace} by {store}"
                     }
                   ],
                   "response_format": "timeseries",
@@ -517,12 +505,12 @@
                     {
                       "data_source": "metrics",
                       "name": "q1",
-                      "query": "p95:langsmith_ingestion_api_to_worker_latency_seconds{$env,$cluster,$namespace,store:smithdb}"
+                      "query": "p95:langsmith_ingestion_api_to_worker_latency_seconds{$env,cluster_name:$cluster.value,$namespace,store:smithdb}"
                     },
                     {
                       "data_source": "metrics",
                       "name": "q2",
-                      "query": "p95:langsmith_ingestion_worker_to_store_latency_seconds{$env,$cluster,$namespace,store:smithdb}"
+                      "query": "p95:langsmith_ingestion_worker_to_store_latency_seconds{$env,cluster_name:$cluster.value,$namespace,store:smithdb}"
                     }
                   ],
                   "response_format": "timeseries",
@@ -565,7 +553,7 @@
                     {
                       "data_source": "metrics",
                       "name": "q1",
-                      "query": "max:langsmith_asynq_ingestion_queue_pending{$env,$cluster,$namespace}"
+                      "query": "max:langsmith_asynq_ingestion_queue_pending{$env,cluster_name:$cluster.value,$namespace}"
                     }
                   ],
                   "response_format": "timeseries",
@@ -672,17 +660,17 @@
                     {
                       "data_source": "metrics",
                       "name": "q1",
-                      "query": "p50:smithdb.ingest_batch_latency{$env,$cluster,$namespace}"
+                      "query": "p50:smithdb.ingest_batch_latency{$env,cluster_name:$cluster.value,$namespace}"
                     },
                     {
                       "data_source": "metrics",
                       "name": "q2",
-                      "query": "p95:smithdb.ingest_batch_latency{$env,$cluster,$namespace}"
+                      "query": "p95:smithdb.ingest_batch_latency{$env,cluster_name:$cluster.value,$namespace}"
                     },
                     {
                       "data_source": "metrics",
                       "name": "q3",
-                      "query": "p99:smithdb.ingest_batch_latency{$env,$cluster,$namespace}"
+                      "query": "p99:smithdb.ingest_batch_latency{$env,cluster_name:$cluster.value,$namespace}"
                     }
                   ],
                   "response_format": "timeseries",
@@ -725,7 +713,7 @@
                     {
                       "data_source": "metrics",
                       "name": "q1",
-                      "query": "sum:smithdb.ingest_pending_segment_entry_count{$env,$cluster,$namespace} by {level}"
+                      "query": "sum:smithdb.ingest_pending_segment_entry_count{$env,cluster_name:$cluster.value,$namespace} by {level}"
                     }
                   ],
                   "response_format": "timeseries",
@@ -768,7 +756,7 @@
                     {
                       "data_source": "metrics",
                       "name": "q1",
-                      "query": "sum:smithdb.ingest_flush_count.count{$env,$cluster,$namespace} by {status}.as_count()"
+                      "query": "sum:smithdb.ingest_flush_count.count{$env,cluster_name:$cluster.value,$namespace} by {status}.as_count()"
                     }
                   ],
                   "response_format": "timeseries",
@@ -817,7 +805,7 @@
                     {
                       "data_source": "metrics",
                       "name": "q1",
-                      "query": "p95:smithdb.ingest_flush_duration{$env,$cluster,$namespace} by {level}"
+                      "query": "p95:smithdb.ingest_flush_duration{$env,cluster_name:$cluster.value,$namespace} by {level}"
                     }
                   ],
                   "response_format": "timeseries",
@@ -860,7 +848,7 @@
                     {
                       "data_source": "metrics",
                       "name": "q1",
-                      "query": "sum:smithdb.ingest_flush_reason.count{$env,$cluster,$namespace} by {reason,level}.as_count()"
+                      "query": "sum:smithdb.ingest_flush_reason.count{$env,cluster_name:$cluster.value,$namespace} by {reason,level}.as_count()"
                     }
                   ],
                   "response_format": "timeseries",
@@ -908,12 +896,12 @@
                     {
                       "data_source": "metrics",
                       "name": "q1",
-                      "query": "max:smithdb.semaphore_permits_in_use{$env,$cluster,$namespace}"
+                      "query": "max:smithdb.semaphore_permits_in_use{$env,cluster_name:$cluster.value,$namespace}"
                     },
                     {
                       "data_source": "metrics",
                       "name": "q2",
-                      "query": "max:smithdb.semaphore_max_permits{$env,$cluster,$namespace}"
+                      "query": "max:smithdb.semaphore_max_permits{$env,cluster_name:$cluster.value,$namespace}"
                     }
                   ],
                   "response_format": "timeseries",
@@ -999,7 +987,7 @@
                     {
                       "data_source": "metrics",
                       "name": "q1",
-                      "query": "p95:smithdb.server_requests_duration{$env,$cluster,$namespace,path:/query.queryservice/*} by {path}"
+                      "query": "p95:smithdb.server_requests_duration{$env,cluster_name:$cluster.value,$namespace,path:/query.queryservice/*} by {path}"
                     }
                   ],
                   "response_format": "timeseries",
@@ -1042,7 +1030,7 @@
                     {
                       "data_source": "metrics",
                       "name": "q1",
-                      "query": "sum:smithdb.server_requests_duration.count{$env,$cluster,$namespace,path:/query.queryservice/*} by {status}.as_count()"
+                      "query": "sum:smithdb.server_requests_duration.count{$env,cluster_name:$cluster.value,$namespace,path:/query.queryservice/*} by {status}.as_count()"
                     }
                   ],
                   "response_format": "timeseries",
@@ -1085,7 +1073,7 @@
                     {
                       "data_source": "metrics",
                       "name": "q1",
-                      "query": "p95:smithdb.query_fanout_partitions{$env,$cluster,$namespace} by {query_type}"
+                      "query": "p95:smithdb.query_fanout_partitions{$env,cluster_name:$cluster.value,$namespace} by {query_type}"
                     }
                   ],
                   "response_format": "timeseries",
@@ -1128,7 +1116,7 @@
                     {
                       "data_source": "metrics",
                       "name": "q1",
-                      "query": "sum:smithdb.query_fanout_limit_exceeded.count{$env,$cluster,$namespace} by {query_type}.as_count()"
+                      "query": "sum:smithdb.query_fanout_limit_exceeded.count{$env,cluster_name:$cluster.value,$namespace} by {query_type}.as_count()"
                     }
                   ],
                   "response_format": "timeseries",
@@ -1177,7 +1165,7 @@
                     {
                       "data_source": "metrics",
                       "name": "q1",
-                      "query": "p99:smithdb.query_execution_max_mem_used_bytes{$env,$cluster,$namespace} by {query_source_name}"
+                      "query": "p99:smithdb.query_execution_max_mem_used_bytes{$env,cluster_name:$cluster.value,$namespace} by {query_source_name}"
                     }
                   ],
                   "response_format": "timeseries",
@@ -1258,7 +1246,7 @@
                     {
                       "data_source": "metrics",
                       "name": "q1",
-                      "query": "sum:smithdb.compaction_queue_job_count{$env,$cluster,$namespace,status:pending} by {job_kind}"
+                      "query": "sum:smithdb.compaction_queue_job_count{$env,cluster_name:$cluster.value,$namespace,status:pending} by {job_kind}"
                     }
                   ],
                   "response_format": "timeseries",
@@ -1301,7 +1289,7 @@
                     {
                       "data_source": "metrics",
                       "name": "q1",
-                      "query": "sum:smithdb.compaction_job_completion.count{$env,$cluster,$namespace} by {status}.as_count()"
+                      "query": "sum:smithdb.compaction_job_completion.count{$env,cluster_name:$cluster.value,$namespace} by {status}.as_count()"
                     }
                   ],
                   "response_format": "timeseries",
@@ -1344,7 +1332,7 @@
                     {
                       "data_source": "metrics",
                       "name": "q1",
-                      "query": "sum:smithdb.compaction_job_completion.count{$env,$cluster,$namespace,status:failure} by {job_kind}.as_count()"
+                      "query": "sum:smithdb.compaction_job_completion.count{$env,cluster_name:$cluster.value,$namespace,status:failure} by {job_kind}.as_count()"
                     }
                   ],
                   "response_format": "timeseries",
@@ -1393,7 +1381,7 @@
                     {
                       "data_source": "metrics",
                       "name": "q1",
-                      "query": "p95:smithdb.compaction_job_latency_seconds{$env,$cluster,$namespace} by {job_kind}"
+                      "query": "p95:smithdb.compaction_job_latency_seconds{$env,cluster_name:$cluster.value,$namespace} by {job_kind}"
                     }
                   ],
                   "response_format": "timeseries",
@@ -1441,12 +1429,12 @@
                     {
                       "data_source": "metrics",
                       "name": "q1",
-                      "query": "sum:smithdb.compaction_worker_capacity_used{$env,$cluster,$namespace}"
+                      "query": "sum:smithdb.compaction_worker_capacity_used{$env,cluster_name:$cluster.value,$namespace}"
                     },
                     {
                       "data_source": "metrics",
                       "name": "q2",
-                      "query": "sum:smithdb.compaction_worker_capacity_limit{$env,$cluster,$namespace}"
+                      "query": "sum:smithdb.compaction_worker_capacity_limit{$env,cluster_name:$cluster.value,$namespace}"
                     }
                   ],
                   "response_format": "timeseries",
@@ -1494,12 +1482,12 @@
                     {
                       "data_source": "metrics",
                       "name": "q1",
-                      "query": "sum:smithdb.compaction_jobs_scheduled.count{$env,$cluster,$namespace}.as_count()"
+                      "query": "sum:smithdb.compaction_jobs_scheduled.count{$env,cluster_name:$cluster.value,$namespace}.as_count()"
                     },
                     {
                       "data_source": "metrics",
                       "name": "q2",
-                      "query": "sum:smithdb.compaction_jobs_executed.count{$env,$cluster,$namespace}.as_count()"
+                      "query": "sum:smithdb.compaction_jobs_executed.count{$env,cluster_name:$cluster.value,$namespace}.as_count()"
                     }
                   ],
                   "response_format": "timeseries",
@@ -1585,7 +1573,7 @@
                     {
                       "data_source": "metrics",
                       "name": "q1",
-                      "query": "p95:smithdb.object_store_op_duration{$env,$cluster,$namespace} by {op}"
+                      "query": "p95:smithdb.object_store_op_duration{$env,cluster_name:$cluster.value,$namespace} by {op}"
                     }
                   ],
                   "response_format": "timeseries",
@@ -1628,7 +1616,7 @@
                     {
                       "data_source": "metrics",
                       "name": "q1",
-                      "query": "sum:smithdb.object_store_op_duration.count{$env,$cluster,$namespace,result:error} by {op}.as_count()"
+                      "query": "sum:smithdb.object_store_op_duration.count{$env,cluster_name:$cluster.value,$namespace,result:error} by {op}.as_count()"
                     }
                   ],
                   "response_format": "timeseries",
@@ -1677,7 +1665,7 @@
                     {
                       "data_source": "metrics",
                       "name": "q1",
-                      "query": "max:smithdb.sys_jemalloc_resident_bytes{$env,$cluster,$namespace} by {kube_deployment}"
+                      "query": "max:smithdb.sys_jemalloc_resident_bytes{$env,cluster_name:$cluster.value,$namespace} by {kube_deployment}"
                     }
                   ],
                   "response_format": "timeseries",
@@ -1774,7 +1762,7 @@
                       ],
                       "name": "q1",
                       "search": {
-                        "query": "service:smithdb* status:error $env $cluster $namespace"
+                        "query": "service:smithdb* status:error $env cluster_name:$cluster.value $namespace"
                       }
                     }
                   ],
@@ -1804,7 +1792,7 @@
                   "response_format": "event_list",
                   "query": {
                     "data_source": "logs_stream",
-                    "query_string": "service:smithdb* status:error $env $cluster $namespace",
+                    "query_string": "service:smithdb* status:error $env cluster_name:$cluster.value $namespace",
                     "indexes": [],
                     "storage": "hot",
                     "sort": {
@@ -1919,7 +1907,7 @@
                     {
                       "data_source": "metrics",
                       "name": "q",
-                      "query": "sum:langsmith_sandbox_host_live_sandboxes{$env,$sandbox_cluster,$sandbox_namespace}.fill(last,60)",
+                      "query": "sum:langsmith_sandbox_host_live_sandboxes{$env,kube_cluster_name:$cluster.value,$namespace}.fill(last,60)",
                       "aggregator": "last"
                     }
                   ],
@@ -1963,7 +1951,7 @@
                     {
                       "data_source": "metrics",
                       "name": "q",
-                      "query": "max:langsmith_sandbox_host_pool_ready_hosts{$env,$sandbox_cluster,$sandbox_namespace}.fill(null)",
+                      "query": "max:langsmith_sandbox_host_pool_ready_hosts{$env,kube_cluster_name:$cluster.value,$namespace}.fill(null)",
                       "aggregator": "last"
                     }
                   ],
@@ -2007,7 +1995,7 @@
                     {
                       "data_source": "metrics",
                       "name": "q",
-                      "query": "sum:langsmith_sandbox_host_live_sandboxes{$env,$sandbox_cluster,$sandbox_namespace} by {kube_cluster_name}"
+                      "query": "sum:langsmith_sandbox_host_live_sandboxes{$env,kube_cluster_name:$cluster.value,$namespace} by {kube_cluster_name}"
                     }
                   ],
                   "response_format": "timeseries",
@@ -2056,7 +2044,7 @@
                     {
                       "data_source": "metrics",
                       "name": "q",
-                      "query": "max:langsmith_sandbox_host_pool_ready_hosts{$env,$sandbox_cluster,$sandbox_namespace}.fill(null)"
+                      "query": "max:langsmith_sandbox_host_pool_ready_hosts{$env,kube_cluster_name:$cluster.value,$namespace}.fill(null)"
                     }
                   ],
                   "response_format": "timeseries",
@@ -2082,7 +2070,7 @@
                     {
                       "data_source": "metrics",
                       "name": "q",
-                      "query": "max:langsmith_sandbox_host_pool_desired_replicas{$env,$sandbox_cluster,$sandbox_namespace}.fill(null)"
+                      "query": "max:langsmith_sandbox_host_pool_desired_replicas{$env,kube_cluster_name:$cluster.value,$namespace}.fill(null)"
                     }
                   ],
                   "response_format": "timeseries",
@@ -2134,12 +2122,12 @@
                     {
                       "data_source": "metrics",
                       "name": "assigned",
-                      "query": "sum:langsmith_sandbox_host_pool_assigned_cpu_millicores{$env,$sandbox_cluster,$sandbox_namespace} by {kube_cluster_name}"
+                      "query": "sum:langsmith_sandbox_host_pool_assigned_cpu_millicores{$env,kube_cluster_name:$cluster.value,$namespace} by {kube_cluster_name}"
                     },
                     {
                       "data_source": "metrics",
                       "name": "capacity",
-                      "query": "sum:langsmith_sandbox_host_pool_capacity_cpu_millicores{$env,$sandbox_cluster,$sandbox_namespace} by {kube_cluster_name}"
+                      "query": "sum:langsmith_sandbox_host_pool_capacity_cpu_millicores{$env,kube_cluster_name:$cluster.value,$namespace} by {kube_cluster_name}"
                     }
                   ],
                   "response_format": "timeseries",
@@ -2198,12 +2186,12 @@
                     {
                       "data_source": "metrics",
                       "name": "assigned",
-                      "query": "sum:langsmith_sandbox_host_assigned_memory_mib{$env,$sandbox_cluster,$sandbox_namespace} by {kube_cluster_name}"
+                      "query": "sum:langsmith_sandbox_host_assigned_memory_mib{$env,kube_cluster_name:$cluster.value,$namespace} by {kube_cluster_name}"
                     },
                     {
                       "data_source": "metrics",
                       "name": "capacity",
-                      "query": "sum:langsmith_sandbox_host_capacity_memory_mib{$env,$sandbox_cluster,$sandbox_namespace} by {kube_cluster_name}"
+                      "query": "sum:langsmith_sandbox_host_capacity_memory_mib{$env,kube_cluster_name:$cluster.value,$namespace} by {kube_cluster_name}"
                     }
                   ],
                   "response_format": "timeseries",
@@ -2266,7 +2254,7 @@
                     {
                       "data_source": "metrics",
                       "name": "q",
-                      "query": "avg:langsmith_sandbox_host_live_sandboxes{$env,$sandbox_cluster,$sandbox_namespace} by {host}.fill(last,60)",
+                      "query": "avg:langsmith_sandbox_host_live_sandboxes{$env,kube_cluster_name:$cluster.value,$namespace} by {host}.fill(last,60)",
                       "aggregator": "last"
                     }
                   ],
@@ -2307,7 +2295,7 @@
                     {
                       "data_source": "metrics",
                       "name": "q",
-                      "query": "sum:langsmith_sandbox_host_build_info{$env,$sandbox_cluster,$sandbox_namespace} by {version}"
+                      "query": "sum:langsmith_sandbox_host_build_info{$env,kube_cluster_name:$cluster.value,$namespace} by {version}"
                     }
                   ],
                   "response_format": "timeseries",
@@ -4377,7 +4365,7 @@
                     {
                       "data_source": "metrics",
                       "name": "q",
-                      "query": "sum:langsmith_sandbox_host_exec_commands.count{$env,$sandbox_cluster,$sandbox_namespace} by {command_class}.as_count()"
+                      "query": "sum:langsmith_sandbox_host_exec_commands.count{$env,kube_cluster_name:$cluster.value,$namespace} by {command_class}.as_count()"
                     }
                   ],
                   "response_format": "timeseries",
@@ -4426,7 +4414,7 @@
                     {
                       "data_source": "metrics",
                       "name": "q",
-                      "query": "sum:langsmith_sandbox_host_exec_commands.count{$env,$sandbox_cluster,$sandbox_namespace} by {transport}.as_count()"
+                      "query": "sum:langsmith_sandbox_host_exec_commands.count{$env,kube_cluster_name:$cluster.value,$namespace} by {transport}.as_count()"
                     }
                   ],
                   "response_format": "timeseries",
@@ -4479,12 +4467,12 @@
                     {
                       "data_source": "metrics",
                       "name": "total",
-                      "query": "sum:langsmith_sandbox_host_exec_command_duration_seconds.sum{$env,$sandbox_cluster,$sandbox_namespace} by {command_class}.as_count()"
+                      "query": "sum:langsmith_sandbox_host_exec_command_duration_seconds.sum{$env,kube_cluster_name:$cluster.value,$namespace} by {command_class}.as_count()"
                     },
                     {
                       "data_source": "metrics",
                       "name": "samples",
-                      "query": "sum:langsmith_sandbox_host_exec_command_duration_seconds.count{$env,$sandbox_cluster,$sandbox_namespace} by {command_class}.as_count()"
+                      "query": "sum:langsmith_sandbox_host_exec_command_duration_seconds.count{$env,kube_cluster_name:$cluster.value,$namespace} by {command_class}.as_count()"
                     }
                   ],
                   "response_format": "timeseries",
@@ -4656,7 +4644,7 @@
                     {
                       "data_source": "metrics",
                       "name": "q",
-                      "query": "sum:langsmith_sandbox_host_operations.count{$env,$sandbox_cluster,$sandbox_namespace,outcome:error}.as_count()",
+                      "query": "sum:langsmith_sandbox_host_operations.count{$env,kube_cluster_name:$cluster.value,$namespace,outcome:error}.as_count()",
                       "aggregator": "sum"
                     }
                   ],
@@ -4698,7 +4686,7 @@
                     {
                       "data_source": "metrics",
                       "name": "q",
-                      "query": "sum:langsmith_sandbox_host_operations.count{$env,$sandbox_cluster,$sandbox_namespace,outcome:error,failed_stage:}.as_count()",
+                      "query": "sum:langsmith_sandbox_host_operations.count{$env,kube_cluster_name:$cluster.value,$namespace,outcome:error,failed_stage:}.as_count()",
                       "aggregator": "sum"
                     }
                   ],
@@ -4740,7 +4728,7 @@
                     {
                       "data_source": "metrics",
                       "name": "q",
-                      "query": "sum:langsmith_sandbox_host_operations.count{$env,$sandbox_cluster,$sandbox_namespace} by {operation}.as_rate()"
+                      "query": "sum:langsmith_sandbox_host_operations.count{$env,kube_cluster_name:$cluster.value,$namespace} by {operation}.as_rate()"
                     }
                   ],
                   "response_format": "timeseries",
@@ -4789,7 +4777,7 @@
                     {
                       "data_source": "metrics",
                       "name": "q",
-                      "query": "sum:langsmith_sandbox_host_operations.count{$env,$sandbox_cluster,$sandbox_namespace} by {outcome}.as_rate()"
+                      "query": "sum:langsmith_sandbox_host_operations.count{$env,kube_cluster_name:$cluster.value,$namespace} by {outcome}.as_rate()"
                     }
                   ],
                   "response_format": "timeseries",
@@ -4838,12 +4826,12 @@
                     {
                       "data_source": "metrics",
                       "name": "errors",
-                      "query": "sum:langsmith_sandbox_host_operations.count{$env,$sandbox_cluster,$sandbox_namespace,outcome:error} by {operation}.as_count()"
+                      "query": "sum:langsmith_sandbox_host_operations.count{$env,kube_cluster_name:$cluster.value,$namespace,outcome:error} by {operation}.as_count()"
                     },
                     {
                       "data_source": "metrics",
                       "name": "total",
-                      "query": "sum:langsmith_sandbox_host_operations.count{$env,$sandbox_cluster,$sandbox_namespace} by {operation}.as_count()"
+                      "query": "sum:langsmith_sandbox_host_operations.count{$env,kube_cluster_name:$cluster.value,$namespace} by {operation}.as_count()"
                     }
                   ],
                   "response_format": "timeseries",
@@ -4899,7 +4887,7 @@
                     {
                       "data_source": "metrics",
                       "name": "q",
-                      "query": "sum:langsmith_sandbox_host_operations.count{$env,$sandbox_cluster,$sandbox_namespace,!failed_stage:,outcome:error} by {failed_stage,operation}.as_count()",
+                      "query": "sum:langsmith_sandbox_host_operations.count{$env,kube_cluster_name:$cluster.value,$namespace,!failed_stage:,outcome:error} by {failed_stage,operation}.as_count()",
                       "aggregator": "sum"
                     }
                   ],
@@ -4941,7 +4929,7 @@
                     {
                       "data_source": "metrics",
                       "name": "q",
-                      "query": "sum:langsmith_sandbox_host_operations.count{$env,$sandbox_cluster,$sandbox_namespace,!outcome:ok} by {operation,outcome}.as_count()",
+                      "query": "sum:langsmith_sandbox_host_operations.count{$env,kube_cluster_name:$cluster.value,$namespace,!outcome:ok} by {operation,outcome}.as_count()",
                       "aggregator": "sum"
                     }
                   ],
@@ -4979,7 +4967,7 @@
                     {
                       "data_source": "metrics",
                       "name": "q",
-                      "query": "sum:langsmith_sandbox_host_ref_lock_contention.count{$env,$sandbox_cluster,$sandbox_namespace} by {operation}.as_rate()"
+                      "query": "sum:langsmith_sandbox_host_ref_lock_contention.count{$env,kube_cluster_name:$cluster.value,$namespace} by {operation}.as_rate()"
                     }
                   ],
                   "response_format": "timeseries",
@@ -5035,12 +5023,12 @@
                     {
                       "data_source": "metrics",
                       "name": "total",
-                      "query": "sum:langsmith_sandbox_host_ref_lock_wait_seconds.sum{$env,$sandbox_cluster,$sandbox_namespace} by {operation}.as_count()"
+                      "query": "sum:langsmith_sandbox_host_ref_lock_wait_seconds.sum{$env,kube_cluster_name:$cluster.value,$namespace} by {operation}.as_count()"
                     },
                     {
                       "data_source": "metrics",
                       "name": "samples",
-                      "query": "sum:langsmith_sandbox_host_ref_lock_wait_seconds.count{$env,$sandbox_cluster,$sandbox_namespace} by {operation}.as_count()"
+                      "query": "sum:langsmith_sandbox_host_ref_lock_wait_seconds.count{$env,kube_cluster_name:$cluster.value,$namespace} by {operation}.as_count()"
                     }
                   ],
                   "response_format": "timeseries",
@@ -5096,12 +5084,12 @@
                     {
                       "data_source": "metrics",
                       "name": "total",
-                      "query": "sum:langsmith_sandbox_host_operation_duration_seconds.sum{$env,$sandbox_cluster,$sandbox_namespace,operation:create} by {outcome}.as_count()"
+                      "query": "sum:langsmith_sandbox_host_operation_duration_seconds.sum{$env,kube_cluster_name:$cluster.value,$namespace,operation:create} by {outcome}.as_count()"
                     },
                     {
                       "data_source": "metrics",
                       "name": "samples",
-                      "query": "sum:langsmith_sandbox_host_operation_duration_seconds.count{$env,$sandbox_cluster,$sandbox_namespace,operation:create} by {outcome}.as_count()"
+                      "query": "sum:langsmith_sandbox_host_operation_duration_seconds.count{$env,kube_cluster_name:$cluster.value,$namespace,operation:create} by {outcome}.as_count()"
                     }
                   ],
                   "response_format": "timeseries",
@@ -5157,12 +5145,12 @@
                     {
                       "data_source": "metrics",
                       "name": "total",
-                      "query": "sum:langsmith_sandbox_host_operation_duration_seconds.sum{$env,$sandbox_cluster,$sandbox_namespace,operation:start} by {outcome}.as_count()"
+                      "query": "sum:langsmith_sandbox_host_operation_duration_seconds.sum{$env,kube_cluster_name:$cluster.value,$namespace,operation:start} by {outcome}.as_count()"
                     },
                     {
                       "data_source": "metrics",
                       "name": "samples",
-                      "query": "sum:langsmith_sandbox_host_operation_duration_seconds.count{$env,$sandbox_cluster,$sandbox_namespace,operation:start} by {outcome}.as_count()"
+                      "query": "sum:langsmith_sandbox_host_operation_duration_seconds.count{$env,kube_cluster_name:$cluster.value,$namespace,operation:start} by {outcome}.as_count()"
                     }
                   ],
                   "response_format": "timeseries",
@@ -5218,12 +5206,12 @@
                     {
                       "data_source": "metrics",
                       "name": "total",
-                      "query": "sum:langsmith_sandbox_host_operation_duration_seconds.sum{$env,$sandbox_cluster,$sandbox_namespace,operation:stop_suspend} by {outcome}.as_count()"
+                      "query": "sum:langsmith_sandbox_host_operation_duration_seconds.sum{$env,kube_cluster_name:$cluster.value,$namespace,operation:stop_suspend} by {outcome}.as_count()"
                     },
                     {
                       "data_source": "metrics",
                       "name": "samples",
-                      "query": "sum:langsmith_sandbox_host_operation_duration_seconds.count{$env,$sandbox_cluster,$sandbox_namespace,operation:stop_suspend} by {outcome}.as_count()"
+                      "query": "sum:langsmith_sandbox_host_operation_duration_seconds.count{$env,kube_cluster_name:$cluster.value,$namespace,operation:stop_suspend} by {outcome}.as_count()"
                     }
                   ],
                   "response_format": "timeseries",
@@ -5279,12 +5267,12 @@
                     {
                       "data_source": "metrics",
                       "name": "total",
-                      "query": "sum:langsmith_sandbox_host_operation_duration_seconds.sum{$env,$sandbox_cluster,$sandbox_namespace,operation:stop_discard} by {outcome}.as_count()"
+                      "query": "sum:langsmith_sandbox_host_operation_duration_seconds.sum{$env,kube_cluster_name:$cluster.value,$namespace,operation:stop_discard} by {outcome}.as_count()"
                     },
                     {
                       "data_source": "metrics",
                       "name": "samples",
-                      "query": "sum:langsmith_sandbox_host_operation_duration_seconds.count{$env,$sandbox_cluster,$sandbox_namespace,operation:stop_discard} by {outcome}.as_count()"
+                      "query": "sum:langsmith_sandbox_host_operation_duration_seconds.count{$env,kube_cluster_name:$cluster.value,$namespace,operation:stop_discard} by {outcome}.as_count()"
                     }
                   ],
                   "response_format": "timeseries",
@@ -5340,12 +5328,12 @@
                     {
                       "data_source": "metrics",
                       "name": "total",
-                      "query": "sum:langsmith_sandbox_host_operation_duration_seconds.sum{$env,$sandbox_cluster,$sandbox_namespace,operation:delete} by {outcome}.as_count()"
+                      "query": "sum:langsmith_sandbox_host_operation_duration_seconds.sum{$env,kube_cluster_name:$cluster.value,$namespace,operation:delete} by {outcome}.as_count()"
                     },
                     {
                       "data_source": "metrics",
                       "name": "samples",
-                      "query": "sum:langsmith_sandbox_host_operation_duration_seconds.count{$env,$sandbox_cluster,$sandbox_namespace,operation:delete} by {outcome}.as_count()"
+                      "query": "sum:langsmith_sandbox_host_operation_duration_seconds.count{$env,kube_cluster_name:$cluster.value,$namespace,operation:delete} by {outcome}.as_count()"
                     }
                   ],
                   "response_format": "timeseries",
@@ -5401,12 +5389,12 @@
                     {
                       "data_source": "metrics",
                       "name": "total",
-                      "query": "sum:langsmith_sandbox_host_operation_duration_seconds.sum{$env,$sandbox_cluster,$sandbox_namespace,operation:snapshot} by {outcome}.as_count()"
+                      "query": "sum:langsmith_sandbox_host_operation_duration_seconds.sum{$env,kube_cluster_name:$cluster.value,$namespace,operation:snapshot} by {outcome}.as_count()"
                     },
                     {
                       "data_source": "metrics",
                       "name": "samples",
-                      "query": "sum:langsmith_sandbox_host_operation_duration_seconds.count{$env,$sandbox_cluster,$sandbox_namespace,operation:snapshot} by {outcome}.as_count()"
+                      "query": "sum:langsmith_sandbox_host_operation_duration_seconds.count{$env,kube_cluster_name:$cluster.value,$namespace,operation:snapshot} by {outcome}.as_count()"
                     }
                   ],
                   "response_format": "timeseries",
@@ -5462,12 +5450,12 @@
                     {
                       "data_source": "metrics",
                       "name": "total",
-                      "query": "sum:langsmith_sandbox_host_operation_duration_seconds.sum{$env,$sandbox_cluster,$sandbox_namespace,operation:export} by {outcome}.as_count()"
+                      "query": "sum:langsmith_sandbox_host_operation_duration_seconds.sum{$env,kube_cluster_name:$cluster.value,$namespace,operation:export} by {outcome}.as_count()"
                     },
                     {
                       "data_source": "metrics",
                       "name": "samples",
-                      "query": "sum:langsmith_sandbox_host_operation_duration_seconds.count{$env,$sandbox_cluster,$sandbox_namespace,operation:export} by {outcome}.as_count()"
+                      "query": "sum:langsmith_sandbox_host_operation_duration_seconds.count{$env,kube_cluster_name:$cluster.value,$namespace,operation:export} by {outcome}.as_count()"
                     }
                   ],
                   "response_format": "timeseries",
@@ -5523,12 +5511,12 @@
                     {
                       "data_source": "metrics",
                       "name": "total",
-                      "query": "sum:langsmith_sandbox_host_operation_duration_seconds.sum{$env,$sandbox_cluster,$sandbox_namespace,operation:build} by {outcome}.as_count()"
+                      "query": "sum:langsmith_sandbox_host_operation_duration_seconds.sum{$env,kube_cluster_name:$cluster.value,$namespace,operation:build} by {outcome}.as_count()"
                     },
                     {
                       "data_source": "metrics",
                       "name": "samples",
-                      "query": "sum:langsmith_sandbox_host_operation_duration_seconds.count{$env,$sandbox_cluster,$sandbox_namespace,operation:build} by {outcome}.as_count()"
+                      "query": "sum:langsmith_sandbox_host_operation_duration_seconds.count{$env,kube_cluster_name:$cluster.value,$namespace,operation:build} by {outcome}.as_count()"
                     }
                   ],
                   "response_format": "timeseries",
@@ -5584,12 +5572,12 @@
                     {
                       "data_source": "metrics",
                       "name": "total",
-                      "query": "sum:langsmith_sandbox_host_operation_duration_seconds.sum{$env,$sandbox_cluster,$sandbox_namespace,operation:reboot} by {outcome}.as_count()"
+                      "query": "sum:langsmith_sandbox_host_operation_duration_seconds.sum{$env,kube_cluster_name:$cluster.value,$namespace,operation:reboot} by {outcome}.as_count()"
                     },
                     {
                       "data_source": "metrics",
                       "name": "samples",
-                      "query": "sum:langsmith_sandbox_host_operation_duration_seconds.count{$env,$sandbox_cluster,$sandbox_namespace,operation:reboot} by {outcome}.as_count()"
+                      "query": "sum:langsmith_sandbox_host_operation_duration_seconds.count{$env,kube_cluster_name:$cluster.value,$namespace,operation:reboot} by {outcome}.as_count()"
                     }
                   ],
                   "response_format": "timeseries",
@@ -5645,12 +5633,12 @@
                     {
                       "data_source": "metrics",
                       "name": "total",
-                      "query": "sum:langsmith_sandbox_host_stage_duration_seconds.sum{$env,$sandbox_cluster,$sandbox_namespace,operation:create} by {stage}.as_count()"
+                      "query": "sum:langsmith_sandbox_host_stage_duration_seconds.sum{$env,kube_cluster_name:$cluster.value,$namespace,operation:create} by {stage}.as_count()"
                     },
                     {
                       "data_source": "metrics",
                       "name": "samples",
-                      "query": "sum:langsmith_sandbox_host_stage_duration_seconds.count{$env,$sandbox_cluster,$sandbox_namespace,operation:create} by {stage}.as_count()"
+                      "query": "sum:langsmith_sandbox_host_stage_duration_seconds.count{$env,kube_cluster_name:$cluster.value,$namespace,operation:create} by {stage}.as_count()"
                     }
                   ],
                   "response_format": "timeseries",
@@ -5706,12 +5694,12 @@
                     {
                       "data_source": "metrics",
                       "name": "total",
-                      "query": "sum:langsmith_sandbox_host_stage_duration_seconds.sum{$env,$sandbox_cluster,$sandbox_namespace,operation:start} by {stage}.as_count()"
+                      "query": "sum:langsmith_sandbox_host_stage_duration_seconds.sum{$env,kube_cluster_name:$cluster.value,$namespace,operation:start} by {stage}.as_count()"
                     },
                     {
                       "data_source": "metrics",
                       "name": "samples",
-                      "query": "sum:langsmith_sandbox_host_stage_duration_seconds.count{$env,$sandbox_cluster,$sandbox_namespace,operation:start} by {stage}.as_count()"
+                      "query": "sum:langsmith_sandbox_host_stage_duration_seconds.count{$env,kube_cluster_name:$cluster.value,$namespace,operation:start} by {stage}.as_count()"
                     }
                   ],
                   "response_format": "timeseries",
@@ -5797,7 +5785,7 @@
                     {
                       "data_source": "metrics",
                       "name": "q",
-                      "query": "sum:langsmith_sandbox_host_boot_mode.count{$env,$sandbox_cluster,$sandbox_namespace} by {mode}.as_rate()"
+                      "query": "sum:langsmith_sandbox_host_boot_mode.count{$env,kube_cluster_name:$cluster.value,$namespace} by {mode}.as_rate()"
                     }
                   ],
                   "response_format": "timeseries",
@@ -5846,12 +5834,12 @@
                     {
                       "data_source": "metrics",
                       "name": "zygote",
-                      "query": "sum:langsmith_sandbox_host_boot_mode.count{$env,$sandbox_cluster,$sandbox_namespace,mode:zygote}.as_count()"
+                      "query": "sum:langsmith_sandbox_host_boot_mode.count{$env,kube_cluster_name:$cluster.value,$namespace,mode:zygote}.as_count()"
                     },
                     {
                       "data_source": "metrics",
                       "name": "boots",
-                      "query": "sum:langsmith_sandbox_host_boot_mode.count{$env,$sandbox_cluster,$sandbox_namespace}.as_count()"
+                      "query": "sum:langsmith_sandbox_host_boot_mode.count{$env,kube_cluster_name:$cluster.value,$namespace}.as_count()"
                     }
                   ],
                   "response_format": "timeseries",
@@ -5903,7 +5891,7 @@
                     {
                       "data_source": "metrics",
                       "name": "q",
-                      "query": "sum:langsmith_sandbox_host_zygote_capture.count{$env,$sandbox_cluster,$sandbox_namespace} by {outcome}.as_rate()"
+                      "query": "sum:langsmith_sandbox_host_zygote_capture.count{$env,kube_cluster_name:$cluster.value,$namespace} by {outcome}.as_rate()"
                     }
                   ],
                   "response_format": "timeseries",
@@ -5956,12 +5944,12 @@
                     {
                       "data_source": "metrics",
                       "name": "total",
-                      "query": "sum:langsmith_sandbox_host_zygote_capture_duration_seconds.sum{$env,$sandbox_cluster,$sandbox_namespace}.as_count()"
+                      "query": "sum:langsmith_sandbox_host_zygote_capture_duration_seconds.sum{$env,kube_cluster_name:$cluster.value,$namespace}.as_count()"
                     },
                     {
                       "data_source": "metrics",
                       "name": "samples",
-                      "query": "sum:langsmith_sandbox_host_zygote_capture_duration_seconds.count{$env,$sandbox_cluster,$sandbox_namespace}.as_count()"
+                      "query": "sum:langsmith_sandbox_host_zygote_capture_duration_seconds.count{$env,kube_cluster_name:$cluster.value,$namespace}.as_count()"
                     }
                   ],
                   "response_format": "timeseries",
@@ -6017,12 +6005,12 @@
                     {
                       "data_source": "metrics",
                       "name": "total",
-                      "query": "sum:langsmith_sandbox_host_startup_provision_duration_seconds.sum{$env,$sandbox_cluster,$sandbox_namespace,outcome:ok} by {step}.as_count()"
+                      "query": "sum:langsmith_sandbox_host_startup_provision_duration_seconds.sum{$env,kube_cluster_name:$cluster.value,$namespace,outcome:ok} by {step}.as_count()"
                     },
                     {
                       "data_source": "metrics",
                       "name": "samples",
-                      "query": "sum:langsmith_sandbox_host_startup_provision_duration_seconds.count{$env,$sandbox_cluster,$sandbox_namespace,outcome:ok} by {step}.as_count()"
+                      "query": "sum:langsmith_sandbox_host_startup_provision_duration_seconds.count{$env,kube_cluster_name:$cluster.value,$namespace,outcome:ok} by {step}.as_count()"
                     }
                   ],
                   "response_format": "timeseries",
@@ -6074,7 +6062,7 @@
                     {
                       "data_source": "metrics",
                       "name": "q",
-                      "query": "sum:langsmith_sandbox_host_startup_provision_duration_seconds.count{$env,$sandbox_cluster,$sandbox_namespace,outcome:error} by {step}.as_rate()"
+                      "query": "sum:langsmith_sandbox_host_startup_provision_duration_seconds.count{$env,kube_cluster_name:$cluster.value,$namespace,outcome:error} by {step}.as_rate()"
                     }
                   ],
                   "response_format": "timeseries",
@@ -6130,12 +6118,12 @@
                     {
                       "data_source": "metrics",
                       "name": "total",
-                      "query": "sum:langsmith_sandbox_host_clone_slot_wait_seconds.sum{$env,$sandbox_cluster,$sandbox_namespace} by {clone_type}.as_count()"
+                      "query": "sum:langsmith_sandbox_host_clone_slot_wait_seconds.sum{$env,kube_cluster_name:$cluster.value,$namespace} by {clone_type}.as_count()"
                     },
                     {
                       "data_source": "metrics",
                       "name": "samples",
-                      "query": "sum:langsmith_sandbox_host_clone_slot_wait_seconds.count{$env,$sandbox_cluster,$sandbox_namespace} by {clone_type}.as_count()"
+                      "query": "sum:langsmith_sandbox_host_clone_slot_wait_seconds.count{$env,kube_cluster_name:$cluster.value,$namespace} by {clone_type}.as_count()"
                     }
                   ],
                   "response_format": "timeseries",
@@ -6191,12 +6179,12 @@
                     {
                       "data_source": "metrics",
                       "name": "total",
-                      "query": "sum:langsmith_sandbox_host_boot_to_ready_seconds.sum{$env,$sandbox_cluster,$sandbox_namespace} by {kube_cluster_name}.as_count()"
+                      "query": "sum:langsmith_sandbox_host_boot_to_ready_seconds.sum{$env,kube_cluster_name:$cluster.value,$namespace} by {kube_cluster_name}.as_count()"
                     },
                     {
                       "data_source": "metrics",
                       "name": "samples",
-                      "query": "sum:langsmith_sandbox_host_boot_to_ready_seconds.count{$env,$sandbox_cluster,$sandbox_namespace} by {kube_cluster_name}.as_count()"
+                      "query": "sum:langsmith_sandbox_host_boot_to_ready_seconds.count{$env,kube_cluster_name:$cluster.value,$namespace} by {kube_cluster_name}.as_count()"
                     }
                   ],
                   "response_format": "timeseries",
@@ -6282,7 +6270,7 @@
                     {
                       "data_source": "metrics",
                       "name": "q",
-                      "query": "sum:langsmith_sandbox_host_guest_requests.count{$env,$sandbox_cluster,$sandbox_namespace} by {status}.as_rate()"
+                      "query": "sum:langsmith_sandbox_host_guest_requests.count{$env,kube_cluster_name:$cluster.value,$namespace} by {status}.as_rate()"
                     }
                   ],
                   "response_format": "timeseries",
@@ -6335,7 +6323,7 @@
                     {
                       "data_source": "metrics",
                       "name": "q",
-                      "query": "sum:langsmith_sandbox_host_guest_requests.count{$env,$sandbox_cluster,$sandbox_namespace} by {route}.as_count()",
+                      "query": "sum:langsmith_sandbox_host_guest_requests.count{$env,kube_cluster_name:$cluster.value,$namespace} by {route}.as_count()",
                       "aggregator": "sum"
                     }
                   ],
@@ -6377,12 +6365,12 @@
                     {
                       "data_source": "metrics",
                       "name": "total",
-                      "query": "sum:langsmith_sandbox_host_guest_request_duration_seconds.sum{$env,$sandbox_cluster,$sandbox_namespace,!route:execute/ws,!route:tunnel,!route:execute/stream/*,!route:service} by {route}.as_count()"
+                      "query": "sum:langsmith_sandbox_host_guest_request_duration_seconds.sum{$env,kube_cluster_name:$cluster.value,$namespace,!route:execute/ws,!route:tunnel,!route:execute/stream/*,!route:service} by {route}.as_count()"
                     },
                     {
                       "data_source": "metrics",
                       "name": "samples",
-                      "query": "sum:langsmith_sandbox_host_guest_request_duration_seconds.count{$env,$sandbox_cluster,$sandbox_namespace,!route:execute/ws,!route:tunnel,!route:execute/stream/*,!route:service} by {route}.as_count()"
+                      "query": "sum:langsmith_sandbox_host_guest_request_duration_seconds.count{$env,kube_cluster_name:$cluster.value,$namespace,!route:execute/ws,!route:tunnel,!route:execute/stream/*,!route:service} by {route}.as_count()"
                     }
                   ],
                   "response_format": "timeseries",
@@ -6438,12 +6426,12 @@
                     {
                       "data_source": "metrics",
                       "name": "total",
-                      "query": "sum:langsmith_sandbox_host_guest_request_duration_seconds.sum{$env,$sandbox_cluster,$sandbox_namespace,route:execute/ws} by {route}.as_count()"
+                      "query": "sum:langsmith_sandbox_host_guest_request_duration_seconds.sum{$env,kube_cluster_name:$cluster.value,$namespace,route:execute/ws} by {route}.as_count()"
                     },
                     {
                       "data_source": "metrics",
                       "name": "samples",
-                      "query": "sum:langsmith_sandbox_host_guest_request_duration_seconds.count{$env,$sandbox_cluster,$sandbox_namespace,route:execute/ws} by {route}.as_count()"
+                      "query": "sum:langsmith_sandbox_host_guest_request_duration_seconds.count{$env,kube_cluster_name:$cluster.value,$namespace,route:execute/ws} by {route}.as_count()"
                     }
                   ],
                   "response_format": "timeseries",
@@ -6473,12 +6461,12 @@
                     {
                       "data_source": "metrics",
                       "name": "total",
-                      "query": "sum:langsmith_sandbox_host_guest_request_duration_seconds.sum{$env,$sandbox_cluster,$sandbox_namespace,route:execute/stream/start} by {route}.as_count()"
+                      "query": "sum:langsmith_sandbox_host_guest_request_duration_seconds.sum{$env,kube_cluster_name:$cluster.value,$namespace,route:execute/stream/start} by {route}.as_count()"
                     },
                     {
                       "data_source": "metrics",
                       "name": "samples",
-                      "query": "sum:langsmith_sandbox_host_guest_request_duration_seconds.count{$env,$sandbox_cluster,$sandbox_namespace,route:execute/stream/start} by {route}.as_count()"
+                      "query": "sum:langsmith_sandbox_host_guest_request_duration_seconds.count{$env,kube_cluster_name:$cluster.value,$namespace,route:execute/stream/start} by {route}.as_count()"
                     }
                   ],
                   "response_format": "timeseries",
@@ -6508,12 +6496,12 @@
                     {
                       "data_source": "metrics",
                       "name": "total",
-                      "query": "sum:langsmith_sandbox_host_guest_request_duration_seconds.sum{$env,$sandbox_cluster,$sandbox_namespace,route:execute/stream/resume} by {route}.as_count()"
+                      "query": "sum:langsmith_sandbox_host_guest_request_duration_seconds.sum{$env,kube_cluster_name:$cluster.value,$namespace,route:execute/stream/resume} by {route}.as_count()"
                     },
                     {
                       "data_source": "metrics",
                       "name": "samples",
-                      "query": "sum:langsmith_sandbox_host_guest_request_duration_seconds.count{$env,$sandbox_cluster,$sandbox_namespace,route:execute/stream/resume} by {route}.as_count()"
+                      "query": "sum:langsmith_sandbox_host_guest_request_duration_seconds.count{$env,kube_cluster_name:$cluster.value,$namespace,route:execute/stream/resume} by {route}.as_count()"
                     }
                   ],
                   "response_format": "timeseries",
@@ -6543,12 +6531,12 @@
                     {
                       "data_source": "metrics",
                       "name": "total",
-                      "query": "sum:langsmith_sandbox_host_guest_request_duration_seconds.sum{$env,$sandbox_cluster,$sandbox_namespace,route:tunnel} by {route}.as_count()"
+                      "query": "sum:langsmith_sandbox_host_guest_request_duration_seconds.sum{$env,kube_cluster_name:$cluster.value,$namespace,route:tunnel} by {route}.as_count()"
                     },
                     {
                       "data_source": "metrics",
                       "name": "samples",
-                      "query": "sum:langsmith_sandbox_host_guest_request_duration_seconds.count{$env,$sandbox_cluster,$sandbox_namespace,route:tunnel} by {route}.as_count()"
+                      "query": "sum:langsmith_sandbox_host_guest_request_duration_seconds.count{$env,kube_cluster_name:$cluster.value,$namespace,route:tunnel} by {route}.as_count()"
                     }
                   ],
                   "response_format": "timeseries",
@@ -6578,12 +6566,12 @@
                     {
                       "data_source": "metrics",
                       "name": "total",
-                      "query": "sum:langsmith_sandbox_host_guest_request_duration_seconds.sum{$env,$sandbox_cluster,$sandbox_namespace,route:service} by {route}.as_count()"
+                      "query": "sum:langsmith_sandbox_host_guest_request_duration_seconds.sum{$env,kube_cluster_name:$cluster.value,$namespace,route:service} by {route}.as_count()"
                     },
                     {
                       "data_source": "metrics",
                       "name": "samples",
-                      "query": "sum:langsmith_sandbox_host_guest_request_duration_seconds.count{$env,$sandbox_cluster,$sandbox_namespace,route:service} by {route}.as_count()"
+                      "query": "sum:langsmith_sandbox_host_guest_request_duration_seconds.count{$env,kube_cluster_name:$cluster.value,$namespace,route:service} by {route}.as_count()"
                     }
                   ],
                   "response_format": "timeseries",
@@ -6635,7 +6623,7 @@
                     {
                       "data_source": "metrics",
                       "name": "q",
-                      "query": "sum:langsmith_sandbox_host_guest_requests_in_flight{$env,$sandbox_cluster,$sandbox_namespace} by {kube_cluster_name}"
+                      "query": "sum:langsmith_sandbox_host_guest_requests_in_flight{$env,kube_cluster_name:$cluster.value,$namespace} by {kube_cluster_name}"
                     }
                   ],
                   "response_format": "timeseries",
@@ -6687,7 +6675,7 @@
                     {
                       "data_source": "metrics",
                       "name": "q",
-                      "query": "sum:langsmith_sandbox_host_guest_request_rejects.count{$env,$sandbox_cluster,$sandbox_namespace} by {reason}.as_rate()"
+                      "query": "sum:langsmith_sandbox_host_guest_request_rejects.count{$env,kube_cluster_name:$cluster.value,$namespace} by {reason}.as_rate()"
                     }
                   ],
                   "response_format": "timeseries",
@@ -6739,7 +6727,7 @@
                     {
                       "data_source": "metrics",
                       "name": "q",
-                      "query": "sum:langsmith_sandbox_host_guest_no_target.count{$env,$sandbox_cluster,$sandbox_namespace} by {route}.as_rate()"
+                      "query": "sum:langsmith_sandbox_host_guest_no_target.count{$env,kube_cluster_name:$cluster.value,$namespace} by {route}.as_rate()"
                     }
                   ],
                   "response_format": "timeseries",
@@ -6791,7 +6779,7 @@
                     {
                       "data_source": "metrics",
                       "name": "q",
-                      "query": "sum:langsmith_sandbox_host_forward.count{$env,$sandbox_cluster,$sandbox_namespace}.as_rate()"
+                      "query": "sum:langsmith_sandbox_host_forward.count{$env,kube_cluster_name:$cluster.value,$namespace}.as_rate()"
                     }
                   ],
                   "response_format": "timeseries",
@@ -6817,7 +6805,7 @@
                     {
                       "data_source": "metrics",
                       "name": "q",
-                      "query": "sum:langsmith_sandbox_host_forward_failures.count{$env,$sandbox_cluster,$sandbox_namespace} by {reason}.as_rate()"
+                      "query": "sum:langsmith_sandbox_host_forward_failures.count{$env,kube_cluster_name:$cluster.value,$namespace} by {reason}.as_rate()"
                     }
                   ],
                   "response_format": "timeseries",
@@ -6869,7 +6857,7 @@
                     {
                       "data_source": "metrics",
                       "name": "q",
-                      "query": "sum:langsmith_sandbox_host_idle_stops.count{$env,$sandbox_cluster,$sandbox_namespace}.as_rate()"
+                      "query": "sum:langsmith_sandbox_host_idle_stops.count{$env,kube_cluster_name:$cluster.value,$namespace}.as_rate()"
                     }
                   ],
                   "response_format": "timeseries",
@@ -6895,7 +6883,7 @@
                     {
                       "data_source": "metrics",
                       "name": "q",
-                      "query": "sum:langsmith_sandbox_host_joined_stops.count{$env,$sandbox_cluster,$sandbox_namespace} by {mode}.as_rate()"
+                      "query": "sum:langsmith_sandbox_host_joined_stops.count{$env,kube_cluster_name:$cluster.value,$namespace} by {mode}.as_rate()"
                     }
                   ],
                   "response_format": "timeseries",
@@ -6947,7 +6935,7 @@
                     {
                       "data_source": "metrics",
                       "name": "q",
-                      "query": "sum:langsmith_sandbox_host_vm_exits.count{$env,$sandbox_cluster,$sandbox_namespace} by {reason}.as_rate()"
+                      "query": "sum:langsmith_sandbox_host_vm_exits.count{$env,kube_cluster_name:$cluster.value,$namespace} by {reason}.as_rate()"
                     }
                   ],
                   "response_format": "timeseries",
@@ -7000,12 +6988,12 @@
                     {
                       "data_source": "metrics",
                       "name": "total",
-                      "query": "sum:langsmith_sandbox_host_vm_lifetime_seconds.sum{$env,$sandbox_cluster,$sandbox_namespace} by {outcome}.as_count()"
+                      "query": "sum:langsmith_sandbox_host_vm_lifetime_seconds.sum{$env,kube_cluster_name:$cluster.value,$namespace} by {outcome}.as_count()"
                     },
                     {
                       "data_source": "metrics",
                       "name": "samples",
-                      "query": "sum:langsmith_sandbox_host_vm_lifetime_seconds.count{$env,$sandbox_cluster,$sandbox_namespace} by {outcome}.as_count()"
+                      "query": "sum:langsmith_sandbox_host_vm_lifetime_seconds.count{$env,kube_cluster_name:$cluster.value,$namespace} by {outcome}.as_count()"
                     }
                   ],
                   "response_format": "timeseries",
@@ -7091,7 +7079,7 @@
                     {
                       "data_source": "metrics",
                       "name": "q",
-                      "query": "sum:langsmith_sandbox_host_sandbox_cpu_seconds.count{$env,$sandbox_cluster,$sandbox_namespace}.as_rate()"
+                      "query": "sum:langsmith_sandbox_host_sandbox_cpu_seconds.count{$env,kube_cluster_name:$cluster.value,$namespace}.as_rate()"
                     }
                   ],
                   "response_format": "timeseries",
@@ -7114,7 +7102,7 @@
                     {
                       "data_source": "metrics",
                       "name": "assigned",
-                      "query": "sum:langsmith_sandbox_host_assigned_cpu_millicores{$env,$sandbox_cluster,$sandbox_namespace}"
+                      "query": "sum:langsmith_sandbox_host_assigned_cpu_millicores{$env,kube_cluster_name:$cluster.value,$namespace}"
                     }
                   ],
                   "response_format": "timeseries",
@@ -7166,7 +7154,7 @@
                     {
                       "data_source": "metrics",
                       "name": "q",
-                      "query": "sum:langsmith_sandbox_host_sandbox_cpu_throttled_seconds.count{$env,$sandbox_cluster,$sandbox_namespace}.as_rate()"
+                      "query": "sum:langsmith_sandbox_host_sandbox_cpu_throttled_seconds.count{$env,kube_cluster_name:$cluster.value,$namespace}.as_rate()"
                     }
                   ],
                   "response_format": "timeseries",
@@ -7192,7 +7180,7 @@
                     {
                       "data_source": "metrics",
                       "name": "q",
-                      "query": "sum:langsmith_sandbox_host_sandbox_cpu_stall_seconds.count{$env,$sandbox_cluster,$sandbox_namespace}.as_rate()"
+                      "query": "sum:langsmith_sandbox_host_sandbox_cpu_stall_seconds.count{$env,kube_cluster_name:$cluster.value,$namespace}.as_rate()"
                     }
                   ],
                   "response_format": "timeseries",
@@ -7244,7 +7232,7 @@
                     {
                       "data_source": "metrics",
                       "name": "q",
-                      "query": "sum:langsmith_sandbox_host_sandbox_memory_rss_bytes{$env,$sandbox_cluster,$sandbox_namespace}"
+                      "query": "sum:langsmith_sandbox_host_sandbox_memory_rss_bytes{$env,kube_cluster_name:$cluster.value,$namespace}"
                     }
                   ],
                   "response_format": "timeseries",
@@ -7267,7 +7255,7 @@
                     {
                       "data_source": "metrics",
                       "name": "q",
-                      "query": "sum:langsmith_sandbox_host_sandbox_memory_returned_bytes{$env,$sandbox_cluster,$sandbox_namespace}"
+                      "query": "sum:langsmith_sandbox_host_sandbox_memory_returned_bytes{$env,kube_cluster_name:$cluster.value,$namespace}"
                     }
                   ],
                   "response_format": "timeseries",
@@ -7320,7 +7308,7 @@
                     {
                       "data_source": "metrics",
                       "name": "q",
-                      "query": "sum:langsmith_sandbox_host_free_page_hint_reclaimed_bytes.sum{$env,$sandbox_cluster,$sandbox_namespace}.as_rate()"
+                      "query": "sum:langsmith_sandbox_host_free_page_hint_reclaimed_bytes.sum{$env,kube_cluster_name:$cluster.value,$namespace}.as_rate()"
                     }
                   ],
                   "response_format": "timeseries",
@@ -7372,7 +7360,7 @@
                     {
                       "data_source": "metrics",
                       "name": "q",
-                      "query": "sum:langsmith_sandbox_host_free_page_hint_reclaimed_bytes.count{$env,$sandbox_cluster,$sandbox_namespace}.as_rate()"
+                      "query": "sum:langsmith_sandbox_host_free_page_hint_reclaimed_bytes.count{$env,kube_cluster_name:$cluster.value,$namespace}.as_rate()"
                     }
                   ],
                   "response_format": "timeseries",
@@ -7425,7 +7413,7 @@
                     {
                       "data_source": "metrics",
                       "name": "q",
-                      "query": "sum:langsmith_sandbox_host_sandbox_network_receive_bytes.count{$env,$sandbox_cluster,$sandbox_namespace}.as_rate()"
+                      "query": "sum:langsmith_sandbox_host_sandbox_network_receive_bytes.count{$env,kube_cluster_name:$cluster.value,$namespace}.as_rate()"
                     }
                   ],
                   "response_format": "timeseries",
@@ -7452,7 +7440,7 @@
                     {
                       "data_source": "metrics",
                       "name": "q",
-                      "query": "sum:langsmith_sandbox_host_sandbox_network_transmit_bytes.count{$env,$sandbox_cluster,$sandbox_namespace}.as_rate()"
+                      "query": "sum:langsmith_sandbox_host_sandbox_network_transmit_bytes.count{$env,kube_cluster_name:$cluster.value,$namespace}.as_rate()"
                     }
                   ],
                   "response_format": "timeseries",
@@ -7504,7 +7492,7 @@
                     {
                       "data_source": "metrics",
                       "name": "q",
-                      "query": "sum:langsmith_sandbox_host_sandbox_network_dropped_packets.count{$env,$sandbox_cluster,$sandbox_namespace} by {direction}.as_rate()"
+                      "query": "sum:langsmith_sandbox_host_sandbox_network_dropped_packets.count{$env,kube_cluster_name:$cluster.value,$namespace} by {direction}.as_rate()"
                     }
                   ],
                   "response_format": "timeseries",
@@ -7590,7 +7578,7 @@
                     {
                       "data_source": "metrics",
                       "name": "q",
-                      "query": "sum:langsmith_sandbox_egress_proxy_requests.count{$env,$sandbox_cluster,$sandbox_namespace} by {path}.as_rate()"
+                      "query": "sum:langsmith_sandbox_egress_proxy_requests.count{$env,kube_cluster_name:$cluster.value,$namespace} by {path}.as_rate()"
                     }
                   ],
                   "response_format": "timeseries",
@@ -7639,7 +7627,7 @@
                     {
                       "data_source": "metrics",
                       "name": "q",
-                      "query": "sum:langsmith_sandbox_egress_proxy_blocked.count{$env,$sandbox_cluster,$sandbox_namespace} by {reason}.as_rate()"
+                      "query": "sum:langsmith_sandbox_egress_proxy_blocked.count{$env,kube_cluster_name:$cluster.value,$namespace} by {reason}.as_rate()"
                     }
                   ],
                   "response_format": "timeseries",
@@ -7688,12 +7676,12 @@
                     {
                       "data_source": "metrics",
                       "name": "faults",
-                      "query": "sum:langsmith_sandbox_egress_proxy_blocked.count{$env,$sandbox_cluster,$sandbox_namespace,!reason:access_denied}.as_count()"
+                      "query": "sum:langsmith_sandbox_egress_proxy_blocked.count{$env,kube_cluster_name:$cluster.value,$namespace,!reason:access_denied}.as_count()"
                     },
                     {
                       "data_source": "metrics",
                       "name": "total",
-                      "query": "sum:langsmith_sandbox_egress_proxy_requests.count{$env,$sandbox_cluster,$sandbox_namespace}.as_count()"
+                      "query": "sum:langsmith_sandbox_egress_proxy_requests.count{$env,kube_cluster_name:$cluster.value,$namespace}.as_count()"
                     }
                   ],
                   "response_format": "timeseries",
@@ -7745,7 +7733,7 @@
                     {
                       "data_source": "metrics",
                       "name": "q",
-                      "query": "sum:langsmith_sandbox_egress_proxy_upstream_failures.count{$env,$sandbox_cluster,$sandbox_namespace} by {reason}.as_rate()"
+                      "query": "sum:langsmith_sandbox_egress_proxy_upstream_failures.count{$env,kube_cluster_name:$cluster.value,$namespace} by {reason}.as_rate()"
                     }
                   ],
                   "response_format": "timeseries",
@@ -7798,7 +7786,7 @@
                     {
                       "data_source": "metrics",
                       "name": "q",
-                      "query": "sum:langsmith_sandbox_egress_proxy_bytes.count{$env,$sandbox_cluster,$sandbox_namespace} by {path,direction}.as_rate()"
+                      "query": "sum:langsmith_sandbox_egress_proxy_bytes.count{$env,kube_cluster_name:$cluster.value,$namespace} by {path,direction}.as_rate()"
                     }
                   ],
                   "response_format": "timeseries",
@@ -7851,12 +7839,12 @@
                     {
                       "data_source": "metrics",
                       "name": "total",
-                      "query": "sum:langsmith_sandbox_egress_proxy_mitm_upstream_duration_seconds.sum{$env,$sandbox_cluster,$sandbox_namespace}.as_count()"
+                      "query": "sum:langsmith_sandbox_egress_proxy_mitm_upstream_duration_seconds.sum{$env,kube_cluster_name:$cluster.value,$namespace}.as_count()"
                     },
                     {
                       "data_source": "metrics",
                       "name": "samples",
-                      "query": "sum:langsmith_sandbox_egress_proxy_mitm_upstream_duration_seconds.count{$env,$sandbox_cluster,$sandbox_namespace}.as_count()"
+                      "query": "sum:langsmith_sandbox_egress_proxy_mitm_upstream_duration_seconds.count{$env,kube_cluster_name:$cluster.value,$namespace}.as_count()"
                     }
                   ],
                   "response_format": "timeseries",
@@ -7908,7 +7896,7 @@
                     {
                       "data_source": "metrics",
                       "name": "q",
-                      "query": "sum:langsmith_sandbox_egress_dns_queries.count{$env,$sandbox_cluster,$sandbox_namespace} by {rcode}.as_rate()"
+                      "query": "sum:langsmith_sandbox_egress_dns_queries.count{$env,kube_cluster_name:$cluster.value,$namespace} by {rcode}.as_rate()"
                     }
                   ],
                   "response_format": "timeseries",
@@ -7991,7 +7979,7 @@
                     {
                       "data_source": "metrics",
                       "name": "q",
-                      "query": "avg:juicefs_used_space{$env,$sandbox_cluster,$sandbox_namespace} by {kube_cluster_name}"
+                      "query": "avg:juicefs_used_space{$env,kube_cluster_name:$cluster.value,$namespace} by {kube_cluster_name}"
                     }
                   ],
                   "response_format": "timeseries",
@@ -8043,7 +8031,7 @@
                     {
                       "data_source": "metrics",
                       "name": "q",
-                      "query": "avg:juicefs_used_inodes{$env,$sandbox_cluster,$sandbox_namespace} by {kube_cluster_name}"
+                      "query": "avg:juicefs_used_inodes{$env,kube_cluster_name:$cluster.value,$namespace} by {kube_cluster_name}"
                     }
                   ],
                   "response_format": "timeseries",
@@ -8089,7 +8077,7 @@
                     {
                       "data_source": "metrics",
                       "name": "q",
-                      "query": "min:langsmith_sandbox_host_juicefs_mount_ready{$env,$sandbox_cluster,$sandbox_namespace} by {kube_cluster_name}"
+                      "query": "min:langsmith_sandbox_host_juicefs_mount_ready{$env,kube_cluster_name:$cluster.value,$namespace} by {kube_cluster_name}"
                     }
                   ],
                   "response_format": "timeseries",
@@ -8175,7 +8163,7 @@
                     {
                       "data_source": "metrics",
                       "name": "q",
-                      "query": "sum:juicefs_meta_ops.count{$env,$sandbox_cluster,$sandbox_namespace} by {method}.as_rate()"
+                      "query": "sum:juicefs_meta_ops.count{$env,kube_cluster_name:$cluster.value,$namespace} by {method}.as_rate()"
                     }
                   ],
                   "response_format": "timeseries",
@@ -8228,12 +8216,12 @@
                     {
                       "data_source": "metrics",
                       "name": "total",
-                      "query": "sum:juicefs_meta_ops_durations_histogram_seconds.sum{$env,$sandbox_cluster,$sandbox_namespace} by {kube_cluster_name}.as_count()"
+                      "query": "sum:juicefs_meta_ops_durations_histogram_seconds.sum{$env,kube_cluster_name:$cluster.value,$namespace} by {kube_cluster_name}.as_count()"
                     },
                     {
                       "data_source": "metrics",
                       "name": "samples",
-                      "query": "sum:juicefs_meta_ops_durations_histogram_seconds.count{$env,$sandbox_cluster,$sandbox_namespace} by {kube_cluster_name}.as_count()"
+                      "query": "sum:juicefs_meta_ops_durations_histogram_seconds.count{$env,kube_cluster_name:$cluster.value,$namespace} by {kube_cluster_name}.as_count()"
                     }
                   ],
                   "response_format": "timeseries",
@@ -8289,12 +8277,12 @@
                     {
                       "data_source": "metrics",
                       "name": "seconds",
-                      "query": "sum:juicefs_meta_ops_duration_seconds.count{$env,$sandbox_cluster,$sandbox_namespace} by {method}.as_count()"
+                      "query": "sum:juicefs_meta_ops_duration_seconds.count{$env,kube_cluster_name:$cluster.value,$namespace} by {method}.as_count()"
                     },
                     {
                       "data_source": "metrics",
                       "name": "ops",
-                      "query": "sum:juicefs_meta_ops.count{$env,$sandbox_cluster,$sandbox_namespace} by {method}.as_count()"
+                      "query": "sum:juicefs_meta_ops.count{$env,kube_cluster_name:$cluster.value,$namespace} by {method}.as_count()"
                     }
                   ],
                   "response_format": "timeseries",
@@ -8350,12 +8338,12 @@
                     {
                       "data_source": "metrics",
                       "name": "total",
-                      "query": "sum:juicefs_transaction_durations_histogram_seconds.sum{$env,$sandbox_cluster,$sandbox_namespace} by {kube_cluster_name}.as_count()"
+                      "query": "sum:juicefs_transaction_durations_histogram_seconds.sum{$env,kube_cluster_name:$cluster.value,$namespace} by {kube_cluster_name}.as_count()"
                     },
                     {
                       "data_source": "metrics",
                       "name": "samples",
-                      "query": "sum:juicefs_transaction_durations_histogram_seconds.count{$env,$sandbox_cluster,$sandbox_namespace} by {kube_cluster_name}.as_count()"
+                      "query": "sum:juicefs_transaction_durations_histogram_seconds.count{$env,kube_cluster_name:$cluster.value,$namespace} by {kube_cluster_name}.as_count()"
                     }
                   ],
                   "response_format": "timeseries",
@@ -8407,7 +8395,7 @@
                     {
                       "data_source": "metrics",
                       "name": "q",
-                      "query": "sum:juicefs_transaction_restart.count{$env,$sandbox_cluster,$sandbox_namespace} by {method}.as_rate()"
+                      "query": "sum:juicefs_transaction_restart.count{$env,kube_cluster_name:$cluster.value,$namespace} by {method}.as_rate()"
                     }
                   ],
                   "response_format": "timeseries",
@@ -8456,7 +8444,7 @@
                     {
                       "data_source": "metrics",
                       "name": "q",
-                      "query": "sum:juicefs_object_request_errors.count{$env,$sandbox_cluster,$sandbox_namespace}.as_rate()"
+                      "query": "sum:juicefs_object_request_errors.count{$env,kube_cluster_name:$cluster.value,$namespace}.as_rate()"
                     }
                   ],
                   "response_format": "timeseries",
@@ -8512,12 +8500,12 @@
                     {
                       "data_source": "metrics",
                       "name": "total",
-                      "query": "sum:juicefs_object_request_durations_histogram_seconds.sum{$env,$sandbox_cluster,$sandbox_namespace} by {kube_cluster_name}.as_count()"
+                      "query": "sum:juicefs_object_request_durations_histogram_seconds.sum{$env,kube_cluster_name:$cluster.value,$namespace} by {kube_cluster_name}.as_count()"
                     },
                     {
                       "data_source": "metrics",
                       "name": "samples",
-                      "query": "sum:juicefs_object_request_durations_histogram_seconds.count{$env,$sandbox_cluster,$sandbox_namespace} by {kube_cluster_name}.as_count()"
+                      "query": "sum:juicefs_object_request_durations_histogram_seconds.count{$env,kube_cluster_name:$cluster.value,$namespace} by {kube_cluster_name}.as_count()"
                     }
                   ],
                   "response_format": "timeseries",
@@ -8569,7 +8557,7 @@
                     {
                       "data_source": "metrics",
                       "name": "q",
-                      "query": "avg:juicefs_staging_blocks{$env,$sandbox_cluster,$sandbox_namespace}"
+                      "query": "avg:juicefs_staging_blocks{$env,kube_cluster_name:$cluster.value,$namespace}"
                     }
                   ],
                   "response_format": "timeseries",
@@ -8621,7 +8609,7 @@
                     {
                       "data_source": "metrics",
                       "name": "q",
-                      "query": "avg:juicefs_staging_block_bytes{$env,$sandbox_cluster,$sandbox_namespace}"
+                      "query": "avg:juicefs_staging_block_bytes{$env,kube_cluster_name:$cluster.value,$namespace}"
                     }
                   ],
                   "response_format": "timeseries",
@@ -8673,12 +8661,12 @@
                     {
                       "data_source": "metrics",
                       "name": "hits",
-                      "query": "sum:juicefs_blockcache_hits.count{$env,$sandbox_cluster,$sandbox_namespace}.as_count()"
+                      "query": "sum:juicefs_blockcache_hits.count{$env,kube_cluster_name:$cluster.value,$namespace}.as_count()"
                     },
                     {
                       "data_source": "metrics",
                       "name": "misses",
-                      "query": "sum:juicefs_blockcache_miss.count{$env,$sandbox_cluster,$sandbox_namespace}.as_count()"
+                      "query": "sum:juicefs_blockcache_miss.count{$env,kube_cluster_name:$cluster.value,$namespace}.as_count()"
                     }
                   ],
                   "response_format": "timeseries",
@@ -8768,7 +8756,7 @@
                     {
                       "data_source": "metrics",
                       "name": "q",
-                      "query": "max:langsmith_sandbox_host_lease_stale_seconds{$env,$sandbox_cluster,$sandbox_namespace} by {kube_cluster_name}"
+                      "query": "max:langsmith_sandbox_host_lease_stale_seconds{$env,kube_cluster_name:$cluster.value,$namespace} by {kube_cluster_name}"
                     }
                   ],
                   "response_format": "timeseries",
@@ -8832,7 +8820,7 @@
                     {
                       "data_source": "metrics",
                       "name": "q",
-                      "query": "sum:langsmith_sandbox_host_lease_renew_failures.count{$env,$sandbox_cluster,$sandbox_namespace}.as_count()"
+                      "query": "sum:langsmith_sandbox_host_lease_renew_failures.count{$env,kube_cluster_name:$cluster.value,$namespace}.as_count()"
                     }
                   ],
                   "response_format": "timeseries",
@@ -8858,7 +8846,7 @@
                     {
                       "data_source": "metrics",
                       "name": "q",
-                      "query": "sum:langsmith_sandbox_host_boot_failure_memory_invalidation.count{$env,$sandbox_cluster,$sandbox_namespace}.as_count()"
+                      "query": "sum:langsmith_sandbox_host_boot_failure_memory_invalidation.count{$env,kube_cluster_name:$cluster.value,$namespace}.as_count()"
                     }
                   ],
                   "response_format": "timeseries",
@@ -8884,7 +8872,7 @@
                     {
                       "data_source": "metrics",
                       "name": "q",
-                      "query": "sum:langsmith_sandbox_host_zygote_unusable_fallback.count{$env,$sandbox_cluster,$sandbox_namespace}.as_count()"
+                      "query": "sum:langsmith_sandbox_host_zygote_unusable_fallback.count{$env,kube_cluster_name:$cluster.value,$namespace}.as_count()"
                     }
                   ],
                   "response_format": "timeseries",
@@ -8910,7 +8898,7 @@
                     {
                       "data_source": "metrics",
                       "name": "q",
-                      "query": "sum:langsmith_sandbox_host_clone_slot_abandoned.count{$env,$sandbox_cluster,$sandbox_namespace}.as_count()"
+                      "query": "sum:langsmith_sandbox_host_clone_slot_abandoned.count{$env,kube_cluster_name:$cluster.value,$namespace}.as_count()"
                     }
                   ],
                   "response_format": "timeseries",
@@ -8936,7 +8924,7 @@
                     {
                       "data_source": "metrics",
                       "name": "q",
-                      "query": "sum:langsmith_sandbox_host_guestd_recycle.count{$env,$sandbox_cluster,$sandbox_namespace}.as_count()"
+                      "query": "sum:langsmith_sandbox_host_guestd_recycle.count{$env,kube_cluster_name:$cluster.value,$namespace}.as_count()"
                     }
                   ],
                   "response_format": "timeseries",
@@ -8962,7 +8950,7 @@
                     {
                       "data_source": "metrics",
                       "name": "q",
-                      "query": "sum:langsmith_sandbox_host_forward_failures.count{$env,$sandbox_cluster,$sandbox_namespace}.as_count()"
+                      "query": "sum:langsmith_sandbox_host_forward_failures.count{$env,kube_cluster_name:$cluster.value,$namespace}.as_count()"
                     }
                   ],
                   "response_format": "timeseries",
@@ -8988,7 +8976,7 @@
                     {
                       "data_source": "metrics",
                       "name": "q",
-                      "query": "sum:langsmith_sandbox_host_sandbox_memory_sample_failures.count{$env,$sandbox_cluster,$sandbox_namespace}.as_count()"
+                      "query": "sum:langsmith_sandbox_host_sandbox_memory_sample_failures.count{$env,kube_cluster_name:$cluster.value,$namespace}.as_count()"
                     }
                   ],
                   "response_format": "timeseries",
@@ -9014,7 +9002,7 @@
                     {
                       "data_source": "metrics",
                       "name": "q",
-                      "query": "sum:langsmith_sandbox_host_sandbox_network_sample_failures.count{$env,$sandbox_cluster,$sandbox_namespace}.as_count()"
+                      "query": "sum:langsmith_sandbox_host_sandbox_network_sample_failures.count{$env,kube_cluster_name:$cluster.value,$namespace}.as_count()"
                     }
                   ],
                   "response_format": "timeseries",
@@ -9040,7 +9028,7 @@
                     {
                       "data_source": "metrics",
                       "name": "q",
-                      "query": "sum:langsmith_sandbox_host_guest_log_dropped_entries.count{$env,$sandbox_cluster,$sandbox_namespace}.as_count()"
+                      "query": "sum:langsmith_sandbox_host_guest_log_dropped_entries.count{$env,kube_cluster_name:$cluster.value,$namespace}.as_count()"
                     }
                   ],
                   "response_format": "timeseries",
@@ -9092,7 +9080,7 @@
                     {
                       "data_source": "metrics",
                       "name": "q",
-                      "query": "sum:langsmith_sandbox_host_leader_transitions.count{$env,$sandbox_cluster,$sandbox_namespace} by {event}.as_rate()"
+                      "query": "sum:langsmith_sandbox_host_leader_transitions.count{$env,kube_cluster_name:$cluster.value,$namespace} by {event}.as_rate()"
                     }
                   ],
                   "response_format": "timeseries",
@@ -9141,7 +9129,7 @@
                     {
                       "data_source": "metrics",
                       "name": "q",
-                      "query": "sum:langsmith_sandbox_host_pool_window_seeded.count{$env,$sandbox_cluster,$sandbox_namespace}.as_rate()"
+                      "query": "sum:langsmith_sandbox_host_pool_window_seeded.count{$env,kube_cluster_name:$cluster.value,$namespace}.as_rate()"
                     }
                   ],
                   "response_format": "timeseries",
