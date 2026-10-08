@@ -163,7 +163,11 @@ class DashboardTests(unittest.TestCase):
         source = load_source("smithdb", "grafana")
         actual = build_dashboards()["grafana-dashboard.json"]["spec"]
         old_panels = [panel for panel in source["panels"] if panel["type"] != "row"]
-        panels = list(actual["elements"].values())
+        panels = [
+            value
+            for key, value in actual["elements"].items()
+            if key.startswith("smithdb-")
+        ]
         self.assertEqual(len(old_panels), len(panels))
         for old, new in zip(old_panels, panels):
             panel = new["spec"]
@@ -188,12 +192,19 @@ class DashboardTests(unittest.TestCase):
             for row in tab["spec"]["layout"]["spec"]["rows"]
             for item in row["spec"]["layout"]["spec"]["items"]
         ]
-        self.assertEqual(set(references), set(actual["elements"]))
-        self.assertEqual(len(references), len(actual["elements"]))
+        self.assertEqual(
+            set(references),
+            {key for key in actual["elements"] if key.startswith("smithdb-")},
+        )
+        self.assertEqual(len(references), len(panels))
         for variable, new in zip(source["templating"]["list"], actual["variables"]):
             self.assertEqual(variable["name"], new["spec"]["name"])
             if variable["type"] == "query":
-                self.assertEqual(variable["query"], new["spec"]["query"]["spec"])
+                self.assertEqual(variable["multi"], new["spec"]["multi"])
+                self.assertEqual(variable["allValue"], new["spec"]["allValue"])
+                self.assertIn(
+                    "sys_jemalloc_resident_bytes", new["spec"]["query"]["spec"]["query"]
+                )
 
     def test_generation_is_self_contained_without_legacy_downloads(self):
         with tempfile.TemporaryDirectory(prefix="langsmith-dashboards-") as directory:
