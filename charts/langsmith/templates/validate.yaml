@@ -625,6 +625,9 @@ AWS Marketplace Helm template verification).
 {{- if and .Values.engine.usageSigningSecret (lt (len .Values.engine.usageSigningSecret) 32) }}
 {{- fail "engine.usageSigningSecret must contain at least 32 characters." }}
 {{- end }}
+{{- if and .Values.engine.sandboxTenantId (not (regexMatch "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$" (toString .Values.engine.sandboxTenantId))) }}
+{{- fail "engine.sandboxTenantId must be a canonical UUID (xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx)." }}
+{{- end }}
 {{- /* With an existing Secret, a missing Engine key otherwise surfaces only as
 pods stuck in CreateContainerConfigError. The lookup is empty under helm
 template and GitOps renders, so those skip this check. */ -}}
