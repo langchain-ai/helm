@@ -1223,7 +1223,7 @@ The trajectory Service is cluster-internal; no public route is added. Trajectory
 | smithdb.migration.job.backoffLimit | int | `3` | Retry failed migrate-all pods up to this many times before marking the Job failed. |
 | smithdb.migration.job.command | list | `["/usr/local/bin/smithdb-with-taskdb-migrations-entrypoint.sh"]` | register non-overlapping jobs, drain the global queue, and exit. Override for another migration mode. |
 | smithdb.migration.job.extraContainerConfig | object | `{}` |  |
-| smithdb.migration.job.extraEnv | list | `[]` |  |
+| smithdb.migration.job.extraEnv | list | `[{"name":"SMITHDB_MIGRATION__MAX_CONCURRENT_FETCHES","value":"500"},{"name":"SMITHDB_MIGRATION__WORKER_POOL__PAGINATION_LIMIT","value":"25000"}]` |  |
 | smithdb.migration.job.initContainers | list | `[]` |  |
 | smithdb.migration.job.labels | object | `{}` |  |
 | smithdb.migration.job.nodeSelector | object | `{}` |  |
