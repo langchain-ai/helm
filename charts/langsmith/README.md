@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.18.0-rc.17](https://img.shields.io/badge/Version-0.18.0--rc.17-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.18.6rc1](https://img.shields.io/badge/AppVersion-0.18.6rc1-informational?style=flat-square)
+![Version: 0.18.0-rc.18](https://img.shields.io/badge/Version-0.18.0--rc.18-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.18.6rc1](https://img.shields.io/badge/AppVersion-0.18.6rc1-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -930,7 +930,7 @@ The trajectory Service is cluster-internal; no public route is added. Trajectory
 | sandboxes.juicefs.hostMount.cacheDirs | list | `["/var/cache/juicefs"]` | Node host paths used for the JuiceFS cache. Each path is mounted into sandbox-host and combined into one JuiceFS cache-dir option. Back these paths with node-local storage; their contents survive pod rollouts on the same node but not node replacement. |
 | sandboxes.juicefs.hostMount.mountOptions | list | `["--cache-size=51200","--cache-large-write"]` | Additional JuiceFS CLI options passed to sandbox-host. The chart derives cache-dir from cacheDirs; do not set it here. The default cache-size is a conservative 50 GiB shared across the configured directories. |
 | sandboxes.juicefs.name | string | `"sandbox-juicefs"` | JuiceFS volume name. Use a flat DNS-label-style name only; slashes and object-store subpaths are not supported here. JuiceFS stores objects under `<name>/` inside the configured bucket. |
-| sandboxes.juicefs.redis.iamAuthProvider | string | `""` | IAM authentication provider for the JuiceFS Redis. Valid values: "" and "azure". Uses workload identity on sandbox-host and the formatter Job. |
+| sandboxes.juicefs.redis.iamAuthProvider | string | `""` | IAM authentication provider for the JuiceFS Redis. Valid values: "", "azure" and "gcp". Uses workload identity on sandbox-host and the formatter Job; on GKE, sandbox-host uses hostNetwork and so authenticates as its node's service account. |
 | sandboxes.juicefs.redis.metaURL | string | `""` | JuiceFS Redis metadata URL. Redis metadata engines must use maxmemory-policy noeviction. For Redis Cluster, the `/DB` path is used by JuiceFS as a hash-tag key prefix rather than a Redis logical database. |
 | sandboxes.juicefs.storage | string | `"s3"` | Object storage backend used by JuiceFS for sandboxes. Supported values are `s3` for AWS/EKS, `gs` for GCP/GKE, and `wasb` for Azure/AKS. |
 | sandboxes.juicefs.storageAccountName | string | `""` | Azure storage account name used by JuiceFS. Required when sandboxes.juicefs.storage is `wasb`. |
