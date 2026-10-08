@@ -88,6 +88,14 @@ jobs:
           python3 -m unittest discover -s charts/langsmith/examples/langsmith-observability -p 'test_*.py'
           python3 -m unittest discover -s charts/langsmith/examples/langsmith-observability/components/sandboxes -p 'test_*.py'
 
+      - name: Validate Sandbox PromQL
+        if: matrix.chart-name == 'langsmith'
+        run: |
+          python3 charts/langsmith/examples/langsmith-observability/promql_test_cases.py > "$RUNNER_TEMP/sandbox-promql.json"
+          docker run --rm --network none --memory=256m --cpus=1 --entrypoint /bin/promtool \
+            -v "$RUNNER_TEMP/sandbox-promql.json:/cases.json:ro" \
+            prom/prometheus:v3.5.0@sha256:63805ebb8d2b3920190daf1cb14a60871b16fd38bed42b857a3182bc621f4996 test rules /cases.json
+
       - name: Create kind cluster
         uses: helm/kind-action@v1.12.0
         with:

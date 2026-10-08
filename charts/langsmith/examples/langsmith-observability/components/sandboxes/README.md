@@ -1,6 +1,6 @@
 # Sandbox observability
 
-Import the [unified dashboard](../../datadog-dashboard.json) and open its Sandboxes tab into the Datadog organization that receives telemetry from your self-hosted LangSmith deployment. It covers host capacity, lifecycle operations, boot latency, guest resources, execution, networking, and host health. APM, JuiceFS mount metrics, and cloud storage metrics are optional sections with separate collection requirements.
+Import the [unified Datadog dashboard](../../datadog-dashboard.json) into the organization that receives your self-hosted telemetry, then open its Sandboxes tab. The [unified Grafana dashboard](../../grafana-dashboard.json) provides a Prometheus-backed Sandboxes tab; see the Grafana setup below. It covers host capacity, lifecycle operations, boot latency, guest resources, execution, networking, and host health. APM, JuiceFS mount metrics, and cloud storage metrics are optional sections with separate collection requirements.
 
 The dashboard contains queries, not telemetry or access to a hosted dashboard. Its filters are not access controls. Use your Datadog organization's permissions to control who can view your data.
 
@@ -87,6 +87,19 @@ Remove unused provider widgets. Azure Blob Storage requires a separate provider-
 - Pool gauges come from the elected host leader. Ready-host and CPU-capacity observations remain available with autoscaling disabled. The desired-replica target updates only when scaling is active; do not interpret it as the configured replica count in a fixed-replica deployment.
 - Empty optional sections usually indicate a missing integration, a filter mismatch, or a different metric name. Check those before changing the runtime.
 - A WebSocket execution duration is connection lifetime, not command execution latency.
+
+## Grafana and Prometheus
+
+Use Grafana 13 or later with an existing Prometheus data source. The Sandbox tab includes every host and JuiceFS diagnostic panel from the Datadog component, but excludes APM/API and cloud-provider bucket panels. HTTP tracing error flags and provider metrics require other integrations; no substitute metric names are assumed.
+
+1. Merge the `scrape_configs` entries from [host-scrape.yaml](prometheus/host-scrape.yaml) into your existing Prometheus configuration. This is Prometheus configuration, not Helm values. Replace the namespace and cluster placeholders. Prometheus needs existing pod-discovery access in that namespace and private connectivity to port `19190`.
+2. Remove duplicate jobs targeting the same host listener. Discovery keeps the `sandbox-host` container and its declared `19190` port so additional container ports do not create duplicate targets. Target labels provide `namespace`, `cluster`, `pod`, and `instance`; host metrics do not contain host identity themselves.
+3. Optionally add [juicefs-scrape.yaml](prometheus/juicefs-scrape.yaml) after confirming private connectivity to the mount's port `9567`. It reuses host-pod discovery but changes the target port. The job does not change the mount listener or its bind address. Configure externally managed mounts separately, and do not collect them twice.
+4. Import the Grafana JSON and select the shared Data source and Namespace(s), plus Sandbox cluster. Select both component namespaces if they differ, while keeping only one Sandbox pool selected. The `sandbox_job` and `juicefs_job` variables default to All and are hidden from the normal header; edit or unhide them in variable settings if collection jobs need disambiguation. The supplied scrape jobs use Prometheus text format so JuiceFS's unsuffixed counter names remain consistent. The configuration and queries are validated with Prometheus 3.5.0; check support for `scrape_protocols` in older versions.
+
+Counters use `rate` or `increase` before aggregation to handle per-process resets. Rankings and error totals use `increase` over the selected range; counts can be fractional because Prometheus extrapolates scrape boundaries. Time-series count panels show rolling increases over `$__rate_interval`, not disjoint Datadog buckets. Histogram means divide matching sum/count increases. No additional host percentile estimates are introduced.
+
+Snapshot panels have a five-minute panel range and evaluate gauges at its end, requiring a sample within 60 seconds. Ready/desired pool gauges use `max` rather than summing leader reports. Missing and zero-denominator results are not filled with zero. These rules preserve the diagnostic intent but do not imply identical values from two differently sampled monitoring backends.
 
 ## Maintain the definition
 

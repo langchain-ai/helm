@@ -405,6 +405,20 @@ def sandbox_datadog():
 
 
 def build_dashboards(smithdb_metrics_prefix="smithdb."):
+    from components.sandboxes.grafana import build_dashboard as sandbox_grafana
+
+    smithdb_grafana = load_source("smithdb", "grafana")
+    namespace = next(
+        variable
+        for variable in smithdb_grafana["templating"]["list"]
+        if variable["name"] == "namespace"
+    )
+    namespace["label"] = "Namespace(s)"
+    namespace["query"]["query"] = (
+        'label_values({__name__=~"sys_jemalloc_resident_bytes|langsmith_sandbox_host_live_sandboxes"}, namespace)'
+    )
+    namespace["definition"] = namespace["query"]["query"]
+    namespace["current"] = {"text": "All", "value": "$__all"}
     return {
         "datadog-dashboard.json": datadog_dashboard(
             [
@@ -413,7 +427,10 @@ def build_dashboards(smithdb_metrics_prefix="smithdb."):
             ]
         ),
         "grafana-dashboard.json": grafana_dashboard(
-            [("SmithDB", load_source("smithdb", "grafana"))]
+            [
+                ("SmithDB", smithdb_grafana),
+                ("Sandboxes", sandbox_grafana()),
+            ]
         ),
     }
 
