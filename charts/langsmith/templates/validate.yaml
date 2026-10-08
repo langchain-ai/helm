@@ -224,8 +224,8 @@ AWS Marketplace Helm template verification).
 {{- end -}}
 {{- $juicefs := .Values.sandboxes.juicefs | default dict -}}
 {{- $juicefsRedisIamAuthProvider := toString ((.Values.sandboxes.juicefs.redis | default dict).iamAuthProvider | default "") -}}
-{{- if not (has $juicefsRedisIamAuthProvider (list "" "azure")) -}}
-{{- fail (printf "sandboxes.juicefs.redis.iamAuthProvider %q is not supported. Valid values are \"\" and \"azure\"." $juicefsRedisIamAuthProvider) -}}
+{{- if not (has $juicefsRedisIamAuthProvider (list "" "azure" "gcp")) -}}
+{{- fail (printf "sandboxes.juicefs.redis.iamAuthProvider %q is not supported. Valid values are \"\", \"azure\" and \"gcp\"." $juicefsRedisIamAuthProvider) -}}
 {{- end -}}
 {{- if not $juicefs.existingSecretName -}}
 {{- $juicefsRedis := .Values.sandboxes.juicefs.redis | default dict -}}
