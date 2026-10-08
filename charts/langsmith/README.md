@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.18.0-rc.14](https://img.shields.io/badge/Version-0.18.0--rc.14-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.18.5rc1](https://img.shields.io/badge/AppVersion-0.18.5rc1-informational?style=flat-square)
+![Version: 0.18.0-rc.15](https://img.shields.io/badge/Version-0.18.0--rc.15-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.18.5rc1](https://img.shields.io/badge/AppVersion-0.18.5rc1-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -27,6 +27,10 @@ Things worth planning for before you enable it:
 **Sandbox nodes.** Sandboxes are Firecracker microVMs, so `sandboxes.sandboxHost.deployment.nodeSelector` must place host pods on KVM-capable nodes — bare-metal instances, or instance types with nested virtualization explicitly enabled. Sandbox images are published for `linux/amd64` only. A dedicated, tainted node pool is the usual arrangement, since rolling a sandbox-host pod suspends every microVM on it.
 
 **Which workspace owns the sandboxes.** By default smith-go resolves the install's workspace, which works when there is exactly one non-personal organization. With more than one it declines rather than guess, and you must set `engine.sandboxTenantId` explicitly. Prefer a workspace reserved for the Engine: its sandboxes are visible to anyone with access to it.
+
+## Observability dashboards
+
+For tabbed Datadog and Grafana dashboards and component collection examples, see the [LangSmith observability bundle](examples/langsmith-observability/README.md). Import these definitions into your own monitoring instance. The standalone Classic-format SmithDB Grafana dashboard is available in the same bundle. All dashboard downloads now live in this bundle.
 
 ## Sandbox quotas
 
