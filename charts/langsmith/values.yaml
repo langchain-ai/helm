@@ -167,6 +167,19 @@ sandboxes:
     secretName: "smithbox-proxy-ca"
     # -- Existing TLS Secret containing tls.crt and tls.key for the sandbox proxy CA. This Secret can be created manually, by cert-manager, or by another external process.
     existingSecretName: ""
+  authProxy:
+    # -- Route sandbox egress (the sandbox auth proxy's upstream connections) through a corporate HTTP CONNECT proxy. The proxy must allow CONNECT to every destination port sandboxes use, including 80; nothing falls back to direct access. Proxy credentials and client certificates are not supported.
+    httpProxy:
+      # -- Enable routing sandbox egress through an HTTP proxy.
+      enabled: false
+      # -- `http`, or `https` for TLS to the proxy itself. An `https` proxy is verified against config.customCa when set, otherwise the system roots.
+      scheme: http
+      # -- Proxy hostname or IP address. A private address is allowed.
+      host: ""
+      # -- Proxy port.
+      port: 3128
+      # -- Hostnames dialed directly instead of through the proxy (NO_PROXY equivalent). Supports exact match ("internal.corp"), domain suffix (".internal.corp"), and "*".
+      noProxy: []
   juicefs:
     # -- JuiceFS volume name. Use a flat DNS-label-style name only; slashes and object-store subpaths are not supported here. JuiceFS stores objects under `<name>/` inside the configured bucket.
     name: "sandbox-juicefs"
