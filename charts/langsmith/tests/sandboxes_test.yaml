@@ -48,6 +48,11 @@ tests:
       - contains:
           path: spec.template.spec.containers[0].env
           content:
+            name: CUSTOM_APPS_SERVICE_SANDBOXES_ENABLED
+            value: "true"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
             name: SANDBOX_FRONTEND_ENABLED
             value: "true"
       - contains:
@@ -1241,3 +1246,16 @@ tests:
       - equal:
           path: spec.template.spec.priorityClassName
           value: system-node-critical
+
+  - it: should leave Custom Apps service sandboxes disabled when sandboxes are disabled
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      sandboxes.enabled: false
+    template: platform-backend/deployment.yaml
+    asserts:
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: CUSTOM_APPS_SERVICE_SANDBOXES_ENABLED
+          any: true

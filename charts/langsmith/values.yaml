@@ -65,21 +65,21 @@ images:
   aceBackendImage:
     repository: "docker.io/langchain/langsmith-ace-backend"
     pullPolicy: IfNotPresent
-    tag: "0.17.30"
+    tag: "0.17.31"
   backendImage:
     repository: "docker.io/langchain/langsmith-backend"
     pullPolicy: IfNotPresent
-    tag: "0.17.30"
+    tag: "0.17.31"
   # Serves both the `insights` and `engine` graphs; insights.enabled and
   # engine.enabled pick which of them run.
   engineInsightsAgentImage:
     repository: "docker.io/langchain/langsmith-insights-engine"
     pullPolicy: IfNotPresent
-    tag: "0.17.30"
+    tag: "0.17.31"
   frontendImage:
     repository: "docker.io/langchain/langsmith-frontend"
     pullPolicy: IfNotPresent
-    tag: "0.17.30"
+    tag: "0.17.31"
   operatorImage:
     repository: "docker.io/langchain/langgraph-operator"
     pullPolicy: IfNotPresent
@@ -103,15 +103,15 @@ images:
   agentBuilderImage:
     repository: "docker.io/langchain/agent-builder-deep-agent"
     pullPolicy: IfNotPresent
-    tag: "0.17.30"
+    tag: "0.17.31"
   pollyAgentImage:
     repository: "docker.io/langchain/langsmith-polly"
     pullPolicy: IfNotPresent
-    tag: "0.17.30"
+    tag: "0.17.31"
   smithdbImage:
     repository: "docker.io/langchain/smithdb"
     pullPolicy: IfNotPresent
-    tag: "0.17.30"
+    tag: "0.17.31"
   # Optional: only mirror/pull when presidioAnalyzer.enabled is true
   presidioAnalyzerImage:
     repository: "mcr.microsoft.com/presidio-analyzer"
@@ -121,7 +121,7 @@ images:
   sandboxHostImage:
     repository: "docker.io/langchain/sandbox-host"
     pullPolicy: IfNotPresent
-    tag: "0.17.30"
+    tag: "0.17.31"
 
 ingress:
   enabled: false
@@ -326,7 +326,7 @@ fleet:
         httpGet:
           path: /ok?check_db=1
           port: 8000
-        failureThreshold: 6
+        failureThreshold: 12
         periodSeconds: 10
         timeoutSeconds: 1
       readinessProbe:
@@ -394,7 +394,7 @@ fleet:
         httpGet:
           path: "/ok"
           port: 8000
-        failureThreshold: 6
+        failureThreshold: 12
         periodSeconds: 10
         timeoutSeconds: 1
       readinessProbe:
@@ -2642,6 +2642,8 @@ frontend:
           - setWeight: 100
   # Nginx Max Body Size. Refer to https://nginx.org/en/docs/http/ngx_http_core_module.html#client_max_body_size for more information.
   maxBodySize: "25M"
+  largeClientHeaderBuffers: "4 8k"
+  clientHeaderBufferSize: "1k"
   # Custom CSP Header. Refer to https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/CSP.
   # If includeNonce is true, use nginx built-in $request_id as nonce (cryptographically secure because compiled with OpenSSL)
   # Sample compatible CSP header with includeNonce: true: "script-src 'nonce-$request_id' 'strict-dynamic'; style-src 'nonce-$request_id' 'strict-dynamic'; frame-ancestors 'self'; object-src 'none'"
