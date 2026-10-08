@@ -398,10 +398,19 @@ def grafana_dashboard(components):
     }
 
 
+def sandbox_datadog():
+    from components.sandboxes.datadog import build_dashboard
+
+    return build_dashboard()
+
+
 def build_dashboards(smithdb_metrics_prefix="smithdb."):
     return {
         "datadog-dashboard.json": datadog_dashboard(
-            [("SmithDB", smithdb_datadog(smithdb_metrics_prefix))]
+            [
+                ("SmithDB", smithdb_datadog(smithdb_metrics_prefix)),
+                ("Sandboxes", sandbox_datadog()),
+            ]
         ),
         "grafana-dashboard.json": grafana_dashboard(
             [("SmithDB", load_source("smithdb", "grafana"))]

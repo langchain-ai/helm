@@ -14,6 +14,8 @@ Download these files from the repository, not the Helm chart archive. The unifie
 
 The SmithDB tab covers ingestion, queries, compaction, storage, memory, and the LangSmith ingestion path. For metric definitions, see the [SmithDB metrics reference](https://docs.langchain.com/langsmith/self-host-smithdb-metrics).
 
+The Datadog Sandboxes tab adds host capacity, lifecycle, execution, resources, networking, health, and optional APM, JuiceFS, and cloud storage panels. See the [Sandbox collection guide](components/sandboxes/README.md). Both tabs share `env`, `cluster`, and `namespace`. Cluster queries retain their original tag keys: `cluster_name` for SmithDB and `kube_cluster_name` for Sandbox hosts and JuiceFS. Both use `kube_namespace` for namespace. APM uses only `env` and `api_service`; cloud panels use their bucket selectors. Select one Sandbox cluster and namespace for pool counts. Grafana Sandbox coverage is not included in this layer.
+
 ## Collect component metrics
 
 Apply collection settings only for the components you operate. These examples do not install Datadog, Prometheus, Grafana, or the monitored components. Merge with your existing annotations and scrape jobs to avoid duplicate collection; schedule any pod rollout through your normal release process.
@@ -21,6 +23,7 @@ Apply collection settings only for the components you operate. These examples do
 | Component | Datadog | Prometheus |
 | --- | --- | --- |
 | SmithDB | [Autodiscovery values](components/smithdb/datadog-values.yaml) | [Scrape annotations](components/smithdb/prometheus-values.yaml) |
+| Sandboxes | [Host values](components/sandboxes/datadog-values.yaml), or [host and JuiceFS values](components/sandboxes/datadog-juicefs-values.yaml) | See component availability above. |
 
 SmithDB's examples also collect LangSmith ingest-queue metrics on port `1989` and platform-backend queue metrics on port `1986`. Keep metrics listeners private. Prometheus must already discover the supplied annotations and attach the `namespace` label. The Datadog example uses the `smithdb.` metric prefix; the Grafana queries use raw Prometheus names. Datadog's SmithDB error panels additionally require logs matching `service:smithdb*`.
 

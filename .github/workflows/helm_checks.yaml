@@ -86,6 +86,7 @@ jobs:
         run: |
           python3 charts/langsmith/examples/langsmith-observability/generate_dashboards.py --check
           python3 -m unittest discover -s charts/langsmith/examples/langsmith-observability -p 'test_*.py'
+          python3 -m unittest discover -s charts/langsmith/examples/langsmith-observability/components/sandboxes -p 'test_*.py'
 
       - name: Create kind cluster
         uses: helm/kind-action@v1.12.0

@@ -37,18 +37,22 @@ class DashboardTests(unittest.TestCase):
     def test_datadog_preserves_smithdb_widgets_and_filters(self):
         source = load_source("smithdb", "datadog")
         actual = build_dashboards()["datadog-dashboard.json"]
+        smithdb_ids = actual["tabs"][0]["widget_ids"]
+        smithdb_widgets = [
+            item for item in actual["widgets"] if item["id"] in smithdb_ids
+        ]
         expected = json.loads(
             json.dumps(source["widgets"]).replace(
                 "$cluster", "cluster_name:$cluster.value"
             )
         )
-        self.assertEqual(without_ids(actual["widgets"]), without_ids(expected))
-        self.assertEqual(actual["template_variables"], source["template_variables"])
-        self.assertEqual(len(actual["tabs"]), 1)
+        self.assertEqual(without_ids(smithdb_widgets), without_ids(expected))
+        for variable in source["template_variables"]:
+            self.assertIn(variable, actual["template_variables"])
         self.assertEqual(actual["tabs"][0]["name"], "SmithDB")
         uuid.UUID(actual["tabs"][0]["id"])
         self.assertEqual(
-            actual["tabs"][0]["widget_ids"], [item["id"] for item in actual["widgets"]]
+            actual["tabs"][0]["widget_ids"], [item["id"] for item in smithdb_widgets]
         )
         ids = [item["id"] for item in widgets(actual["widgets"])]
         self.assertEqual(len(ids), len(set(ids)))
@@ -298,6 +302,34 @@ class DashboardTests(unittest.TestCase):
         source["panels"][1]["panels"] = [{}]
         with self.assertRaisesRegex(ValueError, "Nested Classic"):
             grafana_dashboard([("SmithDB", source)])
+
+    def test_sandbox_filters_do_not_change_smithdb_scope(self):
+        actual = build_dashboards()["datadog-dashboard.json"]
+        self.assertEqual(
+            [tab["name"] for tab in actual["tabs"]], ["SmithDB", "Sandboxes"]
+        )
+        variables = {
+            item["name"]: item["prefix"] for item in actual["template_variables"]
+        }
+        self.assertEqual(variables["cluster"], "cluster_name")
+        self.assertEqual(variables["namespace"], "kube_namespace")
+        self.assertNotIn("sandbox_cluster", variables)
+        self.assertNotIn("sandbox_namespace", variables)
+        self.assertEqual(len(variables), len(actual["template_variables"]))
+        ids = actual["tabs"][1]["widget_ids"]
+        data = [widget for widget in widgets(actual["widgets"]) if widget["id"] in ids]
+        text = json.dumps(data)
+        self.assertIn("kube_cluster_name:$cluster.value", text)
+        self.assertIn("$namespace", text)
+        for widget in widgets(data):
+            for request in widget["definition"].get("requests", []):
+                for query in request.get("queries", []):
+                    if any(
+                        metric in query["query"]
+                        for metric in ("trace.http.", "gcp.storage.", "aws.s3.")
+                    ):
+                        self.assertNotIn("$cluster", query["query"])
+                        self.assertNotIn("$namespace", query["query"])
 
     def test_dashboard_downloads_do_not_inflate_helm_release_storage(self):
         chart = Path(__file__).resolve().parents[2]
