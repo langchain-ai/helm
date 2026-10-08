@@ -224,8 +224,8 @@ AWS Marketplace Helm template verification).
 {{- end -}}
 {{- $juicefs := .Values.sandboxes.juicefs | default dict -}}
 {{- $juicefsRedisIamAuthProvider := toString ((.Values.sandboxes.juicefs.redis | default dict).iamAuthProvider | default "") -}}
-{{- if not (has $juicefsRedisIamAuthProvider (list "" "azure")) -}}
-{{- fail (printf "sandboxes.juicefs.redis.iamAuthProvider %q is not supported. Valid values are \"\" and \"azure\"." $juicefsRedisIamAuthProvider) -}}
+{{- if not (has $juicefsRedisIamAuthProvider (list "" "azure" "gcp")) -}}
+{{- fail (printf "sandboxes.juicefs.redis.iamAuthProvider %q is not supported. Valid values are \"\", \"azure\" and \"gcp\"." $juicefsRedisIamAuthProvider) -}}
 {{- end -}}
 {{- if not $juicefs.existingSecretName -}}
 {{- $juicefsRedis := .Values.sandboxes.juicefs.redis | default dict -}}
@@ -624,6 +624,9 @@ AWS Marketplace Helm template verification).
 {{- end }}
 {{- if and .Values.engine.usageSigningSecret (lt (len .Values.engine.usageSigningSecret) 32) }}
 {{- fail "engine.usageSigningSecret must contain at least 32 characters." }}
+{{- end }}
+{{- if and .Values.engine.sandboxTenantId (not (regexMatch "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$" (toString .Values.engine.sandboxTenantId))) }}
+{{- fail "engine.sandboxTenantId must be a canonical UUID (xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx)." }}
 {{- end }}
 {{- /* With an existing Secret, a missing Engine key otherwise surfaces only as
 pods stuck in CreateContainerConfigError. The lookup is empty under helm
