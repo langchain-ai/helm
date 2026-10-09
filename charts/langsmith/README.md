@@ -1265,8 +1265,10 @@ The trajectory Service is cluster-internal; no public route is added. Trajectory
 | smithdb.migration.taskdb.postgres.auth.password | string | `""` | Password for the chart-managed taskdb Postgres instance. Required unless existingSecretName is set. |
 | smithdb.migration.taskdb.postgres.containerPort | int | `5433` |  |
 | smithdb.migration.taskdb.postgres.enabled | bool | `true` | both the main LangSmith Postgres and the SmithDB metastore. |
-| smithdb.migration.taskdb.postgres.external | object | `{"database":"smithdb_migration","databaseSecretKey":"postgres_db","enabled":false,"existingSecretName":"","host":"","hostSecretKey":"postgres_host","password":"","passwordSecretKey":"postgres_password","port":"5433","useSsl":false,"username":"postgres","usernameSecretKey":"postgres_user"}` | the SmithDB metastore. |
+| smithdb.migration.taskdb.postgres.external | object | `{"database":"smithdb_migration","databaseSecretKey":"postgres_db","enabled":false,"existingSecretName":"","host":"","hostSecretKey":"postgres_host","iamAuthProvider":"","iamUsername":"","password":"","passwordSecretKey":"postgres_password","port":"5433","useSsl":false,"username":"postgres","usernameSecretKey":"postgres_user"}` | the SmithDB metastore. |
 | smithdb.migration.taskdb.postgres.external.existingSecretName | string | `""` | Existing secret containing external taskdb Postgres connection fields. If set, the chart does not create one. |
+| smithdb.migration.taskdb.postgres.external.iamAuthProvider | string | `""` | Cloud IAM authentication for the external taskdb: aws (RDS IAM) or azure (workload identity). Requires useSsl and connects as the migration Job's ServiceAccount identity; the password is not used. |
+| smithdb.migration.taskdb.postgres.external.iamUsername | string | `""` | Database role to connect as when iamAuthProvider is set. Overrides username and usernameSecretKey. |
 | smithdb.migration.taskdb.postgres.maxConnectionsPerMigrationPod | int | `10` | connections for every parallel pod plus one pod of headroom. |
 | smithdb.migration.taskdb.postgres.name | string | `"taskdb-postgres"` |  |
 | smithdb.migration.taskdb.postgres.service.annotations | object | `{}` |  |
