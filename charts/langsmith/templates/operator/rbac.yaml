@@ -26,7 +26,6 @@ rules:
   - secretproviderclasses
   verbs:
   - get
-  - list
   - create
   - patch
   - delete
@@ -231,7 +230,6 @@ rules:
   - secretproviderclasses
   verbs:
   - get
-  - list
   - create
   - patch
   - delete
