@@ -168,7 +168,7 @@ sandboxes:
     # -- Existing TLS Secret containing tls.crt and tls.key for the sandbox proxy CA. This Secret can be created manually, by cert-manager, or by another external process.
     existingSecretName: ""
   authProxy:
-    # -- Route sandbox egress (the sandbox auth proxy's upstream connections) through a corporate HTTP CONNECT proxy. The proxy must allow CONNECT to every destination port sandboxes use, including 80; nothing falls back to direct access. Proxy credentials and client certificates are not supported.
+    # -- Route sandbox egress (the sandbox auth proxy's upstream connections) through a corporate HTTP forward proxy, as an HTTP_PROXY/HTTPS_PROXY client would: plain HTTP as standard proxy requests, HTTPS and other TCP through CONNECT. The proxy must allow CONNECT to 443 and any other TCP ports sandboxes use; nothing falls back to direct access. Proxy credentials and client certificates are not supported.
     httpProxy:
       # -- Enable routing sandbox egress through an HTTP proxy.
       enabled: false
@@ -178,7 +178,7 @@ sandboxes:
       host: ""
       # -- Proxy port.
       port: 3128
-      # -- Hostnames dialed directly instead of through the proxy (NO_PROXY equivalent). Supports exact match ("internal.corp"), domain suffix (".internal.corp"), and "*".
+      # -- Destinations dialed directly instead of through the proxy, with standard NO_PROXY matching: "internal.corp" matches the host and its subdomains, ".internal.corp" only subdomains, plus IP addresses, CIDR ranges such as "10.0.0.0/8", "host:port" entries, and "*".
       noProxy: []
   juicefs:
     # -- JuiceFS volume name. Use a flat DNS-label-style name only; slashes and object-store subpaths are not supported here. JuiceFS stores objects under `<name>/` inside the configured bucket.
