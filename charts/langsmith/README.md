@@ -54,6 +54,14 @@ The query disk cache limit is set automatically from the PVC storage request or,
 | Compaction worker | 8 CPU, 16Gi memory, 100Gi cache | 16 CPU, 32Gi memory, 100Gi cache | 28 CPU, 50Gi memory, 300Gi cache |
 | Cluster manager | 250m CPU, 256Mi memory | 250m CPU, 256Mi memory | 2 CPU, 2Gi memory |
 
+### Single topology
+
+`smithdb.topology: single` replaces the components above with one `smithdb all` pod for small installs: no cluster manager, no compaction workers, and one cache volume. The process splits the volume between the query cache and ingestion staging, and mounts it at `/tmp` for compaction scratch. Memory and disk shares come from the pod's limits. `mutations`, `runRules`, and `statsQuery` are not supported in this topology. Move to `cluster` above the small tier.
+
+| Tier | Small | Medium | Large |
+|---|---|---|---|
+| Single | 4 CPU, 16Gi memory, 100Gi cache | 16 CPU, 64Gi memory, 300Gi cache | 32 CPU, 128Gi memory, 1000Gi cache |
+
 **0.17 upgrade:** default caches switch from `emptyDir` to per-pod PVCs. Configure local SSD overrides before upgrading and rename custom volume and mount references from `local-ssd-storage` to `cache`.
 
 ## Trajectory backend
@@ -1489,6 +1497,56 @@ The trajectory Service is cluster-internal; no public route is added. Trajectory
 | smithdb.runRules.service.port | int | `8080` |  |
 | smithdb.serviceAccount | object | `{"annotations":{},"automountServiceAccountToken":true,"create":true,"labels":{},"name":""}` | Shared ServiceAccount for SmithDB workloads. |
 | smithdb.serviceAccount.name | string | `""` | Defaults to <release>-<smithdb.name>. |
+| smithdb.single.compactionContainerPort | int | `8070` |  |
+| smithdb.single.containerGrpcPort | int | `8080` | Query gRPC port. |
+| smithdb.single.containerPort | int | `8060` | HTTP port for health checks and metrics, served by the query service. |
+| smithdb.single.deployment.affinity | object | `{}` |  |
+| smithdb.single.deployment.annotations | object | `{}` |  |
+| smithdb.single.deployment.command[0] | string | `"./smithdb"` |  |
+| smithdb.single.deployment.command[1] | string | `"all"` |  |
+| smithdb.single.deployment.extraContainerConfig | object | `{}` |  |
+| smithdb.single.deployment.extraEnv | list | `[]` |  |
+| smithdb.single.deployment.initContainers | list | `[]` |  |
+| smithdb.single.deployment.labels | object | `{}` |  |
+| smithdb.single.deployment.nodeSelector | object | `{}` |  |
+| smithdb.single.deployment.podSecurityContext.fsGroup | int | `1001` |  |
+| smithdb.single.deployment.priorityClassName | string | `""` |  |
+| smithdb.single.deployment.probes.livenessProbe.failureThreshold | int | `6` |  |
+| smithdb.single.deployment.probes.livenessProbe.httpGet.path | string | `"/health"` |  |
+| smithdb.single.deployment.probes.livenessProbe.httpGet.port | string | `"http"` |  |
+| smithdb.single.deployment.probes.livenessProbe.periodSeconds | int | `10` |  |
+| smithdb.single.deployment.probes.livenessProbe.timeoutSeconds | int | `1` |  |
+| smithdb.single.deployment.probes.readinessProbe.failureThreshold | int | `6` |  |
+| smithdb.single.deployment.probes.readinessProbe.httpGet.path | string | `"/health"` |  |
+| smithdb.single.deployment.probes.readinessProbe.httpGet.port | string | `"http"` |  |
+| smithdb.single.deployment.probes.readinessProbe.periodSeconds | int | `10` |  |
+| smithdb.single.deployment.probes.readinessProbe.timeoutSeconds | int | `1` |  |
+| smithdb.single.deployment.probes.startupProbe.failureThreshold | int | `6` |  |
+| smithdb.single.deployment.probes.startupProbe.httpGet.path | string | `"/health"` |  |
+| smithdb.single.deployment.probes.startupProbe.httpGet.port | string | `"http"` |  |
+| smithdb.single.deployment.probes.startupProbe.periodSeconds | int | `10` |  |
+| smithdb.single.deployment.probes.startupProbe.timeoutSeconds | int | `1` |  |
+| smithdb.single.deployment.securityContext | object | `{}` |  |
+| smithdb.single.deployment.sidecars | list | `[]` |  |
+| smithdb.single.deployment.strategy.rollingUpdate.maxSurge | int | `1` |  |
+| smithdb.single.deployment.strategy.rollingUpdate.maxUnavailable | int | `0` |  |
+| smithdb.single.deployment.strategy.type | string | `"RollingUpdate"` |  |
+| smithdb.single.deployment.terminationGracePeriodSeconds | int | `300` |  |
+| smithdb.single.deployment.tolerations | list | `[]` |  |
+| smithdb.single.deployment.topologySpreadConstraints | list | `[]` |  |
+| smithdb.single.deployment.volumeMounts | list | `[{"mountPath":"/data","name":"cache"},{"mountPath":"/tmp","name":"cache","subPath":"tmp"}]` | The cache volume holds the query cache, ingestion staging, and, through the /tmp mount, compaction scratch. |
+| smithdb.single.deployment.volumes | list | `[]` |  |
+| smithdb.single.ingestionContainerGrpcPort | int | `8082` | Ingestion gRPC port. |
+| smithdb.single.ingestionContainerPort | int | `8050` |  |
+| smithdb.single.name | string | `"single"` |  |
+| smithdb.single.pdb.annotations | object | `{}` |  |
+| smithdb.single.pdb.enabled | bool | `false` |  |
+| smithdb.single.pdb.labels | object | `{}` |  |
+| smithdb.single.pdb.minAvailable | int | `1` |  |
+| smithdb.single.service.annotations | object | `{}` |  |
+| smithdb.single.service.ingestionPort | int | `8082` |  |
+| smithdb.single.service.labels | object | `{}` |  |
+| smithdb.single.service.port | int | `8080` |  |
 | smithdb.statsQuery.autoscaling.hpa.enabled | bool | `true` |  |
 | smithdb.statsQuery.autoscaling.hpa.maxReplicas | int | `5` |  |
 | smithdb.statsQuery.autoscaling.hpa.minReplicas | int | `1` |  |
@@ -1544,6 +1602,7 @@ The trajectory Service is cluster-internal; no public route is added. Trajectory
 | smithdb.statsQuery.service.annotations | object | `{}` |  |
 | smithdb.statsQuery.service.labels | object | `{}` |  |
 | smithdb.statsQuery.service.port | int | `8080` |  |
+| smithdb.topology | string | `"cluster"` | SmithDB workload layout: cluster runs query, ingestion, compaction, and the cluster manager as separate workloads; single runs everything in one `smithdb all` pod for small installs. smithdb.resourceTier sizes either layout. |
 
 ## Configs
 

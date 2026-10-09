@@ -542,18 +542,21 @@ Args: root, component.
 {{- $root := .root -}}
 {{- $tiers := dict
   "small" (dict
+    "single" (dict "cpu" "4" "memory" "16Gi" "cache" "100Gi")
     "query" (dict "cpu" "4" "memory" "8Gi" "cache" "200Gi")
     "ingestion" (dict "cpu" "4" "memory" "8Gi" "cache" "100Gi")
     "compaction" (dict "cpu" "2" "memory" "4Gi")
     "compactionWorker" (dict "cpu" "8" "memory" "16Gi" "cache" "100Gi")
     "clusterManager" (dict "cpu" "250m" "memory" "256Mi"))
   "medium" (dict
+    "single" (dict "cpu" "16" "memory" "64Gi" "cache" "300Gi")
     "query" (dict "cpu" "28" "memory" "48Gi" "cache" "200Gi")
     "ingestion" (dict "cpu" "16" "memory" "32Gi" "cache" "100Gi")
     "compaction" (dict "cpu" "4" "memory" "8Gi")
     "compactionWorker" (dict "cpu" "16" "memory" "32Gi" "cache" "100Gi")
     "clusterManager" (dict "cpu" "250m" "memory" "256Mi"))
   "large" (dict
+    "single" (dict "cpu" "32" "memory" "128Gi" "cache" "1000Gi")
     "query" (dict "cpu" "28" "memory" "50Gi" "cache" "1000Gi")
     "ingestion" (dict "cpu" "56" "memory" "150Gi" "cache" "1000Gi")
     "compaction" (dict "cpu" "8" "memory" "16Gi")
@@ -716,6 +719,20 @@ Args: root, component.
 {{- end }}
 
 {{/*
+Non-empty when SmithDB runs as separate per-role workloads (smithdb.topology cluster).
+*/}}
+{{- define "langsmith.smithdb.clusterTopology" -}}
+{{- if and .Values.smithdb.enabled (eq .Values.smithdb.topology "cluster") -}}true{{- end -}}
+{{- end }}
+
+{{/*
+Non-empty when SmithDB runs as one `smithdb all` workload (smithdb.topology single).
+*/}}
+{{- define "langsmith.smithdb.singleTopology" -}}
+{{- if and .Values.smithdb.enabled (eq .Values.smithdb.topology "single") -}}true{{- end -}}
+{{- end }}
+
+{{/*
 Name of the shared SmithDB service account.
 Args: root.
 */}}
@@ -833,11 +850,11 @@ SmithDB Beacon log export environment.
 
 {{/*
 Common per-process SmithDB env: metrics profile, logging, OpenTelemetry, pod identity, allocator.
-Args: root, service, displayName.
+Args: root, service, displayName, optional prefix (defaults to SMITHDB_<service>).
 */}}
 {{- define "langsmith.smithdb.baseEnv" -}}
 {{- $root := .root -}}
-{{- $prefix := printf "SMITHDB_%s" (upper .service) -}}
+{{- $prefix := .prefix | default (printf "SMITHDB_%s" (upper .service)) -}}
 {{- $displayName := .displayName -}}
 {{- $tracing := $root.Values.config.observability.tracing -}}
 {{- $tracingEnabled := and $tracing.enabled (eq $tracing.exporter "grpc") -}}
@@ -890,13 +907,13 @@ Args: root, service, displayName.
 
 {{/*
 Shared SmithDB service env vars (object store + metastore + base env).
-Args: root, service, displayName.
+Args: root, service, displayName, optional prefix (defaults to SMITHDB_<service>).
 */}}
 {{- define "langsmith.smithdb.serviceEnv" -}}
 {{- $root := .root -}}
 {{- $service := .service -}}
 {{- $displayName := .displayName -}}
-{{- $prefix := printf "SMITHDB_%s" (upper $service) -}}
+{{- $prefix := .prefix | default (printf "SMITHDB_%s" (upper $service)) -}}
 {{- $objectStoreType := lower (default "s3" $root.Values.smithdb.config.objectStore.type) -}}
 {{- $objectStoreRootFolder := "smithdb" -}}
 - name: {{ $prefix }}__OBJECT_STORE__TYPE
@@ -1012,7 +1029,7 @@ Args: root, service, displayName.
 {{- end }}
 - name: {{ $prefix }}__METASTORE__USE_SSL
   value: {{ $root.Values.smithdb.config.metastore.useSsl | quote }}
-{{ include "langsmith.smithdb.baseEnv" (dict "root" $root "service" $service "displayName" $displayName) }}
+{{ include "langsmith.smithdb.baseEnv" (dict "root" $root "service" $service "displayName" $displayName "prefix" $prefix) }}
 {{- end }}
 
 

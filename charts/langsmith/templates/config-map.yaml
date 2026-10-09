@@ -69,21 +69,31 @@ data:
   CLICKHOUSE_QUERY_ENABLED: {{ .Values.clickhouse.enabled | quote }}
   SMITHDB_INGESTION_ENABLED: {{ .Values.smithdb.langsmith.ingestion.enabled | quote }}
   SMITHDB_QUERY_ENABLED: {{ .Values.smithdb.langsmith.query.enabled | quote }}
+  {{- $smithdbSingle := include "langsmith.smithdb.singleTopology" . }}
+  {{- $smithdbQueryComponent := ternary "single" "query" (not (empty $smithdbSingle)) }}
   {{- if .Values.smithdb.langsmith.query.enabled }}
-  {{- $smithdbQueryUrl := include "langsmith.smithdb.grpcServiceUrl" (dict "root" . "component" "query" "port" .Values.smithdb.query.service.port) }}
+  {{- $smithdbQueryUrl := include "langsmith.smithdb.grpcServiceUrl" (dict "root" . "component" $smithdbQueryComponent "port" (index .Values.smithdb $smithdbQueryComponent).service.port) }}
   SMITHDB_QUERY_SERVICE_URL: {{ $smithdbQueryUrl | quote }}
   {{- end }}
   {{- if .Values.smithdb.langsmith.ingestion.enabled }}
-  {{- $mutationsComponent := ternary "mutations" "query" .Values.smithdb.mutations.enabled }}
+  {{- $mutationsComponent := ternary "mutations" $smithdbQueryComponent .Values.smithdb.mutations.enabled }}
   {{- $mutationsValues := index .Values.smithdb $mutationsComponent }}
   SMITHDB_MUTATIONS_SERVICE_URL: {{ include "langsmith.smithdb.grpcServiceUrl" (dict "root" . "component" $mutationsComponent "port" $mutationsValues.service.port) | quote }}
+  {{- if $smithdbSingle }}
+  SMITHDB_INGESTION_SERVICE_URL: {{ include "langsmith.smithdb.grpcServiceUrl" (dict "root" . "component" "single" "port" .Values.smithdb.single.service.ingestionPort) | quote }}
+  {{- else }}
   SMITHDB_INGESTION_SERVICE_URL: {{ include "langsmith.smithdb.grpcServiceUrl" (dict "root" . "component" "ingestion" "port" .Values.smithdb.ingestion.service.port) | quote }}
+  {{- end }}
   RULES_REDIS_TRACKING_ENABLED: "true"
   RULES_REDIS_TRACKING_MULTIPART_ENABLED: "true"
   {{- end }}
   {{- if .Values.smithdb.enabled }}
+  {{- if $smithdbSingle }}
+  SMITHDB_CLUSTER_MANAGER_ENABLED: "false"
+  {{- else }}
   SMITHDB_CLUSTER_MANAGER_ENABLED: "true"
   SMITHDB_CLUSTER_MANAGER_URL: {{ include "langsmith.smithdb.grpcServiceUrl" (dict "root" . "component" "clusterManager" "port" .Values.smithdb.clusterManager.service.port) | quote }}
+  {{- end }}
   SMITHDB_UPGRADE_CRON_ENABLED: "true"
   SMITHDB_QUERY_SERVICE_MAX_CALL_RECV_MSG_SIZE: "1073741824"
   SMITHDB_FEEDBACK_MUTATION_RPS_PER_KEY: "100"

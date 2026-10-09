@@ -1416,6 +1416,8 @@ smithdb:
   enabled: false
   # -- Per-replica CPU, memory, and cache volume size for SmithDB runtime components: small, medium, or large. See the README.
   resourceTier: "small"
+  # -- SmithDB workload layout: cluster runs query, ingestion, compaction, and the cluster manager as separate workloads; single runs everything in one `smithdb all` pod for small installs. smithdb.resourceTier sizes either layout.
+  topology: "cluster"
   cache:
     # -- StorageClass for the generated SmithDB cache volumes. Empty uses the cluster default. A component's deployment.volumes replaces the generated volume.
     storageClassName: ""
@@ -1491,6 +1493,81 @@ smithdb:
         # -- Key in smithdb.config.existingSecretName for a storage account access key.
         # Leave empty when using Azure Workload Identity.
         accessKeySecretKey: ""
+
+  single:
+    name: "single"
+    # -- HTTP port for health checks and metrics, served by the query service.
+    containerPort: 8060
+    # -- Query gRPC port.
+    containerGrpcPort: 8080
+    ingestionContainerPort: 8050
+    # -- Ingestion gRPC port.
+    ingestionContainerGrpcPort: 8082
+    compactionContainerPort: 8070
+    deployment:
+      strategy:
+        type: RollingUpdate
+        rollingUpdate:
+          maxSurge: 1
+          maxUnavailable: 0
+      labels: {}
+      annotations: {}
+      podSecurityContext:
+        fsGroup: 1001
+      securityContext: {}
+      priorityClassName: ""
+      terminationGracePeriodSeconds: 300
+      probes:
+        startupProbe:
+          httpGet:
+            path: /health
+            port: http
+          failureThreshold: 6
+          periodSeconds: 10
+          timeoutSeconds: 1
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: http
+          failureThreshold: 6
+          periodSeconds: 10
+          timeoutSeconds: 1
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: http
+          failureThreshold: 6
+          periodSeconds: 10
+          timeoutSeconds: 1
+      command:
+        - "./smithdb"
+        - "all"
+      extraEnv: []
+      extraContainerConfig: {}
+      sidecars: []
+      nodeSelector: {}
+      tolerations: []
+      affinity: {}
+      topologySpreadConstraints: []
+      # -- The cache volume holds the query cache, ingestion staging, and, through the /tmp mount, compaction scratch.
+      volumeMounts:
+        - name: cache
+          mountPath: /data
+        - name: cache
+          mountPath: /tmp
+          subPath: tmp
+      volumes: []
+      initContainers: []
+    service:
+      port: 8080
+      ingestionPort: 8082
+      labels: {}
+      annotations: {}
+    pdb:
+      enabled: false
+      minAvailable: 1
+      labels: {}
+      annotations: {}
 
   query:
     name: "query"

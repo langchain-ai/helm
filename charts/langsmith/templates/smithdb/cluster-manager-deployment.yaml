@@ -1,4 +1,4 @@
-{{- if .Values.smithdb.enabled }}
+{{- if include "langsmith.smithdb.clusterTopology" . }}
 {{- $resources := include "langsmith.smithdb.resources" (dict "root" . "component" "clusterManager") | fromYaml -}}
 {{- $envVars := include "langsmith.mergeEnv" (dict "commonEnv" (concat .Values.commonEnv .Values.smithdb.commonEnv) "chart" (include "langsmith.smithdb.baseEnv" (dict "root" . "service" "CLUSTERMANAGER" "displayName" "smithdb-clustermanager") | fromYamlArray) "extraEnv" .Values.smithdb.clusterManager.deployment.extraEnv) | fromYamlArray -}}
 apiVersion: apps/v1

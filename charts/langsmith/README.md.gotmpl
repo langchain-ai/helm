@@ -56,6 +56,14 @@ The query disk cache limit is set automatically from the PVC storage request or,
 | Compaction worker | 8 CPU, 16Gi memory, 100Gi cache | 16 CPU, 32Gi memory, 100Gi cache | 28 CPU, 50Gi memory, 300Gi cache |
 | Cluster manager | 250m CPU, 256Mi memory | 250m CPU, 256Mi memory | 2 CPU, 2Gi memory |
 
+### Single topology
+
+`smithdb.topology: single` replaces the components above with one `smithdb all` pod for small installs: no cluster manager, no compaction workers, and one cache volume. The process splits the volume between the query cache and ingestion staging, and mounts it at `/tmp` for compaction scratch. Memory and disk shares come from the pod's limits. `mutations`, `runRules`, and `statsQuery` are not supported in this topology. Move to `cluster` above the small tier.
+
+| Tier | Small | Medium | Large |
+|---|---|---|---|
+| Single | 4 CPU, 16Gi memory, 100Gi cache | 16 CPU, 64Gi memory, 300Gi cache | 32 CPU, 128Gi memory, 1000Gi cache |
+
 **0.17 upgrade:** default caches switch from `emptyDir` to per-pod PVCs. Configure local SSD overrides before upgrading and rename custom volume and mount references from `local-ssd-storage` to `cache`.
 
 

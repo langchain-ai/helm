@@ -1,4 +1,4 @@
-{{- if .Values.smithdb.enabled }}
+{{- if include "langsmith.smithdb.clusterTopology" . }}
 {{- range $component := list "mutations" "runRules" "statsQuery" }}
 {{ $componentValues := index $.Values.smithdb $component }}
 {{- if and $componentValues.enabled $componentValues.autoscaling.hpa.enabled }}

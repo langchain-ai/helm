@@ -1,0 +1,101 @@
+suite: test smithdb single topology
+templates:
+  - config-map.yaml
+  - smithdb/single-deployment.yaml
+  - smithdb/single-service.yaml
+  - smithdb/query-deployment.yaml
+  - smithdb/ingestion-deployment.yaml
+  - smithdb/compaction-deployment.yaml
+  - smithdb/compaction-worker-deployment.yaml
+  - smithdb/cluster-manager-deployment.yaml
+values:
+  - ./values/smithdb-enabled.yaml
+tests:
+  - it: should run smithdb all on one cache volume sized from the tier
+    template: smithdb/single-deployment.yaml
+    set:
+      smithdb.topology: single
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].command
+          value: ["./smithdb", "all"]
+      - equal:
+          path: spec.template.spec.containers[0].resources.limits
+          value:
+            cpu: "4"
+            memory: 16Gi
+      - equal:
+          path: spec.template.spec.containers[0].volumeMounts
+          value:
+            - name: cache
+              mountPath: /data
+            - name: cache
+              mountPath: /tmp
+              subPath: tmp
+      - equal:
+          path: spec.template.spec.volumes[0].ephemeral.volumeClaimTemplate.spec.resources.requests.storage
+          value: 100Gi
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB__DISK_LIMIT
+            value: 100Gi
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB__MEMORY_LIMIT
+            valueFrom:
+              resourceFieldRef:
+                resource: limits.memory
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB__METASTORE__HOST
+            valueFrom:
+              secretKeyRef:
+                name: smithdb-secret
+                key: smithdb_metastore_db_host
+  - it: should render no per-role workloads in the single topology
+    set:
+      smithdb.topology: single
+    templates:
+      - smithdb/query-deployment.yaml
+      - smithdb/ingestion-deployment.yaml
+      - smithdb/compaction-deployment.yaml
+      - smithdb/compaction-worker-deployment.yaml
+      - smithdb/cluster-manager-deployment.yaml
+    asserts:
+      - hasDocuments:
+          count: 0
+  - it: should render no single workload in the default cluster topology
+    templates:
+      - smithdb/single-deployment.yaml
+      - smithdb/single-service.yaml
+    asserts:
+      - hasDocuments:
+          count: 0
+  - it: should route LangSmith to the single service without a cluster manager
+    template: config-map.yaml
+    set:
+      smithdb.topology: single
+    asserts:
+      - equal:
+          path: data.SMITHDB_QUERY_SERVICE_URL
+          value: RELEASE-NAME-langsmith-smithdb-single.NAMESPACE.svc.cluster.local:8080
+      - equal:
+          path: data.SMITHDB_INGESTION_SERVICE_URL
+          value: RELEASE-NAME-langsmith-smithdb-single.NAMESPACE.svc.cluster.local:8082
+      - equal:
+          path: data.SMITHDB_CLUSTER_MANAGER_ENABLED
+          value: "false"
+      - notExists:
+          path: data.SMITHDB_CLUSTER_MANAGER_URL
+  - it: should run exactly one replica
+    template: smithdb/single-deployment.yaml
+    set:
+      smithdb.topology: single
+      smithdb.single.deployment.replicas: 3
+    asserts:
+      - equal:
+          path: spec.replicas
+          value: 1
