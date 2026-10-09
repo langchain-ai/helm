@@ -1,4 +1,4 @@
-{{- if .Values.smithdb.enabled }}
+{{- if include "langsmith.smithdb.clusterTopology" . }}
 {{- range $component := list "query" "mutations" "runRules" "statsQuery" "ingestion" "compaction" "compactionWorker" "clusterManager" }}
 {{- $componentValues := index $.Values.smithdb $component }}
 {{- if and (dig "enabled" true $componentValues) $componentValues.pdb.enabled }}

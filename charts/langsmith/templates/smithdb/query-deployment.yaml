@@ -1,4 +1,4 @@
-{{- if .Values.smithdb.enabled }}
+{{- if include "langsmith.smithdb.clusterTopology" . }}
 {{- $resources := include "langsmith.smithdb.resources" (dict "root" . "component" "query") | fromYaml -}}
 {{- $volumes := concat .Values.commonVolumes (include "langsmith.smithdb.volumes" (dict "root" . "component" "query") | fromYamlArray) -}}
 {{- $envVars := include "langsmith.mergeEnv" (dict "commonEnv" (concat .Values.commonEnv .Values.smithdb.commonEnv) "chart" (include "langsmith.smithdb.componentEnv" (dict "root" . "service" "QUERY" "displayName" "smithdb-query") | fromYamlArray) "extraEnv" .Values.smithdb.query.deployment.extraEnv) | fromYamlArray -}}

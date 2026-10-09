@@ -18,6 +18,22 @@ tests:
       - failedTemplate:
           errorMessage: "smithdb.resourceTier must be one of: small, medium, large."
 
+  - it: should reject query variants in the single topology
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      smithdb.topology: single
+      smithdb.runRules.enabled: true
+    asserts:
+      - failedTemplate:
+          errorMessage: "smithdb.runRules.enabled is not supported with smithdb.topology single; the single pod serves every query path."
+  - it: should reject an unknown topology
+    set:
+      smithdb.topology: hybrid
+    asserts:
+      - failedTemplate:
+          errorMessage: "smithdb.topology must be one of: cluster, single."
+
   - it: should reject compaction-worker HPA and KEDA being enabled together
     values:
       - ./values/smithdb-enabled.yaml
