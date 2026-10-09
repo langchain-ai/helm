@@ -1517,7 +1517,6 @@ spec:
                   x-kubernetes-preserve-unknown-fields: true
                 maxItems: 16
                 type: array
-                x-kubernetes-preserve-unknown-fields: true
               ingress:
                 description: Ingress configuration
                 properties:
@@ -6751,10 +6750,6 @@ spec:
                       type: string
                     name:
                       type: string
-                    token:
-                      description: Token is persisted before creation to recover a
-                        successful create whose UID write failed.
-                      type: string
                     uid:
                       description: |-
                         UID is a type that holds unique ID values, including UUIDs.  Because we
@@ -6765,7 +6760,6 @@ spec:
                   - apiVersion
                   - kind
                   - name
-                  - token
                   type: object
                 type: array
               lastCreatedReplicaSet:

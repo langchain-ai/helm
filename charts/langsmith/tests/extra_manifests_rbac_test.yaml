@@ -23,7 +23,7 @@ tests:
           content: &spcRule
             apiGroups: ["secrets-store.csi.x-k8s.io"]
             resources: ["secretproviderclasses"]
-            verbs: ["get", "list", "create", "patch", "delete"]
+            verbs: ["get", "create", "patch", "delete"]
         documentIndex: 0
       - notContains:
           path: rules
