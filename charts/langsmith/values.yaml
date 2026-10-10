@@ -167,6 +167,9 @@ sandboxes:
     secretName: "smithbox-proxy-ca"
     # -- Existing TLS Secret containing tls.crt and tls.key for the sandbox proxy CA. This Secret can be created manually, by cert-manager, or by another external process.
     existingSecretName: ""
+  egress:
+    # -- Private IPs or CIDR ranges every sandbox may connect to, such as internal Git servers or package mirrors. Other private addresses stay blocked, and loopback and cloud metadata stay blocked even when listed. List specific services, not ranges that cover this cluster's pod, Service, or node addresses. A sandbox connecting to a literal IP still has to allow-list it.
+    allowedPrivateCidrs: []
   authProxy:
     # -- Route sandbox egress (the sandbox auth proxy's upstream connections) through a corporate HTTP forward proxy, as an HTTP_PROXY/HTTPS_PROXY client would: plain HTTP as standard proxy requests, HTTPS and other TCP through CONNECT. The proxy must allow CONNECT to 443 and any other TCP ports sandboxes use; nothing falls back to direct access. Proxy credentials and client certificates are not supported.
     httpProxy:
