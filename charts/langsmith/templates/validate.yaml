@@ -222,6 +222,11 @@ AWS Marketplace Helm template verification).
 {{- fail "sandboxes.serviceUrlBaseUrl host must be a DNS hostname without a port when ingress.enabled is true." -}}
 {{- end -}}
 {{- end -}}
+{{- range $cidr := ((.Values.sandboxes.egress | default dict).allowedPrivateCidrs | default list) -}}
+{{- if not (regexMatch "^[0-9a-fA-F:.]+(/[0-9]{1,3})?$" (toString $cidr)) -}}
+{{- fail (printf "sandboxes.egress.allowedPrivateCidrs entry %q must be an IP address or CIDR such as 10.20.30.40/32." (toString $cidr)) -}}
+{{- end -}}
+{{- end -}}
 {{- $httpProxy := ((.Values.sandboxes.authProxy | default dict).httpProxy) | default dict -}}
 {{- if $httpProxy.enabled -}}
 {{- if not (has ($httpProxy.scheme | default "http") (list "http" "https")) -}}
