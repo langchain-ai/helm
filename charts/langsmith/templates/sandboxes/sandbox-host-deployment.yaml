@@ -142,6 +142,10 @@ spec:
               value: "true"
             - name: SANDBOX_CALLBACK_LOOPBACK_REWRITE
               value: "false"
+            {{- with ((.Values.sandboxes.egress | default dict).allowedPrivateCidrs) }}
+            - name: SANDBOX_EGRESS_ALLOWED_PRIVATE_CIDRS
+              value: {{ join "," . | quote }}
+            {{- end }}
             {{- with (.Values.sandboxes.authProxy | default dict).httpProxy }}
             {{- if .enabled }}
             {{- /* An https proxy is verified against SSL_CERT_FILE, i.e. config.customCa, when set. */}}

@@ -1352,3 +1352,40 @@ tests:
     asserts:
       - failedTemplate:
           errorMessage: "sandboxes.authProxy.httpProxy.scheme must be http or https."
+
+  - it: should pass allowed private ranges to sandbox-host
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      sandboxes.egress.allowedPrivateCidrs:
+        - 10.20.30.40/32
+        - 10.50.0.0/24
+    template: sandboxes/sandbox-host-deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_EGRESS_ALLOWED_PRIVATE_CIDRS
+            value: 10.20.30.40/32,10.50.0.0/24
+
+  - it: should not allow private ranges by default
+    values:
+      - ./values/sandboxes-enabled.yaml
+    template: sandboxes/sandbox-host-deployment.yaml
+    asserts:
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_EGRESS_ALLOWED_PRIVATE_CIDRS
+          any: true
+
+  - it: should fail when an allowed private range is not an IP or CIDR
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      sandboxes.egress.allowedPrivateCidrs:
+        - git.corp.internal
+    template: validate.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: "sandboxes.egress.allowedPrivateCidrs entry \"git.corp.internal\" must be an IP address or CIDR such as 10.20.30.40/32."
