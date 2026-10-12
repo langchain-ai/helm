@@ -24,3 +24,9 @@ As a next step, it is strongly recommended you work with your infrastructure adm
 - Configure SSL to ensure in-transit encryption of traces submitted to LangSmith
 - Configure LangSmith for oauth authentication (oauth authentication](https://docs.smith.langchain.com/self_hosting/configuration/sso) or basic authentication (https://docs.smith.langchain.com/self_hosting/configuration/sso) to secure your LangSmith instance
 {{- end }}
+{{- if and .Values.redis.external.enabled .Values.redis.external.cluster.enabled (or .Values.redis.external.cluster.nodeUris .Values.redis.external.cluster.password) }}
+
+DEPRECATION: redis.external.cluster.nodeUris and redis.external.cluster.password are deprecated. Set
+redis.external.connectionUrl to one cluster endpoint instead (for example a Memorystore discovery endpoint or an
+ElastiCache configuration endpoint), with the password in the URL. LangSmith discovers the other nodes from it.
+{{- end }}

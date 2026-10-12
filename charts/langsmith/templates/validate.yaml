@@ -180,6 +180,9 @@ AWS Marketplace Helm template verification).
 {{- if not .Values.redis.external.enabled -}}
 {{- fail "redis.external.enabled must be true when redis.external.cluster.enabled is true." -}}
 {{- end -}}
+{{- if not (or .Values.redis.external.connectionUrl .Values.redis.external.cluster.nodeUris .Values.redis.external.existingSecretName .Values.redis.disableSecretCreation .Values.config.disableSecretCreation) -}}
+{{- fail "redis.external.connectionUrl (or redis.external.existingSecretName) is required when redis.external.cluster.enabled is true." -}}
+{{- end -}}
 {{- end -}}
 
 {{- /* Validate sandbox configuration */ -}}

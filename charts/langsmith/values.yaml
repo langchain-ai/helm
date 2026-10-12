@@ -3770,15 +3770,21 @@ redis:
       keySecretKey: "tls.key"
     # This flag disables cluster-unsafe operations. Needed for Azure EnterpriseCluster, which connects with the standalone client, but requires cluster-safe operations
     clusterSafeMode: false
-    # Redis cluster configuration.
+    # Redis cluster configuration. Set connectionUrl (or connectionUrlSecretKey in existingSecretName) to an
+    # endpoint the cluster client can discover the other nodes from, e.g. a Memorystore discovery endpoint or an
+    # ElastiCache configuration endpoint. Put the password in the URL (redis://:password@host:port).
     cluster:
       enabled: false
-      # Node URIs and password can also be set in the secret above (existingSecretName).
-      # Node URIs should be in the format: '["redis://host:port", "redis://host:port", "redis://host:port"]'
+      # -- Deprecated: use `redis.external.connectionUrl`. Node URIs take precedence over the connection URL when set.
+      # Format: '["redis://host:port", "redis://host:port", "redis://host:port"]'
       nodeUris: []
+      # -- Deprecated: use `redis.external.connectionUrlSecretKey`.
       nodeUrisSecretKey: "redis_cluster_node_uris"
+      # -- Deprecated: put the password in `redis.external.connectionUrl`.
       password: ""
+      # -- Deprecated: put the password in the URL under `redis.external.connectionUrlSecretKey`.
       passwordSecretKey: "redis_cluster_password"
+      # -- Use TLS for cluster connections, including `redis.external.connectionUrl`. Set to false if the cluster does not use TLS.
       tlsEnabled: true
   containerPort: 6379
   statefulSet:
