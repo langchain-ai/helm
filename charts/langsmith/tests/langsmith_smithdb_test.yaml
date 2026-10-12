@@ -1170,7 +1170,6 @@ tests:
       - ./values/smithdb-enabled.yaml
     set:
       images.smithdbImage.tag: test-tag
-      config.blobStorage.enabled: true
       config.blobStorage.bucketName: langsmith-blob
       config.blobStorage.apiURL: http://blob-store:9000
       smithdb.langsmith.migration.enabled: true
@@ -1387,7 +1386,6 @@ tests:
     values:
       - ./values/smithdb-enabled.yaml
     set:
-      config.blobStorage.enabled: true
       config.blobStorage.engine: GCS
       config.blobStorage.bucketName: langsmith-gcs-blob
       config.blobStorage.apiURL: https://storage.googleapis.com
@@ -1452,7 +1450,6 @@ tests:
     values:
       - ./values/smithdb-enabled.yaml
     set:
-      config.blobStorage.enabled: true
       config.blobStorage.engine: Azure
       config.blobStorage.azureStorageAccountName: langsmithstorage
       config.blobStorage.azureStorageContainerName: langsmith-traces
