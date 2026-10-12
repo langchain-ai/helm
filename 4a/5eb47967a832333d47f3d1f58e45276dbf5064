@@ -1,0 +1,19 @@
+charts/langsmith/Chart.yaml
+  s_b5bccfa4ae3adf::t_6c68d1f97df2ce 8
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "4a5eb47967a832333d47f3d1f58e45276dbf5064",
+  "prompts": {},
+  "sessions": {
+    "s_b5bccfa4ae3adf": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "215f6e31-f715-4e3f-94d0-0314b65312c0",
+        "model": "auto-smart"
+      },
+      "human_author": "Joaquin Borggio <joaquin@langchain.dev>"
+    }
+  }
+}

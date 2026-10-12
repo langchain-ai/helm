@@ -1,0 +1,49 @@
+charts/langsmith/tests/langsmith_smithdb_validation_test.yaml
+  s_ad6963d4293d3e::t_a38d4d29553823 20-37
+charts/langsmith/templates/smithdb/query-deployment.yaml
+  s_ad6963d4293d3e::t_a38d4d29553823 81,83
+charts/langsmith/README.md
+  s_ad6963d4293d3e::t_f0f914263c2331 45
+  s_ad6963d4293d3e::t_a38d4d29553823 41,43,56,959
+  s_ad6963d4293d3e::t_bf1c5cb6e02564 39,46,1069,1141,1323,1380,1438,1496
+  s_ad6963d4293d3e::t_a89422ffc5a5cf 44,960
+charts/langsmith/templates/validate.yaml
+  s_ad6963d4293d3e::t_a38d4d29553823 41-50
+charts/langsmith/templates/_helpers.tpl
+  s_ad6963d4293d3e::t_1dfe5621da2664 632
+  s_ad6963d4293d3e::t_bf1c5cb6e02564 583,590-591,595
+  s_ad6963d4293d3e::t_a38d4d29553823 580-582,584,599-600,602-604,609-610,613-614,616-619,631,635,639-641,643
+charts/langsmith/templates/smithdb/query-services-deployments.yaml
+  s_ad6963d4293d3e::t_a38d4d29553823 90,92
+charts/langsmith/values.yaml
+  s_ad6963d4293d3e::t_a89422ffc5a5cf 1403
+  s_ad6963d4293d3e::t_a38d4d29553823 1404-1405
+  s_ad6963d4293d3e::t_bf1c5cb6e02564 1484-1486,1561-1563,1636-1638,1711-1713,1785-1787,1924-1926
+charts/langsmith/tests/langsmith_smithdb_cache_test.yaml
+  s_ad6963d4293d3e::t_bf1c5cb6e02564 169-174,176-202
+  s_ad6963d4293d3e::t_a38d4d29553823 1,6,20-32,36,46-64,68-75,78-85,87-89,96,99-101,112-113,134,141-144,152,158-159,161-168
+  s_ad6963d4293d3e::t_4bd6e87ebfaf27 86,160
+charts/langsmith/README.md.gotmpl
+  s_ad6963d4293d3e::t_f0f914263c2331 47
+  s_ad6963d4293d3e::t_a89422ffc5a5cf 46
+  s_ad6963d4293d3e::t_bf1c5cb6e02564 41,48
+  s_ad6963d4293d3e::t_a38d4d29553823 43,45,58
+charts/langsmith/tests/langsmith_smithdb_test.yaml
+  s_ad6963d4293d3e::t_a38d4d29553823 275,280,288-291
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "82211ca040f09861536dbb400c9031328e0c5d3d",
+  "prompts": {},
+  "sessions": {
+    "s_ad6963d4293d3e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "b0c238cf-1c2e-453e-9623-1663bcd4b752",
+        "model": "claude-fable-5-1"
+      },
+      "human_author": "ben11211 <nagengast@langchain.dev>"
+    }
+  }
+}

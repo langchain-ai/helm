@@ -1,0 +1,19 @@
+SECURITY.md
+  s_42cb0eb3491982::t_13a9ea03bd3459 143-162
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "dda8fdc89220372e1af5a8fb99ab54ab09861631",
+  "prompts": {},
+  "sessions": {
+    "s_42cb0eb3491982": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "215c7007-0330-44c8-b15d-a12be4da844e",
+        "model": "claude-fable-5-1"
+      },
+      "human_author": "Ashwin Amardeep <ashwin.amardeep@langchain.dev>"
+    }
+  }
+}
