@@ -6,14 +6,38 @@ set:
   config.oauth.enabled: true
   config.authType: "oauth"
 tests:
-  - it: fails when blob storage is disabled
+  - it: requires a bucket for S3
     asserts:
       - failedTemplate:
-          errorMessage: "Blob storage is required as of LangSmith v0.18. Set config.blobStorage.enabled=true and configure an S3, GCS, or Azure bucket. See https://docs.langchain.com/langsmith/self-host-blob-storage"
+          errorMessage: "config.blobStorage.bucketName is required: blob storage is required as of LangSmith v0.18. See https://docs.langchain.com/langsmith/self-host-blob-storage"
 
-  - it: passes when blob storage is enabled
+  - it: requires a container for Azure
+    set:
+      config.blobStorage.engine: "Azure"
+    asserts:
+      - failedTemplate:
+          errorMessage: "config.blobStorage.azureStorageContainerName is required: blob storage is required as of LangSmith v0.18. See https://docs.langchain.com/langsmith/self-host-blob-storage"
+
+  - it: rejects the removed enabled flag when it is false
+    set:
+      config.blobStorage.enabled: false
+      config.blobStorage.bucketName: "langsmith-test"
+    asserts:
+      - failedTemplate:
+          errorMessage: "config.blobStorage.enabled has been removed: blob storage is required as of LangSmith v0.18. Remove the setting and configure config.blobStorage. See https://docs.langchain.com/langsmith/self-host-blob-storage"
+
+  - it: rejects an unknown engine
+    set:
+      config.blobStorage.engine: "minio"
+      config.blobStorage.bucketName: "langsmith-test"
+    asserts:
+      - failedTemplate:
+          errorMessage: "config.blobStorage.engine must be one of [S3, GCS, Azure]. See https://docs.langchain.com/langsmith/self-host-blob-storage"
+
+  - it: passes with a bucket, including a leftover enabled true
     set:
       config.blobStorage.enabled: true
+      config.blobStorage.engine: "gcs"
       config.blobStorage.bucketName: "langsmith-test"
     asserts:
       - notFailedTemplate: {}

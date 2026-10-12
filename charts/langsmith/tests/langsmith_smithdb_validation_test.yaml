@@ -2,8 +2,7 @@ suite: test smithdb phase validation
 templates:
   - validate.yaml
 set:
-  # validate.yaml requires blob storage as of v0.18.
-  config.blobStorage.enabled: true
+  # validate.yaml requires a blob storage bucket as of v0.18.
   config.blobStorage.bucketName: "langsmith-test"
 tests:
   - it: should reject Azure object storage without an account name

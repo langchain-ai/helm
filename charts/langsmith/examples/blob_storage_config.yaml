@@ -8,7 +8,6 @@ config:
     initialOrgAdminPassword: "TestLangSmith123!"
     jwtSecret: "YOUR_JWT_SECRET"
   blobStorage:
-    enabled: true
     # Set engine: "Azure" if using Azure blob storage
     engine: "S3"
 

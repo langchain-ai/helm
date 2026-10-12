@@ -394,11 +394,11 @@ Template containing common environment variables that are used by several servic
 - name: FF_INFO_ENDPOINT_AUTH_REQUIRED
   value: {{ .Values.config.infoEndpointAuthRequired | quote }}
 {{- end }}
-{{- if .Values.config.blobStorage.enabled }}
+{{- /* Blob storage is required and always on as of v0.18. */}}
 - name: FF_S3_STORAGE_ENABLED
-  value: {{ .Values.config.blobStorage.enabled | quote }}
+  value: "true"
 - name: FF_BLOB_STORAGE_ENABLED
-  value: {{ .Values.config.blobStorage.enabled | quote }}
+  value: "true"
 - name: BLOB_STORAGE_ENGINE
   value: {{ .Values.config.blobStorage.engine | quote }}
 - name: MIN_BLOB_STORAGE_SIZE_KB
@@ -452,7 +452,6 @@ Template containing common environment variables that are used by several servic
       name: {{ include "langsmith.secretsName" . }}
       key: azure_storage_connection_string
       optional: true
-{{- end }}
 {{- end }}
 - name: FF_CH_SEARCH_ENABLED
   value: {{ and .Values.clickhouse.enabled (not .Values.clickhouse.external.hybrid) .Values.config.blobStorage.chSearchEnabled | quote }}

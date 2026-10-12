@@ -7,8 +7,7 @@ release:
   name: langsmith
   namespace: preview
 set:
-  # validate.yaml requires blob storage as of v0.18.
-  config.blobStorage.enabled: true
+  # validate.yaml requires a blob storage bucket as of v0.18.
   config.blobStorage.bucketName: "langsmith-test"
   config.existingSecretName: langsmith-secrets
   config.authType: mixed

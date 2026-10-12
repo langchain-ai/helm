@@ -2,8 +2,7 @@ suite: engine workload identity providers validation
 templates:
   - templates/validate.yaml
 set:
-  # validate.yaml requires blob storage as of v0.18.
-  config.blobStorage.enabled: true
+  # validate.yaml requires a blob storage bucket as of v0.18.
   config.blobStorage.bucketName: "langsmith-test"
   config.existingSecretName: langsmith-secrets
   config.oauth.enabled: true

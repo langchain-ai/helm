@@ -2,8 +2,7 @@ suite: remote MCP server / OAuth Authorization Server config
 # insights/polly are enabled by default on this chart and would otherwise require
 # encryption keys to pass validate.yaml (which renders for every test).
 set:
-  # validate.yaml requires blob storage as of v0.18.
-  config.blobStorage.enabled: true
+  # validate.yaml requires a blob storage bucket as of v0.18.
   config.blobStorage.bucketName: "langsmith-test"
   insights.enabled: false
   polly.enabled: false

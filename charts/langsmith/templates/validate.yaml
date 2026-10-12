@@ -380,16 +380,21 @@ AWS Marketplace Helm template verification).
 {{- fail "When tracing is enabled (config.observability.tracing.enabled=true), config.observability.tracing.endpoint must be provided" -}}
 {{- end -}}
 
-{{- if not .Values.config.blobStorage.enabled -}}
-{{- fail "Blob storage is required as of LangSmith v0.18. Set config.blobStorage.enabled=true and configure an S3, GCS, or Azure bucket. See https://docs.langchain.com/langsmith/self-host-blob-storage" -}}
+{{- /* Blob storage is required and always on as of v0.18. */ -}}
+{{- $blobStorage := .Values.config.blobStorage -}}
+{{- $blobDocs := "See https://docs.langchain.com/langsmith/self-host-blob-storage" -}}
+{{- if and (hasKey $blobStorage "enabled") (not $blobStorage.enabled) -}}
+{{- fail (printf "config.blobStorage.enabled has been removed: blob storage is required as of LangSmith v0.18. Remove the setting and configure config.blobStorage. %s" $blobDocs) -}}
 {{- end -}}
-
-{{- if and .Values.config.blobStorage.enabled (not .Values.config.blobStorage.engine) -}}
-{{- fail "When blob storage is enabled (config.blobStorage.enabled=true), config.blobStorage.engine must be one of [S3, GCS, Azure]" -}}
+{{- $blobEngine := lower ($blobStorage.engine | default "") -}}
+{{- if not (has $blobEngine (list "s3" "gcs" "azure")) -}}
+{{- fail (printf "config.blobStorage.engine must be one of [S3, GCS, Azure]. %s" $blobDocs) -}}
 {{- end -}}
-
-{{- if and .Values.config.blobStorage.enabled (not (or (eq .Values.config.blobStorage.engine "S3") (eq .Values.config.blobStorage.engine "s3") (eq .Values.config.blobStorage.engine "GCS") (eq .Values.config.blobStorage.engine "gcs") (eq .Values.config.blobStorage.engine "Azure") (eq .Values.config.blobStorage.engine "azure"))) -}}
-{{- fail "When blob storage is enabled (config.blobStorage.enabled=true), config.blobStorage.engine must be one of [S3, GCS, Azure]" -}}
+{{- if and (has $blobEngine (list "s3" "gcs")) (not $blobStorage.bucketName) -}}
+{{- fail (printf "config.blobStorage.bucketName is required: blob storage is required as of LangSmith v0.18. %s" $blobDocs) -}}
+{{- end -}}
+{{- if and (eq $blobEngine "azure") (not $blobStorage.azureStorageContainerName) -}}
+{{- fail (printf "config.blobStorage.azureStorageContainerName is required: blob storage is required as of LangSmith v0.18. %s" $blobDocs) -}}
 {{- end -}}
 
 {{- /* Validate postgres mTLS configuration */ -}}
