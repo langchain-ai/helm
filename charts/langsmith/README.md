@@ -1574,11 +1574,21 @@ The trajectory Service is cluster-internal; no public route is added. Trajectory
 | config.basicAuth.enabled | bool | `false` |  |
 | config.basicAuth.initialOrgAdminPassword | string | `""` |  |
 | config.basicAuth.jwtSecret | string | `""` |  |
-| config.blobStorage | object | `{"accessKey":"","accessKeySecret":"","apiURL":"https://s3.us-west-2.amazonaws.com","azureStorageAccountKey":"","azureStorageAccountName":"","azureStorageConnectionString":"","azureStorageContainerName":"","azureStorageServiceUrlOverride":"","bucketName":"","chSearchEnabled":true,"engine":"S3","kmsEncryptionEnabled":false,"kmsKeyArn":"","minBlobStorageSizeKb":"20","s3UsePathStyle":false}` | Blob storage is required and always on as of LangSmith v0.18. Configure the engine and bucket below. |
+| config.blobStorage.accessKey | string | `""` |  |
+| config.blobStorage.accessKeySecret | string | `""` |  |
+| config.blobStorage.apiURL | string | `"https://s3.us-west-2.amazonaws.com"` |  |
+| config.blobStorage.azureStorageAccountKey | string | `""` |  |
 | config.blobStorage.azureStorageAccountName | string | `""` | Optional. Set this along with azureStorageAccountKey to use a storage account and access key. Higher precedence than azureStorageConnectionString. |
 | config.blobStorage.azureStorageConnectionString | string | `""` | Optional. Use this to specify the full connection string including any authentication params. |
 | config.blobStorage.azureStorageContainerName | string | `""` | Required if using Azure blob storage |
 | config.blobStorage.azureStorageServiceUrlOverride | string | `""` | Optional. Use this to customize the service URL, which by default is 'https://<storage_account_name>.blob.core.windows.net/' |
+| config.blobStorage.bucketName | string | `""` |  |
+| config.blobStorage.chSearchEnabled | bool | `true` |  |
+| config.blobStorage.engine | string | `"S3"` |  |
+| config.blobStorage.kmsEncryptionEnabled | bool | `false` |  |
+| config.blobStorage.kmsKeyArn | string | `""` |  |
+| config.blobStorage.minBlobStorageSizeKb | string | `"20"` |  |
+| config.blobStorage.s3UsePathStyle | bool | `false` |  |
 | config.customCa.secretKey | string | `""` |  |
 | config.customCa.secretName | string | `""` | Optional. Used to set a file containing trusted CA certificates. Make sure to also include a public CA to access beacon and playground. |
 | config.customErrorSupportMessage | string | `""` | Custom error support message displayed on error pages (plain text). If empty, defaults to the built-in support messages linking to our Support Portal (https://support.langchain.com). |

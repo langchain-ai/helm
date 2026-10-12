@@ -1205,7 +1205,7 @@ config:
   # Blob storage configuration
   # Optional. Used to store inputs, outputs, and errors in Blob Storage.
   # We currently support S3, GCS, Minio, and Azure as Blob Storage providers.
-  # -- Blob storage is required and always on as of LangSmith v0.18. Configure the engine and bucket below.
+  # Blob storage is required and always on as of LangSmith v0.18. Configure the engine and bucket below.
   blobStorage:
     engine: "S3"
     # If you are using langsmith-managed-clickhouse, you may not want inputs to be stored in clickhouse for search.
