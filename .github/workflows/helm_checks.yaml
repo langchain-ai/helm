@@ -209,6 +209,91 @@ jobs:
 
           echo "=== Redis with TLS ready for testing ==="
 
+      - name: Deploy RustFS for blob storage (LangSmith only)
+        if: matrix.chart-name == 'langsmith'
+        run: |
+          set -e
+          # LangSmith requires blob storage; the ci/ values point config.blobStorage at this S3-compatible store.
+          kubectl apply -n default -f - <<'EOF'
+          apiVersion: apps/v1
+          kind: Deployment
+          metadata:
+            name: rustfs
+          spec:
+            replicas: 1
+            selector:
+              matchLabels:
+                app: rustfs
+            template:
+              metadata:
+                labels:
+                  app: rustfs
+              spec:
+                containers:
+                  - name: rustfs
+                    image: rustfs/rustfs:1.0.0-beta.7@sha256:69e7d8168b9285bf0b95c9d98309c599704d17c0aa9a8614fbee376c0c43e5a1
+                    env:
+                      - name: RUSTFS_ACCESS_KEY
+                        value: langsmith-ci
+                      - name: RUSTFS_SECRET_KEY
+                        value: langsmith-ci-secret
+                      - name: RUSTFS_ADDRESS
+                        value: ":9000"
+                      - name: RUSTFS_VOLUMES
+                        value: /data
+                    ports:
+                      - containerPort: 9000
+                    readinessProbe:
+                      tcpSocket:
+                        port: 9000
+                      periodSeconds: 5
+                    resources:
+                      requests:
+                        cpu: 50m
+                        memory: 128Mi
+                    volumeMounts:
+                      - name: data
+                        mountPath: /data
+                volumes:
+                  - name: data
+                    emptyDir: {}
+          ---
+          apiVersion: v1
+          kind: Service
+          metadata:
+            name: rustfs
+          spec:
+            selector:
+              app: rustfs
+            ports:
+              - port: 9000
+                targetPort: 9000
+          ---
+          apiVersion: batch/v1
+          kind: Job
+          metadata:
+            name: rustfs-create-bucket
+          spec:
+            backoffLimit: 6
+            template:
+              spec:
+                restartPolicy: OnFailure
+                containers:
+                  - name: create-bucket
+                    image: rustfs/rc:v0.1.18@sha256:6f4821d20227ff914ddc0f2a5b20ccf61abf4b741993bf36e197745c1f83c6c1
+                    command:
+                      - /bin/sh
+                      - -c
+                      - |
+                        set -eu
+                        until rc alias set rustfs http://rustfs:9000 langsmith-ci langsmith-ci-secret; do
+                          sleep 2
+                        done
+                        rc ls rustfs/langsmith >/dev/null 2>&1 || rc mb rustfs/langsmith
+          EOF
+          kubectl -n default rollout status deploy/rustfs --timeout=180s
+          kubectl -n default wait --for=condition=complete job/rustfs-create-bucket --timeout=180s
+
       - name: Select LangSmith install test values
         if: matrix.chart-name == 'langsmith'
         env:

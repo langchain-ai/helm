@@ -1206,6 +1206,7 @@ config:
   # Optional. Used to store inputs, outputs, and errors in Blob Storage.
   # We currently support S3, GCS, Minio, and Azure as Blob Storage providers.
   blobStorage:
+    # -- Required as of LangSmith v0.18: the chart fails validation unless this is true. Configure the bucket below.
     enabled: false
     engine: "S3"
     # If you are using langsmith-managed-clickhouse, you may not want inputs to be stored in clickhouse for search.

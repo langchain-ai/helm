@@ -7,6 +7,9 @@ suite: AUTH_ENDPOINT shared config
 # crash-looped the gateway, because it is the one where the gateway cannot build
 # a local auth handler and must resolve tokens against AUTH_ENDPOINT instead.
 set:
+  # validate.yaml requires blob storage as of v0.18.
+  config.blobStorage.enabled: true
+  config.blobStorage.bucketName: "langsmith-test"
   insights.enabled: false
   polly.enabled: false
   config.langsmithLicenseKey: "lic"

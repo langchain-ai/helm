@@ -1,5 +1,14 @@
 # Read-Only configuration. Use this if you are running in an environment where containers must run as read-only.
 config:
+  # Blob storage is required. CI points it at the RustFS the workflow deploys in the kind cluster.
+  blobStorage:
+    enabled: true
+    engine: "S3"
+    bucketName: "langsmith"
+    apiURL: "http://rustfs.default.svc.cluster.local:9000"
+    s3UsePathStyle: true
+    accessKey: "langsmith-ci"
+    accessKeySecret: "langsmith-ci-secret"
   langsmithLicenseKey: "YOUR_LICENSE_KEY"
   apiKeySalt: "YOUR_API_KEY_SALT"
   authType: "mixed"

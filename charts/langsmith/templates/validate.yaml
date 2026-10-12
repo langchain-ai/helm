@@ -380,6 +380,10 @@ AWS Marketplace Helm template verification).
 {{- fail "When tracing is enabled (config.observability.tracing.enabled=true), config.observability.tracing.endpoint must be provided" -}}
 {{- end -}}
 
+{{- if not .Values.config.blobStorage.enabled -}}
+{{- fail "Blob storage is required as of LangSmith v0.18. Set config.blobStorage.enabled=true and configure an S3, GCS, or Azure bucket. See https://docs.langchain.com/langsmith/self-host-blob-storage" -}}
+{{- end -}}
+
 {{- if and .Values.config.blobStorage.enabled (not .Values.config.blobStorage.engine) -}}
 {{- fail "When blob storage is enabled (config.blobStorage.enabled=true), config.blobStorage.engine must be one of [S3, GCS, Azure]" -}}
 {{- end -}}

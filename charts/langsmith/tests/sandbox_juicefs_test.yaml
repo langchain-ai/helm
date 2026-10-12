@@ -5,6 +5,10 @@ templates:
   - sandboxes/juicefs-format-job.yaml
   - sandboxes/sandbox-host-deployment.yaml
   - sandboxes/sandbox-host-service-account.yaml
+set:
+  # validate.yaml requires blob storage as of v0.18.
+  config.blobStorage.enabled: true
+  config.blobStorage.bucketName: "langsmith-test"
 tests:
   - it: should not render JuiceFS resources when sandboxes are disabled
     set:

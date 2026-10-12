@@ -1,0 +1,25 @@
+suite: blob storage is required
+templates:
+  - validate.yaml
+set:
+  config.existingSecretName: "langsmith-secrets"
+  config.oauth.enabled: true
+  config.authType: "oauth"
+tests:
+  - it: fails when blob storage is disabled
+    asserts:
+      - failedTemplate:
+          errorMessage: "Blob storage is required as of LangSmith v0.18. Set config.blobStorage.enabled=true and configure an S3, GCS, or Azure bucket. See https://docs.langchain.com/langsmith/self-host-blob-storage"
+
+  - it: passes when blob storage is enabled
+    set:
+      config.blobStorage.enabled: true
+      config.blobStorage.bucketName: "langsmith-test"
+    asserts:
+      - notFailedTemplate: {}
+
+  - it: is skipped with config.skipValidation
+    set:
+      config.skipValidation: true
+    asserts:
+      - notFailedTemplate: {}
