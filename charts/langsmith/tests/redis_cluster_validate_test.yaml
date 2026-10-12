@@ -1,0 +1,25 @@
+suite: external Redis Cluster validation
+templates:
+  - validate.yaml
+tests:
+  - it: requires a cluster endpoint
+    set:
+      config.existingSecretName: "langsmith-secrets"
+      config.oauth.enabled: true
+      config.authType: "oauth"
+      redis.external.enabled: true
+      redis.external.cluster.enabled: true
+    asserts:
+      - failedTemplate:
+          errorMessage: "redis.external.connectionUrl (or redis.external.existingSecretName) is required when redis.external.cluster.enabled is true."
+
+  - it: accepts connectionUrl as the cluster endpoint
+    set:
+      config.existingSecretName: "langsmith-secrets"
+      config.oauth.enabled: true
+      config.authType: "oauth"
+      redis.external.enabled: true
+      redis.external.cluster.enabled: true
+      redis.external.connectionUrl: "redis://10.1.2.3:6379"
+    asserts:
+      - notFailedTemplate: {}

@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.18.0-rc.20](https://img.shields.io/badge/Version-0.18.0--rc.20-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.18.8rc1](https://img.shields.io/badge/AppVersion-0.18.8rc1-informational?style=flat-square)
+![Version: 0.18.0-rc.21](https://img.shields.io/badge/Version-0.18.0--rc.21-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.18.8rc1](https://img.shields.io/badge/AppVersion-0.18.8rc1-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -2800,11 +2800,11 @@ The trajectory Service is cluster-internal; no public route is added. Trajectory
 | redis.external.clientCert.keySecretKey | string | `"tls.key"` |  |
 | redis.external.clientCert.secretName | string | `""` |  |
 | redis.external.cluster.enabled | bool | `false` |  |
-| redis.external.cluster.nodeUris | list | `[]` |  |
-| redis.external.cluster.nodeUrisSecretKey | string | `"redis_cluster_node_uris"` |  |
-| redis.external.cluster.password | string | `""` |  |
-| redis.external.cluster.passwordSecretKey | string | `"redis_cluster_password"` |  |
-| redis.external.cluster.tlsEnabled | bool | `true` |  |
+| redis.external.cluster.nodeUris | list | `[]` | Deprecated: use `redis.external.connectionUrl`. Node URIs take precedence over the connection URL when set. Format: '["redis://host:port", "redis://host:port", "redis://host:port"]' |
+| redis.external.cluster.nodeUrisSecretKey | string | `"redis_cluster_node_uris"` | Deprecated: use `redis.external.connectionUrlSecretKey`. |
+| redis.external.cluster.password | string | `""` | Deprecated: put the password in `redis.external.connectionUrl`. |
+| redis.external.cluster.passwordSecretKey | string | `"redis_cluster_password"` | Deprecated: put the password in the URL under `redis.external.connectionUrlSecretKey`. |
+| redis.external.cluster.tlsEnabled | bool | `true` | Use TLS for cluster connections, including `redis.external.connectionUrl`. Set to false if the cluster does not use TLS. |
 | redis.external.clusterSafeMode | bool | `false` |  |
 | redis.external.connectionUrl | string | `""` |  |
 | redis.external.connectionUrlSecretKey | string | `"connection_url"` |  |
