@@ -1704,8 +1704,6 @@ smithdb:
     name: "stats-query"
     containerPort: 8060
     containerGrpcPort: 8080
-    distributedStats:
-      enabled: true
     deployment:
       replicas: 1
       strategy:

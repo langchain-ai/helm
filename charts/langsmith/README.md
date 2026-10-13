@@ -1526,7 +1526,6 @@ The trajectory Service is cluster-internal; no public route is added. Trajectory
 | smithdb.statsQuery.deployment.topologySpreadConstraints | list | `[]` |  |
 | smithdb.statsQuery.deployment.volumeMounts[0].mountPath | string | `"/data"` |  |
 | smithdb.statsQuery.deployment.volumeMounts[0].name | string | `"cache"` |  |
-| smithdb.statsQuery.distributedStats.enabled | bool | `true` |  |
 | smithdb.statsQuery.enabled | bool | `false` |  |
 | smithdb.statsQuery.name | string | `"stats-query"` |  |
 | smithdb.statsQuery.pdb.annotations | object | `{}` |  |
