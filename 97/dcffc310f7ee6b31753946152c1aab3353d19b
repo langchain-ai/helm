@@ -1,0 +1,27 @@
+charts/langsmith/README.md
+  s_471476021a9e22::t_8d19e392797ada 1538,1540
+charts/langsmith/examples/langsmith-observability/components/smithdb/datadog-values.yaml
+  s_471476021a9e22::t_580081bbbcda5d 99
+charts/langsmith/templates/smithdb/single-deployment.yaml
+  s_471476021a9e22::t_a034b1444a6f92 62
+charts/langsmith/tests/langsmith_smithdb_single_test.yaml
+  s_471476021a9e22::t_a04f17cfee29a6 16-18,87,90,98-100,108-121
+charts/langsmith/values.yaml
+  s_471476021a9e22::t_cae9433d06b9b5 1492-1493,1562
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "97dcffc310f7ee6b31753946152c1aab3353d19b",
+  "prompts": {},
+  "sessions": {
+    "s_471476021a9e22": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "20f47e9e-71d9-4ec2-b396-10e8d41194ae",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "ben11211 <nagengast@langchain.dev>"
+    }
+  }
+}
