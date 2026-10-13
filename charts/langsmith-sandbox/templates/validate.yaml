@@ -45,6 +45,13 @@
 {{- fail "sandboxHost.autoscaling.maxReplicas must be greater than or equal to minReplicas." -}}
 {{- end -}}
 {{- end -}}
+{{- $juicefsRedisIamAuthProvider := toString (.Values.juicefs.redis.iamAuthProvider | default "") -}}
+{{- if not (has $juicefsRedisIamAuthProvider (list "" "azure" "gcp")) -}}
+{{- fail (printf "juicefs.redis.iamAuthProvider %q is not supported. Valid values are \"\", \"azure\" and \"gcp\"." $juicefsRedisIamAuthProvider) -}}
+{{- end -}}
+{{- if not .Values.authProxy.httpProxy.urlSecretKey -}}
+{{- fail "authProxy.httpProxy.urlSecretKey is required when sandboxHost.enabled is true." -}}
+{{- end -}}
 {{- if not .Values.juicefs.existingSecretName -}}
 {{- if not .Values.juicefs.redis.metaURL -}}
 {{- fail "juicefs.redis.metaURL is required when juicefs.existingSecretName is not set." -}}

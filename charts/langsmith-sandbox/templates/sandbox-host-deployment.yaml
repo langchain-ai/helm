@@ -7,6 +7,9 @@
   (dict "name" "LANGSMITH_SANDBOX_INTERNAL_ENDPOINT")
   (dict "name" "SANDBOX_HOST_JUICEFS_META_URL_FILE")
   (dict "name" "SANDBOX_HOST_JUICEFS_MOUNT_OPTIONS")
+  (dict "name" "SANDBOX_HOST_JUICEFS_REDIS_IAM_AUTH_PROVIDER")
+  (dict "name" "SANDBOX_EGRESS_UPSTREAM_PROXY_URL")
+  (dict "name" "SANDBOX_EGRESS_UPSTREAM_PROXY_NO_PROXY")
 -}}
 {{- /* commonEnv joins the check so an operator-supplied var that collides with a
 managed one fails at render rather than silently winning by list order. */}}
@@ -60,6 +63,7 @@ spec:
       dnsPolicy: ClusterFirstWithHostNet
       {{- include "langsmithSandbox.dnsConfig" . | nindent 6 }}
       serviceAccountName: {{ include "langsmithSandbox.serviceAccountName" . }}
+      automountServiceAccountToken: {{ .Values.sandboxHost.serviceAccount.automountServiceAccountToken }}
       affinity:
         podAntiAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
@@ -136,6 +140,17 @@ spec:
               value: "true"
             - name: SANDBOX_CALLBACK_LOOPBACK_REWRITE
               value: "false"
+            {{- /* The URL may carry proxy credentials, so it always comes from the Secret; a missing key means direct egress. An https proxy is verified against SSL_CERT_FILE, i.e. customCa, when set. */}}
+            - name: SANDBOX_EGRESS_UPSTREAM_PROXY_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "langsmithSandbox.serviceAuthSecretName" . }}
+                  key: {{ .Values.authProxy.httpProxy.urlSecretKey }}
+                  optional: true
+            {{- with .Values.authProxy.httpProxy.noProxy }}
+            - name: SANDBOX_EGRESS_UPSTREAM_PROXY_NO_PROXY
+              value: {{ join "," . | quote }}
+            {{- end }}
             - name: LANGSMITH_SANDBOX_INTERNAL_ENDPOINT
               value: {{ .Values.platform.endpoint | quote }}
             - name: SANDBOX_HOST_DEPLOYMENT_NAME
@@ -146,6 +161,10 @@ spec:
               value: /run/secrets/juicefs/metaurl
             - name: SANDBOX_HOST_JUICEFS_MOUNT_OPTIONS
               value: {{ concat (list (printf "--cache-dir=%s" (join ":" $hostMount.cacheDirs))) $hostMount.mountOptions | toJson | quote }}
+            {{- with .Values.juicefs.redis.iamAuthProvider }}
+            - name: SANDBOX_HOST_JUICEFS_REDIS_IAM_AUTH_PROVIDER
+              value: {{ . | quote }}
+            {{- end }}
             - name: SANDBOX_HOST_AUTOSCALE_ENABLED
               value: {{ $autoscaling.enabled | quote }}
             {{- if $autoscaling.enabled }}

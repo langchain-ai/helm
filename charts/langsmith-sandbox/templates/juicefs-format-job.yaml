@@ -34,6 +34,7 @@ spec:
         {{- end }}
     spec:
       serviceAccountName: {{ include "langsmithSandbox.serviceAccountName" . }}
+      automountServiceAccountToken: {{ .Values.sandboxHost.serviceAccount.automountServiceAccountToken }}
       {{- include "langsmithSandbox.dnsConfig" . | nindent 6 }}
       restartPolicy: Never
       securityContext:
@@ -63,6 +64,10 @@ spec:
           env:
             - name: LANGCHAIN_ENV
               value: "local_kubernetes"
+            {{- with .Values.juicefs.redis.iamAuthProvider }}
+            - name: SANDBOX_HOST_JUICEFS_REDIS_IAM_AUTH_PROVIDER
+              value: {{ . | quote }}
+            {{- end }}
           securityContext:
             {{- toYaml $job.securityContext | nindent 12 }}
           resources:

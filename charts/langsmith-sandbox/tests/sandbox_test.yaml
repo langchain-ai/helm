@@ -296,7 +296,7 @@ tests:
     asserts:
       - equal:
           path: metadata.name
-          value: RELEASE-NAME-langsmith-sandbox-juicefs-format-138047bf
+          value: RELEASE-NAME-langsmith-sandbox-juicefs-format-73801bd3
 
   - it: should rename the JuiceFS formatter when commonDnsConfig changes
     chart:
@@ -312,7 +312,7 @@ tests:
     asserts:
       - equal:
           path: metadata.name
-          value: RELEASE-NAME-langsmith-sandbox-juicefs-format-67cdd3d1
+          value: RELEASE-NAME-langsmith-sandbox-juicefs-format-21983d3e
 
   - it: should add commonEnv, volumes, mounts, and init containers to sandbox-host
     values:
@@ -362,3 +362,126 @@ tests:
     asserts:
       - failedTemplate:
           errorMessage: "Duplicate keys detected: [LANGSMITH_SANDBOX_INTERNAL_ENDPOINT]"
+
+  - it: should honor automountServiceAccountToken on sandbox-host and the formatter
+    values:
+      - ./values/enabled.yaml
+    set:
+      sandboxHost.serviceAccount.automountServiceAccountToken: false
+    templates:
+      - sandbox-host-deployment.yaml
+      - juicefs-format-job.yaml
+    asserts:
+      - equal:
+          path: spec.template.spec.automountServiceAccountToken
+          value: false
+
+  - it: should pass the JuiceFS Redis IAM auth provider to sandbox-host and the formatter
+    values:
+      - ./values/enabled.yaml
+    set:
+      juicefs.redis.iamAuthProvider: gcp
+    templates:
+      - sandbox-host-deployment.yaml
+      - juicefs-format-job.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_HOST_JUICEFS_REDIS_IAM_AUTH_PROVIDER
+            value: gcp
+
+  - it: should omit the JuiceFS Redis IAM auth provider by default
+    values:
+      - ./values/enabled.yaml
+    templates:
+      - sandbox-host-deployment.yaml
+      - juicefs-format-job.yaml
+    asserts:
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_HOST_JUICEFS_REDIS_IAM_AUTH_PROVIDER
+          any: true
+
+  - it: should reject an unsupported JuiceFS Redis IAM auth provider
+    values:
+      - ./values/enabled.yaml
+    set:
+      juicefs.redis.iamAuthProvider: aws
+    template: validate.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: 'juicefs.redis.iamAuthProvider "aws" is not supported. Valid values are "", "azure" and "gcp".'
+
+  - it: should rename the JuiceFS formatter when the Redis IAM auth provider changes
+    chart:
+      version: 0.0.0-test
+    values:
+      - ./values/enabled.yaml
+    set:
+      juicefs.redis.iamAuthProvider: azure
+    template: juicefs-format-job.yaml
+    asserts:
+      - notEqual:
+          path: metadata.name
+          value: RELEASE-NAME-langsmith-sandbox-juicefs-format-73801bd3
+
+  # The proxy URL can carry Basic-auth credentials, so it is only ever a
+  # secretKeyRef into the runtime Secret, never a literal value.
+  - it: should read the sandbox egress proxy URL from the runtime Secret
+    values:
+      - ./values/enabled.yaml
+    template: sandbox-host-deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_EGRESS_UPSTREAM_PROXY_URL
+            valueFrom:
+              secretKeyRef:
+                name: langsmith-sandbox-runtime
+                key: sandbox_egress_proxy_url
+                optional: true
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_EGRESS_UPSTREAM_PROXY_NO_PROXY
+          any: true
+
+  - it: should pass the egress proxy bypass list and a custom URL key
+    values:
+      - ./values/enabled.yaml
+    set:
+      authProxy.httpProxy.urlSecretKey: corp_proxy_url
+      authProxy.httpProxy.noProxy:
+        - internal.corp
+        - 10.0.0.0/8
+    template: sandbox-host-deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_EGRESS_UPSTREAM_PROXY_URL
+            valueFrom:
+              secretKeyRef:
+                name: langsmith-sandbox-runtime
+                key: corp_proxy_url
+                optional: true
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_EGRESS_UPSTREAM_PROXY_NO_PROXY
+            value: internal.corp,10.0.0.0/8
+
+  - it: should reject an extraEnv var that shadows the egress proxy URL
+    values:
+      - ./values/enabled.yaml
+    set:
+      sandboxHost.deployment.extraEnv:
+        - name: SANDBOX_EGRESS_UPSTREAM_PROXY_URL
+          value: http://user:pass@proxy.internal:3128
+    template: sandbox-host-deployment.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: "Duplicate keys detected: [SANDBOX_EGRESS_UPSTREAM_PROXY_URL]"

@@ -125,6 +125,45 @@ tests:
       - failedTemplate:
           errorMessage: "sandboxes.hostIngressEndpoint must be an http(s) origin without a path, query string, or fragment."
 
+  # sandbox-host is the only consumer of these, and this release does not
+  # render it in separateCluster, so accepting them would silently do nothing.
+  - it: should reject a sandbox egress proxy URL in separate-cluster mode
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      config.hostname: langsmith.example.com
+      sandboxes.deploymentMode: separateCluster
+      sandboxes.authProxy.httpProxy.url: http://proxy.internal:3128
+    template: validate.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: "sandboxes.authProxy.httpProxy has no effect when sandboxes.deploymentMode is separateCluster. Configure authProxy.httpProxy in the langsmith-sandbox chart instead."
+
+  - it: should reject a sandbox egress proxy bypass list in separate-cluster mode
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      config.hostname: langsmith.example.com
+      sandboxes.deploymentMode: separateCluster
+      sandboxes.authProxy.httpProxy.noProxy:
+        - internal.corp
+    template: validate.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: "sandboxes.authProxy.httpProxy has no effect when sandboxes.deploymentMode is separateCluster. Configure authProxy.httpProxy in the langsmith-sandbox chart instead."
+
+  - it: should reject a JuiceFS Redis IAM auth provider in separate-cluster mode
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      config.hostname: langsmith.example.com
+      sandboxes.deploymentMode: separateCluster
+      sandboxes.juicefs.redis.iamAuthProvider: azure
+    template: validate.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: "sandboxes.juicefs.redis.iamAuthProvider has no effect when sandboxes.deploymentMode is separateCluster. Set juicefs.redis.iamAuthProvider in the langsmith-sandbox chart instead."
+
   - it: should wire platform backend sandbox environment when enabled
     values:
       - ./values/sandboxes-enabled.yaml

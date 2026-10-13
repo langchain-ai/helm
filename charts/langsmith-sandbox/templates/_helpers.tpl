@@ -137,6 +137,8 @@ a fresh formatter. */}}
   "securityContext" $job.securityContext
   "resources" $job.resources
   "serviceAccount" (include "langsmithSandbox.serviceAccountName" .)
+  "automountServiceAccountToken" .Values.sandboxHost.serviceAccount.automountServiceAccountToken
+  "redisIamAuthProvider" .Values.juicefs.redis.iamAuthProvider
   "nodeSelector" (default .Values.sandboxHost.deployment.nodeSelector $job.nodeSelector)
   "tolerations" (default .Values.sandboxHost.deployment.tolerations $job.tolerations)
   "affinity" $job.affinity

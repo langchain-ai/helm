@@ -220,6 +220,17 @@ AWS Marketplace Helm template verification).
 {{- if and .Values.config.existingSecretName .Values.sandboxes.callbackSigningJwk -}}
 {{- fail "sandboxes.callbackSigningJwk cannot be used when config.existingSecretName is set. Add key sandbox_callback_signing_jwk to the existing Secret instead." -}}
 {{- end -}}
+{{- /* These configure sandbox-host, which this release does not render in
+separateCluster. Fail rather than accept settings that would do nothing. */ -}}
+{{- if eq $deploymentMode "separateCluster" -}}
+{{- $separateHttpProxy := ((.Values.sandboxes.authProxy | default dict).httpProxy) | default dict -}}
+{{- if or $separateHttpProxy.url $separateHttpProxy.noProxy -}}
+{{- fail "sandboxes.authProxy.httpProxy has no effect when sandboxes.deploymentMode is separateCluster. Configure authProxy.httpProxy in the langsmith-sandbox chart instead." -}}
+{{- end -}}
+{{- if (.Values.sandboxes.juicefs.redis | default dict).iamAuthProvider -}}
+{{- fail "sandboxes.juicefs.redis.iamAuthProvider has no effect when sandboxes.deploymentMode is separateCluster. Set juicefs.redis.iamAuthProvider in the langsmith-sandbox chart instead." -}}
+{{- end -}}
+{{- end -}}
 {{- if eq $deploymentMode "sameCluster" -}}
 {{- if not .Values.images.sandboxHostImage.repository -}}
 {{- fail "images.sandboxHostImage.repository is required when sandboxes.enabled is true." -}}

@@ -66,6 +66,14 @@ customCa:
   # -- Key within customCa.existingSecretName containing the CA certificate.
   secretKey: ""
 
+authProxy:
+  # -- Route sandbox egress (the sandbox auth proxy's upstream connections) through a corporate HTTP forward proxy, as an HTTP_PROXY/HTTPS_PROXY client would: plain HTTP as standard proxy requests, HTTPS and other TCP through CONNECT. The proxy must allow CONNECT to 443 and any other TCP ports sandboxes use; nothing falls back to direct access.
+  httpProxy:
+    # -- Key in serviceAuth.existingSecretName holding the proxy URL, `http://host:port` or `https://host:port` (TLS to the proxy itself, verified against customCa when set, otherwise the system roots). A missing key sends egress directly. For Basic proxy authentication use `http://user:password@host:port`, percent-encoding reserved characters; sandboxes never see the credentials. Read only from the Secret because the URL may carry credentials.
+    urlSecretKey: "sandbox_egress_proxy_url"
+    # -- Destinations dialed directly instead of through the proxy, with standard NO_PROXY matching: "internal.corp" matches the host and its subdomains, ".internal.corp" only subdomains, plus IP addresses, CIDR ranges such as "10.0.0.0/8", "host:port" entries, and "*".
+    noProxy: []
+
 proxyCa:
   # -- generatedSecret creates and reuses a self-signed sandbox proxy CA; existingSecret uses a Secret managed outside this chart.
   mode: "generatedSecret"
@@ -85,6 +93,8 @@ juicefs:
   redis:
     # -- JuiceFS Redis metadata URL. The Redis maxmemory policy must be noeviction.
     metaURL: ""
+    # -- IAM authentication provider for the JuiceFS Redis. Valid values: "", "azure" and "gcp". Uses workload identity on sandbox-host and the formatter Job; on GKE, sandbox-host uses hostNetwork and so authenticates as its node's service account.
+    iamAuthProvider: ""
   # -- Existing Secret containing name, metaurl, storage, bucket, and optional access-key/secret-key entries.
   existingSecretName: ""
   hostMount:

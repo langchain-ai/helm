@@ -1,6 +1,6 @@
 # langsmith-sandbox
 
-![Version: 0.1.0-rc.2](https://img.shields.io/badge/Version-0.1.0--rc.2-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.17.18rc1](https://img.shields.io/badge/AppVersion-0.17.18rc1-informational?style=flat-square)
+![Version: 0.1.0-rc.2](https://img.shields.io/badge/Version-0.1.0--rc.2-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.18.8rc1](https://img.shields.io/badge/AppVersion-0.18.8rc1-informational?style=flat-square)
 
 Helm chart to deploy the LangSmith sandbox runtime in a dedicated Kubernetes cluster.
 
@@ -20,6 +20,9 @@ By default, the LangSmith control plane connects directly to the node IPs advert
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
+| authProxy.httpProxy | object | `{"noProxy":[],"urlSecretKey":"sandbox_egress_proxy_url"}` | Route sandbox egress (the sandbox auth proxy's upstream connections) through a corporate HTTP forward proxy, as an HTTP_PROXY/HTTPS_PROXY client would: plain HTTP as standard proxy requests, HTTPS and other TCP through CONNECT. The proxy must allow CONNECT to 443 and any other TCP ports sandboxes use; nothing falls back to direct access. |
+| authProxy.httpProxy.noProxy | list | `[]` | Destinations dialed directly instead of through the proxy, with standard NO_PROXY matching: "internal.corp" matches the host and its subdomains, ".internal.corp" only subdomains, plus IP addresses, CIDR ranges such as "10.0.0.0/8", "host:port" entries, and "*". |
+| authProxy.httpProxy.urlSecretKey | string | `"sandbox_egress_proxy_url"` | Key in serviceAuth.existingSecretName holding the proxy URL, `http://host:port` or `https://host:port` (TLS to the proxy itself, verified against customCa when set, otherwise the system roots). A missing key sends egress directly. For Basic proxy authentication use `http://user:password@host:port`, percent-encoding reserved characters; sandboxes never see the credentials. Read only from the Secret because the URL may carry credentials. |
 | commonAnnotations | object | `{}` | Annotations applied to all resources. |
 | commonDnsConfig | object | `{"options":[{"name":"ndots","value":"4"}]}` | DNS configuration applied to every sandbox runtime pod, including the JuiceFS formatter. sandbox-host resolves the external LangSmith API on each callback, so this is the hook for pointing at a specific resolver or trimming search-domain expansion. Set to null to inherit the Kubernetes defaults. |
 | commonEnv | list | `[]` | Environment variables added to sandbox-host. Applied before sandboxHost.deployment.extraEnv, and rejected at render time if a name collides with one the chart manages. |
@@ -43,6 +46,7 @@ By default, the LangSmith control plane connects directly to the node IPs advert
 | juicefs.hostMount.mountOptions[0] | string | `"--cache-size=51200"` |  |
 | juicefs.hostMount.mountOptions[1] | string | `"--cache-large-write"` |  |
 | juicefs.name | string | `"sandbox-juicefs"` | JuiceFS volume name used for sandbox snapshots and filesystem state. |
+| juicefs.redis.iamAuthProvider | string | `""` | IAM authentication provider for the JuiceFS Redis. Valid values: "", "azure" and "gcp". Uses workload identity on sandbox-host and the formatter Job; on GKE, sandbox-host uses hostNetwork and so authenticates as its node's service account. |
 | juicefs.redis.metaURL | string | `""` | JuiceFS Redis metadata URL. The Redis maxmemory policy must be noeviction. |
 | juicefs.storage | string | `"s3"` | Object storage backend: s3, gs, or wasb. |
 | juicefs.storageAccountName | string | `""` | Azure storage account name. Required when storage is wasb. |
