@@ -103,6 +103,19 @@ tests:
     asserts:
       - notFailedTemplate: {}
 
+  - it: should reject an invalid sandbox tenant ID
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      config.hostname: langsmith.example.com
+      engine.enabled: true
+      engine.encryptionKey: test-key
+      engine.sandboxTenantId: not-a-uuid
+      images.engineInsightsAgentImage.repository: docker.io/langchain/langsmith-insights-engine
+    asserts:
+      - failedTemplate:
+          errorMessage: "engine.sandboxTenantId must be a canonical UUID (xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx)."
+
   - it: should fail when engine is enabled without sandboxes
     values:
       - ./values/sandboxes-enabled.yaml

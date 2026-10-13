@@ -1531,6 +1531,18 @@ Host portion of sandboxes.serviceUrlBaseUrl.
 {{/*
 Sandbox proxy CA secret name in the LangSmith release namespace.
 */}}
+{{/*
+sandbox-host upstream forward-proxy URL from sandboxes.authProxy.httpProxy; brackets an IPv6 host.
+*/}}
+{{- define "langsmith.sandboxes.httpProxyURL" -}}
+{{- $httpProxy := .Values.sandboxes.authProxy.httpProxy -}}
+{{- $host := $httpProxy.host -}}
+{{- if contains ":" $host -}}
+{{- $host = printf "[%s]" (trimAll "[]" $host) -}}
+{{- end -}}
+{{- printf "%s://%s:%v" ($httpProxy.scheme | default "http") $host (int ($httpProxy.port | default 3128)) -}}
+{{- end -}}
+
 {{- define "langsmith.sandboxes.proxyCaSecretName" -}}
 {{- if eq .Values.sandboxes.proxyCa.mode "existingSecret" -}}
 {{- .Values.sandboxes.proxyCa.existingSecretName -}}

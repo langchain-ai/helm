@@ -1,0 +1,64 @@
+suite: frontend nginx header buffers
+templates:
+  - frontend/config-map.yaml
+tests:
+  - it: preserves nginx header buffer defaults
+    asserts:
+      - matchRegex:
+          path: data["nginx.conf"]
+          pattern: 'large_client_header_buffers 4 8k;'
+      - matchRegex:
+          path: data["nginx.conf"]
+          pattern: 'client_header_buffer_size 1k;'
+  - it: configures larger header buffers
+    set:
+      frontend.largeClientHeaderBuffers: "4 32k"
+      frontend.clientHeaderBufferSize: "8k"
+    asserts:
+      - matchRegex:
+          path: data["nginx.conf"]
+          pattern: 'large_client_header_buffers 4 32k;'
+      - matchRegex:
+          path: data["nginx.conf"]
+          pattern: 'client_header_buffer_size 8k;'
+  - it: configures larger header buffers with a base path
+    set:
+      config.basePath: langsmith
+      frontend.largeClientHeaderBuffers: "4 32k"
+      frontend.clientHeaderBufferSize: "8k"
+    asserts:
+      - matchRegex:
+          path: data["nginx.conf"]
+          pattern: 'large_client_header_buffers 4 32k;'
+      - matchRegex:
+          path: data["nginx.conf"]
+          pattern: 'client_header_buffer_size 8k;'
+  - it: configures larger header buffers with TLS
+    set:
+      frontend.ssl.enabled: true
+      frontend.ssl.certificatePath: /certs/tls.crt
+      frontend.ssl.keyPath: /certs/tls.key
+      frontend.largeClientHeaderBuffers: "4 32k"
+      frontend.clientHeaderBufferSize: "8k"
+    asserts:
+      - matchRegex:
+          path: data["nginx.conf"]
+          pattern: 'large_client_header_buffers 4 32k;'
+      - matchRegex:
+          path: data["nginx.conf"]
+          pattern: 'client_header_buffer_size 8k;'
+  - it: configures larger header buffers with TLS and a base path
+    set:
+      config.basePath: langsmith
+      frontend.ssl.enabled: true
+      frontend.ssl.certificatePath: /certs/tls.crt
+      frontend.ssl.keyPath: /certs/tls.key
+      frontend.largeClientHeaderBuffers: "4 32k"
+      frontend.clientHeaderBufferSize: "8k"
+    asserts:
+      - matchRegex:
+          path: data["nginx.conf"]
+          pattern: 'large_client_header_buffers 4 32k;'
+      - matchRegex:
+          path: data["nginx.conf"]
+          pattern: 'client_header_buffer_size 8k;'

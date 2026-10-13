@@ -12,11 +12,41 @@ permissions:
   pull-requests: read
 
 jobs:
+  test-matrix:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.matrix.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: matrix
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          cases = sorted(Path("charts/langsmith/ci").glob("*-values.yaml"))
+          if not cases:
+              raise SystemExit("No LangSmith install test values found")
+          matrix = [
+              {"chart-name": chart, "values-file": "", "name": chart}
+              for chart in ("langgraph-cloud", "langsmith-auth-proxy", "langsmith-connector")
+          ]
+          matrix.extend(
+              {"chart-name": "langsmith", "values-file": case.name, "name": f"langsmith, {case.stem}"}
+              for case in cases
+          )
+          with open(os.environ["GITHUB_OUTPUT"], "a") as output:
+              print(f"matrix={json.dumps({'include': matrix})}", file=output)
+          PY
+
   lint-test:
+    needs: test-matrix
+    name: lint-test (${{ matrix.name }})
     runs-on: ubuntu-latest
     strategy:
-      matrix:
-        chart-name: [ "langgraph-cloud", "langsmith", "langsmith-auth-proxy", "langsmith-connector" ]
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.test-matrix.outputs.matrix) }}
 
     steps:
       - name: Checkout
@@ -81,6 +111,21 @@ jobs:
       - name: Run chart unittest
         run: helm unittest charts/${{ matrix.chart-name }}
 
+      - name: Check customer dashboards
+        if: matrix.chart-name == 'langsmith'
+        run: |
+          python3 charts/langsmith/examples/langsmith-observability/generate_dashboards.py --check
+          python3 -m unittest discover -s charts/langsmith/examples/langsmith-observability -p 'test_*.py'
+          python3 -m unittest discover -s charts/langsmith/examples/langsmith-observability/components/sandboxes -p 'test_*.py'
+
+      - name: Validate Sandbox PromQL
+        if: matrix.chart-name == 'langsmith'
+        run: |
+          python3 charts/langsmith/examples/langsmith-observability/promql_test_cases.py > "$RUNNER_TEMP/sandbox-promql.json"
+          docker run --rm --network none --memory=256m --cpus=1 --entrypoint /bin/promtool \
+            -v "$RUNNER_TEMP/sandbox-promql.json:/cases.json:ro" \
+            prom/prometheus:v3.5.0@sha256:63805ebb8d2b3920190daf1cb14a60871b16fd38bed42b857a3182bc621f4996 test rules /cases.json
+
       - name: Create kind cluster
         uses: helm/kind-action@v1.12.0
         with:
@@ -94,7 +139,7 @@ jobs:
           docker exec chart-testing-control-plane crictl pull docker.io/mongo:7
 
       - name: Setup Redis with TLS for Custom CA Testing (LangSmith only)
-        if: matrix.chart-name == 'langsmith'
+        if: matrix.values-file == 'custom-ca-external-redis-values.yaml'
         run: |
           set -e
           echo "=== Creating self-signed certificate for Redis ==="
@@ -164,6 +209,24 @@ jobs:
 
           echo "=== Redis with TLS ready for testing ==="
 
+      - name: Select LangSmith install test values
+        if: matrix.chart-name == 'langsmith'
+        env:
+          VALUES_FILE: ${{ matrix.values-file }}
+        run: |
+          python3 - <<'PY'
+          import os
+          from pathlib import Path
+
+          cases = sorted(Path("charts/langsmith/ci").glob("*-values.yaml"))
+          selected = os.environ["VALUES_FILE"]
+          if selected not in {case.name for case in cases}:
+              raise SystemExit(f"Unknown LangSmith install test values: {selected}")
+          for case in cases:
+              if case.name != selected:
+                  case.unlink()
+          PY
+
       - name: Run chart-testing (install)
         env:
           LANGSMITH_LICENSE_KEY: ${{ secrets.LANGSMITH_LICENSE_KEY }}
@@ -187,3 +250,15 @@ jobs:
             echo "=== Logs $pod (last 200 lines) ==="
             kubectl logs -n default "$pod" --tail=200 || true
           done
+
+  langsmith:
+    name: lint-test (langsmith)
+    needs: [test-matrix, lint-test]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require all chart test jobs to pass
+        env:
+          MATRIX_RESULT: ${{ needs.test-matrix.result }}
+          TEST_RESULT: ${{ needs.lint-test.result }}
+        run: test "$MATRIX_RESULT" = success && test "$TEST_RESULT" = success

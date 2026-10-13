@@ -399,6 +399,35 @@ tests:
             value: azure
         template: sandboxes/sandbox-host-deployment.yaml
 
+  - it: should pass the GCP JuiceFS Redis IAM auth provider to sandbox-host and the formatter Job
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      sandboxes.juicefs.storage: gs
+      sandboxes.juicefs.bucket: gs://sandbox-bucket
+      sandboxes.juicefs.redis.metaURL: redis://10.0.0.5:6379/1
+      sandboxes.juicefs.redis.iamAuthProvider: gcp
+    templates:
+      - validate.yaml
+      - sandboxes/juicefs-format-job.yaml
+      - sandboxes/sandbox-host-deployment.yaml
+    asserts:
+      - hasDocuments:
+          count: 0
+        template: validate.yaml
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_HOST_JUICEFS_REDIS_IAM_AUTH_PROVIDER
+            value: gcp
+        template: sandboxes/juicefs-format-job.yaml
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_HOST_JUICEFS_REDIS_IAM_AUTH_PROVIDER
+            value: gcp
+        template: sandboxes/sandbox-host-deployment.yaml
+
   - it: should not set the JuiceFS Redis IAM auth provider env by default
     values:
       - ./values/sandboxes-enabled.yaml
@@ -416,11 +445,11 @@ tests:
     values:
       - ./values/sandboxes-enabled.yaml
     set:
-      sandboxes.juicefs.redis.iamAuthProvider: gcp
+      sandboxes.juicefs.redis.iamAuthProvider: aws
     template: validate.yaml
     asserts:
       - failedTemplate:
-          errorMessage: 'sandboxes.juicefs.redis.iamAuthProvider "gcp" is not supported. Valid values are "" and "azure".'
+          errorMessage: 'sandboxes.juicefs.redis.iamAuthProvider "aws" is not supported. Valid values are "", "azure" and "gcp".'
 
   - it: should reserve the JuiceFS Redis IAM auth provider env name
     values:

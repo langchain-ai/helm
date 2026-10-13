@@ -21,6 +21,8 @@
       optional: true
 {{ include "langsmith.engine.smithGoEnv" . }}
 {{- if .Values.sandboxes.enabled }}
+- name: CUSTOM_APPS_SERVICE_SANDBOXES_ENABLED
+  value: "true"
 - name: SANDBOX_FRONTEND_ENABLED
   value: "true"
 - name: SANDBOX_MAX_CPU_CORES

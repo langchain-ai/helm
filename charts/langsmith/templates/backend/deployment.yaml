@@ -9,6 +9,12 @@
 - name: MCP_SERVER_URL
   value: {{ . | quote }}
 {{- end }}
+{{- if .Values.engine.enabled }}
+- name: ENGINE_ENABLED
+  value: "true"
+- name: ENGINE_SANDBOX_TENANT_ID
+  value: {{ .Values.engine.sandboxTenantId | quote }}
+{{- end }}
 {{- if .Values.insights.enabled }}
 - name: CLIO_LANGGRAPH_URL
   value: "http://{{ include "langsmith.agentFeatures.apiServerK8sServiceName" (dict "root" . "product" "engineInsightsAgent") }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.engineInsightsAgent.apiServer.service.httpPort }}"
