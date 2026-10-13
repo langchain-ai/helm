@@ -9,6 +9,7 @@ Do not approve only the version-bump portion of a mixed pull request.
 - In `charts/*/Chart.yaml`, changes only to the chart's top-level `version` and `appVersion` values.
 - In chart values YAML files under `charts/`, changes only to existing container image version tags or digests.
 - For a full image reference in a values file, only its tag or digest may change; the registry and repository must stay identical.
+- In `charts/*/README.md`, corresponding version-only updates to chart/app version badges (including encoded badge URLs) and existing image tag or digest values in generated values tables are allowed when they match the same PR's allowed Chart.yaml or values YAML updates. No other README content may change.
 - Preserve all existing YAML keys, structure, and non-version values.
 - Chart and app versions must increase, not roll back; image changes must be identifiable release updates, not mutable tags such as `latest`.
 - A chart version bump may accompany an app or image version bump, but does not make other changes eligible.
@@ -20,6 +21,6 @@ Do not approve only the version-bump portion of a mixed pull request.
 - Any change to image registries or repositories, pull policies, credentials, or image-related settings other than release tags or digests.
 - Added or removed keys, files, images, or dependencies; dependency version changes or lockfile changes.
 - Changes to configuration defaults, resources, security, networking, storage, hooks, or chart behavior beyond the allowed version updates.
-- Changes to documentation, scripts, workflows, schemas, tests, or approval criteria, even when accompanying version bumps.
+- Changes to documentation beyond the matching version-only README updates allowed above, or any changes to scripts, workflows, schemas, tests, or approval criteria, even when accompanying version bumps.
 
 Check the complete diff, not just the pull request title, description, author, or labels.
