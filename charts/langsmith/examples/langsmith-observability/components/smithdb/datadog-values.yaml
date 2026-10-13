@@ -96,7 +96,7 @@ smithdb:
   single:
     deployment:
       annotations:
-        ad.datadoghq.com/single.checks: |
+        ad.datadoghq.com/smithdb.checks: |
           {
             "openmetrics": {
               "init_config": {},

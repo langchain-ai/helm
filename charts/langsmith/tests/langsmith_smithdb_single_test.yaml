@@ -13,6 +13,9 @@ values:
 tests:
   - it: should run smithdb all on one cache volume sized from the tier
     template: smithdb/single-deployment.yaml
+    documentSelector:
+      path: kind
+      value: Deployment
     set:
       smithdb.topology: single
     asserts:
@@ -81,10 +84,10 @@ tests:
     asserts:
       - equal:
           path: data.SMITHDB_QUERY_SERVICE_URL
-          value: RELEASE-NAME-langsmith-smithdb-single.NAMESPACE.svc.cluster.local:8080
+          value: RELEASE-NAME-langsmith-smithdb.NAMESPACE.svc.cluster.local:8080
       - equal:
           path: data.SMITHDB_INGESTION_SERVICE_URL
-          value: RELEASE-NAME-langsmith-smithdb-single.NAMESPACE.svc.cluster.local:8082
+          value: RELEASE-NAME-langsmith-smithdb.NAMESPACE.svc.cluster.local:8082
       - equal:
           path: data.SMITHDB_CLUSTER_MANAGER_ENABLED
           value: "false"
@@ -92,6 +95,9 @@ tests:
           path: data.SMITHDB_CLUSTER_MANAGER_URL
   - it: should run exactly one replica
     template: smithdb/single-deployment.yaml
+    documentSelector:
+      path: kind
+      value: Deployment
     set:
       smithdb.topology: single
       smithdb.single.deployment.replicas: 3
@@ -99,3 +105,17 @@ tests:
       - equal:
           path: spec.replicas
           value: 1
+  - it: should render a PodDisruptionBudget for the single workload by default
+    template: smithdb/single-deployment.yaml
+    set:
+      smithdb.topology: single
+    documentSelector:
+      path: kind
+      value: PodDisruptionBudget
+    asserts:
+      - equal:
+          path: spec.minAvailable
+          value: 1
+      - equal:
+          path: spec.selector.matchLabels["app.kubernetes.io/component"]
+          value: RELEASE-NAME-langsmith-smithdb

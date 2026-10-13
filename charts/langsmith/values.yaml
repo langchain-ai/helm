@@ -1489,7 +1489,8 @@ smithdb:
         accessKeySecretKey: ""
 
   single:
-    name: "single"
+    # -- Empty so the workload is named <release>-smithdb.
+    name: ""
     # -- HTTP port for health checks and metrics, served by the query service.
     containerPort: 8060
     # -- Query gRPC port.
@@ -1558,7 +1559,7 @@ smithdb:
       labels: {}
       annotations: {}
     pdb:
-      enabled: false
+      enabled: true
       minAvailable: 1
       labels: {}
       annotations: {}
