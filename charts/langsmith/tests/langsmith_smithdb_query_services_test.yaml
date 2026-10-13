@@ -56,21 +56,7 @@ tests:
             value: rules_query
         documentIndex: 1
 
-  - it: should omit distributed stats when the flag is off
-    values:
-      - ./values/smithdb-enabled.yaml
-    set:
-      smithdb.statsQuery.enabled: true
-      smithdb.statsQuery.distributedStats.enabled: false
-    template: smithdb/query-services-deployments.yaml
-    asserts:
-      - notContains:
-          path: spec.template.spec.containers[0].env
-          any: true
-          content:
-            name: SMITHDB_QUERY__EXECUTION_CONFIG__DISTRIBUTED_RUN_STATS_QUERY_ENABLED
-
-  - it: should enable distributed stats on stats-query only by default
+  - it: should enable distributed stats on stats-query only
     values:
       - ./values/smithdb-enabled.yaml
     set:
@@ -97,6 +83,27 @@ tests:
           content:
             name: SMITHDB_QUERY__EXECUTION_CONFIG__DISTRIBUTED_RUN_STATS_QUERY_ENABLED
         documentIndex: 1
+
+  - it: should let extraEnv override distributed stats on stats-query
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      smithdb.statsQuery.enabled: true
+      smithdb.statsQuery.deployment.extraEnv:
+        - name: SMITHDB_QUERY__EXECUTION_CONFIG__DISTRIBUTED_RUN_STATS_QUERY_ENABLED
+          value: "false"
+    template: smithdb/query-services-deployments.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_QUERY__EXECUTION_CONFIG__DISTRIBUTED_RUN_STATS_QUERY_ENABLED
+            value: "false"
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_QUERY__EXECUTION_CONFIG__DISTRIBUTED_RUN_STATS_QUERY_ENABLED
+            value: "true"
 
   - it: should render an HPA for an enabled separate query service
     values:
