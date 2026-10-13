@@ -1489,8 +1489,6 @@ smithdb:
         accessKeySecretKey: ""
 
   single:
-    # -- Empty so the workload is named <release>-smithdb.
-    name: ""
     # -- HTTP port for health checks and metrics, served by the query service.
     containerPort: 8060
     # -- Query gRPC port.

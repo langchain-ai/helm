@@ -1535,7 +1535,6 @@ The trajectory Service is cluster-internal; no public route is added. Trajectory
 | smithdb.single.deployment.volumes | list | `[]` |  |
 | smithdb.single.ingestionContainerGrpcPort | int | `8082` | Ingestion gRPC port. |
 | smithdb.single.ingestionContainerPort | int | `8050` |  |
-| smithdb.single.name | string | `""` | Empty so the workload is named <release>-smithdb. |
 | smithdb.single.pdb.annotations | object | `{}` |  |
 | smithdb.single.pdb.enabled | bool | `true` |  |
 | smithdb.single.pdb.labels | object | `{}` |  |

@@ -708,14 +708,15 @@ Name of the service account for the SmithDB migration taskdb Postgres.
 {{- end }}
 
 {{/*
-Name of a SmithDB component Service or Deployment.
+Name of a SmithDB component Service or Deployment: the SmithDB fullname, suffixed with the
+component's `name` when it sets one.
 Args: root, component.
 */}}
 {{- define "langsmith.smithdb.componentName" -}}
 {{- $root := .root -}}
 {{- $component := .component -}}
 {{- $componentValues := index $root.Values.smithdb $component -}}
-{{- printf "%s-%s" (include "langsmith.smithdb.fullname" $root) $componentValues.name | trunc 63 | trimSuffix "-" }}
+{{- printf "%s%s" (include "langsmith.smithdb.fullname" $root) (ternary (printf "-%s" $componentValues.name) "" (hasKey $componentValues "name")) | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
 {{/*
