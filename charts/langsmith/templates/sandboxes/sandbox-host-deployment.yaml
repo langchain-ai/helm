@@ -124,14 +124,12 @@ spec:
             - name: SSL_CERT_FILE
               value: /etc/ssl/certs/custom-ca-certificates.crt
             {{- end }}
-            {{- if or (not (empty .Values.config.existingSecretName)) .Values.sandboxes.callbackSigningJwk }}
             - name: LANGSMITH_SANDBOX_CALLBACK_SIGNING_JWK
               valueFrom:
                 secretKeyRef:
                   name: {{ include "langsmith.secretsName" . }}
                   key: sandbox_callback_signing_jwk
                   optional: true
-            {{- end }}
             {{- /* Receivers fetch the key from <issuer>/.well-known/jwks.json. */}}
             {{- if .Values.config.hostname }}
             - name: OAUTH_AS_ISSUER
@@ -142,16 +140,16 @@ spec:
               value: "true"
             - name: SANDBOX_CALLBACK_LOOPBACK_REWRITE
               value: "false"
-            {{- with (.Values.sandboxes.authProxy | default dict).httpProxy }}
-            {{- if .enabled }}
-            {{- /* An https proxy is verified against SSL_CERT_FILE, i.e. config.customCa, when set. */}}
+            {{- /* The URL may carry proxy credentials, so it always comes from the Secret; unset means direct egress. An https proxy is verified against SSL_CERT_FILE, i.e. config.customCa, when set. */}}
             - name: SANDBOX_EGRESS_UPSTREAM_PROXY_URL
-              value: {{ include "langsmith.sandboxes.httpProxyURL" $ | quote }}
-            {{- with .noProxy }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "langsmith.secretsName" . }}
+                  key: sandbox_egress_proxy_url
+                  optional: true
+            {{- with ((.Values.sandboxes.authProxy | default dict).httpProxy | default dict).noProxy }}
             - name: SANDBOX_EGRESS_UPSTREAM_PROXY_NO_PROXY
               value: {{ join "," . | quote }}
-            {{- end }}
-            {{- end }}
             {{- end }}
             - name: LANGSMITH_SANDBOX_INTERNAL_ENDPOINT
               value: {{ include "langsmith.platformBackendEndpoint" . | quote }}
