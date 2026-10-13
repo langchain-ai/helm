@@ -168,16 +168,10 @@ sandboxes:
     # -- Existing TLS Secret containing tls.crt and tls.key for the sandbox proxy CA. This Secret can be created manually, by cert-manager, or by another external process.
     existingSecretName: ""
   authProxy:
-    # -- Route sandbox egress (the sandbox auth proxy's upstream connections) through a corporate HTTP forward proxy, as an HTTP_PROXY/HTTPS_PROXY client would: plain HTTP as standard proxy requests, HTTPS and other TCP through CONNECT. The proxy must allow CONNECT to 443 and any other TCP ports sandboxes use; nothing falls back to direct access. Proxy credentials and client certificates are not supported.
+    # -- Route sandbox egress (the sandbox auth proxy's upstream connections) through a corporate HTTP forward proxy, as an HTTP_PROXY/HTTPS_PROXY client would: plain HTTP as standard proxy requests, HTTPS and other TCP through CONNECT. The proxy must allow CONNECT to 443 and any other TCP ports sandboxes use; nothing falls back to direct access.
     httpProxy:
-      # -- Enable routing sandbox egress through an HTTP proxy.
-      enabled: false
-      # -- `http`, or `https` for TLS to the proxy itself. An `https` proxy is verified against config.customCa when set, otherwise the system roots.
-      scheme: http
-      # -- Proxy hostname or IP address. A private address is allowed.
-      host: ""
-      # -- Proxy port.
-      port: 3128
+      # -- Proxy URL, `http://host:port` or `https://host:port` (TLS to the proxy itself, verified against config.customCa when set, otherwise the system roots); empty sends egress directly. A private address is allowed. For Basic proxy authentication use `http://user:password@host:port`, percent-encoding reserved characters; sandboxes never see the credentials. Stored in the LangSmith app Secret, or set key `sandbox_egress_proxy_url` in config.existingSecretName instead.
+      url: ""
       # -- Destinations dialed directly instead of through the proxy, with standard NO_PROXY matching: "internal.corp" matches the host and its subdomains, ".internal.corp" only subdomains, plus IP addresses, CIDR ranges such as "10.0.0.0/8", "host:port" entries, and "*".
       noProxy: []
   juicefs:

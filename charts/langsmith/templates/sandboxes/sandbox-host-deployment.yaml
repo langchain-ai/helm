@@ -141,16 +141,19 @@ spec:
               value: "true"
             - name: SANDBOX_CALLBACK_LOOPBACK_REWRITE
               value: "false"
-            {{- with (.Values.sandboxes.authProxy | default dict).httpProxy }}
-            {{- if .enabled }}
-            {{- /* An https proxy is verified against SSL_CERT_FILE, i.e. config.customCa, when set. */}}
+            {{- $httpProxy := (.Values.sandboxes.authProxy | default dict).httpProxy | default dict }}
+            {{- /* The URL may carry proxy credentials, so it always comes from the Secret. An https proxy is verified against SSL_CERT_FILE, i.e. config.customCa, when set. */}}
+            {{- if or (not (empty .Values.config.existingSecretName)) .Values.config.disableSecretCreation $httpProxy.url }}
             - name: SANDBOX_EGRESS_UPSTREAM_PROXY_URL
-              value: {{ include "langsmith.sandboxes.httpProxyURL" $ | quote }}
-            {{- with .noProxy }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "langsmith.secretsName" . }}
+                  key: sandbox_egress_proxy_url
+                  optional: true
+            {{- end }}
+            {{- with $httpProxy.noProxy }}
             - name: SANDBOX_EGRESS_UPSTREAM_PROXY_NO_PROXY
               value: {{ join "," . | quote }}
-            {{- end }}
-            {{- end }}
             {{- end }}
             - name: LANGSMITH_SANDBOX_INTERNAL_ENDPOINT
               value: {{ include "langsmith.platformBackendEndpoint" . | quote }}
