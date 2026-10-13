@@ -93,6 +93,24 @@ smithdb:
               ]
             }
           }
+  single:
+    deployment:
+      annotations:
+        ad.datadoghq.com/single.checks: |
+          {
+            "openmetrics": {
+              "init_config": {},
+              "instances": [
+                {
+                  "openmetrics_endpoint": "http://%%host%%:8060/metrics",
+                  "metrics": [".*"],
+                  "namespace": "smithdb",
+                  "histogram_buckets_as_distributions": true,
+                  "collect_counters_with_distributions": true
+                }
+              ]
+            }
+          }
 
 ingestQueue:
   deployment:

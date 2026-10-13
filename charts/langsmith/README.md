@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.18.0-rc.21](https://img.shields.io/badge/Version-0.18.0--rc.21-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.18.8rc1](https://img.shields.io/badge/AppVersion-0.18.8rc1-informational?style=flat-square)
+![Version: 0.18.0-rc.22](https://img.shields.io/badge/Version-0.18.0--rc.22-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.18.8rc1](https://img.shields.io/badge/AppVersion-0.18.8rc1-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -56,7 +56,7 @@ The query disk cache limit is set automatically from the PVC storage request or,
 
 ### Single topology
 
-`smithdb.topology: single` replaces the components above with one `smithdb all` pod for small installs: no cluster manager, no compaction workers, and one cache volume. The process splits the volume between the query cache and ingestion staging, and mounts it at `/tmp` for compaction scratch. Memory and disk shares come from the pod's limits. `mutations`, `runRules`, and `statsQuery` are not supported in this topology. Move to `cluster` above the small tier.
+`smithdb.topology: single` replaces the components above with one `smithdb all` pod for small installs: no cluster manager, no compaction workers, and one cache volume. The process splits the volume between the query cache and ingestion staging, and mounts it at `/tmp` for compaction scratch. Memory and disk shares come from the pod's limits. `mutations`, `runRules`, and `statsQuery` are not supported in this topology. The pod always runs one replica; use `cluster` when SmithDB needs to scale out.
 
 | Tier | Small | Medium | Large |
 |---|---|---|---|
