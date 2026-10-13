@@ -29,7 +29,7 @@ Apply collection settings only for the components you operate. These examples do
 
 SmithDB's examples also collect LangSmith ingest-queue metrics on port `1989` and platform-backend queue metrics on port `1986`. Keep metrics listeners private. Prometheus must already discover the supplied annotations and attach the `namespace` label. The Datadog example uses the `smithdb.` metric prefix; the Grafana queries use raw Prometheus names. Datadog's SmithDB error panels additionally require logs matching `service:smithdb*`.
 
-With `smithdb.topology: single`, scrape only port `8060` on the SmithDB pod, as the `single` entry does. Every metrics port in that pod serves the same metrics, so scraping more than one would duplicate each series.
+With `smithdb.topology: single`, the `single` entry scrapes the SmithDB pod on port `8060`.
 
 ## Import and filter
 
