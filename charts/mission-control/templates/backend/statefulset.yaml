@@ -28,6 +28,7 @@ spec:
       {{- end }}
     spec:
       serviceAccountName: {{ include "missionControl.serviceAccountName" . }}
+      automountServiceAccountToken: {{ .Values.backend.serviceAccount.automountServiceAccountToken }}
       {{- if .Values.backend.priorityClassName }}
       priorityClassName: {{ .Values.backend.priorityClassName }}
       {{- end }}

@@ -37,17 +37,24 @@ data:
   LANGCHAIN_ENDPOINT: "/{{ if .Values.config.basePath }}{{ .Values.config.basePath }}/{{ end }}api/v1"
   GO_ENDPOINT: {{ include "langsmith.platformBackendEndpoint" . | quote }}
   LANGSMITH_PUBLIC_API_ENDPOINT: {{ include "langsmith.publicApiEndpoint" . | quote }}
-  {{- if .Values.sandboxes.enabled }}
+  {{- if or .Values.sandboxes.enabled .Values.engine.enabled }}
   {{- /* smith-go builds the Engine run webhook callback from this; a relative
          value makes langgraph-api reject run creation as a loopback webhook. */}}
   LANGCHAIN_PLATFORM_ENDPOINT: {{ include "langsmith.publicApiEndpoint" . | quote }}
   {{- end }}
+  {{- if .Values.sandboxes.enabled }}
+  DEFAULT_ORG_FEATURE_MAX_SANDBOXES: {{ .Values.sandboxes.quotas.maxSandboxes | quote }}
+  DEFAULT_ORG_FEATURE_MAX_SANDBOX_CPU: {{ .Values.sandboxes.quotas.maxCpuCores | quote }}
+  DEFAULT_ORG_FEATURE_MAX_SANDBOX_MEMORY: {{ printf "%vGi" .Values.sandboxes.quotas.maxMemoryGb | quote }}
+  {{- end }}
+  {{- /* Always set: an org stores this env value at creation, and only an
+         explicitly set env var overrides the stored copy. "true" defers to the
+         org's own engine_enabled; "false" hides Engine on installs without it. */}}
   {{- if .Values.engine.enabled }}
   SMITH_INTELLIGENCE_ENDPOINT: {{ .Values.engine.intelligenceBaseUrl | trimSuffix "/" | trimSuffix "/intelligence" | quote }}
   FORGE_AGENT_LANGGRAPH_URL: "http://{{ include "langsmith.agentFeatures.fullname" (dict "root" . "product" "engineInsightsAgent") }}-{{ .Values.engineInsightsAgent.apiServer.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.engineInsightsAgent.apiServer.service.httpPort }}"
+  DEFAULT_ORG_FEATURE_ENGINE_DEFAULT_ENABLED: "true"
   {{- else }}
-  {{- /* Org-level Engine enrollment defaults on for a self-hosted plan tier, so
-         without this the UI offers Engine on installs that never deployed it. */}}
   DEFAULT_ORG_FEATURE_ENGINE_DEFAULT_ENABLED: "false"
   {{- end }}
   GO_ACE_ENDPOINT: "http://{{ include "langsmith.fullname" . }}-{{.Values.aceBackend.name}}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.aceBackend.service.port }}"
@@ -157,6 +164,9 @@ data:
   {{- if .Values.agentGateway.enabled }}
   AGENT_GATEWAY_URL: "http://{{ include "langsmith.fullname" . }}-{{ .Values.agentGateway.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.agentGateway.service.port }}"
   DEFAULT_ORG_FEATURE_LLM_GATEWAY_ENABLED: "true"
+  {{- end }}
+  {{- if .Values.presidioAnalyzer.enabled }}
+  DEFAULT_ORG_FEATURE_GATEWAY_PII_REDACTION_ENABLED: "true"
   {{- end }}
   # Usage backfill export gating
   {{- if .Values.config.superAdmins }}

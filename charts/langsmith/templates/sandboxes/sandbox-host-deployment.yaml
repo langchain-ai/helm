@@ -5,6 +5,7 @@
 {{- $managedHostMountEnv := list
   (dict "name" "SANDBOX_HOST_JUICEFS_META_URL_FILE")
   (dict "name" "SANDBOX_HOST_JUICEFS_MOUNT_OPTIONS")
+  (dict "name" "SANDBOX_HOST_JUICEFS_REDIS_IAM_AUTH_PROVIDER")
 -}}
 {{- /* commonEnv joins the check so an operator-supplied var that collides with a
 managed one fails at render rather than silently winning by list order. */}}
@@ -62,6 +63,7 @@ spec:
       dnsPolicy: ClusterFirstWithHostNet
       {{- include "langsmith.dnsConfig" . | nindent 6 }}
       serviceAccountName: {{ include "langsmith.sandboxes.sandboxHostServiceAccountName" . }}
+      automountServiceAccountToken: {{ .Values.sandboxes.sandboxHost.serviceAccount.automountServiceAccountToken }}
       affinity:
         podAntiAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
@@ -125,14 +127,12 @@ spec:
             - name: SSL_CERT_FILE
               value: /etc/ssl/certs/custom-ca-certificates.crt
             {{- end }}
-            {{- if or (not (empty .Values.config.existingSecretName)) .Values.sandboxes.callbackSigningJwk }}
             - name: LANGSMITH_SANDBOX_CALLBACK_SIGNING_JWK
               valueFrom:
                 secretKeyRef:
                   name: {{ include "langsmith.secretsName" . }}
                   key: sandbox_callback_signing_jwk
                   optional: true
-            {{- end }}
             {{- /* Receivers fetch the key from <issuer>/.well-known/jwks.json. */}}
             {{- if .Values.config.hostname }}
             - name: OAUTH_AS_ISSUER
@@ -143,6 +143,17 @@ spec:
               value: "true"
             - name: SANDBOX_CALLBACK_LOOPBACK_REWRITE
               value: "false"
+            {{- /* The URL may carry proxy credentials, so it always comes from the Secret; unset means direct egress. An https proxy is verified against SSL_CERT_FILE, i.e. config.customCa, when set. */}}
+            - name: SANDBOX_EGRESS_UPSTREAM_PROXY_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "langsmith.secretsName" . }}
+                  key: sandbox_egress_proxy_url
+                  optional: true
+            {{- with ((.Values.sandboxes.authProxy | default dict).httpProxy | default dict).noProxy }}
+            - name: SANDBOX_EGRESS_UPSTREAM_PROXY_NO_PROXY
+              value: {{ join "," . | quote }}
+            {{- end }}
             - name: LANGSMITH_SANDBOX_INTERNAL_ENDPOINT
               value: {{ include "langsmith.platformBackendEndpoint" . | quote }}
             - name: SANDBOX_HOST_DEPLOYMENT_NAME
@@ -153,6 +164,10 @@ spec:
               value: /run/secrets/juicefs/metaurl
             - name: SANDBOX_HOST_JUICEFS_MOUNT_OPTIONS
               value: {{ concat (list (printf "--cache-dir=%s" (join ":" $hostMount.cacheDirs))) $hostMount.mountOptions | toJson | quote }}
+            {{- with (.Values.sandboxes.juicefs.redis | default dict).iamAuthProvider }}
+            - name: SANDBOX_HOST_JUICEFS_REDIS_IAM_AUTH_PROVIDER
+              value: {{ . | quote }}
+            {{- end }}
             {{- /* Baseline; autoscale-* annotations override it live. */}}
             - name: SANDBOX_HOST_AUTOSCALE_ENABLED
               value: {{ $autoscaling.enabled | quote }}

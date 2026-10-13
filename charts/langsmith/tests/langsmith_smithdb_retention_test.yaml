@@ -1,0 +1,100 @@
+suite: test smithdb retention environment
+templates:
+  - backend/deployment.yaml
+  # Required by the backend's checksum annotations.
+  - config-map.yaml
+  - frontend/config-map.yaml
+  - secrets.yaml
+  - redis/secrets.yaml
+  - postgres/secrets.yaml
+  - clickhouse/secrets.yaml
+  - smithdb/query-deployment.yaml
+  - smithdb/query-services-deployments.yaml
+  - smithdb/compaction-deployment.yaml
+  - smithdb/compaction-worker-deployment.yaml
+tests:
+  - it: should render the existing 400-day chart default with a duration suffix
+    values:
+      - ./values/smithdb-enabled.yaml
+    template: smithdb/query-deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_QUERY__LONG_TERM_RETENTION
+            value: "34560000s"
+
+  - it: should share a 30-day default across backend and every query and compaction service
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      config.ttl.ttl_period_seconds.longlived: "2592000"
+      smithdb.mutations.enabled: true
+      smithdb.runRules.enabled: true
+      smithdb.statsQuery.enabled: true
+    asserts:
+      - template: backend/deployment.yaml
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: TRACE_TIER_TTL_DURATION_SEC_MAP
+            value: '{ "longlived": 2592000, "shortlived": 1209600 }'
+      - template: smithdb/query-deployment.yaml
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_QUERY__LONG_TERM_RETENTION
+            value: "2592000s"
+      - template: smithdb/query-services-deployments.yaml
+        documentIndex: 0
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_QUERY__LONG_TERM_RETENTION
+            value: "2592000s"
+      - template: smithdb/query-services-deployments.yaml
+        documentIndex: 1
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_QUERY__LONG_TERM_RETENTION
+            value: "2592000s"
+      - template: smithdb/query-services-deployments.yaml
+        documentIndex: 2
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_QUERY__LONG_TERM_RETENTION
+            value: "2592000s"
+      - template: smithdb/compaction-deployment.yaml
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_COMPACTION__EXECUTOR__LONG_TERM_RETENTION
+            value: "2592000s"
+      - template: smithdb/compaction-worker-deployment.yaml
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_COMPACTION_WORKER__EXECUTOR__LONG_TERM_RETENTION
+            value: "2592000s"
+
+  - it: should omit the retention variables when chart TTL configuration is disabled
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      config.ttl.enabled: false
+    templates:
+      - smithdb/query-deployment.yaml
+      - smithdb/compaction-deployment.yaml
+      - smithdb/compaction-worker-deployment.yaml
+    asserts:
+      - template: smithdb/query-deployment.yaml
+        notExists:
+          path: spec.template.spec.containers[0].env[?(@.name == "SMITHDB_QUERY__LONG_TERM_RETENTION")]
+      - template: smithdb/compaction-deployment.yaml
+        notExists:
+          path: spec.template.spec.containers[0].env[?(@.name == "SMITHDB_COMPACTION__EXECUTOR__LONG_TERM_RETENTION")]
+      - template: smithdb/compaction-worker-deployment.yaml
+        notExists:
+          path: spec.template.spec.containers[0].env[?(@.name == "SMITHDB_COMPACTION_WORKER__EXECUTOR__LONG_TERM_RETENTION")]

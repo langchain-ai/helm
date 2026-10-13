@@ -1,7 +1,11 @@
 {{- if .Values.smithdb.enabled }}
 {{- $resources := include "langsmith.smithdb.resources" (dict "root" . "component" "query") | fromYaml -}}
-{{- $envVars := concat (include "langsmith.smithdb.componentEnv" (dict "root" . "service" "QUERY" "displayName" "smithdb-query") | fromYamlArray) .Values.smithdb.query.deployment.extraEnv -}}
-{{- include "langsmith.detectDuplicates" $envVars -}}
+{{- $volumes := concat .Values.commonVolumes (include "langsmith.smithdb.volumes" (dict "root" . "component" "query") | fromYamlArray) -}}
+{{- $envVars := include "langsmith.mergeEnv" (dict "commonEnv" (concat .Values.commonEnv .Values.smithdb.commonEnv) "chart" (include "langsmith.smithdb.componentEnv" (dict "root" . "service" "QUERY" "displayName" "smithdb-query") | fromYamlArray) "extraEnv" .Values.smithdb.query.deployment.extraEnv) | fromYamlArray -}}
+{{- $hasDiskCacheLimit := false -}}
+{{- range $envVars -}}
+{{- $hasDiskCacheLimit = or $hasDiskCacheLimit (eq .name "SMITHDB_QUERY__VORTEX_CACHE__DISK__LIMIT") -}}
+{{- end -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -49,9 +53,11 @@ spec:
       {{- if .Values.smithdb.query.deployment.priorityClassName }}
       priorityClassName: {{ .Values.smithdb.query.deployment.priorityClassName }}
       {{- end }}
+      terminationGracePeriodSeconds: {{ .Values.smithdb.query.deployment.terminationGracePeriodSeconds }}
       securityContext:
         {{- toYaml .Values.smithdb.query.deployment.podSecurityContext | nindent 8 }}
       serviceAccountName: {{ include "langsmith.smithdb.serviceAccountName" (dict "root" . "component" "query") }}
+      automountServiceAccountToken: {{ .Values.smithdb.serviceAccount.automountServiceAccountToken }}
       {{- include "langsmith.dnsConfig" . | nindent 6 }}
       {{- with concat (include "langsmith.smithdb.commonInitContainers" . | fromYamlArray) .Values.smithdb.query.deployment.initContainers }}
       initContainers:
@@ -68,11 +74,15 @@ spec:
               value: {{ .Values.smithdb.query.containerPort | quote }}
             - name: SMITHDB_QUERY__GRPC_PORT
               value: {{ .Values.smithdb.query.containerGrpcPort | quote }}
-            {{- if (index (default (dict) $resources.limits) "ephemeral-storage") }}
+            {{- if .Values.config.ttl.enabled }}
+            - name: SMITHDB_QUERY__LONG_TERM_RETENTION
+              value: {{ printf "%ss" (toString .Values.config.ttl.ttl_period_seconds.longlived) | quote }}
+            {{- end }}
+            {{- if not $hasDiskCacheLimit }}
+            {{- with (include "langsmith.smithdb.queryCacheLimit" (dict "component" "query" "volumes" $volumes "resources" $resources)) }}
             - name: SMITHDB_QUERY__VORTEX_CACHE__DISK__LIMIT
-              valueFrom:
-                resourceFieldRef:
-                  resource: limits.ephemeral-storage
+              {{- . | nindent 14 }}
+            {{- end }}
             {{- end }}
             {{- if (index (default (dict) $resources.limits) "memory") }}
             - name: SMITHDB_QUERY__VORTEX_CACHE__MEMORY__LIMIT
@@ -99,7 +109,7 @@ spec:
             {{- toYaml $resources | nindent 12 }}
           securityContext:
             {{- toYaml .Values.smithdb.query.deployment.securityContext | nindent 12 }}
-          {{- with .Values.smithdb.query.deployment.volumeMounts }}
+          {{- with concat .Values.commonVolumeMounts .Values.smithdb.query.deployment.volumeMounts }}
           volumeMounts:
             {{- toYaml . | nindent 12 }}
           {{- end }}
@@ -125,7 +135,7 @@ spec:
       topologySpreadConstraints:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with (include "langsmith.smithdb.volumes" (dict "root" . "component" "query" "resources" $resources) | fromYamlArray) }}
+      {{- with $volumes }}
       volumes:
         {{- toYaml . | nindent 8 }}
       {{- end }}

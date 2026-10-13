@@ -27,30 +27,52 @@ LangSmith Engine is off by default. `engine.enabled=true` requires all of the fo
 |---|---|
 | `sandboxes.enabled=true` | Every Engine run executes in a sandbox. |
 | `images.engineInsightsAgentImage.repository` = `docker.io/langchain/langsmith-insights-engine` | Engine needs the combined image serving both the `insights` and `engine` graphs. |
-| `engine.intelligenceBaseUrl` | The Engine routes model calls through the LangSmith Intelligence gateway and authenticates with your license key. Use `https://beacon.aws.langchain.com/intelligence`. |
 | `engine.encryptionKey` | Decrypts the payloads smith-go passes to the Engine. Must match smith-go's `ISSUES_AGENT_ENCRYPTION_KEY`. |
+| `engine.usageSigningSecret` | Signs Engine usage reports sent to smith-go. Use at least 32 random characters. |
 | `config.hostname` | Sandboxes run the `langsmith` CLI against your install from outside the cluster, so this must be externally reachable — not a loopback or in-cluster address. |
 
-Two things worth planning for before you enable it:
+Things worth planning for before you enable it:
+
+**LangSmith Intelligence.** `engine.intelligenceBaseUrl` defaults to `https://beacon.langchain.com/intelligence`, where Engine reports usage on your own model providers, authenticated with your license key. To also let Engine run on LangSmith Intelligence's models, set it to `https://beacon.aws.langchain.com/intelligence` and select LangSmith Intelligence under **Settings > Engine > Model providers**. Air-gapped installs with an offline license set it to `""`; Engine then runs only on your own model providers, and its usage goes out through **Settings > Usage export**.
 
 **Sandbox nodes.** Sandboxes are Firecracker microVMs, so `sandboxes.sandboxHost.deployment.nodeSelector` must place host pods on KVM-capable nodes — bare-metal instances, or instance types with nested virtualization explicitly enabled. Sandbox images are published for `linux/amd64` only. A dedicated, tainted node pool is the usual arrangement, since rolling a sandbox-host pod suspends every microVM on it.
 
 **Which workspace owns the sandboxes.** By default smith-go resolves the install's workspace, which works when there is exactly one non-personal organization. With more than one it declines rather than guess, and you must set `engine.sandboxTenantId` explicitly. Prefer a workspace reserved for the Engine: its sandboxes are visible to anyone with access to it.
 
+## Observability dashboards
+
+For tabbed Datadog and Grafana dashboards and component collection examples, see the [LangSmith observability bundle](examples/langsmith-observability/README.md). Import these definitions into your own monitoring instance. The standalone Classic-format SmithDB Grafana dashboard is available in the same bundle. All dashboard downloads now live in this bundle.
+
+## Sandbox quotas
+
+When `sandboxes.enabled=true`, configure limits under `sandboxes.quotas`: `maxSandboxes` (default 1000), `maxCpuCores` (200), and `maxMemoryGb` (400 GiB). These limits do not provision cluster capacity.
+
+**Compatibility:** Configured sandbox quotas now apply to authenticated requests. Review existing Helm and organization-level quota overrides before upgrading.
+
 ## SmithDB resource tiers
 
-`smithdb.resourceTier` selects the default per-replica resource sizes shown below. The default is `small`. For components that use local disk, the tier's ephemeral-storage limit also sets the generated `emptyDir.sizeLimit`.
+`smithdb.resourceTier` sets per-replica CPU, memory, and cache size for SmithDB components. The default is `small`. Query, ingestion, and compaction worker mount a volume named `cache` at `/data` as a per-pod [generic ephemeral volume](https://kubernetes.io/docs/concepts/storage/ephemeral-volumes/#generic-ephemeral-volumes) on `smithdb.cache.storageClassName`, or the cluster default StorageClass when empty. Provision that StorageClass with at least 7000 IOPS and 1000 MiB/s.
 
-Replica counts and autoscaling remain controlled by each component's `deployment.replicas` and `autoscaling` settings. Explicit component `resources` or `volumes` settings take precedence over the tier defaults.
+Explicit component `resources` or `volumes` replace the tier values. Cache overrides must be named `cache` and use an `emptyDir` or inline ephemeral PVC; existing PVCs are unsupported. To cache on local SSD, set matching `emptyDir.sizeLimit` and `ephemeral-storage` requests and limits.
+
+The query disk cache limit is set automatically from the PVC storage request or, for `emptyDir`, the container's `ephemeral-storage` limit. Enabled `mutations`, `runRules`, and `statsQuery` use the query tier. Replica counts and autoscaling are configured per component.
 
 | Component | Small | Medium | Large |
 |---|---|---|---|
-| Query | 4 CPU, 8Gi memory, 200Gi ephemeral | 28 CPU, 48Gi memory, 200Gi ephemeral | 28 CPU, 50Gi memory, 1000Gi ephemeral |
-| Ingestion | 4 CPU, 8Gi memory, 100Gi ephemeral | 16 CPU, 32Gi memory, 100Gi ephemeral | 56 CPU, 150Gi memory, 1000Gi ephemeral |
+| Query | 4 CPU, 8Gi memory, 200Gi cache | 28 CPU, 48Gi memory, 200Gi cache | 28 CPU, 50Gi memory, 1000Gi cache |
+| Ingestion | 4 CPU, 8Gi memory, 100Gi cache | 16 CPU, 32Gi memory, 100Gi cache | 56 CPU, 150Gi memory, 1000Gi cache |
 | Compaction | 2 CPU, 4Gi memory | 4 CPU, 8Gi memory | 8 CPU, 16Gi memory |
-| Compaction worker | 8 CPU, 16Gi memory, 100Gi ephemeral | 16 CPU, 32Gi memory, 100Gi ephemeral | 28 CPU, 50Gi memory, 300Gi ephemeral |
+| Compaction worker | 8 CPU, 16Gi memory, 100Gi cache | 16 CPU, 32Gi memory, 100Gi cache | 28 CPU, 50Gi memory, 300Gi cache |
 | Cluster manager | 250m CPU, 256Mi memory | 250m CPU, 256Mi memory | 2 CPU, 2Gi memory |
 
+**0.17 upgrade:** default caches switch from `emptyDir` to per-pod PVCs. Configure local SSD overrides before upgrading and rename custom volume and mount references from `local-ssd-storage` to `cache`.
+
+
+## Trajectory backend
+
+Online evaluations on trajectories use an internal gRPC listener in `platformBackend` on port `8086`, enabled when both `smithdb.enabled` and `smithdb.langsmith.query.enabled` are true. Otherwise, no trajectory listener, Service, or endpoint is configured. It shares the HTTP backend's SmithDB routing, resources, and scaling; readiness uses `/ready` while active.
+
+The trajectory Service is cluster-internal; no public route is added. Trajectory processing can be memory intensive, consider setting [GOMEMLIMIT](https://pkg.go.dev/runtime#hdr-Environment_Variables) relative to your memory limit to mitigate OOMKilled errors for this service. If setting `GOMEMLIMIT` through `platformBackend.deployment.extraEnv`, account for the combined HTTP and trajectory workload and leave headroom below the container memory limit.
 
 ## General parameters
 

@@ -1,0 +1,30 @@
+scrape_configs:
+  - job_name: langsmith-sandbox-host
+    scrape_interval: 15s
+    scrape_timeout: 10s
+    scrape_protocols: [PrometheusText0.0.4]
+    metrics_path: /metrics
+    kubernetes_sd_configs:
+      - role: pod
+        namespaces:
+          names: [replace-with-namespace]
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_pod_container_name]
+        action: keep
+        regex: sandbox-host
+      - source_labels: [__meta_kubernetes_pod_container_port_number]
+        action: keep
+        regex: '19190'
+      - source_labels: [__meta_kubernetes_pod_phase]
+        action: keep
+        regex: Running
+      - source_labels: [__meta_kubernetes_namespace]
+        target_label: namespace
+      - source_labels: [__meta_kubernetes_pod_name]
+        target_label: pod
+      - target_label: cluster
+        replacement: replace-with-cluster-name
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        action: keep
+        regex: 'langsmith_sandbox_(host|egress)_.*'

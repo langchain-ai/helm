@@ -3,7 +3,7 @@ name: langsmith-observability
 deprecated: true
 description: (DEPRECATED) This chart is deprecated and will be removed in a future version. Please use your own observability stack.
 type: application
-version: 0.2.1
+version: 0.2.2
 appVersion: "0.2.0"
 dependencies:
   # Prometheus Exporters

@@ -1,6 +1,6 @@
 {{- define "listenerEnvVars" -}}
 - name: "REDIS_MAX_CONNECTIONS"
-  value: "250"
+  value: {{ .Values.listener.deployment.redisMaxConnections | default 250 | quote }}
 - name: "ASYNCPG_POOL_MAX_SIZE"
   value: "3"
 - name: "PORT"
@@ -69,6 +69,7 @@ spec:
       securityContext:
         {{- include "langsmith.podSecurityContext" (dict "Values" .Values "componentSecurityContext" .Values.listener.deployment.podSecurityContext) | nindent 8 }}
       serviceAccountName: {{ include "listener.serviceAccountName" . }}
+      automountServiceAccountToken: {{ .Values.listener.serviceAccount.automountServiceAccountToken }}
       {{- include "langsmith.dnsConfig" . | nindent 6 }}
       restartPolicy: Always
       {{- with concat .Values.commonInitContainers .Values.listener.deployment.initContainers }}

@@ -41,6 +41,7 @@ spec:
         app.kubernetes.io/component: {{ include "langsmith.agentFeatures.fullname" (dict "root" . "product" "engineInsightsAgent") }}-{{ .Values.engineInsightsAgent.apiServer.name }}
     spec:
       serviceAccountName: {{ include "insightsApiServer.serviceAccountName" . }}
+      automountServiceAccountToken: {{ .Values.engineInsightsAgent.apiServer.serviceAccount.automountServiceAccountToken }}
       {{- include "langsmith.dnsConfig" . | nindent 6 }}
       {{- with .Values.images.imagePullSecrets }}
       imagePullSecrets:

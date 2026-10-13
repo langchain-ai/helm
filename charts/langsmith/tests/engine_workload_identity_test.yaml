@@ -1,0 +1,56 @@
+suite: engine workload identity providers
+templates:
+  - config-map.yaml
+  - secrets.yaml
+  - redis/secrets.yaml
+  - postgres/secrets.yaml
+  - clickhouse/secrets.yaml
+  - frontend/config-map.yaml
+  - operator/config-map.yaml
+  - platform-backend/deployment.yaml
+  - ingest-queue/deployment.yaml
+tests:
+  - it: should pass the providers to smith-go as a JSON list
+    templates:
+      - platform-backend/deployment.yaml
+      - ingest-queue/deployment.yaml
+    set:
+      engine.enabled: true
+      engine.encryptionKey: test-key
+      engine.workloadIdentityProviders:
+        - bedrock
+        - azure
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: ENGINE_WORKLOAD_IDENTITY_PROVIDERS
+            value: '["bedrock","azure"]'
+
+  - it: should not set the providers by default
+    templates:
+      - platform-backend/deployment.yaml
+      - ingest-queue/deployment.yaml
+    set:
+      engine.enabled: true
+      engine.encryptionKey: test-key
+    asserts:
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: ENGINE_WORKLOAD_IDENTITY_PROVIDERS
+          any: true
+
+  - it: should not set the providers when engine is disabled
+    templates:
+      - platform-backend/deployment.yaml
+      - ingest-queue/deployment.yaml
+    set:
+      engine.workloadIdentityProviders:
+        - vertex
+    asserts:
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: ENGINE_WORKLOAD_IDENTITY_PROVIDERS
+          any: true

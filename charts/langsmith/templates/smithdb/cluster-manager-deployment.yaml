@@ -1,7 +1,6 @@
 {{- if .Values.smithdb.enabled }}
 {{- $resources := include "langsmith.smithdb.resources" (dict "root" . "component" "clusterManager") | fromYaml -}}
-{{- $envVars := concat .Values.commonEnv .Values.smithdb.commonEnv .Values.smithdb.clusterManager.deployment.extraEnv -}}
-{{- include "langsmith.detectDuplicates" $envVars -}}
+{{- $envVars := include "langsmith.mergeEnv" (dict "commonEnv" (concat .Values.commonEnv .Values.smithdb.commonEnv) "chart" (include "langsmith.smithdb.baseEnv" (dict "root" . "service" "CLUSTERMANAGER" "displayName" "smithdb-clustermanager") | fromYamlArray) "extraEnv" .Values.smithdb.clusterManager.deployment.extraEnv) | fromYamlArray -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -45,9 +44,11 @@ spec:
       {{- if .Values.smithdb.clusterManager.deployment.priorityClassName }}
       priorityClassName: {{ .Values.smithdb.clusterManager.deployment.priorityClassName }}
       {{- end }}
+      terminationGracePeriodSeconds: {{ .Values.smithdb.clusterManager.deployment.terminationGracePeriodSeconds }}
       securityContext:
         {{- toYaml .Values.smithdb.clusterManager.deployment.podSecurityContext | nindent 8 }}
       serviceAccountName: {{ include "langsmith.smithdb.serviceAccountName" (dict "root" . "component" "clusterManager") }}
+      automountServiceAccountToken: {{ .Values.smithdb.serviceAccount.automountServiceAccountToken }}
       {{- include "langsmith.dnsConfig" . | nindent 6 }}
       {{- with concat (include "langsmith.smithdb.commonInitContainers" . | fromYamlArray) .Values.smithdb.clusterManager.deployment.initContainers }}
       initContainers:
@@ -64,7 +65,7 @@ spec:
               value: {{ .Values.smithdb.clusterManager.containerPort | quote }}
             - name: SMITHDB_CLUSTERMANAGER__GRPC_PORT
               value: {{ .Values.smithdb.clusterManager.containerGrpcPort | quote }}
-            {{- include "langsmith.smithdb.baseEnv" (dict "root" . "service" "CLUSTERMANAGER" "displayName" "smithdb-clustermanager") | nindent 12 }}
+            {{- toYaml $envVars | nindent 12 }}
             {{/*
             Per-service cluster-manager ownership bounds. MAX_REPLICAS is derived
             from each service's replica settings so it cannot drift from the actual
@@ -87,9 +88,6 @@ spec:
             - name: {{ $prefix }}__SLICE_REPLICATION_THRESHOLD
               value: "0"
             {{- end }}
-            {{- with $envVars }}
-            {{- toYaml . | nindent 12 }}
-            {{- end }}
           image: {{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "smithdbImage") | quote }}
           imagePullPolicy: {{ .Values.images.smithdbImage.pullPolicy }}
           ports:
@@ -106,7 +104,7 @@ spec:
             {{- toYaml $resources | nindent 12 }}
           securityContext:
             {{- toYaml .Values.smithdb.clusterManager.deployment.securityContext | nindent 12 }}
-          {{- with .Values.smithdb.clusterManager.deployment.volumeMounts }}
+          {{- with concat .Values.commonVolumeMounts .Values.smithdb.clusterManager.deployment.volumeMounts }}
           volumeMounts:
             {{- toYaml . | nindent 12 }}
           {{- end }}
@@ -132,7 +130,7 @@ spec:
       topologySpreadConstraints:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.smithdb.clusterManager.deployment.volumes }}
+      {{- with concat .Values.commonVolumes .Values.smithdb.clusterManager.deployment.volumes }}
       volumes:
         {{- toYaml . | nindent 8 }}
       {{- end }}

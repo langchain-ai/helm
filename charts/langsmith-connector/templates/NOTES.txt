@@ -1,0 +1,16 @@
+{{- $namespace := .Values.namespace | default .Release.Namespace -}}
+The LangSmith tunnel connector is installed as Deployment {{ include "connector.fullname" . }}-{{ .Values.connector.name }} in namespace {{ $namespace }}.
+
+It connects outbound to {{ .Values.config.endpoint }} for connection {{ .Values.config.connectionId }}.
+Nothing needs to reach this pod: it exposes no ports.
+
+Check that it connected:
+
+  kubectl -n {{ $namespace }} logs deploy/{{ include "connector.fullname" . }}-{{ .Values.connector.name }} --tail=20
+
+Then open Settings -> Tunnels in LangSmith. The connection shows as connected and lists these targets:
+{{- range $name, $address := .Values.config.targets }}
+  - {{ $name }}
+{{- end }}
+
+HTTP and HTTPS targets are reachable from LangSmith products. TCP targets register but are not yet reachable from LangSmith.

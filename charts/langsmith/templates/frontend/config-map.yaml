@@ -16,6 +16,13 @@ data:
         ''      close;
     }
 
+    map $uri $frontend_cache_control {
+        default "";
+        # Every file under assets/ is content-hashed by Vite, so it can be cached forever.
+        {{ printf "~^/%s/assets/" (.Values.config.basePath | regexQuoteMeta) | quote }} "public, max-age=31536000, immutable";
+        {{ printf "/%s/index.html" .Values.config.basePath | quote }} "no-store";
+    }
+
     proxy_ssl_server_name on;
 
     proxy_cache_path /tmp/server_cache levels=1:2 keys_zone=llm_cache:100m max_size=1g inactive=60 use_temp_path=off;
@@ -74,12 +81,15 @@ data:
 
         server_name  localhost;
         client_max_body_size {{ .Values.frontend.maxBodySize }};
+        large_client_header_buffers {{ .Values.frontend.largeClientHeaderBuffers }};
+        client_header_buffer_size {{ .Values.frontend.clientHeaderBufferSize }};
         proxy_read_timeout {{ .Values.frontend.proxyReadTimeout }};
         proxy_connect_timeout {{ .Values.frontend.proxyConnectTimeout }};
         proxy_send_timeout {{ .Values.frontend.proxyWriteTimeout }};
         proxy_request_buffering off;
         keepalive_timeout {{ .Values.frontend.keepAliveTimeout }};
 
+        add_header Cache-Control $frontend_cache_control;
         add_header Content-Security-Policy "{{ .Values.frontend.cspHeader }}" always;
         add_header X-Frame-Options "SAMEORIGIN" always;
         add_header X-Content-Type-Options "nosniff" always;
@@ -419,6 +429,15 @@ data:
 
     {{- end }}
 
+        location /{{ .Values.config.basePath }}/api/v1/trajectory {
+            rewrite ^/{{ .Values.config.basePath }}/api/v1/trajectory(.*)$ /v1/trajectory$1 break;
+            proxy_set_header Connection '';
+            proxy_http_version 1.1;
+            proxy_buffering off;
+            proxy_cache off;
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.platformBackend.service.port }};
+        }
+
         # Backend Routes
         location /{{ .Values.config.basePath }}/api/v1 {
             rewrite /{{ .Values.config.basePath }}/api/v1/(.*) /api/v1/$1  break;
@@ -429,7 +448,7 @@ data:
             proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.backend.service.port }};
         }
 
-    {{- if .Values.config.deployment.enabled }}
+    {{- if or .Values.config.deployment.enabled .Values.hostBackend.enabled }}
         location /{{ .Values.config.basePath }}/api-host {
             rewrite /{{ .Values.config.basePath }}/api-host/(.*) /$1  break;
             proxy_set_header Connection '';
@@ -588,7 +607,7 @@ data:
             proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.backend.service.port }};
         }
 
-    {{- if .Values.config.deployment.enabled }}
+    {{- if or .Values.config.deployment.enabled .Values.hostBackend.enabled }}
         location = /{{ .Values.config.basePath }}/api-host/docs {
             proxy_set_header Connection '';
             proxy_http_version 1.1;
@@ -614,6 +633,18 @@ data:
         }
     {{- end }}
 
+        location ^~ /{{ .Values.config.basePath }}/assets/ {
+            root /tmp;
+            try_files $uri =404;
+            # Serve the .gz files the frontend image writes next to each asset; compress on the fly otherwise.
+            gzip_static on;
+            gzip on;
+            gzip_types application/javascript text/javascript text/css application/wasm image/svg+xml application/json;
+            gzip_vary on;
+            gzip_proxied any;
+            gzip_min_length 1024;
+        }
+
         location = /{{ .Values.config.basePath }} {
             absolute_redirect off;
             rewrite ^ /{{ .Values.config.basePath }}/ permanent;
@@ -630,6 +661,13 @@ data:
     map $http_upgrade $connection_upgrade {
         default upgrade;
         ''      close;
+    }
+
+    map $uri $frontend_cache_control {
+        default "";
+        # Every file under assets/ is content-hashed by Vite, so it can be cached forever.
+        "~^/assets/" "public, max-age=31536000, immutable";
+        /index.html "no-store";
     }
 
     proxy_ssl_server_name on;
@@ -690,18 +728,33 @@ data:
 
         server_name  localhost;
         client_max_body_size {{ .Values.frontend.maxBodySize }};
+        large_client_header_buffers {{ .Values.frontend.largeClientHeaderBuffers }};
+        client_header_buffer_size {{ .Values.frontend.clientHeaderBufferSize }};
         proxy_read_timeout {{ .Values.frontend.proxyReadTimeout }};
         proxy_connect_timeout {{ .Values.frontend.proxyConnectTimeout }};
         proxy_send_timeout {{ .Values.frontend.proxyWriteTimeout }};
         proxy_request_buffering off;
         keepalive_timeout {{ .Values.frontend.keepAliveTimeout }};
 
+        add_header Cache-Control $frontend_cache_control;
         add_header Content-Security-Policy "{{ .Values.frontend.cspHeader }}" always;
         add_header X-Frame-Options "SAMEORIGIN" always;
         add_header X-Content-Type-Options "nosniff" always;
         add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" always;
 
         access_log /dev/stdout cache_log_json;
+
+        location ^~ /assets/ {
+            root /tmp/build;
+            try_files $uri =404;
+            # Serve the .gz files the frontend image writes next to each asset; compress on the fly otherwise.
+            gzip_static on;
+            gzip on;
+            gzip_types application/javascript text/javascript text/css application/wasm image/svg+xml application/json;
+            gzip_vary on;
+            gzip_proxied any;
+            gzip_min_length 1024;
+        }
 
         {{- if .Values.frontend.includeNonce }}
         location / {
@@ -1049,6 +1102,15 @@ data:
 
     {{- end }}
 
+        location /api/v1/trajectory {
+            rewrite ^/api/v1/trajectory(.*)$ /v1/trajectory$1 break;
+            proxy_set_header Connection '';
+            proxy_http_version 1.1;
+            proxy_buffering off;
+            proxy_cache off;
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.platformBackend.service.port }};
+        }
+
         # Backend Routes
         location /api/v1 {
             proxy_set_header Connection '';
@@ -1058,7 +1120,7 @@ data:
             proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.backend.service.port }};
         }
 
-    {{- if .Values.config.deployment.enabled }}
+    {{- if or .Values.config.deployment.enabled .Values.hostBackend.enabled }}
         location /api-host {
             rewrite /api-host/(.*) /$1  break;
             proxy_set_header Connection '';
@@ -1148,7 +1210,7 @@ data:
             proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.backend.service.port }};
         }
 
-    {{- if .Values.config.deployment.enabled }}
+    {{- if or .Values.config.deployment.enabled .Values.hostBackend.enabled }}
         location = /api-host/docs {
             proxy_set_header Connection '';
             proxy_http_version 1.1;

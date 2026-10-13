@@ -9,13 +9,44 @@ on:
 
 permissions:
   contents: read
+  pull-requests: read
 
 jobs:
+  test-matrix:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.matrix.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: matrix
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          cases = sorted(Path("charts/langsmith/ci").glob("*-values.yaml"))
+          if not cases:
+              raise SystemExit("No LangSmith install test values found")
+          matrix = [
+              {"chart-name": chart, "values-file": "", "name": chart}
+              for chart in ("langgraph-cloud", "langsmith-auth-proxy", "langsmith-connector", "langsmith-sandbox")
+          ]
+          matrix.extend(
+              {"chart-name": "langsmith", "values-file": case.name, "name": f"langsmith, {case.stem}"}
+              for case in cases
+          )
+          with open(os.environ["GITHUB_OUTPUT"], "a") as output:
+              print(f"matrix={json.dumps({'include': matrix})}", file=output)
+          PY
+
   lint-test:
+    needs: test-matrix
+    name: lint-test (${{ matrix.name }})
     runs-on: ubuntu-latest
     strategy:
-      matrix:
-        chart-name: [ "langgraph-cloud", "langsmith", "langsmith-auth-proxy", "langsmith-sandbox" ]
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.test-matrix.outputs.matrix) }}
 
     steps:
       - name: Checkout
@@ -43,17 +74,57 @@ jobs:
           helm repo add grafana https://grafana.github.io/helm-charts
           helm repo update
 
+      # PRs labeled skip-chart-version-bump can stage chart changes for the next release
+      # without bumping Chart.yaml; chart-releaser skips versions that already exist, so
+      # nothing is published until a later PR bumps the version.
+      - name: Check for skip-chart-version-bump label
+        id: version-check
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          MERGE_GROUP_REF: ${{ github.event.merge_group.head_ref }}
+        run: |
+          # Merge queue runs have no PR in the payload; the queue branch is named
+          # gh-readonly-queue/<base>/pr-<number>-<sha> after the PR at the top of the group.
+          if [ -z "$PR_NUMBER" ] && [[ "$MERGE_GROUP_REF" =~ /pr-([0-9]+)- ]]; then
+            PR_NUMBER="${BASH_REMATCH[1]}"
+          fi
+          # Read labels live rather than from the event payload so that re-running the
+          # job after adding the label picks it up.
+          check=true
+          if [ -n "$PR_NUMBER" ] && gh api "repos/$REPO/issues/$PR_NUMBER/labels" --jq '.[].name' | grep -qx 'skip-chart-version-bump'; then
+            echo "skip-chart-version-bump label set; not requiring a chart version bump"
+            check=false
+          fi
+          echo "check_version_increment=$check" >> "$GITHUB_OUTPUT"
+
       - name: Check changed chart versions
-        run: ct lint --target-branch ${{ github.event.repository.default_branch }}
+        run: ct lint --target-branch ${{ github.base_ref || github.event.repository.default_branch }} --check-version-increment=${{ steps.version-check.outputs.check_version_increment }}
 
       - name: Run chart-testing (lint)
-        run: ct lint --target-branch ${{ github.event.repository.default_branch }} --charts charts/${{ matrix.chart-name }}
+        run: ct lint --target-branch ${{ github.base_ref || github.event.repository.default_branch }} --charts charts/${{ matrix.chart-name }} --check-version-increment=${{ steps.version-check.outputs.check_version_increment }}
 
       - name: Install Helm Unittest
         run: helm plugin install https://github.com/helm-unittest/helm-unittest.git --version 0.7.0
 
       - name: Run chart unittest
         run: helm unittest charts/${{ matrix.chart-name }}
+
+      - name: Check customer dashboards
+        if: matrix.chart-name == 'langsmith'
+        run: |
+          python3 charts/langsmith/examples/langsmith-observability/generate_dashboards.py --check
+          python3 -m unittest discover -s charts/langsmith/examples/langsmith-observability -p 'test_*.py'
+          python3 -m unittest discover -s charts/langsmith/examples/langsmith-observability/components/sandboxes -p 'test_*.py'
+
+      - name: Validate Sandbox PromQL
+        if: matrix.chart-name == 'langsmith'
+        run: |
+          python3 charts/langsmith/examples/langsmith-observability/promql_test_cases.py > "$RUNNER_TEMP/sandbox-promql.json"
+          docker run --rm --network none --memory=256m --cpus=1 --entrypoint /bin/promtool \
+            -v "$RUNNER_TEMP/sandbox-promql.json:/cases.json:ro" \
+            prom/prometheus:v3.5.0@sha256:63805ebb8d2b3920190daf1cb14a60871b16fd38bed42b857a3182bc621f4996 test rules /cases.json
 
       - name: Create kind cluster
         uses: helm/kind-action@v1.12.0
@@ -68,7 +139,7 @@ jobs:
           docker exec chart-testing-control-plane crictl pull docker.io/mongo:7
 
       - name: Setup Redis with TLS for Custom CA Testing (LangSmith only)
-        if: matrix.chart-name == 'langsmith'
+        if: matrix.values-file == 'custom-ca-external-redis-values.yaml'
         run: |
           set -e
           echo "=== Creating self-signed certificate for Redis ==="
@@ -138,6 +209,24 @@ jobs:
 
           echo "=== Redis with TLS ready for testing ==="
 
+      - name: Select LangSmith install test values
+        if: matrix.chart-name == 'langsmith'
+        env:
+          VALUES_FILE: ${{ matrix.values-file }}
+        run: |
+          python3 - <<'PY'
+          import os
+          from pathlib import Path
+
+          cases = sorted(Path("charts/langsmith/ci").glob("*-values.yaml"))
+          selected = os.environ["VALUES_FILE"]
+          if selected not in {case.name for case in cases}:
+              raise SystemExit(f"Unknown LangSmith install test values: {selected}")
+          for case in cases:
+              if case.name != selected:
+                  case.unlink()
+          PY
+
       - name: Run chart-testing (install)
         env:
           LANGSMITH_LICENSE_KEY: ${{ secrets.LANGSMITH_LICENSE_KEY }}
@@ -145,7 +234,7 @@ jobs:
         run: |
           LANGSMITH_LICENSE_KEY="${LANGSMITH_LICENSE_KEY:-ci-test-license-key}"
           LANGGRAPH_CLOUD_LICENSE_KEY="${LANGGRAPH_CLOUD_LICENSE_KEY:-ci-test-license-key}"
-          ct install --target-branch ${{ github.event.repository.default_branch }} --charts charts/${{ matrix.chart-name }} --namespace default --helm-extra-set-args "--timeout=15m --set=frontend.service.type=ClusterIP --set=config.langsmithLicenseKey=$LANGSMITH_LICENSE_KEY --set=config.langGraphCloudLicenseKey=$LANGGRAPH_CLOUD_LICENSE_KEY --set=apiServer.service.type=ClusterIP --set=studio.service.type=ClusterIP --set=redis.statefulSet.resources.requests.cpu=50m --set=redis.statefulSet.resources.requests.memory=64Mi --set=postgres.statefulSet.resources.requests.cpu=100m --set=postgres.statefulSet.resources.requests.memory=256Mi --set=clickhouse.statefulSet.resources.requests.cpu=200m --set=clickhouse.statefulSet.resources.requests.memory=512Mi"
+          ct install --target-branch ${{ github.base_ref || github.event.repository.default_branch }} --charts charts/${{ matrix.chart-name }} --namespace default --helm-extra-set-args "--timeout=15m --set=frontend.service.type=ClusterIP --set=config.langsmithLicenseKey=$LANGSMITH_LICENSE_KEY --set=config.langGraphCloudLicenseKey=$LANGGRAPH_CLOUD_LICENSE_KEY --set=apiServer.service.type=ClusterIP --set=studio.service.type=ClusterIP --set=redis.statefulSet.resources.requests.cpu=50m --set=redis.statefulSet.resources.requests.memory=64Mi --set=postgres.statefulSet.resources.requests.cpu=100m --set=postgres.statefulSet.resources.requests.memory=256Mi --set=clickhouse.statefulSet.resources.requests.cpu=200m --set=clickhouse.statefulSet.resources.requests.memory=512Mi"
 
       - name: Collect LangSmith diagnostics (pods/events/logs)
         if: always() && matrix.chart-name == 'langsmith'
@@ -161,3 +250,15 @@ jobs:
             echo "=== Logs $pod (last 200 lines) ==="
             kubectl logs -n default "$pod" --tail=200 || true
           done
+
+  langsmith:
+    name: lint-test (langsmith)
+    needs: [test-matrix, lint-test]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require all chart test jobs to pass
+        env:
+          MATRIX_RESULT: ${{ needs.test-matrix.result }}
+          TEST_RESULT: ${{ needs.lint-test.result }}
+        run: test "$MATRIX_RESULT" = success && test "$TEST_RESULT" = success

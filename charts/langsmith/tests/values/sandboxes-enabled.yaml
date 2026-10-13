@@ -15,12 +15,6 @@ sandboxes:
     deployment:
       nodeSelector:
         sandbox.langsmith.com/host: "true"
-  quotas:
-    maxCpuCores: 16
-    maxMemoryGb: 64
-    minEphemeralStorageGb: 1
-    maxEphemeralStorageGib: 100
-    maxSandboxes: 1000
   proxyCa:
     mode: generatedSecret
   juicefs:

@@ -55,17 +55,41 @@ tests:
     asserts:
       - notFailedTemplate: {}
 
-  - it: should fail when engine is enabled without an intelligence base URL
+  - it: should require a dedicated usage signing secret
     set:
-      config.existingSecretName: langsmith-secrets
-      config.oauth.enabled: true
-      config.authType: oauth
+      config.skipValidation: true
+      config.hostname: langsmith.example.com
       engine.enabled: true
       engine.encryptionKey: test-key
-      images.engineInsightsAgentImage.repository: docker.io/langchain/langsmith-insights-engine
+      sandboxes.enabled: true
     asserts:
       - failedTemplate:
-          errorMessage: "engine.intelligenceBaseUrl is required when engine.enabled is true: the self-hosted Engine has no ANTHROPIC_API_KEY and routes model calls through the LSI gateway for its cloud/region (e.g. AWS: https://beacon.aws.langchain.com/intelligence)."
+          errorMessage: "engine.usageSigningSecret is required when engine.enabled is true. Generate one with: openssl rand -hex 32 (not needed if config.existingSecretName has engine_usage_signing_secret)."
+
+  - it: should reject a short usage signing secret
+    set:
+      config.skipValidation: true
+      config.hostname: langsmith.example.com
+      engine.enabled: true
+      engine.encryptionKey: test-key
+      engine.usageSigningSecret: too-short
+      sandboxes.enabled: true
+    asserts:
+      - failedTemplate:
+          errorMessage: "engine.usageSigningSecret must contain at least 32 characters."
+
+  # Air-gapped installs with an offline license run without LangSmith Intelligence.
+  - it: should render without an intelligence base URL
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      config.hostname: langsmith.example.com
+      engine.enabled: true
+      engine.encryptionKey: test-key
+      engine.intelligenceBaseUrl: ""
+      images.engineInsightsAgentImage.repository: docker.io/langchain/langsmith-insights-engine
+    asserts:
+      - notFailedTemplate: {}
 
   - it: should render without a sandbox tenant, which smith-go resolves
     values:
@@ -78,6 +102,19 @@ tests:
       images.engineInsightsAgentImage.repository: docker.io/langchain/langsmith-insights-engine
     asserts:
       - notFailedTemplate: {}
+
+  - it: should reject an invalid sandbox tenant ID
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      config.hostname: langsmith.example.com
+      engine.enabled: true
+      engine.encryptionKey: test-key
+      engine.sandboxTenantId: not-a-uuid
+      images.engineInsightsAgentImage.repository: docker.io/langchain/langsmith-insights-engine
+    asserts:
+      - failedTemplate:
+          errorMessage: "engine.sandboxTenantId must be a canonical UUID (xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx)."
 
   - it: should fail when engine is enabled without sandboxes
     values:
@@ -135,4 +172,3 @@ tests:
     asserts:
       - failedTemplate:
           errorMessage: "engine.enabled is true and config.hostname is the in-cluster address \"langsmith-frontend.default.svc.cluster.local\", which a sandbox cannot reach: it must be the externally reachable LangSmith address."
-

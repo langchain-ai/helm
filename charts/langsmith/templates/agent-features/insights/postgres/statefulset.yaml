@@ -53,6 +53,7 @@ spec:
       securityContext:
         {{- toYaml .Values.engineInsightsAgent.postgres.statefulSet.podSecurityContext | nindent 8 }}
       serviceAccountName: {{ $componentName }}
+      automountServiceAccountToken: {{ .Values.engineInsightsAgent.postgres.serviceAccount.automountServiceAccountToken }}
       {{- include "langsmith.dnsConfig" . | nindent 6 }}
       containers:
         - name: {{ .Values.engineInsightsAgent.postgres.name }}

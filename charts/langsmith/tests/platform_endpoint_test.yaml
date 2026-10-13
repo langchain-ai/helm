@@ -48,6 +48,23 @@ tests:
           path: data.SMITH_INTELLIGENCE_ENDPOINT
           value: "https://beacon.aws.langchain.com"
 
+  - it: should default the intelligence endpoint
+    set:
+      engine.enabled: true
+    asserts:
+      - equal:
+          path: data.SMITH_INTELLIGENCE_ENDPOINT
+          value: "https://beacon.langchain.com"
+
+  - it: should leave the intelligence endpoint empty when the Engine URL is cleared
+    set:
+      engine.enabled: true
+      engine.intelligenceBaseUrl: ""
+    asserts:
+      - equal:
+          path: data.SMITH_INTELLIGENCE_ENDPOINT
+          value: ""
+
   - it: should handle a trailing slash on the Engine URL
     set:
       engine.enabled: true
@@ -70,10 +87,13 @@ tests:
           path: data.DEFAULT_ORG_FEATURE_ENGINE_DEFAULT_ENABLED
           value: "false"
 
-  - it: should leave Engine enrollment alone when Engine is on
+  # Set explicitly so it overrides the "false" an org stored at creation, before
+  # Engine was turned on.
+  - it: should allow Engine enrollment when Engine is on
     set:
       engine.enabled: true
       engine.intelligenceBaseUrl: https://beacon.aws.langchain.com/intelligence
     asserts:
-      - notExists:
+      - equal:
           path: data.DEFAULT_ORG_FEATURE_ENGINE_DEFAULT_ENABLED
+          value: "true"

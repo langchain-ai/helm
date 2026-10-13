@@ -1,0 +1,21 @@
+{{- if eq (include "langsmith.trajectoryEnabled" .) "true" }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "langsmith.fullname" . }}-trajectory-backend
+  namespace: {{ .Values.namespace | default .Release.Namespace }}
+  labels:
+    {{- include "langsmith.labels" . | nindent 4 }}
+  annotations:
+    {{- include "langsmith.annotations" . | nindent 4 }}
+spec:
+  type: ClusterIP
+  ports:
+    - port: 8086
+      targetPort: grpc
+      protocol: TCP
+      name: grpc
+  selector:
+    {{- include "langsmith.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}
+{{- end }}

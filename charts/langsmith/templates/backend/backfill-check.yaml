@@ -55,6 +55,7 @@ spec:
       securityContext:
         {{- include "langsmith.podSecurityContext" (dict "Values" .Values "componentSecurityContext" .Values.backend.backfillCheck.podSecurityContext) | nindent 8 }}
       serviceAccountName: {{ include "backend.serviceAccountName" . }}
+      automountServiceAccountToken: {{ .Values.backend.serviceAccount.automountServiceAccountToken }}
       {{- with concat .Values.commonInitContainers .Values.backend.backfillCheck.initContainers }}
       initContainers:
         {{- toYaml . | nindent 8 }}

@@ -34,6 +34,7 @@ spec:
         {{- end }}
     spec:
       serviceAccountName: {{ include "langsmith.sandboxes.sandboxHostServiceAccountName" . }}
+      automountServiceAccountToken: {{ .Values.sandboxes.sandboxHost.serviceAccount.automountServiceAccountToken }}
       restartPolicy: Never
       securityContext:
         {{- include "langsmith.podSecurityContext" (dict "Values" .Values "componentSecurityContext" $juicefsFormatJob.podSecurityContext) | nindent 8 }}

@@ -1,0 +1,45 @@
+suite: SmithDB env
+templates:
+  - smithdb/query-deployment.yaml
+values:
+  - ./values/smithdb-enabled.yaml
+tests:
+  - it: exports critical metrics by default
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content: { name: SMITHDB_QUERY__METRICS__MODE, value: "critical" }
+
+  - it: lets smithdb.commonEnv replace a chart-managed env var
+    set:
+      smithdb.commonEnv:
+        - { name: SMITHDB_QUERY__METRICS__MODE, value: all }
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content: { name: SMITHDB_QUERY__METRICS__MODE, value: all }
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content: { name: SMITHDB_QUERY__METRICS__MODE, value: "critical" }
+
+  - it: lets extraEnv replace a chart-managed env var
+    set:
+      smithdb.query.deployment.extraEnv:
+        - { name: SMITHDB_QUERY__METRICS__MODE, value: all }
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content: { name: SMITHDB_QUERY__METRICS__MODE, value: all }
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content: { name: SMITHDB_QUERY__METRICS__MODE, value: "critical" }
+
+  - it: fails when commonEnv and extraEnv set the same name
+    set:
+      smithdb.commonEnv:
+        - { name: SMITHDB_QUERY__METRICS__MODE, value: all }
+      smithdb.query.deployment.extraEnv:
+        - { name: SMITHDB_QUERY__METRICS__MODE, value: all }
+    asserts:
+      - failedTemplate:
+          errorMessage: "Duplicate keys detected: [SMITHDB_QUERY__METRICS__MODE]"

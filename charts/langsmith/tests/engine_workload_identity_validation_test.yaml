@@ -1,0 +1,24 @@
+suite: engine workload identity providers validation
+templates:
+  - templates/validate.yaml
+set:
+  config.existingSecretName: langsmith-secrets
+  config.oauth.enabled: true
+  config.authType: oauth
+tests:
+  - it: should reject a provider that can't use workload identity
+    set:
+      engine.workloadIdentityProviders:
+        - anthropic
+    asserts:
+      - failedTemplate:
+          errorMessage: 'engine.workloadIdentityProviders contains "anthropic": allowed providers are bedrock, vertex and azure.'
+
+  - it: should reject a provider listed twice
+    set:
+      engine.workloadIdentityProviders:
+        - vertex
+        - vertex
+    asserts:
+      - failedTemplate:
+          errorMessage: 'engine.workloadIdentityProviders lists "vertex" more than once.'

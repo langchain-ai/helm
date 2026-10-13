@@ -26,8 +26,14 @@ AWS Marketplace Helm template verification).
 {{- if not (kindIs "bool" .Values.smithdb.langsmith.migration.enabled) -}}
 {{- fail "smithdb.langsmith.migration.enabled must be a boolean. Do not quote true or false." -}}
 {{- end -}}
+{{- if not (kindIs "bool" .Values.smithdb.migration.job.suspend) -}}
+{{- fail "smithdb.migration.job.suspend must be a boolean. Do not quote true or false." -}}
+{{- end -}}
 {{- if not (kindIs "bool" .Values.smithdb.langsmith.query.enabled) -}}
 {{- fail "smithdb.langsmith.query.enabled must be a boolean. Do not quote true or false." -}}
+{{- end -}}
+{{- if not (kindIs "bool" .Values.smithdb.recoveryStrategy.enabled) -}}
+{{- fail "smithdb.recoveryStrategy.enabled must be a boolean. Do not quote true or false." -}}
 {{- end -}}
 {{- if not (has .Values.smithdb.resourceTier (list "small" "medium" "large")) -}}
 {{- fail "smithdb.resourceTier must be one of: small, medium, large." -}}
@@ -85,6 +91,10 @@ AWS Marketplace Helm template verification).
 {{- if eq (lower (toString (get $legacySmithdbLsmBackfill "enabled"))) "true" -}}
 {{- fail "smithdb.langsmith.lsmBackfill.enabled is no longer supported. Remove it and follow the SmithDB migration guidance for this chart version." -}}
 {{- end -}}
+{{- end -}}
+{{- /* Moved: the SmithDB migration workload is a Job, so its pod/container tuning lives under smithdb.migration.job. */ -}}
+{{- if hasKey .Values.smithdb.migration "deployment" -}}
+{{- fail "As of v17, the migration workload is configured under smithdb.migration.job. Configuration must be moved from smithdb.migration.deployment to smithdb.migration.job." -}}
 {{- end -}}
 
 {{- /* Validate ingress configuration */ -}}
@@ -236,7 +246,15 @@ AWS Marketplace Helm template verification).
 {{- fail "sandboxes.sandboxHost.autoscaling.maxReplicas must be greater than or equal to minReplicas." -}}
 {{- end -}}
 {{- end -}}
+{{- $httpProxy := ((.Values.sandboxes.authProxy | default dict).httpProxy) | default dict -}}
+{{- if and $httpProxy.url (or .Values.config.existingSecretName .Values.config.disableSecretCreation) -}}
+{{- fail "sandboxes.authProxy.httpProxy.url cannot be used when config.existingSecretName or config.disableSecretCreation is set. Add key sandbox_egress_proxy_url to that Secret instead." -}}
+{{- end -}}
 {{- $juicefs := .Values.sandboxes.juicefs | default dict -}}
+{{- $juicefsRedisIamAuthProvider := toString ((.Values.sandboxes.juicefs.redis | default dict).iamAuthProvider | default "") -}}
+{{- if not (has $juicefsRedisIamAuthProvider (list "" "azure" "gcp")) -}}
+{{- fail (printf "sandboxes.juicefs.redis.iamAuthProvider %q is not supported. Valid values are \"\", \"azure\" and \"gcp\"." $juicefsRedisIamAuthProvider) -}}
+{{- end -}}
 {{- if not $juicefs.existingSecretName -}}
 {{- $juicefsRedis := .Values.sandboxes.juicefs.redis | default dict -}}
 {{- if not $juicefsRedis.metaURL -}}
@@ -446,6 +464,9 @@ AWS Marketplace Helm template verification).
 {{- fail (printf "smithdb.%s.deployment.replicas must be greater than 0 when smithdb.enabled is true." $workloadName) -}}
 {{- end -}}
 {{- end -}}
+{{- if and .Values.smithdb.enabled .Values.smithdb.recoveryStrategy.enabled (or (not (kindIs "string" .Values.smithdb.recoveryStrategy.retentionWindow)) (empty .Values.smithdb.recoveryStrategy.retentionWindow)) -}}
+{{- fail "smithdb.recoveryStrategy.retentionWindow must be a non-empty duration string when smithdb.recoveryStrategy.enabled is true." -}}
+{{- end -}}
 {{- if .Values.smithdb.langsmith.migration.enabled -}}
 {{- if lt (int .Values.smithdb.ingestion.deployment.replicas) 1 -}}
 {{- fail "smithdb.ingestion.deployment.replicas must be greater than 0 when smithdb.langsmith.migration.enabled is true." -}}
@@ -621,10 +642,36 @@ AWS Marketplace Helm template verification).
 {{- if and (not .Values.engine.encryptionKey) (not .Values.config.existingSecretName) }}
 {{- fail "engine.encryptionKey is required when engine.enabled is true (must match smith-go's ISSUES_AGENT_ENCRYPTION_KEY). Generate one with: python -c \"from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())\" (not needed if config.existingSecretName has engine_encryption_key)." }}
 {{- end }}
-{{- if not .Values.engine.intelligenceBaseUrl }}
-{{- fail "engine.intelligenceBaseUrl is required when engine.enabled is true: the self-hosted Engine has no ANTHROPIC_API_KEY and routes model calls through the LSI gateway for its cloud/region (e.g. AWS: https://beacon.aws.langchain.com/intelligence)." }}
+{{- if and (not .Values.engine.usageSigningSecret) (not .Values.config.existingSecretName) }}
+{{- fail "engine.usageSigningSecret is required when engine.enabled is true. Generate one with: openssl rand -hex 32 (not needed if config.existingSecretName has engine_usage_signing_secret)." }}
 {{- end }}
-{{- if not .Values.sandboxes.enabled }}
+{{- if and .Values.engine.usageSigningSecret (lt (len .Values.engine.usageSigningSecret) 32) }}
+{{- fail "engine.usageSigningSecret must contain at least 32 characters." }}
+{{- end }}
+{{- if and .Values.engine.sandboxTenantId (not (regexMatch "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$" (toString .Values.engine.sandboxTenantId))) }}
+{{- fail "engine.sandboxTenantId must be a canonical UUID (xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx)." }}
+{{- end }}
+{{- /* With an existing Secret, a missing Engine key otherwise surfaces only as
+pods stuck in CreateContainerConfigError. The lookup is empty under helm
+template and GitOps renders, so those skip this check. */ -}}
+{{- if and .Values.engine.enabled .Values.config.existingSecretName }}
+{{- $existingSecret := lookup "v1" "Secret" (.Values.namespace | default .Release.Namespace) .Values.config.existingSecretName }}
+{{- if $existingSecret }}
+{{- $missing := list }}
+{{- range $key := list "engine_encryption_key" "engine_usage_signing_secret" }}
+{{- if not (hasKey ($existingSecret.data | default dict) $key) }}
+{{- $missing = append $missing $key }}
+{{- end }}
+{{- end }}
+{{- if $missing }}
+{{- fail (printf "engine.enabled is true but Secret %q has no %s key. Add it before installing: engine_encryption_key is a Fernet key, and engine_usage_signing_secret is at least 32 random characters (openssl rand -hex 32)." .Values.config.existingSecretName (join " or " $missing)) }}
+{{- end }}
+{{- end }}
+{{- end }}
+{{- if and .Values.config.existingSecretName .Values.engine.usageSigningSecret }}
+{{- fail "engine.usageSigningSecret cannot be used when config.existingSecretName is set. Add key engine_usage_signing_secret to the existing Secret instead." }}
+{{- end }}
+{{- if and (not .Values.sandboxes.enabled) (not .Values.engine.skipSandboxValidation) }}
 {{- fail "engine.enabled is true but sandboxes.enabled is false: every Engine run executes in a sandbox, so Engine cannot run without them." }}
 {{- end }}
 {{- if not .Values.config.hostname }}
@@ -636,6 +683,16 @@ AWS Marketplace Helm template verification).
 {{- if regexMatch "\\.svc(\\.[a-zA-Z0-9.-]+)?(:[0-9]+)?(/.*)?$" .Values.config.hostname }}
 {{- fail (printf "engine.enabled is true and config.hostname is the in-cluster address %q, which a sandbox cannot reach: it must be the externally reachable LangSmith address." .Values.config.hostname) }}
 {{- end }}
+{{- end }}
+{{- $seenWorkloadIdentity := list }}
+{{- range .Values.engine.workloadIdentityProviders }}
+{{- if not (has . (list "bedrock" "vertex" "azure")) }}
+{{- fail (printf "engine.workloadIdentityProviders contains %q: allowed providers are bedrock, vertex and azure." (toString .)) }}
+{{- end }}
+{{- if has . $seenWorkloadIdentity }}
+{{- fail (printf "engine.workloadIdentityProviders lists %q more than once." .) }}
+{{- end }}
+{{- $seenWorkloadIdentity = append $seenWorkloadIdentity . }}
 {{- end }}
 
 {{- /* Validate agent feature (fleet/insights/polly) configuration */ -}}
@@ -693,6 +750,22 @@ AWS Marketplace Helm template verification).
 {{- end }}
 {{- if and (gt (len $allPgUrls) 0) (ne (len $allPgUrls) (len (uniq $allPgUrls))) }}
 {{- fail "All postgres connection URLs (langsmith, fleet, insights, polly) must be unique. Duplicate URLs were detected." }}
+{{- end }}
+
+{{- $pgSnapshot := .Values.postgres.statefulSet.persistence.volumeSnapshot }}
+{{- if $pgSnapshot.snapshotHandle }}
+{{- if .Values.postgres.external.enabled }}
+{{- fail "postgres.statefulSet.persistence.volumeSnapshot.snapshotHandle cannot be set when postgres.external.enabled is true" }}
+{{- end }}
+{{- if not .Values.postgres.statefulSet.persistence.enabled }}
+{{- fail "postgres.statefulSet.persistence.enabled must be true when postgres.statefulSet.persistence.volumeSnapshot.snapshotHandle is set" }}
+{{- end }}
+{{- if not $pgSnapshot.driver }}
+{{- fail "postgres.statefulSet.persistence.volumeSnapshot.driver is required when snapshotHandle is set" }}
+{{- end }}
+{{- if not (has $pgSnapshot.deletionPolicy (list "Retain" "Delete")) }}
+{{- fail "postgres.statefulSet.persistence.volumeSnapshot.deletionPolicy must be Retain or Delete" }}
+{{- end }}
 {{- end }}
 
 {{- /* Validate per-agent redis configuration */ -}}
