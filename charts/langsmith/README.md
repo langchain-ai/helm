@@ -56,7 +56,7 @@ The query disk cache limit is set automatically from the PVC storage request or,
 
 ### Single topology
 
-`smithdb.topology: single` replaces the components above with one `smithdb all` pod for small installs: no cluster manager, no compaction workers, and one cache volume. The process splits the volume between the query cache and ingestion staging, and mounts it at `/tmp` for compaction scratch. Memory and disk shares come from the pod's limits. `mutations`, `runRules`, and `statsQuery` are not supported in this topology. The pod always runs one replica; use `cluster` when SmithDB needs to scale out.
+`smithdb.topology: single` replaces the components above with one `smithdb all` pod: no cluster manager, no compaction workers, and one cache volume. The process splits the volume between the query cache and ingestion staging, and mounts it at `/tmp` for compaction scratch. Memory and disk shares come from the pod's limits. `mutations`, `runRules`, and `statsQuery` are not supported in this topology. The pod always runs one replica; use `cluster` when SmithDB needs to scale out.
 
 | Tier | Small | Medium | Large |
 |---|---|---|---|
@@ -1598,7 +1598,7 @@ The trajectory Service is cluster-internal; no public route is added. Trajectory
 | smithdb.statsQuery.service.annotations | object | `{}` |  |
 | smithdb.statsQuery.service.labels | object | `{}` |  |
 | smithdb.statsQuery.service.port | int | `8080` |  |
-| smithdb.topology | string | `"cluster"` | SmithDB workload layout: cluster runs query, ingestion, compaction, and the cluster manager as separate workloads; single runs everything in one `smithdb all` pod for small installs. smithdb.resourceTier sizes either layout. |
+| smithdb.topology | string | `"cluster"` | SmithDB workload layout: cluster runs query, ingestion, compaction, and the cluster manager as separate workloads; single runs them all in one `smithdb all` pod with one replica. smithdb.resourceTier sizes either layout. |
 
 ## Configs
 
