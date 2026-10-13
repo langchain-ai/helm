@@ -80,7 +80,7 @@ done
 
 [[ -z $REGISTRY ]] && { echo "ERROR: --registry is required"; usage; }
 
-if [[ ! -f $CHART_DIR/Chart.yaml || ! -f $CHART_DIR/values.yaml || ! -f $CHART_DIR/scripts/chart_images.sh ]]; then
+if [[ ! -f $CHART_DIR/Chart.yaml || ! -f $CHART_DIR/values.yaml ]]; then
     echo "ERROR: no Chart.yaml and values.yaml in ${CHART_DIR}. Run the copy of this script inside the chart:" >&2
     echo "  helm pull langsmith --repo https://langchain-ai.github.io/helm/ --version <chart-version> --untar" >&2
     exit 1
@@ -96,20 +96,73 @@ if $INCLUDE_PRESIDIO && [[ "$PLATFORM" != "linux/amd64" ]]; then
     exit 1
 fi
 
-# shellcheck source-path=SCRIPTDIR source=chart_images.sh
-source "$CHART_DIR/scripts/chart_images.sh"
-
-APP_VERSION=$(chart_field appVersion)
+APP_VERSION=$(sed -n "s/^appVersion: *[\"']\{0,1\}\([^\"']*\)[\"']\{0,1\} *\$/\1/p" "$CHART_DIR/Chart.yaml")
 VERSION="${VERSION:-$APP_VERSION}"
 [[ -n $VERSION ]] || { echo "ERROR: could not read appVersion from ${CHART_DIR}/Chart.yaml; pass --version" >&2; exit 1; }
 
 ###############################################################################
 # Image list, read from the images: block of values.yaml
 ###############################################################################
-CHART_IMAGES=$(chart_images)
+# Print "<key> <repository> <tag>" for each entry under images: that has a repository.
+# An empty tag prints as "-". Fails if an *Image entry has no repository this parser can read.
+list_chart_images() {
+    awk -v q="'" '
+        function unquote(s) { gsub("[\"" q "]", "", s); return s }
+        function flush() {
+            if (key ~ /Image$/ && repo == "") {
+                print "ERROR: could not read images." key ".repository from values.yaml" > "/dev/stderr"
+                bad = 1
+            } else if (key != "" && repo != "") {
+                print key, repo, (tag == "" ? "-" : tag)
+            }
+            key = ""
+        }
+        /^images:/ { in_images = 1; next }
+        in_images && /^[^ #]/ { flush(); in_images = 0; exit }
+        !in_images || /^ *#/ { next }
+        /^  [A-Za-z0-9_-]+:/ { flush(); key = $1; sub(/:$/, "", key); repo = ""; tag = ""; next }
+        /^    repository:/ { repo = unquote($2) }
+        /^    tag:/ { tag = unquote($2) }
+        END { if (in_images) flush(); exit bad }
+    ' "$CHART_DIR/values.yaml"
+}
+
+# Print "operatorTemplate <repository> <tag>" for each literal image in operator.templates, such as
+# the Postgres and Redis the operator creates for each deployment.
+list_operator_template_images() {
+    awk -v q="'" '
+        /^operator:/ { in_operator = 1; next }
+        in_operator && /^[^ #]/ { exit }
+        in_operator && /^  [A-Za-z]/ { in_templates = ($1 == "templates:"); next }
+        in_templates && $1 == "image:" && $2 !~ /\$/ {
+            image = $2; gsub("[\"" q "]", "", image)
+            i = match(image, /:[^:\/]*$/)
+            if (i) { repo = substr(image, 1, i - 1); tag = substr(image, i + 1) } else { repo = image; tag = "latest" }
+            if (repo !~ /^[^\/]*[.:][^\/]*\//) repo = "docker.io/" repo
+            print "operatorTemplate", repo, tag
+        }
+    ' "$CHART_DIR/values.yaml"
+}
+
+CHART_IMAGES=$(list_chart_images)
+CHART_IMAGES+=$'\n'$(list_operator_template_images)
 CANDIDATES=()
+
 while read -r key repo tag; do
-    [[ -n $key ]] && CANDIDATES+=("${key} ${repo} ${tag}")
+    [[ -n $key ]] || continue
+    case $key in
+        sandboxHostImage|juicefs*) $INCLUDE_SANDBOXES || continue ;;
+        presidioAnalyzerImage) $INCLUDE_PRESIDIO || continue ;;
+    esac
+
+    # LangSmith images track appVersion; an empty tag means the chart defaults it to appVersion.
+    if [[ $key == operatorImage ]]; then
+        tag="${OPERATOR_VERSION:-$tag}"
+    elif [[ $tag == "-" || $tag == "$APP_VERSION" ]]; then
+        tag="$VERSION"
+    fi
+
+    CANDIDATES+=("${key} ${repo} ${tag}")
 done <<<"$CHART_IMAGES"
 
 if [[ ${#CANDIDATES[@]} -eq 0 ]]; then

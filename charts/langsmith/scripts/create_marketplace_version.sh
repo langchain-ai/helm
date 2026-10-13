@@ -6,20 +6,16 @@
 #   - All container images and Helm chart must already be pushed to the marketplace ECR.
 #   - AWS credentials must be valid with marketplace-catalog permissions.
 #
-# The image list and default versions come from the chart this script ships in, and match what
-# mirror_langsmith_images.sh --dest-repo pushes from the same chart.
-#
 # Usage:
-#   ./create_marketplace_version.sh
+#   ./create_marketplace_version.sh --version 0.13.9
 #   ./create_marketplace_version.sh --version 0.13.9 --dry-run
 
 set -euo pipefail
 
-CHART_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-# shellcheck source-path=SCRIPTDIR source=chart_images.sh
-source "$CHART_DIR/scripts/chart_images.sh"
-
 # Defaults
+DEFAULT_VERSION="0.13.9"
+DEFAULT_CHART_VERSION="0.13.9"
+DEFAULT_OPERATOR_VERSION="0.1.37"
 PRODUCT_ID="prod-6eamcxpv3kh6m"
 REGISTRY="709825985650.dkr.ecr.us-east-1.amazonaws.com"
 REPO="langchain/langchain-repository"
@@ -34,11 +30,11 @@ DRY_RUN=false
 
 usage() {
     cat <<EOF
-Usage: $0 [--version <version>] [--chart-version <chart-version>] [--operator-version <version>] [--product-id <id>] [--dry-run]
+Usage: $0 --version <version> [--chart-version <chart-version>] [--operator-version <version>] [--product-id <id>] [--dry-run]
 
-    --version           LangSmith version (default: appVersion of this chart)
-    --chart-version     Helm chart version/tag in ECR (default: version of this chart)
-    --operator-version  LangGraph operator version (default: images.operatorImage.tag of this chart)
+    --version           LangSmith version (default: $DEFAULT_VERSION)
+    --chart-version     Helm chart version/tag in ECR (default: $DEFAULT_CHART_VERSION)
+    --operator-version  LangGraph operator version (default: $DEFAULT_OPERATOR_VERSION)
     --product-id        Marketplace product ID (default: $PRODUCT_ID)
     --dry-run           Only print the changeset JSON, don't submit
 EOF
@@ -56,26 +52,32 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-APP_VERSION=$(chart_field appVersion)
-VERSION="${VERSION:-$APP_VERSION}"
-CHART_VERSION="${CHART_VERSION:-$(chart_field version)}"
-INCLUDE_SANDBOXES=false
-INCLUDE_PRESIDIO=false
+VERSION="${VERSION:-$DEFAULT_VERSION}"
+CHART_VERSION="${CHART_VERSION:-$DEFAULT_CHART_VERSION}"
+OPERATOR_VERSION="${OPERATOR_VERSION:-$DEFAULT_OPERATOR_VERSION}"
 
 ###############################################################################
-# Build container image list, named the way mirror_langsmith_images.sh --dest-repo pushes them
+# Build container image list
 ###############################################################################
-CHART_IMAGES=$(chart_images)
-CONTAINER_IMAGES=""
-SEEN=" "
-while read -r key repo tag; do
-    [[ $key == operatorImage ]] && OPERATOR_VERSION="$tag"
-    image="${REGISTRY}/${REPO}:${repo##*/}-${tag}"
-    [[ $SEEN == *" ${image} "* ]] && continue
-    SEEN+="${image} "
-    CONTAINER_IMAGES+="${CONTAINER_IMAGES:+,}"$'\n'"    \"${image}\""
-done <<<"$CHART_IMAGES"
-CONTAINER_IMAGES="[${CONTAINER_IMAGES}"$'\n'"]"
+CONTAINER_IMAGES=$(cat <<EOF
+[
+    "${REGISTRY}/${REPO}:langsmith-ace-backend-${VERSION}",
+    "${REGISTRY}/${REPO}:langsmith-backend-${VERSION}",
+    "${REGISTRY}/${REPO}:langsmith-insights-engine-${VERSION}",
+    "${REGISTRY}/${REPO}:langsmith-frontend-${VERSION}",
+    "${REGISTRY}/${REPO}:hosted-langserve-backend-${VERSION}",
+    "${REGISTRY}/${REPO}:langgraph-operator-${OPERATOR_VERSION}",
+    "${REGISTRY}/${REPO}:langsmith-go-backend-${VERSION}",
+    "${REGISTRY}/${REPO}:langsmith-playground-${VERSION}",
+    "${REGISTRY}/${REPO}:agent-builder-tool-server-${VERSION}",
+    "${REGISTRY}/${REPO}:agent-builder-trigger-server-${VERSION}",
+    "${REGISTRY}/${REPO}:agent-builder-deep-agent-${VERSION}",
+    "${REGISTRY}/${REPO}:postgres-15.15",
+    "${REGISTRY}/${REPO}:redis-8",
+    "${REGISTRY}/${REPO}:clickhouse-server-25.12"
+]
+EOF
+)
 
 ###############################################################################
 # Build changeset
