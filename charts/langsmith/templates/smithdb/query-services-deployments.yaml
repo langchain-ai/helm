@@ -87,6 +87,10 @@ spec:
             {{- end }}
             - name: SMITHDB_QUERY__CLUSTER_MANAGER__SERVICE_TYPE
               value: {{ index $clusterManagerServiceTypes $component | quote }}
+            {{- if and (eq $component "statsQuery") $componentValues.distributedStats.enabled }}
+            - name: SMITHDB_QUERY__EXECUTION_CONFIG__DISTRIBUTED_RUN_STATS_QUERY_ENABLED
+              value: "true"
+            {{- end }}
             {{- if not $hasDiskCacheLimit }}
             {{- with (include "langsmith.smithdb.queryCacheLimit" (dict "component" $component "volumes" $volumes "resources" $resources)) }}
             - name: SMITHDB_QUERY__VORTEX_CACHE__DISK__LIMIT
