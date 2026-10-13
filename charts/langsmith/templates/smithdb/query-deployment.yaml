@@ -78,11 +78,9 @@ spec:
             - name: SMITHDB_QUERY__LONG_TERM_RETENTION
               value: {{ printf "%ss" (toString .Values.config.ttl.ttl_period_seconds.longlived) | quote }}
             {{- end }}
-            {{- if not $hasDiskCacheLimit }}
-            {{- with (include "langsmith.smithdb.queryCacheLimit" (dict "component" "query" "volumes" $volumes "resources" $resources)) }}
+            {{- if and (not $hasDiskCacheLimit) (include "langsmith.smithdb.mountsCache" (dict "root" . "component" "query")) }}
             - name: SMITHDB_QUERY__VORTEX_CACHE__DISK__LIMIT
-              {{- . | nindent 14 }}
-            {{- end }}
+              value: {{ include "langsmith.smithdb.cacheSize" (dict "root" . "component" "query") | quote }}
             {{- end }}
             {{- if (index (default (dict) $resources.limits) "memory") }}
             - name: SMITHDB_QUERY__VORTEX_CACHE__MEMORY__LIMIT

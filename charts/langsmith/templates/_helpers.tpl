@@ -577,45 +577,46 @@ Args: root, component.
 {{- if $componentResources -}}
 {{- toYaml $componentResources -}}
 {{- else -}}
-{{- $resources := omit (include "langsmith.smithdb.tierResources" . | fromYaml) "cache" -}}
+{{- $tier := include "langsmith.smithdb.tierResources" . | fromYaml -}}
+{{- $resources := omit $tier "cache" -}}
+{{- if and (eq .root.Values.smithdb.cache.type "emptyDir") (include "langsmith.smithdb.mountsCache" .) -}}
+{{- $_ := set $resources "ephemeral-storage" (include "langsmith.smithdb.cacheSize" .) -}}
+{{- end -}}
 {{- toYaml (dict "requests" $resources "limits" $resources) -}}
 {{- end -}}
 {{- end }}
 
 {{/*
-Tier cache volume size for a SmithDB component. Empty for components without a cache.
+Cache volume size for a SmithDB component: the component's cache.size, else the tier value.
+Empty for components without a cache.
 Args: root, component.
 */}}
 {{- define "langsmith.smithdb.cacheSize" -}}
-{{- get (include "langsmith.smithdb.tierResources" . | fromYaml) "cache" -}}
+{{- default (get (include "langsmith.smithdb.tierResources" . | fromYaml) "cache") (dig "cache" "size" "" (index .root.Values.smithdb .component)) -}}
 {{- end }}
 
 {{/*
-Query cache limit from the resolved cache volume. Both generated and custom inline
-PVCs carry their size in the claim template; emptyDir uses the container limit.
-Args: component, volumes, resources.
-*/}}
-{{- define "langsmith.smithdb.queryCacheLimit" -}}
-{{- range .volumes -}}
-{{- if eq .name "cache" -}}
-{{- if hasKey . "ephemeral" -}}
-value: {{ required (printf "smithdb.%s cache volume requires requests.storage." $.component) (dig "ephemeral" "volumeClaimTemplate" "spec" "resources" "requests" "storage" "" .) | quote }}
-{{- else if hasKey . "emptyDir" -}}
-{{- $_ := required (printf "smithdb.%s.deployment.resources.limits.ephemeral-storage is required for an emptyDir cache." $.component) (index (default (dict) $.resources.limits) "ephemeral-storage") -}}
-valueFrom:
-  resourceFieldRef:
-    resource: limits.ephemeral-storage
-{{- end -}}
-{{- end -}}
-{{- end -}}
-{{- end }}
-
-{{/*
-Default per-pod ephemeral cache volume for a disk-using SmithDB component, sized from the tier.
+Non-empty when the component's container mounts a volume named cache.
 Args: root, component.
 */}}
-{{- define "langsmith.smithdb.defaultCacheVolume" -}}
+{{- define "langsmith.smithdb.mountsCache" -}}
+{{- range (index .root.Values.smithdb .component).deployment.volumeMounts -}}
+{{- if eq .name "cache" -}}true{{- end -}}
+{{- end -}}
+{{- end }}
+
+{{/*
+Per-pod cache volume for a disk-using SmithDB component, sized from the tier and backed by
+smithdb.cache.type. Empty when the component does not mount cache.
+Args: root, component.
+*/}}
+{{- define "langsmith.smithdb.cacheVolume" -}}
+{{- if include "langsmith.smithdb.mountsCache" . -}}
 name: cache
+{{- if eq .root.Values.smithdb.cache.type "emptyDir" }}
+emptyDir:
+  sizeLimit: {{ include "langsmith.smithdb.cacheSize" . }}
+{{- else }}
 ephemeral:
   volumeClaimTemplate:
     spec:
@@ -627,37 +628,19 @@ ephemeral:
         requests:
           storage: {{ include "langsmith.smithdb.cacheSize" . }}
 {{- end }}
+{{- end -}}
+{{- end }}
 
 {{/*
-Resolve volumes for a disk-using SmithDB component. The user's deployment.volumes list is used
-as given. When the container still mounts a volume named cache and the list does not define one,
-the default cache volume is prepended, so extra volumes can be added without restating the cache.
+Volumes for a SmithDB component: the generated cache volume followed by deployment.volumes.
 Args: root, component.
 */}}
 {{- define "langsmith.smithdb.volumes" -}}
-{{- $deployment := (index .root.Values.smithdb .component).deployment -}}
-{{- $mountsCache := false -}}
-{{- range $deployment.volumeMounts -}}
-{{- if and (eq .mountPath "/data") (ne .name "cache") -}}
-{{- fail (printf "smithdb.%s cache volume mounted at /data must be named cache." $.component) -}}
+{{- $volumes := list -}}
+{{- with include "langsmith.smithdb.cacheVolume" . | fromYaml -}}
+{{- $volumes = append $volumes . -}}
 {{- end -}}
-{{- if eq .name "cache" -}}
-{{- $mountsCache = true -}}
-{{- end -}}
-{{- end -}}
-{{- $volumes := default (list) $deployment.volumes -}}
-{{- $hasCache := false -}}
-{{- range $volumes -}}
-{{- if eq .name "cache" -}}
-{{- $hasCache = true -}}
-{{- if not (or (hasKey . "emptyDir") (hasKey . "ephemeral")) -}}
-{{- fail (printf "smithdb.%s cache volume must use emptyDir or ephemeral.volumeClaimTemplate; existing PVC references are not supported." $.component) -}}
-{{- end -}}
-{{- end -}}
-{{- end -}}
-{{- if and $mountsCache (not $hasCache) -}}
-{{- $volumes = prepend $volumes (include "langsmith.smithdb.defaultCacheVolume" . | fromYaml) -}}
-{{- end -}}
+{{- $volumes = concat $volumes (default (list) (index .root.Values.smithdb .component).deployment.volumes) -}}
 {{- toYaml $volumes -}}
 {{- end }}
 

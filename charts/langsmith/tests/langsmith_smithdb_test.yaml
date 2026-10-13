@@ -272,16 +272,12 @@ tests:
           path: spec.template.spec.volumes[0].ephemeral.volumeClaimTemplate.spec.resources.requests.storage
           value: 1000Gi
 
-  - it: should replace generated tier volumes with explicit component volumes
+  - it: should use emptyDir caches sized from the tier when smithdb.cache.type is emptyDir
     values:
       - ./values/smithdb-enabled.yaml
     set:
       smithdb.resourceTier: large
-      smithdb.query.deployment.resources.limits.ephemeral-storage: 500Gi
-      smithdb.query.deployment.volumes:
-        - name: cache
-          emptyDir:
-            sizeLimit: 500Gi
+      smithdb.cache.type: emptyDir
     template: smithdb/query-deployment.yaml
     asserts:
       - equal:
@@ -289,7 +285,10 @@ tests:
           value:
             - name: cache
               emptyDir:
-                sizeLimit: 500Gi
+                sizeLimit: 1000Gi
+      - equal:
+          path: spec.template.spec.containers[0].resources.limits.ephemeral-storage
+          value: 1000Gi
 
   - it: should apply the global cache StorageClass to generated cache volumes
     values:
@@ -309,63 +308,6 @@ tests:
     asserts:
       - notExists:
           path: spec.template.spec.volumes[0].ephemeral.volumeClaimTemplate.spec.storageClassName
-
-  - it: should let a component volumes override replace the global cache StorageClass
-    values:
-      - ./values/smithdb-enabled.yaml
-    set:
-      smithdb.cache.storageClassName: smithdb-cache
-      smithdb.query.deployment.volumes:
-        - name: cache
-          ephemeral:
-            volumeClaimTemplate:
-              spec:
-                accessModes: ["ReadWriteOnce"]
-                storageClassName: query-cache
-                resources:
-                  requests:
-                    storage: 500Gi
-    template: smithdb/query-deployment.yaml
-    asserts:
-      - equal:
-          path: spec.template.spec.volumes[0].ephemeral.volumeClaimTemplate.spec.storageClassName
-          value: query-cache
-      - equal:
-          path: spec.template.spec.volumes[0].ephemeral.volumeClaimTemplate.spec.resources.requests.storage
-          value: 500Gi
-
-  - it: should automatically configure the local SSD cache budget
-    values:
-      - ./values/smithdb-enabled.yaml
-    set:
-      smithdb.query.deployment.resources:
-        requests:
-          cpu: "4"
-          memory: "8Gi"
-          ephemeral-storage: 200Gi
-        limits:
-          cpu: "4"
-          memory: "8Gi"
-          ephemeral-storage: 200Gi
-      smithdb.query.deployment.volumes:
-        - name: cache
-          emptyDir:
-            sizeLimit: 200Gi
-    template: smithdb/query-deployment.yaml
-    asserts:
-      - contains:
-          path: spec.template.spec.containers[0].env
-          content:
-            name: SMITHDB_QUERY__VORTEX_CACHE__DISK__LIMIT
-            valueFrom:
-              resourceFieldRef:
-                resource: limits.ephemeral-storage
-      - equal:
-          path: spec.template.spec.volumes
-          value:
-            - name: cache
-              emptyDir:
-                sizeLimit: 200Gi
 
   - it: should configure SmithDB Beacon log export with the LangSmith license secret
     values:
