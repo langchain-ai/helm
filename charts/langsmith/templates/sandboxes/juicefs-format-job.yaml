@@ -1,4 +1,4 @@
-{{- if .Values.sandboxes.enabled }}
+{{- if and .Values.sandboxes.enabled (eq .Values.sandboxes.deploymentMode "sameCluster") }}
 {{- $namespace := .Values.namespace | default .Release.Namespace }}
 {{- $juicefsFormatJob := .Values.sandboxes.juicefsFormatJob }}
 apiVersion: batch/v1

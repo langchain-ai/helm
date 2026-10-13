@@ -30,7 +30,7 @@ jobs:
               raise SystemExit("No LangSmith install test values found")
           matrix = [
               {"chart-name": chart, "values-file": "", "name": chart}
-              for chart in ("langgraph-cloud", "langsmith-auth-proxy", "langsmith-connector")
+              for chart in ("langgraph-cloud", "langsmith-auth-proxy", "langsmith-connector", "langsmith-sandbox")
           ]
           matrix.extend(
               {"chart-name": "langsmith", "values-file": case.name, "name": f"langsmith, {case.stem}"}
