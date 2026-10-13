@@ -7,14 +7,12 @@
 {{- $clusterManagerServiceTypes := dict "mutations" "mutations" "runRules" "rules_query" "statsQuery" "stats_query" }}
 {{- $resources := include "langsmith.smithdb.resources" (dict "root" $ "component" $component) | fromYaml -}}
 {{- $volumes := concat $.Values.commonVolumes (include "langsmith.smithdb.volumes" (dict "root" $ "component" $component) | fromYamlArray) -}}
-{{- $chartEnv := include "langsmith.smithdb.componentEnv" (dict "root" $ "service" "QUERY" "displayName" $displayName) | fromYamlArray -}}
-{{- if eq $component "statsQuery" -}}
-{{- $chartEnv = append $chartEnv (dict "name" "SMITHDB_QUERY__EXECUTION_CONFIG__DISTRIBUTED_RUN_STATS_QUERY_ENABLED" "value" "true") -}}
-{{- end -}}
-{{- $envVars := include "langsmith.mergeEnv" (dict "commonEnv" (concat $.Values.commonEnv $.Values.smithdb.commonEnv) "chart" $chartEnv "extraEnv" $componentValues.deployment.extraEnv) | fromYamlArray -}}
+{{- $envVars := include "langsmith.mergeEnv" (dict "commonEnv" (concat $.Values.commonEnv $.Values.smithdb.commonEnv) "chart" (include "langsmith.smithdb.componentEnv" (dict "root" $ "service" "QUERY" "displayName" $displayName) | fromYamlArray) "extraEnv" $componentValues.deployment.extraEnv) | fromYamlArray -}}
 {{- $hasDiskCacheLimit := false -}}
+{{- $hasDistributedRunStats := false -}}
 {{- range $envVars -}}
 {{- $hasDiskCacheLimit = or $hasDiskCacheLimit (eq .name "SMITHDB_QUERY__VORTEX_CACHE__DISK__LIMIT") -}}
+{{- $hasDistributedRunStats = or $hasDistributedRunStats (eq .name "SMITHDB_QUERY__EXECUTION_CONFIG__DISTRIBUTED_RUN_STATS_QUERY_ENABLED") -}}
 {{- end -}}
 ---
 apiVersion: apps/v1
@@ -91,6 +89,10 @@ spec:
             {{- end }}
             - name: SMITHDB_QUERY__CLUSTER_MANAGER__SERVICE_TYPE
               value: {{ index $clusterManagerServiceTypes $component | quote }}
+            {{- if and (eq $component "statsQuery") (not $hasDistributedRunStats) }}
+            - name: SMITHDB_QUERY__EXECUTION_CONFIG__DISTRIBUTED_RUN_STATS_QUERY_ENABLED
+              value: "true"
+            {{- end }}
             {{- if not $hasDiskCacheLimit }}
             {{- with (include "langsmith.smithdb.queryCacheLimit" (dict "component" $component "volumes" $volumes "resources" $resources)) }}
             - name: SMITHDB_QUERY__VORTEX_CACHE__DISK__LIMIT
