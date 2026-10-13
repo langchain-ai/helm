@@ -65,21 +65,21 @@ images:
   aceBackendImage:
     repository: "docker.io/langchain/langsmith-ace-backend"
     pullPolicy: IfNotPresent
-    tag: "0.18.6rc1"
+    tag: "0.18.8rc1"
   backendImage:
     repository: "docker.io/langchain/langsmith-backend"
     pullPolicy: IfNotPresent
-    tag: "0.18.6rc1"
+    tag: "0.18.8rc1"
   # Serves both the `insights` and `engine` graphs; insights.enabled and
   # engine.enabled pick which of them run.
   engineInsightsAgentImage:
     repository: "docker.io/langchain/langsmith-insights-engine"
     pullPolicy: IfNotPresent
-    tag: "0.18.6rc1"
+    tag: "0.18.8rc1"
   frontendImage:
     repository: "docker.io/langchain/langsmith-frontend"
     pullPolicy: IfNotPresent
-    tag: "0.18.6rc1"
+    tag: "0.18.8rc1"
   operatorImage:
     repository: "docker.io/langchain/langgraph-operator"
     pullPolicy: IfNotPresent
@@ -103,15 +103,15 @@ images:
   agentBuilderImage:
     repository: "docker.io/langchain/agent-builder-deep-agent"
     pullPolicy: IfNotPresent
-    tag: "0.18.6rc1"
+    tag: "0.18.8rc1"
   pollyAgentImage:
     repository: "docker.io/langchain/langsmith-polly"
     pullPolicy: IfNotPresent
-    tag: "0.18.6rc1"
+    tag: "0.18.8rc1"
   smithdbImage:
     repository: "docker.io/langchain/smithdb"
     pullPolicy: IfNotPresent
-    tag: "0.18.6rc1"
+    tag: "0.18.8rc1"
   # Optional: only mirror/pull when presidioAnalyzer.enabled is true
   presidioAnalyzerImage:
     repository: "mcr.microsoft.com/presidio-analyzer"
@@ -168,17 +168,11 @@ sandboxes:
     # -- Existing TLS Secret containing tls.crt and tls.key for the sandbox proxy CA. This Secret can be created manually, by cert-manager, or by another external process.
     existingSecretName: ""
   authProxy:
-    # -- Route sandbox egress (the sandbox auth proxy's upstream connections) through a corporate HTTP CONNECT proxy. The proxy must allow CONNECT to every destination port sandboxes use, including 80; nothing falls back to direct access. Proxy credentials and client certificates are not supported.
+    # -- Route sandbox egress (the sandbox auth proxy's upstream connections) through a corporate HTTP forward proxy, as an HTTP_PROXY/HTTPS_PROXY client would: plain HTTP as standard proxy requests, HTTPS and other TCP through CONNECT. The proxy must allow CONNECT to 443 and any other TCP ports sandboxes use; nothing falls back to direct access.
     httpProxy:
-      # -- Enable routing sandbox egress through an HTTP proxy.
-      enabled: false
-      # -- `http`, or `https` for TLS to the proxy itself. An `https` proxy is verified against config.customCa when set, otherwise the system roots.
-      scheme: http
-      # -- Proxy hostname or IP address. A private address is allowed.
-      host: ""
-      # -- Proxy port.
-      port: 3128
-      # -- Hostnames dialed directly instead of through the proxy (NO_PROXY equivalent). Supports exact match ("internal.corp"), domain suffix (".internal.corp"), and "*".
+      # -- Proxy URL, `http://host:port` or `https://host:port` (TLS to the proxy itself, verified against config.customCa when set, otherwise the system roots); empty sends egress directly. A private address is allowed. For Basic proxy authentication use `http://user:password@host:port`, percent-encoding reserved characters; sandboxes never see the credentials. Stored in the LangSmith app Secret, or set key `sandbox_egress_proxy_url` in config.existingSecretName instead.
+      url: ""
+      # -- Destinations dialed directly instead of through the proxy, with standard NO_PROXY matching: "internal.corp" matches the host and its subdomains, ".internal.corp" only subdomains, plus IP addresses, CIDR ranges such as "10.0.0.0/8", "host:port" entries, and "*".
       noProxy: []
   juicefs:
     # -- JuiceFS volume name. Use a flat DNS-label-style name only; slashes and object-store subpaths are not supported here. JuiceFS stores objects under `<name>/` inside the configured bucket.
