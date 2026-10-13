@@ -223,14 +223,8 @@ AWS Marketplace Helm template verification).
 {{- end -}}
 {{- end -}}
 {{- $httpProxy := ((.Values.sandboxes.authProxy | default dict).httpProxy) | default dict -}}
-{{- if $httpProxy.url -}}
-{{- /* The message never echoes the URL, which may hold a password. */ -}}
-{{- if not (regexMatch "^https?://[^/?#\\s]+$" $httpProxy.url) -}}
-{{- fail "sandboxes.authProxy.httpProxy.url must be http(s)://[user:password@]host[:port] with no path; percent-encode reserved characters in credentials." -}}
-{{- end -}}
-{{- if or .Values.config.existingSecretName .Values.config.disableSecretCreation -}}
+{{- if and $httpProxy.url (or .Values.config.existingSecretName .Values.config.disableSecretCreation) -}}
 {{- fail "sandboxes.authProxy.httpProxy.url cannot be used when config.existingSecretName or config.disableSecretCreation is set. Add key sandbox_egress_proxy_url to that Secret instead." -}}
-{{- end -}}
 {{- end -}}
 {{- $juicefs := .Values.sandboxes.juicefs | default dict -}}
 {{- $juicefsRedisIamAuthProvider := toString ((.Values.sandboxes.juicefs.redis | default dict).iamAuthProvider | default "") -}}

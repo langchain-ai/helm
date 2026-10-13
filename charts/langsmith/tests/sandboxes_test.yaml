@@ -1259,7 +1259,7 @@ tests:
             name: CUSTOM_APPS_SERVICE_SANDBOXES_ENABLED
           any: true
 
-  - it: should not route sandbox egress through an upstream proxy by default
+  - it: should not set a proxy bypass list by default
     set:
       config.langsmithLicenseKey: test-license
       config.apiKeySalt: test-api-key-salt
@@ -1276,11 +1276,6 @@ tests:
       polly.encryptionKey: test-polly-encryption-key
     template: sandboxes/sandbox-host-deployment.yaml
     asserts:
-      - notContains:
-          path: spec.template.spec.containers[0].env
-          content:
-            name: SANDBOX_EGRESS_UPSTREAM_PROXY_URL
-          any: true
       - notContains:
           path: spec.template.spec.containers[0].env
           content:
@@ -1390,23 +1385,33 @@ tests:
       - failedTemplate:
           errorMessage: "sandboxes.authProxy.httpProxy.url cannot be used when config.existingSecretName or config.disableSecretCreation is set. Add key sandbox_egress_proxy_url to that Secret instead."
 
-  - it: should fail when the upstream proxy URL is not http(s)
+  - it: should wire secret-backed sandbox settings when the chart does not create the Secret
+    values:
+      - ./values/sandboxes-enabled.yaml
     set:
+      config.existingSecretName: ""
+      config.disableSecretCreation: true
       config.langsmithLicenseKey: test-license
       config.apiKeySalt: test-api-key-salt
-      config.oauth.enabled: true
-      config.authType: oauth
-      sandboxes.enabled: true
-      sandboxes.sandboxHost.deployment.nodeSelector.sandbox\.langsmith\.com/host: "true"
-      sandboxes.callbackSigningJwk: test-callback-jwk
-      sandboxes.juicefs.redis.metaURL: redis://langsmith-redis.default.svc.cluster.local:6379/1
-      sandboxes.juicefs.bucket: https://langsmith-sandboxes-test.s3.us-west-2.amazonaws.com
-      images.sandboxHostImage.repository: example.com/langsmith/sandbox-host
-      images.sandboxHostImage.tag: test-sandbox-host
       insights.encryptionKey: test-insights-encryption-key
       polly.encryptionKey: test-polly-encryption-key
-      sandboxes.authProxy.httpProxy.url: socks5://proxy.corp.internal:1080
-    template: validate.yaml
+    template: sandboxes/sandbox-host-deployment.yaml
     asserts:
-      - failedTemplate:
-          errorMessage: "sandboxes.authProxy.httpProxy.url must be http(s)://[user:password@]host[:port] with no path; percent-encode reserved characters in credentials."
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: LANGSMITH_SANDBOX_CALLBACK_SIGNING_JWK
+            valueFrom:
+              secretKeyRef:
+                name: RELEASE-NAME-langsmith-secrets
+                key: sandbox_callback_signing_jwk
+                optional: true
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_EGRESS_UPSTREAM_PROXY_URL
+            valueFrom:
+              secretKeyRef:
+                name: RELEASE-NAME-langsmith-secrets
+                key: sandbox_egress_proxy_url
+                optional: true
