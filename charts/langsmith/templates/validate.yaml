@@ -223,20 +223,8 @@ AWS Marketplace Helm template verification).
 {{- end -}}
 {{- end -}}
 {{- $httpProxy := ((.Values.sandboxes.authProxy | default dict).httpProxy) | default dict -}}
-{{- if $httpProxy.enabled -}}
-{{- if not (has ($httpProxy.scheme | default "http") (list "http" "https")) -}}
-{{- fail "sandboxes.authProxy.httpProxy.scheme must be http or https." -}}
-{{- end -}}
-{{- if not $httpProxy.host -}}
-{{- fail "sandboxes.authProxy.httpProxy.host is required when sandboxes.authProxy.httpProxy.enabled is true." -}}
-{{- end -}}
-{{- if regexMatch "[/@?#\\s]" $httpProxy.host -}}
-{{- fail "sandboxes.authProxy.httpProxy.host must be a bare hostname or IP address, without scheme, credentials, or path." -}}
-{{- end -}}
-{{- $httpProxyPort := int ($httpProxy.port | default 3128) -}}
-{{- if or (lt $httpProxyPort 1) (gt $httpProxyPort 65535) -}}
-{{- fail "sandboxes.authProxy.httpProxy.port must be between 1 and 65535." -}}
-{{- end -}}
+{{- if and $httpProxy.url (or .Values.config.existingSecretName .Values.config.disableSecretCreation) -}}
+{{- fail "sandboxes.authProxy.httpProxy.url cannot be used when config.existingSecretName or config.disableSecretCreation is set. Add key sandbox_egress_proxy_url to that Secret instead." -}}
 {{- end -}}
 {{- $juicefs := .Values.sandboxes.juicefs | default dict -}}
 {{- if not $juicefs.existingSecretName -}}

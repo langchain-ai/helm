@@ -1260,23 +1260,45 @@ tests:
             name: CUSTOM_APPS_SERVICE_SANDBOXES_ENABLED
           any: true
 
-  - it: should not route sandbox egress through an upstream proxy by default
-    values:
-      - ./values/sandboxes-enabled.yaml
+  - it: should not set a proxy bypass list by default
+    set:
+      config.langsmithLicenseKey: test-license
+      config.apiKeySalt: test-api-key-salt
+      config.oauth.enabled: true
+      config.authType: oauth
+      sandboxes.enabled: true
+      sandboxes.sandboxHost.deployment.nodeSelector.sandbox\.langsmith\.com/host: "true"
+      sandboxes.callbackSigningJwk: test-callback-jwk
+      sandboxes.juicefs.redis.metaURL: redis://langsmith-redis.default.svc.cluster.local:6379/1
+      sandboxes.juicefs.bucket: https://langsmith-sandboxes-test.s3.us-west-2.amazonaws.com
+      images.sandboxHostImage.repository: example.com/langsmith/sandbox-host
+      images.sandboxHostImage.tag: test-sandbox-host
+      insights.encryptionKey: test-insights-encryption-key
+      polly.encryptionKey: test-polly-encryption-key
     template: sandboxes/sandbox-host-deployment.yaml
     asserts:
       - notContains:
           path: spec.template.spec.containers[0].env
           content:
-            name: SANDBOX_EGRESS_UPSTREAM_PROXY_URL
+            name: SANDBOX_EGRESS_UPSTREAM_PROXY_NO_PROXY
           any: true
 
-  - it: should route sandbox egress through the auth proxy http proxy
-    values:
-      - ./values/sandboxes-enabled.yaml
+  - it: should read the upstream proxy URL from the chart-managed secret
     set:
-      sandboxes.authProxy.httpProxy.enabled: true
-      sandboxes.authProxy.httpProxy.host: proxy.corp.internal
+      config.langsmithLicenseKey: test-license
+      config.apiKeySalt: test-api-key-salt
+      config.oauth.enabled: true
+      config.authType: oauth
+      sandboxes.enabled: true
+      sandboxes.sandboxHost.deployment.nodeSelector.sandbox\.langsmith\.com/host: "true"
+      sandboxes.callbackSigningJwk: test-callback-jwk
+      sandboxes.juicefs.redis.metaURL: redis://langsmith-redis.default.svc.cluster.local:6379/1
+      sandboxes.juicefs.bucket: https://langsmith-sandboxes-test.s3.us-west-2.amazonaws.com
+      images.sandboxHostImage.repository: example.com/langsmith/sandbox-host
+      images.sandboxHostImage.tag: test-sandbox-host
+      insights.encryptionKey: test-insights-encryption-key
+      polly.encryptionKey: test-polly-encryption-key
+      sandboxes.authProxy.httpProxy.url: http://svc-user:p%40ss@proxy.corp.internal:3128
       sandboxes.authProxy.httpProxy.noProxy:
         - git.corp.internal
         - .svc.corp.internal
@@ -1286,70 +1308,111 @@ tests:
           path: spec.template.spec.containers[0].env
           content:
             name: SANDBOX_EGRESS_UPSTREAM_PROXY_URL
-            value: http://proxy.corp.internal:3128
+            valueFrom:
+              secretKeyRef:
+                name: RELEASE-NAME-langsmith-secrets
+                key: sandbox_egress_proxy_url
+                optional: true
       - contains:
           path: spec.template.spec.containers[0].env
           content:
             name: SANDBOX_EGRESS_UPSTREAM_PROXY_NO_PROXY
             value: git.corp.internal,.svc.corp.internal
 
-  - it: should trust config.customCa for an https upstream proxy
+  - it: should store the upstream proxy URL in the chart-managed secret
+    set:
+      config.langsmithLicenseKey: test-license
+      config.apiKeySalt: test-api-key-salt
+      config.oauth.enabled: true
+      config.authType: oauth
+      sandboxes.enabled: true
+      sandboxes.sandboxHost.deployment.nodeSelector.sandbox\.langsmith\.com/host: "true"
+      sandboxes.callbackSigningJwk: test-callback-jwk
+      sandboxes.juicefs.redis.metaURL: redis://langsmith-redis.default.svc.cluster.local:6379/1
+      sandboxes.juicefs.bucket: https://langsmith-sandboxes-test.s3.us-west-2.amazonaws.com
+      images.sandboxHostImage.repository: example.com/langsmith/sandbox-host
+      images.sandboxHostImage.tag: test-sandbox-host
+      insights.encryptionKey: test-insights-encryption-key
+      polly.encryptionKey: test-polly-encryption-key
+      sandboxes.authProxy.httpProxy.url: http://svc-user:p%40ss@proxy.corp.internal:3128
+    template: secrets.yaml
+    asserts:
+      - equal:
+          path: data.sandbox_egress_proxy_url
+          value: aHR0cDovL3N2Yy11c2VyOnAlNDBzc0Bwcm94eS5jb3JwLmludGVybmFsOjMxMjg=
+
+  - it: should not store an upstream proxy URL in the chart-managed secret by default
+    set:
+      config.langsmithLicenseKey: test-license
+      config.apiKeySalt: test-api-key-salt
+      config.oauth.enabled: true
+      config.authType: oauth
+      sandboxes.enabled: true
+      sandboxes.sandboxHost.deployment.nodeSelector.sandbox\.langsmith\.com/host: "true"
+      sandboxes.callbackSigningJwk: test-callback-jwk
+      sandboxes.juicefs.redis.metaURL: redis://langsmith-redis.default.svc.cluster.local:6379/1
+      sandboxes.juicefs.bucket: https://langsmith-sandboxes-test.s3.us-west-2.amazonaws.com
+      images.sandboxHostImage.repository: example.com/langsmith/sandbox-host
+      images.sandboxHostImage.tag: test-sandbox-host
+      insights.encryptionKey: test-insights-encryption-key
+      polly.encryptionKey: test-polly-encryption-key
+    template: secrets.yaml
+    asserts:
+      - notExists:
+          path: data.sandbox_egress_proxy_url
+
+  - it: should read the upstream proxy URL from an existing secret
     values:
       - ./values/sandboxes-enabled.yaml
-    set:
-      config.customCa.secretName: my-ca
-      config.customCa.secretKey: ca.crt
-      sandboxes.authProxy.httpProxy.enabled: true
-      sandboxes.authProxy.httpProxy.scheme: https
-      sandboxes.authProxy.httpProxy.host: fd00::10
-      sandboxes.authProxy.httpProxy.port: 8443
     template: sandboxes/sandbox-host-deployment.yaml
     asserts:
       - contains:
           path: spec.template.spec.containers[0].env
           content:
             name: SANDBOX_EGRESS_UPSTREAM_PROXY_URL
-            value: https://[fd00::10]:8443
+            valueFrom:
+              secretKeyRef:
+                name: langsmith-secrets
+                key: sandbox_egress_proxy_url
+                optional: true
+
+  - it: should fail when the upstream proxy URL is set with an existing secret
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      sandboxes.authProxy.httpProxy.url: http://proxy.corp.internal:3128
+    template: validate.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: "sandboxes.authProxy.httpProxy.url cannot be used when config.existingSecretName or config.disableSecretCreation is set. Add key sandbox_egress_proxy_url to that Secret instead."
+
+  - it: should wire secret-backed sandbox settings when the chart does not create the Secret
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      config.existingSecretName: ""
+      config.disableSecretCreation: true
+      config.langsmithLicenseKey: test-license
+      config.apiKeySalt: test-api-key-salt
+      insights.encryptionKey: test-insights-encryption-key
+      polly.encryptionKey: test-polly-encryption-key
+    template: sandboxes/sandbox-host-deployment.yaml
+    asserts:
       - contains:
           path: spec.template.spec.containers[0].env
           content:
-            name: SSL_CERT_FILE
-            value: /etc/ssl/certs/custom-ca-certificates.crt
-      - notContains:
+            name: LANGSMITH_SANDBOX_CALLBACK_SIGNING_JWK
+            valueFrom:
+              secretKeyRef:
+                name: RELEASE-NAME-langsmith-secrets
+                key: sandbox_callback_signing_jwk
+                optional: true
+      - contains:
           path: spec.template.spec.containers[0].env
           content:
-            name: SANDBOX_EGRESS_UPSTREAM_PROXY_NO_PROXY
-          any: true
-
-  - it: should fail when the auth proxy http proxy has no host
-    values:
-      - ./values/sandboxes-enabled.yaml
-    set:
-      sandboxes.authProxy.httpProxy.enabled: true
-    template: validate.yaml
-    asserts:
-      - failedTemplate:
-          errorMessage: "sandboxes.authProxy.httpProxy.host is required when sandboxes.authProxy.httpProxy.enabled is true."
-
-  - it: should fail when the auth proxy http proxy host is a URL
-    values:
-      - ./values/sandboxes-enabled.yaml
-    set:
-      sandboxes.authProxy.httpProxy.enabled: true
-      sandboxes.authProxy.httpProxy.host: http://user:pass@proxy.corp.internal
-    template: validate.yaml
-    asserts:
-      - failedTemplate:
-          errorMessage: "sandboxes.authProxy.httpProxy.host must be a bare hostname or IP address, without scheme, credentials, or path."
-
-  - it: should fail when the auth proxy http proxy scheme is unsupported
-    values:
-      - ./values/sandboxes-enabled.yaml
-    set:
-      sandboxes.authProxy.httpProxy.enabled: true
-      sandboxes.authProxy.httpProxy.host: proxy.corp.internal
-      sandboxes.authProxy.httpProxy.scheme: socks5
-    template: validate.yaml
-    asserts:
-      - failedTemplate:
-          errorMessage: "sandboxes.authProxy.httpProxy.scheme must be http or https."
+            name: SANDBOX_EGRESS_UPSTREAM_PROXY_URL
+            valueFrom:
+              secretKeyRef:
+                name: RELEASE-NAME-langsmith-secrets
+                key: sandbox_egress_proxy_url
+                optional: true
