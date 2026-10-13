@@ -1705,7 +1705,7 @@ smithdb:
     containerPort: 8060
     containerGrpcPort: 8080
     distributedStats:
-      enabled: false
+      enabled: true
     deployment:
       replicas: 1
       strategy:
