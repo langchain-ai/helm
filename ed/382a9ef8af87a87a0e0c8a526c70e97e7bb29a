@@ -1,0 +1,19 @@
+charts/langsmith/templates/_helpers.tpl
+  s_471476021a9e22::t_406f9799ec2c73 711-712,719
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "ed382a9ef8af87a87a0e0c8a526c70e97e7bb29a",
+  "prompts": {},
+  "sessions": {
+    "s_471476021a9e22": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "20f47e9e-71d9-4ec2-b396-10e8d41194ae",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "ben11211 <nagengast@langchain.dev>"
+    }
+  }
+}
