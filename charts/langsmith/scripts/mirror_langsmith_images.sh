@@ -37,12 +37,11 @@ PLATFORM="linux/amd64"
 DRY_RUN=false
 DEST_REPO=""
 INCLUDE_SANDBOXES=false
-INCLUDE_PRESIDIO=false
 FIPS=false
 
 usage() {
     cat <<EOF
-Usage: $0 --registry <registry-prefix> [--dest-repo <repo>] [--version <version>] [--platform linux/arm64] [--fips] [--include-sandboxes] [--include-presidio] [--dry-run]
+Usage: $0 --registry <registry-prefix> [--dest-repo <repo>] [--version <version>] [--platform linux/arm64] [--fips] [--include-sandboxes] [--dry-run]
 
     --registry  Mandatory. Destination registry (e.g. myregistry or 12345678.dkr.ecr.us-east-1.amazonaws.com)
     --dest-repo Single destination repo (e.g. langchain/langchain_repository). Tags become <image-name>-<version>.
@@ -53,7 +52,6 @@ Usage: $0 --registry <registry-prefix> [--dest-repo <repo>] [--version <version>
     --fips               Mirror the -fips variant of each LangSmith image that has one at the requested tag. Images
                          without one, and third-party images, are mirrored as-is.
     --include-sandboxes  Also mirror sandbox runtime images. Requires --platform linux/amd64.
-    --include-presidio   Also mirror the Presidio analyzer used by the Agent Gateway. Requires --platform linux/amd64.
     --dry-run            Only print the docker pull, tag, and push commands. Still checks that each image exists.
 
 Every source image is checked for the requested tag and platform before anything is pushed. Each check
@@ -72,7 +70,6 @@ while [[ $# -gt 0 ]]; do
         --platform) PLATFORM="$2"; shift 2 ;;
         --fips) FIPS=true; shift ;;
         --include-sandboxes) INCLUDE_SANDBOXES=true; shift ;;
-        --include-presidio) INCLUDE_PRESIDIO=true; shift ;;
         --dry-run) DRY_RUN=true; shift ;;
         *) usage ;;
     esac
@@ -88,11 +85,6 @@ fi
 
 if $INCLUDE_SANDBOXES && [[ "$PLATFORM" != "linux/amd64" ]]; then
     echo "ERROR: --include-sandboxes requires --platform linux/amd64 because sandbox runtime images are only published for amd64." >&2
-    exit 1
-fi
-
-if $INCLUDE_PRESIDIO && [[ "$PLATFORM" != "linux/amd64" ]]; then
-    echo "ERROR: --include-presidio requires --platform linux/amd64 because the Presidio analyzer image is only published for amd64." >&2
     exit 1
 fi
 
@@ -152,7 +144,8 @@ while read -r key repo tag; do
     [[ -n $key ]] || continue
     case $key in
         sandboxHostImage|juicefs*) $INCLUDE_SANDBOXES || continue ;;
-        presidioAnalyzerImage) $INCLUDE_PRESIDIO || continue ;;
+        # The Agent Gateway's Presidio analyzer is optional and amd64-only, so it is not mirrored.
+        presidioAnalyzerImage) continue ;;
     esac
 
     # LangSmith images track appVersion; an empty tag means the chart defaults it to appVersion.
@@ -176,7 +169,6 @@ echo "Registry: ${REGISTRY}"
 echo "Platform: ${PLATFORM}"
 echo "FIPS: ${FIPS}"
 echo "Include sandboxes: ${INCLUDE_SANDBOXES}"
-echo "Include presidio: ${INCLUDE_PRESIDIO}"
 echo "Dry-run: ${DRY_RUN}"
 echo
 
