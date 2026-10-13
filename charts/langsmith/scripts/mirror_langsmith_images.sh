@@ -56,8 +56,9 @@ Usage: $0 --registry <registry-prefix> [--dest-repo <repo>] [--version <version>
     --include-presidio   Also mirror the Presidio analyzer used by the Agent Gateway. Requires --platform linux/amd64.
     --dry-run            Only print the docker pull, tag, and push commands. Still checks that each image exists.
 
-Every source image is checked before anything is pushed. When the run finishes, the script prints the
-images: values that point the chart at the mirrored images.
+Every source image is checked for the requested tag and platform before anything is pushed. Each check
+and pull counts toward the Docker Hub rate limit, so run docker login for Docker Hub first. When the
+run finishes, the script prints the images: values that point the chart at the mirrored images.
 EOF
     exit 1
 }
@@ -79,7 +80,7 @@ done
 
 [[ -z $REGISTRY ]] && { echo "ERROR: --registry is required"; usage; }
 
-if [[ ! -f $CHART_DIR/Chart.yaml || ! -f $CHART_DIR/values.yaml ]]; then
+if [[ ! -f $CHART_DIR/Chart.yaml || ! -f $CHART_DIR/values.yaml || ! -f $CHART_DIR/scripts/chart_images.sh ]]; then
     echo "ERROR: no Chart.yaml and values.yaml in ${CHART_DIR}. Run the copy of this script inside the chart:" >&2
     echo "  helm pull langsmith --repo https://langchain-ai.github.io/helm/ --version <chart-version> --untar" >&2
     exit 1
@@ -95,62 +96,21 @@ if $INCLUDE_PRESIDIO && [[ "$PLATFORM" != "linux/amd64" ]]; then
     exit 1
 fi
 
-APP_VERSION=$(sed -n 's/^appVersion: *"\{0,1\}\([^"]*\)"\{0,1\} *$/\1/p' "$CHART_DIR/Chart.yaml")
+# shellcheck source-path=SCRIPTDIR source=chart_images.sh
+source "$CHART_DIR/scripts/chart_images.sh"
+
+APP_VERSION=$(chart_field appVersion)
 VERSION="${VERSION:-$APP_VERSION}"
 [[ -n $VERSION ]] || { echo "ERROR: could not read appVersion from ${CHART_DIR}/Chart.yaml; pass --version" >&2; exit 1; }
 
 ###############################################################################
 # Image list, read from the images: block of values.yaml
 ###############################################################################
-# Print "<key> <repository> <tag>" for each entry under images: that has a repository.
-# An empty tag prints as "-".
-list_chart_images() {
-    awk '
-        function flush() { if (key != "" && repo != "") print key, repo, (tag == "" ? "-" : tag); key = "" }
-        /^images:/ { in_images = 1; next }
-        in_images && /^[^ #]/ { flush(); exit }
-        !in_images || /^ *#/ { next }
-        /^  [A-Za-z0-9_-]+: *(#.*)?$/ { flush(); key = $1; sub(/:$/, "", key); repo = ""; tag = ""; next }
-        /^    repository:/ { repo = $2; gsub(/"/, "", repo) }
-        /^    tag:/ { tag = $2; gsub(/"/, "", tag) }
-        END { if (in_images) flush() }
-    ' "$CHART_DIR/values.yaml"
-}
-
-# Print "operatorTemplate <repository> <tag>" for each literal image in operator.templates, such as
-# the Postgres and Redis the operator creates for each deployment.
-list_operator_template_images() {
-    awk '
-        /^operator:/ { in_operator = 1; next }
-        in_operator && /^[^ #]/ { exit }
-        in_operator && /^  [A-Za-z]/ { in_templates = ($1 == "templates:"); next }
-        in_templates && $1 == "image:" && $2 !~ /\$/ {
-            image = $2; gsub(/"/, "", image)
-            i = match(image, /:[^:\/]*$/)
-            if (i) { repo = substr(image, 1, i - 1); tag = substr(image, i + 1) } else { repo = image; tag = "latest" }
-            if (repo !~ /^[^\/]*[.:][^\/]*\//) repo = "docker.io/" repo
-            print "operatorTemplate", repo, tag
-        }
-    ' "$CHART_DIR/values.yaml"
-}
-
+CHART_IMAGES=$(chart_images)
 CANDIDATES=()
-
 while read -r key repo tag; do
-    case $key in
-        sandboxHostImage|juicefs*) $INCLUDE_SANDBOXES || continue ;;
-        presidioAnalyzerImage) $INCLUDE_PRESIDIO || continue ;;
-    esac
-
-    # LangSmith images track appVersion; an empty tag means the chart defaults it to appVersion.
-    if [[ $key == operatorImage ]]; then
-        tag="${OPERATOR_VERSION:-$tag}"
-    elif [[ $tag == "-" || $tag == "$APP_VERSION" ]]; then
-        tag="$VERSION"
-    fi
-
-    CANDIDATES+=("${key} ${repo} ${tag}")
-done < <(list_chart_images; list_operator_template_images)
+    [[ -n $key ]] && CANDIDATES+=("${key} ${repo} ${tag}")
+done <<<"$CHART_IMAGES"
 
 if [[ ${#CANDIDATES[@]} -eq 0 ]]; then
     echo "ERROR: found no images under images: in ${CHART_DIR}/values.yaml" >&2
@@ -170,14 +130,27 @@ echo
 ###############################################################################
 # Check every source image before pushing anything
 ###############################################################################
-# Succeed if the image exists, fail if its tag is missing, and exit on any other error, such as a
-# rate limit or an unknown repository.
+# Older Docker CLIs gate docker manifest behind the experimental flag.
+export DOCKER_CLI_EXPERIMENTAL=enabled
+PLATFORM_ARCH=${PLATFORM#*/}
+PLATFORM_ARCH=${PLATFORM_ARCH%%/*}
+
+# Succeed if the image exists and leave its manifest in MANIFEST, fail if its tag is missing, and
+# exit on any other error, such as a rate limit or an unknown repository.
 image_exists() {
-    local err
-    err=$(docker manifest inspect "$1" 2>&1 >/dev/null) && return 0
-    [[ $err == *[Nn]"o such manifest"* ]] && return 1
-    echo "ERROR: could not inspect $1: ${err}" >&2
+    MANIFEST=$(docker manifest inspect "$1" 2>&1) && return 0
+    case $MANIFEST in
+        *[Nn]"o such manifest"*|*"manifest unknown"*) return 1 ;;
+    esac
+    echo "ERROR: could not inspect $1: ${MANIFEST}" >&2
     exit 1
+}
+
+# Succeed unless MANIFEST is a multi-platform index with no entry for --platform. A single-platform
+# manifest does not name its architecture, so docker pull checks that one.
+has_platform() {
+    local arch_re="\"architecture\": *\"${PLATFORM_ARCH}\""
+    [[ $MANIFEST != *'"manifests"'* || $MANIFEST =~ $arch_re ]]
 }
 
 IMAGES=()
@@ -185,15 +158,16 @@ VALUES=()
 SEEN=" "
 NO_FIPS_VARIANT=()
 MISSING=()
+NO_PLATFORM=()
 
-echo "Checking that each image exists..."
+echo "Checking that each image exists for ${PLATFORM}..."
 for entry in "${CANDIDATES[@]}"; do
     read -r key repo tag <<<"$entry"
     checked=false
 
     # Older releases predate some -fips tags, so fall back to the standard image when one is missing.
     if $FIPS && [[ $repo == docker.io/langchain/* ]]; then
-        if [[ $FIPS_VARIANTS == *" ${repo##*/} "* ]] && image_exists "${repo}-fips:${tag}"; then
+        if [[ $FIPS_VARIANTS == *" ${repo##*/} "* ]] && image_exists "${repo}-fips:${tag}" && has_platform; then
             repo="${repo}-fips"
             checked=true
         else
@@ -206,18 +180,26 @@ for entry in "${CANDIDATES[@]}"; do
     [[ $SEEN == *" ${src} "* ]] && continue
     SEEN+="${src} "
 
-    if $checked || image_exists "$src"; then
+    if $checked; then
         IMAGES+=("$src")
-    else
+    elif ! image_exists "$src"; then
         MISSING+=("$src")
+    elif ! has_platform; then
+        NO_PLATFORM+=("$src")
+    else
+        IMAGES+=("$src")
     fi
 done
 
 if [[ ${#MISSING[@]} -gt 0 ]]; then
     echo "ERROR: these images are not published, so nothing was pushed:" >&2
     printf '  %s\n' "${MISSING[@]}" >&2
-    exit 1
 fi
+if [[ ${#NO_PLATFORM[@]} -gt 0 ]]; then
+    echo "ERROR: these images are not published for ${PLATFORM}, so nothing was pushed:" >&2
+    printf '  %s\n' "${NO_PLATFORM[@]}" >&2
+fi
+[[ ${#MISSING[@]} -eq 0 && ${#NO_PLATFORM[@]} -eq 0 ]] || exit 1
 echo
 
 ###############################################################################
@@ -291,5 +273,5 @@ fi
 
 if [[ ${#NO_FIPS_VARIANT[@]} -gt 0 ]]; then
     echo
-    echo "WARNING: no -fips variant is published for ${NO_FIPS_VARIANT[*]}; mirrored the standard image." >&2
+    echo "WARNING: no ${PLATFORM} -fips variant is published for ${NO_FIPS_VARIANT[*]}; mirrored the standard image." >&2
 fi
