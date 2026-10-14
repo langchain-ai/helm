@@ -45,7 +45,7 @@ tests:
           pattern: "image: mirror.example.com/docker.io/redis:7\n"
       - matchRegex:
           path: data["database-statefulset.yaml.tmpl"]
-          pattern: "image: mirror.example.com/pgvector/pgvector:pg15\n"
+          pattern: "image: mirror.example.com/docker.io/pgvector/pgvector:pg15\n"
 
   - it: should take a repository and tag per image
     set:
