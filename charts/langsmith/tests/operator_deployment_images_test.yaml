@@ -4,7 +4,8 @@ suite: operator per-deployment Redis and Postgres images
 # Their images come from images.deploymentRedisImage and
 # images.deploymentDbImage, so they follow images.registry like every other
 # image, and the three pod templates carry images.imagePullSecrets. Without a
-# registry or a pull secret the rendered templates are today's.
+# registry or a pull secret the rendered templates are today's, apart from the
+# Postgres image naming docker.io, the registry it always came from.
 templates:
   - templates/operator/config-map.yaml
 tests:
@@ -20,7 +21,7 @@ tests:
           pattern: "image: docker.io/redis:7\n"
       - matchRegex:
           path: data["database-statefulset.yaml.tmpl"]
-          pattern: "image: pgvector/pgvector:pg15\n"
+          pattern: "image: docker.io/pgvector/pgvector:pg15\n"
       - notMatchRegex:
           path: data["deployment.yaml.tmpl"]
           pattern: imagePullSecrets

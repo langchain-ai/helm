@@ -129,7 +129,7 @@ images:
     repository: "docker.io/redis"
     tag: "7"
   deploymentDbImage:
-    repository: "pgvector/pgvector"
+    repository: "docker.io/pgvector/pgvector"
     tag: "pg15"
 
 ingress:

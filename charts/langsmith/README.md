@@ -620,7 +620,7 @@ The trajectory Service is cluster-internal; no public route is added. Trajectory
 | images.clickhouseImage.pullPolicy | string | `"Always"` |  |
 | images.clickhouseImage.repository | string | `"docker.io/clickhouse/clickhouse-server"` |  |
 | images.clickhouseImage.tag | string | `"25.12"` |  |
-| images.deploymentDbImage.repository | string | `"pgvector/pgvector"` |  |
+| images.deploymentDbImage.repository | string | `"docker.io/pgvector/pgvector"` |  |
 | images.deploymentDbImage.tag | string | `"pg15"` |  |
 | images.deploymentRedisImage.repository | string | `"docker.io/redis"` |  |
 | images.deploymentRedisImage.tag | string | `"7"` |  |
