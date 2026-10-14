@@ -1,0 +1,39 @@
+charts/langsmith/Chart.yaml
+  s_471476021a9e22::t_1d0dd9efb5e926 8-9
+charts/langsmith/README.md
+  s_471476021a9e22::t_911af0835e4c77 3,613,616,619,625,628,635,649,1235-1239
+charts/langsmith/templates/_helpers.tpl
+  s_471476021a9e22::t_c1ca29f1c128af 817-889,1699-1703,1719-1720
+charts/langsmith/templates/sandboxes/juicefs-format-job.yaml
+  s_471476021a9e22::t_27c601167c16d9 4-5,77-79,85-87
+charts/langsmith/templates/smithdb/migration-job.yaml
+  s_471476021a9e22::t_1d1922c10bb413 2-4,223-225,295
+charts/langsmith/templates/smithdb/query-services-deployments.yaml
+  s_471476021a9e22::t_d96e59061521f6 12,15,92-95
+charts/langsmith/templates/validate.yaml
+  s_471476021a9e22::t_1dbdf25698dcd4 472-485
+charts/langsmith/tests/langsmith_smithdb_query_services_test.yaml
+  s_471476021a9e22::t_ae4563ddbf42ef 59-107
+charts/langsmith/tests/langsmith_smithdb_test.yaml
+  s_471476021a9e22::t_5289514b0fb2ef 150-199
+charts/langsmith/tests/sandbox_juicefs_test.yaml
+  s_471476021a9e22::t_db84d9c2fa1273 431-478
+charts/langsmith/values.yaml
+  s_471476021a9e22::t_bf1d525e63984e 68,72,78,82,106,110,114,2134-2145
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "fc67fef7f3d6374ecfe1ac33f78a10b03157d133",
+  "prompts": {},
+  "sessions": {
+    "s_471476021a9e22": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "20f47e9e-71d9-4ec2-b396-10e8d41194ae",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "ben11211 <nagengast@langchain.dev>"
+    }
+  }
+}
