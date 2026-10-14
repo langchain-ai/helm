@@ -38,6 +38,16 @@ AWS Marketplace Helm template verification).
 {{- if not (has .Values.smithdb.resourceTier (list "small" "medium" "large")) -}}
 {{- fail "smithdb.resourceTier must be one of: small, medium, large." -}}
 {{- end -}}
+{{- if not (has .Values.smithdb.topology (list "cluster" "single")) -}}
+{{- fail "smithdb.topology must be one of: cluster, single." -}}
+{{- end -}}
+{{- if include "langsmith.smithdb.singleTopology" . -}}
+{{- range $component := list "mutations" "runRules" "statsQuery" -}}
+{{- if (index $.Values.smithdb $component).enabled -}}
+{{- fail (printf "smithdb.%s.enabled is not supported with smithdb.topology single; the single pod serves every query path." $component) -}}
+{{- end -}}
+{{- end -}}
+{{- end -}}
 {{- if not .Values.config.skipValidation -}}
 
 {{- /* Validate deprecated fleet server value keys */ -}}
