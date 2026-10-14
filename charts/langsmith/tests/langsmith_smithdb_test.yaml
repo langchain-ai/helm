@@ -155,11 +155,12 @@ tests:
       smithdb.langsmith.migration.enabled: true
       smithdb.langsmith.query.enabled: false
       smithdb.migration.taskdb.postgres.auth.password: taskdb-password
+      commonEnv:
+        - { name: SH_TO_BYOC_S3_BUCKET, value: byoc-bucket }
+        - { name: SH_TO_BYOC_S3_REGION, value: us-east-2 }
+        - { name: SH_TO_BYOC_S3_ROLE_ARN, value: "arn:aws:iam::111122223333:role/byoc" }
       smithdb.migration.byocDestination:
         enabled: true
-        bucket: byoc-bucket
-        region: us-east-2
-        roleArn: arn:aws:iam::111122223333:role/byoc
         metastore:
           host: byoc-rds
           database: smithdb
