@@ -797,6 +797,79 @@ Args: root, service, displayName.
 {{- end }}
 
 {{/*
+SH_TO_BYOC_S3_* entries from commonEnv and smithdb.commonEnv, keyed by name. The BYOC inventory jobs
+read the same entries, so customers set the destination once.
+*/}}
+{{- define "langsmith.smithdb.migration.byocSourceEnv" -}}
+{{- $sources := dict -}}
+{{- range concat .Values.commonEnv .Values.smithdb.commonEnv -}}
+{{- if hasPrefix "SH_TO_BYOC_S3_" .name -}}
+{{- $_ := set $sources .name . -}}
+{{- end -}}
+{{- end -}}
+{{- toYaml $sources -}}
+{{- end }}
+
+{{/*
+Copies SH_TO_BYOC_S3_* entries, including valueFrom, to SmithDB env names. Unset sources are skipped.
+Args: root, prefix, fields (dict of source suffix to SmithDB field).
+*/}}
+{{- define "langsmith.smithdb.migration.byocMappedEnv" -}}
+{{- $sources := include "langsmith.smithdb.migration.byocSourceEnv" .root | fromYaml -}}
+{{- $envVars := list -}}
+{{- range $source, $field := .fields -}}
+{{- with get $sources (printf "SH_TO_BYOC_S3_%s" $source) -}}
+{{- $envVars = append $envVars (set (omit . "name") "name" (printf "%s__%s" $.prefix $field)) -}}
+{{- end -}}
+{{- end -}}
+{{- toYaml $envVars -}}
+{{- end }}
+
+{{/*
+S3 env for the SmithDB migration's BYOC destination store.
+Args: root, prefix (for example SMITHDB_MIGRATION__OUTPUT__OBJECT_STORE).
+*/}}
+{{- define "langsmith.smithdb.migration.byocObjectStoreEnv" -}}
+{{- $fields := dict "BUCKET" "S3__BUCKET" "REGION" "S3__REGION" "ENDPOINT" "S3__ENDPOINT" "ROLE_ARN" "S3__ROLE_ARN" -}}
+{{- $envVars := list
+  (dict "name" (printf "%s__TYPE" .prefix) "value" "s3")
+  (dict "name" (printf "%s__S3__ROOT_FOLDER" .prefix) "value" "smithdb")
+-}}
+{{- $mapped := include "langsmith.smithdb.migration.byocMappedEnv" (dict "root" .root "prefix" .prefix "fields" $fields) | fromYamlArray -}}
+{{- toYaml (concat $envVars $mapped) -}}
+{{- end }}
+
+{{/*
+SmithDB migration component env with the read-side object store and metastore pointed at the BYOC
+destination. Only the migration Job uses it, so other SmithDB workloads keep this install's stores.
+*/}}
+{{- define "langsmith.smithdb.migration.byocComponentEnv" -}}
+{{- $root := . -}}
+{{- $metastore := $root.Values.smithdb.migration.byocDestination.metastore -}}
+{{- $prefix := "SMITHDB_MIGRATION" -}}
+{{- $envVars := list -}}
+{{- range include "langsmith.smithdb.componentEnv" (dict "root" $root "service" "MIGRATION" "displayName" "smithdb-migration") | fromYamlArray -}}
+{{- if not (or (hasPrefix (printf "%s__OBJECT_STORE__" $prefix) .name) (hasPrefix (printf "%s__METASTORE__" $prefix) .name)) -}}
+{{- $envVars = append $envVars . -}}
+{{- end -}}
+{{- end -}}
+{{- $objectStoreEnv := include "langsmith.smithdb.migration.byocObjectStoreEnv" (dict "root" $root "prefix" (printf "%s__OBJECT_STORE" $prefix)) | fromYamlArray -}}
+{{- $metastoreEnv := list
+  (dict "name" (printf "%s__METASTORE__TYPE" $prefix) "value" "postgres")
+  (dict "name" (printf "%s__METASTORE__DEFAULT_URI" $prefix) "value" "s3://")
+  (dict "name" (printf "%s__METASTORE__HOST" $prefix) "value" (toString $metastore.host))
+  (dict "name" (printf "%s__METASTORE__PORT" $prefix) "value" (toString $metastore.port))
+  (dict "name" (printf "%s__METASTORE__DATABASE" $prefix) "value" (toString $metastore.database))
+  (dict "name" (printf "%s__METASTORE__USERNAME" $prefix) "value" (toString $metastore.username))
+  (dict "name" (printf "%s__METASTORE__IAM_AUTH_PROVIDER" $prefix) "value" "aws")
+  (dict "name" (printf "%s__METASTORE__USE_SSL" $prefix) "value" "true")
+-}}
+{{- $overrideFields := dict "REGION" "REGION" "ROLE_ARN" "ROLE_ARN" -}}
+{{- $overrideEnv := include "langsmith.smithdb.migration.byocMappedEnv" (dict "root" $root "prefix" (printf "%s__METASTORE__AWS_CREDENTIAL_OVERRIDES" $prefix) "fields" $overrideFields) | fromYamlArray -}}
+{{- toYaml (concat $envVars $objectStoreEnv $metastoreEnv $overrideEnv) }}
+{{- end }}
+
+{{/*
 SmithDB OTEL resource attributes.
 */}}
 {{- define "langsmith.smithdb.otelResourceAttributes" -}}

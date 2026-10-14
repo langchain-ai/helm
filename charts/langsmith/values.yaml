@@ -2055,6 +2055,18 @@ smithdb:
     startTime: ""
     # -- Optional RFC3339 end bound for migrate-all (half-open window). Empty uses now.
     endTime: ""
+    byocDestination:
+      # -- Migrate into a BYOC data plane's SmithDB. S3 settings come from the SH_TO_BYOC_S3_* commonEnv entries.
+      # The role and region also drive RDS IAM auth, so the RDS instance must be in the bucket's region.
+      # Start with a fresh taskdb when switching an existing migration to this destination.
+      enabled: false
+      metastore:
+        # -- BYOC RDS metastore host, reached with AWS IAM auth. The cluster needs a network route to it.
+        host: ""
+        port: 5432
+        database: ""
+        # -- Database user granted rds_iam.
+        username: ""
     job:
       # -- Keep finished migrate-all Jobs around for seven days so operators can inspect status/logs.
       ttlSecondsAfterFinished: 604800
