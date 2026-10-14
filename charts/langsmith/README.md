@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.18.0-rc.25](https://img.shields.io/badge/Version-0.18.0--rc.25-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.18.11rc1](https://img.shields.io/badge/AppVersion-0.18.11rc1-informational?style=flat-square)
+![Version: 0.18.0-rc.26](https://img.shields.io/badge/Version-0.18.0--rc.26-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.18.11rc1](https://img.shields.io/badge/AppVersion-0.18.11rc1-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -1224,6 +1224,11 @@ The trajectory Service is cluster-internal; no public route is added. Trajectory
 | smithdb.metastoreMigration.job.volumeMounts | list | `[]` |  |
 | smithdb.metastoreMigration.job.volumes | list | `[]` |  |
 | smithdb.metastoreMigration.name | string | `"metastore-migration"` |  |
+| smithdb.migration.byocDestination.enabled | bool | `false` | Migrate into a BYOC data plane's SmithDB. S3 settings come from the SH_TO_BYOC_S3_* commonEnv entries. The role and region also drive RDS IAM auth, so the RDS instance must be in the bucket's region. Start with a fresh taskdb when switching an existing migration to this destination. |
+| smithdb.migration.byocDestination.metastore.database | string | `""` |  |
+| smithdb.migration.byocDestination.metastore.host | string | `""` | BYOC RDS metastore host, reached with AWS IAM auth. The cluster needs a network route to it. |
+| smithdb.migration.byocDestination.metastore.port | int | `5432` |  |
+| smithdb.migration.byocDestination.metastore.username | string | `""` | Database user granted rds_iam. |
 | smithdb.migration.containerPort | int | `9040` |  |
 | smithdb.migration.endTime | string | `""` | Optional RFC3339 end bound for migrate-all (half-open window). Empty uses now. |
 | smithdb.migration.job.activeDeadlineSeconds | string | `nil` | Optional hard deadline for the Job. Leave unset for long-running full migrations. |
