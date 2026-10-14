@@ -81,9 +81,14 @@ The trajectory Service is cluster-internal; no public route is added. Trajectory
 
 Rules enforced by the API and the operator:
 
-- Only `v1/ServiceAccount` and `secrets-store.csi.x-k8s.io/v1/SecretProviderClass`, up to 16 objects.
-- Every `metadata.name` must start with the deployment's resource name followed by `-`. The UI shows the exact prefix.
-- SecretProviderClasses must use pod workload identity: `spec` may contain only `provider` (`aws`, `azure`, or `gcp`) and `parameters`. `secretObjects` is rejected. Azure requires `clientID` and rejects VM or pod-managed identity. GCP `auth` must be `pod-adc` when set.
+- Only `v1/ServiceAccount` and `secrets-store.csi.x-k8s.io/v1/SecretProviderClass`, up to 16 objects and 256 KiB.
+- Every `metadata.name` must be a lowercase DNS subdomain that starts with the deployment's resource name followed by `-`. The UI shows the exact prefix. The namespace is always the deployment's namespace.
+- Metadata may set only `name`, `labels`, and `annotations`. The `lgp-operator.io/` and `apps.langchain.ai/` key prefixes are reserved.
+- SecretProviderClasses must use pod workload identity. `spec` may contain only `provider` and `parameters`, and `secretObjects` is rejected. `parameters` may contain only these keys:
+  - `aws`: `objects`, `region`, `failoverRegion`, `pathTranslation`, `usePodIdentity`, `preferredAddressType`.
+  - `azure`: `clientID` (required), `tenantId`, `keyvaultName`, `cloudName`, `objects`, and `usePodIdentity` or `useVMManagedIdentity` set to `"false"`.
+  - `gcp`: `secrets`, and `auth` set to `pod-adc`.
+- Manifests are stored in plaintext in the LangSmith database and in the deployment's custom resource. Do not put credentials in labels, annotations, or parameters.
 
 Enabling the feature grants the operator SecretProviderClass `get`, `create`, `patch`, and `delete`. ServiceAccount permissions already exist. It adds no Secret or RBAC permissions. With `operator.rbac.create=false`, provision these permissions yourself.
 
