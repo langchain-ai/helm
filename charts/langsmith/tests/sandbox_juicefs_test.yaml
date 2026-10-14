@@ -428,6 +428,54 @@ tests:
             value: gcp
         template: sandboxes/sandbox-host-deployment.yaml
 
+  - it: should trust the custom CA in the formatter Job
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      sandboxes.juicefs.storage: gs
+      sandboxes.juicefs.bucket: gs://sandbox-bucket
+      sandboxes.juicefs.redis.metaURL: rediss://10.0.0.5:6379/1
+      sandboxes.juicefs.redis.iamAuthProvider: gcp
+      config.customCa.secretName: langsmith-ca-bundle
+      config.customCa.secretKey: ca-certificates.crt
+    template: sandboxes/juicefs-format-job.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SSL_CERT_FILE
+            value: /etc/ssl/certs/custom-ca-certificates.crt
+      - contains:
+          path: spec.template.spec.containers[0].volumeMounts
+          content:
+            name: langsmith-custom-ca
+            mountPath: /etc/ssl/certs/custom-ca-certificates.crt
+            subPath: ca-certificates.crt
+            readOnly: true
+      - contains:
+          path: spec.template.spec.volumes
+          content:
+            name: langsmith-custom-ca
+            secret:
+              secretName: langsmith-ca-bundle
+              items:
+                - key: ca-certificates.crt
+                  path: ca-certificates.crt
+
+  - it: should not mount a custom CA in the formatter Job by default
+    values:
+      - ./values/sandboxes-enabled.yaml
+    template: sandboxes/juicefs-format-job.yaml
+    asserts:
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SSL_CERT_FILE
+            value: /etc/ssl/certs/custom-ca-certificates.crt
+      - lengthEqual:
+          path: spec.template.spec.volumes
+          count: 1
+
   - it: should not set the JuiceFS Redis IAM auth provider env by default
     values:
       - ./values/sandboxes-enabled.yaml

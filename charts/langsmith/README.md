@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.18.0-rc.23](https://img.shields.io/badge/Version-0.18.0--rc.23-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.18.10rc1](https://img.shields.io/badge/AppVersion-0.18.10rc1-informational?style=flat-square)
+![Version: 0.18.0-rc.27](https://img.shields.io/badge/Version-0.18.0--rc.27-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.18.11rc1](https://img.shields.io/badge/AppVersion-0.18.11rc1-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -610,29 +610,29 @@ The trajectory Service is cluster-internal; no public route is added. Trajectory
 | gateway.sectionName | string | `""` |  |
 | images.aceBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.aceBackendImage.repository | string | `"docker.io/langchain/langsmith-ace-backend"` |  |
-| images.aceBackendImage.tag | string | `"0.18.10rc1"` |  |
+| images.aceBackendImage.tag | string | `"0.18.11rc1"` |  |
 | images.agentBuilderImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.agentBuilderImage.repository | string | `"docker.io/langchain/agent-builder-deep-agent"` |  |
-| images.agentBuilderImage.tag | string | `"0.18.10rc1"` |  |
+| images.agentBuilderImage.tag | string | `"0.18.11rc1"` |  |
 | images.backendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.backendImage.repository | string | `"docker.io/langchain/langsmith-backend"` |  |
-| images.backendImage.tag | string | `"0.18.10rc1"` |  |
+| images.backendImage.tag | string | `"0.18.11rc1"` |  |
 | images.clickhouseImage.pullPolicy | string | `"Always"` |  |
 | images.clickhouseImage.repository | string | `"docker.io/clickhouse/clickhouse-server"` |  |
 | images.clickhouseImage.tag | string | `"25.12"` |  |
 | images.engineInsightsAgentImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.engineInsightsAgentImage.repository | string | `"docker.io/langchain/langsmith-insights-engine"` |  |
-| images.engineInsightsAgentImage.tag | string | `"0.18.10rc1"` |  |
+| images.engineInsightsAgentImage.tag | string | `"0.18.11rc1"` |  |
 | images.frontendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.frontendImage.repository | string | `"docker.io/langchain/langsmith-frontend"` |  |
-| images.frontendImage.tag | string | `"0.18.10rc1"` |  |
+| images.frontendImage.tag | string | `"0.18.11rc1"` |  |
 | images.imagePullSecrets | list | `[]` | Secrets with credentials to pull images from a private registry. Specified as name: value. |
 | images.operatorImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.operatorImage.repository | string | `"docker.io/langchain/langgraph-operator"` |  |
 | images.operatorImage.tag | string | `"0.1.60"` |  |
 | images.pollyAgentImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.pollyAgentImage.repository | string | `"docker.io/langchain/langsmith-polly"` |  |
-| images.pollyAgentImage.tag | string | `"0.18.10rc1"` |  |
+| images.pollyAgentImage.tag | string | `"0.18.11rc1"` |  |
 | images.postgresImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.postgresImage.repository | string | `"docker.io/postgres"` |  |
 | images.postgresImage.tag | string | `"14.7"` |  |
@@ -646,7 +646,7 @@ The trajectory Service is cluster-internal; no public route is added. Trajectory
 | images.sandboxHostImage | object | `{"pullPolicy":"IfNotPresent","repository":"docker.io/langchain/sandbox-host","tag":""}` | sandbox-host image. Only used when sandboxes.enabled is true. |
 | images.smithdbImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.smithdbImage.repository | string | `"docker.io/langchain/smithdb"` |  |
-| images.smithdbImage.tag | string | `"0.18.10rc1"` |  |
+| images.smithdbImage.tag | string | `"0.18.11rc1"` |  |
 | ingestQueue.autoscaling.hpa.enabled | bool | `false` |  |
 | ingestQueue.autoscaling.hpa.maxReplicas | int | `10` |  |
 | ingestQueue.autoscaling.hpa.minReplicas | int | `3` |  |
@@ -1232,6 +1232,11 @@ The trajectory Service is cluster-internal; no public route is added. Trajectory
 | smithdb.metastoreMigration.job.volumeMounts | list | `[]` |  |
 | smithdb.metastoreMigration.job.volumes | list | `[]` |  |
 | smithdb.metastoreMigration.name | string | `"metastore-migration"` |  |
+| smithdb.migration.byocDestination.enabled | bool | `false` | Migrate into a BYOC data plane's SmithDB. S3 settings come from the SH_TO_BYOC_S3_* commonEnv entries. The role and region also drive RDS IAM auth, so the RDS instance must be in the bucket's region. Start with a fresh taskdb when switching an existing migration to this destination. |
+| smithdb.migration.byocDestination.metastore.database | string | `""` |  |
+| smithdb.migration.byocDestination.metastore.host | string | `""` | BYOC RDS metastore host, reached with AWS IAM auth. The cluster needs a network route to it. |
+| smithdb.migration.byocDestination.metastore.port | int | `5432` |  |
+| smithdb.migration.byocDestination.metastore.username | string | `""` | Database user granted rds_iam. |
 | smithdb.migration.containerPort | int | `9040` |  |
 | smithdb.migration.endTime | string | `""` | Optional RFC3339 end bound for migrate-all (half-open window). Empty uses now. |
 | smithdb.migration.job.activeDeadlineSeconds | string | `nil` | Optional hard deadline for the Job. Leave unset for long-running full migrations. |

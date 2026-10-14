@@ -65,21 +65,21 @@ images:
   aceBackendImage:
     repository: "docker.io/langchain/langsmith-ace-backend"
     pullPolicy: IfNotPresent
-    tag: "0.18.10rc1"
+    tag: "0.18.11rc1"
   backendImage:
     repository: "docker.io/langchain/langsmith-backend"
     pullPolicy: IfNotPresent
-    tag: "0.18.10rc1"
+    tag: "0.18.11rc1"
   # Serves both the `insights` and `engine` graphs; insights.enabled and
   # engine.enabled pick which of them run.
   engineInsightsAgentImage:
     repository: "docker.io/langchain/langsmith-insights-engine"
     pullPolicy: IfNotPresent
-    tag: "0.18.10rc1"
+    tag: "0.18.11rc1"
   frontendImage:
     repository: "docker.io/langchain/langsmith-frontend"
     pullPolicy: IfNotPresent
-    tag: "0.18.10rc1"
+    tag: "0.18.11rc1"
   operatorImage:
     repository: "docker.io/langchain/langgraph-operator"
     pullPolicy: IfNotPresent
@@ -103,15 +103,15 @@ images:
   agentBuilderImage:
     repository: "docker.io/langchain/agent-builder-deep-agent"
     pullPolicy: IfNotPresent
-    tag: "0.18.10rc1"
+    tag: "0.18.11rc1"
   pollyAgentImage:
     repository: "docker.io/langchain/langsmith-polly"
     pullPolicy: IfNotPresent
-    tag: "0.18.10rc1"
+    tag: "0.18.11rc1"
   smithdbImage:
     repository: "docker.io/langchain/smithdb"
     pullPolicy: IfNotPresent
-    tag: "0.18.10rc1"
+    tag: "0.18.11rc1"
   # Optional: only mirror/pull when presidioAnalyzer.enabled is true
   presidioAnalyzerImage:
     repository: "mcr.microsoft.com/presidio-analyzer"
@@ -2131,6 +2131,18 @@ smithdb:
     startTime: ""
     # -- Optional RFC3339 end bound for migrate-all (half-open window). Empty uses now.
     endTime: ""
+    byocDestination:
+      # -- Migrate into a BYOC data plane's SmithDB. S3 settings come from the SH_TO_BYOC_S3_* commonEnv entries.
+      # The role and region also drive RDS IAM auth, so the RDS instance must be in the bucket's region.
+      # Start with a fresh taskdb when switching an existing migration to this destination.
+      enabled: false
+      metastore:
+        # -- BYOC RDS metastore host, reached with AWS IAM auth. The cluster needs a network route to it.
+        host: ""
+        port: 5432
+        database: ""
+        # -- Database user granted rds_iam.
+        username: ""
     job:
       # -- Keep finished migrate-all Jobs around for seven days so operators can inspect status/logs.
       ttlSecondsAfterFinished: 604800

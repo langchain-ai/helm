@@ -469,6 +469,20 @@ AWS Marketplace Helm template verification).
 {{- if and .Values.smithdb.langsmith.migration.enabled (not .Values.clickhouse.enabled) -}}
 {{- fail "clickhouse.enabled must be true when smithdb.langsmith.migration.enabled is true." -}}
 {{- end -}}
+{{- $byoc := .Values.smithdb.migration.byocDestination -}}
+{{- if and .Values.smithdb.langsmith.migration.enabled $byoc.enabled -}}
+{{- $byocSources := include "langsmith.smithdb.migration.byocSourceEnv" . | fromYaml -}}
+{{- range $name := list "SH_TO_BYOC_S3_BUCKET" "SH_TO_BYOC_S3_REGION" -}}
+{{- if not (hasKey $byocSources $name) -}}
+{{- fail (printf "%s must be set in commonEnv or smithdb.commonEnv when smithdb.migration.byocDestination.enabled is true." $name) -}}
+{{- end -}}
+{{- end -}}
+{{- range $key := list "host" "database" "username" -}}
+{{- if not (get $byoc.metastore $key) -}}
+{{- fail (printf "smithdb.migration.byocDestination.metastore.%s is required when smithdb.migration.byocDestination.enabled is true." $key) -}}
+{{- end -}}
+{{- end -}}
+{{- end -}}
 {{- if and .Values.smithdb.langsmith.migration.enabled (not .Values.smithdb.migration.taskdb.postgres.enabled) -}}
 {{- fail "smithdb.migration.taskdb.postgres.enabled must be true when smithdb.langsmith.migration.enabled is true." -}}
 {{- end -}}

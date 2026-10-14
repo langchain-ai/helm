@@ -1,5 +1,7 @@
 {{- if and .Values.smithdb.enabled .Values.smithdb.langsmith.migration.enabled }}
-{{- $envVars := include "langsmith.mergeEnv" (dict "commonEnv" (concat .Values.commonEnv .Values.smithdb.commonEnv) "chart" (include "langsmith.smithdb.componentEnv" (dict "root" . "service" "MIGRATION" "displayName" "smithdb-migration") | fromYamlArray) "extraEnv" .Values.smithdb.migration.job.extraEnv) | fromYamlArray -}}
+{{- $byocDestination := .Values.smithdb.migration.byocDestination.enabled -}}
+{{- $componentEnv := ternary (include "langsmith.smithdb.migration.byocComponentEnv" .) (include "langsmith.smithdb.componentEnv" (dict "root" . "service" "MIGRATION" "displayName" "smithdb-migration")) $byocDestination -}}
+{{- $envVars := include "langsmith.mergeEnv" (dict "commonEnv" (concat .Values.commonEnv .Values.smithdb.commonEnv) "chart" ($componentEnv | fromYamlArray) "extraEnv" .Values.smithdb.migration.job.extraEnv) | fromYamlArray -}}
 {{- $blobStorage := .Values.config.blobStorage -}}
 {{- $smithdbObjectStore := .Values.smithdb.config.objectStore -}}
 {{- $smithdbObjectStoreType := lower (default "s3" $smithdbObjectStore.type) -}}
@@ -218,6 +220,9 @@ spec:
                   key: azure_storage_account_key
                   optional: true
             {{- end }}
+            {{- if $byocDestination }}
+            {{- include "langsmith.smithdb.migration.byocObjectStoreEnv" (dict "root" . "prefix" "SMITHDB_MIGRATION__OUTPUT__OBJECT_STORE") | nindent 12 }}
+            {{- else }}
             - name: SMITHDB_MIGRATION__OUTPUT__OBJECT_STORE__TYPE
               value: {{ $smithdbObjectStoreType | quote }}
             {{- if eq $smithdbObjectStoreType "s3" }}
@@ -285,6 +290,7 @@ spec:
                 secretKeyRef:
                   name: {{ .Values.smithdb.config.existingSecretName }}
                   key: {{ $smithdbObjectStore.azure.accessKeySecretKey }}
+            {{- end }}
             {{- end }}
             {{- end }}
             {{- toYaml $envVars | nindent 12 }}
