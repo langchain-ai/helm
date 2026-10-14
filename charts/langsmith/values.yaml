@@ -2055,6 +2055,32 @@ smithdb:
     startTime: ""
     # -- Optional RFC3339 end bound for migrate-all (half-open window). Empty uses now.
     endTime: ""
+    byocDestination:
+      # -- Write migrated data to a LangSmith BYOC data plane's SmithDB (S3 bucket and RDS metastore)
+      # instead of this install's SmithDB. Applies only to the migration Job. Start the migration
+      # with a fresh taskdb; switching an existing migration's destination is not supported.
+      enabled: false
+      # -- BYOC SmithDB S3 bucket.
+      bucket: ""
+      # -- AWS region of the bucket and the BYOC RDS metastore.
+      region: ""
+      # -- Optional S3 endpoint override.
+      endpoint: ""
+      # -- IAM role in the BYOC account, assumed for S3 access and RDS IAM auth tokens. Empty uses
+      # the base credentials directly.
+      roleArn: ""
+      # -- Optional key in smithdb.config.existingSecretName holding a static AWS access key ID.
+      # Static keys replace the pod's identity as the base credentials.
+      accessKeyIdSecretKey: ""
+      # -- Optional key in smithdb.config.existingSecretName holding the matching secret access key.
+      secretAccessKeySecretKey: ""
+      metastore:
+        # -- BYOC RDS metastore host, reached with AWS IAM auth. The cluster needs a network route to it.
+        host: ""
+        port: 5432
+        database: ""
+        # -- Database user granted rds_iam.
+        username: ""
     job:
       # -- Keep finished migrate-all Jobs around for seven days so operators can inspect status/logs.
       ttlSecondsAfterFinished: 604800

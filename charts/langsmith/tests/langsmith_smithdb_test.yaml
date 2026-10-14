@@ -147,6 +147,55 @@ tests:
           content:
             name: SMITHDB_MIGRATION__OUTPUT__OBJECT_STORE__S3__KMS_KEY_ARN
             value: arn:aws:kms:us-west-2:123456789012:key/smithdb
+  - it: should point the migration at the BYOC destination
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      smithdb.config.objectStore.s3.kmsEncryptionEnabled: true
+      smithdb.langsmith.migration.enabled: true
+      smithdb.langsmith.query.enabled: false
+      smithdb.migration.taskdb.postgres.auth.password: taskdb-password
+      smithdb.migration.byocDestination:
+        enabled: true
+        bucket: byoc-bucket
+        region: us-east-2
+        roleArn: arn:aws:iam::111122223333:role/byoc
+        metastore:
+          host: byoc-rds
+          database: smithdb
+          username: smithdb_iam
+    template: smithdb/migration-job.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_MIGRATION__OUTPUT__OBJECT_STORE__S3__BUCKET
+            value: byoc-bucket
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_MIGRATION__OUTPUT__OBJECT_STORE__S3__ROLE_ARN
+            value: arn:aws:iam::111122223333:role/byoc
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_MIGRATION__OUTPUT__OBJECT_STORE__S3__KMS_ENCRYPTION_ENABLED
+            value: "true"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_MIGRATION__OBJECT_STORE__S3__BUCKET
+            value: byoc-bucket
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_MIGRATION__METASTORE__HOST
+            value: byoc-rds
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_MIGRATION__METASTORE__AWS_CREDENTIAL_OVERRIDES__REGION
+            value: us-east-2
   - it: should configure Azure Blob Storage for SmithDB
     values:
       - ./values/smithdb-enabled.yaml

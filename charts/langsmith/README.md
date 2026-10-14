@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.18.0-rc.23](https://img.shields.io/badge/Version-0.18.0--rc.23-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.18.10rc1](https://img.shields.io/badge/AppVersion-0.18.10rc1-informational?style=flat-square)
+![Version: 0.18.0-rc.24](https://img.shields.io/badge/Version-0.18.0--rc.24-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.18.10rc1](https://img.shields.io/badge/AppVersion-0.18.10rc1-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -1224,6 +1224,17 @@ The trajectory Service is cluster-internal; no public route is added. Trajectory
 | smithdb.metastoreMigration.job.volumeMounts | list | `[]` |  |
 | smithdb.metastoreMigration.job.volumes | list | `[]` |  |
 | smithdb.metastoreMigration.name | string | `"metastore-migration"` |  |
+| smithdb.migration.byocDestination.accessKeyIdSecretKey | string | `""` | Optional key in smithdb.config.existingSecretName holding a static AWS access key ID. Static keys replace the pod's identity as the base credentials. |
+| smithdb.migration.byocDestination.bucket | string | `""` | BYOC SmithDB S3 bucket. |
+| smithdb.migration.byocDestination.enabled | bool | `false` | Write migrated data to a LangSmith BYOC data plane's SmithDB (S3 bucket and RDS metastore) instead of this install's SmithDB. Applies only to the migration Job. Start the migration with a fresh taskdb; switching an existing migration's destination is not supported. |
+| smithdb.migration.byocDestination.endpoint | string | `""` | Optional S3 endpoint override. |
+| smithdb.migration.byocDestination.metastore.database | string | `""` |  |
+| smithdb.migration.byocDestination.metastore.host | string | `""` | BYOC RDS metastore host, reached with AWS IAM auth. The cluster needs a network route to it. |
+| smithdb.migration.byocDestination.metastore.port | int | `5432` |  |
+| smithdb.migration.byocDestination.metastore.username | string | `""` | Database user granted rds_iam. |
+| smithdb.migration.byocDestination.region | string | `""` | AWS region of the bucket and the BYOC RDS metastore. |
+| smithdb.migration.byocDestination.roleArn | string | `""` | IAM role in the BYOC account, assumed for S3 access and RDS IAM auth tokens. Empty uses the base credentials directly. |
+| smithdb.migration.byocDestination.secretAccessKeySecretKey | string | `""` | Optional key in smithdb.config.existingSecretName holding the matching secret access key. |
 | smithdb.migration.containerPort | int | `9040` |  |
 | smithdb.migration.endTime | string | `""` | Optional RFC3339 end bound for migrate-all (half-open window). Empty uses now. |
 | smithdb.migration.job.activeDeadlineSeconds | string | `nil` | Optional hard deadline for the Job. Leave unset for long-running full migrations. |

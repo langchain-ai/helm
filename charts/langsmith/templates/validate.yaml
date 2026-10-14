@@ -459,6 +459,22 @@ AWS Marketplace Helm template verification).
 {{- if and .Values.smithdb.langsmith.migration.enabled (not .Values.clickhouse.enabled) -}}
 {{- fail "clickhouse.enabled must be true when smithdb.langsmith.migration.enabled is true." -}}
 {{- end -}}
+{{- $byoc := .Values.smithdb.migration.byocDestination -}}
+{{- if and .Values.smithdb.langsmith.migration.enabled $byoc.enabled -}}
+{{- range $key := list "bucket" "region" -}}
+{{- if not (get $byoc $key) -}}
+{{- fail (printf "smithdb.migration.byocDestination.%s is required when smithdb.migration.byocDestination.enabled is true." $key) -}}
+{{- end -}}
+{{- end -}}
+{{- range $key := list "host" "database" "username" -}}
+{{- if not (get $byoc.metastore $key) -}}
+{{- fail (printf "smithdb.migration.byocDestination.metastore.%s is required when smithdb.migration.byocDestination.enabled is true." $key) -}}
+{{- end -}}
+{{- end -}}
+{{- if ne (empty $byoc.accessKeyIdSecretKey) (empty $byoc.secretAccessKeySecretKey) -}}
+{{- fail "smithdb.migration.byocDestination.accessKeyIdSecretKey and secretAccessKeySecretKey must be set together." -}}
+{{- end -}}
+{{- end -}}
 {{- if and .Values.smithdb.langsmith.migration.enabled (not .Values.smithdb.migration.taskdb.postgres.enabled) -}}
 {{- fail "smithdb.migration.taskdb.postgres.enabled must be true when smithdb.langsmith.migration.enabled is true." -}}
 {{- end -}}
