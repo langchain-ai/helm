@@ -29,6 +29,8 @@ Apply collection settings only for the components you operate. These examples do
 
 SmithDB's examples also collect LangSmith ingest-queue metrics on port `1989` and platform-backend queue metrics on port `1986`. Keep metrics listeners private. Prometheus must already discover the supplied annotations and attach the `namespace` label. The Datadog example uses the `smithdb.` metric prefix; the Grafana queries use raw Prometheus names. Datadog's SmithDB error panels additionally require logs matching `service:smithdb*`.
 
+With `smithdb.topology: single`, the `single` entry scrapes the SmithDB pod on port `8060`.
+
 ## Import and filter
 
 - **Datadog:** Import the JSON into a new dashboard using its JSON import action. Select `env`, `cluster`, and `namespace`. The cluster picker discovers values from `cluster_name`; queries use `$cluster.value` with their component's explicit tag key. You can change the picker's tag key without retagging metrics or changing those query keys, provided the selected cluster names match. Namespace uses `kube_namespace`. API service and bucket selectors follow the shared filters; Datadog places overflow controls in its additional-variable menu.
