@@ -6,7 +6,10 @@ tests:
     asserts:
       - matchRegex:
           path: data["nginx.conf"]
-          pattern: 'location /v1/agent-auth/ \{[^}]*proxy_pass http://[^}]*-platform-backend\.'
+          pattern: 'location /api/v1/agent-auth/ \{\s*rewrite /api/v1/agent-auth/\(\.\*\) /v1/agent-auth/\$1\s+break;[^}]*proxy_pass http://[^}]*-platform-backend\.'
+      - notMatchRegex:
+          path: data["nginx.conf"]
+          pattern: 'location /v1/agent-auth/'
 
   - it: routes agent auth to platform-backend with a base path
     set:
@@ -14,10 +17,10 @@ tests:
     asserts:
       - matchRegex:
           path: data["nginx.conf"]
-          pattern: 'location /langsmith/v1/agent-auth/ \{\s*rewrite /langsmith/v1/agent-auth/\(\.\*\) /v1/agent-auth/\$1\s+break;[^}]*proxy_pass http://[^}]*-platform-backend\.'
+          pattern: 'location /langsmith/api/v1/agent-auth/ \{\s*rewrite /langsmith/api/v1/agent-auth/\(\.\*\) /v1/agent-auth/\$1\s+break;[^}]*proxy_pass http://[^}]*-platform-backend\.'
       - notMatchRegex:
           path: data["nginx.conf"]
-          pattern: 'location /v1/agent-auth/'
+          pattern: 'location /langsmith/v1/agent-auth/'
 
   - it: routes the trajectory prefix to platform-backend without a base path
     asserts:
