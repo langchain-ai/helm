@@ -1605,6 +1605,11 @@ application ConfigMap or its secret-backed settings.
 - name: SANDBOX_HOST_JUICEFS_REDIS_IAM_AUTH_PROVIDER
   value: {{ . | quote }}
 {{- end }}
+{{- /* Like sandbox-host, so the formatter verifies a Redis signed by a private CA. */}}
+{{- if and .Values.config.customCa.secretName .Values.config.customCa.secretKey }}
+- name: SSL_CERT_FILE
+  value: /etc/ssl/certs/custom-ca-certificates.crt
+{{- end }}
 {{- end -}}
 
 {{/*
