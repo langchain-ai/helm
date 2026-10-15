@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.16.42](https://img.shields.io/badge/Version-0.16.42-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.16.71](https://img.shields.io/badge/AppVersion-0.16.71-informational?style=flat-square)
+![Version: 0.16.43](https://img.shields.io/badge/Version-0.16.43-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.16.71](https://img.shields.io/badge/AppVersion-0.16.71-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -597,6 +597,10 @@ Replica counts and autoscaling remain controlled by each component's `deployment
 | images.clickhouseImage.pullPolicy | string | `"Always"` |  |
 | images.clickhouseImage.repository | string | `"docker.io/clickhouse/clickhouse-server"` |  |
 | images.clickhouseImage.tag | string | `"25.12"` |  |
+| images.deploymentDbImage.repository | string | `"docker.io/pgvector/pgvector"` |  |
+| images.deploymentDbImage.tag | string | `"pg15"` |  |
+| images.deploymentRedisImage.repository | string | `"docker.io/redis"` |  |
+| images.deploymentRedisImage.tag | string | `"7"` |  |
 | images.engineInsightsAgentImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.engineInsightsAgentImage.repository | string | `"docker.io/langchain/langsmith-insights-engine"` |  |
 | images.engineInsightsAgentImage.tag | string | `"0.16.71"` |  |
