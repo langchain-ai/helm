@@ -119,25 +119,10 @@ list_chart_images() {
     ' "$CHART_DIR/values.yaml"
 }
 
-# Print "operatorTemplate <repository> <tag>" for each literal image in operator.templates, such as
-# the Postgres and Redis the operator creates for each deployment.
-list_operator_template_images() {
-    awk -v q="'" '
-        /^operator:/ { in_operator = 1; next }
-        in_operator && /^[^ #]/ { exit }
-        in_operator && /^  [A-Za-z]/ { in_templates = ($1 == "templates:"); next }
-        in_templates && $1 == "image:" && $2 !~ /\$/ {
-            image = $2; gsub("[\"" q "]", "", image)
-            i = match(image, /:[^:\/]*$/)
-            if (i) { repo = substr(image, 1, i - 1); tag = substr(image, i + 1) } else { repo = image; tag = "latest" }
-            if (repo !~ /^[^\/]*[.:][^\/]*\//) repo = "docker.io/" repo
-            print "operatorTemplate", repo, tag
-        }
-    ' "$CHART_DIR/values.yaml"
-}
-
+# The Redis and Postgres the operator creates for each deployment are
+# images.deploymentRedisImage and images.deploymentDbImage, so the list above
+# covers them; operator.templates no longer carries literal image references.
 CHART_IMAGES=$(list_chart_images)
-CHART_IMAGES+=$'\n'$(list_operator_template_images)
 CANDIDATES=()
 
 while read -r key repo tag; do
@@ -296,25 +281,14 @@ echo "Add these values so the chart pulls the mirrored images:"
 echo
 echo "images:"
 echo "  registry: \"${REGISTRY}\""
-TEMPLATE_IMAGES=()
 for entry in "${VALUES[@]}"; do
     read -r key src <<<"$entry"
     dest=$(dest_image "$src")
-    if [[ $key == operatorTemplate ]]; then
-        TEMPLATE_IMAGES+=("${src#docker.io/} → ${dest}")
-        continue
-    fi
     dest=${dest#"$REGISTRY"/}
     echo "  ${key}:"
     echo "    repository: \"${dest%:*}\""
     echo "    tag: \"${dest##*:}\""
 done
-
-if [[ ${#TEMPLATE_IMAGES[@]} -gt 0 ]]; then
-    echo
-    echo "The operator also creates Postgres and Redis for each deployment. Replace these images in operator.templates:"
-    printf '  %s\n' "${TEMPLATE_IMAGES[@]}"
-fi
 
 if [[ ${#NO_FIPS_VARIANT[@]} -gt 0 ]]; then
     echo

@@ -1,0 +1,88 @@
+suite: operator per-deployment Redis and Postgres images
+# The operator creates a Redis Deployment and a Postgres StatefulSet for each
+# agent deployment from operator.templates.redis and operator.templates.db.
+# Their images come from images.deploymentRedisImage and
+# images.deploymentDbImage, so they follow images.registry like every other
+# image, and the three pod templates carry images.imagePullSecrets. Without a
+# registry or a pull secret the rendered templates are today's, apart from the
+# Postgres image naming docker.io, the registry it always came from.
+templates:
+  - templates/operator/config-map.yaml
+tests:
+  - it: should keep today's images and no pull secrets by default
+    set:
+      config.deployment.enabled: true
+      config.hostname: https://langsmith.example.com
+      config.existingSecretName: langsmith-secret
+      ingress.enabled: true
+    asserts:
+      - matchRegex:
+          path: data["redis-deployment.yaml.tmpl"]
+          pattern: "image: docker.io/redis:7\n"
+      - matchRegex:
+          path: data["database-statefulset.yaml.tmpl"]
+          pattern: "image: docker.io/pgvector/pgvector:pg15\n"
+      - notMatchRegex:
+          path: data["deployment.yaml.tmpl"]
+          pattern: imagePullSecrets
+      - notMatchRegex:
+          path: data["redis-deployment.yaml.tmpl"]
+          pattern: imagePullSecrets
+      - notMatchRegex:
+          path: data["database-statefulset.yaml.tmpl"]
+          pattern: imagePullSecrets
+
+  - it: should prefix both images with images.registry
+    set:
+      config.deployment.enabled: true
+      config.hostname: https://langsmith.example.com
+      config.existingSecretName: langsmith-secret
+      ingress.enabled: true
+      images.registry: mirror.example.com
+    asserts:
+      - matchRegex:
+          path: data["redis-deployment.yaml.tmpl"]
+          pattern: "image: mirror.example.com/docker.io/redis:7\n"
+      - matchRegex:
+          path: data["database-statefulset.yaml.tmpl"]
+          pattern: "image: mirror.example.com/docker.io/pgvector/pgvector:pg15\n"
+
+  - it: should take a repository and tag per image
+    set:
+      config.deployment.enabled: true
+      config.hostname: https://langsmith.example.com
+      config.existingSecretName: langsmith-secret
+      ingress.enabled: true
+      images.deploymentRedisImage.repository: mirror.example.com/redis
+      images.deploymentRedisImage.tag: "7.4"
+      images.deploymentDbImage.repository: mirror.example.com/pgvector/pgvector
+      images.deploymentDbImage.tag: pg16
+    asserts:
+      - matchRegex:
+          path: data["redis-deployment.yaml.tmpl"]
+          pattern: "image: mirror.example.com/redis:7.4\n"
+      - matchRegex:
+          path: data["database-statefulset.yaml.tmpl"]
+          pattern: "image: mirror.example.com/pgvector/pgvector:pg16\n"
+
+  - it: should give the three pod templates the chart's pull secrets
+    set:
+      config.deployment.enabled: true
+      config.hostname: https://langsmith.example.com
+      config.existingSecretName: langsmith-secret
+      ingress.enabled: true
+      images.imagePullSecrets:
+        - name: nexus-pull
+    asserts:
+      - matchRegex:
+          path: data["deployment.yaml.tmpl"]
+          pattern: "imagePullSecrets:\n\\s+- name: nexus-pull\n"
+      - matchRegex:
+          path: data["redis-deployment.yaml.tmpl"]
+          pattern: "imagePullSecrets:\n\\s+- name: nexus-pull\n"
+      - matchRegex:
+          path: data["database-statefulset.yaml.tmpl"]
+          pattern: "imagePullSecrets:\n\\s+- name: nexus-pull\n"
+      - notMatchRegex:
+          path: data["service.yaml.tmpl"]
+          pattern: imagePullSecrets
