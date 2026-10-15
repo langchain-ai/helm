@@ -18,6 +18,8 @@ templates:
   - smithdb/compaction-worker-scaled-object.yaml
   - smithdb/cluster-manager-deployment.yaml
   - smithdb/migration-job.yaml
+  - smithdb/migration-service.yaml
+  - queue/deployment.yaml
   - smithdb/taskdb-postgres-secret.yaml
   - smithdb/taskdb-postgres-service.yaml
   - smithdb/taskdb-postgres-statefulset.yaml
@@ -147,6 +149,57 @@ tests:
           content:
             name: SMITHDB_MIGRATION__OUTPUT__OBJECT_STORE__S3__KMS_KEY_ARN
             value: arn:aws:kms:us-west-2:123456789012:key/smithdb
+  - it: should put a headless service in front of the migration job
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      smithdb.langsmith.migration.enabled: true
+      smithdb.langsmith.query.enabled: false
+      smithdb.migration.taskdb.postgres.auth.password: taskdb-password
+    template: smithdb/migration-service.yaml
+    asserts:
+      - isKind:
+          of: Service
+      - equal:
+          path: metadata.name
+          value: RELEASE-NAME-langsmith-smithdb-migration
+      - equal:
+          path: spec.clusterIP
+          value: None
+      - equal:
+          path: spec.publishNotReadyAddresses
+          value: true
+      - equal:
+          path: spec.ports[0]
+          value:
+            name: http
+            port: 9040
+            targetPort: http
+            protocol: TCP
+      - equal:
+          path: spec.selector["app.kubernetes.io/component"]
+          value: RELEASE-NAME-langsmith-smithdb-migration
+  - it: should point the queue at the migration metrics service
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      smithdb.langsmith.migration.enabled: true
+      smithdb.langsmith.query.enabled: false
+      smithdb.migration.taskdb.postgres.auth.password: taskdb-password
+    template: queue/deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_MIGRATION_METRICS_ENDPOINT
+            value: http://RELEASE-NAME-langsmith-smithdb-migration.NAMESPACE.svc.cluster.local:9040
+  - it: should not render the migration service when the migration is disabled
+    values:
+      - ./values/smithdb-enabled.yaml
+    template: smithdb/migration-service.yaml
+    asserts:
+      - hasDocuments:
+          count: 0
   - it: should point the migration at the BYOC destination
     values:
       - ./values/smithdb-enabled.yaml
