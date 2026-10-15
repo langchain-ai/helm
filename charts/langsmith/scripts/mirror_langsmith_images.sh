@@ -79,6 +79,10 @@ IMAGES=(
     "docker.io/langchain/agent-builder-deep-agent:${VERSION}"
     "docker.io/postgres:15.15"
     "docker.io/redis:8"
+    # The Redis and Postgres the operator creates for each agent deployment
+    # (images.deploymentRedisImage and images.deploymentDbImage).
+    "docker.io/redis:7"
+    "docker.io/pgvector/pgvector:pg15"
     "docker.io/clickhouse/clickhouse-server:25.12"
 )
 

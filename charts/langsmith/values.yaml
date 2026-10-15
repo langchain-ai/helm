@@ -138,6 +138,15 @@ images:
     repository: "docker.io/juicedata/mount"
     pullPolicy: IfNotPresent
     tag: "ce-v1.3.0"
+  # The images the operator gives each agent deployment's Redis and PostgreSQL
+  # (operator.templates.redis and operator.templates.db). They follow
+  # images.registry like the rest; the tag is the image's own, not the chart's.
+  deploymentRedisImage:
+    repository: "docker.io/redis"
+    tag: "7"
+  deploymentDbImage:
+    repository: "docker.io/pgvector/pgvector"
+    tag: "pg15"
 
 ingress:
   enabled: false
@@ -2918,6 +2927,10 @@ operator:
               app: ${name}
           spec:
             enableServiceLinks: false
+            {{- with .Values.images.imagePullSecrets }}
+            imagePullSecrets:
+              {{- toYaml . | nindent 8 }}
+            {{- end }}
             containers:
             - name: api-server
               image: ${image}
@@ -2971,9 +2984,13 @@ operator:
               app: ${service_name}
           spec:
             enableServiceLinks: false
+            {{- with .Values.images.imagePullSecrets }}
+            imagePullSecrets:
+              {{- toYaml . | nindent 8 }}
+            {{- end }}
             containers:
             - name: redis
-              image: docker.io/redis:7
+              image: {{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "deploymentRedisImage") }}
               ports:
               - containerPort: 6379
                 name: redis
@@ -3007,9 +3024,13 @@ operator:
             labels:
               app: ${service_name}
           spec:
+            {{- with .Values.images.imagePullSecrets }}
+            imagePullSecrets:
+              {{- toYaml . | nindent 8 }}
+            {{- end }}
             containers:
             - name: postgres
-              image: pgvector/pgvector:pg15
+              image: {{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "deploymentDbImage") }}
               ports:
               - containerPort: 5432
               command: ["docker-entrypoint.sh"]
