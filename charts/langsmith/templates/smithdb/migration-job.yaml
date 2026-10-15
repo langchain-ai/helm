@@ -1,18 +1,19 @@
 {{- if and .Values.smithdb.enabled .Values.smithdb.langsmith.migration.enabled }}
-{{- $byocDestination := .Values.smithdb.migration.byocDestination.enabled -}}
-{{- $componentEnv := ternary (include "langsmith.smithdb.migration.byocComponentEnv" .) (include "langsmith.smithdb.componentEnv" (dict "root" . "service" "MIGRATION" "displayName" "smithdb-migration")) $byocDestination -}}
-{{- $envVars := include "langsmith.mergeEnv" (dict "commonEnv" (concat .Values.commonEnv .Values.smithdb.commonEnv) "chart" ($componentEnv | fromYamlArray) "extraEnv" .Values.smithdb.migration.job.extraEnv) | fromYamlArray -}}
-{{- $blobStorage := .Values.config.blobStorage -}}
-{{- $smithdbObjectStore := .Values.smithdb.config.objectStore -}}
-{{- $smithdbObjectStoreType := lower (default "s3" $smithdbObjectStore.type) -}}
+{{- $componentName := include "langsmith.smithdb.componentName" (dict "root" . "component" "migration") -}}
+{{- $podTemplate := include "langsmith.smithdb.migration.podTemplate" . -}}
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: {{ include "langsmith.smithdb.componentName" (dict "root" . "component" "migration") }}
+  {{- /*
+  A Job's pod template is immutable, so the name carries a hash of it: a spec
+  change makes Helm replace the Job instead of failing the upgrade on a patch.
+  The replacement resumes from the progress persisted in TaskDB.
+  */}}
+  name: {{ printf "%s-%s" ($componentName | trunc 54 | trimSuffix "-") ($podTemplate | sha256sum | trunc 8) }}
   namespace: {{ .Values.namespace | default .Release.Namespace }}
   labels:
     {{- include "langsmith.labels" . | nindent 4 }}
-    app.kubernetes.io/component: {{ include "langsmith.smithdb.componentName" (dict "root" . "component" "migration") }}
+    app.kubernetes.io/component: {{ $componentName }}
     {{- with .Values.smithdb.migration.job.labels }}
       {{- toYaml . | nindent 4 }}
     {{- end }}
@@ -29,7 +30,20 @@ spec:
   {{- with .Values.smithdb.migration.job.activeDeadlineSeconds }}
   activeDeadlineSeconds: {{ . }}
   {{- end }}
-  template:
+  template:{{ $podTemplate }}
+{{- end }}
+
+{{- /*
+Renders spec.template at its place in the Job: the output starts with a newline
+and keeps the indentation, so the Job can hash it and inline it as-is.
+*/}}
+{{- define "langsmith.smithdb.migration.podTemplate" }}
+{{- $byocDestination := .Values.smithdb.migration.byocDestination.enabled -}}
+{{- $componentEnv := ternary (include "langsmith.smithdb.migration.byocComponentEnv" .) (include "langsmith.smithdb.componentEnv" (dict "root" . "service" "MIGRATION" "displayName" "smithdb-migration")) $byocDestination -}}
+{{- $envVars := include "langsmith.mergeEnv" (dict "commonEnv" (concat .Values.commonEnv .Values.smithdb.commonEnv) "chart" ($componentEnv | fromYamlArray) "extraEnv" .Values.smithdb.migration.job.extraEnv) | fromYamlArray -}}
+{{- $blobStorage := .Values.config.blobStorage -}}
+{{- $smithdbObjectStore := .Values.smithdb.config.objectStore -}}
+{{- $smithdbObjectStoreType := lower (default "s3" $smithdbObjectStore.type) }}
     metadata:
       annotations:
         {{- include "langsmith.commonPodAnnotations" . | nindent 8 }}
