@@ -2136,6 +2136,10 @@ smithdb:
   migration:
     name: "migration"
     containerPort: 9040
+    # -- Headless Service in front of the migration Job pods, so each pod has a stable DNS record on containerPort.
+    service:
+      labels: {}
+      annotations: {}
     # -- Optional RFC3339 start bound for migrate-all (half-open window). Empty uses end - 400 days.
     startTime: ""
     # -- Optional RFC3339 end bound for migrate-all (half-open window). Empty uses now.
