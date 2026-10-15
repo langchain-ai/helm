@@ -1,0 +1,156 @@
+.github/workflows/helm_checks.yaml
+  h_712f30a2a56c04 12,15-42,44-45,48-49,77-101,103,106,114-128,142,212-229,253-264
+.open-swe/APPROVALS.md
+  h_712f30a2a56c04 1-26
+charts/langsmith-connector/Chart.yaml
+  h_712f30a2a56c04 8-9
+charts/langsmith-connector/README.md
+  h_712f30a2a56c04 3,103
+charts/langsmith-connector/tests/deployment_test.yaml
+  h_712f30a2a56c04 168,175
+charts/langsmith-connector/values.yaml
+  h_712f30a2a56c04 40
+charts/langsmith/.helmignore
+  h_712f30a2a56c04 26
+charts/langsmith/Chart.yaml
+  h_712f30a2a56c04 8-9
+charts/langsmith/README.md
+  h_712f30a2a56c04 3,31-34,57-64,92,613,616,619,623-626,629,632,639,653,938-941,948,1239-1243,1276,1509-1557,1613,2198,2244,2363,2367,2391-2394
+charts/langsmith/README.md.gotmpl
+  h_712f30a2a56c04 33-36,59-66
+charts/langsmith/examples/langsmith-observability/README.md
+  h_712f30a2a56c04 1-76
+charts/langsmith/examples/langsmith-observability/components/sandboxes/README.md
+  h_712f30a2a56c04 1-117
+charts/langsmith/examples/langsmith-observability/components/sandboxes/datadog-juicefs-values.yaml
+  h_712f30a2a56c04 1-28
+charts/langsmith/examples/langsmith-observability/components/sandboxes/datadog-values.yaml
+  h_712f30a2a56c04 1-20
+charts/langsmith/examples/langsmith-observability/components/sandboxes/datadog.py
+  h_712f30a2a56c04 1-2151
+charts/langsmith/examples/langsmith-observability/components/sandboxes/grafana.py
+  h_712f30a2a56c04 1-345
+charts/langsmith/examples/langsmith-observability/components/sandboxes/prometheus/host-scrape.yaml
+  h_712f30a2a56c04 1-30
+charts/langsmith/examples/langsmith-observability/components/sandboxes/prometheus/juicefs-scrape.yaml
+  h_712f30a2a56c04 1-34
+charts/langsmith/examples/langsmith-observability/components/sandboxes/test_datadog.py
+  h_712f30a2a56c04 1-308
+charts/langsmith/examples/langsmith-observability/components/smithdb/datadog-values.yaml
+  h_712f30a2a56c04 92-109
+charts/langsmith/examples/langsmith-observability/components/smithdb/prometheus-values.yaml
+  h_712f30a2a56c04 35-40
+charts/langsmith/examples/langsmith-observability/datadog-dashboard.json
+  h_712f30a2a56c04 1-9849
+charts/langsmith/examples/langsmith-observability/generate_dashboards.py
+  h_712f30a2a56c04 1-468
+charts/langsmith/examples/langsmith-observability/grafana-dashboard.json
+  h_712f30a2a56c04 1-13290
+charts/langsmith/examples/langsmith-observability/promql_test_cases.py
+  h_712f30a2a56c04 1-178
+charts/langsmith/examples/langsmith-observability/test_dashboards.py
+  h_712f30a2a56c04 1-385
+charts/langsmith/examples/langsmith-observability/test_grafana.py
+  h_712f30a2a56c04 1-156
+charts/langsmith/scripts/mirror_langsmith_images.sh
+  h_712f30a2a56c04 5-10,17-19,21,25-28,40,44,48-53,55-59,71,80-140,143-148,155,160-234,249-254,256,258,260,262-266,275-296
+charts/langsmith/templates/_helpers.tpl
+  h_712f30a2a56c04 545,552,559,711-712,719-733,817-889,927,931,984,990,1106,1695-1703,1719-1720
+charts/langsmith/templates/agent-gateway/hpa.yaml
+  h_712f30a2a56c04 25-32
+charts/langsmith/templates/backend/deployment.yaml
+  h_712f30a2a56c04 12-17
+charts/langsmith/templates/config-map.yaml
+  h_712f30a2a56c04 40,44-45,50-52,56,74-75,77,81,84-86,88,93-95,98
+charts/langsmith/templates/frontend/config-map.yaml
+  h_712f30a2a56c04 19-25,84-85,92,142-150,460,491-499,628,654-665,684-690,749-750,757,765-776,837-845,1150,1240,1284-1292
+charts/langsmith/templates/operator/config-map.yaml
+  h_712f30a2a56c04 13,15,17,19
+charts/langsmith/templates/platform-backend/deployment.yaml
+  h_712f30a2a56c04 24-25
+charts/langsmith/templates/queue/deployment.yaml
+  h_712f30a2a56c04 14-17
+charts/langsmith/templates/sandboxes/juicefs-format-job.yaml
+  h_712f30a2a56c04 4-5,77-79,85-87
+charts/langsmith/templates/sandboxes/sandbox-host-deployment.yaml
+  h_712f30a2a56c04 8,143-153,164-167
+charts/langsmith/templates/secrets.yaml
+  h_712f30a2a56c04 34-36
+charts/langsmith/templates/smithdb/cluster-manager-deployment.yaml
+  h_712f30a2a56c04 1
+charts/langsmith/templates/smithdb/compaction-deployment.yaml
+  h_712f30a2a56c04 1
+charts/langsmith/templates/smithdb/compaction-worker-deployment.yaml
+  h_712f30a2a56c04 1
+charts/langsmith/templates/smithdb/compaction-worker-hpa.yaml
+  h_712f30a2a56c04 1
+charts/langsmith/templates/smithdb/compaction-worker-scaled-object.yaml
+  h_712f30a2a56c04 1
+charts/langsmith/templates/smithdb/ingestion-deployment.yaml
+  h_712f30a2a56c04 1
+charts/langsmith/templates/smithdb/ingestion-hpa.yaml
+  h_712f30a2a56c04 1
+charts/langsmith/templates/smithdb/migration-job.yaml
+  h_712f30a2a56c04 2-4,232-234,304
+charts/langsmith/templates/smithdb/migration-service.yaml
+  h_712f30a2a56c04 1-31
+charts/langsmith/templates/smithdb/pdbs.yaml
+  h_712f30a2a56c04 1
+charts/langsmith/templates/smithdb/query-deployment.yaml
+  h_712f30a2a56c04 1
+charts/langsmith/templates/smithdb/query-hpa.yaml
+  h_712f30a2a56c04 1
+charts/langsmith/templates/smithdb/query-services-deployments.yaml
+  h_712f30a2a56c04 1,12,15,92-95
+charts/langsmith/templates/smithdb/query-services-hpas.yaml
+  h_712f30a2a56c04 1
+charts/langsmith/templates/smithdb/services.yaml
+  h_712f30a2a56c04 1
+charts/langsmith/templates/smithdb/single-deployment.yaml
+  h_712f30a2a56c04 1-183
+charts/langsmith/templates/smithdb/single-service.yaml
+  h_712f30a2a56c04 1-32
+charts/langsmith/templates/validate.yaml
+  h_712f30a2a56c04 41-50,235-238,240-243,472-485,678-680,701
+charts/langsmith/tests/engine_insights_agent_test.yaml
+  h_712f30a2a56c04 106-118
+charts/langsmith/tests/engine_sandbox_tenant_test.yaml
+  h_712f30a2a56c04 3,6-12,15-17,42-76
+charts/langsmith/tests/frontend_header_buffers_test.yaml
+  h_712f30a2a56c04 1-64
+charts/langsmith/tests/frontend_host_backend_routing_test.yaml
+  h_712f30a2a56c04 1-78
+charts/langsmith/tests/frontend_nginx_test.yaml
+  h_712f30a2a56c04 5-53,104-161
+charts/langsmith/tests/langsmith_smithdb_query_services_test.yaml
+  h_712f30a2a56c04 59-107
+charts/langsmith/tests/langsmith_smithdb_single_test.yaml
+  h_712f30a2a56c04 1-121
+charts/langsmith/tests/langsmith_smithdb_test.yaml
+  h_712f30a2a56c04 21-22,152-252
+charts/langsmith/tests/langsmith_smithdb_validation_test.yaml
+  h_712f30a2a56c04 21-36
+charts/langsmith/tests/operator_deployment_images_test.yaml
+  h_712f30a2a56c04 1-88
+charts/langsmith/tests/platform_endpoint_test.yaml
+  h_712f30a2a56c04 90-92,97,99
+charts/langsmith/tests/sandbox_juicefs_test.yaml
+  h_712f30a2a56c04 374-512
+charts/langsmith/tests/sandbox_observability_test.yaml
+  h_712f30a2a56c04 1-49
+charts/langsmith/tests/sandboxes_test.yaml
+  h_712f30a2a56c04 48-52,1248-1417
+charts/langsmith/values.yaml
+  h_712f30a2a56c04 68,72,78,82,106,110,114,125-133,179-185,198-199,556-557,1422-1423,1500-1573,2139-2142,2147-2158,2757-2758,3296-3299,3353-3356,3359,3393-3396,3399,4141-4142,4144-4145,4180,4185
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "8b281808a062525e523c75f8cdb86d5651cf2f5a",
+  "prompts": {},
+  "humans": {
+    "h_712f30a2a56c04": {
+      "author": "ben11211 <nagengast@langchain.dev>"
+    }
+  }
+}
