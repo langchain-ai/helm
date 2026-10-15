@@ -1,0 +1,32 @@
+{{- if include "langsmith.smithdb.singleTopology" . }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "langsmith.smithdb.componentName" (dict "root" . "component" "single") }}
+  namespace: {{ .Values.namespace | default .Release.Namespace }}
+  labels:
+    {{- include "langsmith.labels" . | nindent 4 }}
+    app.kubernetes.io/component: {{ include "langsmith.smithdb.componentName" (dict "root" . "component" "single") }}
+    {{- with .Values.smithdb.single.service.labels }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+  annotations:
+    {{- include "langsmith.annotations" . | nindent 4 }}
+    {{- with .Values.smithdb.single.service.annotations }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  type: ClusterIP
+  ports:
+    - name: grpc
+      port: {{ .Values.smithdb.single.service.port }}
+      targetPort: grpc
+      protocol: TCP
+    - name: grpc-ingestion
+      port: {{ .Values.smithdb.single.service.ingestionPort }}
+      targetPort: grpc-ingestion
+      protocol: TCP
+  selector:
+    {{- include "langsmith.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: {{ include "langsmith.smithdb.componentName" (dict "root" . "component" "single") }}
+{{- end }}

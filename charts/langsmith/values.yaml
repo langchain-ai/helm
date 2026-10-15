@@ -65,21 +65,21 @@ images:
   aceBackendImage:
     repository: "docker.io/langchain/langsmith-ace-backend"
     pullPolicy: IfNotPresent
-    tag: "0.18.4rc1"
+    tag: "0.18.11rc1"
   backendImage:
     repository: "docker.io/langchain/langsmith-backend"
     pullPolicy: IfNotPresent
-    tag: "0.18.4rc1"
+    tag: "0.18.11rc1"
   # Serves both the `insights` and `engine` graphs; insights.enabled and
   # engine.enabled pick which of them run.
   engineInsightsAgentImage:
     repository: "docker.io/langchain/langsmith-insights-engine"
     pullPolicy: IfNotPresent
-    tag: "0.18.4rc1"
+    tag: "0.18.11rc1"
   frontendImage:
     repository: "docker.io/langchain/langsmith-frontend"
     pullPolicy: IfNotPresent
-    tag: "0.18.4rc1"
+    tag: "0.18.11rc1"
   operatorImage:
     repository: "docker.io/langchain/langgraph-operator"
     pullPolicy: IfNotPresent
@@ -103,15 +103,15 @@ images:
   agentBuilderImage:
     repository: "docker.io/langchain/agent-builder-deep-agent"
     pullPolicy: IfNotPresent
-    tag: "0.18.4rc1"
+    tag: "0.18.11rc1"
   pollyAgentImage:
     repository: "docker.io/langchain/langsmith-polly"
     pullPolicy: IfNotPresent
-    tag: "0.18.4rc1"
+    tag: "0.18.11rc1"
   smithdbImage:
     repository: "docker.io/langchain/smithdb"
     pullPolicy: IfNotPresent
-    tag: "0.18.4rc1"
+    tag: "0.18.11rc1"
   # Optional: only mirror/pull when presidioAnalyzer.enabled is true
   presidioAnalyzerImage:
     repository: "mcr.microsoft.com/presidio-analyzer"
@@ -122,6 +122,15 @@ images:
     repository: "docker.io/langchain/sandbox-host"
     pullPolicy: IfNotPresent
     tag: ""
+  # The images the operator gives each agent deployment's Redis and PostgreSQL
+  # (operator.templates.redis and operator.templates.db). They follow
+  # images.registry like the rest; the tag is the image's own, not the chart's.
+  deploymentRedisImage:
+    repository: "docker.io/redis"
+    tag: "7"
+  deploymentDbImage:
+    repository: "docker.io/pgvector/pgvector"
+    tag: "pg15"
 
 ingress:
   enabled: false
@@ -167,6 +176,13 @@ sandboxes:
     secretName: "smithbox-proxy-ca"
     # -- Existing TLS Secret containing tls.crt and tls.key for the sandbox proxy CA. This Secret can be created manually, by cert-manager, or by another external process.
     existingSecretName: ""
+  authProxy:
+    # -- Route sandbox egress (the sandbox auth proxy's upstream connections) through a corporate HTTP forward proxy, as an HTTP_PROXY/HTTPS_PROXY client would: plain HTTP as standard proxy requests, HTTPS and other TCP through CONNECT. The proxy must allow CONNECT to 443 and any other TCP ports sandboxes use; nothing falls back to direct access.
+    httpProxy:
+      # -- Proxy URL, `http://host:port` or `https://host:port` (TLS to the proxy itself, verified against config.customCa when set, otherwise the system roots); empty sends egress directly. A private address is allowed. For Basic proxy authentication use `http://user:password@host:port`, percent-encoding reserved characters; sandboxes never see the credentials. Stored in the LangSmith app Secret, or set key `sandbox_egress_proxy_url` in config.existingSecretName instead.
+      url: ""
+      # -- Destinations dialed directly instead of through the proxy, with standard NO_PROXY matching: "internal.corp" matches the host and its subdomains, ".internal.corp" only subdomains, plus IP addresses, CIDR ranges such as "10.0.0.0/8", "host:port" entries, and "*".
+      noProxy: []
   juicefs:
     # -- JuiceFS volume name. Use a flat DNS-label-style name only; slashes and object-store subpaths are not supported here. JuiceFS stores objects under `<name>/` inside the configured bucket.
     name: "sandbox-juicefs"
@@ -179,6 +195,8 @@ sandboxes:
     redis:
       # -- JuiceFS Redis metadata URL. Redis metadata engines must use maxmemory-policy noeviction. For Redis Cluster, the `/DB` path is used by JuiceFS as a hash-tag key prefix rather than a Redis logical database.
       metaURL: ""
+      # -- IAM authentication provider for the JuiceFS Redis. Valid values: "", "azure" and "gcp". Uses workload identity on sandbox-host and the formatter Job; on GKE, sandbox-host uses hostNetwork and so authenticates as its node's service account.
+      iamAuthProvider: ""
     # -- Existing Secret containing JuiceFS config keys `name`, `metaurl`, `storage`, and `bucket`. For Azure Blob Storage, set `access-key` to the storage account name. Set `secret-key` only for account-key authentication. The formatter Job reads the Secret; sandbox-host receives only `metaurl`. When set, the chart does not create the config Secret and the corresponding values above are ignored. Rotate the Secret name to rerun formatting; roll sandbox-host after changing data in place.
     existingSecretName: ""
     hostMount:
@@ -535,6 +553,8 @@ fleet:
 engine:
   # -- Enable the LangSmith Engine. See the Engine section of this README for what it requires.
   enabled: false
+  # -- Skip Engine's requirement for sandboxes.enabled in BYOC deployments, where sandboxes are managed outside this Helm release.
+  skipSandboxValidation: false
   # -- LangSmith Intelligence endpoint, authenticated with the license key. Engine reports
   # usage on your own model providers here. The default records usage only; to also run
   # Engine on LangSmith Intelligence's models, use https://beacon.aws.langchain.com/intelligence
@@ -1399,6 +1419,8 @@ smithdb:
   enabled: false
   # -- Per-replica CPU, memory, and cache volume size for SmithDB runtime components: small, medium, or large. See the README.
   resourceTier: "small"
+  # -- SmithDB workload layout: cluster runs query, ingestion, compaction, and the cluster manager as separate workloads; single runs them all in one `smithdb all` pod with one replica. smithdb.resourceTier sizes either layout.
+  topology: "cluster"
   cache:
     # -- StorageClass for the generated SmithDB cache volumes. Empty uses the cluster default. A component's deployment.volumes replaces the generated volume.
     storageClassName: ""
@@ -1474,6 +1496,80 @@ smithdb:
         # -- Key in smithdb.config.existingSecretName for a storage account access key.
         # Leave empty when using Azure Workload Identity.
         accessKeySecretKey: ""
+
+  single:
+    # -- HTTP port for health checks and metrics, served by the query service.
+    containerPort: 8060
+    # -- Query gRPC port.
+    containerGrpcPort: 8080
+    ingestionContainerPort: 8050
+    # -- Ingestion gRPC port.
+    ingestionContainerGrpcPort: 8082
+    compactionContainerPort: 8070
+    deployment:
+      strategy:
+        type: RollingUpdate
+        rollingUpdate:
+          maxSurge: 1
+          maxUnavailable: 0
+      labels: {}
+      annotations: {}
+      podSecurityContext:
+        fsGroup: 1001
+      securityContext: {}
+      priorityClassName: ""
+      terminationGracePeriodSeconds: 300
+      probes:
+        startupProbe:
+          httpGet:
+            path: /health
+            port: http
+          failureThreshold: 6
+          periodSeconds: 10
+          timeoutSeconds: 1
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: http
+          failureThreshold: 6
+          periodSeconds: 10
+          timeoutSeconds: 1
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: http
+          failureThreshold: 6
+          periodSeconds: 10
+          timeoutSeconds: 1
+      command:
+        - "./smithdb"
+        - "all"
+      extraEnv: []
+      extraContainerConfig: {}
+      sidecars: []
+      nodeSelector: {}
+      tolerations: []
+      affinity: {}
+      topologySpreadConstraints: []
+      # -- The cache volume holds the query cache, ingestion staging, and, through the /tmp mount, compaction scratch.
+      volumeMounts:
+        - name: cache
+          mountPath: /data
+        - name: cache
+          mountPath: /tmp
+          subPath: tmp
+      volumes: []
+      initContainers: []
+    service:
+      port: 8080
+      ingestionPort: 8082
+      labels: {}
+      annotations: {}
+    pdb:
+      enabled: true
+      minAvailable: 1
+      labels: {}
+      annotations: {}
 
   query:
     name: "query"
@@ -2040,10 +2136,26 @@ smithdb:
   migration:
     name: "migration"
     containerPort: 9040
+    # -- Headless Service in front of the migration Job pods, so each pod has a stable DNS record on containerPort.
+    service:
+      labels: {}
+      annotations: {}
     # -- Optional RFC3339 start bound for migrate-all (half-open window). Empty uses end - 400 days.
     startTime: ""
     # -- Optional RFC3339 end bound for migrate-all (half-open window). Empty uses now.
     endTime: ""
+    byocDestination:
+      # -- Migrate into a BYOC data plane's SmithDB. S3 settings come from the SH_TO_BYOC_S3_* commonEnv entries.
+      # The role and region also drive RDS IAM auth, so the RDS instance must be in the bucket's region.
+      # Start with a fresh taskdb when switching an existing migration to this destination.
+      enabled: false
+      metastore:
+        # -- BYOC RDS metastore host, reached with AWS IAM auth. The cluster needs a network route to it.
+        host: ""
+        port: 5432
+        database: ""
+        # -- Database user granted rds_iam.
+        username: ""
     job:
       # -- Keep finished migrate-all Jobs around for seven days so operators can inspect status/logs.
       ttlSecondsAfterFinished: 604800
@@ -2642,6 +2754,8 @@ frontend:
           - setWeight: 100
   # Nginx Max Body Size. Refer to https://nginx.org/en/docs/http/ngx_http_core_module.html#client_max_body_size for more information.
   maxBodySize: "25M"
+  largeClientHeaderBuffers: "4 8k"
+  clientHeaderBufferSize: "1k"
   # Custom CSP Header. Refer to https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/CSP.
   # If includeNonce is true, use nginx built-in $request_id as nonce (cryptographically secure because compiled with OpenSSL)
   # Sample compatible CSP header with includeNonce: true: "script-src 'nonce-$request_id' 'strict-dynamic'; style-src 'nonce-$request_id' 'strict-dynamic'; frame-ancestors 'self'; object-src 'none'"
@@ -3179,6 +3293,10 @@ operator:
               app: ${name}
           spec:
             enableServiceLinks: false
+            {{- with .Values.images.imagePullSecrets }}
+            imagePullSecrets:
+              {{- toYaml . | nindent 8 }}
+            {{- end }}
             containers:
             - name: api-server
               image: ${image}
@@ -3232,9 +3350,13 @@ operator:
               app: ${service_name}
           spec:
             enableServiceLinks: false
+            {{- with .Values.images.imagePullSecrets }}
+            imagePullSecrets:
+              {{- toYaml . | nindent 8 }}
+            {{- end }}
             containers:
             - name: redis
-              image: docker.io/redis:7
+              image: {{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "deploymentRedisImage") }}
               ports:
               - containerPort: 6379
                 name: redis
@@ -3268,9 +3390,13 @@ operator:
             labels:
               app: ${service_name}
           spec:
+            {{- with .Values.images.imagePullSecrets }}
+            imagePullSecrets:
+              {{- toYaml . | nindent 8 }}
+            {{- end }}
             containers:
             - name: postgres
-              image: pgvector/pgvector:pg15
+              image: {{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "deploymentDbImage") }}
               ports:
               - containerPort: 5432
               command: ["docker-entrypoint.sh"]
@@ -4012,11 +4138,11 @@ agentGateway:
     priorityClassName: ""
     resources:
       limits:
-        cpu: 500m
-        memory: 512Mi
+        cpu: 2
+        memory: 2Gi
       requests:
-        cpu: 100m
-        memory: 256Mi
+        cpu: 1
+        memory: 1Gi
     command:
       - "agent_gateway_entrypoint.sh"
     startupProbe:
@@ -4051,11 +4177,12 @@ agentGateway:
     volumeMounts: []
     terminationGracePeriodSeconds: 30
   autoscaling:
-    enabled: false
+    enabled: true
     createHpa: true
     minReplicas: 1
     maxReplicas: 5
     targetCPUUtilizationPercentage: 50
+    targetMemoryUtilizationPercentage: 70
   service:
     type: ClusterIP
     port: 8083

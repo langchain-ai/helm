@@ -1,6 +1,8 @@
 {{- if .Values.sandboxes.enabled }}
 {{- $namespace := .Values.namespace | default .Release.Namespace }}
 {{- $juicefsFormatJob := .Values.sandboxes.juicefsFormatJob }}
+{{- $tlsVolumes := include "langsmith.tlsVolumes" . | fromYamlArray }}
+{{- $tlsVolumeMounts := include "langsmith.tlsVolumeMounts" . | fromYamlArray }}
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -72,9 +74,15 @@ spec:
             - name: juicefs-config
               mountPath: /run/secrets/juicefs
               readOnly: true
+            {{- with $tlsVolumeMounts }}
+              {{- toYaml . | nindent 12 }}
+            {{- end }}
       volumes:
         - name: juicefs-config
           secret:
             secretName: {{ include "langsmith.sandboxes.juicefsConfigSecretName" . }}
             defaultMode: 0400
+        {{- with $tlsVolumes }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
 {{- end }}

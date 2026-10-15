@@ -38,6 +38,16 @@ AWS Marketplace Helm template verification).
 {{- if not (has .Values.smithdb.resourceTier (list "small" "medium" "large")) -}}
 {{- fail "smithdb.resourceTier must be one of: small, medium, large." -}}
 {{- end -}}
+{{- if not (has .Values.smithdb.topology (list "cluster" "single")) -}}
+{{- fail "smithdb.topology must be one of: cluster, single." -}}
+{{- end -}}
+{{- if include "langsmith.smithdb.singleTopology" . -}}
+{{- range $component := list "mutations" "runRules" "statsQuery" -}}
+{{- if (index $.Values.smithdb $component).enabled -}}
+{{- fail (printf "smithdb.%s.enabled is not supported with smithdb.topology single; the single pod serves every query path." $component) -}}
+{{- end -}}
+{{- end -}}
+{{- end -}}
 {{- if not .Values.config.skipValidation -}}
 
 {{- /* Validate deprecated fleet server value keys */ -}}
@@ -222,7 +232,15 @@ AWS Marketplace Helm template verification).
 {{- fail "sandboxes.serviceUrlBaseUrl host must be a DNS hostname without a port when ingress.enabled is true." -}}
 {{- end -}}
 {{- end -}}
+{{- $httpProxy := ((.Values.sandboxes.authProxy | default dict).httpProxy) | default dict -}}
+{{- if and $httpProxy.url (or .Values.config.existingSecretName .Values.config.disableSecretCreation) -}}
+{{- fail "sandboxes.authProxy.httpProxy.url cannot be used when config.existingSecretName or config.disableSecretCreation is set. Add key sandbox_egress_proxy_url to that Secret instead." -}}
+{{- end -}}
 {{- $juicefs := .Values.sandboxes.juicefs | default dict -}}
+{{- $juicefsRedisIamAuthProvider := toString ((.Values.sandboxes.juicefs.redis | default dict).iamAuthProvider | default "") -}}
+{{- if not (has $juicefsRedisIamAuthProvider (list "" "azure" "gcp")) -}}
+{{- fail (printf "sandboxes.juicefs.redis.iamAuthProvider %q is not supported. Valid values are \"\", \"azure\" and \"gcp\"." $juicefsRedisIamAuthProvider) -}}
+{{- end -}}
 {{- if not $juicefs.existingSecretName -}}
 {{- $juicefsRedis := .Values.sandboxes.juicefs.redis | default dict -}}
 {{- if not $juicefsRedis.metaURL -}}
@@ -451,6 +469,20 @@ AWS Marketplace Helm template verification).
 {{- if and .Values.smithdb.langsmith.migration.enabled (not .Values.clickhouse.enabled) -}}
 {{- fail "clickhouse.enabled must be true when smithdb.langsmith.migration.enabled is true." -}}
 {{- end -}}
+{{- $byoc := .Values.smithdb.migration.byocDestination -}}
+{{- if and .Values.smithdb.langsmith.migration.enabled $byoc.enabled -}}
+{{- $byocSources := include "langsmith.smithdb.migration.byocSourceEnv" . | fromYaml -}}
+{{- range $name := list "SH_TO_BYOC_S3_BUCKET" "SH_TO_BYOC_S3_REGION" -}}
+{{- if not (hasKey $byocSources $name) -}}
+{{- fail (printf "%s must be set in commonEnv or smithdb.commonEnv when smithdb.migration.byocDestination.enabled is true." $name) -}}
+{{- end -}}
+{{- end -}}
+{{- range $key := list "host" "database" "username" -}}
+{{- if not (get $byoc.metastore $key) -}}
+{{- fail (printf "smithdb.migration.byocDestination.metastore.%s is required when smithdb.migration.byocDestination.enabled is true." $key) -}}
+{{- end -}}
+{{- end -}}
+{{- end -}}
 {{- if and .Values.smithdb.langsmith.migration.enabled (not .Values.smithdb.migration.taskdb.postgres.enabled) -}}
 {{- fail "smithdb.migration.taskdb.postgres.enabled must be true when smithdb.langsmith.migration.enabled is true." -}}
 {{- end -}}
@@ -643,6 +675,9 @@ AWS Marketplace Helm template verification).
 {{- if and .Values.engine.usageSigningSecret (lt (len .Values.engine.usageSigningSecret) 32) }}
 {{- fail "engine.usageSigningSecret must contain at least 32 characters." }}
 {{- end }}
+{{- if and .Values.engine.sandboxTenantId (not (regexMatch "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$" (toString .Values.engine.sandboxTenantId))) }}
+{{- fail "engine.sandboxTenantId must be a canonical UUID (xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx)." }}
+{{- end }}
 {{- /* With an existing Secret, a missing Engine key otherwise surfaces only as
 pods stuck in CreateContainerConfigError. The lookup is empty under helm
 template and GitOps renders, so those skip this check. */ -}}
@@ -663,7 +698,7 @@ template and GitOps renders, so those skip this check. */ -}}
 {{- if and .Values.config.existingSecretName .Values.engine.usageSigningSecret }}
 {{- fail "engine.usageSigningSecret cannot be used when config.existingSecretName is set. Add key engine_usage_signing_secret to the existing Secret instead." }}
 {{- end }}
-{{- if not .Values.sandboxes.enabled }}
+{{- if and (not .Values.sandboxes.enabled) (not .Values.engine.skipSandboxValidation) }}
 {{- fail "engine.enabled is true but sandboxes.enabled is false: every Engine run executes in a sandbox, so Engine cannot run without them." }}
 {{- end }}
 {{- if not .Values.config.hostname }}

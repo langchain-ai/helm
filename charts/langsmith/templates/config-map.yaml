@@ -37,20 +37,24 @@ data:
   LANGCHAIN_ENDPOINT: "/{{ if .Values.config.basePath }}{{ .Values.config.basePath }}/{{ end }}api/v1"
   GO_ENDPOINT: {{ include "langsmith.platformBackendEndpoint" . | quote }}
   LANGSMITH_PUBLIC_API_ENDPOINT: {{ include "langsmith.publicApiEndpoint" . | quote }}
-  {{- if .Values.sandboxes.enabled }}
+  {{- if or .Values.sandboxes.enabled .Values.engine.enabled }}
   {{- /* smith-go builds the Engine run webhook callback from this; a relative
          value makes langgraph-api reject run creation as a loopback webhook. */}}
   LANGCHAIN_PLATFORM_ENDPOINT: {{ include "langsmith.publicApiEndpoint" . | quote }}
+  {{- end }}
+  {{- if .Values.sandboxes.enabled }}
   DEFAULT_ORG_FEATURE_MAX_SANDBOXES: {{ .Values.sandboxes.quotas.maxSandboxes | quote }}
   DEFAULT_ORG_FEATURE_MAX_SANDBOX_CPU: {{ .Values.sandboxes.quotas.maxCpuCores | quote }}
   DEFAULT_ORG_FEATURE_MAX_SANDBOX_MEMORY: {{ printf "%vGi" .Values.sandboxes.quotas.maxMemoryGb | quote }}
   {{- end }}
+  {{- /* Always set: an org stores this env value at creation, and only an
+         explicitly set env var overrides the stored copy. "true" defers to the
+         org's own engine_enabled; "false" hides Engine on installs without it. */}}
   {{- if .Values.engine.enabled }}
   SMITH_INTELLIGENCE_ENDPOINT: {{ .Values.engine.intelligenceBaseUrl | trimSuffix "/" | trimSuffix "/intelligence" | quote }}
   FORGE_AGENT_LANGGRAPH_URL: "http://{{ include "langsmith.agentFeatures.fullname" (dict "root" . "product" "engineInsightsAgent") }}-{{ .Values.engineInsightsAgent.apiServer.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.engineInsightsAgent.apiServer.service.httpPort }}"
+  DEFAULT_ORG_FEATURE_ENGINE_DEFAULT_ENABLED: "true"
   {{- else }}
-  {{- /* Org-level Engine enrollment defaults on for a self-hosted plan tier, so
-         without this the UI offers Engine on installs that never deployed it. */}}
   DEFAULT_ORG_FEATURE_ENGINE_DEFAULT_ENABLED: "false"
   {{- end }}
   GO_ACE_ENDPOINT: "http://{{ include "langsmith.fullname" . }}-{{.Values.aceBackend.name}}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.aceBackend.service.port }}"
@@ -67,21 +71,31 @@ data:
   CLICKHOUSE_QUERY_ENABLED: {{ .Values.clickhouse.enabled | quote }}
   SMITHDB_INGESTION_ENABLED: {{ .Values.smithdb.langsmith.ingestion.enabled | quote }}
   SMITHDB_QUERY_ENABLED: {{ .Values.smithdb.langsmith.query.enabled | quote }}
+  {{- $smithdbSingle := include "langsmith.smithdb.singleTopology" . }}
+  {{- $smithdbQueryComponent := ternary "single" "query" (not (empty $smithdbSingle)) }}
   {{- if .Values.smithdb.langsmith.query.enabled }}
-  {{- $smithdbQueryUrl := include "langsmith.smithdb.grpcServiceUrl" (dict "root" . "component" "query" "port" .Values.smithdb.query.service.port) }}
+  {{- $smithdbQueryUrl := include "langsmith.smithdb.grpcServiceUrl" (dict "root" . "component" $smithdbQueryComponent "port" (index .Values.smithdb $smithdbQueryComponent).service.port) }}
   SMITHDB_QUERY_SERVICE_URL: {{ $smithdbQueryUrl | quote }}
   {{- end }}
   {{- if .Values.smithdb.langsmith.ingestion.enabled }}
-  {{- $mutationsComponent := ternary "mutations" "query" .Values.smithdb.mutations.enabled }}
+  {{- $mutationsComponent := ternary "mutations" $smithdbQueryComponent .Values.smithdb.mutations.enabled }}
   {{- $mutationsValues := index .Values.smithdb $mutationsComponent }}
   SMITHDB_MUTATIONS_SERVICE_URL: {{ include "langsmith.smithdb.grpcServiceUrl" (dict "root" . "component" $mutationsComponent "port" $mutationsValues.service.port) | quote }}
+  {{- if $smithdbSingle }}
+  SMITHDB_INGESTION_SERVICE_URL: {{ include "langsmith.smithdb.grpcServiceUrl" (dict "root" . "component" "single" "port" .Values.smithdb.single.service.ingestionPort) | quote }}
+  {{- else }}
   SMITHDB_INGESTION_SERVICE_URL: {{ include "langsmith.smithdb.grpcServiceUrl" (dict "root" . "component" "ingestion" "port" .Values.smithdb.ingestion.service.port) | quote }}
+  {{- end }}
   RULES_REDIS_TRACKING_ENABLED: "true"
   RULES_REDIS_TRACKING_MULTIPART_ENABLED: "true"
   {{- end }}
   {{- if .Values.smithdb.enabled }}
+  {{- if $smithdbSingle }}
+  SMITHDB_CLUSTER_MANAGER_ENABLED: "false"
+  {{- else }}
   SMITHDB_CLUSTER_MANAGER_ENABLED: "true"
   SMITHDB_CLUSTER_MANAGER_URL: {{ include "langsmith.smithdb.grpcServiceUrl" (dict "root" . "component" "clusterManager" "port" .Values.smithdb.clusterManager.service.port) | quote }}
+  {{- end }}
   SMITHDB_UPGRADE_CRON_ENABLED: "true"
   SMITHDB_QUERY_SERVICE_MAX_CALL_RECV_MSG_SIZE: "1073741824"
   SMITHDB_FEEDBACK_MUTATION_RPS_PER_KEY: "100"

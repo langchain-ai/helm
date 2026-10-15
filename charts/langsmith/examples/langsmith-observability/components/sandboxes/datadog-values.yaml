@@ -1,0 +1,20 @@
+sandboxes:
+  sandboxHost:
+    deployment:
+      podAnnotations:
+        ad.datadoghq.com/sandbox-host.checks: |
+          {
+            "openmetrics": {
+              "init_config": {},
+              "instances": [
+                {
+                  "openmetrics_endpoint": "http://%%host%%:19190/metrics",
+                  "namespace": "",
+                  "metrics": ["langsmith_sandbox_host_.*", "langsmith_sandbox_egress_.*"],
+                  "tags": ["kube_namespace:%%kube_namespace%%"],
+                  "histogram_buckets_as_distributions": true,
+                  "collect_counters_with_distributions": true
+                }
+              ]
+            }
+          }

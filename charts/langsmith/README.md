@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.18.0-rc.8](https://img.shields.io/badge/Version-0.18.0--rc.8-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.18.4rc1](https://img.shields.io/badge/AppVersion-0.18.4rc1-informational?style=flat-square)
+![Version: 0.18.0-rc.31](https://img.shields.io/badge/Version-0.18.0--rc.31-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.18.11rc1](https://img.shields.io/badge/AppVersion-0.18.11rc1-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -28,6 +28,10 @@ Things worth planning for before you enable it:
 
 **Which workspace owns the sandboxes.** By default smith-go resolves the install's workspace, which works when there is exactly one non-personal organization. With more than one it declines rather than guess, and you must set `engine.sandboxTenantId` explicitly. Prefer a workspace reserved for the Engine: its sandboxes are visible to anyone with access to it.
 
+## Observability dashboards
+
+For tabbed Datadog and Grafana dashboards and component collection examples, see the [LangSmith observability bundle](examples/langsmith-observability/README.md). Import these definitions into your own monitoring instance. The standalone Classic-format SmithDB Grafana dashboard is available in the same bundle. All dashboard downloads now live in this bundle.
+
 ## Sandbox quotas
 
 When `sandboxes.enabled=true`, configure limits under `sandboxes.quotas`: `maxSandboxes` (default 1000), `maxCpuCores` (200), and `maxMemoryGb` (400 GiB). These limits do not provision cluster capacity.
@@ -49,6 +53,14 @@ The query disk cache limit is set automatically from the PVC storage request or,
 | Compaction | 2 CPU, 4Gi memory | 4 CPU, 8Gi memory | 8 CPU, 16Gi memory |
 | Compaction worker | 8 CPU, 16Gi memory, 100Gi cache | 16 CPU, 32Gi memory, 100Gi cache | 28 CPU, 50Gi memory, 300Gi cache |
 | Cluster manager | 250m CPU, 256Mi memory | 250m CPU, 256Mi memory | 2 CPU, 2Gi memory |
+
+### Single topology
+
+`smithdb.topology: single` replaces the components above with one `smithdb all` pod: no cluster manager, no compaction workers, and one cache volume. The process splits the volume between the query cache and ingestion staging, and mounts it at `/tmp` for compaction scratch. Memory and disk shares come from the pod's limits. `mutations`, `runRules`, and `statsQuery` are not supported in this topology. The pod always runs one replica; use `cluster` when SmithDB needs to scale out.
+
+| Tier | Small | Medium | Large |
+|---|---|---|---|
+| Single | 4 CPU, 16Gi memory, 100Gi cache | 16 CPU, 64Gi memory, 300Gi cache | 32 CPU, 128Gi memory, 1000Gi cache |
 
 **0.17 upgrade:** default caches switch from `emptyDir` to per-pod PVCs. Configure local SSD overrides before upgrading and rename custom volume and mount references from `local-ssd-storage` to `cache`.
 
@@ -77,6 +89,7 @@ The trajectory Service is cluster-internal; no public route is added. Trajectory
 | engine.encryptionKeyPrevious | string | `""` |  |
 | engine.intelligenceBaseUrl | string | `"https://beacon.langchain.com/intelligence"` | LangSmith Intelligence endpoint, authenticated with the license key. Engine reports usage on your own model providers here. The default records usage only; to also run Engine on LangSmith Intelligence's models, use https://beacon.aws.langchain.com/intelligence and select LangSmith Intelligence under Settings > Engine > Model providers. Air-gapped installs with an offline license set this to "" and send Engine usage from Settings > Usage export. |
 | engine.sandboxTenantId | string | `""` | Workspace that owns Engine sandboxes. Optional: smith-go resolves the install's workspace unless there is more than one non-personal org. Prefer one reserved for the Engine — its sandboxes are visible to anyone with access to it. |
+| engine.skipSandboxValidation | bool | `false` | Skip Engine's requirement for sandboxes.enabled in BYOC deployments, where sandboxes are managed outside this Helm release. |
 | engine.usageSigningSecret | string | `""` | Dedicated HS256 secret for Engine usage reports sent to smith-go. Use at least 32 random characters. With config.existingSecretName, add the key engine_usage_signing_secret to that Secret instead. |
 | engine.workloadIdentityProviders | list | `[]` | Model providers Engine can call with its pods' cloud identity instead of credentials saved in Settings > Engine > Model providers: any of bedrock, vertex, azure. A listed provider counts as configured without credentials, so any organization admin can select it. Grant the identity through engineInsightsAgent.apiServer.serviceAccount.annotations and engineInsightsAgent.queue.serviceAccount.annotations, scoped to the models Engine uses. |
 | engineInsightsAgent.apiServer.autoscaling.enabled | bool | `false` |  |
@@ -597,29 +610,33 @@ The trajectory Service is cluster-internal; no public route is added. Trajectory
 | gateway.sectionName | string | `""` |  |
 | images.aceBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.aceBackendImage.repository | string | `"docker.io/langchain/langsmith-ace-backend"` |  |
-| images.aceBackendImage.tag | string | `"0.18.4rc1"` |  |
+| images.aceBackendImage.tag | string | `"0.18.11rc1"` |  |
 | images.agentBuilderImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.agentBuilderImage.repository | string | `"docker.io/langchain/agent-builder-deep-agent"` |  |
-| images.agentBuilderImage.tag | string | `"0.18.4rc1"` |  |
+| images.agentBuilderImage.tag | string | `"0.18.11rc1"` |  |
 | images.backendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.backendImage.repository | string | `"docker.io/langchain/langsmith-backend"` |  |
-| images.backendImage.tag | string | `"0.18.4rc1"` |  |
+| images.backendImage.tag | string | `"0.18.11rc1"` |  |
 | images.clickhouseImage.pullPolicy | string | `"Always"` |  |
 | images.clickhouseImage.repository | string | `"docker.io/clickhouse/clickhouse-server"` |  |
 | images.clickhouseImage.tag | string | `"25.12"` |  |
+| images.deploymentDbImage.repository | string | `"docker.io/pgvector/pgvector"` |  |
+| images.deploymentDbImage.tag | string | `"pg15"` |  |
+| images.deploymentRedisImage.repository | string | `"docker.io/redis"` |  |
+| images.deploymentRedisImage.tag | string | `"7"` |  |
 | images.engineInsightsAgentImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.engineInsightsAgentImage.repository | string | `"docker.io/langchain/langsmith-insights-engine"` |  |
-| images.engineInsightsAgentImage.tag | string | `"0.18.4rc1"` |  |
+| images.engineInsightsAgentImage.tag | string | `"0.18.11rc1"` |  |
 | images.frontendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.frontendImage.repository | string | `"docker.io/langchain/langsmith-frontend"` |  |
-| images.frontendImage.tag | string | `"0.18.4rc1"` |  |
+| images.frontendImage.tag | string | `"0.18.11rc1"` |  |
 | images.imagePullSecrets | list | `[]` | Secrets with credentials to pull images from a private registry. Specified as name: value. |
 | images.operatorImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.operatorImage.repository | string | `"docker.io/langchain/langgraph-operator"` |  |
 | images.operatorImage.tag | string | `"0.1.60"` |  |
 | images.pollyAgentImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.pollyAgentImage.repository | string | `"docker.io/langchain/langsmith-polly"` |  |
-| images.pollyAgentImage.tag | string | `"0.18.4rc1"` |  |
+| images.pollyAgentImage.tag | string | `"0.18.11rc1"` |  |
 | images.postgresImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.postgresImage.repository | string | `"docker.io/postgres"` |  |
 | images.postgresImage.tag | string | `"14.7"` |  |
@@ -633,7 +650,7 @@ The trajectory Service is cluster-internal; no public route is added. Trajectory
 | images.sandboxHostImage | object | `{"pullPolicy":"IfNotPresent","repository":"docker.io/langchain/sandbox-host","tag":""}` | sandbox-host image. Only used when sandboxes.enabled is true. |
 | images.smithdbImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.smithdbImage.repository | string | `"docker.io/langchain/smithdb"` |  |
-| images.smithdbImage.tag | string | `"0.18.4rc1"` |  |
+| images.smithdbImage.tag | string | `"0.18.11rc1"` |  |
 | ingestQueue.autoscaling.hpa.enabled | bool | `false` |  |
 | ingestQueue.autoscaling.hpa.maxReplicas | int | `10` |  |
 | ingestQueue.autoscaling.hpa.minReplicas | int | `3` |  |
@@ -918,13 +935,17 @@ The trajectory Service is cluster-internal; no public route is added. Trajectory
 | polly.redis.statefulSet.volumeMounts | list | `[]` |  |
 | polly.redis.statefulSet.volumes | list | `[]` |  |
 | preInstallManifests | list | `[]` | annotations, ExternalSecret-only validation, idempotency rules, and caveats. Example: preInstallManifests:   - apiVersion: external-secrets.io/v1beta1     kind: ExternalSecret     metadata:       name: langsmith-app     spec:       refreshInterval: 1h       secretStoreRef:         name: vault-backend         kind: ClusterSecretStore       target:         name: langsmith-app-secret         creationPolicy: Orphan       data:         - secretKey: langsmith_license_key           remoteRef:             key: secret/langsmith/app             property: langsmith_license_key |
-| sandboxes | object | `{"callbackSigningJwk":"","enabled":false,"juicefs":{"bucket":"","existingSecretName":"","hostMount":{"cacheDirs":["/var/cache/juicefs"],"mountOptions":["--cache-size=51200","--cache-large-write"]},"name":"sandbox-juicefs","redis":{"metaURL":""},"storage":"s3","storageAccountName":""},"juicefsFormatJob":{"affinity":{},"annotations":{},"labels":{},"nodeSelector":{},"podSecurityContext":{},"resources":{"requests":{"cpu":"100m","memory":"128Mi"}},"securityContext":{"allowPrivilegeEscalation":false,"capabilities":{"drop":["ALL"]}},"tolerations":[]},"proxyCa":{"existingSecretName":"","mode":"generatedSecret","secretName":"smithbox-proxy-ca"},"quotas":{"maxCpuCores":200,"maxEphemeralStorageGib":100,"maxMemoryGb":400,"maxSandboxes":1000,"minEphemeralStorageGb":1},"sandboxHost":{"autoscaling":{"enabled":false,"headroomHosts":1,"maxReplicas":10,"minReplicas":1,"scaleDownStabilizationSeconds":300,"targetUtilizationPercent":70},"deployment":{"annotations":{},"extraEnv":[],"initContainers":[],"labels":{},"nodeSelector":{},"podAnnotations":{},"podSecurityContext":{},"priorityClassName":"","readinessProbe":{"failureThreshold":3,"initialDelaySeconds":5,"periodSeconds":10,"tcpSocket":{"port":"http"},"timeoutSeconds":3},"replicas":1,"resources":{"requests":{"cpu":"2","memory":"2Gi"}},"securityContext":{"privileged":true},"sidecars":[],"terminationGracePeriodSeconds":300,"tolerations":[{"effect":"NoSchedule","key":"sandbox.langsmith.com/host","operator":"Equal","value":"true"}],"volumeMounts":[],"volumes":[]},"name":"sandbox-host","pdb":{"annotations":{},"enabled":false,"labels":{},"maxUnavailable":1},"rbac":{"annotations":{},"create":true,"labels":{}},"serviceAccount":{"annotations":{},"automountServiceAccountToken":true,"create":true,"labels":{},"name":""}},"serviceUrlBaseUrl":""}` | LangSmith Sandboxes. Same-cluster sandbox-host architecture on AWS/EKS, GCP/GKE, or Azure/AKS. sandbox-host mounts JuiceFS directly, and a singleton Job formats fresh JuiceFS metadata before hosts start serving. |
+| sandboxes | object | `{"authProxy":{"httpProxy":{"noProxy":[],"url":""}},"callbackSigningJwk":"","enabled":false,"juicefs":{"bucket":"","existingSecretName":"","hostMount":{"cacheDirs":["/var/cache/juicefs"],"mountOptions":["--cache-size=51200","--cache-large-write"]},"name":"sandbox-juicefs","redis":{"iamAuthProvider":"","metaURL":""},"storage":"s3","storageAccountName":""},"juicefsFormatJob":{"affinity":{},"annotations":{},"labels":{},"nodeSelector":{},"podSecurityContext":{},"resources":{"requests":{"cpu":"100m","memory":"128Mi"}},"securityContext":{"allowPrivilegeEscalation":false,"capabilities":{"drop":["ALL"]}},"tolerations":[]},"proxyCa":{"existingSecretName":"","mode":"generatedSecret","secretName":"smithbox-proxy-ca"},"quotas":{"maxCpuCores":200,"maxEphemeralStorageGib":100,"maxMemoryGb":400,"maxSandboxes":1000,"minEphemeralStorageGb":1},"sandboxHost":{"autoscaling":{"enabled":false,"headroomHosts":1,"maxReplicas":10,"minReplicas":1,"scaleDownStabilizationSeconds":300,"targetUtilizationPercent":70},"deployment":{"annotations":{},"extraEnv":[],"initContainers":[],"labels":{},"nodeSelector":{},"podAnnotations":{},"podSecurityContext":{},"priorityClassName":"","readinessProbe":{"failureThreshold":3,"initialDelaySeconds":5,"periodSeconds":10,"tcpSocket":{"port":"http"},"timeoutSeconds":3},"replicas":1,"resources":{"requests":{"cpu":"2","memory":"2Gi"}},"securityContext":{"privileged":true},"sidecars":[],"terminationGracePeriodSeconds":300,"tolerations":[{"effect":"NoSchedule","key":"sandbox.langsmith.com/host","operator":"Equal","value":"true"}],"volumeMounts":[],"volumes":[]},"name":"sandbox-host","pdb":{"annotations":{},"enabled":false,"labels":{},"maxUnavailable":1},"rbac":{"annotations":{},"create":true,"labels":{}},"serviceAccount":{"annotations":{},"automountServiceAccountToken":true,"create":true,"labels":{},"name":""}},"serviceUrlBaseUrl":""}` | LangSmith Sandboxes. Same-cluster sandbox-host architecture on AWS/EKS, GCP/GKE, or Azure/AKS. sandbox-host mounts JuiceFS directly, and a singleton Job formats fresh JuiceFS metadata before hosts start serving. |
+| sandboxes.authProxy.httpProxy | object | `{"noProxy":[],"url":""}` | Route sandbox egress (the sandbox auth proxy's upstream connections) through a corporate HTTP forward proxy, as an HTTP_PROXY/HTTPS_PROXY client would: plain HTTP as standard proxy requests, HTTPS and other TCP through CONNECT. The proxy must allow CONNECT to 443 and any other TCP ports sandboxes use; nothing falls back to direct access. |
+| sandboxes.authProxy.httpProxy.noProxy | list | `[]` | Destinations dialed directly instead of through the proxy, with standard NO_PROXY matching: "internal.corp" matches the host and its subdomains, ".internal.corp" only subdomains, plus IP addresses, CIDR ranges such as "10.0.0.0/8", "host:port" entries, and "*". |
+| sandboxes.authProxy.httpProxy.url | string | `""` | Proxy URL, `http://host:port` or `https://host:port` (TLS to the proxy itself, verified against config.customCa when set, otherwise the system roots); empty sends egress directly. A private address is allowed. For Basic proxy authentication use `http://user:password@host:port`, percent-encoding reserved characters; sandboxes never see the credentials. Stored in the LangSmith app Secret, or set key `sandbox_egress_proxy_url` in config.existingSecretName instead. |
 | sandboxes.callbackSigningJwk | string | `""` | Private JWK signing sandbox callbacks, or key `sandbox_callback_signing_jwk` in config.existingSecretName. Needs config.hostname for the issuer, or signing fails closed. |
 | sandboxes.juicefs.bucket | string | `""` | Object storage bucket/root URL used by JuiceFS. For AWS S3, use a region-explicit endpoint such as `https://bucket-name.s3.us-west-2.amazonaws.com`; do not use the `s3://bucket-name` shorthand because JuiceFS then infers region with GetBucketLocation. For GCS, use `gs://bucket-name`. Use `sandboxes.juicefs.name` for JuiceFS volume isolation instead of deployment-specific bucket paths. |
 | sandboxes.juicefs.existingSecretName | string | `""` | Existing Secret containing JuiceFS config keys `name`, `metaurl`, `storage`, and `bucket`. For Azure Blob Storage, set `access-key` to the storage account name. Set `secret-key` only for account-key authentication. The formatter Job reads the Secret; sandbox-host receives only `metaurl`. When set, the chart does not create the config Secret and the corresponding values above are ignored. Rotate the Secret name to rerun formatting; roll sandbox-host after changing data in place. |
 | sandboxes.juicefs.hostMount.cacheDirs | list | `["/var/cache/juicefs"]` | Node host paths used for the JuiceFS cache. Each path is mounted into sandbox-host and combined into one JuiceFS cache-dir option. Back these paths with node-local storage; their contents survive pod rollouts on the same node but not node replacement. |
 | sandboxes.juicefs.hostMount.mountOptions | list | `["--cache-size=51200","--cache-large-write"]` | Additional JuiceFS CLI options passed to sandbox-host. The chart derives cache-dir from cacheDirs; do not set it here. The default cache-size is a conservative 50 GiB shared across the configured directories. |
 | sandboxes.juicefs.name | string | `"sandbox-juicefs"` | JuiceFS volume name. Use a flat DNS-label-style name only; slashes and object-store subpaths are not supported here. JuiceFS stores objects under `<name>/` inside the configured bucket. |
+| sandboxes.juicefs.redis.iamAuthProvider | string | `""` | IAM authentication provider for the JuiceFS Redis. Valid values: "", "azure" and "gcp". Uses workload identity on sandbox-host and the formatter Job; on GKE, sandbox-host uses hostNetwork and so authenticates as its node's service account. |
 | sandboxes.juicefs.redis.metaURL | string | `""` | JuiceFS Redis metadata URL. Redis metadata engines must use maxmemory-policy noeviction. For Redis Cluster, the `/DB` path is used by JuiceFS as a hash-tag key prefix rather than a Redis logical database. |
 | sandboxes.juicefs.storage | string | `"s3"` | Object storage backend used by JuiceFS for sandboxes. Supported values are `s3` for AWS/EKS, `gs` for GCP/GKE, and `wasb` for Azure/AKS. |
 | sandboxes.juicefs.storageAccountName | string | `""` | Azure storage account name used by JuiceFS. Required when sandboxes.juicefs.storage is `wasb`. |
@@ -1215,6 +1236,11 @@ The trajectory Service is cluster-internal; no public route is added. Trajectory
 | smithdb.metastoreMigration.job.volumeMounts | list | `[]` |  |
 | smithdb.metastoreMigration.job.volumes | list | `[]` |  |
 | smithdb.metastoreMigration.name | string | `"metastore-migration"` |  |
+| smithdb.migration.byocDestination.enabled | bool | `false` | Migrate into a BYOC data plane's SmithDB. S3 settings come from the SH_TO_BYOC_S3_* commonEnv entries. The role and region also drive RDS IAM auth, so the RDS instance must be in the bucket's region. Start with a fresh taskdb when switching an existing migration to this destination. |
+| smithdb.migration.byocDestination.metastore.database | string | `""` |  |
+| smithdb.migration.byocDestination.metastore.host | string | `""` | BYOC RDS metastore host, reached with AWS IAM auth. The cluster needs a network route to it. |
+| smithdb.migration.byocDestination.metastore.port | int | `5432` |  |
+| smithdb.migration.byocDestination.metastore.username | string | `""` | Database user granted rds_iam. |
 | smithdb.migration.containerPort | int | `9040` |  |
 | smithdb.migration.endTime | string | `""` | Optional RFC3339 end bound for migrate-all (half-open window). Empty uses now. |
 | smithdb.migration.job.activeDeadlineSeconds | string | `nil` | Optional hard deadline for the Job. Leave unset for long-running full migrations. |
@@ -1247,6 +1273,7 @@ The trajectory Service is cluster-internal; no public route is added. Trajectory
 | smithdb.migration.job.volumeMounts | list | `[]` |  |
 | smithdb.migration.job.volumes | list | `[]` |  |
 | smithdb.migration.name | string | `"migration"` |  |
+| smithdb.migration.service | object | `{"annotations":{},"labels":{}}` | Headless Service in front of the migration Job pods, so each pod has a stable DNS record on containerPort. |
 | smithdb.migration.startTime | string | `""` | Optional RFC3339 start bound for migrate-all (half-open window). Empty uses end - 400 days. |
 | smithdb.migration.taskdb.postgres.auth | object | `{"database":"smithdb_migration","existingSecretName":"","password":"","passwordSecretKey":"postgres_password","username":"postgres"}` | Credentials for the in-chart taskdb Postgres instance. Used only when external.enabled is false. |
 | smithdb.migration.taskdb.postgres.auth.existingSecretName | string | `""` | Existing secret containing taskdb Postgres credentials. If set, the chart does not create one. |
@@ -1479,6 +1506,55 @@ The trajectory Service is cluster-internal; no public route is added. Trajectory
 | smithdb.runRules.service.port | int | `8080` |  |
 | smithdb.serviceAccount | object | `{"annotations":{},"automountServiceAccountToken":true,"create":true,"labels":{},"name":""}` | Shared ServiceAccount for SmithDB workloads. |
 | smithdb.serviceAccount.name | string | `""` | Defaults to <release>-<smithdb.name>. |
+| smithdb.single.compactionContainerPort | int | `8070` |  |
+| smithdb.single.containerGrpcPort | int | `8080` | Query gRPC port. |
+| smithdb.single.containerPort | int | `8060` | HTTP port for health checks and metrics, served by the query service. |
+| smithdb.single.deployment.affinity | object | `{}` |  |
+| smithdb.single.deployment.annotations | object | `{}` |  |
+| smithdb.single.deployment.command[0] | string | `"./smithdb"` |  |
+| smithdb.single.deployment.command[1] | string | `"all"` |  |
+| smithdb.single.deployment.extraContainerConfig | object | `{}` |  |
+| smithdb.single.deployment.extraEnv | list | `[]` |  |
+| smithdb.single.deployment.initContainers | list | `[]` |  |
+| smithdb.single.deployment.labels | object | `{}` |  |
+| smithdb.single.deployment.nodeSelector | object | `{}` |  |
+| smithdb.single.deployment.podSecurityContext.fsGroup | int | `1001` |  |
+| smithdb.single.deployment.priorityClassName | string | `""` |  |
+| smithdb.single.deployment.probes.livenessProbe.failureThreshold | int | `6` |  |
+| smithdb.single.deployment.probes.livenessProbe.httpGet.path | string | `"/health"` |  |
+| smithdb.single.deployment.probes.livenessProbe.httpGet.port | string | `"http"` |  |
+| smithdb.single.deployment.probes.livenessProbe.periodSeconds | int | `10` |  |
+| smithdb.single.deployment.probes.livenessProbe.timeoutSeconds | int | `1` |  |
+| smithdb.single.deployment.probes.readinessProbe.failureThreshold | int | `6` |  |
+| smithdb.single.deployment.probes.readinessProbe.httpGet.path | string | `"/health"` |  |
+| smithdb.single.deployment.probes.readinessProbe.httpGet.port | string | `"http"` |  |
+| smithdb.single.deployment.probes.readinessProbe.periodSeconds | int | `10` |  |
+| smithdb.single.deployment.probes.readinessProbe.timeoutSeconds | int | `1` |  |
+| smithdb.single.deployment.probes.startupProbe.failureThreshold | int | `6` |  |
+| smithdb.single.deployment.probes.startupProbe.httpGet.path | string | `"/health"` |  |
+| smithdb.single.deployment.probes.startupProbe.httpGet.port | string | `"http"` |  |
+| smithdb.single.deployment.probes.startupProbe.periodSeconds | int | `10` |  |
+| smithdb.single.deployment.probes.startupProbe.timeoutSeconds | int | `1` |  |
+| smithdb.single.deployment.securityContext | object | `{}` |  |
+| smithdb.single.deployment.sidecars | list | `[]` |  |
+| smithdb.single.deployment.strategy.rollingUpdate.maxSurge | int | `1` |  |
+| smithdb.single.deployment.strategy.rollingUpdate.maxUnavailable | int | `0` |  |
+| smithdb.single.deployment.strategy.type | string | `"RollingUpdate"` |  |
+| smithdb.single.deployment.terminationGracePeriodSeconds | int | `300` |  |
+| smithdb.single.deployment.tolerations | list | `[]` |  |
+| smithdb.single.deployment.topologySpreadConstraints | list | `[]` |  |
+| smithdb.single.deployment.volumeMounts | list | `[{"mountPath":"/data","name":"cache"},{"mountPath":"/tmp","name":"cache","subPath":"tmp"}]` | The cache volume holds the query cache, ingestion staging, and, through the /tmp mount, compaction scratch. |
+| smithdb.single.deployment.volumes | list | `[]` |  |
+| smithdb.single.ingestionContainerGrpcPort | int | `8082` | Ingestion gRPC port. |
+| smithdb.single.ingestionContainerPort | int | `8050` |  |
+| smithdb.single.pdb.annotations | object | `{}` |  |
+| smithdb.single.pdb.enabled | bool | `true` |  |
+| smithdb.single.pdb.labels | object | `{}` |  |
+| smithdb.single.pdb.minAvailable | int | `1` |  |
+| smithdb.single.service.annotations | object | `{}` |  |
+| smithdb.single.service.ingestionPort | int | `8082` |  |
+| smithdb.single.service.labels | object | `{}` |  |
+| smithdb.single.service.port | int | `8080` |  |
 | smithdb.statsQuery.autoscaling.hpa.enabled | bool | `true` |  |
 | smithdb.statsQuery.autoscaling.hpa.maxReplicas | int | `5` |  |
 | smithdb.statsQuery.autoscaling.hpa.minReplicas | int | `1` |  |
@@ -1534,6 +1610,7 @@ The trajectory Service is cluster-internal; no public route is added. Trajectory
 | smithdb.statsQuery.service.annotations | object | `{}` |  |
 | smithdb.statsQuery.service.labels | object | `{}` |  |
 | smithdb.statsQuery.service.port | int | `8080` |  |
+| smithdb.topology | string | `"cluster"` | SmithDB workload layout: cluster runs query, ingestion, compaction, and the cluster manager as separate workloads; single runs them all in one `smithdb all` pod with one replica. smithdb.resourceTier sizes either layout. |
 
 ## Configs
 
@@ -2118,6 +2195,7 @@ The trajectory Service is cluster-internal; no public route is added. Trajectory
 | frontend.autoscaling.keda.scaleUpPolicy.value | int | `100` |  |
 | frontend.autoscaling.keda.targetCPUUtilizationPercentage | int | `50` |  |
 | frontend.autoscaling.keda.targetMemoryUtilizationPercentage | int | `80` |  |
+| frontend.clientHeaderBufferSize | string | `"1k"` |  |
 | frontend.containerPort | int | `8080` |  |
 | frontend.cspHeader | string | `"frame-ancestors 'self'; object-src 'none'"` |  |
 | frontend.deployment.affinity | object | `{}` |  |
@@ -2163,6 +2241,7 @@ The trajectory Service is cluster-internal; no public route is added. Trajectory
 | frontend.includeNonce | bool | `false` |  |
 | frontend.ipv6Enabled | bool | `true` |  |
 | frontend.keepAliveTimeout | string | `"75"` |  |
+| frontend.largeClientHeaderBuffers | string | `"4 8k"` |  |
 | frontend.maxBodySize | string | `"25M"` |  |
 | frontend.name | string | `"frontend"` |  |
 | frontend.pdb.annotations | object | `{}` |  |
@@ -2281,10 +2360,11 @@ The trajectory Service is cluster-internal; no public route is added. Trajectory
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
 | agentGateway.autoscaling.createHpa | bool | `true` |  |
-| agentGateway.autoscaling.enabled | bool | `false` |  |
+| agentGateway.autoscaling.enabled | bool | `true` |  |
 | agentGateway.autoscaling.maxReplicas | int | `5` |  |
 | agentGateway.autoscaling.minReplicas | int | `1` |  |
 | agentGateway.autoscaling.targetCPUUtilizationPercentage | int | `50` |  |
+| agentGateway.autoscaling.targetMemoryUtilizationPercentage | int | `70` |  |
 | agentGateway.containerPort | int | `8083` |  |
 | agentGateway.deployment.affinity | object | `{}` |  |
 | agentGateway.deployment.annotations | object | `{}` |  |
@@ -2308,10 +2388,10 @@ The trajectory Service is cluster-internal; no public route is added. Trajectory
 | agentGateway.deployment.readinessProbe.periodSeconds | int | `10` |  |
 | agentGateway.deployment.readinessProbe.timeoutSeconds | int | `3` |  |
 | agentGateway.deployment.replicas | int | `1` |  |
-| agentGateway.deployment.resources.limits.cpu | string | `"500m"` |  |
-| agentGateway.deployment.resources.limits.memory | string | `"512Mi"` |  |
-| agentGateway.deployment.resources.requests.cpu | string | `"100m"` |  |
-| agentGateway.deployment.resources.requests.memory | string | `"256Mi"` |  |
+| agentGateway.deployment.resources.limits.cpu | int | `2` |  |
+| agentGateway.deployment.resources.limits.memory | string | `"2Gi"` |  |
+| agentGateway.deployment.resources.requests.cpu | int | `1` |  |
+| agentGateway.deployment.resources.requests.memory | string | `"1Gi"` |  |
 | agentGateway.deployment.securityContext | object | `{}` |  |
 | agentGateway.deployment.sidecars | list | `[]` |  |
 | agentGateway.deployment.startupProbe.failureThreshold | int | `6` |  |
