@@ -1,0 +1,13 @@
+# clickhouse-only (chart default backend) config
+clickhouse:
+  enabled: true
+
+smithdb:
+  enabled: false
+  langsmith:
+    ingestion:
+      enabled: false
+    query:
+      enabled: false
+    migration:
+      enabled: false
