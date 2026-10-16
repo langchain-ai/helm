@@ -1925,3 +1925,54 @@ tests:
           content:
             name: SMITHDB_MIGRATION__TASKDB__IAM_AUTH_PROVIDER
             value: azure
+  - it: should run the BYOC destination migration without a local SmithDB
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      smithdb.enabled: false
+      smithdb.langsmith.ingestion.enabled: false
+      smithdb.langsmith.query.enabled: false
+      smithdb.langsmith.migration.enabled: true
+      smithdb.migration.taskdb.postgres.auth.password: taskdb-password
+      commonEnv:
+        - { name: SH_TO_BYOC_S3_BUCKET, value: byoc-bucket }
+        - { name: SH_TO_BYOC_S3_REGION, value: us-east-2 }
+        - { name: SH_TO_BYOC_S3_ROLE_ARN, value: "arn:aws:iam::111122223333:role/byoc" }
+      smithdb.migration.byocDestination:
+        enabled: true
+        metastore:
+          host: byoc-rds
+          database: smithdb
+          username: smithdb_iam
+    templates:
+      - smithdb/migration-job.yaml
+      - smithdb/service-account.yaml
+      - smithdb/taskdb-postgres-statefulset.yaml
+    asserts:
+      - hasDocuments:
+          count: 1
+  - it: should not render SmithDB workloads for a BYOC destination migration without a local SmithDB
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      smithdb.enabled: false
+      smithdb.langsmith.ingestion.enabled: false
+      smithdb.langsmith.query.enabled: false
+      smithdb.langsmith.migration.enabled: true
+      smithdb.migration.taskdb.postgres.auth.password: taskdb-password
+      commonEnv:
+        - { name: SH_TO_BYOC_S3_BUCKET, value: byoc-bucket }
+        - { name: SH_TO_BYOC_S3_REGION, value: us-east-2 }
+        - { name: SH_TO_BYOC_S3_ROLE_ARN, value: "arn:aws:iam::111122223333:role/byoc" }
+      smithdb.migration.byocDestination:
+        enabled: true
+        metastore:
+          host: byoc-rds
+          database: smithdb
+          username: smithdb_iam
+    templates:
+      - smithdb/ingestion-deployment.yaml
+      - smithdb/metastore-migration.yaml
+    asserts:
+      - hasDocuments:
+          count: 0
