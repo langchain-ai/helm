@@ -1,0 +1,19 @@
+charts/langsmith/templates/agent-features/fleet/trigger-server/deployment.yaml
+  s_654b51cdb04438::t_553ca4eb262df7 2-3
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "c0e105a3a26663a5811179d95775d74f68ef185b",
+  "prompts": {},
+  "sessions": {
+    "s_654b51cdb04438": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a14279-8028-7ed1-b850-d83650510a39",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Colin Francis <colin.francis@langchain.dev>"
+    }
+  }
+}
