@@ -31,15 +31,6 @@ tests:
           path: data["nginx.conf"]
           pattern: 'location /langsmith/v1/channels'
 
-  - it: routes the canonical Trigger Server public URL with a base path
-    set:
-      config.basePath: langsmith
-      fleet.enabled: true
-    asserts:
-      - matchRegex:
-          path: data["nginx.conf"]
-          pattern: 'location /langsmith/v1/triggers \{\s*rewrite \^/langsmith\(/v1/triggers\.\*\)\$ \$1 break;[^}]*proxy_pass http://[^}]*-fleet-trigger-server\.[^}]*:1990;'
-
   - it: routes agent auth to platform-backend without a base path
     asserts:
       - matchRegex:

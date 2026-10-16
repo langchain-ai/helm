@@ -1620,23 +1620,6 @@ Falls back to config.hostname when config.frontendHostname is unset.
 {{- end -}}
 
 {{/*
-Return the configured frontend origin as an absolute URL. Falls back to
-config.hostname and follows hostnameWithProtocol's localhost behavior.
-*/}}
-{{- define "langsmith.frontendHostnameWithProtocol" -}}
-{{- $host := .Values.config.frontendHostname | default .Values.config.hostname -}}
-{{- if $host -}}
-  {{- if regexMatch "^[a-zA-Z][a-zA-Z0-9+.-]*://" $host -}}
-    {{- $host -}}
-  {{- else if regexMatch "^(localhost|127\\.0\\.0\\.1|\\[::1\\])(?::[0-9]+)?(?:/.*)?$" $host -}}
-    {{- printf "http://%s" $host -}}
-  {{- else -}}
-    {{- printf "https://%s" $host -}}
-  {{- end -}}
-{{- end -}}
-{{- end -}}
-
-{{/*
 Host portion of sandboxes.serviceUrlBaseUrl.
 */}}
 {{- define "langsmith.sandboxes.serviceUrlHost" -}}
@@ -1794,14 +1777,6 @@ than the internal Kubernetes service endpoint.
 {{- end -}}
 
 {{/*
-Public Trigger Server base URL. Trigger providers append /triggers/... paths,
-so the /v1 prefix is part of this contract.
-*/}}
-{{- define "langsmith.triggerServerPublicUrl" -}}
-{{- include "langsmith.hostnameWithProtocol" . }}{{- with .Values.config.basePath }}/{{ . }}{{- end }}/v1
-{{- end -}}
-
-{{/*
 OAuth Authorization Server issuer URL advertised to remote MCP clients.
 Derived from <hostnameWithProtocol>[/basePath]/api. The /api path is fixed because the
 frontend nginx routes are hardcoded to it; host and scheme come from config.hostname.
@@ -1877,12 +1852,6 @@ Served through the frontend at /mcp (or /<basePath>/mcp).
   value: "{{ .Values.fleetTriggerServer.containerPort }}"
 - name: "TRIGGER_SERVER_HOST_API_URL"
   value: "http://{{ include "langsmith.fullname" . }}-{{ .Values.hostBackend.name }}.{{ $ns }}.svc.{{ $cd }}:{{ .Values.hostBackend.service.port }}"
-{{- if .Values.config.hostname }}
-- name: "LANGSMITH_URL"
-  value: "{{ include "langsmith.frontendHostnameWithProtocol" . }}{{ with .Values.config.basePath }}/{{ . }}{{ end }}"
-- name: "TRIGGER_SERVER_PUBLIC_URL"
-  value: {{ include "langsmith.triggerServerPublicUrl" . | quote }}
-{{- end }}
 {{- if .Values.fleet.enabled }}
 {{- $fleetApi := printf "http://%s.%s.svc.%s:%v" (include "langsmith.agentFeatures.apiServerK8sServiceName" (dict "root" . "product" "fleet")) $ns $cd .Values.fleet.apiServer.service.httpPort }}
 - name: "LANGGRAPH_API_URL"
