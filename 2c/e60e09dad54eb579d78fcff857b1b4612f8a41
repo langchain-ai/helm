@@ -1,0 +1,18 @@
+charts/langsmith/Chart.yaml
+  h_712f30a2a56c04 8-9
+charts/langsmith/README.md
+  h_712f30a2a56c04 3,613,616,619,629,632,639,653,2519-2521
+charts/langsmith/values.yaml
+  h_712f30a2a56c04 68,72,78,82,106,110,114
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "2ce60e09dad54eb579d78fcff857b1b4612f8a41",
+  "prompts": {},
+  "humans": {
+    "h_712f30a2a56c04": {
+      "author": "ben11211 <nagengast@langchain.dev>"
+    }
+  }
+}
