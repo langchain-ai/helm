@@ -122,6 +122,7 @@ data:
   # without it these are inert. Routes are added in the frontend nginx config.
   OAUTH_AS_ENABLED: "true"
   OAUTH_AS_ISSUER: {{ include "langsmith.oauthAsIssuer" . | quote }}
+  AGENT_AUTH_OAUTH_CALLBACK_URL: {{ include "langsmith.agentAuthOAuthCallbackUrl" . | quote }}
   {{- end }}
   {{- if .Values.config.llmAuthProxyIssuer }}
   LLM_AUTH_PROXY_ISSUER: {{ .Values.config.llmAuthProxyIssuer | quote }}

@@ -1768,6 +1768,15 @@ OAuth issuer today, but kept separate so either can change on its own.
 {{- end -}}
 
 {{/*
+Public callback URL for Agent Auth OAuth connections. OAuth providers must be
+able to reach this URL, so it must use the configured public hostname rather
+than the internal Kubernetes service endpoint.
+*/}}
+{{- define "langsmith.agentAuthOAuthCallbackUrl" -}}
+{{- include "langsmith.publicApiEndpoint" . }}/v1/agent-auth/oauth/callback
+{{- end -}}
+
+{{/*
 OAuth Authorization Server issuer URL advertised to remote MCP clients.
 Derived from <hostnameWithProtocol>[/basePath]/api. The /api path is fixed because the
 frontend nginx routes are hardcoded to it; host and scheme come from config.hostname.
