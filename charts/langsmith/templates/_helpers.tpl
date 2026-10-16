@@ -734,6 +734,15 @@ Non-empty when SmithDB runs as one `smithdb all` workload (smithdb.topology sing
 {{- end }}
 
 {{/*
+Non-empty when the SmithDB migration Job and its taskdb render. A BYOC
+destination migration reads ClickHouse and writes to the data plane, so it
+runs without a local SmithDB.
+*/}}
+{{- define "langsmith.smithdb.migrationEnabled" -}}
+{{- if and .Values.smithdb.langsmith.migration.enabled (or .Values.smithdb.enabled .Values.smithdb.migration.byocDestination.enabled) -}}true{{- end -}}
+{{- end }}
+
+{{/*
 Name of the shared SmithDB service account.
 Args: root.
 */}}

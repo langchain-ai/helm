@@ -1,4 +1,4 @@
-{{- if and .Values.smithdb.enabled .Values.smithdb.langsmith.migration.enabled }}
+{{- if include "langsmith.smithdb.migrationEnabled" . }}
 {{- $byocDestination := .Values.smithdb.migration.byocDestination.enabled -}}
 {{- $componentEnv := ternary (include "langsmith.smithdb.migration.byocComponentEnv" .) (include "langsmith.smithdb.componentEnv" (dict "root" . "service" "MIGRATION" "displayName" "smithdb-migration")) $byocDestination -}}
 {{- $envVars := include "langsmith.mergeEnv" (dict "commonEnv" (concat .Values.commonEnv .Values.smithdb.commonEnv) "chart" ($componentEnv | fromYamlArray) "extraEnv" .Values.smithdb.migration.job.extraEnv) | fromYamlArray -}}
