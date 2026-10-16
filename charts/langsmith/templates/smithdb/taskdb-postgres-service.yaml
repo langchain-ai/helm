@@ -1,5 +1,5 @@
 {{- $taskdb := .Values.smithdb.migration.taskdb.postgres -}}
-{{- if and .Values.smithdb.enabled .Values.smithdb.langsmith.migration.enabled $taskdb.enabled (not $taskdb.external.enabled) }}
+{{- if and (include "langsmith.smithdb.migrationEnabled" .) $taskdb.enabled (not $taskdb.external.enabled) }}
 apiVersion: v1
 kind: Service
 metadata:

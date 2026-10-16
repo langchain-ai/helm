@@ -11,7 +11,7 @@
 - name: CLIO_ASSISTANT_ID
   value: "insights"
 {{- end }}
-{{- if and .Values.smithdb.enabled .Values.smithdb.langsmith.migration.enabled }}
+{{- if include "langsmith.smithdb.migrationEnabled" . }}
 - name: SMITHDB_MIGRATION_METRICS_ENDPOINT
   value: "http://{{ include "langsmith.smithdb.componentName" (dict "root" . "component" "migration") }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.smithdb.migration.containerPort }}"
 {{- end }}

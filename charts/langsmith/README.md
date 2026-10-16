@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.18.0-rc.32](https://img.shields.io/badge/Version-0.18.0--rc.32-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.18.13rc1](https://img.shields.io/badge/AppVersion-0.18.13rc1-informational?style=flat-square)
+![Version: 0.18.0-rc.33](https://img.shields.io/badge/Version-0.18.0--rc.33-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.18.13rc1](https://img.shields.io/badge/AppVersion-0.18.13rc1-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -1236,7 +1236,7 @@ The trajectory Service is cluster-internal; no public route is added. Trajectory
 | smithdb.metastoreMigration.job.volumeMounts | list | `[]` |  |
 | smithdb.metastoreMigration.job.volumes | list | `[]` |  |
 | smithdb.metastoreMigration.name | string | `"metastore-migration"` |  |
-| smithdb.migration.byocDestination.enabled | bool | `false` | Migrate into a BYOC data plane's SmithDB. S3 settings come from the SH_TO_BYOC_S3_* commonEnv entries. The role and region also drive RDS IAM auth, so the RDS instance must be in the bucket's region. Start with a fresh taskdb when switching an existing migration to this destination. |
+| smithdb.migration.byocDestination.enabled | bool | `false` | Migrate into a BYOC data plane's SmithDB. S3 settings come from the SH_TO_BYOC_S3_* commonEnv entries. The role and region also drive RDS IAM auth, so the RDS instance must be in the bucket's region. Start with a fresh taskdb when switching an existing migration to this destination. The job reads ClickHouse and writes to the data plane, so smithdb.enabled and smithdb.langsmith.ingestion.enabled can stay false on the source installation. |
 | smithdb.migration.byocDestination.metastore.database | string | `""` |  |
 | smithdb.migration.byocDestination.metastore.host | string | `""` | BYOC RDS metastore host, reached with AWS IAM auth. The cluster needs a network route to it. |
 | smithdb.migration.byocDestination.metastore.port | int | `5432` |  |
