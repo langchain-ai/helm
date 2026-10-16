@@ -1,0 +1,33 @@
+charts/langsmith/templates/_helpers.tpl
+  s_654b51cdb04438::t_1a7c0739f088c7 1622-1638,1796-1803,1880-1885
+charts/langsmith/tests/frontend_nginx_test.yaml
+  s_654b51cdb04438::t_1a7c0739f088c7 34-42
+charts/langsmith/README.md
+  s_654b51cdb04438::t_1a7c0739f088c7 3
+charts/langsmith/Chart.yaml
+  s_654b51cdb04438::t_1a7c0739f088c7 8
+charts/langsmith/templates/agent-features/fleet/trigger-server/deployment.yaml
+  s_654b51cdb04438::t_1a7c0739f088c7 2-12
+charts/langsmith/templates/frontend/config-map.yaml
+  s_654b51cdb04438::t_1a7c0739f088c7 483-491
+charts/langsmith/tests/fleet_trigger_server_public_url_test.yaml
+  s_654b51cdb04438::t_add43ca2d0a160 13,30,49,66,82
+  s_654b51cdb04438::t_d3fe1fa91a4cac 3-9
+  s_654b51cdb04438::t_1a7c0739f088c7 1-2,10-12,14-29,31-48,50-65,67-81,83-101
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "cce8a6a28c6b1db44bb6247799f8260c4ba673e7",
+  "prompts": {},
+  "sessions": {
+    "s_654b51cdb04438": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a14279-8028-7ed1-b850-d83650510a39",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Colin Francis <colin.francis@langchain.dev>"
+    }
+  }
+}
