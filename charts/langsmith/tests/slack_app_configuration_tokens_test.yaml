@@ -1,0 +1,64 @@
+suite: Slack App Configuration tokens
+set:
+  config.skipValidation: true
+  config.existingSecretName: langsmith-secrets
+  fleet.enabled: true
+  hostBackend.enabled: true
+tests:
+  - it: omits configuration tokens by default
+    template: agent-features/fleet/trigger-server/deployment.yaml
+    asserts:
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SLACK_APP_CONFIGURATION_ACCESS_TOKEN
+          any: true
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SLACK_APP_CONFIGURATION_REFRESH_TOKEN
+          any: true
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SLACK_APP_CONFIGURATION_TOKEN_GENERATION
+          any: true
+
+  - it: reads both configuration tokens from an existing Secret
+    template: agent-features/fleet/trigger-server/deployment.yaml
+    set:
+      fleetTriggerServer.slackAppConfigurationTokens.existingSecretName: slack-app-configuration
+      fleetTriggerServer.slackAppConfigurationTokens.generation: 7
+      fleetTriggerServer.slackAppConfigurationTokens.accessTokenKey: access-token
+      fleetTriggerServer.slackAppConfigurationTokens.refreshTokenKey: refresh-token
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SLACK_APP_CONFIGURATION_TOKEN_GENERATION
+            value: "7"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SLACK_APP_CONFIGURATION_ACCESS_TOKEN
+            valueFrom:
+              secretKeyRef:
+                name: slack-app-configuration
+                key: access-token
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SLACK_APP_CONFIGURATION_REFRESH_TOKEN
+            valueFrom:
+              secretKeyRef:
+                name: slack-app-configuration
+                key: refresh-token
+
+  - it: requires both Secret key names when configuration tokens are enabled
+    template: agent-features/fleet/trigger-server/deployment.yaml
+    set:
+      fleetTriggerServer.slackAppConfigurationTokens.existingSecretName: slack-app-configuration
+      fleetTriggerServer.slackAppConfigurationTokens.refreshTokenKey: ""
+    asserts:
+      - failedTemplate:
+          errorMessage: fleetTriggerServer.slackAppConfigurationTokens.refreshTokenKey is required when existingSecretName is set
