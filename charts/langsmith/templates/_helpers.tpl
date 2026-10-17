@@ -1866,6 +1866,18 @@ Served through the frontend at /mcp (or /<basePath>/mcp).
   value: "{{ .Values.fleetTriggerServer.containerPort }}"
 - name: "TRIGGER_SERVER_HOST_API_URL"
   value: "http://{{ include "langsmith.fullname" . }}-{{ .Values.hostBackend.name }}.{{ $ns }}.svc.{{ $cd }}:{{ .Values.hostBackend.service.port }}"
+{{- with .Values.fleetTriggerServer.slackAppConfigurationTokens.existingSecretName }}
+- name: "SLACK_APP_CONFIGURATION_ACCESS_TOKEN"
+  valueFrom:
+    secretKeyRef:
+      name: {{ . | quote }}
+      key: {{ required "fleetTriggerServer.slackAppConfigurationTokens.accessTokenKey is required when existingSecretName is set" $.Values.fleetTriggerServer.slackAppConfigurationTokens.accessTokenKey | quote }}
+- name: "SLACK_APP_CONFIGURATION_REFRESH_TOKEN"
+  valueFrom:
+    secretKeyRef:
+      name: {{ . | quote }}
+      key: {{ required "fleetTriggerServer.slackAppConfigurationTokens.refreshTokenKey is required when existingSecretName is set" $.Values.fleetTriggerServer.slackAppConfigurationTokens.refreshTokenKey | quote }}
+{{- end }}
 {{- if .Values.config.hostname }}
 - name: TRIGGER_SERVER_PUBLIC_URL
   value: {{ include "langsmith.triggerServerPublicUrl" . | quote }}
