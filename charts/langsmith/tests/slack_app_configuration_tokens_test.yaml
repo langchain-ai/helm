@@ -18,14 +18,25 @@ tests:
           content:
             name: SLACK_APP_CONFIGURATION_REFRESH_TOKEN
           any: true
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SLACK_APP_CONFIGURATION_TOKEN_GENERATION
+          any: true
 
   - it: reads both configuration tokens from an existing Secret
     template: agent-features/fleet/trigger-server/deployment.yaml
     set:
       fleetTriggerServer.slackAppConfigurationTokens.existingSecretName: slack-app-configuration
+      fleetTriggerServer.slackAppConfigurationTokens.generation: 7
       fleetTriggerServer.slackAppConfigurationTokens.accessTokenKey: access-token
       fleetTriggerServer.slackAppConfigurationTokens.refreshTokenKey: refresh-token
     asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SLACK_APP_CONFIGURATION_TOKEN_GENERATION
+            value: "7"
       - contains:
           path: spec.template.spec.containers[0].env
           content:

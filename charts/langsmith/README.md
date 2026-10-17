@@ -592,6 +592,7 @@ The trajectory Service is cluster-internal; no public route is added. Trajectory
 | fleetTriggerServer.name | string | `"fleet-trigger-server"` |  |
 | fleetTriggerServer.slackAppConfigurationTokens.accessTokenKey | string | `"slack_app_configuration_access_token"` | Key in the existing Secret containing the Slack App Configuration access token. |
 | fleetTriggerServer.slackAppConfigurationTokens.existingSecretName | string | `""` | Existing Kubernetes Secret containing the Slack App Configuration token pair. Empty disables this setup path. |
+| fleetTriggerServer.slackAppConfigurationTokens.generation | int | `1` | Monotonic generation for the token pair. Increment whenever the referenced access and refresh tokens are replaced. |
 | fleetTriggerServer.slackAppConfigurationTokens.refreshTokenKey | string | `"slack_app_configuration_refresh_token"` | Key in the existing Secret containing the Slack App Configuration refresh token. |
 | fleetTriggerServer.service.annotations | object | `{}` |  |
 | fleetTriggerServer.service.labels | object | `{}` |  |

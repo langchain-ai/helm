@@ -4069,6 +4069,8 @@ fleetTriggerServer:
   slackAppConfigurationTokens:
     # -- Existing Kubernetes Secret containing the Slack App Configuration token pair. Empty disables this setup path.
     existingSecretName: ""
+    # -- Monotonic generation for the token pair. Increment whenever the referenced access and refresh tokens are replaced.
+    generation: 1
     # -- Key in the existing Secret containing the Slack App Configuration access token.
     accessTokenKey: "slack_app_configuration_access_token"
     # -- Key in the existing Secret containing the Slack App Configuration refresh token.
