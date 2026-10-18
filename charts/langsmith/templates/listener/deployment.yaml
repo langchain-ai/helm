@@ -9,8 +9,13 @@
   value: {{ default .Values.config.basePath .Values.config.deployment.basePath | quote }}
 - name: HOSTED_K8S_CLUSTER_DOMAIN
   value: {{ .Values.clusterDomain | quote }}
+{{- if and (or .Values.config.agentBuilder.enabled .Values.fleet.enabled) .Values.fleetTriggerServer.enabled .Values.config.hostname }}
+- name: TRIGGER_SERVER_PUBLIC_URL
+  value: {{ include "langsmith.triggerServerPublicUrl" . | quote }}
+{{- end }}
 {{- end -}}
-{{- $envVars := concat .Values.commonEnv (include "langsmith.commonEnv" . | fromYamlArray) (include "listenerEnvVars" . | fromYamlArray) .Values.listener.deployment.extraEnv -}}
+{{- $chartEnv := concat (include "langsmith.commonEnv" . | fromYamlArray) (include "listenerEnvVars" . | fromYamlArray) -}}
+{{- $envVars := include "langsmith.mergeEnv" (dict "commonEnv" .Values.commonEnv "chart" $chartEnv "extraEnv" .Values.listener.deployment.extraEnv) | fromYamlArray -}}
 {{- include "langsmith.detectDuplicates" $envVars -}}
 {{- $volumes := concat .Values.commonVolumes .Values.listener.deployment.volumes (include "langsmith.tlsVolumes" . | fromYamlArray) -}}
 {{- $volumeMounts := concat .Values.commonVolumeMounts .Values.listener.deployment.volumeMounts (include "langsmith.tlsVolumeMounts" . | fromYamlArray) -}}
