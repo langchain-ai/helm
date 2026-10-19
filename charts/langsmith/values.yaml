@@ -4062,6 +4062,19 @@ fleetTriggerServer:
   enabled: true
   name: "fleet-trigger-server"
   containerPort: 1990
+  # Slack App Configuration tokens used to create MDA Slack channel apps.
+  # Generate an access/refresh pair for the target Slack workspace, store both
+  # values in a Kubernetes Secret, and reference its name here. The Trigger
+  # Server rotates and persists the pair; token values never belong in values.yaml.
+  slackAppConfigurationTokens:
+    # -- Existing Kubernetes Secret containing the Slack App Configuration token pair. Empty disables this setup path.
+    existingSecretName: ""
+    # -- Monotonic generation for the token pair. Increment whenever the referenced access and refresh tokens are replaced.
+    generation: 1
+    # -- Key in the existing Secret containing the Slack App Configuration access token.
+    accessTokenKey: "slack_app_configuration_access_token"
+    # -- Key in the existing Secret containing the Slack App Configuration refresh token.
+    refreshTokenKey: "slack_app_configuration_refresh_token"
   deployment:
     command:
       - "agent_builder_trigger_server_entrypoint.sh"

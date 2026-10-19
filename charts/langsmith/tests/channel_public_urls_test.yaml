@@ -3,6 +3,7 @@ set:
   config.skipValidation: true
   config.existingSecretName: langsmith-secrets
   config.hostname: langsmith.example.com
+  config.deployment.enabled: true
   fleet.enabled: true
   hostBackend.enabled: true
 tests:
@@ -39,6 +40,24 @@ tests:
             name: LANGSMITH_URL
             value: langsmith.example.com
 
+  - it: gives the deployment queue the public API base for managed deployments
+    template: queue/deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: TRIGGER_SERVER_PUBLIC_URL
+            value: https://langsmith.example.com/api/v1
+
+  - it: gives the deployment listener the public API base for managed deployments
+    template: listener/deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: TRIGGER_SERVER_PUBLIC_URL
+            value: https://langsmith.example.com/api/v1
+
   - it: includes the base path in both public URLs
     template: agent-features/fleet/trigger-server/deployment.yaml
     set:
@@ -57,6 +76,28 @@ tests:
 
   - it: includes the base path in Host Backend's runtime URL
     template: host-backend/deployment.yaml
+    set:
+      config.basePath: langsmith
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: TRIGGER_SERVER_PUBLIC_URL
+            value: https://langsmith.example.com/langsmith/api/v1
+
+  - it: includes the base path in the deployment queue's runtime URL
+    template: queue/deployment.yaml
+    set:
+      config.basePath: langsmith
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: TRIGGER_SERVER_PUBLIC_URL
+            value: https://langsmith.example.com/langsmith/api/v1
+
+  - it: includes the base path in the deployment listener's runtime URL
+    template: listener/deployment.yaml
     set:
       config.basePath: langsmith
     asserts:
@@ -149,6 +190,16 @@ tests:
     set: *noHostname
     asserts: *noPublicUrls
 
+  - it: does not give the deployment queue a relative public URL without a hostname
+    template: queue/deployment.yaml
+    set: *noHostname
+    asserts: *noPublicUrls
+
+  - it: does not give the deployment listener a relative public URL without a hostname
+    template: listener/deployment.yaml
+    set: *noHostname
+    asserts: *noPublicUrls
+
   - it: supports the legacy Agent Builder feature flag
     template: agent-features/fleet/trigger-server/deployment.yaml
     set: &legacyFlag
@@ -166,8 +217,40 @@ tests:
     set: *legacyFlag
     asserts: *publicApiUrl
 
+  - it: gives the deployment queue the public URL with the legacy feature flag
+    template: queue/deployment.yaml
+    set: *legacyFlag
+    asserts: *publicApiUrl
+
+  - it: gives the deployment listener the public URL with the legacy feature flag
+    template: listener/deployment.yaml
+    set: *legacyFlag
+    asserts: *publicApiUrl
+
   - it: omits Host Backend's public Trigger URL when Trigger Server is disabled
     template: host-backend/deployment.yaml
+    set:
+      fleetTriggerServer.enabled: false
+    asserts:
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: TRIGGER_SERVER_PUBLIC_URL
+          any: true
+
+  - it: omits the deployment queue's public Trigger URL when Trigger Server is disabled
+    template: queue/deployment.yaml
+    set:
+      fleetTriggerServer.enabled: false
+    asserts:
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: TRIGGER_SERVER_PUBLIC_URL
+          any: true
+
+  - it: omits the deployment listener's public Trigger URL when Trigger Server is disabled
+    template: listener/deployment.yaml
     set:
       fleetTriggerServer.enabled: false
     asserts:
@@ -232,6 +315,42 @@ tests:
             name: TRIGGER_SERVER_PUBLIC_URL
             value: https://langsmith.example.com/api/v1
 
+  - it: preserves operator URL overrides on the deployment queue
+    template: queue/deployment.yaml
+    set:
+      queue.deployment.extraEnv:
+        - name: TRIGGER_SERVER_PUBLIC_URL
+          value: https://trigger.example.com/v1
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: TRIGGER_SERVER_PUBLIC_URL
+            value: https://trigger.example.com/v1
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: TRIGGER_SERVER_PUBLIC_URL
+            value: https://langsmith.example.com/api/v1
+
+  - it: preserves operator URL overrides on the deployment listener
+    template: listener/deployment.yaml
+    set:
+      listener.deployment.extraEnv:
+        - name: TRIGGER_SERVER_PUBLIC_URL
+          value: https://trigger.example.com/v1
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: TRIGGER_SERVER_PUBLIC_URL
+            value: https://trigger.example.com/v1
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: TRIGGER_SERVER_PUBLIC_URL
+            value: https://langsmith.example.com/api/v1
+
   - it: preserves a common public URL override on Trigger Server
     template: agent-features/fleet/trigger-server/deployment.yaml
     set: &commonOverride
@@ -252,6 +371,16 @@ tests:
 
   - it: preserves a common public URL override on Host Backend
     template: host-backend/deployment.yaml
+    set: *commonOverride
+    asserts: *overriddenPublicUrl
+
+  - it: preserves a common public URL override on the deployment queue
+    template: queue/deployment.yaml
+    set: *commonOverride
+    asserts: *overriddenPublicUrl
+
+  - it: preserves a common public URL override on the deployment listener
+    template: listener/deployment.yaml
     set: *commonOverride
     asserts: *overriddenPublicUrl
 
