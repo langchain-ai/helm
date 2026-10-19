@@ -823,6 +823,13 @@ template and GitOps renders, so those skip this check. */ -}}
 {{- if eq $database "/" }}
 {{- $database = "/0" }}
 {{- end }}
+{{- if regexMatch "^/[0-9]+$" $database }}
+{{- $database = printf "/%d" (atoi (trimPrefix "/" $database)) }}
+{{- end }}
+{{- $queryDatabase := regexFind "(^|&)db=[0-9]+(&|$)" (index $parsed "query") }}
+{{- if $queryDatabase }}
+{{- $database = printf "/%d" (atoi (regexFind "[0-9]+" $queryDatabase)) }}
+{{- end }}
 {{- $namespace := printf "%s%s" (lower (index $parsed "host")) $database }}
 {{- if hasKey $redisNamespaces $namespace }}
 {{- fail (printf "%s and %s must not use the same Redis logical database. Configure a different database number or Redis instance." (index $redisNamespaces $namespace) (index $connection "name")) }}

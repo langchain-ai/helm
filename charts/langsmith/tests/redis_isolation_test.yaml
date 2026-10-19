@@ -33,6 +33,15 @@ tests:
       - hasDocuments:
           count: 0
 
+  - it: accepts logical databases selected by query parameter
+    set:
+      fleet.redis.external.connectionUrl: redis://cache.example.com:6379/0?db=1
+      engineInsightsAgent.redis.external.connectionUrl: redis://cache.example.com:6379/0?db=2
+      polly.redis.external.connectionUrl: redis://cache.example.com:6379/0?db=3
+    asserts:
+      - hasDocuments:
+          count: 0
+
   - it: ignores credentials when detecting a shared database
     set:
       fleet.redis.external.connectionUrl: redis://fleet:password-one@cache.example.com:6379/2
