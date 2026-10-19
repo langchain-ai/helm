@@ -1,4 +1,4 @@
-{{- if and .Values.smithdb.enabled .Values.smithdb.langsmith.migration.enabled }}
+{{- if include "langsmith.smithdb.migrationEnabled" . }}
 {{- /* Headless so each migration pod gets its own DNS record and can be scraped individually. */}}
 apiVersion: v1
 kind: Service

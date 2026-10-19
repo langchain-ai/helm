@@ -1,4 +1,4 @@
-{{- if and .Values.smithdb.enabled .Values.smithdb.langsmith.migration.enabled }}
+{{- if include "langsmith.smithdb.migrationEnabled" . }}
 {{- $componentName := include "langsmith.smithdb.componentName" (dict "root" . "component" "migration") -}}
 {{- $podTemplate := include "langsmith.smithdb.migration.podTemplate" . -}}
 apiVersion: batch/v1
@@ -119,15 +119,24 @@ and keeps the indentation, so the Job can hash it and inline it as-is.
                   name: {{ include "langsmith.smithdb.taskdbPostgresSecretName" . }}
                   key: {{ $taskdb.external.databaseSecretKey }}
             - name: SMITHDB_MIGRATION__TASKDB__USERNAME
+            {{- if $taskdb.external.iamUsername }}
+              value: {{ $taskdb.external.iamUsername | quote }}
+            {{- else }}
               valueFrom:
                 secretKeyRef:
                   name: {{ include "langsmith.smithdb.taskdbPostgresSecretName" . }}
                   key: {{ $taskdb.external.usernameSecretKey }}
+            {{- end }}
+            {{- if $taskdb.external.iamAuthProvider }}
+            - name: SMITHDB_MIGRATION__TASKDB__IAM_AUTH_PROVIDER
+              value: {{ $taskdb.external.iamAuthProvider | quote }}
+            {{- else }}
             - name: SMITHDB_MIGRATION__TASKDB__PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: {{ include "langsmith.smithdb.taskdbPostgresSecretName" . }}
                   key: {{ $taskdb.external.passwordSecretKey }}
+            {{- end }}
             - name: SMITHDB_MIGRATION__TASKDB__USE_SSL
               value: {{ $taskdb.external.useSsl | quote }}
             {{- else }}

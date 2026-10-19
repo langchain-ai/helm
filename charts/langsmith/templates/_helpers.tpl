@@ -734,6 +734,15 @@ Non-empty when SmithDB runs as one `smithdb all` workload (smithdb.topology sing
 {{- end }}
 
 {{/*
+Non-empty when the SmithDB migration Job and its taskdb render. A BYOC
+destination migration reads ClickHouse and writes to the data plane, so it
+runs without a local SmithDB.
+*/}}
+{{- define "langsmith.smithdb.migrationEnabled" -}}
+{{- if and .Values.smithdb.langsmith.migration.enabled (or .Values.smithdb.enabled .Values.smithdb.migration.byocDestination.enabled) -}}true{{- end -}}
+{{- end }}
+
+{{/*
 Name of the shared SmithDB service account.
 Args: root.
 */}}
@@ -1732,13 +1741,13 @@ template so Helm creates a new Job instead of attempting to patch one.
 {{- end -}}
 
 {{/*
-Return config.hostname as an absolute URL.
+Return a hostname as an absolute URL.
 If no scheme is provided, default to https://, except localhost-style hosts
 which default to http:// for local development.
 */}}
-{{- define "langsmith.hostnameWithProtocol" -}}
-{{- if .Values.config.hostname -}}
-  {{- $hostname := .Values.config.hostname -}}
+{{- define "langsmith.urlWithProtocol" -}}
+{{- if . -}}
+  {{- $hostname := . -}}
   {{- if regexMatch "^[a-zA-Z][a-zA-Z0-9+.-]*://" $hostname -}}
     {{- $hostname -}}
   {{- else if regexMatch "^(localhost|127\\.0\\.0\\.1|\\[::1\\])(?::[0-9]+)?(?:/.*)?$" $hostname -}}
@@ -1749,6 +1758,15 @@ which default to http:// for local development.
 {{- end -}}
 {{- end -}}
 
+{{- define "langsmith.hostnameWithProtocol" -}}
+{{- include "langsmith.urlWithProtocol" .Values.config.hostname -}}
+{{- end -}}
+
+{{/* Absolute public UI URL for Trigger Server's browser redirects. */}}
+{{- define "langsmith.frontendUrl" -}}
+{{- include "langsmith.urlWithProtocol" (.Values.config.frontendHostname | default .Values.config.hostname) }}{{- with .Values.config.basePath }}/{{ . }}{{- end }}
+{{- end -}}
+
 {{/*
 Public API base: scheme, host, any base path, and the /api prefix. Derived from
 config.hostname; relative when unset so browser callers use their own origin. Equal to the
@@ -1756,6 +1774,20 @@ OAuth issuer today, but kept separate so either can change on its own.
 */}}
 {{- define "langsmith.publicApiEndpoint" -}}
 {{- include "langsmith.hostnameWithProtocol" . }}{{- with .Values.config.basePath }}/{{ . }}{{- end }}/api
+{{- end -}}
+
+{{/*
+Public callback URL for Agent Auth OAuth connections. OAuth providers must be
+able to reach this URL, so it must use the configured public hostname rather
+than the internal Kubernetes service endpoint.
+*/}}
+{{- define "langsmith.agentAuthOAuthCallbackUrl" -}}
+{{- include "langsmith.publicApiEndpoint" . }}/v1/agent-auth/oauth/callback
+{{- end -}}
+
+{{/* Public API base shared by Trigger webhooks and managed channel callbacks. */}}
+{{- define "langsmith.triggerServerPublicUrl" -}}
+{{- include "langsmith.publicApiEndpoint" . }}/v1
 {{- end -}}
 
 {{/*
@@ -1834,6 +1866,12 @@ Served through the frontend at /mcp (or /<basePath>/mcp).
   value: "{{ .Values.fleetTriggerServer.containerPort }}"
 - name: "TRIGGER_SERVER_HOST_API_URL"
   value: "http://{{ include "langsmith.fullname" . }}-{{ .Values.hostBackend.name }}.{{ $ns }}.svc.{{ $cd }}:{{ .Values.hostBackend.service.port }}"
+{{- if .Values.config.hostname }}
+- name: TRIGGER_SERVER_PUBLIC_URL
+  value: {{ include "langsmith.triggerServerPublicUrl" . | quote }}
+- name: LANGSMITH_URL
+  value: {{ include "langsmith.frontendUrl" . | quote }}
+{{- end }}
 {{- if .Values.fleet.enabled }}
 {{- $fleetApi := printf "http://%s.%s.svc.%s:%v" (include "langsmith.agentFeatures.apiServerK8sServiceName" (dict "root" . "product" "fleet")) $ns $cd .Values.fleet.apiServer.service.httpPort }}
 - name: "LANGGRAPH_API_URL"
