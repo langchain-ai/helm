@@ -3,6 +3,9 @@ templates:
   - validate.yaml
 set:
   config.existingSecretName: langsmith-secrets
+  config.authType: mixed
+  config.oauth.enabled: true
+  config.initialOrgAdminEmail: admin@example.com
   fleet.enabled: true
   fleet.redis.external.enabled: true
   insights.enabled: true
