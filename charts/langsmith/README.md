@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.18.0-rc.38](https://img.shields.io/badge/Version-0.18.0--rc.38-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.18.14rc1](https://img.shields.io/badge/AppVersion-0.18.14rc1-informational?style=flat-square)
+![Version: 0.18.0-rc.39](https://img.shields.io/badge/Version-0.18.0--rc.39-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.18.14rc1](https://img.shields.io/badge/AppVersion-0.18.14rc1-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -27,6 +27,10 @@ Things worth planning for before you enable it:
 **Sandbox nodes.** Sandboxes are Firecracker microVMs, so `sandboxes.sandboxHost.deployment.nodeSelector` must place host pods on KVM-capable nodes — bare-metal instances, or instance types with nested virtualization explicitly enabled. Sandbox images are published for `linux/amd64` only. A dedicated, tainted node pool is the usual arrangement, since rolling a sandbox-host pod suspends every microVM on it.
 
 **Which workspace owns the sandboxes.** By default smith-go resolves the install's workspace, which works when there is exactly one non-personal organization. With more than one it declines rather than guess, and you must set `engine.sandboxTenantId` explicitly. Prefer a workspace reserved for the Engine: its sandboxes are visible to anyone with access to it.
+
+## Agent Redis isolation
+
+Fleet, Engine/Insights, Polly, and the main LangSmith services must not share a Redis logical database. When they use the same external Redis instance, assign a different database number to each connection URL, such as `/1`, `/2`, and `/3`. The chart rejects duplicate databases in direct connection URLs. When a URL comes from an existing Secret, Helm cannot inspect it, so verify the isolation separately.
 
 ## Observability dashboards
 

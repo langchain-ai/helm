@@ -797,7 +797,11 @@ template and GitOps renders, so those skip this check. */ -}}
 {{- end }}
 {{- end }}
 
-{{- /* Validate per-agent redis configuration */ -}}
+{{- /* Validate per-agent redis configuration and direct URL isolation. */ -}}
+{{- $redisConnections := list }}
+{{- if and .Values.redis.external.enabled (not .Values.redis.external.cluster.enabled) (not .Values.redis.external.existingSecretName) .Values.redis.external.connectionUrl }}
+{{- $redisConnections = append $redisConnections (dict "name" "langsmith" "url" .Values.redis.external.connectionUrl) }}
+{{- end }}
 {{- range $pair := $agentPairs }}
 {{- $fn := index $pair "n" }}
 {{- $feat := index $.Values (index $pair "cfg") }}
@@ -806,6 +810,22 @@ template and GitOps renders, so those skip this check. */ -}}
 {{- if and (not $feat.redis.external.connectionUrl) (not $feat.redis.external.existingSecretName) }}
 {{- fail (printf "%s.redis.external.connectionUrl or %s.redis.external.existingSecretName is required when %s.redis.external.enabled is true" $fn $fn $fn) }}
 {{- end }}
+{{- if and (not $feat.redis.external.existingSecretName) $feat.redis.external.connectionUrl }}
+{{- $redisConnections = append $redisConnections (dict "name" $fn "url" $feat.redis.external.connectionUrl) }}
 {{- end }}
 {{- end }}
+{{- end }}
+{{- end }}
+{{- $redisNamespaces := dict }}
+{{- range $connection := $redisConnections }}
+{{- $parsed := urlParse (trimAll " " (index $connection "url")) }}
+{{- $database := default "/0" (index $parsed "path") }}
+{{- if eq $database "/" }}
+{{- $database = "/0" }}
+{{- end }}
+{{- $namespace := printf "%s%s" (lower (index $parsed "host")) $database }}
+{{- if hasKey $redisNamespaces $namespace }}
+{{- fail (printf "%s and %s must not use the same Redis logical database. Configure a different database number or Redis instance." (index $redisNamespaces $namespace) (index $connection "name")) }}
+{{- end }}
+{{- $_ := set $redisNamespaces $namespace (index $connection "name") }}
 {{- end }}
