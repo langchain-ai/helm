@@ -163,7 +163,7 @@ sandboxes:
   enabled: false
   # -- Sandbox runtime topology. sameCluster preserves the existing embedded sandbox-host deployment. separateCluster keeps the sandbox control plane here and expects a separate langsmith-sandbox release.
   deploymentMode: "sameCluster"
-  # -- Optional URL through which the LangSmith control plane reaches sandbox-host in a separate cluster. Leave empty when cluster networks are routed and node IPs are reachable on port 19190. http(s) origin only, no path.
+  # -- Optional origin through which the LangSmith control plane reaches sandbox-host in a separate cluster, usually the langsmith-sandbox chart's host ingress. Use an `https://` origin. Leave empty to call node IPs on port 19190 directly; that traffic is plain HTTP, so do this only on a private network you trust. No path or trailing slash.
   hostIngressEndpoint: ""
   # -- Private JWK signing sandbox callbacks, or key `sandbox_callback_signing_jwk` in config.existingSecretName. Needs config.hostname for the issuer, or signing fails closed.
   callbackSigningJwk: ""

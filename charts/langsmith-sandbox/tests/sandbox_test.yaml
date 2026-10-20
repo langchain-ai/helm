@@ -111,6 +111,58 @@ tests:
           value: RELEASE-NAME-langsmith-sandbox-sandbox-host
         template: sandbox-host-ingress.yaml
 
+  # Only host RPCs and the sandbox data plane go through the ingress; the
+  # hosts' unauthenticated /metrics and /readyz must not be reachable there.
+  - it: should route only the host RPC and data-plane paths through the host ingress
+    values:
+      - ./values/enabled.yaml
+    set:
+      sandboxHost.ingress.enabled: true
+      sandboxHost.ingress.host: sandbox-host.example.com
+    template: sandbox-host-ingress.yaml
+    asserts:
+      - lengthEqual:
+          path: spec.rules[0].http.paths
+          count: 2
+      - equal:
+          path: spec.rules[0].http.paths
+          value:
+            - path: /internal/SandboxHost/
+              pathType: Prefix
+              backend:
+                service:
+                  name: RELEASE-NAME-langsmith-sandbox-sandbox-host
+                  port:
+                    number: 19190
+            - path: /guest-operation/
+              pathType: Prefix
+              backend:
+                service:
+                  name: RELEASE-NAME-langsmith-sandbox-sandbox-host
+                  port:
+                    number: 19190
+
+  # GKE reads cloud.google.com/backend-config only from the Service, so the
+  # health check on /readyz needs Service-specific annotations.
+  - it: should annotate the host Service for the ingress, over commonAnnotations
+    values:
+      - ./values/enabled.yaml
+    set:
+      sandboxHost.ingress.enabled: true
+      sandboxHost.ingress.host: sandbox-host.example.com
+      commonAnnotations:
+        team: sandboxes
+        cloud.google.com/backend-config: '{"default":"common"}'
+      sandboxHost.ingress.service.annotations:
+        cloud.google.com/backend-config: '{"default":"sandbox-host"}'
+    template: sandbox-host-service.yaml
+    asserts:
+      - equal:
+          path: metadata.annotations
+          value:
+            team: sandboxes
+            cloud.google.com/backend-config: '{"default":"sandbox-host"}'
+
   - it: should use the existing JuiceFS Secret for formatting and mounting
     values:
       - ./values/enabled.yaml

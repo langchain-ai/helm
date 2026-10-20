@@ -62,7 +62,7 @@ serviceAuth:
   previousSecretKey: ""
 
 customCa:
-  # -- Existing Secret containing a CA certificate trusted when sandbox-host calls the LangSmith API.
+  # -- Existing Secret containing CA certificates (PEM; one key may hold several) that sandbox-host trusts when it calls the LangSmith API, the host ingress and an https egress proxy.
   existingSecretName: ""
   # -- Key within customCa.existingSecretName containing the CA certificate.
   secretKey: ""
@@ -184,9 +184,12 @@ sandboxHost:
     labels: {}
     annotations: {}
   ingress:
-    # -- Expose one authenticated entry point for control planes that cannot route directly to sandbox node IPs on port 19190.
+    # -- Create an Ingress for sandbox-host port 19190. Enable it when the LangSmith control plane cannot reach sandbox node IPs, or when that plain-HTTP traffic would leave a trusted private network. Configure `tls` and set `sandboxes.hostIngressEndpoint` in the langsmith chart to its `https://` origin. Routes only `/internal/SandboxHost/` and `/guest-operation/`; see Host ingress in the chart README.
     enabled: false
     ingressClassName: ""
     host: ""
     annotations: {}
     tls: []
+    service:
+      # -- Annotations on the sandbox-host Service the Ingress points at, for example `cloud.google.com/backend-config` on GKE. They win over `commonAnnotations` on a key clash.
+      annotations: {}

@@ -7,7 +7,10 @@ metadata:
   labels:
     {{- include "langsmithSandbox.labels" . | nindent 4 }}
   annotations:
-    {{- include "langsmithSandbox.annotations" . | nindent 4 }}
+    {{- /* Service-specific annotations win over commonAnnotations on a key clash. */}}
+    {{- with merge (deepCopy (default dict .Values.sandboxHost.ingress.service.annotations)) (default dict .Values.commonAnnotations) }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
 spec:
   type: ClusterIP
   selector:
