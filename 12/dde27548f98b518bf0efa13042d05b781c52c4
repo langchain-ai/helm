@@ -1,0 +1,19 @@
+charts/langsmith/Chart.yaml
+  s_72745d929f0b95::t_d02e96db1e1c10 8
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "12dde27548f98b518bf0efa13042d05b781c52c4",
+  "prompts": {},
+  "sessions": {
+    "s_72745d929f0b95": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a154e1-7eba-7993-8a18-dd01e5ccf637",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Colin Francis <colin.francis@langchain.dev>"
+    }
+  }
+}

@@ -1,0 +1,26 @@
+charts/langsmith/tests/slack_app_configuration_tokens_test.yaml
+  s_654b51cdb04438::t_3ef1e76284e9fa 21-25,31,37-39,41
+  s_654b51cdb04438::t_79ef6f4573aa33 40
+charts/langsmith/README.md
+  s_654b51cdb04438::t_3ef1e76284e9fa 595
+charts/langsmith/templates/_helpers.tpl
+  s_654b51cdb04438::t_3ef1e76284e9fa 1870-1871
+charts/langsmith/values.yaml
+  s_654b51cdb04438::t_3ef1e76284e9fa 4072-4073
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "51223ea14229c79c718d833e3fde1544c9af2827",
+  "prompts": {},
+  "sessions": {
+    "s_654b51cdb04438": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a14279-8028-7ed1-b850-d83650510a39",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Colin Francis <colin.francis@langchain.dev>"
+    }
+  }
+}
