@@ -46,11 +46,12 @@ spec:
       maxUnavailable: 1
   template:
     metadata:
-      {{- /* Pod labels drop helm.sh/chart: it changes on every chart version bump,
-      and a pod-template change rolls every host, suspending its VMs. The
-      Deployment's own metadata keeps it. */}}
+      {{- /* Pod labels drop helm.sh/chart and app.kubernetes.io/version: they
+      change on every chart or appVersion bump, and a pod-template change rolls
+      every host, suspending its VMs, even when the image stays pinned. The
+      Deployment's own metadata keeps them. */}}
       labels:
-        {{- toYaml (omit $labels "helm.sh/chart") | nindent 8 }}
+        {{- toYaml (omit $labels "helm.sh/chart" "app.kubernetes.io/version") | nindent 8 }}
       annotations:
         {{- include "langsmith.commonPodAnnotations" . | nindent 8 }}
         checksum/juicefs-config: {{ include "langsmith.sandboxes.juicefsConfigSecretChecksum" . | quote }}

@@ -121,8 +121,8 @@ images:
   sandboxHostImage:
     repository: "docker.io/langchain/sandbox-host"
     pullPolicy: IfNotPresent
-    # -- Leave empty to run the image matching this chart's appVersion. Set it only to point at a mirror that carries the same tag; a pinned tag does not move when the chart is upgraded.
-    tag: ""
+    # -- Release tag, kept equal to the chart's appVersion and the other LangSmith image tags so the release bump moves them together, including on a Helm upgrade that reuses the previous values. An empty tag also resolves to the appVersion.
+    tag: "0.18.14rc1"
   # The images the operator gives each agent deployment's Redis and PostgreSQL
   # (operator.templates.redis and operator.templates.db). They follow
   # images.registry like the rest; the tag is the image's own, not the chart's.

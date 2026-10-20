@@ -818,9 +818,9 @@ tests:
 
 
 
-  # A tag pinned in values does not move when the chart is upgraded (and
-  # --reuse-values keeps it), so the host image would lag the control plane.
-  - it: should default the sandbox-host image tag to the chart appVersion
+  # values.yaml writes the tag out like the other images; an empty one still
+  # resolves to the chart appVersion.
+  - it: should default an empty sandbox-host image tag to the chart appVersion
     chart:
       appVersion: 9.9.9-test
     values:
@@ -833,9 +833,10 @@ tests:
           path: spec.template.spec.containers[0].image
           value: example.com/langsmith/sandbox-host:9.9.9-test
 
-  # helm.sh/chart changes on every chart version bump; on the pod template it
-  # would roll every host (suspending its VMs) for chart-only changes.
-  - it: should keep helm.sh/chart off the sandbox-host pod template
+  # helm.sh/chart and app.kubernetes.io/version change on every chart or
+  # appVersion bump; on the pod template they would roll every host (suspending
+  # its VMs) even when the image stays pinned.
+  - it: should keep version labels off the sandbox-host pod template
     values:
       - ./values/sandboxes-enabled.yaml
     template: sandboxes/sandbox-host-deployment.yaml
@@ -844,6 +845,10 @@ tests:
           path: metadata.labels["helm.sh/chart"]
       - notExists:
           path: spec.template.metadata.labels["helm.sh/chart"]
+      - exists:
+          path: metadata.labels["app.kubernetes.io/version"]
+      - notExists:
+          path: spec.template.metadata.labels["app.kubernetes.io/version"]
       - exists:
           path: spec.template.metadata.labels["app.kubernetes.io/component"]
 
