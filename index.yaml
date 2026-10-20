@@ -10662,6 +10662,19 @@ entries:
   langsmith-auth-proxy:
   - apiVersion: v2
     appVersion: 1.37.0
+    created: "2026-10-20T06:43:08.46542214Z"
+    description: Helm chart to deploy the langsmith auth-proxy application.
+    digest: 502d55d0b0aa003f532ebc984175423cb9a38bf81356df8cd5b46ce90a8d5dd0
+    maintainers:
+    - email: brian@langchain.dev
+      name: Brian
+    name: langsmith-auth-proxy
+    type: application
+    urls:
+    - https://github.com/langchain-ai/helm/releases/download/langsmith-auth-proxy-0.0.16/langsmith-auth-proxy-0.0.16.tgz
+    version: 0.0.16
+  - apiVersion: v2
+    appVersion: 1.37.0
     created: "2026-09-17T06:46:26.323539678Z"
     description: Helm chart to deploy the langsmith auth-proxy application.
     digest: 1effb01e99020901a81ecf6895524f6a6408f1fcd239b53dec7915e6da06f0af
@@ -11077,6 +11090,18 @@ entries:
     version: 0.1.0
   mission-control:
   - apiVersion: v2
+    appVersion: 1.2.10
+    created: "2026-10-20T06:43:08.691952279Z"
+    description: Mission Control to deploy and manage Langsmith in EKS
+    digest: e3a7d027bd976e0674418d25761561f0c052c1bc402650881130a6793cc2cf89
+    maintainers:
+    - email: gethin.dibben@langchain.dev
+      name: gethin-langchain
+    name: mission-control
+    urls:
+    - https://github.com/langchain-ai/helm/releases/download/mission-control-1.2.10/mission-control-1.2.10.tgz
+    version: 1.2.10
+  - apiVersion: v2
     appVersion: 1.2.7
     created: "2026-10-19T13:37:45.217107723Z"
     description: Mission Control to deploy and manage Langsmith in EKS
@@ -11227,4 +11252,4 @@ entries:
     urls:
     - https://github.com/langchain-ai/helm/releases/download/open-gpts-0.1.0/open-gpts-0.1.0.tgz
     version: 0.1.0
-generated: "2026-10-20T01:21:18.517961165Z"
+generated: "2026-10-20T06:43:08.692901582Z"
