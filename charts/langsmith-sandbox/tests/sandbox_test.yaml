@@ -296,7 +296,7 @@ tests:
     asserts:
       - equal:
           path: metadata.name
-          value: RELEASE-NAME-langsmith-sandbox-juicefs-format-73801bd3
+          value: RELEASE-NAME-langsmith-sandbox-juicefs-format-9c55c586
 
   - it: should rename the JuiceFS formatter when commonDnsConfig changes
     chart:
@@ -312,7 +312,7 @@ tests:
     asserts:
       - equal:
           path: metadata.name
-          value: RELEASE-NAME-langsmith-sandbox-juicefs-format-21983d3e
+          value: RELEASE-NAME-langsmith-sandbox-juicefs-format-0faacbd3
 
   - it: should add commonEnv, volumes, mounts, and init containers to sandbox-host
     values:
@@ -425,7 +425,68 @@ tests:
     asserts:
       - notEqual:
           path: metadata.name
-          value: RELEASE-NAME-langsmith-sandbox-juicefs-format-73801bd3
+          value: RELEASE-NAME-langsmith-sandbox-juicefs-format-9c55c586
+
+  # Like sandbox-host, the formatter must verify a JuiceFS Redis whose
+  # certificate is signed by a private CA (for example Memorystore with TLS).
+  - it: should trust the custom CA in the JuiceFS formatter
+    values:
+      - ./values/enabled.yaml
+    set:
+      customCa.existingSecretName: langsmith-ca-bundle
+      customCa.secretKey: ca-certificates.crt
+    template: juicefs-format-job.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SSL_CERT_FILE
+            value: /etc/ssl/certs/custom-ca-certificates.crt
+      - contains:
+          path: spec.template.spec.containers[0].volumeMounts
+          content:
+            name: langsmith-custom-ca
+            mountPath: /etc/ssl/certs/custom-ca-certificates.crt
+            subPath: ca-certificates.crt
+            readOnly: true
+      - contains:
+          path: spec.template.spec.volumes
+          content:
+            name: langsmith-custom-ca
+            secret:
+              secretName: langsmith-ca-bundle
+              items:
+                - key: ca-certificates.crt
+                  path: ca-certificates.crt
+
+  - it: should not mount a custom CA in the JuiceFS formatter by default
+    values:
+      - ./values/enabled.yaml
+    template: juicefs-format-job.yaml
+    asserts:
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SSL_CERT_FILE
+            value: /etc/ssl/certs/custom-ca-certificates.crt
+      - lengthEqual:
+          path: spec.template.spec.volumes
+          count: 1
+
+  # The CA mount is part of the Job's immutable pod template.
+  - it: should rename the JuiceFS formatter when the custom CA changes
+    chart:
+      version: 0.0.0-test
+    values:
+      - ./values/enabled.yaml
+    set:
+      customCa.existingSecretName: langsmith-ca-bundle
+      customCa.secretKey: ca-certificates.crt
+    template: juicefs-format-job.yaml
+    asserts:
+      - notEqual:
+          path: metadata.name
+          value: RELEASE-NAME-langsmith-sandbox-juicefs-format-9c55c586
 
   # The proxy URL can carry Basic-auth credentials, so it is only ever a
   # secretKeyRef into the runtime Secret, never a literal value.

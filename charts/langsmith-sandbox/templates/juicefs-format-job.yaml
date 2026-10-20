@@ -1,5 +1,6 @@
 {{- if .Values.sandboxHost.enabled }}
 {{- $job := .Values.juicefsFormatJob }}
+{{- $customCa := and .Values.customCa.existingSecretName .Values.customCa.secretKey }}
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -68,6 +69,11 @@ spec:
             - name: SANDBOX_HOST_JUICEFS_REDIS_IAM_AUTH_PROVIDER
               value: {{ . | quote }}
             {{- end }}
+            {{- /* Like sandbox-host, so the formatter verifies a Redis signed by a private CA. */}}
+            {{- if $customCa }}
+            - name: SSL_CERT_FILE
+              value: /etc/ssl/certs/custom-ca-certificates.crt
+            {{- end }}
           securityContext:
             {{- toYaml $job.securityContext | nindent 12 }}
           resources:
@@ -76,9 +82,23 @@ spec:
             - name: juicefs-config
               mountPath: /run/secrets/juicefs
               readOnly: true
+            {{- if $customCa }}
+            - name: langsmith-custom-ca
+              mountPath: /etc/ssl/certs/custom-ca-certificates.crt
+              subPath: ca-certificates.crt
+              readOnly: true
+            {{- end }}
       volumes:
         - name: juicefs-config
           secret:
             secretName: {{ include "langsmithSandbox.juicefsConfigSecretName" . }}
             defaultMode: 0400
+        {{- if $customCa }}
+        - name: langsmith-custom-ca
+          secret:
+            secretName: {{ .Values.customCa.existingSecretName }}
+            items:
+              - key: {{ .Values.customCa.secretKey }}
+                path: ca-certificates.crt
+        {{- end }}
 {{- end }}
