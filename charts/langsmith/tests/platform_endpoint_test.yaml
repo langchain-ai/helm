@@ -29,6 +29,31 @@ tests:
           path: data.LANGCHAIN_PLATFORM_ENDPOINT
           value: "https://langsmith.example.com/langsmith/api"
 
+  - it: should derive the Agent Auth OAuth callback from the public hostname
+    set:
+      config.hostname: https://langsmith.example.com
+    asserts:
+      - equal:
+          path: data.AGENT_AUTH_OAUTH_CALLBACK_URL
+          value: "https://langsmith.example.com/api/v1/agent-auth/oauth/callback"
+
+  - it: should include the base path in the Agent Auth OAuth callback
+    set:
+      config.hostname: https://langsmith.example.com
+      config.basePath: langsmith
+    asserts:
+      - equal:
+          path: data.AGENT_AUTH_OAUTH_CALLBACK_URL
+          value: "https://langsmith.example.com/langsmith/api/v1/agent-auth/oauth/callback"
+
+  - it: should support a loopback HTTP Agent Auth OAuth callback
+    set:
+      config.hostname: localhost:18080
+    asserts:
+      - equal:
+          path: data.AGENT_AUTH_OAUTH_CALLBACK_URL
+          value: "http://localhost:18080/api/v1/agent-auth/oauth/callback"
+
   - it: should not be set when sandboxes are disabled
     set:
       config.existingSecretName: langsmith-secrets

@@ -18,6 +18,8 @@ templates:
   - smithdb/compaction-worker-scaled-object.yaml
   - smithdb/cluster-manager-deployment.yaml
   - smithdb/migration-job.yaml
+  - smithdb/migration-service.yaml
+  - queue/deployment.yaml
   - smithdb/taskdb-postgres-secret.yaml
   - smithdb/taskdb-postgres-service.yaml
   - smithdb/taskdb-postgres-statefulset.yaml
@@ -147,6 +149,136 @@ tests:
           content:
             name: SMITHDB_MIGRATION__OUTPUT__OBJECT_STORE__S3__KMS_KEY_ARN
             value: arn:aws:kms:us-west-2:123456789012:key/smithdb
+  - it: should suffix the migration job name with a hash of its pod template
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      smithdb.langsmith.migration.enabled: true
+      smithdb.langsmith.query.enabled: false
+      smithdb.migration.taskdb.postgres.auth.password: taskdb-password
+    template: smithdb/migration-job.yaml
+    asserts:
+      - matchRegex:
+          path: metadata.name
+          pattern: ^RELEASE-NAME-langsmith-smithdb-migration-[0-9a-f]{8}$
+      - equal:
+          path: spec.template.metadata.labels["app.kubernetes.io/component"]
+          value: RELEASE-NAME-langsmith-smithdb-migration
+  - it: should keep the hashed migration job name within 63 characters for a 53-character release name
+    release:
+      name: a-release-name-at-the-helm-limit-xxxxxxxxxxxxxxxxxxxx
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      smithdb.langsmith.migration.enabled: true
+      smithdb.langsmith.query.enabled: false
+      smithdb.migration.taskdb.postgres.auth.password: taskdb-password
+    template: smithdb/migration-job.yaml
+    asserts:
+      - matchRegex:
+          path: metadata.name
+          pattern: ^[a-z0-9-]{1,54}-[0-9a-f]{8}$
+  - it: should put a headless service in front of the migration job
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      smithdb.langsmith.migration.enabled: true
+      smithdb.langsmith.query.enabled: false
+      smithdb.migration.taskdb.postgres.auth.password: taskdb-password
+    template: smithdb/migration-service.yaml
+    asserts:
+      - isKind:
+          of: Service
+      - equal:
+          path: metadata.name
+          value: RELEASE-NAME-langsmith-smithdb-migration
+      - equal:
+          path: spec.clusterIP
+          value: None
+      - equal:
+          path: spec.publishNotReadyAddresses
+          value: true
+      - equal:
+          path: spec.ports[0]
+          value:
+            name: http
+            port: 9040
+            targetPort: http
+            protocol: TCP
+      - equal:
+          path: spec.selector["app.kubernetes.io/component"]
+          value: RELEASE-NAME-langsmith-smithdb-migration
+  - it: should point the queue at the migration metrics service
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      smithdb.langsmith.migration.enabled: true
+      smithdb.langsmith.query.enabled: false
+      smithdb.migration.taskdb.postgres.auth.password: taskdb-password
+    template: queue/deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_MIGRATION_METRICS_ENDPOINT
+            value: http://RELEASE-NAME-langsmith-smithdb-migration.NAMESPACE.svc.cluster.local:9040
+  - it: should not render the migration service when the migration is disabled
+    values:
+      - ./values/smithdb-enabled.yaml
+    template: smithdb/migration-service.yaml
+    asserts:
+      - hasDocuments:
+          count: 0
+  - it: should point the migration at the BYOC destination
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      smithdb.config.objectStore.s3.kmsEncryptionEnabled: true
+      smithdb.langsmith.migration.enabled: true
+      smithdb.langsmith.query.enabled: false
+      smithdb.migration.taskdb.postgres.auth.password: taskdb-password
+      commonEnv:
+        - { name: SH_TO_BYOC_S3_BUCKET, value: byoc-bucket }
+        - { name: SH_TO_BYOC_S3_REGION, value: us-east-2 }
+        - { name: SH_TO_BYOC_S3_ROLE_ARN, value: "arn:aws:iam::111122223333:role/byoc" }
+      smithdb.migration.byocDestination:
+        enabled: true
+        metastore:
+          host: byoc-rds
+          database: smithdb
+          username: smithdb_iam
+    template: smithdb/migration-job.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_MIGRATION__OUTPUT__OBJECT_STORE__S3__BUCKET
+            value: byoc-bucket
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_MIGRATION__OUTPUT__OBJECT_STORE__S3__ROLE_ARN
+            value: arn:aws:iam::111122223333:role/byoc
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_MIGRATION__OUTPUT__OBJECT_STORE__S3__KMS_ENCRYPTION_ENABLED
+            value: "true"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_MIGRATION__OBJECT_STORE__S3__BUCKET
+            value: byoc-bucket
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_MIGRATION__METASTORE__HOST
+            value: byoc-rds
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_MIGRATION__METASTORE__AWS_CREDENTIAL_OVERRIDES__REGION
+            value: us-east-2
   - it: should configure Azure Blob Storage for SmithDB
     values:
       - ./values/smithdb-enabled.yaml
@@ -1744,3 +1876,132 @@ tests:
           content:
             name: SMITHDB_MIGRATION__TASKDB__USE_SSL
             value: "true"
+
+  - it: should render smithdb migration with IAM-authenticated external taskdb postgres
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      smithdb.langsmith.migration.enabled: true
+      smithdb.langsmith.query.enabled: false
+      smithdb.migration.taskdb.postgres.enabled: true
+      smithdb.migration.taskdb.postgres.external.enabled: true
+      smithdb.migration.taskdb.postgres.external.host: taskdb.cluster.us-west-2.rds.amazonaws.com
+      smithdb.migration.taskdb.postgres.external.database: smithdb_migration
+      smithdb.migration.taskdb.postgres.external.useSsl: true
+      smithdb.migration.taskdb.postgres.external.iamAuthProvider: aws
+      smithdb.migration.taskdb.postgres.external.iamUsername: smithdb_migration_iam
+    templates:
+      - smithdb/migration-job.yaml
+      - smithdb/taskdb-postgres-secret.yaml
+    asserts:
+      - template: smithdb/taskdb-postgres-secret.yaml
+        exists:
+          path: data.postgres_host
+      - template: smithdb/taskdb-postgres-secret.yaml
+        notExists:
+          path: data.postgres_password
+      - template: smithdb/migration-job.yaml
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_MIGRATION__TASKDB__USERNAME
+            value: smithdb_migration_iam
+      - template: smithdb/migration-job.yaml
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_MIGRATION__TASKDB__IAM_AUTH_PROVIDER
+            value: aws
+      - template: smithdb/migration-job.yaml
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_MIGRATION__TASKDB__USE_SSL
+            value: "true"
+      - template: smithdb/migration-job.yaml
+        notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_MIGRATION__TASKDB__PASSWORD
+          any: true
+
+  - it: should keep the secret username for Azure IAM taskdb postgres
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      smithdb.langsmith.migration.enabled: true
+      smithdb.langsmith.query.enabled: false
+      smithdb.migration.taskdb.postgres.enabled: true
+      smithdb.migration.taskdb.postgres.external.enabled: true
+      smithdb.migration.taskdb.postgres.external.host: taskdb.postgres.database.azure.com
+      smithdb.migration.taskdb.postgres.external.database: smithdb_migration
+      smithdb.migration.taskdb.postgres.external.username: smithdb-identity
+      smithdb.migration.taskdb.postgres.external.useSsl: true
+      smithdb.migration.taskdb.postgres.external.iamAuthProvider: azure
+    templates:
+      - smithdb/migration-job.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_MIGRATION__TASKDB__USERNAME
+            valueFrom:
+              secretKeyRef:
+                name: RELEASE-NAME-langsmith-smithdb-taskdb-postgres
+                key: postgres_user
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_MIGRATION__TASKDB__IAM_AUTH_PROVIDER
+            value: azure
+  - it: should run the BYOC destination migration without a local SmithDB
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      smithdb.enabled: false
+      smithdb.langsmith.ingestion.enabled: false
+      smithdb.langsmith.query.enabled: false
+      smithdb.langsmith.migration.enabled: true
+      smithdb.migration.taskdb.postgres.auth.password: taskdb-password
+      commonEnv:
+        - { name: SH_TO_BYOC_S3_BUCKET, value: byoc-bucket }
+        - { name: SH_TO_BYOC_S3_REGION, value: us-east-2 }
+        - { name: SH_TO_BYOC_S3_ROLE_ARN, value: "arn:aws:iam::111122223333:role/byoc" }
+      smithdb.migration.byocDestination:
+        enabled: true
+        metastore:
+          host: byoc-rds
+          database: smithdb
+          username: smithdb_iam
+    templates:
+      - smithdb/migration-job.yaml
+      - smithdb/service-account.yaml
+      - smithdb/taskdb-postgres-statefulset.yaml
+    asserts:
+      - hasDocuments:
+          count: 1
+  - it: should not render SmithDB workloads for a BYOC destination migration without a local SmithDB
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      smithdb.enabled: false
+      smithdb.langsmith.ingestion.enabled: false
+      smithdb.langsmith.query.enabled: false
+      smithdb.langsmith.migration.enabled: true
+      smithdb.migration.taskdb.postgres.auth.password: taskdb-password
+      commonEnv:
+        - { name: SH_TO_BYOC_S3_BUCKET, value: byoc-bucket }
+        - { name: SH_TO_BYOC_S3_REGION, value: us-east-2 }
+        - { name: SH_TO_BYOC_S3_ROLE_ARN, value: "arn:aws:iam::111122223333:role/byoc" }
+      smithdb.migration.byocDestination:
+        enabled: true
+        metastore:
+          host: byoc-rds
+          database: smithdb
+          username: smithdb_iam
+    templates:
+      - smithdb/ingestion-deployment.yaml
+      - smithdb/metastore-migration.yaml
+    asserts:
+      - hasDocuments:
+          count: 0

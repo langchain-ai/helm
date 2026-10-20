@@ -542,18 +542,21 @@ Args: root, component.
 {{- $root := .root -}}
 {{- $tiers := dict
   "small" (dict
+    "single" (dict "cpu" "4" "memory" "16Gi" "cache" "100Gi")
     "query" (dict "cpu" "4" "memory" "8Gi" "cache" "200Gi")
     "ingestion" (dict "cpu" "4" "memory" "8Gi" "cache" "100Gi")
     "compaction" (dict "cpu" "2" "memory" "4Gi")
     "compactionWorker" (dict "cpu" "8" "memory" "16Gi" "cache" "100Gi")
     "clusterManager" (dict "cpu" "250m" "memory" "256Mi"))
   "medium" (dict
+    "single" (dict "cpu" "16" "memory" "64Gi" "cache" "300Gi")
     "query" (dict "cpu" "28" "memory" "48Gi" "cache" "200Gi")
     "ingestion" (dict "cpu" "16" "memory" "32Gi" "cache" "100Gi")
     "compaction" (dict "cpu" "4" "memory" "8Gi")
     "compactionWorker" (dict "cpu" "16" "memory" "32Gi" "cache" "100Gi")
     "clusterManager" (dict "cpu" "250m" "memory" "256Mi"))
   "large" (dict
+    "single" (dict "cpu" "32" "memory" "128Gi" "cache" "1000Gi")
     "query" (dict "cpu" "28" "memory" "50Gi" "cache" "1000Gi")
     "ingestion" (dict "cpu" "56" "memory" "150Gi" "cache" "1000Gi")
     "compaction" (dict "cpu" "8" "memory" "16Gi")
@@ -705,14 +708,38 @@ Name of the service account for the SmithDB migration taskdb Postgres.
 {{- end }}
 
 {{/*
-Name of a SmithDB component Service or Deployment.
+Name of a SmithDB component Service or Deployment: the SmithDB fullname, suffixed with the
+component's `name` when it sets one.
 Args: root, component.
 */}}
 {{- define "langsmith.smithdb.componentName" -}}
 {{- $root := .root -}}
 {{- $component := .component -}}
 {{- $componentValues := index $root.Values.smithdb $component -}}
-{{- printf "%s-%s" (include "langsmith.smithdb.fullname" $root) $componentValues.name | trunc 63 | trimSuffix "-" }}
+{{- printf "%s%s" (include "langsmith.smithdb.fullname" $root) (ternary (printf "-%s" $componentValues.name) "" (hasKey $componentValues "name")) | trunc 63 | trimSuffix "-" }}
+{{- end }}
+
+{{/*
+Non-empty when SmithDB runs as separate per-role workloads (smithdb.topology cluster).
+*/}}
+{{- define "langsmith.smithdb.clusterTopology" -}}
+{{- if and .Values.smithdb.enabled (eq .Values.smithdb.topology "cluster") -}}true{{- end -}}
+{{- end }}
+
+{{/*
+Non-empty when SmithDB runs as one `smithdb all` workload (smithdb.topology single).
+*/}}
+{{- define "langsmith.smithdb.singleTopology" -}}
+{{- if and .Values.smithdb.enabled (eq .Values.smithdb.topology "single") -}}true{{- end -}}
+{{- end }}
+
+{{/*
+Non-empty when the SmithDB migration Job and its taskdb render. A BYOC
+destination migration reads ClickHouse and writes to the data plane, so it
+runs without a local SmithDB.
+*/}}
+{{- define "langsmith.smithdb.migrationEnabled" -}}
+{{- if and .Values.smithdb.langsmith.migration.enabled (or .Values.smithdb.enabled .Values.smithdb.migration.byocDestination.enabled) -}}true{{- end -}}
 {{- end }}
 
 {{/*
@@ -797,6 +824,79 @@ Args: root, service, displayName.
 {{- end }}
 
 {{/*
+SH_TO_BYOC_S3_* entries from commonEnv and smithdb.commonEnv, keyed by name. The BYOC inventory jobs
+read the same entries, so customers set the destination once.
+*/}}
+{{- define "langsmith.smithdb.migration.byocSourceEnv" -}}
+{{- $sources := dict -}}
+{{- range concat .Values.commonEnv .Values.smithdb.commonEnv -}}
+{{- if hasPrefix "SH_TO_BYOC_S3_" .name -}}
+{{- $_ := set $sources .name . -}}
+{{- end -}}
+{{- end -}}
+{{- toYaml $sources -}}
+{{- end }}
+
+{{/*
+Copies SH_TO_BYOC_S3_* entries, including valueFrom, to SmithDB env names. Unset sources are skipped.
+Args: root, prefix, fields (dict of source suffix to SmithDB field).
+*/}}
+{{- define "langsmith.smithdb.migration.byocMappedEnv" -}}
+{{- $sources := include "langsmith.smithdb.migration.byocSourceEnv" .root | fromYaml -}}
+{{- $envVars := list -}}
+{{- range $source, $field := .fields -}}
+{{- with get $sources (printf "SH_TO_BYOC_S3_%s" $source) -}}
+{{- $envVars = append $envVars (set (omit . "name") "name" (printf "%s__%s" $.prefix $field)) -}}
+{{- end -}}
+{{- end -}}
+{{- toYaml $envVars -}}
+{{- end }}
+
+{{/*
+S3 env for the SmithDB migration's BYOC destination store.
+Args: root, prefix (for example SMITHDB_MIGRATION__OUTPUT__OBJECT_STORE).
+*/}}
+{{- define "langsmith.smithdb.migration.byocObjectStoreEnv" -}}
+{{- $fields := dict "BUCKET" "S3__BUCKET" "REGION" "S3__REGION" "ENDPOINT" "S3__ENDPOINT" "ROLE_ARN" "S3__ROLE_ARN" -}}
+{{- $envVars := list
+  (dict "name" (printf "%s__TYPE" .prefix) "value" "s3")
+  (dict "name" (printf "%s__S3__ROOT_FOLDER" .prefix) "value" "smithdb")
+-}}
+{{- $mapped := include "langsmith.smithdb.migration.byocMappedEnv" (dict "root" .root "prefix" .prefix "fields" $fields) | fromYamlArray -}}
+{{- toYaml (concat $envVars $mapped) -}}
+{{- end }}
+
+{{/*
+SmithDB migration component env with the read-side object store and metastore pointed at the BYOC
+destination. Only the migration Job uses it, so other SmithDB workloads keep this install's stores.
+*/}}
+{{- define "langsmith.smithdb.migration.byocComponentEnv" -}}
+{{- $root := . -}}
+{{- $metastore := $root.Values.smithdb.migration.byocDestination.metastore -}}
+{{- $prefix := "SMITHDB_MIGRATION" -}}
+{{- $envVars := list -}}
+{{- range include "langsmith.smithdb.componentEnv" (dict "root" $root "service" "MIGRATION" "displayName" "smithdb-migration") | fromYamlArray -}}
+{{- if not (or (hasPrefix (printf "%s__OBJECT_STORE__" $prefix) .name) (hasPrefix (printf "%s__METASTORE__" $prefix) .name)) -}}
+{{- $envVars = append $envVars . -}}
+{{- end -}}
+{{- end -}}
+{{- $objectStoreEnv := include "langsmith.smithdb.migration.byocObjectStoreEnv" (dict "root" $root "prefix" (printf "%s__OBJECT_STORE" $prefix)) | fromYamlArray -}}
+{{- $metastoreEnv := list
+  (dict "name" (printf "%s__METASTORE__TYPE" $prefix) "value" "postgres")
+  (dict "name" (printf "%s__METASTORE__DEFAULT_URI" $prefix) "value" "s3://")
+  (dict "name" (printf "%s__METASTORE__HOST" $prefix) "value" (toString $metastore.host))
+  (dict "name" (printf "%s__METASTORE__PORT" $prefix) "value" (toString $metastore.port))
+  (dict "name" (printf "%s__METASTORE__DATABASE" $prefix) "value" (toString $metastore.database))
+  (dict "name" (printf "%s__METASTORE__USERNAME" $prefix) "value" (toString $metastore.username))
+  (dict "name" (printf "%s__METASTORE__IAM_AUTH_PROVIDER" $prefix) "value" "aws")
+  (dict "name" (printf "%s__METASTORE__USE_SSL" $prefix) "value" "true")
+-}}
+{{- $overrideFields := dict "REGION" "REGION" "ROLE_ARN" "ROLE_ARN" -}}
+{{- $overrideEnv := include "langsmith.smithdb.migration.byocMappedEnv" (dict "root" $root "prefix" (printf "%s__METASTORE__AWS_CREDENTIAL_OVERRIDES" $prefix) "fields" $overrideFields) | fromYamlArray -}}
+{{- toYaml (concat $envVars $objectStoreEnv $metastoreEnv $overrideEnv) }}
+{{- end }}
+
+{{/*
 SmithDB OTEL resource attributes.
 */}}
 {{- define "langsmith.smithdb.otelResourceAttributes" -}}
@@ -833,11 +933,11 @@ SmithDB Beacon log export environment.
 
 {{/*
 Common per-process SmithDB env: metrics profile, logging, OpenTelemetry, pod identity, allocator.
-Args: root, service, displayName.
+Args: root, service, displayName, optional prefix (defaults to SMITHDB_<service>).
 */}}
 {{- define "langsmith.smithdb.baseEnv" -}}
 {{- $root := .root -}}
-{{- $prefix := printf "SMITHDB_%s" (upper .service) -}}
+{{- $prefix := .prefix | default (printf "SMITHDB_%s" (upper .service)) -}}
 {{- $displayName := .displayName -}}
 {{- $tracing := $root.Values.config.observability.tracing -}}
 {{- $tracingEnabled := and $tracing.enabled (eq $tracing.exporter "grpc") -}}
@@ -890,13 +990,13 @@ Args: root, service, displayName.
 
 {{/*
 Shared SmithDB service env vars (object store + metastore + base env).
-Args: root, service, displayName.
+Args: root, service, displayName, optional prefix (defaults to SMITHDB_<service>).
 */}}
 {{- define "langsmith.smithdb.serviceEnv" -}}
 {{- $root := .root -}}
 {{- $service := .service -}}
 {{- $displayName := .displayName -}}
-{{- $prefix := printf "SMITHDB_%s" (upper $service) -}}
+{{- $prefix := .prefix | default (printf "SMITHDB_%s" (upper $service)) -}}
 {{- $objectStoreType := lower (default "s3" $root.Values.smithdb.config.objectStore.type) -}}
 {{- $objectStoreRootFolder := "smithdb" -}}
 - name: {{ $prefix }}__OBJECT_STORE__TYPE
@@ -1012,7 +1112,7 @@ Args: root, service, displayName.
 {{- end }}
 - name: {{ $prefix }}__METASTORE__USE_SSL
   value: {{ $root.Values.smithdb.config.metastore.useSsl | quote }}
-{{ include "langsmith.smithdb.baseEnv" (dict "root" $root "service" $service "displayName" $displayName) }}
+{{ include "langsmith.smithdb.baseEnv" (dict "root" $root "service" $service "displayName" $displayName "prefix" $prefix) }}
 {{- end }}
 
 
@@ -1605,6 +1705,11 @@ application ConfigMap or its secret-backed settings.
 - name: SANDBOX_HOST_JUICEFS_REDIS_IAM_AUTH_PROVIDER
   value: {{ . | quote }}
 {{- end }}
+{{- /* Like sandbox-host, so the formatter verifies a Redis signed by a private CA. */}}
+{{- if and .Values.config.customCa.secretName .Values.config.customCa.secretKey }}
+- name: SSL_CERT_FILE
+  value: /etc/ssl/certs/custom-ca-certificates.crt
+{{- end }}
 {{- end -}}
 
 {{/*
@@ -1620,6 +1725,8 @@ template so Helm creates a new Job instead of attempting to patch one.
   "pullPolicy" .Values.images.sandboxHostImage.pullPolicy
   "pullSecrets" .Values.images.imagePullSecrets
   "env" (include "langsmith.sandboxes.juicefsFormatJobEnv" .)
+  "tlsVolumes" (include "langsmith.tlsVolumes" .)
+  "tlsVolumeMounts" (include "langsmith.tlsVolumeMounts" .)
   "labels" $juicefsFormatJob.labels
   "annotations" $juicefsFormatJob.annotations
   "podSecurityContext" (include "langsmith.podSecurityContext" (dict "Values" .Values "componentSecurityContext" $juicefsFormatJob.podSecurityContext))
@@ -1634,13 +1741,13 @@ template so Helm creates a new Job instead of attempting to patch one.
 {{- end -}}
 
 {{/*
-Return config.hostname as an absolute URL.
+Return a hostname as an absolute URL.
 If no scheme is provided, default to https://, except localhost-style hosts
 which default to http:// for local development.
 */}}
-{{- define "langsmith.hostnameWithProtocol" -}}
-{{- if .Values.config.hostname -}}
-  {{- $hostname := .Values.config.hostname -}}
+{{- define "langsmith.urlWithProtocol" -}}
+{{- if . -}}
+  {{- $hostname := . -}}
   {{- if regexMatch "^[a-zA-Z][a-zA-Z0-9+.-]*://" $hostname -}}
     {{- $hostname -}}
   {{- else if regexMatch "^(localhost|127\\.0\\.0\\.1|\\[::1\\])(?::[0-9]+)?(?:/.*)?$" $hostname -}}
@@ -1651,6 +1758,15 @@ which default to http:// for local development.
 {{- end -}}
 {{- end -}}
 
+{{- define "langsmith.hostnameWithProtocol" -}}
+{{- include "langsmith.urlWithProtocol" .Values.config.hostname -}}
+{{- end -}}
+
+{{/* Absolute public UI URL for Trigger Server's browser redirects. */}}
+{{- define "langsmith.frontendUrl" -}}
+{{- include "langsmith.urlWithProtocol" (.Values.config.frontendHostname | default .Values.config.hostname) }}{{- with .Values.config.basePath }}/{{ . }}{{- end }}
+{{- end -}}
+
 {{/*
 Public API base: scheme, host, any base path, and the /api prefix. Derived from
 config.hostname; relative when unset so browser callers use their own origin. Equal to the
@@ -1658,6 +1774,20 @@ OAuth issuer today, but kept separate so either can change on its own.
 */}}
 {{- define "langsmith.publicApiEndpoint" -}}
 {{- include "langsmith.hostnameWithProtocol" . }}{{- with .Values.config.basePath }}/{{ . }}{{- end }}/api
+{{- end -}}
+
+{{/*
+Public callback URL for Agent Auth OAuth connections. OAuth providers must be
+able to reach this URL, so it must use the configured public hostname rather
+than the internal Kubernetes service endpoint.
+*/}}
+{{- define "langsmith.agentAuthOAuthCallbackUrl" -}}
+{{- include "langsmith.publicApiEndpoint" . }}/v1/agent-auth/oauth/callback
+{{- end -}}
+
+{{/* Public API base shared by Trigger webhooks and managed channel callbacks. */}}
+{{- define "langsmith.triggerServerPublicUrl" -}}
+{{- include "langsmith.publicApiEndpoint" . }}/v1
 {{- end -}}
 
 {{/*
@@ -1736,6 +1866,12 @@ Served through the frontend at /mcp (or /<basePath>/mcp).
   value: "{{ .Values.fleetTriggerServer.containerPort }}"
 - name: "TRIGGER_SERVER_HOST_API_URL"
   value: "http://{{ include "langsmith.fullname" . }}-{{ .Values.hostBackend.name }}.{{ $ns }}.svc.{{ $cd }}:{{ .Values.hostBackend.service.port }}"
+{{- if .Values.config.hostname }}
+- name: TRIGGER_SERVER_PUBLIC_URL
+  value: {{ include "langsmith.triggerServerPublicUrl" . | quote }}
+- name: LANGSMITH_URL
+  value: {{ include "langsmith.frontendUrl" . | quote }}
+{{- end }}
 {{- if .Values.fleet.enabled }}
 {{- $fleetApi := printf "http://%s.%s.svc.%s:%v" (include "langsmith.agentFeatures.apiServerK8sServiceName" (dict "root" . "product" "fleet")) $ns $cd .Values.fleet.apiServer.service.httpPort }}
 - name: "LANGGRAPH_API_URL"
