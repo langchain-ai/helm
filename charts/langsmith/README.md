@@ -657,6 +657,7 @@ The trajectory Service is cluster-internal; no public route is added. Trajectory
 | images.redisImage.tag | string | `"7"` |  |
 | images.registry | string | `""` | If supplied, all children <image_name>.repository values will be prepended with this registry name + `/` |
 | images.sandboxHostImage | object | `{"pullPolicy":"IfNotPresent","repository":"docker.io/langchain/sandbox-host","tag":""}` | sandbox-host image. Only used when sandboxes.enabled is true. |
+| images.sandboxHostImage.tag | string | `""` | Leave empty to run the image matching this chart's appVersion. Set it only to point at a mirror that carries the same tag; a pinned tag does not move when the chart is upgraded. |
 | images.smithdbImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.smithdbImage.repository | string | `"docker.io/langchain/smithdb"` |  |
 | images.smithdbImage.tag | string | `"0.18.14rc1"` |  |

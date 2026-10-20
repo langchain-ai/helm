@@ -39,7 +39,7 @@ By default, the LangSmith control plane connects directly to the node IPs advert
 | images.registry | string | `""` | Optional registry prepended to the sandbox-host repository. |
 | images.sandboxHost.pullPolicy | string | `"IfNotPresent"` |  |
 | images.sandboxHost.repository | string | `"docker.io/langchain/sandbox-host"` |  |
-| images.sandboxHost.tag | string | `""` |  |
+| images.sandboxHost.tag | string | `""` | Leave empty to run the image matching this chart's appVersion, which is the LangSmith release it pairs with. Set it only to point at a mirror that carries the same tag; a pinned tag does not move when the chart is upgraded. |
 | juicefs.bucket | string | `""` | Object storage bucket or root URL. |
 | juicefs.existingSecretName | string | `""` | Existing Secret containing name, metaurl, storage, bucket, and optional access-key/secret-key entries. |
 | juicefs.hostMount.cacheDirs | list | `["/var/cache/juicefs"]` | Node-local paths used for the JuiceFS cache. |

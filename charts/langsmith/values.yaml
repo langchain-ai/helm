@@ -121,6 +121,7 @@ images:
   sandboxHostImage:
     repository: "docker.io/langchain/sandbox-host"
     pullPolicy: IfNotPresent
+    # -- Leave empty to run the image matching this chart's appVersion. Set it only to point at a mirror that carries the same tag; a pinned tag does not move when the chart is upgraded.
     tag: ""
   # The images the operator gives each agent deployment's Redis and PostgreSQL
   # (operator.templates.redis and operator.templates.db). They follow

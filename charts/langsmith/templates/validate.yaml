@@ -245,9 +245,6 @@ separateCluster. Fail rather than accept settings that would do nothing. */ -}}
 {{- if not .Values.images.sandboxHostImage.repository -}}
 {{- fail "images.sandboxHostImage.repository is required when sandboxes.enabled is true." -}}
 {{- end -}}
-{{- if not .Values.images.sandboxHostImage.tag -}}
-{{- fail "images.sandboxHostImage.tag is required when sandboxes.enabled is true." -}}
-{{- end -}}
 {{- /* The host needs netns, iptables and mount propagation. Fail here, not at CrashLoop. */ -}}
 {{- if and (hasKey .Values.sandboxes.sandboxHost.deployment.securityContext "privileged") (not .Values.sandboxes.sandboxHost.deployment.securityContext.privileged) -}}
 {{- fail "sandboxes.sandboxHost.deployment.securityContext.privileged must be true: sandbox-host manages microVMs, network namespaces and mounts." -}}

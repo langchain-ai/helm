@@ -24,9 +24,6 @@
 {{- if not .Values.images.sandboxHost.repository -}}
 {{- fail "images.sandboxHost.repository is required when sandboxHost.enabled is true." -}}
 {{- end -}}
-{{- if not .Values.images.sandboxHost.tag -}}
-{{- fail "images.sandboxHost.tag is required when sandboxHost.enabled is true." -}}
-{{- end -}}
 {{- if and (hasKey .Values.sandboxHost.deployment.securityContext "privileged") (not .Values.sandboxHost.deployment.securityContext.privileged) -}}
 {{- fail "sandboxHost.deployment.securityContext.privileged must be true: sandbox-host manages microVMs, network namespaces and mounts." -}}
 {{- end -}}

@@ -42,6 +42,7 @@ images:
   sandboxHost:
     repository: "docker.io/langchain/sandbox-host"
     pullPolicy: IfNotPresent
+    # -- Leave empty to run the image matching this chart's appVersion, which is the LangSmith release it pairs with. Set it only to point at a mirror that carries the same tag; a pinned tag does not move when the chart is upgraded.
     tag: ""
 
 platform:
