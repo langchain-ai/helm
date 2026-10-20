@@ -93,7 +93,7 @@ smithdb:
               ]
             }
           }
-  single:
+  unified:
     deployment:
       annotations:
         ad.datadoghq.com/smithdb.checks: |
