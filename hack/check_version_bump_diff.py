@@ -14,6 +14,7 @@ import os
 import re
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 import yaml
@@ -27,9 +28,9 @@ ALLOWED_CHART_YAML_KEYS = {"version", "appVersion"}
 ALLOWED_VALUES_LEAF_KEY = "tag"
 
 
-def run(*args: str, timeout: int = 60) -> str:
+def run(*args: str, timeout: int = 60, cwd: str | None = None) -> str:
     return subprocess.run(
-        args, check=True, capture_output=True, text=True, timeout=timeout
+        args, check=True, capture_output=True, text=True, timeout=timeout, cwd=cwd
     ).stdout
 
 
@@ -94,19 +95,29 @@ def check_values_yaml(base: str, head: str, path: str) -> list[str]:
     ]
 
 
-def charts_readmes_match_helm_docs(chart_names: set[str]) -> list[str]:
-    """Regenerate every chart's README and compare, but only look at the
-    touched charts' READMEs: they're generated, never hand-edited. Checking
-    just the touched ones means an unrelated chart's pre-existing README
-    drift can't fail a PR that never touched it. (helm-docs' own
-    --chart-to-generate filter is unreliable for some chart names, so this
-    regenerates everything and narrows the comparison itself instead.)
+def charts_readmes_match_helm_docs(head: str, chart_names: set[str]) -> list[str]:
+    """Regenerate the touched charts' READMEs from the PR head and compare
+    against what's committed there: they're generated, never hand-edited.
+    Runs helm-docs in a throwaway worktree of the head ref so this check
+    never needs the PR's content to be the checked-out working tree.
     """
     if not chart_names:
         return []
-    run("helm-docs", "--chart-search-root=charts", "--template-files=README.md.gotmpl")
-    readmes = [f"charts/{name}/README.md" for name in chart_names]
-    if run("git", "status", "--porcelain", "--", *readmes).strip():
+
+    with tempfile.TemporaryDirectory() as tmp:
+        run("git", "worktree", "add", "--detach", tmp, head)
+        try:
+            run(
+                "helm-docs",
+                "--chart-search-root=charts",
+                "--template-files=README.md.gotmpl",
+                cwd=tmp,
+            )
+            readmes = [f"charts/{name}/README.md" for name in chart_names]
+            dirty = run("git", "status", "--porcelain", "--", *readmes, cwd=tmp).strip()
+        finally:
+            run("git", "worktree", "remove", "--force", tmp)
+    if dirty:
         return ["a touched chart's README.md is not what helm-docs regenerates from it"]
     return []
 
@@ -152,7 +163,7 @@ def main() -> int:
             problems += check_chart_yaml(base_sha, head_sha, path)
         elif path.endswith("values.yaml"):
             problems += check_values_yaml(base_sha, head_sha, path)
-    problems += charts_readmes_match_helm_docs(touched_charts)
+    problems += charts_readmes_match_helm_docs(head_sha, touched_charts)
 
     if problems:
         print(

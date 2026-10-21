@@ -78,7 +78,10 @@ jobs:
           head_sha=$(jq -r '.pull_request.head.sha' "$GITHUB_EVENT_PATH")
           cp hack/check_version_bump_diff.py "$RUNNER_TEMP/version-bump-guard.py"
           git fetch origin "$head_sha"
-          git checkout --detach "$head_sha"
+          # Don't check out the PR head: its content must only ever be read
+          # through git show/diff below, never become the working tree a
+          # later step could execute.
+          git branch --force pr-head "$head_sha"
 
       - name: Check the diff against Open SWE's approval
         id: check
