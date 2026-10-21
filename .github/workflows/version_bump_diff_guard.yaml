@@ -5,8 +5,15 @@ name: Version Bump Diff Guard
 # its approval is the only one standing, instead of trusting it outright.
 # It must stay re-evaluated as reviews change, not just on push, since a
 # push can land before any review does.
+#
+# Uses pull_request_target, not pull_request: for pull_request, GitHub runs
+# the workflow file itself from the PR, so a PR could edit these steps (or
+# the checker they load) to make the check pass unconditionally.
+# pull_request_target always runs the workflow and its steps from the base
+# branch; the PR only ever supplies the diff being judged, read as data via
+# git diff/show/status below, never as code that executes.
 on:
-  pull_request:
+  pull_request_target:
   pull_request_review:
     types: [submitted, dismissed]
 
@@ -41,13 +48,11 @@ jobs:
           tar -xzf /tmp/helm-docs.tgz -C /tmp helm-docs
           sudo install /tmp/helm-docs /usr/local/bin/helm-docs
 
-      - name: Load pinned checker and fetch PR data
+      - name: Load the checker from base, then fetch PR head as data only
         env:
-          CHECKER_SHA: f1d53cf0df98ec1f21033f621532a3f3ce9f1a9d
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: |
-          git fetch origin "$CHECKER_SHA"
-          git show "$CHECKER_SHA:hack/check_version_bump_diff.py" > "$RUNNER_TEMP/version-bump-guard.py"
+          cp hack/check_version_bump_diff.py "$RUNNER_TEMP/version-bump-guard.py"
           git fetch origin "$HEAD_SHA"
           git checkout --detach "$HEAD_SHA"
 

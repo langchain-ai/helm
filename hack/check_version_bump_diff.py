@@ -19,7 +19,10 @@ from pathlib import Path
 import yaml
 
 OPEN_SWE_LOGINS = {"open-swe[bot]", "open-swe-preview[bot]", "openswe-dev[bot]"}
-CHART_FILE_RE = re.compile(r"^charts/[^/]+/(Chart\.yaml|values\.yaml|README\.md)$")
+STANCE_CHANGING_STATES = {"APPROVED", "CHANGES_REQUESTED", "DISMISSED"}
+# The chart-name segment is restricted to real directory-name characters
+# (no '.', so no '.' or '..') since it flows into `git show <ref>:<path>`.
+CHART_FILE_RE = re.compile(r"^charts/([a-zA-Z0-9_-]+)/(Chart\.yaml|values\.yaml|README\.md)$")
 ALLOWED_CHART_YAML_KEYS = {"version", "appVersion"}
 ALLOWED_VALUES_LEAF_KEY = "tag"
 
@@ -36,12 +39,16 @@ def open_swe_only_approval(reviews: list[dict]) -> bool:
     GitHub lists reviews oldest-first, and a reviewer's most recent review is
     their current stance for required-review purposes (a later request-changes
     supersedes an earlier approval; a dismissal already shows as DISMISSED).
+    COMMENTED and PENDING don't change a reviewer's stance, so they're
+    ignored here too: otherwise a comment-only re-review after an approval
+    would erase that approval from this check's view, while GitHub itself
+    still counts it toward the merge requirement.
     """
     latest_state: dict[str, str] = {}
     for review in reviews:
         login = (review.get("user") or {}).get("login", "")
         state = review.get("state", "")
-        if login and state:
+        if login and state in STANCE_CHANGING_STATES:
             latest_state[login.lower()] = state
     approvers = {login for login, state in latest_state.items() if state == "APPROVED"}
     return bool(approvers) and approvers <= OPEN_SWE_LOGINS
@@ -110,7 +117,13 @@ def main() -> int:
     base_sha, head_sha = pull_request["base"]["sha"], pull_request["head"]["sha"]
     repo, number = os.environ["GITHUB_REPOSITORY"], pull_request["number"]
 
-    reviews = json.loads(run("gh", "api", f"repos/{repo}/pulls/{number}/reviews", "--paginate"))
+    # --paginate alone prints each page's JSON array back-to-back, which
+    # json.loads can't parse past 30 reviews. --slurp wraps the pages into
+    # one outer array instead, so flatten that one level to get the reviews.
+    pages = json.loads(
+        run("gh", "api", f"repos/{repo}/pulls/{number}/reviews", "--paginate", "--slurp")
+    )
+    reviews = [review for page in pages for review in page]
     if not open_swe_only_approval(reviews):
         print("No approval here relies solely on Open SWE; this check does not apply.")
         return 0
@@ -123,7 +136,7 @@ def main() -> int:
     ]
 
     touched_charts = {
-        path.split("/", 2)[1] for path in files if CHART_FILE_RE.match(path)
+        match.group(1) for path in files if (match := CHART_FILE_RE.match(path))
     }
     for path in files:
         if path.endswith("Chart.yaml"):
