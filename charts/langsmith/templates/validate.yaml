@@ -38,13 +38,19 @@ AWS Marketplace Helm template verification).
 {{- if not (has .Values.smithdb.resourceTier (list "small" "medium" "large")) -}}
 {{- fail "smithdb.resourceTier must be one of: small, medium, large." -}}
 {{- end -}}
-{{- if not (has .Values.smithdb.topology (list "cluster" "single")) -}}
-{{- fail "smithdb.topology must be one of: cluster, single." -}}
+{{- if eq .Values.smithdb.topology "single" -}}
+{{- fail "smithdb.topology single was renamed to unified." -}}
 {{- end -}}
-{{- if include "langsmith.smithdb.singleTopology" . -}}
+{{- if hasKey .Values.smithdb "single" -}}
+{{- fail "smithdb.single was renamed to smithdb.unified." -}}
+{{- end -}}
+{{- if not (has .Values.smithdb.topology (list "cluster" "unified")) -}}
+{{- fail "smithdb.topology must be one of: cluster, unified." -}}
+{{- end -}}
+{{- if include "langsmith.smithdb.unifiedTopology" . -}}
 {{- range $component := list "mutations" "runRules" "statsQuery" -}}
 {{- if (index $.Values.smithdb $component).enabled -}}
-{{- fail (printf "smithdb.%s.enabled is not supported with smithdb.topology single; the single pod serves every query path." $component) -}}
+{{- fail (printf "smithdb.%s.enabled is not supported with smithdb.topology unified; the unified pod serves every query path." $component) -}}
 {{- end -}}
 {{- end -}}
 {{- end -}}

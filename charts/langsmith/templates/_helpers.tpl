@@ -542,21 +542,21 @@ Args: root, component.
 {{- $root := .root -}}
 {{- $tiers := dict
   "small" (dict
-    "single" (dict "cpu" "4" "memory" "16Gi" "cache" "100Gi")
+    "unified" (dict "cpu" "4" "memory" "16Gi" "cache" "100Gi")
     "query" (dict "cpu" "4" "memory" "8Gi" "cache" "200Gi")
     "ingestion" (dict "cpu" "4" "memory" "8Gi" "cache" "100Gi")
     "compaction" (dict "cpu" "2" "memory" "4Gi")
     "compactionWorker" (dict "cpu" "8" "memory" "16Gi" "cache" "100Gi")
     "clusterManager" (dict "cpu" "250m" "memory" "256Mi"))
   "medium" (dict
-    "single" (dict "cpu" "16" "memory" "64Gi" "cache" "300Gi")
+    "unified" (dict "cpu" "16" "memory" "64Gi" "cache" "300Gi")
     "query" (dict "cpu" "28" "memory" "48Gi" "cache" "200Gi")
     "ingestion" (dict "cpu" "16" "memory" "32Gi" "cache" "100Gi")
     "compaction" (dict "cpu" "4" "memory" "8Gi")
     "compactionWorker" (dict "cpu" "16" "memory" "32Gi" "cache" "100Gi")
     "clusterManager" (dict "cpu" "250m" "memory" "256Mi"))
   "large" (dict
-    "single" (dict "cpu" "32" "memory" "128Gi" "cache" "1000Gi")
+    "unified" (dict "cpu" "32" "memory" "128Gi" "cache" "1000Gi")
     "query" (dict "cpu" "28" "memory" "50Gi" "cache" "1000Gi")
     "ingestion" (dict "cpu" "56" "memory" "150Gi" "cache" "1000Gi")
     "compaction" (dict "cpu" "8" "memory" "16Gi")
@@ -727,10 +727,10 @@ Non-empty when SmithDB runs as separate per-role workloads (smithdb.topology clu
 {{- end }}
 
 {{/*
-Non-empty when SmithDB runs as one `smithdb all` workload (smithdb.topology single).
+Non-empty when SmithDB runs as one `smithdb all` workload (smithdb.topology unified).
 */}}
-{{- define "langsmith.smithdb.singleTopology" -}}
-{{- if and .Values.smithdb.enabled (eq .Values.smithdb.topology "single") -}}true{{- end -}}
+{{- define "langsmith.smithdb.unifiedTopology" -}}
+{{- if and .Values.smithdb.enabled (eq .Values.smithdb.topology "unified") -}}true{{- end -}}
 {{- end }}
 
 {{/*
