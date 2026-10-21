@@ -1,5 +1,6 @@
 {{- if .Values.presidioAnalyzer.enabled }}
 {{- $envVars := concat .Values.commonEnv (include "langsmith.commonEnv" . | fromYamlArray) .Values.presidioAnalyzer.deployment.extraEnv -}}
+{{- $envVars := include "langsmith.filterSecretEnv" (dict "root" . "env" $envVars) | fromYamlArray -}}
 {{- $presidioEnvVars := list -}}
 {{- range $envVar := $envVars -}}
 {{- if ne $envVar.name "LOG_LEVEL" -}}
