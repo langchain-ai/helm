@@ -134,6 +134,15 @@ def main() -> int:
         for path in files
         if not CHART_FILE_RE.match(path)
     ]
+    # The guard's own workflow and checker must never be changeable by a PR
+    # that only Open SWE approved: otherwise that PR could edit the workflow
+    # that runs on pull_request_review (which uses the PR's own copy of the
+    # file) to report this check as passing for real.
+    problems += [
+        f"{path}: changes the version-bump guard's own workflow or checker"
+        for path in files
+        if path.startswith(".github/") or path.startswith("hack/")
+    ]
 
     touched_charts = {
         match.group(1) for path in files if (match := CHART_FILE_RE.match(path))

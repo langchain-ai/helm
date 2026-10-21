@@ -25,13 +25,22 @@ on:
 permissions:
   contents: read
   pull-requests: read
+  checks: write
 
 concurrency:
   group: version-bump-diff-guard-${{ github.event.pull_request.number || inputs.pr_number }}
   cancel-in-progress: true
 
 jobs:
-  guard:
+  # Named differently from the check run this job publishes below on purpose:
+  # the required status check must be "Open SWE version-bump guard", which
+  # only this job (running from the trusted base-branch workflow) ever
+  # creates, via the Check Runs API pinned to the PR's head SHA. The
+  # auto-generated check run for this job's own name is not the one branch
+  # protection should require, since a pull_request_review workflow (which
+  # runs from the PR's own file) could otherwise add a job with the same
+  # name and have GitHub report it under the same check name.
+  evaluate:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout base
@@ -72,6 +81,27 @@ jobs:
           git checkout --detach "$head_sha"
 
       - name: Check the diff against Open SWE's approval
+        id: check
         env:
           GH_TOKEN: ${{ github.token }}
-        run: python3 -I "$RUNNER_TEMP/version-bump-guard.py"
+        run: |
+          set +e
+          python3 -I "$RUNNER_TEMP/version-bump-guard.py" > "$RUNNER_TEMP/guard-output.txt" 2>&1
+          echo "exit_code=$?" >> "$GITHUB_OUTPUT"
+          set -e
+          cat "$RUNNER_TEMP/guard-output.txt"
+
+      - name: Publish the verdict on the pull request's head commit
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EXIT_CODE: ${{ steps.check.outputs.exit_code }}
+        run: |
+          head_sha=$(jq -r '.pull_request.head.sha' "$GITHUB_EVENT_PATH")
+          if [ "$EXIT_CODE" = "0" ]; then conclusion="success"; else conclusion="failure"; fi
+          jq -n --arg sha "$head_sha" --arg conclusion "$conclusion" \
+            --rawfile output "$RUNNER_TEMP/guard-output.txt" \
+            '{name: "Open SWE version-bump guard", head_sha: $sha, status: "completed",
+              conclusion: $conclusion, output: {title: "Open SWE version-bump guard", summary: $output}}' \
+            | gh api "repos/${GITHUB_REPOSITORY}/check-runs" --method POST --input - > /dev/null
+          test "$EXIT_CODE" = "0"
