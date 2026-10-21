@@ -6,23 +6,28 @@ name: Version Bump Diff Guard
 # It must stay re-evaluated as reviews change, not just on push, since a
 # push can land before any review does.
 #
-# Uses pull_request_target, not pull_request: for pull_request, GitHub runs
-# the workflow file itself from the PR, so a PR could edit these steps (or
-# the checker they load) to make the check pass unconditionally.
-# pull_request_target always runs the workflow and its steps from the base
-# branch; the PR only ever supplies the diff being judged, read as data via
-# git diff/show/status below, never as code that executes.
+# Only ever triggered by pull_request_target or workflow_dispatch, never
+# pull_request_review directly: pull_request_review has no "_target"
+# variant, so GitHub would run it from the PR's own copy of this file
+# instead of the base branch's. Review events are handled by
+# version_bump_diff_guard_on_review.yaml, which does nothing but
+# re-dispatch this workflow (always resolving to the base branch's copy)
+# via workflow_dispatch.
 on:
   pull_request_target:
-  pull_request_review:
-    types: [submitted, dismissed]
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: Pull request to re-check after a review event
+        required: true
+        type: string
 
 permissions:
   contents: read
   pull-requests: read
 
 concurrency:
-  group: version-bump-diff-guard-${{ github.event.pull_request.number }}
+  group: version-bump-diff-guard-${{ github.event.pull_request.number || inputs.pr_number }}
   cancel-in-progress: true
 
 jobs:
@@ -33,8 +38,19 @@ jobs:
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           fetch-depth: 0
-          ref: ${{ github.event.pull_request.base.sha }}
+          ref: ${{ github.event.repository.default_branch }}
           persist-credentials: false
+
+      - name: Resolve the pull request for a review-triggered re-run
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ inputs.pr_number }}
+        run: |
+          gh api "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}" \
+            --jq '{pull_request: {number, base: {sha: .base.sha}, head: {sha: .head.sha}}}' \
+            > "$RUNNER_TEMP/event.json"
+          echo "GITHUB_EVENT_PATH=$RUNNER_TEMP/event.json" >> "$GITHUB_ENV"
 
       - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
         with:
@@ -49,12 +65,11 @@ jobs:
           sudo install /tmp/helm-docs /usr/local/bin/helm-docs
 
       - name: Load the checker from base, then fetch PR head as data only
-        env:
-          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: |
+          head_sha=$(jq -r '.pull_request.head.sha' "$GITHUB_EVENT_PATH")
           cp hack/check_version_bump_diff.py "$RUNNER_TEMP/version-bump-guard.py"
-          git fetch origin "$HEAD_SHA"
-          git checkout --detach "$HEAD_SHA"
+          git fetch origin "$head_sha"
+          git checkout --detach "$head_sha"
 
       - name: Check the diff against Open SWE's approval
         env:
