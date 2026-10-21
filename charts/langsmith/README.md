@@ -1667,6 +1667,7 @@ The trajectory Service is cluster-internal; no public route is added. Trajectory
 | config.deployment.enabled | bool | `false` | Optional. Used to enable the LangSmith Deployments feature. Requires additional setup. Refer to the documentation for more information. |
 | config.deployment.uncappedResourcesEnabled | bool | `false` | Lift the SaaS CPU/memory caps on LangSmith Deployment resource specs. Opt-in for self-hosted. |
 | config.disableSecretCreation | bool | `false` |  |
+| config.disableSecretEnvVars | bool | `false` | Do not inject Secret values as env vars on the core LangSmith workloads (drops valueFrom.secretKeyRef entries). Mount the Secret as a volume and load values via an entrypoint wrapper instead. |
 | config.existingSecretName | string | `""` |  |
 | config.frontendHostname | string | `""` | Frontend origin for user-facing redirects (LANGSMITH_URL); defaults to hostname. Set only when the UI is served from a different origin than this deployment's API. |
 | config.googleIapEnabled | bool | `false` | Enables Google IAP (Identity-Aware Proxy) session handling in the frontend. When true, the frontend adds required IAP headers, uses credentialed fetches, and handles 401 re-auth via GCP's session refresh mechanism. |

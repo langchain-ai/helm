@@ -22,6 +22,7 @@
 {{- end -}}
 {{- $chartEnv := concat (include "langsmith.commonEnv" . | fromYamlArray) (include "queueEnvVars" . | fromYamlArray) -}}
 {{- $envVars := include "langsmith.mergeEnv" (dict "commonEnv" .Values.commonEnv "chart" $chartEnv "extraEnv" .Values.queue.deployment.extraEnv) | fromYamlArray -}}
+{{- $envVars := include "langsmith.filterSecretEnv" (dict "root" . "env" $envVars) | fromYamlArray -}}
 {{- include "langsmith.detectDuplicates" $envVars -}}
 {{- $volumes := concat .Values.commonVolumes .Values.queue.deployment.volumes (include "langsmith.tlsVolumes" . | fromYamlArray)  -}}
 {{- $volumeMounts := concat .Values.commonVolumeMounts .Values.queue.deployment.volumeMounts (include "langsmith.tlsVolumeMounts" . | fromYamlArray) -}}
