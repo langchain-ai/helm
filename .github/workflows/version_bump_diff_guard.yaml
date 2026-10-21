@@ -1,0 +1,46 @@
+name: Version Bump Diff Guard
+
+# Open SWE auto-approves pull requests it judges to be a plain chart version
+# bump. This independently, deterministically checks that judgment whenever
+# its approval is the only one standing, instead of trusting it outright.
+# It must stay re-evaluated as reviews change, not just on push, since a
+# push can land before any review does.
+on:
+  pull_request:
+  pull_request_review:
+    types: [submitted, dismissed]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: version-bump-diff-guard-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  guard:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: |
+          pip install pyyaml
+          curl -fsSL -o /tmp/helm-docs.tgz \
+            https://github.com/norwoodj/helm-docs/releases/download/v1.14.2/helm-docs_1.14.2_Linux_x86_64.tar.gz
+          tar -xzf /tmp/helm-docs.tgz -C /tmp helm-docs
+          sudo install /tmp/helm-docs /usr/local/bin/helm-docs
+
+      - name: Check the diff against Open SWE's approval
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 hack/check_version_bump_diff.py
