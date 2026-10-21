@@ -22,13 +22,14 @@ jobs:
   guard:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v3
+      - name: Checkout base
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           fetch-depth: 0
-          ref: ${{ github.event.pull_request.head.sha }}
+          ref: ${{ github.event.pull_request.base.sha }}
+          persist-credentials: false
 
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
         with:
           python-version: '3.12'
 
@@ -40,7 +41,17 @@ jobs:
           tar -xzf /tmp/helm-docs.tgz -C /tmp helm-docs
           sudo install /tmp/helm-docs /usr/local/bin/helm-docs
 
+      - name: Load pinned checker and fetch PR data
+        env:
+          CHECKER_SHA: f1d53cf0df98ec1f21033f621532a3f3ce9f1a9d
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          git fetch origin "$CHECKER_SHA"
+          git show "$CHECKER_SHA:hack/check_version_bump_diff.py" > "$RUNNER_TEMP/version-bump-guard.py"
+          git fetch origin "$HEAD_SHA"
+          git checkout --detach "$HEAD_SHA"
+
       - name: Check the diff against Open SWE's approval
         env:
           GH_TOKEN: ${{ github.token }}
-        run: python3 hack/check_version_bump_diff.py
+        run: python3 -I "$RUNNER_TEMP/version-bump-guard.py"
