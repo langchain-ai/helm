@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
-"""Fail a pull request that only Open SWE has approved if its diff is not a
-plain chart version bump.
+"""Fail a pull request that no human has approved unless its diff is a plain
+chart version bump.
 
-A human reviewer is the real gate for every other pull request, so this check
-does not apply once one has approved: it exists only to backstop Open SWE's
-own approval of PRs it judged to be version-bump-only.
+The required-workflow ruleset runs this on push, before anyone has reviewed.
+A version bump is already green then, so Open SWE can approve it later and
+it can merge. Anything else stays red until a human has approved and this
+runs again.
 """
 
 from __future__ import annotations
@@ -34,16 +35,12 @@ def run(*args: str, timeout: int = 60, cwd: str | None = None) -> str:
     ).stdout
 
 
-def open_swe_only_approval(reviews: list[dict]) -> bool:
-    """True only when an Open SWE login's latest review approves and no one else's does.
+def human_has_approved(reviews: list[dict]) -> bool:
+    """True when a non-Open-SWE login's latest stance-changing review approves.
 
-    GitHub lists reviews oldest-first, and a reviewer's most recent review is
-    their current stance for required-review purposes (a later request-changes
-    supersedes an earlier approval; a dismissal already shows as DISMISSED).
-    COMMENTED and PENDING don't change a reviewer's stance, so they're
-    ignored here too: otherwise a comment-only re-review after an approval
-    would erase that approval from this check's view, while GitHub itself
-    still counts it toward the merge requirement.
+    GitHub lists reviews oldest-first. Only APPROVED, CHANGES_REQUESTED, and
+    DISMISSED change a stance; a later COMMENTED review does not erase an
+    earlier approval.
     """
     latest_state: dict[str, str] = {}
     for review in reviews:
@@ -51,8 +48,10 @@ def open_swe_only_approval(reviews: list[dict]) -> bool:
         state = review.get("state", "")
         if login and state in STANCE_CHANGING_STATES:
             latest_state[login.lower()] = state
-    approvers = {login for login, state in latest_state.items() if state == "APPROVED"}
-    return bool(approvers) and approvers <= OPEN_SWE_LOGINS
+    return any(
+        state == "APPROVED" and login not in OPEN_SWE_LOGINS
+        for login, state in latest_state.items()
+    )
 
 
 def changed_files(base: str, head: str) -> list[str]:
@@ -135,8 +134,8 @@ def main() -> int:
         run("gh", "api", f"repos/{repo}/pulls/{number}/reviews", "--paginate", "--slurp")
     )
     reviews = [review for page in pages for review in page]
-    if not open_swe_only_approval(reviews):
-        print("No approval here relies solely on Open SWE; this check does not apply.")
+    if human_has_approved(reviews):
+        print("A human has approved; this check does not apply.")
         return 0
 
     files = changed_files(base_sha, head_sha)
@@ -167,16 +166,16 @@ def main() -> int:
 
     if problems:
         print(
-            "Open SWE is the only approval on this pull request, but its diff is not "
-            "a plain version bump (chart version/appVersion, image tags, and the "
-            "generated README):"
+            "No human has approved this pull request, and its diff is not a plain "
+            "version bump (chart version/appVersion, image tags, and the generated "
+            "README):"
         )
         for problem in problems:
             print(f"  - {problem}")
         print("\nGet a human review, or narrow the diff to just those fields.")
         return 1
 
-    print("Open SWE is the only approval, and the diff is exactly a version bump. OK.")
+    print("No human has approved, and the diff is exactly a version bump. OK.")
     return 0
 
 

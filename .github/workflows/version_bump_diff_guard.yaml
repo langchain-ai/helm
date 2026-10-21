@@ -1,10 +1,10 @@
 name: Version Bump Diff Guard
 
 # Open SWE auto-approves pull requests it judges to be a plain chart version
-# bump. This independently, deterministically checks that judgment whenever
-# its approval is the only one standing, instead of trusting it outright.
-# It must stay re-evaluated as reviews change, not just on push, since a
-# push can land before any review does.
+# bump. This checks that on every push, before anyone has reviewed: with no
+# human approval the diff must already be a version bump, so a real version
+# bump is green when Open SWE approves later. A human approval passes the
+# check, but this workflow does not re-run on review; the next push does.
 #
 # Only ever triggered by pull_request_target or workflow_dispatch, never
 # pull_request_review directly: pull_request_review has no "_target"
