@@ -4,7 +4,7 @@ templates:
 set:
   config.existingSecretName: langsmith-secrets
   config.oauth.enabled: true
-  config.authType: oauth
+  config.authType: mixed
 tests:
   - it: should reject a provider that can't use workload identity
     set:

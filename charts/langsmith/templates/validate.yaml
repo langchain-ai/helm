@@ -54,6 +54,17 @@ AWS Marketplace Helm template verification).
 {{- end -}}
 {{- end -}}
 {{- end -}}
+{{- /* The backend refuses to start with AUTH_TYPE=oauth, so reject it even when optional validation is skipped. */ -}}
+{{- if eq .Values.config.authType "oauth" -}}
+{{- fail "config.authType 'oauth' (OAuth with PKCE) is no longer supported. Set config.authType to 'mixed' and config.oauth.oauthClientSecret (or oauth_client_secret in config.existingSecretName). Make this change on your current chart version before upgrading: https://docs.langchain.com/langsmith/self-host-sso" -}}
+{{- end -}}
+{{- /* Pre-upgrade hooks read the existing ConfigMap, so a release still on PKCE
+fails mid-upgrade even when the new values switch to a client secret. The
+lookup is empty under helm template and GitOps renders, so those skip this check. */ -}}
+{{- $existingConfig := lookup "v1" "ConfigMap" (.Values.namespace | default .Release.Namespace) (printf "%s-config" (include "langsmith.fullname" .)) -}}
+{{- if eq (dig "data" "AUTH_TYPE" "" $existingConfig) "oauth" -}}
+{{- fail "This release runs OAuth with PKCE (AUTH_TYPE=oauth), which this chart version no longer supports. First switch to OAuth with a client secret on your current chart version: set config.authType to 'mixed' and config.oauth.oauthClientSecret, then run helm upgrade without changing the chart version. Then upgrade to this version: https://docs.langchain.com/langsmith/self-host-sso" -}}
+{{- end -}}
 {{- if not .Values.config.skipValidation -}}
 
 {{- /* Validate deprecated fleet server value keys */ -}}
@@ -170,8 +181,8 @@ AWS Marketplace Helm template verification).
 {{- if and (not .Values.config.basicAuth.enabled) (not .Values.config.oauth.enabled) -}}
 {{- fail "Neither Basic auth nor OAuth are enabled. Please enable one of them." -}}
 {{- end -}}
-{{- if and (ne .Values.config.authType "mixed") (ne .Values.config.authType "oauth") -}}
-{{- fail "config.authType must be either 'mixed' or 'oauth'." -}}
+{{- if ne .Values.config.authType "mixed" -}}
+{{- fail "config.authType must be 'mixed'." -}}
 {{- end -}}
 {{- if and (.Values.config.basicAuth.enabled) (ne .Values.config.authType "mixed") -}}
 {{- fail "Basic auth is enabled but config.authType is not set to 'mixed'." -}}
