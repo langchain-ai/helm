@@ -11,6 +11,7 @@
 {{- end -}}
 {{- if .Values.ingestQueue.enabled }}
 {{- $envVars := concat .Values.commonEnv (include "langsmith.commonEnv" . | fromYamlArray) (include "ingestQueueEnvVars" . | fromYamlArray) .Values.ingestQueue.deployment.extraEnv -}}
+{{- $envVars := include "langsmith.filterSecretEnv" (dict "root" . "env" $envVars) | fromYamlArray -}}
 {{- include "langsmith.detectDuplicates" $envVars -}}
 {{- $volumes := concat .Values.commonVolumes .Values.ingestQueue.deployment.volumes (include "langsmith.tlsVolumes" . | fromYamlArray)  -}}
 {{- $volumeMounts := concat .Values.commonVolumeMounts .Values.ingestQueue.deployment.volumeMounts (include "langsmith.tlsVolumeMounts" . | fromYamlArray) -}}
