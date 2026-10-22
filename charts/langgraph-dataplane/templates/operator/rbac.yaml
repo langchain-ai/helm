@@ -125,6 +125,7 @@ rules:
   - keda.sh
   resources:
   - scaledobjects
+  - triggerauthentications
   verbs:
   - create
   - delete
@@ -318,6 +319,7 @@ rules:
   - keda.sh
   resources:
   - scaledobjects
+  - triggerauthentications
   verbs:
   - create
   - delete
