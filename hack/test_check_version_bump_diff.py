@@ -39,6 +39,30 @@ class ValuesYamlDiffTests(unittest.TestCase):
 
                 self.assertTrue(problems)
 
+    def test_scalar_tag_cannot_become_a_sequence(self) -> None:
+        old = {"images": {"backend": {"tag": "latest"}}}
+        new = {"images": {"backend": {"tag": [{"injected": {"privileged": True}}]}}}
+
+        with patch.object(guard, "load_yaml_at", side_effect=[old, new]):
+            problems = guard.check_values_yaml("base", "head", "charts/test/values.yaml")
+
+        self.assertTrue(problems)
+
+
+class FileModeTests(unittest.TestCase):
+    def test_only_regular_nonexecutable_files_are_allowed(self) -> None:
+        self.assertEqual(guard.regular_file_problems("charts/demo/README.md", "100644", "100644"), [])
+        for base_mode, head_mode in [
+            ("100644", "120000"),
+            ("120000", "100644"),
+            ("100644", "100755"),
+            ("100644", "160000"),
+        ]:
+            with self.subTest(base_mode=base_mode, head_mode=head_mode):
+                self.assertTrue(
+                    guard.regular_file_problems("charts/demo/README.md", base_mode, head_mode)
+                )
+
 
 if __name__ == "__main__":
     unittest.main()

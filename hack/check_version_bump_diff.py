@@ -28,6 +28,7 @@ STANCE_CHANGING_STATES = {"APPROVED", "CHANGES_REQUESTED", "DISMISSED"}
 CHART_FILE_RE = re.compile(r"^charts/([a-zA-Z0-9_-]+)/(Chart\.yaml|values\.yaml|README\.md)$")
 ALLOWED_CHART_YAML_KEYS = {"version", "appVersion"}
 ALLOWED_VALUES_LEAF_KEY = "tag"
+REGULAR_FILE_MODE = "100644"
 
 
 def run(
@@ -66,6 +67,21 @@ def human_has_approved(reviews: list[dict]) -> bool:
     )
 
 
+def regular_file_problems(path: str, base_mode: str | None, head_mode: str | None) -> list[str]:
+    problems = []
+    for label, mode in (("base", base_mode), ("head", head_mode)):
+        if mode is not None and mode != REGULAR_FILE_MODE:
+            problems.append(
+                f"{path}: {label} is mode {mode}, not a regular {REGULAR_FILE_MODE} file"
+            )
+    return problems
+
+
+def file_mode(ref: str, path: str) -> str | None:
+    entry = run("git", "ls-tree", ref, "--", path).strip()
+    return entry.split(maxsplit=1)[0] if entry else None
+
+
 def changed_files(base: str, head: str) -> list[str]:
     diff = run("git", "diff", "--no-renames", "--name-only", f"{base}...{head}")
     return [line for line in diff.splitlines() if line]
@@ -91,6 +107,14 @@ def compare_values(
     if isinstance(old, Mapping) or isinstance(new, Mapping):
         location = ".".join(path) or "<root>"
         return [f"'{location}' changed mapping structure"]
+
+    if path and path[-1] == ALLOWED_VALUES_LEAF_KEY:
+        old_ok = isinstance(old, str) and "\n" not in old
+        new_ok = isinstance(new, str) and "\n" not in new
+        if old_ok and new_ok:
+            return []
+        location = ".".join(path)
+        return [f"'{location}' must stay a scalar image tag"]
 
     if old != new and (not path or path[-1] != ALLOWED_VALUES_LEAF_KEY):
         location = ".".join(path) or "<root>"
@@ -170,6 +194,11 @@ def main() -> int:
         for path in files
         if not CHART_FILE_RE.match(path)
     ]
+    for path in files:
+        if CHART_FILE_RE.match(path):
+            problems += regular_file_problems(
+                path, file_mode(base_sha, path), file_mode(head_sha, path)
+            )
     if problems:
         print("No human has approved, and disallowed paths changed:")
         for problem in problems:
