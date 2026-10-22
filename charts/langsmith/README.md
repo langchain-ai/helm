@@ -1635,6 +1635,7 @@ The trajectory Service is cluster-internal; no public route is added. Trajectory
 | config.agentBuilder.oauth.slackOAuthProvider | string | `""` |  |
 | config.agentBuilder.oauth.slackSigningSecret | string | `""` |  |
 | config.agentBuilder.oauthProviderOrgId | string | `""` |  |
+| config.agentMigration.enabled | bool | `false` | Migrate existing tracing projects and experiments to Agent Platform agents after upgrade. Requires authenticated auth (`authType` `mixed` or `oauth`) and runs on the existing ingest queue workers. |
 | config.apiKeySalt | string | `""` | Salt used to generate the API key. Should be a random string. |
 | config.authType | string | `""` | Must be 'oauth' for OAuth with PKCE, 'mixed' for basic auth or OAuth without PKCE |
 | config.basePath | string | `""` | Base path for the LangSmith installation. Used to serve the app under a subpath like example.com/langsmith. WARNING: Changing basePath after LangSmith Deployments have been created will break existing deployments. Existing deployments will need to be recreated for the new basePath to take effect. |
