@@ -5,41 +5,18 @@ name: Version Bump Diff Guard
 # human approval the diff must already be a version bump, so a real version
 # bump is green when Open SWE approves later. A human approval passes the
 # check, but this workflow does not re-run on review; the next push does.
-#
-# Only ever triggered by pull_request_target or workflow_dispatch, never
-# pull_request_review directly: pull_request_review has no "_target"
-# variant, so GitHub would run it from the PR's own copy of this file
-# instead of the base branch's. Review events are handled by
-# version_bump_diff_guard_on_review.yaml, which does nothing but
-# re-dispatch this workflow (always resolving to the base branch's copy)
-# via workflow_dispatch.
 on:
   pull_request_target:
-  workflow_dispatch:
-    inputs:
-      pr_number:
-        description: Pull request to re-check after a review event
-        required: true
-        type: string
 
 permissions:
   contents: read
   pull-requests: read
-  checks: write
 
 concurrency:
-  group: version-bump-diff-guard-${{ github.event.pull_request.number || inputs.pr_number }}
+  group: version-bump-diff-guard-${{ github.event.pull_request.number }}
   cancel-in-progress: true
 
 jobs:
-  # Named differently from the check run this job publishes below on purpose:
-  # the required status check must be "Open SWE version-bump guard", which
-  # only this job (running from the trusted base-branch workflow) ever
-  # creates, via the Check Runs API pinned to the PR's head SHA. The
-  # auto-generated check run for this job's own name is not the one branch
-  # protection should require, since a pull_request_review workflow (which
-  # runs from the PR's own file) could otherwise add a job with the same
-  # name and have GitHub report it under the same check name.
   evaluate:
     runs-on: ubuntu-latest
     steps:
@@ -50,28 +27,23 @@ jobs:
           ref: ${{ github.event.repository.default_branch }}
           persist-credentials: false
 
-      - name: Resolve the pull request for a review-triggered re-run
-        if: github.event_name == 'workflow_dispatch'
-        env:
-          GH_TOKEN: ${{ github.token }}
-          PR_NUMBER: ${{ inputs.pr_number }}
-        run: |
-          gh api "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}" \
-            --jq '{pull_request: {number, base: {sha: .base.sha}, head: {sha: .head.sha}}}' \
-            > "$RUNNER_TEMP/event.json"
-          echo "GITHUB_EVENT_PATH=$RUNNER_TEMP/event.json" >> "$GITHUB_ENV"
-
       - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
         with:
           python-version: '3.12'
 
       - name: Install dependencies
         run: |
-          pip install pyyaml
+          pip install --only-binary=:all: --require-hashes \
+            -r hack/requirements-version-bump-guard.txt
           curl -fsSL -o /tmp/helm-docs.tgz \
             https://github.com/norwoodj/helm-docs/releases/download/v1.14.2/helm-docs_1.14.2_Linux_x86_64.tar.gz
+          echo "a8cf72ada34fad93285ba2a452b38bdc5bd52cc9a571236244ec31022928d6cc  /tmp/helm-docs.tgz" \
+            | sha256sum --check --strict
           tar -xzf /tmp/helm-docs.tgz -C /tmp helm-docs
           sudo install /tmp/helm-docs /usr/local/bin/helm-docs
+
+      - name: Test the checker
+        run: python3 -m unittest hack/test_check_version_bump_diff.py
 
       - name: Load the checker from base, then fetch PR head as data only
         run: |
@@ -83,28 +55,7 @@ jobs:
           # later step could execute.
           git branch --force pr-head "$head_sha"
 
-      - name: Check the diff against Open SWE's approval
-        id: check
+      - name: Check the diff
         env:
           GH_TOKEN: ${{ github.token }}
-        run: |
-          set +e
-          python3 -I "$RUNNER_TEMP/version-bump-guard.py" > "$RUNNER_TEMP/guard-output.txt" 2>&1
-          echo "exit_code=$?" >> "$GITHUB_OUTPUT"
-          set -e
-          cat "$RUNNER_TEMP/guard-output.txt"
-
-      - name: Publish the verdict on the pull request's head commit
-        if: always()
-        env:
-          GH_TOKEN: ${{ github.token }}
-          EXIT_CODE: ${{ steps.check.outputs.exit_code }}
-        run: |
-          head_sha=$(jq -r '.pull_request.head.sha' "$GITHUB_EVENT_PATH")
-          if [ "$EXIT_CODE" = "0" ]; then conclusion="success"; else conclusion="failure"; fi
-          jq -n --arg sha "$head_sha" --arg conclusion "$conclusion" \
-            --rawfile output "$RUNNER_TEMP/guard-output.txt" \
-            '{name: "Open SWE version-bump guard", head_sha: $sha, status: "completed",
-              conclusion: $conclusion, output: {title: "Open SWE version-bump guard", summary: $output}}' \
-            | gh api "repos/${GITHUB_REPOSITORY}/check-runs" --method POST --input - > /dev/null
-          test "$EXIT_CODE" = "0"
+        run: python3 -I "$RUNNER_TEMP/version-bump-guard.py"

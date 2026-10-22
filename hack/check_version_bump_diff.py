@@ -16,6 +16,7 @@ import re
 import subprocess
 import sys
 import tempfile
+from collections.abc import Mapping
 from pathlib import Path
 
 import yaml
@@ -29,9 +30,20 @@ ALLOWED_CHART_YAML_KEYS = {"version", "appVersion"}
 ALLOWED_VALUES_LEAF_KEY = "tag"
 
 
-def run(*args: str, timeout: int = 60, cwd: str | None = None) -> str:
+def run(
+    *args: str,
+    timeout: int = 60,
+    cwd: str | None = None,
+    env: dict[str, str] | None = None,
+) -> str:
     return subprocess.run(
-        args, check=True, capture_output=True, text=True, timeout=timeout, cwd=cwd
+        args,
+        check=True,
+        capture_output=True,
+        text=True,
+        timeout=timeout,
+        cwd=cwd,
+        env=env,
     ).stdout
 
 
@@ -55,7 +67,7 @@ def human_has_approved(reviews: list[dict]) -> bool:
 
 
 def changed_files(base: str, head: str) -> list[str]:
-    diff = run("git", "diff", "--name-only", f"{base}...{head}")
+    diff = run("git", "diff", "--no-renames", "--name-only", f"{base}...{head}")
     return [line for line in diff.splitlines() if line]
 
 
@@ -63,13 +75,27 @@ def load_yaml_at(ref: str, path: str) -> dict:
     return yaml.safe_load(run("git", "show", f"{ref}:{path}")) or {}
 
 
-def flatten(value: object, prefix: str = "") -> dict[str, object]:
-    if isinstance(value, dict):
-        out: dict[str, object] = {}
-        for key, sub in value.items():
-            out.update(flatten(sub, f"{prefix}.{key}" if prefix else str(key)))
-        return out
-    return {prefix: value}
+def compare_values(
+    old: object, new: object, path: tuple[str, ...] = ()
+) -> list[str]:
+    if isinstance(old, Mapping) and isinstance(new, Mapping):
+        old_keys, new_keys = set(old), set(new)
+        problems = []
+        if old_keys != new_keys:
+            location = ".".join(path) or "<root>"
+            problems.append(f"'{location}' fields were added or removed")
+        for key in old_keys & new_keys:
+            problems += compare_values(old[key], new[key], (*path, str(key)))
+        return problems
+
+    if isinstance(old, Mapping) or isinstance(new, Mapping):
+        location = ".".join(path) or "<root>"
+        return [f"'{location}' changed mapping structure"]
+
+    if old != new and (not path or path[-1] != ALLOWED_VALUES_LEAF_KEY):
+        location = ".".join(path) or "<root>"
+        return [f"'{location}' changed"]
+    return []
 
 
 def check_chart_yaml(base: str, head: str, path: str) -> list[str]:
@@ -84,14 +110,8 @@ def check_chart_yaml(base: str, head: str, path: str) -> list[str]:
 
 
 def check_values_yaml(base: str, head: str, path: str) -> list[str]:
-    old, new = flatten(load_yaml_at(base, path)), flatten(load_yaml_at(head, path))
-    if old.keys() != new.keys():
-        return [f"{path}: fields were added or removed"]
-    return [
-        f"{path}: '{key}' changed"
-        for key in old
-        if old[key] != new[key] and key.rsplit(".", 1)[-1] != ALLOWED_VALUES_LEAF_KEY
-    ]
+    old, new = load_yaml_at(base, path), load_yaml_at(head, path)
+    return [f"{path}: {problem}" for problem in compare_values(old, new)]
 
 
 def charts_readmes_match_helm_docs(head: str, chart_names: set[str]) -> list[str]:
@@ -103,6 +123,11 @@ def charts_readmes_match_helm_docs(head: str, chart_names: set[str]) -> list[str
     if not chart_names:
         return []
 
+    helm_env = {
+        key: os.environ[key]
+        for key in ("PATH", "TMPDIR", "LANG", "LC_ALL")
+        if key in os.environ
+    }
     with tempfile.TemporaryDirectory() as tmp:
         run("git", "worktree", "add", "--detach", tmp, head)
         try:
@@ -111,6 +136,7 @@ def charts_readmes_match_helm_docs(head: str, chart_names: set[str]) -> list[str
                 "--chart-search-root=charts",
                 "--template-files=README.md.gotmpl",
                 cwd=tmp,
+                env=helm_env,
             )
             readmes = [f"charts/{name}/README.md" for name in chart_names]
             dirty = run("git", "status", "--porcelain", "--", *readmes, cwd=tmp).strip()
@@ -144,15 +170,11 @@ def main() -> int:
         for path in files
         if not CHART_FILE_RE.match(path)
     ]
-    # The guard's own workflow and checker must never be changeable by a PR
-    # that only Open SWE approved: otherwise that PR could edit the workflow
-    # that runs on pull_request_review (which uses the PR's own copy of the
-    # file) to report this check as passing for real.
-    problems += [
-        f"{path}: changes the version-bump guard's own workflow or checker"
-        for path in files
-        if path.startswith(".github/") or path.startswith("hack/")
-    ]
+    if problems:
+        print("No human has approved, and disallowed paths changed:")
+        for problem in problems:
+            print(f"  - {problem}")
+        return 1
 
     touched_charts = {
         match.group(1) for path in files if (match := CHART_FILE_RE.match(path))
