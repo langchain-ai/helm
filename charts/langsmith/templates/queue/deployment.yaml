@@ -11,8 +11,17 @@
 - name: CLIO_ASSISTANT_ID
   value: "insights"
 {{- end }}
+{{- if include "langsmith.smithdb.migrationEnabled" . }}
+- name: SMITHDB_MIGRATION_METRICS_ENDPOINT
+  value: "http://{{ include "langsmith.smithdb.componentName" (dict "root" . "component" "migration") }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.smithdb.migration.containerPort }}"
+{{- end }}
+{{- if and (or .Values.config.agentBuilder.enabled .Values.fleet.enabled) .Values.fleetTriggerServer.enabled .Values.config.hostname }}
+- name: TRIGGER_SERVER_PUBLIC_URL
+  value: {{ include "langsmith.triggerServerPublicUrl" . | quote }}
+{{- end }}
 {{- end -}}
-{{- $envVars := concat .Values.commonEnv (include "langsmith.commonEnv" . | fromYamlArray) (include "queueEnvVars" . | fromYamlArray) .Values.queue.deployment.extraEnv -}}
+{{- $chartEnv := concat (include "langsmith.commonEnv" . | fromYamlArray) (include "queueEnvVars" . | fromYamlArray) -}}
+{{- $envVars := include "langsmith.mergeEnv" (dict "commonEnv" .Values.commonEnv "chart" $chartEnv "extraEnv" .Values.queue.deployment.extraEnv) | fromYamlArray -}}
 {{- include "langsmith.detectDuplicates" $envVars -}}
 {{- $volumes := concat .Values.commonVolumes .Values.queue.deployment.volumes (include "langsmith.tlsVolumes" . | fromYamlArray)  -}}
 {{- $volumeMounts := concat .Values.commonVolumeMounts .Values.queue.deployment.volumeMounts (include "langsmith.tlsVolumeMounts" . | fromYamlArray) -}}

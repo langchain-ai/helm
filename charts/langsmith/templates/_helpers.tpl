@@ -544,21 +544,21 @@ Args: root, component.
 {{- $root := .root -}}
 {{- $tiers := dict
   "small" (dict
-    "single" (dict "cpu" "4" "memory" "16Gi" "cache" "100Gi")
+    "unified" (dict "cpu" "4" "memory" "16Gi" "cache" "100Gi")
     "query" (dict "cpu" "4" "memory" "8Gi" "cache" "200Gi")
     "ingestion" (dict "cpu" "4" "memory" "8Gi" "cache" "100Gi")
     "compaction" (dict "cpu" "2" "memory" "4Gi")
     "compactionWorker" (dict "cpu" "8" "memory" "16Gi" "cache" "100Gi")
     "clusterManager" (dict "cpu" "250m" "memory" "256Mi"))
   "medium" (dict
-    "single" (dict "cpu" "16" "memory" "64Gi" "cache" "300Gi")
+    "unified" (dict "cpu" "16" "memory" "64Gi" "cache" "300Gi")
     "query" (dict "cpu" "28" "memory" "48Gi" "cache" "200Gi")
     "ingestion" (dict "cpu" "16" "memory" "32Gi" "cache" "100Gi")
     "compaction" (dict "cpu" "4" "memory" "8Gi")
     "compactionWorker" (dict "cpu" "16" "memory" "32Gi" "cache" "100Gi")
     "clusterManager" (dict "cpu" "250m" "memory" "256Mi"))
   "large" (dict
-    "single" (dict "cpu" "32" "memory" "128Gi" "cache" "1000Gi")
+    "unified" (dict "cpu" "32" "memory" "128Gi" "cache" "1000Gi")
     "query" (dict "cpu" "28" "memory" "50Gi" "cache" "1000Gi")
     "ingestion" (dict "cpu" "56" "memory" "150Gi" "cache" "1000Gi")
     "compaction" (dict "cpu" "8" "memory" "16Gi")
@@ -729,10 +729,19 @@ Non-empty when SmithDB runs as separate per-role workloads (smithdb.topology clu
 {{- end }}
 
 {{/*
-Non-empty when SmithDB runs as one `smithdb all` workload (smithdb.topology single).
+Non-empty when SmithDB runs as one `smithdb all` workload (smithdb.topology unified).
 */}}
-{{- define "langsmith.smithdb.singleTopology" -}}
-{{- if and .Values.smithdb.enabled (eq .Values.smithdb.topology "single") -}}true{{- end -}}
+{{- define "langsmith.smithdb.unifiedTopology" -}}
+{{- if and .Values.smithdb.enabled (eq .Values.smithdb.topology "unified") -}}true{{- end -}}
+{{- end }}
+
+{{/*
+Non-empty when the SmithDB migration Job and its taskdb render. A BYOC
+destination migration reads ClickHouse and writes to the data plane, so it
+runs without a local SmithDB.
+*/}}
+{{- define "langsmith.smithdb.migrationEnabled" -}}
+{{- if and .Values.smithdb.langsmith.migration.enabled (or .Values.smithdb.enabled .Values.smithdb.migration.byocDestination.enabled) -}}true{{- end -}}
 {{- end }}
 
 {{/*
@@ -1734,13 +1743,13 @@ template so Helm creates a new Job instead of attempting to patch one.
 {{- end -}}
 
 {{/*
-Return config.hostname as an absolute URL.
+Return a hostname as an absolute URL.
 If no scheme is provided, default to https://, except localhost-style hosts
 which default to http:// for local development.
 */}}
-{{- define "langsmith.hostnameWithProtocol" -}}
-{{- if .Values.config.hostname -}}
-  {{- $hostname := .Values.config.hostname -}}
+{{- define "langsmith.urlWithProtocol" -}}
+{{- if . -}}
+  {{- $hostname := . -}}
   {{- if regexMatch "^[a-zA-Z][a-zA-Z0-9+.-]*://" $hostname -}}
     {{- $hostname -}}
   {{- else if regexMatch "^(localhost|127\\.0\\.0\\.1|\\[::1\\])(?::[0-9]+)?(?:/.*)?$" $hostname -}}
@@ -1751,6 +1760,15 @@ which default to http:// for local development.
 {{- end -}}
 {{- end -}}
 
+{{- define "langsmith.hostnameWithProtocol" -}}
+{{- include "langsmith.urlWithProtocol" .Values.config.hostname -}}
+{{- end -}}
+
+{{/* Absolute public UI URL for Trigger Server's browser redirects. */}}
+{{- define "langsmith.frontendUrl" -}}
+{{- include "langsmith.urlWithProtocol" (.Values.config.frontendHostname | default .Values.config.hostname) }}{{- with .Values.config.basePath }}/{{ . }}{{- end }}
+{{- end -}}
+
 {{/*
 Public API base: scheme, host, any base path, and the /api prefix. Derived from
 config.hostname; relative when unset so browser callers use their own origin. Equal to the
@@ -1758,6 +1776,20 @@ OAuth issuer today, but kept separate so either can change on its own.
 */}}
 {{- define "langsmith.publicApiEndpoint" -}}
 {{- include "langsmith.hostnameWithProtocol" . }}{{- with .Values.config.basePath }}/{{ . }}{{- end }}/api
+{{- end -}}
+
+{{/*
+Public callback URL for Agent Auth OAuth connections. OAuth providers must be
+able to reach this URL, so it must use the configured public hostname rather
+than the internal Kubernetes service endpoint.
+*/}}
+{{- define "langsmith.agentAuthOAuthCallbackUrl" -}}
+{{- include "langsmith.publicApiEndpoint" . }}/v1/agent-auth/oauth/callback
+{{- end -}}
+
+{{/* Public API base shared by Trigger webhooks and managed channel callbacks. */}}
+{{- define "langsmith.triggerServerPublicUrl" -}}
+{{- include "langsmith.publicApiEndpoint" . }}/v1
 {{- end -}}
 
 {{/*
@@ -1836,6 +1868,12 @@ Served through the frontend at /mcp (or /<basePath>/mcp).
   value: "{{ .Values.fleetTriggerServer.containerPort }}"
 - name: "TRIGGER_SERVER_HOST_API_URL"
   value: "http://{{ include "langsmith.fullname" . }}-{{ .Values.hostBackend.name }}.{{ $ns }}.svc.{{ $cd }}:{{ .Values.hostBackend.service.port }}"
+{{- if .Values.config.hostname }}
+- name: TRIGGER_SERVER_PUBLIC_URL
+  value: {{ include "langsmith.triggerServerPublicUrl" . | quote }}
+- name: LANGSMITH_URL
+  value: {{ include "langsmith.frontendUrl" . | quote }}
+{{- end }}
 {{- if .Values.fleet.enabled }}
 {{- $fleetApi := printf "http://%s.%s.svc.%s:%v" (include "langsmith.agentFeatures.apiServerK8sServiceName" (dict "root" . "product" "fleet")) $ns $cd .Values.fleet.apiServer.service.httpPort }}
 - name: "LANGGRAPH_API_URL"

@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.18.0-rc.30](https://img.shields.io/badge/Version-0.18.0--rc.30-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.18.11rc1](https://img.shields.io/badge/AppVersion-0.18.11rc1-informational?style=flat-square)
+![Version: 0.18.0-rc.43](https://img.shields.io/badge/Version-0.18.0--rc.43-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.18.14rc1](https://img.shields.io/badge/AppVersion-0.18.14rc1-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -54,13 +54,13 @@ The query disk cache limit is set automatically from the PVC storage request or,
 | Compaction worker | 8 CPU, 16Gi memory, 100Gi cache | 16 CPU, 32Gi memory, 100Gi cache | 28 CPU, 50Gi memory, 300Gi cache |
 | Cluster manager | 250m CPU, 256Mi memory | 250m CPU, 256Mi memory | 2 CPU, 2Gi memory |
 
-### Single topology
+### Unified topology
 
-`smithdb.topology: single` replaces the components above with one `smithdb all` pod: no cluster manager, no compaction workers, and one cache volume. The process splits the volume between the query cache and ingestion staging, and mounts it at `/tmp` for compaction scratch. Memory and disk shares come from the pod's limits. `mutations`, `runRules`, and `statsQuery` are not supported in this topology. The pod always runs one replica; use `cluster` when SmithDB needs to scale out.
+`smithdb.topology: unified` replaces the components above with one `smithdb all` pod: no cluster manager, no compaction workers, and one cache volume. The process splits the volume between the query cache and ingestion staging, and mounts it at `/tmp` for compaction scratch. Memory and disk shares come from the pod's limits. `mutations`, `runRules`, and `statsQuery` are not supported in this topology. The pod runs one replica; use `cluster` when SmithDB needs to scale out.
 
 | Tier | Small | Medium | Large |
 |---|---|---|---|
-| Single | 4 CPU, 16Gi memory, 100Gi cache | 16 CPU, 64Gi memory, 300Gi cache | 32 CPU, 128Gi memory, 1000Gi cache |
+| Unified | 4 CPU, 16Gi memory, 100Gi cache | 16 CPU, 64Gi memory, 300Gi cache | 32 CPU, 128Gi memory, 1000Gi cache |
 
 **0.17 upgrade:** default caches switch from `emptyDir` to per-pod PVCs. Configure local SSD overrides before upgrading and rename custom volume and mount references from `local-ssd-storage` to `cache`.
 
@@ -610,29 +610,33 @@ The trajectory Service is cluster-internal; no public route is added. Trajectory
 | gateway.sectionName | string | `""` |  |
 | images.aceBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.aceBackendImage.repository | string | `"docker.io/langchain/langsmith-ace-backend"` |  |
-| images.aceBackendImage.tag | string | `"0.18.11rc1"` |  |
+| images.aceBackendImage.tag | string | `"0.18.14rc1"` |  |
 | images.agentBuilderImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.agentBuilderImage.repository | string | `"docker.io/langchain/agent-builder-deep-agent"` |  |
-| images.agentBuilderImage.tag | string | `"0.18.11rc1"` |  |
+| images.agentBuilderImage.tag | string | `"0.18.14rc1"` |  |
 | images.backendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.backendImage.repository | string | `"docker.io/langchain/langsmith-backend"` |  |
-| images.backendImage.tag | string | `"0.18.11rc1"` |  |
+| images.backendImage.tag | string | `"0.18.14rc1"` |  |
 | images.clickhouseImage.pullPolicy | string | `"Always"` |  |
 | images.clickhouseImage.repository | string | `"docker.io/clickhouse/clickhouse-server"` |  |
 | images.clickhouseImage.tag | string | `"25.12"` |  |
+| images.deploymentDbImage.repository | string | `"docker.io/pgvector/pgvector"` |  |
+| images.deploymentDbImage.tag | string | `"pg15"` |  |
+| images.deploymentRedisImage.repository | string | `"docker.io/redis"` |  |
+| images.deploymentRedisImage.tag | string | `"7"` |  |
 | images.engineInsightsAgentImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.engineInsightsAgentImage.repository | string | `"docker.io/langchain/langsmith-insights-engine"` |  |
-| images.engineInsightsAgentImage.tag | string | `"0.18.11rc1"` |  |
+| images.engineInsightsAgentImage.tag | string | `"0.18.14rc1"` |  |
 | images.frontendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.frontendImage.repository | string | `"docker.io/langchain/langsmith-frontend"` |  |
-| images.frontendImage.tag | string | `"0.18.11rc1"` |  |
+| images.frontendImage.tag | string | `"0.18.14rc1"` |  |
 | images.imagePullSecrets | list | `[]` | Secrets with credentials to pull images from a private registry. Specified as name: value. |
 | images.operatorImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.operatorImage.repository | string | `"docker.io/langchain/langgraph-operator"` |  |
 | images.operatorImage.tag | string | `"0.1.64"` |  |
 | images.pollyAgentImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.pollyAgentImage.repository | string | `"docker.io/langchain/langsmith-polly"` |  |
-| images.pollyAgentImage.tag | string | `"0.18.11rc1"` |  |
+| images.pollyAgentImage.tag | string | `"0.18.14rc1"` |  |
 | images.postgresImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.postgresImage.repository | string | `"docker.io/postgres"` |  |
 | images.postgresImage.tag | string | `"14.7"` |  |
@@ -646,7 +650,7 @@ The trajectory Service is cluster-internal; no public route is added. Trajectory
 | images.sandboxHostImage | object | `{"pullPolicy":"IfNotPresent","repository":"docker.io/langchain/sandbox-host","tag":""}` | sandbox-host image. Only used when sandboxes.enabled is true. |
 | images.smithdbImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.smithdbImage.repository | string | `"docker.io/langchain/smithdb"` |  |
-| images.smithdbImage.tag | string | `"0.18.11rc1"` |  |
+| images.smithdbImage.tag | string | `"0.18.14rc1"` |  |
 | ingestQueue.autoscaling.hpa.enabled | bool | `false` |  |
 | ingestQueue.autoscaling.hpa.maxReplicas | int | `10` |  |
 | ingestQueue.autoscaling.hpa.minReplicas | int | `3` |  |
@@ -1232,7 +1236,7 @@ The trajectory Service is cluster-internal; no public route is added. Trajectory
 | smithdb.metastoreMigration.job.volumeMounts | list | `[]` |  |
 | smithdb.metastoreMigration.job.volumes | list | `[]` |  |
 | smithdb.metastoreMigration.name | string | `"metastore-migration"` |  |
-| smithdb.migration.byocDestination.enabled | bool | `false` | Migrate into a BYOC data plane's SmithDB. S3 settings come from the SH_TO_BYOC_S3_* commonEnv entries. The role and region also drive RDS IAM auth, so the RDS instance must be in the bucket's region. Start with a fresh taskdb when switching an existing migration to this destination. |
+| smithdb.migration.byocDestination.enabled | bool | `false` | Migrate into a BYOC data plane's SmithDB. S3 settings come from the SH_TO_BYOC_S3_* commonEnv entries. The role and region also drive RDS IAM auth, so the RDS instance must be in the bucket's region. Start with a fresh taskdb when switching an existing migration to this destination. The job reads ClickHouse and writes to the data plane, so smithdb.enabled and smithdb.langsmith.ingestion.enabled can stay false on the source installation. |
 | smithdb.migration.byocDestination.metastore.database | string | `""` |  |
 | smithdb.migration.byocDestination.metastore.host | string | `""` | BYOC RDS metastore host, reached with AWS IAM auth. The cluster needs a network route to it. |
 | smithdb.migration.byocDestination.metastore.port | int | `5432` |  |
@@ -1269,14 +1273,17 @@ The trajectory Service is cluster-internal; no public route is added. Trajectory
 | smithdb.migration.job.volumeMounts | list | `[]` |  |
 | smithdb.migration.job.volumes | list | `[]` |  |
 | smithdb.migration.name | string | `"migration"` |  |
+| smithdb.migration.service | object | `{"annotations":{},"labels":{}}` | Headless Service in front of the migration Job pods, so each pod has a stable DNS record on containerPort. |
 | smithdb.migration.startTime | string | `""` | Optional RFC3339 start bound for migrate-all (half-open window). Empty uses end - 400 days. |
 | smithdb.migration.taskdb.postgres.auth | object | `{"database":"smithdb_migration","existingSecretName":"","password":"","passwordSecretKey":"postgres_password","username":"postgres"}` | Credentials for the in-chart taskdb Postgres instance. Used only when external.enabled is false. |
 | smithdb.migration.taskdb.postgres.auth.existingSecretName | string | `""` | Existing secret containing taskdb Postgres credentials. If set, the chart does not create one. |
 | smithdb.migration.taskdb.postgres.auth.password | string | `""` | Password for the chart-managed taskdb Postgres instance. Required unless existingSecretName is set. |
 | smithdb.migration.taskdb.postgres.containerPort | int | `5433` |  |
 | smithdb.migration.taskdb.postgres.enabled | bool | `true` | both the main LangSmith Postgres and the SmithDB metastore. |
-| smithdb.migration.taskdb.postgres.external | object | `{"database":"smithdb_migration","databaseSecretKey":"postgres_db","enabled":false,"existingSecretName":"","host":"","hostSecretKey":"postgres_host","password":"","passwordSecretKey":"postgres_password","port":"5433","useSsl":false,"username":"postgres","usernameSecretKey":"postgres_user"}` | the SmithDB metastore. |
+| smithdb.migration.taskdb.postgres.external | object | `{"database":"smithdb_migration","databaseSecretKey":"postgres_db","enabled":false,"existingSecretName":"","host":"","hostSecretKey":"postgres_host","iamAuthProvider":"","iamUsername":"","password":"","passwordSecretKey":"postgres_password","port":"5433","useSsl":false,"username":"postgres","usernameSecretKey":"postgres_user"}` | the SmithDB metastore. |
 | smithdb.migration.taskdb.postgres.external.existingSecretName | string | `""` | Existing secret containing external taskdb Postgres connection fields. If set, the chart does not create one. |
+| smithdb.migration.taskdb.postgres.external.iamAuthProvider | string | `""` | Cloud IAM authentication for the external taskdb: aws (RDS IAM) or azure (workload identity). Requires useSsl and connects as the migration Job's ServiceAccount identity; the password is not used. |
+| smithdb.migration.taskdb.postgres.external.iamUsername | string | `""` | Database role to connect as when iamAuthProvider is set. Overrides username and usernameSecretKey. |
 | smithdb.migration.taskdb.postgres.maxConnectionsPerMigrationPod | int | `10` | connections for every parallel pod plus one pod of headroom. |
 | smithdb.migration.taskdb.postgres.name | string | `"taskdb-postgres"` |  |
 | smithdb.migration.taskdb.postgres.service.annotations | object | `{}` |  |
@@ -1499,55 +1506,6 @@ The trajectory Service is cluster-internal; no public route is added. Trajectory
 | smithdb.runRules.service.port | int | `8080` |  |
 | smithdb.serviceAccount | object | `{"annotations":{},"automountServiceAccountToken":true,"create":true,"labels":{},"name":""}` | Shared ServiceAccount for SmithDB workloads. |
 | smithdb.serviceAccount.name | string | `""` | Defaults to <release>-<smithdb.name>. |
-| smithdb.single.compactionContainerPort | int | `8070` |  |
-| smithdb.single.containerGrpcPort | int | `8080` | Query gRPC port. |
-| smithdb.single.containerPort | int | `8060` | HTTP port for health checks and metrics, served by the query service. |
-| smithdb.single.deployment.affinity | object | `{}` |  |
-| smithdb.single.deployment.annotations | object | `{}` |  |
-| smithdb.single.deployment.command[0] | string | `"./smithdb"` |  |
-| smithdb.single.deployment.command[1] | string | `"all"` |  |
-| smithdb.single.deployment.extraContainerConfig | object | `{}` |  |
-| smithdb.single.deployment.extraEnv | list | `[]` |  |
-| smithdb.single.deployment.initContainers | list | `[]` |  |
-| smithdb.single.deployment.labels | object | `{}` |  |
-| smithdb.single.deployment.nodeSelector | object | `{}` |  |
-| smithdb.single.deployment.podSecurityContext.fsGroup | int | `1001` |  |
-| smithdb.single.deployment.priorityClassName | string | `""` |  |
-| smithdb.single.deployment.probes.livenessProbe.failureThreshold | int | `6` |  |
-| smithdb.single.deployment.probes.livenessProbe.httpGet.path | string | `"/health"` |  |
-| smithdb.single.deployment.probes.livenessProbe.httpGet.port | string | `"http"` |  |
-| smithdb.single.deployment.probes.livenessProbe.periodSeconds | int | `10` |  |
-| smithdb.single.deployment.probes.livenessProbe.timeoutSeconds | int | `1` |  |
-| smithdb.single.deployment.probes.readinessProbe.failureThreshold | int | `6` |  |
-| smithdb.single.deployment.probes.readinessProbe.httpGet.path | string | `"/health"` |  |
-| smithdb.single.deployment.probes.readinessProbe.httpGet.port | string | `"http"` |  |
-| smithdb.single.deployment.probes.readinessProbe.periodSeconds | int | `10` |  |
-| smithdb.single.deployment.probes.readinessProbe.timeoutSeconds | int | `1` |  |
-| smithdb.single.deployment.probes.startupProbe.failureThreshold | int | `6` |  |
-| smithdb.single.deployment.probes.startupProbe.httpGet.path | string | `"/health"` |  |
-| smithdb.single.deployment.probes.startupProbe.httpGet.port | string | `"http"` |  |
-| smithdb.single.deployment.probes.startupProbe.periodSeconds | int | `10` |  |
-| smithdb.single.deployment.probes.startupProbe.timeoutSeconds | int | `1` |  |
-| smithdb.single.deployment.securityContext | object | `{}` |  |
-| smithdb.single.deployment.sidecars | list | `[]` |  |
-| smithdb.single.deployment.strategy.rollingUpdate.maxSurge | int | `1` |  |
-| smithdb.single.deployment.strategy.rollingUpdate.maxUnavailable | int | `0` |  |
-| smithdb.single.deployment.strategy.type | string | `"RollingUpdate"` |  |
-| smithdb.single.deployment.terminationGracePeriodSeconds | int | `300` |  |
-| smithdb.single.deployment.tolerations | list | `[]` |  |
-| smithdb.single.deployment.topologySpreadConstraints | list | `[]` |  |
-| smithdb.single.deployment.volumeMounts | list | `[{"mountPath":"/data","name":"cache"},{"mountPath":"/tmp","name":"cache","subPath":"tmp"}]` | The cache volume holds the query cache, ingestion staging, and, through the /tmp mount, compaction scratch. |
-| smithdb.single.deployment.volumes | list | `[]` |  |
-| smithdb.single.ingestionContainerGrpcPort | int | `8082` | Ingestion gRPC port. |
-| smithdb.single.ingestionContainerPort | int | `8050` |  |
-| smithdb.single.pdb.annotations | object | `{}` |  |
-| smithdb.single.pdb.enabled | bool | `true` |  |
-| smithdb.single.pdb.labels | object | `{}` |  |
-| smithdb.single.pdb.minAvailable | int | `1` |  |
-| smithdb.single.service.annotations | object | `{}` |  |
-| smithdb.single.service.ingestionPort | int | `8082` |  |
-| smithdb.single.service.labels | object | `{}` |  |
-| smithdb.single.service.port | int | `8080` |  |
 | smithdb.statsQuery.autoscaling.hpa.enabled | bool | `true` |  |
 | smithdb.statsQuery.autoscaling.hpa.maxReplicas | int | `5` |  |
 | smithdb.statsQuery.autoscaling.hpa.minReplicas | int | `1` |  |
@@ -1603,7 +1561,56 @@ The trajectory Service is cluster-internal; no public route is added. Trajectory
 | smithdb.statsQuery.service.annotations | object | `{}` |  |
 | smithdb.statsQuery.service.labels | object | `{}` |  |
 | smithdb.statsQuery.service.port | int | `8080` |  |
-| smithdb.topology | string | `"cluster"` | SmithDB workload layout: cluster runs query, ingestion, compaction, and the cluster manager as separate workloads; single runs them all in one `smithdb all` pod with one replica. smithdb.resourceTier sizes either layout. |
+| smithdb.topology | string | `"cluster"` | SmithDB workload layout: cluster runs query, ingestion, compaction, and the cluster manager as separate workloads; unified runs them all in one `smithdb all` pod with one replica. smithdb.resourceTier sizes either layout. |
+| smithdb.unified.compactionContainerPort | int | `8070` |  |
+| smithdb.unified.containerGrpcPort | int | `8080` | Query gRPC port. |
+| smithdb.unified.containerPort | int | `8060` | HTTP port for health checks and metrics, served by the query service. |
+| smithdb.unified.deployment.affinity | object | `{}` |  |
+| smithdb.unified.deployment.annotations | object | `{}` |  |
+| smithdb.unified.deployment.command[0] | string | `"./smithdb"` |  |
+| smithdb.unified.deployment.command[1] | string | `"all"` |  |
+| smithdb.unified.deployment.extraContainerConfig | object | `{}` |  |
+| smithdb.unified.deployment.extraEnv | list | `[]` |  |
+| smithdb.unified.deployment.initContainers | list | `[]` |  |
+| smithdb.unified.deployment.labels | object | `{}` |  |
+| smithdb.unified.deployment.nodeSelector | object | `{}` |  |
+| smithdb.unified.deployment.podSecurityContext.fsGroup | int | `1001` |  |
+| smithdb.unified.deployment.priorityClassName | string | `""` |  |
+| smithdb.unified.deployment.probes.livenessProbe.failureThreshold | int | `6` |  |
+| smithdb.unified.deployment.probes.livenessProbe.httpGet.path | string | `"/health"` |  |
+| smithdb.unified.deployment.probes.livenessProbe.httpGet.port | string | `"http"` |  |
+| smithdb.unified.deployment.probes.livenessProbe.periodSeconds | int | `10` |  |
+| smithdb.unified.deployment.probes.livenessProbe.timeoutSeconds | int | `1` |  |
+| smithdb.unified.deployment.probes.readinessProbe.failureThreshold | int | `6` |  |
+| smithdb.unified.deployment.probes.readinessProbe.httpGet.path | string | `"/health"` |  |
+| smithdb.unified.deployment.probes.readinessProbe.httpGet.port | string | `"http"` |  |
+| smithdb.unified.deployment.probes.readinessProbe.periodSeconds | int | `10` |  |
+| smithdb.unified.deployment.probes.readinessProbe.timeoutSeconds | int | `1` |  |
+| smithdb.unified.deployment.probes.startupProbe.failureThreshold | int | `6` |  |
+| smithdb.unified.deployment.probes.startupProbe.httpGet.path | string | `"/health"` |  |
+| smithdb.unified.deployment.probes.startupProbe.httpGet.port | string | `"http"` |  |
+| smithdb.unified.deployment.probes.startupProbe.periodSeconds | int | `10` |  |
+| smithdb.unified.deployment.probes.startupProbe.timeoutSeconds | int | `1` |  |
+| smithdb.unified.deployment.securityContext | object | `{}` |  |
+| smithdb.unified.deployment.sidecars | list | `[]` |  |
+| smithdb.unified.deployment.strategy.rollingUpdate.maxSurge | int | `1` |  |
+| smithdb.unified.deployment.strategy.rollingUpdate.maxUnavailable | int | `0` |  |
+| smithdb.unified.deployment.strategy.type | string | `"RollingUpdate"` |  |
+| smithdb.unified.deployment.terminationGracePeriodSeconds | int | `300` |  |
+| smithdb.unified.deployment.tolerations | list | `[]` |  |
+| smithdb.unified.deployment.topologySpreadConstraints | list | `[]` |  |
+| smithdb.unified.deployment.volumeMounts | list | `[{"mountPath":"/data","name":"cache"},{"mountPath":"/tmp","name":"cache","subPath":"tmp"}]` | The cache volume holds the query cache, ingestion staging, and, through the /tmp mount, compaction scratch. |
+| smithdb.unified.deployment.volumes | list | `[]` |  |
+| smithdb.unified.ingestionContainerGrpcPort | int | `8082` | Ingestion gRPC port. |
+| smithdb.unified.ingestionContainerPort | int | `8050` |  |
+| smithdb.unified.pdb.annotations | object | `{}` |  |
+| smithdb.unified.pdb.enabled | bool | `true` |  |
+| smithdb.unified.pdb.labels | object | `{}` |  |
+| smithdb.unified.pdb.minAvailable | int | `1` |  |
+| smithdb.unified.service.annotations | object | `{}` |  |
+| smithdb.unified.service.ingestionPort | int | `8082` |  |
+| smithdb.unified.service.labels | object | `{}` |  |
+| smithdb.unified.service.port | int | `8080` |  |
 
 ## Configs
 
@@ -1628,6 +1635,7 @@ The trajectory Service is cluster-internal; no public route is added. Trajectory
 | config.agentBuilder.oauth.slackOAuthProvider | string | `""` |  |
 | config.agentBuilder.oauth.slackSigningSecret | string | `""` |  |
 | config.agentBuilder.oauthProviderOrgId | string | `""` |  |
+| config.agentMigration.enabled | bool | `false` | Migrate existing tracing projects and experiments to Agent Platform agents after upgrade. Requires authenticated auth (`authType` `mixed` or `oauth`) and runs on the existing ingest queue workers. |
 | config.apiKeySalt | string | `""` | Salt used to generate the API key. Should be a random string. |
 | config.authType | string | `""` | Must be 'oauth' for OAuth with PKCE, 'mixed' for basic auth or OAuth without PKCE |
 | config.basePath | string | `""` | Base path for the LangSmith installation. Used to serve the app under a subpath like example.com/langsmith. WARNING: Changing basePath after LangSmith Deployments have been created will break existing deployments. Existing deployments will need to be recreated for the new basePath to take effect. |
@@ -2510,9 +2518,9 @@ The trajectory Service is cluster-internal; no public route is added. Trajectory
 | operator.serviceAccount.create | bool | `true` |  |
 | operator.serviceAccount.labels | object | `{}` |  |
 | operator.serviceAccount.name | string | `""` |  |
-| operator.templates.db | string | `"apiVersion: apps/v1\nkind: StatefulSet\nmetadata:\n  name: ${service_name}\nspec:\n  serviceName: ${service_name}\n  selector:\n    matchLabels:\n      app: ${service_name}\n  persistentVolumeClaimRetentionPolicy:\n    whenDeleted: Delete\n    whenScaled: Retain\n  template:\n    metadata:\n      labels:\n        app: ${service_name}\n    spec:\n      containers:\n      - name: postgres\n        image: pgvector/pgvector:pg15\n        ports:\n        - containerPort: 5432\n        command: [\"docker-entrypoint.sh\"]\n        args:\n          - postgres\n          - -c\n          - max_connections=${max_connections}\n        env:\n        - name: PGDATA\n          value: /var/lib/postgresql/data/pgdata\n        volumeMounts:\n        - name: postgres-data\n          mountPath: /var/lib/postgresql/data\n      enableServiceLinks: false\n  volumeClaimTemplates:\n  - metadata:\n      name: postgres-data\n    spec:\n      accessModes: [\"ReadWriteOnce\"]\n      resources:\n        requests:\n          storage: \"${storage_gi}Gi\"\n"` |  |
-| operator.templates.deployment | string | `"apiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: ${name}\n  namespace: ${namespace}\nspec:\n  replicas: ${replicas}\n  revisionHistoryLimit: 10\n  selector:\n    matchLabels:\n      app: ${name}\n  template:\n    metadata:\n      labels:\n        app: ${name}\n    spec:\n      enableServiceLinks: false\n      containers:\n      - name: api-server\n        image: ${image}\n        ports:\n        - name: api-server\n          containerPort: 8000\n          protocol: TCP\n        livenessProbe:\n          httpGet:\n            path: /ok\n            port: 8000\n          periodSeconds: 15\n          timeoutSeconds: 5\n          failureThreshold: 6\n        readinessProbe:\n          httpGet:\n            path: /ok\n            port: 8000\n          periodSeconds: 15\n          timeoutSeconds: 5\n          failureThreshold: 6\n"` |  |
-| operator.templates.redis | string | `"apiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: ${service_name}\n  namespace: ${namespace}\nspec:\n  replicas: 1\n  selector:\n    matchLabels:\n      app: ${service_name}\n  template:\n    metadata:\n      labels:\n        app: ${service_name}\n    spec:\n      enableServiceLinks: false\n      containers:\n      - name: redis\n        image: docker.io/redis:7\n        ports:\n        - containerPort: 6379\n          name: redis\n        livenessProbe:\n          exec:\n            command:\n            - redis-cli\n            - ping\n          initialDelaySeconds: 30\n          periodSeconds: 10\n        readinessProbe:\n          tcpSocket:\n            port: 6379\n          initialDelaySeconds: 10\n          periodSeconds: 5\n"` |  |
+| operator.templates.db | string | `"apiVersion: apps/v1\nkind: StatefulSet\nmetadata:\n  name: ${service_name}\nspec:\n  serviceName: ${service_name}\n  selector:\n    matchLabels:\n      app: ${service_name}\n  persistentVolumeClaimRetentionPolicy:\n    whenDeleted: Delete\n    whenScaled: Retain\n  template:\n    metadata:\n      labels:\n        app: ${service_name}\n    spec:\n      {{- with .Values.images.imagePullSecrets }}\n      imagePullSecrets:\n        {{- toYaml . | nindent 8 }}\n      {{- end }}\n      containers:\n      - name: postgres\n        image: {{ include \"langsmith.image\" (dict \"Values\" .Values \"Chart\" .Chart \"component\" \"deploymentDbImage\") }}\n        ports:\n        - containerPort: 5432\n        command: [\"docker-entrypoint.sh\"]\n        args:\n          - postgres\n          - -c\n          - max_connections=${max_connections}\n        env:\n        - name: PGDATA\n          value: /var/lib/postgresql/data/pgdata\n        volumeMounts:\n        - name: postgres-data\n          mountPath: /var/lib/postgresql/data\n      enableServiceLinks: false\n  volumeClaimTemplates:\n  - metadata:\n      name: postgres-data\n    spec:\n      accessModes: [\"ReadWriteOnce\"]\n      resources:\n        requests:\n          storage: \"${storage_gi}Gi\"\n"` |  |
+| operator.templates.deployment | string | `"apiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: ${name}\n  namespace: ${namespace}\nspec:\n  replicas: ${replicas}\n  revisionHistoryLimit: 10\n  selector:\n    matchLabels:\n      app: ${name}\n  template:\n    metadata:\n      labels:\n        app: ${name}\n    spec:\n      enableServiceLinks: false\n      {{- with .Values.images.imagePullSecrets }}\n      imagePullSecrets:\n        {{- toYaml . | nindent 8 }}\n      {{- end }}\n      containers:\n      - name: api-server\n        image: ${image}\n        ports:\n        - name: api-server\n          containerPort: 8000\n          protocol: TCP\n        livenessProbe:\n          httpGet:\n            path: /ok\n            port: 8000\n          periodSeconds: 15\n          timeoutSeconds: 5\n          failureThreshold: 6\n        readinessProbe:\n          httpGet:\n            path: /ok\n            port: 8000\n          periodSeconds: 15\n          timeoutSeconds: 5\n          failureThreshold: 6\n"` |  |
+| operator.templates.redis | string | `"apiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: ${service_name}\n  namespace: ${namespace}\nspec:\n  replicas: 1\n  selector:\n    matchLabels:\n      app: ${service_name}\n  template:\n    metadata:\n      labels:\n        app: ${service_name}\n    spec:\n      enableServiceLinks: false\n      {{- with .Values.images.imagePullSecrets }}\n      imagePullSecrets:\n        {{- toYaml . | nindent 8 }}\n      {{- end }}\n      containers:\n      - name: redis\n        image: {{ include \"langsmith.image\" (dict \"Values\" .Values \"Chart\" .Chart \"component\" \"deploymentRedisImage\") }}\n        ports:\n        - containerPort: 6379\n          name: redis\n        livenessProbe:\n          exec:\n            command:\n            - redis-cli\n            - ping\n          initialDelaySeconds: 30\n          periodSeconds: 10\n        readinessProbe:\n          tcpSocket:\n            port: 6379\n          initialDelaySeconds: 10\n          periodSeconds: 5\n"` |  |
 | operator.templates.service | string | `"apiVersion: v1\nkind: Service\nmetadata:\n  name: ${name}\n  namespace: ${namespace}\nspec:\n  type: ClusterIP\n  selector:\n    app: ${name}\n  ports:\n  - name: api-server\n    protocol: TCP\n    port: 8000\n    targetPort: 8000\n"` |  |
 | operator.watchNamespaces | string | `""` |  |
 

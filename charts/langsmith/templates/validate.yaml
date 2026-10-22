@@ -38,13 +38,19 @@ AWS Marketplace Helm template verification).
 {{- if not (has .Values.smithdb.resourceTier (list "small" "medium" "large")) -}}
 {{- fail "smithdb.resourceTier must be one of: small, medium, large." -}}
 {{- end -}}
-{{- if not (has .Values.smithdb.topology (list "cluster" "single")) -}}
-{{- fail "smithdb.topology must be one of: cluster, single." -}}
+{{- if eq .Values.smithdb.topology "single" -}}
+{{- fail "smithdb.topology single was renamed to unified." -}}
 {{- end -}}
-{{- if include "langsmith.smithdb.singleTopology" . -}}
+{{- if hasKey .Values.smithdb "single" -}}
+{{- fail "smithdb.single was renamed to smithdb.unified." -}}
+{{- end -}}
+{{- if not (has .Values.smithdb.topology (list "cluster" "unified")) -}}
+{{- fail "smithdb.topology must be one of: cluster, unified." -}}
+{{- end -}}
+{{- if include "langsmith.smithdb.unifiedTopology" . -}}
 {{- range $component := list "mutations" "runRules" "statsQuery" -}}
 {{- if (index $.Values.smithdb $component).enabled -}}
-{{- fail (printf "smithdb.%s.enabled is not supported with smithdb.topology single; the single pod serves every query path." $component) -}}
+{{- fail (printf "smithdb.%s.enabled is not supported with smithdb.topology unified; the unified pod serves every query path." $component) -}}
 {{- end -}}
 {{- end -}}
 {{- end -}}
@@ -458,12 +464,14 @@ AWS Marketplace Helm template verification).
 {{- if and .Values.smithdb.enabled .Values.smithdb.recoveryStrategy.enabled (or (not (kindIs "string" .Values.smithdb.recoveryStrategy.retentionWindow)) (empty .Values.smithdb.recoveryStrategy.retentionWindow)) -}}
 {{- fail "smithdb.recoveryStrategy.retentionWindow must be a non-empty duration string when smithdb.recoveryStrategy.enabled is true." -}}
 {{- end -}}
-{{- if .Values.smithdb.langsmith.migration.enabled -}}
+{{- /* A BYOC destination migration reads ClickHouse and writes to the data plane, so it needs no local SmithDB or SmithDB ingestion. */ -}}
+{{- $localSmithDBMigration := and .Values.smithdb.langsmith.migration.enabled (not .Values.smithdb.migration.byocDestination.enabled) -}}
+{{- if $localSmithDBMigration -}}
 {{- if lt (int .Values.smithdb.ingestion.deployment.replicas) 1 -}}
 {{- fail "smithdb.ingestion.deployment.replicas must be greater than 0 when smithdb.langsmith.migration.enabled is true." -}}
 {{- end -}}
 {{- end -}}
-{{- if and .Values.smithdb.langsmith.migration.enabled (not .Values.smithdb.langsmith.ingestion.enabled) -}}
+{{- if and $localSmithDBMigration (not .Values.smithdb.langsmith.ingestion.enabled) -}}
 {{- fail "smithdb.langsmith.ingestion.enabled must be true when smithdb.langsmith.migration.enabled is true." -}}
 {{- end -}}
 {{- if and .Values.smithdb.langsmith.migration.enabled (not .Values.clickhouse.enabled) -}}
@@ -494,19 +502,41 @@ AWS Marketplace Helm template verification).
 {{- if lt (int $taskdb.maxConnectionsPerMigrationPod) 1 -}}
 {{- fail "smithdb.migration.taskdb.postgres.maxConnectionsPerMigrationPod must be greater than 0." -}}
 {{- end -}}
+{{- $taskdbIamAuthProvider := $taskdb.external.iamAuthProvider -}}
+{{- if and $taskdbIamAuthProvider (not $taskdb.external.enabled) -}}
+{{- fail "smithdb.migration.taskdb.postgres.external.iamAuthProvider requires smithdb.migration.taskdb.postgres.external.enabled to be true." -}}
+{{- end -}}
 {{- if $taskdb.external.enabled -}}
 {{- if not $taskdb.external.port -}}
 {{- fail "smithdb.migration.taskdb.postgres.external.port is required when smithdb.migration.taskdb.postgres.external.enabled is true." -}}
 {{- end -}}
+{{- if $taskdbIamAuthProvider -}}
+{{- if not (has $taskdbIamAuthProvider (list "aws" "azure")) -}}
+{{- fail (printf "smithdb.migration.taskdb.postgres.external.iamAuthProvider must be one of [aws, azure], got %q. GCP uses the Cloud SQL or AlloyDB Auth Proxy sidecar instead." (toString $taskdbIamAuthProvider)) -}}
+{{- end -}}
+{{- if not $taskdb.external.useSsl -}}
+{{- fail "smithdb.migration.taskdb.postgres.external.useSsl must be true when smithdb.migration.taskdb.postgres.external.iamAuthProvider is set." -}}
+{{- end -}}
+{{- end -}}
+{{- $taskdbSecretKeys := list "hostSecretKey" "databaseSecretKey" -}}
+{{- $taskdbValues := list "host" "database" -}}
+{{- if not $taskdb.external.iamUsername -}}
+{{- $taskdbSecretKeys = append $taskdbSecretKeys "usernameSecretKey" -}}
+{{- $taskdbValues = append $taskdbValues "username" -}}
+{{- end -}}
+{{- if not $taskdbIamAuthProvider -}}
+{{- $taskdbSecretKeys = append $taskdbSecretKeys "passwordSecretKey" -}}
+{{- $taskdbValues = append $taskdbValues "password" -}}
+{{- end -}}
 {{- if $taskdb.external.existingSecretName -}}
-{{- range $keyName := list "hostSecretKey" "databaseSecretKey" "usernameSecretKey" "passwordSecretKey" -}}
+{{- range $keyName := $taskdbSecretKeys -}}
 {{- $keyValue := get $taskdb.external $keyName -}}
 {{- if not $keyValue -}}
 {{- fail (printf "smithdb.migration.taskdb.postgres.external.%s is required when smithdb.migration.taskdb.postgres.external.existingSecretName is set." $keyName) -}}
 {{- end -}}
 {{- end -}}
 {{- else -}}
-{{- range $keyName := list "host" "database" "username" "password" -}}
+{{- range $keyName := $taskdbValues -}}
 {{- $keyValue := get $taskdb.external $keyName -}}
 {{- if not $keyValue -}}
 {{- fail (printf "smithdb.migration.taskdb.postgres.external.%s is required when smithdb.migration.taskdb.postgres.external.enabled is true and external.existingSecretName is not set." $keyName) -}}
@@ -575,7 +605,7 @@ AWS Marketplace Helm template verification).
 {{- end -}}
 {{- end -}}
 {{- end -}}
-{{- if and .Values.smithdb.langsmith.migration.enabled (not .Values.smithdb.enabled) -}}
+{{- if and .Values.smithdb.langsmith.migration.enabled (not .Values.smithdb.enabled) (not .Values.smithdb.migration.byocDestination.enabled) -}}
 {{- fail "smithdb.enabled must be true when smithdb.langsmith.migration.enabled is true." -}}
 {{- end -}}
 {{- if and .Values.smithdb.langsmith.ingestion.enabled (not .Values.smithdb.enabled) -}}

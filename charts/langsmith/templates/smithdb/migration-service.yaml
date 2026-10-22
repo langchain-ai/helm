@@ -1,0 +1,31 @@
+{{- if include "langsmith.smithdb.migrationEnabled" . }}
+{{- /* Headless so each migration pod gets its own DNS record and can be scraped individually. */}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "langsmith.smithdb.componentName" (dict "root" . "component" "migration") }}
+  namespace: {{ .Values.namespace | default .Release.Namespace }}
+  labels:
+    {{- include "langsmith.labels" . | nindent 4 }}
+    app.kubernetes.io/component: {{ include "langsmith.smithdb.componentName" (dict "root" . "component" "migration") }}
+    {{- with .Values.smithdb.migration.service.labels }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+  annotations:
+    {{- include "langsmith.annotations" . | nindent 4 }}
+    {{- with .Values.smithdb.migration.service.annotations }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  type: ClusterIP
+  clusterIP: None
+  publishNotReadyAddresses: true
+  ports:
+    - name: http
+      port: {{ .Values.smithdb.migration.containerPort }}
+      targetPort: http
+      protocol: TCP
+  selector:
+    {{- include "langsmith.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: {{ include "langsmith.smithdb.componentName" (dict "root" . "component" "migration") }}
+{{- end }}

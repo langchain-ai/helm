@@ -65,21 +65,21 @@ images:
   aceBackendImage:
     repository: "docker.io/langchain/langsmith-ace-backend"
     pullPolicy: IfNotPresent
-    tag: "0.18.11rc1"
+    tag: "0.18.14rc1"
   backendImage:
     repository: "docker.io/langchain/langsmith-backend"
     pullPolicy: IfNotPresent
-    tag: "0.18.11rc1"
+    tag: "0.18.14rc1"
   # Serves both the `insights` and `engine` graphs; insights.enabled and
   # engine.enabled pick which of them run.
   engineInsightsAgentImage:
     repository: "docker.io/langchain/langsmith-insights-engine"
     pullPolicy: IfNotPresent
-    tag: "0.18.11rc1"
+    tag: "0.18.14rc1"
   frontendImage:
     repository: "docker.io/langchain/langsmith-frontend"
     pullPolicy: IfNotPresent
-    tag: "0.18.11rc1"
+    tag: "0.18.14rc1"
   operatorImage:
     repository: "docker.io/langchain/langgraph-operator"
     pullPolicy: IfNotPresent
@@ -103,15 +103,15 @@ images:
   agentBuilderImage:
     repository: "docker.io/langchain/agent-builder-deep-agent"
     pullPolicy: IfNotPresent
-    tag: "0.18.11rc1"
+    tag: "0.18.14rc1"
   pollyAgentImage:
     repository: "docker.io/langchain/langsmith-polly"
     pullPolicy: IfNotPresent
-    tag: "0.18.11rc1"
+    tag: "0.18.14rc1"
   smithdbImage:
     repository: "docker.io/langchain/smithdb"
     pullPolicy: IfNotPresent
-    tag: "0.18.11rc1"
+    tag: "0.18.14rc1"
   # Optional: only mirror/pull when presidioAnalyzer.enabled is true
   presidioAnalyzerImage:
     repository: "mcr.microsoft.com/presidio-analyzer"
@@ -122,6 +122,15 @@ images:
     repository: "docker.io/langchain/sandbox-host"
     pullPolicy: IfNotPresent
     tag: ""
+  # The images the operator gives each agent deployment's Redis and PostgreSQL
+  # (operator.templates.redis and operator.templates.db). They follow
+  # images.registry like the rest; the tag is the image's own, not the chart's.
+  deploymentRedisImage:
+    repository: "docker.io/redis"
+    tag: "7"
+  deploymentDbImage:
+    repository: "docker.io/pgvector/pgvector"
+    tag: "pg15"
 
 ingress:
   enabled: false
@@ -1129,6 +1138,11 @@ config:
   # -- Default workspace name to be provisioned when org is created.
   defaultWorkspaceName: "Workspace 1"
 
+  agentMigration:
+    # -- Migrate existing tracing projects and experiments to Agent Platform agents after upgrade.
+    # Requires authenticated auth (`authType` `mixed` or `oauth`) and runs on the existing ingest queue workers.
+    enabled: false
+
   basicAuth:
     enabled: false
     # Either set the password and JWT secret in plaintext, or set in the secret specified by existingSecretName above.
@@ -1412,7 +1426,7 @@ smithdb:
   enabled: false
   # -- Per-replica CPU, memory, and cache volume size for SmithDB runtime components: small, medium, or large. See the README.
   resourceTier: "small"
-  # -- SmithDB workload layout: cluster runs query, ingestion, compaction, and the cluster manager as separate workloads; single runs them all in one `smithdb all` pod with one replica. smithdb.resourceTier sizes either layout.
+  # -- SmithDB workload layout: cluster runs query, ingestion, compaction, and the cluster manager as separate workloads; unified runs them all in one `smithdb all` pod with one replica. smithdb.resourceTier sizes either layout.
   topology: "cluster"
   cache:
     # -- StorageClass for the generated SmithDB cache volumes. Empty uses the cluster default. A component's deployment.volumes replaces the generated volume.
@@ -1490,7 +1504,7 @@ smithdb:
         # Leave empty when using Azure Workload Identity.
         accessKeySecretKey: ""
 
-  single:
+  unified:
     # -- HTTP port for health checks and metrics, served by the query service.
     containerPort: 8060
     # -- Query gRPC port.
@@ -2129,6 +2143,10 @@ smithdb:
   migration:
     name: "migration"
     containerPort: 9040
+    # -- Headless Service in front of the migration Job pods, so each pod has a stable DNS record on containerPort.
+    service:
+      labels: {}
+      annotations: {}
     # -- Optional RFC3339 start bound for migrate-all (half-open window). Empty uses end - 400 days.
     startTime: ""
     # -- Optional RFC3339 end bound for migrate-all (half-open window). Empty uses now.
@@ -2137,6 +2155,8 @@ smithdb:
       # -- Migrate into a BYOC data plane's SmithDB. S3 settings come from the SH_TO_BYOC_S3_* commonEnv entries.
       # The role and region also drive RDS IAM auth, so the RDS instance must be in the bucket's region.
       # Start with a fresh taskdb when switching an existing migration to this destination.
+      # The job reads ClickHouse and writes to the data plane, so smithdb.enabled and
+      # smithdb.langsmith.ingestion.enabled can stay false on the source installation.
       enabled: false
       metastore:
         # -- BYOC RDS metastore host, reached with AWS IAM auth. The cluster needs a network route to it.
@@ -2219,6 +2239,10 @@ smithdb:
           username: "postgres"
           password: ""
           useSsl: false
+          # -- Cloud IAM authentication for the external taskdb: aws (RDS IAM) or azure (workload identity). Requires useSsl and connects as the migration Job's ServiceAccount identity; the password is not used.
+          iamAuthProvider: ""
+          # -- Database role to connect as when iamAuthProvider is set. Overrides username and usernameSecretKey.
+          iamUsername: ""
           # -- Existing secret containing external taskdb Postgres connection fields. If set, the chart does not create one.
           existingSecretName: ""
           hostSecretKey: "postgres_host"
@@ -3278,6 +3302,10 @@ operator:
               app: ${name}
           spec:
             enableServiceLinks: false
+            {{- with .Values.images.imagePullSecrets }}
+            imagePullSecrets:
+              {{- toYaml . | nindent 8 }}
+            {{- end }}
             containers:
             - name: api-server
               image: ${image}
@@ -3331,9 +3359,13 @@ operator:
               app: ${service_name}
           spec:
             enableServiceLinks: false
+            {{- with .Values.images.imagePullSecrets }}
+            imagePullSecrets:
+              {{- toYaml . | nindent 8 }}
+            {{- end }}
             containers:
             - name: redis
-              image: docker.io/redis:7
+              image: {{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "deploymentRedisImage") }}
               ports:
               - containerPort: 6379
                 name: redis
@@ -3367,9 +3399,13 @@ operator:
             labels:
               app: ${service_name}
           spec:
+            {{- with .Values.images.imagePullSecrets }}
+            imagePullSecrets:
+              {{- toYaml . | nindent 8 }}
+            {{- end }}
             containers:
             - name: postgres
-              image: pgvector/pgvector:pg15
+              image: {{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "deploymentDbImage") }}
               ports:
               - containerPort: 5432
               command: ["docker-entrypoint.sh"]
