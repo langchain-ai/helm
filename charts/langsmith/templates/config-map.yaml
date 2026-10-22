@@ -34,6 +34,11 @@ data:
   AUTH_TYPE: "none"
   {{- end }}
   LANGCHAIN_ENV: "local_kubernetes"
+  {{- if .Values.config.agentMigration.enabled }}
+  {{- /* Migration jobs share the adhoc queue the ingest queue workers already consume. */}}
+  AGENT_PLATFORM_MIGRATION_ROLLOUT_ENABLED: "true"
+  AGENT_PLATFORM_MIGRATION_QUEUE: "adhoc"
+  {{- end }}
   LANGCHAIN_ENDPOINT: "/{{ if .Values.config.basePath }}{{ .Values.config.basePath }}/{{ end }}api/v1"
   GO_ENDPOINT: {{ include "langsmith.platformBackendEndpoint" . | quote }}
   LANGSMITH_PUBLIC_API_ENDPOINT: {{ include "langsmith.publicApiEndpoint" . | quote }}

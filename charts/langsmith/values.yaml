@@ -1136,6 +1136,11 @@ config:
   # -- Default workspace name to be provisioned when org is created.
   defaultWorkspaceName: "Workspace 1"
 
+  agentMigration:
+    # -- Migrate existing tracing projects and experiments to Agent Platform agents after upgrade.
+    # Requires authenticated auth (`authType` `mixed` or `oauth`) and runs on the existing ingest queue workers.
+    enabled: false
+
   basicAuth:
     enabled: false
     # Either set the password and JWT secret in plaintext, or set in the secret specified by existingSecretName above.
