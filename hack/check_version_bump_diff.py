@@ -109,6 +109,8 @@ def compare_values(
         return [f"'{location}' changed mapping structure"]
 
     if path and path[-1] == ALLOWED_VALUES_LEAF_KEY:
+        if old == new:
+            return []
         old_ok = isinstance(old, str) and "\n" not in old
         new_ok = isinstance(new, str) and "\n" not in new
         if old_ok and new_ok:

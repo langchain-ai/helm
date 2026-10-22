@@ -48,6 +48,15 @@ class ValuesYamlDiffTests(unittest.TestCase):
 
         self.assertTrue(problems)
 
+    def test_unchanged_null_tag_does_not_block_another_tag_bump(self) -> None:
+        old = {"mimir": {"image": {"tag": None}}, "grafana": {"image": {"tag": "0.1.0"}}}
+        new = {"mimir": {"image": {"tag": None}}, "grafana": {"image": {"tag": "0.2.0"}}}
+
+        with patch.object(guard, "load_yaml_at", side_effect=[old, new]):
+            problems = guard.check_values_yaml("base", "head", "charts/test/values.yaml")
+
+        self.assertEqual(problems, [])
+
 
 class FileModeTests(unittest.TestCase):
     def test_only_regular_nonexecutable_files_are_allowed(self) -> None:
