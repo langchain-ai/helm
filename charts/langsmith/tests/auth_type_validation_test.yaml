@@ -1,0 +1,74 @@
+suite: authType validation
+templates:
+  - templates/validate.yaml
+release:
+  name: langsmith
+  namespace: langsmith
+set:
+  config.existingSecretName: langsmith-secrets
+  config.hostname: langsmith.example.com
+  config.oauth.enabled: true
+tests:
+  - it: should accept OAuth with a client secret
+    set:
+      config.authType: mixed
+    asserts:
+      - notFailedTemplate: {}
+
+  - it: should reject OAuth with PKCE
+    set:
+      config.authType: oauth
+    asserts:
+      - failedTemplate:
+          errorMessage: "config.authType 'oauth' (OAuth with PKCE) is no longer supported. Set config.authType to 'mixed' and config.oauth.oauthClientSecret (or oauth_client_secret in config.existingSecretName). Make this change on your current chart version before upgrading: https://docs.langchain.com/langsmith/self-host-sso"
+
+  - it: should reject OAuth with PKCE even when validation is skipped
+    set:
+      config.authType: oauth
+      config.skipValidation: true
+    asserts:
+      - failedTemplate:
+          errorPattern: "OAuth with PKCE"
+
+  - it: should reject an upgrade of a release still running OAuth with PKCE
+    set:
+      config.authType: mixed
+    kubernetesProvider:
+      scheme:
+        "v1/ConfigMap":
+          gvr:
+            version: "v1"
+            resource: "configmaps"
+          namespaced: true
+      objects:
+        - kind: ConfigMap
+          apiVersion: v1
+          metadata:
+            name: langsmith-config
+            namespace: langsmith
+          data:
+            AUTH_TYPE: oauth
+    asserts:
+      - failedTemplate:
+          errorMessage: "This release runs OAuth with PKCE (AUTH_TYPE=oauth), which this chart version no longer supports. First switch to OAuth with a client secret on your current chart version: set config.authType to 'mixed' and config.oauth.oauthClientSecret, then run helm upgrade without changing the chart version. Then upgrade to this version: https://docs.langchain.com/langsmith/self-host-sso"
+
+  - it: should allow an upgrade of a release already on a client secret
+    set:
+      config.authType: mixed
+    kubernetesProvider:
+      scheme:
+        "v1/ConfigMap":
+          gvr:
+            version: "v1"
+            resource: "configmaps"
+          namespaced: true
+      objects:
+        - kind: ConfigMap
+          apiVersion: v1
+          metadata:
+            name: langsmith-config
+            namespace: langsmith
+          data:
+            AUTH_TYPE: mixed
+    asserts:
+      - notFailedTemplate: {}

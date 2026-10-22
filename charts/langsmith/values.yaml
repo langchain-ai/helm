@@ -1128,7 +1128,7 @@ config:
   # -- Salt used to generate the API key. Should be a random string.
   apiKeySalt: ""
   logLevel: "info"
-  # -- Must be 'oauth' for OAuth with PKCE, 'mixed' for basic auth or OAuth without PKCE
+  # -- Must be 'mixed' for both basic auth and OAuth. OAuth also requires oauth.oauthClientSecret.
   authType: ""
   initialOrgAdminEmail: ""
   # -- Initial org name to be provisioned.

@@ -27,7 +27,7 @@ tests:
     set:
       config.existingSecretName: langsmith-secrets
       config.oauth.enabled: true
-      config.authType: oauth
+      config.authType: mixed
       engine.enabled: true
       engine.encryptionKey: test-key
       engine.intelligenceBaseUrl: https://beacon.aws.langchain.com/intelligence
@@ -40,7 +40,7 @@ tests:
     set:
       config.existingSecretName: langsmith-secrets
       config.oauth.enabled: true
-      config.authType: oauth
+      config.authType: mixed
       images.engineInsightsAgentImage.repository: registry.example.com/mirror/langsmith-insights-engine
     asserts:
       - notFailedTemplate: {}
@@ -49,7 +49,7 @@ tests:
     set:
       config.existingSecretName: langsmith-secrets
       config.oauth.enabled: true
-      config.authType: oauth
+      config.authType: mixed
       images.engineInsightsAgentImage.repository: 709825985650.dkr.ecr.us-east-1.amazonaws.com/langchain/langsmith
       images.engineInsightsAgentImage.tag: langsmith-insights-engine-0.16.32
     asserts:

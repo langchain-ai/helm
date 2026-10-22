@@ -23,7 +23,7 @@ tests:
     set:
       config.existingSecretName: langsmith-secrets
       config.oauth.enabled: true
-      config.authType: oauth
+      config.authType: mixed
     templates:
       - sandboxes/proxy-ca.yaml
       - sandboxes/juicefs-config.yaml
@@ -390,7 +390,7 @@ tests:
       config.langsmithLicenseKey: test-license
       config.apiKeySalt: test-api-key-salt
       config.oauth.enabled: true
-      config.authType: oauth
+      config.authType: mixed
       sandboxes.enabled: true
       sandboxes.sandboxHost.deployment.nodeSelector.sandbox\.langsmith\.com/host: "true"
       sandboxes.callbackSigningJwk: test-callback-jwk
@@ -675,7 +675,7 @@ tests:
     set:
       config.existingSecretName: langsmith-secrets
       config.oauth.enabled: true
-      config.authType: oauth
+      config.authType: mixed
       sandboxes.enabled: true
       sandboxes.sandboxHost.deployment.nodeSelector.sandbox\.langsmith\.com/host: "true"
       sandboxes.juicefs.redis.metaURL: redis://langsmith-redis.default.svc.cluster.local:6379/1
@@ -827,7 +827,7 @@ tests:
       config.langsmithLicenseKey: test-license
       config.apiKeySalt: test-api-key-salt
       config.oauth.enabled: true
-      config.authType: oauth
+      config.authType: mixed
       sandboxes.enabled: true
       sandboxes.sandboxHost.deployment.nodeSelector.sandbox\.langsmith\.com/host: "true"
       sandboxes.juicefs.redis.metaURL: redis://langsmith-redis.default.svc.cluster.local:6379/1
@@ -1145,7 +1145,7 @@ tests:
     set:
       config.existingSecretName: langsmith-secrets
       config.oauth.enabled: true
-      config.authType: oauth
+      config.authType: mixed
       config.hostname: langsmith.example.com
     template: config-map.yaml
     asserts:
@@ -1264,7 +1264,7 @@ tests:
       config.langsmithLicenseKey: test-license
       config.apiKeySalt: test-api-key-salt
       config.oauth.enabled: true
-      config.authType: oauth
+      config.authType: mixed
       sandboxes.enabled: true
       sandboxes.sandboxHost.deployment.nodeSelector.sandbox\.langsmith\.com/host: "true"
       sandboxes.callbackSigningJwk: test-callback-jwk
@@ -1287,7 +1287,7 @@ tests:
       config.langsmithLicenseKey: test-license
       config.apiKeySalt: test-api-key-salt
       config.oauth.enabled: true
-      config.authType: oauth
+      config.authType: mixed
       sandboxes.enabled: true
       sandboxes.sandboxHost.deployment.nodeSelector.sandbox\.langsmith\.com/host: "true"
       sandboxes.callbackSigningJwk: test-callback-jwk
@@ -1323,7 +1323,7 @@ tests:
       config.langsmithLicenseKey: test-license
       config.apiKeySalt: test-api-key-salt
       config.oauth.enabled: true
-      config.authType: oauth
+      config.authType: mixed
       sandboxes.enabled: true
       sandboxes.sandboxHost.deployment.nodeSelector.sandbox\.langsmith\.com/host: "true"
       sandboxes.callbackSigningJwk: test-callback-jwk
@@ -1345,7 +1345,7 @@ tests:
       config.langsmithLicenseKey: test-license
       config.apiKeySalt: test-api-key-salt
       config.oauth.enabled: true
-      config.authType: oauth
+      config.authType: mixed
       sandboxes.enabled: true
       sandboxes.sandboxHost.deployment.nodeSelector.sandbox\.langsmith\.com/host: "true"
       sandboxes.callbackSigningJwk: test-callback-jwk

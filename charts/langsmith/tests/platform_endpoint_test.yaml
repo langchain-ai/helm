@@ -58,7 +58,7 @@ tests:
     set:
       config.existingSecretName: langsmith-secrets
       config.oauth.enabled: true
-      config.authType: oauth
+      config.authType: mixed
       config.hostname: https://langsmith.example.com
     asserts:
       - notExists:

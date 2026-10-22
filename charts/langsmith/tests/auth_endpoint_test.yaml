@@ -40,20 +40,8 @@ tests:
           path: data.AUTH_ENDPOINT
           value: "http://RELEASE-NAME-langsmith-platform-backend.NAMESPACE.svc.cluster.local:1986"
 
-  # The authType if/else chain sits directly above these keys; the next three
+  # The authType if/else chain sits directly above these keys; the next two
   # cases pin AUTH_ENDPOINT outside it so no branch can drop it.
-  - it: is set under oauth authType
-    template: templates/config-map.yaml
-    set:
-      config.authType: "oauth"
-    asserts:
-      - equal:
-          path: data.AUTH_TYPE
-          value: "oauth"
-      - equal:
-          path: data.AUTH_ENDPOINT
-          value: "http://RELEASE-NAME-langsmith-platform-backend.NAMESPACE.svc.cluster.local:1986"
-
   - it: is set under mixed authType with basic auth
     template: templates/config-map.yaml
     set:

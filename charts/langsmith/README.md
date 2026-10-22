@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.18.0-rc.40](https://img.shields.io/badge/Version-0.18.0--rc.40-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.18.14rc1](https://img.shields.io/badge/AppVersion-0.18.14rc1-informational?style=flat-square)
+![Version: 0.18.0-rc.41](https://img.shields.io/badge/Version-0.18.0--rc.41-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.18.14rc1](https://img.shields.io/badge/AppVersion-0.18.14rc1-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -1636,7 +1636,7 @@ The trajectory Service is cluster-internal; no public route is added. Trajectory
 | config.agentBuilder.oauth.slackSigningSecret | string | `""` |  |
 | config.agentBuilder.oauthProviderOrgId | string | `""` |  |
 | config.apiKeySalt | string | `""` | Salt used to generate the API key. Should be a random string. |
-| config.authType | string | `""` | Must be 'oauth' for OAuth with PKCE, 'mixed' for basic auth or OAuth without PKCE |
+| config.authType | string | `""` | Must be 'mixed' for both basic auth and OAuth. OAuth also requires oauth.oauthClientSecret. |
 | config.basePath | string | `""` | Base path for the LangSmith installation. Used to serve the app under a subpath like example.com/langsmith. WARNING: Changing basePath after LangSmith Deployments have been created will break existing deployments. Existing deployments will need to be recreated for the new basePath to take effect. |
 | config.basicAuth.enabled | bool | `false` |  |
 | config.basicAuth.initialOrgAdminPassword | string | `""` |  |

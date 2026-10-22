@@ -6,7 +6,7 @@ tests:
     set:
       config.existingSecretName: "langsmith-secrets"
       config.oauth.enabled: true
-      config.authType: "oauth"
+      config.authType: "mixed"
       agentBuilderToolServer.enabled: true
     asserts:
       - failedTemplate:
@@ -16,7 +16,7 @@ tests:
     set:
       config.existingSecretName: "langsmith-secrets"
       config.oauth.enabled: true
-      config.authType: "oauth"
+      config.authType: "mixed"
       agentBuilderTriggerServer.enabled: true
     asserts:
       - failedTemplate:
@@ -26,7 +26,7 @@ tests:
     set:
       config.existingSecretName: "langsmith-secrets"
       config.oauth.enabled: true
-      config.authType: "oauth"
+      config.authType: "mixed"
       images.agentBuilderToolServerImage.tag: "test"
     asserts:
       - failedTemplate:
@@ -36,7 +36,7 @@ tests:
     set:
       config.existingSecretName: "langsmith-secrets"
       config.oauth.enabled: true
-      config.authType: "oauth"
+      config.authType: "mixed"
       images.agentBuilderTriggerServerImage.tag: "test"
     asserts:
       - failedTemplate:
@@ -46,7 +46,7 @@ tests:
     set:
       config.existingSecretName: "langsmith-secrets"
       config.oauth.enabled: true
-      config.authType: "oauth"
+      config.authType: "mixed"
       images.hostBackendImage.tag: "test"
     asserts:
       - failedTemplate:
@@ -56,7 +56,7 @@ tests:
     set:
       config.existingSecretName: "langsmith-secrets"
       config.oauth.enabled: true
-      config.authType: "oauth"
+      config.authType: "mixed"
       images.platformBackendImage.tag: "test"
     asserts:
       - failedTemplate:
@@ -66,7 +66,7 @@ tests:
     set:
       config.existingSecretName: "langsmith-secrets"
       config.oauth.enabled: true
-      config.authType: "oauth"
+      config.authType: "mixed"
       images.playgroundImage.tag: "test"
     asserts:
       - failedTemplate:
@@ -76,7 +76,7 @@ tests:
     set:
       config.existingSecretName: "langsmith-secrets"
       config.oauth.enabled: true
-      config.authType: "oauth"
+      config.authType: "mixed"
       images.fleetToolServerImage.tag: "test"
     asserts:
       - failedTemplate:
@@ -86,7 +86,7 @@ tests:
     set:
       config.existingSecretName: "langsmith-secrets"
       config.oauth.enabled: true
-      config.authType: "oauth"
+      config.authType: "mixed"
       images.fleetTriggerServerImage.tag: "test"
     asserts:
       - failedTemplate:

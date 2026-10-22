@@ -10,7 +10,7 @@ tests:
     set:
       config.existingSecretName: langsmith-secrets
       config.oauth.enabled: true
-      config.authType: oauth
+      config.authType: mixed
     templates:
       - sandboxes/juicefs-config.yaml
       - sandboxes/juicefs-format-job.yaml

@@ -2,7 +2,7 @@ config:
   existingSecretName: langsmith-secrets
   oauth:
     enabled: true
-  authType: oauth
+  authType: mixed
 
 images:
   sandboxHostImage:
