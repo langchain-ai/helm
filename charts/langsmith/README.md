@@ -103,7 +103,7 @@ The trajectory Service is cluster-internal; no public route is added. Trajectory
 
 Rules enforced by the API and the operator:
 
-- Only `v1/ServiceAccount` and `secrets-store.csi.x-k8s.io/v1/SecretProviderClass`, up to 16 objects and 256 KiB.
+- Only `v1/ServiceAccount` and `secrets-store.csi.x-k8s.io/v1/SecretProviderClass`, up to 16 objects.
 - Every `metadata.name` must be a lowercase DNS subdomain that starts with the deployment's resource name followed by `-`. The UI shows the exact prefix. The namespace is always the deployment's namespace.
 - Metadata may set only `name`, `labels`, and `annotations`. The `lgp-operator.io/` and `apps.langchain.ai/` key prefixes are reserved.
 - SecretProviderClasses must use pod workload identity. `spec` may contain only `provider` and `parameters`, and `secretObjects` is rejected. `parameters` may contain only these keys:
