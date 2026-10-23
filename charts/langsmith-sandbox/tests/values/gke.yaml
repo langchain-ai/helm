@@ -1,0 +1,33 @@
+platform:
+  endpoint: https://langsmith.example.com/api
+serviceAuth:
+  existingSecretName: langsmith-sandbox-runtime
+workloadIdentity:
+  provider: gcp
+juicefs:
+  name: sandbox-juicefs
+  storage: gs
+  bucket: gs://langsmith-sandbox-juicefs
+  redis:
+    metaURL: rediss://10.0.0.5:6379/0
+    iamAuthProvider: gcp
+  hostMount:
+    cacheDirs:
+      - /mnt/disks/local-ssd/juicefs
+sandboxHost:
+  enabled: true
+  deployment:
+    nodeSelector:
+      sandbox.langsmith.com/host: "true"
+  ingress:
+    enabled: true
+    host: sandbox-hosts.example.com
+    annotations:
+      kubernetes.io/ingress.class: gce
+    service:
+      annotations:
+        cloud.google.com/backend-config: '{"default":"sandbox-host"}'
+    tls:
+      - secretName: sandbox-hosts-tls
+        hosts:
+          - sandbox-hosts.example.com

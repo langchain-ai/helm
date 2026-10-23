@@ -1,0 +1,41 @@
+{{- if and .Values.sandboxHost.enabled .Values.sandboxHost.ingress.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "langsmithSandbox.sandboxHostFullname" . }}
+  namespace: {{ include "langsmithSandbox.namespace" . }}
+  labels:
+    {{- include "langsmithSandbox.labels" . | nindent 4 }}
+  annotations:
+    {{- include "langsmithSandbox.annotations" . | nindent 4 }}
+    {{- with .Values.sandboxHost.ingress.annotations }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  {{- with .Values.sandboxHost.ingress.ingressClassName }}
+  ingressClassName: {{ . }}
+  {{- end }}
+  {{- with .Values.sandboxHost.ingress.tls }}
+  tls:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  rules:
+    - host: {{ .Values.sandboxHost.ingress.host | quote }}
+      http:
+        {{- /* Only the paths LangSmith and the sandbox hosts call through the
+        ingress: host RPCs and the sandbox data plane (exec, files, tunnels,
+        links, browser and service URLs). /metrics and /readyz are
+        unauthenticated and stay reachable only on each host pod. The trailing
+        slash stops controllers that match prefixes character by character from
+        also matching longer names such as /guest-operationX. */}}
+        paths:
+          {{- range list "/internal/SandboxHost/" "/guest-operation/" }}
+          - path: {{ . }}
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "langsmithSandbox.sandboxHostFullname" $ }}
+                port:
+                  number: 19190
+          {{- end }}
+{{- end }}

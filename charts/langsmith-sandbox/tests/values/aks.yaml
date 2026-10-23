@@ -1,0 +1,26 @@
+platform:
+  endpoint: https://langsmith.example.com/api
+serviceAuth:
+  existingSecretName: langsmith-sandbox-runtime
+workloadIdentity:
+  provider: azure
+  azure:
+    clientId: 00000000-0000-0000-0000-000000000001
+juicefs:
+  name: sandbox-juicefs
+  storage: wasb
+  bucket: https://juicefs.blob.core.windows.net
+  storageAccountName: langsmithsandbox
+  redis:
+    metaURL: rediss://langsmith-sandbox.westus2.redis.azure.net:10000/0
+    iamAuthProvider: azure
+  hostMount:
+    cacheDirs:
+      - /mnt/juicefs-cache
+sandboxHost:
+  enabled: true
+  serviceAccount:
+    name: langsmith-sandbox-host
+  deployment:
+    nodeSelector:
+      sandbox.langsmith.com/host: "true"

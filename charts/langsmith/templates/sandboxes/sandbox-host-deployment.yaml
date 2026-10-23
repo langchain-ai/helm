@@ -1,4 +1,4 @@
-{{- if .Values.sandboxes.enabled }}
+{{- if and .Values.sandboxes.enabled (eq .Values.sandboxes.deploymentMode "sameCluster") }}
 {{- $namespace := .Values.namespace | default .Release.Namespace }}
 {{- $autoscaling := .Values.sandboxes.sandboxHost.autoscaling }}
 {{- $hostMount := .Values.sandboxes.juicefs.hostMount }}
@@ -6,8 +6,14 @@
   (dict "name" "SANDBOX_HOST_JUICEFS_META_URL_FILE")
   (dict "name" "SANDBOX_HOST_JUICEFS_MOUNT_OPTIONS")
   (dict "name" "SANDBOX_HOST_JUICEFS_REDIS_IAM_AUTH_PROVIDER")
+  (dict "name" "LANGSMITH_APP_VERSION")
 -}}
-{{- include "langsmith.detectDuplicates" (concat $managedHostMountEnv .Values.sandboxes.sandboxHost.deployment.extraEnv) }}
+{{- if include "langsmith.sandboxes.serviceAuthPreviousSecretKey" . }}
+{{- $managedHostMountEnv = append $managedHostMountEnv (dict "name" "SANDBOX_X_SERVICE_AUTH_JWT_SECRET_PREVIOUS") }}
+{{- end }}
+{{- /* commonEnv joins the check so an operator-supplied var that collides with a
+managed one fails at render rather than silently winning by list order. */}}
+{{- include "langsmith.detectDuplicates" (concat $managedHostMountEnv .Values.commonEnv .Values.sandboxes.sandboxHost.deployment.extraEnv) }}
 {{- /* Chart labels last so they win; the selector depends on them. */}}
 {{- $labels := mergeOverwrite (dict "app" .Values.sandboxes.sandboxHost.name)
   (default dict .Values.sandboxes.sandboxHost.deployment.labels)
@@ -44,8 +50,12 @@ spec:
       maxUnavailable: 1
   template:
     metadata:
+      {{- /* Pod labels drop helm.sh/chart and app.kubernetes.io/version: they
+      change on every chart or appVersion bump, and a pod-template change rolls
+      every host, suspending its VMs, even when the image stays pinned. The
+      Deployment's own metadata keeps them. */}}
       labels:
-        {{- toYaml $labels | nindent 8 }}
+        {{- toYaml (omit $labels "helm.sh/chart" "app.kubernetes.io/version") | nindent 8 }}
       annotations:
         {{- include "langsmith.commonPodAnnotations" . | nindent 8 }}
         checksum/juicefs-config: {{ include "langsmith.sandboxes.juicefsConfigSecretChecksum" . | quote }}
@@ -59,6 +69,7 @@ spec:
       {{- end }}
       hostNetwork: true
       dnsPolicy: ClusterFirstWithHostNet
+      {{- include "langsmith.dnsConfig" . | nindent 6 }}
       serviceAccountName: {{ include "langsmith.sandboxes.sandboxHostServiceAccountName" . }}
       automountServiceAccountToken: {{ .Values.sandboxes.sandboxHost.serviceAccount.automountServiceAccountToken }}
       affinity:
@@ -112,12 +123,22 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: status.hostIP
+            - name: LANGSMITH_APP_VERSION
+              value: {{ include "langsmith.sandboxes.hostImageTag" . | quote }}
             - name: SANDBOX_X_SERVICE_AUTH_JWT_SECRET
               valueFrom:
                 secretKeyRef:
                   name: {{ include "langsmith.secretsName" . }}
-                  key: api_key_salt
+                  key: {{ include "langsmith.sandboxes.serviceAuthSecretKey" . }}
                   optional: {{ .Values.config.disableSecretCreation }}
+            {{- with include "langsmith.sandboxes.serviceAuthPreviousSecretKey" . }}
+            - name: SANDBOX_X_SERVICE_AUTH_JWT_SECRET_PREVIOUS
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "langsmith.secretsName" $ }}
+                  key: {{ . }}
+                  optional: {{ $.Values.config.disableSecretCreation }}
+            {{- end }}
             - name: SANDBOX_HOST_PROXY_CA_DIR
               value: /certs
             {{- if and .Values.config.customCa.secretName .Values.config.customCa.secretKey }}
@@ -180,7 +201,7 @@ spec:
             - name: SANDBOX_HOST_AUTOSCALE_SCALE_DOWN_STABILIZATION_SECONDS
               value: {{ $autoscaling.scaleDownStabilizationSeconds | quote }}
             {{- end }}
-            {{- with .Values.sandboxes.sandboxHost.deployment.extraEnv }}
+            {{- with concat .Values.commonEnv .Values.sandboxes.sandboxHost.deployment.extraEnv }}
               {{- toYaml . | nindent 12 }}
             {{- end }}
           {{- /* Fixed: the host's own defaults. SANDBOX_HOST_LISTEN_ADDR is not set. */}}

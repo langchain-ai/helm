@@ -7,6 +7,14 @@
 {{- if .Values.sandboxes.enabled }}
 - name: SANDBOX_QUEUE_PRIORITY
   value: "1"
+{{- with .Values.sandboxes.clusterName }}
+- name: SANDBOX_K8S_CLUSTER_NAME
+  value: {{ . | quote }}
+{{- end }}
+{{- with .Values.sandboxes.hostIngressEndpoint }}
+- name: SANDBOX_HOST_INGRESS_ENDPOINT
+  value: {{ . | quote }}
+{{- end }}
 {{- end }}
 {{- end -}}
 {{- if .Values.ingestQueue.enabled }}

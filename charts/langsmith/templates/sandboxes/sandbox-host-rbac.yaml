@@ -1,4 +1,4 @@
-{{- if and .Values.sandboxes.enabled .Values.sandboxes.sandboxHost.rbac.create }}
+{{- if and .Values.sandboxes.enabled (eq .Values.sandboxes.deploymentMode "sameCluster") .Values.sandboxes.sandboxHost.rbac.create }}
 {{- $namespace := .Values.namespace | default .Release.Namespace }}
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role

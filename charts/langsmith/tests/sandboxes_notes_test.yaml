@@ -1,0 +1,22 @@
+suite: sandbox install notes
+templates:
+  - NOTES.txt
+tests:
+  - it: should tell separate-cluster installs what to run next
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      sandboxes.deploymentMode: separateCluster
+      config.hostname: langsmith.example.com
+    asserts:
+      - matchRegexRaw:
+          pattern: Sandboxes run in a separate cluster
+      - matchRegexRaw:
+          pattern: "key api_key_salt"
+
+  - it: should not mention separate clusters otherwise
+    values:
+      - ./values/sandboxes-enabled.yaml
+    asserts:
+      - notMatchRegexRaw:
+          pattern: Sandboxes run in a separate cluster

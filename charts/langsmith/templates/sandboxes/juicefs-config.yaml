@@ -1,4 +1,4 @@
-{{- if and .Values.sandboxes.enabled (not .Values.sandboxes.juicefs.existingSecretName) }}
+{{- if and .Values.sandboxes.enabled (eq .Values.sandboxes.deploymentMode "sameCluster") (not .Values.sandboxes.juicefs.existingSecretName) }}
 apiVersion: v1
 kind: Secret
 metadata:

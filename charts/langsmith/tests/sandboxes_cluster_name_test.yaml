@@ -1,0 +1,97 @@
+suite: sandbox cluster name
+templates:
+  - validate.yaml
+  - config-map.yaml
+  - secrets.yaml
+  - redis/secrets.yaml
+  - postgres/secrets.yaml
+  - clickhouse/secrets.yaml
+  - frontend/config-map.yaml
+  - backend/deployment.yaml
+  - platform-backend/deployment.yaml
+  - ingest-queue/deployment.yaml
+tests:
+  # The web tier and the sandbox queue worker must agree, or snapshots,
+  # deletes and sweeps target a different host pool than placement.
+  - it: should name the sandbox cluster on platform-backend and ingest-queue
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      sandboxes.clusterName: sandbox-eu
+    templates:
+      - platform-backend/deployment.yaml
+      - ingest-queue/deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_K8S_CLUSTER_NAME
+            value: sandbox-eu
+
+  - it: should not set the cluster name on other services
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      sandboxes.clusterName: sandbox-eu
+    template: backend/deployment.yaml
+    asserts:
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_K8S_CLUSTER_NAME
+          any: true
+
+  - it: should key sandbox service URLs by the cluster name
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      sandboxes.clusterName: sandbox-eu
+      sandboxes.serviceUrlBaseUrl: https://sandboxes.example.com
+    template: platform-backend/deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_SERVICE_URLS
+            value: '{"sandbox-eu":"https://sandboxes.example.com"}'
+
+  - it: should keep the default incluster key for service URLs
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      sandboxes.serviceUrlBaseUrl: https://sandboxes.example.com
+    template: platform-backend/deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_SERVICE_URLS
+            value: '{"incluster":"https://sandboxes.example.com"}'
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_K8S_CLUSTER_NAME
+          any: true
+
+  - it: should reject a cluster name that is not a DNS label
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      sandboxes.clusterName: Sandbox_EU
+    template: validate.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: "sandboxes.clusterName must be a DNS label: up to 63 lowercase letters, digits or hyphens, starting and ending with a letter or digit."
+
+  - it: should fail loudly when the cluster name is also set by hand
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      sandboxes.clusterName: sandbox-eu
+      platformBackend.deployment.extraEnv:
+        - name: SANDBOX_K8S_CLUSTER_NAME
+          value: sandbox-eu
+    template: platform-backend/deployment.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: "Duplicate keys detected: [SANDBOX_K8S_CLUSTER_NAME]"
