@@ -35,6 +35,8 @@
   value: {{ .Values.sandboxes.quotas.maxEphemeralStorageGib | quote }}
 - name: SANDBOX_MAX_SANDBOXES
   value: {{ .Values.sandboxes.quotas.maxSandboxes | quote }}
+- name: LANGSMITH_APP_VERSION
+  value: {{ include "langsmith.sandboxes.hostImageTag" . | quote }}
 {{- if .Values.sandboxes.serviceUrlBaseUrl }}
 {{- /* Keyed by the name the runtime resolves and stores on each sandbox. */}}
 - name: SANDBOX_SERVICE_URLS

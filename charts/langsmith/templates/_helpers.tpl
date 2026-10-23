@@ -1620,6 +1620,15 @@ Falls back to config.hostname when config.frontendHostname is unset.
 {{- end -}}
 
 {{/*
+The sandbox-host release this install deploys or expects: the host image tag.
+For version-skew reporting; unlike the backfill check's LANGSMITH_APP_VERSION
+(the chart appVersion), this follows a pinned host tag.
+*/}}
+{{- define "langsmith.sandboxes.hostImageTag" -}}
+{{- .Values.images.sandboxHostImage.tag | default .Chart.AppVersion -}}
+{{- end -}}
+
+{{/*
 Host portion of sandboxes.serviceUrlBaseUrl.
 */}}
 {{- define "langsmith.sandboxes.serviceUrlHost" -}}

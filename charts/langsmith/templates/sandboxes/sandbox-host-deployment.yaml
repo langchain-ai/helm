@@ -6,6 +6,7 @@
   (dict "name" "SANDBOX_HOST_JUICEFS_META_URL_FILE")
   (dict "name" "SANDBOX_HOST_JUICEFS_MOUNT_OPTIONS")
   (dict "name" "SANDBOX_HOST_JUICEFS_REDIS_IAM_AUTH_PROVIDER")
+  (dict "name" "LANGSMITH_APP_VERSION")
 -}}
 {{- /* commonEnv joins the check so an operator-supplied var that collides with a
 managed one fails at render rather than silently winning by list order. */}}
@@ -119,6 +120,8 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: status.hostIP
+            - name: LANGSMITH_APP_VERSION
+              value: {{ include "langsmith.sandboxes.hostImageTag" . | quote }}
             - name: SANDBOX_X_SERVICE_AUTH_JWT_SECRET
               valueFrom:
                 secretKeyRef:
