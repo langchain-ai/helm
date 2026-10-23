@@ -65,11 +65,15 @@ dnsConfig:
 {{- end }}
 {{- end -}}
 
+{{- define "langsmithSandbox.imageTag" -}}
+{{- .Values.images.sandboxHost.tag | default .Chart.AppVersion -}}
+{{- end -}}
+
 {{- define "langsmithSandbox.image" -}}
 {{- if .Values.images.registry -}}
-{{ .Values.images.registry }}/{{ .Values.images.sandboxHost.repository }}:{{ .Values.images.sandboxHost.tag | default .Chart.AppVersion }}
+{{ .Values.images.registry }}/{{ .Values.images.sandboxHost.repository }}:{{ include "langsmithSandbox.imageTag" . }}
 {{- else -}}
-{{ .Values.images.sandboxHost.repository }}:{{ .Values.images.sandboxHost.tag | default .Chart.AppVersion }}
+{{ .Values.images.sandboxHost.repository }}:{{ include "langsmithSandbox.imageTag" . }}
 {{- end -}}
 {{- end -}}
 

@@ -5,6 +5,7 @@
   (dict "name" "SANDBOX_X_SERVICE_AUTH_JWT_SECRET")
   (dict "name" "LANGSMITH_SANDBOX_CALLBACK_SIGNING_JWK")
   (dict "name" "LANGSMITH_SANDBOX_INTERNAL_ENDPOINT")
+  (dict "name" "LANGSMITH_APP_VERSION")
   (dict "name" "SANDBOX_HOST_JUICEFS_META_URL_FILE")
   (dict "name" "SANDBOX_HOST_JUICEFS_MOUNT_OPTIONS")
   (dict "name" "SANDBOX_HOST_JUICEFS_REDIS_IAM_AUTH_PROVIDER")
@@ -159,6 +160,10 @@ spec:
             {{- end }}
             - name: LANGSMITH_SANDBOX_INTERNAL_ENDPOINT
               value: {{ .Values.platform.endpoint | quote }}
+            {{- /* The release this host runs (its image tag), reported for the
+            control plane's version-skew warning. */}}
+            - name: LANGSMITH_APP_VERSION
+              value: {{ include "langsmithSandbox.imageTag" . | quote }}
             - name: SANDBOX_HOST_DEPLOYMENT_NAME
               value: {{ include "langsmithSandbox.sandboxHostFullname" . | quote }}
             - name: SANDBOX_HOST_TERMINATION_GRACE_SECONDS
