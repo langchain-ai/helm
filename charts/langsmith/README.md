@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.18.0-rc.42](https://img.shields.io/badge/Version-0.18.0--rc.42-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.18.14rc1](https://img.shields.io/badge/AppVersion-0.18.14rc1-informational?style=flat-square)
+![Version: 0.18.0-rc.43](https://img.shields.io/badge/Version-0.18.0--rc.43-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.18.14rc1](https://img.shields.io/badge/AppVersion-0.18.14rc1-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -1708,6 +1708,8 @@ The trajectory Service is cluster-internal; no public route is added. Trajectory
 | config.ttl | object | `{"enabled":true,"ttl_period_seconds":{"longlived":"34560000","shortlived":"1209600"}}` | TTL configuration Optional. Used to set TTLS for longlived and shortlived objects. |
 | config.ttl.ttl_period_seconds.longlived | string | `"34560000"` | 400 day longlived and 14 day shortlived |
 | config.userOrgCreationDisabled | bool | `true` | Prevent organization creation by users. This includes admins. |
+| config.webhookDestinationsEnabled | bool | `false` | Copy each feature's webhooks into shared webhook destinations and deliver them through the shared webhook engine. Each feature switches over once its webhooks are copied. Leave this on once enabled. |
+| config.webhookUnificationEnabled | bool | `false` | Show the unified Webhooks settings page. Takes effect once webhookDestinationsEnabled is on and every feature's webhooks are copied. |
 | config.workspaceScopeOrgInvitesEnabled | bool | `false` | Enable Workspace Admins to invite users to the org and workspace. |
 
 ## Ace Backend
