@@ -46,6 +46,38 @@
 {{- if not (has $juicefsRedisIamAuthProvider (list "" "azure" "gcp")) -}}
 {{- fail (printf "juicefs.redis.iamAuthProvider %q is not supported. Valid values are \"\", \"azure\" and \"gcp\"." $juicefsRedisIamAuthProvider) -}}
 {{- end -}}
+{{- $workloadIdentity := .Values.workloadIdentity | default dict -}}
+{{- $workloadIdentityProvider := toString ($workloadIdentity.provider | default "") -}}
+{{- if not (has $workloadIdentityProvider (list "" "aws" "gcp" "azure")) -}}
+{{- fail (printf "workloadIdentity.provider %q is not supported. Valid values are \"\", \"aws\", \"gcp\" and \"azure\"." $workloadIdentityProvider) -}}
+{{- end -}}
+{{- $workloadIdentityAws := $workloadIdentity.aws | default dict -}}
+{{- $workloadIdentityAzure := $workloadIdentity.azure | default dict -}}
+{{- if and (eq $workloadIdentityProvider "aws") (not $workloadIdentityAws.roleArn) -}}
+{{- fail "workloadIdentity.aws.roleArn is required when workloadIdentity.provider is aws." -}}
+{{- end -}}
+{{- if and (eq $workloadIdentityProvider "azure") (not $workloadIdentityAzure.clientId) -}}
+{{- fail "workloadIdentity.azure.clientId is required when workloadIdentity.provider is azure." -}}
+{{- end -}}
+{{- if and $workloadIdentityAws.roleArn (ne $workloadIdentityProvider "aws") -}}
+{{- fail "workloadIdentity.aws.roleArn is set but workloadIdentity.provider is not aws. Remove it, or set the provider to aws." -}}
+{{- end -}}
+{{- if and (or $workloadIdentityAzure.clientId $workloadIdentityAzure.tenantId) (ne $workloadIdentityProvider "azure") -}}
+{{- fail "workloadIdentity.azure is set but workloadIdentity.provider is not azure. Remove it, or set the provider to azure." -}}
+{{- end -}}
+{{- if and $juicefsRedisIamAuthProvider (ne $juicefsRedisIamAuthProvider $workloadIdentityProvider) -}}
+{{- fail (printf "juicefs.redis.iamAuthProvider %q needs workloadIdentity.provider %q, which gives sandbox-host and the JuiceFS formatter the cloud identity that Redis IAM authentication uses." $juicefsRedisIamAuthProvider $juicefsRedisIamAuthProvider) -}}
+{{- end -}}
+{{- /* A URL kept in juicefs.existingSecretName cannot be inspected here. */ -}}
+{{- $juicefsMetaURL := .Values.juicefs.redis.metaURL | default "" -}}
+{{- if and $juicefsRedisIamAuthProvider (not .Values.juicefs.existingSecretName) $juicefsMetaURL -}}
+{{- if and (eq $juicefsRedisIamAuthProvider "azure") (not (hasPrefix "rediss://" $juicefsMetaURL)) -}}
+{{- fail "juicefs.redis.metaURL must use rediss:// when juicefs.redis.iamAuthProvider is azure." -}}
+{{- end -}}
+{{- if regexMatch "^[a-zA-Z][a-zA-Z0-9+.-]*://[^/@]*:[^/@]*@" $juicefsMetaURL -}}
+{{- fail "juicefs.redis.metaURL must not contain a password when juicefs.redis.iamAuthProvider is set; the IAM token replaces it." -}}
+{{- end -}}
+{{- end -}}
 {{- if not .Values.authProxy.httpProxy.urlSecretKey -}}
 {{- fail "authProxy.httpProxy.urlSecretKey is required when sandboxHost.enabled is true." -}}
 {{- end -}}

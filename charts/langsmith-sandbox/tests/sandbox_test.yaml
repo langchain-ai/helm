@@ -433,6 +433,7 @@ tests:
       - ./values/enabled.yaml
     set:
       juicefs.redis.iamAuthProvider: gcp
+      workloadIdentity.provider: gcp
     templates:
       - sandbox-host-deployment.yaml
       - juicefs-format-job.yaml
@@ -466,18 +467,37 @@ tests:
       - failedTemplate:
           errorMessage: 'juicefs.redis.iamAuthProvider "aws" is not supported. Valid values are "", "azure" and "gcp".'
 
+  # Baseline for the next test: the same Azure setup without Redis IAM auth.
+  - it: should name the formatter for an Azure setup without Redis IAM auth
+    chart:
+      version: 0.0.0-test
+    values:
+      - ./values/enabled.yaml
+    set:
+      workloadIdentity.provider: azure
+      workloadIdentity.azure.clientId: 00000000-0000-0000-0000-000000000001
+      juicefs.redis.metaURL: rediss://cache.example.com:10000/0
+    template: juicefs-format-job.yaml
+    asserts:
+      - equal:
+          path: metadata.name
+          value: RELEASE-NAME-langsmith-sandbox-juicefs-format-3cffd856
+
   - it: should rename the JuiceFS formatter when the Redis IAM auth provider changes
     chart:
       version: 0.0.0-test
     values:
       - ./values/enabled.yaml
     set:
+      workloadIdentity.provider: azure
+      workloadIdentity.azure.clientId: 00000000-0000-0000-0000-000000000001
+      juicefs.redis.metaURL: rediss://cache.example.com:10000/0
       juicefs.redis.iamAuthProvider: azure
     template: juicefs-format-job.yaml
     asserts:
       - notEqual:
           path: metadata.name
-          value: RELEASE-NAME-langsmith-sandbox-juicefs-format-7d31fd53
+          value: RELEASE-NAME-langsmith-sandbox-juicefs-format-3cffd856
 
   # Like sandbox-host, the formatter must verify a JuiceFS Redis whose
   # certificate is signed by a private CA (for example Memorystore with TLS).
