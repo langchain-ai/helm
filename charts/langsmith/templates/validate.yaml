@@ -217,6 +217,10 @@ AWS Marketplace Helm template verification).
 {{- if and $hostIngressEndpoint (not (regexMatch "^https?://[^/?#]+$" $hostIngressEndpoint)) -}}
 {{- fail "sandboxes.hostIngressEndpoint must be an http(s) origin without a path, query string, or fragment." -}}
 {{- end -}}
+{{- $sandboxClusterName := .Values.sandboxes.clusterName | default "" -}}
+{{- if and $sandboxClusterName (or (gt (len $sandboxClusterName) 63) (not (regexMatch "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$" $sandboxClusterName))) -}}
+{{- fail "sandboxes.clusterName must be a DNS label: up to 63 lowercase letters, digits or hyphens, starting and ending with a letter or digit." -}}
+{{- end -}}
 {{- $serviceUrlBaseUrl := .Values.sandboxes.serviceUrlBaseUrl | default "" -}}
 {{- if $serviceUrlBaseUrl -}}
 {{- if not (regexMatch "^https?://" $serviceUrlBaseUrl) -}}

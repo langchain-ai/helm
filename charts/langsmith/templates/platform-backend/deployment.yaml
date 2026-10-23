@@ -45,10 +45,14 @@
       key: {{ . }}
       optional: {{ $.Values.config.disableSecretCreation }}
 {{- end }}
+{{- with .Values.sandboxes.clusterName }}
+- name: SANDBOX_K8S_CLUSTER_NAME
+  value: {{ . | quote }}
+{{- end }}
 {{- if .Values.sandboxes.serviceUrlBaseUrl }}
 {{- /* Keyed by the name the runtime resolves and stores on each sandbox. */}}
 - name: SANDBOX_SERVICE_URLS
-  value: {{ dict "incluster" .Values.sandboxes.serviceUrlBaseUrl | toJson | quote }}
+  value: {{ dict (.Values.sandboxes.clusterName | default "incluster") .Values.sandboxes.serviceUrlBaseUrl | toJson | quote }}
 {{- end }}
 {{- with .Values.sandboxes.hostIngressEndpoint }}
 - name: SANDBOX_HOST_INGRESS_ENDPOINT
