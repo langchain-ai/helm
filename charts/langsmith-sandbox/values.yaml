@@ -97,29 +97,30 @@ proxyCa:
 juicefs:
   # -- JuiceFS volume name used for sandbox snapshots and filesystem state.
   name: "sandbox-juicefs"
-  # -- Object storage backend: s3, gs, or wasb.
+  # -- Object storage backend: `s3` (AWS), `gs` (GCP) or `wasb` (Azure Blob Storage).
   storage: "s3"
-  # -- Object storage bucket or root URL.
+  # -- Object storage bucket URL. S3: a region-explicit endpoint such as `https://bucket-name.s3.us-west-2.amazonaws.com`, not `s3://bucket-name`. GCS: `gs://bucket-name`. Azure: `https://<container>.blob.core.windows.net`. JuiceFS stores objects under `<juicefs.name>/`; use juicefs.name, not a bucket path, to separate volumes.
   bucket: ""
-  # -- Azure storage account name. Required when storage is wasb.
+  # -- Azure storage account name, passed to JuiceFS as its access key. Required when storage is wasb.
   storageAccountName: ""
   redis:
     # -- JuiceFS Redis metadata URL. The Redis maxmemory policy must be noeviction.
     metaURL: ""
-    # -- IAM authentication provider for the JuiceFS Redis. Valid values: "", "azure" and "gcp". Uses workload identity on sandbox-host and the formatter Job; on GKE, sandbox-host uses hostNetwork and so authenticates as its node's service account.
+    # -- IAM authentication provider for the JuiceFS Redis: "", `azure` or `gcp`. Needs workloadIdentity.provider set to the same value. On GKE, sandbox-host and the formatter both run on the host network and authenticate as the node pool's service account.
     iamAuthProvider: ""
-  # -- Existing Secret containing name, metaurl, storage, bucket, and optional access-key/secret-key entries.
+  # -- Existing Secret with JuiceFS config keys `name`, `metaurl`, `storage` and `bucket`. For Azure, `access-key` holds the storage account name; set `secret-key` only for account-key authentication. When set, the values above are ignored.
   existingSecretName: ""
   hostMount:
-    # -- Node-local paths used for the JuiceFS cache.
+    # -- Node-local paths for the JuiceFS cache, mounted from the host. Back them with local SSD or the node's temporary disk; the cache survives pod restarts on the same node, not node replacement.
     cacheDirs:
       - /var/cache/juicefs
-    # -- Additional JuiceFS mount options. Configure cacheDirs instead of passing --cache-dir here.
+    # -- Additional JuiceFS mount options. Configure cacheDirs instead of passing a cache-dir option here.
     mountOptions:
       - --cache-size=51200
       - --cache-large-write
 
 juicefsFormatJob:
+  # -- Extra labels on the JuiceFS formatter pod. A value here wins over the workload-identity label the chart adds.
   labels: {}
   annotations: {}
   podSecurityContext: {}
@@ -141,6 +142,7 @@ sandboxHost:
   enabled: false
   name: "sandbox-host"
   deployment:
+    # -- Extra labels on the sandbox-host Deployment and pods. With workloadIdentity.provider azure the chart adds `azure.workload.identity/use`; a value here wins.
     labels: {}
     annotations: {}
     podAnnotations: {}
@@ -186,9 +188,13 @@ sandboxHost:
     labels: {}
     annotations: {}
   serviceAccount:
+    # -- Create the ServiceAccount sandbox-host and the formatter run as.
     create: true
+    # -- ServiceAccount name. Defaults to the sandbox-host fullname. Set it explicitly when an IAM role trust policy or a federated credential names it.
     name: ""
+    # -- Extra ServiceAccount labels.
     labels: {}
+    # -- Extra ServiceAccount annotations. They win over commonAnnotations and over the workload-identity annotations the chart adds.
     annotations: {}
     automountServiceAccountToken: true
   rbac:
