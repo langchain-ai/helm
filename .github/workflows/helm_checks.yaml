@@ -251,9 +251,16 @@ jobs:
             kubectl logs -n default "$pod" --tail=200 || true
           done
 
+  sandbox-chart-pairing:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check langsmith and langsmith-sandbox ship the same release
+        run: .github/scripts/check-sandbox-chart-pairing.sh
+
   langsmith:
     name: lint-test (langsmith)
-    needs: [test-matrix, lint-test]
+    needs: [test-matrix, lint-test, sandbox-chart-pairing]
     if: always()
     runs-on: ubuntu-latest
     steps:
@@ -261,4 +268,5 @@ jobs:
         env:
           MATRIX_RESULT: ${{ needs.test-matrix.result }}
           TEST_RESULT: ${{ needs.lint-test.result }}
-        run: test "$MATRIX_RESULT" = success && test "$TEST_RESULT" = success
+          PAIRING_RESULT: ${{ needs.sandbox-chart-pairing.result }}
+        run: test "$MATRIX_RESULT" = success && test "$TEST_RESULT" = success && test "$PAIRING_RESULT" = success
