@@ -1,8 +1,8 @@
-suite: test smithdb single topology
+suite: test smithdb unified topology
 templates:
   - config-map.yaml
-  - smithdb/single-deployment.yaml
-  - smithdb/single-service.yaml
+  - smithdb/unified-deployment.yaml
+  - smithdb/unified-service.yaml
   - smithdb/query-deployment.yaml
   - smithdb/ingestion-deployment.yaml
   - smithdb/compaction-deployment.yaml
@@ -12,12 +12,12 @@ values:
   - ./values/smithdb-enabled.yaml
 tests:
   - it: should run smithdb all on one cache volume sized from the tier
-    template: smithdb/single-deployment.yaml
+    template: smithdb/unified-deployment.yaml
     documentSelector:
       path: kind
       value: Deployment
     set:
-      smithdb.topology: single
+      smithdb.topology: unified
     asserts:
       - equal:
           path: spec.template.spec.containers[0].command
@@ -58,9 +58,9 @@ tests:
               secretKeyRef:
                 name: smithdb-secret
                 key: smithdb_metastore_db_host
-  - it: should render no per-role workloads in the single topology
+  - it: should render no per-role workloads in the unified topology
     set:
-      smithdb.topology: single
+      smithdb.topology: unified
     templates:
       - smithdb/query-deployment.yaml
       - smithdb/ingestion-deployment.yaml
@@ -70,17 +70,17 @@ tests:
     asserts:
       - hasDocuments:
           count: 0
-  - it: should render no single workload in the default cluster topology
+  - it: should render no unified workload in the default cluster topology
     templates:
-      - smithdb/single-deployment.yaml
-      - smithdb/single-service.yaml
+      - smithdb/unified-deployment.yaml
+      - smithdb/unified-service.yaml
     asserts:
       - hasDocuments:
           count: 0
-  - it: should route LangSmith to the single service without a cluster manager
+  - it: should route LangSmith to the unified service without a cluster manager
     template: config-map.yaml
     set:
-      smithdb.topology: single
+      smithdb.topology: unified
     asserts:
       - equal:
           path: data.SMITHDB_QUERY_SERVICE_URL
@@ -94,21 +94,21 @@ tests:
       - notExists:
           path: data.SMITHDB_CLUSTER_MANAGER_URL
   - it: should run exactly one replica
-    template: smithdb/single-deployment.yaml
+    template: smithdb/unified-deployment.yaml
     documentSelector:
       path: kind
       value: Deployment
     set:
-      smithdb.topology: single
-      smithdb.single.deployment.replicas: 3
+      smithdb.topology: unified
+      smithdb.unified.deployment.replicas: 3
     asserts:
       - equal:
           path: spec.replicas
           value: 1
-  - it: should render a PodDisruptionBudget for the single workload by default
-    template: smithdb/single-deployment.yaml
+  - it: should render a PodDisruptionBudget for the unified workload by default
+    template: smithdb/unified-deployment.yaml
     set:
-      smithdb.topology: single
+      smithdb.topology: unified
     documentSelector:
       path: kind
       value: PodDisruptionBudget

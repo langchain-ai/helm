@@ -1141,6 +1141,11 @@ config:
   # -- Default workspace name to be provisioned when org is created.
   defaultWorkspaceName: "Workspace 1"
 
+  agentMigration:
+    # -- Migrate existing tracing projects and experiments to Agent Platform agents after upgrade.
+    # Requires authenticated auth (`authType` `mixed` or `oauth`) and runs on the existing ingest queue workers.
+    enabled: false
+
   basicAuth:
     enabled: false
     # Either set the password and JWT secret in plaintext, or set in the secret specified by existingSecretName above.
@@ -1424,7 +1429,7 @@ smithdb:
   enabled: false
   # -- Per-replica CPU, memory, and cache volume size for SmithDB runtime components: small, medium, or large. See the README.
   resourceTier: "small"
-  # -- SmithDB workload layout: cluster runs query, ingestion, compaction, and the cluster manager as separate workloads; single runs them all in one `smithdb all` pod with one replica. smithdb.resourceTier sizes either layout.
+  # -- SmithDB workload layout: cluster runs query, ingestion, compaction, and the cluster manager as separate workloads; unified runs them all in one `smithdb all` pod with one replica. smithdb.resourceTier sizes either layout.
   topology: "cluster"
   cache:
     # -- StorageClass for the generated SmithDB cache volumes. Empty uses the cluster default. A component's deployment.volumes replaces the generated volume.
@@ -1502,7 +1507,7 @@ smithdb:
         # Leave empty when using Azure Workload Identity.
         accessKeySecretKey: ""
 
-  single:
+  unified:
     # -- HTTP port for health checks and metrics, served by the query service.
     containerPort: 8060
     # -- Query gRPC port.
