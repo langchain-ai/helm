@@ -1,0 +1,21 @@
+platform:
+  endpoint: https://langsmith.example.com/api
+serviceAuth:
+  existingSecretName: langsmith-sandbox-runtime
+workloadIdentity:
+  provider: aws
+  aws:
+    roleArn: arn:aws:iam::123456789012:role/langsmith-sandbox-host
+juicefs:
+  name: sandbox-juicefs
+  storage: s3
+  bucket: https://langsmith-sandboxes.s3.us-west-2.amazonaws.com
+  redis:
+    metaURL: rediss://langsmith-sandbox.example.cache.amazonaws.com:6379/0
+sandboxHost:
+  enabled: true
+  serviceAccount:
+    name: langsmith-sandbox-host
+  deployment:
+    nodeSelector:
+      sandbox.langsmith.com/host: "true"
