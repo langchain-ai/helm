@@ -27,12 +27,10 @@ spec:
         {{- with $job.annotations }}
           {{- toYaml . | nindent 8 }}
         {{- end }}
+      {{- /* The formatter's own labels win, then the operator's, then workload identity's. */}}
+      {{- $podLabels := mergeOverwrite (include "langsmithSandbox.workloadIdentity.podLabels" . | fromYaml) (deepCopy (default dict $job.labels)) (include "langsmithSandbox.selectorLabels" . | fromYaml) (dict "app.kubernetes.io/component" "juicefs-format") }}
       labels:
-        {{- include "langsmithSandbox.selectorLabels" . | nindent 8 }}
-        app.kubernetes.io/component: juicefs-format
-        {{- with $job.labels }}
-          {{- toYaml . | nindent 8 }}
-        {{- end }}
+        {{- toYaml $podLabels | nindent 8 }}
     spec:
       serviceAccountName: {{ include "langsmithSandbox.serviceAccountName" . }}
       automountServiceAccountToken: {{ .Values.sandboxHost.serviceAccount.automountServiceAccountToken }}

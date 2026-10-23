@@ -76,3 +76,63 @@ tests:
       - equal:
           path: metadata.annotations["argocd.argoproj.io/sync-wave"]
           value: "-2"
+  - it: should label sandbox-host and formatter pods for Azure Workload Identity
+    values:
+      - ./values/enabled.yaml
+    set:
+      workloadIdentity.provider: azure
+      workloadIdentity.azure.clientId: 00000000-0000-0000-0000-000000000001
+    templates:
+      - sandbox-host-deployment.yaml
+      - juicefs-format-job.yaml
+    asserts:
+      - equal:
+          path: spec.template.metadata.labels["azure.workload.identity/use"]
+          value: "true"
+
+  - it: should let operator pod labels win over the Workload Identity label
+    values:
+      - ./values/enabled.yaml
+    set:
+      workloadIdentity.provider: azure
+      workloadIdentity.azure.clientId: 00000000-0000-0000-0000-000000000001
+      sandboxHost.deployment.labels:
+        azure.workload.identity/use: "false"
+      juicefsFormatJob.labels:
+        azure.workload.identity/use: "false"
+    templates:
+      - sandbox-host-deployment.yaml
+      - juicefs-format-job.yaml
+    asserts:
+      - equal:
+          path: spec.template.metadata.labels["azure.workload.identity/use"]
+          value: "false"
+
+  # The formatter's selector labels must survive an operator label with the same key.
+  - it: should keep the formatter's own labels when an operator label collides
+    values:
+      - ./values/enabled.yaml
+    set:
+      juicefsFormatJob.labels:
+        app.kubernetes.io/component: other
+        team: sandboxes
+    template: juicefs-format-job.yaml
+    asserts:
+      - equal:
+          path: spec.template.metadata.labels["app.kubernetes.io/component"]
+          value: juicefs-format
+      - equal:
+          path: spec.template.metadata.labels.team
+          value: sandboxes
+
+  - it: should add no Workload Identity label outside azure
+    values:
+      - ./values/enabled.yaml
+    set:
+      workloadIdentity.provider: gcp
+    templates:
+      - sandbox-host-deployment.yaml
+      - juicefs-format-job.yaml
+    asserts:
+      - notExists:
+          path: spec.template.metadata.labels["azure.workload.identity/use"]
