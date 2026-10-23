@@ -131,7 +131,7 @@ The Ingress routes only `/internal/SandboxHost/` (host RPCs) and `/guest-operati
 | serviceAuth.callbackSigningJwkSecretKey | string | `"sandbox_callback_signing_jwk"` | Secret key containing the Ed25519 private JWK used to sign sandbox callbacks. |
 | serviceAuth.existingSecretName | string | `""` | Existing Secret containing only the shared sandbox service-auth key and callback-signing JWK. The values must match the LangSmith control-plane Secret. |
 | serviceAuth.previousSecretKey | string | `""` | Optional Secret key containing the previous service-auth key during rotation. |
-| serviceAuth.secretKey | string | `"api_key_salt"` | Secret key containing the value used as SANDBOX_X_SERVICE_AUTH_JWT_SECRET. |
+| serviceAuth.secretKey | string | `"sandbox_service_auth_secret"` | Secret key holding the sandbox service-auth secret (SANDBOX_X_SERVICE_AUTH_JWT_SECRET). Its value must equal the control plane's: `sandbox_service_auth_secret` in the langsmith chart's managed Secret, or the key `sandboxes.serviceAuth.secretKey` names in its config.existingSecretName (default `api_key_salt`). |
 | workloadIdentity.aws.roleArn | string | `""` | IAM role assumed through IRSA. Required when provider is aws. |
 | workloadIdentity.azure.clientId | string | `""` | Client ID of the user-assigned managed identity. Required when provider is azure. |
 | workloadIdentity.azure.tenantId | string | `""` | Optional Entra tenant ID; defaults to the cluster's tenant. |

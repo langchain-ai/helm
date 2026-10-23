@@ -55,7 +55,7 @@ tests:
             valueFrom:
               secretKeyRef:
                 name: langsmith-sandbox-runtime
-                key: api_key_salt
+                key: sandbox_service_auth_secret
       - contains:
           path: spec.template.spec.containers[0].env
           content:
@@ -673,3 +673,16 @@ tests:
       - equal:
           path: metadata.annotations["argocd.argoproj.io/sync-wave"]
           value: "-5"
+
+  - it: should reject an operator-set previous service-auth secret alongside serviceAuth.previousSecretKey
+    values:
+      - ./values/enabled.yaml
+    set:
+      serviceAuth.previousSecretKey: sandbox_service_auth_secret_previous
+      sandboxHost.deployment.extraEnv:
+        - name: SANDBOX_X_SERVICE_AUTH_JWT_SECRET_PREVIOUS
+          value: other
+    template: sandbox-host-deployment.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: "Duplicate keys detected: [SANDBOX_X_SERVICE_AUTH_JWT_SECRET_PREVIOUS]"
