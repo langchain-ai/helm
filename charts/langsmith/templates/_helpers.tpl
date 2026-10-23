@@ -390,6 +390,14 @@ Template containing common environment variables that are used by several servic
 - name: FF_WORKSPACE_SCOPE_ORG_INVITES_ENABLED
   value: {{ .Values.config.workspaceScopeOrgInvitesEnabled | quote }}
 {{- end }}
+{{- if .Values.config.webhookDestinationsEnabled }}
+- name: FF_WEBHOOK_DESTINATIONS_ENABLED
+  value: {{ .Values.config.webhookDestinationsEnabled | quote }}
+{{- end }}
+{{- if .Values.config.webhookUnificationEnabled }}
+- name: FF_WEBHOOK_UNIFICATION_ENABLED
+  value: {{ .Values.config.webhookUnificationEnabled | quote }}
+{{- end }}
 {{- if .Values.config.infoEndpointAuthRequired }}
 - name: FF_INFO_ENDPOINT_AUTH_REQUIRED
   value: {{ .Values.config.infoEndpointAuthRequired | quote }}

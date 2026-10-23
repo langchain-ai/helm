@@ -1,0 +1,40 @@
+suite: webhook destinations env
+set:
+  config.skipValidation: true
+  config.existingSecretName: langsmith-secrets
+tests:
+  - it: leaves both switches to the application default
+    template: backend/deployment.yaml
+    asserts:
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content: { name: FF_WEBHOOK_DESTINATIONS_ENABLED, value: "true" }
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content: { name: FF_WEBHOOK_UNIFICATION_ENABLED, value: "true" }
+
+  - it: sets both switches on the backend
+    template: backend/deployment.yaml
+    set:
+      config.webhookDestinationsEnabled: true
+      config.webhookUnificationEnabled: true
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content: { name: FF_WEBHOOK_DESTINATIONS_ENABLED, value: "true" }
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content: { name: FF_WEBHOOK_UNIFICATION_ENABLED, value: "true" }
+
+  - it: sets both switches on the queue worker that delivers webhooks
+    template: queue/deployment.yaml
+    set:
+      config.webhookDestinationsEnabled: true
+      config.webhookUnificationEnabled: true
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content: { name: FF_WEBHOOK_DESTINATIONS_ENABLED, value: "true" }
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content: { name: FF_WEBHOOK_UNIFICATION_ENABLED, value: "true" }

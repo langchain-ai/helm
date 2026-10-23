@@ -1159,6 +1159,10 @@ config:
   personalOrgsDisabled: true
   # -- Enable Workspace Admins to invite users to the org and workspace.
   workspaceScopeOrgInvitesEnabled: false
+  # -- Copy each feature's webhooks into shared webhook destinations and deliver them through the shared webhook engine. Each feature switches over once its webhooks are copied. Leave this on once enabled.
+  webhookDestinationsEnabled: false
+  # -- Show the unified Webhooks settings page. Takes effect once webhookDestinationsEnabled is on and every feature's webhooks are copied.
+  webhookUnificationEnabled: false
   # -- Require authentication on the GET /info endpoint. When enabled, unauthenticated
   # requests to /info will receive a 401 and must supply a valid API key. The LangSmith
   # SDK handles this automatically by retrying with credentials. Useful for deployments
