@@ -34,6 +34,13 @@ spec:
     spec:
       serviceAccountName: {{ include "langsmithSandbox.serviceAccountName" . }}
       automountServiceAccountToken: {{ .Values.sandboxHost.serviceAccount.automountServiceAccountToken }}
+      {{- if eq ((.Values.workloadIdentity | default dict).provider | default "") "gcp" }}
+      {{- /* GKE Workload Identity does not serve host-network pods and sandbox-host
+      runs on the host network, so the formatter joins it there: both pods then
+      authenticate as the node pool's service account. */}}
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      {{- end }}
       {{- include "langsmithSandbox.dnsConfig" . | nindent 6 }}
       restartPolicy: Never
       securityContext:

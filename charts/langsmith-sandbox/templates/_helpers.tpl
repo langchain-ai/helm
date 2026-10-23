@@ -139,6 +139,7 @@ a fresh formatter. */}}
   "serviceAccount" (include "langsmithSandbox.serviceAccountName" .)
   "automountServiceAccountToken" .Values.sandboxHost.serviceAccount.automountServiceAccountToken
   "redisIamAuthProvider" .Values.juicefs.redis.iamAuthProvider
+  "workloadIdentityProvider" ((.Values.workloadIdentity | default dict).provider | default "")
   "customCa" (pick .Values.customCa "existingSecretName" "secretKey")
   "nodeSelector" (default .Values.sandboxHost.deployment.nodeSelector $job.nodeSelector)
   "tolerations" (default .Values.sandboxHost.deployment.tolerations $job.tolerations)

@@ -136,3 +136,42 @@ tests:
     asserts:
       - notExists:
           path: spec.template.metadata.labels["azure.workload.identity/use"]
+  - it: should run the formatter on the host network on gcp
+    values:
+      - ./values/enabled.yaml
+    set:
+      workloadIdentity.provider: gcp
+    template: juicefs-format-job.yaml
+    asserts:
+      - equal:
+          path: spec.template.spec.hostNetwork
+          value: true
+      - equal:
+          path: spec.template.spec.dnsPolicy
+          value: ClusterFirstWithHostNet
+
+  - it: should keep the formatter on the pod network outside gcp
+    values:
+      - ./values/enabled.yaml
+    set:
+      workloadIdentity.provider: aws
+      workloadIdentity.aws.roleArn: arn:aws:iam::123456789012:role/sandbox-host
+    template: juicefs-format-job.yaml
+    asserts:
+      - notExists:
+          path: spec.template.spec.hostNetwork
+      - notExists:
+          path: spec.template.spec.dnsPolicy
+  # The provider changes the Job's immutable pod template, so it must rename the Job.
+  - it: should rename the formatter when the workload identity provider changes
+    chart:
+      version: 0.0.0-test
+    values:
+      - ./values/enabled.yaml
+    set:
+      workloadIdentity.provider: gcp
+    template: juicefs-format-job.yaml
+    asserts:
+      - notEqual:
+          path: metadata.name
+          value: RELEASE-NAME-langsmith-sandbox-juicefs-format-7d31fd53
