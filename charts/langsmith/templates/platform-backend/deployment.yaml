@@ -37,6 +37,14 @@
   value: {{ .Values.sandboxes.quotas.maxSandboxes | quote }}
 - name: LANGSMITH_APP_VERSION
   value: {{ include "langsmith.sandboxes.hostImageTag" . | quote }}
+{{- with include "langsmith.sandboxes.serviceAuthPreviousSecretKey" . }}
+- name: SANDBOX_X_SERVICE_AUTH_JWT_SECRET_PREVIOUS
+  valueFrom:
+    secretKeyRef:
+      name: {{ include "langsmith.secretsName" $ }}
+      key: {{ . }}
+      optional: {{ $.Values.config.disableSecretCreation }}
+{{- end }}
 {{- if .Values.sandboxes.serviceUrlBaseUrl }}
 {{- /* Keyed by the name the runtime resolves and stores on each sandbox. */}}
 - name: SANDBOX_SERVICE_URLS

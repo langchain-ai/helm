@@ -8,6 +8,9 @@
   (dict "name" "SANDBOX_HOST_JUICEFS_REDIS_IAM_AUTH_PROVIDER")
   (dict "name" "LANGSMITH_APP_VERSION")
 -}}
+{{- if include "langsmith.sandboxes.serviceAuthPreviousSecretKey" . }}
+{{- $managedHostMountEnv = append $managedHostMountEnv (dict "name" "SANDBOX_X_SERVICE_AUTH_JWT_SECRET_PREVIOUS") }}
+{{- end }}
 {{- /* commonEnv joins the check so an operator-supplied var that collides with a
 managed one fails at render rather than silently winning by list order. */}}
 {{- include "langsmith.detectDuplicates" (concat $managedHostMountEnv .Values.commonEnv .Values.sandboxes.sandboxHost.deployment.extraEnv) }}
@@ -126,8 +129,16 @@ spec:
               valueFrom:
                 secretKeyRef:
                   name: {{ include "langsmith.secretsName" . }}
-                  key: api_key_salt
+                  key: {{ include "langsmith.sandboxes.serviceAuthSecretKey" . }}
                   optional: {{ .Values.config.disableSecretCreation }}
+            {{- with include "langsmith.sandboxes.serviceAuthPreviousSecretKey" . }}
+            - name: SANDBOX_X_SERVICE_AUTH_JWT_SECRET_PREVIOUS
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "langsmith.secretsName" $ }}
+                  key: {{ . }}
+                  optional: {{ $.Values.config.disableSecretCreation }}
+            {{- end }}
             - name: SANDBOX_HOST_PROXY_CA_DIR
               value: /certs
             {{- if and .Values.config.customCa.secretName .Values.config.customCa.secretKey }}

@@ -236,6 +236,14 @@ AWS Marketplace Helm template verification).
 {{- if and .Values.config.existingSecretName .Values.sandboxes.callbackSigningJwk -}}
 {{- fail "sandboxes.callbackSigningJwk cannot be used when config.existingSecretName is set. Add key sandbox_callback_signing_jwk to the existing Secret instead." -}}
 {{- end -}}
+{{- $sandboxServiceAuth := .Values.sandboxes.serviceAuth | default dict -}}
+{{- if or .Values.config.existingSecretName .Values.config.disableSecretCreation -}}
+{{- if or $sandboxServiceAuth.secret $sandboxServiceAuth.previousSecret -}}
+{{- fail "sandboxes.serviceAuth.secret and sandboxes.serviceAuth.previousSecret cannot be used with config.existingSecretName or config.disableSecretCreation. Add the values to your Secret and set sandboxes.serviceAuth.secretKey and sandboxes.serviceAuth.previousSecretKey." -}}
+{{- end -}}
+{{- else if or $sandboxServiceAuth.secretKey $sandboxServiceAuth.previousSecretKey -}}
+{{- fail "sandboxes.serviceAuth.secretKey and sandboxes.serviceAuth.previousSecretKey name keys in config.existingSecretName. With the chart-managed Secret, set sandboxes.serviceAuth.secret and sandboxes.serviceAuth.previousSecret instead." -}}
+{{- end -}}
 {{- /* These configure sandbox-host, which this release does not render in
 separateCluster. Fail rather than accept settings that would do nothing. */ -}}
 {{- if eq $deploymentMode "separateCluster" -}}

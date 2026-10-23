@@ -1,0 +1,265 @@
+suite: sandbox service-auth secret
+templates:
+  - validate.yaml
+  - config-map.yaml
+  - secrets.yaml
+  - redis/secrets.yaml
+  - postgres/secrets.yaml
+  - clickhouse/secrets.yaml
+  - frontend/config-map.yaml
+  - backend/deployment.yaml
+  - backend/backfill-check.yaml
+  - backend/postgres-migrations.yaml
+  - backend/clickhouse-migrations.yaml
+  - platform-backend/deployment.yaml
+  - ingest-queue/deployment.yaml
+  - sandboxes/sandbox-host-deployment.yaml
+tests:
+  - it: should keep api_key_salt as the key in an existing Secret by default
+    values:
+      - ./values/sandboxes-enabled.yaml
+    templates:
+      - backend/deployment.yaml
+      - platform-backend/deployment.yaml
+      - ingest-queue/deployment.yaml
+      - sandboxes/sandbox-host-deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_X_SERVICE_AUTH_JWT_SECRET
+            valueFrom:
+              secretKeyRef:
+                name: langsmith-secrets
+                key: api_key_salt
+                optional: false
+
+  - it: should read a dedicated key from an existing Secret
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      sandboxes.serviceAuth.secretKey: sandbox_service_auth_secret
+      sandboxes.serviceAuth.previousSecretKey: sandbox_service_auth_secret_previous
+    templates:
+      - platform-backend/deployment.yaml
+      - sandboxes/sandbox-host-deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_X_SERVICE_AUTH_JWT_SECRET
+            valueFrom:
+              secretKeyRef:
+                name: langsmith-secrets
+                key: sandbox_service_auth_secret
+                optional: false
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_X_SERVICE_AUTH_JWT_SECRET_PREVIOUS
+            valueFrom:
+              secretKeyRef:
+                name: langsmith-secrets
+                key: sandbox_service_auth_secret_previous
+                optional: false
+
+  # ingest-queue only signs, so it never needs the previous secret.
+  - it: should not give ingest-queue the previous secret
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      sandboxes.serviceAuth.previousSecretKey: sandbox_service_auth_secret_previous
+    template: ingest-queue/deployment.yaml
+    asserts:
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_X_SERVICE_AUTH_JWT_SECRET_PREVIOUS
+          any: true
+
+  # These Deployments start after Helm updates the Secret, but the same env also
+  # reaches hook Jobs, so the commonEnv reference is optional (see the hook test).
+  - it: should use the dedicated key of the chart-managed Secret
+    set: &chartManaged
+      config.langsmithLicenseKey: test-license
+      config.apiKeySalt: test-api-key-salt
+      config.oauth.enabled: true
+      config.authType: oauth
+      sandboxes.enabled: true
+      sandboxes.sandboxHost.deployment.nodeSelector.sandbox\.langsmith\.com/host: "true"
+      sandboxes.callbackSigningJwk: test-callback-jwk
+      sandboxes.juicefs.redis.metaURL: redis://langsmith-redis.default.svc.cluster.local:6379/1
+      sandboxes.juicefs.bucket: https://langsmith-sandboxes-test.s3.us-west-2.amazonaws.com
+      images.sandboxHostImage.repository: example.com/langsmith/sandbox-host
+      images.sandboxHostImage.tag: test-sandbox-host
+      insights.encryptionKey: test-insights-encryption-key
+      polly.encryptionKey: test-polly-encryption-key
+    templates:
+      - backend/deployment.yaml
+      - platform-backend/deployment.yaml
+      - ingest-queue/deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_X_SERVICE_AUTH_JWT_SECRET
+            valueFrom:
+              secretKeyRef:
+                name: RELEASE-NAME-langsmith-secrets
+                key: sandbox_service_auth_secret
+                optional: true
+
+  - it: should require the dedicated key on the same-cluster sandbox-host
+    set: *chartManaged
+    template: sandboxes/sandbox-host-deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_X_SERVICE_AUTH_JWT_SECRET
+            valueFrom:
+              secretKeyRef:
+                name: RELEASE-NAME-langsmith-secrets
+                key: sandbox_service_auth_secret
+                optional: false
+
+  # helm upgrade runs these Jobs before it updates the chart-managed Secret,
+  # which may not have the key yet; they must not wait for it.
+  - it: should not hold pre-upgrade hooks on the new chart-managed key
+    set: *chartManaged
+    templates:
+      - backend/backfill-check.yaml
+      - backend/postgres-migrations.yaml
+      - backend/clickhouse-migrations.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_X_SERVICE_AUTH_JWT_SECRET
+            valueFrom:
+              secretKeyRef:
+                name: RELEASE-NAME-langsmith-secrets
+                key: sandbox_service_auth_secret
+                optional: true
+
+  # Same value as today, so upgrading changes nothing but the key name.
+  - it: should store the API key salt under the dedicated key by default
+    set: *chartManaged
+    template: secrets.yaml
+    asserts:
+      - equal:
+          path: data.sandbox_service_auth_secret
+          value: dGVzdC1hcGkta2V5LXNhbHQ=
+      - equal:
+          path: data.api_key_salt
+          value: dGVzdC1hcGkta2V5LXNhbHQ=
+      - notExists:
+          path: data.sandbox_service_auth_secret_previous
+
+  - it: should store a dedicated sandbox service-auth secret and its previous value
+    set:
+      <<: *chartManaged
+      sandboxes.serviceAuth.secret: test-sandbox-service-auth
+      sandboxes.serviceAuth.previousSecret: test-sandbox-service-auth-previous
+    template: secrets.yaml
+    asserts:
+      - equal:
+          path: data.sandbox_service_auth_secret
+          value: dGVzdC1zYW5kYm94LXNlcnZpY2UtYXV0aA==
+      - equal:
+          path: data.sandbox_service_auth_secret_previous
+          value: dGVzdC1zYW5kYm94LXNlcnZpY2UtYXV0aC1wcmV2aW91cw==
+      - equal:
+          path: data.api_key_salt
+          value: dGVzdC1hcGkta2V5LXNhbHQ=
+
+  - it: should give platform-backend and sandbox-host the previous secret from the chart-managed Secret
+    set:
+      <<: *chartManaged
+      sandboxes.serviceAuth.previousSecret: test-sandbox-service-auth-previous
+    templates:
+      - platform-backend/deployment.yaml
+      - sandboxes/sandbox-host-deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_X_SERVICE_AUTH_JWT_SECRET_PREVIOUS
+            valueFrom:
+              secretKeyRef:
+                name: RELEASE-NAME-langsmith-secrets
+                key: sandbox_service_auth_secret_previous
+                optional: false
+
+  - it: should reject key names with the chart-managed Secret
+    set:
+      <<: *chartManaged
+      sandboxes.serviceAuth.secretKey: api_key_salt
+    template: validate.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: sandboxes.serviceAuth.secretKey and sandboxes.serviceAuth.previousSecretKey name keys in config.existingSecretName. With the chart-managed Secret, set sandboxes.serviceAuth.secret and sandboxes.serviceAuth.previousSecret instead.
+
+  - it: should reject secret values with an existing Secret
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      sandboxes.serviceAuth.secret: test-sandbox-service-auth
+    template: validate.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: sandboxes.serviceAuth.secret and sandboxes.serviceAuth.previousSecret cannot be used with config.existingSecretName or config.disableSecretCreation. Add the values to your Secret and set sandboxes.serviceAuth.secretKey and sandboxes.serviceAuth.previousSecretKey.
+
+  # helm upgrade --reuse-values keeps the previous release's values, which have no sandboxes.serviceAuth.
+  - it: should render without sandboxes.serviceAuth
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      sandboxes.serviceAuth: null
+    templates:
+      - platform-backend/deployment.yaml
+      - sandboxes/sandbox-host-deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_X_SERVICE_AUTH_JWT_SECRET
+            valueFrom:
+              secretKeyRef:
+                name: langsmith-secrets
+                key: api_key_salt
+                optional: false
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_X_SERVICE_AUTH_JWT_SECRET_PREVIOUS
+          any: true
+
+  # The chart manages the name only while it sets the variable itself.
+  - it: should reject a hand-set previous secret on sandbox-host alongside previousSecretKey
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      sandboxes.serviceAuth.previousSecretKey: sandbox_service_auth_secret_previous
+      sandboxes.sandboxHost.deployment.extraEnv:
+        - name: SANDBOX_X_SERVICE_AUTH_JWT_SECRET_PREVIOUS
+          value: other
+    template: sandboxes/sandbox-host-deployment.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: "Duplicate keys detected: [SANDBOX_X_SERVICE_AUTH_JWT_SECRET_PREVIOUS]"
+
+  - it: should keep a hand-set previous secret on sandbox-host when the chart sets none
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      sandboxes.sandboxHost.deployment.extraEnv:
+        - name: SANDBOX_X_SERVICE_AUTH_JWT_SECRET_PREVIOUS
+          value: other
+    template: sandboxes/sandbox-host-deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_X_SERVICE_AUTH_JWT_SECRET_PREVIOUS
+            value: other
