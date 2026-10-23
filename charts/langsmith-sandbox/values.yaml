@@ -61,6 +61,18 @@ serviceAuth:
   # -- Optional Secret key containing the previous service-auth key during rotation.
   previousSecretKey: ""
 
+workloadIdentity:
+  # -- Cloud workload identity for sandbox-host and the JuiceFS formatter: "", `aws`, `gcp` or `azure`. With `gcp` the formatter runs on the host network, so both pods use the node pool's service account.
+  provider: ""
+  aws:
+    # -- IAM role assumed through IRSA. Required when provider is aws.
+    roleArn: ""
+  azure:
+    # -- Client ID of the user-assigned managed identity. Required when provider is azure.
+    clientId: ""
+    # -- Optional Entra tenant ID; defaults to the cluster's tenant.
+    tenantId: ""
+
 customCa:
   # -- Existing Secret containing CA certificates (PEM; one key may hold several) that sandbox-host trusts when it calls the LangSmith API, the host ingress and an https egress proxy.
   existingSecretName: ""

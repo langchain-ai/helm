@@ -166,3 +166,34 @@ a fresh formatter. */}}
 {{ fail (printf "Duplicate keys detected: %v" $duplicates) }}
 {{- end }}
 {{- end -}}
+
+{{/*
+ServiceAccount annotations for workloadIdentity.provider, as a YAML map.
+*/}}
+{{- define "langsmithSandbox.workloadIdentity.serviceAccountAnnotations" -}}
+{{- $workloadIdentity := .Values.workloadIdentity | default dict -}}
+{{- $provider := $workloadIdentity.provider | default "" -}}
+{{- $annotations := dict -}}
+{{- if eq $provider "aws" -}}
+{{- $_ := set $annotations "eks.amazonaws.com/role-arn" ((default dict $workloadIdentity.aws).roleArn | default "") -}}
+{{- else if eq $provider "azure" -}}
+{{- $azure := default dict $workloadIdentity.azure -}}
+{{- $_ := set $annotations "azure.workload.identity/client-id" ($azure.clientId | default "") -}}
+{{- with $azure.tenantId -}}
+{{- $_ := set $annotations "azure.workload.identity/tenant-id" . -}}
+{{- end -}}
+{{- end -}}
+{{- toYaml $annotations -}}
+{{- end -}}
+
+{{/*
+Pod labels for workloadIdentity.provider, as a YAML map. Azure Workload
+Identity only injects a token into pods that carry this label.
+*/}}
+{{- define "langsmithSandbox.workloadIdentity.podLabels" -}}
+{{- if eq ((.Values.workloadIdentity | default dict).provider | default "") "azure" -}}
+azure.workload.identity/use: "true"
+{{- else -}}
+{}
+{{- end -}}
+{{- end -}}

@@ -132,3 +132,7 @@ The Ingress routes only `/internal/SandboxHost/` (host RPCs) and `/guest-operati
 | serviceAuth.existingSecretName | string | `""` | Existing Secret containing only the shared sandbox service-auth key and callback-signing JWK. The values must match the LangSmith control-plane Secret. |
 | serviceAuth.previousSecretKey | string | `""` | Optional Secret key containing the previous service-auth key during rotation. |
 | serviceAuth.secretKey | string | `"api_key_salt"` | Secret key containing the value used as SANDBOX_X_SERVICE_AUTH_JWT_SECRET. |
+| workloadIdentity.aws.roleArn | string | `""` | IAM role assumed through IRSA. Required when provider is aws. |
+| workloadIdentity.azure.clientId | string | `""` | Client ID of the user-assigned managed identity. Required when provider is azure. |
+| workloadIdentity.azure.tenantId | string | `""` | Optional Entra tenant ID; defaults to the cluster's tenant. |
+| workloadIdentity.provider | string | `""` | Cloud workload identity for sandbox-host and the JuiceFS formatter: "", `aws`, `gcp` or `azure`. With `gcp` the formatter runs on the host network, so both pods use the node pool's service account. |

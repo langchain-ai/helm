@@ -1,0 +1,78 @@
+suite: workload identity
+templates:
+  - validate.yaml
+  - sandbox-host-service-account.yaml
+  - sandbox-host-deployment.yaml
+  - juicefs-format-job.yaml
+tests:
+  - it: should annotate the ServiceAccount with the IRSA role on aws
+    values:
+      - ./values/enabled.yaml
+    set:
+      workloadIdentity.provider: aws
+      workloadIdentity.aws.roleArn: arn:aws:iam::123456789012:role/sandbox-host
+    template: sandbox-host-service-account.yaml
+    asserts:
+      - equal:
+          path: metadata.annotations["eks.amazonaws.com/role-arn"]
+          value: arn:aws:iam::123456789012:role/sandbox-host
+      - equal:
+          path: metadata.annotations["argocd.argoproj.io/sync-wave"]
+          value: "-2"
+
+  - it: should annotate the ServiceAccount with the managed identity on azure
+    values:
+      - ./values/enabled.yaml
+    set:
+      workloadIdentity.provider: azure
+      workloadIdentity.azure.clientId: 00000000-0000-0000-0000-000000000001
+      workloadIdentity.azure.tenantId: 00000000-0000-0000-0000-000000000002
+    template: sandbox-host-service-account.yaml
+    asserts:
+      - equal:
+          path: metadata.annotations["azure.workload.identity/client-id"]
+          value: 00000000-0000-0000-0000-000000000001
+      - equal:
+          path: metadata.annotations["azure.workload.identity/tenant-id"]
+          value: 00000000-0000-0000-0000-000000000002
+
+  - it: should leave the Azure tenant annotation out when no tenant is set
+    values:
+      - ./values/enabled.yaml
+    set:
+      workloadIdentity.provider: azure
+      workloadIdentity.azure.clientId: 00000000-0000-0000-0000-000000000001
+    template: sandbox-host-service-account.yaml
+    asserts:
+      - notExists:
+          path: metadata.annotations["azure.workload.identity/tenant-id"]
+
+  # Merging maps instead of appending text also avoids duplicate YAML keys.
+  - it: should let an operator ServiceAccount annotation win over the generated one
+    values:
+      - ./values/enabled.yaml
+    set:
+      workloadIdentity.provider: aws
+      workloadIdentity.aws.roleArn: arn:aws:iam::123456789012:role/generated
+      sandboxHost.serviceAccount.annotations:
+        eks.amazonaws.com/role-arn: arn:aws:iam::123456789012:role/operator
+    template: sandbox-host-service-account.yaml
+    asserts:
+      - equal:
+          path: metadata.annotations["eks.amazonaws.com/role-arn"]
+          value: arn:aws:iam::123456789012:role/operator
+
+  - it: should add no identity annotations on gcp
+    values:
+      - ./values/enabled.yaml
+    set:
+      workloadIdentity.provider: gcp
+    template: sandbox-host-service-account.yaml
+    asserts:
+      - notExists:
+          path: metadata.annotations["eks.amazonaws.com/role-arn"]
+      - notExists:
+          path: metadata.annotations["azure.workload.identity/client-id"]
+      - equal:
+          path: metadata.annotations["argocd.argoproj.io/sync-wave"]
+          value: "-2"
