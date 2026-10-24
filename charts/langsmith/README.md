@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.18.0-rc.42](https://img.shields.io/badge/Version-0.18.0--rc.42-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.18.14rc1](https://img.shields.io/badge/AppVersion-0.18.14rc1-informational?style=flat-square)
+![Version: 0.18.0-rc.43](https://img.shields.io/badge/Version-0.18.0--rc.43-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.18.14rc1](https://img.shields.io/badge/AppVersion-0.18.14rc1-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -69,6 +69,31 @@ The query disk cache limit is set automatically from the PVC storage request or,
 Online evaluations on trajectories use an internal gRPC listener in `platformBackend` on port `8086`, enabled when both `smithdb.enabled` and `smithdb.langsmith.query.enabled` are true. Otherwise, no trajectory listener, Service, or endpoint is configured. It shares the HTTP backend's SmithDB routing, resources, and scaling; readiness uses `/ready` while active.
 
 The trajectory Service is cluster-internal; no public route is added. Trajectory processing can be memory intensive, consider setting [GOMEMLIMIT](https://pkg.go.dev/runtime#hdr-Environment_Variables) relative to your memory limit to mitigate OOMKilled errors for this service. If setting `GOMEMLIMIT` through `platformBackend.deployment.extraEnv`, account for the combined HTTP and trajectory workload and leave headroom below the container memory limit.
+
+## Extra manifests
+
+`extraManifests.enabled` defaults to `false`. Set it to `true` to let standalone self-hosted deployments declare extra ServiceAccounts and SecretProviderClasses. It needs `config.deployment.enabled=true` and the operator. The chart passes `LGP_EXTRA_MANIFESTS_ENABLED` to the operator and, through the shared ConfigMap, to the host backend, listener, and platform backend. Deployments on a remote listener are unsupported. Do not override the flag through environment values.
+
+**Coordinated upgrade required:** enable it only with operator, host backend, listener, and platform backend images that support the feature, together with this chart's LGP CRD. This chart does not change image tags.
+
+Rules enforced by the API and the operator:
+
+- Only `v1/ServiceAccount` and `secrets-store.csi.x-k8s.io/v1/SecretProviderClass`, up to 16 objects.
+- Every `metadata.name` must be a lowercase DNS subdomain that starts with the deployment's resource name followed by `-`. The UI shows the exact prefix. The namespace is always the deployment's namespace.
+- Metadata may set only `name`, `labels`, and `annotations`. The `lgp-operator.io/` and `apps.langchain.ai/` key prefixes are reserved.
+- ServiceAccounts may set only `automountServiceAccountToken` besides metadata.
+- A deployment cannot use a ServiceAccount or SecretProviderClass that another deployment's manifests created; the operator reports `ReferenceForbidden` and keeps the previous revision running.
+- SecretProviderClasses must use pod workload identity. `spec` may contain only `provider` and `parameters`, and `secretObjects` is rejected. `parameters` may contain only these keys:
+  - `aws`: `objects`, `region`, `failoverRegion`, `pathTranslation`, `usePodIdentity`, `preferredAddressType`.
+  - `azure`: `clientID` (required), `tenantId`, `keyvaultName`, `cloudName`, `objects`, and `usePodIdentity` or `useVMManagedIdentity` set to `"false"`.
+  - `gcp`: `secrets`, and `auth` set to `pod-adc`.
+- Manifests are stored in plaintext in the LangSmith database and in the deployment's custom resource. Do not put credentials in labels, annotations, or parameters.
+
+Enabling the feature grants the operator SecretProviderClass `get`, `create`, `patch`, and `delete`. ServiceAccount permissions already exist. It adds no Secret or RBAC permissions. With `operator.rbac.create=false`, provision these permissions yourself.
+
+Scope each workload identity's federation to the namespace and the full prefixed ServiceAccount name. For Azure Key Vault, install the Secrets Store CSI driver and Azure provider, and configure Azure Workload Identity and the federated identity credential. This chart does not install those prerequisites.
+
+The operator deletes removed objects only after the deployment's rollout completes and no pod or Deployment template still references them. It reports progress in the LGP `ExtraManifestsReady` condition. Turning the flag off freezes the objects and the stored configuration. Clear resources while the flag is on. Deleting a deployment garbage-collects its objects through owner references.
 
 ## General parameters
 
@@ -601,6 +626,7 @@ The trajectory Service is cluster-internal; no public route is added. Trajectory
 | fleetTriggerServer.serviceAccount.create | bool | `true` |  |
 | fleetTriggerServer.serviceAccount.labels | object | `{}` |  |
 | fleetTriggerServer.serviceAccount.name | string | `""` |  |
+| extraManifests.enabled | bool | `false` | Enable deployment ServiceAccount and SecretProviderClass manifests. Requires coordinated supporting images and CRD; see the Extra manifests section. |
 | fullnameOverride | string | `""` | String to fully override `"langsmith.fullname"` |
 | gateway.annotations | object | `{}` |  |
 | gateway.enabled | bool | `false` |  |
