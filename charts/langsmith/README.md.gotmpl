@@ -84,6 +84,8 @@ Rules enforced by the API and the operator:
 - Only `v1/ServiceAccount` and `secrets-store.csi.x-k8s.io/v1/SecretProviderClass`, up to 16 objects.
 - Every `metadata.name` must be a lowercase DNS subdomain that starts with the deployment's resource name followed by `-`. The UI shows the exact prefix. The namespace is always the deployment's namespace.
 - Metadata may set only `name`, `labels`, and `annotations`. The `lgp-operator.io/` and `apps.langchain.ai/` key prefixes are reserved.
+- ServiceAccounts may set only `automountServiceAccountToken` besides metadata.
+- A deployment cannot use a ServiceAccount or SecretProviderClass that another deployment's manifests created; the operator reports `ReferenceForbidden` and keeps the previous revision running.
 - SecretProviderClasses must use pod workload identity. `spec` may contain only `provider` and `parameters`, and `secretObjects` is rejected. `parameters` may contain only these keys:
   - `aws`: `objects`, `region`, `failoverRegion`, `pathTranslation`, `usePodIdentity`, `preferredAddressType`.
   - `azure`: `clientID` (required), `tenantId`, `keyvaultName`, `cloudName`, `objects`, and `usePodIdentity` or `useVMManagedIdentity` set to `"false"`.
@@ -94,7 +96,7 @@ Enabling the feature grants the operator SecretProviderClass `get`, `create`, `p
 
 Scope each workload identity's federation to the namespace and the full prefixed ServiceAccount name. For Azure Key Vault, install the Secrets Store CSI driver and Azure provider, and configure Azure Workload Identity and the federated identity credential. This chart does not install those prerequisites.
 
-The operator deletes removed objects only after the deployment's rollout completes. It reports progress in the LGP `ExtraManifestsReady` condition. Turning the flag off freezes the objects and the stored configuration. Clear resources while the flag is on. Deleting a deployment garbage-collects its objects through owner references.
+The operator deletes removed objects only after the deployment's rollout completes and no pod or Deployment template still references them. It reports progress in the LGP `ExtraManifestsReady` condition. Turning the flag off freezes the objects and the stored configuration. Clear resources while the flag is on. Deleting a deployment garbage-collects its objects through owner references.
 
 ## General parameters
 
