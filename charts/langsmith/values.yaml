@@ -83,7 +83,7 @@ images:
   operatorImage:
     repository: "docker.io/langchain/langgraph-operator"
     pullPolicy: IfNotPresent
-    tag: "0.1.60"
+    tag: "0.1.64"
   # For production environments, we strongly recommend connecting to a managed PostgreSQL instance instead of using the one provided by the chart.
   # Docs: https://docs.langchain.com/langsmith/self-host-external-postgres
   postgresImage:
@@ -1081,6 +1081,8 @@ config:
     ingressHealthCheckEnabled: true
     # -- Lift the SaaS CPU/memory caps on LangSmith Deployment resource specs. Opt-in for self-hosted.
     uncappedResourcesEnabled: false
+    # -- Let users override LangSmith Deployment autoscaling CPU targets and scale-up/scale-down behavior. Opt-in for self-hosted.
+    scalingOverridesEnabled: false
 
 
   # DEPRECATED: use the top-level fleet block (fleet/fleetToolServer/
