@@ -2,16 +2,19 @@
 
 ![Version: 0.3.0](https://img.shields.io/badge/Version-0.3.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.3.0](https://img.shields.io/badge/AppVersion-0.3.0-informational?style=flat-square)
 
-Helm chart for the LangSmith tunnel connector. It runs inside your network and connects outbound to LangSmith so LangSmith products can reach your private services.
+Helm chart for the LangSmith connector. It runs inside your network and connects outbound to LangSmith, so LangSmith products can reach your private services through a tunnel, or sandbox traffic can leave through your network through a relay.
 
 ## What it does
 
-The connector runs inside your network. It opens an outbound WebSocket to LangSmith and keeps two redundant sessions alive. When a LangSmith product needs to reach one of your private services, LangSmith sends the request over that tunnel and the connector forwards it to the target you named. Nothing needs to reach the connector pod: it exposes no ports.
+The connector runs inside your network. It opens an outbound WebSocket to LangSmith and keeps two redundant sessions alive. Nothing needs to reach the connector pod: it exposes no ports. It serves one connection, either a tunnel or a relay:
+
+- **Tunnel.** When a LangSmith product needs to reach one of your private services, LangSmith sends the request over the tunnel and the connector forwards it to the target you named.
+- **Relay.** Sandbox connections that match one of the relay's rules in LangSmith leave through the connector, so they reach your network and use its egress address.
 
 ## Prerequisites
 
-1. In LangSmith, open Settings -> Tunnels and create a tunnel. Copy its connection ID.
-2. Create an organization API key that can connect tunnels (the `connections:connect` permission).
+1. In LangSmith, create a tunnel (Settings -> Tunnels) or a relay. Copy its connection ID.
+2. Create an organization API key that can connect tunnels and relays (the `connections:connect` permission).
 
 ## Installation
 
@@ -40,6 +43,21 @@ helm install langsmith-connector langchain/langsmith-connector \
 
 The key is mounted as a file and re-read on every reconnect, so rotating the Secret needs no restart.
 
+### Relay
+
+A relay takes no targets. Enable relay mode instead:
+
+```bash
+helm install langsmith-relay langchain/langsmith-connector \
+  --namespace langsmith-connector --create-namespace \
+  --set config.connectionId=<relay id> \
+  --set config.apiKey=<api key> \
+  --set config.relay.enabled=true \
+  --set 'config.relay.allow={10.0.0.0/8,db.internal.example:5432}'
+```
+
+By default a relay reaches public addresses on ports 80 and 443. `config.relay.allow` widens that and `config.relay.deny` narrows it, and deny rules win. Each rule is a CIDR (`10.0.0.0/8`), an IP address, a hostname (`db.internal.example`), or a wildcard (`*.internal.example`), optionally followed by `:PORT`. Cloud metadata addresses are always refused.
+
 Self-hosted LangSmith: set `config.endpoint` to your API origin, including any `/api` prefix.
 
 ## Values
@@ -57,10 +75,13 @@ Self-hosted LangSmith: set `config.endpoint` to your API origin, including any `
 | commonVolumes | list | `[]` | Common volumes added to the connector deployment. |
 | config.apiKey | string | `""` | LangSmith API key with the `connections:connect` permission, stored in the chart-managed Secret. Required unless existingSecretName is set. |
 | config.apiKeySecretKey | string | `"langsmith_api_key"` | Key inside the Secret that holds the API key; also the file name under /var/run/secrets/langsmith. |
-| config.connectionId | required | `""` | The tunnel's connection ID, copied from Settings -> Tunnels in LangSmith. |
+| config.connectionId | required | `""` | The ID of the tunnel or relay this connector serves. A tunnel's ID is in Settings -> Tunnels in LangSmith. |
 | config.endpoint | string | `"https://api.smith.langchain.com"` | LangSmith API URL. Self-hosted installs use their own API origin, including any `/api` prefix. |
 | config.existingSecretName | string | `""` | Existing secret containing the LangSmith API key. If set, the chart does not create one. |
-| config.targets | required | `{}` | Target name to address. HTTP targets carry a scheme (`https://svc.internal:8443`); TCP targets are `host:port`. At least one target is required; the connector exits when the map is empty. Each entry becomes part of LANGSMITH_CONNECTOR_TARGETS. |
+| config.relay.allow | list | `[]` | Destinations the relay may reach beyond its default of public addresses on ports 80 and 443. Each rule is a CIDR (`10.0.0.0/8`), an IP address, a hostname (`db.corp.internal`), or a wildcard (`*.corp.internal`), optionally followed by `:PORT`. |
+| config.relay.deny | list | `[]` | Destinations the relay refuses, in the same form as `allow`. Deny rules win over allow rules, and cloud metadata addresses are always refused. |
+| config.relay.enabled | bool | `false` | Serve a relay instead of a tunnel: sandbox connections that match one of the relay's rules in LangSmith leave through this connector's network. A relay takes no targets. |
+| config.targets | object | `{}` | Target name to address, required for a tunnel. HTTP targets carry a scheme (`https://svc.internal:8443`); TCP targets are `host:port`. A tunnel needs at least one target; the connector exits when the map is empty. Each entry becomes part of LANGSMITH_CONNECTOR_TARGETS. |
 | connector.deployment.affinity | object | `{}` |  |
 | connector.deployment.annotations | object | `{}` |  |
 | connector.deployment.command | list | `[]` | Overrides the image entrypoint. Leave empty to run the connector. |

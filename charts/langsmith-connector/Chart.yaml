@@ -3,7 +3,7 @@ name: langsmith-connector
 maintainers:
   - name: Mukil
     email: mukil@langchain.dev
-description: Helm chart for the LangSmith tunnel connector. It runs inside your network and connects outbound to LangSmith so LangSmith products can reach your private services.
+description: Helm chart for the LangSmith connector. It runs inside your network and connects outbound to LangSmith, so LangSmith products can reach your private services through a tunnel, or sandbox traffic can leave through your network through a relay.
 type: application
 version: 0.3.0
 appVersion: "0.3.0"

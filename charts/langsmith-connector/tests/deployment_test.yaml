@@ -36,6 +36,60 @@ tests:
           content:
             name: LANGSMITH_CONNECTOR_TARGETS
             value: "api=https://api.internal.example:8443,database=db.internal.example:5432"
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: LANGSMITH_CONNECTOR_RELAY_MODE
+            value: "true"
+
+  - it: renders relay mode and its rules in place of targets
+    set:
+      config.targets: null
+      config.relay.enabled: true
+      config.relay.allow: ["10.0.0.0/8", "db.internal.example:5432"]
+      config.relay.deny: ["10.0.9.0/24"]
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: LANGSMITH_CONNECTOR_RELAY_MODE
+            value: "true"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: LANGSMITH_CONNECTOR_RELAY_ALLOW
+            value: "10.0.0.0/8,db.internal.example:5432"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: LANGSMITH_CONNECTOR_RELAY_DENY
+            value: "10.0.9.0/24"
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          any: true
+          content:
+            name: LANGSMITH_CONNECTOR_TARGETS
+
+  - it: renders relay mode without rules for the default public-only relay
+    set:
+      config.targets: null
+      config.relay.enabled: true
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: LANGSMITH_CONNECTOR_RELAY_MODE
+            value: "true"
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          any: true
+          content:
+            name: LANGSMITH_CONNECTOR_RELAY_ALLOW
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          any: true
+          content:
+            name: LANGSMITH_CONNECTOR_RELAY_DENY
 
   - it: places commonEnv before chart env and extraEnv after it
     set:
