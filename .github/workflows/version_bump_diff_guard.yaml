@@ -8,16 +8,18 @@ name: Version Bump Diff Guard
 on:
   # Required-workflow rulesets ignore event filters and run this trusted copy
   # from main. Ignoring every base branch prevents an ordinary pull_request
-  # event from running workflow YAML supplied by a pull request.
+  # event from running workflow YAML supplied by a pull request. merge_group
+  # is what the merge queue requests; without it the queue waits forever.
   pull_request:
     branches-ignore: ['**']
+  merge_group:
 
 permissions:
   contents: read
   pull-requests: read
 
 concurrency:
-  group: version-bump-diff-guard-${{ github.event.pull_request.number }}
+  group: version-bump-diff-guard-${{ github.event.pull_request.number || github.event.merge_group.head_sha }}
   cancel-in-progress: true
 
 jobs:
@@ -51,9 +53,10 @@ jobs:
 
       - name: Load the checker from base, then fetch PR head as data only
         run: |
-          head_sha=$(jq -r '.pull_request.head.sha' "$GITHUB_EVENT_PATH")
+          base_sha=$(jq -r '.pull_request.base.sha // .merge_group.base_sha' "$GITHUB_EVENT_PATH")
+          head_sha=$(jq -r '.pull_request.head.sha // .merge_group.head_sha' "$GITHUB_EVENT_PATH")
           cp hack/check_version_bump_diff.py "$RUNNER_TEMP/version-bump-guard.py"
-          git fetch origin "$head_sha"
+          git fetch origin "$base_sha" "$head_sha"
           # Don't check out the PR head: its content must only ever be read
           # through git show/diff below, never become the working tree a
           # later step could execute.

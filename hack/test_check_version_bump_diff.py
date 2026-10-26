@@ -58,6 +58,45 @@ class ValuesYamlDiffTests(unittest.TestCase):
         self.assertEqual(problems, [])
 
 
+class EventTargetTests(unittest.TestCase):
+    def test_pull_request_uses_its_own_shas_and_number(self) -> None:
+        base, head, numbers = guard.event_targets(
+            {
+                "pull_request": {
+                    "number": 1248,
+                    "base": {"sha": "base-sha"},
+                    "head": {"sha": "head-sha"},
+                }
+            }
+        )
+
+        self.assertEqual((base, head, numbers), ("base-sha", "head-sha", [1248]))
+
+    def test_merge_group_uses_group_shas_and_every_ref_pr(self) -> None:
+        base, head, numbers = guard.event_targets(
+            {
+                "merge_group": {
+                    "base_sha": "queue-base",
+                    "head_sha": "queue-head",
+                    "head_ref": "refs/heads/gh-readonly-queue/main/pr-1248-0b47ff4a",
+                }
+            }
+        )
+
+        self.assertEqual((base, head, numbers), ("queue-base", "queue-head", [1248]))
+
+    def test_merge_group_without_a_pr_number_does_not_invent_one(self) -> None:
+        _, _, numbers = guard.event_targets(
+            {"merge_group": {"base_sha": "queue-base", "head_sha": "queue-head", "head_ref": "refs/heads/main"}}
+        )
+
+        self.assertEqual(numbers, [])
+
+    def test_unrecognized_event_fails_closed(self) -> None:
+        with self.assertRaises(ValueError):
+            guard.event_targets({"zen": "keep it secret"})
+
+
 class FileModeTests(unittest.TestCase):
     def test_only_regular_nonexecutable_files_are_allowed(self) -> None:
         self.assertEqual(guard.regular_file_problems("charts/demo/README.md", "100644", "100644"), [])
