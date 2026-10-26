@@ -34,7 +34,7 @@ images:
   listenerImage:
     repository: "docker.io/langchain/langsmith-backend"
     pullPolicy: IfNotPresent
-    tag: "0.16.36"
+    tag: "0.17.53"
   redisImage:
     repository: "docker.io/redis"
     pullPolicy: IfNotPresent
