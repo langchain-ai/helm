@@ -40,6 +40,32 @@ tests:
             name: LANGSMITH_APP_VERSION
           any: true
 
+  # Lets the runtime-skew warning name the setting to change.
+  - it: should tell platform-backend the sandbox deployment mode
+    values:
+      - ./values/sandboxes-enabled.yaml
+    template: platform-backend/deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_DEPLOYMENT_MODE
+            value: sameCluster
+
+  - it: should report a separate cluster to platform-backend
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      sandboxes.deploymentMode: separateCluster
+      config.hostname: langsmith.example.com
+    template: platform-backend/deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_DEPLOYMENT_MODE
+            value: separateCluster
+
   - it: should fall back to the chart appVersion when the host tag is empty
     chart:
       appVersion: 9.9.9-test
