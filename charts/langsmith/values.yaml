@@ -168,9 +168,9 @@ sandboxes:
   # -- Private JWK signing sandbox callbacks, or key `sandbox_callback_signing_jwk` in config.existingSecretName. Needs config.hostname for the issuer, or signing fails closed.
   callbackSigningJwk: ""
   serviceAuth:
-    # -- Sandbox service-auth secret (SANDBOX_X_SERVICE_AUTH_JWT_SECRET), which signs calls between the control plane and sandbox hosts. Stored as `sandbox_service_auth_secret` in the chart-managed Secret; empty keeps today's value, `config.apiKeySalt`. With config.existingSecretName, put it in that Secret and set `secretKey` instead.
+    # -- Sandbox service-auth secret (SANDBOX_X_SERVICE_AUTH_JWT_SECRET), which signs calls between the control plane and sandbox hosts. Stored as `sandbox_service_auth_secret` in the chart-managed Secret. Required with deploymentMode separateCluster, as a new random value different from `config.apiKeySalt`. In sameCluster, empty keeps today's value, `config.apiKeySalt`. With config.existingSecretName, put it in that Secret and set `secretKey` instead.
     secret: ""
-    # -- Key in config.existingSecretName holding the sandbox service-auth secret. Empty uses `api_key_salt`, today's shared value; point it at a dedicated key to give sandboxes their own secret. Leave empty when the chart manages the Secret.
+    # -- Key in config.existingSecretName holding the sandbox service-auth secret. Empty uses `api_key_salt`, today's shared value, which deploymentMode separateCluster does not allow; point it at a dedicated key to give sandboxes their own secret. Leave empty when the chart manages the Secret.
     secretKey: ""
     # -- Previous sandbox service-auth secret, accepted alongside the current one during a rotation. Stored as `sandbox_service_auth_secret_previous` in the chart-managed Secret. With config.existingSecretName, use `previousSecretKey` instead.
     previousSecret: ""

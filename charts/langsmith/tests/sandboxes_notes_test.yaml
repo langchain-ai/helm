@@ -7,12 +7,13 @@ tests:
       - ./values/sandboxes-enabled.yaml
     set:
       sandboxes.deploymentMode: separateCluster
+      sandboxes.serviceAuth.secretKey: sandbox_service_auth_secret
       config.hostname: langsmith.example.com
     asserts:
       - matchRegexRaw:
           pattern: Sandboxes run in a separate cluster
       - matchRegexRaw:
-          pattern: "key api_key_salt"
+          pattern: "key sandbox_service_auth_secret"
 
   - it: should not mention separate clusters otherwise
     values:

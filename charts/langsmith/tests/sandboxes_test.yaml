@@ -41,6 +41,7 @@ tests:
     set:
       config.hostname: langsmith.example.com
       sandboxes.deploymentMode: separateCluster
+      sandboxes.serviceAuth.secretKey: sandbox_service_auth_secret
     templates:
       - sandboxes/proxy-ca.yaml
       - sandboxes/juicefs-config.yaml
@@ -59,6 +60,7 @@ tests:
     set:
       config.hostname: langsmith.example.com
       sandboxes.deploymentMode: separateCluster
+      sandboxes.serviceAuth.secretKey: sandbox_service_auth_secret
       images.sandboxHostImage.repository: ""
       images.sandboxHostImage.tag: ""
       sandboxes.sandboxHost.deployment.nodeSelector: {}
@@ -75,6 +77,7 @@ tests:
     set:
       config.hostname: langsmith.example.com
       sandboxes.deploymentMode: separateCluster
+      sandboxes.serviceAuth.secretKey: sandbox_service_auth_secret
       sandboxes.hostIngressEndpoint: https://sandbox-host.example.com
     templates:
       - platform-backend/deployment.yaml
@@ -98,6 +101,7 @@ tests:
       - ./values/sandboxes-enabled.yaml
     set:
       sandboxes.deploymentMode: separateCluster
+      sandboxes.serviceAuth.secretKey: sandbox_service_auth_secret
     template: validate.yaml
     asserts:
       - failedTemplate:
@@ -119,6 +123,7 @@ tests:
     set:
       config.hostname: langsmith.example.com
       sandboxes.deploymentMode: separateCluster
+      sandboxes.serviceAuth.secretKey: sandbox_service_auth_secret
       sandboxes.hostIngressEndpoint: https://sandbox-host.example.com/rpc
     template: validate.yaml
     asserts:
@@ -133,6 +138,7 @@ tests:
     set:
       config.hostname: langsmith.example.com
       sandboxes.deploymentMode: separateCluster
+      sandboxes.serviceAuth.secretKey: sandbox_service_auth_secret
       sandboxes.authProxy.httpProxy.url: http://proxy.internal:3128
     template: validate.yaml
     asserts:
@@ -145,6 +151,7 @@ tests:
     set:
       config.hostname: langsmith.example.com
       sandboxes.deploymentMode: separateCluster
+      sandboxes.serviceAuth.secretKey: sandbox_service_auth_secret
       sandboxes.authProxy.httpProxy.noProxy:
         - internal.corp
     template: validate.yaml
@@ -158,6 +165,7 @@ tests:
     set:
       config.hostname: langsmith.example.com
       sandboxes.deploymentMode: separateCluster
+      sandboxes.serviceAuth.secretKey: sandbox_service_auth_secret
       sandboxes.juicefs.redis.iamAuthProvider: azure
     template: validate.yaml
     asserts:
@@ -421,6 +429,7 @@ tests:
     set:
       config.hostname: langsmith.example.com
       sandboxes.deploymentMode: separateCluster
+      sandboxes.serviceAuth.secretKey: sandbox_service_auth_secret
       sandboxes.serviceUrlBaseUrl: https://sandbox-services.example.com
       ingress.enabled: true
       ingress.ingressClassName: nginx

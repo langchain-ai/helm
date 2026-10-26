@@ -248,6 +248,22 @@ AWS Marketplace Helm template verification).
 {{- else if or $sandboxServiceAuth.secretKey $sandboxServiceAuth.previousSecretKey -}}
 {{- fail "sandboxes.serviceAuth.secretKey and sandboxes.serviceAuth.previousSecretKey name keys in config.existingSecretName. With the chart-managed Secret, set sandboxes.serviceAuth.secret and sandboxes.serviceAuth.previousSecret instead." -}}
 {{- end -}}
+{{- /* A separate runtime cluster runs next to untrusted sandbox code, so it
+gets its own service-auth secret. api_key_salt also signs LangSmith's general
+service-to-service calls and must not leave this cluster. */ -}}
+{{- if eq $deploymentMode "separateCluster" -}}
+{{- if or .Values.config.existingSecretName .Values.config.disableSecretCreation -}}
+{{- $serviceAuthKey := $sandboxServiceAuth.secretKey | default "" | toString -}}
+{{- if or (not $serviceAuthKey) (eq $serviceAuthKey "api_key_salt") -}}
+{{- fail "sandboxes.deploymentMode separateCluster needs a dedicated sandbox service-auth secret. Add a new random value to config.existingSecretName under its own key, for example sandbox_service_auth_secret, and set sandboxes.serviceAuth.secretKey to that key. Do not use api_key_salt." -}}
+{{- end -}}
+{{- else -}}
+{{- $serviceAuthSecret := $sandboxServiceAuth.secret | default "" | toString -}}
+{{- if or (not $serviceAuthSecret) (eq $serviceAuthSecret (.Values.config.apiKeySalt | default "" | toString)) -}}
+{{- fail "sandboxes.deploymentMode separateCluster needs a dedicated sandbox service-auth secret. Set sandboxes.serviceAuth.secret to a new random value, different from config.apiKeySalt, and put the same value in the langsmith-sandbox release's Secret." -}}
+{{- end -}}
+{{- end -}}
+{{- end -}}
 {{- /* These configure sandbox-host, which this release does not render in
 separateCluster. Fail rather than accept settings that would do nothing. */ -}}
 {{- if eq $deploymentMode "separateCluster" -}}

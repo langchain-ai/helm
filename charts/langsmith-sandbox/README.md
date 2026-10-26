@@ -40,7 +40,7 @@ The Ingress routes only `/internal/SandboxHost/` (host RPCs) and `/guest-operati
   - Sandbox nodes must reach `platform.endpoint` on its port through every load balancer allowlist and egress firewall, and reach the JuiceFS Redis and object storage.
 - **`platform.endpoint`:** `https://<LangSmith hostname>[/<base path>]/api`.
 - **Secrets:** create a minimal Secret in the sandbox namespace and set `serviceAuth.existingSecretName`. Never copy the whole LangSmith application Secret. It holds:
-  - the sandbox service-auth secret under `serviceAuth.secretKey` (default `sandbox_service_auth_secret`). Its value must equal the control plane's: `sandbox_service_auth_secret` in the `langsmith` chart's managed Secret, or the key `sandboxes.serviceAuth.secretKey` names in your `config.existingSecretName` (default `api_key_salt`). During a rotation, also set `serviceAuth.previousSecretKey`.
+  - the sandbox service-auth secret under `serviceAuth.secretKey` (default `sandbox_service_auth_secret`). Use a dedicated random value, never the LangSmith `api_key_salt`, which signs LangSmith's other service calls; the `langsmith` chart refuses `separateCluster` without one. Its value must equal the control plane's: `sandbox_service_auth_secret` in the `langsmith` chart's managed Secret, or the key `sandboxes.serviceAuth.secretKey` names in your `config.existingSecretName`. During a rotation, also set `serviceAuth.previousSecretKey`.
   - the callback signing JWK under `serviceAuth.callbackSigningJwkSecretKey`, identical to the control plane's. It is an Ed25519 private JWK; one way to generate it with OpenSSL:
 
     ```bash
@@ -187,7 +187,7 @@ The Ingress routes only `/internal/SandboxHost/` (host RPCs) and `/guest-operati
 | serviceAuth.callbackSigningJwkSecretKey | string | `"sandbox_callback_signing_jwk"` | Secret key containing the Ed25519 private JWK used to sign sandbox callbacks. |
 | serviceAuth.existingSecretName | string | `""` | Existing Secret containing only the shared sandbox service-auth key and callback-signing JWK. The values must match the LangSmith control-plane Secret. |
 | serviceAuth.previousSecretKey | string | `""` | Optional Secret key containing the previous service-auth key during rotation. |
-| serviceAuth.secretKey | string | `"sandbox_service_auth_secret"` | Secret key holding the sandbox service-auth secret (SANDBOX_X_SERVICE_AUTH_JWT_SECRET). Its value must equal the control plane's: `sandbox_service_auth_secret` in the langsmith chart's managed Secret, or the key `sandboxes.serviceAuth.secretKey` names in its config.existingSecretName (default `api_key_salt`). |
+| serviceAuth.secretKey | string | `"sandbox_service_auth_secret"` | Secret key holding the sandbox service-auth secret (SANDBOX_X_SERVICE_AUTH_JWT_SECRET): a dedicated random value, never the LangSmith api_key_salt. Its value must equal the control plane's: `sandbox_service_auth_secret` in the langsmith chart's managed Secret, or the key `sandboxes.serviceAuth.secretKey` names in its config.existingSecretName. |
 | workloadIdentity.aws.roleArn | string | `""` | IAM role assumed through IRSA. Required when provider is aws. |
 | workloadIdentity.azure.clientId | string | `""` | Client ID of the user-assigned managed identity. Required when provider is azure. |
 | workloadIdentity.azure.tenantId | string | `""` | Optional Entra tenant ID; defaults to the cluster's tenant. |

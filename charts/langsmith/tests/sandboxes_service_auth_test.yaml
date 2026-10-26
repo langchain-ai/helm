@@ -263,3 +263,105 @@ tests:
           content:
             name: SANDBOX_X_SERVICE_AUTH_JWT_SECRET_PREVIOUS
             value: other
+
+  # A separate runtime cluster runs next to untrusted sandbox code, so it must
+  # not receive api_key_salt, which also signs general service-to-service calls.
+  - it: should require a dedicated secret in separate-cluster mode with the chart-managed Secret
+    set:
+      <<: *chartManaged
+      config.hostname: langsmith.example.com
+      sandboxes.deploymentMode: separateCluster
+    template: validate.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: "sandboxes.deploymentMode separateCluster needs a dedicated sandbox service-auth secret. Set sandboxes.serviceAuth.secret to a new random value, different from config.apiKeySalt, and put the same value in the langsmith-sandbox release's Secret."
+
+  - it: should reject the API key salt as the separate-cluster secret
+    set:
+      <<: *chartManaged
+      config.hostname: langsmith.example.com
+      sandboxes.deploymentMode: separateCluster
+      sandboxes.serviceAuth.secret: test-api-key-salt
+    template: validate.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: "sandboxes.deploymentMode separateCluster needs a dedicated sandbox service-auth secret. Set sandboxes.serviceAuth.secret to a new random value, different from config.apiKeySalt, and put the same value in the langsmith-sandbox release's Secret."
+
+  - it: should accept a dedicated secret in separate-cluster mode with the chart-managed Secret
+    set:
+      <<: *chartManaged
+      config.hostname: langsmith.example.com
+      sandboxes.deploymentMode: separateCluster
+      sandboxes.serviceAuth.secret: test-sandbox-service-auth
+    templates:
+      - validate.yaml
+      - secrets.yaml
+    asserts:
+      - notFailedTemplate: {}
+        template: validate.yaml
+      - equal:
+          path: data.sandbox_service_auth_secret
+          value: dGVzdC1zYW5kYm94LXNlcnZpY2UtYXV0aA==
+        template: secrets.yaml
+
+  - it: should require a dedicated key in separate-cluster mode with an existing Secret
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      config.hostname: langsmith.example.com
+      sandboxes.deploymentMode: separateCluster
+    template: validate.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: "sandboxes.deploymentMode separateCluster needs a dedicated sandbox service-auth secret. Add a new random value to config.existingSecretName under its own key, for example sandbox_service_auth_secret, and set sandboxes.serviceAuth.secretKey to that key. Do not use api_key_salt."
+
+  - it: should reject api_key_salt as the separate-cluster key
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      config.hostname: langsmith.example.com
+      sandboxes.deploymentMode: separateCluster
+      sandboxes.serviceAuth.secretKey: api_key_salt
+    template: validate.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: "sandboxes.deploymentMode separateCluster needs a dedicated sandbox service-auth secret. Add a new random value to config.existingSecretName under its own key, for example sandbox_service_auth_secret, and set sandboxes.serviceAuth.secretKey to that key. Do not use api_key_salt."
+
+  - it: should require a dedicated key in separate-cluster mode when the chart creates no Secret
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      config.existingSecretName: ""
+      config.disableSecretCreation: true
+      config.apiKeySalt: test-api-key-salt
+      config.langsmithLicenseKey: test-license
+      config.hostname: langsmith.example.com
+      sandboxes.deploymentMode: separateCluster
+    template: validate.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: "sandboxes.deploymentMode separateCluster needs a dedicated sandbox service-auth secret. Add a new random value to config.existingSecretName under its own key, for example sandbox_service_auth_secret, and set sandboxes.serviceAuth.secretKey to that key. Do not use api_key_salt."
+
+  - it: should accept a dedicated key in separate-cluster mode with an existing Secret
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      config.hostname: langsmith.example.com
+      sandboxes.deploymentMode: separateCluster
+      sandboxes.serviceAuth.secretKey: sandbox_service_auth_secret
+    templates:
+      - validate.yaml
+      - platform-backend/deployment.yaml
+    asserts:
+      - notFailedTemplate: {}
+        template: validate.yaml
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_X_SERVICE_AUTH_JWT_SECRET
+            valueFrom:
+              secretKeyRef:
+                name: langsmith-secrets
+                key: sandbox_service_auth_secret
+                optional: false
+        template: platform-backend/deployment.yaml

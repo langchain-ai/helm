@@ -54,7 +54,7 @@ platform:
 serviceAuth:
   # -- Existing Secret containing only the shared sandbox service-auth key and callback-signing JWK. The values must match the LangSmith control-plane Secret.
   existingSecretName: ""
-  # -- Secret key holding the sandbox service-auth secret (SANDBOX_X_SERVICE_AUTH_JWT_SECRET). Its value must equal the control plane's: `sandbox_service_auth_secret` in the langsmith chart's managed Secret, or the key `sandboxes.serviceAuth.secretKey` names in its config.existingSecretName (default `api_key_salt`).
+  # -- Secret key holding the sandbox service-auth secret (SANDBOX_X_SERVICE_AUTH_JWT_SECRET): a dedicated random value, never the LangSmith api_key_salt. Its value must equal the control plane's: `sandbox_service_auth_secret` in the langsmith chart's managed Secret, or the key `sandboxes.serviceAuth.secretKey` names in its config.existingSecretName.
   secretKey: "sandbox_service_auth_secret"
   # -- Secret key containing the Ed25519 private JWK used to sign sandbox callbacks.
   callbackSigningJwkSecretKey: "sandbox_callback_signing_jwk"
