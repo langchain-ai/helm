@@ -65,21 +65,21 @@ images:
   aceBackendImage:
     repository: "docker.io/langchain/langsmith-ace-backend"
     pullPolicy: IfNotPresent
-    tag: "0.18.14rc1"
+    tag: "0.18.17rc1"
   backendImage:
     repository: "docker.io/langchain/langsmith-backend"
     pullPolicy: IfNotPresent
-    tag: "0.18.14rc1"
+    tag: "0.18.17rc1"
   # Serves both the `insights` and `engine` graphs; insights.enabled and
   # engine.enabled pick which of them run.
   engineInsightsAgentImage:
     repository: "docker.io/langchain/langsmith-insights-engine"
     pullPolicy: IfNotPresent
-    tag: "0.18.14rc1"
+    tag: "0.18.17rc1"
   frontendImage:
     repository: "docker.io/langchain/langsmith-frontend"
     pullPolicy: IfNotPresent
-    tag: "0.18.14rc1"
+    tag: "0.18.17rc1"
   operatorImage:
     repository: "docker.io/langchain/langgraph-operator"
     pullPolicy: IfNotPresent
@@ -103,15 +103,15 @@ images:
   agentBuilderImage:
     repository: "docker.io/langchain/agent-builder-deep-agent"
     pullPolicy: IfNotPresent
-    tag: "0.18.14rc1"
+    tag: "0.18.17rc1"
   pollyAgentImage:
     repository: "docker.io/langchain/langsmith-polly"
     pullPolicy: IfNotPresent
-    tag: "0.18.14rc1"
+    tag: "0.18.17rc1"
   smithdbImage:
     repository: "docker.io/langchain/smithdb"
     pullPolicy: IfNotPresent
-    tag: "0.18.14rc1"
+    tag: "0.18.17rc1"
   # Optional: only mirror/pull when presidioAnalyzer.enabled is true
   presidioAnalyzerImage:
     repository: "mcr.microsoft.com/presidio-analyzer"
@@ -122,7 +122,7 @@ images:
     repository: "docker.io/langchain/sandbox-host"
     pullPolicy: IfNotPresent
     # -- Release tag, kept equal to the chart's appVersion and the other LangSmith image tags so the release bump moves them together, including on a Helm upgrade that reuses the previous values. An empty tag also resolves to the appVersion.
-    tag: "0.18.14rc1"
+    tag: "0.18.17rc1"
   # The images the operator gives each agent deployment's Redis and PostgreSQL
   # (operator.templates.redis and operator.templates.db). They follow
   # images.registry like the rest; the tag is the image's own, not the chart's.
