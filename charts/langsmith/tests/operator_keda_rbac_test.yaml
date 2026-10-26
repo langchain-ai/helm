@@ -1,0 +1,22 @@
+suite: Operator KEDA RBAC
+templates:
+  - operator/rbac.yaml
+set:
+  config.deployment.enabled: true
+tests:
+  - it: lets the operator own TriggerAuthentications and clean up InterceptorRoutes
+    asserts:
+      - contains:
+          path: rules
+          content:
+            apiGroups: ["keda.sh"]
+            resources: ["scaledobjects", "triggerauthentications"]
+            verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]
+        documentIndex: 0
+      - contains:
+          path: rules
+          content:
+            apiGroups: ["http.keda.sh"]
+            resources: ["interceptorroutes"]
+            verbs: ["delete", "get"]
+        documentIndex: 0
