@@ -479,6 +479,8 @@ Template containing common environment variables that are used by several servic
   value: {{ .Values.config.deployment.ingressHealthCheckEnabled | quote }}
 - name: ENABLE_UNCAPPED_LGP_DEPLOYMENT_RESOURCES
   value: {{ .Values.config.deployment.uncappedResourcesEnabled | quote }}
+- name: ENABLE_LGP_SCALING_OVERRIDES
+  value: {{ .Values.config.deployment.scalingOverridesEnabled | quote }}
 {{- if and .Values.config.customCa.secretName .Values.config.customCa.secretKey }}
 - name: SSL_CERT_FILE
   value: /etc/ssl/certs/custom-ca-certificates.crt

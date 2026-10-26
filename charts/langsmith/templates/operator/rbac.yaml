@@ -135,6 +135,13 @@ rules:
   - update
   - watch
 - apiGroups:
+  - http.keda.sh
+  resources:
+  - interceptorroutes
+  verbs:
+  - delete
+  - get
+- apiGroups:
   - networking.k8s.io
   resources:
   - ingresses
@@ -328,6 +335,13 @@ rules:
   - patch
   - update
   - watch
+- apiGroups:
+  - http.keda.sh
+  resources:
+  - interceptorroutes
+  verbs:
+  - delete
+  - get
 - apiGroups:
   - networking.k8s.io
   resources:
