@@ -6,7 +6,11 @@ name: Version Bump Diff Guard
 # bump is green when Open SWE approves later. A human approval passes the
 # check, but this workflow does not re-run on review; the next push does.
 on:
-  pull_request_target:
+  # Required-workflow rulesets ignore event filters and run this trusted copy
+  # from main. Ignoring every base branch prevents an ordinary pull_request
+  # event from running workflow YAML supplied by a pull request.
+  pull_request:
+    branches-ignore: ['**']
 
 permissions:
   contents: read
