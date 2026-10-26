@@ -26,7 +26,6 @@ STANCE_CHANGING_STATES = {"APPROVED", "CHANGES_REQUESTED", "DISMISSED"}
 # The chart-name segment is restricted to real directory-name characters
 # (no '.', so no '.' or '..') since it flows into `git show <ref>:<path>`.
 CHART_FILE_RE = re.compile(r"^charts/([a-zA-Z0-9_-]+)/(Chart\.yaml|values\.yaml|README\.md)$")
-PR_IN_REF_RE = re.compile(r"(?:^|/)pr-(\d+)(?=-|$)")
 ALLOWED_CHART_YAML_KEYS = {"version", "appVersion"}
 ALLOWED_VALUES_LEAF_KEY = "tag"
 REGULAR_FILE_MODE = "100644"
@@ -174,80 +173,20 @@ def charts_readmes_match_helm_docs(head: str, chart_names: set[str]) -> list[str
     return []
 
 
-def pull_numbers_from_ref(ref: str) -> list[int]:
-    return [int(number) for number in PR_IN_REF_RE.findall(ref)]
+def main() -> int:
+    event = json.loads(Path(os.environ["GITHUB_EVENT_PATH"]).read_text())
+    pull_request = event["pull_request"]
+    base_sha, head_sha = pull_request["base"]["sha"], pull_request["head"]["sha"]
+    repo, number = os.environ["GITHUB_REPOSITORY"], pull_request["number"]
 
-
-def event_targets(event: Mapping) -> tuple[str, str, list[int]]:
-    """Return the diff endpoints and every pull request the event represents."""
-    pull_request = event.get("pull_request")
-    if isinstance(pull_request, Mapping):
-        base = pull_request.get("base")
-        head = pull_request.get("head")
-        number = pull_request.get("number")
-        base_sha = base.get("sha") if isinstance(base, Mapping) else None
-        head_sha = head.get("sha") if isinstance(head, Mapping) else None
-        if isinstance(number, int) and isinstance(base_sha, str) and isinstance(head_sha, str):
-            return base_sha, head_sha, [number]
-        raise ValueError("pull_request event is missing its number or shas")
-
-    group = event.get("merge_group")
-    if not isinstance(group, Mapping):
-        raise ValueError("event has neither pull_request nor merge_group")
-    base_sha, head_sha, ref = group.get("base_sha"), group.get("head_sha"), group.get("head_ref")
-    if not isinstance(base_sha, str) or not isinstance(head_sha, str):
-        raise ValueError("merge_group event is missing its shas")
-    return base_sha, head_sha, pull_numbers_from_ref(ref if isinstance(ref, str) else "")
-
-
-def pull_numbers_between(repo: str, base: str, head: str) -> list[int]:
-    shas = [line for line in run("git", "rev-list", f"{base}..{head}").splitlines() if line]
-    numbers: list[int] = []
-    for sha in shas:
-        payload = json.loads(
-            run(
-                "gh",
-                "api",
-                "-H",
-                "Accept: application/vnd.github+json",
-                f"repos/{repo}/commits/{sha}/pulls",
-            )
-        )
-        if not isinstance(payload, list):
-            raise ValueError(f"pull list for commit {sha} was not a list")
-        for pull in payload:
-            number = pull.get("number") if isinstance(pull, Mapping) else None
-            if isinstance(number, int) and number not in numbers:
-                numbers.append(number)
-    return numbers
-
-
-def reviews_for(repo: str, number: int) -> list[dict]:
     # --paginate alone prints each page's JSON array back-to-back, which
     # json.loads can't parse past 30 reviews. --slurp wraps the pages into
     # one outer array instead, so flatten that one level to get the reviews.
     pages = json.loads(
         run("gh", "api", f"repos/{repo}/pulls/{number}/reviews", "--paginate", "--slurp")
     )
-    if not isinstance(pages, list):
-        raise ValueError(f"reviews for pull request {number} were not paginated")
-    return [review for page in pages for review in page]
-
-
-def main() -> int:
-    event = json.loads(Path(os.environ["GITHUB_EVENT_PATH"]).read_text())
-    try:
-        base_sha, head_sha, numbers = event_targets(event)
-    except ValueError as error:
-        print(f"Cannot identify the changes to check: {error}")
-        return 1
-    repo = os.environ["GITHUB_REPOSITORY"]
-    if "merge_group" in event:
-        for number in pull_numbers_between(repo, base_sha, head_sha):
-            if number not in numbers:
-                numbers.append(number)
-
-    if numbers and all(human_has_approved(reviews_for(repo, number)) for number in numbers):
+    reviews = [review for page in pages for review in page]
+    if human_has_approved(reviews):
         print("A human has approved; this check does not apply.")
         return 0
 

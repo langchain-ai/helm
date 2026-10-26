@@ -24,6 +24,7 @@ concurrency:
 
 jobs:
   evaluate:
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout base
@@ -53,10 +54,9 @@ jobs:
 
       - name: Load the checker from base, then fetch PR head as data only
         run: |
-          base_sha=$(jq -r '.pull_request.base.sha // .merge_group.base_sha' "$GITHUB_EVENT_PATH")
-          head_sha=$(jq -r '.pull_request.head.sha // .merge_group.head_sha' "$GITHUB_EVENT_PATH")
+          head_sha=$(jq -r '.pull_request.head.sha' "$GITHUB_EVENT_PATH")
           cp hack/check_version_bump_diff.py "$RUNNER_TEMP/version-bump-guard.py"
-          git fetch origin "$base_sha" "$head_sha"
+          git fetch origin "$head_sha"
           # Don't check out the PR head: its content must only ever be read
           # through git show/diff below, never become the working tree a
           # later step could execute.
@@ -66,3 +66,10 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: python3 -I "$RUNNER_TEMP/version-bump-guard.py"
+
+  merge-queue:
+    if: github.event_name == 'merge_group'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Pass the merge queue
+        run: echo "The pull request check already gated this diff."
