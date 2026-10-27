@@ -1,0 +1,24 @@
+suite: agent platform migration
+set:
+  config.existingSecretName: langsmith-secrets
+  config.skipValidation: true
+tests:
+  - it: leaves migration off by default
+    template: templates/config-map.yaml
+    asserts:
+      - notExists:
+          path: data.AGENT_PLATFORM_MIGRATION_ROLLOUT_ENABLED
+      - notExists:
+          path: data.AGENT_PLATFORM_MIGRATION_QUEUE
+
+  - it: enables migration on the adhoc queue when configured
+    template: templates/config-map.yaml
+    set:
+      config.agentMigration.enabled: true
+    asserts:
+      - equal:
+          path: data.AGENT_PLATFORM_MIGRATION_ROLLOUT_ENABLED
+          value: "true"
+      - equal:
+          path: data.AGENT_PLATFORM_MIGRATION_QUEUE
+          value: adhoc

@@ -1,0 +1,73 @@
+suite: frontend channel routing
+templates:
+  - frontend/config-map.yaml
+set:
+  config.skipValidation: true
+  config.existingSecretName: langsmith-secrets
+  fleet.enabled: true
+tests:
+  - it: rewrites public webhook routes to Trigger Server's internal path
+    asserts: &rootRoutes
+      - matchRegex:
+          path: data["nginx.conf"]
+          pattern: 'location /api/v1/triggers \{\s*rewrite \^/api/v1/triggers\(\.\*\)\$ /v1/triggers\$1\s+break;[^}]*proxy_pass http://[^}]*-fleet-trigger-server\.[^}]*;'
+      - matchRegex:
+          path: data["nginx.conf"]
+          pattern: 'location /api/v1/channels \{\s*rewrite \^/api/v1/channels\(\.\*\)\$ /v1/channels\$1\s+break;[^}]*proxy_pass http://[^}]*-fleet-trigger-server\.[^}]*;'
+      - matchRegex:
+          path: data["nginx.conf"]
+          pattern: 'location /v1/triggers \{[^}]*proxy_pass http://[^}]*-fleet-trigger-server\.[^}]*;'
+
+  - it: strips the base path and API prefix before proxying webhooks and actions
+    set:
+      config.basePath: langsmith
+    asserts: &basePathRoutes
+      - matchRegex:
+          path: data["nginx.conf"]
+          pattern: 'location /langsmith/api/v1/triggers \{\s*rewrite \^/langsmith/api/v1/triggers\(\.\*\)\$ /v1/triggers\$1\s+break;[^}]*proxy_pass http://[^}]*-fleet-trigger-server\.[^}]*;'
+      - matchRegex:
+          path: data["nginx.conf"]
+          pattern: 'location /langsmith/api/v1/channels \{\s*rewrite \^/langsmith/api/v1/channels\(\.\*\)\$ /v1/channels\$1\s+break;[^}]*proxy_pass http://[^}]*-fleet-trigger-server\.[^}]*;'
+      - matchRegex:
+          path: data["nginx.conf"]
+          pattern: 'location /langsmith/triggers \{\s*rewrite /langsmith/triggers/\(\.\*\) /v1/triggers/\$1\s+break;[^}]*proxy_pass http://[^}]*-fleet-trigger-server\.[^}]*;'
+
+  - it: supports the legacy Agent Builder flag at the root
+    set:
+      fleet.enabled: false
+      config.agentBuilder.enabled: true
+    asserts: *rootRoutes
+
+  - it: supports the legacy Agent Builder flag under a base path
+    set:
+      fleet.enabled: false
+      config.agentBuilder.enabled: true
+      config.basePath: langsmith
+    asserts: *basePathRoutes
+
+  - it: omits Trigger routes when both features are disabled
+    set:
+      fleet.enabled: false
+      config.agentBuilder.enabled: false
+    asserts: &noRoutes
+      - notMatchRegex:
+          path: data["nginx.conf"]
+          pattern: 'location [^\n]*(triggers|channels)'
+
+  - it: omits Trigger routes under a base path when both features are disabled
+    set:
+      config.basePath: langsmith
+      fleet.enabled: false
+      config.agentBuilder.enabled: false
+    asserts: *noRoutes
+
+  - it: omits Trigger routes when Trigger Server is disabled
+    set:
+      fleetTriggerServer.enabled: false
+    asserts: *noRoutes
+
+  - it: omits Trigger routes under a base path when Trigger Server is disabled
+    set:
+      config.basePath: langsmith
+      fleetTriggerServer.enabled: false
+    asserts: *noRoutes

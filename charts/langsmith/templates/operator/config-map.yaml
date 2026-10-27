@@ -10,11 +10,11 @@ metadata:
     {{- include "langsmith.annotations" . | nindent 4 }}
 data:
   deployment.yaml.tmpl: |
-{{ .Values.operator.templates.deployment | indent 4 }}
+{{ tpl .Values.operator.templates.deployment . | indent 4 }}
   service.yaml.tmpl: |
-{{ .Values.operator.templates.service | indent 4 }}
+{{ tpl .Values.operator.templates.service . | indent 4 }}
   redis-deployment.yaml.tmpl: |
-{{ .Values.operator.templates.redis | indent 4 }}
+{{ tpl .Values.operator.templates.redis . | indent 4 }}
   database-statefulset.yaml.tmpl: |
-{{ .Values.operator.templates.db | indent 4 }}
+{{ tpl .Values.operator.templates.db . | indent 4 }}
 {{- end }}

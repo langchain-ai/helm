@@ -1,0 +1,183 @@
+{{- if include "langsmith.smithdb.unifiedTopology" . }}
+{{- $resources := include "langsmith.smithdb.resources" (dict "root" . "component" "unified") | fromYaml -}}
+{{- $volumes := concat .Values.commonVolumes (include "langsmith.smithdb.volumes" (dict "root" . "component" "unified") | fromYamlArray) -}}
+{{- $envVars := include "langsmith.mergeEnv" (dict "commonEnv" (concat .Values.commonEnv .Values.smithdb.commonEnv) "chart" (include "langsmith.smithdb.serviceEnv" (dict "root" . "service" "" "prefix" "SMITHDB" "displayName" "smithdb") | fromYamlArray) "extraEnv" .Values.smithdb.unified.deployment.extraEnv) | fromYamlArray -}}
+{{- $retention := printf "%ss" (toString .Values.config.ttl.ttl_period_seconds.longlived) -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "langsmith.smithdb.componentName" (dict "root" . "component" "unified") }}
+  namespace: {{ .Values.namespace | default .Release.Namespace }}
+  labels:
+    {{- include "langsmith.labels" . | nindent 4 }}
+    app.kubernetes.io/component: {{ include "langsmith.smithdb.componentName" (dict "root" . "component" "unified") }}
+    {{- with .Values.smithdb.unified.deployment.labels }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+  annotations:
+    {{- include "langsmith.annotations" . | nindent 4 }}
+    {{- with .Values.smithdb.unified.deployment.annotations }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  replicas: 1
+  strategy:
+    {{- toYaml .Values.smithdb.unified.deployment.strategy | nindent 4 }}
+  selector:
+    matchLabels:
+      {{- include "langsmith.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: {{ include "langsmith.smithdb.componentName" (dict "root" . "component" "unified") }}
+  template:
+    metadata:
+      annotations:
+        {{- include "langsmith.commonPodAnnotations" . | nindent 8 }}
+        {{- with .Values.smithdb.unified.deployment.annotations }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+      labels:
+        {{- include "langsmith.labels" . | nindent 8 }}
+        app.kubernetes.io/component: {{ include "langsmith.smithdb.componentName" (dict "root" . "component" "unified") }}
+        {{- with .Values.smithdb.unified.deployment.labels }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      terminationGracePeriodSeconds: {{ .Values.smithdb.unified.deployment.terminationGracePeriodSeconds }}
+      {{- with .Values.images.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if .Values.smithdb.unified.deployment.priorityClassName }}
+      priorityClassName: {{ .Values.smithdb.unified.deployment.priorityClassName }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.smithdb.unified.deployment.podSecurityContext | nindent 8 }}
+      serviceAccountName: {{ include "langsmith.smithdb.serviceAccountName" (dict "root" . "component" "unified") }}
+      automountServiceAccountToken: {{ .Values.smithdb.serviceAccount.automountServiceAccountToken }}
+      {{- include "langsmith.dnsConfig" . | nindent 6 }}
+      {{- with concat (include "langsmith.smithdb.commonInitContainers" . | fromYamlArray) .Values.smithdb.unified.deployment.initContainers }}
+      initContainers:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: smithdb
+          {{- with .Values.smithdb.unified.deployment.command }}
+          command:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          env:
+            - name: SMITHDB_QUERY__HTTP_PORT
+              value: {{ .Values.smithdb.unified.containerPort | quote }}
+            - name: SMITHDB_QUERY__GRPC_PORT
+              value: {{ .Values.smithdb.unified.containerGrpcPort | quote }}
+            - name: SMITHDB_INGESTION__HTTP_PORT
+              value: {{ .Values.smithdb.unified.ingestionContainerPort | quote }}
+            - name: SMITHDB_INGESTION__GRPC_PORT
+              value: {{ .Values.smithdb.unified.ingestionContainerGrpcPort | quote }}
+            - name: SMITHDB_COMPACTION__HTTP_PORT
+              value: {{ .Values.smithdb.unified.compactionContainerPort | quote }}
+            {{- if (index (default (dict) $resources.limits) "memory") }}
+            - name: SMITHDB__MEMORY_LIMIT
+              valueFrom:
+                resourceFieldRef:
+                  resource: limits.memory
+            {{- end }}
+            {{- with (include "langsmith.smithdb.queryCacheLimit" (dict "component" "unified" "volumes" $volumes "resources" $resources)) }}
+            - name: SMITHDB__DISK_LIMIT
+              {{- . | nindent 14 }}
+            - name: SMITHDB__DISK_PATH
+              value: "/data"
+            {{- end }}
+            {{- if .Values.config.ttl.enabled }}
+            - name: SMITHDB_QUERY__LONG_TERM_RETENTION
+              value: {{ $retention | quote }}
+            - name: SMITHDB_COMPACTION__EXECUTOR__LONG_TERM_RETENTION
+              value: {{ $retention | quote }}
+            {{- end }}
+            {{- if and .Values.smithdb.langsmith.ingestion.enabled (not .Values.smithdb.langsmith.query.enabled) }}
+            - name: SMITHDB_COMPACTION__SEQUENCED_LSM_BACKFILL_ENABLED
+              value: "true"
+            {{- end }}
+            - name: SMITHDB_COMPACTION__LARGE_FIELD_DELETE__ENABLE_LARGE_FIELD_VERSIONED_PATHS
+              value: {{ .Values.smithdb.recoveryStrategy.enabled | quote }}
+            {{- if .Values.smithdb.recoveryStrategy.enabled }}
+            - name: SMITHDB_COMPACTION__RECOVERY_WINDOW_SLA
+              value: {{ .Values.smithdb.recoveryStrategy.retentionWindow | quote }}
+            {{- end }}
+            {{- with $envVars }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          image: {{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "smithdbImage") | quote }}
+          imagePullPolicy: {{ .Values.images.smithdbImage.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.smithdb.unified.containerPort }}
+              protocol: TCP
+            - name: grpc
+              containerPort: {{ .Values.smithdb.unified.containerGrpcPort }}
+              protocol: TCP
+            - name: grpc-ingestion
+              containerPort: {{ .Values.smithdb.unified.ingestionContainerGrpcPort }}
+              protocol: TCP
+          {{- with .Values.smithdb.unified.deployment.probes }}
+            {{- toYaml . | nindent 10 }}
+          {{- end }}
+          resources:
+            {{- toYaml $resources | nindent 12 }}
+          securityContext:
+            {{- toYaml .Values.smithdb.unified.deployment.securityContext | nindent 12 }}
+          {{- with concat .Values.commonVolumeMounts .Values.smithdb.unified.deployment.volumeMounts }}
+          volumeMounts:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.smithdb.unified.deployment.extraContainerConfig }}
+            {{- toYaml . | nindent 10 }}
+          {{- end }}
+        {{- with .Values.smithdb.unified.deployment.sidecars }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- with .Values.smithdb.unified.deployment.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.smithdb.unified.deployment.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.smithdb.unified.deployment.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.smithdb.unified.deployment.topologySpreadConstraints }}
+      topologySpreadConstraints:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with $volumes }}
+      volumes:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- if .Values.smithdb.unified.pdb.enabled }}
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "langsmith.smithdb.componentName" (dict "root" . "component" "unified") }}
+  namespace: {{ .Values.namespace | default .Release.Namespace }}
+  labels:
+    {{- include "langsmith.labels" . | nindent 4 }}
+    app.kubernetes.io/component: {{ include "langsmith.smithdb.componentName" (dict "root" . "component" "unified") }}
+    {{- with .Values.smithdb.unified.pdb.labels }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+  annotations:
+    {{- include "langsmith.annotations" . | nindent 4 }}
+    {{- with .Values.smithdb.unified.pdb.annotations }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  minAvailable: {{ .Values.smithdb.unified.pdb.minAvailable }}
+  selector:
+    matchLabels:
+      {{- include "langsmith.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: {{ include "langsmith.smithdb.componentName" (dict "root" . "component" "unified") }}
+{{- end }}
+{{- end }}

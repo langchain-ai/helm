@@ -1,0 +1,121 @@
+suite: test smithdb unified topology
+templates:
+  - config-map.yaml
+  - smithdb/unified-deployment.yaml
+  - smithdb/unified-service.yaml
+  - smithdb/query-deployment.yaml
+  - smithdb/ingestion-deployment.yaml
+  - smithdb/compaction-deployment.yaml
+  - smithdb/compaction-worker-deployment.yaml
+  - smithdb/cluster-manager-deployment.yaml
+values:
+  - ./values/smithdb-enabled.yaml
+tests:
+  - it: should run smithdb all on one cache volume sized from the tier
+    template: smithdb/unified-deployment.yaml
+    documentSelector:
+      path: kind
+      value: Deployment
+    set:
+      smithdb.topology: unified
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].command
+          value: ["./smithdb", "all"]
+      - equal:
+          path: spec.template.spec.containers[0].resources.limits
+          value:
+            cpu: "4"
+            memory: 16Gi
+      - equal:
+          path: spec.template.spec.containers[0].volumeMounts
+          value:
+            - name: cache
+              mountPath: /data
+            - name: cache
+              mountPath: /tmp
+              subPath: tmp
+      - equal:
+          path: spec.template.spec.volumes[0].ephemeral.volumeClaimTemplate.spec.resources.requests.storage
+          value: 100Gi
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB__DISK_LIMIT
+            value: 100Gi
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB__MEMORY_LIMIT
+            valueFrom:
+              resourceFieldRef:
+                resource: limits.memory
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB__METASTORE__HOST
+            valueFrom:
+              secretKeyRef:
+                name: smithdb-secret
+                key: smithdb_metastore_db_host
+  - it: should render no per-role workloads in the unified topology
+    set:
+      smithdb.topology: unified
+    templates:
+      - smithdb/query-deployment.yaml
+      - smithdb/ingestion-deployment.yaml
+      - smithdb/compaction-deployment.yaml
+      - smithdb/compaction-worker-deployment.yaml
+      - smithdb/cluster-manager-deployment.yaml
+    asserts:
+      - hasDocuments:
+          count: 0
+  - it: should render no unified workload in the default cluster topology
+    templates:
+      - smithdb/unified-deployment.yaml
+      - smithdb/unified-service.yaml
+    asserts:
+      - hasDocuments:
+          count: 0
+  - it: should route LangSmith to the unified service without a cluster manager
+    template: config-map.yaml
+    set:
+      smithdb.topology: unified
+    asserts:
+      - equal:
+          path: data.SMITHDB_QUERY_SERVICE_URL
+          value: RELEASE-NAME-langsmith-smithdb.NAMESPACE.svc.cluster.local:8080
+      - equal:
+          path: data.SMITHDB_INGESTION_SERVICE_URL
+          value: RELEASE-NAME-langsmith-smithdb.NAMESPACE.svc.cluster.local:8082
+      - equal:
+          path: data.SMITHDB_CLUSTER_MANAGER_ENABLED
+          value: "false"
+      - notExists:
+          path: data.SMITHDB_CLUSTER_MANAGER_URL
+  - it: should run exactly one replica
+    template: smithdb/unified-deployment.yaml
+    documentSelector:
+      path: kind
+      value: Deployment
+    set:
+      smithdb.topology: unified
+      smithdb.unified.deployment.replicas: 3
+    asserts:
+      - equal:
+          path: spec.replicas
+          value: 1
+  - it: should render a PodDisruptionBudget for the unified workload by default
+    template: smithdb/unified-deployment.yaml
+    set:
+      smithdb.topology: unified
+    documentSelector:
+      path: kind
+      value: PodDisruptionBudget
+    asserts:
+      - equal:
+          path: spec.minAvailable
+          value: 1
+      - equal:
+          path: spec.selector.matchLabels["app.kubernetes.io/component"]
+          value: RELEASE-NAME-langsmith-smithdb
