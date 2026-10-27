@@ -1,5 +1,5 @@
 {{- $namespace := .Values.namespace | default .Release.Namespace -}}
-The LangSmith tunnel connector is installed as Deployment {{ include "connector.fullname" . }}-{{ .Values.connector.name }} in namespace {{ $namespace }}.
+The LangSmith connector is installed as Deployment {{ include "connector.fullname" . }}-{{ .Values.connector.name }} in namespace {{ $namespace }}.
 
 It connects outbound to {{ .Values.config.endpoint }} for connection {{ .Values.config.connectionId }}.
 Nothing needs to reach this pod: it exposes no ports.
@@ -7,6 +7,23 @@ Nothing needs to reach this pod: it exposes no ports.
 Check that it connected:
 
   kubectl -n {{ $namespace }} logs deploy/{{ include "connector.fullname" . }}-{{ .Values.connector.name }} --tail=20
+{{- if .Values.config.relay.enabled }}
+
+It serves a relay. Sandbox connections that match one of the relay's rules in LangSmith leave through this connector's network.
+It reaches public addresses on ports 80 and 443
+{{- with .Values.config.relay.allow }}, plus:
+{{- range . }}
+  - {{ . }}
+{{- end }}
+{{- else }}.
+{{- end }}
+{{- with .Values.config.relay.deny }}
+It refuses:
+{{- range . }}
+  - {{ . }}
+{{- end }}
+{{- end }}
+{{- else }}
 
 Then open Settings -> Tunnels in LangSmith. The connection shows as connected and lists these targets:
 {{- range $name, $address := .Values.config.targets }}
@@ -14,3 +31,4 @@ Then open Settings -> Tunnels in LangSmith. The connection shows as connected an
 {{- end }}
 
 HTTP and HTTPS targets are reachable from LangSmith products. TCP targets register but are not yet reachable from LangSmith.
+{{- end }}

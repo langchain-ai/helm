@@ -91,8 +91,6 @@ data:
   {{- else }}
   SMITHDB_INGESTION_SERVICE_URL: {{ include "langsmith.smithdb.grpcServiceUrl" (dict "root" . "component" "ingestion" "port" .Values.smithdb.ingestion.service.port) | quote }}
   {{- end }}
-  RULES_REDIS_TRACKING_ENABLED: "true"
-  RULES_REDIS_TRACKING_MULTIPART_ENABLED: "true"
   {{- end }}
   {{- if .Values.smithdb.enabled }}
   {{- if $smithdbUnified }}
@@ -105,12 +103,6 @@ data:
   SMITHDB_QUERY_SERVICE_MAX_CALL_RECV_MSG_SIZE: "1073741824"
   SMITHDB_FEEDBACK_MUTATION_RPS_PER_KEY: "100"
   SMITHDB_FEEDBACK_MUTATION_BURST_PER_KEY: "150"
-  SMITHDB_RULES_REDIS_READ_ENABLED: "true"
-  SMITHDB_RULES_THREAD_REDIS_READ_ENABLED: "true"
-  RUN_RULES_SMITHDB_RETRIEVER_TENANTS: '["*"]'
-  RUN_RULES_SMITHDB_RETRIEVER_PCT: "100"
-  RUN_RULES_SMITHDB_THREAD_RETRIEVER_TENANTS: '["*"]'
-  RUN_RULES_SMITHDB_THREAD_RETRIEVER_PCT: "100"
   RUN_RULES_QUERY_LIMIT: "250"
   {{- if .Values.smithdb.runRules.enabled }}
   SMITHDB_RUN_RULES_SERVICE_URL: {{ include "langsmith.smithdb.grpcServiceUrl" (dict "root" . "component" "runRules" "port" .Values.smithdb.runRules.service.port) | quote }}
@@ -149,8 +141,6 @@ data:
   {{- end }}
   FF_RUN_STATS_GROUP_BY_ENABLED_ALL: "true"
   SEPARATE_QUEUES_WITH_SINGLE_WORKER: '["host"]'
-  RUN_RULES_REDIS_DEDUP_TENANTS: '["*"]'
-  RUN_RULES_LIMIT_RRA_RECORDS_PER_BATCH_TENANTS: '["*"]'
   {{- if .Values.config.observability.tracing.enabled }}
   OTEL_TRACING_ENABLED: "{{ .Values.config.observability.tracing.enabled }}"
   OTLP_ENDPOINT: "{{ .Values.config.observability.tracing.endpoint }}"
