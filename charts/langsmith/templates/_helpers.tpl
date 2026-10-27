@@ -129,6 +129,65 @@ the user or some other secret provisioning mechanism
 {{- end }}
 
 {{/*
+"true" when the chart deploys RustFS for blob storage: config.blobStorage is not external, either explicitly
+(config.blobStorage.external.enabled) or by having a bucket or Azure container configured.
+*/}}
+{{- define "langsmith.blobStorage.bundled" -}}
+{{- $blobStorage := .Values.config.blobStorage -}}
+{{- if or (dig "external" "enabled" false $blobStorage) $blobStorage.bucketName $blobStorage.azureStorageContainerName -}}
+false
+{{- else -}}
+true
+{{- end -}}
+{{- end }}
+
+{{/*
+Name of the secret holding the in-chart RustFS credentials.
+*/}}
+{{- define "langsmith.rustfsSecretsName" -}}
+{{- if .Values.rustfs.existingSecretName }}
+{{- .Values.rustfs.existingSecretName }}
+{{- else }}
+{{- include "langsmith.fullname" . }}-{{ .Values.rustfs.name }}
+{{- end }}
+{{- end }}
+
+{{- define "langsmith.rustfsUrl" -}}
+{{- printf "http://%s-%s.%s.svc.%s:%v" (include "langsmith.fullname" .) .Values.rustfs.name (.Values.namespace | default .Release.Namespace) .Values.clusterDomain .Values.rustfs.service.port }}
+{{- end }}
+
+{{/*
+The blob storage settings the application uses, as YAML: config.blobStorage, or the in-chart RustFS when it is bundled.
+*/}}
+{{- define "langsmith.blobStorage.config" -}}
+{{- $blobStorage := deepCopy .Values.config.blobStorage -}}
+{{- if eq (include "langsmith.blobStorage.bundled" .) "true" -}}
+{{- $_ := set $blobStorage "engine" "S3" -}}
+{{- $_ := set $blobStorage "bucketName" .Values.rustfs.bucketName -}}
+{{- $_ := set $blobStorage "apiURL" (include "langsmith.rustfsUrl" .) -}}
+{{- $_ := set $blobStorage "s3UsePathStyle" true -}}
+{{- $_ := set $blobStorage "kmsEncryptionEnabled" false -}}
+{{- $_ := set $blobStorage "kmsKeyArn" "" -}}
+{{- end -}}
+{{- toYaml $blobStorage -}}
+{{- end }}
+
+{{/*
+secretKeyRef fields for an S3 credential. Pass (dict "root" $ "key" "accessKey") or (dict "root" $ "key" "secretKey").
+*/}}
+{{- define "langsmith.blobStorage.secretKeyRef" -}}
+{{- $root := .root -}}
+{{- if eq (include "langsmith.blobStorage.bundled" $root) "true" -}}
+name: {{ include "langsmith.rustfsSecretsName" $root }}
+key: {{ ternary $root.Values.rustfs.accessKeySecretKey $root.Values.rustfs.secretKeySecretKey (eq .key "accessKey") }}
+{{- else -}}
+name: {{ include "langsmith.secretsName" $root }}
+key: {{ ternary "blob_storage_access_key" "blob_storage_access_key_secret" (eq .key "accessKey") }}
+optional: true
+{{- end -}}
+{{- end }}
+
+{{/*
 Name of the secret containing the secrets for clickhouse. This can be overridden by a secrets file created by
 the user or some other secret provisioning mechanism
 */}}
@@ -394,52 +453,49 @@ Template containing common environment variables that are used by several servic
 - name: FF_INFO_ENDPOINT_AUTH_REQUIRED
   value: {{ .Values.config.infoEndpointAuthRequired | quote }}
 {{- end }}
-{{- if .Values.config.blobStorage.enabled }}
+{{- /* Blob storage is required and always on as of v0.18. */}}
 - name: FF_S3_STORAGE_ENABLED
-  value: {{ .Values.config.blobStorage.enabled | quote }}
+  value: "true"
 - name: FF_BLOB_STORAGE_ENABLED
-  value: {{ .Values.config.blobStorage.enabled | quote }}
+  value: "true"
+{{- $blobStorage := include "langsmith.blobStorage.config" . | fromYaml }}
 - name: BLOB_STORAGE_ENGINE
-  value: {{ .Values.config.blobStorage.engine | quote }}
+  value: {{ $blobStorage.engine | quote }}
 - name: MIN_BLOB_STORAGE_SIZE_KB
-  value: {{ ternary 0 .Values.config.blobStorage.minBlobStorageSizeKb .Values.clickhouse.external.hybrid | quote }}
-{{- if (or (eq .Values.config.blobStorage.engine "S3") (eq .Values.config.blobStorage.engine "s3") (eq .Values.config.blobStorage.engine "GCS") (eq .Values.config.blobStorage.engine "gcs")) }}
+  value: {{ ternary 0 $blobStorage.minBlobStorageSizeKb .Values.clickhouse.external.hybrid | quote }}
+{{- if (or (eq $blobStorage.engine "S3") (eq $blobStorage.engine "s3") (eq $blobStorage.engine "GCS") (eq $blobStorage.engine "gcs")) }}
 - name: S3_BUCKET_NAME
-  value: {{ .Values.config.blobStorage.bucketName | quote }}
+  value: {{ $blobStorage.bucketName | quote }}
 - name: S3_RUN_MANIFEST_BUCKET_NAME
-  value: {{ .Values.config.blobStorage.bucketName | quote }}
+  value: {{ $blobStorage.bucketName | quote }}
 - name: S3_API_URL
-  value: {{ .Values.config.blobStorage.apiURL | quote }}
+  value: {{ $blobStorage.apiURL | quote }}
 - name: S3_ACCESS_KEY
   valueFrom:
     secretKeyRef:
-      name: {{ include "langsmith.secretsName" . }}
-      key: blob_storage_access_key
-      optional: true
+      {{- include "langsmith.blobStorage.secretKeyRef" (dict "root" . "key" "accessKey") | nindent 6 }}
 - name: S3_ACCESS_KEY_SECRET
   valueFrom:
     secretKeyRef:
-      name: {{ include "langsmith.secretsName" . }}
-      key: blob_storage_access_key_secret
-      optional: true
+      {{- include "langsmith.blobStorage.secretKeyRef" (dict "root" . "key" "secretKey") | nindent 6 }}
 - name: S3_USE_PATH_STYLE
-  value: {{ .Values.config.blobStorage.s3UsePathStyle | quote }}
-{{- if .Values.config.blobStorage.kmsEncryptionEnabled }}
+  value: {{ $blobStorage.s3UsePathStyle | quote }}
+{{- if $blobStorage.kmsEncryptionEnabled }}
 - name: S3_KMS_ENCRYPTION_ENABLED
-  value: {{ .Values.config.blobStorage.kmsEncryptionEnabled | quote }}
-{{- if .Values.config.blobStorage.kmsKeyArn }}
+  value: {{ $blobStorage.kmsEncryptionEnabled | quote }}
+{{- if $blobStorage.kmsKeyArn }}
 - name: S3_KMS_KEY_ARN
-  value: {{ .Values.config.blobStorage.kmsKeyArn | quote }}
+  value: {{ $blobStorage.kmsKeyArn | quote }}
 {{- end }}
 {{- end }}
 {{- end }}
-{{- if (or (eq .Values.config.blobStorage.engine "Azure") (eq .Values.config.blobStorage.engine "azure")) }}
+{{- if (or (eq $blobStorage.engine "Azure") (eq $blobStorage.engine "azure")) }}
 - name: AZURE_STORAGE_ACCOUNT_NAME
-  value: {{ .Values.config.blobStorage.azureStorageAccountName | quote }}
+  value: {{ $blobStorage.azureStorageAccountName | quote }}
 - name: AZURE_STORAGE_CONTAINER_NAME
-  value: {{ .Values.config.blobStorage.azureStorageContainerName | quote }}
+  value: {{ $blobStorage.azureStorageContainerName | quote }}
 - name: AZURE_STORAGE_SERVICE_URL_OVERRIDE
-  value: {{ .Values.config.blobStorage.azureStorageServiceUrlOverride | quote }}
+  value: {{ $blobStorage.azureStorageServiceUrlOverride | quote }}
 - name: AZURE_STORAGE_ACCOUNT_KEY
   valueFrom:
     secretKeyRef:
@@ -452,7 +508,6 @@ Template containing common environment variables that are used by several servic
       name: {{ include "langsmith.secretsName" . }}
       key: azure_storage_connection_string
       optional: true
-{{- end }}
 {{- end }}
 - name: FF_CH_SEARCH_ENABLED
   value: {{ and .Values.clickhouse.enabled (not .Values.clickhouse.external.hybrid) .Values.config.blobStorage.chSearchEnabled | quote }}
@@ -1221,6 +1276,26 @@ Args: root, service, displayName, optional prefix (defaults to SMITHDB_<service>
 {{- else -}}
     {{ default "default" .Values.redis.serviceAccount.name }}
 {{- end -}}
+{{- end -}}
+
+{{- define "rustfs.serviceAccountName" -}}
+{{- if .Values.rustfs.serviceAccount.create -}}
+    {{ default (printf "%s-%s" (include "langsmith.fullname" .) .Values.rustfs.name) .Values.rustfs.serviceAccount.name | trunc 63 | trimSuffix "-" }}
+{{- else -}}
+    {{ default "default" .Values.rustfs.serviceAccount.name }}
+{{- end -}}
+{{- end -}}
+
+{{- define "langsmith.rustfs.bucketJobName" -}}
+{{- $inputs := dict
+  "chartVersion" .Chart.Version
+  "image" (include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "rustfsClientImage"))
+  "bucket" .Values.rustfs.bucketName
+  "endpoint" (include "langsmith.rustfsUrl" .)
+  "secret" (include "langsmith.rustfsSecretsName" .)
+  "job" .Values.rustfs.bucketJob
+-}}
+{{- printf "%s-%s-bucket-%s" (include "langsmith.fullname" .) .Values.rustfs.name (toJson $inputs | sha256sum | trunc 8) | trunc 63 | trimSuffix "-" }}
 {{- end -}}
 
 {{- define "fleetToolServer.serviceAccountName" -}}

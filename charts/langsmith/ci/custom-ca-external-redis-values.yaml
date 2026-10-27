@@ -1,5 +1,13 @@
 # Test configuration for custom CA with external Redis using TLS
 config:
+  # Blob storage is required. CI points it at the RustFS the workflow deploys in the kind cluster.
+  blobStorage:
+    engine: "S3"
+    bucketName: "langsmith"
+    apiURL: "http://rustfs.default.svc.cluster.local:9000"
+    s3UsePathStyle: true
+    accessKey: "langsmith-ci"
+    accessKeySecret: "langsmith-ci-secret"
   langsmithLicenseKey: "YOUR_LICENSE_KEY"
   apiKeySalt: "YOUR_API_KEY_SALT"
   authType: "mixed"

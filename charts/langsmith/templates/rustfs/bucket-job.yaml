@@ -1,0 +1,99 @@
+{{- if eq (include "langsmith.blobStorage.bundled" .) "true" }}
+{{- $bucketJob := .Values.rustfs.bucketJob }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "langsmith.rustfs.bucketJobName" . }}
+  namespace: {{ .Values.namespace | default .Release.Namespace }}
+  labels:
+    {{- include "langsmith.labels" . | nindent 4 }}
+    app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-{{ .Values.rustfs.name }}-bucket
+    {{- with $bucketJob.labels }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+  annotations:
+    "argocd.argoproj.io/sync-wave": "-1"
+    {{- include "langsmith.annotations" . | nindent 4 }}
+    {{- with $bucketJob.annotations }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  backoffLimit: {{ $bucketJob.backoffLimit }}
+  template:
+    metadata:
+      annotations:
+        {{- include "langsmith.commonPodAnnotations" . | nindent 8 }}
+        {{- with $bucketJob.annotations }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+      labels:
+        {{- include "langsmith.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-{{ .Values.rustfs.name }}-bucket
+        {{- with $bucketJob.labels }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      restartPolicy: OnFailure
+      serviceAccountName: {{ include "rustfs.serviceAccountName" . }}
+      automountServiceAccountToken: false
+      securityContext:
+        {{- include "langsmith.podSecurityContext" (dict "Values" .Values "componentSecurityContext" $bucketJob.podSecurityContext) | nindent 8 }}
+      {{- with .Values.images.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- include "langsmith.dnsConfig" . | nindent 6 }}
+      {{- with $bucketJob.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with $bucketJob.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with $bucketJob.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: create-bucket
+          image: {{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "rustfsClientImage") | quote }}
+          imagePullPolicy: {{ .Values.images.rustfsClientImage.pullPolicy }}
+          command:
+            - /bin/sh
+            - -c
+            - |
+              set -eu
+              rc alias set rustfs "$RUSTFS_ENDPOINT" "$RUSTFS_ACCESS_KEY" "$RUSTFS_SECRET_KEY" --bucket-lookup path --quiet
+              attempt=0
+              until rc bucket create --ignore-existing "rustfs/$RUSTFS_BUCKET"; do
+                attempt=$((attempt + 1))
+                if [ "$attempt" -ge 90 ]; then
+                  echo "RustFS did not accept the bucket after $attempt attempts" >&2
+                  exit 1
+                fi
+                sleep 2
+              done
+          env:
+            # rc keeps its alias config under $HOME; the image's /root is not writable as a non-root user.
+            - name: HOME
+              value: /tmp
+            - name: RUSTFS_ENDPOINT
+              value: {{ include "langsmith.rustfsUrl" . | quote }}
+            - name: RUSTFS_BUCKET
+              value: {{ .Values.rustfs.bucketName | quote }}
+            - name: RUSTFS_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "langsmith.rustfsSecretsName" . }}
+                  key: {{ .Values.rustfs.accessKeySecretKey }}
+            - name: RUSTFS_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "langsmith.rustfsSecretsName" . }}
+                  key: {{ .Values.rustfs.secretKeySecretKey }}
+          securityContext:
+            {{- toYaml $bucketJob.securityContext | nindent 12 }}
+          resources:
+            {{- toYaml $bucketJob.resources | nindent 12 }}
+{{- end }}

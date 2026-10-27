@@ -81,7 +81,6 @@ tests:
     values:
       - ./values/smithdb-enabled.yaml
     set:
-      config.blobStorage.enabled: true
       config.blobStorage.bucketName: langsmith-blob
       config.blobStorage.apiURL: http://blob-store:9000
       smithdb.langsmith.migration.enabled: true

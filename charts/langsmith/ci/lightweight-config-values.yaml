@@ -9,6 +9,16 @@ config:
     initialOrgAdminPassword: "TestLangSmith123!"
     jwtSecret: "YOUR_JWT_SECRET"
 
+# Blob storage: no config.blobStorage, so the chart deploys RustFS. The other ci/ values files use external storage.
+rustfs:
+  statefulSet:
+    resources:
+      requests:
+        cpu: 50m
+        memory: 128Mi
+    persistence:
+      size: 1Gi
+
 # Note, you likely should tweak the values to match something that fits your local development environment.
 fleet:
   enabled: true

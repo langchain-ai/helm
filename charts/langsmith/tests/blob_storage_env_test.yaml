@@ -1,0 +1,26 @@
+suite: blob storage env is always set
+templates:
+  - config-map.yaml
+  - secrets.yaml
+  - redis/secrets.yaml
+  - postgres/secrets.yaml
+  - clickhouse/secrets.yaml
+  - frontend/config-map.yaml
+  - operator/config-map.yaml
+  - queue/deployment.yaml
+tests:
+  - it: enables blob storage without a flag
+    template: queue/deployment.yaml
+    set:
+      config.blobStorage.bucketName: "langsmith-test"
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: FF_BLOB_STORAGE_ENABLED
+            value: "true"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: S3_BUCKET_NAME
+            value: "langsmith-test"
