@@ -80,6 +80,7 @@ spec:
               valueFrom:
                 resourceFieldRef:
                   resource: limits.memory
+                  divisor: "0"
             {{- end }}
             {{- with (include "langsmith.smithdb.queryCacheLimit" (dict "component" "unified" "volumes" $volumes "resources" $resources)) }}
             - name: SMITHDB__DISK_LIMIT

@@ -618,6 +618,7 @@ value: {{ required (printf "smithdb.%s cache volume requires requests.storage." 
 valueFrom:
   resourceFieldRef:
     resource: limits.ephemeral-storage
+    divisor: "0"
 {{- end -}}
 {{- end -}}
 {{- end -}}
