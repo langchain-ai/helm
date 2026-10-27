@@ -4,7 +4,7 @@ so mistakes surface at install time instead of as a crash loop. Renders nothing.
 */ -}}
 {{- $c := .Values.config -}}
 {{- if not $c.connectionId -}}
-{{- fail "config.connectionId is required. Copy it from Settings -> Tunnels in LangSmith." -}}
+{{- fail "config.connectionId is required: the ID of the tunnel or relay this connector serves. A tunnel's ID is in Settings -> Tunnels in LangSmith." -}}
 {{- end -}}
 {{- if not (regexMatch "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$" $c.connectionId) -}}
 {{- fail (printf "config.connectionId must be a UUID, got %q." $c.connectionId) -}}
@@ -18,6 +18,27 @@ so mistakes surface at install time instead of as a crash loop. Renders nothing.
 {{- if not $c.apiKeySecretKey -}}
 {{- fail "config.apiKeySecretKey must name the key that holds the API key." -}}
 {{- end -}}
+{{- $relay := $c.relay | default dict -}}
+{{- range $key := list "allow" "deny" -}}
+{{- $rules := index $relay $key | default list -}}
+{{- if not (kindIs "slice" $rules) -}}
+{{- fail (printf "config.relay.%s must be a list, for example --set 'config.relay.%s={10.0.0.0/8}'." $key $key) -}}
+{{- end -}}
+{{- range $rule := $rules -}}
+{{- if or (not $rule) (contains "," (toString $rule)) -}}
+{{- fail (printf "config.relay.%s takes one non-empty rule per entry, without commas, got %q." $key (toString $rule)) -}}
+{{- end -}}
+{{- end -}}
+{{- end -}}
+{{- if $relay.enabled -}}
+{{- if $c.targets -}}
+{{- fail "Set only one of config.targets or config.relay.enabled: a connector serves either a tunnel's targets or a relay." -}}
+{{- end -}}
+{{- else -}}
+{{- if or $relay.allow $relay.deny -}}
+{{- fail "config.relay.allow and config.relay.deny require config.relay.enabled=true." -}}
+{{- end -}}
 {{- if not $c.targets -}}
-{{- fail "config.targets must name at least one target, for example --set config.targets.api=https://svc.internal:8443. The connector exits when the target map is empty." -}}
+{{- fail "config.targets must name at least one target, for example --set config.targets.api=https://svc.internal:8443, or set config.relay.enabled=true for a relay. The connector exits when a tunnel's target map is empty." -}}
+{{- end -}}
 {{- end -}}
