@@ -1,0 +1,23 @@
+charts/langsmith/Chart.yaml
+  s_c048b2a38d63e8::t_85ec7c310acdee 8
+charts/langsmith/README.md
+  s_c048b2a38d63e8::t_da94d00d1f7c51 3
+charts/langsmith/templates/frontend/config-map.yaml
+  s_c048b2a38d63e8::t_27e282c8b188f2 450-469,1165-1182
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "442ef1f944408036f45f3cdf068492c39ba9c221",
+  "prompts": {},
+  "sessions": {
+    "s_c048b2a38d63e8": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "099f2376-94aa-491f-ad77-5947d5fd1cc0",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Avi Kumar <avirath.kmr@gmail.com>"
+    }
+  }
+}
