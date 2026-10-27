@@ -11189,6 +11189,22 @@ entries:
     version: 0.0.1
   langsmith-connector:
   - apiVersion: v2
+    appVersion: 0.3.0
+    created: "2026-10-27T13:44:53.092869149Z"
+    description: Helm chart for the LangSmith connector. It runs inside your network
+      and connects outbound to LangSmith, so LangSmith products can reach your private
+      services through a tunnel, or sandbox traffic can leave through your network
+      through a relay.
+    digest: 2f734c716faffc085d9ad7b6968d337ef8e8a3fe598a1ad470d134624af32f30
+    maintainers:
+    - email: mukil@langchain.dev
+      name: Mukil
+    name: langsmith-connector
+    type: application
+    urls:
+    - https://github.com/langchain-ai/helm/releases/download/langsmith-connector-0.3.0/langsmith-connector-0.3.0.tgz
+    version: 0.3.0
+  - apiVersion: v2
     appVersion: 0.2.0
     created: "2026-10-06T13:14:41.968938186Z"
     description: Helm chart for the LangSmith tunnel connector. It runs inside your
@@ -11571,4 +11587,4 @@ entries:
     urls:
     - https://github.com/langchain-ai/helm/releases/download/open-gpts-0.1.0/open-gpts-0.1.0.tgz
     version: 0.1.0
-generated: "2026-10-27T08:31:18.42487016Z"
+generated: "2026-10-27T13:44:53.095271864Z"
