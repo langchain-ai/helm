@@ -147,6 +147,8 @@ gateway:
   sectionName: ""
   annotations: {}
   labels: {}
+  # -- Request timeout the operator writes on each LangSmith Deployment's HTTPRoute (`timeouts.request`), passed as `HTTPROUTE_REQUEST_TIMEOUT` (operator 0.1.38 and later). Without it those routes take the Gateway's default (15 s on Envoy Gateway), which cuts `runs/stream` mid-response. `0s` turns the timeout off; empty leaves the routes without one. Ignored when `operator.deployment.extraEnv` sets `HTTPROUTE_REQUEST_TIMEOUT`.
+  deploymentRequestTimeout: "0s"
 
 # Whether to use Istio Gateway for ingress. Will create a VirtualService for LangSmith and a VirtualService for each LangSmith Deployment.
 istioGateway:
