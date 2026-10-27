@@ -723,12 +723,6 @@ tests:
           path: data.SMITHDB_MUTATIONS_SERVICE_URL
           value: RELEASE-NAME-langsmith-smithdb-query.NAMESPACE.svc.cluster.local:8080
       - equal:
-          path: data.RULES_REDIS_TRACKING_ENABLED
-          value: "true"
-      - equal:
-          path: data.RULES_REDIS_TRACKING_MULTIPART_ENABLED
-          value: "true"
-      - equal:
           path: data.SMITHDB_UPGRADE_CRON_ENABLED
           value: "true"
       - equal:
@@ -741,32 +735,8 @@ tests:
           path: data.SMITHDB_FEEDBACK_MUTATION_BURST_PER_KEY
           value: "150"
       - equal:
-          path: data.SMITHDB_RULES_REDIS_READ_ENABLED
-          value: "true"
-      - equal:
-          path: data.SMITHDB_RULES_THREAD_REDIS_READ_ENABLED
-          value: "true"
-      - equal:
-          path: data.RUN_RULES_SMITHDB_RETRIEVER_TENANTS
-          value: '["*"]'
-      - equal:
-          path: data.RUN_RULES_SMITHDB_RETRIEVER_PCT
-          value: "100"
-      - equal:
-          path: data.RUN_RULES_SMITHDB_THREAD_RETRIEVER_TENANTS
-          value: '["*"]'
-      - equal:
-          path: data.RUN_RULES_SMITHDB_THREAD_RETRIEVER_PCT
-          value: "100"
-      - equal:
           path: data.RUN_RULES_QUERY_LIMIT
           value: "250"
-      - equal:
-          path: data.RUN_RULES_REDIS_DEDUP_TENANTS
-          value: '["*"]'
-      - equal:
-          path: data.RUN_RULES_LIMIT_RRA_RECORDS_PER_BATCH_TENANTS
-          value: '["*"]'
 
   - it: should configure SmithDB ingestion without SmithDB query endpoints
     values:
@@ -783,12 +753,6 @@ tests:
       - equal:
           path: data.SMITHDB_QUERY_ENABLED
           value: "false"
-      - equal:
-          path: data.RULES_REDIS_TRACKING_ENABLED
-          value: "true"
-      - equal:
-          path: data.RULES_REDIS_TRACKING_MULTIPART_ENABLED
-          value: "true"
 
   - it: should wire frontend SmithDB v2 endpoint flag when enabled
     values:
@@ -852,33 +816,13 @@ tests:
       - notExists:
           path: data.SMITHDB_CLUSTER_MANAGER_URL
       - notExists:
-          path: data.RULES_REDIS_TRACKING_ENABLED
-      - notExists:
-          path: data.RULES_REDIS_TRACKING_MULTIPART_ENABLED
-      - notExists:
           path: data.SMITHDB_UPGRADE_CRON_ENABLED
       - notExists:
           path: data.SMITHDB_QUERY_SERVICE_MAX_CALL_RECV_MSG_SIZE
       - notExists:
           path: data.SMITHDB_FEEDBACK_MUTATION_RPS_PER_KEY
       - notExists:
-          path: data.SMITHDB_RULES_REDIS_READ_ENABLED
-      - notExists:
-          path: data.RUN_RULES_SMITHDB_RETRIEVER_TENANTS
-      - notExists:
-          path: data.RUN_RULES_SMITHDB_RETRIEVER_PCT
-      - notExists:
-          path: data.RUN_RULES_SMITHDB_THREAD_RETRIEVER_TENANTS
-      - notExists:
-          path: data.RUN_RULES_SMITHDB_THREAD_RETRIEVER_PCT
-      - notExists:
           path: data.RUN_RULES_QUERY_LIMIT
-      - equal:
-          path: data.RUN_RULES_REDIS_DEDUP_TENANTS
-          value: '["*"]'
-      - equal:
-          path: data.RUN_RULES_LIMIT_RRA_RECORDS_PER_BATCH_TENANTS
-          value: '["*"]'
 
   - it: should omit frontend SmithDB v2 endpoint flag when disabled
     values:
