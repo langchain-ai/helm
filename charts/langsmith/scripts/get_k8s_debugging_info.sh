@@ -2,7 +2,7 @@
 
 # Diagnostic collection for self-hosted LangSmith/LangGraph clusters.
 #
-# Usage: $0 --namespace <namespace> [--redact] [--redact-strict] [--exclude-logs] [--exclude-describe] [--pod-selector <label-selector>]
+# Usage: $0 --namespace <namespace> [--redact] [--redact-strict] [--exclude-logs] [--exclude-describe] [--pod-selector <label-selector>] [--include-prometheus]
 #
 # Default: collects everything — kubectl describe, events, resources, pod
 # metrics, and pod logs (last 24h + previous on restart).
@@ -19,7 +19,10 @@
 #                      much harder-to-read bundle.
 # --exclude-logs     : skip pod log collection.
 # --exclude-describe : skip kubectl describe collection.
-# --pod-selector     : restrict describe/log collection to pods matching this
+# --include-prometheus : collect application /metrics snapshots via local port-forward.
+#                      Requires curl, jq and pods/portforward permission. Redaction
+#                      masks metric labels except histogram/quantile boundaries.
+# --pod-selector     : restrict describe/log/Prometheus collection to pods matching this
 #                      Kubernetes label selector (e.g. "app.kubernetes.io/component=fleet-queue").
 #                      Namespace-wide resources (summary, events, top pods, helm values)
 #                      are still collected in full. Omit for the default whole-namespace behavior.
@@ -28,6 +31,7 @@ REDACT=0
 REDACT_STRICT=0
 COLLECT_LOGS=1
 COLLECT_DESCRIBE=1
+COLLECT_PROMETHEUS=0
 POD_SELECTOR=""
 
 while [[ "$#" -gt 0 ]]; do
@@ -38,13 +42,14 @@ while [[ "$#" -gt 0 ]]; do
     --exclude-logs)    COLLECT_LOGS=0 ;;
     --exclude-describe) COLLECT_DESCRIBE=0 ;;
     --pod-selector)    POD_SELECTOR="$2"; shift ;;
+    --include-prometheus) COLLECT_PROMETHEUS=1 ;;
     *) echo "Unknown parameter passed: $1"; exit 1 ;;
   esac
   shift
 done
 
 if [[ -z "$NS" ]]; then
-  echo "Usage: $0 --namespace <namespace> [--redact] [--redact-strict] [--exclude-logs] [--exclude-describe] [--pod-selector <label-selector>]"
+  echo "Usage: $0 --namespace <namespace> [--redact] [--redact-strict] [--exclude-logs] [--exclude-describe] [--pod-selector <label-selector>] [--include-prometheus]"
   exit 1
 fi
 
@@ -286,6 +291,29 @@ redact_file() {
   local tmp
   local -a st
   tmp="$(mktemp)" || return
+  if [[ "$f" == *.prom ]]; then
+    if awk '
+      /^#/ { print; next }
+      {
+        rest = $0; line = ""
+        while (match(rest, /[a-zA-Z_][a-zA-Z0-9_]*="(\\.|[^"\\])*"/)) {
+          label = substr(rest, RSTART, RLENGTH)
+          line = line substr(rest, 1, RSTART - 1)
+          if (label !~ /^(le|quantile)="[+0-9.eE-]+"$/ && label != "le=\"+Inf\"")
+            sub(/=.*/, "=\"***REDACTED***\"", label)
+          line = line label
+          rest = substr(rest, RSTART + RLENGTH)
+        }
+        print line rest
+      }
+    ' "$f" > "$tmp"; then
+      mv "$tmp" "$f"
+    else
+      rm -f "$tmp" "$f"
+      echo "  WARNING: removed metrics file after redaction failed: $f" >&2
+    fi
+    return
+  fi
   awk "$AWK_PEM" "$f" \
     | awk -v M="$MARK" -v PAYLOAD="\"($PAYLOAD_KEYS)\"[[:space:]]*:" "$AWK_MARK" \
     | sed -E "${SED_ARGS[@]}" > "$tmp"
@@ -317,6 +345,33 @@ redact_env_yaml() {
     }
   ' "$f" > "$tmp" && mv "$tmp" "$f"
 }
+
+collect_prometheus() (
+  local pod="$1" port="$2" output="$3" forward_pid local_port attempt
+  kubectl port-forward -n "$NS" --address 127.0.0.1 --pod-running-timeout=5s \
+    "pod/$pod" ":$port" > "$output.forward.log" 2>&1 &
+  forward_pid=$!
+  trap 'kill "$forward_pid" 2>/dev/null; wait "$forward_pid" 2>/dev/null' EXIT
+  trap 'exit 130' INT
+  trap 'exit 143' TERM
+  for ((attempt=0; attempt<50; attempt++)); do
+    local_port=$(sed -nE 's/^Forwarding from 127\.0\.0\.1:([0-9]+) -> .*/\1/p' "$output.forward.log")
+    [[ -n "$local_port" ]] && break
+    kill -0 "$forward_pid" 2>/dev/null || break
+    sleep 0.1
+  done
+  if [[ ! "$local_port" =~ ^[0-9]+$ ]]; then
+    echo "  Unable to port-forward $pod:$port; see $output.forward.log" >&2
+    return 1
+  fi
+  date -u '+%Y-%m-%dT%H:%M:%SZ' > "$output.scrape.log"
+  if ! curl --noproxy '*' --fail --silent --show-error --max-time 10 \
+    "http://127.0.0.1:$local_port/metrics" > "$output" 2>> "$output.scrape.log"; then
+    rm -f "$output"
+    echo "  Unable to scrape $pod:$port; see $output.scrape.log" >&2
+    return 1
+  fi
+)
 
 # ---------------------------------------------------------------------------
 # Warnings
@@ -402,13 +457,35 @@ echo "Pulling resource usage for all pods..."
 kubectl top pods -n "$NS" --containers > "$DIR/pod-resource-usage.txt"
 
 if [[ -n "$POD_SELECTOR" ]]; then
-  echo "Restricting describe/log collection to pods matching selector: $POD_SELECTOR"
+  echo "Restricting describe/log/Prometheus collection to pods matching selector: $POD_SELECTOR"
   PODS=$(kubectl get pods -n "$NS" -l "$POD_SELECTOR" -o jsonpath='{.items[*].metadata.name}')
   if [[ -z "$PODS" ]]; then
     echo "Warning: no pods matched --pod-selector '$POD_SELECTOR' in namespace $NS." >&2
   fi
 else
   PODS=$(kubectl get pods -n "$NS" -o jsonpath='{.items[*].metadata.name}')
+fi
+
+if [[ "$COLLECT_PROMETHEUS" -eq 1 ]]; then
+  if command -v curl >/dev/null 2>&1 && command -v jq >/dev/null 2>&1; then
+    echo "Pulling application Prometheus metrics for matching pods..."
+    echo "Metric labels may contain sensitive data. REVIEW THE BUNDLE BEFORE SHARING." >&2
+    mkdir -p "$DIR/metrics"
+    for POD in $PODS; do
+      while IFS=$'\t' read -r CONTAINER PORT; do
+        [[ "$CONTAINER" =~ ^[a-z0-9][a-z0-9-]*$ && "$PORT" =~ ^[0-9]+$ ]] || continue
+        ((PORT > 0 && PORT <= 65535)) || continue
+        collect_prometheus "$POD" "$PORT" "$DIR/metrics/${POD}_${CONTAINER}_${PORT}.prom"
+      done < <(kubectl get pod "$POD" -n "$NS" -o json | jq -r '
+        select(.status.phase == "Running") | .spec.containers[] |
+        .name as $container | .ports[]? |
+        select(.name == "ingest-queue" or .name == "platform" or
+               .name == "backend" or .name == "host-backend" or .name == "playground") |
+        [$container, .containerPort] | @tsv')
+    done
+  else
+    echo "curl or jq not found — skipping Prometheus metrics collection." >&2
+  fi
 fi
 
 if [[ "$COLLECT_DESCRIBE" -eq 1 ]]; then
