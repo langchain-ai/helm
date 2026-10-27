@@ -41,7 +41,7 @@ and keeps the indentation, so the Job can hash it and inline it as-is.
 {{- $byocDestination := .Values.smithdb.migration.byocDestination.enabled -}}
 {{- $componentEnv := ternary (include "langsmith.smithdb.migration.byocComponentEnv" .) (include "langsmith.smithdb.componentEnv" (dict "root" . "service" "MIGRATION" "displayName" "smithdb-migration")) $byocDestination -}}
 {{- $envVars := include "langsmith.mergeEnv" (dict "commonEnv" (concat .Values.commonEnv .Values.smithdb.commonEnv) "chart" ($componentEnv | fromYamlArray) "extraEnv" .Values.smithdb.migration.job.extraEnv) | fromYamlArray -}}
-{{- $blobStorage := .Values.config.blobStorage -}}
+{{- $blobStorage := include "langsmith.blobStorage.config" . | fromYaml -}}
 {{- $smithdbObjectStore := .Values.smithdb.config.objectStore -}}
 {{- $smithdbObjectStoreType := lower (default "s3" $smithdbObjectStore.type) }}
     metadata:
@@ -205,15 +205,11 @@ and keeps the indentation, so the Job can hash it and inline it as-is.
             - name: SMITHDB_MIGRATION__BLOB_STORE_DEFAULT__S3__ACCESS_KEY_ID
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "langsmith.secretsName" . }}
-                  key: blob_storage_access_key
-                  optional: true
+                  {{- include "langsmith.blobStorage.secretKeyRef" (dict "root" . "key" "accessKey") | nindent 18 }}
             - name: SMITHDB_MIGRATION__BLOB_STORE_DEFAULT__S3__SECRET_ACCESS_KEY
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "langsmith.secretsName" . }}
-                  key: blob_storage_access_key_secret
-                  optional: true
+                  {{- include "langsmith.blobStorage.secretKeyRef" (dict "root" . "key" "secretKey") | nindent 18 }}
             {{- else if eq (lower $blobStorage.engine) "gcs" }}
             - name: SMITHDB_MIGRATION__BLOB_STORE_DEFAULT__TYPE
               value: "gcs"

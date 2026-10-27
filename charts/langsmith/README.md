@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.18.0-rc.46](https://img.shields.io/badge/Version-0.18.0--rc.46-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.18.17rc1](https://img.shields.io/badge/AppVersion-0.18.17rc1-informational?style=flat-square)
+![Version: 0.18.0-rc.47](https://img.shields.io/badge/Version-0.18.0--rc.47-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.18.17rc1](https://img.shields.io/badge/AppVersion-0.18.17rc1-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -647,6 +647,12 @@ The trajectory Service is cluster-internal; no public route is added. Trajectory
 | images.redisImage.repository | string | `"docker.io/redis"` |  |
 | images.redisImage.tag | string | `"7"` |  |
 | images.registry | string | `""` | If supplied, all children <image_name>.repository values will be prepended with this registry name + `/` |
+| images.rustfsClientImage.pullPolicy | string | `"IfNotPresent"` |  |
+| images.rustfsClientImage.repository | string | `"docker.io/rustfs/rc"` |  |
+| images.rustfsClientImage.tag | string | `"v0.1.18"` |  |
+| images.rustfsImage.pullPolicy | string | `"IfNotPresent"` |  |
+| images.rustfsImage.repository | string | `"docker.io/rustfs/rustfs"` |  |
+| images.rustfsImage.tag | string | `"1.0.0-beta.7"` |  |
 | images.sandboxHostImage | object | `{"pullPolicy":"IfNotPresent","repository":"docker.io/langchain/sandbox-host","tag":""}` | sandbox-host image. Only used when sandboxes.enabled is true. |
 | images.smithdbImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.smithdbImage.repository | string | `"docker.io/langchain/smithdb"` |  |
@@ -935,6 +941,88 @@ The trajectory Service is cluster-internal; no public route is added. Trajectory
 | polly.redis.statefulSet.volumeMounts | list | `[]` |  |
 | polly.redis.statefulSet.volumes | list | `[]` |  |
 | preInstallManifests | list | `[]` | annotations, ExternalSecret-only validation, idempotency rules, and caveats. Example: preInstallManifests:   - apiVersion: external-secrets.io/v1beta1     kind: ExternalSecret     metadata:       name: langsmith-app     spec:       refreshInterval: 1h       secretStoreRef:         name: vault-backend         kind: ClusterSecretStore       target:         name: langsmith-app-secret         creationPolicy: Orphan       data:         - secretKey: langsmith_license_key           remoteRef:             key: secret/langsmith/app             property: langsmith_license_key |
+| rustfs.accessKey | string | `"langsmith"` | RustFS access key. Ignored when existingSecretName is set. |
+| rustfs.accessKeySecretKey | string | `"access_key"` |  |
+| rustfs.bucketJob.affinity | object | `{}` |  |
+| rustfs.bucketJob.annotations | object | `{}` |  |
+| rustfs.bucketJob.backoffLimit | int | `10` |  |
+| rustfs.bucketJob.labels | object | `{}` |  |
+| rustfs.bucketJob.nodeSelector | object | `{}` |  |
+| rustfs.bucketJob.podSecurityContext.runAsGroup | int | `10001` |  |
+| rustfs.bucketJob.podSecurityContext.runAsNonRoot | bool | `true` |  |
+| rustfs.bucketJob.podSecurityContext.runAsUser | int | `10001` |  |
+| rustfs.bucketJob.resources.requests.cpu | string | `"50m"` |  |
+| rustfs.bucketJob.resources.requests.memory | string | `"64Mi"` |  |
+| rustfs.bucketJob.securityContext.allowPrivilegeEscalation | bool | `false` |  |
+| rustfs.bucketJob.securityContext.capabilities.drop[0] | string | `"ALL"` |  |
+| rustfs.bucketJob.tolerations | list | `[]` |  |
+| rustfs.bucketName | string | `"langsmith"` | Bucket the chart creates in RustFS and LangSmith stores blobs in. |
+| rustfs.containerPort | int | `9000` |  |
+| rustfs.existingSecretName | string | `""` | Existing secret holding the RustFS credentials under accessKeySecretKey and secretKeySecretKey. |
+| rustfs.name | string | `"rustfs"` |  |
+| rustfs.pdb.annotations | object | `{}` |  |
+| rustfs.pdb.enabled | bool | `false` |  |
+| rustfs.pdb.labels | object | `{}` |  |
+| rustfs.pdb.minAvailable | int | `1` |  |
+| rustfs.secretKey | string | `"langsmith-rustfs"` | RustFS secret key. Ignored when existingSecretName is set. |
+| rustfs.secretKeySecretKey | string | `"secret_key"` |  |
+| rustfs.service.annotations | object | `{}` |  |
+| rustfs.service.labels | object | `{}` |  |
+| rustfs.service.loadBalancerIP | string | `""` |  |
+| rustfs.service.loadBalancerSourceRanges | list | `[]` |  |
+| rustfs.service.port | int | `9000` |  |
+| rustfs.service.type | string | `"ClusterIP"` |  |
+| rustfs.serviceAccount.annotations | object | `{}` |  |
+| rustfs.serviceAccount.automountServiceAccountToken | bool | `false` |  |
+| rustfs.serviceAccount.create | bool | `true` |  |
+| rustfs.serviceAccount.labels | object | `{}` |  |
+| rustfs.serviceAccount.name | string | `""` |  |
+| rustfs.statefulSet.affinity | object | `{}` |  |
+| rustfs.statefulSet.annotations | object | `{}` |  |
+| rustfs.statefulSet.command | list | `[]` |  |
+| rustfs.statefulSet.extraContainerConfig | object | `{}` |  |
+| rustfs.statefulSet.extraEnv | list | `[]` |  |
+| rustfs.statefulSet.initContainers | list | `[]` |  |
+| rustfs.statefulSet.labels | object | `{}` |  |
+| rustfs.statefulSet.lifecycle | object | `{}` |  |
+| rustfs.statefulSet.livenessProbe.failureThreshold | int | `6` |  |
+| rustfs.statefulSet.livenessProbe.httpGet.path | string | `"/health"` |  |
+| rustfs.statefulSet.livenessProbe.httpGet.port | string | `"rustfs"` |  |
+| rustfs.statefulSet.livenessProbe.periodSeconds | int | `10` |  |
+| rustfs.statefulSet.livenessProbe.timeoutSeconds | int | `1` |  |
+| rustfs.statefulSet.nodeSelector | object | `{}` |  |
+| rustfs.statefulSet.persistence.enabled | bool | `true` | Without persistence, stored traces are lost when the RustFS pod restarts. |
+| rustfs.statefulSet.persistence.size | string | `"50Gi"` |  |
+| rustfs.statefulSet.persistence.storageClassName | string | `""` |  |
+| rustfs.statefulSet.persistentVolumeClaimRetentionPolicy | object | `{}` |  |
+| rustfs.statefulSet.podSecurityContext.fsGroup | int | `10001` |  |
+| rustfs.statefulSet.podSecurityContext.runAsGroup | int | `10001` |  |
+| rustfs.statefulSet.podSecurityContext.runAsNonRoot | bool | `true` |  |
+| rustfs.statefulSet.podSecurityContext.runAsUser | int | `10001` |  |
+| rustfs.statefulSet.priorityClassName | string | `""` | Optional priority class for the in-chart RustFS pod. |
+| rustfs.statefulSet.readinessProbe.failureThreshold | int | `6` |  |
+| rustfs.statefulSet.readinessProbe.httpGet.path | string | `"/health"` |  |
+| rustfs.statefulSet.readinessProbe.httpGet.port | string | `"rustfs"` |  |
+| rustfs.statefulSet.readinessProbe.periodSeconds | int | `10` |  |
+| rustfs.statefulSet.readinessProbe.timeoutSeconds | int | `1` |  |
+| rustfs.statefulSet.resources.limits.cpu | string | `"2000m"` |  |
+| rustfs.statefulSet.resources.limits.memory | string | `"4Gi"` |  |
+| rustfs.statefulSet.resources.requests.cpu | string | `"500m"` |  |
+| rustfs.statefulSet.resources.requests.memory | string | `"1Gi"` |  |
+| rustfs.statefulSet.securityContext.allowPrivilegeEscalation | bool | `false` |  |
+| rustfs.statefulSet.securityContext.capabilities.drop[0] | string | `"ALL"` |  |
+| rustfs.statefulSet.sidecars | list | `[]` |  |
+| rustfs.statefulSet.startupProbe.failureThreshold | int | `30` |  |
+| rustfs.statefulSet.startupProbe.httpGet.path | string | `"/health"` |  |
+| rustfs.statefulSet.startupProbe.httpGet.port | string | `"rustfs"` |  |
+| rustfs.statefulSet.startupProbe.periodSeconds | int | `2` |  |
+| rustfs.statefulSet.startupProbe.timeoutSeconds | int | `1` |  |
+| rustfs.statefulSet.terminationGracePeriodSeconds | int | `30` |  |
+| rustfs.statefulSet.tolerations | list | `[]` |  |
+| rustfs.statefulSet.topologySpreadConstraints | list | `[]` |  |
+| rustfs.statefulSet.updateStrategy | object | `{}` | Optional StatefulSet update strategy for the in-chart RustFS instance. |
+| rustfs.statefulSet.volumeMounts | list | `[]` |  |
+| rustfs.statefulSet.volumes | list | `[]` |  |
 | sandboxes | object | `{"authProxy":{"httpProxy":{"noProxy":[],"url":""}},"callbackSigningJwk":"","enabled":false,"juicefs":{"bucket":"","existingSecretName":"","hostMount":{"cacheDirs":["/var/cache/juicefs"],"mountOptions":["--cache-size=51200","--cache-large-write"]},"name":"sandbox-juicefs","redis":{"iamAuthProvider":"","metaURL":""},"storage":"s3","storageAccountName":""},"juicefsFormatJob":{"affinity":{},"annotations":{},"labels":{},"nodeSelector":{},"podSecurityContext":{},"resources":{"requests":{"cpu":"100m","memory":"128Mi"}},"securityContext":{"allowPrivilegeEscalation":false,"capabilities":{"drop":["ALL"]}},"tolerations":[]},"proxyCa":{"existingSecretName":"","mode":"generatedSecret","secretName":"smithbox-proxy-ca"},"quotas":{"maxCpuCores":200,"maxEphemeralStorageGib":100,"maxMemoryGb":400,"maxSandboxes":1000,"minEphemeralStorageGb":1},"sandboxHost":{"autoscaling":{"enabled":false,"headroomHosts":1,"maxReplicas":10,"minReplicas":1,"scaleDownStabilizationSeconds":300,"targetUtilizationPercent":70},"deployment":{"annotations":{},"extraEnv":[],"initContainers":[],"labels":{},"nodeSelector":{},"podAnnotations":{},"podSecurityContext":{},"priorityClassName":"","readinessProbe":{"failureThreshold":3,"initialDelaySeconds":5,"periodSeconds":10,"tcpSocket":{"port":"http"},"timeoutSeconds":3},"replicas":1,"resources":{"requests":{"cpu":"2","memory":"2Gi"}},"securityContext":{"privileged":true},"sidecars":[],"terminationGracePeriodSeconds":300,"tolerations":[{"effect":"NoSchedule","key":"sandbox.langsmith.com/host","operator":"Equal","value":"true"}],"volumeMounts":[],"volumes":[]},"name":"sandbox-host","pdb":{"annotations":{},"enabled":false,"labels":{},"maxUnavailable":1},"rbac":{"annotations":{},"create":true,"labels":{}},"serviceAccount":{"annotations":{},"automountServiceAccountToken":true,"create":true,"labels":{},"name":""}},"serviceUrlBaseUrl":""}` | LangSmith Sandboxes. Same-cluster sandbox-host architecture on AWS/EKS, GCP/GKE, or Azure/AKS. sandbox-host mounts JuiceFS directly, and a singleton Job formats fresh JuiceFS metadata before hosts start serving. |
 | sandboxes.authProxy.httpProxy | object | `{"noProxy":[],"url":""}` | Route sandbox egress (the sandbox auth proxy's upstream connections) through a corporate HTTP forward proxy, as an HTTP_PROXY/HTTPS_PROXY client would: plain HTTP as standard proxy requests, HTTPS and other TCP through CONNECT. The proxy must allow CONNECT to 443 and any other TCP ports sandboxes use; nothing falls back to direct access. |
 | sandboxes.authProxy.httpProxy.noProxy | list | `[]` | Destinations dialed directly instead of through the proxy, with standard NO_PROXY matching: "internal.corp" matches the host and its subdomains, ".internal.corp" only subdomains, plus IP addresses, CIDR ranges such as "10.0.0.0/8", "host:port" entries, and "*". |
@@ -1656,6 +1744,7 @@ The trajectory Service is cluster-internal; no public route is added. Trajectory
 | config.blobStorage.bucketName | string | `""` |  |
 | config.blobStorage.chSearchEnabled | bool | `true` |  |
 | config.blobStorage.engine | string | `"S3"` |  |
+| config.blobStorage.external.enabled | bool | `false` | Use your own S3, GCS, or Azure blob storage, configured below. When false and neither bucketName nor azureStorageContainerName is set, the chart deploys RustFS (see `rustfs`) and uses it instead. For production, we strongly recommend external blob storage. |
 | config.blobStorage.kmsEncryptionEnabled | bool | `false` |  |
 | config.blobStorage.kmsKeyArn | string | `""` |  |
 | config.blobStorage.minBlobStorageSizeKb | string | `"20"` |  |

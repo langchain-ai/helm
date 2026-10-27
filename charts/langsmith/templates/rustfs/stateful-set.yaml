@@ -1,0 +1,176 @@
+{{- if eq (include "langsmith.blobStorage.bundled" .) "true" }}
+{{- $envVars := concat .Values.commonEnv .Values.rustfs.statefulSet.extraEnv -}}
+{{- include "langsmith.detectDuplicates" $envVars -}}
+{{- $volumes := concat .Values.commonVolumes .Values.rustfs.statefulSet.volumes -}}
+{{- $volumeMounts := concat .Values.commonVolumeMounts .Values.rustfs.statefulSet.volumeMounts -}}
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "langsmith.fullname" . }}-{{ .Values.rustfs.name }}
+  namespace: {{ .Values.namespace | default .Release.Namespace }}
+  labels:
+    {{- include "langsmith.labels" . | nindent 4 }}
+    {{- with.Values.rustfs.statefulSet.labels }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+  annotations:
+    "argocd.argoproj.io/sync-wave": "-2"
+    {{- include "langsmith.annotations" . | nindent 4 }}
+    {{- with.Values.rustfs.statefulSet.annotations }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  serviceName: {{ include "langsmith.fullname" . }}-{{ .Values.rustfs.name }}
+  replicas: 1
+  {{- with .Values.rustfs.statefulSet.updateStrategy }}
+  updateStrategy:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "langsmith.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-{{ .Values.rustfs.name }}
+  template:
+    metadata:
+      annotations:
+        {{- include "langsmith.commonPodAnnotations" . | nindent 8 }}
+        {{- with .Values.rustfs.statefulSet.annotations }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+      labels:
+        {{- with.Values.rustfs.statefulSet.labels }}
+            {{- toYaml . | nindent 8 }}
+        {{- end }}
+        {{- include "langsmith.labels" . | nindent 8 }}
+        app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-{{ .Values.rustfs.name }}
+    spec:
+      {{- with .Values.images.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if .Values.rustfs.statefulSet.priorityClassName }}
+      priorityClassName: {{ .Values.rustfs.statefulSet.priorityClassName }}
+      {{- end }}
+      terminationGracePeriodSeconds: {{ .Values.rustfs.statefulSet.terminationGracePeriodSeconds }}
+      securityContext:
+        {{- include "langsmith.podSecurityContext" (dict "Values" .Values "componentSecurityContext" .Values.rustfs.statefulSet.podSecurityContext) | nindent 8 }}
+      serviceAccountName: {{ include "rustfs.serviceAccountName" . }}
+      automountServiceAccountToken: {{ .Values.rustfs.serviceAccount.automountServiceAccountToken }}
+      {{- include "langsmith.dnsConfig" . | nindent 6 }}
+      {{- with concat .Values.commonInitContainers .Values.rustfs.statefulSet.initContainers }}
+      initContainers:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: {{ .Values.rustfs.name }}
+          {{- with.Values.rustfs.statefulSet.command }}
+          command:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          env:
+            - name: RUSTFS_ADDRESS
+              value: {{ printf ":%v" .Values.rustfs.containerPort | quote }}
+            - name: RUSTFS_VOLUMES
+              value: /data
+            - name: RUSTFS_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "langsmith.rustfsSecretsName" . }}
+                  key: {{ .Values.rustfs.accessKeySecretKey }}
+            - name: RUSTFS_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "langsmith.rustfsSecretsName" . }}
+                  key: {{ .Values.rustfs.secretKeySecretKey }}
+            {{- with $envVars }}
+              {{- toYaml . | nindent 12 }}
+            {{- end }}
+          image: {{ include "langsmith.image" (dict "Values" .Values "Chart" .Chart "component" "rustfsImage") | quote }}
+          imagePullPolicy: {{ .Values.images.rustfsImage.pullPolicy }}
+          ports:
+            - name: rustfs
+              containerPort: {{ .Values.rustfs.containerPort }}
+              protocol: TCP
+          {{- with .Values.rustfs.statefulSet.startupProbe }}
+          startupProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.rustfs.statefulSet.livenessProbe }}
+          livenessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.rustfs.statefulSet.readinessProbe }}
+          readinessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          resources:
+            {{- toYaml .Values.rustfs.statefulSet.resources | nindent 12 }}
+          securityContext:
+            {{- toYaml .Values.rustfs.statefulSet.securityContext | nindent 12 }}
+          {{- with .Values.rustfs.statefulSet.lifecycle }}
+          lifecycle:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- if .Values.rustfs.statefulSet.persistence.enabled }}
+          volumeMounts:
+            - mountPath: /data
+              name: data
+            {{- with $volumeMounts }}
+              {{- toYaml . | nindent 12 }}
+            {{- end }}
+          {{- else }}
+          {{- with $volumeMounts }}
+          volumeMounts:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- end }}
+        {{- with .Values.rustfs.statefulSet.extraContainerConfig }}
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+        {{- with .Values.rustfs.statefulSet.sidecars }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- with .Values.rustfs.statefulSet.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.rustfs.statefulSet.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.rustfs.statefulSet.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.rustfs.statefulSet.topologySpreadConstraints }}
+      topologySpreadConstraints:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with $volumes }}
+      volumes:
+          {{- toYaml . | nindent 8 }}
+      {{- end }}
+  {{- if .Values.rustfs.statefulSet.persistence.enabled }}
+  {{- with .Values.rustfs.statefulSet.persistentVolumeClaimRetentionPolicy }}
+  persistentVolumeClaimRetentionPolicy:
+        {{- toYaml . | nindent 4 }}
+  {{- end }}
+  volumeClaimTemplates:
+    - apiVersion: v1
+      kind: PersistentVolumeClaim
+      metadata:
+        name: data
+        labels:
+          {{- include "langsmith.selectorLabels" . | nindent 10 }}
+          app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-{{ .Values.rustfs.name }}
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: {{ .Values.rustfs.statefulSet.persistence.size }}
+        {{- if .Values.rustfs.statefulSet.persistence.storageClassName }}
+        storageClassName: {{ .Values.rustfs.statefulSet.persistence.storageClassName }}
+        {{- end }}
+  {{- end }}
+{{- end }}

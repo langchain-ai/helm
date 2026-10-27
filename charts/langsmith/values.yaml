@@ -90,6 +90,16 @@ images:
     repository: "docker.io/postgres"
     pullPolicy: IfNotPresent
     tag: "14.7"
+  # For production environments, we strongly recommend S3, GCS, or Azure blob storage (config.blobStorage) instead of the RustFS provided by the chart.
+  rustfsImage:
+    repository: "docker.io/rustfs/rustfs"
+    pullPolicy: IfNotPresent
+    tag: "1.0.0-beta.7"
+  # S3 client the chart uses to create the in-chart RustFS bucket.
+  rustfsClientImage:
+    repository: "docker.io/rustfs/rc"
+    pullPolicy: IfNotPresent
+    tag: "v0.1.18"
   # For production environments, we strongly recommend connecting to a managed Redis instance instead of using the one provided by the chart.
   # Docs: https://docs.langchain.com/langsmith/self-host-external-redis
   redisImage:
@@ -1217,6 +1227,11 @@ config:
   # We currently support S3, GCS, Minio, and Azure as Blob Storage providers.
   # Blob storage is required and always on as of LangSmith v0.18. Configure the engine and bucket below.
   blobStorage:
+    external:
+      # -- Use your own S3, GCS, or Azure blob storage, configured below. When false and neither bucketName nor
+      # azureStorageContainerName is set, the chart deploys RustFS (see `rustfs`) and uses it instead.
+      # For production, we strongly recommend external blob storage.
+      enabled: false
     engine: "S3"
     # If you are using langsmith-managed-clickhouse, you may not want inputs to be stored in clickhouse for search.
     # Set this as false to ensure that inputs/outputs/errors are not stored in clickhouse.
@@ -3986,6 +4001,127 @@ redis:
     labels: {}
     annotations: {}
     automountServiceAccountToken: true
+
+# In-chart S3-compatible blob storage. Deployed unless config.blobStorage is external
+# (config.blobStorage.external.enabled, or a bucketName / azureStorageContainerName is set).
+# For production, we strongly recommend S3, GCS, or Azure blob storage instead.
+rustfs:
+  name: "rustfs"
+  # -- Bucket the chart creates in RustFS and LangSmith stores blobs in.
+  bucketName: "langsmith"
+  # -- RustFS access key. Ignored when existingSecretName is set.
+  accessKey: "langsmith"
+  # -- RustFS secret key. Ignored when existingSecretName is set.
+  secretKey: "langsmith-rustfs"
+  # -- Existing secret holding the RustFS credentials under accessKeySecretKey and secretKeySecretKey.
+  existingSecretName: ""
+  accessKeySecretKey: "access_key"
+  secretKeySecretKey: "secret_key"
+  containerPort: 9000
+  statefulSet:
+    # -- Optional priority class for the in-chart RustFS pod.
+    priorityClassName: ""
+    # -- Optional StatefulSet update strategy for the in-chart RustFS instance.
+    updateStrategy: {}
+    labels: {}
+    annotations: {}
+    # The RustFS image runs as uid/gid 10001; fsGroup makes the data volume writable.
+    podSecurityContext:
+      runAsUser: 10001
+      runAsGroup: 10001
+      runAsNonRoot: true
+      fsGroup: 10001
+    securityContext:
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop:
+          - ALL
+    lifecycle: {}
+    terminationGracePeriodSeconds: 30
+    resources:
+      limits:
+        cpu: 2000m
+        memory: 4Gi
+      requests:
+        cpu: 500m
+        memory: 1Gi
+    command: []
+    startupProbe:
+      httpGet:
+        path: /health
+        port: rustfs
+      failureThreshold: 30
+      periodSeconds: 2
+      timeoutSeconds: 1
+    readinessProbe:
+      httpGet:
+        path: /health
+        port: rustfs
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 1
+    livenessProbe:
+      httpGet:
+        path: /health
+        port: rustfs
+      failureThreshold: 6
+      periodSeconds: 10
+      timeoutSeconds: 1
+    extraContainerConfig: {}
+    extraEnv: []
+    sidecars: []
+    initContainers: []
+    nodeSelector: {}
+    tolerations: []
+    topologySpreadConstraints: []
+    affinity: {}
+    volumes: []
+    volumeMounts: []
+    persistentVolumeClaimRetentionPolicy: {}
+    persistence:
+      # -- Without persistence, stored traces are lost when the RustFS pod restarts.
+      enabled: true
+      size: 50Gi
+      storageClassName: ""
+  # Job that creates the bucket. It is renamed whenever its inputs change, so upgrades run it again.
+  bucketJob:
+    labels: {}
+    annotations: {}
+    podSecurityContext:
+      runAsNonRoot: true
+      runAsUser: 10001
+      runAsGroup: 10001
+    securityContext:
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop:
+          - ALL
+    resources:
+      requests:
+        cpu: 50m
+        memory: 64Mi
+    backoffLimit: 10
+    nodeSelector: {}
+    tolerations: []
+    affinity: {}
+  pdb:
+    enabled: false
+    minAvailable: 1
+    labels: {}
+    annotations: {}
+  service:
+    type: ClusterIP
+    port: 9000
+    labels: {}
+    annotations: {}
+    loadBalancerSourceRanges: []
+    loadBalancerIP: ""
+  serviceAccount:
+    create: true
+    name: ""
+    labels: {}
+    annotations: {}
+    automountServiceAccountToken: false
 
 # Fleet Tool Server - provides MCP tool execution capabilities
 fleetToolServer:

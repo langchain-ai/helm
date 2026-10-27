@@ -1,0 +1,29 @@
+{{- if and (eq (include "langsmith.blobStorage.bundled" .) "true") .Values.rustfs.pdb.enabled }}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "langsmith.fullname" . }}-{{ .Values.rustfs.name }}
+  namespace: {{ .Values.namespace | default .Release.Namespace }}
+  labels:
+    {{- include "langsmith.labels" . | nindent 4 }}
+    {{- with .Values.rustfs.pdb.labels }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+  annotations:
+    "argocd.argoproj.io/sync-wave": "-2"
+    {{- include "langsmith.annotations" . | nindent 4 }}
+    {{- with .Values.rustfs.pdb.annotations }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "langsmith.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-{{ .Values.rustfs.name }}
+  {{- if hasKey .Values.rustfs.pdb "minAvailable" }}
+  minAvailable: {{ .Values.rustfs.pdb.minAvailable }}
+  {{- end }}
+  {{- if hasKey .Values.rustfs.pdb "maxUnavailable" }}
+  maxUnavailable: {{ .Values.rustfs.pdb.maxUnavailable }}
+  {{- end }}
+{{- end }}

@@ -213,7 +213,7 @@ jobs:
         if: matrix.chart-name == 'langsmith'
         run: |
           set -e
-          # LangSmith requires blob storage; the ci/ values point config.blobStorage at this S3-compatible store.
+          # External blob storage for the ci/ values files that set config.blobStorage; the others use the in-chart RustFS.
           kubectl apply -n default -f - <<'EOF'
           apiVersion: apps/v1
           kind: Deployment
