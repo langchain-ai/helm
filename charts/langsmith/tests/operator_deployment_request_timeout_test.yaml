@@ -1,0 +1,74 @@
+suite: operator HTTPRoute request timeout for LangSmith Deployments
+# With the Gateway API, the operator creates one HTTPRoute per deployment and
+# writes HTTPROUTE_REQUEST_TIMEOUT on it as timeouts.request. Without the
+# variable those routes take the Gateway's default (15 s on Envoy Gateway).
+templates:
+  - templates/operator/deployment.yaml
+  - templates/operator/config-map.yaml
+set:
+  config.deployment.enabled: true
+  config.hostname: https://langsmith.example.com
+  config.existingSecretName: langsmith-secret
+  gateway.enabled: true
+  gateway.name: langsmith-gateway
+tests:
+  - it: should turn the timeout off by default
+    template: templates/operator/deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: HTTPROUTE_REQUEST_TIMEOUT
+            value: "0s"
+
+  - it: should pass a set timeout through
+    template: templates/operator/deployment.yaml
+    set:
+      gateway.deploymentRequestTimeout: 3600s
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: HTTPROUTE_REQUEST_TIMEOUT
+            value: "3600s"
+
+  - it: should leave the variable out when the value is empty
+    template: templates/operator/deployment.yaml
+    set:
+      gateway.deploymentRequestTimeout: ""
+    asserts:
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: HTTPROUTE_REQUEST_TIMEOUT
+          any: true
+
+  - it: should defer to operator.deployment.extraEnv and render the name once
+    template: templates/operator/deployment.yaml
+    set:
+      operator.deployment.extraEnv:
+        - name: HTTPROUTE_REQUEST_TIMEOUT
+          value: 600s
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: HTTPROUTE_REQUEST_TIMEOUT
+            value: 600s
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: HTTPROUTE_REQUEST_TIMEOUT
+            value: "0s"
+
+  - it: should not set the variable without the Gateway API
+    template: templates/operator/deployment.yaml
+    set:
+      gateway.enabled: false
+      ingress.enabled: true
+    asserts:
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: HTTPROUTE_REQUEST_TIMEOUT
+          any: true
