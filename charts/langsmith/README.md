@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.18.0-rc.45](https://img.shields.io/badge/Version-0.18.0--rc.45-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.18.17rc1](https://img.shields.io/badge/AppVersion-0.18.17rc1-informational?style=flat-square)
+![Version: 0.18.0-rc.46](https://img.shields.io/badge/Version-0.18.0--rc.46-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.18.17rc1](https://img.shields.io/badge/AppVersion-0.18.17rc1-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -1655,7 +1655,6 @@ The trajectory Service is cluster-internal; no public route is added. Trajectory
 | config.blobStorage.azureStorageServiceUrlOverride | string | `""` | Optional. Use this to customize the service URL, which by default is 'https://<storage_account_name>.blob.core.windows.net/' |
 | config.blobStorage.bucketName | string | `""` |  |
 | config.blobStorage.chSearchEnabled | bool | `true` |  |
-| config.blobStorage.enabled | bool | `false` |  |
 | config.blobStorage.engine | string | `"S3"` |  |
 | config.blobStorage.kmsEncryptionEnabled | bool | `false` |  |
 | config.blobStorage.kmsKeyArn | string | `""` |  |
