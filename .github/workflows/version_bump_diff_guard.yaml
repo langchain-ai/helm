@@ -6,18 +6,25 @@ name: Version Bump Diff Guard
 # bump is green when Open SWE approves later. A human approval passes the
 # check, but this workflow does not re-run on review; the next push does.
 on:
-  pull_request_target:
+  # Required-workflow rulesets ignore event filters and run this trusted copy
+  # from main. Ignoring every base branch prevents an ordinary pull_request
+  # event from running workflow YAML supplied by a pull request. merge_group
+  # is what the merge queue requests; without it the queue waits forever.
+  pull_request:
+    branches-ignore: ['**']
+  merge_group:
 
 permissions:
   contents: read
   pull-requests: read
 
 concurrency:
-  group: version-bump-diff-guard-${{ github.event.pull_request.number }}
+  group: version-bump-diff-guard-${{ github.event.pull_request.number || github.event.merge_group.head_sha }}
   cancel-in-progress: true
 
 jobs:
   evaluate:
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout base
@@ -59,3 +66,10 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: python3 -I "$RUNNER_TEMP/version-bump-guard.py"
+
+  merge-queue:
+    if: github.event_name == 'merge_group'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Pass the merge queue
+        run: echo "The pull request check already gated this diff."

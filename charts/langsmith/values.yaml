@@ -65,21 +65,21 @@ images:
   aceBackendImage:
     repository: "docker.io/langchain/langsmith-ace-backend"
     pullPolicy: IfNotPresent
-    tag: "0.18.14rc1"
+    tag: "0.18.17rc1"
   backendImage:
     repository: "docker.io/langchain/langsmith-backend"
     pullPolicy: IfNotPresent
-    tag: "0.18.14rc1"
+    tag: "0.18.17rc1"
   # Serves both the `insights` and `engine` graphs; insights.enabled and
   # engine.enabled pick which of them run.
   engineInsightsAgentImage:
     repository: "docker.io/langchain/langsmith-insights-engine"
     pullPolicy: IfNotPresent
-    tag: "0.18.14rc1"
+    tag: "0.18.17rc1"
   frontendImage:
     repository: "docker.io/langchain/langsmith-frontend"
     pullPolicy: IfNotPresent
-    tag: "0.18.14rc1"
+    tag: "0.18.17rc1"
   operatorImage:
     repository: "docker.io/langchain/langgraph-operator"
     pullPolicy: IfNotPresent
@@ -103,15 +103,15 @@ images:
   agentBuilderImage:
     repository: "docker.io/langchain/agent-builder-deep-agent"
     pullPolicy: IfNotPresent
-    tag: "0.18.14rc1"
+    tag: "0.18.17rc1"
   pollyAgentImage:
     repository: "docker.io/langchain/langsmith-polly"
     pullPolicy: IfNotPresent
-    tag: "0.18.14rc1"
+    tag: "0.18.17rc1"
   smithdbImage:
     repository: "docker.io/langchain/smithdb"
     pullPolicy: IfNotPresent
-    tag: "0.18.14rc1"
+    tag: "0.18.17rc1"
   # Optional: only mirror/pull when presidioAnalyzer.enabled is true
   presidioAnalyzerImage:
     repository: "mcr.microsoft.com/presidio-analyzer"
@@ -2198,7 +2198,11 @@ smithdb:
       # -- register non-overlapping jobs, drain the global queue, and exit. Override for another migration mode.
       command:
         - "/usr/local/bin/smithdb-with-taskdb-migrations-entrypoint.sh"
-      extraEnv: []
+      extraEnv:
+        - name: SMITHDB_MIGRATION__MAX_CONCURRENT_FETCHES
+          value: "500"
+        - name: SMITHDB_MIGRATION__WORKER_POOL__PAGINATION_LIMIT
+          value: "25000"
       extraContainerConfig: {}
       sidecars: []
       nodeSelector: {}
