@@ -1,0 +1,75 @@
+name: Version Bump Diff Guard
+
+# Open SWE auto-approves pull requests it judges to be a plain chart version
+# bump. This checks that on every push, before anyone has reviewed: with no
+# human approval the diff must already be a version bump, so a real version
+# bump is green when Open SWE approves later. A human approval passes the
+# check, but this workflow does not re-run on review; the next push does.
+on:
+  # Required-workflow rulesets ignore event filters and run this trusted copy
+  # from main. Ignoring every base branch prevents an ordinary pull_request
+  # event from running workflow YAML supplied by a pull request. merge_group
+  # is what the merge queue requests; without it the queue waits forever.
+  pull_request:
+    branches-ignore: ['**']
+  merge_group:
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: version-bump-diff-guard-${{ github.event.pull_request.number || github.event.merge_group.head_sha }}
+  cancel-in-progress: true
+
+jobs:
+  evaluate:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout base
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.repository.default_branch }}
+          persist-credentials: false
+
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: |
+          pip install --only-binary=:all: --require-hashes \
+            -r hack/requirements-version-bump-guard.txt
+          curl -fsSL -o /tmp/helm-docs.tgz \
+            https://github.com/norwoodj/helm-docs/releases/download/v1.14.2/helm-docs_1.14.2_Linux_x86_64.tar.gz
+          echo "a8cf72ada34fad93285ba2a452b38bdc5bd52cc9a571236244ec31022928d6cc  /tmp/helm-docs.tgz" \
+            | sha256sum --check --strict
+          tar -xzf /tmp/helm-docs.tgz -C /tmp helm-docs
+          sudo install /tmp/helm-docs /usr/local/bin/helm-docs
+
+      - name: Test the checker
+        run: python3 -m unittest hack/test_check_version_bump_diff.py
+
+      - name: Load the checker from base, then fetch PR head as data only
+        run: |
+          head_sha=$(jq -r '.pull_request.head.sha' "$GITHUB_EVENT_PATH")
+          cp hack/check_version_bump_diff.py "$RUNNER_TEMP/version-bump-guard.py"
+          git fetch origin "$head_sha"
+          # Don't check out the PR head: its content must only ever be read
+          # through git show/diff below, never become the working tree a
+          # later step could execute.
+          git branch --force pr-head "$head_sha"
+
+      - name: Check the diff
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 -I "$RUNNER_TEMP/version-bump-guard.py"
+
+  merge-queue:
+    if: github.event_name == 'merge_group'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Pass the merge queue
+        run: echo "The pull request check already gated this diff."

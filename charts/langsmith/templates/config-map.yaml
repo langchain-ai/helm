@@ -34,6 +34,11 @@ data:
   AUTH_TYPE: "none"
   {{- end }}
   LANGCHAIN_ENV: "local_kubernetes"
+  {{- if .Values.config.agentMigration.enabled }}
+  {{- /* Migration jobs share the adhoc queue the ingest queue workers already consume. */}}
+  AGENT_PLATFORM_MIGRATION_ROLLOUT_ENABLED: "true"
+  AGENT_PLATFORM_MIGRATION_QUEUE: "adhoc"
+  {{- end }}
   LANGCHAIN_ENDPOINT: "/{{ if .Values.config.basePath }}{{ .Values.config.basePath }}/{{ end }}api/v1"
   GO_ENDPOINT: {{ include "langsmith.platformBackendEndpoint" . | quote }}
   LANGSMITH_PUBLIC_API_ENDPOINT: {{ include "langsmith.publicApiEndpoint" . | quote }}
@@ -71,21 +76,31 @@ data:
   CLICKHOUSE_QUERY_ENABLED: {{ .Values.clickhouse.enabled | quote }}
   SMITHDB_INGESTION_ENABLED: {{ .Values.smithdb.langsmith.ingestion.enabled | quote }}
   SMITHDB_QUERY_ENABLED: {{ .Values.smithdb.langsmith.query.enabled | quote }}
+  {{- $smithdbUnified := include "langsmith.smithdb.unifiedTopology" . }}
+  {{- $smithdbQueryComponent := ternary "unified" "query" (not (empty $smithdbUnified)) }}
   {{- if .Values.smithdb.langsmith.query.enabled }}
-  {{- $smithdbQueryUrl := include "langsmith.smithdb.grpcServiceUrl" (dict "root" . "component" "query" "port" .Values.smithdb.query.service.port) }}
+  {{- $smithdbQueryUrl := include "langsmith.smithdb.grpcServiceUrl" (dict "root" . "component" $smithdbQueryComponent "port" (index .Values.smithdb $smithdbQueryComponent).service.port) }}
   SMITHDB_QUERY_SERVICE_URL: {{ $smithdbQueryUrl | quote }}
   {{- end }}
   {{- if .Values.smithdb.langsmith.ingestion.enabled }}
-  {{- $mutationsComponent := ternary "mutations" "query" .Values.smithdb.mutations.enabled }}
+  {{- $mutationsComponent := ternary "mutations" $smithdbQueryComponent .Values.smithdb.mutations.enabled }}
   {{- $mutationsValues := index .Values.smithdb $mutationsComponent }}
   SMITHDB_MUTATIONS_SERVICE_URL: {{ include "langsmith.smithdb.grpcServiceUrl" (dict "root" . "component" $mutationsComponent "port" $mutationsValues.service.port) | quote }}
+  {{- if $smithdbUnified }}
+  SMITHDB_INGESTION_SERVICE_URL: {{ include "langsmith.smithdb.grpcServiceUrl" (dict "root" . "component" "unified" "port" .Values.smithdb.unified.service.ingestionPort) | quote }}
+  {{- else }}
   SMITHDB_INGESTION_SERVICE_URL: {{ include "langsmith.smithdb.grpcServiceUrl" (dict "root" . "component" "ingestion" "port" .Values.smithdb.ingestion.service.port) | quote }}
+  {{- end }}
   RULES_REDIS_TRACKING_ENABLED: "true"
   RULES_REDIS_TRACKING_MULTIPART_ENABLED: "true"
   {{- end }}
   {{- if .Values.smithdb.enabled }}
+  {{- if $smithdbUnified }}
+  SMITHDB_CLUSTER_MANAGER_ENABLED: "false"
+  {{- else }}
   SMITHDB_CLUSTER_MANAGER_ENABLED: "true"
   SMITHDB_CLUSTER_MANAGER_URL: {{ include "langsmith.smithdb.grpcServiceUrl" (dict "root" . "component" "clusterManager" "port" .Values.smithdb.clusterManager.service.port) | quote }}
+  {{- end }}
   SMITHDB_UPGRADE_CRON_ENABLED: "true"
   SMITHDB_QUERY_SERVICE_MAX_CALL_RECV_MSG_SIZE: "1073741824"
   SMITHDB_FEEDBACK_MUTATION_RPS_PER_KEY: "100"
@@ -112,6 +127,7 @@ data:
   # without it these are inert. Routes are added in the frontend nginx config.
   OAUTH_AS_ENABLED: "true"
   OAUTH_AS_ISSUER: {{ include "langsmith.oauthAsIssuer" . | quote }}
+  AGENT_AUTH_OAUTH_CALLBACK_URL: {{ include "langsmith.agentAuthOAuthCallbackUrl" . | quote }}
   {{- end }}
   {{- if .Values.config.llmAuthProxyIssuer }}
   LLM_AUTH_PROXY_ISSUER: {{ .Values.config.llmAuthProxyIssuer | quote }}

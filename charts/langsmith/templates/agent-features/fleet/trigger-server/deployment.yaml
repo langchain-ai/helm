@@ -1,5 +1,13 @@
 {{- if and (or .Values.fleet.enabled .Values.config.agentBuilder.enabled) .Values.fleetTriggerServer.enabled }}
-{{- $envVars := concat .Values.commonEnv (include "langsmith.commonEnv" . | fromYamlArray) (include "fleetTriggerServerEnvVars" . | fromYamlArray) .Values.fleetTriggerServer.deployment.extraEnv -}}
+{{- /* Trigger redirects require an absolute UI URL, unlike the shared host-only value. */ -}}
+{{- $commonEnv := list -}}
+{{- range include "langsmith.commonEnv" . | fromYamlArray -}}
+{{- if ne .name "LANGSMITH_URL" -}}
+{{- $commonEnv = append $commonEnv . -}}
+{{- end -}}
+{{- end -}}
+{{- $chartEnv := concat $commonEnv (include "fleetTriggerServerEnvVars" . | fromYamlArray) -}}
+{{- $envVars := include "langsmith.mergeEnv" (dict "commonEnv" .Values.commonEnv "chart" $chartEnv "extraEnv" .Values.fleetTriggerServer.deployment.extraEnv) | fromYamlArray -}}
 {{- include "langsmith.detectDuplicates" $envVars -}}
 {{- $volumes := concat .Values.commonVolumes .Values.fleetTriggerServer.deployment.volumes (include "langsmith.tlsVolumes" . | fromYamlArray) -}}
 {{- $volumeMounts := concat .Values.commonVolumeMounts .Values.fleetTriggerServer.deployment.volumeMounts (include "langsmith.tlsVolumeMounts" . | fromYamlArray) -}}
