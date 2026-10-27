@@ -168,8 +168,10 @@ sandboxHost:
     volumeMounts: []
     initContainers: []
     sidecars: []
+    # -- `/readyz` fails until the host registers in the pool, and on the elected host while the platform refuses this runtime because another runtime reports to the same LangSmith install.
     readinessProbe:
-      tcpSocket:
+      httpGet:
+        path: /readyz
         port: http
       initialDelaySeconds: 5
       periodSeconds: 10

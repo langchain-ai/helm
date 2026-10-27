@@ -28,6 +28,19 @@ tests:
       - hasDocuments:
           count: 0
 
+  - it: should probe readiness on /readyz, which reflects pool registration and runtime refusal
+    values:
+      - ./values/enabled.yaml
+    template: sandbox-host-deployment.yaml
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].readinessProbe.httpGet
+          value:
+            path: /readyz
+            port: http
+      - notExists:
+          path: spec.template.spec.containers[0].readinessProbe.tcpSocket
+
   - it: should configure a host to report to the external LangSmith API
     values:
       - ./values/enabled.yaml

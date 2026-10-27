@@ -147,11 +147,7 @@ The Ingress routes only `/internal/SandboxHost/` (host RPCs) and `/guest-operati
 | sandboxHost.deployment.podAnnotations | object | `{}` |  |
 | sandboxHost.deployment.podSecurityContext | object | `{}` |  |
 | sandboxHost.deployment.priorityClassName | string | `""` |  |
-| sandboxHost.deployment.readinessProbe.failureThreshold | int | `3` |  |
-| sandboxHost.deployment.readinessProbe.initialDelaySeconds | int | `5` |  |
-| sandboxHost.deployment.readinessProbe.periodSeconds | int | `10` |  |
-| sandboxHost.deployment.readinessProbe.tcpSocket.port | string | `"http"` |  |
-| sandboxHost.deployment.readinessProbe.timeoutSeconds | int | `3` |  |
+| sandboxHost.deployment.readinessProbe | object | `{"failureThreshold":3,"httpGet":{"path":"/readyz","port":"http"},"initialDelaySeconds":5,"periodSeconds":10,"timeoutSeconds":3}` | `/readyz` fails until the host registers in the pool, and on the elected host while the platform refuses this runtime because another runtime reports to the same LangSmith install. |
 | sandboxHost.deployment.replicas | int | `1` |  |
 | sandboxHost.deployment.resources.requests.cpu | string | `"2"` |  |
 | sandboxHost.deployment.resources.requests.memory | string | `"2Gi"` |  |
