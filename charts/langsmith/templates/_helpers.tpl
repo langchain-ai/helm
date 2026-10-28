@@ -793,7 +793,19 @@ Args: root, service, displayName.
 {{- if $root.Values.smithdb.enabled }}
 {{- $envVars = concat $envVars (include "langsmith.smithdb.clusterManagerClientEnv" (dict "root" $root "service" $service) | fromYamlArray) -}}
 {{- end }}
+{{- if eq $service "QUERY" }}
+{{- $envVars = concat $envVars (include "langsmith.smithdb.queryEnv" $root | fromYamlArray) -}}
+{{- end }}
 {{- toYaml $envVars }}
+{{- end }}
+
+{{/*
+Env the chart sets on every SmithDB query process.
+Override in smithdb.commonEnv or a component's deployment.extraEnv.
+*/}}
+{{- define "langsmith.smithdb.queryEnv" -}}
+- name: SMITHDB_QUERY__MEMORY_ATTRIBUTION_ENABLED
+  value: "false"
 {{- end }}
 
 {{/*
