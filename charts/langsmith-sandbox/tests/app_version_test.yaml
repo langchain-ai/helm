@@ -20,7 +20,7 @@ tests:
     values:
       - ./values/enabled.yaml
     set:
-      images.sandboxHost.tag: ""
+      images.sandboxHostImage.tag: ""
     template: sandbox-host-deployment.yaml
     asserts:
       - contains:

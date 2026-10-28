@@ -6,6 +6,9 @@ metadata:
   namespace: {{ include "langsmithSandbox.namespace" . }}
   labels:
     {{- include "langsmithSandbox.labels" . | nindent 4 }}
+    {{- with .Values.sandboxHost.ingress.labels }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
   annotations:
     {{- include "langsmithSandbox.annotations" . | nindent 4 }}
     {{- with .Values.sandboxHost.ingress.annotations }}
@@ -20,7 +23,7 @@ spec:
     {{- toYaml . | nindent 4 }}
   {{- end }}
   rules:
-    - host: {{ .Values.sandboxHost.ingress.host | quote }}
+    - host: {{ .Values.sandboxHost.ingress.hostname | quote }}
       http:
         {{- /* Only the paths LangSmith and the sandbox hosts call through the
         ingress: host RPCs and the sandbox data plane (exec, files, tunnels,

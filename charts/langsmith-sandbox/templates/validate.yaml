@@ -1,28 +1,28 @@
 {{- if .Values.sandboxHost.enabled -}}
-{{- if not .Values.platform.endpoint -}}
-{{- fail "platform.endpoint is required when sandboxHost.enabled is true." -}}
+{{- if not .Values.config.endpoint -}}
+{{- fail "config.endpoint is required when sandboxHost.enabled is true." -}}
 {{- end -}}
-{{- if not (regexMatch "^https?://[^/?#]+(?:/[^?#]*)?$" .Values.platform.endpoint) -}}
-{{- fail "platform.endpoint must be an absolute HTTP(S) URL without a query string or fragment." -}}
+{{- if not (regexMatch "^https?://[^/?#]+(?:/[^?#]*)?$" .Values.config.endpoint) -}}
+{{- fail "config.endpoint must be an absolute HTTP(S) URL without a query string or fragment." -}}
 {{- end -}}
-{{- if not (regexMatch "/api/?$" .Values.platform.endpoint) -}}
-{{- fail "platform.endpoint must include the externally reachable LangSmith /api prefix." -}}
+{{- if not (regexMatch "/api/?$" .Values.config.endpoint) -}}
+{{- fail "config.endpoint must include the externally reachable LangSmith /api prefix." -}}
 {{- end -}}
-{{- $callbackIssuer := .Values.platform.callbackIssuer | default .Values.platform.endpoint -}}
+{{- $callbackIssuer := .Values.config.callbackIssuer | default .Values.config.endpoint -}}
 {{- if not (regexMatch "^https?://[^/?#]+(?:/[^?#]*)?$" $callbackIssuer) -}}
-{{- fail "platform.callbackIssuer must be an absolute HTTP(S) URL without a query string or fragment." -}}
+{{- fail "config.callbackIssuer must be an absolute HTTP(S) URL without a query string or fragment." -}}
 {{- end -}}
-{{- if not .Values.serviceAuth.existingSecretName -}}
-{{- fail "serviceAuth.existingSecretName is required when sandboxHost.enabled is true." -}}
+{{- if not .Values.config.existingSecretName -}}
+{{- fail "config.existingSecretName is required when sandboxHost.enabled is true." -}}
 {{- end -}}
 {{- if not .Values.serviceAuth.secretKey -}}
 {{- fail "serviceAuth.secretKey is required when sandboxHost.enabled is true." -}}
 {{- end -}}
-{{- if not .Values.serviceAuth.callbackSigningJwkSecretKey -}}
-{{- fail "serviceAuth.callbackSigningJwkSecretKey is required when sandboxHost.enabled is true." -}}
+{{- if not .Values.config.callbackSigningJwkSecretKey -}}
+{{- fail "config.callbackSigningJwkSecretKey is required when sandboxHost.enabled is true." -}}
 {{- end -}}
-{{- if not .Values.images.sandboxHost.repository -}}
-{{- fail "images.sandboxHost.repository is required when sandboxHost.enabled is true." -}}
+{{- if not .Values.images.sandboxHostImage.repository -}}
+{{- fail "images.sandboxHostImage.repository is required when sandboxHost.enabled is true." -}}
 {{- end -}}
 {{- if and (hasKey .Values.sandboxHost.deployment.securityContext "privileged") (not .Values.sandboxHost.deployment.securityContext.privileged) -}}
 {{- fail "sandboxHost.deployment.securityContext.privileged must be true: sandbox-host manages microVMs, network namespaces and mounts." -}}
@@ -131,15 +131,15 @@
 {{- if and (eq .Values.proxyCa.mode "existingSecret") (not .Values.proxyCa.existingSecretName) -}}
 {{- fail "proxyCa.existingSecretName is required when proxyCa.mode is existingSecret." -}}
 {{- end -}}
-{{- if ne (empty .Values.customCa.existingSecretName) (empty .Values.customCa.secretKey) -}}
-{{- fail "customCa.existingSecretName and customCa.secretKey must be set together." -}}
+{{- if ne (empty .Values.config.customCa.secretName) (empty .Values.config.customCa.secretKey) -}}
+{{- fail "config.customCa.secretName and config.customCa.secretKey must be set together." -}}
 {{- end -}}
 {{- if .Values.sandboxHost.ingress.enabled -}}
-{{- if not .Values.sandboxHost.ingress.host -}}
-{{- fail "sandboxHost.ingress.host is required when sandboxHost.ingress.enabled is true." -}}
+{{- if not .Values.sandboxHost.ingress.hostname -}}
+{{- fail "sandboxHost.ingress.hostname is required when sandboxHost.ingress.enabled is true." -}}
 {{- end -}}
-{{- if not (regexMatch "^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$" .Values.sandboxHost.ingress.host) -}}
-{{- fail "sandboxHost.ingress.host must be a DNS hostname without a scheme, port, or path." -}}
+{{- if not (regexMatch "^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$" .Values.sandboxHost.ingress.hostname) -}}
+{{- fail "sandboxHost.ingress.hostname must be a DNS hostname without a scheme, port, or path." -}}
 {{- end -}}
 {{- end -}}
 {{- end -}}

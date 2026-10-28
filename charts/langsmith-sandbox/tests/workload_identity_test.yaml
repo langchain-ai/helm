@@ -174,4 +174,4 @@ tests:
     asserts:
       - notEqual:
           path: metadata.name
-          value: RELEASE-NAME-langsmith-sandbox-juicefs-format-7d31fd53
+          value: RELEASE-NAME-langsmith-sandbox-juicefs-format-62ef49ce

@@ -25,7 +25,7 @@ which yield to the chart labels the selector depends on. */}}
   (deepCopy (default dict .Values.sandboxHost.deployment.labels))
   (include "langsmithSandbox.labels" . | fromYaml)
   (dict "app.kubernetes.io/component" (include "langsmithSandbox.sandboxHostFullname" .)) }}
-{{- $callbackIssuer := .Values.platform.callbackIssuer | default .Values.platform.endpoint }}
+{{- $callbackIssuer := .Values.config.callbackIssuer | default .Values.config.endpoint }}
 {{- $extraVolumes := concat .Values.commonVolumes .Values.sandboxHost.deployment.volumes }}
 {{- $extraVolumeMounts := concat .Values.commonVolumeMounts .Values.sandboxHost.deployment.volumeMounts }}
 apiVersion: apps/v1
@@ -104,7 +104,7 @@ spec:
       containers:
         - name: sandbox-host
           image: {{ include "langsmithSandbox.image" . | quote }}
-          imagePullPolicy: {{ .Values.images.sandboxHost.pullPolicy }}
+          imagePullPolicy: {{ .Values.images.sandboxHostImage.pullPolicy }}
           env:
             - name: LANGCHAIN_ENV
               value: "local_kubernetes"
@@ -143,7 +143,7 @@ spec:
               valueFrom:
                 secretKeyRef:
                   name: {{ include "langsmithSandbox.serviceAuthSecretName" . }}
-                  key: {{ .Values.serviceAuth.callbackSigningJwkSecretKey }}
+                  key: {{ .Values.config.callbackSigningJwkSecretKey }}
             - name: OAUTH_AS_ISSUER
               value: {{ $callbackIssuer | quote }}
             - name: SSRF_ALLOW_PRIVATE_IPS_CALLBACKS
@@ -162,7 +162,7 @@ spec:
               value: {{ join "," . | quote }}
             {{- end }}
             - name: LANGSMITH_SANDBOX_INTERNAL_ENDPOINT
-              value: {{ .Values.platform.endpoint | quote }}
+              value: {{ .Values.config.endpoint | quote }}
             {{- /* The release this host runs (its image tag), reported for the
             control plane's version-skew warning. */}}
             - name: LANGSMITH_APP_VERSION
@@ -193,7 +193,7 @@ spec:
             - name: SANDBOX_HOST_AUTOSCALE_SCALE_DOWN_STABILIZATION_SECONDS
               value: {{ $autoscaling.scaleDownStabilizationSeconds | quote }}
             {{- end }}
-            {{- if and .Values.customCa.existingSecretName .Values.customCa.secretKey }}
+            {{- if and .Values.config.customCa.secretName .Values.config.customCa.secretKey }}
             - name: SSL_CERT_FILE
               value: /etc/ssl/certs/custom-ca-certificates.crt
             {{- end }}
@@ -228,7 +228,7 @@ spec:
             - name: proxy-ca
               mountPath: /certs
               readOnly: true
-            {{- if and .Values.customCa.existingSecretName .Values.customCa.secretKey }}
+            {{- if and .Values.config.customCa.secretName .Values.config.customCa.secretKey }}
             - name: langsmith-custom-ca
               mountPath: /etc/ssl/certs/custom-ca-certificates.crt
               subPath: ca-certificates.crt
@@ -263,12 +263,12 @@ spec:
           hostPath:
             path: /var/lib/sandbox-host
             type: DirectoryOrCreate
-        {{- if and .Values.customCa.existingSecretName .Values.customCa.secretKey }}
+        {{- if and .Values.config.customCa.secretName .Values.config.customCa.secretKey }}
         - name: langsmith-custom-ca
           secret:
-            secretName: {{ .Values.customCa.existingSecretName }}
+            secretName: {{ .Values.config.customCa.secretName }}
             items:
-              - key: {{ .Values.customCa.secretKey }}
+              - key: {{ .Values.config.customCa.secretKey }}
                 path: ca-certificates.crt
         {{- end }}
         {{- with $extraVolumes }}

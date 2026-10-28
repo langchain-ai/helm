@@ -1,9 +1,8 @@
-platform:
+config:
   endpoint: https://langsmith.example.com/api
-serviceAuth:
   existingSecretName: langsmith-sandbox-runtime
 images:
-  sandboxHost:
+  sandboxHostImage:
     repository: example.com/langsmith/sandbox-host
     tag: test-sandbox-host
 juicefs:

@@ -66,14 +66,14 @@ dnsConfig:
 {{- end -}}
 
 {{- define "langsmithSandbox.imageTag" -}}
-{{- .Values.images.sandboxHost.tag | default .Chart.AppVersion -}}
+{{- .Values.images.sandboxHostImage.tag | default .Chart.AppVersion -}}
 {{- end -}}
 
 {{- define "langsmithSandbox.image" -}}
 {{- if .Values.images.registry -}}
-{{ .Values.images.registry }}/{{ .Values.images.sandboxHost.repository }}:{{ include "langsmithSandbox.imageTag" . }}
+{{ .Values.images.registry }}/{{ .Values.images.sandboxHostImage.repository }}:{{ include "langsmithSandbox.imageTag" . }}
 {{- else -}}
-{{ .Values.images.sandboxHost.repository }}:{{ include "langsmithSandbox.imageTag" . }}
+{{ .Values.images.sandboxHostImage.repository }}:{{ include "langsmithSandbox.imageTag" . }}
 {{- end -}}
 {{- end -}}
 
@@ -90,7 +90,7 @@ dnsConfig:
 {{- end -}}
 
 {{- define "langsmithSandbox.serviceAuthSecretName" -}}
-{{- .Values.serviceAuth.existingSecretName -}}
+{{- .Values.config.existingSecretName -}}
 {{- end -}}
 
 {{- define "langsmithSandbox.proxyCaSecretName" -}}
@@ -133,7 +133,7 @@ a fresh formatter. */}}
   "chartVersion" .Chart.Version
   "config" (include "langsmithSandbox.juicefsConfigSecretChecksum" .)
   "image" (include "langsmithSandbox.image" .)
-  "pullPolicy" .Values.images.sandboxHost.pullPolicy
+  "pullPolicy" .Values.images.sandboxHostImage.pullPolicy
   "pullSecrets" .Values.images.imagePullSecrets
   "labels" $job.labels
   "annotations" $job.annotations
@@ -144,7 +144,7 @@ a fresh formatter. */}}
   "automountServiceAccountToken" .Values.sandboxHost.serviceAccount.automountServiceAccountToken
   "redisIamAuthProvider" .Values.juicefs.redis.iamAuthProvider
   "workloadIdentityProvider" ((.Values.workloadIdentity | default dict).provider | default "")
-  "customCa" (pick .Values.customCa "existingSecretName" "secretKey")
+  "customCa" (pick .Values.config.customCa "secretName" "secretKey")
   "nodeSelector" (default .Values.sandboxHost.deployment.nodeSelector $job.nodeSelector)
   "tolerations" (default .Values.sandboxHost.deployment.tolerations $job.tolerations)
   "affinity" $job.affinity

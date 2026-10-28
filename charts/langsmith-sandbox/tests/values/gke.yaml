@@ -1,6 +1,5 @@
-platform:
+config:
   endpoint: https://langsmith.example.com/api
-serviceAuth:
   existingSecretName: langsmith-sandbox-runtime
 workloadIdentity:
   provider: gcp
@@ -21,7 +20,7 @@ sandboxHost:
       sandbox.langsmith.com/host: "true"
   ingress:
     enabled: true
-    host: sandbox-hosts.example.com
+    hostname: sandbox-hosts.example.com
     annotations:
       kubernetes.io/ingress.class: gce
     service:

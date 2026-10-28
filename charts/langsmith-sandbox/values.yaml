@@ -39,26 +39,31 @@ images:
   registry: ""
   # -- Image pull secrets for sandbox-host and the JuiceFS formatter.
   imagePullSecrets: []
-  sandboxHost:
+  sandboxHostImage:
     repository: "docker.io/langchain/sandbox-host"
     pullPolicy: IfNotPresent
     # -- Leave empty to run the image matching this chart's appVersion, which is the LangSmith release it pairs with. Set it only to point at a mirror that carries the same tag; a pinned tag does not move when the chart is upgraded.
     tag: ""
 
-platform:
+config:
   # -- Externally reachable LangSmith API base used for host observations and lifecycle callbacks, including the `/api` prefix.
   endpoint: ""
-  # -- Issuer placed in sandbox callback JWTs. Defaults to platform.endpoint.
+  # -- Issuer placed in sandbox callback JWTs. Defaults to config.endpoint.
   callbackIssuer: ""
+  # -- Existing Secret containing only the shared sandbox service-auth key and callback-signing JWK, plus the optional egress proxy URL. The values must match the LangSmith control-plane Secret.
+  existingSecretName: ""
+  # -- Key in config.existingSecretName containing the Ed25519 private JWK used to sign sandbox callbacks.
+  callbackSigningJwkSecretKey: "sandbox_callback_signing_jwk"
+  customCa:
+    # -- Existing Secret containing CA certificates (PEM; one key may hold several) that sandbox-host trusts when it calls the LangSmith API, the host ingress and an https egress proxy.
+    secretName: ""
+    # -- Key within config.customCa.secretName containing the CA certificate.
+    secretKey: ""
 
 serviceAuth:
-  # -- Existing Secret containing only the shared sandbox service-auth key and callback-signing JWK. The values must match the LangSmith control-plane Secret.
-  existingSecretName: ""
-  # -- Secret key holding the sandbox service-auth secret (SANDBOX_X_SERVICE_AUTH_JWT_SECRET): a dedicated random value, never the LangSmith api_key_salt. Its value must equal the control plane's: `sandbox_service_auth_secret` in the langsmith chart's managed Secret, or the key `sandboxes.serviceAuth.secretKey` names in its config.existingSecretName.
+  # -- Key in config.existingSecretName holding the sandbox service-auth secret (SANDBOX_X_SERVICE_AUTH_JWT_SECRET): a dedicated random value, never the LangSmith api_key_salt. Its value must equal the control plane's: `sandbox_service_auth_secret` in the langsmith chart's managed Secret, or the key `sandboxes.serviceAuth.secretKey` names in its config.existingSecretName.
   secretKey: "sandbox_service_auth_secret"
-  # -- Secret key containing the Ed25519 private JWK used to sign sandbox callbacks.
-  callbackSigningJwkSecretKey: "sandbox_callback_signing_jwk"
-  # -- Optional Secret key containing the previous service-auth key during rotation.
+  # -- Optional key in config.existingSecretName containing the previous service-auth key during rotation.
   previousSecretKey: ""
 
 workloadIdentity:
@@ -73,16 +78,10 @@ workloadIdentity:
     # -- Optional Entra tenant ID; defaults to the cluster's tenant.
     tenantId: ""
 
-customCa:
-  # -- Existing Secret containing CA certificates (PEM; one key may hold several) that sandbox-host trusts when it calls the LangSmith API, the host ingress and an https egress proxy.
-  existingSecretName: ""
-  # -- Key within customCa.existingSecretName containing the CA certificate.
-  secretKey: ""
-
 authProxy:
   # -- Route sandbox egress (the sandbox auth proxy's upstream connections) through a corporate HTTP forward proxy, as an HTTP_PROXY/HTTPS_PROXY client would: plain HTTP as standard proxy requests, HTTPS and other TCP through CONNECT. The proxy must allow CONNECT to 443 and any other TCP ports sandboxes use; nothing falls back to direct access.
   httpProxy:
-    # -- Key in serviceAuth.existingSecretName holding the proxy URL, `http://host:port` or `https://host:port` (TLS to the proxy itself, verified against customCa when set, otherwise the system roots). A missing key sends egress directly. For Basic proxy authentication use `http://user:password@host:port`, percent-encoding reserved characters; sandboxes never see the credentials. Read only from the Secret because the URL may carry credentials.
+    # -- Key in config.existingSecretName holding the proxy URL, `http://host:port` or `https://host:port` (TLS to the proxy itself, verified against config.customCa when set, otherwise the system roots). A missing key sends egress directly. For Basic proxy authentication use `http://user:password@host:port`, percent-encoding reserved characters; sandboxes never see the credentials. Read only from the Secret because the URL may carry credentials.
     urlSecretKey: "sandbox_egress_proxy_url"
     # -- Destinations dialed directly instead of through the proxy, with standard NO_PROXY matching: "internal.corp" matches the host and its subdomains, ".internal.corp" only subdomains, plus IP addresses, CIDR ranges such as "10.0.0.0/8", "host:port" entries, and "*".
     noProxy: []
@@ -207,8 +206,10 @@ sandboxHost:
     # -- Create an Ingress for sandbox-host port 19190. Enable it when the LangSmith control plane cannot reach sandbox node IPs, or when that plain-HTTP traffic would leave a trusted private network. Configure `tls` and set `sandboxes.hostIngressEndpoint` in the langsmith chart to its `https://` origin. Routes only `/internal/SandboxHost/` and `/guest-operation/`; see Host ingress in the chart README.
     enabled: false
     ingressClassName: ""
-    host: ""
+    # -- DNS hostname the Ingress serves, without a scheme, port or path. Required when the ingress is enabled.
+    hostname: ""
     annotations: {}
+    labels: {}
     tls: []
     service:
       # -- Annotations on the sandbox-host Service the Ingress points at, for example `cloud.google.com/backend-config` on GKE. They win over `commonAnnotations` on a key clash.

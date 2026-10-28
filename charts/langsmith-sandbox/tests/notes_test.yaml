@@ -16,7 +16,7 @@ tests:
       - ./values/enabled.yaml
     set:
       sandboxHost.ingress.enabled: true
-      sandboxHost.ingress.host: sandbox-hosts.example.com
+      sandboxHost.ingress.hostname: sandbox-hosts.example.com
       sandboxHost.ingress.tls:
         - secretName: sandbox-hosts-tls
           hosts:
@@ -30,7 +30,7 @@ tests:
       - ./values/enabled.yaml
     set:
       sandboxHost.ingress.enabled: true
-      sandboxHost.ingress.host: sandbox-hosts.example.com
+      sandboxHost.ingress.hostname: sandbox-hosts.example.com
     asserts:
       - matchRegexRaw:
           pattern: "without TLS, so this traffic is plain HTTP"

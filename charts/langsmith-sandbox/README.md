@@ -8,9 +8,9 @@ Helm chart to deploy the LangSmith sandbox runtime in a dedicated Kubernetes clu
 
 Install this chart in a dedicated sandbox cluster with `sandboxHost.enabled=true` while the main `langsmith` chart uses `sandboxes.enabled=true` and `sandboxes.deploymentMode=separateCluster`.
 
-The sandbox cluster must have KVM-capable `linux/amd64` nodes, network access to the LangSmith API, a JuiceFS metadata Redis using `noeviction`, and object-storage access. Set `platform.endpoint` to the externally reachable LangSmith API base including `/api`.
+The sandbox cluster must have KVM-capable `linux/amd64` nodes, network access to the LangSmith API, a JuiceFS metadata Redis using `noeviction`, and object-storage access. Set `config.endpoint` to the externally reachable LangSmith API base including `/api`.
 
-Create the Secret described under [Requirements](#requirements), then set `serviceAuth.existingSecretName`.
+Create the Secret described under [Requirements](#requirements), then set `config.existingSecretName`.
 
 For GitOps workflows that render without live cluster access, set `proxyCa.mode=existingSecret`. The default `generatedSecret` mode uses Helm `lookup` to preserve the CA, which pure render workflows cannot do.
 
@@ -20,7 +20,7 @@ By default, the LangSmith control plane connects directly to the node IPs advert
 
 The Ingress routes only `/internal/SandboxHost/` (host RPCs) and `/guest-operation/` (exec, files, tunnels, sandbox links, browser and service URLs). It does not route `/metrics` or `/readyz`; scrape and probe those on each sandbox-host pod at port 19190. Before you rely on the ingress, check:
 
-- **Who connects:** the LangSmith `platform-backend` and `ingest-queue` pods, and the sandbox hosts themselves, which dial the ingress for sandbox links. If the ingress restricts source addresses, allow both. The sandbox hosts must also resolve the ingress hostname and trust its certificate; if a private CA signs it, add that CA to `customCa`. The LangSmith pods trust a private CA through the `langsmith` chart's `config.customCa`.
+- **Who connects:** the LangSmith `platform-backend` and `ingest-queue` pods, and the sandbox hosts themselves, which dial the ingress for sandbox links. If the ingress restricts source addresses, allow both. The sandbox hosts must also resolve the ingress hostname and trust its certificate; if a private CA signs it, add that CA to `config.customCa`. The LangSmith pods trust a private CA through the `langsmith` chart's `config.customCa`.
 - **Health checks:** load balancers check the sandbox-host pods directly, not through these paths, and many check `/` (or the Ingress path) by default, which returns 404. Set the health-check path to `/readyz`. With the AWS Load Balancer Controller, add `alb.ingress.kubernetes.io/healthcheck-path: /readyz` and `alb.ingress.kubernetes.io/target-type: ip` (the Service is ClusterIP) to `sandboxHost.ingress.annotations`. On GKE, leave `ingressClassName` empty, set the `kubernetes.io/ingress.class: gce` annotation, and attach a `BackendConfig` with `healthCheck.requestPath: /readyz` and `healthCheck.port: 19190` through `sandboxHost.ingress.service.annotations` (`cloud.google.com/backend-config`).
 - **Timeouts:** LangSmith waits up to 310 seconds for an exec request, and exec streams, tunnels, sandbox links and browser sessions are long-lived WebSockets or server-sent events. Set the controller's read, idle and backend timeouts above 310 seconds, and higher if long sessions must stay open; defaults of 30 to 60 seconds cut them off. On GKE, set `timeoutSec` in the same `BackendConfig`.
 - **Request size:** file uploads go through the ingress. Raise the controller's body-size limit to at least your largest upload; on ingress-nginx set `nginx.ingress.kubernetes.io/proxy-body-size` (default `1m`).
@@ -37,11 +37,11 @@ The Ingress routes only `/internal/SandboxHost/` (host RPCs) and `/guest-operati
   - TCP 19190 from the other sandbox nodes, which forward ingress requests, dial sandbox links and send live-migration streams to each other on that port.
   - With the host ingress, TCP 19190 from its controller or load balancer.
   - This hop is plain HTTP and carries sandbox secrets, commands and files. Keep it on a private network you trust, or use the host ingress with TLS (see Host ingress above).
-  - Sandbox nodes must reach `platform.endpoint` on its port through every load balancer allowlist and egress firewall, and reach the JuiceFS Redis and object storage.
-- **`platform.endpoint`:** `https://<LangSmith hostname>[/<base path>]/api`.
-- **Secrets:** create a minimal Secret in the sandbox namespace and set `serviceAuth.existingSecretName`. Never copy the whole LangSmith application Secret. It holds:
+  - Sandbox nodes must reach `config.endpoint` on its port through every load balancer allowlist and egress firewall, and reach the JuiceFS Redis and object storage.
+- **`config.endpoint`:** `https://<LangSmith hostname>[/<base path>]/api`.
+- **Secrets:** create a minimal Secret in the sandbox namespace and set `config.existingSecretName`. Never copy the whole LangSmith application Secret. It holds:
   - the sandbox service-auth secret under `serviceAuth.secretKey` (default `sandbox_service_auth_secret`). Use a dedicated random value, never the LangSmith `api_key_salt`, which signs LangSmith's other service calls; the `langsmith` chart refuses `separateCluster` without one. Its value must equal the control plane's: `sandbox_service_auth_secret` in the `langsmith` chart's managed Secret, or the key `sandboxes.serviceAuth.secretKey` names in your `config.existingSecretName`. During a rotation, also set `serviceAuth.previousSecretKey`.
-  - the callback signing JWK under `serviceAuth.callbackSigningJwkSecretKey`, identical to the control plane's. It is an Ed25519 private JWK; one way to generate it with OpenSSL:
+  - the callback signing JWK under `config.callbackSigningJwkSecretKey`, identical to the control plane's. It is an Ed25519 private JWK; one way to generate it with OpenSSL:
 
     ```bash
     openssl genpkey -algorithm ED25519 -out callback-signing.pem
@@ -53,7 +53,7 @@ The Ingress routes only `/internal/SandboxHost/` (host RPCs) and `/guest-operati
 
   - optionally, the egress proxy URL under `authProxy.httpProxy.urlSecretKey`.
 - **Version pairing and one runtime:**
-  - Run the newest `langsmith-sandbox` chart whose appVersion equals the `langsmith` chart's (`helm search repo langchain/langsmith-sandbox --versions --devel`), and leave `images.sandboxHost.tag` empty so the image follows it.
+  - Run the newest `langsmith-sandbox` chart whose appVersion equals the `langsmith` chart's (`helm search repo langchain/langsmith-sandbox --versions --devel`), and leave `images.sandboxHostImage.tag` empty so the image follows it.
   - Upgrade `langsmith` first and this chart within days. Pin exact chart versions, never ranges.
   - Run exactly one release of this chart per LangSmith install, and only while the `langsmith` release uses `sandboxes.deploymentMode: separateCluster`. Two runtimes reporting to one install merge into one host pool and stop each other's sandboxes.
   - To move from `sameCluster`, switch the `langsmith` release to `separateCluster` first, then install this chart against the same JuiceFS metadata and bucket.
@@ -89,7 +89,7 @@ The Ingress routes only `/internal/SandboxHost/` (host RPCs) and `/guest-operati
 |-----|------|---------|-------------|
 | authProxy.httpProxy | object | `{"noProxy":[],"urlSecretKey":"sandbox_egress_proxy_url"}` | Route sandbox egress (the sandbox auth proxy's upstream connections) through a corporate HTTP forward proxy, as an HTTP_PROXY/HTTPS_PROXY client would: plain HTTP as standard proxy requests, HTTPS and other TCP through CONNECT. The proxy must allow CONNECT to 443 and any other TCP ports sandboxes use; nothing falls back to direct access. |
 | authProxy.httpProxy.noProxy | list | `[]` | Destinations dialed directly instead of through the proxy, with standard NO_PROXY matching: "internal.corp" matches the host and its subdomains, ".internal.corp" only subdomains, plus IP addresses, CIDR ranges such as "10.0.0.0/8", "host:port" entries, and "*". |
-| authProxy.httpProxy.urlSecretKey | string | `"sandbox_egress_proxy_url"` | Key in serviceAuth.existingSecretName holding the proxy URL, `http://host:port` or `https://host:port` (TLS to the proxy itself, verified against customCa when set, otherwise the system roots). A missing key sends egress directly. For Basic proxy authentication use `http://user:password@host:port`, percent-encoding reserved characters; sandboxes never see the credentials. Read only from the Secret because the URL may carry credentials. |
+| authProxy.httpProxy.urlSecretKey | string | `"sandbox_egress_proxy_url"` | Key in config.existingSecretName holding the proxy URL, `http://host:port` or `https://host:port` (TLS to the proxy itself, verified against config.customCa when set, otherwise the system roots). A missing key sends egress directly. For Basic proxy authentication use `http://user:password@host:port`, percent-encoding reserved characters; sandboxes never see the credentials. Read only from the Secret because the URL may carry credentials. |
 | commonAnnotations | object | `{}` | Annotations applied to all resources. |
 | commonDnsConfig | object | `{"options":[{"name":"ndots","value":"4"}]}` | DNS configuration applied to every sandbox runtime pod, including the JuiceFS formatter. sandbox-host resolves the external LangSmith API on each callback, so this is the hook for pointing at a specific resolver or trimming search-domain expansion. Set to null to inherit the Kubernetes defaults. |
 | commonEnv | list | `[]` | Environment variables added to sandbox-host. Applied before sandboxHost.deployment.extraEnv, and rejected at render time if a name collides with one the chart manages. |
@@ -99,14 +99,18 @@ The Ingress routes only `/internal/SandboxHost/` (host RPCs) and `/guest-operati
 | commonPodSecurityContext | object | `{}` | Pod security context merged into component-specific pod security contexts. |
 | commonVolumeMounts | list | `[]` | Volume mounts added to sandbox-host. Not applied to the JuiceFS formatter. |
 | commonVolumes | list | `[]` | Volumes added to sandbox-host. Not applied to the JuiceFS formatter, which is a one-shot Job with a fixed spec. |
-| customCa.existingSecretName | string | `""` | Existing Secret containing CA certificates (PEM; one key may hold several) that sandbox-host trusts when it calls the LangSmith API, the host ingress and an https egress proxy. |
-| customCa.secretKey | string | `""` | Key within customCa.existingSecretName containing the CA certificate. |
+| config.callbackIssuer | string | `""` | Issuer placed in sandbox callback JWTs. Defaults to config.endpoint. |
+| config.callbackSigningJwkSecretKey | string | `"sandbox_callback_signing_jwk"` | Key in config.existingSecretName containing the Ed25519 private JWK used to sign sandbox callbacks. |
+| config.customCa.secretKey | string | `""` | Key within config.customCa.secretName containing the CA certificate. |
+| config.customCa.secretName | string | `""` | Existing Secret containing CA certificates (PEM; one key may hold several) that sandbox-host trusts when it calls the LangSmith API, the host ingress and an https egress proxy. |
+| config.endpoint | string | `""` | Externally reachable LangSmith API base used for host observations and lifecycle callbacks, including the `/api` prefix. |
+| config.existingSecretName | string | `""` | Existing Secret containing only the shared sandbox service-auth key and callback-signing JWK, plus the optional egress proxy URL. The values must match the LangSmith control-plane Secret. |
 | fullnameOverride | string | `""` | String to fully override the chart's generated name. |
 | images.imagePullSecrets | list | `[]` | Image pull secrets for sandbox-host and the JuiceFS formatter. |
 | images.registry | string | `""` | Optional registry prepended to the sandbox-host repository. |
-| images.sandboxHost.pullPolicy | string | `"IfNotPresent"` |  |
-| images.sandboxHost.repository | string | `"docker.io/langchain/sandbox-host"` |  |
-| images.sandboxHost.tag | string | `""` | Leave empty to run the image matching this chart's appVersion, which is the LangSmith release it pairs with. Set it only to point at a mirror that carries the same tag; a pinned tag does not move when the chart is upgraded. |
+| images.sandboxHostImage.pullPolicy | string | `"IfNotPresent"` |  |
+| images.sandboxHostImage.repository | string | `"docker.io/langchain/sandbox-host"` |  |
+| images.sandboxHostImage.tag | string | `""` | Leave empty to run the image matching this chart's appVersion, which is the LangSmith release it pairs with. Set it only to point at a mirror that carries the same tag; a pinned tag does not move when the chart is upgraded. |
 | juicefs.bucket | string | `""` | Object storage bucket URL. S3: a region-explicit endpoint such as `https://bucket-name.s3.us-west-2.amazonaws.com`, not `s3://bucket-name`. GCS: `gs://bucket-name`. Azure: `https://<container>.blob.core.windows.net`. JuiceFS stores objects under `<juicefs.name>/`; use juicefs.name, not a bucket path, to separate volumes. |
 | juicefs.existingSecretName | string | `""` | Existing Secret with JuiceFS config keys `name`, `metaurl`, `storage` and `bucket`. For Azure, `access-key` holds the storage account name; set `secret-key` only for account-key authentication. When set, the values above are ignored. |
 | juicefs.hostMount.cacheDirs | list | `["/var/cache/juicefs"]` | Node-local paths for the JuiceFS cache, mounted from the host. Back them with local SSD or the node's temporary disk; the cache survives pod restarts on the same node, not node replacement. |
@@ -128,8 +132,6 @@ The Ingress routes only `/internal/SandboxHost/` (host RPCs) and `/guest-operati
 | juicefsFormatJob.tolerations | list | `[]` |  |
 | nameOverride | string | `""` | Provide a name in place of `langsmith-sandbox`. |
 | namespace | string | `""` | Namespace to install into. Defaults to the Helm release namespace. |
-| platform.callbackIssuer | string | `""` | Issuer placed in sandbox callback JWTs. Defaults to platform.endpoint. |
-| platform.endpoint | string | `""` | Externally reachable LangSmith API base used for host observations and lifecycle callbacks, including the `/api` prefix. |
 | proxyCa.existingSecretName | string | `""` | Existing TLS Secret containing tls.crt and tls.key. |
 | proxyCa.mode | string | `"generatedSecret"` | generatedSecret creates and reuses a self-signed sandbox proxy CA; existingSecret uses a Secret managed outside this chart. |
 | proxyCa.secretName | string | `"smithbox-proxy-ca"` |  |
@@ -163,8 +165,9 @@ The Ingress routes only `/internal/SandboxHost/` (host RPCs) and `/guest-operati
 | sandboxHost.enabled | bool | `false` | Deploy the sandbox-host runtime and supporting resources. |
 | sandboxHost.ingress.annotations | object | `{}` |  |
 | sandboxHost.ingress.enabled | bool | `false` | Create an Ingress for sandbox-host port 19190. Enable it when the LangSmith control plane cannot reach sandbox node IPs, or when that plain-HTTP traffic would leave a trusted private network. Configure `tls` and set `sandboxes.hostIngressEndpoint` in the langsmith chart to its `https://` origin. Routes only `/internal/SandboxHost/` and `/guest-operation/`; see Host ingress in the chart README. |
-| sandboxHost.ingress.host | string | `""` |  |
+| sandboxHost.ingress.hostname | string | `""` | DNS hostname the Ingress serves, without a scheme, port or path. Required when the ingress is enabled. |
 | sandboxHost.ingress.ingressClassName | string | `""` |  |
+| sandboxHost.ingress.labels | object | `{}` |  |
 | sandboxHost.ingress.service.annotations | object | `{}` | Annotations on the sandbox-host Service the Ingress points at, for example `cloud.google.com/backend-config` on GKE. They win over `commonAnnotations` on a key clash. |
 | sandboxHost.ingress.tls | list | `[]` |  |
 | sandboxHost.name | string | `"sandbox-host"` |  |
@@ -180,10 +183,8 @@ The Ingress routes only `/internal/SandboxHost/` (host RPCs) and `/guest-operati
 | sandboxHost.serviceAccount.create | bool | `true` | Create the ServiceAccount sandbox-host and the formatter run as. |
 | sandboxHost.serviceAccount.labels | object | `{}` | Extra ServiceAccount labels. |
 | sandboxHost.serviceAccount.name | string | `""` | ServiceAccount name. Defaults to the sandbox-host fullname. Set it explicitly when an IAM role trust policy or a federated credential names it. |
-| serviceAuth.callbackSigningJwkSecretKey | string | `"sandbox_callback_signing_jwk"` | Secret key containing the Ed25519 private JWK used to sign sandbox callbacks. |
-| serviceAuth.existingSecretName | string | `""` | Existing Secret containing only the shared sandbox service-auth key and callback-signing JWK. The values must match the LangSmith control-plane Secret. |
-| serviceAuth.previousSecretKey | string | `""` | Optional Secret key containing the previous service-auth key during rotation. |
-| serviceAuth.secretKey | string | `"sandbox_service_auth_secret"` | Secret key holding the sandbox service-auth secret (SANDBOX_X_SERVICE_AUTH_JWT_SECRET): a dedicated random value, never the LangSmith api_key_salt. Its value must equal the control plane's: `sandbox_service_auth_secret` in the langsmith chart's managed Secret, or the key `sandboxes.serviceAuth.secretKey` names in its config.existingSecretName. |
+| serviceAuth.previousSecretKey | string | `""` | Optional key in config.existingSecretName containing the previous service-auth key during rotation. |
+| serviceAuth.secretKey | string | `"sandbox_service_auth_secret"` | Key in config.existingSecretName holding the sandbox service-auth secret (SANDBOX_X_SERVICE_AUTH_JWT_SECRET): a dedicated random value, never the LangSmith api_key_salt. Its value must equal the control plane's: `sandbox_service_auth_secret` in the langsmith chart's managed Secret, or the key `sandboxes.serviceAuth.secretKey` names in its config.existingSecretName. |
 | workloadIdentity.aws.roleArn | string | `""` | IAM role assumed through IRSA. Required when provider is aws. |
 | workloadIdentity.azure.clientId | string | `""` | Client ID of the user-assigned managed identity. Required when provider is azure. |
 | workloadIdentity.azure.tenantId | string | `""` | Optional Entra tenant ID; defaults to the cluster's tenant. |

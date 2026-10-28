@@ -1,6 +1,5 @@
-platform:
+config:
   endpoint: https://langsmith.example.com/api
-serviceAuth:
   existingSecretName: langsmith-sandbox-runtime
 workloadIdentity:
   provider: azure

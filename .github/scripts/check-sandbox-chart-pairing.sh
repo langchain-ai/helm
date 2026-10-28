@@ -19,7 +19,7 @@ app_version() {
 }
 
 # Prints the value of the first `tag:` inside the two-space-indented block `key:`
-# of a chart's values.yaml (for example images.sandboxHost), without quotes.
+# of a chart's values.yaml (for example images.sandboxHostImage), without quotes.
 image_tag() {
   awk -v key="  $2:" '
     $0 == key { found = 1; next }
@@ -30,7 +30,7 @@ image_tag() {
 
 main_app="$(app_version "$main_chart")"
 runtime_app="$(app_version "$runtime_chart")"
-runtime_tag="$(image_tag "$runtime_chart" sandboxHost)"
+runtime_tag="$(image_tag "$runtime_chart" sandboxHostImage)"
 main_tag="$(image_tag "$main_chart" sandboxHostImage)"
 status=0
 
@@ -39,7 +39,7 @@ if [[ -z "$main_app" || "$main_app" != "$runtime_app" ]]; then
   status=1
 fi
 if [[ -n "$runtime_tag" ]]; then
-  echo "::error::charts/langsmith-sandbox images.sandboxHost.tag must be empty so the image follows the chart appVersion (found '$runtime_tag')."
+  echo "::error::charts/langsmith-sandbox images.sandboxHostImage.tag must be empty so the image follows the chart appVersion (found '$runtime_tag')."
   status=1
 fi
 if [[ "$main_tag" != "$main_app" ]]; then

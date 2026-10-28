@@ -94,13 +94,30 @@ tests:
       - hasDocuments:
           count: 0
 
+  - it: should add ingress labels without dropping the chart labels
+    values:
+      - ./values/enabled.yaml
+    set:
+      sandboxHost.ingress.enabled: true
+      sandboxHost.ingress.hostname: sandbox-host.example.com
+      sandboxHost.ingress.labels:
+        team: sandboxes
+    template: sandbox-host-ingress.yaml
+    asserts:
+      - equal:
+          path: metadata.labels.team
+          value: sandboxes
+      - equal:
+          path: metadata.labels["app.kubernetes.io/name"]
+          value: langsmith-sandbox
+
   - it: should expose the authenticated host pool through an optional ingress
     values:
       - ./values/enabled.yaml
     set:
       sandboxHost.ingress.enabled: true
       sandboxHost.ingress.ingressClassName: nginx
-      sandboxHost.ingress.host: sandbox-host.example.com
+      sandboxHost.ingress.hostname: sandbox-host.example.com
     templates:
       - sandbox-host-service.yaml
       - sandbox-host-ingress.yaml
@@ -131,7 +148,7 @@ tests:
       - ./values/enabled.yaml
     set:
       sandboxHost.ingress.enabled: true
-      sandboxHost.ingress.host: sandbox-host.example.com
+      sandboxHost.ingress.hostname: sandbox-host.example.com
     template: sandbox-host-ingress.yaml
     asserts:
       - lengthEqual:
@@ -162,7 +179,7 @@ tests:
       - ./values/enabled.yaml
     set:
       sandboxHost.ingress.enabled: true
-      sandboxHost.ingress.host: sandbox-host.example.com
+      sandboxHost.ingress.hostname: sandbox-host.example.com
       commonAnnotations:
         team: sandboxes
         cloud.google.com/backend-config: '{"default":"common"}'
@@ -229,31 +246,31 @@ tests:
     values:
       - ./values/enabled.yaml
     set:
-      serviceAuth.existingSecretName: ""
+      config.existingSecretName: ""
     template: validate.yaml
     asserts:
       - failedTemplate:
-          errorMessage: "serviceAuth.existingSecretName is required when sandboxHost.enabled is true."
+          errorMessage: "config.existingSecretName is required when sandboxHost.enabled is true."
 
   - it: should require an absolute platform endpoint
     values:
       - ./values/enabled.yaml
     set:
-      platform.endpoint: /api
+      config.endpoint: /api
     template: validate.yaml
     asserts:
       - failedTemplate:
-          errorMessage: "platform.endpoint must be an absolute HTTP(S) URL without a query string or fragment."
+          errorMessage: "config.endpoint must be an absolute HTTP(S) URL without a query string or fragment."
 
   - it: should require the public API prefix on the platform endpoint
     values:
       - ./values/enabled.yaml
     set:
-      platform.endpoint: https://langsmith.example.com
+      config.endpoint: https://langsmith.example.com
     template: validate.yaml
     asserts:
       - failedTemplate:
-          errorMessage: "platform.endpoint must include the externally reachable LangSmith /api prefix."
+          errorMessage: "config.endpoint must include the externally reachable LangSmith /api prefix."
 
   # The sandbox IRSA role trusts one ServiceAccount by name (Terraform:
   # sandbox_service_account_name, written into these values by init-values.sh).
@@ -361,7 +378,7 @@ tests:
     asserts:
       - equal:
           path: metadata.name
-          value: RELEASE-NAME-langsmith-sandbox-juicefs-format-7d31fd53
+          value: RELEASE-NAME-langsmith-sandbox-juicefs-format-62ef49ce
 
   - it: should rename the JuiceFS formatter when commonDnsConfig changes
     chart:
@@ -377,7 +394,7 @@ tests:
     asserts:
       - equal:
           path: metadata.name
-          value: RELEASE-NAME-langsmith-sandbox-juicefs-format-184278fd
+          value: RELEASE-NAME-langsmith-sandbox-juicefs-format-8a8738e1
 
   - it: should add commonEnv, volumes, mounts, and init containers to sandbox-host
     values:
@@ -494,7 +511,7 @@ tests:
     asserts:
       - equal:
           path: metadata.name
-          value: RELEASE-NAME-langsmith-sandbox-juicefs-format-3cffd856
+          value: RELEASE-NAME-langsmith-sandbox-juicefs-format-411e0f0b
 
   - it: should rename the JuiceFS formatter when the Redis IAM auth provider changes
     chart:
@@ -510,7 +527,7 @@ tests:
     asserts:
       - notEqual:
           path: metadata.name
-          value: RELEASE-NAME-langsmith-sandbox-juicefs-format-3cffd856
+          value: RELEASE-NAME-langsmith-sandbox-juicefs-format-411e0f0b
 
   # Like sandbox-host, the formatter must verify a JuiceFS Redis whose
   # certificate is signed by a private CA (for example Memorystore with TLS).
@@ -518,8 +535,8 @@ tests:
     values:
       - ./values/enabled.yaml
     set:
-      customCa.existingSecretName: langsmith-ca-bundle
-      customCa.secretKey: ca-certificates.crt
+      config.customCa.secretName: langsmith-ca-bundle
+      config.customCa.secretKey: ca-certificates.crt
     template: juicefs-format-job.yaml
     asserts:
       - contains:
@@ -565,13 +582,13 @@ tests:
     values:
       - ./values/enabled.yaml
     set:
-      customCa.existingSecretName: langsmith-ca-bundle
-      customCa.secretKey: ca-certificates.crt
+      config.customCa.secretName: langsmith-ca-bundle
+      config.customCa.secretKey: ca-certificates.crt
     template: juicefs-format-job.yaml
     asserts:
       - notEqual:
           path: metadata.name
-          value: RELEASE-NAME-langsmith-sandbox-juicefs-format-7d31fd53
+          value: RELEASE-NAME-langsmith-sandbox-juicefs-format-62ef49ce
 
   # The proxy URL can carry Basic-auth credentials, so it is only ever a
   # secretKeyRef into the runtime Secret, never a literal value.
@@ -640,7 +657,7 @@ tests:
     values:
       - ./values/enabled.yaml
     set:
-      images.sandboxHost.tag: ""
+      images.sandboxHostImage.tag: ""
     templates:
       - validate.yaml
       - sandbox-host-deployment.yaml

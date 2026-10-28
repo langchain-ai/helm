@@ -1,6 +1,6 @@
 {{- if .Values.sandboxHost.enabled }}
 {{- $job := .Values.juicefsFormatJob }}
-{{- $customCa := and .Values.customCa.existingSecretName .Values.customCa.secretKey }}
+{{- $customCa := and .Values.config.customCa.secretName .Values.config.customCa.secretKey }}
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -64,7 +64,7 @@ spec:
       containers:
         - name: juicefs-format
           image: {{ include "langsmithSandbox.image" . | quote }}
-          imagePullPolicy: {{ .Values.images.sandboxHost.pullPolicy }}
+          imagePullPolicy: {{ .Values.images.sandboxHostImage.pullPolicy }}
           command: ["/opt/sandbox-host/bin/sandbox-host"]
           args: ["--internal-juicefs-format"]
           env:
@@ -101,9 +101,9 @@ spec:
         {{- if $customCa }}
         - name: langsmith-custom-ca
           secret:
-            secretName: {{ .Values.customCa.existingSecretName }}
+            secretName: {{ .Values.config.customCa.secretName }}
             items:
-              - key: {{ .Values.customCa.secretKey }}
+              - key: {{ .Values.config.customCa.secretKey }}
                 path: ca-certificates.crt
         {{- end }}
 {{- end }}

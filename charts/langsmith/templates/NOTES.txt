@@ -26,7 +26,7 @@ As a next step, it is strongly recommended you work with your infrastructure adm
 {{- end }}
 {{- if and .Values.sandboxes.enabled (eq .Values.sandboxes.deploymentMode "separateCluster") }}
 
-Sandboxes run in a separate cluster. Install exactly one langsmith-sandbox release for this install, using the newest langsmith-sandbox chart whose appVersion is {{ .Chart.AppVersion }}, and upgrade it within days of every langsmith upgrade. Its Secret needs two values from this release's Secret: key {{ include "langsmith.sandboxes.serviceAuthSecretKey" . }} (the sandbox service-auth secret), stored under the runtime chart's serviceAuth.secretKey (default sandbox_service_auth_secret), and key sandbox_callback_signing_jwk, stored under its serviceAuth.callbackSigningJwkSecretKey. Copy only those two values, never the whole Secret.
+Sandboxes run in a separate cluster. Install exactly one langsmith-sandbox release for this install, using the newest langsmith-sandbox chart whose appVersion is {{ .Chart.AppVersion }}, and upgrade it within days of every langsmith upgrade. Its Secret needs two values from this release's Secret: key {{ include "langsmith.sandboxes.serviceAuthSecretKey" . }} (the sandbox service-auth secret), stored under the runtime chart's serviceAuth.secretKey (default sandbox_service_auth_secret), and key sandbox_callback_signing_jwk, stored under its config.callbackSigningJwkSecretKey. Copy only those two values, never the whole Secret.
 {{- end }}
 {{- if and .Values.redis.external.enabled .Values.redis.external.cluster.enabled (or .Values.redis.external.cluster.nodeUris .Values.redis.external.cluster.password) }}
 
