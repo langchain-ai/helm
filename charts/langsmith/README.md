@@ -2899,11 +2899,11 @@ The trajectory Service is cluster-internal; no public route is added. Trajectory
 | redis.external.clientCert.keySecretKey | string | `"tls.key"` |  |
 | redis.external.clientCert.secretName | string | `""` |  |
 | redis.external.cluster.enabled | bool | `false` |  |
-| redis.external.cluster.nodeUris | list | `[]` |  |
-| redis.external.cluster.nodeUrisSecretKey | string | `"redis_cluster_node_uris"` |  |
-| redis.external.cluster.password | string | `""` |  |
-| redis.external.cluster.passwordSecretKey | string | `"redis_cluster_password"` |  |
-| redis.external.cluster.tlsEnabled | bool | `true` |  |
+| redis.external.cluster.nodeUris | list | `[]` | Deprecated in v0.18, supported through v0.19: use `redis.external.connectionUrl`. Node URIs take precedence over the connection URL when set. Format: '["redis://host:port", "redis://host:port", "redis://host:port"]' |
+| redis.external.cluster.nodeUrisSecretKey | string | `"redis_cluster_node_uris"` | Deprecated in v0.18, supported through v0.19: use `redis.external.connectionUrlSecretKey`. |
+| redis.external.cluster.password | string | `""` | Deprecated in v0.18, supported through v0.19: put the password in `redis.external.connectionUrl`. |
+| redis.external.cluster.passwordSecretKey | string | `"redis_cluster_password"` | Deprecated in v0.18, supported through v0.19: put the password in the URL under `redis.external.connectionUrlSecretKey`. |
+| redis.external.cluster.tlsEnabled | bool | `true` | Deprecated in v0.18, supported through v0.19: applies only to `redis.external.cluster.nodeUris`. With `redis.external.connectionUrl`, TLS comes from the URL scheme (`rediss://`). |
 | redis.external.clusterSafeMode | bool | `false` |  |
 | redis.external.connectionUrl | string | `""` |  |
 | redis.external.connectionUrlSecretKey | string | `"connection_url"` |  |
