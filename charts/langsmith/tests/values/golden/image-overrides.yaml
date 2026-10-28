@@ -1,0 +1,7 @@
+images:
+  registry: registry.example.com
+  imagePullSecrets:
+  - name: regcred
+  sandboxHostImage:
+    pullPolicy: Always
+    tag: 0.18.17rc1

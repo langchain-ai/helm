@@ -1,0 +1,7 @@
+authProxy:
+  httpProxy:
+    noProxy:
+    - internal.example.com
+    - 10.0.0.0/8
+serviceAuth:
+  previousSecretKey: sandbox_service_auth_secret_previous

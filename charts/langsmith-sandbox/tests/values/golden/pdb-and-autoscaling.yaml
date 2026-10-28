@@ -1,0 +1,7 @@
+sandboxHost:
+  pdb:
+    enabled: true
+  autoscaling:
+    enabled: true
+    minReplicas: 1
+    maxReplicas: 4

@@ -1,0 +1,8 @@
+sandboxes:
+  sandboxHost:
+    pdb:
+      enabled: true
+      labels:
+        team: sandboxes
+      annotations:
+        example.com/owner: sandboxes

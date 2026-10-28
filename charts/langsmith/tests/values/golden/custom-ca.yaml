@@ -1,0 +1,4 @@
+config:
+  customCa:
+    secretName: langsmith-ca-bundle
+    secretKey: ca-certificates.crt

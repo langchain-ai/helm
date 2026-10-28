@@ -1,0 +1,16 @@
+sandboxes:
+  juicefsFormatJob:
+    activeDeadlineSeconds: 1800
+    labels:
+      job: format
+    annotations:
+      example.com/job: format
+    nodeSelector:
+      pool: system
+    tolerations:
+    - key: dedicated
+      operator: Exists
+    resources:
+      requests:
+        cpu: 200m
+        memory: 256Mi

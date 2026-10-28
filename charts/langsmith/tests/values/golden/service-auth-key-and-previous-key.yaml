@@ -1,0 +1,4 @@
+sandboxes:
+  serviceAuth:
+    secretKey: sandbox_service_auth_secret
+    previousSecretKey: sandbox_service_auth_secret_previous

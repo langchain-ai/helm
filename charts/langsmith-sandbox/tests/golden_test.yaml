@@ -1,0 +1,384 @@
+# Golden renders of the langsmith-sandbox chart: every object it renders is
+# snapshotted for a matrix of values, with document counts so a missing
+# object fails too. Update the snapshots with
+# `helm unittest -u charts/langsmith-sandbox` only for an intended change.
+suite: runtime chart golden renders
+templates:
+  - juicefs-config.yaml
+  - juicefs-format-job.yaml
+  - proxy-ca.yaml
+  - sandbox-host-deployment.yaml
+  - sandbox-host-ingress.yaml
+  - sandbox-host-pdb.yaml
+  - sandbox-host-rbac.yaml
+  - sandbox-host-service-account.yaml
+  - sandbox-host-service.yaml
+tests:
+  - it: default
+    chart:
+      version: 0.0.0-golden
+      appVersion: 0.0.0-golden
+    release:
+      name: langsmith-sandbox
+      namespace: langsmith-sandbox
+    values:
+      - ./values/enabled.yaml
+      - ./values/golden/base.yaml
+      - ./values/golden/default.yaml
+    asserts:
+      - matchSnapshot: {}
+      - hasDocuments:
+          count: 1
+        template: juicefs-config.yaml
+      - hasDocuments:
+          count: 1
+        template: juicefs-format-job.yaml
+      - hasDocuments:
+          count: 0
+        template: proxy-ca.yaml
+      - hasDocuments:
+          count: 1
+        template: sandbox-host-deployment.yaml
+      - hasDocuments:
+          count: 0
+        template: sandbox-host-ingress.yaml
+      - hasDocuments:
+          count: 0
+        template: sandbox-host-pdb.yaml
+      - hasDocuments:
+          count: 2
+        template: sandbox-host-rbac.yaml
+      - hasDocuments:
+          count: 1
+        template: sandbox-host-service-account.yaml
+      - hasDocuments:
+          count: 0
+        template: sandbox-host-service.yaml
+
+  - it: eks
+    chart:
+      version: 0.0.0-golden
+      appVersion: 0.0.0-golden
+    release:
+      name: langsmith-sandbox
+      namespace: langsmith-sandbox
+    values:
+      - ./values/eks.yaml
+      - ./values/golden/base.yaml
+      - ./values/golden/eks.yaml
+    asserts:
+      - matchSnapshot: {}
+      - hasDocuments:
+          count: 1
+        template: juicefs-config.yaml
+      - hasDocuments:
+          count: 1
+        template: juicefs-format-job.yaml
+      - hasDocuments:
+          count: 0
+        template: proxy-ca.yaml
+      - hasDocuments:
+          count: 1
+        template: sandbox-host-deployment.yaml
+      - hasDocuments:
+          count: 0
+        template: sandbox-host-ingress.yaml
+      - hasDocuments:
+          count: 0
+        template: sandbox-host-pdb.yaml
+      - hasDocuments:
+          count: 2
+        template: sandbox-host-rbac.yaml
+      - hasDocuments:
+          count: 1
+        template: sandbox-host-service-account.yaml
+      - hasDocuments:
+          count: 0
+        template: sandbox-host-service.yaml
+
+  - it: gke
+    chart:
+      version: 0.0.0-golden
+      appVersion: 0.0.0-golden
+    release:
+      name: langsmith-sandbox
+      namespace: langsmith-sandbox
+    values:
+      - ./values/gke.yaml
+      - ./values/golden/base.yaml
+      - ./values/golden/gke.yaml
+    asserts:
+      - matchSnapshot: {}
+      - hasDocuments:
+          count: 1
+        template: juicefs-config.yaml
+      - hasDocuments:
+          count: 1
+        template: juicefs-format-job.yaml
+      - hasDocuments:
+          count: 0
+        template: proxy-ca.yaml
+      - hasDocuments:
+          count: 1
+        template: sandbox-host-deployment.yaml
+      - hasDocuments:
+          count: 1
+        template: sandbox-host-ingress.yaml
+      - hasDocuments:
+          count: 0
+        template: sandbox-host-pdb.yaml
+      - hasDocuments:
+          count: 2
+        template: sandbox-host-rbac.yaml
+      - hasDocuments:
+          count: 1
+        template: sandbox-host-service-account.yaml
+      - hasDocuments:
+          count: 1
+        template: sandbox-host-service.yaml
+
+  - it: aks
+    chart:
+      version: 0.0.0-golden
+      appVersion: 0.0.0-golden
+    release:
+      name: langsmith-sandbox
+      namespace: langsmith-sandbox
+    values:
+      - ./values/aks.yaml
+      - ./values/golden/base.yaml
+      - ./values/golden/aks.yaml
+    asserts:
+      - matchSnapshot: {}
+      - hasDocuments:
+          count: 1
+        template: juicefs-config.yaml
+      - hasDocuments:
+          count: 1
+        template: juicefs-format-job.yaml
+      - hasDocuments:
+          count: 0
+        template: proxy-ca.yaml
+      - hasDocuments:
+          count: 1
+        template: sandbox-host-deployment.yaml
+      - hasDocuments:
+          count: 0
+        template: sandbox-host-ingress.yaml
+      - hasDocuments:
+          count: 0
+        template: sandbox-host-pdb.yaml
+      - hasDocuments:
+          count: 2
+        template: sandbox-host-rbac.yaml
+      - hasDocuments:
+          count: 1
+        template: sandbox-host-service-account.yaml
+      - hasDocuments:
+          count: 0
+        template: sandbox-host-service.yaml
+
+  - it: custom-ca
+    chart:
+      version: 0.0.0-golden
+      appVersion: 0.0.0-golden
+    release:
+      name: langsmith-sandbox
+      namespace: langsmith-sandbox
+    values:
+      - ./values/enabled.yaml
+      - ./values/golden/base.yaml
+      - ./values/golden/custom-ca.yaml
+    asserts:
+      - matchSnapshot: {}
+      - hasDocuments:
+          count: 1
+        template: juicefs-config.yaml
+      - hasDocuments:
+          count: 1
+        template: juicefs-format-job.yaml
+      - hasDocuments:
+          count: 0
+        template: proxy-ca.yaml
+      - hasDocuments:
+          count: 1
+        template: sandbox-host-deployment.yaml
+      - hasDocuments:
+          count: 0
+        template: sandbox-host-ingress.yaml
+      - hasDocuments:
+          count: 0
+        template: sandbox-host-pdb.yaml
+      - hasDocuments:
+          count: 2
+        template: sandbox-host-rbac.yaml
+      - hasDocuments:
+          count: 1
+        template: sandbox-host-service-account.yaml
+      - hasDocuments:
+          count: 0
+        template: sandbox-host-service.yaml
+
+  - it: host-ingress
+    chart:
+      version: 0.0.0-golden
+      appVersion: 0.0.0-golden
+    release:
+      name: langsmith-sandbox
+      namespace: langsmith-sandbox
+    values:
+      - ./values/enabled.yaml
+      - ./values/golden/base.yaml
+      - ./values/golden/host-ingress.yaml
+    asserts:
+      - matchSnapshot: {}
+      - hasDocuments:
+          count: 1
+        template: juicefs-config.yaml
+      - hasDocuments:
+          count: 1
+        template: juicefs-format-job.yaml
+      - hasDocuments:
+          count: 0
+        template: proxy-ca.yaml
+      - hasDocuments:
+          count: 1
+        template: sandbox-host-deployment.yaml
+      - hasDocuments:
+          count: 1
+        template: sandbox-host-ingress.yaml
+      - hasDocuments:
+          count: 0
+        template: sandbox-host-pdb.yaml
+      - hasDocuments:
+          count: 2
+        template: sandbox-host-rbac.yaml
+      - hasDocuments:
+          count: 1
+        template: sandbox-host-service-account.yaml
+      - hasDocuments:
+          count: 1
+        template: sandbox-host-service.yaml
+
+  - it: egress-proxy-and-previous-key
+    chart:
+      version: 0.0.0-golden
+      appVersion: 0.0.0-golden
+    release:
+      name: langsmith-sandbox
+      namespace: langsmith-sandbox
+    values:
+      - ./values/enabled.yaml
+      - ./values/golden/base.yaml
+      - ./values/golden/egress-proxy-and-previous-key.yaml
+    asserts:
+      - matchSnapshot: {}
+      - hasDocuments:
+          count: 1
+        template: juicefs-config.yaml
+      - hasDocuments:
+          count: 1
+        template: juicefs-format-job.yaml
+      - hasDocuments:
+          count: 0
+        template: proxy-ca.yaml
+      - hasDocuments:
+          count: 1
+        template: sandbox-host-deployment.yaml
+      - hasDocuments:
+          count: 0
+        template: sandbox-host-ingress.yaml
+      - hasDocuments:
+          count: 0
+        template: sandbox-host-pdb.yaml
+      - hasDocuments:
+          count: 2
+        template: sandbox-host-rbac.yaml
+      - hasDocuments:
+          count: 1
+        template: sandbox-host-service-account.yaml
+      - hasDocuments:
+          count: 0
+        template: sandbox-host-service.yaml
+
+  - it: pdb-and-autoscaling
+    chart:
+      version: 0.0.0-golden
+      appVersion: 0.0.0-golden
+    release:
+      name: langsmith-sandbox
+      namespace: langsmith-sandbox
+    values:
+      - ./values/enabled.yaml
+      - ./values/golden/base.yaml
+      - ./values/golden/pdb-and-autoscaling.yaml
+    asserts:
+      - matchSnapshot: {}
+      - hasDocuments:
+          count: 1
+        template: juicefs-config.yaml
+      - hasDocuments:
+          count: 1
+        template: juicefs-format-job.yaml
+      - hasDocuments:
+          count: 0
+        template: proxy-ca.yaml
+      - hasDocuments:
+          count: 1
+        template: sandbox-host-deployment.yaml
+      - hasDocuments:
+          count: 0
+        template: sandbox-host-ingress.yaml
+      - hasDocuments:
+          count: 1
+        template: sandbox-host-pdb.yaml
+      - hasDocuments:
+          count: 2
+        template: sandbox-host-rbac.yaml
+      - hasDocuments:
+          count: 1
+        template: sandbox-host-service-account.yaml
+      - hasDocuments:
+          count: 0
+        template: sandbox-host-service.yaml
+
+  - it: overrides
+    chart:
+      version: 0.0.0-golden
+      appVersion: 0.0.0-golden
+    release:
+      name: langsmith-sandbox
+      namespace: langsmith-sandbox
+    values:
+      - ./values/enabled.yaml
+      - ./values/golden/base.yaml
+      - ./values/golden/overrides.yaml
+    asserts:
+      - matchSnapshot: {}
+      - hasDocuments:
+          count: 1
+        template: juicefs-config.yaml
+      - hasDocuments:
+          count: 1
+        template: juicefs-format-job.yaml
+      - hasDocuments:
+          count: 0
+        template: proxy-ca.yaml
+      - hasDocuments:
+          count: 1
+        template: sandbox-host-deployment.yaml
+      - hasDocuments:
+          count: 0
+        template: sandbox-host-ingress.yaml
+      - hasDocuments:
+          count: 0
+        template: sandbox-host-pdb.yaml
+      - hasDocuments:
+          count: 2
+        template: sandbox-host-rbac.yaml
+      - hasDocuments:
+          count: 1
+        template: sandbox-host-service-account.yaml
+      - hasDocuments:
+          count: 0
+        template: sandbox-host-service.yaml

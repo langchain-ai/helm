@@ -1,0 +1,5 @@
+sandboxes:
+  sandboxHost:
+    serviceAccount:
+      annotations:
+        iam.gke.io/gcp-service-account: sandbox-host@project.iam.gserviceaccount.com

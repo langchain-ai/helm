@@ -1,0 +1,11 @@
+sandboxes:
+  sandboxHost:
+    serviceAccount:
+      annotations:
+        azure.workload.identity/client-id: 00000000-0000-0000-0000-000000000000
+    deployment:
+      labels:
+        azure.workload.identity/use: 'true'
+  juicefsFormatJob:
+    labels:
+      azure.workload.identity/use: 'true'

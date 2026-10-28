@@ -1,0 +1,3278 @@
+aks:
+  1: |
+    apiVersion: v1
+    kind: Secret
+    metadata:
+      annotations:
+        argocd.argoproj.io/sync-wave: "-2"
+      labels:
+        app.kubernetes.io/instance: langsmith-sandbox
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: langsmith-sandbox
+        helm.sh/chart: langsmith-sandbox-0.0.0-golden
+      name: langsmith-sandbox-juicefs-config
+      namespace: langsmith-sandbox
+    stringData:
+      access-key: langsmithsandbox
+      bucket: https://juicefs.blob.core.windows.net
+      metaurl: rediss://langsmith-sandbox.westus2.redis.azure.net:10000/0
+      name: sandbox-juicefs
+      storage: wasb
+    type: Opaque
+  2: |
+    apiVersion: batch/v1
+    kind: Job
+    metadata:
+      annotations:
+        argocd.argoproj.io/sync-wave: "-1"
+      labels:
+        app.kubernetes.io/component: juicefs-format
+        app.kubernetes.io/instance: langsmith-sandbox
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: langsmith-sandbox
+        helm.sh/chart: langsmith-sandbox-0.0.0-golden
+      name: langsmith-sandbox-juicefs-format-66251a60
+      namespace: langsmith-sandbox
+    spec:
+      activeDeadlineSeconds: 900
+      backoffLimit: 3
+      completions: 1
+      parallelism: 1
+      template:
+        metadata:
+          annotations: null
+          labels:
+            app.kubernetes.io/component: juicefs-format
+            app.kubernetes.io/instance: langsmith-sandbox
+            app.kubernetes.io/name: langsmith-sandbox
+            azure.workload.identity/use: "true"
+        spec:
+          automountServiceAccountToken: true
+          containers:
+            - args:
+                - --internal-juicefs-format
+              command:
+                - /opt/sandbox-host/bin/sandbox-host
+              env:
+                - name: LANGCHAIN_ENV
+                  value: local_kubernetes
+                - name: SANDBOX_HOST_JUICEFS_REDIS_IAM_AUTH_PROVIDER
+                  value: azure
+              image: docker.io/langchain/sandbox-host:0.0.0-golden
+              imagePullPolicy: IfNotPresent
+              name: juicefs-format
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 128Mi
+              securityContext:
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop:
+                    - ALL
+              volumeMounts:
+                - mountPath: /run/secrets/juicefs
+                  name: juicefs-config
+                  readOnly: true
+          dnsConfig:
+            options:
+              - name: ndots
+                value: "4"
+          nodeSelector:
+            sandbox.langsmith.com/host: "true"
+          restartPolicy: Never
+          securityContext: {}
+          serviceAccountName: langsmith-sandbox-host
+          tolerations:
+            - effect: NoSchedule
+              key: sandbox.langsmith.com/host
+              operator: Equal
+              value: "true"
+          volumes:
+            - name: juicefs-config
+              secret:
+                defaultMode: 256
+                secretName: langsmith-sandbox-juicefs-config
+  3: |
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      annotations: null
+      labels:
+        app: sandbox-host
+        app.kubernetes.io/component: langsmith-sandbox-sandbox-host
+        app.kubernetes.io/instance: langsmith-sandbox
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: langsmith-sandbox
+        azure.workload.identity/use: "true"
+        helm.sh/chart: langsmith-sandbox-0.0.0-golden
+      name: langsmith-sandbox-sandbox-host
+      namespace: langsmith-sandbox
+    spec:
+      replicas: 1
+      selector:
+        matchLabels:
+          app.kubernetes.io/component: langsmith-sandbox-sandbox-host
+          app.kubernetes.io/instance: langsmith-sandbox
+          app.kubernetes.io/name: langsmith-sandbox
+      strategy:
+        rollingUpdate:
+          maxSurge: 0
+          maxUnavailable: 1
+        type: RollingUpdate
+      template:
+        metadata:
+          annotations:
+            checksum/juicefs-config: 29af195818d17646eb34bcb3287201a4ac8a7c45d44723ccf92a46be58a9cbc6
+          labels:
+            app: sandbox-host
+            app.kubernetes.io/component: langsmith-sandbox-sandbox-host
+            app.kubernetes.io/instance: langsmith-sandbox
+            app.kubernetes.io/managed-by: Helm
+            app.kubernetes.io/name: langsmith-sandbox
+            azure.workload.identity/use: "true"
+        spec:
+          affinity:
+            podAntiAffinity:
+              requiredDuringSchedulingIgnoredDuringExecution:
+                - labelSelector:
+                    matchLabels:
+                      app.kubernetes.io/component: langsmith-sandbox-sandbox-host
+                      app.kubernetes.io/instance: langsmith-sandbox
+                      app.kubernetes.io/name: langsmith-sandbox
+                  topologyKey: kubernetes.io/hostname
+          automountServiceAccountToken: true
+          containers:
+            - env:
+                - name: LANGCHAIN_ENV
+                  value: local_kubernetes
+                - name: POD_NAME
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: metadata.name
+                - name: POD_NAMESPACE
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: metadata.namespace
+                - name: POD_UID
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: metadata.uid
+                - name: POD_HOST_IP
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: status.hostIP
+                - name: SANDBOX_X_SERVICE_AUTH_JWT_SECRET
+                  valueFrom:
+                    secretKeyRef:
+                      key: sandbox_service_auth_secret
+                      name: langsmith-sandbox-runtime
+                - name: SANDBOX_HOST_PROXY_CA_DIR
+                  value: /certs
+                - name: LANGSMITH_SANDBOX_CALLBACK_SIGNING_JWK
+                  valueFrom:
+                    secretKeyRef:
+                      key: sandbox_callback_signing_jwk
+                      name: langsmith-sandbox-runtime
+                - name: OAUTH_AS_ISSUER
+                  value: https://langsmith.example.com/api
+                - name: SSRF_ALLOW_PRIVATE_IPS_CALLBACKS
+                  value: "true"
+                - name: SANDBOX_CALLBACK_LOOPBACK_REWRITE
+                  value: "false"
+                - name: SANDBOX_EGRESS_UPSTREAM_PROXY_URL
+                  valueFrom:
+                    secretKeyRef:
+                      key: sandbox_egress_proxy_url
+                      name: langsmith-sandbox-runtime
+                      optional: true
+                - name: LANGSMITH_SANDBOX_INTERNAL_ENDPOINT
+                  value: https://langsmith.example.com/api
+                - name: LANGSMITH_APP_VERSION
+                  value: 0.0.0-golden
+                - name: SANDBOX_HOST_DEPLOYMENT_NAME
+                  value: langsmith-sandbox-sandbox-host
+                - name: SANDBOX_HOST_TERMINATION_GRACE_SECONDS
+                  value: "300"
+                - name: SANDBOX_HOST_JUICEFS_META_URL_FILE
+                  value: /run/secrets/juicefs/metaurl
+                - name: SANDBOX_HOST_JUICEFS_MOUNT_OPTIONS
+                  value: '["--cache-dir=/mnt/juicefs-cache","--cache-size=51200","--cache-large-write"]'
+                - name: SANDBOX_HOST_JUICEFS_REDIS_IAM_AUTH_PROVIDER
+                  value: azure
+                - name: SANDBOX_HOST_AUTOSCALE_ENABLED
+                  value: "false"
+              image: docker.io/langchain/sandbox-host:0.0.0-golden
+              imagePullPolicy: IfNotPresent
+              name: sandbox-host
+              ports:
+                - containerPort: 19190
+                  hostPort: 19190
+                  name: http
+                  protocol: TCP
+              readinessProbe:
+                failureThreshold: 3
+                httpGet:
+                  path: /readyz
+                  port: http
+                initialDelaySeconds: 5
+                periodSeconds: 10
+                timeoutSeconds: 3
+              resources:
+                requests:
+                  cpu: "2"
+                  memory: 2Gi
+              securityContext:
+                privileged: true
+              volumeMounts:
+                - mountPath: /juicefs
+                  name: juicefs
+                - mountPath: /mnt/juicefs-cache
+                  name: juicefs-cache-0
+                - mountPath: /run/secrets/juicefs
+                  name: juicefs-meta
+                  readOnly: true
+                - mountPath: /host-bin
+                  name: host-bin
+                - mountPath: /certs
+                  name: proxy-ca
+                  readOnly: true
+          dnsConfig:
+            options:
+              - name: ndots
+                value: "4"
+          dnsPolicy: ClusterFirstWithHostNet
+          hostNetwork: true
+          nodeSelector:
+            sandbox.langsmith.com/host: "true"
+          securityContext: {}
+          serviceAccountName: langsmith-sandbox-host
+          terminationGracePeriodSeconds: 300
+          tolerations:
+            - effect: NoSchedule
+              key: sandbox.langsmith.com/host
+              operator: Equal
+              value: "true"
+          volumes:
+            - emptyDir: {}
+              name: juicefs
+            - hostPath:
+                path: /mnt/juicefs-cache
+                type: DirectoryOrCreate
+              name: juicefs-cache-0
+            - name: juicefs-meta
+              secret:
+                defaultMode: 256
+                items:
+                  - key: metaurl
+                    path: metaurl
+                secretName: langsmith-sandbox-juicefs-config
+            - name: proxy-ca
+              secret:
+                secretName: sandbox-proxy-ca
+            - hostPath:
+                path: /var/lib/sandbox-host
+                type: DirectoryOrCreate
+              name: host-bin
+  4: |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: Role
+    metadata:
+      annotations: null
+      labels:
+        app.kubernetes.io/instance: langsmith-sandbox
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: langsmith-sandbox
+        helm.sh/chart: langsmith-sandbox-0.0.0-golden
+      name: langsmith-sandbox-sandbox-host
+      namespace: langsmith-sandbox
+    rules:
+      - apiGroups:
+          - coordination.k8s.io
+        resources:
+          - leases
+        verbs:
+          - create
+          - delete
+          - get
+          - list
+          - update
+          - watch
+      - apiGroups:
+          - apps
+        resourceNames:
+          - langsmith-sandbox-sandbox-host
+        resources:
+          - deployments
+        verbs:
+          - get
+          - patch
+      - apiGroups:
+          - ""
+        resources:
+          - pods
+        verbs:
+          - patch
+  5: |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: RoleBinding
+    metadata:
+      annotations: null
+      labels:
+        app.kubernetes.io/instance: langsmith-sandbox
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: langsmith-sandbox
+        helm.sh/chart: langsmith-sandbox-0.0.0-golden
+      name: langsmith-sandbox-sandbox-host
+      namespace: langsmith-sandbox
+    roleRef:
+      apiGroup: rbac.authorization.k8s.io
+      kind: Role
+      name: langsmith-sandbox-sandbox-host
+    subjects:
+      - kind: ServiceAccount
+        name: langsmith-sandbox-host
+        namespace: langsmith-sandbox
+  6: |
+    apiVersion: v1
+    automountServiceAccountToken: true
+    kind: ServiceAccount
+    metadata:
+      annotations:
+        argocd.argoproj.io/sync-wave: "-2"
+        azure.workload.identity/client-id: 00000000-0000-0000-0000-000000000001
+      labels:
+        app.kubernetes.io/instance: langsmith-sandbox
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: langsmith-sandbox
+        helm.sh/chart: langsmith-sandbox-0.0.0-golden
+      name: langsmith-sandbox-host
+      namespace: langsmith-sandbox
+custom-ca:
+  1: |
+    apiVersion: v1
+    kind: Secret
+    metadata:
+      annotations:
+        argocd.argoproj.io/sync-wave: "-2"
+      labels:
+        app.kubernetes.io/instance: langsmith-sandbox
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: langsmith-sandbox
+        helm.sh/chart: langsmith-sandbox-0.0.0-golden
+      name: langsmith-sandbox-juicefs-config
+      namespace: langsmith-sandbox
+    stringData:
+      bucket: https://langsmith-sandboxes-test.s3.us-west-2.amazonaws.com
+      metaurl: redis://sandbox-juicefs-redis.example.com:6379/0
+      name: sandbox-juicefs
+      storage: s3
+    type: Opaque
+  2: |
+    apiVersion: batch/v1
+    kind: Job
+    metadata:
+      annotations:
+        argocd.argoproj.io/sync-wave: "-1"
+      labels:
+        app.kubernetes.io/component: juicefs-format
+        app.kubernetes.io/instance: langsmith-sandbox
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: langsmith-sandbox
+        helm.sh/chart: langsmith-sandbox-0.0.0-golden
+      name: langsmith-sandbox-juicefs-format-ab5d3002
+      namespace: langsmith-sandbox
+    spec:
+      activeDeadlineSeconds: 900
+      backoffLimit: 3
+      completions: 1
+      parallelism: 1
+      template:
+        metadata:
+          annotations: null
+          labels:
+            app.kubernetes.io/component: juicefs-format
+            app.kubernetes.io/instance: langsmith-sandbox
+            app.kubernetes.io/name: langsmith-sandbox
+        spec:
+          automountServiceAccountToken: true
+          containers:
+            - args:
+                - --internal-juicefs-format
+              command:
+                - /opt/sandbox-host/bin/sandbox-host
+              env:
+                - name: LANGCHAIN_ENV
+                  value: local_kubernetes
+                - name: SSL_CERT_FILE
+                  value: /etc/ssl/certs/custom-ca-certificates.crt
+              image: example.com/langsmith/sandbox-host:test-sandbox-host
+              imagePullPolicy: IfNotPresent
+              name: juicefs-format
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 128Mi
+              securityContext:
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop:
+                    - ALL
+              volumeMounts:
+                - mountPath: /run/secrets/juicefs
+                  name: juicefs-config
+                  readOnly: true
+                - mountPath: /etc/ssl/certs/custom-ca-certificates.crt
+                  name: langsmith-custom-ca
+                  readOnly: true
+                  subPath: ca-certificates.crt
+          dnsConfig:
+            options:
+              - name: ndots
+                value: "4"
+          nodeSelector:
+            sandbox.langsmith.com/host: "true"
+          restartPolicy: Never
+          securityContext: {}
+          serviceAccountName: langsmith-sandbox-sandbox-host
+          tolerations:
+            - effect: NoSchedule
+              key: sandbox.langsmith.com/host
+              operator: Equal
+              value: "true"
+          volumes:
+            - name: juicefs-config
+              secret:
+                defaultMode: 256
+                secretName: langsmith-sandbox-juicefs-config
+            - name: langsmith-custom-ca
+              secret:
+                items:
+                  - key: ca-certificates.crt
+                    path: ca-certificates.crt
+                secretName: langsmith-ca-bundle
+  3: |
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      annotations: null
+      labels:
+        app: sandbox-host
+        app.kubernetes.io/component: langsmith-sandbox-sandbox-host
+        app.kubernetes.io/instance: langsmith-sandbox
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: langsmith-sandbox
+        helm.sh/chart: langsmith-sandbox-0.0.0-golden
+      name: langsmith-sandbox-sandbox-host
+      namespace: langsmith-sandbox
+    spec:
+      replicas: 1
+      selector:
+        matchLabels:
+          app.kubernetes.io/component: langsmith-sandbox-sandbox-host
+          app.kubernetes.io/instance: langsmith-sandbox
+          app.kubernetes.io/name: langsmith-sandbox
+      strategy:
+        rollingUpdate:
+          maxSurge: 0
+          maxUnavailable: 1
+        type: RollingUpdate
+      template:
+        metadata:
+          annotations:
+            checksum/juicefs-config: cd918f7ee230a90b7f554930a9f240ef5959e6618a27fd47fab7982c96742864
+          labels:
+            app: sandbox-host
+            app.kubernetes.io/component: langsmith-sandbox-sandbox-host
+            app.kubernetes.io/instance: langsmith-sandbox
+            app.kubernetes.io/managed-by: Helm
+            app.kubernetes.io/name: langsmith-sandbox
+        spec:
+          affinity:
+            podAntiAffinity:
+              requiredDuringSchedulingIgnoredDuringExecution:
+                - labelSelector:
+                    matchLabels:
+                      app.kubernetes.io/component: langsmith-sandbox-sandbox-host
+                      app.kubernetes.io/instance: langsmith-sandbox
+                      app.kubernetes.io/name: langsmith-sandbox
+                  topologyKey: kubernetes.io/hostname
+          automountServiceAccountToken: true
+          containers:
+            - env:
+                - name: LANGCHAIN_ENV
+                  value: local_kubernetes
+                - name: POD_NAME
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: metadata.name
+                - name: POD_NAMESPACE
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: metadata.namespace
+                - name: POD_UID
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: metadata.uid
+                - name: POD_HOST_IP
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: status.hostIP
+                - name: SANDBOX_X_SERVICE_AUTH_JWT_SECRET
+                  valueFrom:
+                    secretKeyRef:
+                      key: sandbox_service_auth_secret
+                      name: langsmith-sandbox-runtime
+                - name: SANDBOX_HOST_PROXY_CA_DIR
+                  value: /certs
+                - name: LANGSMITH_SANDBOX_CALLBACK_SIGNING_JWK
+                  valueFrom:
+                    secretKeyRef:
+                      key: sandbox_callback_signing_jwk
+                      name: langsmith-sandbox-runtime
+                - name: OAUTH_AS_ISSUER
+                  value: https://langsmith.example.com/api
+                - name: SSRF_ALLOW_PRIVATE_IPS_CALLBACKS
+                  value: "true"
+                - name: SANDBOX_CALLBACK_LOOPBACK_REWRITE
+                  value: "false"
+                - name: SANDBOX_EGRESS_UPSTREAM_PROXY_URL
+                  valueFrom:
+                    secretKeyRef:
+                      key: sandbox_egress_proxy_url
+                      name: langsmith-sandbox-runtime
+                      optional: true
+                - name: LANGSMITH_SANDBOX_INTERNAL_ENDPOINT
+                  value: https://langsmith.example.com/api
+                - name: LANGSMITH_APP_VERSION
+                  value: test-sandbox-host
+                - name: SANDBOX_HOST_DEPLOYMENT_NAME
+                  value: langsmith-sandbox-sandbox-host
+                - name: SANDBOX_HOST_TERMINATION_GRACE_SECONDS
+                  value: "300"
+                - name: SANDBOX_HOST_JUICEFS_META_URL_FILE
+                  value: /run/secrets/juicefs/metaurl
+                - name: SANDBOX_HOST_JUICEFS_MOUNT_OPTIONS
+                  value: '["--cache-dir=/var/cache/juicefs","--cache-size=51200","--cache-large-write"]'
+                - name: SANDBOX_HOST_AUTOSCALE_ENABLED
+                  value: "false"
+                - name: SSL_CERT_FILE
+                  value: /etc/ssl/certs/custom-ca-certificates.crt
+              image: example.com/langsmith/sandbox-host:test-sandbox-host
+              imagePullPolicy: IfNotPresent
+              name: sandbox-host
+              ports:
+                - containerPort: 19190
+                  hostPort: 19190
+                  name: http
+                  protocol: TCP
+              readinessProbe:
+                failureThreshold: 3
+                httpGet:
+                  path: /readyz
+                  port: http
+                initialDelaySeconds: 5
+                periodSeconds: 10
+                timeoutSeconds: 3
+              resources:
+                requests:
+                  cpu: "2"
+                  memory: 2Gi
+              securityContext:
+                privileged: true
+              volumeMounts:
+                - mountPath: /juicefs
+                  name: juicefs
+                - mountPath: /var/cache/juicefs
+                  name: juicefs-cache-0
+                - mountPath: /run/secrets/juicefs
+                  name: juicefs-meta
+                  readOnly: true
+                - mountPath: /host-bin
+                  name: host-bin
+                - mountPath: /certs
+                  name: proxy-ca
+                  readOnly: true
+                - mountPath: /etc/ssl/certs/custom-ca-certificates.crt
+                  name: langsmith-custom-ca
+                  readOnly: true
+                  subPath: ca-certificates.crt
+          dnsConfig:
+            options:
+              - name: ndots
+                value: "4"
+          dnsPolicy: ClusterFirstWithHostNet
+          hostNetwork: true
+          nodeSelector:
+            sandbox.langsmith.com/host: "true"
+          securityContext: {}
+          serviceAccountName: langsmith-sandbox-sandbox-host
+          terminationGracePeriodSeconds: 300
+          tolerations:
+            - effect: NoSchedule
+              key: sandbox.langsmith.com/host
+              operator: Equal
+              value: "true"
+          volumes:
+            - emptyDir: {}
+              name: juicefs
+            - hostPath:
+                path: /var/cache/juicefs
+                type: DirectoryOrCreate
+              name: juicefs-cache-0
+            - name: juicefs-meta
+              secret:
+                defaultMode: 256
+                items:
+                  - key: metaurl
+                    path: metaurl
+                secretName: langsmith-sandbox-juicefs-config
+            - name: proxy-ca
+              secret:
+                secretName: sandbox-proxy-ca
+            - hostPath:
+                path: /var/lib/sandbox-host
+                type: DirectoryOrCreate
+              name: host-bin
+            - name: langsmith-custom-ca
+              secret:
+                items:
+                  - key: ca-certificates.crt
+                    path: ca-certificates.crt
+                secretName: langsmith-ca-bundle
+  4: |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: Role
+    metadata:
+      annotations: null
+      labels:
+        app.kubernetes.io/instance: langsmith-sandbox
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: langsmith-sandbox
+        helm.sh/chart: langsmith-sandbox-0.0.0-golden
+      name: langsmith-sandbox-sandbox-host
+      namespace: langsmith-sandbox
+    rules:
+      - apiGroups:
+          - coordination.k8s.io
+        resources:
+          - leases
+        verbs:
+          - create
+          - delete
+          - get
+          - list
+          - update
+          - watch
+      - apiGroups:
+          - apps
+        resourceNames:
+          - langsmith-sandbox-sandbox-host
+        resources:
+          - deployments
+        verbs:
+          - get
+          - patch
+      - apiGroups:
+          - ""
+        resources:
+          - pods
+        verbs:
+          - patch
+  5: |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: RoleBinding
+    metadata:
+      annotations: null
+      labels:
+        app.kubernetes.io/instance: langsmith-sandbox
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: langsmith-sandbox
+        helm.sh/chart: langsmith-sandbox-0.0.0-golden
+      name: langsmith-sandbox-sandbox-host
+      namespace: langsmith-sandbox
+    roleRef:
+      apiGroup: rbac.authorization.k8s.io
+      kind: Role
+      name: langsmith-sandbox-sandbox-host
+    subjects:
+      - kind: ServiceAccount
+        name: langsmith-sandbox-sandbox-host
+        namespace: langsmith-sandbox
+  6: |
+    apiVersion: v1
+    automountServiceAccountToken: true
+    kind: ServiceAccount
+    metadata:
+      annotations:
+        argocd.argoproj.io/sync-wave: "-2"
+      labels:
+        app.kubernetes.io/instance: langsmith-sandbox
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: langsmith-sandbox
+        helm.sh/chart: langsmith-sandbox-0.0.0-golden
+      name: langsmith-sandbox-sandbox-host
+      namespace: langsmith-sandbox
+default:
+  1: |
+    apiVersion: v1
+    kind: Secret
+    metadata:
+      annotations:
+        argocd.argoproj.io/sync-wave: "-2"
+      labels:
+        app.kubernetes.io/instance: langsmith-sandbox
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: langsmith-sandbox
+        helm.sh/chart: langsmith-sandbox-0.0.0-golden
+      name: langsmith-sandbox-juicefs-config
+      namespace: langsmith-sandbox
+    stringData:
+      bucket: https://langsmith-sandboxes-test.s3.us-west-2.amazonaws.com
+      metaurl: redis://sandbox-juicefs-redis.example.com:6379/0
+      name: sandbox-juicefs
+      storage: s3
+    type: Opaque
+  2: |
+    apiVersion: batch/v1
+    kind: Job
+    metadata:
+      annotations:
+        argocd.argoproj.io/sync-wave: "-1"
+      labels:
+        app.kubernetes.io/component: juicefs-format
+        app.kubernetes.io/instance: langsmith-sandbox
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: langsmith-sandbox
+        helm.sh/chart: langsmith-sandbox-0.0.0-golden
+      name: langsmith-sandbox-juicefs-format-32d7362a
+      namespace: langsmith-sandbox
+    spec:
+      activeDeadlineSeconds: 900
+      backoffLimit: 3
+      completions: 1
+      parallelism: 1
+      template:
+        metadata:
+          annotations: null
+          labels:
+            app.kubernetes.io/component: juicefs-format
+            app.kubernetes.io/instance: langsmith-sandbox
+            app.kubernetes.io/name: langsmith-sandbox
+        spec:
+          automountServiceAccountToken: true
+          containers:
+            - args:
+                - --internal-juicefs-format
+              command:
+                - /opt/sandbox-host/bin/sandbox-host
+              env:
+                - name: LANGCHAIN_ENV
+                  value: local_kubernetes
+              image: example.com/langsmith/sandbox-host:test-sandbox-host
+              imagePullPolicy: IfNotPresent
+              name: juicefs-format
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 128Mi
+              securityContext:
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop:
+                    - ALL
+              volumeMounts:
+                - mountPath: /run/secrets/juicefs
+                  name: juicefs-config
+                  readOnly: true
+          dnsConfig:
+            options:
+              - name: ndots
+                value: "4"
+          nodeSelector:
+            sandbox.langsmith.com/host: "true"
+          restartPolicy: Never
+          securityContext: {}
+          serviceAccountName: langsmith-sandbox-sandbox-host
+          tolerations:
+            - effect: NoSchedule
+              key: sandbox.langsmith.com/host
+              operator: Equal
+              value: "true"
+          volumes:
+            - name: juicefs-config
+              secret:
+                defaultMode: 256
+                secretName: langsmith-sandbox-juicefs-config
+  3: |
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      annotations: null
+      labels:
+        app: sandbox-host
+        app.kubernetes.io/component: langsmith-sandbox-sandbox-host
+        app.kubernetes.io/instance: langsmith-sandbox
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: langsmith-sandbox
+        helm.sh/chart: langsmith-sandbox-0.0.0-golden
+      name: langsmith-sandbox-sandbox-host
+      namespace: langsmith-sandbox
+    spec:
+      replicas: 1
+      selector:
+        matchLabels:
+          app.kubernetes.io/component: langsmith-sandbox-sandbox-host
+          app.kubernetes.io/instance: langsmith-sandbox
+          app.kubernetes.io/name: langsmith-sandbox
+      strategy:
+        rollingUpdate:
+          maxSurge: 0
+          maxUnavailable: 1
+        type: RollingUpdate
+      template:
+        metadata:
+          annotations:
+            checksum/juicefs-config: cd918f7ee230a90b7f554930a9f240ef5959e6618a27fd47fab7982c96742864
+          labels:
+            app: sandbox-host
+            app.kubernetes.io/component: langsmith-sandbox-sandbox-host
+            app.kubernetes.io/instance: langsmith-sandbox
+            app.kubernetes.io/managed-by: Helm
+            app.kubernetes.io/name: langsmith-sandbox
+        spec:
+          affinity:
+            podAntiAffinity:
+              requiredDuringSchedulingIgnoredDuringExecution:
+                - labelSelector:
+                    matchLabels:
+                      app.kubernetes.io/component: langsmith-sandbox-sandbox-host
+                      app.kubernetes.io/instance: langsmith-sandbox
+                      app.kubernetes.io/name: langsmith-sandbox
+                  topologyKey: kubernetes.io/hostname
+          automountServiceAccountToken: true
+          containers:
+            - env:
+                - name: LANGCHAIN_ENV
+                  value: local_kubernetes
+                - name: POD_NAME
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: metadata.name
+                - name: POD_NAMESPACE
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: metadata.namespace
+                - name: POD_UID
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: metadata.uid
+                - name: POD_HOST_IP
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: status.hostIP
+                - name: SANDBOX_X_SERVICE_AUTH_JWT_SECRET
+                  valueFrom:
+                    secretKeyRef:
+                      key: sandbox_service_auth_secret
+                      name: langsmith-sandbox-runtime
+                - name: SANDBOX_HOST_PROXY_CA_DIR
+                  value: /certs
+                - name: LANGSMITH_SANDBOX_CALLBACK_SIGNING_JWK
+                  valueFrom:
+                    secretKeyRef:
+                      key: sandbox_callback_signing_jwk
+                      name: langsmith-sandbox-runtime
+                - name: OAUTH_AS_ISSUER
+                  value: https://langsmith.example.com/api
+                - name: SSRF_ALLOW_PRIVATE_IPS_CALLBACKS
+                  value: "true"
+                - name: SANDBOX_CALLBACK_LOOPBACK_REWRITE
+                  value: "false"
+                - name: SANDBOX_EGRESS_UPSTREAM_PROXY_URL
+                  valueFrom:
+                    secretKeyRef:
+                      key: sandbox_egress_proxy_url
+                      name: langsmith-sandbox-runtime
+                      optional: true
+                - name: LANGSMITH_SANDBOX_INTERNAL_ENDPOINT
+                  value: https://langsmith.example.com/api
+                - name: LANGSMITH_APP_VERSION
+                  value: test-sandbox-host
+                - name: SANDBOX_HOST_DEPLOYMENT_NAME
+                  value: langsmith-sandbox-sandbox-host
+                - name: SANDBOX_HOST_TERMINATION_GRACE_SECONDS
+                  value: "300"
+                - name: SANDBOX_HOST_JUICEFS_META_URL_FILE
+                  value: /run/secrets/juicefs/metaurl
+                - name: SANDBOX_HOST_JUICEFS_MOUNT_OPTIONS
+                  value: '["--cache-dir=/var/cache/juicefs","--cache-size=51200","--cache-large-write"]'
+                - name: SANDBOX_HOST_AUTOSCALE_ENABLED
+                  value: "false"
+              image: example.com/langsmith/sandbox-host:test-sandbox-host
+              imagePullPolicy: IfNotPresent
+              name: sandbox-host
+              ports:
+                - containerPort: 19190
+                  hostPort: 19190
+                  name: http
+                  protocol: TCP
+              readinessProbe:
+                failureThreshold: 3
+                httpGet:
+                  path: /readyz
+                  port: http
+                initialDelaySeconds: 5
+                periodSeconds: 10
+                timeoutSeconds: 3
+              resources:
+                requests:
+                  cpu: "2"
+                  memory: 2Gi
+              securityContext:
+                privileged: true
+              volumeMounts:
+                - mountPath: /juicefs
+                  name: juicefs
+                - mountPath: /var/cache/juicefs
+                  name: juicefs-cache-0
+                - mountPath: /run/secrets/juicefs
+                  name: juicefs-meta
+                  readOnly: true
+                - mountPath: /host-bin
+                  name: host-bin
+                - mountPath: /certs
+                  name: proxy-ca
+                  readOnly: true
+          dnsConfig:
+            options:
+              - name: ndots
+                value: "4"
+          dnsPolicy: ClusterFirstWithHostNet
+          hostNetwork: true
+          nodeSelector:
+            sandbox.langsmith.com/host: "true"
+          securityContext: {}
+          serviceAccountName: langsmith-sandbox-sandbox-host
+          terminationGracePeriodSeconds: 300
+          tolerations:
+            - effect: NoSchedule
+              key: sandbox.langsmith.com/host
+              operator: Equal
+              value: "true"
+          volumes:
+            - emptyDir: {}
+              name: juicefs
+            - hostPath:
+                path: /var/cache/juicefs
+                type: DirectoryOrCreate
+              name: juicefs-cache-0
+            - name: juicefs-meta
+              secret:
+                defaultMode: 256
+                items:
+                  - key: metaurl
+                    path: metaurl
+                secretName: langsmith-sandbox-juicefs-config
+            - name: proxy-ca
+              secret:
+                secretName: sandbox-proxy-ca
+            - hostPath:
+                path: /var/lib/sandbox-host
+                type: DirectoryOrCreate
+              name: host-bin
+  4: |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: Role
+    metadata:
+      annotations: null
+      labels:
+        app.kubernetes.io/instance: langsmith-sandbox
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: langsmith-sandbox
+        helm.sh/chart: langsmith-sandbox-0.0.0-golden
+      name: langsmith-sandbox-sandbox-host
+      namespace: langsmith-sandbox
+    rules:
+      - apiGroups:
+          - coordination.k8s.io
+        resources:
+          - leases
+        verbs:
+          - create
+          - delete
+          - get
+          - list
+          - update
+          - watch
+      - apiGroups:
+          - apps
+        resourceNames:
+          - langsmith-sandbox-sandbox-host
+        resources:
+          - deployments
+        verbs:
+          - get
+          - patch
+      - apiGroups:
+          - ""
+        resources:
+          - pods
+        verbs:
+          - patch
+  5: |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: RoleBinding
+    metadata:
+      annotations: null
+      labels:
+        app.kubernetes.io/instance: langsmith-sandbox
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: langsmith-sandbox
+        helm.sh/chart: langsmith-sandbox-0.0.0-golden
+      name: langsmith-sandbox-sandbox-host
+      namespace: langsmith-sandbox
+    roleRef:
+      apiGroup: rbac.authorization.k8s.io
+      kind: Role
+      name: langsmith-sandbox-sandbox-host
+    subjects:
+      - kind: ServiceAccount
+        name: langsmith-sandbox-sandbox-host
+        namespace: langsmith-sandbox
+  6: |
+    apiVersion: v1
+    automountServiceAccountToken: true
+    kind: ServiceAccount
+    metadata:
+      annotations:
+        argocd.argoproj.io/sync-wave: "-2"
+      labels:
+        app.kubernetes.io/instance: langsmith-sandbox
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: langsmith-sandbox
+        helm.sh/chart: langsmith-sandbox-0.0.0-golden
+      name: langsmith-sandbox-sandbox-host
+      namespace: langsmith-sandbox
+egress-proxy-and-previous-key:
+  1: |
+    apiVersion: v1
+    kind: Secret
+    metadata:
+      annotations:
+        argocd.argoproj.io/sync-wave: "-2"
+      labels:
+        app.kubernetes.io/instance: langsmith-sandbox
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: langsmith-sandbox
+        helm.sh/chart: langsmith-sandbox-0.0.0-golden
+      name: langsmith-sandbox-juicefs-config
+      namespace: langsmith-sandbox
+    stringData:
+      bucket: https://langsmith-sandboxes-test.s3.us-west-2.amazonaws.com
+      metaurl: redis://sandbox-juicefs-redis.example.com:6379/0
+      name: sandbox-juicefs
+      storage: s3
+    type: Opaque
+  2: |
+    apiVersion: batch/v1
+    kind: Job
+    metadata:
+      annotations:
+        argocd.argoproj.io/sync-wave: "-1"
+      labels:
+        app.kubernetes.io/component: juicefs-format
+        app.kubernetes.io/instance: langsmith-sandbox
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: langsmith-sandbox
+        helm.sh/chart: langsmith-sandbox-0.0.0-golden
+      name: langsmith-sandbox-juicefs-format-32d7362a
+      namespace: langsmith-sandbox
+    spec:
+      activeDeadlineSeconds: 900
+      backoffLimit: 3
+      completions: 1
+      parallelism: 1
+      template:
+        metadata:
+          annotations: null
+          labels:
+            app.kubernetes.io/component: juicefs-format
+            app.kubernetes.io/instance: langsmith-sandbox
+            app.kubernetes.io/name: langsmith-sandbox
+        spec:
+          automountServiceAccountToken: true
+          containers:
+            - args:
+                - --internal-juicefs-format
+              command:
+                - /opt/sandbox-host/bin/sandbox-host
+              env:
+                - name: LANGCHAIN_ENV
+                  value: local_kubernetes
+              image: example.com/langsmith/sandbox-host:test-sandbox-host
+              imagePullPolicy: IfNotPresent
+              name: juicefs-format
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 128Mi
+              securityContext:
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop:
+                    - ALL
+              volumeMounts:
+                - mountPath: /run/secrets/juicefs
+                  name: juicefs-config
+                  readOnly: true
+          dnsConfig:
+            options:
+              - name: ndots
+                value: "4"
+          nodeSelector:
+            sandbox.langsmith.com/host: "true"
+          restartPolicy: Never
+          securityContext: {}
+          serviceAccountName: langsmith-sandbox-sandbox-host
+          tolerations:
+            - effect: NoSchedule
+              key: sandbox.langsmith.com/host
+              operator: Equal
+              value: "true"
+          volumes:
+            - name: juicefs-config
+              secret:
+                defaultMode: 256
+                secretName: langsmith-sandbox-juicefs-config
+  3: |
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      annotations: null
+      labels:
+        app: sandbox-host
+        app.kubernetes.io/component: langsmith-sandbox-sandbox-host
+        app.kubernetes.io/instance: langsmith-sandbox
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: langsmith-sandbox
+        helm.sh/chart: langsmith-sandbox-0.0.0-golden
+      name: langsmith-sandbox-sandbox-host
+      namespace: langsmith-sandbox
+    spec:
+      replicas: 1
+      selector:
+        matchLabels:
+          app.kubernetes.io/component: langsmith-sandbox-sandbox-host
+          app.kubernetes.io/instance: langsmith-sandbox
+          app.kubernetes.io/name: langsmith-sandbox
+      strategy:
+        rollingUpdate:
+          maxSurge: 0
+          maxUnavailable: 1
+        type: RollingUpdate
+      template:
+        metadata:
+          annotations:
+            checksum/juicefs-config: cd918f7ee230a90b7f554930a9f240ef5959e6618a27fd47fab7982c96742864
+          labels:
+            app: sandbox-host
+            app.kubernetes.io/component: langsmith-sandbox-sandbox-host
+            app.kubernetes.io/instance: langsmith-sandbox
+            app.kubernetes.io/managed-by: Helm
+            app.kubernetes.io/name: langsmith-sandbox
+        spec:
+          affinity:
+            podAntiAffinity:
+              requiredDuringSchedulingIgnoredDuringExecution:
+                - labelSelector:
+                    matchLabels:
+                      app.kubernetes.io/component: langsmith-sandbox-sandbox-host
+                      app.kubernetes.io/instance: langsmith-sandbox
+                      app.kubernetes.io/name: langsmith-sandbox
+                  topologyKey: kubernetes.io/hostname
+          automountServiceAccountToken: true
+          containers:
+            - env:
+                - name: LANGCHAIN_ENV
+                  value: local_kubernetes
+                - name: POD_NAME
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: metadata.name
+                - name: POD_NAMESPACE
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: metadata.namespace
+                - name: POD_UID
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: metadata.uid
+                - name: POD_HOST_IP
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: status.hostIP
+                - name: SANDBOX_X_SERVICE_AUTH_JWT_SECRET
+                  valueFrom:
+                    secretKeyRef:
+                      key: sandbox_service_auth_secret
+                      name: langsmith-sandbox-runtime
+                - name: SANDBOX_X_SERVICE_AUTH_JWT_SECRET_PREVIOUS
+                  valueFrom:
+                    secretKeyRef:
+                      key: sandbox_service_auth_secret_previous
+                      name: langsmith-sandbox-runtime
+                      optional: true
+                - name: SANDBOX_HOST_PROXY_CA_DIR
+                  value: /certs
+                - name: LANGSMITH_SANDBOX_CALLBACK_SIGNING_JWK
+                  valueFrom:
+                    secretKeyRef:
+                      key: sandbox_callback_signing_jwk
+                      name: langsmith-sandbox-runtime
+                - name: OAUTH_AS_ISSUER
+                  value: https://langsmith.example.com/api
+                - name: SSRF_ALLOW_PRIVATE_IPS_CALLBACKS
+                  value: "true"
+                - name: SANDBOX_CALLBACK_LOOPBACK_REWRITE
+                  value: "false"
+                - name: SANDBOX_EGRESS_UPSTREAM_PROXY_URL
+                  valueFrom:
+                    secretKeyRef:
+                      key: sandbox_egress_proxy_url
+                      name: langsmith-sandbox-runtime
+                      optional: true
+                - name: SANDBOX_EGRESS_UPSTREAM_PROXY_NO_PROXY
+                  value: internal.example.com,10.0.0.0/8
+                - name: LANGSMITH_SANDBOX_INTERNAL_ENDPOINT
+                  value: https://langsmith.example.com/api
+                - name: LANGSMITH_APP_VERSION
+                  value: test-sandbox-host
+                - name: SANDBOX_HOST_DEPLOYMENT_NAME
+                  value: langsmith-sandbox-sandbox-host
+                - name: SANDBOX_HOST_TERMINATION_GRACE_SECONDS
+                  value: "300"
+                - name: SANDBOX_HOST_JUICEFS_META_URL_FILE
+                  value: /run/secrets/juicefs/metaurl
+                - name: SANDBOX_HOST_JUICEFS_MOUNT_OPTIONS
+                  value: '["--cache-dir=/var/cache/juicefs","--cache-size=51200","--cache-large-write"]'
+                - name: SANDBOX_HOST_AUTOSCALE_ENABLED
+                  value: "false"
+              image: example.com/langsmith/sandbox-host:test-sandbox-host
+              imagePullPolicy: IfNotPresent
+              name: sandbox-host
+              ports:
+                - containerPort: 19190
+                  hostPort: 19190
+                  name: http
+                  protocol: TCP
+              readinessProbe:
+                failureThreshold: 3
+                httpGet:
+                  path: /readyz
+                  port: http
+                initialDelaySeconds: 5
+                periodSeconds: 10
+                timeoutSeconds: 3
+              resources:
+                requests:
+                  cpu: "2"
+                  memory: 2Gi
+              securityContext:
+                privileged: true
+              volumeMounts:
+                - mountPath: /juicefs
+                  name: juicefs
+                - mountPath: /var/cache/juicefs
+                  name: juicefs-cache-0
+                - mountPath: /run/secrets/juicefs
+                  name: juicefs-meta
+                  readOnly: true
+                - mountPath: /host-bin
+                  name: host-bin
+                - mountPath: /certs
+                  name: proxy-ca
+                  readOnly: true
+          dnsConfig:
+            options:
+              - name: ndots
+                value: "4"
+          dnsPolicy: ClusterFirstWithHostNet
+          hostNetwork: true
+          nodeSelector:
+            sandbox.langsmith.com/host: "true"
+          securityContext: {}
+          serviceAccountName: langsmith-sandbox-sandbox-host
+          terminationGracePeriodSeconds: 300
+          tolerations:
+            - effect: NoSchedule
+              key: sandbox.langsmith.com/host
+              operator: Equal
+              value: "true"
+          volumes:
+            - emptyDir: {}
+              name: juicefs
+            - hostPath:
+                path: /var/cache/juicefs
+                type: DirectoryOrCreate
+              name: juicefs-cache-0
+            - name: juicefs-meta
+              secret:
+                defaultMode: 256
+                items:
+                  - key: metaurl
+                    path: metaurl
+                secretName: langsmith-sandbox-juicefs-config
+            - name: proxy-ca
+              secret:
+                secretName: sandbox-proxy-ca
+            - hostPath:
+                path: /var/lib/sandbox-host
+                type: DirectoryOrCreate
+              name: host-bin
+  4: |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: Role
+    metadata:
+      annotations: null
+      labels:
+        app.kubernetes.io/instance: langsmith-sandbox
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: langsmith-sandbox
+        helm.sh/chart: langsmith-sandbox-0.0.0-golden
+      name: langsmith-sandbox-sandbox-host
+      namespace: langsmith-sandbox
+    rules:
+      - apiGroups:
+          - coordination.k8s.io
+        resources:
+          - leases
+        verbs:
+          - create
+          - delete
+          - get
+          - list
+          - update
+          - watch
+      - apiGroups:
+          - apps
+        resourceNames:
+          - langsmith-sandbox-sandbox-host
+        resources:
+          - deployments
+        verbs:
+          - get
+          - patch
+      - apiGroups:
+          - ""
+        resources:
+          - pods
+        verbs:
+          - patch
+  5: |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: RoleBinding
+    metadata:
+      annotations: null
+      labels:
+        app.kubernetes.io/instance: langsmith-sandbox
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: langsmith-sandbox
+        helm.sh/chart: langsmith-sandbox-0.0.0-golden
+      name: langsmith-sandbox-sandbox-host
+      namespace: langsmith-sandbox
+    roleRef:
+      apiGroup: rbac.authorization.k8s.io
+      kind: Role
+      name: langsmith-sandbox-sandbox-host
+    subjects:
+      - kind: ServiceAccount
+        name: langsmith-sandbox-sandbox-host
+        namespace: langsmith-sandbox
+  6: |
+    apiVersion: v1
+    automountServiceAccountToken: true
+    kind: ServiceAccount
+    metadata:
+      annotations:
+        argocd.argoproj.io/sync-wave: "-2"
+      labels:
+        app.kubernetes.io/instance: langsmith-sandbox
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: langsmith-sandbox
+        helm.sh/chart: langsmith-sandbox-0.0.0-golden
+      name: langsmith-sandbox-sandbox-host
+      namespace: langsmith-sandbox
+eks:
+  1: |
+    apiVersion: v1
+    kind: Secret
+    metadata:
+      annotations:
+        argocd.argoproj.io/sync-wave: "-2"
+      labels:
+        app.kubernetes.io/instance: langsmith-sandbox
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: langsmith-sandbox
+        helm.sh/chart: langsmith-sandbox-0.0.0-golden
+      name: langsmith-sandbox-juicefs-config
+      namespace: langsmith-sandbox
+    stringData:
+      bucket: https://langsmith-sandboxes.s3.us-west-2.amazonaws.com
+      metaurl: rediss://langsmith-sandbox.example.cache.amazonaws.com:6379/0
+      name: sandbox-juicefs
+      storage: s3
+    type: Opaque
+  2: |
+    apiVersion: batch/v1
+    kind: Job
+    metadata:
+      annotations:
+        argocd.argoproj.io/sync-wave: "-1"
+      labels:
+        app.kubernetes.io/component: juicefs-format
+        app.kubernetes.io/instance: langsmith-sandbox
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: langsmith-sandbox
+        helm.sh/chart: langsmith-sandbox-0.0.0-golden
+      name: langsmith-sandbox-juicefs-format-b54862ee
+      namespace: langsmith-sandbox
+    spec:
+      activeDeadlineSeconds: 900
+      backoffLimit: 3
+      completions: 1
+      parallelism: 1
+      template:
+        metadata:
+          annotations: null
+          labels:
+            app.kubernetes.io/component: juicefs-format
+            app.kubernetes.io/instance: langsmith-sandbox
+            app.kubernetes.io/name: langsmith-sandbox
+        spec:
+          automountServiceAccountToken: true
+          containers:
+            - args:
+                - --internal-juicefs-format
+              command:
+                - /opt/sandbox-host/bin/sandbox-host
+              env:
+                - name: LANGCHAIN_ENV
+                  value: local_kubernetes
+              image: docker.io/langchain/sandbox-host:0.0.0-golden
+              imagePullPolicy: IfNotPresent
+              name: juicefs-format
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 128Mi
+              securityContext:
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop:
+                    - ALL
+              volumeMounts:
+                - mountPath: /run/secrets/juicefs
+                  name: juicefs-config
+                  readOnly: true
+          dnsConfig:
+            options:
+              - name: ndots
+                value: "4"
+          nodeSelector:
+            sandbox.langsmith.com/host: "true"
+          restartPolicy: Never
+          securityContext: {}
+          serviceAccountName: langsmith-sandbox-host
+          tolerations:
+            - effect: NoSchedule
+              key: sandbox.langsmith.com/host
+              operator: Equal
+              value: "true"
+          volumes:
+            - name: juicefs-config
+              secret:
+                defaultMode: 256
+                secretName: langsmith-sandbox-juicefs-config
+  3: |
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      annotations: null
+      labels:
+        app: sandbox-host
+        app.kubernetes.io/component: langsmith-sandbox-sandbox-host
+        app.kubernetes.io/instance: langsmith-sandbox
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: langsmith-sandbox
+        helm.sh/chart: langsmith-sandbox-0.0.0-golden
+      name: langsmith-sandbox-sandbox-host
+      namespace: langsmith-sandbox
+    spec:
+      replicas: 1
+      selector:
+        matchLabels:
+          app.kubernetes.io/component: langsmith-sandbox-sandbox-host
+          app.kubernetes.io/instance: langsmith-sandbox
+          app.kubernetes.io/name: langsmith-sandbox
+      strategy:
+        rollingUpdate:
+          maxSurge: 0
+          maxUnavailable: 1
+        type: RollingUpdate
+      template:
+        metadata:
+          annotations:
+            checksum/juicefs-config: 1cd555fb6af1b0d32c2e1c307d7e9195e0cb4f5d451694eedf72fdb2d02b75a2
+          labels:
+            app: sandbox-host
+            app.kubernetes.io/component: langsmith-sandbox-sandbox-host
+            app.kubernetes.io/instance: langsmith-sandbox
+            app.kubernetes.io/managed-by: Helm
+            app.kubernetes.io/name: langsmith-sandbox
+        spec:
+          affinity:
+            podAntiAffinity:
+              requiredDuringSchedulingIgnoredDuringExecution:
+                - labelSelector:
+                    matchLabels:
+                      app.kubernetes.io/component: langsmith-sandbox-sandbox-host
+                      app.kubernetes.io/instance: langsmith-sandbox
+                      app.kubernetes.io/name: langsmith-sandbox
+                  topologyKey: kubernetes.io/hostname
+          automountServiceAccountToken: true
+          containers:
+            - env:
+                - name: LANGCHAIN_ENV
+                  value: local_kubernetes
+                - name: POD_NAME
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: metadata.name
+                - name: POD_NAMESPACE
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: metadata.namespace
+                - name: POD_UID
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: metadata.uid
+                - name: POD_HOST_IP
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: status.hostIP
+                - name: SANDBOX_X_SERVICE_AUTH_JWT_SECRET
+                  valueFrom:
+                    secretKeyRef:
+                      key: sandbox_service_auth_secret
+                      name: langsmith-sandbox-runtime
+                - name: SANDBOX_HOST_PROXY_CA_DIR
+                  value: /certs
+                - name: LANGSMITH_SANDBOX_CALLBACK_SIGNING_JWK
+                  valueFrom:
+                    secretKeyRef:
+                      key: sandbox_callback_signing_jwk
+                      name: langsmith-sandbox-runtime
+                - name: OAUTH_AS_ISSUER
+                  value: https://langsmith.example.com/api
+                - name: SSRF_ALLOW_PRIVATE_IPS_CALLBACKS
+                  value: "true"
+                - name: SANDBOX_CALLBACK_LOOPBACK_REWRITE
+                  value: "false"
+                - name: SANDBOX_EGRESS_UPSTREAM_PROXY_URL
+                  valueFrom:
+                    secretKeyRef:
+                      key: sandbox_egress_proxy_url
+                      name: langsmith-sandbox-runtime
+                      optional: true
+                - name: LANGSMITH_SANDBOX_INTERNAL_ENDPOINT
+                  value: https://langsmith.example.com/api
+                - name: LANGSMITH_APP_VERSION
+                  value: 0.0.0-golden
+                - name: SANDBOX_HOST_DEPLOYMENT_NAME
+                  value: langsmith-sandbox-sandbox-host
+                - name: SANDBOX_HOST_TERMINATION_GRACE_SECONDS
+                  value: "300"
+                - name: SANDBOX_HOST_JUICEFS_META_URL_FILE
+                  value: /run/secrets/juicefs/metaurl
+                - name: SANDBOX_HOST_JUICEFS_MOUNT_OPTIONS
+                  value: '["--cache-dir=/var/cache/juicefs","--cache-size=51200","--cache-large-write"]'
+                - name: SANDBOX_HOST_AUTOSCALE_ENABLED
+                  value: "false"
+              image: docker.io/langchain/sandbox-host:0.0.0-golden
+              imagePullPolicy: IfNotPresent
+              name: sandbox-host
+              ports:
+                - containerPort: 19190
+                  hostPort: 19190
+                  name: http
+                  protocol: TCP
+              readinessProbe:
+                failureThreshold: 3
+                httpGet:
+                  path: /readyz
+                  port: http
+                initialDelaySeconds: 5
+                periodSeconds: 10
+                timeoutSeconds: 3
+              resources:
+                requests:
+                  cpu: "2"
+                  memory: 2Gi
+              securityContext:
+                privileged: true
+              volumeMounts:
+                - mountPath: /juicefs
+                  name: juicefs
+                - mountPath: /var/cache/juicefs
+                  name: juicefs-cache-0
+                - mountPath: /run/secrets/juicefs
+                  name: juicefs-meta
+                  readOnly: true
+                - mountPath: /host-bin
+                  name: host-bin
+                - mountPath: /certs
+                  name: proxy-ca
+                  readOnly: true
+          dnsConfig:
+            options:
+              - name: ndots
+                value: "4"
+          dnsPolicy: ClusterFirstWithHostNet
+          hostNetwork: true
+          nodeSelector:
+            sandbox.langsmith.com/host: "true"
+          securityContext: {}
+          serviceAccountName: langsmith-sandbox-host
+          terminationGracePeriodSeconds: 300
+          tolerations:
+            - effect: NoSchedule
+              key: sandbox.langsmith.com/host
+              operator: Equal
+              value: "true"
+          volumes:
+            - emptyDir: {}
+              name: juicefs
+            - hostPath:
+                path: /var/cache/juicefs
+                type: DirectoryOrCreate
+              name: juicefs-cache-0
+            - name: juicefs-meta
+              secret:
+                defaultMode: 256
+                items:
+                  - key: metaurl
+                    path: metaurl
+                secretName: langsmith-sandbox-juicefs-config
+            - name: proxy-ca
+              secret:
+                secretName: sandbox-proxy-ca
+            - hostPath:
+                path: /var/lib/sandbox-host
+                type: DirectoryOrCreate
+              name: host-bin
+  4: |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: Role
+    metadata:
+      annotations: null
+      labels:
+        app.kubernetes.io/instance: langsmith-sandbox
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: langsmith-sandbox
+        helm.sh/chart: langsmith-sandbox-0.0.0-golden
+      name: langsmith-sandbox-sandbox-host
+      namespace: langsmith-sandbox
+    rules:
+      - apiGroups:
+          - coordination.k8s.io
+        resources:
+          - leases
+        verbs:
+          - create
+          - delete
+          - get
+          - list
+          - update
+          - watch
+      - apiGroups:
+          - apps
+        resourceNames:
+          - langsmith-sandbox-sandbox-host
+        resources:
+          - deployments
+        verbs:
+          - get
+          - patch
+      - apiGroups:
+          - ""
+        resources:
+          - pods
+        verbs:
+          - patch
+  5: |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: RoleBinding
+    metadata:
+      annotations: null
+      labels:
+        app.kubernetes.io/instance: langsmith-sandbox
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: langsmith-sandbox
+        helm.sh/chart: langsmith-sandbox-0.0.0-golden
+      name: langsmith-sandbox-sandbox-host
+      namespace: langsmith-sandbox
+    roleRef:
+      apiGroup: rbac.authorization.k8s.io
+      kind: Role
+      name: langsmith-sandbox-sandbox-host
+    subjects:
+      - kind: ServiceAccount
+        name: langsmith-sandbox-host
+        namespace: langsmith-sandbox
+  6: |
+    apiVersion: v1
+    automountServiceAccountToken: true
+    kind: ServiceAccount
+    metadata:
+      annotations:
+        argocd.argoproj.io/sync-wave: "-2"
+        eks.amazonaws.com/role-arn: arn:aws:iam::123456789012:role/langsmith-sandbox-host
+      labels:
+        app.kubernetes.io/instance: langsmith-sandbox
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: langsmith-sandbox
+        helm.sh/chart: langsmith-sandbox-0.0.0-golden
+      name: langsmith-sandbox-host
+      namespace: langsmith-sandbox
+gke:
+  1: |
+    apiVersion: v1
+    kind: Secret
+    metadata:
+      annotations:
+        argocd.argoproj.io/sync-wave: "-2"
+      labels:
+        app.kubernetes.io/instance: langsmith-sandbox
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: langsmith-sandbox
+        helm.sh/chart: langsmith-sandbox-0.0.0-golden
+      name: langsmith-sandbox-juicefs-config
+      namespace: langsmith-sandbox
+    stringData:
+      bucket: gs://langsmith-sandbox-juicefs
+      metaurl: rediss://10.0.0.5:6379/0
+      name: sandbox-juicefs
+      storage: gs
+    type: Opaque
+  2: |
+    apiVersion: batch/v1
+    kind: Job
+    metadata:
+      annotations:
+        argocd.argoproj.io/sync-wave: "-1"
+      labels:
+        app.kubernetes.io/component: juicefs-format
+        app.kubernetes.io/instance: langsmith-sandbox
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: langsmith-sandbox
+        helm.sh/chart: langsmith-sandbox-0.0.0-golden
+      name: langsmith-sandbox-juicefs-format-f33bd948
+      namespace: langsmith-sandbox
+    spec:
+      activeDeadlineSeconds: 900
+      backoffLimit: 3
+      completions: 1
+      parallelism: 1
+      template:
+        metadata:
+          annotations: null
+          labels:
+            app.kubernetes.io/component: juicefs-format
+            app.kubernetes.io/instance: langsmith-sandbox
+            app.kubernetes.io/name: langsmith-sandbox
+        spec:
+          automountServiceAccountToken: true
+          containers:
+            - args:
+                - --internal-juicefs-format
+              command:
+                - /opt/sandbox-host/bin/sandbox-host
+              env:
+                - name: LANGCHAIN_ENV
+                  value: local_kubernetes
+                - name: SANDBOX_HOST_JUICEFS_REDIS_IAM_AUTH_PROVIDER
+                  value: gcp
+              image: docker.io/langchain/sandbox-host:0.0.0-golden
+              imagePullPolicy: IfNotPresent
+              name: juicefs-format
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 128Mi
+              securityContext:
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop:
+                    - ALL
+              volumeMounts:
+                - mountPath: /run/secrets/juicefs
+                  name: juicefs-config
+                  readOnly: true
+          dnsConfig:
+            options:
+              - name: ndots
+                value: "4"
+          dnsPolicy: ClusterFirstWithHostNet
+          hostNetwork: true
+          nodeSelector:
+            sandbox.langsmith.com/host: "true"
+          restartPolicy: Never
+          securityContext: {}
+          serviceAccountName: langsmith-sandbox-sandbox-host
+          tolerations:
+            - effect: NoSchedule
+              key: sandbox.langsmith.com/host
+              operator: Equal
+              value: "true"
+          volumes:
+            - name: juicefs-config
+              secret:
+                defaultMode: 256
+                secretName: langsmith-sandbox-juicefs-config
+  3: |
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      annotations: null
+      labels:
+        app: sandbox-host
+        app.kubernetes.io/component: langsmith-sandbox-sandbox-host
+        app.kubernetes.io/instance: langsmith-sandbox
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: langsmith-sandbox
+        helm.sh/chart: langsmith-sandbox-0.0.0-golden
+      name: langsmith-sandbox-sandbox-host
+      namespace: langsmith-sandbox
+    spec:
+      replicas: 1
+      selector:
+        matchLabels:
+          app.kubernetes.io/component: langsmith-sandbox-sandbox-host
+          app.kubernetes.io/instance: langsmith-sandbox
+          app.kubernetes.io/name: langsmith-sandbox
+      strategy:
+        rollingUpdate:
+          maxSurge: 0
+          maxUnavailable: 1
+        type: RollingUpdate
+      template:
+        metadata:
+          annotations:
+            checksum/juicefs-config: 9ae371233dd9c88b4c39a3061bc487555048fcf447958dbfdd7d541719404e68
+          labels:
+            app: sandbox-host
+            app.kubernetes.io/component: langsmith-sandbox-sandbox-host
+            app.kubernetes.io/instance: langsmith-sandbox
+            app.kubernetes.io/managed-by: Helm
+            app.kubernetes.io/name: langsmith-sandbox
+        spec:
+          affinity:
+            podAntiAffinity:
+              requiredDuringSchedulingIgnoredDuringExecution:
+                - labelSelector:
+                    matchLabels:
+                      app.kubernetes.io/component: langsmith-sandbox-sandbox-host
+                      app.kubernetes.io/instance: langsmith-sandbox
+                      app.kubernetes.io/name: langsmith-sandbox
+                  topologyKey: kubernetes.io/hostname
+          automountServiceAccountToken: true
+          containers:
+            - env:
+                - name: LANGCHAIN_ENV
+                  value: local_kubernetes
+                - name: POD_NAME
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: metadata.name
+                - name: POD_NAMESPACE
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: metadata.namespace
+                - name: POD_UID
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: metadata.uid
+                - name: POD_HOST_IP
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: status.hostIP
+                - name: SANDBOX_X_SERVICE_AUTH_JWT_SECRET
+                  valueFrom:
+                    secretKeyRef:
+                      key: sandbox_service_auth_secret
+                      name: langsmith-sandbox-runtime
+                - name: SANDBOX_HOST_PROXY_CA_DIR
+                  value: /certs
+                - name: LANGSMITH_SANDBOX_CALLBACK_SIGNING_JWK
+                  valueFrom:
+                    secretKeyRef:
+                      key: sandbox_callback_signing_jwk
+                      name: langsmith-sandbox-runtime
+                - name: OAUTH_AS_ISSUER
+                  value: https://langsmith.example.com/api
+                - name: SSRF_ALLOW_PRIVATE_IPS_CALLBACKS
+                  value: "true"
+                - name: SANDBOX_CALLBACK_LOOPBACK_REWRITE
+                  value: "false"
+                - name: SANDBOX_EGRESS_UPSTREAM_PROXY_URL
+                  valueFrom:
+                    secretKeyRef:
+                      key: sandbox_egress_proxy_url
+                      name: langsmith-sandbox-runtime
+                      optional: true
+                - name: LANGSMITH_SANDBOX_INTERNAL_ENDPOINT
+                  value: https://langsmith.example.com/api
+                - name: LANGSMITH_APP_VERSION
+                  value: 0.0.0-golden
+                - name: SANDBOX_HOST_DEPLOYMENT_NAME
+                  value: langsmith-sandbox-sandbox-host
+                - name: SANDBOX_HOST_TERMINATION_GRACE_SECONDS
+                  value: "300"
+                - name: SANDBOX_HOST_JUICEFS_META_URL_FILE
+                  value: /run/secrets/juicefs/metaurl
+                - name: SANDBOX_HOST_JUICEFS_MOUNT_OPTIONS
+                  value: '["--cache-dir=/mnt/disks/local-ssd/juicefs","--cache-size=51200","--cache-large-write"]'
+                - name: SANDBOX_HOST_JUICEFS_REDIS_IAM_AUTH_PROVIDER
+                  value: gcp
+                - name: SANDBOX_HOST_AUTOSCALE_ENABLED
+                  value: "false"
+              image: docker.io/langchain/sandbox-host:0.0.0-golden
+              imagePullPolicy: IfNotPresent
+              name: sandbox-host
+              ports:
+                - containerPort: 19190
+                  hostPort: 19190
+                  name: http
+                  protocol: TCP
+              readinessProbe:
+                failureThreshold: 3
+                httpGet:
+                  path: /readyz
+                  port: http
+                initialDelaySeconds: 5
+                periodSeconds: 10
+                timeoutSeconds: 3
+              resources:
+                requests:
+                  cpu: "2"
+                  memory: 2Gi
+              securityContext:
+                privileged: true
+              volumeMounts:
+                - mountPath: /juicefs
+                  name: juicefs
+                - mountPath: /mnt/disks/local-ssd/juicefs
+                  name: juicefs-cache-0
+                - mountPath: /run/secrets/juicefs
+                  name: juicefs-meta
+                  readOnly: true
+                - mountPath: /host-bin
+                  name: host-bin
+                - mountPath: /certs
+                  name: proxy-ca
+                  readOnly: true
+          dnsConfig:
+            options:
+              - name: ndots
+                value: "4"
+          dnsPolicy: ClusterFirstWithHostNet
+          hostNetwork: true
+          nodeSelector:
+            sandbox.langsmith.com/host: "true"
+          securityContext: {}
+          serviceAccountName: langsmith-sandbox-sandbox-host
+          terminationGracePeriodSeconds: 300
+          tolerations:
+            - effect: NoSchedule
+              key: sandbox.langsmith.com/host
+              operator: Equal
+              value: "true"
+          volumes:
+            - emptyDir: {}
+              name: juicefs
+            - hostPath:
+                path: /mnt/disks/local-ssd/juicefs
+                type: DirectoryOrCreate
+              name: juicefs-cache-0
+            - name: juicefs-meta
+              secret:
+                defaultMode: 256
+                items:
+                  - key: metaurl
+                    path: metaurl
+                secretName: langsmith-sandbox-juicefs-config
+            - name: proxy-ca
+              secret:
+                secretName: sandbox-proxy-ca
+            - hostPath:
+                path: /var/lib/sandbox-host
+                type: DirectoryOrCreate
+              name: host-bin
+  4: |
+    apiVersion: networking.k8s.io/v1
+    kind: Ingress
+    metadata:
+      annotations:
+        kubernetes.io/ingress.class: gce
+      labels:
+        app.kubernetes.io/instance: langsmith-sandbox
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: langsmith-sandbox
+        helm.sh/chart: langsmith-sandbox-0.0.0-golden
+      name: langsmith-sandbox-sandbox-host
+      namespace: langsmith-sandbox
+    spec:
+      rules:
+        - host: sandbox-hosts.example.com
+          http:
+            paths:
+              - backend:
+                  service:
+                    name: langsmith-sandbox-sandbox-host
+                    port:
+                      number: 19190
+                path: /internal/SandboxHost/
+                pathType: Prefix
+              - backend:
+                  service:
+                    name: langsmith-sandbox-sandbox-host
+                    port:
+                      number: 19190
+                path: /guest-operation/
+                pathType: Prefix
+      tls:
+        - hosts:
+            - sandbox-hosts.example.com
+          secretName: sandbox-hosts-tls
+  5: |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: Role
+    metadata:
+      annotations: null
+      labels:
+        app.kubernetes.io/instance: langsmith-sandbox
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: langsmith-sandbox
+        helm.sh/chart: langsmith-sandbox-0.0.0-golden
+      name: langsmith-sandbox-sandbox-host
+      namespace: langsmith-sandbox
+    rules:
+      - apiGroups:
+          - coordination.k8s.io
+        resources:
+          - leases
+        verbs:
+          - create
+          - delete
+          - get
+          - list
+          - update
+          - watch
+      - apiGroups:
+          - apps
+        resourceNames:
+          - langsmith-sandbox-sandbox-host
+        resources:
+          - deployments
+        verbs:
+          - get
+          - patch
+      - apiGroups:
+          - ""
+        resources:
+          - pods
+        verbs:
+          - patch
+  6: |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: RoleBinding
+    metadata:
+      annotations: null
+      labels:
+        app.kubernetes.io/instance: langsmith-sandbox
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: langsmith-sandbox
+        helm.sh/chart: langsmith-sandbox-0.0.0-golden
+      name: langsmith-sandbox-sandbox-host
+      namespace: langsmith-sandbox
+    roleRef:
+      apiGroup: rbac.authorization.k8s.io
+      kind: Role
+      name: langsmith-sandbox-sandbox-host
+    subjects:
+      - kind: ServiceAccount
+        name: langsmith-sandbox-sandbox-host
+        namespace: langsmith-sandbox
+  7: |
+    apiVersion: v1
+    automountServiceAccountToken: true
+    kind: ServiceAccount
+    metadata:
+      annotations:
+        argocd.argoproj.io/sync-wave: "-2"
+      labels:
+        app.kubernetes.io/instance: langsmith-sandbox
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: langsmith-sandbox
+        helm.sh/chart: langsmith-sandbox-0.0.0-golden
+      name: langsmith-sandbox-sandbox-host
+      namespace: langsmith-sandbox
+  8: |
+    apiVersion: v1
+    kind: Service
+    metadata:
+      annotations:
+        cloud.google.com/backend-config: '{"default":"sandbox-host"}'
+      labels:
+        app.kubernetes.io/instance: langsmith-sandbox
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: langsmith-sandbox
+        helm.sh/chart: langsmith-sandbox-0.0.0-golden
+      name: langsmith-sandbox-sandbox-host
+      namespace: langsmith-sandbox
+    spec:
+      ports:
+        - name: http
+          port: 19190
+          protocol: TCP
+          targetPort: http
+      selector:
+        app.kubernetes.io/component: langsmith-sandbox-sandbox-host
+        app.kubernetes.io/instance: langsmith-sandbox
+        app.kubernetes.io/name: langsmith-sandbox
+      type: ClusterIP
+host-ingress:
+  1: |
+    apiVersion: v1
+    kind: Secret
+    metadata:
+      annotations:
+        argocd.argoproj.io/sync-wave: "-2"
+      labels:
+        app.kubernetes.io/instance: langsmith-sandbox
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: langsmith-sandbox
+        helm.sh/chart: langsmith-sandbox-0.0.0-golden
+      name: langsmith-sandbox-juicefs-config
+      namespace: langsmith-sandbox
+    stringData:
+      bucket: https://langsmith-sandboxes-test.s3.us-west-2.amazonaws.com
+      metaurl: redis://sandbox-juicefs-redis.example.com:6379/0
+      name: sandbox-juicefs
+      storage: s3
+    type: Opaque
+  2: |
+    apiVersion: batch/v1
+    kind: Job
+    metadata:
+      annotations:
+        argocd.argoproj.io/sync-wave: "-1"
+      labels:
+        app.kubernetes.io/component: juicefs-format
+        app.kubernetes.io/instance: langsmith-sandbox
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: langsmith-sandbox
+        helm.sh/chart: langsmith-sandbox-0.0.0-golden
+      name: langsmith-sandbox-juicefs-format-32d7362a
+      namespace: langsmith-sandbox
+    spec:
+      activeDeadlineSeconds: 900
+      backoffLimit: 3
+      completions: 1
+      parallelism: 1
+      template:
+        metadata:
+          annotations: null
+          labels:
+            app.kubernetes.io/component: juicefs-format
+            app.kubernetes.io/instance: langsmith-sandbox
+            app.kubernetes.io/name: langsmith-sandbox
+        spec:
+          automountServiceAccountToken: true
+          containers:
+            - args:
+                - --internal-juicefs-format
+              command:
+                - /opt/sandbox-host/bin/sandbox-host
+              env:
+                - name: LANGCHAIN_ENV
+                  value: local_kubernetes
+              image: example.com/langsmith/sandbox-host:test-sandbox-host
+              imagePullPolicy: IfNotPresent
+              name: juicefs-format
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 128Mi
+              securityContext:
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop:
+                    - ALL
+              volumeMounts:
+                - mountPath: /run/secrets/juicefs
+                  name: juicefs-config
+                  readOnly: true
+          dnsConfig:
+            options:
+              - name: ndots
+                value: "4"
+          nodeSelector:
+            sandbox.langsmith.com/host: "true"
+          restartPolicy: Never
+          securityContext: {}
+          serviceAccountName: langsmith-sandbox-sandbox-host
+          tolerations:
+            - effect: NoSchedule
+              key: sandbox.langsmith.com/host
+              operator: Equal
+              value: "true"
+          volumes:
+            - name: juicefs-config
+              secret:
+                defaultMode: 256
+                secretName: langsmith-sandbox-juicefs-config
+  3: |
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      annotations: null
+      labels:
+        app: sandbox-host
+        app.kubernetes.io/component: langsmith-sandbox-sandbox-host
+        app.kubernetes.io/instance: langsmith-sandbox
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: langsmith-sandbox
+        helm.sh/chart: langsmith-sandbox-0.0.0-golden
+      name: langsmith-sandbox-sandbox-host
+      namespace: langsmith-sandbox
+    spec:
+      replicas: 1
+      selector:
+        matchLabels:
+          app.kubernetes.io/component: langsmith-sandbox-sandbox-host
+          app.kubernetes.io/instance: langsmith-sandbox
+          app.kubernetes.io/name: langsmith-sandbox
+      strategy:
+        rollingUpdate:
+          maxSurge: 0
+          maxUnavailable: 1
+        type: RollingUpdate
+      template:
+        metadata:
+          annotations:
+            checksum/juicefs-config: cd918f7ee230a90b7f554930a9f240ef5959e6618a27fd47fab7982c96742864
+          labels:
+            app: sandbox-host
+            app.kubernetes.io/component: langsmith-sandbox-sandbox-host
+            app.kubernetes.io/instance: langsmith-sandbox
+            app.kubernetes.io/managed-by: Helm
+            app.kubernetes.io/name: langsmith-sandbox
+        spec:
+          affinity:
+            podAntiAffinity:
+              requiredDuringSchedulingIgnoredDuringExecution:
+                - labelSelector:
+                    matchLabels:
+                      app.kubernetes.io/component: langsmith-sandbox-sandbox-host
+                      app.kubernetes.io/instance: langsmith-sandbox
+                      app.kubernetes.io/name: langsmith-sandbox
+                  topologyKey: kubernetes.io/hostname
+          automountServiceAccountToken: true
+          containers:
+            - env:
+                - name: LANGCHAIN_ENV
+                  value: local_kubernetes
+                - name: POD_NAME
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: metadata.name
+                - name: POD_NAMESPACE
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: metadata.namespace
+                - name: POD_UID
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: metadata.uid
+                - name: POD_HOST_IP
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: status.hostIP
+                - name: SANDBOX_X_SERVICE_AUTH_JWT_SECRET
+                  valueFrom:
+                    secretKeyRef:
+                      key: sandbox_service_auth_secret
+                      name: langsmith-sandbox-runtime
+                - name: SANDBOX_HOST_PROXY_CA_DIR
+                  value: /certs
+                - name: LANGSMITH_SANDBOX_CALLBACK_SIGNING_JWK
+                  valueFrom:
+                    secretKeyRef:
+                      key: sandbox_callback_signing_jwk
+                      name: langsmith-sandbox-runtime
+                - name: OAUTH_AS_ISSUER
+                  value: https://langsmith.example.com/api
+                - name: SSRF_ALLOW_PRIVATE_IPS_CALLBACKS
+                  value: "true"
+                - name: SANDBOX_CALLBACK_LOOPBACK_REWRITE
+                  value: "false"
+                - name: SANDBOX_EGRESS_UPSTREAM_PROXY_URL
+                  valueFrom:
+                    secretKeyRef:
+                      key: sandbox_egress_proxy_url
+                      name: langsmith-sandbox-runtime
+                      optional: true
+                - name: LANGSMITH_SANDBOX_INTERNAL_ENDPOINT
+                  value: https://langsmith.example.com/api
+                - name: LANGSMITH_APP_VERSION
+                  value: test-sandbox-host
+                - name: SANDBOX_HOST_DEPLOYMENT_NAME
+                  value: langsmith-sandbox-sandbox-host
+                - name: SANDBOX_HOST_TERMINATION_GRACE_SECONDS
+                  value: "300"
+                - name: SANDBOX_HOST_JUICEFS_META_URL_FILE
+                  value: /run/secrets/juicefs/metaurl
+                - name: SANDBOX_HOST_JUICEFS_MOUNT_OPTIONS
+                  value: '["--cache-dir=/var/cache/juicefs","--cache-size=51200","--cache-large-write"]'
+                - name: SANDBOX_HOST_AUTOSCALE_ENABLED
+                  value: "false"
+              image: example.com/langsmith/sandbox-host:test-sandbox-host
+              imagePullPolicy: IfNotPresent
+              name: sandbox-host
+              ports:
+                - containerPort: 19190
+                  hostPort: 19190
+                  name: http
+                  protocol: TCP
+              readinessProbe:
+                failureThreshold: 3
+                httpGet:
+                  path: /readyz
+                  port: http
+                initialDelaySeconds: 5
+                periodSeconds: 10
+                timeoutSeconds: 3
+              resources:
+                requests:
+                  cpu: "2"
+                  memory: 2Gi
+              securityContext:
+                privileged: true
+              volumeMounts:
+                - mountPath: /juicefs
+                  name: juicefs
+                - mountPath: /var/cache/juicefs
+                  name: juicefs-cache-0
+                - mountPath: /run/secrets/juicefs
+                  name: juicefs-meta
+                  readOnly: true
+                - mountPath: /host-bin
+                  name: host-bin
+                - mountPath: /certs
+                  name: proxy-ca
+                  readOnly: true
+          dnsConfig:
+            options:
+              - name: ndots
+                value: "4"
+          dnsPolicy: ClusterFirstWithHostNet
+          hostNetwork: true
+          nodeSelector:
+            sandbox.langsmith.com/host: "true"
+          securityContext: {}
+          serviceAccountName: langsmith-sandbox-sandbox-host
+          terminationGracePeriodSeconds: 300
+          tolerations:
+            - effect: NoSchedule
+              key: sandbox.langsmith.com/host
+              operator: Equal
+              value: "true"
+          volumes:
+            - emptyDir: {}
+              name: juicefs
+            - hostPath:
+                path: /var/cache/juicefs
+                type: DirectoryOrCreate
+              name: juicefs-cache-0
+            - name: juicefs-meta
+              secret:
+                defaultMode: 256
+                items:
+                  - key: metaurl
+                    path: metaurl
+                secretName: langsmith-sandbox-juicefs-config
+            - name: proxy-ca
+              secret:
+                secretName: sandbox-proxy-ca
+            - hostPath:
+                path: /var/lib/sandbox-host
+                type: DirectoryOrCreate
+              name: host-bin
+  4: |
+    apiVersion: networking.k8s.io/v1
+    kind: Ingress
+    metadata:
+      annotations:
+        example.com/ingress: "true"
+      labels:
+        app.kubernetes.io/instance: langsmith-sandbox
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: langsmith-sandbox
+        helm.sh/chart: langsmith-sandbox-0.0.0-golden
+        team: sandboxes
+      name: langsmith-sandbox-sandbox-host
+      namespace: langsmith-sandbox
+    spec:
+      ingressClassName: nginx
+      rules:
+        - host: sandbox-hosts.example.com
+          http:
+            paths:
+              - backend:
+                  service:
+                    name: langsmith-sandbox-sandbox-host
+                    port:
+                      number: 19190
+                path: /internal/SandboxHost/
+                pathType: Prefix
+              - backend:
+                  service:
+                    name: langsmith-sandbox-sandbox-host
+                    port:
+                      number: 19190
+                path: /guest-operation/
+                pathType: Prefix
+      tls:
+        - hosts:
+            - sandbox-hosts.example.com
+          secretName: sandbox-hosts-tls
+  5: |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: Role
+    metadata:
+      annotations: null
+      labels:
+        app.kubernetes.io/instance: langsmith-sandbox
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: langsmith-sandbox
+        helm.sh/chart: langsmith-sandbox-0.0.0-golden
+      name: langsmith-sandbox-sandbox-host
+      namespace: langsmith-sandbox
+    rules:
+      - apiGroups:
+          - coordination.k8s.io
+        resources:
+          - leases
+        verbs:
+          - create
+          - delete
+          - get
+          - list
+          - update
+          - watch
+      - apiGroups:
+          - apps
+        resourceNames:
+          - langsmith-sandbox-sandbox-host
+        resources:
+          - deployments
+        verbs:
+          - get
+          - patch
+      - apiGroups:
+          - ""
+        resources:
+          - pods
+        verbs:
+          - patch
+  6: |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: RoleBinding
+    metadata:
+      annotations: null
+      labels:
+        app.kubernetes.io/instance: langsmith-sandbox
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: langsmith-sandbox
+        helm.sh/chart: langsmith-sandbox-0.0.0-golden
+      name: langsmith-sandbox-sandbox-host
+      namespace: langsmith-sandbox
+    roleRef:
+      apiGroup: rbac.authorization.k8s.io
+      kind: Role
+      name: langsmith-sandbox-sandbox-host
+    subjects:
+      - kind: ServiceAccount
+        name: langsmith-sandbox-sandbox-host
+        namespace: langsmith-sandbox
+  7: |
+    apiVersion: v1
+    automountServiceAccountToken: true
+    kind: ServiceAccount
+    metadata:
+      annotations:
+        argocd.argoproj.io/sync-wave: "-2"
+      labels:
+        app.kubernetes.io/instance: langsmith-sandbox
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: langsmith-sandbox
+        helm.sh/chart: langsmith-sandbox-0.0.0-golden
+      name: langsmith-sandbox-sandbox-host
+      namespace: langsmith-sandbox
+  8: |
+    apiVersion: v1
+    kind: Service
+    metadata:
+      annotations:
+        example.com/service: "true"
+      labels:
+        app.kubernetes.io/instance: langsmith-sandbox
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: langsmith-sandbox
+        helm.sh/chart: langsmith-sandbox-0.0.0-golden
+      name: langsmith-sandbox-sandbox-host
+      namespace: langsmith-sandbox
+    spec:
+      ports:
+        - name: http
+          port: 19190
+          protocol: TCP
+          targetPort: http
+      selector:
+        app.kubernetes.io/component: langsmith-sandbox-sandbox-host
+        app.kubernetes.io/instance: langsmith-sandbox
+        app.kubernetes.io/name: langsmith-sandbox
+      type: ClusterIP
+overrides:
+  1: |
+    apiVersion: v1
+    kind: Secret
+    metadata:
+      annotations:
+        argocd.argoproj.io/sync-wave: "-2"
+      labels:
+        app.kubernetes.io/instance: langsmith-sandbox
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: langsmith-sandbox
+        env: golden
+        helm.sh/chart: langsmith-sandbox-0.0.0-golden
+      name: acme-sandbox-juicefs-config
+      namespace: langsmith-sandbox
+    stringData:
+      bucket: https://langsmith-sandboxes-test.s3.us-west-2.amazonaws.com
+      metaurl: redis://sandbox-juicefs-redis.example.com:6379/0
+      name: sandbox-juicefs
+      storage: s3
+    type: Opaque
+  2: |
+    apiVersion: batch/v1
+    kind: Job
+    metadata:
+      annotations:
+        argocd.argoproj.io/sync-wave: "-1"
+      labels:
+        app.kubernetes.io/component: juicefs-format
+        app.kubernetes.io/instance: langsmith-sandbox
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: langsmith-sandbox
+        env: golden
+        helm.sh/chart: langsmith-sandbox-0.0.0-golden
+      name: acme-sandbox-juicefs-format-c4bd3a55
+      namespace: langsmith-sandbox
+    spec:
+      activeDeadlineSeconds: 1800
+      backoffLimit: 3
+      completions: 1
+      parallelism: 1
+      template:
+        metadata:
+          annotations: null
+          labels:
+            app.kubernetes.io/component: juicefs-format
+            app.kubernetes.io/instance: langsmith-sandbox
+            app.kubernetes.io/name: langsmith-sandbox
+        spec:
+          automountServiceAccountToken: true
+          containers:
+            - args:
+                - --internal-juicefs-format
+              command:
+                - /opt/sandbox-host/bin/sandbox-host
+              env:
+                - name: LANGCHAIN_ENV
+                  value: local_kubernetes
+              image: registry.example.com/example.com/langsmith/sandbox-host:test-sandbox-host
+              imagePullPolicy: IfNotPresent
+              name: juicefs-format
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 128Mi
+              securityContext:
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop:
+                    - ALL
+              volumeMounts:
+                - mountPath: /run/secrets/juicefs
+                  name: juicefs-config
+                  readOnly: true
+          dnsConfig:
+            options:
+              - name: ndots
+                value: "4"
+          imagePullSecrets:
+            - name: regcred
+          nodeSelector:
+            pool: system
+          restartPolicy: Never
+          securityContext: {}
+          serviceAccountName: acme-sandbox-sandbox-host
+          tolerations:
+            - effect: NoSchedule
+              key: sandbox.langsmith.com/host
+              operator: Equal
+              value: "true"
+          volumes:
+            - name: juicefs-config
+              secret:
+                defaultMode: 256
+                secretName: acme-sandbox-juicefs-config
+  3: |
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      annotations: null
+      labels:
+        app: sandbox-host
+        app.kubernetes.io/component: acme-sandbox-sandbox-host
+        app.kubernetes.io/instance: langsmith-sandbox
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: langsmith-sandbox
+        env: golden
+        helm.sh/chart: langsmith-sandbox-0.0.0-golden
+      name: acme-sandbox-sandbox-host
+      namespace: langsmith-sandbox
+    spec:
+      replicas: 1
+      selector:
+        matchLabels:
+          app.kubernetes.io/component: acme-sandbox-sandbox-host
+          app.kubernetes.io/instance: langsmith-sandbox
+          app.kubernetes.io/name: langsmith-sandbox
+      strategy:
+        rollingUpdate:
+          maxSurge: 0
+          maxUnavailable: 1
+        type: RollingUpdate
+      template:
+        metadata:
+          annotations:
+            checksum/juicefs-config: cd918f7ee230a90b7f554930a9f240ef5959e6618a27fd47fab7982c96742864
+          labels:
+            app: sandbox-host
+            app.kubernetes.io/component: acme-sandbox-sandbox-host
+            app.kubernetes.io/instance: langsmith-sandbox
+            app.kubernetes.io/managed-by: Helm
+            app.kubernetes.io/name: langsmith-sandbox
+            env: golden
+        spec:
+          affinity:
+            podAntiAffinity:
+              requiredDuringSchedulingIgnoredDuringExecution:
+                - labelSelector:
+                    matchLabels:
+                      app.kubernetes.io/component: acme-sandbox-sandbox-host
+                      app.kubernetes.io/instance: langsmith-sandbox
+                      app.kubernetes.io/name: langsmith-sandbox
+                  topologyKey: kubernetes.io/hostname
+          automountServiceAccountToken: true
+          containers:
+            - env:
+                - name: LANGCHAIN_ENV
+                  value: local_kubernetes
+                - name: POD_NAME
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: metadata.name
+                - name: POD_NAMESPACE
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: metadata.namespace
+                - name: POD_UID
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: metadata.uid
+                - name: POD_HOST_IP
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: status.hostIP
+                - name: SANDBOX_X_SERVICE_AUTH_JWT_SECRET
+                  valueFrom:
+                    secretKeyRef:
+                      key: sandbox_service_auth_secret
+                      name: langsmith-sandbox-runtime
+                - name: SANDBOX_HOST_PROXY_CA_DIR
+                  value: /certs
+                - name: LANGSMITH_SANDBOX_CALLBACK_SIGNING_JWK
+                  valueFrom:
+                    secretKeyRef:
+                      key: sandbox_callback_signing_jwk
+                      name: langsmith-sandbox-runtime
+                - name: OAUTH_AS_ISSUER
+                  value: https://langsmith.example.com/api
+                - name: SSRF_ALLOW_PRIVATE_IPS_CALLBACKS
+                  value: "true"
+                - name: SANDBOX_CALLBACK_LOOPBACK_REWRITE
+                  value: "false"
+                - name: SANDBOX_EGRESS_UPSTREAM_PROXY_URL
+                  valueFrom:
+                    secretKeyRef:
+                      key: sandbox_egress_proxy_url
+                      name: langsmith-sandbox-runtime
+                      optional: true
+                - name: LANGSMITH_SANDBOX_INTERNAL_ENDPOINT
+                  value: https://langsmith.example.com/api
+                - name: LANGSMITH_APP_VERSION
+                  value: test-sandbox-host
+                - name: SANDBOX_HOST_DEPLOYMENT_NAME
+                  value: acme-sandbox-sandbox-host
+                - name: SANDBOX_HOST_TERMINATION_GRACE_SECONDS
+                  value: "300"
+                - name: SANDBOX_HOST_JUICEFS_META_URL_FILE
+                  value: /run/secrets/juicefs/metaurl
+                - name: SANDBOX_HOST_JUICEFS_MOUNT_OPTIONS
+                  value: '["--cache-dir=/var/cache/juicefs","--cache-size=51200","--cache-large-write"]'
+                - name: SANDBOX_HOST_AUTOSCALE_ENABLED
+                  value: "false"
+              image: registry.example.com/example.com/langsmith/sandbox-host:test-sandbox-host
+              imagePullPolicy: IfNotPresent
+              name: sandbox-host
+              ports:
+                - containerPort: 19190
+                  hostPort: 19190
+                  name: http
+                  protocol: TCP
+              readinessProbe:
+                failureThreshold: 3
+                httpGet:
+                  path: /readyz
+                  port: http
+                initialDelaySeconds: 5
+                periodSeconds: 10
+                timeoutSeconds: 3
+              resources:
+                requests:
+                  cpu: "2"
+                  memory: 2Gi
+              securityContext:
+                privileged: true
+              volumeMounts:
+                - mountPath: /juicefs
+                  name: juicefs
+                - mountPath: /var/cache/juicefs
+                  name: juicefs-cache-0
+                - mountPath: /run/secrets/juicefs
+                  name: juicefs-meta
+                  readOnly: true
+                - mountPath: /host-bin
+                  name: host-bin
+                - mountPath: /certs
+                  name: proxy-ca
+                  readOnly: true
+          dnsConfig:
+            options:
+              - name: ndots
+                value: "4"
+          dnsPolicy: ClusterFirstWithHostNet
+          hostNetwork: true
+          imagePullSecrets:
+            - name: regcred
+          nodeSelector:
+            sandbox.langsmith.com/host: "true"
+          securityContext: {}
+          serviceAccountName: acme-sandbox-sandbox-host
+          terminationGracePeriodSeconds: 300
+          tolerations:
+            - effect: NoSchedule
+              key: sandbox.langsmith.com/host
+              operator: Equal
+              value: "true"
+          volumes:
+            - emptyDir: {}
+              name: juicefs
+            - hostPath:
+                path: /var/cache/juicefs
+                type: DirectoryOrCreate
+              name: juicefs-cache-0
+            - name: juicefs-meta
+              secret:
+                defaultMode: 256
+                items:
+                  - key: metaurl
+                    path: metaurl
+                secretName: acme-sandbox-juicefs-config
+            - name: proxy-ca
+              secret:
+                secretName: sandbox-proxy-ca
+            - hostPath:
+                path: /var/lib/sandbox-host
+                type: DirectoryOrCreate
+              name: host-bin
+  4: |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: Role
+    metadata:
+      annotations: null
+      labels:
+        app.kubernetes.io/instance: langsmith-sandbox
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: langsmith-sandbox
+        env: golden
+        helm.sh/chart: langsmith-sandbox-0.0.0-golden
+      name: acme-sandbox-sandbox-host
+      namespace: langsmith-sandbox
+    rules:
+      - apiGroups:
+          - coordination.k8s.io
+        resources:
+          - leases
+        verbs:
+          - create
+          - delete
+          - get
+          - list
+          - update
+          - watch
+      - apiGroups:
+          - apps
+        resourceNames:
+          - acme-sandbox-sandbox-host
+        resources:
+          - deployments
+        verbs:
+          - get
+          - patch
+      - apiGroups:
+          - ""
+        resources:
+          - pods
+        verbs:
+          - patch
+  5: |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: RoleBinding
+    metadata:
+      annotations: null
+      labels:
+        app.kubernetes.io/instance: langsmith-sandbox
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: langsmith-sandbox
+        env: golden
+        helm.sh/chart: langsmith-sandbox-0.0.0-golden
+      name: acme-sandbox-sandbox-host
+      namespace: langsmith-sandbox
+    roleRef:
+      apiGroup: rbac.authorization.k8s.io
+      kind: Role
+      name: acme-sandbox-sandbox-host
+    subjects:
+      - kind: ServiceAccount
+        name: acme-sandbox-sandbox-host
+        namespace: langsmith-sandbox
+  6: |
+    apiVersion: v1
+    automountServiceAccountToken: true
+    kind: ServiceAccount
+    metadata:
+      annotations:
+        argocd.argoproj.io/sync-wave: "-2"
+      labels:
+        app.kubernetes.io/instance: langsmith-sandbox
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: langsmith-sandbox
+        env: golden
+        helm.sh/chart: langsmith-sandbox-0.0.0-golden
+      name: acme-sandbox-sandbox-host
+      namespace: langsmith-sandbox
+pdb-and-autoscaling:
+  1: |
+    apiVersion: v1
+    kind: Secret
+    metadata:
+      annotations:
+        argocd.argoproj.io/sync-wave: "-2"
+      labels:
+        app.kubernetes.io/instance: langsmith-sandbox
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: langsmith-sandbox
+        helm.sh/chart: langsmith-sandbox-0.0.0-golden
+      name: langsmith-sandbox-juicefs-config
+      namespace: langsmith-sandbox
+    stringData:
+      bucket: https://langsmith-sandboxes-test.s3.us-west-2.amazonaws.com
+      metaurl: redis://sandbox-juicefs-redis.example.com:6379/0
+      name: sandbox-juicefs
+      storage: s3
+    type: Opaque
+  2: |
+    apiVersion: batch/v1
+    kind: Job
+    metadata:
+      annotations:
+        argocd.argoproj.io/sync-wave: "-1"
+      labels:
+        app.kubernetes.io/component: juicefs-format
+        app.kubernetes.io/instance: langsmith-sandbox
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: langsmith-sandbox
+        helm.sh/chart: langsmith-sandbox-0.0.0-golden
+      name: langsmith-sandbox-juicefs-format-32d7362a
+      namespace: langsmith-sandbox
+    spec:
+      activeDeadlineSeconds: 900
+      backoffLimit: 3
+      completions: 1
+      parallelism: 1
+      template:
+        metadata:
+          annotations: null
+          labels:
+            app.kubernetes.io/component: juicefs-format
+            app.kubernetes.io/instance: langsmith-sandbox
+            app.kubernetes.io/name: langsmith-sandbox
+        spec:
+          automountServiceAccountToken: true
+          containers:
+            - args:
+                - --internal-juicefs-format
+              command:
+                - /opt/sandbox-host/bin/sandbox-host
+              env:
+                - name: LANGCHAIN_ENV
+                  value: local_kubernetes
+              image: example.com/langsmith/sandbox-host:test-sandbox-host
+              imagePullPolicy: IfNotPresent
+              name: juicefs-format
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 128Mi
+              securityContext:
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop:
+                    - ALL
+              volumeMounts:
+                - mountPath: /run/secrets/juicefs
+                  name: juicefs-config
+                  readOnly: true
+          dnsConfig:
+            options:
+              - name: ndots
+                value: "4"
+          nodeSelector:
+            sandbox.langsmith.com/host: "true"
+          restartPolicy: Never
+          securityContext: {}
+          serviceAccountName: langsmith-sandbox-sandbox-host
+          tolerations:
+            - effect: NoSchedule
+              key: sandbox.langsmith.com/host
+              operator: Equal
+              value: "true"
+          volumes:
+            - name: juicefs-config
+              secret:
+                defaultMode: 256
+                secretName: langsmith-sandbox-juicefs-config
+  3: |
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      annotations: null
+      labels:
+        app: sandbox-host
+        app.kubernetes.io/component: langsmith-sandbox-sandbox-host
+        app.kubernetes.io/instance: langsmith-sandbox
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: langsmith-sandbox
+        helm.sh/chart: langsmith-sandbox-0.0.0-golden
+      name: langsmith-sandbox-sandbox-host
+      namespace: langsmith-sandbox
+    spec:
+      selector:
+        matchLabels:
+          app.kubernetes.io/component: langsmith-sandbox-sandbox-host
+          app.kubernetes.io/instance: langsmith-sandbox
+          app.kubernetes.io/name: langsmith-sandbox
+      strategy:
+        rollingUpdate:
+          maxSurge: 0
+          maxUnavailable: 1
+        type: RollingUpdate
+      template:
+        metadata:
+          annotations:
+            checksum/juicefs-config: cd918f7ee230a90b7f554930a9f240ef5959e6618a27fd47fab7982c96742864
+          labels:
+            app: sandbox-host
+            app.kubernetes.io/component: langsmith-sandbox-sandbox-host
+            app.kubernetes.io/instance: langsmith-sandbox
+            app.kubernetes.io/managed-by: Helm
+            app.kubernetes.io/name: langsmith-sandbox
+        spec:
+          affinity:
+            podAntiAffinity:
+              requiredDuringSchedulingIgnoredDuringExecution:
+                - labelSelector:
+                    matchLabels:
+                      app.kubernetes.io/component: langsmith-sandbox-sandbox-host
+                      app.kubernetes.io/instance: langsmith-sandbox
+                      app.kubernetes.io/name: langsmith-sandbox
+                  topologyKey: kubernetes.io/hostname
+          automountServiceAccountToken: true
+          containers:
+            - env:
+                - name: LANGCHAIN_ENV
+                  value: local_kubernetes
+                - name: POD_NAME
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: metadata.name
+                - name: POD_NAMESPACE
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: metadata.namespace
+                - name: POD_UID
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: metadata.uid
+                - name: POD_HOST_IP
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: status.hostIP
+                - name: SANDBOX_X_SERVICE_AUTH_JWT_SECRET
+                  valueFrom:
+                    secretKeyRef:
+                      key: sandbox_service_auth_secret
+                      name: langsmith-sandbox-runtime
+                - name: SANDBOX_HOST_PROXY_CA_DIR
+                  value: /certs
+                - name: LANGSMITH_SANDBOX_CALLBACK_SIGNING_JWK
+                  valueFrom:
+                    secretKeyRef:
+                      key: sandbox_callback_signing_jwk
+                      name: langsmith-sandbox-runtime
+                - name: OAUTH_AS_ISSUER
+                  value: https://langsmith.example.com/api
+                - name: SSRF_ALLOW_PRIVATE_IPS_CALLBACKS
+                  value: "true"
+                - name: SANDBOX_CALLBACK_LOOPBACK_REWRITE
+                  value: "false"
+                - name: SANDBOX_EGRESS_UPSTREAM_PROXY_URL
+                  valueFrom:
+                    secretKeyRef:
+                      key: sandbox_egress_proxy_url
+                      name: langsmith-sandbox-runtime
+                      optional: true
+                - name: LANGSMITH_SANDBOX_INTERNAL_ENDPOINT
+                  value: https://langsmith.example.com/api
+                - name: LANGSMITH_APP_VERSION
+                  value: test-sandbox-host
+                - name: SANDBOX_HOST_DEPLOYMENT_NAME
+                  value: langsmith-sandbox-sandbox-host
+                - name: SANDBOX_HOST_TERMINATION_GRACE_SECONDS
+                  value: "300"
+                - name: SANDBOX_HOST_JUICEFS_META_URL_FILE
+                  value: /run/secrets/juicefs/metaurl
+                - name: SANDBOX_HOST_JUICEFS_MOUNT_OPTIONS
+                  value: '["--cache-dir=/var/cache/juicefs","--cache-size=51200","--cache-large-write"]'
+                - name: SANDBOX_HOST_AUTOSCALE_ENABLED
+                  value: "true"
+                - name: SANDBOX_HOST_AUTOSCALE_MIN_REPLICAS
+                  value: "1"
+                - name: SANDBOX_HOST_AUTOSCALE_MAX_REPLICAS
+                  value: "4"
+                - name: SANDBOX_HOST_AUTOSCALE_TARGET_UTILIZATION_PERCENT
+                  value: "70"
+                - name: SANDBOX_HOST_AUTOSCALE_HEADROOM_HOSTS
+                  value: "1"
+                - name: SANDBOX_HOST_AUTOSCALE_SCALE_DOWN_STABILIZATION_SECONDS
+                  value: "300"
+              image: example.com/langsmith/sandbox-host:test-sandbox-host
+              imagePullPolicy: IfNotPresent
+              name: sandbox-host
+              ports:
+                - containerPort: 19190
+                  hostPort: 19190
+                  name: http
+                  protocol: TCP
+              readinessProbe:
+                failureThreshold: 3
+                httpGet:
+                  path: /readyz
+                  port: http
+                initialDelaySeconds: 5
+                periodSeconds: 10
+                timeoutSeconds: 3
+              resources:
+                requests:
+                  cpu: "2"
+                  memory: 2Gi
+              securityContext:
+                privileged: true
+              volumeMounts:
+                - mountPath: /juicefs
+                  name: juicefs
+                - mountPath: /var/cache/juicefs
+                  name: juicefs-cache-0
+                - mountPath: /run/secrets/juicefs
+                  name: juicefs-meta
+                  readOnly: true
+                - mountPath: /host-bin
+                  name: host-bin
+                - mountPath: /certs
+                  name: proxy-ca
+                  readOnly: true
+          dnsConfig:
+            options:
+              - name: ndots
+                value: "4"
+          dnsPolicy: ClusterFirstWithHostNet
+          hostNetwork: true
+          nodeSelector:
+            sandbox.langsmith.com/host: "true"
+          securityContext: {}
+          serviceAccountName: langsmith-sandbox-sandbox-host
+          terminationGracePeriodSeconds: 300
+          tolerations:
+            - effect: NoSchedule
+              key: sandbox.langsmith.com/host
+              operator: Equal
+              value: "true"
+          volumes:
+            - emptyDir: {}
+              name: juicefs
+            - hostPath:
+                path: /var/cache/juicefs
+                type: DirectoryOrCreate
+              name: juicefs-cache-0
+            - name: juicefs-meta
+              secret:
+                defaultMode: 256
+                items:
+                  - key: metaurl
+                    path: metaurl
+                secretName: langsmith-sandbox-juicefs-config
+            - name: proxy-ca
+              secret:
+                secretName: sandbox-proxy-ca
+            - hostPath:
+                path: /var/lib/sandbox-host
+                type: DirectoryOrCreate
+              name: host-bin
+  4: |
+    apiVersion: policy/v1
+    kind: PodDisruptionBudget
+    metadata:
+      annotations: null
+      labels:
+        app.kubernetes.io/instance: langsmith-sandbox
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: langsmith-sandbox
+        helm.sh/chart: langsmith-sandbox-0.0.0-golden
+      name: langsmith-sandbox-sandbox-host
+      namespace: langsmith-sandbox
+    spec:
+      maxUnavailable: 1
+      selector:
+        matchLabels:
+          app.kubernetes.io/component: langsmith-sandbox-sandbox-host
+          app.kubernetes.io/instance: langsmith-sandbox
+          app.kubernetes.io/name: langsmith-sandbox
+  5: |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: Role
+    metadata:
+      annotations: null
+      labels:
+        app.kubernetes.io/instance: langsmith-sandbox
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: langsmith-sandbox
+        helm.sh/chart: langsmith-sandbox-0.0.0-golden
+      name: langsmith-sandbox-sandbox-host
+      namespace: langsmith-sandbox
+    rules:
+      - apiGroups:
+          - coordination.k8s.io
+        resources:
+          - leases
+        verbs:
+          - create
+          - delete
+          - get
+          - list
+          - update
+          - watch
+      - apiGroups:
+          - apps
+        resourceNames:
+          - langsmith-sandbox-sandbox-host
+        resources:
+          - deployments
+        verbs:
+          - get
+          - patch
+      - apiGroups:
+          - ""
+        resources:
+          - pods
+        verbs:
+          - patch
+  6: |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: RoleBinding
+    metadata:
+      annotations: null
+      labels:
+        app.kubernetes.io/instance: langsmith-sandbox
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: langsmith-sandbox
+        helm.sh/chart: langsmith-sandbox-0.0.0-golden
+      name: langsmith-sandbox-sandbox-host
+      namespace: langsmith-sandbox
+    roleRef:
+      apiGroup: rbac.authorization.k8s.io
+      kind: Role
+      name: langsmith-sandbox-sandbox-host
+    subjects:
+      - kind: ServiceAccount
+        name: langsmith-sandbox-sandbox-host
+        namespace: langsmith-sandbox
+  7: |
+    apiVersion: v1
+    automountServiceAccountToken: true
+    kind: ServiceAccount
+    metadata:
+      annotations:
+        argocd.argoproj.io/sync-wave: "-2"
+      labels:
+        app.kubernetes.io/instance: langsmith-sandbox
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: langsmith-sandbox
+        helm.sh/chart: langsmith-sandbox-0.0.0-golden
+      name: langsmith-sandbox-sandbox-host
+      namespace: langsmith-sandbox

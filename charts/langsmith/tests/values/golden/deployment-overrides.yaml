@@ -1,0 +1,29 @@
+commonLabels:
+  env: golden
+commonAnnotations:
+  example.com/golden: 'true'
+commonPodAnnotations:
+  example.com/pod: 'true'
+sandboxes:
+  sandboxHost:
+    deployment:
+      labels:
+        tier: sandbox
+      annotations:
+        example.com/deploy: 'true'
+      podAnnotations:
+        example.com/host-pod: 'true'
+      replicas: 3
+      terminationGracePeriodSeconds: 600
+      priorityClassName: sandbox-hosts
+      resources:
+        requests:
+          cpu: '2'
+          memory: 4Gi
+        limits:
+          memory: 8Gi
+      tolerations:
+      - key: dedicated
+        operator: Equal
+        value: sandboxes
+        effect: NoSchedule

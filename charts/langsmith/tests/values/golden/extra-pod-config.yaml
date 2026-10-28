@@ -1,0 +1,37 @@
+commonEnv:
+- name: COMMON_FLAG
+  value: 'on'
+commonVolumes:
+- name: common-data
+  emptyDir: {}
+commonVolumeMounts:
+- name: common-data
+  mountPath: /common
+commonInitContainers:
+- name: common-init
+  image: busybox:1.36
+  command:
+  - 'true'
+sandboxes:
+  sandboxHost:
+    deployment:
+      extraEnv:
+      - name: HOST_FLAG
+        value: 'on'
+      volumes:
+      - name: host-extra
+        emptyDir: {}
+      volumeMounts:
+      - name: host-extra
+        mountPath: /extra
+      initContainers:
+      - name: host-init
+        image: busybox:1.36
+        command:
+        - 'true'
+      sidecars:
+      - name: host-sidecar
+        image: busybox:1.36
+        command:
+        - sleep
+        - infinity

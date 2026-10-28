@@ -1,0 +1,11 @@
+fullnameOverride: acme-sandbox
+commonLabels:
+  env: golden
+images:
+  registry: registry.example.com
+  imagePullSecrets:
+  - name: regcred
+juicefsFormatJob:
+  activeDeadlineSeconds: 1800
+  nodeSelector:
+    pool: system

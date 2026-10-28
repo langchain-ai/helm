@@ -1,0 +1,7 @@
+sandboxes:
+  sandboxHost:
+    autoscaling:
+      enabled: true
+      minReplicas: 1
+      maxReplicas: 4
+      headroomHosts: 1

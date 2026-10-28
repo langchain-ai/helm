@@ -1,0 +1,6 @@
+commonDnsConfig:
+  options:
+  - name: ndots
+    value: '2'
+  searches:
+  - corp.example.com

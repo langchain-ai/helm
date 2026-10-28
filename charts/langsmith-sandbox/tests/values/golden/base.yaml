@@ -1,0 +1,5 @@
+# Shared by the golden cases: an existing proxy CA Secret, because the
+# generated CA is random and cannot be snapshotted.
+proxyCa:
+  mode: existingSecret
+  existingSecretName: sandbox-proxy-ca

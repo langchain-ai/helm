@@ -1,0 +1,760 @@
+# Golden renders of the same-cluster sandbox runtime. Every object the
+# langsmith chart renders under templates/sandboxes/ is snapshotted for a
+# matrix of values, with document counts so a missing object fails too.
+# A change to these objects shows up as a snapshot diff; update the
+# snapshots with `helm unittest -u charts/langsmith` only for an intended change.
+suite: same-cluster sandbox golden renders
+templates:
+  - sandboxes/juicefs-config.yaml
+  - sandboxes/juicefs-format-job.yaml
+  - sandboxes/proxy-ca.yaml
+  - sandboxes/sandbox-host-deployment.yaml
+  - sandboxes/sandbox-host-pdb.yaml
+  - sandboxes/sandbox-host-rbac.yaml
+  - sandboxes/sandbox-host-service-account.yaml
+tests:
+  - it: default
+    chart:
+      version: 0.0.0-golden
+      appVersion: 0.0.0-golden
+    release:
+      name: langsmith
+      namespace: langsmith
+    values:
+      - ./values/sandboxes-enabled.yaml
+      - ./values/golden/base.yaml
+      - ./values/golden/default.yaml
+    asserts:
+      - matchSnapshot: {}
+      - hasDocuments:
+          count: 1
+        template: sandboxes/juicefs-config.yaml
+      - hasDocuments:
+          count: 1
+        template: sandboxes/juicefs-format-job.yaml
+      - hasDocuments:
+          count: 0
+        template: sandboxes/proxy-ca.yaml
+      - hasDocuments:
+          count: 1
+        template: sandboxes/sandbox-host-deployment.yaml
+      - hasDocuments:
+          count: 0
+        template: sandboxes/sandbox-host-pdb.yaml
+      - hasDocuments:
+          count: 2
+        template: sandboxes/sandbox-host-rbac.yaml
+      - hasDocuments:
+          count: 1
+        template: sandboxes/sandbox-host-service-account.yaml
+
+  - it: chart-managed-secret-and-egress-proxy
+    chart:
+      version: 0.0.0-golden
+      appVersion: 0.0.0-golden
+    release:
+      name: langsmith
+      namespace: langsmith
+    values:
+      - ./values/sandboxes-enabled.yaml
+      - ./values/golden/base.yaml
+      - ./values/golden/chart-managed-secret-and-egress-proxy.yaml
+    asserts:
+      - matchSnapshot: {}
+      - hasDocuments:
+          count: 1
+        template: sandboxes/juicefs-config.yaml
+      - hasDocuments:
+          count: 1
+        template: sandboxes/juicefs-format-job.yaml
+      - hasDocuments:
+          count: 0
+        template: sandboxes/proxy-ca.yaml
+      - hasDocuments:
+          count: 1
+        template: sandboxes/sandbox-host-deployment.yaml
+      - hasDocuments:
+          count: 0
+        template: sandboxes/sandbox-host-pdb.yaml
+      - hasDocuments:
+          count: 2
+        template: sandboxes/sandbox-host-rbac.yaml
+      - hasDocuments:
+          count: 1
+        template: sandboxes/sandbox-host-service-account.yaml
+
+  - it: custom-ca
+    chart:
+      version: 0.0.0-golden
+      appVersion: 0.0.0-golden
+    release:
+      name: langsmith
+      namespace: langsmith
+    values:
+      - ./values/sandboxes-enabled.yaml
+      - ./values/golden/base.yaml
+      - ./values/golden/custom-ca.yaml
+    asserts:
+      - matchSnapshot: {}
+      - hasDocuments:
+          count: 1
+        template: sandboxes/juicefs-config.yaml
+      - hasDocuments:
+          count: 1
+        template: sandboxes/juicefs-format-job.yaml
+      - hasDocuments:
+          count: 0
+        template: sandboxes/proxy-ca.yaml
+      - hasDocuments:
+          count: 1
+        template: sandboxes/sandbox-host-deployment.yaml
+      - hasDocuments:
+          count: 0
+        template: sandboxes/sandbox-host-pdb.yaml
+      - hasDocuments:
+          count: 2
+        template: sandboxes/sandbox-host-rbac.yaml
+      - hasDocuments:
+          count: 1
+        template: sandboxes/sandbox-host-service-account.yaml
+
+  - it: service-auth-key-and-previous-key
+    chart:
+      version: 0.0.0-golden
+      appVersion: 0.0.0-golden
+    release:
+      name: langsmith
+      namespace: langsmith
+    values:
+      - ./values/sandboxes-enabled.yaml
+      - ./values/golden/base.yaml
+      - ./values/golden/service-auth-key-and-previous-key.yaml
+    asserts:
+      - matchSnapshot: {}
+      - hasDocuments:
+          count: 1
+        template: sandboxes/juicefs-config.yaml
+      - hasDocuments:
+          count: 1
+        template: sandboxes/juicefs-format-job.yaml
+      - hasDocuments:
+          count: 0
+        template: sandboxes/proxy-ca.yaml
+      - hasDocuments:
+          count: 1
+        template: sandboxes/sandbox-host-deployment.yaml
+      - hasDocuments:
+          count: 0
+        template: sandboxes/sandbox-host-pdb.yaml
+      - hasDocuments:
+          count: 2
+        template: sandboxes/sandbox-host-rbac.yaml
+      - hasDocuments:
+          count: 1
+        template: sandboxes/sandbox-host-service-account.yaml
+
+  - it: pdb
+    chart:
+      version: 0.0.0-golden
+      appVersion: 0.0.0-golden
+    release:
+      name: langsmith
+      namespace: langsmith
+    values:
+      - ./values/sandboxes-enabled.yaml
+      - ./values/golden/base.yaml
+      - ./values/golden/pdb.yaml
+    asserts:
+      - matchSnapshot: {}
+      - hasDocuments:
+          count: 1
+        template: sandboxes/juicefs-config.yaml
+      - hasDocuments:
+          count: 1
+        template: sandboxes/juicefs-format-job.yaml
+      - hasDocuments:
+          count: 0
+        template: sandboxes/proxy-ca.yaml
+      - hasDocuments:
+          count: 1
+        template: sandboxes/sandbox-host-deployment.yaml
+      - hasDocuments:
+          count: 1
+        template: sandboxes/sandbox-host-pdb.yaml
+      - hasDocuments:
+          count: 2
+        template: sandboxes/sandbox-host-rbac.yaml
+      - hasDocuments:
+          count: 1
+        template: sandboxes/sandbox-host-service-account.yaml
+
+  - it: autoscaling
+    chart:
+      version: 0.0.0-golden
+      appVersion: 0.0.0-golden
+    release:
+      name: langsmith
+      namespace: langsmith
+    values:
+      - ./values/sandboxes-enabled.yaml
+      - ./values/golden/base.yaml
+      - ./values/golden/autoscaling.yaml
+    asserts:
+      - matchSnapshot: {}
+      - hasDocuments:
+          count: 1
+        template: sandboxes/juicefs-config.yaml
+      - hasDocuments:
+          count: 1
+        template: sandboxes/juicefs-format-job.yaml
+      - hasDocuments:
+          count: 0
+        template: sandboxes/proxy-ca.yaml
+      - hasDocuments:
+          count: 1
+        template: sandboxes/sandbox-host-deployment.yaml
+      - hasDocuments:
+          count: 0
+        template: sandboxes/sandbox-host-pdb.yaml
+      - hasDocuments:
+          count: 2
+        template: sandboxes/sandbox-host-rbac.yaml
+      - hasDocuments:
+          count: 1
+        template: sandboxes/sandbox-host-service-account.yaml
+
+  - it: extra-pod-config
+    chart:
+      version: 0.0.0-golden
+      appVersion: 0.0.0-golden
+    release:
+      name: langsmith
+      namespace: langsmith
+    values:
+      - ./values/sandboxes-enabled.yaml
+      - ./values/golden/base.yaml
+      - ./values/golden/extra-pod-config.yaml
+    asserts:
+      - matchSnapshot: {}
+      - hasDocuments:
+          count: 1
+        template: sandboxes/juicefs-config.yaml
+      - hasDocuments:
+          count: 1
+        template: sandboxes/juicefs-format-job.yaml
+      - hasDocuments:
+          count: 0
+        template: sandboxes/proxy-ca.yaml
+      - hasDocuments:
+          count: 1
+        template: sandboxes/sandbox-host-deployment.yaml
+      - hasDocuments:
+          count: 0
+        template: sandboxes/sandbox-host-pdb.yaml
+      - hasDocuments:
+          count: 2
+        template: sandboxes/sandbox-host-rbac.yaml
+      - hasDocuments:
+          count: 1
+        template: sandboxes/sandbox-host-service-account.yaml
+
+  - it: deployment-overrides
+    chart:
+      version: 0.0.0-golden
+      appVersion: 0.0.0-golden
+    release:
+      name: langsmith
+      namespace: langsmith
+    values:
+      - ./values/sandboxes-enabled.yaml
+      - ./values/golden/base.yaml
+      - ./values/golden/deployment-overrides.yaml
+    asserts:
+      - matchSnapshot: {}
+      - hasDocuments:
+          count: 1
+        template: sandboxes/juicefs-config.yaml
+      - hasDocuments:
+          count: 1
+        template: sandboxes/juicefs-format-job.yaml
+      - hasDocuments:
+          count: 0
+        template: sandboxes/proxy-ca.yaml
+      - hasDocuments:
+          count: 1
+        template: sandboxes/sandbox-host-deployment.yaml
+      - hasDocuments:
+          count: 0
+        template: sandboxes/sandbox-host-pdb.yaml
+      - hasDocuments:
+          count: 2
+        template: sandboxes/sandbox-host-rbac.yaml
+      - hasDocuments:
+          count: 1
+        template: sandboxes/sandbox-host-service-account.yaml
+
+  - it: common-dns-config
+    chart:
+      version: 0.0.0-golden
+      appVersion: 0.0.0-golden
+    release:
+      name: langsmith
+      namespace: langsmith
+    values:
+      - ./values/sandboxes-enabled.yaml
+      - ./values/golden/base.yaml
+      - ./values/golden/common-dns-config.yaml
+    asserts:
+      - matchSnapshot: {}
+      - hasDocuments:
+          count: 1
+        template: sandboxes/juicefs-config.yaml
+      - hasDocuments:
+          count: 1
+        template: sandboxes/juicefs-format-job.yaml
+      - hasDocuments:
+          count: 0
+        template: sandboxes/proxy-ca.yaml
+      - hasDocuments:
+          count: 1
+        template: sandboxes/sandbox-host-deployment.yaml
+      - hasDocuments:
+          count: 0
+        template: sandboxes/sandbox-host-pdb.yaml
+      - hasDocuments:
+          count: 2
+        template: sandboxes/sandbox-host-rbac.yaml
+      - hasDocuments:
+          count: 1
+        template: sandboxes/sandbox-host-service-account.yaml
+
+  - it: gke-identity
+    chart:
+      version: 0.0.0-golden
+      appVersion: 0.0.0-golden
+    release:
+      name: langsmith
+      namespace: langsmith
+    values:
+      - ./values/sandboxes-enabled.yaml
+      - ./values/golden/base.yaml
+      - ./values/golden/gke-identity.yaml
+    asserts:
+      - matchSnapshot: {}
+      - hasDocuments:
+          count: 1
+        template: sandboxes/juicefs-config.yaml
+      - hasDocuments:
+          count: 1
+        template: sandboxes/juicefs-format-job.yaml
+      - hasDocuments:
+          count: 0
+        template: sandboxes/proxy-ca.yaml
+      - hasDocuments:
+          count: 1
+        template: sandboxes/sandbox-host-deployment.yaml
+      - hasDocuments:
+          count: 0
+        template: sandboxes/sandbox-host-pdb.yaml
+      - hasDocuments:
+          count: 2
+        template: sandboxes/sandbox-host-rbac.yaml
+      - hasDocuments:
+          count: 1
+        template: sandboxes/sandbox-host-service-account.yaml
+
+  - it: aks-identity
+    chart:
+      version: 0.0.0-golden
+      appVersion: 0.0.0-golden
+    release:
+      name: langsmith
+      namespace: langsmith
+    values:
+      - ./values/sandboxes-enabled.yaml
+      - ./values/golden/base.yaml
+      - ./values/golden/aks-identity.yaml
+    asserts:
+      - matchSnapshot: {}
+      - hasDocuments:
+          count: 1
+        template: sandboxes/juicefs-config.yaml
+      - hasDocuments:
+          count: 1
+        template: sandboxes/juicefs-format-job.yaml
+      - hasDocuments:
+          count: 0
+        template: sandboxes/proxy-ca.yaml
+      - hasDocuments:
+          count: 1
+        template: sandboxes/sandbox-host-deployment.yaml
+      - hasDocuments:
+          count: 0
+        template: sandboxes/sandbox-host-pdb.yaml
+      - hasDocuments:
+          count: 2
+        template: sandboxes/sandbox-host-rbac.yaml
+      - hasDocuments:
+          count: 1
+        template: sandboxes/sandbox-host-service-account.yaml
+
+  - it: eks-identity
+    chart:
+      version: 0.0.0-golden
+      appVersion: 0.0.0-golden
+    release:
+      name: langsmith
+      namespace: langsmith
+    values:
+      - ./values/sandboxes-enabled.yaml
+      - ./values/golden/base.yaml
+      - ./values/golden/eks-identity.yaml
+    asserts:
+      - matchSnapshot: {}
+      - hasDocuments:
+          count: 1
+        template: sandboxes/juicefs-config.yaml
+      - hasDocuments:
+          count: 1
+        template: sandboxes/juicefs-format-job.yaml
+      - hasDocuments:
+          count: 0
+        template: sandboxes/proxy-ca.yaml
+      - hasDocuments:
+          count: 1
+        template: sandboxes/sandbox-host-deployment.yaml
+      - hasDocuments:
+          count: 0
+        template: sandboxes/sandbox-host-pdb.yaml
+      - hasDocuments:
+          count: 2
+        template: sandboxes/sandbox-host-rbac.yaml
+      - hasDocuments:
+          count: 1
+        template: sandboxes/sandbox-host-service-account.yaml
+
+  - it: service-account-name
+    chart:
+      version: 0.0.0-golden
+      appVersion: 0.0.0-golden
+    release:
+      name: langsmith
+      namespace: langsmith
+    values:
+      - ./values/sandboxes-enabled.yaml
+      - ./values/golden/base.yaml
+      - ./values/golden/service-account-name.yaml
+    asserts:
+      - matchSnapshot: {}
+      - hasDocuments:
+          count: 1
+        template: sandboxes/juicefs-config.yaml
+      - hasDocuments:
+          count: 1
+        template: sandboxes/juicefs-format-job.yaml
+      - hasDocuments:
+          count: 0
+        template: sandboxes/proxy-ca.yaml
+      - hasDocuments:
+          count: 1
+        template: sandboxes/sandbox-host-deployment.yaml
+      - hasDocuments:
+          count: 0
+        template: sandboxes/sandbox-host-pdb.yaml
+      - hasDocuments:
+          count: 2
+        template: sandboxes/sandbox-host-rbac.yaml
+      - hasDocuments:
+          count: 1
+        template: sandboxes/sandbox-host-service-account.yaml
+
+  - it: fullname-override
+    chart:
+      version: 0.0.0-golden
+      appVersion: 0.0.0-golden
+    release:
+      name: langsmith
+      namespace: langsmith
+    values:
+      - ./values/sandboxes-enabled.yaml
+      - ./values/golden/base.yaml
+      - ./values/golden/fullname-override.yaml
+    asserts:
+      - matchSnapshot: {}
+      - hasDocuments:
+          count: 1
+        template: sandboxes/juicefs-config.yaml
+      - hasDocuments:
+          count: 1
+        template: sandboxes/juicefs-format-job.yaml
+      - hasDocuments:
+          count: 0
+        template: sandboxes/proxy-ca.yaml
+      - hasDocuments:
+          count: 1
+        template: sandboxes/sandbox-host-deployment.yaml
+      - hasDocuments:
+          count: 0
+        template: sandboxes/sandbox-host-pdb.yaml
+      - hasDocuments:
+          count: 2
+        template: sandboxes/sandbox-host-rbac.yaml
+      - hasDocuments:
+          count: 1
+        template: sandboxes/sandbox-host-service-account.yaml
+
+  - it: name-override
+    chart:
+      version: 0.0.0-golden
+      appVersion: 0.0.0-golden
+    release:
+      name: langsmith
+      namespace: langsmith
+    values:
+      - ./values/sandboxes-enabled.yaml
+      - ./values/golden/base.yaml
+      - ./values/golden/name-override.yaml
+    asserts:
+      - matchSnapshot: {}
+      - hasDocuments:
+          count: 1
+        template: sandboxes/juicefs-config.yaml
+      - hasDocuments:
+          count: 1
+        template: sandboxes/juicefs-format-job.yaml
+      - hasDocuments:
+          count: 0
+        template: sandboxes/proxy-ca.yaml
+      - hasDocuments:
+          count: 1
+        template: sandboxes/sandbox-host-deployment.yaml
+      - hasDocuments:
+          count: 0
+        template: sandboxes/sandbox-host-pdb.yaml
+      - hasDocuments:
+          count: 2
+        template: sandboxes/sandbox-host-rbac.yaml
+      - hasDocuments:
+          count: 1
+        template: sandboxes/sandbox-host-service-account.yaml
+
+  - it: namespace-override
+    chart:
+      version: 0.0.0-golden
+      appVersion: 0.0.0-golden
+    release:
+      name: langsmith
+      namespace: langsmith
+    values:
+      - ./values/sandboxes-enabled.yaml
+      - ./values/golden/base.yaml
+      - ./values/golden/namespace-override.yaml
+    asserts:
+      - matchSnapshot: {}
+      - hasDocuments:
+          count: 1
+        template: sandboxes/juicefs-config.yaml
+      - hasDocuments:
+          count: 1
+        template: sandboxes/juicefs-format-job.yaml
+      - hasDocuments:
+          count: 0
+        template: sandboxes/proxy-ca.yaml
+      - hasDocuments:
+          count: 1
+        template: sandboxes/sandbox-host-deployment.yaml
+      - hasDocuments:
+          count: 0
+        template: sandboxes/sandbox-host-pdb.yaml
+      - hasDocuments:
+          count: 2
+        template: sandboxes/sandbox-host-rbac.yaml
+      - hasDocuments:
+          count: 1
+        template: sandboxes/sandbox-host-service-account.yaml
+
+  - it: cluster-domain
+    chart:
+      version: 0.0.0-golden
+      appVersion: 0.0.0-golden
+    release:
+      name: langsmith
+      namespace: langsmith
+    values:
+      - ./values/sandboxes-enabled.yaml
+      - ./values/golden/base.yaml
+      - ./values/golden/cluster-domain.yaml
+    asserts:
+      - matchSnapshot: {}
+      - hasDocuments:
+          count: 1
+        template: sandboxes/juicefs-config.yaml
+      - hasDocuments:
+          count: 1
+        template: sandboxes/juicefs-format-job.yaml
+      - hasDocuments:
+          count: 0
+        template: sandboxes/proxy-ca.yaml
+      - hasDocuments:
+          count: 1
+        template: sandboxes/sandbox-host-deployment.yaml
+      - hasDocuments:
+          count: 0
+        template: sandboxes/sandbox-host-pdb.yaml
+      - hasDocuments:
+          count: 2
+        template: sandboxes/sandbox-host-rbac.yaml
+      - hasDocuments:
+          count: 1
+        template: sandboxes/sandbox-host-service-account.yaml
+
+  - it: image-overrides
+    chart:
+      version: 0.0.0-golden
+      appVersion: 0.0.0-golden
+    release:
+      name: langsmith
+      namespace: langsmith
+    values:
+      - ./values/sandboxes-enabled.yaml
+      - ./values/golden/base.yaml
+      - ./values/golden/image-overrides.yaml
+    asserts:
+      - matchSnapshot: {}
+      - hasDocuments:
+          count: 1
+        template: sandboxes/juicefs-config.yaml
+      - hasDocuments:
+          count: 1
+        template: sandboxes/juicefs-format-job.yaml
+      - hasDocuments:
+          count: 0
+        template: sandboxes/proxy-ca.yaml
+      - hasDocuments:
+          count: 1
+        template: sandboxes/sandbox-host-deployment.yaml
+      - hasDocuments:
+          count: 0
+        template: sandboxes/sandbox-host-pdb.yaml
+      - hasDocuments:
+          count: 2
+        template: sandboxes/sandbox-host-rbac.yaml
+      - hasDocuments:
+          count: 1
+        template: sandboxes/sandbox-host-service-account.yaml
+
+  - it: formatter-overrides
+    chart:
+      version: 0.0.0-golden
+      appVersion: 0.0.0-golden
+    release:
+      name: langsmith
+      namespace: langsmith
+    values:
+      - ./values/sandboxes-enabled.yaml
+      - ./values/golden/base.yaml
+      - ./values/golden/formatter-overrides.yaml
+    asserts:
+      - matchSnapshot: {}
+      - hasDocuments:
+          count: 1
+        template: sandboxes/juicefs-config.yaml
+      - hasDocuments:
+          count: 1
+        template: sandboxes/juicefs-format-job.yaml
+      - hasDocuments:
+          count: 0
+        template: sandboxes/proxy-ca.yaml
+      - hasDocuments:
+          count: 1
+        template: sandboxes/sandbox-host-deployment.yaml
+      - hasDocuments:
+          count: 0
+        template: sandboxes/sandbox-host-pdb.yaml
+      - hasDocuments:
+          count: 2
+        template: sandboxes/sandbox-host-rbac.yaml
+      - hasDocuments:
+          count: 1
+        template: sandboxes/sandbox-host-service-account.yaml
+
+  - it: juicefs-existing-secret
+    chart:
+      version: 0.0.0-golden
+      appVersion: 0.0.0-golden
+    release:
+      name: langsmith
+      namespace: langsmith
+    values:
+      - ./values/sandboxes-enabled.yaml
+      - ./values/golden/base.yaml
+      - ./values/golden/juicefs-existing-secret.yaml
+    asserts:
+      - matchSnapshot: {}
+      - hasDocuments:
+          count: 0
+        template: sandboxes/juicefs-config.yaml
+      - hasDocuments:
+          count: 1
+        template: sandboxes/juicefs-format-job.yaml
+      - hasDocuments:
+          count: 0
+        template: sandboxes/proxy-ca.yaml
+      - hasDocuments:
+          count: 1
+        template: sandboxes/sandbox-host-deployment.yaml
+      - hasDocuments:
+          count: 0
+        template: sandboxes/sandbox-host-pdb.yaml
+      - hasDocuments:
+          count: 2
+        template: sandboxes/sandbox-host-rbac.yaml
+      - hasDocuments:
+          count: 1
+        template: sandboxes/sandbox-host-service-account.yaml
+
+  # The generated proxy CA is random, so its Secret is checked field by field
+  # instead of snapshotted.
+  - it: generated-proxy-ca
+    chart:
+      version: 0.0.0-golden
+      appVersion: 0.0.0-golden
+    release:
+      name: langsmith
+      namespace: langsmith
+    values:
+      - ./values/sandboxes-enabled.yaml
+    template: sandboxes/proxy-ca.yaml
+    asserts:
+      - hasDocuments:
+          count: 1
+      - equal:
+          path: metadata.name
+          value: smithbox-proxy-ca
+      - equal:
+          path: metadata.namespace
+          value: langsmith
+      - equal:
+          path: type
+          value: kubernetes.io/tls
+      - equal:
+          path: metadata.labels
+          value:
+            helm.sh/chart: langsmith-0.0.0-golden
+            app.kubernetes.io/name: langsmith
+            app.kubernetes.io/instance: langsmith
+            app.kubernetes.io/version: "0.0.0-golden"
+            app.kubernetes.io/managed-by: Helm
+      - equal:
+          path: metadata.annotations
+          value:
+            argocd.argoproj.io/sync-wave: "-2"
+            helm.sh/chart: langsmith-0.0.0-golden
+            app.kubernetes.io/name: langsmith
+            app.kubernetes.io/instance: langsmith
+            app.kubernetes.io/version: "0.0.0-golden"
+            app.kubernetes.io/managed-by: Helm
+      - exists:
+          path: data["tls.crt"]
+      - exists:
+          path: data["tls.key"]

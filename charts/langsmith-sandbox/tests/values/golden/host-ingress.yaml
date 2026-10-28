@@ -1,0 +1,16 @@
+sandboxHost:
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    hostname: sandbox-hosts.example.com
+    labels:
+      team: sandboxes
+    annotations:
+      example.com/ingress: 'true'
+    tls:
+    - secretName: sandbox-hosts-tls
+      hosts:
+      - sandbox-hosts.example.com
+    service:
+      annotations:
+        example.com/service: 'true'
