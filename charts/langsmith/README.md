@@ -8,6 +8,12 @@ Helm chart to deploy the langsmith application and all services it depends on.
 
 For information on how to use this chart, up-to-date release notes, and other guides please check out the [documentation.](https://docs.langchain.com/langsmith/kubernetes)
 
+## Requirements
+
+| Repository | Name | Version |
+|------------|------|---------|
+| file://../langsmith-sandbox | langsmith-sandbox | >=0.18.0-0 <0.19.0-0 |
+
 ## Sandboxes
 
 Sandboxes support two deployment topologies:

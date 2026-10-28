@@ -108,6 +108,11 @@ jobs:
       - name: Install Helm Unittest
         run: helm plugin install https://github.com/helm-unittest/helm-unittest.git --version 0.7.0
 
+      - name: Build chart dependencies
+        # charts/langsmith vendors charts/langsmith-sandbox, whose templates render
+        # its same-cluster sandbox runtime.
+        run: helm dependency build charts/${{ matrix.chart-name }}
+
       - name: Run chart unittest
         run: helm unittest charts/${{ matrix.chart-name }}
 

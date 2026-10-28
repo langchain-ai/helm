@@ -1,6 +1,4 @@
 {{- if .Values.sandboxHost.enabled }}
-{{- $autoscaling := .Values.sandboxHost.autoscaling }}
-{{- $hostMount := .Values.juicefs.hostMount }}
 {{- $managedEnv := list
   (dict "name" "SANDBOX_X_SERVICE_AUTH_JWT_SECRET")
   (dict "name" "LANGSMITH_SANDBOX_CALLBACK_SIGNING_JWK")
@@ -25,254 +23,49 @@ which yield to the chart labels the selector depends on. */}}
   (deepCopy (default dict .Values.sandboxHost.deployment.labels))
   (include "langsmithSandbox.labels" . | fromYaml)
   (dict "app.kubernetes.io/component" (include "langsmithSandbox.sandboxHostFullname" .)) }}
-{{- $callbackIssuer := .Values.config.callbackIssuer | default .Values.config.endpoint }}
-{{- $extraVolumes := concat .Values.commonVolumes .Values.sandboxHost.deployment.volumes }}
-{{- $extraVolumeMounts := concat .Values.commonVolumeMounts .Values.sandboxHost.deployment.volumeMounts }}
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: {{ include "langsmithSandbox.sandboxHostFullname" . }}
-  namespace: {{ include "langsmithSandbox.namespace" . }}
-  labels:
-    {{- toYaml $labels | nindent 4 }}
-  annotations:
-    {{- include "langsmithSandbox.annotations" . | nindent 4 }}
-    {{- with .Values.sandboxHost.deployment.annotations }}
-      {{- toYaml . | nindent 4 }}
-    {{- end }}
-spec:
-  selector:
-    matchLabels:
-      {{- include "langsmithSandbox.selectorLabels" . | nindent 6 }}
-      app.kubernetes.io/component: {{ include "langsmithSandbox.sandboxHostFullname" . }}
-  {{- if not $autoscaling.enabled }}
-  replicas: {{ .Values.sandboxHost.deployment.replicas }}
-  {{- end }}
-  strategy:
-    type: RollingUpdate
-    rollingUpdate:
-      maxSurge: 0
-      maxUnavailable: 1
-  template:
-    metadata:
-      {{- /* Pod labels drop helm.sh/chart: it changes on every chart version bump,
-      and a pod-template change rolls every host, suspending its VMs. The
-      Deployment's own metadata keeps it. */}}
-      labels:
-        {{- toYaml (omit $labels "helm.sh/chart") | nindent 8 }}
-      annotations:
-        {{- include "langsmithSandbox.commonPodAnnotations" . | nindent 8 }}
-        checksum/juicefs-config: {{ include "langsmithSandbox.juicefsConfigSecretChecksum" . | quote }}
-        {{- with .Values.sandboxHost.deployment.podAnnotations }}
-          {{- toYaml . | nindent 8 }}
-        {{- end }}
-    spec:
-      securityContext:
-        {{- include "langsmithSandbox.podSecurityContext" (dict "Values" .Values "componentSecurityContext" .Values.sandboxHost.deployment.podSecurityContext) | nindent 8 }}
-      hostNetwork: true
-      dnsPolicy: ClusterFirstWithHostNet
-      {{- include "langsmithSandbox.dnsConfig" . | nindent 6 }}
-      serviceAccountName: {{ include "langsmithSandbox.serviceAccountName" . }}
-      automountServiceAccountToken: {{ .Values.sandboxHost.serviceAccount.automountServiceAccountToken }}
-      affinity:
-        podAntiAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-            - labelSelector:
-                matchLabels:
-                  {{- include "langsmithSandbox.selectorLabels" . | nindent 18 }}
-                  app.kubernetes.io/component: {{ include "langsmithSandbox.sandboxHostFullname" . }}
-              topologyKey: kubernetes.io/hostname
-      {{- with .Values.images.imagePullSecrets }}
-      imagePullSecrets:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      {{- with .Values.sandboxHost.deployment.priorityClassName }}
-      priorityClassName: {{ . }}
-      {{- end }}
-      {{- with .Values.sandboxHost.deployment.nodeSelector }}
-      nodeSelector:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      {{- with .Values.sandboxHost.deployment.tolerations }}
-      tolerations:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      {{- with concat .Values.commonInitContainers .Values.sandboxHost.deployment.initContainers }}
-      initContainers:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      containers:
-        - name: sandbox-host
-          image: {{ include "langsmithSandbox.image" . | quote }}
-          imagePullPolicy: {{ .Values.images.sandboxHostImage.pullPolicy }}
-          env:
-            - name: LANGCHAIN_ENV
-              value: "local_kubernetes"
-            - name: POD_NAME
-              valueFrom:
-                fieldRef:
-                  fieldPath: metadata.name
-            - name: POD_NAMESPACE
-              valueFrom:
-                fieldRef:
-                  fieldPath: metadata.namespace
-            - name: POD_UID
-              valueFrom:
-                fieldRef:
-                  fieldPath: metadata.uid
-            - name: POD_HOST_IP
-              valueFrom:
-                fieldRef:
-                  fieldPath: status.hostIP
-            - name: SANDBOX_X_SERVICE_AUTH_JWT_SECRET
-              valueFrom:
-                secretKeyRef:
-                  name: {{ include "langsmithSandbox.serviceAuthSecretName" . }}
-                  key: {{ .Values.serviceAuth.secretKey }}
-            {{- with .Values.serviceAuth.previousSecretKey }}
-            - name: SANDBOX_X_SERVICE_AUTH_JWT_SECRET_PREVIOUS
-              valueFrom:
-                secretKeyRef:
-                  name: {{ include "langsmithSandbox.serviceAuthSecretName" $ }}
-                  key: {{ . }}
-                  optional: true
-            {{- end }}
-            - name: SANDBOX_HOST_PROXY_CA_DIR
-              value: /certs
-            - name: LANGSMITH_SANDBOX_CALLBACK_SIGNING_JWK
-              valueFrom:
-                secretKeyRef:
-                  name: {{ include "langsmithSandbox.serviceAuthSecretName" . }}
-                  key: {{ .Values.config.callbackSigningJwkSecretKey }}
-            - name: OAUTH_AS_ISSUER
-              value: {{ $callbackIssuer | quote }}
-            - name: SSRF_ALLOW_PRIVATE_IPS_CALLBACKS
-              value: "true"
-            - name: SANDBOX_CALLBACK_LOOPBACK_REWRITE
-              value: "false"
-            {{- /* The URL may carry proxy credentials, so it always comes from the Secret; a missing key means direct egress. An https proxy is verified against SSL_CERT_FILE, i.e. customCa, when set. */}}
-            - name: SANDBOX_EGRESS_UPSTREAM_PROXY_URL
-              valueFrom:
-                secretKeyRef:
-                  name: {{ include "langsmithSandbox.serviceAuthSecretName" . }}
-                  key: {{ .Values.authProxy.httpProxy.urlSecretKey }}
-                  optional: true
-            {{- with .Values.authProxy.httpProxy.noProxy }}
-            - name: SANDBOX_EGRESS_UPSTREAM_PROXY_NO_PROXY
-              value: {{ join "," . | quote }}
-            {{- end }}
-            - name: LANGSMITH_SANDBOX_INTERNAL_ENDPOINT
-              value: {{ .Values.config.endpoint | quote }}
-            {{- /* The release this host runs (its image tag), reported for the
-            control plane's version-skew warning. */}}
-            - name: LANGSMITH_APP_VERSION
-              value: {{ include "langsmithSandbox.imageTag" . | quote }}
-            - name: SANDBOX_HOST_DEPLOYMENT_NAME
-              value: {{ include "langsmithSandbox.sandboxHostFullname" . | quote }}
-            - name: SANDBOX_HOST_TERMINATION_GRACE_SECONDS
-              value: {{ .Values.sandboxHost.deployment.terminationGracePeriodSeconds | quote }}
-            - name: SANDBOX_HOST_JUICEFS_META_URL_FILE
-              value: /run/secrets/juicefs/metaurl
-            - name: SANDBOX_HOST_JUICEFS_MOUNT_OPTIONS
-              value: {{ concat (list (printf "--cache-dir=%s" (join ":" $hostMount.cacheDirs))) $hostMount.mountOptions | toJson | quote }}
-            {{- with .Values.juicefs.redis.iamAuthProvider }}
-            - name: SANDBOX_HOST_JUICEFS_REDIS_IAM_AUTH_PROVIDER
-              value: {{ . | quote }}
-            {{- end }}
-            - name: SANDBOX_HOST_AUTOSCALE_ENABLED
-              value: {{ $autoscaling.enabled | quote }}
-            {{- if $autoscaling.enabled }}
-            - name: SANDBOX_HOST_AUTOSCALE_MIN_REPLICAS
-              value: {{ $autoscaling.minReplicas | quote }}
-            - name: SANDBOX_HOST_AUTOSCALE_MAX_REPLICAS
-              value: {{ $autoscaling.maxReplicas | quote }}
-            - name: SANDBOX_HOST_AUTOSCALE_TARGET_UTILIZATION_PERCENT
-              value: {{ $autoscaling.targetUtilizationPercent | quote }}
-            - name: SANDBOX_HOST_AUTOSCALE_HEADROOM_HOSTS
-              value: {{ $autoscaling.headroomHosts | quote }}
-            - name: SANDBOX_HOST_AUTOSCALE_SCALE_DOWN_STABILIZATION_SECONDS
-              value: {{ $autoscaling.scaleDownStabilizationSeconds | quote }}
-            {{- end }}
-            {{- if and .Values.config.customCa.secretName .Values.config.customCa.secretKey }}
-            - name: SSL_CERT_FILE
-              value: /etc/ssl/certs/custom-ca-certificates.crt
-            {{- end }}
-            {{- with concat .Values.commonEnv .Values.sandboxHost.deployment.extraEnv }}
-              {{- toYaml . | nindent 12 }}
-            {{- end }}
-          ports:
-            - name: http
-              containerPort: 19190
-              hostPort: 19190
-              protocol: TCP
-          {{- with .Values.sandboxHost.deployment.readinessProbe }}
-          readinessProbe:
-            {{- toYaml . | nindent 12 }}
-          {{- end }}
-          securityContext:
-            {{- toYaml .Values.sandboxHost.deployment.securityContext | nindent 12 }}
-          resources:
-            {{- toYaml .Values.sandboxHost.deployment.resources | nindent 12 }}
-          volumeMounts:
-            - name: juicefs
-              mountPath: /juicefs
-            {{- range $index, $cacheDir := $hostMount.cacheDirs }}
-            - name: juicefs-cache-{{ $index }}
-              mountPath: {{ $cacheDir | quote }}
-            {{- end }}
-            - name: juicefs-meta
-              mountPath: /run/secrets/juicefs
-              readOnly: true
-            - name: host-bin
-              mountPath: /host-bin
-            - name: proxy-ca
-              mountPath: /certs
-              readOnly: true
-            {{- if and .Values.config.customCa.secretName .Values.config.customCa.secretKey }}
-            - name: langsmith-custom-ca
-              mountPath: /etc/ssl/certs/custom-ca-certificates.crt
-              subPath: ca-certificates.crt
-              readOnly: true
-            {{- end }}
-            {{- with $extraVolumeMounts }}
-              {{- toYaml . | nindent 12 }}
-            {{- end }}
-        {{- with .Values.sandboxHost.deployment.sidecars }}
-          {{- toYaml . | nindent 8 }}
-        {{- end }}
-      volumes:
-        - name: juicefs
-          emptyDir: {}
-        {{- range $index, $cacheDir := $hostMount.cacheDirs }}
-        - name: juicefs-cache-{{ $index }}
-          hostPath:
-            path: {{ $cacheDir | quote }}
-            type: DirectoryOrCreate
-        {{- end }}
-        - name: juicefs-meta
-          secret:
-            secretName: {{ include "langsmithSandbox.juicefsConfigSecretName" . }}
-            defaultMode: 0400
-            items:
-              - key: metaurl
-                path: metaurl
-        - name: proxy-ca
-          secret:
-            secretName: {{ include "langsmithSandbox.proxyCaSecretName" . }}
-        - name: host-bin
-          hostPath:
-            path: /var/lib/sandbox-host
-            type: DirectoryOrCreate
-        {{- if and .Values.config.customCa.secretName .Values.config.customCa.secretKey }}
-        - name: langsmith-custom-ca
-          secret:
-            secretName: {{ .Values.config.customCa.secretName }}
-            items:
-              - key: {{ .Values.config.customCa.secretKey }}
-                path: ca-certificates.crt
-        {{- end }}
-        {{- with $extraVolumes }}
-          {{- toYaml . | nindent 8 }}
-        {{- end }}
-      terminationGracePeriodSeconds: {{ .Values.sandboxHost.deployment.terminationGracePeriodSeconds }}
+{{- $customCa := and .Values.config.customCa.secretName .Values.config.customCa.secretKey }}
+{{- $customCaMounts := list }}
+{{- $customCaVolumes := list }}
+{{- if $customCa }}
+{{- $customCaMounts = list (dict "name" "langsmith-custom-ca" "mountPath" "/etc/ssl/certs/custom-ca-certificates.crt" "subPath" "ca-certificates.crt" "readOnly" true) }}
+{{- $customCaVolumes = list (dict "name" "langsmith-custom-ca" "secret" (dict "secretName" .Values.config.customCa.secretName "items" (list (dict "key" .Values.config.customCa.secretKey "path" "ca-certificates.crt")))) }}
+{{- end }}
+{{- $secretName := include "langsmithSandbox.serviceAuthSecretName" . }}
+{{- $previous := dict }}
+{{- with .Values.serviceAuth.previousSecretKey }}
+{{- $previous = dict "secretName" $secretName "key" . "optional" true }}
+{{- end }}
+{{- $name := include "langsmithSandbox.sandboxHostFullname" . }}
+{{- include "langsmithSandbox.render.hostDeployment" (dict
+  "name" $name
+  "namespace" (include "langsmithSandbox.namespace" .)
+  "labels" $labels
+  "podLabelsOmit" (list "helm.sh/chart")
+  "annotations" (mergeOverwrite (include "langsmithSandbox.annotations" . | fromYaml) (default dict .Values.sandboxHost.deployment.annotations))
+  "selectorLabels" (mergeOverwrite (include "langsmithSandbox.selectorLabels" . | fromYaml) (dict "app.kubernetes.io/component" $name))
+  "podAnnotations" (mergeOverwrite (include "langsmithSandbox.commonPodAnnotations" . | fromYaml) (dict "checksum/juicefs-config" (include "langsmithSandbox.juicefsConfigSecretChecksum" .)) (default dict .Values.sandboxHost.deployment.podAnnotations))
+  "podSecurityContext" (include "langsmithSandbox.podSecurityContext" (dict "Values" .Values "componentSecurityContext" .Values.sandboxHost.deployment.podSecurityContext))
+  "dnsConfig" (include "langsmithSandbox.dnsConfig" .)
+  "serviceAccountName" (include "langsmithSandbox.serviceAccountName" .)
+  "image" (include "langsmithSandbox.image" .)
+  "pullPolicy" .Values.images.sandboxHostImage.pullPolicy
+  "pullSecrets" .Values.images.imagePullSecrets
+  "initContainers" (concat .Values.commonInitContainers .Values.sandboxHost.deployment.initContainers)
+  "env" (dict
+    "appVersion" (include "langsmithSandbox.imageTag" .)
+    "serviceAuth" (dict "secretName" $secretName "key" .Values.serviceAuth.secretKey)
+    "previousServiceAuth" $previous
+    "sslCertFile" $customCa
+    "callbackJwk" (dict "secretName" $secretName "key" .Values.config.callbackSigningJwkSecretKey)
+    "oauthIssuer" (.Values.config.callbackIssuer | default .Values.config.endpoint)
+    "egressProxy" (dict "secretName" $secretName "key" .Values.authProxy.httpProxy.urlSecretKey "noProxy" .Values.authProxy.httpProxy.noProxy)
+    "internalEndpoint" .Values.config.endpoint
+    "deploymentName" $name
+    "extra" (concat .Values.commonEnv .Values.sandboxHost.deployment.extraEnv))
+  "extraVolumeMounts" (concat $customCaMounts .Values.commonVolumeMounts .Values.sandboxHost.deployment.volumeMounts)
+  "extraVolumes" (concat $customCaVolumes .Values.commonVolumes .Values.sandboxHost.deployment.volumes)
+  "juicefsConfigSecretName" (include "langsmithSandbox.juicefsConfigSecretName" .)
+  "proxyCaSecretName" (include "langsmithSandbox.proxyCaSecretName" .)
+  "sandboxHost" .Values.sandboxHost
+  "juicefs" .Values.juicefs) }}
 {{- end }}

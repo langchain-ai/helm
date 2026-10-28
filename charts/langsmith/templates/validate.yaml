@@ -204,6 +204,12 @@ AWS Marketplace Helm template verification).
 {{- /* Validate sandbox configuration */ -}}
 {{- if .Values.sandboxes.enabled -}}
 {{- $deploymentMode := .Values.sandboxes.deploymentMode | default "sameCluster" -}}
+{{- /* langsmith-sandbox is a dependency only so the sandboxes/* templates can
+render through its shared templates. Enabling it here would add a second
+runtime to this install. */ -}}
+{{- if ((index .Values "langsmith-sandbox" | default dict).sandboxHost | default dict).enabled -}}
+{{- fail "langsmith-sandbox.sandboxHost.enabled must stay false in the langsmith chart. Run sandboxes in this cluster with sandboxes.enabled, or install the langsmith-sandbox chart as its own release for a separate cluster." -}}
+{{- end -}}
 {{- if not (or (eq $deploymentMode "sameCluster") (eq $deploymentMode "separateCluster")) -}}
 {{- fail "sandboxes.deploymentMode must be one of sameCluster or separateCluster." -}}
 {{- end -}}

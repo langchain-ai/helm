@@ -1,25 +1,7 @@
 {{- if and .Values.sandboxHost.enabled (eq .Values.proxyCa.mode "generatedSecret") }}
-{{- $name := include "langsmithSandbox.proxyCaSecretName" . -}}
-{{- $namespace := include "langsmithSandbox.namespace" . -}}
-{{- $existing := lookup "v1" "Secret" $namespace $name -}}
-apiVersion: v1
-kind: Secret
-metadata:
-  name: {{ $name }}
-  namespace: {{ $namespace }}
-  labels:
-    {{- include "langsmithSandbox.labels" . | nindent 4 }}
-  annotations:
-    "argocd.argoproj.io/sync-wave": "-2"
-    {{- include "langsmithSandbox.annotations" . | nindent 4 }}
-type: kubernetes.io/tls
-data:
-  {{- if $existing }}
-  tls.crt: {{ index $existing.data "tls.crt" | quote }}
-  tls.key: {{ index $existing.data "tls.key" | quote }}
-  {{- else }}
-  {{- $ca := genCA "smithbox-proxy-ca" 3650 }}
-  tls.crt: {{ $ca.Cert | b64enc | quote }}
-  tls.key: {{ $ca.Key | b64enc | quote }}
-  {{- end }}
+{{- include "langsmithSandbox.render.proxyCa" (dict
+  "name" (include "langsmithSandbox.proxyCaSecretName" .)
+  "namespace" (include "langsmithSandbox.namespace" .)
+  "labels" (include "langsmithSandbox.labels" . | fromYaml)
+  "annotations" (mergeOverwrite (dict "argocd.argoproj.io/sync-wave" "-2") (include "langsmithSandbox.annotations" . | fromYaml))) }}
 {{- end }}

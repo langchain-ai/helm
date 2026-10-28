@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 # Fails when charts/langsmith and charts/langsmith-sandbox would ship different
 # LangSmith releases: their appVersions differ, the runtime chart pins its image
-# tag, or the langsmith chart's sandbox-host tag is not its appVersion.
+# tag, or the langsmith chart's sandbox-host tag is not its appVersion. Also checks
+# that charts/langsmith depends on charts/langsmith-sandbox, whose templates render
+# the same-cluster runtime, with the range for the runtime chart's minor line.
 # Usage: check-sandbox-chart-pairing.sh [repository root]
 set -euo pipefail
 
@@ -44,6 +46,23 @@ if [[ -n "$runtime_tag" ]]; then
 fi
 if [[ "$main_tag" != "$main_app" ]]; then
   echo "::error::charts/langsmith images.sandboxHostImage.tag ('$main_tag') must equal the chart appVersion ('$main_app')."
+  status=1
+fi
+runtime_version="$(sed -n -E 's/^version:[[:space:]]*"?([^"[:space:]]+)"?[[:space:]]*$/\1/p' "$runtime_chart/Chart.yaml")"
+runtime_minor="${runtime_version%%-*}"
+IFS=. read -r runtime_x runtime_y _ <<<"$runtime_minor"
+expected_range=">=${runtime_x}.${runtime_y}.0-0 <${runtime_x}.$((runtime_y + 1)).0-0"
+dependency="$(awk '
+  /^dependencies:/ { deps = 1; next }
+  deps && /^[^ -]/ { deps = 0 }
+  deps && /- name: langsmith-sandbox/ { found = 1; next }
+  found && /^[[:space:]]+version:/ { sub(/^[[:space:]]+version:[[:space:]]*/, ""); gsub(/"/, ""); version = $0 }
+  found && /^[[:space:]]+repository:/ { sub(/^[[:space:]]+repository:[[:space:]]*/, ""); gsub(/"/, ""); repository = $0 }
+  found && /^  - name:/ && !/langsmith-sandbox/ { found = 0 }
+  END { print version "|" repository }
+' "$main_chart/Chart.yaml")"
+if [[ "$dependency" != "$expected_range|file://../langsmith-sandbox" ]]; then
+  echo "::error::charts/langsmith must depend on langsmith-sandbox with version \"$expected_range\" and repository \"file://../langsmith-sandbox\" (found '${dependency}')."
   status=1
 fi
 if [[ "$status" -eq 0 ]]; then
