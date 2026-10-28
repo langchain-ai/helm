@@ -77,6 +77,9 @@ tests:
           path: spec.completions
           value: 1
       - equal:
+          path: spec.activeDeadlineSeconds
+          value: 900
+      - equal:
           path: spec.parallelism
           value: 1
       - equal:
@@ -128,6 +131,7 @@ tests:
     values:
       - ./values/sandboxes-enabled.yaml
     set:
+      sandboxes.juicefsFormatJob.activeDeadlineSeconds: 1800
       sandboxes.juicefsFormatJob.labels:
         azure.workload.identity/use: "true"
       sandboxes.juicefsFormatJob.annotations:
@@ -162,6 +166,9 @@ tests:
                       - juicefs-format
     template: sandboxes/juicefs-format-job.yaml
     asserts:
+      - equal:
+          path: spec.activeDeadlineSeconds
+          value: 1800
       - isNull:
           path: metadata.labels["azure.workload.identity/use"]
       - equal:

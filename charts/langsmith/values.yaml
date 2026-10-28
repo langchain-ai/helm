@@ -224,6 +224,8 @@ sandboxes:
         - --cache-size=51200
         - --cache-large-write
   juicefsFormatJob:
+    # -- Time limit for the JuiceFS formatter Job, in seconds. It includes scheduling and the pull of the sandbox-host image, which can take minutes on a new node.
+    activeDeadlineSeconds: 900
     # -- Additional labels applied to the JuiceFS formatter pod. For Azure Workload Identity, set `azure.workload.identity/use` to `true`.
     labels: {}
     # -- Additional annotations applied to the JuiceFS formatter Job and pod.
