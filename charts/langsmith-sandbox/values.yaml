@@ -119,6 +119,8 @@ juicefs:
       - --cache-large-write
 
 juicefsFormatJob:
+  # -- Time limit for the JuiceFS formatter Job, in seconds. It includes scheduling and the pull of the sandbox-host image, which can take minutes on a new node.
+  activeDeadlineSeconds: 900
   # -- Extra labels on the JuiceFS formatter pod. A value here wins over the workload-identity label the chart adds.
   labels: {}
   annotations: {}

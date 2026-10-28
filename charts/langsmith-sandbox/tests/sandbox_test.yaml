@@ -380,6 +380,27 @@ tests:
           path: metadata.name
           value: RELEASE-NAME-langsmith-sandbox-juicefs-format-62ef49ce
 
+  # The deadline covers scheduling and the image pull on a new node.
+  - it: should give the JuiceFS formatter a configurable deadline
+    values:
+      - ./values/enabled.yaml
+    template: juicefs-format-job.yaml
+    asserts:
+      - equal:
+          path: spec.activeDeadlineSeconds
+          value: 900
+
+  - it: should take a longer JuiceFS formatter deadline
+    values:
+      - ./values/enabled.yaml
+    set:
+      juicefsFormatJob.activeDeadlineSeconds: 1800
+    template: juicefs-format-job.yaml
+    asserts:
+      - equal:
+          path: spec.activeDeadlineSeconds
+          value: 1800
+
   - it: should rename the JuiceFS formatter when commonDnsConfig changes
     chart:
       version: 0.0.0-test

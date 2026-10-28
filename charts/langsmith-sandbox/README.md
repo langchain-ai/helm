@@ -120,6 +120,7 @@ The Ingress routes only `/internal/SandboxHost/` (host RPCs) and `/guest-operati
 | juicefs.redis.metaURL | string | `""` | JuiceFS Redis metadata URL. The Redis maxmemory policy must be noeviction. |
 | juicefs.storage | string | `"s3"` | Object storage backend: `s3` (AWS), `gs` (GCP) or `wasb` (Azure Blob Storage). |
 | juicefs.storageAccountName | string | `""` | Azure storage account name, passed to JuiceFS as its access key. Required when storage is wasb. |
+| juicefsFormatJob.activeDeadlineSeconds | int | `900` | Time limit for the JuiceFS formatter Job, in seconds. It includes scheduling and the pull of the sandbox-host image, which can take minutes on a new node. |
 | juicefsFormatJob.affinity | object | `{}` |  |
 | juicefsFormatJob.annotations | object | `{}` |  |
 | juicefsFormatJob.labels | object | `{}` | Extra labels on the JuiceFS formatter pod. A value here wins over the workload-identity label the chart adds. |
