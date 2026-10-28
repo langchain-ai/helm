@@ -236,18 +236,26 @@ Template containing common environment variables that are used by several servic
 - name: REDIS_CLUSTER_ENABLED
   value: {{ .Values.redis.external.cluster.enabled | quote }}
 {{- if .Values.redis.external.cluster.enabled }}
+{{- /* The cluster client seeds from REDIS_CLUSTER_DATABASE_URIS when set, else REDIS_DATABASE_URI.
+       The node URI and password keys are deprecated, so the Secret may hold only the connection URL. */}}
+- name: REDIS_DATABASE_URI
+  valueFrom:
+    secretKeyRef:
+      name: {{ include "langsmith.redisSecretsName" . }}
+      key: {{ .Values.redis.external.connectionUrlSecretKey }}
+      optional: true
 - name: REDIS_CLUSTER_DATABASE_URIS
   valueFrom:
     secretKeyRef:
       name: {{ include "langsmith.redisSecretsName" . }}
       key: {{ .Values.redis.external.cluster.nodeUrisSecretKey }}
-      optional: {{ .Values.config.disableSecretCreation }}
+      optional: true
 - name: REDIS_CLUSTER_PASSWORD
   valueFrom:
     secretKeyRef:
       name: {{ include "langsmith.redisSecretsName" . }}
       key: {{ .Values.redis.external.cluster.passwordSecretKey }}
-      optional: {{ .Values.config.disableSecretCreation }}
+      optional: true
 - name: REDIS_CLUSTER_USE_SSL_CONNECTION
   value: {{ .Values.redis.external.cluster.tlsEnabled | quote }}
 {{- else }}
