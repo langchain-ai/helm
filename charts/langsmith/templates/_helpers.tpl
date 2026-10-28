@@ -753,6 +753,46 @@ runs without a local SmithDB.
 {{- end }}
 
 {{/*
+JSON list of the smithdb.* keys of the rendered SmithDB service workloads.
+*/}}
+{{- define "langsmith.smithdb.metricsComponents" -}}
+{{- $components := list -}}
+{{- if include "langsmith.smithdb.unifiedTopology" . -}}
+{{- $components = list "unified" -}}
+{{- else if include "langsmith.smithdb.clusterTopology" . -}}
+{{- range $component := list "query" "mutations" "runRules" "statsQuery" "ingestion" "compaction" "compactionWorker" "clusterManager" -}}
+{{- if dig "enabled" true (index $.Values.smithdb $component) -}}
+{{- $components = append $components $component -}}
+{{- end -}}
+{{- end -}}
+{{- end -}}
+{{- toJson $components -}}
+{{- end }}
+
+{{/*
+Name of the headless Service that publishes one DNS record per pod of a SmithDB component.
+Args: root, component.
+*/}}
+{{- define "langsmith.smithdb.metricsServiceName" -}}
+{{- printf "%s-metrics" (include "langsmith.smithdb.componentName" . | trunc 55 | trimSuffix "-") -}}
+{{- end }}
+
+{{/*
+JSON map of SmithDB component name to its headless metrics Service URL, which the
+queue scrapes for self-hosted telemetry.
+*/}}
+{{- define "langsmith.smithdb.metricsEndpoints" -}}
+{{- $endpoints := dict -}}
+{{- range $component := include "langsmith.smithdb.metricsComponents" . | fromJsonArray -}}
+{{- $componentValues := index $.Values.smithdb $component -}}
+{{- $serviceName := include "langsmith.smithdb.metricsServiceName" (dict "root" $ "component" $component) -}}
+{{- $url := printf "http://%s.%s.svc.%s:%v" $serviceName ($.Values.namespace | default $.Release.Namespace) $.Values.clusterDomain $componentValues.containerPort -}}
+{{- $_ := set $endpoints ($componentValues.name | default $component) $url -}}
+{{- end -}}
+{{- toJson $endpoints -}}
+{{- end }}
+
+{{/*
 Name of the shared SmithDB service account.
 Args: root.
 */}}
