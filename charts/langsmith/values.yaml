@@ -2339,7 +2339,10 @@ smithdb:
       - "metastore-migrate"
     job:
       ttlSecondsAfterFinished: 3600
-      backoffLimit: 0
+      # Retries cover transient failures on a fresh install, such as IAM database
+      # authentication that has not propagated yet; a failed pre-install hook
+      # leaves a release that later upgrades cannot repair.
+      backoffLimit: 3
       activeDeadlineSeconds: 600
       restartPolicy: Never
       priorityClassName: ""
