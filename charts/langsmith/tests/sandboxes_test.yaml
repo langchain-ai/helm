@@ -130,6 +130,29 @@ tests:
       - failedTemplate:
           errorMessage: "sandboxes.hostIngressEndpoint moved to sandboxes.external.hostIngressEndpoint."
 
+  # The vendored langsmith-sandbox chart only supplies shared templates; it
+  # must never render its own runtime inside this release.
+  - it: should reject enabling the embedded langsmith-sandbox host
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      langsmith-sandbox.sandboxHost.enabled: true
+    template: validate.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: "langsmith-sandbox.sandboxHost.enabled must stay false in the langsmith chart. Run sandboxes in this cluster with sandboxes.enabled, or install the langsmith-sandbox chart as its own release for a separate cluster."
+
+  - it: should reject enabling the embedded langsmith-sandbox host with sandboxes disabled
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      sandboxes.enabled: false
+      langsmith-sandbox.sandboxHost.enabled: true
+    template: validate.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: "langsmith-sandbox.sandboxHost.enabled must stay false in the langsmith chart. Run sandboxes in this cluster with sandboxes.enabled, or install the langsmith-sandbox chart as its own release for a separate cluster."
+
   - it: should reject a sandbox-host ingress endpoint with a path
     values:
       - ./values/sandboxes-enabled.yaml

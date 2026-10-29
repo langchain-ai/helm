@@ -1,12 +1,18 @@
 # langsmith
 
-![Version: 0.18.0-rc.50](https://img.shields.io/badge/Version-0.18.0--rc.50-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.18.17rc1](https://img.shields.io/badge/AppVersion-0.18.17rc1-informational?style=flat-square)
+![Version: 0.18.0-rc.51](https://img.shields.io/badge/Version-0.18.0--rc.51-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.18.17rc1](https://img.shields.io/badge/AppVersion-0.18.17rc1-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
 ## Documentation
 
 For information on how to use this chart, up-to-date release notes, and other guides please check out the [documentation.](https://docs.langchain.com/langsmith/kubernetes)
+
+## Requirements
+
+| Repository | Name | Version |
+|------------|------|---------|
+| file://../langsmith-sandbox | langsmith-sandbox | >=0.18.0-0 <0.19.0-0 |
 
 ## Sandboxes
 

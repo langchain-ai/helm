@@ -201,6 +201,12 @@ AWS Marketplace Helm template verification).
 {{- end -}}
 {{- end -}}
 
+{{- /* langsmith-sandbox is a dependency only so the sandboxes/* templates can
+render through its shared templates. Enabling it here would add a second
+runtime to this install, with or without sandboxes.enabled. */ -}}
+{{- if ((index .Values "langsmith-sandbox" | default dict).sandboxHost | default dict).enabled -}}
+{{- fail "langsmith-sandbox.sandboxHost.enabled must stay false in the langsmith chart. Run sandboxes in this cluster with sandboxes.enabled, or install the langsmith-sandbox chart as its own release for a separate cluster." -}}
+{{- end -}}
 {{- /* Validate sandbox configuration */ -}}
 {{- if .Values.sandboxes.enabled -}}
 {{- /* The topology keys from before external: refuse them, so a values file that
