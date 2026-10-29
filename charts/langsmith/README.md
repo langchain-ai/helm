@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.18.0-rc.49](https://img.shields.io/badge/Version-0.18.0--rc.49-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.18.17rc1](https://img.shields.io/badge/AppVersion-0.18.17rc1-informational?style=flat-square)
+![Version: 0.18.0-rc.50](https://img.shields.io/badge/Version-0.18.0--rc.50-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.18.17rc1](https://img.shields.io/badge/AppVersion-0.18.17rc1-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -603,6 +603,7 @@ The trajectory Service is cluster-internal; no public route is added. Trajectory
 | fleetTriggerServer.serviceAccount.name | string | `""` |  |
 | fullnameOverride | string | `""` | String to fully override `"langsmith.fullname"` |
 | gateway.annotations | object | `{}` |  |
+| gateway.deploymentRequestTimeout | string | `"0s"` | Request timeout the operator writes on each LangSmith Deployment's HTTPRoute (`timeouts.request`), passed as `HTTPROUTE_REQUEST_TIMEOUT` (operator 0.1.38 and later). Without it those routes take the Gateway's default (15 s on Envoy Gateway), which cuts `runs/stream` mid-response. `0s` turns the timeout off; empty leaves the routes without one. Ignored when `operator.deployment.extraEnv` sets `HTTPROUTE_REQUEST_TIMEOUT`. |
 | gateway.enabled | bool | `false` |  |
 | gateway.labels | object | `{}` |  |
 | gateway.name | string | `""` |  |
