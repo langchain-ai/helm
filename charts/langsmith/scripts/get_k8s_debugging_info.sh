@@ -21,7 +21,10 @@
 # --exclude-describe : skip kubectl describe collection.
 # --include-prometheus : collect application /metrics snapshots via local port-forward.
 #                      Requires curl, jq and pods/portforward permission. Redaction
-#                      masks metric labels except histogram/quantile boundaries.
+#                      preserves validated HTTP method/status and numeric boundary
+#                      labels; other labels and exemplars are removed or masked.
+#                      Disabled endpoints (e.g. METRICS_ENDPOINT_ENABLED=false on
+#                      backend) produce warnings/error logs, not snapshots.
 # --pod-selector     : restrict describe/log/Prometheus collection to pods matching this
 #                      Kubernetes label selector (e.g. "app.kubernetes.io/component=fleet-queue").
 #                      Namespace-wide resources (summary, events, top pods, helm values)
@@ -292,21 +295,38 @@ redact_file() {
   local -a st
   tmp="$(mktemp)" || return
   if [[ "$f" == *.prom ]]; then
-    if awk '
-      /^#/ { print; next }
-      {
-        rest = $0; line = ""
-        while (match(rest, /[a-zA-Z_][a-zA-Z0-9_]*="(\\.|[^"\\])*"/)) {
-          label = substr(rest, RSTART, RLENGTH)
-          line = line substr(rest, 1, RSTART - 1)
-          if (label !~ /^(le|quantile)="[+0-9.eE-]+"$/ && label != "le=\"+Inf\"")
-            sub(/=.*/, "=\"***REDACTED***\"", label)
-          line = line label
-          rest = substr(rest, RSTART + RLENGTH)
+    if (
+      set -o pipefail
+      awk "$AWK_PEM" "$f" | awk '
+        BEGIN {
+          number = "([+-]?([0-9]+([.][0-9]*)?|[.][0-9]+)([eE][+-]?[0-9]+)?|[+-]?Inf|NaN)"
         }
-        print line rest
-      }
-    ' "$f" > "$tmp"; then
+        /^#/ { print; print ""; next }
+        {
+          if (!match($0, /^[a-zA-Z_:][a-zA-Z0-9_:]*/)) next
+          name = substr($0, 1, RLENGTH)
+          rest = substr($0, RLENGTH + 1); line = ""
+          sub(/[[:space:]]+#.*/, "", rest)
+          while (match(rest, /[a-zA-Z_][a-zA-Z0-9_]*="(\\.|[^"\\])*"/)) {
+            label = substr(rest, RSTART, RLENGTH)
+            line = line substr(rest, 1, RSTART - 1)
+            if (label !~ /^(method|http_method)="(GET|HEAD|POST|PUT|DELETE|CONNECT|OPTIONS|TRACE|PATCH)"$/ &&
+                label !~ /^(status|status_code|code)="[1-5][0-9][0-9]"$/ &&
+                label !~ ("^(le|quantile)=\"" number "\"$"))
+              sub(/=.*/, "=\"***REDACTED***\"", label)
+            line = line label
+            rest = substr(rest, RSTART + RLENGTH)
+          }
+          if (line != "") {
+            if (line !~ /^\{/ || rest !~ /^\}/) next
+            line = line "}"; rest = substr(rest, 2)
+          }
+          if (rest !~ ("^[[:space:]]+" number "([[:space:]]+" number ")?[[:space:]]*$")) next
+          print name
+          print line rest
+        }
+      ' | sed -E "${SED_ARGS[@]}" -e n | awk 'NR % 2 { text = $0; next } { print text $0 }' > "$tmp"
+    ); then
       mv "$tmp" "$f"
     else
       rm -f "$tmp" "$f"
@@ -368,7 +388,7 @@ collect_prometheus() (
   if ! curl --noproxy '*' --fail --silent --show-error --max-time 10 \
     "http://127.0.0.1:$local_port/metrics" > "$output" 2>> "$output.scrape.log"; then
     rm -f "$output"
-    echo "  Unable to scrape $pod:$port; see $output.scrape.log" >&2
+    echo "  No metrics snapshot for $pod:$port (endpoint may be disabled); see $output.scrape.log" >&2
     return 1
   fi
 )
@@ -476,11 +496,16 @@ if [[ "$COLLECT_PROMETHEUS" -eq 1 ]]; then
         [[ "$CONTAINER" =~ ^[a-z0-9][a-z0-9-]*$ && "$PORT" =~ ^[0-9]+$ ]] || continue
         ((PORT > 0 && PORT <= 65535)) || continue
         collect_prometheus "$POD" "$PORT" "$DIR/metrics/${POD}_${CONTAINER}_${PORT}.prom"
+        case $? in
+          130) exit 130 ;;
+          143) exit 143 ;;
+        esac
       done < <(kubectl get pod "$POD" -n "$NS" -o json | jq -r '
         select(.status.phase == "Running") | .spec.containers[] |
         .name as $container | .ports[]? |
         select(.name == "ingest-queue" or .name == "platform" or
-               .name == "backend" or .name == "host-backend" or .name == "playground") |
+               .name == "backend" or .name == "host-backend" or .name == "playground" or
+               .name == "ch-metrics") |
         [$container, .containerPort] | @tsv')
     done
   else
