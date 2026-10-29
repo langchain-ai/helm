@@ -58,6 +58,19 @@ tests:
               secretKeyRef:
                 name: smithdb-secret
                 key: smithdb_metastore_db_host
+  - it: should disable query memory attribution in the unified pod
+    template: smithdb/unified-deployment.yaml
+    documentSelector:
+      path: kind
+      value: Deployment
+    set:
+      smithdb.topology: unified
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_QUERY__MEMORY_ATTRIBUTION_ENABLED
+            value: "false"
   - it: should render no per-role workloads in the unified topology
     set:
       smithdb.topology: unified
