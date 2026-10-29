@@ -5,6 +5,11 @@ charts/langsmith/tests/langsmith_smithdb_env_test.yaml
 charts/langsmith/templates/_helpers.tpl
   s_6c7b971bdba24c::t_e740962089afdd 796-798,802,804-809
   s_6c7b971bdba24c::t_d810837468c61e 810
+  s_6c7b971bdba24c::t_a7adeb126ba058 803
+charts/langsmith/README.md
+  s_6c7b971bdba24c::t_7c58c8a84bc2f3 3
+charts/langsmith/Chart.yaml
+  s_6c7b971bdba24c::t_7c58c8a84bc2f3 8
 ---
 {
   "schema_version": "authorship/3.0.0",
