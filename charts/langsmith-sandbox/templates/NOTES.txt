@@ -1,12 +1,12 @@
 {{- if .Values.sandboxHost.enabled }}
 LangSmith sandbox runtime installed in namespace {{ include "langsmithSandbox.namespace" . }}.
 
-Run exactly one langsmith-sandbox release per LangSmith install, and only while the langsmith release uses sandboxes.deploymentMode=separateCluster. Two runtimes reporting to one install merge into one host pool and stop each other's sandboxes.
+Run exactly one langsmith-sandbox release per LangSmith install, and only while the langsmith release sets sandboxes.external.enabled=true. Two runtimes reporting to one install merge into one host pool and stop each other's sandboxes.
 
 This release runs sandbox-host {{ include "langsmithSandbox.imageTag" . }}. Keep it on the same LangSmith release as the langsmith chart: upgrade langsmith first, then this release within days, using the newest langsmith-sandbox chart whose appVersion matches the langsmith chart's.
 {{- if .Values.sandboxHost.ingress.enabled }}
 
-Set sandboxes.hostIngressEndpoint in the langsmith chart to {{ if .Values.sandboxHost.ingress.tls }}https{{ else }}http{{ end }}://{{ .Values.sandboxHost.ingress.hostname }}.
+Set sandboxes.external.hostIngressEndpoint in the langsmith chart to {{ if .Values.sandboxHost.ingress.tls }}https{{ else }}http{{ end }}://{{ .Values.sandboxHost.ingress.hostname }}.
 {{- if not .Values.sandboxHost.ingress.tls }}
 The host ingress has no tls configured. LangSmith will reach it without TLS, so this traffic is plain HTTP; use it only on a network you trust.
 {{- end }}

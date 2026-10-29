@@ -38,7 +38,7 @@
 - name: LANGSMITH_APP_VERSION
   value: {{ include "langsmith.sandboxes.hostImageTag" . | quote }}
 - name: SANDBOX_DEPLOYMENT_MODE
-  value: {{ .Values.sandboxes.deploymentMode | quote }}
+  value: {{ ternary "separateCluster" "sameCluster" .Values.sandboxes.external.enabled | quote }}
 {{- with include "langsmith.sandboxes.serviceAuthPreviousSecretKey" . }}
 - name: SANDBOX_X_SERVICE_AUTH_JWT_SECRET_PREVIOUS
   valueFrom:
@@ -56,7 +56,7 @@
 - name: SANDBOX_SERVICE_URLS
   value: {{ dict (.Values.sandboxes.clusterName | default "incluster") .Values.sandboxes.serviceUrlBaseUrl | toJson | quote }}
 {{- end }}
-{{- with .Values.sandboxes.hostIngressEndpoint }}
+{{- with .Values.sandboxes.external.hostIngressEndpoint }}
 - name: SANDBOX_HOST_INGRESS_ENDPOINT
   value: {{ . | quote }}
 {{- end }}

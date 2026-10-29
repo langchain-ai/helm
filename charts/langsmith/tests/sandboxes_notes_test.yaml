@@ -2,16 +2,16 @@ suite: sandbox install notes
 templates:
   - NOTES.txt
 tests:
-  - it: should tell separate-cluster installs what to run next
+  - it: should tell installs with an external runtime what to run next
     values:
       - ./values/sandboxes-enabled.yaml
     set:
-      sandboxes.deploymentMode: separateCluster
+      sandboxes.external.enabled: true
       sandboxes.serviceAuth.secretKey: sandbox_service_auth_secret
       config.hostname: langsmith.example.com
     asserts:
       - matchRegexRaw:
-          pattern: Sandboxes run in a separate cluster
+          pattern: Sandboxes use an external runtime
       - matchRegexRaw:
           pattern: "key sandbox_service_auth_secret"
 
@@ -20,4 +20,4 @@ tests:
       - ./values/sandboxes-enabled.yaml
     asserts:
       - notMatchRegexRaw:
-          pattern: Sandboxes run in a separate cluster
+          pattern: Sandboxes use an external runtime

@@ -23,7 +23,7 @@ tests:
             - sandbox-hosts.example.com
     asserts:
       - matchRegexRaw:
-          pattern: "sandboxes.hostIngressEndpoint in the langsmith chart to https://sandbox-hosts.example.com"
+          pattern: "sandboxes.external.hostIngressEndpoint in the langsmith chart to https://sandbox-hosts.example.com"
 
   - it: should warn when the host ingress has no TLS
     values:

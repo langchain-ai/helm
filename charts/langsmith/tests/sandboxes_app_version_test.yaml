@@ -56,7 +56,7 @@ tests:
     values:
       - ./values/sandboxes-enabled.yaml
     set:
-      sandboxes.deploymentMode: separateCluster
+      sandboxes.external.enabled: true
       sandboxes.serviceAuth.secretKey: sandbox_service_auth_secret
       config.hostname: langsmith.example.com
     template: platform-backend/deployment.yaml

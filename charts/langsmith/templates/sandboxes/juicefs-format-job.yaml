@@ -1,4 +1,4 @@
-{{- if and .Values.sandboxes.enabled (eq .Values.sandboxes.deploymentMode "sameCluster") }}
+{{- if and .Values.sandboxes.enabled (not .Values.sandboxes.external.enabled) }}
 {{- $juicefsFormatJob := .Values.sandboxes.juicefsFormatJob }}
 {{- include "langsmithSandbox.render.formatJob" (dict
   "name" (include "langsmith.sandboxes.juicefsFormatJobName" .)

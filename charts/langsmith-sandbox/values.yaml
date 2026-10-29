@@ -205,7 +205,7 @@ sandboxHost:
     labels: {}
     annotations: {}
   ingress:
-    # -- Create an Ingress for sandbox-host port 19190. Enable it when the LangSmith control plane cannot reach sandbox node IPs, or when that plain-HTTP traffic would leave a trusted private network. Configure `tls` and set `sandboxes.hostIngressEndpoint` in the langsmith chart to its `https://` origin. Routes only `/internal/SandboxHost/` and `/guest-operation/`; see Host ingress in the chart README.
+    # -- Create an Ingress for sandbox-host port 19190. Enable it when the LangSmith control plane cannot reach sandbox node IPs, or when that plain-HTTP traffic would leave a trusted private network. Configure `tls` and set `sandboxes.external.hostIngressEndpoint` in the langsmith chart to its `https://` origin. Routes only `/internal/SandboxHost/` and `/guest-operation/`; see Host ingress in the chart README.
     enabled: false
     ingressClassName: ""
     # -- DNS hostname the Ingress serves, without a scheme, port or path. Required when the ingress is enabled.
