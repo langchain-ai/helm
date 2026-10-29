@@ -50,6 +50,7 @@ tests:
             valueFrom:
               resourceFieldRef:
                 resource: limits.memory
+                divisor: "0"
       - contains:
           path: spec.template.spec.containers[0].env
           content:
