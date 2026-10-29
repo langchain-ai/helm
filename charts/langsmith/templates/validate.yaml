@@ -203,22 +203,28 @@ AWS Marketplace Helm template verification).
 
 {{- /* Validate sandbox configuration */ -}}
 {{- if .Values.sandboxes.enabled -}}
-{{- $deploymentMode := .Values.sandboxes.deploymentMode | default "sameCluster" -}}
-{{- if not (or (eq $deploymentMode "sameCluster") (eq $deploymentMode "separateCluster")) -}}
-{{- fail "sandboxes.deploymentMode must be one of sameCluster or separateCluster." -}}
+{{- /* The topology keys from before external: refuse them, so a values file that
+still sets them fails instead of deploying the embedded runtime next to an
+external one. */ -}}
+{{- if hasKey .Values.sandboxes "deploymentMode" -}}
+{{- fail "sandboxes.deploymentMode was replaced by sandboxes.external.enabled. Set sandboxes.external.enabled to true when the runtime is installed with the langsmith-sandbox chart, and remove sandboxes.deploymentMode." -}}
 {{- end -}}
-{{- if and (eq $deploymentMode "separateCluster") (not .Values.config.hostname) -}}
-{{- fail "config.hostname is required when sandboxes.deploymentMode is separateCluster so sandbox-host can reach the LangSmith API." -}}
+{{- if hasKey .Values.sandboxes "hostIngressEndpoint" -}}
+{{- fail "sandboxes.hostIngressEndpoint moved to sandboxes.external.hostIngressEndpoint." -}}
 {{- end -}}
-{{- if and (eq $deploymentMode "separateCluster") (regexMatch "^(?:[a-zA-Z][a-zA-Z0-9+.-]*://)?(?:localhost|127\\.0\\.0\\.1|\\[::1\\])(?::[0-9]+)?(?:/.*)?$" .Values.config.hostname) -}}
-{{- fail "config.hostname must be externally reachable when sandboxes.deploymentMode is separateCluster." -}}
+{{- $external := .Values.sandboxes.external.enabled -}}
+{{- if and $external (not .Values.config.hostname) -}}
+{{- fail "config.hostname is required when sandboxes.external.enabled is true so sandbox-host can reach the LangSmith API." -}}
 {{- end -}}
-{{- if and (eq $deploymentMode "separateCluster") (regexMatch "\\.svc(\\.[a-zA-Z0-9.-]+)?(:[0-9]+)?(/.*)?$" .Values.config.hostname) -}}
-{{- fail "config.hostname must not be an in-cluster service address when sandboxes.deploymentMode is separateCluster." -}}
+{{- if and $external (regexMatch "^(?:[a-zA-Z][a-zA-Z0-9+.-]*://)?(?:localhost|127\\.0\\.0\\.1|\\[::1\\])(?::[0-9]+)?(?:/.*)?$" .Values.config.hostname) -}}
+{{- fail "config.hostname must be externally reachable when sandboxes.external.enabled is true." -}}
 {{- end -}}
-{{- $hostIngressEndpoint := .Values.sandboxes.hostIngressEndpoint | default "" -}}
+{{- if and $external (regexMatch "\\.svc(\\.[a-zA-Z0-9.-]+)?(:[0-9]+)?(/.*)?$" .Values.config.hostname) -}}
+{{- fail "config.hostname must not be an in-cluster service address when sandboxes.external.enabled is true." -}}
+{{- end -}}
+{{- $hostIngressEndpoint := .Values.sandboxes.external.hostIngressEndpoint | default "" -}}
 {{- if and $hostIngressEndpoint (not (regexMatch "^https?://[^/?#]+$" $hostIngressEndpoint)) -}}
-{{- fail "sandboxes.hostIngressEndpoint must be an http(s) origin without a path, query string, or fragment." -}}
+{{- fail "sandboxes.external.hostIngressEndpoint must be an http(s) origin without a path, query string, or fragment." -}}
 {{- end -}}
 {{- $sandboxClusterName := .Values.sandboxes.clusterName | default "" -}}
 {{- if and $sandboxClusterName (or (gt (len $sandboxClusterName) 63) (not (regexMatch "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$" $sandboxClusterName))) -}}
@@ -254,31 +260,31 @@ AWS Marketplace Helm template verification).
 {{- /* A separate runtime cluster runs next to untrusted sandbox code, so it
 gets its own service-auth secret. api_key_salt also signs LangSmith's general
 service-to-service calls and must not leave this cluster. */ -}}
-{{- if eq $deploymentMode "separateCluster" -}}
+{{- if $external -}}
 {{- if or .Values.config.existingSecretName .Values.config.disableSecretCreation -}}
 {{- $serviceAuthKey := $sandboxServiceAuth.secretKey | default "" | toString -}}
 {{- if or (not $serviceAuthKey) (eq $serviceAuthKey "api_key_salt") -}}
-{{- fail "sandboxes.deploymentMode separateCluster needs a dedicated sandbox service-auth secret. Add a new random value to config.existingSecretName under its own key, for example sandbox_service_auth_secret, and set sandboxes.serviceAuth.secretKey to that key. Do not use api_key_salt." -}}
+{{- fail "sandboxes.external.enabled needs a dedicated sandbox service-auth secret. Add a new random value to config.existingSecretName under its own key, for example sandbox_service_auth_secret, and set sandboxes.serviceAuth.secretKey to that key. Do not use api_key_salt." -}}
 {{- end -}}
 {{- else -}}
 {{- $serviceAuthSecret := $sandboxServiceAuth.secret | default "" | toString -}}
 {{- if or (not $serviceAuthSecret) (eq $serviceAuthSecret (.Values.config.apiKeySalt | default "" | toString)) -}}
-{{- fail "sandboxes.deploymentMode separateCluster needs a dedicated sandbox service-auth secret. Set sandboxes.serviceAuth.secret to a new random value, different from config.apiKeySalt, and put the same value in the langsmith-sandbox release's Secret." -}}
+{{- fail "sandboxes.external.enabled needs a dedicated sandbox service-auth secret. Set sandboxes.serviceAuth.secret to a new random value, different from config.apiKeySalt, and put the same value in the langsmith-sandbox release's Secret." -}}
 {{- end -}}
 {{- end -}}
 {{- end -}}
 {{- /* These configure sandbox-host, which this release does not render in
-separateCluster. Fail rather than accept settings that would do nothing. */ -}}
-{{- if eq $deploymentMode "separateCluster" -}}
+an external runtime. Fail rather than accept settings that would do nothing. */ -}}
+{{- if $external -}}
 {{- $separateHttpProxy := ((.Values.sandboxes.authProxy | default dict).httpProxy) | default dict -}}
 {{- if or $separateHttpProxy.url $separateHttpProxy.noProxy -}}
-{{- fail "sandboxes.authProxy.httpProxy has no effect when sandboxes.deploymentMode is separateCluster. Configure authProxy.httpProxy in the langsmith-sandbox chart instead." -}}
+{{- fail "sandboxes.authProxy.httpProxy has no effect when sandboxes.external.enabled is true. Configure authProxy.httpProxy in the langsmith-sandbox chart instead." -}}
 {{- end -}}
 {{- if (.Values.sandboxes.juicefs.redis | default dict).iamAuthProvider -}}
-{{- fail "sandboxes.juicefs.redis.iamAuthProvider has no effect when sandboxes.deploymentMode is separateCluster. Set juicefs.redis.iamAuthProvider in the langsmith-sandbox chart instead." -}}
+{{- fail "sandboxes.juicefs.redis.iamAuthProvider has no effect when sandboxes.external.enabled is true. Set juicefs.redis.iamAuthProvider in the langsmith-sandbox chart instead." -}}
 {{- end -}}
 {{- end -}}
-{{- if eq $deploymentMode "sameCluster" -}}
+{{- if not $external -}}
 {{- if not .Values.images.sandboxHostImage.repository -}}
 {{- fail "images.sandboxHostImage.repository is required when sandboxes.enabled is true." -}}
 {{- end -}}

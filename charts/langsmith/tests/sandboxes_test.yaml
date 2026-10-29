@@ -40,7 +40,7 @@ tests:
       - ./values/sandboxes-enabled.yaml
     set:
       config.hostname: langsmith.example.com
-      sandboxes.deploymentMode: separateCluster
+      sandboxes.external.enabled: true
       sandboxes.serviceAuth.secretKey: sandbox_service_auth_secret
     templates:
       - sandboxes/proxy-ca.yaml
@@ -59,7 +59,7 @@ tests:
       - ./values/sandboxes-enabled.yaml
     set:
       config.hostname: langsmith.example.com
-      sandboxes.deploymentMode: separateCluster
+      sandboxes.external.enabled: true
       sandboxes.serviceAuth.secretKey: sandbox_service_auth_secret
       images.sandboxHostImage.repository: ""
       images.sandboxHostImage.tag: ""
@@ -76,9 +76,9 @@ tests:
       - ./values/sandboxes-enabled.yaml
     set:
       config.hostname: langsmith.example.com
-      sandboxes.deploymentMode: separateCluster
+      sandboxes.external.enabled: true
       sandboxes.serviceAuth.secretKey: sandbox_service_auth_secret
-      sandboxes.hostIngressEndpoint: https://sandbox-host.example.com
+      sandboxes.external.hostIngressEndpoint: https://sandbox-host.example.com
     templates:
       - platform-backend/deployment.yaml
       - ingest-queue/deployment.yaml
@@ -100,77 +100,90 @@ tests:
     values:
       - ./values/sandboxes-enabled.yaml
     set:
-      sandboxes.deploymentMode: separateCluster
+      sandboxes.external.enabled: true
       sandboxes.serviceAuth.secretKey: sandbox_service_auth_secret
     template: validate.yaml
     asserts:
       - failedTemplate:
-          errorMessage: "config.hostname is required when sandboxes.deploymentMode is separateCluster so sandbox-host can reach the LangSmith API."
+          errorMessage: "config.hostname is required when sandboxes.external.enabled is true so sandbox-host can reach the LangSmith API."
 
-  - it: should reject an unknown sandbox deployment mode
+  # A values file written for the earlier deploymentMode key must fail, not
+  # silently deploy the embedded runtime next to an external one.
+  - it: should refuse the replaced deploymentMode key
     values:
       - ./values/sandboxes-enabled.yaml
     set:
-      sandboxes.deploymentMode: remote
+      sandboxes.deploymentMode: separateCluster
     template: validate.yaml
     asserts:
       - failedTemplate:
-          errorMessage: "sandboxes.deploymentMode must be one of sameCluster or separateCluster."
+          errorMessage: "sandboxes.deploymentMode was replaced by sandboxes.external.enabled. Set sandboxes.external.enabled to true when the runtime is installed with the langsmith-sandbox chart, and remove sandboxes.deploymentMode."
+
+  - it: should refuse the moved hostIngressEndpoint key
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      sandboxes.external.enabled: true
+      sandboxes.hostIngressEndpoint: https://sandbox-host.example.com
+    template: validate.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: "sandboxes.hostIngressEndpoint moved to sandboxes.external.hostIngressEndpoint."
 
   - it: should reject a sandbox-host ingress endpoint with a path
     values:
       - ./values/sandboxes-enabled.yaml
     set:
       config.hostname: langsmith.example.com
-      sandboxes.deploymentMode: separateCluster
+      sandboxes.external.enabled: true
       sandboxes.serviceAuth.secretKey: sandbox_service_auth_secret
-      sandboxes.hostIngressEndpoint: https://sandbox-host.example.com/rpc
+      sandboxes.external.hostIngressEndpoint: https://sandbox-host.example.com/rpc
     template: validate.yaml
     asserts:
       - failedTemplate:
-          errorMessage: "sandboxes.hostIngressEndpoint must be an http(s) origin without a path, query string, or fragment."
+          errorMessage: "sandboxes.external.hostIngressEndpoint must be an http(s) origin without a path, query string, or fragment."
 
   # sandbox-host is the only consumer of these, and this release does not
-  # render it in separateCluster, so accepting them would silently do nothing.
+  # render it with an external runtime, so accepting them would silently do nothing.
   - it: should reject a sandbox egress proxy URL in separate-cluster mode
     values:
       - ./values/sandboxes-enabled.yaml
     set:
       config.hostname: langsmith.example.com
-      sandboxes.deploymentMode: separateCluster
+      sandboxes.external.enabled: true
       sandboxes.serviceAuth.secretKey: sandbox_service_auth_secret
       sandboxes.authProxy.httpProxy.url: http://proxy.internal:3128
     template: validate.yaml
     asserts:
       - failedTemplate:
-          errorMessage: "sandboxes.authProxy.httpProxy has no effect when sandboxes.deploymentMode is separateCluster. Configure authProxy.httpProxy in the langsmith-sandbox chart instead."
+          errorMessage: "sandboxes.authProxy.httpProxy has no effect when sandboxes.external.enabled is true. Configure authProxy.httpProxy in the langsmith-sandbox chart instead."
 
   - it: should reject a sandbox egress proxy bypass list in separate-cluster mode
     values:
       - ./values/sandboxes-enabled.yaml
     set:
       config.hostname: langsmith.example.com
-      sandboxes.deploymentMode: separateCluster
+      sandboxes.external.enabled: true
       sandboxes.serviceAuth.secretKey: sandbox_service_auth_secret
       sandboxes.authProxy.httpProxy.noProxy:
         - internal.corp
     template: validate.yaml
     asserts:
       - failedTemplate:
-          errorMessage: "sandboxes.authProxy.httpProxy has no effect when sandboxes.deploymentMode is separateCluster. Configure authProxy.httpProxy in the langsmith-sandbox chart instead."
+          errorMessage: "sandboxes.authProxy.httpProxy has no effect when sandboxes.external.enabled is true. Configure authProxy.httpProxy in the langsmith-sandbox chart instead."
 
   - it: should reject a JuiceFS Redis IAM auth provider in separate-cluster mode
     values:
       - ./values/sandboxes-enabled.yaml
     set:
       config.hostname: langsmith.example.com
-      sandboxes.deploymentMode: separateCluster
+      sandboxes.external.enabled: true
       sandboxes.serviceAuth.secretKey: sandbox_service_auth_secret
       sandboxes.juicefs.redis.iamAuthProvider: azure
     template: validate.yaml
     asserts:
       - failedTemplate:
-          errorMessage: "sandboxes.juicefs.redis.iamAuthProvider has no effect when sandboxes.deploymentMode is separateCluster. Set juicefs.redis.iamAuthProvider in the langsmith-sandbox chart instead."
+          errorMessage: "sandboxes.juicefs.redis.iamAuthProvider has no effect when sandboxes.external.enabled is true. Set juicefs.redis.iamAuthProvider in the langsmith-sandbox chart instead."
 
   - it: should wire platform backend sandbox environment when enabled
     values:
@@ -428,7 +441,7 @@ tests:
       - ./values/sandboxes-enabled.yaml
     set:
       config.hostname: langsmith.example.com
-      sandboxes.deploymentMode: separateCluster
+      sandboxes.external.enabled: true
       sandboxes.serviceAuth.secretKey: sandbox_service_auth_secret
       sandboxes.serviceUrlBaseUrl: https://sandbox-services.example.com
       ingress.enabled: true

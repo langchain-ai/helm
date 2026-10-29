@@ -6,7 +6,7 @@
 
 ## Usage
 
-Install this chart in a dedicated sandbox cluster with `sandboxHost.enabled=true` while the main `langsmith` chart uses `sandboxes.enabled=true` and `sandboxes.deploymentMode=separateCluster`.
+Install this chart in a dedicated sandbox cluster with `sandboxHost.enabled=true` while the main `langsmith` chart uses `sandboxes.enabled=true` and `sandboxes.external.enabled=true`.
 
 The sandbox cluster must have KVM-capable `linux/amd64` nodes, network access to the LangSmith API, a JuiceFS metadata Redis using `noeviction`, and object-storage access. Set `config.endpoint` to the externally reachable LangSmith API base including `/api`.
 
@@ -14,7 +14,7 @@ Create the Secret described under [Requirements](#requirements), then set `confi
 
 For GitOps workflows that render without live cluster access, set `proxyCa.mode=existingSecret`. The default `generatedSecret` mode uses Helm `lookup` to preserve the CA, which pure render workflows cannot do.
 
-By default, the LangSmith control plane connects directly to the node IPs advertised by sandbox-host on TCP port 19190. That traffic is plain HTTP and carries sandbox commands, files and credentials, so keep it on a private network you trust. If the clusters have no routed private network, or the traffic would leave one you trust, enable `sandboxHost.ingress` with TLS and set its `https://` origin as `sandboxes.hostIngressEndpoint` in the main `langsmith` chart. TLS ends at the ingress: inside the sandbox cluster, traffic from the ingress to the sandbox hosts and between sandbox hosts stays plain HTTP on port 19190, so allow it between sandbox nodes and keep that network private.
+By default, the LangSmith control plane connects directly to the node IPs advertised by sandbox-host on TCP port 19190. That traffic is plain HTTP and carries sandbox commands, files and credentials, so keep it on a private network you trust. If the clusters have no routed private network, or the traffic would leave one you trust, enable `sandboxHost.ingress` with TLS and set its `https://` origin as `sandboxes.external.hostIngressEndpoint` in the main `langsmith` chart. TLS ends at the ingress: inside the sandbox cluster, traffic from the ingress to the sandbox hosts and between sandbox hosts stays plain HTTP on port 19190, so allow it between sandbox nodes and keep that network private.
 
 ### Host ingress
 
@@ -40,7 +40,7 @@ The Ingress routes only `/internal/SandboxHost/` (host RPCs) and `/guest-operati
   - Sandbox nodes must reach `config.endpoint` on its port through every load balancer allowlist and egress firewall, and reach the JuiceFS Redis and object storage.
 - **`config.endpoint`:** `https://<LangSmith hostname>[/<base path>]/api`.
 - **Secrets:** create a minimal Secret in the sandbox namespace and set `config.existingSecretName`. Never copy the whole LangSmith application Secret. It holds:
-  - the sandbox service-auth secret under `serviceAuth.secretKey` (default `sandbox_service_auth_secret`). Use a dedicated random value, never the LangSmith `api_key_salt`, which signs LangSmith's other service calls; the `langsmith` chart refuses `separateCluster` without one. Its value must equal the control plane's: `sandbox_service_auth_secret` in the `langsmith` chart's managed Secret, or the key `sandboxes.serviceAuth.secretKey` names in your `config.existingSecretName`. During a rotation, also set `serviceAuth.previousSecretKey`.
+  - the sandbox service-auth secret under `serviceAuth.secretKey` (default `sandbox_service_auth_secret`). Use a dedicated random value, never the LangSmith `api_key_salt`, which signs LangSmith's other service calls; the `langsmith` chart refuses `sandboxes.external.enabled` without one. Its value must equal the control plane's: `sandbox_service_auth_secret` in the `langsmith` chart's managed Secret, or the key `sandboxes.serviceAuth.secretKey` names in your `config.existingSecretName`. During a rotation, also set `serviceAuth.previousSecretKey`.
   - the callback signing JWK under `config.callbackSigningJwkSecretKey`, identical to the control plane's. It is an Ed25519 private JWK; one way to generate it with OpenSSL:
 
     ```bash
@@ -55,8 +55,8 @@ The Ingress routes only `/internal/SandboxHost/` (host RPCs) and `/guest-operati
 - **Version pairing and one runtime:**
   - Run the newest `langsmith-sandbox` chart whose appVersion equals the `langsmith` chart's (`helm search repo langchain/langsmith-sandbox --versions --devel`), and leave `images.sandboxHostImage.tag` empty so the image follows it.
   - Upgrade `langsmith` first and this chart within days. Pin exact chart versions, never ranges.
-  - Run exactly one release of this chart per LangSmith install, and only while the `langsmith` release uses `sandboxes.deploymentMode: separateCluster`. Two runtimes reporting to one install merge into one host pool and stop each other's sandboxes.
-  - To move from `sameCluster`, switch the `langsmith` release to `separateCluster` first, then install this chart against the same JuiceFS metadata and bucket.
+  - Run exactly one release of this chart per LangSmith install, and only while the `langsmith` release sets `sandboxes.external.enabled: true`. Two runtimes reporting to one install merge into one host pool and stop each other's sandboxes.
+  - To move from the `langsmith` chart's embedded runtime, set `sandboxes.external.enabled: true` on the `langsmith` release first, then install this chart against the same JuiceFS metadata and bucket.
 
 ### EKS
 
