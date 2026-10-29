@@ -1,0 +1,10 @@
+{{- if and .Values.sandboxHost.enabled .Values.sandboxHost.pdb.enabled }}
+{{- $name := include "langsmithSandbox.sandboxHostFullname" . }}
+{{- include "langsmithSandbox.render.pdb" (dict
+  "name" $name
+  "namespace" (include "langsmithSandbox.namespace" .)
+  "labels" (mergeOverwrite (include "langsmithSandbox.labels" . | fromYaml) (default dict .Values.sandboxHost.pdb.labels))
+  "annotations" (mergeOverwrite (include "langsmithSandbox.annotations" . | fromYaml) (default dict .Values.sandboxHost.pdb.annotations))
+  "selectorLabels" (mergeOverwrite (include "langsmithSandbox.selectorLabels" . | fromYaml) (dict "app.kubernetes.io/component" $name))
+  "sandboxHost" .Values.sandboxHost) }}
+{{- end }}

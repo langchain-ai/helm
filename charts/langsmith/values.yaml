@@ -121,7 +121,8 @@ images:
   sandboxHostImage:
     repository: "docker.io/langchain/sandbox-host"
     pullPolicy: IfNotPresent
-    tag: ""
+    # -- Release tag, kept equal to the chart's appVersion and the other LangSmith image tags so the release bump moves them together, including on a Helm upgrade that reuses the previous values. An empty tag also resolves to the appVersion.
+    tag: "0.18.19rc1"
   # The images the operator gives each agent deployment's Redis and PostgreSQL
   # (operator.templates.redis and operator.templates.db). They follow
   # images.registry like the rest; the tag is the image's own, not the chart's.
@@ -157,13 +158,29 @@ istioGateway:
   labels: {}
 
 
-# -- LangSmith Sandboxes. Same-cluster sandbox-host architecture on AWS/EKS, GCP/GKE, or Azure/AKS. sandbox-host mounts JuiceFS directly, and a singleton Job formats fresh JuiceFS metadata before hosts start serving.
+# -- LangSmith Sandboxes on AWS/EKS, GCP/GKE, or Azure/AKS. By default this release deploys the sandbox runtime (sandbox-host) in this cluster; with external.enabled the runtime is installed separately with the langsmith-sandbox chart.
 sandboxes:
   enabled: false
+  external:
+    # -- If enabled, the sandbox runtime is installed outside this release with the langsmith-sandbox chart, usually in a dedicated cluster, and this release deploys no sandbox-host. It keeps the Sandbox API and control plane. The external runtime must be the langsmith-sandbox chart on this chart's appVersion; other runtimes are not supported.
+    enabled: false
+    # -- Optional origin through which the LangSmith control plane reaches the external runtime's sandbox-host, usually the langsmith-sandbox chart's host ingress. Use an `https://` origin. Leave empty to call node IPs on port 19190 directly; that traffic is plain HTTP, so do this only on a private network you trust. No path or trailing slash.
+    hostIngressEndpoint: ""
   # -- Private JWK signing sandbox callbacks, or key `sandbox_callback_signing_jwk` in config.existingSecretName. Needs config.hostname for the issuer, or signing fails closed.
   callbackSigningJwk: ""
+  serviceAuth:
+    # -- Sandbox service-auth secret (SANDBOX_X_SERVICE_AUTH_JWT_SECRET), which signs calls between the control plane and sandbox hosts. Stored as `sandbox_service_auth_secret` in the chart-managed Secret. Required with external.enabled, as a new random value different from `config.apiKeySalt`. With the embedded runtime, empty keeps today's value, `config.apiKeySalt`. With config.existingSecretName, put it in that Secret and set `secretKey` instead.
+    secret: ""
+    # -- Key in config.existingSecretName holding the sandbox service-auth secret. Empty uses `api_key_salt`, today's shared value, which an external runtime (external.enabled) does not allow; point it at a dedicated key to give sandboxes their own secret. Leave empty when the chart manages the Secret.
+    secretKey: ""
+    # -- Previous sandbox service-auth secret, accepted alongside the current one during a rotation. Stored as `sandbox_service_auth_secret_previous` in the chart-managed Secret. With config.existingSecretName, use `previousSecretKey` instead.
+    previousSecret: ""
+    # -- Key in config.existingSecretName holding the previous sandbox service-auth secret during a rotation. Empty sets none.
+    previousSecretKey: ""
   # -- Base URL for reaching HTTP services inside sandboxes. Needs wildcard DNS and TLS for `*.<host>`; with ingress.enabled the chart adds the wildcard rule. http(s) origin only, no path.
   serviceUrlBaseUrl: ""
+  # -- Name of the sandbox runtime cluster this install uses, set as SANDBOX_K8S_CLUSTER_NAME on platform-backend and ingest-queue. Empty keeps the default, `incluster`. Choose it at install time: renaming hides every existing sandbox, snapshot and host record. Do not also set SANDBOX_K8S_CLUSTER_NAME through extraEnv.
+  clusterName: ""
   quotas:
     maxCpuCores: 200
     maxMemoryGb: 400

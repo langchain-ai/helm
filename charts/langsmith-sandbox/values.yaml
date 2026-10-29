@@ -1,0 +1,218 @@
+# Default values for the LangSmith sandbox runtime chart.
+
+# -- Provide a name in place of `langsmith-sandbox`.
+nameOverride: ""
+# -- String to fully override the chart's generated name.
+fullnameOverride: ""
+# -- Namespace to install into. Defaults to the Helm release namespace.
+namespace: ""
+# -- Annotations applied to all resources.
+commonAnnotations: {}
+# -- Labels applied to all resources.
+commonLabels: {}
+# -- Annotations applied to all pods.
+commonPodAnnotations: {}
+# -- Pod security context merged into component-specific pod security contexts.
+commonPodSecurityContext: {}
+# -- Environment variables added to sandbox-host. Applied before
+# sandboxHost.deployment.extraEnv, and rejected at render time if a name
+# collides with one the chart manages.
+commonEnv: []
+# -- Volumes added to sandbox-host. Not applied to the JuiceFS formatter, which
+# is a one-shot Job with a fixed spec.
+commonVolumes: []
+# -- Volume mounts added to sandbox-host. Not applied to the JuiceFS formatter.
+commonVolumeMounts: []
+# -- Init containers added to sandbox-host. Not applied to the JuiceFS formatter.
+commonInitContainers: []
+# -- DNS configuration applied to every sandbox runtime pod, including the
+# JuiceFS formatter. sandbox-host resolves the external LangSmith API on each
+# callback, so this is the hook for pointing at a specific resolver or trimming
+# search-domain expansion. Set to null to inherit the Kubernetes defaults.
+commonDnsConfig:
+  options:
+    - name: ndots
+      value: "4"
+
+images:
+  # -- Optional registry prepended to the sandbox-host repository.
+  registry: ""
+  # -- Image pull secrets for sandbox-host and the JuiceFS formatter.
+  imagePullSecrets: []
+  sandboxHostImage:
+    repository: "docker.io/langchain/sandbox-host"
+    pullPolicy: IfNotPresent
+    # -- Leave empty to run the image matching this chart's appVersion, which is the LangSmith release it pairs with. Set it only to point at a mirror that carries the same tag; a pinned tag does not move when the chart is upgraded.
+    tag: ""
+
+config:
+  # -- Externally reachable LangSmith API base used for host observations and lifecycle callbacks, including the `/api` prefix.
+  endpoint: ""
+  # -- Issuer placed in sandbox callback JWTs. Defaults to config.endpoint.
+  callbackIssuer: ""
+  # -- Existing Secret containing only the shared sandbox service-auth key and callback-signing JWK, plus the optional egress proxy URL. The values must match the LangSmith control-plane Secret.
+  existingSecretName: ""
+  # -- Key in config.existingSecretName containing the Ed25519 private JWK used to sign sandbox callbacks.
+  callbackSigningJwkSecretKey: "sandbox_callback_signing_jwk"
+  customCa:
+    # -- Existing Secret containing CA certificates (PEM; one key may hold several) that sandbox-host trusts when it calls the LangSmith API, the host ingress and an https egress proxy.
+    secretName: ""
+    # -- Key within config.customCa.secretName containing the CA certificate.
+    secretKey: ""
+
+serviceAuth:
+  # -- Key in config.existingSecretName holding the sandbox service-auth secret (SANDBOX_X_SERVICE_AUTH_JWT_SECRET): a dedicated random value, never the LangSmith api_key_salt. Its value must equal the control plane's: `sandbox_service_auth_secret` in the langsmith chart's managed Secret, or the key `sandboxes.serviceAuth.secretKey` names in its config.existingSecretName.
+  secretKey: "sandbox_service_auth_secret"
+  # -- Optional key in config.existingSecretName containing the previous service-auth key during rotation.
+  previousSecretKey: ""
+
+workloadIdentity:
+  # -- Cloud workload identity for sandbox-host and the JuiceFS formatter: "", `aws`, `gcp` or `azure`. With `gcp` the formatter runs on the host network, so both pods use the node pool's service account.
+  provider: ""
+  aws:
+    # -- IAM role assumed through IRSA. Required when provider is aws.
+    roleArn: ""
+  azure:
+    # -- Client ID of the user-assigned managed identity. Required when provider is azure.
+    clientId: ""
+    # -- Optional Entra tenant ID; defaults to the cluster's tenant.
+    tenantId: ""
+
+authProxy:
+  # -- Route sandbox egress (the sandbox auth proxy's upstream connections) through a corporate HTTP forward proxy, as an HTTP_PROXY/HTTPS_PROXY client would: plain HTTP as standard proxy requests, HTTPS and other TCP through CONNECT. The proxy must allow CONNECT to 443 and any other TCP ports sandboxes use; nothing falls back to direct access.
+  httpProxy:
+    # -- Key in config.existingSecretName holding the proxy URL, `http://host:port` or `https://host:port` (TLS to the proxy itself, verified against config.customCa when set, otherwise the system roots). A missing key sends egress directly. For Basic proxy authentication use `http://user:password@host:port`, percent-encoding reserved characters; sandboxes never see the credentials. Read only from the Secret because the URL may carry credentials.
+    urlSecretKey: "sandbox_egress_proxy_url"
+    # -- Destinations dialed directly instead of through the proxy, with standard NO_PROXY matching: "internal.corp" matches the host and its subdomains, ".internal.corp" only subdomains, plus IP addresses, CIDR ranges such as "10.0.0.0/8", "host:port" entries, and "*".
+    noProxy: []
+
+proxyCa:
+  # -- generatedSecret creates and reuses a self-signed sandbox proxy CA; existingSecret uses a Secret managed outside this chart.
+  mode: "generatedSecret"
+  secretName: "smithbox-proxy-ca"
+  # -- Existing TLS Secret containing tls.crt and tls.key.
+  existingSecretName: ""
+
+juicefs:
+  # -- JuiceFS volume name used for sandbox snapshots and filesystem state.
+  name: "sandbox-juicefs"
+  # -- Object storage backend: `s3` (AWS), `gs` (GCP) or `wasb` (Azure Blob Storage).
+  storage: "s3"
+  # -- Object storage bucket URL. S3: a region-explicit endpoint such as `https://bucket-name.s3.us-west-2.amazonaws.com`, not `s3://bucket-name`. GCS: `gs://bucket-name`. Azure: `https://<container>.blob.core.windows.net`. JuiceFS stores objects under `<juicefs.name>/`; use juicefs.name, not a bucket path, to separate volumes.
+  bucket: ""
+  # -- Azure storage account name, passed to JuiceFS as its access key. Required when storage is wasb.
+  storageAccountName: ""
+  redis:
+    # -- JuiceFS Redis metadata URL. The Redis maxmemory policy must be noeviction.
+    metaURL: ""
+    # -- IAM authentication provider for the JuiceFS Redis: "", `azure` or `gcp`. Needs workloadIdentity.provider set to the same value. On GKE, sandbox-host and the formatter both run on the host network and authenticate as the node pool's service account.
+    iamAuthProvider: ""
+  # -- Existing Secret with JuiceFS config keys `name`, `metaurl`, `storage` and `bucket`. For Azure, `access-key` holds the storage account name; set `secret-key` only for account-key authentication. When set, the values above are ignored.
+  existingSecretName: ""
+  hostMount:
+    # -- Node-local paths for the JuiceFS cache, mounted from the host. Back them with local SSD or the node's temporary disk; the cache survives pod restarts on the same node, not node replacement.
+    cacheDirs:
+      - /var/cache/juicefs
+    # -- Additional JuiceFS mount options. Configure cacheDirs instead of passing a cache-dir option here.
+    mountOptions:
+      - --cache-size=51200
+      - --cache-large-write
+
+juicefsFormatJob:
+  # -- Time limit for the JuiceFS formatter Job, in seconds. It includes scheduling and the pull of the sandbox-host image, which can take minutes on a new node.
+  activeDeadlineSeconds: 900
+  # -- Extra labels on the JuiceFS formatter pod. A value here wins over the workload-identity label the chart adds.
+  labels: {}
+  annotations: {}
+  podSecurityContext: {}
+  securityContext:
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+        - ALL
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+sandboxHost:
+  # -- Deploy the sandbox-host runtime and supporting resources.
+  enabled: false
+  name: "sandbox-host"
+  deployment:
+    # -- Extra labels on the sandbox-host Deployment and pods. With workloadIdentity.provider azure the chart adds `azure.workload.identity/use`; a value here wins.
+    labels: {}
+    annotations: {}
+    podAnnotations: {}
+    replicas: 1
+    terminationGracePeriodSeconds: 300
+    priorityClassName: ""
+    # -- Node selector for KVM-capable linux/amd64 nodes.
+    nodeSelector: {}
+    tolerations:
+      - key: sandbox.langsmith.com/host
+        operator: Equal
+        value: "true"
+        effect: NoSchedule
+    resources:
+      requests:
+        cpu: "2"
+        memory: 2Gi
+    securityContext:
+      privileged: true
+    podSecurityContext: {}
+    extraEnv: []
+    volumes: []
+    volumeMounts: []
+    initContainers: []
+    sidecars: []
+    # -- `/readyz` fails until the host registers in the pool, and on the elected host while the platform refuses this runtime because another runtime reports to the same LangSmith install.
+    readinessProbe:
+      httpGet:
+        path: /readyz
+        port: http
+      initialDelaySeconds: 5
+      periodSeconds: 10
+      timeoutSeconds: 3
+      failureThreshold: 3
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 10
+    targetUtilizationPercent: 70
+    headroomHosts: 1
+    scaleDownStabilizationSeconds: 300
+  pdb:
+    enabled: false
+    maxUnavailable: 1
+    labels: {}
+    annotations: {}
+  serviceAccount:
+    # -- Create the ServiceAccount sandbox-host and the formatter run as.
+    create: true
+    # -- ServiceAccount name. Defaults to the sandbox-host fullname. Set it explicitly when an IAM role trust policy or a federated credential names it.
+    name: ""
+    # -- Extra ServiceAccount labels.
+    labels: {}
+    # -- Extra ServiceAccount annotations. They win over commonAnnotations and over the workload-identity annotations the chart adds.
+    annotations: {}
+    automountServiceAccountToken: true
+  rbac:
+    create: true
+    labels: {}
+    annotations: {}
+  ingress:
+    # -- Create an Ingress for sandbox-host port 19190. Enable it when the LangSmith control plane cannot reach sandbox node IPs, or when that plain-HTTP traffic would leave a trusted private network. Configure `tls` and set `sandboxes.external.hostIngressEndpoint` in the langsmith chart to its `https://` origin. Routes only `/internal/SandboxHost/` and `/guest-operation/`; see Host ingress in the chart README.
+    enabled: false
+    ingressClassName: ""
+    # -- DNS hostname the Ingress serves, without a scheme, port or path. Required when the ingress is enabled.
+    hostname: ""
+    annotations: {}
+    labels: {}
+    tls: []
+    service:
+      # -- Annotations on the sandbox-host Service the Ingress points at, for example `cloud.google.com/backend-config` on GKE. They win over `commonAnnotations` on a key clash.
+      annotations: {}

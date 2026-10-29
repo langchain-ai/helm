@@ -1,0 +1,41 @@
+suite: install notes
+templates:
+  - NOTES.txt
+tests:
+  - it: should state the one-runtime rule and the version pairing
+    values:
+      - ./values/enabled.yaml
+    asserts:
+      - matchRegexRaw:
+          pattern: Run exactly one langsmith-sandbox release per LangSmith install
+      - matchRegexRaw:
+          pattern: "runs sandbox-host test-sandbox-host"
+
+  - it: should give the https host-ingress endpoint when TLS is set
+    values:
+      - ./values/enabled.yaml
+    set:
+      sandboxHost.ingress.enabled: true
+      sandboxHost.ingress.hostname: sandbox-hosts.example.com
+      sandboxHost.ingress.tls:
+        - secretName: sandbox-hosts-tls
+          hosts:
+            - sandbox-hosts.example.com
+    asserts:
+      - matchRegexRaw:
+          pattern: "sandboxes.external.hostIngressEndpoint in the langsmith chart to https://sandbox-hosts.example.com"
+
+  - it: should warn when the host ingress has no TLS
+    values:
+      - ./values/enabled.yaml
+    set:
+      sandboxHost.ingress.enabled: true
+      sandboxHost.ingress.hostname: sandbox-hosts.example.com
+    asserts:
+      - matchRegexRaw:
+          pattern: "without TLS, so this traffic is plain HTTP"
+
+  - it: should say nothing is deployed when sandbox-host is disabled
+    asserts:
+      - matchRegexRaw:
+          pattern: renders no sandbox runtime

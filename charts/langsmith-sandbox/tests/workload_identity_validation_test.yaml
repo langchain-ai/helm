@@ -1,0 +1,116 @@
+suite: workload identity validation
+templates:
+  - validate.yaml
+tests:
+  - it: should reject an unknown workload identity provider
+    values:
+      - ./values/enabled.yaml
+    set:
+      workloadIdentity.provider: oci
+    asserts:
+      - failedTemplate:
+          errorMessage: 'workloadIdentity.provider "oci" is not supported. Valid values are "", "aws", "gcp" and "azure".'
+
+  - it: should require the IRSA role on aws
+    values:
+      - ./values/enabled.yaml
+    set:
+      workloadIdentity.provider: aws
+    asserts:
+      - failedTemplate:
+          errorMessage: workloadIdentity.aws.roleArn is required when workloadIdentity.provider is aws.
+
+  - it: should require the managed identity client ID on azure
+    values:
+      - ./values/enabled.yaml
+    set:
+      workloadIdentity.provider: azure
+    asserts:
+      - failedTemplate:
+          errorMessage: workloadIdentity.azure.clientId is required when workloadIdentity.provider is azure.
+
+  - it: should reject an IRSA role copied into another cloud's values
+    values:
+      - ./values/enabled.yaml
+    set:
+      workloadIdentity.provider: gcp
+      workloadIdentity.aws.roleArn: arn:aws:iam::123456789012:role/sandbox-host
+    asserts:
+      - failedTemplate:
+          errorMessage: workloadIdentity.aws.roleArn is set but workloadIdentity.provider is not aws. Remove it, or set the provider to aws.
+
+  - it: should reject Azure identity settings with another provider
+    values:
+      - ./values/enabled.yaml
+    set:
+      workloadIdentity.provider: aws
+      workloadIdentity.aws.roleArn: arn:aws:iam::123456789012:role/sandbox-host
+      workloadIdentity.azure.tenantId: 00000000-0000-0000-0000-000000000002
+    asserts:
+      - failedTemplate:
+          errorMessage: workloadIdentity.azure is set but workloadIdentity.provider is not azure. Remove it, or set the provider to azure.
+
+  - it: should require a matching provider for Redis IAM authentication
+    values:
+      - ./values/enabled.yaml
+    set:
+      juicefs.redis.iamAuthProvider: gcp
+    asserts:
+      - failedTemplate:
+          errorMessage: 'juicefs.redis.iamAuthProvider "gcp" needs workloadIdentity.provider "gcp", which gives sandbox-host and the JuiceFS formatter the cloud identity that Redis IAM authentication uses.'
+
+  - it: should require TLS for Azure Redis IAM authentication
+    values:
+      - ./values/enabled.yaml
+    set:
+      workloadIdentity.provider: azure
+      workloadIdentity.azure.clientId: 00000000-0000-0000-0000-000000000001
+      juicefs.redis.iamAuthProvider: azure
+      juicefs.redis.metaURL: redis://cache.example.com:10000/0
+    asserts:
+      - failedTemplate:
+          errorMessage: juicefs.redis.metaURL must use rediss:// when juicefs.redis.iamAuthProvider is azure.
+
+  - it: should reject a Redis password alongside IAM authentication
+    values:
+      - ./values/enabled.yaml
+    set:
+      workloadIdentity.provider: gcp
+      juicefs.redis.iamAuthProvider: gcp
+      juicefs.redis.metaURL: redis://:not-a-real-password@10.0.0.5:6379/0
+    asserts:
+      - failedTemplate:
+          errorMessage: juicefs.redis.metaURL must not contain a password when juicefs.redis.iamAuthProvider is set; the IAM token replaces it.
+
+  - it: should accept GCP Redis IAM authentication without a password
+    values:
+      - ./values/enabled.yaml
+    set:
+      workloadIdentity.provider: gcp
+      juicefs.redis.iamAuthProvider: gcp
+      juicefs.redis.metaURL: rediss://10.0.0.5:6379/0
+    asserts:
+      - notFailedTemplate: {}
+
+  - it: should accept Azure Redis IAM authentication over TLS
+    values:
+      - ./values/enabled.yaml
+    set:
+      workloadIdentity.provider: azure
+      workloadIdentity.azure.clientId: 00000000-0000-0000-0000-000000000001
+      juicefs.redis.iamAuthProvider: azure
+      juicefs.redis.metaURL: rediss://cache.example.com:10000/0
+    asserts:
+      - notFailedTemplate: {}
+
+  # A URL kept in an existing Secret cannot be inspected at render time.
+  - it: should not check the Redis URL when it comes from an existing Secret
+    values:
+      - ./values/enabled.yaml
+    set:
+      workloadIdentity.provider: azure
+      workloadIdentity.azure.clientId: 00000000-0000-0000-0000-000000000001
+      juicefs.redis.iamAuthProvider: azure
+      juicefs.existingSecretName: sandbox-juicefs-config
+    asserts:
+      - notFailedTemplate: {}

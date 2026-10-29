@@ -35,10 +35,30 @@
   value: {{ .Values.sandboxes.quotas.maxEphemeralStorageGib | quote }}
 - name: SANDBOX_MAX_SANDBOXES
   value: {{ .Values.sandboxes.quotas.maxSandboxes | quote }}
+- name: LANGSMITH_APP_VERSION
+  value: {{ include "langsmith.sandboxes.hostImageTag" . | quote }}
+- name: SANDBOX_DEPLOYMENT_MODE
+  value: {{ ternary "separateCluster" "sameCluster" .Values.sandboxes.external.enabled | quote }}
+{{- with include "langsmith.sandboxes.serviceAuthPreviousSecretKey" . }}
+- name: SANDBOX_X_SERVICE_AUTH_JWT_SECRET_PREVIOUS
+  valueFrom:
+    secretKeyRef:
+      name: {{ include "langsmith.secretsName" $ }}
+      key: {{ . }}
+      optional: {{ $.Values.config.disableSecretCreation }}
+{{- end }}
+{{- with .Values.sandboxes.clusterName }}
+- name: SANDBOX_K8S_CLUSTER_NAME
+  value: {{ . | quote }}
+{{- end }}
 {{- if .Values.sandboxes.serviceUrlBaseUrl }}
 {{- /* Keyed by the name the runtime resolves and stores on each sandbox. */}}
 - name: SANDBOX_SERVICE_URLS
-  value: {{ dict "incluster" .Values.sandboxes.serviceUrlBaseUrl | toJson | quote }}
+  value: {{ dict (.Values.sandboxes.clusterName | default "incluster") .Values.sandboxes.serviceUrlBaseUrl | toJson | quote }}
+{{- end }}
+{{- with .Values.sandboxes.external.hostIngressEndpoint }}
+- name: SANDBOX_HOST_INGRESS_ENDPOINT
+  value: {{ . | quote }}
 {{- end }}
 - name: LANGSMITH_SANDBOX_CALLBACK_SIGNING_JWK
   valueFrom:

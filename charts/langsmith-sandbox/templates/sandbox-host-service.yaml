@@ -1,0 +1,24 @@
+{{- if and .Values.sandboxHost.enabled .Values.sandboxHost.ingress.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "langsmithSandbox.sandboxHostFullname" . }}
+  namespace: {{ include "langsmithSandbox.namespace" . }}
+  labels:
+    {{- include "langsmithSandbox.labels" . | nindent 4 }}
+  annotations:
+    {{- /* Service-specific annotations win over commonAnnotations on a key clash. */}}
+    {{- with merge (deepCopy (default dict .Values.sandboxHost.ingress.service.annotations)) (default dict .Values.commonAnnotations) }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  type: ClusterIP
+  selector:
+    {{- include "langsmithSandbox.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: {{ include "langsmithSandbox.sandboxHostFullname" . }}
+  ports:
+    - name: http
+      port: 19190
+      targetPort: http
+      protocol: TCP
+{{- end }}
