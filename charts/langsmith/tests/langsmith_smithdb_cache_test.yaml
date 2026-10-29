@@ -34,6 +34,7 @@ tests:
         valueFrom:
           resourceFieldRef:
             resource: limits.ephemeral-storage
+            divisor: "0"
   - equal:
       path: spec.template.spec.volumes[0].name
       value: cache

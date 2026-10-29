@@ -70,6 +70,7 @@ tests:
             valueFrom:
               resourceFieldRef:
                 resource: limits.memory
+                divisor: "0"
       - equal:
           path: spec.template.spec.containers[0].resources.requests.cpu
           value: "4"
@@ -492,6 +493,7 @@ tests:
             valueFrom:
               resourceFieldRef:
                 resource: limits.ephemeral-storage
+                divisor: "0"
       - equal:
           path: spec.template.spec.volumes
           value:
@@ -642,6 +644,7 @@ tests:
             valueFrom:
               resourceFieldRef:
                 resource: limits.memory
+                divisor: "0"
 
   - it: should back the SmithDB query disk cache with a writable /data volume
     values:

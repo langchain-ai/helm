@@ -105,6 +105,21 @@ tests:
             name: SMITHDB_QUERY__EXECUTION_CONFIG__DISTRIBUTED_RUN_STATS_QUERY_ENABLED
             value: "true"
 
+  - it: should disable memory attribution on every separate query service
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      smithdb.mutations.enabled: true
+      smithdb.runRules.enabled: true
+      smithdb.statsQuery.enabled: true
+    template: smithdb/query-services-deployments.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_QUERY__MEMORY_ATTRIBUTION_ENABLED
+            value: "false"
+
   - it: should render an HPA for an enabled separate query service
     values:
       - ./values/smithdb-enabled.yaml
