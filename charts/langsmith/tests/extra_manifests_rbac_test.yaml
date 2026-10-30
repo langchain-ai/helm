@@ -16,7 +16,7 @@ tests:
         documentIndex: 0
   - it: grants only the required SecretProviderClass verbs when enabled
     set:
-      extraManifests.enabled: true
+      config.deployment.extraManifestsEnabled: true
     asserts:
       - contains:
           path: rules
@@ -48,7 +48,7 @@ tests:
   - it: grants access inside each watched namespace without a ClusterRole
     set:
       operator.watchNamespaces: "team-a, team-b"
-      extraManifests.enabled: true
+      config.deployment.extraManifestsEnabled: true
     asserts:
       - hasDocuments:
           count: 6
@@ -76,7 +76,7 @@ tests:
         documentIndex: 2
   - it: does not create RBAC when managed externally
     set:
-      extraManifests.enabled: true
+      config.deployment.extraManifestsEnabled: true
       operator.rbac.create: false
     asserts:
       - hasDocuments:

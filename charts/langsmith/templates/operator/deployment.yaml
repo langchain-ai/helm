@@ -120,7 +120,7 @@ spec:
         {{- end }}
         env:
           - name: LGP_EXTRA_MANIFESTS_ENABLED
-            value: {{ .Values.extraManifests.enabled | quote }}
+            value: {{ .Values.config.deployment.extraManifestsEnabled | quote }}
           - name: WATCH_NAMESPACE
             value: {{ .Values.operator.watchNamespaces | quote }}
           - name: KEDA_ENABLED

@@ -97,7 +97,7 @@ The trajectory Service is cluster-internal; no public route is added. Trajectory
 
 ## Extra manifests
 
-`extraManifests.enabled` defaults to `false`. Set it to `true` to let standalone self-hosted deployments declare extra ServiceAccounts and SecretProviderClasses. It needs `config.deployment.enabled=true` and the operator. The chart passes `LGP_EXTRA_MANIFESTS_ENABLED` to the operator and, through the shared ConfigMap, to the host backend, listener, and platform backend. Deployments on a remote listener are unsupported. Do not override the flag through environment values.
+`config.deployment.extraManifestsEnabled` defaults to `false`. Set it to `true` to let standalone self-hosted deployments declare extra ServiceAccounts and SecretProviderClasses. It needs `config.deployment.enabled=true` and the operator. The chart passes `LGP_EXTRA_MANIFESTS_ENABLED` to the operator and, through the shared ConfigMap, to the host backend, listener, and platform backend. Deployments on a remote listener are unsupported. Do not override the flag through environment values.
 
 **Coordinated upgrade required:** enable it only with operator, host backend, listener, and platform backend images that support the feature, together with this chart's LGP CRD. This chart does not change image tags.
 
@@ -651,7 +651,6 @@ The operator deletes removed objects only after the deployment's rollout complet
 | fleetTriggerServer.serviceAccount.create | bool | `true` |  |
 | fleetTriggerServer.serviceAccount.labels | object | `{}` |  |
 | fleetTriggerServer.serviceAccount.name | string | `""` |  |
-| extraManifests.enabled | bool | `false` | Enable deployment ServiceAccount and SecretProviderClass manifests. Requires coordinated supporting images and CRD; see the Extra manifests section. |
 | fullnameOverride | string | `""` | String to fully override `"langsmith.fullname"` |
 | gateway.annotations | object | `{}` |  |
 | gateway.enabled | bool | `false` |  |
@@ -1729,6 +1728,7 @@ The operator deletes removed objects only after the deployment's rollout complet
 | config.deployment | object | `{"basePath":"","enabled":false,"ingressHealthCheckEnabled":true,"scalingOverridesEnabled":false,"tlsEnabled":true,"uncappedResourcesEnabled":false}` | Configuration for LangSmith Deployments features |
 | config.deployment.basePath | string | `""` | Base path for LangSmith Deployments routes managed by the operator. |
 | config.deployment.enabled | bool | `false` | Optional. Used to enable the LangSmith Deployments feature. Requires additional setup. Refer to the documentation for more information. |
+| config.deployment.extraManifestsEnabled | bool | `false` | Let standalone self-hosted deployments declare extra ServiceAccount and SecretProviderClass manifests. Requires coordinated supporting images and the LGP CRD; see the Extra manifests section. |
 | config.deployment.scalingOverridesEnabled | bool | `false` | Let users override LangSmith Deployment autoscaling CPU targets and scale-up/scale-down behavior. Opt-in for self-hosted. |
 | config.deployment.uncappedResourcesEnabled | bool | `false` | Lift the SaaS CPU/memory caps on LangSmith Deployment resource specs. Opt-in for self-hosted. |
 | config.disableSecretCreation | bool | `false` |  |

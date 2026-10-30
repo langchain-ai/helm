@@ -25,7 +25,7 @@ tests:
   - it: enables the operator capability explicitly
     template: operator/deployment.yaml
     set:
-      extraManifests.enabled: true
+      config.deployment.extraManifestsEnabled: true
     asserts:
       - contains:
           path: spec.template.spec.containers[0].env
@@ -35,7 +35,7 @@ tests:
   - it: enables the shared self-hosted backend capability explicitly
     template: config-map.yaml
     set:
-      extraManifests.enabled: true
+      config.deployment.extraManifestsEnabled: true
     asserts:
       - equal:
           path: data.LGP_EXTRA_MANIFESTS_ENABLED
@@ -46,7 +46,7 @@ tests:
   - it: does not enable a disabled operator
     template: operator/deployment.yaml
     set:
-      extraManifests.enabled: true
+      config.deployment.extraManifestsEnabled: true
       operator.enabled: false
     asserts:
       - hasDocuments:
@@ -54,7 +54,7 @@ tests:
   - it: keeps the shared backend capability off without an operator
     template: config-map.yaml
     set:
-      extraManifests.enabled: true
+      config.deployment.extraManifestsEnabled: true
       operator.enabled: false
     asserts:
       - equal:

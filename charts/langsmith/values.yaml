@@ -57,10 +57,6 @@ commonDnsConfig:
 # -- Kubernetes cluster domain. Only change if not using 'cluster.local'
 clusterDomain: "cluster.local"
 
-extraManifests:
-  # -- Enable deployment ServiceAccount and SecretProviderClass manifests. Requires coordinated supporting images and CRD; see the Extra manifests section.
-  enabled: false
-
 images:
    # -- If supplied, all children <image_name>.repository values will be prepended with this registry name + `/`
   registry: ""
@@ -1106,6 +1102,8 @@ config:
     uncappedResourcesEnabled: false
     # -- Let users override LangSmith Deployment autoscaling CPU targets and scale-up/scale-down behavior. Opt-in for self-hosted.
     scalingOverridesEnabled: false
+    # -- Let standalone self-hosted deployments declare extra ServiceAccount and SecretProviderClass manifests. Requires coordinated supporting images and the LGP CRD; see the Extra manifests section.
+    extraManifestsEnabled: false
 
 
   # DEPRECATED: use the top-level fleet block (fleet/fleetToolServer/
