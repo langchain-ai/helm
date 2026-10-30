@@ -27,7 +27,7 @@ Copy the sandbox service-auth secret and the callback-signing JWK into the runti
 
 Kubernetes does not restart pods when data inside an existing Secret changes, so after editing one, restart the pods that read it (`kubectl rollout restart`). Restarting sandbox-host suspends its VMs.
 
-Run exactly one `langsmith-sandbox` release per LangSmith install, and none while `sandboxes.external.enabled` is false. Two runtimes reporting to one install merge into one host pool and stop each other's sandboxes. To move from the embedded runtime, set `sandboxes.external.enabled=true` on this release, with its dedicated service-auth secret, first, then install `langsmith-sandbox` with the same secret. Set `sandboxes.clusterName` only at install time: renaming it hides existing sandboxes, snapshots and hosts.
+Run exactly one `langsmith-sandbox` release per LangSmith install, and none while `sandboxes.external.enabled` is false. LangSmith accepts host reports from one runtime at a time and refuses any other: a refused runtime's hosts never join, and its elected `sandbox-host` pod turns not ready. To move from the embedded runtime, set `sandboxes.external.enabled=true` on this release, with its dedicated service-auth secret, first, then install `langsmith-sandbox` with the same secret. Set `sandboxes.clusterName` only at install time: renaming it hides existing sandboxes, private registries and hosts.
 
 ## Engine
 

@@ -1,6 +1,6 @@
 # langsmith-sandbox
 
-![Version: 0.18.0-rc.2](https://img.shields.io/badge/Version-0.18.0--rc.2-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.18.19rc1](https://img.shields.io/badge/AppVersion-0.18.19rc1-informational?style=flat-square)
+![Version: 0.18.0-rc.3](https://img.shields.io/badge/Version-0.18.0--rc.3-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.18.19rc1](https://img.shields.io/badge/AppVersion-0.18.19rc1-informational?style=flat-square)
 
 Helm chart to deploy the LangSmith sandbox runtime in a dedicated Kubernetes cluster.
 
@@ -55,7 +55,7 @@ The Ingress routes only `/internal/SandboxHost/` (host RPCs) and `/guest-operati
 - **Version pairing and one runtime:**
   - Run the newest `langsmith-sandbox` chart whose appVersion equals the `langsmith` chart's (`helm search repo langchain/langsmith-sandbox --versions --devel`), and leave `images.sandboxHostImage.tag` empty so the image follows it.
   - Upgrade `langsmith` first and this chart within days. Pin exact chart versions, never ranges.
-  - Run exactly one release of this chart per LangSmith install, and only while the `langsmith` release sets `sandboxes.external.enabled: true`. Two runtimes reporting to one install merge into one host pool and stop each other's sandboxes.
+  - Run exactly one release of this chart per LangSmith install, and only while the `langsmith` release sets `sandboxes.external.enabled: true`. LangSmith accepts host reports from one runtime at a time and refuses any other: a refused runtime's hosts never join, and its elected `sandbox-host` pod turns not ready.
   - To move from the `langsmith` chart's embedded runtime, set `sandboxes.external.enabled: true` on the `langsmith` release first, then install this chart against the same JuiceFS metadata and bucket.
 
 ### EKS
