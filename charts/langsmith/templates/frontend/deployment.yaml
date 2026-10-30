@@ -89,6 +89,7 @@
 {{- end -}}
 {{- if .Values.frontend.enabled }}
 {{- $envVars := concat .Values.commonEnv (include "frontendEnvVars" . | fromYamlArray) .Values.frontend.deployment.extraEnv -}}
+{{- $envVars := include "langsmith.filterSecretEnv" (dict "root" . "env" $envVars) | fromYamlArray -}}
 {{- include "langsmith.detectDuplicates" $envVars -}}
 {{- $volumes := concat .Values.commonVolumes .Values.frontend.deployment.volumes -}}
 {{- $volumeMounts := concat .Values.commonVolumeMounts .Values.frontend.deployment.volumeMounts -}}
