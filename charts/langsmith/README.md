@@ -101,18 +101,9 @@ The trajectory Service is cluster-internal; no public route is added. Trajectory
 
 **Coordinated upgrade required:** enable it only with operator, host backend, listener, and platform backend images that support the feature, together with this chart's LGP CRD. This chart does not change image tags.
 
-Rules enforced by the API and the operator:
+The API and the operator validate every manifest and return the reason for a rejection. In summary: only `v1/ServiceAccount` and `secrets-store.csi.x-k8s.io/v1/SecretProviderClass` are allowed, up to 16 objects. Each name must start with the deployment's resource name followed by `-`; the UI shows the prefix. SecretProviderClasses must use pod workload identity. A deployment cannot reference another deployment's objects; the operator reports `ReferenceForbidden`.
 
-- Only `v1/ServiceAccount` and `secrets-store.csi.x-k8s.io/v1/SecretProviderClass`, up to 16 objects.
-- Every `metadata.name` must be a lowercase DNS subdomain that starts with the deployment's resource name followed by `-`. The UI shows the exact prefix. The namespace is always the deployment's namespace.
-- Metadata may set only `name`, `labels`, and `annotations`. The `lgp-operator.io/` and `apps.langchain.ai/` key prefixes are reserved.
-- ServiceAccounts may set only `automountServiceAccountToken` besides metadata.
-- A deployment cannot use a ServiceAccount or SecretProviderClass that another deployment's manifests created; the operator reports `ReferenceForbidden` and keeps the previous revision running.
-- SecretProviderClasses must use pod workload identity. `spec` may contain only `provider` and `parameters`, and `secretObjects` is rejected. `parameters` may contain only these keys:
-  - `aws`: `objects`, `region`, `failoverRegion`, `pathTranslation`, `usePodIdentity`, `preferredAddressType`.
-  - `azure`: `clientID` (required), `tenantId`, `keyvaultName`, `cloudName`, `objects`, and `usePodIdentity` or `useVMManagedIdentity` set to `"false"`.
-  - `gcp`: `secrets`, and `auth` set to `pod-adc`.
-- Manifests are stored in plaintext in the LangSmith database and in the deployment's custom resource. Do not put credentials in labels, annotations, or parameters.
+Manifests are stored in plaintext in the LangSmith database and in the deployment's custom resource. Do not put credentials in them.
 
 Enabling the feature grants the operator SecretProviderClass `get`, `create`, `patch`, and `delete`. ServiceAccount permissions already exist. It adds no Secret or RBAC permissions. With `operator.rbac.create=false`, provision these permissions yourself.
 
