@@ -148,6 +148,19 @@ data:
             proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.platformBackend.service.port }};
         }
 
+        {{- if .Values.managedToolsServer.enabled }}
+
+        # Managed Tools Server Routes
+        location /{{ .Values.config.basePath }}/api/v1/managed-tools/ {
+            rewrite /{{ .Values.config.basePath }}/api/v1/managed-tools/(.*) /v1/managed-tools/$1  break;
+            proxy_set_header Connection '';
+            proxy_http_version 1.1;
+            proxy_buffering off;
+            proxy_cache off;
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.managedToolsServer.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.managedToolsServer.service.port }};
+        }
+        {{- end }}
+
         location /{{ .Values.config.basePath }}/api/v1/platform/ {
             rewrite /{{ .Values.config.basePath }}/api/v1/platform/(.*) /v1/platform/$1  break;
             proxy_set_header Connection '';
@@ -851,6 +864,19 @@ data:
             proxy_cache off;
             proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.platformBackend.service.port }};
         }
+
+        {{- if .Values.managedToolsServer.enabled }}
+
+        # Managed Tools Server Routes
+        location /api/v1/managed-tools/ {
+            rewrite /api/v1/managed-tools/(.*) /v1/managed-tools/$1  break;
+            proxy_set_header Connection '';
+            proxy_http_version 1.1;
+            proxy_buffering off;
+            proxy_cache off;
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.managedToolsServer.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.managedToolsServer.service.port }};
+        }
+        {{- end }}
 
         location /api/v1/platform/ {
             rewrite /api/v1/platform/(.*) /v1/platform/$1  break;
