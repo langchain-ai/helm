@@ -9,6 +9,8 @@ tests:
       - matchRegexRaw:
           pattern: Run exactly one langsmith-sandbox release per LangSmith install
       - matchRegexRaw:
+          pattern: "refuses any other: a refused runtime's hosts never join"
+      - matchRegexRaw:
           pattern: "runs sandbox-host test-sandbox-host"
 
   - it: should give the https host-ingress endpoint when TLS is set

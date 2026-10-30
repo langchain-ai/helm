@@ -1,7 +1,7 @@
 {{- if .Values.sandboxHost.enabled }}
 LangSmith sandbox runtime installed in namespace {{ include "langsmithSandbox.namespace" . }}.
 
-Run exactly one langsmith-sandbox release per LangSmith install, and only while the langsmith release sets sandboxes.external.enabled=true. Two runtimes reporting to one install merge into one host pool and stop each other's sandboxes.
+Run exactly one langsmith-sandbox release per LangSmith install, and only while the langsmith release sets sandboxes.external.enabled=true. LangSmith accepts host reports from one runtime at a time and refuses any other: a refused runtime's hosts never join, and its elected sandbox-host pod turns not ready.
 
 This release runs sandbox-host {{ include "langsmithSandbox.imageTag" . }}. Keep it on the same LangSmith release as the langsmith chart: upgrade langsmith first, then this release within days, using the newest langsmith-sandbox chart whose appVersion matches the langsmith chart's.
 {{- if .Values.sandboxHost.ingress.enabled }}
