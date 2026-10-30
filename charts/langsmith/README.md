@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.18.0-rc.51](https://img.shields.io/badge/Version-0.18.0--rc.51-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.18.19rc1](https://img.shields.io/badge/AppVersion-0.18.19rc1-informational?style=flat-square)
+![Version: 0.18.0-rc.52](https://img.shields.io/badge/Version-0.18.0--rc.52-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.18.19rc1](https://img.shields.io/badge/AppVersion-0.18.19rc1-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -62,6 +62,10 @@ For tabbed Datadog and Grafana dashboards and component collection examples, see
 When `sandboxes.enabled=true`, configure limits under `sandboxes.quotas`: `maxSandboxes` (default 1000), `maxCpuCores` (200), and `maxMemoryGb` (400 GiB). These limits do not provision cluster capacity.
 
 **Compatibility:** Configured sandbox quotas now apply to authenticated requests. Review existing Helm and organization-level quota overrides before upgrading.
+
+## SQL metadata redaction
+
+When `REDACT_EXTRA_PATTERNS_API` is configured through `commonEnv`, `backend.deployment.extraEnv`, or `platformBackend.deployment.extraEnv`, the chart forwards the same JSON-array value (or `valueFrom` reference) to every SmithDB query process, including unified deployments. Multiple configured entries must match. Unset policies use the services’ defaults. Explicit `SMITHDB_QUERY__REDACT_EXTRA_PATTERNS_API` entries in `smithdb.commonEnv` or a query component’s `deployment.extraEnv` retain their normal override precedence.
 
 ## SmithDB resource tiers
 

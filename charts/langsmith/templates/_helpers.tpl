@@ -848,6 +848,18 @@ Override in smithdb.commonEnv or a component's deployment.extraEnv.
 {{- define "langsmith.smithdb.queryEnv" -}}
 - name: SMITHDB_QUERY__MEMORY_ATTRIBUTION_ENABLED
   value: "false"
+{{- $redaction := dict -}}
+{{- range concat .Values.commonEnv .Values.backend.deployment.extraEnv .Values.platformBackend.deployment.extraEnv -}}
+{{- if eq .name "REDACT_EXTRA_PATTERNS_API" -}}
+{{- if and $redaction (not (deepEqual $redaction .)) -}}
+{{- fail "REDACT_EXTRA_PATTERNS_API must match across commonEnv, backend and platformBackend for SmithDB SQL redaction" -}}
+{{- end -}}
+{{- $redaction = . -}}
+{{- end -}}
+{{- end -}}
+{{- with $redaction }}
+{{ toYaml (list (set (omit . "name") "name" "SMITHDB_QUERY__REDACT_EXTRA_PATTERNS_API")) }}
+{{- end }}
 {{- end }}
 
 {{/*

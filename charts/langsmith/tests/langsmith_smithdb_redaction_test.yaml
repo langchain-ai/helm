@@ -1,0 +1,85 @@
+suite: SmithDB SQL metadata redaction
+templates:
+  - smithdb/query-deployment.yaml
+  - smithdb/unified-deployment.yaml
+  - smithdb/query-services-deployments.yaml
+values:
+  - ./values/smithdb-enabled.yaml
+tests:
+  - it: forwards the common policy to query
+    template: smithdb/query-deployment.yaml
+    set:
+      commonEnv:
+        - { name: REDACT_EXTRA_PATTERNS_API, value: '["custom-key"]' }
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content: { name: SMITHDB_QUERY__REDACT_EXTRA_PATTERNS_API, value: '["custom-key"]' }
+
+  - it: forwards backend policy references without reading their values
+    template: smithdb/query-deployment.yaml
+    set:
+      backend.deployment.extraEnv:
+        - name: REDACT_EXTRA_PATTERNS_API
+          valueFrom:
+            configMapKeyRef: { name: redaction-policy, key: keys }
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_QUERY__REDACT_EXTRA_PATTERNS_API
+            valueFrom:
+              configMapKeyRef: { name: redaction-policy, key: keys }
+
+  - it: forwards matching backend policies to unified query
+    template: smithdb/unified-deployment.yaml
+    documentSelector:
+      path: kind
+      value: Deployment
+    set:
+      smithdb.topology: unified
+      backend.deployment.extraEnv:
+        - { name: REDACT_EXTRA_PATTERNS_API, value: '["custom-key"]' }
+      platformBackend.deployment.extraEnv:
+        - { name: REDACT_EXTRA_PATTERNS_API, value: '["custom-key"]' }
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content: { name: SMITHDB_QUERY__REDACT_EXTRA_PATTERNS_API, value: '["custom-key"]' }
+
+  - it: forwards the platform backend policy to additional query services
+    template: smithdb/query-services-deployments.yaml
+    set:
+      smithdb.statsQuery.enabled: true
+      platformBackend.deployment.extraEnv:
+        - { name: REDACT_EXTRA_PATTERNS_API, value: '["custom-key"]' }
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content: { name: SMITHDB_QUERY__REDACT_EXTRA_PATTERNS_API, value: '["custom-key"]' }
+
+  - it: rejects conflicting backend policies
+    template: smithdb/query-deployment.yaml
+    set:
+      backend.deployment.extraEnv:
+        - { name: REDACT_EXTRA_PATTERNS_API, value: '["custom-key"]' }
+      platformBackend.deployment.extraEnv:
+        - { name: REDACT_EXTRA_PATTERNS_API, value: '["different-key"]' }
+    asserts:
+      - failedTemplate:
+          errorMessage: REDACT_EXTRA_PATTERNS_API must match across commonEnv, backend and platformBackend for SmithDB SQL redaction
+
+  - it: preserves explicit SQL overrides
+    template: smithdb/query-deployment.yaml
+    set:
+      commonEnv:
+        - { name: REDACT_EXTRA_PATTERNS_API, value: '["custom-key"]' }
+      smithdb.query.deployment.extraEnv:
+        - { name: SMITHDB_QUERY__REDACT_EXTRA_PATTERNS_API, value: '["custom-key","extra-key"]' }
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content: { name: SMITHDB_QUERY__REDACT_EXTRA_PATTERNS_API, value: '["custom-key","extra-key"]' }
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content: { name: SMITHDB_QUERY__REDACT_EXTRA_PATTERNS_API, value: '["custom-key"]' }

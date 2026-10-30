@@ -59,6 +59,10 @@ When `sandboxes.enabled=true`, configure limits under `sandboxes.quotas`: `maxSa
 
 **Compatibility:** Configured sandbox quotas now apply to authenticated requests. Review existing Helm and organization-level quota overrides before upgrading.
 
+## SQL metadata redaction
+
+When `REDACT_EXTRA_PATTERNS_API` is configured through `commonEnv`, `backend.deployment.extraEnv`, or `platformBackend.deployment.extraEnv`, the chart forwards the same JSON-array value (or `valueFrom` reference) to every SmithDB query process, including unified deployments. Multiple configured entries must match. Unset policies use the services’ defaults. Explicit `SMITHDB_QUERY__REDACT_EXTRA_PATTERNS_API` entries in `smithdb.commonEnv` or a query component’s `deployment.extraEnv` retain their normal override precedence.
+
 ## SmithDB resource tiers
 
 `smithdb.resourceTier` sets per-replica CPU, memory, and cache size for SmithDB components. The default is `small`. Query, ingestion, and compaction worker mount a volume named `cache` at `/data` as a per-pod [generic ephemeral volume](https://kubernetes.io/docs/concepts/storage/ephemeral-volumes/#generic-ephemeral-volumes) on `smithdb.cache.storageClassName`, or the cluster default StorageClass when empty. Provision that StorageClass with at least 7000 IOPS and 1000 MiB/s.
