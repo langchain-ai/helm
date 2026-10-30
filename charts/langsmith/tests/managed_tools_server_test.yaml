@@ -27,7 +27,7 @@ tests:
     asserts:
       - notMatchRegex:
           path: data["nginx.conf"]
-          pattern: 'managed-tools'
+          pattern: 'managed-tools|agent-policies'
 
   - it: runs the managed tools server from the backend image
     template: managed-tools-server/deployment.yaml
@@ -48,6 +48,11 @@ tests:
           content:
             name: MANAGED_TOOLS_SERVER_PORT
             value: "1991"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SERVICE_NAME
+            value: managed-tools-server
 
   - it: exposes the server inside the cluster
     template: managed-tools-server/service.yaml
@@ -102,6 +107,9 @@ tests:
       - matchRegex:
           path: data["nginx.conf"]
           pattern: 'location /api/v1/managed-tools/ \{\s*rewrite /api/v1/managed-tools/\(\.\*\) /v1/managed-tools/\$1\s+break;[^}]*proxy_buffering off;[^}]*proxy_pass http://[^}]*-managed-tools-server\.[^}]*:1991;'
+      - matchRegex:
+          path: data["nginx.conf"]
+          pattern: 'location /api/v1/agent-policies \{\s*rewrite \^/api/v1/agent-policies\(\.\*\)\$ /v1/agent-policies\$1\s+break;[^}]*proxy_pass http://[^}]*-managed-tools-server\.[^}]*:1991;'
 
   - it: routes managed tools requests under a base path
     template: frontend/config-map.yaml
@@ -112,3 +120,6 @@ tests:
       - matchRegex:
           path: data["nginx.conf"]
           pattern: 'location /langsmith/api/v1/managed-tools/ \{\s*rewrite /langsmith/api/v1/managed-tools/\(\.\*\) /v1/managed-tools/\$1\s+break;[^}]*proxy_pass http://[^}]*-managed-tools-server\.[^}]*:1991;'
+      - matchRegex:
+          path: data["nginx.conf"]
+          pattern: 'location /langsmith/api/v1/agent-policies \{\s*rewrite \^/langsmith/api/v1/agent-policies\(\.\*\)\$ /v1/agent-policies\$1\s+break;[^}]*proxy_pass http://[^}]*-managed-tools-server\.[^}]*:1991;'

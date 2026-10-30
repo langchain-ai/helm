@@ -1929,6 +1929,8 @@ Served through the frontend at /mcp (or /<basePath>/mcp).
 {{- define "managedToolsServerEnvVars" -}}
 - name: "MANAGED_TOOLS_SERVER_PORT"
   value: "{{ .Values.managedToolsServer.containerPort }}"
+- name: "SERVICE_NAME"
+  value: "managed-tools-server"
 {{- end -}}
 
 {{- define "fleetTriggerServerEnvVars" -}}

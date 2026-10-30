@@ -159,6 +159,16 @@ data:
             proxy_cache off;
             proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.managedToolsServer.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.managedToolsServer.service.port }};
         }
+
+        # Agent policies are served by the managed tools server
+        location /{{ .Values.config.basePath }}/api/v1/agent-policies {
+            rewrite ^/{{ .Values.config.basePath }}/api/v1/agent-policies(.*)$ /v1/agent-policies$1  break;
+            proxy_set_header Connection '';
+            proxy_http_version 1.1;
+            proxy_buffering off;
+            proxy_cache off;
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.managedToolsServer.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.managedToolsServer.service.port }};
+        }
         {{- end }}
 
         location /{{ .Values.config.basePath }}/api/v1/platform/ {
@@ -870,6 +880,16 @@ data:
         # Managed Tools Server Routes
         location /api/v1/managed-tools/ {
             rewrite /api/v1/managed-tools/(.*) /v1/managed-tools/$1  break;
+            proxy_set_header Connection '';
+            proxy_http_version 1.1;
+            proxy_buffering off;
+            proxy_cache off;
+            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.managedToolsServer.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.managedToolsServer.service.port }};
+        }
+
+        # Agent policies are served by the managed tools server
+        location /api/v1/agent-policies {
+            rewrite ^/api/v1/agent-policies(.*)$ /v1/agent-policies$1  break;
             proxy_set_header Connection '';
             proxy_http_version 1.1;
             proxy_buffering off;
