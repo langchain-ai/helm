@@ -1,0 +1,125 @@
+suite: managed tools server
+templates:
+  - config-map.yaml
+  - secrets.yaml
+  - redis/secrets.yaml
+  - postgres/secrets.yaml
+  - clickhouse/secrets.yaml
+  - frontend/config-map.yaml
+  - operator/config-map.yaml
+  - managed-tools-server/deployment.yaml
+  - managed-tools-server/service.yaml
+tests:
+  - it: renders nothing when disabled
+    template: managed-tools-server/deployment.yaml
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: does not entitle organizations when disabled
+    template: config-map.yaml
+    asserts:
+      - notExists:
+          path: data.DEFAULT_ORG_FEATURE_LMT_ENABLED
+
+  - it: omits managed tools routes when disabled
+    template: frontend/config-map.yaml
+    asserts:
+      - notMatchRegex:
+          path: data["nginx.conf"]
+          pattern: 'managed-tools|agent-policies'
+
+  - it: runs the managed tools server from the backend image
+    template: managed-tools-server/deployment.yaml
+    set:
+      managedToolsServer.enabled: true
+    asserts:
+      - isKind:
+          of: Deployment
+      - equal:
+          path: spec.template.spec.containers[0].command
+          value:
+            - managed_tools_server_entrypoint.sh
+      - matchRegex:
+          path: spec.template.spec.containers[0].image
+          pattern: langsmith-backend
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: MANAGED_TOOLS_SERVER_PORT
+            value: "1991"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SERVICE_NAME
+            value: managed-tools-server
+
+  - it: exposes the server inside the cluster
+    template: managed-tools-server/service.yaml
+    set:
+      managedToolsServer.enabled: true
+    asserts:
+      - equal:
+          path: spec.type
+          value: ClusterIP
+      - equal:
+          path: spec.ports[0].port
+          value: 1991
+
+  - it: entitles organizations when enabled
+    template: config-map.yaml
+    set:
+      managedToolsServer.enabled: true
+    asserts:
+      - equal:
+          path: data.DEFAULT_ORG_FEATURE_LMT_ENABLED
+          value: "true"
+
+  - it: points at the tool server for built-in tools without the trigger server
+    template: config-map.yaml
+    set:
+      managedToolsServer.enabled: true
+      fleet.enabled: true
+      fleetTriggerServer.enabled: false
+    asserts:
+      - matchRegex:
+          path: data.MCP_SERVER_URL
+          pattern: '^http://.*-fleet-tool-server\..*:1989$'
+      - notExists:
+          path: data.TRIGGER_SERVER_ENDPOINT
+
+  - it: leaves the built-in tools URL unset when the tool server is disabled
+    template: config-map.yaml
+    set:
+      managedToolsServer.enabled: true
+      fleet.enabled: true
+      fleetToolServer.enabled: false
+      fleetTriggerServer.enabled: false
+    asserts:
+      - notExists:
+          path: data.MCP_SERVER_URL
+
+  - it: routes managed tools requests to the server
+    template: frontend/config-map.yaml
+    set:
+      managedToolsServer.enabled: true
+    asserts:
+      - matchRegex:
+          path: data["nginx.conf"]
+          pattern: 'location /api/v1/managed-tools/ \{\s*rewrite /api/v1/managed-tools/\(\.\*\) /v1/managed-tools/\$1\s+break;[^}]*proxy_buffering off;[^}]*proxy_pass http://[^}]*-managed-tools-server\.[^}]*:1991;'
+      - matchRegex:
+          path: data["nginx.conf"]
+          pattern: 'location /api/v1/agent-policies \{\s*rewrite \^/api/v1/agent-policies\(\.\*\)\$ /v1/agent-policies\$1\s+break;[^}]*proxy_pass http://[^}]*-managed-tools-server\.[^}]*:1991;'
+
+  - it: routes managed tools requests under a base path
+    template: frontend/config-map.yaml
+    set:
+      managedToolsServer.enabled: true
+      config.basePath: langsmith
+    asserts:
+      - matchRegex:
+          path: data["nginx.conf"]
+          pattern: 'location /langsmith/api/v1/managed-tools/ \{\s*rewrite /langsmith/api/v1/managed-tools/\(\.\*\) /v1/managed-tools/\$1\s+break;[^}]*proxy_pass http://[^}]*-managed-tools-server\.[^}]*:1991;'
+      - matchRegex:
+          path: data["nginx.conf"]
+          pattern: 'location /langsmith/api/v1/agent-policies \{\s*rewrite \^/langsmith/api/v1/agent-policies\(\.\*\)\$ /v1/agent-policies\$1\s+break;[^}]*proxy_pass http://[^}]*-managed-tools-server\.[^}]*:1991;'

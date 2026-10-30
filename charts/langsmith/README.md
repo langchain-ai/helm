@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.18.0-rc.52](https://img.shields.io/badge/Version-0.18.0--rc.52-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.18.19rc1](https://img.shields.io/badge/AppVersion-0.18.19rc1-informational?style=flat-square)
+![Version: 0.18.0-rc.53](https://img.shields.io/badge/Version-0.18.0--rc.53-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.18.19rc1](https://img.shields.io/badge/AppVersion-0.18.19rc1-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -765,6 +765,68 @@ The trajectory Service is cluster-internal; no public route is added. Trajectory
 | istioGateway.labels | object | `{}` |  |
 | istioGateway.name | string | `"istio-gateway"` |  |
 | istioGateway.namespace | string | `"istio-system"` |  |
+| managedToolsServer.autoscaling.createHpa | bool | `true` |  |
+| managedToolsServer.autoscaling.enabled | bool | `false` |  |
+| managedToolsServer.autoscaling.maxReplicas | int | `3` |  |
+| managedToolsServer.autoscaling.minReplicas | int | `1` |  |
+| managedToolsServer.autoscaling.targetCPUUtilizationPercentage | int | `70` |  |
+| managedToolsServer.autoscaling.targetMemoryUtilizationPercentage | int | `70` |  |
+| managedToolsServer.containerPort | int | `1991` |  |
+| managedToolsServer.deployment.affinity | object | `{}` |  |
+| managedToolsServer.deployment.annotations | object | `{}` |  |
+| managedToolsServer.deployment.command[0] | string | `"managed_tools_server_entrypoint.sh"` |  |
+| managedToolsServer.deployment.extraContainerConfig | object | `{}` |  |
+| managedToolsServer.deployment.extraEnv | list | `[]` |  |
+| managedToolsServer.deployment.initContainers | list | `[]` |  |
+| managedToolsServer.deployment.labels | object | `{}` |  |
+| managedToolsServer.deployment.lifecycle | object | `{}` |  |
+| managedToolsServer.deployment.livenessProbe.failureThreshold | int | `6` |  |
+| managedToolsServer.deployment.livenessProbe.httpGet.path | string | `"/health"` |  |
+| managedToolsServer.deployment.livenessProbe.httpGet.port | int | `1991` |  |
+| managedToolsServer.deployment.livenessProbe.periodSeconds | int | `10` |  |
+| managedToolsServer.deployment.livenessProbe.timeoutSeconds | int | `3` |  |
+| managedToolsServer.deployment.nodeSelector | object | `{}` |  |
+| managedToolsServer.deployment.podSecurityContext | object | `{}` |  |
+| managedToolsServer.deployment.priorityClassName | string | `""` |  |
+| managedToolsServer.deployment.readinessProbe.failureThreshold | int | `6` |  |
+| managedToolsServer.deployment.readinessProbe.httpGet.path | string | `"/ready"` |  |
+| managedToolsServer.deployment.readinessProbe.httpGet.port | int | `1991` |  |
+| managedToolsServer.deployment.readinessProbe.periodSeconds | int | `10` |  |
+| managedToolsServer.deployment.readinessProbe.timeoutSeconds | int | `3` |  |
+| managedToolsServer.deployment.replicas | int | `1` |  |
+| managedToolsServer.deployment.resources.limits.cpu | string | `"1000m"` |  |
+| managedToolsServer.deployment.resources.limits.memory | string | `"1Gi"` |  |
+| managedToolsServer.deployment.resources.requests.cpu | string | `"200m"` |  |
+| managedToolsServer.deployment.resources.requests.memory | string | `"256Mi"` |  |
+| managedToolsServer.deployment.securityContext | object | `{}` |  |
+| managedToolsServer.deployment.sidecars | list | `[]` |  |
+| managedToolsServer.deployment.startupProbe.failureThreshold | int | `6` |  |
+| managedToolsServer.deployment.startupProbe.httpGet.path | string | `"/health"` |  |
+| managedToolsServer.deployment.startupProbe.httpGet.port | int | `1991` |  |
+| managedToolsServer.deployment.startupProbe.periodSeconds | int | `10` |  |
+| managedToolsServer.deployment.startupProbe.timeoutSeconds | int | `3` |  |
+| managedToolsServer.deployment.terminationGracePeriodSeconds | int | `30` |  |
+| managedToolsServer.deployment.tolerations | list | `[]` |  |
+| managedToolsServer.deployment.topologySpreadConstraints | list | `[]` |  |
+| managedToolsServer.deployment.volumeMounts | list | `[]` |  |
+| managedToolsServer.deployment.volumes | list | `[]` |  |
+| managedToolsServer.enabled | bool | `false` |  |
+| managedToolsServer.name | string | `"managed-tools-server"` |  |
+| managedToolsServer.pdb.annotations | object | `{}` |  |
+| managedToolsServer.pdb.enabled | bool | `false` |  |
+| managedToolsServer.pdb.labels | object | `{}` |  |
+| managedToolsServer.pdb.minAvailable | int | `1` |  |
+| managedToolsServer.service.annotations | object | `{}` |  |
+| managedToolsServer.service.labels | object | `{}` |  |
+| managedToolsServer.service.loadBalancerIP | string | `""` |  |
+| managedToolsServer.service.loadBalancerSourceRanges | list | `[]` |  |
+| managedToolsServer.service.port | int | `1991` |  |
+| managedToolsServer.service.type | string | `"ClusterIP"` |  |
+| managedToolsServer.serviceAccount.annotations | object | `{}` |  |
+| managedToolsServer.serviceAccount.automountServiceAccountToken | bool | `true` |  |
+| managedToolsServer.serviceAccount.create | bool | `true` |  |
+| managedToolsServer.serviceAccount.labels | object | `{}` |  |
+| managedToolsServer.serviceAccount.name | string | `""` |  |
 | nameOverride | string | `""` | Provide a name in place of `langsmith` |
 | namespace | string | `""` | Namespace to install the chart into. If not set, will use the namespace of the current context. |
 | polly.apiServer.autoscaling.enabled | bool | `false` |  |
