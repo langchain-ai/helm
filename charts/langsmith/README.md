@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.16.47](https://img.shields.io/badge/Version-0.16.47-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.16.75](https://img.shields.io/badge/AppVersion-0.16.75-informational?style=flat-square)
+![Version: 0.16.48](https://img.shields.io/badge/Version-0.16.48-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.16.75](https://img.shields.io/badge/AppVersion-0.16.75-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -613,7 +613,7 @@ Replica counts and autoscaling remain controlled by each component's `deployment
 | images.juicefsMountImage | object | `{"pullPolicy":"IfNotPresent","repository":"docker.io/juicedata/mount","tag":"ce-v1.3.0"}` | Optional JuiceFS CE mount image used by runtime mount pods. Set this when mirroring images for restricted networks. |
 | images.operatorImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.operatorImage.repository | string | `"docker.io/langchain/langgraph-operator"` |  |
-| images.operatorImage.tag | string | `"0.1.47"` |  |
+| images.operatorImage.tag | string | `"0.1.66"` |  |
 | images.pollyAgentImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.pollyAgentImage.repository | string | `"docker.io/langchain/langsmith-polly"` |  |
 | images.pollyAgentImage.tag | string | `"0.16.75"` |  |
