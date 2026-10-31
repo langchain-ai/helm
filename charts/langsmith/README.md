@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.18.0-rc.52](https://img.shields.io/badge/Version-0.18.0--rc.52-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.18.19rc1](https://img.shields.io/badge/AppVersion-0.18.19rc1-informational?style=flat-square)
+![Version: 0.18.0-rc.53](https://img.shields.io/badge/Version-0.18.0--rc.53-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.18.19rc1](https://img.shields.io/badge/AppVersion-0.18.19rc1-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -658,7 +658,7 @@ The trajectory Service is cluster-internal; no public route is added. Trajectory
 | images.imagePullSecrets | list | `[]` | Secrets with credentials to pull images from a private registry. Specified as name: value. |
 | images.operatorImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.operatorImage.repository | string | `"docker.io/langchain/langgraph-operator"` |  |
-| images.operatorImage.tag | string | `"0.1.64"` |  |
+| images.operatorImage.tag | string | `"0.1.66"` |  |
 | images.pollyAgentImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.pollyAgentImage.repository | string | `"docker.io/langchain/langsmith-polly"` |  |
 | images.pollyAgentImage.tag | string | `"0.18.19rc1"` |  |
