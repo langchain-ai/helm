@@ -1256,6 +1256,14 @@ Args: root, service, displayName, optional prefix (defaults to SMITHDB_<service>
 {{- end -}}
 {{- end -}}
 
+{{- define "managedToolsServer.serviceAccountName" -}}
+{{- if .Values.managedToolsServer.serviceAccount.create -}}
+    {{ default (printf "%s-%s" (include "langsmith.fullname" .) .Values.managedToolsServer.name) .Values.managedToolsServer.serviceAccount.name | trunc 63 | trimSuffix "-" }}
+{{- else -}}
+    {{ default "default" .Values.managedToolsServer.serviceAccount.name }}
+{{- end -}}
+{{- end -}}
+
 {{- define "fleetTriggerServer.serviceAccountName" -}}
 {{- if .Values.fleetTriggerServer.serviceAccount.create -}}
     {{ default (printf "%s-%s" (include "langsmith.fullname" .) .Values.fleetTriggerServer.name) .Values.fleetTriggerServer.serviceAccount.name | trunc 63 | trimSuffix "-" }}
@@ -1916,6 +1924,13 @@ Served through the frontend at /mcp (or /<basePath>/mcp).
 - name: "PORT"
   value: "{{ .Values.fleetToolServer.containerPort }}"
 {{- include "agentBuilderOAuthEnvVars" . }}
+{{- end -}}
+
+{{- define "managedToolsServerEnvVars" -}}
+- name: "MANAGED_TOOLS_SERVER_PORT"
+  value: "{{ .Values.managedToolsServer.containerPort }}"
+- name: "SERVICE_NAME"
+  value: "managed-tools-server"
 {{- end -}}
 
 {{- define "fleetTriggerServerEnvVars" -}}
