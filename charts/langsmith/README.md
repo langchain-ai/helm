@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.18.0-rc.53](https://img.shields.io/badge/Version-0.18.0--rc.53-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.18.19rc1](https://img.shields.io/badge/AppVersion-0.18.19rc1-informational?style=flat-square)
+![Version: 0.18.0-rc.56](https://img.shields.io/badge/Version-0.18.0--rc.56-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.18.20rc1](https://img.shields.io/badge/AppVersion-0.18.20rc1-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -94,6 +94,22 @@ The query disk cache limit is set automatically from the PVC storage request or,
 Online evaluations on trajectories use an internal gRPC listener in `platformBackend` on port `8086`, enabled when both `smithdb.enabled` and `smithdb.langsmith.query.enabled` are true. Otherwise, no trajectory listener, Service, or endpoint is configured. It shares the HTTP backend's SmithDB routing, resources, and scaling; readiness uses `/ready` while active.
 
 The trajectory Service is cluster-internal; no public route is added. Trajectory processing can be memory intensive, consider setting [GOMEMLIMIT](https://pkg.go.dev/runtime#hdr-Environment_Variables) relative to your memory limit to mitigate OOMKilled errors for this service. If setting `GOMEMLIMIT` through `platformBackend.deployment.extraEnv`, account for the combined HTTP and trajectory workload and leave headroom below the container memory limit.
+
+## Extra manifests
+
+`config.deployment.extraManifestsEnabled` defaults to `false`. Set it to `true` to let standalone self-hosted deployments declare extra ServiceAccounts and SecretProviderClasses. It needs `config.deployment.enabled=true` and the operator. The chart passes `LGP_EXTRA_MANIFESTS_ENABLED` to the operator and, through the shared ConfigMap, to the host backend, listener, and platform backend. Deployments on a remote listener are unsupported. Do not override the flag through environment values.
+
+**Coordinated upgrade required:** enable it only with operator, host backend, listener, and platform backend images that support the feature, together with this chart's LGP CRD. This chart does not change image tags.
+
+The API and the operator validate every manifest and return the reason for a rejection. In summary: only `v1/ServiceAccount` and `secrets-store.csi.x-k8s.io/v1/SecretProviderClass` are allowed, up to 16 objects. Each name must start with the deployment's resource name followed by `-`; the UI shows the prefix. SecretProviderClasses must use pod workload identity. A deployment cannot reference another deployment's objects; the operator reports `ReferenceForbidden`.
+
+Manifests are stored in plaintext in the LangSmith database and in the deployment's custom resource. Do not put credentials in them.
+
+Enabling the feature grants the operator SecretProviderClass `get`, `create`, `patch`, and `delete`. ServiceAccount permissions already exist. It adds no Secret or RBAC permissions. With `operator.rbac.create=false`, provision these permissions yourself.
+
+Scope each workload identity's federation to the namespace and the full prefixed ServiceAccount name. For Azure Key Vault, install the Secrets Store CSI driver and Azure provider, and configure Azure Workload Identity and the federated identity credential. This chart does not install those prerequisites.
+
+The operator deletes removed objects only after the deployment's rollout completes and no pod or Deployment template still references them. It reports progress in the LGP `ExtraManifestsReady` condition. Turning the flag off freezes the objects and the stored configuration. Clear resources while the flag is on. Deleting a deployment garbage-collects its objects through owner references.
 
 ## General parameters
 
@@ -635,13 +651,13 @@ The trajectory Service is cluster-internal; no public route is added. Trajectory
 | gateway.sectionName | string | `""` |  |
 | images.aceBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.aceBackendImage.repository | string | `"docker.io/langchain/langsmith-ace-backend"` |  |
-| images.aceBackendImage.tag | string | `"0.18.19rc1"` |  |
+| images.aceBackendImage.tag | string | `"0.18.20rc1"` |  |
 | images.agentBuilderImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.agentBuilderImage.repository | string | `"docker.io/langchain/agent-builder-deep-agent"` |  |
-| images.agentBuilderImage.tag | string | `"0.18.19rc1"` |  |
+| images.agentBuilderImage.tag | string | `"0.18.20rc1"` |  |
 | images.backendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.backendImage.repository | string | `"docker.io/langchain/langsmith-backend"` |  |
-| images.backendImage.tag | string | `"0.18.19rc1"` |  |
+| images.backendImage.tag | string | `"0.18.20rc1"` |  |
 | images.clickhouseImage.pullPolicy | string | `"Always"` |  |
 | images.clickhouseImage.repository | string | `"docker.io/clickhouse/clickhouse-server"` |  |
 | images.clickhouseImage.tag | string | `"25.12"` |  |
@@ -651,17 +667,17 @@ The trajectory Service is cluster-internal; no public route is added. Trajectory
 | images.deploymentRedisImage.tag | string | `"7"` |  |
 | images.engineInsightsAgentImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.engineInsightsAgentImage.repository | string | `"docker.io/langchain/langsmith-insights-engine"` |  |
-| images.engineInsightsAgentImage.tag | string | `"0.18.19rc1"` |  |
+| images.engineInsightsAgentImage.tag | string | `"0.18.20rc1"` |  |
 | images.frontendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.frontendImage.repository | string | `"docker.io/langchain/langsmith-frontend"` |  |
-| images.frontendImage.tag | string | `"0.18.19rc1"` |  |
+| images.frontendImage.tag | string | `"0.18.20rc1"` |  |
 | images.imagePullSecrets | list | `[]` | Secrets with credentials to pull images from a private registry. Specified as name: value. |
 | images.operatorImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.operatorImage.repository | string | `"docker.io/langchain/langgraph-operator"` |  |
-| images.operatorImage.tag | string | `"0.1.64"` |  |
+| images.operatorImage.tag | string | `"0.1.66"` |  |
 | images.pollyAgentImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.pollyAgentImage.repository | string | `"docker.io/langchain/langsmith-polly"` |  |
-| images.pollyAgentImage.tag | string | `"0.18.19rc1"` |  |
+| images.pollyAgentImage.tag | string | `"0.18.20rc1"` |  |
 | images.postgresImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.postgresImage.repository | string | `"docker.io/postgres"` |  |
 | images.postgresImage.tag | string | `"14.7"` |  |
@@ -672,11 +688,11 @@ The trajectory Service is cluster-internal; no public route is added. Trajectory
 | images.redisImage.repository | string | `"docker.io/redis"` |  |
 | images.redisImage.tag | string | `"7"` |  |
 | images.registry | string | `""` | If supplied, all children <image_name>.repository values will be prepended with this registry name + `/` |
-| images.sandboxHostImage | object | `{"pullPolicy":"IfNotPresent","repository":"docker.io/langchain/sandbox-host","tag":"0.18.19rc1"}` | sandbox-host image. Only used when sandboxes.enabled is true. |
-| images.sandboxHostImage.tag | string | `"0.18.19rc1"` | Release tag, kept equal to the chart's appVersion and the other LangSmith image tags so the release bump moves them together, including on a Helm upgrade that reuses the previous values. An empty tag also resolves to the appVersion. |
+| images.sandboxHostImage | object | `{"pullPolicy":"IfNotPresent","repository":"docker.io/langchain/sandbox-host","tag":"0.18.20rc1"}` | sandbox-host image. Only used when sandboxes.enabled is true. |
+| images.sandboxHostImage.tag | string | `"0.18.20rc1"` | Release tag, kept equal to the chart's appVersion and the other LangSmith image tags so the release bump moves them together, including on a Helm upgrade that reuses the previous values. An empty tag also resolves to the appVersion. |
 | images.smithdbImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.smithdbImage.repository | string | `"docker.io/langchain/smithdb"` |  |
-| images.smithdbImage.tag | string | `"0.18.19rc1"` |  |
+| images.smithdbImage.tag | string | `"0.18.20rc1"` |  |
 | ingestQueue.autoscaling.hpa.enabled | bool | `false` |  |
 | ingestQueue.autoscaling.hpa.maxReplicas | int | `10` |  |
 | ingestQueue.autoscaling.hpa.minReplicas | int | `3` |  |
@@ -1762,9 +1778,10 @@ The trajectory Service is cluster-internal; no public route is added. Trajectory
 | config.customErrorSupportMessage | string | `""` | Custom error support message displayed on error pages (plain text). If empty, defaults to the built-in support messages linking to our Support Portal (https://support.langchain.com). |
 | config.customLogo | object | `{"coBrandingEnabled":true,"darkModeLogoUrl":"","enabled":false,"lightModeLogoUrl":"","logoUrl":""}` | Custom logo configuration. If enabled, set either logoUrl, or lightModeLogoUrl and darkModeLogoUrl to use a different logo per color scheme. Setting only one of the three uses it in both schemes. Each value is a URL to an image like png, jpg, or svg. Co-branding shows the LangSmith and customer logos side by side. |
 | config.defaultWorkspaceName | string | `"Workspace 1"` | Default workspace name to be provisioned when org is created. |
-| config.deployment | object | `{"basePath":"","enabled":false,"ingressHealthCheckEnabled":true,"scalingOverridesEnabled":false,"tlsEnabled":true,"uncappedResourcesEnabled":false}` | Configuration for LangSmith Deployments features |
+| config.deployment | object | `{"basePath":"","enabled":false,"extraManifestsEnabled":false,"ingressHealthCheckEnabled":true,"scalingOverridesEnabled":false,"tlsEnabled":true,"uncappedResourcesEnabled":false}` | Configuration for LangSmith Deployments features |
 | config.deployment.basePath | string | `""` | Base path for LangSmith Deployments routes managed by the operator. |
 | config.deployment.enabled | bool | `false` | Optional. Used to enable the LangSmith Deployments feature. Requires additional setup. Refer to the documentation for more information. |
+| config.deployment.extraManifestsEnabled | bool | `false` | Let standalone self-hosted deployments declare extra ServiceAccount and SecretProviderClass manifests. Requires coordinated supporting images and the LGP CRD; see the Extra manifests section. |
 | config.deployment.scalingOverridesEnabled | bool | `false` | Let users override LangSmith Deployment autoscaling CPU targets and scale-up/scale-down behavior. Opt-in for self-hosted. |
 | config.deployment.uncappedResourcesEnabled | bool | `false` | Lift the SaaS CPU/memory caps on LangSmith Deployment resource specs. Opt-in for self-hosted. |
 | config.disableSecretCreation | bool | `false` |  |
