@@ -128,6 +128,14 @@ spec:
             value: {{ .Values.gateway.name | quote }}
           - name: GATEWAY_NAMESPACE
             value: {{ .Values.gateway.namespace | default .Release.Namespace }}
+          {{- $extraEnvNames := list }}
+          {{- range .Values.operator.deployment.extraEnv }}
+          {{- $extraEnvNames = append $extraEnvNames .name }}
+          {{- end }}
+          {{- if and .Values.gateway.deploymentRequestTimeout (not (has "HTTPROUTE_REQUEST_TIMEOUT" $extraEnvNames)) }}
+          - name: HTTPROUTE_REQUEST_TIMEOUT
+            value: {{ .Values.gateway.deploymentRequestTimeout | quote }}
+          {{- end }}
         {{- else if .Values.istioGateway.enabled }}
           - name: ISTIO_GATEWAY_NAME
             value: {{ .Values.istioGateway.name | quote }}
