@@ -3721,6 +3721,8 @@ ingestQueue:
       targetCPUUtilizationPercentage: 50
       targetMemoryUtilizationPercentage: 80
       queueTargetSize: "10"
+      # -- Busy ingestion tasks per pod that KEDA aims for. Empty turns this trigger off. Use about 85% of the worker's `concurrency` (visible in startup log) and stay below `concurrency` / 1.1.
+      activeTasksTargetSize: ""
       fallback:
         failureThreshold: 3
         replicas: 3

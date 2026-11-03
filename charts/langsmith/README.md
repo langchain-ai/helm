@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.17.40](https://img.shields.io/badge/Version-0.17.40-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.17.66](https://img.shields.io/badge/AppVersion-0.17.66-informational?style=flat-square)
+![Version: 0.17.41](https://img.shields.io/badge/Version-0.17.41-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.17.66](https://img.shields.io/badge/AppVersion-0.17.66-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -639,6 +639,7 @@ The trajectory Service is cluster-internal; no public route is added. Trajectory
 | ingestQueue.autoscaling.hpa.minReplicas | int | `3` |  |
 | ingestQueue.autoscaling.hpa.targetCPUUtilizationPercentage | int | `50` |  |
 | ingestQueue.autoscaling.hpa.targetMemoryUtilizationPercentage | int | `80` |  |
+| ingestQueue.autoscaling.keda.activeTasksTargetSize | string | `""` | Busy ingestion tasks per pod that KEDA aims for. Empty turns this trigger off. Use about 85% of the worker's `concurrency` (visible in startup log) and stay below `concurrency` / 1.1. |
 | ingestQueue.autoscaling.keda.annotations | object | `{}` |  |
 | ingestQueue.autoscaling.keda.cooldownPeriod | int | `300` |  |
 | ingestQueue.autoscaling.keda.enabled | bool | `false` |  |
