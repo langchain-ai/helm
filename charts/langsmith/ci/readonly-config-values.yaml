@@ -516,7 +516,9 @@ listener:
       readOnlyRootFilesystem: true
 
 operator:
-  createCRDs: false
+  # CI uses a fresh cluster without LGP or KEDA CRDs.
+  createCRDs: true
+  kedaEnabled: false
   deployment:
     resources:
       requests:

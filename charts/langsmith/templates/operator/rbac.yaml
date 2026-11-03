@@ -102,9 +102,17 @@ rules:
   - list
   - watch
 - apiGroups:
-  - keda.sh
+  - networking.k8s.io
   resources:
-  - scaledobjects
+  - networkpolicies
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - policy
+  resources:
+  - poddisruptionbudgets
   verbs:
   - create
   - delete
@@ -113,6 +121,26 @@ rules:
   - patch
   - update
   - watch
+- apiGroups:
+  - keda.sh
+  resources:
+  - scaledobjects
+  - triggerauthentications
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - http.keda.sh
+  resources:
+  - interceptorroutes
+  verbs:
+  - delete
+  - get
 - apiGroups:
   - networking.k8s.io
   resources:
@@ -275,9 +303,17 @@ rules:
   - list
   - watch
 - apiGroups:
-  - keda.sh
+  - networking.k8s.io
   resources:
-  - scaledobjects
+  - networkpolicies
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - policy
+  resources:
+  - poddisruptionbudgets
   verbs:
   - create
   - delete
@@ -286,6 +322,26 @@ rules:
   - patch
   - update
   - watch
+- apiGroups:
+  - keda.sh
+  resources:
+  - scaledobjects
+  - triggerauthentications
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - http.keda.sh
+  resources:
+  - interceptorroutes
+  verbs:
+  - delete
+  - get
 - apiGroups:
   - networking.k8s.io
   resources:
