@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.18.0-rc.55](https://img.shields.io/badge/Version-0.18.0--rc.55-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.18.20rc1](https://img.shields.io/badge/AppVersion-0.18.20rc1-informational?style=flat-square)
+![Version: 0.18.0-rc.57](https://img.shields.io/badge/Version-0.18.0--rc.57-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.18.20rc1](https://img.shields.io/badge/AppVersion-0.18.20rc1-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -1688,7 +1688,7 @@ The operator deletes removed objects only after the deployment's rollout complet
 | config.agentBuilder.oauth.slackOAuthProvider | string | `""` |  |
 | config.agentBuilder.oauth.slackSigningSecret | string | `""` |  |
 | config.agentBuilder.oauthProviderOrgId | string | `""` |  |
-| config.agentMigration.enabled | bool | `false` | Migrate existing tracing projects and experiments to Agent Platform agents after upgrade. Requires authenticated auth (`authType` `mixed` or `oauth`) and runs on the existing ingest queue workers. |
+| config.agentMigration.enabled | bool | `true` | Migrate existing tracing projects and experiments to Agent Platform agents after upgrade. Runs on the existing ingest queue workers; installs with `authType` `none` skip it. Once it has run, do not downgrade to an app version from before the migration. |
 | config.apiKeySalt | string | `""` | Salt used to generate the API key. Should be a random string. |
 | config.authType | string | `""` | Must be 'oauth' for OAuth with PKCE, 'mixed' for basic auth or OAuth without PKCE |
 | config.basePath | string | `""` | Base path for the LangSmith installation. Used to serve the app under a subpath like example.com/langsmith. WARNING: Changing basePath after LangSmith Deployments have been created will break existing deployments. Existing deployments will need to be recreated for the new basePath to take effect. |
