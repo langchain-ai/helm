@@ -6,7 +6,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: {{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}-ch-migrations{{ ternary (printf "-%s" (randAlphaNum 5 | lower)) ""  .Values.backend.clickhouseMigrations.randomizeName }}
+  name: {{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}-ch-migrations{{ ternary (printf "-%s" (randAlphaNum 5 | lower)) ""  .Values.backend.clickhouseMigrations.randomizeName }}{{ if .Release.IsInstall }}-install{{ end }}
   namespace: {{ .Values.namespace | default .Release.Namespace }}
   labels:
     {{- include "langsmith.labels" . | nindent 4 }}
@@ -14,9 +14,11 @@ metadata:
       {{- toYaml . | nindent 4 }}
     {{- end }}
   annotations:
-    "helm.sh/hook": post-install, pre-upgrade
+    {{- if .Release.IsUpgrade }}
+    "helm.sh/hook": pre-upgrade
     "helm.sh/hook-weight": "-1"
     "helm.sh/hook-delete-policy": before-hook-creation
+    {{- end }}
     "argocd.argoproj.io/hook": "Sync"
     "argocd.argoproj.io/hook-delete-policy": "BeforeHookCreation"
     "argocd.argoproj.io/sync-wave": "-1"

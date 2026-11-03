@@ -1,0 +1,35 @@
+suite: schema migration scheduling
+values:
+  - ./values/blob-storage-defaults-enabled.yaml
+templates:
+  - backend/postgres-migrations.yaml
+  - backend/clickhouse-migrations.yaml
+tests:
+  - it: creates migrations with dependencies on first install
+    asserts:
+      - isKind:
+          of: Job
+      - matchRegex:
+          path: metadata.name
+          pattern: -migrations-install$
+      - notExists:
+          path: metadata.annotations["helm.sh/hook"]
+      - equal:
+          path: metadata.annotations["argocd.argoproj.io/hook"]
+          value: Sync
+  - it: runs migrations before updating workloads on upgrade
+    release:
+      upgrade: true
+    asserts:
+      - matchRegex:
+          path: metadata.name
+          pattern: -migrations$
+      - equal:
+          path: metadata.annotations["helm.sh/hook"]
+          value: pre-upgrade
+      - equal:
+          path: metadata.annotations["helm.sh/hook-delete-policy"]
+          value: before-hook-creation
+      - equal:
+          path: metadata.annotations["argocd.argoproj.io/sync-wave"]
+          value: "-1"
