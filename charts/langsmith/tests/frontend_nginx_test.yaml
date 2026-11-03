@@ -159,3 +159,29 @@ tests:
       - notMatchRegex:
           path: data["nginx.conf"]
           pattern: 'brotli'
+
+  - it: routes agent and address APIs to platform-backend without a base path
+    asserts:
+      - matchRegex:
+          path: data["nginx.conf"]
+          pattern: 'location ~ \^/api/v1/agents\(\?:/\|\$\) \{[^}]*proxy_pass http://[^}]*-platform-backend\.'
+      - matchRegex:
+          path: data["nginx.conf"]
+          pattern: 'location ~ \^/api/v1/agent-environments\(\?:/\|\$\) \{[^}]*proxy_pass http://[^}]*-platform-backend\.'
+      - matchRegex:
+          path: data["nginx.conf"]
+          pattern: 'location ~ \^/api/v1/sessions/resolutions/\?\$ \{[^}]*proxy_pass http://[^}]*-platform-backend\.'
+
+  - it: routes agent and address APIs to platform-backend with a base path
+    set:
+      config.basePath: langsmith
+    asserts:
+      - matchRegex:
+          path: data["nginx.conf"]
+          pattern: 'location ~ \^/langsmith/api/v1/agents\(\?:/\|\$\) \{\s*rewrite \^/langsmith\(/api/v1/\.\*\)\$ \$1 break;[^}]*proxy_pass http://[^}]*-platform-backend\.'
+      - matchRegex:
+          path: data["nginx.conf"]
+          pattern: 'location ~ \^/langsmith/api/v1/agent-environments\(\?:/\|\$\) \{\s*rewrite \^/langsmith\(/api/v1/\.\*\)\$ \$1 break;[^}]*proxy_pass http://[^}]*-platform-backend\.'
+      - matchRegex:
+          path: data["nginx.conf"]
+          pattern: 'location ~ \^/langsmith/api/v1/sessions/resolutions/\?\$ \{\s*rewrite \^/langsmith\(/api/v1/\.\*\)\$ \$1 break;[^}]*proxy_pass http://[^}]*-platform-backend\.'
