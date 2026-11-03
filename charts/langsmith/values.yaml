@@ -1161,8 +1161,9 @@ config:
 
   agentMigration:
     # -- Migrate existing tracing projects and experiments to Agent Platform agents after upgrade.
-    # Requires authenticated auth (`authType` `mixed` or `oauth`) and runs on the existing ingest queue workers.
-    enabled: false
+    # Runs on the existing ingest queue workers; installs with `authType` `none` skip it.
+    # Once it has run, do not downgrade to an app version from before the migration.
+    enabled: true
 
   basicAuth:
     enabled: false
