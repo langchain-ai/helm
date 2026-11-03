@@ -9,6 +9,9 @@ tests:
     asserts:
       - isKind:
           of: Job
+      - matchRegex:
+          path: metadata.name
+          pattern: -migrations-install$
       - notExists:
           path: metadata.annotations["helm.sh/hook"]
       - equal:
@@ -18,6 +21,9 @@ tests:
     release:
       upgrade: true
     asserts:
+      - matchRegex:
+          path: metadata.name
+          pattern: -migrations$
       - equal:
           path: metadata.annotations["helm.sh/hook"]
           value: pre-upgrade

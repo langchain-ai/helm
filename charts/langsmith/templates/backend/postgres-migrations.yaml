@@ -6,7 +6,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: {{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}-migrations{{ ternary (printf "-%s" (randAlphaNum 5 | lower)) ""  .Values.backend.migrations.randomizeName }}
+  name: {{ include "langsmith.fullname" . }}-{{ .Values.backend.name }}-migrations{{ ternary (printf "-%s" (randAlphaNum 5 | lower)) ""  .Values.backend.migrations.randomizeName }}{{ if .Release.IsInstall }}-install{{ end }}
   namespace: {{ .Values.namespace | default .Release.Namespace }}
   labels:
     {{- include "langsmith.labels" . | nindent 4 }}
