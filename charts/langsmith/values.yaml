@@ -4168,6 +4168,7 @@ fleetTriggerServer:
 # Optional, disabled by default. Not required for core LangSmith functionality. Private beta.
 agentGateway:
   enabled: false
+  runInPlatformBackend: false
   name: "agent-gateway"
   containerPort: 8083
   deployment:

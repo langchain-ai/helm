@@ -26,6 +26,12 @@ spec:
       port: {{ .Values.platformBackend.service.port }}
       targetPort: platform
       protocol: TCP
+    {{- if and .Values.agentGateway.enabled .Values.agentGateway.runInPlatformBackend }}
+    - name: gateway
+      port: {{ .Values.agentGateway.containerPort }}
+      targetPort: gateway
+      protocol: TCP
+    {{- end }}
   selector:
     {{- include "langsmith.selectorLabels" . | nindent 4 }}
     app.kubernetes.io/component: {{ include "langsmith.fullname" . }}-{{ .Values.platformBackend.name }}

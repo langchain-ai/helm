@@ -1,6 +1,16 @@
 {{- define "platformBackendEnvVars" -}}
 - name: PORT
   value: {{ .Values.platformBackend.containerPort | quote }}
+{{- if and .Values.agentGateway.enabled .Values.agentGateway.runInPlatformBackend }}
+- name: AGENT_GATEWAY_ENABLED
+  value: "true"
+- name: SMITH_AGENT_GATEWAY_PORT
+  value: {{ .Values.agentGateway.containerPort | quote }}
+{{- if .Values.presidioAnalyzer.enabled }}
+- name: PRESIDIO_ANALYZER_URL
+  value: "http://{{ include "langsmith.fullname" . }}-{{ .Values.presidioAnalyzer.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.presidioAnalyzer.service.port }}"
+{{- end }}
+{{- end }}
 {{- if eq (include "langsmith.trajectoryEnabled" .) "true" }}
 - name: TRAJECTORY_GRPC_ENABLED
   value: "true"
@@ -73,8 +83,7 @@
 {{- $volumes := concat .Values.commonVolumes .Values.platformBackend.deployment.volumes (include "langsmith.tlsVolumes" . | fromYamlArray) -}}
 {{- $volumeMounts := concat .Values.commonVolumeMounts .Values.platformBackend.deployment.volumeMounts (include "langsmith.tlsVolumeMounts" . | fromYamlArray) -}}
 {{- $readinessProbe := .Values.platformBackend.deployment.readinessProbe }}
-{{- if eq (include "langsmith.trajectoryEnabled" .) "true" }}
-{{- /* Embedded gRPC readiness is part of the shared process's HTTP /ready endpoint. */}}
+{{- if or (eq (include "langsmith.trajectoryEnabled" .) "true") (and .Values.agentGateway.enabled .Values.agentGateway.runInPlatformBackend) }}
 {{- $readinessProbe = mergeOverwrite (omit (default dict $readinessProbe) "exec" "tcpSocket" "grpc" "httpGet") (dict "httpGet" (dict "path" "/ready" "port" "platform")) }}
 {{- end }}
 {{- if .Values.platformBackend.rollout.enabled }}
@@ -156,6 +165,11 @@ spec:
             - name: platform
               containerPort: {{ .Values.platformBackend.containerPort }}
               protocol: TCP
+          {{- if and .Values.agentGateway.enabled .Values.agentGateway.runInPlatformBackend }}
+            - name: gateway
+              containerPort: {{ .Values.agentGateway.containerPort }}
+              protocol: TCP
+          {{- end }}
           {{- if eq (include "langsmith.trajectoryEnabled" .) "true" }}
             - name: grpc
               containerPort: 8086

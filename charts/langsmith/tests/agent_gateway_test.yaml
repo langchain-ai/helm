@@ -3,6 +3,257 @@ set:
   config.existingSecretName: langsmith-secrets
   config.skipValidation: true
 tests:
+
+  - it: standalone mode creates gateway deployment
+    template: templates/agent-gateway/deployment.yaml
+    set:
+      agentGateway.enabled: true
+      agentGateway.runInPlatformBackend: false
+    asserts:
+      - hasDocuments:
+          count: 1
+
+  - it: standalone mode creates gateway service
+    template: templates/agent-gateway/service.yaml
+    set:
+      agentGateway.enabled: true
+      agentGateway.runInPlatformBackend: false
+    asserts:
+      - hasDocuments:
+          count: 1
+
+  - it: standalone mode creates gateway hpa
+    template: templates/agent-gateway/hpa.yaml
+    set:
+      agentGateway.enabled: true
+      agentGateway.runInPlatformBackend: false
+    asserts:
+      - hasDocuments:
+          count: 1
+
+  - it: standalone mode creates gateway service-account
+    template: templates/agent-gateway/service-account.yaml
+    set:
+      agentGateway.enabled: true
+      agentGateway.runInPlatformBackend: false
+    asserts:
+      - hasDocuments:
+          count: 1
+
+  - it: standalone internal gateway URL uses the correct service
+    template: templates/config-map.yaml
+    set:
+      agentGateway.enabled: true
+      agentGateway.runInPlatformBackend: false
+    asserts:
+      - equal:
+          path: data.AGENT_GATEWAY_URL
+          value: http://RELEASE-NAME-langsmith-agent-gateway.NAMESPACE.svc.cluster.local:8083
+      - equal:
+          path: data.DEFAULT_ORG_FEATURE_LLM_GATEWAY_ENABLED
+          value: "true"
+
+  - it: embedded mode omits gateway deployment
+    template: templates/agent-gateway/deployment.yaml
+    set:
+      agentGateway.enabled: true
+      agentGateway.runInPlatformBackend: true
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: embedded mode omits gateway service
+    template: templates/agent-gateway/service.yaml
+    set:
+      agentGateway.enabled: true
+      agentGateway.runInPlatformBackend: true
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: embedded mode omits gateway hpa
+    template: templates/agent-gateway/hpa.yaml
+    set:
+      agentGateway.enabled: true
+      agentGateway.runInPlatformBackend: true
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: embedded mode omits gateway service-account
+    template: templates/agent-gateway/service-account.yaml
+    set:
+      agentGateway.enabled: true
+      agentGateway.runInPlatformBackend: true
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: embedded internal gateway URL uses the correct service
+    template: templates/config-map.yaml
+    set:
+      agentGateway.enabled: true
+      agentGateway.runInPlatformBackend: true
+    asserts:
+      - equal:
+          path: data.AGENT_GATEWAY_URL
+          value: http://RELEASE-NAME-langsmith-platform-backend.NAMESPACE.svc.cluster.local:8083
+      - equal:
+          path: data.DEFAULT_ORG_FEATURE_LLM_GATEWAY_ENABLED
+          value: "true"
+
+  - it: disabled mode omits gateway deployment
+    template: templates/agent-gateway/deployment.yaml
+    set:
+      agentGateway.enabled: false
+      agentGateway.runInPlatformBackend: false
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: disabled mode omits gateway service
+    template: templates/agent-gateway/service.yaml
+    set:
+      agentGateway.enabled: false
+      agentGateway.runInPlatformBackend: false
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: disabled mode omits gateway hpa
+    template: templates/agent-gateway/hpa.yaml
+    set:
+      agentGateway.enabled: false
+      agentGateway.runInPlatformBackend: false
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: disabled mode omits gateway service-account
+    template: templates/agent-gateway/service-account.yaml
+    set:
+      agentGateway.enabled: false
+      agentGateway.runInPlatformBackend: false
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: embeds gateway listener in the platform process with Presidio and a custom port
+    template: templates/platform-backend/deployment.yaml
+    set:
+      agentGateway.enabled: true
+      agentGateway.runInPlatformBackend: true
+      agentGateway.containerPort: 9093
+      presidioAnalyzer.enabled: true
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].readinessProbe.httpGet
+          value:
+            path: /ready
+            port: platform
+      - lengthEqual:
+          path: spec.template.spec.containers
+          count: 1
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: AGENT_GATEWAY_ENABLED
+            value: "true"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITH_AGENT_GATEWAY_PORT
+            value: "9093"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: PRESIDIO_ANALYZER_URL
+            value: http://RELEASE-NAME-langsmith-presidio-analyzer.NAMESPACE.svc.cluster.local:3000
+      - contains:
+          path: spec.template.spec.containers[0].ports
+          content:
+            name: gateway
+            containerPort: 9093
+            protocol: TCP
+
+  - it: exposes embedded gateway on the platform backend service
+    template: templates/platform-backend/service.yaml
+    set:
+      agentGateway.enabled: true
+      agentGateway.runInPlatformBackend: true
+      agentGateway.containerPort: 9093
+    asserts:
+      - contains:
+          path: spec.ports
+          content:
+            name: gateway
+            port: 9093
+            targetPort: gateway
+            protocol: TCP
+
+  - it: does not enable an embedded listener while the gateway is disabled
+    template: templates/platform-backend/deployment.yaml
+    set:
+      agentGateway.runInPlatformBackend: true
+    asserts:
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: AGENT_GATEWAY_ENABLED
+            value: "true"
+
+  - it: routes root gateway traffic directly to platform backend
+    template: templates/frontend/config-map.yaml
+    set:
+      agentGateway.enabled: true
+      agentGateway.runInPlatformBackend: true
+      agentGateway.containerPort: 9093
+      config.basePath: ""
+    asserts:
+      - matchRegex:
+          path: data["nginx.conf"]
+          pattern: 'location /gateway/ \{[\s\S]*?proxy_pass http://RELEASE-NAME-langsmith-platform-backend\.NAMESPACE\.svc\.cluster\.local:9093;'
+      - notMatchRegex:
+          path: data["nginx.conf"]
+          pattern: 'proxy_pass http://RELEASE-NAME-langsmith-agent-gateway'
+
+  - it: routes base-path gateway traffic directly to platform backend
+    template: templates/frontend/config-map.yaml
+    set:
+      agentGateway.enabled: true
+      agentGateway.runInPlatformBackend: true
+      agentGateway.containerPort: 9093
+      config.basePath: "smith"
+    asserts:
+      - matchRegex:
+          path: data["nginx.conf"]
+          pattern: 'location /smith/gateway/ \{[\s\S]*?proxy_pass http://RELEASE-NAME-langsmith-platform-backend\.NAMESPACE\.svc\.cluster\.local:9093;'
+      - notMatchRegex:
+          path: data["nginx.conf"]
+          pattern: 'proxy_pass http://RELEASE-NAME-langsmith-agent-gateway'
+
+  - it: routes custom internal gateway URLs through the namespace override
+    template: templates/config-map.yaml
+    set:
+      agentGateway.enabled: true
+      agentGateway.runInPlatformBackend: true
+      agentGateway.containerPort: 9093
+      namespace: custom
+      clusterDomain: example.local
+    asserts:
+      - equal:
+          path: data.AGENT_GATEWAY_URL
+          value: http://RELEASE-NAME-langsmith-platform-backend.custom.svc.example.local:9093
+
+  - it: rejects gateway and platform port collisions
+    template: templates/validate.yaml
+    set:
+      agentGateway.enabled: true
+      agentGateway.runInPlatformBackend: true
+      agentGateway.containerPort: 1986
+    asserts:
+      - failedTemplate:
+          errorMessage: agentGateway.containerPort must differ from the platform backend container and service ports when runInPlatformBackend is enabled.
   - it: enables the LLM gateway feature when the agent gateway is enabled
     template: templates/config-map.yaml
     set:

@@ -6,7 +6,7 @@
   value: "http://{{ include "langsmith.fullname" . }}-{{ .Values.presidioAnalyzer.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.presidioAnalyzer.service.port }}"
 {{- end }}
 {{- end -}}
-{{- if .Values.agentGateway.enabled }}
+{{- if and .Values.agentGateway.enabled (not .Values.agentGateway.runInPlatformBackend) }}
 {{- $envVars := concat .Values.commonEnv (include "langsmith.commonEnv" . | fromYamlArray) (include "agentGatewayEnvVars" . | fromYamlArray) .Values.agentGateway.deployment.extraEnv -}}
 {{- include "langsmith.detectDuplicates" $envVars -}}
 {{- $volumes := concat .Values.commonVolumes .Values.agentGateway.deployment.volumes (include "langsmith.tlsVolumes" . | fromYamlArray) -}}

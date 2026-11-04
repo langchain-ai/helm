@@ -1,4 +1,4 @@
-{{- if and .Values.agentGateway.enabled .Values.agentGateway.autoscaling.enabled .Values.agentGateway.autoscaling.createHpa }}
+{{- if and .Values.agentGateway.enabled (not .Values.agentGateway.runInPlatformBackend) .Values.agentGateway.autoscaling.enabled .Values.agentGateway.autoscaling.createHpa }}
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:

@@ -1,4 +1,4 @@
-{{- if .Values.agentGateway.enabled }}
+{{- if and .Values.agentGateway.enabled (not .Values.agentGateway.runInPlatformBackend) }}
 apiVersion: v1
 kind: Service
 metadata:
