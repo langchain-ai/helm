@@ -41,11 +41,8 @@ class DashboardTests(unittest.TestCase):
         smithdb_widgets = [
             item for item in actual["widgets"] if item["id"] in smithdb_ids
         ]
-        expected = json.loads(
-            json.dumps(source["widgets"]).replace(
-                "$cluster", "cluster_name:$cluster.value"
-            )
-        )
+        expected = source["widgets"]
+        self.assertNotIn("cluster_name:$cluster.value", json.dumps(smithdb_widgets))
         self.assertEqual(without_ids(smithdb_widgets), without_ids(expected))
         for variable in source["template_variables"]:
             self.assertIn(variable, actual["template_variables"])
@@ -110,7 +107,7 @@ class DashboardTests(unittest.TestCase):
                 self.assertEqual(normalized, baseline["datadog-dashboard.json"])
         self.assertEqual(load_source("smithdb", "datadog"), source)
 
-    def test_datadog_shares_cluster_without_changing_query_tag_keys(self):
+    def test_datadog_shares_cluster_and_keeps_component_tag_keys(self):
         components = []
         for prefix in ("cluster_name", "kube_cluster_name"):
             components.append(
@@ -136,7 +133,7 @@ class DashboardTests(unittest.TestCase):
         self.assertEqual(
             [item["definition"]["content"] for item in dashboard["widgets"]],
             [
-                "cluster_name:$cluster.value $cluster.value $cluster_name",
+                "$cluster $cluster.value $cluster_name",
                 "kube_cluster_name:$cluster.value $cluster.value $cluster_name",
             ],
         )
