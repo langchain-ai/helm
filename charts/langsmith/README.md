@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.18.0-rc.57](https://img.shields.io/badge/Version-0.18.0--rc.57-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.18.20rc1](https://img.shields.io/badge/AppVersion-0.18.20rc1-informational?style=flat-square)
+![Version: 0.18.0-rc.58](https://img.shields.io/badge/Version-0.18.0--rc.58-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.18.20rc1](https://img.shields.io/badge/AppVersion-0.18.20rc1-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -781,6 +781,7 @@ The operator deletes removed objects only after the deployment's rollout complet
 | istioGateway.labels | object | `{}` |  |
 | istioGateway.name | string | `"istio-gateway"` |  |
 | istioGateway.namespace | string | `"istio-system"` |  |
+| managedTools.enabled | bool | `false` |  |
 | nameOverride | string | `""` | Provide a name in place of `langsmith` |
 | namespace | string | `""` | Namespace to install the chart into. If not set, will use the namespace of the current context. |
 | polly.apiServer.autoscaling.enabled | bool | `false` |  |
