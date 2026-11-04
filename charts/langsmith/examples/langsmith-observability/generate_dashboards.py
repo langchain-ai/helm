@@ -117,14 +117,18 @@ def datadog_dashboard(components):
                 r"[a-zA-Z_][a-zA-Z0-9_.-]*", prefix
             ):
                 raise ValueError("Cluster requires an explicit tag key")
-            widgets = json.loads(
-                re.sub(
-                    r"\$cluster(?![\w.])",
-                    prefix + ":$cluster.value",
-                    json.dumps(widgets),
-                )
-            )
             cluster_picker = cluster_picker or prefix
+            # Keep $cluster when it already resolves to this tag key: Datadog drops
+            # it at "*", while "key:$cluster.value" stays a key:* filter that
+            # Metrics without Limits rejects unless the key is queryable.
+            if prefix != cluster_picker:
+                widgets = json.loads(
+                    re.sub(
+                        r"\$cluster(?![\w.])",
+                        prefix + ":$cluster.value",
+                        json.dumps(widgets),
+                    )
+                )
             variable["prefix"] = cluster_picker
         assign_widget_ids(widgets, itertools.count((index + 1) * 10000))
         merge_variables(dashboard["template_variables"], variables)
