@@ -1,5 +1,6 @@
 {{- if and .Values.clickhouse.enabled .Values.backend.clickhouseMigrations.enabled }}
 {{- $envVars := concat .Values.commonEnv (include "langsmith.commonEnv" . | fromYamlArray) .Values.backend.clickhouseMigrations.extraEnv -}}
+{{- $envVars := include "langsmith.filterSecretEnv" (dict "root" . "env" $envVars) | fromYamlArray -}}
 {{- include "langsmith.detectDuplicates" $envVars -}}
 {{- $volumes := concat .Values.commonVolumes .Values.backend.clickhouseMigrations.volumes (include "langsmith.tlsVolumes" . | fromYamlArray) -}}
 {{- $volumeMounts := concat .Values.commonVolumeMounts .Values.backend.clickhouseMigrations.volumeMounts (include "langsmith.tlsVolumeMounts" . | fromYamlArray) -}}

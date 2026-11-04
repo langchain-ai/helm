@@ -1088,6 +1088,15 @@ config:
   skipValidation: false
   existingSecretName: ""
   disableSecretCreation: false
+  # -- Do not inject Secret values as environment variables (drops every valueFrom.secretKeyRef
+  # entry from the core LangSmith workloads: backend, queue, ingest-queue, platform-backend,
+  # frontend, host-backend, listener, agent-gateway, presidio-analyzer, clickhouse, and the
+  # migration, backfill-check and auth-bootstrap jobs). For clusters whose admission policy
+  # (for example OPA Gatekeeper) forbids secrets as env vars. Plain-value env entries are kept.
+  # You must then mount the Secret as a volume (commonVolumes / commonVolumeMounts) and load the
+  # values with an entrypoint wrapper via each workload's command override. Does not apply to
+  # agent features (fleet, insights, polly), SmithDB or the operator.
+  disableSecretEnvVars: false
   langsmithLicenseKey: ""
   # -- Configuration for LangSmith Deployments features
   deployment:
