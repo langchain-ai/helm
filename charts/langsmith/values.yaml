@@ -1084,6 +1084,8 @@ polly:
       minAvailable: 1
 
 config:
+  # -- Route legacy workspace usage-limit GETs directly to Go. Requires an API image containing the Go usage-limits handler; other methods and organization limits remain on Python.
+  directUsageLimitsGet: false
   # -- Skip validation checks in validate.yaml. Used by AWS Marketplace for helm template verification.
   skipValidation: false
   existingSecretName: ""
