@@ -1264,6 +1264,12 @@ Args: root, service, displayName, optional prefix (defaults to SMITHDB_<service>
 {{- end -}}
 {{- end -}}
 
+{{- define "agentGateway.endpoint" -}}
+{{- $name := ternary .Values.platformBackend.name .Values.agentGateway.name .Values.agentGateway.runInPlatformBackend -}}
+{{- $port := ternary .Values.agentGateway.containerPort .Values.agentGateway.service.port .Values.agentGateway.runInPlatformBackend -}}
+http://{{ include "langsmith.fullname" . }}-{{ $name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ $port }}
+{{- end -}}
+
 {{- define "agentGateway.serviceAccountName" -}}
 {{- if .Values.agentGateway.serviceAccount.create -}}
     {{ default (printf "%s-%s" (include "langsmith.fullname" .) .Values.agentGateway.name) .Values.agentGateway.serviceAccount.name | trunc 63 | trimSuffix "-" }}

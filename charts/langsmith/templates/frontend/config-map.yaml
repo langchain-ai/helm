@@ -579,7 +579,7 @@ data:
             proxy_buffering off;
             proxy_cache off;
             proxy_read_timeout 900;
-            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.agentGateway.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.agentGateway.service.port }};
+            proxy_pass {{ include "agentGateway.endpoint" . }};
         }
     {{- end }}
 
@@ -1406,7 +1406,7 @@ data:
             proxy_buffering off;
             proxy_cache off;
             proxy_read_timeout 900;
-            proxy_pass http://{{ include "langsmith.fullname" . }}-{{ .Values.agentGateway.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.agentGateway.service.port }};
+            proxy_pass {{ include "agentGateway.endpoint" . }};
         }
     {{- end }}
       }

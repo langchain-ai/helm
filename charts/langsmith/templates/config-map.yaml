@@ -169,7 +169,7 @@ data:
   SELF_HOSTED_POLLY_ENABLED: "true"
   {{- end }}
   {{- if .Values.agentGateway.enabled }}
-  AGENT_GATEWAY_URL: "http://{{ include "langsmith.fullname" . }}-{{ .Values.agentGateway.name }}.{{ .Values.namespace | default .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.agentGateway.service.port }}"
+  AGENT_GATEWAY_URL: "{{ include "agentGateway.endpoint" . }}"
   DEFAULT_ORG_FEATURE_LLM_GATEWAY_ENABLED: "true"
   {{- end }}
   {{- if .Values.presidioAnalyzer.enabled }}

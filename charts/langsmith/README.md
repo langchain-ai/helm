@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.18.0-rc.57](https://img.shields.io/badge/Version-0.18.0--rc.57-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.18.20rc1](https://img.shields.io/badge/AppVersion-0.18.20rc1-informational?style=flat-square)
+![Version: 0.18.0-rc.58](https://img.shields.io/badge/Version-0.18.0--rc.58-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.18.20rc1](https://img.shields.io/badge/AppVersion-0.18.20rc1-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -2413,6 +2413,36 @@ The operator deletes removed objects only after the deployment's rollout complet
 
 ## Agent Gateway (Optional)
 
+For small self-hosted installations, run the LLM gateway inside the platform-backend
+process instead of deploying a separate gateway service:
+
+```yaml
+agentGateway:
+  enabled: true
+  runInPlatformBackend: true
+```
+
+This requires a backend image with embedded gateway support. The platform-backend
+process serves gateway requests on `agentGateway.containerPort` (default `8083`),
+exposed by the platform-backend Service. Frontend `/gateway/` routes (including a
+configured base path) and internal `AGENT_GATEWAY_URL` use that Service. Gateway
+authentication and provider routing are unchanged; no gateway sidecar, Deployment,
+Service, ServiceAccount, or HPA is created.
+
+Gateway traffic shares platform-backend CPU, memory, service account, availability,
+restarts, and scaling. Increase `platformBackend.deployment.resources` for the
+combined workload and tune platform-backend replicas/autoscaling; there are no
+independent gateway resource limits or scaling in this mode. Provider IAM permissions
+must be attached to the platform-backend service account. Standalone
+`agentGateway.deployment`, `agentGateway.autoscaling`, `agentGateway.service`, and
+`agentGateway.serviceAccount` settings are not applied; use
+`platformBackend.deployment.extraEnv` for gateway-specific environment overrides.
+Optional Presidio Analyzer remains a separate service.
+
+Set `runInPlatformBackend: false` (the default), with `enabled: true`, to retain or
+restore the separate gateway deployment and independent scaling. Switching modes
+restarts the affected workloads and may interrupt in-flight model streams.
+
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
 | agentGateway.autoscaling.createHpa | bool | `true` |  |
@@ -2461,6 +2491,7 @@ The operator deletes removed objects only after the deployment's rollout complet
 | agentGateway.deployment.volumes | list | `[]` |  |
 | agentGateway.enabled | bool | `false` |  |
 | agentGateway.name | string | `"agent-gateway"` |  |
+| agentGateway.runInPlatformBackend | bool | `false` |  |
 | agentGateway.service.annotations | object | `{}` |  |
 | agentGateway.service.labels | object | `{}` |  |
 | agentGateway.service.port | int | `8083` |  |

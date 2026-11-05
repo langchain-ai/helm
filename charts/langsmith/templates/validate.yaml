@@ -54,6 +54,17 @@ AWS Marketplace Helm template verification).
 {{- end -}}
 {{- end -}}
 {{- end -}}
+{{- if not (kindIs "bool" .Values.agentGateway.runInPlatformBackend) -}}
+{{- fail "agentGateway.runInPlatformBackend must be a boolean." -}}
+{{- end -}}
+{{- if and .Values.agentGateway.enabled .Values.agentGateway.runInPlatformBackend -}}
+{{- if or (eq (int .Values.agentGateway.containerPort) (int .Values.platformBackend.containerPort)) (eq (int .Values.agentGateway.containerPort) (int .Values.platformBackend.service.port)) -}}
+{{- fail "agentGateway.containerPort must differ from the platform backend container and service ports when runInPlatformBackend is enabled." -}}
+{{- end -}}
+{{- if and (eq (include "langsmith.trajectoryEnabled" .) "true") (eq (int .Values.agentGateway.containerPort) 8086) -}}
+{{- fail "agentGateway.containerPort must differ from the embedded trajectory gRPC port 8086." -}}
+{{- end -}}
+{{- end -}}
 {{- if not .Values.config.skipValidation -}}
 
 {{- /* Validate deprecated fleet server value keys */ -}}
