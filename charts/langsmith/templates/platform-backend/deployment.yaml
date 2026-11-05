@@ -2,7 +2,7 @@
 - name: PORT
   value: {{ .Values.platformBackend.containerPort | quote }}
 {{- if and .Values.agentGateway.enabled .Values.agentGateway.runInPlatformBackend }}
-- name: AGENT_GATEWAY_ENABLED
+- name: EMBEDDED_AGENT_GATEWAY_ENABLED
   value: "true"
 - name: SMITH_AGENT_GATEWAY_PORT
   value: {{ .Values.agentGateway.containerPort | quote }}

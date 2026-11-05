@@ -157,7 +157,7 @@ tests:
       - contains:
           path: spec.template.spec.containers[0].env
           content:
-            name: AGENT_GATEWAY_ENABLED
+            name: EMBEDDED_AGENT_GATEWAY_ENABLED
             value: "true"
       - contains:
           path: spec.template.spec.containers[0].env
@@ -199,7 +199,7 @@ tests:
       - notContains:
           path: spec.template.spec.containers[0].env
           content:
-            name: AGENT_GATEWAY_ENABLED
+            name: EMBEDDED_AGENT_GATEWAY_ENABLED
             value: "true"
 
   - it: routes root gateway traffic directly to platform backend
