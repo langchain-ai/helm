@@ -148,6 +148,35 @@ tests:
           content:
             name: SMITHDB_MIGRATION__OUTPUT__OBJECT_STORE__S3__KMS_KEY_ARN
             value: arn:aws:kms:us-west-2:123456789012:key/smithdb
+  - it: should suffix the migration job name with a hash of its pod template
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      smithdb.langsmith.migration.enabled: true
+      smithdb.langsmith.query.enabled: false
+      smithdb.migration.taskdb.postgres.auth.password: taskdb-password
+    template: smithdb/migration-job.yaml
+    asserts:
+      - matchRegex:
+          path: metadata.name
+          pattern: ^RELEASE-NAME-langsmith-smithdb-migration-[0-9a-f]{8}$
+      - equal:
+          path: spec.template.metadata.labels["app.kubernetes.io/component"]
+          value: RELEASE-NAME-langsmith-smithdb-migration
+  - it: should keep the hashed migration job name within 63 characters for a 53-character release name
+    release:
+      name: a-release-name-at-the-helm-limit-xxxxxxxxxxxxxxxxxxxx
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      smithdb.langsmith.migration.enabled: true
+      smithdb.langsmith.query.enabled: false
+      smithdb.migration.taskdb.postgres.auth.password: taskdb-password
+    template: smithdb/migration-job.yaml
+    asserts:
+      - matchRegex:
+          path: metadata.name
+          pattern: ^[a-z0-9-]{1,54}-[0-9a-f]{8}$
   - it: should configure Azure Blob Storage for SmithDB
     values:
       - ./values/smithdb-enabled.yaml
