@@ -1234,9 +1234,9 @@ config:
       longlived: "34560000"
       shortlived: "1209600"
     # -- Long-lived retention options in days, for SmithDB-only installs. Empty keeps the default
-    # options (30 to 400). At most 10 values, each at least 14. The largest value becomes the
-    # long-lived retention and replaces ttl_period_seconds.longlived. Create a bucket lifecycle rule
-    # for each ttl_<N>d/ prefix, or blobs under it never expire.
+    # options (30 to 400). At most 10 values, each at least 14. They only add options:
+    # ttl_period_seconds.longlived stays the default and the maximum, and larger values are not
+    # offered. Create a bucket lifecycle rule for each ttl_<N>d/ prefix, or blobs under it never expire.
     longlivedAllowedDays: []
 
   # Blob storage configuration

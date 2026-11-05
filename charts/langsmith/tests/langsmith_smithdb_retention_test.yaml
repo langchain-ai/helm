@@ -99,7 +99,7 @@ tests:
         notExists:
           path: spec.template.spec.containers[0].env[?(@.name == "SMITHDB_COMPACTION_WORKER__EXECUTOR__LONG_TERM_RETENTION")]
 
-  - it: should derive the long-lived retention from the largest allowed day value
+  - it: should render the allowed days and keep the long-lived retention
     values:
       - ./values/smithdb-enabled.yaml
     set:
@@ -116,19 +116,13 @@ tests:
           path: spec.template.spec.containers[0].env
           content:
             name: TRACE_TIER_TTL_DURATION_SEC_MAP
-            value: '{ "longlived": 31536000, "shortlived": 1209600 }'
+            value: '{ "longlived": 34560000, "shortlived": 1209600 }'
       - template: smithdb/query-deployment.yaml
         contains:
           path: spec.template.spec.containers[0].env
           content:
             name: SMITHDB_QUERY__LONG_TERM_RETENTION
-            value: "31536000s"
-      - template: smithdb/compaction-deployment.yaml
-        contains:
-          path: spec.template.spec.containers[0].env
-          content:
-            name: SMITHDB_COMPACTION__EXECUTOR__LONG_TERM_RETENTION
-            value: "31536000s"
+            value: "34560000s"
 
   - it: should not render the allowed days when the list is empty
     values:

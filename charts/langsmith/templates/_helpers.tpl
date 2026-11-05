@@ -193,31 +193,25 @@ dnsConfig:
 {{- end -}}
 
 {{/*
-Template containing common environment variables that are used by several services.
+config.ttl.longlivedAllowedDays as JSON. The backend refuses to start with more than 10 values or a
+value below 14, so the chart rejects them at render time.
 */}}
-{{/*
-Long-lived trace retention in seconds. With config.ttl.longlivedAllowedDays set, it is the
-largest allowed value, so the backend and SmithDB agree; otherwise ttl_period_seconds.longlived.
-*/}}
-{{- define "langsmith.longlivedTTLSeconds" -}}
-{{- $days := .Values.config.ttl.longlivedAllowedDays | default list -}}
-{{- if $days -}}
+{{- define "langsmith.longlivedAllowedDays" -}}
+{{- $days := .Values.config.ttl.longlivedAllowedDays -}}
 {{- if gt (len $days) 10 -}}
 {{- fail "config.ttl.longlivedAllowedDays accepts at most 10 values" -}}
 {{- end -}}
-{{- $max := 0 -}}
 {{- range $days -}}
 {{- if lt (int .) 14 -}}
 {{- fail (printf "config.ttl.longlivedAllowedDays: %v is below the 14-day minimum" .) -}}
 {{- end -}}
-{{- $max = max $max (int .) -}}
 {{- end -}}
-{{- mul $max 86400 -}}
-{{- else -}}
-{{- .Values.config.ttl.ttl_period_seconds.longlived -}}
-{{- end -}}
+{{- toJson $days -}}
 {{- end -}}
 
+{{/*
+Template containing common environment variables that are used by several services.
+*/}}
 {{- define "langsmith.commonEnv" -}}
 {{- if eq (include "langsmith.trajectoryEnabled" .) "true" }}
 - name: TRAJECTORY_BACKEND_SERVICE_URL
@@ -415,10 +409,10 @@ largest allowed value, so the backend and SmithDB agree; otherwise ttl_period_se
 - name: FF_UPGRADE_TRACE_TIER_ENABLED
   value: "true"
 - name: TRACE_TIER_TTL_DURATION_SEC_MAP
-  value: "{ \"longlived\": {{ include "langsmith.longlivedTTLSeconds" . }}, \"shortlived\": {{ .Values.config.ttl.ttl_period_seconds.shortlived }} }"
-{{- with .Values.config.ttl.longlivedAllowedDays }}
+  value: "{ \"longlived\": {{ .Values.config.ttl.ttl_period_seconds.longlived }}, \"shortlived\": {{ .Values.config.ttl.ttl_period_seconds.shortlived }} }"
+{{- if .Values.config.ttl.longlivedAllowedDays }}
 - name: LONGLIVED_TTL_ALLOWED_DAYS
-  value: {{ toJson . | quote }}
+  value: {{ include "langsmith.longlivedAllowedDays" . | quote }}
 {{- end }}
 {{- end }}
 {{- if .Values.config.workspaceScopeOrgInvitesEnabled }}
