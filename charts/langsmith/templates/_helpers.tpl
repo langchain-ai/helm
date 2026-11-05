@@ -195,6 +195,29 @@ dnsConfig:
 {{/*
 Template containing common environment variables that are used by several services.
 */}}
+{{/*
+Long-lived trace retention in seconds. With config.ttl.longlivedAllowedDays set, it is the
+largest allowed value, so the backend and SmithDB agree; otherwise ttl_period_seconds.longlived.
+*/}}
+{{- define "langsmith.longlivedTTLSeconds" -}}
+{{- $days := .Values.config.ttl.longlivedAllowedDays | default list -}}
+{{- if $days -}}
+{{- if gt (len $days) 10 -}}
+{{- fail "config.ttl.longlivedAllowedDays accepts at most 10 values" -}}
+{{- end -}}
+{{- $max := 0 -}}
+{{- range $days -}}
+{{- if lt (int .) 14 -}}
+{{- fail (printf "config.ttl.longlivedAllowedDays: %v is below the 14-day minimum" .) -}}
+{{- end -}}
+{{- $max = max $max (int .) -}}
+{{- end -}}
+{{- mul $max 86400 -}}
+{{- else -}}
+{{- .Values.config.ttl.ttl_period_seconds.longlived -}}
+{{- end -}}
+{{- end -}}
+
 {{- define "langsmith.commonEnv" -}}
 {{- if eq (include "langsmith.trajectoryEnabled" .) "true" }}
 - name: TRAJECTORY_BACKEND_SERVICE_URL
@@ -392,7 +415,11 @@ Template containing common environment variables that are used by several servic
 - name: FF_UPGRADE_TRACE_TIER_ENABLED
   value: "true"
 - name: TRACE_TIER_TTL_DURATION_SEC_MAP
-  value: "{ \"longlived\": {{ .Values.config.ttl.ttl_period_seconds.longlived }}, \"shortlived\": {{ .Values.config.ttl.ttl_period_seconds.shortlived }} }"
+  value: "{ \"longlived\": {{ include "langsmith.longlivedTTLSeconds" . }}, \"shortlived\": {{ .Values.config.ttl.ttl_period_seconds.shortlived }} }"
+{{- with .Values.config.ttl.longlivedAllowedDays }}
+- name: LONGLIVED_TTL_ALLOWED_DAYS
+  value: {{ toJson . | quote }}
+{{- end }}
 {{- end }}
 {{- if .Values.config.workspaceScopeOrgInvitesEnabled }}
 - name: FF_WORKSPACE_SCOPE_ORG_INVITES_ENABLED
