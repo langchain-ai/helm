@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.18.0-rc.58](https://img.shields.io/badge/Version-0.18.0--rc.58-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.18.20rc1](https://img.shields.io/badge/AppVersion-0.18.20rc1-informational?style=flat-square)
+![Version: 0.18.0-rc.59](https://img.shields.io/badge/Version-0.18.0--rc.59-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.18.20rc1](https://img.shields.io/badge/AppVersion-0.18.20rc1-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -125,6 +125,7 @@ The operator deletes removed objects only after the deployment's rollout complet
 | commonPodSecurityContext | object | `{}` | Common pod security context applied to all pods. Component-specific podSecurityContext values will be merged on top of this (component values take precedence). |
 | commonVolumeMounts | list | `[]` | Common volume mounts added to all deployments/statefulsets except for the playground/aceBackend services (which are sandboxed). |
 | commonVolumes | list | `[]` | Common volumes added to all deployments/statefulsets except for the playground/aceBackend services (which are sandboxed). |
+| engine.azureFoundryResource | string | `""` | Azure AI Foundry resource name Engine calls, such as my-resource (not a URL). An organization's AZURE_FOUNDRY_RESOURCE_NAME secret overrides it. Set it when Engine uses cloud identity for Azure, since the credentials dialog only saves it alongside an API key. |
 | engine.bedrockRegion | string | `""` | AWS region Engine calls Amazon Bedrock in, such as us-west-2. An organization's AWS_BEDROCK_REGION secret overrides it. When both are empty, Engine uses us-east-1; it never uses the cluster's region. |
 | engine.enabled | bool | `false` | Enable the LangSmith Engine. See the Engine section of this README for what it requires. |
 | engine.encryptionKey | string | `""` | Fernet key for the payloads smith-go passes to the Engine. Required when engine.enabled, and must match smith-go's ISSUES_AGENT_ENCRYPTION_KEY. |

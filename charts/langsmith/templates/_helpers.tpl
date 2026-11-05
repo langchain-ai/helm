@@ -1978,5 +1978,9 @@ Served through the frontend at /mcp (or /<basePath>/mcp).
 - name: ENGINE_BEDROCK_REGION
   value: {{ . | quote }}
 {{- end }}
+{{- with .Values.engine.azureFoundryResource }}
+- name: ENGINE_AZURE_FOUNDRY_RESOURCE
+  value: {{ . | quote }}
+{{- end }}
 {{- end }}
 {{- end -}}

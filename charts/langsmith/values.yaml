@@ -604,6 +604,10 @@ engine:
   # AWS_BEDROCK_REGION secret overrides it. When both are empty, Engine uses us-east-1; it
   # never uses the cluster's region.
   bedrockRegion: ""
+  # -- Azure AI Foundry resource name Engine calls, such as my-resource (not a URL). An
+  # organization's AZURE_FOUNDRY_RESOURCE_NAME secret overrides it. Set it when Engine
+  # uses cloud identity for Azure, since the credentials dialog only saves it alongside an API key.
+  azureFoundryResource: ""
 
 insights:
   enabled: true

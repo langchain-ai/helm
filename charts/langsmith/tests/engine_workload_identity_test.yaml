@@ -55,7 +55,7 @@ tests:
             name: ENGINE_WORKLOAD_IDENTITY_PROVIDERS
           any: true
 
-  - it: should pass the Bedrock region to smith-go
+  - it: should pass the Bedrock region and Azure resource to smith-go
     templates:
       - platform-backend/deployment.yaml
       - ingest-queue/deployment.yaml
@@ -63,14 +63,20 @@ tests:
       engine.enabled: true
       engine.encryptionKey: test-key
       engine.bedrockRegion: us-west-2
+      engine.azureFoundryResource: my-resource
     asserts:
       - contains:
           path: spec.template.spec.containers[0].env
           content:
             name: ENGINE_BEDROCK_REGION
             value: us-west-2
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: ENGINE_AZURE_FOUNDRY_RESOURCE
+            value: my-resource
 
-  - it: should not set the Bedrock region by default
+  - it: should not set the Bedrock region or Azure resource by default
     templates:
       - platform-backend/deployment.yaml
       - ingest-queue/deployment.yaml
@@ -82,4 +88,9 @@ tests:
           path: spec.template.spec.containers[0].env
           content:
             name: ENGINE_BEDROCK_REGION
+          any: true
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: ENGINE_AZURE_FOUNDRY_RESOURCE
           any: true

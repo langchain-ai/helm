@@ -30,8 +30,16 @@ tests:
       - failedTemplate:
           errorMessage: 'engine.bedrockRegion is "bedrock.us-west-2.amazonaws.com": it must be an AWS region name such as us-east-1.'
 
-  - it: should accept an AWS region name
+  - it: should reject an Azure AI Foundry resource given as a host
+    set:
+      engine.azureFoundryResource: my-resource.services.ai.azure.com
+    asserts:
+      - failedTemplate:
+          errorMessage: 'engine.azureFoundryResource is "my-resource.services.ai.azure.com": it must be an Azure AI Foundry resource name such as my-resource, not a URL.'
+
+  - it: should accept an AWS region name and an Azure AI Foundry resource name
     set:
       engine.bedrockRegion: eu-central-1
+      engine.azureFoundryResource: my-resource
     asserts:
       - notFailedTemplate: {}
