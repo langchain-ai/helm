@@ -794,6 +794,11 @@ template and GitOps renders, so those skip this check. */ -}}
 {{- fail (printf "engine.bedrockRegion is %q: it must be an AWS region name such as us-east-1." (toString .)) }}
 {{- end }}
 {{- end }}
+{{- with .Values.engine.azureFoundryResource }}
+{{- if not (regexMatch "^[A-Za-z0-9][A-Za-z0-9-]{0,62}$" (toString .)) }}
+{{- fail (printf "engine.azureFoundryResource is %q: it must be an Azure AI Foundry resource name such as my-resource, not a URL." (toString .)) }}
+{{- end }}
+{{- end }}
 {{- $seenWorkloadIdentity := list }}
 {{- range .Values.engine.workloadIdentityProviders }}
 {{- if not (has . (list "bedrock" "vertex" "azure")) }}
