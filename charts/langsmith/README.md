@@ -1321,7 +1321,8 @@ The operator deletes removed objects only after the deployment's rollout complet
 | smithdb.migration.job.tolerations | list | `[]` |  |
 | smithdb.migration.job.topologySpreadConstraints | list | `[]` |  |
 | smithdb.migration.job.ttlSecondsAfterFinished | int | `604800` | Keep finished migrate-all Jobs around for seven days so operators can inspect status/logs. |
-| smithdb.migration.job.volumeMounts | list | `[{"mountPath":"/tmp","name":"cache"}]` | Index construction scratch goes to /tmp on a 100Gi per-pod cache volume on smithdb.cache.storageClassName. A cache entry in volumes replaces it. |
+| smithdb.migration.job.volumeMounts[0].mountPath | string | `"/tmp"` |  |
+| smithdb.migration.job.volumeMounts[0].name | string | `"cache"` |  |
 | smithdb.migration.job.volumes | list | `[]` |  |
 | smithdb.migration.name | string | `"migration"` |  |
 | smithdb.migration.service | object | `{"annotations":{},"labels":{}}` | Headless Service in front of the migration Job pods, so each pod has a stable DNS record on containerPort. |

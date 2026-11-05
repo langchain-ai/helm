@@ -2231,7 +2231,6 @@ smithdb:
       affinity: {}
       topologySpreadConstraints: []
       volumes: []
-      # -- Index construction scratch goes to /tmp on a 100Gi per-pod cache volume on smithdb.cache.storageClassName. A cache entry in volumes replaces it.
       volumeMounts:
         - name: cache
           mountPath: /tmp
