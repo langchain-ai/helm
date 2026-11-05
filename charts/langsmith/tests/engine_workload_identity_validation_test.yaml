@@ -22,3 +22,16 @@ tests:
     asserts:
       - failedTemplate:
           errorMessage: 'engine.workloadIdentityProviders lists "vertex" more than once.'
+
+  - it: should reject a Bedrock region that is not an AWS region name
+    set:
+      engine.bedrockRegion: bedrock.us-west-2.amazonaws.com
+    asserts:
+      - failedTemplate:
+          errorMessage: 'engine.bedrockRegion is "bedrock.us-west-2.amazonaws.com": it must be an AWS region name such as us-east-1.'
+
+  - it: should accept an AWS region name
+    set:
+      engine.bedrockRegion: eu-central-1
+    asserts:
+      - notFailedTemplate: {}

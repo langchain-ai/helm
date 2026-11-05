@@ -125,6 +125,7 @@ The operator deletes removed objects only after the deployment's rollout complet
 | commonPodSecurityContext | object | `{}` | Common pod security context applied to all pods. Component-specific podSecurityContext values will be merged on top of this (component values take precedence). |
 | commonVolumeMounts | list | `[]` | Common volume mounts added to all deployments/statefulsets except for the playground/aceBackend services (which are sandboxed). |
 | commonVolumes | list | `[]` | Common volumes added to all deployments/statefulsets except for the playground/aceBackend services (which are sandboxed). |
+| engine.bedrockRegion | string | `""` | AWS region Engine calls Amazon Bedrock in, such as us-west-2. An organization's AWS_BEDROCK_REGION secret overrides it. When both are empty, Engine uses us-east-1; it never uses the cluster's region. |
 | engine.enabled | bool | `false` | Enable the LangSmith Engine. See the Engine section of this README for what it requires. |
 | engine.encryptionKey | string | `""` | Fernet key for the payloads smith-go passes to the Engine. Required when engine.enabled, and must match smith-go's ISSUES_AGENT_ENCRYPTION_KEY. |
 | engine.encryptionKeyPrevious | string | `""` |  |
