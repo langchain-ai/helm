@@ -1,0 +1,31 @@
+charts/langsmith/README.md
+  s_654b51cdb04438::t_98827100522260 3,1283,1285-1286
+charts/langsmith/templates/smithdb/migration-job.yaml
+  s_654b51cdb04438::t_c1c3ed714fbb80 108-110,115-119,125
+charts/langsmith/templates/smithdb/taskdb-postgres-secret.yaml
+  s_654b51cdb04438::t_1fa5e6c6abcec4 20,22
+charts/langsmith/templates/validate.yaml
+  s_654b51cdb04438::t_c642beb5234dd7 499-502,507-524,526,533
+charts/langsmith/tests/langsmith_smithdb_test.yaml
+  s_654b51cdb04438::t_443393358793c2 1850-1927
+charts/langsmith/tests/langsmith_smithdb_validation_test.yaml
+  s_654b51cdb04438::t_5dd1b7dd330538 346-402
+charts/langsmith/values.yaml
+  s_654b51cdb04438::t_dd0a8e7f52bc60 2235-2238
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "7aba06a50ba19ebce1c2243365b457befc4e082f",
+  "prompts": {},
+  "sessions": {
+    "s_654b51cdb04438": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a14279-8028-7ed1-b850-d83650510a39",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Colin Francis <colin.francis@langchain.dev>"
+    }
+  }
+}

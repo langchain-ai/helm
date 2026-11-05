@@ -1,0 +1,19 @@
+charts/langsmith/examples/langsmith-observability/README.md
+  s_471476021a9e22::t_e08110f0927d7c 32
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "5c8a582907946462d8b2907a08e4a4dffee90b63",
+  "prompts": {},
+  "sessions": {
+    "s_471476021a9e22": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "20f47e9e-71d9-4ec2-b396-10e8d41194ae",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "ben11211 <nagengast@langchain.dev>"
+    }
+  }
+}
