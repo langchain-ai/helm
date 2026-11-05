@@ -61,7 +61,7 @@ When `sandboxes.enabled=true`, configure limits under `sandboxes.quotas`: `maxSa
 
 ## SmithDB resource tiers
 
-`smithdb.resourceTier` sets per-replica CPU, memory, and cache size for SmithDB components. The default is `small`. Query, ingestion, and compaction worker mount a volume named `cache` at `/data` as a per-pod [generic ephemeral volume](https://kubernetes.io/docs/concepts/storage/ephemeral-volumes/#generic-ephemeral-volumes) on `smithdb.cache.storageClassName`, or the cluster default StorageClass when empty. Provision that StorageClass with at least 7000 IOPS and 1000 MiB/s.
+`smithdb.resourceTier` sets per-replica CPU, memory, and cache size for SmithDB components. The default is `small`. Query and ingestion mount a volume named `cache` at `/data`; compaction worker and the migration Job mount it at `/tmp` for scratch files. Each is a per-pod [generic ephemeral volume](https://kubernetes.io/docs/concepts/storage/ephemeral-volumes/#generic-ephemeral-volumes) on `smithdb.cache.storageClassName`, or the cluster default StorageClass when empty. Provision that StorageClass with at least 7000 IOPS and 1000 MiB/s. The migration Job's volume is 100Gi in every tier.
 
 Explicit component `resources` or `volumes` replace the tier values. Cache overrides must be named `cache` and use an `emptyDir` or inline ephemeral PVC; existing PVCs are unsupported. To cache on local SSD, set matching `emptyDir.sizeLimit` and `ephemeral-storage` requests and limits.
 

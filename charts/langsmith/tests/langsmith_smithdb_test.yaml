@@ -357,6 +357,56 @@ tests:
           path: spec.template.spec.volumes[0].ephemeral.volumeClaimTemplate.spec.resources.requests.storage
           value: 100Gi
 
+  - it: should give each migration pod a 100Gi cache volume at /tmp for index scratch
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      smithdb.langsmith.migration.enabled: true
+      smithdb.langsmith.query.enabled: false
+      smithdb.migration.taskdb.postgres.auth.password: taskdb-password
+      smithdb.resourceTier: large
+    template: smithdb/migration-job.yaml
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].volumeMounts
+          value:
+            - name: cache
+              mountPath: /tmp
+      - equal:
+          path: spec.template.spec.volumes
+          value:
+            - name: cache
+              ephemeral:
+                volumeClaimTemplate:
+                  spec:
+                    accessModes: ["ReadWriteOnce"]
+                    resources:
+                      requests:
+                        storage: 100Gi
+      - equal:
+          path: spec.template.spec.securityContext.fsGroup
+          value: 1001
+
+  - it: should replace the generated migration cache volume with an explicit local SSD cache
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      smithdb.langsmith.migration.enabled: true
+      smithdb.langsmith.query.enabled: false
+      smithdb.migration.taskdb.postgres.auth.password: taskdb-password
+      smithdb.migration.job.volumes:
+        - name: cache
+          emptyDir:
+            sizeLimit: 100Gi
+    template: smithdb/migration-job.yaml
+    asserts:
+      - equal:
+          path: spec.template.spec.volumes
+          value:
+            - name: cache
+              emptyDir:
+                sizeLimit: 100Gi
+
   - it: should use the large SmithDB ingestion resources
     values:
       - ./values/smithdb-enabled.yaml

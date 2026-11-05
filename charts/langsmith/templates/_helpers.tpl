@@ -629,8 +629,9 @@ valueFrom:
 {{- end }}
 
 {{/*
-Default per-pod ephemeral cache volume for a disk-using SmithDB component, sized from the tier.
-Args: root, component.
+Default per-pod ephemeral cache volume for a disk-using SmithDB component, sized from cacheSize
+or, when it is empty, the tier.
+Args: root, component, optional cacheSize.
 */}}
 {{- define "langsmith.smithdb.defaultCacheVolume" -}}
 name: cache
@@ -643,17 +644,18 @@ ephemeral:
       {{- end }}
       resources:
         requests:
-          storage: {{ include "langsmith.smithdb.cacheSize" . }}
+          storage: {{ .cacheSize | default (include "langsmith.smithdb.cacheSize" .) }}
 {{- end }}
 
 {{/*
-Resolve volumes for a disk-using SmithDB component. The user's deployment.volumes list is used
-as given. When the container still mounts a volume named cache and the list does not define one,
-the default cache volume is prepended, so extra volumes can be added without restating the cache.
-Args: root, component.
+Resolve volumes for a disk-using SmithDB component. The user's volumes list is used as given.
+When the container still mounts a volume named cache and the list does not define one, the
+default cache volume is prepended, so extra volumes can be added without restating the cache.
+Args: root, component, optional config (the pod values holding volumes and volumeMounts,
+default smithdb.<component>.deployment), optional cacheSize.
 */}}
 {{- define "langsmith.smithdb.volumes" -}}
-{{- $deployment := (index .root.Values.smithdb .component).deployment -}}
+{{- $deployment := .config | default (index .root.Values.smithdb .component).deployment -}}
 {{- $mountsCache := false -}}
 {{- range $deployment.volumeMounts -}}
 {{- if and (eq .mountPath "/data") (ne .name "cache") -}}
