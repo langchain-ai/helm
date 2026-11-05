@@ -600,6 +600,10 @@ engine:
   # it. Grant the identity through engineInsightsAgent.apiServer.serviceAccount.annotations
   # and engineInsightsAgent.queue.serviceAccount.annotations, scoped to the models Engine uses.
   workloadIdentityProviders: []
+  # -- AWS region Engine calls Amazon Bedrock in, such as us-west-2. An organization's
+  # AWS_BEDROCK_REGION secret overrides it. When both are empty, Engine uses us-east-1; it
+  # never uses the cluster's region.
+  bedrockRegion: ""
 
 insights:
   enabled: true

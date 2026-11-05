@@ -1974,5 +1974,9 @@ Served through the frontend at /mcp (or /<basePath>/mcp).
 - name: ENGINE_WORKLOAD_IDENTITY_PROVIDERS
   value: {{ toJson . | quote }}
 {{- end }}
+{{- with .Values.engine.bedrockRegion }}
+- name: ENGINE_BEDROCK_REGION
+  value: {{ . | quote }}
+{{- end }}
 {{- end }}
 {{- end -}}

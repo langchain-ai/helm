@@ -789,6 +789,11 @@ template and GitOps renders, so those skip this check. */ -}}
 {{- fail (printf "engine.enabled is true and config.hostname is the in-cluster address %q, which a sandbox cannot reach: it must be the externally reachable LangSmith address." .Values.config.hostname) }}
 {{- end }}
 {{- end }}
+{{- with .Values.engine.bedrockRegion }}
+{{- if not (regexMatch "^[a-z]{2}(-[a-z]+)+-[0-9]$" (toString .)) }}
+{{- fail (printf "engine.bedrockRegion is %q: it must be an AWS region name such as us-east-1." (toString .)) }}
+{{- end }}
+{{- end }}
 {{- $seenWorkloadIdentity := list }}
 {{- range .Values.engine.workloadIdentityProviders }}
 {{- if not (has . (list "bedrock" "vertex" "azure")) }}

@@ -54,3 +54,32 @@ tests:
           content:
             name: ENGINE_WORKLOAD_IDENTITY_PROVIDERS
           any: true
+
+  - it: should pass the Bedrock region to smith-go
+    templates:
+      - platform-backend/deployment.yaml
+      - ingest-queue/deployment.yaml
+    set:
+      engine.enabled: true
+      engine.encryptionKey: test-key
+      engine.bedrockRegion: us-west-2
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: ENGINE_BEDROCK_REGION
+            value: us-west-2
+
+  - it: should not set the Bedrock region by default
+    templates:
+      - platform-backend/deployment.yaml
+      - ingest-queue/deployment.yaml
+    set:
+      engine.enabled: true
+      engine.encryptionKey: test-key
+    asserts:
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: ENGINE_BEDROCK_REGION
+          any: true
