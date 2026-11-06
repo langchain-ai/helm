@@ -193,8 +193,7 @@ dnsConfig:
 {{- end -}}
 
 {{/*
-config.ttl.longlivedAllowedDays as JSON. The backend refuses to start with more than 10 values or a
-value below 14, so the chart rejects them at render time.
+Allowed long-lived days as JSON. Fails at render time on values the backend refuses at startup.
 */}}
 {{- define "langsmith.longlivedAllowedDays" -}}
 {{- $days := .Values.config.ttl.longlivedAllowedDays -}}
