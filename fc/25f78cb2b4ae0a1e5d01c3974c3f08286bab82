@@ -1,0 +1,161 @@
+charts/langsmith/Chart.yaml
+  h_bfb522954af46a 8-17
+charts/langsmith/README.md
+  h_bfb522954af46a 3,11-35,98-112,654,657,660,670,673,677,680,691-692,695,980,985-987,1022-1025,1691,1719,1722
+  h_bfb522954af46a 113
+.github/scripts/check-sandbox-chart-pairing.sh
+  h_bfb522954af46a 1-71
+.github/workflows/helm_checks.yaml
+  h_bfb522954af46a 33,111-115,259-265,268,276-277
+.gitignore
+  h_bfb522954af46a 17-19
+charts/langsmith-sandbox/.helmignore
+  h_bfb522954af46a 1-19
+charts/langsmith-sandbox/Chart.yaml
+  h_bfb522954af46a 1-9
+charts/langsmith-sandbox/README.md
+  h_bfb522954af46a 1-192
+charts/langsmith-sandbox/README.md.gotmpl
+  h_bfb522954af46a 1-86
+charts/langsmith-sandbox/ci/disabled-values.yaml
+  h_bfb522954af46a 1-2
+charts/langsmith-sandbox/templates/NOTES.txt
+  h_bfb522954af46a 1-16
+charts/langsmith-sandbox/templates/_helpers.tpl
+  h_bfb522954af46a 1-204
+charts/langsmith-sandbox/templates/_render.tpl
+  h_bfb522954af46a 1-532
+charts/langsmith-sandbox/templates/juicefs-config.yaml
+  h_bfb522954af46a 1-8
+charts/langsmith-sandbox/templates/juicefs-format-job.yaml
+  h_bfb522954af46a 1-36
+charts/langsmith-sandbox/templates/proxy-ca.yaml
+  h_bfb522954af46a 1-7
+charts/langsmith-sandbox/templates/sandbox-host-deployment.yaml
+  h_bfb522954af46a 1-71
+charts/langsmith-sandbox/templates/sandbox-host-ingress.yaml
+  h_bfb522954af46a 1-44
+charts/langsmith-sandbox/templates/sandbox-host-pdb.yaml
+  h_bfb522954af46a 1-10
+charts/langsmith-sandbox/templates/sandbox-host-rbac.yaml
+  h_bfb522954af46a 1-8
+charts/langsmith-sandbox/templates/sandbox-host-service-account.yaml
+  h_bfb522954af46a 1-16
+charts/langsmith-sandbox/templates/sandbox-host-service.yaml
+  h_bfb522954af46a 1-24
+charts/langsmith-sandbox/templates/validate.yaml
+  h_bfb522954af46a 1-145
+charts/langsmith-sandbox/tests/app_version_test.yaml
+  h_bfb522954af46a 1-45
+charts/langsmith-sandbox/tests/cloud_values_test.yaml
+  h_bfb522954af46a 1-56
+charts/langsmith-sandbox/tests/notes_test.yaml
+  h_bfb522954af46a 1-43
+charts/langsmith-sandbox/tests/sandbox_sync_wave_test.yaml
+  h_bfb522954af46a 1-17
+charts/langsmith-sandbox/tests/sandbox_test.yaml
+  h_bfb522954af46a 1-739
+charts/langsmith-sandbox/tests/values/aks.yaml
+  h_bfb522954af46a 1-25
+charts/langsmith-sandbox/tests/values/eks.yaml
+  h_bfb522954af46a 1-20
+charts/langsmith-sandbox/tests/values/enabled.yaml
+  h_bfb522954af46a 1-18
+charts/langsmith-sandbox/tests/values/gke.yaml
+  h_bfb522954af46a 1-32
+charts/langsmith-sandbox/tests/values/no-scheduling.yaml
+  h_bfb522954af46a 1-15
+charts/langsmith-sandbox/tests/workload_identity_test.yaml
+  h_bfb522954af46a 1-177
+charts/langsmith-sandbox/tests/workload_identity_validation_test.yaml
+  h_bfb522954af46a 1-116
+charts/langsmith-sandbox/values.yaml
+  h_bfb522954af46a 1-218
+charts/langsmith/README.md.gotmpl
+  h_bfb522954af46a 13-31,95-110
+charts/langsmith/templates/NOTES.txt
+  h_bfb522954af46a 27-30
+charts/langsmith/templates/_helpers.tpl
+  h_bfb522954af46a 542-547,625,878-880,884-892,1689-1720
+charts/langsmith/templates/config-map.yaml
+  h_bfb522954af46a 168
+charts/langsmith/templates/frontend/config-map.yaml
+  h_bfb522954af46a 160-187,892-916
+charts/langsmith/templates/ingest-queue/deployment.yaml
+  h_bfb522954af46a 10-17
+charts/langsmith/templates/operator/crds.yaml
+  h_bfb522954af46a 1512-1519,6740-6764
+charts/langsmith/templates/operator/deployment.yaml
+  h_bfb522954af46a 122-123
+charts/langsmith/templates/operator/rbac.yaml
+  h_bfb522954af46a 22-32,234-244
+charts/langsmith/templates/platform-backend/deployment.yaml
+  h_bfb522954af46a 38-53,57-61
+charts/langsmith/templates/sandboxes/juicefs-config.yaml
+  h_bfb522954af46a 1-7
+charts/langsmith/templates/sandboxes/juicefs-format-job.yaml
+  h_bfb522954af46a 1,3-22
+charts/langsmith/templates/sandboxes/proxy-ca.yaml
+  h_bfb522954af46a 1-6
+charts/langsmith/templates/sandboxes/sandbox-host-deployment.yaml
+  h_bfb522954af46a 1-2,7,9-15,17-18,20-61
+charts/langsmith/templates/sandboxes/sandbox-host-pdb.yaml
+  h_bfb522954af46a 1-9
+charts/langsmith/templates/sandboxes/sandbox-host-rbac.yaml
+  h_bfb522954af46a 1-8
+charts/langsmith/templates/sandboxes/sandbox-host-service-account.yaml
+  h_bfb522954af46a 1-14
+charts/langsmith/templates/secrets.yaml
+  h_bfb522954af46a 34-38
+charts/langsmith/templates/smithdb/query-deployment.yaml
+  h_bfb522954af46a 92
+charts/langsmith/templates/smithdb/query-services-deployments.yaml
+  h_bfb522954af46a 107
+charts/langsmith/templates/smithdb/unified-deployment.yaml
+  h_bfb522954af46a 4,83
+charts/langsmith/templates/validate.yaml
+  h_bfb522954af46a 204-209,212-293,391
+charts/langsmith/tests/agent_migration_test.yaml
+  h_bfb522954af46a 6,9,11-12,14,16,19,21,23
+charts/langsmith/tests/extra_manifests_env_test.yaml
+  h_bfb522954af46a 1-62
+charts/langsmith/tests/extra_manifests_rbac_test.yaml
+  h_bfb522954af46a 1-83
+charts/langsmith/tests/frontend_nginx_test.yaml
+  h_bfb522954af46a 162-187
+charts/langsmith/tests/langsmith_smithdb_cache_test.yaml
+  h_bfb522954af46a 37
+charts/langsmith/tests/langsmith_smithdb_env_test.yaml
+  h_bfb522954af46a 46-63
+charts/langsmith/tests/langsmith_smithdb_query_services_test.yaml
+  h_bfb522954af46a 108-122
+charts/langsmith/tests/langsmith_smithdb_test.yaml
+  h_bfb522954af46a 73,496,647
+charts/langsmith/tests/langsmith_smithdb_unified_test.yaml
+  h_bfb522954af46a 53,62-74
+charts/langsmith/tests/sandboxes_app_version_test.yaml
+  h_bfb522954af46a 1-108
+charts/langsmith/tests/sandboxes_cluster_name_test.yaml
+  h_bfb522954af46a 1-97
+charts/langsmith/tests/sandboxes_notes_test.yaml
+  h_bfb522954af46a 1-23
+charts/langsmith/tests/sandboxes_service_auth_test.yaml
+  h_bfb522954af46a 1-367
+charts/langsmith/tests/sandboxes_sync_wave_test.yaml
+  h_bfb522954af46a 1-17
+charts/langsmith/tests/sandboxes_test.yaml
+  h_bfb522954af46a 38-210,462-480,866-872,874-875,877-921,1482-1532
+charts/langsmith/values.yaml
+  h_bfb522954af46a 68,72,78,82,86,106,110,114,124-125,161,164-168,171-179,182-183,1105-1106,1164-1166
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "fc25f78cb2b4ae0a1e5d01c3974c3f08286bab82",
+  "prompts": {},
+  "humans": {
+    "h_bfb522954af46a": {
+      "author": "Andrew Nguonly <andrewnguonly@gmail.com>"
+    }
+  }
+}
