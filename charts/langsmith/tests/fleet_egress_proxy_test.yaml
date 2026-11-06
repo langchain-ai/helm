@@ -1,0 +1,138 @@
+suite: fleet egress proxy
+templates:
+  - agent-features/fleet/api-server/deployment.yaml
+  - agent-features/fleet/queue/deployment.yaml
+  - agent-features/fleet/tool-server/deployment.yaml
+  - agent-features/fleet/trigger-server/deployment.yaml
+  - secrets.yaml
+set:
+  config.skipValidation: true
+  fleet.enabled: true
+tests:
+  - it: should set no proxy env by default
+    set:
+      config.customCa.secretName: corp-ca
+      config.customCa.secretKey: ca.crt
+    asserts:
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: HTTPS_PROXY
+          any: true
+        template: agent-features/fleet/api-server/deployment.yaml
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: NO_PROXY
+          any: true
+        template: agent-features/fleet/tool-server/deployment.yaml
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: REQUESTS_CA_BUNDLE
+          any: true
+        template: agent-features/fleet/tool-server/deployment.yaml
+
+  - it: should route every Fleet pod through the proxy in the chart-managed secret
+    set:
+      fleet.egressProxy.url: http://svc-user:p%40ss@proxy.corp.internal:3128
+      fleet.egressProxy.noProxy:
+        - git.corp.internal
+        - .corp.internal
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: HTTPS_PROXY
+            valueFrom:
+              secretKeyRef:
+                name: RELEASE-NAME-langsmith-secrets
+                key: fleet_egress_proxy_url
+        template: agent-features/fleet/api-server/deployment.yaml
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: HTTPS_PROXY
+            valueFrom:
+              secretKeyRef:
+                name: RELEASE-NAME-langsmith-secrets
+                key: fleet_egress_proxy_url
+        template: agent-features/fleet/queue/deployment.yaml
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: HTTPS_PROXY
+            valueFrom:
+              secretKeyRef:
+                name: RELEASE-NAME-langsmith-secrets
+                key: fleet_egress_proxy_url
+        template: agent-features/fleet/tool-server/deployment.yaml
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: HTTPS_PROXY
+            valueFrom:
+              secretKeyRef:
+                name: RELEASE-NAME-langsmith-secrets
+                key: fleet_egress_proxy_url
+        template: agent-features/fleet/trigger-server/deployment.yaml
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: NO_PROXY
+            value: localhost,127.0.0.1,.svc.cluster.local,git.corp.internal,.corp.internal
+        template: agent-features/fleet/api-server/deployment.yaml
+      - equal:
+          path: data.fleet_egress_proxy_url
+          value: aHR0cDovL3N2Yy11c2VyOnAlNDBzc0Bwcm94eS5jb3JwLmludGVybmFsOjMxMjg=
+        template: secrets.yaml
+
+  - it: should not store a proxy URL in the chart-managed secret by default
+    template: secrets.yaml
+    asserts:
+      - notExists:
+          path: data.fleet_egress_proxy_url
+
+  - it: should read the proxy URL from an existing secret
+    set:
+      config.existingSecretName: langsmith-secrets
+      fleet.egressProxy.secretKey: corp_proxy_url
+    template: agent-features/fleet/queue/deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: HTTPS_PROXY
+            valueFrom:
+              secretKeyRef:
+                name: langsmith-secrets
+                key: corp_proxy_url
+
+  - it: should point requests and httplib2 at the custom CA when a proxy is set
+    set:
+      fleet.egressProxy.url: http://proxy.corp.internal:3128
+      config.customCa.secretName: corp-ca
+      config.customCa.secretKey: ca.crt
+    template: agent-features/fleet/tool-server/deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: REQUESTS_CA_BUNDLE
+            value: /etc/ssl/certs/custom-ca-certificates.crt
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: HTTPLIB2_CA_CERTS
+            value: /etc/ssl/certs/custom-ca-certificates.crt
+
+  - it: should leave the CA bundle env unset without config.customCa
+    set:
+      fleet.egressProxy.url: http://proxy.corp.internal:3128
+    template: agent-features/fleet/tool-server/deployment.yaml
+    asserts:
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: REQUESTS_CA_BUNDLE
+          any: true
