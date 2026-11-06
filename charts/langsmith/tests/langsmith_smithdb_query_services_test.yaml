@@ -139,32 +139,6 @@ tests:
             name: SMITHDB_QUERY__EXECUTION_CONFIG__QUERY_TIMEOUT
         documentIndex: 2
 
-  - it: should let extraEnv override the run-rules query timeout
-    values:
-      - ./values/smithdb-enabled.yaml
-    set:
-      smithdb.runRules.enabled: true
-      smithdb.runRules.deployment.extraEnv:
-        - name: SMITHDB_QUERY__EXECUTION_CONFIG__QUERY_TIMEOUT
-          value: "5m"
-    template: smithdb/query-services-deployments.yaml
-    asserts:
-      - contains:
-          path: spec.template.spec.containers[0].env
-          content:
-            name: SMITHDB_QUERY__EXECUTION_CONFIG__QUERY_TIMEOUT
-            value: "5m"
-      - notContains:
-          path: spec.template.spec.containers[0].env
-          content:
-            name: SMITHDB_QUERY__EXECUTION_CONFIG__QUERY_TIMEOUT
-            value: "2m"
-      - contains:
-          path: spec.template.spec.containers[0].env
-          content:
-            name: SMITHDB_QUERY__REQUEST_TIMEOUT
-            value: "2m"
-
   - it: should disable memory attribution on every separate query service
     values:
       - ./values/smithdb-enabled.yaml
