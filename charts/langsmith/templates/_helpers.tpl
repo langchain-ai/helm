@@ -810,6 +810,18 @@ Override in smithdb.commonEnv or a component's deployment.extraEnv.
 {{- end }}
 
 {{/*
+Env the chart sets on the separate run-rules query service. Run-rule scans cover a rule's whole
+window, so they get longer request and query timeouts than interactive queries.
+Override in smithdb.commonEnv or smithdb.runRules.deployment.extraEnv.
+*/}}
+{{- define "langsmith.smithdb.runRulesEnv" -}}
+- name: SMITHDB_QUERY__REQUEST_TIMEOUT
+  value: "2m"
+- name: SMITHDB_QUERY__EXECUTION_CONFIG__QUERY_TIMEOUT
+  value: "2m"
+{{- end }}
+
+{{/*
 SmithDB OTEL resource attributes.
 */}}
 {{- define "langsmith.smithdb.otelResourceAttributes" -}}
