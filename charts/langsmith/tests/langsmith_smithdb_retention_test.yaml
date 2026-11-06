@@ -98,3 +98,56 @@ tests:
       - template: smithdb/compaction-worker-deployment.yaml
         notExists:
           path: spec.template.spec.containers[0].env[?(@.name == "SMITHDB_COMPACTION_WORKER__EXECUTOR__LONG_TERM_RETENTION")]
+
+  - it: should render the allowed days and keep the long-lived retention
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      config.ttl.longlivedAllowedDays: [90, 30, 365]
+    asserts:
+      - template: backend/deployment.yaml
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: LONGLIVED_TTL_ALLOWED_DAYS
+            value: "[90,30,365]"
+      - template: backend/deployment.yaml
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: TRACE_TIER_TTL_DURATION_SEC_MAP
+            value: '{ "longlived": 34560000, "shortlived": 1209600 }'
+      - template: smithdb/query-deployment.yaml
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_QUERY__LONG_TERM_RETENTION
+            value: "34560000s"
+
+  - it: should not render the allowed days when the list is empty
+    values:
+      - ./values/smithdb-enabled.yaml
+    template: backend/deployment.yaml
+    asserts:
+      - notExists:
+          path: spec.template.spec.containers[0].env[?(@.name == "LONGLIVED_TTL_ALLOWED_DAYS")]
+
+  - it: should reject an allowed day value below 14
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      config.ttl.longlivedAllowedDays: [7, 30]
+    template: backend/deployment.yaml
+    asserts:
+      - failedTemplate:
+          errorPattern: "below the 14-day minimum"
+
+  - it: should reject more than 10 allowed day values
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      config.ttl.longlivedAllowedDays: [14, 30, 60, 90, 120, 150, 180, 240, 300, 365, 400]
+    template: backend/deployment.yaml
+    asserts:
+      - failedTemplate:
+          errorPattern: "at most 10 values"
