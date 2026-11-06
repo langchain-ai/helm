@@ -1,0 +1,28 @@
+{{- range $component := include "langsmith.smithdb.metricsComponents" . | fromJsonArray }}
+{{- $componentName := include "langsmith.smithdb.componentName" (dict "root" $ "component" $component) }}
+{{- $componentValues := index $.Values.smithdb $component }}
+---
+{{- /* Headless so each pod gets its own DNS record and can be scraped individually. */}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "langsmith.smithdb.metricsServiceName" (dict "root" $ "component" $component) }}
+  namespace: {{ $.Values.namespace | default $.Release.Namespace }}
+  labels:
+    {{- include "langsmith.labels" $ | nindent 4 }}
+    app.kubernetes.io/component: {{ $componentName }}
+  annotations:
+    {{- include "langsmith.annotations" $ | nindent 4 }}
+spec:
+  type: ClusterIP
+  clusterIP: None
+  publishNotReadyAddresses: true
+  ports:
+    - name: http
+      port: {{ $componentValues.containerPort }}
+      targetPort: http
+      protocol: TCP
+  selector:
+    {{- include "langsmith.selectorLabels" $ | nindent 4 }}
+    app.kubernetes.io/component: {{ $componentName }}
+{{- end }}
