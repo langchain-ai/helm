@@ -338,7 +338,7 @@ and keeps the indentation, so the Job can hash it and inline it as-is.
       topologySpreadConstraints:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with concat .Values.commonVolumes .Values.smithdb.migration.job.volumes }}
+      {{- with concat .Values.commonVolumes (include "langsmith.smithdb.volumes" (dict "root" . "component" "migration" "config" .Values.smithdb.migration.job "cacheSize" "100Gi") | fromYamlArray) }}
       volumes:
         {{- toYaml . | nindent 8 }}
       {{- end }}

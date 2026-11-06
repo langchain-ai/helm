@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.17.45](https://img.shields.io/badge/Version-0.17.45-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.17.69](https://img.shields.io/badge/AppVersion-0.17.69-informational?style=flat-square)
+![Version: 0.17.46](https://img.shields.io/badge/Version-0.17.46-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.17.69](https://img.shields.io/badge/AppVersion-0.17.69-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -36,7 +36,7 @@ When `sandboxes.enabled=true`, configure limits under `sandboxes.quotas`: `maxSa
 
 ## SmithDB resource tiers
 
-`smithdb.resourceTier` sets per-replica CPU, memory, and cache size for SmithDB components. The default is `small`. Query, ingestion, and compaction worker mount a volume named `cache` at `/data` as a per-pod [generic ephemeral volume](https://kubernetes.io/docs/concepts/storage/ephemeral-volumes/#generic-ephemeral-volumes) on `smithdb.cache.storageClassName`, or the cluster default StorageClass when empty. Provision that StorageClass with at least 7000 IOPS and 1000 MiB/s.
+`smithdb.resourceTier` sets per-replica CPU, memory, and cache size for SmithDB components. The default is `small`. Query, ingestion, and compaction worker mount a volume named `cache` at `/data`; the migration Job mounts it at `/tmp` for scratch files. Each is a per-pod [generic ephemeral volume](https://kubernetes.io/docs/concepts/storage/ephemeral-volumes/#generic-ephemeral-volumes) on `smithdb.cache.storageClassName`, or the cluster default StorageClass when empty. Provision that StorageClass with at least 7000 IOPS and 1000 MiB/s. The migration Job's volume is 100Gi in every tier.
 
 Explicit component `resources` or `volumes` replace the tier values. Cache overrides must be named `cache` and use an `emptyDir` or inline ephemeral PVC; existing PVCs are unsupported. To cache on local SSD, set matching `emptyDir.sizeLimit` and `ephemeral-storage` requests and limits.
 
@@ -1235,13 +1235,11 @@ The trajectory Service is cluster-internal; no public route is added. Trajectory
 | smithdb.migration.job.labels | object | `{}` |  |
 | smithdb.migration.job.nodeSelector | object | `{}` |  |
 | smithdb.migration.job.parallelism | int | `1` | migration pods. |
-| smithdb.migration.job.podSecurityContext | object | `{}` |  |
+| smithdb.migration.job.podSecurityContext.fsGroup | int | `1001` |  |
 | smithdb.migration.job.priorityClassName | string | `""` |  |
 | smithdb.migration.job.resources.limits.cpu | string | `"8"` |  |
-| smithdb.migration.job.resources.limits.ephemeral-storage | string | `"100Gi"` |  |
 | smithdb.migration.job.resources.limits.memory | string | `"32Gi"` |  |
 | smithdb.migration.job.resources.requests.cpu | string | `"8"` |  |
-| smithdb.migration.job.resources.requests.ephemeral-storage | string | `"100Gi"` |  |
 | smithdb.migration.job.resources.requests.memory | string | `"32Gi"` |  |
 | smithdb.migration.job.restartPolicy | string | `"Never"` |  |
 | smithdb.migration.job.securityContext | object | `{}` |  |
@@ -1251,7 +1249,8 @@ The trajectory Service is cluster-internal; no public route is added. Trajectory
 | smithdb.migration.job.tolerations | list | `[]` |  |
 | smithdb.migration.job.topologySpreadConstraints | list | `[]` |  |
 | smithdb.migration.job.ttlSecondsAfterFinished | int | `604800` | Keep finished migrate-all Jobs around for seven days so operators can inspect status/logs. |
-| smithdb.migration.job.volumeMounts | list | `[]` |  |
+| smithdb.migration.job.volumeMounts[0].mountPath | string | `"/tmp"` |  |
+| smithdb.migration.job.volumeMounts[0].name | string | `"cache"` |  |
 | smithdb.migration.job.volumes | list | `[]` |  |
 | smithdb.migration.name | string | `"migration"` |  |
 | smithdb.migration.startTime | string | `""` | Optional RFC3339 start bound for migrate-all (half-open window). Empty uses end - 400 days. |
