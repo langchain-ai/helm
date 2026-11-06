@@ -2,10 +2,14 @@ suite: Validation guards (config.skipValidation)
 templates:
   - ingress.yaml
   - api-server/deployment.yaml
+  - api-server/service.yaml
 tests:
   - it: should fail when more than one ingress mechanism is enabled
     template: ingress.yaml
     set:
+      config.auth.enabled: true
+      config.auth.langSmithAuthEndpoint: https://api.smith.langchain.com
+      config.auth.langSmithTenantId: test-tenant
       ingress.enabled: true
       ingress.hostname: api.example.com
       gateway.enabled: true
@@ -18,6 +22,9 @@ tests:
     template: ingress.yaml
     set:
       config.skipValidation: true
+      config.auth.enabled: true
+      config.auth.langSmithAuthEndpoint: https://api.smith.langchain.com
+      config.auth.langSmithTenantId: test-tenant
       ingress.enabled: true
       ingress.hostname: api.example.com
       gateway.enabled: true
@@ -31,6 +38,9 @@ tests:
   - it: should fail when ingress is enabled without a hostname
     template: ingress.yaml
     set:
+      config.auth.enabled: true
+      config.auth.langSmithAuthEndpoint: https://api.smith.langchain.com
+      config.auth.langSmithTenantId: test-tenant
       ingress.enabled: true
     asserts:
       - failedTemplate:
@@ -40,6 +50,9 @@ tests:
     template: ingress.yaml
     set:
       config.skipValidation: true
+      config.auth.enabled: true
+      config.auth.langSmithAuthEndpoint: https://api.smith.langchain.com
+      config.auth.langSmithTenantId: test-tenant
       ingress.enabled: true
     asserts:
       - hasDocuments:
@@ -50,6 +63,9 @@ tests:
   - it: should fail when gateway is enabled without a name
     template: ingress.yaml
     set:
+      config.auth.enabled: true
+      config.auth.langSmithAuthEndpoint: https://api.smith.langchain.com
+      config.auth.langSmithTenantId: test-tenant
       gateway.enabled: true
     asserts:
       - failedTemplate:
@@ -75,3 +91,85 @@ tests:
           count: 1
       - isKind:
           of: Deployment
+
+  - it: should keep the unauthenticated API internal by default
+    template: api-server/service.yaml
+    asserts:
+      - equal:
+          path: spec.type
+          value: ClusterIP
+
+  - it: should reject unauthenticated LoadBalancer exposure
+    template: api-server/deployment.yaml
+    set:
+      apiServer.service.type: LoadBalancer
+    asserts:
+      - failedTemplate:
+          errorMessage: "External API exposure requires config.auth.enabled=true; use a ClusterIP service without ingress for unauthenticated internal access."
+
+  - it: should reject unauthenticated NodePort exposure
+    template: api-server/deployment.yaml
+    set:
+      apiServer.service.type: NodePort
+    asserts:
+      - failedTemplate:
+          errorMessage: "External API exposure requires config.auth.enabled=true; use a ClusterIP service without ingress for unauthenticated internal access."
+
+  - it: should reject unauthenticated ingress exposure
+    template: api-server/deployment.yaml
+    set:
+      ingress.enabled: true
+      ingress.hostname: api.example.com
+    asserts:
+      - failedTemplate:
+          errorMessage: "External API exposure requires config.auth.enabled=true; use a ClusterIP service without ingress for unauthenticated internal access."
+
+  - it: should reject unauthenticated gateway exposure
+    template: api-server/deployment.yaml
+    set:
+      gateway.enabled: true
+      gateway.name: gateway
+    asserts:
+      - failedTemplate:
+          errorMessage: "External API exposure requires config.auth.enabled=true; use a ClusterIP service without ingress for unauthenticated internal access."
+
+  - it: should reject unauthenticated Istio exposure
+    template: api-server/deployment.yaml
+    set:
+      istioGateway.enabled: true
+      istioGateway.name: gateway
+    asserts:
+      - failedTemplate:
+          errorMessage: "External API exposure requires config.auth.enabled=true; use a ClusterIP service without ingress for unauthenticated internal access."
+
+  - it: should reject unauthenticated validation bypass exposure
+    template: api-server/deployment.yaml
+    set:
+      config.skipValidation: true
+      apiServer.service.type: LoadBalancer
+    asserts:
+      - failedTemplate:
+          errorMessage: "External API exposure requires config.auth.enabled=true; use a ClusterIP service without ingress for unauthenticated internal access."
+
+  - it: should reject incomplete external authentication configuration
+    template: api-server/deployment.yaml
+    set:
+      apiServer.service.type: LoadBalancer
+      config.auth.enabled: true
+    asserts:
+      - failedTemplate:
+          errorMessage: "External API exposure requires config.auth.langSmithAuthEndpoint and config.auth.langSmithTenantId."
+
+  - it: should allow an authenticated external API
+    template: api-server/deployment.yaml
+    set:
+      apiServer.service.type: LoadBalancer
+      config.auth.enabled: true
+      config.auth.langSmithAuthEndpoint: https://api.smith.langchain.com
+      config.auth.langSmithTenantId: test-tenant
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: LANGGRAPH_AUTH_TYPE
+            value: langsmith
