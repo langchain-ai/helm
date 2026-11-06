@@ -217,6 +217,63 @@ tests:
           content:
             name: SMITHDB_QUERY__METASTORE__DEFAULT_URI
             value: az://
+  - it: should set the GCS endpoint override for SmithDB without a trailing slash
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      smithdb.config.objectStore.type: gcs
+      smithdb.config.objectStore.bucket: smithdb-bucket
+      smithdb.config.objectStore.gcs.endpoint: https://storage.example.com/
+    template: smithdb/query-deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_QUERY__OBJECT_STORE__GCS__BUCKET
+            value: smithdb-bucket
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: GOOGLE_BASE_URL
+            value: https://storage.example.com
+  - it: should not set a GCS endpoint override for SmithDB by default
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      smithdb.config.objectStore.type: gcs
+      smithdb.config.objectStore.bucket: smithdb-bucket
+    template: smithdb/query-deployment.yaml
+    asserts:
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: GOOGLE_BASE_URL
+          any: true
+  - it: should pass the GCS endpoint override to the SmithDB migration Job
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      config.blobStorage.enabled: true
+      config.blobStorage.engine: GCS
+      config.blobStorage.bucketName: langsmith-gcs-blob
+      smithdb.config.objectStore.type: gcs
+      smithdb.config.objectStore.bucket: smithdb-bucket
+      smithdb.config.objectStore.gcs.endpoint: https://storage.example.com
+      smithdb.langsmith.migration.enabled: true
+      smithdb.langsmith.query.enabled: false
+      smithdb.migration.taskdb.postgres.auth.password: taskdb-password
+    template: smithdb/migration-job.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMITHDB_MIGRATION__BLOB_STORE_DEFAULT__TYPE
+            value: gcs
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: GOOGLE_BASE_URL
+            value: https://storage.example.com
   - it: should apply the selected SmithDB resource tier
     values:
       - ./values/smithdb-enabled.yaml

@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.17.43](https://img.shields.io/badge/Version-0.17.43-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.17.68](https://img.shields.io/badge/AppVersion-0.17.68-informational?style=flat-square)
+![Version: 0.17.44](https://img.shields.io/badge/Version-0.17.44-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.17.68](https://img.shields.io/badge/AppVersion-0.17.68-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -1121,6 +1121,7 @@ The trajectory Service is cluster-internal; no public route is added. Trajectory
 | smithdb.config.objectStore.azure.allowHttp | bool | `false` | Allow plain HTTP for endpoint overrides, such as local emulators. |
 | smithdb.config.objectStore.azure.endpoint | string | `""` | Optional Azure Blob service endpoint override. |
 | smithdb.config.objectStore.bucket | string | `""` |  |
+| smithdb.config.objectStore.gcs.endpoint | string | `""` | Optional GCS endpoint override, such as a sovereign cloud storage endpoint. A trailing slash is removed. |
 | smithdb.config.objectStore.s3.accessKeyIdSecretKey | string | `""` | Keys in smithdb.config.existingSecretName for static S3 credentials. Set both to "" when using ambient cloud identity, such as IRSA. |
 | smithdb.config.objectStore.s3.endpoint | string | `""` |  |
 | smithdb.config.objectStore.s3.kmsEncryptionEnabled | bool | `false` | Send SSE-KMS encryption headers on S3 writes. Same semantics as config.blobStorage.kmsEncryptionEnabled. |
