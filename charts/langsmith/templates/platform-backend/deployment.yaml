@@ -7,6 +7,10 @@
 - name: TRAJECTORY_GRPC_PORT
   value: "8086"
 {{- end }}
+{{- if .Values.managedTools.enabled }}
+- name: MANAGED_TOOLS_EMBEDDED
+  value: "true"
+{{- end }}
 {{- with .Values.config.basePath }}
 - name: DOCS_PREFIX
   value: /{{ . }}/api

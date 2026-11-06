@@ -781,6 +781,7 @@ The operator deletes removed objects only after the deployment's rollout complet
 | istioGateway.labels | object | `{}` |  |
 | istioGateway.name | string | `"istio-gateway"` |  |
 | istioGateway.namespace | string | `"istio-system"` |  |
+| managedTools.enabled | bool | `false` |  |
 | nameOverride | string | `""` | Provide a name in place of `langsmith` |
 | namespace | string | `""` | Namespace to install the chart into. If not set, will use the namespace of the current context. |
 | polly.apiServer.autoscaling.enabled | bool | `false` |  |

@@ -321,6 +321,14 @@ sandboxes:
       labels: {}
       annotations: {}
 
+# Tool Gateway (managed tools). When enabled, platform-backend serves the
+# managed tools API at /api/v1/managed-tools and /api/v1/agent-policies, and
+# every organization is entitled to it. Built-in tools also need the Fleet tool
+# server. Requires a LangSmith version whose platform-backend supports
+# MANAGED_TOOLS_EMBEDDED.
+managedTools:
+  enabled: false
+
 fleet:
   enabled: false
   namePrefix: "standalone-fleet"
