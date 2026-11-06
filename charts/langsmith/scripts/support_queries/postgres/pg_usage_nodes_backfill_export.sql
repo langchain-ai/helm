@@ -1,6 +1,8 @@
 -- This query exports all pending remote metrics.
 -- It also sets backfill_id to a common random UUID for tracking
 -- and sets backfilled_at to the current timestamp.
+-- Every pending row is stamped, so the update script closes them all out, but rows
+-- with no nodes and no runs bill nothing and are left out of the export.
 
 WITH backfill_info AS (
     SELECT
@@ -35,4 +37,6 @@ SELECT
     :'customer_name' AS customer_name
 FROM backfill_txns bt
 LEFT JOIN tenants t ON bt.tenant_id = t.id
+WHERE COALESCE((bt.measures->>'langgraph.platform.nodes')::numeric, 0) > 0
+   OR COALESCE((bt.measures->>'langgraph.platform.runs')::numeric, 0) > 0
 ORDER BY bt.received_at DESC;
