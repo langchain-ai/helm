@@ -10,6 +10,25 @@ For information on how to use this chart, up-to-date release notes, and other gu
 
 {{ template "chart.requirementsSection" . }}
 
+## Sandboxes
+
+Sandboxes support two deployment topologies:
+
+- By default this chart deploys the sandbox runtime, `sandbox-host`, alongside LangSmith on dedicated KVM-capable nodes.
+- With `sandboxes.external.enabled=true` the runtime is external: this release keeps the sandbox API and control plane but omits the runtime resources. Install the `langsmith-sandbox` chart in the sandbox cluster and give it an externally reachable LangSmith API endpoint plus a minimal existing Secret containing the shared sandbox service-auth key and callback-signing JWK.
+
+When the clusters share a private network you trust, leave `sandboxes.external.hostIngressEndpoint` empty and allow the LangSmith cluster to reach sandbox node IPs on TCP port 19190; that traffic is plain HTTP and carries sandbox commands, files and credentials. Otherwise, enable the `langsmith-sandbox` chart's host ingress (`sandboxHost.ingress`) with TLS and set its `https://` origin as `sandboxes.external.hostIngressEndpoint`.
+
+Copy the sandbox service-auth secret and the callback-signing JWK into the runtime chart's Secret, under the keys that chart's `serviceAuth.secretKey` (default `sandbox_service_auth_secret`) and `config.callbackSigningJwkSecretKey` name. With an external runtime the service-auth secret must be its own random value, never `api_key_salt`: that value also salts API keys and signs LangSmith's other service calls, so it must not leave this cluster, and the chart refuses to render without a dedicated secret. Generate one (for example with `openssl rand -base64 32`) and either set `sandboxes.serviceAuth.secret`, which the chart stores as `sandbox_service_auth_secret` in its managed Secret, or add it to `config.existingSecretName` under its own key and name that key in `sandboxes.serviceAuth.secretKey`. With the embedded runtime the secret still defaults to `api_key_salt`. To change the value of a running install, rotate it in three steps, and wait for both releases to finish rolling out after each one:
+
+1. On both sides, add the new value as the previous secret: `sandboxes.serviceAuth.previousSecret` or `previousSecretKey` here, `serviceAuth.previousSecretKey` in the runtime chart.
+2. On both sides, make the new value current and the old value the previous secret.
+3. Remove the previous secret on both sides.
+
+Kubernetes does not restart pods when data inside an existing Secret changes, so after editing one, restart the pods that read it (`kubectl rollout restart`). Restarting sandbox-host suspends its VMs.
+
+Run exactly one `langsmith-sandbox` release per LangSmith install, and none while `sandboxes.external.enabled` is false. LangSmith accepts host reports from one runtime at a time and refuses any other: a refused runtime's hosts never join, and its elected `sandbox-host` pod turns not ready. To move from the embedded runtime, set `sandboxes.external.enabled=true` on this release, with its dedicated service-auth secret, first, then install `langsmith-sandbox` with the same secret. Set `sandboxes.clusterName` only at install time: renaming it hides existing sandboxes, private registries and hosts.
+
 ## Engine
 
 LangSmith Engine is off by default. `engine.enabled=true` requires all of the following, and the chart refuses to render if any is missing:
@@ -72,6 +91,22 @@ The query disk cache limit is set automatically from the PVC storage request or,
 Online evaluations on trajectories use an internal gRPC listener in `platformBackend` on port `8086`, enabled when both `smithdb.enabled` and `smithdb.langsmith.query.enabled` are true. Otherwise, no trajectory listener, Service, or endpoint is configured. It shares the HTTP backend's SmithDB routing, resources, and scaling; readiness uses `/ready` while active.
 
 The trajectory Service is cluster-internal; no public route is added. Trajectory processing can be memory intensive, consider setting [GOMEMLIMIT](https://pkg.go.dev/runtime#hdr-Environment_Variables) relative to your memory limit to mitigate OOMKilled errors for this service. If setting `GOMEMLIMIT` through `platformBackend.deployment.extraEnv`, account for the combined HTTP and trajectory workload and leave headroom below the container memory limit.
+
+## Extra manifests
+
+`config.deployment.extraManifestsEnabled` defaults to `false`. Set it to `true` to let standalone self-hosted deployments declare extra ServiceAccounts and SecretProviderClasses. It needs `config.deployment.enabled=true` and the operator. The chart passes `LGP_EXTRA_MANIFESTS_ENABLED` to the operator and, through the shared ConfigMap, to the host backend, listener, and platform backend. Deployments on a remote listener are unsupported. Do not override the flag through environment values.
+
+**Coordinated upgrade required:** enable it only with operator, host backend, listener, and platform backend images that support the feature, together with this chart's LGP CRD. This chart does not change image tags.
+
+The API and the operator validate every manifest and return the reason for a rejection. In summary: only `v1/ServiceAccount` and `secrets-store.csi.x-k8s.io/v1/SecretProviderClass` are allowed, up to 16 objects. Each name must start with the deployment's resource name followed by `-`; the UI shows the prefix. SecretProviderClasses must use pod workload identity. A deployment cannot reference another deployment's objects; the operator reports `ReferenceForbidden`.
+
+Manifests are stored in plaintext in the LangSmith database and in the deployment's custom resource. Do not put credentials in them.
+
+Enabling the feature grants the operator SecretProviderClass `get`, `create`, `patch`, and `delete`. ServiceAccount permissions already exist. It adds no Secret or RBAC permissions. With `operator.rbac.create=false`, provision these permissions yourself.
+
+Scope each workload identity's federation to the namespace and the full prefixed ServiceAccount name. For Azure Key Vault, install the Secrets Store CSI driver and Azure provider, and configure Azure Workload Identity and the federated identity credential. This chart does not install those prerequisites.
+
+The operator deletes removed objects only after the deployment's rollout completes and no pod or Deployment template still references them. It reports progress in the LGP `ExtraManifestsReady` condition. Turning the flag off freezes the objects and the stored configuration. Clear resources while the flag is on. Deleting a deployment garbage-collects its objects through owner references.
 
 ## General parameters
 

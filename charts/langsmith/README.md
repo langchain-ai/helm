@@ -1,12 +1,37 @@
 # langsmith
 
-![Version: 0.18.0-rc.48](https://img.shields.io/badge/Version-0.18.0--rc.48-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.18.17rc1](https://img.shields.io/badge/AppVersion-0.18.17rc1-informational?style=flat-square)
+![Version: 0.18.0-rc.58](https://img.shields.io/badge/Version-0.18.0--rc.58-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.18.20rc1](https://img.shields.io/badge/AppVersion-0.18.20rc1-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
 ## Documentation
 
 For information on how to use this chart, up-to-date release notes, and other guides please check out the [documentation.](https://docs.langchain.com/langsmith/kubernetes)
+
+## Requirements
+
+| Repository | Name | Version |
+|------------|------|---------|
+| file://../langsmith-sandbox | langsmith-sandbox | >=0.18.0-0 <0.19.0-0 |
+
+## Sandboxes
+
+Sandboxes support two deployment topologies:
+
+- By default this chart deploys the sandbox runtime, `sandbox-host`, alongside LangSmith on dedicated KVM-capable nodes.
+- With `sandboxes.external.enabled=true` the runtime is external: this release keeps the sandbox API and control plane but omits the runtime resources. Install the `langsmith-sandbox` chart in the sandbox cluster and give it an externally reachable LangSmith API endpoint plus a minimal existing Secret containing the shared sandbox service-auth key and callback-signing JWK.
+
+When the clusters share a private network you trust, leave `sandboxes.external.hostIngressEndpoint` empty and allow the LangSmith cluster to reach sandbox node IPs on TCP port 19190; that traffic is plain HTTP and carries sandbox commands, files and credentials. Otherwise, enable the `langsmith-sandbox` chart's host ingress (`sandboxHost.ingress`) with TLS and set its `https://` origin as `sandboxes.external.hostIngressEndpoint`.
+
+Copy the sandbox service-auth secret and the callback-signing JWK into the runtime chart's Secret, under the keys that chart's `serviceAuth.secretKey` (default `sandbox_service_auth_secret`) and `config.callbackSigningJwkSecretKey` name. With an external runtime the service-auth secret must be its own random value, never `api_key_salt`: that value also salts API keys and signs LangSmith's other service calls, so it must not leave this cluster, and the chart refuses to render without a dedicated secret. Generate one (for example with `openssl rand -base64 32`) and either set `sandboxes.serviceAuth.secret`, which the chart stores as `sandbox_service_auth_secret` in its managed Secret, or add it to `config.existingSecretName` under its own key and name that key in `sandboxes.serviceAuth.secretKey`. With the embedded runtime the secret still defaults to `api_key_salt`. To change the value of a running install, rotate it in three steps, and wait for both releases to finish rolling out after each one:
+
+1. On both sides, add the new value as the previous secret: `sandboxes.serviceAuth.previousSecret` or `previousSecretKey` here, `serviceAuth.previousSecretKey` in the runtime chart.
+2. On both sides, make the new value current and the old value the previous secret.
+3. Remove the previous secret on both sides.
+
+Kubernetes does not restart pods when data inside an existing Secret changes, so after editing one, restart the pods that read it (`kubectl rollout restart`). Restarting sandbox-host suspends its VMs.
+
+Run exactly one `langsmith-sandbox` release per LangSmith install, and none while `sandboxes.external.enabled` is false. LangSmith accepts host reports from one runtime at a time and refuses any other: a refused runtime's hosts never join, and its elected `sandbox-host` pod turns not ready. To move from the embedded runtime, set `sandboxes.external.enabled=true` on this release, with its dedicated service-auth secret, first, then install `langsmith-sandbox` with the same secret. Set `sandboxes.clusterName` only at install time: renaming it hides existing sandboxes, private registries and hosts.
 
 ## Engine
 
@@ -69,6 +94,22 @@ The query disk cache limit is set automatically from the PVC storage request or,
 Online evaluations on trajectories use an internal gRPC listener in `platformBackend` on port `8086`, enabled when both `smithdb.enabled` and `smithdb.langsmith.query.enabled` are true. Otherwise, no trajectory listener, Service, or endpoint is configured. It shares the HTTP backend's SmithDB routing, resources, and scaling; readiness uses `/ready` while active.
 
 The trajectory Service is cluster-internal; no public route is added. Trajectory processing can be memory intensive, consider setting [GOMEMLIMIT](https://pkg.go.dev/runtime#hdr-Environment_Variables) relative to your memory limit to mitigate OOMKilled errors for this service. If setting `GOMEMLIMIT` through `platformBackend.deployment.extraEnv`, account for the combined HTTP and trajectory workload and leave headroom below the container memory limit.
+
+## Extra manifests
+
+`config.deployment.extraManifestsEnabled` defaults to `false`. Set it to `true` to let standalone self-hosted deployments declare extra ServiceAccounts and SecretProviderClasses. It needs `config.deployment.enabled=true` and the operator. The chart passes `LGP_EXTRA_MANIFESTS_ENABLED` to the operator and, through the shared ConfigMap, to the host backend, listener, and platform backend. Deployments on a remote listener are unsupported. Do not override the flag through environment values.
+
+**Coordinated upgrade required:** enable it only with operator, host backend, listener, and platform backend images that support the feature, together with this chart's LGP CRD. This chart does not change image tags.
+
+The API and the operator validate every manifest and return the reason for a rejection. In summary: only `v1/ServiceAccount` and `secrets-store.csi.x-k8s.io/v1/SecretProviderClass` are allowed, up to 16 objects. Each name must start with the deployment's resource name followed by `-`; the UI shows the prefix. SecretProviderClasses must use pod workload identity. A deployment cannot reference another deployment's objects; the operator reports `ReferenceForbidden`.
+
+Manifests are stored in plaintext in the LangSmith database and in the deployment's custom resource. Do not put credentials in them.
+
+Enabling the feature grants the operator SecretProviderClass `get`, `create`, `patch`, and `delete`. ServiceAccount permissions already exist. It adds no Secret or RBAC permissions. With `operator.rbac.create=false`, provision these permissions yourself.
+
+Scope each workload identity's federation to the namespace and the full prefixed ServiceAccount name. For Azure Key Vault, install the Secrets Store CSI driver and Azure provider, and configure Azure Workload Identity and the federated identity credential. This chart does not install those prerequisites.
+
+The operator deletes removed objects only after the deployment's rollout completes and no pod or Deployment template still references them. It reports progress in the LGP `ExtraManifestsReady` condition. Turning the flag off freezes the objects and the stored configuration. Clear resources while the flag is on. Deleting a deployment garbage-collects its objects through owner references.
 
 ## General parameters
 
@@ -610,13 +651,13 @@ The trajectory Service is cluster-internal; no public route is added. Trajectory
 | gateway.sectionName | string | `""` |  |
 | images.aceBackendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.aceBackendImage.repository | string | `"docker.io/langchain/langsmith-ace-backend"` |  |
-| images.aceBackendImage.tag | string | `"0.18.17rc1"` |  |
+| images.aceBackendImage.tag | string | `"0.18.20rc1"` |  |
 | images.agentBuilderImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.agentBuilderImage.repository | string | `"docker.io/langchain/agent-builder-deep-agent"` |  |
-| images.agentBuilderImage.tag | string | `"0.18.17rc1"` |  |
+| images.agentBuilderImage.tag | string | `"0.18.20rc1"` |  |
 | images.backendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.backendImage.repository | string | `"docker.io/langchain/langsmith-backend"` |  |
-| images.backendImage.tag | string | `"0.18.17rc1"` |  |
+| images.backendImage.tag | string | `"0.18.20rc1"` |  |
 | images.clickhouseImage.pullPolicy | string | `"Always"` |  |
 | images.clickhouseImage.repository | string | `"docker.io/clickhouse/clickhouse-server"` |  |
 | images.clickhouseImage.tag | string | `"25.12"` |  |
@@ -626,17 +667,17 @@ The trajectory Service is cluster-internal; no public route is added. Trajectory
 | images.deploymentRedisImage.tag | string | `"7"` |  |
 | images.engineInsightsAgentImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.engineInsightsAgentImage.repository | string | `"docker.io/langchain/langsmith-insights-engine"` |  |
-| images.engineInsightsAgentImage.tag | string | `"0.18.17rc1"` |  |
+| images.engineInsightsAgentImage.tag | string | `"0.18.20rc1"` |  |
 | images.frontendImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.frontendImage.repository | string | `"docker.io/langchain/langsmith-frontend"` |  |
-| images.frontendImage.tag | string | `"0.18.17rc1"` |  |
+| images.frontendImage.tag | string | `"0.18.20rc1"` |  |
 | images.imagePullSecrets | list | `[]` | Secrets with credentials to pull images from a private registry. Specified as name: value. |
 | images.operatorImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.operatorImage.repository | string | `"docker.io/langchain/langgraph-operator"` |  |
-| images.operatorImage.tag | string | `"0.1.64"` |  |
+| images.operatorImage.tag | string | `"0.1.66"` |  |
 | images.pollyAgentImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.pollyAgentImage.repository | string | `"docker.io/langchain/langsmith-polly"` |  |
-| images.pollyAgentImage.tag | string | `"0.18.17rc1"` |  |
+| images.pollyAgentImage.tag | string | `"0.18.20rc1"` |  |
 | images.postgresImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.postgresImage.repository | string | `"docker.io/postgres"` |  |
 | images.postgresImage.tag | string | `"14.7"` |  |
@@ -647,10 +688,11 @@ The trajectory Service is cluster-internal; no public route is added. Trajectory
 | images.redisImage.repository | string | `"docker.io/redis"` |  |
 | images.redisImage.tag | string | `"7"` |  |
 | images.registry | string | `""` | If supplied, all children <image_name>.repository values will be prepended with this registry name + `/` |
-| images.sandboxHostImage | object | `{"pullPolicy":"IfNotPresent","repository":"docker.io/langchain/sandbox-host","tag":""}` | sandbox-host image. Only used when sandboxes.enabled is true. |
+| images.sandboxHostImage | object | `{"pullPolicy":"IfNotPresent","repository":"docker.io/langchain/sandbox-host","tag":"0.18.20rc1"}` | sandbox-host image. Only used when sandboxes.enabled is true. |
+| images.sandboxHostImage.tag | string | `"0.18.20rc1"` | Release tag, kept equal to the chart's appVersion and the other LangSmith image tags so the release bump moves them together, including on a Helm upgrade that reuses the previous values. An empty tag also resolves to the appVersion. |
 | images.smithdbImage.pullPolicy | string | `"IfNotPresent"` |  |
 | images.smithdbImage.repository | string | `"docker.io/langchain/smithdb"` |  |
-| images.smithdbImage.tag | string | `"0.18.17rc1"` |  |
+| images.smithdbImage.tag | string | `"0.18.20rc1"` |  |
 | ingestQueue.autoscaling.hpa.enabled | bool | `false` |  |
 | ingestQueue.autoscaling.hpa.maxReplicas | int | `10` |  |
 | ingestQueue.autoscaling.hpa.minReplicas | int | `3` |  |
@@ -935,11 +977,14 @@ The trajectory Service is cluster-internal; no public route is added. Trajectory
 | polly.redis.statefulSet.volumeMounts | list | `[]` |  |
 | polly.redis.statefulSet.volumes | list | `[]` |  |
 | preInstallManifests | list | `[]` | annotations, ExternalSecret-only validation, idempotency rules, and caveats. Example: preInstallManifests:   - apiVersion: external-secrets.io/v1beta1     kind: ExternalSecret     metadata:       name: langsmith-app     spec:       refreshInterval: 1h       secretStoreRef:         name: vault-backend         kind: ClusterSecretStore       target:         name: langsmith-app-secret         creationPolicy: Orphan       data:         - secretKey: langsmith_license_key           remoteRef:             key: secret/langsmith/app             property: langsmith_license_key |
-| sandboxes | object | `{"authProxy":{"httpProxy":{"noProxy":[],"url":""}},"callbackSigningJwk":"","enabled":false,"juicefs":{"bucket":"","existingSecretName":"","hostMount":{"cacheDirs":["/var/cache/juicefs"],"mountOptions":["--cache-size=51200","--cache-large-write"]},"name":"sandbox-juicefs","redis":{"iamAuthProvider":"","metaURL":""},"storage":"s3","storageAccountName":""},"juicefsFormatJob":{"activeDeadlineSeconds":900,"affinity":{},"annotations":{},"labels":{},"nodeSelector":{},"podSecurityContext":{},"resources":{"requests":{"cpu":"100m","memory":"128Mi"}},"securityContext":{"allowPrivilegeEscalation":false,"capabilities":{"drop":["ALL"]}},"tolerations":[]},"proxyCa":{"existingSecretName":"","mode":"generatedSecret","secretName":"smithbox-proxy-ca"},"quotas":{"maxCpuCores":200,"maxEphemeralStorageGib":100,"maxMemoryGb":400,"maxSandboxes":1000,"minEphemeralStorageGb":1},"sandboxHost":{"autoscaling":{"enabled":false,"headroomHosts":1,"maxReplicas":10,"minReplicas":1,"scaleDownStabilizationSeconds":300,"targetUtilizationPercent":70},"deployment":{"annotations":{},"extraEnv":[],"initContainers":[],"labels":{},"nodeSelector":{},"podAnnotations":{},"podSecurityContext":{},"priorityClassName":"","readinessProbe":{"failureThreshold":3,"initialDelaySeconds":5,"periodSeconds":10,"tcpSocket":{"port":"http"},"timeoutSeconds":3},"replicas":1,"resources":{"requests":{"cpu":"2","memory":"2Gi"}},"securityContext":{"privileged":true},"sidecars":[],"terminationGracePeriodSeconds":300,"tolerations":[{"effect":"NoSchedule","key":"sandbox.langsmith.com/host","operator":"Equal","value":"true"}],"volumeMounts":[],"volumes":[]},"name":"sandbox-host","pdb":{"annotations":{},"enabled":false,"labels":{},"maxUnavailable":1},"rbac":{"annotations":{},"create":true,"labels":{}},"serviceAccount":{"annotations":{},"automountServiceAccountToken":true,"create":true,"labels":{},"name":""}},"serviceUrlBaseUrl":""}` | LangSmith Sandboxes. Same-cluster sandbox-host architecture on AWS/EKS, GCP/GKE, or Azure/AKS. sandbox-host mounts JuiceFS directly, and a singleton Job formats fresh JuiceFS metadata before hosts start serving. |
+| sandboxes | object | `{"authProxy":{"httpProxy":{"noProxy":[],"url":""}},"callbackSigningJwk":"","clusterName":"","enabled":false,"external":{"enabled":false,"hostIngressEndpoint":""},"juicefs":{"bucket":"","existingSecretName":"","hostMount":{"cacheDirs":["/var/cache/juicefs"],"mountOptions":["--cache-size=51200","--cache-large-write"]},"name":"sandbox-juicefs","redis":{"iamAuthProvider":"","metaURL":""},"storage":"s3","storageAccountName":""},"juicefsFormatJob":{"activeDeadlineSeconds":900,"affinity":{},"annotations":{},"labels":{},"nodeSelector":{},"podSecurityContext":{},"resources":{"requests":{"cpu":"100m","memory":"128Mi"}},"securityContext":{"allowPrivilegeEscalation":false,"capabilities":{"drop":["ALL"]}},"tolerations":[]},"proxyCa":{"existingSecretName":"","mode":"generatedSecret","secretName":"smithbox-proxy-ca"},"quotas":{"maxCpuCores":200,"maxEphemeralStorageGib":100,"maxMemoryGb":400,"maxSandboxes":1000,"minEphemeralStorageGb":1},"sandboxHost":{"autoscaling":{"enabled":false,"headroomHosts":1,"maxReplicas":10,"minReplicas":1,"scaleDownStabilizationSeconds":300,"targetUtilizationPercent":70},"deployment":{"annotations":{},"extraEnv":[],"initContainers":[],"labels":{},"nodeSelector":{},"podAnnotations":{},"podSecurityContext":{},"priorityClassName":"","readinessProbe":{"failureThreshold":3,"initialDelaySeconds":5,"periodSeconds":10,"tcpSocket":{"port":"http"},"timeoutSeconds":3},"replicas":1,"resources":{"requests":{"cpu":"2","memory":"2Gi"}},"securityContext":{"privileged":true},"sidecars":[],"terminationGracePeriodSeconds":300,"tolerations":[{"effect":"NoSchedule","key":"sandbox.langsmith.com/host","operator":"Equal","value":"true"}],"volumeMounts":[],"volumes":[]},"name":"sandbox-host","pdb":{"annotations":{},"enabled":false,"labels":{},"maxUnavailable":1},"rbac":{"annotations":{},"create":true,"labels":{}},"serviceAccount":{"annotations":{},"automountServiceAccountToken":true,"create":true,"labels":{},"name":""}},"serviceAuth":{"previousSecret":"","previousSecretKey":"","secret":"","secretKey":""},"serviceUrlBaseUrl":""}` | LangSmith Sandboxes on AWS/EKS, GCP/GKE, or Azure/AKS. By default this release deploys the sandbox runtime (sandbox-host) in this cluster; with external.enabled the runtime is installed separately with the langsmith-sandbox chart. |
 | sandboxes.authProxy.httpProxy | object | `{"noProxy":[],"url":""}` | Route sandbox egress (the sandbox auth proxy's upstream connections) through a corporate HTTP forward proxy, as an HTTP_PROXY/HTTPS_PROXY client would: plain HTTP as standard proxy requests, HTTPS and other TCP through CONNECT. The proxy must allow CONNECT to 443 and any other TCP ports sandboxes use; nothing falls back to direct access. |
 | sandboxes.authProxy.httpProxy.noProxy | list | `[]` | Destinations dialed directly instead of through the proxy, with standard NO_PROXY matching: "internal.corp" matches the host and its subdomains, ".internal.corp" only subdomains, plus IP addresses, CIDR ranges such as "10.0.0.0/8", "host:port" entries, and "*". |
 | sandboxes.authProxy.httpProxy.url | string | `""` | Proxy URL, `http://host:port` or `https://host:port` (TLS to the proxy itself, verified against config.customCa when set, otherwise the system roots); empty sends egress directly. A private address is allowed. For Basic proxy authentication use `http://user:password@host:port`, percent-encoding reserved characters; sandboxes never see the credentials. Stored in the LangSmith app Secret, or set key `sandbox_egress_proxy_url` in config.existingSecretName instead. |
 | sandboxes.callbackSigningJwk | string | `""` | Private JWK signing sandbox callbacks, or key `sandbox_callback_signing_jwk` in config.existingSecretName. Needs config.hostname for the issuer, or signing fails closed. |
+| sandboxes.clusterName | string | `""` | Name of the sandbox runtime cluster this install uses, set as SANDBOX_K8S_CLUSTER_NAME on platform-backend and ingest-queue. Empty keeps the default, `incluster`. Choose it at install time: renaming hides every existing sandbox, private registry and host record. Do not also set SANDBOX_K8S_CLUSTER_NAME through extraEnv. |
+| sandboxes.external.enabled | bool | `false` | If enabled, the sandbox runtime is installed outside this release with the langsmith-sandbox chart, usually in a dedicated cluster, and this release deploys no sandbox-host. It keeps the Sandbox API and control plane. The external runtime must be the langsmith-sandbox chart on this chart's appVersion; other runtimes are not supported. |
+| sandboxes.external.hostIngressEndpoint | string | `""` | Optional origin through which the LangSmith control plane reaches the external runtime's sandbox-host, usually the langsmith-sandbox chart's host ingress. Use an `https://` origin. Leave empty to call node IPs on port 19190 directly; that traffic is plain HTTP, so do this only on a private network you trust. No path or trailing slash. |
 | sandboxes.juicefs.bucket | string | `""` | Object storage bucket/root URL used by JuiceFS. For AWS S3, use a region-explicit endpoint such as `https://bucket-name.s3.us-west-2.amazonaws.com`; do not use the `s3://bucket-name` shorthand because JuiceFS then infers region with GetBucketLocation. For GCS, use `gs://bucket-name`. Use `sandboxes.juicefs.name` for JuiceFS volume isolation instead of deployment-specific bucket paths. |
 | sandboxes.juicefs.existingSecretName | string | `""` | Existing Secret containing JuiceFS config keys `name`, `metaurl`, `storage`, and `bucket`. For Azure Blob Storage, set `access-key` to the storage account name. Set `secret-key` only for account-key authentication. The formatter Job reads the Secret; sandbox-host receives only `metaurl`. When set, the chart does not create the config Secret and the corresponding values above are ignored. Rotate the Secret name to rerun formatting; roll sandbox-host after changing data in place. |
 | sandboxes.juicefs.hostMount.cacheDirs | list | `["/var/cache/juicefs"]` | Node host paths used for the JuiceFS cache. Each path is mounted into sandbox-host and combined into one JuiceFS cache-dir option. Back these paths with node-local storage; their contents survive pod rollouts on the same node but not node replacement. |
@@ -974,6 +1019,10 @@ The trajectory Service is cluster-internal; no public route is added. Trajectory
 | sandboxes.sandboxHost.name | string | `"sandbox-host"` | Component name for sandbox-host. Resources are named `<release-fullname>-<name>`, which the chart passes to the host as SANDBOX_HOST_DEPLOYMENT_NAME. |
 | sandboxes.sandboxHost.pdb | object | `{"annotations":{},"enabled":false,"labels":{},"maxUnavailable":1}` | Disruption budget for sandbox-host, capping concurrent evictions since each drain suspends every microVM on that host. maxUnavailable keeps a small pool drainable; setting minAvailable overrides it. |
 | sandboxes.sandboxHost.serviceAccount.annotations | object | `{}` | Annotations applied to the sandbox-host ServiceAccount. Attach the AWS IRSA, GCP Workload Identity, or Azure Workload Identity that grants access to the JuiceFS object-storage bucket here. |
+| sandboxes.serviceAuth.previousSecret | string | `""` | Previous sandbox service-auth secret, accepted alongside the current one during a rotation. Stored as `sandbox_service_auth_secret_previous` in the chart-managed Secret. With config.existingSecretName, use `previousSecretKey` instead. |
+| sandboxes.serviceAuth.previousSecretKey | string | `""` | Key in config.existingSecretName holding the previous sandbox service-auth secret during a rotation. Empty sets none. |
+| sandboxes.serviceAuth.secret | string | `""` | Sandbox service-auth secret (SANDBOX_X_SERVICE_AUTH_JWT_SECRET), which signs calls between the control plane and sandbox hosts. Stored as `sandbox_service_auth_secret` in the chart-managed Secret. Required with external.enabled, as a new random value different from `config.apiKeySalt`. With the embedded runtime, empty keeps today's value, `config.apiKeySalt`. With config.existingSecretName, put it in that Secret and set `secretKey` instead. |
+| sandboxes.serviceAuth.secretKey | string | `""` | Key in config.existingSecretName holding the sandbox service-auth secret. Empty uses `api_key_salt`, today's shared value, which an external runtime (external.enabled) does not allow; point it at a dedicated key to give sandboxes their own secret. Leave empty when the chart manages the Secret. |
 | sandboxes.serviceUrlBaseUrl | string | `""` | Base URL for reaching HTTP services inside sandboxes. Needs wildcard DNS and TLS for `*.<host>`; with ingress.enabled the chart adds the wildcard rule. http(s) origin only, no path. |
 | smithdb.cache.storageClassName | string | `""` | StorageClass for the generated SmithDB cache volumes. Empty uses the cluster default. A component's deployment.volumes replaces the generated volume. |
 | smithdb.clusterManager.containerGrpcPort | int | `8091` |  |
@@ -1639,7 +1688,7 @@ The trajectory Service is cluster-internal; no public route is added. Trajectory
 | config.agentBuilder.oauth.slackOAuthProvider | string | `""` |  |
 | config.agentBuilder.oauth.slackSigningSecret | string | `""` |  |
 | config.agentBuilder.oauthProviderOrgId | string | `""` |  |
-| config.agentMigration.enabled | bool | `false` | Migrate existing tracing projects and experiments to Agent Platform agents after upgrade. Requires authenticated auth (`authType` `mixed` or `oauth`) and runs on the existing ingest queue workers. |
+| config.agentMigration.enabled | bool | `true` | Migrate existing tracing projects and experiments to Agent Platform agents after upgrade. Runs on the existing ingest queue workers; installs with `authType` `none` skip it. Once it has run, do not downgrade to an app version from before the migration. |
 | config.apiKeySalt | string | `""` | Salt used to generate the API key. Should be a random string. |
 | config.authType | string | `""` | Must be 'oauth' for OAuth with PKCE, 'mixed' for basic auth or OAuth without PKCE |
 | config.basePath | string | `""` | Base path for the LangSmith installation. Used to serve the app under a subpath like example.com/langsmith. WARNING: Changing basePath after LangSmith Deployments have been created will break existing deployments. Existing deployments will need to be recreated for the new basePath to take effect. |
@@ -1667,9 +1716,10 @@ The trajectory Service is cluster-internal; no public route is added. Trajectory
 | config.customErrorSupportMessage | string | `""` | Custom error support message displayed on error pages (plain text). If empty, defaults to the built-in support messages linking to our Support Portal (https://support.langchain.com). |
 | config.customLogo | object | `{"coBrandingEnabled":true,"darkModeLogoUrl":"","enabled":false,"lightModeLogoUrl":"","logoUrl":""}` | Custom logo configuration. If enabled, set either logoUrl, or lightModeLogoUrl and darkModeLogoUrl to use a different logo per color scheme. Setting only one of the three uses it in both schemes. Each value is a URL to an image like png, jpg, or svg. Co-branding shows the LangSmith and customer logos side by side. |
 | config.defaultWorkspaceName | string | `"Workspace 1"` | Default workspace name to be provisioned when org is created. |
-| config.deployment | object | `{"basePath":"","enabled":false,"ingressHealthCheckEnabled":true,"scalingOverridesEnabled":false,"tlsEnabled":true,"uncappedResourcesEnabled":false}` | Configuration for LangSmith Deployments features |
+| config.deployment | object | `{"basePath":"","enabled":false,"extraManifestsEnabled":false,"ingressHealthCheckEnabled":true,"scalingOverridesEnabled":false,"tlsEnabled":true,"uncappedResourcesEnabled":false}` | Configuration for LangSmith Deployments features |
 | config.deployment.basePath | string | `""` | Base path for LangSmith Deployments routes managed by the operator. |
 | config.deployment.enabled | bool | `false` | Optional. Used to enable the LangSmith Deployments feature. Requires additional setup. Refer to the documentation for more information. |
+| config.deployment.extraManifestsEnabled | bool | `false` | Let standalone self-hosted deployments declare extra ServiceAccount and SecretProviderClass manifests. Requires coordinated supporting images and the LGP CRD; see the Extra manifests section. |
 | config.deployment.scalingOverridesEnabled | bool | `false` | Let users override LangSmith Deployment autoscaling CPU targets and scale-up/scale-down behavior. Opt-in for self-hosted. |
 | config.deployment.uncappedResourcesEnabled | bool | `false` | Lift the SaaS CPU/memory caps on LangSmith Deployment resource specs. Opt-in for self-hosted. |
 | config.disableSecretCreation | bool | `false` |  |

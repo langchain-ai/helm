@@ -201,13 +201,98 @@ AWS Marketplace Helm template verification).
 {{- end -}}
 {{- end -}}
 
+{{- /* langsmith-sandbox is a dependency only so the sandboxes/* templates can
+render through its shared templates. Enabling it here would add a second
+runtime to this install, with or without sandboxes.enabled. */ -}}
+{{- if ((index .Values "langsmith-sandbox" | default dict).sandboxHost | default dict).enabled -}}
+{{- fail "langsmith-sandbox.sandboxHost.enabled must stay false in the langsmith chart. Run sandboxes in this cluster with sandboxes.enabled, or install the langsmith-sandbox chart as its own release for a separate cluster." -}}
+{{- end -}}
 {{- /* Validate sandbox configuration */ -}}
 {{- if .Values.sandboxes.enabled -}}
+{{- /* The topology keys from before external: refuse them, so a values file that
+still sets them fails instead of deploying the embedded runtime next to an
+external one. */ -}}
+{{- if hasKey .Values.sandboxes "deploymentMode" -}}
+{{- fail "sandboxes.deploymentMode was replaced by sandboxes.external.enabled. Set sandboxes.external.enabled to true when the runtime is installed with the langsmith-sandbox chart, and remove sandboxes.deploymentMode." -}}
+{{- end -}}
+{{- if hasKey .Values.sandboxes "hostIngressEndpoint" -}}
+{{- fail "sandboxes.hostIngressEndpoint moved to sandboxes.external.hostIngressEndpoint." -}}
+{{- end -}}
+{{- $external := .Values.sandboxes.external.enabled -}}
+{{- if and $external (not .Values.config.hostname) -}}
+{{- fail "config.hostname is required when sandboxes.external.enabled is true so sandbox-host can reach the LangSmith API." -}}
+{{- end -}}
+{{- if and $external (regexMatch "^(?:[a-zA-Z][a-zA-Z0-9+.-]*://)?(?:localhost|127\\.0\\.0\\.1|\\[::1\\])(?::[0-9]+)?(?:/.*)?$" .Values.config.hostname) -}}
+{{- fail "config.hostname must be externally reachable when sandboxes.external.enabled is true." -}}
+{{- end -}}
+{{- if and $external (regexMatch "\\.svc(\\.[a-zA-Z0-9.-]+)?(:[0-9]+)?(/.*)?$" .Values.config.hostname) -}}
+{{- fail "config.hostname must not be an in-cluster service address when sandboxes.external.enabled is true." -}}
+{{- end -}}
+{{- $hostIngressEndpoint := .Values.sandboxes.external.hostIngressEndpoint | default "" -}}
+{{- if and $hostIngressEndpoint (not (regexMatch "^https?://[^/?#]+$" $hostIngressEndpoint)) -}}
+{{- fail "sandboxes.external.hostIngressEndpoint must be an http(s) origin without a path, query string, or fragment." -}}
+{{- end -}}
+{{- $sandboxClusterName := .Values.sandboxes.clusterName | default "" -}}
+{{- if and $sandboxClusterName (or (gt (len $sandboxClusterName) 63) (not (regexMatch "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$" $sandboxClusterName))) -}}
+{{- fail "sandboxes.clusterName must be a DNS label: up to 63 lowercase letters, digits or hyphens, starting and ending with a letter or digit." -}}
+{{- end -}}
+{{- $serviceUrlBaseUrl := .Values.sandboxes.serviceUrlBaseUrl | default "" -}}
+{{- if $serviceUrlBaseUrl -}}
+{{- if not (regexMatch "^https?://" $serviceUrlBaseUrl) -}}
+{{- fail "sandboxes.serviceUrlBaseUrl must start with http:// or https://." -}}
+{{- end -}}
+{{- if not (regexMatch "^https?://[^/?#]+$" $serviceUrlBaseUrl) -}}
+{{- fail "sandboxes.serviceUrlBaseUrl must not include a path, query string, or fragment." -}}
+{{- end -}}
+{{- $serviceUrlHost := regexReplaceAll "^https?://" $serviceUrlBaseUrl "" -}}
+{{- if and .Values.ingress.enabled (not (regexMatch "^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$" $serviceUrlHost)) -}}
+{{- fail "sandboxes.serviceUrlBaseUrl host must be a DNS hostname without a port when ingress.enabled is true." -}}
+{{- end -}}
+{{- end -}}
+{{- if and (not .Values.config.existingSecretName) (not .Values.config.disableSecretCreation) (not .Values.sandboxes.callbackSigningJwk) -}}
+{{- fail "sandboxes.callbackSigningJwk is required when sandboxes.enabled is true and the chart manages the LangSmith app Secret. When config.existingSecretName is set, add key sandbox_callback_signing_jwk to the existing Secret instead." -}}
+{{- end -}}
+{{- if and .Values.config.existingSecretName .Values.sandboxes.callbackSigningJwk -}}
+{{- fail "sandboxes.callbackSigningJwk cannot be used when config.existingSecretName is set. Add key sandbox_callback_signing_jwk to the existing Secret instead." -}}
+{{- end -}}
+{{- $sandboxServiceAuth := .Values.sandboxes.serviceAuth | default dict -}}
+{{- if or .Values.config.existingSecretName .Values.config.disableSecretCreation -}}
+{{- if or $sandboxServiceAuth.secret $sandboxServiceAuth.previousSecret -}}
+{{- fail "sandboxes.serviceAuth.secret and sandboxes.serviceAuth.previousSecret cannot be used with config.existingSecretName or config.disableSecretCreation. Add the values to your Secret and set sandboxes.serviceAuth.secretKey and sandboxes.serviceAuth.previousSecretKey." -}}
+{{- end -}}
+{{- else if or $sandboxServiceAuth.secretKey $sandboxServiceAuth.previousSecretKey -}}
+{{- fail "sandboxes.serviceAuth.secretKey and sandboxes.serviceAuth.previousSecretKey name keys in config.existingSecretName. With the chart-managed Secret, set sandboxes.serviceAuth.secret and sandboxes.serviceAuth.previousSecret instead." -}}
+{{- end -}}
+{{- /* A separate runtime cluster runs next to untrusted sandbox code, so it
+gets its own service-auth secret. api_key_salt also signs LangSmith's general
+service-to-service calls and must not leave this cluster. */ -}}
+{{- if $external -}}
+{{- if or .Values.config.existingSecretName .Values.config.disableSecretCreation -}}
+{{- $serviceAuthKey := $sandboxServiceAuth.secretKey | default "" | toString -}}
+{{- if or (not $serviceAuthKey) (eq $serviceAuthKey "api_key_salt") -}}
+{{- fail "sandboxes.external.enabled needs a dedicated sandbox service-auth secret. Add a new random value to config.existingSecretName under its own key, for example sandbox_service_auth_secret, and set sandboxes.serviceAuth.secretKey to that key. Do not use api_key_salt." -}}
+{{- end -}}
+{{- else -}}
+{{- $serviceAuthSecret := $sandboxServiceAuth.secret | default "" | toString -}}
+{{- if or (not $serviceAuthSecret) (eq $serviceAuthSecret (.Values.config.apiKeySalt | default "" | toString)) -}}
+{{- fail "sandboxes.external.enabled needs a dedicated sandbox service-auth secret. Set sandboxes.serviceAuth.secret to a new random value, different from config.apiKeySalt, and put the same value in the langsmith-sandbox release's Secret." -}}
+{{- end -}}
+{{- end -}}
+{{- end -}}
+{{- /* These configure sandbox-host, which this release does not render in
+an external runtime. Fail rather than accept settings that would do nothing. */ -}}
+{{- if $external -}}
+{{- $separateHttpProxy := ((.Values.sandboxes.authProxy | default dict).httpProxy) | default dict -}}
+{{- if or $separateHttpProxy.url $separateHttpProxy.noProxy -}}
+{{- fail "sandboxes.authProxy.httpProxy has no effect when sandboxes.external.enabled is true. Configure authProxy.httpProxy in the langsmith-sandbox chart instead." -}}
+{{- end -}}
+{{- if (.Values.sandboxes.juicefs.redis | default dict).iamAuthProvider -}}
+{{- fail "sandboxes.juicefs.redis.iamAuthProvider has no effect when sandboxes.external.enabled is true. Set juicefs.redis.iamAuthProvider in the langsmith-sandbox chart instead." -}}
+{{- end -}}
+{{- end -}}
+{{- if not $external -}}
 {{- if not .Values.images.sandboxHostImage.repository -}}
 {{- fail "images.sandboxHostImage.repository is required when sandboxes.enabled is true." -}}
-{{- end -}}
-{{- if not .Values.images.sandboxHostImage.tag -}}
-{{- fail "images.sandboxHostImage.tag is required when sandboxes.enabled is true." -}}
 {{- end -}}
 {{- /* The host needs netns, iptables and mount propagation. Fail here, not at CrashLoop. */ -}}
 {{- if and (hasKey .Values.sandboxes.sandboxHost.deployment.securityContext "privileged") (not .Values.sandboxes.sandboxHost.deployment.securityContext.privileged) -}}
@@ -226,19 +311,6 @@ AWS Marketplace Helm template verification).
 {{- end -}}
 {{- if lt (int $autoscaling.maxReplicas) (int $autoscaling.minReplicas) -}}
 {{- fail "sandboxes.sandboxHost.autoscaling.maxReplicas must be greater than or equal to minReplicas." -}}
-{{- end -}}
-{{- end -}}
-{{- $serviceUrlBaseUrl := .Values.sandboxes.serviceUrlBaseUrl | default "" -}}
-{{- if $serviceUrlBaseUrl -}}
-{{- if not (regexMatch "^https?://" $serviceUrlBaseUrl) -}}
-{{- fail "sandboxes.serviceUrlBaseUrl must start with http:// or https://." -}}
-{{- end -}}
-{{- if not (regexMatch "^https?://[^/?#]+$" $serviceUrlBaseUrl) -}}
-{{- fail "sandboxes.serviceUrlBaseUrl must not include a path, query string, or fragment." -}}
-{{- end -}}
-{{- $serviceUrlHost := regexReplaceAll "^https?://" $serviceUrlBaseUrl "" -}}
-{{- if and .Values.ingress.enabled (not (regexMatch "^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$" $serviceUrlHost)) -}}
-{{- fail "sandboxes.serviceUrlBaseUrl host must be a DNS hostname without a port when ingress.enabled is true." -}}
 {{- end -}}
 {{- end -}}
 {{- $httpProxy := ((.Values.sandboxes.authProxy | default dict).httpProxy) | default dict -}}
@@ -308,18 +380,13 @@ AWS Marketplace Helm template verification).
 {{- fail "sandboxes.juicefs.hostMount.mountOptions must not set --cache-dir; configure sandboxes.juicefs.hostMount.cacheDirs instead." -}}
 {{- end -}}
 {{- end -}}
-{{- if and (not .Values.config.existingSecretName) (not .Values.config.disableSecretCreation) (not .Values.sandboxes.callbackSigningJwk) -}}
-{{- fail "sandboxes.callbackSigningJwk is required when sandboxes.enabled is true and the chart manages the LangSmith app Secret. When config.existingSecretName is set, add key sandbox_callback_signing_jwk to the existing Secret instead." -}}
-{{- end -}}
-{{- if and .Values.config.existingSecretName .Values.sandboxes.callbackSigningJwk -}}
-{{- fail "sandboxes.callbackSigningJwk cannot be used when config.existingSecretName is set. Add key sandbox_callback_signing_jwk to the existing Secret instead." -}}
-{{- end -}}
 {{- $proxyCaMode := .Values.sandboxes.proxyCa.mode -}}
 {{- if not (or (eq $proxyCaMode "generatedSecret") (eq $proxyCaMode "existingSecret")) -}}
 {{- fail "sandboxes.proxyCa.mode must be one of generatedSecret or existingSecret." -}}
 {{- end -}}
 {{- if and (eq $proxyCaMode "existingSecret") (not .Values.sandboxes.proxyCa.existingSecretName) -}}
 {{- fail "sandboxes.proxyCa.existingSecretName is required when sandboxes.proxyCa.mode is existingSecret." -}}
+{{- end -}}
 {{- end -}}
 {{- end -}}
 

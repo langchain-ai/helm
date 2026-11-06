@@ -539,8 +539,12 @@ Template containing common environment variables that are used by several servic
   valueFrom:
     secretKeyRef:
       name: {{ include "langsmith.secretsName" . }}
-      key: api_key_salt
-      optional: {{ .Values.config.disableSecretCreation }}
+      key: {{ include "langsmith.sandboxes.serviceAuthSecretKey" . }}
+      {{- /* helm upgrade runs the pre-upgrade hook Jobs (backfill check, Postgres and
+      ClickHouse migrations), which render this env, before it updates the
+      chart-managed Secret. That Secret gains this key in this release, or when
+      sandboxes are turned on, so the hooks must not wait for it. */}}
+      optional: {{ or .Values.config.disableSecretCreation (not .Values.config.existingSecretName) }}
 {{- end }}
 {{- end }}
 
@@ -618,6 +622,7 @@ value: {{ required (printf "smithdb.%s cache volume requires requests.storage." 
 valueFrom:
   resourceFieldRef:
     resource: limits.ephemeral-storage
+    divisor: "0"
 {{- end -}}
 {{- end -}}
 {{- end -}}
@@ -870,7 +875,19 @@ Args: root, service, displayName.
 {{- if $root.Values.smithdb.enabled }}
 {{- $envVars = concat $envVars (include "langsmith.smithdb.clusterManagerClientEnv" (dict "root" $root "service" $service) | fromYamlArray) -}}
 {{- end }}
+{{- if eq $service "QUERY" }}
+{{- $envVars = concat $envVars (include "langsmith.smithdb.queryEnv" $root | fromYamlArray) -}}
+{{- end }}
 {{- toYaml $envVars }}
+{{- end }}
+
+{{/*
+Env the chart sets on every SmithDB query process, including the unified pod.
+Override in smithdb.commonEnv or a component's deployment.extraEnv.
+*/}}
+{{- define "langsmith.smithdb.queryEnv" -}}
+- name: SMITHDB_QUERY__MEMORY_ATTRIBUTION_ENABLED
+  value: "false"
 {{- end }}
 
 {{/*
@@ -1666,6 +1683,38 @@ Falls back to config.hostname when config.frontendHostname is unset.
 {{- $host := .Values.config.frontendHostname | default .Values.config.hostname -}}
 {{- if $host -}}
 {{- regexReplaceAll "^[a-zA-Z][a-zA-Z0-9+.-]*://" $host "" -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+The sandbox-host release this install deploys or expects: the host image tag.
+For version-skew reporting; unlike the backfill check's LANGSMITH_APP_VERSION
+(the chart appVersion), this follows a pinned host tag.
+*/}}
+{{- define "langsmith.sandboxes.hostImageTag" -}}
+{{- .Values.images.sandboxHostImage.tag | default .Chart.AppVersion -}}
+{{- end -}}
+
+{{/*
+Secret keys for the sandbox service-auth secret. The chart-managed Secret
+stores dedicated keys; an existing Secret keeps api_key_salt unless told
+otherwise, because a secretKeyRef cannot fall back to another key.
+*/}}
+{{- define "langsmith.sandboxes.serviceAuthSecretKey" -}}
+{{- $serviceAuth := .Values.sandboxes.serviceAuth | default dict -}}
+{{- if or .Values.config.existingSecretName .Values.config.disableSecretCreation -}}
+{{- $serviceAuth.secretKey | default "api_key_salt" -}}
+{{- else -}}
+sandbox_service_auth_secret
+{{- end -}}
+{{- end -}}
+
+{{- define "langsmith.sandboxes.serviceAuthPreviousSecretKey" -}}
+{{- $serviceAuth := .Values.sandboxes.serviceAuth | default dict -}}
+{{- if or .Values.config.existingSecretName .Values.config.disableSecretCreation -}}
+{{- $serviceAuth.previousSecretKey | default "" -}}
+{{- else if $serviceAuth.previousSecret -}}
+sandbox_service_auth_secret_previous
 {{- end -}}
 {{- end -}}
 

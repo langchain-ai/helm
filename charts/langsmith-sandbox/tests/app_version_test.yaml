@@ -1,0 +1,45 @@
+suite: sandbox-host release reporting
+templates:
+  - validate.yaml
+  - sandbox-host-deployment.yaml
+tests:
+  - it: should pass the host's release, its image tag, to sandbox-host
+    values:
+      - ./values/enabled.yaml
+    template: sandbox-host-deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: LANGSMITH_APP_VERSION
+            value: test-sandbox-host
+
+  - it: should report the chart appVersion when the image tag is empty
+    chart:
+      appVersion: 9.9.9-test
+    values:
+      - ./values/enabled.yaml
+    set:
+      images.sandboxHostImage.tag: ""
+    template: sandbox-host-deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: LANGSMITH_APP_VERSION
+            value: 9.9.9-test
+      - equal:
+          path: spec.template.spec.containers[0].image
+          value: example.com/langsmith/sandbox-host:9.9.9-test
+
+  - it: should reject an operator-set LANGSMITH_APP_VERSION
+    values:
+      - ./values/enabled.yaml
+    set:
+      sandboxHost.deployment.extraEnv:
+        - name: LANGSMITH_APP_VERSION
+          value: other
+    template: sandbox-host-deployment.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: "Duplicate keys detected: [LANGSMITH_APP_VERSION]"

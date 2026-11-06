@@ -1,0 +1,36 @@
+{{- if .Values.sandboxHost.enabled }}
+{{- $job := .Values.juicefsFormatJob }}
+{{- $customCa := and .Values.config.customCa.secretName .Values.config.customCa.secretKey }}
+{{- $env := list (dict "name" "LANGCHAIN_ENV" "value" "local_kubernetes") }}
+{{- with .Values.juicefs.redis.iamAuthProvider }}
+{{- $env = append $env (dict "name" "SANDBOX_HOST_JUICEFS_REDIS_IAM_AUTH_PROVIDER" "value" .) }}
+{{- end }}
+{{- /* Like sandbox-host, so the formatter verifies a Redis signed by a private CA. */}}
+{{- $mounts := list }}
+{{- $volumes := list }}
+{{- if $customCa }}
+{{- $env = append $env (dict "name" "SSL_CERT_FILE" "value" "/etc/ssl/certs/custom-ca-certificates.crt") }}
+{{- $mounts = list (dict "name" "langsmith-custom-ca" "mountPath" "/etc/ssl/certs/custom-ca-certificates.crt" "subPath" "ca-certificates.crt" "readOnly" true) }}
+{{- $volumes = list (dict "name" "langsmith-custom-ca" "secret" (dict "secretName" .Values.config.customCa.secretName "items" (list (dict "key" .Values.config.customCa.secretKey "path" "ca-certificates.crt")))) }}
+{{- end }}
+{{- include "langsmithSandbox.render.formatJob" (dict
+  "name" (include "langsmithSandbox.juicefsFormatJobName" .)
+  "namespace" (include "langsmithSandbox.namespace" .)
+  "labels" (mergeOverwrite (include "langsmithSandbox.labels" . | fromYaml) (dict "app.kubernetes.io/component" "juicefs-format"))
+  "annotations" (mergeOverwrite (dict "argocd.argoproj.io/sync-wave" "-1") (include "langsmithSandbox.annotations" . | fromYaml) (default dict $job.annotations))
+  "podAnnotations" (mergeOverwrite (include "langsmithSandbox.commonPodAnnotations" . | fromYaml) (default dict $job.annotations))
+  "podLabels" (mergeOverwrite (include "langsmithSandbox.workloadIdentity.podLabels" . | fromYaml) (deepCopy (default dict $job.labels)) (include "langsmithSandbox.selectorLabels" . | fromYaml) (dict "app.kubernetes.io/component" "juicefs-format"))
+  "serviceAccountName" (include "langsmithSandbox.serviceAccountName" .)
+  "hostNetwork" (eq ((.Values.workloadIdentity | default dict).provider | default "") "gcp")
+  "dnsConfig" (include "langsmithSandbox.dnsConfig" .)
+  "podSecurityContext" (include "langsmithSandbox.podSecurityContext" (dict "Values" .Values "componentSecurityContext" $job.podSecurityContext))
+  "image" (include "langsmithSandbox.image" .)
+  "pullPolicy" .Values.images.sandboxHostImage.pullPolicy
+  "pullSecrets" .Values.images.imagePullSecrets
+  "env" (toYaml $env)
+  "extraVolumeMounts" $mounts
+  "extraVolumes" $volumes
+  "juicefsConfigSecretName" (include "langsmithSandbox.juicefsConfigSecretName" .)
+  "job" $job
+  "sandboxHost" .Values.sandboxHost) }}
+{{- end }}

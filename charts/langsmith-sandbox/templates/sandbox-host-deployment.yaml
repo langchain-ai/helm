@@ -1,0 +1,71 @@
+{{- if .Values.sandboxHost.enabled }}
+{{- $managedEnv := list
+  (dict "name" "SANDBOX_X_SERVICE_AUTH_JWT_SECRET")
+  (dict "name" "LANGSMITH_SANDBOX_CALLBACK_SIGNING_JWK")
+  (dict "name" "LANGSMITH_SANDBOX_INTERNAL_ENDPOINT")
+  (dict "name" "LANGSMITH_APP_VERSION")
+  (dict "name" "SANDBOX_HOST_JUICEFS_META_URL_FILE")
+  (dict "name" "SANDBOX_HOST_JUICEFS_MOUNT_OPTIONS")
+  (dict "name" "SANDBOX_HOST_JUICEFS_REDIS_IAM_AUTH_PROVIDER")
+  (dict "name" "SANDBOX_EGRESS_UPSTREAM_PROXY_URL")
+  (dict "name" "SANDBOX_EGRESS_UPSTREAM_PROXY_NO_PROXY")
+-}}
+{{- if .Values.serviceAuth.previousSecretKey }}
+{{- $managedEnv = append $managedEnv (dict "name" "SANDBOX_X_SERVICE_AUTH_JWT_SECRET_PREVIOUS") }}
+{{- end }}
+{{- /* commonEnv joins the check so an operator-supplied var that collides with a
+managed one fails at render rather than silently winning by list order. */}}
+{{- include "langsmithSandbox.detectDuplicates" (concat $managedEnv .Values.commonEnv .Values.sandboxHost.deployment.extraEnv) }}
+{{- /* Later maps win: the workload-identity label yields to operator labels,
+which yield to the chart labels the selector depends on. */}}
+{{- $labels := mergeOverwrite (dict "app" .Values.sandboxHost.name)
+  (include "langsmithSandbox.workloadIdentity.podLabels" . | fromYaml)
+  (deepCopy (default dict .Values.sandboxHost.deployment.labels))
+  (include "langsmithSandbox.labels" . | fromYaml)
+  (dict "app.kubernetes.io/component" (include "langsmithSandbox.sandboxHostFullname" .)) }}
+{{- $customCa := and .Values.config.customCa.secretName .Values.config.customCa.secretKey }}
+{{- $customCaMounts := list }}
+{{- $customCaVolumes := list }}
+{{- if $customCa }}
+{{- $customCaMounts = list (dict "name" "langsmith-custom-ca" "mountPath" "/etc/ssl/certs/custom-ca-certificates.crt" "subPath" "ca-certificates.crt" "readOnly" true) }}
+{{- $customCaVolumes = list (dict "name" "langsmith-custom-ca" "secret" (dict "secretName" .Values.config.customCa.secretName "items" (list (dict "key" .Values.config.customCa.secretKey "path" "ca-certificates.crt")))) }}
+{{- end }}
+{{- $secretName := include "langsmithSandbox.serviceAuthSecretName" . }}
+{{- $previous := dict }}
+{{- with .Values.serviceAuth.previousSecretKey }}
+{{- $previous = dict "secretName" $secretName "key" . "optional" true }}
+{{- end }}
+{{- $name := include "langsmithSandbox.sandboxHostFullname" . }}
+{{- include "langsmithSandbox.render.hostDeployment" (dict
+  "name" $name
+  "namespace" (include "langsmithSandbox.namespace" .)
+  "labels" $labels
+  "podLabelsOmit" (list "helm.sh/chart")
+  "annotations" (mergeOverwrite (include "langsmithSandbox.annotations" . | fromYaml) (default dict .Values.sandboxHost.deployment.annotations))
+  "selectorLabels" (mergeOverwrite (include "langsmithSandbox.selectorLabels" . | fromYaml) (dict "app.kubernetes.io/component" $name))
+  "podAnnotations" (mergeOverwrite (include "langsmithSandbox.commonPodAnnotations" . | fromYaml) (dict "checksum/juicefs-config" (include "langsmithSandbox.juicefsConfigSecretChecksum" .)) (default dict .Values.sandboxHost.deployment.podAnnotations))
+  "podSecurityContext" (include "langsmithSandbox.podSecurityContext" (dict "Values" .Values "componentSecurityContext" .Values.sandboxHost.deployment.podSecurityContext))
+  "dnsConfig" (include "langsmithSandbox.dnsConfig" .)
+  "serviceAccountName" (include "langsmithSandbox.serviceAccountName" .)
+  "image" (include "langsmithSandbox.image" .)
+  "pullPolicy" .Values.images.sandboxHostImage.pullPolicy
+  "pullSecrets" .Values.images.imagePullSecrets
+  "initContainers" (concat .Values.commonInitContainers .Values.sandboxHost.deployment.initContainers)
+  "env" (dict
+    "appVersion" (include "langsmithSandbox.imageTag" .)
+    "serviceAuth" (dict "secretName" $secretName "key" .Values.serviceAuth.secretKey)
+    "previousServiceAuth" $previous
+    "sslCertFile" $customCa
+    "callbackJwk" (dict "secretName" $secretName "key" .Values.config.callbackSigningJwkSecretKey)
+    "oauthIssuer" (.Values.config.callbackIssuer | default .Values.config.endpoint)
+    "egressProxy" (dict "secretName" $secretName "key" .Values.authProxy.httpProxy.urlSecretKey "noProxy" .Values.authProxy.httpProxy.noProxy)
+    "internalEndpoint" .Values.config.endpoint
+    "deploymentName" $name
+    "extra" (concat .Values.commonEnv .Values.sandboxHost.deployment.extraEnv))
+  "extraVolumeMounts" (concat $customCaMounts .Values.commonVolumeMounts .Values.sandboxHost.deployment.volumeMounts)
+  "extraVolumes" (concat $customCaVolumes .Values.commonVolumes .Values.sandboxHost.deployment.volumes)
+  "juicefsConfigSecretName" (include "langsmithSandbox.juicefsConfigSecretName" .)
+  "proxyCaSecretName" (include "langsmithSandbox.proxyCaSecretName" .)
+  "sandboxHost" .Values.sandboxHost
+  "juicefs" .Values.juicefs) }}
+{{- end }}

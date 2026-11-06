@@ -1,0 +1,17 @@
+# Only the ServiceAccount renders here: the formatter Job and the Secrets still
+# hard-code their waves, so a commonAnnotations wave duplicates the key on them.
+suite: sandbox runtime Argo CD sync waves
+templates:
+  - sandbox-host-service-account.yaml
+tests:
+  # helm-unittest rejects duplicate keys, so this also catches a double emission.
+  - it: should keep a sync-wave set in commonAnnotations on the ServiceAccount
+    values:
+      - ./values/enabled.yaml
+    set:
+      commonAnnotations:
+        argocd.argoproj.io/sync-wave: "-3"
+    asserts:
+      - equal:
+          path: metadata.annotations["argocd.argoproj.io/sync-wave"]
+          value: "-3"

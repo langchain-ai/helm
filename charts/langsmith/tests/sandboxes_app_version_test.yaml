@@ -1,0 +1,108 @@
+suite: sandbox host release on the control plane
+templates:
+  - validate.yaml
+  - config-map.yaml
+  - secrets.yaml
+  - redis/secrets.yaml
+  - postgres/secrets.yaml
+  - clickhouse/secrets.yaml
+  - frontend/config-map.yaml
+  - backend/deployment.yaml
+  - platform-backend/deployment.yaml
+  - ingest-queue/deployment.yaml
+  - sandboxes/sandbox-host-deployment.yaml
+tests:
+  - it: should tell platform-backend and sandbox-host the host release
+    values:
+      - ./values/sandboxes-enabled.yaml
+    templates:
+      - platform-backend/deployment.yaml
+      - sandboxes/sandbox-host-deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: LANGSMITH_APP_VERSION
+            value: test-sandbox-host
+
+  # Only platform-backend compares releases; LANGSMITH_* variables also end up
+  # in trace metadata from Python services, so keep it off the shared env.
+  - it: should not set LANGSMITH_APP_VERSION on other services
+    values:
+      - ./values/sandboxes-enabled.yaml
+    templates:
+      - backend/deployment.yaml
+      - ingest-queue/deployment.yaml
+    asserts:
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: LANGSMITH_APP_VERSION
+          any: true
+
+  # Lets the runtime-skew warning name the setting to change.
+  - it: should tell platform-backend the sandbox deployment mode
+    values:
+      - ./values/sandboxes-enabled.yaml
+    template: platform-backend/deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_DEPLOYMENT_MODE
+            value: sameCluster
+
+  - it: should report a separate cluster to platform-backend
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      sandboxes.external.enabled: true
+      sandboxes.serviceAuth.secretKey: sandbox_service_auth_secret
+      config.hostname: langsmith.example.com
+    template: platform-backend/deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SANDBOX_DEPLOYMENT_MODE
+            value: separateCluster
+
+  - it: should fall back to the chart appVersion when the host tag is empty
+    chart:
+      appVersion: 9.9.9-test
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      images.sandboxHostImage.tag: ""
+    template: platform-backend/deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: LANGSMITH_APP_VERSION
+            value: 9.9.9-test
+
+  - it: should not set LANGSMITH_APP_VERSION when sandboxes are disabled
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      sandboxes.enabled: false
+    template: platform-backend/deployment.yaml
+    asserts:
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: LANGSMITH_APP_VERSION
+          any: true
+
+  - it: should reject an operator-set LANGSMITH_APP_VERSION on sandbox-host
+    values:
+      - ./values/sandboxes-enabled.yaml
+    set:
+      sandboxes.sandboxHost.deployment.extraEnv:
+        - name: LANGSMITH_APP_VERSION
+          value: other
+    template: sandboxes/sandbox-host-deployment.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: "Duplicate keys detected: [LANGSMITH_APP_VERSION]"

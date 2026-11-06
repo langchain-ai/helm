@@ -1,0 +1,7 @@
+{{- if and .Values.sandboxHost.enabled (eq .Values.proxyCa.mode "generatedSecret") }}
+{{- include "langsmithSandbox.render.proxyCa" (dict
+  "name" (include "langsmithSandbox.proxyCaSecretName" .)
+  "namespace" (include "langsmithSandbox.namespace" .)
+  "labels" (include "langsmithSandbox.labels" . | fromYaml)
+  "annotations" (mergeOverwrite (dict "argocd.argoproj.io/sync-wave" "-2") (include "langsmithSandbox.annotations" . | fromYaml))) }}
+{{- end }}

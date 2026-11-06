@@ -1,0 +1,145 @@
+{{- if .Values.sandboxHost.enabled -}}
+{{- if not .Values.config.endpoint -}}
+{{- fail "config.endpoint is required when sandboxHost.enabled is true." -}}
+{{- end -}}
+{{- if not (regexMatch "^https?://[^/?#]+(?:/[^?#]*)?$" .Values.config.endpoint) -}}
+{{- fail "config.endpoint must be an absolute HTTP(S) URL without a query string or fragment." -}}
+{{- end -}}
+{{- if not (regexMatch "/api/?$" .Values.config.endpoint) -}}
+{{- fail "config.endpoint must include the externally reachable LangSmith /api prefix." -}}
+{{- end -}}
+{{- $callbackIssuer := .Values.config.callbackIssuer | default .Values.config.endpoint -}}
+{{- if not (regexMatch "^https?://[^/?#]+(?:/[^?#]*)?$" $callbackIssuer) -}}
+{{- fail "config.callbackIssuer must be an absolute HTTP(S) URL without a query string or fragment." -}}
+{{- end -}}
+{{- if not .Values.config.existingSecretName -}}
+{{- fail "config.existingSecretName is required when sandboxHost.enabled is true." -}}
+{{- end -}}
+{{- if not .Values.serviceAuth.secretKey -}}
+{{- fail "serviceAuth.secretKey is required when sandboxHost.enabled is true." -}}
+{{- end -}}
+{{- if not .Values.config.callbackSigningJwkSecretKey -}}
+{{- fail "config.callbackSigningJwkSecretKey is required when sandboxHost.enabled is true." -}}
+{{- end -}}
+{{- if not .Values.images.sandboxHostImage.repository -}}
+{{- fail "images.sandboxHostImage.repository is required when sandboxHost.enabled is true." -}}
+{{- end -}}
+{{- if and (hasKey .Values.sandboxHost.deployment.securityContext "privileged") (not .Values.sandboxHost.deployment.securityContext.privileged) -}}
+{{- fail "sandboxHost.deployment.securityContext.privileged must be true: sandbox-host manages microVMs, network namespaces and mounts." -}}
+{{- end -}}
+{{- if .Values.sandboxHost.deployment.securityContext.readOnlyRootFilesystem -}}
+{{- fail "sandboxHost.deployment.securityContext.readOnlyRootFilesystem must not be true: sandbox-host unpacks the guest tools image on startup." -}}
+{{- end -}}
+{{- if not .Values.sandboxHost.deployment.nodeSelector -}}
+{{- fail "sandboxHost.deployment.nodeSelector is required: sandbox-host must be pinned to KVM-capable nodes." -}}
+{{- end -}}
+{{- $autoscaling := .Values.sandboxHost.autoscaling -}}
+{{- if $autoscaling.enabled -}}
+{{- if lt (int $autoscaling.minReplicas) 1 -}}
+{{- fail "sandboxHost.autoscaling.minReplicas must be at least 1." -}}
+{{- end -}}
+{{- if lt (int $autoscaling.maxReplicas) (int $autoscaling.minReplicas) -}}
+{{- fail "sandboxHost.autoscaling.maxReplicas must be greater than or equal to minReplicas." -}}
+{{- end -}}
+{{- end -}}
+{{- $juicefsRedisIamAuthProvider := toString (.Values.juicefs.redis.iamAuthProvider | default "") -}}
+{{- if not (has $juicefsRedisIamAuthProvider (list "" "azure" "gcp")) -}}
+{{- fail (printf "juicefs.redis.iamAuthProvider %q is not supported. Valid values are \"\", \"azure\" and \"gcp\"." $juicefsRedisIamAuthProvider) -}}
+{{- end -}}
+{{- $workloadIdentity := .Values.workloadIdentity | default dict -}}
+{{- $workloadIdentityProvider := toString ($workloadIdentity.provider | default "") -}}
+{{- if not (has $workloadIdentityProvider (list "" "aws" "gcp" "azure")) -}}
+{{- fail (printf "workloadIdentity.provider %q is not supported. Valid values are \"\", \"aws\", \"gcp\" and \"azure\"." $workloadIdentityProvider) -}}
+{{- end -}}
+{{- $workloadIdentityAws := $workloadIdentity.aws | default dict -}}
+{{- $workloadIdentityAzure := $workloadIdentity.azure | default dict -}}
+{{- if and (eq $workloadIdentityProvider "aws") (not $workloadIdentityAws.roleArn) -}}
+{{- fail "workloadIdentity.aws.roleArn is required when workloadIdentity.provider is aws." -}}
+{{- end -}}
+{{- if and (eq $workloadIdentityProvider "azure") (not $workloadIdentityAzure.clientId) -}}
+{{- fail "workloadIdentity.azure.clientId is required when workloadIdentity.provider is azure." -}}
+{{- end -}}
+{{- if and $workloadIdentityAws.roleArn (ne $workloadIdentityProvider "aws") -}}
+{{- fail "workloadIdentity.aws.roleArn is set but workloadIdentity.provider is not aws. Remove it, or set the provider to aws." -}}
+{{- end -}}
+{{- if and (or $workloadIdentityAzure.clientId $workloadIdentityAzure.tenantId) (ne $workloadIdentityProvider "azure") -}}
+{{- fail "workloadIdentity.azure is set but workloadIdentity.provider is not azure. Remove it, or set the provider to azure." -}}
+{{- end -}}
+{{- if and $juicefsRedisIamAuthProvider (ne $juicefsRedisIamAuthProvider $workloadIdentityProvider) -}}
+{{- fail (printf "juicefs.redis.iamAuthProvider %q needs workloadIdentity.provider %q, which gives sandbox-host and the JuiceFS formatter the cloud identity that Redis IAM authentication uses." $juicefsRedisIamAuthProvider $juicefsRedisIamAuthProvider) -}}
+{{- end -}}
+{{- /* A URL kept in juicefs.existingSecretName cannot be inspected here. */ -}}
+{{- $juicefsMetaURL := .Values.juicefs.redis.metaURL | default "" -}}
+{{- if and $juicefsRedisIamAuthProvider (not .Values.juicefs.existingSecretName) $juicefsMetaURL -}}
+{{- if and (eq $juicefsRedisIamAuthProvider "azure") (not (hasPrefix "rediss://" $juicefsMetaURL)) -}}
+{{- fail "juicefs.redis.metaURL must use rediss:// when juicefs.redis.iamAuthProvider is azure." -}}
+{{- end -}}
+{{- if regexMatch "^[a-zA-Z][a-zA-Z0-9+.-]*://[^/@]*:[^/@]*@" $juicefsMetaURL -}}
+{{- fail "juicefs.redis.metaURL must not contain a password when juicefs.redis.iamAuthProvider is set; the IAM token replaces it." -}}
+{{- end -}}
+{{- end -}}
+{{- if not .Values.authProxy.httpProxy.urlSecretKey -}}
+{{- fail "authProxy.httpProxy.urlSecretKey is required when sandboxHost.enabled is true." -}}
+{{- end -}}
+{{- if not .Values.juicefs.existingSecretName -}}
+{{- if not .Values.juicefs.redis.metaURL -}}
+{{- fail "juicefs.redis.metaURL is required when juicefs.existingSecretName is not set." -}}
+{{- end -}}
+{{- if not .Values.juicefs.name -}}
+{{- fail "juicefs.name is required when juicefs.existingSecretName is not set." -}}
+{{- end -}}
+{{- if not (regexMatch "^[a-z0-9][a-z0-9-]{1,61}[a-z0-9]$" .Values.juicefs.name) -}}
+{{- fail "juicefs.name must be a DNS-label-style name containing 3-63 lowercase letters, numbers, or hyphens." -}}
+{{- end -}}
+{{- if not .Values.juicefs.bucket -}}
+{{- fail "juicefs.bucket is required when juicefs.existingSecretName is not set." -}}
+{{- end -}}
+{{- if not (or (eq .Values.juicefs.storage "s3") (eq .Values.juicefs.storage "gs") (eq .Values.juicefs.storage "wasb")) -}}
+{{- fail "juicefs.storage supports only s3, gs, or wasb." -}}
+{{- end -}}
+{{- if and (eq .Values.juicefs.storage "wasb") (not .Values.juicefs.storageAccountName) -}}
+{{- fail "juicefs.storageAccountName is required when juicefs.storage is wasb." -}}
+{{- end -}}
+{{- if and (eq .Values.juicefs.storage "s3") (not (regexMatch "^https?://" .Values.juicefs.bucket)) -}}
+{{- fail "juicefs.bucket must use a region-explicit HTTP(S) S3 endpoint when juicefs.storage is s3." -}}
+{{- end -}}
+{{- end -}}
+{{- if not .Values.juicefs.hostMount.cacheDirs -}}
+{{- fail "juicefs.hostMount.cacheDirs must contain at least one node host path." -}}
+{{- end -}}
+{{- $cacheDirsSeen := dict -}}
+{{- range $cacheDir := .Values.juicefs.hostMount.cacheDirs -}}
+{{- if not (kindIs "string" $cacheDir) -}}
+{{- fail "juicefs.hostMount.cacheDirs entries must be strings." -}}
+{{- end -}}
+{{- if or (eq $cacheDir "/") (not (hasPrefix "/" $cacheDir)) (ne (clean $cacheDir) $cacheDir) (contains ":" $cacheDir) -}}
+{{- fail (printf "juicefs.hostMount.cacheDirs entry %q must be a normalized absolute path other than / and must not contain ':'." $cacheDir) -}}
+{{- end -}}
+{{- if hasKey $cacheDirsSeen $cacheDir -}}
+{{- fail (printf "juicefs.hostMount.cacheDirs contains duplicate path %q." $cacheDir) -}}
+{{- end -}}
+{{- $_ := set $cacheDirsSeen $cacheDir true -}}
+{{- end -}}
+{{- range $mountOption := .Values.juicefs.hostMount.mountOptions -}}
+{{- if regexMatch "^--cache-dir($|=)" $mountOption -}}
+{{- fail "juicefs.hostMount.mountOptions must not set --cache-dir; configure juicefs.hostMount.cacheDirs instead." -}}
+{{- end -}}
+{{- end -}}
+{{- if not (or (eq .Values.proxyCa.mode "generatedSecret") (eq .Values.proxyCa.mode "existingSecret")) -}}
+{{- fail "proxyCa.mode must be one of generatedSecret or existingSecret." -}}
+{{- end -}}
+{{- if and (eq .Values.proxyCa.mode "existingSecret") (not .Values.proxyCa.existingSecretName) -}}
+{{- fail "proxyCa.existingSecretName is required when proxyCa.mode is existingSecret." -}}
+{{- end -}}
+{{- if ne (empty .Values.config.customCa.secretName) (empty .Values.config.customCa.secretKey) -}}
+{{- fail "config.customCa.secretName and config.customCa.secretKey must be set together." -}}
+{{- end -}}
+{{- if .Values.sandboxHost.ingress.enabled -}}
+{{- if not .Values.sandboxHost.ingress.hostname -}}
+{{- fail "sandboxHost.ingress.hostname is required when sandboxHost.ingress.enabled is true." -}}
+{{- end -}}
+{{- if not (regexMatch "^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$" .Values.sandboxHost.ingress.hostname) -}}
+{{- fail "sandboxHost.ingress.hostname must be a DNS hostname without a scheme, port, or path." -}}
+{{- end -}}
+{{- end -}}
+{{- end -}}
