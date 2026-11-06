@@ -100,6 +100,13 @@ data:
   SMITHDB_CLUSTER_MANAGER_URL: {{ include "langsmith.smithdb.grpcServiceUrl" (dict "root" . "component" "clusterManager" "port" .Values.smithdb.clusterManager.service.port) | quote }}
   {{- end }}
   SMITHDB_UPGRADE_CRON_ENABLED: "true"
+  {{- if not .Values.clickhouse.enabled }}
+  # Without ClickHouse, only these copy the attachments of traces upgraded by
+  # the cron to the long-lived prefix, and serve the copy once the short-lived
+  # file expires.
+  SMITHDB_UPGRADE_ATTACHMENT_COPY_ENABLED: "true"
+  RUN_ATTACHMENT_READ_FALLBACK_ENABLED: "true"
+  {{- end }}
   SMITHDB_QUERY_SERVICE_MAX_CALL_RECV_MSG_SIZE: "1073741824"
   SMITHDB_FEEDBACK_MUTATION_RPS_PER_KEY: "100"
   SMITHDB_FEEDBACK_MUTATION_BURST_PER_KEY: "150"

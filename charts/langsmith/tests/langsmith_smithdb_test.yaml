@@ -979,6 +979,24 @@ tests:
       - equal:
           path: data.RUN_RULES_QUERY_LIMIT
           value: "250"
+      - notExists:
+          path: data.SMITHDB_UPGRADE_ATTACHMENT_COPY_ENABLED
+      - notExists:
+          path: data.RUN_ATTACHMENT_READ_FALLBACK_ENABLED
+
+  - it: should copy and read upgraded attachments when SmithDB is the only run store
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      clickhouse.enabled: false
+    template: config-map.yaml
+    asserts:
+      - equal:
+          path: data.SMITHDB_UPGRADE_ATTACHMENT_COPY_ENABLED
+          value: "true"
+      - equal:
+          path: data.RUN_ATTACHMENT_READ_FALLBACK_ENABLED
+          value: "true"
 
   - it: should configure SmithDB ingestion without SmithDB query endpoints
     values:
@@ -1059,6 +1077,8 @@ tests:
           path: data.SMITHDB_CLUSTER_MANAGER_URL
       - notExists:
           path: data.SMITHDB_UPGRADE_CRON_ENABLED
+      - notExists:
+          path: data.SMITHDB_UPGRADE_ATTACHMENT_COPY_ENABLED
       - notExists:
           path: data.SMITHDB_QUERY_SERVICE_MAX_CALL_RECV_MSG_SIZE
       - notExists:
