@@ -193,6 +193,22 @@ dnsConfig:
 {{- end -}}
 
 {{/*
+Allowed long-lived days as JSON. Fails at render time on values the backend refuses at startup.
+*/}}
+{{- define "langsmith.longlivedAllowedDays" -}}
+{{- $days := .Values.config.ttl.longlivedAllowedDays -}}
+{{- if gt (len $days) 10 -}}
+{{- fail "config.ttl.longlivedAllowedDays accepts at most 10 values" -}}
+{{- end -}}
+{{- range $days -}}
+{{- if lt (int .) 14 -}}
+{{- fail (printf "config.ttl.longlivedAllowedDays: %v is below the 14-day minimum" .) -}}
+{{- end -}}
+{{- end -}}
+{{- toJson $days -}}
+{{- end -}}
+
+{{/*
 Template containing common environment variables that are used by several services.
 */}}
 {{- define "langsmith.commonEnv" -}}
@@ -393,6 +409,10 @@ Template containing common environment variables that are used by several servic
   value: "true"
 - name: TRACE_TIER_TTL_DURATION_SEC_MAP
   value: "{ \"longlived\": {{ .Values.config.ttl.ttl_period_seconds.longlived }}, \"shortlived\": {{ .Values.config.ttl.ttl_period_seconds.shortlived }} }"
+{{- if .Values.config.ttl.longlivedAllowedDays }}
+- name: LONGLIVED_TTL_ALLOWED_DAYS
+  value: {{ include "langsmith.longlivedAllowedDays" . | quote }}
+{{- end }}
 {{- end }}
 {{- if .Values.config.workspaceScopeOrgInvitesEnabled }}
 - name: FF_WORKSPACE_SCOPE_ORG_INVITES_ENABLED
