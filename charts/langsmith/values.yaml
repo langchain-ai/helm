@@ -2207,18 +2207,17 @@ smithdb:
       priorityClassName: ""
       labels: {}
       annotations: {}
-      podSecurityContext: {}
+      podSecurityContext:
+        fsGroup: 1001
       securityContext: {}
       terminationGracePeriodSeconds: 120
       resources:
         requests:
           cpu: "8"
           memory: "32Gi"
-          ephemeral-storage: "100Gi"
         limits:
           cpu: "8"
           memory: "32Gi"
-          ephemeral-storage: "100Gi"
       # -- Runs taskdb schema migrations, then one-shot self-hosted migrate-all: discover tenants,
       # -- register non-overlapping jobs, drain the global queue, and exit. Override for another migration mode.
       command:
@@ -2235,7 +2234,9 @@ smithdb:
       affinity: {}
       topologySpreadConstraints: []
       volumes: []
-      volumeMounts: []
+      volumeMounts:
+        - name: cache
+          mountPath: /tmp
       initContainers: []
     taskdb:
       postgres:
