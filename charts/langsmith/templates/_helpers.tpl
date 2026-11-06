@@ -958,6 +958,10 @@ Args: root, service, displayName.
   value: {{ $root.Values.smithdb.config.objectStore.bucket | quote }}
 - name: {{ $prefix }}__OBJECT_STORE__GCS__ROOT_FOLDER
   value: {{ $objectStoreRootFolder | quote }}
+{{- with $root.Values.smithdb.config.objectStore.gcs.endpoint }}
+- name: GOOGLE_BASE_URL
+  value: {{ trimSuffix "/" . | quote }}
+{{- end }}
 {{- else if eq $objectStoreType "azure" }}
 - name: {{ $prefix }}__OBJECT_STORE__AZURE__CONTAINER
   value: {{ $root.Values.smithdb.config.objectStore.bucket | quote }}
