@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.18.0-rc.58](https://img.shields.io/badge/Version-0.18.0--rc.58-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.18.20rc1](https://img.shields.io/badge/AppVersion-0.18.20rc1-informational?style=flat-square)
+![Version: 0.18.0-rc.59](https://img.shields.io/badge/Version-0.18.0--rc.59-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.18.20rc1](https://img.shields.io/badge/AppVersion-0.18.20rc1-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -1189,6 +1189,7 @@ The operator deletes removed objects only after the deployment's rollout complet
 | smithdb.config.objectStore.azure.allowHttp | bool | `false` | Allow plain HTTP for endpoint overrides, such as local emulators. |
 | smithdb.config.objectStore.azure.endpoint | string | `""` | Optional Azure Blob service endpoint override. |
 | smithdb.config.objectStore.bucket | string | `""` |  |
+| smithdb.config.objectStore.gcs.endpoint | string | `""` | Optional GCS endpoint override, such as a sovereign cloud storage endpoint. A trailing slash is removed. |
 | smithdb.config.objectStore.s3.accessKeyIdSecretKey | string | `""` | Keys in smithdb.config.existingSecretName for static S3 credentials. Set both to "" when using ambient cloud identity, such as IRSA. |
 | smithdb.config.objectStore.s3.endpoint | string | `""` |  |
 | smithdb.config.objectStore.s3.kmsEncryptionEnabled | bool | `false` | Send SSE-KMS encryption headers on S3 writes. Same semantics as config.blobStorage.kmsEncryptionEnabled. |

@@ -1515,6 +1515,9 @@ smithdb:
         kmsEncryptionEnabled: false
         # -- KMS key ARN for SSE-KMS. When empty, S3 encrypts with the AWS managed aws/s3 key, not the bucket default key.
         kmsKeyArn: ""
+      gcs:
+        # -- Optional GCS endpoint override, such as a sovereign cloud storage endpoint. A trailing slash is removed.
+        endpoint: ""
       azure:
         # -- Azure Storage account name. Required when type is azure.
         accountName: ""
