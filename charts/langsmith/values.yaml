@@ -337,6 +337,13 @@ fleet:
     salesforceOAuthProvider: ""
     slackSigningSecret: ""
     slackBotId: ""
+  agentAccessToken:
+    # -- Give Fleet's pods signed agent access tokens. Each pod trades its Kubernetes service account token for short-lived tokens that name the agent and the user. Needs `config.hostname`. See the Fleet agent access tokens section.
+    enabled: false
+    # -- JSON Web Key Set with the RSA private key that signs agent access tokens. Stored in the chart-managed Secret as `agent_access_token_signing_jwks`. With `config.existingSecretName` or `config.disableSecretCreation`, add that key to your Secret instead.
+    signingJwks: ""
+    # -- Audience that your egress gateway checks in agent access tokens. Optional.
+    egressAudience: ""
   apiServer:
     name: "api-server"
     containerPort: 8000
@@ -3256,6 +3263,11 @@ platformBackend:
     labels: {}
     annotations: {}
     automountServiceAccountToken: true
+  rbac:
+    # -- Create the ClusterRole and ClusterRoleBinding that let platform-backend check Fleet's pod tokens: create TokenReviews and read the cluster's service account keys. Used only with `fleet.agentAccessToken.enabled`. Set to false to grant that access yourself.
+    create: true
+    labels: {}
+    annotations: {}
 
 operator:
   name: "operator"

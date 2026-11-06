@@ -67,6 +67,23 @@
       key: sandbox_callback_signing_jwk
       optional: true
 {{- end }}
+{{- if eq (include "langsmith.fleet.agentAccessTokenEnabled" .) "true" }}
+- name: AGENT_ACCESS_TOKEN_SIGNING_JWKS
+  valueFrom:
+    secretKeyRef:
+      name: {{ include "langsmith.secretsName" . }}
+      key: agent_access_token_signing_jwks
+- name: AGENT_ACCESS_TOKEN_FLEET_DEPLOYMENT_IDS
+  value: {{ include "langsmith.fleet.deploymentId" . | quote }}
+- name: AGENT_ACCESS_TOKEN_FLEET_SERVICE_ACCOUNTS
+  value: {{ include "langsmith.fleet.agentAccessTokenServiceAccounts" . | quote }}
+- name: AGENT_ACCESS_TOKEN_POD_TOKEN_REVIEW_ENABLED
+  value: "true"
+{{- with .Values.fleet.agentAccessToken.egressAudience }}
+- name: AGENT_ACCESS_TOKEN_EGRESS_AUDIENCES
+  value: {{ . | quote }}
+{{- end }}
+{{- end }}
 {{- end -}}
 {{- $envVars := concat .Values.commonEnv (include "langsmith.commonEnv" . | fromYamlArray) (include "platformBackendEnvVars" . | fromYamlArray) .Values.platformBackend.deployment.extraEnv -}}
 {{- include "langsmith.detectDuplicates" $envVars -}}

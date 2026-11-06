@@ -739,6 +739,36 @@ an external runtime. Fail rather than accept settings that would do nothing. */ 
 {{- fail (printf "%s.autoscaling.enabled is deprecated. Please use %s.autoscaling.hpa.enabled and/or %s.autoscaling.keda.enabled instead." $serviceName $serviceName $serviceName) -}}
 {{- end -}}
 {{- end -}}
+{{- if eq (include "langsmith.fleet.agentAccessTokenEnabled" .) "true" -}}
+{{- $signingJwks := .Values.fleet.agentAccessToken.signingJwks -}}
+{{- $chartManagesSecret := not (or .Values.config.existingSecretName .Values.config.disableSecretCreation) -}}
+{{- if not .Values.config.hostname -}}
+{{- fail "config.hostname is required when fleet.agentAccessToken.enabled is true." -}}
+{{- end -}}
+{{- if and $chartManagesSecret (not $signingJwks) -}}
+{{- fail "fleet.agentAccessToken.signingJwks is required when fleet.agentAccessToken.enabled is true and the chart manages the LangSmith app Secret. With config.existingSecretName or config.disableSecretCreation, add key agent_access_token_signing_jwks to your Secret instead." -}}
+{{- end -}}
+{{- if and (not $chartManagesSecret) $signingJwks -}}
+{{- fail "fleet.agentAccessToken.signingJwks cannot be used with config.existingSecretName or config.disableSecretCreation. Add key agent_access_token_signing_jwks to your Secret instead." -}}
+{{- end -}}
+{{- with $signingJwks -}}
+{{- $keys := (fromJson .).keys -}}
+{{- if not (and (kindIs "slice" $keys) $keys) -}}
+{{- fail "fleet.agentAccessToken.signingJwks must be a JSON Web Key Set: a JSON object with a keys list." -}}
+{{- end -}}
+{{- end -}}
+{{- range $component, $name := include "langsmith.fleet.serviceAccountNames" . | fromYaml -}}
+{{- if eq $name "default" -}}
+{{- fail (printf "fleet.agentAccessToken.enabled needs a service account of its own for each Fleet pod. Set fleet.%s.serviceAccount.create to true, or set fleet.%s.serviceAccount.name." $component $component) -}}
+{{- end -}}
+{{- end -}}
+{{- if and .Values.platformBackend.rbac.create (eq (include "platformBackend.serviceAccountName" .) "default") -}}
+{{- fail "fleet.agentAccessToken.enabled needs a service account of its own for platform-backend, because the chart grants it cluster access to review pod tokens. Set platformBackend.serviceAccount.create to true, set platformBackend.serviceAccount.name, or set platformBackend.rbac.create to false and grant that access yourself." -}}
+{{- end -}}
+{{- if not .Values.platformBackend.serviceAccount.automountServiceAccountToken -}}
+{{- fail "fleet.agentAccessToken.enabled requires platformBackend.serviceAccount.automountServiceAccountToken to be true: platform-backend calls the Kubernetes API to check Fleet's pod tokens." -}}
+{{- end -}}
+{{- end -}}
 
 {{- end -}}{{- /* end skipValidation */ -}}
 
