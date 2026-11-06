@@ -4,6 +4,7 @@ templates:
   - agent-features/fleet/queue/deployment.yaml
   - agent-features/fleet/tool-server/deployment.yaml
   - agent-features/fleet/trigger-server/deployment.yaml
+  - backend/deployment.yaml
   - secrets.yaml
 set:
   config.skipValidation: true
@@ -79,6 +80,15 @@ tests:
       - contains:
           path: spec.template.spec.containers[0].env
           content:
+            name: HTTPS_PROXY
+            valueFrom:
+              secretKeyRef:
+                name: RELEASE-NAME-langsmith-secrets
+                key: fleet_egress_proxy_url
+        template: backend/deployment.yaml
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
             name: NO_PROXY
             value: localhost,127.0.0.1,.svc.cluster.local,git.corp.internal,.corp.internal
         template: agent-features/fleet/api-server/deployment.yaml
@@ -86,6 +96,18 @@ tests:
           path: data.fleet_egress_proxy_url
           value: aHR0cDovL3N2Yy11c2VyOnAlNDBzc0Bwcm94eS5jb3JwLmludGVybmFsOjMxMjg=
         template: secrets.yaml
+
+  - it: should leave the backend's egress alone when Fleet is disabled
+    set:
+      fleet.enabled: false
+      fleet.egressProxy.url: http://proxy.corp.internal:3128
+    template: backend/deployment.yaml
+    asserts:
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: HTTPS_PROXY
+          any: true
 
   - it: should not store a proxy URL in the chart-managed secret by default
     template: secrets.yaml

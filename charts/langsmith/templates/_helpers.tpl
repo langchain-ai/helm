@@ -1533,7 +1533,7 @@ fleet_egress_proxy_url
 {{- end -}}
 
 {{/*
-Proxy env for the Fleet runtime, tool server and trigger server pods. With config.customCa, the clients that ignore SSL_CERT_FILE (requests and httplib2) get the same bundle.
+Proxy env for the Fleet runtime, tool server, trigger server and backend pods. With config.customCa, the clients that ignore SSL_CERT_FILE (requests and httplib2) get the same bundle.
 */}}
 {{- define "langsmith.fleet.egressProxyEnv" -}}
 {{- $key := include "langsmith.fleet.egressProxySecretKey" . -}}

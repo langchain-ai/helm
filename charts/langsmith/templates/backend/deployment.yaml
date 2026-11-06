@@ -21,6 +21,11 @@
 - name: CLIO_ASSISTANT_ID
   value: "insights"
 {{- end }}
+{{- if or .Values.fleet.enabled .Values.config.agentBuilder.enabled }}
+{{- with include "langsmith.fleet.egressProxyEnv" . }}
+{{ . }}
+{{- end }}
+{{- end }}
 {{- end -}}
 {{- $envVars := concat .Values.commonEnv (include "langsmith.commonEnv" . | fromYamlArray) (include "backendEnvVars" . | fromYamlArray) .Values.backend.deployment.extraEnv -}}
 {{- include "langsmith.detectDuplicates" $envVars -}}

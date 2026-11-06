@@ -326,7 +326,7 @@ fleet:
   namePrefix: "standalone-fleet"
   enableTracing: true
   encryptionKey: ""
-  # -- Route Fleet's HTTPS egress (agent runtime, tool server and trigger server) through a corporate HTTP forward proxy, such as one that inspects TLS, by setting HTTPS_PROXY and NO_PROXY on those pods. Plain HTTP, which includes every in-cluster call, stays direct. For a TLS-inspecting proxy, also set config.customCa to a bundle with its CA; the pods then trust that bundle for every HTTP client.
+  # -- Route Fleet's HTTPS egress through a corporate HTTP forward proxy, such as one that inspects TLS, by setting HTTPS_PROXY and NO_PROXY on the agent runtime, tool server and trigger server, and on the LangSmith backend, which fetches custom MCP servers' tools for Fleet; all of the backend's HTTPS egress then uses the proxy. Plain HTTP, which includes every in-cluster call, stays direct. For a TLS-inspecting proxy, also set config.customCa to a bundle with its CA; the pods then trust that bundle for every HTTP client.
   egressProxy:
     # -- Proxy URL, `http://host:port`. For Basic proxy authentication use `http://user:password@host:port`, percent-encoding reserved characters. Empty sends Fleet egress directly. Stored in the LangSmith app Secret as `fleet_egress_proxy_url`. With config.existingSecretName or config.disableSecretCreation, put it in your Secret and set `secretKey` instead.
     url: ""
