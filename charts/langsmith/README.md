@@ -1762,7 +1762,7 @@ The operator deletes removed objects only after the deployment's rollout complet
 | config.telemetry.traces | bool | `true` |  |
 | config.ttl | object | `{"enabled":true,"longlivedAllowedDays":[],"perProjectRetention":{"enabled":true},"ttl_period_seconds":{"longlived":"34560000","shortlived":"1209600"}}` | TTL configuration Optional. Used to set TTLS for longlived and shortlived objects. |
 | config.ttl.longlivedAllowedDays | list | `[]` | Long-lived retention options in days, for SmithDB-only installs. Empty keeps the default options (30 to 400, up to ttl_period_seconds.longlived). At most 10 values, each at least 14. Every value is offered, also above ttl_period_seconds.longlived, which stays the default. Create a bucket lifecycle rule for each ttl_<N>d/ prefix, or blobs under it never expire. |
-| config.ttl.perProjectRetention.enabled | bool | `true` | Let users set an extended retention period per tracing project, from the same options as workspaces, and run the job that repairs project periods in SmithDB. Set to false to turn per-project retention off. Requires LangSmith v0.18.0 or later. |
+| config.ttl.perProjectRetention.enabled | bool | `true` | Per-project extended retention, on by default. Set to false to turn it off. |
 | config.ttl.ttl_period_seconds.longlived | string | `"34560000"` | 400 day longlived and 14 day shortlived |
 | config.userOrgCreationDisabled | bool | `true` | Prevent organization creation by users. This includes admins. |
 | config.workspaceScopeOrgInvitesEnabled | bool | `false` | Enable Workspace Admins to invite users to the org and workspace. |
