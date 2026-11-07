@@ -6,6 +6,11 @@ templates:
   - agent-features/fleet/trigger-server/deployment.yaml
   - backend/deployment.yaml
   - secrets.yaml
+  - config-map.yaml
+  - frontend/config-map.yaml
+  - redis/secrets.yaml
+  - postgres/secrets.yaml
+  - clickhouse/secrets.yaml
 set:
   config.skipValidation: true
   fleet.enabled: true
