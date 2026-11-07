@@ -1,3 +1,4 @@
+{{- include "langGraphCloud.validateApiExposure" . -}}
 {{- $volumes := concat .Values.commonVolumes .Values.apiServer.deployment.volumes -}}
 {{- $volumeMounts := concat .Values.commonVolumeMounts .Values.apiServer.deployment.volumeMounts -}}
 {{- $checkpointerEnv := include "langGraphCloud.checkpointerEnv" . -}}
