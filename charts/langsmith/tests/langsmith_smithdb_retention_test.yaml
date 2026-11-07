@@ -151,3 +151,41 @@ tests:
     asserts:
       - failedTemplate:
           errorPattern: "at most 10 values"
+
+  - it: should turn on per-project retention and its SmithDB sync job by default
+    values:
+      - ./values/smithdb-enabled.yaml
+    template: backend/deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: FF_PER_PROJECT_RETENTION_ENABLED
+            value: "true"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: PROJECT_TTL_SMITHDB_SYNC_ENABLED
+            value: "true"
+
+  - it: should turn per-project retention off when disabled
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      config.ttl.perProjectRetention.enabled: false
+    template: backend/deployment.yaml
+    asserts:
+      - notExists:
+          path: spec.template.spec.containers[0].env[?(@.name == "FF_PER_PROJECT_RETENTION_ENABLED")]
+      - notExists:
+          path: spec.template.spec.containers[0].env[?(@.name == "PROJECT_TTL_SMITHDB_SYNC_ENABLED")]
+
+  - it: should not turn on per-project retention when TTL is off
+    values:
+      - ./values/smithdb-enabled.yaml
+    set:
+      config.ttl.enabled: false
+    template: backend/deployment.yaml
+    asserts:
+      - notExists:
+          path: spec.template.spec.containers[0].env[?(@.name == "FF_PER_PROJECT_RETENTION_ENABLED")]

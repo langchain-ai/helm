@@ -1238,6 +1238,11 @@ config:
     # Every value is offered, also above ttl_period_seconds.longlived, which stays the default.
     # Create a bucket lifecycle rule for each ttl_<N>d/ prefix, or blobs under it never expire.
     longlivedAllowedDays: []
+    perProjectRetention:
+      # -- Let users set an extended retention period per tracing project, from the same options as
+      # workspaces, and run the job that repairs project periods in SmithDB. Set to false to turn
+      # per-project retention off. Requires LangSmith v0.18.0 or later.
+      enabled: true
 
   # Blob storage configuration
   # Optional. Used to store inputs, outputs, and errors in Blob Storage.
