@@ -21,7 +21,7 @@
 - name: CLIO_ASSISTANT_ID
   value: "insights"
 {{- end }}
-{{- if or .Values.fleet.enabled .Values.config.agentBuilder.enabled }}
+{{- if and (or .Values.fleet.enabled .Values.config.agentBuilder.enabled) (.Values.fleet.egressProxy | default dict).includeBackend }}
 {{- with include "langsmith.fleet.egressProxyEnv" . }}
 {{ . }}
 {{- end }}

@@ -1533,12 +1533,16 @@ fleet_egress_proxy_url
 {{- end -}}
 
 {{/*
-Proxy env for the Fleet runtime, tool server, trigger server and backend pods. With config.customCa, the clients that ignore SSL_CERT_FILE (requests and httplib2) get the same bundle.
+Proxy env for the Fleet runtime, tool server and trigger server pods, and the backend with fleet.egressProxy.includeBackend. With config.customCa, the clients that ignore SSL_CERT_FILE (requests and httplib2) get the same bundle.
 */}}
 {{- define "langsmith.fleet.egressProxyEnv" -}}
 {{- $key := include "langsmith.fleet.egressProxySecretKey" . -}}
 {{- if $key -}}
-{{- $noProxy := concat (list "localhost" "127.0.0.1" (printf ".svc.%s" .Values.clusterDomain)) ((.Values.fleet.egressProxy | default dict).noProxy | default list) -}}
+{{- $noProxy := list "localhost" "127.0.0.1" (printf ".svc.%s" .Values.clusterDomain) -}}
+{{- if .Values.config.hostname -}}
+{{- $noProxy = append $noProxy (urlParse (include "langsmith.hostnameWithProtocol" .)).hostname -}}
+{{- end -}}
+{{- $noProxy = concat $noProxy ((.Values.fleet.egressProxy | default dict).noProxy | default list) -}}
 - name: HTTPS_PROXY
   valueFrom:
     secretKeyRef:
