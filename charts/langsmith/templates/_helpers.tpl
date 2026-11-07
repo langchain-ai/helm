@@ -1516,7 +1516,47 @@ Extra env vars for fleet api-server and queue pods.
 {{- if $feature.enableTracing }}
 {{- $out = append $out (dict "name" "TENANT_AWARE_TRACING_ENABLED" "value" "true") }}
 {{- end }}
+{{- $out = concat $out (include "langsmith.fleet.egressProxyEnv" $root | fromYamlArray) }}
 {{- toYaml $out }}
+{{- end -}}
+
+{{/*
+Key in the LangSmith app Secret holding fleet.egressProxy's URL; empty when no proxy is configured.
+*/}}
+{{- define "langsmith.fleet.egressProxySecretKey" -}}
+{{- $proxy := .Values.fleet.egressProxy | default dict -}}
+{{- if or .Values.config.existingSecretName .Values.config.disableSecretCreation -}}
+{{- $proxy.secretKey -}}
+{{- else if $proxy.url -}}
+fleet_egress_proxy_url
+{{- end -}}
+{{- end -}}
+
+{{/*
+Proxy env for the Fleet runtime, tool server and trigger server pods, and the backend with fleet.egressProxy.includeBackend. With config.customCa, the clients that ignore SSL_CERT_FILE (requests and httplib2) get the same bundle.
+*/}}
+{{- define "langsmith.fleet.egressProxyEnv" -}}
+{{- $key := include "langsmith.fleet.egressProxySecretKey" . -}}
+{{- if $key -}}
+{{- $noProxy := list "localhost" "127.0.0.1" (printf ".svc.%s" .Values.clusterDomain) -}}
+{{- if .Values.config.hostname -}}
+{{- $noProxy = append $noProxy (urlParse (include "langsmith.hostnameWithProtocol" .)).hostname -}}
+{{- end -}}
+{{- $noProxy = concat $noProxy ((.Values.fleet.egressProxy | default dict).noProxy | default list) -}}
+- name: HTTPS_PROXY
+  valueFrom:
+    secretKeyRef:
+      name: {{ include "langsmith.secretsName" . }}
+      key: {{ $key }}
+- name: NO_PROXY
+  value: {{ join "," $noProxy | quote }}
+{{- if and .Values.config.customCa.secretName .Values.config.customCa.secretKey }}
+- name: REQUESTS_CA_BUNDLE
+  value: /etc/ssl/certs/custom-ca-certificates.crt
+- name: HTTPLIB2_CA_CERTS
+  value: /etc/ssl/certs/custom-ca-certificates.crt
+{{- end }}
+{{- end -}}
 {{- end -}}
 
 {{/*
@@ -1992,6 +2032,9 @@ Served through the frontend at /mcp (or /<basePath>/mcp).
 - name: "PORT"
   value: "{{ .Values.fleetToolServer.containerPort }}"
 {{- include "agentBuilderOAuthEnvVars" . }}
+{{- with include "langsmith.fleet.egressProxyEnv" . }}
+{{ . }}
+{{- end }}
 {{- end -}}
 
 {{- define "fleetTriggerServerEnvVars" -}}
@@ -2024,6 +2067,9 @@ Served through the frontend at /mcp (or /<basePath>/mcp).
 {{- if $slackBotId }}
 - name: "AGENT_BUILDER_SLACK_BOT_ID"
   value: {{ $slackBotId | quote }}
+{{- end }}
+{{- with include "langsmith.fleet.egressProxyEnv" . }}
+{{ . }}
 {{- end }}
 {{- end -}}
 

@@ -1,6 +1,6 @@
 # langsmith
 
-![Version: 0.18.0-rc.61](https://img.shields.io/badge/Version-0.18.0--rc.61-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.18.20rc1](https://img.shields.io/badge/AppVersion-0.18.20rc1-informational?style=flat-square)
+![Version: 0.18.0-rc.62](https://img.shields.io/badge/Version-0.18.0--rc.62-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.18.20rc1](https://img.shields.io/badge/AppVersion-0.18.20rc1-informational?style=flat-square)
 
 Helm chart to deploy the langsmith application and all services it depends on.
 
@@ -380,6 +380,11 @@ The operator deletes removed objects only after the deployment's rollout complet
 | fleet.apiServer.serviceAccount.create | bool | `true` |  |
 | fleet.apiServer.serviceAccount.labels | object | `{}` |  |
 | fleet.apiServer.serviceAccount.name | string | `""` |  |
+| fleet.egressProxy | object | `{"includeBackend":false,"noProxy":[],"secretKey":"","url":""}` | Route Fleet's HTTPS egress (agent runtime, tool server and trigger server) through a corporate HTTP forward proxy, such as one that inspects TLS, by setting HTTPS_PROXY and NO_PROXY on those pods. Plain HTTP, which includes every in-cluster call, stays direct. For a TLS-inspecting proxy, also set config.customCa to a bundle with its CA; the pods then trust that bundle for every HTTP client. |
+| fleet.egressProxy.includeBackend | bool | `false` | Also route the LangSmith backend's HTTPS egress through the proxy. Fleet's custom MCP tool discovery runs there, so set this when those servers are reachable only through the proxy. It covers all of the backend's HTTPS traffic, such as blob storage and OIDC, so list any hosts the proxy can't reach in noProxy. |
+| fleet.egressProxy.noProxy | list | `[]` | Destinations dialed directly instead of through the proxy: host names, domain suffixes (".internal.corp" matches its subdomains) and IP addresses. CIDR ranges are not supported. `localhost`, `127.0.0.1`, `.svc.<clusterDomain>` and the host in config.hostname are always included. |
+| fleet.egressProxy.secretKey | string | `""` | Key in config.existingSecretName holding the proxy URL. Leave empty when the chart manages the Secret. |
+| fleet.egressProxy.url | string | `""` | Proxy URL, `http://host:port`. For Basic proxy authentication use `http://user:password@host:port`, percent-encoding reserved characters. Empty sends Fleet egress directly. Stored in the LangSmith app Secret as `fleet_egress_proxy_url`. With config.existingSecretName or config.disableSecretCreation, put it in your Secret and set `secretKey` instead. |
 | fleet.enableTracing | bool | `true` |  |
 | fleet.enabled | bool | `false` |  |
 | fleet.encryptionKey | string | `""` |  |
