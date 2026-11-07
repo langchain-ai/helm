@@ -7,6 +7,9 @@
 - name: TRAJECTORY_GRPC_PORT
   value: "8086"
 {{- end }}
+# Tool Gateway (managed tools) is served in-process by the platform backend.
+- name: MANAGED_TOOLS_EMBEDDED
+  value: "true"
 {{- with .Values.config.basePath }}
 - name: DOCS_PREFIX
   value: /{{ . }}/api
